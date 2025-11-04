@@ -1,0 +1,93 @@
+[gd_scene load_steps=9 format=3 uid="uid://coxiqy2uc4cou"]
+
+[ext_resource type="PackedScene" uid="uid://bqxn3k8r2vme1" path="res://scenes/battlefield/battlefield.tscn" id="1_battlefield"]
+[ext_resource type="Script" uid="uid://bh2somo1kd66" path="res://scripts/core/game_controller.gd" id="2_game_controller"]
+[ext_resource type="Script" uid="uid://dxuvbqfw4juwt" path="res://scripts/core/summoner.gd" id="3_summoner"]
+[ext_resource type="Script" uid="uid://pvurqohx5fjd" path="res://scripts/cards/card.gd" id="4_75405"]
+[ext_resource type="Script" uid="uid://buwk0u38u574j" path="res://scripts/core/simple_ai.gd" id="4_ai"]
+[ext_resource type="Resource" path="res://resources/cards/warrior_card.tres" id="5_ugy22"]
+[ext_resource type="Script" uid="uid://er3rhu64om6j" path="res://scripts/ui/game_ui.gd" id="5_ui"]
+[ext_resource type="Script" uid="uid://bw75v3ykwts7e" path="res://scripts/core/player_input.gd" id="6_pjcp8"]
+
+[node name="TestGame" type="Node2D"]
+script = ExtResource("2_game_controller")
+
+[node name="Battlefield" parent="." instance=ExtResource("1_battlefield")]
+
+[node name="PlayerSummoner" type="Node2D" parent="." groups=["player_summoners", "summoners"]]
+position = Vector2(960, 1020)
+script = ExtResource("3_summoner")
+starting_deck = Array[ExtResource("4_75405")]([ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22")])
+
+[node name="PlayerInput" type="Node" parent="PlayerSummoner"]
+script = ExtResource("6_pjcp8")
+
+[node name="EnemySummoner" type="Node2D" parent="." groups=["enemy_summoners", "summoners"]]
+position = Vector2(960, 60)
+script = ExtResource("3_summoner")
+team = 1
+starting_deck = Array[ExtResource("4_75405")]([ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22")])
+
+[node name="SimpleAI" type="Node" parent="EnemySummoner"]
+script = ExtResource("4_ai")
+play_interval_min = 3.0
+play_interval_max = 6.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(960, 540)
+
+[node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource("5_ui")
+
+[node name="TimerLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 32
+text = "03:00"
+
+[node name="PlayerManaLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 1000.0
+offset_right = 200.0
+offset_bottom = 1040.0
+theme_override_font_sizes/font_size = 24
+text = "Mana: 10/10"
+
+[node name="PlayerHPLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 960.0
+offset_right = 200.0
+offset_bottom = 990.0
+theme_override_font_sizes/font_size = 20
+text = "HP: 1000/1000"
+
+[node name="GameOverLabel" type="Label" parent="UI"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 72
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InstructionsLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 500.0
+offset_bottom = 200.0
+theme_override_font_sizes/font_size = 16
+text = "Instructions:
+Click to spawn units (needs implementation)
+Enemy AI will spawn units automatically
+Destroy enemy base to win!"
