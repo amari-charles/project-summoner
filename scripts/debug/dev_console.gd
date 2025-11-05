@@ -1,5 +1,5 @@
 extends Node
-class_name DevConsole
+# DevConsole is registered as an autoload, no class_name needed
 
 ## Dev Console - Debug Commands for Testing Save System
 ##

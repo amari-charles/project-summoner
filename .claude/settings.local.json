@@ -28,7 +28,11 @@
       "Bash(identify:*)",
       "Bash(unzip:*)",
       "Bash(python:*)",
-      "WebFetch(domain:www.gdquest.com)"
+      "WebFetch(domain:www.gdquest.com)",
+      "Bash(cat:*)",
+      "Bash(godot:*)",
+      "Bash(where:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

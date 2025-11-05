@@ -1,5 +1,5 @@
 extends Node
-class_name EconomyService
+# EconomyService is registered as autoload "Economy", no class_name needed
 
 ## Economy Service - Resource Management
 ##

@@ -1,5 +1,5 @@
 extends Node
-class_name DeckService
+# DeckService is registered as autoload "Decks", no class_name needed
 
 ## Deck Service - Deck Management
 ##

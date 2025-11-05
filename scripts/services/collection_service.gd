@@ -1,5 +1,5 @@
 extends Node
-class_name CollectionService
+# CollectionService is registered as autoload "Collection", no class_name needed
 
 ## Collection Service - Card Management
 ##
