@@ -15,7 +15,7 @@ extends Node
 ## Emits signals for reactive UI updates.
 
 ## Constants
-const MIN_DECK_SIZE = 30  # Minimum cards required in a deck
+const MIN_DECK_SIZE = 0  # No minimum - decks can be any size
 const MAX_DECK_SIZE = 30  # Maximum cards allowed in a deck
 
 ## Signals

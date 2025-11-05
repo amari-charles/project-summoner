@@ -152,27 +152,28 @@ func _refresh_collection() -> void:
 	for child in collection_grid.get_children():
 		child.queue_free()
 
-	# Create card widgets
+	# Create card widgets - show each instance individually
+	var total_widgets = 0
 	for entry in collection_summary:
-		var catalog_id = entry.catalog_id
-		var count = entry.count
 		var instances = entry.instances
-		var catalog_data = catalog.get_card(catalog_id)
+		var catalog_data = catalog.get_card(entry.catalog_id)
 
 		if catalog_data.is_empty():
 			continue
 
-		# Create widget
-		var widget = CardWidgetScene.instantiate()
-		collection_grid.add_child(widget)
+		# Create a widget for EACH individual card instance
+		for card_data in instances:
+			var widget = CardWidgetScene.instantiate()
+			collection_grid.add_child(widget)
 
-		# Set card data
-		var card_data = instances[0] if instances.size() > 0 else {}
-		widget.set_card(card_data, catalog_data)
-		widget.set_count(count, true)
-		widget.set_draggable(true)  # Enable drag from collection
+			# Set card data (individual instance, no count badge)
+			widget.set_card(card_data, catalog_data)
+			widget.set_count(1, false)  # Don't show count badge
+			widget.set_draggable(true)  # Enable drag from collection
 
-	print("DeckBuilder: Loaded %d unique cards in collection" % collection_summary.size())
+			total_widgets += 1
+
+	print("DeckBuilder: Loaded %d individual cards in collection" % total_widgets)
 
 ## =============================================================================
 ## DECK DISPLAY
@@ -188,47 +189,34 @@ func _refresh_deck_display() -> void:
 	for child in deck_grid.get_children():
 		child.queue_free()
 
-	# Group deck cards by catalog_id for display
-	var grouped_cards = {}
+	# Show each card instance individually
 	for card_instance_id in deck_card_ids:
 		var card_data = collection.get_card(card_instance_id)
 		if card_data.is_empty():
 			continue
 
 		var catalog_id = card_data.get("catalog_id", "")
-		if not grouped_cards.has(catalog_id):
-			grouped_cards[catalog_id] = {
-				"instances": [],
-				"catalog_data": catalog.get_card(catalog_id)
-			}
-		grouped_cards[catalog_id].instances.append(card_data)
-
-	# Create card widgets
-	for catalog_id in grouped_cards:
-		var group = grouped_cards[catalog_id]
-		var instances = group.instances
-		var catalog_data = group.catalog_data
+		var catalog_data = catalog.get_card(catalog_id)
 
 		if catalog_data.is_empty():
 			continue
 
-		# Create widget
+		# Create widget for this individual instance
 		var widget = CardWidgetScene.instantiate()
 		deck_grid.add_child(widget)
 
-		# Set card data
-		var card_data = instances[0] if instances.size() > 0 else {}
+		# Set card data (individual instance, no count badge)
 		widget.set_card(card_data, catalog_data)
-		widget.set_count(instances.size(), true)
+		widget.set_count(1, false)  # Don't show count badge
 		widget.set_draggable(false)  # No drag within deck
 
-		# Connect click to remove
-		widget.card_clicked.connect(_on_deck_card_clicked.bind(catalog_id))
+		# Connect click to remove (pass specific instance ID)
+		widget.card_clicked.connect(_on_deck_card_instance_clicked.bind(card_instance_id))
 
 	# Update card count
 	card_count_label.text = "%d / 30" % deck_card_ids.size()
 
-	print("DeckBuilder: Displaying deck with %d cards" % deck_card_ids.size())
+	print("DeckBuilder: Displaying deck with %d individual cards" % deck_card_ids.size())
 
 ## =============================================================================
 ## DRAG AND DROP
@@ -283,18 +271,9 @@ func _add_card_to_deck(card_instance_id: String) -> void:
 ## DECK EDITING
 ## =============================================================================
 
-func _on_deck_card_clicked(catalog_id: String) -> void:
-	# Remove one instance of this card from deck
-	var collection = get_node("/root/Collection")
-	if not collection:
-		return
-
-	# Find first matching card instance in deck
-	for card_instance_id in deck_card_ids:
-		var card_data = collection.get_card(card_instance_id)
-		if card_data.get("catalog_id") == catalog_id:
-			_remove_card_from_deck(card_instance_id)
-			return
+func _on_deck_card_instance_clicked(card_instance_id: String) -> void:
+	# Remove this specific card instance from deck
+	_remove_card_from_deck(card_instance_id)
 
 func _remove_card_from_deck(card_instance_id: String) -> void:
 	if current_deck_id == "":

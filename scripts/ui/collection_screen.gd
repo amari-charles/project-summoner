@@ -125,27 +125,29 @@ func _refresh_grid() -> void:
 
 		filtered_cards.append(entry)
 
-	# Create card widgets
+	# Create card widgets - show each instance individually
+	var total_widgets = 0
 	for entry in filtered_cards:
-		var catalog_id = entry.catalog_id
-		var count = entry.count
 		var instances = entry.instances
-		var catalog_data = catalog.get_card(catalog_id)
+		var catalog_data = catalog.get_card(entry.catalog_id)
 
-		# Create widget
-		var widget = CardWidgetScene.instantiate()
-		card_grid.add_child(widget)
+		# Create a widget for EACH individual card instance
+		for card_data in instances:
+			var widget = CardWidgetScene.instantiate()
+			card_grid.add_child(widget)
 
-		# Set card data (use first instance as representative)
-		var card_data = instances[0] if instances.size() > 0 else {}
-		widget.set_card(card_data, catalog_data)
-		widget.set_count(count, true)
-		widget.set_draggable(false)
+			# Set card data (individual instance, no count badge)
+			widget.set_card(card_data, catalog_data)
+			widget.set_count(1, false)  # Don't show count badge
+			widget.set_draggable(false)
 
-		# Connect selection
-		widget.card_clicked.connect(_on_card_selected.bind(catalog_id))
+			# Connect selection (pass instance ID, not catalog ID)
+			var instance_id = card_data.get("id", "")
+			widget.card_clicked.connect(_on_card_instance_selected.bind(instance_id, entry.catalog_id))
 
-	print("CollectionScreen: Showing %d cards" % filtered_cards.size())
+			total_widgets += 1
+
+	print("CollectionScreen: Showing %d individual cards" % total_widgets)
 
 ## =============================================================================
 ## FILTERING
@@ -181,7 +183,7 @@ func _update_filter_button_states() -> void:
 ## CARD SELECTION
 ## =============================================================================
 
-func _on_card_selected(catalog_id: String) -> void:
+func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void:
 	selected_catalog_id = catalog_id
 
 	var catalog = get_node("/root/CardCatalog")
@@ -202,7 +204,7 @@ func _on_card_selected(catalog_id: String) -> void:
 	cost_label.text = "Cost: %d Mana" % catalog_data.get("mana_cost", 0)
 	description_label.text = catalog_data.get("description", "No description.")
 
-	# Get count from collection summary
+	# Get count of this card type from collection summary
 	var count = 0
 	for entry in collection_summary:
 		if entry.catalog_id == catalog_id:
@@ -211,7 +213,12 @@ func _on_card_selected(catalog_id: String) -> void:
 
 	owned_label.text = "Owned: %d" % count
 
-	print("CollectionScreen: Selected card: %s" % catalog_id)
+	# TODO: Future - show individual stat rolls here
+	# var collection = get_node("/root/Collection")
+	# var instance_data = collection.get_card(instance_id)
+	# Show instance_data.roll_json stats
+
+	print("CollectionScreen: Selected card instance: %s (%s)" % [instance_id, catalog_id])
 
 ## =============================================================================
 ## NAVIGATION
