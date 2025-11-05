@@ -9,6 +9,7 @@ class_name CardWidget
 
 ## Signals
 signal card_clicked(card_data: Dictionary)
+signal card_held(card_data: Dictionary)
 
 ## Card data
 var card_data: Dictionary = {}
@@ -16,6 +17,10 @@ var catalog_data: Dictionary = {}
 var show_count: bool = false
 var count: int = 1
 var draggable: bool = false
+
+## Hold detection
+var hold_timer: Timer = null
+const HOLD_DURATION = 0.5  # seconds
 
 ## Node references
 @onready var type_icon: Label = %TypeIcon
@@ -36,6 +41,12 @@ const RARITY_COLORS = {
 ## =============================================================================
 
 func _ready() -> void:
+	# Create hold timer
+	hold_timer = Timer.new()
+	hold_timer.one_shot = true
+	hold_timer.timeout.connect(_on_hold_timeout)
+	add_child(hold_timer)
+
 	# Connect mouse signals
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -130,10 +141,28 @@ func _on_mouse_exited() -> void:
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 
+	# Cancel hold if mouse leaves
+	if hold_timer and hold_timer.time_left > 0:
+		hold_timer.stop()
+
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			card_clicked.emit(card_data)
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			# Mouse button pressed - start hold timer
+			if hold_timer:
+				hold_timer.start(HOLD_DURATION)
+		else:
+			# Mouse button released
+			if hold_timer and hold_timer.time_left > 0:
+				# Released before hold duration - it's a quick click
+				hold_timer.stop()
+				card_clicked.emit(card_data)
+			# If timer expired, card_held was already emitted
+
+func _on_hold_timeout() -> void:
+	# Hold duration reached - emit held signal
+	card_held.emit(card_data)
+	print("CardWidget: Card held")
 
 ## =============================================================================
 ## DRAG AND DROP

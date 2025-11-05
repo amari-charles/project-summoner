@@ -1,13 +1,14 @@
 extends Control
 class_name DeckBuilder
 
-## DeckBuilder - Create and edit decks with drag-and-drop or double-click
+## DeckBuilder - Create and edit decks with click-to-move or drag-and-drop
 ##
 ## Features:
 ## - Multi-deck support with dropdown selector
-## - Drag cards from collection to deck (instant add)
-## - Double-click: first click shows details, second click adds/removes
-## - Card detail popup shows full card info
+## - Click card in collection → instantly add to deck
+## - Click card in deck → instantly remove from deck
+## - Hold card (0.5s) → show detailed popup
+## - Drag cards also works for add/remove
 ## - Real-time validation feedback
 ## - Auto-save on changes
 
@@ -40,10 +41,6 @@ var current_deck_id: String = ""
 var current_deck_data: Dictionary = {}
 var deck_card_ids: Array = []  # Array of card_instance_ids in current deck
 var collection_summary: Array = []
-
-## Selection state for double-click behavior
-var selected_collection_card: String = ""  # Instance ID of selected card in collection
-var selected_deck_card: String = ""  # Instance ID of selected card in deck
 
 ## Card widget scene
 const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
@@ -198,8 +195,9 @@ func _refresh_collection() -> void:
 			widget.set_count(1, false)  # Don't show count badge
 			widget.set_draggable(true)  # Enable drag from collection
 
-			# Connect click to add to deck
+			# Connect click to add to deck, hold to show details
 			widget.card_clicked.connect(_on_collection_card_clicked.bind(instance_id))
+			widget.card_held.connect(_on_collection_card_held.bind(instance_id))
 
 			total_widgets += 1
 
@@ -240,8 +238,9 @@ func _refresh_deck_display() -> void:
 		widget.set_count(1, false)  # Don't show count badge
 		widget.set_draggable(false)  # No drag within deck
 
-		# Connect click to remove (pass specific instance ID)
+		# Connect click to remove, hold to show details (pass specific instance ID)
 		widget.card_clicked.connect(_on_deck_card_instance_clicked.bind(card_instance_id))
+		widget.card_held.connect(_on_deck_card_held.bind(card_instance_id))
 
 	# Update card count
 	card_count_label.text = "%d / 30" % deck_card_ids.size()
@@ -302,30 +301,20 @@ func _add_card_to_deck(card_instance_id: String) -> void:
 ## =============================================================================
 
 func _on_collection_card_clicked(_card_data: Dictionary, card_instance_id: String) -> void:
-	# Double-click behavior: first click shows details, second click adds to deck
-	if selected_collection_card == card_instance_id:
-		# Second click - add to deck
-		_add_card_to_deck(card_instance_id)
-		selected_collection_card = ""
-		card_detail_popup.hide()
-	else:
-		# First click - show details
-		selected_collection_card = card_instance_id
-		selected_deck_card = ""  # Clear deck selection
-		_show_card_details(card_instance_id, true)  # true = from collection
+	# Quick click - instantly add to deck
+	_add_card_to_deck(card_instance_id)
+
+func _on_collection_card_held(_card_data: Dictionary, card_instance_id: String) -> void:
+	# Hold - show card details
+	_show_card_details(card_instance_id, true)  # true = from collection
 
 func _on_deck_card_instance_clicked(_card_data: Dictionary, card_instance_id: String) -> void:
-	# Double-click behavior: first click shows details, second click removes from deck
-	if selected_deck_card == card_instance_id:
-		# Second click - remove from deck
-		_remove_card_from_deck(card_instance_id)
-		selected_deck_card = ""
-		card_detail_popup.hide()
-	else:
-		# First click - show details
-		selected_deck_card = card_instance_id
-		selected_collection_card = ""  # Clear collection selection
-		_show_card_details(card_instance_id, false)  # false = from deck
+	# Quick click - instantly remove from deck
+	_remove_card_from_deck(card_instance_id)
+
+func _on_deck_card_held(_card_data: Dictionary, card_instance_id: String) -> void:
+	# Hold - show card details
+	_show_card_details(card_instance_id, false)  # false = from deck
 
 func _remove_card_from_deck(card_instance_id: String) -> void:
 	if current_deck_id == "":
@@ -450,9 +439,9 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 
 	# Update action label based on source
 	if from_collection:
-		popup_action.text = "Click again to ADD to deck"
+		popup_action.text = "Click card to ADD to deck"
 	else:
-		popup_action.text = "Click again to REMOVE from deck"
+		popup_action.text = "Click card to REMOVE from deck"
 
 	# Show popup
 	card_detail_popup.popup_centered()
@@ -461,8 +450,6 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 
 func _on_popup_close_pressed() -> void:
 	card_detail_popup.hide()
-	selected_collection_card = ""
-	selected_deck_card = ""
 
 ## =============================================================================
 ## NAVIGATION
