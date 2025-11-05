@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cejkll0kl2x0f"
-path="res://.godot/imported/grass_tile.png-94c3bcba09101bc7b65276fb7f07f179.ctex"
+uid="uid://u37vqbi2js0q"
+path="res://.godot/imported/sprout_grass.png-65d71ee19012a53129b068ee06542193.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/grass_tile.png"
-dest_files=["res://.godot/imported/grass_tile.png-94c3bcba09101bc7b65276fb7f07f179.ctex"]
+source_file="res://assets/tilesets/sprout_grass.png"
+dest_files=["res://.godot/imported/sprout_grass.png-65d71ee19012a53129b068ee06542193.ctex"]
 
 [params]
 
@@ -37,5 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
-texture_filter=0
+detect_3d/compress_to=1
