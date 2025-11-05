@@ -32,7 +32,6 @@ func _ready() -> void:
 
 	# Find game controller and summoner
 	game_controller = get_tree().get_first_node_in_group("game_controller")
-	print("GameUI: Looking for game_controller, found: ", game_controller)  # DEBUG
 
 	# Find the actual Summoner node (not Base) in player_summoners group
 	var summoners = get_tree().get_nodes_in_group("summoners")
@@ -56,14 +55,10 @@ func _ready() -> void:
 		push_error("GameUI: Could not find player Summoner!")
 
 func _on_time_updated(remaining: float) -> void:
-	print("Timer update: ", remaining)  # DEBUG
 	if timer_label:
 		var minutes = int(remaining) / 60
 		var seconds = int(remaining) % 60
 		timer_label.text = "%02d:%02d" % [minutes, seconds]
-		print("Updated timer label to: ", timer_label.text)  # DEBUG
-	else:
-		print("ERROR: timer_label is null!")  # DEBUG
 
 func _on_mana_changed(current: float, maximum: float) -> void:
 	if player_mana_label:
