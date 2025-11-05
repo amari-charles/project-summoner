@@ -43,9 +43,9 @@ func _attempt_play_card() -> void:
 
 	var card_index = playable_cards.pick_random()
 
-	# Play at a random position in enemy territory (upper half of screen)
-	var spawn_x = randf_range(200, 1720)
-	var spawn_y = randf_range(200, 400)
+	# Play at a random position in enemy territory (right side of screen)
+	var spawn_x = randf_range(1400, 1700)  # Right side
+	var spawn_y = randf_range(200, 880)    # Full height range
 	var spawn_pos = Vector2(spawn_x, spawn_y)
 
 	summoner.play_card(card_index, spawn_pos)

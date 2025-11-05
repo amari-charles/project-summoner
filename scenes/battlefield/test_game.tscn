@@ -15,7 +15,7 @@ script = ExtResource("2_game_controller")
 [node name="Battlefield" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="PlayerSummoner" type="Node2D" parent="." groups=["player_summoners", "summoners"]]
-position = Vector2(960, 1020)
+position = Vector2(100, 540)
 script = ExtResource("3_summoner")
 starting_deck = Array[ExtResource("4_75405")]([ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22")])
 
@@ -23,7 +23,7 @@ starting_deck = Array[ExtResource("4_75405")]([ExtResource("5_ugy22"), ExtResour
 script = ExtResource("6_pjcp8")
 
 [node name="EnemySummoner" type="Node2D" parent="." groups=["enemy_summoners", "summoners"]]
-position = Vector2(960, 60)
+position = Vector2(1820, 540)
 script = ExtResource("3_summoner")
 team = 1
 starting_deck = Array[ExtResource("4_75405")]([ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22"), ExtResource("5_ugy22")])
