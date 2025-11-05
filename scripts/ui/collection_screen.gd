@@ -26,7 +26,7 @@ class_name CollectionScreen
 @onready var card_name_label: Label = %CardNameLabel
 @onready var rarity_label: Label = %RarityLabel
 @onready var type_label: Label = %TypeLabel
-@ontml:parameter name="cost_label: Label = %CostLabel
+@onready var cost_label: Label = %CostLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var owned_label: Label = %OwnedLabel
 
