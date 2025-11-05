@@ -21,8 +21,9 @@ signal collection_changed
 signal cards_granted(instance_ids: Array)
 signal card_removed(card_instance_id: String)
 
-## Repository reference (injected by autoload order)
+## Service references (injected by autoload order)
 var _repo = null  # JsonProfileRepo instance
+var _catalog = null  # CardCatalog instance
 
 ## =============================================================================
 ## LIFECYCLE
@@ -31,12 +32,17 @@ var _repo = null  # JsonProfileRepo instance
 func _ready() -> void:
 	print("CollectionService: Initializing...")
 
-	# Wait for ProfileRepo to be ready
+	# Wait for autoloads to be ready
 	await get_tree().process_frame
 
 	_repo = get_node("/root/ProfileRepo")
 	if _repo == null:
 		push_error("CollectionService: ProfileRepo not found! Ensure it's registered as autoload.")
+		return
+
+	_catalog = get_node("/root/CardCatalog")
+	if _catalog == null:
+		push_error("CollectionService: CardCatalog not found! Ensure it's registered as autoload.")
 		return
 
 	# Connect to repo signals
@@ -122,9 +128,26 @@ func grant_cards(cards: Array) -> Array:
 		push_error("CollectionService: Cannot grant cards, repo not initialized")
 		return []
 
-	var instance_ids = _repo.grant_cards(cards)
+	if _catalog == null:
+		push_error("CollectionService: Cannot grant cards, catalog not initialized")
+		return []
 
-	print("CollectionService: Granted %d cards" % cards.size())
+	# Validate all cards exist in catalog
+	var valid_cards = []
+	for card_data in cards:
+		var catalog_id = card_data.get("catalog_id", "")
+		if _catalog.has_card(catalog_id):
+			valid_cards.append(card_data)
+		else:
+			push_warning("CollectionService: Cannot grant card '%s' - not found in CardCatalog" % catalog_id)
+
+	if valid_cards.size() == 0:
+		push_warning("CollectionService: No valid cards to grant")
+		return []
+
+	var instance_ids = _repo.grant_cards(valid_cards)
+
+	print("CollectionService: Granted %d cards (requested: %d, valid: %d)" % [instance_ids.size(), cards.size(), valid_cards.size()])
 	cards_granted.emit(instance_ids)
 	collection_changed.emit()
 
