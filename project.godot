@@ -11,6 +11,6 @@ config_version=5
 [application]
 
 config/name="Project Summoner"
-run/main_scene="res://scenes/battlefield/test_game.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
