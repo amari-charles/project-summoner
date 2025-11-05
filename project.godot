@@ -14,3 +14,11 @@ config/name="Project Summoner"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+ProfileRepo="*res://scripts/data/json_profile_repository.gd"
+Economy="*res://scripts/services/economy_service.gd"
+Collection="*res://scripts/services/collection_service.gd"
+Decks="*res://scripts/services/deck_service.gd"
+DevConsole="*res://scripts/debug/dev_console.gd"
