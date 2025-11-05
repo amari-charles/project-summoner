@@ -23,10 +23,8 @@ func _ready() -> void:
 	add_to_group("bases")
 	if team == Team.PLAYER:
 		add_to_group("player_bases")
-		add_to_group("player_summoners")  # For backward compatibility with Unit AI
 	else:
 		add_to_group("enemy_bases")
-		add_to_group("enemy_summoners")  # For backward compatibility with Unit AI
 
 	_setup_visuals()
 

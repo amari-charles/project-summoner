@@ -95,11 +95,20 @@ func _acquire_target() -> Node2D:
 
 ## Get the enemy base/summoner
 func _get_enemy_base() -> Node2D:
-	var base_group = "enemy_summoners" if team == Team.PLAYER else "player_summoners"
+	# First try to find actual bases
+	var base_group = "enemy_bases" if team == Team.PLAYER else "player_bases"
 	var bases = get_tree().get_nodes_in_group(base_group)
 
 	if bases.size() > 0:
 		return bases[0]
+
+	# Fallback to summoners if no bases exist
+	var summoner_group = "enemy_summoners" if team == Team.PLAYER else "player_summoners"
+	var summoners = get_tree().get_nodes_in_group(summoner_group)
+
+	if summoners.size() > 0:
+		return summoners[0]
+
 	return null
 
 ## Execute an attack on the target
