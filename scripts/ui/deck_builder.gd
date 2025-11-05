@@ -124,7 +124,9 @@ func _load_deck(deck_id: String) -> void:
 	deck_name_edit.text = current_deck_data.get("name", "Unnamed Deck")
 	deck_card_ids = current_deck_data.get("card_instance_ids", [])
 
-	# Refresh deck display
+	# Refresh both collection and deck displays
+	# Collection needs refresh because different cards are now in deck
+	_refresh_collection()
 	_refresh_deck_display()
 	_update_validation()
 
