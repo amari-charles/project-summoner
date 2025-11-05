@@ -49,7 +49,7 @@ text = "< BACK"
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 48
-text = "COLLECTION"
+text = "CARDS & DECKS"
 horizontal_alignment = 1
 
 [node name="Stats" type="Label" parent="MarginContainer/VBoxContainer/Header"]
@@ -60,65 +60,88 @@ text = "0 / 0"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="FilterBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="TabBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="CollectionTabButton" type="Button" parent="MarginContainer/VBoxContainer/TabBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "COLLECTION"
+
+[node name="MyDecksTabButton" type="Button" parent="MarginContainer/VBoxContainer/TabBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "MY DECKS"
+
+[node name="CollectionView" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="FilterBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/CollectionView"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Filter:"
 
-[node name="AllButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="AllButton" type="Button" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "ALL"
 
-[node name="SummonButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="SummonButton" type="Button" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "SUMMONS"
 
-[node name="SpellButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="SpellButton" type="Button" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "SPELLS"
 
-[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RarityLabel" type="Label" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="RarityLabel" type="Label" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Rarity:"
 
-[node name="CommonButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="CommonButton" type="Button" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "COMMON"
 
-[node name="RareButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="RareButton" type="Button" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "RARE"
 
-[node name="EpicButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+[node name="EpicButton" type="Button" parent="MarginContainer/VBoxContainer/CollectionView/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "EPIC"
 
-[node name="ContentArea" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ContentArea" type="HSplitContainer" parent="MarginContainer/VBoxContainer/CollectionView"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CardsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentArea"]
+[node name="CardsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/CollectionView/ContentArea"]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -134,7 +157,7 @@ theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 6
 
-[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentArea"]
+[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/CollectionView/ContentArea"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
@@ -202,8 +225,39 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="BuildDeckButton" type="Button" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="MyDecksView" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="TopBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MyDecksView"]
+layout_mode = 2
+
+[node name="NewDeckButton" type="Button" parent="MarginContainer/VBoxContainer/MyDecksView/TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "BUILD DECK"
+text = "NEW DECK"
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/MyDecksView/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DeleteDeckButton" type="Button" parent="MarginContainer/VBoxContainer/MyDecksView/TopBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "DELETE DECK"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MyDecksView"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DeckList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MyDecksView/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
