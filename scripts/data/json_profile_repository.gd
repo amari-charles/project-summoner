@@ -127,6 +127,9 @@ func save_profile(immediate: bool = false) -> void:
 func get_current_profile_id() -> String:
 	return _current_profile_id
 
+func get_active_profile() -> Dictionary:
+	return _data
+
 func reset_profile() -> void:
 	print("JsonProfileRepo: Resetting profile...")
 	_create_fresh_profile()

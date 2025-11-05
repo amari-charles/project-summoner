@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://r3wj9k4m6vxapn"]
+[gd_scene load_steps=2 format=3 uid="uid://dywikb8vseqid"]
 
 [ext_resource type="Script" path="res://scripts/ui/reward_screen.gd" id="1_reward"]
 

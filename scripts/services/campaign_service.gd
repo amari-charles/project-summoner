@@ -152,7 +152,7 @@ func save_progress() -> void:
 
 	profile["campaign_progress"]["completed_battles"] = _completed_battles.duplicate()
 
-	_profile_repo.save_profile(profile)
+	_profile_repo.save_profile()
 	campaign_progress_changed.emit()
 
 ## =============================================================================

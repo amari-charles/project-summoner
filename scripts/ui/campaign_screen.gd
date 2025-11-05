@@ -239,12 +239,13 @@ func _on_start_battle_pressed() -> void:
 	# Store selected battle in campaign service for game to access
 	var campaign = get_node("/root/Campaign")
 	if campaign:
-		var profile = get_node("/root/ProfileRepo").get_active_profile()
+		var profile_repo = get_node("/root/ProfileRepo")
+		var profile = profile_repo.get_active_profile()
 		if not profile.is_empty():
 			if not profile.has("campaign_progress"):
 				profile["campaign_progress"] = {}
 			profile["campaign_progress"]["current_battle"] = selected_battle_id
-			get_node("/root/ProfileRepo").save_profile(profile)
+			profile_repo.save_profile()
 
 	# Launch battle scene
 	get_tree().change_scene_to_file("res://scenes/test_game.tscn")
