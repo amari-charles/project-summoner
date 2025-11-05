@@ -166,12 +166,13 @@ func _die() -> void:
 
 ## Setup visual representation (override in derived classes)
 func _setup_visuals() -> void:
-	# Default: create a simple colored rectangle
-	var sprite = ColorRect.new()
-	sprite.size = Vector2(32, 32)
-	sprite.position = Vector2(-16, -16)
-	sprite.color = Color.BLUE if team == Team.PLAYER else Color.RED
-	add_child(sprite)
+	# Only create default sprite if no custom visual exists in the scene
+	if not has_node("Visual"):
+		var sprite = ColorRect.new()
+		sprite.size = Vector2(32, 32)
+		sprite.position = Vector2(-16, -16)
+		sprite.color = Color.BLUE if team == Team.PLAYER else Color.RED
+		add_child(sprite)
 
 	# Add HP bar
 	var hp_bar_bg = ColorRect.new()
