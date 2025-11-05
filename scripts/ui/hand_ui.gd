@@ -14,9 +14,32 @@ class CardDisplay extends Control:
 	var card_index: int
 	var hand_ui: HandUI
 
+	# Animation state
+	var hover_tween: Tween
+	var idle_tween: Tween
+	var is_hovered: bool = false
+	var was_recently_hovered: bool = false  # Prevents pulse from restarting immediately
+	var base_position: Vector2
+	var base_scale: Vector2 = Vector2(1.0, 1.0)
+
+	# Animation constants
+	const HOVER_OFFSET = -30.0  # How much card rises (negative = up)
+	const HOVER_SCALE = 1.15    # Scale multiplier when hovered
+	const HOVER_DURATION = 0.2  # Seconds for hover transition
+	const IDLE_BOB_AMOUNT = 3.0 # Pixels to bob up/down
+	const IDLE_BOB_DURATION = 2.0  # Seconds for one bob cycle
+
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
-		print("CardDisplay ready: ", name, " size: ", size, " custom_minimum_size: ", custom_minimum_size)
+		base_position = position
+
+		# Connect hover signals
+		mouse_entered.connect(_on_mouse_entered)
+		mouse_exited.connect(_on_mouse_exited)
+
+		# Stagger idle animation start
+		await get_tree().create_timer(card_index * 0.05).timeout
+		_start_idle_animation()
 
 	## Start dragging this card
 	func _get_drag_data(_at_position: Vector2) -> Variant:
@@ -79,16 +102,138 @@ class CardDisplay extends Control:
 
 		return preview
 
-	## Allow clicking to select card (fallback to old behavior)
+	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton:
 			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 				if hand_ui:
 					hand_ui._select_card(card_index)
 
+	## Hover effect - card rises and scales up
+	func _on_mouse_entered() -> void:
+		if is_hovered:
+			return
+		is_hovered = true
+		was_recently_hovered = true
+
+		# Stop idle animation while hovering
+		if idle_tween and idle_tween.is_valid():
+			idle_tween.kill()
+
+		# Stop any pulse glow on the border
+		var border = get_node_or_null("Border") as ColorRect
+		if border and border.has_meta("pulse_tween"):
+			var pulse_tween = border.get_meta("pulse_tween") as Tween
+			if pulse_tween and pulse_tween.is_valid():
+				pulse_tween.kill()
+			border.remove_meta("pulse_tween")
+
+		# Create hover tween
+		if hover_tween and hover_tween.is_valid():
+			hover_tween.kill()
+
+		hover_tween = create_tween()
+		hover_tween.set_parallel(true)
+		hover_tween.set_trans(Tween.TRANS_CUBIC)
+		hover_tween.set_ease(Tween.EASE_OUT)
+
+		# Animate position (rise up)
+		hover_tween.tween_property(self, "position:y", base_position.y + HOVER_OFFSET, HOVER_DURATION)
+
+		# Animate scale
+		hover_tween.tween_property(self, "scale", Vector2(HOVER_SCALE, HOVER_SCALE), HOVER_DURATION)
+
+		# Raise z_index to appear above other cards
+		z_index = 10
+
+		# Update glow if card is playable
+		_update_hover_glow(true)
+
+	## Exit hover - card returns to normal
+	func _on_mouse_exited() -> void:
+		if not is_hovered:
+			return
+		is_hovered = false
+
+		print("CardDisplay: Mouse exited card ", card_index)
+
+		# Create exit tween
+		if hover_tween and hover_tween.is_valid():
+			hover_tween.kill()
+
+		hover_tween = create_tween()
+		hover_tween.set_parallel(true)
+		hover_tween.set_trans(Tween.TRANS_CUBIC)
+		hover_tween.set_ease(Tween.EASE_OUT)
+
+		# Return to base position
+		hover_tween.tween_property(self, "position:y", base_position.y, HOVER_DURATION)
+
+		# Return to normal scale
+		hover_tween.tween_property(self, "scale", base_scale, HOVER_DURATION)
+
+		# Reset z_index
+		hover_tween.finished.connect(func(): z_index = 0)
+
+		# Remove hover glow - set to static non-pulsing color
+		var border = get_node_or_null("Border") as ColorRect
+		if border:
+			var glow_tween = create_tween()
+			glow_tween.set_trans(Tween.TRANS_SINE)
+			glow_tween.set_ease(Tween.EASE_OUT)
+			# Set to gray, not back to pulse
+			glow_tween.tween_property(border, "color", Color.GRAY, 0.15)
+
+		# Restart idle animation after hover ends
+		hover_tween.finished.connect(_start_idle_animation)
+
+	## Subtle floating animation when idle
+	func _start_idle_animation() -> void:
+		if is_hovered:
+			return
+
+		# Kill existing idle tween
+		if idle_tween and idle_tween.is_valid():
+			idle_tween.kill()
+
+		# Create looping bob animation
+		idle_tween = create_tween()
+		idle_tween.set_loops()  # Infinite loop
+		idle_tween.set_trans(Tween.TRANS_SINE)
+		idle_tween.set_ease(Tween.EASE_IN_OUT)
+
+		# Bob up
+		idle_tween.tween_property(self, "position:y", base_position.y - IDLE_BOB_AMOUNT, IDLE_BOB_DURATION / 2.0)
+
+		# Bob down
+		idle_tween.tween_property(self, "position:y", base_position.y + IDLE_BOB_AMOUNT, IDLE_BOB_DURATION / 2.0)
+
+	## Update glow effect based on hover state and playability
+	func _update_hover_glow(active: bool) -> void:
+		var border = get_node_or_null("Border") as ColorRect
+		if not border:
+			return
+
+		# Only glow if card is affordable
+		var can_afford = hand_ui and hand_ui.summoner and hand_ui.summoner.mana >= card.mana_cost
+
+		if not can_afford:
+			return
+
+		var glow_tween = create_tween()
+		glow_tween.set_trans(Tween.TRANS_SINE)
+		glow_tween.set_ease(Tween.EASE_OUT)
+
+		if active:
+			# Bright gold glow on hover
+			glow_tween.tween_property(border, "color", Color(1.0, 0.9, 0.3, 1.0), 0.15)
+		else:
+			# Return to subtle glow or gray
+			glow_tween.tween_property(border, "color", Color(0.8, 0.7, 0.2, 0.6), 0.15)
+
 var summoner: Summoner
 var card_displays: Array[Control] = []
-var selected_card_index: int = 0
+var selected_card_index: int = -1  # -1 means no selection
 
 signal card_selected(index: int)
 
@@ -231,15 +376,19 @@ func _update_selection_visual() -> void:
 		if i >= card_displays.size():
 			continue
 
-		var display = card_displays[i]
-		var border = display.get_child(1) as ColorRect  # Border is second child
+		var display = card_displays[i] as CardDisplay
+		if not display:
+			continue
+
+		var border = display.get_node_or_null("Border") as ColorRect
 
 		if i == selected_card_index:
-			border.color = Color.GOLD
-			display.position.y = 0  # Raise selected card slightly
+			if border:
+				border.color = Color.GOLD
 		else:
-			border.color = Color.GRAY
-			display.position.y = 10
+			if border:
+				# Will be updated by _update_availability for playable cards
+				border.color = Color.GRAY
 
 func _update_availability() -> void:
 	if not summoner:
@@ -250,20 +399,73 @@ func _update_availability() -> void:
 			continue
 
 		var card = summoner.hand[i]
-		var display = card_displays[i]
-		var bg = display.get_child(0) as ColorRect
+		var display = card_displays[i] as CardDisplay
+		if not display:
+			continue
 
-		# Gray out unaffordable cards
-		if summoner.mana < card.mana_cost:
-			bg.color = Color(0.15, 0.15, 0.2, 0.9)
-			bg.modulate = Color(0.6, 0.6, 0.6)
+		var bg = display.get_node_or_null("Background") as ColorRect
+		var border = display.get_node_or_null("Border") as ColorRect
+
+		# Check affordability
+		var can_afford = summoner.mana >= card.mana_cost
+
+		if can_afford:
+			# Playable: bright background
+			if bg:
+				bg.color = Color(0.2, 0.2, 0.3, 0.9)
+				bg.modulate = Color.WHITE
+
+			# Start subtle glow pulse on border (unless selected, hovered, or was recently hovered)
+			if border and not display.is_hovered and not display.was_recently_hovered and i != selected_card_index:
+				_create_glow_pulse(border)
 		else:
-			bg.color = Color(0.2, 0.2, 0.3, 0.9)
-			bg.modulate = Color.WHITE
+			# Unaffordable: gray out
+			if bg:
+				bg.color = Color(0.15, 0.15, 0.2, 0.9)
+				bg.modulate = Color(0.6, 0.6, 0.6)
+
+			# Remove glow and kill pulse tween
+			if border and i != selected_card_index:
+				# Kill pulse tween if it exists
+				if border.has_meta("pulse_tween"):
+					var pulse_tween = border.get_meta("pulse_tween") as Tween
+					if pulse_tween and pulse_tween.is_valid():
+						pulse_tween.kill()
+					border.remove_meta("pulse_tween")
+				border.color = Color.GRAY
+
+## Create pulsing glow effect for playable cards
+func _create_glow_pulse(border: ColorRect) -> void:
+	# Don't create if already pulsing
+	if border.has_meta("pulse_tween"):
+		var existing = border.get_meta("pulse_tween") as Tween
+		if existing and existing.is_valid():
+			return  # Already pulsing
+
+	# Kill any existing tween on this border first
+	if border.has_meta("pulse_tween"):
+		var old_tween = border.get_meta("pulse_tween") as Tween
+		if old_tween and old_tween.is_valid():
+			old_tween.kill()
+
+	# Store tween reference on the border node
+	var pulse_tween = border.create_tween()
+	border.set_meta("pulse_tween", pulse_tween)
+
+	pulse_tween.set_loops()
+	pulse_tween.set_trans(Tween.TRANS_SINE)
+	pulse_tween.set_ease(Tween.EASE_IN_OUT)
+
+	# Pulse between dim and bright gold
+	var dim_gold = Color(0.8, 0.7, 0.2, 0.4)
+	var bright_gold = Color(1.0, 0.9, 0.3, 0.8)
+
+	pulse_tween.tween_property(border, "color", bright_gold, 1.0)
+	pulse_tween.tween_property(border, "color", dim_gold, 1.0)
 
 func _on_card_played(_card: Card) -> void:
-	# Deselect after playing
-	selected_card_index = 0
+	# Deselect after playing - no card should be selected
+	selected_card_index = -1
 	_rebuild_hand_display()
 
 func _on_card_drawn(_card: Card) -> void:
