@@ -15,8 +15,8 @@ enum GameState { SETUP, PLAYING, PAUSED, GAME_OVER }
 @export var player_summoner: Summoner
 @export var enemy_summoner: Summoner
 
-var player_base: Node2D  # Base object
-var enemy_base: Node2D   # Base object
+var player_base: Base  # Base object
+var enemy_base: Base   # Base object
 
 ## State
 var current_state: GameState = GameState.SETUP
@@ -130,7 +130,7 @@ func _on_summoner_died(summoner: Summoner) -> void:
 		end_game(Unit.Team.PLAYER)
 
 ## Handle base destruction
-func _on_base_destroyed(base) -> void:
+func _on_base_destroyed(base: Base) -> void:
 	print("Base destroyed! Team: ", base.team)
 	if base.team == Unit.Team.PLAYER:
 		end_game(Unit.Team.ENEMY)
