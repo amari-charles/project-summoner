@@ -179,3 +179,79 @@ title = "Delete Deck"
 initial_position = 2
 size = Vector2i(300, 100)
 dialog_text = "Are you sure you want to delete this deck?"
+
+[node name="CardDetailPopup" type="PopupPanel" parent="."]
+unique_name_in_owner = true
+initial_position = 2
+size = Vector2i(400, 500)
+
+[node name="MarginContainer" type="MarginContainer" parent="CardDetailPopup"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 396.0
+offset_bottom = 496.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CardDetailPopup/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="CardNameLabel" type="Label" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Card Name"
+horizontal_alignment = 1
+
+[node name="RarityLabel" type="Label" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Rarity: Common"
+horizontal_alignment = 1
+
+[node name="TypeLabel" type="Label" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Type: Summon"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Cost: 3 Mana"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Card description goes here."
+autowrap_mode = 3
+
+[node name="HSeparator2" type="HSeparator" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ActionLabel" type="Label" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Click again to add to deck"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="CardDetailPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "CLOSE"

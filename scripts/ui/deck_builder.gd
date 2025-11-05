@@ -1,12 +1,13 @@
 extends Control
 class_name DeckBuilder
 
-## DeckBuilder - Create and edit decks with drag-and-drop
+## DeckBuilder - Create and edit decks with drag-and-drop or double-click
 ##
 ## Features:
 ## - Multi-deck support with dropdown selector
-## - Drag cards from collection to deck
-## - Click to remove cards from deck
+## - Drag cards from collection to deck (instant add)
+## - Double-click: first click shows details, second click adds/removes
+## - Card detail popup shows full card info
 ## - Real-time validation feedback
 ## - Auto-save on changes
 
@@ -24,11 +25,25 @@ class_name DeckBuilder
 @onready var deck_name_input: LineEdit = %DeckNameInput
 @onready var confirm_delete_dialog: ConfirmationDialog = %ConfirmDeleteDialog
 
+## Card detail popup
+@onready var card_detail_popup: PopupPanel = %CardDetailPopup
+@onready var popup_card_name: Label = %CardNameLabel
+@onready var popup_rarity: Label = %RarityLabel
+@onready var popup_type: Label = %TypeLabel
+@onready var popup_cost: Label = %CostLabel
+@onready var popup_description: Label = %DescriptionLabel
+@onready var popup_action: Label = %ActionLabel
+@onready var popup_close_button: Button = %CloseButton
+
 ## State
 var current_deck_id: String = ""
 var current_deck_data: Dictionary = {}
 var deck_card_ids: Array = []  # Array of card_instance_ids in current deck
 var collection_summary: Array = []
+
+## Selection state for double-click behavior
+var selected_collection_card: String = ""  # Instance ID of selected card in collection
+var selected_deck_card: String = ""  # Instance ID of selected card in deck
 
 ## Card widget scene
 const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
@@ -50,6 +65,7 @@ func _ready() -> void:
 	# Connect dialogs
 	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
 	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
+	popup_close_button.pressed.connect(_on_popup_close_pressed)
 
 	# Connect to services
 	var decks = get_node("/root/Decks")
@@ -286,12 +302,30 @@ func _add_card_to_deck(card_instance_id: String) -> void:
 ## =============================================================================
 
 func _on_collection_card_clicked(card_instance_id: String) -> void:
-	# Click to add card from collection to deck
-	_add_card_to_deck(card_instance_id)
+	# Double-click behavior: first click shows details, second click adds to deck
+	if selected_collection_card == card_instance_id:
+		# Second click - add to deck
+		_add_card_to_deck(card_instance_id)
+		selected_collection_card = ""
+		card_detail_popup.hide()
+	else:
+		# First click - show details
+		selected_collection_card = card_instance_id
+		selected_deck_card = ""  # Clear deck selection
+		_show_card_details(card_instance_id, true)  # true = from collection
 
 func _on_deck_card_instance_clicked(card_instance_id: String) -> void:
-	# Remove this specific card instance from deck
-	_remove_card_from_deck(card_instance_id)
+	# Double-click behavior: first click shows details, second click removes from deck
+	if selected_deck_card == card_instance_id:
+		# Second click - remove from deck
+		_remove_card_from_deck(card_instance_id)
+		selected_deck_card = ""
+		card_detail_popup.hide()
+	else:
+		# First click - show details
+		selected_deck_card = card_instance_id
+		selected_collection_card = ""  # Clear collection selection
+		_show_card_details(card_instance_id, false)  # false = from deck
 
 func _remove_card_from_deck(card_instance_id: String) -> void:
 	if current_deck_id == "":
@@ -383,6 +417,52 @@ func _on_delete_confirmed() -> void:
 		print("DeckBuilder: Deleted deck")
 		current_deck_id = ""
 		_refresh_deck_list()
+
+## =============================================================================
+## CARD DETAIL POPUP
+## =============================================================================
+
+func _show_card_details(card_instance_id: String, from_collection: bool) -> void:
+	var collection = get_node("/root/Collection")
+	var catalog = get_node("/root/CardCatalog")
+	if not collection or not catalog:
+		return
+
+	# Get card instance and catalog data
+	var card_data = collection.get_card(card_instance_id)
+	if card_data.is_empty():
+		return
+
+	var catalog_id = card_data.get("catalog_id", "")
+	var catalog_data = catalog.get_card(catalog_id)
+	if catalog_data.is_empty():
+		return
+
+	# Update popup labels
+	popup_card_name.text = catalog_data.get("card_name", "Unknown")
+	popup_rarity.text = "Rarity: %s" % catalog_data.get("rarity", "common").capitalize()
+
+	var card_type = catalog_data.get("card_type", 0)
+	popup_type.text = "Type: %s" % ("Summon" if card_type == 0 else "Spell")
+
+	popup_cost.text = "Cost: %d Mana" % catalog_data.get("mana_cost", 0)
+	popup_description.text = catalog_data.get("description", "No description.")
+
+	# Update action label based on source
+	if from_collection:
+		popup_action.text = "Click again to ADD to deck"
+	else:
+		popup_action.text = "Click again to REMOVE from deck"
+
+	# Show popup
+	card_detail_popup.popup_centered()
+
+	print("DeckBuilder: Showing details for card: %s" % card_instance_id)
+
+func _on_popup_close_pressed() -> void:
+	card_detail_popup.hide()
+	selected_collection_card = ""
+	selected_deck_card = ""
 
 ## =============================================================================
 ## NAVIGATION
