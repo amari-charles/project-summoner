@@ -16,8 +16,6 @@ class_name CollectionService
 ##
 ## Emits signals for reactive UI updates.
 
-const IProfileRepo = preload("res://scripts/data/profile_repository.gd")
-
 ## Signals
 signal collection_changed
 signal cards_granted(instance_ids: Array)

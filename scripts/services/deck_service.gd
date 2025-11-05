@@ -14,8 +14,6 @@ class_name DeckService
 ##
 ## Emits signals for reactive UI updates.
 
-const IProfileRepo = preload("res://scripts/data/profile_repository.gd")
-
 ## Constants
 const MIN_DECK_SIZE = 30  # Minimum cards required in a deck
 const MAX_DECK_SIZE = 30  # Maximum cards allowed in a deck

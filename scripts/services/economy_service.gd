@@ -13,8 +13,6 @@ class_name EconomyService
 ##
 ## Emits signals for reactive UI updates.
 
-const IProfileRepo = preload("res://scripts/data/profile_repository.gd")
-
 ## Signals
 signal resources_changed(gold: int, essence: int, fragments: int)
 signal transaction_completed(delta: Dictionary)
