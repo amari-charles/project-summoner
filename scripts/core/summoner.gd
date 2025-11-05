@@ -25,6 +25,7 @@ var is_alive: bool = true
 ## Signals
 signal summoner_died(summoner: Summoner)
 signal card_played(card: Card)
+signal card_drawn(card: Card)
 signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
@@ -69,6 +70,7 @@ func draw_card() -> void:
 
 	var card = deck.pop_front()
 	hand.append(card)
+	card_drawn.emit(card)
 	hand_changed.emit(hand)
 
 ## Play a card from hand at the given position
