@@ -126,13 +126,13 @@ func get_deck(deck_id: String) -> Dictionary:
 ## =============================================================================
 
 ## Get profile metadata (tutorial flags, achievements, etc.)
-func get_meta() -> Dictionary:
-	push_error("IProfileRepo.get_meta() not implemented")
+func get_profile_meta() -> Dictionary:
+	push_error("IProfileRepo.get_profile_meta() not implemented")
 	return {}
 
 ## Update profile metadata
-func update_meta(meta: Dictionary) -> void:
-	push_error("IProfileRepo.update_meta() not implemented")
+func update_profile_meta(meta: Dictionary) -> void:
+	push_error("IProfileRepo.update_profile_meta() not implemented")
 
 ## Get user settings (volume, language, etc.)
 func get_settings() -> Dictionary:

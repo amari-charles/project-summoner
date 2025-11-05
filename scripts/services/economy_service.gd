@@ -19,7 +19,7 @@ signal transaction_completed(delta: Dictionary)
 signal transaction_failed(reason: String)
 
 ## Repository reference (injected by autoload order)
-var _repo: IProfileRepo = null
+var _repo = null  # JsonProfileRepo instance
 
 ## =============================================================================
 ## LIFECYCLE

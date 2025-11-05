@@ -1,4 +1,4 @@
-extends "res://scripts/data/profile_repository.gd"
+extends Node
 class_name JsonProfileRepo
 
 ## JSON Profile Repository Implementation
@@ -360,10 +360,10 @@ func get_deck(deck_id: String) -> Dictionary:
 ## METADATA OPERATIONS
 ## =============================================================================
 
-func get_meta() -> Dictionary:
+func get_profile_meta() -> Dictionary:
 	return _data.get("meta", {})
 
-func update_meta(meta: Dictionary) -> void:
+func update_profile_meta(meta: Dictionary) -> void:
 	var current_meta = _data.get("meta", {})
 	for key in meta:
 		current_meta[key] = meta[key]

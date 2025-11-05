@@ -22,7 +22,7 @@ signal cards_granted(instance_ids: Array)
 signal card_removed(card_instance_id: String)
 
 ## Repository reference (injected by autoload order)
-var _repo: IProfileRepo = null
+var _repo = null  # JsonProfileRepo instance
 
 ## =============================================================================
 ## LIFECYCLE

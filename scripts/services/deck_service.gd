@@ -25,7 +25,7 @@ signal deck_deleted(deck_id: String)
 signal validation_failed(deck_id: String, reason: String)
 
 ## Repository reference (injected by autoload order)
-var _repo: IProfileRepo = null
+var _repo = null  # JsonProfileRepo instance
 
 ## =============================================================================
 ## LIFECYCLE
