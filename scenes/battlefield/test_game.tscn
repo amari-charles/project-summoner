@@ -48,18 +48,26 @@ theme_override_font_sizes/font_size = 32
 text = "03:00"
 
 [node name="PlayerManaLabel" type="Label" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = 1000.0
+offset_top = -80.0
 offset_right = 200.0
-offset_bottom = 1040.0
+offset_bottom = -40.0
+grow_vertical = 0
 theme_override_font_sizes/font_size = 24
 text = "Mana: 10/10"
 
 [node name="PlayerHPLabel" type="Label" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = 960.0
+offset_top = -120.0
 offset_right = 200.0
-offset_bottom = 990.0
+offset_bottom = -90.0
+grow_vertical = 0
 theme_override_font_sizes/font_size = 20
 text = "HP: 1000/1000"
 
@@ -83,11 +91,12 @@ vertical_alignment = 1
 
 [node name="InstructionsLabel" type="Label" parent="UI"]
 offset_left = 20.0
-offset_top = 80.0
-offset_right = 500.0
-offset_bottom = 200.0
+offset_top = 70.0
+offset_right = 520.0
+offset_bottom = 180.0
 theme_override_font_sizes/font_size = 16
-text = "Instructions:
-Click to spawn units (needs implementation)
-Enemy AI will spawn units automatically
+text = "LEFT CLICK to spawn warriors (3 mana)
+RIGHT CLICK to cycle cards
+1-4 keys to select card
+Enemy AI spawns automatically
 Destroy enemy base to win!"
