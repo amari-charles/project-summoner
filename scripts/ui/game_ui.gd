@@ -27,9 +27,15 @@ func _ready() -> void:
 	if game_controller:
 		game_controller.time_updated.connect(_on_time_updated)
 		game_controller.game_ended.connect(_on_game_ended)
+		print("GameUI: Connected to GameController")
+	else:
+		push_error("GameUI: Could not find game_controller!")
 
 	if player_summoner:
 		player_summoner.mana_changed.connect(_on_mana_changed)
+		print("GameUI: Connected to PlayerSummoner")
+	else:
+		push_error("GameUI: Could not find player_summoners!")
 
 func _on_time_updated(remaining: float) -> void:
 	if timer_label:

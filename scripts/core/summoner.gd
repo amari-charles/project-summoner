@@ -56,11 +56,9 @@ func _process(delta: float) -> void:
 		return
 
 	# Regenerate mana (FIXED: use float accumulation)
-	var old_mana = mana
-	mana = clamp(mana + mana_regen_rate * delta, 0.0, MANA_MAX)
-
-	# Only emit if mana actually changed significantly
-	if abs(mana - old_mana) > 0.01:
+	if mana < MANA_MAX:
+		mana = clamp(mana + mana_regen_rate * delta, 0.0, MANA_MAX)
+		# Emit signal every frame while regenerating for smooth UI updates
 		mana_changed.emit(mana, MANA_MAX)
 
 ## Draw a card from the deck
