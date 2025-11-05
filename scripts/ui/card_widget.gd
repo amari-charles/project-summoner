@@ -1,0 +1,167 @@
+extends PanelContainer
+class_name CardWidget
+
+## CardWidget - Reusable Card Display Component
+##
+## Displays a card thumbnail with name, cost, type, and rarity.
+## Supports drag-and-drop for deck building.
+## Can show count badge for collection view.
+
+## Signals
+signal card_clicked(card_data: Dictionary)
+
+## Card data
+var card_data: Dictionary = {}
+var catalog_data: Dictionary = {}
+var show_count: bool = false
+var count: int = 1
+var draggable: bool = false
+
+## Node references
+@onready var type_icon: Label = %TypeIcon
+@onready var mana_cost: Label = %ManaCost
+@onready var card_name: Label = %CardName
+@onready var count_badge: Label = %CountBadge
+
+## Rarity colors
+const RARITY_COLORS = {
+	"common": Color(0.5, 0.5, 0.5),  # Gray
+	"rare": Color(0.2, 0.5, 1.0),    # Blue
+	"epic": Color(0.7, 0.3, 1.0),    # Purple
+	"legendary": Color(1.0, 0.8, 0.2)  # Gold
+}
+
+## =============================================================================
+## LIFECYCLE
+## =============================================================================
+
+func _ready() -> void:
+	# Connect mouse signals
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+
+	# Hide count badge by default
+	count_badge.visible = false
+
+	# Set initial theme
+	_update_theme()
+
+## =============================================================================
+## PUBLIC API
+## =============================================================================
+
+## Set card data and display
+func set_card(p_card_data: Dictionary, p_catalog_data: Dictionary) -> void:
+	card_data = p_card_data
+	catalog_data = p_catalog_data
+	_update_display()
+
+## Set count and show badge
+func set_count(p_count: int, p_show: bool = true) -> void:
+	count = p_count
+	show_count = p_show
+	_update_display()
+
+## Enable/disable drag support
+func set_draggable(p_draggable: bool) -> void:
+	draggable = p_draggable
+
+## =============================================================================
+## DISPLAY UPDATE
+## =============================================================================
+
+func _update_display() -> void:
+	if catalog_data.is_empty():
+		return
+
+	# Set card name
+	card_name.text = catalog_data.get("card_name", "Unknown")
+
+	# Set mana cost
+	mana_cost.text = str(catalog_data.get("mana_cost", 0))
+
+	# Set type icon (S=Summon, P=sPell)
+	var card_type = catalog_data.get("card_type", 0)
+	type_icon.text = "S" if card_type == 0 else "P"
+
+	# Set count badge
+	if show_count and count > 1:
+		count_badge.text = "x%d" % count
+		count_badge.visible = true
+	else:
+		count_badge.visible = false
+
+	# Update rarity border
+	_update_theme()
+
+func _update_theme() -> void:
+	if catalog_data.is_empty():
+		return
+
+	var rarity = catalog_data.get("rarity", "common")
+	var border_color = RARITY_COLORS.get(rarity, RARITY_COLORS["common"])
+
+	# Create theme with border color
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.2, 0.25)  # Dark background
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = border_color
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+
+	add_theme_stylebox_override("panel", style)
+
+## =============================================================================
+## MOUSE INTERACTION
+## =============================================================================
+
+func _on_mouse_entered() -> void:
+	# Slight scale up on hover
+	var tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1)
+
+func _on_mouse_exited() -> void:
+	# Scale back to normal
+	var tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			card_clicked.emit(card_data)
+
+## =============================================================================
+## DRAG AND DROP
+## =============================================================================
+
+func _get_drag_data(_at_position: Vector2) -> Variant:
+	if not draggable or card_data.is_empty():
+		return null
+
+	# Create drag preview
+	var preview = PanelContainer.new()
+	preview.custom_minimum_size = custom_minimum_size
+
+	var label = Label.new()
+	label.text = catalog_data.get("card_name", "Card")
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	preview.add_child(label)
+
+	# Make preview semi-transparent
+	preview.modulate = Color(1, 1, 1, 0.7)
+
+	set_drag_preview(preview)
+
+	# Return card data as drag data
+	return {
+		"type": "card",
+		"card_data": card_data,
+		"catalog_data": catalog_data,
+		"source": self
+	}

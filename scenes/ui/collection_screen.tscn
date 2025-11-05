@@ -1,0 +1,209 @@
+[gd_scene load_steps=2 format=3 uid="uid://bw7j2k5nq3xlm"]
+
+[ext_resource type="Script" path="res://scripts/ui/collection_screen.gd" id="1_collection"]
+
+[node name="CollectionScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_collection")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.2, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "< BACK"
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 48
+text = "COLLECTION"
+horizontal_alignment = 1
+
+[node name="Stats" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "0 / 0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="FilterBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/FilterBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Filter:"
+
+[node name="AllButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "ALL"
+
+[node name="SummonButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SUMMONS"
+
+[node name="SpellButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SPELLS"
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/FilterBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RarityLabel" type="Label" parent="MarginContainer/VBoxContainer/FilterBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Rarity:"
+
+[node name="CommonButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "COMMON"
+
+[node name="RareButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "RARE"
+
+[node name="EpicButton" type="Button" parent="MarginContainer/VBoxContainer/FilterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "EPIC"
+
+[node name="ContentArea" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CardsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentArea/CardsPanel"]
+layout_mode = 2
+
+[node name="CardGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/ContentArea/CardsPanel/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 6
+
+[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentArea"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="CardNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Select a card"
+horizontal_alignment = 1
+
+[node name="RarityLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Rarity: -"
+horizontal_alignment = 1
+
+[node name="TypeLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Type: -"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Cost: -"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Card description will appear here."
+autowrap_mode = 3
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="OwnedLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Owned: 0"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BuildDeckButton" type="Button" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "BUILD DECK"

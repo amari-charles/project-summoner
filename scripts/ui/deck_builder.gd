@@ -1,0 +1,424 @@
+extends Control
+class_name DeckBuilder
+
+## DeckBuilder - Create and edit decks with drag-and-drop
+##
+## Features:
+## - Multi-deck support with dropdown selector
+## - Drag cards from collection to deck
+## - Click to remove cards from deck
+## - Real-time validation feedback
+## - Auto-save on changes
+
+## Node references
+@onready var back_button: Button = %BackButton
+@onready var deck_selector: OptionButton = %DeckSelector
+@onready var new_deck_button: Button = %NewDeckButton
+@onready var delete_deck_button: Button = %DeleteDeckButton
+@onready var deck_name_edit: LineEdit = %DeckNameEdit
+@onready var card_count_label: Label = %CardCount
+@onready var validation_label: Label = %ValidationLabel
+@onready var collection_grid: GridContainer = %CollectionGrid
+@onready var deck_grid: GridContainer = %DeckGrid
+@onready var new_deck_dialog: AcceptDialog = %NewDeckDialog
+@onready var deck_name_input: LineEdit = %DeckNameInput
+@onready var confirm_delete_dialog: ConfirmationDialog = %ConfirmDeleteDialog
+
+## State
+var current_deck_id: String = ""
+var current_deck_data: Dictionary = {}
+var deck_card_ids: Array = []  # Array of card_instance_ids in current deck
+var collection_summary: Array = []
+
+## Card widget scene
+const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
+
+## =============================================================================
+## LIFECYCLE
+## =============================================================================
+
+func _ready() -> void:
+	print("DeckBuilder: Initializing...")
+
+	# Connect buttons
+	back_button.pressed.connect(_on_back_pressed)
+	new_deck_button.pressed.connect(_on_new_deck_pressed)
+	delete_deck_button.pressed.connect(_on_delete_deck_pressed)
+	deck_selector.item_selected.connect(_on_deck_selected)
+	deck_name_edit.text_submitted.connect(_on_deck_name_changed)
+
+	# Connect dialogs
+	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
+	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
+
+	# Connect to services
+	var decks = get_node("/root/Decks")
+	if decks:
+		decks.deck_changed.connect(_on_deck_changed)
+		decks.deck_created.connect(_on_deck_created)
+		decks.deck_deleted.connect(_on_deck_deleted)
+
+	var collection = get_node("/root/Collection")
+	if collection:
+		collection.collection_changed.connect(_on_collection_changed)
+
+	# Enable drag-and-drop for deck panel
+	deck_grid.set_drag_forwarding(
+		Callable(),  # No custom _get_drag_data needed
+		_can_drop_data_on_deck,
+		_drop_data_on_deck
+	)
+
+	# Load decks and collection
+	_refresh_deck_list()
+	_refresh_collection()
+
+## =============================================================================
+## DECK LOADING
+## =============================================================================
+
+func _refresh_deck_list() -> void:
+	var decks = get_node("/root/Decks")
+	if not decks:
+		push_error("DeckBuilder: Decks service not found!")
+		return
+
+	var deck_list = decks.list_decks()
+
+	# Clear selector
+	deck_selector.clear()
+
+	# Add decks to selector
+	for deck in deck_list:
+		var deck_id = deck.get("id", "")
+		var deck_name = deck.get("name", "Unnamed Deck")
+		deck_selector.add_item(deck_name)
+		deck_selector.set_item_metadata(deck_selector.item_count - 1, deck_id)
+
+	# Create default deck if none exist
+	if deck_list.size() == 0:
+		print("DeckBuilder: No decks found, creating default deck...")
+		var deck_id = decks.create_deck("My Deck", [])
+		_refresh_deck_list()  # Refresh after creation
+		return
+
+	# Select first deck
+	if deck_selector.item_count > 0:
+		deck_selector.select(0)
+		var first_deck_id = deck_selector.get_item_metadata(0)
+		_load_deck(first_deck_id)
+
+func _load_deck(deck_id: String) -> void:
+	var decks = get_node("/root/Decks")
+	if not decks:
+		return
+
+	current_deck_id = deck_id
+	current_deck_data = decks.get_deck(deck_id)
+
+	if current_deck_data.is_empty():
+		push_error("DeckBuilder: Deck not found: %s" % deck_id)
+		return
+
+	# Update UI
+	deck_name_edit.text = current_deck_data.get("name", "Unnamed Deck")
+	deck_card_ids = current_deck_data.get("card_instance_ids", [])
+
+	# Refresh deck display
+	_refresh_deck_display()
+	_update_validation()
+
+	print("DeckBuilder: Loaded deck '%s' (%d cards)" % [current_deck_data.get("name"), deck_card_ids.size()])
+
+## =============================================================================
+## COLLECTION DISPLAY
+## =============================================================================
+
+func _refresh_collection() -> void:
+	var collection = get_node("/root/Collection")
+	if not collection:
+		push_error("DeckBuilder: Collection service not found!")
+		return
+
+	var catalog = get_node("/root/CardCatalog")
+	if not catalog:
+		push_error("DeckBuilder: CardCatalog not found!")
+		return
+
+	# Get collection summary
+	collection_summary = collection.get_collection_summary()
+
+	# Clear grid
+	for child in collection_grid.get_children():
+		child.queue_free()
+
+	# Create card widgets
+	for entry in collection_summary:
+		var catalog_id = entry.catalog_id
+		var count = entry.count
+		var instances = entry.instances
+		var catalog_data = catalog.get_card(catalog_id)
+
+		if catalog_data.is_empty():
+			continue
+
+		# Create widget
+		var widget = CardWidgetScene.instantiate()
+		collection_grid.add_child(widget)
+
+		# Set card data
+		var card_data = instances[0] if instances.size() > 0 else {}
+		widget.set_card(card_data, catalog_data)
+		widget.set_count(count, true)
+		widget.set_draggable(true)  # Enable drag from collection
+
+	print("DeckBuilder: Loaded %d unique cards in collection" % collection_summary.size())
+
+## =============================================================================
+## DECK DISPLAY
+## =============================================================================
+
+func _refresh_deck_display() -> void:
+	var catalog = get_node("/root/CardCatalog")
+	var collection = get_node("/root/Collection")
+	if not catalog or not collection:
+		return
+
+	# Clear grid
+	for child in deck_grid.get_children():
+		child.queue_free()
+
+	# Group deck cards by catalog_id for display
+	var grouped_cards = {}
+	for card_instance_id in deck_card_ids:
+		var card_data = collection.get_card(card_instance_id)
+		if card_data.is_empty():
+			continue
+
+		var catalog_id = card_data.get("catalog_id", "")
+		if not grouped_cards.has(catalog_id):
+			grouped_cards[catalog_id] = {
+				"instances": [],
+				"catalog_data": catalog.get_card(catalog_id)
+			}
+		grouped_cards[catalog_id].instances.append(card_data)
+
+	# Create card widgets
+	for catalog_id in grouped_cards:
+		var group = grouped_cards[catalog_id]
+		var instances = group.instances
+		var catalog_data = group.catalog_data
+
+		if catalog_data.is_empty():
+			continue
+
+		# Create widget
+		var widget = CardWidgetScene.instantiate()
+		deck_grid.add_child(widget)
+
+		# Set card data
+		var card_data = instances[0] if instances.size() > 0 else {}
+		widget.set_card(card_data, catalog_data)
+		widget.set_count(instances.size(), true)
+		widget.set_draggable(false)  # No drag within deck
+
+		# Connect click to remove
+		widget.card_clicked.connect(_on_deck_card_clicked.bind(catalog_id))
+
+	# Update card count
+	card_count_label.text = "%d / 30" % deck_card_ids.size()
+
+	print("DeckBuilder: Displaying deck with %d cards" % deck_card_ids.size())
+
+## =============================================================================
+## DRAG AND DROP
+## =============================================================================
+
+func _can_drop_data_on_deck(_at_position: Vector2, data: Variant) -> bool:
+	if not data is Dictionary:
+		return false
+
+	if data.get("type") != "card":
+		return false
+
+	# Check if deck has room
+	return deck_card_ids.size() < 30
+
+func _drop_data_on_deck(_at_position: Vector2, data: Variant) -> void:
+	if not data is Dictionary:
+		return
+
+	var card_data = data.get("card_data", {})
+	var card_instance_id = card_data.get("id", "")
+
+	if card_instance_id == "":
+		push_warning("DeckBuilder: Invalid card data for drop")
+		return
+
+	# Add card to deck
+	_add_card_to_deck(card_instance_id)
+
+func _add_card_to_deck(card_instance_id: String) -> void:
+	if deck_card_ids.size() >= 30:
+		push_warning("DeckBuilder: Deck is full!")
+		return
+
+	if current_deck_id == "":
+		push_warning("DeckBuilder: No deck selected!")
+		return
+
+	var decks = get_node("/root/Decks")
+	if not decks:
+		return
+
+	var success = decks.add_card_to_deck(current_deck_id, card_instance_id)
+
+	if success:
+		print("DeckBuilder: Added card to deck")
+		# Deck will be reloaded via signal
+	else:
+		push_warning("DeckBuilder: Failed to add card to deck")
+
+## =============================================================================
+## DECK EDITING
+## =============================================================================
+
+func _on_deck_card_clicked(catalog_id: String) -> void:
+	# Remove one instance of this card from deck
+	var collection = get_node("/root/Collection")
+	if not collection:
+		return
+
+	# Find first matching card instance in deck
+	for card_instance_id in deck_card_ids:
+		var card_data = collection.get_card(card_instance_id)
+		if card_data.get("catalog_id") == catalog_id:
+			_remove_card_from_deck(card_instance_id)
+			return
+
+func _remove_card_from_deck(card_instance_id: String) -> void:
+	if current_deck_id == "":
+		return
+
+	var decks = get_node("/root/Decks")
+	if not decks:
+		return
+
+	var success = decks.remove_card_from_deck(current_deck_id, card_instance_id)
+
+	if success:
+		print("DeckBuilder: Removed card from deck")
+		# Deck will be reloaded via signal
+	else:
+		push_warning("DeckBuilder: Failed to remove card from deck")
+
+func _on_deck_name_changed(new_name: String) -> void:
+	if current_deck_id == "" or new_name == "":
+		return
+
+	var decks = get_node("/root/Decks")
+	if not decks:
+		return
+
+	decks.update_deck(current_deck_id, new_name, [])  # [] = keep existing cards
+
+	print("DeckBuilder: Renamed deck to '%s'" % new_name)
+
+## =============================================================================
+## VALIDATION
+## =============================================================================
+
+func _update_validation() -> void:
+	var decks = get_node("/root/Decks")
+	if not decks or current_deck_id == "":
+		return
+
+	var errors = decks.get_validation_errors(current_deck_id)
+
+	if errors.size() == 0:
+		validation_label.text = "✓ Deck is valid and ready for battle!"
+		validation_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	else:
+		validation_label.text = "⚠ " + errors[0]  # Show first error
+		validation_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+
+## =============================================================================
+## DECK MANAGEMENT
+## =============================================================================
+
+func _on_deck_selected(index: int) -> void:
+	var deck_id = deck_selector.get_item_metadata(index)
+	_load_deck(deck_id)
+
+func _on_new_deck_pressed() -> void:
+	deck_name_input.text = ""
+	new_deck_dialog.popup_centered()
+
+func _on_new_deck_confirmed() -> void:
+	var deck_name = deck_name_input.text
+	if deck_name == "":
+		deck_name = "New Deck"
+
+	var decks = get_node("/root/Decks")
+	if not decks:
+		return
+
+	var deck_id = decks.create_deck(deck_name, [])
+	print("DeckBuilder: Created new deck '%s' (%s)" % [deck_name, deck_id])
+
+func _on_delete_deck_pressed() -> void:
+	if current_deck_id == "":
+		return
+
+	confirm_delete_dialog.popup_centered()
+
+func _on_delete_confirmed() -> void:
+	if current_deck_id == "":
+		return
+
+	var decks = get_node("/root/Decks")
+	if not decks:
+		return
+
+	var success = decks.delete_deck(current_deck_id)
+
+	if success:
+		print("DeckBuilder: Deleted deck")
+		current_deck_id = ""
+		_refresh_deck_list()
+
+## =============================================================================
+## NAVIGATION
+## =============================================================================
+
+func _on_back_pressed() -> void:
+	print("DeckBuilder: Returning to collection")
+	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+
+## =============================================================================
+## SIGNALS
+## =============================================================================
+
+func _on_deck_changed(deck_id: String) -> void:
+	if deck_id == current_deck_id:
+		print("DeckBuilder: Current deck changed, reloading...")
+		_load_deck(deck_id)
+
+func _on_deck_created(deck_id: String) -> void:
+	print("DeckBuilder: Deck created, refreshing list...")
+	_refresh_deck_list()
+	# Select the newly created deck
+	for i in range(deck_selector.item_count):
+		if deck_selector.get_item_metadata(i) == deck_id:
+			deck_selector.select(i)
+			_load_deck(deck_id)
+			break
+
+func _on_deck_deleted(_deck_id: String) -> void:
+	print("DeckBuilder: Deck deleted, refreshing list...")
+	_refresh_deck_list()
+
+func _on_collection_changed() -> void:
+	print("DeckBuilder: Collection changed, refreshing...")
+	_refresh_collection()
+	_refresh_deck_display()  # In case deck cards changed
