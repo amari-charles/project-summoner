@@ -9,8 +9,20 @@ class_name MainMenu
 func _ready() -> void:
 	print("Main Menu loaded")
 
-## Launch the campaign screen
+## Launch the campaign screen (or onboarding if needed)
 func _on_play_pressed() -> void:
+	# Check if player has completed onboarding
+	var profile_repo = get_node("/root/ProfileRepo")
+	if profile_repo:
+		var profile = profile_repo.get_active_profile()
+		if not profile.is_empty():
+			var onboarding_complete = profile.get("meta", {}).get("onboarding_complete", false)
+
+			if not onboarding_complete:
+				print("Opening onboarding - hero selection...")
+				get_tree().change_scene_to_file("res://scenes/ui/hero_selection.tscn")
+				return
+
 	print("Opening campaign...")
 	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
 

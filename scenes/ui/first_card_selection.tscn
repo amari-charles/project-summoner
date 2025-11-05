@@ -1,0 +1,173 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6vhr71i56ovf"]
+
+[ext_resource type="Script" path="res://scripts/ui/first_card_selection.gd" id="1_first_card"]
+
+[node name="FirstCardSelection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_first_card")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 56
+text = "YOUR FIRST CARD"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Choose your starting unit. Build your deck through battle!"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CardContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="WarriorPanel" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 450)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "WARRIOR"
+horizontal_alignment = 1
+
+[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Summon • Common"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Cost: 3 Mana
+HP: 100
+Attack: 15"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "A reliable melee fighter. Charges forward to engage enemies in close combat."
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SelectWarriorButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer/WarriorPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "CHOOSE WARRIOR"
+
+[node name="ArcherPanel" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 450)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "ARCHER"
+horizontal_alignment = 1
+
+[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Summon • Common"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Cost: 3 Mana
+HP: 70
+Attack: 12
+Range: Long"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "A versatile ranged unit. Attacks from a distance, staying safe from melee threats."
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SelectArcherButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer/ArcherPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "CHOOSE ARCHER"

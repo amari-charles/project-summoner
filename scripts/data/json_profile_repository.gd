@@ -545,6 +545,8 @@ func _create_fresh_profile() -> void:
 			"current_battle": null
 		},
 		"meta": {
+			"onboarding_complete": false,
+			"selected_hero": null,
 			"tutorial_flags": {},
 			"achievements": {},
 			"analytics_opt_in": false
