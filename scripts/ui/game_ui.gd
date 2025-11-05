@@ -27,8 +27,12 @@ func _ready() -> void:
 		restart_button.pressed.connect(_on_restart_pressed)
 		restart_button.visible = false  # Hidden until game over
 
+	# Wait a frame for all nodes to be ready
+	await get_tree().process_frame
+
 	# Find game controller and summoner
 	game_controller = get_tree().get_first_node_in_group("game_controller")
+	print("GameUI: Looking for game_controller, found: ", game_controller)  # DEBUG
 
 	# Find the actual Summoner node (not Base) in player_summoners group
 	var summoners = get_tree().get_nodes_in_group("summoners")
