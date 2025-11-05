@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+CardCatalog="*res://scripts/data/card_catalog.gd"
 ProfileRepo="*res://scripts/data/json_profile_repository.gd"
 Economy="*res://scripts/services/economy_service.gd"
 Collection="*res://scripts/services/collection_service.gd"
