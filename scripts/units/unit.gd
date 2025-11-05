@@ -14,7 +14,8 @@ enum Team { PLAYER, ENEMY }
 @export var move_speed: float = 60.0
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 180.0  # Range to detect enemies
-@export var is_ranged: bool = false  # Ranged vs melee (for future)
+@export var is_ranged: bool = false  # Ranged vs melee
+@export var projectile_scene: PackedScene = null  # Projectile for ranged units
 
 ## Current state
 var current_hp: float
@@ -116,11 +117,32 @@ func _attack(target: Node2D) -> void:
 	if target == null:
 		return
 
-	# Target can be Unit or Summoner - both have take_damage
-	if target.has_method("take_damage"):
-		target.take_damage(attack_damage)
-		if target is Unit:
-			unit_attacked.emit(target)
+	if is_ranged:
+		# Spawn projectile for ranged attack
+		_spawn_projectile(target)
+	else:
+		# Direct damage for melee attack
+		if target.has_method("take_damage"):
+			target.take_damage(attack_damage)
+			if target is Unit:
+				unit_attacked.emit(target)
+
+## Spawn a projectile toward the target
+func _spawn_projectile(target: Node2D) -> void:
+	if projectile_scene == null:
+		push_error("Ranged unit has no projectile_scene set!")
+		return
+
+	# Instantiate projectile
+	var projectile = projectile_scene.instantiate() as Projectile
+	if projectile == null:
+		return
+
+	# Add to battlefield (get root node)
+	get_tree().root.add_child(projectile)
+
+	# Initialize projectile
+	projectile.initialize(global_position, target, attack_damage, team, self)
 
 ## Take damage from an attack
 func take_damage(damage: float) -> void:
