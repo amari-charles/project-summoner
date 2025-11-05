@@ -132,7 +132,7 @@ func _on_summoner_died(summoner: Summoner) -> void:
 ## Handle base destruction
 func _on_base_destroyed(base: Base) -> void:
 	print("Base destroyed! Team: ", base.team)
-	if base.team == Unit.Team.PLAYER:
+	if base.team == Base.Team.PLAYER:
 		end_game(Unit.Team.ENEMY)
 	else:
 		end_game(Unit.Team.PLAYER)
