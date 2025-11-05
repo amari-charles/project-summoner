@@ -21,7 +21,13 @@ func _ready() -> void:
 
 	# Find game controller and summoner
 	game_controller = get_tree().get_first_node_in_group("game_controller")
-	player_summoner = get_tree().get_first_node_in_group("player_summoners")
+
+	# Find the actual Summoner node (not Base) in player_summoners group
+	var summoners = get_tree().get_nodes_in_group("summoners")
+	for node in summoners:
+		if node is Summoner and node.team == Unit.Team.PLAYER:
+			player_summoner = node
+			break
 
 	# Connect signals
 	if game_controller:
@@ -35,7 +41,7 @@ func _ready() -> void:
 		player_summoner.mana_changed.connect(_on_mana_changed)
 		print("GameUI: Connected to PlayerSummoner")
 	else:
-		push_error("GameUI: Could not find player_summoners!")
+		push_error("GameUI: Could not find player Summoner!")
 
 func _on_time_updated(remaining: float) -> void:
 	if timer_label:
