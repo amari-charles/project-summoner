@@ -130,6 +130,9 @@ func end_game(winner: Unit.Team) -> void:
 	var winner_text = "PLAYER" if winner == Unit.Team.PLAYER else "ENEMY"
 	print("Game Over! Winner: %s" % winner_text)
 
+	# Check if this is a campaign battle
+	_handle_campaign_victory(winner)
+
 ## Handle summoner death (backward compatibility)
 func _on_summoner_died(summoner: Summoner) -> void:
 	if summoner == player_summoner:
@@ -185,3 +188,33 @@ func get_time_string() -> String:
 	var minutes = int(remaining) / 60
 	var seconds = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
+
+## Handle campaign battle victory
+func _handle_campaign_victory(winner: Unit.Team) -> void:
+	# Check if this is a campaign battle
+	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		return
+
+	var profile = profile_repo.get_active_profile()
+	if profile.is_empty():
+		return
+
+	var current_battle = profile.get("campaign_progress", {}).get("current_battle", "")
+	if current_battle == "":
+		# Not a campaign battle, no special handling
+		return
+
+	# This is a campaign battle!
+	if winner == Unit.Team.PLAYER:
+		# Player won - transition to reward screen after a delay
+		print("GameController: Campaign battle won! Transitioning to reward screen...")
+		await get_tree().create_timer(2.0).timeout  # Show victory for 2 seconds
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
+	else:
+		# Player lost - return to campaign screen
+		print("GameController: Campaign battle lost. Returning to campaign...")
+		await get_tree().create_timer(2.0).timeout
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")

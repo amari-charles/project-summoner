@@ -533,16 +533,14 @@ func _create_fresh_profile() -> void:
 			"updated_at": Time.get_unix_time_from_system()
 		},
 		"collection": [
-			# Starter cards (3x Warrior, 3x Archer)
-			_create_card_instance("warrior", "common"),
-			_create_card_instance("warrior", "common"),
-			_create_card_instance("warrior", "common"),
-			_create_card_instance("archer", "common"),
-			_create_card_instance("archer", "common"),
-			_create_card_instance("archer", "common"),
+			# Start with ZERO cards - build collection through campaign
 		],
 		"decks": [],
 		"deck_cards": [],
+		"campaign_progress": {
+			"completed_battles": [],
+			"current_battle": null
+		},
 		"meta": {
 			"tutorial_flags": {},
 			"achievements": {},

@@ -9,10 +9,10 @@ class_name MainMenu
 func _ready() -> void:
 	print("Main Menu loaded")
 
-## Launch the game
+## Launch the campaign screen
 func _on_play_pressed() -> void:
-	print("Starting game...")
-	get_tree().change_scene_to_file("res://scenes/battlefield/test_game.tscn")
+	print("Opening campaign...")
+	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
 
 ## Open collection screen
 func _on_collection_pressed() -> void:
