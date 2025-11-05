@@ -1,14 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://bqxn3k8r2vme1"]
+[gd_scene load_steps=2 format=3 uid="uid://bqxn3k8r2vme1"]
 
 [ext_resource type="PackedScene" uid="uid://ground_visual" path="res://scenes/battlefield/ground.tscn" id="1_ground"]
-[ext_resource type="PackedScene" uid="uid://fog_overlay" path="res://scenes/battlefield/fog_overlay.tscn" id="2_fog"]
 
 [node name="Battlefield" type="Node2D" groups=["battlefield"]]
 
 [node name="Ground" parent="." instance=ExtResource("1_ground")]
-position = Vector2(960, 540)
-
-[node name="FogOverlay" parent="." instance=ExtResource("2_fog")]
 position = Vector2(960, 540)
 
 [node name="Midline" type="ColorRect" parent="."]
