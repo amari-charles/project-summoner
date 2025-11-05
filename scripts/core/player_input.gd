@@ -10,7 +10,10 @@ var current_selected_card: int = 0
 
 func _ready() -> void:
 	if summoner == null:
-		summoner = get_tree().get_first_node_in_group("player_summoners")
+		# PlayerInput is a child of PlayerSummoner node
+		summoner = get_parent() as Summoner
+		if summoner == null:
+			push_error("PlayerInput: Could not find parent Summoner!")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
