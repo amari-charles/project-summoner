@@ -1,4 +1,5 @@
-extends IProfileRepo
+const IProfileRepoBase = preload("res://scripts/data/profile_repository.gd")
+extends IProfileRepoBase
 class_name JsonProfileRepo
 
 ## JSON Profile Repository Implementation
