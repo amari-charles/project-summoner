@@ -35,7 +35,7 @@ func _attempt_play_card() -> void:
 	# Pick a random card that we can afford
 	var playable_cards: Array[int] = []
 	for i in range(summoner.hand.size()):
-		if summoner.hand[i].can_play(summoner.current_mana):
+		if summoner.hand[i].can_play(int(summoner.mana)):
 			playable_cards.append(i)
 
 	if playable_cards.is_empty():

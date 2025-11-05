@@ -37,9 +37,9 @@ func _on_time_updated(remaining: float) -> void:
 		var seconds = int(remaining) % 60
 		timer_label.text = "%02d:%02d" % [minutes, seconds]
 
-func _on_mana_changed(current: int, maximum: int) -> void:
+func _on_mana_changed(current: float, maximum: float) -> void:
 	if player_mana_label:
-		player_mana_label.text = "Mana: %d/%d" % [current, maximum]
+		player_mana_label.text = "Mana: %d/%d" % [int(current), int(maximum)]
 
 func _on_game_ended(winner: int) -> void:
 	if game_over_label:

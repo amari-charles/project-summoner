@@ -9,15 +9,17 @@ enum Team { PLAYER, ENEMY }
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
-@export var attack_range: float = 100.0
+@export var attack_range: float = 80.0
 @export var attack_speed: float = 1.0  # Attacks per second
-@export var move_speed: float = 50.0
+@export var move_speed: float = 60.0
 @export var team: Team = Team.PLAYER
+@export var aggro_radius: float = 180.0  # Range to detect enemies
+@export var is_ranged: bool = false  # Ranged vs melee (for future)
 
 ## Current state
 var current_hp: float
 var is_alive: bool = true
-var current_target: Unit = null
+var current_target: Node2D = null  # Can be Unit or Summoner
 var attack_cooldown: float = 0.0
 
 ## Signals
@@ -41,59 +43,75 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Update attack cooldown
-	if attack_cooldown > 0:
-		attack_cooldown -= delta
+	attack_cooldown = max(attack_cooldown - delta, 0.0)
 
-	# Find and engage targets
-	if current_target == null or not current_target.is_alive:
-		_find_target()
+	# Always try to find target (enemies or base)
+	current_target = _acquire_target()
 
 	if current_target != null:
-		_engage_target(delta)
+		var dist = global_position.distance_to(current_target.global_position)
 
-## Find the nearest enemy unit
-func _find_target() -> void:
+		# Attack if in range and cooldown ready
+		if dist <= attack_range:
+			if attack_cooldown <= 0.0:
+				_attack(current_target)
+				attack_cooldown = 1.0 / attack_speed
+			velocity = Vector2.ZERO
+		else:
+			# Move toward target
+			var direction = (current_target.global_position - global_position).normalized()
+			velocity = direction * move_speed
+	else:
+		# No target - advance toward enemy base
+		var base = _get_enemy_base()
+		if base:
+			var direction = (base.global_position - global_position).normalized()
+			velocity = direction * move_speed
+		else:
+			velocity = Vector2.ZERO
+
+	move_and_slide()
+
+## Find the nearest enemy unit within aggro range
+func _acquire_target() -> Node2D:
 	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
 	var enemies = get_tree().get_nodes_in_group(target_group)
 
-	var closest_enemy: Unit = null
-	var closest_distance: float = INF
+	var best: Node2D = null
+	var best_dist := INF
 
-	for enemy in enemies:
-		if enemy.is_alive:
-			var distance = global_position.distance_to(enemy.global_position)
-			if distance < closest_distance:
-				closest_distance = distance
-				closest_enemy = enemy
+	for u in enemies:
+		if u is Unit and u.is_alive:
+			var dist = global_position.distance_to(u.global_position)
+			if dist < best_dist and dist <= aggro_radius:
+				best = u
+				best_dist = dist
 
-	current_target = closest_enemy
+	# If no units in range, target the enemy base
+	if best == null:
+		best = _get_enemy_base()
 
-## Move toward or attack the current target
-func _engage_target(delta: float) -> void:
-	if current_target == null:
-		return
+	return best
 
-	var distance = global_position.distance_to(current_target.global_position)
+## Get the enemy base/summoner
+func _get_enemy_base() -> Node2D:
+	var base_group = "enemy_summoners" if team == Team.PLAYER else "player_summoners"
+	var bases = get_tree().get_nodes_in_group(base_group)
 
-	if distance > attack_range:
-		# Move toward target
-		var direction = (current_target.global_position - global_position).normalized()
-		velocity = direction * move_speed
-		move_and_slide()
-	else:
-		# In range - attack if cooldown is ready
-		velocity = Vector2.ZERO
-		if attack_cooldown <= 0:
-			_attack(current_target)
+	if bases.size() > 0:
+		return bases[0]
+	return null
 
 ## Execute an attack on the target
-func _attack(target: Unit) -> void:
-	if target == null or not target.is_alive:
+func _attack(target: Node2D) -> void:
+	if target == null:
 		return
 
-	target.take_damage(attack_damage)
-	attack_cooldown = 1.0 / attack_speed
-	unit_attacked.emit(target)
+	# Target can be Unit or Summoner - both have take_damage
+	if target.has_method("take_damage"):
+		target.take_damage(attack_damage)
+		if target is Unit:
+			unit_attacked.emit(target)
 
 ## Take damage from an attack
 func take_damage(damage: float) -> void:

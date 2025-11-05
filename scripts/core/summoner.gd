@@ -12,12 +12,12 @@ class_name Summoner
 @export var max_hand_size: int = 4
 
 ## Resources
-@export var max_mana: int = 10
 @export var mana_regen_rate: float = 1.0  # Mana per second
 
 ## Current state
 var current_hp: float
-var current_mana: int = 0
+var mana: float = 0.0
+const MANA_MAX := 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var is_alive: bool = true
@@ -25,12 +25,12 @@ var is_alive: bool = true
 ## Signals
 signal summoner_died(summoner: Summoner)
 signal card_played(card: Card)
-signal mana_changed(current: int, max: int)
+signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
 	current_hp = max_hp
-	current_mana = max_mana
+	mana = MANA_MAX
 
 	# Initialize deck
 	deck = starting_deck.duplicate()
@@ -48,14 +48,20 @@ func _ready() -> void:
 
 	_setup_visuals()
 
+	# Emit initial mana state
+	mana_changed.emit(mana, MANA_MAX)
+
 func _process(delta: float) -> void:
 	if not is_alive:
 		return
 
-	# Regenerate mana
-	if current_mana < max_mana:
-		current_mana = min(current_mana + int(mana_regen_rate * delta), max_mana)
-		mana_changed.emit(current_mana, max_mana)
+	# Regenerate mana (FIXED: use float accumulation)
+	var old_mana = mana
+	mana = clamp(mana + mana_regen_rate * delta, 0.0, MANA_MAX)
+
+	# Only emit if mana actually changed significantly
+	if abs(mana - old_mana) > 0.01:
+		mana_changed.emit(mana, MANA_MAX)
 
 ## Draw a card from the deck
 func draw_card() -> void:
@@ -76,12 +82,12 @@ func play_card(card_index: int, position: Vector2) -> bool:
 
 	var card = hand[card_index]
 
-	if not card.can_play(current_mana):
+	if not card.can_play(int(mana)):
 		return false
 
 	# Deduct mana
-	current_mana -= card.mana_cost
-	mana_changed.emit(current_mana, max_mana)
+	mana -= card.mana_cost
+	mana_changed.emit(mana, MANA_MAX)
 
 	# Find battlefield to spawn units in
 	var battlefield = get_tree().get_first_node_in_group("battlefield")
