@@ -33,7 +33,7 @@ func can_play(current_mana: int) -> bool:
 
 ## Execute the card effect at the given position
 ## Note: This is called from Summoner which has scene tree access
-func play(position: Vector2, team: int, battlefield: Node) -> void:
+func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 	match card_type:
 		CardType.SUMMON:
 			_summon_unit(position, team, battlefield)
@@ -41,7 +41,7 @@ func play(position: Vector2, team: int, battlefield: Node) -> void:
 			_cast_spell(position, team, battlefield)
 
 ## Spawn unit(s) at the position
-func _summon_unit(position: Vector2, team: int, battlefield: Node) -> void:
+func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned!" % card_name)
 		return
@@ -54,7 +54,7 @@ func _summon_unit(position: Vector2, team: int, battlefield: Node) -> void:
 			battlefield.add_child(unit)
 
 ## Execute spell effect at the position
-func _cast_spell(position: Vector2, team: int, battlefield: Node) -> void:
+func _cast_spell(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 	# Placeholder for spell effects
 	# Could be AOE damage, buffs, debuffs, etc.
 
@@ -62,7 +62,7 @@ func _cast_spell(position: Vector2, team: int, battlefield: Node) -> void:
 		_apply_aoe_damage(position, team, battlefield)
 
 ## Apply AOE damage to enemies in range
-func _apply_aoe_damage(position: Vector2, team: int, battlefield: Node) -> void:
+func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 	var target_group = "enemy_units" if team == Unit.Team.PLAYER else "player_units"
 	var scene_tree = battlefield.get_tree()
 	if scene_tree == null:
