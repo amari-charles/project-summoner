@@ -15,6 +15,9 @@ enum GameState { SETUP, PLAYING, PAUSED, GAME_OVER }
 @export var player_summoner: Summoner
 @export var enemy_summoner: Summoner
 
+var player_base: Node2D  # Base object
+var enemy_base: Node2D   # Base object
+
 ## State
 var current_state: GameState = GameState.SETUP
 var match_time: float = 0.0
@@ -53,11 +56,13 @@ func _ready() -> void:
 	for base in player_bases:
 		if base.has_signal("base_destroyed"):
 			base.base_destroyed.connect(_on_base_destroyed)
+			player_base = base
 			print("Connected to player base")
 
 	for base in enemy_bases:
 		if base.has_signal("base_destroyed"):
 			base.base_destroyed.connect(_on_base_destroyed)
+			enemy_base = base
 			print("Connected to enemy base")
 
 	# Start the match
@@ -134,9 +139,12 @@ func _on_base_destroyed(base) -> void:
 
 ## Check victory when time runs out
 func _check_timeout_victory() -> void:
-	if player_summoner.current_hp > enemy_summoner.current_hp:
+	var player_hp = player_base.current_hp if player_base else 0
+	var enemy_hp = enemy_base.current_hp if enemy_base else 0
+
+	if player_hp > enemy_hp:
 		end_game(Unit.Team.PLAYER)
-	elif enemy_summoner.current_hp > player_summoner.current_hp:
+	elif enemy_hp > player_hp:
 		end_game(Unit.Team.ENEMY)
 	else:
 		# Tied - enter overtime
@@ -146,9 +154,12 @@ func _check_timeout_victory() -> void:
 ## Check victory in overtime
 func _check_overtime_victory() -> void:
 	# If still tied after overtime, higher HP wins
-	if player_summoner.current_hp > enemy_summoner.current_hp:
+	var player_hp = player_base.current_hp if player_base else 0
+	var enemy_hp = enemy_base.current_hp if enemy_base else 0
+
+	if player_hp > enemy_hp:
 		end_game(Unit.Team.PLAYER)
-	elif enemy_summoner.current_hp > player_summoner.current_hp:
+	elif enemy_hp > player_hp:
 		end_game(Unit.Team.ENEMY)
 	else:
 		# Still tied? Player wins by default
