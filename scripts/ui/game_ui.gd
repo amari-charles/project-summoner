@@ -53,7 +53,7 @@ func _on_mana_changed(current: float, maximum: float) -> void:
 	if player_mana_label:
 		player_mana_label.text = "Mana: %d/%d" % [int(current), int(maximum)]
 
-func _on_game_ended(winner: int) -> void:
+func _on_game_ended(winner: Unit.Team) -> void:
 	if game_over_label:
 		var winner_text = "PLAYER WINS!" if winner == Unit.Team.PLAYER else "ENEMY WINS!"
 		game_over_label.text = winner_text
