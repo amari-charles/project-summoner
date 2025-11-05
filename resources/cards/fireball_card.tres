@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Card" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card"]
+
+[resource]
+script = ExtResource("1_card")
+card_name = "Fireball"
+card_type = 1
+description = "AOE damage spell"
+mana_cost = 5
+spell_damage = 100.0
+spell_radius = 80.0
