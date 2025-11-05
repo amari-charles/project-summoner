@@ -55,9 +55,6 @@ func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void
 
 ## Execute spell effect at the position
 func _cast_spell(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
-	# Placeholder for spell effects
-	# Could be AOE damage, buffs, debuffs, etc.
-
 	if spell_damage > 0:
 		_apply_aoe_damage(position, team, battlefield)
 
