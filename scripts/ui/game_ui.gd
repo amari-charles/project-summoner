@@ -6,6 +6,7 @@ class_name GameUI
 @export var timer_label: Label
 @export var player_mana_label: Label
 @export var game_over_label: Label
+@export var restart_button: Button
 
 var game_controller: GameController
 var player_summoner: Summoner
@@ -18,6 +19,13 @@ func _ready() -> void:
 		player_mana_label = get_node_or_null("PlayerManaLabel")
 	if game_over_label == null:
 		game_over_label = get_node_or_null("GameOverLabel")
+	if restart_button == null:
+		restart_button = get_node_or_null("RestartButton")
+
+	# Connect restart button
+	if restart_button:
+		restart_button.pressed.connect(_on_restart_pressed)
+		restart_button.visible = false  # Hidden until game over
 
 	# Find game controller and summoner
 	game_controller = get_tree().get_first_node_in_group("game_controller")
@@ -58,3 +66,11 @@ func _on_game_ended(winner: Unit.Team) -> void:
 		var winner_text = "PLAYER WINS!" if winner == Unit.Team.PLAYER else "ENEMY WINS!"
 		game_over_label.text = winner_text
 		game_over_label.visible = true
+
+	# Show restart button
+	if restart_button:
+		restart_button.visible = true
+
+func _on_restart_pressed() -> void:
+	if game_controller:
+		game_controller.restart_game()

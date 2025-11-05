@@ -110,6 +110,11 @@ func resume_game() -> void:
 		get_tree().paused = false
 		state_changed.emit(current_state)
 
+## Restart the current scene
+func restart_game() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
 ## End the game with a winner
 func end_game(winner: Unit.Team) -> void:
 	if current_state == GameState.GAME_OVER:
@@ -118,6 +123,9 @@ func end_game(winner: Unit.Team) -> void:
 	current_state = GameState.GAME_OVER
 	state_changed.emit(current_state)
 	game_ended.emit(winner)
+
+	# Pause the game
+	get_tree().paused = true
 
 	var winner_text = "PLAYER" if winner == Unit.Team.PLAYER else "ENEMY"
 	print("Game Over! Winner: %s" % winner_text)
