@@ -51,6 +51,14 @@ func _destroy() -> void:
 
 ## Setup visual representation
 func _setup_visuals() -> void:
+	# Border (behind wall)
+	var border = ColorRect.new()
+	border.name = "Border"
+	border.size = Vector2(64, 204)
+	border.position = Vector2(-32, -102)
+	border.color = Color.WHITE
+	add_child(border)
+
 	# Wall/tower structure
 	var wall = ColorRect.new()
 	wall.name = "Wall"
@@ -58,14 +66,6 @@ func _setup_visuals() -> void:
 	wall.position = Vector2(-30, -100)
 	wall.color = Color.DARK_BLUE if team == Team.PLAYER else Color.DARK_RED
 	add_child(wall)
-
-	# Border
-	var border = ColorRect.new()
-	border.size = Vector2(64, 204)
-	border.position = Vector2(-32, -102)
-	border.color = Color.WHITE
-	border.z_index = -1
-	add_child(border)
 
 	# HP bar background
 	var hp_bar_bg = ColorRect.new()
@@ -75,21 +75,13 @@ func _setup_visuals() -> void:
 	hp_bar_bg.color = Color.BLACK
 	add_child(hp_bar_bg)
 
-	# HP bar
+	# HP bar (on top of background)
 	var hp_bar = ColorRect.new()
 	hp_bar.name = "HPBar"
 	hp_bar.size = Vector2(70, 12)
 	hp_bar.position = Vector2(-35, -120)
 	hp_bar.color = Color.GREEN
 	add_child(hp_bar)
-
-	# Label
-	var label = Label.new()
-	label.name = "Label"
-	label.text = "BASE" if team == Team.PLAYER else "ENEMY"
-	label.position = Vector2(-25, -140)
-	label.add_theme_font_size_override("font_size", 14)
-	add_child(label)
 
 ## Update HP bar visual
 func _update_hp_bar() -> void:

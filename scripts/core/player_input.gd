@@ -35,11 +35,13 @@ func _handle_spawn_click(screen_pos: Vector2) -> void:
 	if summoner == null or not summoner.is_alive:
 		return
 
-	# Get world position from screen position
+	# Get world position from screen position (accounting for camera zoom and position)
 	var camera = get_viewport().get_camera_2d()
 	var world_pos = screen_pos
 	if camera:
-		world_pos = camera.get_screen_center_position() + (screen_pos - get_viewport().get_visible_rect().size / 2)
+		var viewport_center = get_viewport().get_visible_rect().size / 2
+		var offset_from_center = (screen_pos - viewport_center) / camera.zoom
+		world_pos = camera.global_position + offset_from_center
 
 	# Try to play the currently selected card
 	if summoner.hand.size() > current_selected_card:

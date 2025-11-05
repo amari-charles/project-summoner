@@ -46,8 +46,6 @@ func _ready() -> void:
 	else:
 		add_to_group("enemy_summoners")
 
-	_setup_visuals()
-
 	# Emit initial mana state
 	mana_changed.emit(mana, MANA_MAX)
 
@@ -120,40 +118,3 @@ func take_damage(damage: float) -> void:
 func _die() -> void:
 	is_alive = false
 	summoner_died.emit(self)
-
-## Setup visual representation
-func _setup_visuals() -> void:
-	# Summoner base visual
-	var base = ColorRect.new()
-	base.size = Vector2(80, 120)
-	base.position = Vector2(-40, -120)
-	base.color = Color.DARK_BLUE if team == Unit.Team.PLAYER else Color.DARK_RED
-	add_child(base)
-
-	# HP bar
-	var hp_bar_bg = ColorRect.new()
-	hp_bar_bg.size = Vector2(80, 10)
-	hp_bar_bg.position = Vector2(-40, -140)
-	hp_bar_bg.color = Color.BLACK
-	add_child(hp_bar_bg)
-
-	var hp_bar = ColorRect.new()
-	hp_bar.name = "HPBar"
-	hp_bar.size = Vector2(80, 10)
-	hp_bar.position = Vector2(-40, -140)
-	hp_bar.color = Color.CYAN
-	add_child(hp_bar)
-
-	# Label
-	var label = Label.new()
-	label.name = "NameLabel"
-	label.text = "PLAYER" if team == Unit.Team.PLAYER else "ENEMY"
-	label.position = Vector2(-30, -160)
-	add_child(label)
-
-## Update visuals each frame
-func _physics_process(_delta: float) -> void:
-	if has_node("HPBar"):
-		var hp_bar = get_node("HPBar") as ColorRect
-		var hp_percent = current_hp / max_hp
-		hp_bar.size.x = 80 * hp_percent
