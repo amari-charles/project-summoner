@@ -301,7 +301,7 @@ func _add_card_to_deck(card_instance_id: String) -> void:
 ## DECK EDITING
 ## =============================================================================
 
-func _on_collection_card_clicked(card_instance_id: String) -> void:
+func _on_collection_card_clicked(_card_data: Dictionary, card_instance_id: String) -> void:
 	# Double-click behavior: first click shows details, second click adds to deck
 	if selected_collection_card == card_instance_id:
 		# Second click - add to deck
@@ -314,7 +314,7 @@ func _on_collection_card_clicked(card_instance_id: String) -> void:
 		selected_deck_card = ""  # Clear deck selection
 		_show_card_details(card_instance_id, true)  # true = from collection
 
-func _on_deck_card_instance_clicked(card_instance_id: String) -> void:
+func _on_deck_card_instance_clicked(_card_data: Dictionary, card_instance_id: String) -> void:
 	# Double-click behavior: first click shows details, second click removes from deck
 	if selected_deck_card == card_instance_id:
 		# Second click - remove from deck
