@@ -26,10 +26,10 @@ const TEST_CARDS = ["warrior", "archer", "fireball", "wall"]
 const TEST_RARITIES = ["common", "common", "common", "rare", "epic"]  # Weighted
 
 ## Service references (injected by autoload order)
-var _repo: IProfileRepo = null
-var _economy: EconomyService = null
-var _collection: CollectionService = null
-var _decks: DeckService = null
+var _repo = null  # ProfileRepo autoload
+var _economy = null  # Economy autoload
+var _collection = null  # Collection autoload
+var _decks = null  # Decks autoload
 
 ## =============================================================================
 ## LIFECYCLE
