@@ -22,6 +22,12 @@ const AUTOSAVE_DELAY = 0.5  # Seconds of inactivity before autosave
 ## Current save version for migrations
 const CURRENT_VERSION = 1
 
+## Signals
+signal profile_loaded(profile_id: String)
+signal profile_saved(profile_id: String)
+signal save_failed(error: String)
+signal data_changed
+
 ## In-memory profile data
 var _data: Dictionary = {}
 var _current_profile_id: String = ""
