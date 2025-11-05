@@ -6,7 +6,7 @@ class_name Base
 
 enum Team { PLAYER, ENEMY }
 
-@export var max_hp: float = 1000.0
+@export var max_hp: float = 300.0
 @export var team: Team = Team.PLAYER
 
 var current_hp: float
