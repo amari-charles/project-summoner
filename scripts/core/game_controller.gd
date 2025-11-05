@@ -39,11 +39,26 @@ func _ready() -> void:
 	if enemy_summoner == null:
 		enemy_summoner = get_tree().get_first_node_in_group("enemy_summoners")
 
-	# Connect summoner death signals
-	if player_summoner:
+	# Connect summoner death signals (for backward compatibility)
+	if player_summoner and player_summoner.has_signal("summoner_died"):
 		player_summoner.summoner_died.connect(_on_summoner_died)
-	if enemy_summoner:
+	if enemy_summoner and enemy_summoner.has_signal("summoner_died"):
 		enemy_summoner.summoner_died.connect(_on_summoner_died)
+
+	# Connect base destruction signals
+	await get_tree().process_frame  # Wait for bases to be ready
+	var player_bases = get_tree().get_nodes_in_group("player_bases")
+	var enemy_bases = get_tree().get_nodes_in_group("enemy_bases")
+
+	for base in player_bases:
+		if base.has_signal("base_destroyed"):
+			base.base_destroyed.connect(_on_base_destroyed)
+			print("Connected to player base")
+
+	for base in enemy_bases:
+		if base.has_signal("base_destroyed"):
+			base.base_destroyed.connect(_on_base_destroyed)
+			print("Connected to enemy base")
 
 	# Start the match
 	call_deferred("start_game")
@@ -102,11 +117,19 @@ func end_game(winner: Unit.Team) -> void:
 	var winner_text = "PLAYER" if winner == Unit.Team.PLAYER else "ENEMY"
 	print("Game Over! Winner: %s" % winner_text)
 
-## Handle summoner death
+## Handle summoner death (backward compatibility)
 func _on_summoner_died(summoner: Summoner) -> void:
 	if summoner == player_summoner:
 		end_game(Unit.Team.ENEMY)
 	elif summoner == enemy_summoner:
+		end_game(Unit.Team.PLAYER)
+
+## Handle base destruction
+func _on_base_destroyed(base) -> void:
+	print("Base destroyed! Team: ", base.team)
+	if base.team == Unit.Team.PLAYER:
+		end_game(Unit.Team.ENEMY)
+	else:
 		end_game(Unit.Team.PLAYER)
 
 ## Check victory when time runs out

@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://player_base_scene"]
+
+[ext_resource type="Script" path="res://scripts/core/base.gd" id="1_base"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_base"]
+size = Vector2(60, 200)
+
+[node name="PlayerBase" type="StaticBody2D" groups=["bases", "player_bases", "player_summoners"]]
+script = ExtResource("1_base")
+max_hp = 1000.0
+team = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_base")

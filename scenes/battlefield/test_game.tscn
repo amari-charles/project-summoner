@@ -1,8 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://coxiqy2uc4cou"]
+[gd_scene load_steps=11 format=3 uid="uid://coxiqy2uc4cou"]
 
 [ext_resource type="PackedScene" uid="uid://bqxn3k8r2vme1" path="res://scenes/battlefield/battlefield.tscn" id="1_battlefield"]
 [ext_resource type="Script" uid="uid://bh2somo1kd66" path="res://scripts/core/game_controller.gd" id="2_game_controller"]
+[ext_resource type="PackedScene" path="res://scenes/battlefield/player_base.tscn" id="3_player_base"]
 [ext_resource type="Script" uid="uid://dxuvbqfw4juwt" path="res://scripts/core/summoner.gd" id="3_summoner"]
+[ext_resource type="PackedScene" path="res://scenes/battlefield/enemy_base.tscn" id="4_enemy_base"]
 [ext_resource type="Script" uid="uid://pvurqohx5fjd" path="res://scripts/cards/card.gd" id="4_75405"]
 [ext_resource type="Script" uid="uid://buwk0u38u574j" path="res://scripts/core/simple_ai.gd" id="4_ai"]
 [ext_resource type="Resource" path="res://resources/cards/warrior_card.tres" id="5_ugy22"]
@@ -13,6 +15,12 @@
 script = ExtResource("2_game_controller")
 
 [node name="Battlefield" parent="." instance=ExtResource("1_battlefield")]
+
+[node name="PlayerBase" parent="." instance=ExtResource("3_player_base")]
+position = Vector2(80, 540)
+
+[node name="EnemyBase" parent="." instance=ExtResource("4_enemy_base")]
+position = Vector2(1840, 540)
 
 [node name="PlayerSummoner" type="Node2D" parent="." groups=["player_summoners", "summoners"]]
 position = Vector2(100, 540)
