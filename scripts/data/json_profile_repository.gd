@@ -547,6 +547,7 @@ func _create_fresh_profile() -> void:
 		"meta": {
 			"onboarding_complete": false,
 			"selected_hero": null,
+			"selected_deck": null,
 			"tutorial_flags": {},
 			"achievements": {},
 			"analytics_opt_in": false

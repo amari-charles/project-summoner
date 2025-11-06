@@ -31,6 +31,7 @@ position = Vector2(1840, 540)
 [node name="PlayerSummoner" type="Node2D" parent="." groups=["player_summoners", "summoners"]]
 position = Vector2(100, 540)
 script = ExtResource("3_summoner")
+load_deck_from_profile = true
 starting_deck = Array[ExtResource("4_75405")]([ExtResource("5_warrior"), ExtResource("5_warrior"), ExtResource("5_warrior"), ExtResource("5_archer"), ExtResource("5_archer"), ExtResource("5_archer"), ExtResource("5_wall"), ExtResource("5_wall"), ExtResource("5_fireball"), ExtResource("5_fireball")])
 
 [node name="PlayerInput" type="Node" parent="PlayerSummoner"]

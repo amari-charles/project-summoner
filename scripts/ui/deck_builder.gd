@@ -17,6 +17,7 @@ class_name DeckBuilder
 @onready var deck_selector: OptionButton = %DeckSelector
 @onready var new_deck_button: Button = %NewDeckButton
 @onready var delete_deck_button: Button = %DeleteDeckButton
+@onready var set_active_button: Button = %SetActiveButton
 @onready var deck_name_edit: LineEdit = %DeckNameEdit
 @onready var card_count_label: Label = %CardCount
 @onready var validation_label: Label = %ValidationLabel
@@ -56,6 +57,7 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	new_deck_button.pressed.connect(_on_new_deck_pressed)
 	delete_deck_button.pressed.connect(_on_delete_deck_pressed)
+	set_active_button.pressed.connect(_on_set_active_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
 	deck_name_edit.text_submitted.connect(_on_deck_name_changed)
 
@@ -136,6 +138,9 @@ func _load_deck(deck_id: String) -> void:
 	# Update UI
 	deck_name_edit.text = current_deck_data.get("name", "Unnamed Deck")
 	deck_card_ids = current_deck_data.get("card_instance_ids", [])
+
+	# Check if this is the active deck
+	_update_active_deck_button()
 
 	# Refresh both collection and deck displays
 	# Collection needs refresh because different cards are now in deck
@@ -391,6 +396,40 @@ func _on_delete_deck_pressed() -> void:
 		return
 
 	confirm_delete_dialog.popup_centered()
+
+func _on_set_active_pressed() -> void:
+	if current_deck_id == "":
+		push_warning("DeckBuilder: No deck selected to set as active")
+		return
+
+	# Set this deck as the active deck in profile
+	var profile_repo = get_node("/root/ProfileRepo")
+	if profile_repo:
+		var profile = profile_repo.get_active_profile()
+		if not profile.is_empty():
+			profile["meta"]["selected_deck"] = current_deck_id
+			profile_repo.save_profile()
+
+			_update_active_deck_button()
+			print("DeckBuilder: Set deck '%s' as active" % current_deck_data.get("name", current_deck_id))
+
+func _update_active_deck_button() -> void:
+	var profile_repo = get_node("/root/ProfileRepo")
+	if not profile_repo:
+		return
+
+	var profile = profile_repo.get_active_profile()
+	if profile.is_empty():
+		return
+
+	var active_deck_id = profile.get("meta", {}).get("selected_deck", "")
+
+	if active_deck_id == current_deck_id:
+		set_active_button.text = "✓ ACTIVE DECK"
+		set_active_button.disabled = true
+	else:
+		set_active_button.text = "SET AS ACTIVE"
+		set_active_button.disabled = false
 
 func _on_delete_confirmed() -> void:
 	if current_deck_id == "":

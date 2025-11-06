@@ -71,6 +71,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "DELETE"
 
+[node name="SetActiveButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SET AS ACTIVE"
+
 [node name="DeckInfo" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
