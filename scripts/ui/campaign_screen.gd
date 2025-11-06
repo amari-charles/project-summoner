@@ -247,7 +247,7 @@ func _on_start_battle_pressed() -> void:
 			get_node("/root/ProfileRepo").save_profile(true)  # Force immediate save
 
 	# Launch battle scene
-	get_tree().change_scene_to_file("res://scenes/test_game.tscn")
+	get_tree().change_scene_to_file("res://scenes/battlefield/test_game.tscn")
 
 ## =============================================================================
 ## NAVIGATION
