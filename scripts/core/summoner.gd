@@ -11,6 +11,7 @@ class_name Summoner
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
 @export var load_deck_from_profile: bool = false  # If true, load player's deck from profile
+@export var load_enemy_deck_from_campaign: bool = false  # If true, load enemy deck from current campaign battle
 
 ## Resources
 @export var mana_regen_rate: float = 1.0  # Mana per second
@@ -31,6 +32,19 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
+	# If loading enemy from campaign, override max_hp if specified
+	if load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+		var campaign = get_node_or_null("/root/Campaign")
+		var profile_repo = get_node_or_null("/root/ProfileRepo")
+		if campaign and profile_repo:
+			var profile = profile_repo.get_active_profile()
+			var battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+			if battle_id != "":
+				var battle = campaign.get_battle(battle_id)
+				if battle.has("enemy_hp"):
+					max_hp = battle.get("enemy_hp")
+					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
+
 	current_hp = max_hp
 	mana = MANA_MAX
 
@@ -43,6 +57,15 @@ func _ready() -> void:
 			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
 		else:
 			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
+	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+		# Load enemy deck from current campaign battle
+		print("Summoner: Loading enemy deck from campaign...")
+		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
+		if deck.is_empty():
+			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback deck.")
+			deck = starting_deck.duplicate()
+		else:
+			print("Summoner: Successfully loaded %d cards for enemy from campaign" % deck.size())
 	else:
 		# Use exported starting_deck (for testing/AI)
 		deck = starting_deck.duplicate()

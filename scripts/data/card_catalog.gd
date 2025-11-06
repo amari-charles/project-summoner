@@ -144,6 +144,34 @@ func _init_catalog() -> void:
 		"unlock_condition": "default"
 	}
 
+	# Training Dummy - Tutorial target
+	_catalog["training_dummy"] = {
+		"catalog_id": "training_dummy",
+		"card_name": "Training Dummy",
+		"description": "A stationary training target. Doesn't move or attack.",
+		"rarity": "common",
+
+		"card_type": 0,  # SUMMON
+		"mana_cost": 1,
+		"cooldown": 2.0,
+
+		"unit_scene_path": "res://scenes/units/training_dummy.tscn",
+		"spawn_count": 1,
+
+		"max_hp": 100.0,
+		"attack_damage": 0.0,
+		"attack_range": 0.0,
+		"attack_speed": 0.0,
+		"move_speed": 0.0,
+		"aggro_radius": 0.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		"card_icon_path": "",
+		"tags": ["tutorial", "training", "target"],
+		"unlock_condition": "enemy_only"
+	}
+
 ## =============================================================================
 ## LOOKUP METHODS
 ## =============================================================================
