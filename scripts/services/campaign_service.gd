@@ -12,7 +12,7 @@ signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
 
 ## Dependencies
-@onready var _profile_repo = get_node("/root/ProfileRepository")
+@onready var _profile_repo = get_node("/root/ProfileRepo")
 @onready var _collection = get_node("/root/Collection")
 
 ## Battle data structure
