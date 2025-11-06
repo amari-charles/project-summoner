@@ -65,7 +65,7 @@ func _init_battles() -> void:
 		# AI Configuration
 		"ai_type": "scripted",
 		"ai_script": [
-			{"delay": 0.0, "card_name": "Training Dummy", "position": {"x": 960, "y": 540}}
+			{"delay": 0.0, "card_name": "Training Dummy", "position": {"x": 1400, "y": 540}}
 		]
 	}
 
