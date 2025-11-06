@@ -78,52 +78,20 @@ func _destroy() -> void:
 
 ## Setup visual representation
 func _setup_visuals() -> void:
-	# Border (behind wall)
-	var border = ColorRect.new()
-	border.name = "Border"
-	border.size = Vector2(64, 204)
-	border.position = Vector2(-32, -102)
-	border.color = Color.WHITE
-	add_child(border)
-
-	# Wall/tower structure
-	var wall = ColorRect.new()
-	wall.name = "Wall"
-	wall.size = Vector2(60, 200)
-	wall.position = Vector2(-30, -100)
-	wall.color = Color.DARK_BLUE if team == Team.PLAYER else Color.DARK_RED
-	add_child(wall)
-
-	# HP bar background
-	var hp_bar_bg = ColorRect.new()
-	hp_bar_bg.name = "HPBarBG"
-	hp_bar_bg.size = Vector2(70, 12)
-	hp_bar_bg.position = Vector2(-35, -120)
-	hp_bar_bg.color = Color.BLACK
-	add_child(hp_bar_bg)
-
-	# HP bar (on top of background)
-	var hp_bar = ColorRect.new()
-	hp_bar.name = "HPBar"
-	hp_bar.size = Vector2(70, 12)
-	hp_bar.position = Vector2(-35, -120)
-	hp_bar.color = Color.GREEN
-	add_child(hp_bar)
+	# Visuals are now defined in the scene files (player_base.tscn, enemy_base.tscn)
+	# Just ensure the HP bar is initialized
+	_update_hp_bar()
 
 ## Update HP bar visual
 func _update_hp_bar() -> void:
-	if has_node("HPBar"):
-		var hp_bar = get_node("HPBar") as ColorRect
+	# Look for HP bar in Visual node
+	if has_node("Visual/HPBar/HPBarFill"):
+		var hp_bar = get_node("Visual/HPBar/HPBarFill") as ColorRect
 		var hp_percent = current_hp / max_hp
-		hp_bar.size.x = 70 * hp_percent
+		hp_bar.size.x = 50 * hp_percent  # 50px is the full width
 
-		# Change color based on HP
-		if hp_percent > 0.5:
-			hp_bar.color = Color.GREEN
-		elif hp_percent > 0.25:
-			hp_bar.color = Color.YELLOW
-		else:
-			hp_bar.color = Color.RED
+		# Use ColorPalette colors for health
+		hp_bar.color = ColorPalette.get_health_color(hp_percent)
 
 ## Update HP bar every frame
 func _process(_delta: float) -> void:
