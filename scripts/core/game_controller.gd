@@ -65,6 +65,9 @@ func _ready() -> void:
 			enemy_base = base
 			print("Connected to enemy base")
 
+	# Setup AI for campaign battles
+	_setup_campaign_ai()
+
 	# Start the match
 	call_deferred("start_game")
 
@@ -218,3 +221,42 @@ func _handle_campaign_victory(winner: Unit.Team) -> void:
 		await get_tree().create_timer(2.0).timeout
 		get_tree().paused = false
 		get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+
+## Setup AI for campaign battles
+func _setup_campaign_ai() -> void:
+	if not enemy_summoner:
+		return
+
+	# Check if this is a campaign battle
+	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		return
+
+	var profile = profile_repo.get_active_profile()
+	if profile.is_empty():
+		return
+
+	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	if current_battle_id == "":
+		return  # Not a campaign battle
+
+	# Load battle config
+	var campaign = get_node_or_null("/root/Campaign")
+	if not campaign:
+		return
+
+	var battle_config = campaign.get_battle(current_battle_id)
+	if battle_config.is_empty():
+		return
+
+	# Remove existing AI (SimpleAI from scene)
+	for child in enemy_summoner.get_children():
+		if child is AIController or child.get_script() == preload("res://scripts/core/simple_ai.gd"):
+			print("GameController: Removing old AI: %s" % child.name)
+			child.queue_free()
+
+	# Create and attach new AI
+	var ai = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
+	if ai:
+		enemy_summoner.add_child(ai)
+		print("GameController: Loaded %s AI for battle '%s'" % [battle_config.get("ai_type", "unknown"), current_battle_id])
