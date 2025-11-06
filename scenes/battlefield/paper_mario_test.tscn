@@ -32,7 +32,7 @@ shape = SubResource("CapsuleShape3D_1")
 
 [node name="Sprite3D" type="Sprite3D" parent="TestCharacter"]
 transform = Transform3D(1.41421, 0, 1.41421, 0, 2, 0, -1.41421, 0, 1.41421, 0, 0, 0)
-pixel_size = 0.01
+pixel_size = 0.00999999978
 billboard = 0
 shaded = true
 alpha_cut = 0
