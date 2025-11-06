@@ -19,7 +19,14 @@ func _ready() -> void:
 
 	print("Texture set on Sprite3D: ", sprite_3d.texture != null)
 	print("Sprite3D pixel_size: ", sprite_3d.pixel_size)
+	print("Sprite3D scale: ", sprite_3d.scale)
 	print("Sprite3D position: ", sprite_3d.position)
 	print("Sprite3D rotation: ", sprite_3d.rotation_degrees)
+	print("Sprite3D visible: ", sprite_3d.visible)
+	print("Sprite3D alpha_cut: ", sprite_3d.alpha_cut)
 	print("Character position: ", global_position)
 	print("===================================")
+
+func _process(_delta: float) -> void:
+	# Force viewport to render every frame
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
