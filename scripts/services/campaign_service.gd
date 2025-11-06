@@ -60,7 +60,7 @@ func _init_battles() -> void:
 		"enemy_deck": [
 			{"catalog_id": "training_dummy", "count": 1}
 		],
-		"enemy_hp": 50.0,  # Very low HP for tutorial (5 hits max)
+		"enemy_hp": 30.0,  # Very low HP for tutorial (2 hits)
 		"unlock_requirements": [],
 		# AI Configuration
 		"ai_type": "scripted",
