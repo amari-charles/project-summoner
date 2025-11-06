@@ -20,9 +20,15 @@ class_name BattlefieldVisuals
 @onready var player_zone_border: Line2D = $ZoneMarkers/PlayerZoneBorder
 @onready var enemy_zone_border: Line2D = $ZoneMarkers/EnemyZoneBorder
 
+## Ambient atmosphere
+var ambient_pulse_time: float = 0.0
+const AMBIENT_PULSE_SPEED: float = 0.5
+const AMBIENT_PULSE_STRENGTH: float = 0.05
+
 func _ready() -> void:
 	print("BattlefieldVisuals: Initialized layered battlefield")
 	_setup_colors()
+	_setup_ambient_modulation()
 
 func _setup_colors() -> void:
 	# Apply colors from ColorPalette
@@ -34,6 +40,20 @@ func _setup_colors() -> void:
 	enemy_zone_border.default_color = ColorPalette.with_alpha(ColorPalette.ENEMY_ZONE_PRIMARY, 0.4)
 
 	print("BattlefieldVisuals: Applied color palette")
+
+func _setup_ambient_modulation() -> void:
+	# Set canvas modulate for overall atmosphere (subtle purple tint)
+	RenderingServer.canvas_set_modulate(get_canvas(), Color(0.95, 0.94, 1.0, 1.0))
+	print("BattlefieldVisuals: Applied ambient modulation")
+
+func _process(delta: float) -> void:
+	# Subtle ambient pulse for mystical atmosphere
+	ambient_pulse_time += delta * AMBIENT_PULSE_SPEED
+	var pulse = sin(ambient_pulse_time) * AMBIENT_PULSE_STRENGTH
+
+	# Apply gentle brightness variation to horizon
+	var base_horizon = ColorPalette.SKY_HORIZON
+	horizon.color = base_horizon.lightened(pulse)
 
 ## Get the gameplay layer where units should be spawned
 func get_gameplay_layer() -> Node2D:
