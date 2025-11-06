@@ -1,0 +1,47 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battlefield/paper_mario_character.gd" id="1_script"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.3
+height = 1.0
+
+[node name="PaperMarioTest" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 5, 5, 5)
+projection = 1
+size = 10.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+size = Vector3(10, 1, 10)
+
+[node name="TestCharacter" type="CharacterBody3D" parent="."]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestCharacter"]
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="Sprite3D" type="Sprite3D" parent="TestCharacter"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.5, 0)
+billboard = 0
+shaded = true
+alpha_cut = 2
+texture_filter = 0
+
+[node name="SubViewport" type="SubViewport" parent="TestCharacter/Sprite3D"]
+transparent_bg = true
+size = Vector2i(100, 100)
+
+[node name="2DModel" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
+
+[node name="TestSprite" type="ColorRect" parent="TestCharacter/Sprite3D/SubViewport/2DModel"]
+offset_left = 25.0
+offset_top = 25.0
+offset_right = 75.0
+offset_bottom = 75.0
+color = Color(0.831, 0.647, 0.455, 1)
