@@ -152,8 +152,9 @@ func save_progress() -> void:
 
 	profile["campaign_progress"]["completed_battles"] = _completed_battles.duplicate()
 
-	_profile_repo.save_profile()
+	_profile_repo.save_profile(true)  # Force immediate save
 	campaign_progress_changed.emit()
+	print("CampaignService: Saved progress - %d battles completed" % _completed_battles.size())
 
 ## =============================================================================
 ## BATTLE QUERIES

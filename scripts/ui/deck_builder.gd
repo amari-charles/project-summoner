@@ -408,10 +408,10 @@ func _on_set_active_pressed() -> void:
 		var profile = profile_repo.get_active_profile()
 		if not profile.is_empty():
 			profile["meta"]["selected_deck"] = current_deck_id
-			profile_repo.save_profile()
+			profile_repo.save_profile(true)  # Force immediate save
 
 			_update_active_deck_button()
-			print("DeckBuilder: Set deck '%s' as active" % current_deck_data.get("name", current_deck_id))
+			print("DeckBuilder: Set deck '%s' as active (saved immediately)" % current_deck_data.get("name", current_deck_id))
 
 func _update_active_deck_button() -> void:
 	var profile_repo = get_node("/root/ProfileRepo")

@@ -37,12 +37,16 @@ func _ready() -> void:
 	# Initialize deck
 	if load_deck_from_profile and team == Unit.Team.PLAYER:
 		# Load deck from player's profile
+		print("Summoner: Loading deck from profile...")
 		deck = DeckLoader.load_player_deck()
 		if deck.is_empty():
 			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
+		else:
+			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
 	else:
 		# Use exported starting_deck (for testing/AI)
 		deck = starting_deck.duplicate()
+		print("Summoner: Using exported starting_deck (%d cards)" % deck.size())
 
 	deck.shuffle()
 

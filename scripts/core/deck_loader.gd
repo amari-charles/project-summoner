@@ -26,6 +26,7 @@ static func load_deck_for_battle(deck_id: String) -> Array[Card]:
 		return cards
 
 	var card_instance_ids = deck.get("card_instance_ids", [])
+	print("DeckLoader: Deck '%s' has %d card instances" % [deck.get("name", ""), card_instance_ids.size()])
 
 	if card_instance_ids.is_empty():
 		push_warning("DeckLoader: Deck '%s' is empty!" % deck.get("name", deck_id))
@@ -36,10 +37,11 @@ static func load_deck_for_battle(deck_id: String) -> Array[Card]:
 		var card = _create_card_from_instance(instance_id, collection)
 		if card:
 			cards.append(card)
+			print("DeckLoader: Loaded card: %s" % card.card_name)
 		else:
 			push_warning("DeckLoader: Skipping invalid card instance: %s" % instance_id)
 
-	print("DeckLoader: Loaded %d cards from deck '%s'" % [cards.size(), deck.get("name", deck_id)])
+	print("DeckLoader: Successfully loaded %d cards from deck '%s'" % [cards.size(), deck.get("name", deck_id)])
 	return cards
 
 ## Load the player's currently selected deck from profile
@@ -56,9 +58,10 @@ static func load_player_deck() -> Array[Card]:
 
 	# Get selected deck ID
 	var deck_id = profile.get("meta", {}).get("selected_deck", "")
+	print("DeckLoader: Selected deck ID from profile: '%s'" % deck_id)
 
 	# If no deck selected, use first available deck
-	if deck_id == "":
+	if deck_id == "" or deck_id == null:
 		var decks = _get_service("/root/Decks")
 		if decks:
 			var deck_list = decks.list_decks()
@@ -68,7 +71,11 @@ static func load_player_deck() -> Array[Card]:
 			else:
 				push_error("DeckLoader: No decks available!")
 				return []
+		else:
+			push_error("DeckLoader: Decks service not found!")
+			return []
 
+	print("DeckLoader: Loading deck with ID: %s" % deck_id)
 	return load_deck_for_battle(deck_id)
 
 ## Create a Card resource from a card instance ID
