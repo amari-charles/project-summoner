@@ -32,7 +32,14 @@
       "Bash(cat:*)",
       "Bash(godot:*)",
       "Bash(where:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "WebFetch(domain:www.gamedeveloper.com)",
+      "WebFetch(domain:www.inverse.com)",
+      "WebFetch(domain:www.fortressofdoors.com)",
+      "WebFetch(domain:blog.unity.com)",
+      "WebFetch(domain:unity.com)",
+      "WebFetch(domain:waywardstrategy.com)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []
