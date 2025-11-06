@@ -12,7 +12,7 @@ signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
 
 ## Dependencies
-@onready var _profile_repo = get_node("/root/ProfileRepository")
+@onready var _profile_repo = get_node("/root/ProfileRepo")
 @onready var _collection = get_node("/root/Collection")
 
 ## Battle data structure
@@ -53,6 +53,7 @@ func _init_battles() -> void:
 		"name": "First Summons",
 		"description": "Learn the basics of summoning. Win to earn your first card!",
 		"difficulty": 1,
+		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "fixed",
 		"reward_cards": [
 			{"catalog_id": "warrior", "rarity": "common", "count": 1}
@@ -75,6 +76,7 @@ func _init_battles() -> void:
 		"name": "Building Your Army",
 		"description": "Expand your forces. Choose your reward.",
 		"difficulty": 1,
+		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "choice",
 		"reward_cards": [
 			{"catalog_id": "warrior", "rarity": "common", "count": 1},
@@ -101,6 +103,7 @@ func _init_battles() -> void:
 		"name": "Fortify Your Position",
 		"description": "Defense is key. Earn defensive cards.",
 		"difficulty": 2,
+		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
 		"reward_type": "fixed",
 		"reward_cards": [
 			{"catalog_id": "wall", "rarity": "common", "count": 2}
@@ -297,19 +300,22 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 		return {}
 
 	var granted_card: Dictionary = {}
+	var granted_instance_ids: Array = []  # Track actual card instance IDs
 
 	match reward_type:
 		"fixed":
 			# Grant all reward cards
 			for reward in reward_cards:
-				_grant_reward_card(reward)
+				var ids = _grant_reward_card(reward)
+				granted_instance_ids.append_array(ids)
 			granted_card = reward_cards[0]  # Return first for display
 
 		"choice":
 			# Player chooses one from the list
 			if chosen_index >= 0 and chosen_index < reward_cards.size():
 				var chosen_reward = reward_cards[chosen_index]
-				_grant_reward_card(chosen_reward)
+				var ids = _grant_reward_card(chosen_reward)
+				granted_instance_ids.append_array(ids)
 				granted_card = chosen_reward
 			else:
 				push_error("CampaignService: Invalid choice index %d" % chosen_index)
@@ -317,21 +323,60 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 		"random":
 			# Pick random card from pool
 			var random_reward = reward_cards[randi() % reward_cards.size()]
-			_grant_reward_card(random_reward)
+			var ids = _grant_reward_card(random_reward)
+			granted_instance_ids.append_array(ids)
 			granted_card = random_reward
 
+	# Add instance IDs to return value
+	granted_card["instance_ids"] = granted_instance_ids
 	return granted_card
 
-func _grant_reward_card(reward: Dictionary) -> void:
+func _grant_reward_card(reward: Dictionary) -> Array:
+	var instance_ids: Array = []
+
 	if not _collection:
 		push_error("CampaignService: Collection service not found!")
-		return
+		return instance_ids
 
 	var catalog_id = reward.get("catalog_id", "")
 	var rarity = reward.get("rarity", "common")
 	var count = reward.get("count", 1)
 
 	for i in range(count):
-		_collection.grant_card(catalog_id, rarity)
+		var instance_id = _collection.grant_card(catalog_id, rarity)
+		instance_ids.append(instance_id)
 
 	print("CampaignService: Granted %dx %s (%s)" % [count, catalog_id, rarity])
+	return instance_ids
+
+## =============================================================================
+## TUTORIAL HELPERS
+## =============================================================================
+
+## Check if a specific battle is a tutorial battle
+func is_battle_tutorial(battle_id: String) -> bool:
+	var battle = get_battle(battle_id)
+	return battle.get("is_tutorial", false)
+
+## Check if all tutorial battles have been completed
+func is_tutorial_complete() -> bool:
+	# Get all tutorial battles
+	var tutorial_battles = []
+	for battle in get_all_battles():
+		if battle.get("is_tutorial", false):
+			tutorial_battles.append(battle.get("id", ""))
+
+	# Check if all are completed
+	for battle_id in tutorial_battles:
+		if not is_battle_completed(battle_id):
+			return false
+
+	return true
+
+## Get list of all tutorial battle IDs
+func get_tutorial_battles() -> Array:
+	var tutorial_battles = []
+	for battle in get_all_battles():
+		if battle.get("is_tutorial", false):
+			tutorial_battles.append(battle.get("id", ""))
+	return tutorial_battles

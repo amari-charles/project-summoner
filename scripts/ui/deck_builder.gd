@@ -42,6 +42,7 @@ var current_deck_id: String = ""
 var current_deck_data: Dictionary = {}
 var deck_card_ids: Array = []  # Array of card_instance_ids in current deck
 var collection_summary: Array = []
+var deck_editing_locked: bool = false  # Tutorial mode lock
 
 ## Card widget scene
 const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
@@ -83,6 +84,16 @@ func _ready() -> void:
 		_can_drop_data_on_deck,
 		_drop_data_on_deck
 	)
+
+	# Check if deck editing is locked (tutorial not complete)
+	var campaign = get_node("/root/Campaign")
+	if campaign:
+		deck_editing_locked = not campaign.is_tutorial_complete()
+		if deck_editing_locked:
+			print("DeckBuilder: Deck editing LOCKED - tutorial not complete")
+			_setup_locked_ui()
+		else:
+			print("DeckBuilder: Deck editing unlocked")
 
 	# Debug: Show profile meta on startup
 	var profile_repo = get_node("/root/ProfileRepo")
@@ -284,6 +295,10 @@ func _refresh_deck_display() -> void:
 ## =============================================================================
 
 func _can_drop_data_on_deck(_at_position: Vector2, data: Variant) -> bool:
+	# Check if editing is locked
+	if deck_editing_locked:
+		return false
+
 	if not data is Dictionary:
 		return false
 
@@ -308,6 +323,11 @@ func _drop_data_on_deck(_at_position: Vector2, data: Variant) -> void:
 	_add_card_to_deck(card_instance_id)
 
 func _add_card_to_deck(card_instance_id: String) -> void:
+	# Check if editing is locked
+	if deck_editing_locked:
+		_show_locked_message()
+		return
+
 	if deck_card_ids.size() >= 30:
 		push_warning("DeckBuilder: Deck is full!")
 		return
@@ -333,6 +353,11 @@ func _add_card_to_deck(card_instance_id: String) -> void:
 ## =============================================================================
 
 func _on_collection_card_clicked(_card_data: Dictionary, card_instance_id: String) -> void:
+	# Check if editing is locked
+	if deck_editing_locked:
+		_show_locked_message()
+		return
+
 	# Quick click - instantly add to deck
 	_add_card_to_deck(card_instance_id)
 
@@ -341,6 +366,11 @@ func _on_collection_card_held(_card_data: Dictionary, card_instance_id: String) 
 	_show_card_details(card_instance_id, true)  # true = from collection
 
 func _on_deck_card_instance_clicked(_card_data: Dictionary, card_instance_id: String) -> void:
+	# Check if editing is locked
+	if deck_editing_locked:
+		_show_locked_message()
+		return
+
 	# Quick click - instantly remove from deck
 	_remove_card_from_deck(card_instance_id)
 
@@ -349,6 +379,11 @@ func _on_deck_card_held(_card_data: Dictionary, card_instance_id: String) -> voi
 	_show_card_details(card_instance_id, false)  # false = from deck
 
 func _remove_card_from_deck(card_instance_id: String) -> void:
+	# Check if editing is locked
+	if deck_editing_locked:
+		_show_locked_message()
+		return
+
 	if current_deck_id == "":
 		return
 
@@ -575,3 +610,30 @@ func _on_collection_changed() -> void:
 	print("DeckBuilder: Collection changed, refreshing...")
 	_refresh_collection()
 	_refresh_deck_display()  # In case deck cards changed
+
+## =============================================================================
+## DECK EDITING LOCK (TUTORIAL MODE)
+## =============================================================================
+
+func _setup_locked_ui() -> void:
+	# Show lock message in validation label
+	validation_label.text = "🔒 DECK LOCKED - Complete tutorial battles to unlock editing"
+	validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))  # Yellow/orange
+
+	# Disable deck management buttons
+	new_deck_button.disabled = true
+	delete_deck_button.disabled = true
+	deck_selector.disabled = true
+	deck_name_edit.editable = false
+
+func _show_locked_message() -> void:
+	# Show temporary notification that editing is locked
+	print("DeckBuilder: User attempted edit while locked")
+	validation_label.text = "🔒 Complete tutorial battles to unlock deck editing"
+	validation_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.3))  # Orange
+
+	# Reset to normal lock message after 2 seconds
+	await get_tree().create_timer(2.0).timeout
+	if deck_editing_locked:
+		validation_label.text = "🔒 DECK LOCKED - Complete tutorial battles to unlock editing"
+		validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))

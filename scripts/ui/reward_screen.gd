@@ -86,6 +86,7 @@ func _show_rewards(battle: Dictionary) -> void:
 			var granted_card = campaign.grant_battle_reward(current_battle_id)
 			if not granted_card.is_empty():
 				_display_card_reward(granted_card)
+				_auto_add_cards_to_deck(granted_card)
 
 		"choice":
 			# Show choice UI
@@ -97,6 +98,7 @@ func _show_rewards(battle: Dictionary) -> void:
 			var granted_card = campaign.grant_battle_reward(current_battle_id)
 			if not granted_card.is_empty():
 				_display_card_reward(granted_card)
+				_auto_add_cards_to_deck(granted_card)
 
 func _display_card_reward(reward: Dictionary) -> void:
 	var catalog = get_node("/root/CardCatalog")
@@ -173,6 +175,7 @@ func _on_choice_selected(index: int) -> void:
 			choice_container.visible = false
 			reward_container.visible = true
 			_display_card_reward(granted_card)
+			_auto_add_cards_to_deck(granted_card)
 
 	# Enable continue
 	continue_button.disabled = false
@@ -184,3 +187,52 @@ func _on_choice_selected(index: int) -> void:
 func _on_continue_pressed() -> void:
 	print("RewardScreen: Continuing to campaign screen")
 	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+
+## =============================================================================
+## AUTO-FILL DECK (TUTORIAL MODE)
+## =============================================================================
+
+## Automatically add granted cards to deck if this is a tutorial battle
+func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
+	# Check if this is a tutorial battle
+	var campaign = get_node("/root/Campaign")
+	if not campaign or not campaign.is_battle_tutorial(current_battle_id):
+		return  # Not a tutorial battle, don't auto-add
+
+	# Get card instance IDs that were granted
+	var instance_ids = granted_card.get("instance_ids", [])
+	if instance_ids.is_empty():
+		push_warning("RewardScreen: No instance_ids in granted_card for auto-fill")
+		return
+
+	# Get active deck ID from profile
+	var profile_repo = get_node("/root/ProfileRepo")
+	if not profile_repo:
+		push_error("RewardScreen: ProfileRepo not found!")
+		return
+
+	var profile = profile_repo.get_active_profile()
+	if profile.is_empty():
+		push_error("RewardScreen: No active profile!")
+		return
+
+	var deck_id = profile.get("meta", {}).get("selected_deck", "")
+	if deck_id == "":
+		push_warning("RewardScreen: No active deck selected!")
+		return
+
+	# Add cards to deck
+	var decks = get_node("/root/Decks")
+	if not decks:
+		push_error("RewardScreen: Decks service not found!")
+		return
+
+	var added_count = 0
+	for card_instance_id in instance_ids:
+		if decks.add_card_to_deck(deck_id, card_instance_id):
+			added_count += 1
+		else:
+			push_warning("RewardScreen: Failed to add card %s to deck" % card_instance_id)
+
+	if added_count > 0:
+		print("RewardScreen: Auto-added %d card(s) to deck (tutorial mode)" % added_count)
