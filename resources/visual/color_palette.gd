@@ -10,15 +10,15 @@ class_name GameColorPalette
 ## ENVIRONMENT COLORS (Muted Earth Tones)
 ## =============================================================================
 
-## Background/Sky colors - highly muted for depth
-const SKY_DARK = Color("#1a1528")  # Deep purple-blue
-const SKY_MID = Color("#2d1b3d")   # Purple twilight
-const SKY_HORIZON = Color("#4a3838")  # Warm horizon glow
+## Background/Sky colors - bright and heroic
+const SKY_TOP = Color(0.53, 0.81, 0.98, 1.0)      # Light sky blue
+const SKY_MIDDLE = Color(0.39, 0.58, 0.93, 1.0)   # Azure blue
+const SKY_HORIZON = Color(0.95, 0.85, 0.75, 1.0)  # Warm peachy horizon
 
-## Ground colors - earthy and neutral
-const GROUND_DARK = Color("#4a3828")  # Dark soil brown
-const GROUND_MID = Color("#6b5744")   # Mid brown
-const GROUND_LIGHT = Color("#8b7355")  # Light tan
+## Ground colors - vibrant grass
+const GRASS_BRIGHT = Color(0.45, 0.75, 0.35, 1.0)  # Vibrant green
+const GRASS_MID = Color(0.38, 0.65, 0.30, 1.0)     # Mid green
+const GRASS_DARK = Color(0.30, 0.55, 0.25, 1.0)    # Shadow green
 
 ## =============================================================================
 ## TERRITORY/ZONE COLORS

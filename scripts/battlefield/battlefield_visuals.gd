@@ -1,59 +1,49 @@
 extends Node2D
 class_name BattlefieldVisuals
 
-## BattlefieldVisuals - Manages battlefield visual elements and atmosphere
+## BattlefieldVisuals - Manages battlefield visual elements
 ##
-## Handles visual layering, zone indicators, and prepares structure for
-## future hand-drawn art assets.
+## Creates bright, heroic battlefield environment using Parallax2D for depth.
+## Ground uses existing tiled texture system (already correct).
 
-## References to visual layers
-@onready var background_layer: CanvasLayer = $BackgroundLayer
+## References to layers
+@onready var parallax_bg: Parallax2D = $ParallaxBackground
+@onready var sky_layer: Sprite2D = $ParallaxBackground/SkyLayer
 @onready var ground_layer: CanvasLayer = $GroundLayer
 @onready var zone_markers: Node2D = $ZoneMarkers
 @onready var gameplay_layer: Node2D = $GameplayLayer
 @onready var effects_layer: CanvasLayer = $EffectsLayer
 @onready var ui_layer: CanvasLayer = $UILayer
 
-## Visual elements
-@onready var sky: ColorRect = $BackgroundLayer/Sky
-@onready var horizon: ColorRect = $BackgroundLayer/Horizon
-@onready var player_zone_border: Line2D = $ZoneMarkers/PlayerZoneBorder
-@onready var enemy_zone_border: Line2D = $ZoneMarkers/EnemyZoneBorder
-
-## Ambient atmosphere
-var ambient_pulse_time: float = 0.0
-const AMBIENT_PULSE_SPEED: float = 0.5
-const AMBIENT_PULSE_STRENGTH: float = 0.05
-
 func _ready() -> void:
-	print("BattlefieldVisuals: Initialized layered battlefield")
-	_setup_colors()
-	_setup_ambient_modulation()
+	print("BattlefieldVisuals: Initializing bright, heroic battlefield")
+	_setup_sky()
+	_setup_zone_markers()
 
-func _setup_colors() -> void:
-	# Apply colors from GameColorPalette
-	sky.color = GameColorPalette.SKY_DARK
-	horizon.color = GameColorPalette.SKY_HORIZON
+func _setup_sky() -> void:
+	# Create gradient texture for sky (top to bottom: light blue → peachy horizon)
+	var gradient = Gradient.new()
+	gradient.add_point(0.0, Color(0.53, 0.81, 0.98, 1.0))  # Light sky blue at top
+	gradient.add_point(0.6, Color(0.39, 0.58, 0.93, 1.0))  # Azure in middle
+	gradient.add_point(1.0, Color(0.95, 0.85, 0.75, 1.0))  # Warm peachy horizon
 
-	# Zone borders with our palette colors
-	player_zone_border.default_color = GameColorPalette.with_alpha(GameColorPalette.PLAYER_ZONE_PRIMARY, 0.4)
-	enemy_zone_border.default_color = GameColorPalette.with_alpha(GameColorPalette.ENEMY_ZONE_PRIMARY, 0.4)
+	var gradient_texture = GradientTexture2D.new()
+	gradient_texture.gradient = gradient
+	gradient_texture.fill = GradientTexture2D.FILL_LINEAR
+	gradient_texture.fill_from = Vector2(0, 0)
+	gradient_texture.fill_to = Vector2(0, 1)
+	gradient_texture.width = 1
+	gradient_texture.height = 1
 
-	print("BattlefieldVisuals: Applied color palette")
+	# Apply to sky sprite
+	sky_layer.texture = gradient_texture
+	sky_layer.region_enabled = false
 
-func _setup_ambient_modulation() -> void:
-	# Set canvas modulate for overall atmosphere (subtle purple tint)
-	RenderingServer.canvas_set_modulate(get_canvas(), Color(0.95, 0.94, 1.0, 1.0))
-	print("BattlefieldVisuals: Applied ambient modulation")
+	print("BattlefieldVisuals: Applied bright sky gradient")
 
-func _process(delta: float) -> void:
-	# Subtle ambient pulse for mystical atmosphere
-	ambient_pulse_time += delta * AMBIENT_PULSE_SPEED
-	var pulse = sin(ambient_pulse_time) * AMBIENT_PULSE_STRENGTH
-
-	# Apply gentle brightness variation to horizon
-	var base_horizon = GameColorPalette.SKY_HORIZON
-	horizon.color = base_horizon.lightened(pulse)
+func _setup_zone_markers() -> void:
+	# Zone borders use existing setup from scene
+	print("BattlefieldVisuals: Zone markers ready")
 
 ## Get the gameplay layer where units should be spawned
 func get_gameplay_layer() -> Node2D:
