@@ -17,6 +17,10 @@ signal base_destroyed(base: Base)
 signal base_damaged(base: Base, damage: float)
 
 func _ready() -> void:
+	# Load HP from campaign config if this is an enemy base in a campaign battle
+	if team == Team.ENEMY:
+		_load_campaign_hp()
+
 	current_hp = max_hp
 
 	# Add to groups
@@ -27,6 +31,29 @@ func _ready() -> void:
 		add_to_group("enemy_bases")
 
 	_setup_visuals()
+
+## Load HP from campaign battle config
+func _load_campaign_hp() -> void:
+	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		return
+
+	var profile = profile_repo.get_active_profile()
+	if profile.is_empty():
+		return
+
+	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	if current_battle_id == "":
+		return  # Not a campaign battle
+
+	var campaign = get_node_or_null("/root/Campaign")
+	if not campaign:
+		return
+
+	var battle = campaign.get_battle(current_battle_id)
+	if battle.has("enemy_hp"):
+		max_hp = battle.get("enemy_hp")
+		print("Base: Set enemy base HP from campaign: %d" % max_hp)
 
 ## Take damage from units
 func take_damage(damage: float) -> void:
