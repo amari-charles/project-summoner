@@ -83,6 +83,7 @@ func _init_battles() -> void:
 		"enemy_deck": [
 			{"catalog_id": "warrior", "count": 2}
 		],
+		"enemy_hp": 150.0,
 		"unlock_requirements": ["battle_00"],
 		# AI Configuration
 		"ai_type": "heuristic",
@@ -108,6 +109,7 @@ func _init_battles() -> void:
 			{"catalog_id": "warrior", "count": 2},
 			{"catalog_id": "archer", "count": 1}
 		],
+		"enemy_hp": 250.0,
 		"unlock_requirements": ["battle_01"],
 		# AI Configuration
 		"ai_type": "heuristic",
@@ -136,6 +138,7 @@ func _init_battles() -> void:
 			{"catalog_id": "archer", "count": 2},
 			{"catalog_id": "wall", "count": 1}
 		],
+		"enemy_hp": 400.0,
 		"unlock_requirements": ["battle_02"],
 		# AI Configuration
 		"ai_type": "heuristic",
@@ -162,6 +165,7 @@ func _init_battles() -> void:
 			{"catalog_id": "archer", "count": 3},
 			{"catalog_id": "wall", "count": 2}
 		],
+		"enemy_hp": 600.0,
 		"unlock_requirements": ["battle_03"],
 		# AI Configuration
 		"ai_type": "heuristic",
