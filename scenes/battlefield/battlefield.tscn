@@ -6,14 +6,12 @@
 [node name="Battlefield" type="Node2D" groups=["battlefield"]]
 script = ExtResource("3_visuals")
 
-[node name="ParallaxBackground" type="Parallax2D" parent="."]
-scroll_scale = Vector2(0, 0)
-scroll_offset = Vector2(0, 0)
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -100
 
-[node name="SkyLayer" type="Sprite2D" parent="ParallaxBackground"]
-z_index = -100
-position = Vector2(960, 270)
-scale = Vector2(1920, 540)
+[node name="Sky" type="ColorRect" parent="BackgroundLayer"]
+offset_right = 1920.0
+offset_bottom = 540.0
 
 [node name="GroundLayer" type="CanvasLayer" parent="."]
 layer = -50

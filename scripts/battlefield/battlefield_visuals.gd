@@ -3,12 +3,11 @@ class_name BattlefieldVisuals
 
 ## BattlefieldVisuals - Manages battlefield visual elements
 ##
-## Creates bright, heroic battlefield environment using Parallax2D for depth.
+## Creates bright, heroic battlefield environment.
 ## Ground uses existing tiled texture system (already correct).
 
 ## References to layers
-@onready var parallax_bg: Parallax2D = $ParallaxBackground
-@onready var sky_layer: Sprite2D = $ParallaxBackground/SkyLayer
+@onready var sky: ColorRect = $BackgroundLayer/Sky
 @onready var ground_layer: CanvasLayer = $GroundLayer
 @onready var zone_markers: Node2D = $ZoneMarkers
 @onready var gameplay_layer: Node2D = $GameplayLayer
@@ -18,32 +17,27 @@ class_name BattlefieldVisuals
 func _ready() -> void:
 	print("BattlefieldVisuals: Initializing bright, heroic battlefield")
 	_setup_sky()
-	_setup_zone_markers()
 
 func _setup_sky() -> void:
-	# Create gradient texture for sky (top to bottom: light blue → peachy horizon)
+	# Create gradient for sky (top to bottom: light blue → peachy horizon)
 	var gradient = Gradient.new()
 	gradient.add_point(0.0, Color(0.53, 0.81, 0.98, 1.0))  # Light sky blue at top
 	gradient.add_point(0.6, Color(0.39, 0.58, 0.93, 1.0))  # Azure in middle
 	gradient.add_point(1.0, Color(0.95, 0.85, 0.75, 1.0))  # Warm peachy horizon
 
+	# Create gradient texture
 	var gradient_texture = GradientTexture2D.new()
 	gradient_texture.gradient = gradient
 	gradient_texture.fill = GradientTexture2D.FILL_LINEAR
 	gradient_texture.fill_from = Vector2(0, 0)
 	gradient_texture.fill_to = Vector2(0, 1)
-	gradient_texture.width = 1
-	gradient_texture.height = 1
+	gradient_texture.width = 1920
+	gradient_texture.height = 540
 
-	# Apply to sky sprite
-	sky_layer.texture = gradient_texture
-	sky_layer.region_enabled = false
+	# Apply to sky ColorRect as texture
+	sky.texture = gradient_texture
 
 	print("BattlefieldVisuals: Applied bright sky gradient")
-
-func _setup_zone_markers() -> void:
-	# Zone borders use existing setup from scene
-	print("BattlefieldVisuals: Zone markers ready")
 
 ## Get the gameplay layer where units should be spawned
 func get_gameplay_layer() -> Node2D:
