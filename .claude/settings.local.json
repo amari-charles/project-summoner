@@ -39,7 +39,8 @@
       "WebFetch(domain:blog.unity.com)",
       "WebFetch(domain:unity.com)",
       "WebFetch(domain:waywardstrategy.com)",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "WebFetch(domain:godotengine.org)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/battlefield/paper_mario_character.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/character_packs/tiny_rpg/Tiny RPG Character Asset Pack v1.03 -Free Soldier&Orc/Characters(100x100)/Soldier/Soldier/Soldier-Idle.png" id="2_soldier"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.3
@@ -49,8 +50,7 @@ size = Vector2i(100, 100)
 
 [node name="Model2D" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
 
-[node name="TestSprite" type="ColorRect" parent="TestCharacter/Sprite3D/SubViewport/Model2D"]
-visible = true
-offset_right = 100.0
-offset_bottom = 100.0
-color = Color(1, 0, 0, 1)
+[node name="SoldierSprite" type="Sprite2D" parent="TestCharacter/Sprite3D/SubViewport/Model2D"]
+texture = ExtResource("2_soldier")
+centered = true
+offset = Vector2(50, 50)
