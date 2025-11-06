@@ -1,7 +1,7 @@
 extends Resource
-class_name ColorPalette
+class_name GameColorPalette
 
-## ColorPalette - Centralized color definitions for consistent visuals
+## GameColorPalette - Centralized color definitions for consistent visuals
 ##
 ## Defines color scheme inspired by Cult of the Lamb's muted base + vibrant accents
 ## approach, adapted for a summoner/tower defense aesthetic.

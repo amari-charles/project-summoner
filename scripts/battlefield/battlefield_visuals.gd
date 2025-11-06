@@ -31,13 +31,13 @@ func _ready() -> void:
 	_setup_ambient_modulation()
 
 func _setup_colors() -> void:
-	# Apply colors from ColorPalette
-	sky.color = ColorPalette.SKY_DARK
-	horizon.color = ColorPalette.SKY_HORIZON
+	# Apply colors from GameColorPalette
+	sky.color = GameColorPalette.SKY_DARK
+	horizon.color = GameColorPalette.SKY_HORIZON
 
 	# Zone borders with our palette colors
-	player_zone_border.default_color = ColorPalette.with_alpha(ColorPalette.PLAYER_ZONE_PRIMARY, 0.4)
-	enemy_zone_border.default_color = ColorPalette.with_alpha(ColorPalette.ENEMY_ZONE_PRIMARY, 0.4)
+	player_zone_border.default_color = GameColorPalette.with_alpha(GameColorPalette.PLAYER_ZONE_PRIMARY, 0.4)
+	enemy_zone_border.default_color = GameColorPalette.with_alpha(GameColorPalette.ENEMY_ZONE_PRIMARY, 0.4)
 
 	print("BattlefieldVisuals: Applied color palette")
 
@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
 	var pulse = sin(ambient_pulse_time) * AMBIENT_PULSE_STRENGTH
 
 	# Apply gentle brightness variation to horizon
-	var base_horizon = ColorPalette.SKY_HORIZON
+	var base_horizon = GameColorPalette.SKY_HORIZON
 	horizon.color = base_horizon.lightened(pulse)
 
 ## Get the gameplay layer where units should be spawned

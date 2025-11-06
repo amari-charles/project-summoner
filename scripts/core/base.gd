@@ -90,8 +90,8 @@ func _update_hp_bar() -> void:
 		var hp_percent = current_hp / max_hp
 		hp_bar.size.x = 50 * hp_percent  # 50px is the full width
 
-		# Use ColorPalette colors for health
-		hp_bar.color = ColorPalette.get_health_color(hp_percent)
+		# Use GameColorPalette colors for health
+		hp_bar.color = GameColorPalette.get_health_color(hp_percent)
 
 ## Update HP bar every frame
 func _process(_delta: float) -> void:
