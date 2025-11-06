@@ -4,8 +4,8 @@ extends CharacterBody3D
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
-@onready var model_2d: Node2D = $Sprite3D/SubViewport/2DModel
-@onready var test_sprite: ColorRect = $Sprite3D/SubViewport/2DModel/TestSprite
+@onready var model_2d: Node2D = $Sprite3D/SubViewport/Model2D
+@onready var test_sprite: ColorRect = $Sprite3D/SubViewport/Model2D/TestSprite
 
 func _ready() -> void:
 	print("=== Paper Mario Character Debug ===")

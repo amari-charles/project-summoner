@@ -43,9 +43,9 @@ texture = SubResource("ViewportTexture_1")
 transparent_bg = true
 size = Vector2i(100, 100)
 
-[node name="2DModel" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
+[node name="Model2D" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
 
-[node name="TestSprite" type="ColorRect" parent="TestCharacter/Sprite3D/SubViewport/2DModel"]
+[node name="TestSprite" type="ColorRect" parent="TestCharacter/Sprite3D/SubViewport/Model2D"]
 visible = true
 offset_right = 100.0
 offset_bottom = 100.0
