@@ -1,10 +1,13 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/battlefield/paper_mario_character.gd" id="1_script"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.3
 height = 1.0
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_1"]
+viewport_path = NodePath("TestCharacter/Sprite3D/SubViewport")
 
 [node name="PaperMarioTest" type="Node3D"]
 
@@ -34,6 +37,7 @@ billboard = 0
 shaded = true
 alpha_cut = 0
 texture_filter = 0
+texture = SubResource("ViewportTexture_1")
 
 [node name="SubViewport" type="SubViewport" parent="TestCharacter/Sprite3D"]
 transparent_bg = true
@@ -42,6 +46,7 @@ size = Vector2i(100, 100)
 [node name="2DModel" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
 
 [node name="TestSprite" type="ColorRect" parent="TestCharacter/Sprite3D/SubViewport/2DModel"]
+visible = true
 offset_right = 100.0
 offset_bottom = 100.0
 color = Color(1, 0, 0, 1)
