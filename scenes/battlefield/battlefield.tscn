@@ -1,38 +1,71 @@
-[gd_scene load_steps=2 format=3 uid="uid://bqxn3k8r2vme1"]
+[gd_scene load_steps=4 format=3 uid="uid://bqxn3k8r2vme1"]
 
 [ext_resource type="PackedScene" uid="uid://ground_visual" path="res://scenes/battlefield/ground.tscn" id="1_ground"]
+[ext_resource type="Script" path="res://resources/visual/color_palette.gd" id="2_palette"]
+[ext_resource type="Script" path="res://scripts/battlefield/battlefield_visuals.gd" id="3_visuals"]
 
 [node name="Battlefield" type="Node2D" groups=["battlefield"]]
+script = ExtResource("3_visuals")
 
-[node name="Ground" parent="." instance=ExtResource("1_ground")]
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -100
+
+[node name="Sky" type="ColorRect" parent="BackgroundLayer"]
+offset_right = 1920.0
+offset_bottom = 540.0
+color = Color(0.103, 0.081, 0.156, 1)
+
+[node name="Horizon" type="ColorRect" parent="BackgroundLayer"]
+offset_top = 400.0
+offset_right = 1920.0
+offset_bottom = 540.0
+color = Color(0.29, 0.22, 0.22, 1)
+
+[node name="GroundLayer" type="CanvasLayer" parent="."]
+layer = -50
+
+[node name="Ground" parent="GroundLayer" instance=ExtResource("1_ground")]
 position = Vector2(960, 540)
 
-[node name="Midline" type="ColorRect" parent="."]
-z_index = -40
-offset_left = 958.0
-offset_top = 0.0
-offset_right = 962.0
-offset_bottom = 1080.0
-color = Color(0.5, 0.5, 0.5, 0.3)
+[node name="GroundLine" type="Line2D" parent="GroundLayer"]
+z_index = 10
+points = PackedVector2Array(0, 540, 1920, 540)
+width = 3.0
+default_color = Color(0.418, 0.384, 0.325, 0.6)
 
-[node name="PlayerZone" type="ColorRect" parent="."]
+[node name="ZoneMarkers" type="Node2D" parent="."]
 z_index = -40
-offset_left = 0.0
-offset_top = 0.0
+
+[node name="PlayerZoneBorder" type="Line2D" parent="ZoneMarkers"]
+points = PackedVector2Array(300, 0, 300, 1080)
+width = 4.0
+default_color = Color(0.831, 0.647, 0.455, 0.4)
+
+[node name="PlayerZoneHighlight" type="ColorRect" parent="ZoneMarkers"]
 offset_right = 300.0
 offset_bottom = 1080.0
-color = Color(0.2, 0.4, 0.8, 0.2)
+color = Color(0.831, 0.647, 0.455, 0.08)
 
-[node name="EnemyZone" type="ColorRect" parent="."]
-z_index = -40
+[node name="EnemyZoneBorder" type="Line2D" parent="ZoneMarkers"]
+points = PackedVector2Array(1620, 0, 1620, 1080)
+width = 4.0
+default_color = Color(0.353, 0.482, 0.549, 0.4)
+
+[node name="EnemyZoneHighlight" type="ColorRect" parent="ZoneMarkers"]
 offset_left = 1620.0
-offset_top = 0.0
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.8, 0.2, 0.2, 0.2)
+color = Color(0.353, 0.482, 0.549, 0.08)
 
-[node name="GroundLine" type="Line2D" parent="."]
-z_index = -40
-points = PackedVector2Array(0, 540, 1920, 540)
+[node name="Midline" type="Line2D" parent="ZoneMarkers"]
+points = PackedVector2Array(960, 0, 960, 1080)
 width = 2.0
-default_color = Color(0.6, 0.6, 0.6, 1)
+default_color = Color(0.416, 0.416, 0.416, 0.3)
+
+[node name="GameplayLayer" type="Node2D" parent="."]
+
+[node name="EffectsLayer" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 100
