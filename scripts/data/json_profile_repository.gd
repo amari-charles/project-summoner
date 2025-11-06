@@ -127,6 +127,9 @@ func save_profile(immediate: bool = false) -> void:
 func get_current_profile_id() -> String:
 	return _current_profile_id
 
+func get_active_profile() -> Dictionary:
+	return _data
+
 func reset_profile() -> void:
 	print("JsonProfileRepo: Resetting profile...")
 	_create_fresh_profile()
@@ -533,17 +536,18 @@ func _create_fresh_profile() -> void:
 			"updated_at": Time.get_unix_time_from_system()
 		},
 		"collection": [
-			# Starter cards (3x Warrior, 3x Archer)
-			_create_card_instance("warrior", "common"),
-			_create_card_instance("warrior", "common"),
-			_create_card_instance("warrior", "common"),
-			_create_card_instance("archer", "common"),
-			_create_card_instance("archer", "common"),
-			_create_card_instance("archer", "common"),
+			# Start with ZERO cards - build collection through campaign
 		],
 		"decks": [],
 		"deck_cards": [],
+		"campaign_progress": {
+			"completed_battles": [],
+			"current_battle": null
+		},
 		"meta": {
+			"onboarding_complete": false,
+			"selected_hero": null,
+			"selected_deck": null,
 			"tutorial_flags": {},
 			"achievements": {},
 			"analytics_opt_in": false

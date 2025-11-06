@@ -10,6 +10,7 @@ class_name Summoner
 ## Deck and hand
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
+@export var load_deck_from_profile: bool = false  # If true, load player's deck from profile
 
 ## Resources
 @export var mana_regen_rate: float = 1.0  # Mana per second
@@ -34,7 +35,19 @@ func _ready() -> void:
 	mana = MANA_MAX
 
 	# Initialize deck
-	deck = starting_deck.duplicate()
+	if load_deck_from_profile and team == Unit.Team.PLAYER:
+		# Load deck from player's profile
+		print("Summoner: Loading deck from profile...")
+		deck = DeckLoader.load_player_deck()
+		if deck.is_empty():
+			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
+		else:
+			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
+	else:
+		# Use exported starting_deck (for testing/AI)
+		deck = starting_deck.duplicate()
+		print("Summoner: Using exported starting_deck (%d cards)" % deck.size())
+
 	deck.shuffle()
 
 	# Draw starting hand

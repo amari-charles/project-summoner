@@ -345,8 +345,14 @@ func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
 
 func _on_deck_item_clicked(deck_id: String) -> void:
 	print("CollectionScreen: Opening deck editor for: %s" % deck_id)
-	# Store selected deck ID and open deck builder
-	selected_deck_id = deck_id
+	# Store selected deck ID in profile meta temporarily so deck builder can read it
+	var profile_repo = get_node("/root/ProfileRepo")
+	if profile_repo:
+		var profile = profile_repo.get_active_profile()
+		if not profile.is_empty():
+			profile["meta"]["editing_deck_id"] = deck_id
+			print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
+
 	get_tree().change_scene_to_file("res://scenes/ui/deck_builder.tscn")
 
 func _on_new_deck_pressed() -> void:
