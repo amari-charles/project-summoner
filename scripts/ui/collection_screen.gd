@@ -345,6 +345,14 @@ func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
 
 func _on_deck_item_clicked(deck_id: String) -> void:
 	print("CollectionScreen: Opening deck editor for: %s" % deck_id)
+
+	# Check if deck editing is locked (tutorial not complete)
+	var campaign = get_node("/root/Campaign")
+	if campaign and not campaign.is_tutorial_complete():
+		print("CollectionScreen: Deck editing locked - tutorial not complete")
+		_show_deck_locked_message()
+		return
+
 	# Store selected deck ID in profile meta temporarily so deck builder can read it
 	var profile_repo = get_node("/root/ProfileRepo")
 	if profile_repo:
@@ -354,6 +362,16 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 			print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
 
 	get_tree().change_scene_to_file("res://scenes/ui/deck_builder.tscn")
+
+func _show_deck_locked_message() -> void:
+	# Show popup dialog informing player deck editing is locked
+	var dialog = AcceptDialog.new()
+	dialog.title = "Deck Locked"
+	dialog.dialog_text = "Complete the tutorial battles to unlock deck editing!\n\nYour deck will be automatically updated as you earn new cards."
+	dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(dialog.queue_free)
 
 func _on_new_deck_pressed() -> void:
 	var decks = get_node("/root/Decks")
