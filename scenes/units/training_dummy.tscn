@@ -20,5 +20,6 @@ aggro_radius = 0.0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_dummy")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Visual" type="Sprite2D" parent="."]
 texture = ExtResource("2_sprite")
+texture_filter = 0

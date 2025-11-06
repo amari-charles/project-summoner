@@ -32,6 +32,19 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
+	# If loading enemy from campaign, override max_hp if specified
+	if load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+		var campaign = get_node_or_null("/root/Campaign")
+		var profile_repo = get_node_or_null("/root/ProfileRepo")
+		if campaign and profile_repo:
+			var profile = profile_repo.get_active_profile()
+			var battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+			if battle_id != "":
+				var battle = campaign.get_battle(battle_id)
+				if battle.has("enemy_hp"):
+					max_hp = battle.get("enemy_hp")
+					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
+
 	current_hp = max_hp
 	mana = MANA_MAX
 
