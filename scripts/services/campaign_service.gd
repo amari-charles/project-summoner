@@ -60,8 +60,13 @@ func _init_battles() -> void:
 		"enemy_deck": [
 			{"catalog_id": "training_dummy", "count": 1}
 		],
-		"enemy_hp": 200.0,  # Low HP for tutorial
-		"unlock_requirements": []
+		"enemy_hp": 30.0,  # Very low HP for tutorial (2 hits)
+		"unlock_requirements": [],
+		# AI Configuration
+		"ai_type": "scripted",
+		"ai_script": [
+			{"delay": 0.0, "card_name": "Training Dummy", "position": {"x": 1400, "y": 540}}
+		]
 	}
 
 	# Battle 1: Building army
@@ -78,7 +83,16 @@ func _init_battles() -> void:
 		"enemy_deck": [
 			{"catalog_id": "warrior", "count": 2}
 		],
-		"unlock_requirements": ["battle_00"]
+		"enemy_hp": 150.0,
+		"unlock_requirements": ["battle_00"],
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "defensive",
+		"ai_difficulty": 1,
+		"ai_config": {
+			"play_interval_min": 4.0,
+			"play_interval_max": 7.0
+		}
 	}
 
 	# Battle 2: Fortification
@@ -95,7 +109,16 @@ func _init_battles() -> void:
 			{"catalog_id": "warrior", "count": 2},
 			{"catalog_id": "archer", "count": 1}
 		],
-		"unlock_requirements": ["battle_01"]
+		"enemy_hp": 250.0,
+		"unlock_requirements": ["battle_01"],
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "balanced",
+		"ai_difficulty": 2,
+		"ai_config": {
+			"play_interval_min": 3.0,
+			"play_interval_max": 6.0
+		}
 	}
 
 	# Battle 3: Random reward
@@ -115,7 +138,16 @@ func _init_battles() -> void:
 			{"catalog_id": "archer", "count": 2},
 			{"catalog_id": "wall", "count": 1}
 		],
-		"unlock_requirements": ["battle_02"]
+		"enemy_hp": 400.0,
+		"unlock_requirements": ["battle_02"],
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "aggressive",
+		"ai_difficulty": 3,
+		"ai_config": {
+			"play_interval_min": 2.5,
+			"play_interval_max": 5.0
+		}
 	}
 
 	# Battle 4: Rare reward
@@ -133,7 +165,16 @@ func _init_battles() -> void:
 			{"catalog_id": "archer", "count": 3},
 			{"catalog_id": "wall", "count": 2}
 		],
-		"unlock_requirements": ["battle_03"]
+		"enemy_hp": 600.0,
+		"unlock_requirements": ["battle_03"],
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "spell_focused",
+		"ai_difficulty": 4,
+		"ai_config": {
+			"play_interval_min": 2.0,
+			"play_interval_max": 4.0
+		}
 	}
 
 	print("CampaignService: Loaded %d battles" % _battles.size())
