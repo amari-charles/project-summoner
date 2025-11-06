@@ -9,6 +9,16 @@ class_name MainMenu
 func _ready() -> void:
 	print("Main Menu loaded")
 
+func _input(event: InputEvent) -> void:
+	# Debug: F11 to reset profile
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F11:
+		print("MainMenu: F11 pressed - resetting profile...")
+		var dev_console = get_node_or_null("/root/DevConsole")
+		if dev_console:
+			dev_console.execute_command("/save_wipe")
+			# Reload the main menu to reflect fresh state
+			get_tree().reload_current_scene()
+
 ## Launch the campaign screen (or onboarding if needed)
 func _on_play_pressed() -> void:
 	# Check if player has completed onboarding

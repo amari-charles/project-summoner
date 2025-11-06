@@ -84,15 +84,41 @@ func _ready() -> void:
 		_drop_data_on_deck
 	)
 
+	# Debug: Show profile meta on startup
+	var profile_repo = get_node("/root/ProfileRepo")
+	var deck_to_edit: String = ""
+	if profile_repo:
+		var profile = profile_repo.get_active_profile()
+		if not profile.is_empty():
+			var selected = profile.get("meta", {}).get("selected_deck", null)
+			deck_to_edit = profile.get("meta", {}).get("editing_deck_id", "")
+			print("DeckBuilder: Profile meta at startup:")
+			print("  selected_deck: '%s' (type: %s)" % [selected, typeof(selected)])
+			print("  editing_deck_id: '%s'" % deck_to_edit)
+
+			# Clear the editing_deck_id so it doesn't persist
+			if deck_to_edit != "":
+				profile["meta"]["editing_deck_id"] = ""
+
 	# Load decks and collection
-	_refresh_deck_list()
+	_refresh_deck_list_only()  # Just populate the selector, don't auto-load
+
+	# If we have a specific deck to edit, load it; otherwise load first
+	if deck_to_edit != "":
+		print("DeckBuilder: Loading requested deck: %s" % deck_to_edit)
+		_load_deck(deck_to_edit)
+	elif deck_selector.item_count > 0:
+		print("DeckBuilder: No specific deck requested, loading first deck")
+		var first_deck_id = deck_selector.get_item_metadata(0)
+		_load_deck(first_deck_id)
+
 	_refresh_collection()
 
 ## =============================================================================
 ## DECK LOADING
 ## =============================================================================
 
-func _refresh_deck_list() -> void:
+func _refresh_deck_list_only() -> void:
 	var decks = get_node("/root/Decks")
 	if not decks:
 		push_error("DeckBuilder: Decks service not found!")
@@ -114,14 +140,8 @@ func _refresh_deck_list() -> void:
 	if deck_list.size() == 0:
 		print("DeckBuilder: No decks found, creating default deck...")
 		var deck_id = decks.create_deck("My Deck", [])
-		_refresh_deck_list()  # Refresh after creation
+		_refresh_deck_list_only()  # Refresh after creation
 		return
-
-	# Select first deck
-	if deck_selector.item_count > 0:
-		deck_selector.select(0)
-		var first_deck_id = deck_selector.get_item_metadata(0)
-		_load_deck(first_deck_id)
 
 func _load_deck(deck_id: String) -> void:
 	var decks = get_node("/root/Decks")
@@ -148,7 +168,14 @@ func _load_deck(deck_id: String) -> void:
 	_refresh_deck_display()
 	_update_validation()
 
-	print("DeckBuilder: Loaded deck '%s' (%d cards)" % [current_deck_data.get("name"), deck_card_ids.size()])
+	# Debug: Check for duplicate cards
+	var unique_ids = {}
+	for card_id in deck_card_ids:
+		if unique_ids.has(card_id):
+			push_warning("DeckBuilder: DUPLICATE card instance in deck: %s" % card_id)
+		unique_ids[card_id] = true
+
+	print("DeckBuilder: Loaded deck '%s' (%d cards, %d unique)" % [current_deck_data.get("name"), deck_card_ids.size(), unique_ids.size()])
 
 ## =============================================================================
 ## COLLECTION DISPLAY
@@ -408,8 +435,12 @@ func _on_set_active_pressed() -> void:
 		var profile = profile_repo.get_active_profile()
 		if not profile.is_empty():
 			var old_active = profile.get("meta", {}).get("selected_deck", "")
+			print("DeckBuilder: _on_set_active_pressed()")
+			print("  - Setting selected_deck to: '%s' (type: %s)" % [current_deck_id, typeof(current_deck_id)])
+			print("  - Old value was: '%s'" % old_active)
 			profile["meta"]["selected_deck"] = current_deck_id
 			profile_repo.save_profile(true)  # Force immediate save
+			print("  - Saved! New value: '%s'" % profile.get("meta", {}).get("selected_deck", ""))
 
 			_update_active_deck_button()
 			if old_active != "":
@@ -427,6 +458,13 @@ func _update_active_deck_button() -> void:
 		return
 
 	var active_deck_id = profile.get("meta", {}).get("selected_deck", "")
+
+	# Debug logging
+	print("DeckBuilder: _update_active_deck_button()")
+	print("  - Current deck ID: %s" % current_deck_id)
+	print("  - Active deck ID from profile: %s" % active_deck_id)
+	print("  - Type of active_deck_id: %s" % typeof(active_deck_id))
+	print("  - Match: %s" % (active_deck_id == current_deck_id))
 
 	if active_deck_id == current_deck_id:
 		set_active_button.text = "✓ ACTIVE DECK"
@@ -448,7 +486,11 @@ func _on_delete_confirmed() -> void:
 	if success:
 		print("DeckBuilder: Deleted deck")
 		current_deck_id = ""
-		_refresh_deck_list()
+		_refresh_deck_list_only()
+		# Load first available deck
+		if deck_selector.item_count > 0:
+			var first_deck_id = deck_selector.get_item_metadata(0)
+			_load_deck(first_deck_id)
 
 ## =============================================================================
 ## CARD DETAIL POPUP
@@ -513,7 +555,7 @@ func _on_deck_changed(deck_id: String) -> void:
 
 func _on_deck_created(deck_id: String) -> void:
 	print("DeckBuilder: Deck created, refreshing list...")
-	_refresh_deck_list()
+	_refresh_deck_list_only()
 	# Select the newly created deck
 	for i in range(deck_selector.item_count):
 		if deck_selector.get_item_metadata(i) == deck_id:
@@ -523,7 +565,11 @@ func _on_deck_created(deck_id: String) -> void:
 
 func _on_deck_deleted(_deck_id: String) -> void:
 	print("DeckBuilder: Deck deleted, refreshing list...")
-	_refresh_deck_list()
+	_refresh_deck_list_only()
+	# Load first available deck if any exist
+	if deck_selector.item_count > 0:
+		var first_deck_id = deck_selector.get_item_metadata(0)
+		_load_deck(first_deck_id)
 
 func _on_collection_changed() -> void:
 	print("DeckBuilder: Collection changed, refreshing...")
