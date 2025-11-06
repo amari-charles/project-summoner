@@ -58,6 +58,12 @@ static func load_player_deck() -> Array[Card]:
 
 	# Get selected deck ID
 	var deck_id = profile.get("meta", {}).get("selected_deck", "")
+
+	# Validate deck_id is a string (not an array or other type)
+	if typeof(deck_id) != TYPE_STRING:
+		push_error("DeckLoader: selected_deck is not a string! Type: %s, Value: %s" % [typeof(deck_id), deck_id])
+		deck_id = ""
+
 	print("DeckLoader: Selected deck ID from profile: '%s'" % deck_id)
 
 	# If no deck selected, use first available deck
