@@ -9,7 +9,7 @@ height = 1.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
 albedo_texture = ExtResource("2_grass")
-uv1_scale = Vector3(10, 5, 1)
+uv1_scale = Vector3(2, 2, 1)
 texture_filter = 0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_1"]
