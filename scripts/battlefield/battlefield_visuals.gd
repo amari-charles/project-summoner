@@ -7,7 +7,7 @@ class_name BattlefieldVisuals
 ## Ground uses existing tiled texture system (already correct).
 
 ## References to layers
-@onready var sky: ColorRect = $BackgroundLayer/Sky
+@onready var sky: TextureRect = $BackgroundLayer/Sky
 @onready var ground_layer: CanvasLayer = $GroundLayer
 @onready var zone_markers: Node2D = $ZoneMarkers
 @onready var gameplay_layer: Node2D = $GameplayLayer
