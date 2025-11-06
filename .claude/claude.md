@@ -29,3 +29,30 @@ Exceptions (can commit directly to main):
 - Changes user says "can go straight to main"
 
 **Never merge PRs without user approval.**
+
+## Future Features / TODOs
+
+### Campaign Level Editor (Dev-Only Tool)
+A UI tool for developers to design and configure campaign battles.
+
+**Purpose:**
+- Allow designers to create/edit campaign battles without touching code
+- Configure enemy decks, AI behavior, rewards, difficulty
+- Test battles directly from the editor
+
+**Design Approach:**
+- **Access**: Dev-only tool (not accessible to players)
+- **Location**: Separate scene, maybe accessible from main menu in debug builds or via dev console
+- **Features**:
+  - Drag-and-drop cards to build enemy deck
+  - Set deck size (no player limits for enemies)
+  - Configure AI behavior (aggression, card priority, play speed)
+  - Set battle metadata (name, description, difficulty)
+  - Define reward structure (fixed/choice/random cards)
+  - Set unlock requirements (which battles must be completed first)
+  - Preview/test battle
+- **Storage**: Save battle definitions to `campaign_service.gd` or separate JSON files
+
+**Current Status**: Not started - hardcoded decks in `campaign_service.gd` work fine for now
+
+**Priority**: Low - Only needed when managing 20+ battles becomes cumbersome

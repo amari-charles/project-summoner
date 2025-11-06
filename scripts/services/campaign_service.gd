@@ -57,7 +57,9 @@ func _init_battles() -> void:
 		"reward_cards": [
 			{"catalog_id": "warrior", "rarity": "common", "count": 1}
 		],
-		"enemy_deck": [],
+		"enemy_deck": [
+			{"catalog_id": "training_dummy", "count": 1}
+		],
 		"unlock_requirements": []
 	}
 
@@ -72,7 +74,9 @@ func _init_battles() -> void:
 			{"catalog_id": "warrior", "rarity": "common", "count": 1},
 			{"catalog_id": "archer", "rarity": "common", "count": 1}
 		],
-		"enemy_deck": [],
+		"enemy_deck": [
+			{"catalog_id": "warrior", "count": 2}
+		],
 		"unlock_requirements": ["battle_00"]
 	}
 
@@ -86,7 +90,10 @@ func _init_battles() -> void:
 		"reward_cards": [
 			{"catalog_id": "wall", "rarity": "common", "count": 2}
 		],
-		"enemy_deck": [],
+		"enemy_deck": [
+			{"catalog_id": "warrior", "count": 2},
+			{"catalog_id": "archer", "count": 1}
+		],
 		"unlock_requirements": ["battle_01"]
 	}
 
@@ -102,7 +109,11 @@ func _init_battles() -> void:
 			{"catalog_id": "archer", "rarity": "common", "count": 2},
 			{"catalog_id": "wall", "rarity": "common", "count": 2}
 		],
-		"enemy_deck": [],
+		"enemy_deck": [
+			{"catalog_id": "warrior", "count": 3},
+			{"catalog_id": "archer", "count": 2},
+			{"catalog_id": "wall", "count": 1}
+		],
 		"unlock_requirements": ["battle_02"]
 	}
 
@@ -116,7 +127,11 @@ func _init_battles() -> void:
 		"reward_cards": [
 			{"catalog_id": "fireball", "rarity": "rare", "count": 1}
 		],
-		"enemy_deck": [],
+		"enemy_deck": [
+			{"catalog_id": "warrior", "count": 4},
+			{"catalog_id": "archer", "count": 3},
+			{"catalog_id": "wall", "count": 2}
+		],
 		"unlock_requirements": ["battle_03"]
 	}
 
