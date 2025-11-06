@@ -101,8 +101,9 @@ size = Vector2i(100, 100)
 [node name="Model2D" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
 
 [node name="SoldierSprite" type="AnimatedSprite2D" parent="TestCharacter/Sprite3D/SubViewport/Model2D"]
+position = Vector2(50, 50)
+scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_1")
 animation = &"idle"
 autoplay = "idle"
 centered = true
-offset = Vector2(50, 50)
