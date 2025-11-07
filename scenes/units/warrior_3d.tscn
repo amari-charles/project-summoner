@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://warrior_3d"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/soldier_sprite_frames.tres" id="2_frames"]
+
+[node name="Warrior3D" type="CharacterBody3D" groups=["units"]]
+script = ExtResource("1_script")
+max_hp = 120.0
+attack_damage = 20.0
+attack_range = 2.0
+attack_speed = 1.2
+move_speed = 3.0
+team = 0
+aggro_radius = 20.0
+is_ranged = false
+sprite_frames = ExtResource("2_frames")

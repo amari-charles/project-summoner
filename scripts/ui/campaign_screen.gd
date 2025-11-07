@@ -246,8 +246,8 @@ func _on_start_battle_pressed() -> void:
 			profile["campaign_progress"]["current_battle"] = selected_battle_id
 			get_node("/root/ProfileRepo").save_profile(true)  # Force immediate save
 
-	# Launch battle scene
-	get_tree().change_scene_to_file("res://scenes/battlefield/test_game.tscn")
+	# Launch battle scene (using 3D battlefield)
+	get_tree().change_scene_to_file("res://scenes/battlefield/campaign_battle_3d.tscn")
 
 ## =============================================================================
 ## NAVIGATION

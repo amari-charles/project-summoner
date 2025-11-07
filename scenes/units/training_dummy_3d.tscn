@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://training_dummy_3d"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/soldier_sprite_frames.tres" id="2_frames"]
+
+[node name="TrainingDummy3D" type="CharacterBody3D" groups=["units"]]
+script = ExtResource("1_script")
+max_hp = 50.0
+attack_damage = 0.0
+attack_range = 0.0
+attack_speed = 0.0
+move_speed = 0.0
+team = 0
+aggro_radius = 0.0
+is_ranged = false
+sprite_frames = ExtResource("2_frames")

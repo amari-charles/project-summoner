@@ -1,0 +1,67 @@
+[gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
+
+[ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.53, 0.81, 0.98, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.5
+
+[sub_resource type="Shader" id="Shader_checkerboard"]
+code = "shader_type spatial;
+
+varying vec3 world_pos;
+
+void vertex() {
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
+void fragment() {
+	// Use world position for uniform square checkers
+	vec2 pos = world_pos.xz * 0.25; // Adjust 0.25 to change square size
+	float checker = mod(floor(pos.x) + floor(pos.y), 2.0);
+	vec3 color1 = vec3(1.0, 1.0, 1.0); // white
+	vec3 color2 = vec3(0.5, 0.5, 0.5); // gray
+	ALBEDO = mix(color1, color2, checker);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_terrain"]
+shader = SubResource("Shader_checkerboard")
+
+[sub_resource type="BoxMesh" id="BoxMesh_8nt87"]
+
+[node name="BaseBattlefield3D" type="Node3D" groups=["battlefield"]]
+script = ExtResource("1_script")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1.9854228e-05, -0.51433474, 0.85758954, -0.00010282041, 0.85758954, 0.51433474, -1, -9.838943e-05, -3.5857334e-05, 21.184116, 14.277092, 0)
+current = true
+projection = 1
+size = 35.61939
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="GroundLayer" type="Node3D" parent="."]
+
+[node name="Terrain" type="MeshInstance3D" parent="GroundLayer"]
+transform = Transform3D(62.135105, 0, 0, 0, 1, 0, 0, 0, 61.830696, 0, 0, 0)
+mesh = SubResource("BoxMesh_8nt87")
+surface_material_override/0 = SubResource("ShaderMaterial_terrain")
+
+[node name="GameplayLayer" type="Node3D" parent="."]
+
+[node name="EffectsLayer" type="Node3D" parent="."]
+
+[node name="PlayerSpawnMarker" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -29)
+
+[node name="EnemySpawnMarker" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 29)

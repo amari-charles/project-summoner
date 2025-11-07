@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Card" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card_script"]
-[ext_resource type="PackedScene" uid="uid://cqp7j8wvnx8ym" path="res://scenes/units/basic_unit.tscn" id="2_unit_scene"]
+[ext_resource type="PackedScene" path="res://scenes/units/warrior_3d.tscn" id="2_unit_scene"]
 
 [resource]
 script = ExtResource("1_card_script")

@@ -65,20 +65,29 @@ func _load_battle_results() -> void:
 	battle_name_label.text = battle.get("name", "Unknown Battle")
 	reward_type = battle.get("reward_type", "fixed")
 
-	# Mark battle as completed
-	if not campaign.is_battle_completed(current_battle_id):
+	# Check if battle was already completed (replay scenario)
+	var is_replay = campaign.is_battle_completed(current_battle_id)
+
+	# Mark battle as completed (if first time)
+	if not is_replay:
 		campaign.complete_battle(current_battle_id)
 
-	# Show rewards based on type
-	_show_rewards(battle)
+	# Show rewards based on type (only grant if first time)
+	_show_rewards(battle, is_replay)
 
 ## =============================================================================
 ## REWARD DISPLAY
 ## =============================================================================
 
-func _show_rewards(battle: Dictionary) -> void:
+func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	var campaign = get_node("/root/Campaign")
 	var catalog = get_node("/root/CardCatalog")
+
+	if is_replay:
+		# Show message for replayed battles
+		reward_card_label.text = "Battle Already Completed"
+		reward_detail_label.text = "No rewards for replaying battles"
+		return
 
 	match reward_type:
 		"fixed":

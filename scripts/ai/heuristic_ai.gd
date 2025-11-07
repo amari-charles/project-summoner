@@ -32,8 +32,14 @@ func _process(delta: float) -> void:
 		var card_index = select_card_to_play()
 		if card_index != -1:
 			var card = summoner.hand[card_index]
-			var position = select_spawn_position(card)
-			summoner.play_card(card_index, position)
+			# Check if summoner is 3D or 2D
+			if summoner.has_method("play_card_3d"):
+				var pos_2d = select_spawn_position(card)
+				var pos_3d = BattlefieldConstants.screen_to_world_3d(pos_2d)
+				summoner.play_card_3d(card_index, pos_3d)
+			else:
+				var position = select_spawn_position(card)
+				summoner.play_card(card_index, position)
 		_set_next_play_time()
 
 func on_battle_start() -> void:

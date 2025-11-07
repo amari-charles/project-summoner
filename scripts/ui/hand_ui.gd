@@ -43,18 +43,12 @@ class CardDisplay extends Control:
 
 	## Start dragging this card
 	func _get_drag_data(_at_position: Vector2) -> Variant:
-		print("CardDisplay: _get_drag_data called for card ", card_index)
-
 		if not hand_ui or not hand_ui.summoner:
-			print("CardDisplay: No hand_ui or summoner")
 			return null
 
 		# Check if we can afford this card
 		if hand_ui.summoner.mana < card.mana_cost:
-			print("CardDisplay: Not enough mana (", hand_ui.summoner.mana, " < ", card.mana_cost, ")")
 			return null
-
-		print("CardDisplay: Starting drag for card ", card.card_name)
 
 		# Create drag preview
 		var preview = _create_drag_preview()
@@ -155,8 +149,6 @@ class CardDisplay extends Control:
 			return
 		is_hovered = false
 
-		print("CardDisplay: Mouse exited card ", card_index)
-
 		# Create exit tween
 		if hover_tween and hover_tween.is_valid():
 			hover_tween.kill()
@@ -231,7 +223,7 @@ class CardDisplay extends Control:
 			# Return to subtle glow or gray
 			glow_tween.tween_property(border, "color", Color(0.8, 0.7, 0.2, 0.6), 0.15)
 
-var summoner: Summoner
+var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 
@@ -243,10 +235,12 @@ func _ready() -> void:
 	# Block clicks to battlefield
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# Find player summoner
+	# Find player summoner (2D or 3D)
 	var summoners = get_tree().get_nodes_in_group("summoners")
 	for node in summoners:
-		if node is Summoner and node.team == Unit.Team.PLAYER:
+		# Check for both Summoner and Summoner3D
+		if (node is Summoner and node.team == Unit.Team.PLAYER) or \
+		   (node.get_script() and node.get_script().get_global_name() == "Summoner3D" and node.team == 0):
 			summoner = node
 			break
 
@@ -261,8 +255,6 @@ func _ready() -> void:
 
 	# Initial hand display
 	_rebuild_hand_display()
-
-	print("HandUI: Ready with ", summoner.hand.size(), " cards")
 
 func _rebuild_hand_display() -> void:
 	# Clear existing displays
@@ -369,7 +361,6 @@ func _select_card(index: int) -> void:
 	selected_card_index = index
 	_update_selection_visual()
 	card_selected.emit(index)
-	print("HandUI: Selected card %d: %s" % [index, summoner.hand[index].card_name])
 
 func _update_selection_visual() -> void:
 	for i in range(card_displays.size()):
