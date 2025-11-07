@@ -35,11 +35,11 @@ func _ready() -> void:
 	print("ProjectileManager: Initialized")
 
 func _load_projectile_scene() -> void:
-	var scene_path = "res://scenes/projectiles/projectile_3d.tscn"
+	var scene_path = "res://scenes/projectiles/base_projectile_3d.tscn"
 	if ResourceLoader.exists(scene_path):
 		base_projectile_scene = load(scene_path)
 	else:
-		push_warning("ProjectileManager: Base projectile scene not found, will instantiate from script")
+		push_warning("ProjectileManager: Base projectile scene not found at '%s', will instantiate from script" % scene_path)
 
 func _init_pools() -> void:
 	# Pre-instantiate pools for projectiles defined in ContentCatalog

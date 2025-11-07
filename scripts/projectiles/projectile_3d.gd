@@ -26,6 +26,8 @@ var damage_type: String = "physical"
 var visual_scene: PackedScene = null
 var hit_vfx: String = ""
 var trail_vfx: String = ""
+var fade_on_hit: bool = true  ## Fade out when hitting target
+var fade_duration: float = 0.5  ## Time to fade out
 
 ## State
 var source: Node3D = null
@@ -39,6 +41,7 @@ var time_alive: float = 0.0
 var hits_remaining: int = 0
 var is_pooled: bool = false
 var is_active: bool = false
+var is_fading: bool = false
 
 ## Visual component instance
 var visual_instance: Node3D = null
@@ -59,6 +62,21 @@ func _ready() -> void:
 		visual_instance = visual_scene.instantiate()
 		add_child(visual_instance)
 
+		# Duplicate materials to avoid shared material issues when fading
+		_duplicate_materials()
+
+## Duplicate materials for this instance to avoid shared material problems
+func _duplicate_materials() -> void:
+	if not visual_instance:
+		return
+
+	for child in visual_instance.get_children():
+		if child is MeshInstance3D:
+			var material = child.get_surface_override_material(0)
+			if material:
+				# Create a unique material instance for this projectile
+				child.set_surface_override_material(0, material.duplicate())
+
 func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
@@ -66,9 +84,9 @@ func _physics_process(delta: float) -> void:
 	time_alive += delta
 	travel_time += delta
 
-	# Check lifetime expiration
+	# Check lifetime expiration - expire without fade (timed out)
 	if time_alive >= lifetime:
-		_expire()
+		_expire_immediate()
 		return
 
 	# Update movement based on type
@@ -115,9 +133,9 @@ func _move_arc(delta: float) -> void:
 	direction = (horizontal_pos - global_position).normalized()
 	global_position = horizontal_pos
 
-	# Check if reached target
+	# Check if reached target - expire without fade (missed or out of range)
 	if progress >= 1.0:
-		_expire()
+		_expire_immediate()
 
 ## Ballistic movement - parabolic arc with gravity
 func _move_ballistic(delta: float) -> void:
@@ -139,9 +157,9 @@ func _move_ballistic(delta: float) -> void:
 	direction = velocity.normalized()
 	global_position += velocity * delta
 
-	# Check if passed target
+	# Check if passed target - expire without fade (missed or out of range)
 	if global_position.distance_to(target_position) < 0.5:
-		_expire()
+		_expire_immediate()
 
 ## Initialize projectile
 func initialize(data: Dictionary) -> void:
@@ -160,11 +178,11 @@ func initialize(data: Dictionary) -> void:
 		start_position = source.global_position
 		global_position = start_position
 
-	# Set target position
-	if target and is_instance_valid(target):
-		target_position = target.global_position
-	elif data.has("target_position"):
+	# Set target position (prioritize explicit target_position over target.global_position)
+	if data.has("target_position"):
 		target_position = data.target_position
+	elif target and is_instance_valid(target):
+		target_position = target.global_position
 
 	# Set direction
 	if data.has("direction"):
@@ -240,12 +258,46 @@ func _hit_target(target_node: Node3D) -> void:
 		hits_remaining -= 1
 		return
 	else:
-		# No pierce remaining, destroy
-		_expire()
+		# No pierce remaining, destroy with fade
+		if fade_on_hit:
+			_expire_with_fade()
+		else:
+			_expire_immediate()
 
-## Expire projectile
-func _expire() -> void:
+## Expire projectile with fade-out animation (used on hit)
+func _expire_with_fade() -> void:
+	if is_fading:
+		return  # Already fading
+
+	is_fading = true
+	is_active = false  # Stop movement
+
+	# Fade out the visual
+	if visual_instance:
+		var tween = create_tween()
+		tween.set_ease(Tween.EASE_OUT)
+		tween.set_trans(Tween.TRANS_QUAD)
+
+		# Fade out all MeshInstance3D children
+		for child in visual_instance.get_children():
+			if child is MeshInstance3D:
+				var material = child.get_surface_override_material(0)
+				if material and material is StandardMaterial3D:
+					# Enable transparency if not already
+					if material.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED:
+						material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					tween.tween_property(material, "albedo_color:a", 0.0, fade_duration).from(1.0)
+
+		# After fade completes, expire normally
+		tween.finished.connect(_expire_immediate)
+	else:
+		# No visual, expire immediately
+		_expire_immediate()
+
+## Expire projectile immediately (no animation)
+func _expire_immediate() -> void:
 	is_active = false
+	is_fading = false
 	projectile_expired.emit(self)
 
 	if is_pooled:
@@ -266,6 +318,28 @@ func reset() -> void:
 	time_alive = 0.0
 	hits_remaining = 0
 	is_active = false
+	is_fading = false
+
+	# Cancel any running tweens (only if in tree)
+	if is_inside_tree():
+		var tweens = get_tree().get_processed_tweens()
+		for tween in tweens:
+			if tween.is_valid():
+				tween.kill()
+
+	# Reset visual alpha and visibility
+	if visual_instance:
+		visual_instance.visible = true
+		for child in visual_instance.get_children():
+			if child is MeshInstance3D:
+				child.visible = true
+				var material = child.get_surface_override_material(0)
+				if material and material is StandardMaterial3D:
+					# Reset transparency mode
+					material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					var color = material.albedo_color
+					color.a = 1.0
+					material.albedo_color = color
 
 	# Only reset transform if node is in tree
 	if is_inside_tree():

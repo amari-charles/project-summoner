@@ -2,7 +2,7 @@
 	"projectile_id": "arrow",
 	"projectile_name": "Arrow",
 
-	"model_scene_path": "",
+	"model_scene_path": "res://scenes/projectiles/arrow_visual.tscn",
 	"trail_effect_id": "",
 	"impact_effect_id": "",
 

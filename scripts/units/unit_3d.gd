@@ -15,7 +15,6 @@ enum Team { PLAYER, ENEMY }
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
 @export var is_ranged: bool = false
-@export var projectile_scene: PackedScene = null  # DEPRECATED: Use projectile_id instead
 @export var projectile_id: String = ""  # ID for ProjectileManager
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 
@@ -27,6 +26,10 @@ var attack_cooldown: float = 0.0
 
 ## Visual component
 var visual_component: Character2D5Component = null
+
+## Attachment points for projectiles and effects
+@onready var projectile_spawn_point: Marker3D = $ProjectileSpawnPoint if has_node("ProjectileSpawnPoint") else null
+@onready var projectile_target_point: Marker3D = $ProjectileTargetPoint if has_node("ProjectileTargetPoint") else null
 
 ## Signals
 signal unit_died(unit: Unit3D)
@@ -133,23 +136,22 @@ func _spawn_projectile() -> void:
 	if not current_target:
 		return
 
-	# Try using ProjectileManager first (new system)
 	if not projectile_id.is_empty():
+		# Use attachment points for proper spawn/target positions
+		var spawn_pos = get_projectile_spawn_position()
+		var target_pos = current_target.get_projectile_target_position() if current_target.has_method("get_projectile_target_position") else current_target.global_position
+
 		ProjectileManager.spawn_projectile(
 			projectile_id,
 			self,
 			current_target,
 			attack_damage,
-			"physical"
+			"physical",
+			{
+				"start_position": spawn_pos,
+				"target_position": target_pos
+			}
 		)
-		return
-
-	# Fallback to old system for backwards compatibility
-	if projectile_scene:
-		var projectile = projectile_scene.instantiate()
-		get_parent().add_child(projectile)
-		projectile.global_position = global_position
-		# TODO: Set projectile target on old projectile type
 
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
@@ -185,3 +187,19 @@ func _die() -> void:
 func _update_animation(anim_name: String) -> void:
 	if visual_component and visual_component.get_current_animation() != anim_name:
 		visual_component.play_animation(anim_name)
+
+## Get the world position where projectiles should spawn from
+func get_projectile_spawn_position() -> Vector3:
+	if projectile_spawn_point:
+		return projectile_spawn_point.global_position
+	# Fallback: use visual component position or unit position + offset
+	if visual_component:
+		return global_position + Vector3(0, 1.0, 0)
+	return global_position
+
+## Get the world position where projectiles should target
+func get_projectile_target_position() -> Vector3:
+	if projectile_target_point:
+		return projectile_target_point.global_position
+	# Fallback: aim slightly higher than unit position (chest height)
+	return global_position + Vector3(0, 1.2, 0)
