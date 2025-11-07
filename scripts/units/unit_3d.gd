@@ -9,11 +9,11 @@ enum Team { PLAYER, ENEMY }
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
-@export var attack_range: float = 80.0
+@export var attack_range: float = 2.0
 @export var attack_speed: float = 1.0
-@export var move_speed: float = 60.0
+@export var move_speed: float = 3.0
 @export var team: Team = Team.PLAYER
-@export var aggro_radius: float = 180.0
+@export var aggro_radius: float = 20.0
 @export var is_ranged: bool = false
 @export var projectile_scene: PackedScene = null
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
@@ -104,7 +104,7 @@ func _move_towards_target(delta: float) -> void:
 	var direction = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
-	velocity = direction * move_speed * delta
+	velocity = direction * move_speed
 	move_and_slide()
 
 func _perform_attack() -> void:
