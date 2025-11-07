@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 CardCatalog="*res://scripts/data/card_catalog.gd"
 ContentCatalog="*res://scripts/data/content_catalog.gd"
+VFXManager="*res://scripts/vfx/vfx_manager.gd"
 ProfileRepo="*res://scripts/data/json_profile_repository.gd"
 Economy="*res://scripts/services/economy_service.gd"
 Collection="*res://scripts/services/collection_service.gd"
