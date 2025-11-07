@@ -64,8 +64,7 @@ func _execute_spawn_event(event: Dictionary) -> void:
 
 	# Play the card
 	if summoner.has_method("play_card_3d"):
-		# Convert 2D position to 3D
-		var pos_3d = Vector3((position.x - 960) / 100.0, 1.0, (position.y - 540) / 100.0)
+		var pos_3d = BattlefieldConstants.screen_to_world_3d(position)
 		summoner.play_card_3d(card_index, pos_3d)
 	else:
 		summoner.play_card(card_index, position)

@@ -32,8 +32,6 @@ func _ready() -> void:
 	# so HandUI will receive mouse events in its area first
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	print("BattlefieldDropZone: Ready and waiting for drops")
-
 ## Check if we can drop the card here
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	# Validate drop data
@@ -76,17 +74,10 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		# Convert screen to 3D world position
 		var world_pos_3d = _screen_to_world_3d(at_position)
 		success = summoner.play_card_3d(card_index, world_pos_3d)
-		if success:
-			print("BattlefieldDropZone: Played card at ", world_pos_3d)
 	else:
 		# Convert screen to 2D world position
 		var world_pos_2d = _screen_to_world_2d(at_position)
 		success = summoner.play_card(card_index, world_pos_2d)
-		if success:
-			print("BattlefieldDropZone: Played card at ", world_pos_2d)
-
-	if not success:
-		print("BattlefieldDropZone: Failed to play card")
 
 ## Convert screen coordinates to 2D world coordinates
 func _screen_to_world_2d(screen_pos: Vector2) -> Vector2:
@@ -104,10 +95,11 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 
 	# Create a ray from camera through mouse position
 	var from = camera_3d.project_ray_origin(screen_pos)
-	var to = from + camera_3d.project_ray_normal(screen_pos) * 1000
+	var to = from + camera_3d.project_ray_normal(screen_pos) * BattlefieldConstants.RAYCAST_DISTANCE
 
-	# Intersect with Y=1 plane (where units spawn)
-	var t = (1.0 - from.y) / (to.y - from.y)
+	# Intersect with spawn plane (where units spawn)
+	var spawn_y = BattlefieldConstants.SPAWN_PLANE_HEIGHT
+	var t = (spawn_y - from.y) / (to.y - from.y)
 	if t < 0 or t > 1:
 		return Vector3.ZERO
 

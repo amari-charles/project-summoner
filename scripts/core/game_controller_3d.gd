@@ -51,7 +51,6 @@ func _ready() -> void:
 			player_base.base_damaged.connect(_on_base_damaged)
 		if player_base.has_signal("base_destroyed"):
 			player_base.base_destroyed.connect(_on_base_destroyed)
-		print("Found player base")
 
 	if enemy_bases.size() > 0:
 		enemy_base = enemy_bases[0]
@@ -59,7 +58,6 @@ func _ready() -> void:
 			enemy_base.base_damaged.connect(_on_base_damaged)
 		if enemy_base.has_signal("base_destroyed"):
 			enemy_base.base_destroyed.connect(_on_base_destroyed)
-		print("Found enemy base")
 
 	# Load AI for enemy summoner from campaign config
 	_load_ai_for_enemy()
@@ -88,7 +86,6 @@ func start_game() -> void:
 	match_time = 0.0
 	game_started.emit()
 	state_changed.emit(current_state)
-	print("3D Match started! Duration: %d seconds" % match_duration)
 
 func pause_game() -> void:
 	if current_state == GameState.PLAYING:
@@ -115,9 +112,6 @@ func end_game(winner: Unit3D.Team) -> void:
 	game_ended.emit(winner)
 	get_tree().paused = true
 
-	var winner_text = "PLAYER" if winner == Unit3D.Team.PLAYER else "ENEMY"
-	print("Game Over! Winner: %s" % winner_text)
-
 	# Check if this is a campaign battle
 	var profile_repo = get_node_or_null("/root/ProfileRepo")
 	if profile_repo:
@@ -127,12 +121,10 @@ func end_game(winner: Unit3D.Team) -> void:
 		if current_battle_id != "":
 			# This is a campaign battle - transition to appropriate screen
 			if winner == Unit3D.Team.PLAYER:
-				print("GameController3D: Campaign battle won! Transitioning to reward screen...")
 				await get_tree().create_timer(2.0).timeout
 				get_tree().paused = false
 				get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
 			else:
-				print("GameController3D: Campaign battle lost. Returning to campaign...")
 				await get_tree().create_timer(2.0).timeout
 				get_tree().paused = false
 				get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
@@ -196,29 +188,24 @@ func _load_ai_for_enemy() -> void:
 	# Get battle config from profile
 	var profile_repo = get_node_or_null("/root/ProfileRepo")
 	if not profile_repo:
-		print("GameController3D: No ProfileRepo found, skipping AI load")
 		return
 
 	var profile = profile_repo.get_active_profile()
 	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
 	if current_battle_id == "":
-		print("GameController3D: No current battle set, skipping AI load")
 		return
 
 	var campaign = get_node_or_null("/root/CampaignService")
 	if not campaign:
-		print("GameController3D: No CampaignService found, skipping AI load")
 		return
 
 	var battle_config = campaign.get_battle(current_battle_id)
 	if not battle_config:
-		print("GameController3D: No battle config for '%s', skipping AI load" % current_battle_id)
 		return
 
 	# Remove existing AI (if any)
 	for child in enemy_summoner.get_children():
 		if child.has_method("decide_next_play"):  # Duck-type check for AI
-			print("GameController3D: Removing old AI: %s" % child.name)
 			child.queue_free()
 
 	# Create and attach new AI
@@ -226,4 +213,3 @@ func _load_ai_for_enemy() -> void:
 	var ai = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
 	if ai:
 		enemy_summoner.add_child(ai)
-		print("GameController3D: Loaded %s AI for battle '%s'" % [battle_config.get("ai_type", "unknown"), current_battle_id])

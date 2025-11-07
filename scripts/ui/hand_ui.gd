@@ -43,18 +43,12 @@ class CardDisplay extends Control:
 
 	## Start dragging this card
 	func _get_drag_data(_at_position: Vector2) -> Variant:
-		print("CardDisplay: _get_drag_data called for card ", card_index)
-
 		if not hand_ui or not hand_ui.summoner:
-			print("CardDisplay: No hand_ui or summoner")
 			return null
 
 		# Check if we can afford this card
 		if hand_ui.summoner.mana < card.mana_cost:
-			print("CardDisplay: Not enough mana (", hand_ui.summoner.mana, " < ", card.mana_cost, ")")
 			return null
-
-		print("CardDisplay: Starting drag for card ", card.card_name)
 
 		# Create drag preview
 		var preview = _create_drag_preview()
@@ -154,8 +148,6 @@ class CardDisplay extends Control:
 		if not is_hovered:
 			return
 		is_hovered = false
-
-		print("CardDisplay: Mouse exited card ", card_index)
 
 		# Create exit tween
 		if hover_tween and hover_tween.is_valid():
@@ -264,8 +256,6 @@ func _ready() -> void:
 	# Initial hand display
 	_rebuild_hand_display()
 
-	print("HandUI: Ready with ", summoner.hand.size(), " cards")
-
 func _rebuild_hand_display() -> void:
 	# Clear existing displays
 	for display in card_displays:
@@ -371,7 +361,6 @@ func _select_card(index: int) -> void:
 	selected_card_index = index
 	_update_selection_visual()
 	card_selected.emit(index)
-	print("HandUI: Selected card %d: %s" % [index, summoner.hand[index].card_name])
 
 func _update_selection_visual() -> void:
 	for i in range(card_displays.size()):

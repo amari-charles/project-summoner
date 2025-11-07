@@ -35,12 +35,7 @@ func _process(delta: float) -> void:
 			# Check if summoner is 3D or 2D
 			if summoner.has_method("play_card_3d"):
 				var pos_2d = select_spawn_position(card)
-				# Convert 2D position to 3D (map screen space to world space roughly)
-				var pos_3d = Vector3(
-					(pos_2d.x - 960) / 100.0,  # Center and scale
-					1.0,
-					(pos_2d.y - 540) / 100.0
-				)
+				var pos_3d = BattlefieldConstants.screen_to_world_3d(pos_2d)
 				summoner.play_card_3d(card_index, pos_3d)
 			else:
 				var position = select_spawn_position(card)
