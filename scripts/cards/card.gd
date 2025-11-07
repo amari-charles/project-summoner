@@ -23,6 +23,7 @@ enum CardType { SUMMON, SPELL }
 @export var spell_damage: float = 0.0
 @export var spell_radius: float = 0.0
 @export var spell_duration: float = 0.0
+@export var projectile_id: String = ""  # If set, spell spawns a projectile instead of instant cast
 
 ## Visual
 @export var card_icon: Texture2D = null
@@ -110,8 +111,53 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
-	if spell_damage > 0:
+	# If spell uses a projectile, spawn it instead of instant cast
+	if not projectile_id.is_empty():
+		_spawn_spell_projectile(position, team, battlefield)
+	elif spell_damage > 0:
+		# Fallback to instant AOE damage (legacy behavior)
 		_apply_aoe_damage_3d(position, team, battlefield)
+
+## Spawn a spell projectile
+func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	# Find source (player or enemy base)
+	var source: Node3D = _find_base_by_team(team, battlefield)
+	if not source:
+		push_warning("Card: Could not find source base for spell projectile")
+		# Fallback to instant damage
+		_apply_aoe_damage_3d(target_position, team, battlefield)
+		return
+
+	# Spawn projectile using ProjectileManager
+	var projectile = ProjectileManager.spawn_projectile(
+		projectile_id,
+		source,
+		null,  # No target unit, targeting a position
+		spell_damage,
+		"spell",
+		{
+			"start_position": source.global_position,
+			"target_position": target_position
+		}
+	)
+
+	if not projectile:
+		push_error("Card: Failed to spawn spell projectile '%s'" % projectile_id)
+
+## Find the base for the given team
+func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
+	var scene_tree = battlefield.get_tree()
+	if not scene_tree:
+		return null
+
+	# Try to find base in the scene
+	var bases = scene_tree.get_nodes_in_group("bases")
+	for base in bases:
+		if "team" in base and base.team == team:
+			return base as Node3D
+
+	# Fallback: just return battlefield root if no base found
+	return battlefield as Node3D
 
 ## Apply AOE damage to enemies in 3D range
 func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:

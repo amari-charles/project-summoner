@@ -1,0 +1,56 @@
+[gd_scene load_steps=7 format=3 uid="uid://fireball_explosion"]
+
+[ext_resource type="Script" path="res://scripts/vfx/vfx_instance.gd" id="1_script"]
+
+[sub_resource type="Curve" id="Curve_scale"]
+_data = [Vector2(0, 0.5), 0.0, 0.0, 0, 0, Vector2(0.2, 1.0), 0.0, 0.0, 0, 0, Vector2(1, 0.1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_color"]
+offsets = PackedFloat32Array(0, 0.15, 0.35, 0.6, 0.85, 1)
+colors = PackedColorArray(1, 1, 0.8, 1, 1, 0.95, 0.4, 1, 0.92, 0.6, 0.1, 1, 0.85, 0.35, 0.08, 1, 0.5, 0.1, 0.05, 0.5, 0.1, 0, 0, 0)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1"]
+emission_shape = 1
+emission_sphere_radius = 2.0
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 5.0
+initial_velocity_max = 10.0
+gravity = Vector3(0, -2, 0)
+damping_min = 2.0
+damping_max = 4.0
+scale_min = 0.8
+scale_max = 2.0
+scale_curve = SubResource("Curve_scale")
+color_ramp = SubResource("Gradient_color")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 1)
+emission_enabled = false
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_1"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector2(0.8, 0.8)
+
+[node name="FireballExplosion" type="Node3D"]
+script = ExtResource("1_script")
+lifetime = 1.0
+auto_free = true
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+emitting = true
+amount = 150
+lifetime = 1.0
+one_shot = true
+explosiveness = 0.95
+process_material = SubResource("ParticleProcessMaterial_1")
+draw_pass_1 = SubResource("QuadMesh_1")

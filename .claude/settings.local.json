@@ -46,7 +46,12 @@
       "WebFetch(domain:www.youtube.com)",
       "Bash(git mv:*)",
       "Bash(git rm:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:godotshaders.com)",
+      "WebFetch(domain:docs.godotengine.org)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

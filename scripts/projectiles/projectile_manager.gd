@@ -182,6 +182,30 @@ func clear_all_projectiles() -> void:
 
 	active_projectiles.clear()
 
+## Clear all pools (forces reload of visuals on next init)
+func clear_all_pools() -> void:
+	# Free all pooled projectiles
+	for projectile_id in projectile_pools.keys():
+		for projectile in projectile_pools[projectile_id]:
+			if is_instance_valid(projectile):
+				projectile.queue_free()
+
+	# Clear all active projectiles
+	for projectile_id in active_projectiles.keys():
+		for projectile in active_projectiles[projectile_id]:
+			if is_instance_valid(projectile):
+				projectile.queue_free()
+
+	projectile_pools.clear()
+	active_projectiles.clear()
+	print("ProjectileManager: Cleared all pools")
+
+## Refresh pools (clear and recreate with fresh visuals)
+func refresh_pools() -> void:
+	clear_all_pools()
+	_init_pools()
+	print("ProjectileManager: Pools refreshed with new visuals")
+
 ## Debug: Print pool statistics
 func print_pool_stats() -> void:
 	print("=== ProjectileManager Pool Statistics ===")

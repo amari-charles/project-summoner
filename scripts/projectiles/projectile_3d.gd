@@ -89,6 +89,16 @@ func _physics_process(delta: float) -> void:
 		_expire_immediate()
 		return
 
+	# Check ground collision (explode if hit ground)
+	if global_position.y <= 0.2:
+		print("GROUND HIT: Projectile at y=%.2f, triggering expire" % global_position.y)
+		_trigger_impact_effects(Vector3(global_position.x, 0, global_position.z))
+		if fade_on_hit:
+			_expire_with_fade()
+		else:
+			_expire_immediate()
+		return
+
 	# Update movement based on type
 	match movement_type:
 		MovementType.STRAIGHT:
@@ -133,9 +143,13 @@ func _move_arc(delta: float) -> void:
 	direction = (horizontal_pos - global_position).normalized()
 	global_position = horizontal_pos
 
-	# Check if reached target - expire without fade (missed or out of range)
+	# Check if reached target - trigger impact effects and expire
 	if progress >= 1.0:
-		_expire_immediate()
+		_trigger_impact_effects(global_position)
+		if fade_on_hit:
+			_expire_with_fade()
+		else:
+			_expire_immediate()
 
 ## Ballistic movement - parabolic arc with gravity
 func _move_ballistic(delta: float) -> void:
@@ -157,9 +171,13 @@ func _move_ballistic(delta: float) -> void:
 	direction = velocity.normalized()
 	global_position += velocity * delta
 
-	# Check if passed target - expire without fade (missed or out of range)
+	# Check if passed target - trigger impact effects and expire
 	if global_position.distance_to(target_position) < 0.5:
-		_expire_immediate()
+		_trigger_impact_effects(global_position)
+		if fade_on_hit:
+			_expire_with_fade()
+		else:
+			_expire_immediate()
 
 ## Initialize projectile
 func initialize(data: Dictionary) -> void:
@@ -195,6 +213,11 @@ func initialize(data: Dictionary) -> void:
 	time_alive = 0.0
 	hits_remaining = pierce_count
 	is_active = true
+
+	# Make projectile and visual visible when spawning
+	visible = true
+	if visual_instance:
+		visual_instance.visible = true
 
 	# Spawn trail VFX
 	if not trail_vfx.is_empty():
@@ -246,9 +269,8 @@ func _hit_target(target_node: Node3D) -> void:
 	# Emit signal
 	projectile_hit.emit(target_node, self)
 
-	# Spawn hit VFX
-	if not hit_vfx.is_empty():
-		VFXManager.play_effect(hit_vfx, global_position)
+	# Spawn hit VFX and apply AOE damage if applicable
+	_trigger_impact_effects(global_position)
 
 	# Handle pierce
 	if pierce_count == -1:
@@ -264,6 +286,115 @@ func _hit_target(target_node: Node3D) -> void:
 		else:
 			_expire_immediate()
 
+## Trigger impact effects (VFX and AOE damage)
+func _trigger_impact_effects(impact_position: Vector3) -> void:
+	print("\n=== PROJECTILE IMPACT ===")
+	print("  Position: %v" % impact_position)
+	print("  Projectile ID: '%s'" % projectile_id)
+	print("  Team: %d" % team)
+	print("  Damage: %.1f (%s)" % [damage, damage_type])
+	print("  Source valid: %s" % is_instance_valid(source))
+
+	# Spawn hit VFX
+	if not hit_vfx.is_empty():
+		VFXManager.play_effect(hit_vfx, impact_position)
+
+	# Apply AOE damage if radius is set
+	var proj_data = _get_projectile_data()
+	print("  Has ProjectileData: %s" % (proj_data != null))
+	if proj_data:
+		print("  AOE radius: %.1f" % proj_data.aoe_radius)
+		if proj_data.aoe_radius > 0.0:
+			_apply_aoe_damage(impact_position, proj_data.aoe_radius)
+		else:
+			print("  AOE radius is 0, skipping AOE damage")
+	else:
+		print("  No ProjectileData found, skipping AOE damage")
+
+## Apply AOE damage to all enemies in radius
+func _apply_aoe_damage(center: Vector3, radius: float) -> void:
+	print("\n--- AOE DAMAGE CALCULATION ---")
+	print("  Center: %v, Radius: %.1f" % [center, radius])
+	print("  Projectile damage: %.1f, type: %s" % [damage, damage_type])
+
+	if not is_instance_valid(source):
+		print("  ERROR: Source not valid!")
+		return
+
+	print("  Source: %s (team %d)" % [source.name, team])
+
+	var scene_tree = get_tree()
+	if not scene_tree:
+		print("  ERROR: No scene tree!")
+		return
+
+	# Spawn debug visualization sphere
+	_spawn_debug_aoe_sphere(center, radius)
+
+	# Determine target group based on team
+	var target_group = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
+	print("  Target group: '%s'" % target_group)
+
+	var enemies = scene_tree.get_nodes_in_group(target_group)
+	print("  Found %d potential targets in group" % enemies.size())
+
+	# Also check all units to see if grouping is the issue
+	var all_units = scene_tree.get_nodes_in_group("units")
+	print("  Total units in scene: %d" % all_units.size())
+
+	if enemies.size() == 0 and all_units.size() > 0:
+		print("  WARNING: No enemies in target group but units exist - group assignment issue?")
+		for unit in all_units:
+			if unit is Unit3D:
+				print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
+
+	var hit_count = 0
+	for enemy in enemies:
+		if enemy is Unit3D:
+			var distance = enemy.global_position.distance_to(center)
+			var alive_str = "alive" if enemy.is_alive else "DEAD"
+			print("    %s: distance=%.1f, %s, team=%d" % [enemy.name, distance, alive_str, enemy.team])
+
+			if enemy.is_alive and distance <= radius:
+				print("      -> APPLYING DAMAGE: %.1f" % damage)
+				DamageSystem.apply_damage(source, enemy, damage, damage_type)
+				hit_count += 1
+			elif not enemy.is_alive:
+				print("      -> Skipped (dead)")
+			elif distance > radius:
+				print("      -> Skipped (too far)")
+
+	print("  RESULT: Hit %d enemies with %.1f damage each" % [hit_count, damage])
+	print("--- END AOE CALCULATION ---\n")
+
+## Spawn a debug visualization sphere to show AOE radius
+func _spawn_debug_aoe_sphere(center: Vector3, radius: float) -> void:
+	var sphere = MeshInstance3D.new()
+	var mesh = SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2
+	sphere.mesh = mesh
+
+	# Semi-transparent red material
+	var material = StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(1, 0, 0, 0.2)
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sphere.material_override = material
+
+	sphere.global_position = center
+	get_tree().root.add_child(sphere)
+
+	# Auto-remove after 1 second
+	await get_tree().create_timer(1.0).timeout
+	sphere.queue_free()
+
+## Get projectile data from ContentCatalog
+func _get_projectile_data() -> ProjectileData:
+	if projectile_id.is_empty():
+		return null
+	return ContentCatalog.get_projectile(projectile_id)
+
 ## Expire projectile with fade-out animation (used on hit)
 func _expire_with_fade() -> void:
 	if is_fading:
@@ -272,38 +403,45 @@ func _expire_with_fade() -> void:
 	is_fading = true
 	is_active = false  # Stop movement
 
-	# Fade out the visual
-	if visual_instance:
-		var tween = create_tween()
-		tween.set_ease(Tween.EASE_OUT)
-		tween.set_trans(Tween.TRANS_QUAD)
-
-		# Fade out all MeshInstance3D children
-		for child in visual_instance.get_children():
-			if child is MeshInstance3D:
-				var material = child.get_surface_override_material(0)
-				if material and material is StandardMaterial3D:
-					# Enable transparency if not already
-					if material.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED:
-						material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-					tween.tween_property(material, "albedo_color:a", 0.0, fade_duration).from(1.0)
-
-		# After fade completes, expire normally
-		tween.finished.connect(_expire_immediate)
-	else:
-		# No visual, expire immediately
+	# If no visual or can't fade, just hide immediately
+	if not visual_instance:
+		visible = false
 		_expire_immediate()
+		return
+
+	# Create tween for fade animation
+	var tween = create_tween()
+	tween.set_parallel(true)
+
+	# Fade all materials on visual children
+	for child in visual_instance.get_children():
+		if child is MeshInstance3D:
+			var material = child.get_surface_override_material(0)
+			if material and material is StandardMaterial3D:
+				# Tween alpha from current to 0
+				tween.tween_property(material, "albedo_color:a", 0.0, fade_duration)
+		elif child is GPUParticles3D:
+			# Stop emitting new particles
+			child.emitting = false
+
+	# When tween finishes, hide and cleanup
+	tween.finished.connect(func():
+		visible = false
+		_expire_immediate()
+	)
 
 ## Expire projectile immediately (no animation)
 func _expire_immediate() -> void:
+	print("EXPIRE_IMMEDIATE: is_pooled=%s, is_active=%s" % [is_pooled, is_active])
 	is_active = false
 	is_fading = false
 	projectile_expired.emit(self)
 
 	if is_pooled:
 		# Return to pool (ProjectileManager handles this via signal)
-		pass
+		print("EXPIRE_IMMEDIATE: Emitted signal, waiting for pool return")
 	else:
+		print("EXPIRE_IMMEDIATE: Not pooled, calling queue_free()")
 		queue_free()
 
 ## Reset for pooling
@@ -327,9 +465,9 @@ func reset() -> void:
 			if tween.is_valid():
 				tween.kill()
 
-	# Reset visual alpha and visibility
+	# Reset visual alpha and visibility (but keep hidden until reused)
 	if visual_instance:
-		visual_instance.visible = true
+		visual_instance.visible = false  # Keep hidden until next spawn
 		for child in visual_instance.get_children():
 			if child is MeshInstance3D:
 				child.visible = true

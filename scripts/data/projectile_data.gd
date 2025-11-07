@@ -57,9 +57,9 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	proj.hit_vfx = data.get("hit_vfx", data.get("impact_effect_id", ""))
 	proj.trail_vfx = data.get("trail_vfx", data.get("trail_effect_id", ""))
 
-	# Load visual scene if path provided
+	# Load visual scene if path provided (force reload to bypass cache)
 	if not proj.model_scene_path.is_empty():
-		proj.visual_scene = load(proj.model_scene_path)
+		proj.visual_scene = ResourceLoader.load(proj.model_scene_path, "", ResourceLoader.CACHE_MODE_IGNORE)
 
 	proj.movement_type = data.get("movement_type", "straight")
 	proj.speed = data.get("speed", 15.0)

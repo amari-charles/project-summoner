@@ -6,7 +6,8 @@
 script = ExtResource("1_card")
 card_name = "Fireball"
 card_type = 1
-description = "AOE damage spell"
+description = "Hurls a blazing fireball that explodes on impact"
 mana_cost = 5
 spell_damage = 100.0
-spell_radius = 80.0
+spell_radius = 8.0
+projectile_id = "fireball"
