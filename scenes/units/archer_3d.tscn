@@ -13,4 +13,5 @@ move_speed = 2.5
 team = 0
 aggro_radius = 25.0
 is_ranged = true
+projectile_id = "arrow"
 sprite_frames = ExtResource("2_frames")
