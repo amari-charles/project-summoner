@@ -1,0 +1,109 @@
+[gd_scene load_steps=9 format=3 uid="uid://test_game_3d"]
+
+[ext_resource type="PackedScene" uid="uid://battlefield_3d" path="res://scenes/battlefield/battlefield_3d.tscn" id="1_battlefield"]
+[ext_resource type="Script" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
+[ext_resource type="Script" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
+[ext_resource type="Script" path="res://scripts/cards/card.gd" id="4_card"]
+[ext_resource type="Resource" path="res://resources/cards/soldier_card_3d.tres" id="5_soldier"]
+[ext_resource type="Script" path="res://scripts/core/player_input_3d.gd" id="6_input"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.53, 0.81, 0.98, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(2, 2, 2)
+
+[node name="TestGame3D" type="Node3D"]
+script = ExtResource("2_game_controller")
+match_duration = 180.0
+
+[node name="Battlefield3D" parent="." instance=ExtResource("1_battlefield")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
+script = ExtResource("3_summoner")
+starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
+team = 0
+load_deck_from_profile = true
+
+[node name="PlayerInput3D" type="Node" parent="PlayerSummoner"]
+script = ExtResource("6_input")
+
+[node name="PlayerBaseCollider" type="StaticBody3D" parent="." groups=["player_base"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerBaseCollider"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 0)
+script = ExtResource("3_summoner")
+starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
+team = 1
+load_enemy_deck_from_campaign = true
+
+[node name="EnemyBaseCollider" type="StaticBody3D" parent="." groups=["enemy_base"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EnemyBaseCollider"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="TimerLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 32
+text = "03:00"
+
+[node name="PlayerManaLabel" type="Label" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -40.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Mana: 10/10"
+
+[node name="GameOverLabel" type="Label" parent="UI"]
+process_mode = 3
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 72
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InstructionLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 600.0
+offset_bottom = 200.0
+theme_override_font_sizes/font_size = 20
+text = "Click on the battlefield to spawn units
+Press ESC to pause"
+
+[connection signal="game_ended" from="." to="." method="_on_game_ended"]
+[connection signal="time_updated" from="." to="." method="_on_time_updated"]
