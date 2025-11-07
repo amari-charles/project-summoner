@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://archer_3d"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/soldier_sprite_frames.tres" id="2_frames"]
+
+[node name="Archer3D" type="CharacterBody3D" groups=["units"]]
+script = ExtResource("1_script")
+max_hp = 80.0
+attack_damage = 12.0
+attack_range = 8.0
+attack_speed = 1.5
+move_speed = 2.5
+team = 0
+aggro_radius = 25.0
+is_ranged = true
+sprite_frames = ExtResource("2_frames")
