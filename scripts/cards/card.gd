@@ -40,6 +40,14 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 		CardType.SPELL:
 			_cast_spell(position, team, battlefield)
 
+## Execute the card effect at the given 3D position
+func play_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	match card_type:
+		CardType.SUMMON:
+			_summon_unit_3d(position, team, battlefield)
+		CardType.SPELL:
+			_cast_spell_3d(position, team, battlefield)
+
 ## Spawn unit(s) at the position
 func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 	if unit_scene == null:
@@ -82,3 +90,40 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 	battlefield.add_child(explosion)
 	await scene_tree.create_timer(0.5).timeout
 	explosion.queue_free()
+
+## Spawn unit(s) at the 3D position
+func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	if unit_scene == null:
+		push_error("Card '%s' has no unit_scene assigned!" % card_name)
+		return
+
+	var gameplay_layer = battlefield.get_gameplay_layer() if battlefield.has_method("get_gameplay_layer") else battlefield
+
+	for i in spawn_count:
+		var unit = unit_scene.instantiate() as Unit3D
+		if unit:
+			unit.global_position = position + Vector3(i * 2.0, 0, 0)
+			unit.team = team
+			gameplay_layer.add_child(unit)
+
+## Execute spell effect at the 3D position
+func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	if spell_damage > 0:
+		_apply_aoe_damage_3d(position, team, battlefield)
+
+## Apply AOE damage to enemies in 3D range
+func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	var target_group = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
+	var scene_tree = battlefield.get_tree()
+	if scene_tree == null:
+		return
+
+	var enemies = scene_tree.get_nodes_in_group(target_group)
+
+	for enemy in enemies:
+		if enemy is Unit3D and enemy.is_alive:
+			var distance = enemy.global_position.distance_to(position)
+			if distance <= spell_radius:
+				enemy.take_damage(spell_damage)
+
+	# TODO: Add 3D visual effect for spell
