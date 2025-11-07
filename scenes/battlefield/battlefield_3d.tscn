@@ -2,29 +2,26 @@
 
 [ext_resource type="Script" path="res://scripts/battlefield/battlefield_3d.gd" id="1_script"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_ground"]
-size = Vector3(30, 0.2, 15)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.3, 0.7, 0.3, 1)
 
 [node name="Battlefield3D" type="Node3D" groups=["battlefield"]]
 script = ExtResource("1_script")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.408248, 0.577350, 0, 0.816497, 0.577350, -0.707107, -0.408248, 0.577350, 0, 8, 8)
+transform = Transform3D(0.707107, -0.408248, 0.577350, 0, 0.816497, 0.577350, -0.707107, -0.408248, 0.577350, 5, 5, 5)
 projection = 1
-size = 12.0
+size = 10.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
-light_energy = 0.8
-shadow_enabled = true
-
-[node name="Environment" type="WorldEnvironment" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
 
 [node name="GroundLayer" type="Node3D" parent="."]
 
-[node name="Ground" type="MeshInstance3D" parent="GroundLayer"]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0)
-mesh = SubResource("BoxMesh_ground")
+[node name="Floor" type="CSGBox3D" parent="GroundLayer"]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, -0.5, 0)
+size = Vector3(20, 1, 20)
+material = SubResource("StandardMaterial3D_1")
 
 [node name="GameplayLayer" type="Node3D" parent="."]
 
