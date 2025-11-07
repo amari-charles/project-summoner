@@ -106,7 +106,7 @@ func spawn_projectile(
 		"target": target,
 		"damage": damage,
 		"damage_type": damage_type,
-		"team": source.team if source.has("team") else -1
+		"team": source.team if "team" in source else -1
 	}
 
 	# Apply options
