@@ -167,13 +167,9 @@ func _on_time_updated(time_remaining: float) -> void:
 		time_label.text = get_time_string()
 
 func _on_game_ended(winner: Unit3D.Team) -> void:
-	var game_over_label = get_node_or_null("UI/GameOverLabel")
-	if game_over_label:
-		game_over_label.visible = true
-		if winner == Unit3D.Team.PLAYER:
-			game_over_label.text = "VICTORY!"
-		else:
-			game_over_label.text = "DEFEAT"
+	# GameOverLabel no longer used in campaign mode
+	# Campaign battles transition directly to reward/campaign screen
+	pass
 
 func _on_base_damaged(_base, _damage: float) -> void:
 	_update_hp_labels()
