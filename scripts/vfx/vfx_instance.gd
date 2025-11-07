@@ -21,7 +21,15 @@ func _ready() -> void:
 func play() -> void:
 	is_playing = true
 	time_alive = 0.0
+	_restart_particles()
 	_on_play()
+
+## Restart all GPUParticles3D children (fixes one_shot particles not restarting)
+func _restart_particles() -> void:
+	for child in get_children():
+		if child is GPUParticles3D:
+			# For one_shot particles, we need to restart them
+			child.restart()
 
 ## Override in subclasses for custom play logic
 func _on_play() -> void:
@@ -32,6 +40,10 @@ func _on_play() -> void:
 func reset() -> void:
 	time_alive = 0.0
 	is_playing = false
+	# Stop all particles
+	for child in get_children():
+		if child is GPUParticles3D:
+			child.emitting = false
 	_on_reset()
 
 ## Override in subclasses for custom reset logic

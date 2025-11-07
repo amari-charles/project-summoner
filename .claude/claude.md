@@ -2,6 +2,32 @@
 
 ## Project Guidelines
 
+### Development Philosophy: Foundation First, Content Later
+
+**CRITICAL PRINCIPLE: Do NOT add more content (battles, cards, levels) at this stage.**
+
+The current priority is building an exceptional foundation:
+
+1. **Core Game Mechanics** - Ensure all fundamental systems work flawlessly
+   - Unit behavior, combat, movement, AI
+   - Card playing, mana, deck management
+   - Win/loss conditions, progression systems
+
+2. **Visual Appeal & Polish** - Make existing mechanics look and feel amazing
+   - VFX for abilities and combat
+   - UI/UX refinements and juice
+   - Animation quality and game feel
+   - Camera work, transitions, feedback
+
+3. **Quality Baseline** - Establish a strong standard of excellence
+   - Every existing feature should be polished
+   - Players should feel "this is a quality game"
+   - Foundation systems should be robust and extensible
+
+**ONLY AFTER** achieving this strong baseline should we pour in content. Adding battles, cards, or levels now would be building on a weak foundation.
+
+**Reject suggestions** for new battles, campaign levels, or content expansion until the foundation is solid.
+
 ### Backwards Compatibility
 **NEVER worry about backwards compatibility.** When implementing new features or changes, prioritize the new approach and remove old code paths. Don't keep fallback mechanisms or dual implementations.
 

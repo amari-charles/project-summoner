@@ -28,6 +28,7 @@ class_name CardData
 @export var spell_radius: float = 0.0
 @export var spell_duration: float = 0.0
 @export var spell_effect_id: String = ""  ## References VFXDefinition
+@export var projectile_id: String = ""  ## If set, spell spawns a projectile instead of instant cast
 
 ## Visual
 @export_group("Visual")
@@ -59,6 +60,7 @@ static func from_dict(data: Dictionary) -> CardData:
 	card.spell_radius = data.get("spell_radius", 0.0)
 	card.spell_duration = data.get("spell_duration", 0.0)
 	card.spell_effect_id = data.get("spell_effect_id", "")
+	card.projectile_id = data.get("projectile_id", "")
 
 	card.card_icon_path = data.get("card_icon_path", "")
 
@@ -84,6 +86,7 @@ func to_dict() -> Dictionary:
 		"spell_radius": spell_radius,
 		"spell_duration": spell_duration,
 		"spell_effect_id": spell_effect_id,
+		"projectile_id": projectile_id,
 		"card_icon_path": card_icon_path,
 		"unlock_condition": unlock_condition,
 		"flavor_text": flavor_text

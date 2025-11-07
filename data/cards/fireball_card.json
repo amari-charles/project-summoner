@@ -13,9 +13,10 @@
 
 	"spell_type": "damage",
 	"spell_damage": 100.0,
-	"spell_radius": 5.0,
+	"spell_radius": 8.0,
 	"spell_duration": 0.5,
 	"spell_effect_id": "fireball_explosion",
+	"projectile_id": "fireball",
 
 	"card_icon_path": "",
 

@@ -1,0 +1,26 @@
+{
+	"projectile_id": "fireball",
+	"projectile_name": "Fireball",
+
+	"model_scene_path": "res://scenes/projectiles/fireball_visual.tscn",
+	"trail_effect_id": "",
+	"impact_effect_id": "fireball_explosion",
+
+	"movement_type": "arc",
+	"speed": 22.0,
+	"acceleration": 0.0,
+	"lifetime": 4.0,
+	"rotate_to_direction": false,
+
+	"arc_height": 0.5,
+	"gravity": 0.0,
+
+	"homing_strength": 0.0,
+	"homing_delay": 0.0,
+
+	"pierce_count": 0,
+	"aoe_radius": 8.0,
+
+	"launch_sound": "",
+	"impact_sound": ""
+}
