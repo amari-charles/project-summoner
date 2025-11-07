@@ -14,11 +14,13 @@ script = ExtResource("2_game_controller")
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -29)
 script = ExtResource("3_summoner")
 team = 0
 load_deck_from_profile = true
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 29)
 script = ExtResource("3_summoner")
 team = 1
 load_enemy_deck_from_campaign = true
