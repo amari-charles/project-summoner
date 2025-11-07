@@ -36,11 +36,8 @@ func _ready() -> void:
 
 ## Check if we can drop the card here
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
-	print("BattlefieldDropZone: _can_drop_data called at ", at_position)
-
 	# Validate drop data
 	if not data is Dictionary:
-		print("BattlefieldDropZone: Data is not Dictionary")
 		return false
 
 	if not data.has("card_index") or not data.has("card") or not data.has("source"):
