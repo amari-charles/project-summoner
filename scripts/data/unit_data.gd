@@ -70,7 +70,10 @@ static func from_dict(data: Dictionary) -> UnitData:
 	unit.death_sound = data.get("death_sound", "")
 
 	if data.has("tags") and data.tags is Array:
-		unit.tags = data.tags.duplicate()
+		unit.tags.clear()
+		for tag in data.tags:
+			if tag is String:
+				unit.tags.append(tag)
 
 	return unit
 

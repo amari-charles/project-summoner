@@ -75,8 +75,10 @@ static func from_dict(data: Dictionary) -> UnitAnimationConfig:
 
 			# Load footstep frames
 			if state_dict.has("footstep_frames"):
+				state.footstep_frames.clear()
 				for frame in state_dict["footstep_frames"]:
-					state.footstep_frames.append(frame)
+					if frame is int or frame is float:
+						state.footstep_frames.append(int(frame))
 
 			# Load sound
 			if state_dict.has("sound_on_start_path"):
