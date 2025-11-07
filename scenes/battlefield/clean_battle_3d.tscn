@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
 
-[ext_resource type="PackedScene" path="res://scenes/battlefield/battlefield_3d.tscn" id="1_battlefield"]
+[ext_resource type="PackedScene" uid="uid://player_base_3d" path="res://scenes/units/player_base_3d.tscn" id="1_player_base"]
+[ext_resource type="PackedScene" uid="uid://enemy_base_3d" path="res://scenes/units/enemy_base_3d.tscn" id="2_enemy_base"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -9,24 +10,19 @@ ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.5
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_base"]
-size = Vector3(2, 4, 2)
+[sub_resource type="BoxMesh" id="BoxMesh_8nt87"]
 
 [node name="CleanBattle3D" type="Node3D"]
-
-[node name="Battlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
 
-[node name="PlayerBase_Placeholder" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 0)
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(23.859287, 0, 0, 0, 1, 0, 0, 0, 61.830696, 0, 0, 0)
+mesh = SubResource("BoxMesh_8nt87")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerBase_Placeholder"]
-shape = SubResource("BoxShape3D_base")
+[node name="PlayerBase3D" parent="." instance=ExtResource("1_player_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -29)
 
-[node name="EnemyBase_Placeholder" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="EnemyBase_Placeholder"]
-shape = SubResource("BoxShape3D_base")
+[node name="EnemyBase3D" parent="." instance=ExtResource("2_enemy_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 29)
