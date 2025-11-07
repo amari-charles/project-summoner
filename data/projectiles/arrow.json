@@ -2,9 +2,9 @@
 	"projectile_id": "arrow",
 	"projectile_name": "Arrow",
 
-	"model_scene_path": "res://scenes/units/projectile.tscn",
+	"model_scene_path": "",
 	"trail_effect_id": "",
-	"impact_effect_id": "arrow_impact",
+	"impact_effect_id": "",
 
 	"movement_type": "arc",
 	"speed": 15.0,

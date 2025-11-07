@@ -103,7 +103,7 @@ func set_target(unit: Node3D) -> void:
 			target_unit.hp_changed.connect(_on_hp_changed)
 
 	# Update HP immediately
-	if target_unit.has("current_hp") and target_unit.has("max_hp"):
+	if "current_hp" in target_unit and "max_hp" in target_unit:
 		update_hp(target_unit.current_hp, target_unit.max_hp)
 
 ## Update health bar display
