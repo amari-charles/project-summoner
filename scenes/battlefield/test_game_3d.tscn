@@ -102,8 +102,43 @@ offset_top = 100.0
 offset_right = 600.0
 offset_bottom = 200.0
 theme_override_font_sizes/font_size = 20
-text = "Click on the battlefield to spawn units
-Press ESC to pause"
+text = "Press 1-4 to select a card
+Click on battlefield to spawn unit
+ESC to pause"
+
+[node name="HandDisplay" type="VBoxContainer" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HandLabel" type="Label" parent="UI/HandDisplay"]
+theme_override_font_sizes/font_size = 24
+text = "Hand:"
+horizontal_alignment = 1
+
+[node name="Card0" type="Label" parent="UI/HandDisplay"]
+theme_override_font_sizes/font_size = 20
+text = "1: Empty"
+
+[node name="Card1" type="Label" parent="UI/HandDisplay"]
+theme_override_font_sizes/font_size = 20
+text = "2: Empty"
+
+[node name="Card2" type="Label" parent="UI/HandDisplay"]
+theme_override_font_sizes/font_size = 20
+text = "3: Empty"
+
+[node name="Card3" type="Label" parent="UI/HandDisplay"]
+theme_override_font_sizes/font_size = 20
+text = "4: Empty"
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]
