@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
 
-[ext_resource type="PackedScene" uid="uid://player_base_3d" path="res://scenes/units/player_base_3d.tscn" id="1_player_base"]
-[ext_resource type="PackedScene" uid="uid://enemy_base_3d" path="res://scenes/units/enemy_base_3d.tscn" id="2_enemy_base"]
+[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="1_player_base"]
+[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="2_enemy_base"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -15,20 +15,19 @@ ambient_light_energy = 0.5
 [node name="CleanBattle3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0, 0.342, 0.940, 0, 0.940, -0.342, -1, 0, 0, -42, 22, 0)
+transform = Transform3D(1.9854228e-05, -0.51433474, 0.85758954, -0.00010282041, 0.85758954, 0.51433474, -1, -9.838943e-05, -3.5857334e-05, 21.184116, 14.277092, 0)
 projection = 1
-size = 38.0
+size = 35.61939
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
-light_energy = 1.0
 shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(23.859287, 0, 0, 0, 1, 0, 0, 0, 61.830696, 0, 0, 0)
+transform = Transform3D(62.135105, 0, 0, 0, 1, 0, 0, 0, 61.830696, 0, 0, 0)
 mesh = SubResource("BoxMesh_8nt87")
 
 [node name="PlayerBase3D" parent="." instance=ExtResource("1_player_base")]
