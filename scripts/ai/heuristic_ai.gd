@@ -32,8 +32,19 @@ func _process(delta: float) -> void:
 		var card_index = select_card_to_play()
 		if card_index != -1:
 			var card = summoner.hand[card_index]
-			var position = select_spawn_position(card)
-			summoner.play_card(card_index, position)
+			# Check if summoner is 3D or 2D
+			if summoner.has_method("play_card_3d"):
+				var pos_2d = select_spawn_position(card)
+				# Convert 2D position to 3D (map screen space to world space roughly)
+				var pos_3d = Vector3(
+					(pos_2d.x - 960) / 100.0,  # Center and scale
+					1.0,
+					(pos_2d.y - 540) / 100.0
+				)
+				summoner.play_card_3d(card_index, pos_3d)
+			else:
+				var position = select_spawn_position(card)
+				summoner.play_card(card_index, position)
 		_set_next_play_time()
 
 func on_battle_start() -> void:

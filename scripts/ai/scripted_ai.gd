@@ -63,7 +63,12 @@ func _execute_spawn_event(event: Dictionary) -> void:
 		return
 
 	# Play the card
-	summoner.play_card(card_index, position)
+	if summoner.has_method("play_card_3d"):
+		# Convert 2D position to 3D
+		var pos_3d = Vector3((position.x - 960) / 100.0, 1.0, (position.y - 540) / 100.0)
+		summoner.play_card_3d(card_index, pos_3d)
+	else:
+		summoner.play_card(card_index, position)
 	print("ScriptedAI: Executed spawn - %s at %s" % [card_name, position])
 
 ## Find card in hand by catalog ID or card name

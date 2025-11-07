@@ -61,6 +61,9 @@ func _ready() -> void:
 			enemy_base.base_destroyed.connect(_on_base_destroyed)
 		print("Found enemy base")
 
+	# Load AI for enemy summoner from campaign config
+	_load_ai_for_enemy()
+
 	call_deferred("start_game")
 
 func _process(delta: float) -> void:
@@ -170,3 +173,42 @@ func _update_hp_labels() -> void:
 	var enemy_hp_label = get_node_or_null("UI/EnemyHPLabel")
 	if enemy_hp_label and enemy_base:
 		enemy_hp_label.text = "Enemy Base: %d/%d" % [enemy_base.current_hp, enemy_base.max_hp]
+
+func _load_ai_for_enemy() -> void:
+	if not enemy_summoner:
+		return
+
+	# Get battle config from profile
+	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		print("GameController3D: No ProfileRepo found, skipping AI load")
+		return
+
+	var profile = profile_repo.get_active_profile()
+	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	if current_battle_id == "":
+		print("GameController3D: No current battle set, skipping AI load")
+		return
+
+	var campaign = get_node_or_null("/root/CampaignService")
+	if not campaign:
+		print("GameController3D: No CampaignService found, skipping AI load")
+		return
+
+	var battle_config = campaign.get_battle(current_battle_id)
+	if not battle_config:
+		print("GameController3D: No battle config for '%s', skipping AI load" % current_battle_id)
+		return
+
+	# Remove existing AI (if any)
+	for child in enemy_summoner.get_children():
+		if child.has_method("decide_next_play"):  # Duck-type check for AI
+			print("GameController3D: Removing old AI: %s" % child.name)
+			child.queue_free()
+
+	# Create and attach new AI
+	const AILoader = preload("res://scripts/ai/ai_loader.gd")
+	var ai = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
+	if ai:
+		enemy_summoner.add_child(ai)
+		print("GameController3D: Loaded %s AI for battle '%s'" % [battle_config.get("ai_type", "unknown"), current_battle_id])
