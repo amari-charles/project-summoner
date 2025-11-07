@@ -1,0 +1,26 @@
+{
+	"unit_id": "wall",
+	"unit_name": "Wall",
+	"description": "A sturdy barrier to block enemy advances. High health but no attack.",
+
+	"max_hp": 300.0,
+	"attack_damage": 0.0,
+	"attack_range": 0.0,
+	"attack_speed": 0.0,
+	"move_speed": 0.0,
+	"aggro_radius": 0.0,
+
+	"is_ranged": false,
+	"projectile_id": "",
+
+	"sprite_frames_path": "res://resources/animations/soldier_sprite_frames.tres",
+	"animation_config_path": "",
+	"scale": 1.0,
+	"tint_color": "#ffffff",
+
+	"attack_sound": "",
+	"hurt_sound": "",
+	"death_sound": "",
+
+	"tags": ["structure", "defensive", "barrier"]
+}

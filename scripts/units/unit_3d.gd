@@ -15,7 +15,7 @@ enum Team { PLAYER, ENEMY }
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
 @export var is_ranged: bool = false
-@export var projectile_scene: PackedScene = null
+@export var projectile_id: String = ""  # ID for ProjectileManager
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 
 ## Current state
@@ -27,9 +27,14 @@ var attack_cooldown: float = 0.0
 ## Visual component
 var visual_component: Character2D5Component = null
 
+## Attachment points for projectiles and effects
+@onready var projectile_spawn_point: Marker3D = $ProjectileSpawnPoint if has_node("ProjectileSpawnPoint") else null
+@onready var projectile_target_point: Marker3D = $ProjectileTargetPoint if has_node("ProjectileTargetPoint") else null
+
 ## Signals
 signal unit_died(unit: Unit3D)
 signal unit_attacked(target: Node3D)
+signal hp_changed(new_hp: float, new_max_hp: float)
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -41,6 +46,9 @@ func _ready() -> void:
 		add_to_group("enemy_units")
 
 	_setup_visuals()
+
+	# Spawn HP bar using HPBarManager
+	HPBarManager.create_bar_for_unit(self)
 
 func _setup_visuals() -> void:
 	# Load and instance the 2.5D character component
@@ -117,7 +125,7 @@ func _perform_attack() -> void:
 	_update_animation("attack")
 	attack_cooldown = 1.0 / attack_speed
 
-	if is_ranged and projectile_scene:
+	if is_ranged:
 		_spawn_projectile()
 	else:
 		_deal_damage_to(current_target)
@@ -125,23 +133,40 @@ func _perform_attack() -> void:
 	unit_attacked.emit(current_target)
 
 func _spawn_projectile() -> void:
-	if not projectile_scene or not current_target:
+	if not current_target:
 		return
 
-	var projectile = projectile_scene.instantiate()
-	get_parent().add_child(projectile)
-	projectile.global_position = global_position
-	# TODO: Set projectile target
+	if not projectile_id.is_empty():
+		# Use attachment points for proper spawn/target positions
+		var spawn_pos = get_projectile_spawn_position()
+		var target_pos = current_target.get_projectile_target_position() if current_target.has_method("get_projectile_target_position") else current_target.global_position
+
+		ProjectileManager.spawn_projectile(
+			projectile_id,
+			self,
+			current_target,
+			attack_damage,
+			"physical",
+			{
+				"start_position": spawn_pos,
+				"target_position": target_pos
+			}
+		)
 
 func _deal_damage_to(target: Node3D) -> void:
-	if target.has_method("take_damage"):
-		target.take_damage(attack_damage)
+	# Use DamageSystem for centralized damage calculation
+	DamageSystem.apply_damage(self, target, attack_damage, "physical")
 
 func take_damage(amount: float) -> void:
 	if not is_alive:
 		return
 
 	current_hp -= amount
+	current_hp = max(current_hp, 0.0)
+
+	# Emit signal for HP bars
+	hp_changed.emit(current_hp, max_hp)
+
 	_update_animation("hurt")
 
 	if current_hp <= 0:
@@ -152,6 +177,9 @@ func _die() -> void:
 	_update_animation("death")
 	unit_died.emit(self)
 
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
+
 	# Wait for death animation then remove
 	await get_tree().create_timer(1.0).timeout
 	queue_free()
@@ -159,3 +187,19 @@ func _die() -> void:
 func _update_animation(anim_name: String) -> void:
 	if visual_component and visual_component.get_current_animation() != anim_name:
 		visual_component.play_animation(anim_name)
+
+## Get the world position where projectiles should spawn from
+func get_projectile_spawn_position() -> Vector3:
+	if projectile_spawn_point:
+		return projectile_spawn_point.global_position
+	# Fallback: use visual component position or unit position + offset
+	if visual_component:
+		return global_position + Vector3(0, 1.0, 0)
+	return global_position
+
+## Get the world position where projectiles should target
+func get_projectile_target_position() -> Vector3:
+	if projectile_target_point:
+		return projectile_target_point.global_position
+	# Fallback: aim slightly higher than unit position (chest height)
+	return global_position + Vector3(0, 1.2, 0)

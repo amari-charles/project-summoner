@@ -68,16 +68,15 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		return
 
 	var card_index: int = data.card_index
-	var success: bool = false
 
 	if is_3d:
 		# Convert screen to 3D world position
 		var world_pos_3d = _screen_to_world_3d(at_position)
-		success = summoner.play_card_3d(card_index, world_pos_3d)
+		summoner.play_card_3d(card_index, world_pos_3d)
 	else:
 		# Convert screen to 2D world position
 		var world_pos_2d = _screen_to_world_2d(at_position)
-		success = summoner.play_card(card_index, world_pos_2d)
+		summoner.play_card(card_index, world_pos_2d)
 
 ## Convert screen coordinates to 2D world coordinates
 func _screen_to_world_2d(screen_pos: Vector2) -> Vector2:
