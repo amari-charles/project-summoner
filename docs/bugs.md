@@ -6,59 +6,114 @@ This document tracks known bugs and issues in Project Summoner.
 
 ## Active Bugs
 
-### 🔴 HIGH PRIORITY
+### 🟡 MEDIUM PRIORITY
 
-#### Battle Rewards Re-Granted on Replay
+#### AI Scoring Magic Numbers Should Be Constants
 **Status:** Open
 **Reported:** 2025-01-06
-**Component:** Campaign / Rewards System
+**Component:** AI System
+**Type:** Code Quality Enhancement
 
 **Description:**
-When replaying a completed battle, the player receives the reward cards again even though they should only be granted once. This allows infinite card farming by replaying missions.
+The HeuristicAI class uses many hardcoded magic numbers for card scoring and decision-making thresholds. These should be extracted to class-level constants for easier tuning and balancing.
 
 **Expected Behavior:**
-- Rewards should only be granted the first time a battle is completed
-- Replaying a completed battle should not grant additional cards
-- Need system to mark battles/rewards as "repeatable" or "one-time only"
+- Scoring values defined as named constants at class level
+- Easy to adjust AI difficulty by tweaking a few values
+- Clear documentation of what each value controls
 
 **Current Behavior:**
-- Every battle completion grants rewards, regardless of whether the battle was previously completed
-- Cards accumulate infinitely on replay
+- Magic numbers scattered throughout scoring functions (10.0, 15.0, 20.0, etc.)
+- Difficult to tune AI behavior without searching through code
+- Not immediately clear what each number represents
 
 **Impact:**
-- Breaks game economy/progression
-- Players can farm infinite cards from early battles
-- Undermines card collection and deck building balance
-
-**Reproduction Steps:**
-1. Complete a campaign battle (e.g., battle_00)
-2. Receive reward card(s)
-3. Return to campaign screen
-4. Play the same battle again
-5. Win the battle
-6. Observe that reward cards are granted again
+- Low gameplay impact - AI still functions correctly
+- Makes AI balancing more difficult for developers
+- Harder to maintain and understand AI logic
 
 **Proposed Solution:**
-- Add reward system that checks if battle rewards have been claimed
-- Track `rewards_claimed: bool` or `rewards_claimed_at: timestamp` per battle in campaign progress
-- Only call `grant_battle_reward()` if rewards haven't been claimed
-- Alternatively: Add `repeatable: bool` flag to battle definitions for missions that should give rewards on replay
+Extract to constants like:
+```gdscript
+const SCORE_MANA_EFFICIENCY: float = 10.0
+const SCORE_SUMMON_BASE: float = 15.0
+const SCORE_AGGRESSIVE_BONUS: float = 5.0
+```
 
 **Related Files:**
-- `scripts/services/campaign_service.gd` - Battle reward logic
-- `scripts/ui/reward_screen.gd` - Reward display and granting
-- Campaign progress tracking in profile data
+- `scripts/ai/heuristic_ai.gd` - Lines with scoring logic
 
 **Notes:**
-- Tutorial battles should definitely be non-repeatable for rewards
-- Consider if any battles should be repeatable (daily challenges, farming levels)
-- Need to decide: hide completed battles, or allow replay without rewards?
+- Not urgent - can be done in future PR
+- Would make AI easier to balance and tune
+- Consider creating AI configuration files for different difficulty levels
 
 ---
 
 ## Resolved Bugs
 
-_(Empty - no resolved bugs yet)_
+### ✅ Battle Rewards Re-Granted on Replay
+**Status:** Resolved
+**Resolved:** 2025-01-06
+**Component:** Campaign / Rewards System
+
+**Description:**
+When replaying a completed battle, the player received reward cards again.
+
+**Solution Implemented:**
+- Added `is_replay` detection in `reward_screen.gd`
+- Only grants rewards if battle not already completed
+- Shows "Battle Already Completed" message on replay
+- Uses `campaign.is_battle_completed()` check
+
+**Fixed In:** PR #fix/campaign-battle-cards
+
+### ✅ Enemy AI Not Spawning in Campaign Battles
+**Status:** Resolved
+**Resolved:** 2025-01-06
+**Component:** AI / Campaign System
+
+**Description:**
+Enemy summoner was not playing cards during campaign battles, making them impossible to lose.
+
+**Solution Implemented:**
+- Fixed autoload name mismatch (CampaignService vs Campaign)
+- Fixed AIController type signature to accept both Summoner and Summoner3D
+- Added dynamic AI loading in GameController3D
+- AI now properly instantiated from campaign config
+
+**Fixed In:** PR #fix/campaign-battle-cards
+
+### ✅ Cards Reference 2D Units Instead of 3D
+**Status:** Resolved
+**Resolved:** 2025-01-06
+**Component:** Cards / Units
+
+**Description:**
+Several card resources (archer, warrior, wall, training_dummy) referenced 2D unit scenes, breaking 3D battles.
+
+**Solution Implemented:**
+- Created 3D versions of all missing units
+- Updated card resources to reference new 3D scenes
+- All cards now work in 2.5D battlefield
+
+**Fixed In:** PR #fix/campaign-battle-cards
+
+### ✅ Debug Print Statements in Production Code
+**Status:** Resolved
+**Resolved:** 2025-01-06
+**Component:** Code Quality
+
+**Description:**
+Multiple files contained debug print statements that should not be in production.
+
+**Solution Implemented:**
+- Removed all debug prints from scripted_ai.gd
+- Removed all debug prints from game_controller_3d.gd
+- Removed debug helper function `_get_hand_names()`
+- Kept only push_warning/push_error for actual issues
+
+**Fixed In:** PR #fix/campaign-battle-cards
 
 ---
 
@@ -100,4 +155,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-01-06*
+*Last Updated: 2025-01-06 - PR #fix/campaign-battle-cards ready for merge*

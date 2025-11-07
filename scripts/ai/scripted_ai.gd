@@ -16,7 +16,10 @@ func _ready() -> void:
 		summoner = get_parent() as Summoner
 
 func _process(delta: float) -> void:
-	if not is_active or script_index >= spawn_script.size():
+	if not is_active:
+		return
+
+	if script_index >= spawn_script.size():
 		return
 
 	time_since_start += delta
@@ -42,7 +45,6 @@ func load_script(script_data: Array) -> void:
 	spawn_script = script_data.duplicate(true)
 	script_index = 0
 	time_since_start = 0.0
-	print("ScriptedAI: Loaded script with %d events" % spawn_script.size())
 
 ## Execute a single spawn event from the script
 func _execute_spawn_event(event: Dictionary) -> void:
@@ -68,7 +70,6 @@ func _execute_spawn_event(event: Dictionary) -> void:
 		summoner.play_card_3d(card_index, pos_3d)
 	else:
 		summoner.play_card(card_index, position)
-	print("ScriptedAI: Executed spawn - %s at %s" % [card_name, position])
 
 ## Find card in hand by catalog ID or card name
 func _find_card_by_name(card_name: String) -> int:

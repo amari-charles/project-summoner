@@ -4,8 +4,8 @@ class_name AIController
 ## Abstract base class for all AI implementations
 ## Subclasses implement specific AI strategies (heuristic, scripted, RL, etc.)
 
-## Reference to the summoner this AI controls
-var summoner: Summoner
+## Reference to the summoner this AI controls (can be Summoner or Summoner3D)
+var summoner: Node
 
 ## Called when the battle starts
 func on_battle_start() -> void:

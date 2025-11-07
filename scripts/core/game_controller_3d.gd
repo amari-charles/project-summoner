@@ -158,11 +158,6 @@ func _on_time_updated(time_remaining: float) -> void:
 	if time_label:
 		time_label.text = get_time_string()
 
-func _on_game_ended(winner: Unit3D.Team) -> void:
-	# GameOverLabel no longer used in campaign mode
-	# Campaign battles transition directly to reward/campaign screen
-	pass
-
 func _on_base_damaged(_base, _damage: float) -> void:
 	_update_hp_labels()
 
@@ -195,7 +190,7 @@ func _load_ai_for_enemy() -> void:
 	if current_battle_id == "":
 		return
 
-	var campaign = get_node_or_null("/root/CampaignService")
+	var campaign = get_node_or_null("/root/Campaign")
 	if not campaign:
 		return
 
@@ -213,3 +208,5 @@ func _load_ai_for_enemy() -> void:
 	var ai = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
 	if ai:
 		enemy_summoner.add_child(ai)
+	else:
+		push_error("GameController3D: Failed to create AI!")
