@@ -1,0 +1,53 @@
+{
+  "config_id": "orc_animations",
+  "sprite_frames_path": "res://resources/animations/orc_sprite_frames.tres",
+  "default_state": "idle",
+  "states": [
+    {
+      "state_name": "idle",
+      "animation_name": "idle",
+      "loop": true,
+      "priority": 0,
+      "speed_scale": 1.0,
+      "can_be_interrupted": true
+    },
+    {
+      "state_name": "walk",
+      "animation_name": "walk",
+      "loop": true,
+      "priority": 1,
+      "speed_scale": 1.0,
+      "can_be_interrupted": true,
+      "footstep_frames": [2, 6]
+    },
+    {
+      "state_name": "attack",
+      "animation_name": "attack",
+      "loop": false,
+      "priority": 10,
+      "speed_scale": 1.0,
+      "can_be_interrupted": false,
+      "auto_transition_to": "idle",
+      "damage_frame": 3,
+      "vfx_on_damage_frame": "melee_impact"
+    },
+    {
+      "state_name": "hurt",
+      "animation_name": "idle",
+      "loop": false,
+      "priority": 5,
+      "speed_scale": 1.5,
+      "can_be_interrupted": true,
+      "auto_transition_to": "idle",
+      "transition_delay": 0.2
+    },
+    {
+      "state_name": "death",
+      "animation_name": "idle",
+      "loop": false,
+      "priority": 100,
+      "speed_scale": 0.8,
+      "can_be_interrupted": false
+    }
+  ]
+}
