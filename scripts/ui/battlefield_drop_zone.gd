@@ -3,7 +3,7 @@ class_name BattlefieldDropZone
 
 ## Drop zone overlay for the battlefield that handles card drops
 
-var summoner  # Can be Summoner or Summoner3D
+var summoner: Node  # Can be Summoner or Summoner3D
 var camera_2d: Camera2D
 var camera_3d: Camera3D
 var is_3d: bool = false

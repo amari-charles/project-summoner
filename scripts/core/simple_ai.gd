@@ -4,7 +4,7 @@ class_name SimpleAI
 ## Simple AI controller for enemy summoner
 ## Plays cards at random intervals with basic strategy
 
-@export var summoner  # Can be Summoner or Summoner3D
+@export var summoner: Node  # Can be Summoner or Summoner3D
 @export var play_interval_min: float = 2.0
 @export var play_interval_max: float = 5.0
 

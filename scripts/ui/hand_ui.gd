@@ -231,7 +231,7 @@ class CardDisplay extends Control:
 			# Return to subtle glow or gray
 			glow_tween.tween_property(border, "color", Color(0.8, 0.7, 0.2, 0.6), 0.15)
 
-var summoner  # Can be Summoner or Summoner3D
+var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 
