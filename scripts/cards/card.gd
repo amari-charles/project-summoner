@@ -93,18 +93,26 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 
 ## Spawn unit(s) at the 3D position
 func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	print("Card._summon_unit_3d: Spawning '%s' at position %v" % [card_name, position])
+
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned!" % card_name)
 		return
 
+	print("Card._summon_unit_3d: Battlefield = %s" % battlefield)
 	var gameplay_layer = battlefield.get_gameplay_layer() if battlefield.has_method("get_gameplay_layer") else battlefield
+	print("Card._summon_unit_3d: GameplayLayer = %s" % gameplay_layer)
 
 	for i in spawn_count:
 		var unit = unit_scene.instantiate() as Unit3D
 		if unit:
 			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 			unit.team = team
+			print("Card._summon_unit_3d: Adding unit %s to %s at position %v" % [unit, gameplay_layer, unit.global_position])
 			gameplay_layer.add_child(unit)
+			print("Card._summon_unit_3d: Unit added successfully")
+		else:
+			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene!")
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
