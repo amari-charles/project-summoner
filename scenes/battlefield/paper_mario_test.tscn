@@ -370,12 +370,12 @@ texture = SubResource("ViewportTexture_1")
 
 [node name="SubViewport" type="SubViewport" parent="TestCharacter/Sprite3D"]
 transparent_bg = true
-size = Vector2i(100, 100)
+size = Vector2i(250, 250)
 
 [node name="Model2D" type="Node2D" parent="TestCharacter/Sprite3D/SubViewport"]
 
 [node name="SoldierSprite" type="AnimatedSprite2D" parent="TestCharacter/Sprite3D/SubViewport/Model2D"]
-position = Vector2(50, 50)
+position = Vector2(125, 125)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_1")
 animation = &"idle"
@@ -400,12 +400,12 @@ texture = SubResource("ViewportTexture_2")
 
 [node name="SubViewport" type="SubViewport" parent="EnemyOrc/Sprite3D"]
 transparent_bg = true
-size = Vector2i(100, 100)
+size = Vector2i(250, 250)
 
 [node name="Model2D" type="Node2D" parent="EnemyOrc/Sprite3D/SubViewport"]
 
 [node name="OrcSprite" type="AnimatedSprite2D" parent="EnemyOrc/Sprite3D/SubViewport/Model2D"]
-position = Vector2(50, 50)
+position = Vector2(125, 125)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_2")
 animation = &"idle"
