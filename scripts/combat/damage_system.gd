@@ -1,5 +1,4 @@
 extends Node
-class_name DamageSystem
 
 ## Centralized damage calculation and combat event system
 ## Usage: DamageSystem.apply_damage(attacker, defender, base_damage, "physical")

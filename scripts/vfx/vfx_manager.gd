@@ -1,5 +1,4 @@
 extends Node
-class_name VFXManager
 
 ## Centralized VFX spawning and pooling system
 ## Usage: VFXManager.play_effect("fireball_explosion", position)

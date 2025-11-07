@@ -1,5 +1,4 @@
 extends Node
-class_name ContentCatalog
 
 ## Central content database - single source of truth for all game content
 ## Loads data from JSON files at startup

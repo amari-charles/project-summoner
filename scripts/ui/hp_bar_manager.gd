@@ -1,5 +1,4 @@
 extends Node
-class_name HPBarManager
 
 ## Centralized HP bar management with object pooling
 ## Usage: HPBarManager.create_bar_for_unit(unit)

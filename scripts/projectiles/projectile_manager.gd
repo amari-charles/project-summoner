@@ -1,5 +1,4 @@
 extends Node
-class_name ProjectileManager
 
 ## Centralized projectile spawning and pooling system
 ## Usage: ProjectileManager.spawn_projectile("arrow", attacker, target, damage)

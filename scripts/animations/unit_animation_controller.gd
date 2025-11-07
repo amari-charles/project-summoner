@@ -20,7 +20,8 @@ var state_time: float = 0.0
 var is_transitioning: bool = false
 
 ## References
-var sprite: AnimatedSprite3D = null
+var sprite: AnimatedSprite2D = null
+var visual_component: Character2D5Component = null
 var unit: Node3D = null
 
 ## Frame tracking for events
@@ -49,14 +50,19 @@ func _process(delta: float) -> void:
 		_on_animation_finished()
 
 func _find_references() -> void:
-	# Find the AnimatedSprite3D
-	sprite = _find_child_of_type(get_parent(), AnimatedSprite3D)
+	# Find the Character2D5Component
+	visual_component = _find_child_of_type(get_parent(), Character2D5Component)
+
+	# Get sprite from visual component
+	if visual_component:
+		# Access the AnimatedSprite2D inside the component
+		sprite = visual_component.get_node_or_null("Sprite3D/SubViewport/Model2D/CharacterSprite")
 
 	# Get unit reference
 	unit = get_parent()
 
 	if not sprite:
-		push_error("UnitAnimationController: No AnimatedSprite3D found in parent")
+		push_error("UnitAnimationController: No AnimatedSprite2D found in Character2D5Component")
 
 func _find_child_of_type(node: Node, type) -> Node:
 	for child in node.get_children():

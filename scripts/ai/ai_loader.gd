@@ -46,7 +46,7 @@ static func _create_scripted_ai(battle_config: Dictionary) -> ScriptedAI:
 		ai.load_script(converted_script)
 
 	return ai
-
+Ok 
 ## Create HeuristicAI from config
 static func _create_heuristic_ai(battle_config: Dictionary) -> HeuristicAI:
 	var ai = HeuristicAI.new()
