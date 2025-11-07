@@ -30,8 +30,10 @@ team = 1
 script = ExtResource("9_enemy_deck_loader")
 
 [node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -29)
 
 [node name="EnemyBase3D" parent="." instance=ExtResource("5_enemy_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 29)
 
 [node name="UI" type="CanvasLayer" parent="."]
 
