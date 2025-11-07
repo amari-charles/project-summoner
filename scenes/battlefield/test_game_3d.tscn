@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/core/player_input_3d.gd" id="6_input"]
 [ext_resource type="Script" path="res://scripts/ui/hand_ui.gd" id="7_hand_ui"]
 [ext_resource type="Script" path="res://scripts/ui/battlefield_drop_zone.gd" id="8_drop_zone"]
+[ext_resource type="Script" path="res://scripts/core/base_3d.gd" id="9_base"]
+[ext_resource type="Script" path="res://scripts/core/simple_ai.gd" id="10_ai"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -17,7 +19,19 @@ ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.5
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1"]
-size = Vector3(2, 2, 2)
+size = Vector3(2, 4, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_player_base"]
+size = Vector3(2, 4, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_player"]
+albedo_color = Color(0.831, 0.647, 0.455, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_enemy_base"]
+size = Vector3(2, 4, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy"]
+albedo_color = Color(0.353, 0.482, 0.549, 1)
 
 [node name="TestGame3D" type="Node3D"]
 script = ExtResource("2_game_controller")
@@ -35,24 +49,43 @@ starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResou
 team = 0
 load_deck_from_profile = false
 
-[node name="PlayerBaseCollider" type="StaticBody3D" parent="." groups=["player_base"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
+[node name="PlayerBase" type="StaticBody3D" parent="." groups=["player_base"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 0)
+script = ExtResource("9_base")
+max_hp = 1000.0
+team = 0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerBaseCollider"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerBase"]
 shape = SubResource("BoxShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="PlayerBase"]
+mesh = SubResource("BoxMesh_player_base")
+surface_material_override/0 = SubResource("StandardMaterial3D_player")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 0)
 script = ExtResource("3_summoner")
 starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
 team = 1
-load_enemy_deck_from_campaign = true
+load_enemy_deck_from_campaign = false
 
-[node name="EnemyBaseCollider" type="StaticBody3D" parent="." groups=["enemy_base"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 0)
+[node name="SimpleAI" type="Node" parent="EnemySummoner"]
+script = ExtResource("10_ai")
+play_interval_min = 3.0
+play_interval_max = 6.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="EnemyBaseCollider"]
+[node name="EnemyBase" type="StaticBody3D" parent="." groups=["enemy_base"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, 0)
+script = ExtResource("9_base")
+max_hp = 1000.0
+team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EnemyBase"]
 shape = SubResource("BoxShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EnemyBase"]
+mesh = SubResource("BoxMesh_enemy_base")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -83,6 +116,29 @@ offset_bottom = -40.0
 grow_vertical = 0
 theme_override_font_sizes/font_size = 24
 text = "Mana: 10/10"
+
+[node name="PlayerHPLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 300.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.831, 0.647, 0.455, 1)
+text = "Player Base: 1000/1000"
+
+[node name="EnemyHPLabel" type="Label" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 60.0
+offset_right = -20.0
+offset_bottom = 100.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.353, 0.482, 0.549, 1)
+text = "Enemy Base: 1000/1000"
+horizontal_alignment = 2
 
 [node name="GameOverLabel" type="Label" parent="UI"]
 process_mode = 3

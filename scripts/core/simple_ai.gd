@@ -4,16 +4,23 @@ class_name SimpleAI
 ## Simple AI controller for enemy summoner
 ## Plays cards at random intervals with basic strategy
 
-@export var summoner: Summoner
+@export var summoner  # Can be Summoner or Summoner3D
 @export var play_interval_min: float = 2.0
 @export var play_interval_max: float = 5.0
 
 var play_timer: float = 0.0
 var next_play_time: float = 0.0
+var is_3d: bool = false
 
 func _ready() -> void:
 	if summoner == null:
-		summoner = get_parent() as Summoner
+		var parent = get_parent()
+		if parent is Summoner:
+			summoner = parent
+			is_3d = false
+		elif parent.get_script() and parent.get_script().get_global_name() == "Summoner3D":
+			summoner = parent
+			is_3d = true
 
 	_set_next_play_time()
 
@@ -43,12 +50,18 @@ func _attempt_play_card() -> void:
 
 	var card_index = playable_cards.pick_random()
 
-	# Play at a random position in enemy territory (right side of screen)
-	var spawn_x = randf_range(1400, 1700)  # Right side
-	var spawn_y = randf_range(200, 880)    # Full height range
-	var spawn_pos = Vector2(spawn_x, spawn_y)
-
-	summoner.play_card(card_index, spawn_pos)
+	if is_3d:
+		# Play at a random position in 3D (enemy territory on right side)
+		var spawn_x = randf_range(5, 9)    # Right side in 3D space
+		var spawn_z = randf_range(-5, 5)   # Random depth
+		var spawn_pos = Vector3(spawn_x, 1, spawn_z)
+		summoner.play_card_3d(card_index, spawn_pos)
+	else:
+		# Play at a random position in 2D (right side of screen)
+		var spawn_x = randf_range(1400, 1700)
+		var spawn_y = randf_range(200, 880)
+		var spawn_pos = Vector2(spawn_x, spawn_y)
+		summoner.play_card(card_index, spawn_pos)
 
 ## Reset the timer for next card play
 func _set_next_play_time() -> void:

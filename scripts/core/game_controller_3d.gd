@@ -47,10 +47,18 @@ func _ready() -> void:
 
 	if player_bases.size() > 0:
 		player_base = player_bases[0]
+		if player_base.has_signal("base_damaged"):
+			player_base.base_damaged.connect(_on_base_damaged)
+		if player_base.has_signal("base_destroyed"):
+			player_base.base_destroyed.connect(_on_base_destroyed)
 		print("Found player base")
 
 	if enemy_bases.size() > 0:
 		enemy_base = enemy_bases[0]
+		if enemy_base.has_signal("base_damaged"):
+			enemy_base.base_damaged.connect(_on_base_damaged)
+		if enemy_base.has_signal("base_destroyed"):
+			enemy_base.base_destroyed.connect(_on_base_destroyed)
 		print("Found enemy base")
 
 	call_deferred("start_game")
@@ -144,3 +152,21 @@ func _on_game_ended(winner: Unit3D.Team) -> void:
 			game_over_label.text = "VICTORY!"
 		else:
 			game_over_label.text = "DEFEAT"
+
+func _on_base_damaged(_base, _damage: float) -> void:
+	_update_hp_labels()
+
+func _on_base_destroyed(base) -> void:
+	if base == player_base:
+		end_game(Unit3D.Team.ENEMY)
+	elif base == enemy_base:
+		end_game(Unit3D.Team.PLAYER)
+
+func _update_hp_labels() -> void:
+	var player_hp_label = get_node_or_null("UI/PlayerHPLabel")
+	if player_hp_label and player_base:
+		player_hp_label.text = "Player Base: %d/%d" % [player_base.current_hp, player_base.max_hp]
+
+	var enemy_hp_label = get_node_or_null("UI/EnemyHPLabel")
+	if enemy_hp_label and enemy_base:
+		enemy_hp_label.text = "Enemy Base: %d/%d" % [enemy_base.current_hp, enemy_base.max_hp]
