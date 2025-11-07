@@ -5,7 +5,7 @@ class_name AILoader
 ## Instantiates the appropriate AI type and configures it
 
 ## Create AI controller from battle configuration
-static func create_ai_for_battle(battle_config: Dictionary, summoner: Summoner) -> AIController:
+static func create_ai_for_battle(battle_config: Dictionary, summoner: Node) -> AIController:
 	var ai_type = battle_config.get("ai_type", "heuristic")
 	var ai: AIController = null
 

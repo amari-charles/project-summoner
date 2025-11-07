@@ -118,6 +118,25 @@ func end_game(winner: Unit3D.Team) -> void:
 	var winner_text = "PLAYER" if winner == Unit3D.Team.PLAYER else "ENEMY"
 	print("Game Over! Winner: %s" % winner_text)
 
+	# Check if this is a campaign battle
+	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	if profile_repo:
+		var profile = profile_repo.get_active_profile()
+		var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+
+		if current_battle_id != "":
+			# This is a campaign battle - transition to appropriate screen
+			if winner == Unit3D.Team.PLAYER:
+				print("GameController3D: Campaign battle won! Transitioning to reward screen...")
+				await get_tree().create_timer(2.0).timeout
+				get_tree().paused = false
+				get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
+			else:
+				print("GameController3D: Campaign battle lost. Returning to campaign...")
+				await get_tree().create_timer(2.0).timeout
+				get_tree().paused = false
+				get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+
 func _on_summoner_died(summoner: Summoner3D) -> void:
 	if summoner == player_summoner:
 		end_game(Unit3D.Team.ENEMY)
