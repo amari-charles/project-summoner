@@ -1,15 +1,14 @@
-[gd_scene load_steps=9 format=3 uid="uid://test_game_3d"]
+[gd_scene load_steps=16 format=3 uid="uid://cllijaxrf4udu"]
 
-[ext_resource type="PackedScene" uid="uid://battlefield_3d" path="res://scenes/battlefield/battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Script" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
-[ext_resource type="Script" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
-[ext_resource type="Script" path="res://scripts/cards/card.gd" id="4_card"]
+[ext_resource type="PackedScene" path="res://scenes/battlefield/battlefield_3d.tscn" id="1_battlefield"]
+[ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
+[ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
+[ext_resource type="Script" uid="uid://pvurqohx5fjd" path="res://scripts/cards/card.gd" id="4_card"]
 [ext_resource type="Resource" path="res://resources/cards/soldier_card_3d.tres" id="5_soldier"]
-[ext_resource type="Script" path="res://scripts/core/player_input_3d.gd" id="6_input"]
-[ext_resource type="Script" path="res://scripts/ui/hand_ui.gd" id="7_hand_ui"]
-[ext_resource type="Script" path="res://scripts/ui/battlefield_drop_zone.gd" id="8_drop_zone"]
-[ext_resource type="Script" path="res://scripts/core/base_3d.gd" id="9_base"]
-[ext_resource type="Script" path="res://scripts/core/simple_ai.gd" id="10_ai"]
+[ext_resource type="Script" uid="uid://d1mqkngn7lovi" path="res://scripts/ui/hand_ui.gd" id="7_hand_ui"]
+[ext_resource type="Script" uid="uid://bt4v6ur0kkioe" path="res://scripts/ui/battlefield_drop_zone.gd" id="8_drop_zone"]
+[ext_resource type="Script" uid="uid://cxsbo6o2n1de5" path="res://scripts/core/base_3d.gd" id="9_base"]
+[ext_resource type="Script" uid="uid://buwk0u38u574j" path="res://scripts/core/simple_ai.gd" id="10_ai"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -35,7 +34,6 @@ albedo_color = Color(0.353, 0.482, 0.549, 1)
 
 [node name="TestGame3D" type="Node3D"]
 script = ExtResource("2_game_controller")
-match_duration = 180.0
 
 [node name="Battlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
@@ -46,28 +44,25 @@ environment = SubResource("Environment_1")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
 script = ExtResource("3_summoner")
 starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
-team = 0
-load_deck_from_profile = false
 
 [node name="PlayerBase" type="StaticBody3D" parent="." groups=["player_base"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 0)
 script = ExtResource("9_base")
 max_hp = 1000.0
-team = 0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerBase"]
 shape = SubResource("BoxShape3D_1")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlayerBase"]
+transform = Transform3D(0.69176525, 0, 0.7221226, 0, 1, 0, -0.7221226, 0, 0.69176525, 4.3040953, 0, 5.608644)
 mesh = SubResource("BoxMesh_player_base")
 surface_material_override/0 = SubResource("StandardMaterial3D_player")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 0)
 script = ExtResource("3_summoner")
-starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
 team = 1
-load_enemy_deck_from_campaign = false
+starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
 
 [node name="SimpleAI" type="Node" parent="EnemySummoner"]
 script = ExtResource("10_ai")
@@ -84,12 +79,14 @@ team = 1
 shape = SubResource("BoxShape3D_1")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="EnemyBase"]
+transform = Transform3D(0.6566857, 0, -0.7693438, 0, 1, 0, 0.79084134, 0, 0.638835, -5.1994944, 0.014033318, -5.9879656)
 mesh = SubResource("BoxMesh_enemy_base")
 surface_material_override/0 = SubResource("StandardMaterial3D_enemy")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="BattlefieldDropZone" type="Control" parent="UI"]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -122,8 +119,8 @@ offset_left = 20.0
 offset_top = 60.0
 offset_right = 300.0
 offset_bottom = 100.0
-theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.831, 0.647, 0.455, 1)
+theme_override_font_sizes/font_size = 24
 text = "Player Base: 1000/1000"
 
 [node name="EnemyHPLabel" type="Label" parent="UI"]
@@ -135,8 +132,8 @@ offset_top = 60.0
 offset_right = -20.0
 offset_bottom = 100.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.353, 0.482, 0.549, 1)
+theme_override_font_sizes/font_size = 24
 text = "Enemy Base: 1000/1000"
 horizontal_alignment = 2
 
@@ -160,6 +157,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HandUI" type="Control" parent="UI"]
+layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -174,13 +172,13 @@ grow_vertical = 0
 script = ExtResource("7_hand_ui")
 
 [node name="DebugBG" type="ColorRect" parent="UI/HandUI"]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.2, 0.2, 0.3, 0.5)
 mouse_filter = 2
+color = Color(0.2, 0.2, 0.3, 0.5)
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]
