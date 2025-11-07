@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Card" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card"]
-[ext_resource type="PackedScene" path="res://scenes/units/training_dummy.tscn" id="2_dummy"]
+[ext_resource type="PackedScene" path="res://scenes/units/training_dummy_3d.tscn" id="2_dummy"]
 
 [resource]
 script = ExtResource("1_card")
