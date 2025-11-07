@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/cards/card.gd" id="4_card"]
 [ext_resource type="Resource" path="res://resources/cards/soldier_card_3d.tres" id="5_soldier"]
 [ext_resource type="Script" path="res://scripts/core/player_input_3d.gd" id="6_input"]
+[ext_resource type="Script" path="res://scripts/ui/hand_ui.gd" id="7_hand_ui"]
+[ext_resource type="Script" path="res://scripts/ui/battlefield_drop_zone.gd" id="8_drop_zone"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -33,9 +35,6 @@ starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResou
 team = 0
 load_deck_from_profile = true
 
-[node name="PlayerInput3D" type="Node" parent="PlayerSummoner"]
-script = ExtResource("6_input")
-
 [node name="PlayerBaseCollider" type="StaticBody3D" parent="." groups=["player_base"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
 
@@ -56,6 +55,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 0)
 shape = SubResource("BoxShape3D_1")
 
 [node name="UI" type="CanvasLayer" parent="."]
+
+[node name="BattlefieldDropZone" type="Control" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8_drop_zone")
 
 [node name="TimerLabel" type="Label" parent="UI"]
 offset_left = 20.0
@@ -96,49 +103,19 @@ text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InstructionLabel" type="Label" parent="UI"]
-offset_left = 20.0
-offset_top = 100.0
-offset_right = 600.0
-offset_bottom = 200.0
-theme_override_font_sizes/font_size = 20
-text = "Press 1-4 to select a card
-Click on battlefield to spawn unit
-ESC to pause"
-
-[node name="HandDisplay" type="VBoxContainer" parent="UI"]
+[node name="HandUI" type="Control" parent="UI"]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -150.0
-offset_right = 200.0
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
-
-[node name="HandLabel" type="Label" parent="UI/HandDisplay"]
-theme_override_font_sizes/font_size = 24
-text = "Hand:"
-horizontal_alignment = 1
-
-[node name="Card0" type="Label" parent="UI/HandDisplay"]
-theme_override_font_sizes/font_size = 20
-text = "1: Empty"
-
-[node name="Card1" type="Label" parent="UI/HandDisplay"]
-theme_override_font_sizes/font_size = 20
-text = "2: Empty"
-
-[node name="Card2" type="Label" parent="UI/HandDisplay"]
-theme_override_font_sizes/font_size = 20
-text = "3: Empty"
-
-[node name="Card3" type="Label" parent="UI/HandDisplay"]
-theme_override_font_sizes/font_size = 20
-text = "4: Empty"
+script = ExtResource("7_hand_ui")
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]
