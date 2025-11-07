@@ -52,6 +52,9 @@ func _setup_visuals() -> void:
 		# Set sprite frames if provided
 		if sprite_frames:
 			visual_component.set_sprite_frames(sprite_frames)
+			# Flip enemy sprites to face left
+			if team == Team.ENEMY:
+				visual_component.set_flip_h(true)
 			visual_component.play_animation("idle", true)
 
 func _physics_process(delta: float) -> void:

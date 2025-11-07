@@ -17,6 +17,11 @@ func set_sprite_frames(frames: SpriteFrames) -> void:
 	if character_sprite:
 		character_sprite.sprite_frames = frames
 
+## Flip the sprite horizontally
+func set_flip_h(flip: bool) -> void:
+	if character_sprite:
+		character_sprite.flip_h = flip
+
 ## Play an animation
 func play_animation(anim_name: String, auto_play: bool = false) -> void:
 	if character_sprite and character_sprite.sprite_frames:
