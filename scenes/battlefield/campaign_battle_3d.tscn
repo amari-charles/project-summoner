@@ -1,0 +1,134 @@
+[gd_scene load_steps=10 format=3 uid="uid://campaign_battle_3d"]
+
+[ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/base_battlefield_3d.tscn" id="1_battlefield"]
+[ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
+[ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
+[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
+[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
+[ext_resource type="Script" uid="uid://d1mqkngn7lovi" path="res://scripts/ui/hand_ui.gd" id="6_hand_ui"]
+[ext_resource type="Script" uid="uid://bt4v6ur0kkioe" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
+[ext_resource type="Script" path="res://scripts/core/deck_loader.gd" id="8_deck_loader"]
+[ext_resource type="Script" path="res://scripts/core/enemy_deck_loader.gd" id="9_enemy_deck_loader"]
+
+[node name="CampaignBattle3D" type="Node3D"]
+script = ExtResource("2_game_controller")
+
+[node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
+
+[node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
+script = ExtResource("3_summoner")
+team = 0
+
+[node name="DeckLoader" type="Node" parent="PlayerSummoner"]
+script = ExtResource("8_deck_loader")
+
+[node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
+script = ExtResource("3_summoner")
+team = 1
+
+[node name="EnemyDeckLoader" type="Node" parent="EnemySummoner"]
+script = ExtResource("9_enemy_deck_loader")
+
+[node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
+
+[node name="EnemyBase3D" parent="." instance=ExtResource("5_enemy_base")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="BattlefieldDropZone" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7_drop_zone")
+
+[node name="TimerLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 32
+text = "03:00"
+
+[node name="PlayerManaLabel" type="Label" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -40.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Mana: 10/10"
+
+[node name="PlayerHPLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 300.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(0.831, 0.647, 0.455, 1)
+theme_override_font_sizes/font_size = 24
+text = "Player Base: 300/300"
+
+[node name="EnemyHPLabel" type="Label" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 60.0
+offset_right = -20.0
+offset_bottom = 100.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.353, 0.482, 0.549, 1)
+theme_override_font_sizes/font_size = 24
+text = "Enemy Base: 300/300"
+horizontal_alignment = 2
+
+[node name="GameOverLabel" type="Label" parent="UI"]
+process_mode = 3
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 72
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HandUI" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("6_hand_ui")
+
+[node name="DebugBG" type="ColorRect" parent="UI/HandUI"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.2, 0.2, 0.3, 0.5)
+
+[connection signal="game_ended" from="." to="." method="_on_game_ended"]
+[connection signal="time_updated" from="." to="." method="_on_time_updated"]
