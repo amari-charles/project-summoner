@@ -1,0 +1,24 @@
+{
+	"card_id": "wall",
+	"card_name": "Wall",
+	"description": "A sturdy barrier to block enemy advances. High health but no attack.",
+	"rarity": "common",
+
+	"card_type": "summon",
+	"mana_cost": 2,
+	"cooldown": 2.0,
+
+	"unit_id": "wall",
+	"spawn_count": 1,
+
+	"spell_type": "",
+	"spell_damage": 0.0,
+	"spell_radius": 0.0,
+	"spell_duration": 0.0,
+	"spell_effect_id": "",
+
+	"card_icon_path": "",
+
+	"unlock_condition": "default",
+	"flavor_text": ""
+}
