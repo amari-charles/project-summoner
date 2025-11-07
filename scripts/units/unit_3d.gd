@@ -30,6 +30,7 @@ var visual_component: Character2D5Component = null
 ## Signals
 signal unit_died(unit: Unit3D)
 signal unit_attacked(target: Node3D)
+signal hp_changed(new_hp: float, new_max_hp: float)
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -41,6 +42,9 @@ func _ready() -> void:
 		add_to_group("enemy_units")
 
 	_setup_visuals()
+
+	# Spawn HP bar using HPBarManager
+	HPBarManager.create_bar_for_unit(self)
 
 func _setup_visuals() -> void:
 	# Load and instance the 2.5D character component
@@ -134,14 +138,19 @@ func _spawn_projectile() -> void:
 	# TODO: Set projectile target
 
 func _deal_damage_to(target: Node3D) -> void:
-	if target.has_method("take_damage"):
-		target.take_damage(attack_damage)
+	# Use DamageSystem for centralized damage calculation
+	DamageSystem.apply_damage(self, target, attack_damage, "physical")
 
 func take_damage(amount: float) -> void:
 	if not is_alive:
 		return
 
 	current_hp -= amount
+	current_hp = max(current_hp, 0.0)
+
+	# Emit signal for HP bars
+	hp_changed.emit(current_hp, max_hp)
+
 	_update_animation("hurt")
 
 	if current_hp <= 0:
@@ -151,6 +160,9 @@ func _die() -> void:
 	is_alive = false
 	_update_animation("death")
 	unit_died.emit(self)
+
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
 
 	# Wait for death animation then remove
 	await get_tree().create_timer(1.0).timeout
