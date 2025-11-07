@@ -235,6 +235,10 @@ func get_card(card_id: String) -> CardData:
 func get_projectile(projectile_id: String) -> ProjectileData:
 	return projectiles.get(projectile_id)
 
+## Check if projectile exists
+func has_projectile(projectile_id: String) -> bool:
+	return projectiles.has(projectile_id)
+
 ## Check if content is loaded
 func is_loaded() -> bool:
 	return _is_loaded

@@ -10,8 +10,11 @@ class_name ProjectileData
 ## Visuals
 @export_group("Visuals")
 @export var model_scene_path: String = ""  ## Path to 3D model or sprite scene
+@export var visual_scene: PackedScene = null  ## Direct scene reference (loaded at runtime)
 @export var trail_effect_id: String = ""  ## VFX trail behind projectile
 @export var impact_effect_id: String = ""  ## VFX on hit
+@export var hit_vfx: String = ""  ## Alias for impact_effect_id
+@export var trail_vfx: String = ""  ## Alias for trail_effect_id
 
 ## Behavior
 @export_group("Behavior")
@@ -51,6 +54,12 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	proj.model_scene_path = data.get("model_scene_path", "")
 	proj.trail_effect_id = data.get("trail_effect_id", "")
 	proj.impact_effect_id = data.get("impact_effect_id", "")
+	proj.hit_vfx = data.get("hit_vfx", data.get("impact_effect_id", ""))
+	proj.trail_vfx = data.get("trail_vfx", data.get("trail_effect_id", ""))
+
+	# Load visual scene if path provided
+	if not proj.model_scene_path.is_empty():
+		proj.visual_scene = load(proj.model_scene_path)
 
 	proj.movement_type = data.get("movement_type", "straight")
 	proj.speed = data.get("speed", 15.0)
