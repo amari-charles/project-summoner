@@ -33,7 +33,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
 script = ExtResource("3_summoner")
 starting_deck = Array[ExtResource("4_card")]([ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier"), ExtResource("5_soldier")])
 team = 0
-load_deck_from_profile = true
+load_deck_from_profile = false
 
 [node name="PlayerBaseCollider" type="StaticBody3D" parent="." groups=["player_base"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 0)
@@ -116,6 +116,15 @@ offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("7_hand_ui")
+
+[node name="DebugBG" type="ColorRect" parent="UI/HandUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.3, 0.5)
+mouse_filter = 2
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]
