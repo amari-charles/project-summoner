@@ -273,7 +273,7 @@ func reset() -> void:
 ## Load configuration from ProjectileData
 func load_from_data(data: ProjectileData) -> void:
 	projectile_id = data.projectile_id
-	movement_type = data.movement_type as MovementType
+	movement_type = _string_to_movement_type(data.movement_type)
 	speed = data.speed
 	lifetime = data.lifetime
 	arc_height = data.arc_height
@@ -282,3 +282,18 @@ func load_from_data(data: ProjectileData) -> void:
 	visual_scene = data.visual_scene
 	hit_vfx = data.hit_vfx
 	trail_vfx = data.trail_vfx
+
+## Convert string to MovementType enum
+func _string_to_movement_type(type_str: String) -> MovementType:
+	match type_str.to_lower():
+		"straight":
+			return MovementType.STRAIGHT
+		"homing":
+			return MovementType.HOMING
+		"arc":
+			return MovementType.ARC
+		"ballistic":
+			return MovementType.BALLISTIC
+		_:
+			push_warning("Projectile3D: Unknown movement type '%s', defaulting to STRAIGHT" % type_str)
+			return MovementType.STRAIGHT
