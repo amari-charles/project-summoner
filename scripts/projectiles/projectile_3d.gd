@@ -267,8 +267,10 @@ func reset() -> void:
 	hits_remaining = 0
 	is_active = false
 
-	global_position = Vector3.ZERO
-	rotation = Vector3.ZERO
+	# Only reset transform if node is in tree
+	if is_inside_tree():
+		global_position = Vector3.ZERO
+		rotation = Vector3.ZERO
 
 ## Load configuration from ProjectileData
 func load_from_data(data: ProjectileData) -> void:
