@@ -210,11 +210,11 @@ func _is_valid_target(body: Node3D) -> bool:
 		return false
 
 	# Check team
-	if body.has("team") and body.team == team:
+	if "team" in body and body.team == team:
 		return false
 
 	# Check if alive
-	if body.has("is_alive") and not body.is_alive:
+	if "is_alive" in body and not body.is_alive:
 		return false
 
 	return true

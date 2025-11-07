@@ -45,12 +45,12 @@ func is_critical() -> bool:
 
 ## Helper: Get source team (if available)
 func get_source_team() -> int:
-	if source and source.has("team"):
+	if source and "team" in source:
 		return source.team
 	return -1
 
 ## Helper: Get target team (if available)
 func get_target_team() -> int:
-	if target and target.has("team"):
+	if target and "team" in target:
 		return target.team
 	return -1

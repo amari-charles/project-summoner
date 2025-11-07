@@ -71,7 +71,7 @@ func apply_damage(
 
 	# Store target's HP before damage
 	var target_hp_before = 0.0
-	if target.has("current_hp"):
+	if "current_hp" in target:
 		target_hp_before = target.current_hp
 
 	# Apply damage to target
@@ -110,9 +110,9 @@ func apply_damage(
 
 	# Check if target died
 	var target_died = false
-	if target.has("is_alive"):
+	if "is_alive" in target:
 		target_died = not target.is_alive
-	elif target.has("current_hp"):
+	elif "current_hp" in target:
 		target_died = target.current_hp <= 0
 
 	if target_died:
@@ -148,7 +148,7 @@ func apply_healing(
 	heal_amount: float,
 	flags: Dictionary = {}
 ) -> float:
-	if not target or not target.has("current_hp") or not target.has("max_hp"):
+	if not target or not ("current_hp" in target) or not ("max_hp" in target):
 		push_warning("DamageSystem: Target cannot be healed")
 		return 0.0
 
@@ -254,5 +254,5 @@ func preview_damage(
 		"final_damage": final_damage,
 		"is_crit": assume_crit,
 		"damage_type": damage_type,
-		"will_kill": target.has("current_hp") and target.current_hp <= final_damage
+		"will_kill": ("current_hp" in target) and target.current_hp <= final_damage
 	}
