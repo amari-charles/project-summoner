@@ -15,7 +15,8 @@ enum Team { PLAYER, ENEMY }
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
 @export var is_ranged: bool = false
-@export var projectile_scene: PackedScene = null
+@export var projectile_scene: PackedScene = null  # DEPRECATED: Use projectile_id instead
+@export var projectile_id: String = ""  # ID for ProjectileManager
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 
 ## Current state
@@ -121,7 +122,7 @@ func _perform_attack() -> void:
 	_update_animation("attack")
 	attack_cooldown = 1.0 / attack_speed
 
-	if is_ranged and projectile_scene:
+	if is_ranged:
 		_spawn_projectile()
 	else:
 		_deal_damage_to(current_target)
@@ -129,13 +130,26 @@ func _perform_attack() -> void:
 	unit_attacked.emit(current_target)
 
 func _spawn_projectile() -> void:
-	if not projectile_scene or not current_target:
+	if not current_target:
 		return
 
-	var projectile = projectile_scene.instantiate()
-	get_parent().add_child(projectile)
-	projectile.global_position = global_position
-	# TODO: Set projectile target
+	# Try using ProjectileManager first (new system)
+	if not projectile_id.is_empty():
+		ProjectileManager.spawn_projectile(
+			projectile_id,
+			self,
+			current_target,
+			attack_damage,
+			"physical"
+		)
+		return
+
+	# Fallback to old system for backwards compatibility
+	if projectile_scene:
+		var projectile = projectile_scene.instantiate()
+		get_parent().add_child(projectile)
+		projectile.global_position = global_position
+		# TODO: Set projectile target on old projectile type
 
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
