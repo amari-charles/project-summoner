@@ -15,7 +15,7 @@ ambient_light_energy = 0.5
 [node name="CleanBattle3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.940, 0.342, 0, -0.342, 0.940, 0, 22, -42)
+transform = Transform3D(0, 0.342, 0.940, 0, 0.940, -0.342, -1, 0, 0, -42, 22, 0)
 projection = 1
 size = 38.0
 
