@@ -3,21 +3,21 @@
 [ext_resource type="Script" path="res://scripts/ui/floating_hp_bar.gd" id="1_script"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_bg"]
-size = Vector2(1.0, 0.1)
+size = Vector2(3.0, 0.5)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bg"]
-albedo_color = Color(0.2, 0.2, 0.2, 0.8)
+albedo_color = Color(0.2, 0.2, 0.2, 1.0)
 shading_mode = 0
-transparency = 1
+transparency = 0
 no_depth_test = true
 
 [sub_resource type="QuadMesh" id="QuadMesh_bar"]
-size = Vector2(1.0, 0.1)
+size = Vector2(3.0, 0.5)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bar"]
 albedo_color = Color(0, 1, 0, 1)
 shading_mode = 0
-transparency = 1
+transparency = 0
 no_depth_test = true
 
 [node name="FloatingHPBar" type="Node3D"]

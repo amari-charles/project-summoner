@@ -133,6 +133,7 @@ func _make_materials_unique() -> void:
 	if background_mesh:
 		var mat = background_mesh.get_surface_override_material(0)
 		print("  Background material: %s" % (mat != null))
+		print("  Background mesh visibility: %s, layers: %d" % [background_mesh.visible, background_mesh.layers])
 		if mat:
 			var unique_mat = mat.duplicate()
 			background_mesh.set_surface_override_material(0, unique_mat)
@@ -141,10 +142,13 @@ func _make_materials_unique() -> void:
 	if bar_mesh:
 		var mat = bar_mesh.get_surface_override_material(0)
 		print("  Bar material: %s" % (mat != null))
+		print("  Bar mesh visibility: %s, layers: %d" % [bar_mesh.visible, bar_mesh.layers])
+		print("  Bar mesh: %s" % bar_mesh.mesh)
 		if mat:
 			var unique_mat = mat.duplicate()
 			bar_mesh.set_surface_override_material(0, unique_mat)
 			print("  Bar material duplicated and set, color: %s" % unique_mat.albedo_color)
+			print("  Bar material transparency: %d, shading: %d, no_depth_test: %s" % [unique_mat.transparency, unique_mat.shading_mode, unique_mat.no_depth_test])
 
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
