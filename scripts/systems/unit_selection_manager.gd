@@ -38,6 +38,7 @@ func set_hovered_unit(unit: Unit3D) -> void:
 	# Set new hovered unit
 	hovered_unit = unit
 	if unit:
+		print("UnitSelectionManager: Unit hovered - %s" % unit.name)
 		unit_hovered.emit(unit)
 
 ## Clear hovered unit

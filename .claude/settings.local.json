@@ -55,7 +55,9 @@
       "Bash(gh pr merge:*)",
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(ls:*)",
+      "Bash(gh pr diff:*)"
     ],
     "deny": [],
     "ask": []

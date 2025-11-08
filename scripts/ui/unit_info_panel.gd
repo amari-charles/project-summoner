@@ -28,17 +28,20 @@ func _process(_delta: float) -> void:
 
 ## Show info for selected unit
 func _on_unit_selected(unit: Unit3D) -> void:
+	print("UnitInfoPanel: Unit selected - %s" % unit.name)
 	current_unit = unit
 	_update_display()
 	visible = true
 
 ## Hide when unit deselected
 func _on_unit_deselected(_unit: Unit3D) -> void:
+	print("UnitInfoPanel: Unit deselected")
 	current_unit = null
 	visible = false
 
 ## Show info on hover (optional - can disable if you only want selection)
 func _on_unit_hovered(unit: Unit3D) -> void:
+	print("UnitInfoPanel: Unit hovered - %s" % unit.name)
 	# Only show on hover if no unit is selected
 	if not current_unit:
 		current_unit = unit

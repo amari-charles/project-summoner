@@ -239,14 +239,17 @@ func _setup_selection_ring() -> void:
 
 ## Mouse hover callbacks
 func _on_mouse_entered() -> void:
+	print("Unit3D: Mouse entered %s" % name)
 	UnitSelectionManager.set_hovered_unit(self)
 
 func _on_mouse_exited() -> void:
+	print("Unit3D: Mouse exited %s" % name)
 	UnitSelectionManager.clear_hovered_unit(self)
 
 func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			print("Unit3D: Mouse clicked on %s" % name)
 			UnitSelectionManager.select_unit(self)
 
 ## Selection state change callbacks

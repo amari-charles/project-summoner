@@ -75,10 +75,12 @@ func _create_ring_texture() -> ImageTexture:
 
 ## Show the selection ring
 func show_ring() -> void:
+	print("SelectionRing: Showing ring")
 	visible = true
 
 ## Hide the selection ring
 func hide_ring() -> void:
+	print("SelectionRing: Hiding ring")
 	visible = false
 
 ## Set ring color

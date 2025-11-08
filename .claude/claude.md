@@ -82,3 +82,31 @@ A UI tool for developers to design and configure campaign battles.
 **Current Status**: Not started - hardcoded decks in `campaign_service.gd` work fine for now
 
 **Priority**: Low - Only needed when managing 20+ battles becomes cumbersome
+
+### Performance Optimizations
+
+#### Cache Skeletal Character Bounds
+**Location**: `scripts/units/skeletal_character_2d5_component.gd`
+
+**Issue**: `_get_skeletal_bounds()` recursively scans all Sprite2D children every time it's called during `_setup_sprite_alignment()`. This happens on every skeletal character spawn.
+
+**Optimization**:
+```gdscript
+var _cached_bounds: Rect2 = Rect2()
+var _bounds_calculated: bool = false
+
+func _get_skeletal_bounds() -> Rect2:
+    if _bounds_calculated:
+        return _cached_bounds
+    # ... calculate bounds ...
+    _cached_bounds = result
+    _bounds_calculated = true
+    return _cached_bounds
+```
+
+**Benefits**:
+- Eliminates redundant tree traversal
+- ~O(n) to O(1) after first calculation
+- Only matters if bounds calculated multiple times (currently called once per character)
+
+**Priority**: Low - Premature optimization unless profiling shows issue with many skeletal characters
