@@ -31,7 +31,8 @@ void fragment() {
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_terrain"]
 shader = SubResource("Shader_checkerboard")
 
-[sub_resource type="BoxMesh" id="BoxMesh_8nt87"]
+[sub_resource type="PlaneMesh" id="PlaneMesh_terrain"]
+size = Vector2(100, 100)
 
 [node name="BaseBattlefield3D" type="Node3D" groups=["battlefield"]]
 script = ExtResource("1_script")
@@ -52,8 +53,8 @@ environment = SubResource("Environment_1")
 [node name="GroundLayer" type="Node3D" parent="."]
 
 [node name="Terrain" type="MeshInstance3D" parent="GroundLayer"]
-transform = Transform3D(62.135105, 0, 0, 0, 1, 0, 0, 0, 61.830696, 0, 0, 0)
-mesh = SubResource("BoxMesh_8nt87")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("PlaneMesh_terrain")
 surface_material_override/0 = SubResource("ShaderMaterial_terrain")
 
 [node name="GameplayLayer" type="Node3D" parent="."]

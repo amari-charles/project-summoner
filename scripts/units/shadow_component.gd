@@ -24,18 +24,20 @@ func initialize(radius: float, opacity: float) -> void:
 	# Orient flat on ground (rotate -90° around X axis)
 	rotation_degrees = Vector3(-90, 0, 0)
 
-	# DIAGNOSTIC: Position at Y=1.0 (above ground occlusion)
-	position.y = 1.0
+	# Position just above ground (PlaneMesh has no volume)
+	position.y = 0.01
 
 	# Create radial gradient texture
 	shadow_texture = _create_radial_gradient_texture()
 
-	# Create material - simple black semi-transparent for diagnostic
+	# Create material with proper transparent gradient shadow
 	var material = StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	material.albedo_color = Color(0, 0, 0, 0.7)
+	material.albedo_texture = shadow_texture
+	material.albedo_color = Color(0, 0, 0, shadow_opacity)
 
 	set_surface_override_material(0, material)
 
