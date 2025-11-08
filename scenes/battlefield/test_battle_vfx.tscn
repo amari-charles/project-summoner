@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
 [ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
-[ext_resource type="Script" uid="uid://d1mqkngn7lovi" path="res://scripts/ui/hand_ui.gd" id="6_hand_ui"]
+[ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
 
 [node name="TestBattleVFX" type="Node3D"]
@@ -112,29 +112,7 @@ text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HandUI" type="Control" parent="UI"]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -400.0
-offset_top = -200.0
-offset_right = 400.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
-script = ExtResource("6_hand_ui")
-
-[node name="DebugBG" type="ColorRect" parent="UI/HandUI"]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.2, 0.2, 0.3, 0.5)
+[node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]

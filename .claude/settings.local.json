@@ -51,7 +51,11 @@
       "WebSearch",
       "WebFetch(domain:godotshaders.com)",
       "WebFetch(domain:docs.godotengine.org)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
