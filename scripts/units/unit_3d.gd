@@ -38,6 +38,10 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 @export var shadow_size: float = 0.0  ## Auto-calculated from sprite size (set to 0 for auto)
 @export var shadow_opacity: float = 0.6
 
+## Selection settings
+@export var selection_enabled: bool = true  ## Enable mouse hover and selection for this unit
+@export var selection_ring_size: float = 0.0  ## Auto-calculated from collision shape (set to 0 for auto)
+
 ## Current state
 var current_hp: float
 var is_alive: bool = true
@@ -50,6 +54,8 @@ var is_attacking: bool = false  # Track if currently in attack animation
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
 var shadow_component: MeshInstance3D = null
+var selection_ring_component: MeshInstance3D = null
+var selection_area: Area3D = null
 
 ## Attachment points for projectiles and effects
 @onready var projectile_spawn_point: Marker3D = $ProjectileSpawnPoint if has_node("ProjectileSpawnPoint") else null
@@ -71,6 +77,7 @@ func _ready() -> void:
 
 	_setup_visuals()
 	_setup_shadow()
+	_setup_selection()
 
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
@@ -158,6 +165,105 @@ func _calculate_shadow_size_from_collision() -> float:
 
 	# Fallback to default
 	return 1.0
+
+func _setup_selection() -> void:
+	if not selection_enabled:
+		return
+
+	# Create Area3D for mouse detection
+	selection_area = Area3D.new()
+	selection_area.name = "SelectionArea"
+	selection_area.collision_layer = 0  # Don't collide with anything
+	selection_area.collision_mask = 0   # Don't detect anything
+	selection_area.input_ray_pickable = true  # Enable mouse picking
+	add_child(selection_area)
+
+	# Create CollisionShape3D matching the unit's collision shape
+	var collision_shape = CollisionShape3D.new()
+
+	# Find this unit's main collision shape to match its size
+	var unit_collision_shape: CollisionShape3D = null
+	for child in get_children():
+		if child is CollisionShape3D:
+			unit_collision_shape = child
+			break
+
+	if unit_collision_shape and unit_collision_shape.shape:
+		# Clone the shape
+		collision_shape.shape = unit_collision_shape.shape.duplicate()
+		# Match the transform
+		collision_shape.transform = unit_collision_shape.transform
+	else:
+		# Fallback: create default capsule
+		var capsule = CapsuleShape3D.new()
+		capsule.radius = 0.5
+		capsule.height = 2.0
+		collision_shape.shape = capsule
+		collision_shape.position = Vector3(0, 1.0, 0)
+
+	selection_area.add_child(collision_shape)
+
+	# Connect mouse signals
+	selection_area.mouse_entered.connect(_on_mouse_entered)
+	selection_area.mouse_exited.connect(_on_mouse_exited)
+	selection_area.input_event.connect(_on_input_event)
+
+	# Setup selection ring visual
+	_setup_selection_ring()
+
+	# Connect to UnitSelectionManager signals
+	UnitSelectionManager.unit_selected.connect(_on_unit_selected)
+	UnitSelectionManager.unit_deselected.connect(_on_unit_deselected)
+	UnitSelectionManager.unit_hovered.connect(_on_unit_hovered)
+	UnitSelectionManager.unit_unhovered.connect(_on_unit_unhovered)
+
+func _setup_selection_ring() -> void:
+	# Auto-calculate ring size if not set
+	if selection_ring_size <= 0.0:
+		selection_ring_size = _calculate_shadow_size_from_collision()  # Same as shadow
+		selection_ring_size *= 1.2  # Slightly larger than shadow for visibility
+
+	# Load the SelectionRingComponent script
+	var ring_script = load("res://scripts/units/selection_ring_component.gd")
+	if not ring_script:
+		push_warning("Unit3D: Failed to load selection_ring_component.gd")
+		return
+
+	# Create selection ring instance
+	selection_ring_component = MeshInstance3D.new()
+	selection_ring_component.set_script(ring_script)
+	add_child(selection_ring_component)
+
+	# Initialize with calculated size
+	selection_ring_component.initialize(selection_ring_size)
+
+## Mouse hover callbacks
+func _on_mouse_entered() -> void:
+	UnitSelectionManager.set_hovered_unit(self)
+
+func _on_mouse_exited() -> void:
+	UnitSelectionManager.clear_hovered_unit(self)
+
+func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			UnitSelectionManager.select_unit(self)
+
+## Selection state change callbacks
+func _on_unit_selected(unit: Unit3D) -> void:
+	if unit == self and selection_ring_component:
+		selection_ring_component.show_ring()
+
+func _on_unit_deselected(unit: Unit3D) -> void:
+	if unit == self and selection_ring_component:
+		selection_ring_component.hide_ring()
+
+func _on_unit_hovered(unit: Unit3D) -> void:
+	# Could add hover effect here (e.g., different color ring)
+	pass
+
+func _on_unit_unhovered(unit: Unit3D) -> void:
+	pass
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
