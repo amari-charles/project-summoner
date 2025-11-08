@@ -90,6 +90,16 @@ func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg
 	_render_damage_text()
 
 func _render_damage_text() -> void:
+	print("FloatingDamageNumber._render_damage_text() called")
+
+	# Wait for sprite to be created
+	if not damage_sprite:
+		print("  ERROR: damage_sprite is null, waiting for _ready()")
+		await get_tree().process_frame
+		if not damage_sprite:
+			push_error("FloatingDamageNumber: damage_sprite still null after waiting")
+			return
+
 	# Determine text and color
 	var text = str(int(damage_value))
 	var text_color = _get_damage_color()
@@ -98,42 +108,48 @@ func _render_damage_text() -> void:
 	if is_crit:
 		text = text + "!"
 
+	print("  Text: '%s', Color: %s" % [text, text_color])
+
 	# Load font
 	var font = ThemeDB.fallback_font
-	var font_size = 24 if is_crit else 18
+	var font_size = 32 if is_crit else 24  # Larger text
 
 	# Calculate text size
 	var text_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-	var width = int(text_size.x) + 8  # Padding
-	var height = int(text_size.y) + 8
+	var width = int(text_size.x) + 16  # More padding
+	var height = int(text_size.y) + 16
+
+	print("  Image size: %dx%d" % [width, height])
 
 	# Create image
 	damage_image = Image.create(width, height, false, Image.FORMAT_RGBA8)
 	damage_image.fill(Color(0, 0, 0, 0))  # Transparent background
 
-	# Draw outline for readability
-	for x_off in [-1, 0, 1]:
-		for y_off in [-1, 0, 1]:
+	# Draw outline for readability (thicker)
+	for x_off in [-2, -1, 0, 1, 2]:
+		for y_off in [-2, -1, 0, 1, 2]:
 			if x_off == 0 and y_off == 0:
 				continue
-			font.draw_string(damage_image, Vector2(4 + x_off, height - 4 + y_off), text,
+			font.draw_string(damage_image, Vector2(8 + x_off, height - 8 + y_off), text,
 				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color.BLACK)
 
 	# Draw main text
-	font.draw_string(damage_image, Vector2(4, height - 4), text,
+	font.draw_string(damage_image, Vector2(8, height - 8), text,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color)
+
+	print("  Text drawn to image")
 
 	# Update texture
 	if damage_texture:
 		damage_texture.update(damage_image)
+		print("  Texture updated")
 	else:
 		damage_texture = ImageTexture.create_from_image(damage_image)
+		print("  Texture created")
 
 	# Set texture on sprite
-	if damage_sprite:
-		damage_sprite.texture = damage_texture
-	else:
-		push_error("FloatingDamageNumber: damage_sprite is null when trying to set texture")
+	damage_sprite.texture = damage_texture
+	print("  Texture set on sprite")
 
 func _get_damage_color() -> Color:
 	if is_crit:
