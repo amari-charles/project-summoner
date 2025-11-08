@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://test_battle_vfx"]
+[gd_scene load_steps=8 format=3 uid="uid://bihs6xphqhyfw"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" path="res://scripts/core/test_game_controller.gd" id="2_test_controller"]
@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
 [ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
 [ext_resource type="Script" uid="uid://d1mqkngn7lovi" path="res://scripts/ui/hand_ui.gd" id="6_hand_ui"]
-[ext_resource type="Script" uid="uid://bt4v6ur0kkioe" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
+[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
 
 [node name="TestBattleVFX" type="Node3D"]
 script = ExtResource("2_test_controller")
@@ -16,14 +16,11 @@ script = ExtResource("2_test_controller")
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 29)
 script = ExtResource("3_summoner")
-team = 0
-load_deck_from_profile = false
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -29)
 script = ExtResource("3_summoner")
 team = 1
-load_enemy_deck_from_campaign = false
 
 [node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 29)

@@ -56,11 +56,15 @@ func _process(delta: float) -> void:
 		return
 
 	# Follow target unit
-	global_position = target_unit.global_position + Vector3(0, offset_y, 0)
+	var target_pos = target_unit.global_position + Vector3(0, offset_y, 0)
+	global_position = target_pos
 
 	# Billboard effect - always face camera
 	if camera:
 		look_at(camera.global_position, Vector3.UP)
+	else:
+		# Try to find camera again if we don't have one
+		_find_camera()
 
 	# Handle fade timer
 	if show_on_damage_only and fade_timer > 0.0:
@@ -109,6 +113,8 @@ func _find_camera() -> void:
 
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
+	print("FloatingHPBar.set_target() called for: %s" % (unit.name if unit else "null"))
+
 	# Disconnect from previous target if exists
 	if target_unit and is_instance_valid(target_unit):
 		if target_unit.has_signal("hp_changed"):
@@ -120,15 +126,18 @@ func set_target(unit: Node3D) -> void:
 	# Find camera now that we're in the scene tree
 	if not camera:
 		_find_camera()
+		print("  Camera after find: %s" % (camera != null))
 
 	# Connect to unit signals if available
 	if target_unit and target_unit.has_signal("hp_changed"):
 		if not target_unit.hp_changed.is_connected(_on_hp_changed):
 			target_unit.hp_changed.connect(_on_hp_changed)
+		print("  Connected to hp_changed signal")
 
 	# Update HP immediately
 	if target_unit and "current_hp" in target_unit and "max_hp" in target_unit:
 		update_hp(target_unit.current_hp, target_unit.max_hp)
+		print("  Initial HP: %.0f/%.0f" % [target_unit.current_hp, target_unit.max_hp])
 
 ## Update health bar display
 func update_hp(current: float, maximum: float) -> void:
