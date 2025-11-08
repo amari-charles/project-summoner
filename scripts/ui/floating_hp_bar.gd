@@ -28,29 +28,22 @@ var is_visible: bool = true
 var debug_timer: float = 0.0  # For throttling debug output
 
 ## Visual components
-var background_mesh: MeshInstance3D = null
-var bar_mesh: MeshInstance3D = null
+var background_sprite: Sprite3D = null
+var bar_sprite: Sprite3D = null
 var camera: Camera3D = null
+
+# Cached textures for bar rendering
+var background_texture: ImageTexture = null
+var bar_texture: ImageTexture = null
 
 signal bar_hidden()  ## Emitted when bar fades out (for pooling)
 
 func _ready() -> void:
 	print("FloatingHPBar _ready() called")
 
-	# Find child meshes from scene (if they exist)
-	background_mesh = get_node_or_null("Background")
-	bar_mesh = get_node_or_null("Bar")
-
-	print("  Found Background: %s" % (background_mesh != null))
-	print("  Found Bar: %s" % (bar_mesh != null))
-
-	# Fallback: create visuals if not in scene
-	if not background_mesh or not bar_mesh:
-		print("  Creating visuals programmatically...")
-		_create_visuals()
-	else:
-		# Make materials unique to avoid shared material issues
-		_make_materials_unique()
+	# Always create Sprite3D visuals (ignore scene file meshes for now)
+	print("  Creating Sprite3D visuals...")
+	_create_sprite_visuals()
 
 	_find_camera()
 	print("  Camera found: %s" % (camera != null))
@@ -74,20 +67,43 @@ func _process(delta: float) -> void:
 	if should_debug:
 		print("FloatingHPBar._process(): Following %s at position %v, visible=%s" % [target_unit.name, global_position, visible])
 
-	# Billboard effect - always face camera
-	if camera:
-		look_at(camera.global_position, Vector3.UP)
-	else:
-		# Try to find camera again if we don't have one
-		if should_debug:
-			print("FloatingHPBar._process(): Camera not found, retrying...")
-		_find_camera()
+	# Sprite3D handles billboarding automatically via billboard mode, no manual look_at needed!
 
 	# Handle fade timer
 	if show_on_damage_only and fade_timer > 0.0:
 		fade_timer -= delta
 		if fade_timer <= 0.0:
 			_fade_out()
+
+func _create_sprite_visuals() -> void:
+	# Create solid color textures for background and bar
+	background_texture = _create_solid_texture(128, 16, background_color)
+	bar_texture = _create_solid_texture(128, 16, color_full)
+
+	# Create background sprite
+	background_sprite = Sprite3D.new()
+	background_sprite.texture = background_texture
+	background_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	background_sprite.no_depth_test = true
+	background_sprite.pixel_size = bar_width / 128.0  # Convert pixel size to world units
+	add_child(background_sprite)
+
+	# Create bar sprite (foreground)
+	bar_sprite = Sprite3D.new()
+	bar_sprite.texture = bar_texture
+	bar_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	bar_sprite.no_depth_test = true
+	bar_sprite.pixel_size = bar_width / 128.0
+	bar_sprite.offset = Vector2(-64, 0)  # Anchor left
+	bar_sprite.position = Vector3(0, 0, -0.01)  # Slightly forward
+	add_child(bar_sprite)
+
+	print("  Created Sprite3D visuals with billboard mode")
+
+func _create_solid_texture(width: int, height: int, color: Color) -> ImageTexture:
+	var image = Image.create(width, height, false, Image.FORMAT_RGBA8)
+	image.fill(color)
+	return ImageTexture.create_from_image(image)
 
 func _create_visuals() -> void:
 	# Create background bar
@@ -128,28 +144,6 @@ func _find_camera() -> void:
 	if viewport:
 		camera = viewport.get_camera_3d()
 
-func _make_materials_unique() -> void:
-	# Make materials unique to prevent shared material issues across pooled bars
-	if background_mesh:
-		var mat = background_mesh.get_surface_override_material(0)
-		print("  Background material: %s" % (mat != null))
-		print("  Background mesh visibility: %s, layers: %d" % [background_mesh.visible, background_mesh.layers])
-		if mat:
-			var unique_mat = mat.duplicate()
-			background_mesh.set_surface_override_material(0, unique_mat)
-			print("  Background material duplicated and set")
-
-	if bar_mesh:
-		var mat = bar_mesh.get_surface_override_material(0)
-		print("  Bar material: %s" % (mat != null))
-		print("  Bar mesh visibility: %s, layers: %d" % [bar_mesh.visible, bar_mesh.layers])
-		print("  Bar mesh: %s" % bar_mesh.mesh)
-		if mat:
-			var unique_mat = mat.duplicate()
-			bar_mesh.set_surface_override_material(0, unique_mat)
-			print("  Bar material duplicated and set, color: %s" % unique_mat.albedo_color)
-			print("  Bar material transparency: %d, shading: %d, no_depth_test: %s" % [unique_mat.transparency, unique_mat.shading_mode, unique_mat.no_depth_test])
-
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
 	print("FloatingHPBar.set_target() called for: %s" % (unit.name if unit else "null"))
@@ -161,10 +155,6 @@ func set_target(unit: Node3D) -> void:
 				target_unit.hp_changed.disconnect(_on_hp_changed)
 
 	target_unit = unit
-
-	# Ensure materials are unique (important for pooled bars)
-	if background_mesh and bar_mesh:
-		_make_materials_unique()
 
 	# Find camera now that we're in the scene tree
 	if not camera:
@@ -190,26 +180,16 @@ func update_hp(current: float, maximum: float) -> void:
 	var hp_percent = current_hp / max_hp if max_hp > 0 else 0.0
 	hp_percent = clamp(hp_percent, 0.0, 1.0)
 
-	# Update bar width
-	if bar_mesh and bar_mesh.mesh:
-		var quad = bar_mesh.mesh as QuadMesh
-		quad.size = Vector2(bar_width * hp_percent, bar_height)
+	# Update bar sprite region to show HP percentage
+	if bar_sprite and bar_texture:
+		# Scale the sprite horizontally to show HP
+		bar_sprite.scale.x = hp_percent
 
-		# Offset to align left
-		bar_mesh.position.x = -bar_width * 0.5 + (bar_width * hp_percent * 0.5)
+		# Update bar color based on HP percentage
+		var bar_color = _get_hp_color(hp_percent)
+		bar_sprite.modulate = bar_color
 
-	# Update color based on HP percentage
-	var bar_color = _get_hp_color(hp_percent)
-	if bar_mesh:
-		# Check both material_override and surface_material_override
-		var mat = bar_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			mat.albedo_color = bar_color
-			print("FloatingHPBar.update_hp(): Set color to %s for HP %.0f%%" % [bar_color, hp_percent * 100])
-		else:
-			print("FloatingHPBar.update_hp(): ERROR - No material found!")
+		print("FloatingHPBar.update_hp(): Set scale to %.2f, color to %s for HP %.0f%%" % [hp_percent, bar_color, hp_percent * 100])
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:
@@ -238,22 +218,12 @@ func _show() -> void:
 	is_visible = true
 	visible = true
 
-	# Reset alpha
-	if bar_mesh:
-		var mat = bar_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			var color = mat.albedo_color
-			color.a = 1.0
-			mat.albedo_color = color
+	# Reset alpha for sprites
+	if bar_sprite:
+		bar_sprite.modulate.a = 1.0
 
-	if background_mesh:
-		var mat = background_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = background_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			mat.albedo_color = background_color
+	if background_sprite:
+		background_sprite.modulate.a = 1.0
 
 ## Hide immediately
 func _hide_immediate() -> void:
@@ -269,20 +239,11 @@ func _fade_out() -> void:
 	var tween = create_tween()
 	tween.set_parallel(true)
 
-	if bar_mesh:
-		var mat = bar_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			var color = mat.albedo_color
-			tween.tween_property(mat, "albedo_color:a", 0.0, fade_duration).from(color.a)
+	if bar_sprite:
+		tween.tween_property(bar_sprite, "modulate:a", 0.0, fade_duration).from(bar_sprite.modulate.a)
 
-	if background_mesh:
-		var mat = background_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = background_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			tween.tween_property(mat, "albedo_color:a", 0.0, fade_duration).from(background_color.a)
+	if background_sprite:
+		tween.tween_property(background_sprite, "modulate:a", 0.0, fade_duration).from(background_sprite.modulate.a)
 
 	tween.finished.connect(func():
 		_hide_immediate()
@@ -304,24 +265,15 @@ func reset() -> void:
 	is_visible = true
 	visible = true
 
-	# Reset materials
-	if bar_mesh:
-		var mat = bar_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			mat.albedo_color = color_full
-			mat.albedo_color.a = 1.0
+	# Reset sprite properties
+	if bar_sprite:
+		bar_sprite.modulate = color_full
+		bar_sprite.modulate.a = 1.0
+		bar_sprite.scale = Vector3.ONE
 
-	if background_mesh:
-		var mat = background_mesh.material_override as StandardMaterial3D
-		if not mat:
-			mat = background_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if mat:
-			mat.albedo_color = background_color
-
-	if bar_mesh:
-		bar_mesh.position = Vector3(0, 0, -0.01)
+	if background_sprite:
+		background_sprite.modulate = background_color
+		background_sprite.modulate.a = 1.0
 
 ## Signal handler for unit HP changes
 func _on_hp_changed(new_hp: float, new_max_hp: float) -> void:
