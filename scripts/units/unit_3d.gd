@@ -59,8 +59,8 @@ func _setup_visuals() -> void:
 		print("Unit3D: Using existing visual component: %s" % visual_component.name)
 		# Initialize facing direction based on team
 		is_facing_left = (team == Team.ENEMY)
-		# Flip enemy sprites to face left (towards player base)
-		if is_facing_left and visual_component.has_method("set_flip_h"):
+		# Sprites face LEFT by default, so flip PLAYER units to face right
+		if team == Team.PLAYER and visual_component.has_method("set_flip_h"):
 			visual_component.set_flip_h(true)
 		# Play idle animation
 		if visual_component.has_method("play_animation"):
@@ -78,8 +78,8 @@ func _setup_visuals() -> void:
 			visual_component.set_sprite_frames(sprite_frames)
 			# Initialize facing direction based on team
 			is_facing_left = (team == Team.ENEMY)
-			# Flip enemy sprites to face left (towards player base)
-			if is_facing_left:
+			# Sprites face LEFT by default, so flip PLAYER units to face right
+			if team == Team.PLAYER:
 				visual_component.set_flip_h(true)
 			visual_component.play_animation("idle", true)
 
@@ -157,7 +157,8 @@ func _update_facing_from_direction(direction: Vector3) -> void:
 	# Only flip if facing changed (avoid redundant calls)
 	if should_face_left != is_facing_left:
 		is_facing_left = should_face_left
-		visual_component.set_flip_h(is_facing_left)
+		# Sprites face LEFT by default, so flip when should face RIGHT
+		visual_component.set_flip_h(not is_facing_left)
 
 func _perform_attack() -> void:
 	if not current_target:
