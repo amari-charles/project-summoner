@@ -59,6 +59,9 @@ func _create_sprite_visuals() -> void:
 	print("FloatingDamageNumber: Sprite3D created")
 
 func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg_type: String = "physical") -> void:
+	print("FloatingDamageNumber.show_damage() called")
+	print("  Value: %.1f, Position: %v, Crit: %s" % [value, position, is_critical])
+
 	damage_value = value
 	is_crit = is_critical
 	damage_type = dmg_type
@@ -72,10 +75,16 @@ func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg
 	)
 	global_position = start_position
 
+	print("  Start position: %v" % start_position)
+	print("  Drift offset: %v" % drift_offset)
+
 	# Reset state
 	lifetime = 0.0
 	set_process(true)
 	visible = true
+
+	print("  Set visible to true, processing enabled")
+	print("  damage_sprite exists: %s" % (damage_sprite != null))
 
 	# Render damage text to texture
 	_render_damage_text()
