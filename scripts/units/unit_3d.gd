@@ -171,7 +171,13 @@ func _perform_attack() -> void:
 
 	is_attacking = true
 	_update_animation("attack")
-	var attack_duration = 1.0 / attack_speed
+
+	# Query actual animation duration from visual component
+	var attack_duration = 1.0 / attack_speed  # Cooldown duration
+	var animation_duration = 1.0  # Fallback
+	if visual_component and visual_component.has_method("get_animation_duration"):
+		animation_duration = visual_component.get_animation_duration("attack")
+
 	attack_cooldown = attack_duration
 
 	if is_ranged:
@@ -185,8 +191,8 @@ func _perform_attack() -> void:
 		# (This handles sprite-based units without animation events)
 		_start_attack_damage_fallback()
 
-	# Clear attacking state after animation completes
-	_clear_attacking_state(attack_duration)
+	# Clear attacking state after animation completes (not cooldown!)
+	_clear_attacking_state(animation_duration)
 
 	unit_attacked.emit(current_target)
 
@@ -241,7 +247,8 @@ func take_damage(amount: float) -> void:
 	# Emit signal for HP bars
 	hp_changed.emit(current_hp, max_hp)
 
-	_update_animation("hurt")
+	# TODO: Hurt animations disabled for now to prevent interrupting attacks
+	# _update_animation("hurt")
 
 	if current_hp <= 0:
 		_die()

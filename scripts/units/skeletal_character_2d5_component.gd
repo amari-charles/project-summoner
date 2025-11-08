@@ -108,6 +108,28 @@ func set_flip_h(flip: bool) -> void:
 	if skeletal_instance:
 		skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if flip else 1)
 
+## Get the duration of an animation in seconds
+func get_animation_duration(anim_name: String) -> float:
+	if not animation_player:
+		return 1.0  # Fallback duration
+
+	# Map animation names (same mapping as play_animation)
+	var mapped_name = anim_name
+	match anim_name:
+		"walk":
+			mapped_name = "idle"
+		"hurt":
+			mapped_name = "idle"
+		"death":
+			mapped_name = "idle"
+
+	# Get animation duration from AnimationPlayer
+	if animation_player.has_animation(mapped_name):
+		var animation = animation_player.get_animation(mapped_name)
+		return animation.length
+
+	return 1.0  # Fallback duration
+
 ## Animation event handler - called when attack animation fires impact event
 func _on_attack_impact() -> void:
 	# Forward to parent Unit3D

@@ -35,3 +35,9 @@ func is_playing() -> bool:
 ## @virtual
 func set_flip_h(flip: bool) -> void:
 	push_error("Character2D5Component.set_flip_h() called on base class - must be overridden in child class")
+
+## Get the duration of an animation in seconds
+## @virtual
+func get_animation_duration(anim_name: String) -> float:
+	push_error("Character2D5Component.get_animation_duration() called on base class - must be overridden in child class")
+	return 1.0  # Fallback duration
