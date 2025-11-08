@@ -132,13 +132,19 @@ func _make_materials_unique() -> void:
 	# Make materials unique to prevent shared material issues across pooled bars
 	if background_mesh:
 		var mat = background_mesh.get_surface_override_material(0)
+		print("  Background material: %s" % (mat != null))
 		if mat:
-			background_mesh.set_surface_override_material(0, mat.duplicate())
+			var unique_mat = mat.duplicate()
+			background_mesh.set_surface_override_material(0, unique_mat)
+			print("  Background material duplicated and set")
 
 	if bar_mesh:
 		var mat = bar_mesh.get_surface_override_material(0)
+		print("  Bar material: %s" % (mat != null))
 		if mat:
-			bar_mesh.set_surface_override_material(0, mat.duplicate())
+			var unique_mat = mat.duplicate()
+			bar_mesh.set_surface_override_material(0, unique_mat)
+			print("  Bar material duplicated and set, color: %s" % unique_mat.albedo_color)
 
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
@@ -151,6 +157,10 @@ func set_target(unit: Node3D) -> void:
 				target_unit.hp_changed.disconnect(_on_hp_changed)
 
 	target_unit = unit
+
+	# Ensure materials are unique (important for pooled bars)
+	if background_mesh and bar_mesh:
+		_make_materials_unique()
 
 	# Find camera now that we're in the scene tree
 	if not camera:
@@ -193,6 +203,9 @@ func update_hp(current: float, maximum: float) -> void:
 			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
 		if mat:
 			mat.albedo_color = bar_color
+			print("FloatingHPBar.update_hp(): Set color to %s for HP %.0f%%" % [bar_color, hp_percent * 100])
+		else:
+			print("FloatingHPBar.update_hp(): ERROR - No material found!")
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:
