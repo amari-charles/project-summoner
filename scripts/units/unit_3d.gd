@@ -51,7 +51,19 @@ func _ready() -> void:
 	HPBarManager.create_bar_for_unit(self)
 
 func _setup_visuals() -> void:
-	# Load and instance the 2.5D character component
+	# Check if a visual component already exists (e.g., Skeletal2D5Component added in scene)
+	visual_component = get_node_or_null("Visual")
+	if visual_component:
+		print("Unit3D: Using existing visual component: %s" % visual_component.name)
+		# Flip enemy sprites to face left
+		if team == Team.ENEMY and visual_component.has_method("set_flip_h"):
+			visual_component.set_flip_h(true)
+		# Play idle animation
+		if visual_component.has_method("play_animation"):
+			visual_component.play_animation("idle", true)
+		return
+
+	# Otherwise, load and instance the standard 2.5D character component
 	var component_scene = load("res://scenes/units/character_2d5_component.tscn")
 	if component_scene:
 		visual_component = component_scene.instantiate()

@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/units/skeletal_2d5_component.gd" id="1_script"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_1"]
+viewport_path = NodePath("Sprite3D/SubViewport")
+
+[node name="Skeletal2D5Component" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+pixel_size = 0.01
+billboard = 2
+shaded = true
+alpha_cut = 0
+texture_filter = 0
+texture = SubResource("ViewportTexture_1")
+
+[node name="SubViewport" type="SubViewport" parent="Sprite3D"]
+transparent_bg = true
+size = Vector2i(600, 600)
+
+[node name="ModelContainer" type="Node2D" parent="Sprite3D/SubViewport"]
