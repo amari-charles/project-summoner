@@ -39,6 +39,10 @@ func _process(delta: float) -> void:
 	var rise = rise_distance * progress
 	global_position = start_position + Vector3(0, rise, 0) + drift_offset * progress
 
+	# Debug: Print position once at start
+	if lifetime < delta * 2:  # First frame only
+		print("FloatingDamageNumber _process: pos=%v, visible=%s, sprite=%s" % [global_position, visible, (damage_sprite != null)])
+
 	# Fade out
 	if damage_sprite:
 		damage_sprite.modulate.a = 1.0 - progress
@@ -53,10 +57,12 @@ func _create_sprite_visuals() -> void:
 	damage_sprite = Sprite3D.new()
 	damage_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	damage_sprite.no_depth_test = true
-	damage_sprite.pixel_size = 0.005  # Smaller for better text size
+	damage_sprite.pixel_size = 0.05  # VERY large for debugging visibility
 	damage_sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	damage_sprite.modulate = Color.WHITE  # Ensure full brightness
+	damage_sprite.centered = true  # Center sprite like HP bars
 	add_child(damage_sprite)
-	print("FloatingDamageNumber: Sprite3D created")
+	print("FloatingDamageNumber: Sprite3D created (pixel_size: 0.05 DEBUG, centered: true)")
 
 func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg_type: String = "physical") -> void:
 	print("FloatingDamageNumber.show_damage() called")
@@ -76,6 +82,7 @@ func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg
 	global_position = start_position
 
 	print("  Start position: %v" % start_position)
+	print("  Global position after set: %v" % global_position)
 	print("  Drift offset: %v" % drift_offset)
 
 	# Reset state
