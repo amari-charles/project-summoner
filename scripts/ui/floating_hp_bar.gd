@@ -34,15 +34,22 @@ var camera: Camera3D = null
 signal bar_hidden()  ## Emitted when bar fades out (for pooling)
 
 func _ready() -> void:
+	print("FloatingHPBar _ready() called")
+
 	# Find child meshes from scene (if they exist)
 	background_mesh = get_node_or_null("Background")
 	bar_mesh = get_node_or_null("Bar")
 
+	print("  Found Background: %s" % (background_mesh != null))
+	print("  Found Bar: %s" % (bar_mesh != null))
+
 	# Fallback: create visuals if not in scene
 	if not background_mesh or not bar_mesh:
+		print("  Creating visuals programmatically...")
 		_create_visuals()
 
 	_find_camera()
+	print("  Camera found: %s" % (camera != null))
 
 func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
