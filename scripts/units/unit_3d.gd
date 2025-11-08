@@ -98,7 +98,7 @@ func _physics_process(delta: float) -> void:
 			# Face opponent when idle in range (but not during attack)
 			if not is_attacking:
 				_update_facing(current_target.global_position)
-			_update_animation("idle")
+				_update_animation("idle")
 			if attack_cooldown <= 0.0:
 				_perform_attack()
 		else:
@@ -107,7 +107,8 @@ func _physics_process(delta: float) -> void:
 				_update_animation("walk")
 				_move_towards_target(delta)
 	else:
-		_update_animation("idle")
+		if not is_attacking:
+			_update_animation("idle")
 
 func _acquire_target() -> Node3D:
 	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
