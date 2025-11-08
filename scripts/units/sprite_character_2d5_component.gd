@@ -89,11 +89,9 @@ func _setup_sprite_alignment() -> void:
 		# We want: feet at viewport bottom, accounting for empty space below feet
 		# Therefore: sprite.position.y = viewport.size.y - ((texture_height / 2) - feet_offset) * sprite.scale.y
 		character_sprite.position.y = viewport.size.y - ((texture_size.y / 2.0) - feet_offset_pixels) * character_sprite.scale.y
-		print("SpriteChar2D5: Precise feet alignment - texture=%s, scale=%s, offset=%.1fpx, pos.y=%.1f" % [texture_size, character_sprite.scale, feet_offset_pixels, character_sprite.position.y])
 	else:
 		# FALLBACK: No texture data available yet, use approximate positioning
 		character_sprite.position.y = viewport.size.y * 0.8
-		print("SpriteChar2D5: Fallback alignment (no texture data) - pos.y=%.1f" % character_sprite.position.y)
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.

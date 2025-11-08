@@ -162,11 +162,10 @@ func _setup_sprite_alignment() -> void:
 			# We want: bottom edge = viewport.size.y
 			# Therefore: position.y = viewport.size.y - (bounds.end.y * scale.y)
 			skeletal_instance.position.y = viewport.size.y - (bounds.end.y * scale_factor.y)
-			print("SkeletalChar2D5: Precise feet alignment - bounds=%s, scale=%s, pos.y=%.1f" % [bounds, scale_factor, skeletal_instance.position.y])
 		else:
 			# FALLBACK: Use manually configured position_offset
 			skeletal_instance.position.y = position_offset.y
-			print("SkeletalChar2D5: Fallback to manual position_offset - pos.y=%.1f (configure position_offset export for precise alignment)" % skeletal_instance.position.y)
+			push_warning("SkeletalChar2D5: Could not calculate bounds, using manual position_offset - configure export for precise alignment")
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
@@ -181,6 +180,11 @@ func get_sprite_height() -> float:
 ## Returns Rect2 with local bounds (before scaling), or empty rect if unavailable
 func _get_skeletal_bounds() -> Rect2:
 	if not skeletal_instance:
+		return Rect2()
+
+	# Validate skeletal instance is in the scene tree
+	if not skeletal_instance.is_inside_tree():
+		push_warning("SkeletalChar2D5: Cannot calculate bounds - skeletal instance not in tree yet")
 		return Rect2()
 
 	# Try to find all Sprite2D children and calculate combined bounds

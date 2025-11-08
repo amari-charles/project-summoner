@@ -121,7 +121,6 @@ func _setup_shadow() -> void:
 			# Shadow should be proportional to sprite width (roughly 1/3 of height for human proportions)
 			var sprite_height = visual_component.get_sprite_height()
 			shadow_size = sprite_height * 0.35  # ~35% of height
-			print("Unit3D: Calculated shadow_size=%.2f from sprite_height=%.2f" % [shadow_size, sprite_height])
 		else:
 			shadow_size = _calculate_shadow_size_from_collision()
 
@@ -140,14 +139,6 @@ func _setup_shadow() -> void:
 
 	# Initialize with proper values (explicit initialization pattern)
 	shadow_component.initialize(shadow_size, shadow_opacity)
-
-	# Diagnostic: Check unit and shadow positions
-	await get_tree().process_frame  # Wait for shadow to initialize
-	print("Unit3D '%s': global_position=%s" % [name, global_position])
-	if visual_component:
-		print("  Visual.position=%s" % visual_component.position)
-	if shadow_component:
-		print("  Shadow.position=%s, global_position=%s" % [shadow_component.position, shadow_component.global_position])
 
 ## Calculate shadow size based on collision shape
 func _calculate_shadow_size_from_collision() -> float:
