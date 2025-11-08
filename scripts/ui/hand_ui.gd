@@ -218,9 +218,16 @@ class CardDisplay extends Control:
 		if hand_ui.summoner.mana < card.mana_cost:
 			return null
 
+		# Hide shadow while dragging
+		if shadow_card:
+			shadow_card.visible = false
+
 		# Create drag preview
 		var preview = _create_drag_preview()
 		set_drag_preview(preview)
+
+		# Hide the original card while dragging
+		modulate.a = 0.3  # Make semi-transparent
 
 		# Return drag data
 		return {
@@ -263,6 +270,15 @@ class CardDisplay extends Control:
 		preview.add_child(cost_label)
 
 		return preview
+
+	## Called when drag ends (whether successful or cancelled)
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_DRAG_END:
+			# Restore card visibility
+			modulate.a = 1.0
+			# Restore shadow visibility
+			if shadow_card:
+				shadow_card.visible = true
 
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
