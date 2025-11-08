@@ -1,11 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://bihs6xphqhyfw"]
+[gd_scene load_steps=8 format=3 uid="uid://bc1lyc3hs5rnk"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Script" path="res://scripts/core/test_game_controller.gd" id="2_test_controller"]
-[ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
+[ext_resource type="Script" uid="uid://bejquix54he1c" path="res://scripts/core/test_game_controller.gd" id="2_test_controller"]
+[ext_resource type="Script" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
 [ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
-[ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
 
 [node name="TestBattleVFX" type="Node3D"]

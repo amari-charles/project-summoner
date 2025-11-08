@@ -34,7 +34,7 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 
 ## Shadow settings
 @export var shadow_enabled: bool = true
-@export var shadow_size: float = 2.0  ## Increased from 1.0 to 2.0 for better visibility
+@export var shadow_size: float = 0.0  ## Auto-calculated from sprite size (set to 0 for auto)
 @export var shadow_opacity: float = 0.6
 
 ## Current state
@@ -109,9 +109,15 @@ func _setup_shadow() -> void:
 	if not shadow_enabled:
 		return
 
-	# Auto-calculate shadow size from collision shape if not manually set
+	# Auto-calculate shadow size from visual component if available, otherwise collision shape
 	if shadow_size <= 0.0:
-		shadow_size = _calculate_shadow_size_from_collision()
+		if visual_component and visual_component.has_method("get_sprite_height"):
+			# Shadow should be proportional to sprite width (roughly 1/3 of height for human proportions)
+			var sprite_height = visual_component.get_sprite_height()
+			shadow_size = sprite_height * 0.35  # ~35% of height
+			print("Unit3D: Calculated shadow_size=%.2f from sprite_height=%.2f" % [shadow_size, sprite_height])
+		else:
+			shadow_size = _calculate_shadow_size_from_collision()
 
 	# Load the ShadowComponent script
 	var shadow_script = load("res://scripts/units/shadow_component.gd")
@@ -128,6 +134,14 @@ func _setup_shadow() -> void:
 
 	# Initialize with proper values (explicit initialization pattern)
 	shadow_component.initialize(shadow_size, shadow_opacity)
+
+	# Diagnostic: Check unit and shadow positions
+	await get_tree().process_frame  # Wait for shadow to initialize
+	print("Unit3D '%s': global_position=%s" % [name, global_position])
+	if visual_component:
+		print("  Visual.position=%s" % visual_component.position)
+	if shadow_component:
+		print("  Shadow.position=%s, global_position=%s" % [shadow_component.position, shadow_component.global_position])
 
 ## Calculate shadow size based on collision shape
 func _calculate_shadow_size_from_collision() -> float:

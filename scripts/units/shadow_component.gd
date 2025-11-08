@@ -27,6 +27,8 @@ func initialize(radius: float, opacity: float) -> void:
 	# Position just above ground (PlaneMesh has no volume)
 	position.y = 0.01
 
+	print("ShadowComponent: Local position.y=0.01 (should match character feet at Y=0)")
+
 	# Create radial gradient texture
 	shadow_texture = _create_radial_gradient_texture()
 

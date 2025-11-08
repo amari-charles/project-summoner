@@ -62,17 +62,21 @@ func get_animation_duration(anim_name: String) -> float:
 	return 1.0  # Fallback duration
 
 ## Setup sprite alignment so character feet are at origin (Y=0)
-## Uses simple Y positioning - proven to work
+## Positions BOTH the Sprite3D and the 2D sprite content within viewport
 func _setup_sprite_alignment() -> void:
-	if not sprite_3d or not viewport:
+	if not sprite_3d or not viewport or not character_sprite:
 		return
 
 	# Calculate actual sprite height in world units
 	var world_height = viewport.size.y * sprite_3d.pixel_size  # 250 * 0.025 = 6.25
 
-	# Position sprite so bottom is at Y=0
-	# With centered=true, center needs to be at half-height
+	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.125 for standard sprites
+
+	# CRITICAL: Position 2D sprite so feet are at viewport bottom (not centered!)
+	# With centered=true, position at ~80% of viewport height to account for sprite size
+	character_sprite.position.y = viewport.size.y * 0.8  # ~200 for 250px viewport
+	print("SpriteChar2D5: Repositioned 2D sprite to Y=%.0f (viewport bottom at %.0f)" % [character_sprite.position.y, viewport.size.y])
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.

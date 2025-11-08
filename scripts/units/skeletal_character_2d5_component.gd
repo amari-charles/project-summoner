@@ -139,7 +139,7 @@ func _on_attack_impact() -> void:
 		unit._on_attack_impact()
 
 ## Setup sprite alignment so character feet are at origin (Y=0)
-## Uses simple Y positioning - proven to work
+## Positions BOTH the Sprite3D and the 2D skeletal content within viewport
 func _setup_sprite_alignment() -> void:
 	if not sprite_3d or not viewport:
 		return
@@ -147,9 +147,15 @@ func _setup_sprite_alignment() -> void:
 	# Calculate actual sprite height in world units
 	var world_height = viewport.size.y * sprite_3d.pixel_size  # 600 * 0.01 = 6.0
 
-	# Position sprite so bottom is at Y=0
-	# With centered=true, center needs to be at half-height
+	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.0 for skeletal sprites
+
+	# CRITICAL: Adjust 2D skeletal model position so feet are at viewport bottom
+	# Update the Y component of position_offset
+	if skeletal_instance:
+		# Position at ~80% of viewport height to account for model size
+		skeletal_instance.position.y = viewport.size.y * 0.8  # ~480 for 600px viewport
+		print("SkeletalChar2D5: Repositioned 2D model to Y=%.0f (viewport bottom at %.0f)" % [skeletal_instance.position.y, viewport.size.y])
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
