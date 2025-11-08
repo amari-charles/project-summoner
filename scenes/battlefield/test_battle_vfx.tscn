@@ -130,14 +130,5 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("6_hand_ui")
 
-[node name="DebugBG" type="ColorRect" parent="UI/HandUI"]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.2, 0.2, 0.3, 0.5)
-
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]
