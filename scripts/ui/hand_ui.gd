@@ -44,14 +44,15 @@ class CardDisplay extends Control:
 	const MAX_TILT_DEGREES = 15.0  # Maximum rotation in degrees
 	const TILT_SMOOTHING = 0.15    # Lerp factor for smooth rotation
 
-	# Velocity rotation constants
-	const VELOCITY_ROTATION_STRENGTH = 0.0002  # How much velocity affects rotation
-	const ROTATION_SMOOTHING = 0.1  # Lerp factor for rotation smoothing
+	# Velocity rotation constants (Balatro-style)
+	const VELOCITY_DIVISOR = 2000.0  # Divisor for velocity to rotation conversion (lower = more sensitive)
+	const MAX_ROTATION_RADIANS = 0.4  # Maximum rotation in radians (~23 degrees)
+	const ROTATION_DAMPING = 0.85  # Damping factor for rotation (lower = more damping, higher = keeps rotation longer)
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
 		base_position = position
-		previous_position = global_position
+		previous_position = position  # Track local position for velocity calculation
 
 		# Connect hover signals
 		mouse_entered.connect(_on_mouse_entered)
@@ -66,14 +67,29 @@ class CardDisplay extends Control:
 			_setup_3d_shader()
 
 	func _process(delta: float) -> void:
-		# Update velocity for rotation
-		var current_pos = global_position
-		velocity = (current_pos - previous_position) / delta if delta > 0 else Vector2.ZERO
+		# Track position changes for velocity-based rotation (Balatro-style)
+		# Use position (not global_position) because tweens modify local position
+		var current_pos = position
+
+		# Calculate velocity from position delta
+		if delta > 0:
+			velocity = (current_pos - previous_position) / delta
+		else:
+			velocity = Vector2.ZERO
+
 		previous_position = current_pos
 
-		# Apply velocity-based rotation (tilt in direction of motion)
-		var target_rotation = -velocity.x * VELOCITY_ROTATION_STRENGTH  # Negative for natural tilt
-		rotation = lerp(rotation, target_rotation, ROTATION_SMOOTHING)
+		# Convert velocity to rotation contribution
+		# Horizontal velocity creates tilt (negative for natural feel)
+		# Vertical velocity also contributes slightly
+		var velocity_rotation = velocity.x / VELOCITY_DIVISOR
+		velocity_rotation = clamp(velocity_rotation, -MAX_ROTATION_RADIANS, MAX_ROTATION_RADIANS)
+
+		# Add velocity-based rotation (negative for natural tilt - moving right tilts right)
+		rotation += -velocity_rotation
+
+		# Apply damping to gradually return to neutral
+		rotation *= ROTATION_DAMPING
 
 		# Update 3D rotation based on mouse position (only when hovered)
 		if is_hovered and shader_material:
