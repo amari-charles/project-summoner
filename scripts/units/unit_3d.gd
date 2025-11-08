@@ -91,12 +91,11 @@ func _physics_process(delta: float) -> void:
 	current_target = _acquire_target()
 
 	if current_target:
-		# Always face the current target (updates every frame)
-		_update_facing(current_target.global_position)
-
 		var distance = global_position.distance_to(current_target.global_position)
 
 		if distance <= attack_range:
+			# Face opponent when idle in range
+			_update_facing(current_target.global_position)
 			_update_animation("idle")
 			if attack_cooldown <= 0.0:
 				_perform_attack()
@@ -136,16 +135,24 @@ func _move_towards_target(delta: float) -> void:
 	var direction = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
+
+	# Face the direction we're moving
+	_update_facing_from_direction(direction)
+
 	velocity = direction * move_speed
 	move_and_slide()
 
 func _update_facing(target_position: Vector3) -> void:
+	# Calculate direction to target and face that direction
+	var direction = (target_position - global_position).normalized()
+	_update_facing_from_direction(direction)
+
+func _update_facing_from_direction(direction: Vector3) -> void:
 	if not visual_component or not visual_component.has_method("set_flip_h"):
 		return
 
-	# Determine if target is to the left (negative X direction in 2.5D space)
-	var direction_x = target_position.x - global_position.x
-	var should_face_left = direction_x < 0
+	# Face left if direction has negative X component
+	var should_face_left = direction.x < 0
 
 	# Only flip if facing changed (avoid redundant calls)
 	if should_face_left != is_facing_left:
