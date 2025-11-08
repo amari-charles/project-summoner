@@ -25,6 +25,7 @@ var max_hp: float = 100.0
 var is_pooled: bool = false
 var fade_timer: float = 0.0
 var is_visible: bool = true
+var debug_timer: float = 0.0  # For throttling debug output
 
 ## Visual components
 var background_mesh: MeshInstance3D = null
@@ -52,18 +53,31 @@ func _ready() -> void:
 	print("  Camera found: %s" % (camera != null))
 
 func _process(delta: float) -> void:
+	# Debug logging (throttled to once per second)
+	debug_timer += delta
+	var should_debug = debug_timer >= 1.0
+	if should_debug:
+		debug_timer = 0.0
+
 	if not target_unit or not is_instance_valid(target_unit):
+		if should_debug:
+			print("FloatingHPBar._process(): No valid target_unit (target is %s)" % ("null" if not target_unit else "invalid"))
 		return
 
 	# Follow target unit
 	var target_pos = target_unit.global_position + Vector3(0, offset_y, 0)
 	global_position = target_pos
 
+	if should_debug:
+		print("FloatingHPBar._process(): Following %s at position %v, visible=%s" % [target_unit.name, global_position, visible])
+
 	# Billboard effect - always face camera
 	if camera:
 		look_at(camera.global_position, Vector3.UP)
 	else:
 		# Try to find camera again if we don't have one
+		if should_debug:
+			print("FloatingHPBar._process(): Camera not found, retrying...")
 		_find_camera()
 
 	# Handle fade timer
