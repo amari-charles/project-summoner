@@ -223,9 +223,9 @@ func _update_animation(anim_name: String) -> void:
 
 	# Don't interrupt important animations (attack, hurt, death)
 	if current_anim in ["attack", "hurt", "death"]:
-		# Only allow transitioning from these animations to themselves or to higher priority
-		if anim_name not in ["attack", "hurt", "death"]:
-			return  # Don't interrupt with idle/walk
+		# Only block if animation is still playing
+		if visual_component.is_playing() and anim_name not in ["attack", "hurt", "death"]:
+			return  # Don't interrupt with idle/walk while animation is playing
 
 	if current_anim != anim_name:
 		visual_component.play_animation(anim_name)
