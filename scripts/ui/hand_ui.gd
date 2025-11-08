@@ -86,10 +86,30 @@ class CardDisplay extends Control:
 		_start_idle_animation()
 
 	func _process(delta: float) -> void:
-		# If being dragged, follow mouse
+		# If being dragged, follow mouse smoothly
 		if is_being_dragged:
-			global_position = get_global_mouse_position() - drag_offset
+			# Use top_level to escape parent clipping/constraints
+			top_level = true
+
+			# Smooth follow mouse
+			var target_pos = get_global_mouse_position() - drag_offset
+			global_position = global_position.lerp(target_pos, 0.5)  # Smooth interpolation
 			z_index = 100  # Above everything while dragging
+
+			# Hide shadow while dragging
+			if shadow_card:
+				shadow_card.visible = false
+
+			# Skip velocity rotation during drag (causes jitter)
+			previous_position = global_position
+			return
+
+		# Normal processing when not dragging
+		top_level = false  # Re-enable parent positioning
+
+		# Show shadow when not dragging
+		if shadow_card:
+			shadow_card.visible = true
 
 		# Update velocity for rotation
 		var current_pos = global_position
@@ -254,6 +274,11 @@ class CardDisplay extends Control:
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
 			is_being_dragged = false
+			top_level = false  # Re-enable parent positioning
+
+			# Show shadow again
+			if shadow_card:
+				shadow_card.visible = true
 
 			# Animate back to original position
 			var return_tween = create_tween()
