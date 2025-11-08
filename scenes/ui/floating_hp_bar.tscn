@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://floating_hp_bar"]
+
+[ext_resource type="Script" path="res://scripts/ui/floating_hp_bar.gd" id="1_script"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_bg"]
+size = Vector2(3.0, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bg"]
+albedo_color = Color(0.2, 0.2, 0.2, 1.0)
+shading_mode = 0
+transparency = 0
+no_depth_test = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_bar"]
+size = Vector2(3.0, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bar"]
+albedo_color = Color(0, 1, 0, 1)
+shading_mode = 0
+transparency = 0
+no_depth_test = true
+
+[node name="FloatingHPBar" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Background" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_bg")
+surface_material_override/0 = SubResource("StandardMaterial3D_bg")
+
+[node name="Bar" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.01)
+mesh = SubResource("QuadMesh_bar")
+surface_material_override/0 = SubResource("StandardMaterial3D_bar")
