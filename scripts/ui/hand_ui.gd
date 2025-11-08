@@ -16,7 +16,6 @@ class CardDisplay extends Control:
 
 	# Animation state
 	var hover_tween: Tween
-	var idle_tween: Tween
 	var is_hovered: bool = false
 	var was_recently_hovered: bool = false  # Prevents pulse from restarting immediately
 	var base_position: Vector2
@@ -35,8 +34,6 @@ class CardDisplay extends Control:
 	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
 	const HOVER_SCALE = 1.2     # Scale multiplier when hovered
 	const HOVER_DURATION = 0.25 # Seconds for hover transition
-	const IDLE_BOB_AMOUNT = 3.0 # Pixels to bob up/down
-	const IDLE_BOB_DURATION = 2.0  # Seconds for one bob cycle
 
 	# Draw animation constants
 	const DRAW_ANIMATION_DURATION = 0.4
@@ -67,10 +64,6 @@ class CardDisplay extends Control:
 		background_node = get_node_or_null("Background") as ColorRect
 		if background_node:
 			_setup_3d_shader()
-
-		# Stagger idle animation start
-		await get_tree().create_timer(card_index * 0.05).timeout
-		_start_idle_animation()
 
 	func _process(delta: float) -> void:
 		# Update velocity for rotation
@@ -230,10 +223,6 @@ class CardDisplay extends Control:
 		is_hovered = true
 		was_recently_hovered = true
 
-		# Stop idle animation while hovering
-		if idle_tween and idle_tween.is_valid():
-			idle_tween.kill()
-
 		# Stop any pulse glow on the border
 		var border = get_node_or_null("Border") as ColorRect
 		if border and border.has_meta("pulse_tween"):
@@ -315,30 +304,6 @@ class CardDisplay extends Control:
 			# Set to gray, not back to pulse
 			glow_tween.tween_property(border, "color", Color.GRAY, 0.15)
 
-		# Restart idle animation after hover ends
-		hover_tween.finished.connect(_start_idle_animation)
-
-	## Subtle floating animation when idle
-	func _start_idle_animation() -> void:
-		if is_hovered:
-			return
-
-		# Kill existing idle tween
-		if idle_tween and idle_tween.is_valid():
-			idle_tween.kill()
-
-		# Create looping bob animation
-		idle_tween = create_tween()
-		idle_tween.set_loops()  # Infinite loop
-		idle_tween.set_trans(Tween.TRANS_SINE)
-		idle_tween.set_ease(Tween.EASE_IN_OUT)
-
-		# Bob up
-		idle_tween.tween_property(self, "position:y", base_position.y - IDLE_BOB_AMOUNT, IDLE_BOB_DURATION / 2.0)
-
-		# Bob down
-		idle_tween.tween_property(self, "position:y", base_position.y + IDLE_BOB_AMOUNT, IDLE_BOB_DURATION / 2.0)
-
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
 		var border = get_node_or_null("Border") as ColorRect
@@ -365,12 +330,6 @@ class CardDisplay extends Control:
 var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
-
-# Wave animation
-var wave_time: float = 0.0
-const WAVE_AMPLITUDE = 2.0  # How high the wave goes (pixels)
-const WAVE_FREQUENCY = 1.5  # How fast the wave moves (cycles per second)
-const WAVE_SPACING = 0.5    # Distance between wave peaks (affects card-to-card phase)
 
 signal card_selected(index: int)
 
@@ -400,24 +359,6 @@ func _ready() -> void:
 
 	# Initial hand display
 	_rebuild_hand_display()
-
-func _process(delta: float) -> void:
-	# Update wave time
-	wave_time += delta * WAVE_FREQUENCY
-
-	# Apply wave animation to all cards
-	for i in range(card_displays.size()):
-		var card_display = card_displays[i] as CardDisplay
-		if not card_display or card_display.is_hovered:
-			continue  # Skip hovered cards
-
-		# Calculate wave offset for this card
-		var wave_phase = wave_time + (i * WAVE_SPACING)
-		var wave_offset = sin(wave_phase * TAU) * WAVE_AMPLITUDE
-
-		# Apply to base position y (only affects idle cards)
-		if not card_display.is_hovered:
-			card_display.base_position.y = 10 + wave_offset
 
 func _rebuild_hand_display() -> void:
 	# Clear existing displays
