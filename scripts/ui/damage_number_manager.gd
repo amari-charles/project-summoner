@@ -9,8 +9,8 @@ const INITIAL_POOL_SIZE: int = 20
 const MAX_POOL_SIZE: int = 50
 
 ## Pools
-var number_pool: Array[FloatingDamageNumber] = []
-var active_numbers: Array[FloatingDamageNumber] = []
+var number_pool: Array = []  # Array of FloatingDamageNumber
+var active_numbers: Array = []  # Array of FloatingDamageNumber
 
 ## Container
 var numbers_container: Node3D = null
@@ -41,9 +41,9 @@ func _init_pool() -> void:
 		number_pool.append(number)
 
 ## Spawn damage number at position
-func spawn_damage_number(value: float, position: Vector3, is_crit: bool = false, damage_type: String = "physical") -> FloatingDamageNumber:
+func spawn_damage_number(value: float, position: Vector3, is_crit: bool = false, damage_type: String = "physical"):
 	# Get number from pool or create new
-	var number: FloatingDamageNumber = null
+	var number = null
 	if number_pool.size() > 0:
 		number = number_pool.pop_back()
 		number.reset()
@@ -86,7 +86,7 @@ func _on_damage_taken(event: CombatEvent) -> void:
 	spawn_damage_number(event.value, spawn_pos, is_crit, damage_type)
 
 ## Handler for number finished signal
-func _on_number_finished(number: FloatingDamageNumber) -> void:
+func _on_number_finished(number) -> void:
 	# Remove from active list
 	var idx = active_numbers.find(number)
 	if idx >= 0:
@@ -100,7 +100,7 @@ func _on_number_finished(number: FloatingDamageNumber) -> void:
 	_return_to_pool(number)
 
 ## Return number to pool
-func _return_to_pool(number: FloatingDamageNumber) -> void:
+func _return_to_pool(number) -> void:
 	if number_pool.size() < MAX_POOL_SIZE:
 		number.reset()
 		number_pool.append(number)
