@@ -211,7 +211,7 @@ class CardDisplay extends Control:
 		)
 
 	## Start dragging this card
-	func _get_drag_data(_at_position: Vector2) -> Variant:
+	func _get_drag_data(at_position: Vector2) -> Variant:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
@@ -221,12 +221,20 @@ class CardDisplay extends Control:
 
 		# Create a visual duplicate as preview
 		var preview = duplicate(DUPLICATE_USE_INSTANTIATION)
-		preview.modulate = Color(1, 1, 1, 0.9)  # Slightly transparent
 		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
-		set_drag_preview(preview)
 
-		# Hide original card while dragging
-		modulate.a = 0.3
+		# Create wrapper to control preview offset
+		var preview_wrapper = Control.new()
+		preview_wrapper.add_child(preview)
+
+		# Position preview so the grab point stays under cursor
+		# at_position is where on THIS card the user clicked
+		preview.position = -at_position * HOVER_SCALE
+
+		set_drag_preview(preview_wrapper)
+
+		# Card physically leaves the hand (completely invisible)
+		visible = false
 		if shadow_card:
 			shadow_card.visible = false
 
@@ -240,8 +248,8 @@ class CardDisplay extends Control:
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			# Restore visibility
-			modulate.a = 1.0
+			# Card returns to hand (if drag was cancelled)
+			visible = true
 			if shadow_card:
 				shadow_card.visible = true
 
