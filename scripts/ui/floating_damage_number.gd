@@ -92,13 +92,10 @@ func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg
 func _render_damage_text() -> void:
 	print("FloatingDamageNumber._render_damage_text() called")
 
-	# Wait for sprite to be created
+	# Check sprite exists (should be created by _ready() already)
 	if not damage_sprite:
-		print("  ERROR: damage_sprite is null, waiting for _ready()")
-		await get_tree().process_frame
-		if not damage_sprite:
-			push_error("FloatingDamageNumber: damage_sprite still null after waiting")
-			return
+		push_error("FloatingDamageNumber: damage_sprite is null! _ready() not called yet?")
+		return
 
 	# Determine text and color
 	var text = str(int(damage_value))

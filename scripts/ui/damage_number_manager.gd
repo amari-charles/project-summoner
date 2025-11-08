@@ -62,12 +62,13 @@ func spawn_damage_number(value: float, position: Vector3, is_crit: bool = false,
 
 	print("  Number instance: %s" % number)
 
-	# Configure and show
-	number.show_damage(value, position, is_crit, damage_type)
-
-	# Add to scene
+	# Add to scene FIRST so _ready() runs
 	numbers_container.add_child(number)
-	print("  Added to scene, visible: %s" % number.visible)
+	print("  Added to scene")
+
+	# THEN configure and show (after _ready() has created sprite)
+	number.show_damage(value, position, is_crit, damage_type)
+	print("  Configured, visible: %s" % number.visible)
 
 	# Track active number
 	active_numbers.append(number)
