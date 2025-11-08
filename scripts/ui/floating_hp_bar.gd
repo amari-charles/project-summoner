@@ -105,39 +105,6 @@ func _create_solid_texture(width: int, height: int, color: Color) -> ImageTextur
 	image.fill(color)
 	return ImageTexture.create_from_image(image)
 
-func _create_visuals() -> void:
-	# Create background bar
-	background_mesh = MeshInstance3D.new()
-	var bg_quad = QuadMesh.new()
-	bg_quad.size = Vector2(bar_width, bar_height)
-	background_mesh.mesh = bg_quad
-
-	var bg_material = StandardMaterial3D.new()
-	bg_material.albedo_color = background_color
-	bg_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	bg_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	bg_material.no_depth_test = true
-	background_mesh.material_override = bg_material
-
-	add_child(background_mesh)
-
-	# Create health bar (foreground)
-	bar_mesh = MeshInstance3D.new()
-	var bar_quad = QuadMesh.new()
-	bar_quad.size = Vector2(bar_width, bar_height)
-	bar_mesh.mesh = bar_quad
-
-	var bar_material = StandardMaterial3D.new()
-	bar_material.albedo_color = color_full
-	bar_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	bar_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	bar_material.no_depth_test = true
-	bar_mesh.material_override = bar_material
-
-	# Offset slightly forward to prevent z-fighting
-	bar_mesh.position = Vector3(0, 0, -0.01)
-	add_child(bar_mesh)
-
 func _find_camera() -> void:
 	# Find main camera in scene
 	var viewport = get_viewport()
