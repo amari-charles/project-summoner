@@ -31,4 +31,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 [node name="Visual" parent="." instance=ExtResource("3_skeletal_component")]
 skeletal_scene = ExtResource("2_neade_visual")
 scale_factor = Vector2(0.08, 0.08)
-position_offset = Vector2(300, 200)

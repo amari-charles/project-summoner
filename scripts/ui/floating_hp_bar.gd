@@ -7,7 +7,7 @@ class_name FloatingHPBar
 ## Visual settings
 @export var bar_width: float = 0.8  ## Width in world units (smaller for units)
 @export var bar_height: float = 0.08  ## Height in world units
-@export var offset_y: float = 3.2  ## Height above unit
+@export var offset_y: float = 6.8  ## Height above unit (above character head)
 @export var show_on_damage_only: bool = false  ## Hide when at full HP
 @export var fade_delay: float = 3.0  ## Seconds before fading when damaged
 @export var fade_duration: float = 0.5  ## Fade out time
