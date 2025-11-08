@@ -1,0 +1,89 @@
+[gd_scene load_steps=10 format=3 uid="uid://c2cpavvr6oagt"]
+
+[ext_resource type="Texture2D" uid="uid://ld0jsacvqv4v" path="res://assets/neade/Dress.PNG" id="1_dress"]
+[ext_resource type="Texture2D" uid="uid://don8pao7bu121" path="res://assets/neade/Face.PNG" id="2_face"]
+[ext_resource type="Texture2D" uid="uid://b3uid1qp8llnh" path="res://assets/neade/Left Eye.PNG" id="3_left_eye"]
+[ext_resource type="Texture2D" uid="uid://cvsp8ou53d134" path="res://assets/neade/Right Eye.PNG" id="4_right_eye"]
+[ext_resource type="Texture2D" uid="uid://dj2deubaps767" path="res://assets/neade/Hat.PNG" id="5_hat"]
+[ext_resource type="Texture2D" uid="uid://bo451cpolwwte" path="res://assets/neade/Hand.PNG" id="6_hand"]
+[ext_resource type="Texture2D" uid="uid://blu860e38k1w" path="res://assets/neade/Left Leg.PNG" id="7_left_leg"]
+[ext_resource type="Texture2D" uid="uid://q2g2w721k1jx" path="res://assets/neade/Right Leg.PNG" id="8_right_leg"]
+[ext_resource type="Texture2D" uid="uid://wgtluiyc5jut" path="res://assets/neade/Needle.PNG" id="9_needle"]
+
+[node name="Neade" type="Node2D"]
+
+[node name="Skeleton2D" type="Skeleton2D" parent="."]
+
+[node name="RootBone" type="Bone2D" parent="Skeleton2D"]
+position = Vector2(-353, 1152)
+rest = Transform2D(1, 0, 0, 1, -353, 1152)
+
+[node name="BodyBone" type="Bone2D" parent="Skeleton2D/RootBone"]
+position = Vector2(258, -459)
+rest = Transform2D(1, 0, 0, 1, 258, -459)
+
+[node name="DressSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone"]
+position = Vector2(95, -693)
+texture = ExtResource("1_dress")
+
+[node name="HeadBone" type="Bone2D" parent="Skeleton2D/RootBone/BodyBone"]
+position = Vector2(-88, -632)
+rest = Transform2D(1, 0, 0, 1, -88, -632)
+
+[node name="FaceSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone/HeadBone"]
+position = Vector2(226, 18)
+z_index = 1
+texture = ExtResource("2_face")
+
+[node name="LeftEyeSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone/HeadBone"]
+position = Vector2(216, 18)
+z_index = 2
+texture = ExtResource("3_left_eye")
+
+[node name="RightEyeSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone/HeadBone"]
+position = Vector2(236, 18)
+z_index = 2
+texture = ExtResource("4_right_eye")
+
+[node name="HatBone" type="Bone2D" parent="Skeleton2D/RootBone/BodyBone/HeadBone"]
+position = Vector2(-177, -890)
+rest = Transform2D(1, 0, 0, 1, -177, -890)
+
+[node name="HatSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone/HeadBone/HatBone"]
+position = Vector2(403, 908)
+z_index = 3
+texture = ExtResource("5_hat")
+
+[node name="HandBone" type="Bone2D" parent="Skeleton2D/RootBone/BodyBone"]
+position = Vector2(-160, 298)
+rest = Transform2D(1, 0, 0, 1, -160, 298)
+
+[node name="HandSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone/HandBone"]
+position = Vector2(255, -991)
+z_index = 1
+texture = ExtResource("6_hand")
+
+[node name="NeedleBone" type="Bone2D" parent="Skeleton2D/RootBone/BodyBone/HandBone"]
+position = Vector2(1948, -116)
+rest = Transform2D(1, 0, 0, 1, 1948, -116)
+
+[node name="NeedleSprite" type="Sprite2D" parent="Skeleton2D/RootBone/BodyBone/HandBone/NeedleBone"]
+position = Vector2(-1693, -875)
+z_index = 2
+texture = ExtResource("9_needle")
+
+[node name="Leg_L_Bone" type="Bone2D" parent="Skeleton2D/RootBone"]
+position = Vector2(-1468, 682)
+rest = Transform2D(1, 0, 0, 1, -1468, 682)
+
+[node name="LegLSprite" type="Sprite2D" parent="Skeleton2D/RootBone/Leg_L_Bone"]
+position = Vector2(1821, -1834)
+texture = ExtResource("7_left_leg")
+
+[node name="Leg_R_Bone" type="Bone2D" parent="Skeleton2D/RootBone"]
+position = Vector2(-1216, 964)
+rest = Transform2D(1, 0, 0, 1, -1216, 964)
+
+[node name="LegRSprite" type="Sprite2D" parent="Skeleton2D/RootBone/Leg_R_Bone"]
+position = Vector2(1569, -2116)
+texture = ExtResource("8_right_leg")
