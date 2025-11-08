@@ -32,6 +32,11 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 ## Visuals
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 
+## Shadow settings
+@export var shadow_enabled: bool = true
+@export var shadow_size: float = 1.0
+@export var shadow_opacity: float = 0.6
+
 ## Current state
 var current_hp: float
 var is_alive: bool = true
@@ -43,6 +48,7 @@ var is_attacking: bool = false  # Track if currently in attack animation
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
+var shadow_component: MeshInstance3D = null
 
 ## Attachment points for projectiles and effects
 @onready var projectile_spawn_point: Marker3D = $ProjectileSpawnPoint if has_node("ProjectileSpawnPoint") else null
@@ -63,6 +69,7 @@ func _ready() -> void:
 		add_to_group("enemy_units")
 
 	_setup_visuals()
+	_setup_shadow()
 
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
@@ -97,6 +104,25 @@ func _setup_visuals() -> void:
 			if team == Team.PLAYER:
 				visual_component.set_flip_h(true)
 			visual_component.play_animation("idle", true)
+
+func _setup_shadow() -> void:
+	if not shadow_enabled:
+		return
+
+	# Load the ShadowComponent script
+	var shadow_script = load("res://scripts/units/shadow_component.gd")
+	if not shadow_script:
+		push_warning("Unit3D: Failed to load shadow_component.gd")
+		return
+
+	# Create shadow instance
+	shadow_component = MeshInstance3D.new()
+	shadow_component.set_script(shadow_script)
+	shadow_component.shadow_size = shadow_size
+	shadow_component.shadow_opacity = shadow_opacity
+
+	# Add as child (will follow unit automatically)
+	add_child(shadow_component)
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
