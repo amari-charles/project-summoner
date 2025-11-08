@@ -13,9 +13,13 @@ const SCREEN_CENTER_Y: float = 540.0  # Half of 1080 (default height)
 ## Converts screen pixels to world units (higher = smaller world scale)
 const SCREEN_TO_WORLD_SCALE: float = 100.0
 
-## Spawn plane height for 3D units
+## Ground plane Y-coordinate
+## All units walk on this plane, shadows project here, ground VFX spawn here
+const GROUND_Y: float = 0.0
+
+## Spawn plane height for 3D units (same as ground for grounded units)
 ## Y-coordinate where units spawn in 3D battlefield
-const SPAWN_PLANE_HEIGHT: float = 1.0
+const SPAWN_PLANE_HEIGHT: float = GROUND_Y
 
 ## Raycast distance for screen-to-world conversion
 const RAYCAST_DISTANCE: float = 1000.0

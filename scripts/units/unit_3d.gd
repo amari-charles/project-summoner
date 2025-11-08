@@ -109,6 +109,10 @@ func _setup_shadow() -> void:
 	if not shadow_enabled:
 		return
 
+	# Auto-calculate shadow size from collision shape if not manually set
+	if shadow_size <= 0.0:
+		shadow_size = _calculate_shadow_size_from_collision()
+
 	# Load the ShadowComponent script
 	var shadow_script = load("res://scripts/units/shadow_component.gd")
 	if not shadow_script:
@@ -123,6 +127,25 @@ func _setup_shadow() -> void:
 
 	# Add as child (will follow unit automatically)
 	add_child(shadow_component)
+
+## Calculate shadow size based on collision shape
+func _calculate_shadow_size_from_collision() -> float:
+	# Find CollisionShape3D child
+	for child in get_children():
+		if child is CollisionShape3D:
+			var shape = child.shape
+			if shape is CapsuleShape3D:
+				# Shadow diameter = radius * 2.5 (a bit larger than capsule base)
+				return shape.radius * 2.5
+			elif shape is BoxShape3D:
+				# Use average of X and Z extents
+				var extents = shape.size
+				return (extents.x + extents.z) / 2.0 * 1.2
+			elif shape is SphereShape3D:
+				return shape.radius * 2.2
+
+	# Fallback to default
+	return 1.0
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:

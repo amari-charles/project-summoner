@@ -90,9 +90,9 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Check ground collision (explode if hit ground)
-	if global_position.y <= 0.2:
+	if global_position.y <= BattlefieldConstants.GROUND_Y + 0.2:
 		print("GROUND HIT: Projectile at y=%.2f, triggering expire" % global_position.y)
-		_trigger_impact_effects(Vector3(global_position.x, 0, global_position.z))
+		_trigger_impact_effects(Vector3(global_position.x, BattlefieldConstants.GROUND_Y, global_position.z))
 		if fade_on_hit:
 			_expire_with_fade()
 		else:
