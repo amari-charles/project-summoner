@@ -1,48 +1,37 @@
 extends Node3D
 class_name Character2D5Component
 
-## 2.5D Character Rendering Component
-## Renders 2D sprite animations in 3D space using Sprite3D + SubViewport
-
-@onready var sprite_3d: Sprite3D = $Sprite3D
-@onready var viewport: SubViewport = $Sprite3D/SubViewport
-@onready var character_sprite: AnimatedSprite2D = $Sprite3D/SubViewport/Model2D/CharacterSprite
-
-func _ready() -> void:
-	# Force viewport to render every frame
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-
-## Set the SpriteFrames resource for this character
-func set_sprite_frames(frames: SpriteFrames) -> void:
-	if character_sprite:
-		character_sprite.sprite_frames = frames
-
-## Flip the sprite horizontally
-func set_flip_h(flip: bool) -> void:
-	if character_sprite:
-		character_sprite.flip_h = flip
+## Base class for 2.5D character rendering components
+## Defines the interface that all character rendering implementations must follow
+##
+## This is an abstract class - do not use directly!
+## Use one of the implementations:
+##   - SpriteCharacter2D5Component (for AnimatedSprite2D/sprite frames)
+##   - SkeletalCharacter2D5Component (for Skeleton2D/AnimationPlayer)
 
 ## Play an animation
+## @virtual
 func play_animation(anim_name: String, auto_play: bool = false) -> void:
-	if character_sprite and character_sprite.sprite_frames:
-		character_sprite.animation = anim_name
-		if auto_play:
-			character_sprite.autoplay = anim_name
-		character_sprite.play()
+	push_error("Character2D5Component.play_animation() called on base class - must be overridden in child class")
 
 ## Stop current animation
+## @virtual
 func stop_animation() -> void:
-	if character_sprite:
-		character_sprite.stop()
+	push_error("Character2D5Component.stop_animation() called on base class - must be overridden in child class")
 
 ## Get current animation name
+## @virtual
 func get_current_animation() -> String:
-	if character_sprite:
-		return character_sprite.animation
+	push_error("Character2D5Component.get_current_animation() called on base class - must be overridden in child class")
 	return ""
 
 ## Check if animation is playing
+## @virtual
 func is_playing() -> bool:
-	if character_sprite:
-		return character_sprite.is_playing()
+	push_error("Character2D5Component.is_playing() called on base class - must be overridden in child class")
 	return false
+
+## Flip the sprite horizontally (for enemy units)
+## @virtual
+func set_flip_h(flip: bool) -> void:
+	push_error("Character2D5Component.set_flip_h() called on base class - must be overridden in child class")

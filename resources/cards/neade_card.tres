@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Card" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card_script"]
+[ext_resource type="PackedScene" uid="uid://neade_3d" path="res://scenes/units/neade_3d.tscn" id="2_unit_scene"]
+
+[resource]
+script = ExtResource("1_card_script")
+card_name = "Neade"
+card_type = 0
+description = "A fierce lancer who strikes with devastating precision. Slow but powerful melee attacks."
+mana_cost = 4
+cooldown = 2.0
+unit_scene = ExtResource("2_unit_scene")
+spawn_count = 1
+spell_damage = 0.0
+spell_radius = 0.0
+spell_duration = 0.0

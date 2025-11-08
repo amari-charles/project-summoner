@@ -172,6 +172,34 @@ func _init_catalog() -> void:
 		"unlock_condition": "enemy_only"
 	}
 
+	# Neade - Heavy lancer
+	_catalog["neade"] = {
+		"catalog_id": "neade",
+		"card_name": "Neade",
+		"description": "A fierce lancer who strikes with devastating precision. Slow but powerful melee attacks.",
+		"rarity": "rare",
+
+		"card_type": 0,  # SUMMON
+		"mana_cost": 4,
+		"cooldown": 2.0,
+
+		"unit_scene_path": "res://scenes/units/neade.tscn",
+		"spawn_count": 1,
+
+		"max_hp": 120.0,
+		"attack_damage": 28.0,
+		"attack_range": 70.0,
+		"attack_speed": 0.55,
+		"move_speed": 55.0,
+		"aggro_radius": 220.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		"card_icon_path": "",
+		"tags": ["melee", "lancer", "heavy", "rare"],
+		"unlock_condition": "locked"
+	}
+
 ## =============================================================================
 ## LOOKUP METHODS
 ## =============================================================================

@@ -23,8 +23,10 @@ var current_hp: float
 var is_alive: bool = true
 var current_target: Node3D = null
 var attack_cooldown: float = 0.0
+var pending_attack_target: Node3D = null  # Target for animation-driven damage
+var is_facing_left: bool = false  # Current facing direction
 
-## Visual component
+## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
 
 ## Attachment points for projectiles and effects
@@ -51,8 +53,22 @@ func _ready() -> void:
 	HPBarManager.create_bar_for_unit(self)
 
 func _setup_visuals() -> void:
-	# Load and instance the 2.5D character component
-	var component_scene = load("res://scenes/units/character_2d5_component.tscn")
+	# Check if a visual component already exists (e.g., Skeletal2D5Component added in scene)
+	visual_component = get_node_or_null("Visual")
+	if visual_component:
+		print("Unit3D: Using existing visual component: %s" % visual_component.name)
+		# Initialize facing direction based on team
+		is_facing_left = (team == Team.ENEMY)
+		# Sprites face LEFT by default, so flip PLAYER units to face right
+		if team == Team.PLAYER and visual_component.has_method("set_flip_h"):
+			visual_component.set_flip_h(true)
+		# Play idle animation
+		if visual_component.has_method("play_animation"):
+			visual_component.play_animation("idle", true)
+		return
+
+	# Otherwise, load and instance the standard sprite-based 2.5D character component
+	var component_scene = load("res://scenes/units/sprite_character_2d5_component.tscn")
 	if component_scene:
 		visual_component = component_scene.instantiate()
 		add_child(visual_component)
@@ -60,8 +76,10 @@ func _setup_visuals() -> void:
 		# Set sprite frames if provided
 		if sprite_frames:
 			visual_component.set_sprite_frames(sprite_frames)
-			# Flip enemy sprites to face left
-			if team == Team.ENEMY:
+			# Initialize facing direction based on team
+			is_facing_left = (team == Team.ENEMY)
+			# Sprites face LEFT by default, so flip PLAYER units to face right
+			if team == Team.PLAYER:
 				visual_component.set_flip_h(true)
 			visual_component.play_animation("idle", true)
 
@@ -76,6 +94,8 @@ func _physics_process(delta: float) -> void:
 		var distance = global_position.distance_to(current_target.global_position)
 
 		if distance <= attack_range:
+			# Face opponent when idle in range
+			_update_facing(current_target.global_position)
 			_update_animation("idle")
 			if attack_cooldown <= 0.0:
 				_perform_attack()
@@ -115,8 +135,30 @@ func _move_towards_target(delta: float) -> void:
 	var direction = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
+
+	# Face the direction we're moving
+	_update_facing_from_direction(direction)
+
 	velocity = direction * move_speed
 	move_and_slide()
+
+func _update_facing(target_position: Vector3) -> void:
+	# Calculate direction to target and face that direction
+	var direction = (target_position - global_position).normalized()
+	_update_facing_from_direction(direction)
+
+func _update_facing_from_direction(direction: Vector3) -> void:
+	if not visual_component or not visual_component.has_method("set_flip_h"):
+		return
+
+	# Face left if direction has negative Z component (towards player base)
+	var should_face_left = direction.z < 0
+
+	# Only flip if facing changed (avoid redundant calls)
+	if should_face_left != is_facing_left:
+		is_facing_left = should_face_left
+		# Sprites face LEFT by default, so flip when should face RIGHT
+		visual_component.set_flip_h(not is_facing_left)
 
 func _perform_attack() -> void:
 	if not current_target:
@@ -126,11 +168,23 @@ func _perform_attack() -> void:
 	attack_cooldown = 1.0 / attack_speed
 
 	if is_ranged:
+		# Ranged attacks spawn projectile immediately (projectile has travel time)
 		_spawn_projectile()
 	else:
-		_deal_damage_to(current_target)
+		# Melee attacks store target for animation-driven damage
+		pending_attack_target = current_target
+
+		# Fallback: If no animation event fires within 0.5s, deal instant damage
+		# (This handles sprite-based units without animation events)
+		_start_attack_damage_fallback()
 
 	unit_attacked.emit(current_target)
+
+func _start_attack_damage_fallback() -> void:
+	await get_tree().create_timer(0.5).timeout
+	# If pending_attack_target still exists, animation event didn't fire
+	if pending_attack_target:
+		_on_attack_impact()  # Deal damage as fallback
 
 func _spawn_projectile() -> void:
 	if not current_target:
@@ -156,6 +210,12 @@ func _spawn_projectile() -> void:
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
 	DamageSystem.apply_damage(self, target, attack_damage, "physical")
+
+## Called by animation event when attack impact occurs
+func _on_attack_impact() -> void:
+	if pending_attack_target and is_instance_valid(pending_attack_target):
+		_deal_damage_to(pending_attack_target)
+	pending_attack_target = null
 
 func take_damage(amount: float) -> void:
 	if not is_alive:
@@ -185,7 +245,18 @@ func _die() -> void:
 	queue_free()
 
 func _update_animation(anim_name: String) -> void:
-	if visual_component and visual_component.get_current_animation() != anim_name:
+	if not visual_component:
+		return
+
+	var current_anim = visual_component.get_current_animation()
+
+	# Don't interrupt important animations (attack, hurt, death)
+	if current_anim in ["attack", "hurt", "death"]:
+		# Only block if animation is still playing
+		if visual_component.is_playing() and anim_name not in ["attack", "hurt", "death"]:
+			return  # Don't interrupt with idle/walk while animation is playing
+
+	if current_anim != anim_name:
 		visual_component.play_animation(anim_name)
 
 ## Get the world position where projectiles should spawn from
