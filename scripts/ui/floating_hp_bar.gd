@@ -102,7 +102,7 @@ func _create_sprite_visuals() -> void:
 	bar_sprite.pixel_size = pixel_size
 	# Centered by default (same as background), will shift position when scaled
 	bar_sprite.centered = true
-	bar_sprite.position = Vector3(0, 0, -0.01)  # Slightly forward
+	bar_sprite.position = Vector3(0, 0, -0.05)  # Further forward to prevent z-fighting
 	add_child(bar_sprite)
 
 	print("  Created Sprite3D visuals with billboard mode")
