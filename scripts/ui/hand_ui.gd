@@ -23,7 +23,7 @@ class CardDisplay extends Control:
 
 	# 3D rotation shader
 	var shader_material: ShaderMaterial
-	var card_surface: ColorRect  # The main visual surface with shader applied
+	var canvas_group: CanvasGroup  # Wraps all visuals and has shader applied
 
 	# Velocity tracking for rotation
 	var previous_position: Vector2
@@ -58,12 +58,12 @@ class CardDisplay extends Control:
 		mouse_entered.connect(_on_mouse_entered)
 		mouse_exited.connect(_on_mouse_exited)
 
-		# Wait for card surface to be added
+		# Wait for canvas group to be added
 		await get_tree().process_frame
 
-		# Setup 3D shader on card surface
-		card_surface = get_node_or_null("CardSurface") as ColorRect
-		if card_surface:
+		# Setup 3D shader on canvas group
+		canvas_group = get_node_or_null("CardVisuals") as CanvasGroup
+		if canvas_group:
 			_setup_3d_shader()
 
 	func _process(delta: float) -> void:
@@ -95,9 +95,9 @@ class CardDisplay extends Control:
 		if is_hovered and shader_material:
 			_update_3d_rotation()
 
-	## Setup 3D perspective shader on card surface
+	## Setup 3D perspective shader on canvas group
 	func _setup_3d_shader() -> void:
-		if not card_surface:
+		if not canvas_group:
 			return
 
 		# Load shader
@@ -118,8 +118,8 @@ class CardDisplay extends Control:
 		shader_material.set_shader_parameter("cull_backface", true)
 		shader_material.set_shader_parameter("use_front", true)
 
-		# Apply shader to card surface
-		card_surface.material = shader_material
+		# Apply shader to canvas group (renders all children to texture, then applies shader)
+		canvas_group.material = shader_material
 
 	## Update 3D rotation based on mouse position relative to card
 	func _update_3d_rotation() -> void:
@@ -240,7 +240,7 @@ class CardDisplay extends Control:
 		was_recently_hovered = true
 
 		# Stop any pulse glow on the card surface (border)
-		var surface = get_node_or_null("CardSurface") as ColorRect
+		var surface = get_node_or_null("CardVisuals/CardSurface") as ColorRect
 		if surface and surface.has_meta("pulse_tween"):
 			var pulse_tween = surface.get_meta("pulse_tween") as Tween
 			if pulse_tween and pulse_tween.is_valid():
@@ -312,7 +312,7 @@ class CardDisplay extends Control:
 		hover_tween.finished.connect(func(): z_index = 0)
 
 		# Remove hover glow - set to static non-pulsing color
-		var surface = get_node_or_null("CardSurface") as ColorRect
+		var surface = get_node_or_null("CardVisuals/CardSurface") as ColorRect
 		if surface:
 			var glow_tween = create_tween()
 			glow_tween.set_trans(Tween.TRANS_SINE)
@@ -322,7 +322,7 @@ class CardDisplay extends Control:
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var surface = get_node_or_null("CardSurface") as ColorRect
+		var surface = get_node_or_null("CardVisuals/CardSurface") as ColorRect
 		if not surface:
 			return
 
@@ -411,18 +411,21 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.card_index = index
 	container.hand_ui = self
 
-	# Card surface (includes border) - will have 3D shader applied
-	# This is the full card including border area
+	# CanvasGroup - renders all children as one texture, then applies shader
+	var visuals = CanvasGroup.new()
+	visuals.name = "CardVisuals"
+	container.add_child(visuals)
+
+	# Card border/surface (full card size including border)
 	var surface = ColorRect.new()
 	surface.name = "CardSurface"
 	surface.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
 	surface.position = Vector2(-2, -2)
 	surface.color = Color.GRAY  # Border color
 	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(surface)
+	visuals.add_child(surface)
 
-	# Card background (inner area)
-	# This sits on top of the surface to create the border effect
+	# Card background (inner area, child of surface to layer on top)
 	var bg = ColorRect.new()
 	bg.name = "Background"
 	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
@@ -518,8 +521,8 @@ func _update_availability() -> void:
 		if not display:
 			continue
 
-		var surface = display.get_node_or_null("CardSurface") as ColorRect
-		var bg = display.get_node_or_null("CardSurface/Background") as ColorRect
+		var surface = display.get_node_or_null("CardVisuals/CardSurface") as ColorRect
+		var bg = display.get_node_or_null("CardVisuals/CardSurface/Background") as ColorRect
 
 		# Check affordability
 		var can_afford = summoner.mana >= card.mana_cost
