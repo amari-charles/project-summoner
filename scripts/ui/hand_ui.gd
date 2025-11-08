@@ -33,6 +33,10 @@ class CardDisplay extends Control:
 	# Shadow duplicate
 	var shadow_card: Control
 
+	# Drag state
+	var is_being_dragged: bool = false
+	var drag_offset: Vector2 = Vector2.ZERO
+
 	# Animation constants
 	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
 	const HOVER_SCALE = 1.2     # Scale multiplier when hovered
@@ -82,6 +86,11 @@ class CardDisplay extends Control:
 		_start_idle_animation()
 
 	func _process(delta: float) -> void:
+		# If being dragged, follow mouse
+		if is_being_dragged:
+			global_position = get_global_mouse_position() - drag_offset
+			z_index = 100  # Above everything while dragging
+
 		# Update velocity for rotation
 		var current_pos = global_position
 		velocity = (current_pos - previous_position) / delta if delta > 0 else Vector2.ZERO
@@ -210,7 +219,7 @@ class CardDisplay extends Control:
 		)
 
 	## Start dragging this card
-	func _get_drag_data(_at_position: Vector2) -> Variant:
+	func _get_drag_data(at_position: Vector2) -> Variant:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
@@ -218,16 +227,21 @@ class CardDisplay extends Control:
 		if hand_ui.summoner.mana < card.mana_cost:
 			return null
 
-		# Hide shadow while dragging
-		if shadow_card:
-			shadow_card.visible = false
+		# Start dragging the actual card
+		is_being_dragged = true
+		drag_offset = at_position  # Where on the card we clicked
 
-		# Create drag preview
-		var preview = _create_drag_preview()
-		set_drag_preview(preview)
+		# Stop any animations
+		if hover_tween and hover_tween.is_valid():
+			hover_tween.kill()
+		if idle_tween and idle_tween.is_valid():
+			idle_tween.kill()
 
-		# Hide the original card while dragging
-		modulate.a = 0.3  # Make semi-transparent
+		# Scale up slightly while dragging
+		scale = Vector2(HOVER_SCALE, HOVER_SCALE)
+
+		# Don't use a preview - we're moving the actual card
+		set_drag_preview(Control.new())  # Empty preview
 
 		# Return drag data
 		return {
@@ -236,49 +250,25 @@ class CardDisplay extends Control:
 			"source": "hand"
 		}
 
-	## Create visual preview while dragging
-	func _create_drag_preview() -> Control:
-		var preview = Control.new()
-
-		# Semi-transparent card background
-		var bg = ColorRect.new()
-		bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-		bg.color = Color(0.2, 0.2, 0.3, 0.7)
-		preview.add_child(bg)
-
-		# Glowing border
-		var border = ColorRect.new()
-		border.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-		border.position = Vector2(-2, -2)
-		border.color = Color(1.0, 0.8, 0.0, 0.8)
-		border.z_index = -1
-		preview.add_child(border)
-
-		# Card name
-		var name_label = Label.new()
-		name_label.text = card.card_name
-		name_label.position = Vector2(10, 10)
-		name_label.add_theme_font_size_override("font_size", 16)
-		preview.add_child(name_label)
-
-		# Mana cost
-		var cost_label = Label.new()
-		cost_label.text = str(int(card.mana_cost))
-		cost_label.position = Vector2(CARD_WIDTH - 30, CARD_HEIGHT - 35)
-		cost_label.add_theme_font_size_override("font_size", 20)
-		cost_label.add_theme_color_override("font_color", Color.CYAN)
-		preview.add_child(cost_label)
-
-		return preview
-
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			# Restore card visibility
-			modulate.a = 1.0
-			# Restore shadow visibility
-			if shadow_card:
-				shadow_card.visible = true
+			is_being_dragged = false
+
+			# Animate back to original position
+			var return_tween = create_tween()
+			return_tween.set_parallel(true)
+			return_tween.set_trans(Tween.TRANS_BACK)
+			return_tween.set_ease(Tween.EASE_OUT)
+
+			return_tween.tween_property(self, "position", base_position, 0.3)
+			return_tween.tween_property(self, "scale", base_scale, 0.3)
+			return_tween.tween_property(self, "rotation", 0.0, 0.3)
+
+			return_tween.finished.connect(func():
+				z_index = 0
+				_start_idle_animation()
+			)
 
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
