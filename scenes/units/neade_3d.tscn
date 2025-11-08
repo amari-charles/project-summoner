@@ -46,5 +46,5 @@ transparent_bg = true
 size = Vector2i(600, 600)
 
 [node name="NeadeModel" parent="Visual/Sprite3D/SubViewport" instance=ExtResource("2_neade_visual")]
-position = Vector2(300, 450)
+position = Vector2(300, 200)
 scale = Vector2(0.08, 0.08)

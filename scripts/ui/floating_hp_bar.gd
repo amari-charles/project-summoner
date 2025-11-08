@@ -63,9 +63,6 @@ func _process(delta: float) -> void:
 	var target_pos = target_unit.global_position + Vector3(0, offset_y, 0)
 	global_position = target_pos
 
-	if should_debug:
-		print("FloatingHPBar._process(): Following %s at position %v, visible=%s" % [target_unit.name, global_position, visible])
-
 	# Sprite3D handles billboarding automatically via billboard mode, no manual look_at needed!
 
 	# Handle fade timer
@@ -170,8 +167,6 @@ func update_hp(current: float, maximum: float) -> void:
 
 	# Redraw the bar texture with new HP percentage
 	_redraw_bar_texture(hp_percent)
-
-	print("FloatingHPBar.update_hp(): Redrawn bar for HP %.0f%%" % (hp_percent * 100))
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:

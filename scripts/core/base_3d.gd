@@ -48,8 +48,6 @@ func take_damage(damage: float) -> void:
 	hp_changed.emit(current_hp, max_hp)
 	base_damaged.emit(self, damage)
 
-	print("Base3D damaged: %d/%d HP" % [current_hp, max_hp])
-
 	if current_hp <= 0:
 		_destroy()
 
