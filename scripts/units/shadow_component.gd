@@ -12,6 +12,14 @@ var shadow_texture: ImageTexture = null
 func _ready() -> void:
 	_setup_shadow()
 
+	# Debug: Print shadow setup
+	print("ShadowComponent ready:")
+	print("  Position: %v" % position)
+	print("  Rotation: %v" % rotation_degrees)
+	print("  Size: %v" % size)
+	print("  Texture: %s" % (texture_albedo != null))
+	print("  Albedo mix: %.2f" % albedo_mix)
+
 func _setup_shadow() -> void:
 	# Create circular gradient texture for shadow
 	_create_shadow_texture()
@@ -35,8 +43,13 @@ func _setup_shadow() -> void:
 	# Disable other texture channels (only use albedo for shadow)
 	modulate = Color(0, 0, 0, 1)  # Black shadow
 
-	# Render settings
-	cull_mask = 1  # Project onto layer 1 (ground)
+	# Render settings - project onto all layers
+	cull_mask = 0xFFFFFFFF  # Project onto all render layers
+
+	# Ensure decal is visible
+	distance_fade_enabled = false
+	upper_fade = 0.0  # No fade at top of projection volume
+	lower_fade = 0.1  # Small fade at bottom to blend with ground
 
 func _create_shadow_texture() -> void:
 	# Create a circular gradient image for the shadow
