@@ -93,7 +93,3 @@ func set_ring_radius(radius: float) -> void:
 	ring_radius = radius
 	if mesh is QuadMesh:
 		mesh.size = Vector2(ring_radius, ring_radius)
-
-## Check if ring is currently visible
-func is_visible() -> bool:
-	return visible

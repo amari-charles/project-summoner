@@ -1,5 +1,4 @@
 extends Node
-class_name UnitSelectionManager
 
 ## Central manager for unit selection and hover state
 ## Singleton (autoload) that tracks which unit is selected/hovered
