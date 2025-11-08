@@ -100,7 +100,8 @@ func _create_sprite_visuals() -> void:
 	bar_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	bar_sprite.no_depth_test = true
 	bar_sprite.pixel_size = pixel_size
-	bar_sprite.offset = Vector2(-texture_width * 0.5, 0)  # Anchor left
+	# Centered by default (same as background), will shift position when scaled
+	bar_sprite.centered = true
 	bar_sprite.position = Vector3(0, 0, -0.01)  # Slightly forward
 	add_child(bar_sprite)
 
@@ -162,11 +163,17 @@ func update_hp(current: float, maximum: float) -> void:
 		# Scale the sprite horizontally to show HP
 		bar_sprite.scale.x = hp_percent
 
+		# Shift position to keep left edge aligned when scaled
+		# When scale is 1.0, offset is 0 (centered)
+		# When scale is 0.5, offset is -bar_width/4 (shift left by half of missing width)
+		var x_offset = -bar_width * 0.5 * (1.0 - hp_percent)
+		bar_sprite.position.x = x_offset
+
 		# Update bar color based on HP percentage
 		var bar_color = _get_hp_color(hp_percent)
 		bar_sprite.modulate = bar_color
 
-		print("FloatingHPBar.update_hp(): Set scale to %.2f, color to %s for HP %.0f%%" % [hp_percent, bar_color, hp_percent * 100])
+		print("FloatingHPBar.update_hp(): Set scale to %.2f, offset to %.2f, color to %s for HP %.0f%%" % [hp_percent, x_offset, bar_color, hp_percent * 100])
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:
