@@ -412,11 +412,9 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.hand_ui = self
 
 	# Create CanvasGroup to wrap all visual elements (for unified shader application)
+	# Note: CanvasGroup is a Node2D, not Control, so it doesn't have size/mouse_filter properties
 	var visuals = CanvasGroup.new()
 	visuals.name = "CardVisuals"
-	visuals.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	visuals.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	visuals.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.add_child(visuals)
 
 	# Card border (rendered behind background)
