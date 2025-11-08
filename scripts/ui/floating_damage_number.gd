@@ -53,8 +53,10 @@ func _create_sprite_visuals() -> void:
 	damage_sprite = Sprite3D.new()
 	damage_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	damage_sprite.no_depth_test = true
-	damage_sprite.pixel_size = 0.01  # Adjust for size
+	damage_sprite.pixel_size = 0.005  # Smaller for better text size
+	damage_sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	add_child(damage_sprite)
+	print("FloatingDamageNumber: Sprite3D created")
 
 func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg_type: String = "physical") -> void:
 	damage_value = value
@@ -117,7 +119,12 @@ func _render_damage_text() -> void:
 		damage_texture.update(damage_image)
 	else:
 		damage_texture = ImageTexture.create_from_image(damage_image)
+
+	# Set texture on sprite
+	if damage_sprite:
 		damage_sprite.texture = damage_texture
+	else:
+		push_error("FloatingDamageNumber: damage_sprite is null when trying to set texture")
 
 func _get_damage_color() -> Color:
 	if is_crit:
