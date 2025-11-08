@@ -6,7 +6,6 @@ class_name ShadowComponent
 
 @export var shadow_size: float = 1.0
 @export var shadow_opacity: float = 0.6
-@export var ground_offset: float = 0.05  ## Distance above ground to prevent z-fighting
 
 var shadow_texture: ImageTexture = null
 
@@ -21,15 +20,17 @@ func _setup_shadow() -> void:
 	texture_albedo = shadow_texture
 	albedo_mix = shadow_opacity
 
-	# Set decal size (projects downward in a box)
+	# Set decal size (projects along -Z axis in a box volume)
 	# X/Z control shadow radius, Y controls projection depth
-	size = Vector3(shadow_size, 1.0, shadow_size)
+	size = Vector3(shadow_size, 2.0, shadow_size)
 
-	# Decals project downward by default (Y-axis), which is what we want
-	# No rotation needed!
+	# Position decal ABOVE the unit so it can project DOWN onto ground
+	# Unit is at Y=0, decal at Y=1.0, projects down 2.0 units to reach Y=-1.0
+	position = Vector3(0, 1.0, 0)
 
-	# Position at ground level
-	position.y = ground_offset
+	# Rotate decal to point downward (Decals project along -Z by default)
+	# Rotate -90 degrees on X axis so -Z points down
+	rotation_degrees = Vector3(-90, 0, 0)
 
 	# Disable other texture channels (only use albedo for shadow)
 	modulate = Color(0, 0, 0, 1)  # Black shadow
@@ -68,7 +69,7 @@ func _create_shadow_texture() -> void:
 ## Update shadow size at runtime
 func set_shadow_size(new_size: float) -> void:
 	shadow_size = new_size
-	size = Vector3(shadow_size, 1.0, shadow_size)
+	size = Vector3(shadow_size, 2.0, shadow_size)
 
 ## Update shadow opacity at runtime
 func set_shadow_opacity(opacity: float) -> void:
