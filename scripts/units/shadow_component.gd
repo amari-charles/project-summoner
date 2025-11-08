@@ -31,7 +31,6 @@ func _setup_shadow() -> void:
 		material.shader = shader
 
 		# Set shader parameters
-		material.set_shader_parameter("shadow_size", shadow_size)
 		material.set_shader_parameter("shadow_opacity", shadow_opacity)
 		material.set_shader_parameter("shadow_color", shadow_color)
 		material.set_shader_parameter("edge_softness", edge_softness)
@@ -49,9 +48,6 @@ func set_shadow_size(size: float) -> void:
 	shadow_size = size
 	if mesh is QuadMesh:
 		mesh.size = Vector2(size, size)
-	var mat = get_surface_override_material(0)
-	if mat is ShaderMaterial:
-		mat.set_shader_parameter("shadow_size", size)
 
 func set_shadow_opacity(opacity: float) -> void:
 	shadow_opacity = opacity
