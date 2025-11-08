@@ -33,9 +33,6 @@ class CardDisplay extends Control:
 	# Shadow duplicate
 	var shadow_card: Control
 
-	# Drag state
-	var is_being_dragged: bool = false
-	var drag_offset: Vector2 = Vector2.ZERO
 
 	# Animation constants
 	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
@@ -86,31 +83,6 @@ class CardDisplay extends Control:
 		_start_idle_animation()
 
 	func _process(delta: float) -> void:
-		# If being dragged, follow mouse smoothly
-		if is_being_dragged:
-			# Use top_level to escape parent clipping/constraints
-			top_level = true
-
-			# Smooth follow mouse
-			var target_pos = get_global_mouse_position() - drag_offset
-			global_position = global_position.lerp(target_pos, 0.5)  # Smooth interpolation
-			z_index = 100  # Above everything while dragging
-
-			# Hide shadow while dragging
-			if shadow_card:
-				shadow_card.visible = false
-
-			# Skip velocity rotation during drag (causes jitter)
-			previous_position = global_position
-			return
-
-		# Normal processing when not dragging
-		top_level = false  # Re-enable parent positioning
-
-		# Show shadow when not dragging
-		if shadow_card:
-			shadow_card.visible = true
-
 		# Update velocity for rotation
 		var current_pos = global_position
 		velocity = (current_pos - previous_position) / delta if delta > 0 else Vector2.ZERO
@@ -239,7 +211,7 @@ class CardDisplay extends Control:
 		)
 
 	## Start dragging this card
-	func _get_drag_data(at_position: Vector2) -> Variant:
+	func _get_drag_data(_at_position: Vector2) -> Variant:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
@@ -247,23 +219,16 @@ class CardDisplay extends Control:
 		if hand_ui.summoner.mana < card.mana_cost:
 			return null
 
-		# Start dragging the actual card
-		is_being_dragged = true
+		# Create a visual duplicate as preview
+		var preview = duplicate(DUPLICATE_USE_INSTANTIATION)
+		preview.modulate = Color(1, 1, 1, 0.9)  # Slightly transparent
+		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
+		set_drag_preview(preview)
 
-		# Calculate offset in GLOBAL coordinates (before changing top_level)
-		drag_offset = get_global_mouse_position() - global_position
-
-		# Stop any animations
-		if hover_tween and hover_tween.is_valid():
-			hover_tween.kill()
-		if idle_tween and idle_tween.is_valid():
-			idle_tween.kill()
-
-		# Scale up slightly while dragging
-		scale = Vector2(HOVER_SCALE, HOVER_SCALE)
-
-		# Don't use a preview - we're moving the actual card
-		set_drag_preview(Control.new())  # Empty preview
+		# Hide original card while dragging
+		modulate.a = 0.3
+		if shadow_card:
+			shadow_card.visible = false
 
 		# Return drag data
 		return {
@@ -275,27 +240,10 @@ class CardDisplay extends Control:
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			is_being_dragged = false
-			top_level = false  # Re-enable parent positioning
-
-			# Show shadow again
+			# Restore visibility
+			modulate.a = 1.0
 			if shadow_card:
 				shadow_card.visible = true
-
-			# Animate back to original position
-			var return_tween = create_tween()
-			return_tween.set_parallel(true)
-			return_tween.set_trans(Tween.TRANS_BACK)
-			return_tween.set_ease(Tween.EASE_OUT)
-
-			return_tween.tween_property(self, "position", base_position, 0.3)
-			return_tween.tween_property(self, "scale", base_scale, 0.3)
-			return_tween.tween_property(self, "rotation", 0.0, 0.3)
-
-			return_tween.finished.connect(func():
-				z_index = 0
-				_start_idle_animation()
-			)
 
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
