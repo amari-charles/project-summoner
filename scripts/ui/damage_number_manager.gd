@@ -42,33 +42,24 @@ func _init_pool() -> void:
 
 ## Spawn damage number at position
 func spawn_damage_number(value: float, position: Vector3, is_crit: bool = false, damage_type: String = "physical"):
-	print("DamageNumberManager.spawn_damage_number() called")
-	print("  Value: %.1f, Pos: %v, Crit: %s" % [value, position, is_crit])
-
 	# Get number from pool or create new
 	var number = null
 	if number_pool.size() > 0:
 		number = number_pool.pop_back()
 		number.reset()
-		print("  Reused from pool (pool size: %d)" % number_pool.size())
 	else:
 		number = FloatingDamageNumber.new()
 		number.is_pooled = true
-		print("  Created new number (pool empty)")
 
 	if not number:
 		push_error("DamageNumberManager: Failed to create damage number")
 		return null
 
-	print("  Number instance: %s" % number)
-
 	# Add to scene FIRST so _ready() runs
 	numbers_container.add_child(number)
-	print("  Added to scene")
 
-	# THEN configure and show (after _ready() has created sprite)
+	# THEN configure and show (after _ready() has created label)
 	number.show_damage(value, position, is_crit, damage_type)
-	print("  Configured, visible: %s" % number.visible)
 
 	# Track active number
 	active_numbers.append(number)
@@ -77,18 +68,11 @@ func spawn_damage_number(value: float, position: Vector3, is_crit: bool = false,
 	if not number.number_finished.is_connected(_on_number_finished):
 		number.number_finished.connect(_on_number_finished.bind(number))
 
-	print("  Active numbers: %d" % active_numbers.size())
-
 	return number
 
 ## Handle damage_taken signal from DamageSystem
 func _on_damage_taken(event: CombatEvent) -> void:
-	print("DamageNumberManager: damage_taken signal received")
-	print("  Event: %s" % event)
-	print("  Target: %s" % (event.target.name if event and event.target else "null"))
-
 	if not event or not event.target:
-		print("  ERROR: No event or target!")
 		return
 
 	# Calculate spawn position (above target, slightly below HP bar)
@@ -97,9 +81,6 @@ func _on_damage_taken(event: CombatEvent) -> void:
 	# Get metadata
 	var is_crit = event.metadata.get("is_crit", false) if event.metadata else false
 	var damage_type = event.damage_type
-
-	print("  Damage: %.1f, Crit: %s, Type: %s" % [event.value, is_crit, damage_type])
-	print("  Spawn position: %v" % spawn_pos)
 
 	# Spawn damage number
 	spawn_damage_number(event.value, spawn_pos, is_crit, damage_type)
