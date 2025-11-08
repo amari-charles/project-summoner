@@ -34,7 +34,14 @@ var camera: Camera3D = null
 signal bar_hidden()  ## Emitted when bar fades out (for pooling)
 
 func _ready() -> void:
-	_create_visuals()
+	# Find child meshes from scene (if they exist)
+	background_mesh = get_node_or_null("Background")
+	bar_mesh = get_node_or_null("Bar")
+
+	# Fallback: create visuals if not in scene
+	if not background_mesh or not bar_mesh:
+		_create_visuals()
+
 	_find_camera()
 
 func _process(delta: float) -> void:
