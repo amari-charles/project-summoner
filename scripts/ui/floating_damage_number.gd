@@ -61,8 +61,12 @@ func _create_sprite_visuals() -> void:
 	damage_sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	damage_sprite.modulate = Color.WHITE  # Ensure full brightness
 	damage_sprite.centered = true  # Center sprite like HP bars
+
+	# CRITICAL FIX: Ensure sprite is on all render layers like camera
+	damage_sprite.layers = 0xFFFFF  # All 20 layers enabled
+
 	add_child(damage_sprite)
-	print("FloatingDamageNumber: Sprite3D created (pixel_size: 0.05 DEBUG, centered: true)")
+	print("FloatingDamageNumber: Sprite3D created (pixel_size: 0.05 DEBUG, centered: true, layers: 0x%X)" % damage_sprite.layers)
 
 func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg_type: String = "physical") -> void:
 	print("FloatingDamageNumber.show_damage() called")
