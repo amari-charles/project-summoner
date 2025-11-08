@@ -23,7 +23,7 @@ class CardDisplay extends Control:
 
 	# 3D rotation shader
 	var shader_material: ShaderMaterial
-	var background_node: ColorRect  # Reference to apply shader
+	var canvas_group: CanvasGroup  # Reference to apply shader (wraps all visual elements)
 
 	# Velocity tracking for rotation
 	var previous_position: Vector2
@@ -58,12 +58,12 @@ class CardDisplay extends Control:
 		mouse_entered.connect(_on_mouse_entered)
 		mouse_exited.connect(_on_mouse_exited)
 
-		# Wait for background node to be added
+		# Wait for canvas group to be added
 		await get_tree().process_frame
 
-		# Setup 3D shader on background
-		background_node = get_node_or_null("Background") as ColorRect
-		if background_node:
+		# Setup 3D shader on canvas group
+		canvas_group = get_node_or_null("CardVisuals") as CanvasGroup
+		if canvas_group:
 			_setup_3d_shader()
 
 	func _process(delta: float) -> void:
@@ -95,9 +95,9 @@ class CardDisplay extends Control:
 		if is_hovered and shader_material:
 			_update_3d_rotation()
 
-	## Setup 3D perspective shader on card background
+	## Setup 3D perspective shader on card canvas group
 	func _setup_3d_shader() -> void:
-		if not background_node:
+		if not canvas_group:
 			return
 
 		# Load shader
@@ -118,8 +118,8 @@ class CardDisplay extends Control:
 		shader_material.set_shader_parameter("cull_backface", true)
 		shader_material.set_shader_parameter("use_front", true)
 
-		# Apply shader to background
-		background_node.material = shader_material
+		# Apply shader to canvas group (affects all children together)
+		canvas_group.material = shader_material
 
 	## Update 3D rotation based on mouse position relative to card
 	func _update_3d_rotation() -> void:
@@ -240,7 +240,7 @@ class CardDisplay extends Control:
 		was_recently_hovered = true
 
 		# Stop any pulse glow on the border
-		var border = get_node_or_null("Border") as ColorRect
+		var border = get_node_or_null("CardVisuals/Border") as ColorRect
 		if border and border.has_meta("pulse_tween"):
 			var pulse_tween = border.get_meta("pulse_tween") as Tween
 			if pulse_tween and pulse_tween.is_valid():
@@ -312,7 +312,7 @@ class CardDisplay extends Control:
 		hover_tween.finished.connect(func(): z_index = 0)
 
 		# Remove hover glow - set to static non-pulsing color
-		var border = get_node_or_null("Border") as ColorRect
+		var border = get_node_or_null("CardVisuals/Border") as ColorRect
 		if border:
 			var glow_tween = create_tween()
 			glow_tween.set_trans(Tween.TRANS_SINE)
@@ -322,7 +322,7 @@ class CardDisplay extends Control:
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var border = get_node_or_null("Border") as ColorRect
+		var border = get_node_or_null("CardVisuals/Border") as ColorRect
 		if not border:
 			return
 
@@ -411,15 +411,15 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.card_index = index
 	container.hand_ui = self
 
-	# Card background
-	var bg = ColorRect.new()
-	bg.name = "Background"
-	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	bg.color = Color(0.2, 0.2, 0.3, 0.9)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(bg)
+	# Create CanvasGroup to wrap all visual elements (for unified shader application)
+	var visuals = CanvasGroup.new()
+	visuals.name = "CardVisuals"
+	visuals.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	visuals.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	visuals.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(visuals)
 
-	# Card border
+	# Card border (rendered behind background)
 	var border = ColorRect.new()
 	border.name = "Border"
 	border.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
@@ -428,7 +428,15 @@ func _create_card_display(card: Card, index: int) -> Control:
 	border.position = Vector2(-2, -2)
 	border.custom_minimum_size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
 	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(border)
+	visuals.add_child(border)
+
+	# Card background
+	var bg = ColorRect.new()
+	bg.name = "Background"
+	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	bg.color = Color(0.2, 0.2, 0.3, 0.9)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	visuals.add_child(bg)
 
 	# Card name label
 	var name_label = Label.new()
@@ -438,7 +446,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	name_label.custom_minimum_size = Vector2(CARD_WIDTH - 20, 0)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(name_label)
+	visuals.add_child(name_label)
 
 	# Card type (icon placeholder)
 	var type_label = Label.new()
@@ -447,7 +455,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	type_label.add_theme_font_size_override("font_size", 12)
 	type_label.add_theme_color_override("font_color", Color.YELLOW)
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(type_label)
+	visuals.add_child(type_label)
 
 	# Unit icon (colored rect for now)
 	if card.card_type == Card.CardType.SUMMON and card.unit_scene:
@@ -456,7 +464,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 		icon.position = Vector2(20, 60)
 		icon.color = Color(0.3, 0.5, 0.8)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		container.add_child(icon)
+		visuals.add_child(icon)
 
 	# Mana cost
 	var cost_bg = ColorRect.new()
@@ -464,7 +472,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	cost_bg.position = Vector2(CARD_WIDTH - 40, CARD_HEIGHT - 40)
 	cost_bg.color = Color(0.1, 0.1, 0.5, 0.9)
 	cost_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(cost_bg)
+	visuals.add_child(cost_bg)
 
 	var cost_label = Label.new()
 	cost_label.name = "CostLabel"
@@ -473,7 +481,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	cost_label.add_theme_font_size_override("font_size", 20)
 	cost_label.add_theme_color_override("font_color", Color.CYAN)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_child(cost_label)
+	visuals.add_child(cost_label)
 
 	return container
 
@@ -494,7 +502,7 @@ func _update_selection_visual() -> void:
 		if not display:
 			continue
 
-		var border = display.get_node_or_null("Border") as ColorRect
+		var border = display.get_node_or_null("CardVisuals/Border") as ColorRect
 
 		if i == selected_card_index:
 			if border:
@@ -517,8 +525,8 @@ func _update_availability() -> void:
 		if not display:
 			continue
 
-		var bg = display.get_node_or_null("Background") as ColorRect
-		var border = display.get_node_or_null("Border") as ColorRect
+		var bg = display.get_node_or_null("CardVisuals/Background") as ColorRect
+		var border = display.get_node_or_null("CardVisuals/Border") as ColorRect
 
 		# Check affordability
 		var can_afford = summoner.mana >= card.mana_cost
