@@ -5,17 +5,31 @@ class_name Unit3D
 ## Uses Character2D5Component for rendering
 
 enum Team { PLAYER, ENEMY }
+enum UnitType { MELEE, RANGED }
+enum MovementLayer { GROUND, AIR }  # For future air units
 
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
-@export var attack_range: float = 2.0
 @export var attack_speed: float = 1.0
 @export var move_speed: float = 3.0
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
-@export var is_ranged: bool = false
+
+## Unit classification
+@export var unit_type: UnitType = UnitType.MELEE
+@export var movement_layer: MovementLayer = MovementLayer.GROUND
+
+## Attack range (per-axis for melee, ignored for ranged)
+@export var attack_range: float = 2.0              # X-axis (left-right) / base range for ranged
+@export var attack_range_depth: float = 1.0        # Z-axis (lane depth) - melee only
+@export var attack_range_vertical: float = 0.5     # Y-axis (height tolerance) - melee only
+
+## Ranged attack settings
+@export var is_ranged: bool = false  # DEPRECATED: Use unit_type instead
 @export var projectile_id: String = ""  # ID for ProjectileManager
+
+## Visuals
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 
 ## Current state
@@ -92,9 +106,7 @@ func _physics_process(delta: float) -> void:
 	current_target = _acquire_target()
 
 	if current_target:
-		var distance = global_position.distance_to(current_target.global_position)
-
-		if distance <= attack_range:
+		if _is_in_attack_range(current_target):
 			# Face opponent when idle in range (but not during attack)
 			if not is_attacking:
 				_update_facing(current_target.global_position)
@@ -119,9 +131,11 @@ func _acquire_target() -> Node3D:
 
 	for target in targets:
 		if target is Unit3D and target.is_alive:
-			var dist = global_position.distance_to(target.global_position)
-			if dist < closest_distance:
-				closest_distance = dist
+			# Use horizontal distance for aggro (ignore Y-axis height)
+			var delta = target.global_position - global_position
+			var horizontal_dist = Vector2(delta.x, delta.z).length()
+			if horizontal_dist < closest_distance:
+				closest_distance = horizontal_dist
 				closest_target = target
 
 	# If no unit found, target the enemy base
@@ -146,6 +160,31 @@ func _move_towards_target(delta: float) -> void:
 
 	velocity = direction * move_speed
 	move_and_slide()
+
+## Check if target is within attack range
+## TODO: Alternative approach - weighted/ellipse distance for smooth falloff
+## Currently using box-shaped range (per-axis checking) for melee
+func _is_in_attack_range(target: Node3D) -> bool:
+	if not target:
+		return false
+
+	var delta = target.global_position - global_position
+
+	# Ranged units use simple 3D distance (sphere)
+	if unit_type == UnitType.RANGED or is_ranged:  # Support legacy is_ranged
+		var distance = global_position.distance_to(target.global_position)
+		return distance <= attack_range
+
+	# Melee units use box-shaped range (per-axis checking)
+	# This prevents attacking across lanes or at different heights
+	if abs(delta.x) > attack_range:  # Left-right
+		return false
+	if abs(delta.y) > attack_range_vertical:  # Height tolerance
+		return false
+	if abs(delta.z) > attack_range_depth:  # Lane/depth
+		return false
+
+	return true
 
 func _update_facing(target_position: Vector3) -> void:
 	# Calculate direction to target and face that direction
