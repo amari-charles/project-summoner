@@ -56,9 +56,9 @@ func _create_label3d() -> void:
 	# Render on top of everything
 	damage_label.no_depth_test = true
 
-	# Text appearance
-	damage_label.font_size = 32
-	damage_label.outline_size = 4
+	# Text appearance - MUCH larger font
+	damage_label.font_size = 128  # Large and easy to see
+	damage_label.outline_size = 12  # Thick outline for readability
 	damage_label.outline_modulate = Color.BLACK
 
 	# Ensure visible on all layers
@@ -97,8 +97,8 @@ func show_damage(value: float, position: Vector3, is_critical: bool = false, dmg
 		# Set color based on type/crit
 		damage_label.modulate = _get_damage_color()
 
-		# Larger font for crits
-		damage_label.font_size = 48 if is_crit else 32
+		# Larger font for crits (even bigger!)
+		damage_label.font_size = 192 if is_crit else 128
 
 
 func _get_damage_color() -> Color:
