@@ -28,13 +28,12 @@ var is_visible: bool = true
 var debug_timer: float = 0.0  # For throttling debug output
 
 ## Visual components
-var background_sprite: Sprite3D = null
-var bar_sprite: Sprite3D = null
+var hp_bar_sprite: Sprite3D = null
 var camera: Camera3D = null
 
-# Cached textures for bar rendering
-var background_texture: ImageTexture = null
+# Cached texture for bar rendering
 var bar_texture: ImageTexture = null
+var bar_image: Image = null
 
 signal bar_hidden()  ## Emitted when bar fades out (for pooling)
 
@@ -76,45 +75,56 @@ func _process(delta: float) -> void:
 			_fade_out()
 
 func _create_sprite_visuals() -> void:
-	# Create solid color textures for background and bar (wider aspect ratio)
+	# Create a single sprite with dynamically drawn HP bar
 	var texture_width = 100
 	var texture_height = 12
-	background_texture = _create_solid_texture(texture_width, texture_height, background_color)
-	bar_texture = _create_solid_texture(texture_width, texture_height, color_full)
+
+	# Create image for drawing
+	bar_image = Image.create(texture_width, texture_height, false, Image.FORMAT_RGBA8)
+
+	# Draw initial full HP bar
+	_redraw_bar_texture(1.0)
 
 	# Calculate pixel size to achieve desired world size
 	var pixels_per_unit = texture_width / bar_width
 	var pixel_size = 1.0 / pixels_per_unit
 
-	# Create background sprite
-	background_sprite = Sprite3D.new()
-	background_sprite.texture = background_texture
-	background_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	background_sprite.no_depth_test = true
-	background_sprite.pixel_size = pixel_size
-	add_child(background_sprite)
+	# Create single HP bar sprite
+	hp_bar_sprite = Sprite3D.new()
+	hp_bar_sprite.texture = bar_texture
+	hp_bar_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	hp_bar_sprite.no_depth_test = true
+	hp_bar_sprite.pixel_size = pixel_size
+	hp_bar_sprite.centered = true
+	add_child(hp_bar_sprite)
 
-	# Create bar sprite (foreground)
-	bar_sprite = Sprite3D.new()
-	bar_sprite.texture = bar_texture
-	bar_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	bar_sprite.no_depth_test = true
-	bar_sprite.pixel_size = pixel_size
-	# Centered by default (same as background), will shift position when scaled
-	bar_sprite.centered = true
-	bar_sprite.position = Vector3(0, 0, -0.05)  # Further forward to prevent z-fighting
-	add_child(bar_sprite)
+	print("  Created single Sprite3D HP bar (size: %.2f x %.2f units)" % [bar_width, bar_height])
 
-	print("  Created Sprite3D visuals with billboard mode")
-	print("    Target size: %.2f x %.2f world units" % [bar_width, bar_height])
-	print("    Pixel size: %.4f" % pixel_size)
-	print("    Background sprite width: %.2f units" % (texture_width * pixel_size))
-	print("    Bar sprite width: %.2f units" % (texture_width * pixel_size))
+func _redraw_bar_texture(hp_percent: float) -> void:
+	if not bar_image:
+		return
 
-func _create_solid_texture(width: int, height: int, color: Color) -> ImageTexture:
-	var image = Image.create(width, height, false, Image.FORMAT_RGBA8)
-	image.fill(color)
-	return ImageTexture.create_from_image(image)
+	var width = bar_image.get_width()
+	var height = bar_image.get_height()
+
+	# Calculate bar width in pixels
+	var bar_pixel_width = int(width * hp_percent)
+
+	# Fill background (entire image)
+	bar_image.fill(background_color)
+
+	# Draw foreground bar (left-aligned)
+	if bar_pixel_width > 0:
+		var bar_color = _get_hp_color(hp_percent)
+		for y in range(height):
+			for x in range(bar_pixel_width):
+				bar_image.set_pixel(x, y, bar_color)
+
+	# Update texture
+	if bar_texture:
+		bar_texture.update(bar_image)
+	else:
+		bar_texture = ImageTexture.create_from_image(bar_image)
 
 func _find_camera() -> void:
 	# Find main camera in scene
@@ -158,22 +168,10 @@ func update_hp(current: float, maximum: float) -> void:
 	var hp_percent = current_hp / max_hp if max_hp > 0 else 0.0
 	hp_percent = clamp(hp_percent, 0.0, 1.0)
 
-	# Update bar sprite region to show HP percentage
-	if bar_sprite and bar_texture:
-		# Scale the sprite horizontally to show HP
-		bar_sprite.scale.x = hp_percent
+	# Redraw the bar texture with new HP percentage
+	_redraw_bar_texture(hp_percent)
 
-		# Shift position to keep left edge aligned when scaled
-		# When scale is 1.0, offset is 0 (centered)
-		# When scale is 0.5, offset is -bar_width/4 (shift left by half of missing width)
-		var x_offset = -bar_width * 0.5 * (1.0 - hp_percent)
-		bar_sprite.position.x = x_offset
-
-		# Update bar color based on HP percentage
-		var bar_color = _get_hp_color(hp_percent)
-		bar_sprite.modulate = bar_color
-
-		print("FloatingHPBar.update_hp(): Set scale to %.2f, offset to %.2f, color to %s for HP %.0f%%" % [hp_percent, x_offset, bar_color, hp_percent * 100])
+	print("FloatingHPBar.update_hp(): Redrawn bar for HP %.0f%%" % (hp_percent * 100))
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:
@@ -202,12 +200,9 @@ func _show() -> void:
 	is_visible = true
 	visible = true
 
-	# Reset alpha for sprites
-	if bar_sprite:
-		bar_sprite.modulate.a = 1.0
-
-	if background_sprite:
-		background_sprite.modulate.a = 1.0
+	# Reset alpha
+	if hp_bar_sprite:
+		hp_bar_sprite.modulate.a = 1.0
 
 ## Hide immediately
 func _hide_immediate() -> void:
@@ -221,13 +216,9 @@ func _fade_out() -> void:
 
 	# Animate alpha to 0
 	var tween = create_tween()
-	tween.set_parallel(true)
 
-	if bar_sprite:
-		tween.tween_property(bar_sprite, "modulate:a", 0.0, fade_duration).from(bar_sprite.modulate.a)
-
-	if background_sprite:
-		tween.tween_property(background_sprite, "modulate:a", 0.0, fade_duration).from(background_sprite.modulate.a)
+	if hp_bar_sprite:
+		tween.tween_property(hp_bar_sprite, "modulate:a", 0.0, fade_duration).from(hp_bar_sprite.modulate.a)
 
 	tween.finished.connect(func():
 		_hide_immediate()
@@ -250,14 +241,12 @@ func reset() -> void:
 	visible = true
 
 	# Reset sprite properties
-	if bar_sprite:
-		bar_sprite.modulate = color_full
-		bar_sprite.modulate.a = 1.0
-		bar_sprite.scale = Vector3.ONE
+	if hp_bar_sprite:
+		hp_bar_sprite.modulate = Color.WHITE
+		hp_bar_sprite.modulate.a = 1.0
 
-	if background_sprite:
-		background_sprite.modulate = background_color
-		background_sprite.modulate.a = 1.0
+	# Redraw at full HP
+	_redraw_bar_texture(1.0)
 
 ## Signal handler for unit HP changes
 func _on_hp_changed(new_hp: float, new_max_hp: float) -> void:
