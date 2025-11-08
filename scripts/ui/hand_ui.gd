@@ -249,7 +249,9 @@ class CardDisplay extends Control:
 
 		# Start dragging the actual card
 		is_being_dragged = true
-		drag_offset = at_position  # Where on the card we clicked
+
+		# Calculate offset in GLOBAL coordinates (before changing top_level)
+		drag_offset = get_global_mouse_position() - global_position
 
 		# Stop any animations
 		if hover_tween and hover_tween.is_valid():
