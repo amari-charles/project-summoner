@@ -1,11 +1,11 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/units/skeletal_2d5_component.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/units/skeletal_character_2d5_component.gd" id="1_script"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_1"]
 viewport_path = NodePath("Sprite3D/SubViewport")
 
-[node name="Skeletal2D5Component" type="Node3D"]
+[node name="SkeletalCharacter2D5Component" type="Node3D"]
 script = ExtResource("1_script")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]

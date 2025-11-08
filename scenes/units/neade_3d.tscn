@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://c2cpavvr6oagt" path="res://assets/neade/neade.tscn" id="2_neade_visual"]
-[ext_resource type="PackedScene" path="res://scenes/units/skeletal_2d5_component.tscn" id="3_skeletal_component"]
+[ext_resource type="PackedScene" path="res://scenes/units/skeletal_character_2d5_component.tscn" id="3_skeletal_component"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_neade"]
 radius = 0.4

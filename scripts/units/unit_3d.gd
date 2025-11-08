@@ -24,7 +24,7 @@ var is_alive: bool = true
 var current_target: Node3D = null
 var attack_cooldown: float = 0.0
 
-## Visual component
+## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
 
 ## Attachment points for projectiles and effects
@@ -63,8 +63,8 @@ func _setup_visuals() -> void:
 			visual_component.play_animation("idle", true)
 		return
 
-	# Otherwise, load and instance the standard 2.5D character component
-	var component_scene = load("res://scenes/units/character_2d5_component.tscn")
+	# Otherwise, load and instance the standard sprite-based 2.5D character component
+	var component_scene = load("res://scenes/units/sprite_character_2d5_component.tscn")
 	if component_scene:
 		visual_component = component_scene.instantiate()
 		add_child(visual_component)

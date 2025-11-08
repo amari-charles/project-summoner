@@ -1,8 +1,8 @@
-extends Node3D
-class_name Skeletal2D5Component
+extends Character2D5Component
+class_name SkeletalCharacter2D5Component
 
-## 2.5D Skeletal Character Rendering Component
-## Renders skeletal 2D animations in 3D space using Sprite3D + SubViewport
+## Skeletal-based 2.5D Character Rendering Component
+## Renders skeletal 2D animations in 3D space using Skeleton2D/AnimationPlayer + SubViewport
 
 @export var skeletal_scene: PackedScene = null  ## The skeletal animation scene to instance
 @export var scale_factor: Vector2 = Vector2(0.08, 0.08)  ## Scale of the skeletal model
