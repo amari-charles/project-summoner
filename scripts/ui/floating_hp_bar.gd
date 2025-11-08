@@ -48,6 +48,9 @@ func _ready() -> void:
 	if not background_mesh or not bar_mesh:
 		print("  Creating visuals programmatically...")
 		_create_visuals()
+	else:
+		# Make materials unique to avoid shared material issues
+		_make_materials_unique()
 
 	_find_camera()
 	print("  Camera found: %s" % (camera != null))
@@ -125,6 +128,18 @@ func _find_camera() -> void:
 	if viewport:
 		camera = viewport.get_camera_3d()
 
+func _make_materials_unique() -> void:
+	# Make materials unique to prevent shared material issues across pooled bars
+	if background_mesh:
+		var mat = background_mesh.get_surface_override_material(0)
+		if mat:
+			background_mesh.set_surface_override_material(0, mat.duplicate())
+
+	if bar_mesh:
+		var mat = bar_mesh.get_surface_override_material(0)
+		if mat:
+			bar_mesh.set_surface_override_material(0, mat.duplicate())
+
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
 	print("FloatingHPBar.set_target() called for: %s" % (unit.name if unit else "null"))
@@ -171,9 +186,13 @@ func update_hp(current: float, maximum: float) -> void:
 
 	# Update color based on HP percentage
 	var bar_color = _get_hp_color(hp_percent)
-	if bar_mesh and bar_mesh.material_override:
+	if bar_mesh:
+		# Check both material_override and surface_material_override
 		var mat = bar_mesh.material_override as StandardMaterial3D
-		mat.albedo_color = bar_color
+		if not mat:
+			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			mat.albedo_color = bar_color
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:
@@ -203,15 +222,21 @@ func _show() -> void:
 	visible = true
 
 	# Reset alpha
-	if bar_mesh and bar_mesh.material_override:
+	if bar_mesh:
 		var mat = bar_mesh.material_override as StandardMaterial3D
-		var color = mat.albedo_color
-		color.a = 1.0
-		mat.albedo_color = color
+		if not mat:
+			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			var color = mat.albedo_color
+			color.a = 1.0
+			mat.albedo_color = color
 
-	if background_mesh and background_mesh.material_override:
+	if background_mesh:
 		var mat = background_mesh.material_override as StandardMaterial3D
-		mat.albedo_color = background_color
+		if not mat:
+			mat = background_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			mat.albedo_color = background_color
 
 ## Hide immediately
 func _hide_immediate() -> void:
@@ -227,14 +252,20 @@ func _fade_out() -> void:
 	var tween = create_tween()
 	tween.set_parallel(true)
 
-	if bar_mesh and bar_mesh.material_override:
+	if bar_mesh:
 		var mat = bar_mesh.material_override as StandardMaterial3D
-		var color = mat.albedo_color
-		tween.tween_property(mat, "albedo_color:a", 0.0, fade_duration).from(color.a)
+		if not mat:
+			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			var color = mat.albedo_color
+			tween.tween_property(mat, "albedo_color:a", 0.0, fade_duration).from(color.a)
 
-	if background_mesh and background_mesh.material_override:
+	if background_mesh:
 		var mat = background_mesh.material_override as StandardMaterial3D
-		tween.tween_property(mat, "albedo_color:a", 0.0, fade_duration).from(background_color.a)
+		if not mat:
+			mat = background_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			tween.tween_property(mat, "albedo_color:a", 0.0, fade_duration).from(background_color.a)
 
 	tween.finished.connect(func():
 		_hide_immediate()
@@ -257,14 +288,20 @@ func reset() -> void:
 	visible = true
 
 	# Reset materials
-	if bar_mesh and bar_mesh.material_override:
+	if bar_mesh:
 		var mat = bar_mesh.material_override as StandardMaterial3D
-		mat.albedo_color = color_full
-		mat.albedo_color.a = 1.0
+		if not mat:
+			mat = bar_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			mat.albedo_color = color_full
+			mat.albedo_color.a = 1.0
 
-	if background_mesh and background_mesh.material_override:
+	if background_mesh:
 		var mat = background_mesh.material_override as StandardMaterial3D
-		mat.albedo_color = background_color
+		if not mat:
+			mat = background_mesh.get_surface_override_material(0) as StandardMaterial3D
+		if mat:
+			mat.albedo_color = background_color
 
 	if bar_mesh:
 		bar_mesh.position = Vector3(0, 0, -0.01)
