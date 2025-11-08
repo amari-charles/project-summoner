@@ -19,6 +19,8 @@ func _ready() -> void:
 func set_sprite_frames(frames: SpriteFrames) -> void:
 	if character_sprite:
 		character_sprite.sprite_frames = frames
+		# Recalculate alignment now that we have actual texture data
+		_setup_sprite_alignment()
 
 ## Flip the sprite horizontally
 func set_flip_h(flip: bool) -> void:
@@ -73,10 +75,20 @@ func _setup_sprite_alignment() -> void:
 	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.125 for standard sprites
 
-	# CRITICAL: Position 2D sprite so feet are at viewport bottom (not centered!)
-	# With centered=true, position at ~80% of viewport height to account for sprite size
-	character_sprite.position.y = viewport.size.y * 0.8  # ~200 for 250px viewport
-	print("SpriteChar2D5: Repositioned 2D sprite to Y=%.0f (viewport bottom at %.0f)" % [character_sprite.position.y, viewport.size.y])
+	# Get actual texture size for precise feet positioning
+	var texture_size = _get_current_frame_size()
+
+	if texture_size.y > 0:
+		# PRECISE: Calculate position so sprite's bottom edge aligns with viewport bottom
+		# With centered=true: bottom_edge_y = sprite.position.y + (texture_height / 2) * sprite.scale.y
+		# We want: bottom_edge_y = viewport.size.y
+		# Therefore: sprite.position.y = viewport.size.y - (texture_height / 2) * sprite.scale.y
+		character_sprite.position.y = viewport.size.y - (texture_size.y / 2.0) * character_sprite.scale.y
+		print("SpriteChar2D5: Precise feet alignment - texture=%s, scale=%s, pos.y=%.1f" % [texture_size, character_sprite.scale, character_sprite.position.y])
+	else:
+		# FALLBACK: No texture data available yet, use approximate positioning
+		character_sprite.position.y = viewport.size.y * 0.8
+		print("SpriteChar2D5: Fallback alignment (no texture data) - pos.y=%.1f" % character_sprite.position.y)
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
@@ -86,3 +98,30 @@ func get_sprite_height() -> float:
 
 	# Total height = viewport pixels × pixel_size
 	return viewport.size.y * sprite_3d.pixel_size
+
+## Get the size of the current sprite frame texture
+## Returns Vector2.ZERO if no texture available
+func _get_current_frame_size() -> Vector2:
+	if not character_sprite or not character_sprite.sprite_frames:
+		return Vector2.ZERO
+
+	# Get current animation name (default to "idle" if not set)
+	var anim = character_sprite.animation
+	if anim == "":
+		anim = "idle"
+
+	# Check if animation exists
+	if not character_sprite.sprite_frames.has_animation(anim):
+		return Vector2.ZERO
+
+	# Get frame count
+	var frame_count = character_sprite.sprite_frames.get_frame_count(anim)
+	if frame_count == 0:
+		return Vector2.ZERO
+
+	# Get first frame texture (assume all frames same size)
+	var frame_texture = character_sprite.sprite_frames.get_frame_texture(anim, 0)
+	if not frame_texture:
+		return Vector2.ZERO
+
+	return frame_texture.get_size()

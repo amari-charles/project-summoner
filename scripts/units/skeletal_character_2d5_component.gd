@@ -24,6 +24,8 @@ func _ready() -> void:
 		_instance_skeletal_scene()
 
 	# Bottom-align sprite using offset (feet at origin)
+	# Wait one frame for skeletal instance to be fully in tree
+	await get_tree().process_frame
 	_setup_sprite_alignment()
 
 ## Instance the skeletal animation scene into the viewport
@@ -150,12 +152,21 @@ func _setup_sprite_alignment() -> void:
 	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.0 for skeletal sprites
 
-	# CRITICAL: Adjust 2D skeletal model position so feet are at viewport bottom
-	# Update the Y component of position_offset
+	# Try to get skeletal bounds for precise positioning
 	if skeletal_instance:
-		# Position at ~80% of viewport height to account for model size
-		skeletal_instance.position.y = viewport.size.y * 0.8  # ~480 for 600px viewport
-		print("SkeletalChar2D5: Repositioned 2D model to Y=%.0f (viewport bottom at %.0f)" % [skeletal_instance.position.y, viewport.size.y])
+		var bounds = _get_skeletal_bounds()
+
+		if bounds.size.y > 0:
+			# PRECISE: Calculate position so model's bottom edge aligns with viewport bottom
+			# Bottom edge = position.y + (bounds.end.y * scale.y)
+			# We want: bottom edge = viewport.size.y
+			# Therefore: position.y = viewport.size.y - (bounds.end.y * scale.y)
+			skeletal_instance.position.y = viewport.size.y - (bounds.end.y * scale_factor.y)
+			print("SkeletalChar2D5: Precise feet alignment - bounds=%s, scale=%s, pos.y=%.1f" % [bounds, scale_factor, skeletal_instance.position.y])
+		else:
+			# FALLBACK: Use manually configured position_offset
+			skeletal_instance.position.y = position_offset.y
+			print("SkeletalChar2D5: Fallback to manual position_offset - pos.y=%.1f (configure position_offset export for precise alignment)" % skeletal_instance.position.y)
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
@@ -165,3 +176,52 @@ func get_sprite_height() -> float:
 
 	# Total height = viewport pixels × pixel_size
 	return viewport.size.y * sprite_3d.pixel_size
+
+## Calculate bounding rectangle of the skeletal model
+## Returns Rect2 with local bounds (before scaling), or empty rect if unavailable
+func _get_skeletal_bounds() -> Rect2:
+	if not skeletal_instance:
+		return Rect2()
+
+	# Try to find all Sprite2D children and calculate combined bounds
+	var min_y = INF
+	var max_y = -INF
+	var min_x = INF
+	var max_x = -INF
+	var found_sprites = false
+
+	# Recursively find all Sprite2D nodes
+	var sprites = _find_all_sprites(skeletal_instance)
+
+	for sprite in sprites:
+		if sprite is Sprite2D:
+			# Get sprite's local rect
+			var sprite_rect = sprite.get_rect()
+			var sprite_pos = sprite.global_position - skeletal_instance.global_position
+
+			# Calculate bounds including sprite size
+			var sprite_min = sprite_pos + sprite_rect.position
+			var sprite_max = sprite_pos + sprite_rect.position + sprite_rect.size
+
+			min_x = min(min_x, sprite_min.x)
+			max_x = max(max_x, sprite_max.x)
+			min_y = min(min_y, sprite_min.y)
+			max_y = max(max_y, sprite_max.y)
+			found_sprites = true
+
+	if found_sprites:
+		return Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
+
+	return Rect2()
+
+## Recursively find all Sprite2D nodes in the tree
+func _find_all_sprites(node: Node) -> Array:
+	var sprites = []
+
+	if node is Sprite2D:
+		sprites.append(node)
+
+	for child in node.get_children():
+		sprites.append_array(_find_all_sprites(child))
+
+	return sprites
