@@ -22,8 +22,10 @@ class CardDisplay extends Control:
 	var base_scale: Vector2 = Vector2(1.0, 1.0)
 
 	# 3D rotation shader
-	var shader_material: ShaderMaterial
-	var canvas_group: CanvasGroup  # Reference to apply shader (wraps all visual elements)
+	var background_shader: ShaderMaterial
+	var border_shader: ShaderMaterial
+	var background_node: ColorRect
+	var border_node: ColorRect
 
 	# Velocity tracking for rotation
 	var previous_position: Vector2
@@ -58,12 +60,13 @@ class CardDisplay extends Control:
 		mouse_entered.connect(_on_mouse_entered)
 		mouse_exited.connect(_on_mouse_exited)
 
-		# Wait for canvas group to be added
+		# Wait for visual nodes to be added
 		await get_tree().process_frame
 
-		# Setup 3D shader on canvas group
-		canvas_group = get_node_or_null("CardVisuals") as CanvasGroup
-		if canvas_group:
+		# Setup 3D shader on both border and background
+		background_node = get_node_or_null("Background") as ColorRect
+		border_node = get_node_or_null("Border") as ColorRect
+		if background_node and border_node:
 			_setup_3d_shader()
 
 	func _process(delta: float) -> void:
@@ -92,12 +95,12 @@ class CardDisplay extends Control:
 		rotation *= ROTATION_DAMPING
 
 		# Update 3D rotation based on mouse position (only when hovered)
-		if is_hovered and shader_material:
+		if is_hovered and background_shader and border_shader:
 			_update_3d_rotation()
 
-	## Setup 3D perspective shader on card canvas group
+	## Setup 3D perspective shader on both border and background
 	func _setup_3d_shader() -> void:
-		if not canvas_group:
+		if not background_node or not border_node:
 			return
 
 		# Load shader
@@ -106,24 +109,29 @@ class CardDisplay extends Control:
 			push_error("Failed to load card 3D shader")
 			return
 
-		# Create shader material
-		shader_material = ShaderMaterial.new()
-		shader_material.shader = shader
+		# Create shader materials for both border and background
+		background_shader = ShaderMaterial.new()
+		background_shader.shader = shader
 
-		# Set default shader parameters
-		shader_material.set_shader_parameter("fov", 70.0)
-		shader_material.set_shader_parameter("rot_x_deg", 0.0)
-		shader_material.set_shader_parameter("rot_y_deg", 0.0)
-		shader_material.set_shader_parameter("inset", 0.0)
-		shader_material.set_shader_parameter("cull_backface", true)
-		shader_material.set_shader_parameter("use_front", true)
+		border_shader = ShaderMaterial.new()
+		border_shader.shader = shader
 
-		# Apply shader to canvas group (affects all children together)
-		canvas_group.material = shader_material
+		# Set default shader parameters for both
+		for mat in [background_shader, border_shader]:
+			mat.set_shader_parameter("fov", 70.0)
+			mat.set_shader_parameter("rot_x_deg", 0.0)
+			mat.set_shader_parameter("rot_y_deg", 0.0)
+			mat.set_shader_parameter("inset", 0.0)
+			mat.set_shader_parameter("cull_backface", true)
+			mat.set_shader_parameter("use_front", true)
+
+		# Apply shaders to both nodes
+		background_node.material = background_shader
+		border_node.material = border_shader
 
 	## Update 3D rotation based on mouse position relative to card
 	func _update_3d_rotation() -> void:
-		if not shader_material:
+		if not background_shader or not border_shader:
 			return
 
 		# Get mouse position relative to card center
@@ -142,17 +150,18 @@ class CardDisplay extends Control:
 		var target_rot_y = offset_x * MAX_TILT_DEGREES
 		var target_rot_x = -offset_y * MAX_TILT_DEGREES  # Negative for proper direction
 
-		# Get current rotation
-		var current_rot_y = shader_material.get_shader_parameter("rot_y_deg")
-		var current_rot_x = shader_material.get_shader_parameter("rot_x_deg")
+		# Get current rotation from background shader
+		var current_rot_y = background_shader.get_shader_parameter("rot_y_deg")
+		var current_rot_x = background_shader.get_shader_parameter("rot_x_deg")
 
 		# Smooth lerp to target
 		var new_rot_y = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
 		var new_rot_x = lerp(current_rot_x, target_rot_x, TILT_SMOOTHING)
 
-		# Update shader parameters
-		shader_material.set_shader_parameter("rot_y_deg", new_rot_y)
-		shader_material.set_shader_parameter("rot_x_deg", new_rot_x)
+		# Update shader parameters for BOTH border and background
+		for mat in [background_shader, border_shader]:
+			mat.set_shader_parameter("rot_y_deg", new_rot_y)
+			mat.set_shader_parameter("rot_x_deg", new_rot_x)
 
 	## Play entrance animation when card is first drawn/created
 	func play_entrance_animation(stagger_index: int = 0) -> void:
@@ -240,7 +249,7 @@ class CardDisplay extends Control:
 		was_recently_hovered = true
 
 		# Stop any pulse glow on the border
-		var border = get_node_or_null("CardVisuals/Border") as ColorRect
+		var border = get_node_or_null("Border") as ColorRect
 		if border and border.has_meta("pulse_tween"):
 			var pulse_tween = border.get_meta("pulse_tween") as Tween
 			if pulse_tween and pulse_tween.is_valid():
@@ -289,30 +298,33 @@ class CardDisplay extends Control:
 		# Return to normal scale
 		hover_tween.tween_property(self, "scale", base_scale, HOVER_DURATION)
 
-		# Reset 3D rotation smoothly
-		if shader_material:
+		# Reset 3D rotation smoothly for both border and background
+		if background_shader and border_shader:
 			var rotation_tween = create_tween()
 			rotation_tween.set_parallel(true)
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
-			rotation_tween.tween_method(
-				func(val): shader_material.set_shader_parameter("rot_x_deg", val),
-				shader_material.get_shader_parameter("rot_x_deg"),
-				0.0,
-				0.3
-			)
-			rotation_tween.tween_method(
-				func(val): shader_material.set_shader_parameter("rot_y_deg", val),
-				shader_material.get_shader_parameter("rot_y_deg"),
-				0.0,
-				0.3
-			)
+
+			# Reset both shaders
+			for mat in [background_shader, border_shader]:
+				rotation_tween.tween_method(
+					func(val): mat.set_shader_parameter("rot_x_deg", val),
+					mat.get_shader_parameter("rot_x_deg"),
+					0.0,
+					0.3
+				)
+				rotation_tween.tween_method(
+					func(val): mat.set_shader_parameter("rot_y_deg", val),
+					mat.get_shader_parameter("rot_y_deg"),
+					0.0,
+					0.3
+				)
 
 		# Reset z_index
 		hover_tween.finished.connect(func(): z_index = 0)
 
 		# Remove hover glow - set to static non-pulsing color
-		var border = get_node_or_null("CardVisuals/Border") as ColorRect
+		var border = get_node_or_null("Border") as ColorRect
 		if border:
 			var glow_tween = create_tween()
 			glow_tween.set_trans(Tween.TRANS_SINE)
@@ -322,7 +334,7 @@ class CardDisplay extends Control:
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var border = get_node_or_null("CardVisuals/Border") as ColorRect
+		var border = get_node_or_null("Border") as ColorRect
 		if not border:
 			return
 
@@ -411,13 +423,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.card_index = index
 	container.hand_ui = self
 
-	# Create CanvasGroup to wrap all visual elements (for unified shader application)
-	# Note: CanvasGroup is a Node2D, not Control, so it doesn't have size/mouse_filter properties
-	var visuals = CanvasGroup.new()
-	visuals.name = "CardVisuals"
-	container.add_child(visuals)
-
-	# Card border (rendered behind background)
+	# Card border (rendered behind background) - will have 3D shader applied
 	var border = ColorRect.new()
 	border.name = "Border"
 	border.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
@@ -426,15 +432,15 @@ func _create_card_display(card: Card, index: int) -> Control:
 	border.position = Vector2(-2, -2)
 	border.custom_minimum_size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
 	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(border)
+	container.add_child(border)
 
-	# Card background
+	# Card background - will have 3D shader applied
 	var bg = ColorRect.new()
 	bg.name = "Background"
 	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	bg.color = Color(0.2, 0.2, 0.3, 0.9)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(bg)
+	container.add_child(bg)
 
 	# Card name label
 	var name_label = Label.new()
@@ -444,7 +450,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	name_label.custom_minimum_size = Vector2(CARD_WIDTH - 20, 0)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(name_label)
+	container.add_child(name_label)
 
 	# Card type (icon placeholder)
 	var type_label = Label.new()
@@ -453,7 +459,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	type_label.add_theme_font_size_override("font_size", 12)
 	type_label.add_theme_color_override("font_color", Color.YELLOW)
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(type_label)
+	container.add_child(type_label)
 
 	# Unit icon (colored rect for now)
 	if card.card_type == Card.CardType.SUMMON and card.unit_scene:
@@ -462,7 +468,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 		icon.position = Vector2(20, 60)
 		icon.color = Color(0.3, 0.5, 0.8)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		visuals.add_child(icon)
+		container.add_child(icon)
 
 	# Mana cost
 	var cost_bg = ColorRect.new()
@@ -470,7 +476,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	cost_bg.position = Vector2(CARD_WIDTH - 40, CARD_HEIGHT - 40)
 	cost_bg.color = Color(0.1, 0.1, 0.5, 0.9)
 	cost_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(cost_bg)
+	container.add_child(cost_bg)
 
 	var cost_label = Label.new()
 	cost_label.name = "CostLabel"
@@ -479,7 +485,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	cost_label.add_theme_font_size_override("font_size", 20)
 	cost_label.add_theme_color_override("font_color", Color.CYAN)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(cost_label)
+	container.add_child(cost_label)
 
 	return container
 
@@ -500,7 +506,7 @@ func _update_selection_visual() -> void:
 		if not display:
 			continue
 
-		var border = display.get_node_or_null("CardVisuals/Border") as ColorRect
+		var border = display.get_node_or_null("Border") as ColorRect
 
 		if i == selected_card_index:
 			if border:
@@ -523,8 +529,8 @@ func _update_availability() -> void:
 		if not display:
 			continue
 
-		var bg = display.get_node_or_null("CardVisuals/Background") as ColorRect
-		var border = display.get_node_or_null("CardVisuals/Border") as ColorRect
+		var bg = display.get_node_or_null("Background") as ColorRect
+		var border = display.get_node_or_null("Border") as ColorRect
 
 		# Check affordability
 		var can_afford = summoner.mana >= card.mana_cost
