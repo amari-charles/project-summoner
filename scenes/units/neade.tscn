@@ -10,13 +10,13 @@ radius = 15.0
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_unit")
-max_hp = 80.0
-attack_damage = 12.0
-attack_range = 150.0
-attack_speed = 0.9
+max_hp = 120.0
+attack_damage = 28.0
+attack_range = 70.0
+attack_speed = 0.55
 move_speed = 55.0
-aggro_radius = 200.0
-is_ranged = true
+aggro_radius = 220.0
+is_ranged = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_neade")
