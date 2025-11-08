@@ -43,8 +43,8 @@ texture = SubResource("ViewportTexture_neade")
 
 [node name="SubViewport" type="SubViewport" parent="Visual/Sprite3D"]
 transparent_bg = true
-size = Vector2i(400, 400)
+size = Vector2i(600, 600)
 
 [node name="NeadeModel" parent="Visual/Sprite3D/SubViewport" instance=ExtResource("2_neade_visual")]
-position = Vector2(200, 280)
-scale = Vector2(0.15, 0.15)
+position = Vector2(300, 450)
+scale = Vector2(0.08, 0.08)
