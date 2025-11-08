@@ -31,6 +31,7 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 
 ## Visuals
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
+@export var sprite_feet_offset_pixels: float = 0.0  ## Offset from texture bottom to actual feet (for sprites with empty space below)
 
 ## Shadow settings
 @export var shadow_enabled: bool = true
@@ -93,6 +94,11 @@ func _setup_visuals() -> void:
 	if component_scene:
 		visual_component = component_scene.instantiate()
 		visual_component.name = "Visual"  # Name it so HP bars can find it
+
+		# Configure feet offset if specified
+		if sprite_feet_offset_pixels > 0.0 and "feet_offset_pixels" in visual_component:
+			visual_component.feet_offset_pixels = sprite_feet_offset_pixels
+
 		add_child(visual_component)
 
 		# Set sprite frames if provided

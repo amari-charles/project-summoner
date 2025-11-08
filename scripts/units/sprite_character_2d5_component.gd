@@ -4,6 +4,11 @@ class_name SpriteCharacter2D5Component
 ## Sprite-based 2.5D Character Rendering Component
 ## Renders 2D sprite animations in 3D space using AnimatedSprite2D + SubViewport
 
+## Offset in pixels from texture bottom to actual character feet
+## Use this when sprite artwork has empty space below the character's feet
+## Example: 100px texture with feet at 70px from top = 30px offset
+@export var feet_offset_pixels: float = 0.0
+
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
 @onready var character_sprite: AnimatedSprite2D = $Sprite3D/SubViewport/Model2D/CharacterSprite
@@ -79,12 +84,12 @@ func _setup_sprite_alignment() -> void:
 	var texture_size = _get_current_frame_size()
 
 	if texture_size.y > 0:
-		# PRECISE: Calculate position so sprite's bottom edge aligns with viewport bottom
-		# With centered=true: bottom_edge_y = sprite.position.y + (texture_height / 2) * sprite.scale.y
-		# We want: bottom_edge_y = viewport.size.y
-		# Therefore: sprite.position.y = viewport.size.y - (texture_height / 2) * sprite.scale.y
-		character_sprite.position.y = viewport.size.y - (texture_size.y / 2.0) * character_sprite.scale.y
-		print("SpriteChar2D5: Precise feet alignment - texture=%s, scale=%s, pos.y=%.1f" % [texture_size, character_sprite.scale, character_sprite.position.y])
+		# PRECISE: Calculate position so sprite's actual feet align with viewport bottom
+		# With centered=true: feet_y = sprite.position.y + ((texture_height / 2) - feet_offset) * sprite.scale.y
+		# We want: feet at viewport bottom, accounting for empty space below feet
+		# Therefore: sprite.position.y = viewport.size.y - ((texture_height / 2) - feet_offset) * sprite.scale.y
+		character_sprite.position.y = viewport.size.y - ((texture_size.y / 2.0) - feet_offset_pixels) * character_sprite.scale.y
+		print("SpriteChar2D5: Precise feet alignment - texture=%s, scale=%s, offset=%.1fpx, pos.y=%.1f" % [texture_size, character_sprite.scale, feet_offset_pixels, character_sprite.position.y])
 	else:
 		# FALLBACK: No texture data available yet, use approximate positioning
 		character_sprite.position.y = viewport.size.y * 0.8

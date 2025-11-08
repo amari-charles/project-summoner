@@ -21,6 +21,7 @@ aggro_radius = 25.0
 is_ranged = true
 projectile_id = "arrow"
 sprite_frames = ExtResource("2_frames")
+sprite_feet_offset_pixels = 38.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
