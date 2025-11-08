@@ -95,15 +95,25 @@ func _find_camera() -> void:
 
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
+	# Disconnect from previous target if exists
+	if target_unit and is_instance_valid(target_unit):
+		if target_unit.has_signal("hp_changed"):
+			if target_unit.hp_changed.is_connected(_on_hp_changed):
+				target_unit.hp_changed.disconnect(_on_hp_changed)
+
 	target_unit = unit
 
+	# Find camera now that we're in the scene tree
+	if not camera:
+		_find_camera()
+
 	# Connect to unit signals if available
-	if target_unit.has_signal("hp_changed"):
+	if target_unit and target_unit.has_signal("hp_changed"):
 		if not target_unit.hp_changed.is_connected(_on_hp_changed):
 			target_unit.hp_changed.connect(_on_hp_changed)
 
 	# Update HP immediately
-	if "current_hp" in target_unit and "max_hp" in target_unit:
+	if target_unit and "current_hp" in target_unit and "max_hp" in target_unit:
 		update_hp(target_unit.current_hp, target_unit.max_hp)
 
 ## Update health bar display
@@ -196,6 +206,12 @@ func _fade_out() -> void:
 
 ## Reset for pooling reuse
 func reset() -> void:
+	# Disconnect signal from old target before clearing reference
+	if target_unit and is_instance_valid(target_unit):
+		if target_unit.has_signal("hp_changed"):
+			if target_unit.hp_changed.is_connected(_on_hp_changed):
+				target_unit.hp_changed.disconnect(_on_hp_changed)
+
 	target_unit = null
 	current_hp = 100.0
 	max_hp = 100.0

@@ -15,6 +15,7 @@ var is_alive: bool = true
 ## Signals
 signal base_destroyed(base: Base3D)
 signal base_damaged(base: Base3D, damage: float)
+signal hp_changed(new_hp: float, new_max_hp: float)
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -26,6 +27,13 @@ func _ready() -> void:
 	else:
 		add_to_group("enemy_base")
 
+	# Create HP bar for base (larger and higher than units)
+	HPBarManager.create_bar_for_unit(self, {
+		"bar_width": 2.0,  # Wider than unit bars
+		"offset_y": 3.0,   # Higher above base
+		"show_on_damage_only": false  # Always visible
+	})
+
 	print("Base3D ready: Team %d, HP %d" % [team, max_hp])
 
 ## Take damage from units
@@ -34,16 +42,23 @@ func take_damage(damage: float) -> void:
 		return
 
 	current_hp -= damage
+	current_hp = max(current_hp, 0.0)
+
+	# Emit signals for HP bar and damage feedback
+	hp_changed.emit(current_hp, max_hp)
 	base_damaged.emit(self, damage)
 
 	print("Base3D damaged: %d/%d HP" % [current_hp, max_hp])
 
 	if current_hp <= 0:
-		current_hp = 0
 		_destroy()
 
 ## Destroy the base
 func _destroy() -> void:
 	is_alive = false
+
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
+
 	base_destroyed.emit(self)
 	print("Base3D destroyed! Team: ", team)

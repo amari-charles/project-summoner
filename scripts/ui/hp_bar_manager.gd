@@ -113,6 +113,11 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 	var bar = active_bars[unit]
 	active_bars.erase(unit)
 
+	# Disconnect signal before returning to pool to prevent memory leak
+	if is_instance_valid(unit) and unit.has_signal("hp_changed"):
+		if unit.hp_changed.is_connected(bar._on_hp_changed):
+			unit.hp_changed.disconnect(bar._on_hp_changed)
+
 	# Remove from scene
 	if bar.get_parent():
 		bar.get_parent().remove_child(bar)
