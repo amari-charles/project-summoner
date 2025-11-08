@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled, depth_draw_never, blend_mix;
+render_mode unshaded, cull_disabled, depth_draw_never, depth_test_disabled, blend_mix;
 
 // Shadow customization parameters
 uniform float shadow_opacity : hint_range(0.0, 1.0) = 0.6;

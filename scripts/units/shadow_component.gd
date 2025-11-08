@@ -24,21 +24,21 @@ func _setup_shadow() -> void:
 	# Position slightly above ground to prevent z-fighting
 	position.y = 0.01
 
-	# Load and configure shadow shader
-	var shader = load("res://shaders/blob_shadow.gdshader")
-	if shader:
-		var material = ShaderMaterial.new()
-		material.shader = shader
+	# Try StandardMaterial3D first for debugging
+	var material = StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(0, 0, 0, shadow_opacity)
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 
-		# Set shader parameters
-		material.set_shader_parameter("shadow_opacity", shadow_opacity)
-		material.set_shader_parameter("shadow_color", shadow_color)
-		material.set_shader_parameter("edge_softness", edge_softness)
-
-		set_surface_override_material(0, material)
+	set_surface_override_material(0, material)
 
 	# Shadows should not cast shadows themselves
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	# Set rendering flags
+	gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 
 	# Set layers appropriately (visible but not interactable)
 	layers = 1
@@ -52,5 +52,9 @@ func set_shadow_size(size: float) -> void:
 func set_shadow_opacity(opacity: float) -> void:
 	shadow_opacity = opacity
 	var mat = get_surface_override_material(0)
-	if mat is ShaderMaterial:
+	if mat is StandardMaterial3D:
+		var color = mat.albedo_color
+		color.a = opacity
+		mat.albedo_color = color
+	elif mat is ShaderMaterial:
 		mat.set_shader_parameter("shadow_opacity", opacity)
