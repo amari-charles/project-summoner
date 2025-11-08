@@ -104,7 +104,11 @@ func _create_sprite_visuals() -> void:
 	bar_sprite.position = Vector3(0, 0, -0.01)  # Slightly forward
 	add_child(bar_sprite)
 
-	print("  Created Sprite3D visuals with billboard mode (size: %.1fx%.1f)" % [bar_width, bar_height])
+	print("  Created Sprite3D visuals with billboard mode")
+	print("    Target size: %.2f x %.2f world units" % [bar_width, bar_height])
+	print("    Pixel size: %.4f" % pixel_size)
+	print("    Background sprite width: %.2f units" % (texture_width * pixel_size))
+	print("    Bar sprite width: %.2f units" % (texture_width * pixel_size))
 
 func _create_solid_texture(width: int, height: int, color: Color) -> ImageTexture:
 	var image = Image.create(width, height, false, Image.FORMAT_RGBA8)
