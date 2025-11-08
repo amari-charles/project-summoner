@@ -22,24 +22,192 @@ class CardDisplay extends Control:
 	var base_position: Vector2
 	var base_scale: Vector2 = Vector2(1.0, 1.0)
 
+	# 3D rotation shader
+	var shader_material: ShaderMaterial
+	var background_node: ColorRect  # Reference to apply shader
+
+	# Velocity tracking for rotation
+	var previous_position: Vector2
+	var velocity: Vector2 = Vector2.ZERO
+
+	# Shadow duplicate
+	var shadow_card: Control
+
 	# Animation constants
-	const HOVER_OFFSET = -30.0  # How much card rises (negative = up)
-	const HOVER_SCALE = 1.15    # Scale multiplier when hovered
-	const HOVER_DURATION = 0.2  # Seconds for hover transition
+	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
+	const HOVER_SCALE = 1.2     # Scale multiplier when hovered
+	const HOVER_DURATION = 0.25 # Seconds for hover transition
 	const IDLE_BOB_AMOUNT = 3.0 # Pixels to bob up/down
 	const IDLE_BOB_DURATION = 2.0  # Seconds for one bob cycle
+
+	# Draw animation constants
+	const DRAW_ANIMATION_DURATION = 0.4
+	const DRAW_START_OFFSET = 50.0  # Start below target position
+	const DRAW_STAGGER_DELAY = 0.08  # Delay between each card
+
+	# 3D effect constants
+	const MAX_TILT_DEGREES = 15.0  # Maximum rotation in degrees
+	const TILT_SMOOTHING = 0.15    # Lerp factor for smooth rotation
+
+	# Shadow constants
+	const SHADOW_OFFSET = Vector2(3, 8)  # Offset for shadow position
+	const SHADOW_COLOR = Color(0, 0, 0, 0.4)  # Semi-transparent black
+
+	# Velocity rotation constants
+	const VELOCITY_ROTATION_STRENGTH = 0.0002  # How much velocity affects rotation
+	const ROTATION_SMOOTHING = 0.1  # Lerp factor for rotation smoothing
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
 		base_position = position
+		previous_position = global_position
 
 		# Connect hover signals
 		mouse_entered.connect(_on_mouse_entered)
 		mouse_exited.connect(_on_mouse_exited)
 
+		# Wait for background node to be added
+		await get_tree().process_frame
+
+		# Setup 3D shader on background
+		background_node = get_node_or_null("Background") as ColorRect
+		if background_node:
+			_setup_3d_shader()
+
+		# Create shadow card
+		_create_shadow()
+
 		# Stagger idle animation start
 		await get_tree().create_timer(card_index * 0.05).timeout
 		_start_idle_animation()
+
+	func _process(delta: float) -> void:
+		# Update velocity for rotation
+		var current_pos = global_position
+		velocity = (current_pos - previous_position) / delta if delta > 0 else Vector2.ZERO
+		previous_position = current_pos
+
+		# Apply velocity-based rotation (tilt in direction of motion)
+		var target_rotation = -velocity.x * VELOCITY_ROTATION_STRENGTH  # Negative for natural tilt
+		rotation = lerp(rotation, target_rotation, ROTATION_SMOOTHING)
+
+		# Update 3D rotation based on mouse position (only when hovered)
+		if is_hovered and shader_material:
+			_update_3d_rotation()
+
+		# Update shadow position to follow card
+		if shadow_card:
+			shadow_card.global_position = global_position + SHADOW_OFFSET
+			shadow_card.scale = scale  # Match card scale
+			shadow_card.rotation = rotation  # Match card rotation
+
+	## Setup 3D perspective shader on card background
+	func _setup_3d_shader() -> void:
+		if not background_node:
+			return
+
+		# Load shader
+		var shader = load("res://shaders/ui/card_perspective_3d.gdshader") as Shader
+		if not shader:
+			push_error("Failed to load card 3D shader")
+			return
+
+		# Create shader material
+		shader_material = ShaderMaterial.new()
+		shader_material.shader = shader
+
+		# Set default shader parameters
+		shader_material.set_shader_parameter("fov", 70.0)
+		shader_material.set_shader_parameter("rot_x_deg", 0.0)
+		shader_material.set_shader_parameter("rot_y_deg", 0.0)
+		shader_material.set_shader_parameter("inset", 0.0)
+		shader_material.set_shader_parameter("cull_backface", true)
+		shader_material.set_shader_parameter("use_front", true)
+
+		# Apply shader to background
+		background_node.material = shader_material
+
+	## Update 3D rotation based on mouse position relative to card
+	func _update_3d_rotation() -> void:
+		if not shader_material:
+			return
+
+		# Get mouse position relative to card center
+		var mouse_pos = get_local_mouse_position()
+		var card_center = size / 2.0
+
+		# Calculate normalized offset from center (-1 to 1)
+		var offset_x = (mouse_pos.x - card_center.x) / card_center.x
+		var offset_y = (mouse_pos.y - card_center.y) / card_center.y
+
+		# Clamp to card bounds
+		offset_x = clamp(offset_x, -1.0, 1.0)
+		offset_y = clamp(offset_y, -1.0, 1.0)
+
+		# Calculate target rotation (inverted for natural feel)
+		var target_rot_y = offset_x * MAX_TILT_DEGREES
+		var target_rot_x = -offset_y * MAX_TILT_DEGREES  # Negative for proper direction
+
+		# Get current rotation
+		var current_rot_y = shader_material.get_shader_parameter("rot_y_deg")
+		var current_rot_x = shader_material.get_shader_parameter("rot_x_deg")
+
+		# Smooth lerp to target
+		var new_rot_y = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
+		var new_rot_x = lerp(current_rot_x, target_rot_x, TILT_SMOOTHING)
+
+		# Update shader parameters
+		shader_material.set_shader_parameter("rot_y_deg", new_rot_y)
+		shader_material.set_shader_parameter("rot_x_deg", new_rot_x)
+
+	## Create shadow card that follows this card
+	func _create_shadow() -> void:
+		if not hand_ui:
+			return
+
+		# Create shadow as simple ColorRect
+		shadow_card = ColorRect.new()
+		shadow_card.name = "Shadow"
+		shadow_card.size = size
+		shadow_card.color = SHADOW_COLOR
+		shadow_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shadow_card.z_index = -10  # Always behind all cards
+
+		# Add to hand_ui so it's in the same coordinate space
+		hand_ui.add_child(shadow_card)
+		shadow_card.global_position = global_position + SHADOW_OFFSET
+
+	## Play entrance animation when card is first drawn/created
+	func play_entrance_animation(stagger_index: int = 0) -> void:
+		# Set starting state - below target, small scale
+		var target_pos = position
+		position.y = target_pos.y + DRAW_START_OFFSET
+		scale = Vector2(0.5, 0.5)
+		modulate.a = 0.0  # Start invisible
+
+		# Wait for stagger delay
+		var delay = stagger_index * DRAW_STAGGER_DELAY
+		await get_tree().create_timer(delay).timeout
+
+		# Animate to target position and scale
+		var entrance_tween = create_tween()
+		entrance_tween.set_parallel(true)
+		entrance_tween.set_trans(Tween.TRANS_ELASTIC)
+		entrance_tween.set_ease(Tween.EASE_OUT)
+
+		# Animate position (slide up)
+		entrance_tween.tween_property(self, "position:y", target_pos.y, DRAW_ANIMATION_DURATION)
+
+		# Animate scale (grow to normal size)
+		entrance_tween.tween_property(self, "scale", base_scale, DRAW_ANIMATION_DURATION)
+
+		# Fade in
+		entrance_tween.tween_property(self, "modulate:a", 1.0, DRAW_ANIMATION_DURATION * 0.5)
+
+		# Update base_position after animation completes
+		entrance_tween.finished.connect(func():
+			base_position = position
+		)
 
 	## Start dragging this card
 	func _get_drag_data(_at_position: Vector2) -> Variant:
@@ -103,7 +271,7 @@ class CardDisplay extends Control:
 				if hand_ui:
 					hand_ui._select_card(card_index)
 
-	## Hover effect - card rises and scales up
+	## Hover effect - card rises and scales up with elastic bounce
 	func _on_mouse_entered() -> void:
 		if is_hovered:
 			return
@@ -122,19 +290,19 @@ class CardDisplay extends Control:
 				pulse_tween.kill()
 			border.remove_meta("pulse_tween")
 
-		# Create hover tween
+		# Create elastic hover tween
 		if hover_tween and hover_tween.is_valid():
 			hover_tween.kill()
 
 		hover_tween = create_tween()
 		hover_tween.set_parallel(true)
-		hover_tween.set_trans(Tween.TRANS_CUBIC)
+		hover_tween.set_trans(Tween.TRANS_ELASTIC)  # Changed from CUBIC to ELASTIC
 		hover_tween.set_ease(Tween.EASE_OUT)
 
-		# Animate position (rise up)
+		# Animate position (rise up) with elastic bounce
 		hover_tween.tween_property(self, "position:y", base_position.y + HOVER_OFFSET, HOVER_DURATION)
 
-		# Animate scale
+		# Animate scale with elastic bounce
 		hover_tween.tween_property(self, "scale", Vector2(HOVER_SCALE, HOVER_SCALE), HOVER_DURATION)
 
 		# Raise z_index to appear above other cards
@@ -149,13 +317,13 @@ class CardDisplay extends Control:
 			return
 		is_hovered = false
 
-		# Create exit tween
+		# Create exit tween with elastic bounce
 		if hover_tween and hover_tween.is_valid():
 			hover_tween.kill()
 
 		hover_tween = create_tween()
 		hover_tween.set_parallel(true)
-		hover_tween.set_trans(Tween.TRANS_CUBIC)
+		hover_tween.set_trans(Tween.TRANS_ELASTIC)  # Changed from CUBIC to ELASTIC
 		hover_tween.set_ease(Tween.EASE_OUT)
 
 		# Return to base position
@@ -163,6 +331,25 @@ class CardDisplay extends Control:
 
 		# Return to normal scale
 		hover_tween.tween_property(self, "scale", base_scale, HOVER_DURATION)
+
+		# Reset 3D rotation smoothly
+		if shader_material:
+			var rotation_tween = create_tween()
+			rotation_tween.set_parallel(true)
+			rotation_tween.set_trans(Tween.TRANS_BACK)
+			rotation_tween.set_ease(Tween.EASE_IN_OUT)
+			rotation_tween.tween_method(
+				func(val): shader_material.set_shader_parameter("rot_x_deg", val),
+				shader_material.get_shader_parameter("rot_x_deg"),
+				0.0,
+				0.3
+			)
+			rotation_tween.tween_method(
+				func(val): shader_material.set_shader_parameter("rot_y_deg", val),
+				shader_material.get_shader_parameter("rot_y_deg"),
+				0.0,
+				0.3
+			)
 
 		# Reset z_index
 		hover_tween.finished.connect(func(): z_index = 0)
@@ -227,6 +414,12 @@ var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 
+# Wave animation
+var wave_time: float = 0.0
+const WAVE_AMPLITUDE = 2.0  # How high the wave goes (pixels)
+const WAVE_FREQUENCY = 1.5  # How fast the wave moves (cycles per second)
+const WAVE_SPACING = 0.5    # Distance between wave peaks (affects card-to-card phase)
+
 signal card_selected(index: int)
 
 func _ready() -> void:
@@ -256,6 +449,24 @@ func _ready() -> void:
 	# Initial hand display
 	_rebuild_hand_display()
 
+func _process(delta: float) -> void:
+	# Update wave time
+	wave_time += delta * WAVE_FREQUENCY
+
+	# Apply wave animation to all cards
+	for i in range(card_displays.size()):
+		var card_display = card_displays[i] as CardDisplay
+		if not card_display or card_display.is_hovered:
+			continue  # Skip hovered cards
+
+		# Calculate wave offset for this card
+		var wave_phase = wave_time + (i * WAVE_SPACING)
+		var wave_offset = sin(wave_phase * TAU) * WAVE_AMPLITUDE
+
+		# Apply to base position y (only affects idle cards)
+		if not card_display.is_hovered:
+			card_display.base_position.y = 10 + wave_offset
+
 func _rebuild_hand_display() -> void:
 	# Clear existing displays
 	for display in card_displays:
@@ -275,6 +486,9 @@ func _rebuild_hand_display() -> void:
 		card_display.position = Vector2(start_x + i * (CARD_WIDTH + CARD_SPACING), 10)
 		add_child(card_display)
 		card_displays.append(card_display)
+
+		# Play entrance animation with stagger
+		card_display.play_entrance_animation(i)
 
 	# Highlight selected card
 	_update_selection_visual()
