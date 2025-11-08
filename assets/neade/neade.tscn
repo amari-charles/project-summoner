@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c2cpavvr6oagt"]
+[gd_scene load_steps=13 format=3 uid="uid://c2cpavvr6oagt"]
 
 [ext_resource type="Texture2D" uid="uid://ld0jsacvqv4v" path="res://assets/neade/Dress.PNG" id="1_dress"]
 [ext_resource type="Texture2D" uid="uid://don8pao7bu121" path="res://assets/neade/Face.PNG" id="2_face"]
@@ -51,8 +51,97 @@ tracks/2/keys = {
 "values": [0.349066, -0.0872665]
 }
 
+[sub_resource type="Animation" id="Animation_attack"]
+resource_name = "attack"
+length = 1.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/RootBone:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.75, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 0.3, 1),
+"update": 0,
+"values": [Vector2(-353, 1152), Vector2(-353, 950), Vector2(-600, 1250), Vector2(-100, 1200), Vector2(400, 1150), Vector2(-353, 1152)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/RootBone/BodyBone:rotation")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.6, 0.75, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 0.2, 1),
+"update": 0,
+"values": [0.0, -0.15, 0.1, 0.2, 0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton2D/RootBone/BodyBone/HandBone:position")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.75, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 0.2, 1),
+"update": 0,
+"values": [Vector2(150, -177), Vector2(120, -220), Vector2(80, -150), Vector2(180, -180), Vector2(250, -180), Vector2(150, -177)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Skeleton2D/RootBone/BodyBone/HeadBone:rotation")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.75, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -0.1, 0.15, 0.0]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton2D/RootBone/BodyBone/HandBone/NeedleBone:rotation")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 1.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton2D/RootBone/Leg_L_Bone:rotation")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6, 0.7, 0.8, 1.2, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -0.1, 0.1, -0.175, 0.175, -0.1, 0.0]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Skeleton2D/RootBone/Leg_R_Bone:rotation")
+tracks/6/interp = 2
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6, 0.7, 0.8, 1.2, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.1, -0.1, 0.175, -0.175, 0.1, 0.0]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
 _data = {
+&"attack": SubResource("Animation_attack"),
 &"idle": SubResource("Animation_idle")
 }
 
