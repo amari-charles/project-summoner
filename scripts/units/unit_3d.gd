@@ -91,6 +91,9 @@ func _physics_process(delta: float) -> void:
 	current_target = _acquire_target()
 
 	if current_target:
+		# Always face the current target (updates every frame)
+		_update_facing(current_target.global_position)
+
 		var distance = global_position.distance_to(current_target.global_position)
 
 		if distance <= attack_range:
@@ -130,9 +133,6 @@ func _move_towards_target(delta: float) -> void:
 	if not current_target:
 		return
 
-	# Update facing direction to face target
-	_update_facing(current_target.global_position)
-
 	var direction = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
@@ -155,9 +155,6 @@ func _update_facing(target_position: Vector3) -> void:
 func _perform_attack() -> void:
 	if not current_target:
 		return
-
-	# Update facing direction to face target before attacking
-	_update_facing(current_target.global_position)
 
 	_update_animation("attack")
 	attack_cooldown = 1.0 / attack_speed
