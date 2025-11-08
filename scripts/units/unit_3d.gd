@@ -48,7 +48,7 @@ var is_attacking: bool = false  # Track if currently in attack animation
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
-var shadow_component: MeshInstance3D = null
+var shadow_component: Decal = null
 
 ## Attachment points for projectiles and effects
 @onready var projectile_spawn_point: Marker3D = $ProjectileSpawnPoint if has_node("ProjectileSpawnPoint") else null
@@ -119,8 +119,8 @@ func _setup_shadow() -> void:
 		push_warning("Unit3D: Failed to load shadow_component.gd")
 		return
 
-	# Create shadow instance
-	shadow_component = MeshInstance3D.new()
+	# Create shadow instance (Decal node)
+	shadow_component = Decal.new()
 	shadow_component.set_script(shadow_script)
 	shadow_component.shadow_size = shadow_size
 	shadow_component.shadow_opacity = shadow_opacity

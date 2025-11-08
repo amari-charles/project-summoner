@@ -1,60 +1,76 @@
-extends MeshInstance3D
+extends Decal
 class_name ShadowComponent
 
-## Simple blob shadow for 2.5D units
-## Renders a circular shadow on the ground using a shader
+## Blob shadow for 2.5D units using Decal projection
+## Projects a circular shadow texture onto the ground plane
 
 @export var shadow_size: float = 1.0
 @export var shadow_opacity: float = 0.6
-@export var shadow_color: Color = Color(0.0, 0.0, 0.0, 1.0)
-@export var edge_softness: float = 0.7
+@export var ground_offset: float = 0.05  ## Distance above ground to prevent z-fighting
+
+var shadow_texture: ImageTexture = null
 
 func _ready() -> void:
 	_setup_shadow()
 
 func _setup_shadow() -> void:
-	# Create quad mesh facing up (will be rotated to face down towards ground)
-	var quad = QuadMesh.new()
-	quad.size = Vector2(shadow_size, shadow_size)
-	mesh = quad
+	# Create circular gradient texture for shadow
+	_create_shadow_texture()
 
-	# Rotate to lay flat on ground (facing up)
-	rotation_degrees = Vector3(-90, 0, 0)
+	# Configure decal
+	texture_albedo = shadow_texture
+	albedo_mix = shadow_opacity
 
-	# Position slightly above ground to prevent z-fighting
-	position.y = 0.01
+	# Set decal size (projects downward in a box)
+	# X/Z control shadow radius, Y controls projection depth
+	size = Vector3(shadow_size, 1.0, shadow_size)
 
-	# Try StandardMaterial3D first for debugging
-	var material = StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	material.albedo_color = Color(0, 0, 0, shadow_opacity)
-	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	# Decals project downward by default (Y-axis), which is what we want
+	# No rotation needed!
 
-	set_surface_override_material(0, material)
+	# Position at ground level
+	position.y = ground_offset
 
-	# Shadows should not cast shadows themselves
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Disable other texture channels (only use albedo for shadow)
+	modulate = Color(0, 0, 0, 1)  # Black shadow
 
-	# Set rendering flags
-	gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	# Render settings
+	cull_mask = 1  # Project onto layer 1 (ground)
 
-	# Set layers appropriately (visible but not interactable)
-	layers = 1
+func _create_shadow_texture() -> void:
+	# Create a circular gradient image for the shadow
+	var size_px = 128
+	var image = Image.create(size_px, size_px, false, Image.FORMAT_RGBA8)
 
-## Update shadow parameters at runtime
-func set_shadow_size(size: float) -> void:
-	shadow_size = size
-	if mesh is QuadMesh:
-		mesh.size = Vector2(size, size)
+	var center = Vector2(size_px / 2.0, size_px / 2.0)
+	var max_radius = size_px / 2.0
 
+	for y in range(size_px):
+		for x in range(size_px):
+			var pos = Vector2(x, y)
+			var dist = pos.distance_to(center)
+
+			# Normalize distance (0 at center, 1 at edge)
+			var normalized_dist = dist / max_radius
+
+			# Create soft falloff (0 = opaque, 1 = transparent)
+			var alpha = 1.0 - clamp(normalized_dist, 0.0, 1.0)
+
+			# Apply additional edge softness
+			alpha = pow(alpha, 2.0)  # Quadratic falloff for softer edges
+
+			# Set pixel (black with varying alpha)
+			image.set_pixel(x, y, Color(0, 0, 0, alpha))
+
+	# Convert to texture
+	shadow_texture = ImageTexture.create_from_image(image)
+
+## Update shadow size at runtime
+func set_shadow_size(new_size: float) -> void:
+	shadow_size = new_size
+	size = Vector3(shadow_size, 1.0, shadow_size)
+
+## Update shadow opacity at runtime
 func set_shadow_opacity(opacity: float) -> void:
 	shadow_opacity = opacity
-	var mat = get_surface_override_material(0)
-	if mat is StandardMaterial3D:
-		var color = mat.albedo_color
-		color.a = opacity
-		mat.albedo_color = color
-	elif mat is ShaderMaterial:
-		mat.set_shader_parameter("shadow_opacity", opacity)
+	albedo_mix = opacity
