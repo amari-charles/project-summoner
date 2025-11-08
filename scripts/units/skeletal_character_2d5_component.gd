@@ -49,6 +49,10 @@ func _instance_skeletal_scene() -> void:
 	else:
 		push_warning("Skeletal2D5Component: No AnimationPlayer found in skeletal scene")
 
+	# Connect animation event signals (e.g., attack_impact)
+	if skeletal_instance.has_signal("attack_impact"):
+		skeletal_instance.attack_impact.connect(_on_attack_impact)
+
 ## Recursively find AnimationPlayer in node tree
 func _find_animation_player(node: Node) -> AnimationPlayer:
 	if node is AnimationPlayer:
@@ -103,3 +107,10 @@ func is_playing() -> bool:
 func set_flip_h(flip: bool) -> void:
 	if skeletal_instance:
 		skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if flip else 1)
+
+## Animation event handler - called when attack animation fires impact event
+func _on_attack_impact() -> void:
+	# Forward to parent Unit3D
+	var unit = get_parent()
+	if unit and unit.has_method("_on_attack_impact"):
+		unit._on_attack_impact()

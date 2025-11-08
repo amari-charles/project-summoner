@@ -23,6 +23,7 @@ var current_hp: float
 var is_alive: bool = true
 var current_target: Node3D = null
 var attack_cooldown: float = 0.0
+var pending_attack_target: Node3D = null  # Target for animation-driven damage
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
@@ -138,11 +139,23 @@ func _perform_attack() -> void:
 	attack_cooldown = 1.0 / attack_speed
 
 	if is_ranged:
+		# Ranged attacks spawn projectile immediately (projectile has travel time)
 		_spawn_projectile()
 	else:
-		_deal_damage_to(current_target)
+		# Melee attacks store target for animation-driven damage
+		pending_attack_target = current_target
+
+		# Fallback: If no animation event fires within 0.5s, deal instant damage
+		# (This handles sprite-based units without animation events)
+		_start_attack_damage_fallback()
 
 	unit_attacked.emit(current_target)
+
+func _start_attack_damage_fallback() -> void:
+	await get_tree().create_timer(0.5).timeout
+	# If pending_attack_target still exists, animation event didn't fire
+	if pending_attack_target:
+		_on_attack_impact()  # Deal damage as fallback
 
 func _spawn_projectile() -> void:
 	if not current_target:
@@ -168,6 +181,12 @@ func _spawn_projectile() -> void:
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
 	DamageSystem.apply_damage(self, target, attack_damage, "physical")
+
+## Called by animation event when attack impact occurs
+func _on_attack_impact() -> void:
+	if pending_attack_target and is_instance_valid(pending_attack_target):
+		_deal_damage_to(pending_attack_target)
+	pending_attack_target = null
 
 func take_damage(amount: float) -> void:
 	if not is_alive:
@@ -197,7 +216,18 @@ func _die() -> void:
 	queue_free()
 
 func _update_animation(anim_name: String) -> void:
-	if visual_component and visual_component.get_current_animation() != anim_name:
+	if not visual_component:
+		return
+
+	var current_anim = visual_component.get_current_animation()
+
+	# Don't interrupt important animations (attack, hurt, death)
+	if current_anim in ["attack", "hurt", "death"]:
+		# Only allow transitioning from these animations to themselves or to higher priority
+		if anim_name not in ["attack", "hurt", "death"]:
+			return  # Don't interrupt with idle/walk
+
+	if current_anim != anim_name:
 		visual_component.play_animation(anim_name)
 
 ## Get the world position where projectiles should spawn from
