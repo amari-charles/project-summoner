@@ -197,7 +197,7 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["melee", "lancer", "heavy", "rare"],
-		"unlock_condition": "default"
+		"unlock_condition": "locked"
 	}
 
 ## =============================================================================

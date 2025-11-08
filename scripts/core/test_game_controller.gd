@@ -9,8 +9,8 @@ class_name TestGameController
 
 ## Test deck configuration - edit this to test different cards
 var test_deck_cards: Array[String] = [
-	"fireball", "fireball", "fireball", "fireball", "fireball",
-	"fireball", "fireball", "fireball", "fireball", "fireball",
+	"neade", "neade", "neade", "neade", "neade",
+	"neade", "neade", "neade", "neade", "neade",
 	"fireball", "fireball", "fireball", "fireball", "fireball",
 	"fireball", "fireball", "fireball", "fireball", "fireball",
 	"warrior", "warrior", "warrior", "warrior", "warrior",
