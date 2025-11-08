@@ -23,7 +23,7 @@ class CardDisplay extends Control:
 
 	# 3D rotation shader
 	var shader_material: ShaderMaterial
-	var canvas_group: CanvasGroup  # Wraps all visuals and has shader applied
+	var viewport_container: SubViewportContainer  # Container with shader applied
 
 	# Velocity tracking for rotation
 	var previous_position: Vector2
@@ -58,12 +58,12 @@ class CardDisplay extends Control:
 		mouse_entered.connect(_on_mouse_entered)
 		mouse_exited.connect(_on_mouse_exited)
 
-		# Wait for canvas group to be added
+		# Wait for viewport container to be added
 		await get_tree().process_frame
 
-		# Setup 3D shader on canvas group
-		canvas_group = get_node_or_null("CardVisuals") as CanvasGroup
-		if canvas_group:
+		# Setup 3D shader on viewport container
+		viewport_container = get_node_or_null("ViewportContainer") as SubViewportContainer
+		if viewport_container:
 			_setup_3d_shader()
 
 	func _process(delta: float) -> void:
@@ -95,9 +95,9 @@ class CardDisplay extends Control:
 		if is_hovered and shader_material:
 			_update_3d_rotation()
 
-	## Setup 3D perspective shader on canvas group
+	## Setup 3D perspective shader on viewport container
 	func _setup_3d_shader() -> void:
-		if not canvas_group:
+		if not viewport_container:
 			return
 
 		# Load shader
@@ -118,8 +118,8 @@ class CardDisplay extends Control:
 		shader_material.set_shader_parameter("cull_backface", true)
 		shader_material.set_shader_parameter("use_front", true)
 
-		# Apply shader to canvas group (renders all children to texture, then applies shader)
-		canvas_group.material = shader_material
+		# Apply shader to viewport container
+		viewport_container.material = shader_material
 
 	## Update 3D rotation based on mouse position relative to card
 	func _update_3d_rotation() -> void:
@@ -239,13 +239,13 @@ class CardDisplay extends Control:
 		is_hovered = true
 		was_recently_hovered = true
 
-		# Stop any pulse glow on the card surface (border)
-		var surface = get_node_or_null("CardVisuals/CardSurface") as ColorRect
-		if surface and surface.has_meta("pulse_tween"):
-			var pulse_tween = surface.get_meta("pulse_tween") as Tween
+		# Stop any pulse glow on the card border
+		var border = get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
+		if border and border.has_meta("pulse_tween"):
+			var pulse_tween = border.get_meta("pulse_tween") as Tween
 			if pulse_tween and pulse_tween.is_valid():
 				pulse_tween.kill()
-			surface.remove_meta("pulse_tween")
+			border.remove_meta("pulse_tween")
 
 		# Create elastic hover tween
 		if hover_tween and hover_tween.is_valid():
@@ -312,18 +312,18 @@ class CardDisplay extends Control:
 		hover_tween.finished.connect(func(): z_index = 0)
 
 		# Remove hover glow - set to static non-pulsing color
-		var surface = get_node_or_null("CardVisuals/CardSurface") as ColorRect
-		if surface:
+		var border = get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
+		if border:
 			var glow_tween = create_tween()
 			glow_tween.set_trans(Tween.TRANS_SINE)
 			glow_tween.set_ease(Tween.EASE_OUT)
 			# Set to gray, not back to pulse
-			glow_tween.tween_property(surface, "color", Color.GRAY, 0.15)
+			glow_tween.tween_property(border, "color", Color.GRAY, 0.15)
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var surface = get_node_or_null("CardVisuals/CardSurface") as ColorRect
-		if not surface:
+		var border = get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
+		if not border:
 			return
 
 		# Only glow if card is affordable
@@ -338,10 +338,10 @@ class CardDisplay extends Control:
 
 		if active:
 			# Bright gold glow on hover
-			glow_tween.tween_property(surface, "color", Color(1.0, 0.9, 0.3, 1.0), 0.15)
+			glow_tween.tween_property(border, "color", Color(1.0, 0.9, 0.3, 1.0), 0.15)
 		else:
 			# Return to subtle glow or gray
-			glow_tween.tween_property(surface, "color", Color(0.8, 0.7, 0.2, 0.6), 0.15)
+			glow_tween.tween_property(border, "color", Color(0.8, 0.7, 0.2, 0.6), 0.15)
 
 var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
@@ -411,73 +411,91 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.card_index = index
 	container.hand_ui = self
 
-	# CanvasGroup - renders all children as one texture, then applies shader
-	var visuals = CanvasGroup.new()
-	visuals.name = "CardVisuals"
-	container.add_child(visuals)
+	# Create SubViewport to render card content
+	var viewport = SubViewport.new()
+	viewport.name = "Viewport"
+	viewport.size = Vector2i(CARD_WIDTH + 4, CARD_HEIGHT + 4)
+	viewport.transparent_bg = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
-	# Card border/surface (full card size including border)
-	var surface = ColorRect.new()
-	surface.name = "CardSurface"
-	surface.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	surface.position = Vector2(-2, -2)
-	surface.color = Color.GRAY  # Border color
-	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals.add_child(surface)
+	# Create SubViewportContainer to display and apply shader
+	var viewport_container = SubViewportContainer.new()
+	viewport_container.name = "ViewportContainer"
+	viewport_container.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
+	viewport_container.position = Vector2(-2, -2)
+	viewport_container.stretch = true
+	viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(viewport_container)
+	viewport_container.add_child(viewport)
 
-	# Card background (inner area, child of surface to layer on top)
+	# Build card content inside viewport (this gets rendered to texture)
+	var card_content = Control.new()
+	card_content.name = "CardContent"
+	card_content.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
+	viewport.add_child(card_content)
+
+	# Border
+	var border = ColorRect.new()
+	border.name = "Border"
+	border.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
+	border.position = Vector2.ZERO
+	border.color = Color.GRAY
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_content.add_child(border)
+
+	# Background
 	var bg = ColorRect.new()
 	bg.name = "Background"
 	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	bg.position = Vector2(2, 2)  # Offset to reveal border
+	bg.position = Vector2(2, 2)
 	bg.color = Color(0.2, 0.2, 0.3, 0.9)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	surface.add_child(bg)
+	card_content.add_child(bg)
 
-	# Card name label (child of surface to transform with 3D shader)
+	# Card name label
 	var name_label = Label.new()
 	name_label.text = card.card_name
-	name_label.position = Vector2(12, 12)  # Offset by 2 to account for surface position
+	name_label.position = Vector2(12, 12)
 	name_label.add_theme_font_size_override("font_size", 16)
 	name_label.custom_minimum_size = Vector2(CARD_WIDTH - 20, 0)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	surface.add_child(name_label)
+	card_content.add_child(name_label)
 
-	# Card type (icon placeholder)
+	# Card type
 	var type_label = Label.new()
 	type_label.text = "SUMMON" if card.card_type == Card.CardType.SUMMON else "SPELL"
-	type_label.position = Vector2(12, 42)  # Offset by 2
+	type_label.position = Vector2(12, 42)
 	type_label.add_theme_font_size_override("font_size", 12)
 	type_label.add_theme_color_override("font_color", Color.YELLOW)
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	surface.add_child(type_label)
+	card_content.add_child(type_label)
 
 	# Unit icon (colored rect for now)
 	if card.card_type == Card.CardType.SUMMON and card.unit_scene:
 		var icon = ColorRect.new()
 		icon.size = Vector2(80, 60)
-		icon.position = Vector2(22, 62)  # Offset by 2
+		icon.position = Vector2(22, 62)
 		icon.color = Color(0.3, 0.5, 0.8)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		surface.add_child(icon)
+		card_content.add_child(icon)
 
 	# Mana cost
 	var cost_bg = ColorRect.new()
 	cost_bg.size = Vector2(30, 30)
-	cost_bg.position = Vector2(CARD_WIDTH - 38, CARD_HEIGHT - 38)  # Offset by 2
+	cost_bg.position = Vector2(CARD_WIDTH - 38, CARD_HEIGHT - 38)
 	cost_bg.color = Color(0.1, 0.1, 0.5, 0.9)
 	cost_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	surface.add_child(cost_bg)
+	card_content.add_child(cost_bg)
 
 	var cost_label = Label.new()
 	cost_label.name = "CostLabel"
 	cost_label.text = str(int(card.mana_cost))
-	cost_label.position = Vector2(CARD_WIDTH - 33, CARD_HEIGHT - 36)  # Offset by 2
+	cost_label.position = Vector2(CARD_WIDTH - 33, CARD_HEIGHT - 36)
 	cost_label.add_theme_font_size_override("font_size", 20)
 	cost_label.add_theme_color_override("font_color", Color.CYAN)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	surface.add_child(cost_label)
+	card_content.add_child(cost_label)
 
 	return container
 
@@ -498,15 +516,15 @@ func _update_selection_visual() -> void:
 		if not display:
 			continue
 
-		var surface = display.get_node_or_null("CardSurface") as ColorRect
+		var border = display.get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
 
 		if i == selected_card_index:
-			if surface:
-				surface.color = Color.GOLD
+			if border:
+				border.color = Color.GOLD
 		else:
-			if surface:
+			if border:
 				# Will be updated by _update_availability for playable cards
-				surface.color = Color.GRAY
+				border.color = Color.GRAY
 
 func _update_availability() -> void:
 	if not summoner:
@@ -521,8 +539,8 @@ func _update_availability() -> void:
 		if not display:
 			continue
 
-		var surface = display.get_node_or_null("CardVisuals/CardSurface") as ColorRect
-		var bg = display.get_node_or_null("CardVisuals/CardSurface/Background") as ColorRect
+		var border = display.get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
+		var bg = display.get_node_or_null("ViewportContainer/Viewport/CardContent/Background") as ColorRect
 
 		# Check affordability
 		var can_afford = summoner.mana >= card.mana_cost
@@ -533,9 +551,9 @@ func _update_availability() -> void:
 				bg.color = Color(0.2, 0.2, 0.3, 0.9)
 				bg.modulate = Color.WHITE
 
-			# Start subtle glow pulse on surface (border) (unless selected, hovered, or was recently hovered)
-			if surface and not display.is_hovered and not display.was_recently_hovered and i != selected_card_index:
-				_create_glow_pulse(surface)
+			# Start subtle glow pulse on border (unless selected, hovered, or was recently hovered)
+			if border and not display.is_hovered and not display.was_recently_hovered and i != selected_card_index:
+				_create_glow_pulse(border)
 		else:
 			# Unaffordable: gray out
 			if bg:
@@ -543,32 +561,32 @@ func _update_availability() -> void:
 				bg.modulate = Color(0.6, 0.6, 0.6)
 
 			# Remove glow and kill pulse tween
-			if surface and i != selected_card_index:
+			if border and i != selected_card_index:
 				# Kill pulse tween if it exists
-				if surface.has_meta("pulse_tween"):
-					var pulse_tween = surface.get_meta("pulse_tween") as Tween
+				if border.has_meta("pulse_tween"):
+					var pulse_tween = border.get_meta("pulse_tween") as Tween
 					if pulse_tween and pulse_tween.is_valid():
 						pulse_tween.kill()
-					surface.remove_meta("pulse_tween")
-				surface.color = Color.GRAY
+					border.remove_meta("pulse_tween")
+				border.color = Color.GRAY
 
 ## Create pulsing glow effect for playable cards
-func _create_glow_pulse(surface: ColorRect) -> void:
+func _create_glow_pulse(border: ColorRect) -> void:
 	# Don't create if already pulsing
-	if surface.has_meta("pulse_tween"):
-		var existing = surface.get_meta("pulse_tween") as Tween
+	if border.has_meta("pulse_tween"):
+		var existing = border.get_meta("pulse_tween") as Tween
 		if existing and existing.is_valid():
 			return  # Already pulsing
 
-	# Kill any existing tween on this surface first
-	if surface.has_meta("pulse_tween"):
-		var old_tween = surface.get_meta("pulse_tween") as Tween
+	# Kill any existing tween on this border first
+	if border.has_meta("pulse_tween"):
+		var old_tween = border.get_meta("pulse_tween") as Tween
 		if old_tween and old_tween.is_valid():
 			old_tween.kill()
 
-	# Store tween reference on the surface node
-	var pulse_tween = surface.create_tween()
-	surface.set_meta("pulse_tween", pulse_tween)
+	# Store tween reference on the border node
+	var pulse_tween = border.create_tween()
+	border.set_meta("pulse_tween", pulse_tween)
 
 	pulse_tween.set_loops()
 	pulse_tween.set_trans(Tween.TRANS_SINE)
@@ -578,8 +596,8 @@ func _create_glow_pulse(surface: ColorRect) -> void:
 	var dim_gold = Color(0.8, 0.7, 0.2, 0.4)
 	var bright_gold = Color(1.0, 0.9, 0.3, 0.8)
 
-	pulse_tween.tween_property(surface, "color", bright_gold, 1.0)
-	pulse_tween.tween_property(surface, "color", dim_gold, 1.0)
+	pulse_tween.tween_property(border, "color", bright_gold, 1.0)
+	pulse_tween.tween_property(border, "color", dim_gold, 1.0)
 
 func _on_card_played(_card: Card) -> void:
 	# Deselect after playing - no card should be selected
