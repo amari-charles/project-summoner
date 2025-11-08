@@ -41,3 +41,9 @@ func set_flip_h(flip: bool) -> void:
 func get_animation_duration(anim_name: String) -> float:
 	push_error("Character2D5Component.get_animation_duration() called on base class - must be overridden in child class")
 	return 1.0  # Fallback duration
+
+## Get the world-space height of this sprite (used for HP bars, projectile spawns, etc.)
+## @virtual
+func get_sprite_height() -> float:
+	push_error("Character2D5Component.get_sprite_height() called on base class - must be overridden in child class")
+	return 3.0  # Fallback height

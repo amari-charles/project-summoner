@@ -25,7 +25,6 @@ var max_hp: float = 100.0
 var is_pooled: bool = false
 var fade_timer: float = 0.0
 var is_visible: bool = true
-var debug_timer: float = 0.0  # For throttling debug output
 
 ## Visual components
 var hp_bar_sprite: Sprite3D = null
@@ -38,25 +37,12 @@ var bar_image: Image = null
 signal bar_hidden()  ## Emitted when bar fades out (for pooling)
 
 func _ready() -> void:
-	print("FloatingHPBar _ready() called")
-
 	# Always create Sprite3D visuals (ignore scene file meshes for now)
-	print("  Creating Sprite3D visuals...")
 	_create_sprite_visuals()
-
 	_find_camera()
-	print("  Camera found: %s" % (camera != null))
 
 func _process(delta: float) -> void:
-	# Debug logging (throttled to once per second)
-	debug_timer += delta
-	var should_debug = debug_timer >= 1.0
-	if should_debug:
-		debug_timer = 0.0
-
 	if not target_unit or not is_instance_valid(target_unit):
-		if should_debug:
-			print("FloatingHPBar._process(): No valid target_unit (target is %s)" % ("null" if not target_unit else "invalid"))
 		return
 
 	# Follow target unit
@@ -95,8 +81,6 @@ func _create_sprite_visuals() -> void:
 	hp_bar_sprite.centered = true
 	add_child(hp_bar_sprite)
 
-	print("  Created single Sprite3D HP bar (size: %.2f x %.2f units)" % [bar_width, bar_height])
-
 func _redraw_bar_texture(hp_percent: float) -> void:
 	if not bar_image:
 		return
@@ -131,8 +115,6 @@ func _find_camera() -> void:
 
 ## Set target unit to follow
 func set_target(unit: Node3D) -> void:
-	print("FloatingHPBar.set_target() called for: %s" % (unit.name if unit else "null"))
-
 	# Disconnect from previous target if exists
 	if target_unit and is_instance_valid(target_unit):
 		if target_unit.has_signal("hp_changed"):
@@ -141,21 +123,21 @@ func set_target(unit: Node3D) -> void:
 
 	target_unit = unit
 
+	# Calculate dynamic offset based on visual component height
+	offset_y = _calculate_bar_offset()
+
 	# Find camera now that we're in the scene tree
 	if not camera:
 		_find_camera()
-		print("  Camera after find: %s" % (camera != null))
 
 	# Connect to unit signals if available
 	if target_unit and target_unit.has_signal("hp_changed"):
 		if not target_unit.hp_changed.is_connected(_on_hp_changed):
 			target_unit.hp_changed.connect(_on_hp_changed)
-		print("  Connected to hp_changed signal")
 
 	# Update HP immediately
 	if target_unit and "current_hp" in target_unit and "max_hp" in target_unit:
 		update_hp(target_unit.current_hp, target_unit.max_hp)
-		print("  Initial HP: %.0f/%.0f" % [target_unit.current_hp, target_unit.max_hp])
 
 ## Update health bar display
 func update_hp(current: float, maximum: float) -> void:
@@ -242,6 +224,22 @@ func reset() -> void:
 
 	# Redraw at full HP
 	_redraw_bar_texture(1.0)
+
+## Calculate HP bar offset dynamically based on visual component height
+func _calculate_bar_offset() -> float:
+	if not target_unit:
+		return 3.2  # Fallback
+
+	var visual = target_unit.get_node_or_null("Visual")
+	if not visual:
+		return 3.2  # Fallback if no visual component
+
+	# Query sprite height from visual component
+	if visual.has_method("get_sprite_height"):
+		var sprite_height = visual.get_sprite_height()
+		return sprite_height * 1.1
+
+	return 3.2  # Fallback
 
 ## Signal handler for unit HP changes
 func _on_hp_changed(new_hp: float, new_max_hp: float) -> void:

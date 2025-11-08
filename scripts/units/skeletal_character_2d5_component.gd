@@ -4,10 +4,6 @@ class_name SkeletalCharacter2D5Component
 ## Skeletal-based 2.5D Character Rendering Component
 ## Renders skeletal 2D animations in 3D space using Skeleton2D/AnimationPlayer + SubViewport
 
-## Height of the Sprite3D above ground (adjust per character size)
-## Default: 1.5 units for human-sized characters
-@export var sprite_height: float = 1.5
-
 @export var skeletal_scene: PackedScene = null  ## The skeletal animation scene to instance
 @export var scale_factor: Vector2 = Vector2(0.08, 0.08)  ## Scale of the skeletal model
 @export var position_offset: Vector2 = Vector2(300, 200)  ## Position offset in viewport
@@ -23,12 +19,12 @@ func _ready() -> void:
 	# Force viewport to render every frame
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
-	# Set Sprite3D height
-	sprite_3d.position.y = sprite_height
-
 	# Instance the skeletal scene if provided
 	if skeletal_scene:
 		_instance_skeletal_scene()
+
+	# Bottom-align sprite using offset (feet at origin)
+	_setup_sprite_alignment()
 
 ## Instance the skeletal animation scene into the viewport
 func _instance_skeletal_scene() -> void:
@@ -51,9 +47,7 @@ func _instance_skeletal_scene() -> void:
 	# Find the AnimationPlayer in the skeletal scene
 	animation_player = _find_animation_player(skeletal_instance)
 
-	if animation_player:
-		print("Skeletal2D5Component: Found AnimationPlayer with animations: %s" % animation_player.get_animation_list())
-	else:
+	if not animation_player:
 		push_warning("Skeletal2D5Component: No AnimationPlayer found in skeletal scene")
 
 	# Connect animation event signals (e.g., attack_impact)
@@ -143,3 +137,25 @@ func _on_attack_impact() -> void:
 	var unit = get_parent()
 	if unit and unit.has_method("_on_attack_impact"):
 		unit._on_attack_impact()
+
+## Setup sprite alignment so character feet are at origin (Y=0)
+## Uses simple Y positioning - proven to work
+func _setup_sprite_alignment() -> void:
+	if not sprite_3d or not viewport:
+		return
+
+	# Calculate actual sprite height in world units
+	var world_height = viewport.size.y * sprite_3d.pixel_size  # 600 * 0.01 = 6.0
+
+	# Position sprite so bottom is at Y=0
+	# With centered=true, center needs to be at half-height
+	sprite_3d.position.y = world_height / 2.0  # 3.0 for skeletal sprites
+
+## Get the world-space height of this sprite
+## Used by HP bars, projectile spawns, etc.
+func get_sprite_height() -> float:
+	if not viewport or not sprite_3d:
+		return 3.0  # Fallback
+
+	# Total height = viewport pixels × pixel_size
+	return viewport.size.y * sprite_3d.pixel_size

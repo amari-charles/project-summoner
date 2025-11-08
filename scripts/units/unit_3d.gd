@@ -34,7 +34,7 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 
 ## Shadow settings
 @export var shadow_enabled: bool = true
-@export var shadow_size: float = 1.0
+@export var shadow_size: float = 2.0  ## Increased from 1.0 to 2.0 for better visibility
 @export var shadow_opacity: float = 0.6
 
 ## Current state
@@ -48,7 +48,7 @@ var is_attacking: bool = false  # Track if currently in attack animation
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
-var shadow_component: Decal = null
+var shadow_component: MeshInstance3D = null
 
 ## Attachment points for projectiles and effects
 @onready var projectile_spawn_point: Marker3D = $ProjectileSpawnPoint if has_node("ProjectileSpawnPoint") else null
@@ -78,7 +78,6 @@ func _setup_visuals() -> void:
 	# Check if a visual component already exists (e.g., Skeletal2D5Component added in scene)
 	visual_component = get_node_or_null("Visual")
 	if visual_component:
-		print("Unit3D: Using existing visual component: %s" % visual_component.name)
 		# Initialize facing direction based on team
 		is_facing_left = (team == Team.ENEMY)
 		# Sprites face LEFT by default, so flip PLAYER units to face right
@@ -93,6 +92,7 @@ func _setup_visuals() -> void:
 	var component_scene = load("res://scenes/units/sprite_character_2d5_component.tscn")
 	if component_scene:
 		visual_component = component_scene.instantiate()
+		visual_component.name = "Visual"  # Name it so HP bars can find it
 		add_child(visual_component)
 
 		# Set sprite frames if provided
@@ -119,14 +119,15 @@ func _setup_shadow() -> void:
 		push_warning("Unit3D: Failed to load shadow_component.gd")
 		return
 
-	# Create shadow instance (Decal node)
-	shadow_component = Decal.new()
+	# Create shadow instance (MeshInstance3D node)
+	shadow_component = MeshInstance3D.new()
 	shadow_component.set_script(shadow_script)
-	shadow_component.shadow_size = shadow_size
-	shadow_component.shadow_opacity = shadow_opacity
 
 	# Add as child (will follow unit automatically)
 	add_child(shadow_component)
+
+	# Initialize with proper values (explicit initialization pattern)
+	shadow_component.initialize(shadow_size, shadow_opacity)
 
 ## Calculate shadow size based on collision shape
 func _calculate_shadow_size_from_collision() -> float:
@@ -372,14 +373,22 @@ func _update_animation(anim_name: String) -> void:
 func get_projectile_spawn_position() -> Vector3:
 	if projectile_spawn_point:
 		return projectile_spawn_point.global_position
-	# Fallback: use visual component position or unit position + offset
-	if visual_component:
-		return global_position + Vector3(0, 1.0, 0)
-	return global_position
+	# Dynamic: query visual component for sprite height
+	if visual_component and visual_component.has_method("get_sprite_height"):
+		var sprite_height = visual_component.get_sprite_height()
+		# Spawn at ~60% of height (chest/hand level for archers)
+		return global_position + Vector3(0, sprite_height * 0.6, 0)
+	# Fallback for units without visual component
+	return global_position + Vector3(0, 1.0, 0)
 
 ## Get the world position where projectiles should target
 func get_projectile_target_position() -> Vector3:
 	if projectile_target_point:
 		return projectile_target_point.global_position
-	# Fallback: aim slightly higher than unit position (chest height)
+	# Dynamic: query visual component for sprite height
+	if visual_component and visual_component.has_method("get_sprite_height"):
+		var sprite_height = visual_component.get_sprite_height()
+		# Target at ~60% of height (chest area)
+		return global_position + Vector3(0, sprite_height * 0.6, 0)
+	# Fallback for units without visual component
 	return global_position + Vector3(0, 1.2, 0)
