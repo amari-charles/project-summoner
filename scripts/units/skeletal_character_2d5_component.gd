@@ -4,14 +4,13 @@ class_name SkeletalCharacter2D5Component
 ## Skeletal-based 2.5D Character Rendering Component
 ## Renders skeletal 2D animations in 3D space using Skeleton2D/AnimationPlayer + SubViewport
 
-## Sprite anchor point in viewport (0-1 range)
-## X: 0=left, 0.5=center, 1=right
-## Y: 0=top, 0.5=center, 1=bottom (feet on ground)
-@export var sprite_anchor: Vector2 = Vector2(0.5, 1.0)
+## Height of the Sprite3D above ground (adjust per character size)
+## Default: 1.5 units for human-sized characters
+@export var sprite_height: float = 1.5
 
 @export var skeletal_scene: PackedScene = null  ## The skeletal animation scene to instance
 @export var scale_factor: Vector2 = Vector2(0.08, 0.08)  ## Scale of the skeletal model
-@export var position_offset: Vector2 = Vector2(0, 0)  ## DEPRECATED: Use sprite_anchor instead
+@export var position_offset: Vector2 = Vector2(300, 200)  ## Position offset in viewport
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
@@ -24,12 +23,12 @@ func _ready() -> void:
 	# Force viewport to render every frame
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
+	# Set Sprite3D height
+	sprite_3d.position.y = sprite_height
+
 	# Instance the skeletal scene if provided
 	if skeletal_scene:
 		_instance_skeletal_scene()
-
-	# Position model based on anchor
-	_update_model_position()
 
 ## Instance the skeletal animation scene into the viewport
 func _instance_skeletal_scene() -> void:
@@ -42,10 +41,9 @@ func _instance_skeletal_scene() -> void:
 		push_error("Skeletal2D5Component: Failed to instance skeletal scene")
 		return
 
-	# Apply scale
+	# Apply scale and position
 	skeletal_instance.scale = scale_factor
-
-	# Position will be set by _update_model_position()
+	skeletal_instance.position = position_offset
 
 	# Add to viewport
 	model_container.add_child(skeletal_instance)
@@ -145,27 +143,3 @@ func _on_attack_impact() -> void:
 	var unit = get_parent()
 	if unit and unit.has_method("_on_attack_impact"):
 		unit._on_attack_impact()
-
-## Position the 2D skeletal model within viewport based on anchor point
-## This ensures character feet align with the bottom edge when anchor.y = 1.0
-func _update_model_position() -> void:
-	if not model_container or not viewport:
-		return
-
-	# Get viewport size
-	var viewport_size = viewport.size
-
-	# Calculate position based on anchor
-	# anchor (0.5, 1.0) means center-bottom
-	var target_pos = Vector2(
-		viewport_size.x * sprite_anchor.x,
-		viewport_size.y * sprite_anchor.y
-	)
-
-	# Apply position_offset for backwards compatibility if needed
-	if position_offset != Vector2.ZERO:
-		push_warning("SkeletalCharacter2D5Component: position_offset is deprecated, use sprite_anchor instead")
-		target_pos += position_offset
-
-	model_container.position = target_pos
-	print("SkeletalCharacter2D5: Positioned model at %v (viewport: %v, anchor: %v)" % [target_pos, viewport_size, sprite_anchor])
