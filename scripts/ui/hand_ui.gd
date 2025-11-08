@@ -30,9 +30,6 @@ class CardDisplay extends Control:
 	var previous_position: Vector2
 	var velocity: Vector2 = Vector2.ZERO
 
-	# Shadow duplicate
-	var shadow_card: Control
-
 
 	# Animation constants
 	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
@@ -49,10 +46,6 @@ class CardDisplay extends Control:
 	# 3D effect constants
 	const MAX_TILT_DEGREES = 15.0  # Maximum rotation in degrees
 	const TILT_SMOOTHING = 0.15    # Lerp factor for smooth rotation
-
-	# Shadow constants
-	const SHADOW_OFFSET = Vector2(3, 8)  # Offset for shadow position
-	const SHADOW_COLOR = Color(0, 0, 0, 0.4)  # Semi-transparent black
 
 	# Velocity rotation constants
 	const VELOCITY_ROTATION_STRENGTH = 0.0002  # How much velocity affects rotation
@@ -75,9 +68,6 @@ class CardDisplay extends Control:
 		if background_node:
 			_setup_3d_shader()
 
-		# Create shadow card
-		_create_shadow()
-
 		# Stagger idle animation start
 		await get_tree().create_timer(card_index * 0.05).timeout
 		_start_idle_animation()
@@ -95,12 +85,6 @@ class CardDisplay extends Control:
 		# Update 3D rotation based on mouse position (only when hovered)
 		if is_hovered and shader_material:
 			_update_3d_rotation()
-
-		# Update shadow position to follow card
-		if shadow_card:
-			shadow_card.global_position = global_position + SHADOW_OFFSET
-			shadow_card.scale = scale  # Match card scale
-			shadow_card.rotation = rotation  # Match card rotation
 
 	## Setup 3D perspective shader on card background
 	func _setup_3d_shader() -> void:
@@ -161,23 +145,6 @@ class CardDisplay extends Control:
 		shader_material.set_shader_parameter("rot_y_deg", new_rot_y)
 		shader_material.set_shader_parameter("rot_x_deg", new_rot_x)
 
-	## Create shadow card that follows this card
-	func _create_shadow() -> void:
-		if not hand_ui:
-			return
-
-		# Create shadow as simple ColorRect
-		shadow_card = ColorRect.new()
-		shadow_card.name = "Shadow"
-		shadow_card.size = size
-		shadow_card.color = SHADOW_COLOR
-		shadow_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		shadow_card.z_index = -10  # Always behind all cards
-
-		# Add to hand_ui so it's in the same coordinate space
-		hand_ui.add_child(shadow_card)
-		shadow_card.global_position = global_position + SHADOW_OFFSET
-
 	## Play entrance animation when card is first drawn/created
 	func play_entrance_animation(stagger_index: int = 0) -> void:
 		# Set starting state - below target, small scale
@@ -235,8 +202,6 @@ class CardDisplay extends Control:
 
 		# Card physically leaves the hand (completely invisible)
 		visible = false
-		if shadow_card:
-			shadow_card.visible = false
 
 		# Return drag data
 		return {
@@ -250,8 +215,6 @@ class CardDisplay extends Control:
 		if what == NOTIFICATION_DRAG_END:
 			# Card returns to hand (if drag was cancelled)
 			visible = true
-			if shadow_card:
-				shadow_card.visible = true
 
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
