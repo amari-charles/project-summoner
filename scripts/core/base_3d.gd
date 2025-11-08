@@ -29,8 +29,8 @@ func _ready() -> void:
 
 	# Create HP bar for base (larger and higher than units)
 	HPBarManager.create_bar_for_unit(self, {
-		"bar_width": 2.0,  # Wider than unit bars
-		"offset_y": 3.0,   # Higher above base
+		"bar_width": 1.5,  # Wider than unit bars (1.5 vs 0.8)
+		"offset_y": 2.5,   # Higher above base
 		"show_on_damage_only": false  # Always visible
 	})
 

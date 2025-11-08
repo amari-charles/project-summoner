@@ -5,9 +5,9 @@ class_name FloatingHPBar
 ## Managed by HPBarManager for pooling
 
 ## Visual settings
-@export var bar_width: float = 1.0
-@export var bar_height: float = 0.1
-@export var offset_y: float = 1.5  ## Height above unit
+@export var bar_width: float = 0.8  ## Width in world units (smaller for units)
+@export var bar_height: float = 0.08  ## Height in world units
+@export var offset_y: float = 1.8  ## Height above unit
 @export var show_on_damage_only: bool = false  ## Hide when at full HP
 @export var fade_delay: float = 3.0  ## Seconds before fading when damaged
 @export var fade_duration: float = 0.5  ## Fade out time
@@ -76,16 +76,22 @@ func _process(delta: float) -> void:
 			_fade_out()
 
 func _create_sprite_visuals() -> void:
-	# Create solid color textures for background and bar
-	background_texture = _create_solid_texture(128, 16, background_color)
-	bar_texture = _create_solid_texture(128, 16, color_full)
+	# Create solid color textures for background and bar (wider aspect ratio)
+	var texture_width = 100
+	var texture_height = 12
+	background_texture = _create_solid_texture(texture_width, texture_height, background_color)
+	bar_texture = _create_solid_texture(texture_width, texture_height, color_full)
+
+	# Calculate pixel size to achieve desired world size
+	var pixels_per_unit = texture_width / bar_width
+	var pixel_size = 1.0 / pixels_per_unit
 
 	# Create background sprite
 	background_sprite = Sprite3D.new()
 	background_sprite.texture = background_texture
 	background_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	background_sprite.no_depth_test = true
-	background_sprite.pixel_size = bar_width / 128.0  # Convert pixel size to world units
+	background_sprite.pixel_size = pixel_size
 	add_child(background_sprite)
 
 	# Create bar sprite (foreground)
@@ -93,12 +99,12 @@ func _create_sprite_visuals() -> void:
 	bar_sprite.texture = bar_texture
 	bar_sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	bar_sprite.no_depth_test = true
-	bar_sprite.pixel_size = bar_width / 128.0
-	bar_sprite.offset = Vector2(-64, 0)  # Anchor left
+	bar_sprite.pixel_size = pixel_size
+	bar_sprite.offset = Vector2(-texture_width * 0.5, 0)  # Anchor left
 	bar_sprite.position = Vector3(0, 0, -0.01)  # Slightly forward
 	add_child(bar_sprite)
 
-	print("  Created Sprite3D visuals with billboard mode")
+	print("  Created Sprite3D visuals with billboard mode (size: %.1fx%.1f)" % [bar_width, bar_height])
 
 func _create_solid_texture(width: int, height: int, color: Color) -> ImageTexture:
 	var image = Image.create(width, height, false, Image.FORMAT_RGBA8)
