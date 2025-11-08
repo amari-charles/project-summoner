@@ -25,6 +25,7 @@ var current_target: Node3D = null
 var attack_cooldown: float = 0.0
 var pending_attack_target: Node3D = null  # Target for animation-driven damage
 var is_facing_left: bool = false  # Current facing direction
+var is_attacking: bool = false  # Track if currently in attack animation
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
@@ -94,16 +95,20 @@ func _physics_process(delta: float) -> void:
 		var distance = global_position.distance_to(current_target.global_position)
 
 		if distance <= attack_range:
-			# Face opponent when idle in range
-			_update_facing(current_target.global_position)
-			_update_animation("idle")
+			# Face opponent when idle in range (but not during attack)
+			if not is_attacking:
+				_update_facing(current_target.global_position)
+				_update_animation("idle")
 			if attack_cooldown <= 0.0:
 				_perform_attack()
 		else:
-			_update_animation("walk")
-			_move_towards_target(delta)
+			# Don't move during attack animation
+			if not is_attacking:
+				_update_animation("walk")
+				_move_towards_target(delta)
 	else:
-		_update_animation("idle")
+		if not is_attacking:
+			_update_animation("idle")
 
 func _acquire_target() -> Node3D:
 	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
@@ -164,8 +169,16 @@ func _perform_attack() -> void:
 	if not current_target:
 		return
 
+	is_attacking = true
 	_update_animation("attack")
-	attack_cooldown = 1.0 / attack_speed
+
+	# Query actual animation duration from visual component
+	var attack_duration = 1.0 / attack_speed  # Cooldown duration
+	var animation_duration = 1.0  # Fallback
+	if visual_component and visual_component.has_method("get_animation_duration"):
+		animation_duration = visual_component.get_animation_duration("attack")
+
+	attack_cooldown = attack_duration
 
 	if is_ranged:
 		# Ranged attacks spawn projectile immediately (projectile has travel time)
@@ -178,6 +191,9 @@ func _perform_attack() -> void:
 		# (This handles sprite-based units without animation events)
 		_start_attack_damage_fallback()
 
+	# Clear attacking state after animation completes (not cooldown!)
+	_clear_attacking_state(animation_duration)
+
 	unit_attacked.emit(current_target)
 
 func _start_attack_damage_fallback() -> void:
@@ -185,6 +201,10 @@ func _start_attack_damage_fallback() -> void:
 	# If pending_attack_target still exists, animation event didn't fire
 	if pending_attack_target:
 		_on_attack_impact()  # Deal damage as fallback
+
+func _clear_attacking_state(duration: float) -> void:
+	await get_tree().create_timer(duration).timeout
+	is_attacking = false
 
 func _spawn_projectile() -> void:
 	if not current_target:
@@ -227,7 +247,8 @@ func take_damage(amount: float) -> void:
 	# Emit signal for HP bars
 	hp_changed.emit(current_hp, max_hp)
 
-	_update_animation("hurt")
+	# TODO: Hurt animations disabled for now to prevent interrupting attacks
+	# _update_animation("hurt")
 
 	if current_hp <= 0:
 		_die()

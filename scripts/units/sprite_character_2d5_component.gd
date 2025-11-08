@@ -46,3 +46,14 @@ func is_playing() -> bool:
 	if character_sprite:
 		return character_sprite.is_playing()
 	return false
+
+## Get the duration of an animation in seconds
+func get_animation_duration(anim_name: String) -> float:
+	if character_sprite and character_sprite.sprite_frames:
+		var frames = character_sprite.sprite_frames
+		if frames.has_animation(anim_name):
+			var frame_count = frames.get_frame_count(anim_name)
+			var fps = frames.get_animation_speed(anim_name)
+			if fps > 0:
+				return frame_count / fps
+	return 1.0  # Fallback duration
