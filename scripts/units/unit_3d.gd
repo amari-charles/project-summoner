@@ -82,6 +82,10 @@ func _ready() -> void:
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
 
+	# Debug: Verify selection area after scene is fully ready
+	if selection_enabled:
+		call_deferred("_debug_selection_state")
+
 func _setup_visuals() -> void:
 	# Check if a visual component already exists (e.g., Skeletal2D5Component added in scene)
 	visual_component = get_node_or_null("Visual")
@@ -168,7 +172,10 @@ func _calculate_shadow_size_from_collision() -> float:
 
 func _setup_selection() -> void:
 	if not selection_enabled:
+		print("Unit3D [%s]: Selection disabled, skipping setup" % name)
 		return
+
+	print("Unit3D [%s]: Setting up selection..." % name)
 
 	# Create Area3D for mouse detection
 	selection_area = Area3D.new()
@@ -177,6 +184,8 @@ func _setup_selection() -> void:
 	selection_area.collision_mask = 0   # Don't detect physics collisions
 	selection_area.input_ray_pickable = true  # Enable mouse picking
 	add_child(selection_area)
+
+	print("  Area3D created - layer:%d, mask:%d, pickable:%s" % [selection_area.collision_layer, selection_area.collision_mask, selection_area.input_ray_pickable])
 
 	# Create CollisionShape3D matching the unit's collision shape
 	var collision_shape = CollisionShape3D.new()
@@ -202,11 +211,13 @@ func _setup_selection() -> void:
 		collision_shape.position = Vector3(0, 1.0, 0)
 
 	selection_area.add_child(collision_shape)
+	print("  CollisionShape3D added - shape:%s" % collision_shape.shape)
 
 	# Connect mouse signals
 	selection_area.mouse_entered.connect(_on_mouse_entered)
 	selection_area.mouse_exited.connect(_on_mouse_exited)
 	selection_area.input_event.connect(_on_input_event)
+	print("  Mouse signals connected")
 
 	# Setup selection ring visual
 	_setup_selection_ring()
@@ -216,6 +227,7 @@ func _setup_selection() -> void:
 	UnitSelectionManager.unit_deselected.connect(_on_unit_deselected)
 	UnitSelectionManager.unit_hovered.connect(_on_unit_hovered)
 	UnitSelectionManager.unit_unhovered.connect(_on_unit_unhovered)
+	print("  Selection setup complete!")
 
 func _setup_selection_ring() -> void:
 	# Auto-calculate ring size if not set
@@ -512,3 +524,20 @@ func get_projectile_target_position() -> Vector3:
 		return global_position + Vector3(0, sprite_height * 0.6, 0)
 	# Fallback for units without visual component
 	return global_position + Vector3(0, 1.2, 0)
+
+## DEBUG: Verify selection area state after initialization
+func _debug_selection_state() -> void:
+	print("\n=== SELECTION DEBUG [%s] ===" % name)
+	print("  selection_enabled: %s" % selection_enabled)
+	print("  selection_area exists: %s" % (selection_area != null))
+	if selection_area:
+		print("  selection_area.input_ray_pickable: %s" % selection_area.input_ray_pickable)
+		print("  selection_area.collision_layer: %d (binary: %s)" % [selection_area.collision_layer, String.num_int64(selection_area.collision_layer, 2)])
+		print("  selection_area.collision_mask: %d" % selection_area.collision_mask)
+		print("  selection_area is in tree: %s" % selection_area.is_inside_tree())
+		print("  selection_area parent: %s" % selection_area.get_parent().name)
+		print("  selection_area children: %d" % selection_area.get_child_count())
+		for child in selection_area.get_children():
+			print("    - %s (shape: %s)" % [child.name, child.shape if child is CollisionShape3D else "N/A"])
+	print("  Global position: %s" % global_position)
+	print("=================================\n")
