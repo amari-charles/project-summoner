@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
+[gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/environments/elven_land/game_background_1/game_background_1.png" id="2_background"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -49,6 +50,11 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
+
+[node name="Background" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 50)
+pixel_size = 0.05
+texture = ExtResource("2_background")
 
 [node name="GroundLayer" type="Node3D" parent="."]
 
