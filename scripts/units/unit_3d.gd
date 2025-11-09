@@ -173,8 +173,8 @@ func _setup_selection() -> void:
 	# Create Area3D for mouse detection
 	selection_area = Area3D.new()
 	selection_area.name = "SelectionArea"
-	selection_area.collision_layer = 0  # Don't collide with anything
-	selection_area.collision_mask = 0   # Don't detect anything
+	selection_area.collision_layer = 1  # Must be on a layer for mouse input raycasts
+	selection_area.collision_mask = 0   # Don't detect physics collisions
 	selection_area.input_ray_pickable = true  # Enable mouse picking
 	add_child(selection_area)
 
