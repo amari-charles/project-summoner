@@ -352,8 +352,8 @@ signal card_selected(index: int)
 func _ready() -> void:
 	add_to_group("hand_ui")
 
-	# Block clicks to battlefield
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Allow clicks through empty space to battlefield (individual cards still block input)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Find player summoner (2D or 3D)
 	var summoners = get_tree().get_nodes_in_group("summoners")
