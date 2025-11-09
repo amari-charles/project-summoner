@@ -28,9 +28,9 @@ func _ready() -> void:
 	if not camera_2d and not camera_3d:
 		push_error("BattlefieldDropZone: Could not find camera!")
 
-	# STOP filter is needed to receive drop events, but we're behind HandUI
-	# so HandUI will receive mouse events in its area first
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	# PASS filter allows drop events while passing input through to 3D viewport
+	# This enables unit selection/hover detection in the 3D scene below
+	mouse_filter = Control.MOUSE_FILTER_PASS
 
 ## Check if we can drop the card here
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
