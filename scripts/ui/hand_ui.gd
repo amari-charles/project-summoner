@@ -50,7 +50,7 @@ class CardDisplay extends Control:
 	const ROTATION_DAMPING = 0.85  # Damping factor for rotation (lower = more damping, higher = keeps rotation longer)
 
 	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_STOP
+		mouse_filter = Control.MOUSE_FILTER_PASS  # Allow events to pass to 3D viewport
 		base_position = position
 		previous_position = position  # Track local position for velocity calculation
 
