@@ -62,7 +62,7 @@ High-contrast fantasy with distinct elemental identities. Serious, mystical, and
 - **Session Length:** 3-5 minutes
 - **Monetization:** Cosmetics and hero unlocks (no pay-to-win)
 - **Platform:** Mobile-first, expandable to PC
-- **Engine:** Godot 4.3
+- **Engine:** Godot 4.5
 
 ## Vision Summary
 

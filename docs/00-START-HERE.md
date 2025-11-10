@@ -23,7 +23,7 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 
 **Genre:** Real-time tactical card battler
 **Inspiration:** Mini Warriors, Clash Royale, Cult of the Lamb
-**Engine:** Godot 4.3
+**Engine:** Godot 4.5
 **Perspective:** 2.5D (3D world with orthographic camera at 35° tilt)
 
 ### Core Gameplay Loop
@@ -119,7 +119,7 @@ docs/
 
 ### Running the Project
 
-1. Open project in Godot 4.3
+1. Open project in Godot 4.5
 2. Run one of these test scenes:
    - `scenes/battlefield/test_battle_vfx.tscn` - VFX sandbox (infinite mana/HP)
    - `scenes/battlefield/campaign_battle_3d.tscn` - Real battle with progression

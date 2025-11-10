@@ -1,6 +1,6 @@
 # Project Summoner
 
-A tactical card battler inspired by Mini Warriors and Clash Royale, built in Godot 4.3.
+A tactical card battler inspired by Mini Warriors and Clash Royale, built in Godot 4.5.
 
 ## Overview
 
@@ -9,7 +9,7 @@ Project Summoner is a real-time strategy card game where players summon units on
 ## Quick Start
 
 **Prerequisites:**
-- Godot 4.3 or later
+- Godot 4.5 or later
 - Git
 
 **Installation:**
@@ -18,7 +18,7 @@ git clone https://github.com/amari-charles/project-summoner.git
 cd project-summoner
 ```
 
-Open the project in Godot 4.3 and run the VFX test scene:
+Open the project in Godot 4.5 and run the VFX test scene:
 - `scenes/battlefield/test_battle_vfx.tscn` - Sandbox for testing abilities and combat
 
 ## Documentation
@@ -28,7 +28,6 @@ Open the project in Godot 4.3 and run the VFX test scene:
 
 **Core Documentation:**
 - [📊 Current State](docs/CURRENT_STATE.md) - Complete project overview and architecture
-- [🏗️ Architecture](docs/ARCHITECTURE.md) - 3D system design and technical details
 - [📝 Changelog](docs/CHANGELOG.md) - Version history and changes
 
 **Developer Guides:**
@@ -74,7 +73,7 @@ This is a personal project, but feedback and suggestions are welcome! Please see
 
 ## Tech Stack
 
-- **Engine:** Godot 4.3
+- **Engine:** Godot 4.5
 - **Language:** GDScript
 - **Art Style:** Pixel art with 2.5D perspective
 - **Target Platforms:** Desktop (PC/Mac), Mobile (iOS/Android)
@@ -91,4 +90,4 @@ See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with Godot 4.3** | **Last Updated:** 2025-01-10
+**Built with Godot 4.5** | **Last Updated:** 2025-01-10

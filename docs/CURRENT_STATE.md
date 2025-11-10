@@ -5,7 +5,7 @@
 
 ## Project Overview
 
-Project Summoner is a card-based auto-battler inspired by Mini Warriors Reborn, built in Godot 4.5. Players command summoned units on a 2D battlefield using cards to spawn units, cast spells, and deploy structures.
+Project Summoner is a card-based auto-battler inspired by Mini Warriors Reborn, built in Godot 4.5. Players command summoned units on a 3D battlefield with 2.5D perspective using cards to spawn units, cast spells, and deploy structures.
 
 ## Architecture
 
@@ -121,7 +121,7 @@ Project Summoner is a card-based auto-battler inspired by Mini Warriors Reborn, 
 ### Visual Systems (Implemented)
 
 #### Battlefield (`scenes/battlefield/battlefield.tscn`)
-- 1920x1080 top-down 2D perspective
+- 1920x1080 3D orthographic camera view with 2.5D perspective
 - Tiled grass ground texture (z-index: -100)
 - Player zone (left, blue tint)
 - Enemy zone (right, red tint)
@@ -307,10 +307,10 @@ The save system uses a DB-ready schema with UUIDs and row-oriented data structur
 
 **Exceptions:** Trivial changes (typos, minor tweaks) can go straight to main if explicitly approved.
 
-### 3. Top-Down 2D Perspective (Not Isometric)
-**Decision:** Use flat top-down 2D perspective matching Mini Warriors Reborn.
+### 3. 3D with Orthographic Camera (2.5D Style)
+**Decision:** Use 3D architecture with orthographic camera and 35° tilt for 2.5D aesthetic.
 
-**Rationale:** Research showed Mini Warriors Reborn uses top-down 2D, not isometric or oblique projection. Simpler to implement and matches target aesthetic.
+**Rationale:** Provides depth and visual appeal while maintaining readability. Orthographic camera eliminates perspective distortion, keeping gameplay clear at all depths.
 
 ### 4. Instance-Based Card Collection
 **Decision:** Store cards as individual instances with unique IDs, not just counts.
