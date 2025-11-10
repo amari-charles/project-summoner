@@ -29,3 +29,10 @@ Collection="*res://scripts/services/collection_service.gd"
 Decks="*res://scripts/services/deck_service.gd"
 Campaign="*res://scripts/services/campaign_service.gd"
 DevConsole="*res://scripts/debug/dev_console.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=3
+window/stretch/mode="canvas_items"
