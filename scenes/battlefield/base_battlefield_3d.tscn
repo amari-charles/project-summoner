@@ -3,15 +3,17 @@
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/environments/elven_land/game_background_1/game_background_1.png" id="2_background"]
 
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_1"]
-panorama = ExtResource("2_background")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
+albedo_texture = ExtResource("2_background")
+shading_mode = 0
+cull_mode = 2
 
-[sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("PanoramaSkyMaterial_1")
+[sub_resource type="PlaneMesh" id="PlaneMesh_background"]
+size = Vector2(100, 60)
 
 [sub_resource type="Environment" id="Environment_1"]
-background_mode = 2
-sky = SubResource("Sky_1")
+background_mode = 1
+background_color = Color(0.53, 0.81, 0.98, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.5
@@ -56,6 +58,11 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
+
+[node name="Background" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 30, -70)
+mesh = SubResource("PlaneMesh_background")
+surface_material_override/0 = SubResource("StandardMaterial3D_background")
 
 [node name="GroundLayer" type="Node3D" parent="."]
 
