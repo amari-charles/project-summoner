@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://training_dummy_unit"]
 
 [ext_resource type="Script" path="res://scripts/units/unit.gd" id="1_unit"]
-[ext_resource type="Texture2D" path="res://assets/dummy_v1/Individual sprites/dummy_sprite_2.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/characters/training_dummy/Individual sprites/dummy_sprite_2.png" id="2_sprite"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dummy"]
 size = Vector2(50, 70)
