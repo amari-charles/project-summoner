@@ -14,19 +14,19 @@ script = ExtResource("2_test_controller")
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -103, 1, 0)
 script = ExtResource("3_summoner")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
 
 [node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -103, 2, 0)
 
 [node name="EnemyBase3D" parent="." instance=ExtResource("5_enemy_base")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103, 2, 0)
 
 [node name="UI" type="CanvasLayer" parent="."]
 
