@@ -59,11 +59,6 @@ environment = SubResource("Environment_1")
 
 [node name="GroundLayer" type="Node3D" parent="."]
 
-[node name="Terrain" type="MeshInstance3D" parent="GroundLayer"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-mesh = SubResource("PlaneMesh_terrain")
-surface_material_override/0 = SubResource("ShaderMaterial_terrain")
-
 [node name="GameplayLayer" type="Node3D" parent="."]
 
 [node name="EffectsLayer" type="Node3D" parent="."]
