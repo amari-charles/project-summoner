@@ -256,8 +256,8 @@ func _update_facing_from_direction(direction: Vector3) -> void:
 	if not visual_component or not visual_component.has_method("set_flip_h"):
 		return
 
-	# Face left if direction has negative Z component (towards player base)
-	var should_face_left = direction.z < 0
+	# Face left if direction has negative X component (towards player base on left)
+	var should_face_left = direction.x < 0
 
 	# Only flip if facing changed (avoid redundant calls)
 	if should_face_left != is_facing_left:

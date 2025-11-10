@@ -23,6 +23,8 @@ var last_mouse_position: Vector2
 
 func _ready() -> void:
 	if auto_calculate_bounds:
+		# Defer bounds calculation to ensure camera position is fully initialized
+		await get_tree().process_frame
 		_calculate_bounds()
 
 func _calculate_bounds() -> void:
@@ -68,9 +70,22 @@ func _calculate_bounds() -> void:
 	var t_bottom = bottom_edge_world.y / (-forward.y)
 	var bottom_ground_z = bottom_edge_world.z + t_bottom * forward.z
 
+	# Handle case where bottom edge is below ground (bottom_edge.y < 0)
+	# When view extends below Y=0, find where Y=0 intersects the viewport
+	if bottom_edge_world.y < 0:
+		# Find ratio where Y=0 falls between bottom and top edges
+		var y_ratio = (0 - bottom_edge_world.y) / (top_edge_world.y - bottom_edge_world.y)
+		# Interpolate to find the nearest visible ground Z at Y=0 intersection
+		bottom_ground_z = bottom_edge_world.z + y_ratio * (top_edge_world.z - bottom_edge_world.z)
+
 	# Offsets from camera Z to ground Z positions
 	var top_z_offset = top_ground_z - position.z
 	var bottom_z_offset = bottom_ground_z - position.z
+
+	print("  Debug Z calculations:")
+	print("    top_edge Y:", top_edge_world.y, " t_top:", t_top, " top_ground_z:", top_ground_z)
+	print("    bottom_edge Y:", bottom_edge_world.y, " t_bottom:", t_bottom, " bottom_ground_z:", bottom_ground_z)
+	print("    top_z_offset:", top_z_offset, " bottom_z_offset:", bottom_z_offset)
 
 	# Ground half-extents
 	var half_ground_width = ground_size.x / 2.0
