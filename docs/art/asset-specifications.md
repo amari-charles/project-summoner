@@ -79,7 +79,7 @@ This document specifies the technical requirements for hand-drawn/painted art as
   - Can be more detailed than background
   - Use depth (darker = further back)
 
-**Reference:** See `docs/game-visual-style-references.md` - Cult of the Lamb environmental approach
+**Reference:** See `docs/design/visual-style-references.md` - Cult of the Lamb environmental approach
 
 ---
 
