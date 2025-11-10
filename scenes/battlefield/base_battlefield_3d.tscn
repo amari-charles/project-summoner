@@ -1,10 +1,12 @@
 [gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/environments/elven_land/game_background_1/game_background_1.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/Ground tiles/Ground_36.png" id="2_background"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
 albedo_texture = ExtResource("2_background")
+texture_filter = 0
+uv1_scale = Vector3(10, 6, 1)
 shading_mode = 0
 cull_mode = 2
 
