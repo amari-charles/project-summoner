@@ -1,5 +1,18 @@
 # Project Summoner - Quick Start
 
+> **⚠️ ARCHIVED DOCUMENT**
+>
+> **Status:** OUTDATED
+> **Archived Date:** 2025-01-10
+> **Reason:** References removed 2D systems that have been replaced with 3D architecture
+>
+> **For current documentation, see:**
+> - [Getting Started Guide](../00-START-HERE.md)
+> - [Current State](../CURRENT_STATE.md)
+> - [Architecture Guide](../ARCHITECTURE.md)
+
+---
+
 ## Parse Error Fix
 
 If you're getting "Parse error" messages, this is likely due to how Godot handles script loading order. Here's what to do:

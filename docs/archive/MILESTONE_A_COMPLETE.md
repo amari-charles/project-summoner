@@ -1,5 +1,17 @@
 # Milestone A: "Units on the Field" - COMPLETE
 
+> **⚠️ ARCHIVED DOCUMENT**
+>
+> **Status:** HISTORICAL
+> **Archived Date:** 2025-01-10
+> **Reason:** Milestone completed and documented for historical purposes
+>
+> **For current progress, see:**
+> - [Changelog](../CHANGELOG.md)
+> - [Roadmap](../design/roadmap.md)
+
+---
+
 ## ✅ What Was Fixed
 
 ### 1. **Mana Regeneration** (CRITICAL BUG FIX)

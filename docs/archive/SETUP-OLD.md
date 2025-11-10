@@ -1,5 +1,17 @@
 # Project Summoner - Setup Guide
 
+> **⚠️ ARCHIVED DOCUMENT**
+>
+> **Status:** OUTDATED
+> **Archived Date:** 2025-01-10
+> **Reason:** References removed 2D scenes and outdated project structure
+>
+> **For current documentation, see:**
+> - [Getting Started Guide](../00-START-HERE.md)
+> - [Current State](../CURRENT_STATE.md)
+
+---
+
 ## Core Structure
 
 The project is organized as follows:
