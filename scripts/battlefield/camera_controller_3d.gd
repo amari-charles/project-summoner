@@ -10,7 +10,7 @@ class_name CameraController3D
 @export var touch_pan_enabled: bool = true
 
 @export_group("Boundaries")
-@export var ground_size: Vector2 = Vector2(200, 100)  # Ground plane dimensions
+@export var ground_size: Vector2 = Vector2(200, 150)  # Ground plane dimensions
 @export var auto_calculate_bounds: bool = true
 
 # Calculated bounds
@@ -32,40 +32,87 @@ func _calculate_bounds() -> void:
 
 	# Orthographic view dimensions
 	var view_height = size * 2.0
-	var view_width = view_height * aspect_ratio
+	# FIX: For KEEP_HEIGHT mode, width = size * aspect (not view_height * aspect)
+	var view_width = size * aspect_ratio
 
 	# X-axis: Camera is perpendicular, so view width maps 1:1
 	var half_view_width = view_width / 2.0
 
-	# Z-axis: Camera is tilted 35°, so ground coverage is larger
-	# Extract tilt angle from camera transform
-	var forward = -transform.basis.z  # Camera's forward direction
-	var tilt_angle_rad = asin(forward.y)  # Angle from horizontal (~35°)
+	print("Debug camera bounds:")
+	print("  viewport_size: ", viewport_size)
+	print("  aspect_ratio: ", aspect_ratio)
+	print("  camera size: ", size)
+	print("  keep_aspect mode: ", keep_aspect)
+	print("  view_height: ", view_height)
+	print("  view_width: ", view_width)
+	print("  half_view_width: ", half_view_width)
 
-	# Ground coverage in Z = view_height / cos(tilt)
-	var ground_coverage_z = view_height / cos(tilt_angle_rad)
-	var half_ground_coverage_z = ground_coverage_z / 2.0
+	var frustum = get_frustum()
+	print("  frustum planes (near, far, left, top, right, bottom):")
+	for i in range(frustum.size()):
+		print("    plane ", i, ": ", frustum[i])
+
+	# Z-axis: Calculate where top and bottom view edges intersect ground
+	# Camera basis vectors
+	var forward = -transform.basis.z  # Camera's forward (viewing) direction
+	var up = transform.basis.y  # Camera's up direction
+
+	# Top edge of view: position + up * size
+	var top_edge_world = position + up * size
+	# Project this point to ground (Y=0) along viewing direction
+	var t_top = top_edge_world.y / (-forward.y)  # How far to travel to reach Y=0
+	var top_ground_z = top_edge_world.z + t_top * forward.z
+
+	# Bottom edge of view: position - up * size
+	var bottom_edge_world = position - up * size
+	var t_bottom = bottom_edge_world.y / (-forward.y)
+	var bottom_ground_z = bottom_edge_world.z + t_bottom * forward.z
+
+	# Offsets from camera Z to ground Z positions
+	var top_z_offset = top_ground_z - position.z
+	var bottom_z_offset = bottom_ground_z - position.z
 
 	# Ground half-extents
 	var half_ground_width = ground_size.x / 2.0
 	var half_ground_depth = ground_size.y / 2.0
 
-	# Camera bounds: ground edge - view coverage
-	# This allows view edge to align with ground edge
+	print("  ground_size: ", ground_size)
+	print("  half_ground_width: ", half_ground_width)
+	print("  half_ground_depth: ", half_ground_depth)
+
+	# Camera bounds: position where view edges align with ground edges
+	# X-axis: Standard formula with corrected view_width
 	min_position = Vector3(
 		-half_ground_width + half_view_width,
 		position.y,  # Keep Y fixed
-		-half_ground_depth + half_ground_coverage_z
+		0  # Will calculate below
 	)
 
 	max_position = Vector3(
 		half_ground_width - half_view_width,
 		position.y,  # Keep Y fixed
-		half_ground_depth - half_ground_coverage_z
+		0  # Will calculate below
 	)
+
+	print("  Calculated X bounds: ", min_position.x, " to ", max_position.x)
+
+	# Z-axis: top edge shows far ground (+half_ground_depth)
+	# max camera Z: when top_ground_z = +half_ground_depth
+	# camera_z + top_z_offset = half_ground_depth
+	max_position.z = half_ground_depth - top_z_offset
+
+	# Z-axis: bottom edge shows near ground (-half_ground_depth)
+	# min camera Z: when bottom_ground_z = -half_ground_depth
+	# camera_z + bottom_z_offset = -half_ground_depth
+	min_position.z = -half_ground_depth - bottom_z_offset
+
+	print("  Final bounds: X=[", min_position.x, ", ", max_position.x, "] Z=[", min_position.z, ", ", max_position.z, "]")
+	print("  Camera position before clamp: ", position)
 
 	# Clamp initial position
 	position = position.clamp(min_position, max_position)
+
+	print("  Camera position after clamp: ", position)
 
 func _input(event: InputEvent) -> void:
 	if mouse_pan_enabled:
