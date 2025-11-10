@@ -62,7 +62,7 @@ High-contrast fantasy with distinct elemental identities. Serious, mystical, and
 - **Session Length:** 3-5 minutes
 - **Monetization:** Cosmetics and hero unlocks (no pay-to-win)
 - **Platform:** Mobile-first, expandable to PC
-- **Engine:** Godot 4.3
+- **Engine:** Godot 4.5
 
 ## Vision Summary
 
@@ -74,5 +74,5 @@ Every match is different. Every army is unique. Every victory is personal.
 
 *Related Documents:*
 - [Roadmap](roadmap.md)
-- [Current State](../CURRENT_STATE.md)
-- [Visual Style References](../design/visual-style-references.md)
+- [Current State](../current-state.md)
+- [Visual Style References](visual-style-references.md)

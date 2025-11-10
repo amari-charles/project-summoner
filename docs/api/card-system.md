@@ -146,4 +146,4 @@ Effects are **data-driven payloads** attached to cards. These define primary and
 *Related Documents:*
 - [Combat System](combat-system.md)
 - [Hero System](hero-system.md)
-- [Current State](../CURRENT_STATE.md)
+- [Current State](../current-state.md)

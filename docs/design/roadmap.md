@@ -4,7 +4,7 @@
 **Last Updated:** 2025-01-10
 **Source:** Extracted from PROJECT_DOC.md
 
-⚙️ **Engine:** Godot 4.3 (3D perspective with orthographic camera)
+⚙️ **Engine:** Godot 4.5 (3D perspective with orthographic camera)
 🧠 **Focus:** Tight prototype first, systems later
 🎯 **Goal:** Reach a showcase-ready vertical slice while retaining full ownership
 

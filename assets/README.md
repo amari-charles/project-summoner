@@ -25,7 +25,7 @@ assets/
 
 ### For Artists
 
-See **[Art Asset Specifications](../docs/art-asset-specifications.md)** for:
+See **[Art Asset Specifications](../docs/art/asset-specifications.md)** for:
 - Detailed size and format requirements
 - Color palette references
 - Technical specifications
@@ -64,7 +64,7 @@ See **[Art Asset Specifications](../docs/art-asset-specifications.md)** for:
 4. **Card Art** - Card illustrations (UI polish)
 5. **VFX** - Effects and particles (final polish)
 
-See [Art Asset Specifications](../docs/art-asset-specifications.md) for detailed requirements.
+See [Art Asset Specifications](../docs/art/asset-specifications.md) for detailed requirements.
 
 ## Import Presets
 
@@ -94,9 +94,9 @@ Mipmaps: false
 
 ## Resources
 
-- [Visual Style References](../docs/game-visual-style-references.md) - Analysis of Mini Warriors & Cult of the Lamb
+- [Visual Style References](../docs/design/visual-style-references.md) - Analysis of Mini Warriors & Cult of the Lamb
 - [Color Palette](../resources/visual/color_palette.gd) - Game color definitions
-- [Art Specifications](../docs/art-asset-specifications.md) - Detailed asset requirements
+- [Art Specifications](../docs/art/asset-specifications.md) - Detailed asset requirements
 
 ---
 
