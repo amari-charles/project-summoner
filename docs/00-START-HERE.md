@@ -12,7 +12,7 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 |-------------------------|-------------|
 | Understand the project vision | [Design Vision](design/vision.md) |
 | See what's currently implemented | [Current State](CURRENT_STATE.md) |
-| Learn the 3D architecture | [Architecture Guide](ARCHITECTURE.md) |
+| Learn the 3D architecture | [Current State - Architecture](CURRENT_STATE.md#architecture) |
 | Create a new card | [Card System API](api/card-system.md) |
 | Add a new unit type | [Combat System API](api/combat-system.md) |
 | Understand the coordinate system | [Coordinate System](api/coordinate-system.md) |
@@ -40,17 +40,12 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 docs/
 ├── 00-START-HERE.md          ← You are here
 ├── CURRENT_STATE.md           Main project reference
-├── ARCHITECTURE.md            Technical architecture
-├── CHANGELOG.md               Version history
 ├── api/                       System APIs and references
 │   ├── card-system.md
 │   ├── hero-system.md
 │   ├── combat-system.md
+│   ├── battlefield-system.md
 │   └── coordinate-system.md
-├── guides/                    How-to guides
-│   ├── getting-started.md
-│   ├── creating-cards.md
-│   └── creating-battles.md
 ├── design/                    Design documents
 │   ├── vision.md
 │   ├── roadmap.md
@@ -61,6 +56,9 @@ docs/
 │   ├── bugs.md
 │   └── integration-status.md
 └── archive/                   Outdated documentation
+    ├── MILESTONE_A_COMPLETE.md
+    ├── QUICKSTART-OLD.md
+    └── SETUP-OLD.md
 ```
 
 ## Project Structure
@@ -98,9 +96,9 @@ docs/
 
 ### For New Developers
 
-1. **[Current State](CURRENT_STATE.md)** - Read this first! Complete overview of what exists
-2. **[Architecture Guide](ARCHITECTURE.md)** - How the 3D system works
-3. **[Card System API](api/card-system.md)** - How cards and units work
+1. **[Current State](CURRENT_STATE.md)** - Read this first! Complete overview and architecture
+2. **[Card System API](api/card-system.md)** - How cards and units work
+3. **[Combat System API](api/combat-system.md)** - Unit AI and battle mechanics
 4. **[Coordinate System](api/coordinate-system.md)** - Understanding 3D positioning
 
 ### For Artists
@@ -113,7 +111,7 @@ docs/
 
 1. **[Design Vision](design/vision.md)** - Project goals and philosophy
 2. **[Roadmap](design/roadmap.md)** - Planned features and milestones
-3. **[Creating Battles Guide](guides/creating-battles.md)** - How to design new battles
+3. **[Combat System](api/combat-system.md)** - Battle mechanics and AI behavior
 
 ## Development Workflow
 
@@ -215,6 +213,6 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 
 *Related Documents:*
 - [Current State](CURRENT_STATE.md)
-- [Architecture](ARCHITECTURE.md)
 - [Card System](api/card-system.md)
+- [Combat System](api/combat-system.md)
 - [Design Vision](design/vision.md)
