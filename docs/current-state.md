@@ -187,7 +187,7 @@ project-summoner/
 │       ├── archer_unit.gd         # Ranged attacker
 │       └── wall_unit.gd           # Static structure
 ├── docs/
-│   ├── CURRENT_STATE.md           # This file
+│   ├── current-state.md           # This file
 │   └── PROJECT_DOC.md             # Original design document
 └── .claude/
     └── CLAUDE.md                  # Development guidelines

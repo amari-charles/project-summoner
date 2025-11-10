@@ -24,11 +24,11 @@ Open the project in Godot 4.5 and run the VFX test scene:
 ## Documentation
 
 **New to the project?** Start here:
-- [📘 Getting Started](docs/00-START-HERE.md) - Comprehensive introduction for new developers
+- [📘 Getting Started](docs/start-here.md) - Comprehensive introduction for new developers
 
 **Core Documentation:**
-- [📊 Current State](docs/CURRENT_STATE.md) - Complete project overview and architecture
-- [📝 Changelog](docs/CHANGELOG.md) - Version history and changes
+- [📊 Current State](docs/current-state.md) - Complete project overview and architecture
+- [📝 Changelog](docs/changelog.md) - Version history and changes
 
 **Developer Guides:**
 - [API Documentation](docs/api/) - Card system, combat system, coordinate system

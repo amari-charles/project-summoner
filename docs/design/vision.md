@@ -74,5 +74,5 @@ Every match is different. Every army is unique. Every victory is personal.
 
 *Related Documents:*
 - [Roadmap](roadmap.md)
-- [Current State](../CURRENT_STATE.md)
-- [Visual Style References](../design/visual-style-references.md)
+- [Current State](../current-state.md)
+- [Visual Style References](visual-style-references.md)

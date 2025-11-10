@@ -32,8 +32,8 @@ This document serves as an index to the complete design documentation for Projec
 
 ## Getting Started
 
-- **[Start Here](docs/00-START-HERE.md)** - New developer onboarding guide
-- **[Current State](docs/CURRENT_STATE.md)** - Complete project overview and architecture
+- **[Start Here](docs/start-here.md)** - New developer onboarding guide
+- **[Current State](docs/current-state.md)** - Complete project overview and architecture
 - **[Art Specifications](docs/art/asset-specifications.md)** - Asset requirements for artists
 
 ---
@@ -45,4 +45,4 @@ This document serves as an index to the complete design documentation for Projec
 
 ---
 
-**For the complete documentation structure, see [docs/00-START-HERE.md](docs/00-START-HERE.md)**
+**For the complete documentation structure, see [docs/start-here.md](docs/start-here.md)**

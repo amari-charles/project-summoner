@@ -11,8 +11,8 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 | What do you want to do? | Where to go |
 |-------------------------|-------------|
 | Understand the project vision | [Design Vision](design/vision.md) |
-| See what's currently implemented | [Current State](CURRENT_STATE.md) |
-| Learn the 3D architecture | [Current State - Architecture](CURRENT_STATE.md#architecture) |
+| See what's currently implemented | [Current State](current-state.md) |
+| Learn the 3D architecture | [Current State - Architecture](current-state.md#architecture) |
 | Create a new card | [Card System API](api/card-system.md) |
 | Add a new unit type | [Combat System API](api/combat-system.md) |
 | Understand the coordinate system | [Coordinate System](api/coordinate-system.md) |
@@ -38,8 +38,8 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 
 ```
 docs/
-├── 00-START-HERE.md          ← You are here
-├── CURRENT_STATE.md           Main project reference
+├── start-here.md             ← You are here
+├── current-state.md           Main project reference
 ├── api/                       System APIs and references
 │   ├── card-system.md
 │   ├── hero-system.md
@@ -96,7 +96,7 @@ docs/
 
 ### For New Developers
 
-1. **[Current State](CURRENT_STATE.md)** - Read this first! Complete overview and architecture
+1. **[Current State](current-state.md)** - Read this first! Complete overview and architecture
 2. **[Card System API](api/card-system.md)** - How cards and units work
 3. **[Combat System API](api/combat-system.md)** - Unit AI and battle mechanics
 4. **[Coordinate System](api/coordinate-system.md)** - Understanding 3D positioning
@@ -201,7 +201,7 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 
 ## Next Steps
 
-1. Read [Current State](CURRENT_STATE.md) for a complete overview
+1. Read [Current State](current-state.md) for a complete overview
 2. Run the VFX test scene to see the game in action
 3. Explore the codebase - scripts are heavily commented
 4. Check [Roadmap](design/roadmap.md) to see what's planned
@@ -212,7 +212,7 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 **Welcome to the team! Let's build something great.**
 
 *Related Documents:*
-- [Current State](CURRENT_STATE.md)
+- [Current State](current-state.md)
 - [Card System](api/card-system.md)
 - [Combat System](api/combat-system.md)
 - [Design Vision](design/vision.md)
