@@ -28,7 +28,8 @@ Open the project in Godot 4.5 and run the VFX test scene:
 
 **Core Documentation:**
 - [📊 Current State](docs/current-state.md) - Complete project overview and architecture
-- [📝 Changelog](docs/changelog.md) - Version history and changes
+- [📜 Development History](docs/development-history.md) - Progress tracking, decisions, and context
+- [📝 Changelog](docs/changelog.md) - Public release notes (for future versions)
 
 **Developer Guides:**
 - [API Documentation](docs/api/) - Card system, combat system, coordinate system

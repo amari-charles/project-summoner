@@ -38,6 +38,11 @@ This document serves as an index to the complete design documentation for Projec
 
 ---
 
+## Development Documentation
+
+- **[Development History](docs/development-history.md)** - Progress tracking, decisions, and lessons learned
+- **[Changelog](docs/changelog.md)** - Public release notes (for future versions)
+
 ## Technical Documentation
 
 - **[Integration Status](docs/technical/integration-status.md)** - System integration checklist
