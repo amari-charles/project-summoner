@@ -13,7 +13,7 @@ size = Vector2(100, 60)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
-background_color = Color(0.53, 0.81, 0.98, 1)
+background_color = Color(0.1, 0.1, 0.1, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.5
@@ -60,7 +60,7 @@ shadow_enabled = true
 environment = SubResource("Environment_1")
 
 [node name="Background" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 30, -70)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 35)
 mesh = SubResource("PlaneMesh_background")
 surface_material_override/0 = SubResource("StandardMaterial3D_background")
 
