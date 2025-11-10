@@ -40,6 +40,8 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 docs/
 ├── start-here.md             ← You are here
 ├── current-state.md           Main project reference
+├── changelog.md               Public release notes (for future)
+├── development-history.md     Internal progress tracking
 ├── api/                       System APIs and references
 │   ├── card-system.md
 │   ├── hero-system.md
@@ -52,13 +54,9 @@ docs/
 │   └── visual-style-references.md
 ├── art/                       Art specifications
 │   └── asset-specifications.md
-├── technical/                 Technical references
-│   ├── bugs.md
-│   └── integration-status.md
-└── archive/                   Outdated documentation
-    ├── MILESTONE_A_COMPLETE.md
-    ├── QUICKSTART-OLD.md
-    └── SETUP-OLD.md
+└── technical/                 Technical references
+    ├── bugs.md
+    └── integration-status.md
 ```
 
 ## Project Structure
