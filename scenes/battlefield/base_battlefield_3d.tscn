@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/Top-Down Simple Summer_Ground 43.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_ground_43.png" id="2_background"]
 [ext_resource type="Script" path="res://scripts/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]

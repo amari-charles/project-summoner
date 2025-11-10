@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://player_base_3d"]
 
 [ext_resource type="Script" path="res://scripts/core/base_3d.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/Top-Down Simple Summer_Prop - Castle Square.png" id="2_castle"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_prop_castle_square.png" id="2_castle"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1"]
 size = Vector3(2, 4, 2)
