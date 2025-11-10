@@ -80,17 +80,10 @@ func _handle_mouse_pan(event: InputEvent) -> void:
 		var delta = event.position - last_mouse_position
 		last_mouse_position = event.position
 
-		# Convert screen delta to camera-local movement
-		# Use camera's right (X) and forward (Z) basis vectors
-		var right = global_transform.basis.x
-		var forward = global_transform.basis.z
-
-		# Pan along camera's local axes (inverted for intuitive drag)
-		var pan_delta = (-right * delta.x + forward * delta.y) * pan_speed * 0.01
-
-		# Apply pan (keep Y fixed)
-		position.x += pan_delta.x
-		position.z += pan_delta.z
+		# Pan directly in ground plane (X/Z only, Y stays fixed)
+		# Invert X for intuitive drag (drag left = move left)
+		position.x += -delta.x * pan_speed * 0.01
+		position.z += delta.y * pan_speed * 0.01
 		position = position.clamp(min_position, max_position)
 
 func _handle_touch_pan(event: InputEvent) -> void:
@@ -105,16 +98,10 @@ func _handle_touch_pan(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag and is_panning:
 		var delta = event.relative
 
-		# Convert screen delta to camera-local movement
-		var right = global_transform.basis.x
-		var forward = global_transform.basis.z
-
-		# Pan along camera's local axes (inverted for intuitive drag)
-		var pan_delta = (-right * delta.x + forward * delta.y) * pan_speed * 0.01
-
-		# Apply pan (keep Y fixed)
-		position.x += pan_delta.x
-		position.z += pan_delta.z
+		# Pan directly in ground plane (X/Z only, Y stays fixed)
+		# Invert X for intuitive drag (drag left = move left)
+		position.x += -delta.x * pan_speed * 0.01
+		position.z += delta.y * pan_speed * 0.01
 		position = position.clamp(min_position, max_position)
 
 func _process(delta: float) -> void:
@@ -137,15 +124,9 @@ func _handle_keyboard_pan(delta: float) -> void:
 	if pan_input != Vector2.ZERO:
 		pan_input = pan_input.normalized()
 
-		# Convert to camera-local movement
-		var right = global_transform.basis.x
-		var forward = global_transform.basis.z
-
-		var pan_delta = (right * pan_input.x + forward * pan_input.y) * pan_speed * delta
-
-		# Apply pan (keep Y fixed)
-		position.x += pan_delta.x
-		position.z += pan_delta.z
+		# Pan directly in ground plane (X/Z only, Y stays fixed)
+		position.x += pan_input.x * pan_speed * delta
+		position.z += pan_input.y * pan_speed * delta
 		position = position.clamp(min_position, max_position)
 
 ## Manually set camera bounds (if not using auto-calculate)
