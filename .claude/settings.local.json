@@ -55,7 +55,12 @@
       "Bash(gh pr merge:*)",
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:discussions.unity.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(sips:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

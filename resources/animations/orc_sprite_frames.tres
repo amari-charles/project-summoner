@@ -1,8 +1,8 @@
 [gd_resource type="SpriteFrames" load_steps=24 format=3 uid="uid://claha6t4iuqfs"]
 
-[ext_resource type="Texture2D" uid="uid://olo7av37vxnh" path="res://assets/character_packs/tiny_rpg/Tiny RPG Character Asset Pack v1.03 -Free Soldier&Orc/Characters(100x100)/Orc/Orc/Orc-Idle.png" id="1_idle"]
-[ext_resource type="Texture2D" uid="uid://b6wweu32lewbr" path="res://assets/character_packs/tiny_rpg/Tiny RPG Character Asset Pack v1.03 -Free Soldier&Orc/Characters(100x100)/Orc/Orc/Orc-Walk.png" id="2_walk"]
-[ext_resource type="Texture2D" uid="uid://d054qdktb5ujs" path="res://assets/character_packs/tiny_rpg/Tiny RPG Character Asset Pack v1.03 -Free Soldier&Orc/Characters(100x100)/Orc/Orc/Orc-Attack01.png" id="3_attack"]
+[ext_resource type="Texture2D" uid="uid://olo7av37vxnh" path="res://assets/characters/orc/Orc-Idle.png" id="1_idle"]
+[ext_resource type="Texture2D" uid="uid://b6wweu32lewbr" path="res://assets/characters/orc/Orc-Walk.png" id="2_walk"]
+[ext_resource type="Texture2D" uid="uid://d054qdktb5ujs" path="res://assets/characters/orc/Orc-Attack01.png" id="3_attack"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_attack_1"]
 atlas = ExtResource("3_attack")
