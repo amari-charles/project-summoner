@@ -52,8 +52,9 @@ shadow_enabled = true
 environment = SubResource("Environment_1")
 
 [node name="Background" type="Sprite3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 50)
-pixel_size = 0.05
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, -60)
+pixel_size = 0.1
+billboard = 0
 texture = ExtResource("2_background")
 
 [node name="GroundLayer" type="Node3D" parent="."]
