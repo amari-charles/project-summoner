@@ -1,17 +1,17 @@
 [gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/Top-Down Simple Summer_Ground 36.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/Top-Down Simple Summer_Ground 43.png" id="2_background"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
 albedo_texture = ExtResource("2_background")
 texture_filter = 0
-uv1_scale = Vector3(10, 6, 1)
+uv1_scale = Vector3(40, 24, 1)
 shading_mode = 0
 cull_mode = 2
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-size = Vector2(127, 71.5)
+size = Vector2(254, 143)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
