@@ -48,7 +48,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_background")
 [node name="EffectsLayer" type="Node3D" parent="."]
 
 [node name="PlayerSpawnMarker" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -29)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -58)
 
 [node name="EnemySpawnMarker" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 29)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 58)
