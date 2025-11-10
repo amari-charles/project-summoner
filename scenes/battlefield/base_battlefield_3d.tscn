@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
+[gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/Top-Down Simple Summer_Ground 43.png" id="2_background"]
+[ext_resource type="Script" path="res://scripts/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
 albedo_texture = ExtResource("2_background")
@@ -28,6 +29,7 @@ transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 
 current = true
 projection = 1
 size = 35.61939
+script = ExtResource("3_camera_controller")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
