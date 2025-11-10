@@ -34,26 +34,34 @@ func _calculate_bounds() -> void:
 	var view_height = size * 2.0
 	var view_width = view_height * aspect_ratio
 
-	# View half-extents (camera looks straight along its axes in orthographic)
+	# X-axis: Camera is perpendicular, so view width maps 1:1
 	var half_view_width = view_width / 2.0
-	var half_view_height = view_height / 2.0
+
+	# Z-axis: Camera is tilted 35°, so ground coverage is larger
+	# Extract tilt angle from camera transform
+	var forward = -transform.basis.z  # Camera's forward direction
+	var tilt_angle_rad = asin(forward.y)  # Angle from horizontal (~35°)
+
+	# Ground coverage in Z = view_height / cos(tilt)
+	var ground_coverage_z = view_height / cos(tilt_angle_rad)
+	var half_ground_coverage_z = ground_coverage_z / 2.0
 
 	# Ground half-extents
 	var half_ground_width = ground_size.x / 2.0
 	var half_ground_depth = ground_size.y / 2.0
 
-	# Camera bounds: ground edge - view half-width
+	# Camera bounds: ground edge - view coverage
 	# This allows view edge to align with ground edge
 	min_position = Vector3(
 		-half_ground_width + half_view_width,
 		position.y,  # Keep Y fixed
-		-half_ground_depth + half_view_height
+		-half_ground_depth + half_ground_coverage_z
 	)
 
 	max_position = Vector3(
 		half_ground_width - half_view_width,
 		position.y,  # Keep Y fixed
-		half_ground_depth - half_view_height
+		half_ground_depth - half_ground_coverage_z
 	)
 
 	# Clamp initial position
@@ -117,9 +125,9 @@ func _handle_keyboard_pan(delta: float) -> void:
 	if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
 		pan_input.x -= 1.0
 	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
-		pan_input.y += 1.0
+		pan_input.y -= 1.0  # Fixed: down = negative Z
 	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
-		pan_input.y -= 1.0
+		pan_input.y += 1.0  # Fixed: up = positive Z
 
 	if pan_input != Vector2.ZERO:
 		pan_input = pan_input.normalized()
