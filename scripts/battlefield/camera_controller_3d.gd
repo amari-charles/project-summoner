@@ -10,7 +10,7 @@ class_name CameraController3D
 @export var touch_pan_enabled: bool = true
 
 @export_group("Boundaries")
-@export var ground_size: Vector2 = Vector2(300, 200)  # Ground plane dimensions
+@export var ground_size: Vector2 = Vector2(200, 100)  # Ground plane dimensions
 @export var auto_calculate_bounds: bool = true
 
 # Calculated bounds
@@ -34,29 +34,26 @@ func _calculate_bounds() -> void:
 	var view_height = size * 2.0
 	var view_width = view_height * aspect_ratio
 
-	# Camera is angled 35° down, calculate ground coverage
-	# The view rectangle is perpendicular to camera direction
-	var camera_angle_rad = deg_to_rad(35.0)
-
-	# View half-extents at ground level
-	var half_view_width_x = view_width / 2.0
-	var half_view_depth_z = (view_height / 2.0) / sin(deg_to_rad(55.0))  # Complementary angle
+	# View half-extents (camera looks straight along its axes in orthographic)
+	var half_view_width = view_width / 2.0
+	var half_view_height = view_height / 2.0
 
 	# Ground half-extents
 	var half_ground_width = ground_size.x / 2.0
 	var half_ground_depth = ground_size.y / 2.0
 
-	# Camera position bounds (ensure view never goes outside ground)
+	# Camera bounds: ground edge - view half-width
+	# This allows view edge to align with ground edge
 	min_position = Vector3(
-		-half_ground_width + half_view_width_x,
+		-half_ground_width + half_view_width,
 		position.y,  # Keep Y fixed
-		-half_ground_depth + half_view_depth_z
+		-half_ground_depth + half_view_height
 	)
 
 	max_position = Vector3(
-		half_ground_width - half_view_width_x,
+		half_ground_width - half_view_width,
 		position.y,  # Keep Y fixed
-		half_ground_depth - half_view_depth_z
+		half_ground_depth - half_view_height
 	)
 
 	# Clamp initial position

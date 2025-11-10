@@ -16,8 +16,8 @@ class_name BaseBattlefield3D
 
 # Battlefield layout
 @export_group("Layout")
-@export var player_spawn_position: Vector3 = Vector3(-103, 0, 0)
-@export var enemy_spawn_position: Vector3 = Vector3(103, 0, 0)
+@export var player_spawn_position: Vector3 = Vector3(-80, 0, 0)
+@export var enemy_spawn_position: Vector3 = Vector3(80, 0, 0)
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var camera: Camera3D = $Camera3D
