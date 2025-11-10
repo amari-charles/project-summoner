@@ -7,12 +7,12 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
 albedo_texture = ExtResource("2_background")
 texture_filter = 0
-uv1_scale = Vector3(40, 24, 1)
+uv1_scale = Vector3(50, 40, 1)
 shading_mode = 0
 cull_mode = 2
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-size = Vector2(254, 143)
+size = Vector2(300, 200)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -28,7 +28,7 @@ script = ExtResource("1_script")
 transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 0, 30, -42.85)
 current = true
 projection = 1
-size = 35.61939
+size = 62.0
 script = ExtResource("3_camera_controller")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]

@@ -10,7 +10,7 @@ class_name CameraController3D
 @export var touch_pan_enabled: bool = true
 
 @export_group("Boundaries")
-@export var ground_size: Vector2 = Vector2(254, 143)  # Ground plane dimensions
+@export var ground_size: Vector2 = Vector2(300, 200)  # Ground plane dimensions
 @export var auto_calculate_bounds: bool = true
 
 # Calculated bounds
@@ -83,12 +83,17 @@ func _handle_mouse_pan(event: InputEvent) -> void:
 		var delta = event.position - last_mouse_position
 		last_mouse_position = event.position
 
-		# Convert screen delta to world delta
-		# Invert Y because screen Y is down but world Y is up
-		var pan_delta = Vector3(-delta.x, 0, delta.y) * pan_speed * 0.01
+		# Convert screen delta to camera-local movement
+		# Use camera's right (X) and forward (Z) basis vectors
+		var right = global_transform.basis.x
+		var forward = global_transform.basis.z
 
-		# Apply pan
-		position += pan_delta
+		# Pan along camera's local axes (inverted for intuitive drag)
+		var pan_delta = (-right * delta.x + forward * delta.y) * pan_speed * 0.01
+
+		# Apply pan (keep Y fixed)
+		position.x += pan_delta.x
+		position.z += pan_delta.z
 		position = position.clamp(min_position, max_position)
 
 func _handle_touch_pan(event: InputEvent) -> void:
@@ -103,11 +108,16 @@ func _handle_touch_pan(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag and is_panning:
 		var delta = event.relative
 
-		# Convert screen delta to world delta
-		var pan_delta = Vector3(-delta.x, 0, delta.y) * pan_speed * 0.01
+		# Convert screen delta to camera-local movement
+		var right = global_transform.basis.x
+		var forward = global_transform.basis.z
 
-		# Apply pan
-		position += pan_delta
+		# Pan along camera's local axes (inverted for intuitive drag)
+		var pan_delta = (-right * delta.x + forward * delta.y) * pan_speed * 0.01
+
+		# Apply pan (keep Y fixed)
+		position.x += pan_delta.x
+		position.z += pan_delta.z
 		position = position.clamp(min_position, max_position)
 
 func _process(delta: float) -> void:
@@ -115,7 +125,7 @@ func _process(delta: float) -> void:
 		_handle_keyboard_pan(delta)
 
 func _handle_keyboard_pan(delta: float) -> void:
-	var pan_input = Vector3.ZERO
+	var pan_input = Vector2.ZERO
 
 	# WASD or Arrow keys
 	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
@@ -123,13 +133,22 @@ func _handle_keyboard_pan(delta: float) -> void:
 	if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
 		pan_input.x -= 1.0
 	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
-		pan_input.z += 1.0
+		pan_input.y += 1.0
 	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
-		pan_input.z -= 1.0
+		pan_input.y -= 1.0
 
-	if pan_input != Vector3.ZERO:
+	if pan_input != Vector2.ZERO:
 		pan_input = pan_input.normalized()
-		position += pan_input * pan_speed * delta
+
+		# Convert to camera-local movement
+		var right = global_transform.basis.x
+		var forward = global_transform.basis.z
+
+		var pan_delta = (right * pan_input.x + forward * pan_input.y) * pan_speed * delta
+
+		# Apply pan (keep Y fixed)
+		position.x += pan_delta.x
+		position.z += pan_delta.z
 		position = position.clamp(min_position, max_position)
 
 ## Manually set camera bounds (if not using auto-calculate)
