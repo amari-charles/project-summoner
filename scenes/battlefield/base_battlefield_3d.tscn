@@ -9,7 +9,7 @@ shading_mode = 0
 cull_mode = 2
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-size = Vector2(100, 60)
+size = Vector2(127, 71.5)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
