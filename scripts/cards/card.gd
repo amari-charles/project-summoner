@@ -140,21 +140,77 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+	# Get card categories from catalog
+	var categories = {}
+	if not catalog_id.is_empty() and CardCatalog:
+		var card_def = CardCatalog.get_card(catalog_id)
+		if not card_def.is_empty():
+			categories = card_def.get("categories", {})
+
+	# Build context for modifier system
+	var context = {
+		"card_name": card_name,
+		"team": team
+	}
+
+	# Get modifiers from ModifierSystem
+	var modifiers = []
+	if ModifierSystem:
+		modifiers = ModifierSystem.get_modifiers_for("spell", categories, context)
+
+	# Apply modifiers to spell damage
+	var modified_spell_damage = _apply_spell_modifiers(spell_damage, modifiers)
+
 	# If spell uses a projectile, spawn it instead of instant cast
 	if not projectile_id.is_empty():
-		_spawn_spell_projectile(position, team, battlefield)
-	elif spell_damage > 0:
+		_spawn_spell_projectile(position, team, battlefield, modified_spell_damage)
+	elif modified_spell_damage > 0:
 		# Fallback to instant AOE damage (legacy behavior)
-		_apply_aoe_damage_3d(position, team, battlefield)
+		_apply_aoe_damage_3d(position, team, battlefield, modified_spell_damage)
+
+## Apply modifiers to spell damage
+## Maps attack_damage modifiers to spell_damage (they're conceptually the same)
+func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
+	var damage = base_damage
+
+	# Phase 1: Sum additive bonuses (using attack_damage key)
+	var add_bonus = 0.0
+	for mod in modifiers:
+		var stat_adds = mod.get("stat_adds", {})
+		add_bonus += stat_adds.get("attack_damage", 0.0)
+		add_bonus += stat_adds.get("spell_damage", 0.0)  # Also check spell_damage
+
+	damage += add_bonus
+
+	# Phase 2: Apply multiplicative bonuses (using attack_damage key)
+	var mult_bonus = 0.0
+	for mod in modifiers:
+		var stat_mults = mod.get("stat_mults", {})
+		# Convert 1.1 → 0.1
+		if stat_mults.has("attack_damage"):
+			mult_bonus += stat_mults.attack_damage - 1.0
+		if stat_mults.has("spell_damage"):
+			mult_bonus += stat_mults.spell_damage - 1.0
+
+	damage *= (1.0 + mult_bonus)
+
+	# Debug output
+	if modifiers.size() > 0:
+		print("Spell '%s': Base damage=%.1f, Modified damage=%.1f" % [card_name, base_damage, damage])
+
+	return damage
 
 ## Spawn a spell projectile
-func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
+	# Use provided damage or fall back to spell_damage
+	var final_damage = damage if damage > 0 else spell_damage
+
 	# Find source (player or enemy base)
 	var source: Node3D = _find_base_by_team(team, battlefield)
 	if not source:
 		push_warning("Card: Could not find source base for spell projectile")
 		# Fallback to instant damage
-		_apply_aoe_damage_3d(target_position, team, battlefield)
+		_apply_aoe_damage_3d(target_position, team, battlefield, final_damage)
 		return
 
 	# Spawn projectile using ProjectileManager
@@ -162,7 +218,7 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 		projectile_id,
 		source,
 		null,  # No target unit, targeting a position
-		spell_damage,
+		final_damage,
 		"spell",
 		{
 			"start_position": source.global_position,
@@ -189,7 +245,10 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 	return battlefield as Node3D
 
 ## Apply AOE damage to enemies in 3D range
-func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
+	# Use provided damage or fall back to spell_damage
+	var final_damage = damage if damage > 0 else spell_damage
+
 	var target_group = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
 	var scene_tree = battlefield.get_tree()
 	if scene_tree == null:
@@ -201,6 +260,6 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 		if enemy is Unit3D and enemy.is_alive:
 			var distance = enemy.global_position.distance_to(position)
 			if distance <= spell_radius:
-				enemy.take_damage(spell_damage)
+				enemy.take_damage(final_damage)
 
 	# TODO: Add 3D visual effect for spell
