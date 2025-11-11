@@ -73,7 +73,7 @@ func _ready() -> void:
 
 	# Calculate max size where view doesn't exceed map
 	# For orthographic: view_width = size * aspect_ratio, view_height = size * 2
-	var max_size_for_width: float = map_width / aspect_ratio / 2.0
+	var max_size_for_width: float = map_width / aspect_ratio
 	var max_size_for_height: float = map_height / 2.0
 
 	# Use the smaller (more restrictive) value with 99% buffer (allows full view, prevents edge cases)
