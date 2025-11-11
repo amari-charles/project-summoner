@@ -63,6 +63,22 @@ func _ready() -> void:
 	await get_tree().process_frame
 	clamp_to_map()
 
+	# Calculate max zoom dynamically to prevent view from exceeding map
+	var viewport_size: Vector2i = get_viewport().get_visible_rect().size
+	var aspect_ratio: float = float(viewport_size.x) / float(viewport_size.y)
+
+	# Map dimensions from map_rect_xz
+	var map_width: float = map_rect_xz.size.x   # 100
+	var map_height: float = map_rect_xz.size.y  # 80
+
+	# Calculate max size where view doesn't exceed map
+	# For orthographic: view_width = size * aspect_ratio, view_height = size * 2
+	var max_size_for_width: float = map_width / aspect_ratio / 2.0
+	var max_size_for_height: float = map_height / 2.0
+
+	# Use the smaller (more restrictive) value with 95% buffer to prevent thrashing
+	max_ortho_size = min(max_size_for_width, max_size_for_height) * 0.95
+
 func clamp_to_map() -> void:
 	## Clamps camera to keep ground footprint (projection) within map bounds
 	##
