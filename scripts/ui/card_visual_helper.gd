@@ -1,4 +1,5 @@
 extends Node
+class_name CardVisualHelper
 
 ## CardVisualHelper - Utility functions for card visual presentation
 ##
