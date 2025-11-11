@@ -236,6 +236,37 @@ Research and implement proper framerate-independent game mechanics to ensure con
 
 ---
 
+#### Audit Codebase for Magic Strings - Replace with Constants/Enums
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Code Quality
+**Effort:** Medium
+
+**Description:**
+Audit the entire codebase to identify places where magic strings are used instead of constants or enums, and refactor to use type-safe definitions.
+
+**Requirements:**
+- Search for hardcoded string literals throughout codebase
+- Identify candidates for replacement (element names, stat names, group names, etc.)
+- Create or update constant/enum definitions
+- Refactor code to use constants instead of strings
+- Test to ensure no regressions
+
+**Examples of Magic Strings to Replace:**
+- Element names: "fire", "water", "wind", "earth", etc.
+- Stat names: "attack_damage", "max_hp", "move_speed", "attack_speed"
+- Group names: "player_units", "enemy_units", "bases"
+- Card types: "unit", "spell"
+- Team identifiers: Team.PLAYER, Team.ENEMY (already enums, but check usage)
+
+**Notes:**
+- Improves code maintainability and catches typos at compile time
+- Makes refactoring easier (rename in one place)
+- Better IDE autocomplete support
+- Foundation for type safety across the codebase
+- Start with high-impact areas (modifier system, card catalog)
+
+---
+
 #### Implement Card and Hero Level System
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Progression
@@ -940,4 +971,4 @@ Final integration of hero system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-11-11 - Added projectile aiming on moving targets task*
+*Last Updated: 2025-11-11 - Added elemental system infrastructure and magic strings audit task*

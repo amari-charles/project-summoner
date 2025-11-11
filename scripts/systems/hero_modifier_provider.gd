@@ -20,7 +20,7 @@ func get_modifiers() -> Array:
 				"source": "fire_hero",
 				"tags": ["sun_blessed"],
 				"conditions": {
-					"elemental_affinity": "fire"
+					"elemental_affinity": ElementTypes.FIRE
 				},
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to fire units
@@ -32,22 +32,22 @@ func get_modifiers() -> Array:
 				"source": "earth_hero",
 				"tags": ["stone_guardian"],
 				"conditions": {
-					"elemental_affinity": "earth"
+					"elemental_affinity": ElementTypes.EARTH
 				},
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to earth units
 				}
 			})
 
-		"air_hero":
+		"wind_hero":
 			modifiers.append({
-				"source": "air_hero",
+				"source": "wind_hero",
 				"tags": ["wind_walker"],
 				"conditions": {
-					"elemental_affinity": "air"
+					"elemental_affinity": ElementTypes.WIND
 				},
 				"stat_mults": {
-					"attack_damage": 1.1  # +10% attack to air units
+					"attack_damage": 1.1  # +10% attack to wind units
 				}
 			})
 
@@ -56,7 +56,7 @@ func get_modifiers() -> Array:
 				"source": "water_hero",
 				"tags": ["tide_caller"],
 				"conditions": {
-					"elemental_affinity": "water"
+					"elemental_affinity": ElementTypes.WATER
 				},
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to water units

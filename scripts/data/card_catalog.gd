@@ -117,7 +117,7 @@ func _init_catalog() -> void:
 
 		# Modifier system categories
 		"categories": {
-			"elemental_affinity": "fire"
+			"elemental_affinity": ElementTypes.FIRE
 		}
 	}
 
