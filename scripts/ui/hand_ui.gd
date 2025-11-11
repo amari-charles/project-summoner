@@ -418,105 +418,52 @@ func _create_card_display(card: Card, index: int) -> Control:
 	# Create SubViewport to render card content
 	var viewport = SubViewport.new()
 	viewport.name = "Viewport"
-	viewport.size = Vector2i(CARD_WIDTH + 4, CARD_HEIGHT + 4)
+	viewport.size = Vector2i(CARD_WIDTH, CARD_HEIGHT)
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
 	# Create SubViewportContainer to display and apply shader
 	var viewport_container = SubViewportContainer.new()
 	viewport_container.name = "ViewportContainer"
-	viewport_container.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	viewport_container.position = Vector2(-2, -2)
+	viewport_container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	viewport_container.stretch = true
 	viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.add_child(viewport_container)
 	viewport_container.add_child(viewport)
 
-	# Build card content inside viewport (this gets rendered to texture)
-	var card_content = Control.new()
-	card_content.name = "CardContent"
-	card_content.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	viewport.add_child(card_content)
+	# Load and instantiate CardVisual scene
+	var card_visual_scene = load("res://scenes/ui/card_visual.tscn")
+	if not card_visual_scene:
+		push_error("HandUI: Failed to load card_visual.tscn")
+		return container
 
-	# Get element color for this card
-	var element_color = CardVisualHelper.get_card_element_color(card)
+	var card_visual = card_visual_scene.instantiate() as CardVisual
+	if not card_visual:
+		push_error("HandUI: Failed to instantiate CardVisual")
+		return container
 
-	# Border (element-colored)
-	var border = ColorRect.new()
-	border.name = "Border"
-	border.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	border.position = Vector2.ZERO
-	border.color = element_color
-	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(border)
+	# Configure card visual for in-hand display
+	card_visual.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	card_visual.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	card_visual.border_width = 3
+	card_visual.corner_radius = 8
+	card_visual.cost_circle_radius = 16
+	card_visual.cost_font_size = 18
+	card_visual.name_font_size = 14
+	card_visual.show_description = false
+	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Background
-	var bg = ColorRect.new()
-	bg.name = "Background"
-	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	bg.position = Vector2(2, 2)
-	bg.color = GameColorPalette.UI_BG_DARK
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(bg)
+	# Get catalog data to pass to CardVisual
+	var catalog_data = CardCatalog.get_card(card.catalog_id)
 
-	# Card name label
-	var name_label = Label.new()
-	name_label.text = card.card_name
-	name_label.position = Vector2(12, 12)
-	name_label.add_theme_font_size_override("font_size", 16)
-	name_label.custom_minimum_size = Vector2(CARD_WIDTH - 20, 0)
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(name_label)
+	# Set card data
+	card_visual.set_card_data(catalog_data)
 
-	# Card type
-	var type_label = Label.new()
-	type_label.text = "SUMMON" if card.card_type == Card.CardType.SUMMON else "SPELL"
-	type_label.position = Vector2(12, 42)
-	type_label.add_theme_font_size_override("font_size", 12)
-	type_label.add_theme_color_override("font_color", Color.YELLOW)
-	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(type_label)
+	# Add to viewport
+	viewport.add_child(card_visual)
 
-	# Cost circle (top-left, element-colored)
-	var cost_circle = Panel.new()
-	cost_circle.custom_minimum_size = Vector2(32, 32)
-	cost_circle.position = Vector2(10, 10)
-	cost_circle.size = Vector2(32, 32)
-	cost_circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# Create circular style for cost
-	var circle_style = StyleBoxFlat.new()
-	circle_style.bg_color = element_color
-	circle_style.corner_radius_top_left = 16
-	circle_style.corner_radius_top_right = 16
-	circle_style.corner_radius_bottom_left = 16
-	circle_style.corner_radius_bottom_right = 16
-	cost_circle.add_theme_stylebox_override("panel", circle_style)
-	card_content.add_child(cost_circle)
-
-	var cost_label = Label.new()
-	cost_label.name = "CostLabel"
-	cost_label.text = str(int(card.mana_cost))
-	cost_label.size = Vector2(32, 32)
-	cost_label.position = Vector2.ZERO
-	cost_label.add_theme_font_size_override("font_size", 18)
-	cost_label.add_theme_color_override("font_color", Color.WHITE)
-	cost_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	cost_label.add_theme_constant_override("outline_size", 2)
-	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cost_circle.add_child(cost_label)
-
-	# Card art / Unit icon (element-colored placeholder)
-	var art_container = ColorRect.new()
-	art_container.name = "ArtContainer"
-	art_container.size = Vector2(80, 70)
-	art_container.position = Vector2(22, 75)
-	art_container.color = element_color.darkened(0.4)
-	art_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(art_container)
+	# Store reference to CardVisual for easy access
+	card_visual.set_meta("card_visual_component", card_visual)
 
 	return container
 

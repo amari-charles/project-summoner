@@ -11,6 +11,12 @@ class_name CardWidget
 signal card_clicked(card_data: Dictionary)
 signal card_held(card_data: Dictionary)
 
+## Layout configuration (editable in scene editor)
+@export_group("Layout")
+@export var border_width: int = 3
+@export var corner_radius: int = 6
+@export var cost_circle_radius: int = 12
+
 ## Card data
 var card_data: Dictionary = {}
 var catalog_data: Dictionary = {}
@@ -112,15 +118,15 @@ func _update_theme() -> void:
 	# Create theme with element-colored border
 	var style = StyleBoxFlat.new()
 	style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
-	style.border_width_left = 3
-	style.border_width_top = 3
-	style.border_width_right = 3
-	style.border_width_bottom = 3
+	style.border_width_left = border_width
+	style.border_width_top = border_width
+	style.border_width_right = border_width
+	style.border_width_bottom = border_width
 	style.border_color = element_color
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
+	style.corner_radius_top_left = corner_radius
+	style.corner_radius_top_right = corner_radius
+	style.corner_radius_bottom_left = corner_radius
+	style.corner_radius_bottom_right = corner_radius
 
 	add_theme_stylebox_override("panel", style)
 
@@ -128,10 +134,10 @@ func _update_theme() -> void:
 	if cost_circle:
 		var circle_style = StyleBoxFlat.new()
 		circle_style.bg_color = element_color
-		circle_style.corner_radius_top_left = 12
-		circle_style.corner_radius_top_right = 12
-		circle_style.corner_radius_bottom_left = 12
-		circle_style.corner_radius_bottom_right = 12
+		circle_style.corner_radius_top_left = cost_circle_radius
+		circle_style.corner_radius_top_right = cost_circle_radius
+		circle_style.corner_radius_bottom_left = cost_circle_radius
+		circle_style.corner_radius_bottom_right = cost_circle_radius
 		cost_circle.add_theme_stylebox_override("panel", circle_style)
 
 	# Color the art placeholder with darkened element color

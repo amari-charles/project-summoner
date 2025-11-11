@@ -15,12 +15,28 @@ class_name CardVisual
 ##   card_visual.set_card_data(card_data, show_description)
 
 ## =============================================================================
-## EXPORTS
+## EXPORTS - Layout Configuration
 ## =============================================================================
 
+## General layout
+@export_group("General")
 @export var show_description: bool = false
 @export var border_width: int = 3
 @export var corner_radius: int = 8
+
+## Cost circle
+@export_group("Cost Circle")
+@export var cost_circle_radius: int = 16
+@export var cost_font_size: int = 18
+
+## Card name
+@export_group("Card Name")
+@export var name_font_size: int = 12
+
+## Description
+@export_group("Description")
+@export var description_font_size: int = 9
+@export var description_max_chars: int = 100
 
 ## =============================================================================
 ## NODES
@@ -102,11 +118,23 @@ func _apply_visual_styling() -> void:
 	if cost_circle:
 		var circle_style = StyleBoxFlat.new()
 		circle_style.bg_color = element_color
-		circle_style.corner_radius_top_left = 100
-		circle_style.corner_radius_top_right = 100
-		circle_style.corner_radius_bottom_left = 100
-		circle_style.corner_radius_bottom_right = 100
+		circle_style.corner_radius_top_left = cost_circle_radius
+		circle_style.corner_radius_top_right = cost_circle_radius
+		circle_style.corner_radius_bottom_left = cost_circle_radius
+		circle_style.corner_radius_bottom_right = cost_circle_radius
 		cost_circle.add_theme_stylebox_override("panel", circle_style)
+
+	# Apply cost label font size
+	if cost_label:
+		cost_label.add_theme_font_size_override("font_size", cost_font_size)
+
+	# Apply name label font size
+	if name_label:
+		name_label.add_theme_font_size_override("font_size", name_font_size)
+
+	# Apply description label font size
+	if description_label:
+		description_label.add_theme_font_size_override("font_size", description_font_size)
 
 	# Show/hide description
 	if description_label:
@@ -155,8 +183,8 @@ func _update_description() -> void:
 	if description_label and card_data.has("description"):
 		var desc = card_data.description
 		# Truncate if too long
-		if desc.length() > 100:
-			desc = desc.substr(0, 97) + "..."
+		if desc.length() > description_max_chars:
+			desc = desc.substr(0, description_max_chars - 3) + "..."
 		description_label.text = desc
 
 ## =============================================================================
