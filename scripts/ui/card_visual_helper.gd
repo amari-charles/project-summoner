@@ -67,28 +67,38 @@ static func get_element_glow_color(element_id: String) -> Color:
 	return base_color.lightened(0.3)
 
 ## Get element color from a card's elemental affinity
-## Checks card's categories.elemental_affinity if it exists
+## Handles both Card resources and Dictionary catalog data
 static func get_card_element_color(card_data) -> Color:
+	var catalog_dict: Dictionary = {}
+
+	# Handle Card resource vs Dictionary
+	if card_data is Card:
+		# Get catalog data from CardCatalog
+		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+	elif card_data is Dictionary:
+		catalog_dict = card_data
+	else:
+		push_warning("CardVisualHelper: Invalid card_data type")
+		return GameColorPalette.NEUTRAL_MID
+
 	# Check if card has elemental affinity in categories
-	if card_data.has("categories") and card_data.categories.has("elemental_affinity"):
-		var affinity = card_data.categories.elemental_affinity
-		if affinity:
-			return get_element_border_color(affinity)
+	if catalog_dict.has("categories"):
+		var categories = catalog_dict.categories
+		if categories is Dictionary and categories.has("elemental_affinity"):
+			var affinity = categories.elemental_affinity
+			if affinity:
+				# Convert Element object to string if needed
+				var affinity_id = affinity.id if affinity is ElementTypes.Element else str(affinity)
+				return get_element_border_color(affinity_id)
 
 	# Fallback: use card type-based colors
-	return get_fallback_color_for_card_type(card_data.get("card_type", "summon"))
-
-## Fallback colors when card has no elemental affinity
-static func get_fallback_color_for_card_type(card_type: String) -> Color:
-	match card_type.to_lower():
-		"summon":
-			return GameColorPalette.PLAYER_ZONE_ACCENT  # Warm gold
-		"spell":
-			return GameColorPalette.STORM_PRIMARY  # Purple
-		"structure":
-			return GameColorPalette.EARTH_PRIMARY  # Brown
-		_:
-			return GameColorPalette.NEUTRAL_MID
+	var card_type = catalog_dict.get("card_type", 0)
+	if card_type == 0:
+		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
+	elif card_type == 1:
+		return GameColorPalette.STORM_PRIMARY  # Spell
+	else:
+		return GameColorPalette.NEUTRAL_MID
 
 ## =============================================================================
 ## CARD LAYOUT HELPERS
