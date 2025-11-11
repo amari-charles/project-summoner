@@ -129,8 +129,8 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 			unit.team = team
 
-			# Apply modifiers BEFORE adding to scene
-			unit.apply_modifiers(modifiers, card_data)
+			# Initialize with modifiers BEFORE adding to scene
+			unit.initialize_with_modifiers(modifiers, card_data)
 
 			gameplay_layer.add_child(unit)
 		else:
@@ -165,34 +165,36 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> 
 		_apply_aoe_damage_3d(position, team, battlefield, modified_spell_damage)
 
 ## Apply modifiers to spell damage
-## Maps attack_damage modifiers to spell_damage (they're conceptually the same)
+##
+## Spells can be affected by two types of modifiers:
+## - "attack_damage": Generic damage modifiers (affects both units and spells)
+## - "spell_damage": Spell-specific modifiers (affects only spells)
+##
+## NOTE: Both keys are checked and summed. If a modifier has both keys,
+## both values will be applied (this allows for future flexibility).
 func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
 	var damage = base_damage
 
-	# Phase 1: Sum additive bonuses (using attack_damage key)
+	# Phase 1: Sum additive bonuses
 	var add_bonus = 0.0
 	for mod in modifiers:
 		var stat_adds = mod.get("stat_adds", {})
 		add_bonus += stat_adds.get("attack_damage", 0.0)
-		add_bonus += stat_adds.get("spell_damage", 0.0)  # Also check spell_damage
+		add_bonus += stat_adds.get("spell_damage", 0.0)
 
 	damage += add_bonus
 
-	# Phase 2: Apply multiplicative bonuses (using attack_damage key)
+	# Phase 2: Apply multiplicative bonuses
 	var mult_bonus = 0.0
 	for mod in modifiers:
 		var stat_mults = mod.get("stat_mults", {})
-		# Convert 1.1 → 0.1
+		# Convert multipliers (1.1 → 0.1) and sum
 		if stat_mults.has("attack_damage"):
 			mult_bonus += stat_mults.attack_damage - 1.0
 		if stat_mults.has("spell_damage"):
 			mult_bonus += stat_mults.spell_damage - 1.0
 
 	damage *= (1.0 + mult_bonus)
-
-	# Debug output
-	if modifiers.size() > 0:
-		print("Spell '%s': Base damage=%.1f, Modified damage=%.1f" % [card_name, base_damage, damage])
 
 	return damage
 
@@ -269,12 +271,24 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 	var modifiers = []
 
 	# Check if CardCatalog exists (another autoload) - if it does, ModifierSystem should too
-	if CardCatalog:
-		# Access ModifierSystem via root node
-		var root = Engine.get_main_loop().root if Engine.get_main_loop() else null
-		if root:
-			var modifier_system = root.get_node_or_null("ModifierSystem")
-			if modifier_system and modifier_system.has_method("get_modifiers_for"):
-				modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+	if not CardCatalog:
+		push_warning("Card: CardCatalog autoload not found, modifiers unavailable")
+		return modifiers
 
+	# Access ModifierSystem via root node
+	var root = Engine.get_main_loop().root if Engine.get_main_loop() else null
+	if not root:
+		push_error("Card: Failed to access scene tree root, modifiers unavailable")
+		return modifiers
+
+	var modifier_system = root.get_node_or_null("ModifierSystem")
+	if not modifier_system:
+		push_error("Card: ModifierSystem autoload not found, modifiers unavailable")
+		return modifiers
+
+	if not modifier_system.has_method("get_modifiers_for"):
+		push_error("Card: ModifierSystem missing get_modifiers_for method")
+		return modifiers
+
+	modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
 	return modifiers

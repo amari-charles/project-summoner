@@ -184,6 +184,35 @@ Design and implement additional spell cards for more strategic variety.
 
 ### 🔴 HIGH PRIORITY
 
+#### Research and Implement Framerate Independence
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Performance
+**Effort:** Medium
+
+**Description:**
+Research and implement proper framerate-independent game mechanics to ensure consistent gameplay across different hardware and frame rates.
+
+**Requirements:**
+- Audit all movement and physics calculations
+- Ensure delta time is used for all time-dependent calculations (movement speed, attack speed, animations)
+- Test on different framerates (30fps, 60fps, 120fps+, variable)
+- Fix any framerate-dependent behaviors
+- Document best practices for framerate independence
+
+**Examples of Issues to Fix:**
+- Movement speed should use `velocity * delta` instead of just `velocity`
+- Attack cooldowns should accumulate `delta` instead of frame counts
+- Animations should be time-based, not frame-based
+- Mana regeneration should scale with delta time
+
+**Notes:**
+- Critical for game feel and fairness
+- Players with different hardware should have identical gameplay
+- Godot provides delta time in `_process(delta)` and `_physics_process(delta)`
+- Important foundation - fix early before adding more content
+
+---
+
 #### Implement Card and Hero Level System
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Progression
@@ -888,4 +917,4 @@ Final integration of hero system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-01-11 - Initial TODO list created*
+*Last Updated: 2025-11-11 - Added framerate independence research task*

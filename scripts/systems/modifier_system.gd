@@ -18,15 +18,12 @@ func register_provider(provider_id: String, provider) -> void:
 		push_warning("ModifierSystem: Provider '%s' already registered, replacing" % provider_id)
 
 	_providers[provider_id] = provider
-	print("ModifierSystem: Registered provider '%s'" % provider_id)
 
 func unregister_provider(provider_id: String) -> void:
-	if _providers.erase(provider_id):
-		print("ModifierSystem: Unregistered provider '%s'" % provider_id)
+	_providers.erase(provider_id)
 
 func clear_providers() -> void:
 	_providers.clear()
-	print("ModifierSystem: Cleared all providers")
 
 ## =============================================================================
 ## MODIFIER COLLECTION

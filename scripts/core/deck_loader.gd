@@ -98,11 +98,15 @@ static func _create_card_from_instance(instance_id: String, collection) -> Card:
 	# Load the Card resource for this catalog_id
 	# Card resources are stored at res://resources/cards/[catalog_id]_card.tres
 	var card_path = "res://resources/cards/%s_card.tres" % catalog_id
-	var card = load(card_path) as Card
+	var card_template = load(card_path) as Card
 
-	if not card:
+	if not card_template:
 		push_error("DeckLoader: Failed to load card resource: %s" % card_path)
 		return null
+
+	# Duplicate to avoid mutating shared resource
+	var card = card_template.duplicate() as Card
+	card.catalog_id = catalog_id
 
 	return card
 

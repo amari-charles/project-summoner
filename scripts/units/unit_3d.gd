@@ -77,13 +77,12 @@ signal unit_attacked(target: Node3D)
 signal hp_changed(new_hp: float, new_max_hp: float)
 
 func _ready() -> void:
-	# Store base stats (before any modifiers)
-	base_max_hp = max_hp
-	base_attack_damage = attack_damage
-	base_attack_speed = attack_speed
-	base_move_speed = move_speed
+	# Legacy support: If spawned without initialize_with_modifiers(), set up base stats
+	# Note: This path does NOT apply modifiers - units should use initialize_with_modifiers()
+	if base_max_hp == 0:
+		_store_base_stats()
+		current_hp = max_hp
 
-	current_hp = max_hp
 	add_to_group("units")
 
 	if team == Team.PLAYER:
@@ -182,28 +181,31 @@ func _calculate_shadow_size_from_collision() -> float:
 	return 1.0
 
 ## =============================================================================
-## MODIFIER APPLICATION
+## INITIALIZATION & MODIFIER APPLICATION
 ## =============================================================================
 
+## Initialize unit with modifiers BEFORE adding to scene tree
+## This ensures stats are correct before _ready() fires
+func initialize_with_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
+	# Store base stats from @export values
+	_store_base_stats()
+
+	# Apply modifiers to calculate final stats
+	apply_modifiers(modifiers, card_data)
+
+## Store base stats from current @export values
+func _store_base_stats() -> void:
+	base_max_hp = max_hp
+	base_attack_damage = attack_damage
+	base_attack_speed = attack_speed
+	base_move_speed = move_speed
+
 ## Apply modifiers to this unit's stats
-## Should be called AFTER instantiation but BEFORE adding to scene tree
+## Assumes base stats are already stored via _store_base_stats()
 ##
 ## @param modifiers: Array of modifier dictionaries
 ## @param card_data: Card data for context
 func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
-	print("Unit3D: Applying %d modifiers to %s" % [modifiers.size(), card_data.get("card_name", "unknown")])
-
-	# Initialize base stats from current values if not already set
-	# (This happens when apply_modifiers is called before _ready)
-	if base_max_hp == 0:
-		base_max_hp = max_hp
-	if base_attack_damage == 0:
-		base_attack_damage = attack_damage
-	if base_attack_speed == 0:
-		base_attack_speed = attack_speed
-	if base_move_speed == 0:
-		base_move_speed = move_speed
-
 	# Start from base stats
 	var stats = {
 		"max_hp": base_max_hp,
@@ -263,11 +265,6 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 		var flags = mod.get("flags", {})
 		active_modifiers.merge(flags, true)
 
-	# Debug output
-	if modifiers.size() > 0:
-		print("  Base: HP=%.1f, Attack=%.1f" % [base_max_hp, base_attack_damage])
-		print("  Final: HP=%.1f, Attack=%.1f" % [max_hp, attack_damage])
-		print("  Flags: %s" % active_modifiers)
 
 ## =============================================================================
 ## PHYSICS & BEHAVIOR

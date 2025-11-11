@@ -67,6 +67,12 @@ func _ready() -> void:
 
 	call_deferred("start_game")
 
+func _exit_tree() -> void:
+	# Cleanup: unregister hero provider to prevent memory leak
+	var modifier_system = get_node_or_null("/root/ModifierSystem")
+	if modifier_system:
+		modifier_system.unregister_provider("hero")
+
 func _process(delta: float) -> void:
 	if current_state != GameState.PLAYING:
 		return
@@ -223,5 +229,3 @@ func _register_hero_provider() -> void:
 	# Create and register hero provider
 	var hero_provider = HeroModifierProvider.new(hero_id)
 	modifier_system.register_provider("hero", hero_provider)
-
-	print("GameController3D: Registered hero provider for '%s'" % hero_id)

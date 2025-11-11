@@ -116,10 +116,15 @@ func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 ## Load a card resource from catalog ID
 func _load_card_resource(catalog_id: String) -> Card:
 	var card_path = "res://resources/cards/%s_card.tres" % catalog_id
-	var card = load(card_path) as Card
+	var card_template = load(card_path) as Card
 
-	if not card:
+	if not card_template:
 		push_error("TestGameController: Failed to load card: %s" % card_path)
+		return null
+
+	# Duplicate to avoid mutating shared resource
+	var card = card_template.duplicate() as Card
+	card.catalog_id = catalog_id
 
 	return card
 
