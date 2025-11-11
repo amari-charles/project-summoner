@@ -622,7 +622,7 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 
 	# Create a custom method to update border color via StyleBox
 	var update_border_color = func(color: Color):
-		if border_panel:
+		if border_panel and is_instance_valid(border_panel):
 			var style = StyleBoxFlat.new()
 			style.bg_color = color
 			style.set_corner_radius_all(card_visual.corner_radius)

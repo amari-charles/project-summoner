@@ -74,22 +74,36 @@ func set_draggable(p_draggable: bool) -> void:
 
 func _update_display() -> void:
 	if catalog_data.is_empty():
+		print("CardWidget: catalog_data is empty!")
 		return
 
 	# Set card name
-	card_name.text = catalog_data.get("card_name", "Unknown")
+	if card_name:
+		card_name.text = catalog_data.get("card_name", "Unknown")
+		print("CardWidget: Set card name to: ", card_name.text)
+	else:
+		print("CardWidget: card_name node not found!")
 
 	# Set mana cost
-	mana_cost.text = str(catalog_data.get("mana_cost", 0))
+	if mana_cost:
+		mana_cost.text = str(catalog_data.get("mana_cost", 0))
+		print("CardWidget: Set mana cost to: ", mana_cost.text)
+	else:
+		print("CardWidget: mana_cost node not found!")
 
 	# Set type icon based on card type and unit type
 	if type_icon:
 		var icon_path = CardVisualHelper.get_card_type_icon_path(catalog_data)
+		print("CardWidget: Icon path: ", icon_path)
 		if not icon_path.is_empty():
 			type_icon.texture = load(icon_path)
 			type_icon.visible = true
+			print("CardWidget: Icon loaded and visible")
 		else:
 			type_icon.visible = false
+			print("CardWidget: Icon path empty, hiding icon")
+	else:
+		print("CardWidget: type_icon node not found!")
 
 	# Update element border
 	_update_theme()
