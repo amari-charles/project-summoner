@@ -16,6 +16,15 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
 
+## Base stats (before modifiers)
+var base_max_hp: float
+var base_attack_damage: float
+var base_attack_speed: float
+var base_move_speed: float
+
+## Active modifiers (merged flags from all modifiers)
+var active_modifiers: Dictionary = {}
+
 ## Unit classification
 @export var unit_type: UnitType = UnitType.MELEE
 @export var movement_layer: MovementLayer = MovementLayer.GROUND
@@ -68,6 +77,12 @@ signal unit_attacked(target: Node3D)
 signal hp_changed(new_hp: float, new_max_hp: float)
 
 func _ready() -> void:
+	# Store base stats (before any modifiers)
+	base_max_hp = max_hp
+	base_attack_damage = attack_damage
+	base_attack_speed = attack_speed
+	base_move_speed = move_speed
+
 	current_hp = max_hp
 	add_to_group("units")
 
@@ -165,6 +180,87 @@ func _calculate_shadow_size_from_collision() -> float:
 
 	# Fallback to default
 	return 1.0
+
+## =============================================================================
+## MODIFIER APPLICATION
+## =============================================================================
+
+## Apply modifiers to this unit's stats
+## Should be called AFTER instantiation but BEFORE adding to scene tree
+##
+## @param modifiers: Array of modifier dictionaries
+## @param card_data: Card data for context
+func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
+	print("Unit3D: Applying %d modifiers to %s" % [modifiers.size(), card_data.get("card_name", "unknown")])
+
+	# Start from base stats
+	var stats = {
+		"max_hp": base_max_hp,
+		"attack_damage": base_attack_damage,
+		"attack_speed": base_attack_speed,
+		"move_speed": base_move_speed
+	}
+
+	# Phase 1: Sum all additive bonuses
+	var adds = {
+		"max_hp": 0.0,
+		"attack_damage": 0.0,
+		"attack_speed": 0.0,
+		"move_speed": 0.0
+	}
+
+	for mod in modifiers:
+		var stat_adds = mod.get("stat_adds", {})
+		for stat in stat_adds.keys():
+			if adds.has(stat):
+				adds[stat] += stat_adds[stat]
+
+	# Apply additive bonuses
+	for stat in adds.keys():
+		stats[stat] += adds[stat]
+
+	# Phase 2: Multiply all multiplicative bonuses (additive within phase)
+	var mults = {
+		"max_hp": 0.0,  # Start at 0, will add bonuses (e.g., 1.3 becomes 0.3)
+		"attack_damage": 0.0,
+		"attack_speed": 0.0,
+		"move_speed": 0.0
+	}
+
+	for mod in modifiers:
+		var stat_mults = mod.get("stat_mults", {})
+		for stat in stat_mults.keys():
+			if mults.has(stat):
+				# Convert multiplier to bonus: 1.3 → 0.3
+				var bonus = stat_mults[stat] - 1.0
+				mults[stat] += bonus
+
+	# Apply multiplicative bonuses
+	for stat in mults.keys():
+		stats[stat] *= (1.0 + mults[stat])
+
+	# Phase 3: Apply final stats
+	max_hp = stats.max_hp
+	attack_damage = stats.attack_damage
+	attack_speed = stats.attack_speed
+	move_speed = stats.move_speed
+	current_hp = max_hp  # Start at full HP
+
+	# Phase 4: Merge all flags
+	active_modifiers.clear()
+	for mod in modifiers:
+		var flags = mod.get("flags", {})
+		active_modifiers.merge(flags, true)
+
+	# Debug output
+	if modifiers.size() > 0:
+		print("  Base: HP=%.1f, Attack=%.1f" % [base_max_hp, base_attack_damage])
+		print("  Final: HP=%.1f, Attack=%.1f" % [max_hp, attack_damage])
+		print("  Flags: %s" % active_modifiers)
+
+## =============================================================================
+## PHYSICS & BEHAVIOR
+## =============================================================================
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:

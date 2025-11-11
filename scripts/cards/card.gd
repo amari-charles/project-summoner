@@ -100,11 +100,36 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 
 	var gameplay_layer = battlefield.get_gameplay_layer() if battlefield.has_method("get_gameplay_layer") else battlefield
 
+	# Get card categories (empty for now until we add categories to cards)
+	var categories = {}
+
+	# Build context for modifier system
+	var context = {
+		"card_name": card_name,
+		"team": team
+	}
+
+	# Get modifiers from ModifierSystem
+	var modifier_system = get_node_or_null("/root/ModifierSystem")
+	var modifiers = []
+	if modifier_system:
+		modifiers = modifier_system.get_modifiers_for("unit", categories, context)
+
+	# Card data for apply_modifiers
+	var card_data = {
+		"card_name": card_name,
+		"mana_cost": mana_cost
+	}
+
 	for i in spawn_count:
 		var unit = unit_scene.instantiate() as Unit3D
 		if unit:
 			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 			unit.team = team
+
+			# Apply modifiers BEFORE adding to scene
+			unit.apply_modifiers(modifiers, card_data)
+
 			gameplay_layer.add_child(unit)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene!")

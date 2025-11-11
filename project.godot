@@ -30,6 +30,7 @@ Decks="*res://scripts/services/deck_service.gd"
 Campaign="*res://scripts/services/campaign_service.gd"
 BattleContext="*res://scripts/core/battle_context.gd"
 DevConsole="*res://scripts/debug/dev_console.gd"
+ModifierSystem="*res://scripts/systems/modifier_system.gd"
 
 [display]
 

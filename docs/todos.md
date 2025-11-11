@@ -77,6 +77,50 @@ Add collision/placement validation to prevent multiple units from occupying the 
 
 ---
 
+#### Improve Unit Hitboxes
+**Status:** ⬜ Not Started
+**Category:** Units & Combat
+**Effort:** Medium
+
+**Description:**
+Flesh out and refine unit hitboxes for better collision detection and combat interactions.
+
+**Requirements:**
+- Review current hitbox sizes and shapes
+- Adjust hitboxes to better match visual models
+- Test with various unit types (melee, ranged, large, small)
+- Ensure proper interaction with projectiles and melee attacks
+
+**Notes:**
+- Important for combat feel and fairness
+- May need different hitbox sizes for different unit types
+- Consider separate hitboxes for collision vs damage
+
+---
+
+#### Implement Single Target vs Multi Target Attack System
+**Status:** ⬜ Not Started
+**Category:** Units & Combat
+**Effort:** Medium
+
+**Description:**
+Add system to differentiate between single target attacks and multi target/AoE attacks.
+
+**Requirements:**
+- Define attack target type in unit data (single, multi, aoe)
+- Implement multi-target selection logic
+- Add AoE damage radius for area attacks
+- Visual indicators for AoE attacks (ground circles, splash effects)
+- Balance damage for multi-target vs single-target
+
+**Notes:**
+- Foundation for spell variety and unit diversity
+- Multi-target may need reduced damage per target
+- Consider different AoE shapes (circle, cone, line)
+- Important for strategic depth
+
+---
+
 #### Add Death Animations for Units
 **Status:** ⬜ Not Started
 **Category:** Visual Polish
@@ -137,6 +181,35 @@ Design and implement additional spell cards for more strategic variety.
 ---
 
 ## Core Game Systems
+
+### 🔴 HIGH PRIORITY
+
+#### Implement Card and Hero Level System
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Progression
+**Effort:** Large
+
+**Description:**
+Implement leveling system for cards and heroes that allows them to grow stronger through gameplay.
+
+**Requirements:**
+- Card level data structure and storage
+- Hero level data structure and storage
+- Experience/level-up mechanics
+- Stat scaling per level (HP, attack, abilities)
+- UI display for card/hero levels
+- Level-up rewards and feedback
+- Max level caps
+- Save/load integration
+
+**Notes:**
+- Foundation for long-term progression
+- Balance carefully - levels shouldn't trivialize content
+- Consider different level curves for different rarities
+- May need separate systems for card levels vs hero levels
+- Important for player retention and sense of progression
+
+---
 
 ### 🟡 MEDIUM PRIORITY
 

@@ -62,6 +62,9 @@ func _ready() -> void:
 	# Load AI for enemy summoner from campaign config
 	_load_ai_for_enemy()
 
+	# Register hero modifier provider
+	_register_hero_provider()
+
 	call_deferred("start_game")
 
 func _process(delta: float) -> void:
@@ -193,3 +196,32 @@ func _load_ai_for_enemy() -> void:
 		enemy_summoner.add_child(ai)
 	else:
 		push_error("GameController3D: Failed to create AI!")
+
+func _register_hero_provider() -> void:
+	# Get hero from profile
+	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		push_warning("GameController3D: ProfileRepo not found, no hero bonuses will apply")
+		return
+
+	var profile = profile_repo.get_active_profile()
+	if profile.is_empty():
+		push_warning("GameController3D: No active profile, no hero bonuses will apply")
+		return
+
+	var hero_id = profile.get("meta", {}).get("selected_hero", "")
+	if hero_id.is_empty():
+		push_warning("GameController3D: No hero selected, no hero bonuses will apply")
+		return
+
+	# Register hero modifier provider
+	var modifier_system = get_node_or_null("/root/ModifierSystem")
+	if not modifier_system:
+		push_error("GameController3D: ModifierSystem not found!")
+		return
+
+	# Create and register hero provider
+	var hero_provider = HeroModifierProvider.new(hero_id)
+	modifier_system.register_provider("hero", hero_provider)
+
+	print("GameController3D: Registered hero provider for '%s'" % hero_id)
