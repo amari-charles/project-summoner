@@ -1,5 +1,4 @@
 extends Node
-class_name BattleContext
 
 ## Global battle configuration system
 ## Decouples battle scene from specific modes (campaign, arena, endless, etc.)

@@ -1,15 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
+[gd_scene load_steps=4 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_ground_43.png" id="2_background"]
 [ext_resource type="Script" path="res://scripts/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
-albedo_texture = ExtResource("2_background")
-texture_filter = 0
-uv1_scale = Vector3(17, 26, 1)
-shading_mode = 0
-cull_mode = 2
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
 size = Vector2(100, 150)
@@ -41,7 +33,6 @@ environment = SubResource("Environment_1")
 [node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("PlaneMesh_background")
-surface_material_override/0 = SubResource("StandardMaterial3D_background")
 
 [node name="GroundLayer" type="Node3D" parent="."]
 

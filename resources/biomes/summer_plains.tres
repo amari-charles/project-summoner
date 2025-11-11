@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battlefield/biome_config.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_ground_43.png" id="2_texture"]
+
+[resource]
+script = ExtResource("1_script")
+biome_id = "summer_plains"
+biome_name = "Summer Plains"
+ground_texture = ExtResource("2_texture")
+ground_size = Vector2(100, 150)
+ground_uv_scale = Vector3(17, 26, 1)
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.5
+directional_light_rotation_degrees = Vector3(-30, 45, 0)
+directional_light_color = Color(1, 1, 1, 1)
+directional_light_energy = 1
+background_color = Color(0.1, 0.1, 0.1, 1)
+fog_enabled = false
+fog_color = Color(0.8, 0.8, 0.9, 1)
