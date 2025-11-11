@@ -70,17 +70,17 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 	if bar_pool.size() > 0:
 		bar = bar_pool.pop_back()
 		bar.reset()
-		print("HPBarManager: Reusing bar from pool (pool size: %d)" % bar_pool.size())
+		# print("HPBarManager: Reusing bar from pool (pool size: %d)" % bar_pool.size())
 	else:
 		bar = _instantiate_bar()
 		bar.is_pooled = true
-		print("HPBarManager: Created new bar (pool was empty)")
+		# print("HPBarManager: Created new bar (pool was empty)")
 
 	if not bar:
 		push_error("HPBarManager: Failed to create HP bar")
 		return null
 
-	print("HPBarManager: Bar instance valid: %s" % is_instance_valid(bar))
+	# print("HPBarManager: Bar instance valid: %s" % is_instance_valid(bar))
 
 	# Apply custom settings
 	if settings.has("bar_width"):
@@ -99,11 +99,11 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 
 	# Add to scene
 	bars_container.add_child(bar)
-	print("HPBarManager: Bar added to scene. Position: %v, Visible: %s" % [bar.global_position, bar.visible])
+	# print("HPBarManager: Bar added to scene. Position: %v, Visible: %s" % [bar.global_position, bar.visible])
 
 	# Track active bar
 	active_bars[unit] = bar
-	print("HPBarManager: Active bars count: %d" % active_bars.size())
+	# print("HPBarManager: Active bars count: %d" % active_bars.size())
 
 	# Connect to bar hidden signal for auto-removal
 	if not bar.bar_hidden.is_connected(_on_bar_hidden):

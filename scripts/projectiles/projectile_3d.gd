@@ -91,7 +91,7 @@ func _physics_process(delta: float) -> void:
 
 	# Check ground collision (explode if hit ground)
 	if global_position.y <= BattlefieldConstants.GROUND_Y + 0.2:
-		print("GROUND HIT: Projectile at y=%.2f, triggering expire" % global_position.y)
+		# print("GROUND HIT: Projectile at y=%.2f, triggering expire" % global_position.y)
 		_trigger_impact_effects(Vector3(global_position.x, BattlefieldConstants.GROUND_Y, global_position.z))
 		if fade_on_hit:
 			_expire_with_fade()
@@ -288,12 +288,12 @@ func _hit_target(target_node: Node3D) -> void:
 
 ## Trigger impact effects (VFX and AOE damage)
 func _trigger_impact_effects(impact_position: Vector3) -> void:
-	print("\n=== PROJECTILE IMPACT ===")
-	print("  Position: %v" % impact_position)
-	print("  Projectile ID: '%s'" % projectile_id)
-	print("  Team: %d" % team)
-	print("  Damage: %.1f (%s)" % [damage, damage_type])
-	print("  Source valid: %s" % is_instance_valid(source))
+	# print("\n=== PROJECTILE IMPACT ===")
+	# print("  Position: %v" % impact_position)
+	# print("  Projectile ID: '%s'" % projectile_id)
+	# print("  Team: %d" % team)
+	# print("  Damage: %.1f (%s)" % [damage, damage_type])
+	# print("  Source valid: %s" % is_instance_valid(source))
 
 	# Spawn hit VFX
 	if not hit_vfx.is_empty():
@@ -301,31 +301,31 @@ func _trigger_impact_effects(impact_position: Vector3) -> void:
 
 	# Apply AOE damage if radius is set
 	var proj_data = _get_projectile_data()
-	print("  Has ProjectileData: %s" % (proj_data != null))
+	# print("  Has ProjectileData: %s" % (proj_data != null))
 	if proj_data:
-		print("  AOE radius: %.1f" % proj_data.aoe_radius)
+		# print("  AOE radius: %.1f" % proj_data.aoe_radius)
 		if proj_data.aoe_radius > 0.0:
 			_apply_aoe_damage(impact_position, proj_data.aoe_radius)
-		else:
-			print("  AOE radius is 0, skipping AOE damage")
-	else:
-		print("  No ProjectileData found, skipping AOE damage")
+		# else:
+			# print("  AOE radius is 0, skipping AOE damage")
+	# else:
+		# print("  No ProjectileData found, skipping AOE damage")
 
 ## Apply AOE damage to all enemies in radius
 func _apply_aoe_damage(center: Vector3, radius: float) -> void:
-	print("\n--- AOE DAMAGE CALCULATION ---")
-	print("  Center: %v, Radius: %.1f" % [center, radius])
-	print("  Projectile damage: %.1f, type: %s" % [damage, damage_type])
+	# print("\n--- AOE DAMAGE CALCULATION ---")
+	# print("  Center: %v, Radius: %.1f" % [center, radius])
+	# print("  Projectile damage: %.1f, type: %s" % [damage, damage_type])
 
 	if not is_instance_valid(source):
-		print("  ERROR: Source not valid!")
+		# print("  ERROR: Source not valid!")
 		return
 
-	print("  Source: %s (team %d)" % [source.name, team])
+	# print("  Source: %s (team %d)" % [source.name, team])
 
 	var scene_tree = get_tree()
 	if not scene_tree:
-		print("  ERROR: No scene tree!")
+		# print("  ERROR: No scene tree!")
 		return
 
 	# Spawn debug visualization sphere
@@ -333,39 +333,39 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 
 	# Determine target group based on team
 	var target_group = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
-	print("  Target group: '%s'" % target_group)
+	# print("  Target group: '%s'" % target_group)
 
 	var enemies = scene_tree.get_nodes_in_group(target_group)
-	print("  Found %d potential targets in group" % enemies.size())
+	# print("  Found %d potential targets in group" % enemies.size())
 
 	# Also check all units to see if grouping is the issue
 	var all_units = scene_tree.get_nodes_in_group("units")
-	print("  Total units in scene: %d" % all_units.size())
+	# print("  Total units in scene: %d" % all_units.size())
 
-	if enemies.size() == 0 and all_units.size() > 0:
-		print("  WARNING: No enemies in target group but units exist - group assignment issue?")
-		for unit in all_units:
-			if unit is Unit3D:
-				print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
+	# if enemies.size() == 0 and all_units.size() > 0:
+		# print("  WARNING: No enemies in target group but units exist - group assignment issue?")
+		# for unit in all_units:
+			# if unit is Unit3D:
+				# print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
 
 	var hit_count = 0
 	for enemy in enemies:
 		if enemy is Unit3D:
 			var distance = enemy.global_position.distance_to(center)
-			var alive_str = "alive" if enemy.is_alive else "DEAD"
-			print("    %s: distance=%.1f, %s, team=%d" % [enemy.name, distance, alive_str, enemy.team])
+			# var alive_str = "alive" if enemy.is_alive else "DEAD"
+			# print("    %s: distance=%.1f, %s, team=%d" % [enemy.name, distance, alive_str, enemy.team])
 
 			if enemy.is_alive and distance <= radius:
-				print("      -> APPLYING DAMAGE: %.1f" % damage)
+				# print("      -> APPLYING DAMAGE: %.1f" % damage)
 				DamageSystem.apply_damage(source, enemy, damage, damage_type)
 				hit_count += 1
-			elif not enemy.is_alive:
-				print("      -> Skipped (dead)")
-			elif distance > radius:
-				print("      -> Skipped (too far)")
+			# elif not enemy.is_alive:
+				# print("      -> Skipped (dead)")
+			# elif distance > radius:
+				# print("      -> Skipped (too far)")
 
-	print("  RESULT: Hit %d enemies with %.1f damage each" % [hit_count, damage])
-	print("--- END AOE CALCULATION ---\n")
+	# print("  RESULT: Hit %d enemies with %.1f damage each" % [hit_count, damage])
+	# print("--- END AOE CALCULATION ---\n")
 
 ## Spawn a debug visualization sphere to show AOE radius
 func _spawn_debug_aoe_sphere(center: Vector3, radius: float) -> void:
@@ -432,16 +432,17 @@ func _expire_with_fade() -> void:
 
 ## Expire projectile immediately (no animation)
 func _expire_immediate() -> void:
-	print("EXPIRE_IMMEDIATE: is_pooled=%s, is_active=%s" % [is_pooled, is_active])
+	# print("EXPIRE_IMMEDIATE: is_pooled=%s, is_active=%s" % [is_pooled, is_active])
 	is_active = false
 	is_fading = false
 	projectile_expired.emit(self)
 
 	if is_pooled:
 		# Return to pool (ProjectileManager handles this via signal)
-		print("EXPIRE_IMMEDIATE: Emitted signal, waiting for pool return")
+		# print("EXPIRE_IMMEDIATE: Emitted signal, waiting for pool return")
+		pass
 	else:
-		print("EXPIRE_IMMEDIATE: Not pooled, calling queue_free()")
+		# print("EXPIRE_IMMEDIATE: Not pooled, calling queue_free()")
 		queue_free()
 
 ## Reset for pooling

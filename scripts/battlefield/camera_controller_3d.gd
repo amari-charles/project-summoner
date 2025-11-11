@@ -181,13 +181,14 @@ func _calculate_bounds() -> void:
 		return
 
 	# Debug logging to help diagnose bounds issues
-	print("CameraController: Bounds calculated")
+	print("\n========== CAMERA BOUNDS CALCULATED ==========")
 	print("  Ground size: ", ground_size)
 	print("  Camera ortho size: ", size)
 	print("  View dimensions: ", view_width, " x ", view_height)
 	print("  Bounds X: [", min_position.x, " to ", max_position.x, "]")
 	print("  Bounds Z: [", min_position.z, " to ", max_position.z, "]")
 	print("  Camera position: ", position)
+	print("===============================================\n")
 
 	# "Clamp" means restrict a value to a range. Here we ensure the camera starts within bounds
 	# If the camera was positioned outside the bounds, this moves it to the nearest valid position

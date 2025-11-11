@@ -162,7 +162,7 @@ func _gui_input(event: InputEvent) -> void:
 func _on_hold_timeout() -> void:
 	# Hold duration reached - emit held signal
 	card_held.emit(card_data)
-	print("CardWidget: Card held")
+	# print("CardWidget: Card held")
 
 ## =============================================================================
 ## DRAG AND DROP
