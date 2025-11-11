@@ -50,6 +50,7 @@ func _init_battles() -> void:
 	# Battle 0: Tutorial - First card
 	_battles["battle_00"] = {
 		"id": "battle_00",
+		"biome_id": "summer_plains",
 		"name": "First Summons",
 		"description": "Learn the basics of summoning. Win to earn your first card!",
 		"difficulty": 1,
@@ -73,6 +74,7 @@ func _init_battles() -> void:
 	# Battle 1: Building army
 	_battles["battle_01"] = {
 		"id": "battle_01",
+		"biome_id": "summer_plains",
 		"name": "Building Your Army",
 		"description": "Expand your forces. Choose your reward.",
 		"difficulty": 1,
@@ -100,6 +102,7 @@ func _init_battles() -> void:
 	# Battle 2: Fortification
 	_battles["battle_02"] = {
 		"id": "battle_02",
+		"biome_id": "summer_plains",
 		"name": "Fortify Your Position",
 		"description": "Defense is key. Earn defensive cards.",
 		"difficulty": 2,
@@ -127,6 +130,7 @@ func _init_battles() -> void:
 	# Battle 3: Random reward
 	_battles["battle_03"] = {
 		"id": "battle_03",
+		"biome_id": "summer_plains",
 		"name": "Growing Power",
 		"description": "Test your strength. Random reward awaits.",
 		"difficulty": 2,
@@ -156,6 +160,7 @@ func _init_battles() -> void:
 	# Battle 4: Rare reward
 	_battles["battle_04"] = {
 		"id": "battle_04",
+		"biome_id": "summer_plains",
 		"name": "Arcane Knowledge",
 		"description": "Master advanced tactics. Rare card awaits!",
 		"difficulty": 3,

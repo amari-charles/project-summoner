@@ -56,7 +56,7 @@ func _calculate_bounds() -> void:
 		push_error("CameraController: Could not find Background mesh to calculate bounds")
 		return
 
-	var ground_size: Vector2 = ground_mesh.mesh.size if ground_mesh.mesh is PlaneMesh else Vector2(200, 150)
+	var ground_size: Vector2 = ground_mesh.mesh.size
 
 	# The "viewport" is the game window. We need its dimensions to calculate the aspect ratio
 	# Aspect ratio = width/height (e.g., 1920/1080 = 1.78 for widescreen)

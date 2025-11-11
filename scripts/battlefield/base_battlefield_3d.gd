@@ -22,8 +22,8 @@ class_name BaseBattlefield3D
 ## For 6-unit tall sprite with 35° camera: -7.5 units
 ##
 ## TODO: Calculate this dynamically based on sprite height and camera angle
-@export var player_spawn_position: Vector3 = Vector3(-80, 0, -7.5)
-@export var enemy_spawn_position: Vector3 = Vector3(80, 0, -7.5)
+@export var player_spawn_position: Vector3 = Vector3(-40, 0, -7.5)
+@export var enemy_spawn_position: Vector3 = Vector3(40, 0, -7.5)
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var camera: Camera3D = $Camera3D
@@ -34,19 +34,34 @@ class_name BaseBattlefield3D
 @onready var effects_layer: Node3D = $EffectsLayer
 
 func _ready() -> void:
-	_apply_configuration()
+	_apply_biome_from_context()
+	_apply_spawn_positions()
 
-func _apply_configuration() -> void:
-	# Apply environment settings (sky color, ambient lighting)
-	if world_environment and world_environment.environment:
-		world_environment.environment.background_color = sky_color
-		world_environment.environment.ambient_light_color = ambient_light_color
-		world_environment.environment.ambient_light_energy = ambient_light_energy
+## Load and apply biome from BattleContext
+func _apply_biome_from_context() -> void:
+	var battle_context = get_node_or_null("/root/BattleContext")
+	if not battle_context:
+		push_warning("BaseBattlefield3D: BattleContext not found, using default visuals")
+		return
 
-	# Camera position and size are configured directly in the scene file
-	# No runtime override needed - the camera controller handles all positioning
+	var biome_id = battle_context.biome_id
+	if biome_id.is_empty():
+		push_warning("BaseBattlefield3D: No biome_id in BattleContext, using default visuals")
+		return
 
-	# Apply spawn positions for bases and units
+	# Load biome resource
+	var biome_path = "res://resources/biomes/%s.tres" % biome_id
+	var biome = load(biome_path) as BiomeConfig
+
+	if not biome:
+		push_error("BaseBattlefield3D: Failed to load biome: %s" % biome_path)
+		return
+
+	# Apply biome to battlefield
+	biome.apply_to_battlefield(self)
+
+## Apply spawn positions for bases and units
+func _apply_spawn_positions() -> void:
 	if player_spawn_marker:
 		player_spawn_marker.position = player_spawn_position
 

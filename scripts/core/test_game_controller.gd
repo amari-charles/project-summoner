@@ -20,6 +20,14 @@ var test_deck_cards: Array[String] = [
 func _ready() -> void:
 	print("TestGameController: Initializing VFX test mode...")
 
+	# Configure BattleContext for practice mode
+	var battle_context = get_node_or_null("/root/BattleContext")
+	if battle_context:
+		battle_context.configure_practice_battle({
+			"enemy_deck": [{"catalog_id": "warrior", "count": 30}],
+			"enemy_hp": 999999.0
+		})
+
 	# Force reload ContentCatalog projectiles to bypass resource cache
 	ContentCatalog._load_projectiles()
 	print("TestGameController: Reloaded projectile data from disk")

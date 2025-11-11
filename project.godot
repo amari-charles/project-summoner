@@ -28,6 +28,7 @@ Economy="*res://scripts/services/economy_service.gd"
 Collection="*res://scripts/services/collection_service.gd"
 Decks="*res://scripts/services/deck_service.gd"
 Campaign="*res://scripts/services/campaign_service.gd"
+BattleContext="*res://scripts/core/battle_context.gd"
 DevConsole="*res://scripts/debug/dev_console.gd"
 
 [display]
