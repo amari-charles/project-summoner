@@ -23,6 +23,12 @@ class_name UnitData
 @export var is_ranged: bool = false
 @export var projectile_id: String = ""  ## Reference to ProjectileData
 
+## Targeting
+@export_group("Targeting")
+@export var distance_weight: float = 1.0  ## Weight for distance in target scoring (higher = prefer closer targets)
+@export var hp_weight: float = 0.3  ## Weight for HP in target scoring (higher = prefer low HP targets)
+@export var target_lock_duration: float = 0.5  ## Duration in seconds to keep current target before re-evaluating
+
 ## Visuals
 @export_group("Visuals")
 @export var sprite_frames_path: String = ""
@@ -58,6 +64,10 @@ static func from_dict(data: Dictionary) -> UnitData:
 	unit.is_ranged = data.get("is_ranged", false)
 	unit.projectile_id = data.get("projectile_id", "")
 
+	unit.distance_weight = data.get("distance_weight", 1.0)
+	unit.hp_weight = data.get("hp_weight", 0.3)
+	unit.target_lock_duration = data.get("target_lock_duration", 0.5)
+
 	unit.sprite_frames_path = data.get("sprite_frames_path", "")
 	unit.animation_config_path = data.get("animation_config_path", "")
 	unit.scale = data.get("scale", 1.0)
@@ -91,6 +101,9 @@ func to_dict() -> Dictionary:
 		"aggro_radius": aggro_radius,
 		"is_ranged": is_ranged,
 		"projectile_id": projectile_id,
+		"distance_weight": distance_weight,
+		"hp_weight": hp_weight,
+		"target_lock_duration": target_lock_duration,
 		"sprite_frames_path": sprite_frames_path,
 		"animation_config_path": animation_config_path,
 		"scale": scale,
