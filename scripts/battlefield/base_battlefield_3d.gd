@@ -22,8 +22,8 @@ class_name BaseBattlefield3D
 ## For 6-unit tall sprite with 35° camera: -7.5 units
 ##
 ## TODO: Calculate this dynamically based on sprite height and camera angle
-@export var player_spawn_position: Vector3 = Vector3(-80, 0, -7.5)
-@export var enemy_spawn_position: Vector3 = Vector3(80, 0, -7.5)
+@export var player_spawn_position: Vector3 = Vector3(-40, 0, -7.5)
+@export var enemy_spawn_position: Vector3 = Vector3(40, 0, -7.5)
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var camera: Camera3D = $Camera3D
