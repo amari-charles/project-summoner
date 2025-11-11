@@ -29,6 +29,12 @@ enum MovementLayer { GROUND, AIR }  # For future air units
 @export var is_ranged: bool = false  # DEPRECATED: Use unit_type instead
 @export var projectile_id: String = ""  # ID for ProjectileManager
 
+## Targeting settings
+@export_group("Targeting")
+@export var distance_weight: float = 1.0  ## Weight for distance in target scoring (higher = prefer closer targets)
+@export var hp_weight: float = 0.3  ## Weight for HP in target scoring (higher = prefer low HP targets)
+@export var target_lock_duration: float = 0.5  ## Duration in seconds to keep current target before re-evaluating
+
 ## Visuals
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 @export var sprite_feet_offset_pixels: float = 0.0  ## Offset from texture bottom to actual feet (for sprites with empty space below)
@@ -46,6 +52,7 @@ var attack_cooldown: float = 0.0
 var pending_attack_target: Node3D = null  # Target for animation-driven damage
 var is_facing_left: bool = false  # Current facing direction
 var is_attacking: bool = false  # Track if currently in attack animation
+var target_lock_timer: float = 0.0  # Time remaining before re-evaluating target
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
@@ -164,7 +171,13 @@ func _physics_process(delta: float) -> void:
 		return
 
 	attack_cooldown = max(attack_cooldown - delta, 0.0)
-	current_target = _acquire_target()
+	target_lock_timer = max(target_lock_timer - delta, 0.0)
+
+	# Re-acquire target if lock expired or current target is invalid
+	if target_lock_timer <= 0.0 or not _is_valid_target(current_target):
+		current_target = _acquire_target()
+		if current_target:
+			target_lock_timer = target_lock_duration
 
 	if current_target:
 		if _is_in_attack_range(current_target):
@@ -183,30 +196,63 @@ func _physics_process(delta: float) -> void:
 		if not is_attacking:
 			_update_animation("idle")
 
+func _is_valid_target(target: Node3D) -> bool:
+	## Check if a target is still valid (alive and in range)
+	if not target or not is_instance_valid(target):
+		return false
+	if target is Unit3D and not target.is_alive:
+		return false
+	# Check if target is within aggro range
+	var delta = target.global_position - global_position
+	var horizontal_dist = Vector2(delta.x, delta.z).length()
+	return horizontal_dist <= aggro_radius * 1.5  # Allow some leeway
+
 func _acquire_target() -> Node3D:
+	## Find the best target using weighted scoring system
 	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
 	var targets = get_tree().get_nodes_in_group(target_group)
 
-	var closest_target: Node3D = null
-	var closest_distance: float = aggro_radius
+	var best_target: Node3D = null
+	var best_score: float = -INF
 
 	for target in targets:
-		if target is Unit3D and target.is_alive:
-			# Use horizontal distance for aggro (ignore Y-axis height)
-			var delta = target.global_position - global_position
-			var horizontal_dist = Vector2(delta.x, delta.z).length()
-			if horizontal_dist < closest_distance:
-				closest_distance = horizontal_dist
-				closest_target = target
+		if not (target is Unit3D and target.is_alive):
+			continue
+
+		# Calculate horizontal distance (ignore Y-axis)
+		var delta = target.global_position - global_position
+		var distance = Vector2(delta.x, delta.z).length()
+
+		# Skip targets outside aggro range
+		if distance > aggro_radius:
+			continue
+
+		# Calculate weighted score
+		var score = 0.0
+
+		# Distance component (inverse: closer = higher score)
+		if distance_weight > 0.0 and distance > 0.01:
+			score += distance_weight / distance
+
+		# HP component (inverse: lower HP = higher score)
+		if hp_weight > 0.0:
+			var hp_percent = target.current_hp / target.max_hp
+			# Add small epsilon to avoid division by zero
+			score += hp_weight / (hp_percent + 0.1)
+
+		# Track best scoring target
+		if score > best_score:
+			best_score = score
+			best_target = target
 
 	# If no unit found, target the enemy base
-	if not closest_target:
+	if not best_target:
 		var base_group = "enemy_base" if team == Team.PLAYER else "player_base"
 		var bases = get_tree().get_nodes_in_group(base_group)
 		if bases.size() > 0:
-			closest_target = bases[0]
+			best_target = bases[0]
 
-	return closest_target
+	return best_target
 
 func _move_towards_target(delta: float) -> void:
 	if not current_target:

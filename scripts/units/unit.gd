@@ -17,11 +17,18 @@ enum Team { PLAYER, ENEMY }
 @export var is_ranged: bool = false  # Ranged vs melee
 @export var projectile_scene: PackedScene = null  # Projectile for ranged units
 
+## Targeting settings
+@export_group("Targeting")
+@export var distance_weight: float = 1.0  ## Weight for distance in target scoring (higher = prefer closer targets)
+@export var hp_weight: float = 0.3  ## Weight for HP in target scoring (higher = prefer low HP targets)
+@export var target_lock_duration: float = 0.5  ## Duration in seconds to keep current target before re-evaluating
+
 ## Current state
 var current_hp: float
 var is_alive: bool = true
 var current_target: Node2D = null  # Can be Unit or Summoner
 var attack_cooldown: float = 0.0
+var target_lock_timer: float = 0.0  # Time remaining before re-evaluating target
 
 ## Signals
 signal unit_died(unit: Unit)
@@ -45,9 +52,13 @@ func _physics_process(delta: float) -> void:
 
 	# Update attack cooldown
 	attack_cooldown = max(attack_cooldown - delta, 0.0)
+	target_lock_timer = max(target_lock_timer - delta, 0.0)
 
-	# Always try to find target (enemies or base)
-	current_target = _acquire_target()
+	# Re-acquire target if lock expired or current target is invalid
+	if target_lock_timer <= 0.0 or not _is_valid_target(current_target):
+		current_target = _acquire_target()
+		if current_target:
+			target_lock_timer = target_lock_duration
 
 	if current_target != null:
 		var dist = global_position.distance_to(current_target.global_position)
@@ -73,26 +84,57 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-## Find the nearest enemy unit within aggro range
+func _is_valid_target(target: Node2D) -> bool:
+	## Check if a target is still valid (alive and in range)
+	if not target or not is_instance_valid(target):
+		return false
+	if target is Unit and not target.is_alive:
+		return false
+	# Check if target is within aggro range
+	var dist = global_position.distance_to(target.global_position)
+	return dist <= aggro_radius * 1.5  # Allow some leeway
+
+## Find the best enemy unit using weighted scoring system
 func _acquire_target() -> Node2D:
 	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
 	var enemies = get_tree().get_nodes_in_group(target_group)
 
-	var best: Node2D = null
-	var best_dist := INF
+	var best_target: Node2D = null
+	var best_score: float = -INF
 
-	for u in enemies:
-		if u is Unit and u.is_alive:
-			var dist = global_position.distance_to(u.global_position)
-			if dist < best_dist and dist <= aggro_radius:
-				best = u
-				best_dist = dist
+	for target in enemies:
+		if not (target is Unit and target.is_alive):
+			continue
+
+		var distance = global_position.distance_to(target.global_position)
+
+		# Skip targets outside aggro range
+		if distance > aggro_radius:
+			continue
+
+		# Calculate weighted score
+		var score = 0.0
+
+		# Distance component (inverse: closer = higher score)
+		if distance_weight > 0.0 and distance > 0.01:
+			score += distance_weight / distance
+
+		# HP component (inverse: lower HP = higher score)
+		if hp_weight > 0.0:
+			var hp_percent = target.current_hp / target.max_hp
+			# Add small epsilon to avoid division by zero
+			score += hp_weight / (hp_percent + 0.1)
+
+		# Track best scoring target
+		if score > best_score:
+			best_score = score
+			best_target = target
 
 	# If no units in range, target the enemy base
-	if best == null:
-		best = _get_enemy_base()
+	if best_target == null:
+		best_target = _get_enemy_base()
 
-	return best
+	return best_target
 
 ## Get the enemy base/summoner
 func _get_enemy_base() -> Node2D:
