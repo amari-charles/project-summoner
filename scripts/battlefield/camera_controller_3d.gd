@@ -22,10 +22,13 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 @export var mouse_pan_enabled: bool = true
 @export var touch_pan_enabled: bool = true
 
-@export_group("Boundaries")
-## If true, automatically calculate camera bounds based on ground size
-## If false, you must call set_bounds() manually
-@export var auto_calculate_bounds: bool = true
+@export_group("Map Boundaries")
+## Axis-aligned world bounds on the ground plane (XZ)
+@export var map_rect_xz: Rect2 = Rect2(Vector2(-50, -40), Vector2(100, 80))
+## Ground plane Y value (most 2.5D maps use y=0)
+@export var ground_y: float = 0.0
+## If view is larger than map, center camera (true) or just clamp edges (false)
+@export var center_if_too_big: bool = false
 
 @export_group("Zoom Controls")
 ## Default orthographic size (camera starts at this zoom level)
@@ -49,150 +52,114 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 
 # === State Variables ===
 
-# The min/max positions the camera is allowed to move to (calculated based on ground size)
-var min_position: Vector3
-var max_position: Vector3
-
 # Pan state for mouse/touch input
 var is_panning: bool = false
 var last_mouse_position: Vector2
 
 func _ready() -> void:
-	if auto_calculate_bounds:
-		# Wait one frame to ensure the camera's transform is fully initialized by the scene
-		# Without this, the camera might not be in its correct starting position yet
-		await get_tree().process_frame
-		_calculate_bounds()
+	# Ensure orthographic projection for true 2.5D
+	projection = PROJECTION_ORTHOGONAL
+	# Wait one frame for transform initialization, then clamp
+	await get_tree().process_frame
+	clamp_to_map()
 
-func _calculate_bounds() -> void:
-	## Calculates the min/max camera positions that keep the ground fully visible
+func clamp_to_map() -> void:
+	## Clamps camera to keep ground footprint (projection) within map bounds
 	##
-	## This is complex because the camera is tilted at an angle. We need to figure out
-	## where the edges of the camera's view intersect with the ground plane.
+	## Uses corner ray-casting to calculate what the camera sees on the ground,
+	## then moves camera to keep that footprint inside map_rect_xz bounds.
+	## For orthographic cameras, moving camera in XZ translates footprint 1:1.
 
-	# Get ground size from parent's Background mesh
-	var ground_mesh: MeshInstance3D = get_parent().get_node_or_null("Background")
-	if not ground_mesh or not ground_mesh.mesh:
-		push_error("CameraController: Could not find Background mesh to calculate bounds")
+	# Get viewport size (handles SubViewport correctly)
+	var vp := get_viewport()
+	var view_size: Vector2i = vp.get_visible_rect().size
+	var w: float = float(view_size.x)
+	var h: float = float(view_size.y)
+
+	# Define 4 screen corners
+	var screen_corners := [
+		Vector2(0.0, 0.0),       # Top-left
+		Vector2(w, 0.0),         # Top-right
+		Vector2(w, h),           # Bottom-right
+		Vector2(0.0, h)          # Bottom-left
+	]
+
+	# Project each corner to ground plane (y = ground_y)
+	var world_points: Array[Vector3] = []
+	for corner in screen_corners:
+		var origin: Vector3 = project_ray_origin(corner)
+		var dir: Vector3 = project_ray_normal(corner)
+
+		# Skip if ray is parallel to ground (shouldn't happen with tilted camera)
+		if abs(dir.y) < 0.0001:
+			continue
+
+		# Calculate intersection with ground plane: t = (ground_y - origin.y) / dir.y
+		var t: float = (ground_y - origin.y) / dir.y
+
+		# Only consider intersections in front of camera
+		if t >= 0.0:
+			var point: Vector3 = origin + dir * t
+			world_points.append(point)
+
+	# Need at least 2 valid intersections to proceed
+	if world_points.size() < 2:
 		return
 
-	var ground_size: Vector2 = ground_mesh.mesh.size
+	# Calculate footprint extents on ground (XZ plane)
+	var view_min_x: float = world_points[0].x
+	var view_max_x: float = view_min_x
+	var view_min_z: float = world_points[0].z
+	var view_max_z: float = view_min_z
 
-	# The "viewport" is the game window. We need its dimensions to calculate the aspect ratio
-	# Aspect ratio = width/height (e.g., 1920/1080 = 1.78 for widescreen)
-	var viewport_size = get_viewport().get_visible_rect().size
-	var aspect_ratio = viewport_size.x / viewport_size.y
+	for p in world_points:
+		view_min_x = min(view_min_x, p.x)
+		view_max_x = max(view_max_x, p.x)
+		view_min_z = min(view_min_z, p.z)
+		view_max_z = max(view_max_z, p.z)
 
-	# Orthographic cameras don't have perspective distortion (objects don't get smaller with distance)
-	# The "size" property defines half the view height in world units
-	# So view_height = size * 2 (full height from top to bottom of view)
-	var view_height = size * 2.0
+	# Map bounds
+	var map_min_x: float = map_rect_xz.position.x
+	var map_min_z: float = map_rect_xz.position.y
+	var map_max_x: float = map_min_x + map_rect_xz.size.x
+	var map_max_z: float = map_min_z + map_rect_xz.size.y
 
-	# For KEEP_HEIGHT mode, width is calculated by multiplying size by aspect ratio
-	# This ensures the view scales correctly for different screen sizes
-	var view_width = size * aspect_ratio
+	# Calculate view and map dimensions
+	var view_width: float = view_max_x - view_min_x
+	var view_height: float = view_max_z - view_min_z
+	var map_width: float = map_max_x - map_min_x
+	var map_height: float = map_max_z - map_min_z
 
-	# Half-widths are useful for calculating offsets from the center
-	var half_view_width = view_width / 2.0
-
-	# === Z-axis bounds calculation ===
-	# This is where it gets tricky: because the camera is tilted, we need to project
-	# the top and bottom edges of the view down to the ground plane (Y=0) to see
-	# where they intersect
-
-	# "Basis vectors" define the camera's orientation in 3D space
-	# - forward: the direction the camera is looking
-	# - up: the direction that's "up" for the camera (not world up, but camera up)
-	var forward = -transform.basis.z  # Camera's viewing direction
-	var up = transform.basis.y  # Camera's up direction
-
-	# Check if camera is too horizontal (would cause division by zero)
-	if abs(forward.y) < 0.001:
-		push_error("CameraController: Camera is too horizontal for ground-based bounds calculation")
-		# Set safe fallback bounds
-		min_position = Vector3(-50, position.y, -50)
-		max_position = Vector3(50, position.y, 50)
+	# If view is larger than map, center camera and return
+	if center_if_too_big and (view_width >= map_width or view_height >= map_height):
+		position.x = (map_min_x + map_max_x) * 0.5
+		position.z = (map_min_z + map_max_z) * 0.5
 		return
 
-	# Top edge of the camera's view in world space
-	var top_edge_world = position + up * size
+	# Calculate translation needed to bring footprint inside bounds
+	var dx: float = 0.0
+	var dz: float = 0.0
 
-	# We need to find where a ray from top_edge_world in the forward direction hits Y=0
-	# This is called "ray-ground intersection" - we're casting a ray and finding where it hits
-	# The distance along the ray to reach Y=0 is: current_y / downward_component_of_direction
-	var ray_distance_top = top_edge_world.y / (-forward.y)
+	# X-axis clamping
+	if view_min_x < map_min_x:
+		dx = map_min_x - view_min_x  # Need to move right
+	elif view_max_x > map_max_x:
+		dx = map_max_x - view_max_x  # Need to move left (negative)
 
-	# Now we know the distance, we can find the Z coordinate where the ray hits ground
-	var top_ground_z = top_edge_world.z + ray_distance_top * forward.z
+	# Z-axis clamping
+	if view_min_z < map_min_z:
+		dz = map_min_z - view_min_z  # Need to move forward
+	elif view_max_z > map_max_z:
+		dz = map_max_z - view_max_z  # Need to move back (negative)
 
-	# Do the same for the bottom edge of the view
-	var bottom_edge_world = position - up * size
-	var ray_distance_bottom = bottom_edge_world.y / (-forward.y)
-	var bottom_ground_z = bottom_edge_world.z + ray_distance_bottom * forward.z
-
-	# Special case: if the bottom edge is below ground level (Y < 0),
-	# we need to find where the Y=0 plane intersects the viewport edge instead
-	if bottom_edge_world.y < 0:
-		# Linear interpolation: find the ratio where Y=0 falls between bottom and top
-		var y_ratio = (0 - bottom_edge_world.y) / (top_edge_world.y - bottom_edge_world.y)
-		# Use that ratio to interpolate the Z coordinate
-		bottom_ground_z = bottom_edge_world.z + y_ratio * (top_edge_world.z - bottom_edge_world.z)
-
-	# Calculate how far the ground intersection points are from the camera's Z position
-	# These offsets tell us how the view edges map to ground positions
-	var top_z_offset = top_ground_z - position.z
-	var bottom_z_offset = bottom_ground_z - position.z
-
-	# Ground extents: half the size in each direction from center (0,0)
-	var half_ground_width = ground_size.x / 2.0
-	var half_ground_depth = ground_size.y / 2.0
-
-	# === Calculate bounds ===
-	# We want the camera positioned so that the view edges align with the ground edges
-
-	# X-axis bounds (left-right):
-	# Camera can move from the left edge to the right edge, minus the view width
-	# Example: if ground is 200 wide and view is 80 wide, camera can move from -60 to +60
-	min_position = Vector3(
-		-half_ground_width + half_view_width,  # Leftmost position
-		position.y,  # Keep Y fixed (don't move up/down)
-		0  # Z calculated below
-	)
-
-	max_position = Vector3(
-		half_ground_width - half_view_width,  # Rightmost position
-		position.y,  # Keep Y fixed
-		0  # Z calculated below
-	)
-
-	# Z-axis bounds (forward-back depth):
-	# When camera is at max Z, the top view edge should show the far ground edge
-	max_position.z = half_ground_depth - top_z_offset
-
-	# When camera is at min Z, the bottom view edge should show the near ground edge
-	min_position.z = -half_ground_depth - bottom_z_offset
-
-	# Validate that we got sane bounds
-	if min_position.x >= max_position.x or min_position.z >= max_position.z:
-		push_error("CameraController: Calculated invalid bounds (min >= max)")
-		# Use fallback bounds
-		min_position = Vector3(-50, position.y, -50)
-		max_position = Vector3(50, position.y, 50)
+	# STABILITY: Only apply correction if offset is significant (prevents micro-jitter)
+	if abs(dx) < 0.1 and abs(dz) < 0.1:
 		return
 
-	# Debug logging to help diagnose bounds issues
-	print("\n========== CAMERA BOUNDS CALCULATED ==========")
-	print("  Ground size: ", ground_size)
-	print("  Camera ortho size: ", size)
-	print("  View dimensions: ", view_width, " x ", view_height)
-	print("  Bounds X: [", min_position.x, " to ", max_position.x, "]")
-	print("  Bounds Z: [", min_position.z, " to ", max_position.z, "]")
-	print("  Camera position: ", position)
-	print("===============================================\n")
-
-	# "Clamp" means restrict a value to a range. Here we ensure the camera starts within bounds
-	# If the camera was positioned outside the bounds, this moves it to the nearest valid position
-	position = position.clamp(min_position, max_position)
+	# Move camera to bring footprint inside bounds
+	# For orthographic cameras, moving camera XZ translates footprint 1:1
+	position.x += dx
+	position.z += dz
 
 func _input(event: InputEvent) -> void:
 	## Handle mouse and touch input for panning and zooming
@@ -231,13 +198,10 @@ func _handle_zoom(event: InputEvent) -> void:
 		_apply_zoom(zoom_delta)
 
 func _apply_zoom(delta: float) -> void:
-	## Apply zoom change and recalculate bounds if needed
-	var old_size = size
+	## Apply zoom change and re-clamp camera
 	size = clamp(size + delta, min_ortho_size, max_ortho_size)
-
-	# If zoom actually changed, recalculate bounds
-	if size != old_size and auto_calculate_bounds:
-		_calculate_bounds()
+	# Clamp after zoom to adjust for new view size
+	clamp_to_map()
 
 func _handle_mouse_pan(event: InputEvent) -> void:
 	## Pan the camera by dragging with middle or right mouse button
@@ -286,9 +250,8 @@ func _apply_pan_delta(delta: Vector2) -> void:
 	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
 		position.z += delta.y * pan_speed * TOUCH_TO_WORLD_SCALE
 
-	# Clamp keeps the camera position within the allowed bounds
-	# Without this, you could pan beyond the edge of the battlefield
-	position = position.clamp(min_position, max_position)
+	# Clamp after panning to keep view inside map
+	clamp_to_map()
 
 func _process(delta: float) -> void:
 	## Called every frame. Handle keyboard and edge panning here.
@@ -326,7 +289,8 @@ func _handle_keyboard_pan(delta: float) -> void:
 		# Mouse/touch use direct pixel deltas instead
 		position.x += pan_input.x * pan_speed * delta
 		position.z += pan_input.y * pan_speed * delta
-		position = position.clamp(min_position, max_position)
+		# Clamp after panning
+		clamp_to_map()
 
 func _handle_edge_pan(delta: float) -> void:
 	## Pan the camera when mouse is near screen edges (RTS-style)
@@ -357,12 +321,5 @@ func _handle_edge_pan(delta: float) -> void:
 		# Apply edge panning (no need to normalize, edges are mutually exclusive)
 		position.x += pan_input.x * pan_speed * edge_pan_speed * delta
 		position.z += pan_input.y * pan_speed * edge_pan_speed * delta
-		position = position.clamp(min_position, max_position)
-
-## Manually set camera bounds (alternative to auto-calculation)
-##
-## Use this if you want to set custom bounds rather than auto-calculating from ground size
-func set_bounds(min_pos: Vector3, max_pos: Vector3) -> void:
-	min_position = min_pos
-	max_position = max_pos
-	position = position.clamp(min_position, max_position)
+		# Clamp after panning
+		clamp_to_map()
