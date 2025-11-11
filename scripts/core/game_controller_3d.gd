@@ -112,22 +112,12 @@ func end_game(winner: Unit3D.Team) -> void:
 	game_ended.emit(winner)
 	get_tree().paused = true
 
-	# Check if this is a campaign battle
-	var profile_repo = get_node_or_null("/root/ProfileRepo")
-	if profile_repo:
-		var profile = profile_repo.get_active_profile()
-		var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
-
-		if current_battle_id != "":
-			# This is a campaign battle - transition to appropriate screen
-			if winner == Unit3D.Team.PLAYER:
-				await get_tree().create_timer(2.0).timeout
-				get_tree().paused = false
-				get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
-			else:
-				await get_tree().create_timer(2.0).timeout
-				get_tree().paused = false
-				get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+	# Delegate to BattleContext for mode-specific completion handling
+	var battle_context = get_node_or_null("/root/BattleContext")
+	if battle_context and battle_context.completion_callback.is_valid():
+		await get_tree().create_timer(2.0).timeout
+		get_tree().paused = false
+		battle_context.completion_callback.call(winner as int)
 
 func _on_summoner_died(summoner: Summoner3D) -> void:
 	if summoner == player_summoner:
@@ -180,22 +170,15 @@ func _load_ai_for_enemy() -> void:
 	if not enemy_summoner:
 		return
 
-	# Get battle config from profile
-	var profile_repo = get_node_or_null("/root/ProfileRepo")
-	if not profile_repo:
+	# Get battle config from BattleContext
+	var battle_context = get_node_or_null("/root/BattleContext")
+	if not battle_context:
+		push_error("GameController3D: BattleContext not found")
 		return
 
-	var profile = profile_repo.get_active_profile()
-	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
-	if current_battle_id == "":
-		return
-
-	var campaign = get_node_or_null("/root/Campaign")
-	if not campaign:
-		return
-
-	var battle_config = campaign.get_battle(current_battle_id)
-	if not battle_config:
+	var battle_config = battle_context.battle_config
+	if battle_config.is_empty():
+		push_error("GameController3D: Battle config is empty")
 		return
 
 	# Remove existing AI (if any)

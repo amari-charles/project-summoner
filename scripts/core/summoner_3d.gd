@@ -11,7 +11,6 @@ class_name Summoner3D
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
 @export var load_deck_from_profile: bool = false
-@export var load_enemy_deck_from_campaign: bool = false
 
 ## Resources
 @export var mana_regen_rate: float = 1.0
@@ -32,18 +31,16 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
-	# If loading enemy from campaign, override max_hp if specified
-	if load_enemy_deck_from_campaign and team == Unit3D.Team.ENEMY:
-		var campaign = get_node_or_null("/root/Campaign")
-		var profile_repo = get_node_or_null("/root/ProfileRepo")
-		if campaign and profile_repo:
-			var profile = profile_repo.get_active_profile()
-			var battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
-			if battle_id != "":
-				var battle = campaign.get_battle(battle_id)
-				if battle.has("enemy_hp"):
-					max_hp = battle.get("enemy_hp")
-					print("Summoner3D: Set enemy HP from campaign: %d" % max_hp)
+	# For enemy summoners, load config from BattleContext
+	if team == Unit3D.Team.ENEMY:
+		var battle_context = get_node_or_null("/root/BattleContext")
+		if battle_context and not battle_context.battle_config.is_empty():
+			var battle_config = battle_context.battle_config
+
+			# Set enemy HP from config
+			if battle_config.has("enemy_hp"):
+				max_hp = battle_config.get("enemy_hp")
+				print("Summoner3D: Set enemy HP from BattleContext: %d" % max_hp)
 
 	current_hp = max_hp
 	mana = MANA_MAX
@@ -56,14 +53,15 @@ func _ready() -> void:
 			push_error("Summoner3D: Failed to load deck from profile! Using empty deck.")
 		else:
 			print("Summoner3D: Successfully loaded %d cards from profile" % deck.size())
-	elif load_enemy_deck_from_campaign and team == Unit3D.Team.ENEMY:
-		print("Summoner3D: Loading enemy deck from campaign...")
+	elif team == Unit3D.Team.ENEMY:
+		# Enemy deck always comes from BattleContext
+		print("Summoner3D: Loading enemy deck from BattleContext...")
 		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
 		if deck.is_empty():
-			push_warning("Summoner3D: Failed to load enemy deck from campaign! Using fallback deck.")
+			push_warning("Summoner3D: Failed to load enemy deck! Using fallback deck.")
 			deck = starting_deck.duplicate()
 		else:
-			print("Summoner3D: Successfully loaded %d cards for enemy from campaign" % deck.size())
+			print("Summoner3D: Successfully loaded %d cards for enemy from BattleContext" % deck.size())
 	else:
 		deck = starting_deck.duplicate()
 		print("Summoner3D: Using exported starting_deck (%d cards)" % deck.size())

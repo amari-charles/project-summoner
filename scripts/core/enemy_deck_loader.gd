@@ -7,37 +7,48 @@ class_name EnemyDeckLoader
 ## Unlike DeckLoader (which loads from player's collection), this directly creates
 ## Card resources from catalog IDs.
 
-## Load enemy deck for the current campaign battle
+## Load enemy deck from BattleContext
 static func load_enemy_deck_for_battle() -> Array[Card]:
 	var cards: Array[Card] = []
 
-	# Get campaign service
-	var campaign = _get_service("/root/Campaign")
-	if not campaign:
-		push_error("EnemyDeckLoader: Campaign service not found!")
+	# Get battle context
+	var battle_context = _get_service("/root/BattleContext")
+	if not battle_context:
+		push_error("EnemyDeckLoader: BattleContext not found!")
 		return cards
 
-	# Get profile to find current battle
-	var profile_repo = _get_service("/root/ProfileRepo")
-	if not profile_repo:
-		push_error("EnemyDeckLoader: ProfileRepo not found!")
+	var battle_config = battle_context.battle_config
+	if battle_config.is_empty():
+		push_error("EnemyDeckLoader: Battle config is empty!")
 		return cards
 
-	var profile = profile_repo.get_active_profile()
-	if profile.is_empty():
-		push_error("EnemyDeckLoader: No active profile!")
+	# Get enemy deck definition from config
+	var enemy_deck_def = battle_config.get("enemy_deck", [])
+	if enemy_deck_def.is_empty():
+		push_warning("EnemyDeckLoader: Battle has no enemy deck defined!")
 		return cards
 
-	# Get current battle ID
-	var battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
-	if battle_id == "":
-		push_warning("EnemyDeckLoader: No current battle set in profile!")
-		return cards
+	print("EnemyDeckLoader: Loading enemy deck from BattleContext")
 
-	print("EnemyDeckLoader: Loading enemy deck for battle '%s'" % battle_id)
+	# Convert deck definition to Card resources
+	for entry in enemy_deck_def:
+		var catalog_id = entry.get("catalog_id", "")
+		var count = entry.get("count", 1)
 
-	# Load the deck for this battle
-	return load_deck_for_battle(battle_id)
+		if catalog_id == "":
+			push_warning("EnemyDeckLoader: Empty catalog_id in enemy deck definition")
+			continue
+
+		# Create 'count' copies of this card
+		for i in range(count):
+			var card = _create_card_from_catalog(catalog_id)
+			if card:
+				cards.append(card)
+			else:
+				push_warning("EnemyDeckLoader: Failed to create card: %s" % catalog_id)
+
+	print("EnemyDeckLoader: Successfully loaded %d cards for enemy deck" % cards.size())
+	return cards
 
 ## Load enemy deck for a specific battle by ID
 static func load_deck_for_battle(battle_id: String) -> Array[Card]:
