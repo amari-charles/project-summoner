@@ -7,6 +7,7 @@ class_name Card
 enum CardType { SUMMON, SPELL }
 
 ## Card identity
+@export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
 @export var card_name: String = "Unknown Card"
 @export var card_type: CardType = CardType.SUMMON
 @export var description: String = ""
@@ -100,8 +101,12 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 
 	var gameplay_layer = battlefield.get_gameplay_layer() if battlefield.has_method("get_gameplay_layer") else battlefield
 
-	# Get card categories (empty for now until we add categories to cards)
+	# Get card categories from catalog
 	var categories = {}
+	if not catalog_id.is_empty() and CardCatalog:
+		var card_def = CardCatalog.get_card(catalog_id)
+		if not card_def.is_empty():
+			categories = card_def.get("categories", {})
 
 	# Build context for modifier system
 	var context = {

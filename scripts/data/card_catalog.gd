@@ -113,7 +113,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["spell", "aoe", "damage"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Modifier system categories
+		"categories": {
+			"elemental_affinity": "fire"
+		}
 	}
 
 	# Wall - Defensive structure
@@ -274,6 +279,7 @@ func create_card_resource(catalog_id: String) -> Resource:
 	var card = Card.new()
 
 	# Set basic properties
+	card.catalog_id = catalog_id
 	card.card_name = card_def.get("card_name", "Unknown")
 	card.card_type = card_def.get("card_type", 0)
 	card.description = card_def.get("description", "")
