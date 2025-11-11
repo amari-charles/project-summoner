@@ -10,8 +10,8 @@ class_name BiomeConfig
 
 @export_group("Ground")
 @export var ground_texture: Texture2D
-@export var ground_size: Vector2 = Vector2(100, 150)
-@export var ground_uv_scale: Vector3 = Vector3(17, 26, 1)
+@export var ground_size: Vector2 = Vector2(100, 80)
+@export var ground_uv_scale: Vector3 = Vector3(17, 14, 1)
 
 @export_group("Lighting")
 @export var ambient_light_color: Color = Color.WHITE

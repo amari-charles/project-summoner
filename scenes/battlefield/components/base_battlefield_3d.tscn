@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-size = Vector2(100, 150)
+size = Vector2(100, 80)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1

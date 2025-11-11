@@ -27,6 +27,12 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 ## If false, you must call set_bounds() manually
 @export var auto_calculate_bounds: bool = true
 
+@export_group("Zoom-Based Panning")
+## Default orthographic size (camera starts at this zoom level)
+@export var default_ortho_size: float = 40.0
+## If true, panning is only enabled when zoomed in (size < default_ortho_size)
+@export var pan_only_when_zoomed: bool = true
+
 # === State Variables ===
 
 # The min/max positions the camera is allowed to move to (calculated based on ground size)
@@ -212,6 +218,10 @@ func _apply_pan_delta(delta: Vector2) -> void:
 	## The camera moves in the ground plane (X and Z axes), not up/down (Y axis)
 	## We invert X so dragging left moves the view left (intuitive drag behavior)
 
+	# Check if panning is allowed (zoom-based restriction)
+	if pan_only_when_zoomed and size >= default_ortho_size:
+		return  # Not zoomed in, panning disabled
+
 	position.x += -delta.x * pan_speed * MOUSE_TO_WORLD_SCALE
 	position.z += delta.y * pan_speed * TOUCH_TO_WORLD_SCALE
 
@@ -227,6 +237,10 @@ func _process(delta: float) -> void:
 
 func _handle_keyboard_pan(delta: float) -> void:
 	## Pan the camera using WASD or arrow keys
+
+	# Check if panning is allowed (zoom-based restriction)
+	if pan_only_when_zoomed and size >= default_ortho_size:
+		return  # Not zoomed in, panning disabled
 
 	var pan_input = Vector2.ZERO
 
