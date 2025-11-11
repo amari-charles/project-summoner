@@ -15,7 +15,7 @@ signal card_held(card_data: Dictionary)
 @export_group("Layout")
 @export var border_width: int = 3
 @export var corner_radius: int = 6
-@export var cost_circle_radius: int = 12
+@export var cost_circle_radius: int = 16
 @export var element_badge_radius: int = 9
 
 ## Card data
@@ -106,10 +106,9 @@ func _update_theme() -> void:
 	style.border_width_right = border_width
 	style.border_width_bottom = border_width
 	style.border_color = element_color
-	style.corner_radius_top_left = corner_radius
-	style.corner_radius_top_right = corner_radius
-	style.corner_radius_bottom_left = corner_radius
-	style.corner_radius_bottom_right = corner_radius
+	style.set_corner_radius_all(corner_radius)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 1
 
 	add_theme_stylebox_override("panel", style)
 
@@ -117,10 +116,9 @@ func _update_theme() -> void:
 	if cost_circle:
 		var circle_style = StyleBoxFlat.new()
 		circle_style.bg_color = element_color
-		circle_style.corner_radius_top_left = cost_circle_radius
-		circle_style.corner_radius_top_right = cost_circle_radius
-		circle_style.corner_radius_bottom_left = cost_circle_radius
-		circle_style.corner_radius_bottom_right = cost_circle_radius
+		circle_style.set_corner_radius_all(cost_circle_radius)
+		circle_style.anti_aliasing = true
+		circle_style.anti_aliasing_size = 1
 		cost_circle.add_theme_stylebox_override("panel", circle_style)
 
 	# Color the art placeholder with darkened element color
@@ -131,10 +129,9 @@ func _update_theme() -> void:
 	if element_badge:
 		var badge_style = StyleBoxFlat.new()
 		badge_style.bg_color = element_color
-		badge_style.corner_radius_top_left = element_badge_radius
-		badge_style.corner_radius_top_right = element_badge_radius
-		badge_style.corner_radius_bottom_left = element_badge_radius
-		badge_style.corner_radius_bottom_right = element_badge_radius
+		badge_style.set_corner_radius_all(element_badge_radius)
+		badge_style.anti_aliasing = true
+		badge_style.anti_aliasing_size = 1
 		element_badge.add_theme_stylebox_override("panel", badge_style)
 
 ## =============================================================================

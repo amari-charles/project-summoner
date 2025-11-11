@@ -26,7 +26,7 @@ class_name CardVisual
 
 ## Cost circle
 @export_group("Cost Circle")
-@export var cost_circle_radius: int = 16
+@export var cost_circle_radius: int = 20
 @export var cost_font_size: int = 18
 
 ## Card name
@@ -113,20 +113,18 @@ func _apply_visual_styling() -> void:
 	if background_panel:
 		var bg_style = StyleBoxFlat.new()
 		bg_style.bg_color = GameColorPalette.UI_BG_DARK
-		bg_style.corner_radius_top_left = corner_radius - border_width
-		bg_style.corner_radius_top_right = corner_radius - border_width
-		bg_style.corner_radius_bottom_left = corner_radius - border_width
-		bg_style.corner_radius_bottom_right = corner_radius - border_width
+		bg_style.set_corner_radius_all(corner_radius - border_width)
+		bg_style.anti_aliasing = true
+		bg_style.anti_aliasing_size = 1
 		background_panel.add_theme_stylebox_override("panel", bg_style)
 
 	# Apply cost circle styling
 	if cost_circle:
 		var circle_style = StyleBoxFlat.new()
 		circle_style.bg_color = element_color
-		circle_style.corner_radius_top_left = cost_circle_radius
-		circle_style.corner_radius_top_right = cost_circle_radius
-		circle_style.corner_radius_bottom_left = cost_circle_radius
-		circle_style.corner_radius_bottom_right = cost_circle_radius
+		circle_style.set_corner_radius_all(cost_circle_radius)
+		circle_style.anti_aliasing = true
+		circle_style.anti_aliasing_size = 1
 		cost_circle.add_theme_stylebox_override("panel", circle_style)
 
 	# Apply cost label font size
@@ -145,10 +143,9 @@ func _apply_visual_styling() -> void:
 	if element_badge:
 		var badge_style = StyleBoxFlat.new()
 		badge_style.bg_color = element_color
-		badge_style.corner_radius_top_left = element_badge_radius
-		badge_style.corner_radius_top_right = element_badge_radius
-		badge_style.corner_radius_bottom_left = element_badge_radius
-		badge_style.corner_radius_bottom_right = element_badge_radius
+		badge_style.set_corner_radius_all(element_badge_radius)
+		badge_style.anti_aliasing = true
+		badge_style.anti_aliasing_size = 1
 		element_badge.add_theme_stylebox_override("panel", badge_style)
 
 	# Show/hide description
@@ -159,10 +156,9 @@ func _apply_border_color() -> void:
 	if border_panel:
 		var border_style = StyleBoxFlat.new()
 		border_style.bg_color = element_color
-		border_style.corner_radius_top_left = corner_radius
-		border_style.corner_radius_top_right = corner_radius
-		border_style.corner_radius_bottom_left = corner_radius
-		border_style.corner_radius_bottom_right = corner_radius
+		border_style.set_corner_radius_all(corner_radius)
+		border_style.anti_aliasing = true
+		border_style.anti_aliasing_size = 1
 		border_panel.add_theme_stylebox_override("panel", border_style)
 
 func _update_cost() -> void:

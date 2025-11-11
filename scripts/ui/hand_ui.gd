@@ -329,10 +329,9 @@ class CardDisplay extends Control:
 				# Reset border to base element color via style
 				var border_style = StyleBoxFlat.new()
 				border_style.bg_color = element_color
-				border_style.corner_radius_top_left = card_visual.corner_radius
-				border_style.corner_radius_top_right = card_visual.corner_radius
-				border_style.corner_radius_bottom_left = card_visual.corner_radius
-				border_style.corner_radius_bottom_right = card_visual.corner_radius
+				border_style.set_corner_radius_all(card_visual.corner_radius)
+				border_style.anti_aliasing = true
+				border_style.anti_aliasing_size = 1
 				border_panel.add_theme_stylebox_override("panel", border_style)
 
 	## Update glow effect based on hover state and playability
@@ -358,10 +357,9 @@ class CardDisplay extends Control:
 		# Apply glow via border style
 		var border_style = StyleBoxFlat.new()
 		border_style.bg_color = glow_color
-		border_style.corner_radius_top_left = card_visual.corner_radius
-		border_style.corner_radius_top_right = card_visual.corner_radius
-		border_style.corner_radius_bottom_left = card_visual.corner_radius
-		border_style.corner_radius_bottom_right = card_visual.corner_radius
+		border_style.set_corner_radius_all(card_visual.corner_radius)
+		border_style.anti_aliasing = true
+		border_style.anti_aliasing_size = 1
 		border_panel.add_theme_stylebox_override("panel", border_style)
 
 var summoner: Node  # Can be Summoner or Summoner3D
@@ -510,10 +508,9 @@ func _update_selection_visual() -> void:
 			continue
 
 		var border_style = StyleBoxFlat.new()
-		border_style.corner_radius_top_left = card_visual.corner_radius
-		border_style.corner_radius_top_right = card_visual.corner_radius
-		border_style.corner_radius_bottom_left = card_visual.corner_radius
-		border_style.corner_radius_bottom_right = card_visual.corner_radius
+		border_style.set_corner_radius_all(card_visual.corner_radius)
+		border_style.anti_aliasing = true
+		border_style.anti_aliasing_size = 1
 
 		if i == selected_card_index:
 			border_style.bg_color = Color.GOLD
@@ -550,10 +547,9 @@ func _update_availability() -> void:
 			if bg_panel:
 				var bg_style = StyleBoxFlat.new()
 				bg_style.bg_color = GameColorPalette.UI_BG_DARK
-				bg_style.corner_radius_top_left = card_visual.corner_radius - card_visual.border_width
-				bg_style.corner_radius_top_right = card_visual.corner_radius - card_visual.border_width
-				bg_style.corner_radius_bottom_left = card_visual.corner_radius - card_visual.border_width
-				bg_style.corner_radius_bottom_right = card_visual.corner_radius - card_visual.border_width
+				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
+				bg_style.anti_aliasing = true
+				bg_style.anti_aliasing_size = 1
 				bg_panel.add_theme_stylebox_override("panel", bg_style)
 				bg_panel.modulate = Color.WHITE
 
@@ -565,10 +561,9 @@ func _update_availability() -> void:
 			if bg_panel:
 				var bg_style = StyleBoxFlat.new()
 				bg_style.bg_color = GameColorPalette.UI_BG_DARK
-				bg_style.corner_radius_top_left = card_visual.corner_radius - card_visual.border_width
-				bg_style.corner_radius_top_right = card_visual.corner_radius - card_visual.border_width
-				bg_style.corner_radius_bottom_left = card_visual.corner_radius - card_visual.border_width
-				bg_style.corner_radius_bottom_right = card_visual.corner_radius - card_visual.border_width
+				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
+				bg_style.anti_aliasing = true
+				bg_style.anti_aliasing_size = 1
 				bg_panel.add_theme_stylebox_override("panel", bg_style)
 				bg_panel.modulate = Color(0.5, 0.5, 0.5)
 
@@ -585,10 +580,9 @@ func _update_availability() -> void:
 				if border_panel:
 					var border_style = StyleBoxFlat.new()
 					border_style.bg_color = card_visual.get_element_color().darkened(0.5)
-					border_style.corner_radius_top_left = card_visual.corner_radius
-					border_style.corner_radius_top_right = card_visual.corner_radius
-					border_style.corner_radius_bottom_left = card_visual.corner_radius
-					border_style.corner_radius_bottom_right = card_visual.corner_radius
+					border_style.set_corner_radius_all(card_visual.corner_radius)
+					border_style.anti_aliasing = true
+					border_style.anti_aliasing_size = 1
 					border_panel.add_theme_stylebox_override("panel", border_style)
 
 ## Create pulsing glow effect for playable cards
@@ -632,10 +626,9 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 		if border_panel:
 			var style = StyleBoxFlat.new()
 			style.bg_color = color
-			style.corner_radius_top_left = card_visual.corner_radius
-			style.corner_radius_top_right = card_visual.corner_radius
-			style.corner_radius_bottom_left = card_visual.corner_radius
-			style.corner_radius_bottom_right = card_visual.corner_radius
+			style.set_corner_radius_all(card_visual.corner_radius)
+			style.anti_aliasing = true
+			style.anti_aliasing_size = 1
 			border_panel.add_theme_stylebox_override("panel", style)
 
 	# Tween by calling the method repeatedly
