@@ -180,6 +180,15 @@ func _calculate_bounds() -> void:
 		max_position = Vector3(50, position.y, 50)
 		return
 
+	# Debug logging to help diagnose bounds issues
+	print("CameraController: Bounds calculated")
+	print("  Ground size: ", ground_size)
+	print("  Camera ortho size: ", size)
+	print("  View dimensions: ", view_width, " x ", view_height)
+	print("  Bounds X: [", min_position.x, " to ", max_position.x, "]")
+	print("  Bounds Z: [", min_position.z, " to ", max_position.z, "]")
+	print("  Camera position: ", position)
+
 	# "Clamp" means restrict a value to a range. Here we ensure the camera starts within bounds
 	# If the camera was positioned outside the bounds, this moves it to the nearest valid position
 	position = position.clamp(min_position, max_position)
@@ -196,15 +205,38 @@ func _input(event: InputEvent) -> void:
 		_handle_touch_pan(event)
 
 func _handle_zoom(event: InputEvent) -> void:
-	## Handle mouse scroll wheel zoom
+	## Handle mouse scroll wheel zoom and trackpad gestures
 	if event is InputEventMouseButton:
 		if event.pressed:
 			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 				# Zoom in (decrease ortho size)
-				size = clamp(size - zoom_speed, min_ortho_size, max_ortho_size)
+				_apply_zoom(-zoom_speed)
 			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				# Zoom out (increase ortho size)
-				size = clamp(size + zoom_speed, min_ortho_size, max_ortho_size)
+				_apply_zoom(zoom_speed)
+
+	# Support macOS/Linux trackpad pinch-to-zoom gesture
+	elif event is InputEventMagnifyGesture:
+		# factor > 1.0 means pinch out (zoom out), < 1.0 means pinch in (zoom in)
+		# We invert this to make pinch-in zoom in (decrease size)
+		var zoom_delta = (1.0 - event.factor) * zoom_speed * 10.0
+		_apply_zoom(zoom_delta)
+
+	# Support macOS/Linux trackpad two-finger scroll for zoom
+	elif event is InputEventPanGesture:
+		# delta.y > 0 means scroll down, < 0 means scroll up
+		# Scroll up = zoom in (decrease size), scroll down = zoom out (increase size)
+		var zoom_delta = event.delta.y * zoom_speed * 0.2
+		_apply_zoom(zoom_delta)
+
+func _apply_zoom(delta: float) -> void:
+	## Apply zoom change and recalculate bounds if needed
+	var old_size = size
+	size = clamp(size + delta, min_ortho_size, max_ortho_size)
+
+	# If zoom actually changed, recalculate bounds
+	if size != old_size and auto_calculate_bounds:
+		_calculate_bounds()
 
 func _handle_mouse_pan(event: InputEvent) -> void:
 	## Pan the camera by dragging with middle or right mouse button
