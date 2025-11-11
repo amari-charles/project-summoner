@@ -189,7 +189,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["tutorial", "training", "target"],
-		"unlock_condition": "enemy_only"
+		"unlock_condition": "enemy_only",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.NEUTRAL
+		}
 	}
 
 	# Neade - Heavy lancer

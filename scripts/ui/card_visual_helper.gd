@@ -15,6 +15,10 @@ static func get_element_border_color(element_id: String) -> Color:
 		return GameColorPalette.NEUTRAL_MID
 
 	match element_id.to_lower():
+		# Neutral
+		"neutral":
+			return GameColorPalette.NEUTRAL_MID
+
 		# Core elements
 		"fire":
 			return GameColorPalette.FIRE_PRIMARY
