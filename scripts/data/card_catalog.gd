@@ -61,7 +61,12 @@ func _init_catalog() -> void:
 
 		# Metadata
 		"tags": ["melee", "starter", "durable"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.EARTH
+		}
 	}
 
 	# Archer - Ranged attacker
@@ -89,7 +94,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["ranged", "starter", "agile"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.WIND
+		}
 	}
 
 	# Fireball - AOE damage spell
@@ -146,7 +156,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["structure", "defensive", "barrier"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.EARTH
+		}
 	}
 
 	# Training Dummy - Tutorial target
@@ -202,7 +217,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["melee", "lancer", "heavy", "rare"],
-		"unlock_condition": "locked"
+		"unlock_condition": "locked",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.LIGHTNING
+		}
 	}
 
 ## =============================================================================

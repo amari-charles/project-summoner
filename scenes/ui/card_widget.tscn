@@ -6,50 +6,99 @@
 custom_minimum_size = Vector2(80, 120)
 script = ExtResource("1_card_widget")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
-layout_mode = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="ContentContainer" type="Control" parent="."]
 layout_mode = 2
 
-[node name="TopRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
+[node name="CostCircle" type="Panel" parent="ContentContainer"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 30.0
+offset_bottom = 30.0
 
-[node name="TypeIcon" type="Label" parent="MarginContainer/VBoxContainer/TopRow"]
+[node name="ManaCost" type="Label" parent="ContentContainer/CostCircle"]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 14
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TypeIcon" type="Label" parent="ContentContainer"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 35.0
+offset_top = 8.0
+offset_right = 48.0
+offset_bottom = 23.0
+theme_override_font_sizes/font_size = 11
 text = "S"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/TopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="ManaCost" type="Label" parent="MarginContainer/VBoxContainer/TopRow"]
+[node name="CardName" type="Label" parent="ContentContainer"]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "3"
-horizontal_alignment = 2
-
-[node name="CardName" type="Label" parent="MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 14
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 4.0
+offset_top = 32.0
+offset_right = -4.0
+offset_bottom = 52.0
+grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 11
 text = "Card Name"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="CountBadge" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="ArtContainer" type="Control" parent="ContentContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -10.0
+offset_right = 32.0
+offset_bottom = 26.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ArtPlaceholder" type="ColorRect" parent="ContentContainer/ArtContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.4, 1)
+
+[node name="CountBadge" type="Label" parent="ContentContainer"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -28.0
+offset_top = -20.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
 theme_override_font_sizes/font_size = 12
 text = "x2"
 horizontal_alignment = 2

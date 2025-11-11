@@ -23,18 +23,15 @@ var hold_timer: Timer = null
 const HOLD_DURATION = 0.5  # seconds
 
 ## Node references
+@onready var cost_circle: Panel = $ContentContainer/CostCircle
 @onready var type_icon: Label = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
 @onready var card_name: Label = %CardName
+@onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
 @onready var count_badge: Label = %CountBadge
 
-## Rarity colors
-const RARITY_COLORS = {
-	"common": Color(0.5, 0.5, 0.5),  # Gray
-	"rare": Color(0.2, 0.5, 1.0),    # Blue
-	"epic": Color(0.7, 0.3, 1.0),    # Purple
-	"legendary": Color(1.0, 0.8, 0.2)  # Gold
-}
+## Current element color
+var element_color: Color = Color.GRAY
 
 ## =============================================================================
 ## LIFECYCLE
@@ -109,23 +106,37 @@ func _update_theme() -> void:
 	if catalog_data.is_empty():
 		return
 
-	var rarity = catalog_data.get("rarity", "common")
-	var border_color = RARITY_COLORS.get(rarity, RARITY_COLORS["common"])
+	# Get element-based color
+	element_color = CardVisualHelper.get_card_element_color(catalog_data)
 
-	# Create theme with border color
+	# Create theme with element-colored border
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.25)  # Dark background
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.border_color = border_color
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
+	style.border_width_left = 3
+	style.border_width_top = 3
+	style.border_width_right = 3
+	style.border_width_bottom = 3
+	style.border_color = element_color
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
 
 	add_theme_stylebox_override("panel", style)
+
+	# Style the cost circle with element color
+	if cost_circle:
+		var circle_style = StyleBoxFlat.new()
+		circle_style.bg_color = element_color
+		circle_style.corner_radius_top_left = 12
+		circle_style.corner_radius_top_right = 12
+		circle_style.corner_radius_bottom_left = 12
+		circle_style.corner_radius_bottom_right = 12
+		cost_circle.add_theme_stylebox_override("panel", circle_style)
+
+	# Color the art placeholder with darkened element color
+	if art_placeholder:
+		art_placeholder.color = element_color.darkened(0.4)
 
 ## =============================================================================
 ## MOUSE INTERACTION
