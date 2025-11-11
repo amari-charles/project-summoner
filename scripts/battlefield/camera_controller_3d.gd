@@ -28,7 +28,7 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 ## Ground plane Y value (most 2.5D maps use y=0)
 @export var ground_y: float = 0.0
 ## If view is larger than map, center camera (true) or just clamp edges (false)
-@export var center_if_too_big: bool = true
+@export var center_if_too_big: bool = false
 
 @export_group("Zoom Controls")
 ## Default orthographic size (camera starts at this zoom level)
