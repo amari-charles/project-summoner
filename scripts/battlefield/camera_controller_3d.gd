@@ -27,11 +27,25 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 ## If false, you must call set_bounds() manually
 @export var auto_calculate_bounds: bool = true
 
-@export_group("Zoom-Based Panning")
+@export_group("Zoom Controls")
 ## Default orthographic size (camera starts at this zoom level)
 @export var default_ortho_size: float = 40.0
-## If true, panning is only enabled when zoomed in (size < default_ortho_size)
-@export var pan_only_when_zoomed: bool = true
+@export var min_ortho_size: float = 20.0  # Max zoom in
+@export var max_ortho_size: float = 60.0  # Max zoom out
+@export var zoom_speed: float = 2.0
+@export var zoom_enabled: bool = true
+
+@export_group("Zoom-Based Panning")
+## If true, vertical panning is only enabled when zoomed in (size < default_ortho_size)
+@export var vertical_pan_only_when_zoomed: bool = true
+
+@export_group("Edge Panning")
+## If true, camera pans when mouse is near screen edges
+@export var edge_pan_enabled: bool = true
+## Distance from edge (in pixels) where panning starts
+@export var edge_pan_margin: float = 20.0
+## Speed multiplier for edge panning
+@export var edge_pan_speed: float = 1.0
 
 # === State Variables ===
 
@@ -171,12 +185,26 @@ func _calculate_bounds() -> void:
 	position = position.clamp(min_position, max_position)
 
 func _input(event: InputEvent) -> void:
-	## Handle mouse and touch input for panning
+	## Handle mouse and touch input for panning and zooming
+	if zoom_enabled:
+		_handle_zoom(event)
+
 	if mouse_pan_enabled:
 		_handle_mouse_pan(event)
 
 	if touch_pan_enabled:
 		_handle_touch_pan(event)
+
+func _handle_zoom(event: InputEvent) -> void:
+	## Handle mouse scroll wheel zoom
+	if event is InputEventMouseButton:
+		if event.pressed:
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				# Zoom in (decrease ortho size)
+				size = clamp(size - zoom_speed, min_ortho_size, max_ortho_size)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				# Zoom out (increase ortho size)
+				size = clamp(size + zoom_speed, min_ortho_size, max_ortho_size)
 
 func _handle_mouse_pan(event: InputEvent) -> void:
 	## Pan the camera by dragging with middle or right mouse button
@@ -218,41 +246,43 @@ func _apply_pan_delta(delta: Vector2) -> void:
 	## The camera moves in the ground plane (X and Z axes), not up/down (Y axis)
 	## We invert X so dragging left moves the view left (intuitive drag behavior)
 
-	# Check if panning is allowed (zoom-based restriction)
-	if pan_only_when_zoomed and size >= default_ortho_size:
-		return  # Not zoomed in, panning disabled
-
+	# Horizontal panning (X-axis) is always allowed
 	position.x += -delta.x * pan_speed * MOUSE_TO_WORLD_SCALE
-	position.z += delta.y * pan_speed * TOUCH_TO_WORLD_SCALE
+
+	# Vertical panning (Z-axis) only allowed when zoomed in
+	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
+		position.z += delta.y * pan_speed * TOUCH_TO_WORLD_SCALE
 
 	# Clamp keeps the camera position within the allowed bounds
 	# Without this, you could pan beyond the edge of the battlefield
 	position = position.clamp(min_position, max_position)
 
 func _process(delta: float) -> void:
-	## Called every frame. Handle keyboard panning here.
+	## Called every frame. Handle keyboard and edge panning here.
 	## delta: Time elapsed since last frame (usually ~0.016 for 60 FPS)
 	if keyboard_pan_enabled:
 		_handle_keyboard_pan(delta)
 
+	if edge_pan_enabled:
+		_handle_edge_pan(delta)
+
 func _handle_keyboard_pan(delta: float) -> void:
 	## Pan the camera using WASD or arrow keys
 
-	# Check if panning is allowed (zoom-based restriction)
-	if pan_only_when_zoomed and size >= default_ortho_size:
-		return  # Not zoomed in, panning disabled
-
 	var pan_input = Vector2.ZERO
 
-	# Collect input from keyboard (accumulate in case multiple keys pressed)
+	# Collect horizontal input (always allowed)
 	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
 		pan_input.x += 1.0
 	if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
 		pan_input.x -= 1.0
-	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
-		pan_input.y -= 1.0  # Down = move toward negative Z (closer to camera)
-	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
-		pan_input.y += 1.0  # Up = move toward positive Z (away from camera)
+
+	# Collect vertical input (only if zoomed in or restriction disabled)
+	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
+		if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
+			pan_input.y -= 1.0  # Down = move toward negative Z (closer to camera)
+		if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
+			pan_input.y += 1.0  # Up = move toward positive Z (away from camera)
 
 	if pan_input != Vector2.ZERO:
 		# Normalize ensures diagonal movement isn't faster than straight movement
@@ -263,6 +293,37 @@ func _handle_keyboard_pan(delta: float) -> void:
 		# Mouse/touch use direct pixel deltas instead
 		position.x += pan_input.x * pan_speed * delta
 		position.z += pan_input.y * pan_speed * delta
+		position = position.clamp(min_position, max_position)
+
+func _handle_edge_pan(delta: float) -> void:
+	## Pan the camera when mouse is near screen edges (RTS-style)
+
+	var viewport_size = get_viewport().get_visible_rect().size
+	var mouse_pos = get_viewport().get_mouse_position()
+
+	var pan_input = Vector2.ZERO
+
+	# Check horizontal edges (always allowed)
+	if mouse_pos.x <= edge_pan_margin:
+		# Near left edge, pan left
+		pan_input.x = -1.0
+	elif mouse_pos.x >= viewport_size.x - edge_pan_margin:
+		# Near right edge, pan right
+		pan_input.x = 1.0
+
+	# Check vertical edges (only if zoomed in or restriction disabled)
+	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
+		if mouse_pos.y <= edge_pan_margin:
+			# Near top edge, pan up (away from camera)
+			pan_input.y = 1.0
+		elif mouse_pos.y >= viewport_size.y - edge_pan_margin:
+			# Near bottom edge, pan down (toward camera)
+			pan_input.y = -1.0
+
+	if pan_input != Vector2.ZERO:
+		# Apply edge panning (no need to normalize, edges are mutually exclusive)
+		position.x += pan_input.x * pan_speed * edge_pan_speed * delta
+		position.z += pan_input.y * pan_speed * edge_pan_speed * delta
 		position = position.clamp(min_position, max_position)
 
 ## Manually set camera bounds (alternative to auto-calculation)
