@@ -193,6 +193,17 @@ func _calculate_shadow_size_from_collision() -> float:
 func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 	print("Unit3D: Applying %d modifiers to %s" % [modifiers.size(), card_data.get("card_name", "unknown")])
 
+	# Initialize base stats from current values if not already set
+	# (This happens when apply_modifiers is called before _ready)
+	if base_max_hp == 0:
+		base_max_hp = max_hp
+	if base_attack_damage == 0:
+		base_attack_damage = attack_damage
+	if base_attack_speed == 0:
+		base_attack_speed = attack_speed
+	if base_move_speed == 0:
+		base_move_speed = move_speed
+
 	# Start from base stats
 	var stats = {
 		"max_hp": base_max_hp,
