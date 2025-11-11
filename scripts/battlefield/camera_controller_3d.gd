@@ -28,13 +28,13 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 ## Ground plane Y value (most 2.5D maps use y=0)
 @export var ground_y: float = 0.0
 ## If view is larger than map, center camera (true) or just clamp edges (false)
-@export var center_if_too_big: bool = false
+@export var center_if_too_big: bool = true
 
 @export_group("Zoom Controls")
 ## Default orthographic size (camera starts at this zoom level)
 @export var default_ortho_size: float = 40.0
 @export var min_ortho_size: float = 20.0  # Max zoom in
-@export var max_ortho_size: float = 60.0  # Max zoom out
+@export var max_ortho_size: float = 50.0  # Max zoom out (limited to prevent showing outside map)
 @export var zoom_speed: float = 2.0
 @export var zoom_enabled: bool = true
 
