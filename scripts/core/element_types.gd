@@ -47,13 +47,6 @@ class Element:
 			return id == other
 		return false
 
-	## Get all affinities this element responds to (self + origin if elevated)
-	func get_effective_affinities() -> Array[String]:
-		var affinities: Array[String] = [id]
-		if origin_element != null:
-			affinities.append(origin_element.id)
-		return affinities
-
 	## Check if this element should match a given affinity (including origin check)
 	func matches_affinity(affinity) -> bool:
 		# Direct match
@@ -93,11 +86,14 @@ var ICE: Element       # Water elevated → Immutable
 var METAL: Element     # Earth elevated → Forged
 var SPIRIT: Element    # Life elevated → Metaphysical
 
+## Lookup cache for O(1) element retrieval by ID
+var _element_lookup: Dictionary = {}
+
 ## =============================================================================
 ## INITIALIZATION
 ## =============================================================================
 
-func _init():
+func _ready():
 	# Create base elements first (no origin)
 	FIRE = Element.new(
 		"fire",
@@ -202,6 +198,21 @@ func _init():
 		LIFE  # Origin element
 	)
 
+	# Build lookup cache for O(1) element retrieval
+	_element_lookup.clear()
+	for element in get_all_elements():
+		_element_lookup[element.id] = element
+
+	# Initialize variant mappings
+	VARIANT_TO_ELEMENT = {
+		VARIANT_SOLAR: FIRE,
+		VARIANT_MIST: WATER,
+		VARIANT_TEMPEST: WIND,
+		VARIANT_CRYSTAL: EARTH
+	}
+
+	print("ElementTypes: Initialized with %d element types" % get_all_elements().size())
+
 ## =============================================================================
 ## ELEMENT METADATA
 ## =============================================================================
@@ -236,12 +247,12 @@ func get_elevated_elements() -> Array:
 ## =============================================================================
 
 ## Get element by string ID
+## Returns null if element not found - caller should check for null
 func from_string(element_id: String) -> Element:
-	for element in get_all_elements():
-		if element.id == element_id:
-			return element
-	push_warning("ElementTypes: Unknown element ID '%s'" % element_id)
-	return null
+	var element = _element_lookup.get(element_id, null)
+	if element == null:
+		push_error("ElementTypes: Unknown element ID '%s' - this will cause errors downstream!" % element_id)
+	return element
 
 ## Check if a string or Element is valid
 func is_valid(element) -> bool:
@@ -344,17 +355,6 @@ const HYBRID_MAGMA: String = "Magma"       # Fire + Earth
 
 ## Mapping of variants to their parent element
 var VARIANT_TO_ELEMENT: Dictionary = {}
-
-func _ready() -> void:
-	# Initialize variant mappings (can't do in _init since elements created there)
-	VARIANT_TO_ELEMENT = {
-		VARIANT_SOLAR: FIRE,
-		VARIANT_MIST: WATER,
-		VARIANT_TEMPEST: WIND,
-		VARIANT_CRYSTAL: EARTH
-	}
-
-	print("ElementTypes: Initialized with %d element types" % get_all_elements().size())
 
 ## Get parent element from variant name
 func get_variant_element(variant_name: String) -> Element:

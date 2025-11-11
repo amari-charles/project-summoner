@@ -88,20 +88,20 @@ func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: 
 
 ## Helper: Check if actual element matches required (including origin check)
 func _matches_element(actual, required) -> bool:
-	# Handle Element objects (from ElementTypes)
-	if actual != null and actual.get_script() and actual.has_method("matches_affinity"):
+	# Null safety - if either is null, no match
+	if actual == null or required == null:
+		return false
+
+	# Handle Element objects (from ElementTypes) - check origin inheritance
+	if actual != null and actual.has_method("matches_affinity"):
 		return actual.matches_affinity(required)
 
 	# Handle string comparison (backwards compatibility)
 	if actual is String and required is String:
 		return actual == required
 
-	# Handle Element object vs string
-	if actual != null and actual.get_script() and actual.has_method("matches"):
-		return actual.matches(required)
-
-	# Fallback to direct comparison
-	return actual == required
+	# Incompatible types - no match
+	return false
 
 ## =============================================================================
 ## AMPLIFICATION
