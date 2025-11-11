@@ -76,8 +76,8 @@ func _ready() -> void:
 	var max_size_for_width: float = map_width / aspect_ratio / 2.0
 	var max_size_for_height: float = map_height / 2.0
 
-	# Use the smaller (more restrictive) value with 95% buffer to prevent thrashing
-	max_ortho_size = min(max_size_for_width, max_size_for_height) * 0.95
+	# Use the smaller (more restrictive) value with 99% buffer (allows full view, prevents edge cases)
+	max_ortho_size = min(max_size_for_width, max_size_for_height) * 0.99
 
 func clamp_to_map() -> void:
 	## Clamps camera to keep ground footprint (projection) within map bounds
