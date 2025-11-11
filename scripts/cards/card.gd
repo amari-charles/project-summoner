@@ -114,10 +114,8 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 		"team": team
 	}
 
-	# Get modifiers from ModifierSystem (autoload is globally accessible)
-	var modifiers = []
-	if ModifierSystem:
-		modifiers = ModifierSystem.get_modifiers_for("unit", categories, context)
+	# Get modifiers from ModifierSystem
+	var modifiers = _get_modifiers_from_system("unit", categories, context)
 
 	# Card data for apply_modifiers
 	var card_data = {
@@ -154,9 +152,7 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> 
 	}
 
 	# Get modifiers from ModifierSystem
-	var modifiers = []
-	if ModifierSystem:
-		modifiers = ModifierSystem.get_modifiers_for("spell", categories, context)
+	var modifiers = _get_modifiers_from_system("spell", categories, context)
 
 	# Apply modifiers to spell damage
 	var modified_spell_damage = _apply_spell_modifiers(spell_damage, modifiers)
@@ -263,3 +259,22 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 				enemy.take_damage(final_damage)
 
 	# TODO: Add 3D visual effect for spell
+
+## Helper to safely access ModifierSystem autoload from Resource context
+func _get_modifiers_from_system(target_type: String, categories: Dictionary, context: Dictionary) -> Array:
+	# Try to access the autoload
+	# In Godot, autoloads registered in project.godot are accessible as globals
+	# but Resources can't directly reference them during parse time
+	# So we wrap the access in a function that runs at runtime
+	var modifiers = []
+
+	# Check if CardCatalog exists (another autoload) - if it does, ModifierSystem should too
+	if CardCatalog:
+		# Access ModifierSystem via root node
+		var root = Engine.get_main_loop().root if Engine.get_main_loop() else null
+		if root:
+			var modifier_system = root.get_node_or_null("ModifierSystem")
+			if modifier_system and modifier_system.has_method("get_modifiers_for"):
+				modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+
+	return modifiers
