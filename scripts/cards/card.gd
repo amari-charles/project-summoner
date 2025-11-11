@@ -109,11 +109,10 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 		"team": team
 	}
 
-	# Get modifiers from ModifierSystem
-	var modifier_system = get_node_or_null("/root/ModifierSystem")
+	# Get modifiers from ModifierSystem (autoload is globally accessible)
 	var modifiers = []
-	if modifier_system:
-		modifiers = modifier_system.get_modifiers_for("unit", categories, context)
+	if ModifierSystem:
+		modifiers = ModifierSystem.get_modifiers_for("unit", categories, context)
 
 	# Card data for apply_modifiers
 	var card_data = {
