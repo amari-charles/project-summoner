@@ -101,6 +101,45 @@ static func get_card_element_color(card_data) -> Color:
 		return GameColorPalette.NEUTRAL_MID
 
 ## =============================================================================
+## CARD TYPE ICON MAPPING
+## =============================================================================
+
+## Get icon path for a card based on its type and unit_type
+## Returns the appropriate icon for display in card UI
+static func get_card_type_icon_path(card_data) -> String:
+	var catalog_dict: Dictionary = {}
+
+	# Handle Card resource vs Dictionary
+	if card_data is Card:
+		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+	elif card_data is Dictionary:
+		catalog_dict = card_data
+	else:
+		push_warning("CardVisualHelper: Invalid card_data type for icon lookup")
+		return ""
+
+	# Get card type and unit type
+	var card_type = catalog_dict.get("card_type", 0)
+	var unit_type = catalog_dict.get("unit_type", "")
+
+	# Map to icon path
+	if card_type == 1:  # SPELL
+		return "res://assets/icons/card_types/wizard_hat.png"
+	elif card_type == 0:  # SUMMON
+		match unit_type:
+			"melee":
+				return "res://assets/icons/card_types/sword.png"
+			"ranged":
+				return "res://assets/icons/card_types/bow.png"
+			"structure":
+				return "res://assets/icons/card_types/tower.png"
+			_:
+				push_warning("CardVisualHelper: Unknown unit_type '%s', defaulting to sword" % unit_type)
+				return "res://assets/icons/card_types/sword.png"
+
+	return ""
+
+## =============================================================================
 ## CARD LAYOUT HELPERS
 ## =============================================================================
 

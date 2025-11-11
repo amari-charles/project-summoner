@@ -39,6 +39,7 @@ func _init_catalog() -> void:
 
 		# Card properties
 		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",  # For icon display
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
@@ -77,6 +78,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		"card_type": 0,  # SUMMON
+		"unit_type": "ranged",  # For icon display
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
@@ -139,6 +141,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		"card_type": 0,  # SUMMON (structure is just a unit with 0 move_speed)
+		"unit_type": "structure",  # For icon display
 		"mana_cost": 2,
 		"cooldown": 2.0,
 
@@ -172,6 +175,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		"card_type": 0,  # SUMMON
+		"unit_type": "structure",  # For icon display
 		"mana_cost": 1,
 		"cooldown": 2.0,
 
@@ -205,6 +209,7 @@ func _init_catalog() -> void:
 		"rarity": "rare",
 
 		"card_type": 0,  # SUMMON
+		"unit_type": "melee",  # For icon display
 		"mana_cost": 4,
 		"cooldown": 2.0,
 

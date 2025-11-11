@@ -88,6 +88,7 @@ func set_card_data(data: Dictionary, show_desc: bool = false) -> void:
 	_apply_visual_styling()
 	_update_cost()
 	_update_name()
+	_update_type_icon()
 	_update_art()
 	_update_description()
 
@@ -158,6 +159,15 @@ func _update_cost() -> void:
 func _update_name() -> void:
 	if name_label and card_data.has("card_name"):
 		name_label.text = card_data.card_name
+
+func _update_type_icon() -> void:
+	if type_icon:
+		var icon_path = CardVisualHelper.get_card_type_icon_path(card_data)
+		if not icon_path.is_empty():
+			type_icon.texture = load(icon_path)
+			type_icon.visible = true
+		else:
+			type_icon.visible = false
 
 func _update_art() -> void:
 	if not art_container:

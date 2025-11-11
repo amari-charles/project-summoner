@@ -82,12 +82,14 @@ func _update_display() -> void:
 	# Set mana cost
 	mana_cost.text = str(catalog_data.get("mana_cost", 0))
 
-	# Set type icon (TODO: Add actual icon assets)
-	var card_type = catalog_data.get("card_type", 0)
-	# For now, hide type icon until we have actual icon assets
+	# Set type icon based on card type and unit type
 	if type_icon:
-		type_icon.visible = false
-		# type_icon.texture = load("res://assets/icons/summon.png") if card_type == 0 else load("res://assets/icons/spell.png")
+		var icon_path = CardVisualHelper.get_card_type_icon_path(catalog_data)
+		if not icon_path.is_empty():
+			type_icon.texture = load(icon_path)
+			type_icon.visible = true
+		else:
+			type_icon.visible = false
 
 	# Update element border
 	_update_theme()
