@@ -15,7 +15,6 @@ signal card_held(card_data: Dictionary)
 @export_group("Layout")
 @export var border_width: int = 3
 @export var corner_radius: int = 6
-@export var cost_circle_radius: int = 16
 @export var element_badge_radius: int = 9
 
 ## Card data
@@ -28,8 +27,7 @@ var hold_timer: Timer = null
 const HOLD_DURATION = 0.5  # seconds
 
 ## Node references
-@onready var cost_circle: Panel = $ContentContainer/CostCircle
-@onready var type_icon: Label = %TypeIcon
+@onready var type_icon: TextureRect = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
 @onready var card_name: Label = %CardName
 @onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
@@ -84,9 +82,12 @@ func _update_display() -> void:
 	# Set mana cost
 	mana_cost.text = str(catalog_data.get("mana_cost", 0))
 
-	# Set type icon (S=Summon, P=sPell)
+	# Set type icon (TODO: Add actual icon assets)
 	var card_type = catalog_data.get("card_type", 0)
-	type_icon.text = "S" if card_type == 0 else "P"
+	# For now, hide type icon until we have actual icon assets
+	if type_icon:
+		type_icon.visible = false
+		# type_icon.texture = load("res://assets/icons/summon.png") if card_type == 0 else load("res://assets/icons/spell.png")
 
 	# Update element border
 	_update_theme()
@@ -111,15 +112,6 @@ func _update_theme() -> void:
 	style.anti_aliasing_size = 1
 
 	add_theme_stylebox_override("panel", style)
-
-	# Style the cost circle with element color
-	if cost_circle:
-		var circle_style = StyleBoxFlat.new()
-		circle_style.bg_color = element_color
-		circle_style.set_corner_radius_all(cost_circle_radius)
-		circle_style.anti_aliasing = true
-		circle_style.anti_aliasing_size = 1
-		cost_circle.add_theme_stylebox_override("panel", circle_style)
 
 	# Color the art placeholder with darkened element color
 	if art_placeholder:

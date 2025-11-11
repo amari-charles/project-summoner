@@ -462,8 +462,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	card_visual.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	card_visual.border_width = 3
 	card_visual.corner_radius = 8
-	card_visual.cost_circle_radius = 16
-	card_visual.cost_font_size = 18
+	card_visual.cost_font_size = 20
 	card_visual.name_font_size = 14
 	card_visual.show_description = false
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE

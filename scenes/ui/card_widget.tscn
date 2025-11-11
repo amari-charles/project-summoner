@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cj8y3vk5nw2qk"]
 
-[ext_resource type="Script" path="res://scripts/ui/card_widget.gd" id="1_card_widget"]
+[ext_resource type="Script" uid="uid://wbnau75lnwbi" path="res://scripts/ui/card_widget.gd" id="1_card_widget"]
 
 [node name="CardWidget" type="PanelContainer"]
 custom_minimum_size = Vector2(80, 120)
@@ -9,40 +9,35 @@ script = ExtResource("1_card_widget")
 [node name="ContentContainer" type="Control" parent="."]
 layout_mode = 2
 
-[node name="CostCircle" type="Panel" parent="ContentContainer"]
-custom_minimum_size = Vector2(24, 24)
-layout_mode = 0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = 30.0
-offset_bottom = 30.0
-
-[node name="ManaCost" type="Label" parent="ContentContainer/CostCircle"]
+[node name="ManaCost" type="Label" parent="ContentContainer"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 20.0
+offset_bottom = 20.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 text = "3"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TypeIcon" type="Label" parent="ContentContainer"]
+[node name="TypeIcon" type="TextureRect" parent="ContentContainer"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 35.0
-offset_top = 8.0
-offset_right = 48.0
-offset_bottom = 23.0
-theme_override_font_sizes/font_size = 11
-text = "S"
-horizontal_alignment = 1
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -20.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 20.0
+grow_horizontal = 0
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CardName" type="Label" parent="ContentContainer"]
 unique_name_in_owner = true

@@ -24,10 +24,9 @@ class_name CardVisual
 @export var border_width: int = 3
 @export var corner_radius: int = 8
 
-## Cost circle
-@export_group("Cost Circle")
-@export var cost_circle_radius: int = 20
-@export var cost_font_size: int = 18
+## Cost label
+@export_group("Cost Label")
+@export var cost_font_size: int = 20
 
 ## Card name
 @export_group("Card Name")
@@ -48,8 +47,8 @@ class_name CardVisual
 
 @onready var border_panel: Panel = $BorderPanel
 @onready var background_panel: Panel = $BackgroundPanel
-@onready var cost_circle: Panel = $CostCircle
-@onready var cost_label: Label = $CostCircle/CostLabel
+@onready var cost_label: Label = $CostLabel
+@onready var type_icon: TextureRect = $TypeIcon
 @onready var name_label: Label = $NameLabel
 @onready var art_container: Control = $ArtContainer
 @onready var art_texture: TextureRect = $ArtContainer/ArtTexture
@@ -117,15 +116,6 @@ func _apply_visual_styling() -> void:
 		bg_style.anti_aliasing = true
 		bg_style.anti_aliasing_size = 1
 		background_panel.add_theme_stylebox_override("panel", bg_style)
-
-	# Apply cost circle styling
-	if cost_circle:
-		var circle_style = StyleBoxFlat.new()
-		circle_style.bg_color = element_color
-		circle_style.set_corner_radius_all(cost_circle_radius)
-		circle_style.anti_aliasing = true
-		circle_style.anti_aliasing_size = 1
-		cost_circle.add_theme_stylebox_override("panel", circle_style)
 
 	# Apply cost label font size
 	if cost_label:
