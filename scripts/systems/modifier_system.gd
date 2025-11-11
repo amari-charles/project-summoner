@@ -76,11 +76,32 @@ func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: 
 		if actual_value is Array:
 			if not required_value in actual_value:
 				return false
+		# Special handling for elemental_affinity with Element objects
+		elif condition_key == "elemental_affinity":
+			if not _matches_element(actual_value, required_value):
+				return false
 		else:
 			if actual_value != required_value:
 				return false
 
 	return true
+
+## Helper: Check if actual element matches required (including origin check)
+func _matches_element(actual, required) -> bool:
+	# Handle Element objects (from ElementTypes)
+	if actual != null and actual.get_script() and actual.has_method("matches_affinity"):
+		return actual.matches_affinity(required)
+
+	# Handle string comparison (backwards compatibility)
+	if actual is String and required is String:
+		return actual == required
+
+	# Handle Element object vs string
+	if actual != null and actual.get_script() and actual.has_method("matches"):
+		return actual.matches(required)
+
+	# Fallback to direct comparison
+	return actual == required
 
 ## =============================================================================
 ## AMPLIFICATION

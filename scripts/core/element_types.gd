@@ -3,144 +3,329 @@ extends Node
 
 ## ElementTypes - Central registry for all elemental types in Project Summoner
 ##
-## Provides type-safe constants and enums for elemental affinities.
+## Provides type-safe Element objects for elemental affinities.
 ## Elements are used in the modifier system, card categorization, and hero bonuses.
 ##
 ## Usage:
 ##   var affinity = ElementTypes.FIRE
-##   if ElementTypes.is_valid(affinity):
-##       print(ElementTypes.get_display_name(affinity))
+##   if affinity.matches(ElementTypes.FIRE):
+##       print(affinity.display_name)
+##
+## Elevated elements inherit bonuses from their origin:
+##   ElementTypes.HOLY.origin_element == ElementTypes.FIRE
+##   Fire bonuses automatically apply to Holy cards
 
 ## =============================================================================
-## ELEMENT TYPE CONSTANTS
+## ELEMENT CLASS
+## =============================================================================
+
+class Element:
+	var id: String
+	var display_name: String
+	var description: String
+	var category: String  # "core", "outer", "elevated", "occultist"
+	var origin_element: Element = null  # For elevated elements only
+
+	func _init(p_id: String, p_display_name: String, p_description: String, p_category: String, p_origin: Element = null):
+		id = p_id
+		display_name = p_display_name
+		description = p_description
+		category = p_category
+		origin_element = p_origin
+
+	## Convert to string (returns id)
+	func _to_string() -> String:
+		return id
+
+	## Check if this element matches another element or string
+	func matches(other) -> bool:
+		# Compare with another Element
+		if other is Element:
+			return id == other.id
+		# Compare with string
+		elif other is String:
+			return id == other
+		return false
+
+	## Get all affinities this element responds to (self + origin if elevated)
+	func get_effective_affinities() -> Array[String]:
+		var affinities: Array[String] = [id]
+		if origin_element != null:
+			affinities.append(origin_element.id)
+		return affinities
+
+	## Check if this element should match a given affinity (including origin check)
+	func matches_affinity(affinity) -> bool:
+		# Direct match
+		if matches(affinity):
+			return true
+		# Origin match (for elevated elements)
+		if origin_element != null:
+			if affinity is Element:
+				return origin_element.id == affinity.id
+			elif affinity is String:
+				return origin_element.id == affinity
+		return false
+
+## =============================================================================
+## ELEMENT CONSTANTS (Objects)
 ## =============================================================================
 
 ## Core Elements - Foundation of the world and main campaign pillars
-const FIRE: String = "fire"
-const WATER: String = "water"
-const WIND: String = "wind"
-const EARTH: String = "earth"
+var FIRE: Element
+var WATER: Element
+var WIND: Element
+var EARTH: Element
 
 ## Outer Elements - Expansion content and advanced mechanics
-const LIGHTNING: String = "lightning"
-const SHADOW: String = "shadow"
-const POISON: String = "poison"
-const LIFE: String = "life"
-const DEATH: String = "death"
+var LIGHTNING: Element
+var SHADOW: Element
+var POISON: Element
+var LIFE: Element
+var DEATH: Element
 
 ## Occultist - Antagonist element that inverts/corrupts other forces
-const OCCULTIST: String = "occultist"
+var OCCULTIST: Element
 
 ## Elevated Elements - Philosophical transformations of base elements
-const HOLY: String = "holy"      # Fire elevated → Sacred
-const ICE: String = "ice"        # Water elevated → Immutable
-const METAL: String = "metal"    # Earth elevated → Forged
-const SPIRIT: String = "spirit"  # Life elevated → Metaphysical
+var HOLY: Element      # Fire elevated → Sacred
+var ICE: Element       # Water elevated → Immutable
+var METAL: Element     # Earth elevated → Forged
+var SPIRIT: Element    # Life elevated → Metaphysical
+
+## =============================================================================
+## INITIALIZATION
+## =============================================================================
+
+func _init():
+	# Create base elements first (no origin)
+	FIRE = Element.new(
+		"fire",
+		"Fire",
+		"Embodies vitality, passion, and transformation",
+		"core"
+	)
+
+	WATER = Element.new(
+		"water",
+		"Water",
+		"Symbolizes adaptability, empathy, and memory",
+		"core"
+	)
+
+	WIND = Element.new(
+		"wind",
+		"Wind",
+		"Represents motion, freedom, and volatility",
+		"core"
+	)
+
+	EARTH = Element.new(
+		"earth",
+		"Earth",
+		"Stands for stability, structure, and endurance",
+		"core"
+	)
+
+	LIGHTNING = Element.new(
+		"lightning",
+		"Lightning",
+		"Pure energy, speed, and precision",
+		"outer"
+	)
+
+	SHADOW = Element.new(
+		"shadow",
+		"Shadow",
+		"The unseen, deceptive force",
+		"outer"
+	)
+
+	POISON = Element.new(
+		"poison",
+		"Poison",
+		"Corruption, persistence, and decay",
+		"outer"
+	)
+
+	LIFE = Element.new(
+		"life",
+		"Life",
+		"Growth, restoration, and empathy",
+		"outer"
+	)
+
+	DEATH = Element.new(
+		"death",
+		"Death",
+		"Endings, transition, and inevitability",
+		"outer"
+	)
+
+	OCCULTIST = Element.new(
+		"occultist",
+		"Occultist",
+		"Corruption and forbidden knowledge",
+		"occultist"
+	)
+
+	# Create elevated elements WITH origin references
+	HOLY = Element.new(
+		"holy",
+		"Holy",
+		"Sacred fire - divinity and purpose",
+		"elevated",
+		FIRE  # Origin element
+	)
+
+	ICE = Element.new(
+		"ice",
+		"Ice",
+		"Frozen water - preservation and control",
+		"elevated",
+		WATER  # Origin element
+	)
+
+	METAL = Element.new(
+		"metal",
+		"Metal",
+		"Forged earth - civilization and artifice",
+		"elevated",
+		EARTH  # Origin element
+	)
+
+	SPIRIT = Element.new(
+		"spirit",
+		"Spirit",
+		"Transcendent life - consciousness as form",
+		"elevated",
+		LIFE  # Origin element
+	)
 
 ## =============================================================================
 ## ELEMENT METADATA
 ## =============================================================================
 
-## All valid element type strings
-const ALL_ELEMENTS: Array[String] = [
-	# Core
-	FIRE, WATER, WIND, EARTH,
-	# Outer
-	LIGHTNING, SHADOW, POISON, LIFE, DEATH,
-	# Occultist
-	OCCULTIST,
-	# Elevated
-	HOLY, ICE, METAL, SPIRIT
-]
+## Get all element objects
+func get_all_elements() -> Array:
+	return [
+		# Core
+		FIRE, WATER, WIND, EARTH,
+		# Outer
+		LIGHTNING, SHADOW, POISON, LIFE, DEATH,
+		# Occultist
+		OCCULTIST,
+		# Elevated
+		HOLY, ICE, METAL, SPIRIT
+	]
 
-## Core elements only (main campaign)
-const CORE_ELEMENTS: Array[String] = [FIRE, WATER, WIND, EARTH]
+## Get core elements only
+func get_core_elements() -> Array:
+	return [FIRE, WATER, WIND, EARTH]
 
-## Outer elements only (expansion content)
-const OUTER_ELEMENTS: Array[String] = [LIGHTNING, SHADOW, POISON, LIFE, DEATH]
+## Get outer elements only
+func get_outer_elements() -> Array:
+	return [LIGHTNING, SHADOW, POISON, LIFE, DEATH]
 
-## Elevated elements only
-const ELEVATED_ELEMENTS: Array[String] = [HOLY, ICE, METAL, SPIRIT]
-
-## Display names for elements (user-facing)
-const DISPLAY_NAMES: Dictionary = {
-	FIRE: "Fire",
-	WATER: "Water",
-	WIND: "Wind",
-	EARTH: "Earth",
-	LIGHTNING: "Lightning",
-	SHADOW: "Shadow",
-	POISON: "Poison",
-	LIFE: "Life",
-	DEATH: "Death",
-	OCCULTIST: "Occultist",
-	HOLY: "Holy",
-	ICE: "Ice",
-	METAL: "Metal",
-	SPIRIT: "Spirit"
-}
-
-## Element descriptions (for tooltips/UI)
-const DESCRIPTIONS: Dictionary = {
-	FIRE: "Embodies vitality, passion, and transformation",
-	WATER: "Symbolizes adaptability, empathy, and memory",
-	WIND: "Represents motion, freedom, and volatility",
-	EARTH: "Stands for stability, structure, and endurance",
-	LIGHTNING: "Pure energy, speed, and precision",
-	SHADOW: "The unseen, deceptive force",
-	POISON: "Corruption, persistence, and decay",
-	LIFE: "Growth, restoration, and empathy",
-	DEATH: "Endings, transition, and inevitability",
-	OCCULTIST: "Corruption and forbidden knowledge",
-	HOLY: "Sacred fire - divinity and purpose",
-	ICE: "Frozen water - preservation and control",
-	METAL: "Forged earth - civilization and artifice",
-	SPIRIT: "Transcendent life - consciousness as form"
-}
-
-## Elevation mappings (base element → elevated form)
-const ELEVATIONS: Dictionary = {
-	FIRE: HOLY,
-	WATER: ICE,
-	EARTH: METAL,
-	LIFE: SPIRIT
-}
+## Get elevated elements only
+func get_elevated_elements() -> Array:
+	return [HOLY, ICE, METAL, SPIRIT]
 
 ## =============================================================================
-## VALIDATION & UTILITY
+## LOOKUP METHODS
 ## =============================================================================
 
-## Check if a string is a valid element type
-func is_valid(element: String) -> bool:
-	return element in ALL_ELEMENTS
+## Get element by string ID
+func from_string(element_id: String) -> Element:
+	for element in get_all_elements():
+		if element.id == element_id:
+			return element
+	push_warning("ElementTypes: Unknown element ID '%s'" % element_id)
+	return null
+
+## Check if a string or Element is valid
+func is_valid(element) -> bool:
+	if element is Element:
+		return element in get_all_elements()
+	elif element is String:
+		return from_string(element) != null
+	return false
 
 ## Check if element is a core element
-func is_core(element: String) -> bool:
-	return element in CORE_ELEMENTS
+func is_core(element) -> bool:
+	if element is Element:
+		return element.category == "core"
+	elif element is String:
+		var elem = from_string(element)
+		return elem != null and elem.category == "core"
+	return false
 
 ## Check if element is an outer element
-func is_outer(element: String) -> bool:
-	return element in OUTER_ELEMENTS
+func is_outer(element) -> bool:
+	if element is Element:
+		return element.category == "outer"
+	elif element is String:
+		var elem = from_string(element)
+		return elem != null and elem.category == "outer"
+	return false
 
 ## Check if element is elevated
-func is_elevated(element: String) -> bool:
-	return element in ELEVATED_ELEMENTS
+func is_elevated(element) -> bool:
+	if element is Element:
+		return element.category == "elevated"
+	elif element is String:
+		var elem = from_string(element)
+		return elem != null and elem.category == "elevated"
+	return false
 
 ## Get display name for element
-func get_display_name(element: String) -> String:
-	return DISPLAY_NAMES.get(element, element.capitalize())
+func get_display_name(element) -> String:
+	if element is Element:
+		return element.display_name
+	elif element is String:
+		var elem = from_string(element)
+		return elem.display_name if elem else element.capitalize()
+	return str(element)
 
 ## Get description for element
-func get_description(element: String) -> String:
-	return DESCRIPTIONS.get(element, "Unknown element")
+func get_description(element) -> String:
+	if element is Element:
+		return element.description
+	elif element is String:
+		var elem = from_string(element)
+		return elem.description if elem else "Unknown element"
+	return "Unknown element"
+
+## Get origin element (for elevated elements)
+func get_origin(element) -> Element:
+	if element is Element:
+		return element.origin_element
+	elif element is String:
+		var elem = from_string(element)
+		return elem.origin_element if elem else null
+	return null
+
+## Check if element can be elevated (is a base that has elevated form)
+func can_elevate(element) -> bool:
+	var elem = element if element is Element else from_string(element)
+	if not elem:
+		return false
+	# Check if any elevated element has this as origin
+	for elevated in get_elevated_elements():
+		if elevated.origin_element == elem:
+			return true
+	return false
 
 ## Get elevated form of an element (if one exists)
-func get_elevation(element: String) -> String:
-	return ELEVATIONS.get(element, "")
-
-## Check if element can be elevated
-func can_elevate(element: String) -> bool:
-	return ELEVATIONS.has(element)
+func get_elevation(element) -> Element:
+	var elem = element if element is Element else from_string(element)
+	if not elem:
+		return null
+	# Find elevated form
+	for elevated in get_elevated_elements():
+		if elevated.origin_element == elem:
+			return elevated
+	return null
 
 ## =============================================================================
 ## CARD FLAVOR METADATA (Variants & Hybrids)
@@ -158,29 +343,38 @@ const VARIANT_CRYSTAL: String = "Crystal"  # Earth variant
 const HYBRID_MAGMA: String = "Magma"       # Fire + Earth
 
 ## Mapping of variants to their parent element
-const VARIANT_TO_ELEMENT: Dictionary = {
-	VARIANT_SOLAR: FIRE,
-	VARIANT_MIST: WATER,
-	VARIANT_TEMPEST: WIND,
-	VARIANT_CRYSTAL: EARTH
-}
+var VARIANT_TO_ELEMENT: Dictionary = {}
+
+func _ready() -> void:
+	# Initialize variant mappings (can't do in _init since elements created there)
+	VARIANT_TO_ELEMENT = {
+		VARIANT_SOLAR: FIRE,
+		VARIANT_MIST: WATER,
+		VARIANT_TEMPEST: WIND,
+		VARIANT_CRYSTAL: EARTH
+	}
+
+	print("ElementTypes: Initialized with %d element types" % get_all_elements().size())
 
 ## Get parent element from variant name
-func get_variant_element(variant_name: String) -> String:
-	return VARIANT_TO_ELEMENT.get(variant_name, "")
+func get_variant_element(variant_name: String) -> Element:
+	return VARIANT_TO_ELEMENT.get(variant_name, null)
 
 ## =============================================================================
 ## DEBUGGING
 ## =============================================================================
 
-func _ready() -> void:
-	print("ElementTypes: Initialized with %d element types" % ALL_ELEMENTS.size())
-
 func print_summary() -> void:
 	print("\n=== ELEMENT TYPES SUMMARY ===")
-	print("Core Elements (%d): %s" % [CORE_ELEMENTS.size(), ", ".join(CORE_ELEMENTS)])
-	print("Outer Elements (%d): %s" % [OUTER_ELEMENTS.size(), ", ".join(OUTER_ELEMENTS)])
-	print("Occultist: %s" % OCCULTIST)
-	print("Elevated Elements (%d): %s" % [ELEVATED_ELEMENTS.size(), ", ".join(ELEVATED_ELEMENTS)])
-	print("Total: %d element types" % ALL_ELEMENTS.size())
+	print("Core Elements (%d):" % get_core_elements().size())
+	for elem in get_core_elements():
+		print("  - %s" % elem.display_name)
+	print("Outer Elements (%d):" % get_outer_elements().size())
+	for elem in get_outer_elements():
+		print("  - %s" % elem.display_name)
+	print("Occultist: %s" % OCCULTIST.display_name)
+	print("Elevated Elements (%d):" % get_elevated_elements().size())
+	for elem in get_elevated_elements():
+		print("  - %s (from %s)" % [elem.display_name, elem.origin_element.display_name])
+	print("Total: %d element types" % get_all_elements().size())
 	print("============================\n")
