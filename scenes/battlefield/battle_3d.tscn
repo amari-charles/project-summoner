@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://battle_3d"]
 
-[ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/base_battlefield_3d.tscn" id="1_battlefield"]
+[ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
 [ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
