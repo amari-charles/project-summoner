@@ -6,6 +6,82 @@ This document tracks known bugs and issues in Project Summoner.
 
 ## Active Bugs
 
+### 🔴 HIGH PRIORITY
+
+#### HP Bar Floating Too High Above Units
+**Status:** Open
+**Reported:** 2025-01-11
+**Component:** UI / Visual
+**Type:** Visual Bug
+
+**Description:**
+Unit HP bars are positioned too high above the units, floating in the air instead of being close to the unit model.
+
+**Expected Behavior:**
+- HP bars should be positioned just above the unit's head/top
+- Should maintain proper spacing relative to unit size
+- Should be visually connected to the unit
+
+**Current Behavior:**
+- HP bars are floating significantly above units
+- Appears disconnected from the unit visually
+- Makes it harder to quickly associate HP with specific units
+
+**Impact:**
+- Reduces visual polish and professional feel
+- Makes combat harder to read at a glance
+- Degrades overall game presentation quality
+
+**Proposed Solution:**
+- Adjust HP bar Y-offset in unit script or HP bar component
+- May need to account for different unit heights
+- Test with various unit types to ensure consistent positioning
+
+**Related Files:**
+- Unit HP bar scripts/scenes
+- Unit base scripts
+
+**Notes:**
+- High priority due to visual polish impact
+- Affects all units in battle
+
+#### Projectile Targeting on Moving Units
+**Status:** Open
+**Reported:** 2025-01-11
+**Component:** Combat / Projectiles
+**Type:** Gameplay Bug
+
+**Description:**
+Projectiles do not properly track or predict the position of moving units, causing misses or incorrect targeting.
+
+**Expected Behavior:**
+- Projectiles should accurately hit moving targets
+- Should use prediction or continuous tracking
+- Hit detection should be reliable
+
+**Current Behavior:**
+- Projectiles may miss moving units
+- Targeting appears to use initial position only
+- Inconsistent hit detection on mobile targets
+
+**Impact:**
+- Affects combat reliability and feel
+- Makes ranged units less effective than intended
+- Creates frustrating player experience with missed shots
+
+**Proposed Solution:**
+- Implement target position prediction based on movement velocity
+- Add continuous target tracking for homing projectiles
+- Improve hit detection for fast-moving targets
+
+**Related Files:**
+- `scenes/projectiles/` - Projectile scripts
+- Combat system targeting logic
+
+**Notes:**
+- High priority - affects core combat mechanics
+- May require physics adjustments
+
 ### 🟡 MEDIUM PRIORITY
 
 #### AI Scoring Magic Numbers Should Be Constants
@@ -155,4 +231,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-01-06 - PR #fix/campaign-battle-cards ready for merge*
+*Last Updated: 2025-01-11 - Added HP bar positioning and projectile targeting bugs*
