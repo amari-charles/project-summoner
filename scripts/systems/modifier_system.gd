@@ -1,5 +1,5 @@
 extends Node
-class_name ModifierSystem
+# Note: No class_name needed - this is registered as an autoload
 
 ## ModifierSystem - Central service for managing and applying modifiers
 ##
