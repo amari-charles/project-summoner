@@ -16,12 +16,11 @@ signal card_held(card_data: Dictionary)
 @export var border_width: int = 3
 @export var corner_radius: int = 6
 @export var cost_circle_radius: int = 12
+@export var element_badge_radius: int = 9
 
 ## Card data
 var card_data: Dictionary = {}
 var catalog_data: Dictionary = {}
-var show_count: bool = false
-var count: int = 1
 var draggable: bool = false
 
 ## Hold detection
@@ -34,7 +33,7 @@ const HOLD_DURATION = 0.5  # seconds
 @onready var mana_cost: Label = %ManaCost
 @onready var card_name: Label = %CardName
 @onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
-@onready var count_badge: Label = %CountBadge
+@onready var element_badge: Panel = $ContentContainer/ElementBadge
 
 ## Current element color
 var element_color: Color = Color.GRAY
@@ -54,9 +53,6 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
-	# Hide count badge by default
-	count_badge.visible = false
-
 	# Set initial theme
 	_update_theme()
 
@@ -68,12 +64,6 @@ func _ready() -> void:
 func set_card(p_card_data: Dictionary, p_catalog_data: Dictionary) -> void:
 	card_data = p_card_data
 	catalog_data = p_catalog_data
-	_update_display()
-
-## Set count and show badge
-func set_count(p_count: int, p_show: bool = true) -> void:
-	count = p_count
-	show_count = p_show
 	_update_display()
 
 ## Enable/disable drag support
@@ -98,14 +88,7 @@ func _update_display() -> void:
 	var card_type = catalog_data.get("card_type", 0)
 	type_icon.text = "S" if card_type == 0 else "P"
 
-	# Set count badge
-	if show_count and count > 1:
-		count_badge.text = "x%d" % count
-		count_badge.visible = true
-	else:
-		count_badge.visible = false
-
-	# Update rarity border
+	# Update element border
 	_update_theme()
 
 func _update_theme() -> void:
@@ -143,6 +126,16 @@ func _update_theme() -> void:
 	# Color the art placeholder with darkened element color
 	if art_placeholder:
 		art_placeholder.color = element_color.darkened(0.4)
+
+	# Style the element badge with element color
+	if element_badge:
+		var badge_style = StyleBoxFlat.new()
+		badge_style.bg_color = element_color
+		badge_style.corner_radius_top_left = element_badge_radius
+		badge_style.corner_radius_top_right = element_badge_radius
+		badge_style.corner_radius_bottom_left = element_badge_radius
+		badge_style.corner_radius_bottom_right = element_badge_radius
+		element_badge.add_theme_stylebox_override("panel", badge_style)
 
 ## =============================================================================
 ## MOUSE INTERACTION

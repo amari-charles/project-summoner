@@ -38,6 +38,10 @@ class_name CardVisual
 @export var description_font_size: int = 9
 @export var description_max_chars: int = 100
 
+## Element badge
+@export_group("Element Badge")
+@export var element_badge_radius: int = 10
+
 ## =============================================================================
 ## NODES
 ## =============================================================================
@@ -51,6 +55,7 @@ class_name CardVisual
 @onready var art_texture: TextureRect = $ArtContainer/ArtTexture
 @onready var art_placeholder: ColorRect = $ArtContainer/ArtPlaceholder
 @onready var description_label: Label = $DescriptionLabel
+@onready var element_badge: Panel = $ElementBadge
 
 ## =============================================================================
 ## CARD DATA
@@ -135,6 +140,16 @@ func _apply_visual_styling() -> void:
 	# Apply description label font size
 	if description_label:
 		description_label.add_theme_font_size_override("font_size", description_font_size)
+
+	# Apply element badge styling
+	if element_badge:
+		var badge_style = StyleBoxFlat.new()
+		badge_style.bg_color = element_color
+		badge_style.corner_radius_top_left = element_badge_radius
+		badge_style.corner_radius_top_right = element_badge_radius
+		badge_style.corner_radius_bottom_left = element_badge_radius
+		badge_style.corner_radius_bottom_right = element_badge_radius
+		element_badge.add_theme_stylebox_override("panel", badge_style)
 
 	# Show/hide description
 	if description_label:
