@@ -136,6 +136,32 @@ Design and implement additional spell cards for more strategic variety.
 
 ---
 
+## Core Game Systems
+
+### 🟡 MEDIUM PRIORITY
+
+#### Implement Deck Recycling After Exhaustion
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems
+**Effort:** Small
+
+**Description:**
+When a player's deck is exhausted (all cards drawn), shuffle the discard pile back into the deck to continue play.
+
+**Requirements:**
+- Detect when deck is empty
+- Shuffle discard pile
+- Reset deck with shuffled cards
+- Visual/audio feedback for deck recycling
+- Log deck recycle events
+
+**Notes:**
+- Common mechanic in card games (e.g., Slay the Spire, Hearthstone)
+- Prevents deck-out loss condition
+- May need to handle edge case where deck AND hand are empty
+
+---
+
 ## Visual Polish
 
 ### 🔴 HIGH PRIORITY

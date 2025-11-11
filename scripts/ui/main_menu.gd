@@ -46,6 +46,17 @@ func _on_settings_pressed() -> void:
 	print("Settings button pressed (PLACEHOLDER)")
 	placeholder_popup.popup_centered()
 
+## DEBUG: Reset profile button
+func _on_debug_reset_pressed() -> void:
+	print("MainMenu: Debug reset button pressed - resetting profile...")
+	var dev_console = get_node_or_null("/root/DevConsole")
+	if dev_console:
+		dev_console.execute_command("/save_wipe")
+		# Reload the main menu to reflect fresh state
+		get_tree().reload_current_scene()
+	else:
+		push_warning("DevConsole not found - cannot reset profile")
+
 ## Quit the game
 func _on_quit_pressed() -> void:
 	print("Quitting game...")

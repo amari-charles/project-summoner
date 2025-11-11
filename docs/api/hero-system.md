@@ -1,8 +1,13 @@
 # Project Summoner — Hero System Spec
 
-**Status:** PLANNED (Not yet implemented)
-**Last Updated:** 2025-01-10
+**Status:** PARTIALLY IMPLEMENTED
+**Last Updated:** 2025-01-11
 **Source:** Extracted from PROJECT_DOC.md
+
+**Current Implementation:**
+- Basic hero selection screen during onboarding with 5 options (4 core elements + random)
+- Hero choice saved to profile (`meta.selected_hero`)
+- No gameplay integration yet (heroes don't affect battle mechanics)
 
 **Purpose:** Define the foundational structure for Heroes — the player-controlled summoners who shape battle strategy, resource flow, and collection bias.
 
@@ -40,7 +45,24 @@ Each hero has a minimal shared schema:
 
 Affinities define an elemental identity that connects heroes and cards.
 
+### Core Elements
+
+The foundation of the affinity system consists of **four core elements:**
+
+**Earth · Fire · Air · Water**
+
+These four elements represent the fundamental forces and form the primary hero archetypes. Each core element has a distinct strategic identity:
+
+* **Earth** → steadfast, defensive, endurance-focused
+* **Fire** → aggressive, offensive tempo, direct damage
+* **Air** → swift, tactical, speed and mobility
+* **Water** → adaptive, control, healing and flow
+
+### Extended Affinities
+
 **Primary Affinities:** Fire · Water · Nature · Storm · Earth · Void
+
+*Note: "Air" and "Storm" may be used interchangeably to refer to the wind/lightning element.*
 
 Each affects gameplay flavor and potential bonuses, e.g.:
 
