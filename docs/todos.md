@@ -98,6 +98,29 @@ Flesh out and refine unit hitboxes for better collision detection and combat int
 
 ---
 
+#### Fix Projectile Aiming on Moving Targets
+**Status:** ⬜ Not Started
+**Category:** Units & Combat
+**Effort:** Medium
+
+**Description:**
+Implement predictive targeting for projectiles so they lead moving targets instead of aiming at current position.
+
+**Requirements:**
+- Calculate target's future position based on velocity
+- Compute intercept point using projectile speed and target movement
+- Update projectile direction to aim at intercept point
+- Handle edge cases (target stops, changes direction, dies mid-flight)
+- Test with different projectile speeds and target velocities
+
+**Notes:**
+- Significantly improves ranged unit effectiveness and game feel
+- Should work for both homing and straight-line projectiles
+- May need to account for acceleration/deceleration curves
+- Important for combat balance - currently projectiles miss moving targets frequently
+
+---
+
 #### Implement Single Target vs Multi Target Attack System
 **Status:** ⬜ Not Started
 **Category:** Units & Combat
@@ -917,4 +940,4 @@ Final integration of hero system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-11-11 - Added framerate independence research task*
+*Last Updated: 2025-11-11 - Added projectile aiming on moving targets task*
