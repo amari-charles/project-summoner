@@ -202,10 +202,11 @@ func _is_valid_target(target: Node3D) -> bool:
 		return false
 	if target is Unit3D and not target.is_alive:
 		return false
-	# Check if target is within aggro range
+	# Check if target is within aggro range (use distance_squared for performance)
 	var delta = target.global_position - global_position
-	var horizontal_dist = Vector2(delta.x, delta.z).length()
-	return horizontal_dist <= aggro_radius * 1.5  # Allow some leeway
+	var distance_sq = delta.x * delta.x + delta.z * delta.z
+	var max_range = aggro_radius * 1.5  # Allow some leeway
+	return distance_sq <= max_range * max_range
 
 func _acquire_target() -> Node3D:
 	## Find the best target using weighted scoring system
@@ -214,18 +215,22 @@ func _acquire_target() -> Node3D:
 
 	var best_target: Node3D = null
 	var best_score: float = -INF
+	var aggro_radius_sq = aggro_radius * aggro_radius
 
 	for target in targets:
 		if not (target is Unit3D and target.is_alive):
 			continue
 
-		# Calculate horizontal distance (ignore Y-axis)
+		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
 		var delta = target.global_position - global_position
-		var distance = Vector2(delta.x, delta.z).length()
+		var distance_sq = delta.x * delta.x + delta.z * delta.z
 
-		# Skip targets outside aggro range
-		if distance > aggro_radius:
+		# Fast filtering: skip targets outside aggro range (no sqrt needed)
+		if distance_sq > aggro_radius_sq:
 			continue
+
+		# Only calculate actual distance (sqrt) for targets in range
+		var distance = sqrt(distance_sq)
 
 		# Calculate weighted score
 		var score = 0.0

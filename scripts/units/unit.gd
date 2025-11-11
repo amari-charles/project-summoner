@@ -90,9 +90,11 @@ func _is_valid_target(target: Node2D) -> bool:
 		return false
 	if target is Unit and not target.is_alive:
 		return false
-	# Check if target is within aggro range
-	var dist = global_position.distance_to(target.global_position)
-	return dist <= aggro_radius * 1.5  # Allow some leeway
+	# Check if target is within aggro range (use distance_squared for performance)
+	var delta = target.global_position - global_position
+	var distance_sq = delta.x * delta.x + delta.y * delta.y
+	var max_range = aggro_radius * 1.5  # Allow some leeway
+	return distance_sq <= max_range * max_range
 
 ## Find the best enemy unit using weighted scoring system
 func _acquire_target() -> Node2D:
@@ -101,16 +103,22 @@ func _acquire_target() -> Node2D:
 
 	var best_target: Node2D = null
 	var best_score: float = -INF
+	var aggro_radius_sq = aggro_radius * aggro_radius
 
 	for target in enemies:
 		if not (target is Unit and target.is_alive):
 			continue
 
-		var distance = global_position.distance_to(target.global_position)
+		# Calculate distance_squared - no sqrt yet!
+		var delta = target.global_position - global_position
+		var distance_sq = delta.x * delta.x + delta.y * delta.y
 
-		# Skip targets outside aggro range
-		if distance > aggro_radius:
+		# Fast filtering: skip targets outside aggro range (no sqrt needed)
+		if distance_sq > aggro_radius_sq:
 			continue
+
+		# Only calculate actual distance (sqrt) for targets in range
+		var distance = sqrt(distance_sq)
 
 		# Calculate weighted score
 		var score = 0.0
