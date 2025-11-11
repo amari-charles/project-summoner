@@ -73,6 +73,7 @@ func _ready() -> void:
 		draw_card()
 
 	add_to_group("summoners")
+	add_to_group("bases")  # Allows spell cards to find summoner as projectile source
 	if team == Unit3D.Team.PLAYER:
 		add_to_group("player_summoners")
 	else:
