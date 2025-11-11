@@ -78,7 +78,6 @@ func _ready():
 
 ## Set the card data and update visuals
 func set_card_data(data: Dictionary, show_desc: bool = false) -> void:
-	print("CardVisual: set_card_data called with: ", data.get("card_name", "no name"))
 	card_data = data
 	show_description = show_desc
 
@@ -160,46 +159,24 @@ func _apply_border_color() -> void:
 		border.add_theme_stylebox_override("panel", border_style)
 
 func _update_cost() -> void:
-	print("CardVisual: _update_cost called")
 	var label = get_node_or_null("CostLabel")
-	if label:
-		if card_data.has("mana_cost"):
-			label.text = str(card_data.mana_cost)
-			print("CardVisual: Set cost to: ", label.text)
-		else:
-			print("CardVisual: card_data has no mana_cost!")
-	else:
-		print("CardVisual: CostLabel node not found!")
+	if label and card_data.has("mana_cost"):
+		label.text = str(card_data.mana_cost)
 
 func _update_name() -> void:
-	print("CardVisual: _update_name called")
 	var label = get_node_or_null("NameLabel")
-	if label:
-		if card_data.has("card_name"):
-			label.text = card_data.card_name
-			print("CardVisual: Set name to: ", label.text)
-		else:
-			print("CardVisual: card_data has no card_name!")
-	else:
-		print("CardVisual: NameLabel node not found!")
+	if label and card_data.has("card_name"):
+		label.text = card_data.card_name
 
 func _update_type_icon() -> void:
-	print("CardVisual: _update_type_icon called")
 	var icon = get_node_or_null("TypeIcon")
 	if icon:
 		var icon_path = CardVisualHelper.get_card_type_icon_path(card_data)
-		print("CardVisual: Icon path: ", icon_path)
 		if not icon_path.is_empty():
-			var texture = load(icon_path)
-			print("CardVisual: Loaded texture: ", texture)
-			icon.texture = texture
+			icon.texture = load(icon_path)
 			icon.visible = true
-			print("CardVisual: Icon set and visible")
 		else:
 			icon.visible = false
-			print("CardVisual: Icon path empty, hiding")
-	else:
-		print("CardVisual: TypeIcon node not found!")
 
 func _update_art() -> void:
 	var container = get_node_or_null("ArtContainer")
