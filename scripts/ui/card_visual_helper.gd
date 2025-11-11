@@ -89,9 +89,12 @@ static func get_card_element_color(card_data) -> Color:
 			if affinity:
 				# Convert Element object to string if needed
 				var affinity_id = affinity.id if affinity is ElementTypes.Element else str(affinity)
-				return get_element_border_color(affinity_id)
+				var color = get_element_border_color(affinity_id)
+				print("CardVisualHelper: Card '%s' has element '%s' -> color %s" % [catalog_dict.get("card_name", "unknown"), affinity_id, color])
+				return color
 
-	# Fallback: use card type-based colors
+	# Fallback: use card type-based colors (should rarely happen)
+	print("CardVisualHelper: Card '%s' has NO element, using card type fallback" % catalog_dict.get("card_name", "unknown"))
 	var card_type = catalog_dict.get("card_type", 0)
 	if card_type == 0:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
