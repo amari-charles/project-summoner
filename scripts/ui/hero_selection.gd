@@ -3,21 +3,32 @@ class_name HeroSelection
 
 ## HeroSelection - Choose your starting hero
 ##
-## Part of onboarding flow. Player picks one of two placeholder heroes.
+## Part of onboarding flow. Player picks one of five heroes representing the
+## four core elements (Earth, Fire, Air, Water) plus a random option.
 ## Hero choice is saved to profile for future use.
 
 @onready var select_button1: Button = %SelectButton1
 @onready var select_button2: Button = %SelectButton2
+@onready var select_button3: Button = %SelectButton3
+@onready var select_button4: Button = %SelectButton4
+@onready var select_button5: Button = %SelectButton5
 
-const HERO_1 = "warrior_chief"
-const HERO_2 = "arcane_sage"
+# Core elemental heroes
+const HERO_EARTH = "earth_hero"
+const HERO_FIRE = "fire_hero"
+const HERO_RANDOM = "random_hero"
+const HERO_AIR = "air_hero"
+const HERO_WATER = "water_hero"
 
 func _ready() -> void:
 	print("HeroSelection: Initializing...")
 
-	# Connect buttons
-	select_button1.pressed.connect(_on_hero_selected.bind(HERO_1))
-	select_button2.pressed.connect(_on_hero_selected.bind(HERO_2))
+	# Connect all hero selection buttons
+	select_button1.pressed.connect(_on_hero_selected.bind(HERO_EARTH))
+	select_button2.pressed.connect(_on_hero_selected.bind(HERO_FIRE))
+	select_button3.pressed.connect(_on_hero_selected.bind(HERO_RANDOM))
+	select_button4.pressed.connect(_on_hero_selected.bind(HERO_AIR))
+	select_button5.pressed.connect(_on_hero_selected.bind(HERO_WATER))
 
 func _on_hero_selected(hero_id: String) -> void:
 	print("HeroSelection: Player selected hero: %s" % hero_id)

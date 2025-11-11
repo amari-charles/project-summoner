@@ -42,6 +42,14 @@ func _ready() -> void:
 	_init_battles()
 	_load_progress()
 
+	# Reload progress when profile changes (e.g., on reset)
+	if _profile_repo:
+		_profile_repo.data_changed.connect(_on_profile_data_changed)
+
+func _on_profile_data_changed() -> void:
+	print("CampaignService: Profile data changed - reloading progress...")
+	_load_progress()
+
 ## =============================================================================
 ## BATTLE DEFINITIONS
 ## =============================================================================
@@ -87,7 +95,7 @@ func _init_battles() -> void:
 		"enemy_deck": [
 			{"catalog_id": "warrior", "count": 2}
 		],
-		"enemy_hp": 150.0,
+		"enemy_hp": 100.0,
 		"unlock_requirements": ["battle_00"],
 		# AI Configuration
 		"ai_type": "heuristic",
