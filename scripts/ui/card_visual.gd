@@ -111,115 +111,130 @@ func _apply_visual_styling() -> void:
 	_apply_border_color()
 
 	# Apply dark background
-	if background_panel:
+	var bg_panel = get_node_or_null("BackgroundPanel")
+	if bg_panel:
 		var bg_style = StyleBoxFlat.new()
 		bg_style.bg_color = GameColorPalette.UI_BG_DARK
 		bg_style.set_corner_radius_all(corner_radius - border_width)
 		bg_style.anti_aliasing = true
 		bg_style.anti_aliasing_size = 1
-		background_panel.add_theme_stylebox_override("panel", bg_style)
+		bg_panel.add_theme_stylebox_override("panel", bg_style)
 
 	# Apply cost label font size
-	if cost_label:
-		cost_label.add_theme_font_size_override("font_size", cost_font_size)
+	var cost_lbl = get_node_or_null("CostLabel")
+	if cost_lbl:
+		cost_lbl.add_theme_font_size_override("font_size", cost_font_size)
 
 	# Apply name label font size
-	if name_label:
-		name_label.add_theme_font_size_override("font_size", name_font_size)
+	var name_lbl = get_node_or_null("NameLabel")
+	if name_lbl:
+		name_lbl.add_theme_font_size_override("font_size", name_font_size)
 
 	# Apply description label font size
-	if description_label:
-		description_label.add_theme_font_size_override("font_size", description_font_size)
+	var desc_lbl = get_node_or_null("DescriptionLabel")
+	if desc_lbl:
+		desc_lbl.add_theme_font_size_override("font_size", description_font_size)
 
 	# Apply element badge styling
-	if element_badge:
+	var badge = get_node_or_null("ElementBadge")
+	if badge:
 		var badge_style = StyleBoxFlat.new()
 		badge_style.bg_color = element_color
 		badge_style.set_corner_radius_all(element_badge_radius)
 		badge_style.anti_aliasing = true
 		badge_style.anti_aliasing_size = 1
-		element_badge.add_theme_stylebox_override("panel", badge_style)
+		badge.add_theme_stylebox_override("panel", badge_style)
 
 	# Show/hide description
-	if description_label:
-		description_label.visible = show_description
+	if desc_lbl:
+		desc_lbl.visible = show_description
 
 func _apply_border_color() -> void:
-	if border_panel:
+	var border = get_node_or_null("BorderPanel")
+	if border:
 		var border_style = StyleBoxFlat.new()
 		border_style.bg_color = element_color
 		border_style.set_corner_radius_all(corner_radius)
 		border_style.anti_aliasing = true
 		border_style.anti_aliasing_size = 1
-		border_panel.add_theme_stylebox_override("panel", border_style)
+		border.add_theme_stylebox_override("panel", border_style)
 
 func _update_cost() -> void:
 	print("CardVisual: _update_cost called")
-	if cost_label:
+	var label = get_node_or_null("CostLabel")
+	if label:
 		if card_data.has("mana_cost"):
-			cost_label.text = str(card_data.mana_cost)
-			print("CardVisual: Set cost to: ", cost_label.text)
+			label.text = str(card_data.mana_cost)
+			print("CardVisual: Set cost to: ", label.text)
 		else:
 			print("CardVisual: card_data has no mana_cost!")
 	else:
-		print("CardVisual: cost_label node not found!")
+		print("CardVisual: CostLabel node not found!")
 
 func _update_name() -> void:
 	print("CardVisual: _update_name called")
-	if name_label:
+	var label = get_node_or_null("NameLabel")
+	if label:
 		if card_data.has("card_name"):
-			name_label.text = card_data.card_name
-			print("CardVisual: Set name to: ", name_label.text)
+			label.text = card_data.card_name
+			print("CardVisual: Set name to: ", label.text)
 		else:
 			print("CardVisual: card_data has no card_name!")
 	else:
-		print("CardVisual: name_label node not found!")
+		print("CardVisual: NameLabel node not found!")
 
 func _update_type_icon() -> void:
 	print("CardVisual: _update_type_icon called")
-	if type_icon:
+	var icon = get_node_or_null("TypeIcon")
+	if icon:
 		var icon_path = CardVisualHelper.get_card_type_icon_path(card_data)
 		print("CardVisual: Icon path: ", icon_path)
 		if not icon_path.is_empty():
 			var texture = load(icon_path)
 			print("CardVisual: Loaded texture: ", texture)
-			type_icon.texture = texture
-			type_icon.visible = true
+			icon.texture = texture
+			icon.visible = true
 			print("CardVisual: Icon set and visible")
 		else:
-			type_icon.visible = false
+			icon.visible = false
 			print("CardVisual: Icon path empty, hiding")
 	else:
-		print("CardVisual: type_icon node not found!")
+		print("CardVisual: TypeIcon node not found!")
 
 func _update_art() -> void:
-	if not art_container:
+	var container = get_node_or_null("ArtContainer")
+	if not container:
 		return
+
+	var art_tex = container.get_node_or_null("ArtTexture")
+	var art_ph = container.get_node_or_null("ArtPlaceholder")
 
 	# Try to load card art if path is specified
 	var art_loaded = false
 	if card_data.has("card_icon_path") and not card_data.card_icon_path.is_empty():
 		var texture = load(card_data.card_icon_path)
-		if texture and art_texture:
-			art_texture.texture = texture
-			art_texture.visible = true
-			art_placeholder.visible = false
+		if texture and art_tex:
+			art_tex.texture = texture
+			art_tex.visible = true
+			if art_ph:
+				art_ph.visible = false
 			art_loaded = true
 
 	# Fall back to colored placeholder
-	if not art_loaded and art_placeholder:
-		art_placeholder.color = element_color.darkened(0.3)
-		art_placeholder.visible = true
-		if art_texture:
-			art_texture.visible = false
+	if not art_loaded and art_ph:
+		art_ph.color = element_color.darkened(0.3)
+		art_ph.visible = true
+		if art_tex:
+			art_tex.visible = false
 
 func _update_description() -> void:
-	if description_label and card_data.has("description"):
+	var label = get_node_or_null("DescriptionLabel")
+	if label and card_data.has("description"):
 		var desc = card_data.description
 		# Truncate if too long
 		if desc.length() > description_max_chars:
 			desc = desc.substr(0, description_max_chars - 3) + "..."
-		description_label.text = desc
+		label.text = desc
 
 ## =============================================================================
 ## UTILITY
