@@ -9,12 +9,12 @@ uniform float corner_radius : hint_range(0.0, 50.0) = 8.0;
 uniform vec2 rect_size = vec2(120.0, 160.0);
 
 void fragment() {
-	// Calculate radial gradient from center
-	vec2 center = vec2(0.5, 0.5);
-	float dist = distance(center, UV);
+	// Calculate diagonal gradient (top-left to bottom-right)
+	// UV.x + UV.y ranges from 0.0 (top-left) to 2.0 (bottom-right)
+	float gradient_value = (UV.x + UV.y) * 0.5;
 
-	// Create smooth radial gradient (center to edge)
-	vec4 gradient_color = mix(color_center, color_edge, smoothstep(0.0, 0.7, dist));
+	// Create smooth diagonal gradient
+	vec4 gradient_color = mix(color_center, color_edge, smoothstep(0.0, 1.0, gradient_value));
 
 	// Calculate rounded corner mask
 	vec2 pixel_pos = UV * rect_size;
