@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bixr4ptpvus7w"
-path="res://.godot/imported/Tools_Crafting_Painting_Canvas_Art_Exhibition.png-fa9d038c3acd5598ed8924eaccc33648.ctex"
+path="res://.godot/imported/Tools_Crafting_Painting_Canvas_Art_Exhibition.png-8adfb464771aab30dab3bea77ec543d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Painting_Canvas_Art_Exhibition.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Painting_Canvas_Art_Exhibition.png-fa9d038c3acd5598ed8924eaccc33648.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Painting_Canvas_Art_Exhibition.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Painting_Canvas_Art_Exhibition.png-8adfb464771aab30dab3bea77ec543d7.ctex"]
 
 [params]
 

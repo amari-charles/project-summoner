@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfxf7rcxm2phn"
-path="res://.godot/imported/Hats_Gas_Mask_Commando.png-cc2abf3acd93aa12c3037ca7a552e525.ctex"
+path="res://.godot/imported/Hats_Gas_Mask_Commando.png-8ece40cd6bd7153c0fc537a97c41b868.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Gas_Mask_Commando.png"
-dest_files=["res://.godot/imported/Hats_Gas_Mask_Commando.png-cc2abf3acd93aa12c3037ca7a552e525.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Gas_Mask_Commando.png"
+dest_files=["res://.godot/imported/Hats_Gas_Mask_Commando.png-8ece40cd6bd7153c0fc537a97c41b868.ctex"]
 
 [params]
 

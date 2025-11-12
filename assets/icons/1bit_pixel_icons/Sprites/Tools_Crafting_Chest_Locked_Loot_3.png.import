@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bovgakjr1dmlb"
-path="res://.godot/imported/Tools_Crafting_Chest_Locked_Loot_3.png-3f75659eb360a2048d65100d87d8da7a.ctex"
+path="res://.godot/imported/Tools_Crafting_Chest_Locked_Loot_3.png-aa33237efb6e3841729e5e23fdfaf2d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Chest_Locked_Loot_3.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Chest_Locked_Loot_3.png-3f75659eb360a2048d65100d87d8da7a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Chest_Locked_Loot_3.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Chest_Locked_Loot_3.png-aa33237efb6e3841729e5e23fdfaf2d6.ctex"]
 
 [params]
 

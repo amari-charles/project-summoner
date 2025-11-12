@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b46orgrpsyqjy"
-path="res://.godot/imported/Map_Markers_Scanner_Sweep_Radar_Detection.png-d001b7c9ad5b064d8a6af2facb9ce80b.ctex"
+path="res://.godot/imported/Map_Markers_Scanner_Sweep_Radar_Detection.png-20195bfee146e3720ce68541bdd0754b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Scanner_Sweep_Radar_Detection.png"
-dest_files=["res://.godot/imported/Map_Markers_Scanner_Sweep_Radar_Detection.png-d001b7c9ad5b064d8a6af2facb9ce80b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Scanner_Sweep_Radar_Detection.png"
+dest_files=["res://.godot/imported/Map_Markers_Scanner_Sweep_Radar_Detection.png-20195bfee146e3720ce68541bdd0754b.ctex"]
 
 [params]
 

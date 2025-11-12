@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d18dtw3lvm4md"
-path="res://.godot/imported/Emoji_Hand_Thumbs_Up.png-5d6da9157f6e5ef00a3566191b583b79.ctex"
+path="res://.godot/imported/Emoji_Hand_Thumbs_Up.png-694ccd1b2383e0eb1307bc8b18df3315.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Emoji_Hand_Thumbs_Up.png"
-dest_files=["res://.godot/imported/Emoji_Hand_Thumbs_Up.png-5d6da9157f6e5ef00a3566191b583b79.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Emoji_Hand_Thumbs_Up.png"
+dest_files=["res://.godot/imported/Emoji_Hand_Thumbs_Up.png-694ccd1b2383e0eb1307bc8b18df3315.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cscn7tsu8f4nc"
-path="res://.godot/imported/Tools_Crafting_Farming_Plant_Crop.png-fc03f5a1e0d59574e0c92ca9bed84d79.ctex"
+path="res://.godot/imported/Tools_Crafting_Farming_Plant_Crop.png-2046023b071c24ea2816a1b7f3fefbac.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Farming_Plant_Crop.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Farming_Plant_Crop.png-fc03f5a1e0d59574e0c92ca9bed84d79.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Farming_Plant_Crop.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Farming_Plant_Crop.png-2046023b071c24ea2816a1b7f3fefbac.ctex"]
 
 [params]
 

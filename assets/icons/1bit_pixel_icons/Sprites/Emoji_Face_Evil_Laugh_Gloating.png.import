@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6t4a0wnluwm"
-path="res://.godot/imported/Emoji_Face_Evil_Laugh_Gloating.png-f9eb0b26734abcf343bc2d99bf221744.ctex"
+path="res://.godot/imported/Emoji_Face_Evil_Laugh_Gloating.png-a09275f7de810ab019c9f6f4e3e75a43.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Emoji_Face_Evil_Laugh_Gloating.png"
-dest_files=["res://.godot/imported/Emoji_Face_Evil_Laugh_Gloating.png-f9eb0b26734abcf343bc2d99bf221744.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Emoji_Face_Evil_Laugh_Gloating.png"
+dest_files=["res://.godot/imported/Emoji_Face_Evil_Laugh_Gloating.png-a09275f7de810ab019c9f6f4e3e75a43.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvotaayuu164c"
-path="res://.godot/imported/Alchemy_Gold_Sol_Sun.png-9021ea4ea03fd0b0ab2634deace639f1.ctex"
+path="res://.godot/imported/Alchemy_Gold_Sol_Sun.png-37dcfaf49e4fb4802f8ef4a8cb8010ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Gold_Sol_Sun.png"
-dest_files=["res://.godot/imported/Alchemy_Gold_Sol_Sun.png-9021ea4ea03fd0b0ab2634deace639f1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Gold_Sol_Sun.png"
+dest_files=["res://.godot/imported/Alchemy_Gold_Sol_Sun.png-37dcfaf49e4fb4802f8ef4a8cb8010ad.ctex"]
 
 [params]
 

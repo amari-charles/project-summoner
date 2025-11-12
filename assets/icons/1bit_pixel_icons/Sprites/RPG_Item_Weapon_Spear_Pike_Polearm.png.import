@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfod7v34tdaob"
-path="res://.godot/imported/RPG_Item_Weapon_Spear_Pike_Polearm.png-3dbd758be2cf1fec036e1ef986362ac8.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Spear_Pike_Polearm.png-c0f4e0b160d132be3f961846f724d0ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Weapon_Spear_Pike_Polearm.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Spear_Pike_Polearm.png-3dbd758be2cf1fec036e1ef986362ac8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Weapon_Spear_Pike_Polearm.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Spear_Pike_Polearm.png-c0f4e0b160d132be3f961846f724d0ad.ctex"]
 
 [params]
 

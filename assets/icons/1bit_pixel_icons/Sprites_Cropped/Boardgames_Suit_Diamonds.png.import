@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6ilj7seccyjl"
-path="res://.godot/imported/Boardgames_Suit_Diamonds.png-88a543570d839905fffd787f6f8c615b.ctex"
+path="res://.godot/imported/Boardgames_Suit_Diamonds.png-b2e868cbce02fcb78ca030fa2d2db8fc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Suit_Diamonds.png"
-dest_files=["res://.godot/imported/Boardgames_Suit_Diamonds.png-88a543570d839905fffd787f6f8c615b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Suit_Diamonds.png"
+dest_files=["res://.godot/imported/Boardgames_Suit_Diamonds.png-b2e868cbce02fcb78ca030fa2d2db8fc.ctex"]
 
 [params]
 

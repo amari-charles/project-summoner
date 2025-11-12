@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0nqo5vxer8up"
-path="res://.godot/imported/RPG_Trade_Handshake_Deal_Exchange.png-5e3f1b4f23e697bfa3b798a4d80ef2b7.ctex"
+path="res://.godot/imported/RPG_Trade_Handshake_Deal_Exchange.png-96f4e65ced0e484298a86b0895021926.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Trade_Handshake_Deal_Exchange.png"
-dest_files=["res://.godot/imported/RPG_Trade_Handshake_Deal_Exchange.png-5e3f1b4f23e697bfa3b798a4d80ef2b7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Trade_Handshake_Deal_Exchange.png"
+dest_files=["res://.godot/imported/RPG_Trade_Handshake_Deal_Exchange.png-96f4e65ced0e484298a86b0895021926.ctex"]
 
 [params]
 

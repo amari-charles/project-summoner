@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvj2b0ouylp35"
-path="res://.godot/imported/br-1-wingRHorn2.png-40c45b58c52790400ffbca76277e5d1e.ctex"
+path="res://.godot/imported/br-1-wingRHorn2.png-a1ec036ddd3d7e24dbeb7723692df054.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 2/Bottom-right/Single images/1x/br-1-wingRHorn2.png"
-dest_files=["res://.godot/imported/br-1-wingRHorn2.png-40c45b58c52790400ffbca76277e5d1e.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 2/Bottom-right/Single images/1x/br-1-wingRHorn2.png"
+dest_files=["res://.godot/imported/br-1-wingRHorn2.png-a1ec036ddd3d7e24dbeb7723692df054.ctex"]
 
 [params]
 

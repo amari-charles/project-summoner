@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk21cuqfvcg24"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Ink_Ballpoint_Writing.png-82e340b14cac0c63442877ceefa9d6cb.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Ink_Ballpoint_Writing.png-84282fb7bd35f827becf38ddc731e52c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Pen_Ink_Ballpoint_Writing.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Ink_Ballpoint_Writing.png-82e340b14cac0c63442877ceefa9d6cb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Pen_Ink_Ballpoint_Writing.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Ink_Ballpoint_Writing.png-84282fb7bd35f827becf38ddc731e52c.ctex"]
 
 [params]
 

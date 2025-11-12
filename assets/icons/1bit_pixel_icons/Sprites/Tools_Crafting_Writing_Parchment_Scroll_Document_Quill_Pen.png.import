@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3fiiq7e4xvvl"
-path="res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document_Quill_Pen.png-3bb5ec8ba19b72b693b315be82f62b22.ctex"
+path="res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document_Quill_Pen.png-91e6997fcc2e35f957e0889a7beb7a81.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Writing_Parchment_Scroll_Document_Quill_Pen.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document_Quill_Pen.png-3bb5ec8ba19b72b693b315be82f62b22.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Writing_Parchment_Scroll_Document_Quill_Pen.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document_Quill_Pen.png-91e6997fcc2e35f957e0889a7beb7a81.ctex"]
 
 [params]
 

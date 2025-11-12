@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://biq8i6vlh4y0c"
-path="res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Star_Damage.png-baf06335c245d63bba5828846d94cb62.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Star_Damage.png-09bcffd3ad983c93e5a459e0e1746503.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Wand_Magic_Star_Damage.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Star_Damage.png-baf06335c245d63bba5828846d94cb62.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Wand_Magic_Star_Damage.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Star_Damage.png-09bcffd3ad983c93e5a459e0e1746503.ctex"]
 
 [params]
 

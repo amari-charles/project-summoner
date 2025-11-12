@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1bqpb00l45a4"
-path="res://.godot/imported/Media_Audio_Sound_Volume_Minus_Decrease.png-cacc102fdbd8efb712de75ae37ed86f2.ctex"
+path="res://.godot/imported/Media_Audio_Sound_Volume_Minus_Decrease.png-17d72be434f159b29c72f72c2e2067e4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Audio_Sound_Volume_Minus_Decrease.png"
-dest_files=["res://.godot/imported/Media_Audio_Sound_Volume_Minus_Decrease.png-cacc102fdbd8efb712de75ae37ed86f2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Audio_Sound_Volume_Minus_Decrease.png"
+dest_files=["res://.godot/imported/Media_Audio_Sound_Volume_Minus_Decrease.png-17d72be434f159b29c72f72c2e2067e4.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8lvfig43vjfx"
-path="res://.godot/imported/Travel_Bell_Notification_Ringing.png-3b982a2123b6efbbd3a06dda1b2bb408.ctex"
+path="res://.godot/imported/Travel_Bell_Notification_Ringing.png-4b4022ad3e1d18959897548228757353.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Bell_Notification_Ringing.png"
-dest_files=["res://.godot/imported/Travel_Bell_Notification_Ringing.png-3b982a2123b6efbbd3a06dda1b2bb408.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Bell_Notification_Ringing.png"
+dest_files=["res://.godot/imported/Travel_Bell_Notification_Ringing.png-4b4022ad3e1d18959897548228757353.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqwy2qrtxqqkp"
-path="res://.godot/imported/Emoji_Face_Angry_Anger.png-1eeafa0735aa28f934e03d49573526fc.ctex"
+path="res://.godot/imported/Emoji_Face_Angry_Anger.png-77ea9534f4a656a96e71413bef87f3d8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Emoji_Face_Angry_Anger.png"
-dest_files=["res://.godot/imported/Emoji_Face_Angry_Anger.png-1eeafa0735aa28f934e03d49573526fc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Emoji_Face_Angry_Anger.png"
+dest_files=["res://.godot/imported/Emoji_Face_Angry_Anger.png-77ea9534f4a656a96e71413bef87f3d8.ctex"]
 
 [params]
 

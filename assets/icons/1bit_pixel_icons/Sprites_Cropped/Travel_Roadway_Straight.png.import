@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bktos6gwixfjc"
-path="res://.godot/imported/Travel_Roadway_Straight.png-8c92fdf0cd82b44d47db5d8e6b7c2675.ctex"
+path="res://.godot/imported/Travel_Roadway_Straight.png-0915a6198081e37473570de74b42a01d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Roadway_Straight.png"
-dest_files=["res://.godot/imported/Travel_Roadway_Straight.png-8c92fdf0cd82b44d47db5d8e6b7c2675.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Roadway_Straight.png"
+dest_files=["res://.godot/imported/Travel_Roadway_Straight.png-0915a6198081e37473570de74b42a01d.ctex"]
 
 [params]
 

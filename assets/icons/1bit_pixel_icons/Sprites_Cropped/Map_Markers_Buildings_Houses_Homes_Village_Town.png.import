@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dr1vk7nojifog"
-path="res://.godot/imported/Map_Markers_Buildings_Houses_Homes_Village_Town.png-51ede9118195d9cac83f422bf9318060.ctex"
+path="res://.godot/imported/Map_Markers_Buildings_Houses_Homes_Village_Town.png-d459cd9fb39b103d0ea5dd3207544292.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Buildings_Houses_Homes_Village_Town.png"
-dest_files=["res://.godot/imported/Map_Markers_Buildings_Houses_Homes_Village_Town.png-51ede9118195d9cac83f422bf9318060.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Buildings_Houses_Homes_Village_Town.png"
+dest_files=["res://.godot/imported/Map_Markers_Buildings_Houses_Homes_Village_Town.png-d459cd9fb39b103d0ea5dd3207544292.ctex"]
 
 [params]
 

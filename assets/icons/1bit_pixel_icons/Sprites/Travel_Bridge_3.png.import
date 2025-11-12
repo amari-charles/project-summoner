@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmh3g8vxy0376"
-path="res://.godot/imported/Travel_Bridge_3.png-9a265024753624e3b86de771b778addd.ctex"
+path="res://.godot/imported/Travel_Bridge_3.png-c7243277fd8bc34b00e667d511cccdc2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Bridge_3.png"
-dest_files=["res://.godot/imported/Travel_Bridge_3.png-9a265024753624e3b86de771b778addd.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Bridge_3.png"
+dest_files=["res://.godot/imported/Travel_Bridge_3.png-c7243277fd8bc34b00e667d511cccdc2.ctex"]
 
 [params]
 

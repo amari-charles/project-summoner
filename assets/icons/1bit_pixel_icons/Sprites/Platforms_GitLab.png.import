@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cp4ac7fp01mak"
-path="res://.godot/imported/Platforms_GitLab.png-fb7a99fcc6af338d9cd804033dba09c9.ctex"
+path="res://.godot/imported/Platforms_GitLab.png-0b50895d26dae713e241c1b105385427.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_GitLab.png"
-dest_files=["res://.godot/imported/Platforms_GitLab.png-fb7a99fcc6af338d9cd804033dba09c9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_GitLab.png"
+dest_files=["res://.godot/imported/Platforms_GitLab.png-0b50895d26dae713e241c1b105385427.ctex"]
 
 [params]
 

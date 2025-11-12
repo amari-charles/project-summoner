@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://clcxcvy40ta5u"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Gradient.png-735c7f6968ad88694a69919c0fa61b50.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Gradient.png-33cdebd02455500d16a075851396e99a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Gradient.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Gradient.png-735c7f6968ad88694a69919c0fa61b50.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Gradient.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Gradient.png-33cdebd02455500d16a075851396e99a.ctex"]
 
 [params]
 

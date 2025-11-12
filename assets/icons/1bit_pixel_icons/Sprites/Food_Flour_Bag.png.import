@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8tcoq3sihprn"
-path="res://.godot/imported/Food_Flour_Bag.png-cd8d965781744ce304954581da0e1417.ctex"
+path="res://.godot/imported/Food_Flour_Bag.png-cf137721c65e7cf1aabc2f526717f75d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Flour_Bag.png"
-dest_files=["res://.godot/imported/Food_Flour_Bag.png-cd8d965781744ce304954581da0e1417.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Flour_Bag.png"
+dest_files=["res://.godot/imported/Food_Flour_Bag.png-cf137721c65e7cf1aabc2f526717f75d.ctex"]
 
 [params]
 

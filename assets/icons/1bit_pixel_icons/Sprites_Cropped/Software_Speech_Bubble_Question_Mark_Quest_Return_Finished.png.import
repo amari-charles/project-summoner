@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsijenm4oye43"
-path="res://.godot/imported/Software_Speech_Bubble_Question_Mark_Quest_Return_Finished.png-5b5632dacc409a5bbf9d754a74db6b0f.ctex"
+path="res://.godot/imported/Software_Speech_Bubble_Question_Mark_Quest_Return_Finished.png-233d40d42005beb1bab4be3d17d71c57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Speech_Bubble_Question_Mark_Quest_Return_Finished.png"
-dest_files=["res://.godot/imported/Software_Speech_Bubble_Question_Mark_Quest_Return_Finished.png-5b5632dacc409a5bbf9d754a74db6b0f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Speech_Bubble_Question_Mark_Quest_Return_Finished.png"
+dest_files=["res://.godot/imported/Software_Speech_Bubble_Question_Mark_Quest_Return_Finished.png-233d40d42005beb1bab4be3d17d71c57.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bc07smymbbydr"
-path="res://.godot/imported/Food_Grain_Crop_Plant.png-9dfeaa87bf6de34436346bf2411cd13c.ctex"
+path="res://.godot/imported/Food_Grain_Crop_Plant.png-f0f803c14e6b41b38bbbd18c87466d19.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Grain_Crop_Plant.png"
-dest_files=["res://.godot/imported/Food_Grain_Crop_Plant.png-9dfeaa87bf6de34436346bf2411cd13c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Grain_Crop_Plant.png"
+dest_files=["res://.godot/imported/Food_Grain_Crop_Plant.png-f0f803c14e6b41b38bbbd18c87466d19.ctex"]
 
 [params]
 

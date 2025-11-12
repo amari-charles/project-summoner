@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://chn6r5kcamf04"
-path="res://.godot/imported/Warfare_Explosion_Bomb.png-f3a6d5d788a200b4c6e3703b402a0715.ctex"
+path="res://.godot/imported/Warfare_Explosion_Bomb.png-6097c5dfbd2f60994ff08949778546fa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Explosion_Bomb.png"
-dest_files=["res://.godot/imported/Warfare_Explosion_Bomb.png-f3a6d5d788a200b4c6e3703b402a0715.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Explosion_Bomb.png"
+dest_files=["res://.godot/imported/Warfare_Explosion_Bomb.png-6097c5dfbd2f60994ff08949778546fa.ctex"]
 
 [params]
 

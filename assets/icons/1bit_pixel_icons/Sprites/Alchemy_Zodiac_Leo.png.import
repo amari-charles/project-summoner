@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5sd0tpx2u1ag"
-path="res://.godot/imported/Alchemy_Zodiac_Leo.png-2247db7a24a5d55e9b33bea8ec584b58.ctex"
+path="res://.godot/imported/Alchemy_Zodiac_Leo.png-2d23094bf97d678150ef3fb6d4b05fcd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Zodiac_Leo.png"
-dest_files=["res://.godot/imported/Alchemy_Zodiac_Leo.png-2247db7a24a5d55e9b33bea8ec584b58.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Zodiac_Leo.png"
+dest_files=["res://.godot/imported/Alchemy_Zodiac_Leo.png-2d23094bf97d678150ef3fb6d4b05fcd.ctex"]
 
 [params]
 

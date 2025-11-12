@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://y6klff72vqp"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Font_Text_Typing_T.png-ecff474cc7f9253692049a460d786c7f.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Font_Text_Typing_T.png-f4fc9298cb1cc2233f576d05f00a5dcc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Font_Text_Typing_T.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Font_Text_Typing_T.png-ecff474cc7f9253692049a460d786c7f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Font_Text_Typing_T.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Font_Text_Typing_T.png-f4fc9298cb1cc2233f576d05f00a5dcc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://66m8us35s2fh"
-path="res://.godot/imported/Warfare_Weapon_Assault_Rifle_Submachine_Gun.png-4bacb4c9c9098b628615d37a0ef9f65b.ctex"
+path="res://.godot/imported/Warfare_Weapon_Assault_Rifle_Submachine_Gun.png-037e688917f7ac11b66de8ca627729a3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Weapon_Assault_Rifle_Submachine_Gun.png"
-dest_files=["res://.godot/imported/Warfare_Weapon_Assault_Rifle_Submachine_Gun.png-4bacb4c9c9098b628615d37a0ef9f65b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Weapon_Assault_Rifle_Submachine_Gun.png"
+dest_files=["res://.godot/imported/Warfare_Weapon_Assault_Rifle_Submachine_Gun.png-037e688917f7ac11b66de8ca627729a3.ctex"]
 
 [params]
 

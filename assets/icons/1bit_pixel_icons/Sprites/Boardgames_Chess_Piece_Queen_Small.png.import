@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpitdmvsmjmkv"
-path="res://.godot/imported/Boardgames_Chess_Piece_Queen_Small.png-568c8f2cf0f047a8522cafa27fef6eac.ctex"
+path="res://.godot/imported/Boardgames_Chess_Piece_Queen_Small.png-db2415291060621a32041520b36d8476.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Chess_Piece_Queen_Small.png"
-dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Queen_Small.png-568c8f2cf0f047a8522cafa27fef6eac.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Chess_Piece_Queen_Small.png"
+dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Queen_Small.png-db2415291060621a32041520b36d8476.ctex"]
 
 [params]
 

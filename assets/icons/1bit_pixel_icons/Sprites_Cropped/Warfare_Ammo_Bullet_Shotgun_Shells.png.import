@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bs60pgwkr6sfh"
-path="res://.godot/imported/Warfare_Ammo_Bullet_Shotgun_Shells.png-80e0acbd5117f402d9d8d4ab30c31ec7.ctex"
+path="res://.godot/imported/Warfare_Ammo_Bullet_Shotgun_Shells.png-697d6004151628a606dc9564b37c01d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Ammo_Bullet_Shotgun_Shells.png"
-dest_files=["res://.godot/imported/Warfare_Ammo_Bullet_Shotgun_Shells.png-80e0acbd5117f402d9d8d4ab30c31ec7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Ammo_Bullet_Shotgun_Shells.png"
+dest_files=["res://.godot/imported/Warfare_Ammo_Bullet_Shotgun_Shells.png-697d6004151628a606dc9564b37c01d7.ctex"]
 
 [params]
 

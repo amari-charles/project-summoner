@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cca0y6or2a78r"
-path="res://.godot/imported/Food_Alcohol_Drink_Martini_Cocktail.png-d9918b8a100281cb6dc228e009eb223d.ctex"
+path="res://.godot/imported/Food_Alcohol_Drink_Martini_Cocktail.png-b6122c2cef5f82c6831e12aa82a4442e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Alcohol_Drink_Martini_Cocktail.png"
-dest_files=["res://.godot/imported/Food_Alcohol_Drink_Martini_Cocktail.png-d9918b8a100281cb6dc228e009eb223d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Alcohol_Drink_Martini_Cocktail.png"
+dest_files=["res://.godot/imported/Food_Alcohol_Drink_Martini_Cocktail.png-b6122c2cef5f82c6831e12aa82a4442e.ctex"]
 
 [params]
 

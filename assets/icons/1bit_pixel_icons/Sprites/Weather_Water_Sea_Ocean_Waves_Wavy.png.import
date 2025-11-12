@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvrgnpgswb8nt"
-path="res://.godot/imported/Weather_Water_Sea_Ocean_Waves_Wavy.png-2c592ad2baf5a74ac813eb2c72ce9edb.ctex"
+path="res://.godot/imported/Weather_Water_Sea_Ocean_Waves_Wavy.png-f6b1e3bd47bb142b22ed2fa1cdfa3734.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Water_Sea_Ocean_Waves_Wavy.png"
-dest_files=["res://.godot/imported/Weather_Water_Sea_Ocean_Waves_Wavy.png-2c592ad2baf5a74ac813eb2c72ce9edb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Water_Sea_Ocean_Waves_Wavy.png"
+dest_files=["res://.godot/imported/Weather_Water_Sea_Ocean_Waves_Wavy.png-f6b1e3bd47bb142b22ed2fa1cdfa3734.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1ds6cjb3saco"
-path="res://.godot/imported/Sports_Football_Soccer_Gate_Goal.png-289ea865cbf6bf72b60c0495b9cd0abb.ctex"
+path="res://.godot/imported/Sports_Football_Soccer_Gate_Goal.png-d498c5251372cb0996a9793f26317396.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Football_Soccer_Gate_Goal.png"
-dest_files=["res://.godot/imported/Sports_Football_Soccer_Gate_Goal.png-289ea865cbf6bf72b60c0495b9cd0abb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Football_Soccer_Gate_Goal.png"
+dest_files=["res://.godot/imported/Sports_Football_Soccer_Gate_Goal.png-d498c5251372cb0996a9793f26317396.ctex"]
 
 [params]
 

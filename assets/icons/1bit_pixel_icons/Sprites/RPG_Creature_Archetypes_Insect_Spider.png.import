@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dueyt3r163crn"
-path="res://.godot/imported/RPG_Creature_Archetypes_Insect_Spider.png-1fe0ec2c43a3528181b554f04f49ce46.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Insect_Spider.png-58046f7346d3db23644c51a65083570c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Creature_Archetypes_Insect_Spider.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Insect_Spider.png-1fe0ec2c43a3528181b554f04f49ce46.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Creature_Archetypes_Insect_Spider.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Insect_Spider.png-58046f7346d3db23644c51a65083570c.ctex"]
 
 [params]
 

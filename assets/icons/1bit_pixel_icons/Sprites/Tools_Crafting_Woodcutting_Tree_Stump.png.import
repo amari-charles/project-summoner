@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cemk8wp2wwvui"
-path="res://.godot/imported/Tools_Crafting_Woodcutting_Tree_Stump.png-61af2327aa3b2f51cb09bbcccae93832.ctex"
+path="res://.godot/imported/Tools_Crafting_Woodcutting_Tree_Stump.png-b7261a49145d6e36e68f7dcdd3e4980d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Woodcutting_Tree_Stump.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Woodcutting_Tree_Stump.png-61af2327aa3b2f51cb09bbcccae93832.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Woodcutting_Tree_Stump.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Woodcutting_Tree_Stump.png-b7261a49145d6e36e68f7dcdd3e4980d.ctex"]
 
 [params]
 

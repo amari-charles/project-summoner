@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://shr6klifx3xx"
-path="res://.godot/imported/RPG_Item_Weapon_Slingshot_Ranged.png-d5a74cb0b71720faa4179e21f4b082d4.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Slingshot_Ranged.png-906c6cd43ab31cba1d0cd989aefee68b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Weapon_Slingshot_Ranged.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Slingshot_Ranged.png-d5a74cb0b71720faa4179e21f4b082d4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Weapon_Slingshot_Ranged.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Slingshot_Ranged.png-906c6cd43ab31cba1d0cd989aefee68b.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mlv74rx5irsy"
-path="res://.godot/imported/RPG_Stat_Magnetism.png-4aa1916fb9220090478276305893fe8b.ctex"
+path="res://.godot/imported/RPG_Stat_Magnetism.png-c33fcf6b4c574a72ed396fd299b2379d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Stat_Magnetism.png"
-dest_files=["res://.godot/imported/RPG_Stat_Magnetism.png-4aa1916fb9220090478276305893fe8b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Stat_Magnetism.png"
+dest_files=["res://.godot/imported/RPG_Stat_Magnetism.png-c33fcf6b4c574a72ed396fd299b2379d.ctex"]
 
 [params]
 

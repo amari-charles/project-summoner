@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b88nvjsqhjsjy"
-path="res://.godot/imported/Travel_Baby_Small_Children.png-5aa7d15a1aeb65f683a1e9cd2fdc024f.ctex"
+path="res://.godot/imported/Travel_Baby_Small_Children.png-ff95a974c71caa0e980efc46c5d7a8d9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Baby_Small_Children.png"
-dest_files=["res://.godot/imported/Travel_Baby_Small_Children.png-5aa7d15a1aeb65f683a1e9cd2fdc024f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Baby_Small_Children.png"
+dest_files=["res://.godot/imported/Travel_Baby_Small_Children.png-ff95a974c71caa0e980efc46c5d7a8d9.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgt8hf2kp47al"
-path="res://.godot/imported/RPG_Item_Weapon_Battleaxe_Chopping.png-2edc51a58622508fd0e314344bc82542.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Battleaxe_Chopping.png-96bc428a82f4cb2ac419ed30d66ccfc6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Battleaxe_Chopping.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Battleaxe_Chopping.png-2edc51a58622508fd0e314344bc82542.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Battleaxe_Chopping.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Battleaxe_Chopping.png-96bc428a82f4cb2ac419ed30d66ccfc6.ctex"]
 
 [params]
 

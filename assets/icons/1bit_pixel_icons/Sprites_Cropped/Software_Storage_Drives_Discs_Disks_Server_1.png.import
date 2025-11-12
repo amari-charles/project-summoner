@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ohv5omlautyd"
-path="res://.godot/imported/Software_Storage_Drives_Discs_Disks_Server_1.png-0589389f56325ce1f11287d12d4b90bb.ctex"
+path="res://.godot/imported/Software_Storage_Drives_Discs_Disks_Server_1.png-16d4ff4a382f41afeacac3f1b8c6b7bd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Storage_Drives_Discs_Disks_Server_1.png"
-dest_files=["res://.godot/imported/Software_Storage_Drives_Discs_Disks_Server_1.png-0589389f56325ce1f11287d12d4b90bb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Storage_Drives_Discs_Disks_Server_1.png"
+dest_files=["res://.godot/imported/Software_Storage_Drives_Discs_Disks_Server_1.png-16d4ff4a382f41afeacac3f1b8c6b7bd.ctex"]
 
 [params]
 

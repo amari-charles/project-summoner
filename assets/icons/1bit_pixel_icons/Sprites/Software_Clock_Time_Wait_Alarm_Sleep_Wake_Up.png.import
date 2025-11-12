@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ccc4jvykm5s36"
-path="res://.godot/imported/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png-18bd95d3437fa92abde6c47edde21f9a.ctex"
+path="res://.godot/imported/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png-a930c75b24207823d0c97dd693f40166.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png"
-dest_files=["res://.godot/imported/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png-18bd95d3437fa92abde6c47edde21f9a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png"
+dest_files=["res://.godot/imported/Software_Clock_Time_Wait_Alarm_Sleep_Wake_Up.png-a930c75b24207823d0c97dd693f40166.ctex"]
 
 [params]
 

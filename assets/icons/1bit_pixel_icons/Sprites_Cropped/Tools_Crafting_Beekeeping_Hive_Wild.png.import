@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuuqu5x2m1v23"
-path="res://.godot/imported/Tools_Crafting_Beekeeping_Hive_Wild.png-a518a9f574dd4c72175b9c4a2f8681e0.ctex"
+path="res://.godot/imported/Tools_Crafting_Beekeeping_Hive_Wild.png-27f4698e62f16ea0d194e0de502f1c99.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Beekeeping_Hive_Wild.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping_Hive_Wild.png-a518a9f574dd4c72175b9c4a2f8681e0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Beekeeping_Hive_Wild.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping_Hive_Wild.png-27f4698e62f16ea0d194e0de502f1c99.ctex"]
 
 [params]
 

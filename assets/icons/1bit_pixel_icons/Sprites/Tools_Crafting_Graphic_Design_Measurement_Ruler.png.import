@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://xfh3imhbcnfm"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Ruler.png-1f8828602f8ed4f6eb17d6e65d19e4b2.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Ruler.png-10d62ff55eb7fd04cc5b708f3d22f659.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Measurement_Ruler.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Ruler.png-1f8828602f8ed4f6eb17d6e65d19e4b2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Measurement_Ruler.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Ruler.png-10d62ff55eb7fd04cc5b708f3d22f659.ctex"]
 
 [params]
 

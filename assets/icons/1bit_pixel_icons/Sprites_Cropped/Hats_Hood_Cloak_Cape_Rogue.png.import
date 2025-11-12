@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caeenwaeeg0ib"
-path="res://.godot/imported/Hats_Hood_Cloak_Cape_Rogue.png-6b47339bbb532d49111b742ec9382bb1.ctex"
+path="res://.godot/imported/Hats_Hood_Cloak_Cape_Rogue.png-a3e20131c4d36780fe6927e6a79972bc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Hood_Cloak_Cape_Rogue.png"
-dest_files=["res://.godot/imported/Hats_Hood_Cloak_Cape_Rogue.png-6b47339bbb532d49111b742ec9382bb1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Hood_Cloak_Cape_Rogue.png"
+dest_files=["res://.godot/imported/Hats_Hood_Cloak_Cape_Rogue.png-a3e20131c4d36780fe6927e6a79972bc.ctex"]
 
 [params]
 

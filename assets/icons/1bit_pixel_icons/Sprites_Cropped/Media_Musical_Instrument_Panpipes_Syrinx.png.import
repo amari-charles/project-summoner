@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0qwag063x5io"
-path="res://.godot/imported/Media_Musical_Instrument_Panpipes_Syrinx.png-dfc3e4ff1d72672429acb163f94ff450.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Panpipes_Syrinx.png-de1ff8832fb506aa6996b88d70b50a39.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Panpipes_Syrinx.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Panpipes_Syrinx.png-dfc3e4ff1d72672429acb163f94ff450.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Panpipes_Syrinx.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Panpipes_Syrinx.png-de1ff8832fb506aa6996b88d70b50a39.ctex"]
 
 [params]
 

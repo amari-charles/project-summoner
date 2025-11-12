@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vc1pxmm7s22q"
-path="res://.godot/imported/Travel_Veichle_Train_Locomotive_Steam_Engine_Railroad_1.png-8dc8f092abc7770e88376c5d884e0625.ctex"
+path="res://.godot/imported/Travel_Veichle_Train_Locomotive_Steam_Engine_Railroad_1.png-c1b7aab307e44e4b08719b4018905d06.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Veichle_Train_Locomotive_Steam_Engine_Railroad_1.png"
-dest_files=["res://.godot/imported/Travel_Veichle_Train_Locomotive_Steam_Engine_Railroad_1.png-8dc8f092abc7770e88376c5d884e0625.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Veichle_Train_Locomotive_Steam_Engine_Railroad_1.png"
+dest_files=["res://.godot/imported/Travel_Veichle_Train_Locomotive_Steam_Engine_Railroad_1.png-c1b7aab307e44e4b08719b4018905d06.ctex"]
 
 [params]
 

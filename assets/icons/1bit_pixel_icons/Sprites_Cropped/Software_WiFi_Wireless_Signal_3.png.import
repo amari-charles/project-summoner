@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2ordcrlirf60"
-path="res://.godot/imported/Software_WiFi_Wireless_Signal_3.png-54d91a9921e608d965e7852268cb1fcf.ctex"
+path="res://.godot/imported/Software_WiFi_Wireless_Signal_3.png-9ba98773e20c6a5e578d776856bae209.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_WiFi_Wireless_Signal_3.png"
-dest_files=["res://.godot/imported/Software_WiFi_Wireless_Signal_3.png-54d91a9921e608d965e7852268cb1fcf.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_WiFi_Wireless_Signal_3.png"
+dest_files=["res://.godot/imported/Software_WiFi_Wireless_Signal_3.png-9ba98773e20c6a5e578d776856bae209.ctex"]
 
 [params]
 

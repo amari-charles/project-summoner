@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv24r6e0rufxs"
-path="res://.godot/imported/Food_Salt_Shaker.png-51ef6d09863d26d705f71fd0c1c9a9ed.ctex"
+path="res://.godot/imported/Food_Salt_Shaker.png-1a4d67c9569a6a1b4bb16bb20e74470a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Salt_Shaker.png"
-dest_files=["res://.godot/imported/Food_Salt_Shaker.png-51ef6d09863d26d705f71fd0c1c9a9ed.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Salt_Shaker.png"
+dest_files=["res://.godot/imported/Food_Salt_Shaker.png-1a4d67c9569a6a1b4bb16bb20e74470a.ctex"]
 
 [params]
 

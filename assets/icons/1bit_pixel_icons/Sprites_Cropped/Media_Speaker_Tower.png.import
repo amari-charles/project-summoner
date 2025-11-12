@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3nyulnc76ajf"
-path="res://.godot/imported/Media_Speaker_Tower.png-d919dd57e0bf32b7a9275b14c5668d55.ctex"
+path="res://.godot/imported/Media_Speaker_Tower.png-286e1d46e7e217cc90ddb906b809b605.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Speaker_Tower.png"
-dest_files=["res://.godot/imported/Media_Speaker_Tower.png-d919dd57e0bf32b7a9275b14c5668d55.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Speaker_Tower.png"
+dest_files=["res://.godot/imported/Media_Speaker_Tower.png-286e1d46e7e217cc90ddb906b809b605.ctex"]
 
 [params]
 

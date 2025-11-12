@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dc1e4tvx5gceu"
-path="res://.godot/imported/Controller_Face_Buttons_Playstation_Circle.png-9ea790827445cf3311ce61ad66f5b91b.ctex"
+path="res://.godot/imported/Controller_Face_Buttons_Playstation_Circle.png-abf7aa17ab1e9ee5a7bb0a323157830f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Controller_Face_Buttons_Playstation_Circle.png"
-dest_files=["res://.godot/imported/Controller_Face_Buttons_Playstation_Circle.png-9ea790827445cf3311ce61ad66f5b91b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Controller_Face_Buttons_Playstation_Circle.png"
+dest_files=["res://.godot/imported/Controller_Face_Buttons_Playstation_Circle.png-abf7aa17ab1e9ee5a7bb0a323157830f.ctex"]
 
 [params]
 

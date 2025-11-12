@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dkc8uosvfymog"
-path="res://.godot/imported/Software_Mobile_Carrier_Signal_None_Disabled.png-a4a97fb9eea108b7aabb17e25dedc7bc.ctex"
+path="res://.godot/imported/Software_Mobile_Carrier_Signal_None_Disabled.png-1fcf8ffda8fa51459e3876b2db4cda3a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Mobile_Carrier_Signal_None_Disabled.png"
-dest_files=["res://.godot/imported/Software_Mobile_Carrier_Signal_None_Disabled.png-a4a97fb9eea108b7aabb17e25dedc7bc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Mobile_Carrier_Signal_None_Disabled.png"
+dest_files=["res://.godot/imported/Software_Mobile_Carrier_Signal_None_Disabled.png-1fcf8ffda8fa51459e3876b2db4cda3a.ctex"]
 
 [params]
 

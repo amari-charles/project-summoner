@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8cjcalgwrdf4"
-path="res://.godot/imported/Platforms_Discord.png-f00ac486a9b80c64afbf88c5ae38c981.ctex"
+path="res://.godot/imported/Platforms_Discord.png-b5f4a1bcb151dacc7516782875c2bb36.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Discord.png"
-dest_files=["res://.godot/imported/Platforms_Discord.png-f00ac486a9b80c64afbf88c5ae38c981.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Discord.png"
+dest_files=["res://.godot/imported/Platforms_Discord.png-b5f4a1bcb151dacc7516782875c2bb36.ctex"]
 
 [params]
 

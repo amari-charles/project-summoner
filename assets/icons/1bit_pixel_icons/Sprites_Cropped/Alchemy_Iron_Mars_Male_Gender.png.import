@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cil2jovqhdefy"
-path="res://.godot/imported/Alchemy_Iron_Mars_Male_Gender.png-958235269188ddc186ad2a23432c9f5f.ctex"
+path="res://.godot/imported/Alchemy_Iron_Mars_Male_Gender.png-78c9c5ff0a423185e2d59a526b467007.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Iron_Mars_Male_Gender.png"
-dest_files=["res://.godot/imported/Alchemy_Iron_Mars_Male_Gender.png-958235269188ddc186ad2a23432c9f5f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Iron_Mars_Male_Gender.png"
+dest_files=["res://.godot/imported/Alchemy_Iron_Mars_Male_Gender.png-78c9c5ff0a423185e2d59a526b467007.ctex"]
 
 [params]
 

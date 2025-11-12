@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ecgx7wew12tw"
-path="res://.godot/imported/Tools_Crafting_Wheelbarrow_Hand_Cart_1.png-62683c2a2e61151ab1e1d0bdbcd18125.ctex"
+path="res://.godot/imported/Tools_Crafting_Wheelbarrow_Hand_Cart_1.png-612c1f2bfbd8d0c6922130ac625e52d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Wheelbarrow_Hand_Cart_1.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Wheelbarrow_Hand_Cart_1.png-62683c2a2e61151ab1e1d0bdbcd18125.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Wheelbarrow_Hand_Cart_1.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Wheelbarrow_Hand_Cart_1.png-612c1f2bfbd8d0c6922130ac625e52d6.ctex"]
 
 [params]
 

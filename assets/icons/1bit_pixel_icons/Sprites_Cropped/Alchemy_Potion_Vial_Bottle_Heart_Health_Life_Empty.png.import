@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bisux820rfkhh"
-path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Heart_Health_Life_Empty.png-5425b9ff1101190c7dc4488a5f471d86.ctex"
+path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Heart_Health_Life_Empty.png-79642c144d33651512bf24ffd951045b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Potion_Vial_Bottle_Heart_Health_Life_Empty.png"
-dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Heart_Health_Life_Empty.png-5425b9ff1101190c7dc4488a5f471d86.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Potion_Vial_Bottle_Heart_Health_Life_Empty.png"
+dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Heart_Health_Life_Empty.png-79642c144d33651512bf24ffd951045b.ctex"]
 
 [params]
 

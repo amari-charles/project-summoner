@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgt56ysuogl3a"
-path="res://.godot/imported/Sports_Baseball_Bat.png-9609db94720aa45ef4b356ced62b0b2b.ctex"
+path="res://.godot/imported/Sports_Baseball_Bat.png-906119fbfaed56921a335abe1eb47e66.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Sports_Baseball_Bat.png"
-dest_files=["res://.godot/imported/Sports_Baseball_Bat.png-9609db94720aa45ef4b356ced62b0b2b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Sports_Baseball_Bat.png"
+dest_files=["res://.godot/imported/Sports_Baseball_Bat.png-906119fbfaed56921a335abe1eb47e66.ctex"]
 
 [params]
 

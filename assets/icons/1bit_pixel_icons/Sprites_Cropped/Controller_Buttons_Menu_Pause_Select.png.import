@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://df1x0qy7yjnat"
-path="res://.godot/imported/Controller_Buttons_Menu_Pause_Select.png-e135ed5be6414472b7e139938e8429cc.ctex"
+path="res://.godot/imported/Controller_Buttons_Menu_Pause_Select.png-f800ed709c7b75cf779c51fad4dbb3b5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Controller_Buttons_Menu_Pause_Select.png"
-dest_files=["res://.godot/imported/Controller_Buttons_Menu_Pause_Select.png-e135ed5be6414472b7e139938e8429cc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Controller_Buttons_Menu_Pause_Select.png"
+dest_files=["res://.godot/imported/Controller_Buttons_Menu_Pause_Select.png-f800ed709c7b75cf779c51fad4dbb3b5.ctex"]
 
 [params]
 

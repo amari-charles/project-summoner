@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://3asdh680jwa2"
-path="res://.godot/imported/Travel_Traffic_Lights_Red.png-a5a2dd68cd061f2c6aadc2d157ad79d2.ctex"
+path="res://.godot/imported/Travel_Traffic_Lights_Red.png-575672ada73e35289f08076947239176.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Traffic_Lights_Red.png"
-dest_files=["res://.godot/imported/Travel_Traffic_Lights_Red.png-a5a2dd68cd061f2c6aadc2d157ad79d2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Traffic_Lights_Red.png"
+dest_files=["res://.godot/imported/Travel_Traffic_Lights_Red.png-575672ada73e35289f08076947239176.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1lbxinnafcef"
-path="res://.godot/imported/Hats_Sailor_Naval_Seaman.png-39729aaf4df8d1cd12819da6ca53b413.ctex"
+path="res://.godot/imported/Hats_Sailor_Naval_Seaman.png-6b091dffb50187aa0171d4da6373363f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Sailor_Naval_Seaman.png"
-dest_files=["res://.godot/imported/Hats_Sailor_Naval_Seaman.png-39729aaf4df8d1cd12819da6ca53b413.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Sailor_Naval_Seaman.png"
+dest_files=["res://.godot/imported/Hats_Sailor_Naval_Seaman.png-6b091dffb50187aa0171d4da6373363f.ctex"]
 
 [params]
 

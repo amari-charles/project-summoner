@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvayuevo8makj"
-path="res://.godot/imported/RPG_Skill_Bear_Trap_Foothold_Spikes_Gripping_Cripple.png-060bf8fa1a606be7323958b97e58fd2d.ctex"
+path="res://.godot/imported/RPG_Skill_Bear_Trap_Foothold_Spikes_Gripping_Cripple.png-290a218376d4fa3da35b72e3db9ef6dd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Skill_Bear_Trap_Foothold_Spikes_Gripping_Cripple.png"
-dest_files=["res://.godot/imported/RPG_Skill_Bear_Trap_Foothold_Spikes_Gripping_Cripple.png-060bf8fa1a606be7323958b97e58fd2d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Skill_Bear_Trap_Foothold_Spikes_Gripping_Cripple.png"
+dest_files=["res://.godot/imported/RPG_Skill_Bear_Trap_Foothold_Spikes_Gripping_Cripple.png-290a218376d4fa3da35b72e3db9ef6dd.ctex"]
 
 [params]
 

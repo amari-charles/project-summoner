@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://lpihqftsdfht"
-path="res://.godot/imported/Hats_Party_Princess_Cone.png-649b5396a2fba0e1579f21956813c7be.ctex"
+path="res://.godot/imported/Hats_Party_Princess_Cone.png-3eafb4f496395c513d2fcccae89b534a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Party_Princess_Cone.png"
-dest_files=["res://.godot/imported/Hats_Party_Princess_Cone.png-649b5396a2fba0e1579f21956813c7be.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Party_Princess_Cone.png"
+dest_files=["res://.godot/imported/Hats_Party_Princess_Cone.png-3eafb4f496395c513d2fcccae89b534a.ctex"]
 
 [params]
 

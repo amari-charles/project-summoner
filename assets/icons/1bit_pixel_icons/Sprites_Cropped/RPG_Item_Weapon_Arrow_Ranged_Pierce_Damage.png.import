@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://x8vxl80v1uca"
-path="res://.godot/imported/RPG_Item_Weapon_Arrow_Ranged_Pierce_Damage.png-e6fdfcb06db282d444199fb20427b5fa.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Arrow_Ranged_Pierce_Damage.png-6445bdfb13ea532d0958004bc11e7344.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Arrow_Ranged_Pierce_Damage.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Arrow_Ranged_Pierce_Damage.png-e6fdfcb06db282d444199fb20427b5fa.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Arrow_Ranged_Pierce_Damage.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Arrow_Ranged_Pierce_Damage.png-6445bdfb13ea532d0958004bc11e7344.ctex"]
 
 [params]
 

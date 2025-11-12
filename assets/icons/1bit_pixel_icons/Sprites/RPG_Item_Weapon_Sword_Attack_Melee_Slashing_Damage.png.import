@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1ty68ks3l31g"
-path="res://.godot/imported/RPG_Item_Weapon_Sword_Attack_Melee_Slashing_Damage.png-366128a187aea8405d4b036eaff6a182.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Sword_Attack_Melee_Slashing_Damage.png-a9ed7848ced95ebb0b31903e9bf23c46.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Weapon_Sword_Attack_Melee_Slashing_Damage.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Sword_Attack_Melee_Slashing_Damage.png-366128a187aea8405d4b036eaff6a182.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Weapon_Sword_Attack_Melee_Slashing_Damage.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Sword_Attack_Melee_Slashing_Damage.png-a9ed7848ced95ebb0b31903e9bf23c46.ctex"]
 
 [params]
 

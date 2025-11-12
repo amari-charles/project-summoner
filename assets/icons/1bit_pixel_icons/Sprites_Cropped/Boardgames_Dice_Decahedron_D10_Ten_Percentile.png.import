@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djop3gn1iiwv4"
-path="res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Percentile.png-28279cb9746db44d40e7beee1f26527e.ctex"
+path="res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Percentile.png-940ad37eb4193c3846eb588e66c4ff60.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Dice_Decahedron_D10_Ten_Percentile.png"
-dest_files=["res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Percentile.png-28279cb9746db44d40e7beee1f26527e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Dice_Decahedron_D10_Ten_Percentile.png"
+dest_files=["res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Percentile.png-940ad37eb4193c3846eb588e66c4ff60.ctex"]
 
 [params]
 

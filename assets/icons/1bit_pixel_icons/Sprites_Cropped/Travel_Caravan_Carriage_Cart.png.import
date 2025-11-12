@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ce7qr5x27741b"
-path="res://.godot/imported/Travel_Caravan_Carriage_Cart.png-9b54a1d44af41ed57d681b765cb64167.ctex"
+path="res://.godot/imported/Travel_Caravan_Carriage_Cart.png-faf6df321767eb7cd97374fc1074e1cb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Caravan_Carriage_Cart.png"
-dest_files=["res://.godot/imported/Travel_Caravan_Carriage_Cart.png-9b54a1d44af41ed57d681b765cb64167.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Caravan_Carriage_Cart.png"
+dest_files=["res://.godot/imported/Travel_Caravan_Carriage_Cart.png-faf6df321767eb7cd97374fc1074e1cb.ctex"]
 
 [params]
 

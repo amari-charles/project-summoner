@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgfknw8omo3bd"
-path="res://.godot/imported/Tools_Crafting_Rose_Flower_Decoration.png-3ded84d6d5506d9f7a803fdfb61882de.ctex"
+path="res://.godot/imported/Tools_Crafting_Rose_Flower_Decoration.png-e9ede42173b3123ea04d0f61e9b18124.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Rose_Flower_Decoration.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Rose_Flower_Decoration.png-3ded84d6d5506d9f7a803fdfb61882de.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Rose_Flower_Decoration.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Rose_Flower_Decoration.png-e9ede42173b3123ea04d0f61e9b18124.ctex"]
 
 [params]
 

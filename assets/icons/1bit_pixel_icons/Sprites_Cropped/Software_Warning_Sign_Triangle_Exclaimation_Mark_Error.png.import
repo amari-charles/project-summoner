@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2fye570hxmqi"
-path="res://.godot/imported/Software_Warning_Sign_Triangle_Exclaimation_Mark_Error.png-309f507e570529846f0824cde01b2675.ctex"
+path="res://.godot/imported/Software_Warning_Sign_Triangle_Exclaimation_Mark_Error.png-187d0c5de7f073545876fb178cb4ecb5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Warning_Sign_Triangle_Exclaimation_Mark_Error.png"
-dest_files=["res://.godot/imported/Software_Warning_Sign_Triangle_Exclaimation_Mark_Error.png-309f507e570529846f0824cde01b2675.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Warning_Sign_Triangle_Exclaimation_Mark_Error.png"
+dest_files=["res://.godot/imported/Software_Warning_Sign_Triangle_Exclaimation_Mark_Error.png-187d0c5de7f073545876fb178cb4ecb5.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do63h3dd7gxex"
-path="res://.godot/imported/Travel_Air_Balloon.png-68f6ad9bcd38f4979ac3b5ef70a69ae1.ctex"
+path="res://.godot/imported/Travel_Air_Balloon.png-eca0d797dad127540ae51b66b115eb28.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Air_Balloon.png"
-dest_files=["res://.godot/imported/Travel_Air_Balloon.png-68f6ad9bcd38f4979ac3b5ef70a69ae1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Air_Balloon.png"
+dest_files=["res://.godot/imported/Travel_Air_Balloon.png-eca0d797dad127540ae51b66b115eb28.ctex"]
 
 [params]
 

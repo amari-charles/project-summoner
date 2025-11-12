@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwljwkcat8j0a"
-path="res://.godot/imported/Sports_Boxing_Glove.png-6b985325d9d7bd0395684d784f202935.ctex"
+path="res://.godot/imported/Sports_Boxing_Glove.png-99e045f6b78269e58852c46619703eb8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Boxing_Glove.png"
-dest_files=["res://.godot/imported/Sports_Boxing_Glove.png-6b985325d9d7bd0395684d784f202935.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Boxing_Glove.png"
+dest_files=["res://.godot/imported/Sports_Boxing_Glove.png-99e045f6b78269e58852c46619703eb8.ctex"]
 
 [params]
 

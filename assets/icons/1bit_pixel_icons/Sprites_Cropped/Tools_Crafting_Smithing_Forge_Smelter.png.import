@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://01w53j24cfxb"
-path="res://.godot/imported/Tools_Crafting_Smithing_Forge_Smelter.png-7c97d81e476be9f0949360c4527793e6.ctex"
+path="res://.godot/imported/Tools_Crafting_Smithing_Forge_Smelter.png-57e0f0170e2db5ff22f7f27f880f6693.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Smithing_Forge_Smelter.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Smithing_Forge_Smelter.png-7c97d81e476be9f0949360c4527793e6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Smithing_Forge_Smelter.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Smithing_Forge_Smelter.png-57e0f0170e2db5ff22f7f27f880f6693.ctex"]
 
 [params]
 

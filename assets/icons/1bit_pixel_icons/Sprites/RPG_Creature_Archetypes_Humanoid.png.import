@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b84dhujsojr82"
-path="res://.godot/imported/RPG_Creature_Archetypes_Humanoid.png-5d0f958154bd7ab0a374151057eac9ce.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Humanoid.png-75aa1685339f94bd287f73928c92929f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Creature_Archetypes_Humanoid.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Humanoid.png-5d0f958154bd7ab0a374151057eac9ce.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Creature_Archetypes_Humanoid.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Humanoid.png-75aa1685339f94bd287f73928c92929f.ctex"]
 
 [params]
 

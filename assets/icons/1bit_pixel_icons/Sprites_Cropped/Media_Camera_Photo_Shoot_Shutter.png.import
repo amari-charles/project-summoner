@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bs7ysgiry2p1y"
-path="res://.godot/imported/Media_Camera_Photo_Shoot_Shutter.png-1dbeee349ce296c39aae9e3407c95f76.ctex"
+path="res://.godot/imported/Media_Camera_Photo_Shoot_Shutter.png-08f38e7ece8c40e991318b53cf05d309.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Camera_Photo_Shoot_Shutter.png"
-dest_files=["res://.godot/imported/Media_Camera_Photo_Shoot_Shutter.png-1dbeee349ce296c39aae9e3407c95f76.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Camera_Photo_Shoot_Shutter.png"
+dest_files=["res://.godot/imported/Media_Camera_Photo_Shoot_Shutter.png-08f38e7ece8c40e991318b53cf05d309.ctex"]
 
 [params]
 

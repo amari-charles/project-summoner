@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bkn3vndlmqkp7"
-path="res://.godot/imported/Software_Warning_Sign_Circle_Crossout_Error_Bug_Crash.png-99883f25364e09b456d89415e8388b1b.ctex"
+path="res://.godot/imported/Software_Warning_Sign_Circle_Crossout_Error_Bug_Crash.png-8a3c4d6b5e239b15990bd8d18d0c033e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Warning_Sign_Circle_Crossout_Error_Bug_Crash.png"
-dest_files=["res://.godot/imported/Software_Warning_Sign_Circle_Crossout_Error_Bug_Crash.png-99883f25364e09b456d89415e8388b1b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Warning_Sign_Circle_Crossout_Error_Bug_Crash.png"
+dest_files=["res://.godot/imported/Software_Warning_Sign_Circle_Crossout_Error_Bug_Crash.png-8a3c4d6b5e239b15990bd8d18d0c033e.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvyg586mjxpnl"
-path="res://.godot/imported/Tools_Crafting_Books_Library.png-1837ee9be845c5d6399d82be13db421f.ctex"
+path="res://.godot/imported/Tools_Crafting_Books_Library.png-21e2197f93bafc8f1bdda8613723a4b6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Books_Library.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Books_Library.png-1837ee9be845c5d6399d82be13db421f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Books_Library.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Books_Library.png-21e2197f93bafc8f1bdda8613723a4b6.ctex"]
 
 [params]
 

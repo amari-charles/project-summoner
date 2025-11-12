@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0yb3ree6jdba"
-path="res://.godot/imported/RPG_Debuff_Zzz_Sleep_Status.png-72abf9fafab69ce74f3612b98385b491.ctex"
+path="res://.godot/imported/RPG_Debuff_Zzz_Sleep_Status.png-56c66ef1a35013df468e342415a674d4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Debuff_Zzz_Sleep_Status.png"
-dest_files=["res://.godot/imported/RPG_Debuff_Zzz_Sleep_Status.png-72abf9fafab69ce74f3612b98385b491.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Debuff_Zzz_Sleep_Status.png"
+dest_files=["res://.godot/imported/RPG_Debuff_Zzz_Sleep_Status.png-56c66ef1a35013df468e342415a674d4.ctex"]
 
 [params]
 

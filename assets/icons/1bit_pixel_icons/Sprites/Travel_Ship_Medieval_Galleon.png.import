@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cm2eow0giwqkw"
-path="res://.godot/imported/Travel_Ship_Medieval_Galleon.png-0924221dda01c53b32eb20d020a23d70.ctex"
+path="res://.godot/imported/Travel_Ship_Medieval_Galleon.png-4afc5c599ed9960060dc2f7e61341faf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Ship_Medieval_Galleon.png"
-dest_files=["res://.godot/imported/Travel_Ship_Medieval_Galleon.png-0924221dda01c53b32eb20d020a23d70.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Ship_Medieval_Galleon.png"
+dest_files=["res://.godot/imported/Travel_Ship_Medieval_Galleon.png-4afc5c599ed9960060dc2f7e61341faf.ctex"]
 
 [params]
 

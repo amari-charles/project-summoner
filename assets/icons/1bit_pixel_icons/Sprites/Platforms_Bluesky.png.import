@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://itnmaapi3pyx"
-path="res://.godot/imported/Platforms_Bluesky.png-6bfc0d2d9962dc9a4e2b55d876d5e100.ctex"
+path="res://.godot/imported/Platforms_Bluesky.png-b448461c14429e75dde7fe36d26533d5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Bluesky.png"
-dest_files=["res://.godot/imported/Platforms_Bluesky.png-6bfc0d2d9962dc9a4e2b55d876d5e100.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Bluesky.png"
+dest_files=["res://.godot/imported/Platforms_Bluesky.png-b448461c14429e75dde7fe36d26533d5.ctex"]
 
 [params]
 

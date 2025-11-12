@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dd0wdoj70jnhh"
-path="res://.godot/imported/Travel_Car_Driving_Steering_Wheel.png-eaac50fc3074b3543e1edc94abfbbc2c.ctex"
+path="res://.godot/imported/Travel_Car_Driving_Steering_Wheel.png-2393d3dfa2589d42038c764f7b61a992.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Car_Driving_Steering_Wheel.png"
-dest_files=["res://.godot/imported/Travel_Car_Driving_Steering_Wheel.png-eaac50fc3074b3543e1edc94abfbbc2c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Car_Driving_Steering_Wheel.png"
+dest_files=["res://.godot/imported/Travel_Car_Driving_Steering_Wheel.png-2393d3dfa2589d42038c764f7b61a992.ctex"]
 
 [params]
 

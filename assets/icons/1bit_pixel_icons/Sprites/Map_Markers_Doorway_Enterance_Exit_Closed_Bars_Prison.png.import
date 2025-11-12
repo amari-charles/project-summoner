@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmsxudvvx851"
-path="res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Closed_Bars_Prison.png-3c3841c82075fc3da84b5f176168444d.ctex"
+path="res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Closed_Bars_Prison.png-95015ab27ae1f09a43f17fcd5fe319bb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Doorway_Enterance_Exit_Closed_Bars_Prison.png"
-dest_files=["res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Closed_Bars_Prison.png-3c3841c82075fc3da84b5f176168444d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Doorway_Enterance_Exit_Closed_Bars_Prison.png"
+dest_files=["res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Closed_Bars_Prison.png-95015ab27ae1f09a43f17fcd5fe319bb.ctex"]
 
 [params]
 

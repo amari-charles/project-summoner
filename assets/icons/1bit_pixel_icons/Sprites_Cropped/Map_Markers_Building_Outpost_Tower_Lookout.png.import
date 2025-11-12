@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1tl3ob30h1as"
-path="res://.godot/imported/Map_Markers_Building_Outpost_Tower_Lookout.png-a339d4fda167f645be0890d553ac8c28.ctex"
+path="res://.godot/imported/Map_Markers_Building_Outpost_Tower_Lookout.png-32633ab6814ae94911b4c994e7d2d51a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Building_Outpost_Tower_Lookout.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Outpost_Tower_Lookout.png-a339d4fda167f645be0890d553ac8c28.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Building_Outpost_Tower_Lookout.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Outpost_Tower_Lookout.png-32633ab6814ae94911b4c994e7d2d51a.ctex"]
 
 [params]
 

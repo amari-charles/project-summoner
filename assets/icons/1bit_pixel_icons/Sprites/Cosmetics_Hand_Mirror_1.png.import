@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1ogh86qxtscr"
-path="res://.godot/imported/Cosmetics_Hand_Mirror_1.png-33858be4581c29b6495a627dc747476d.ctex"
+path="res://.godot/imported/Cosmetics_Hand_Mirror_1.png-9be2dabd1b5adb835bad3257166acf81.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Hand_Mirror_1.png"
-dest_files=["res://.godot/imported/Cosmetics_Hand_Mirror_1.png-33858be4581c29b6495a627dc747476d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Hand_Mirror_1.png"
+dest_files=["res://.godot/imported/Cosmetics_Hand_Mirror_1.png-9be2dabd1b5adb835bad3257166acf81.ctex"]
 
 [params]
 

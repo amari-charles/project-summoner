@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bf8fp2xojf6xs"
-path="res://.godot/imported/Cosmetics_Tube_Toothpaste.png-c752523fedc967d73ad48b2c6d477a94.ctex"
+path="res://.godot/imported/Cosmetics_Tube_Toothpaste.png-a0f0af3d1a81a0611e8239e38752a7e1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Tube_Toothpaste.png"
-dest_files=["res://.godot/imported/Cosmetics_Tube_Toothpaste.png-c752523fedc967d73ad48b2c6d477a94.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Tube_Toothpaste.png"
+dest_files=["res://.godot/imported/Cosmetics_Tube_Toothpaste.png-a0f0af3d1a81a0611e8239e38752a7e1.ctex"]
 
 [params]
 

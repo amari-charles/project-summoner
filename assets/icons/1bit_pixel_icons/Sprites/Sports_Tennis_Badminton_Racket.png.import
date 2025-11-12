@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://706h685k1jqw"
-path="res://.godot/imported/Sports_Tennis_Badminton_Racket.png-ba42bd68f3114502b9ee165b05240928.ctex"
+path="res://.godot/imported/Sports_Tennis_Badminton_Racket.png-bbd12c4d1cc0e48e92bdf985251c190f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Tennis_Badminton_Racket.png"
-dest_files=["res://.godot/imported/Sports_Tennis_Badminton_Racket.png-ba42bd68f3114502b9ee165b05240928.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Tennis_Badminton_Racket.png"
+dest_files=["res://.godot/imported/Sports_Tennis_Badminton_Racket.png-bbd12c4d1cc0e48e92bdf985251c190f.ctex"]
 
 [params]
 

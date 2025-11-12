@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxemafhc816yj"
-path="res://.godot/imported/Map_Markers_Location_Pin_Big.png-37b3b9f3701370f097e94135942cb0ed.ctex"
+path="res://.godot/imported/Map_Markers_Location_Pin_Big.png-f3dd8548cb7d446f48e1c787e8e0dc12.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Location_Pin_Big.png"
-dest_files=["res://.godot/imported/Map_Markers_Location_Pin_Big.png-37b3b9f3701370f097e94135942cb0ed.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Location_Pin_Big.png"
+dest_files=["res://.godot/imported/Map_Markers_Location_Pin_Big.png-f3dd8548cb7d446f48e1c787e8e0dc12.ctex"]
 
 [params]
 

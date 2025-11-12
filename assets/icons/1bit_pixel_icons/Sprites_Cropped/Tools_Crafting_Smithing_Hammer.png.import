@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfo42pcgv2l2s"
-path="res://.godot/imported/Tools_Crafting_Smithing_Hammer.png-4b86b9fe00f8e1794980b28ccc6e9e0e.ctex"
+path="res://.godot/imported/Tools_Crafting_Smithing_Hammer.png-6d3ecf64173c6668d06fc824d57c4d3c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Smithing_Hammer.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Smithing_Hammer.png-4b86b9fe00f8e1794980b28ccc6e9e0e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Smithing_Hammer.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Smithing_Hammer.png-6d3ecf64173c6668d06fc824d57c4d3c.ctex"]
 
 [params]
 

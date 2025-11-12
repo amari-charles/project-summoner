@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbyaplp4162tg"
-path="res://.godot/imported/RPG_Banknote_Money_Currency_Dollar_Bill.png-509a3e97fa126cb518692979fe171c7e.ctex"
+path="res://.godot/imported/RPG_Banknote_Money_Currency_Dollar_Bill.png-811a9dcfe12cb71a4cd21f02a5cf9a1b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Banknote_Money_Currency_Dollar_Bill.png"
-dest_files=["res://.godot/imported/RPG_Banknote_Money_Currency_Dollar_Bill.png-509a3e97fa126cb518692979fe171c7e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Banknote_Money_Currency_Dollar_Bill.png"
+dest_files=["res://.godot/imported/RPG_Banknote_Money_Currency_Dollar_Bill.png-811a9dcfe12cb71a4cd21f02a5cf9a1b.ctex"]
 
 [params]
 

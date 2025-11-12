@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bi7cl5odku5ky"
-path="res://.godot/imported/RPG_Item_Accessory_Armor_Equipment_Slot_Waist_Belt.png-b75bca282e7c65b4e828ecf029518f43.ctex"
+path="res://.godot/imported/RPG_Item_Accessory_Armor_Equipment_Slot_Waist_Belt.png-96e5e0b57235d9eb49097473b8e78026.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Accessory_Armor_Equipment_Slot_Waist_Belt.png"
-dest_files=["res://.godot/imported/RPG_Item_Accessory_Armor_Equipment_Slot_Waist_Belt.png-b75bca282e7c65b4e828ecf029518f43.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Accessory_Armor_Equipment_Slot_Waist_Belt.png"
+dest_files=["res://.godot/imported/RPG_Item_Accessory_Armor_Equipment_Slot_Waist_Belt.png-96e5e0b57235d9eb49097473b8e78026.ctex"]
 
 [params]
 

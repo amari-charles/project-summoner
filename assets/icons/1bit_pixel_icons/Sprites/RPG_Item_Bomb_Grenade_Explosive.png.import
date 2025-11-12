@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8xl1s1y3gsil"
-path="res://.godot/imported/RPG_Item_Bomb_Grenade_Explosive.png-5a78f6aa20622c8dfd35c97532b1d1d9.ctex"
+path="res://.godot/imported/RPG_Item_Bomb_Grenade_Explosive.png-8ba06a8cd80da719c5591d79fa45576f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Bomb_Grenade_Explosive.png"
-dest_files=["res://.godot/imported/RPG_Item_Bomb_Grenade_Explosive.png-5a78f6aa20622c8dfd35c97532b1d1d9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Bomb_Grenade_Explosive.png"
+dest_files=["res://.godot/imported/RPG_Item_Bomb_Grenade_Explosive.png-8ba06a8cd80da719c5591d79fa45576f.ctex"]
 
 [params]
 

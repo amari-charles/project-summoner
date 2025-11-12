@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bunse47d65egv"
-path="res://.godot/imported/RPG_Difficulty_4_Hard_Knightly_Kite_Heater_Shield.png-4de26e25a376153938b7178d8366f696.ctex"
+path="res://.godot/imported/RPG_Difficulty_4_Hard_Knightly_Kite_Heater_Shield.png-fe5d526c898348ebe36d67371eb5e664.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Difficulty_4_Hard_Knightly_Kite_Heater_Shield.png"
-dest_files=["res://.godot/imported/RPG_Difficulty_4_Hard_Knightly_Kite_Heater_Shield.png-4de26e25a376153938b7178d8366f696.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Difficulty_4_Hard_Knightly_Kite_Heater_Shield.png"
+dest_files=["res://.godot/imported/RPG_Difficulty_4_Hard_Knightly_Kite_Heater_Shield.png-fe5d526c898348ebe36d67371eb5e664.ctex"]
 
 [params]
 

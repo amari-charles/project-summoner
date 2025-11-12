@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ct6w4cu2wh741"
-path="res://.godot/imported/Map_Markers_Waterfall.png-63d685dafbd59a85325a89b80f456e1f.ctex"
+path="res://.godot/imported/Map_Markers_Waterfall.png-45f3803438cd6563a93711905de5f834.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Waterfall.png"
-dest_files=["res://.godot/imported/Map_Markers_Waterfall.png-63d685dafbd59a85325a89b80f456e1f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Waterfall.png"
+dest_files=["res://.godot/imported/Map_Markers_Waterfall.png-45f3803438cd6563a93711905de5f834.ctex"]
 
 [params]
 

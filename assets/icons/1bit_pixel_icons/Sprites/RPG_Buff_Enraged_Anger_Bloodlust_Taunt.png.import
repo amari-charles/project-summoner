@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://g65nacj0ftlt"
-path="res://.godot/imported/RPG_Buff_Enraged_Anger_Bloodlust_Taunt.png-423c6dcd9a377c661a88bd80010ce946.ctex"
+path="res://.godot/imported/RPG_Buff_Enraged_Anger_Bloodlust_Taunt.png-3ed58dd376e662eced7de024eef300dc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Buff_Enraged_Anger_Bloodlust_Taunt.png"
-dest_files=["res://.godot/imported/RPG_Buff_Enraged_Anger_Bloodlust_Taunt.png-423c6dcd9a377c661a88bd80010ce946.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Buff_Enraged_Anger_Bloodlust_Taunt.png"
+dest_files=["res://.godot/imported/RPG_Buff_Enraged_Anger_Bloodlust_Taunt.png-3ed58dd376e662eced7de024eef300dc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://85uof80dcr8l"
-path="res://.godot/imported/Software_Email_Message_Delete_Cross.png-56028bf78f77e8c9cdd128db7043240b.ctex"
+path="res://.godot/imported/Software_Email_Message_Delete_Cross.png-3498131d858f5c30142f627f4a3e2d93.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Email_Message_Delete_Cross.png"
-dest_files=["res://.godot/imported/Software_Email_Message_Delete_Cross.png-56028bf78f77e8c9cdd128db7043240b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Email_Message_Delete_Cross.png"
+dest_files=["res://.godot/imported/Software_Email_Message_Delete_Cross.png-3498131d858f5c30142f627f4a3e2d93.ctex"]
 
 [params]
 

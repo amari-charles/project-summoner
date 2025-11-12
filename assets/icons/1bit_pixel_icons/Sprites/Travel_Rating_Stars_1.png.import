@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvcobign1to4d"
-path="res://.godot/imported/Travel_Rating_Stars_1.png-945c0cd733e3fb5736ed07b89d3f8c7a.ctex"
+path="res://.godot/imported/Travel_Rating_Stars_1.png-2a7d287863490d828ac6e7a5d84fdfd9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Rating_Stars_1.png"
-dest_files=["res://.godot/imported/Travel_Rating_Stars_1.png-945c0cd733e3fb5736ed07b89d3f8c7a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Rating_Stars_1.png"
+dest_files=["res://.godot/imported/Travel_Rating_Stars_1.png-2a7d287863490d828ac6e7a5d84fdfd9.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://57ystc3f6l6n"
-path="res://.godot/imported/Alchemy_Alembic_Crafting_Brewing_Station_Full.png-6a969a84e93d95635773eecb9dd53963.ctex"
+path="res://.godot/imported/Alchemy_Alembic_Crafting_Brewing_Station_Full.png-4e8728b5f3e8b5bda7af192ec86ce6f7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Alembic_Crafting_Brewing_Station_Full.png"
-dest_files=["res://.godot/imported/Alchemy_Alembic_Crafting_Brewing_Station_Full.png-6a969a84e93d95635773eecb9dd53963.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Alembic_Crafting_Brewing_Station_Full.png"
+dest_files=["res://.godot/imported/Alchemy_Alembic_Crafting_Brewing_Station_Full.png-4e8728b5f3e8b5bda7af192ec86ce6f7.ctex"]
 
 [params]
 

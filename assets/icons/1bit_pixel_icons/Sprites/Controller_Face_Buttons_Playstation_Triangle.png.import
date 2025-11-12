@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b02pbnvge18p7"
-path="res://.godot/imported/Controller_Face_Buttons_Playstation_Triangle.png-2f072dcbbe98ace2586acd5a2410d29d.ctex"
+path="res://.godot/imported/Controller_Face_Buttons_Playstation_Triangle.png-7407950967074ffd46bea5d48a60fe85.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Controller_Face_Buttons_Playstation_Triangle.png"
-dest_files=["res://.godot/imported/Controller_Face_Buttons_Playstation_Triangle.png-2f072dcbbe98ace2586acd5a2410d29d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Controller_Face_Buttons_Playstation_Triangle.png"
+dest_files=["res://.godot/imported/Controller_Face_Buttons_Playstation_Triangle.png-7407950967074ffd46bea5d48a60fe85.ctex"]
 
 [params]
 

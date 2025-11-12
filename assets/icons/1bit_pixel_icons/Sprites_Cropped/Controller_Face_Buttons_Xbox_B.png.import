@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bb6o22wfdmpaj"
-path="res://.godot/imported/Controller_Face_Buttons_Xbox_B.png-87f331b1bcd269a67e6654caa79984dc.ctex"
+path="res://.godot/imported/Controller_Face_Buttons_Xbox_B.png-5ca67e503a0e8fdb071ca96dad30091e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Controller_Face_Buttons_Xbox_B.png"
-dest_files=["res://.godot/imported/Controller_Face_Buttons_Xbox_B.png-87f331b1bcd269a67e6654caa79984dc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Controller_Face_Buttons_Xbox_B.png"
+dest_files=["res://.godot/imported/Controller_Face_Buttons_Xbox_B.png-5ca67e503a0e8fdb071ca96dad30091e.ctex"]
 
 [params]
 

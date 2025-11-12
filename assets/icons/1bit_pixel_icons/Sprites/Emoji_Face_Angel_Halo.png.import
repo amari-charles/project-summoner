@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c4lwk5nd7ykrb"
-path="res://.godot/imported/Emoji_Face_Angel_Halo.png-97f93a9222b0958295b46cdc57ad8035.ctex"
+path="res://.godot/imported/Emoji_Face_Angel_Halo.png-710292c7492995a6777d8f6644afc6bc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Emoji_Face_Angel_Halo.png"
-dest_files=["res://.godot/imported/Emoji_Face_Angel_Halo.png-97f93a9222b0958295b46cdc57ad8035.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Emoji_Face_Angel_Halo.png"
+dest_files=["res://.godot/imported/Emoji_Face_Angel_Halo.png-710292c7492995a6777d8f6644afc6bc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://by2xkdhxgm18l"
-path="res://.godot/imported/Travel_Carriage_Cart.png-463d2aa09698d8c5afce3ab8716d6389.ctex"
+path="res://.godot/imported/Travel_Carriage_Cart.png-6c7ae5064cf70e04c4775169fe75f3a1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Carriage_Cart.png"
-dest_files=["res://.godot/imported/Travel_Carriage_Cart.png-463d2aa09698d8c5afce3ab8716d6389.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Carriage_Cart.png"
+dest_files=["res://.godot/imported/Travel_Carriage_Cart.png-6c7ae5064cf70e04c4775169fe75f3a1.ctex"]
 
 [params]
 

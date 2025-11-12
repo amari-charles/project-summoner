@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://by822irocq1wo"
-path="res://.godot/imported/RPG_Item_Weapon_Pistol_Gun_Ranged.png-0f9053a83589f5108150841ac31b8720.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Pistol_Gun_Ranged.png-ffa8cb1aa21a3b43f7f7c5672e5ebba1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Pistol_Gun_Ranged.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Pistol_Gun_Ranged.png-0f9053a83589f5108150841ac31b8720.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Pistol_Gun_Ranged.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Pistol_Gun_Ranged.png-ffa8cb1aa21a3b43f7f7c5672e5ebba1.ctex"]
 
 [params]
 

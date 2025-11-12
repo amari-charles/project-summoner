@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwof0uf2athlc"
-path="res://.godot/imported/Boardgames_Card_Star.png-3ae8429d42d3cbe453aa80322315e072.ctex"
+path="res://.godot/imported/Boardgames_Card_Star.png-4b9c3f2a473a42d285ec3cbdb43019fb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Card_Star.png"
-dest_files=["res://.godot/imported/Boardgames_Card_Star.png-3ae8429d42d3cbe453aa80322315e072.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Card_Star.png"
+dest_files=["res://.godot/imported/Boardgames_Card_Star.png-4b9c3f2a473a42d285ec3cbdb43019fb.ctex"]
 
 [params]
 

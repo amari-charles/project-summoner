@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cs4vok2g6l6ay"
-path="res://.godot/imported/RPG_Item_Weapon_Mace_Spiked_Ball_Morningstar.png-cc694bd91a8e9ef052fb5256e690a068.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Mace_Spiked_Ball_Morningstar.png-7fc70010492249fd3cf21e69c35d0093.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Mace_Spiked_Ball_Morningstar.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Mace_Spiked_Ball_Morningstar.png-cc694bd91a8e9ef052fb5256e690a068.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Mace_Spiked_Ball_Morningstar.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Mace_Spiked_Ball_Morningstar.png-7fc70010492249fd3cf21e69c35d0093.ctex"]
 
 [params]
 

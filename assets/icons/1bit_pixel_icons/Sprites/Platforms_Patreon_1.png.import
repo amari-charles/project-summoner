@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bormly55nxic8"
-path="res://.godot/imported/Platforms_Patreon_1.png-e808a0990d0647847257342a19c658a5.ctex"
+path="res://.godot/imported/Platforms_Patreon_1.png-7ca5fdd5539e8140abf64efb8a25d024.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Patreon_1.png"
-dest_files=["res://.godot/imported/Platforms_Patreon_1.png-e808a0990d0647847257342a19c658a5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Patreon_1.png"
+dest_files=["res://.godot/imported/Platforms_Patreon_1.png-7ca5fdd5539e8140abf64efb8a25d024.ctex"]
 
 [params]
 

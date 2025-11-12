@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bu313nnlkajcw"
-path="res://.godot/imported/RPG_Stat_Luck_Four_Leaf_Clover_Small.png-f4bb27494fa098e66a9bfb712762b4f4.ctex"
+path="res://.godot/imported/RPG_Stat_Luck_Four_Leaf_Clover_Small.png-a829f779e7b0c166fd274126022f887b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Stat_Luck_Four_Leaf_Clover_Small.png"
-dest_files=["res://.godot/imported/RPG_Stat_Luck_Four_Leaf_Clover_Small.png-f4bb27494fa098e66a9bfb712762b4f4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Stat_Luck_Four_Leaf_Clover_Small.png"
+dest_files=["res://.godot/imported/RPG_Stat_Luck_Four_Leaf_Clover_Small.png-a829f779e7b0c166fd274126022f887b.ctex"]
 
 [params]
 

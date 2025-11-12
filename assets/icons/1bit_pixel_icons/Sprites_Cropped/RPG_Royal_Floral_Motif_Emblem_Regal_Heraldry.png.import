@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7xjkyvwixb8h"
-path="res://.godot/imported/RPG_Royal_Floral_Motif_Emblem_Regal_Heraldry.png-61a2de75da4bf518f7c9553d0433eccc.ctex"
+path="res://.godot/imported/RPG_Royal_Floral_Motif_Emblem_Regal_Heraldry.png-27b1717a1ebc1deade96ce9f296719a2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Royal_Floral_Motif_Emblem_Regal_Heraldry.png"
-dest_files=["res://.godot/imported/RPG_Royal_Floral_Motif_Emblem_Regal_Heraldry.png-61a2de75da4bf518f7c9553d0433eccc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Royal_Floral_Motif_Emblem_Regal_Heraldry.png"
+dest_files=["res://.godot/imported/RPG_Royal_Floral_Motif_Emblem_Regal_Heraldry.png-27b1717a1ebc1deade96ce9f296719a2.ctex"]
 
 [params]
 

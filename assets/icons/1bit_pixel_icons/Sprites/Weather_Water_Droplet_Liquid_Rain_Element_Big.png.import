@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxfk7202toqrb"
-path="res://.godot/imported/Weather_Water_Droplet_Liquid_Rain_Element_Big.png-f34560ff35df3875fb2588ee6213c881.ctex"
+path="res://.godot/imported/Weather_Water_Droplet_Liquid_Rain_Element_Big.png-9c6cf60f37a102002b2cf360da93f530.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Water_Droplet_Liquid_Rain_Element_Big.png"
-dest_files=["res://.godot/imported/Weather_Water_Droplet_Liquid_Rain_Element_Big.png-f34560ff35df3875fb2588ee6213c881.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Water_Droplet_Liquid_Rain_Element_Big.png"
+dest_files=["res://.godot/imported/Weather_Water_Droplet_Liquid_Rain_Element_Big.png-9c6cf60f37a102002b2cf360da93f530.ctex"]
 
 [params]
 

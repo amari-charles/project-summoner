@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbq37dlinipdg"
-path="res://.godot/imported/Weather_Flower_Spring_Season.png-bb02c079ae32e96b7076a5290820e054.ctex"
+path="res://.godot/imported/Weather_Flower_Spring_Season.png-9c90e42972ae06ebf99b186b38bca649.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Flower_Spring_Season.png"
-dest_files=["res://.godot/imported/Weather_Flower_Spring_Season.png-bb02c079ae32e96b7076a5290820e054.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Flower_Spring_Season.png"
+dest_files=["res://.godot/imported/Weather_Flower_Spring_Season.png-9c90e42972ae06ebf99b186b38bca649.ctex"]
 
 [params]
 

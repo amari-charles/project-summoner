@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b58x03k4ah2y4"
-path="res://.godot/imported/ul-2-feather@0.75x.png-d7dde6a63c1b4d7dba1ae1d46aebf41e.ctex"
+path="res://.godot/imported/ul-2-feather@0.75x.png-c41984b8c72bd945660010b18ea2226b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 2/Upwards-left/Single images/0.75x/ul-2-feather@0.75x.png"
-dest_files=["res://.godot/imported/ul-2-feather@0.75x.png-d7dde6a63c1b4d7dba1ae1d46aebf41e.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 2/Upwards-left/Single images/0.75x/ul-2-feather@0.75x.png"
+dest_files=["res://.godot/imported/ul-2-feather@0.75x.png-c41984b8c72bd945660010b18ea2226b.ctex"]
 
 [params]
 

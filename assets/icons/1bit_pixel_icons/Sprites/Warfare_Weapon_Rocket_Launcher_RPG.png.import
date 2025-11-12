@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2aigy2fg4ccn"
-path="res://.godot/imported/Warfare_Weapon_Rocket_Launcher_RPG.png-b4c98a3c5dfd28aebeb287de885b4a05.ctex"
+path="res://.godot/imported/Warfare_Weapon_Rocket_Launcher_RPG.png-3e0180938f186d95247c0729b1e4ba2c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Warfare_Weapon_Rocket_Launcher_RPG.png"
-dest_files=["res://.godot/imported/Warfare_Weapon_Rocket_Launcher_RPG.png-b4c98a3c5dfd28aebeb287de885b4a05.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Warfare_Weapon_Rocket_Launcher_RPG.png"
+dest_files=["res://.godot/imported/Warfare_Weapon_Rocket_Launcher_RPG.png-3e0180938f186d95247c0729b1e4ba2c.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqywfkll7cal6"
-path="res://.godot/imported/Cosmetics_Lipstick.png-75bec4f9139825d7a3d389591e3390b6.ctex"
+path="res://.godot/imported/Cosmetics_Lipstick.png-fcaa49ad0f727fc7eae5229997205fc4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Lipstick.png"
-dest_files=["res://.godot/imported/Cosmetics_Lipstick.png-75bec4f9139825d7a3d389591e3390b6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Lipstick.png"
+dest_files=["res://.godot/imported/Cosmetics_Lipstick.png-fcaa49ad0f727fc7eae5229997205fc4.ctex"]
 
 [params]
 

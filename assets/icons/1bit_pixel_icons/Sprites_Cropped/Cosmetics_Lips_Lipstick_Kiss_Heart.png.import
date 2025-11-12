@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwmer7n5t3gqm"
-path="res://.godot/imported/Cosmetics_Lips_Lipstick_Kiss_Heart.png-e9ad916b47c12eef9f43af14ae2d36ea.ctex"
+path="res://.godot/imported/Cosmetics_Lips_Lipstick_Kiss_Heart.png-90c4e65d441d38794dcd9bb6813814bc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Cosmetics_Lips_Lipstick_Kiss_Heart.png"
-dest_files=["res://.godot/imported/Cosmetics_Lips_Lipstick_Kiss_Heart.png-e9ad916b47c12eef9f43af14ae2d36ea.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Cosmetics_Lips_Lipstick_Kiss_Heart.png"
+dest_files=["res://.godot/imported/Cosmetics_Lips_Lipstick_Kiss_Heart.png-90c4e65d441d38794dcd9bb6813814bc.ctex"]
 
 [params]
 

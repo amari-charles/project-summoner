@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfc1j8akvlu1u"
-path="res://.godot/imported/Software_Bug_Insect_Cockroach_Error_Report.png-41eef7ca9f43417bc4b87c49857e0021.ctex"
+path="res://.godot/imported/Software_Bug_Insect_Cockroach_Error_Report.png-25545691ab262ca382e86f65a83b0d47.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Bug_Insect_Cockroach_Error_Report.png"
-dest_files=["res://.godot/imported/Software_Bug_Insect_Cockroach_Error_Report.png-41eef7ca9f43417bc4b87c49857e0021.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Bug_Insect_Cockroach_Error_Report.png"
+dest_files=["res://.godot/imported/Software_Bug_Insect_Cockroach_Error_Report.png-25545691ab262ca382e86f65a83b0d47.ctex"]
 
 [params]
 

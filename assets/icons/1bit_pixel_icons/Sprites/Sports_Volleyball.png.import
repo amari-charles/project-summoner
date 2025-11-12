@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d386510v58gvq"
-path="res://.godot/imported/Sports_Volleyball.png-602ab92e9c6157f976cc67e3d985533f.ctex"
+path="res://.godot/imported/Sports_Volleyball.png-da6abe0d616cb5b6f735b7dabdbcaebb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Volleyball.png"
-dest_files=["res://.godot/imported/Sports_Volleyball.png-602ab92e9c6157f976cc67e3d985533f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Volleyball.png"
+dest_files=["res://.godot/imported/Sports_Volleyball.png-da6abe0d616cb5b6f735b7dabdbcaebb.ctex"]
 
 [params]
 

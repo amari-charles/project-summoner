@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d17k6w4bieqc"
-path="res://.godot/imported/RPG_Spell_Curse_Pentagram_Dark_Magic_Ritual_Sacrifice_Devil_Diablo.png-9710d944571afaef4f85b0a0f60030a0.ctex"
+path="res://.godot/imported/RPG_Spell_Curse_Pentagram_Dark_Magic_Ritual_Sacrifice_Devil_Diablo.png-48ef52402acbf85cf7268032735a359f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Spell_Curse_Pentagram_Dark_Magic_Ritual_Sacrifice_Devil_Diablo.png"
-dest_files=["res://.godot/imported/RPG_Spell_Curse_Pentagram_Dark_Magic_Ritual_Sacrifice_Devil_Diablo.png-9710d944571afaef4f85b0a0f60030a0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Spell_Curse_Pentagram_Dark_Magic_Ritual_Sacrifice_Devil_Diablo.png"
+dest_files=["res://.godot/imported/RPG_Spell_Curse_Pentagram_Dark_Magic_Ritual_Sacrifice_Devil_Diablo.png-48ef52402acbf85cf7268032735a359f.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4ovi2hndwnuy"
-path="res://.godot/imported/Controller_Face_Buttons_Numbers.png-85622e0c3f05e0ce0487ec2166a9e5d4.ctex"
+path="res://.godot/imported/Controller_Face_Buttons_Numbers.png-c88cdcb414ff1080793e6a3d71667a9b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Controller_Face_Buttons_Numbers.png"
-dest_files=["res://.godot/imported/Controller_Face_Buttons_Numbers.png-85622e0c3f05e0ce0487ec2166a9e5d4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Controller_Face_Buttons_Numbers.png"
+dest_files=["res://.godot/imported/Controller_Face_Buttons_Numbers.png-c88cdcb414ff1080793e6a3d71667a9b.ctex"]
 
 [params]
 

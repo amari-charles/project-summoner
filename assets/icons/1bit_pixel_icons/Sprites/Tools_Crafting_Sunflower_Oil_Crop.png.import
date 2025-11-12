@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4421mfeigafp"
-path="res://.godot/imported/Tools_Crafting_Sunflower_Oil_Crop.png-63cae1d602d5aa8f4c0c57742e2e15b3.ctex"
+path="res://.godot/imported/Tools_Crafting_Sunflower_Oil_Crop.png-dc8368d19392f5883515145f211432af.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Sunflower_Oil_Crop.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Sunflower_Oil_Crop.png-63cae1d602d5aa8f4c0c57742e2e15b3.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Sunflower_Oil_Crop.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Sunflower_Oil_Crop.png-dc8368d19392f5883515145f211432af.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://n6uxhn01sn76"
-path="res://.godot/imported/Misc_Stethoscope_Doctor_Medic_Tool.png-7b9b4a801b0b272716804e367c5d69e9.ctex"
+path="res://.godot/imported/Misc_Stethoscope_Doctor_Medic_Tool.png-7c7a01f9218e4d171e8f49e41816b075.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_Stethoscope_Doctor_Medic_Tool.png"
-dest_files=["res://.godot/imported/Misc_Stethoscope_Doctor_Medic_Tool.png-7b9b4a801b0b272716804e367c5d69e9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_Stethoscope_Doctor_Medic_Tool.png"
+dest_files=["res://.godot/imported/Misc_Stethoscope_Doctor_Medic_Tool.png-7c7a01f9218e4d171e8f49e41816b075.ctex"]
 
 [params]
 

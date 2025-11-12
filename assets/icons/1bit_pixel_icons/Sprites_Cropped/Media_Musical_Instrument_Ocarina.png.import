@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b84aro6d2x0f"
-path="res://.godot/imported/Media_Musical_Instrument_Ocarina.png-3c55eefbe776d002c1be1b5f0dd3b708.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Ocarina.png-95c62f19635fe5e76c58721713595ca5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Ocarina.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Ocarina.png-3c55eefbe776d002c1be1b5f0dd3b708.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Ocarina.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Ocarina.png-95c62f19635fe5e76c58721713595ca5.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsx1y8w82ct0s"
-path="res://.godot/imported/Boardgames_Domino_Piece.png-c63777a80d835e43760899136be92092.ctex"
+path="res://.godot/imported/Boardgames_Domino_Piece.png-0e102b2d169531f07a2b785f0ab733a3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Domino_Piece.png"
-dest_files=["res://.godot/imported/Boardgames_Domino_Piece.png-c63777a80d835e43760899136be92092.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Domino_Piece.png"
+dest_files=["res://.godot/imported/Boardgames_Domino_Piece.png-0e102b2d169531f07a2b785f0ab733a3.ctex"]
 
 [params]
 

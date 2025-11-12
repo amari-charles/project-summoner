@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv3ri3dcnfske"
-path="res://.godot/imported/Media_Camera_Photo_Shoot_2.png-8599e6b58a65bcbe69b2e841e49cd711.ctex"
+path="res://.godot/imported/Media_Camera_Photo_Shoot_2.png-f07b47f44d715c0f78aea504f81eb436.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Camera_Photo_Shoot_2.png"
-dest_files=["res://.godot/imported/Media_Camera_Photo_Shoot_2.png-8599e6b58a65bcbe69b2e841e49cd711.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Camera_Photo_Shoot_2.png"
+dest_files=["res://.godot/imported/Media_Camera_Photo_Shoot_2.png-f07b47f44d715c0f78aea504f81eb436.ctex"]
 
 [params]
 

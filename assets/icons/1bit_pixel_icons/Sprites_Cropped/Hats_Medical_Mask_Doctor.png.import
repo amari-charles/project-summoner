@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://y7a7jc65fr8k"
-path="res://.godot/imported/Hats_Medical_Mask_Doctor.png-035c089eb06d70e432920ce69f2c22da.ctex"
+path="res://.godot/imported/Hats_Medical_Mask_Doctor.png-2ea112a951a0e76b38ff253f27d85c6d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Medical_Mask_Doctor.png"
-dest_files=["res://.godot/imported/Hats_Medical_Mask_Doctor.png-035c089eb06d70e432920ce69f2c22da.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Medical_Mask_Doctor.png"
+dest_files=["res://.godot/imported/Hats_Medical_Mask_Doctor.png-2ea112a951a0e76b38ff253f27d85c6d.ctex"]
 
 [params]
 

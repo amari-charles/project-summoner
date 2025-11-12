@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsrxfegoifva5"
-path="res://.godot/imported/RPG_Item_Lantern_Lamp_Light.png-32496ed55a2f23b3dc58bf5053566036.ctex"
+path="res://.godot/imported/RPG_Item_Lantern_Lamp_Light.png-71c4a5480cddbac4c5abb862557261a0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Lantern_Lamp_Light.png"
-dest_files=["res://.godot/imported/RPG_Item_Lantern_Lamp_Light.png-32496ed55a2f23b3dc58bf5053566036.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Lantern_Lamp_Light.png"
+dest_files=["res://.godot/imported/RPG_Item_Lantern_Lamp_Light.png-71c4a5480cddbac4c5abb862557261a0.ctex"]
 
 [params]
 

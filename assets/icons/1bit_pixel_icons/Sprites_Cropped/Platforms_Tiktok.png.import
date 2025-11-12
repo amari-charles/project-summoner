@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qryy0m71btjo"
-path="res://.godot/imported/Platforms_Tiktok.png-c598599c29b2ca0c5d71ee165e484fbe.ctex"
+path="res://.godot/imported/Platforms_Tiktok.png-310774839942c995a393843ae2c25e6b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Tiktok.png"
-dest_files=["res://.godot/imported/Platforms_Tiktok.png-c598599c29b2ca0c5d71ee165e484fbe.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Tiktok.png"
+dest_files=["res://.godot/imported/Platforms_Tiktok.png-310774839942c995a393843ae2c25e6b.ctex"]
 
 [params]
 

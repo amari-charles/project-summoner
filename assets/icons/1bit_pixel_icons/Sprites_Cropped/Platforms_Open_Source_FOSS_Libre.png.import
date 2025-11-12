@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1q1p5tymckw3"
-path="res://.godot/imported/Platforms_Open_Source_FOSS_Libre.png-d0c393ab9b2f0c242256892b334da2cf.ctex"
+path="res://.godot/imported/Platforms_Open_Source_FOSS_Libre.png-8073cbe2d80ce2faba8d0f17053b62b3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Open_Source_FOSS_Libre.png"
-dest_files=["res://.godot/imported/Platforms_Open_Source_FOSS_Libre.png-d0c393ab9b2f0c242256892b334da2cf.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Open_Source_FOSS_Libre.png"
+dest_files=["res://.godot/imported/Platforms_Open_Source_FOSS_Libre.png-8073cbe2d80ce2faba8d0f17053b62b3.ctex"]
 
 [params]
 

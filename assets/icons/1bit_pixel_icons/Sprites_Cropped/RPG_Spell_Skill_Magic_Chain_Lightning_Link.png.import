@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bl8e7ahns7eoa"
-path="res://.godot/imported/RPG_Spell_Skill_Magic_Chain_Lightning_Link.png-1d5afd0bfb0b66dfbf615a3b846707bd.ctex"
+path="res://.godot/imported/RPG_Spell_Skill_Magic_Chain_Lightning_Link.png-49eb541de1cef7372479aacd6080f3b8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Spell_Skill_Magic_Chain_Lightning_Link.png"
-dest_files=["res://.godot/imported/RPG_Spell_Skill_Magic_Chain_Lightning_Link.png-1d5afd0bfb0b66dfbf615a3b846707bd.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Spell_Skill_Magic_Chain_Lightning_Link.png"
+dest_files=["res://.godot/imported/RPG_Spell_Skill_Magic_Chain_Lightning_Link.png-49eb541de1cef7372479aacd6080f3b8.ctex"]
 
 [params]
 

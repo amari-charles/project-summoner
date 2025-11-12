@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bebs3ujowopro"
-path="res://.godot/imported/Tools_Crafting_Sewer_Pipes_Crossed_1.png-ae246f8c1ea7052ac097be5e19c33e3d.ctex"
+path="res://.godot/imported/Tools_Crafting_Sewer_Pipes_Crossed_1.png-9205d675f23aaf6bdc96e7765d9816b7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Sewer_Pipes_Crossed_1.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Sewer_Pipes_Crossed_1.png-ae246f8c1ea7052ac097be5e19c33e3d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Sewer_Pipes_Crossed_1.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Sewer_Pipes_Crossed_1.png-9205d675f23aaf6bdc96e7765d9816b7.ctex"]
 
 [params]
 

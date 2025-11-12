@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu0cuia5ra5rl"
-path="res://.godot/imported/Misc_Thermometer_Medical_2.png-c11ba993636c491234d1ed3e1fdf5b80.ctex"
+path="res://.godot/imported/Misc_Thermometer_Medical_2.png-75a55a03fc9d3babf8cf9caa91e86bcd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Misc_Thermometer_Medical_2.png"
-dest_files=["res://.godot/imported/Misc_Thermometer_Medical_2.png-c11ba993636c491234d1ed3e1fdf5b80.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Misc_Thermometer_Medical_2.png"
+dest_files=["res://.godot/imported/Misc_Thermometer_Medical_2.png-75a55a03fc9d3babf8cf9caa91e86bcd.ctex"]
 
 [params]
 

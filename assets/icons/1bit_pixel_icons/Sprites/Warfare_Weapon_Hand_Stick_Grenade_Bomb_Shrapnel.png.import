@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0b1qa72xi8bx"
-path="res://.godot/imported/Warfare_Weapon_Hand_Stick_Grenade_Bomb_Shrapnel.png-8995a9c1d4bab62c16a963cd9a4093d6.ctex"
+path="res://.godot/imported/Warfare_Weapon_Hand_Stick_Grenade_Bomb_Shrapnel.png-c36a15ece912ed5f21e446ef8335bb1f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Warfare_Weapon_Hand_Stick_Grenade_Bomb_Shrapnel.png"
-dest_files=["res://.godot/imported/Warfare_Weapon_Hand_Stick_Grenade_Bomb_Shrapnel.png-8995a9c1d4bab62c16a963cd9a4093d6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Warfare_Weapon_Hand_Stick_Grenade_Bomb_Shrapnel.png"
+dest_files=["res://.godot/imported/Warfare_Weapon_Hand_Stick_Grenade_Bomb_Shrapnel.png-c36a15ece912ed5f21e446ef8335bb1f.ctex"]
 
 [params]
 

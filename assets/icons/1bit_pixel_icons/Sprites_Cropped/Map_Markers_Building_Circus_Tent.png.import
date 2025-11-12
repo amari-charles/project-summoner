@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8l6e7n0sxeml"
-path="res://.godot/imported/Map_Markers_Building_Circus_Tent.png-92d3daf34f323e1386fce34a8abdfbd7.ctex"
+path="res://.godot/imported/Map_Markers_Building_Circus_Tent.png-b56105b87379d00a18e4e360b0a4dc87.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Building_Circus_Tent.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Circus_Tent.png-92d3daf34f323e1386fce34a8abdfbd7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Building_Circus_Tent.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Circus_Tent.png-b56105b87379d00a18e4e360b0a4dc87.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dg70fcw1irytm"
-path="res://.godot/imported/Arrows_Power_Button_Switch_Turn_On_Off.png-1a48873a67f1bb7a608667e9fd514110.ctex"
+path="res://.godot/imported/Arrows_Power_Button_Switch_Turn_On_Off.png-d84ada0177efcb3f7cd601d09ae1ed5d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Arrows_Power_Button_Switch_Turn_On_Off.png"
-dest_files=["res://.godot/imported/Arrows_Power_Button_Switch_Turn_On_Off.png-1a48873a67f1bb7a608667e9fd514110.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Arrows_Power_Button_Switch_Turn_On_Off.png"
+dest_files=["res://.godot/imported/Arrows_Power_Button_Switch_Turn_On_Off.png-d84ada0177efcb3f7cd601d09ae1ed5d.ctex"]
 
 [params]
 

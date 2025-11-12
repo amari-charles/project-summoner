@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckt0mnyjx2u05"
-path="res://.godot/imported/Version1_Attack1_02.png-01bb876a5a8b4ca3262319e66986a811.ctex"
+path="res://.godot/imported/Version1_Attack1_02.png-c48a5678e864a2fecab449fee1fd0f5e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-right/Animation/2x/Attack/Version1_Attack1_02.png"
-dest_files=["res://.godot/imported/Version1_Attack1_02.png-01bb876a5a8b4ca3262319e66986a811.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 1/Bottom-right/Animation/2x/Attack/Version1_Attack1_02.png"
+dest_files=["res://.godot/imported/Version1_Attack1_02.png-c48a5678e864a2fecab449fee1fd0f5e.ctex"]
 
 [params]
 

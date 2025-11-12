@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://n3kosdhms742"
-path="res://.godot/imported/Tools_Crafting_Profession_Hunting_Bow_Meat_Game.png-95de8f7b36bd3f70024ab5cdf9d34169.ctex"
+path="res://.godot/imported/Tools_Crafting_Profession_Hunting_Bow_Meat_Game.png-890c22e11a7b01c271681dfd110ca96b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Profession_Hunting_Bow_Meat_Game.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Profession_Hunting_Bow_Meat_Game.png-95de8f7b36bd3f70024ab5cdf9d34169.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Profession_Hunting_Bow_Meat_Game.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Profession_Hunting_Bow_Meat_Game.png-890c22e11a7b01c271681dfd110ca96b.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7hcvr706jbmb"
-path="res://.godot/imported/Tools_Crafting_Wax_Candle_Flame_Lighting_Holder.png-a13e7f094d62178eb18303adeb3c5b06.ctex"
+path="res://.godot/imported/Tools_Crafting_Wax_Candle_Flame_Lighting_Holder.png-bbdb0778282d917f958b6100bbd29bd1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Wax_Candle_Flame_Lighting_Holder.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Wax_Candle_Flame_Lighting_Holder.png-a13e7f094d62178eb18303adeb3c5b06.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Wax_Candle_Flame_Lighting_Holder.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Wax_Candle_Flame_Lighting_Holder.png-bbdb0778282d917f958b6100bbd29bd1.ctex"]
 
 [params]
 

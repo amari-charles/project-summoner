@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cq3xciqkystbd"
-path="res://.godot/imported/Alchemy_Lead_Saturn.png-41df6beb30a3b86edd299c9825188913.ctex"
+path="res://.godot/imported/Alchemy_Lead_Saturn.png-e371360cddfa3b33203fb50c53b78d7e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Lead_Saturn.png"
-dest_files=["res://.godot/imported/Alchemy_Lead_Saturn.png-41df6beb30a3b86edd299c9825188913.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Lead_Saturn.png"
+dest_files=["res://.godot/imported/Alchemy_Lead_Saturn.png-e371360cddfa3b33203fb50c53b78d7e.ctex"]
 
 [params]
 

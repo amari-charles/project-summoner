@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://db7xvfe1at5qe"
-path="res://.godot/imported/Travel_UFO_Alien_Spaceship.png-4233edf35b234983782aefe298f319d5.ctex"
+path="res://.godot/imported/Travel_UFO_Alien_Spaceship.png-0c6c6c63076d4e7b02562d9d35c90f6e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_UFO_Alien_Spaceship.png"
-dest_files=["res://.godot/imported/Travel_UFO_Alien_Spaceship.png-4233edf35b234983782aefe298f319d5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_UFO_Alien_Spaceship.png"
+dest_files=["res://.godot/imported/Travel_UFO_Alien_Spaceship.png-0c6c6c63076d4e7b02562d9d35c90f6e.ctex"]
 
 [params]
 

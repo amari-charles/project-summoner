@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://h4v074dhqbel"
-path="res://.godot/imported/Alchemy_Cancel_Decline.png-f7156c3a76a27abf800cf2f1c49f6c0a.ctex"
+path="res://.godot/imported/Alchemy_Cancel_Decline.png-d2b61417f3679af372f14c9744258b20.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Cancel_Decline.png"
-dest_files=["res://.godot/imported/Alchemy_Cancel_Decline.png-f7156c3a76a27abf800cf2f1c49f6c0a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Cancel_Decline.png"
+dest_files=["res://.godot/imported/Alchemy_Cancel_Decline.png-d2b61417f3679af372f14c9744258b20.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ber2s4l4wfkby"
-path="res://.godot/imported/Weather_Autumn_Fall_Leaf_Season_1.png-c7601be58e31ee8d72361e6fb143ae72.ctex"
+path="res://.godot/imported/Weather_Autumn_Fall_Leaf_Season_1.png-8b16891497532e682a95dfb1549f4767.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Autumn_Fall_Leaf_Season_1.png"
-dest_files=["res://.godot/imported/Weather_Autumn_Fall_Leaf_Season_1.png-c7601be58e31ee8d72361e6fb143ae72.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Autumn_Fall_Leaf_Season_1.png"
+dest_files=["res://.godot/imported/Weather_Autumn_Fall_Leaf_Season_1.png-8b16891497532e682a95dfb1549f4767.ctex"]
 
 [params]
 

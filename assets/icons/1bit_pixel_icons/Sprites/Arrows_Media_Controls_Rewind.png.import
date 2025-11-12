@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxx1ln6qgog88"
-path="res://.godot/imported/Arrows_Media_Controls_Rewind.png-3ad95e037fbd2699c4c7853682341462.ctex"
+path="res://.godot/imported/Arrows_Media_Controls_Rewind.png-03eb3bb999fdd035917cb243dfeb0680.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Arrows_Media_Controls_Rewind.png"
-dest_files=["res://.godot/imported/Arrows_Media_Controls_Rewind.png-3ad95e037fbd2699c4c7853682341462.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Arrows_Media_Controls_Rewind.png"
+dest_files=["res://.godot/imported/Arrows_Media_Controls_Rewind.png-03eb3bb999fdd035917cb243dfeb0680.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dp0wj1rt2i4wy"
-path="res://.godot/imported/RPG_Item_Weapon_Bullet_Ammo_Ranged_Pierce_Damage.png-fb798cef647f03b9c728273a1847e392.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Bullet_Ammo_Ranged_Pierce_Damage.png-78f7d0ea66e93629c02da12f1553b868.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Bullet_Ammo_Ranged_Pierce_Damage.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Bullet_Ammo_Ranged_Pierce_Damage.png-fb798cef647f03b9c728273a1847e392.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Bullet_Ammo_Ranged_Pierce_Damage.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Bullet_Ammo_Ranged_Pierce_Damage.png-78f7d0ea66e93629c02da12f1553b868.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vgeseo71gjst"
-path="res://.godot/imported/Arrows_Recycle_Triangle_Trash_Garbage_Rubbish_Reuse.png-86acff79de7c52c5cb49982051f9822e.ctex"
+path="res://.godot/imported/Arrows_Recycle_Triangle_Trash_Garbage_Rubbish_Reuse.png-f6de0307a013e6a4beed52290480f3d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Arrows_Recycle_Triangle_Trash_Garbage_Rubbish_Reuse.png"
-dest_files=["res://.godot/imported/Arrows_Recycle_Triangle_Trash_Garbage_Rubbish_Reuse.png-86acff79de7c52c5cb49982051f9822e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Arrows_Recycle_Triangle_Trash_Garbage_Rubbish_Reuse.png"
+dest_files=["res://.godot/imported/Arrows_Recycle_Triangle_Trash_Garbage_Rubbish_Reuse.png-f6de0307a013e6a4beed52290480f3d7.ctex"]
 
 [params]
 

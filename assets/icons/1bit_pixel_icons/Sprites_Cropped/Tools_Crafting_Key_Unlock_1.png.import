@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dx65f2f5k300i"
-path="res://.godot/imported/Tools_Crafting_Key_Unlock_1.png-ee5b2e32fa70804d0ec567967855ce83.ctex"
+path="res://.godot/imported/Tools_Crafting_Key_Unlock_1.png-3764c891d1e067a7d533380239be9a11.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Key_Unlock_1.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Key_Unlock_1.png-ee5b2e32fa70804d0ec567967855ce83.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Key_Unlock_1.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Key_Unlock_1.png-3764c891d1e067a7d533380239be9a11.ctex"]
 
 [params]
 

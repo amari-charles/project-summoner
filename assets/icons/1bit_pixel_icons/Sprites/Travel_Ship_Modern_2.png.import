@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv3kkqjarskbn"
-path="res://.godot/imported/Travel_Ship_Modern_2.png-dc60fd09c696328b1d0027ed3dfea3a4.ctex"
+path="res://.godot/imported/Travel_Ship_Modern_2.png-a1d2ecc9cd8ca8cbe42ab341e21bf48d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Ship_Modern_2.png"
-dest_files=["res://.godot/imported/Travel_Ship_Modern_2.png-dc60fd09c696328b1d0027ed3dfea3a4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Ship_Modern_2.png"
+dest_files=["res://.godot/imported/Travel_Ship_Modern_2.png-a1d2ecc9cd8ca8cbe42ab341e21bf48d.ctex"]
 
 [params]
 

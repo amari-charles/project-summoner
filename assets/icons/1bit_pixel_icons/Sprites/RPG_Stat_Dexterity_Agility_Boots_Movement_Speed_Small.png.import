@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bya0gxyj54gw0"
-path="res://.godot/imported/RPG_Stat_Dexterity_Agility_Boots_Movement_Speed_Small.png-e8427fcaa645f6a1ececddce3c866cf6.ctex"
+path="res://.godot/imported/RPG_Stat_Dexterity_Agility_Boots_Movement_Speed_Small.png-bb4bede966ea6ac32619f1f688b4f5c9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Stat_Dexterity_Agility_Boots_Movement_Speed_Small.png"
-dest_files=["res://.godot/imported/RPG_Stat_Dexterity_Agility_Boots_Movement_Speed_Small.png-e8427fcaa645f6a1ececddce3c866cf6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Stat_Dexterity_Agility_Boots_Movement_Speed_Small.png"
+dest_files=["res://.godot/imported/RPG_Stat_Dexterity_Agility_Boots_Movement_Speed_Small.png-bb4bede966ea6ac32619f1f688b4f5c9.ctex"]
 
 [params]
 

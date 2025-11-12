@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dky232v0gs4k1"
-path="res://.godot/imported/Sports_Bowling_Ball.png-b2fd25cf024ca20aca480ea8b539c3a1.ctex"
+path="res://.godot/imported/Sports_Bowling_Ball.png-905ea970d9427938b4ecff68f0e82bc1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Bowling_Ball.png"
-dest_files=["res://.godot/imported/Sports_Bowling_Ball.png-b2fd25cf024ca20aca480ea8b539c3a1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Bowling_Ball.png"
+dest_files=["res://.godot/imported/Sports_Bowling_Ball.png-905ea970d9427938b4ecff68f0e82bc1.ctex"]
 
 [params]
 

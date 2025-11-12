@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5dpiq2rmc0e1"
-path="res://.godot/imported/Sports_American_Football_Rugby_Helmet.png-6217b0f45eb9df3c4cb20cadd7734e69.ctex"
+path="res://.godot/imported/Sports_American_Football_Rugby_Helmet.png-a1dad72a971badb951b652dbee331cfc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Sports_American_Football_Rugby_Helmet.png"
-dest_files=["res://.godot/imported/Sports_American_Football_Rugby_Helmet.png-6217b0f45eb9df3c4cb20cadd7734e69.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Sports_American_Football_Rugby_Helmet.png"
+dest_files=["res://.godot/imported/Sports_American_Football_Rugby_Helmet.png-a1dad72a971badb951b652dbee331cfc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbe4jsityf5ey"
-path="res://.godot/imported/RPG_Crossed_Swords_Shield_Combat_Battle_War.png-c517ebbf58ff7f41ac350fe303cf45e9.ctex"
+path="res://.godot/imported/RPG_Crossed_Swords_Shield_Combat_Battle_War.png-3ed3a9d2f6a4a566551bd041da572e62.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Crossed_Swords_Shield_Combat_Battle_War.png"
-dest_files=["res://.godot/imported/RPG_Crossed_Swords_Shield_Combat_Battle_War.png-c517ebbf58ff7f41ac350fe303cf45e9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Crossed_Swords_Shield_Combat_Battle_War.png"
+dest_files=["res://.godot/imported/RPG_Crossed_Swords_Shield_Combat_Battle_War.png-3ed3a9d2f6a4a566551bd041da572e62.ctex"]
 
 [params]
 

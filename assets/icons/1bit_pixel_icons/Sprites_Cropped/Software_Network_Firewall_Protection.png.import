@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bo3p7gcb1uke6"
-path="res://.godot/imported/Software_Network_Firewall_Protection.png-87dfb9f5dd22c6d754658514b3324210.ctex"
+path="res://.godot/imported/Software_Network_Firewall_Protection.png-d924ccfbd35e157f8ce56e41f7db6333.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Network_Firewall_Protection.png"
-dest_files=["res://.godot/imported/Software_Network_Firewall_Protection.png-87dfb9f5dd22c6d754658514b3324210.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Network_Firewall_Protection.png"
+dest_files=["res://.godot/imported/Software_Network_Firewall_Protection.png-d924ccfbd35e157f8ce56e41f7db6333.ctex"]
 
 [params]
 

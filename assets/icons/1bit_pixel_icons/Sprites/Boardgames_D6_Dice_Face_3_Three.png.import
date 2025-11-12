@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cj8ms3vddfrjc"
-path="res://.godot/imported/Boardgames_D6_Dice_Face_3_Three.png-ff594c18158367a538b27498b698688a.ctex"
+path="res://.godot/imported/Boardgames_D6_Dice_Face_3_Three.png-7bc10651c40ef3422a11b43f14196a22.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_D6_Dice_Face_3_Three.png"
-dest_files=["res://.godot/imported/Boardgames_D6_Dice_Face_3_Three.png-ff594c18158367a538b27498b698688a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_D6_Dice_Face_3_Three.png"
+dest_files=["res://.godot/imported/Boardgames_D6_Dice_Face_3_Three.png-7bc10651c40ef3422a11b43f14196a22.ctex"]
 
 [params]
 

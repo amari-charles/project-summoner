@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjk5y31t21afu"
-path="res://.godot/imported/Platforms_Instagram.png-612465c0f7c4de0188b8ccb7e71be40a.ctex"
+path="res://.godot/imported/Platforms_Instagram.png-4ab9277ba4c88367b7d6680fe313fb2b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Instagram.png"
-dest_files=["res://.godot/imported/Platforms_Instagram.png-612465c0f7c4de0188b8ccb7e71be40a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Instagram.png"
+dest_files=["res://.godot/imported/Platforms_Instagram.png-4ab9277ba4c88367b7d6680fe313fb2b.ctex"]
 
 [params]
 

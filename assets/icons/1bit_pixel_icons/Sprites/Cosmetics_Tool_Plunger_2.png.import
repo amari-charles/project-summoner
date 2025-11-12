@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu6ruo2gq7jmk"
-path="res://.godot/imported/Cosmetics_Tool_Plunger_2.png-06f70e8ee42cc40bdc6da13aae61bf9d.ctex"
+path="res://.godot/imported/Cosmetics_Tool_Plunger_2.png-3d50e92c172586e148a535c12d89879e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Tool_Plunger_2.png"
-dest_files=["res://.godot/imported/Cosmetics_Tool_Plunger_2.png-06f70e8ee42cc40bdc6da13aae61bf9d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Tool_Plunger_2.png"
+dest_files=["res://.godot/imported/Cosmetics_Tool_Plunger_2.png-3d50e92c172586e148a535c12d89879e.ctex"]
 
 [params]
 

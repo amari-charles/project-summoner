@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://y68bsalpj55a"
-path="res://.godot/imported/Boardgames_Meeple_Big.png-ac332c316b12d8052dd663f1f5280bfe.ctex"
+path="res://.godot/imported/Boardgames_Meeple_Big.png-a3ba4d21ea65b51c789a5507c07678ea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Meeple_Big.png"
-dest_files=["res://.godot/imported/Boardgames_Meeple_Big.png-ac332c316b12d8052dd663f1f5280bfe.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Meeple_Big.png"
+dest_files=["res://.godot/imported/Boardgames_Meeple_Big.png-a3ba4d21ea65b51c789a5507c07678ea.ctex"]
 
 [params]
 

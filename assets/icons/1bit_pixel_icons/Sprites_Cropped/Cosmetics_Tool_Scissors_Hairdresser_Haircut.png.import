@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvtcqwxcfq5iw"
-path="res://.godot/imported/Cosmetics_Tool_Scissors_Hairdresser_Haircut.png-68d754e8dd80dd33ba51f7342ef11147.ctex"
+path="res://.godot/imported/Cosmetics_Tool_Scissors_Hairdresser_Haircut.png-d64d99339614a7326500960062076a87.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Cosmetics_Tool_Scissors_Hairdresser_Haircut.png"
-dest_files=["res://.godot/imported/Cosmetics_Tool_Scissors_Hairdresser_Haircut.png-68d754e8dd80dd33ba51f7342ef11147.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Cosmetics_Tool_Scissors_Hairdresser_Haircut.png"
+dest_files=["res://.godot/imported/Cosmetics_Tool_Scissors_Hairdresser_Haircut.png-d64d99339614a7326500960062076a87.ctex"]
 
 [params]
 

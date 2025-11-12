@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlwbr0u7xkq3x"
-path="res://.godot/imported/Arrows_Media_Controls_Stop.png-0f695fc777d7c5ce2da2592e97c10736.ctex"
+path="res://.godot/imported/Arrows_Media_Controls_Stop.png-5a78651aa36129e3d4fbaf51de853624.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Arrows_Media_Controls_Stop.png"
-dest_files=["res://.godot/imported/Arrows_Media_Controls_Stop.png-0f695fc777d7c5ce2da2592e97c10736.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Arrows_Media_Controls_Stop.png"
+dest_files=["res://.godot/imported/Arrows_Media_Controls_Stop.png-5a78651aa36129e3d4fbaf51de853624.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdssfjas5bjpt"
-path="res://.godot/imported/Alchemy_Element_Air.png-d73937e034f93a4cb06b52dfb82deee2.ctex"
+path="res://.godot/imported/Alchemy_Element_Air.png-02f4e31d1d7e427a96b256a4e07234f8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Element_Air.png"
-dest_files=["res://.godot/imported/Alchemy_Element_Air.png-d73937e034f93a4cb06b52dfb82deee2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Element_Air.png"
+dest_files=["res://.godot/imported/Alchemy_Element_Air.png-02f4e31d1d7e427a96b256a4e07234f8.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://41siocmlshfh"
-path="res://.godot/imported/Arrows_Double_Horizontal_Left_Right.png-bb4e1cea6319fc116f19df57c3111b84.ctex"
+path="res://.godot/imported/Arrows_Double_Horizontal_Left_Right.png-3b64944f25b76003c09e6ee86c7eef2a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Arrows_Double_Horizontal_Left_Right.png"
-dest_files=["res://.godot/imported/Arrows_Double_Horizontal_Left_Right.png-bb4e1cea6319fc116f19df57c3111b84.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Arrows_Double_Horizontal_Left_Right.png"
+dest_files=["res://.godot/imported/Arrows_Double_Horizontal_Left_Right.png-3b64944f25b76003c09e6ee86c7eef2a.ctex"]
 
 [params]
 

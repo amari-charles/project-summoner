@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://p7basv6wajj8"
-path="res://.godot/imported/Media_Car_Horn_Honk.png-321244b12944617db3233355adebdf1c.ctex"
+path="res://.godot/imported/Media_Car_Horn_Honk.png-076553b7e9088f296eb0746001491b03.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Car_Horn_Honk.png"
-dest_files=["res://.godot/imported/Media_Car_Horn_Honk.png-321244b12944617db3233355adebdf1c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Car_Horn_Honk.png"
+dest_files=["res://.godot/imported/Media_Car_Horn_Honk.png-076553b7e9088f296eb0746001491b03.ctex"]
 
 [params]
 

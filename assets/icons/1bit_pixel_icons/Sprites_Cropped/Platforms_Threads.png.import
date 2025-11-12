@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bg6iosjm5ghk7"
-path="res://.godot/imported/Platforms_Threads.png-5e19e4677877a7c186aafa38d0133dd9.ctex"
+path="res://.godot/imported/Platforms_Threads.png-488cb7d0b32b507e5d4d36338bfa25cb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Threads.png"
-dest_files=["res://.godot/imported/Platforms_Threads.png-5e19e4677877a7c186aafa38d0133dd9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Threads.png"
+dest_files=["res://.godot/imported/Platforms_Threads.png-488cb7d0b32b507e5d4d36338bfa25cb.ctex"]
 
 [params]
 

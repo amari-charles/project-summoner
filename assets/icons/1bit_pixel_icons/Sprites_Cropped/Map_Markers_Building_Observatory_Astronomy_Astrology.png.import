@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bcnlkndi7rvmx"
-path="res://.godot/imported/Map_Markers_Building_Observatory_Astronomy_Astrology.png-ee11d3adcdf339670e26c153a0bc01fa.ctex"
+path="res://.godot/imported/Map_Markers_Building_Observatory_Astronomy_Astrology.png-25648d92016730bde1cf142e0bd3b676.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Building_Observatory_Astronomy_Astrology.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Observatory_Astronomy_Astrology.png-ee11d3adcdf339670e26c153a0bc01fa.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Building_Observatory_Astronomy_Astrology.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Observatory_Astronomy_Astrology.png-25648d92016730bde1cf142e0bd3b676.ctex"]
 
 [params]
 

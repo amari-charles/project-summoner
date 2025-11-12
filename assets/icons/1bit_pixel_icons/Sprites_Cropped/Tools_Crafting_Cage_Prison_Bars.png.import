@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bi7yrwu7mlguf"
-path="res://.godot/imported/Tools_Crafting_Cage_Prison_Bars.png-9b83555e182641ef4725749d69b2919c.ctex"
+path="res://.godot/imported/Tools_Crafting_Cage_Prison_Bars.png-1c7744cb2389673d06b620c5ca130041.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Cage_Prison_Bars.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Cage_Prison_Bars.png-9b83555e182641ef4725749d69b2919c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Cage_Prison_Bars.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Cage_Prison_Bars.png-1c7744cb2389673d06b620c5ca130041.ctex"]
 
 [params]
 

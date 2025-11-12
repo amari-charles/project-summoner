@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vn2tiriycs1l"
-path="res://.godot/imported/Platforms_Windows_11.png-eb213ec6f30d787fba5cda77516976a9.ctex"
+path="res://.godot/imported/Platforms_Windows_11.png-3bbec53ff8ec021af496bb6af6254765.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Windows_11.png"
-dest_files=["res://.godot/imported/Platforms_Windows_11.png-eb213ec6f30d787fba5cda77516976a9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Windows_11.png"
+dest_files=["res://.godot/imported/Platforms_Windows_11.png-3bbec53ff8ec021af496bb6af6254765.ctex"]
 
 [params]
 

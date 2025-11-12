@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7g3dslknuggf"
-path="res://.godot/imported/Software_Save_Button_Floppy_Disk.png-fde11013deebf48f4230a0a36c79fcd4.ctex"
+path="res://.godot/imported/Software_Save_Button_Floppy_Disk.png-33806026c03d0e41e9f1b69acbf0ba44.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Save_Button_Floppy_Disk.png"
-dest_files=["res://.godot/imported/Software_Save_Button_Floppy_Disk.png-fde11013deebf48f4230a0a36c79fcd4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Save_Button_Floppy_Disk.png"
+dest_files=["res://.godot/imported/Software_Save_Button_Floppy_Disk.png-33806026c03d0e41e9f1b69acbf0ba44.ctex"]
 
 [params]
 

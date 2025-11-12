@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djcnj4b7j4l1k"
-path="res://.godot/imported/Warfare_Medal_Award_Achievement_Rank.png-6f436d11e932761ff9b0298a6e7ef295.ctex"
+path="res://.godot/imported/Warfare_Medal_Award_Achievement_Rank.png-c343d1f11a58c034e2e27e4ebe1ac025.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Medal_Award_Achievement_Rank.png"
-dest_files=["res://.godot/imported/Warfare_Medal_Award_Achievement_Rank.png-6f436d11e932761ff9b0298a6e7ef295.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Medal_Award_Achievement_Rank.png"
+dest_files=["res://.godot/imported/Warfare_Medal_Award_Achievement_Rank.png-c343d1f11a58c034e2e27e4ebe1ac025.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://codqbwukn0s5r"
-path="res://.godot/imported/Cosmetics_Soap_Liquid_Creme_Cream.png-89548ae812a79fb702088722aaa586d9.ctex"
+path="res://.godot/imported/Cosmetics_Soap_Liquid_Creme_Cream.png-66eaf62c2674e893204abd5f8a09b5b8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Soap_Liquid_Creme_Cream.png"
-dest_files=["res://.godot/imported/Cosmetics_Soap_Liquid_Creme_Cream.png-89548ae812a79fb702088722aaa586d9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Soap_Liquid_Creme_Cream.png"
+dest_files=["res://.godot/imported/Cosmetics_Soap_Liquid_Creme_Cream.png-66eaf62c2674e893204abd5f8a09b5b8.ctex"]
 
 [params]
 

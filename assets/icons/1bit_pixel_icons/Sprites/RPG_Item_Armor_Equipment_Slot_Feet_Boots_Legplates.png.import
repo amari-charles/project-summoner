@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://drvv04v15e4u3"
-path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Feet_Boots_Legplates.png-1eaa4e919a67d15debaf0a60b2ec75d4.ctex"
+path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Feet_Boots_Legplates.png-1aee1dbf50caf7ce299f7377d211e340.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Armor_Equipment_Slot_Feet_Boots_Legplates.png"
-dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Feet_Boots_Legplates.png-1eaa4e919a67d15debaf0a60b2ec75d4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Armor_Equipment_Slot_Feet_Boots_Legplates.png"
+dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Feet_Boots_Legplates.png-1aee1dbf50caf7ce299f7377d211e340.ctex"]
 
 [params]
 

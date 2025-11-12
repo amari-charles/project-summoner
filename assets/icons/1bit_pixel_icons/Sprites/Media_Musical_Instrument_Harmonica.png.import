@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c07r4px5kl2pq"
-path="res://.godot/imported/Media_Musical_Instrument_Harmonica.png-8ea9db065e0c41768316a933a53969c1.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Harmonica.png-dc25d6029e3053f664c9d68b4bd45b02.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Harmonica.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Harmonica.png-8ea9db065e0c41768316a933a53969c1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Harmonica.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Harmonica.png-dc25d6029e3053f664c9d68b4bd45b02.ctex"]
 
 [params]
 

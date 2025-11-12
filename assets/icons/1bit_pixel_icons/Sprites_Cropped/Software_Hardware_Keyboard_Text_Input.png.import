@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b327t77fxt8rk"
-path="res://.godot/imported/Software_Hardware_Keyboard_Text_Input.png-bdf398e4b8ef46bfe883465ac22d6733.ctex"
+path="res://.godot/imported/Software_Hardware_Keyboard_Text_Input.png-eb163ae20d04bc92c6ac2284e7b4601d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Hardware_Keyboard_Text_Input.png"
-dest_files=["res://.godot/imported/Software_Hardware_Keyboard_Text_Input.png-bdf398e4b8ef46bfe883465ac22d6733.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Hardware_Keyboard_Text_Input.png"
+dest_files=["res://.godot/imported/Software_Hardware_Keyboard_Text_Input.png-eb163ae20d04bc92c6ac2284e7b4601d.ctex"]
 
 [params]
 

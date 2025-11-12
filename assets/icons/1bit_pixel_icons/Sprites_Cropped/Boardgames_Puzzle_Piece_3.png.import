@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b07ke6cec1ed4"
-path="res://.godot/imported/Boardgames_Puzzle_Piece_3.png-829155795689c28855cece3772c7c250.ctex"
+path="res://.godot/imported/Boardgames_Puzzle_Piece_3.png-f856fdc76d6477905bc233efc51eff73.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Puzzle_Piece_3.png"
-dest_files=["res://.godot/imported/Boardgames_Puzzle_Piece_3.png-829155795689c28855cece3772c7c250.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Puzzle_Piece_3.png"
+dest_files=["res://.godot/imported/Boardgames_Puzzle_Piece_3.png-f856fdc76d6477905bc233efc51eff73.ctex"]
 
 [params]
 

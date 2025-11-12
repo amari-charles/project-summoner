@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c23s6yu1eam0a"
-path="res://.godot/imported/Media_Musical_Instrument_Bagpipes.png-9d4d3002b9dee507c6c6af0e64ef6a9d.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Bagpipes.png-c3550c5ecdbca07c714587afcf5a7cc2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Bagpipes.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Bagpipes.png-9d4d3002b9dee507c6c6af0e64ef6a9d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Bagpipes.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Bagpipes.png-c3550c5ecdbca07c714587afcf5a7cc2.ctex"]
 
 [params]
 

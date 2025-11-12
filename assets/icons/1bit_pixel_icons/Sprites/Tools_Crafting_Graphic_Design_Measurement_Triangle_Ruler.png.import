@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://xa2tdkv8wmu5"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Triangle_Ruler.png-b614db97f650f3eda65dac3917d5ae0a.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Triangle_Ruler.png-ef6e65ccb69b3c2e9d97e2f502d7008c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Measurement_Triangle_Ruler.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Triangle_Ruler.png-b614db97f650f3eda65dac3917d5ae0a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Measurement_Triangle_Ruler.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Triangle_Ruler.png-ef6e65ccb69b3c2e9d97e2f502d7008c.ctex"]
 
 [params]
 

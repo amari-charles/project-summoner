@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ceccat56emf33"
-path="res://.godot/imported/Arrows_Double_Diagonal_Northwest_Southeast.png-9cd20b3622534d88504000fcbc995ea1.ctex"
+path="res://.godot/imported/Arrows_Double_Diagonal_Northwest_Southeast.png-b49c7af253d18daacc1a788a53bd5379.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Arrows_Double_Diagonal_Northwest_Southeast.png"
-dest_files=["res://.godot/imported/Arrows_Double_Diagonal_Northwest_Southeast.png-9cd20b3622534d88504000fcbc995ea1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Arrows_Double_Diagonal_Northwest_Southeast.png"
+dest_files=["res://.godot/imported/Arrows_Double_Diagonal_Northwest_Southeast.png-b49c7af253d18daacc1a788a53bd5379.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ywtwktwgl7qx"
-path="res://.godot/imported/Food_Cookie_Biscuit.png-d4b0a8142160632217db9b45acb16dbd.ctex"
+path="res://.godot/imported/Food_Cookie_Biscuit.png-8adc40ae7badadaa73356acc7c582981.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Cookie_Biscuit.png"
-dest_files=["res://.godot/imported/Food_Cookie_Biscuit.png-d4b0a8142160632217db9b45acb16dbd.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Cookie_Biscuit.png"
+dest_files=["res://.godot/imported/Food_Cookie_Biscuit.png-8adc40ae7badadaa73356acc7c582981.ctex"]
 
 [params]
 

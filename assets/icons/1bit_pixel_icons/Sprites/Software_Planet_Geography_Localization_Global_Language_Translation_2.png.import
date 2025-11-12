@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csrf6w04655x7"
-path="res://.godot/imported/Software_Planet_Geography_Localization_Global_Language_Translation_2.png-da63119f97428d2848623b822885dd9d.ctex"
+path="res://.godot/imported/Software_Planet_Geography_Localization_Global_Language_Translation_2.png-bbab2e1644977655c95006497806a483.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Planet_Geography_Localization_Global_Language_Translation_2.png"
-dest_files=["res://.godot/imported/Software_Planet_Geography_Localization_Global_Language_Translation_2.png-da63119f97428d2848623b822885dd9d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Planet_Geography_Localization_Global_Language_Translation_2.png"
+dest_files=["res://.godot/imported/Software_Planet_Geography_Localization_Global_Language_Translation_2.png-bbab2e1644977655c95006497806a483.ctex"]
 
 [params]
 

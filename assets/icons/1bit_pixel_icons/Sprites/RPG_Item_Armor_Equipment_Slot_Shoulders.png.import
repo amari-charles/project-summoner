@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0m42cueu7f68"
-path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Shoulders.png-3c07dee3f9c682ccca03afc99589c756.ctex"
+path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Shoulders.png-12aa2a3b3630ee039656c95dc0d319fd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Armor_Equipment_Slot_Shoulders.png"
-dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Shoulders.png-3c07dee3f9c682ccca03afc99589c756.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Armor_Equipment_Slot_Shoulders.png"
+dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Shoulders.png-12aa2a3b3630ee039656c95dc0d319fd.ctex"]
 
 [params]
 

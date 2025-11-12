@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu8kjin46v5sa"
-path="res://.godot/imported/RPG_Spell_Skill_Magic_Ice_Hailstorm_Blizzard_Frost.png-7df3e861d0d207a9f4d3da6a664b9fa0.ctex"
+path="res://.godot/imported/RPG_Spell_Skill_Magic_Ice_Hailstorm_Blizzard_Frost.png-5047fa41dab674c708179d749bddd713.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Spell_Skill_Magic_Ice_Hailstorm_Blizzard_Frost.png"
-dest_files=["res://.godot/imported/RPG_Spell_Skill_Magic_Ice_Hailstorm_Blizzard_Frost.png-7df3e861d0d207a9f4d3da6a664b9fa0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Spell_Skill_Magic_Ice_Hailstorm_Blizzard_Frost.png"
+dest_files=["res://.godot/imported/RPG_Spell_Skill_Magic_Ice_Hailstorm_Blizzard_Frost.png-5047fa41dab674c708179d749bddd713.ctex"]
 
 [params]
 

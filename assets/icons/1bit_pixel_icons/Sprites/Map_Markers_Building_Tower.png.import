@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ipcl5hd86tu1"
-path="res://.godot/imported/Map_Markers_Building_Tower.png-00594ff2a8f89bbb07f1dea0afed7035.ctex"
+path="res://.godot/imported/Map_Markers_Building_Tower.png-3a34eb486640c758755cffab52d49f3f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Building_Tower.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Tower.png-00594ff2a8f89bbb07f1dea0afed7035.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Building_Tower.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Tower.png-3a34eb486640c758755cffab52d49f3f.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://btfxbfiaggiin"
-path="res://.godot/imported/Map_Markers_Mountains_Hills_Cliffs_Terrain.png-422bdfdcbecfbe9e9eb777a2e769f3cb.ctex"
+path="res://.godot/imported/Map_Markers_Mountains_Hills_Cliffs_Terrain.png-a59d3d1f121f97399050de7fbe6773e0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Mountains_Hills_Cliffs_Terrain.png"
-dest_files=["res://.godot/imported/Map_Markers_Mountains_Hills_Cliffs_Terrain.png-422bdfdcbecfbe9e9eb777a2e769f3cb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Mountains_Hills_Cliffs_Terrain.png"
+dest_files=["res://.godot/imported/Map_Markers_Mountains_Hills_Cliffs_Terrain.png-a59d3d1f121f97399050de7fbe6773e0.ctex"]
 
 [params]
 

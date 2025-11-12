@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cih68krquf48h"
-path="res://.godot/imported/Map_Markers_Building_Farmland_Barn.png-7edff445df58c28270879b32bdfa43bd.ctex"
+path="res://.godot/imported/Map_Markers_Building_Farmland_Barn.png-b43556581a6b21852d4c7615c38933a7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Building_Farmland_Barn.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Farmland_Barn.png-7edff445df58c28270879b32bdfa43bd.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Building_Farmland_Barn.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Farmland_Barn.png-b43556581a6b21852d4c7615c38933a7.ctex"]
 
 [params]
 

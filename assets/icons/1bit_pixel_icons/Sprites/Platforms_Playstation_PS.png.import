@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cugyihvvk5b12"
-path="res://.godot/imported/Platforms_Playstation_PS.png-2e10754cab18ea0cbd184879a9f81b26.ctex"
+path="res://.godot/imported/Platforms_Playstation_PS.png-d0c1a10f563a9a09b7207eb7b24ea2d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Playstation_PS.png"
-dest_files=["res://.godot/imported/Platforms_Playstation_PS.png-2e10754cab18ea0cbd184879a9f81b26.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Playstation_PS.png"
+dest_files=["res://.godot/imported/Platforms_Playstation_PS.png-d0c1a10f563a9a09b7207eb7b24ea2d7.ctex"]
 
 [params]
 

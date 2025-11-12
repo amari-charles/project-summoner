@@ -61,7 +61,18 @@
       "Bash(sips:*)",
       "Bash(find:*)",
       "Bash(tree:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(for file in archer_3d neade_3d soldier_3d wall_3d slime_green_3d slime_pink_3d slime_violet_3d slime_blue_3d slime_orange_3d slime_yellow_3d slime_grey_3d slime_purple_3d slime_red_3d)",
+      "Bash(do)",
+      "Bash(if [ -f \"scenes/units/$file.tscn\" ])",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(else)",
+      "Bash(fi)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(for item in *)",
+      "Bash(do git mv \"$item\" \"../assets/characters/monster_pack/\")"
     ],
     "deny": [],
     "ask": []

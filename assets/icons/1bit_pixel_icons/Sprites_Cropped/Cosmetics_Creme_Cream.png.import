@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bnvqsd4s6gu7y"
-path="res://.godot/imported/Cosmetics_Creme_Cream.png-9e793a2da63219df560733d43da014bb.ctex"
+path="res://.godot/imported/Cosmetics_Creme_Cream.png-e005c13a9dc19cf9e63b8ae2d990fc5b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Cosmetics_Creme_Cream.png"
-dest_files=["res://.godot/imported/Cosmetics_Creme_Cream.png-9e793a2da63219df560733d43da014bb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Cosmetics_Creme_Cream.png"
+dest_files=["res://.godot/imported/Cosmetics_Creme_Cream.png-e005c13a9dc19cf9e63b8ae2d990fc5b.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://docw4553qdmf6"
-path="res://.godot/imported/Arrows_Left_West.png-352788e505559bee655a94b16320b210.ctex"
+path="res://.godot/imported/Arrows_Left_West.png-62aefb3c428982c6c6e74b844f4798b7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Arrows_Left_West.png"
-dest_files=["res://.godot/imported/Arrows_Left_West.png-352788e505559bee655a94b16320b210.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Arrows_Left_West.png"
+dest_files=["res://.godot/imported/Arrows_Left_West.png-62aefb3c428982c6c6e74b844f4798b7.ctex"]
 
 [params]
 

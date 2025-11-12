@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgwmrp6rd2k05"
-path="res://.godot/imported/Software_Window_Maximize_Button_2.png-f9d0df7ad6cdac99af2b7e094d9911d1.ctex"
+path="res://.godot/imported/Software_Window_Maximize_Button_2.png-519d781edc75601b2af633d501a890be.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Window_Maximize_Button_2.png"
-dest_files=["res://.godot/imported/Software_Window_Maximize_Button_2.png-f9d0df7ad6cdac99af2b7e094d9911d1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Window_Maximize_Button_2.png"
+dest_files=["res://.godot/imported/Software_Window_Maximize_Button_2.png-519d781edc75601b2af633d501a890be.ctex"]
 
 [params]
 

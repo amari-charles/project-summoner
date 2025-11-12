@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0y2dmcexjv4a"
-path="res://.godot/imported/Boardgames_Chip_Token_Coin_Counter.png-d187184905bda49165470f141fac98f2.ctex"
+path="res://.godot/imported/Boardgames_Chip_Token_Coin_Counter.png-c43bb27c334a1ea4485446a78d77518e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chip_Token_Coin_Counter.png"
-dest_files=["res://.godot/imported/Boardgames_Chip_Token_Coin_Counter.png-d187184905bda49165470f141fac98f2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chip_Token_Coin_Counter.png"
+dest_files=["res://.godot/imported/Boardgames_Chip_Token_Coin_Counter.png-c43bb27c334a1ea4485446a78d77518e.ctex"]
 
 [params]
 

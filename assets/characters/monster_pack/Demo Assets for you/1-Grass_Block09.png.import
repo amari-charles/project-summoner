@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c07gwhqkhy5ue"
-path="res://.godot/imported/1-Grass_Block09.png-702691e081afffbee9bc61ae553c3f2a.ctex"
+path="res://.godot/imported/1-Grass_Block09.png-44e28cdd1f7eb3d1cf4efcfc7bd5a4c4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Demo Assets for you/1-Grass_Block09.png"
-dest_files=["res://.godot/imported/1-Grass_Block09.png-702691e081afffbee9bc61ae553c3f2a.ctex"]
+source_file="res://assets/characters/monster_pack/Demo Assets for you/1-Grass_Block09.png"
+dest_files=["res://.godot/imported/1-Grass_Block09.png-44e28cdd1f7eb3d1cf4efcfc7bd5a4c4.ctex"]
 
 [params]
 

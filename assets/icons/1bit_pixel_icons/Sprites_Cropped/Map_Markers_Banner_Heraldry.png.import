@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://heu5663hjuuv"
-path="res://.godot/imported/Map_Markers_Banner_Heraldry.png-1dfba6f3474dfa1c34b673323090fc5e.ctex"
+path="res://.godot/imported/Map_Markers_Banner_Heraldry.png-233d04d58185886313af80c063a16b4e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Banner_Heraldry.png"
-dest_files=["res://.godot/imported/Map_Markers_Banner_Heraldry.png-1dfba6f3474dfa1c34b673323090fc5e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Banner_Heraldry.png"
+dest_files=["res://.godot/imported/Map_Markers_Banner_Heraldry.png-233d04d58185886313af80c063a16b4e.ctex"]
 
 [params]
 

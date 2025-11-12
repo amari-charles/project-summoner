@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk7yqmggj6232"
-path="res://.godot/imported/Boardgames_Card_K_King.png-663d5663a6c92186074fceec38f673b8.ctex"
+path="res://.godot/imported/Boardgames_Card_K_King.png-b408daac2f6ad5c66ab752bf1a053e65.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Card_K_King.png"
-dest_files=["res://.godot/imported/Boardgames_Card_K_King.png-663d5663a6c92186074fceec38f673b8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Card_K_King.png"
+dest_files=["res://.godot/imported/Boardgames_Card_K_King.png-b408daac2f6ad5c66ab752bf1a053e65.ctex"]
 
 [params]
 

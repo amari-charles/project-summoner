@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://du41svo26gda5"
-path="res://.godot/imported/Misc_Peace_Treaty_White_Dove_Bird.png-6c08fc3d49e740ee58ccfd79068b719c.ctex"
+path="res://.godot/imported/Misc_Peace_Treaty_White_Dove_Bird.png-4694c04e3d1445a26d90eb553400dd54.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Misc_Peace_Treaty_White_Dove_Bird.png"
-dest_files=["res://.godot/imported/Misc_Peace_Treaty_White_Dove_Bird.png-6c08fc3d49e740ee58ccfd79068b719c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Misc_Peace_Treaty_White_Dove_Bird.png"
+dest_files=["res://.godot/imported/Misc_Peace_Treaty_White_Dove_Bird.png-4694c04e3d1445a26d90eb553400dd54.ctex"]
 
 [params]
 

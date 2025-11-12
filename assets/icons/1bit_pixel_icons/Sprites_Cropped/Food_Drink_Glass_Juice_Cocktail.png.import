@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bexwpaxlkmlg8"
-path="res://.godot/imported/Food_Drink_Glass_Juice_Cocktail.png-45c04b18022ad77357b98d82c1de3c5a.ctex"
+path="res://.godot/imported/Food_Drink_Glass_Juice_Cocktail.png-1a8729d8951f821153ee62c8ba53fa69.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Drink_Glass_Juice_Cocktail.png"
-dest_files=["res://.godot/imported/Food_Drink_Glass_Juice_Cocktail.png-45c04b18022ad77357b98d82c1de3c5a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Drink_Glass_Juice_Cocktail.png"
+dest_files=["res://.godot/imported/Food_Drink_Glass_Juice_Cocktail.png-1a8729d8951f821153ee62c8ba53fa69.ctex"]
 
 [params]
 

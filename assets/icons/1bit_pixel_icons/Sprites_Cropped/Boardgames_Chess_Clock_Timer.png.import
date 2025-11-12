@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csgxsrdcxava8"
-path="res://.godot/imported/Boardgames_Chess_Clock_Timer.png-f71d7ce0ab6347e26ae5b4c1c80d208c.ctex"
+path="res://.godot/imported/Boardgames_Chess_Clock_Timer.png-0c9f032a998441662c048c4d44540b39.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chess_Clock_Timer.png"
-dest_files=["res://.godot/imported/Boardgames_Chess_Clock_Timer.png-f71d7ce0ab6347e26ae5b4c1c80d208c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chess_Clock_Timer.png"
+dest_files=["res://.godot/imported/Boardgames_Chess_Clock_Timer.png-0c9f032a998441662c048c4d44540b39.ctex"]
 
 [params]
 

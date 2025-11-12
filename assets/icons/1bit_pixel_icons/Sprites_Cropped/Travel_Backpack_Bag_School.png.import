@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1mlcrt7bxmr8"
-path="res://.godot/imported/Travel_Backpack_Bag_School.png-059a032e51ce38969a9ddec410b1b5df.ctex"
+path="res://.godot/imported/Travel_Backpack_Bag_School.png-fcc1e0055cf259c85ee1066e61a64f57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Backpack_Bag_School.png"
-dest_files=["res://.godot/imported/Travel_Backpack_Bag_School.png-059a032e51ce38969a9ddec410b1b5df.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Backpack_Bag_School.png"
+dest_files=["res://.godot/imported/Travel_Backpack_Bag_School.png-fcc1e0055cf259c85ee1066e61a64f57.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dj2lovvg7vva"
-path="res://.godot/imported/Travel_Car_Driving_Speedometer_Graph.png-a6caa721acb62d33f2b7f0208f208048.ctex"
+path="res://.godot/imported/Travel_Car_Driving_Speedometer_Graph.png-3b535e22528be97cfea55c67aed2f580.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Car_Driving_Speedometer_Graph.png"
-dest_files=["res://.godot/imported/Travel_Car_Driving_Speedometer_Graph.png-a6caa721acb62d33f2b7f0208f208048.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Car_Driving_Speedometer_Graph.png"
+dest_files=["res://.godot/imported/Travel_Car_Driving_Speedometer_Graph.png-3b535e22528be97cfea55c67aed2f580.ctex"]
 
 [params]
 

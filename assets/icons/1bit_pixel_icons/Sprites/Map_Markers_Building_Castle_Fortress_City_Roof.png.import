@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b67gcdyc784jx"
-path="res://.godot/imported/Map_Markers_Building_Castle_Fortress_City_Roof.png-a29b0988da28e95efa5cc22cbe94dd59.ctex"
+path="res://.godot/imported/Map_Markers_Building_Castle_Fortress_City_Roof.png-725f836ec109d96bcd4f32a76a873e12.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Building_Castle_Fortress_City_Roof.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Castle_Fortress_City_Roof.png-a29b0988da28e95efa5cc22cbe94dd59.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Building_Castle_Fortress_City_Roof.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Castle_Fortress_City_Roof.png-725f836ec109d96bcd4f32a76a873e12.ctex"]
 
 [params]
 

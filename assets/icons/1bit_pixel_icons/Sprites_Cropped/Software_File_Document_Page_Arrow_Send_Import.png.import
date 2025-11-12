@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbufctbsbckts"
-path="res://.godot/imported/Software_File_Document_Page_Arrow_Send_Import.png-c324fb72a04a3bb3bdad4d4cc854cad3.ctex"
+path="res://.godot/imported/Software_File_Document_Page_Arrow_Send_Import.png-4075735c9ac57a6a86602b88d4e531ff.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_File_Document_Page_Arrow_Send_Import.png"
-dest_files=["res://.godot/imported/Software_File_Document_Page_Arrow_Send_Import.png-c324fb72a04a3bb3bdad4d4cc854cad3.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_File_Document_Page_Arrow_Send_Import.png"
+dest_files=["res://.godot/imported/Software_File_Document_Page_Arrow_Send_Import.png-4075735c9ac57a6a86602b88d4e531ff.ctex"]
 
 [params]
 

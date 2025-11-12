@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvopcubrvusw8"
-path="res://.godot/imported/Sports_Basketball.png-57f44f4314274e624e6960f2aee2cf0d.ctex"
+path="res://.godot/imported/Sports_Basketball.png-501100b5a8b1798fcb38c64c4d020256.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Basketball.png"
-dest_files=["res://.godot/imported/Sports_Basketball.png-57f44f4314274e624e6960f2aee2cf0d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Basketball.png"
+dest_files=["res://.godot/imported/Sports_Basketball.png-501100b5a8b1798fcb38c64c4d020256.ctex"]
 
 [params]
 

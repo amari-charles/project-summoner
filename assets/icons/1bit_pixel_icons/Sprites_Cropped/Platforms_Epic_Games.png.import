@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://e0wqjivmt0hr"
-path="res://.godot/imported/Platforms_Epic_Games.png-17c9a8090fa3c772b9d460dc9dc5417a.ctex"
+path="res://.godot/imported/Platforms_Epic_Games.png-dcd4d2935c53e673d96341a031e7521f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Epic_Games.png"
-dest_files=["res://.godot/imported/Platforms_Epic_Games.png-17c9a8090fa3c772b9d460dc9dc5417a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Epic_Games.png"
+dest_files=["res://.godot/imported/Platforms_Epic_Games.png-dcd4d2935c53e673d96341a031e7521f.ctex"]
 
 [params]
 

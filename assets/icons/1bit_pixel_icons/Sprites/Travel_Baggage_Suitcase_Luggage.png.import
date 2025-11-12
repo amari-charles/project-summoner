@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpw2tjinq3qhm"
-path="res://.godot/imported/Travel_Baggage_Suitcase_Luggage.png-f3244e314f5195fd8c9a4218121e1627.ctex"
+path="res://.godot/imported/Travel_Baggage_Suitcase_Luggage.png-5e08ac26a766c1e0da38d290de7d34cc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Baggage_Suitcase_Luggage.png"
-dest_files=["res://.godot/imported/Travel_Baggage_Suitcase_Luggage.png-f3244e314f5195fd8c9a4218121e1627.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Baggage_Suitcase_Luggage.png"
+dest_files=["res://.godot/imported/Travel_Baggage_Suitcase_Luggage.png-5e08ac26a766c1e0da38d290de7d34cc.ctex"]
 
 [params]
 

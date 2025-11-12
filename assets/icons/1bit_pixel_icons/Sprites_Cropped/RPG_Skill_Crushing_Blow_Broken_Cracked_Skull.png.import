@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cyk0smw1g5h4v"
-path="res://.godot/imported/RPG_Skill_Crushing_Blow_Broken_Cracked_Skull.png-d943edd28e11929f4a227e12039abfad.ctex"
+path="res://.godot/imported/RPG_Skill_Crushing_Blow_Broken_Cracked_Skull.png-0d61c147c849da0060286e3009468f9f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Skill_Crushing_Blow_Broken_Cracked_Skull.png"
-dest_files=["res://.godot/imported/RPG_Skill_Crushing_Blow_Broken_Cracked_Skull.png-d943edd28e11929f4a227e12039abfad.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Skill_Crushing_Blow_Broken_Cracked_Skull.png"
+dest_files=["res://.godot/imported/RPG_Skill_Crushing_Blow_Broken_Cracked_Skull.png-0d61c147c849da0060286e3009468f9f.ctex"]
 
 [params]
 

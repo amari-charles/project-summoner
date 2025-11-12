@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bise1dofuv4an"
-path="res://.godot/imported/Arrows_Pointer_Down_Right_Southeast.png-29b9b946dd80a7cdae0254240200fc28.ctex"
+path="res://.godot/imported/Arrows_Pointer_Down_Right_Southeast.png-00fa6930447d0ec25dc56ed811a62b5f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Arrows_Pointer_Down_Right_Southeast.png"
-dest_files=["res://.godot/imported/Arrows_Pointer_Down_Right_Southeast.png-29b9b946dd80a7cdae0254240200fc28.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Arrows_Pointer_Down_Right_Southeast.png"
+dest_files=["res://.godot/imported/Arrows_Pointer_Down_Right_Southeast.png-00fa6930447d0ec25dc56ed811a62b5f.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bipsoju80e5d3"
-path="res://.godot/imported/Travel_Ship_Sailing_Boat.png-5c3b46b5002a1831b3c54325a55061aa.ctex"
+path="res://.godot/imported/Travel_Ship_Sailing_Boat.png-e0e52e5e69698728cab4710c042d3ea4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Ship_Sailing_Boat.png"
-dest_files=["res://.godot/imported/Travel_Ship_Sailing_Boat.png-5c3b46b5002a1831b3c54325a55061aa.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Ship_Sailing_Boat.png"
+dest_files=["res://.godot/imported/Travel_Ship_Sailing_Boat.png-e0e52e5e69698728cab4710c042d3ea4.ctex"]
 
 [params]
 

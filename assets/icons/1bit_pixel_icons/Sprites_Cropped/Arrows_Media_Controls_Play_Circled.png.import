@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyfliy7ffplm4"
-path="res://.godot/imported/Arrows_Media_Controls_Play_Circled.png-65f877cf409f6c57acbef3712d456add.ctex"
+path="res://.godot/imported/Arrows_Media_Controls_Play_Circled.png-f4ae4e552ce8f55ff5d551aab91153c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Arrows_Media_Controls_Play_Circled.png"
-dest_files=["res://.godot/imported/Arrows_Media_Controls_Play_Circled.png-65f877cf409f6c57acbef3712d456add.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Arrows_Media_Controls_Play_Circled.png"
+dest_files=["res://.godot/imported/Arrows_Media_Controls_Play_Circled.png-f4ae4e552ce8f55ff5d551aab91153c5.ctex"]
 
 [params]
 

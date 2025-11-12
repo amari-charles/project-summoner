@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dufykgj6hem2q"
-path="res://.godot/imported/Sports_American_Football_Rugby.png-fd0d82db00e931d61de2813691ed0190.ctex"
+path="res://.godot/imported/Sports_American_Football_Rugby.png-8ecde0ed2e4a28dbc45310f7733dd070.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Sports_American_Football_Rugby.png"
-dest_files=["res://.godot/imported/Sports_American_Football_Rugby.png-fd0d82db00e931d61de2813691ed0190.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Sports_American_Football_Rugby.png"
+dest_files=["res://.godot/imported/Sports_American_Football_Rugby.png-8ecde0ed2e4a28dbc45310f7733dd070.ctex"]
 
 [params]
 

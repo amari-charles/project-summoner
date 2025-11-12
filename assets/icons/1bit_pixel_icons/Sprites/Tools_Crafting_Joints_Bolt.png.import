@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2dlj513v5frg"
-path="res://.godot/imported/Tools_Crafting_Joints_Bolt.png-0cc445a1a08c07afc3afac0598895f6f.ctex"
+path="res://.godot/imported/Tools_Crafting_Joints_Bolt.png-33d6cb1e409e5975881b3752358113f3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Joints_Bolt.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Joints_Bolt.png-0cc445a1a08c07afc3afac0598895f6f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Joints_Bolt.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Joints_Bolt.png-33d6cb1e409e5975881b3752358113f3.ctex"]
 
 [params]
 

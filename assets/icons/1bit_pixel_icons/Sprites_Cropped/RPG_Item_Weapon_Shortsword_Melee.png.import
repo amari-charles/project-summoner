@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c0u63lvy2c5cs"
-path="res://.godot/imported/RPG_Item_Weapon_Shortsword_Melee.png-a9a32d1d8f65cce71799b076755b3464.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Shortsword_Melee.png-582cf5788d773a0023b79eedccf3d801.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Shortsword_Melee.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Shortsword_Melee.png-a9a32d1d8f65cce71799b076755b3464.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Shortsword_Melee.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Shortsword_Melee.png-582cf5788d773a0023b79eedccf3d801.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://exo6li867kca"
-path="res://.godot/imported/Cosmetics_Soap_Bar_Bubbles_Foam.png-babc5cbff92a86c8077a998d98dd8591.ctex"
+path="res://.godot/imported/Cosmetics_Soap_Bar_Bubbles_Foam.png-696ad6d3b67ef6cb493896d6cdd0a14c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Soap_Bar_Bubbles_Foam.png"
-dest_files=["res://.godot/imported/Cosmetics_Soap_Bar_Bubbles_Foam.png-babc5cbff92a86c8077a998d98dd8591.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Soap_Bar_Bubbles_Foam.png"
+dest_files=["res://.godot/imported/Cosmetics_Soap_Bar_Bubbles_Foam.png-696ad6d3b67ef6cb493896d6cdd0a14c.ctex"]
 
 [params]
 

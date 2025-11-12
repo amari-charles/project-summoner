@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bmmqsn2g7vull"
-path="res://.godot/imported/Cosmetics_Bath_Shower_2.png-b09b6d16367bd6730b840d5fefab68cb.ctex"
+path="res://.godot/imported/Cosmetics_Bath_Shower_2.png-f5a7921b075b26e99bf9734482214907.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Bath_Shower_2.png"
-dest_files=["res://.godot/imported/Cosmetics_Bath_Shower_2.png-b09b6d16367bd6730b840d5fefab68cb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Bath_Shower_2.png"
+dest_files=["res://.godot/imported/Cosmetics_Bath_Shower_2.png-f5a7921b075b26e99bf9734482214907.ctex"]
 
 [params]
 

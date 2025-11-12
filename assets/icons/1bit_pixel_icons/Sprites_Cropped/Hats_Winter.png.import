@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bl848iat06yfy"
-path="res://.godot/imported/Hats_Winter.png-a36814e21ec1fb29e6aedc08ad5b8446.ctex"
+path="res://.godot/imported/Hats_Winter.png-6fd8f182e660bf1d6369d2f7b887905d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Winter.png"
-dest_files=["res://.godot/imported/Hats_Winter.png-a36814e21ec1fb29e6aedc08ad5b8446.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Winter.png"
+dest_files=["res://.godot/imported/Hats_Winter.png-6fd8f182e660bf1d6369d2f7b887905d.ctex"]
 
 [params]
 

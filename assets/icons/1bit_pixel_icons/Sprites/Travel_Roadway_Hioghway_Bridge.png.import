@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://biyih0ooek0pr"
-path="res://.godot/imported/Travel_Roadway_Hioghway_Bridge.png-cebf28322f8868ce0ef0fe0e3300cc40.ctex"
+path="res://.godot/imported/Travel_Roadway_Hioghway_Bridge.png-dd3dbb5294cc293697d37136b4063616.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Roadway_Hioghway_Bridge.png"
-dest_files=["res://.godot/imported/Travel_Roadway_Hioghway_Bridge.png-cebf28322f8868ce0ef0fe0e3300cc40.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Roadway_Hioghway_Bridge.png"
+dest_files=["res://.godot/imported/Travel_Roadway_Hioghway_Bridge.png-dd3dbb5294cc293697d37136b4063616.ctex"]
 
 [params]
 

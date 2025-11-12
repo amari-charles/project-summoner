@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b45gu8iuk85df"
-path="res://.godot/imported/Cosmetics_Toilet_Paper.png-aafe623ac38ef8d309a3e70cdfb75334.ctex"
+path="res://.godot/imported/Cosmetics_Toilet_Paper.png-a2e82b6c4fb436020677f081e82ff09b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Toilet_Paper.png"
-dest_files=["res://.godot/imported/Cosmetics_Toilet_Paper.png-aafe623ac38ef8d309a3e70cdfb75334.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Toilet_Paper.png"
+dest_files=["res://.godot/imported/Cosmetics_Toilet_Paper.png-a2e82b6c4fb436020677f081e82ff09b.ctex"]
 
 [params]
 

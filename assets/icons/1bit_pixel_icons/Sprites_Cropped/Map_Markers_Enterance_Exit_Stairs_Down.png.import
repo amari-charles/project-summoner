@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://gynvn7uubtdm"
-path="res://.godot/imported/Map_Markers_Enterance_Exit_Stairs_Down.png-771cb8c57654f9115e73c71dc0658f65.ctex"
+path="res://.godot/imported/Map_Markers_Enterance_Exit_Stairs_Down.png-724cabc12c95c177daeee8c6b2e4b7cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Enterance_Exit_Stairs_Down.png"
-dest_files=["res://.godot/imported/Map_Markers_Enterance_Exit_Stairs_Down.png-771cb8c57654f9115e73c71dc0658f65.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Enterance_Exit_Stairs_Down.png"
+dest_files=["res://.godot/imported/Map_Markers_Enterance_Exit_Stairs_Down.png-724cabc12c95c177daeee8c6b2e4b7cd.ctex"]
 
 [params]
 

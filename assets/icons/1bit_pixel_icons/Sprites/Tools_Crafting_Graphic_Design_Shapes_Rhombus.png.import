@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://f7llrbyhwk3m"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Rhombus.png-e52e22e3bf8793f144d0d7d7933a513d.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Rhombus.png-be950ff611eaa257a6da496831164cca.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Rhombus.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Rhombus.png-e52e22e3bf8793f144d0d7d7933a513d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Rhombus.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Rhombus.png-be950ff611eaa257a6da496831164cca.ctex"]
 
 [params]
 

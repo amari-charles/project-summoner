@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dytq4wojuu3r7"
-path="res://.godot/imported/Tools_Crafting_Bucket.png-25101f92e427f2d4f32773305b327c60.ctex"
+path="res://.godot/imported/Tools_Crafting_Bucket.png-69c01176e19e1ba3d20018b6f3e71dfe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Bucket.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Bucket.png-25101f92e427f2d4f32773305b327c60.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Bucket.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Bucket.png-69c01176e19e1ba3d20018b6f3e71dfe.ctex"]
 
 [params]
 

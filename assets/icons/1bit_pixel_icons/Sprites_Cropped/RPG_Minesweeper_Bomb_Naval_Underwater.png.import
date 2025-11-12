@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cipmow1pbxwn2"
-path="res://.godot/imported/RPG_Minesweeper_Bomb_Naval_Underwater.png-0ee48cd3fc2e765ee5edf29198fc08ec.ctex"
+path="res://.godot/imported/RPG_Minesweeper_Bomb_Naval_Underwater.png-db624cb41e8f7812908413ac7bbb0cd6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Minesweeper_Bomb_Naval_Underwater.png"
-dest_files=["res://.godot/imported/RPG_Minesweeper_Bomb_Naval_Underwater.png-0ee48cd3fc2e765ee5edf29198fc08ec.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Minesweeper_Bomb_Naval_Underwater.png"
+dest_files=["res://.godot/imported/RPG_Minesweeper_Bomb_Naval_Underwater.png-db624cb41e8f7812908413ac7bbb0cd6.ctex"]
 
 [params]
 

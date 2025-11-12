@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk2jci8k4xu47"
-path="res://.godot/imported/Tools_Crafting_Box_Crate_Shipping.png-5b204e574a600d59307cc1fc87ce8cb4.ctex"
+path="res://.godot/imported/Tools_Crafting_Box_Crate_Shipping.png-45ce9f51dbe08ad39a51d8fc813c2d60.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Box_Crate_Shipping.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Box_Crate_Shipping.png-5b204e574a600d59307cc1fc87ce8cb4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Box_Crate_Shipping.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Box_Crate_Shipping.png-45ce9f51dbe08ad39a51d8fc813c2d60.ctex"]
 
 [params]
 

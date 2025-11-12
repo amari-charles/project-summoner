@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://coxb3tnhx2xip"
-path="res://.godot/imported/Travel_Traffic_Lights_Yellow_Orange.png-142709d9ce75e64d2d3f88ae5ec5ba1d.ctex"
+path="res://.godot/imported/Travel_Traffic_Lights_Yellow_Orange.png-0608afa52de609bcae196ce95af13308.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Traffic_Lights_Yellow_Orange.png"
-dest_files=["res://.godot/imported/Travel_Traffic_Lights_Yellow_Orange.png-142709d9ce75e64d2d3f88ae5ec5ba1d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Traffic_Lights_Yellow_Orange.png"
+dest_files=["res://.godot/imported/Travel_Traffic_Lights_Yellow_Orange.png-0608afa52de609bcae196ce95af13308.ctex"]
 
 [params]
 

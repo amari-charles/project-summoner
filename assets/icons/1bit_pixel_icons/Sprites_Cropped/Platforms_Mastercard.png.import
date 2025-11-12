@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b21s1vuwi3l13"
-path="res://.godot/imported/Platforms_Mastercard.png-aa70b84827a19344eb571cd0d4bd0985.ctex"
+path="res://.godot/imported/Platforms_Mastercard.png-87ff18f057bddc511156c2a50f7c72fc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Mastercard.png"
-dest_files=["res://.godot/imported/Platforms_Mastercard.png-aa70b84827a19344eb571cd0d4bd0985.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Mastercard.png"
+dest_files=["res://.godot/imported/Platforms_Mastercard.png-87ff18f057bddc511156c2a50f7c72fc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnpr6arocmoi0"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Trapezoid.png-3175442077d1c092b9014a1103d7e7b6.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Trapezoid.png-cf5dc78a304e4d6f7f9aecae00a39d3d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Trapezoid.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Trapezoid.png-3175442077d1c092b9014a1103d7e7b6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Trapezoid.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Trapezoid.png-cf5dc78a304e4d6f7f9aecae00a39d3d.ctex"]
 
 [params]
 

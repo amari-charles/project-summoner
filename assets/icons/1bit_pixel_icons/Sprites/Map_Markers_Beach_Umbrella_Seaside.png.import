@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpjm1rpj03ha1"
-path="res://.godot/imported/Map_Markers_Beach_Umbrella_Seaside.png-dc2f66d8f65d6e762bf99b9e0ae8a76e.ctex"
+path="res://.godot/imported/Map_Markers_Beach_Umbrella_Seaside.png-5923b60815de90547d7021c39e0293dd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Beach_Umbrella_Seaside.png"
-dest_files=["res://.godot/imported/Map_Markers_Beach_Umbrella_Seaside.png-dc2f66d8f65d6e762bf99b9e0ae8a76e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Beach_Umbrella_Seaside.png"
+dest_files=["res://.godot/imported/Map_Markers_Beach_Umbrella_Seaside.png-5923b60815de90547d7021c39e0293dd.ctex"]
 
 [params]
 

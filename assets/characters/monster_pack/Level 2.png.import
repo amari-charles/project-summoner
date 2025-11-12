@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://444mb61v0176"
-path="res://.godot/imported/Level 2.png-7871bebe7aa415716c3ffe3d5994bd2c.ctex"
+path="res://.godot/imported/Level 2.png-02d26518da55f83a5d5b927220a3c891.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Level 2.png"
-dest_files=["res://.godot/imported/Level 2.png-7871bebe7aa415716c3ffe3d5994bd2c.ctex"]
+source_file="res://assets/characters/monster_pack/Level 2.png"
+dest_files=["res://.godot/imported/Level 2.png-02d26518da55f83a5d5b927220a3c891.ctex"]
 
 [params]
 

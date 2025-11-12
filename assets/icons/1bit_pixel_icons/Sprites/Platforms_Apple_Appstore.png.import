@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://rrb12m1jwave"
-path="res://.godot/imported/Platforms_Apple_Appstore.png-f34d4aa3684bc40226aad60ce1396712.ctex"
+path="res://.godot/imported/Platforms_Apple_Appstore.png-bbf5603601032582e7a02f1ca93bc37d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Apple_Appstore.png"
-dest_files=["res://.godot/imported/Platforms_Apple_Appstore.png-f34d4aa3684bc40226aad60ce1396712.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Apple_Appstore.png"
+dest_files=["res://.godot/imported/Platforms_Apple_Appstore.png-bbf5603601032582e7a02f1ca93bc37d.ctex"]
 
 [params]
 

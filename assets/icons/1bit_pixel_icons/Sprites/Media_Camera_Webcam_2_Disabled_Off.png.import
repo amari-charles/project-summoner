@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ciic4b85ilyq2"
-path="res://.godot/imported/Media_Camera_Webcam_2_Disabled_Off.png-06fc92eb6e568618432d29bfefcd076c.ctex"
+path="res://.godot/imported/Media_Camera_Webcam_2_Disabled_Off.png-9ba63d97d483abdc91f315a097c23f10.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Camera_Webcam_2_Disabled_Off.png"
-dest_files=["res://.godot/imported/Media_Camera_Webcam_2_Disabled_Off.png-06fc92eb6e568618432d29bfefcd076c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Camera_Webcam_2_Disabled_Off.png"
+dest_files=["res://.godot/imported/Media_Camera_Webcam_2_Disabled_Off.png-9ba63d97d483abdc91f315a097c23f10.ctex"]
 
 [params]
 

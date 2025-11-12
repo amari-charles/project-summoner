@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cayyd1g4r57oa"
-path="res://.godot/imported/RPG_Creature_Archetypes_Robot_Mechanical.png-1a407ef720523748f727ddb7959d346e.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Robot_Mechanical.png-16396f78ff2dacb2293b259ce4bdbbdc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Creature_Archetypes_Robot_Mechanical.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Robot_Mechanical.png-1a407ef720523748f727ddb7959d346e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Creature_Archetypes_Robot_Mechanical.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Robot_Mechanical.png-16396f78ff2dacb2293b259ce4bdbbdc.ctex"]
 
 [params]
 

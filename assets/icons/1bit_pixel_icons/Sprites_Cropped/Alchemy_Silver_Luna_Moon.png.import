@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbkbsy8cux7w3"
-path="res://.godot/imported/Alchemy_Silver_Luna_Moon.png-0020927ba01f3e40dc46bd884b180f6d.ctex"
+path="res://.godot/imported/Alchemy_Silver_Luna_Moon.png-5e290ce8a7e305dc2352835ad82a922a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Silver_Luna_Moon.png"
-dest_files=["res://.godot/imported/Alchemy_Silver_Luna_Moon.png-0020927ba01f3e40dc46bd884b180f6d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Silver_Luna_Moon.png"
+dest_files=["res://.godot/imported/Alchemy_Silver_Luna_Moon.png-5e290ce8a7e305dc2352835ad82a922a.ctex"]
 
 [params]
 

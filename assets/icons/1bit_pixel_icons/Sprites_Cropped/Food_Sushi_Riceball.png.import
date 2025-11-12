@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bm18ab2mc3raq"
-path="res://.godot/imported/Food_Sushi_Riceball.png-dc0be937cbb573e7da2e7ac78ee2c64f.ctex"
+path="res://.godot/imported/Food_Sushi_Riceball.png-479b2ba0af77844d1a73b643090412a5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Sushi_Riceball.png"
-dest_files=["res://.godot/imported/Food_Sushi_Riceball.png-dc0be937cbb573e7da2e7ac78ee2c64f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Sushi_Riceball.png"
+dest_files=["res://.godot/imported/Food_Sushi_Riceball.png-479b2ba0af77844d1a73b643090412a5.ctex"]
 
 [params]
 

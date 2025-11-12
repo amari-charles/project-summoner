@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bp7wc8xuu2euu"
-path="res://.godot/imported/Sports_Racing_Start_Flag.png-b54437977b483c99391820a9cb2aa01d.ctex"
+path="res://.godot/imported/Sports_Racing_Start_Flag.png-6324681fcfe9a450e6b7445446db2faa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Racing_Start_Flag.png"
-dest_files=["res://.godot/imported/Sports_Racing_Start_Flag.png-b54437977b483c99391820a9cb2aa01d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Racing_Start_Flag.png"
+dest_files=["res://.godot/imported/Sports_Racing_Start_Flag.png-6324681fcfe9a450e6b7445446db2faa.ctex"]
 
 [params]
 

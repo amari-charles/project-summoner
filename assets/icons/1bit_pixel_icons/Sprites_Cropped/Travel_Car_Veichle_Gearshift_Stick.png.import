@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwh1grn5v5skv"
-path="res://.godot/imported/Travel_Car_Veichle_Gearshift_Stick.png-3c12a5b605c23b9ec6afb30c3b18b17f.ctex"
+path="res://.godot/imported/Travel_Car_Veichle_Gearshift_Stick.png-7469004ad4bcad4132052be9a0cfb1d4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Car_Veichle_Gearshift_Stick.png"
-dest_files=["res://.godot/imported/Travel_Car_Veichle_Gearshift_Stick.png-3c12a5b605c23b9ec6afb30c3b18b17f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Car_Veichle_Gearshift_Stick.png"
+dest_files=["res://.godot/imported/Travel_Car_Veichle_Gearshift_Stick.png-7469004ad4bcad4132052be9a0cfb1d4.ctex"]
 
 [params]
 

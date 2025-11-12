@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxggreo3w3xwq"
-path="res://.godot/imported/RPG_Magic_Sparkles_Enchantment.png-bab01e4510fba00fd46c89b22c6e70f2.ctex"
+path="res://.godot/imported/RPG_Magic_Sparkles_Enchantment.png-a7a404daa8b80383727de7be5004db7d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Magic_Sparkles_Enchantment.png"
-dest_files=["res://.godot/imported/RPG_Magic_Sparkles_Enchantment.png-bab01e4510fba00fd46c89b22c6e70f2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Magic_Sparkles_Enchantment.png"
+dest_files=["res://.godot/imported/RPG_Magic_Sparkles_Enchantment.png-a7a404daa8b80383727de7be5004db7d.ctex"]
 
 [params]
 

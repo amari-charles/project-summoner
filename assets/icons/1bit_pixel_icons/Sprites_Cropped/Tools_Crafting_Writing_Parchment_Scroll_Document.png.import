@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ctch16nwmslsc"
-path="res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document.png-9006d75942389ffad7bd54474519e580.ctex"
+path="res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document.png-aeae32cc068003a83d0eca1bf8d30d71.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Writing_Parchment_Scroll_Document.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document.png-9006d75942389ffad7bd54474519e580.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Writing_Parchment_Scroll_Document.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Writing_Parchment_Scroll_Document.png-aeae32cc068003a83d0eca1bf8d30d71.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://btp8i111ht4pn"
-path="res://.godot/imported/Media_Musical_Instrument_Violin.png-6142e86d614346066688cbc6f3efbeb2.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Violin.png-6bdad3e2de260b7b46e4165f2a437c30.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Violin.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Violin.png-6142e86d614346066688cbc6f3efbeb2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Violin.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Violin.png-6bdad3e2de260b7b46e4165f2a437c30.ctex"]
 
 [params]
 

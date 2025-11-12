@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dip8fle0xfloc"
-path="res://.godot/imported/Platforms_Subscribestar.png-a3c58acb40f670ca0ab3335d08ff8935.ctex"
+path="res://.godot/imported/Platforms_Subscribestar.png-49fc6d1bad9623df4e7a51f4a2a17488.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Subscribestar.png"
-dest_files=["res://.godot/imported/Platforms_Subscribestar.png-a3c58acb40f670ca0ab3335d08ff8935.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Subscribestar.png"
+dest_files=["res://.godot/imported/Platforms_Subscribestar.png-49fc6d1bad9623df4e7a51f4a2a17488.ctex"]
 
 [params]
 

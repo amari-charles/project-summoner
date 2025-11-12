@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2dwodpcju0io"
-path="res://.godot/imported/Food_Restaurant_Eating_Utensils_Knife.png-6290a56febdbc930ac8417b99c5d2373.ctex"
+path="res://.godot/imported/Food_Restaurant_Eating_Utensils_Knife.png-04ea22b7682e15757f47b660ee406fa4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Restaurant_Eating_Utensils_Knife.png"
-dest_files=["res://.godot/imported/Food_Restaurant_Eating_Utensils_Knife.png-6290a56febdbc930ac8417b99c5d2373.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Restaurant_Eating_Utensils_Knife.png"
+dest_files=["res://.godot/imported/Food_Restaurant_Eating_Utensils_Knife.png-04ea22b7682e15757f47b660ee406fa4.ctex"]
 
 [params]
 

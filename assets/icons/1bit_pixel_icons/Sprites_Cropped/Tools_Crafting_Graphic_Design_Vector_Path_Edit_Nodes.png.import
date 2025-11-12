@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://nmj68blcnmyg"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Vector_Path_Edit_Nodes.png-28aaca80251f938d19a168d2e5b37848.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Vector_Path_Edit_Nodes.png-38560ce0ac5b7bf673812e8a42aa0eeb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Vector_Path_Edit_Nodes.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Vector_Path_Edit_Nodes.png-28aaca80251f938d19a168d2e5b37848.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Vector_Path_Edit_Nodes.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Vector_Path_Edit_Nodes.png-38560ce0ac5b7bf673812e8a42aa0eeb.ctex"]
 
 [params]
 

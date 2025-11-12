@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ki8g7621f2yt"
-path="res://.godot/imported/Boardgames_Suit_Hearts.png-1f22b8ede8f28975c5bfbf8f36a8fd14.ctex"
+path="res://.godot/imported/Boardgames_Suit_Hearts.png-e74ff73ce8c5eabd6a460c7ca5ae0720.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Suit_Hearts.png"
-dest_files=["res://.godot/imported/Boardgames_Suit_Hearts.png-1f22b8ede8f28975c5bfbf8f36a8fd14.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Suit_Hearts.png"
+dest_files=["res://.godot/imported/Boardgames_Suit_Hearts.png-e74ff73ce8c5eabd6a460c7ca5ae0720.ctex"]
 
 [params]
 

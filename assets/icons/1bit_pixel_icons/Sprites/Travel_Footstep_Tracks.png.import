@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgdyp0mltanj3"
-path="res://.godot/imported/Travel_Footstep_Tracks.png-261df62f02c4187b7f91ba882c578f2a.ctex"
+path="res://.godot/imported/Travel_Footstep_Tracks.png-d0b1375d65035a819599e2ae85275b85.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Footstep_Tracks.png"
-dest_files=["res://.godot/imported/Travel_Footstep_Tracks.png-261df62f02c4187b7f91ba882c578f2a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Footstep_Tracks.png"
+dest_files=["res://.godot/imported/Travel_Footstep_Tracks.png-d0b1375d65035a819599e2ae85275b85.ctex"]
 
 [params]
 

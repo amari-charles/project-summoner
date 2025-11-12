@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://btlmd1bmmmpq5"
-path="res://.godot/imported/Media_Musical_Instrument_Trumpet.png-096270d50879b7a09dc65f6cceff1c60.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Trumpet.png-8ed4801ca6de0b67f043cea86259cfa6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Trumpet.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Trumpet.png-096270d50879b7a09dc65f6cceff1c60.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Trumpet.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Trumpet.png-8ed4801ca6de0b67f043cea86259cfa6.ctex"]
 
 [params]
 

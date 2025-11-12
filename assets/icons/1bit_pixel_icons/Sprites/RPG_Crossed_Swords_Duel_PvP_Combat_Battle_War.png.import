@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cshhm2ue32rut"
-path="res://.godot/imported/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png-b00126fe26418b5f0f9cb03f9c598d18.ctex"
+path="res://.godot/imported/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png-418f3ead0c3d70e6665f84dda038c8ac.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png"
-dest_files=["res://.godot/imported/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png-b00126fe26418b5f0f9cb03f9c598d18.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png"
+dest_files=["res://.godot/imported/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png-418f3ead0c3d70e6665f84dda038c8ac.ctex"]
 
 [params]
 

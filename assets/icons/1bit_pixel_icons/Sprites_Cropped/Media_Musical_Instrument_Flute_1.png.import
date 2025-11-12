@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfyfhscfswiga"
-path="res://.godot/imported/Media_Musical_Instrument_Flute_1.png-0e325e128de7cf2b54361f1b86100253.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Flute_1.png-f657d3eae1af44c428277e4abd74ea4e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Flute_1.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Flute_1.png-0e325e128de7cf2b54361f1b86100253.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Flute_1.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Flute_1.png-f657d3eae1af44c428277e4abd74ea4e.ctex"]
 
 [params]
 

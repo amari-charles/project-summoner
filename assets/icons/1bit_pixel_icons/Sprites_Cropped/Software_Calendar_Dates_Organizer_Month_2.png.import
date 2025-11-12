@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cq8jss54o4pw7"
-path="res://.godot/imported/Software_Calendar_Dates_Organizer_Month_2.png-88ad3c59a400440721f477d4c5067050.ctex"
+path="res://.godot/imported/Software_Calendar_Dates_Organizer_Month_2.png-4a41fc81b58545712042b480e07131ea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Calendar_Dates_Organizer_Month_2.png"
-dest_files=["res://.godot/imported/Software_Calendar_Dates_Organizer_Month_2.png-88ad3c59a400440721f477d4c5067050.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Calendar_Dates_Organizer_Month_2.png"
+dest_files=["res://.godot/imported/Software_Calendar_Dates_Organizer_Month_2.png-4a41fc81b58545712042b480e07131ea.ctex"]
 
 [params]
 

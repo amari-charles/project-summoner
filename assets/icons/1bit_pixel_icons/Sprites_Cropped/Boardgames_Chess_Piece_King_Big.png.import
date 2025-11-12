@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do3hg3j1ek8a4"
-path="res://.godot/imported/Boardgames_Chess_Piece_King_Big.png-9c1eecb2a0ef636326f95e9a689c31f5.ctex"
+path="res://.godot/imported/Boardgames_Chess_Piece_King_Big.png-11e540171f740933a97e4dd630ce5d9a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chess_Piece_King_Big.png"
-dest_files=["res://.godot/imported/Boardgames_Chess_Piece_King_Big.png-9c1eecb2a0ef636326f95e9a689c31f5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chess_Piece_King_Big.png"
+dest_files=["res://.godot/imported/Boardgames_Chess_Piece_King_Big.png-11e540171f740933a97e4dd630ce5d9a.ctex"]
 
 [params]
 

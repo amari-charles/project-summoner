@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caj785j85hk2e"
-path="res://.godot/imported/Food_Donut_Doughnut_Pastry.png-71908546d2d5e3360b2ed6753ac88c2b.ctex"
+path="res://.godot/imported/Food_Donut_Doughnut_Pastry.png-99c0e486a1ae1e096c4407b4c0cdbceb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Donut_Doughnut_Pastry.png"
-dest_files=["res://.godot/imported/Food_Donut_Doughnut_Pastry.png-71908546d2d5e3360b2ed6753ac88c2b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Donut_Doughnut_Pastry.png"
+dest_files=["res://.godot/imported/Food_Donut_Doughnut_Pastry.png-99c0e486a1ae1e096c4407b4c0cdbceb.ctex"]
 
 [params]
 

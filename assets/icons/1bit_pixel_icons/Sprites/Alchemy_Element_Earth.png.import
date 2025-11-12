@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cv5b0tknpe7bq"
-path="res://.godot/imported/Alchemy_Element_Earth.png-ccfc7011960abf45b7631ea1a7178a69.ctex"
+path="res://.godot/imported/Alchemy_Element_Earth.png-c120838e643190148ed309873eb06b7b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Element_Earth.png"
-dest_files=["res://.godot/imported/Alchemy_Element_Earth.png-ccfc7011960abf45b7631ea1a7178a69.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Element_Earth.png"
+dest_files=["res://.godot/imported/Alchemy_Element_Earth.png-c120838e643190148ed309873eb06b7b.ctex"]
 
 [params]
 

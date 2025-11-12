@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://w4br14nf04ah"
-path="res://.godot/imported/Hats_Soldier_Helm.png-4d48db96b0166cb47efcc0015da15dbc.ctex"
+path="res://.godot/imported/Hats_Soldier_Helm.png-e27fd042526745ce35eb89f3d5607707.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Soldier_Helm.png"
-dest_files=["res://.godot/imported/Hats_Soldier_Helm.png-4d48db96b0166cb47efcc0015da15dbc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Soldier_Helm.png"
+dest_files=["res://.godot/imported/Hats_Soldier_Helm.png-e27fd042526745ce35eb89f3d5607707.ctex"]
 
 [params]
 

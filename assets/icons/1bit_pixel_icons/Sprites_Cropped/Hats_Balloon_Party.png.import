@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ogaye387v03y"
-path="res://.godot/imported/Hats_Balloon_Party.png-65008d080816f9aaf885284e3d558883.ctex"
+path="res://.godot/imported/Hats_Balloon_Party.png-8f1c9f7a120d822d4ea6e2eb1ab649db.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Balloon_Party.png"
-dest_files=["res://.godot/imported/Hats_Balloon_Party.png-65008d080816f9aaf885284e3d558883.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Balloon_Party.png"
+dest_files=["res://.godot/imported/Hats_Balloon_Party.png-8f1c9f7a120d822d4ea6e2eb1ab649db.ctex"]
 
 [params]
 

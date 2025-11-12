@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dksdf0s8btl6m"
-path="res://.godot/imported/Map_Markers_Satellite_Spacecraft.png-7abb2f53a3b072f04ada5898ee6f812d.ctex"
+path="res://.godot/imported/Map_Markers_Satellite_Spacecraft.png-277b5243c0e8769e5f99829a4e08fefc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Satellite_Spacecraft.png"
-dest_files=["res://.godot/imported/Map_Markers_Satellite_Spacecraft.png-7abb2f53a3b072f04ada5898ee6f812d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Satellite_Spacecraft.png"
+dest_files=["res://.godot/imported/Map_Markers_Satellite_Spacecraft.png-277b5243c0e8769e5f99829a4e08fefc.ctex"]
 
 [params]
 

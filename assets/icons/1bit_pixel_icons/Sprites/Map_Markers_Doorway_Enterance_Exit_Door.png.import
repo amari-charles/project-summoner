@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://deqhs1fsm0dn5"
-path="res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Door.png-ebddaa98b15375b9a7bd0aed7d99339a.ctex"
+path="res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Door.png-846dee6ae99ec93d1caeefe8508a527d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Doorway_Enterance_Exit_Door.png"
-dest_files=["res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Door.png-ebddaa98b15375b9a7bd0aed7d99339a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Doorway_Enterance_Exit_Door.png"
+dest_files=["res://.godot/imported/Map_Markers_Doorway_Enterance_Exit_Door.png-846dee6ae99ec93d1caeefe8508a527d.ctex"]
 
 [params]
 

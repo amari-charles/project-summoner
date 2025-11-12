@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnyc8vu8empjd"
-path="res://.godot/imported/semi-realistic-ghost.png-292d7d81eee684476a08ebde6a45ceca.ctex"
+path="res://.godot/imported/semi-realistic-ghost.png-e6611e08be4e99babcd9597c81f02d77.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Demo Assets for you/semi-realistic-ghost.png"
-dest_files=["res://.godot/imported/semi-realistic-ghost.png-292d7d81eee684476a08ebde6a45ceca.ctex"]
+source_file="res://assets/characters/monster_pack/Demo Assets for you/semi-realistic-ghost.png"
+dest_files=["res://.godot/imported/semi-realistic-ghost.png-e6611e08be4e99babcd9597c81f02d77.ctex"]
 
 [params]
 

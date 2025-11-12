@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cta4is6dum25n"
-path="res://.godot/imported/bl-1-eyeDeath.svg-315db50c3d128dbc1b3d07394f1c2faa.ctex"
+path="res://.godot/imported/bl-1-eyeDeath.svg-ca5feaf524f3b4f8cef198528efba23f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 2/Bottom-left/Single images/svg/bl-1-eyeDeath.svg"
-dest_files=["res://.godot/imported/bl-1-eyeDeath.svg-315db50c3d128dbc1b3d07394f1c2faa.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 2/Bottom-left/Single images/svg/bl-1-eyeDeath.svg"
+dest_files=["res://.godot/imported/bl-1-eyeDeath.svg-ca5feaf524f3b4f8cef198528efba23f.ctex"]
 
 [params]
 

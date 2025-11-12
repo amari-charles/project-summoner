@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://om3xkfrqqat0"
-path="res://.godot/imported/Warfare_Crosshair_Marked_Sniper_Headshot_Accuracy_1.png-0dd4f12a00358be2149d6357de969e04.ctex"
+path="res://.godot/imported/Warfare_Crosshair_Marked_Sniper_Headshot_Accuracy_1.png-515fa8cac2d6ad8bb61a5f29719b259a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Crosshair_Marked_Sniper_Headshot_Accuracy_1.png"
-dest_files=["res://.godot/imported/Warfare_Crosshair_Marked_Sniper_Headshot_Accuracy_1.png-0dd4f12a00358be2149d6357de969e04.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Crosshair_Marked_Sniper_Headshot_Accuracy_1.png"
+dest_files=["res://.godot/imported/Warfare_Crosshair_Marked_Sniper_Headshot_Accuracy_1.png-515fa8cac2d6ad8bb61a5f29719b259a.ctex"]
 
 [params]
 

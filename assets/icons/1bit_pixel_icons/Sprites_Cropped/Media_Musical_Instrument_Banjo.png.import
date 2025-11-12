@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfgdal3cdvr1s"
-path="res://.godot/imported/Media_Musical_Instrument_Banjo.png-8a5695ba57c8a714cf8e2a3317c41545.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Banjo.png-347c9218aaa3113c75ac231294715b00.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Banjo.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Banjo.png-8a5695ba57c8a714cf8e2a3317c41545.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Banjo.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Banjo.png-347c9218aaa3113c75ac231294715b00.ctex"]
 
 [params]
 

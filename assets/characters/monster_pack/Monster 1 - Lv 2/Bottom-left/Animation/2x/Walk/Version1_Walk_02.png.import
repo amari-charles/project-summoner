@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vdbfj2rb7o2l"
-path="res://.godot/imported/Version1_Walk_02.png-48129bd34125faeb5be78570321976fe.ctex"
+path="res://.godot/imported/Version1_Walk_02.png-bcb7975afa8a2ef1c172789adf9b1872.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 2/Bottom-left/Animation/2x/Walk/Version1_Walk_02.png"
-dest_files=["res://.godot/imported/Version1_Walk_02.png-48129bd34125faeb5be78570321976fe.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 2/Bottom-left/Animation/2x/Walk/Version1_Walk_02.png"
+dest_files=["res://.godot/imported/Version1_Walk_02.png-bcb7975afa8a2ef1c172789adf9b1872.ctex"]
 
 [params]
 

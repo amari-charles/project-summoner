@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqg7socggjaob"
-path="res://.godot/imported/Media_Headphones_Earbuds_Wireless.png-cd15d529e84ab93b0b95acc50d466f30.ctex"
+path="res://.godot/imported/Media_Headphones_Earbuds_Wireless.png-4376eced8b5c1496097e03b462d2d84d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Headphones_Earbuds_Wireless.png"
-dest_files=["res://.godot/imported/Media_Headphones_Earbuds_Wireless.png-cd15d529e84ab93b0b95acc50d466f30.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Headphones_Earbuds_Wireless.png"
+dest_files=["res://.godot/imported/Media_Headphones_Earbuds_Wireless.png-4376eced8b5c1496097e03b462d2d84d.ctex"]
 
 [params]
 

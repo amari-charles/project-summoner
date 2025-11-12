@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cysfafx38vyk"
-path="res://.godot/imported/Misc_Organ_Lungs_Breathing_Breath.png-a4bdff174a6e7a217ad119eeefcdda22.ctex"
+path="res://.godot/imported/Misc_Organ_Lungs_Breathing_Breath.png-8035fa145cd0a8b486db4c0760f471cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_Organ_Lungs_Breathing_Breath.png"
-dest_files=["res://.godot/imported/Misc_Organ_Lungs_Breathing_Breath.png-a4bdff174a6e7a217ad119eeefcdda22.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_Organ_Lungs_Breathing_Breath.png"
+dest_files=["res://.godot/imported/Misc_Organ_Lungs_Breathing_Breath.png-8035fa145cd0a8b486db4c0760f471cd.ctex"]
 
 [params]
 

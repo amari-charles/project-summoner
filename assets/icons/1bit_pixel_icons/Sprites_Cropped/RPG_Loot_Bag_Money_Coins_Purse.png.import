@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5vdf6kmpb675"
-path="res://.godot/imported/RPG_Loot_Bag_Money_Coins_Purse.png-0fe45d75f5849aeefe4633a8355f5656.ctex"
+path="res://.godot/imported/RPG_Loot_Bag_Money_Coins_Purse.png-4cf3f6464fc0619acd58dddb2ff1d26a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Loot_Bag_Money_Coins_Purse.png"
-dest_files=["res://.godot/imported/RPG_Loot_Bag_Money_Coins_Purse.png-0fe45d75f5849aeefe4633a8355f5656.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Loot_Bag_Money_Coins_Purse.png"
+dest_files=["res://.godot/imported/RPG_Loot_Bag_Money_Coins_Purse.png-4cf3f6464fc0619acd58dddb2ff1d26a.ctex"]
 
 [params]
 

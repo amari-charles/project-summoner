@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bljcgjw8hn51h"
-path="res://.godot/imported/Travel_Horse_Riding.png-ca065ec45d07bbe9723ec4bb4bfbe8a3.ctex"
+path="res://.godot/imported/Travel_Horse_Riding.png-f83740bfbfcb544376f201f39a23c913.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Horse_Riding.png"
-dest_files=["res://.godot/imported/Travel_Horse_Riding.png-ca065ec45d07bbe9723ec4bb4bfbe8a3.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Horse_Riding.png"
+dest_files=["res://.godot/imported/Travel_Horse_Riding.png-f83740bfbfcb544376f201f39a23c913.ctex"]
 
 [params]
 

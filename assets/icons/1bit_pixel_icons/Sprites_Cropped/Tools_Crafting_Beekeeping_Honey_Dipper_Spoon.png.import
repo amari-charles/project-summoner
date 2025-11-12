@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1to0rywugjyq"
-path="res://.godot/imported/Tools_Crafting_Beekeeping_Honey_Dipper_Spoon.png-8bf28badef2e11ee8e99ac56f9b584f3.ctex"
+path="res://.godot/imported/Tools_Crafting_Beekeeping_Honey_Dipper_Spoon.png-26a7f690a602a415006563b2773cecc0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Beekeeping_Honey_Dipper_Spoon.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping_Honey_Dipper_Spoon.png-8bf28badef2e11ee8e99ac56f9b584f3.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Beekeeping_Honey_Dipper_Spoon.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping_Honey_Dipper_Spoon.png-26a7f690a602a415006563b2773cecc0.ctex"]
 
 [params]
 

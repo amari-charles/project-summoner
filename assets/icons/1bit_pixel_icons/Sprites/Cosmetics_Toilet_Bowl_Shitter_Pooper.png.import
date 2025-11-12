@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cof07pmdcgw1j"
-path="res://.godot/imported/Cosmetics_Toilet_Bowl_Shitter_Pooper.png-10af6e23166661fecb9d459a056c6886.ctex"
+path="res://.godot/imported/Cosmetics_Toilet_Bowl_Shitter_Pooper.png-549debce45c7549c9f99590756c4f65b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Toilet_Bowl_Shitter_Pooper.png"
-dest_files=["res://.godot/imported/Cosmetics_Toilet_Bowl_Shitter_Pooper.png-10af6e23166661fecb9d459a056c6886.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Toilet_Bowl_Shitter_Pooper.png"
+dest_files=["res://.godot/imported/Cosmetics_Toilet_Bowl_Shitter_Pooper.png-549debce45c7549c9f99590756c4f65b.ctex"]
 
 [params]
 

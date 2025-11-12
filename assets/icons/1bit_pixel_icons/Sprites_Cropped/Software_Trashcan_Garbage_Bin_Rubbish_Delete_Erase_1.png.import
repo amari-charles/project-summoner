@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cj21vvhs5lmqn"
-path="res://.godot/imported/Software_Trashcan_Garbage_Bin_Rubbish_Delete_Erase_1.png-b9ec0dd9ac8036e21ef3720df7eff0ac.ctex"
+path="res://.godot/imported/Software_Trashcan_Garbage_Bin_Rubbish_Delete_Erase_1.png-94dcedb02ebe2892c36f0bb7f0575d80.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Trashcan_Garbage_Bin_Rubbish_Delete_Erase_1.png"
-dest_files=["res://.godot/imported/Software_Trashcan_Garbage_Bin_Rubbish_Delete_Erase_1.png-b9ec0dd9ac8036e21ef3720df7eff0ac.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Trashcan_Garbage_Bin_Rubbish_Delete_Erase_1.png"
+dest_files=["res://.godot/imported/Software_Trashcan_Garbage_Bin_Rubbish_Delete_Erase_1.png-94dcedb02ebe2892c36f0bb7f0575d80.ctex"]
 
 [params]
 

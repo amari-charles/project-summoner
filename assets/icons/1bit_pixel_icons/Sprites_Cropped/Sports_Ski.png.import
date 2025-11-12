@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qcrkp0gm8cy0"
-path="res://.godot/imported/Sports_Ski.png-d575ac9df55d95b351578fa418a856e5.ctex"
+path="res://.godot/imported/Sports_Ski.png-4f5f8f9a32280f8bb7c8dc11e86e5808.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Sports_Ski.png"
-dest_files=["res://.godot/imported/Sports_Ski.png-d575ac9df55d95b351578fa418a856e5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Sports_Ski.png"
+dest_files=["res://.godot/imported/Sports_Ski.png-4f5f8f9a32280f8bb7c8dc11e86e5808.ctex"]
 
 [params]
 

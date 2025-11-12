@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bjsjqn50wf5w2"
-path="res://.godot/imported/Software_Bluetooth_Signal_0.png-f5e8bb33421080d7412f5ecff31171da.ctex"
+path="res://.godot/imported/Software_Bluetooth_Signal_0.png-91ad5021b036122a8e6b2bc46f08f557.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Bluetooth_Signal_0.png"
-dest_files=["res://.godot/imported/Software_Bluetooth_Signal_0.png-f5e8bb33421080d7412f5ecff31171da.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Bluetooth_Signal_0.png"
+dest_files=["res://.godot/imported/Software_Bluetooth_Signal_0.png-91ad5021b036122a8e6b2bc46f08f557.ctex"]
 
 [params]
 

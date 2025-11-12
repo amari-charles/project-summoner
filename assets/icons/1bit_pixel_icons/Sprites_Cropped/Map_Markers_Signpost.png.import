@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ba3xmq0v8eqm2"
-path="res://.godot/imported/Map_Markers_Signpost.png-7d4e175aa02fe42f75539aaa6f59056b.ctex"
+path="res://.godot/imported/Map_Markers_Signpost.png-e1716832cde4dfd749fc96510d975cd2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Signpost.png"
-dest_files=["res://.godot/imported/Map_Markers_Signpost.png-7d4e175aa02fe42f75539aaa6f59056b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Signpost.png"
+dest_files=["res://.godot/imported/Map_Markers_Signpost.png-e1716832cde4dfd749fc96510d975cd2.ctex"]
 
 [params]
 

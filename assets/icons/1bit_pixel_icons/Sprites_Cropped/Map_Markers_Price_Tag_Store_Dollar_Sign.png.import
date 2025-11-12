@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://drjmkeoi8g87q"
-path="res://.godot/imported/Map_Markers_Price_Tag_Store_Dollar_Sign.png-a6b89a7539c38eb1c0e74a000466700b.ctex"
+path="res://.godot/imported/Map_Markers_Price_Tag_Store_Dollar_Sign.png-408aa8fc172bd013e01ffcfa810ccda2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Price_Tag_Store_Dollar_Sign.png"
-dest_files=["res://.godot/imported/Map_Markers_Price_Tag_Store_Dollar_Sign.png-a6b89a7539c38eb1c0e74a000466700b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Price_Tag_Store_Dollar_Sign.png"
+dest_files=["res://.godot/imported/Map_Markers_Price_Tag_Store_Dollar_Sign.png-408aa8fc172bd013e01ffcfa810ccda2.ctex"]
 
 [params]
 

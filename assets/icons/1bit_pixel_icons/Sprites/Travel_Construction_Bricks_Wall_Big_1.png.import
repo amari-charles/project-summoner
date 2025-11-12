@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0y6axn1cb85g"
-path="res://.godot/imported/Travel_Construction_Bricks_Wall_Big_1.png-83a5c59fd2cf8933ed7fe8b1afe79823.ctex"
+path="res://.godot/imported/Travel_Construction_Bricks_Wall_Big_1.png-5564481c458272b9149802ba2f9c63f5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Construction_Bricks_Wall_Big_1.png"
-dest_files=["res://.godot/imported/Travel_Construction_Bricks_Wall_Big_1.png-83a5c59fd2cf8933ed7fe8b1afe79823.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Construction_Bricks_Wall_Big_1.png"
+dest_files=["res://.godot/imported/Travel_Construction_Bricks_Wall_Big_1.png-5564481c458272b9149802ba2f9c63f5.ctex"]
 
 [params]
 

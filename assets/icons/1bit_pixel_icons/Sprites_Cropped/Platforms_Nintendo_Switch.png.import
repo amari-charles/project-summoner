@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qdb16tiyck23"
-path="res://.godot/imported/Platforms_Nintendo_Switch.png-b5604fa81c7bee1f3c0f98929ac45c43.ctex"
+path="res://.godot/imported/Platforms_Nintendo_Switch.png-7f981ec48cf0d08d7a11a4a671cf5431.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Nintendo_Switch.png"
-dest_files=["res://.godot/imported/Platforms_Nintendo_Switch.png-b5604fa81c7bee1f3c0f98929ac45c43.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Nintendo_Switch.png"
+dest_files=["res://.godot/imported/Platforms_Nintendo_Switch.png-7f981ec48cf0d08d7a11a4a671cf5431.ctex"]
 
 [params]
 

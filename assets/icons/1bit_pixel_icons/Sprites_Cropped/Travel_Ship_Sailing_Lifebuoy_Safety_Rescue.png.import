@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c2bjr8lq1tv1y"
-path="res://.godot/imported/Travel_Ship_Sailing_Lifebuoy_Safety_Rescue.png-25dc4425cb86d13b46bd1c7a17b42733.ctex"
+path="res://.godot/imported/Travel_Ship_Sailing_Lifebuoy_Safety_Rescue.png-25de8cd6cd9ef8557a3fd3383eefb547.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Ship_Sailing_Lifebuoy_Safety_Rescue.png"
-dest_files=["res://.godot/imported/Travel_Ship_Sailing_Lifebuoy_Safety_Rescue.png-25dc4425cb86d13b46bd1c7a17b42733.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Ship_Sailing_Lifebuoy_Safety_Rescue.png"
+dest_files=["res://.godot/imported/Travel_Ship_Sailing_Lifebuoy_Safety_Rescue.png-25de8cd6cd9ef8557a3fd3383eefb547.ctex"]
 
 [params]
 

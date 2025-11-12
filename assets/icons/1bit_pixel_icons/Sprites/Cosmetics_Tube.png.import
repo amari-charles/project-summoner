@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwbj8ia6govjv"
-path="res://.godot/imported/Cosmetics_Tube.png-8def84741b1025a6a3227cf02bf92e06.ctex"
+path="res://.godot/imported/Cosmetics_Tube.png-70e380cbedc6f1e7697ce0d4d192224a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Tube.png"
-dest_files=["res://.godot/imported/Cosmetics_Tube.png-8def84741b1025a6a3227cf02bf92e06.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Tube.png"
+dest_files=["res://.godot/imported/Cosmetics_Tube.png-70e380cbedc6f1e7697ce0d4d192224a.ctex"]
 
 [params]
 

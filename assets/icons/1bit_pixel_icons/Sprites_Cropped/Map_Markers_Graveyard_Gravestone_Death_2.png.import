@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://q7s81bjqvtpj"
-path="res://.godot/imported/Map_Markers_Graveyard_Gravestone_Death_2.png-dac2f2e25e32008c575dda2bd6effaeb.ctex"
+path="res://.godot/imported/Map_Markers_Graveyard_Gravestone_Death_2.png-81655cad7cc714757fd3d2a9c92c4521.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Graveyard_Gravestone_Death_2.png"
-dest_files=["res://.godot/imported/Map_Markers_Graveyard_Gravestone_Death_2.png-dac2f2e25e32008c575dda2bd6effaeb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Graveyard_Gravestone_Death_2.png"
+dest_files=["res://.godot/imported/Map_Markers_Graveyard_Gravestone_Death_2.png-81655cad7cc714757fd3d2a9c92c4521.ctex"]
 
 [params]
 

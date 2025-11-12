@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c82txyiyjcuaf"
-path="res://.godot/imported/Hats_Viking_Helmet_Armor.png-ec623f1d416cd8f8e7d64dac5949b0ec.ctex"
+path="res://.godot/imported/Hats_Viking_Helmet_Armor.png-cb10699a15a172a61504a685025a2e63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Viking_Helmet_Armor.png"
-dest_files=["res://.godot/imported/Hats_Viking_Helmet_Armor.png-ec623f1d416cd8f8e7d64dac5949b0ec.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Viking_Helmet_Armor.png"
+dest_files=["res://.godot/imported/Hats_Viking_Helmet_Armor.png-cb10699a15a172a61504a685025a2e63.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqb6kf2sbywlb"
-path="res://.godot/imported/Travel_Mining_Minecart.png-219da14e61d018cdb740b00dc94a105f.ctex"
+path="res://.godot/imported/Travel_Mining_Minecart.png-bc96e1d6dce47595006b20beaca3f633.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Mining_Minecart.png"
-dest_files=["res://.godot/imported/Travel_Mining_Minecart.png-219da14e61d018cdb740b00dc94a105f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Mining_Minecart.png"
+dest_files=["res://.godot/imported/Travel_Mining_Minecart.png-bc96e1d6dce47595006b20beaca3f633.ctex"]
 
 [params]
 

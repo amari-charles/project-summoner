@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfueb63hk3agj"
-path="res://.godot/imported/Software_File_Folder_Directory_Explorer.png-1f5dedd76f8f9762630a39ab61df7648.ctex"
+path="res://.godot/imported/Software_File_Folder_Directory_Explorer.png-899fd5ccb3368af3d29c2b41380cf663.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_File_Folder_Directory_Explorer.png"
-dest_files=["res://.godot/imported/Software_File_Folder_Directory_Explorer.png-1f5dedd76f8f9762630a39ab61df7648.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_File_Folder_Directory_Explorer.png"
+dest_files=["res://.godot/imported/Software_File_Folder_Directory_Explorer.png-899fd5ccb3368af3d29c2b41380cf663.ctex"]
 
 [params]
 

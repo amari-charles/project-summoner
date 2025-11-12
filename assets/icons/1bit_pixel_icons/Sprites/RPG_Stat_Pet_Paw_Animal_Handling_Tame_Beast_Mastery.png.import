@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7rey3s84aqou"
-path="res://.godot/imported/RPG_Stat_Pet_Paw_Animal_Handling_Tame_Beast_Mastery.png-92648ae15284062f217b362544ced91b.ctex"
+path="res://.godot/imported/RPG_Stat_Pet_Paw_Animal_Handling_Tame_Beast_Mastery.png-5f9a9d139ea62d1841a1f6ca064de09e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Stat_Pet_Paw_Animal_Handling_Tame_Beast_Mastery.png"
-dest_files=["res://.godot/imported/RPG_Stat_Pet_Paw_Animal_Handling_Tame_Beast_Mastery.png-92648ae15284062f217b362544ced91b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Stat_Pet_Paw_Animal_Handling_Tame_Beast_Mastery.png"
+dest_files=["res://.godot/imported/RPG_Stat_Pet_Paw_Animal_Handling_Tame_Beast_Mastery.png-5f9a9d139ea62d1841a1f6ca064de09e.ctex"]
 
 [params]
 

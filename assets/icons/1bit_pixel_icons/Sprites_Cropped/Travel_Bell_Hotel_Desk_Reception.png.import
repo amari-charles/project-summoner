@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbo3uscfffu5l"
-path="res://.godot/imported/Travel_Bell_Hotel_Desk_Reception.png-4a611924888d4f874aa6ba77f4c21322.ctex"
+path="res://.godot/imported/Travel_Bell_Hotel_Desk_Reception.png-2b924c525bf309cad94c59fc3f808ef9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Bell_Hotel_Desk_Reception.png"
-dest_files=["res://.godot/imported/Travel_Bell_Hotel_Desk_Reception.png-4a611924888d4f874aa6ba77f4c21322.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Bell_Hotel_Desk_Reception.png"
+dest_files=["res://.godot/imported/Travel_Bell_Hotel_Desk_Reception.png-2b924c525bf309cad94c59fc3f808ef9.ctex"]
 
 [params]
 

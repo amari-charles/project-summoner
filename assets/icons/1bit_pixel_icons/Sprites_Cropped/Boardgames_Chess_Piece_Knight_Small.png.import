@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c36urgsnjuo57"
-path="res://.godot/imported/Boardgames_Chess_Piece_Knight_Small.png-19383cf6e4512a5f19493a6703f2f7fa.ctex"
+path="res://.godot/imported/Boardgames_Chess_Piece_Knight_Small.png-8037f6ffa43b6bbfc078acc2d302c8bf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chess_Piece_Knight_Small.png"
-dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Knight_Small.png-19383cf6e4512a5f19493a6703f2f7fa.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chess_Piece_Knight_Small.png"
+dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Knight_Small.png-8037f6ffa43b6bbfc078acc2d302c8bf.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8ebh4m5q74j"
-path="res://.godot/imported/Travel_Roadway_Turn_Corner_Curve.png-aa043db1b0145ae5e1143491caeef3e6.ctex"
+path="res://.godot/imported/Travel_Roadway_Turn_Corner_Curve.png-6d434da7f3a6cb2d73db6dc04a350006.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Roadway_Turn_Corner_Curve.png"
-dest_files=["res://.godot/imported/Travel_Roadway_Turn_Corner_Curve.png-aa043db1b0145ae5e1143491caeef3e6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Roadway_Turn_Corner_Curve.png"
+dest_files=["res://.godot/imported/Travel_Roadway_Turn_Corner_Curve.png-6d434da7f3a6cb2d73db6dc04a350006.ctex"]
 
 [params]
 

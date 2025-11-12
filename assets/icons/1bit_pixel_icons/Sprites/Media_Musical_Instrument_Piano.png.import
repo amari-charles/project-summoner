@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bl8ubqrxeua5x"
-path="res://.godot/imported/Media_Musical_Instrument_Piano.png-f15505db7899cda67c54ea7a0e5f3bd4.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Piano.png-2f7ed6bbad84e3dbad5ab2c00cb727a2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Piano.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Piano.png-f15505db7899cda67c54ea7a0e5f3bd4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Piano.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Piano.png-2f7ed6bbad84e3dbad5ab2c00cb727a2.ctex"]
 
 [params]
 

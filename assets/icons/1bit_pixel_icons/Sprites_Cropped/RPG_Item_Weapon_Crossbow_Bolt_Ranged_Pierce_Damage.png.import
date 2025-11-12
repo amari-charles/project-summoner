@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c32urek6k8q6e"
-path="res://.godot/imported/RPG_Item_Weapon_Crossbow_Bolt_Ranged_Pierce_Damage.png-9763c950cf5299430b3eb3647bdc246c.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Crossbow_Bolt_Ranged_Pierce_Damage.png-e85d73b8a16026a428327bc22b4f4ec3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Weapon_Crossbow_Bolt_Ranged_Pierce_Damage.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Crossbow_Bolt_Ranged_Pierce_Damage.png-9763c950cf5299430b3eb3647bdc246c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Weapon_Crossbow_Bolt_Ranged_Pierce_Damage.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Crossbow_Bolt_Ranged_Pierce_Damage.png-e85d73b8a16026a428327bc22b4f4ec3.ctex"]
 
 [params]
 

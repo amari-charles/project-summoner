@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpxo1rvrhtiax"
-path="res://.godot/imported/Platforms_Android_AOSP_Mobile_Phone.png-ad40c0e0b2cf0686e46e375156e3697b.ctex"
+path="res://.godot/imported/Platforms_Android_AOSP_Mobile_Phone.png-cc6116457eb39293f792d28df4d0c8fa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Android_AOSP_Mobile_Phone.png"
-dest_files=["res://.godot/imported/Platforms_Android_AOSP_Mobile_Phone.png-ad40c0e0b2cf0686e46e375156e3697b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Android_AOSP_Mobile_Phone.png"
+dest_files=["res://.godot/imported/Platforms_Android_AOSP_Mobile_Phone.png-cc6116457eb39293f792d28df4d0c8fa.ctex"]
 
 [params]
 

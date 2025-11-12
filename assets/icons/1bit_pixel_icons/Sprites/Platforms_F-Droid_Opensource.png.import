@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d2cgiqk8xyj8x"
-path="res://.godot/imported/Platforms_F-Droid_Opensource.png-387966acb6c712133b6a6cd9dd38ca50.ctex"
+path="res://.godot/imported/Platforms_F-Droid_Opensource.png-41ada2560e9ba4c029dad76dc5903055.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_F-Droid_Opensource.png"
-dest_files=["res://.godot/imported/Platforms_F-Droid_Opensource.png-387966acb6c712133b6a6cd9dd38ca50.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_F-Droid_Opensource.png"
+dest_files=["res://.godot/imported/Platforms_F-Droid_Opensource.png-41ada2560e9ba4c029dad76dc5903055.ctex"]
 
 [params]
 

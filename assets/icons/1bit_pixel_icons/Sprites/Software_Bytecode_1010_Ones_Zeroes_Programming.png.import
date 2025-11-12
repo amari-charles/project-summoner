@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csf0odky2l7e0"
-path="res://.godot/imported/Software_Bytecode_1010_Ones_Zeroes_Programming.png-ddf6735adf82e631274545008ef1d339.ctex"
+path="res://.godot/imported/Software_Bytecode_1010_Ones_Zeroes_Programming.png-191eaa9edadbcf6facce752b1b6b8cb9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Bytecode_1010_Ones_Zeroes_Programming.png"
-dest_files=["res://.godot/imported/Software_Bytecode_1010_Ones_Zeroes_Programming.png-ddf6735adf82e631274545008ef1d339.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Bytecode_1010_Ones_Zeroes_Programming.png"
+dest_files=["res://.godot/imported/Software_Bytecode_1010_Ones_Zeroes_Programming.png-191eaa9edadbcf6facce752b1b6b8cb9.ctex"]
 
 [params]
 

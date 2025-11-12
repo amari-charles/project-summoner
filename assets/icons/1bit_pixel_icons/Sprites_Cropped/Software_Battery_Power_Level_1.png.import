@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwxqvypeix526"
-path="res://.godot/imported/Software_Battery_Power_Level_1.png-300924da1e911fee71edcfe22aa05b98.ctex"
+path="res://.godot/imported/Software_Battery_Power_Level_1.png-9d0052ded8426e1a15c1976237a1b4fc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Battery_Power_Level_1.png"
-dest_files=["res://.godot/imported/Software_Battery_Power_Level_1.png-300924da1e911fee71edcfe22aa05b98.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Battery_Power_Level_1.png"
+dest_files=["res://.godot/imported/Software_Battery_Power_Level_1.png-9d0052ded8426e1a15c1976237a1b4fc.ctex"]
 
 [params]
 

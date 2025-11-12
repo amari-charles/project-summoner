@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhmeg2v8qvol"
-path="res://.godot/imported/Map_Markers_Farmland_Animals_Penned_Fence.png-999563cfd2683b0ee1730bfd16a6f7c9.ctex"
+path="res://.godot/imported/Map_Markers_Farmland_Animals_Penned_Fence.png-5f2c8df65886b5a568f07921a3253294.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Farmland_Animals_Penned_Fence.png"
-dest_files=["res://.godot/imported/Map_Markers_Farmland_Animals_Penned_Fence.png-999563cfd2683b0ee1730bfd16a6f7c9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Farmland_Animals_Penned_Fence.png"
+dest_files=["res://.godot/imported/Map_Markers_Farmland_Animals_Penned_Fence.png-5f2c8df65886b5a568f07921a3253294.ctex"]
 
 [params]
 

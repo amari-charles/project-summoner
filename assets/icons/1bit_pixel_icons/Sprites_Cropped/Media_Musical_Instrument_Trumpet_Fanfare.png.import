@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuxpnk7rfbq7i"
-path="res://.godot/imported/Media_Musical_Instrument_Trumpet_Fanfare.png-4955ccd6c9df4ee65d668499ebea6262.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Trumpet_Fanfare.png-a6f1428e5677ff281b81d8d736d537d5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Trumpet_Fanfare.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Trumpet_Fanfare.png-4955ccd6c9df4ee65d668499ebea6262.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Trumpet_Fanfare.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Trumpet_Fanfare.png-a6f1428e5677ff281b81d8d736d537d5.ctex"]
 
 [params]
 

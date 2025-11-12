@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0v63s8q3xen1"
-path="res://.godot/imported/Map_Markers_Flagpole.png-a95d0edf7bb0ecd8b2536c52b261bf1a.ctex"
+path="res://.godot/imported/Map_Markers_Flagpole.png-bac9a9e1f32acad6f1c48b27a6e79764.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Flagpole.png"
-dest_files=["res://.godot/imported/Map_Markers_Flagpole.png-a95d0edf7bb0ecd8b2536c52b261bf1a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Flagpole.png"
+dest_files=["res://.godot/imported/Map_Markers_Flagpole.png-bac9a9e1f32acad6f1c48b27a6e79764.ctex"]
 
 [params]
 

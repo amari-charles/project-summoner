@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cytkij0jr5lak"
-path="res://.godot/imported/Software_Signs_Maths_Square_Root.png-8e55fac6ef7a357aecafb763398a77ce.ctex"
+path="res://.godot/imported/Software_Signs_Maths_Square_Root.png-14a51509d298c2c0fe12e5ccbcce5334.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Signs_Maths_Square_Root.png"
-dest_files=["res://.godot/imported/Software_Signs_Maths_Square_Root.png-8e55fac6ef7a357aecafb763398a77ce.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Signs_Maths_Square_Root.png"
+dest_files=["res://.godot/imported/Software_Signs_Maths_Square_Root.png-14a51509d298c2c0fe12e5ccbcce5334.ctex"]
 
 [params]
 

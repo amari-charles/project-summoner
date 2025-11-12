@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://j3q1pncqulgy"
-path="res://.godot/imported/Platforms_Ko-Fi.png-e185316b76215291d9282a269edfc53e.ctex"
+path="res://.godot/imported/Platforms_Ko-Fi.png-a1250d8d2771bfb242e1d14436a047f4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Ko-Fi.png"
-dest_files=["res://.godot/imported/Platforms_Ko-Fi.png-e185316b76215291d9282a269edfc53e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Ko-Fi.png"
+dest_files=["res://.godot/imported/Platforms_Ko-Fi.png-a1250d8d2771bfb242e1d14436a047f4.ctex"]
 
 [params]
 

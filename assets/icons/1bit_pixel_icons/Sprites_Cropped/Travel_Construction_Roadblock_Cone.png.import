@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cau65vejbxa6"
-path="res://.godot/imported/Travel_Construction_Roadblock_Cone.png-4fee397c5ccfafb6a551557b5be68aaa.ctex"
+path="res://.godot/imported/Travel_Construction_Roadblock_Cone.png-a7af9fca262198ab0bd9c2124a58fc2a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Construction_Roadblock_Cone.png"
-dest_files=["res://.godot/imported/Travel_Construction_Roadblock_Cone.png-4fee397c5ccfafb6a551557b5be68aaa.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Construction_Roadblock_Cone.png"
+dest_files=["res://.godot/imported/Travel_Construction_Roadblock_Cone.png-a7af9fca262198ab0bd9c2124a58fc2a.ctex"]
 
 [params]
 

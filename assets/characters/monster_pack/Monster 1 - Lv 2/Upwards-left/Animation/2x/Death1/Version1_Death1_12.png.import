@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0kovgsavei37"
-path="res://.godot/imported/Version1_Death1_12.png-5e8e76d65df2a237732574e7af6c40f6.ctex"
+path="res://.godot/imported/Version1_Death1_12.png-f56acd1d5ef2b0bbc1b23a91d02ac1a6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 2/Upwards-left/Animation/2x/Death1/Version1_Death1_12.png"
-dest_files=["res://.godot/imported/Version1_Death1_12.png-5e8e76d65df2a237732574e7af6c40f6.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 2/Upwards-left/Animation/2x/Death1/Version1_Death1_12.png"
+dest_files=["res://.godot/imported/Version1_Death1_12.png-f56acd1d5ef2b0bbc1b23a91d02ac1a6.ctex"]
 
 [params]
 

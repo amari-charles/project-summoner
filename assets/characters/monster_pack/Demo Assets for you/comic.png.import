@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yst5iuaebxon"
-path="res://.godot/imported/comic.png-39693cbd17ae1b662d4cbc8998b86fd4.ctex"
+path="res://.godot/imported/comic.png-229d9d0d254b2472f819942ca2f1df58.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Demo Assets for you/comic.png"
-dest_files=["res://.godot/imported/comic.png-39693cbd17ae1b662d4cbc8998b86fd4.ctex"]
+source_file="res://assets/characters/monster_pack/Demo Assets for you/comic.png"
+dest_files=["res://.godot/imported/comic.png-229d9d0d254b2472f819942ca2f1df58.ctex"]
 
 [params]
 

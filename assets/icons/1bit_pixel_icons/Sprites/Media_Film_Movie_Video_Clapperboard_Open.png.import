@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cd5vi858gprgb"
-path="res://.godot/imported/Media_Film_Movie_Video_Clapperboard_Open.png-bc96d0efdc6dede55b86dd13931409d5.ctex"
+path="res://.godot/imported/Media_Film_Movie_Video_Clapperboard_Open.png-b862f12b69eaacf06404132ef79c8f79.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Film_Movie_Video_Clapperboard_Open.png"
-dest_files=["res://.godot/imported/Media_Film_Movie_Video_Clapperboard_Open.png-bc96d0efdc6dede55b86dd13931409d5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Film_Movie_Video_Clapperboard_Open.png"
+dest_files=["res://.godot/imported/Media_Film_Movie_Video_Clapperboard_Open.png-b862f12b69eaacf06404132ef79c8f79.ctex"]
 
 [params]
 

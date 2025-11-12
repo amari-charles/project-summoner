@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b4xhalxwwxpv1"
-path="res://.godot/imported/Software_Hardware_PC_Computer_Tower.png-10277a1414616bcce3aab2fb812c7f12.ctex"
+path="res://.godot/imported/Software_Hardware_PC_Computer_Tower.png-1f2d35b567de84548e1752a24183d090.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Hardware_PC_Computer_Tower.png"
-dest_files=["res://.godot/imported/Software_Hardware_PC_Computer_Tower.png-10277a1414616bcce3aab2fb812c7f12.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Hardware_PC_Computer_Tower.png"
+dest_files=["res://.godot/imported/Software_Hardware_PC_Computer_Tower.png-1f2d35b567de84548e1752a24183d090.ctex"]
 
 [params]
 

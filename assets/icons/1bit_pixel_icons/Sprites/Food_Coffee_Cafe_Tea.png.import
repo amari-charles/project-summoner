@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7f6ak1145nhq"
-path="res://.godot/imported/Food_Coffee_Cafe_Tea.png-ebf213272ceab5efa2e526dcb5c40acb.ctex"
+path="res://.godot/imported/Food_Coffee_Cafe_Tea.png-08f0f4a43d8e235247bfca4499fd4a0c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Coffee_Cafe_Tea.png"
-dest_files=["res://.godot/imported/Food_Coffee_Cafe_Tea.png-ebf213272ceab5efa2e526dcb5c40acb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Coffee_Cafe_Tea.png"
+dest_files=["res://.godot/imported/Food_Coffee_Cafe_Tea.png-08f0f4a43d8e235247bfca4499fd4a0c.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bb6edc5cf3an5"
-path="res://.godot/imported/Hats_Nose_Disguise_Fake_Mustache.png-60e6fa34f80ca1945c285db1e3f4ba1c.ctex"
+path="res://.godot/imported/Hats_Nose_Disguise_Fake_Mustache.png-9b626d8f9619d71ed2350779cf94870e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Nose_Disguise_Fake_Mustache.png"
-dest_files=["res://.godot/imported/Hats_Nose_Disguise_Fake_Mustache.png-60e6fa34f80ca1945c285db1e3f4ba1c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Nose_Disguise_Fake_Mustache.png"
+dest_files=["res://.godot/imported/Hats_Nose_Disguise_Fake_Mustache.png-9b626d8f9619d71ed2350779cf94870e.ctex"]
 
 [params]
 

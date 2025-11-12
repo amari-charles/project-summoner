@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://btha36pti03w1"
-path="res://.godot/imported/Map_Markers_Building_Stone_Wall_Fortification.png-0cd68dbbfae5bb1bb29284834ea2b273.ctex"
+path="res://.godot/imported/Map_Markers_Building_Stone_Wall_Fortification.png-a4a1e5412c36539bbf9bb70a0214dc8a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Building_Stone_Wall_Fortification.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Stone_Wall_Fortification.png-0cd68dbbfae5bb1bb29284834ea2b273.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Building_Stone_Wall_Fortification.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Stone_Wall_Fortification.png-a4a1e5412c36539bbf9bb70a0214dc8a.ctex"]
 
 [params]
 

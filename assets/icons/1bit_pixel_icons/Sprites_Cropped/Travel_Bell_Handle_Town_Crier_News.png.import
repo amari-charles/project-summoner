@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxplh1oixkara"
-path="res://.godot/imported/Travel_Bell_Handle_Town_Crier_News.png-b4c17460df5cd0ba5aa59066407eab4f.ctex"
+path="res://.godot/imported/Travel_Bell_Handle_Town_Crier_News.png-fe560c0403e61c6344cdc295ceb7bca4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Bell_Handle_Town_Crier_News.png"
-dest_files=["res://.godot/imported/Travel_Bell_Handle_Town_Crier_News.png-b4c17460df5cd0ba5aa59066407eab4f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Bell_Handle_Town_Crier_News.png"
+dest_files=["res://.godot/imported/Travel_Bell_Handle_Town_Crier_News.png-fe560c0403e61c6344cdc295ceb7bca4.ctex"]
 
 [params]
 

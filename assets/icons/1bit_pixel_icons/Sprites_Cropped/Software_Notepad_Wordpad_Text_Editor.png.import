@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c2pqcoxmm6kso"
-path="res://.godot/imported/Software_Notepad_Wordpad_Text_Editor.png-cf4f07837bccae86fa3f66e30d2ecc69.ctex"
+path="res://.godot/imported/Software_Notepad_Wordpad_Text_Editor.png-56193eea22eb5dee5996058df3ce7f13.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Notepad_Wordpad_Text_Editor.png"
-dest_files=["res://.godot/imported/Software_Notepad_Wordpad_Text_Editor.png-cf4f07837bccae86fa3f66e30d2ecc69.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Notepad_Wordpad_Text_Editor.png"
+dest_files=["res://.godot/imported/Software_Notepad_Wordpad_Text_Editor.png-56193eea22eb5dee5996058df3ce7f13.ctex"]
 
 [params]
 

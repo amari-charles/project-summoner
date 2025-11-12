@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bywxjl6q60sma"
-path="res://.godot/imported/Hats_Astronaut_Helm_Space_Suit.png-b61f7bbd0d4472b203480aa61d57affa.ctex"
+path="res://.godot/imported/Hats_Astronaut_Helm_Space_Suit.png-2cb8dc70b502814828cf367160dc1586.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Astronaut_Helm_Space_Suit.png"
-dest_files=["res://.godot/imported/Hats_Astronaut_Helm_Space_Suit.png-b61f7bbd0d4472b203480aa61d57affa.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Astronaut_Helm_Space_Suit.png"
+dest_files=["res://.godot/imported/Hats_Astronaut_Helm_Space_Suit.png-2cb8dc70b502814828cf367160dc1586.ctex"]
 
 [params]
 

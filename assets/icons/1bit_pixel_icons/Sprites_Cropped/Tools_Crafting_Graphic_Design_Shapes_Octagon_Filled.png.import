@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbakvawewtotd"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Octagon_Filled.png-2123baa63668e78bd215a1a384808672.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Octagon_Filled.png-ee5bb257eaf6fc49b86e8b688d40c04e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Shapes_Octagon_Filled.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Octagon_Filled.png-2123baa63668e78bd215a1a384808672.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Shapes_Octagon_Filled.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Octagon_Filled.png-ee5bb257eaf6fc49b86e8b688d40c04e.ctex"]
 
 [params]
 

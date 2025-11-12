@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7wwr0wwtse60"
-path="res://.godot/imported/Software_Signs_Maths_Multiplication_X_Crossout_Checkmark_Cancel.png-e05c567dd057f175c327c867fda1a3da.ctex"
+path="res://.godot/imported/Software_Signs_Maths_Multiplication_X_Crossout_Checkmark_Cancel.png-71836476fb70f43a0d64702eb81f6d1a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Signs_Maths_Multiplication_X_Crossout_Checkmark_Cancel.png"
-dest_files=["res://.godot/imported/Software_Signs_Maths_Multiplication_X_Crossout_Checkmark_Cancel.png-e05c567dd057f175c327c867fda1a3da.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Signs_Maths_Multiplication_X_Crossout_Checkmark_Cancel.png"
+dest_files=["res://.godot/imported/Software_Signs_Maths_Multiplication_X_Crossout_Checkmark_Cancel.png-71836476fb70f43a0d64702eb81f6d1a.ctex"]
 
 [params]
 

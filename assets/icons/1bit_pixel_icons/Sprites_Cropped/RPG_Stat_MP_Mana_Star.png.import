@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2vs3uhcmf7u4"
-path="res://.godot/imported/RPG_Stat_MP_Mana_Star.png-06d1e1862eb70a57c91946f37c6f64a1.ctex"
+path="res://.godot/imported/RPG_Stat_MP_Mana_Star.png-dae0df64e58d009f9e51fafd1cc01916.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Stat_MP_Mana_Star.png"
-dest_files=["res://.godot/imported/RPG_Stat_MP_Mana_Star.png-06d1e1862eb70a57c91946f37c6f64a1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Stat_MP_Mana_Star.png"
+dest_files=["res://.godot/imported/RPG_Stat_MP_Mana_Star.png-dae0df64e58d009f9e51fafd1cc01916.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dp55nxu7ocorn"
-path="res://.godot/imported/RPG_Difficulty_2_Easy_Wooden_Shield.png-6e6713fe9daec6f4edc19d4130ef1375.ctex"
+path="res://.godot/imported/RPG_Difficulty_2_Easy_Wooden_Shield.png-8a0bcc5c7375f010f0ccf0730791a6d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Difficulty_2_Easy_Wooden_Shield.png"
-dest_files=["res://.godot/imported/RPG_Difficulty_2_Easy_Wooden_Shield.png-6e6713fe9daec6f4edc19d4130ef1375.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Difficulty_2_Easy_Wooden_Shield.png"
+dest_files=["res://.godot/imported/RPG_Difficulty_2_Easy_Wooden_Shield.png-8a0bcc5c7375f010f0ccf0730791a6d7.ctex"]
 
 [params]
 

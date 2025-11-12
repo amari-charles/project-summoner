@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnyppihxjy70o"
-path="res://.godot/imported/Software_Email_Message_Trash_Bin_Junk_Rubbish_Delete.png-1ee835372274953fcf6647ce8814e806.ctex"
+path="res://.godot/imported/Software_Email_Message_Trash_Bin_Junk_Rubbish_Delete.png-b1e35a78c3b2916645713ae688b60614.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Email_Message_Trash_Bin_Junk_Rubbish_Delete.png"
-dest_files=["res://.godot/imported/Software_Email_Message_Trash_Bin_Junk_Rubbish_Delete.png-1ee835372274953fcf6647ce8814e806.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Email_Message_Trash_Bin_Junk_Rubbish_Delete.png"
+dest_files=["res://.godot/imported/Software_Email_Message_Trash_Bin_Junk_Rubbish_Delete.png-b1e35a78c3b2916645713ae688b60614.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crqipvx2kjr14"
-path="res://.godot/imported/Emoji_Hand_Wave_Cursor_Pan_Open.png-a6a9654df64b2b1a3d8a374201475356.ctex"
+path="res://.godot/imported/Emoji_Hand_Wave_Cursor_Pan_Open.png-c8c0949653e8f8e4953617541dd0a650.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Emoji_Hand_Wave_Cursor_Pan_Open.png"
-dest_files=["res://.godot/imported/Emoji_Hand_Wave_Cursor_Pan_Open.png-a6a9654df64b2b1a3d8a374201475356.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Emoji_Hand_Wave_Cursor_Pan_Open.png"
+dest_files=["res://.godot/imported/Emoji_Hand_Wave_Cursor_Pan_Open.png-c8c0949653e8f8e4953617541dd0a650.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cb6l6k8hf2eml"
-path="res://.godot/imported/Warfare_Ammo_Rocket_Missile_RPG.png-d56eaca8fe735569636f279b8c873f0a.ctex"
+path="res://.godot/imported/Warfare_Ammo_Rocket_Missile_RPG.png-e78e9505727ada53fc475a4dd26c0ab6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Warfare_Ammo_Rocket_Missile_RPG.png"
-dest_files=["res://.godot/imported/Warfare_Ammo_Rocket_Missile_RPG.png-d56eaca8fe735569636f279b8c873f0a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Warfare_Ammo_Rocket_Missile_RPG.png"
+dest_files=["res://.godot/imported/Warfare_Ammo_Rocket_Missile_RPG.png-e78e9505727ada53fc475a4dd26c0ab6.ctex"]
 
 [params]
 

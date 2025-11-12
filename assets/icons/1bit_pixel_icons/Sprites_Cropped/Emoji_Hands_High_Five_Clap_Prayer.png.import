@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cucjn14jamec8"
-path="res://.godot/imported/Emoji_Hands_High_Five_Clap_Prayer.png-787d21e7c51e6443bdb817d73c6f0b7c.ctex"
+path="res://.godot/imported/Emoji_Hands_High_Five_Clap_Prayer.png-92304ebe72838ab60b944e50b028f61b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Emoji_Hands_High_Five_Clap_Prayer.png"
-dest_files=["res://.godot/imported/Emoji_Hands_High_Five_Clap_Prayer.png-787d21e7c51e6443bdb817d73c6f0b7c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Emoji_Hands_High_Five_Clap_Prayer.png"
+dest_files=["res://.godot/imported/Emoji_Hands_High_Five_Clap_Prayer.png-92304ebe72838ab60b944e50b028f61b.ctex"]
 
 [params]
 

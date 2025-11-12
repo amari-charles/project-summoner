@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1qsr8qkcflud"
-path="res://.godot/imported/RPG_Item_Weapon_Hammer_Mace_Crushing_Damage.png-f32d1e900ff8d752b4a522709b7dbb0a.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Hammer_Mace_Crushing_Damage.png-207f0192adeed0909361a84f48c7da8a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Weapon_Hammer_Mace_Crushing_Damage.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Hammer_Mace_Crushing_Damage.png-f32d1e900ff8d752b4a522709b7dbb0a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Weapon_Hammer_Mace_Crushing_Damage.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Hammer_Mace_Crushing_Damage.png-207f0192adeed0909361a84f48c7da8a.ctex"]
 
 [params]
 

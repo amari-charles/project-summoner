@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cawk4w6rucums"
-path="res://.godot/imported/Map_Markers_Volcano.png-a5371931726dad127b4d51fb923c97ce.ctex"
+path="res://.godot/imported/Map_Markers_Volcano.png-f98dcd9eac3eee729a8a7dbb31bdecd1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Volcano.png"
-dest_files=["res://.godot/imported/Map_Markers_Volcano.png-a5371931726dad127b4d51fb923c97ce.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Volcano.png"
+dest_files=["res://.godot/imported/Map_Markers_Volcano.png-f98dcd9eac3eee729a8a7dbb31bdecd1.ctex"]
 
 [params]
 

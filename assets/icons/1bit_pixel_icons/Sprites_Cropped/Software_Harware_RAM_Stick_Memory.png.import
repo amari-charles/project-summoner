@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1bdawmw7wtsb"
-path="res://.godot/imported/Software_Harware_RAM_Stick_Memory.png-b60c9615435a53d45d4f1bd1c848ff18.ctex"
+path="res://.godot/imported/Software_Harware_RAM_Stick_Memory.png-f36ff35f63f1eccbf9164c84815b8778.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Harware_RAM_Stick_Memory.png"
-dest_files=["res://.godot/imported/Software_Harware_RAM_Stick_Memory.png-b60c9615435a53d45d4f1bd1c848ff18.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Harware_RAM_Stick_Memory.png"
+dest_files=["res://.godot/imported/Software_Harware_RAM_Stick_Memory.png-f36ff35f63f1eccbf9164c84815b8778.ctex"]
 
 [params]
 

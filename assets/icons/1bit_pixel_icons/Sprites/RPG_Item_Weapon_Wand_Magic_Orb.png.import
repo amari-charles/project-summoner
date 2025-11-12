@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://gtq8v5esbja5"
-path="res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Orb.png-066ead1476dfd649a9bd2a23fd6fe8d1.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Orb.png-9040af6dcf179892c14de1d0e3f8ed33.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Weapon_Wand_Magic_Orb.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Orb.png-066ead1476dfd649a9bd2a23fd6fe8d1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Weapon_Wand_Magic_Orb.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Wand_Magic_Orb.png-9040af6dcf179892c14de1d0e3f8ed33.ctex"]
 
 [params]
 

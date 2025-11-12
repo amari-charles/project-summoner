@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bed2hc7d6l3t5"
-path="res://.godot/imported/Boardgames_Card_8_Eight.png-2b46d828eb7dd927a1e1b95652ee86a7.ctex"
+path="res://.godot/imported/Boardgames_Card_8_Eight.png-2ac957639d185acb346f9b65848082e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Card_8_Eight.png"
-dest_files=["res://.godot/imported/Boardgames_Card_8_Eight.png-2b46d828eb7dd927a1e1b95652ee86a7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Card_8_Eight.png"
+dest_files=["res://.godot/imported/Boardgames_Card_8_Eight.png-2ac957639d185acb346f9b65848082e3.ctex"]
 
 [params]
 

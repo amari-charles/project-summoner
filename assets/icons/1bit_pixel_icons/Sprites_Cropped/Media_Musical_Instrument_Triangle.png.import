@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3jqn5if8gou3"
-path="res://.godot/imported/Media_Musical_Instrument_Triangle.png-3f62955a45ff11702f6145adaeb8f90b.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Triangle.png-47a76af5b25c62256aec2ed46cc6bf5e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Triangle.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Triangle.png-3f62955a45ff11702f6145adaeb8f90b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Triangle.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Triangle.png-47a76af5b25c62256aec2ed46cc6bf5e.ctex"]
 
 [params]
 

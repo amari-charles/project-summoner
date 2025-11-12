@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bnngfwxyf8pei"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Polygon_Filled.png-14d22e4dcfe4b7cf557ffaa4143b82ed.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Polygon_Filled.png-b073631c8217f7846c241bb774cd7d4f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Polygon_Filled.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Polygon_Filled.png-14d22e4dcfe4b7cf557ffaa4143b82ed.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Polygon_Filled.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Polygon_Filled.png-b073631c8217f7846c241bb774cd7d4f.ctex"]
 
 [params]
 

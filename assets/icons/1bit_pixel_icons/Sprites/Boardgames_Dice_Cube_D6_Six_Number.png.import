@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://3m3vtme62tfp"
-path="res://.godot/imported/Boardgames_Dice_Cube_D6_Six_Number.png-a95c8b4d8190c8d3fea3282f878dd7c4.ctex"
+path="res://.godot/imported/Boardgames_Dice_Cube_D6_Six_Number.png-aa9bc98a78c12599ef3998b956402a1a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Dice_Cube_D6_Six_Number.png"
-dest_files=["res://.godot/imported/Boardgames_Dice_Cube_D6_Six_Number.png-a95c8b4d8190c8d3fea3282f878dd7c4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Dice_Cube_D6_Six_Number.png"
+dest_files=["res://.godot/imported/Boardgames_Dice_Cube_D6_Six_Number.png-aa9bc98a78c12599ef3998b956402a1a.ctex"]
 
 [params]
 

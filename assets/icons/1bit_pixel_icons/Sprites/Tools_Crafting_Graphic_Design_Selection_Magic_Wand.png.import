@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8op6xvwtkp3q"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Magic_Wand.png-656e79dc04b2e517ebacc6a5299a67b7.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Magic_Wand.png-79c005c4ba3fc8d77e9dd853e237aa5d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Selection_Magic_Wand.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Magic_Wand.png-656e79dc04b2e517ebacc6a5299a67b7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Selection_Magic_Wand.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Magic_Wand.png-79c005c4ba3fc8d77e9dd853e237aa5d.ctex"]
 
 [params]
 

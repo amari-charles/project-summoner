@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqclga3fivk4b"
-path="res://.godot/imported/Travel_Person_Player_Character_Three_People_Multiplayer.png-1a6a4e1571d579527e9de989e8de281f.ctex"
+path="res://.godot/imported/Travel_Person_Player_Character_Three_People_Multiplayer.png-67ec60fd9e42f77624bb2081426c35cc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Person_Player_Character_Three_People_Multiplayer.png"
-dest_files=["res://.godot/imported/Travel_Person_Player_Character_Three_People_Multiplayer.png-1a6a4e1571d579527e9de989e8de281f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Person_Player_Character_Three_People_Multiplayer.png"
+dest_files=["res://.godot/imported/Travel_Person_Player_Character_Three_People_Multiplayer.png-67ec60fd9e42f77624bb2081426c35cc.ctex"]
 
 [params]
 

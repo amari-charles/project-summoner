@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ersef132yvxj"
-path="res://.godot/imported/Weather_Thunderstorm_Cloud_Lightning_Zap.png-f1eeee8009b579c2a87fb05c74093e77.ctex"
+path="res://.godot/imported/Weather_Thunderstorm_Cloud_Lightning_Zap.png-6901e95d42caf58d0e2b5a497ff68eb6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Weather_Thunderstorm_Cloud_Lightning_Zap.png"
-dest_files=["res://.godot/imported/Weather_Thunderstorm_Cloud_Lightning_Zap.png-f1eeee8009b579c2a87fb05c74093e77.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Weather_Thunderstorm_Cloud_Lightning_Zap.png"
+dest_files=["res://.godot/imported/Weather_Thunderstorm_Cloud_Lightning_Zap.png-6901e95d42caf58d0e2b5a497ff68eb6.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csr6l8jnxhbod"
-path="res://.godot/imported/Platforms_Humble_Bundle_Store.png-8ff3a10cd49937970cfd1ae2ffad8863.ctex"
+path="res://.godot/imported/Platforms_Humble_Bundle_Store.png-23fb15dca195ed9f9ae7139d988d6d03.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Humble_Bundle_Store.png"
-dest_files=["res://.godot/imported/Platforms_Humble_Bundle_Store.png-8ff3a10cd49937970cfd1ae2ffad8863.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Humble_Bundle_Store.png"
+dest_files=["res://.godot/imported/Platforms_Humble_Bundle_Store.png-23fb15dca195ed9f9ae7139d988d6d03.ctex"]
 
 [params]
 

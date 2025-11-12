@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djlbx0iae8w68"
-path="res://.godot/imported/Media_Disc_CD_DVD_Vinyl_Record_1.png-95730b27fe8d50a75e30a32aa7ec2a09.ctex"
+path="res://.godot/imported/Media_Disc_CD_DVD_Vinyl_Record_1.png-db3b312dbf62291e295ab3d64defdbbc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Disc_CD_DVD_Vinyl_Record_1.png"
-dest_files=["res://.godot/imported/Media_Disc_CD_DVD_Vinyl_Record_1.png-95730b27fe8d50a75e30a32aa7ec2a09.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Disc_CD_DVD_Vinyl_Record_1.png"
+dest_files=["res://.godot/imported/Media_Disc_CD_DVD_Vinyl_Record_1.png-db3b312dbf62291e295ab3d64defdbbc.ctex"]
 
 [params]
 

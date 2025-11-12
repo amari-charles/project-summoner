@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://blis61kf18e68"
-path="res://.godot/imported/Software_Hardware_Mobile_Smartphone_Vibration.png-c312c7ebbf6dd078619d08b342334aeb.ctex"
+path="res://.godot/imported/Software_Hardware_Mobile_Smartphone_Vibration.png-492fcb40d1a973c77b71269eef46839e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Hardware_Mobile_Smartphone_Vibration.png"
-dest_files=["res://.godot/imported/Software_Hardware_Mobile_Smartphone_Vibration.png-c312c7ebbf6dd078619d08b342334aeb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Hardware_Mobile_Smartphone_Vibration.png"
+dest_files=["res://.godot/imported/Software_Hardware_Mobile_Smartphone_Vibration.png-492fcb40d1a973c77b71269eef46839e.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbwihpxfv0q8o"
-path="res://.godot/imported/Media_Audio_Ear_Hearing_Volume_2_Medium.png-fbeb61ed0a72b5206601589943bac481.ctex"
+path="res://.godot/imported/Media_Audio_Ear_Hearing_Volume_2_Medium.png-e6da7bf3a9b48a20a9cf953cd7683363.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Audio_Ear_Hearing_Volume_2_Medium.png"
-dest_files=["res://.godot/imported/Media_Audio_Ear_Hearing_Volume_2_Medium.png-fbeb61ed0a72b5206601589943bac481.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Audio_Ear_Hearing_Volume_2_Medium.png"
+dest_files=["res://.godot/imported/Media_Audio_Ear_Hearing_Volume_2_Medium.png-e6da7bf3a9b48a20a9cf953cd7683363.ctex"]
 
 [params]
 

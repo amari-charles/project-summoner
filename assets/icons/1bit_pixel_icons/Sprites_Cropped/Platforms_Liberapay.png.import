@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bc3xd8jno1hei"
-path="res://.godot/imported/Platforms_Liberapay.png-9fc0f1df6d42218d0976d51125aa70f6.ctex"
+path="res://.godot/imported/Platforms_Liberapay.png-c4030d413d240e345ff012fe5038893b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Liberapay.png"
-dest_files=["res://.godot/imported/Platforms_Liberapay.png-9fc0f1df6d42218d0976d51125aa70f6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Liberapay.png"
+dest_files=["res://.godot/imported/Platforms_Liberapay.png-c4030d413d240e345ff012fe5038893b.ctex"]
 
 [params]
 

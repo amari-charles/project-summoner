@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bmr66ibtgkmwc"
-path="res://.godot/imported/Hats_Tricorne_Pirate_Captain.png-96c6ab0f5a886d1234cbc1b4aa026c7d.ctex"
+path="res://.godot/imported/Hats_Tricorne_Pirate_Captain.png-7bde7d303724bba9b621ec50fe0dc1d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Tricorne_Pirate_Captain.png"
-dest_files=["res://.godot/imported/Hats_Tricorne_Pirate_Captain.png-96c6ab0f5a886d1234cbc1b4aa026c7d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Tricorne_Pirate_Captain.png"
+dest_files=["res://.godot/imported/Hats_Tricorne_Pirate_Captain.png-7bde7d303724bba9b621ec50fe0dc1d7.ctex"]
 
 [params]
 

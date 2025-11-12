@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5rput8udvad3"
-path="res://.godot/imported/Sports_Billiards_Snooker_Cue_Ball_Blank_White.png-b7d49fc709d6bfa2a169c86bbdd4f451.ctex"
+path="res://.godot/imported/Sports_Billiards_Snooker_Cue_Ball_Blank_White.png-a303cda82550dbbe6540eb7496e11f29.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Billiards_Snooker_Cue_Ball_Blank_White.png"
-dest_files=["res://.godot/imported/Sports_Billiards_Snooker_Cue_Ball_Blank_White.png-b7d49fc709d6bfa2a169c86bbdd4f451.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Billiards_Snooker_Cue_Ball_Blank_White.png"
+dest_files=["res://.godot/imported/Sports_Billiards_Snooker_Cue_Ball_Blank_White.png-a303cda82550dbbe6540eb7496e11f29.ctex"]
 
 [params]
 

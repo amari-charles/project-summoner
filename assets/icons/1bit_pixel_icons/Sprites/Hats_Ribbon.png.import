@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://xjfwvbx23irl"
-path="res://.godot/imported/Hats_Ribbon.png-1755eae9801c87c9e26fdc4bb0cd46f1.ctex"
+path="res://.godot/imported/Hats_Ribbon.png-e87053a66795e5e8bdef8027952c3173.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Ribbon.png"
-dest_files=["res://.godot/imported/Hats_Ribbon.png-1755eae9801c87c9e26fdc4bb0cd46f1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Ribbon.png"
+dest_files=["res://.godot/imported/Hats_Ribbon.png-e87053a66795e5e8bdef8027952c3173.ctex"]
 
 [params]
 

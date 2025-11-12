@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ij8fmjg1hb58"
-path="res://.godot/imported/Software_Email_Message_Forward_Send.png-73e71ed252e26b8ff3388362afe2a979.ctex"
+path="res://.godot/imported/Software_Email_Message_Forward_Send.png-1cdeb5d39cfcbd4c1ef695fbcb4c988f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Email_Message_Forward_Send.png"
-dest_files=["res://.godot/imported/Software_Email_Message_Forward_Send.png-73e71ed252e26b8ff3388362afe2a979.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Email_Message_Forward_Send.png"
+dest_files=["res://.godot/imported/Software_Email_Message_Forward_Send.png-1cdeb5d39cfcbd4c1ef695fbcb4c988f.ctex"]
 
 [params]
 

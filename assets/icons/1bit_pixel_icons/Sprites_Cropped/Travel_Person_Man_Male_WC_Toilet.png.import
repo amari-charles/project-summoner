@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ceb15p73c30wp"
-path="res://.godot/imported/Travel_Person_Man_Male_WC_Toilet.png-218e62d597ab565286745f1b5c49d36b.ctex"
+path="res://.godot/imported/Travel_Person_Man_Male_WC_Toilet.png-b7df1a621c035c7a1a001170eb54127d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Person_Man_Male_WC_Toilet.png"
-dest_files=["res://.godot/imported/Travel_Person_Man_Male_WC_Toilet.png-218e62d597ab565286745f1b5c49d36b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Person_Man_Male_WC_Toilet.png"
+dest_files=["res://.godot/imported/Travel_Person_Man_Male_WC_Toilet.png-b7df1a621c035c7a1a001170eb54127d.ctex"]
 
 [params]
 

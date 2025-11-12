@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://176kl4qqroq4"
-path="res://.godot/imported/Tools_Crafting_Beekeeping.png-36b330f62621e81f96a929c05c46bbf2.ctex"
+path="res://.godot/imported/Tools_Crafting_Beekeeping.png-13c9a8b9ed44b5750c9e8f0b2d4f1941.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Beekeeping.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping.png-36b330f62621e81f96a929c05c46bbf2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Beekeeping.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping.png-13c9a8b9ed44b5750c9e8f0b2d4f1941.ctex"]
 
 [params]
 

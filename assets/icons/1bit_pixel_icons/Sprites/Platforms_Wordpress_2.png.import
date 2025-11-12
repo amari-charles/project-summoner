@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://r2d033spfu0k"
-path="res://.godot/imported/Platforms_Wordpress_2.png-08df0c58fc48414fe150a0d2d628ce8e.ctex"
+path="res://.godot/imported/Platforms_Wordpress_2.png-cc9e00e146d86cb4b7e84907c8880794.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Wordpress_2.png"
-dest_files=["res://.godot/imported/Platforms_Wordpress_2.png-08df0c58fc48414fe150a0d2d628ce8e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Wordpress_2.png"
+dest_files=["res://.godot/imported/Platforms_Wordpress_2.png-cc9e00e146d86cb4b7e84907c8880794.ctex"]
 
 [params]
 

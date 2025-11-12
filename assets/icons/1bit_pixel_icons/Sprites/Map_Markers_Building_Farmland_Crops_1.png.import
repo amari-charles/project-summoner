@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmsatqjnfb88t"
-path="res://.godot/imported/Map_Markers_Building_Farmland_Crops_1.png-c07f6942709d3e272cecf13a91a50843.ctex"
+path="res://.godot/imported/Map_Markers_Building_Farmland_Crops_1.png-07073db14fcbcdd90167a4c7ba806336.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Building_Farmland_Crops_1.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Farmland_Crops_1.png-c07f6942709d3e272cecf13a91a50843.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Building_Farmland_Crops_1.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Farmland_Crops_1.png-07073db14fcbcdd90167a4c7ba806336.ctex"]
 
 [params]
 

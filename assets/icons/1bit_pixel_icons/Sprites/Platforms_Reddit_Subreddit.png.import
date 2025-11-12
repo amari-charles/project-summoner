@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dkfmepv5vd2pe"
-path="res://.godot/imported/Platforms_Reddit_Subreddit.png-7bc5f3f01a27556815c22382ba9d38c1.ctex"
+path="res://.godot/imported/Platforms_Reddit_Subreddit.png-0249acd3f654b98f392ca7d4cea46d32.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Reddit_Subreddit.png"
-dest_files=["res://.godot/imported/Platforms_Reddit_Subreddit.png-7bc5f3f01a27556815c22382ba9d38c1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Reddit_Subreddit.png"
+dest_files=["res://.godot/imported/Platforms_Reddit_Subreddit.png-0249acd3f654b98f392ca7d4cea46d32.ctex"]
 
 [params]
 

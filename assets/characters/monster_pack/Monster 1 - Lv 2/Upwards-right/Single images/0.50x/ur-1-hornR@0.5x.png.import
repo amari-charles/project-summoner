@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2xn7fxpyk3ha"
-path="res://.godot/imported/ur-1-hornR@0.5x.png-044da3a3431423af3443a31ceae40edd.ctex"
+path="res://.godot/imported/ur-1-hornR@0.5x.png-66f311f7aa4ed95269eed97bb2c9b8d8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Monster 1 - Lv 2/Upwards-right/Single images/0.50x/ur-1-hornR@0.5x.png"
-dest_files=["res://.godot/imported/ur-1-hornR@0.5x.png-044da3a3431423af3443a31ceae40edd.ctex"]
+source_file="res://assets/characters/monster_pack/Monster 1 - Lv 2/Upwards-right/Single images/0.50x/ur-1-hornR@0.5x.png"
+dest_files=["res://.godot/imported/ur-1-hornR@0.5x.png-66f311f7aa4ed95269eed97bb2c9b8d8.ctex"]
 
 [params]
 

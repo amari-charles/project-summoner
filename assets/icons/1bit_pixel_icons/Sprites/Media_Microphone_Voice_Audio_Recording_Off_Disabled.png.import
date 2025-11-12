@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b4rq6ayqlk1yt"
-path="res://.godot/imported/Media_Microphone_Voice_Audio_Recording_Off_Disabled.png-3ef1c87518f4f47307b5579e9348d4b0.ctex"
+path="res://.godot/imported/Media_Microphone_Voice_Audio_Recording_Off_Disabled.png-ee132202d6313f21bcf18e126773f087.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Microphone_Voice_Audio_Recording_Off_Disabled.png"
-dest_files=["res://.godot/imported/Media_Microphone_Voice_Audio_Recording_Off_Disabled.png-3ef1c87518f4f47307b5579e9348d4b0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Microphone_Voice_Audio_Recording_Off_Disabled.png"
+dest_files=["res://.godot/imported/Media_Microphone_Voice_Audio_Recording_Off_Disabled.png-ee132202d6313f21bcf18e126773f087.ctex"]
 
 [params]
 

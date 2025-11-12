@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dl5difqxrthtq"
-path="res://.godot/imported/RPG_Creature_Archetypes_Bird_Avian_Flying.png-bedba8ed7b3be3a14e7f886b381f07f4.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Bird_Avian_Flying.png-0be31d963924b17ed6a1d67be02742e2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Creature_Archetypes_Bird_Avian_Flying.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Bird_Avian_Flying.png-bedba8ed7b3be3a14e7f886b381f07f4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Creature_Archetypes_Bird_Avian_Flying.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Bird_Avian_Flying.png-0be31d963924b17ed6a1d67be02742e2.ctex"]
 
 [params]
 

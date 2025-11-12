@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1hdu7im38wxg"
-path="res://.godot/imported/Arrows_Media_Controls_Swap_Shuffle.png-acce5d41ff8a861b6429c2b80218aaf7.ctex"
+path="res://.godot/imported/Arrows_Media_Controls_Swap_Shuffle.png-c865d88ec790f1229e0c694ef088cf0d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Arrows_Media_Controls_Swap_Shuffle.png"
-dest_files=["res://.godot/imported/Arrows_Media_Controls_Swap_Shuffle.png-acce5d41ff8a861b6429c2b80218aaf7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Arrows_Media_Controls_Swap_Shuffle.png"
+dest_files=["res://.godot/imported/Arrows_Media_Controls_Swap_Shuffle.png-c865d88ec790f1229e0c694ef088cf0d.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8xdyd2pnnsrh"
-path="res://.godot/imported/Media_Musical_Instrument_Saxophone.png-3076c7cc73bd40deb0dbc02176938445.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Saxophone.png-43929d5309aff19baa731dfc3f552a6c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Saxophone.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Saxophone.png-3076c7cc73bd40deb0dbc02176938445.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Saxophone.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Saxophone.png-43929d5309aff19baa731dfc3f552a6c.ctex"]
 
 [params]
 

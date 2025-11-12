@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckauv45p2qc1"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Freeform.png-9bcc0f33fcf6b1bea9cd3173cdacbf70.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Freeform.png-00a3e553f929a7ff371d7fe7a3e4345a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Selection_Lasso_Freeform.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Freeform.png-9bcc0f33fcf6b1bea9cd3173cdacbf70.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Selection_Lasso_Freeform.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Freeform.png-00a3e553f929a7ff371d7fe7a3e4345a.ctex"]
 
 [params]
 

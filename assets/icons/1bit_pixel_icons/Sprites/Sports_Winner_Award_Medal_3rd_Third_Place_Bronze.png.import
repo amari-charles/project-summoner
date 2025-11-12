@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b10t1ifhotmiw"
-path="res://.godot/imported/Sports_Winner_Award_Medal_3rd_Third_Place_Bronze.png-118d4b34697dbdf2ca3c5d0703b127c8.ctex"
+path="res://.godot/imported/Sports_Winner_Award_Medal_3rd_Third_Place_Bronze.png-7e51590530cf471089d81a864585444d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Winner_Award_Medal_3rd_Third_Place_Bronze.png"
-dest_files=["res://.godot/imported/Sports_Winner_Award_Medal_3rd_Third_Place_Bronze.png-118d4b34697dbdf2ca3c5d0703b127c8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Winner_Award_Medal_3rd_Third_Place_Bronze.png"
+dest_files=["res://.godot/imported/Sports_Winner_Award_Medal_3rd_Third_Place_Bronze.png-7e51590530cf471089d81a864585444d.ctex"]
 
 [params]
 

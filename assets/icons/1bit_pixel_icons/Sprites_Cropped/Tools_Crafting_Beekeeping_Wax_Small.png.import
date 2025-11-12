@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cs78dgfd3mnh7"
-path="res://.godot/imported/Tools_Crafting_Beekeeping_Wax_Small.png-5b70a86956e253337077dbc3c79e4c49.ctex"
+path="res://.godot/imported/Tools_Crafting_Beekeeping_Wax_Small.png-6b23eaecd6f74a415f8d714b64fc5edd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Beekeeping_Wax_Small.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping_Wax_Small.png-5b70a86956e253337077dbc3c79e4c49.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Beekeeping_Wax_Small.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Beekeeping_Wax_Small.png-6b23eaecd6f74a415f8d714b64fc5edd.ctex"]
 
 [params]
 

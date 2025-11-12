@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://coyobmifqq4n6"
-path="res://.godot/imported/Tools_Crafting_Fishing_Harpoon_Spear.png-3752cf7bc831b88269e81b84836489fe.ctex"
+path="res://.godot/imported/Tools_Crafting_Fishing_Harpoon_Spear.png-721be7d653a7af302f6ea6956436aa0a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Fishing_Harpoon_Spear.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Fishing_Harpoon_Spear.png-3752cf7bc831b88269e81b84836489fe.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Fishing_Harpoon_Spear.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Fishing_Harpoon_Spear.png-721be7d653a7af302f6ea6956436aa0a.ctex"]
 
 [params]
 

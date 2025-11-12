@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgilv5k7veyry"
-path="res://.godot/imported/Platforms_RetroArch_Emulators.png-47df2a9af5ef134ade32818ee64b1211.ctex"
+path="res://.godot/imported/Platforms_RetroArch_Emulators.png-c523750598635f44a332906bfabdd829.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_RetroArch_Emulators.png"
-dest_files=["res://.godot/imported/Platforms_RetroArch_Emulators.png-47df2a9af5ef134ade32818ee64b1211.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_RetroArch_Emulators.png"
+dest_files=["res://.godot/imported/Platforms_RetroArch_Emulators.png-c523750598635f44a332906bfabdd829.ctex"]
 
 [params]
 

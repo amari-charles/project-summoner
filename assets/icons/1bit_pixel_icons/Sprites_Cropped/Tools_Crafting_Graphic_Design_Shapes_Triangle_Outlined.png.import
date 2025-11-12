@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dn08o8403o6u6"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Triangle_Outlined.png-521dcd372e068bd6ce777b0075a11cdc.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Triangle_Outlined.png-37efd4cbc57b755f2974cbd1eeb27186.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Shapes_Triangle_Outlined.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Triangle_Outlined.png-521dcd372e068bd6ce777b0075a11cdc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Shapes_Triangle_Outlined.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Triangle_Outlined.png-37efd4cbc57b755f2974cbd1eeb27186.ctex"]
 
 [params]
 

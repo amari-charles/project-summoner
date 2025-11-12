@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c02auw2yee0ec"
-path="res://.godot/imported/RPG_Stat_Lucky_Horseshoe.png-c605a8890b7e9e45b4dcce7e439c5776.ctex"
+path="res://.godot/imported/RPG_Stat_Lucky_Horseshoe.png-a7297acf93fc7a7cacbde07bcd37874c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Stat_Lucky_Horseshoe.png"
-dest_files=["res://.godot/imported/RPG_Stat_Lucky_Horseshoe.png-c605a8890b7e9e45b4dcce7e439c5776.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Stat_Lucky_Horseshoe.png"
+dest_files=["res://.godot/imported/RPG_Stat_Lucky_Horseshoe.png-a7297acf93fc7a7cacbde07bcd37874c.ctex"]
 
 [params]
 

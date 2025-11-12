@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgei1r7e34inl"
-path="res://.godot/imported/Warfare_Soldier_Skull_Kills_Frags.png-5f828dde3939bbc67f1af1536560029f.ctex"
+path="res://.godot/imported/Warfare_Soldier_Skull_Kills_Frags.png-64da6eda0b1912e7ed4342be0f2db12d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Warfare_Soldier_Skull_Kills_Frags.png"
-dest_files=["res://.godot/imported/Warfare_Soldier_Skull_Kills_Frags.png-5f828dde3939bbc67f1af1536560029f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Warfare_Soldier_Skull_Kills_Frags.png"
+dest_files=["res://.godot/imported/Warfare_Soldier_Skull_Kills_Frags.png-64da6eda0b1912e7ed4342be0f2db12d.ctex"]
 
 [params]
 

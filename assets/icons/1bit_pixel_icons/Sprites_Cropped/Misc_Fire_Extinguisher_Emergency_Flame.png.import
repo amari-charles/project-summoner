@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pwoqst2npe7o"
-path="res://.godot/imported/Misc_Fire_Extinguisher_Emergency_Flame.png-f48cc1f4969977a1cac4f10e03d800d1.ctex"
+path="res://.godot/imported/Misc_Fire_Extinguisher_Emergency_Flame.png-27712af66ede9cfe1fd98ec0833c5a84.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Misc_Fire_Extinguisher_Emergency_Flame.png"
-dest_files=["res://.godot/imported/Misc_Fire_Extinguisher_Emergency_Flame.png-f48cc1f4969977a1cac4f10e03d800d1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Misc_Fire_Extinguisher_Emergency_Flame.png"
+dest_files=["res://.godot/imported/Misc_Fire_Extinguisher_Emergency_Flame.png-27712af66ede9cfe1fd98ec0833c5a84.ctex"]
 
 [params]
 

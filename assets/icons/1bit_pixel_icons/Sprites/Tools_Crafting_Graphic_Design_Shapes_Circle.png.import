@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dthj4n6rse0gi"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Circle.png-1fd95115ee5c2b6a584099aba35ea2a9.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Circle.png-057f6253926abc94cd19984b214cd1e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Circle.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Circle.png-1fd95115ee5c2b6a584099aba35ea2a9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Shapes_Circle.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Shapes_Circle.png-057f6253926abc94cd19984b214cd1e3.ctex"]
 
 [params]
 

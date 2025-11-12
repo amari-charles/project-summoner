@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca1q178rbc0d0"
-path="res://.godot/imported/Misc_Medicine_Sign_Snake.png-e636c825e61933b7530f928ca8592b70.ctex"
+path="res://.godot/imported/Misc_Medicine_Sign_Snake.png-46828a3a03fb784f7adacee7b3acc70b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_Medicine_Sign_Snake.png"
-dest_files=["res://.godot/imported/Misc_Medicine_Sign_Snake.png-e636c825e61933b7530f928ca8592b70.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_Medicine_Sign_Snake.png"
+dest_files=["res://.godot/imported/Misc_Medicine_Sign_Snake.png-46828a3a03fb784f7adacee7b3acc70b.ctex"]
 
 [params]
 

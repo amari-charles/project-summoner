@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpujjvo51jn0i"
-path="res://.godot/imported/Map_Markers_Building_Hospital_Clinic.png-6b8fdd2a4ab9b1a84e541d31feddac21.ctex"
+path="res://.godot/imported/Map_Markers_Building_Hospital_Clinic.png-10a09f32e8aa9243d47d4f3c30404166.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Building_Hospital_Clinic.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Hospital_Clinic.png-6b8fdd2a4ab9b1a84e541d31feddac21.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Building_Hospital_Clinic.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Hospital_Clinic.png-10a09f32e8aa9243d47d4f3c30404166.ctex"]
 
 [params]
 

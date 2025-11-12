@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ljyy4yq2amcy"
-path="res://.godot/imported/Boardgames_Tetris_Piece_Tetromino_J4.png-e9cb534fe59203d02e039d17b2843e3e.ctex"
+path="res://.godot/imported/Boardgames_Tetris_Piece_Tetromino_J4.png-25b7bb9311dae0806703393c022e316d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Tetris_Piece_Tetromino_J4.png"
-dest_files=["res://.godot/imported/Boardgames_Tetris_Piece_Tetromino_J4.png-e9cb534fe59203d02e039d17b2843e3e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Tetris_Piece_Tetromino_J4.png"
+dest_files=["res://.godot/imported/Boardgames_Tetris_Piece_Tetromino_J4.png-25b7bb9311dae0806703393c022e316d.ctex"]
 
 [params]
 

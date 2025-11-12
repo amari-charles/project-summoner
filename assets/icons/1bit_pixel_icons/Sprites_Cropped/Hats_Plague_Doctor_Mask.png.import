@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdarm6c16h1uy"
-path="res://.godot/imported/Hats_Plague_Doctor_Mask.png-8c1b7ddb6bf3f986823976fcd766c3b8.ctex"
+path="res://.godot/imported/Hats_Plague_Doctor_Mask.png-d2159d82d52bbc20e9ecc9ef6c2b3340.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Plague_Doctor_Mask.png"
-dest_files=["res://.godot/imported/Hats_Plague_Doctor_Mask.png-8c1b7ddb6bf3f986823976fcd766c3b8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Plague_Doctor_Mask.png"
+dest_files=["res://.godot/imported/Hats_Plague_Doctor_Mask.png-d2159d82d52bbc20e9ecc9ef6c2b3340.ctex"]
 
 [params]
 

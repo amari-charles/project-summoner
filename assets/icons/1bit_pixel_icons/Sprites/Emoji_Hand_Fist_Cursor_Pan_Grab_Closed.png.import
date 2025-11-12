@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0vfqiltqc3i5"
-path="res://.godot/imported/Emoji_Hand_Fist_Cursor_Pan_Grab_Closed.png-575b3ad470e221d4887756fb6c9d5f56.ctex"
+path="res://.godot/imported/Emoji_Hand_Fist_Cursor_Pan_Grab_Closed.png-f461d9bbfab02cda181a113b1fefbb60.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Emoji_Hand_Fist_Cursor_Pan_Grab_Closed.png"
-dest_files=["res://.godot/imported/Emoji_Hand_Fist_Cursor_Pan_Grab_Closed.png-575b3ad470e221d4887756fb6c9d5f56.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Emoji_Hand_Fist_Cursor_Pan_Grab_Closed.png"
+dest_files=["res://.godot/imported/Emoji_Hand_Fist_Cursor_Pan_Grab_Closed.png-f461d9bbfab02cda181a113b1fefbb60.ctex"]
 
 [params]
 

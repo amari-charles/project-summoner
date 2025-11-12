@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://clk3n6hgubkwg"
-path="res://.godot/imported/Warfare_Dynamite_Detonator_Explosive_Switch.png-77fdfda8ebda1942940392d6edeede5f.ctex"
+path="res://.godot/imported/Warfare_Dynamite_Detonator_Explosive_Switch.png-f0d7e87e871510a29c60fc640f79a6d1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Dynamite_Detonator_Explosive_Switch.png"
-dest_files=["res://.godot/imported/Warfare_Dynamite_Detonator_Explosive_Switch.png-77fdfda8ebda1942940392d6edeede5f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Dynamite_Detonator_Explosive_Switch.png"
+dest_files=["res://.godot/imported/Warfare_Dynamite_Detonator_Explosive_Switch.png-f0d7e87e871510a29c60fc640f79a6d1.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qbvrqj8s0rj"
-path="res://.godot/imported/Sports_Winner_Award_Cup_Achievement_Trophy_2nd_Second_Place.png-9fdf4b4aaa595b39d6c5cb9306b0a4ad.ctex"
+path="res://.godot/imported/Sports_Winner_Award_Cup_Achievement_Trophy_2nd_Second_Place.png-9d5dba8c3da40088820c57bc76c53782.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Winner_Award_Cup_Achievement_Trophy_2nd_Second_Place.png"
-dest_files=["res://.godot/imported/Sports_Winner_Award_Cup_Achievement_Trophy_2nd_Second_Place.png-9fdf4b4aaa595b39d6c5cb9306b0a4ad.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Winner_Award_Cup_Achievement_Trophy_2nd_Second_Place.png"
+dest_files=["res://.godot/imported/Sports_Winner_Award_Cup_Achievement_Trophy_2nd_Second_Place.png-9d5dba8c3da40088820c57bc76c53782.ctex"]
 
 [params]
 

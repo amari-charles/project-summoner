@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3te4cef18x8i"
-path="res://.godot/imported/Alchemy_Tin_Jupiter.png-35acfa59f017bee2c5cec856a8d05d8f.ctex"
+path="res://.godot/imported/Alchemy_Tin_Jupiter.png-f5ff6ec0bc175246ec9587dbcebb1c37.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Tin_Jupiter.png"
-dest_files=["res://.godot/imported/Alchemy_Tin_Jupiter.png-35acfa59f017bee2c5cec856a8d05d8f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Tin_Jupiter.png"
+dest_files=["res://.godot/imported/Alchemy_Tin_Jupiter.png-f5ff6ec0bc175246ec9587dbcebb1c37.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d2xcb71vmhkah"
-path="res://.godot/imported/RPG_Skill_Harpoon_Shot_Hooking_Pulling_Arrow.png-dfd9217dd629eb8e9fde3f88f7321373.ctex"
+path="res://.godot/imported/RPG_Skill_Harpoon_Shot_Hooking_Pulling_Arrow.png-10215cb0abb75274fee9d1a901e22c33.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Skill_Harpoon_Shot_Hooking_Pulling_Arrow.png"
-dest_files=["res://.godot/imported/RPG_Skill_Harpoon_Shot_Hooking_Pulling_Arrow.png-dfd9217dd629eb8e9fde3f88f7321373.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Skill_Harpoon_Shot_Hooking_Pulling_Arrow.png"
+dest_files=["res://.godot/imported/RPG_Skill_Harpoon_Shot_Hooking_Pulling_Arrow.png-10215cb0abb75274fee9d1a901e22c33.ctex"]
 
 [params]
 

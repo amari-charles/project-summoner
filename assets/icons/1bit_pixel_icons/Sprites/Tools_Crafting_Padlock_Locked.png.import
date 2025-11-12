@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ts0y1ky0oxte"
-path="res://.godot/imported/Tools_Crafting_Padlock_Locked.png-7b15c5b1521c12765e97beca64b0b4b9.ctex"
+path="res://.godot/imported/Tools_Crafting_Padlock_Locked.png-2c7430ac982bef2e466bf5ecc132dac1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Padlock_Locked.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Padlock_Locked.png-7b15c5b1521c12765e97beca64b0b4b9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Padlock_Locked.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Padlock_Locked.png-2c7430ac982bef2e466bf5ecc132dac1.ctex"]
 
 [params]
 

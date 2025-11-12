@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crq7klt7k7juf"
-path="res://.godot/imported/Misc_Yin_Yang_Balance_Small.png-f0f0afaf77d29c87cfa4914b8fe68f7f.ctex"
+path="res://.godot/imported/Misc_Yin_Yang_Balance_Small.png-78c696936a799555abe1d9e6d1b01a24.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_Yin_Yang_Balance_Small.png"
-dest_files=["res://.godot/imported/Misc_Yin_Yang_Balance_Small.png-f0f0afaf77d29c87cfa4914b8fe68f7f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_Yin_Yang_Balance_Small.png"
+dest_files=["res://.godot/imported/Misc_Yin_Yang_Balance_Small.png-78c696936a799555abe1d9e6d1b01a24.ctex"]
 
 [params]
 

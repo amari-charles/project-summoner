@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3h8gm1ik1dew"
-path="res://.godot/imported/Hats_Detective_Sherlock_Holmes_Deerstalker.png-272ece12f4067eb06cc71e81dbeb23f5.ctex"
+path="res://.godot/imported/Hats_Detective_Sherlock_Holmes_Deerstalker.png-fa3ea06ff646d9797ba9614fb8bd6796.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Detective_Sherlock_Holmes_Deerstalker.png"
-dest_files=["res://.godot/imported/Hats_Detective_Sherlock_Holmes_Deerstalker.png-272ece12f4067eb06cc71e81dbeb23f5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Detective_Sherlock_Holmes_Deerstalker.png"
+dest_files=["res://.godot/imported/Hats_Detective_Sherlock_Holmes_Deerstalker.png-fa3ea06ff646d9797ba9614fb8bd6796.ctex"]
 
 [params]
 

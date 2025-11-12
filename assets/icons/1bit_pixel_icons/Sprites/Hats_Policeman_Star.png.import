@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0c63vaqv3cf2"
-path="res://.godot/imported/Hats_Policeman_Star.png-8604d09fa2c64b927f99a23549ff70ea.ctex"
+path="res://.godot/imported/Hats_Policeman_Star.png-5f9c56ab52b378abb41466a911c81b54.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Policeman_Star.png"
-dest_files=["res://.godot/imported/Hats_Policeman_Star.png-8604d09fa2c64b927f99a23549ff70ea.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Policeman_Star.png"
+dest_files=["res://.godot/imported/Hats_Policeman_Star.png-5f9c56ab52b378abb41466a911c81b54.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8bjm8trayeq"
-path="res://.godot/imported/Misc_Poison_Venom_Skull_Drop_Death.png-8db5d062c007783822628bcb79b3f02a.ctex"
+path="res://.godot/imported/Misc_Poison_Venom_Skull_Drop_Death.png-7b67db516a7360d5d57eb4050d678f69.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Misc_Poison_Venom_Skull_Drop_Death.png"
-dest_files=["res://.godot/imported/Misc_Poison_Venom_Skull_Drop_Death.png-8db5d062c007783822628bcb79b3f02a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Misc_Poison_Venom_Skull_Drop_Death.png"
+dest_files=["res://.godot/imported/Misc_Poison_Venom_Skull_Drop_Death.png-7b67db516a7360d5d57eb4050d678f69.ctex"]
 
 [params]
 

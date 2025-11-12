@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djgyyq35x0lqf"
-path="res://.godot/imported/Food_Baby_Pacifier_Easy.png-d5a93f5a50ba03f79759ab6012b92031.ctex"
+path="res://.godot/imported/Food_Baby_Pacifier_Easy.png-9a92f2ed54a06da7a4b9873e08ec216b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Baby_Pacifier_Easy.png"
-dest_files=["res://.godot/imported/Food_Baby_Pacifier_Easy.png-d5a93f5a50ba03f79759ab6012b92031.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Baby_Pacifier_Easy.png"
+dest_files=["res://.godot/imported/Food_Baby_Pacifier_Easy.png-9a92f2ed54a06da7a4b9873e08ec216b.ctex"]
 
 [params]
 

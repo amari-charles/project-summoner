@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://smv008b8ys5t"
-path="res://.godot/imported/Map_Markers_Cave_Cavern_Enterance_Exit.png-c6680d8881bccf7455c406f683f65283.ctex"
+path="res://.godot/imported/Map_Markers_Cave_Cavern_Enterance_Exit.png-b862db7119dc7599200bb38d6d968bb0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Cave_Cavern_Enterance_Exit.png"
-dest_files=["res://.godot/imported/Map_Markers_Cave_Cavern_Enterance_Exit.png-c6680d8881bccf7455c406f683f65283.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Cave_Cavern_Enterance_Exit.png"
+dest_files=["res://.godot/imported/Map_Markers_Cave_Cavern_Enterance_Exit.png-b862db7119dc7599200bb38d6d968bb0.ctex"]
 
 [params]
 

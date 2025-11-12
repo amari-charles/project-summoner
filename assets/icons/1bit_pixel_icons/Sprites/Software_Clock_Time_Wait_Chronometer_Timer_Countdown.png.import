@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c27tm5egntpp1"
-path="res://.godot/imported/Software_Clock_Time_Wait_Chronometer_Timer_Countdown.png-aa80a1553abda478005a75f2d3c9b323.ctex"
+path="res://.godot/imported/Software_Clock_Time_Wait_Chronometer_Timer_Countdown.png-15ad55dd7148f558588c9ba51fd23616.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Clock_Time_Wait_Chronometer_Timer_Countdown.png"
-dest_files=["res://.godot/imported/Software_Clock_Time_Wait_Chronometer_Timer_Countdown.png-aa80a1553abda478005a75f2d3c9b323.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Clock_Time_Wait_Chronometer_Timer_Countdown.png"
+dest_files=["res://.godot/imported/Software_Clock_Time_Wait_Chronometer_Timer_Countdown.png-15ad55dd7148f558588c9ba51fd23616.ctex"]
 
 [params]
 

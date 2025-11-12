@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c0b4fn2n4affl"
-path="res://.godot/imported/Sports_Tennis_Ball.png-5441b57bc2fca571216fd1cd34ca97a0.ctex"
+path="res://.godot/imported/Sports_Tennis_Ball.png-e6d7e5b8cecbd4986f15d1a6da894816.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Tennis_Ball.png"
-dest_files=["res://.godot/imported/Sports_Tennis_Ball.png-5441b57bc2fca571216fd1cd34ca97a0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Tennis_Ball.png"
+dest_files=["res://.godot/imported/Sports_Tennis_Ball.png-e6d7e5b8cecbd4986f15d1a6da894816.ctex"]
 
 [params]
 

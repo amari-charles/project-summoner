@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d28kpusb5aub2"
-path="res://.godot/imported/Software_Calculator_App_Maths.png-e8b1426156d40c244875a98dec7fc749.ctex"
+path="res://.godot/imported/Software_Calculator_App_Maths.png-1a5c8b0ef232e05b3d5be79807efac55.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Calculator_App_Maths.png"
-dest_files=["res://.godot/imported/Software_Calculator_App_Maths.png-e8b1426156d40c244875a98dec7fc749.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Calculator_App_Maths.png"
+dest_files=["res://.godot/imported/Software_Calculator_App_Maths.png-1a5c8b0ef232e05b3d5be79807efac55.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7rpl12h2mvwp"
-path="res://.godot/imported/Boardgames_Chess_Piece_Rook_Big.png-fabdf0beb61b427bfacfdbf945c0e00a.ctex"
+path="res://.godot/imported/Boardgames_Chess_Piece_Rook_Big.png-1cb04c67cddb39dc5b18f0d238fcba71.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chess_Piece_Rook_Big.png"
-dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Rook_Big.png-fabdf0beb61b427bfacfdbf945c0e00a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chess_Piece_Rook_Big.png"
+dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Rook_Big.png-1cb04c67cddb39dc5b18f0d238fcba71.ctex"]
 
 [params]
 

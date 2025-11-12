@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mgpk1uv6ove6"
-path="res://.godot/imported/Software_Flashlight_Torch_Illumination_Lighting.png-43172cb6fbfb00b7d2b00c82629d5df9.ctex"
+path="res://.godot/imported/Software_Flashlight_Torch_Illumination_Lighting.png-ca02aed9b0c86f3f2e2b63acce256eae.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Flashlight_Torch_Illumination_Lighting.png"
-dest_files=["res://.godot/imported/Software_Flashlight_Torch_Illumination_Lighting.png-43172cb6fbfb00b7d2b00c82629d5df9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Flashlight_Torch_Illumination_Lighting.png"
+dest_files=["res://.godot/imported/Software_Flashlight_Torch_Illumination_Lighting.png-ca02aed9b0c86f3f2e2b63acce256eae.ctex"]
 
 [params]
 

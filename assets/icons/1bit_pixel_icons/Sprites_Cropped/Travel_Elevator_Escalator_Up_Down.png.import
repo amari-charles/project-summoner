@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1bsgb6dodj8u"
-path="res://.godot/imported/Travel_Elevator_Escalator_Up_Down.png-7ada83954fac7d7a15ab2106ab96e772.ctex"
+path="res://.godot/imported/Travel_Elevator_Escalator_Up_Down.png-a5e3d1dc9b562784c71e02b36ac33b43.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Elevator_Escalator_Up_Down.png"
-dest_files=["res://.godot/imported/Travel_Elevator_Escalator_Up_Down.png-7ada83954fac7d7a15ab2106ab96e772.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Elevator_Escalator_Up_Down.png"
+dest_files=["res://.godot/imported/Travel_Elevator_Escalator_Up_Down.png-a5e3d1dc9b562784c71e02b36ac33b43.ctex"]
 
 [params]
 

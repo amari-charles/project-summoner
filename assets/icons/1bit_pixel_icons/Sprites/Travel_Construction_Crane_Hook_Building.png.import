@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ct8lpf7p7npo2"
-path="res://.godot/imported/Travel_Construction_Crane_Hook_Building.png-14bc2c00a1419da4c004425f9f17a2ae.ctex"
+path="res://.godot/imported/Travel_Construction_Crane_Hook_Building.png-36cc09b96d7fe6fb5995ff01c70de4c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Construction_Crane_Hook_Building.png"
-dest_files=["res://.godot/imported/Travel_Construction_Crane_Hook_Building.png-14bc2c00a1419da4c004425f9f17a2ae.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Construction_Crane_Hook_Building.png"
+dest_files=["res://.godot/imported/Travel_Construction_Crane_Hook_Building.png-36cc09b96d7fe6fb5995ff01c70de4c5.ctex"]
 
 [params]
 

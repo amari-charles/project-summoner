@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuyir8btae54p"
-path="res://.godot/imported/Media_Musical_Instrument_Whistle.png-b7513417f1a7e3faab029c91d7ff8b91.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Whistle.png-34918a2d64479a29eea0236bd3cabbb0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Whistle.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Whistle.png-b7513417f1a7e3faab029c91d7ff8b91.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Whistle.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Whistle.png-34918a2d64479a29eea0236bd3cabbb0.ctex"]
 
 [params]
 

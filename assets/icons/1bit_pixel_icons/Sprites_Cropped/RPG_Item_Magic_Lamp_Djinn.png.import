@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cprfgq312dct1"
-path="res://.godot/imported/RPG_Item_Magic_Lamp_Djinn.png-2eb55ac4668e3021fd690db50a8b16e5.ctex"
+path="res://.godot/imported/RPG_Item_Magic_Lamp_Djinn.png-1d84fd3c09e203203b70643239fd727e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Magic_Lamp_Djinn.png"
-dest_files=["res://.godot/imported/RPG_Item_Magic_Lamp_Djinn.png-2eb55ac4668e3021fd690db50a8b16e5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Magic_Lamp_Djinn.png"
+dest_files=["res://.godot/imported/RPG_Item_Magic_Lamp_Djinn.png-1d84fd3c09e203203b70643239fd727e.ctex"]
 
 [params]
 

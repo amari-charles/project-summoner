@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://byo4pmwvtb6ha"
-path="res://.godot/imported/RPG_Creature_Archetypes_Beast_Wolf_Howling.png-48afec5b53c9c0e756463f8420365741.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Beast_Wolf_Howling.png-5b6a0b89f5bb711ba0f388ddef0e007d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Creature_Archetypes_Beast_Wolf_Howling.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Beast_Wolf_Howling.png-48afec5b53c9c0e756463f8420365741.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Creature_Archetypes_Beast_Wolf_Howling.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Beast_Wolf_Howling.png-5b6a0b89f5bb711ba0f388ddef0e007d.ctex"]
 
 [params]
 

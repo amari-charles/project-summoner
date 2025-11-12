@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://boeyattmib0vp"
-path="res://.godot/imported/RPG_Stat_Accuracy_Ranged_Target.png-cb180d762690675adab8083405bae17c.ctex"
+path="res://.godot/imported/RPG_Stat_Accuracy_Ranged_Target.png-1acb91d90a93bdf2f2003505cde74a0e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Stat_Accuracy_Ranged_Target.png"
-dest_files=["res://.godot/imported/RPG_Stat_Accuracy_Ranged_Target.png-cb180d762690675adab8083405bae17c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Stat_Accuracy_Ranged_Target.png"
+dest_files=["res://.godot/imported/RPG_Stat_Accuracy_Ranged_Target.png-1acb91d90a93bdf2f2003505cde74a0e.ctex"]
 
 [params]
 

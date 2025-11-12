@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dulskdbg52a8t"
-path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Star_Mana_Full.png-6e7073c3f136077cdf29cd4039b446e8.ctex"
+path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Star_Mana_Full.png-8046bb1ec906d7a5e8f955a1f20fdeb0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Potion_Vial_Bottle_Star_Mana_Full.png"
-dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Star_Mana_Full.png-6e7073c3f136077cdf29cd4039b446e8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Potion_Vial_Bottle_Star_Mana_Full.png"
+dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Star_Mana_Full.png-8046bb1ec906d7a5e8f955a1f20fdeb0.ctex"]
 
 [params]
 

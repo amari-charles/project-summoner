@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bv8y5isw32cr7"
-path="res://.godot/imported/RPG_Skill_Explosive_Shot_Bomb_Arrow.png-07671d45ca23f2bb04ca6cfa51f03a5c.ctex"
+path="res://.godot/imported/RPG_Skill_Explosive_Shot_Bomb_Arrow.png-024847118deff0485f473e6e00d4f7fc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Skill_Explosive_Shot_Bomb_Arrow.png"
-dest_files=["res://.godot/imported/RPG_Skill_Explosive_Shot_Bomb_Arrow.png-07671d45ca23f2bb04ca6cfa51f03a5c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Skill_Explosive_Shot_Bomb_Arrow.png"
+dest_files=["res://.godot/imported/RPG_Skill_Explosive_Shot_Bomb_Arrow.png-024847118deff0485f473e6e00d4f7fc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cp33m0veegtom"
-path="res://.godot/imported/Food_Restaurant_Eating_Utensils_Fork_Knife.png-3a6435a421d3c90bccd285b792dffdd0.ctex"
+path="res://.godot/imported/Food_Restaurant_Eating_Utensils_Fork_Knife.png-e3bc8c4a632e421b91805a74bdabfeda.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Restaurant_Eating_Utensils_Fork_Knife.png"
-dest_files=["res://.godot/imported/Food_Restaurant_Eating_Utensils_Fork_Knife.png-3a6435a421d3c90bccd285b792dffdd0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Restaurant_Eating_Utensils_Fork_Knife.png"
+dest_files=["res://.godot/imported/Food_Restaurant_Eating_Utensils_Fork_Knife.png-e3bc8c4a632e421b91805a74bdabfeda.ctex"]
 
 [params]
 

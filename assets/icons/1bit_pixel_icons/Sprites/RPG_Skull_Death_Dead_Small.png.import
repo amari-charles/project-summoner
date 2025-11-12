@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://k2utnkesdqcm"
-path="res://.godot/imported/RPG_Skull_Death_Dead_Small.png-6f881ec9fd56c56b3750913ba1e7a152.ctex"
+path="res://.godot/imported/RPG_Skull_Death_Dead_Small.png-63ce8c9fb3e45bc607af919f118da0a3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Skull_Death_Dead_Small.png"
-dest_files=["res://.godot/imported/RPG_Skull_Death_Dead_Small.png-6f881ec9fd56c56b3750913ba1e7a152.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Skull_Death_Dead_Small.png"
+dest_files=["res://.godot/imported/RPG_Skull_Death_Dead_Small.png-63ce8c9fb3e45bc607af919f118da0a3.ctex"]
 
 [params]
 

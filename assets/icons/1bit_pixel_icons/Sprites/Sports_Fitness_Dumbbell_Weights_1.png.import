@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwcphux68qq8e"
-path="res://.godot/imported/Sports_Fitness_Dumbbell_Weights_1.png-f37b7b6025fc71a097f6d36460b0cb27.ctex"
+path="res://.godot/imported/Sports_Fitness_Dumbbell_Weights_1.png-713c3d13ec9af7a6aa12cc688c2cfce0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Fitness_Dumbbell_Weights_1.png"
-dest_files=["res://.godot/imported/Sports_Fitness_Dumbbell_Weights_1.png-f37b7b6025fc71a097f6d36460b0cb27.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Fitness_Dumbbell_Weights_1.png"
+dest_files=["res://.godot/imported/Sports_Fitness_Dumbbell_Weights_1.png-713c3d13ec9af7a6aa12cc688c2cfce0.ctex"]
 
 [params]
 

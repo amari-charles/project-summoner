@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bs4sunuwsr52u"
-path="res://.godot/imported/Alchemy_Death_Omega.png-fb8ba03ff5efd33ff92f99f6e4924382.ctex"
+path="res://.godot/imported/Alchemy_Death_Omega.png-2f10e70cceb54d4b5ea5ae53a2510fe2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Death_Omega.png"
-dest_files=["res://.godot/imported/Alchemy_Death_Omega.png-fb8ba03ff5efd33ff92f99f6e4924382.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Death_Omega.png"
+dest_files=["res://.godot/imported/Alchemy_Death_Omega.png-2f10e70cceb54d4b5ea5ae53a2510fe2.ctex"]
 
 [params]
 

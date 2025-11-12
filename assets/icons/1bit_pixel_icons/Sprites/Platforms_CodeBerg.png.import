@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0rs5abfyqph4"
-path="res://.godot/imported/Platforms_CodeBerg.png-709b6a8336a5c4cc6c641b53aaec9e7a.ctex"
+path="res://.godot/imported/Platforms_CodeBerg.png-8827519d61bc4de54dfdfd862d1bef2a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_CodeBerg.png"
-dest_files=["res://.godot/imported/Platforms_CodeBerg.png-709b6a8336a5c4cc6c641b53aaec9e7a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_CodeBerg.png"
+dest_files=["res://.godot/imported/Platforms_CodeBerg.png-8827519d61bc4de54dfdfd862d1bef2a.ctex"]
 
 [params]
 

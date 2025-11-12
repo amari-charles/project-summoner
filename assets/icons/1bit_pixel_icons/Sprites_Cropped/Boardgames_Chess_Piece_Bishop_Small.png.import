@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d53d4fi4kg4e"
-path="res://.godot/imported/Boardgames_Chess_Piece_Bishop_Small.png-a66416912977fb6c6b1ef4c114e499a4.ctex"
+path="res://.godot/imported/Boardgames_Chess_Piece_Bishop_Small.png-2a50a41d995d23f1c48c3b5d3b99f037.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chess_Piece_Bishop_Small.png"
-dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Bishop_Small.png-a66416912977fb6c6b1ef4c114e499a4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chess_Piece_Bishop_Small.png"
+dest_files=["res://.godot/imported/Boardgames_Chess_Piece_Bishop_Small.png-2a50a41d995d23f1c48c3b5d3b99f037.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cm8yv7udyr0fj"
-path="res://.godot/imported/Media_Musical_Instrument_Electric_Guitar.png-737876cd6fb68ebf5df9d13392bff92e.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Electric_Guitar.png-ab138a45451a0d9f94f3eca383fd2405.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Electric_Guitar.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Electric_Guitar.png-737876cd6fb68ebf5df9d13392bff92e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Electric_Guitar.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Electric_Guitar.png-ab138a45451a0d9f94f3eca383fd2405.ctex"]
 
 [params]
 

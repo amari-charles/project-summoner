@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://254xampyiyda"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Vector_Path.png-39b6d543e0dc2a07f12563e2a7401bad.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Vector_Path.png-661f25bb0549badf5a33929ed229e1f4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Pen_Vector_Path.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Vector_Path.png-39b6d543e0dc2a07f12563e2a7401bad.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Pen_Vector_Path.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Pen_Vector_Path.png-661f25bb0549badf5a33929ed229e1f4.ctex"]
 
 [params]
 

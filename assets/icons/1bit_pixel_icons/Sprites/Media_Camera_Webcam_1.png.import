@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ypnx8r5k0r3q"
-path="res://.godot/imported/Media_Camera_Webcam_1.png-83194479eef43eb048a29945e6fde488.ctex"
+path="res://.godot/imported/Media_Camera_Webcam_1.png-ee2543cfc799a66f9bf5e93b273326cc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Camera_Webcam_1.png"
-dest_files=["res://.godot/imported/Media_Camera_Webcam_1.png-83194479eef43eb048a29945e6fde488.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Camera_Webcam_1.png"
+dest_files=["res://.godot/imported/Media_Camera_Webcam_1.png-ee2543cfc799a66f9bf5e93b273326cc.ctex"]
 
 [params]
 

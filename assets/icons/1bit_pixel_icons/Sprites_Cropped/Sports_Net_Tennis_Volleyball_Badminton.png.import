@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://canyk48jx88ui"
-path="res://.godot/imported/Sports_Net_Tennis_Volleyball_Badminton.png-40cd3f57e3934ad6b401386d4ae4247d.ctex"
+path="res://.godot/imported/Sports_Net_Tennis_Volleyball_Badminton.png-89a7205fa678c0b5ae1906ae3783c0ec.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Sports_Net_Tennis_Volleyball_Badminton.png"
-dest_files=["res://.godot/imported/Sports_Net_Tennis_Volleyball_Badminton.png-40cd3f57e3934ad6b401386d4ae4247d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Sports_Net_Tennis_Volleyball_Badminton.png"
+dest_files=["res://.godot/imported/Sports_Net_Tennis_Volleyball_Badminton.png-89a7205fa678c0b5ae1906ae3783c0ec.ctex"]
 
 [params]
 

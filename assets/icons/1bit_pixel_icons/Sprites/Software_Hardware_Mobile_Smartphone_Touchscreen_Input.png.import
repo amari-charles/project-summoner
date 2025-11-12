@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://tw6stt3r3hhd"
-path="res://.godot/imported/Software_Hardware_Mobile_Smartphone_Touchscreen_Input.png-545b21947e20a12d081c8493aa551b89.ctex"
+path="res://.godot/imported/Software_Hardware_Mobile_Smartphone_Touchscreen_Input.png-7d0a0de47f3812a25cd328c275560d4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Hardware_Mobile_Smartphone_Touchscreen_Input.png"
-dest_files=["res://.godot/imported/Software_Hardware_Mobile_Smartphone_Touchscreen_Input.png-545b21947e20a12d081c8493aa551b89.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Hardware_Mobile_Smartphone_Touchscreen_Input.png"
+dest_files=["res://.godot/imported/Software_Hardware_Mobile_Smartphone_Touchscreen_Input.png-7d0a0de47f3812a25cd328c275560d4c.ctex"]
 
 [params]
 

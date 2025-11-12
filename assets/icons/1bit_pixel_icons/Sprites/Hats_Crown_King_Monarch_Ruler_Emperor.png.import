@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://doseaaqtwk00u"
-path="res://.godot/imported/Hats_Crown_King_Monarch_Ruler_Emperor.png-cf31344367716650f1e72ff47c4c5995.ctex"
+path="res://.godot/imported/Hats_Crown_King_Monarch_Ruler_Emperor.png-8a4ce41cc1c5585c896ccdc51d26fc70.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Crown_King_Monarch_Ruler_Emperor.png"
-dest_files=["res://.godot/imported/Hats_Crown_King_Monarch_Ruler_Emperor.png-cf31344367716650f1e72ff47c4c5995.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Crown_King_Monarch_Ruler_Emperor.png"
+dest_files=["res://.godot/imported/Hats_Crown_King_Monarch_Ruler_Emperor.png-8a4ce41cc1c5585c896ccdc51d26fc70.ctex"]
 
 [params]
 

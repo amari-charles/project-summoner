@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://p57x36jf4lqk"
-path="res://.godot/imported/Map_Markers_Tree_Forest_Decidous_2.png-0c6eccb8c7c61df61393e6860cc68538.ctex"
+path="res://.godot/imported/Map_Markers_Tree_Forest_Decidous_2.png-5a92ccd1183529e19553a7ecc48e9d0a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Tree_Forest_Decidous_2.png"
-dest_files=["res://.godot/imported/Map_Markers_Tree_Forest_Decidous_2.png-0c6eccb8c7c61df61393e6860cc68538.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Tree_Forest_Decidous_2.png"
+dest_files=["res://.godot/imported/Map_Markers_Tree_Forest_Decidous_2.png-5a92ccd1183529e19553a7ecc48e9d0a.ctex"]
 
 [params]
 

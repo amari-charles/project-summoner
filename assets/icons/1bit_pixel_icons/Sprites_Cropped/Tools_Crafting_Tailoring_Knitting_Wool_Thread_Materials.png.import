@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dq3xvc0r8nluu"
-path="res://.godot/imported/Tools_Crafting_Tailoring_Knitting_Wool_Thread_Materials.png-1320b85922001b81825c64fc9c37daa2.ctex"
+path="res://.godot/imported/Tools_Crafting_Tailoring_Knitting_Wool_Thread_Materials.png-4ce7a96d6d302f6d693118d7e30d0a5a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Tailoring_Knitting_Wool_Thread_Materials.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Tailoring_Knitting_Wool_Thread_Materials.png-1320b85922001b81825c64fc9c37daa2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Tailoring_Knitting_Wool_Thread_Materials.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Tailoring_Knitting_Wool_Thread_Materials.png-4ce7a96d6d302f6d693118d7e30d0a5a.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://baay4bwt7wlom"
-path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Head_Helmet.png-fd2fd3bd496d755cf2abe64e9796c3bb.ctex"
+path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Head_Helmet.png-304d5beacb9b4ca35b6f04d89411f627.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Item_Armor_Equipment_Slot_Head_Helmet.png"
-dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Head_Helmet.png-fd2fd3bd496d755cf2abe64e9796c3bb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Item_Armor_Equipment_Slot_Head_Helmet.png"
+dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Head_Helmet.png-304d5beacb9b4ca35b6f04d89411f627.ctex"]
 
 [params]
 

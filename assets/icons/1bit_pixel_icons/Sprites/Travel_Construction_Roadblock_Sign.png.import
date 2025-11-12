@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgkf7lnvwpluo"
-path="res://.godot/imported/Travel_Construction_Roadblock_Sign.png-4d55c1794f96aa2280d9de56054dbeb7.ctex"
+path="res://.godot/imported/Travel_Construction_Roadblock_Sign.png-13d7c0d854f7b34f5d73808bc90a0feb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Construction_Roadblock_Sign.png"
-dest_files=["res://.godot/imported/Travel_Construction_Roadblock_Sign.png-4d55c1794f96aa2280d9de56054dbeb7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Construction_Roadblock_Sign.png"
+dest_files=["res://.godot/imported/Travel_Construction_Roadblock_Sign.png-13d7c0d854f7b34f5d73808bc90a0feb.ctex"]
 
 [params]
 

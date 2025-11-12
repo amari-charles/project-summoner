@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbi4pa4ksg6tq"
-path="res://.godot/imported/Tools_Crafting_Switch_Blade.png-afc272ef315524c1711cfee865c7420b.ctex"
+path="res://.godot/imported/Tools_Crafting_Switch_Blade.png-8909ec3fea53ee6eb79a1385ed25eee5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Switch_Blade.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Switch_Blade.png-afc272ef315524c1711cfee865c7420b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Switch_Blade.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Switch_Blade.png-8909ec3fea53ee6eb79a1385ed25eee5.ctex"]
 
 [params]
 

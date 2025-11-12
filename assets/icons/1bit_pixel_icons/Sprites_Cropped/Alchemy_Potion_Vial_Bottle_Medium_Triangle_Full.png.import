@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cknevvwpt52pq"
-path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Medium_Triangle_Full.png-2e9475d33999aaf919ec45ad9c231446.ctex"
+path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Medium_Triangle_Full.png-a4cba8a1f46807611122ee8ccccc5faf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Potion_Vial_Bottle_Medium_Triangle_Full.png"
-dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Medium_Triangle_Full.png-2e9475d33999aaf919ec45ad9c231446.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Potion_Vial_Bottle_Medium_Triangle_Full.png"
+dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Medium_Triangle_Full.png-a4cba8a1f46807611122ee8ccccc5faf.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0nbwns0luqk1"
-path="res://.godot/imported/Food_Cooking_Heat_Glove_Oven_Mitten.png-a774b94ff922538c30531cd592515043.ctex"
+path="res://.godot/imported/Food_Cooking_Heat_Glove_Oven_Mitten.png-43ca61a3ec896495d0257f8787a17d13.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Cooking_Heat_Glove_Oven_Mitten.png"
-dest_files=["res://.godot/imported/Food_Cooking_Heat_Glove_Oven_Mitten.png-a774b94ff922538c30531cd592515043.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Cooking_Heat_Glove_Oven_Mitten.png"
+dest_files=["res://.godot/imported/Food_Cooking_Heat_Glove_Oven_Mitten.png-43ca61a3ec896495d0257f8787a17d13.ctex"]
 
 [params]
 

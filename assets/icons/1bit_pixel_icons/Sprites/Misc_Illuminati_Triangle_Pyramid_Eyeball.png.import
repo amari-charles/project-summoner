@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk4l6lnqw1rs7"
-path="res://.godot/imported/Misc_Illuminati_Triangle_Pyramid_Eyeball.png-fa8d58ea3f1c08d8a2b5ebf6de24b07d.ctex"
+path="res://.godot/imported/Misc_Illuminati_Triangle_Pyramid_Eyeball.png-2c438b72640118b2f2149b02ccd419e9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_Illuminati_Triangle_Pyramid_Eyeball.png"
-dest_files=["res://.godot/imported/Misc_Illuminati_Triangle_Pyramid_Eyeball.png-fa8d58ea3f1c08d8a2b5ebf6de24b07d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_Illuminati_Triangle_Pyramid_Eyeball.png"
+dest_files=["res://.godot/imported/Misc_Illuminati_Triangle_Pyramid_Eyeball.png-2c438b72640118b2f2149b02ccd419e9.ctex"]
 
 [params]
 

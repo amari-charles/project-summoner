@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dx6v5a6ff6b0o"
-path="res://.godot/imported/Misc_DNA_Biology_Genes_Genetic.png-015b8215ffe6a6f5033adae4c885a3af.ctex"
+path="res://.godot/imported/Misc_DNA_Biology_Genes_Genetic.png-f4efe384e1437995debf49045d45f4ec.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_DNA_Biology_Genes_Genetic.png"
-dest_files=["res://.godot/imported/Misc_DNA_Biology_Genes_Genetic.png-015b8215ffe6a6f5033adae4c885a3af.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_DNA_Biology_Genes_Genetic.png"
+dest_files=["res://.godot/imported/Misc_DNA_Biology_Genes_Genetic.png-f4efe384e1437995debf49045d45f4ec.ctex"]
 
 [params]
 

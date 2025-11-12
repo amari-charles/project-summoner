@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://t2qjew4o1wwi"
-path="res://.godot/imported/Software_Hardware_SIM_Card_eSIM_Mobile_Connection.png-6e5a65485464fcc2674965a38ca622d8.ctex"
+path="res://.godot/imported/Software_Hardware_SIM_Card_eSIM_Mobile_Connection.png-b8bd54ef5d992da346bba6ee13edfa08.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Hardware_SIM_Card_eSIM_Mobile_Connection.png"
-dest_files=["res://.godot/imported/Software_Hardware_SIM_Card_eSIM_Mobile_Connection.png-6e5a65485464fcc2674965a38ca622d8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Hardware_SIM_Card_eSIM_Mobile_Connection.png"
+dest_files=["res://.godot/imported/Software_Hardware_SIM_Card_eSIM_Mobile_Connection.png-b8bd54ef5d992da346bba6ee13edfa08.ctex"]
 
 [params]
 

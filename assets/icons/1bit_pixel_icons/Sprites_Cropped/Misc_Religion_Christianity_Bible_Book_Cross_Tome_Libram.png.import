@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1kx20aofns5b"
-path="res://.godot/imported/Misc_Religion_Christianity_Bible_Book_Cross_Tome_Libram.png-3c15b91b9f754567b40163b3112b69c1.ctex"
+path="res://.godot/imported/Misc_Religion_Christianity_Bible_Book_Cross_Tome_Libram.png-042ac42a436a815045d665e6122fb2c0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Misc_Religion_Christianity_Bible_Book_Cross_Tome_Libram.png"
-dest_files=["res://.godot/imported/Misc_Religion_Christianity_Bible_Book_Cross_Tome_Libram.png-3c15b91b9f754567b40163b3112b69c1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Misc_Religion_Christianity_Bible_Book_Cross_Tome_Libram.png"
+dest_files=["res://.godot/imported/Misc_Religion_Christianity_Bible_Book_Cross_Tome_Libram.png-042ac42a436a815045d665e6122fb2c0.ctex"]
 
 [params]
 

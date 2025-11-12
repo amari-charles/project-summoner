@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxy7s6gpgf5jy"
-path="res://.godot/imported/Food_Pizza.png-dbd1b429e6b8c2b2da478f23d1d9ce76.ctex"
+path="res://.godot/imported/Food_Pizza.png-1bf901b2e7e8247d3ecbea28ebf65678.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Food_Pizza.png"
-dest_files=["res://.godot/imported/Food_Pizza.png-dbd1b429e6b8c2b2da478f23d1d9ce76.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Food_Pizza.png"
+dest_files=["res://.godot/imported/Food_Pizza.png-1bf901b2e7e8247d3ecbea28ebf65678.ctex"]
 
 [params]
 

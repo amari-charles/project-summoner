@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyw0jb313y8eb"
-path="res://.godot/imported/Tools_Crafting_Basket_Foraging.png-2ce0cdb8998e08d8942cc4cdfd34f16e.ctex"
+path="res://.godot/imported/Tools_Crafting_Basket_Foraging.png-f2f584075091a8605cf69833bfe0f4d1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Basket_Foraging.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Basket_Foraging.png-2ce0cdb8998e08d8942cc4cdfd34f16e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Basket_Foraging.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Basket_Foraging.png-f2f584075091a8605cf69833bfe0f4d1.ctex"]
 
 [params]
 

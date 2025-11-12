@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dei1dhdb5o3sb"
-path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Chestplate_Body_Armour.png-3f29ffc30a0164b3788f7c582bfe1e30.ctex"
+path="res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Chestplate_Body_Armour.png-7905b0ff17fe17c775aac3b14a6d1d35.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Armor_Equipment_Slot_Chestplate_Body_Armour.png"
-dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Chestplate_Body_Armour.png-3f29ffc30a0164b3788f7c582bfe1e30.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Armor_Equipment_Slot_Chestplate_Body_Armour.png"
+dest_files=["res://.godot/imported/RPG_Item_Armor_Equipment_Slot_Chestplate_Body_Armour.png-7905b0ff17fe17c775aac3b14a6d1d35.ctex"]
 
 [params]
 

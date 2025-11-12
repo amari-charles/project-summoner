@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bv4qql3pob03h"
-path="res://.godot/imported/Software_Hardware_Printer_Scanner_Fax_2.png-8c5e51925a1bf6b4c4b86347c9ff2fe8.ctex"
+path="res://.godot/imported/Software_Hardware_Printer_Scanner_Fax_2.png-51899480bb01155570449a258464e38b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Hardware_Printer_Scanner_Fax_2.png"
-dest_files=["res://.godot/imported/Software_Hardware_Printer_Scanner_Fax_2.png-8c5e51925a1bf6b4c4b86347c9ff2fe8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Hardware_Printer_Scanner_Fax_2.png"
+dest_files=["res://.godot/imported/Software_Hardware_Printer_Scanner_Fax_2.png-51899480bb01155570449a258464e38b.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk6yn8anbneph"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Polygonal.png-99218187b7de881c93b0683418dfabc7.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Polygonal.png-bb88dc0c87a1e33579aa59995b15dd63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Selection_Lasso_Polygonal.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Polygonal.png-99218187b7de881c93b0683418dfabc7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Graphic_Design_Selection_Lasso_Polygonal.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Selection_Lasso_Polygonal.png-bb88dc0c87a1e33579aa59995b15dd63.ctex"]
 
 [params]
 

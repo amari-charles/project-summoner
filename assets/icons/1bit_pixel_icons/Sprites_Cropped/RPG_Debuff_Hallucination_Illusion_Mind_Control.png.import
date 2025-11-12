@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://68um3msjaipp"
-path="res://.godot/imported/RPG_Debuff_Hallucination_Illusion_Mind_Control.png-2ac6038df7145e7eed2f9f17bb0cfef5.ctex"
+path="res://.godot/imported/RPG_Debuff_Hallucination_Illusion_Mind_Control.png-2f0db0de1cb6b93b76a68a2f9c3baae6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Debuff_Hallucination_Illusion_Mind_Control.png"
-dest_files=["res://.godot/imported/RPG_Debuff_Hallucination_Illusion_Mind_Control.png-2ac6038df7145e7eed2f9f17bb0cfef5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Debuff_Hallucination_Illusion_Mind_Control.png"
+dest_files=["res://.godot/imported/RPG_Debuff_Hallucination_Illusion_Mind_Control.png-2f0db0de1cb6b93b76a68a2f9c3baae6.ctex"]
 
 [params]
 

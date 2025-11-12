@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yv1yqob01vc4"
-path="res://.godot/imported/Boardgames_Dice_Icosahedron_D20_Twenty_Number.png-f0a9e78255783a3f1d36690456e569f0.ctex"
+path="res://.godot/imported/Boardgames_Dice_Icosahedron_D20_Twenty_Number.png-763a937066b04d8db14d558406754f7d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Dice_Icosahedron_D20_Twenty_Number.png"
-dest_files=["res://.godot/imported/Boardgames_Dice_Icosahedron_D20_Twenty_Number.png-f0a9e78255783a3f1d36690456e569f0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Dice_Icosahedron_D20_Twenty_Number.png"
+dest_files=["res://.godot/imported/Boardgames_Dice_Icosahedron_D20_Twenty_Number.png-763a937066b04d8db14d558406754f7d.ctex"]
 
 [params]
 

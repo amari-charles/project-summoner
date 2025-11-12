@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dl61pumm8g2pv"
-path="res://.godot/imported/Alchemy_Infinity.png-419f4be26e6217a34b346758ecf96519.ctex"
+path="res://.godot/imported/Alchemy_Infinity.png-7966b5e3b4186bc7f89d6c1f8644dcae.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Infinity.png"
-dest_files=["res://.godot/imported/Alchemy_Infinity.png-419f4be26e6217a34b346758ecf96519.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Infinity.png"
+dest_files=["res://.godot/imported/Alchemy_Infinity.png-7966b5e3b4186bc7f89d6c1f8644dcae.ctex"]
 
 [params]
 

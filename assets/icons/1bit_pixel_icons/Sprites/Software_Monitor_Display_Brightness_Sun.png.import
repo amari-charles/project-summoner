@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://coruc5s4mcunh"
-path="res://.godot/imported/Software_Monitor_Display_Brightness_Sun.png-98dd458a614fc877e9c58e6152d6c5e2.ctex"
+path="res://.godot/imported/Software_Monitor_Display_Brightness_Sun.png-b65e9e7eb0b66a667938d70a64c6339c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Monitor_Display_Brightness_Sun.png"
-dest_files=["res://.godot/imported/Software_Monitor_Display_Brightness_Sun.png-98dd458a614fc877e9c58e6152d6c5e2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Monitor_Display_Brightness_Sun.png"
+dest_files=["res://.godot/imported/Software_Monitor_Display_Brightness_Sun.png-b65e9e7eb0b66a667938d70a64c6339c.ctex"]
 
 [params]
 

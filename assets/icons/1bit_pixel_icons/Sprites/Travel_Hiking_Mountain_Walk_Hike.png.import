@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cv6n3w6wp4tlr"
-path="res://.godot/imported/Travel_Hiking_Mountain_Walk_Hike.png-e56e47969599cb4af2b159895b903924.ctex"
+path="res://.godot/imported/Travel_Hiking_Mountain_Walk_Hike.png-5ff2c65dc73206f2cd423a501221342c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Hiking_Mountain_Walk_Hike.png"
-dest_files=["res://.godot/imported/Travel_Hiking_Mountain_Walk_Hike.png-e56e47969599cb4af2b159895b903924.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Hiking_Mountain_Walk_Hike.png"
+dest_files=["res://.godot/imported/Travel_Hiking_Mountain_Walk_Hike.png-5ff2c65dc73206f2cd423a501221342c.ctex"]
 
 [params]
 

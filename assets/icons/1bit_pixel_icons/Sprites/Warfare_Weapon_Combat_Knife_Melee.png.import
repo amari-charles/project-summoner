@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlxcfc4c11li3"
-path="res://.godot/imported/Warfare_Weapon_Combat_Knife_Melee.png-0f6f5c0d34559554042e58c022a8f475.ctex"
+path="res://.godot/imported/Warfare_Weapon_Combat_Knife_Melee.png-0f0e8686f523171d7937e85f79bb2157.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Warfare_Weapon_Combat_Knife_Melee.png"
-dest_files=["res://.godot/imported/Warfare_Weapon_Combat_Knife_Melee.png-0f6f5c0d34559554042e58c022a8f475.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Warfare_Weapon_Combat_Knife_Melee.png"
+dest_files=["res://.godot/imported/Warfare_Weapon_Combat_Knife_Melee.png-0f0e8686f523171d7937e85f79bb2157.ctex"]
 
 [params]
 

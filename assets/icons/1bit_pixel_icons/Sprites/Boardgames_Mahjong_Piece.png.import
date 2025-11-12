@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://o4nfw80bdhh6"
-path="res://.godot/imported/Boardgames_Mahjong_Piece.png-8182c9169561d64631de0dbb5e1dcbb7.ctex"
+path="res://.godot/imported/Boardgames_Mahjong_Piece.png-681e0c92c0ebaf269bf2fcbccee82a9e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Mahjong_Piece.png"
-dest_files=["res://.godot/imported/Boardgames_Mahjong_Piece.png-8182c9169561d64631de0dbb5e1dcbb7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Mahjong_Piece.png"
+dest_files=["res://.godot/imported/Boardgames_Mahjong_Piece.png-681e0c92c0ebaf269bf2fcbccee82a9e.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cmbk31e6v3k1i"
-path="res://.godot/imported/Boardgames_Suit_Clubs.png-b8bcc4bfbd3f99beff1e0221ea4efc48.ctex"
+path="res://.godot/imported/Boardgames_Suit_Clubs.png-fd6b39a2b45bbfdadfbcba8dd12242a1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Suit_Clubs.png"
-dest_files=["res://.godot/imported/Boardgames_Suit_Clubs.png-b8bcc4bfbd3f99beff1e0221ea4efc48.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Suit_Clubs.png"
+dest_files=["res://.godot/imported/Boardgames_Suit_Clubs.png-fd6b39a2b45bbfdadfbcba8dd12242a1.ctex"]
 
 [params]
 

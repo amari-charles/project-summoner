@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://51cq0d505urw"
-path="res://.godot/imported/RPG_Coin_Gold_Currency_Money_GP.png-e7618c9804d233ae4e270994c008b44d.ctex"
+path="res://.godot/imported/RPG_Coin_Gold_Currency_Money_GP.png-076bf30d6dd0f20eb774da9bbabf8701.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Coin_Gold_Currency_Money_GP.png"
-dest_files=["res://.godot/imported/RPG_Coin_Gold_Currency_Money_GP.png-e7618c9804d233ae4e270994c008b44d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Coin_Gold_Currency_Money_GP.png"
+dest_files=["res://.godot/imported/RPG_Coin_Gold_Currency_Money_GP.png-076bf30d6dd0f20eb774da9bbabf8701.ctex"]
 
 [params]
 

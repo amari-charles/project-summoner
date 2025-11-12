@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d4h60aowyoybw"
-path="res://.godot/imported/Boardgames_Scrabble_Piece.png-40ec535a6c70e9f4c1600e51dbf3a0a9.ctex"
+path="res://.godot/imported/Boardgames_Scrabble_Piece.png-85683b540d2a17f5966482e4d5bd780c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Scrabble_Piece.png"
-dest_files=["res://.godot/imported/Boardgames_Scrabble_Piece.png-40ec535a6c70e9f4c1600e51dbf3a0a9.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Scrabble_Piece.png"
+dest_files=["res://.godot/imported/Boardgames_Scrabble_Piece.png-85683b540d2a17f5966482e4d5bd780c.ctex"]
 
 [params]
 

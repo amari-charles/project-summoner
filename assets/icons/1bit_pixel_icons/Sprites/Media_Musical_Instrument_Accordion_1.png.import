@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfk63shcwr7eu"
-path="res://.godot/imported/Media_Musical_Instrument_Accordion_1.png-840da3ca3ebb22ba0aa43a627c0dc2b2.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Accordion_1.png-910d546c04af65970cba1a41cf966a11.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Musical_Instrument_Accordion_1.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Accordion_1.png-840da3ca3ebb22ba0aa43a627c0dc2b2.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Musical_Instrument_Accordion_1.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Accordion_1.png-910d546c04af65970cba1a41cf966a11.ctex"]
 
 [params]
 

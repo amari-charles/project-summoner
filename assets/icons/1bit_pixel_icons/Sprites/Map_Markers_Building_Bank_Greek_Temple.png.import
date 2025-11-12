@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ddyapi2p6qwpb"
-path="res://.godot/imported/Map_Markers_Building_Bank_Greek_Temple.png-13dd7154e12ec5469b70381e2c7882a5.ctex"
+path="res://.godot/imported/Map_Markers_Building_Bank_Greek_Temple.png-bc1d52e1a40a0b6a1847b1f036375fe7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Building_Bank_Greek_Temple.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Bank_Greek_Temple.png-13dd7154e12ec5469b70381e2c7882a5.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Building_Bank_Greek_Temple.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Bank_Greek_Temple.png-bc1d52e1a40a0b6a1847b1f036375fe7.ctex"]
 
 [params]
 

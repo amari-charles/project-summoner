@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlyn8it5u6irb"
-path="res://.godot/imported/Software_Window_Minimize_Button.png-88ecaa3f3f626402aa880fc9f486af71.ctex"
+path="res://.godot/imported/Software_Window_Minimize_Button.png-be9829813a1c0602bd9910b9d4f52389.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Window_Minimize_Button.png"
-dest_files=["res://.godot/imported/Software_Window_Minimize_Button.png-88ecaa3f3f626402aa880fc9f486af71.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Window_Minimize_Button.png"
+dest_files=["res://.godot/imported/Software_Window_Minimize_Button.png-be9829813a1c0602bd9910b9d4f52389.ctex"]
 
 [params]
 

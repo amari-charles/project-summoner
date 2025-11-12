@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dn5u2yio5c0gr"
-path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Clover_Luck_Butterfly_Fairy_Full.png-7ac1b38553319d648ef01d5e80c8365b.ctex"
+path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Clover_Luck_Butterfly_Fairy_Full.png-45b13e4f113f33e8ede7a4aeae8bb031.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Potion_Vial_Bottle_Clover_Luck_Butterfly_Fairy_Full.png"
-dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Clover_Luck_Butterfly_Fairy_Full.png-7ac1b38553319d648ef01d5e80c8365b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Potion_Vial_Bottle_Clover_Luck_Butterfly_Fairy_Full.png"
+dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Clover_Luck_Butterfly_Fairy_Full.png-45b13e4f113f33e8ede7a4aeae8bb031.ctex"]
 
 [params]
 

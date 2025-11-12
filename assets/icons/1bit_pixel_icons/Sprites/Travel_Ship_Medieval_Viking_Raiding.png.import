@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbp3t1fc35bee"
-path="res://.godot/imported/Travel_Ship_Medieval_Viking_Raiding.png-a5dba009af485c1d00757ab929615feb.ctex"
+path="res://.godot/imported/Travel_Ship_Medieval_Viking_Raiding.png-973ffed32befb7ed0f8e1ea1693293fe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Ship_Medieval_Viking_Raiding.png"
-dest_files=["res://.godot/imported/Travel_Ship_Medieval_Viking_Raiding.png-a5dba009af485c1d00757ab929615feb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Ship_Medieval_Viking_Raiding.png"
+dest_files=["res://.godot/imported/Travel_Ship_Medieval_Viking_Raiding.png-973ffed32befb7ed0f8e1ea1693293fe.ctex"]
 
 [params]
 

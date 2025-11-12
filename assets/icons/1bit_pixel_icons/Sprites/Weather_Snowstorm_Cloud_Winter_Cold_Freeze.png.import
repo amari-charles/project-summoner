@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7bsc6sn6pxte"
-path="res://.godot/imported/Weather_Snowstorm_Cloud_Winter_Cold_Freeze.png-36f34cd8142b7559e314b314f3ed2c31.ctex"
+path="res://.godot/imported/Weather_Snowstorm_Cloud_Winter_Cold_Freeze.png-d7c1962e3241db168618faee342149be.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Snowstorm_Cloud_Winter_Cold_Freeze.png"
-dest_files=["res://.godot/imported/Weather_Snowstorm_Cloud_Winter_Cold_Freeze.png-36f34cd8142b7559e314b314f3ed2c31.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Snowstorm_Cloud_Winter_Cold_Freeze.png"
+dest_files=["res://.godot/imported/Weather_Snowstorm_Cloud_Winter_Cold_Freeze.png-d7c1962e3241db168618faee342149be.ctex"]
 
 [params]
 

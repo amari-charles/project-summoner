@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caceyxi8mt31r"
-path="res://.godot/imported/Software_Hardware_Mouse_Click_Input.png-8d23f2d26312ae2470066de311617e3c.ctex"
+path="res://.godot/imported/Software_Hardware_Mouse_Click_Input.png-0109499a21502f41856e41bd97f9e8ed.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Hardware_Mouse_Click_Input.png"
-dest_files=["res://.godot/imported/Software_Hardware_Mouse_Click_Input.png-8d23f2d26312ae2470066de311617e3c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Hardware_Mouse_Click_Input.png"
+dest_files=["res://.godot/imported/Software_Hardware_Mouse_Click_Input.png-0109499a21502f41856e41bd97f9e8ed.ctex"]
 
 [params]
 

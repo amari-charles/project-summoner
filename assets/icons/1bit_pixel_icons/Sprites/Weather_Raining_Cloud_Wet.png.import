@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cthnmqrrt6h4j"
-path="res://.godot/imported/Weather_Raining_Cloud_Wet.png-3b30e2a02754a740c65df848fd12c12c.ctex"
+path="res://.godot/imported/Weather_Raining_Cloud_Wet.png-bb37e1d483fb5b3e2f7e14513d5a8956.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Raining_Cloud_Wet.png"
-dest_files=["res://.godot/imported/Weather_Raining_Cloud_Wet.png-3b30e2a02754a740c65df848fd12c12c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Raining_Cloud_Wet.png"
+dest_files=["res://.godot/imported/Weather_Raining_Cloud_Wet.png-bb37e1d483fb5b3e2f7e14513d5a8956.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5oveksyox5re"
-path="res://.godot/imported/Software_Magnifier_Zoom_Looking_Magnifying_Glass_Plus_In.png-b005d3d983af448a0967f5bf62315187.ctex"
+path="res://.godot/imported/Software_Magnifier_Zoom_Looking_Magnifying_Glass_Plus_In.png-1fd75f82a547f5622460d419d2a79a84.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Magnifier_Zoom_Looking_Magnifying_Glass_Plus_In.png"
-dest_files=["res://.godot/imported/Software_Magnifier_Zoom_Looking_Magnifying_Glass_Plus_In.png-b005d3d983af448a0967f5bf62315187.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Magnifier_Zoom_Looking_Magnifying_Glass_Plus_In.png"
+dest_files=["res://.godot/imported/Software_Magnifier_Zoom_Looking_Magnifying_Glass_Plus_In.png-1fd75f82a547f5622460d419d2a79a84.ctex"]
 
 [params]
 

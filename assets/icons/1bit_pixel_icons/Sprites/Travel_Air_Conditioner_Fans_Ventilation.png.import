@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhi1q4v3fa0c"
-path="res://.godot/imported/Travel_Air_Conditioner_Fans_Ventilation.png-edbffe9aeecb1ceb3a00e0f5e097013f.ctex"
+path="res://.godot/imported/Travel_Air_Conditioner_Fans_Ventilation.png-5f06511c6d3c419060aa1a7c377f7b6e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Air_Conditioner_Fans_Ventilation.png"
-dest_files=["res://.godot/imported/Travel_Air_Conditioner_Fans_Ventilation.png-edbffe9aeecb1ceb3a00e0f5e097013f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Air_Conditioner_Fans_Ventilation.png"
+dest_files=["res://.godot/imported/Travel_Air_Conditioner_Fans_Ventilation.png-5f06511c6d3c419060aa1a7c377f7b6e.ctex"]
 
 [params]
 

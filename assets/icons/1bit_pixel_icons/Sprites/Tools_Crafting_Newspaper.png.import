@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://foklspbh2dj8"
-path="res://.godot/imported/Tools_Crafting_Newspaper.png-01217dd1c03cfe84a8ee7ee3a4568660.ctex"
+path="res://.godot/imported/Tools_Crafting_Newspaper.png-47fa7cf4fe5881b153bb2453572fa190.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Newspaper.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Newspaper.png-01217dd1c03cfe84a8ee7ee3a4568660.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Newspaper.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Newspaper.png-47fa7cf4fe5881b153bb2453572fa190.ctex"]
 
 [params]
 

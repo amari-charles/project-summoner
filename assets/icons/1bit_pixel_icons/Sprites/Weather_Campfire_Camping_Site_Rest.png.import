@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://jatf76uhnpy2"
-path="res://.godot/imported/Weather_Campfire_Camping_Site_Rest.png-679dad1c464f38dce1b923c8ca08f792.ctex"
+path="res://.godot/imported/Weather_Campfire_Camping_Site_Rest.png-2dbbb773ae505cd7fa907fc6a9321f74.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Campfire_Camping_Site_Rest.png"
-dest_files=["res://.godot/imported/Weather_Campfire_Camping_Site_Rest.png-679dad1c464f38dce1b923c8ca08f792.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Campfire_Camping_Site_Rest.png"
+dest_files=["res://.godot/imported/Weather_Campfire_Camping_Site_Rest.png-2dbbb773ae505cd7fa907fc6a9321f74.ctex"]
 
 [params]
 

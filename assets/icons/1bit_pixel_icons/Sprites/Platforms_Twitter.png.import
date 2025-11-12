@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cf2ayylc3ypv6"
-path="res://.godot/imported/Platforms_Twitter.png-6f30dea4beda6b5cc9cfe3f0c8db2dcc.ctex"
+path="res://.godot/imported/Platforms_Twitter.png-5930c20a1d0e2b9be3d1a69319098a88.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Twitter.png"
-dest_files=["res://.godot/imported/Platforms_Twitter.png-6f30dea4beda6b5cc9cfe3f0c8db2dcc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Twitter.png"
+dest_files=["res://.godot/imported/Platforms_Twitter.png-5930c20a1d0e2b9be3d1a69319098a88.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c2agwkiax1e2o"
-path="res://.godot/imported/Alchemy_Mercury_Mind.png-8261b32492c7ddc6958a3c9e53de1123.ctex"
+path="res://.godot/imported/Alchemy_Mercury_Mind.png-70cc5f9eb0e4b3ba4eeba8a125fa334b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Mercury_Mind.png"
-dest_files=["res://.godot/imported/Alchemy_Mercury_Mind.png-8261b32492c7ddc6958a3c9e53de1123.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Mercury_Mind.png"
+dest_files=["res://.godot/imported/Alchemy_Mercury_Mind.png-70cc5f9eb0e4b3ba4eeba8a125fa334b.ctex"]
 
 [params]
 

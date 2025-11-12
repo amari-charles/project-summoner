@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cffuq28troqo6"
-path="res://.godot/imported/Map_Markers_Store_Shopping_Bag_1.png-2b5d85400c3f46ed272961c5fb2a100a.ctex"
+path="res://.godot/imported/Map_Markers_Store_Shopping_Bag_1.png-8ec5e2ef2fc7325587265487bb7ffd48.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Store_Shopping_Bag_1.png"
-dest_files=["res://.godot/imported/Map_Markers_Store_Shopping_Bag_1.png-2b5d85400c3f46ed272961c5fb2a100a.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Store_Shopping_Bag_1.png"
+dest_files=["res://.godot/imported/Map_Markers_Store_Shopping_Bag_1.png-8ec5e2ef2fc7325587265487bb7ffd48.ctex"]
 
 [params]
 

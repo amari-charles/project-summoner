@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://drbvpx5s8aw4x"
-path="res://.godot/imported/Map_Markers_Scroll_Map_Blank.png-97a3452b6629c026d51a850bffdbc672.ctex"
+path="res://.godot/imported/Map_Markers_Scroll_Map_Blank.png-a8c025503bcc823c8247a2aeb37cd733.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Scroll_Map_Blank.png"
-dest_files=["res://.godot/imported/Map_Markers_Scroll_Map_Blank.png-97a3452b6629c026d51a850bffdbc672.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Scroll_Map_Blank.png"
+dest_files=["res://.godot/imported/Map_Markers_Scroll_Map_Blank.png-a8c025503bcc823c8247a2aeb37cd733.ctex"]
 
 [params]
 

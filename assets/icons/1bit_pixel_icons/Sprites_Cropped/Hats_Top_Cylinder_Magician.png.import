@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bjgkl7slyo6p"
-path="res://.godot/imported/Hats_Top_Cylinder_Magician.png-589e716866ab9ace1f0684d447bef535.ctex"
+path="res://.godot/imported/Hats_Top_Cylinder_Magician.png-ef81b53b906093186b34b542cc1cf58b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Top_Cylinder_Magician.png"
-dest_files=["res://.godot/imported/Hats_Top_Cylinder_Magician.png-589e716866ab9ace1f0684d447bef535.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Top_Cylinder_Magician.png"
+dest_files=["res://.godot/imported/Hats_Top_Cylinder_Magician.png-ef81b53b906093186b34b542cc1cf58b.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dkuade3pdu5n2"
-path="res://.godot/imported/RPG_Magic_Mana_Hearth_Stone.png-798534ccd87dc7d5ac08d37cc6356e91.ctex"
+path="res://.godot/imported/RPG_Magic_Mana_Hearth_Stone.png-452d5df4fc56631c6f844941ec38e1d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Magic_Mana_Hearth_Stone.png"
-dest_files=["res://.godot/imported/RPG_Magic_Mana_Hearth_Stone.png-798534ccd87dc7d5ac08d37cc6356e91.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Magic_Mana_Hearth_Stone.png"
+dest_files=["res://.godot/imported/RPG_Magic_Mana_Hearth_Stone.png-452d5df4fc56631c6f844941ec38e1d6.ctex"]
 
 [params]
 

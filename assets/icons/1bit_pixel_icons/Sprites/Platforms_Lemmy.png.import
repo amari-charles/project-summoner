@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ukdbv1kfk4w6"
-path="res://.godot/imported/Platforms_Lemmy.png-ae5ea994964f6dc3002e1bc7318c9658.ctex"
+path="res://.godot/imported/Platforms_Lemmy.png-62709bd55a12e18b9ae857eb49d451c7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Lemmy.png"
-dest_files=["res://.godot/imported/Platforms_Lemmy.png-ae5ea994964f6dc3002e1bc7318c9658.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Lemmy.png"
+dest_files=["res://.godot/imported/Platforms_Lemmy.png-62709bd55a12e18b9ae857eb49d451c7.ctex"]
 
 [params]
 

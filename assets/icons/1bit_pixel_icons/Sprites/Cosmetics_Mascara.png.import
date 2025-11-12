@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://co01ndj5h1c3u"
-path="res://.godot/imported/Cosmetics_Mascara.png-61ae6de537da14c8bda7c0ed57e48a2e.ctex"
+path="res://.godot/imported/Cosmetics_Mascara.png-5230ba39b3270a3cb2974593c0d5b4ff.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Cosmetics_Mascara.png"
-dest_files=["res://.godot/imported/Cosmetics_Mascara.png-61ae6de537da14c8bda7c0ed57e48a2e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Cosmetics_Mascara.png"
+dest_files=["res://.godot/imported/Cosmetics_Mascara.png-5230ba39b3270a3cb2974593c0d5b4ff.ctex"]
 
 [params]
 

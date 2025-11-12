@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://i5qc78og2bm4"
-path="res://.godot/imported/Hats_Crown_Queen_Tiara.png-3c728e8894a759d453ab883b20486c1b.ctex"
+path="res://.godot/imported/Hats_Crown_Queen_Tiara.png-1df62ffa8e80b157ce02bc7558aeeb14.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Crown_Queen_Tiara.png"
-dest_files=["res://.godot/imported/Hats_Crown_Queen_Tiara.png-3c728e8894a759d453ab883b20486c1b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Crown_Queen_Tiara.png"
+dest_files=["res://.godot/imported/Hats_Crown_Queen_Tiara.png-1df62ffa8e80b157ce02bc7558aeeb14.ctex"]
 
 [params]
 

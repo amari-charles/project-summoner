@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://k8dqdo4lcocp"
-path="res://.godot/imported/Sports_Winner_Top_3_Placement_Ladder.png-c5967cbf374e9ad2da1edda922ba8de1.ctex"
+path="res://.godot/imported/Sports_Winner_Top_3_Placement_Ladder.png-1d95259895fd5bec0299ed76bc11a86a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Winner_Top_3_Placement_Ladder.png"
-dest_files=["res://.godot/imported/Sports_Winner_Top_3_Placement_Ladder.png-c5967cbf374e9ad2da1edda922ba8de1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Winner_Top_3_Placement_Ladder.png"
+dest_files=["res://.godot/imported/Sports_Winner_Top_3_Placement_Ladder.png-1d95259895fd5bec0299ed76bc11a86a.ctex"]
 
 [params]
 

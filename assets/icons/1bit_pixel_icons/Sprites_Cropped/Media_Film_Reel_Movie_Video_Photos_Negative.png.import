@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7masvdkygvpt"
-path="res://.godot/imported/Media_Film_Reel_Movie_Video_Photos_Negative.png-b6f2397898e8d988eb5229fe9dcf2b07.ctex"
+path="res://.godot/imported/Media_Film_Reel_Movie_Video_Photos_Negative.png-0ca902cb9255dc1777b4d44fa1169657.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Film_Reel_Movie_Video_Photos_Negative.png"
-dest_files=["res://.godot/imported/Media_Film_Reel_Movie_Video_Photos_Negative.png-b6f2397898e8d988eb5229fe9dcf2b07.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Film_Reel_Movie_Video_Photos_Negative.png"
+dest_files=["res://.godot/imported/Media_Film_Reel_Movie_Video_Photos_Negative.png-0ca902cb9255dc1777b4d44fa1169657.ctex"]
 
 [params]
 

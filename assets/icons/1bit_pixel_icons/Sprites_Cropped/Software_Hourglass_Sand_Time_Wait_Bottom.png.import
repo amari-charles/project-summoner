@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://icm0s5dgijmy"
-path="res://.godot/imported/Software_Hourglass_Sand_Time_Wait_Bottom.png-009e87ae197e8d7f410b4584c3e14f81.ctex"
+path="res://.godot/imported/Software_Hourglass_Sand_Time_Wait_Bottom.png-94d3735b7cc039ad83f0fe668f0231be.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Hourglass_Sand_Time_Wait_Bottom.png"
-dest_files=["res://.godot/imported/Software_Hourglass_Sand_Time_Wait_Bottom.png-009e87ae197e8d7f410b4584c3e14f81.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Hourglass_Sand_Time_Wait_Bottom.png"
+dest_files=["res://.godot/imported/Software_Hourglass_Sand_Time_Wait_Bottom.png-94d3735b7cc039ad83f0fe668f0231be.ctex"]
 
 [params]
 

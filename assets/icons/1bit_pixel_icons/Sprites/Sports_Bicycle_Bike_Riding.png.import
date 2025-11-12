@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bcidnvsyi4ufq"
-path="res://.godot/imported/Sports_Bicycle_Bike_Riding.png-a340a0182fec49d2caa547037154e98f.ctex"
+path="res://.godot/imported/Sports_Bicycle_Bike_Riding.png-ed800364be5cf628d48fae378e366b08.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Sports_Bicycle_Bike_Riding.png"
-dest_files=["res://.godot/imported/Sports_Bicycle_Bike_Riding.png-a340a0182fec49d2caa547037154e98f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Sports_Bicycle_Bike_Riding.png"
+dest_files=["res://.godot/imported/Sports_Bicycle_Bike_Riding.png-ed800364be5cf628d48fae378e366b08.ctex"]
 
 [params]
 

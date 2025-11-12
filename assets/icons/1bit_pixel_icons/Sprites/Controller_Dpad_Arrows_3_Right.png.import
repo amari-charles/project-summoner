@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cd5q7fqhjo2fl"
-path="res://.godot/imported/Controller_Dpad_Arrows_3_Right.png-4fbc61a558936c37542a17525d268b05.ctex"
+path="res://.godot/imported/Controller_Dpad_Arrows_3_Right.png-91f6c05b0a96a650d3d191acc06968e1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Controller_Dpad_Arrows_3_Right.png"
-dest_files=["res://.godot/imported/Controller_Dpad_Arrows_3_Right.png-4fbc61a558936c37542a17525d268b05.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Controller_Dpad_Arrows_3_Right.png"
+dest_files=["res://.godot/imported/Controller_Dpad_Arrows_3_Right.png-91f6c05b0a96a650d3d191acc06968e1.ctex"]
 
 [params]
 

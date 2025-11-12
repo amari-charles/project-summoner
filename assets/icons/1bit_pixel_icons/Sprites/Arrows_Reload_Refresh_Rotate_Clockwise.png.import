@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c05yhsop4aiwl"
-path="res://.godot/imported/Arrows_Reload_Refresh_Rotate_Clockwise.png-fa9157aaf208da7f2e6b954234cc3ed4.ctex"
+path="res://.godot/imported/Arrows_Reload_Refresh_Rotate_Clockwise.png-5c8e6b860849098162959903821d64bb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Arrows_Reload_Refresh_Rotate_Clockwise.png"
-dest_files=["res://.godot/imported/Arrows_Reload_Refresh_Rotate_Clockwise.png-fa9157aaf208da7f2e6b954234cc3ed4.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Arrows_Reload_Refresh_Rotate_Clockwise.png"
+dest_files=["res://.godot/imported/Arrows_Reload_Refresh_Rotate_Clockwise.png-5c8e6b860849098162959903821d64bb.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bctt2jkt07w03"
-path="res://.godot/imported/Boardgames_Dice_Pyramid_D4_Four_Clean.png-5bc6948cac45ef22a7617640dac1a4cb.ctex"
+path="res://.godot/imported/Boardgames_Dice_Pyramid_D4_Four_Clean.png-f5e5bd4a1a4d8822abbb63d45b4018ee.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Dice_Pyramid_D4_Four_Clean.png"
-dest_files=["res://.godot/imported/Boardgames_Dice_Pyramid_D4_Four_Clean.png-5bc6948cac45ef22a7617640dac1a4cb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Dice_Pyramid_D4_Four_Clean.png"
+dest_files=["res://.godot/imported/Boardgames_Dice_Pyramid_D4_Four_Clean.png-f5e5bd4a1a4d8822abbb63d45b4018ee.ctex"]
 
 [params]
 

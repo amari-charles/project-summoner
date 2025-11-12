@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dslu47ynnvh5n"
-path="res://.godot/imported/Hats_Bow.png-502195b0ed1ff7e0b2ceb3b3ab918ad1.ctex"
+path="res://.godot/imported/Hats_Bow.png-dbc23712f5778a6a93669df0eb252f70.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Bow.png"
-dest_files=["res://.godot/imported/Hats_Bow.png-502195b0ed1ff7e0b2ceb3b3ab918ad1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Bow.png"
+dest_files=["res://.godot/imported/Hats_Bow.png-dbc23712f5778a6a93669df0eb252f70.ctex"]
 
 [params]
 

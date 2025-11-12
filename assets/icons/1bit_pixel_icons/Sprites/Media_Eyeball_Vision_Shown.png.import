@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ed45yp7a3pxv"
-path="res://.godot/imported/Media_Eyeball_Vision_Shown.png-d7ec8c5f0ee09c96660a939e53c7a9ac.ctex"
+path="res://.godot/imported/Media_Eyeball_Vision_Shown.png-796663c5f8946e379d6612af106865bf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Media_Eyeball_Vision_Shown.png"
-dest_files=["res://.godot/imported/Media_Eyeball_Vision_Shown.png-d7ec8c5f0ee09c96660a939e53c7a9ac.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Media_Eyeball_Vision_Shown.png"
+dest_files=["res://.godot/imported/Media_Eyeball_Vision_Shown.png-796663c5f8946e379d6612af106865bf.ctex"]
 
 [params]
 

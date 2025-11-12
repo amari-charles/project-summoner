@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do5uopkdyx6j7"
-path="res://.godot/imported/Alchemy_Nitre.png-41954bff45cc09016cd11e8ec794d188.ctex"
+path="res://.godot/imported/Alchemy_Nitre.png-cc3ca125bcba5bf6def2ac0d57ae6079.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Nitre.png"
-dest_files=["res://.godot/imported/Alchemy_Nitre.png-41954bff45cc09016cd11e8ec794d188.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Nitre.png"
+dest_files=["res://.godot/imported/Alchemy_Nitre.png-cc3ca125bcba5bf6def2ac0d57ae6079.ctex"]
 
 [params]
 

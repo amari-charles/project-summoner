@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5sngjtgiwf37"
-path="res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Compass_Circle_Drawing.png-128842ff878a35e842e408c9648c8a78.ctex"
+path="res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Compass_Circle_Drawing.png-57694a7b8b5760670c3376e5911a9883.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Graphic_Design_Measurement_Compass_Circle_Drawing.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Compass_Circle_Drawing.png-128842ff878a35e842e408c9648c8a78.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Graphic_Design_Measurement_Compass_Circle_Drawing.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Graphic_Design_Measurement_Compass_Circle_Drawing.png-57694a7b8b5760670c3376e5911a9883.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qc3u4gc67sn7"
-path="res://.godot/imported/Warfare_Medieval_Siege_Engine_Cannon_Gunpowder.png-f2a31c55f94fba0816f4844f46312ceb.ctex"
+path="res://.godot/imported/Warfare_Medieval_Siege_Engine_Cannon_Gunpowder.png-bb58afa979a0dd77c7be82cb1dc56e4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Medieval_Siege_Engine_Cannon_Gunpowder.png"
-dest_files=["res://.godot/imported/Warfare_Medieval_Siege_Engine_Cannon_Gunpowder.png-f2a31c55f94fba0816f4844f46312ceb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Medieval_Siege_Engine_Cannon_Gunpowder.png"
+dest_files=["res://.godot/imported/Warfare_Medieval_Siege_Engine_Cannon_Gunpowder.png-bb58afa979a0dd77c7be82cb1dc56e4c.ctex"]
 
 [params]
 

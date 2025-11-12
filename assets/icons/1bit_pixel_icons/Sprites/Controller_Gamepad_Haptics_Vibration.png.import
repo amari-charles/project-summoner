@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ddjseu27k1low"
-path="res://.godot/imported/Controller_Gamepad_Haptics_Vibration.png-2381bbf793f39fc82a55238f27b9399e.ctex"
+path="res://.godot/imported/Controller_Gamepad_Haptics_Vibration.png-b2f0dde62b8665781aadb4a50f3a98c2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Controller_Gamepad_Haptics_Vibration.png"
-dest_files=["res://.godot/imported/Controller_Gamepad_Haptics_Vibration.png-2381bbf793f39fc82a55238f27b9399e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Controller_Gamepad_Haptics_Vibration.png"
+dest_files=["res://.godot/imported/Controller_Gamepad_Haptics_Vibration.png-b2f0dde62b8665781aadb4a50f3a98c2.ctex"]
 
 [params]
 

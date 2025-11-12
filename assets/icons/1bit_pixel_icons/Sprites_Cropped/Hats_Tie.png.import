@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d4n3f67bfsmdy"
-path="res://.godot/imported/Hats_Tie.png-1f6c6f8b27ef4a9969f6ebf679d8ba45.ctex"
+path="res://.godot/imported/Hats_Tie.png-0683c4f0d7738458853bba1e2450d967.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Tie.png"
-dest_files=["res://.godot/imported/Hats_Tie.png-1f6c6f8b27ef4a9969f6ebf679d8ba45.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Tie.png"
+dest_files=["res://.godot/imported/Hats_Tie.png-0683c4f0d7738458853bba1e2450d967.ctex"]
 
 [params]
 

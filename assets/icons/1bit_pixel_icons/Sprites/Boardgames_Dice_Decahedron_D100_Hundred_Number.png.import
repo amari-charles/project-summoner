@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bv1ev2fa1hibi"
-path="res://.godot/imported/Boardgames_Dice_Decahedron_D100_Hundred_Number.png-e14f14c14b785d8225aee78b3c6c3a07.ctex"
+path="res://.godot/imported/Boardgames_Dice_Decahedron_D100_Hundred_Number.png-0c0dbceb81426d43808e5663d0d013cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Boardgames_Dice_Decahedron_D100_Hundred_Number.png"
-dest_files=["res://.godot/imported/Boardgames_Dice_Decahedron_D100_Hundred_Number.png-e14f14c14b785d8225aee78b3c6c3a07.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Boardgames_Dice_Decahedron_D100_Hundred_Number.png"
+dest_files=["res://.godot/imported/Boardgames_Dice_Decahedron_D100_Hundred_Number.png-0c0dbceb81426d43808e5663d0d013cd.ctex"]
 
 [params]
 

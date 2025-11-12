@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://byxn5tbbv1cfg"
-path="res://.godot/imported/Software_Telephone_Call_Handset_Signal_None_Disabled_Hangup.png-b13350314746b20f55ffd4836f43893d.ctex"
+path="res://.godot/imported/Software_Telephone_Call_Handset_Signal_None_Disabled_Hangup.png-77a00bc71cb85f03b23b126fec5ef878.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Telephone_Call_Handset_Signal_None_Disabled_Hangup.png"
-dest_files=["res://.godot/imported/Software_Telephone_Call_Handset_Signal_None_Disabled_Hangup.png-b13350314746b20f55ffd4836f43893d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Telephone_Call_Handset_Signal_None_Disabled_Hangup.png"
+dest_files=["res://.godot/imported/Software_Telephone_Call_Handset_Signal_None_Disabled_Hangup.png-77a00bc71cb85f03b23b126fec5ef878.ctex"]
 
 [params]
 

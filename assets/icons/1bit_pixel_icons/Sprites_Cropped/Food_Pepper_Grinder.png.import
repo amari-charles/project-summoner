@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bt6u8o0pk768q"
-path="res://.godot/imported/Food_Pepper_Grinder.png-474d127b261f702a81ad66a7284595f3.ctex"
+path="res://.godot/imported/Food_Pepper_Grinder.png-0dbddb39b4f0cba297aa2ca7853aa1db.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Pepper_Grinder.png"
-dest_files=["res://.godot/imported/Food_Pepper_Grinder.png-474d127b261f702a81ad66a7284595f3.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Pepper_Grinder.png"
+dest_files=["res://.godot/imported/Food_Pepper_Grinder.png-0dbddb39b4f0cba297aa2ca7853aa1db.ctex"]
 
 [params]
 

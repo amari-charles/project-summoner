@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b85av6t0sbsde"
-path="res://.godot/imported/Weather_Sunny_Cloudy_Partial.png-46efe3f2c6c6ba8f74e8270e28b2910b.ctex"
+path="res://.godot/imported/Weather_Sunny_Cloudy_Partial.png-5c141aa99e60c1e1aaa605594f04abf2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Weather_Sunny_Cloudy_Partial.png"
-dest_files=["res://.godot/imported/Weather_Sunny_Cloudy_Partial.png-46efe3f2c6c6ba8f74e8270e28b2910b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Weather_Sunny_Cloudy_Partial.png"
+dest_files=["res://.godot/imported/Weather_Sunny_Cloudy_Partial.png-5c141aa99e60c1e1aaa605594f04abf2.ctex"]
 
 [params]
 

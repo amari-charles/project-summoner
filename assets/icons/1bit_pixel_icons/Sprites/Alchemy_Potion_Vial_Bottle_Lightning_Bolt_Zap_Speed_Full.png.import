@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7wivj1i7ma56"
-path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Lightning_Bolt_Zap_Speed_Full.png-8f26ef5cdbbc530afaa6e2fbb1c77a58.ctex"
+path="res://.godot/imported/Alchemy_Potion_Vial_Bottle_Lightning_Bolt_Zap_Speed_Full.png-c07c704d1346f9b896bb2b3501f685d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Potion_Vial_Bottle_Lightning_Bolt_Zap_Speed_Full.png"
-dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Lightning_Bolt_Zap_Speed_Full.png-8f26ef5cdbbc530afaa6e2fbb1c77a58.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Potion_Vial_Bottle_Lightning_Bolt_Zap_Speed_Full.png"
+dest_files=["res://.godot/imported/Alchemy_Potion_Vial_Bottle_Lightning_Bolt_Zap_Speed_Full.png-c07c704d1346f9b896bb2b3501f685d7.ctex"]
 
 [params]
 

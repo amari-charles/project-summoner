@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0i41v0g6w355"
-path="res://.godot/imported/Hats_Masks_Happy_Sad_Theather_Stage_Scene.png-61de27753f468e1e2ff3c0e35cc0e143.ctex"
+path="res://.godot/imported/Hats_Masks_Happy_Sad_Theather_Stage_Scene.png-07c3b42381326d6f72a82420f6d7de3d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Masks_Happy_Sad_Theather_Stage_Scene.png"
-dest_files=["res://.godot/imported/Hats_Masks_Happy_Sad_Theather_Stage_Scene.png-61de27753f468e1e2ff3c0e35cc0e143.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Masks_Happy_Sad_Theather_Stage_Scene.png"
+dest_files=["res://.godot/imported/Hats_Masks_Happy_Sad_Theather_Stage_Scene.png-07c3b42381326d6f72a82420f6d7de3d.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxlmqef4nh3hi"
-path="res://.godot/imported/RPG_Skill_Killshot_Bow_Ranged_Attack_Skull.png-85749d909aef40a1085e3703cbb28b4f.ctex"
+path="res://.godot/imported/RPG_Skill_Killshot_Bow_Ranged_Attack_Skull.png-f70a5e4a5c5bfb3f5ca9b8c928a13244.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Skill_Killshot_Bow_Ranged_Attack_Skull.png"
-dest_files=["res://.godot/imported/RPG_Skill_Killshot_Bow_Ranged_Attack_Skull.png-85749d909aef40a1085e3703cbb28b4f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Skill_Killshot_Bow_Ranged_Attack_Skull.png"
+dest_files=["res://.godot/imported/RPG_Skill_Killshot_Bow_Ranged_Attack_Skull.png-f70a5e4a5c5bfb3f5ca9b8c928a13244.ctex"]
 
 [params]
 

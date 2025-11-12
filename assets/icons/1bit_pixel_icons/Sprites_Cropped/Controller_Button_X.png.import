@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c55leptivqx8y"
-path="res://.godot/imported/Controller_Button_X.png-2cdc3f525299920cd96e7a60c37bf221.ctex"
+path="res://.godot/imported/Controller_Button_X.png-428a09db93b1e4279b40c2cfd33a4a16.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Controller_Button_X.png"
-dest_files=["res://.godot/imported/Controller_Button_X.png-2cdc3f525299920cd96e7a60c37bf221.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Controller_Button_X.png"
+dest_files=["res://.godot/imported/Controller_Button_X.png-428a09db93b1e4279b40c2cfd33a4a16.ctex"]
 
 [params]
 

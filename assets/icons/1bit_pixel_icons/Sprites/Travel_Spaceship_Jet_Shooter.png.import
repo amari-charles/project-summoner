@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqpeuwdo7t7rc"
-path="res://.godot/imported/Travel_Spaceship_Jet_Shooter.png-fc6e1a354ec590508203faac06769ae6.ctex"
+path="res://.godot/imported/Travel_Spaceship_Jet_Shooter.png-711209addde7d9b6bd3425d8345e7dd6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Spaceship_Jet_Shooter.png"
-dest_files=["res://.godot/imported/Travel_Spaceship_Jet_Shooter.png-fc6e1a354ec590508203faac06769ae6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Spaceship_Jet_Shooter.png"
+dest_files=["res://.godot/imported/Travel_Spaceship_Jet_Shooter.png-711209addde7d9b6bd3425d8345e7dd6.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bt2ocvuv8uxox"
-path="res://.godot/imported/Hats_Knight_Helmet_Armor_Medieval.png-4f2cab86a76186d59f452f8a0931da3e.ctex"
+path="res://.godot/imported/Hats_Knight_Helmet_Armor_Medieval.png-718b2946e0ef7420bf24049316e9f6a0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Knight_Helmet_Armor_Medieval.png"
-dest_files=["res://.godot/imported/Hats_Knight_Helmet_Armor_Medieval.png-4f2cab86a76186d59f452f8a0931da3e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Knight_Helmet_Armor_Medieval.png"
+dest_files=["res://.godot/imported/Hats_Knight_Helmet_Armor_Medieval.png-718b2946e0ef7420bf24049316e9f6a0.ctex"]
 
 [params]
 

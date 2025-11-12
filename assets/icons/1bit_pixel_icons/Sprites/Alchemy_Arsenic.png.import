@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://buo2spq7ce6ur"
-path="res://.godot/imported/Alchemy_Arsenic.png-4f30a879a5b9f075c765682ab89e588b.ctex"
+path="res://.godot/imported/Alchemy_Arsenic.png-0f011cd58c83fcbe8f07a225b91fbe8a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Alchemy_Arsenic.png"
-dest_files=["res://.godot/imported/Alchemy_Arsenic.png-4f30a879a5b9f075c765682ab89e588b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Alchemy_Arsenic.png"
+dest_files=["res://.godot/imported/Alchemy_Arsenic.png-0f011cd58c83fcbe8f07a225b91fbe8a.ctex"]
 
 [params]
 

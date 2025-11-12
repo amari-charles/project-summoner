@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwc583hvfc68k"
-path="res://.godot/imported/Media_Musical_Instrument_Tuning_Fork.png-dd8267517b603c9fc128a9c4e72c2429.ctex"
+path="res://.godot/imported/Media_Musical_Instrument_Tuning_Fork.png-02f5fa7f54a408e73f9325ee35e9656f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Musical_Instrument_Tuning_Fork.png"
-dest_files=["res://.godot/imported/Media_Musical_Instrument_Tuning_Fork.png-dd8267517b603c9fc128a9c4e72c2429.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Musical_Instrument_Tuning_Fork.png"
+dest_files=["res://.godot/imported/Media_Musical_Instrument_Tuning_Fork.png-02f5fa7f54a408e73f9325ee35e9656f.ctex"]
 
 [params]
 

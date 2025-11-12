@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dtvyjqhq76thp"
-path="res://.godot/imported/Hats_Baseball_Cap_2.png-2330d30470970cffc7c385e41170f685.ctex"
+path="res://.godot/imported/Hats_Baseball_Cap_2.png-281ea22c4e9dd7be0a1030d1781dec7e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Hats_Baseball_Cap_2.png"
-dest_files=["res://.godot/imported/Hats_Baseball_Cap_2.png-2330d30470970cffc7c385e41170f685.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Hats_Baseball_Cap_2.png"
+dest_files=["res://.godot/imported/Hats_Baseball_Cap_2.png-281ea22c4e9dd7be0a1030d1781dec7e.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7a15536w8i8n"
-path="res://.godot/imported/Travel_Ship_Pirate_Flag_Black.png-12e6b35979e7bd93441c89f7f36d4223.ctex"
+path="res://.godot/imported/Travel_Ship_Pirate_Flag_Black.png-4be702c7d6ba63ca216fb82cac957832.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Travel_Ship_Pirate_Flag_Black.png"
-dest_files=["res://.godot/imported/Travel_Ship_Pirate_Flag_Black.png-12e6b35979e7bd93441c89f7f36d4223.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Travel_Ship_Pirate_Flag_Black.png"
+dest_files=["res://.godot/imported/Travel_Ship_Pirate_Flag_Black.png-4be702c7d6ba63ca216fb82cac957832.ctex"]
 
 [params]
 

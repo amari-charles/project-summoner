@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu7e3ihmbrji7"
-path="res://.godot/imported/Warfare_Veichle_Airplane_Fighter_Jet.png-b8f6f83c76e8c4c045ec302a7ccd2faf.ctex"
+path="res://.godot/imported/Warfare_Veichle_Airplane_Fighter_Jet.png-b0311c52f930e3979b12bdf5f87ca20d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Warfare_Veichle_Airplane_Fighter_Jet.png"
-dest_files=["res://.godot/imported/Warfare_Veichle_Airplane_Fighter_Jet.png-b8f6f83c76e8c4c045ec302a7ccd2faf.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Warfare_Veichle_Airplane_Fighter_Jet.png"
+dest_files=["res://.godot/imported/Warfare_Veichle_Airplane_Fighter_Jet.png-b0311c52f930e3979b12bdf5f87ca20d.ctex"]
 
 [params]
 

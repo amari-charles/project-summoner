@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://m3nojai8ntho"
-path="res://.godot/imported/Hats_Nose_Smell_Scent.png-7e137cd97f9b68049e9a4ccd36c3e451.ctex"
+path="res://.godot/imported/Hats_Nose_Smell_Scent.png-ac4d5b900adeedf356ce63ab1dad000a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Hats_Nose_Smell_Scent.png"
-dest_files=["res://.godot/imported/Hats_Nose_Smell_Scent.png-7e137cd97f9b68049e9a4ccd36c3e451.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Hats_Nose_Smell_Scent.png"
+dest_files=["res://.godot/imported/Hats_Nose_Smell_Scent.png-ac4d5b900adeedf356ce63ab1dad000a.ctex"]
 
 [params]
 

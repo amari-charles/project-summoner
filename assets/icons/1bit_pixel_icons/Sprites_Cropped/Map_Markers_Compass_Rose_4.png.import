@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cg36bijso1ysk"
-path="res://.godot/imported/Map_Markers_Compass_Rose_4.png-31612fd183994e278518de6d68926ff8.ctex"
+path="res://.godot/imported/Map_Markers_Compass_Rose_4.png-920163d55b0cba9fff0a1bbe98c4262f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Map_Markers_Compass_Rose_4.png"
-dest_files=["res://.godot/imported/Map_Markers_Compass_Rose_4.png-31612fd183994e278518de6d68926ff8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Compass_Rose_4.png"
+dest_files=["res://.godot/imported/Map_Markers_Compass_Rose_4.png-920163d55b0cba9fff0a1bbe98c4262f.ctex"]
 
 [params]
 

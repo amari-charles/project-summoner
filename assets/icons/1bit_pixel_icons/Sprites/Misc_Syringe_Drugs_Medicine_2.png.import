@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckduhltmtvpi3"
-path="res://.godot/imported/Misc_Syringe_Drugs_Medicine_2.png-650c8b8576d6339b32838c86dd0cde58.ctex"
+path="res://.godot/imported/Misc_Syringe_Drugs_Medicine_2.png-024297cc422fcacf15a1a82e07603986.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Misc_Syringe_Drugs_Medicine_2.png"
-dest_files=["res://.godot/imported/Misc_Syringe_Drugs_Medicine_2.png-650c8b8576d6339b32838c86dd0cde58.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Misc_Syringe_Drugs_Medicine_2.png"
+dest_files=["res://.godot/imported/Misc_Syringe_Drugs_Medicine_2.png-024297cc422fcacf15a1a82e07603986.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://26hlcaalme33"
-path="res://.godot/imported/Controller_Stick_2_Left.png-95340e7674aae78596caa352a8a079b1.ctex"
+path="res://.godot/imported/Controller_Stick_2_Left.png-23436e46c5ce2cb39ba2dbe44854df38.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Controller_Stick_2_Left.png"
-dest_files=["res://.godot/imported/Controller_Stick_2_Left.png-95340e7674aae78596caa352a8a079b1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Controller_Stick_2_Left.png"
+dest_files=["res://.godot/imported/Controller_Stick_2_Left.png-23436e46c5ce2cb39ba2dbe44854df38.ctex"]
 
 [params]
 

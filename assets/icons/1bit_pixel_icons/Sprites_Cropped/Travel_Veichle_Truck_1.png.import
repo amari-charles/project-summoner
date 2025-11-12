@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbxhawnw3au7t"
-path="res://.godot/imported/Travel_Veichle_Truck_1.png-ed22bf97e6ddfae67811153d125d79d0.ctex"
+path="res://.godot/imported/Travel_Veichle_Truck_1.png-b59c3cf26e901d14101f968e1e2b5166.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Travel_Veichle_Truck_1.png"
-dest_files=["res://.godot/imported/Travel_Veichle_Truck_1.png-ed22bf97e6ddfae67811153d125d79d0.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Veichle_Truck_1.png"
+dest_files=["res://.godot/imported/Travel_Veichle_Truck_1.png-b59c3cf26e901d14101f968e1e2b5166.ctex"]
 
 [params]
 

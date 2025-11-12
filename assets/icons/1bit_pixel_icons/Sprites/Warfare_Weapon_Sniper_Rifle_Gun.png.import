@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgqiqwafm06ob"
-path="res://.godot/imported/Warfare_Weapon_Sniper_Rifle_Gun.png-cd5df7aff125ba5c48c82277ba54dd1c.ctex"
+path="res://.godot/imported/Warfare_Weapon_Sniper_Rifle_Gun.png-1e12876ab5afa38b0fddfbdaa0bdac8d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Warfare_Weapon_Sniper_Rifle_Gun.png"
-dest_files=["res://.godot/imported/Warfare_Weapon_Sniper_Rifle_Gun.png-cd5df7aff125ba5c48c82277ba54dd1c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Warfare_Weapon_Sniper_Rifle_Gun.png"
+dest_files=["res://.godot/imported/Warfare_Weapon_Sniper_Rifle_Gun.png-1e12876ab5afa38b0fddfbdaa0bdac8d.ctex"]
 
 [params]
 

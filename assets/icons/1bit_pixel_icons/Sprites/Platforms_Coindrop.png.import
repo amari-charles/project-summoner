@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d7eb2m1p3bkq"
-path="res://.godot/imported/Platforms_Coindrop.png-86cc5a56b147d3daa7ae54a9d79e1feb.ctex"
+path="res://.godot/imported/Platforms_Coindrop.png-08eed49f944d243c6537b8bf7ff8b06c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Platforms_Coindrop.png"
-dest_files=["res://.godot/imported/Platforms_Coindrop.png-86cc5a56b147d3daa7ae54a9d79e1feb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Platforms_Coindrop.png"
+dest_files=["res://.godot/imported/Platforms_Coindrop.png-08eed49f944d243c6537b8bf7ff8b06c.ctex"]
 
 [params]
 

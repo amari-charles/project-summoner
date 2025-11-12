@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d2m68hkrcsw3a"
-path="res://.godot/imported/Alchemy_Zodiac_Scorpius.png-c2969427c385848dd3fd57b0d4b0951c.ctex"
+path="res://.godot/imported/Alchemy_Zodiac_Scorpius.png-1a7e6428c77442cee6e5939ecf716058.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Alchemy_Zodiac_Scorpius.png"
-dest_files=["res://.godot/imported/Alchemy_Zodiac_Scorpius.png-c2969427c385848dd3fd57b0d4b0951c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Alchemy_Zodiac_Scorpius.png"
+dest_files=["res://.godot/imported/Alchemy_Zodiac_Scorpius.png-1a7e6428c77442cee6e5939ecf716058.ctex"]
 
 [params]
 

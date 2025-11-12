@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yo5855smi1rc"
-path="res://.godot/imported/Weather_Atomic_Energy_Nuclear_Power_Plant.png-9ce96158541e77f42a69bb0a621cefd8.ctex"
+path="res://.godot/imported/Weather_Atomic_Energy_Nuclear_Power_Plant.png-e0f0e85a7de36b479e9a8fed9d5460c8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Weather_Atomic_Energy_Nuclear_Power_Plant.png"
-dest_files=["res://.godot/imported/Weather_Atomic_Energy_Nuclear_Power_Plant.png-9ce96158541e77f42a69bb0a621cefd8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Weather_Atomic_Energy_Nuclear_Power_Plant.png"
+dest_files=["res://.godot/imported/Weather_Atomic_Energy_Nuclear_Power_Plant.png-e0f0e85a7de36b479e9a8fed9d5460c8.ctex"]
 
 [params]
 

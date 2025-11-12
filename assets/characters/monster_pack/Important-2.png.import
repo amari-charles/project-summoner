@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8bnq371hd5hq"
-path="res://.godot/imported/Important-2.png-1a65250656127c2acbbe2d36ca97179d.ctex"
+path="res://.godot/imported/Important-2.png-7fad8fc0046185904e45a26f4cd0c22c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Monster Pack (Free)/Important-2.png"
-dest_files=["res://.godot/imported/Important-2.png-1a65250656127c2acbbe2d36ca97179d.ctex"]
+source_file="res://assets/characters/monster_pack/Important-2.png"
+dest_files=["res://.godot/imported/Important-2.png-7fad8fc0046185904e45a26f4cd0c22c.ctex"]
 
 [params]
 

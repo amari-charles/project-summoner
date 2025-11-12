@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhy62quco2xdh"
-path="res://.godot/imported/Food_Cooking_Pot_Cauldron.png-fd6572efa8f355dbf9bfd7a5141eab2f.ctex"
+path="res://.godot/imported/Food_Cooking_Pot_Cauldron.png-9f0a74af025bd2a0cc92115df16c4e73.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Cooking_Pot_Cauldron.png"
-dest_files=["res://.godot/imported/Food_Cooking_Pot_Cauldron.png-fd6572efa8f355dbf9bfd7a5141eab2f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Cooking_Pot_Cauldron.png"
+dest_files=["res://.godot/imported/Food_Cooking_Pot_Cauldron.png-9f0a74af025bd2a0cc92115df16c4e73.ctex"]
 
 [params]
 

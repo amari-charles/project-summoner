@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djvnap6rpsy8c"
-path="res://.godot/imported/Software_Statistics_Stats_Graphs_Growth.png-fdb72765a83086d8b3aee65be849ddca.ctex"
+path="res://.godot/imported/Software_Statistics_Stats_Graphs_Growth.png-c4f885455b2fc5f11c78e4f68a6be0b0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Software_Statistics_Stats_Graphs_Growth.png"
-dest_files=["res://.godot/imported/Software_Statistics_Stats_Graphs_Growth.png-fdb72765a83086d8b3aee65be849ddca.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Software_Statistics_Stats_Graphs_Growth.png"
+dest_files=["res://.godot/imported/Software_Statistics_Stats_Graphs_Growth.png-c4f885455b2fc5f11c78e4f68a6be0b0.ctex"]
 
 [params]
 

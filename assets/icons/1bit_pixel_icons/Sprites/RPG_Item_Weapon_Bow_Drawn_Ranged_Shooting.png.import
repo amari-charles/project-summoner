@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8bkutqx1l8lk"
-path="res://.godot/imported/RPG_Item_Weapon_Bow_Drawn_Ranged_Shooting.png-34843954ffacc77b30845199b21cc8b6.ctex"
+path="res://.godot/imported/RPG_Item_Weapon_Bow_Drawn_Ranged_Shooting.png-829d11dfde04c988db6a852b572b64e7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Item_Weapon_Bow_Drawn_Ranged_Shooting.png"
-dest_files=["res://.godot/imported/RPG_Item_Weapon_Bow_Drawn_Ranged_Shooting.png-34843954ffacc77b30845199b21cc8b6.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Item_Weapon_Bow_Drawn_Ranged_Shooting.png"
+dest_files=["res://.godot/imported/RPG_Item_Weapon_Bow_Drawn_Ranged_Shooting.png-829d11dfde04c988db6a852b572b64e7.ctex"]
 
 [params]
 

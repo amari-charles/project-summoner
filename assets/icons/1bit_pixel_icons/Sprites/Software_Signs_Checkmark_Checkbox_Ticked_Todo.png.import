@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://krhv0npimu0l"
-path="res://.godot/imported/Software_Signs_Checkmark_Checkbox_Ticked_Todo.png-2262f4253a4f3e7c1f862092c0de913e.ctex"
+path="res://.godot/imported/Software_Signs_Checkmark_Checkbox_Ticked_Todo.png-d7e48662542d7b103bdfaf09c4c9125d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Signs_Checkmark_Checkbox_Ticked_Todo.png"
-dest_files=["res://.godot/imported/Software_Signs_Checkmark_Checkbox_Ticked_Todo.png-2262f4253a4f3e7c1f862092c0de913e.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Signs_Checkmark_Checkbox_Ticked_Todo.png"
+dest_files=["res://.godot/imported/Software_Signs_Checkmark_Checkbox_Ticked_Todo.png-d7e48662542d7b103bdfaf09c4c9125d.ctex"]
 
 [params]
 

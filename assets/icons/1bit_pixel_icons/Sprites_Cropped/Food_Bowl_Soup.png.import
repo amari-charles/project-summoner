@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cb0pc8u3l2hvc"
-path="res://.godot/imported/Food_Bowl_Soup.png-f043acf38ef653593b6045e927776053.ctex"
+path="res://.godot/imported/Food_Bowl_Soup.png-36da9a43e7b8c6aadc3c352ae42b299e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Bowl_Soup.png"
-dest_files=["res://.godot/imported/Food_Bowl_Soup.png-f043acf38ef653593b6045e927776053.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Bowl_Soup.png"
+dest_files=["res://.godot/imported/Food_Bowl_Soup.png-36da9a43e7b8c6aadc3c352ae42b299e.ctex"]
 
 [params]
 

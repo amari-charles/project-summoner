@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://sjjcj5oi0rcl"
-path="res://.godot/imported/Map_Markers_Building_Tribal_Hut.png-f4a276a0202b32cc5ef025b37348bf73.ctex"
+path="res://.godot/imported/Map_Markers_Building_Tribal_Hut.png-872c9bd9570259cb1382c33b261750d9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Map_Markers_Building_Tribal_Hut.png"
-dest_files=["res://.godot/imported/Map_Markers_Building_Tribal_Hut.png-f4a276a0202b32cc5ef025b37348bf73.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Map_Markers_Building_Tribal_Hut.png"
+dest_files=["res://.godot/imported/Map_Markers_Building_Tribal_Hut.png-872c9bd9570259cb1382c33b261750d9.ctex"]
 
 [params]
 

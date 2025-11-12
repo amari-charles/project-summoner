@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bnoa5f75a27t2"
-path="res://.godot/imported/Icons_Weather.png-ce354c9a0f6281fa55354762ddc3b2ff.ctex"
+path="res://.godot/imported/Icons_Weather.png-0c8fc4f525214e3313c164d077e89462.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Icons_Weather.png"
-dest_files=["res://.godot/imported/Icons_Weather.png-ce354c9a0f6281fa55354762ddc3b2ff.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Icons_Weather.png"
+dest_files=["res://.godot/imported/Icons_Weather.png-0c8fc4f525214e3313c164d077e89462.ctex"]
 
 [params]
 

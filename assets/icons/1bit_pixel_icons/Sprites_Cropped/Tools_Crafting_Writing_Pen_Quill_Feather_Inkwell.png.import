@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dj5cixxf5hed7"
-path="res://.godot/imported/Tools_Crafting_Writing_Pen_Quill_Feather_Inkwell.png-aefeca7bdeffa759ddd814f9423b68eb.ctex"
+path="res://.godot/imported/Tools_Crafting_Writing_Pen_Quill_Feather_Inkwell.png-d9abc1ef912ab3fca5b51e3b671f6f79.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Tools_Crafting_Writing_Pen_Quill_Feather_Inkwell.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Writing_Pen_Quill_Feather_Inkwell.png-aefeca7bdeffa759ddd814f9423b68eb.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Writing_Pen_Quill_Feather_Inkwell.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Writing_Pen_Quill_Feather_Inkwell.png-d9abc1ef912ab3fca5b51e3b671f6f79.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ymdole2c18se"
-path="res://.godot/imported/RPG_Trade_Libra_Scales_Left.png-e841ea96ab138a8ed2d56babf951643c.ctex"
+path="res://.godot/imported/RPG_Trade_Libra_Scales_Left.png-2661a28ef1e634d6d6665d783ddfbed8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Trade_Libra_Scales_Left.png"
-dest_files=["res://.godot/imported/RPG_Trade_Libra_Scales_Left.png-e841ea96ab138a8ed2d56babf951643c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Trade_Libra_Scales_Left.png"
+dest_files=["res://.godot/imported/RPG_Trade_Libra_Scales_Left.png-2661a28ef1e634d6d6665d783ddfbed8.ctex"]
 
 [params]
 

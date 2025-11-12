@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pjdqh248hpko"
-path="res://.godot/imported/RPG_Difficulty_1_Trivial_Decayed_Wooden_Shield.png-03e48ee8b30c871f1a5c749936aebb0f.ctex"
+path="res://.godot/imported/RPG_Difficulty_1_Trivial_Decayed_Wooden_Shield.png-89fae9f8995c49f55ab706885a69ccd7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Difficulty_1_Trivial_Decayed_Wooden_Shield.png"
-dest_files=["res://.godot/imported/RPG_Difficulty_1_Trivial_Decayed_Wooden_Shield.png-03e48ee8b30c871f1a5c749936aebb0f.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Difficulty_1_Trivial_Decayed_Wooden_Shield.png"
+dest_files=["res://.godot/imported/RPG_Difficulty_1_Trivial_Decayed_Wooden_Shield.png-89fae9f8995c49f55ab706885a69ccd7.ctex"]
 
 [params]
 

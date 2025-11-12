@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b215j5tqm5c06"
-path="res://.godot/imported/Platforms_Onlyfans_1.png-1523b8abe4274542d1004837c3553b02.ctex"
+path="res://.godot/imported/Platforms_Onlyfans_1.png-a968bcb90ce62eeb363c18fd0a8ac966.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Platforms_Onlyfans_1.png"
-dest_files=["res://.godot/imported/Platforms_Onlyfans_1.png-1523b8abe4274542d1004837c3553b02.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Platforms_Onlyfans_1.png"
+dest_files=["res://.godot/imported/Platforms_Onlyfans_1.png-a968bcb90ce62eeb363c18fd0a8ac966.ctex"]
 
 [params]
 

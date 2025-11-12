@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://doskc4ooc3t2g"
-path="res://.godot/imported/Tools_Crafting_Digging_Shovel.png-4f63e3c8fd3db61a7f32a2bb7cf71121.ctex"
+path="res://.godot/imported/Tools_Crafting_Digging_Shovel.png-7d4a65e89a77fcc1c8e1a6ce7dcc8a65.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Tools_Crafting_Digging_Shovel.png"
-dest_files=["res://.godot/imported/Tools_Crafting_Digging_Shovel.png-4f63e3c8fd3db61a7f32a2bb7cf71121.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Tools_Crafting_Digging_Shovel.png"
+dest_files=["res://.godot/imported/Tools_Crafting_Digging_Shovel.png-7d4a65e89a77fcc1c8e1a6ce7dcc8a65.ctex"]
 
 [params]
 

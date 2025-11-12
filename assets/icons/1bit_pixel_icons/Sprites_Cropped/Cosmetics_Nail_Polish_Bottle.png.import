@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dnbupq5ifugrp"
-path="res://.godot/imported/Cosmetics_Nail_Polish_Bottle.png-ac5fc0688fcc6e49efbd4e02f4115abe.ctex"
+path="res://.godot/imported/Cosmetics_Nail_Polish_Bottle.png-1700ce987fa10ecbc5b2c478dc865dc3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Cosmetics_Nail_Polish_Bottle.png"
-dest_files=["res://.godot/imported/Cosmetics_Nail_Polish_Bottle.png-ac5fc0688fcc6e49efbd4e02f4115abe.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Cosmetics_Nail_Polish_Bottle.png"
+dest_files=["res://.godot/imported/Cosmetics_Nail_Polish_Bottle.png-1700ce987fa10ecbc5b2c478dc865dc3.ctex"]
 
 [params]
 

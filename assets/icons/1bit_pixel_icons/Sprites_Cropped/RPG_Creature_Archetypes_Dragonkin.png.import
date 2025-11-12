@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqobtufjtlvx3"
-path="res://.godot/imported/RPG_Creature_Archetypes_Dragonkin.png-3ad97114959e223f9d9d7a3e45d7b80b.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Dragonkin.png-a226c1975c5efc27b18719d3068361b1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Creature_Archetypes_Dragonkin.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Dragonkin.png-3ad97114959e223f9d9d7a3e45d7b80b.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Creature_Archetypes_Dragonkin.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Dragonkin.png-a226c1975c5efc27b18719d3068361b1.ctex"]
 
 [params]
 

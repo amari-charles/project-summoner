@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://br33i5q3n6ydg"
-path="res://.godot/imported/Boardgames_Chip_Token_Circle_10_Ten.png-c4bd2a0a226ed5da02c17179e3e87bbc.ctex"
+path="res://.godot/imported/Boardgames_Chip_Token_Circle_10_Ten.png-5ac245ee7da09a706444747ed55b2cae.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Chip_Token_Circle_10_Ten.png"
-dest_files=["res://.godot/imported/Boardgames_Chip_Token_Circle_10_Ten.png-c4bd2a0a226ed5da02c17179e3e87bbc.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Chip_Token_Circle_10_Ten.png"
+dest_files=["res://.godot/imported/Boardgames_Chip_Token_Circle_10_Ten.png-5ac245ee7da09a706444747ed55b2cae.ctex"]
 
 [params]
 

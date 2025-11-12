@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxn1ykwfg0gyx"
-path="res://.godot/imported/Media_Disco_Ball.png-6daf38e72ac1ebff43855c758ca6eca7.ctex"
+path="res://.godot/imported/Media_Disco_Ball.png-02db6877c03a0d5f2ecc0f87f184f2b1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Media_Disco_Ball.png"
-dest_files=["res://.godot/imported/Media_Disco_Ball.png-6daf38e72ac1ebff43855c758ca6eca7.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Media_Disco_Ball.png"
+dest_files=["res://.godot/imported/Media_Disco_Ball.png-02db6877c03a0d5f2ecc0f87f184f2b1.ctex"]
 
 [params]
 

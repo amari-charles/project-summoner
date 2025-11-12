@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bg8kcp1abiihv"
-path="res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Clean.png-ba97c2e165b495173787c646907322db.ctex"
+path="res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Clean.png-6faf7f44a665873d09960b14e07e3489.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Dice_Decahedron_D10_Ten_Clean.png"
-dest_files=["res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Clean.png-ba97c2e165b495173787c646907322db.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Dice_Decahedron_D10_Ten_Clean.png"
+dest_files=["res://.godot/imported/Boardgames_Dice_Decahedron_D10_Ten_Clean.png-6faf7f44a665873d09960b14e07e3489.ctex"]
 
 [params]
 

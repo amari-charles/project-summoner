@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://wrxkgr08iy73"
-path="res://.godot/imported/RPG_Creature_Archetypes_Undead_Skull_Death.png-d665568cc7cd02668d33d97ab6bbe3e8.ctex"
+path="res://.godot/imported/RPG_Creature_Archetypes_Undead_Skull_Death.png-4b64a5ac91aba2b8eef244add28c7b15.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/RPG_Creature_Archetypes_Undead_Skull_Death.png"
-dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Undead_Skull_Death.png-d665568cc7cd02668d33d97ab6bbe3e8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/RPG_Creature_Archetypes_Undead_Skull_Death.png"
+dest_files=["res://.godot/imported/RPG_Creature_Archetypes_Undead_Skull_Death.png-4b64a5ac91aba2b8eef244add28c7b15.ctex"]
 
 [params]
 

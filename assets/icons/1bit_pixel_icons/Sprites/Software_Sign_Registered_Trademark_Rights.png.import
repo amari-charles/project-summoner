@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsbeqoo2g6vxi"
-path="res://.godot/imported/Software_Sign_Registered_Trademark_Rights.png-58ed02be985a1ac55d11d9fdd85b1c34.ctex"
+path="res://.godot/imported/Software_Sign_Registered_Trademark_Rights.png-2c8aec18bfe93b375708a581283988d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Sign_Registered_Trademark_Rights.png"
-dest_files=["res://.godot/imported/Software_Sign_Registered_Trademark_Rights.png-58ed02be985a1ac55d11d9fdd85b1c34.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Sign_Registered_Trademark_Rights.png"
+dest_files=["res://.godot/imported/Software_Sign_Registered_Trademark_Rights.png-2c8aec18bfe93b375708a581283988d6.ctex"]
 
 [params]
 

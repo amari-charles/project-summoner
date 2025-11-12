@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cffykkknidcg"
-path="res://.godot/imported/RPG_Skill_Strike_Attack_Sword_Slash_Cleave.png-cda69052784301c6adf9e67a78059cce.ctex"
+path="res://.godot/imported/RPG_Skill_Strike_Attack_Sword_Slash_Cleave.png-63c74f29c42cd1a82113fc7f4219637b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/RPG_Skill_Strike_Attack_Sword_Slash_Cleave.png"
-dest_files=["res://.godot/imported/RPG_Skill_Strike_Attack_Sword_Slash_Cleave.png-cda69052784301c6adf9e67a78059cce.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Skill_Strike_Attack_Sword_Slash_Cleave.png"
+dest_files=["res://.godot/imported/RPG_Skill_Strike_Attack_Sword_Slash_Cleave.png-63c74f29c42cd1a82113fc7f4219637b.ctex"]
 
 [params]
 

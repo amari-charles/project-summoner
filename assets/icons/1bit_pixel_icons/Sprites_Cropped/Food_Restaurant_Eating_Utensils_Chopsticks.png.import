@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4dadyveb8qu"
-path="res://.godot/imported/Food_Restaurant_Eating_Utensils_Chopsticks.png-cce15b1e6ba62e3939e7790d4cb8abe8.ctex"
+path="res://.godot/imported/Food_Restaurant_Eating_Utensils_Chopsticks.png-ce1514ea9bfed5d45903d786274263b4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Food_Restaurant_Eating_Utensils_Chopsticks.png"
-dest_files=["res://.godot/imported/Food_Restaurant_Eating_Utensils_Chopsticks.png-cce15b1e6ba62e3939e7790d4cb8abe8.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Food_Restaurant_Eating_Utensils_Chopsticks.png"
+dest_files=["res://.godot/imported/Food_Restaurant_Eating_Utensils_Chopsticks.png-ce1514ea9bfed5d45903d786274263b4.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://clkmhu4ac5yns"
-path="res://.godot/imported/Boardgames_Meeple_Playing_Piece_Pawn_Figure.png-f1c0590aacf80fad218005b96b6daf8d.ctex"
+path="res://.godot/imported/Boardgames_Meeple_Playing_Piece_Pawn_Figure.png-179427e800e0ab2f308c50ecea9689cc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites_Cropped/Boardgames_Meeple_Playing_Piece_Pawn_Figure.png"
-dest_files=["res://.godot/imported/Boardgames_Meeple_Playing_Piece_Pawn_Figure.png-f1c0590aacf80fad218005b96b6daf8d.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Boardgames_Meeple_Playing_Piece_Pawn_Figure.png"
+dest_files=["res://.godot/imported/Boardgames_Meeple_Playing_Piece_Pawn_Figure.png-179427e800e0ab2f308c50ecea9689cc.ctex"]
 
 [params]
 

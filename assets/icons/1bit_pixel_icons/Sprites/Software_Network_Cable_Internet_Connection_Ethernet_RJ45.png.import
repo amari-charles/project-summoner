@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqafpo4wvshof"
-path="res://.godot/imported/Software_Network_Cable_Internet_Connection_Ethernet_RJ45.png-ca6f86e3df5267d0c56961024c0d97d1.ctex"
+path="res://.godot/imported/Software_Network_Cable_Internet_Connection_Ethernet_RJ45.png-fac5b39a312392c2822340869cd77ae6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Software_Network_Cable_Internet_Connection_Ethernet_RJ45.png"
-dest_files=["res://.godot/imported/Software_Network_Cable_Internet_Connection_Ethernet_RJ45.png-ca6f86e3df5267d0c56961024c0d97d1.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Software_Network_Cable_Internet_Connection_Ethernet_RJ45.png"
+dest_files=["res://.godot/imported/Software_Network_Cable_Internet_Connection_Ethernet_RJ45.png-fac5b39a312392c2822340869cd77ae6.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ob1136u10f33"
-path="res://.godot/imported/Weather_Heat_Hot_Desert_Baking.png-03f21aecb4ae39db2465172d5305c22c.ctex"
+path="res://.godot/imported/Weather_Heat_Hot_Desert_Baking.png-1a0ed57c2fc9a1ca9f903eb28c697b04.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://1-bit_Pixel_Icons/Sprites/Weather_Heat_Hot_Desert_Baking.png"
-dest_files=["res://.godot/imported/Weather_Heat_Hot_Desert_Baking.png-03f21aecb4ae39db2465172d5305c22c.ctex"]
+source_file="res://assets/icons/1bit_pixel_icons/Sprites/Weather_Heat_Hot_Desert_Baking.png"
+dest_files=["res://.godot/imported/Weather_Heat_Hot_Desert_Baking.png-1a0ed57c2fc9a1ca9f903eb28c697b04.ctex"]
 
 [params]
 
