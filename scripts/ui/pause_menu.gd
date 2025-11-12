@@ -17,7 +17,9 @@ func _ready() -> void:
 	visible = false
 
 	# Prevent clicks from passing through overlay
-	$BackgroundOverlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	var overlay = get_node_or_null("BackgroundOverlay")
+	if overlay:
+		overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	# Connect button signals first
 	resume_button.pressed.connect(_on_resume_pressed)
@@ -25,6 +27,11 @@ func _ready() -> void:
 
 	# Find game controller (deferred to ensure it's ready)
 	call_deferred("_find_game_controller")
+
+func _exit_tree() -> void:
+	# Clean up signal connections to prevent memory leaks
+	if game_controller and game_controller.state_changed.is_connected(_on_game_state_changed):
+		game_controller.state_changed.disconnect(_on_game_state_changed)
 
 func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group("game_controller")
@@ -54,4 +61,5 @@ func _on_resume_pressed() -> void:
 func _on_quit_pressed() -> void:
 	# CRITICAL: Unpause before changing scenes
 	get_tree().paused = false
+	# TODO: Use BattleContext to track origin screen and return to correct location
 	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")

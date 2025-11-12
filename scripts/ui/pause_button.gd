@@ -16,6 +16,11 @@ func _ready() -> void:
 	# Find game controller
 	call_deferred("_find_game_controller")
 
+func _exit_tree() -> void:
+	# Clean up signal connections to prevent memory leaks
+	if game_controller and game_controller.game_ended.is_connected(_on_game_ended):
+		game_controller.game_ended.disconnect(_on_game_ended)
+
 func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group("game_controller")
 

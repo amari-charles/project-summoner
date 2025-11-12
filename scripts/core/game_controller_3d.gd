@@ -124,14 +124,9 @@ func end_game(winner: Unit3D.Team) -> void:
 	# Delegate to BattleContext for mode-specific completion handling
 	var battle_context = get_node_or_null("/root/BattleContext")
 	if battle_context and battle_context.completion_callback.is_valid():
-		print("GameController3D: Waiting 2 seconds before calling completion callback...")
-		await get_tree().create_timer(2.0, true, false, false).timeout  # Explicit process_always=true
-		print("GameController3D: Timer finished, unpausing and calling callback...")
+		await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
 		get_tree().paused = false
 		battle_context.completion_callback.call(winner as int)
-		print("GameController3D: Completion callback called")
-	else:
-		print("GameController3D: No completion callback found!")
 
 func _on_summoner_died(summoner: Summoner3D) -> void:
 	if summoner == player_summoner:
