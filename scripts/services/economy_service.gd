@@ -19,7 +19,7 @@ signal transaction_completed(delta: Dictionary)
 signal transaction_failed(reason: String)
 
 ## Repository reference (injected by autoload order)
-var _repo = null  # JsonProfileRepo instance
+var _repo: Node = null  # JsonProfileRepo instance
 
 ## =============================================================================
 ## LIFECYCLE
@@ -37,7 +37,9 @@ func _ready() -> void:
 		return
 
 	# Connect to repo signals
-	_repo.data_changed.connect(_on_repo_data_changed)
+	if _repo.has_signal("data_changed"):
+		var data_changed_signal: Signal = _repo.get("data_changed")
+		data_changed_signal.connect(_on_repo_data_changed)
 
 	print("EconomyService: Ready")
 
@@ -52,7 +54,11 @@ func _ready() -> void:
 func get_resources() -> Dictionary:
 	if _repo == null:
 		return {"gold": 0, "essence": 0, "fragments": 0}
-	return _repo.get_resources()
+	if _repo.has_method("get_resources"):
+		var result: Variant = _repo.call("get_resources")
+		if result is Dictionary:
+			return result
+	return {"gold": 0, "essence": 0, "fragments": 0}
 
 ## Get specific resource amount
 func get_gold() -> int:
@@ -141,7 +147,8 @@ func _update_resources(delta: Dictionary) -> void:
 		push_error("EconomyService: Cannot update resources, repo not initialized")
 		return
 
-	_repo.update_resources(delta)
+	if _repo.has_method("update_resources"):
+		_repo.call("update_resources", delta)
 	transaction_completed.emit(delta)
 	_emit_current_resources()
 

@@ -33,12 +33,15 @@ var completion_callback: Callable
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
 
-	var campaign = get_node_or_null("/root/Campaign")
+	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		push_error("BattleContext: Campaign service not found")
 		return
 
-	battle_config = campaign.get_battle(battle_id)
+	if campaign.has_method("get_battle"):
+		var result: Variant = campaign.call("get_battle", battle_id)
+		if result is Dictionary:
+			battle_config = result
 	biome_id = battle_config.get("biome_id", "summer_plains")
 	completion_callback = _handle_campaign_completion
 
@@ -89,7 +92,7 @@ func clear() -> void:
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
-	var campaign = get_node_or_null("/root/Campaign")
+	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		push_error("BattleContext: Campaign service not found for completion")
 		return

@@ -12,11 +12,11 @@ signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
 
 ## Dependencies
-@onready var _profile_repo = get_node("/root/ProfileRepo")
-@onready var _collection = get_node("/root/Collection")
+@onready var _profile_repo: Node = get_node("/root/ProfileRepo")
+@onready var _collection: Node = get_node("/root/Collection")
 
 ## Battle data structure
-const BattleData = {
+const BattleData: Dictionary = {
 	"id": "",
 	"name": "",
 	"description": "",
@@ -43,8 +43,9 @@ func _ready() -> void:
 	_load_progress()
 
 	# Reload progress when profile changes (e.g., on reset)
-	if _profile_repo:
-		_profile_repo.data_changed.connect(_on_profile_data_changed)
+	if _profile_repo and _profile_repo.has_signal("data_changed"):
+		var data_changed_signal: Signal = _profile_repo.get("data_changed")
+		data_changed_signal.connect(_on_profile_data_changed)
 
 func _on_profile_data_changed() -> void:
 	print("CampaignService: Profile data changed - reloading progress...")
@@ -204,7 +205,11 @@ func _load_progress() -> void:
 		push_error("CampaignService: ProfileRepository not found!")
 		return
 
-	var profile: Dictionary = _profile_repo.get_active_profile()
+	var profile: Dictionary = {}
+	if _profile_repo.has_method("get_active_profile"):
+		var result: Variant = _profile_repo.call("get_active_profile")
+		if result is Dictionary:
+			profile = result
 	if profile.is_empty():
 		push_warning("CampaignService: No active profile")
 		return
@@ -212,7 +217,7 @@ func _load_progress() -> void:
 	var campaign_progress: Dictionary = profile.get("campaign_progress", {})
 	var completed_battles_raw: Array = campaign_progress.get("completed_battles", [])
 	_completed_battles.clear()
-	for battle_id in completed_battles_raw:
+	for battle_id: Variant in completed_battles_raw:
 		if battle_id is String:
 			_completed_battles.append(battle_id)
 	print("CampaignService: Loaded progress - %d battles completed" % _completed_battles.size())
@@ -221,7 +226,11 @@ func save_progress() -> void:
 	if not _profile_repo:
 		return
 
-	var profile: Dictionary = _profile_repo.get_active_profile()
+	var profile: Dictionary = {}
+	if _profile_repo.has_method("get_active_profile"):
+		var result: Variant = _profile_repo.call("get_active_profile")
+		if result is Dictionary:
+			profile = result
 	if profile.is_empty():
 		return
 
@@ -231,7 +240,8 @@ func save_progress() -> void:
 	var campaign_progress: Dictionary = profile["campaign_progress"]
 	campaign_progress["completed_battles"] = _completed_battles.duplicate()
 
-	_profile_repo.save_profile(true)  # Force immediate save
+	if _profile_repo.has_method("save_profile"):
+		_profile_repo.call("save_profile", true)  # Force immediate save
 	campaign_progress_changed.emit()
 	print("CampaignService: Saved progress - %d battles completed" % _completed_battles.size())
 
@@ -258,9 +268,11 @@ func is_battle_unlocked(battle_id: String) -> bool:
 
 	# Check if all required battles are completed
 	var requirements: Array = battle.get("unlock_requirements", [])
-	for req_id in requirements:
-		if req_id is String and not is_battle_completed(req_id):
-			return false
+	for req_id: Variant in requirements:
+		if req_id is String:
+			var req_id_str: String = req_id
+			if not is_battle_completed(req_id_str):
+				return false
 
 	return true
 
@@ -324,9 +336,10 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 	match reward_type:
 		"fixed":
 			# Grant all reward cards
-			for reward in reward_cards:
+			for reward: Variant in reward_cards:
 				if reward is Dictionary:
-					var ids: Array[String] = _grant_reward_card(reward)
+					var reward_dict: Dictionary = reward
+					var ids: Array[String] = _grant_reward_card(reward_dict)
 					granted_instance_ids.append_array(ids)
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				granted_card = reward_cards[0]  # Return first for display
@@ -364,7 +377,11 @@ func _grant_reward_card(reward: Dictionary) -> Array[String]:
 	var count: int = reward.get("count", 1)
 
 	for i: int in range(count):
-		var instance_id: String = _collection.grant_card(catalog_id, rarity)
+		var instance_id: String = ""
+		if _collection.has_method("grant_card"):
+			var result: Variant = _collection.call("grant_card", catalog_id, rarity)
+			if result is String:
+				instance_id = result
 		instance_ids.append(instance_id)
 
 	print("CampaignService: Granted %dx %s (%s)" % [count, catalog_id, rarity])
