@@ -8,6 +8,10 @@ enum Team { PLAYER, ENEMY }
 enum UnitType { MELEE, RANGED }
 enum MovementLayer { GROUND, AIR }  # For future air units
 
+## Projectile prediction constants
+const VELOCITY_STATIONARY_THRESHOLD: float = 0.01  # Units/sec squared - below this, target is considered stationary
+const MAX_PREDICTION_DISTANCE: float = 50.0  # Max distance projectile can predict ahead (prevents absurd predictions)
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -62,6 +66,9 @@ var pending_attack_target: Node3D = null  # Target for animation-driven damage
 var is_facing_left: bool = false  # Current facing direction
 var is_attacking: bool = false  # Track if currently in attack animation
 var target_lock_timer: float = 0.0  # Time remaining before re-evaluating target
+
+## Projectile prediction cache
+var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
 
 ## Visual component (base type - can be Sprite or Skeletal implementation)
 var visual_component: Character2D5Component = null
@@ -485,10 +492,12 @@ func _spawn_projectile() -> void:
 			}
 		)
 
-## Calculate intercept point for predictive targeting
-## Returns the predicted position where projectile and target will meet
+## Calculate intercept point for projectile targeting
+## Uses constant velocity assumption + 1 iteration refinement (industry standard approach)
+## NOTE: Constant velocity is acceptable because most units don't accelerate mid-flight
+##       and collision hulls are large enough to accommodate minor errors
 func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, target: Node3D) -> Vector3:
-	# Get projectile speed from ContentCatalog
+	# Get projectile speed from ContentCatalog (cached)
 	var projectile_speed = _get_projectile_speed()
 	if projectile_speed <= 0:
 		return target_pos  # Fallback to current position
@@ -501,12 +510,11 @@ func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, targe
 		target_velocity = target.velocity
 
 	# If target is stationary, no prediction needed
-	if target_velocity.length_squared() < 0.01:
+	if target_velocity.length_squared() < VELOCITY_STATIONARY_THRESHOLD:
 		return target_pos
 
-	# Calculate relative position and velocity
-	var relative_pos = target_pos - shooter_pos
-	var distance = relative_pos.length()
+	# Calculate distance for initial time-to-impact estimation
+	var distance = (target_pos - shooter_pos).length()
 
 	# Simple time-to-impact estimation
 	var time_to_impact = distance / projectile_speed
@@ -514,26 +522,42 @@ func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, targe
 	# Predict target position at impact time
 	var predicted_pos = target_pos + (target_velocity * time_to_impact)
 
-	# Iterative refinement (one iteration for better accuracy)
+	# Iterative refinement (one iteration is optimal - research shows diminishing returns after this)
 	var refined_distance = (predicted_pos - shooter_pos).length()
 	var refined_time = refined_distance / projectile_speed
 	predicted_pos = target_pos + (target_velocity * refined_time)
 
+	# Bounds validation: ensure prediction isn't absurdly far from current position
+	var prediction_offset = (predicted_pos - target_pos).length()
+	if prediction_offset > MAX_PREDICTION_DISTANCE:
+		# Clamp to max distance in the direction of movement
+		var direction = (predicted_pos - target_pos).normalized()
+		predicted_pos = target_pos + (direction * MAX_PREDICTION_DISTANCE)
+
 	return predicted_pos
 
-## Get projectile speed from ContentCatalog
+## Get projectile speed from ContentCatalog (cached for performance)
 func _get_projectile_speed() -> float:
+	# Return cached value if available
+	if cached_projectile_speed >= 0:
+		return cached_projectile_speed
+
+	# Lazy initialization: lookup once and cache
 	if projectile_id.is_empty():
+		cached_projectile_speed = 0.0
 		return 0.0
 
 	if not ContentCatalog or not ContentCatalog.projectiles.has(projectile_id):
-		return 15.0  # Default speed
+		cached_projectile_speed = 15.0  # Default speed
+		return 15.0
 
 	var proj_data = ContentCatalog.projectiles[projectile_id]
 	if proj_data and "speed" in proj_data:
+		cached_projectile_speed = proj_data.speed
 		return proj_data.speed
 
-	return 15.0  # Default speed
+	cached_projectile_speed = 15.0  # Default speed
+	return 15.0
 
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
