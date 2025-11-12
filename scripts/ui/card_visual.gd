@@ -155,8 +155,8 @@ func _apply_border_color() -> void:
 		border.add_theme_stylebox_override("panel", border_style)
 
 func _apply_gradient_background() -> void:
-	var bg_panel = get_node_or_null("BackgroundPanel")
-	if not bg_panel:
+	var gradient_rect = get_node_or_null("BackgroundPanel/GradientRect") as ColorRect
+	if not gradient_rect:
 		return
 
 	# Get element ID from card data
@@ -165,29 +165,36 @@ func _apply_gradient_background() -> void:
 	# Get gradient colors for this element
 	var gradient_colors = CardVisualHelper.get_element_gradient_colors(element_id)
 
-	# Create radial gradient texture
-	var gradient = Gradient.new()
-	gradient.set_color(0, gradient_colors[0])  # Center color (dark)
-	gradient.set_color(1, gradient_colors[1])  # Edge color (light)
+	# Load the gradient shader
+	var shader = load("res://resources/shaders/card_gradient.gdshader")
+	if not shader:
+		push_error("CardVisual: Failed to load card_gradient.gdshader")
+		return
 
-	var gradient_texture = GradientTexture2D.new()
-	gradient_texture.gradient = gradient
-	gradient_texture.fill = GradientTexture2D.FILL_RADIAL
-	gradient_texture.fill_from = Vector2(0.5, 0.5)  # Center point
-	gradient_texture.fill_to = Vector2(1.0, 0.5)    # Radius
-	gradient_texture.width = 256
-	gradient_texture.height = 256
+	# Create shader material
+	var material = ShaderMaterial.new()
+	material.shader = shader
 
-	# Use StyleBoxFlat with gradient-like appearance
-	# Since StyleBoxFlat doesn't support gradients, we'll use the darker color
-	# and rely on the overall design for depth
-	var bg_style = StyleBoxFlat.new()
-	bg_style.bg_color = gradient_colors[0]  # Use darker center color
-	bg_style.set_corner_radius_all(corner_radius - border_width)
-	bg_style.anti_aliasing = true
-	bg_style.anti_aliasing_size = 1
+	# Set shader parameters
+	material.set_shader_parameter("color_center", gradient_colors[0])  # Dark center
+	material.set_shader_parameter("color_edge", gradient_colors[1])    # Light edge
+	material.set_shader_parameter("corner_radius", float(corner_radius - border_width))
 
-	bg_panel.add_theme_stylebox_override("panel", bg_style)
+	# Calculate gradient rect size (accounting for border)
+	var card_size = custom_minimum_size if custom_minimum_size != Vector2.ZERO else Vector2(120, 160)
+	var gradient_size = card_size - Vector2(border_width * 2, border_width * 2)
+	material.set_shader_parameter("rect_size", gradient_size)
+
+	# Apply material to ColorRect
+	gradient_rect.material = material
+
+	# Make BackgroundPanel transparent so gradient shows through
+	var bg_panel = get_node_or_null("BackgroundPanel") as Panel
+	if bg_panel:
+		var clear_style = StyleBoxFlat.new()
+		clear_style.bg_color = Color.TRANSPARENT
+		clear_style.set_corner_radius_all(corner_radius - border_width)
+		bg_panel.add_theme_stylebox_override("panel", clear_style)
 
 func _apply_shine_effect() -> void:
 	var border = get_node_or_null("BorderPanel")
