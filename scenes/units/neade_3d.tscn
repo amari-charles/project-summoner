@@ -32,3 +32,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 skeletal_scene = ExtResource("2_neade_visual")
 scale_factor = Vector2(0.08, 0.08)
 position_offset = Vector2(300, 200)
+character_height_pixels = 4100.0
+hp_bar_offset_x = -0.2

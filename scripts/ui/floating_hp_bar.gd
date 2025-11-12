@@ -4,6 +4,9 @@ class_name FloatingHPBar
 ## 3D floating health bar that follows a unit
 ## Managed by HPBarManager for pooling
 
+## Default height for units without visual components (bases, etc.)
+const BASE_HP_BAR_HEIGHT: float = 3.2
+
 ## Visual settings
 @export var bar_width: float = 0.8  ## Width in world units (smaller for units)
 @export var bar_height: float = 0.08  ## Height in world units
@@ -25,6 +28,7 @@ var max_hp: float = 100.0
 var is_pooled: bool = false
 var fade_timer: float = 0.0
 var is_visible: bool = true
+var cached_offset_x: float = 0.0  ## Cached horizontal offset (calculated once, not every frame)
 
 ## Visual components
 var hp_bar_sprite: Sprite3D = null
@@ -45,8 +49,8 @@ func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
 		return
 
-	# Follow target unit
-	var target_pos = target_unit.global_position + Vector3(0, offset_y, 0)
+	# Follow target unit with cached offsets
+	var target_pos = target_unit.global_position + Vector3(cached_offset_x, offset_y, 0)
 	global_position = target_pos
 
 	# Sprite3D handles billboarding automatically via billboard mode, no manual look_at needed!
@@ -123,8 +127,9 @@ func set_target(unit: Node3D) -> void:
 
 	target_unit = unit
 
-	# Calculate dynamic offset based on visual component height
-	offset_y = _calculate_bar_offset()
+	# Defer offset calculation to next frame to ensure visual component is ready
+	# (Visual component's _ready() might not be called yet when unit is first created)
+	call_deferred("_deferred_calculate_offset")
 
 	# Find camera now that we're in the scene tree
 	if not camera:
@@ -138,6 +143,21 @@ func set_target(unit: Node3D) -> void:
 	# Update HP immediately
 	if target_unit and "current_hp" in target_unit and "max_hp" in target_unit:
 		update_hp(target_unit.current_hp, target_unit.max_hp)
+
+## Deferred calculation of offset (called after visual component is ready)
+func _deferred_calculate_offset() -> void:
+	# Safety check: unit might have been destroyed before deferred call
+	if not is_instance_valid(target_unit):
+		return
+
+	# Calculate vertical offset
+	offset_y = _calculate_bar_offset()
+
+	# Cache horizontal offset (doesn't change per frame)
+	cached_offset_x = 0.0
+	var visual = target_unit.get_node_or_null("Visual")
+	if visual and visual.has_method("get_hp_bar_offset_x"):
+		cached_offset_x = visual.get_hp_bar_offset_x()
 
 ## Update health bar display
 func update_hp(current: float, maximum: float) -> void:
@@ -216,6 +236,7 @@ func reset() -> void:
 	fade_timer = 0.0
 	is_visible = true
 	visible = true
+	cached_offset_x = 0.0
 
 	# Reset sprite properties
 	if hp_bar_sprite:
@@ -227,19 +248,20 @@ func reset() -> void:
 
 ## Calculate HP bar offset dynamically based on visual component height
 func _calculate_bar_offset() -> float:
-	if not target_unit:
-		return 3.2  # Fallback
+	assert(target_unit != null, "HPBar: target_unit is null")
 
 	var visual = target_unit.get_node_or_null("Visual")
 	if not visual:
-		return 3.2  # Fallback if no visual component
+		# Base units don't have Visual components, use default
+		return BASE_HP_BAR_HEIGHT
 
 	# Query sprite height from visual component
 	if visual.has_method("get_sprite_height"):
 		var sprite_height = visual.get_sprite_height()
 		return sprite_height * 1.1
 
-	return 3.2  # Fallback
+	# Visual component doesn't support height calculation, use default
+	return BASE_HP_BAR_HEIGHT
 
 ## Signal handler for unit HP changes
 func _on_hp_changed(new_hp: float, new_max_hp: float) -> void:
