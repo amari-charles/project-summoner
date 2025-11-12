@@ -690,17 +690,6 @@ func _update_animation(anim_name: String) -> void:
 	if not visual_component:
 		return
 
-	# Check if animation exists, use fallback if not
-	var animation_to_play = anim_name
-	if not visual_component.has_animation(anim_name):
-		# Fallback for missing animations
-		match anim_name:
-			"hurt":
-				animation_to_play = "idle"  # Use idle if hurt animation missing
-			_:
-				push_warning("Unit %s missing animation: %s, using idle" % [name, anim_name])
-				animation_to_play = "idle"
-
 	var current_anim = visual_component.get_current_animation()
 
 	# Don't interrupt important animations (attack, hurt, death)
@@ -709,8 +698,9 @@ func _update_animation(anim_name: String) -> void:
 		if visual_component.is_playing() and anim_name not in ["attack", "hurt", "death"]:
 			return  # Don't interrupt with idle/walk while animation is playing
 
-	if current_anim != animation_to_play:
-		visual_component.play_animation(animation_to_play)
+	if current_anim != anim_name:
+		# SpriteCharacter2D5Component.play_animation() handles missing animations with fallback to "idle"
+		visual_component.play_animation(anim_name)
 
 ## Get the world position where projectiles should spawn from
 func get_projectile_spawn_position() -> Vector3:
