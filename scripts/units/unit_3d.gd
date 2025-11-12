@@ -6,12 +6,19 @@ class_name Unit3D
 
 enum Team { PLAYER, ENEMY }
 enum UnitType { MELEE, RANGED }
-enum MovementLayer { GROUND, AIR }  # For future air units
+enum MovementLayer { GROUND, AIR }
+enum TargetLayer { GROUND_ONLY, AIR_ONLY, BOTH }  # What layers this unit can target
 
 ## Projectile prediction constants
 const VELOCITY_STATIONARY_THRESHOLD: float = 0.01  # Squared velocity magnitude (units²/sec²) - below this, target is considered stationary
 const MAX_PREDICTION_DISTANCE: float = 50.0  # Max distance projectile can predict ahead (prevents absurd predictions)
 const MIN_PROJECTILE_SPEED: float = 1.0  # Minimum projectile speed to prevent division-by-near-zero
+
+## Flying unit constants
+const MIN_FLIGHT_ALTITUDE: float = 0.5  ## Minimum altitude for flying units
+const MAX_FLIGHT_ALTITUDE: float = 10.0  ## Maximum altitude for flying units (affects shadow scaling)
+const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 60% of original size (1.0 - 0.4)
+const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
 
 ## Core stats
 @export var max_hp: float = 100.0
@@ -33,6 +40,9 @@ var active_modifiers: Dictionary = {}
 ## Unit classification
 @export var unit_type: UnitType = UnitType.MELEE
 @export var movement_layer: MovementLayer = MovementLayer.GROUND
+@export var can_target: TargetLayer = TargetLayer.BOTH  ## What layers this unit can attack
+@export var flight_altitude: float = 2.5  ## Visual height for flying units (AIR layer only)
+@export var invert_facing: bool = false  ## Invert default facing logic (for sprites that face right instead of left)
 
 ## Attack range (per-axis for melee, ignored for ranged)
 @export var attack_range: float = 2.0              # X-axis (left-right) / base range for ranged
@@ -105,6 +115,31 @@ func _ready() -> void:
 	_setup_visuals()
 	_setup_shadow()
 
+	# Set physics position and adjust visuals for flying units
+	if movement_layer == MovementLayer.AIR:
+		# Validate and clamp altitude to valid range
+		flight_altitude = clamp(flight_altitude, MIN_FLIGHT_ALTITUDE, MAX_FLIGHT_ALTITUDE)
+
+		# Set physics body position for proper collision at altitude
+		position.y = flight_altitude
+
+		# Visual component stays at relative position 0 (already elevated via parent)
+		if visual_component:
+			visual_component.position.y = 0
+
+		# Adjust shadow for altitude (smaller and more transparent at higher altitudes)
+		if shadow_component:
+			var altitude_factor = flight_altitude / MAX_FLIGHT_ALTITUDE  # Normalize altitude
+			altitude_factor = clamp(altitude_factor, 0.0, 1.0)
+
+			# Scale shadow down with altitude
+			var size_scale = 1.0 - (altitude_factor * SHADOW_SIZE_REDUCTION_FACTOR)
+			shadow_component.set_shadow_radius(shadow_size * size_scale)
+
+			# Fade shadow opacity with altitude
+			var opacity_scale = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
+			shadow_component.set_shadow_opacity(shadow_opacity * opacity_scale)
+
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
 
@@ -115,7 +150,9 @@ func _setup_visuals() -> void:
 		# Initialize facing direction based on team
 		is_facing_left = (team == Team.ENEMY)
 		# Sprites face LEFT by default, so flip PLAYER units to face right
-		if team == Team.PLAYER and visual_component.has_method("set_flip_h"):
+		# (invert_facing reverses this for sprites that naturally face right)
+		var should_flip = (team == Team.PLAYER) != invert_facing
+		if should_flip and visual_component.has_method("set_flip_h"):
 			visual_component.set_flip_h(true)
 		# Play idle animation
 		if visual_component.has_method("play_animation"):
@@ -144,7 +181,9 @@ func _setup_visuals() -> void:
 			# Initialize facing direction based on team
 			is_facing_left = (team == Team.ENEMY)
 			# Sprites face LEFT by default, so flip PLAYER units to face right
-			if team == Team.PLAYER:
+			# (invert_facing reverses this for sprites that naturally face right)
+			var should_flip = (team == Team.PLAYER) != invert_facing
+			if should_flip:
 				visual_component.set_flip_h(true)
 			visual_component.play_animation("idle", true)
 
@@ -290,6 +329,10 @@ func _physics_process(delta: float) -> void:
 	if not is_alive:
 		return
 
+	# Flying units stay at constant altitude (disable gravity)
+	if movement_layer == MovementLayer.AIR:
+		velocity.y = 0.0  # No vertical movement
+
 	attack_cooldown = max(attack_cooldown - delta, 0.0)
 	target_lock_timer = max(target_lock_timer - delta, 0.0)
 
@@ -339,6 +382,10 @@ func _acquire_target() -> Node3D:
 
 	for target in targets:
 		if not (target is Unit3D and target.is_alive):
+			continue
+
+		# Skip targets we cannot attack based on layer restrictions
+		if not _can_attack_layer(target):
 			continue
 
 		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
@@ -393,9 +440,28 @@ func _move_towards_target(delta: float) -> void:
 	velocity = direction * move_speed
 	move_and_slide()
 
+## Check if we can attack this target's layer
+func _can_attack_layer(target: Node3D) -> bool:
+	if not target is Unit3D:
+		return true  # Can attack non-units (bases, structures)
+
+	var target_layer = (target as Unit3D).movement_layer
+
+	# Apply layer-based targeting restrictions
+	match can_target:
+		TargetLayer.GROUND_ONLY:
+			return target_layer == MovementLayer.GROUND
+		TargetLayer.AIR_ONLY:
+			return target_layer == MovementLayer.AIR
+		TargetLayer.BOTH:
+			return true
+		_:
+			return true  # Fallback for any unexpected values
+
 ## Check if target is within attack range
 ## TODO: Alternative approach - weighted/ellipse distance for smooth falloff
 ## Currently using box-shaped range (per-axis checking) for melee
+## NOTE: Layer compatibility is already checked in _acquire_target()
 func _is_in_attack_range(target: Node3D) -> bool:
 	if not target:
 		return false
@@ -411,8 +477,17 @@ func _is_in_attack_range(target: Node3D) -> bool:
 	# This prevents attacking across lanes or at different heights
 	if abs(delta.x) > attack_range:  # Left-right
 		return false
-	if abs(delta.y) > attack_range_vertical:  # Height tolerance
-		return false
+
+	# Check Y-axis (height) only for ground vs ground combat
+	# Flying units ignore height differences when attacking
+	var target_is_unit = target is Unit3D
+	var target_is_flying = target_is_unit and (target as Unit3D).movement_layer == MovementLayer.AIR
+	var is_flying = movement_layer == MovementLayer.AIR
+
+	if not is_flying and not target_is_flying:  # Both on ground
+		if abs(delta.y) > attack_range_vertical:  # Height tolerance
+			return false
+
 	if abs(delta.z) > attack_range_depth:  # Lane/depth
 		return false
 
@@ -624,6 +699,7 @@ func _update_animation(anim_name: String) -> void:
 			return  # Don't interrupt with idle/walk while animation is playing
 
 	if current_anim != anim_name:
+		# SpriteCharacter2D5Component.play_animation() handles missing animations with fallback to "idle"
 		visual_component.play_animation(anim_name)
 
 ## Get the world position where projectiles should spawn from
