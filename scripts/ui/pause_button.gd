@@ -21,6 +21,13 @@ func _find_game_controller() -> void:
 
 	if not game_controller:
 		push_error("PauseButton: Could not find GameController3D")
+		return
+
+	# Hide button when game ends
+	game_controller.game_ended.connect(_on_game_ended)
+
+func _on_game_ended(_winner) -> void:
+	visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	# ESC key handling (works even when paused because PROCESS_MODE_ALWAYS)
@@ -35,6 +42,7 @@ func _toggle_pause() -> void:
 	if not game_controller:
 		return
 
+	# Only allow pausing during active gameplay (not during setup or game over)
 	if game_controller.current_state == GameController3D.GameState.PLAYING:
 		game_controller.pause_game()
 	elif game_controller.current_state == GameController3D.GameState.PAUSED:

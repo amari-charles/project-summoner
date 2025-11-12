@@ -16,6 +16,9 @@ func _ready() -> void:
 	# Start hidden (also set in scene, but enforce here)
 	visible = false
 
+	# Prevent clicks from passing through overlay
+	$BackgroundOverlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
 	# Connect button signals first
 	resume_button.pressed.connect(_on_resume_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)

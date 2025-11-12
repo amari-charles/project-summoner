@@ -233,9 +233,8 @@ func _refresh_collection() -> void:
 			var widget = CardWidgetScene.instantiate()
 			collection_grid.add_child(widget)
 
-			# Set card data (individual instance, no count badge)
+			# Set card data
 			widget.set_card(card_data, catalog_data)
-			widget.set_count(1, false)  # Don't show count badge
 			widget.set_draggable(true)  # Enable drag from collection
 
 			# Connect click to add to deck, hold to show details
@@ -276,9 +275,8 @@ func _refresh_deck_display() -> void:
 		var widget = CardWidgetScene.instantiate()
 		deck_grid.add_child(widget)
 
-		# Set card data (individual instance, no count badge)
+		# Set card data
 		widget.set_card(card_data, catalog_data)
-		widget.set_count(1, false)  # Don't show count badge
 		widget.set_draggable(false)  # No drag within deck
 
 		# Connect click to remove, hold to show details (pass specific instance ID)

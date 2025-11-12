@@ -195,9 +195,8 @@ func _refresh_grid() -> void:
 			var widget = CardWidgetScene.instantiate()
 			card_grid.add_child(widget)
 
-			# Set card data (individual instance, no count badge)
+			# Set card data
 			widget.set_card(card_data, catalog_data)
-			widget.set_count(1, false)  # Don't show count badge
 			widget.set_draggable(false)
 
 			# Connect selection (pass instance ID, not catalog ID)
