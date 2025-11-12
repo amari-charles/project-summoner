@@ -9,6 +9,11 @@ const CARD_HEIGHT = 160
 const CARD_SPACING = 10
 const CARD_VISUAL_SCENE = preload("res://scenes/ui/card_visual.tscn")
 
+# Glow effect constants
+const GLOW_BRIGHTNESS_ACTIVE = 0.4  # Lightening amount for active/hovered card glow
+const GLOW_BRIGHTNESS_IDLE = 0.2    # Lightening amount for idle card glow
+const PULSE_BRIGHTNESS_OFFSET = 0.2 # Lightening/darkening amount for pulse animation
+
 ## Inner class for draggable card displays
 class CardDisplay extends Control:
 	var card: Card
@@ -35,11 +40,6 @@ class CardDisplay extends Control:
 	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
 	const HOVER_SCALE = 1.2     # Scale multiplier when hovered
 	const HOVER_DURATION = 0.25 # Seconds for hover transition
-
-	# Glow effect constants
-	const GLOW_BRIGHTNESS_ACTIVE = 0.4  # Lightening amount for active/hovered card glow
-	const GLOW_BRIGHTNESS_IDLE = 0.2    # Lightening amount for idle card glow
-	const PULSE_BRIGHTNESS_OFFSET = 0.2 # Lightening/darkening amount for pulse animation
 
 	# Draw animation constants
 	const DRAW_ANIMATION_DURATION = 0.4
@@ -358,7 +358,7 @@ class CardDisplay extends Control:
 		if not border_panel:
 			return
 
-		var glow_color = element_color.lightened(GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(GLOW_BRIGHTNESS_IDLE)
+		var glow_color = element_color.lightened(HandUI.GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(HandUI.GLOW_BRIGHTNESS_IDLE)
 
 		# Apply glow via border style
 		var border_style = StyleBoxFlat.new()

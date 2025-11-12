@@ -178,12 +178,14 @@ func _apply_gradient_background() -> void:
 	gradient_texture.width = 256
 	gradient_texture.height = 256
 
-	# Create style box with gradient texture
-	var bg_style = StyleBoxTexture.new()
-	bg_style.texture = gradient_texture
-	bg_style.set_texture_margin_all(0)
+	# Use StyleBoxFlat with gradient-like appearance
+	# Since StyleBoxFlat doesn't support gradients, we'll use the darker color
+	# and rely on the overall design for depth
+	var bg_style = StyleBoxFlat.new()
+	bg_style.bg_color = gradient_colors[0]  # Use darker center color
 	bg_style.set_corner_radius_all(corner_radius - border_width)
-	bg_style.set_expand_margin_all(0)
+	bg_style.anti_aliasing = true
+	bg_style.anti_aliasing_size = 1
 
 	bg_panel.add_theme_stylebox_override("panel", bg_style)
 
