@@ -40,7 +40,8 @@ func _load_effect_library() -> void:
 			var file_path = vfx_dir + file_name
 			var resource = load(file_path)
 			if resource is VFXDefinition:
-				var vfx_def = resource as VFXDefinition
+				# Type narrow to VFXDefinition for safe property access
+				var vfx_def: VFXDefinition = resource
 				if not vfx_def.effect_id.is_empty():
 					effect_library[vfx_def.effect_id] = vfx_def
 				else:
@@ -52,7 +53,12 @@ func _load_effect_library() -> void:
 ## Pre-instantiate pooled effects
 func _init_pools() -> void:
 	for effect_id in effect_library.keys():
-		var vfx_def = effect_library[effect_id] as VFXDefinition
+		var vfx_def_variant: Variant = effect_library[effect_id]
+		if not vfx_def_variant is VFXDefinition:
+			continue
+
+		# Type narrow to VFXDefinition for safe property access
+		var vfx_def: VFXDefinition = vfx_def_variant
 
 		if vfx_def.pooled and vfx_def.effect_scene:
 			effect_pools[effect_id] = []
@@ -60,7 +66,11 @@ func _init_pools() -> void:
 
 			# Pre-instantiate pool
 			for i in range(vfx_def.pool_size):
-				var instance = vfx_def.effect_scene.instantiate() as VFXInstance
+				var instance_node: Node = vfx_def.effect_scene.instantiate()
+				if not instance_node is VFXInstance:
+					continue
+
+				var instance: VFXInstance = instance_node
 				if instance:
 					instance.is_pooled = true
 					instance.reset()
@@ -77,7 +87,13 @@ func play_effect(effect_id: String, position: Vector3, data: Dictionary = {}) ->
 		push_error("VFXManager: Effect '%s' not found in library" % effect_id)
 		return null
 
-	var vfx_def = effect_library[effect_id] as VFXDefinition
+	var vfx_def_variant: Variant = effect_library[effect_id]
+	if not vfx_def_variant is VFXDefinition:
+		push_error("VFXManager: Effect '%s' is not a VFXDefinition" % effect_id)
+		return null
+
+	# Type narrow to VFXDefinition for safe property access
+	var vfx_def: VFXDefinition = vfx_def_variant
 	var instance: VFXInstance = null
 
 	# Get from pool or instantiate
@@ -85,7 +101,9 @@ func play_effect(effect_id: String, position: Vector3, data: Dictionary = {}) ->
 		instance = _get_from_pool(effect_id)
 	else:
 		if vfx_def.effect_scene:
-			instance = vfx_def.effect_scene.instantiate() as VFXInstance
+			var instance_node: Node = vfx_def.effect_scene.instantiate()
+			if instance_node is VFXInstance:
+				instance = instance_node
 
 	if not instance:
 		push_error("VFXManager: Failed to create instance of '%s'" % effect_id)
@@ -146,11 +164,18 @@ func _get_from_pool(effect_id: String) -> VFXInstance:
 		return instance
 
 	# Pool exhausted, instantiate new
-	var vfx_def = effect_library[effect_id] as VFXDefinition
+	var vfx_def_variant: Variant = effect_library[effect_id]
+	if not vfx_def_variant is VFXDefinition:
+		return null
+
+	# Type narrow to VFXDefinition for safe property access
+	var vfx_def: VFXDefinition = vfx_def_variant
 	if vfx_def.effect_scene:
-		var instance = vfx_def.effect_scene.instantiate() as VFXInstance
-		instance.is_pooled = true
-		return instance
+		var instance_node: Node = vfx_def.effect_scene.instantiate()
+		if instance_node is VFXInstance:
+			var instance: VFXInstance = instance_node
+			instance.is_pooled = true
+			return instance
 
 	return null
 

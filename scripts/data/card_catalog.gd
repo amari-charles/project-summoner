@@ -320,10 +320,13 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 	}
 
 	# Validate size parameter
-	var template: Variant = size_templates.get(size)
-	if not template:
+	var template_variant: Variant = size_templates.get(size)
+	if not template_variant:
 		push_error("CardCatalog: Invalid slime size '%s' for color '%s'. Must be small/medium/large" % [size, color])
 		return
+
+	# Type narrow to Dictionary for safe property access
+	var template: Dictionary = template_variant
 
 	var catalog_id: String = "slime_%s" % color
 
@@ -437,7 +440,8 @@ func create_card_resource(catalog_id: String) -> Resource:
 		return null
 
 	# Create Card instance from preloaded script
-	var card: Resource = CardScript.new()
+	# Type narrow to Card for safe property access
+	var card: Card = CardScript.new()
 
 	# Set basic properties
 	card.catalog_id = catalog_id

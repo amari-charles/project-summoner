@@ -51,11 +51,14 @@ func _apply_biome_from_context() -> void:
 
 	# Load biome resource
 	var biome_path = "res://resources/biomes/%s.tres" % biome_id
-	var biome = load(biome_path) as BiomeConfig
+	var loaded_biome: Resource = load(biome_path)
 
-	if not biome:
+	if not loaded_biome or not loaded_biome is BiomeConfig:
 		push_error("BaseBattlefield3D: Failed to load biome: %s" % biome_path)
 		return
+
+	# Type narrow to BiomeConfig for safe property access
+	var biome: BiomeConfig = loaded_biome
 
 	# Apply biome to battlefield
 	biome.apply_to_battlefield(self)

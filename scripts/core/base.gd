@@ -86,12 +86,15 @@ func _setup_visuals() -> void:
 func _update_hp_bar() -> void:
 	# Look for HP bar in Visual node
 	if has_node("Visual/HPBar/HPBarFill"):
-		var hp_bar: ColorRect = get_node("Visual/HPBar/HPBarFill") as ColorRect
-		var hp_percent: float = current_hp / max_hp
-		hp_bar.size.x = 50.0 * hp_percent  # 50px is the full width
+		var hp_bar_node: Node = get_node("Visual/HPBar/HPBarFill")
+		# Type narrow to ColorRect for safe property access
+		if hp_bar_node is ColorRect:
+			var hp_bar: ColorRect = hp_bar_node
+			var hp_percent: float = current_hp / max_hp
+			hp_bar.size.x = 50.0 * hp_percent  # 50px is the full width
 
-		# Use GameColorPalette colors for health
-		hp_bar.color = GameColorPalette.get_health_color(hp_percent)
+			# Use GameColorPalette colors for health
+			hp_bar.color = GameColorPalette.get_health_color(hp_percent)
 
 ## Update HP bar every frame
 func _process(_delta: float) -> void:

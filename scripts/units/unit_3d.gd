@@ -221,19 +221,23 @@ func _calculate_shadow_size_from_collision() -> float:
 	# Find CollisionShape3D child
 	for child in get_children():
 		if child is CollisionShape3D:
-			var collision_shape: CollisionShape3D = child as CollisionShape3D
+			# Type narrow to CollisionShape3D for safe property access
+			var collision_shape: CollisionShape3D = child
 			var shape: Shape3D = collision_shape.shape
 			if shape is CapsuleShape3D:
-				var capsule: CapsuleShape3D = shape as CapsuleShape3D
+				# Type narrow to CapsuleShape3D for safe property access
+				var capsule: CapsuleShape3D = shape
 				# Shadow diameter = radius * 2.5 (a bit larger than capsule base)
 				return capsule.radius * 2.5
 			elif shape is BoxShape3D:
-				var box: BoxShape3D = shape as BoxShape3D
+				# Type narrow to BoxShape3D for safe property access
+				var box: BoxShape3D = shape
 				# Use average of X and Z extents
 				var extents: Vector3 = box.size
 				return (extents.x + extents.z) / 2.0 * 1.2
 			elif shape is SphereShape3D:
-				var sphere: SphereShape3D = shape as SphereShape3D
+				# Type narrow to SphereShape3D for safe property access
+				var sphere: SphereShape3D = shape
 				return sphere.radius * 2.2
 
 	# Fallback to default
@@ -367,8 +371,11 @@ func _is_valid_target(target: Node3D) -> bool:
 	## Check if a target is still valid (alive and in range)
 	if not target or not is_instance_valid(target):
 		return false
-	if target is Unit3D and not (target as Unit3D).is_alive:
-		return false
+	if target is Unit3D:
+		# Type narrow to Unit3D for safe property access
+		var unit_target: Unit3D = target
+		if not unit_target.is_alive:
+			return false
 	# Check if target is within aggro range (use distance_squared for performance)
 	var delta: Vector3 = target.global_position - global_position
 	var distance_sq: float = delta.x * delta.x + delta.z * delta.z
@@ -385,10 +392,14 @@ func _acquire_target() -> Node3D:
 	var aggro_radius_sq: float = aggro_radius * aggro_radius
 
 	for target in targets:
-		if not (target is Unit3D and (target as Unit3D).is_alive):
+		if not target is Unit3D:
 			continue
 
-		var target_unit: Unit3D = target as Unit3D
+		# Type narrow to Unit3D for safe property access
+		var target_unit: Unit3D = target
+
+		if not target_unit.is_alive:
+			continue
 
 		# Skip targets we cannot attack based on layer restrictions
 		if not _can_attack_layer(target_unit):
@@ -451,7 +462,9 @@ func _can_attack_layer(target: Node3D) -> bool:
 	if not target is Unit3D:
 		return true  # Can attack non-units (bases, structures)
 
-	var target_layer: MovementLayer = (target as Unit3D).movement_layer
+	# Type narrow to Unit3D for safe property access
+	var target_unit: Unit3D = target
+	var target_layer: MovementLayer = target_unit.movement_layer
 
 	# Apply layer-based targeting restrictions
 	match can_target:
@@ -487,7 +500,11 @@ func _is_in_attack_range(target: Node3D) -> bool:
 	# Check Y-axis (height) only for ground vs ground combat
 	# Flying units ignore height differences when attacking
 	var target_is_unit: bool = target is Unit3D
-	var target_is_flying: bool = target_is_unit and (target as Unit3D).movement_layer == MovementLayer.AIR
+	var target_is_flying: bool = false
+	if target_is_unit:
+		# Type narrow to Unit3D for safe property access
+		var target_unit: Unit3D = target
+		target_is_flying = target_unit.movement_layer == MovementLayer.AIR
 	var is_flying: bool = movement_layer == MovementLayer.AIR
 
 	if not is_flying and not target_is_flying:  # Both on ground
@@ -595,7 +612,9 @@ func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, targe
 	# Get target velocity
 	var target_velocity: Vector3 = Vector3.ZERO
 	if target is CharacterBody3D:
-		target_velocity = (target as CharacterBody3D).velocity
+		# Type narrow to CharacterBody3D for safe property access
+		var character_body: CharacterBody3D = target
+		target_velocity = character_body.velocity
 	elif "velocity" in target:
 		target_velocity = target.velocity
 

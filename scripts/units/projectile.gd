@@ -39,11 +39,13 @@ func _on_area_entered(area: Area2D) -> void:
 func _on_body_entered(body: Node) -> void:
 	# Check if we hit an enemy
 	if body is Unit:
-		var unit = body as Unit
+		# Type narrow to Unit for safe property access
+		var unit: Unit = body
 		if unit.team != team and unit.is_alive:
 			_hit_target()
 	elif body is Base:
-		var base = body as Base
+		# Type narrow to Base for safe property access
+		var base: Base = body
 		if base.team != team and base.is_alive:
 			_hit_target()
 

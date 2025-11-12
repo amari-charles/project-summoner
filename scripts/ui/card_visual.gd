@@ -197,7 +197,8 @@ func _apply_shine_effect() -> void:
 	# Add subtle highlight to top-left of border for glossy effect
 	var border_style: StyleBox = border.get_theme_stylebox("panel")
 	if border_style is StyleBoxFlat:
-		var flat_style: StyleBoxFlat = border_style as StyleBoxFlat
+		# Type narrow to StyleBoxFlat for safe property access
+		var flat_style: StyleBoxFlat = border_style
 		# Add a subtle border on the top-left for shine effect
 		flat_style.border_color = element_color.lightened(0.4)
 		flat_style.set_border_width(SIDE_TOP, 1)

@@ -143,10 +143,13 @@ class CardDisplay extends Control:
 			return
 
 		# Load shader
-		var shader = load("res://shaders/ui/card_perspective_3d.gdshader") as Shader
-		if not shader:
+		var loaded_shader: Resource = load("res://shaders/ui/card_perspective_3d.gdshader")
+		if not loaded_shader or not loaded_shader is Shader:
 			push_error("Failed to load card 3D shader")
 			return
+
+		# Type narrow to Shader for safe property access
+		var shader: Shader = loaded_shader
 
 		# Create shader material
 		shader_material = ShaderMaterial.new()

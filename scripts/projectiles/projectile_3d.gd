@@ -78,7 +78,8 @@ func _duplicate_materials() -> void:
 
 	for child in visual_instance.get_children():
 		if child is MeshInstance3D:
-			var mesh_child: MeshInstance3D = child as MeshInstance3D
+			# Type narrow to MeshInstance3D for safe property access
+			var mesh_child: MeshInstance3D = child
 			var material: Material = mesh_child.get_surface_override_material(0)
 			if material:
 				# Create a unique material instance for this projectile
@@ -358,7 +359,8 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 	var hit_count: int = 0
 	for enemy in enemies:
 		if enemy is Unit3D:
-			var unit_enemy: Unit3D = enemy as Unit3D
+			# Type narrow to Unit3D for safe property access
+			var unit_enemy: Unit3D = enemy
 			var distance: float = unit_enemy.global_position.distance_to(center)
 			# var alive_str = "alive" if unit_enemy.is_alive else "DEAD"
 			# print("    %s: distance=%.1f, %s, team=%d" % [unit_enemy.name, distance, alive_str, unit_enemy.team])
@@ -424,13 +426,15 @@ func _expire_with_fade() -> void:
 	# Fade all materials on visual children
 	for child in visual_instance.get_children():
 		if child is MeshInstance3D:
-			var mesh_child: MeshInstance3D = child as MeshInstance3D
+			# Type narrow to MeshInstance3D for safe property access
+			var mesh_child: MeshInstance3D = child
 			var material: Material = mesh_child.get_surface_override_material(0)
 			if material and material is StandardMaterial3D:
 				# Tween alpha from current to 0
 				fade_tween.tween_property(material, "albedo_color:a", 0.0, fade_duration)
 		elif child is GPUParticles3D:
-			var particles_child: GPUParticles3D = child as GPUParticles3D
+			# Type narrow to GPUParticles3D for safe property access
+			var particles_child: GPUParticles3D = child
 			# Stop emitting new particles
 			particles_child.emitting = false
 
@@ -481,11 +485,13 @@ func reset() -> void:
 		visual_instance.visible = false  # Keep hidden until next spawn
 		for child in visual_instance.get_children():
 			if child is MeshInstance3D:
-				var mesh_child: MeshInstance3D = child as MeshInstance3D
+				# Type narrow to MeshInstance3D for safe property access
+				var mesh_child: MeshInstance3D = child
 				mesh_child.visible = true
 				var material: Material = mesh_child.get_surface_override_material(0)
 				if material and material is StandardMaterial3D:
-					var std_material: StandardMaterial3D = material as StandardMaterial3D
+					# Type narrow to StandardMaterial3D for safe property access
+					var std_material: StandardMaterial3D = material
 					# Reset transparency mode
 					std_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 					var color: Color = std_material.albedo_color

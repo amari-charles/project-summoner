@@ -37,7 +37,9 @@ static func from_dict(data: Dictionary) -> VFXDefinition:
 	# Scene path needs to be loaded
 	var scene_path = data.get("effect_scene_path", "")
 	if not scene_path.is_empty():
-		vfx.effect_scene = load(scene_path) as PackedScene
+		var loaded_scene: Resource = load(scene_path)
+		if loaded_scene is PackedScene:
+			vfx.effect_scene = loaded_scene
 
 	vfx.duration = data.get("duration", 1.0)
 	vfx.pooled = data.get("pooled", true)
@@ -46,7 +48,9 @@ static func from_dict(data: Dictionary) -> VFXDefinition:
 	# Audio
 	var sound_path = data.get("sound_path", "")
 	if not sound_path.is_empty():
-		vfx.play_sound = load(sound_path) as AudioStream
+		var loaded_sound: Resource = load(sound_path)
+		if loaded_sound is AudioStream:
+			vfx.play_sound = loaded_sound
 	vfx.sound_volume = data.get("sound_volume", 0.0)
 
 	vfx.camera_shake = data.get("camera_shake", 0.0)

@@ -109,14 +109,22 @@ static func _create_card_from_catalog(catalog_id: String) -> Card:
 
 	# Load the Card resource (.tres file)
 	var card_path = "res://resources/cards/%s_card.tres" % catalog_id
-	var card_template = load(card_path) as Card
+	var loaded_card: Resource = load(card_path)
 
-	if not card_template:
+	if not loaded_card or not loaded_card is Card:
 		push_error("EnemyDeckLoader: Failed to load card resource: %s" % card_path)
 		return null
 
+	# Type narrow to Card for safe property access
+	var card_template: Card = loaded_card
+
 	# Duplicate to avoid mutating shared resource
-	var card = card_template.duplicate() as Card
+	var duplicated_card: Resource = card_template.duplicate()
+	if not duplicated_card is Card:
+		push_error("EnemyDeckLoader: Card duplicate failed for: %s" % catalog_id)
+		return null
+
+	var card: Card = duplicated_card
 	card.catalog_id = catalog_id
 
 	return card
