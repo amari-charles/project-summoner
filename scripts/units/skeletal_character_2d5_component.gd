@@ -177,6 +177,9 @@ func get_sprite_height() -> float:
 
 	# Use manual height if specified
 	if character_height_pixels > 0:
+		# Validate reasonable bounds
+		if character_height_pixels < 100 or character_height_pixels > 10000:
+			push_warning("SkeletalChar2D5: character_height_pixels = %f is outside reasonable range (100-10000). Check configuration." % character_height_pixels)
 		return character_height_pixels * scale_factor.y * sprite_3d.pixel_size
 
 	# Auto-calculate from skeletal bounds

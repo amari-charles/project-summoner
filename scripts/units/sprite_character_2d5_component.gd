@@ -108,6 +108,7 @@ func get_sprite_height() -> float:
 		return (texture_size.y - feet_offset_pixels) * sprite_3d.pixel_size
 
 	# Fallback: use viewport height (sprite frames not loaded yet)
+	push_warning("SpriteChar2D5: No texture data available, using viewport fallback. Check sprite_frames configuration.")
 	return viewport.size.y * sprite_3d.pixel_size
 
 ## Get the horizontal offset for HP bar positioning
