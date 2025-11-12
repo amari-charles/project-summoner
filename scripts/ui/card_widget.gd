@@ -11,11 +11,15 @@ class_name CardWidget
 signal card_clicked(card_data: Dictionary)
 signal card_held(card_data: Dictionary)
 
+## Layout configuration (editable in scene editor)
+@export_group("Layout")
+@export var border_width: int = 3
+@export var corner_radius: int = 6
+@export var element_badge_radius: int = 9
+
 ## Card data
 var card_data: Dictionary = {}
 var catalog_data: Dictionary = {}
-var show_count: bool = false
-var count: int = 1
 var draggable: bool = false
 
 ## Hold detection
@@ -23,18 +27,14 @@ var hold_timer: Timer = null
 const HOLD_DURATION = 0.5  # seconds
 
 ## Node references
-@onready var type_icon: Label = %TypeIcon
+@onready var type_icon: TextureRect = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
 @onready var card_name: Label = %CardName
-@onready var count_badge: Label = %CountBadge
+@onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
+@onready var element_badge: Panel = $ContentContainer/ElementBadge
 
-## Rarity colors
-const RARITY_COLORS = {
-	"common": Color(0.5, 0.5, 0.5),  # Gray
-	"rare": Color(0.2, 0.5, 1.0),    # Blue
-	"epic": Color(0.7, 0.3, 1.0),    # Purple
-	"legendary": Color(1.0, 0.8, 0.2)  # Gold
-}
+## Current element color
+var element_color: Color = Color.GRAY
 
 ## =============================================================================
 ## LIFECYCLE
@@ -51,9 +51,6 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
-	# Hide count badge by default
-	count_badge.visible = false
-
 	# Set initial theme
 	_update_theme()
 
@@ -65,12 +62,6 @@ func _ready() -> void:
 func set_card(p_card_data: Dictionary, p_catalog_data: Dictionary) -> void:
 	card_data = p_card_data
 	catalog_data = p_catalog_data
-	_update_display()
-
-## Set count and show badge
-func set_count(p_count: int, p_show: bool = true) -> void:
-	count = p_count
-	show_count = p_show
 	_update_display()
 
 ## Enable/disable drag support
@@ -86,46 +77,58 @@ func _update_display() -> void:
 		return
 
 	# Set card name
-	card_name.text = catalog_data.get("card_name", "Unknown")
+	if card_name:
+		card_name.text = catalog_data.get("card_name", "Unknown")
 
 	# Set mana cost
-	mana_cost.text = str(catalog_data.get("mana_cost", 0))
+	if mana_cost:
+		mana_cost.text = str(catalog_data.get("mana_cost", 0))
 
-	# Set type icon (S=Summon, P=sPell)
-	var card_type = catalog_data.get("card_type", 0)
-	type_icon.text = "S" if card_type == 0 else "P"
+	# Set type icon based on card type and unit type
+	if type_icon:
+		var icon_path = CardVisualHelper.get_card_type_icon_path(catalog_data)
+		if not icon_path.is_empty():
+			type_icon.texture = load(icon_path)
+			type_icon.visible = true
+		else:
+			type_icon.visible = false
 
-	# Set count badge
-	if show_count and count > 1:
-		count_badge.text = "x%d" % count
-		count_badge.visible = true
-	else:
-		count_badge.visible = false
-
-	# Update rarity border
+	# Update element border
 	_update_theme()
 
 func _update_theme() -> void:
 	if catalog_data.is_empty():
 		return
 
-	var rarity = catalog_data.get("rarity", "common")
-	var border_color = RARITY_COLORS.get(rarity, RARITY_COLORS["common"])
+	# Get element-based color
+	element_color = CardVisualHelper.get_card_element_color(catalog_data)
 
-	# Create theme with border color
+	# Create theme with element-colored border
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.25)  # Dark background
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.border_color = border_color
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 4
+	style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
+	style.border_width_left = border_width
+	style.border_width_top = border_width
+	style.border_width_right = border_width
+	style.border_width_bottom = border_width
+	style.border_color = element_color
+	style.set_corner_radius_all(corner_radius)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = 1
 
 	add_theme_stylebox_override("panel", style)
+
+	# Color the art placeholder with darkened element color
+	if art_placeholder:
+		art_placeholder.color = element_color.darkened(0.4)
+
+	# Style the element badge with element color
+	if element_badge:
+		var badge_style = StyleBoxFlat.new()
+		badge_style.bg_color = element_color
+		badge_style.set_corner_radius_all(element_badge_radius)
+		badge_style.anti_aliasing = true
+		badge_style.anti_aliasing_size = 1
+		element_badge.add_theme_stylebox_override("panel", badge_style)
 
 ## =============================================================================
 ## MOUSE INTERACTION

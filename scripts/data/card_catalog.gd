@@ -39,6 +39,7 @@ func _init_catalog() -> void:
 
 		# Card properties
 		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",  # For icon display
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
@@ -61,7 +62,12 @@ func _init_catalog() -> void:
 
 		# Metadata
 		"tags": ["melee", "starter", "durable"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.EARTH
+		}
 	}
 
 	# Archer - Ranged attacker
@@ -72,6 +78,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		"card_type": 0,  # SUMMON
+		"unit_type": "ranged",  # For icon display
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
@@ -89,7 +96,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["ranged", "starter", "agile"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.WIND
+		}
 	}
 
 	# Fireball - AOE damage spell
@@ -129,6 +141,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		"card_type": 0,  # SUMMON (structure is just a unit with 0 move_speed)
+		"unit_type": "structure",  # For icon display
 		"mana_cost": 2,
 		"cooldown": 2.0,
 
@@ -146,7 +159,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["structure", "defensive", "barrier"],
-		"unlock_condition": "default"
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.EARTH
+		}
 	}
 
 	# Training Dummy - Tutorial target
@@ -157,6 +175,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		"card_type": 0,  # SUMMON
+		"unit_type": "structure",  # For icon display
 		"mana_cost": 1,
 		"cooldown": 2.0,
 
@@ -174,7 +193,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["tutorial", "training", "target"],
-		"unlock_condition": "enemy_only"
+		"unlock_condition": "enemy_only",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.NEUTRAL
+		}
 	}
 
 	# Neade - Heavy lancer
@@ -185,6 +209,7 @@ func _init_catalog() -> void:
 		"rarity": "rare",
 
 		"card_type": 0,  # SUMMON
+		"unit_type": "melee",  # For icon display
 		"mana_cost": 4,
 		"cooldown": 2.0,
 
@@ -202,7 +227,12 @@ func _init_catalog() -> void:
 
 		"card_icon_path": "",
 		"tags": ["melee", "lancer", "heavy", "rare"],
-		"unlock_condition": "locked"
+		"unlock_condition": "locked",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.LIGHTNING
+		}
 	}
 
 ## =============================================================================
@@ -211,11 +241,13 @@ func _init_catalog() -> void:
 
 ## Get card definition by catalog_id
 ## Returns Dictionary or empty {} if not found
+## Returns a shallow duplicate to protect catalog data from external modifications
 func get_card(catalog_id: String) -> Dictionary:
 	if not _catalog.has(catalog_id):
 		push_warning("CardCatalog: Card '%s' not found in catalog" % catalog_id)
 		return {}
-	return _catalog[catalog_id]
+	# Return shallow duplicate - preserves Element object references while preventing corruption
+	return _catalog[catalog_id].duplicate(false)
 
 ## Check if a card exists in the catalog
 func has_card(catalog_id: String) -> bool:

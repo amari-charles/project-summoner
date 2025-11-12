@@ -64,6 +64,9 @@ class Element:
 ## ELEMENT CONSTANTS (Objects)
 ## =============================================================================
 
+## Neutral - No elemental affinity
+var NEUTRAL: Element
+
 ## Core Elements - Foundation of the world and main campaign pillars
 var FIRE: Element
 var WATER: Element
@@ -94,6 +97,14 @@ var _element_lookup: Dictionary = {}
 ## =============================================================================
 
 func _ready():
+	# Create neutral element (no affinity)
+	NEUTRAL = Element.new(
+		"neutral",
+		"Neutral",
+		"No elemental affinity",
+		"neutral"
+	)
+
 	# Create base elements first (no origin)
 	FIRE = Element.new(
 		"fire",
@@ -220,6 +231,8 @@ func _ready():
 ## Get all element objects
 func get_all_elements() -> Array:
 	return [
+		# Neutral
+		NEUTRAL,
 		# Core
 		FIRE, WATER, WIND, EARTH,
 		# Outer

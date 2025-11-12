@@ -7,6 +7,12 @@ class_name HandUI
 const CARD_WIDTH = 120
 const CARD_HEIGHT = 160
 const CARD_SPACING = 10
+const CARD_VISUAL_SCENE = preload("res://scenes/ui/card_visual.tscn")
+
+# Glow effect constants
+const GLOW_BRIGHTNESS_ACTIVE = 0.4  # Lightening amount for active/hovered card glow
+const GLOW_BRIGHTNESS_IDLE = 0.2    # Lightening amount for idle card glow
+const PULSE_BRIGHTNESS_OFFSET = 0.2 # Lightening/darkening amount for pulse animation
 
 ## Inner class for draggable card displays
 class CardDisplay extends Control:
@@ -65,6 +71,15 @@ class CardDisplay extends Control:
 		viewport_container = get_node_or_null("ViewportContainer") as SubViewportContainer
 		if viewport_container:
 			_setup_3d_shader()
+
+	## Get CardVisual component from this card display
+	func _get_card_visual() -> CardVisual:
+		var viewport = get_node_or_null("ViewportContainer/Viewport")
+		if viewport:
+			for child in viewport.get_children():
+				if child is CardVisual:
+					return child as CardVisual
+		return null
 
 	func _process(delta: float) -> void:
 		# Track position changes for velocity-based rotation (Balatro-style)
@@ -240,12 +255,12 @@ class CardDisplay extends Control:
 		was_recently_hovered = true
 
 		# Stop any pulse glow on the card border
-		var border = get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
-		if border and border.has_meta("pulse_tween"):
-			var pulse_tween = border.get_meta("pulse_tween") as Tween
+		var card_visual = _get_card_visual()
+		if card_visual and card_visual.has_meta("pulse_tween"):
+			var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
 			if pulse_tween and pulse_tween.is_valid():
 				pulse_tween.kill()
-			border.remove_meta("pulse_tween")
+			card_visual.remove_meta("pulse_tween")
 
 		# Create elastic hover tween
 		if hover_tween and hover_tween.is_valid():
@@ -311,19 +326,24 @@ class CardDisplay extends Control:
 		# Reset z_index
 		hover_tween.finished.connect(func(): z_index = 0)
 
-		# Remove hover glow - set to static non-pulsing color
-		var border = get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
-		if border:
-			var glow_tween = create_tween()
-			glow_tween.set_trans(Tween.TRANS_SINE)
-			glow_tween.set_ease(Tween.EASE_OUT)
-			# Set to gray, not back to pulse
-			glow_tween.tween_property(border, "color", Color.GRAY, 0.15)
+		# Remove hover glow - return border to base element color
+		var card_visual = _get_card_visual()
+		if card_visual:
+			var element_color = card_visual.get_element_color()
+			var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+			if border_panel:
+				# Reset border to base element color via style
+				var border_style = StyleBoxFlat.new()
+				border_style.bg_color = element_color
+				border_style.set_corner_radius_all(card_visual.corner_radius)
+				border_style.anti_aliasing = true
+				border_style.anti_aliasing_size = 1
+				border_panel.add_theme_stylebox_override("panel", border_style)
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var border = get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
-		if not border:
+		var card_visual = _get_card_visual()
+		if not card_visual:
 			return
 
 		# Only glow if card is affordable
@@ -332,16 +352,21 @@ class CardDisplay extends Control:
 		if not can_afford:
 			return
 
-		var glow_tween = create_tween()
-		glow_tween.set_trans(Tween.TRANS_SINE)
-		glow_tween.set_ease(Tween.EASE_OUT)
+		# Get element color for this card
+		var element_color = card_visual.get_element_color()
+		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		if not border_panel:
+			return
 
-		if active:
-			# Bright gold glow on hover
-			glow_tween.tween_property(border, "color", Color(1.0, 0.9, 0.3, 1.0), 0.15)
-		else:
-			# Return to subtle glow or gray
-			glow_tween.tween_property(border, "color", Color(0.8, 0.7, 0.2, 0.6), 0.15)
+		var glow_color = element_color.lightened(HandUI.GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(HandUI.GLOW_BRIGHTNESS_IDLE)
+
+		# Apply glow via border style
+		var border_style = StyleBoxFlat.new()
+		border_style.bg_color = glow_color
+		border_style.set_corner_radius_all(card_visual.corner_radius)
+		border_style.anti_aliasing = true
+		border_style.anti_aliasing_size = 1
+		border_panel.add_theme_stylebox_override("panel", border_style)
 
 var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
@@ -414,88 +439,43 @@ func _create_card_display(card: Card, index: int) -> Control:
 	# Create SubViewport to render card content
 	var viewport = SubViewport.new()
 	viewport.name = "Viewport"
-	viewport.size = Vector2i(CARD_WIDTH + 4, CARD_HEIGHT + 4)
+	viewport.size = Vector2i(CARD_WIDTH, CARD_HEIGHT)
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
 	# Create SubViewportContainer to display and apply shader
 	var viewport_container = SubViewportContainer.new()
 	viewport_container.name = "ViewportContainer"
-	viewport_container.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	viewport_container.position = Vector2(-2, -2)
+	viewport_container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	viewport_container.stretch = true
 	viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.add_child(viewport_container)
 	viewport_container.add_child(viewport)
 
-	# Build card content inside viewport (this gets rendered to texture)
-	var card_content = Control.new()
-	card_content.name = "CardContent"
-	card_content.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	viewport.add_child(card_content)
+	# Instantiate CardVisual scene (preloaded at class level)
+	var card_visual = CARD_VISUAL_SCENE.instantiate() as CardVisual
+	if not card_visual:
+		push_error("HandUI: Failed to instantiate CardVisual")
+		return container
 
-	# Border
-	var border = ColorRect.new()
-	border.name = "Border"
-	border.size = Vector2(CARD_WIDTH + 4, CARD_HEIGHT + 4)
-	border.position = Vector2.ZERO
-	border.color = Color.GRAY
-	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(border)
+	# Configure card visual for in-hand display
+	card_visual.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	card_visual.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	card_visual.border_width = 3
+	card_visual.corner_radius = 8
+	card_visual.cost_font_size = 20
+	card_visual.name_font_size = 14
+	card_visual.show_description = false
+	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Background
-	var bg = ColorRect.new()
-	bg.name = "Background"
-	bg.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	bg.position = Vector2(2, 2)
-	bg.color = Color(0.2, 0.2, 0.3, 0.9)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(bg)
+	# Get catalog data to pass to CardVisual
+	var catalog_data = CardCatalog.get_card(card.catalog_id)
 
-	# Card name label
-	var name_label = Label.new()
-	name_label.text = card.card_name
-	name_label.position = Vector2(12, 12)
-	name_label.add_theme_font_size_override("font_size", 16)
-	name_label.custom_minimum_size = Vector2(CARD_WIDTH - 20, 0)
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(name_label)
+	# Set card data
+	card_visual.set_card_data(catalog_data)
 
-	# Card type
-	var type_label = Label.new()
-	type_label.text = "SUMMON" if card.card_type == Card.CardType.SUMMON else "SPELL"
-	type_label.position = Vector2(12, 42)
-	type_label.add_theme_font_size_override("font_size", 12)
-	type_label.add_theme_color_override("font_color", Color.YELLOW)
-	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(type_label)
-
-	# Unit icon (colored rect for now)
-	if card.card_type == Card.CardType.SUMMON and card.unit_scene:
-		var icon = ColorRect.new()
-		icon.size = Vector2(80, 60)
-		icon.position = Vector2(22, 62)
-		icon.color = Color(0.3, 0.5, 0.8)
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_content.add_child(icon)
-
-	# Mana cost
-	var cost_bg = ColorRect.new()
-	cost_bg.size = Vector2(30, 30)
-	cost_bg.position = Vector2(CARD_WIDTH - 38, CARD_HEIGHT - 38)
-	cost_bg.color = Color(0.1, 0.1, 0.5, 0.9)
-	cost_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(cost_bg)
-
-	var cost_label = Label.new()
-	cost_label.name = "CostLabel"
-	cost_label.text = str(int(card.mana_cost))
-	cost_label.position = Vector2(CARD_WIDTH - 33, CARD_HEIGHT - 36)
-	cost_label.add_theme_font_size_override("font_size", 20)
-	cost_label.add_theme_color_override("font_color", Color.CYAN)
-	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_content.add_child(cost_label)
+	# Add to viewport
+	viewport.add_child(card_visual)
 
 	return container
 
@@ -516,15 +496,25 @@ func _update_selection_visual() -> void:
 		if not display:
 			continue
 
-		var border = display.get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
+		var card_visual = display._get_card_visual()
+		if not card_visual:
+			continue
+
+		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		if not border_panel:
+			continue
+
+		var border_style = StyleBoxFlat.new()
+		border_style.set_corner_radius_all(card_visual.corner_radius)
+		border_style.anti_aliasing = true
+		border_style.anti_aliasing_size = 1
 
 		if i == selected_card_index:
-			if border:
-				border.color = Color.GOLD
+			border_style.bg_color = Color.GOLD
 		else:
-			if border:
-				# Will be updated by _update_availability for playable cards
-				border.color = Color.GRAY
+			border_style.bg_color = card_visual.get_element_color()
+
+		border_panel.add_theme_stylebox_override("panel", border_style)
 
 func _update_availability() -> void:
 	if not summoner:
@@ -539,65 +529,108 @@ func _update_availability() -> void:
 		if not display:
 			continue
 
-		var border = display.get_node_or_null("ViewportContainer/Viewport/CardContent/Border") as ColorRect
-		var bg = display.get_node_or_null("ViewportContainer/Viewport/CardContent/Background") as ColorRect
+		var card_visual = display._get_card_visual()
+		if not card_visual:
+			continue
+
+		var bg_panel = card_visual.get_node_or_null("BackgroundPanel") as Panel
+		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
 
 		# Check affordability
 		var can_afford = summoner.mana >= card.mana_cost
 
 		if can_afford:
-			# Playable: bright background
-			if bg:
-				bg.color = Color(0.2, 0.2, 0.3, 0.9)
-				bg.modulate = Color.WHITE
+			# Playable: normal background
+			if bg_panel:
+				var bg_style = StyleBoxFlat.new()
+				bg_style.bg_color = GameColorPalette.UI_BG_DARK
+				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
+				bg_style.anti_aliasing = true
+				bg_style.anti_aliasing_size = 1
+				bg_panel.add_theme_stylebox_override("panel", bg_style)
+				bg_panel.modulate = Color.WHITE
 
 			# Start subtle glow pulse on border (unless selected, hovered, or was recently hovered)
-			if border and not display.is_hovered and not display.was_recently_hovered and i != selected_card_index:
-				_create_glow_pulse(border)
+			if card_visual and not display.is_hovered and not display.was_recently_hovered and i != selected_card_index:
+				_create_glow_pulse(card_visual)
 		else:
-			# Unaffordable: gray out
-			if bg:
-				bg.color = Color(0.15, 0.15, 0.2, 0.9)
-				bg.modulate = Color(0.6, 0.6, 0.6)
+			# Unaffordable: gray out background
+			if bg_panel:
+				var bg_style = StyleBoxFlat.new()
+				bg_style.bg_color = GameColorPalette.UI_BG_DARK
+				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
+				bg_style.anti_aliasing = true
+				bg_style.anti_aliasing_size = 1
+				bg_panel.add_theme_stylebox_override("panel", bg_style)
+				bg_panel.modulate = Color(0.5, 0.5, 0.5)
 
 			# Remove glow and kill pulse tween
-			if border and i != selected_card_index:
+			if card_visual and i != selected_card_index:
 				# Kill pulse tween if it exists
-				if border.has_meta("pulse_tween"):
-					var pulse_tween = border.get_meta("pulse_tween") as Tween
+				if card_visual.has_meta("pulse_tween"):
+					var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
 					if pulse_tween and pulse_tween.is_valid():
 						pulse_tween.kill()
-					border.remove_meta("pulse_tween")
-				border.color = Color.GRAY
+					card_visual.remove_meta("pulse_tween")
+
+				# Dim the element color for unaffordable cards
+				if border_panel:
+					var border_style = StyleBoxFlat.new()
+					border_style.bg_color = card_visual.get_element_color().darkened(0.5)
+					border_style.set_corner_radius_all(card_visual.corner_radius)
+					border_style.anti_aliasing = true
+					border_style.anti_aliasing_size = 1
+					border_panel.add_theme_stylebox_override("panel", border_style)
 
 ## Create pulsing glow effect for playable cards
-func _create_glow_pulse(border: ColorRect) -> void:
+func _create_glow_pulse(card_visual: CardVisual) -> void:
+	if not card_visual:
+		return
+
 	# Don't create if already pulsing
-	if border.has_meta("pulse_tween"):
-		var existing = border.get_meta("pulse_tween") as Tween
+	if card_visual.has_meta("pulse_tween"):
+		var existing = card_visual.get_meta("pulse_tween") as Tween
 		if existing and existing.is_valid():
 			return  # Already pulsing
 
-	# Kill any existing tween on this border first
-	if border.has_meta("pulse_tween"):
-		var old_tween = border.get_meta("pulse_tween") as Tween
+	# Kill any existing tween first
+	if card_visual.has_meta("pulse_tween"):
+		var old_tween = card_visual.get_meta("pulse_tween") as Tween
 		if old_tween and old_tween.is_valid():
 			old_tween.kill()
 
-	# Store tween reference on the border node
-	var pulse_tween = border.create_tween()
-	border.set_meta("pulse_tween", pulse_tween)
+	var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+	if not border_panel:
+		return
+
+	# Store tween reference on the card_visual node
+	var pulse_tween = create_tween()
+	card_visual.set_meta("pulse_tween", pulse_tween)
 
 	pulse_tween.set_loops()
 	pulse_tween.set_trans(Tween.TRANS_SINE)
 	pulse_tween.set_ease(Tween.EASE_IN_OUT)
 
-	# Pulse between dim and bright gold
-	var dim_gold = Color(0.8, 0.7, 0.2, 0.4)
-	var bright_gold = Color(1.0, 0.9, 0.3, 0.8)
+	# Get element color for this card
+	var element_color = card_visual.get_element_color()
 
-	pulse_tween.tween_property(border, "color", bright_gold, 1.0)
-	pulse_tween.tween_property(border, "color", dim_gold, 1.0)
+	# Pulse between dim and bright element color
+	var dim_color = element_color.darkened(PULSE_BRIGHTNESS_OFFSET)
+	var bright_color = element_color.lightened(PULSE_BRIGHTNESS_OFFSET)
+
+	# Create a custom method to update border color via StyleBox
+	var update_border_color = func(color: Color):
+		if border_panel and is_instance_valid(border_panel) and card_visual and is_instance_valid(card_visual):
+			var style = StyleBoxFlat.new()
+			style.bg_color = color
+			style.set_corner_radius_all(card_visual.corner_radius)
+			style.anti_aliasing = true
+			style.anti_aliasing_size = 1
+			border_panel.add_theme_stylebox_override("panel", style)
+
+	# Tween by calling the method repeatedly
+	pulse_tween.tween_method(update_border_color, dim_color, bright_color, 1.0)
+	pulse_tween.tween_method(update_border_color, bright_color, dim_color, 1.0)
 
 func _on_card_played(_card: Card) -> void:
 	# Deselect after playing - no card should be selected
