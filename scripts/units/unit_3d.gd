@@ -470,6 +470,9 @@ func _spawn_projectile() -> void:
 		var spawn_pos = get_projectile_spawn_position()
 		var target_pos = current_target.get_projectile_target_position() if current_target.has_method("get_projectile_target_position") else current_target.global_position
 
+		# Apply predictive targeting for moving targets
+		target_pos = _calculate_intercept_point(spawn_pos, target_pos, current_target)
+
 		ProjectileManager.spawn_projectile(
 			projectile_id,
 			self,
@@ -481,6 +484,56 @@ func _spawn_projectile() -> void:
 				"target_position": target_pos
 			}
 		)
+
+## Calculate intercept point for predictive targeting
+## Returns the predicted position where projectile and target will meet
+func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, target: Node3D) -> Vector3:
+	# Get projectile speed from ContentCatalog
+	var projectile_speed = _get_projectile_speed()
+	if projectile_speed <= 0:
+		return target_pos  # Fallback to current position
+
+	# Get target velocity
+	var target_velocity = Vector3.ZERO
+	if target is CharacterBody3D:
+		target_velocity = target.velocity
+	elif "velocity" in target:
+		target_velocity = target.velocity
+
+	# If target is stationary, no prediction needed
+	if target_velocity.length_squared() < 0.01:
+		return target_pos
+
+	# Calculate relative position and velocity
+	var relative_pos = target_pos - shooter_pos
+	var distance = relative_pos.length()
+
+	# Simple time-to-impact estimation
+	var time_to_impact = distance / projectile_speed
+
+	# Predict target position at impact time
+	var predicted_pos = target_pos + (target_velocity * time_to_impact)
+
+	# Iterative refinement (one iteration for better accuracy)
+	var refined_distance = (predicted_pos - shooter_pos).length()
+	var refined_time = refined_distance / projectile_speed
+	predicted_pos = target_pos + (target_velocity * refined_time)
+
+	return predicted_pos
+
+## Get projectile speed from ContentCatalog
+func _get_projectile_speed() -> float:
+	if projectile_id.is_empty():
+		return 0.0
+
+	if not ContentCatalog or not ContentCatalog.projectiles.has(projectile_id):
+		return 15.0  # Default speed
+
+	var proj_data = ContentCatalog.projectiles[projectile_id]
+	if proj_data and "speed" in proj_data:
+		return proj_data.speed
+
+	return 15.0  # Default speed
 
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
