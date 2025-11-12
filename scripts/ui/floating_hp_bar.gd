@@ -45,8 +45,13 @@ func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
 		return
 
-	# Follow target unit
-	var target_pos = target_unit.global_position + Vector3(0, offset_y, 0)
+	# Follow target unit with horizontal and vertical offsets
+	var offset_x = 0.0
+	var visual = target_unit.get_node_or_null("Visual")
+	if visual and visual.has_method("get_hp_bar_offset_x"):
+		offset_x = visual.get_hp_bar_offset_x()
+
+	var target_pos = target_unit.global_position + Vector3(offset_x, offset_y, 0)
 	global_position = target_pos
 
 	# Sprite3D handles billboarding automatically via billboard mode, no manual look_at needed!
@@ -123,8 +128,9 @@ func set_target(unit: Node3D) -> void:
 
 	target_unit = unit
 
-	# Calculate dynamic offset based on visual component height
-	offset_y = _calculate_bar_offset()
+	# Defer offset calculation to next frame to ensure visual component is ready
+	# (Visual component's _ready() might not be called yet when unit is first created)
+	call_deferred("_deferred_calculate_offset")
 
 	# Find camera now that we're in the scene tree
 	if not camera:
@@ -138,6 +144,10 @@ func set_target(unit: Node3D) -> void:
 	# Update HP immediately
 	if target_unit and "current_hp" in target_unit and "max_hp" in target_unit:
 		update_hp(target_unit.current_hp, target_unit.max_hp)
+
+## Deferred calculation of offset (called after visual component is ready)
+func _deferred_calculate_offset() -> void:
+	offset_y = _calculate_bar_offset()
 
 ## Update health bar display
 func update_hp(current: float, maximum: float) -> void:
@@ -227,19 +237,20 @@ func reset() -> void:
 
 ## Calculate HP bar offset dynamically based on visual component height
 func _calculate_bar_offset() -> float:
-	if not target_unit:
-		return 3.2  # Fallback
+	assert(target_unit != null, "HPBar: target_unit is null")
 
 	var visual = target_unit.get_node_or_null("Visual")
 	if not visual:
-		return 3.2  # Fallback if no visual component
+		# Base units don't have Visual components, use fallback
+		return 3.2
 
 	# Query sprite height from visual component
 	if visual.has_method("get_sprite_height"):
 		var sprite_height = visual.get_sprite_height()
 		return sprite_height * 1.1
 
-	return 3.2  # Fallback
+	# Visual component doesn't support height calculation, use fallback
+	return 3.2
 
 ## Signal handler for unit HP changes
 func _on_hp_changed(new_hp: float, new_max_hp: float) -> void:

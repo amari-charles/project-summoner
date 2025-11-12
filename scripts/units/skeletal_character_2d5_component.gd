@@ -7,6 +7,8 @@ class_name SkeletalCharacter2D5Component
 @export var skeletal_scene: PackedScene = null  ## The skeletal animation scene to instance
 @export var scale_factor: Vector2 = Vector2(0.08, 0.08)  ## Scale of the skeletal model
 @export var position_offset: Vector2 = Vector2(300, 200)  ## Position offset in viewport
+@export var character_height_pixels: float = 0.0  ## Manual character height in texture space (0 = auto-calculate from bounds)
+@export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
@@ -170,11 +172,23 @@ func _setup_sprite_alignment() -> void:
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
 func get_sprite_height() -> float:
-	if not viewport or not sprite_3d:
-		return 3.0  # Fallback
+	assert(viewport != null, "SkeletalChar2D5: viewport is null")
+	assert(sprite_3d != null, "SkeletalChar2D5: sprite_3d is null")
 
-	# Total height = viewport pixels × pixel_size
-	return viewport.size.y * sprite_3d.pixel_size
+	# Use manual height if specified
+	if character_height_pixels > 0:
+		return character_height_pixels * scale_factor.y * sprite_3d.pixel_size
+
+	# Auto-calculate from skeletal bounds
+	assert(skeletal_instance != null, "SkeletalChar2D5: skeletal_instance is null and no manual height set")
+	var bounds = _get_skeletal_bounds()
+	assert(bounds.size.y > 0, "SkeletalChar2D5: calculated bounds height is 0 and no manual height set")
+
+	return bounds.size.y * scale_factor.y * sprite_3d.pixel_size
+
+## Get the horizontal offset for HP bar positioning
+func get_hp_bar_offset_x() -> float:
+	return hp_bar_offset_x
 
 ## Calculate bounding rectangle of the skeletal model
 ## Returns Rect2 with local bounds (before scaling), or empty rect if unavailable

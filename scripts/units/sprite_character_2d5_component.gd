@@ -8,6 +8,7 @@ class_name SpriteCharacter2D5Component
 ## Use this when sprite artwork has empty space below the character's feet
 ## Example: 100px texture with feet at 70px from top = 30px offset
 @export var feet_offset_pixels: float = 0.0
+@export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
@@ -96,11 +97,22 @@ func _setup_sprite_alignment() -> void:
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
 func get_sprite_height() -> float:
-	if not viewport or not sprite_3d:
-		return 3.0  # Fallback
+	assert(viewport != null, "SpriteChar2D5: viewport is null")
+	assert(sprite_3d != null, "SpriteChar2D5: sprite_3d is null")
 
-	# Total height = viewport pixels × pixel_size
+	# Get actual texture size to calculate real character height
+	var texture_size = _get_current_frame_size()
+
+	if texture_size.y > 0:
+		# Actual sprite height in world units, accounting for feet offset
+		return (texture_size.y - feet_offset_pixels) * sprite_3d.pixel_size
+
+	# Fallback: use viewport height (sprite frames not loaded yet)
 	return viewport.size.y * sprite_3d.pixel_size
+
+## Get the horizontal offset for HP bar positioning
+func get_hp_bar_offset_x() -> float:
+	return hp_bar_offset_x
 
 ## Get the size of the current sprite frame texture
 ## Returns Vector2.ZERO if no texture available
