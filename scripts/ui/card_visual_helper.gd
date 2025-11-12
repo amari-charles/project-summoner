@@ -66,6 +66,53 @@ static func get_element_glow_color(element_id: String) -> Color:
 	# Lighten the color and increase saturation slightly
 	return base_color.lightened(0.3)
 
+## Get gradient color pair for element background
+## Returns [dark_color, light_color] for radial gradient (center to edge)
+static func get_element_gradient_colors(element_id: String) -> Array[Color]:
+	match element_id.to_lower():
+		# Neutral
+		"neutral":
+			return [Color("#3a3a3a"), Color("#6a6a6a")]  # Dark gray → Mid gray
+
+		# Core elements
+		"fire":
+			return [GameColorPalette.FIRE_DARK, GameColorPalette.FIRE_PRIMARY]  # Deep ember → Bright orange
+		"water":
+			return [GameColorPalette.WATER_DARK, GameColorPalette.WATER_PRIMARY]  # Deep ocean → Bright blue
+		"wind":
+			return [Color("#e0e0e0"), Color("#ffffff")]  # Light gray → White
+		"earth":
+			return [GameColorPalette.EARTH_PRIMARY, GameColorPalette.EARTH_SECONDARY]  # Dark brown → Tan
+
+		# Outer elements
+		"lightning":
+			return [GameColorPalette.STORM_DARK, GameColorPalette.STORM_PRIMARY]  # Deep violet → Bright purple
+		"shadow":
+			return [Color("#1a0520"), Color("#4a0e4e")]  # Very dark purple → Deep purple-black
+		"poison":
+			return [Color("#2d4a2d"), Color("#8fbc8f")]  # Dark green → Toxic green
+		"life":
+			return [GameColorPalette.NATURE_DARK, GameColorPalette.NATURE_PRIMARY]  # Deep forest → Bright green
+		"death":
+			return [Color("#1a1a1a"), Color("#2f2f2f")]  # Very dark → Dark gray
+
+		# Occultist
+		"occultist":
+			return [Color("#2d0547"), Color("#6a0dad")]  # Very dark purple → Deep occult purple
+
+		# Elevated elements
+		"holy":
+			return [Color("#c49a00"), Color("#ffd700")]  # Dark gold → Divine gold
+		"ice":
+			return [Color("#6fa8b0"), Color("#b0e0e6")]  # Cool blue → Pale ice blue
+		"metal":
+			return [Color("#808080"), Color("#c0c0c0")]  # Dark silver → Metallic silver
+		"spirit":
+			return [Color("#a0a0d0"), Color("#e6e6fa")]  # Muted lavender → Ethereal lavender
+
+		_:
+			return [Color("#3a3a3a"), Color("#6a6a6a")]  # Default to neutral
+
 ## Get element color from a card's elemental affinity
 ## Handles both Card resources and Dictionary catalog data
 static func get_card_element_color(card_data) -> Color:

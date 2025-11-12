@@ -109,15 +109,11 @@ func _apply_visual_styling() -> void:
 	# Apply element-colored border
 	_apply_border_color()
 
-	# Apply dark background
-	var bg_panel = get_node_or_null("BackgroundPanel")
-	if bg_panel:
-		var bg_style = StyleBoxFlat.new()
-		bg_style.bg_color = GameColorPalette.UI_BG_DARK
-		bg_style.set_corner_radius_all(corner_radius - border_width)
-		bg_style.anti_aliasing = true
-		bg_style.anti_aliasing_size = 1
-		bg_panel.add_theme_stylebox_override("panel", bg_style)
+	# Apply element-based gradient background
+	_apply_gradient_background()
+
+	# Apply shininess overlay
+	_apply_shine_effect()
 
 	# Apply cost label font size
 	var cost_lbl = get_node_or_null("CostLabel")
@@ -158,6 +154,70 @@ func _apply_border_color() -> void:
 		border_style.anti_aliasing_size = 1
 		border.add_theme_stylebox_override("panel", border_style)
 
+func _apply_gradient_background() -> void:
+	var bg_panel = get_node_or_null("BackgroundPanel")
+	if not bg_panel:
+		return
+
+	# Get element ID from card data
+	var element_id = _get_element_id_from_card_data()
+
+	# Get gradient colors for this element
+	var gradient_colors = CardVisualHelper.get_element_gradient_colors(element_id)
+
+	# Create radial gradient texture
+	var gradient = Gradient.new()
+	gradient.set_color(0, gradient_colors[0])  # Center color (dark)
+	gradient.set_color(1, gradient_colors[1])  # Edge color (light)
+
+	var gradient_texture = GradientTexture2D.new()
+	gradient_texture.gradient = gradient
+	gradient_texture.fill = GradientTexture2D.FILL_RADIAL
+	gradient_texture.fill_from = Vector2(0.5, 0.5)  # Center point
+	gradient_texture.fill_to = Vector2(1.0, 0.5)    # Radius
+	gradient_texture.width = 256
+	gradient_texture.height = 256
+
+	# Create style box with gradient texture
+	var bg_style = StyleBoxTexture.new()
+	bg_style.texture = gradient_texture
+	bg_style.set_texture_margin_all(0)
+	bg_style.set_corner_radius_all(corner_radius - border_width)
+	bg_style.set_expand_margin_all(0)
+
+	bg_panel.add_theme_stylebox_override("panel", bg_style)
+
+func _apply_shine_effect() -> void:
+	var border = get_node_or_null("BorderPanel")
+	if not border:
+		return
+
+	# Add subtle highlight to top-left of border for glossy effect
+	var border_style = border.get_theme_stylebox("panel")
+	if border_style is StyleBoxFlat:
+		# Add a subtle border on the top-left for shine effect
+		border_style.border_color = element_color.lightened(0.4)
+		border_style.set_border_width(SIDE_TOP, 1)
+		border_style.set_border_width(SIDE_LEFT, 1)
+
+func _get_element_id_from_card_data() -> String:
+	# Extract element ID from card data
+	var catalog_dict = card_data
+
+	# Check if this is a Card resource, need to fetch from catalog
+	if card_data.has("catalog_id") and not card_data.has("categories"):
+		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+
+	# Extract element ID
+	if catalog_dict.has("categories"):
+		var categories = catalog_dict.categories
+		if categories is Dictionary and categories.has("elemental_affinity"):
+			var affinity = categories.elemental_affinity
+			if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
+				return affinity.id
+
+	return "neutral"  # Fallback
+
 func _update_cost() -> void:
 	var label = get_node_or_null("CostLabel")
 	if label and card_data.has("mana_cost"):
@@ -173,8 +233,13 @@ func _update_type_icon() -> void:
 	if icon:
 		var icon_path = CardVisualHelper.get_card_type_icon_path(card_data)
 		if not icon_path.is_empty():
-			icon.texture = load(icon_path)
-			icon.visible = true
+			var texture = load(icon_path)
+			if texture:
+				icon.texture = texture
+				icon.visible = true
+			else:
+				push_warning("CardVisual: Failed to load icon at '%s'" % icon_path)
+				icon.visible = false
 		else:
 			icon.visible = false
 

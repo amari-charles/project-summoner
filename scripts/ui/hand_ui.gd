@@ -7,6 +7,7 @@ class_name HandUI
 const CARD_WIDTH = 120
 const CARD_HEIGHT = 160
 const CARD_SPACING = 10
+const CARD_VISUAL_SCENE = preload("res://scenes/ui/card_visual.tscn")
 
 ## Inner class for draggable card displays
 class CardDisplay extends Control:
@@ -34,6 +35,11 @@ class CardDisplay extends Control:
 	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
 	const HOVER_SCALE = 1.2     # Scale multiplier when hovered
 	const HOVER_DURATION = 0.25 # Seconds for hover transition
+
+	# Glow effect constants
+	const GLOW_BRIGHTNESS_ACTIVE = 0.4  # Lightening amount for active/hovered card glow
+	const GLOW_BRIGHTNESS_IDLE = 0.2    # Lightening amount for idle card glow
+	const PULSE_BRIGHTNESS_OFFSET = 0.2 # Lightening/darkening amount for pulse animation
 
 	# Draw animation constants
 	const DRAW_ANIMATION_DURATION = 0.4
@@ -352,7 +358,7 @@ class CardDisplay extends Control:
 		if not border_panel:
 			return
 
-		var glow_color = element_color.lightened(0.4) if active else element_color.lightened(0.2)
+		var glow_color = element_color.lightened(GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(GLOW_BRIGHTNESS_IDLE)
 
 		# Apply glow via border style
 		var border_style = StyleBoxFlat.new()
@@ -446,13 +452,8 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.add_child(viewport_container)
 	viewport_container.add_child(viewport)
 
-	# Load and instantiate CardVisual scene
-	var card_visual_scene = load("res://scenes/ui/card_visual.tscn")
-	if not card_visual_scene:
-		push_error("HandUI: Failed to load card_visual.tscn")
-		return container
-
-	var card_visual = card_visual_scene.instantiate() as CardVisual
+	# Instantiate CardVisual scene (preloaded at class level)
+	var card_visual = CARD_VISUAL_SCENE.instantiate() as CardVisual
 	if not card_visual:
 		push_error("HandUI: Failed to instantiate CardVisual")
 		return container
@@ -475,9 +476,6 @@ func _create_card_display(card: Card, index: int) -> Control:
 
 	# Add to viewport
 	viewport.add_child(card_visual)
-
-	# Store reference to CardVisual for easy access
-	card_visual.set_meta("card_visual_component", card_visual)
 
 	return container
 
@@ -617,8 +615,8 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 	var element_color = card_visual.get_element_color()
 
 	# Pulse between dim and bright element color
-	var dim_color = element_color.darkened(0.2)
-	var bright_color = element_color.lightened(0.2)
+	var dim_color = element_color.darkened(PULSE_BRIGHTNESS_OFFSET)
+	var bright_color = element_color.lightened(PULSE_BRIGHTNESS_OFFSET)
 
 	# Create a custom method to update border color via StyleBox
 	var update_border_color = func(color: Color):
