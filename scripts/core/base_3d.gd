@@ -24,6 +24,8 @@ var recent_hits: float = 0.0  # Tracks recent attack pressure for dynamic feedba
 ## Visual components
 @onready var visual: Sprite3D = $Visual if has_node("Visual") else null
 var original_color: Color = Color.WHITE
+var original_visual_position: Vector3 = Vector3.ZERO  # Cache original position
+var active_feedback_tween: Tween = null  # Track tween for cleanup
 
 ## Signals
 signal base_destroyed(base: Base3D)
@@ -40,9 +42,10 @@ func _ready() -> void:
 	else:
 		add_to_group("enemy_base")
 
-	# Store original color for hit feedback
+	# Store original color and position for hit feedback
 	if visual:
 		original_color = visual.modulate
+		original_visual_position = visual.position
 
 	# Create HP bar for base (larger and higher than units)
 	HPBarManager.create_bar_for_unit(self, {
@@ -84,6 +87,16 @@ func take_damage(damage: float) -> void:
 func _destroy() -> void:
 	is_alive = false
 
+	# Kill any active feedback animations to prevent errors
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+	active_feedback_tween = null  # Clear reference
+
+	# Immediately restore visual to original state (in case tween was mid-animation)
+	if visual and is_instance_valid(visual):
+		visual.modulate = original_color
+		visual.position = original_visual_position
+
 	# Remove HP bar
 	HPBarManager.remove_bar_from_unit(self)
 
@@ -93,8 +106,12 @@ func _destroy() -> void:
 ## Play hit feedback animation (2D standard: flash + shake)
 ## Speed scales dynamically with attack intensity
 func _play_hit_feedback() -> void:
-	if not visual:
+	if not visual or not is_alive:
 		return
+
+	# Kill previous tween if still running (prevents overlapping animations)
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
 
 	# Calculate duration based on attack intensity
 	# More hits = faster animation (communicates danger level)
@@ -107,15 +124,15 @@ func _play_hit_feedback() -> void:
 	var shake_out = flash_duration * 0.35      # Shake out timing
 	var shake_return = flash_duration * 0.25   # Shake return timing
 
-	var tween = create_tween()
-	tween.set_parallel(true)  # Run flash and shake simultaneously
+	# Create and store tween reference
+	active_feedback_tween = create_tween()
+	active_feedback_tween.set_parallel(true)  # Run flash and shake simultaneously
 
 	# Flash effect (modulate property)
-	tween.tween_property(visual, "modulate", Color.WHITE, flash_to_white)
-	tween.chain().tween_property(visual, "modulate", original_color, flash_return)
+	active_feedback_tween.tween_property(visual, "modulate", Color.WHITE, flash_to_white)
+	active_feedback_tween.chain().tween_property(visual, "modulate", original_color, flash_return)
 
-	# Shake effect (position offset)
-	var original_pos = visual.position
+	# Shake effect (position offset) - use cached original position
 	var shake_offset = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
-	tween.tween_property(visual, "position", original_pos + shake_offset, shake_out)
-	tween.chain().tween_property(visual, "position", original_pos, shake_return)
+	active_feedback_tween.tween_property(visual, "position", original_visual_position + shake_offset, shake_out)
+	active_feedback_tween.chain().tween_property(visual, "position", original_visual_position, shake_return)
