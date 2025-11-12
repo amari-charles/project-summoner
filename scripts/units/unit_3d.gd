@@ -9,8 +9,9 @@ enum UnitType { MELEE, RANGED }
 enum MovementLayer { GROUND, AIR }  # For future air units
 
 ## Projectile prediction constants
-const VELOCITY_STATIONARY_THRESHOLD: float = 0.01  # Units/sec squared - below this, target is considered stationary
+const VELOCITY_STATIONARY_THRESHOLD: float = 0.01  # Squared velocity magnitude (units²/sec²) - below this, target is considered stationary
 const MAX_PREDICTION_DISTANCE: float = 50.0  # Max distance projectile can predict ahead (prevents absurd predictions)
+const MIN_PROJECTILE_SPEED: float = 1.0  # Minimum projectile speed to prevent division-by-near-zero
 
 ## Core stats
 @export var max_hp: float = 100.0
@@ -40,7 +41,10 @@ var active_modifiers: Dictionary = {}
 
 ## Ranged attack settings
 @export var is_ranged: bool = false  # DEPRECATED: Use unit_type instead
-@export var projectile_id: String = ""  # ID for ProjectileManager
+@export var projectile_id: String = "":  # ID for ProjectileManager
+	set(value):
+		projectile_id = value
+		cached_projectile_speed = -1.0  # Invalidate cache when projectile changes
 
 ## Targeting settings
 @export_group("Targeting")
@@ -531,8 +535,13 @@ func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, targe
 	var prediction_offset = (predicted_pos - target_pos).length()
 	if prediction_offset > MAX_PREDICTION_DISTANCE:
 		# Clamp to max distance in the direction of movement
-		var direction = (predicted_pos - target_pos).normalized()
-		predicted_pos = target_pos + (direction * MAX_PREDICTION_DISTANCE)
+		var direction = predicted_pos - target_pos
+		if direction.length_squared() > 0.001:  # Prevent zero-vector normalization
+			direction = direction.normalized()
+			predicted_pos = target_pos + (direction * MAX_PREDICTION_DISTANCE)
+		else:
+			# Prediction collapsed to current position (edge case), use current position
+			predicted_pos = target_pos
 
 	return predicted_pos
 
@@ -540,7 +549,7 @@ func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, targe
 func _get_projectile_speed() -> float:
 	# Return cached value if available
 	if cached_projectile_speed >= 0:
-		return cached_projectile_speed
+		return max(cached_projectile_speed, MIN_PROJECTILE_SPEED)
 
 	# Lazy initialization: lookup once and cache
 	if projectile_id.is_empty():
@@ -549,15 +558,15 @@ func _get_projectile_speed() -> float:
 
 	if not ContentCatalog or not ContentCatalog.projectiles.has(projectile_id):
 		cached_projectile_speed = 15.0  # Default speed
-		return 15.0
+		return max(15.0, MIN_PROJECTILE_SPEED)
 
 	var proj_data = ContentCatalog.projectiles[projectile_id]
 	if proj_data and "speed" in proj_data:
 		cached_projectile_speed = proj_data.speed
-		return proj_data.speed
+		return max(proj_data.speed, MIN_PROJECTILE_SPEED)
 
 	cached_projectile_speed = 15.0  # Default speed
-	return 15.0
+	return max(15.0, MIN_PROJECTILE_SPEED)
 
 func _deal_damage_to(target: Node3D) -> void:
 	# Use DamageSystem for centralized damage calculation
