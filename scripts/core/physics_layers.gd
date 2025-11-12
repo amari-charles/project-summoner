@@ -1,7 +1,6 @@
 extends Node
-class_name PhysicsLayers
 
-## Physics layer constants for 3D collision system
+## Physics layer constants for 3D collision system (autoload singleton)
 ## These correspond to the layer names configured in project.godot
 ##
 ## Usage:
