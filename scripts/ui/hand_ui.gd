@@ -22,6 +22,8 @@ class CardDisplay extends Control:
 
 	# Animation state
 	var hover_tween: Tween
+	var entrance_tween: Tween
+	var rotation_tween: Tween
 	var is_hovered: bool = false
 	var was_recently_hovered: bool = false  # Prevents pulse from restarting immediately
 	var base_position: Vector2
@@ -76,6 +78,10 @@ class CardDisplay extends Control:
 		# Kill any active tweens to prevent lambda capture errors
 		if hover_tween and hover_tween.is_valid():
 			hover_tween.kill()
+		if entrance_tween and entrance_tween.is_valid():
+			entrance_tween.kill()
+		if rotation_tween and rotation_tween.is_valid():
+			rotation_tween.kill()
 
 		# Kill pulse tween stored in card visual metadata
 		var card_visual = _get_card_visual()
@@ -194,7 +200,7 @@ class CardDisplay extends Control:
 		await get_tree().create_timer(delay).timeout
 
 		# Animate to target position and scale
-		var entrance_tween = create_tween()
+		entrance_tween = create_tween()
 		entrance_tween.set_parallel(true)
 		entrance_tween.set_trans(Tween.TRANS_ELASTIC)
 		entrance_tween.set_ease(Tween.EASE_OUT)
@@ -210,8 +216,7 @@ class CardDisplay extends Control:
 
 		# Update base_position after animation completes
 		entrance_tween.finished.connect(func():
-			if is_instance_valid(self):
-				base_position = position
+			base_position = position
 		)
 
 	## Start dragging this card
@@ -319,13 +324,13 @@ class CardDisplay extends Control:
 
 		# Reset 3D rotation smoothly
 		if shader_material:
-			var rotation_tween = create_tween()
+			rotation_tween = create_tween()
 			rotation_tween.set_parallel(true)
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
 			rotation_tween.tween_method(
 				func(val):
-					if is_instance_valid(self) and shader_material:
+					if shader_material:
 						shader_material.set_shader_parameter("rot_x_deg", val),
 				shader_material.get_shader_parameter("rot_x_deg"),
 				0.0,
@@ -333,7 +338,7 @@ class CardDisplay extends Control:
 			)
 			rotation_tween.tween_method(
 				func(val):
-					if is_instance_valid(self) and shader_material:
+					if shader_material:
 						shader_material.set_shader_parameter("rot_y_deg", val),
 				shader_material.get_shader_parameter("rot_y_deg"),
 				0.0,
@@ -342,8 +347,7 @@ class CardDisplay extends Control:
 
 		# Reset z_index
 		hover_tween.finished.connect(func():
-			if is_instance_valid(self):
-				z_index = 0
+			z_index = 0
 		)
 
 		# Remove hover glow - return border to base element color
@@ -640,7 +644,7 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 
 	# Create a custom method to update border color via StyleBox
 	var update_border_color = func(color: Color):
-		if border_panel and is_instance_valid(border_panel) and card_visual and is_instance_valid(card_visual):
+		if border_panel and card_visual:
 			var style = StyleBoxFlat.new()
 			style.bg_color = color
 			style.set_corner_radius_all(card_visual.corner_radius)

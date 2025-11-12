@@ -42,6 +42,7 @@ var hits_remaining: int = 0
 var is_pooled: bool = false
 var is_active: bool = false
 var is_fading: bool = false
+var fade_tween: Tween = null  ## Tween for fade out animation
 
 ## Visual component instance
 var visual_instance: Node3D = null
@@ -64,6 +65,11 @@ func _ready() -> void:
 
 		# Duplicate materials to avoid shared material issues when fading
 		_duplicate_materials()
+
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	if fade_tween and fade_tween.is_valid():
+		fade_tween.kill()
 
 ## Duplicate materials for this instance to avoid shared material problems
 func _duplicate_materials() -> void:
@@ -410,8 +416,8 @@ func _expire_with_fade() -> void:
 		return
 
 	# Create tween for fade animation
-	var tween = create_tween()
-	tween.set_parallel(true)
+	fade_tween = create_tween()
+	fade_tween.set_parallel(true)
 
 	# Fade all materials on visual children
 	for child in visual_instance.get_children():
@@ -419,16 +425,15 @@ func _expire_with_fade() -> void:
 			var material = child.get_surface_override_material(0)
 			if material and material is StandardMaterial3D:
 				# Tween alpha from current to 0
-				tween.tween_property(material, "albedo_color:a", 0.0, fade_duration)
+				fade_tween.tween_property(material, "albedo_color:a", 0.0, fade_duration)
 		elif child is GPUParticles3D:
 			# Stop emitting new particles
 			child.emitting = false
 
 	# When tween finishes, hide and cleanup
-	tween.finished.connect(func():
-		if is_instance_valid(self):
-			visible = false
-			_expire_immediate()
+	fade_tween.finished.connect(func():
+		visible = false
+		_expire_immediate()
 	)
 
 ## Expire projectile immediately (no animation)

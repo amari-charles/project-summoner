@@ -201,302 +201,116 @@ func _init_catalog() -> void:
 		}
 	}
 
-	# Small Green Slime - Fast swarm unit
-	_catalog["slime_green"] = {
-		"catalog_id": "slime_green",
-		"card_name": "Green Slime",
-		"description": "A small, speedy slime. Low health but quick attacks. Great for overwhelming enemies with numbers.",
-		"rarity": "common",
+	# Slime cards - Using factory pattern to reduce duplication
+	_add_slime_card("green", "small", ElementTypes.EARTH,
+		"A small, speedy slime. Low health but quick attacks. Great for overwhelming enemies with numbers.",
+		{"attack_damage": 2.0})  # Reduced for tutorial difficulty
+
+	_add_slime_card("pink", "small", ElementTypes.LIFE,
+		"A cheerful pink slime. Fast and eager to help, but fragile.")
+
+	_add_slime_card("violet", "small", ElementTypes.SHADOW,
+		"A mysterious violet slime. Quick and elusive.")
+
+	_add_slime_card("blue", "medium", ElementTypes.WATER,
+		"A well-rounded slime of medium size. Balanced stats make it reliable in any situation.")
+
+	_add_slime_card("orange", "medium", ElementTypes.FIRE,
+		"A fiery orange slime of medium size. Moderate health and attack with steady speed.")
+
+	_add_slime_card("yellow", "medium", ElementTypes.LIGHTNING,
+		"A bright yellow slime of medium size. Energetic and dependable.")
+
+	_add_slime_card("grey", "large", ElementTypes.EARTH,
+		"A massive grey slime. Slow but incredibly durable with devastating attacks.",
+		{"rarity": "rare"})
+
+	_add_slime_card("purple", "large", ElementTypes.POISON,
+		"A huge, toxic purple slime. Extremely durable with powerful poison-infused attacks.",
+		{"rarity": "rare"})
+
+	_add_slime_card("red", "large", ElementTypes.FIRE,
+		"An enormous crimson slime. The largest of its kind, boasting incredible strength and resilience.",
+		{"rarity": "rare"})
+
+## Factory method for creating slime cards with size templates
+func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
+	# Size templates with default stats
+	var size_templates = {
+		"small": {
+			"max_hp": 50.0,
+			"attack_damage": 8.0,
+			"attack_range": 60.0,
+			"attack_speed": 1.5,
+			"move_speed": 75.0,
+			"aggro_radius": 250.0,
+			"mana_cost": 2,
+			"cooldown": 1.5,
+			"tags": ["melee", "swarm", "fast"],
+			"rarity": "common"
+		},
+		"medium": {
+			"max_hp": 100.0,
+			"attack_damage": 15.0,
+			"attack_range": 80.0,
+			"attack_speed": 1.0,
+			"move_speed": 60.0,
+			"aggro_radius": 260.0,
+			"mana_cost": 3,
+			"cooldown": 2.0,
+			"tags": ["melee", "balanced"],
+			"rarity": "common"
+		},
+		"large": {
+			"max_hp": 180.0,
+			"attack_damage": 25.0,
+			"attack_range": 100.0,
+			"attack_speed": 0.8,
+			"move_speed": 50.0,
+			"aggro_radius": 280.0,
+			"mana_cost": 5,
+			"cooldown": 2.5,
+			"tags": ["melee", "tank", "heavy"],
+			"rarity": "rare"
+		}
+	}
+
+	var template = size_templates[size]
+	var catalog_id = "slime_%s" % color
+
+	# Build card definition from template + overrides
+	_catalog[catalog_id] = {
+		"catalog_id": catalog_id,
+		"card_name": "%s Slime" % color.capitalize(),
+		"description": description,
+		"rarity": overrides.get("rarity", template.rarity),
 
 		"card_type": 0,  # SUMMON
 		"unit_type": "melee",
-		"mana_cost": 2,
-		"cooldown": 1.5,
+		"mana_cost": overrides.get("mana_cost", template.mana_cost),
+		"cooldown": overrides.get("cooldown", template.cooldown),
 
-		"unit_scene_path": "res://scenes/units/slime_green_3d.tscn",
+		"unit_scene_path": "res://scenes/units/slime_%s_3d.tscn" % color,
 		"spawn_count": 1,
 
-		"max_hp": 50.0,
-		"attack_damage": 2.0,
-		"attack_range": 60.0,
-		"attack_speed": 1.5,
-		"move_speed": 75.0,
-		"aggro_radius": 250.0,
+		"max_hp": overrides.get("max_hp", template.max_hp),
+		"attack_damage": overrides.get("attack_damage", template.attack_damage),
+		"attack_range": overrides.get("attack_range", template.attack_range),
+		"attack_speed": overrides.get("attack_speed", template.attack_speed),
+		"move_speed": overrides.get("move_speed", template.move_speed),
+		"aggro_radius": overrides.get("aggro_radius", template.aggro_radius),
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
 		"card_icon_path": "",
-		"tags": ["melee", "swarm", "fast"],
+		"tags": overrides.get("tags", template.tags),
 		"unlock_condition": "default",
 
 		"categories": {
-			"elemental_affinity": ElementTypes.EARTH
+			"elemental_affinity": element
 		}
 	}
 
-	# Small Pink Slime - Fast swarm unit
-	_catalog["slime_pink"] = {
-		"catalog_id": "slime_pink",
-		"card_name": "Pink Slime",
-		"description": "A cheerful pink slime. Fast and eager to help, but fragile.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 2,
-		"cooldown": 1.5,
-
-		"unit_scene_path": "res://scenes/units/slime_pink_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 50.0,
-		"attack_damage": 8.0,
-		"attack_range": 60.0,
-		"attack_speed": 1.5,
-		"move_speed": 75.0,
-		"aggro_radius": 250.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "swarm", "fast"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.LIFE
-		}
-	}
-
-	# Small Violet Slime - Fast swarm unit
-	_catalog["slime_violet"] = {
-		"catalog_id": "slime_violet",
-		"card_name": "Violet Slime",
-		"description": "A mysterious violet slime. Quick and elusive.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 2,
-		"cooldown": 1.5,
-
-		"unit_scene_path": "res://scenes/units/slime_violet_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 50.0,
-		"attack_damage": 8.0,
-		"attack_range": 60.0,
-		"attack_speed": 1.5,
-		"move_speed": 75.0,
-		"aggro_radius": 250.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "swarm", "fast"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.SHADOW
-		}
-	}
-
-	# Medium Blue Slime - Balanced unit
-	_catalog["slime_blue"] = {
-		"catalog_id": "slime_blue",
-		"card_name": "Blue Slime",
-		"description": "A well-rounded slime of medium size. Balanced stats make it reliable in any situation.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 3,
-		"cooldown": 2.0,
-
-		"unit_scene_path": "res://scenes/units/slime_blue_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 100.0,
-		"attack_damage": 15.0,
-		"attack_range": 80.0,
-		"attack_speed": 1.0,
-		"move_speed": 60.0,
-		"aggro_radius": 280.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "balanced"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.WATER
-		}
-	}
-
-	# Medium Orange Slime - Balanced unit
-	_catalog["slime_orange"] = {
-		"catalog_id": "slime_orange",
-		"card_name": "Orange Slime",
-		"description": "A fiery orange slime with moderate power. Burns with enthusiasm.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 3,
-		"cooldown": 2.0,
-
-		"unit_scene_path": "res://scenes/units/slime_orange_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 100.0,
-		"attack_damage": 15.0,
-		"attack_range": 80.0,
-		"attack_speed": 1.0,
-		"move_speed": 60.0,
-		"aggro_radius": 280.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "balanced"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# Medium Yellow Slime - Balanced unit
-	_catalog["slime_yellow"] = {
-		"catalog_id": "slime_yellow",
-		"card_name": "Yellow Slime",
-		"description": "An electrifying yellow slime. Medium-sized with a shocking personality.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 3,
-		"cooldown": 2.0,
-
-		"unit_scene_path": "res://scenes/units/slime_yellow_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 100.0,
-		"attack_damage": 15.0,
-		"attack_range": 80.0,
-		"attack_speed": 1.0,
-		"move_speed": 60.0,
-		"aggro_radius": 280.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "balanced"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.LIGHTNING
-		}
-	}
-
-	# Large Grey Slime - Tank unit
-	_catalog["slime_grey"] = {
-		"catalog_id": "slime_grey",
-		"card_name": "Grey Slime",
-		"description": "A massive grey slime. Slow but incredibly durable with devastating attacks.",
-		"rarity": "rare",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 5,
-		"cooldown": 2.5,
-
-		"unit_scene_path": "res://scenes/units/slime_grey_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 180.0,
-		"attack_damage": 25.0,
-		"attack_range": 100.0,
-		"attack_speed": 0.8,
-		"move_speed": 45.0,
-		"aggro_radius": 300.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "tank", "heavy"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.NEUTRAL
-		}
-	}
-
-	# Large Purple Slime - Tank unit
-	_catalog["slime_purple"] = {
-		"catalog_id": "slime_purple",
-		"card_name": "Purple Slime",
-		"description": "A shadowy purple slime of immense size. Slow-moving but hits like a battering ram.",
-		"rarity": "rare",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 5,
-		"cooldown": 2.5,
-
-		"unit_scene_path": "res://scenes/units/slime_purple_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 180.0,
-		"attack_damage": 25.0,
-		"attack_range": 100.0,
-		"attack_speed": 0.8,
-		"move_speed": 45.0,
-		"aggro_radius": 300.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "tank", "heavy"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.POISON
-		}
-	}
-
-	# Large Red Slime - Tank unit
-	_catalog["slime_red"] = {
-		"catalog_id": "slime_red",
-		"card_name": "Red Slime",
-		"description": "An aggressive red slime of enormous size. A hulking brute with fiery power.",
-		"rarity": "rare",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "melee",
-		"mana_cost": 5,
-		"cooldown": 2.5,
-
-		"unit_scene_path": "res://scenes/units/slime_red_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 180.0,
-		"attack_damage": 25.0,
-		"attack_range": 100.0,
-		"attack_speed": 0.8,
-		"move_speed": 45.0,
-		"aggro_radius": 300.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["melee", "tank", "heavy"],
-		"unlock_condition": "default",
-
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
 
 ## =============================================================================
 ## LOOKUP METHODS

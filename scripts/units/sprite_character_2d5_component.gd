@@ -4,14 +4,19 @@ class_name SpriteCharacter2D5Component
 ## Sprite-based 2.5D Character Rendering Component
 ## Renders 2D sprite animations in 3D space using AnimatedSprite2D + SubViewport
 
+## Sprite scaling constants
+const VIEWPORT_SIZE: int = 250  ## Fixed viewport height in pixels
+const LEGACY_SPRITE_SIZE: int = 100  ## Original sprite height (soldier, archer, etc.)
+const DEFAULT_SPRITE_SCALE: float = 2.5  ## Default scale for 100px sprites (250 / 100 = 2.5)
+
 ## Offset in pixels from texture bottom to actual character feet
 ## Use this when sprite artwork has empty space below the character's feet
 ## Example: 100px texture with feet at 70px from top = 30px offset
 @export var feet_offset_pixels: float = 0.0
 @export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
-## Scale for sprite within viewport (default 2.5 works for 100px sprites)
-## For larger sprites, calculate as: 250 / sprite_height (e.g., 310px sprites = 0.806)
-@export var sprite_scale: float = 2.5
+## Scale for sprite within viewport
+## Use calculate_sprite_scale() helper or calculate manually: VIEWPORT_SIZE / sprite_height
+@export var sprite_scale: float = DEFAULT_SPRITE_SCALE
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
@@ -89,7 +94,7 @@ func _setup_sprite_alignment() -> void:
 		return
 
 	# Calculate actual sprite height in world units
-	var world_height = viewport.size.y * sprite_3d.pixel_size  # 250 * 0.025 = 6.25
+	var world_height = viewport.size.y * sprite_3d.pixel_size  # VIEWPORT_SIZE * pixel_size
 
 	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.125 for standard sprites
@@ -154,3 +159,15 @@ func _get_current_frame_size() -> Vector2:
 		return Vector2.ZERO
 
 	return frame_texture.get_size()
+
+## =============================================================================
+## STATIC HELPER METHODS
+## =============================================================================
+
+## Calculate appropriate sprite scale for a given sprite height
+## This ensures sprites of different sizes render at consistent world scale
+static func calculate_sprite_scale(sprite_height_pixels: int) -> float:
+	if sprite_height_pixels <= 0:
+		push_warning("SpriteChar2D5: Invalid sprite height %d, using default scale" % sprite_height_pixels)
+		return DEFAULT_SPRITE_SCALE
+	return float(VIEWPORT_SIZE) / float(sprite_height_pixels)

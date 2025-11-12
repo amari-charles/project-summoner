@@ -21,7 +21,7 @@ script = ExtResource("3_summoner")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
-skip_battle_context_loading = true
+deck_load_strategy = 0
 
 [node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
