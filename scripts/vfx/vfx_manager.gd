@@ -180,7 +180,8 @@ func _play_sound(sound: AudioStream, position: Vector3, volume_db: float) -> voi
 
 	# Auto-cleanup when sound finishes
 	audio_player.finished.connect(func():
-		audio_player.queue_free()
+		if is_instance_valid(audio_player):
+			audio_player.queue_free()
 	)
 
 ## Apply camera shake (stub for now, will implement with camera system)

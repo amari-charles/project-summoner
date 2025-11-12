@@ -4,13 +4,20 @@ class_name Summoner3D
 ## 3D Player base/summoner that spawns units and manages cards
 ## Each player has one Summoner that represents their base
 
+## Deck loading strategies
+enum DeckLoadStrategy {
+	STATIC,           ## Use starting_deck (test scenes, fallback)
+	BATTLE_CONTEXT,   ## Load from BattleContext (normal enemy behavior)
+	PROFILE          ## Load from player profile (normal player behavior)
+}
+
 @export var max_hp: float = 1000.0
 @export var team: Unit3D.Team = Unit3D.Team.PLAYER
 
 ## Deck and hand
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
-@export var load_deck_from_profile: bool = false
+@export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
 
 ## Resources
 @export var mana_regen_rate: float = 1.0
@@ -45,26 +52,20 @@ func _ready() -> void:
 	current_hp = max_hp
 	mana = MANA_MAX
 
-	# Initialize deck
-	if load_deck_from_profile and team == Unit3D.Team.PLAYER:
-		print("Summoner3D: Loading deck from profile...")
-		deck = DeckLoader.load_player_deck()
+	# Initialize deck using strategy pattern
+	deck = _load_deck_by_strategy()
+
+	# Handle empty deck with emergency fallback
+	if deck.is_empty():
+		push_error("Summoner3D: Failed to load deck! Creating emergency fallback deck.")
+		deck = _create_emergency_deck()
+
 		if deck.is_empty():
-			push_error("Summoner3D: Failed to load deck from profile! Using empty deck.")
-		else:
-			print("Summoner3D: Successfully loaded %d cards from profile" % deck.size())
-	elif team == Unit3D.Team.ENEMY:
-		# Enemy deck always comes from BattleContext
-		print("Summoner3D: Loading enemy deck from BattleContext...")
-		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
-		if deck.is_empty():
-			push_warning("Summoner3D: Failed to load enemy deck! Using fallback deck.")
-			deck = starting_deck.duplicate()
-		else:
-			print("Summoner3D: Successfully loaded %d cards for enemy from BattleContext" % deck.size())
+			push_error("Summoner3D: CRITICAL - Cannot create deck, disabling summoner")
+			is_alive = false
+			return
 	else:
-		deck = starting_deck.duplicate()
-		print("Summoner3D: Using exported starting_deck (%d cards)" % deck.size())
+		print("Summoner3D: Loaded %d cards using %s strategy" % [deck.size(), DeckLoadStrategy.keys()[deck_load_strategy]])
 
 	deck.shuffle()
 
@@ -119,8 +120,11 @@ func play_card_3d(card_index: int, position: Vector3) -> bool:
 		push_error("No battlefield found in scene!")
 		return false
 
+	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
+	var modifier_system = get_node_or_null("/root/ModifierSystem")
+
 	# Play the card in 3D
-	card.play_3d(position, team, battlefield)
+	card.play_3d(position, team, battlefield, modifier_system)
 
 	hand.remove_at(card_index)
 	draw_card()
@@ -143,3 +147,82 @@ func take_damage(damage: float) -> void:
 func _die() -> void:
 	is_alive = false
 	summoner_died.emit(self)
+
+## =============================================================================
+## DECK LOADING STRATEGY
+## =============================================================================
+
+## Load deck based on configured strategy
+func _load_deck_by_strategy() -> Array[Card]:
+	match deck_load_strategy:
+		DeckLoadStrategy.STATIC:
+			return _load_static_deck()
+		DeckLoadStrategy.BATTLE_CONTEXT:
+			return _load_battle_context_deck()
+		DeckLoadStrategy.PROFILE:
+			return _load_profile_deck()
+		_:
+			push_error("Summoner3D: Unknown deck load strategy %d" % deck_load_strategy)
+			return []
+
+## Strategy: Load from starting_deck (test scenes, fallback)
+func _load_static_deck() -> Array[Card]:
+	print("Summoner3D: Using static starting_deck")
+	return starting_deck.duplicate()
+
+## Strategy: Load from BattleContext (normal enemy behavior)
+func _load_battle_context_deck() -> Array[Card]:
+	if team == Unit3D.Team.PLAYER:
+		push_warning("Summoner3D: BATTLE_CONTEXT strategy used for player team, using static deck instead")
+		return _load_static_deck()
+
+	print("Summoner3D: Loading enemy deck from BattleContext...")
+	var loaded_deck = EnemyDeckLoader.load_enemy_deck_for_battle()
+
+	if loaded_deck.is_empty():
+		push_warning("Summoner3D: Failed to load from BattleContext, falling back to static deck")
+		return _load_static_deck()
+
+	return loaded_deck
+
+## Strategy: Load from player profile (normal player behavior)
+func _load_profile_deck() -> Array[Card]:
+	if team == Unit3D.Team.ENEMY:
+		push_warning("Summoner3D: PROFILE strategy used for enemy team, using static deck instead")
+		return _load_static_deck()
+
+	print("Summoner3D: Loading deck from player profile...")
+	var loaded_deck = DeckLoader.load_player_deck()
+
+	if loaded_deck.is_empty():
+		push_error("Summoner3D: Failed to load from profile, falling back to static deck")
+		return _load_static_deck()
+
+	return loaded_deck
+
+## Emergency fallback: Create minimal deck when all strategies fail
+## Uses basic warrior cards as last resort to prevent game breaking
+func _create_emergency_deck() -> Array[Card]:
+	print("Summoner3D: Creating emergency fallback deck (3x warrior)")
+
+	var emergency_deck: Array[Card] = []
+
+	# Validate CardCatalog autoload exists
+	if not CardCatalog:
+		push_error("Summoner3D: CardCatalog autoload not available - cannot create emergency deck")
+		return emergency_deck
+
+	# Try to create 3 warrior cards
+	for i in 3:
+		var card = CardCatalog.create_card_resource("warrior")
+		if card:
+			emergency_deck.append(card)
+		else:
+			push_error("Summoner3D: Failed to create emergency warrior card %d" % i)
+
+	if emergency_deck.is_empty():
+		push_error("Summoner3D: Emergency deck creation failed - CardCatalog may be broken")
+	else:
+		print("Summoner3D: Created emergency deck with %d cards" % emergency_deck.size())
+
+	return emergency_deck

@@ -56,6 +56,11 @@ func _ready() -> void:
 
 	print("Base3D ready: Team %d, HP %d" % [team, max_hp])
 
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+
 func _process(delta: float) -> void:
 	# Decay recent hits counter over time (returns to normal animation speed)
 	if recent_hits > 0:

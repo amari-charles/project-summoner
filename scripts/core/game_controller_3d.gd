@@ -152,7 +152,7 @@ func get_time_string() -> String:
 	var seconds = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
 
-func _on_time_updated(time_remaining: float) -> void:
+func _on_time_updated(_time_remaining: float) -> void:
 	var time_label = get_node_or_null("UI/TimerLabel")
 	if time_label:
 		time_label.text = get_time_string()
@@ -208,8 +208,8 @@ func _load_ai_for_enemy() -> void:
 			child.queue_free()
 
 	# Create and attach new AI
-	const AILoader = preload("res://scripts/ai/ai_loader.gd")
-	var ai = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
+	const AILoaderScript = preload("res://scripts/ai/ai_loader.gd")
+	var ai = AILoaderScript.create_ai_for_battle(battle_config, enemy_summoner)
 	if ai:
 		enemy_summoner.add_child(ai)
 	else:

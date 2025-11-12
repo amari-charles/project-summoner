@@ -209,5 +209,6 @@ func _play_sound(sound: AudioStream, volume_db: float) -> void:
 
 	# Auto-cleanup when sound finishes
 	audio_player.finished.connect(func():
-		audio_player.queue_free()
+		if is_instance_valid(audio_player):
+			audio_player.queue_free()
 	)

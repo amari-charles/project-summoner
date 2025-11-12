@@ -43,12 +43,13 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 			_cast_spell(position, team, battlefield)
 
 ## Execute the card effect at the given 3D position
-func play_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+## modifier_system: Optional ModifierSystem reference for more efficient access
+func play_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	match card_type:
 		CardType.SUMMON:
-			_summon_unit_3d(position, team, battlefield)
+			_summon_unit_3d(position, team, battlefield, modifier_system)
 		CardType.SPELL:
-			_cast_spell_3d(position, team, battlefield)
+			_cast_spell_3d(position, team, battlefield, modifier_system)
 
 ## Spawn unit(s) at the position
 func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
@@ -94,7 +95,7 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 	explosion.queue_free()
 
 ## Spawn unit(s) at the 3D position
-func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned!" % card_name)
 		return
@@ -115,7 +116,7 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 	}
 
 	# Get modifiers from ModifierSystem
-	var modifiers = _get_modifiers_from_system("unit", categories, context)
+	var modifiers = _get_modifiers_from_system("unit", categories, context, modifier_system)
 
 	# Card data for apply_modifiers
 	var card_data = {
@@ -126,18 +127,19 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 	for i in spawn_count:
 		var unit = unit_scene.instantiate() as Unit3D
 		if unit:
-			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 			unit.team = team
 
 			# Initialize with modifiers BEFORE adding to scene
 			unit.initialize_with_modifiers(modifiers, card_data)
 
+			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
+			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene!")
 
 ## Execute spell effect at the 3D position
-func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> void:
+func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	# Get card categories from catalog
 	var categories = {}
 	if not catalog_id.is_empty() and CardCatalog:
@@ -152,7 +154,7 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) -> 
 	}
 
 	# Get modifiers from ModifierSystem
-	var modifiers = _get_modifiers_from_system("spell", categories, context)
+	var modifiers = _get_modifiers_from_system("spell", categories, context, modifier_system)
 
 	# Apply modifiers to spell damage
 	var modified_spell_damage = _apply_spell_modifiers(spell_damage, modifiers)
@@ -262,28 +264,34 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 
 	# TODO: Add 3D visual effect for spell
 
-## Helper to safely access ModifierSystem autoload from Resource context
-func _get_modifiers_from_system(target_type: String, categories: Dictionary, context: Dictionary) -> Array:
-	# Try to access the autoload
-	# In Godot, autoloads registered in project.godot are accessible as globals
-	# but Resources can't directly reference them during parse time
-	# So we wrap the access in a function that runs at runtime
+## Helper to safely access ModifierSystem
+## Prefers passed reference, falls back to autoload lookup if not provided
+func _get_modifiers_from_system(target_type: String, categories: Dictionary, context: Dictionary, modifier_system: Node = null) -> Array:
 	var modifiers = []
 
+	# Use passed reference if available (preferred method)
+	if modifier_system:
+		if modifier_system.has_method("get_modifiers_for"):
+			modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+		else:
+			push_error("Card: Passed modifier_system missing get_modifiers_for method")
+		return modifiers
+
+	# Fallback: Try to access ModifierSystem autoload (legacy compatibility)
 	# Check if CardCatalog exists (another autoload) - if it does, ModifierSystem should too
 	if not CardCatalog:
-		push_warning("Card: CardCatalog autoload not found, modifiers unavailable")
+		push_warning("Card: ModifierSystem not passed and CardCatalog autoload not found, modifiers unavailable")
 		return modifiers
 
 	# Access ModifierSystem via root node
 	var root = Engine.get_main_loop().root if Engine.get_main_loop() else null
 	if not root:
-		push_error("Card: Failed to access scene tree root, modifiers unavailable")
+		push_warning("Card: ModifierSystem not passed and failed to access scene tree root, modifiers unavailable")
 		return modifiers
 
-	var modifier_system = root.get_node_or_null("ModifierSystem")
+	modifier_system = root.get_node_or_null("ModifierSystem")
 	if not modifier_system:
-		push_error("Card: ModifierSystem autoload not found, modifiers unavailable")
+		push_warning("Card: ModifierSystem not passed and autoload not found, modifiers unavailable")
 		return modifiers
 
 	if not modifier_system.has_method("get_modifiers_for"):

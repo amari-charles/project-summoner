@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3 uid="uid://slime_violet_3d"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/slime_violet_sprite_frames.tres" id="2_frames"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.3
+height = 1.0
+
+[node name="SlimeViolet3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+max_hp = 50.0
+attack_damage = 8.0
+attack_range = 1.5
+attack_speed = 1.5
+move_speed = 4.0
+team = 0
+aggro_radius = 18.0
+is_ranged = false
+sprite_frames = ExtResource("2_frames")
+sprite_feet_offset_pixels = 15.0
+sprite_scale = 0.6
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="ProjectileTargetPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)

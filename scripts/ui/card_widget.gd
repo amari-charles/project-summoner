@@ -26,6 +26,9 @@ var draggable: bool = false
 var hold_timer: Timer = null
 const HOLD_DURATION = 0.5  # seconds
 
+## Animation state
+var hover_tween: Tween = null
+
 ## Node references
 @onready var type_icon: TextureRect = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
@@ -53,6 +56,11 @@ func _ready() -> void:
 
 	# Set initial theme
 	_update_theme()
+
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	if hover_tween and hover_tween.is_valid():
+		hover_tween.kill()
 
 ## =============================================================================
 ## PUBLIC API
@@ -136,13 +144,17 @@ func _update_theme() -> void:
 
 func _on_mouse_entered() -> void:
 	# Slight scale up on hover
-	var tween = create_tween()
-	tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1)
+	if hover_tween and hover_tween.is_valid():
+		hover_tween.kill()
+	hover_tween = create_tween()
+	hover_tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1)
 
 func _on_mouse_exited() -> void:
 	# Scale back to normal
-	var tween = create_tween()
-	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
+	if hover_tween and hover_tween.is_valid():
+		hover_tween.kill()
+	hover_tween = create_tween()
+	hover_tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 
 	# Cancel hold if mouse leaves
 	if hold_timer and hold_timer.time_left > 0:

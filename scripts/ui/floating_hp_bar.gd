@@ -29,6 +29,7 @@ var is_pooled: bool = false
 var fade_timer: float = 0.0
 var is_visible: bool = true
 var cached_offset_x: float = 0.0  ## Cached horizontal offset (calculated once, not every frame)
+var fade_tween: Tween = null  ## Tween for fade out animation
 
 ## Visual components
 var hp_bar_sprite: Sprite3D = null
@@ -44,6 +45,11 @@ func _ready() -> void:
 	# Always create Sprite3D visuals (ignore scene file meshes for now)
 	_create_sprite_visuals()
 	_find_camera()
+
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	if fade_tween and fade_tween.is_valid():
+		fade_tween.kill()
 
 func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
@@ -212,12 +218,12 @@ func _fade_out() -> void:
 		return
 
 	# Animate alpha to 0
-	var tween = create_tween()
+	fade_tween = create_tween()
 
 	if hp_bar_sprite:
-		tween.tween_property(hp_bar_sprite, "modulate:a", 0.0, fade_duration).from(hp_bar_sprite.modulate.a)
+		fade_tween.tween_property(hp_bar_sprite, "modulate:a", 0.0, fade_duration).from(hp_bar_sprite.modulate.a)
 
-	tween.finished.connect(func():
+	fade_tween.finished.connect(func():
 		_hide_immediate()
 		bar_hidden.emit()
 	)

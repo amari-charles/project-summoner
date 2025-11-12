@@ -4,9 +4,12 @@ class_name HandUI
 ## Displays player's hand of cards at bottom of screen
 ## Shows card name, cost, and availability based on mana
 
-const CARD_WIDTH = 120
-const CARD_HEIGHT = 160
-const CARD_SPACING = 10
+## Card display size constants
+## These must match the CardVisual scene dimensions to ensure proper rendering
+## Changing these requires updating both this file and card_visual.tscn
+const CARD_WIDTH = 120   ## Width of each card in pixels (matches CardVisual width)
+const CARD_HEIGHT = 160  ## Height of each card in pixels (matches CardVisual height)
+const CARD_SPACING = 10  ## Horizontal spacing between cards in hand
 const CARD_VISUAL_SCENE = preload("res://scenes/ui/card_visual.tscn")
 
 # Glow effect constants
@@ -22,6 +25,8 @@ class CardDisplay extends Control:
 
 	# Animation state
 	var hover_tween: Tween
+	var entrance_tween: Tween
+	var rotation_tween: Tween
 	var is_hovered: bool = false
 	var was_recently_hovered: bool = false  # Prevents pulse from restarting immediately
 	var base_position: Vector2
@@ -71,6 +76,28 @@ class CardDisplay extends Control:
 		viewport_container = get_node_or_null("ViewportContainer") as SubViewportContainer
 		if viewport_container:
 			_setup_3d_shader()
+
+	func _exit_tree() -> void:
+		# Disconnect signals to prevent memory leaks
+		if mouse_entered.is_connected(_on_mouse_entered):
+			mouse_entered.disconnect(_on_mouse_entered)
+		if mouse_exited.is_connected(_on_mouse_exited):
+			mouse_exited.disconnect(_on_mouse_exited)
+
+		# Kill any active tweens to prevent lambda capture errors
+		if hover_tween and hover_tween.is_valid():
+			hover_tween.kill()
+		if entrance_tween and entrance_tween.is_valid():
+			entrance_tween.kill()
+		if rotation_tween and rotation_tween.is_valid():
+			rotation_tween.kill()
+
+		# Kill pulse tween stored in card visual metadata
+		var card_visual = _get_card_visual()
+		if card_visual and card_visual.has_meta("pulse_tween"):
+			var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+			if pulse_tween and pulse_tween.is_valid():
+				pulse_tween.kill()
 
 	## Get CardVisual component from this card display
 	func _get_card_visual() -> CardVisual:
@@ -182,7 +209,7 @@ class CardDisplay extends Control:
 		await get_tree().create_timer(delay).timeout
 
 		# Animate to target position and scale
-		var entrance_tween = create_tween()
+		entrance_tween = create_tween()
 		entrance_tween.set_parallel(true)
 		entrance_tween.set_trans(Tween.TRANS_ELASTIC)
 		entrance_tween.set_ease(Tween.EASE_OUT)
@@ -306,25 +333,31 @@ class CardDisplay extends Control:
 
 		# Reset 3D rotation smoothly
 		if shader_material:
-			var rotation_tween = create_tween()
+			rotation_tween = create_tween()
 			rotation_tween.set_parallel(true)
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
 			rotation_tween.tween_method(
-				func(val): shader_material.set_shader_parameter("rot_x_deg", val),
+				func(val):
+					if shader_material:
+						shader_material.set_shader_parameter("rot_x_deg", val),
 				shader_material.get_shader_parameter("rot_x_deg"),
 				0.0,
 				0.3
 			)
 			rotation_tween.tween_method(
-				func(val): shader_material.set_shader_parameter("rot_y_deg", val),
+				func(val):
+					if shader_material:
+						shader_material.set_shader_parameter("rot_y_deg", val),
 				shader_material.get_shader_parameter("rot_y_deg"),
 				0.0,
 				0.3
 			)
 
 		# Reset z_index
-		hover_tween.finished.connect(func(): z_index = 0)
+		hover_tween.finished.connect(func():
+			z_index = 0
+		)
 
 		# Remove hover glow - return border to base element color
 		var card_visual = _get_card_visual()
@@ -371,6 +404,7 @@ class CardDisplay extends Control:
 var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
+var is_rebuilding: bool = false  # Prevents concurrent rebuilds
 
 signal card_selected(index: int)
 
@@ -380,12 +414,21 @@ func _ready() -> void:
 	# Block clicks to battlefield
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
+	# Wait one frame to ensure summoners have joined their groups
+	await get_tree().process_frame
+
 	# Find player summoner (2D or 3D)
 	var summoners = get_tree().get_nodes_in_group("summoners")
 	for node in summoners:
-		# Check for both Summoner and Summoner3D
-		if (node is Summoner and node.team == Unit.Team.PLAYER) or \
-		   (node.get_script() and node.get_script().get_global_name() == "Summoner3D" and node.team == 0):
+		var is_player = false
+
+		# Check for both Summoner and Summoner3D with proper type checking
+		if node is Summoner:
+			is_player = node.team == Unit.Team.PLAYER
+		elif node is Summoner3D:
+			is_player = node.team == Unit3D.Team.PLAYER
+
+		if is_player:
 			summoner = node
 			break
 
@@ -401,13 +444,33 @@ func _ready() -> void:
 	# Initial hand display
 	_rebuild_hand_display()
 
+func _exit_tree() -> void:
+	# Disconnect summoner signals to prevent memory leaks
+	if summoner:
+		if summoner.card_played.is_connected(_on_card_played):
+			summoner.card_played.disconnect(_on_card_played)
+		if summoner.card_drawn.is_connected(_on_card_drawn):
+			summoner.card_drawn.disconnect(_on_card_drawn)
+		if summoner.mana_changed.is_connected(_on_mana_changed):
+			summoner.mana_changed.disconnect(_on_mana_changed)
+
 func _rebuild_hand_display() -> void:
-	# Clear existing displays
+	# Prevent concurrent rebuilds (race condition protection)
+	if is_rebuilding:
+		return
+	is_rebuilding = true
+
+	# Clear existing displays with proper cleanup
 	for display in card_displays:
-		display.queue_free()
+		if display and is_instance_valid(display):
+			display.queue_free()
 	card_displays.clear()
 
+	# Wait one frame to ensure old nodes are freed before creating new ones
+	await get_tree().process_frame
+
 	if not summoner or summoner.hand.is_empty():
+		is_rebuilding = false
 		return
 
 	# Create card displays
@@ -426,6 +489,9 @@ func _rebuild_hand_display() -> void:
 
 	# Highlight selected card
 	_update_selection_visual()
+
+	# Rebuild complete
+	is_rebuilding = false
 
 func _create_card_display(card: Card, index: int) -> Control:
 	var container = CardDisplay.new()
@@ -480,7 +546,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	return container
 
 func _select_card(index: int) -> void:
-	if index < 0 or index >= summoner.hand.size():
+	if not summoner or index < 0 or index >= summoner.hand.size():
 		return
 
 	selected_card_index = index
@@ -620,7 +686,7 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 
 	# Create a custom method to update border color via StyleBox
 	var update_border_color = func(color: Color):
-		if border_panel and is_instance_valid(border_panel) and card_visual and is_instance_valid(card_visual):
+		if border_panel and card_visual:
 			var style = StyleBoxFlat.new()
 			style.bg_color = color
 			style.set_corner_radius_all(card_visual.corner_radius)
@@ -647,7 +713,7 @@ func get_selected_card_index() -> int:
 	return selected_card_index
 
 func select_next_card() -> void:
-	if summoner.hand.is_empty():
+	if not summoner or summoner.hand.is_empty():
 		return
 	selected_card_index = (selected_card_index + 1) % summoner.hand.size()
 	_update_selection_visual()

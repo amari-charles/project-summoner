@@ -9,11 +9,21 @@ var camera_3d: Camera3D
 var is_3d: bool = false
 
 func _ready() -> void:
+	# Wait one frame to ensure summoners have joined their groups
+	await get_tree().process_frame
+
 	# Find player summoner (2D or 3D)
 	var summoners = get_tree().get_nodes_in_group("summoners")
 	for node in summoners:
-		if (node is Summoner and node.team == Unit.Team.PLAYER) or \
-		   (node.get_script() and node.get_script().get_global_name() == "Summoner3D" and node.team == 0):
+		var is_player = false
+
+		# Check for both Summoner and Summoner3D with proper type checking
+		if node is Summoner:
+			is_player = node.team == Unit.Team.PLAYER
+		elif node is Summoner3D:
+			is_player = node.team == Unit3D.Team.PLAYER
+
+		if is_player:
 			summoner = node
 			break
 
@@ -33,7 +43,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 ## Check if we can drop the card here
-func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	# Validate drop data
 	if not data is Dictionary:
 		return false

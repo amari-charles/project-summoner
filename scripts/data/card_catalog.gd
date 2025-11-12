@@ -15,6 +15,9 @@ extends Node
 ## Each card is defined as a Dictionary with all its properties
 var _catalog: Dictionary = {}
 
+## Cached Card script for efficient resource creation
+const CardScript = preload("res://scripts/cards/card.gd")
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -44,7 +47,7 @@ func _init_catalog() -> void:
 		"cooldown": 2.0,
 
 		# Summon properties
-		"unit_scene_path": "res://scenes/units/warrior.tscn",
+		"unit_scene_path": "res://scenes/units/soldier_3d.tscn",  # Uses soldier scene
 		"spawn_count": 1,
 
 		# Unit stats (centralized here)
@@ -82,7 +85,7 @@ func _init_catalog() -> void:
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
-		"unit_scene_path": "res://scenes/units/archer.tscn",
+		"unit_scene_path": "res://scenes/units/archer_3d.tscn",
 		"spawn_count": 1,
 
 		"max_hp": 60.0,
@@ -145,7 +148,7 @@ func _init_catalog() -> void:
 		"mana_cost": 2,
 		"cooldown": 2.0,
 
-		"unit_scene_path": "res://scenes/units/wall.tscn",
+		"unit_scene_path": "res://scenes/units/wall_3d.tscn",
 		"spawn_count": 1,
 
 		"max_hp": 300.0,
@@ -167,40 +170,6 @@ func _init_catalog() -> void:
 		}
 	}
 
-	# Training Dummy - Tutorial target
-	_catalog["training_dummy"] = {
-		"catalog_id": "training_dummy",
-		"card_name": "Training Dummy",
-		"description": "A stationary training target. Doesn't move or attack.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "structure",  # For icon display
-		"mana_cost": 1,
-		"cooldown": 2.0,
-
-		"unit_scene_path": "res://scenes/units/training_dummy.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 100.0,
-		"attack_damage": 0.0,
-		"attack_range": 0.0,
-		"attack_speed": 0.0,
-		"move_speed": 0.0,
-		"aggro_radius": 0.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["tutorial", "training", "target"],
-		"unlock_condition": "enemy_only",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.NEUTRAL
-		}
-	}
-
 	# Neade - Heavy lancer
 	_catalog["neade"] = {
 		"catalog_id": "neade",
@@ -213,7 +182,7 @@ func _init_catalog() -> void:
 		"mana_cost": 4,
 		"cooldown": 2.0,
 
-		"unit_scene_path": "res://scenes/units/neade.tscn",
+		"unit_scene_path": "res://scenes/units/neade_3d.tscn",
 		"spawn_count": 1,
 
 		"max_hp": 120.0,
@@ -234,6 +203,122 @@ func _init_catalog() -> void:
 			"elemental_affinity": ElementTypes.LIGHTNING
 		}
 	}
+
+	# Slime cards - Using factory pattern to reduce duplication
+	_add_slime_card("green", "small", ElementTypes.EARTH,
+		"A small, speedy slime. Low health but quick attacks. Great for overwhelming enemies with numbers.",
+		{"attack_damage": 2.0})  # Reduced for tutorial difficulty
+
+	_add_slime_card("pink", "small", ElementTypes.LIFE,
+		"A cheerful pink slime. Fast and eager to help, but fragile.")
+
+	_add_slime_card("violet", "small", ElementTypes.SHADOW,
+		"A mysterious violet slime. Quick and elusive.")
+
+	_add_slime_card("blue", "medium", ElementTypes.WATER,
+		"A well-rounded slime of medium size. Balanced stats make it reliable in any situation.")
+
+	_add_slime_card("orange", "medium", ElementTypes.FIRE,
+		"A fiery orange slime of medium size. Moderate health and attack with steady speed.")
+
+	_add_slime_card("yellow", "medium", ElementTypes.LIGHTNING,
+		"A bright yellow slime of medium size. Energetic and dependable.")
+
+	_add_slime_card("grey", "large", ElementTypes.EARTH,
+		"A massive grey slime. Slow but incredibly durable with devastating attacks.",
+		{"rarity": "rare"})
+
+	_add_slime_card("purple", "large", ElementTypes.POISON,
+		"A huge, toxic purple slime. Extremely durable with powerful poison-infused attacks.",
+		{"rarity": "rare"})
+
+	_add_slime_card("red", "large", ElementTypes.FIRE,
+		"An enormous crimson slime. The largest of its kind, boasting incredible strength and resilience.",
+		{"rarity": "rare"})
+
+## Factory method for creating slime cards with size templates
+func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
+	# Size templates with default stats
+	var size_templates = {
+		"small": {
+			"max_hp": 50.0,
+			"attack_damage": 8.0,
+			"attack_range": 60.0,
+			"attack_speed": 1.5,
+			"move_speed": 75.0,
+			"aggro_radius": 250.0,
+			"mana_cost": 2,
+			"cooldown": 1.5,
+			"tags": ["melee", "swarm", "fast"],
+			"rarity": "common"
+		},
+		"medium": {
+			"max_hp": 100.0,
+			"attack_damage": 15.0,
+			"attack_range": 80.0,
+			"attack_speed": 1.0,
+			"move_speed": 60.0,
+			"aggro_radius": 260.0,
+			"mana_cost": 3,
+			"cooldown": 2.0,
+			"tags": ["melee", "balanced"],
+			"rarity": "common"
+		},
+		"large": {
+			"max_hp": 180.0,
+			"attack_damage": 25.0,
+			"attack_range": 100.0,
+			"attack_speed": 0.8,
+			"move_speed": 50.0,
+			"aggro_radius": 280.0,
+			"mana_cost": 5,
+			"cooldown": 2.5,
+			"tags": ["melee", "tank", "heavy"],
+			"rarity": "rare"
+		}
+	}
+
+	# Validate size parameter
+	var template = size_templates.get(size)
+	if not template:
+		push_error("CardCatalog: Invalid slime size '%s' for color '%s'. Must be small/medium/large" % [size, color])
+		return
+
+	var catalog_id = "slime_%s" % color
+
+	# Build card definition from template + overrides
+	_catalog[catalog_id] = {
+		"catalog_id": catalog_id,
+		"card_name": "%s Slime" % color.capitalize(),
+		"description": description,
+		"rarity": overrides.get("rarity", template.rarity),
+
+		"card_type": 0,  # SUMMON
+		"unit_type": "melee",
+		"mana_cost": overrides.get("mana_cost", template.mana_cost),
+		"cooldown": overrides.get("cooldown", template.cooldown),
+
+		"unit_scene_path": "res://scenes/units/slime_%s_3d.tscn" % color,
+		"spawn_count": 1,
+
+		"max_hp": overrides.get("max_hp", template.max_hp),
+		"attack_damage": overrides.get("attack_damage", template.attack_damage),
+		"attack_range": overrides.get("attack_range", template.attack_range),
+		"attack_speed": overrides.get("attack_speed", template.attack_speed),
+		"move_speed": overrides.get("move_speed", template.move_speed),
+		"aggro_radius": overrides.get("aggro_radius", template.aggro_radius),
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		"card_icon_path": "",
+		"tags": overrides.get("tags", template.tags),
+		"unlock_condition": "default",
+
+		"categories": {
+			"elemental_affinity": element
+		}
+	}
+
 
 ## =============================================================================
 ## LOOKUP METHODS
@@ -306,9 +391,8 @@ func create_card_resource(catalog_id: String) -> Resource:
 		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
 		return null
 
-	# Load the Card class (assuming it's at scripts/cards/card.gd)
-	var Card = load("res://scripts/cards/card.gd")
-	var card = Card.new()
+	# Create Card instance from preloaded script
+	var card = CardScript.new()
 
 	# Set basic properties
 	card.catalog_id = catalog_id
@@ -322,12 +406,17 @@ func create_card_resource(catalog_id: String) -> Resource:
 	if card.card_type == 0:  # SUMMON
 		var unit_scene_path = card_def.get("unit_scene_path", "")
 		if unit_scene_path != "":
-			card.unit_scene = load(unit_scene_path)
+			var scene = load(unit_scene_path)
+			if not scene:
+				push_error("CardCatalog: Failed to load unit scene '%s' for card '%s'" % [unit_scene_path, catalog_id])
+				return null
+			card.unit_scene = scene
 		card.spawn_count = card_def.get("spawn_count", 1)
 	elif card.card_type == 1:  # SPELL
 		card.spell_damage = card_def.get("spell_damage", 0.0)
 		card.spell_radius = card_def.get("spell_radius", 0.0)
 		card.spell_duration = card_def.get("spell_duration", 0.0)
+		card.projectile_id = card_def.get("projectile_id", "")
 
 	# Set icon if available
 	var icon_path = card_def.get("card_icon_path", "")

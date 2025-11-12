@@ -82,6 +82,46 @@ Projectiles do not properly track or predict the position of moving units, causi
 - High priority - affects core combat mechanics
 - May require physics adjustments
 
+#### Ranged Units Perpetually Miss Targets at Melee Range
+**Status:** Open
+**Reported:** 2025-01-12
+**Component:** Combat / Ranged Attacks
+**Type:** Gameplay Bug
+
+**Description:**
+When a melee unit (e.g., slime) gets directly on top of a ranged unit (e.g., archer), the archer perpetually misses even though the target is stationary and extremely close.
+
+**Expected Behavior:**
+- Ranged units should be able to hit targets at any distance, including very close range
+- Projectiles should hit stationary targets reliably
+- Close-range targets should be easier to hit, not harder
+
+**Current Behavior:**
+- Archer misses slime repeatedly when slime is on top of archer
+- Target is stationary but projectiles still miss
+- Appears to be a targeting or projectile spawn issue at close range
+
+**Impact:**
+- Makes ranged units ineffective against melee attackers
+- Creates frustrating combat scenarios
+- Breaks core game balance (ranged units should have weakness but not be completely useless)
+
+**Proposed Solution:**
+- Check projectile spawn position and initial trajectory at close range
+- May need minimum projectile travel distance before hit detection
+- Could be collision layer issue or spawn point inside target hitbox
+- Consider adding melee fallback attack for ranged units at very close range
+
+**Related Files:**
+- `scripts/units/unit_3d.gd` - Unit combat logic
+- `scripts/projectiles/projectile_3d.gd` - Projectile spawn and movement
+- Ranged unit scenes (archer_3d.tscn, etc.)
+
+**Notes:**
+- High priority - severely impacts combat balance
+- Affects all ranged vs melee matchups
+- May be related to ProjectileTargetPoint position or projectile collision setup
+
 ### 🟡 MEDIUM PRIORITY
 
 #### AI Scoring Magic Numbers Should Be Constants
