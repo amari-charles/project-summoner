@@ -23,7 +23,7 @@ func _ready() -> void:
 		"archer", "archer", "archer", "archer", "archer"
 	]
 
-	# Configure BattleContext for practice mode
+	# Configure BattleContext BEFORE calling super._ready() so summoners can load decks
 	var battle_context = get_node_or_null("/root/BattleContext")
 	if battle_context:
 		battle_context.configure_practice_battle({
@@ -35,16 +35,8 @@ func _ready() -> void:
 			"enemy_hp": 999999.0
 		})
 
-	# Call grandparent ready (GameController3D)
+	# Call parent ready (summoners will now load decks from BattleContext)
 	super._ready()
-
-	# Override player deck with flying test deck
-	if player_summoner:
-		_load_test_deck_for_summoner(player_summoner)
-
-	# Give enemy a mixed deck for comprehensive testing
-	if enemy_summoner:
-		_load_enemy_test_deck(enemy_summoner)
 
 	# Set infinite HP for both bases
 	await get_tree().process_frame
@@ -60,6 +52,7 @@ func _ready() -> void:
 
 	print("TestFlyingController: Flying test mode ready!")
 	print("  - Player deck: %d cards (demon imps, warriors, archers)" % test_deck_cards.size())
+	print("  - Enemy deck: Loaded from BattleContext (warriors, archers, demon imps)")
 	print("  - Infinite mana enabled")
 	print("  - Enemy HP: 999999")
 	print("  - No time limit")
@@ -72,43 +65,3 @@ func _ready() -> void:
 	print("  ✓ Demon Imps CAN attack Warriors and Archers")
 	print("  ✓ Demon Imps CAN attack other Demon Imps (air-to-air)")
 	print("============================")
-
-## Override enemy deck loading to use BattleContext configuration
-func _load_enemy_test_deck(summoner: Summoner3D) -> void:
-	var cards: Array[Card] = []
-
-	# Load deck from BattleContext configuration (warriors, archers, demon imps)
-	var battle_context = get_node_or_null("/root/BattleContext")
-	if battle_context and battle_context.has_method("get_enemy_deck_config"):
-		var deck_config = battle_context.get_enemy_deck_config()
-		if deck_config and not deck_config.is_empty():
-			for entry in deck_config:
-				var catalog_id = entry.get("catalog_id", "")
-				var count = entry.get("count", 1)
-
-				for i in range(count):
-					var card = _load_card_resource(catalog_id)
-					if card:
-						cards.append(card)
-		else:
-			push_warning("TestFlyingController: BattleContext has no enemy deck config, using fallback")
-
-	# Fallback if BattleContext doesn't have config
-	if cards.is_empty():
-		# Use configured deck from _ready()
-		for i in range(10):
-			cards.append(_load_card_resource("warrior"))
-		for i in range(8):
-			cards.append(_load_card_resource("archer"))
-		for i in range(7):
-			cards.append(_load_card_resource("demon_imp"))
-
-	summoner.deck = cards
-	summoner.deck.shuffle()
-
-	# Clear hand and redraw
-	summoner.hand.clear()
-	for i in summoner.max_hand_size:
-		summoner.draw_card()
-
-	print("TestFlyingController: Loaded %d test cards for enemy (mixed units)" % cards.size())
