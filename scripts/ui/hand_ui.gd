@@ -4,9 +4,12 @@ class_name HandUI
 ## Displays player's hand of cards at bottom of screen
 ## Shows card name, cost, and availability based on mana
 
-const CARD_WIDTH = 120
-const CARD_HEIGHT = 160
-const CARD_SPACING = 10
+## Card display size constants
+## These must match the CardVisual scene dimensions to ensure proper rendering
+## Changing these requires updating both this file and card_visual.tscn
+const CARD_WIDTH = 120   ## Width of each card in pixels (matches CardVisual width)
+const CARD_HEIGHT = 160  ## Height of each card in pixels (matches CardVisual height)
+const CARD_SPACING = 10  ## Horizontal spacing between cards in hand
 const CARD_VISUAL_SCENE = preload("res://scenes/ui/card_visual.tscn")
 
 # Glow effect constants
@@ -75,6 +78,12 @@ class CardDisplay extends Control:
 			_setup_3d_shader()
 
 	func _exit_tree() -> void:
+		# Disconnect signals to prevent memory leaks
+		if mouse_entered.is_connected(_on_mouse_entered):
+			mouse_entered.disconnect(_on_mouse_entered)
+		if mouse_exited.is_connected(_on_mouse_exited):
+			mouse_exited.disconnect(_on_mouse_exited)
+
 		# Kill any active tweens to prevent lambda capture errors
 		if hover_tween and hover_tween.is_valid():
 			hover_tween.kill()
@@ -404,12 +413,21 @@ func _ready() -> void:
 	# Block clicks to battlefield
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
+	# Wait one frame to ensure summoners have joined their groups
+	await get_tree().process_frame
+
 	# Find player summoner (2D or 3D)
 	var summoners = get_tree().get_nodes_in_group("summoners")
 	for node in summoners:
-		# Check for both Summoner and Summoner3D
-		if (node is Summoner and node.team == Unit.Team.PLAYER) or \
-		   (node.get_script() and node.get_script().get_global_name() == "Summoner3D" and node.team == 0):
+		var is_player = false
+
+		# Check for both Summoner and Summoner3D with proper type checking
+		if node is Summoner:
+			is_player = node.team == Unit.Team.PLAYER
+		elif node is Summoner3D:
+			is_player = node.team == Unit3D.Team.PLAYER
+
+		if is_player:
 			summoner = node
 			break
 
@@ -426,10 +444,14 @@ func _ready() -> void:
 	_rebuild_hand_display()
 
 func _rebuild_hand_display() -> void:
-	# Clear existing displays
+	# Clear existing displays with proper cleanup
 	for display in card_displays:
-		display.queue_free()
+		if display and is_instance_valid(display):
+			display.queue_free()
 	card_displays.clear()
+
+	# Wait one frame to ensure old nodes are freed before creating new ones
+	await get_tree().process_frame
 
 	if not summoner or summoner.hand.is_empty():
 		return

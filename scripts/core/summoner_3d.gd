@@ -54,8 +54,16 @@ func _ready() -> void:
 
 	# Initialize deck using strategy pattern
 	deck = _load_deck_by_strategy()
+
+	# Handle empty deck with emergency fallback
 	if deck.is_empty():
-		push_warning("Summoner3D: Deck is empty! Game may not function correctly.")
+		push_error("Summoner3D: Failed to load deck! Creating emergency fallback deck.")
+		deck = _create_emergency_deck()
+
+		if deck.is_empty():
+			push_error("Summoner3D: CRITICAL - Cannot create deck, disabling summoner")
+			is_alive = false
+			return
 	else:
 		print("Summoner3D: Loaded %d cards using %s strategy" % [deck.size(), DeckLoadStrategy.keys()[deck_load_strategy]])
 
@@ -112,8 +120,11 @@ func play_card_3d(card_index: int, position: Vector3) -> bool:
 		push_error("No battlefield found in scene!")
 		return false
 
+	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
+	var modifier_system = get_node_or_null("/root/ModifierSystem")
+
 	# Play the card in 3D
-	card.play_3d(position, team, battlefield)
+	card.play_3d(position, team, battlefield, modifier_system)
 
 	hand.remove_at(card_index)
 	draw_card()
@@ -188,3 +199,23 @@ func _load_profile_deck() -> Array[Card]:
 		return _load_static_deck()
 
 	return loaded_deck
+
+## Emergency fallback: Create minimal deck when all strategies fail
+## Uses basic warrior cards as last resort to prevent game breaking
+func _create_emergency_deck() -> Array[Card]:
+	print("Summoner3D: Creating emergency fallback deck (3x warrior)")
+
+	var emergency_deck: Array[Card] = []
+
+	# Try to create 3 warrior cards
+	for i in 3:
+		var card = CardCatalog.create_card_resource("warrior")
+		if card:
+			emergency_deck.append(card)
+		else:
+			push_error("Summoner3D: Failed to create emergency warrior card")
+
+	if emergency_deck.is_empty():
+		push_error("Summoner3D: Emergency deck creation failed - CardCatalog may be broken")
+
+	return emergency_deck
