@@ -18,7 +18,7 @@ func _ready() -> void:
 		if parent is Summoner:
 			summoner = parent
 			is_3d = false
-		elif parent.get_script() and parent.get_script().get_global_name() == "Summoner3D":
+		elif parent is Summoner3D:
 			summoner = parent
 			is_3d = true
 

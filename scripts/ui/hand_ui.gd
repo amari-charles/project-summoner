@@ -404,6 +404,7 @@ class CardDisplay extends Control:
 var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
+var is_rebuilding: bool = false  # Prevents concurrent rebuilds
 
 signal card_selected(index: int)
 
@@ -443,7 +444,22 @@ func _ready() -> void:
 	# Initial hand display
 	_rebuild_hand_display()
 
+func _exit_tree() -> void:
+	# Disconnect summoner signals to prevent memory leaks
+	if summoner:
+		if summoner.card_played.is_connected(_on_card_played):
+			summoner.card_played.disconnect(_on_card_played)
+		if summoner.card_drawn.is_connected(_on_card_drawn):
+			summoner.card_drawn.disconnect(_on_card_drawn)
+		if summoner.mana_changed.is_connected(_on_mana_changed):
+			summoner.mana_changed.disconnect(_on_mana_changed)
+
 func _rebuild_hand_display() -> void:
+	# Prevent concurrent rebuilds (race condition protection)
+	if is_rebuilding:
+		return
+	is_rebuilding = true
+
 	# Clear existing displays with proper cleanup
 	for display in card_displays:
 		if display and is_instance_valid(display):
@@ -454,6 +470,7 @@ func _rebuild_hand_display() -> void:
 	await get_tree().process_frame
 
 	if not summoner or summoner.hand.is_empty():
+		is_rebuilding = false
 		return
 
 	# Create card displays
@@ -472,6 +489,9 @@ func _rebuild_hand_display() -> void:
 
 	# Highlight selected card
 	_update_selection_visual()
+
+	# Rebuild complete
+	is_rebuilding = false
 
 func _create_card_display(card: Card, index: int) -> Control:
 	var container = CardDisplay.new()
@@ -526,7 +546,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	return container
 
 func _select_card(index: int) -> void:
-	if index < 0 or index >= summoner.hand.size():
+	if not summoner or index < 0 or index >= summoner.hand.size():
 		return
 
 	selected_card_index = index
@@ -693,7 +713,7 @@ func get_selected_card_index() -> int:
 	return selected_card_index
 
 func select_next_card() -> void:
-	if summoner.hand.is_empty():
+	if not summoner or summoner.hand.is_empty():
 		return
 	selected_card_index = (selected_card_index + 1) % summoner.hand.size()
 	_update_selection_visual()

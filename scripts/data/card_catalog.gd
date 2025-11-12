@@ -44,7 +44,7 @@ func _init_catalog() -> void:
 		"cooldown": 2.0,
 
 		# Summon properties
-		"unit_scene_path": "res://scenes/units/warrior.tscn",
+		"unit_scene_path": "res://scenes/units/soldier_3d.tscn",  # Uses soldier scene
 		"spawn_count": 1,
 
 		# Unit stats (centralized here)
@@ -275,7 +275,12 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 		}
 	}
 
-	var template = size_templates[size]
+	# Validate size parameter
+	var template = size_templates.get(size)
+	if not template:
+		push_error("CardCatalog: Invalid slime size '%s' for color '%s'. Must be small/medium/large" % [size, color])
+		return
+
 	var catalog_id = "slime_%s" % color
 
 	# Build card definition from template + overrides

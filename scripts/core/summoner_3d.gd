@@ -207,15 +207,22 @@ func _create_emergency_deck() -> Array[Card]:
 
 	var emergency_deck: Array[Card] = []
 
+	# Validate CardCatalog autoload exists
+	if not CardCatalog:
+		push_error("Summoner3D: CardCatalog autoload not available - cannot create emergency deck")
+		return emergency_deck
+
 	# Try to create 3 warrior cards
 	for i in 3:
 		var card = CardCatalog.create_card_resource("warrior")
 		if card:
 			emergency_deck.append(card)
 		else:
-			push_error("Summoner3D: Failed to create emergency warrior card")
+			push_error("Summoner3D: Failed to create emergency warrior card %d" % i)
 
 	if emergency_deck.is_empty():
 		push_error("Summoner3D: Emergency deck creation failed - CardCatalog may be broken")
+	else:
+		print("Summoner3D: Created emergency deck with %d cards" % emergency_deck.size())
 
 	return emergency_deck
