@@ -90,7 +90,8 @@ func _update_hp_bar() -> void:
 		# Type narrow to ColorRect for safe property access
 		if hp_bar_node is ColorRect:
 			var hp_bar: ColorRect = hp_bar_node
-			var hp_percent: float = current_hp / max_hp
+			var hp_percent_value: Variant = current_hp / max_hp
+			var hp_percent: float = hp_percent_value
 			hp_bar.size.x = 50.0 * hp_percent  # 50px is the full width
 
 			# Use GameColorPalette colors for health

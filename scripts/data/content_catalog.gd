@@ -79,7 +79,8 @@ func _load_unit_from_file(file_path: String) -> UnitData:
 		push_error("ContentCatalog: JSON root is not a dictionary: " + file_path)
 		return null
 
-	return UnitData.from_dict(data)
+	var data_dict: Dictionary = data
+	return UnitData.from_dict(data_dict)
 
 ## Load cards from data/cards/*.json
 func _load_cards() -> void:
@@ -129,7 +130,8 @@ func _load_card_from_file(file_path: String) -> CardData:
 		push_error("ContentCatalog: JSON root is not a dictionary: " + file_path)
 		return null
 
-	return CardData.from_dict(data)
+	var data_dict: Dictionary = data
+	return CardData.from_dict(data_dict)
 
 ## Load projectiles from data/projectiles/*.json
 func _load_projectiles() -> void:
@@ -179,7 +181,8 @@ func _load_projectile_from_file(file_path: String) -> ProjectileData:
 		push_error("ContentCatalog: JSON root is not a dictionary: " + file_path)
 		return null
 
-	return ProjectileData.from_dict(data)
+	var data_dict: Dictionary = data
+	return ProjectileData.from_dict(data_dict)
 
 ## Validate all loaded content for consistency
 func _validate_content() -> void:

@@ -17,10 +17,10 @@ extends Node
 ## - user://profiles/{profile_id}/wal.json (write-ahead log)
 
 ## Autosave timing
-const AUTOSAVE_DELAY = 0.5  # Seconds of inactivity before autosave
+const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 
 ## Current save version for migrations
-const CURRENT_VERSION = 1
+const CURRENT_VERSION: int = 1
 
 ## Signals
 signal profile_loaded(profile_id: String)
@@ -45,7 +45,7 @@ func _ready() -> void:
 	_setup_save_timer()
 
 	# Auto-load default profile (in future, let user select)
-	var default_profile_id = _get_or_create_default_profile()
+	var default_profile_id: String = _get_or_create_default_profile()
 	load_profile(default_profile_id)
 
 func _setup_save_timer() -> void:

@@ -80,10 +80,13 @@ static func from_dict(data: Dictionary) -> UnitData:
 	unit.death_sound = data.get("death_sound", "")
 
 	if data.has("tags") and data.tags is Array:
+		var tags_variant: Variant = data.tags
+		var tags_array: Array = tags_variant
 		unit.tags.clear()
-		for tag in data.tags:
+		for tag: Variant in tags_array:
 			if tag is String:
-				unit.tags.append(tag)
+				var tag_str: String = tag
+				unit.tags.append(tag_str)
 
 	return unit
 

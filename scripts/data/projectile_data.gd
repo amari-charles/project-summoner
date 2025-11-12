@@ -46,7 +46,7 @@ class_name ProjectileData
 
 ## Create from dictionary (for JSON loading)
 static func from_dict(data: Dictionary) -> ProjectileData:
-	var proj = ProjectileData.new()
+	var proj: ProjectileData = ProjectileData.new()
 
 	proj.projectile_id = data.get("projectile_id", "")
 	proj.projectile_name = data.get("projectile_name", "")
@@ -58,8 +58,11 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	proj.trail_vfx = data.get("trail_vfx", data.get("trail_effect_id", ""))
 
 	# Load visual scene if path provided (force reload to bypass cache)
-	if not proj.model_scene_path.is_empty():
-		proj.visual_scene = ResourceLoader.load(proj.model_scene_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	var model_path_variant: Variant = proj.model_scene_path
+	if model_path_variant is String:
+		var model_path: String = model_path_variant
+		if not model_path.is_empty():
+			proj.visual_scene = ResourceLoader.load(model_path, "", ResourceLoader.CACHE_MODE_IGNORE)
 
 	proj.movement_type = data.get("movement_type", "straight")
 	proj.speed = data.get("speed", 15.0)

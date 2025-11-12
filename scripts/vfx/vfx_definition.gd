@@ -29,28 +29,32 @@ class_name VFXDefinition
 
 ## Create from dictionary (for JSON loading, future feature)
 static func from_dict(data: Dictionary) -> VFXDefinition:
-	var vfx = VFXDefinition.new()
+	var vfx: VFXDefinition = VFXDefinition.new()
 
 	vfx.effect_id = data.get("effect_id", "")
 	vfx.effect_name = data.get("effect_name", "")
 
 	# Scene path needs to be loaded
-	var scene_path = data.get("effect_scene_path", "")
-	if not scene_path.is_empty():
-		var loaded_scene: Resource = load(scene_path)
-		if loaded_scene is PackedScene:
-			vfx.effect_scene = loaded_scene
+	var scene_path_variant: Variant = data.get("effect_scene_path", "")
+	if scene_path_variant is String:
+		var scene_path: String = scene_path_variant
+		if not scene_path.is_empty():
+			var loaded_scene: Resource = load(scene_path)
+			if loaded_scene is PackedScene:
+				vfx.effect_scene = loaded_scene
 
 	vfx.duration = data.get("duration", 1.0)
 	vfx.pooled = data.get("pooled", true)
 	vfx.pool_size = data.get("pool_size", 10)
 
 	# Audio
-	var sound_path = data.get("sound_path", "")
-	if not sound_path.is_empty():
-		var loaded_sound: Resource = load(sound_path)
-		if loaded_sound is AudioStream:
-			vfx.play_sound = loaded_sound
+	var sound_path_variant: Variant = data.get("sound_path", "")
+	if sound_path_variant is String:
+		var sound_path: String = sound_path_variant
+		if not sound_path.is_empty():
+			var loaded_sound: Resource = load(sound_path)
+			if loaded_sound is AudioStream:
+				vfx.play_sound = loaded_sound
 	vfx.sound_volume = data.get("sound_volume", 0.0)
 
 	vfx.camera_shake = data.get("camera_shake", 0.0)

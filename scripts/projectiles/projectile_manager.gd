@@ -50,7 +50,8 @@ func _init_pools() -> void:
 	for projectile_id: Variant in projectile_keys:
 		var proj_data: Variant = ContentCatalog.projectiles[projectile_id]
 		if proj_data is ProjectileData and projectile_id is String:
-			_create_pool_for(projectile_id, 5)  # Smaller initial pool per type
+			var projectile_id_str: String = projectile_id
+			_create_pool_for(projectile_id_str, 5)  # Smaller initial pool per type
 
 ## Create pool for a specific projectile type
 func _create_pool_for(projectile_id: String, pool_size: int) -> void:
@@ -177,8 +178,8 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 
 ## Signal handler for projectile expiration
 ## Note: Signal emits projectile first, then bind adds projectile_id
-func _on_projectile_expired(projectile: Projectile3D, projectile_id: String) -> void:
-	_return_to_pool(projectile_id, projectile)
+func _on_projectile_expired(projectile: Projectile3D, projectile_id_arg: String) -> void:
+	_return_to_pool(projectile_id_arg, projectile)
 
 ## Clear all active projectiles (for scene transitions)
 func clear_all_projectiles() -> void:
@@ -186,7 +187,8 @@ func clear_all_projectiles() -> void:
 	for projectile_id: Variant in active_keys:
 		if not projectile_id is String:
 			continue
-		var active_list: Array = active_projectiles[projectile_id]
+		var projectile_id_str: String = projectile_id
+		var active_list: Array = active_projectiles[projectile_id_str]
 		for projectile: Variant in active_list:
 			if not projectile is Node:
 				continue
@@ -194,7 +196,8 @@ func clear_all_projectiles() -> void:
 			if projectile_node.get_parent():
 				projectile_node.get_parent().remove_child(projectile_node)
 			if projectile is Projectile3D:
-				_return_to_pool(projectile_id, projectile)
+				var projectile_3d: Projectile3D = projectile
+				_return_to_pool(projectile_id_str, projectile_3d)
 
 	active_projectiles.clear()
 

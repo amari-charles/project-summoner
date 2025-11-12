@@ -41,7 +41,7 @@ class_name CardData
 
 ## Create from dictionary (for JSON loading)
 static func from_dict(data: Dictionary) -> CardData:
-	var card = CardData.new()
+	var card: CardData = CardData.new()
 
 	card.card_id = data.get("card_id", "")
 	card.card_name = data.get("card_name", "")

@@ -51,12 +51,13 @@ func _init_pool() -> void:
 			bar_pool.append(bar)
 
 func _instantiate_bar() -> FloatingHPBar:
+	var bar: FloatingHPBar
 	if hp_bar_scene:
-		return hp_bar_scene.instantiate() as FloatingHPBar
+		bar = hp_bar_scene.instantiate() as FloatingHPBar
 	else:
 		# Fallback: create from script
-		var bar: FloatingHPBar = FloatingHPBar.new()
-		return bar
+		bar = FloatingHPBar.new()
+	return bar
 
 ## Create HP bar for a unit
 func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPBar:
@@ -68,12 +69,14 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 	# Get bar from pool or create new
 	var bar: FloatingHPBar = null
 	if bar_pool.size() > 0:
-		bar = bar_pool.pop_back()
-		bar.reset()
+		bar = bar_pool.pop_back() as FloatingHPBar
+		if bar:
+			bar.reset()
 		# print("HPBarManager: Reusing bar from pool (pool size: %d)" % bar_pool.size())
 	else:
 		bar = _instantiate_bar()
-		bar.is_pooled = true
+		if bar:
+			bar.is_pooled = true
 		# print("HPBarManager: Created new bar (pool was empty)")
 
 	if not bar:
@@ -84,15 +87,15 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 
 	# Apply custom settings
 	if settings.has("bar_width"):
-		bar.bar_width = settings.bar_width
+		bar.bar_width = settings.bar_width as float
 	if settings.has("bar_height"):
-		bar.bar_height = settings.bar_height
+		bar.bar_height = settings.bar_height as float
 	if settings.has("offset_y"):
-		bar.offset_y = settings.offset_y
+		bar.offset_y = settings.offset_y as float
 	if settings.has("show_on_damage_only"):
-		bar.show_on_damage_only = settings.show_on_damage_only
+		bar.show_on_damage_only = settings.show_on_damage_only as bool
 	if settings.has("fade_delay"):
-		bar.fade_delay = settings.fade_delay
+		bar.fade_delay = settings.fade_delay as float
 
 	# Set target unit
 	bar.set_target(unit)
@@ -116,12 +119,12 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 	if not active_bars.has(unit):
 		return
 
-	var bar: FloatingHPBar = active_bars[unit]
+	var bar: FloatingHPBar = active_bars[unit] as FloatingHPBar
 	active_bars.erase(unit)
 
 	# Disconnect signal before returning to pool to prevent memory leak
 	if is_instance_valid(unit) and unit.has_signal("hp_changed"):
-		var signal_obj: Signal = (unit as Node3D).get("hp_changed")
+		var signal_obj: Signal = unit.get("hp_changed")
 		if signal_obj.is_connected(bar._on_hp_changed):
 			signal_obj.disconnect(bar._on_hp_changed)
 
@@ -135,7 +138,7 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 ## Update HP bar for a unit (if it exists)
 func update_unit_hp(unit: Node3D, current_hp: float, max_hp: float) -> void:
 	if active_bars.has(unit):
-		var bar: FloatingHPBar = active_bars[unit]
+		var bar: FloatingHPBar = active_bars[unit] as FloatingHPBar
 		bar.update_hp(current_hp, max_hp)
 
 ## Return bar to pool
@@ -157,7 +160,7 @@ func _on_bar_hidden(unit: Node3D, bar: FloatingHPBar) -> void:
 ## Remove all bars (useful for scene transitions)
 func clear_all_bars() -> void:
 	for unit: Node3D in active_bars.keys():
-		var bar: FloatingHPBar = active_bars[unit]
+		var bar: FloatingHPBar = active_bars[unit] as FloatingHPBar
 		if bar.get_parent():
 			bar.get_parent().remove_child(bar)
 		_return_to_pool(bar)
