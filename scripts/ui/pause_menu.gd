@@ -1,0 +1,65 @@
+extends Control
+class_name PauseMenu
+
+## Pause menu overlay for battles
+## Shows when game is paused, allows resume or quit to menu
+
+var game_controller: GameController3D
+
+@onready var resume_button: Button = %ResumeButton
+@onready var quit_button: Button = %QuitButton
+
+func _ready() -> void:
+	# CRITICAL: Process input even when game is paused
+	process_mode = PROCESS_MODE_WHEN_PAUSED
+
+	# Start hidden (also set in scene, but enforce here)
+	visible = false
+
+	# Prevent clicks from passing through overlay
+	var overlay = get_node_or_null("BackgroundOverlay")
+	if overlay:
+		overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	# Connect button signals first
+	resume_button.pressed.connect(_on_resume_pressed)
+	quit_button.pressed.connect(_on_quit_pressed)
+
+	# Find game controller (deferred to ensure it's ready)
+	call_deferred("_find_game_controller")
+
+func _exit_tree() -> void:
+	# Clean up signal connections to prevent memory leaks
+	if game_controller and game_controller.state_changed.is_connected(_on_game_state_changed):
+		game_controller.state_changed.disconnect(_on_game_state_changed)
+
+func _find_game_controller() -> void:
+	game_controller = get_tree().get_first_node_in_group("game_controller")
+
+	if not game_controller:
+		push_error("PauseMenu: Could not find GameController3D in scene")
+		return
+
+	# Listen for pause state changes
+	game_controller.state_changed.connect(_on_game_state_changed)
+
+	# Sync initial state
+	_on_game_state_changed(game_controller.current_state)
+
+## Show/hide based on game state
+func _on_game_state_changed(new_state: GameController3D.GameState) -> void:
+	visible = (new_state == GameController3D.GameState.PAUSED)
+
+## Resume button - unpause game
+func _on_resume_pressed() -> void:
+	if not game_controller:
+		push_error("PauseMenu: Cannot resume - no game controller")
+		return
+	game_controller.resume_game()
+
+## Quit button - return to campaign screen
+func _on_quit_pressed() -> void:
+	# CRITICAL: Unpause before changing scenes
+	get_tree().paused = false
+	# TODO: Use BattleContext to track origin screen and return to correct location
+	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")

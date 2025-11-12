@@ -124,7 +124,7 @@ func end_game(winner: Unit3D.Team) -> void:
 	# Delegate to BattleContext for mode-specific completion handling
 	var battle_context = get_node_or_null("/root/BattleContext")
 	if battle_context and battle_context.completion_callback.is_valid():
-		await get_tree().create_timer(2.0).timeout
+		await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
 		get_tree().paused = false
 		battle_context.completion_callback.call(winner as int)
 
@@ -156,6 +156,18 @@ func _on_time_updated(time_remaining: float) -> void:
 	var time_label = get_node_or_null("UI/TimerLabel")
 	if time_label:
 		time_label.text = get_time_string()
+
+func _on_game_ended(winner: Unit3D.Team) -> void:
+	# Show game over label
+	var game_over_label = get_node_or_null("UI/GameOverLabel")
+	if game_over_label:
+		if winner == Unit3D.Team.PLAYER:
+			game_over_label.text = "VICTORY!"
+			game_over_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		else:
+			game_over_label.text = "DEFEAT"
+			game_over_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+		game_over_label.visible = true
 
 func _on_base_damaged(_base, _damage: float) -> void:
 	_update_hp_labels()

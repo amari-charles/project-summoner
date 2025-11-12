@@ -89,22 +89,17 @@ func clear() -> void:
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
-	print("BattleContext: Campaign battle ended, winner: %d" % winner)
-
 	var campaign = get_node_or_null("/root/Campaign")
 	if not campaign:
 		push_error("BattleContext: Campaign service not found for completion")
 		return
 
 	if winner == 0:  # Player won
-		# Grant rewards and mark complete
-		var battle_id = battle_config.get("id", "")
-		campaign.complete_battle(battle_id)
-
-		# Transition to reward screen
+		# Transition to reward screen (it will handle completion and rewards)
 		get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
 	else:  # Player lost
 		# Return to campaign screen
+		# TODO: Track origin screen to return to correct location (arena, practice, etc.)
 		get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
 
 ## Handle practice battle completion
