@@ -73,6 +73,8 @@ func _toggle_speed() -> void:
 		_set_speed(1.0)
 
 func _set_speed(speed: float) -> void:
+	# Clamp to reasonable bounds for safety
+	speed = clampf(speed, 0.1, 5.0)
 	current_speed = speed
 	Engine.time_scale = speed
 
@@ -81,5 +83,3 @@ func _set_speed(speed: float) -> void:
 		text = "▶ 1x"
 	else:
 		text = "▶▶ 2x"
-
-	print("SpeedButton: Game speed set to %.1fx" % speed)
