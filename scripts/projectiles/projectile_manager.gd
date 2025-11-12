@@ -117,10 +117,11 @@ func spawn_projectile(
 	if options.has("target_position"):
 		init_data["target_position"] = options.target_position
 
-	projectile.initialize(init_data)
-
-	# Add to scene
+	# Add to scene first (required for global_transform access in initialize)
 	projectiles_container.add_child(projectile)
+
+	# Initialize after being added to tree
+	projectile.initialize(init_data)
 
 	# Track active projectile
 	if not active_projectiles.has(projectile_id):
