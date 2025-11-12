@@ -272,7 +272,7 @@ func is_valid(element: Variant) -> bool:
 	if element is Element:
 		return element in get_all_elements()
 	elif element is String:
-		return from_string(element) != null
+		return from_string(element as String) != null
 	return false
 
 ## Check if element is a core element
@@ -280,7 +280,7 @@ func is_core(element: Variant) -> bool:
 	if element is Element:
 		return element.category == "core"
 	elif element is String:
-		var elem: Element = from_string(element)
+		var elem: Element = from_string(element as String)
 		return elem != null and elem.category == "core"
 	return false
 
@@ -289,7 +289,7 @@ func is_outer(element: Variant) -> bool:
 	if element is Element:
 		return element.category == "outer"
 	elif element is String:
-		var elem: Element = from_string(element)
+		var elem: Element = from_string(element as String)
 		return elem != null and elem.category == "outer"
 	return false
 
@@ -298,7 +298,7 @@ func is_elevated(element: Variant) -> bool:
 	if element is Element:
 		return element.category == "elevated"
 	elif element is String:
-		var elem: Element = from_string(element)
+		var elem: Element = from_string(element as String)
 		return elem != null and elem.category == "elevated"
 	return false
 
@@ -307,8 +307,8 @@ func get_display_name(element: Variant) -> String:
 	if element is Element:
 		return element.display_name
 	elif element is String:
-		var elem: Element = from_string(element)
-		return elem.display_name if elem != null else element.capitalize()
+		var elem: Element = from_string(element as String)
+		return elem.display_name if elem != null else (element as String).capitalize()
 	return str(element)
 
 ## Get description for element
@@ -316,7 +316,7 @@ func get_description(element: Variant) -> String:
 	if element is Element:
 		return element.description
 	elif element is String:
-		var elem: Element = from_string(element)
+		var elem: Element = from_string(element as String)
 		return elem.description if elem != null else "Unknown element"
 	return "Unknown element"
 
@@ -325,13 +325,13 @@ func get_origin(element: Variant) -> Element:
 	if element is Element:
 		return element.origin_element
 	elif element is String:
-		var elem: Element = from_string(element)
+		var elem: Element = from_string(element as String)
 		return elem.origin_element if elem != null else null
 	return null
 
 ## Check if element can be elevated (is a base that has elevated form)
 func can_elevate(element: Variant) -> bool:
-	var elem: Element = element if element is Element else from_string(element)
+	var elem: Element = element if element is Element else (from_string(element as String) if element is String else null)
 	if elem == null:
 		return false
 	# Check if any elevated element has this as origin
@@ -342,7 +342,7 @@ func can_elevate(element: Variant) -> bool:
 
 ## Get elevated form of an element (if one exists)
 func get_elevation(element: Variant) -> Element:
-	var elem: Element = element if element is Element else from_string(element)
+	var elem: Element = element if element is Element else (from_string(element as String) if element is String else null)
 	if elem == null:
 		return null
 	# Find elevated form
