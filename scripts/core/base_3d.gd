@@ -12,6 +12,10 @@ enum Team { PLAYER, ENEMY }
 var current_hp: float
 var is_alive: bool = true
 
+## Visual components
+@onready var visual: Sprite3D = $Visual if has_node("Visual") else null
+var original_color: Color = Color.WHITE
+
 ## Signals
 signal base_destroyed(base: Base3D)
 signal base_damaged(base: Base3D, damage: float)
@@ -27,6 +31,10 @@ func _ready() -> void:
 	else:
 		add_to_group("enemy_base")
 
+	# Store original color for hit feedback
+	if visual:
+		original_color = visual.modulate
+
 	# Create HP bar for base (larger and higher than units)
 	HPBarManager.create_bar_for_unit(self, {
 		"bar_width": 1.5,  # Wider than unit bars (1.5 vs 0.8)
@@ -40,6 +48,9 @@ func _ready() -> void:
 func take_damage(damage: float) -> void:
 	if not is_alive:
 		return
+
+	# Play hit feedback animation (flash + shake)
+	_play_hit_feedback()
 
 	current_hp -= damage
 	current_hp = max(current_hp, 0.0)
@@ -60,3 +71,23 @@ func _destroy() -> void:
 
 	base_destroyed.emit(self)
 	print("Base3D destroyed! Team: ", team)
+
+## Play hit feedback animation (2D standard: flash + shake)
+func _play_hit_feedback() -> void:
+	if not visual:
+		return
+
+	# Flash to white (0.15s) then back to original (0.2s)
+	# Standard 2D game pattern for damage feedback
+	var tween = create_tween()
+	tween.set_parallel(true)  # Run flash and shake simultaneously
+
+	# Flash effect (modulate property)
+	tween.tween_property(visual, "modulate", Color.WHITE, 0.15)
+	tween.chain().tween_property(visual, "modulate", original_color, 0.2)
+
+	# Shake effect (position offset)
+	var original_pos = visual.position
+	var shake_offset = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
+	tween.tween_property(visual, "position", original_pos + shake_offset, 0.08)
+	tween.chain().tween_property(visual, "position", original_pos, 0.07)
