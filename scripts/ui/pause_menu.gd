@@ -10,7 +10,20 @@ var game_controller: GameController3D
 @onready var quit_button: Button = %QuitButton
 
 func _ready() -> void:
-	# Find game controller in scene
+	# CRITICAL: Process input even when game is paused
+	process_mode = PROCESS_MODE_WHEN_PAUSED
+
+	# Start hidden (also set in scene, but enforce here)
+	visible = false
+
+	# Connect button signals first
+	resume_button.pressed.connect(_on_resume_pressed)
+	quit_button.pressed.connect(_on_quit_pressed)
+
+	# Find game controller (deferred to ensure it's ready)
+	call_deferred("_find_game_controller")
+
+func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group("game_controller")
 
 	if not game_controller:
@@ -20,19 +33,15 @@ func _ready() -> void:
 	# Listen for pause state changes
 	game_controller.state_changed.connect(_on_game_state_changed)
 
-	# Connect button signals
-	resume_button.pressed.connect(_on_resume_pressed)
-	quit_button.pressed.connect(_on_quit_pressed)
-
-	# Start hidden
-	visible = false
-
-	# CRITICAL: Process input even when game is paused
-	process_mode = PROCESS_MODE_WHEN_PAUSED
+	# Sync initial state
+	_on_game_state_changed(game_controller.current_state)
 
 func _input(event: InputEvent) -> void:
 	# ESC key toggles pause
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if not game_controller:
+			return
+
 		if game_controller.current_state == GameController3D.GameState.PLAYING:
 			game_controller.pause_game()
 		elif game_controller.current_state == GameController3D.GameState.PAUSED:
@@ -47,6 +56,9 @@ func _on_game_state_changed(new_state: GameController3D.GameState) -> void:
 
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:
+	if not game_controller:
+		push_error("PauseMenu: Cannot resume - no game controller")
+		return
 	game_controller.resume_game()
 
 ## Quit button - return to campaign screen
