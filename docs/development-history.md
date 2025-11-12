@@ -8,6 +8,7 @@
 
 ## Table of Contents
 
+- [Visual Polish & Game Feel Improvements (2025-11-12)](#visual-polish--game-feel-improvements-2025-11-12)
 - [Documentation & Asset Reorganization (2025-11-10)](#documentation--asset-reorganization-2025-11-10)
 - [3D Architecture & Visual Systems (2025-11-08)](#3d-architecture--visual-systems-2025-11-08)
 - [Collection & Deck Building (2025-11-05)](#collection--deck-building-2025-11-05)
@@ -15,6 +16,74 @@
 - [Core Card System Expansion (2025-11-04)](#core-card-system-expansion-2025-11-04)
 - [Foundation: Core Gameplay (2025-11-04)](#foundation-core-gameplay-2025-11-04)
 - [Initial Project Setup (2025-11-03)](#initial-project-setup-2025-11-03)
+
+---
+
+## Visual Polish & Game Feel Improvements (2025-11-12)
+
+### What We Built
+- Predictive targeting system for projectiles
+- HP bar positioning fix
+- Building hit/damage feedback animations
+- Pause menu implementation with ESC key support
+- Speed control toggle (1x/2x) for campaign mode
+- Reward screen bug fix (preventing duplicate rewards on replay)
+- Card visual redesign with element-based theming
+
+### Technical Decisions
+
+**Predictive Targeting:**
+- **Decision:** Implement projectile prediction to lead moving targets
+- **Why:** Projectiles were missing moving targets frequently, making ranged units feel weak and unreliable
+- **Approach:** Calculate target's future position based on velocity and projectile speed, aim at intercept point
+- **Impact:** Significantly improved ranged unit effectiveness and combat feel
+
+**HP Bar Positioning:**
+- **Decision:** Fix HP bars floating too high above units
+- **Why:** Visual bug affecting all combat readability
+- **Approach:** Adjusted HPBarManager positioning logic to better align with unit sprites
+- **Result:** HP bars now properly positioned above units
+
+**Building Hit Feedback:**
+- **Decision:** Add flash animation with dynamic speed based on attack intensity
+- **Why:** Players needed clear visual feedback when bases take damage
+- **Approach:** Flash effect that scales with damage amount, making heavy hits more noticeable
+- **Impact:** Critical game state changes (base damage) now have appropriate visual weight
+
+**Pause Menu:**
+- **Decision:** Add pause functionality with menu overlay
+- **Why:** Players need ability to pause during battles, especially in campaign mode
+- **Features:**
+  - ESC key to pause/unpause
+  - Pause button in battle HUD
+  - Pause menu with Resume/Settings/Quit options
+  - Proper game state freezing (pause tree)
+- **Challenge:** Fixed timing issues with tween cleanup and lambda capture errors
+
+**Speed Control:**
+- **Decision:** Add 1x/2x speed toggle for campaign battles
+- **Why:** Players wanted to speed through easier campaign battles
+- **Approach:** Toggle button in battle HUD, uses Engine.time_scale
+- **Constraint:** Only available in campaign mode, not PvP (to prevent fairness issues)
+
+**Card Visual Redesign:**
+- **Decision:** Implement element-based visual theming for cards
+- **Why:** Cards needed more visual distinction and polish
+- **Approach:** Element-colored borders, gradients, and visual effects based on card element type
+- **Impact:** Cards now have more personality and are easier to distinguish at a glance
+
+**Reward Screen Fix:**
+- **Decision:** Fix bug where reward screen showed "already completed" on first-time wins
+- **Why:** Confusing player experience, made it unclear if rewards were granted
+- **Approach:** Fixed reward callback timing and state management
+- **Result:** Reward screen now correctly shows rewards for first-time battle completions
+
+### Lessons Learned
+- Predictive targeting is essential for feel in real-time combat games
+- Visual feedback for critical events (base damage) can't be understated
+- Pause menu is table-stakes for single-player content
+- Speed control increases player agency and reduces friction in repetitive content
+- Small visual bugs (HP bar positioning) have outsized impact on perceived polish
 
 ---
 
@@ -286,4 +355,4 @@ Throughout development, we've maintained these core principles:
 
 *This document is living - updated as we build and learn.*
 
-**Last Updated:** 2025-11-10
+**Last Updated:** 2025-11-12

@@ -99,7 +99,7 @@ Flesh out and refine unit hitboxes for better collision detection and combat int
 ---
 
 #### Fix Projectile Aiming on Moving Targets
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (2025-11-12)
 **Category:** Units & Combat
 **Effort:** Medium
 
@@ -323,7 +323,7 @@ When a player's deck is exhausted (all cards drawn), shuffle the discard pile ba
 ### 🔴 HIGH PRIORITY
 
 #### Add Building Hit/Damage Animation
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (2025-11-12)
 **Category:** Visual Polish
 **Effort:** Small
 
@@ -338,6 +338,7 @@ Add visual feedback when buildings (summoner bases) take damage.
 **Notes:**
 - Should clearly communicate damage to player
 - Don't obscure important information
+- Implemented with dynamic flash speed based on attack intensity
 
 ---
 
@@ -704,7 +705,7 @@ Redesign settings/options screen for better usability and visual consistency.
 ---
 
 #### Revamp Pause Menu
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (2025-11-12)
 **Category:** UI/UX
 **Effort:** Small
 
@@ -720,6 +721,7 @@ Improve pause menu design and functionality.
 **Notes:**
 - Should not feel intrusive
 - Easy to resume gameplay
+- Implemented with ESC key support and pause button in battle HUD
 
 ---
 
@@ -971,4 +973,4 @@ Final integration of hero system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-11-11 - Added elemental system infrastructure and magic strings audit task*
+*Last Updated: 2025-11-12 - Marked completed items: Predictive targeting, building hit animations, pause menu*
