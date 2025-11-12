@@ -97,13 +97,8 @@ func _handle_campaign_completion(winner: int) -> void:
 		return
 
 	if winner == 0:  # Player won
-		# Grant rewards and mark complete
-		var battle_id = battle_config.get("id", "")
-		print("BattleContext: Player won! Completing battle '%s' and granting rewards..." % battle_id)
-		campaign.complete_battle(battle_id)
-		print("BattleContext: Rewards granted, transitioning to reward screen...")
-
-		# Transition to reward screen
+		# Transition to reward screen (it will handle completion and rewards)
+		print("BattleContext: Player won! Transitioning to reward screen...")
 		get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
 	else:  # Player lost
 		print("BattleContext: Player lost, returning to campaign screen...")
