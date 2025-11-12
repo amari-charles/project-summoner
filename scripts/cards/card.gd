@@ -79,10 +79,12 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
 	for enemy: Node in enemies:
-		if enemy is Unit and enemy.is_alive:
-			var distance: float = enemy.global_position.distance_to(position)
-			if distance <= spell_radius:
-				enemy.take_damage(spell_damage)
+		if enemy is Unit:
+			var enemy_unit: Unit = enemy
+			if enemy_unit.is_alive:
+				var distance: float = enemy_unit.global_position.distance_to(position)
+				if distance <= spell_radius:
+					enemy_unit.take_damage(spell_damage)
 
 	# Visual effect placeholder
 	var explosion: ColorRect = ColorRect.new()
@@ -100,7 +102,9 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 		push_error("Card '%s' has no unit_scene assigned!" % card_name)
 		return
 
-	var gameplay_layer: Node = battlefield.get_gameplay_layer() if battlefield.has_method("get_gameplay_layer") else battlefield
+	var gameplay_layer: Node = battlefield
+	if battlefield.has_method("get_gameplay_layer"):
+		gameplay_layer = battlefield.call("get_gameplay_layer")
 
 	# Get card categories from catalog
 	var categories: Dictionary = {}
@@ -238,8 +242,10 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 	# Try to find base in the scene
 	var bases: Array[Node] = scene_tree.get_nodes_in_group("bases")
 	for base: Node in bases:
-		if "team" in base and base.team == team:
-			return base as Node3D
+		if "team" in base:
+			var base_team: Variant = base.get("team")
+			if base_team == team:
+				return base as Node3D
 
 	# Fallback: just return battlefield root if no base found
 	return battlefield as Node3D
@@ -257,10 +263,12 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
 	for enemy: Node in enemies:
-		if enemy is Unit3D and enemy.is_alive:
-			var distance: float = enemy.global_position.distance_to(position)
-			if distance <= spell_radius:
-				enemy.take_damage(final_damage)
+		if enemy is Unit3D:
+			var enemy_unit: Unit3D = enemy
+			if enemy_unit.is_alive:
+				var distance: float = enemy_unit.global_position.distance_to(position)
+				if distance <= spell_radius:
+					enemy_unit.take_damage(final_damage)
 
 	# TODO: Add 3D visual effect for spell
 
@@ -272,7 +280,7 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 	# Use passed reference if available (preferred method)
 	if modifier_system:
 		if modifier_system.has_method("get_modifiers_for"):
-			modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+			modifiers = modifier_system.call("get_modifiers_for", target_type, categories, context)
 		else:
 			push_error("Card: Passed modifier_system missing get_modifiers_for method")
 		return modifiers
@@ -284,7 +292,17 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 		return modifiers
 
 	# Access ModifierSystem via root node
-	var root: Window = Engine.get_main_loop().root if Engine.get_main_loop() else null
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop:
+		push_warning("Card: ModifierSystem not passed and failed to access main loop, modifiers unavailable")
+		return modifiers
+
+	if not main_loop is SceneTree:
+		push_warning("Card: Main loop is not SceneTree, modifiers unavailable")
+		return modifiers
+
+	var scene_tree: SceneTree = main_loop
+	var root: Window = scene_tree.root
 	if not root:
 		push_warning("Card: ModifierSystem not passed and failed to access scene tree root, modifiers unavailable")
 		return modifiers
@@ -298,5 +316,5 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 		push_error("Card: ModifierSystem missing get_modifiers_for method")
 		return modifiers
 
-	modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+	modifiers = modifier_system.call("get_modifiers_for", target_type, categories, context)
 	return modifiers
