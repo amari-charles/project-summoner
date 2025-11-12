@@ -34,13 +34,13 @@ signal hand_changed(hand: Array[Card])
 func _ready() -> void:
 	# If loading enemy from campaign, override max_hp if specified
 	if load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
-		var campaign = get_node_or_null("/root/Campaign")
-		var profile_repo = get_node_or_null("/root/ProfileRepo")
+		var campaign: Node = get_node_or_null("/root/Campaign")
+		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 		if campaign and profile_repo:
-			var profile = profile_repo.get_active_profile()
-			var battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+			var profile: Dictionary = profile_repo.get_active_profile()
+			var battle_id: String = profile.get("campaign_progress", {}).get("current_battle", "")
 			if battle_id != "":
-				var battle = campaign.get_battle(battle_id)
+				var battle: Dictionary = campaign.get_battle(battle_id)
 				if battle.has("enemy_hp"):
 					max_hp = battle.get("enemy_hp")
 					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
@@ -74,7 +74,7 @@ func _ready() -> void:
 	deck.shuffle()
 
 	# Draw starting hand
-	for i in max_hand_size:
+	for i: int in max_hand_size:
 		draw_card()
 
 	add_to_group("summoners")
@@ -114,7 +114,7 @@ func play_card(card_index: int, position: Vector2) -> bool:
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
-	var card = hand[card_index]
+	var card: Card = hand[card_index]
 
 	if not card.can_play(int(mana)):
 		return false
@@ -124,7 +124,7 @@ func play_card(card_index: int, position: Vector2) -> bool:
 	mana_changed.emit(mana, MANA_MAX)
 
 	# Find battlefield to spawn units in
-	var battlefield = get_tree().get_first_node_in_group("battlefield")
+	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
 		return false

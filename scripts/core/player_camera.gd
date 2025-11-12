@@ -33,16 +33,16 @@ func _input(event: InputEvent) -> void:
 
 	# Mouse motion while dragging
 	if event is InputEventMouseMotion and is_dragging:
-		var delta = drag_start_pos - event.position
+		var delta: Vector2 = drag_start_pos - event.position
 		position = camera_start_pos + delta / zoom
 		_clamp_position()
 
 func _process(delta: float) -> void:
 	# Edge panning - move camera when mouse near screen edges
-	var mouse_pos = get_viewport().get_mouse_position()
-	var viewport_size = get_viewport().get_visible_rect().size
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 
-	var pan_vec = Vector2.ZERO
+	var pan_vec: Vector2 = Vector2.ZERO
 
 	# Horizontal edge panning
 	if mouse_pos.x < edge_pan_margin:

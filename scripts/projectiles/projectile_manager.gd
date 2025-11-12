@@ -35,7 +35,7 @@ func _ready() -> void:
 	print("ProjectileManager: Initialized")
 
 func _load_projectile_scene() -> void:
-	var scene_path = "res://scenes/projectiles/base_projectile_3d.tscn"
+	var scene_path: String = "res://scenes/projectiles/base_projectile_3d.tscn"
 	if ResourceLoader.exists(scene_path):
 		base_projectile_scene = load(scene_path)
 	else:
@@ -47,7 +47,7 @@ func _init_pools() -> void:
 		return
 
 	for projectile_id in ContentCatalog.projectiles.keys():
-		var proj_data = ContentCatalog.projectiles[projectile_id]
+		var proj_data: Variant = ContentCatalog.projectiles[projectile_id]
 		if proj_data is ProjectileData:
 			_create_pool_for(projectile_id, 5)  # Smaller initial pool per type
 
@@ -60,7 +60,7 @@ func _create_pool_for(projectile_id: String, pool_size: int) -> void:
 	active_projectiles[projectile_id] = []
 
 	for i in range(pool_size):
-		var projectile = _instantiate_projectile()
+		var projectile: Projectile3D = _instantiate_projectile()
 		if projectile:
 			projectile.is_pooled = true
 			projectile.reset()
@@ -89,7 +89,7 @@ func spawn_projectile(
 		push_error("ProjectileManager: Projectile '%s' not found in ContentCatalog" % projectile_id)
 		return null
 
-	var proj_data = ContentCatalog.get_projectile(projectile_id)
+	var proj_data: ProjectileData = ContentCatalog.get_projectile(projectile_id)
 
 	# Get projectile from pool or create new
 	var projectile: Projectile3D = _get_from_pool(projectile_id)
@@ -101,7 +101,7 @@ func spawn_projectile(
 	projectile.load_from_data(proj_data)
 
 	# Initialize with runtime data
-	var init_data = {
+	var init_data: Dictionary = {
 		"source": source,
 		"target": target,
 		"damage": damage,
@@ -141,14 +141,14 @@ func _get_from_pool(projectile_id: String) -> Projectile3D:
 	if not projectile_pools.has(projectile_id):
 		_create_pool_for(projectile_id, 5)
 
-	var pool = projectile_pools[projectile_id]
+	var pool: Array = projectile_pools[projectile_id]
 	if pool.size() > 0:
-		var projectile = pool.pop_back()
+		var projectile: Projectile3D = pool.pop_back()
 		projectile.reset()
 		return projectile
 
 	# Pool exhausted, create new
-	var projectile = _instantiate_projectile()
+	var projectile: Projectile3D = _instantiate_projectile()
 	projectile.is_pooled = true
 	return projectile
 
@@ -213,6 +213,6 @@ func refresh_pools() -> void:
 func print_pool_stats() -> void:
 	print("=== ProjectileManager Pool Statistics ===")
 	for projectile_id in projectile_pools.keys():
-		var pool_size = projectile_pools[projectile_id].size()
-		var active_size = active_projectiles[projectile_id].size() if active_projectiles.has(projectile_id) else 0
+		var pool_size: int = projectile_pools[projectile_id].size()
+		var active_size: int = active_projectiles[projectile_id].size() if active_projectiles.has(projectile_id) else 0
 		print("  %s: %d in pool, %d active" % [projectile_id, pool_size, active_size])

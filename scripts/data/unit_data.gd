@@ -72,7 +72,7 @@ static func from_dict(data: Dictionary) -> UnitData:
 	unit.animation_config_path = data.get("animation_config_path", "")
 	unit.scale = data.get("scale", 1.0)
 
-	var color_str = data.get("tint_color", "#ffffff")
+	var color_str: String = data.get("tint_color", "#ffffff")
 	unit.tint_color = Color(color_str) if color_str is String else Color.WHITE
 
 	unit.attack_sound = data.get("attack_sound", "")

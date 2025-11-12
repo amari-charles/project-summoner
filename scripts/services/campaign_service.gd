@@ -31,7 +31,7 @@ const BattleData = {
 var _battles: Dictionary = {}
 
 ## Current profile's campaign progress
-var _completed_battles: Array = []
+var _completed_battles: Array[String] = []
 
 ## =============================================================================
 ## LIFECYCLE
@@ -204,26 +204,32 @@ func _load_progress() -> void:
 		push_error("CampaignService: ProfileRepository not found!")
 		return
 
-	var profile = _profile_repo.get_active_profile()
+	var profile: Dictionary = _profile_repo.get_active_profile()
 	if profile.is_empty():
 		push_warning("CampaignService: No active profile")
 		return
 
-	_completed_battles = profile.get("campaign_progress", {}).get("completed_battles", [])
+	var campaign_progress: Dictionary = profile.get("campaign_progress", {})
+	var completed_battles_raw: Array = campaign_progress.get("completed_battles", [])
+	_completed_battles.clear()
+	for battle_id in completed_battles_raw:
+		if battle_id is String:
+			_completed_battles.append(battle_id)
 	print("CampaignService: Loaded progress - %d battles completed" % _completed_battles.size())
 
 func save_progress() -> void:
 	if not _profile_repo:
 		return
 
-	var profile = _profile_repo.get_active_profile()
+	var profile: Dictionary = _profile_repo.get_active_profile()
 	if profile.is_empty():
 		return
 
 	if not profile.has("campaign_progress"):
 		profile["campaign_progress"] = {}
 
-	profile["campaign_progress"]["completed_battles"] = _completed_battles.duplicate()
+	var campaign_progress: Dictionary = profile["campaign_progress"]
+	campaign_progress["completed_battles"] = _completed_battles.duplicate()
 
 	_profile_repo.save_profile(true)  # Force immediate save
 	campaign_progress_changed.emit()
@@ -233,9 +239,9 @@ func save_progress() -> void:
 ## BATTLE QUERIES
 ## =============================================================================
 
-func get_all_battles() -> Array:
-	var battles = []
-	for battle_id in _battles.keys():
+func get_all_battles() -> Array[Dictionary]:
+	var battles: Array[Dictionary] = []
+	for battle_id: String in _battles.keys():
 		battles.append(_battles[battle_id])
 	return battles
 
@@ -246,30 +252,30 @@ func is_battle_completed(battle_id: String) -> bool:
 	return battle_id in _completed_battles
 
 func is_battle_unlocked(battle_id: String) -> bool:
-	var battle = get_battle(battle_id)
+	var battle: Dictionary = get_battle(battle_id)
 	if battle.is_empty():
 		return false
 
 	# Check if all required battles are completed
-	var requirements = battle.get("unlock_requirements", [])
+	var requirements: Array = battle.get("unlock_requirements", [])
 	for req_id in requirements:
-		if not is_battle_completed(req_id):
+		if req_id is String and not is_battle_completed(req_id):
 			return false
 
 	return true
 
-func get_available_battles() -> Array:
-	var available = []
-	for battle in get_all_battles():
-		var battle_id = battle.get("id", "")
+func get_available_battles() -> Array[Dictionary]:
+	var available: Array[Dictionary] = []
+	for battle: Dictionary in get_all_battles():
+		var battle_id: String = battle.get("id", "")
 		if is_battle_unlocked(battle_id) and not is_battle_completed(battle_id):
 			available.append(battle)
 	return available
 
-func get_completed_battles() -> Array:
-	var completed = []
-	for battle_id in _completed_battles:
-		var battle = get_battle(battle_id)
+func get_completed_battles() -> Array[Dictionary]:
+	var completed: Array[Dictionary] = []
+	for battle_id: String in _completed_battles:
+		var battle: Dictionary = get_battle(battle_id)
 		if not battle.is_empty():
 			completed.append(battle)
 	return completed
@@ -293,41 +299,43 @@ func complete_battle(battle_id: String) -> void:
 	print("CampaignService: Battle '%s' completed" % battle_id)
 
 func _check_unlocked_battles() -> void:
-	for battle in get_all_battles():
-		var battle_id = battle.get("id", "")
+	for battle: Dictionary in get_all_battles():
+		var battle_id: String = battle.get("id", "")
 		if is_battle_unlocked(battle_id) and not is_battle_completed(battle_id):
 			# Check if it was just unlocked (not in previous available list)
 			battle_unlocked.emit(battle_id)
 
 func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary:
-	var battle = get_battle(battle_id)
+	var battle: Dictionary = get_battle(battle_id)
 	if battle.is_empty():
 		push_error("CampaignService: Battle not found: %s" % battle_id)
 		return {}
 
-	var reward_type = battle.get("reward_type", "fixed")
-	var reward_cards = battle.get("reward_cards", [])
+	var reward_type: String = battle.get("reward_type", "fixed")
+	var reward_cards: Array = battle.get("reward_cards", [])
 
 	if reward_cards.is_empty():
 		push_warning("CampaignService: No rewards defined for battle '%s'" % battle_id)
 		return {}
 
 	var granted_card: Dictionary = {}
-	var granted_instance_ids: Array = []  # Track actual card instance IDs
+	var granted_instance_ids: Array[String] = []  # Track actual card instance IDs
 
 	match reward_type:
 		"fixed":
 			# Grant all reward cards
 			for reward in reward_cards:
-				var ids = _grant_reward_card(reward)
-				granted_instance_ids.append_array(ids)
-			granted_card = reward_cards[0]  # Return first for display
+				if reward is Dictionary:
+					var ids: Array[String] = _grant_reward_card(reward)
+					granted_instance_ids.append_array(ids)
+			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
+				granted_card = reward_cards[0]  # Return first for display
 
 		"choice":
 			# Player chooses one from the list
 			if chosen_index >= 0 and chosen_index < reward_cards.size():
-				var chosen_reward = reward_cards[chosen_index]
-				var ids = _grant_reward_card(chosen_reward)
+				var chosen_reward: Dictionary = reward_cards[chosen_index]
+				var ids: Array[String] = _grant_reward_card(chosen_reward)
 				granted_instance_ids.append_array(ids)
 				granted_card = chosen_reward
 			else:
@@ -335,8 +343,8 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 
 		"random":
 			# Pick random card from pool
-			var random_reward = reward_cards[randi() % reward_cards.size()]
-			var ids = _grant_reward_card(random_reward)
+			var random_reward: Dictionary = reward_cards[randi() % reward_cards.size()]
+			var ids: Array[String] = _grant_reward_card(random_reward)
 			granted_instance_ids.append_array(ids)
 			granted_card = random_reward
 
@@ -344,19 +352,19 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 	granted_card["instance_ids"] = granted_instance_ids
 	return granted_card
 
-func _grant_reward_card(reward: Dictionary) -> Array:
-	var instance_ids: Array = []
+func _grant_reward_card(reward: Dictionary) -> Array[String]:
+	var instance_ids: Array[String] = []
 
 	if not _collection:
 		push_error("CampaignService: Collection service not found!")
 		return instance_ids
 
-	var catalog_id = reward.get("catalog_id", "")
-	var rarity = reward.get("rarity", "common")
-	var count = reward.get("count", 1)
+	var catalog_id: String = reward.get("catalog_id", "")
+	var rarity: String = reward.get("rarity", "common")
+	var count: int = reward.get("count", 1)
 
-	for i in range(count):
-		var instance_id = _collection.grant_card(catalog_id, rarity)
+	for i: int in range(count):
+		var instance_id: String = _collection.grant_card(catalog_id, rarity)
 		instance_ids.append(instance_id)
 
 	print("CampaignService: Granted %dx %s (%s)" % [count, catalog_id, rarity])
@@ -368,28 +376,30 @@ func _grant_reward_card(reward: Dictionary) -> Array:
 
 ## Check if a specific battle is a tutorial battle
 func is_battle_tutorial(battle_id: String) -> bool:
-	var battle = get_battle(battle_id)
+	var battle: Dictionary = get_battle(battle_id)
 	return battle.get("is_tutorial", false)
 
 ## Check if all tutorial battles have been completed
 func is_tutorial_complete() -> bool:
 	# Get all tutorial battles
-	var tutorial_battles = []
-	for battle in get_all_battles():
+	var tutorial_battles: Array[String] = []
+	for battle: Dictionary in get_all_battles():
 		if battle.get("is_tutorial", false):
-			tutorial_battles.append(battle.get("id", ""))
+			var battle_id: String = battle.get("id", "")
+			tutorial_battles.append(battle_id)
 
 	# Check if all are completed
-	for battle_id in tutorial_battles:
+	for battle_id: String in tutorial_battles:
 		if not is_battle_completed(battle_id):
 			return false
 
 	return true
 
 ## Get list of all tutorial battle IDs
-func get_tutorial_battles() -> Array:
-	var tutorial_battles = []
-	for battle in get_all_battles():
+func get_tutorial_battles() -> Array[String]:
+	var tutorial_battles: Array[String] = []
+	for battle: Dictionary in get_all_battles():
 		if battle.get("is_tutorial", false):
-			tutorial_battles.append(battle.get("id", ""))
+			var battle_id: String = battle.get("id", "")
+			tutorial_battles.append(battle_id)
 	return tutorial_battles

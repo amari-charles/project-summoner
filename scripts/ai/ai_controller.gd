@@ -33,28 +33,28 @@ func get_battlefield_bounds() -> Rect2:
 
 ## Helper: Count friendly units
 func count_friendly_units() -> int:
-	var group_name = "enemy_units" if summoner.team == Unit.Team.ENEMY else "player_units"
+	var group_name: String = "enemy_units" if summoner.team == Unit.Team.ENEMY else "player_units"
 	return get_tree().get_nodes_in_group(group_name).size()
 
 ## Helper: Count enemy units
 func count_enemy_units() -> int:
-	var group_name = "player_units" if summoner.team == Unit.Team.ENEMY else "enemy_units"
+	var group_name: String = "player_units" if summoner.team == Unit.Team.ENEMY else "enemy_units"
 	return get_tree().get_nodes_in_group(group_name).size()
 
 ## Helper: Get our base HP ratio (0-1)
 func get_our_base_hp_ratio() -> float:
-	var base_group = "enemy_bases" if summoner.team == Unit.Team.ENEMY else "player_bases"
-	var bases = get_tree().get_nodes_in_group(base_group)
+	var base_group: String = "enemy_bases" if summoner.team == Unit.Team.ENEMY else "player_bases"
+	var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 	if bases.size() > 0:
-		var base = bases[0]
+		var base: Node = bases[0]
 		return base.current_hp / base.max_hp
 	return 1.0
 
 ## Helper: Get enemy base HP ratio (0-1)
 func get_enemy_base_hp_ratio() -> float:
-	var base_group = "player_bases" if summoner.team == Unit.Team.ENEMY else "enemy_bases"
-	var bases = get_tree().get_nodes_in_group(base_group)
+	var base_group: String = "player_bases" if summoner.team == Unit.Team.ENEMY else "enemy_bases"
+	var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 	if bases.size() > 0:
-		var base = bases[0]
+		var base: Node = bases[0]
 		return base.current_hp / base.max_hp
 	return 1.0

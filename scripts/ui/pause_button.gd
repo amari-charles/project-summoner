@@ -4,7 +4,7 @@ class_name PauseButton
 ## Pause button for battle UI
 ## Always visible, allows pausing via button or ESC key
 
-var game_controller: GameController3D
+var game_controller: GameController3D = null
 
 func _ready() -> void:
 	# Always process input (not affected by pause state)
@@ -31,7 +31,7 @@ func _find_game_controller() -> void:
 	# Hide button when game ends
 	game_controller.game_ended.connect(_on_game_ended)
 
-func _on_game_ended(_winner) -> void:
+func _on_game_ended(_winner: int) -> void:
 	visible = false
 
 func _unhandled_input(event: InputEvent) -> void:

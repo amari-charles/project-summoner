@@ -50,16 +50,16 @@ func _ready() -> void:
 
 	# Connect base destruction signals
 	await get_tree().process_frame  # Wait for bases to be ready
-	var player_bases = get_tree().get_nodes_in_group("player_bases")
-	var enemy_bases = get_tree().get_nodes_in_group("enemy_bases")
+	var player_bases: Array[Node] = get_tree().get_nodes_in_group("player_bases")
+	var enemy_bases: Array[Node] = get_tree().get_nodes_in_group("enemy_bases")
 
-	for base in player_bases:
+	for base: Node in player_bases:
 		if base.has_signal("base_destroyed"):
 			base.base_destroyed.connect(_on_base_destroyed)
 			player_base = base
 			print("Connected to player base")
 
-	for base in enemy_bases:
+	for base: Node in enemy_bases:
 		if base.has_signal("base_destroyed"):
 			base.base_destroyed.connect(_on_base_destroyed)
 			enemy_base = base
@@ -77,7 +77,7 @@ func _process(delta: float) -> void:
 
 	# Update match timer
 	match_time += delta
-	var remaining = match_duration - match_time
+	var remaining: float = match_duration - match_time
 
 	if not is_overtime:
 		time_updated.emit(remaining)
@@ -85,7 +85,7 @@ func _process(delta: float) -> void:
 		if remaining <= 0:
 			_check_timeout_victory()
 	else:
-		var overtime_remaining = overtime_duration - (match_time - match_duration)
+		var overtime_remaining: float = overtime_duration - (match_time - match_duration)
 		time_updated.emit(overtime_remaining)
 
 		if overtime_remaining <= 0:
@@ -130,7 +130,7 @@ func end_game(winner: Unit.Team) -> void:
 	# Pause the game
 	get_tree().paused = true
 
-	var winner_text = "PLAYER" if winner == Unit.Team.PLAYER else "ENEMY"
+	var winner_text: String = "PLAYER" if winner == Unit.Team.PLAYER else "ENEMY"
 	print("Game Over! Winner: %s" % winner_text)
 
 	# Check if this is a campaign battle
@@ -153,8 +153,8 @@ func _on_base_destroyed(base: Base) -> void:
 
 ## Check victory when time runs out
 func _check_timeout_victory() -> void:
-	var player_hp = player_base.current_hp if player_base else 0
-	var enemy_hp = enemy_base.current_hp if enemy_base else 0
+	var player_hp: float = player_base.current_hp if player_base else 0.0
+	var enemy_hp: float = enemy_base.current_hp if enemy_base else 0.0
 
 	if player_hp > enemy_hp:
 		end_game(Unit.Team.PLAYER)
@@ -168,8 +168,8 @@ func _check_timeout_victory() -> void:
 ## Check victory in overtime
 func _check_overtime_victory() -> void:
 	# If still tied after overtime, higher HP wins
-	var player_hp = player_base.current_hp if player_base else 0
-	var enemy_hp = enemy_base.current_hp if enemy_base else 0
+	var player_hp: float = player_base.current_hp if player_base else 0.0
+	var enemy_hp: float = enemy_base.current_hp if enemy_base else 0.0
 
 	if player_hp > enemy_hp:
 		end_game(Unit.Team.PLAYER)
@@ -187,23 +187,23 @@ func get_time_remaining() -> float:
 
 ## Helper: Format time as MM:SS
 func get_time_string() -> String:
-	var remaining = get_time_remaining()
-	var minutes = int(remaining) / 60
-	var seconds = int(remaining) % 60
+	var remaining: float = get_time_remaining()
+	var minutes: int = int(remaining) / 60
+	var seconds: int = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
 
 ## Handle campaign battle victory
 func _handle_campaign_victory(winner: Unit.Team) -> void:
 	# Check if this is a campaign battle
-	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 	if not profile_repo:
 		return
 
-	var profile = profile_repo.get_active_profile()
+	var profile: Dictionary = profile_repo.get_active_profile()
 	if profile.is_empty():
 		return
 
-	var current_battle = profile.get("campaign_progress", {}).get("current_battle", "")
+	var current_battle: String = profile.get("campaign_progress", {}).get("current_battle", "")
 	if current_battle == "":
 		# Not a campaign battle, no special handling
 		return
@@ -228,35 +228,35 @@ func _setup_campaign_ai() -> void:
 		return
 
 	# Check if this is a campaign battle
-	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 	if not profile_repo:
 		return
 
-	var profile = profile_repo.get_active_profile()
+	var profile: Dictionary = profile_repo.get_active_profile()
 	if profile.is_empty():
 		return
 
-	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	var current_battle_id: String = profile.get("campaign_progress", {}).get("current_battle", "")
 	if current_battle_id == "":
 		return  # Not a campaign battle
 
 	# Load battle config
-	var campaign = get_node_or_null("/root/Campaign")
+	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		return
 
-	var battle_config = campaign.get_battle(current_battle_id)
+	var battle_config: Dictionary = campaign.get_battle(current_battle_id)
 	if battle_config.is_empty():
 		return
 
 	# Remove existing AI (SimpleAI from scene)
-	for child in enemy_summoner.get_children():
+	for child: Node in enemy_summoner.get_children():
 		if child is AIController or child.get_script() == preload("res://scripts/core/simple_ai.gd"):
 			print("GameController: Removing old AI: %s" % child.name)
 			child.queue_free()
 
 	# Create and attach new AI
-	var ai = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
+	var ai: Node = AILoader.create_ai_for_battle(battle_config, enemy_summoner)
 	if ai:
 		enemy_summoner.add_child(ai)
 		print("GameController: Loaded %s AI for battle '%s'" % [battle_config.get("ai_type", "unknown"), current_battle_id])

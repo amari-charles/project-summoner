@@ -29,16 +29,16 @@ func _process(delta: float) -> void:
 	play_timer += delta
 
 	if play_timer >= next_play_time and should_play_card():
-		var card_index = select_card_to_play()
+		var card_index: int = select_card_to_play()
 		if card_index != -1:
-			var card = summoner.hand[card_index]
+			var card: Card = summoner.hand[card_index]
 			# Check if summoner is 3D or 2D
 			if summoner.has_method("play_card_3d"):
-				var pos_2d = select_spawn_position(card)
-				var pos_3d = BattlefieldConstants.screen_to_world_3d(pos_2d)
+				var pos_2d: Vector2 = select_spawn_position(card)
+				var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
 				summoner.play_card_3d(card_index, pos_3d)
 			else:
-				var position = select_spawn_position(card)
+				var position: Vector2 = select_spawn_position(card)
 				summoner.play_card(card_index, position)
 		_set_next_play_time()
 
@@ -52,7 +52,7 @@ func should_play_card() -> bool:
 		return false
 
 	# Check if we have any playable cards
-	var has_playable = false
+	var has_playable: bool = false
 	for card in summoner.hand:
 		if card.can_play(int(summoner.mana)):
 			has_playable = true
@@ -65,17 +65,17 @@ func select_card_to_play() -> int:
 	if summoner.hand.is_empty():
 		return -1
 
-	var battlefield_state = _evaluate_battlefield_state()
-	var best_card_index = -1
-	var best_score = -INF
+	var battlefield_state: BattlefieldState = _evaluate_battlefield_state()
+	var best_card_index: int = -1
+	var best_score: float = -INF
 
 	# Score each playable card
 	for i in range(summoner.hand.size()):
-		var card = summoner.hand[i]
+		var card: Card = summoner.hand[i]
 		if not card.can_play(int(summoner.mana)):
 			continue
 
-		var score = _score_card(card, battlefield_state)
+		var score: float = _score_card(card, battlefield_state)
 		if score > best_score:
 			best_score = score
 			best_card_index = i
@@ -84,12 +84,12 @@ func select_card_to_play() -> int:
 
 ## Select spawn position based on strategy
 func select_spawn_position(card: Card) -> Vector2:
-	var zone = _select_spawn_zone(card)
+	var zone: String = _select_spawn_zone(card)
 	return _get_random_position_in_zone(zone)
 
 ## Score a card based on current situation
 func _score_card(card: Card, state: BattlefieldState) -> float:
-	var score = 0.0
+	var score: float = 0.0
 
 	# Base score: mana efficiency
 	score += 10.0 - card.mana_cost  # Prefer cheaper cards slightly
@@ -105,14 +105,14 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 	score += _apply_personality_bonus(card)
 
 	# Difficulty affects randomness (higher difficulty = more optimal play)
-	var randomness = 5.0 * (6 - difficulty)  # difficulty 1 = ±25, difficulty 5 = ±5
+	var randomness: float = 5.0 * (6 - difficulty)  # difficulty 1 = ±25, difficulty 5 = ±5
 	score += randf_range(-randomness, randomness)
 
 	return score
 
 ## Score summon cards
 func _score_summon_card(card: Card, state: BattlefieldState) -> float:
-	var score = 10.0  # Base preference for summons
+	var score: float = 10.0  # Base preference for summons
 
 	match state:
 		BattlefieldState.LOSING_BADLY:
@@ -126,10 +126,10 @@ func _score_summon_card(card: Card, state: BattlefieldState) -> float:
 
 ## Score spell cards
 func _score_spell_card(card: Card, state: BattlefieldState) -> float:
-	var score = 5.0  # Base preference for spells
+	var score: float = 5.0  # Base preference for spells
 
 	# Check if there are enemy units to target
-	var enemy_unit_count = count_enemy_units()
+	var enemy_unit_count: int = count_enemy_units()
 
 	match state:
 		BattlefieldState.LOSING_BADLY:
@@ -149,7 +149,7 @@ func _score_spell_card(card: Card, state: BattlefieldState) -> float:
 
 ## Apply personality bonuses to card scores
 func _apply_personality_bonus(card: Card) -> float:
-	var bonus = 0.0
+	var bonus: float = 0.0
 
 	match personality:
 		Personality.AGGRESSIVE:
@@ -177,17 +177,17 @@ func _apply_personality_bonus(card: Card) -> float:
 
 ## Evaluate current battlefield state
 func _evaluate_battlefield_state() -> BattlefieldState:
-	var our_units = count_friendly_units()
-	var enemy_units = count_enemy_units()
-	var our_hp_ratio = get_our_base_hp_ratio()
-	var enemy_hp_ratio = get_enemy_base_hp_ratio()
+	var our_units: int = count_friendly_units()
+	var enemy_units: int = count_enemy_units()
+	var our_hp_ratio: float = get_our_base_hp_ratio()
+	var enemy_hp_ratio: float = get_enemy_base_hp_ratio()
 
 	# Calculate advantage scores
-	var unit_advantage = float(our_units - enemy_units)
-	var hp_advantage = our_hp_ratio - enemy_hp_ratio
+	var unit_advantage: float = float(our_units - enemy_units)
+	var hp_advantage: float = our_hp_ratio - enemy_hp_ratio
 
 	# Combined score
-	var total_advantage = unit_advantage * 0.5 + hp_advantage * 0.5
+	var total_advantage: float = unit_advantage * 0.5 + hp_advantage * 0.5
 
 	if total_advantage < -0.4 or our_hp_ratio < 0.3:
 		return BattlefieldState.LOSING_BADLY
@@ -200,7 +200,7 @@ func _evaluate_battlefield_state() -> BattlefieldState:
 
 ## Select which zone to spawn in
 func _select_spawn_zone(card: Card) -> String:
-	var state = _evaluate_battlefield_state()
+	var state: BattlefieldState = _evaluate_battlefield_state()
 
 	# Determine zone preference based on personality and state
 	match personality:
@@ -235,9 +235,9 @@ func _select_spawn_zone(card: Card) -> String:
 
 ## Get random position within a zone
 func _get_random_position_in_zone(zone: String) -> Vector2:
-	var bounds = get_battlefield_bounds()
-	var x: float
-	var y: float
+	var bounds: Rect2 = get_battlefield_bounds()
+	var x: float = 0.0
+	var y: float = 0.0
 
 	# X position based on zone and team
 	if summoner.team == Unit.Team.ENEMY:
@@ -272,9 +272,9 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 func _set_next_play_time() -> void:
 	play_timer = 0.0
 
-	var state = _evaluate_battlefield_state()
-	var base_min = play_interval_min
-	var base_max = play_interval_max
+	var state: BattlefieldState = _evaluate_battlefield_state()
+	var base_min: float = play_interval_min
+	var base_max: float = play_interval_max
 
 	# Adjust intervals based on battlefield state
 	match state:
@@ -289,7 +289,7 @@ func _set_next_play_time() -> void:
 			base_max *= 1.3
 
 	# Adjust based on difficulty (higher difficulty = faster play)
-	var difficulty_factor = 1.0 - (difficulty - 3) * 0.1  # diff 1 = 1.2x, diff 5 = 0.8x
+	var difficulty_factor: float = 1.0 - (difficulty - 3) * 0.1  # diff 1 = 1.2x, diff 5 = 0.8x
 	base_min *= difficulty_factor
 	base_max *= difficulty_factor
 

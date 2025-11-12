@@ -47,3 +47,12 @@ window/stretch/mode="canvas_items"
 3d_physics/layer_2="Flying Units"
 3d_physics/layer_3="Terrain"
 3d_physics/layer_4="Projectiles"
+
+[debug]
+
+gdscript/warnings/untyped_declaration=2
+gdscript/warnings/inferred_declaration=2
+gdscript/warnings/unsafe_property_access=2
+gdscript/warnings/unsafe_method_access=2
+gdscript/warnings/unsafe_call_argument=2
+gdscript/warnings/unsafe_cast=2

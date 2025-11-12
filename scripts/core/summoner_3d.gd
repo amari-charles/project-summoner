@@ -23,9 +23,9 @@ enum DeckLoadStrategy {
 @export var mana_regen_rate: float = 1.0
 
 ## Current state
-var current_hp: float
+var current_hp: float = 0.0
 var mana: float = 0.0
-const MANA_MAX := 10.0
+const MANA_MAX: float = 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var is_alive: bool = true
@@ -40,9 +40,9 @@ signal hand_changed(hand: Array[Card])
 func _ready() -> void:
 	# For enemy summoners, load config from BattleContext
 	if team == Unit3D.Team.ENEMY:
-		var battle_context = get_node_or_null("/root/BattleContext")
+		var battle_context: Node = get_node_or_null("/root/BattleContext")
 		if battle_context and not battle_context.battle_config.is_empty():
-			var battle_config = battle_context.battle_config
+			var battle_config: Dictionary = battle_context.battle_config
 
 			# Set enemy HP from config
 			if battle_config.has("enemy_hp"):
@@ -70,7 +70,7 @@ func _ready() -> void:
 	deck.shuffle()
 
 	# Draw starting hand
-	for i in max_hand_size:
+	for i: int in max_hand_size:
 		draw_card()
 
 	add_to_group("summoners")
@@ -97,7 +97,7 @@ func draw_card() -> void:
 	if hand.size() >= max_hand_size:
 		return
 
-	var card = deck.pop_front()
+	var card: Card = deck.pop_front()
 	hand.append(card)
 	card_drawn.emit(card)
 	hand_changed.emit(hand)
@@ -107,7 +107,7 @@ func play_card_3d(card_index: int, position: Vector3) -> bool:
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
-	var card = hand[card_index]
+	var card: Card = hand[card_index]
 
 	if not card.can_play(int(mana)):
 		return false
@@ -115,13 +115,13 @@ func play_card_3d(card_index: int, position: Vector3) -> bool:
 	mana -= card.mana_cost
 	mana_changed.emit(mana, MANA_MAX)
 
-	var battlefield = get_tree().get_first_node_in_group("battlefield")
+	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
 		return false
 
 	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
-	var modifier_system = get_node_or_null("/root/ModifierSystem")
+	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 
 	# Play the card in 3D
 	card.play_3d(position, team, battlefield, modifier_system)
@@ -177,7 +177,7 @@ func _load_battle_context_deck() -> Array[Card]:
 		return _load_static_deck()
 
 	print("Summoner3D: Loading enemy deck from BattleContext...")
-	var loaded_deck = EnemyDeckLoader.load_enemy_deck_for_battle()
+	var loaded_deck: Array[Card] = EnemyDeckLoader.load_enemy_deck_for_battle()
 
 	if loaded_deck.is_empty():
 		push_warning("Summoner3D: Failed to load from BattleContext, falling back to static deck")
@@ -192,7 +192,7 @@ func _load_profile_deck() -> Array[Card]:
 		return _load_static_deck()
 
 	print("Summoner3D: Loading deck from player profile...")
-	var loaded_deck = DeckLoader.load_player_deck()
+	var loaded_deck: Array[Card] = DeckLoader.load_player_deck()
 
 	if loaded_deck.is_empty():
 		push_error("Summoner3D: Failed to load from profile, falling back to static deck")
@@ -213,8 +213,8 @@ func _create_emergency_deck() -> Array[Card]:
 		return emergency_deck
 
 	# Try to create 3 warrior cards
-	for i in 3:
-		var card = CardCatalog.create_card_resource("warrior")
+	for i: int in 3:
+		var card: Card = CardCatalog.create_card_resource("warrior")
 		if card:
 			emergency_deck.append(card)
 		else:

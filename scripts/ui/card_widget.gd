@@ -94,7 +94,7 @@ func _update_display() -> void:
 
 	# Set type icon based on card type and unit type
 	if type_icon:
-		var icon_path = CardVisualHelper.get_card_type_icon_path(catalog_data)
+		var icon_path: String = CardVisualHelper.get_card_type_icon_path(catalog_data)
 		if not icon_path.is_empty():
 			type_icon.texture = load(icon_path)
 			type_icon.visible = true
@@ -112,7 +112,7 @@ func _update_theme() -> void:
 	element_color = CardVisualHelper.get_card_element_color(catalog_data)
 
 	# Create theme with element-colored border
-	var style = StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
 	style.border_width_left = border_width
 	style.border_width_top = border_width
@@ -131,7 +131,7 @@ func _update_theme() -> void:
 
 	# Style the element badge with element color
 	if element_badge:
-		var badge_style = StyleBoxFlat.new()
+		var badge_style: StyleBoxFlat = StyleBoxFlat.new()
 		badge_style.bg_color = element_color
 		badge_style.set_corner_radius_all(element_badge_radius)
 		badge_style.anti_aliasing = true
@@ -188,10 +188,10 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 		return null
 
 	# Create drag preview
-	var preview = PanelContainer.new()
+	var preview: PanelContainer = PanelContainer.new()
 	preview.custom_minimum_size = custom_minimum_size
 
-	var label = Label.new()
+	var label: Label = Label.new()
 	label.text = catalog_data.get("card_name", "Card")
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

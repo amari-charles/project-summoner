@@ -4,7 +4,7 @@ class_name PauseMenu
 ## Pause menu overlay for battles
 ## Shows when game is paused, allows resume or quit to menu
 
-var game_controller: GameController3D
+var game_controller: GameController3D = null
 
 @onready var resume_button: Button = %ResumeButton
 @onready var quit_button: Button = %QuitButton
@@ -17,7 +17,7 @@ func _ready() -> void:
 	visible = false
 
 	# Prevent clicks from passing through overlay
-	var overlay = get_node_or_null("BackgroundOverlay")
+	var overlay: Control = get_node_or_null("BackgroundOverlay")
 	if overlay:
 		overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 

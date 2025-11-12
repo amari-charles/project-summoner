@@ -5,7 +5,7 @@ class_name SpeedButton
 ## Toggles between 1x and 2x game speed
 ## Only enabled for campaign mode (disabled for online/arena)
 
-var game_controller: GameController3D
+var game_controller: GameController3D = null
 var current_speed: float = 1.0
 
 func _ready() -> void:
@@ -40,14 +40,14 @@ func _setup() -> void:
 	_check_battle_mode()
 
 func _check_battle_mode() -> void:
-	var battle_context = get_node_or_null("/root/BattleContext")
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if not battle_context:
 		push_warning("SpeedButton: BattleContext not found, disabling button")
 		disabled = true
 		return
 
 	# Enable only for campaign and tutorial modes
-	var is_campaign_mode = battle_context.current_mode in [
+	var is_campaign_mode: bool = battle_context.current_mode in [
 		BattleContext.BattleMode.CAMPAIGN,
 		BattleContext.BattleMode.TUTORIAL
 	]
@@ -60,7 +60,7 @@ func _check_battle_mode() -> void:
 	else:
 		tooltip_text = "Toggle game speed (1x / 2x)"
 
-func _on_game_ended(_winner) -> void:
+func _on_game_ended(_winner: int) -> void:
 	visible = false
 
 func _on_pressed() -> void:

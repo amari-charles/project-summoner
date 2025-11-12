@@ -55,7 +55,7 @@ func _ready() -> void:
 ## =============================================================================
 
 ## Get all card instances in the collection
-func list_cards() -> Array:
+func list_cards() -> Array[Dictionary]:
 	if _repo == null:
 		return []
 	return _repo.list_cards()
@@ -77,10 +77,10 @@ func has_card(catalog_id: String) -> bool:
 	return get_card_count(catalog_id) > 0
 
 ## Get all instances of a specific catalog_id
-func get_cards_by_catalog_id(catalog_id: String) -> Array:
-	var collection = list_cards()
-	var matching = []
-	for card in collection:
+func get_cards_by_catalog_id(catalog_id: String) -> Array[Dictionary]:
+	var collection: Array[Dictionary] = list_cards()
+	var matching: Array[Dictionary] = []
+	for card: Dictionary in collection:
 		if card.get("catalog_id") == catalog_id:
 			matching.append(card)
 	return matching
@@ -88,29 +88,33 @@ func get_cards_by_catalog_id(catalog_id: String) -> Array:
 ## Get collection grouped by catalog_id
 ## Returns: {catalog_id: [instance1, instance2, ...]}
 func get_collection_grouped() -> Dictionary:
-	var collection = list_cards()
-	var grouped = {}
+	var collection: Array[Dictionary] = list_cards()
+	var grouped: Dictionary = {}
 
-	for card in collection:
-		var catalog_id = card.get("catalog_id", "unknown")
+	for card: Dictionary in collection:
+		var catalog_id: String = card.get("catalog_id", "unknown")
 		if not catalog_id in grouped:
 			grouped[catalog_id] = []
-		grouped[catalog_id].append(card)
+		var card_list: Array = grouped[catalog_id]
+		card_list.append(card)
 
 	return grouped
 
 ## Get collection summary (for UI display)
 ## Returns: [{catalog_id: String, count: int, rarity: String, instances: Array}]
-func get_collection_summary() -> Array:
-	var grouped = get_collection_grouped()
-	var summary = []
+func get_collection_summary() -> Array[Dictionary]:
+	var grouped: Dictionary = get_collection_grouped()
+	var summary: Array[Dictionary] = []
 
-	for catalog_id in grouped:
-		var instances = grouped[catalog_id]
+	for catalog_id: String in grouped:
+		var instances: Array = grouped[catalog_id]
+		var rarity: String = "common"
+		if instances.size() > 0 and instances[0] is Dictionary:
+			rarity = instances[0].get("rarity", "common")
 		summary.append({
 			"catalog_id": catalog_id,
 			"count": instances.size(),
-			"rarity": instances[0].get("rarity", "common") if instances.size() > 0 else "common",
+			"rarity": rarity,
 			"instances": instances
 		})
 
@@ -123,7 +127,7 @@ func get_collection_summary() -> Array:
 ## Grant cards to the player's collection
 ## cards: Array of {catalog_id: String, rarity: String}
 ## Returns: Array of created card instance IDs
-func grant_cards(cards: Array) -> Array:
+func grant_cards(cards: Array) -> Array[String]:
 	if _repo == null:
 		push_error("CollectionService: Cannot grant cards, repo not initialized")
 		return []
@@ -133,19 +137,20 @@ func grant_cards(cards: Array) -> Array:
 		return []
 
 	# Validate all cards exist in catalog
-	var valid_cards = []
+	var valid_cards: Array[Dictionary] = []
 	for card_data in cards:
-		var catalog_id = card_data.get("catalog_id", "")
-		if _catalog.has_card(catalog_id):
-			valid_cards.append(card_data)
-		else:
-			push_warning("CollectionService: Cannot grant card '%s' - not found in CardCatalog" % catalog_id)
+		if card_data is Dictionary:
+			var catalog_id: String = card_data.get("catalog_id", "")
+			if _catalog.has_card(catalog_id):
+				valid_cards.append(card_data)
+			else:
+				push_warning("CollectionService: Cannot grant card '%s' - not found in CardCatalog" % catalog_id)
 
 	if valid_cards.size() == 0:
 		push_warning("CollectionService: No valid cards to grant")
 		return []
 
-	var instance_ids = _repo.grant_cards(valid_cards)
+	var instance_ids: Array[String] = _repo.grant_cards(valid_cards)
 
 	print("CollectionService: Granted %d cards (requested: %d, valid: %d)" % [instance_ids.size(), cards.size(), valid_cards.size()])
 	cards_granted.emit(instance_ids)
@@ -156,7 +161,7 @@ func grant_cards(cards: Array) -> Array:
 ## Grant a single card (convenience method)
 ## Returns: card instance ID
 func grant_card(catalog_id: String, rarity: String = "common") -> String:
-	var instance_ids = grant_cards([{"catalog_id": catalog_id, "rarity": rarity}])
+	var instance_ids: Array[String] = grant_cards([{"catalog_id": catalog_id, "rarity": rarity}])
 	return instance_ids[0] if instance_ids.size() > 0 else ""
 
 ## Remove a card instance from the collection
@@ -166,7 +171,7 @@ func remove_card(card_instance_id: String) -> bool:
 		push_error("CollectionService: Cannot remove card, repo not initialized")
 		return false
 
-	var success = _repo.remove_card(card_instance_id)
+	var success: bool = _repo.remove_card(card_instance_id)
 
 	if success:
 		print("CollectionService: Removed card instance: %s" % card_instance_id)
@@ -180,20 +185,21 @@ func remove_card(card_instance_id: String) -> bool:
 ## Dismantle a card for resources (remove + grant essence)
 ## Returns true if successful
 func dismantle_card(card_instance_id: String) -> bool:
-	var card = get_card(card_instance_id)
+	var card: Dictionary = get_card(card_instance_id)
 	if card.is_empty():
 		push_warning("CollectionService: Card instance not found: %s" % card_instance_id)
 		return false
 
 	# Calculate essence value based on rarity
-	var essence_value = _get_dismantle_value(card.get("rarity", "common"))
+	var rarity: String = card.get("rarity", "common")
+	var essence_value: int = _get_dismantle_value(rarity)
 
 	# Remove card from collection
 	if not remove_card(card_instance_id):
 		return false
 
 	# Grant essence
-	var economy = get_node("/root/Economy")
+	var economy: Node = get_node("/root/Economy")
 	if economy:
 		economy.add_essence(essence_value)
 

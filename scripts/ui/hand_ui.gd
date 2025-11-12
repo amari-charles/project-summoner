@@ -24,20 +24,20 @@ class CardDisplay extends Control:
 	var hand_ui: HandUI
 
 	# Animation state
-	var hover_tween: Tween
-	var entrance_tween: Tween
-	var rotation_tween: Tween
+	var hover_tween: Tween = null
+	var entrance_tween: Tween = null
+	var rotation_tween: Tween = null
 	var is_hovered: bool = false
 	var was_recently_hovered: bool = false  # Prevents pulse from restarting immediately
-	var base_position: Vector2
+	var base_position: Vector2 = Vector2.ZERO
 	var base_scale: Vector2 = Vector2(1.0, 1.0)
 
 	# 3D rotation shader
-	var shader_material: ShaderMaterial
-	var viewport_container: SubViewportContainer  # Container with shader applied
+	var shader_material: ShaderMaterial = null
+	var viewport_container: SubViewportContainer = null  # Container with shader applied
 
 	# Velocity tracking for rotation
-	var previous_position: Vector2
+	var previous_position: Vector2 = Vector2.ZERO
 	var velocity: Vector2 = Vector2.ZERO
 
 
@@ -111,7 +111,7 @@ class CardDisplay extends Control:
 	func _process(delta: float) -> void:
 		# Track position changes for velocity-based rotation (Balatro-style)
 		# Use position (not global_position) because tweens modify local position
-		var current_pos = position
+		var current_pos: Vector2 = position
 
 		# Calculate velocity from position delta
 		if delta > 0:
@@ -124,7 +124,7 @@ class CardDisplay extends Control:
 		# Convert velocity to rotation contribution
 		# Horizontal velocity creates tilt (negative for natural feel)
 		# Vertical velocity also contributes slightly
-		var velocity_rotation = velocity.x / VELOCITY_DIVISOR
+		var velocity_rotation: float = velocity.x / VELOCITY_DIVISOR
 		velocity_rotation = clamp(velocity_rotation, -MAX_ROTATION_RADIANS, MAX_ROTATION_RADIANS)
 
 		# Add velocity-based rotation (negative for natural tilt - moving right tilts right)
@@ -169,28 +169,28 @@ class CardDisplay extends Control:
 			return
 
 		# Get mouse position relative to card center
-		var mouse_pos = get_local_mouse_position()
-		var card_center = size / 2.0
+		var mouse_pos: Vector2 = get_local_mouse_position()
+		var card_center: Vector2 = size / 2.0
 
 		# Calculate normalized offset from center (-1 to 1)
-		var offset_x = (mouse_pos.x - card_center.x) / card_center.x
-		var offset_y = (mouse_pos.y - card_center.y) / card_center.y
+		var offset_x: float = (mouse_pos.x - card_center.x) / card_center.x
+		var offset_y: float = (mouse_pos.y - card_center.y) / card_center.y
 
 		# Clamp to card bounds
 		offset_x = clamp(offset_x, -1.0, 1.0)
 		offset_y = clamp(offset_y, -1.0, 1.0)
 
 		# Calculate target rotation (inverted for natural feel)
-		var target_rot_y = offset_x * MAX_TILT_DEGREES
-		var target_rot_x = -offset_y * MAX_TILT_DEGREES  # Negative for proper direction
+		var target_rot_y: float = offset_x * MAX_TILT_DEGREES
+		var target_rot_x: float = -offset_y * MAX_TILT_DEGREES  # Negative for proper direction
 
 		# Get current rotation
-		var current_rot_y = shader_material.get_shader_parameter("rot_y_deg")
-		var current_rot_x = shader_material.get_shader_parameter("rot_x_deg")
+		var current_rot_y: float = shader_material.get_shader_parameter("rot_y_deg")
+		var current_rot_x: float = shader_material.get_shader_parameter("rot_x_deg")
 
 		# Smooth lerp to target
-		var new_rot_y = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
-		var new_rot_x = lerp(current_rot_x, target_rot_x, TILT_SMOOTHING)
+		var new_rot_y: float = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
+		var new_rot_x: float = lerp(current_rot_x, target_rot_x, TILT_SMOOTHING)
 
 		# Update shader parameters
 		shader_material.set_shader_parameter("rot_y_deg", new_rot_y)
@@ -199,13 +199,13 @@ class CardDisplay extends Control:
 	## Play entrance animation when card is first drawn/created
 	func play_entrance_animation(stagger_index: int = 0) -> void:
 		# Set starting state - below target, small scale
-		var target_pos = position
+		var target_pos: Vector2 = position
 		position.y = target_pos.y + DRAW_START_OFFSET
 		scale = Vector2(0.5, 0.5)
 		modulate.a = 0.0  # Start invisible
 
 		# Wait for stagger delay
-		var delay = stagger_index * DRAW_STAGGER_DELAY
+		var delay: float = stagger_index * DRAW_STAGGER_DELAY
 		await get_tree().create_timer(delay).timeout
 
 		# Animate to target position and scale
@@ -238,11 +238,11 @@ class CardDisplay extends Control:
 			return null
 
 		# Create a visual duplicate as preview
-		var preview = duplicate(DUPLICATE_USE_INSTANTIATION)
+		var preview: CardDisplay = duplicate(DUPLICATE_USE_INSTANTIATION)
 		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
 
 		# Create wrapper to control preview offset
-		var preview_wrapper = Control.new()
+		var preview_wrapper: Control = Control.new()
 		preview_wrapper.add_child(preview)
 
 		# Position preview so the grab point stays under cursor
@@ -282,9 +282,9 @@ class CardDisplay extends Control:
 		was_recently_hovered = true
 
 		# Stop any pulse glow on the card border
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if card_visual and card_visual.has_meta("pulse_tween"):
-			var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+			var pulse_tween: Tween = card_visual.get_meta("pulse_tween") as Tween
 			if pulse_tween and pulse_tween.is_valid():
 				pulse_tween.kill()
 			card_visual.remove_meta("pulse_tween")
@@ -338,7 +338,7 @@ class CardDisplay extends Control:
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
 			rotation_tween.tween_method(
-				func(val):
+				func(val: float) -> void:
 					if shader_material:
 						shader_material.set_shader_parameter("rot_x_deg", val),
 				shader_material.get_shader_parameter("rot_x_deg"),
@@ -346,7 +346,7 @@ class CardDisplay extends Control:
 				0.3
 			)
 			rotation_tween.tween_method(
-				func(val):
+				func(val: float) -> void:
 					if shader_material:
 						shader_material.set_shader_parameter("rot_y_deg", val),
 				shader_material.get_shader_parameter("rot_y_deg"),
@@ -355,18 +355,18 @@ class CardDisplay extends Control:
 			)
 
 		# Reset z_index
-		hover_tween.finished.connect(func():
+		hover_tween.finished.connect(func() -> void:
 			z_index = 0
 		)
 
 		# Remove hover glow - return border to base element color
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if card_visual:
-			var element_color = card_visual.get_element_color()
-			var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+			var element_color: Color = card_visual.get_element_color()
+			var border_panel: Panel = card_visual.get_node_or_null("BorderPanel") as Panel
 			if border_panel:
 				# Reset border to base element color via style
-				var border_style = StyleBoxFlat.new()
+				var border_style: StyleBoxFlat = StyleBoxFlat.new()
 				border_style.bg_color = element_color
 				border_style.set_corner_radius_all(card_visual.corner_radius)
 				border_style.anti_aliasing = true
@@ -375,26 +375,26 @@ class CardDisplay extends Control:
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if not card_visual:
 			return
 
 		# Only glow if card is affordable
-		var can_afford = hand_ui and hand_ui.summoner and hand_ui.summoner.mana >= card.mana_cost
+		var can_afford: bool = hand_ui and hand_ui.summoner and hand_ui.summoner.mana >= card.mana_cost
 
 		if not can_afford:
 			return
 
 		# Get element color for this card
-		var element_color = card_visual.get_element_color()
-		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		var element_color: Color = card_visual.get_element_color()
+		var border_panel: Panel = card_visual.get_node_or_null("BorderPanel") as Panel
 		if not border_panel:
 			return
 
-		var glow_color = element_color.lightened(HandUI.GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(HandUI.GLOW_BRIGHTNESS_IDLE)
+		var glow_color: Color = element_color.lightened(HandUI.GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(HandUI.GLOW_BRIGHTNESS_IDLE)
 
 		# Apply glow via border style
-		var border_style = StyleBoxFlat.new()
+		var border_style: StyleBoxFlat = StyleBoxFlat.new()
 		border_style.bg_color = glow_color
 		border_style.set_corner_radius_all(card_visual.corner_radius)
 		border_style.anti_aliasing = true
@@ -418,9 +418,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	# Find player summoner (2D or 3D)
-	var summoners = get_tree().get_nodes_in_group("summoners")
+	var summoners: Array[Node] = get_tree().get_nodes_in_group("summoners")
 	for node in summoners:
-		var is_player = false
+		var is_player: bool = false
 
 		# Check for both Summoner and Summoner3D with proper type checking
 		if node is Summoner:
@@ -474,12 +474,12 @@ func _rebuild_hand_display() -> void:
 		return
 
 	# Create card displays
-	var total_width = summoner.hand.size() * CARD_WIDTH + (summoner.hand.size() - 1) * CARD_SPACING
-	var start_x = (size.x - total_width) / 2
+	var total_width: float = summoner.hand.size() * CARD_WIDTH + (summoner.hand.size() - 1) * CARD_SPACING
+	var start_x: float = (size.x - total_width) / 2
 
 	for i in range(summoner.hand.size()):
-		var card = summoner.hand[i]
-		var card_display = _create_card_display(card, i)
+		var card: Card = summoner.hand[i]
+		var card_display: Control = _create_card_display(card, i)
 		card_display.position = Vector2(start_x + i * (CARD_WIDTH + CARD_SPACING), 10)
 		add_child(card_display)
 		card_displays.append(card_display)
@@ -494,7 +494,7 @@ func _rebuild_hand_display() -> void:
 	is_rebuilding = false
 
 func _create_card_display(card: Card, index: int) -> Control:
-	var container = CardDisplay.new()
+	var container: CardDisplay = CardDisplay.new()
 	container.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	container.name = "CardDisplay%d" % index
@@ -503,14 +503,14 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.hand_ui = self
 
 	# Create SubViewport to render card content
-	var viewport = SubViewport.new()
+	var viewport: SubViewport = SubViewport.new()
 	viewport.name = "Viewport"
 	viewport.size = Vector2i(CARD_WIDTH, CARD_HEIGHT)
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
 	# Create SubViewportContainer to display and apply shader
-	var viewport_container = SubViewportContainer.new()
+	var viewport_container: SubViewportContainer = SubViewportContainer.new()
 	viewport_container.name = "ViewportContainer"
 	viewport_container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	viewport_container.stretch = true
@@ -519,7 +519,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	viewport_container.add_child(viewport)
 
 	# Instantiate CardVisual scene (preloaded at class level)
-	var card_visual = CARD_VISUAL_SCENE.instantiate() as CardVisual
+	var card_visual: CardVisual = CARD_VISUAL_SCENE.instantiate() as CardVisual
 	if not card_visual:
 		push_error("HandUI: Failed to instantiate CardVisual")
 		return container
@@ -535,7 +535,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Get catalog data to pass to CardVisual
-	var catalog_data = CardCatalog.get_card(card.catalog_id)
+	var catalog_data: Dictionary = CardCatalog.get_card(card.catalog_id)
 
 	# Set card data
 	card_visual.set_card_data(catalog_data)
@@ -558,19 +558,19 @@ func _update_selection_visual() -> void:
 		if i >= card_displays.size():
 			continue
 
-		var display = card_displays[i] as CardDisplay
+		var display: CardDisplay = card_displays[i] as CardDisplay
 		if not display:
 			continue
 
-		var card_visual = display._get_card_visual()
+		var card_visual: CardVisual = display._get_card_visual()
 		if not card_visual:
 			continue
 
-		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		var border_panel: Panel = card_visual.get_node_or_null("BorderPanel") as Panel
 		if not border_panel:
 			continue
 
-		var border_style = StyleBoxFlat.new()
+		var border_style: StyleBoxFlat = StyleBoxFlat.new()
 		border_style.set_corner_radius_all(card_visual.corner_radius)
 		border_style.anti_aliasing = true
 		border_style.anti_aliasing_size = 1
@@ -590,25 +590,25 @@ func _update_availability() -> void:
 		if i >= summoner.hand.size():
 			continue
 
-		var card = summoner.hand[i]
-		var display = card_displays[i] as CardDisplay
+		var card: Card = summoner.hand[i]
+		var display: CardDisplay = card_displays[i] as CardDisplay
 		if not display:
 			continue
 
-		var card_visual = display._get_card_visual()
+		var card_visual: CardVisual = display._get_card_visual()
 		if not card_visual:
 			continue
 
-		var bg_panel = card_visual.get_node_or_null("BackgroundPanel") as Panel
-		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		var bg_panel: Panel = card_visual.get_node_or_null("BackgroundPanel") as Panel
+		var border_panel: Panel = card_visual.get_node_or_null("BorderPanel") as Panel
 
 		# Check affordability
-		var can_afford = summoner.mana >= card.mana_cost
+		var can_afford: bool = summoner.mana >= card.mana_cost
 
 		if can_afford:
 			# Playable: normal background
 			if bg_panel:
-				var bg_style = StyleBoxFlat.new()
+				var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 				bg_style.bg_color = GameColorPalette.UI_BG_DARK
 				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
 				bg_style.anti_aliasing = true
@@ -622,7 +622,7 @@ func _update_availability() -> void:
 		else:
 			# Unaffordable: gray out background
 			if bg_panel:
-				var bg_style = StyleBoxFlat.new()
+				var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 				bg_style.bg_color = GameColorPalette.UI_BG_DARK
 				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
 				bg_style.anti_aliasing = true
@@ -634,14 +634,14 @@ func _update_availability() -> void:
 			if card_visual and i != selected_card_index:
 				# Kill pulse tween if it exists
 				if card_visual.has_meta("pulse_tween"):
-					var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+					var pulse_tween: Tween = card_visual.get_meta("pulse_tween") as Tween
 					if pulse_tween and pulse_tween.is_valid():
 						pulse_tween.kill()
 					card_visual.remove_meta("pulse_tween")
 
 				# Dim the element color for unaffordable cards
 				if border_panel:
-					var border_style = StyleBoxFlat.new()
+					var border_style: StyleBoxFlat = StyleBoxFlat.new()
 					border_style.bg_color = card_visual.get_element_color().darkened(0.5)
 					border_style.set_corner_radius_all(card_visual.corner_radius)
 					border_style.anti_aliasing = true
@@ -655,22 +655,22 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 
 	# Don't create if already pulsing
 	if card_visual.has_meta("pulse_tween"):
-		var existing = card_visual.get_meta("pulse_tween") as Tween
+		var existing: Tween = card_visual.get_meta("pulse_tween") as Tween
 		if existing and existing.is_valid():
 			return  # Already pulsing
 
 	# Kill any existing tween first
 	if card_visual.has_meta("pulse_tween"):
-		var old_tween = card_visual.get_meta("pulse_tween") as Tween
+		var old_tween: Tween = card_visual.get_meta("pulse_tween") as Tween
 		if old_tween and old_tween.is_valid():
 			old_tween.kill()
 
-	var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+	var border_panel: Panel = card_visual.get_node_or_null("BorderPanel") as Panel
 	if not border_panel:
 		return
 
 	# Store tween reference on the card_visual node
-	var pulse_tween = create_tween()
+	var pulse_tween: Tween = create_tween()
 	card_visual.set_meta("pulse_tween", pulse_tween)
 
 	pulse_tween.set_loops()
@@ -678,16 +678,16 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 	pulse_tween.set_ease(Tween.EASE_IN_OUT)
 
 	# Get element color for this card
-	var element_color = card_visual.get_element_color()
+	var element_color: Color = card_visual.get_element_color()
 
 	# Pulse between dim and bright element color
-	var dim_color = element_color.darkened(PULSE_BRIGHTNESS_OFFSET)
-	var bright_color = element_color.lightened(PULSE_BRIGHTNESS_OFFSET)
+	var dim_color: Color = element_color.darkened(PULSE_BRIGHTNESS_OFFSET)
+	var bright_color: Color = element_color.lightened(PULSE_BRIGHTNESS_OFFSET)
 
 	# Create a custom method to update border color via StyleBox
-	var update_border_color = func(color: Color):
+	var update_border_color: Callable = func(color: Color) -> void:
 		if border_panel and card_visual:
-			var style = StyleBoxFlat.new()
+			var style: StyleBoxFlat = StyleBoxFlat.new()
 			style.bg_color = color
 			style.set_corner_radius_all(card_visual.corner_radius)
 			style.anti_aliasing = true

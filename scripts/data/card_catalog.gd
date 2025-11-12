@@ -280,7 +280,7 @@ func _init_catalog() -> void:
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats
-	var size_templates = {
+	var size_templates: Dictionary = {
 		"small": {
 			"max_hp": 50.0,
 			"attack_damage": 8.0,
@@ -320,12 +320,12 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 	}
 
 	# Validate size parameter
-	var template = size_templates.get(size)
+	var template: Variant = size_templates.get(size)
 	if not template:
 		push_error("CardCatalog: Invalid slime size '%s' for color '%s'. Must be small/medium/large" % [size, color])
 		return
 
-	var catalog_id = "slime_%s" % color
+	var catalog_id: String = "slime_%s" % color
 
 	# Build card definition from template + overrides
 	_catalog[catalog_id] = {
@@ -380,42 +380,46 @@ func has_card(catalog_id: String) -> bool:
 	return _catalog.has(catalog_id)
 
 ## Get all card IDs
-func get_all_card_ids() -> Array:
-	return _catalog.keys()
+func get_all_card_ids() -> Array[String]:
+	var result: Array[String] = []
+	result.assign(_catalog.keys())
+	return result
 
 ## Get all card definitions
-func list_all_cards() -> Array:
-	return _catalog.values()
+func list_all_cards() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	result.assign(_catalog.values())
+	return result
 
 ## Get cards filtered by rarity
-func get_cards_by_rarity(rarity: String) -> Array:
-	var results = []
-	for card in _catalog.values():
+func get_cards_by_rarity(rarity: String) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for card: Dictionary in _catalog.values():
 		if card.get("rarity") == rarity:
 			results.append(card)
 	return results
 
 ## Get cards filtered by type (0 = SUMMON, 1 = SPELL)
-func get_cards_by_type(card_type: int) -> Array:
-	var results = []
-	for card in _catalog.values():
+func get_cards_by_type(card_type: int) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for card: Dictionary in _catalog.values():
 		if card.get("card_type") == card_type:
 			results.append(card)
 	return results
 
 ## Get cards filtered by tag
-func get_cards_by_tag(tag: String) -> Array:
-	var results = []
-	for card in _catalog.values():
-		var tags = card.get("tags", [])
+func get_cards_by_tag(tag: String) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for card: Dictionary in _catalog.values():
+		var tags: Array = card.get("tags", [])
 		if tag in tags:
 			results.append(card)
 	return results
 
 ## Get starter/default cards (unlock_condition = "default")
-func get_starter_cards() -> Array:
-	var results = []
-	for card in _catalog.values():
+func get_starter_cards() -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for card: Dictionary in _catalog.values():
 		if card.get("unlock_condition") == "default":
 			results.append(card)
 	return results
@@ -427,13 +431,13 @@ func get_starter_cards() -> Array:
 ## Create a Card resource from a catalog definition
 ## This generates a runtime Card object that can be played in-game
 func create_card_resource(catalog_id: String) -> Resource:
-	var card_def = get_card(catalog_id)
+	var card_def: Dictionary = get_card(catalog_id)
 	if card_def.is_empty():
 		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
 		return null
 
 	# Create Card instance from preloaded script
-	var card = CardScript.new()
+	var card: Resource = CardScript.new()
 
 	# Set basic properties
 	card.catalog_id = catalog_id
@@ -445,9 +449,9 @@ func create_card_resource(catalog_id: String) -> Resource:
 
 	# Set type-specific properties
 	if card.card_type == 0:  # SUMMON
-		var unit_scene_path = card_def.get("unit_scene_path", "")
+		var unit_scene_path: String = card_def.get("unit_scene_path", "")
 		if unit_scene_path != "":
-			var scene = load(unit_scene_path)
+			var scene: PackedScene = load(unit_scene_path)
 			if not scene:
 				push_error("CardCatalog: Failed to load unit scene '%s' for card '%s'" % [unit_scene_path, catalog_id])
 				return null
@@ -460,7 +464,7 @@ func create_card_resource(catalog_id: String) -> Resource:
 		card.projectile_id = card_def.get("projectile_id", "")
 
 	# Set icon if available
-	var icon_path = card_def.get("card_icon_path", "")
+	var icon_path: String = card_def.get("card_icon_path", "")
 	if icon_path != "":
 		card.card_icon = load(icon_path)
 
@@ -472,17 +476,17 @@ func create_card_resource(catalog_id: String) -> Resource:
 
 ## Get card display name (for UI)
 func get_card_name(catalog_id: String) -> String:
-	var card = get_card(catalog_id)
+	var card: Dictionary = get_card(catalog_id)
 	return card.get("card_name", catalog_id)
 
 ## Get card rarity (for UI coloring, etc.)
 func get_card_rarity(catalog_id: String) -> String:
-	var card = get_card(catalog_id)
+	var card: Dictionary = get_card(catalog_id)
 	return card.get("rarity", "common")
 
 ## Get card mana cost (for deck building validation)
 func get_card_cost(catalog_id: String) -> int:
-	var card = get_card(catalog_id)
+	var card: Dictionary = get_card(catalog_id)
 	return card.get("mana_cost", 0)
 
 ## Print catalog summary (debug)
@@ -490,25 +494,25 @@ func print_catalog_summary() -> void:
 	print("\n=== CARD CATALOG SUMMARY ===")
 	print("Total Cards: %d" % _catalog.size())
 
-	var by_rarity = {}
-	var by_type = {"summon": 0, "spell": 0}
+	var by_rarity: Dictionary = {}
+	var by_type: Dictionary = {"summon": 0, "spell": 0}
 
-	for card in _catalog.values():
+	for card: Dictionary in _catalog.values():
 		# Count by rarity
-		var rarity = card.get("rarity", "common")
+		var rarity: String = card.get("rarity", "common")
 		if not by_rarity.has(rarity):
 			by_rarity[rarity] = 0
 		by_rarity[rarity] += 1
 
 		# Count by type
-		var type = card.get("card_type", 0)
+		var type: int = card.get("card_type", 0)
 		if type == 0:
 			by_type["summon"] += 1
 		else:
 			by_type["spell"] += 1
 
 	print("\nBy Rarity:")
-	for rarity in by_rarity:
+	for rarity: String in by_rarity:
 		print("  %s: %d" % [rarity, by_rarity[rarity]])
 
 	print("\nBy Type:")
@@ -516,7 +520,7 @@ func print_catalog_summary() -> void:
 	print("  Spell: %d" % by_type["spell"])
 
 	print("\nStarter Cards:")
-	for card in get_starter_cards():
+	for card: Dictionary in get_starter_cards():
 		print("  - %s (%s, %d mana)" % [card.card_name, card.rarity, card.mana_cost])
 
 	print("===========================\n")

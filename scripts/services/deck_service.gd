@@ -52,7 +52,7 @@ func _ready() -> void:
 ## =============================================================================
 
 ## Get all decks for the current profile
-func list_decks() -> Array:
+func list_decks() -> Array[Dictionary]:
 	if _repo == null:
 		return []
 	return _repo.list_decks()
@@ -82,12 +82,12 @@ func create_deck(deck_name: String, card_instance_ids: Array = []) -> String:
 		push_error("DeckService: Cannot create deck, repo not initialized")
 		return ""
 
-	var deck = {
+	var deck: Dictionary = {
 		"name": deck_name,
 		"card_instance_ids": card_instance_ids
 	}
 
-	var deck_id = _repo.upsert_deck(deck)
+	var deck_id: String = _repo.upsert_deck(deck)
 
 	print("DeckService: Created deck '%s' (id: %s)" % [deck_name, deck_id])
 	deck_created.emit(deck_id)
@@ -102,18 +102,21 @@ func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Arr
 		push_error("DeckService: Cannot update deck, repo not initialized")
 		return false
 
-	var existing_deck = get_deck(deck_id)
+	var existing_deck: Dictionary = get_deck(deck_id)
 	if existing_deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
 		return false
 
-	var updated_deck = {
+	var name: String = deck_name if deck_name != "" else existing_deck.get("name")
+	var card_ids: Array = card_instance_ids if card_instance_ids.size() > 0 else existing_deck.get("card_instance_ids", [])
+
+	var updated_deck: Dictionary = {
 		"id": deck_id,
-		"name": deck_name if deck_name != "" else existing_deck.get("name"),
-		"card_instance_ids": card_instance_ids if card_instance_ids.size() > 0 else existing_deck.get("card_instance_ids", [])
+		"name": name,
+		"card_instance_ids": card_ids
 	}
 
-	var result_id = _repo.upsert_deck(updated_deck)
+	var result_id: String = _repo.upsert_deck(updated_deck)
 
 	if result_id != "":
 		print("DeckService: Updated deck '%s'" % deck_id)
@@ -130,7 +133,7 @@ func delete_deck(deck_id: String) -> bool:
 		push_error("DeckService: Cannot delete deck, repo not initialized")
 		return false
 
-	var success = _repo.delete_deck(deck_id)
+	var success: bool = _repo.delete_deck(deck_id)
 
 	if success:
 		print("DeckService: Deleted deck '%s'" % deck_id)
@@ -143,12 +146,12 @@ func delete_deck(deck_id: String) -> bool:
 ## Add a card to a deck
 ## Returns true if successful
 func add_card_to_deck(deck_id: String, card_instance_id: String) -> bool:
-	var deck = get_deck(deck_id)
+	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
 		return false
 
-	var card_instance_ids = deck.get("card_instance_ids", [])
+	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 
 	# Check if at max size
 	if card_instance_ids.size() >= MAX_DECK_SIZE:
@@ -156,7 +159,7 @@ func add_card_to_deck(deck_id: String, card_instance_id: String) -> bool:
 		return false
 
 	# Check if card exists in collection
-	var collection = get_node("/root/Collection")
+	var collection: Node = get_node("/root/Collection")
 	if collection and collection.get_card(card_instance_id).is_empty():
 		push_warning("DeckService: Card instance not found in collection: %s" % card_instance_id)
 		return false
@@ -168,14 +171,14 @@ func add_card_to_deck(deck_id: String, card_instance_id: String) -> bool:
 ## Remove a card from a deck
 ## Returns true if successful
 func remove_card_from_deck(deck_id: String, card_instance_id: String) -> bool:
-	var deck = get_deck(deck_id)
+	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
 		return false
 
-	var card_instance_ids = deck.get("card_instance_ids", [])
+	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 
-	var index = card_instance_ids.find(card_instance_id)
+	var index: int = card_instance_ids.find(card_instance_id)
 	if index == -1:
 		push_warning("DeckService: Card not found in deck: %s" % card_instance_id)
 		return false
@@ -191,12 +194,12 @@ func remove_card_from_deck(deck_id: String, card_instance_id: String) -> bool:
 ## Validate a deck
 ## Returns true if deck is valid and playable
 func validate_deck(deck_id: String) -> bool:
-	var deck = get_deck(deck_id)
+	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		_emit_validation_failed(deck_id, "Deck not found")
 		return false
 
-	var card_instance_ids = deck.get("card_instance_ids", [])
+	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 
 	# Check minimum size
 	if card_instance_ids.size() < MIN_DECK_SIZE:
@@ -209,10 +212,10 @@ func validate_deck(deck_id: String) -> bool:
 		return false
 
 	# Validate all cards exist in collection
-	var collection = get_node("/root/Collection")
+	var collection: Node = get_node("/root/Collection")
 	if collection:
 		for card_instance_id in card_instance_ids:
-			if collection.get_card(card_instance_id).is_empty():
+			if card_instance_id is String and collection.get_card(card_instance_id).is_empty():
 				_emit_validation_failed(deck_id, "Card instance not found in collection: %s" % card_instance_id)
 				return false
 
@@ -221,15 +224,15 @@ func validate_deck(deck_id: String) -> bool:
 
 ## Get validation errors for a deck (for UI display)
 ## Returns: Array of error strings
-func get_validation_errors(deck_id: String) -> Array:
-	var errors = []
-	var deck = get_deck(deck_id)
+func get_validation_errors(deck_id: String) -> Array[String]:
+	var errors: Array[String] = []
+	var deck: Dictionary = get_deck(deck_id)
 
 	if deck.is_empty():
 		errors.append("Deck not found")
 		return errors
 
-	var card_instance_ids = deck.get("card_instance_ids", [])
+	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 
 	# Check size constraints
 	if card_instance_ids.size() < MIN_DECK_SIZE:
@@ -239,11 +242,11 @@ func get_validation_errors(deck_id: String) -> Array:
 		errors.append("Deck has %d too many cards (maximum: %d)" % [card_instance_ids.size() - MAX_DECK_SIZE, MAX_DECK_SIZE])
 
 	# Check missing cards
-	var collection = get_node("/root/Collection")
+	var collection: Node = get_node("/root/Collection")
 	if collection:
-		var missing_count = 0
+		var missing_count: int = 0
 		for card_instance_id in card_instance_ids:
-			if collection.get_card(card_instance_id).is_empty():
+			if card_instance_id is String and collection.get_card(card_instance_id).is_empty():
 				missing_count += 1
 
 		if missing_count > 0:
@@ -254,20 +257,20 @@ func get_validation_errors(deck_id: String) -> Array:
 ## Clean a deck by removing missing cards
 ## Returns: number of cards removed
 func clean_deck(deck_id: String) -> int:
-	var deck = get_deck(deck_id)
+	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		return 0
 
-	var card_instance_ids = deck.get("card_instance_ids", [])
-	var collection = get_node("/root/Collection")
+	var card_instance_ids: Array = deck.get("card_instance_ids", [])
+	var collection: Node = get_node("/root/Collection")
 	if not collection:
 		return 0
 
-	var valid_cards = []
-	var removed_count = 0
+	var valid_cards: Array = []
+	var removed_count: int = 0
 
 	for card_instance_id in card_instance_ids:
-		if not collection.get_card(card_instance_id).is_empty():
+		if card_instance_id is String and not collection.get_card(card_instance_id).is_empty():
 			valid_cards.append(card_instance_id)
 		else:
 			removed_count += 1

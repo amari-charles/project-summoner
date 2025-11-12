@@ -12,7 +12,7 @@ func _init(id: String):
 
 ## Get all modifiers this hero provides
 func get_modifiers() -> Array:
-	var modifiers = []
+	var modifiers: Array = []
 
 	match hero_id:
 		"fire_hero":

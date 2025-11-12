@@ -26,8 +26,8 @@ func _process(delta: float) -> void:
 
 	# Check if it's time to execute next spawn
 	while script_index < spawn_script.size():
-		var spawn_event = spawn_script[script_index]
-		var trigger_time = spawn_event.get("delay", 0.0)
+		var spawn_event: Dictionary = spawn_script[script_index]
+		var trigger_time: float = spawn_event.get("delay", 0.0)
 
 		if time_since_start >= trigger_time:
 			_execute_spawn_event(spawn_event)
@@ -48,16 +48,16 @@ func load_script(script_data: Array) -> void:
 
 ## Execute a single spawn event from the script
 func _execute_spawn_event(event: Dictionary) -> void:
-	var card_name = event.get("card_name", "")
-	var position = event.get("position", Vector2.ZERO)
+	var card_name: String = event.get("card_name", "")
+	var position: Vector2 = event.get("position", Vector2.ZERO)
 
 	# Find the card in hand by name
-	var card_index = _find_card_by_name(card_name)
+	var card_index: int = _find_card_by_name(card_name)
 	if card_index == -1:
 		push_warning("ScriptedAI: Card '%s' not found in hand" % card_name)
 		return
 
-	var card = summoner.hand[card_index]
+	var card: Card = summoner.hand[card_index]
 
 	# Check if we can afford it
 	if not card.can_play(int(summoner.mana)):
@@ -66,7 +66,7 @@ func _execute_spawn_event(event: Dictionary) -> void:
 
 	# Play the card
 	if summoner.has_method("play_card_3d"):
-		var pos_3d = BattlefieldConstants.screen_to_world_3d(position)
+		var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(position)
 		summoner.play_card_3d(card_index, pos_3d)
 	else:
 		summoner.play_card(card_index, position)
@@ -74,7 +74,7 @@ func _execute_spawn_event(event: Dictionary) -> void:
 ## Find card in hand by catalog ID or card name
 func _find_card_by_name(card_name: String) -> int:
 	for i in range(summoner.hand.size()):
-		var card = summoner.hand[i]
+		var card: Card = summoner.hand[i]
 		# Match by card_name or catalog_id
 		if card.card_name.to_lower() == card_name.to_lower():
 			return i

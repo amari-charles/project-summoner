@@ -13,7 +13,7 @@ var _providers: Dictionary = {}  # provider_id -> provider object
 ## PROVIDER REGISTRATION
 ## =============================================================================
 
-func register_provider(provider_id: String, provider) -> void:
+func register_provider(provider_id: String, provider: Object) -> void:
 	if _providers.has(provider_id):
 		push_warning("ModifierSystem: Provider '%s' already registered, replacing" % provider_id)
 
@@ -36,17 +36,17 @@ func clear_providers() -> void:
 ## @param context: Additional context (hero_id, team, etc.)
 ## @return Array of modifier dictionaries
 func get_modifiers_for(target_type: String, categories: Dictionary, context: Dictionary = {}) -> Array:
-	var all_modifiers = []
+	var all_modifiers: Array = []
 
 	# Collect modifiers from all providers
 	for provider_id in _providers.keys():
-		var provider = _providers[provider_id]
+		var provider: Object = _providers[provider_id]
 		if provider.has_method("get_modifiers"):
-			var provider_mods = provider.get_modifiers()
+			var provider_mods: Array = provider.get_modifiers()
 			all_modifiers.append_array(provider_mods)
 
 	# Filter by conditions
-	var filtered = []
+	var filtered: Array = []
 	for mod in all_modifiers:
 		if _matches_conditions(mod, categories, context):
 			filtered.append(mod)
@@ -61,7 +61,7 @@ func get_modifiers_for(target_type: String, categories: Dictionary, context: Dic
 ## =============================================================================
 
 func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: Dictionary) -> bool:
-	var conditions = modifier.get("conditions", {})
+	var conditions: Dictionary = modifier.get("conditions", {})
 
 	# If no conditions, modifier always applies
 	if conditions.is_empty():
@@ -69,8 +69,8 @@ func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: 
 
 	# Check each condition
 	for condition_key in conditions.keys():
-		var required_value = conditions[condition_key]
-		var actual_value = categories.get(condition_key)
+		var required_value: Variant = conditions[condition_key]
+		var actual_value: Variant = categories.get(condition_key)
 
 		# Handle array values (tags)
 		if actual_value is Array:
@@ -87,7 +87,7 @@ func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: 
 	return true
 
 ## Helper: Check if actual element matches required (including origin check)
-func _matches_element(actual, required) -> bool:
+func _matches_element(actual: Variant, required: Variant) -> bool:
 	# Null safety - if either is null, no match
 	if actual == null or required == null:
 		return false
@@ -111,12 +111,12 @@ func _matches_element(actual, required) -> bool:
 ## Amplifiers multiply the bonuses provided by tagged modifiers
 func _apply_amplification(modifiers: Array) -> Array:
 	# Step 1: Find all amplifiers and calculate total amplification per tag
-	var amplifiers = {}  # tag -> total multiplier
+	var amplifiers: Dictionary = {}  # tag -> total multiplier
 
 	for mod in modifiers:
 		if mod.has("amplify_tag"):
-			var tag = mod.amplify_tag
-			var factor = mod.get("factor", 1.0)
+			var tag: Variant = mod.amplify_tag
+			var factor: float = mod.get("factor", 1.0)
 
 			if not amplifiers.has(tag):
 				amplifiers[tag] = 1.0
@@ -125,7 +125,7 @@ func _apply_amplification(modifiers: Array) -> Array:
 	# Step 2: Apply amplification to tagged modifiers
 	for mod in modifiers:
 		if mod.has("tags") and not mod.has("amplify_tag"):  # Don't amplify amplifiers
-			var total_amp = 1.0
+			var total_amp: float = 1.0
 
 			# Check all tags on this modifier
 			for tag in mod.tags:
@@ -142,7 +142,7 @@ func _apply_amplification(modifiers: Array) -> Array:
 				# Amplify multiplicative bonuses
 				if mod.has("stat_mults"):
 					for stat in mod.stat_mults.keys():
-						var bonus = mod.stat_mults[stat] - 1.0
+						var bonus: float = mod.stat_mults[stat] - 1.0
 						bonus *= total_amp
 						mod.stat_mults[stat] = 1.0 + bonus
 
@@ -159,7 +159,7 @@ func debug_print_providers() -> void:
 		print("  - %s" % provider_id)
 
 func debug_print_modifiers(categories: Dictionary = {}) -> void:
-	var modifiers = get_modifiers_for("unit", categories, {})
+	var modifiers: Array = get_modifiers_for("unit", categories, {})
 	print("=== Modifiers for categories: %s ===" % categories)
 	print("Total modifiers: %d" % modifiers.size())
 	for mod in modifiers:

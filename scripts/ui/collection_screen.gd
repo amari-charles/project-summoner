@@ -76,20 +76,20 @@ func _ready() -> void:
 	delete_deck_button.pressed.connect(_on_delete_deck_pressed)
 
 	# Connect filter buttons
-	all_button.pressed.connect(func(): _set_type_filter(-1))
-	summon_button.pressed.connect(func(): _set_type_filter(0))
-	spell_button.pressed.connect(func(): _set_type_filter(1))
-	common_button.pressed.connect(func(): _set_rarity_filter("common"))
-	rare_button.pressed.connect(func(): _set_rarity_filter("rare"))
-	epic_button.pressed.connect(func(): _set_rarity_filter("epic"))
+	all_button.pressed.connect(func() -> void: _set_type_filter(-1))
+	summon_button.pressed.connect(func() -> void: _set_type_filter(0))
+	spell_button.pressed.connect(func() -> void: _set_type_filter(1))
+	common_button.pressed.connect(func() -> void: _set_rarity_filter("common"))
+	rare_button.pressed.connect(func() -> void: _set_rarity_filter("rare"))
+	epic_button.pressed.connect(func() -> void: _set_rarity_filter("epic"))
 
 	# Connect to collection service
-	var collection = get_node("/root/Collection")
+	var collection: Node = get_node("/root/Collection")
 	if collection:
 		collection.collection_changed.connect(_on_collection_changed)
 
 	# Connect to deck service
-	var decks = get_node("/root/Decks")
+	var decks: Node = get_node("/root/Decks")
 	if decks:
 		decks.deck_changed.connect(_on_deck_changed)
 		decks.deck_created.connect(_on_deck_created)
@@ -130,12 +130,12 @@ func _switch_to_tab(tab: Tab) -> void:
 ## =============================================================================
 
 func _refresh_collection() -> void:
-	var collection = get_node("/root/Collection")
+	var collection: Node = get_node("/root/Collection")
 	if not collection:
 		push_error("CollectionScreen: Collection service not found!")
 		return
 
-	var catalog = get_node("/root/CardCatalog")
+	var catalog: Node = get_node("/root/CardCatalog")
 	if not catalog:
 		push_error("CollectionScreen: CardCatalog not found!")
 		return
@@ -144,8 +144,8 @@ func _refresh_collection() -> void:
 	collection_summary = collection.get_collection_summary()
 
 	# Update stats
-	var total_cards = 0
-	var unique_cards = collection_summary.size()
+	var total_cards: int = 0
+	var unique_cards: int = collection_summary.size()
 	for entry in collection_summary:
 		total_cards += entry.count
 
@@ -159,15 +159,15 @@ func _refresh_grid() -> void:
 	for child in card_grid.get_children():
 		child.queue_free()
 
-	var catalog = get_node("/root/CardCatalog")
+	var catalog: Node = get_node("/root/CardCatalog")
 	if not catalog:
 		return
 
 	# Filter collection summary
-	var filtered_cards = []
+	var filtered_cards: Array = []
 	for entry in collection_summary:
-		var catalog_id = entry.catalog_id
-		var catalog_data = catalog.get_card(catalog_id)
+		var catalog_id: String = entry.catalog_id
+		var catalog_data: Dictionary = catalog.get_card(catalog_id)
 
 		if catalog_data.is_empty():
 			continue
@@ -185,14 +185,14 @@ func _refresh_grid() -> void:
 		filtered_cards.append(entry)
 
 	# Create card widgets - show each instance individually
-	var total_widgets = 0
+	var total_widgets: int = 0
 	for entry in filtered_cards:
-		var instances = entry.instances
-		var catalog_data = catalog.get_card(entry.catalog_id)
+		var instances: Array = entry.instances
+		var catalog_data: Dictionary = catalog.get_card(entry.catalog_id)
 
 		# Create a widget for EACH individual card instance
 		for card_data in instances:
-			var widget = CardWidgetScene.instantiate()
+			var widget: CardWidget = CardWidgetScene.instantiate()
 			card_grid.add_child(widget)
 
 			# Set card data
@@ -200,7 +200,7 @@ func _refresh_grid() -> void:
 			widget.set_draggable(false)
 
 			# Connect selection (pass instance ID, not catalog ID)
-			var instance_id = card_data.get("id", "")
+			var instance_id: String = card_data.get("id", "")
 			widget.card_clicked.connect(_on_card_instance_selected.bind(instance_id, entry.catalog_id))
 
 			total_widgets += 1
@@ -236,11 +236,11 @@ func _update_filter_button_states() -> void:
 func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void:
 	selected_catalog_id = catalog_id
 
-	var catalog = get_node("/root/CardCatalog")
+	var catalog: Node = get_node("/root/CardCatalog")
 	if not catalog:
 		return
 
-	var catalog_data = catalog.get_card(catalog_id)
+	var catalog_data: Dictionary = catalog.get_card(catalog_id)
 	if catalog_data.is_empty():
 		return
 
@@ -248,14 +248,14 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 	card_name_label.text = catalog_data.get("card_name", "Unknown")
 	rarity_label.text = "Rarity: %s" % catalog_data.get("rarity", "common").capitalize()
 
-	var card_type = catalog_data.get("card_type", 0)
+	var card_type: int = catalog_data.get("card_type", 0)
 	type_label.text = "Type: %s" % ("Summon" if card_type == 0 else "Spell")
 
 	cost_label.text = "Cost: %d Mana" % catalog_data.get("mana_cost", 0)
 	description_label.text = catalog_data.get("description", "No description.")
 
 	# Get count of this card type from collection summary
-	var count = 0
+	var count: int = 0
 	for entry in collection_summary:
 		if entry.catalog_id == catalog_id:
 			count = entry.count
@@ -274,15 +274,15 @@ func _refresh_deck_list() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
 
-	var decks = get_node("/root/Decks")
+	var decks: Node = get_node("/root/Decks")
 	if not decks:
 		push_error("CollectionScreen: Decks service not found!")
 		return
 
-	var deck_list_data = decks.list_decks()
+	var deck_list_data: Array = decks.list_decks()
 
 	if deck_list_data.size() == 0:
-		var label = Label.new()
+		var label: Label = Label.new()
 		label.text = "No decks yet. Click 'NEW DECK' to create one!"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override("font_size", 20)
@@ -291,52 +291,52 @@ func _refresh_deck_list() -> void:
 
 	# Create deck list items
 	for deck_data in deck_list_data:
-		var deck_item = _create_deck_list_item(deck_data)
+		var deck_item: PanelContainer = _create_deck_list_item(deck_data)
 		deck_list.add_child(deck_item)
 
 	print("CollectionScreen: Loaded %d decks" % deck_list_data.size())
 
 func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
-	var panel = PanelContainer.new()
-	var margin = MarginContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_top", 15)
 	margin.add_theme_constant_override("margin_right", 15)
 	margin.add_theme_constant_override("margin_bottom", 15)
 	panel.add_child(margin)
 
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	margin.add_child(hbox)
 
 	# Deck name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = deck_data.get("name", "Unnamed Deck")
 	name_label.add_theme_font_size_override("font_size", 24)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
 	# Card count
-	var card_ids = deck_data.get("card_instance_ids", [])
-	var count_label = Label.new()
+	var card_ids: Array = deck_data.get("card_instance_ids", [])
+	var count_label: Label = Label.new()
 	count_label.text = "%d / 30" % card_ids.size()
 	count_label.add_theme_font_size_override("font_size", 20)
 	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hbox.add_child(count_label)
 
 	# Validation status
-	var decks = get_node("/root/Decks")
-	var is_valid = decks.validate_deck(deck_data.get("id", ""))
-	var status_label = Label.new()
+	var decks: Node = get_node("/root/Decks")
+	var is_valid: bool = decks.validate_deck(deck_data.get("id", ""))
+	var status_label: Label = Label.new()
 	status_label.text = "✓" if is_valid else "⚠"
 	status_label.add_theme_font_size_override("font_size", 24)
 	status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3) if is_valid else Color(1.0, 0.7, 0.3))
 	hbox.add_child(status_label)
 
 	# Make clickable
-	var button = Button.new()
+	var button: Button = Button.new()
 	button.flat = true
 	button.custom_minimum_size = panel.custom_minimum_size
-	var deck_id = deck_data.get("id", "")
+	var deck_id: String = deck_data.get("id", "")
 	button.pressed.connect(_on_deck_item_clicked.bind(deck_id))
 	panel.add_child(button)
 
@@ -346,16 +346,16 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 	print("CollectionScreen: Opening deck editor for: %s" % deck_id)
 
 	# Check if deck editing is locked (tutorial not complete)
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if campaign and not campaign.is_tutorial_complete():
 		print("CollectionScreen: Deck editing locked - tutorial not complete")
 		_show_deck_locked_message()
 		return
 
 	# Store selected deck ID in profile meta temporarily so deck builder can read it
-	var profile_repo = get_node("/root/ProfileRepo")
+	var profile_repo: Node = get_node("/root/ProfileRepo")
 	if profile_repo:
-		var profile = profile_repo.get_active_profile()
+		var profile: Dictionary = profile_repo.get_active_profile()
 		if not profile.is_empty():
 			profile["meta"]["editing_deck_id"] = deck_id
 			print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
@@ -364,7 +364,7 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 
 func _show_deck_locked_message() -> void:
 	# Show popup dialog informing player deck editing is locked
-	var dialog = AcceptDialog.new()
+	var dialog: AcceptDialog = AcceptDialog.new()
 	dialog.title = "Deck Locked"
 	dialog.dialog_text = "Complete the tutorial battles to unlock deck editing!\n\nYour deck will be automatically updated as you earn new cards."
 	dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
@@ -373,11 +373,11 @@ func _show_deck_locked_message() -> void:
 	dialog.confirmed.connect(dialog.queue_free)
 
 func _on_new_deck_pressed() -> void:
-	var decks = get_node("/root/Decks")
+	var decks: Node = get_node("/root/Decks")
 	if not decks:
 		return
 
-	var deck_id = decks.create_deck("New Deck", [])
+	var deck_id: String = decks.create_deck("New Deck", [])
 	print("CollectionScreen: Created new deck: %s" % deck_id)
 
 func _on_delete_deck_pressed() -> void:

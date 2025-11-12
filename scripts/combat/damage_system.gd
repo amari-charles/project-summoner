@@ -45,8 +45,8 @@ func apply_damage(
 		return 0.0
 
 	# Calculate final damage
-	var final_damage = base_damage
-	var is_crit = false
+	var final_damage: float = base_damage
+	var is_crit: bool = false
 
 	# Check for critical hit (unless forced by flags)
 	if flags.get("force_crit", false):
@@ -70,7 +70,7 @@ func apply_damage(
 	final_damage = round(final_damage * 10) / 10.0
 
 	# Store target's HP before damage
-	var target_hp_before = 0.0
+	var target_hp_before: float = 0.0
 	if "current_hp" in target:
 		target_hp_before = target.current_hp
 
@@ -78,7 +78,7 @@ func apply_damage(
 	target.take_damage(final_damage)
 
 	# Create metadata for event
-	var metadata = {
+	var metadata: Dictionary = {
 		"is_crit": is_crit,
 		"base_damage": base_damage,
 		"final_damage": final_damage,
@@ -87,7 +87,7 @@ func apply_damage(
 	metadata.merge(flags)  # Include any custom flags
 
 	# Emit DAMAGE_DEALT event (from attacker's perspective)
-	var dealt_event = CombatEvent.new(
+	var dealt_event: CombatEvent = CombatEvent.new(
 		CombatEvent.EventType.DAMAGE_DEALT,
 		attacker,
 		target,
@@ -98,7 +98,7 @@ func apply_damage(
 	damage_dealt.emit(dealt_event)
 
 	# Emit DAMAGE_TAKEN event (from target's perspective)
-	var taken_event = CombatEvent.new(
+	var taken_event: CombatEvent = CombatEvent.new(
 		CombatEvent.EventType.DAMAGE_TAKEN,
 		attacker,
 		target,
@@ -109,7 +109,7 @@ func apply_damage(
 	damage_taken.emit(taken_event)
 
 	# Check if target died
-	var target_died = false
+	var target_died: bool = false
 	if "is_alive" in target:
 		target_died = not target.is_alive
 	elif "current_hp" in target:
@@ -117,7 +117,7 @@ func apply_damage(
 
 	if target_died:
 		# Emit UNIT_KILLED event (from attacker's perspective)
-		var killed_event = CombatEvent.new(
+		var killed_event: CombatEvent = CombatEvent.new(
 			CombatEvent.EventType.UNIT_KILLED,
 			attacker,
 			target,
@@ -128,7 +128,7 @@ func apply_damage(
 		unit_killed.emit(killed_event)
 
 		# Emit UNIT_DIED event (from target's perspective)
-		var died_event = CombatEvent.new(
+		var died_event: CombatEvent = CombatEvent.new(
 			CombatEvent.EventType.UNIT_DIED,
 			attacker,
 			target,
@@ -153,22 +153,22 @@ func apply_healing(
 		return 0.0
 
 	# Calculate final heal amount
-	var final_heal = heal_amount
+	var final_heal: float = heal_amount
 
 	# Apply custom multiplier from flags
 	if flags.has("heal_multiplier"):
 		final_heal *= flags.heal_multiplier
 
 	# Store HP before healing
-	var hp_before = target.current_hp
+	var hp_before: float = target.current_hp
 
 	# Apply healing (clamp to max_hp)
-	var new_hp = min(target.current_hp + final_heal, target.max_hp)
-	var actual_heal = new_hp - target.current_hp
+	var new_hp: float = min(target.current_hp + final_heal, target.max_hp)
+	var actual_heal: float = new_hp - target.current_hp
 	target.current_hp = new_hp
 
 	# Create metadata
-	var metadata = {
+	var metadata: Dictionary = {
 		"requested_heal": heal_amount,
 		"final_heal": final_heal,
 		"actual_heal": actual_heal,
@@ -179,7 +179,7 @@ func apply_healing(
 	metadata.merge(flags)
 
 	# Emit UNIT_HEALED event
-	var healed_event = CombatEvent.new(
+	var healed_event: CombatEvent = CombatEvent.new(
 		CombatEvent.EventType.UNIT_HEALED,
 		healer,
 		target,
@@ -193,7 +193,7 @@ func apply_healing(
 
 ## Emit attack started event (for animation/VFX timing)
 func emit_attack_started(attacker: Node3D, target: Node3D, metadata: Dictionary = {}) -> void:
-	var event = CombatEvent.new(
+	var event: CombatEvent = CombatEvent.new(
 		CombatEvent.EventType.ATTACK_STARTED,
 		attacker,
 		target,
@@ -205,7 +205,7 @@ func emit_attack_started(attacker: Node3D, target: Node3D, metadata: Dictionary 
 
 ## Emit attack completed event (for animation/VFX timing)
 func emit_attack_completed(attacker: Node3D, target: Node3D, metadata: Dictionary = {}) -> void:
-	var event = CombatEvent.new(
+	var event: CombatEvent = CombatEvent.new(
 		CombatEvent.EventType.ATTACK_COMPLETED,
 		attacker,
 		target,
@@ -218,7 +218,7 @@ func emit_attack_completed(attacker: Node3D, target: Node3D, metadata: Dictionar
 ## Emit spell cast event
 func emit_spell_cast(caster: Node3D, spell_id: String, metadata: Dictionary = {}) -> void:
 	metadata["spell_id"] = spell_id
-	var event = CombatEvent.new(
+	var event: CombatEvent = CombatEvent.new(
 		CombatEvent.EventType.SPELL_CAST,
 		caster,
 		null,
@@ -237,7 +237,7 @@ func preview_damage(
 	damage_type: String = "physical",
 	assume_crit: bool = false
 ) -> Dictionary:
-	var final_damage = base_damage
+	var final_damage: float = base_damage
 
 	# Apply crit if assumed
 	if assume_crit:

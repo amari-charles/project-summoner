@@ -33,7 +33,7 @@ func _ready() -> void:
 	start_battle_button.pressed.connect(_on_start_battle_pressed)
 
 	# Connect to campaign service
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
 		campaign.battle_completed.connect(_on_battle_completed)
 		campaign.campaign_progress_changed.connect(_on_progress_changed)
@@ -54,7 +54,7 @@ func _refresh_battle_list() -> void:
 	for child in battle_list.get_children():
 		child.queue_free()
 
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		push_error("CampaignScreen: Campaign service not found!")
 		return
@@ -62,7 +62,7 @@ func _refresh_battle_list() -> void:
 	all_battles = campaign.get_all_battles()
 
 	if all_battles.is_empty():
-		var label = Label.new()
+		var label: Label = Label.new()
 		label.text = "No battles available."
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override("font_size", 20)
@@ -71,37 +71,37 @@ func _refresh_battle_list() -> void:
 
 	# Create battle list items
 	for battle in all_battles:
-		var battle_item = _create_battle_list_item(battle)
+		var battle_item: PanelContainer = _create_battle_list_item(battle)
 		battle_list.add_child(battle_item)
 
 	print("CampaignScreen: Loaded %d battles" % all_battles.size())
 
 func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
-	var panel = PanelContainer.new()
-	var margin = MarginContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_top", 10)
 	margin.add_theme_constant_override("margin_right", 15)
 	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	margin.add_child(hbox)
 
-	var campaign = get_node("/root/Campaign")
-	var battle_id = battle_data.get("id", "")
-	var is_completed = campaign.is_battle_completed(battle_id)
-	var is_unlocked = campaign.is_battle_unlocked(battle_id)
+	var campaign: Node = get_node("/root/Campaign")
+	var battle_id: String = battle_data.get("id", "")
+	var is_completed: bool = campaign.is_battle_completed(battle_id)
+	var is_unlocked: bool = campaign.is_battle_unlocked(battle_id)
 
 	# Battle name
-	var name_label = Label.new()
+	var name_label: Label = Label.new()
 	name_label.text = battle_data.get("name", "Unknown Battle")
 	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
 	# Status indicator
-	var status_label = Label.new()
+	var status_label: Label = Label.new()
 	if is_completed:
 		status_label.text = "✓ COMPLETE"
 		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
@@ -117,7 +117,7 @@ func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 
 	# Make clickable if unlocked
 	if is_unlocked:
-		var button = Button.new()
+		var button: Button = Button.new()
 		button.flat = true
 		button.custom_minimum_size = panel.custom_minimum_size
 		button.pressed.connect(_on_battle_selected.bind(battle_id))
@@ -125,7 +125,7 @@ func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 
 		# Style for selected
 		if battle_id == selected_battle_id:
-			var style = StyleBoxFlat.new()
+			var style: StyleBoxFlat = StyleBoxFlat.new()
 			style.bg_color = Color(0.3, 0.3, 0.4)
 			style.border_width_left = 3
 			style.border_width_right = 3
@@ -155,34 +155,34 @@ func _update_detail_panel() -> void:
 		start_battle_button.disabled = true
 		return
 
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		return
 
-	var battle = campaign.get_battle(selected_battle_id)
+	var battle: Dictionary = campaign.get_battle(selected_battle_id)
 	if battle.is_empty():
 		return
 
 	# Update labels
 	battle_name_label.text = battle.get("name", "Unknown")
 
-	var difficulty = battle.get("difficulty", 1)
-	var diff_stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
+	var difficulty: int = battle.get("difficulty", 1)
+	var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
 	difficulty_label.text = "Difficulty: %s" % diff_stars
 
 	description_label.text = battle.get("description", "No description.")
 
 	# Reward summary
-	var reward_type = battle.get("reward_type", "fixed")
-	var reward_cards = battle.get("reward_cards", [])
-	var reward_text = ""
+	var reward_type: String = battle.get("reward_type", "fixed")
+	var reward_cards: Array = battle.get("reward_cards", [])
+	var reward_text: String = ""
 
 	match reward_type:
 		"fixed":
-			var card_names = []
+			var card_names: Array[String] = []
 			for reward in reward_cards:
-				var count = reward.get("count", 1)
-				var catalog_id = reward.get("catalog_id", "")
+				var count: int = reward.get("count", 1)
+				var catalog_id: String = reward.get("catalog_id", "")
 				if count > 1:
 					card_names.append("%dx %s" % [count, catalog_id.capitalize()])
 				else:
@@ -190,13 +190,13 @@ func _update_detail_panel() -> void:
 			reward_text = "Reward: " + ", ".join(card_names)
 
 		"choice":
-			var options = []
+			var options: Array[String] = []
 			for reward in reward_cards:
 				options.append(reward.get("catalog_id", "").capitalize())
 			reward_text = "Reward: Choose from " + ", ".join(options)
 
 		"random":
-			var count = 0
+			var count: int = 0
 			for reward in reward_cards:
 				count += reward.get("count", 1)
 			reward_text = "Reward: Random (%d cards)" % count
@@ -204,7 +204,7 @@ func _update_detail_panel() -> void:
 	reward_label.text = reward_text
 
 	# Enable/disable start button
-	var is_completed = campaign.is_battle_completed(selected_battle_id)
+	var is_completed: bool = campaign.is_battle_completed(selected_battle_id)
 	if is_completed:
 		start_battle_button.text = "REPLAY BATTLE (no reward)"
 		start_battle_button.disabled = false
@@ -217,12 +217,12 @@ func _update_detail_panel() -> void:
 ## =============================================================================
 
 func _update_progress_display() -> void:
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		return
 
-	var completed = campaign.get_completed_battles().size()
-	var total = campaign.get_all_battles().size()
+	var completed: int = campaign.get_completed_battles().size()
+	var total: int = campaign.get_all_battles().size()
 
 	progress_label.text = "%d / %d Complete" % [completed, total]
 
@@ -237,9 +237,9 @@ func _on_start_battle_pressed() -> void:
 	print("CampaignScreen: Starting battle: %s" % selected_battle_id)
 
 	# Store selected battle in campaign service for game to access
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
-		var profile = get_node("/root/ProfileRepo").get_active_profile()
+		var profile: Dictionary = get_node("/root/ProfileRepo").get_active_profile()
 		if not profile.is_empty():
 			if not profile.has("campaign_progress"):
 				profile["campaign_progress"] = {}
@@ -247,7 +247,7 @@ func _on_start_battle_pressed() -> void:
 			get_node("/root/ProfileRepo").save_profile(true)  # Force immediate save
 
 	# Configure battle context for campaign mode
-	var battle_context = get_node("/root/BattleContext")
+	var battle_context: Node = get_node("/root/BattleContext")
 	if battle_context:
 		battle_context.configure_campaign_battle(selected_battle_id)
 
