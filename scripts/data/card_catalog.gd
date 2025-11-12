@@ -241,11 +241,13 @@ func _init_catalog() -> void:
 
 ## Get card definition by catalog_id
 ## Returns Dictionary or empty {} if not found
+## Returns a shallow duplicate to protect catalog data from external modifications
 func get_card(catalog_id: String) -> Dictionary:
 	if not _catalog.has(catalog_id):
 		push_warning("CardCatalog: Card '%s' not found in catalog" % catalog_id)
 		return {}
-	return _catalog[catalog_id]
+	# Return shallow duplicate - preserves Element object references while preventing corruption
+	return _catalog[catalog_id].duplicate(false)
 
 ## Check if a card exists in the catalog
 func has_card(catalog_id: String) -> bool:

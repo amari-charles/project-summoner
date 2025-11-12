@@ -26,7 +26,7 @@ static func get_element_border_color(element_id: String) -> Color:
 		"water":
 			return GameColorPalette.WATER_PRIMARY
 		"wind":
-			return Color("#87ceeb")  # Sky blue
+			return Color("#eeeeee")  # White with gray tint
 		"earth":
 			return GameColorPalette.EARTH_PRIMARY
 
@@ -87,14 +87,16 @@ static func get_card_element_color(card_data) -> Color:
 		if categories is Dictionary and categories.has("elemental_affinity"):
 			var affinity = categories.elemental_affinity
 			if affinity:
-				# Convert Element object to string if needed
-				var affinity_id = affinity.id if affinity is ElementTypes.Element else str(affinity)
-				var color = get_element_border_color(affinity_id)
-				print("CardVisualHelper: Card '%s' has element '%s' -> color %s" % [catalog_dict.get("card_name", "unknown"), affinity_id, color])
-				return color
+				# Validate Element object - fail loudly if invalid
+				if typeof(affinity) == TYPE_OBJECT and "id" in affinity:
+					var affinity_id = affinity.id
+					return get_element_border_color(affinity_id)
+				else:
+					push_error("CardVisualHelper: Invalid elemental_affinity for card '%s' - expected Element object, got type %s with value: %s" % [catalog_dict.get("card_name", "unknown"), typeof(affinity), affinity])
+					assert(false, "Corrupted element data - fix the card catalog!")
+					return Color.MAGENTA  # Unreachable in debug, but needed for release builds
 
 	# Fallback: use card type-based colors (should rarely happen)
-	print("CardVisualHelper: Card '%s' has NO element, using card type fallback" % catalog_dict.get("card_name", "unknown"))
 	var card_type = catalog_dict.get("card_type", 0)
 	if card_type == 0:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon

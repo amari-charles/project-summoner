@@ -44,7 +44,7 @@ const NEUTRAL_LIGHT = Color("#9a9a9a")
 ## =============================================================================
 
 ## Fire element
-const FIRE_PRIMARY = Color("#e84a3f")    # Bright red-orange
+const FIRE_PRIMARY = Color("#ff7a2a")    # Bright orange
 const FIRE_SECONDARY = Color("#ff6b4a")  # Light flame
 const FIRE_DARK = Color("#b83020")       # Deep ember
 
@@ -64,7 +64,7 @@ const STORM_SECONDARY = Color("#c4a3ff")   # Light lavender
 const STORM_DARK = Color("#7256cc")        # Deep violet
 
 ## Earth/Rock element
-const EARTH_PRIMARY = Color("#c4834a")    # Orange-brown
+const EARTH_PRIMARY = Color("#8A3324")    # Dark reddish-brown
 const EARTH_SECONDARY = Color("#d9a574")  # Light tan
 const EARTH_DARK = Color("#8b5a2b")       # Deep clay
 
