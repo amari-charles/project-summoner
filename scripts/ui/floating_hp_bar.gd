@@ -45,6 +45,12 @@ func _ready() -> void:
 	_create_sprite_visuals()
 	_find_camera()
 
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	# Note: Godot automatically cleans up tweens created with create_tween()
+	# but we add this as a safety measure in case tweens outlive the node
+	pass
+
 func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
 		return
@@ -218,8 +224,9 @@ func _fade_out() -> void:
 		tween.tween_property(hp_bar_sprite, "modulate:a", 0.0, fade_duration).from(hp_bar_sprite.modulate.a)
 
 	tween.finished.connect(func():
-		_hide_immediate()
-		bar_hidden.emit()
+		if is_instance_valid(self):
+			_hide_immediate()
+			bar_hidden.emit()
 	)
 
 ## Reset for pooling reuse

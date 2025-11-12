@@ -19,7 +19,7 @@ static func load_enemy_deck_for_battle() -> Array[Card]:
 
 	var battle_config = battle_context.battle_config
 	if battle_config.is_empty():
-		push_error("EnemyDeckLoader: Battle config is empty!")
+		push_error("EnemyDeckLoader: Battle config is empty! Configure BattleContext before loading battle scene.")
 		return cards
 
 	# Get enemy deck definition from config

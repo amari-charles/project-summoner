@@ -1,0 +1,120 @@
+[gd_scene load_steps=8 format=3 uid="uid://test_battle_slimes"]
+
+[ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
+[ext_resource type="Script" path="res://scripts/core/test_slimes_controller.gd" id="2_test_controller"]
+[ext_resource type="Script" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
+[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
+[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
+[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
+
+[node name="TestBattleSlimes" type="Node3D"]
+script = ExtResource("2_test_controller")
+
+[node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
+
+[node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
+script = ExtResource("3_summoner")
+
+[node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
+script = ExtResource("3_summoner")
+team = 1
+skip_battle_context_loading = true
+
+[node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
+
+[node name="EnemyBase3D" parent="." instance=ExtResource("5_enemy_base")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="BattlefieldDropZone" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7_drop_zone")
+
+[node name="TestModeLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 400.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 28
+text = "SLIME TEST MODE"
+
+[node name="InstructionsLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 600.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "Infinite Mana | Infinite Enemy HP
+Test all 9 slime types!
+Watch death animations when units die"
+
+[node name="PlayerManaLabel" type="Label" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -40.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Mana: ∞"
+
+[node name="PlayerHPLabel" type="Label" parent="UI"]
+offset_left = 20.0
+offset_top = 140.0
+offset_right = 300.0
+offset_bottom = 180.0
+theme_override_colors/font_color = Color(0.831, 0.647, 0.455, 1)
+theme_override_font_sizes/font_size = 24
+text = "Player Base: ∞"
+
+[node name="EnemyHPLabel" type="Label" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 140.0
+offset_right = -20.0
+offset_bottom = 180.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.353, 0.482, 0.549, 1)
+theme_override_font_sizes/font_size = 24
+text = "Enemy Base: ∞"
+horizontal_alignment = 2
+
+[node name="GameOverLabel" type="Label" parent="UI"]
+process_mode = 3
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 72
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
+
+[connection signal="game_ended" from="." to="." method="_on_game_ended"]
+[connection signal="time_updated" from="." to="." method="_on_time_updated"]

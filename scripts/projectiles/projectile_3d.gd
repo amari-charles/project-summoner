@@ -426,8 +426,9 @@ func _expire_with_fade() -> void:
 
 	# When tween finishes, hide and cleanup
 	tween.finished.connect(func():
-		visible = false
-		_expire_immediate()
+		if is_instance_valid(self):
+			visible = false
+			_expire_immediate()
 	)
 
 ## Expire projectile immediately (no animation)

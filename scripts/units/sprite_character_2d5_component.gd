@@ -9,6 +9,9 @@ class_name SpriteCharacter2D5Component
 ## Example: 100px texture with feet at 70px from top = 30px offset
 @export var feet_offset_pixels: float = 0.0
 @export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
+## Scale for sprite within viewport (default 2.5 works for 100px sprites)
+## For larger sprites, calculate as: 250 / sprite_height (e.g., 310px sprites = 0.806)
+@export var sprite_scale: float = 2.5
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
@@ -17,6 +20,9 @@ class_name SpriteCharacter2D5Component
 func _ready() -> void:
 	# Force viewport to render every frame
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
+	# Apply sprite scale
+	character_sprite.scale = Vector2(sprite_scale, sprite_scale)
 
 	# Bottom-align sprite using offset (feet at origin)
 	_setup_sprite_alignment()
@@ -36,10 +42,17 @@ func set_flip_h(flip: bool) -> void:
 ## Play an animation
 func play_animation(anim_name: String, auto_play: bool = false) -> void:
 	if character_sprite and character_sprite.sprite_frames:
-		character_sprite.animation = anim_name
-		if auto_play:
-			character_sprite.autoplay = anim_name
-		character_sprite.play()
+		# Check if animation exists before trying to play it
+		if character_sprite.sprite_frames.has_animation(anim_name):
+			character_sprite.animation = anim_name
+			if auto_play:
+				character_sprite.autoplay = anim_name
+			character_sprite.play()
+		else:
+			push_warning("Animation '%s' not found in sprite_frames, falling back to 'idle'" % anim_name)
+			if character_sprite.sprite_frames.has_animation("idle"):
+				character_sprite.animation = "idle"
+				character_sprite.play()
 
 ## Stop current animation
 func stop_animation() -> void:

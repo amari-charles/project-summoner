@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Card" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card_script"]
+[ext_resource type="PackedScene" path="res://scenes/units/slime_blue_3d.tscn" id="2_unit_scene"]
+
+[resource]
+script = ExtResource("1_card_script")
+card_name = "Blue Slime"
+card_type = 0
+description = "A well-rounded slime of medium size. Balanced and reliable."
+mana_cost = 3
+cooldown = 2.0
+unit_scene = ExtResource("2_unit_scene")
+spawn_count = 1
+spell_damage = 0.0
+spell_radius = 0.0
+spell_duration = 0.0

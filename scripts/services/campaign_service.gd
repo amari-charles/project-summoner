@@ -68,14 +68,14 @@ func _init_battles() -> void:
 			{"catalog_id": "warrior", "rarity": "common", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "training_dummy", "count": 1}
+			{"catalog_id": "slime_green", "count": 1}
 		],
 		"enemy_hp": 30.0,  # Very low HP for tutorial (2 hits)
 		"unlock_requirements": [],
 		# AI Configuration
 		"ai_type": "scripted",
 		"ai_script": [
-			{"delay": 0.0, "card_name": "Training Dummy", "position": {"x": 1400, "y": 540}}
+			{"delay": 0.0, "card_name": "Green Slime", "position": {"x": 1400, "y": 540}}
 		]
 	}
 

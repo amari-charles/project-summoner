@@ -55,6 +55,7 @@ var active_modifiers: Dictionary = {}
 ## Visuals
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 @export var sprite_feet_offset_pixels: float = 0.0  ## Offset from texture bottom to actual feet (for sprites with empty space below)
+@export var sprite_scale: float = 2.5  ## Scale for sprite in viewport (default 2.5 for 100px sprites, use 0.806 for 310px sprites)
 
 ## Shadow settings
 @export var shadow_enabled: bool = true
@@ -130,6 +131,10 @@ func _setup_visuals() -> void:
 		# Configure feet offset if specified
 		if sprite_feet_offset_pixels > 0.0 and "feet_offset_pixels" in visual_component:
 			visual_component.feet_offset_pixels = sprite_feet_offset_pixels
+
+		# Configure sprite scale if specified
+		if "sprite_scale" in visual_component:
+			visual_component.sprite_scale = sprite_scale
 
 		add_child(visual_component)
 

@@ -248,17 +248,17 @@ static func get_card_layout(card_size: Vector2, show_description: bool) -> Dicti
 ## =============================================================================
 
 ## Format card name for display (handle wrapping for long names)
-static func format_card_name(name: String, max_length: int = 20) -> String:
-	if name.length() <= max_length:
-		return name
+static func format_card_name(card_name: String, max_length: int = 20) -> String:
+	if card_name.length() <= max_length:
+		return card_name
 
 	# Try to wrap at word boundaries
-	var words = name.split(" ")
+	var words = card_name.split(" ")
 	if words.size() > 1:
 		return "\n".join(words)
 
 	# If single long word, just truncate
-	return name.substr(0, max_length - 3) + "..."
+	return card_name.substr(0, max_length - 3) + "..."
 
 ## Format description text for card (truncate if too long)
 static func format_card_description(desc: String, max_chars: int = 100) -> String:

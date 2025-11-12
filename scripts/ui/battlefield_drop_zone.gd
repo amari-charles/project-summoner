@@ -33,7 +33,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 ## Check if we can drop the card here
-func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	# Validate drop data
 	if not data is Dictionary:
 		return false

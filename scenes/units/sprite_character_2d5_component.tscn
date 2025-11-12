@@ -25,5 +25,5 @@ size = Vector2i(250, 250)
 
 [node name="CharacterSprite" type="AnimatedSprite2D" parent="Sprite3D/SubViewport/Model2D"]
 position = Vector2(125, 125)
-scale = Vector2(2.5, 2.5)
+scale = Vector2(1, 1)
 centered = true

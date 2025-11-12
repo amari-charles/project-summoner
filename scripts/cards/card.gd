@@ -126,13 +126,14 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node) ->
 	for i in spawn_count:
 		var unit = unit_scene.instantiate() as Unit3D
 		if unit:
-			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 			unit.team = team
 
 			# Initialize with modifiers BEFORE adding to scene
 			unit.initialize_with_modifiers(modifiers, card_data)
 
+			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
+			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene!")
 

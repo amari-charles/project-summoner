@@ -289,6 +289,6 @@ func get_element_color() -> Color:
 	return element_color
 
 ## Enable/disable glow effect (can be extended with shader)
-func set_glow(enabled: bool) -> void:
+func set_glow(_enabled: bool) -> void:
 	# TODO: Add glow shader effect
 	pass

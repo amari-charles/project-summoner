@@ -211,8 +211,9 @@ func _validate_content() -> void:
 	for unit_data in units.values():
 		if unit_data.max_hp <= 0:
 			errors.append("Unit '%s' has invalid HP: %.1f" % [unit_data.unit_id, unit_data.max_hp])
-		if unit_data.attack_speed <= 0:
-			errors.append("Unit '%s' has invalid attack speed: %.1f" % [unit_data.unit_id, unit_data.attack_speed])
+		# Only validate attack speed for units that can actually attack
+		if unit_data.attack_damage > 0 and unit_data.attack_speed <= 0:
+			errors.append("Unit '%s' has attack damage but invalid attack speed: %.1f" % [unit_data.unit_id, unit_data.attack_speed])
 
 	# Report errors
 	if errors.size() > 0:

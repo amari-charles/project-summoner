@@ -11,6 +11,7 @@ class_name Summoner3D
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
 @export var load_deck_from_profile: bool = false
+@export var skip_battle_context_loading: bool = false  ## For test scenes that manually configure decks
 
 ## Resources
 @export var mana_regen_rate: float = 1.0
@@ -54,14 +55,18 @@ func _ready() -> void:
 		else:
 			print("Summoner3D: Successfully loaded %d cards from profile" % deck.size())
 	elif team == Unit3D.Team.ENEMY:
-		# Enemy deck always comes from BattleContext
-		print("Summoner3D: Loading enemy deck from BattleContext...")
-		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
-		if deck.is_empty():
-			push_warning("Summoner3D: Failed to load enemy deck! Using fallback deck.")
+		# Enemy deck comes from BattleContext (unless skip flag is set for test scenes)
+		if skip_battle_context_loading:
+			print("Summoner3D: Skipping BattleContext loading (test scene mode)")
 			deck = starting_deck.duplicate()
 		else:
-			print("Summoner3D: Successfully loaded %d cards for enemy from BattleContext" % deck.size())
+			print("Summoner3D: Loading enemy deck from BattleContext...")
+			deck = EnemyDeckLoader.load_enemy_deck_for_battle()
+			if deck.is_empty():
+				push_warning("Summoner3D: Failed to load enemy deck! Using fallback deck.")
+				deck = starting_deck.duplicate()
+			else:
+				print("Summoner3D: Successfully loaded %d cards for enemy from BattleContext" % deck.size())
 	else:
 		deck = starting_deck.duplicate()
 		print("Summoner3D: Using exported starting_deck (%d cards)" % deck.size())

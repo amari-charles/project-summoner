@@ -72,6 +72,18 @@ class CardDisplay extends Control:
 		if viewport_container:
 			_setup_3d_shader()
 
+	func _exit_tree() -> void:
+		# Kill any active tweens to prevent lambda capture errors
+		if hover_tween and hover_tween.is_valid():
+			hover_tween.kill()
+
+		# Kill pulse tween stored in card visual metadata
+		var card_visual = _get_card_visual()
+		if card_visual and card_visual.has_meta("pulse_tween"):
+			var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+			if pulse_tween and pulse_tween.is_valid():
+				pulse_tween.kill()
+
 	## Get CardVisual component from this card display
 	func _get_card_visual() -> CardVisual:
 		var viewport = get_node_or_null("ViewportContainer/Viewport")
@@ -198,7 +210,8 @@ class CardDisplay extends Control:
 
 		# Update base_position after animation completes
 		entrance_tween.finished.connect(func():
-			base_position = position
+			if is_instance_valid(self):
+				base_position = position
 		)
 
 	## Start dragging this card
@@ -311,20 +324,27 @@ class CardDisplay extends Control:
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
 			rotation_tween.tween_method(
-				func(val): shader_material.set_shader_parameter("rot_x_deg", val),
+				func(val):
+					if is_instance_valid(self) and shader_material:
+						shader_material.set_shader_parameter("rot_x_deg", val),
 				shader_material.get_shader_parameter("rot_x_deg"),
 				0.0,
 				0.3
 			)
 			rotation_tween.tween_method(
-				func(val): shader_material.set_shader_parameter("rot_y_deg", val),
+				func(val):
+					if is_instance_valid(self) and shader_material:
+						shader_material.set_shader_parameter("rot_y_deg", val),
 				shader_material.get_shader_parameter("rot_y_deg"),
 				0.0,
 				0.3
 			)
 
 		# Reset z_index
-		hover_tween.finished.connect(func(): z_index = 0)
+		hover_tween.finished.connect(func():
+			if is_instance_valid(self):
+				z_index = 0
+		)
 
 		# Remove hover glow - return border to base element color
 		var card_visual = _get_card_visual()
