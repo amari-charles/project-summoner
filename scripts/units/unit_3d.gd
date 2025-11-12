@@ -134,11 +134,11 @@ func _ready() -> void:
 
 			# Scale shadow down with altitude
 			var size_scale: float = 1.0 - (altitude_factor * SHADOW_SIZE_REDUCTION_FACTOR)
-			shadow_component.set_shadow_radius(shadow_size * size_scale)
+			shadow_component.call("set_shadow_radius", shadow_size * size_scale)
 
 			# Fade shadow opacity with altitude
 			var opacity_scale: float = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
-			shadow_component.set_shadow_opacity(shadow_opacity * opacity_scale)
+			shadow_component.call("set_shadow_opacity", shadow_opacity * opacity_scale)
 
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
@@ -167,17 +167,17 @@ func _setup_visuals() -> void:
 
 		# Configure feet offset if specified
 		if sprite_feet_offset_pixels > 0.0 and "feet_offset_pixels" in visual_component:
-			visual_component.feet_offset_pixels = sprite_feet_offset_pixels
+			visual_component.set("feet_offset_pixels", sprite_feet_offset_pixels)
 
 		# Configure sprite scale if specified
 		if "sprite_scale" in visual_component:
-			visual_component.sprite_scale = sprite_scale
+			visual_component.set("sprite_scale", sprite_scale)
 
 		add_child(visual_component)
 
 		# Set sprite frames if provided
-		if sprite_frames:
-			visual_component.set_sprite_frames(sprite_frames)
+		if sprite_frames and visual_component.has_method("set_sprite_frames"):
+			visual_component.call("set_sprite_frames", sprite_frames)
 			# Initialize facing direction based on team
 			is_facing_left = (team == Team.ENEMY)
 			# Sprites face LEFT by default, so flip PLAYER units to face right
@@ -214,12 +214,13 @@ func _setup_shadow() -> void:
 	add_child(shadow_component)
 
 	# Initialize with proper values (explicit initialization pattern)
-	shadow_component.initialize(shadow_size, shadow_opacity)
+	shadow_component.call("initialize", shadow_size, shadow_opacity)
 
 ## Calculate shadow size based on collision shape
 func _calculate_shadow_size_from_collision() -> float:
 	# Find CollisionShape3D child
-	for child in get_children():
+	var children: Array[Node] = get_children()
+	for child: Node in children:
 		if child is CollisionShape3D:
 			# Type narrow to CollisionShape3D for safe property access
 			var collision_shape: CollisionShape3D = child
@@ -285,15 +286,23 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 		"move_speed": 0.0
 	}
 
-	for mod in modifiers:
-		var stat_adds: Dictionary = mod.get("stat_adds", {})
-		for stat in stat_adds.keys():
-			if adds.has(stat):
-				adds[stat] += stat_adds[stat]
+	for mod: Variant in modifiers:
+		if not mod is Dictionary:
+			continue
+		var mod_dict: Dictionary = mod
+		var stat_adds: Dictionary = mod_dict.get("stat_adds", {})
+		var stat_keys: Array = stat_adds.keys()
+		for stat: Variant in stat_keys:
+			if stat is String and adds.has(stat):
+				var stat_key: String = stat
+				adds[stat_key] += stat_adds[stat_key]
 
 	# Apply additive bonuses
-	for stat in adds.keys():
-		stats[stat] += adds[stat]
+	var add_keys: Array = adds.keys()
+	for stat: Variant in add_keys:
+		if stat is String:
+			var stat_key: String = stat
+			stats[stat_key] += adds[stat_key]
 
 	# Phase 2: Multiply all multiplicative bonuses (additive within phase)
 	var mults: Dictionary = {
@@ -303,17 +312,25 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 		"move_speed": 0.0
 	}
 
-	for mod in modifiers:
-		var stat_mults: Dictionary = mod.get("stat_mults", {})
-		for stat in stat_mults.keys():
-			if mults.has(stat):
+	for mod: Variant in modifiers:
+		if not mod is Dictionary:
+			continue
+		var mod_dict: Dictionary = mod
+		var stat_mults: Dictionary = mod_dict.get("stat_mults", {})
+		var mult_keys: Array = stat_mults.keys()
+		for stat: Variant in mult_keys:
+			if stat is String and mults.has(stat):
+				var stat_key: String = stat
 				# Convert multiplier to bonus: 1.3 → 0.3
-				var bonus: float = stat_mults[stat] - 1.0
-				mults[stat] += bonus
+				var bonus: float = stat_mults[stat_key] - 1.0
+				mults[stat_key] += bonus
 
 	# Apply multiplicative bonuses
-	for stat in mults.keys():
-		stats[stat] *= (1.0 + mults[stat])
+	var mult_result_keys: Array = mults.keys()
+	for stat: Variant in mult_result_keys:
+		if stat is String:
+			var stat_key: String = stat
+			stats[stat_key] *= (1.0 + mults[stat_key])
 
 	# Phase 3: Apply final stats
 	max_hp = stats.max_hp
@@ -324,8 +341,11 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 
 	# Phase 4: Merge all flags
 	active_modifiers.clear()
-	for mod in modifiers:
-		var flags: Dictionary = mod.get("flags", {})
+	for mod: Variant in modifiers:
+		if not mod is Dictionary:
+			continue
+		var mod_dict: Dictionary = mod
+		var flags: Dictionary = mod_dict.get("flags", {})
 		active_modifiers.merge(flags, true)
 
 
@@ -391,7 +411,7 @@ func _acquire_target() -> Node3D:
 	var best_score: float = -INF
 	var aggro_radius_sq: float = aggro_radius * aggro_radius
 
-	for target in targets:
+	for target: Node in targets:
 		if not target is Unit3D:
 			continue
 
@@ -582,7 +602,7 @@ func _spawn_projectile() -> void:
 	if not projectile_id.is_empty():
 		# Use attachment points for proper spawn/target positions
 		var spawn_pos: Vector3 = get_projectile_spawn_position()
-		var target_pos: Vector3 = current_target.get_projectile_target_position() if current_target.has_method("get_projectile_target_position") else current_target.global_position
+		var target_pos: Vector3 = current_target.call("get_projectile_target_position") if current_target.has_method("get_projectile_target_position") else current_target.global_position
 
 		# Apply predictive targeting for moving targets
 		target_pos = _calculate_intercept_point(spawn_pos, target_pos, current_target)
@@ -616,7 +636,7 @@ func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, targe
 		var character_body: CharacterBody3D = target
 		target_velocity = character_body.velocity
 	elif "velocity" in target:
-		target_velocity = target.velocity
+		target_velocity = target.get("velocity")
 
 	# If target is stationary, no prediction needed
 	if target_velocity.length_squared() < VELOCITY_STATIONARY_THRESHOLD:

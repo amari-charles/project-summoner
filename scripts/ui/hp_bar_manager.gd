@@ -36,15 +36,15 @@ func _ready() -> void:
 
 func _load_hp_bar_scene() -> void:
 	# Try to load scene
-	var scene_path = "res://scenes/ui/floating_hp_bar.tscn"
+	var scene_path: String = "res://scenes/ui/floating_hp_bar.tscn"
 	if ResourceLoader.exists(scene_path):
 		hp_bar_scene = load(scene_path)
 	else:
 		push_warning("HPBarManager: HP bar scene not found, will instantiate script directly")
 
 func _init_pool() -> void:
-	for i in range(INITIAL_POOL_SIZE):
-		var bar = _instantiate_bar()
+	for i: int in range(INITIAL_POOL_SIZE):
+		var bar: FloatingHPBar = _instantiate_bar()
 		if bar:
 			bar.is_pooled = true
 			bar.reset()
@@ -55,7 +55,7 @@ func _instantiate_bar() -> FloatingHPBar:
 		return hp_bar_scene.instantiate() as FloatingHPBar
 	else:
 		# Fallback: create from script
-		var bar = FloatingHPBar.new()
+		var bar: FloatingHPBar = FloatingHPBar.new()
 		return bar
 
 ## Create HP bar for a unit
@@ -116,13 +116,14 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 	if not active_bars.has(unit):
 		return
 
-	var bar = active_bars[unit]
+	var bar: FloatingHPBar = active_bars[unit]
 	active_bars.erase(unit)
 
 	# Disconnect signal before returning to pool to prevent memory leak
 	if is_instance_valid(unit) and unit.has_signal("hp_changed"):
-		if unit.hp_changed.is_connected(bar._on_hp_changed):
-			unit.hp_changed.disconnect(bar._on_hp_changed)
+		var signal_obj: Signal = (unit as Node3D).get("hp_changed")
+		if signal_obj.is_connected(bar._on_hp_changed):
+			signal_obj.disconnect(bar._on_hp_changed)
 
 	# Remove from scene
 	if bar.get_parent():
@@ -134,7 +135,7 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 ## Update HP bar for a unit (if it exists)
 func update_unit_hp(unit: Node3D, current_hp: float, max_hp: float) -> void:
 	if active_bars.has(unit):
-		var bar = active_bars[unit]
+		var bar: FloatingHPBar = active_bars[unit]
 		bar.update_hp(current_hp, max_hp)
 
 ## Return bar to pool
@@ -155,8 +156,8 @@ func _on_bar_hidden(unit: Node3D, bar: FloatingHPBar) -> void:
 
 ## Remove all bars (useful for scene transitions)
 func clear_all_bars() -> void:
-	for unit in active_bars.keys():
-		var bar = active_bars[unit]
+	for unit: Node3D in active_bars.keys():
+		var bar: FloatingHPBar = active_bars[unit]
 		if bar.get_parent():
 			bar.get_parent().remove_child(bar)
 		_return_to_pool(bar)

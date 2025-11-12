@@ -15,13 +15,13 @@ signal attack_completed(event: CombatEvent)
 signal spell_cast(event: CombatEvent)
 
 ## Damage type multipliers (can be expanded for elemental system)
-const DAMAGE_TYPES = {
-	"physical": 1.0,
-	"magical": 1.0,
-	"true": 1.0,  # Ignores armor
-	"fire": 1.0,
-	"ice": 1.0,
-	"poison": 1.0
+const DAMAGE_TYPES: Dictionary = {
+	"physical": 1.0 as float,
+	"magical": 1.0 as float,
+	"true": 1.0 as float,  # Ignores armor
+	"fire": 1.0 as float,
+	"ice": 1.0 as float,
+	"poison": 1.0 as float
 }
 
 ## Critical hit settings
@@ -72,10 +72,10 @@ func apply_damage(
 	# Store target's HP before damage
 	var target_hp_before: float = 0.0
 	if "current_hp" in target:
-		target_hp_before = target.current_hp
+		target_hp_before = target.get("current_hp")
 
 	# Apply damage to target
-	target.take_damage(final_damage)
+	target.call("take_damage", final_damage)
 
 	# Create metadata for event
 	var metadata: Dictionary = {
@@ -111,9 +111,9 @@ func apply_damage(
 	# Check if target died
 	var target_died: bool = false
 	if "is_alive" in target:
-		target_died = not target.is_alive
+		target_died = not target.get("is_alive")
 	elif "current_hp" in target:
-		target_died = target.current_hp <= 0
+		target_died = target.get("current_hp") <= 0
 
 	if target_died:
 		# Emit UNIT_KILLED event (from attacker's perspective)
@@ -160,12 +160,12 @@ func apply_healing(
 		final_heal *= flags.heal_multiplier
 
 	# Store HP before healing
-	var hp_before: float = target.current_hp
+	var hp_before: float = target.get("current_hp")
 
 	# Apply healing (clamp to max_hp)
-	var new_hp: float = min(target.current_hp + final_heal, target.max_hp)
-	var actual_heal: float = new_hp - target.current_hp
-	target.current_hp = new_hp
+	var new_hp: float = min(target.get("current_hp") + final_heal, target.get("max_hp"))
+	var actual_heal: float = new_hp - target.get("current_hp")
+	target.set("current_hp", new_hp)
 
 	# Create metadata
 	var metadata: Dictionary = {
@@ -254,5 +254,5 @@ func preview_damage(
 		"final_damage": final_damage,
 		"is_crit": assume_crit,
 		"damage_type": damage_type,
-		"will_kill": ("current_hp" in target) and target.current_hp <= final_damage
+		"will_kill": ("current_hp" in target) and target.get("current_hp") <= final_damage
 	}

@@ -76,14 +76,15 @@ func _duplicate_materials() -> void:
 	if not visual_instance:
 		return
 
-	for child in visual_instance.get_children():
+	var visual_children: Array[Node] = visual_instance.get_children()
+	for child: Node in visual_children:
 		if child is MeshInstance3D:
 			# Type narrow to MeshInstance3D for safe property access
 			var mesh_child: MeshInstance3D = child
-			var material: Material = mesh_child.get_surface_override_material(0)
+			var material: Resource = mesh_child.get_surface_override_material(0)
 			if material:
 				# Create a unique material instance for this projectile
-				mesh_child.set_surface_override_material(0, material.duplicate())
+				mesh_child.set_surface_override_material(0, material.duplicate() as Material)
 
 func _physics_process(delta: float) -> void:
 	if not is_active:
@@ -211,8 +212,9 @@ func initialize(data: Dictionary) -> void:
 		target_position = target.global_position
 
 	# Set direction
-	if data.has("direction"):
-		direction = data.direction.normalized()
+	if data.has("direction") and data.direction is Vector3:
+		var dir_val: Vector3 = data.direction
+		direction = dir_val.normalized()
 	elif target_position != Vector3.ZERO:
 		direction = (target_position - start_position).normalized()
 
@@ -249,8 +251,8 @@ func _on_area_entered(area: Area3D) -> void:
 
 	# Check if area belongs to a unit
 	var body: Node = area.get_parent()
-	if body and _is_valid_target(body):
-		_hit_target(body)
+	if body and _is_valid_target(body as Node3D):
+		_hit_target(body as Node3D)
 
 ## Check if body is a valid target
 func _is_valid_target(body: Node3D) -> bool:
@@ -259,11 +261,11 @@ func _is_valid_target(body: Node3D) -> bool:
 		return false
 
 	# Check team
-	if "team" in body and body.team == team:
+	if "team" in body and body.get("team") == team:
 		return false
 
 	# Check if alive
-	if "is_alive" in body and not body.is_alive:
+	if "is_alive" in body and not body.get("is_alive"):
 		return false
 
 	return true
@@ -357,7 +359,7 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 				# print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
 
 	var hit_count: int = 0
-	for enemy in enemies:
+	for enemy: Node in enemies:
 		if enemy is Unit3D:
 			# Type narrow to Unit3D for safe property access
 			var unit_enemy: Unit3D = enemy
@@ -424,7 +426,8 @@ func _expire_with_fade() -> void:
 	fade_tween.set_parallel(true)
 
 	# Fade all materials on visual children
-	for child in visual_instance.get_children():
+	var fade_children: Array[Node] = visual_instance.get_children()
+	for child: Node in fade_children:
 		if child is MeshInstance3D:
 			# Type narrow to MeshInstance3D for safe property access
 			var mesh_child: MeshInstance3D = child
@@ -439,7 +442,7 @@ func _expire_with_fade() -> void:
 			particles_child.emitting = false
 
 	# When tween finishes, hide and cleanup
-	fade_tween.finished.connect(func():
+	fade_tween.finished.connect(func() -> void:
 		visible = false
 		_expire_immediate()
 	)
@@ -476,14 +479,15 @@ func reset() -> void:
 	# Cancel any running tweens (only if in tree)
 	if is_inside_tree():
 		var tweens: Array[Tween] = get_tree().get_processed_tweens()
-		for tween in tweens:
+		for tween: Tween in tweens:
 			if tween.is_valid():
 				tween.kill()
 
 	# Reset visual alpha and visibility (but keep hidden until reused)
 	if visual_instance:
 		visual_instance.visible = false  # Keep hidden until next spawn
-		for child in visual_instance.get_children():
+		var reset_children: Array[Node] = visual_instance.get_children()
+		for child: Node in reset_children:
 			if child is MeshInstance3D:
 				# Type narrow to MeshInstance3D for safe property access
 				var mesh_child: MeshInstance3D = child

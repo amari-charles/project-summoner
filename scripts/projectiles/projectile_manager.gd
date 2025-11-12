@@ -46,9 +46,10 @@ func _init_pools() -> void:
 	if not ContentCatalog:
 		return
 
-	for projectile_id in ContentCatalog.projectiles.keys():
+	var projectile_keys: Array = ContentCatalog.projectiles.keys()
+	for projectile_id: Variant in projectile_keys:
 		var proj_data: Variant = ContentCatalog.projectiles[projectile_id]
-		if proj_data is ProjectileData:
+		if proj_data is ProjectileData and projectile_id is String:
 			_create_pool_for(projectile_id, 5)  # Smaller initial pool per type
 
 ## Create pool for a specific projectile type
@@ -59,12 +60,13 @@ func _create_pool_for(projectile_id: String, pool_size: int) -> void:
 	projectile_pools[projectile_id] = []
 	active_projectiles[projectile_id] = []
 
-	for i in range(pool_size):
+	for i: int in range(pool_size):
 		var projectile: Projectile3D = _instantiate_projectile()
 		if projectile:
 			projectile.is_pooled = true
 			projectile.reset()
-			projectile_pools[projectile_id].append(projectile)
+			var pool: Array = projectile_pools[projectile_id]
+			pool.append(projectile)
 
 	print("ProjectileManager: Created pool of %d for '%s'" % [pool_size, projectile_id])
 
@@ -106,7 +108,7 @@ func spawn_projectile(
 		"target": target,
 		"damage": damage,
 		"damage_type": damage_type,
-		"team": source.team if "team" in source else -1
+		"team": (source as Node3D).get("team") if "team" in source else -1
 	}
 
 	# Apply options
@@ -126,7 +128,8 @@ func spawn_projectile(
 	# Track active projectile
 	if not active_projectiles.has(projectile_id):
 		active_projectiles[projectile_id] = []
-	active_projectiles[projectile_id].append(projectile)
+	var active: Array = active_projectiles[projectile_id]
+	active.append(projectile)
 
 	# Connect signals
 	if not projectile.projectile_expired.is_connected(_on_projectile_expired):
@@ -156,16 +159,18 @@ func _get_from_pool(projectile_id: String) -> Projectile3D:
 func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 	# Remove from active
 	if active_projectiles.has(projectile_id):
-		active_projectiles[projectile_id].erase(projectile)
+		var active: Array = active_projectiles[projectile_id]
+		active.erase(projectile)
 
 	# Remove from scene
 	if projectile.get_parent():
 		projectile.get_parent().remove_child(projectile)
 
 	# Return to pool if not full
-	if projectile_pools[projectile_id].size() < MAX_POOL_SIZE:
+	var pool: Array = projectile_pools[projectile_id]
+	if pool.size() < MAX_POOL_SIZE:
 		projectile.reset()
-		projectile_pools[projectile_id].append(projectile)
+		pool.append(projectile)
 	else:
 		# Pool full, destroy
 		projectile.queue_free()
@@ -177,27 +182,41 @@ func _on_projectile_expired(projectile: Projectile3D, projectile_id: String) -> 
 
 ## Clear all active projectiles (for scene transitions)
 func clear_all_projectiles() -> void:
-	for projectile_id in active_projectiles.keys():
-		for projectile in active_projectiles[projectile_id]:
-			if projectile.get_parent():
-				projectile.get_parent().remove_child(projectile)
-			_return_to_pool(projectile_id, projectile)
+	var active_keys: Array = active_projectiles.keys()
+	for projectile_id: Variant in active_keys:
+		if not projectile_id is String:
+			continue
+		var active_list: Array = active_projectiles[projectile_id]
+		for projectile: Variant in active_list:
+			if not projectile is Node:
+				continue
+			var projectile_node: Node = projectile
+			if projectile_node.get_parent():
+				projectile_node.get_parent().remove_child(projectile_node)
+			if projectile is Projectile3D:
+				_return_to_pool(projectile_id, projectile)
 
 	active_projectiles.clear()
 
 ## Clear all pools (forces reload of visuals on next init)
 func clear_all_pools() -> void:
 	# Free all pooled projectiles
-	for projectile_id in projectile_pools.keys():
-		for projectile in projectile_pools[projectile_id]:
-			if is_instance_valid(projectile):
-				projectile.queue_free()
+	var pool_keys: Array = projectile_pools.keys()
+	for projectile_id: Variant in pool_keys:
+		var pool_list: Array = projectile_pools[projectile_id]
+		for projectile: Variant in pool_list:
+			if is_instance_valid(projectile) and projectile is Node:
+				var proj_node: Node = projectile
+				proj_node.queue_free()
 
 	# Clear all active projectiles
-	for projectile_id in active_projectiles.keys():
-		for projectile in active_projectiles[projectile_id]:
-			if is_instance_valid(projectile):
-				projectile.queue_free()
+	var active_keys_2: Array = active_projectiles.keys()
+	for projectile_id: Variant in active_keys_2:
+		var active_list_2: Array = active_projectiles[projectile_id]
+		for projectile: Variant in active_list_2:
+			if is_instance_valid(projectile) and projectile is Node:
+				var proj_node: Node = projectile
+				proj_node.queue_free()
 
 	projectile_pools.clear()
 	active_projectiles.clear()
@@ -212,7 +231,12 @@ func refresh_pools() -> void:
 ## Debug: Print pool statistics
 func print_pool_stats() -> void:
 	print("=== ProjectileManager Pool Statistics ===")
-	for projectile_id in projectile_pools.keys():
-		var pool_size: int = projectile_pools[projectile_id].size()
-		var active_size: int = active_projectiles[projectile_id].size() if active_projectiles.has(projectile_id) else 0
+	var pool_keys_debug: Array = projectile_pools.keys()
+	for projectile_id: Variant in pool_keys_debug:
+		var pool: Array = projectile_pools[projectile_id]
+		var pool_size: int = pool.size()
+		var active_size: int = 0
+		if active_projectiles.has(projectile_id):
+			var active: Array = active_projectiles[projectile_id]
+			active_size = active.size()
 		print("  %s: %d in pool, %d active" % [projectile_id, pool_size, active_size])
