@@ -236,6 +236,47 @@ func _init_catalog() -> void:
 		"An enormous crimson slime. The largest of its kind, boasting incredible strength and resilience.",
 		{"rarity": "rare"})
 
+	# Demon Imp - Flying melee attacker
+	_catalog["demon_imp"] = {
+		# Identity
+		"catalog_id": "demon_imp",
+		"card_name": "Demon Imp",
+		"description": "A swift flying demon. Dives from above to strike ground forces while evading melee attackers.",
+		"rarity": "uncommon",
+
+		# Card properties
+		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",  # For icon display (combat type, not movement type)
+		"mana_cost": 4,
+		"cooldown": 2.0,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/demon_imp_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 70.0,
+		"attack_damage": 12.0,
+		"attack_range": 60.0,
+		"attack_speed": 1.2,
+		"move_speed": 90.0,
+		"aggro_radius": 250.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",  # TODO: Add card art
+
+		# Metadata
+		"tags": ["flying", "melee", "fast", "agile"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.SHADOW
+		}
+	}
+
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats

@@ -1,0 +1,120 @@
+[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://demon_imp_frames"]
+
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Idle/Version1_Idle_00.png" id="1_idle_1"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Idle/Version1_Idle_04.png" id="2_idle_2"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Idle/Version1_Idle_08.png" id="3_idle_3"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Idle/Version1_Idle_12.png" id="4_idle_4"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Idle/Version1_Idle_16.png" id="5_idle_5"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Idle/Version1_Idle_20.png" id="6_idle_6"]
+
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Walk/Version1_Walk_00.png" id="7_walk_1"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Walk/Version1_Walk_04.png" id="8_walk_2"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Walk/Version1_Walk_08.png" id="9_walk_3"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Walk/Version1_Walk_12.png" id="10_walk_4"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Walk/Version1_Walk_16.png" id="11_walk_5"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Walk/Version1_Walk_20.png" id="12_walk_6"]
+
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Attack/Version1_Attack1_00.png" id="13_attack_1"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Attack/Version1_Attack1_02.png" id="14_attack_2"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Attack/Version1_Attack1_04.png" id="15_attack_3"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Attack/Version1_Attack1_06.png" id="16_attack_4"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Attack/Version1_Attack1_08.png" id="17_attack_5"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Attack/Version1_Attack1_10.png" id="18_attack_6"]
+
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Death1/Version1_Death1_00.png" id="19_death_1"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Death1/Version1_Death1_03.png" id="20_death_2"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Death1/Version1_Death1_06.png" id="21_death_3"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Death1/Version1_Death1_09.png" id="22_death_4"]
+[ext_resource type="Texture2D" path="res://Monster Pack (Free)/Monster 1 - Lv 1/Bottom-left/Animation/1x/Death1/Version1_Death1_12.png" id="23_death_5"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_idle_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_idle_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_idle_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_idle_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_idle_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_idle_6")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_walk_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_walk_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_walk_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_walk_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_walk_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_walk_6")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("13_attack_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_attack_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_attack_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_attack_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_attack_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_attack_6")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("19_death_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_death_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_death_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_death_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_death_5")
+}],
+"loop": false,
+"name": &"death",
+"speed": 8.0
+}]
