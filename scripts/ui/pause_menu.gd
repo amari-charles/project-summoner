@@ -36,20 +36,6 @@ func _find_game_controller() -> void:
 	# Sync initial state
 	_on_game_state_changed(game_controller.current_state)
 
-func _input(event: InputEvent) -> void:
-	# ESC key toggles pause
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if not game_controller:
-			return
-
-		if game_controller.current_state == GameController3D.GameState.PLAYING:
-			game_controller.pause_game()
-		elif game_controller.current_state == GameController3D.GameState.PAUSED:
-			game_controller.resume_game()
-
-		# Consume input so it doesn't propagate
-		get_viewport().set_input_as_handled()
-
 ## Show/hide based on game state
 func _on_game_state_changed(new_state: GameController3D.GameState) -> void:
 	visible = (new_state == GameController3D.GameState.PAUSED)

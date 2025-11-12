@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="Script" uid="uid://bt4v6ur0kkioe" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/ui/pause_menu.tscn" id="8_pause_menu"]
+[ext_resource type="Script" path="res://scripts/ui/pause_button.gd" id="9_pause_button"]
 
 [node name="Battle3D" type="Node3D"]
 script = ExtResource("2_game_controller")
@@ -49,6 +50,18 @@ offset_right = 200.0
 offset_bottom = 60.0
 theme_override_font_sizes/font_size = 32
 text = "03:00"
+
+[node name="PauseButton" type="Button" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+grow_horizontal = 0
+text = "⏸ Pause"
+script = ExtResource("9_pause_button")
 
 [node name="PlayerManaLabel" type="Label" parent="UI"]
 anchors_preset = 2
