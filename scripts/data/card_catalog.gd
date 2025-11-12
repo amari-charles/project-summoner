@@ -15,6 +15,9 @@ extends Node
 ## Each card is defined as a Dictionary with all its properties
 var _catalog: Dictionary = {}
 
+## Cached Card script for efficient resource creation
+const CardScript = preload("res://scripts/cards/card.gd")
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -82,7 +85,7 @@ func _init_catalog() -> void:
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
-		"unit_scene_path": "res://scenes/units/archer.tscn",
+		"unit_scene_path": "res://scenes/units/archer_3d.tscn",
 		"spawn_count": 1,
 
 		"max_hp": 60.0,
@@ -145,7 +148,7 @@ func _init_catalog() -> void:
 		"mana_cost": 2,
 		"cooldown": 2.0,
 
-		"unit_scene_path": "res://scenes/units/wall.tscn",
+		"unit_scene_path": "res://scenes/units/wall_3d.tscn",
 		"spawn_count": 1,
 
 		"max_hp": 300.0,
@@ -179,7 +182,7 @@ func _init_catalog() -> void:
 		"mana_cost": 4,
 		"cooldown": 2.0,
 
-		"unit_scene_path": "res://scenes/units/neade.tscn",
+		"unit_scene_path": "res://scenes/units/neade_3d.tscn",
 		"spawn_count": 1,
 
 		"max_hp": 120.0,
@@ -388,9 +391,8 @@ func create_card_resource(catalog_id: String) -> Resource:
 		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
 		return null
 
-	# Load the Card class (assuming it's at scripts/cards/card.gd)
-	var Card = load("res://scripts/cards/card.gd")
-	var card = Card.new()
+	# Create Card instance from preloaded script
+	var card = CardScript.new()
 
 	# Set basic properties
 	card.catalog_id = catalog_id
@@ -404,12 +406,17 @@ func create_card_resource(catalog_id: String) -> Resource:
 	if card.card_type == 0:  # SUMMON
 		var unit_scene_path = card_def.get("unit_scene_path", "")
 		if unit_scene_path != "":
-			card.unit_scene = load(unit_scene_path)
+			var scene = load(unit_scene_path)
+			if not scene:
+				push_error("CardCatalog: Failed to load unit scene '%s' for card '%s'" % [unit_scene_path, catalog_id])
+				return null
+			card.unit_scene = scene
 		card.spawn_count = card_def.get("spawn_count", 1)
 	elif card.card_type == 1:  # SPELL
 		card.spell_damage = card_def.get("spell_damage", 0.0)
 		card.spell_radius = card_def.get("spell_radius", 0.0)
 		card.spell_duration = card_def.get("spell_duration", 0.0)
+		card.projectile_id = card_def.get("projectile_id", "")
 
 	# Set icon if available
 	var icon_path = card_def.get("card_icon_path", "")
