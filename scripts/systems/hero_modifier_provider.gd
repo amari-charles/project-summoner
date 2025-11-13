@@ -7,7 +7,7 @@ class_name HeroModifierProvider
 
 var hero_id: String
 
-func _init(id: String):
+func _init(id: String) -> void:
 	hero_id = id
 
 ## Get all modifiers this hero provides
