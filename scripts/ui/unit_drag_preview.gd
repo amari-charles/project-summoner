@@ -34,7 +34,7 @@ var current_world_pos: Vector3 = Vector3.ZERO
 func _ready() -> void:
 	# Set up container properties
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # Don't interfere with drag system
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Don't set anchors - let drag system handle positioning
 
 ## Initialize preview with card data and references
 func initialize(p_card: Card, p_viewport: Viewport, p_camera: Camera3D, p_drop_zone: Node) -> void:
@@ -127,24 +127,40 @@ func _create_preview_texture() -> void:
 	if not visual_component_3d:
 		return
 
+	# Wait for viewport to be ready
+	if get_tree():
+		await get_tree().process_frame
+
 	# Get the viewport texture from the visual component
 	var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
 	if not sprite_3d:
+		push_error("UnitDragPreview: No Sprite3D in visual component")
 		return
 
 	var sub_viewport: Node = sprite_3d.get_node_or_null("SubViewport")
 	if not sub_viewport or not sub_viewport is SubViewport:
+		push_error("UnitDragPreview: No SubViewport in Sprite3D")
 		return
 
 	var viewport_typed: SubViewport = sub_viewport
+	var viewport_texture: ViewportTexture = viewport_typed.get_texture()
+
 	preview_texture = TextureRect.new()
-	preview_texture.texture = viewport_typed.get_texture()
+	preview_texture.texture = viewport_texture
 	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
+	preview_texture.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
 	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Center the pivot so rotation/positioning works correctly
 	preview_texture.pivot_offset = Vector2(PREVIEW_SIZE / 2, PREVIEW_SIZE / 2)
+
+	# Make it semi-transparent
+	preview_texture.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
+
 	add_child(preview_texture)
+
+	print("UnitDragPreview: Created preview texture with size ", preview_texture.size)
 
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
@@ -161,7 +177,7 @@ func _process(_delta: float) -> void:
 	if not viewport or not camera_3d:
 		return
 
-	# Get current mouse position
+	# Get current mouse position in viewport space
 	var mouse_pos: Vector2 = viewport.get_mouse_position()
 
 	# Convert to 3D world position
@@ -171,15 +187,21 @@ func _process(_delta: float) -> void:
 	if visual_component_3d:
 		visual_component_3d.global_position = current_world_pos
 
-	# Position spawn indicator on ground (in 2D UI space)
+	# The preview texture stays at origin (0,0) since Godot's drag system
+	# automatically positions the preview control at the cursor
+	# We just need to center it
+	if preview_texture and preview_texture.position == Vector2.ZERO:
+		preview_texture.position = -preview_texture.pivot_offset
+
+	# Position spawn indicator relative to this control
+	# Project world ground position to screen, then make it relative to this control's position
 	if spawn_indicator:
 		var ground_pos: Vector3 = Vector3(current_world_pos.x, 0.0, current_world_pos.z)
 		var screen_pos: Vector2 = camera_3d.unproject_position(ground_pos)
-		spawn_indicator.position = screen_pos - spawn_indicator.pivot_offset
 
-	# Position preview texture at cursor
-	if preview_texture:
-		preview_texture.position = mouse_pos - preview_texture.pivot_offset
+		# Make position relative to the drag preview control
+		var relative_pos: Vector2 = screen_pos - mouse_pos
+		spawn_indicator.position = relative_pos - spawn_indicator.pivot_offset
 
 	# Update indicator color based on drop validity
 	_update_indicator_validity(mouse_pos)
