@@ -300,7 +300,11 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 	# Take first 30 cards
 	var card_instance_ids: Array[String] = []
 	for i: int in range(min(30, collection.size())):
-		var card_dict: Dictionary = collection[i]
+		var card_dict_variant: Variant = collection[i]
+		if not card_dict_variant is Dictionary:
+			push_error("DevConsole: collection[%d] is not a Dictionary" % i)
+			continue
+		var card_dict: Dictionary = card_dict_variant
 		var card_id: String = card_dict.get("id", "")
 		card_instance_ids.append(card_id)
 

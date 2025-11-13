@@ -26,7 +26,12 @@ func _process(delta: float) -> void:
 
 	# Check if it's time to execute next spawn
 	while script_index < spawn_script.size():
-		var spawn_event: Dictionary = spawn_script[script_index]
+		var spawn_event_variant: Variant = spawn_script[script_index]
+		if not spawn_event_variant is Dictionary:
+			push_error("ScriptedAI: spawn_script[%d] is not a Dictionary" % script_index)
+			script_index += 1
+			continue
+		var spawn_event: Dictionary = spawn_event_variant
 		var trigger_time: float = spawn_event.get("delay", 0.0)
 
 		if time_since_start >= trigger_time:

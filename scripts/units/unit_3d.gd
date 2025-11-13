@@ -688,7 +688,12 @@ func _get_projectile_speed() -> float:
 		cached_projectile_speed = 15.0  # Default speed
 		return max(15.0, MIN_PROJECTILE_SPEED)
 
-	var proj_data: Dictionary = ContentCatalog.projectiles[projectile_id]
+	var proj_data_variant: Variant = ContentCatalog.projectiles[projectile_id]
+	if not proj_data_variant is Dictionary:
+		cached_projectile_speed = 15.0
+		return max(15.0, MIN_PROJECTILE_SPEED)
+
+	var proj_data: Dictionary = proj_data_variant
 	if proj_data and "speed" in proj_data:
 		var default_speed: float = 15.0
 		var speed_variant: Variant = proj_data.get("speed", default_speed)

@@ -238,7 +238,11 @@ func save_progress() -> void:
 	if not profile.has("campaign_progress"):
 		profile["campaign_progress"] = {}
 
-	var campaign_progress: Dictionary = profile["campaign_progress"]
+	var campaign_progress_variant: Variant = profile["campaign_progress"]
+	if not campaign_progress_variant is Dictionary:
+		push_error("CampaignService: profile['campaign_progress'] is not a Dictionary")
+		return
+	var campaign_progress: Dictionary = campaign_progress_variant
 	campaign_progress["completed_battles"] = _completed_battles.duplicate()
 
 	if _profile_repo.has_method("save_profile"):
@@ -351,7 +355,11 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 		"choice":
 			# Player chooses one from the list
 			if chosen_index >= 0 and chosen_index < reward_cards.size():
-				var chosen_reward: Dictionary = reward_cards[chosen_index]
+				var chosen_reward_variant: Variant = reward_cards[chosen_index]
+				if not chosen_reward_variant is Dictionary:
+					push_error("CampaignService: reward_cards[%d] is not a Dictionary" % chosen_index)
+					return {}
+				var chosen_reward: Dictionary = chosen_reward_variant
 				var ids: Array[String] = _grant_reward_card(chosen_reward)
 				granted_instance_ids.append_array(ids)
 				granted_card = chosen_reward
@@ -360,7 +368,11 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 
 		"random":
 			# Pick random card from pool
-			var random_reward: Dictionary = reward_cards[randi() % reward_cards.size()]
+			var random_reward_variant: Variant = reward_cards[randi() % reward_cards.size()]
+			if not random_reward_variant is Dictionary:
+				push_error("CampaignService: random reward_cards entry is not a Dictionary")
+				return {}
+			var random_reward: Dictionary = random_reward_variant
 			var ids: Array[String] = _grant_reward_card(random_reward)
 			granted_instance_ids.append_array(ids)
 			granted_card = random_reward

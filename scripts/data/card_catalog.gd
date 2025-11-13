@@ -377,7 +377,12 @@ func get_card(catalog_id: String) -> Dictionary:
 		var empty: Dictionary = {}
 		return empty
 	# Return shallow duplicate - preserves Element object references while preventing corruption
-	var card_dict: Dictionary = _catalog[catalog_id]
+	var card_dict_variant: Variant = _catalog[catalog_id]
+	if not card_dict_variant is Dictionary:
+		push_error("CardCatalog: _catalog[%s] is not a Dictionary" % catalog_id)
+		var empty: Dictionary = {}
+		return empty
+	var card_dict: Dictionary = card_dict_variant
 	return card_dict.duplicate(false)
 
 ## Check if a card exists in the catalog

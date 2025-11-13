@@ -157,7 +157,11 @@ func _show_choice_ui(reward_options: Array) -> void:
 
 	# Create choice buttons
 	for i: int in range(reward_options.size()):
-		var reward: Dictionary = reward_options[i]
+		var reward_variant: Variant = reward_options[i]
+		if not reward_variant is Dictionary:
+			push_error("RewardScreen: reward_options[%d] is not a Dictionary" % i)
+			continue
+		var reward: Dictionary = reward_variant
 		var catalog_id: String = reward.get("catalog_id", "")
 		var card_data: Dictionary = catalog.call("get_card", catalog_id)
 
