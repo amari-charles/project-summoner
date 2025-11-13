@@ -8,7 +8,8 @@ class_name Summoner3D
 enum DeckLoadStrategy {
 	STATIC,           ## Use starting_deck (test scenes, fallback)
 	BATTLE_CONTEXT,   ## Load from BattleContext (normal enemy behavior)
-	PROFILE          ## Load from player profile (normal player behavior)
+	PROFILE,          ## Load from player profile (normal player behavior)
+	DEFERRED         ## Don't load deck in _ready(), wait for manual override (test controllers)
 }
 
 @export var max_hp: float = 1000.0
@@ -62,9 +63,12 @@ func _ready() -> void:
 	# Initialize deck using strategy pattern
 	deck = _load_deck_by_strategy()
 
-	# Handle empty deck - behavior depends on whether we're in test mode
+	# Handle empty deck - behavior depends on deck loading strategy
 	if deck.is_empty():
-		if _is_test_mode():
+		if deck_load_strategy == DeckLoadStrategy.DEFERRED:
+			# DEFERRED strategy: Empty deck is expected, will be populated by controller
+			print("Summoner3D: Deck deferred - waiting for manual population")
+		elif _is_test_mode():
 			# Test mode: Allow emergency fallback deck
 			push_warning("Summoner3D: Failed to load deck in test mode. Creating emergency fallback deck.")
 			deck = _create_emergency_deck()
@@ -169,21 +173,32 @@ func _die() -> void:
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 func _is_test_mode() -> bool:
-	# Check if the game controller is a test controller
+	# Method 1: Check via game_controller group
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
-	if game_controller and game_controller is TestGameController:
-		return true
+	if game_controller:
+		print("Summoner3D: Found game controller: %s (is TestGameController: %s)" % [game_controller.get_class(), game_controller is TestGameController])
+		if game_controller is TestGameController:
+			return true
 
-	# Check if BattleContext is in practice mode
+	# Method 2: Check root node of scene (test scenes have test controller as root)
+	var root: Node = get_tree().current_scene
+	if root:
+		print("Summoner3D: Scene root is: %s (is TestGameController: %s)" % [root.get_class(), root is TestGameController])
+		if root is TestGameController:
+			return true
+
+	# Method 3: Check if BattleContext is in practice mode
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context:
 		var mode_variant: Variant = battle_context.get("current_mode")
 		if mode_variant is int:
 			var mode: int = mode_variant
+			print("Summoner3D: BattleContext mode: %d" % mode)
 			# Assuming PRACTICE = 1 (check BattleContext enum if needed)
 			if mode == 1:
 				return true
 
+	print("Summoner3D: Test mode NOT detected - will fail hard if deck is empty")
 	return false
 
 ## =============================================================================
@@ -199,6 +214,9 @@ func _load_deck_by_strategy() -> Array[Card]:
 			return _load_battle_context_deck()
 		DeckLoadStrategy.PROFILE:
 			return _load_profile_deck()
+		DeckLoadStrategy.DEFERRED:
+			print("Summoner3D: Using DEFERRED strategy - deck will be set manually later")
+			return []  # Empty deck, will be populated by controller
 		_:
 			push_error("Summoner3D: Unknown deck load strategy %d" % deck_load_strategy)
 			return []
