@@ -103,6 +103,10 @@ func _create_unit_visual() -> void:
 	# Add to battlefield (3D world) FIRST so _ready() gets called
 	battlefield.add_child(visual_component_3d)
 
+	# Hide the 3D component from the main camera (we only want viewport rendering)
+	# Position it far away so it doesn't appear in the game world
+	visual_component_3d.global_position = Vector3(999999, 999999, 999999)
+
 	# Wait for _ready() to complete
 	if get_tree():
 		await get_tree().process_frame
@@ -218,9 +222,8 @@ func _process(_delta: float) -> void:
 	# Convert to 3D world position
 	current_world_pos = _screen_to_world_3d(mouse_pos)
 
-	# Position 3D visual component at world position
-	if visual_component_3d:
-		visual_component_3d.global_position = current_world_pos
+	# DON'T move the 3D visual component - keep it hidden far away
+	# The viewport renders it wherever it is, and we show that via TextureRect
 
 	# The preview texture stays at origin (0,0) since Godot's drag system
 	# automatically positions the preview control at the cursor
