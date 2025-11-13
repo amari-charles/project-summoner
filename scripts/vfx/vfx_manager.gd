@@ -218,7 +218,7 @@ func _play_sound(sound: AudioStream, position: Vector3, volume_db: float) -> voi
 	)
 
 ## Apply camera shake (stub for now, will implement with camera system)
-func _apply_camera_shake(intensity: float, duration: float) -> void:
+func _apply_camera_shake(_intensity: float, _duration: float) -> void:
 	# TODO: Implement camera shake
 	# Will need reference to main camera
 	pass

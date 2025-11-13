@@ -27,7 +27,7 @@ var current_hp: float = 100.0
 var max_hp: float = 100.0
 var is_pooled: bool = false
 var fade_timer: float = 0.0
-var is_visible: bool = true
+var bar_is_visible: bool = true
 var cached_offset_x: float = 0.0  ## Cached horizontal offset (calculated once, not every frame)
 var fade_tween: Tween = null  ## Tween for fade out animation
 
@@ -202,10 +202,10 @@ func _get_hp_color(hp_percent: float) -> Color:
 
 ## Show the bar
 func _show() -> void:
-	if is_visible:
+	if bar_is_visible:
 		return
 
-	is_visible = true
+	bar_is_visible = true
 	visible = true
 
 	# Reset alpha
@@ -214,12 +214,12 @@ func _show() -> void:
 
 ## Hide immediately
 func _hide_immediate() -> void:
-	is_visible = false
+	bar_is_visible = false
 	visible = false
 
 ## Fade out animation
 func _fade_out() -> void:
-	if not is_visible:
+	if not bar_is_visible:
 		return
 
 	# Animate alpha to 0
@@ -246,7 +246,7 @@ func reset() -> void:
 	current_hp = 100.0
 	max_hp = 100.0
 	fade_timer = 0.0
-	is_visible = true
+	bar_is_visible = true
 	visible = true
 	cached_offset_x = 0.0
 

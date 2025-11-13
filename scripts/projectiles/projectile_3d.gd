@@ -168,14 +168,14 @@ func _move_ballistic(delta: float) -> void:
 	var vertical_dist: float = displacement.y
 
 	# Ballistic trajectory
-	var gravity: float = 9.8
+	var gravity_force: float = 9.8
 	var time_to_target: float = horizontal_dist / speed
-	var initial_velocity_y: float = (vertical_dist + 0.5 * gravity * time_to_target * time_to_target) / time_to_target
+	var initial_velocity_y: float = (vertical_dist + 0.5 * gravity_force * time_to_target * time_to_target) / time_to_target
 
 	# Apply velocity
 	var horizontal_dir: Vector3 = Vector3(displacement.x, 0, displacement.z).normalized()
 	var velocity: Vector3 = horizontal_dir * speed
-	velocity.y = initial_velocity_y - gravity * travel_time
+	velocity.y = initial_velocity_y - gravity_force * travel_time
 
 	direction = velocity.normalized()
 	global_position += velocity * delta
@@ -352,12 +352,12 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 	# print("  Found %d potential targets in group" % enemies.size())
 
 	# Also check all units to see if grouping is the issue
-	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
-	# print("  Total units in scene: %d" % all_units.size())
+	var _all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	# print("  Total units in scene: %d" % _all_units.size())
 
-	# if enemies.size() == 0 and all_units.size() > 0:
+	# if enemies.size() == 0 and _all_units.size() > 0:
 		# print("  WARNING: No enemies in target group but units exist - group assignment issue?")
-		# for unit in all_units:
+		# for unit in _all_units:
 			# if unit is Unit3D:
 				# print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
 
