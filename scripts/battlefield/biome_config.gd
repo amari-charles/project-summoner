@@ -35,17 +35,19 @@ func apply_to_battlefield(battlefield: Node3D) -> void:
 
 ## Apply ground texture and material
 func _apply_ground(battlefield: Node3D) -> void:
-	var background = battlefield.get_node_or_null("Background") as MeshInstance3D
-	if not background:
+	var background_node: Node = battlefield.get_node_or_null("Background")
+	if not background_node or not background_node is MeshInstance3D:
 		push_warning("BiomeConfig: Background node not found")
 		return
+	var background: MeshInstance3D = background_node
 
 	# Update mesh size
 	if background.mesh is PlaneMesh:
-		(background.mesh as PlaneMesh).size = ground_size
+		var plane_mesh: PlaneMesh = background.mesh
+		plane_mesh.size = ground_size
 
 	# Create and apply material
-	var material = StandardMaterial3D.new()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.albedo_texture = ground_texture
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	material.uv1_scale = ground_uv_scale
@@ -57,20 +59,25 @@ func _apply_ground(battlefield: Node3D) -> void:
 ## Apply lighting settings
 func _apply_lighting(battlefield: Node3D) -> void:
 	# Update directional light
-	var directional_light = battlefield.get_node_or_null("DirectionalLight3D") as DirectionalLight3D
-	if directional_light:
+	var light_node: Node = battlefield.get_node_or_null("DirectionalLight3D")
+	if light_node and light_node is DirectionalLight3D:
+		var directional_light: DirectionalLight3D = light_node
 		directional_light.rotation_degrees = directional_light_rotation_degrees
 		directional_light.light_color = directional_light_color
 		directional_light.light_energy = directional_light_energy
 
 ## Apply environment settings
 func _apply_environment(battlefield: Node3D) -> void:
-	var world_env = battlefield.get_node_or_null("WorldEnvironment") as WorldEnvironment
-	if not world_env or not world_env.environment:
+	var world_env_node: Node = battlefield.get_node_or_null("WorldEnvironment")
+	if not world_env_node or not world_env_node is WorldEnvironment:
 		push_warning("BiomeConfig: WorldEnvironment not found")
 		return
+	var world_env: WorldEnvironment = world_env_node
+	if not world_env.environment:
+		push_warning("BiomeConfig: WorldEnvironment has no environment")
+		return
 
-	var env = world_env.environment
+	var env: Environment = world_env.environment
 	env.background_color = background_color
 	env.ambient_light_color = ambient_light_color
 	env.ambient_light_energy = ambient_light_energy
