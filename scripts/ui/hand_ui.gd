@@ -252,9 +252,9 @@ class CardDisplay extends Control:
 
 		# Create a visual duplicate as preview
 		var preview_node: Node = duplicate(DUPLICATE_USE_INSTANTIATION)
-		if not preview_node is CardDisplay:
+		if not preview_node is Control:
 			return null
-		var preview: CardDisplay = preview_node
+		var preview: Control = preview_node
 		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
 
 		# Create wrapper to control preview offset
