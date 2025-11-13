@@ -57,27 +57,41 @@ func _execute_spawn_event(event: Dictionary) -> void:
 		push_warning("ScriptedAI: Card '%s' not found in hand" % card_name)
 		return
 
-	var card: Card = summoner.hand[card_index]
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	if card_index < 0 or card_index >= hand.size():
+		return
+	var card_variant: Variant = hand[card_index]
+	var card: Card = card_variant if card_variant is Card else null
+	if not card:
+		return
 
 	# Check if we can afford it
-	if not card.can_play(int(summoner.mana)):
+	var mana_variant: Variant = summoner.get("mana")
+	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
+	var mana_int: int = int(mana)
+	if not card.can_play(mana_int):
 		push_warning("ScriptedAI: Not enough mana to play '%s'" % card_name)
 		return
 
 	# Play the card
 	if summoner.has_method("play_card_3d"):
 		var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(position)
-		summoner.play_card_3d(card_index, pos_3d)
+		summoner.call("play_card_3d", card_index, pos_3d)
 	else:
-		summoner.play_card(card_index, position)
+		summoner.call("play_card", card_index, position)
 
 ## Find card in hand by catalog ID or card name
 func _find_card_by_name(card_name: String) -> int:
-	for i in range(summoner.hand.size()):
-		var card: Card = summoner.hand[i]
-		# Match by card_name or catalog_id
-		if card.card_name.to_lower() == card_name.to_lower():
-			return i
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	for i: int in range(hand.size()):
+		var card_variant: Variant = hand[i]
+		var card: Card = card_variant if card_variant is Card else null
+		if card:
+			# Match by card_name or catalog_id
+			if card.card_name.to_lower() == card_name.to_lower():
+				return i
 	return -1
 
 ## Override base methods (scripted AI doesn't use these)

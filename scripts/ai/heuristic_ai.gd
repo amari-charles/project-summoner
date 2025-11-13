@@ -23,7 +23,9 @@ func _ready() -> void:
 	_set_next_play_time()
 
 func _process(delta: float) -> void:
-	if summoner == null or not summoner.is_alive:
+	var is_alive_variant: Variant = summoner.get("is_alive") if summoner else false
+	var is_alive: bool = is_alive_variant if is_alive_variant is bool else false
+	if summoner == null or not is_alive:
 		return
 
 	play_timer += delta
@@ -31,15 +33,20 @@ func _process(delta: float) -> void:
 	if play_timer >= next_play_time and should_play_card():
 		var card_index: int = select_card_to_play()
 		if card_index != -1:
-			var card: Card = summoner.hand[card_index]
-			# Check if summoner is 3D or 2D
-			if summoner.has_method("play_card_3d"):
-				var pos_2d: Vector2 = select_spawn_position(card)
-				var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
-				summoner.play_card_3d(card_index, pos_3d)
-			else:
-				var position: Vector2 = select_spawn_position(card)
-				summoner.play_card(card_index, position)
+			var hand_variant: Variant = summoner.get("hand")
+			var hand: Array = hand_variant if hand_variant is Array else []
+			if card_index >= 0 and card_index < hand.size():
+				var card_variant: Variant = hand[card_index]
+				var card: Card = card_variant if card_variant is Card else null
+				if card:
+					# Check if summoner is 3D or 2D
+					if summoner.has_method("play_card_3d"):
+						var pos_2d: Vector2 = select_spawn_position(card)
+						var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
+						summoner.call("play_card_3d", card_index, pos_3d)
+					else:
+						var position: Vector2 = select_spawn_position(card)
+						summoner.call("play_card", card_index, position)
 		_set_next_play_time()
 
 func on_battle_start() -> void:
@@ -48,13 +55,19 @@ func on_battle_start() -> void:
 
 ## Decide if we should play a card now
 func should_play_card() -> bool:
-	if summoner.hand.is_empty():
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	if hand.is_empty():
 		return false
 
 	# Check if we have any playable cards
 	var has_playable: bool = false
-	for card in summoner.hand:
-		if card.can_play(int(summoner.mana)):
+	var mana_variant: Variant = summoner.get("mana")
+	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
+	var mana_int: int = int(mana)
+	for card_variant: Variant in hand:
+		var card: Card = card_variant if card_variant is Card else null
+		if card and card.can_play(mana_int):
 			has_playable = true
 			break
 
@@ -62,17 +75,24 @@ func should_play_card() -> bool:
 
 ## Select which card to play based on strategy
 func select_card_to_play() -> int:
-	if summoner.hand.is_empty():
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	if hand.is_empty():
 		return -1
 
 	var battlefield_state: BattlefieldState = _evaluate_battlefield_state()
 	var best_card_index: int = -1
 	var best_score: float = -INF
 
+	var mana_variant: Variant = summoner.get("mana")
+	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
+	var mana_int: int = int(mana)
+
 	# Score each playable card
-	for i in range(summoner.hand.size()):
-		var card: Card = summoner.hand[i]
-		if not card.can_play(int(summoner.mana)):
+	for i: int in range(hand.size()):
+		var card_variant: Variant = hand[i]
+		var card: Card = card_variant if card_variant is Card else null
+		if not card or not card.can_play(mana_int):
 			continue
 
 		var score: float = _score_card(card, battlefield_state)
