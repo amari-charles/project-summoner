@@ -31,7 +31,8 @@ func _on_play_pressed() -> void:
 			var meta: Variant = profile.get("meta", {})
 			var onboarding_complete: bool = false
 			if meta is Dictionary:
-				onboarding_complete = (meta as Dictionary).get("onboarding_complete", false)
+				var meta_dict: Dictionary = meta
+				onboarding_complete = meta_dict.get("onboarding_complete", false)
 
 			if not onboarding_complete:
 				print("Opening onboarding - hero selection...")

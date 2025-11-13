@@ -22,8 +22,8 @@ extends Node
 ##   Or call commands directly: DevConsole.execute_command("/save_info")
 
 ## Available card catalog IDs for testing
-const TEST_CARDS: Array[String] = ["warrior", "archer", "fireball", "wall"]
-const TEST_RARITIES: Array[String] = ["common", "common", "common", "rare", "epic"]  # Weighted
+const TEST_CARDS: Array = ["warrior", "archer", "fireball", "wall"]
+const TEST_RARITIES: Array = ["common", "common", "common", "rare", "epic"]  # Weighted
 
 ## Service references (injected by autoload order)
 var _repo: Node = null  # ProfileRepo autoload
@@ -54,7 +54,7 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	# Future: F12 to toggle console UI
 	if event is InputEventKey:
-		var key_event: InputEventKey = event as InputEventKey
+		var key_event: InputEventKey = event
 		if key_event.pressed and key_event.keycode == KEY_F12:
 			print("DevConsole: F12 pressed (console UI not yet implemented)")
 
@@ -239,7 +239,8 @@ func _cmd_save_info() -> bool:
 			var card_ids: Variant = deck.get("card_instance_ids", [])
 			var card_ids_size: int = 0
 			if card_ids is Array:
-				card_ids_size = (card_ids as Array).size()
+				var card_ids_array: Array = card_ids
+				card_ids_size = card_ids_array.size()
 			print("  - %s (%s): %d cards [%s]" % [
 				deck.name,
 				deck.id,
