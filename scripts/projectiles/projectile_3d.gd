@@ -137,7 +137,7 @@ func _move_homing(delta: float) -> void:
 	global_position += direction * speed * delta
 
 ## Arc movement - follows arc to target position
-func _move_arc(delta: float) -> void:
+func _move_arc(_delta: float) -> void:
 	var progress: float = travel_time * speed / start_position.distance_to(target_position)
 	progress = clamp(progress, 0.0, 1.0)
 

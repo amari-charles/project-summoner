@@ -40,21 +40,21 @@ func set_sprite_frames(frames: SpriteFrames) -> void:
 		_setup_sprite_alignment()
 
 ## Flip the sprite horizontally
-func set_flip_h(flip: bool) -> void:
+func set_flip_h(_flip: bool) -> void:
 	if character_sprite:
-		character_sprite.flip_h = flip
+		character_sprite.flip_h = _flip
 
 ## Play an animation
-func play_animation(anim_name: String, auto_play: bool = false) -> void:
+func play_animation(_anim_name: String, _auto_play: bool = false) -> void:
 	if character_sprite and character_sprite.sprite_frames:
 		# Check if animation exists before trying to play it
-		if character_sprite.sprite_frames.has_animation(anim_name):
-			character_sprite.animation = anim_name
-			if auto_play:
-				character_sprite.autoplay = anim_name
+		if character_sprite.sprite_frames.has_animation(_anim_name):
+			character_sprite.animation = _anim_name
+			if _auto_play:
+				character_sprite.autoplay = _anim_name
 			character_sprite.play()
 		else:
-			push_warning("Animation '%s' not found in sprite_frames, falling back to 'idle'" % anim_name)
+			push_warning("Animation '%s' not found in sprite_frames, falling back to 'idle'" % _anim_name)
 			if character_sprite.sprite_frames.has_animation("idle"):
 				character_sprite.animation = "idle"
 				character_sprite.play()
@@ -77,12 +77,12 @@ func is_playing() -> bool:
 	return false
 
 ## Get the duration of an animation in seconds
-func get_animation_duration(anim_name: String) -> float:
+func get_animation_duration(_anim_name: String) -> float:
 	if character_sprite and character_sprite.sprite_frames:
 		var frames: SpriteFrames = character_sprite.sprite_frames
-		if frames.has_animation(anim_name):
-			var frame_count: int = frames.get_frame_count(anim_name)
-			var fps: float = frames.get_animation_speed(anim_name)
+		if frames.has_animation(_anim_name):
+			var frame_count: int = frames.get_frame_count(_anim_name)
+			var fps: float = frames.get_animation_speed(_anim_name)
 			if fps > 0:
 				return frame_count / fps
 	return 1.0  # Fallback duration

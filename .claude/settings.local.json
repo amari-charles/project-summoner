@@ -12,7 +12,8 @@
       "Bash(git push:*)",
       "Bash(godot:*)",
       "Bash(git commit:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(godot4:*)"
     ],
     "deny": [],
     "ask": []

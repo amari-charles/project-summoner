@@ -171,7 +171,7 @@ func _return_to_pool(bar: FloatingHPBar) -> void:
 		bar.queue_free()
 
 ## Handler for bar hidden signal
-func _on_bar_hidden(unit: Node3D, bar: FloatingHPBar) -> void:
+func _on_bar_hidden(_unit: Node3D, _bar: FloatingHPBar) -> void:
 	# Bar faded out, optionally remove it
 	# For now, keep it in active_bars but hidden
 	# It will be removed when unit dies

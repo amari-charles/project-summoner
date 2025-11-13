@@ -269,7 +269,7 @@ func _store_base_stats() -> void:
 ##
 ## @param modifiers: Array of modifier dictionaries
 ## @param card_data: Card data for context
-func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
+func apply_modifiers(modifiers: Array, _card_data: Dictionary = {}) -> void:
 	# Start from base stats
 	var stats: Dictionary = {
 		"max_hp": base_max_hp,
@@ -466,7 +466,7 @@ func _acquire_target() -> Node3D:
 
 	return best_target
 
-func _move_towards_target(delta: float) -> void:
+func _move_towards_target(_delta: float) -> void:
 	if not current_target:
 		return
 

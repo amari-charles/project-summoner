@@ -231,7 +231,7 @@ func emit_spell_cast(caster: Node3D, spell_id: String, metadata: Dictionary = {}
 ## Calculate damage with preview (doesn't apply, just calculates)
 ## Useful for damage prediction UI
 func preview_damage(
-	attacker: Node3D,
+	_attacker: Node3D,
 	target: Node3D,
 	base_damage: float,
 	damage_type: String = "physical",

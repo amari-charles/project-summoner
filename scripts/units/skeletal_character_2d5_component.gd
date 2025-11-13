@@ -72,7 +72,7 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 	return null
 
 ## Play an animation
-func play_animation(anim_name: String, auto_play: bool = false) -> void:
+func play_animation(anim_name: String, _auto_play: bool = false) -> void:
 	if not animation_player:
 		return
 
@@ -110,18 +110,18 @@ func is_playing() -> bool:
 	return false
 
 ## Flip the sprite horizontally (for enemy units)
-func set_flip_h(flip: bool) -> void:
+func set_flip_h(_flip: bool) -> void:
 	if skeletal_instance:
-		skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if flip else 1)
+		skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if _flip else 1)
 
 ## Get the duration of an animation in seconds
-func get_animation_duration(anim_name: String) -> float:
+func get_animation_duration(_anim_name: String) -> float:
 	if not animation_player:
 		return 1.0  # Fallback duration
 
 	# Map animation names (same mapping as play_animation)
-	var mapped_name = anim_name
-	match anim_name:
+	var mapped_name = _anim_name
+	match _anim_name:
 		"walk":
 			mapped_name = "idle"
 		"hurt":
