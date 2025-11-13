@@ -321,14 +321,16 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 	var battle: Dictionary = get_battle(battle_id)
 	if battle.is_empty():
 		push_error("CampaignService: Battle not found: %s" % battle_id)
-		return {}
+		var empty_result: Dictionary = {}
+		return empty_result
 
 	var reward_type: String = battle.get("reward_type", "fixed")
 	var reward_cards: Array = battle.get("reward_cards", [])
 
 	if reward_cards.is_empty():
 		push_warning("CampaignService: No rewards defined for battle '%s'" % battle_id)
-		return {}
+		var empty_rewards: Dictionary = {}
+		return empty_rewards
 
 	var granted_card: Dictionary = {}
 	var granted_instance_ids: Array[String] = []  # Track actual card instance IDs

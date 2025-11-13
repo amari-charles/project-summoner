@@ -374,7 +374,8 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 func get_card(catalog_id: String) -> Dictionary:
 	if not _catalog.has(catalog_id):
 		push_warning("CardCatalog: Card '%s' not found in catalog" % catalog_id)
-		return {}
+		var empty: Dictionary = {}
+		return empty
 	# Return shallow duplicate - preserves Element object references while preventing corruption
 	var card_dict: Dictionary = _catalog[catalog_id]
 	return card_dict.duplicate(false)

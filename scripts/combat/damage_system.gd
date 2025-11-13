@@ -249,10 +249,11 @@ func preview_damage(
 
 	final_damage = round(final_damage * 10) / 10.0
 
-	return {
+	var result: Dictionary = {
 		"base_damage": base_damage,
 		"final_damage": final_damage,
 		"is_crit": assume_crit,
 		"damage_type": damage_type,
 		"will_kill": ("current_hp" in target) and target.get("current_hp") <= final_damage
 	}
+	return result

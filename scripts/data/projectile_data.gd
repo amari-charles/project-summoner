@@ -86,7 +86,7 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 
 ## Convert to dictionary (for saving/debugging)
 func to_dict() -> Dictionary:
-	return {
+	var result: Dictionary = {
 		"projectile_id": projectile_id,
 		"projectile_name": projectile_name,
 		"model_scene_path": model_scene_path,
@@ -106,3 +106,4 @@ func to_dict() -> Dictionary:
 		"launch_sound": launch_sound,
 		"impact_sound": impact_sound
 	}
+	return result

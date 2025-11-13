@@ -205,9 +205,10 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	set_drag_preview(preview)
 
 	# Return card data as drag data
-	return {
+	var drag_data: Dictionary = {
 		"type": "card",
 		"card_data": card_data,
 		"catalog_data": catalog_data,
 		"source": self
 	}
+	return drag_data

@@ -71,7 +71,7 @@ static func from_dict(data: Dictionary) -> CardData:
 
 ## Convert to dictionary (for saving/debugging)
 func to_dict() -> Dictionary:
-	return {
+	var result: Dictionary = {
 		"card_id": card_id,
 		"card_name": card_name,
 		"description": description,
@@ -91,3 +91,4 @@ func to_dict() -> Dictionary:
 		"unlock_condition": unlock_condition,
 		"flavor_text": flavor_text
 	}
+	return result

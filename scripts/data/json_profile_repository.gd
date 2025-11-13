@@ -275,7 +275,8 @@ func get_card_count(catalog_id: String) -> int:
 func get_card(card_instance_id: String) -> Dictionary:
 	var collection_variant: Variant = _data.get("collection", [])
 	if not collection_variant is Array:
-		return {}
+		var empty: Dictionary = {}
+		return empty
 	var coll_array: Array = collection_variant
 	for card: Variant in coll_array:
 		if card is Dictionary:
@@ -283,7 +284,8 @@ func get_card(card_instance_id: String) -> Dictionary:
 			var card_id_variant: Variant = card_dict.get("id")
 			if card_id_variant == card_instance_id:
 				return card_dict
-	return {}
+	var not_found: Dictionary = {}
+	return not_found
 
 ## =============================================================================
 ## DECK OPERATIONS
@@ -463,7 +465,8 @@ func get_deck(deck_id: String) -> Dictionary:
 			var deck_dict_id_variant: Variant = deck_dict.get("id")
 			if deck_dict_id_variant == deck_id:
 				return deck_dict
-	return {}
+	var not_found: Dictionary = {}
+	return not_found
 
 ## =============================================================================
 ## METADATA OPERATIONS
@@ -672,7 +675,7 @@ func _create_fresh_profile() -> void:
 	}
 
 func _create_card_instance(catalog_id: String, rarity: String) -> Dictionary:
-	return {
+	var result: Dictionary = {
 		"id": _generate_uuid(),
 		"profile_id": _current_profile_id,
 		"catalog_id": catalog_id,
@@ -680,6 +683,7 @@ func _create_card_instance(catalog_id: String, rarity: String) -> Dictionary:
 		"roll_json": null,
 		"created_at": Time.get_unix_time_from_system()
 	}
+	return result
 
 func _migrate_if_needed() -> void:
 	var version_variant: Variant = _data.get("version", 0)

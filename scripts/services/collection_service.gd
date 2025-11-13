@@ -69,12 +69,14 @@ func list_cards() -> Array[Dictionary]:
 ## Get a specific card instance by ID
 func get_card(card_instance_id: String) -> Dictionary:
 	if _repo == null:
-		return {}
+		var empty: Dictionary = {}
+		return empty
 	if _repo.has_method("get_card"):
 		var result: Variant = _repo.call("get_card", card_instance_id)
 		if result is Dictionary:
 			return result
-	return {}
+	var default: Dictionary = {}
+	return default
 
 ## Get count of cards by catalog ID
 func get_card_count(catalog_id: String) -> int:

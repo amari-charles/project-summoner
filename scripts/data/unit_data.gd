@@ -95,7 +95,7 @@ static func from_dict(data: Dictionary) -> UnitData:
 
 ## Convert to dictionary (for saving/debugging)
 func to_dict() -> Dictionary:
-	return {
+	var result: Dictionary = {
 		"unit_id": unit_id,
 		"unit_name": unit_name,
 		"description": description,
@@ -119,3 +119,4 @@ func to_dict() -> Dictionary:
 		"death_sound": death_sound,
 		"tags": tags.duplicate()
 	}
+	return result

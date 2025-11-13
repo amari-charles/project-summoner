@@ -53,12 +53,14 @@ func _ready() -> void:
 ## Get current resource values
 func get_resources() -> Dictionary:
 	if _repo == null:
-		return {"gold": 0, "essence": 0, "fragments": 0}
+		var empty: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
+		return empty
 	if _repo.has_method("get_resources"):
 		var result: Variant = _repo.call("get_resources")
 		if result is Dictionary:
 			return result
-	return {"gold": 0, "essence": 0, "fragments": 0}
+	var default: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
+	return default
 
 ## Get specific resource amount
 func get_gold() -> int:

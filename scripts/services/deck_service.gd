@@ -66,12 +66,14 @@ func list_decks() -> Array[Dictionary]:
 ## Get a specific deck by ID
 func get_deck(deck_id: String) -> Dictionary:
 	if _repo == null:
-		return {}
+		var empty: Dictionary = {}
+		return empty
 	if _repo.has_method("get_deck"):
 		var result: Variant = _repo.call("get_deck", deck_id)
 		if result is Dictionary:
 			return result
-	return {}
+	var default: Dictionary = {}
+	return default
 
 ## Check if a deck exists
 func has_deck(deck_id: String) -> bool:
