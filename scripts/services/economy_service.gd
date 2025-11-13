@@ -19,7 +19,7 @@ signal transaction_completed(delta: Dictionary)
 signal transaction_failed(reason: String)
 
 ## Repository reference (injected by autoload order)
-var _repo = null  # JsonProfileRepo instance
+var _repo: Node = null  # JsonProfileRepo instance
 
 ## =============================================================================
 ## LIFECYCLE
@@ -37,7 +37,9 @@ func _ready() -> void:
 		return
 
 	# Connect to repo signals
-	_repo.data_changed.connect(_on_repo_data_changed)
+	if _repo.has_signal("data_changed"):
+		var data_changed_signal: Signal = _repo.get("data_changed")
+		data_changed_signal.connect(_on_repo_data_changed)
 
 	print("EconomyService: Ready")
 
@@ -51,8 +53,14 @@ func _ready() -> void:
 ## Get current resource values
 func get_resources() -> Dictionary:
 	if _repo == null:
-		return {"gold": 0, "essence": 0, "fragments": 0}
-	return _repo.get_resources()
+		var empty: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
+		return empty
+	if _repo.has_method("get_resources"):
+		var result: Variant = _repo.call("get_resources")
+		if result is Dictionary:
+			return result
+	var default: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
+	return default
 
 ## Get specific resource amount
 func get_gold() -> int:
@@ -67,10 +75,11 @@ func get_fragments() -> int:
 ## Check if player can afford a cost
 ## cost: Dictionary like {"gold": 100, "essence": 50}
 func can_afford(cost: Dictionary) -> bool:
-	var resources = get_resources()
+	var resources: Dictionary = get_resources()
 
-	for key in cost:
-		if resources.get(key, 0) < cost[key]:
+	for key: String in cost:
+		var required: int = cost[key] if cost[key] is int else 0
+		if resources.get(key, 0) < required:
 			return false
 
 	return true
@@ -110,15 +119,16 @@ func add_fragments(amount: int) -> void:
 ## Returns true if successful, false if can't afford
 func spend(cost: Dictionary) -> bool:
 	if not can_afford(cost):
-		var reason = "Cannot afford: " + str(cost)
+		var reason: String = "Cannot afford: " + str(cost)
 		push_warning("EconomyService: " + reason)
 		transaction_failed.emit(reason)
 		return false
 
 	# Convert to negative delta
-	var delta = {}
-	for key in cost:
-		delta[key] = -cost[key]
+	var delta: Dictionary = {}
+	for key: String in cost:
+		var amount: int = cost[key] if cost[key] is int else 0
+		delta[key] = -amount
 
 	_update_resources(delta)
 	print("EconomyService: Spent %s" % str(cost))
@@ -139,17 +149,17 @@ func _update_resources(delta: Dictionary) -> void:
 		push_error("EconomyService: Cannot update resources, repo not initialized")
 		return
 
-	_repo.update_resources(delta)
+	if _repo.has_method("update_resources"):
+		_repo.call("update_resources", delta)
 	transaction_completed.emit(delta)
 	_emit_current_resources()
 
 func _emit_current_resources() -> void:
-	var resources = get_resources()
-	resources_changed.emit(
-		resources.get("gold", 0),
-		resources.get("essence", 0),
-		resources.get("fragments", 0)
-	)
+	var resources: Dictionary = get_resources()
+	var gold: int = resources.get("gold", 0)
+	var essence: int = resources.get("essence", 0)
+	var fragments: int = resources.get("fragments", 0)
+	resources_changed.emit(gold, essence, fragments)
 
 func _on_repo_data_changed() -> void:
 	# Repo data changed (from external source or load)

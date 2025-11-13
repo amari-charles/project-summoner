@@ -129,16 +129,16 @@ func _ready() -> void:
 
 		# Adjust shadow for altitude (smaller and more transparent at higher altitudes)
 		if shadow_component:
-			var altitude_factor = flight_altitude / MAX_FLIGHT_ALTITUDE  # Normalize altitude
+			var altitude_factor: float = flight_altitude / MAX_FLIGHT_ALTITUDE  # Normalize altitude
 			altitude_factor = clamp(altitude_factor, 0.0, 1.0)
 
 			# Scale shadow down with altitude
-			var size_scale = 1.0 - (altitude_factor * SHADOW_SIZE_REDUCTION_FACTOR)
-			shadow_component.set_shadow_radius(shadow_size * size_scale)
+			var size_scale: float = 1.0 - (altitude_factor * SHADOW_SIZE_REDUCTION_FACTOR)
+			shadow_component.call("set_shadow_radius", shadow_size * size_scale)
 
 			# Fade shadow opacity with altitude
-			var opacity_scale = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
-			shadow_component.set_shadow_opacity(shadow_opacity * opacity_scale)
+			var opacity_scale: float = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
+			shadow_component.call("set_shadow_opacity", shadow_opacity * opacity_scale)
 
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
@@ -151,7 +151,7 @@ func _setup_visuals() -> void:
 		is_facing_left = (team == Team.ENEMY)
 		# Sprites face LEFT by default, so flip PLAYER units to face right
 		# (invert_facing reverses this for sprites that naturally face right)
-		var should_flip = (team == Team.PLAYER) != invert_facing
+		var should_flip: bool = (team == Team.PLAYER) != invert_facing
 		if should_flip and visual_component.has_method("set_flip_h"):
 			visual_component.set_flip_h(true)
 		# Play idle animation
@@ -160,30 +160,30 @@ func _setup_visuals() -> void:
 		return
 
 	# Otherwise, load and instance the standard sprite-based 2.5D character component
-	var component_scene = load("res://scenes/units/sprite_character_2d5_component.tscn")
+	var component_scene: PackedScene = load("res://scenes/units/sprite_character_2d5_component.tscn")
 	if component_scene:
 		visual_component = component_scene.instantiate()
 		visual_component.name = "Visual"  # Name it so HP bars can find it
 
 		# Configure feet offset if specified
 		if sprite_feet_offset_pixels > 0.0 and "feet_offset_pixels" in visual_component:
-			visual_component.feet_offset_pixels = sprite_feet_offset_pixels
+			visual_component.set("feet_offset_pixels", sprite_feet_offset_pixels)
 
 		# Configure sprite scale if specified
 		if "sprite_scale" in visual_component:
-			visual_component.sprite_scale = sprite_scale
+			visual_component.set("sprite_scale", sprite_scale)
 
 		add_child(visual_component)
 
 		# Set sprite frames if provided
-		if sprite_frames:
-			visual_component.set_sprite_frames(sprite_frames)
+		if sprite_frames and visual_component.has_method("set_sprite_frames"):
+			visual_component.call("set_sprite_frames", sprite_frames)
 			# Initialize facing direction based on team
 			is_facing_left = (team == Team.ENEMY)
 			# Sprites face LEFT by default, so flip PLAYER units to face right
 			# (invert_facing reverses this for sprites that naturally face right)
-			var should_flip = (team == Team.PLAYER) != invert_facing
-			if should_flip:
+			var should_flip_2: bool = (team == Team.PLAYER) != invert_facing
+			if should_flip_2:
 				visual_component.set_flip_h(true)
 			visual_component.play_animation("idle", true)
 
@@ -195,13 +195,13 @@ func _setup_shadow() -> void:
 	if shadow_size <= 0.0:
 		if visual_component and visual_component.has_method("get_sprite_height"):
 			# Shadow should be proportional to sprite width (roughly 1/3 of height for human proportions)
-			var sprite_height = visual_component.get_sprite_height()
+			var sprite_height: float = visual_component.get_sprite_height()
 			shadow_size = sprite_height * 0.35  # ~35% of height
 		else:
 			shadow_size = _calculate_shadow_size_from_collision()
 
 	# Load the ShadowComponent script
-	var shadow_script = load("res://scripts/units/shadow_component.gd")
+	var shadow_script: GDScript = load("res://scripts/units/shadow_component.gd")
 	if not shadow_script:
 		push_warning("Unit3D: Failed to load shadow_component.gd")
 		return
@@ -214,23 +214,32 @@ func _setup_shadow() -> void:
 	add_child(shadow_component)
 
 	# Initialize with proper values (explicit initialization pattern)
-	shadow_component.initialize(shadow_size, shadow_opacity)
+	shadow_component.call("initialize", shadow_size, shadow_opacity)
 
 ## Calculate shadow size based on collision shape
 func _calculate_shadow_size_from_collision() -> float:
 	# Find CollisionShape3D child
-	for child in get_children():
+	var children: Array[Node] = get_children()
+	for child: Node in children:
 		if child is CollisionShape3D:
-			var shape = child.shape
+			# Type narrow to CollisionShape3D for safe property access
+			var collision_shape: CollisionShape3D = child
+			var shape: Shape3D = collision_shape.shape
 			if shape is CapsuleShape3D:
+				# Type narrow to CapsuleShape3D for safe property access
+				var capsule: CapsuleShape3D = shape
 				# Shadow diameter = radius * 2.5 (a bit larger than capsule base)
-				return shape.radius * 2.5
+				return capsule.radius * 2.5
 			elif shape is BoxShape3D:
+				# Type narrow to BoxShape3D for safe property access
+				var box: BoxShape3D = shape
 				# Use average of X and Z extents
-				var extents = shape.size
+				var extents: Vector3 = box.size
 				return (extents.x + extents.z) / 2.0 * 1.2
 			elif shape is SphereShape3D:
-				return shape.radius * 2.2
+				# Type narrow to SphereShape3D for safe property access
+				var sphere: SphereShape3D = shape
+				return sphere.radius * 2.2
 
 	# Fallback to default
 	return 1.0
@@ -260,9 +269,9 @@ func _store_base_stats() -> void:
 ##
 ## @param modifiers: Array of modifier dictionaries
 ## @param card_data: Card data for context
-func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
+func apply_modifiers(modifiers: Array, _card_data: Dictionary = {}) -> void:
 	# Start from base stats
-	var stats = {
+	var stats: Dictionary = {
 		"max_hp": base_max_hp,
 		"attack_damage": base_attack_damage,
 		"attack_speed": base_attack_speed,
@@ -270,42 +279,60 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 	}
 
 	# Phase 1: Sum all additive bonuses
-	var adds = {
+	var adds: Dictionary = {
 		"max_hp": 0.0,
 		"attack_damage": 0.0,
 		"attack_speed": 0.0,
 		"move_speed": 0.0
 	}
 
-	for mod in modifiers:
-		var stat_adds = mod.get("stat_adds", {})
-		for stat in stat_adds.keys():
-			if adds.has(stat):
-				adds[stat] += stat_adds[stat]
+	for mod: Variant in modifiers:
+		if not mod is Dictionary:
+			continue
+		var mod_dict: Dictionary = mod
+		var empty_adds: Dictionary = {}
+		var stat_adds: Dictionary = mod_dict.get("stat_adds", empty_adds)
+		var stat_keys: Array = stat_adds.keys()
+		for stat: Variant in stat_keys:
+			if stat is String and adds.has(stat):
+				var stat_key: String = stat
+				adds[stat_key] += stat_adds[stat_key]
 
 	# Apply additive bonuses
-	for stat in adds.keys():
-		stats[stat] += adds[stat]
+	var add_keys: Array = adds.keys()
+	for stat: Variant in add_keys:
+		if stat is String:
+			var stat_key: String = stat
+			stats[stat_key] += adds[stat_key]
 
 	# Phase 2: Multiply all multiplicative bonuses (additive within phase)
-	var mults = {
+	var mults: Dictionary = {
 		"max_hp": 0.0,  # Start at 0, will add bonuses (e.g., 1.3 becomes 0.3)
 		"attack_damage": 0.0,
 		"attack_speed": 0.0,
 		"move_speed": 0.0
 	}
 
-	for mod in modifiers:
-		var stat_mults = mod.get("stat_mults", {})
-		for stat in stat_mults.keys():
-			if mults.has(stat):
+	for mod: Variant in modifiers:
+		if not mod is Dictionary:
+			continue
+		var mod_dict: Dictionary = mod
+		var empty_mults: Dictionary = {}
+		var stat_mults: Dictionary = mod_dict.get("stat_mults", empty_mults)
+		var mult_keys: Array = stat_mults.keys()
+		for stat: Variant in mult_keys:
+			if stat is String and mults.has(stat):
+				var stat_key: String = stat
 				# Convert multiplier to bonus: 1.3 → 0.3
-				var bonus = stat_mults[stat] - 1.0
-				mults[stat] += bonus
+				var bonus: float = stat_mults[stat_key] - 1.0
+				mults[stat_key] += bonus
 
 	# Apply multiplicative bonuses
-	for stat in mults.keys():
-		stats[stat] *= (1.0 + mults[stat])
+	var mult_result_keys: Array = mults.keys()
+	for stat: Variant in mult_result_keys:
+		if stat is String:
+			var stat_key: String = stat
+			stats[stat_key] *= (1.0 + mults[stat_key])
 
 	# Phase 3: Apply final stats
 	max_hp = stats.max_hp
@@ -316,8 +343,12 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 
 	# Phase 4: Merge all flags
 	active_modifiers.clear()
-	for mod in modifiers:
-		var flags = mod.get("flags", {})
+	for mod: Variant in modifiers:
+		if not mod is Dictionary:
+			continue
+		var mod_dict: Dictionary = mod
+		var empty_flags: Dictionary = {}
+		var flags: Dictionary = mod_dict.get("flags", empty_flags)
 		active_modifiers.merge(flags, true)
 
 
@@ -363,44 +394,53 @@ func _is_valid_target(target: Node3D) -> bool:
 	## Check if a target is still valid (alive and in range)
 	if not target or not is_instance_valid(target):
 		return false
-	if target is Unit3D and not target.is_alive:
-		return false
+	if target is Unit3D:
+		# Type narrow to Unit3D for safe property access
+		var unit_target: Unit3D = target
+		if not unit_target.is_alive:
+			return false
 	# Check if target is within aggro range (use distance_squared for performance)
-	var delta = target.global_position - global_position
-	var distance_sq = delta.x * delta.x + delta.z * delta.z
-	var max_range = aggro_radius * 1.5  # Allow some leeway
+	var delta: Vector3 = target.global_position - global_position
+	var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+	var max_range: float = aggro_radius * 1.5  # Allow some leeway
 	return distance_sq <= max_range * max_range
 
 func _acquire_target() -> Node3D:
 	## Find the best target using weighted scoring system
-	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
-	var targets = get_tree().get_nodes_in_group(target_group)
+	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
+	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
 	var best_target: Node3D = null
 	var best_score: float = -INF
-	var aggro_radius_sq = aggro_radius * aggro_radius
+	var aggro_radius_sq: float = aggro_radius * aggro_radius
 
-	for target in targets:
-		if not (target is Unit3D and target.is_alive):
+	for target: Node in targets:
+		if not target is Unit3D:
+			continue
+
+		# Type narrow to Unit3D for safe property access
+		var target_unit: Unit3D = target
+
+		if not target_unit.is_alive:
 			continue
 
 		# Skip targets we cannot attack based on layer restrictions
-		if not _can_attack_layer(target):
+		if not _can_attack_layer(target_unit):
 			continue
 
 		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
-		var delta = target.global_position - global_position
-		var distance_sq = delta.x * delta.x + delta.z * delta.z
+		var delta: Vector3 = target_unit.global_position - global_position
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
 
 		# Fast filtering: skip targets outside aggro range (no sqrt needed)
 		if distance_sq > aggro_radius_sq:
 			continue
 
 		# Only calculate actual distance (sqrt) for targets in range
-		var distance = sqrt(distance_sq)
+		var distance: float = sqrt(distance_sq)
 
 		# Calculate weighted score
-		var score = 0.0
+		var score: float = 0.0
 
 		# Distance component (inverse: closer = higher score)
 		if distance_weight > 0.0 and distance > 0.01:
@@ -408,29 +448,29 @@ func _acquire_target() -> Node3D:
 
 		# HP component (inverse: lower HP = higher score)
 		if hp_weight > 0.0:
-			var hp_percent = target.current_hp / target.max_hp
+			var hp_percent: float = target_unit.current_hp / target_unit.max_hp
 			# Add small epsilon to avoid division by zero
 			score += hp_weight / (hp_percent + 0.1)
 
 		# Track best scoring target
 		if score > best_score:
 			best_score = score
-			best_target = target
+			best_target = target_unit
 
 	# If no unit found, target the enemy base
 	if not best_target:
-		var base_group = "enemy_base" if team == Team.PLAYER else "player_base"
-		var bases = get_tree().get_nodes_in_group(base_group)
+		var base_group: String = "enemy_base" if team == Team.PLAYER else "player_base"
+		var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 		if bases.size() > 0:
-			best_target = bases[0]
+			best_target = bases[0] as Node3D
 
 	return best_target
 
-func _move_towards_target(delta: float) -> void:
+func _move_towards_target(_delta: float) -> void:
 	if not current_target:
 		return
 
-	var direction = (current_target.global_position - global_position).normalized()
+	var direction: Vector3 = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
 
@@ -445,7 +485,9 @@ func _can_attack_layer(target: Node3D) -> bool:
 	if not target is Unit3D:
 		return true  # Can attack non-units (bases, structures)
 
-	var target_layer = (target as Unit3D).movement_layer
+	# Type narrow to Unit3D for safe property access
+	var target_unit: Unit3D = target
+	var target_layer: MovementLayer = target_unit.movement_layer
 
 	# Apply layer-based targeting restrictions
 	match can_target:
@@ -466,11 +508,11 @@ func _is_in_attack_range(target: Node3D) -> bool:
 	if not target:
 		return false
 
-	var delta = target.global_position - global_position
+	var delta: Vector3 = target.global_position - global_position
 
 	# Ranged units use simple 3D distance (sphere)
 	if unit_type == UnitType.RANGED or is_ranged:  # Support legacy is_ranged
-		var distance = global_position.distance_to(target.global_position)
+		var distance: float = global_position.distance_to(target.global_position)
 		return distance <= attack_range
 
 	# Melee units use box-shaped range (per-axis checking)
@@ -480,9 +522,13 @@ func _is_in_attack_range(target: Node3D) -> bool:
 
 	# Check Y-axis (height) only for ground vs ground combat
 	# Flying units ignore height differences when attacking
-	var target_is_unit = target is Unit3D
-	var target_is_flying = target_is_unit and (target as Unit3D).movement_layer == MovementLayer.AIR
-	var is_flying = movement_layer == MovementLayer.AIR
+	var target_is_unit: bool = target is Unit3D
+	var target_is_flying: bool = false
+	if target_is_unit:
+		# Type narrow to Unit3D for safe property access
+		var target_unit: Unit3D = target
+		target_is_flying = target_unit.movement_layer == MovementLayer.AIR
+	var is_flying: bool = movement_layer == MovementLayer.AIR
 
 	if not is_flying and not target_is_flying:  # Both on ground
 		if abs(delta.y) > attack_range_vertical:  # Height tolerance
@@ -495,7 +541,7 @@ func _is_in_attack_range(target: Node3D) -> bool:
 
 func _update_facing(target_position: Vector3) -> void:
 	# Calculate direction to target and face that direction
-	var direction = (target_position - global_position).normalized()
+	var direction: Vector3 = (target_position - global_position).normalized()
 	_update_facing_from_direction(direction)
 
 func _update_facing_from_direction(direction: Vector3) -> void:
@@ -503,7 +549,7 @@ func _update_facing_from_direction(direction: Vector3) -> void:
 		return
 
 	# Face left if direction has negative X component (towards player base on left)
-	var should_face_left = direction.x < 0
+	var should_face_left: bool = direction.x < 0
 
 	# Only flip if facing changed (avoid redundant calls)
 	if should_face_left != is_facing_left:
@@ -519,8 +565,8 @@ func _perform_attack() -> void:
 	_update_animation("attack")
 
 	# Query actual animation duration from visual component
-	var attack_duration = 1.0 / attack_speed  # Cooldown duration
-	var animation_duration = 1.0  # Fallback
+	var attack_duration: float = 1.0 / attack_speed  # Cooldown duration
+	var animation_duration: float = 1.0  # Fallback
 	if visual_component and visual_component.has_method("get_animation_duration"):
 		animation_duration = visual_component.get_animation_duration("attack")
 
@@ -558,8 +604,8 @@ func _spawn_projectile() -> void:
 
 	if not projectile_id.is_empty():
 		# Use attachment points for proper spawn/target positions
-		var spawn_pos = get_projectile_spawn_position()
-		var target_pos = current_target.get_projectile_target_position() if current_target.has_method("get_projectile_target_position") else current_target.global_position
+		var spawn_pos: Vector3 = get_projectile_spawn_position()
+		var target_pos: Vector3 = current_target.call("get_projectile_target_position") if current_target.has_method("get_projectile_target_position") else current_target.global_position
 
 		# Apply predictive targeting for moving targets
 		target_pos = _calculate_intercept_point(spawn_pos, target_pos, current_target)
@@ -582,40 +628,42 @@ func _spawn_projectile() -> void:
 ##       and collision hulls are large enough to accommodate minor errors
 func _calculate_intercept_point(shooter_pos: Vector3, target_pos: Vector3, target: Node3D) -> Vector3:
 	# Get projectile speed from ContentCatalog (cached)
-	var projectile_speed = _get_projectile_speed()
+	var projectile_speed: float = _get_projectile_speed()
 	if projectile_speed <= 0:
 		return target_pos  # Fallback to current position
 
 	# Get target velocity
-	var target_velocity = Vector3.ZERO
+	var target_velocity: Vector3 = Vector3.ZERO
 	if target is CharacterBody3D:
-		target_velocity = target.velocity
+		# Type narrow to CharacterBody3D for safe property access
+		var character_body: CharacterBody3D = target
+		target_velocity = character_body.velocity
 	elif "velocity" in target:
-		target_velocity = target.velocity
+		target_velocity = target.get("velocity")
 
 	# If target is stationary, no prediction needed
 	if target_velocity.length_squared() < VELOCITY_STATIONARY_THRESHOLD:
 		return target_pos
 
 	# Calculate distance for initial time-to-impact estimation
-	var distance = (target_pos - shooter_pos).length()
+	var distance: float = (target_pos - shooter_pos).length()
 
 	# Simple time-to-impact estimation
-	var time_to_impact = distance / projectile_speed
+	var time_to_impact: float = distance / projectile_speed
 
 	# Predict target position at impact time
-	var predicted_pos = target_pos + (target_velocity * time_to_impact)
+	var predicted_pos: Vector3 = target_pos + (target_velocity * time_to_impact)
 
 	# Iterative refinement (one iteration is optimal - research shows diminishing returns after this)
-	var refined_distance = (predicted_pos - shooter_pos).length()
-	var refined_time = refined_distance / projectile_speed
+	var refined_distance: float = (predicted_pos - shooter_pos).length()
+	var refined_time: float = refined_distance / projectile_speed
 	predicted_pos = target_pos + (target_velocity * refined_time)
 
 	# Bounds validation: ensure prediction isn't absurdly far from current position
-	var prediction_offset = (predicted_pos - target_pos).length()
+	var prediction_offset: float = (predicted_pos - target_pos).length()
 	if prediction_offset > MAX_PREDICTION_DISTANCE:
 		# Clamp to max distance in the direction of movement
-		var direction = predicted_pos - target_pos
+		var direction: Vector3 = predicted_pos - target_pos
 		if direction.length_squared() > 0.001:  # Prevent zero-vector normalization
 			direction = direction.normalized()
 			predicted_pos = target_pos + (direction * MAX_PREDICTION_DISTANCE)
@@ -640,10 +688,18 @@ func _get_projectile_speed() -> float:
 		cached_projectile_speed = 15.0  # Default speed
 		return max(15.0, MIN_PROJECTILE_SPEED)
 
-	var proj_data = ContentCatalog.projectiles[projectile_id]
+	var proj_data_variant: Variant = ContentCatalog.projectiles[projectile_id]
+	if not proj_data_variant is Dictionary:
+		cached_projectile_speed = 15.0
+		return max(15.0, MIN_PROJECTILE_SPEED)
+
+	var proj_data: Dictionary = proj_data_variant
 	if proj_data and "speed" in proj_data:
-		cached_projectile_speed = proj_data.speed
-		return max(proj_data.speed, MIN_PROJECTILE_SPEED)
+		var default_speed: float = 15.0
+		var speed_variant: Variant = proj_data.get("speed", default_speed)
+		var speed: float = speed_variant if speed_variant is float else 15.0
+		cached_projectile_speed = speed
+		return max(speed, MIN_PROJECTILE_SPEED)
 
 	cached_projectile_speed = 15.0  # Default speed
 	return max(15.0, MIN_PROJECTILE_SPEED)
@@ -690,7 +746,7 @@ func _update_animation(anim_name: String) -> void:
 	if not visual_component:
 		return
 
-	var current_anim = visual_component.get_current_animation()
+	var current_anim: String = visual_component.get_current_animation()
 
 	# Don't interrupt important animations (attack, hurt, death)
 	if current_anim in ["attack", "hurt", "death"]:
@@ -708,7 +764,7 @@ func get_projectile_spawn_position() -> Vector3:
 		return projectile_spawn_point.global_position
 	# Dynamic: query visual component for sprite height
 	if visual_component and visual_component.has_method("get_sprite_height"):
-		var sprite_height = visual_component.get_sprite_height()
+		var sprite_height: float = visual_component.get_sprite_height()
 		# Spawn at ~60% of height (chest/hand level for archers)
 		return global_position + Vector3(0, sprite_height * 0.6, 0)
 	# Fallback for units without visual component
@@ -720,7 +776,7 @@ func get_projectile_target_position() -> Vector3:
 		return projectile_target_point.global_position
 	# Dynamic: query visual component for sprite height
 	if visual_component and visual_component.has_method("get_sprite_height"):
-		var sprite_height = visual_component.get_sprite_height()
+		var sprite_height: float = visual_component.get_sprite_height()
 		# Target at ~60% of height (chest area)
 		return global_position + Vector3(0, sprite_height * 0.6, 0)
 	# Fallback for units without visual component

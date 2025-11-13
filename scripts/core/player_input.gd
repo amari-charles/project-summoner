@@ -34,7 +34,7 @@ func _input(event: InputEvent) -> void:
 	# Number keys to select card in hand (1-4) for visual highlighting
 	if event is InputEventKey and event.pressed:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_4:
-			var card_index = event.keycode - KEY_1
+			var card_index: int = event.keycode - KEY_1
 			if hand_ui and card_index < summoner.hand.size():
 				hand_ui.select_card_by_index(card_index)
 

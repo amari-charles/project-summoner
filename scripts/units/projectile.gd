@@ -8,7 +8,7 @@ var damage: float = 10.0
 var speed: float = 300.0
 var team: Unit.Team = Unit.Team.PLAYER
 var target: Node2D = null
-var shooter: Unit = null
+var shooter: Unit = null  ## Unit that fired this projectile
 
 func _ready() -> void:
 	# Connect to area entered signal
@@ -39,12 +39,14 @@ func _on_area_entered(area: Area2D) -> void:
 func _on_body_entered(body: Node) -> void:
 	# Check if we hit an enemy
 	if body is Unit:
-		var unit = body as Unit
-		if unit.team != team and unit.is_alive:
+		# Type narrow to Unit for safe property access
+		var unit: Unit = body as Unit
+		if unit.team != team and unit.get("is_alive"):
 			_hit_target()
 	elif body is Base:
-		var base = body as Base
-		if base.team != team and base.is_alive:
+		# Type narrow to Base for safe property access
+		var base: Base = body as Base
+		if base.team != team and base.get("is_alive"):
 			_hit_target()
 
 func _hit_target() -> void:

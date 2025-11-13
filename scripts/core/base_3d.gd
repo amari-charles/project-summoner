@@ -15,14 +15,14 @@ const RECENT_HITS_DECAY_RATE: float = 2.0  # Hits per second decay rate
 @export var max_hp: float = 300.0
 @export var team: Team = Team.PLAYER
 
-var current_hp: float
+var current_hp: float = 0.0
 var is_alive: bool = true
 
 ## Attack intensity tracking
 var recent_hits: float = 0.0  # Tracks recent attack pressure for dynamic feedback
 
 ## Visual components
-@onready var visual: Sprite3D = $Visual if has_node("Visual") else null
+var visual: Sprite3D = null
 var original_color: Color = Color.WHITE
 var original_visual_position: Vector3 = Vector3.ZERO  # Cache original position
 var active_feedback_tween: Tween = null  # Track tween for cleanup
@@ -34,6 +34,10 @@ signal hp_changed(new_hp: float, new_max_hp: float)
 
 func _ready() -> void:
 	current_hp = max_hp
+
+	# Initialize visual reference
+	if has_node("Visual"):
+		visual = $Visual
 
 	# Add to groups
 	add_to_group("bases")
@@ -120,14 +124,14 @@ func _play_hit_feedback() -> void:
 
 	# Calculate duration based on attack intensity
 	# More hits = faster animation (communicates danger level)
-	var intensity_factor = 1.0 + (recent_hits * FLASH_SPEED_MULTIPLIER)
-	var flash_duration = max(MIN_FLASH_DURATION, BASE_FLASH_DURATION / intensity_factor)
+	var intensity_factor: float = 1.0 + (recent_hits * FLASH_SPEED_MULTIPLIER)
+	var flash_duration: float = max(MIN_FLASH_DURATION, BASE_FLASH_DURATION / intensity_factor)
 
 	# Scale all timings proportionally
-	var flash_to_white = flash_duration * 0.4  # 40% of time flashing white
-	var flash_return = flash_duration * 0.6    # 60% of time returning to original
-	var shake_out = flash_duration * 0.35      # Shake out timing
-	var shake_return = flash_duration * 0.25   # Shake return timing
+	var flash_to_white: float = flash_duration * 0.4  # 40% of time flashing white
+	var flash_return: float = flash_duration * 0.6    # 60% of time returning to original
+	var shake_out: float = flash_duration * 0.35      # Shake out timing
+	var shake_return: float = flash_duration * 0.25   # Shake return timing
 
 	# Create and store tween reference
 	active_feedback_tween = create_tween()
@@ -138,6 +142,6 @@ func _play_hit_feedback() -> void:
 	active_feedback_tween.chain().tween_property(visual, "modulate", original_color, flash_return)
 
 	# Shake effect (position offset) - use cached original position
-	var shake_offset = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
+	var shake_offset: Vector3 = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
 	active_feedback_tween.tween_property(visual, "position", original_visual_position + shake_offset, shake_out)
 	active_feedback_tween.chain().tween_property(visual, "position", original_visual_position, shake_return)

@@ -7,16 +7,16 @@ class_name HeroModifierProvider
 
 var hero_id: String
 
-func _init(id: String):
+func _init(id: String) -> void:
 	hero_id = id
 
 ## Get all modifiers this hero provides
 func get_modifiers() -> Array:
-	var modifiers = []
+	var modifiers: Array = []
 
 	match hero_id:
 		"fire_hero":
-			modifiers.append({
+			var fire_mod: Dictionary = {
 				"source": "fire_hero",
 				"tags": ["sun_blessed"],
 				"conditions": {
@@ -25,10 +25,11 @@ func get_modifiers() -> Array:
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to fire units
 				}
-			})
+			}
+			modifiers.append(fire_mod)
 
 		"earth_hero":
-			modifiers.append({
+			var earth_mod: Dictionary = {
 				"source": "earth_hero",
 				"tags": ["stone_guardian"],
 				"conditions": {
@@ -37,10 +38,11 @@ func get_modifiers() -> Array:
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to earth units
 				}
-			})
+			}
+			modifiers.append(earth_mod)
 
 		"wind_hero":
-			modifiers.append({
+			var wind_mod: Dictionary = {
 				"source": "wind_hero",
 				"tags": ["wind_walker"],
 				"conditions": {
@@ -49,10 +51,11 @@ func get_modifiers() -> Array:
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to wind units
 				}
-			})
+			}
+			modifiers.append(wind_mod)
 
 		"water_hero":
-			modifiers.append({
+			var water_mod: Dictionary = {
 				"source": "water_hero",
 				"tags": ["tide_caller"],
 				"conditions": {
@@ -61,7 +64,8 @@ func get_modifiers() -> Array:
 				"stat_mults": {
 					"attack_damage": 1.1  # +10% attack to water units
 				}
-			})
+			}
+			modifiers.append(water_mod)
 
 		"random_hero":
 			# Random hero gets no bonuses (for now)

@@ -17,7 +17,7 @@ class_name RewardScreen
 ## State
 var current_battle_id: String = ""
 var reward_type: String = ""
-var chosen_reward_index: int = 0
+var chosen_reward_index: int = 0  ## Unused for now
 
 ## =============================================================================
 ## LIFECYCLE
@@ -37,26 +37,28 @@ func _ready() -> void:
 ## =============================================================================
 
 func _load_battle_results() -> void:
-	var profile_repo = get_node("/root/ProfileRepo")
+	var profile_repo: Node = get_node("/root/ProfileRepo")
 	if not profile_repo:
 		push_error("RewardScreen: ProfileRepository not found!")
 		return
 
-	var profile = profile_repo.get_active_profile()
+	var profile: Dictionary = profile_repo.call("get_active_profile")
 	if profile.is_empty():
 		return
 
-	current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	var empty_dict: Dictionary = {}
+	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
+	current_battle_id = campaign_progress.get("current_battle", "")
 	if current_battle_id == "":
 		push_error("RewardScreen: No current battle set!")
 		return
 
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		push_error("RewardScreen: Campaign service not found!")
 		return
 
-	var battle = campaign.get_battle(current_battle_id)
+	var battle: Dictionary = campaign.call("get_battle", current_battle_id)
 	if battle.is_empty():
 		push_error("RewardScreen: Battle not found: %s" % current_battle_id)
 		return
@@ -66,11 +68,11 @@ func _load_battle_results() -> void:
 	reward_type = battle.get("reward_type", "fixed")
 
 	# Check if battle was already completed (replay scenario)
-	var is_replay = campaign.is_battle_completed(current_battle_id)
+	var is_replay: bool = campaign.call("is_battle_completed", current_battle_id)
 
 	# Mark battle as completed (if first time)
 	if not is_replay:
-		campaign.complete_battle(current_battle_id)
+		campaign.call("complete_battle", current_battle_id)
 
 	# Show rewards based on type (only grant if first time)
 	_show_rewards(battle, is_replay)
@@ -80,8 +82,8 @@ func _load_battle_results() -> void:
 ## =============================================================================
 
 func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
-	var campaign = get_node("/root/Campaign")
-	var catalog = get_node("/root/CardCatalog")
+	var campaign: Node = get_node("/root/Campaign")
+	var catalog: Node = get_node("/root/CardCatalog")
 
 	if is_replay:
 		# Show message for replayed battles
@@ -92,39 +94,39 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	match reward_type:
 		"fixed":
 			# Auto-grant rewards and display first card
-			var granted_card = campaign.grant_battle_reward(current_battle_id)
+			var granted_card: Dictionary = campaign.call("grant_battle_reward", current_battle_id)
 			if not granted_card.is_empty():
 				_display_card_reward(granted_card)
 				_auto_add_cards_to_deck(granted_card)
 
 		"choice":
 			# Show choice UI
-			var reward_cards = battle.get("reward_cards", [])
+			var reward_cards: Array = battle.get("reward_cards", [])
 			_show_choice_ui(reward_cards)
 
 		"random":
 			# Roll random and display
-			var granted_card = campaign.grant_battle_reward(current_battle_id)
+			var granted_card: Dictionary = campaign.call("grant_battle_reward", current_battle_id)
 			if not granted_card.is_empty():
 				_display_card_reward(granted_card)
 				_auto_add_cards_to_deck(granted_card)
 
 func _display_card_reward(reward: Dictionary) -> void:
-	var catalog = get_node("/root/CardCatalog")
+	var catalog: Node = get_node("/root/CardCatalog")
 	if not catalog:
 		return
 
-	var catalog_id = reward.get("catalog_id", "")
-	var rarity = reward.get("rarity", "common")
-	var count = reward.get("count", 1)
+	var catalog_id: String = reward.get("catalog_id", "")
+	var rarity: String = reward.get("rarity", "common")
+	var count: int = reward.get("count", 1)
 
-	var card_data = catalog.get_card(catalog_id)
+	var card_data: Dictionary = catalog.call("get_card", catalog_id)
 	if card_data.is_empty():
 		reward_card_label.text = "Unknown Card"
 		reward_detail_label.text = ""
 		return
 
-	var card_name = card_data.get("card_name", "Unknown")
+	var card_name: String = card_data.get("card_name", "Unknown")
 
 	if count > 1:
 		reward_card_label.text = "%dx %s" % [count, card_name]
@@ -149,20 +151,24 @@ func _show_choice_ui(reward_options: Array) -> void:
 	reward_container.visible = false
 	choice_container.visible = true
 
-	var catalog = get_node("/root/CardCatalog")
+	var catalog: Node = get_node("/root/CardCatalog")
 	if not catalog:
 		return
 
 	# Create choice buttons
-	for i in range(reward_options.size()):
-		var reward = reward_options[i]
-		var catalog_id = reward.get("catalog_id", "")
-		var card_data = catalog.get_card(catalog_id)
+	for i: int in range(reward_options.size()):
+		var reward_variant: Variant = reward_options[i]
+		if not reward_variant is Dictionary:
+			push_error("RewardScreen: reward_options[%d] is not a Dictionary" % i)
+			continue
+		var reward: Dictionary = reward_variant
+		var catalog_id: String = reward.get("catalog_id", "")
+		var card_data: Dictionary = catalog.call("get_card", catalog_id)
 
 		if card_data.is_empty():
 			continue
 
-		var button = Button.new()
+		var button: Button = Button.new()
 		button.text = card_data.get("card_name", "Unknown")
 		button.custom_minimum_size = Vector2(150, 100)
 		button.add_theme_font_size_override("font_size", 24)
@@ -176,9 +182,9 @@ func _on_choice_selected(index: int) -> void:
 	print("RewardScreen: Player chose option %d" % index)
 
 	# Grant the chosen reward
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
-		var granted_card = campaign.grant_battle_reward(current_battle_id, index)
+		var granted_card: Dictionary = campaign.call("grant_battle_reward", current_battle_id, index)
 		if not granted_card.is_empty():
 			# Hide choice UI and show selected card
 			choice_container.visible = false
@@ -204,41 +210,43 @@ func _on_continue_pressed() -> void:
 ## Automatically add granted cards to deck if this is a tutorial battle
 func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 	# Check if this is a tutorial battle
-	var campaign = get_node("/root/Campaign")
-	if not campaign or not campaign.is_battle_tutorial(current_battle_id):
+	var campaign: Node = get_node("/root/Campaign")
+	if not campaign or not campaign.call("is_battle_tutorial", current_battle_id):
 		return  # Not a tutorial battle, don't auto-add
 
 	# Get card instance IDs that were granted
-	var instance_ids = granted_card.get("instance_ids", [])
+	var instance_ids: Array = granted_card.get("instance_ids", [])
 	if instance_ids.is_empty():
 		push_warning("RewardScreen: No instance_ids in granted_card for auto-fill")
 		return
 
 	# Get active deck ID from profile
-	var profile_repo = get_node("/root/ProfileRepo")
+	var profile_repo: Node = get_node("/root/ProfileRepo")
 	if not profile_repo:
 		push_error("RewardScreen: ProfileRepo not found!")
 		return
 
-	var profile = profile_repo.get_active_profile()
+	var profile: Dictionary = profile_repo.call("get_active_profile")
 	if profile.is_empty():
 		push_error("RewardScreen: No active profile!")
 		return
 
-	var deck_id = profile.get("meta", {}).get("selected_deck", "")
+	var empty_meta: Dictionary = {}
+	var meta: Dictionary = profile.get("meta", empty_meta) if profile.get("meta", empty_meta) is Dictionary else {}
+	var deck_id: String = meta.get("selected_deck", "")
 	if deck_id == "":
 		push_warning("RewardScreen: No active deck selected!")
 		return
 
 	# Add cards to deck
-	var decks = get_node("/root/Decks")
+	var decks: Node = get_node("/root/Decks")
 	if not decks:
 		push_error("RewardScreen: Decks service not found!")
 		return
 
-	var added_count = 0
-	for card_instance_id in instance_ids:
-		if decks.add_card_to_deck(deck_id, card_instance_id):
+	var added_count: int = 0
+	for card_instance_id: String in instance_ids:
+		if decks.call("add_card_to_deck", deck_id, card_instance_id):
 			added_count += 1
 		else:
 			push_warning("RewardScreen: Failed to add card %s to deck" % card_instance_id)

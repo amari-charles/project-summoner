@@ -14,7 +14,7 @@ var is_3d: bool = false
 
 func _ready() -> void:
 	if summoner == null:
-		var parent = get_parent()
+		var parent: Node = get_parent()
 		if parent is Summoner:
 			summoner = parent
 			is_3d = false
@@ -41,26 +41,26 @@ func _attempt_play_card() -> void:
 
 	# Pick a random card that we can afford
 	var playable_cards: Array[int] = []
-	for i in range(summoner.hand.size()):
+	for i: int in range(summoner.hand.size()):
 		if summoner.hand[i].can_play(int(summoner.mana)):
 			playable_cards.append(i)
 
 	if playable_cards.is_empty():
 		return
 
-	var card_index = playable_cards.pick_random()
+	var card_index: int = playable_cards.pick_random()
 
 	if is_3d:
 		# Play at a random position in 3D (enemy territory on right side)
-		var spawn_x = randf_range(5, 9)    # Right side in 3D space
-		var spawn_z = randf_range(-5, 5)   # Random depth
-		var spawn_pos = Vector3(spawn_x, 1, spawn_z)
+		var spawn_x: float = randf_range(5.0, 9.0)    # Right side in 3D space
+		var spawn_z: float = randf_range(-5.0, 5.0)   # Random depth
+		var spawn_pos: Vector3 = Vector3(spawn_x, 1.0, spawn_z)
 		summoner.play_card_3d(card_index, spawn_pos)
 	else:
 		# Play at a random position in 2D (right side of screen)
-		var spawn_x = randf_range(1400, 1700)
-		var spawn_y = randf_range(200, 880)
-		var spawn_pos = Vector2(spawn_x, spawn_y)
+		var spawn_x: float = randf_range(1400.0, 1700.0)
+		var spawn_y: float = randf_range(200.0, 880.0)
+		var spawn_pos: Vector2 = Vector2(spawn_x, spawn_y)
 		summoner.play_card(card_index, spawn_pos)
 
 ## Reset the timer for next card play

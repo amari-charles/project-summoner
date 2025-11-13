@@ -22,7 +22,7 @@ const MASK_PROJECTILE: int = 0b00000011  ## Layers 1, 2 (can hit ground and flyi
 ## Example: combine([GROUND_UNITS, TERRAIN]) returns 0b00000101
 static func combine(layers: Array[int]) -> int:
 	var mask: int = 0
-	for layer in layers:
+	for layer: int in layers:
 		mask |= (1 << (layer - 1))  # Convert 1-based to bit position
 	return mask
 

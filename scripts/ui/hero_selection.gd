@@ -14,11 +14,11 @@ class_name HeroSelection
 @onready var select_button5: Button = %SelectButton5
 
 # Core elemental heroes
-const HERO_EARTH = "earth_hero"
-const HERO_FIRE = "fire_hero"
-const HERO_RANDOM = "random_hero"
-const HERO_AIR = "air_hero"
-const HERO_WATER = "water_hero"
+const HERO_EARTH: String = "earth_hero"
+const HERO_FIRE: String = "fire_hero"
+const HERO_RANDOM: String = "random_hero"
+const HERO_AIR: String = "air_hero"
+const HERO_WATER: String = "water_hero"
 
 func _ready() -> void:
 	print("HeroSelection: Initializing...")
@@ -34,12 +34,12 @@ func _on_hero_selected(hero_id: String) -> void:
 	print("HeroSelection: Player selected hero: %s" % hero_id)
 
 	# Save hero choice to profile
-	var profile_repo = get_node("/root/ProfileRepo")
+	var profile_repo: Node = get_node("/root/ProfileRepo")
 	if profile_repo:
-		var profile = profile_repo.get_active_profile()
+		var profile: Dictionary = profile_repo.call("get_active_profile")
 		if not profile.is_empty():
 			profile["meta"]["selected_hero"] = hero_id
-			profile_repo.save_profile()
+			profile_repo.call("save_profile")
 
 	# Continue to first card selection
 	get_tree().change_scene_to_file("res://scenes/ui/first_card_selection.tscn")

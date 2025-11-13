@@ -46,7 +46,8 @@ func reset_profile() -> void:
 ## Get a deep copy of current profile data (for debugging)
 func snapshot() -> Dictionary:
 	push_error("IProfileRepo.snapshot() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## =============================================================================
 ## RESOURCE OPERATIONS
@@ -55,7 +56,8 @@ func snapshot() -> Dictionary:
 ## Get current resource values
 func get_resources() -> Dictionary:
 	push_error("IProfileRepo.get_resources() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## Update resources (delta can be positive or negative)
 ## Example: {"gold": 50, "essence": -10}
@@ -92,7 +94,8 @@ func get_card_count(catalog_id: String) -> int:
 ## Get a specific card instance by ID
 func get_card(card_instance_id: String) -> Dictionary:
 	push_error("IProfileRepo.get_card() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## =============================================================================
 ## DECK OPERATIONS
@@ -119,7 +122,8 @@ func list_decks() -> Array:
 ## Get a specific deck by ID
 func get_deck(deck_id: String) -> Dictionary:
 	push_error("IProfileRepo.get_deck() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## =============================================================================
 ## METADATA OPERATIONS
@@ -128,7 +132,8 @@ func get_deck(deck_id: String) -> Dictionary:
 ## Get profile metadata (tutorial flags, achievements, etc.)
 func get_profile_meta() -> Dictionary:
 	push_error("IProfileRepo.get_profile_meta() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## Update profile metadata
 func update_profile_meta(meta: Dictionary) -> void:
@@ -137,7 +142,8 @@ func update_profile_meta(meta: Dictionary) -> void:
 ## Get user settings (volume, language, etc.)
 func get_settings() -> Dictionary:
 	push_error("IProfileRepo.get_settings() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## Update user settings
 func update_settings(settings: Dictionary) -> void:
@@ -146,7 +152,8 @@ func update_settings(settings: Dictionary) -> void:
 ## Get last match info (seed, result, duration)
 func get_last_match() -> Dictionary:
 	push_error("IProfileRepo.get_last_match() not implemented")
-	return {}
+	var empty: Dictionary = {}
+	return empty
 
 ## Update last match info
 func update_last_match(match_info: Dictionary) -> void:

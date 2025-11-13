@@ -33,12 +33,15 @@ var completion_callback: Callable
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
 
-	var campaign = get_node_or_null("/root/Campaign")
+	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		push_error("BattleContext: Campaign service not found")
 		return
 
-	battle_config = campaign.get_battle(battle_id)
+	if campaign.has_method("get_battle"):
+		var result: Variant = campaign.call("get_battle", battle_id)
+		if result is Dictionary:
+			battle_config = result
 	biome_id = battle_config.get("biome_id", "summer_plains")
 	completion_callback = _handle_campaign_completion
 
@@ -61,7 +64,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	print("BattleContext: Configured practice battle")
 
 ## Configure for arena battle (future)
-func configure_arena_battle(difficulty: int) -> void:
+func configure_arena_battle(_difficulty: int) -> void:
 	current_mode = BattleMode.ARENA
 
 	# TODO: ArenaService would generate random battle config
@@ -71,7 +74,7 @@ func configure_arena_battle(difficulty: int) -> void:
 	completion_callback = _handle_arena_completion
 
 ## Configure for endless mode (future)
-func configure_endless_wave(wave_number: int) -> void:
+func configure_endless_wave(_wave_number: int) -> void:
 	current_mode = BattleMode.ENDLESS
 
 	# TODO: EndlessService would provide wave config
@@ -89,7 +92,7 @@ func clear() -> void:
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
-	var campaign = get_node_or_null("/root/Campaign")
+	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		push_error("BattleContext: Campaign service not found for completion")
 		return

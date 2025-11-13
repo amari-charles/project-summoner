@@ -26,7 +26,7 @@ class Element:
 	var category: String  # "core", "outer", "elevated", "occultist"
 	var origin_element: Element = null  # For elevated elements only
 
-	func _init(p_id: String, p_display_name: String, p_description: String, p_category: String, p_origin: Element = null):
+	func _init(p_id: String, p_display_name: String, p_description: String, p_category: String, p_origin: Element = null) -> void:
 		id = p_id
 		display_name = p_display_name
 		description = p_description
@@ -38,7 +38,7 @@ class Element:
 		return id
 
 	## Check if this element matches another element or string
-	func matches(other) -> bool:
+	func matches(other: Variant) -> bool:
 		# Compare with another Element
 		if other is Element:
 			return id == other.id
@@ -48,7 +48,7 @@ class Element:
 		return false
 
 	## Check if this element should match a given affinity (including origin check)
-	func matches_affinity(affinity) -> bool:
+	func matches_affinity(affinity: Variant) -> bool:
 		# Direct match
 		if matches(affinity):
 			return true
@@ -65,29 +65,29 @@ class Element:
 ## =============================================================================
 
 ## Neutral - No elemental affinity
-var NEUTRAL: Element
+var NEUTRAL: Element = null
 
 ## Core Elements - Foundation of the world and main campaign pillars
-var FIRE: Element
-var WATER: Element
-var WIND: Element
-var EARTH: Element
+var FIRE: Element = null
+var WATER: Element = null
+var WIND: Element = null
+var EARTH: Element = null
 
 ## Outer Elements - Expansion content and advanced mechanics
-var LIGHTNING: Element
-var SHADOW: Element
-var POISON: Element
-var LIFE: Element
-var DEATH: Element
+var LIGHTNING: Element = null
+var SHADOW: Element = null
+var POISON: Element = null
+var LIFE: Element = null
+var DEATH: Element = null
 
 ## Occultist - Antagonist element that inverts/corrupts other forces
-var OCCULTIST: Element
+var OCCULTIST: Element = null
 
 ## Elevated Elements - Philosophical transformations of base elements
-var HOLY: Element      # Fire elevated → Sacred
-var ICE: Element       # Water elevated → Immutable
-var METAL: Element     # Earth elevated → Forged
-var SPIRIT: Element    # Life elevated → Metaphysical
+var HOLY: Element = null      # Fire elevated → Sacred
+var ICE: Element = null       # Water elevated → Immutable
+var METAL: Element = null     # Earth elevated → Forged
+var SPIRIT: Element = null    # Life elevated → Metaphysical
 
 ## Lookup cache for O(1) element retrieval by ID
 var _element_lookup: Dictionary = {}
@@ -96,7 +96,7 @@ var _element_lookup: Dictionary = {}
 ## INITIALIZATION
 ## =============================================================================
 
-func _ready():
+func _ready() -> void:
 	# Create neutral element (no affinity)
 	NEUTRAL = Element.new(
 		"neutral",
@@ -211,7 +211,7 @@ func _ready():
 
 	# Build lookup cache for O(1) element retrieval
 	_element_lookup.clear()
-	for element in get_all_elements():
+	for element: Element in get_all_elements():
 		_element_lookup[element.id] = element
 
 	# Initialize variant mappings
@@ -229,7 +229,7 @@ func _ready():
 ## =============================================================================
 
 ## Get all element objects
-func get_all_elements() -> Array:
+func get_all_elements() -> Array[Element]:
 	return [
 		# Neutral
 		NEUTRAL,
@@ -244,15 +244,15 @@ func get_all_elements() -> Array:
 	]
 
 ## Get core elements only
-func get_core_elements() -> Array:
+func get_core_elements() -> Array[Element]:
 	return [FIRE, WATER, WIND, EARTH]
 
 ## Get outer elements only
-func get_outer_elements() -> Array:
+func get_outer_elements() -> Array[Element]:
 	return [LIGHTNING, SHADOW, POISON, LIFE, DEATH]
 
 ## Get elevated elements only
-func get_elevated_elements() -> Array:
+func get_elevated_elements() -> Array[Element]:
 	return [HOLY, ICE, METAL, SPIRIT]
 
 ## =============================================================================
@@ -262,91 +262,110 @@ func get_elevated_elements() -> Array:
 ## Get element by string ID
 ## Returns null if element not found - caller should check for null
 func from_string(element_id: String) -> Element:
-	var element = _element_lookup.get(element_id, null)
+	var element: Element = _element_lookup.get(element_id, null)
 	if element == null:
 		push_error("ElementTypes: Unknown element ID '%s' - this will cause errors downstream!" % element_id)
 	return element
 
 ## Check if a string or Element is valid
-func is_valid(element) -> bool:
+func is_valid(element: Variant) -> bool:
 	if element is Element:
 		return element in get_all_elements()
 	elif element is String:
-		return from_string(element) != null
+		var element_str: String = element
+		return from_string(element_str) != null
 	return false
 
 ## Check if element is a core element
-func is_core(element) -> bool:
+func is_core(element: Variant) -> bool:
 	if element is Element:
 		return element.category == "core"
 	elif element is String:
-		var elem = from_string(element)
+		var element_str: String = element
+		var elem: Element = from_string(element_str)
 		return elem != null and elem.category == "core"
 	return false
 
 ## Check if element is an outer element
-func is_outer(element) -> bool:
+func is_outer(element: Variant) -> bool:
 	if element is Element:
 		return element.category == "outer"
 	elif element is String:
-		var elem = from_string(element)
+		var element_str: String = element
+		var elem: Element = from_string(element_str)
 		return elem != null and elem.category == "outer"
 	return false
 
 ## Check if element is elevated
-func is_elevated(element) -> bool:
+func is_elevated(element: Variant) -> bool:
 	if element is Element:
 		return element.category == "elevated"
 	elif element is String:
-		var elem = from_string(element)
+		var element_str: String = element
+		var elem: Element = from_string(element_str)
 		return elem != null and elem.category == "elevated"
 	return false
 
 ## Get display name for element
-func get_display_name(element) -> String:
+func get_display_name(element: Variant) -> String:
 	if element is Element:
 		return element.display_name
 	elif element is String:
-		var elem = from_string(element)
-		return elem.display_name if elem else element.capitalize()
+		var element_str: String = element
+		var elem: Element = from_string(element_str)
+		return elem.display_name if elem != null else element_str.capitalize()
 	return str(element)
 
 ## Get description for element
-func get_description(element) -> String:
+func get_description(element: Variant) -> String:
 	if element is Element:
 		return element.description
 	elif element is String:
-		var elem = from_string(element)
-		return elem.description if elem else "Unknown element"
+		var element_str: String = element
+		var elem: Element = from_string(element_str)
+		return elem.description if elem != null else "Unknown element"
 	return "Unknown element"
 
 ## Get origin element (for elevated elements)
-func get_origin(element) -> Element:
+func get_origin(element: Variant) -> Element:
 	if element is Element:
 		return element.origin_element
 	elif element is String:
-		var elem = from_string(element)
-		return elem.origin_element if elem else null
+		var element_str: String = element
+		var elem: Element = from_string(element_str)
+		return elem.origin_element if elem != null else null
 	return null
 
 ## Check if element can be elevated (is a base that has elevated form)
-func can_elevate(element) -> bool:
-	var elem = element if element is Element else from_string(element)
-	if not elem:
+func can_elevate(element: Variant) -> bool:
+	var elem: Element = null
+	if element is Element:
+		elem = element
+	elif element is String:
+		var element_str: String = element
+		elem = from_string(element_str)
+
+	if elem == null:
 		return false
 	# Check if any elevated element has this as origin
-	for elevated in get_elevated_elements():
+	for elevated: Element in get_elevated_elements():
 		if elevated.origin_element == elem:
 			return true
 	return false
 
 ## Get elevated form of an element (if one exists)
-func get_elevation(element) -> Element:
-	var elem = element if element is Element else from_string(element)
-	if not elem:
+func get_elevation(element: Variant) -> Element:
+	var elem: Element = null
+	if element is Element:
+		elem = element
+	elif element is String:
+		var element_str: String = element
+		elem = from_string(element_str)
+
+	if elem == null:
 		return null
 	# Find elevated form
-	for elevated in get_elevated_elements():
+	for elevated: Element in get_elevated_elements():
 		if elevated.origin_element == elem:
 			return elevated
 	return null
@@ -380,14 +399,14 @@ func get_variant_element(variant_name: String) -> Element:
 func print_summary() -> void:
 	print("\n=== ELEMENT TYPES SUMMARY ===")
 	print("Core Elements (%d):" % get_core_elements().size())
-	for elem in get_core_elements():
+	for elem: Element in get_core_elements():
 		print("  - %s" % elem.display_name)
 	print("Outer Elements (%d):" % get_outer_elements().size())
-	for elem in get_outer_elements():
+	for elem: Element in get_outer_elements():
 		print("  - %s" % elem.display_name)
 	print("Occultist: %s" % OCCULTIST.display_name)
 	print("Elevated Elements (%d):" % get_elevated_elements().size())
-	for elem in get_elevated_elements():
+	for elem: Element in get_elevated_elements():
 		print("  - %s (from %s)" % [elem.display_name, elem.origin_element.display_name])
 	print("Total: %d element types" % get_all_elements().size())
 	print("============================\n")

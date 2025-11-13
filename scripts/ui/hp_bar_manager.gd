@@ -36,34 +36,36 @@ func _ready() -> void:
 
 func _load_hp_bar_scene() -> void:
 	# Try to load scene
-	var scene_path = "res://scenes/ui/floating_hp_bar.tscn"
+	var scene_path: String = "res://scenes/ui/floating_hp_bar.tscn"
 	if ResourceLoader.exists(scene_path):
 		hp_bar_scene = load(scene_path)
 	else:
 		push_warning("HPBarManager: HP bar scene not found, will instantiate script directly")
 
 func _init_pool() -> void:
-	for i in range(INITIAL_POOL_SIZE):
-		var bar = _instantiate_bar()
+	for i: int in range(INITIAL_POOL_SIZE):
+		var bar: FloatingHPBar = _instantiate_bar()
 		if bar:
 			bar.is_pooled = true
 			bar.reset()
 			bar_pool.append(bar)
 
 func _instantiate_bar() -> FloatingHPBar:
+	var bar: FloatingHPBar
 	if hp_bar_scene:
-		return hp_bar_scene.instantiate() as FloatingHPBar
+		bar = hp_bar_scene.instantiate() as FloatingHPBar
 	else:
 		# Fallback: create from script
-		var bar = FloatingHPBar.new()
-		return bar
+		bar = FloatingHPBar.new()
+	return bar
 
 ## Create HP bar for a unit
 func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPBar:
 	# Check if unit already has a bar
 	if active_bars.has(unit):
 		push_warning("HPBarManager: Unit already has an HP bar")
-		return active_bars[unit]
+		var existing_bar: FloatingHPBar = active_bars[unit]
+		return existing_bar
 
 	# Get bar from pool or create new
 	var bar: FloatingHPBar = null
@@ -73,7 +75,8 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 		# print("HPBarManager: Reusing bar from pool (pool size: %d)" % bar_pool.size())
 	else:
 		bar = _instantiate_bar()
-		bar.is_pooled = true
+		if bar:
+			bar.is_pooled = true
 		# print("HPBarManager: Created new bar (pool was empty)")
 
 	if not bar:
@@ -84,15 +87,30 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 
 	# Apply custom settings
 	if settings.has("bar_width"):
-		bar.bar_width = settings.bar_width
+		var bar_width_val: Variant = settings.get("bar_width")
+		if bar_width_val is float:
+			var bar_width_float: float = bar_width_val
+			bar.bar_width = bar_width_float
 	if settings.has("bar_height"):
-		bar.bar_height = settings.bar_height
+		var bar_height_val: Variant = settings.get("bar_height")
+		if bar_height_val is float:
+			var bar_height_float: float = bar_height_val
+			bar.bar_height = bar_height_float
 	if settings.has("offset_y"):
-		bar.offset_y = settings.offset_y
+		var offset_y_val: Variant = settings.get("offset_y")
+		if offset_y_val is float:
+			var offset_y_float: float = offset_y_val
+			bar.offset_y = offset_y_float
 	if settings.has("show_on_damage_only"):
-		bar.show_on_damage_only = settings.show_on_damage_only
+		var show_val: Variant = settings.get("show_on_damage_only")
+		if show_val is bool:
+			var show_bool: bool = show_val
+			bar.show_on_damage_only = show_bool
 	if settings.has("fade_delay"):
-		bar.fade_delay = settings.fade_delay
+		var fade_delay_val: Variant = settings.get("fade_delay")
+		if fade_delay_val is float:
+			var fade_delay_float: float = fade_delay_val
+			bar.fade_delay = fade_delay_float
 
 	# Set target unit
 	bar.set_target(unit)
@@ -116,13 +134,17 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 	if not active_bars.has(unit):
 		return
 
-	var bar = active_bars[unit]
+	var bar_variant: Variant = active_bars.get(unit)
+	if not bar_variant is FloatingHPBar:
+		return
+	var bar: FloatingHPBar = bar_variant
 	active_bars.erase(unit)
 
 	# Disconnect signal before returning to pool to prevent memory leak
 	if is_instance_valid(unit) and unit.has_signal("hp_changed"):
-		if unit.hp_changed.is_connected(bar._on_hp_changed):
-			unit.hp_changed.disconnect(bar._on_hp_changed)
+		var signal_obj: Signal = unit.get("hp_changed")
+		if signal_obj.is_connected(bar._on_hp_changed):
+			signal_obj.disconnect(bar._on_hp_changed)
 
 	# Remove from scene
 	if bar.get_parent():
@@ -134,8 +156,10 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 ## Update HP bar for a unit (if it exists)
 func update_unit_hp(unit: Node3D, current_hp: float, max_hp: float) -> void:
 	if active_bars.has(unit):
-		var bar = active_bars[unit]
-		bar.update_hp(current_hp, max_hp)
+		var bar_variant: Variant = active_bars.get(unit)
+		if bar_variant is FloatingHPBar:
+			var bar: FloatingHPBar = bar_variant
+			bar.update_hp(current_hp, max_hp)
 
 ## Return bar to pool
 func _return_to_pool(bar: FloatingHPBar) -> void:
@@ -147,7 +171,7 @@ func _return_to_pool(bar: FloatingHPBar) -> void:
 		bar.queue_free()
 
 ## Handler for bar hidden signal
-func _on_bar_hidden(unit: Node3D, bar: FloatingHPBar) -> void:
+func _on_bar_hidden(_unit: Node3D, _bar: FloatingHPBar) -> void:
 	# Bar faded out, optionally remove it
 	# For now, keep it in active_bars but hidden
 	# It will be removed when unit dies
@@ -155,11 +179,13 @@ func _on_bar_hidden(unit: Node3D, bar: FloatingHPBar) -> void:
 
 ## Remove all bars (useful for scene transitions)
 func clear_all_bars() -> void:
-	for unit in active_bars.keys():
-		var bar = active_bars[unit]
-		if bar.get_parent():
-			bar.get_parent().remove_child(bar)
-		_return_to_pool(bar)
+	for unit: Node3D in active_bars.keys():
+		var bar_variant: Variant = active_bars.get(unit)
+		if bar_variant is FloatingHPBar:
+			var bar: FloatingHPBar = bar_variant
+			if bar.get_parent():
+				bar.get_parent().remove_child(bar)
+			_return_to_pool(bar)
 
 	active_bars.clear()
 

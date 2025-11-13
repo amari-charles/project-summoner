@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://hand_ui"]
 
-[ext_resource type="Script" uid="uid://d1mqkngn7lovi" path="res://scripts/ui/hand_ui.gd" id="1_hand_ui"]
+[ext_resource type="Script" path="res://scripts/ui/hand_ui.gd" id="1_hand_ui"]
 
 [node name="HandUI" type="Control"]
 layout_mode = 3

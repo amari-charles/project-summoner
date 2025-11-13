@@ -7,15 +7,15 @@ class_name HandUI
 ## Card display size constants
 ## These must match the CardVisual scene dimensions to ensure proper rendering
 ## Changing these requires updating both this file and card_visual.tscn
-const CARD_WIDTH = 120   ## Width of each card in pixels (matches CardVisual width)
-const CARD_HEIGHT = 160  ## Height of each card in pixels (matches CardVisual height)
-const CARD_SPACING = 10  ## Horizontal spacing between cards in hand
-const CARD_VISUAL_SCENE = preload("res://scenes/ui/card_visual.tscn")
+const CARD_WIDTH: int = 120   ## Width of each card in pixels (matches CardVisual width)
+const CARD_HEIGHT: int = 160  ## Height of each card in pixels (matches CardVisual height)
+const CARD_SPACING: int = 10  ## Horizontal spacing between cards in hand
+const CARD_VISUAL_SCENE: PackedScene = preload("res://scenes/ui/card_visual.tscn")
 
 # Glow effect constants
-const GLOW_BRIGHTNESS_ACTIVE = 0.4  # Lightening amount for active/hovered card glow
-const GLOW_BRIGHTNESS_IDLE = 0.2    # Lightening amount for idle card glow
-const PULSE_BRIGHTNESS_OFFSET = 0.2 # Lightening/darkening amount for pulse animation
+const GLOW_BRIGHTNESS_ACTIVE: float = 0.4  # Lightening amount for active/hovered card glow
+const GLOW_BRIGHTNESS_IDLE: float = 0.2    # Lightening amount for idle card glow
+const PULSE_BRIGHTNESS_OFFSET: float = 0.2 # Lightening/darkening amount for pulse animation
 
 ## Inner class for draggable card displays
 class CardDisplay extends Control:
@@ -24,41 +24,41 @@ class CardDisplay extends Control:
 	var hand_ui: HandUI
 
 	# Animation state
-	var hover_tween: Tween
-	var entrance_tween: Tween
-	var rotation_tween: Tween
+	var hover_tween: Tween = null
+	var entrance_tween: Tween = null
+	var rotation_tween: Tween = null
 	var is_hovered: bool = false
 	var was_recently_hovered: bool = false  # Prevents pulse from restarting immediately
-	var base_position: Vector2
+	var base_position: Vector2 = Vector2.ZERO
 	var base_scale: Vector2 = Vector2(1.0, 1.0)
 
 	# 3D rotation shader
-	var shader_material: ShaderMaterial
-	var viewport_container: SubViewportContainer  # Container with shader applied
+	var shader_material: ShaderMaterial = null
+	var viewport_container: SubViewportContainer = null  # Container with shader applied
 
 	# Velocity tracking for rotation
-	var previous_position: Vector2
+	var previous_position: Vector2 = Vector2.ZERO
 	var velocity: Vector2 = Vector2.ZERO
 
 
 	# Animation constants
-	const HOVER_OFFSET = -40.0  # How much card rises (negative = up)
-	const HOVER_SCALE = 1.2     # Scale multiplier when hovered
-	const HOVER_DURATION = 0.25 # Seconds for hover transition
+	const HOVER_OFFSET: float = -40.0  # How much card rises (negative = up)
+	const HOVER_SCALE: float = 1.2     # Scale multiplier when hovered
+	const HOVER_DURATION: float = 0.25 # Seconds for hover transition
 
 	# Draw animation constants
-	const DRAW_ANIMATION_DURATION = 0.4
-	const DRAW_START_OFFSET = 50.0  # Start below target position
-	const DRAW_STAGGER_DELAY = 0.08  # Delay between each card
+	const DRAW_ANIMATION_DURATION: float = 0.4
+	const DRAW_START_OFFSET: float = 50.0  # Start below target position
+	const DRAW_STAGGER_DELAY: float = 0.08  # Delay between each card
 
 	# 3D effect constants
-	const MAX_TILT_DEGREES = 15.0  # Maximum rotation in degrees
-	const TILT_SMOOTHING = 0.15    # Lerp factor for smooth rotation
+	const MAX_TILT_DEGREES: float = 15.0  # Maximum rotation in degrees
+	const TILT_SMOOTHING: float = 0.15    # Lerp factor for smooth rotation
 
 	# Velocity rotation constants (Balatro-style)
-	const VELOCITY_DIVISOR = 2000.0  # Divisor for velocity to rotation conversion (lower = more sensitive)
-	const MAX_ROTATION_RADIANS = 0.4  # Maximum rotation in radians (~23 degrees)
-	const ROTATION_DAMPING = 0.85  # Damping factor for rotation (lower = more damping, higher = keeps rotation longer)
+	const VELOCITY_DIVISOR: float = 2000.0  # Divisor for velocity to rotation conversion (lower = more sensitive)
+	const MAX_ROTATION_RADIANS: float = 0.4  # Maximum rotation in radians (~23 degrees)
+	const ROTATION_DAMPING: float = 0.85  # Damping factor for rotation (lower = more damping, higher = keeps rotation longer)
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
@@ -73,7 +73,8 @@ class CardDisplay extends Control:
 		await get_tree().process_frame
 
 		# Setup 3D shader on viewport container
-		viewport_container = get_node_or_null("ViewportContainer") as SubViewportContainer
+		var viewport_container_variant: Variant = get_node_or_null("ViewportContainer")
+		viewport_container = viewport_container_variant if viewport_container_variant is SubViewportContainer else null
 		if viewport_container:
 			_setup_3d_shader()
 
@@ -93,25 +94,29 @@ class CardDisplay extends Control:
 			rotation_tween.kill()
 
 		# Kill pulse tween stored in card visual metadata
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if card_visual and card_visual.has_meta("pulse_tween"):
-			var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+			var pulse_tween_variant: Variant = card_visual.get_meta("pulse_tween")
+			var pulse_tween: Tween = pulse_tween_variant if pulse_tween_variant is Tween else null
 			if pulse_tween and pulse_tween.is_valid():
 				pulse_tween.kill()
 
 	## Get CardVisual component from this card display
 	func _get_card_visual() -> CardVisual:
-		var viewport = get_node_or_null("ViewportContainer/Viewport")
+		var viewport_variant: Variant = get_node_or_null("ViewportContainer/Viewport")
+		var viewport: Node = viewport_variant if viewport_variant is Node else null
 		if viewport:
-			for child in viewport.get_children():
+			var children: Array = viewport.get_children()
+			for child: Node in children:
 				if child is CardVisual:
-					return child as CardVisual
+					var card_visual: CardVisual = child
+					return card_visual
 		return null
 
 	func _process(delta: float) -> void:
 		# Track position changes for velocity-based rotation (Balatro-style)
 		# Use position (not global_position) because tweens modify local position
-		var current_pos = position
+		var current_pos: Vector2 = position
 
 		# Calculate velocity from position delta
 		if delta > 0:
@@ -124,7 +129,7 @@ class CardDisplay extends Control:
 		# Convert velocity to rotation contribution
 		# Horizontal velocity creates tilt (negative for natural feel)
 		# Vertical velocity also contributes slightly
-		var velocity_rotation = velocity.x / VELOCITY_DIVISOR
+		var velocity_rotation: float = velocity.x / VELOCITY_DIVISOR
 		velocity_rotation = clamp(velocity_rotation, -MAX_ROTATION_RADIANS, MAX_ROTATION_RADIANS)
 
 		# Add velocity-based rotation (negative for natural tilt - moving right tilts right)
@@ -143,10 +148,13 @@ class CardDisplay extends Control:
 			return
 
 		# Load shader
-		var shader = load("res://shaders/ui/card_perspective_3d.gdshader") as Shader
-		if not shader:
+		var loaded_shader: Resource = load("res://shaders/ui/card_perspective_3d.gdshader")
+		if not loaded_shader or not loaded_shader is Shader:
 			push_error("Failed to load card 3D shader")
 			return
+
+		# Type narrow to Shader for safe property access
+		var shader: Shader = loaded_shader
 
 		# Create shader material
 		shader_material = ShaderMaterial.new()
@@ -169,28 +177,30 @@ class CardDisplay extends Control:
 			return
 
 		# Get mouse position relative to card center
-		var mouse_pos = get_local_mouse_position()
-		var card_center = size / 2.0
+		var mouse_pos: Vector2 = get_local_mouse_position()
+		var card_center: Vector2 = size / 2.0
 
 		# Calculate normalized offset from center (-1 to 1)
-		var offset_x = (mouse_pos.x - card_center.x) / card_center.x
-		var offset_y = (mouse_pos.y - card_center.y) / card_center.y
+		var offset_x: float = (mouse_pos.x - card_center.x) / card_center.x
+		var offset_y: float = (mouse_pos.y - card_center.y) / card_center.y
 
 		# Clamp to card bounds
 		offset_x = clamp(offset_x, -1.0, 1.0)
 		offset_y = clamp(offset_y, -1.0, 1.0)
 
 		# Calculate target rotation (inverted for natural feel)
-		var target_rot_y = offset_x * MAX_TILT_DEGREES
-		var target_rot_x = -offset_y * MAX_TILT_DEGREES  # Negative for proper direction
+		var target_rot_y: float = offset_x * MAX_TILT_DEGREES
+		var target_rot_x: float = -offset_y * MAX_TILT_DEGREES  # Negative for proper direction
 
 		# Get current rotation
-		var current_rot_y = shader_material.get_shader_parameter("rot_y_deg")
-		var current_rot_x = shader_material.get_shader_parameter("rot_x_deg")
+		var current_rot_y_variant: Variant = shader_material.get_shader_parameter("rot_y_deg")
+		var current_rot_y: float = current_rot_y_variant if current_rot_y_variant is float else 0.0
+		var current_rot_x_variant: Variant = shader_material.get_shader_parameter("rot_x_deg")
+		var current_rot_x: float = current_rot_x_variant if current_rot_x_variant is float else 0.0
 
 		# Smooth lerp to target
-		var new_rot_y = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
-		var new_rot_x = lerp(current_rot_x, target_rot_x, TILT_SMOOTHING)
+		var new_rot_y: float = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
+		var new_rot_x: float = lerp(current_rot_x, target_rot_x, TILT_SMOOTHING)
 
 		# Update shader parameters
 		shader_material.set_shader_parameter("rot_y_deg", new_rot_y)
@@ -199,13 +209,13 @@ class CardDisplay extends Control:
 	## Play entrance animation when card is first drawn/created
 	func play_entrance_animation(stagger_index: int = 0) -> void:
 		# Set starting state - below target, small scale
-		var target_pos = position
+		var target_pos: Vector2 = position
 		position.y = target_pos.y + DRAW_START_OFFSET
 		scale = Vector2(0.5, 0.5)
 		modulate.a = 0.0  # Start invisible
 
 		# Wait for stagger delay
-		var delay = stagger_index * DRAW_STAGGER_DELAY
+		var delay: float = stagger_index * DRAW_STAGGER_DELAY
 		await get_tree().create_timer(delay).timeout
 
 		# Animate to target position and scale
@@ -224,7 +234,7 @@ class CardDisplay extends Control:
 		entrance_tween.tween_property(self, "modulate:a", 1.0, DRAW_ANIMATION_DURATION * 0.5)
 
 		# Update base_position after animation completes
-		entrance_tween.finished.connect(func():
+		entrance_tween.finished.connect(func() -> void:
 			base_position = position
 		)
 
@@ -234,15 +244,31 @@ class CardDisplay extends Control:
 			return null
 
 		# Check if we can afford this card
-		if hand_ui.summoner.mana < card.mana_cost:
+		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana")
+		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
+		if summoner_mana < card.mana_cost:
 			return null
 
 		# Create a visual duplicate as preview
-		var preview = duplicate(DUPLICATE_USE_INSTANTIATION)
+		# Temporarily disable stretch to prevent SubViewport resize warning during duplication
+		var original_stretch: bool = false
+		if viewport_container:
+			original_stretch = viewport_container.stretch
+			viewport_container.stretch = false
+
+		var preview_node: Node = duplicate(DUPLICATE_USE_INSTANTIATION)
+
+		# Restore stretch setting
+		if viewport_container:
+			viewport_container.stretch = original_stretch
+
+		if not preview_node is Control:
+			return null
+		var preview: Control = preview_node
 		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
 
 		# Create wrapper to control preview offset
-		var preview_wrapper = Control.new()
+		var preview_wrapper: Control = Control.new()
 		preview_wrapper.add_child(preview)
 
 		# Position preview so the grab point stays under cursor
@@ -255,11 +281,12 @@ class CardDisplay extends Control:
 		visible = false
 
 		# Return drag data
-		return {
+		var drag_data: Dictionary = {
 			"card_index": card_index,
 			"card": card,
 			"source": "hand"
 		}
+		return drag_data
 
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
@@ -270,7 +297,8 @@ class CardDisplay extends Control:
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton:
-			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			var mouse_event: InputEventMouseButton = event
+			if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 				if hand_ui:
 					hand_ui._select_card(card_index)
 
@@ -282,9 +310,10 @@ class CardDisplay extends Control:
 		was_recently_hovered = true
 
 		# Stop any pulse glow on the card border
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if card_visual and card_visual.has_meta("pulse_tween"):
-			var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+			var pulse_tween_variant: Variant = card_visual.get_meta("pulse_tween")
+			var pulse_tween: Tween = pulse_tween_variant if pulse_tween_variant is Tween else null
 			if pulse_tween and pulse_tween.is_valid():
 				pulse_tween.kill()
 			card_visual.remove_meta("pulse_tween")
@@ -337,36 +366,41 @@ class CardDisplay extends Control:
 			rotation_tween.set_parallel(true)
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
+			var rot_x_variant: Variant = shader_material.get_shader_parameter("rot_x_deg")
+			var rot_x_start: float = rot_x_variant if rot_x_variant is float else 0.0
 			rotation_tween.tween_method(
-				func(val):
+				func(val: float) -> void:
 					if shader_material:
 						shader_material.set_shader_parameter("rot_x_deg", val),
-				shader_material.get_shader_parameter("rot_x_deg"),
+				rot_x_start,
 				0.0,
 				0.3
 			)
+			var rot_y_variant: Variant = shader_material.get_shader_parameter("rot_y_deg")
+			var rot_y_start: float = rot_y_variant if rot_y_variant is float else 0.0
 			rotation_tween.tween_method(
-				func(val):
+				func(val: float) -> void:
 					if shader_material:
 						shader_material.set_shader_parameter("rot_y_deg", val),
-				shader_material.get_shader_parameter("rot_y_deg"),
+				rot_y_start,
 				0.0,
 				0.3
 			)
 
 		# Reset z_index
-		hover_tween.finished.connect(func():
+		hover_tween.finished.connect(func() -> void:
 			z_index = 0
 		)
 
 		# Remove hover glow - return border to base element color
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if card_visual:
-			var element_color = card_visual.get_element_color()
-			var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+			var element_color: Color = card_visual.get_element_color()
+			var border_panel_variant: Variant = card_visual.get_node_or_null("BorderPanel")
+			var border_panel: Panel = border_panel_variant if border_panel_variant is Panel else null
 			if border_panel:
 				# Reset border to base element color via style
-				var border_style = StyleBoxFlat.new()
+				var border_style: StyleBoxFlat = StyleBoxFlat.new()
 				border_style.bg_color = element_color
 				border_style.set_corner_radius_all(card_visual.corner_radius)
 				border_style.anti_aliasing = true
@@ -375,26 +409,29 @@ class CardDisplay extends Control:
 
 	## Update glow effect based on hover state and playability
 	func _update_hover_glow(active: bool) -> void:
-		var card_visual = _get_card_visual()
+		var card_visual: CardVisual = _get_card_visual()
 		if not card_visual:
 			return
 
 		# Only glow if card is affordable
-		var can_afford = hand_ui and hand_ui.summoner and hand_ui.summoner.mana >= card.mana_cost
+		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana") if hand_ui and hand_ui.summoner else null
+		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
+		var can_afford: bool = hand_ui and hand_ui.summoner and summoner_mana >= card.mana_cost
 
 		if not can_afford:
 			return
 
 		# Get element color for this card
-		var element_color = card_visual.get_element_color()
-		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		var element_color: Color = card_visual.get_element_color()
+		var border_panel_variant: Variant = card_visual.get_node_or_null("BorderPanel")
+		var border_panel: Panel = border_panel_variant if border_panel_variant is Panel else null
 		if not border_panel:
 			return
 
-		var glow_color = element_color.lightened(HandUI.GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(HandUI.GLOW_BRIGHTNESS_IDLE)
+		var glow_color: Color = element_color.lightened(HandUI.GLOW_BRIGHTNESS_ACTIVE) if active else element_color.lightened(HandUI.GLOW_BRIGHTNESS_IDLE)
 
 		# Apply glow via border style
-		var border_style = StyleBoxFlat.new()
+		var border_style: StyleBoxFlat = StyleBoxFlat.new()
 		border_style.bg_color = glow_color
 		border_style.set_corner_radius_all(card_visual.corner_radius)
 		border_style.anti_aliasing = true
@@ -418,15 +455,21 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	# Find player summoner (2D or 3D)
-	var summoners = get_tree().get_nodes_in_group("summoners")
-	for node in summoners:
-		var is_player = false
+	var summoners: Array[Node] = get_tree().get_nodes_in_group("summoners")
+	for node: Node in summoners:
+		var is_player: bool = false
 
 		# Check for both Summoner and Summoner3D with proper type checking
 		if node is Summoner:
-			is_player = node.team == Unit.Team.PLAYER
+			var summoner_2d: Summoner = node
+			var team_variant: Variant = summoner_2d.get("team")
+			var team_value: int = team_variant if team_variant is int else -1
+			is_player = team_value == Unit.Team.PLAYER
 		elif node is Summoner3D:
-			is_player = node.team == Unit3D.Team.PLAYER
+			var summoner_3d: Summoner3D = node
+			var team_variant: Variant = summoner_3d.get("team")
+			var team_value: int = team_variant if team_variant is int else -1
+			is_player = team_value == Unit3D.Team.PLAYER
 
 		if is_player:
 			summoner = node
@@ -437,9 +480,12 @@ func _ready() -> void:
 		return
 
 	# Connect to summoner signals
-	summoner.card_played.connect(_on_card_played)
-	summoner.card_drawn.connect(_on_card_drawn)
-	summoner.mana_changed.connect(_on_mana_changed)
+	var card_played_signal: Signal = summoner.get("card_played")
+	card_played_signal.connect(_on_card_played)
+	var card_drawn_signal: Signal = summoner.get("card_drawn")
+	card_drawn_signal.connect(_on_card_drawn)
+	var mana_changed_signal: Signal = summoner.get("mana_changed")
+	mana_changed_signal.connect(_on_mana_changed)
 
 	# Initial hand display
 	_rebuild_hand_display()
@@ -447,12 +493,15 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	# Disconnect summoner signals to prevent memory leaks
 	if summoner:
-		if summoner.card_played.is_connected(_on_card_played):
-			summoner.card_played.disconnect(_on_card_played)
-		if summoner.card_drawn.is_connected(_on_card_drawn):
-			summoner.card_drawn.disconnect(_on_card_drawn)
-		if summoner.mana_changed.is_connected(_on_mana_changed):
-			summoner.mana_changed.disconnect(_on_mana_changed)
+		var card_played_signal: Signal = summoner.get("card_played")
+		if card_played_signal.is_connected(_on_card_played):
+			card_played_signal.disconnect(_on_card_played)
+		var card_drawn_signal: Signal = summoner.get("card_drawn")
+		if card_drawn_signal.is_connected(_on_card_drawn):
+			card_drawn_signal.disconnect(_on_card_drawn)
+		var mana_changed_signal: Signal = summoner.get("mana_changed")
+		if mana_changed_signal.is_connected(_on_mana_changed):
+			mana_changed_signal.disconnect(_on_mana_changed)
 
 func _rebuild_hand_display() -> void:
 	# Prevent concurrent rebuilds (race condition protection)
@@ -461,7 +510,7 @@ func _rebuild_hand_display() -> void:
 	is_rebuilding = true
 
 	# Clear existing displays with proper cleanup
-	for display in card_displays:
+	for display: Control in card_displays:
 		if display and is_instance_valid(display):
 			display.queue_free()
 	card_displays.clear()
@@ -469,17 +518,23 @@ func _rebuild_hand_display() -> void:
 	# Wait one frame to ensure old nodes are freed before creating new ones
 	await get_tree().process_frame
 
-	if not summoner or summoner.hand.is_empty():
+	var hand_variant: Variant = summoner.get("hand") if summoner else null
+	var hand: Array = hand_variant if hand_variant is Array else []
+
+	if not summoner or hand.is_empty():
 		is_rebuilding = false
 		return
 
 	# Create card displays
-	var total_width = summoner.hand.size() * CARD_WIDTH + (summoner.hand.size() - 1) * CARD_SPACING
-	var start_x = (size.x - total_width) / 2
+	var total_width: float = hand.size() * CARD_WIDTH + (hand.size() - 1) * CARD_SPACING
+	var start_x: float = (size.x - total_width) / 2
 
-	for i in range(summoner.hand.size()):
-		var card = summoner.hand[i]
-		var card_display = _create_card_display(card, i)
+	for i: int in range(hand.size()):
+		var card: Card = hand[i]
+		var card_display_variant: Variant = _create_card_display(card, i)
+		if not card_display_variant is CardDisplay:
+			continue
+		var card_display: CardDisplay = card_display_variant
 		card_display.position = Vector2(start_x + i * (CARD_WIDTH + CARD_SPACING), 10)
 		add_child(card_display)
 		card_displays.append(card_display)
@@ -493,8 +548,8 @@ func _rebuild_hand_display() -> void:
 	# Rebuild complete
 	is_rebuilding = false
 
-func _create_card_display(card: Card, index: int) -> Control:
-	var container = CardDisplay.new()
+func _create_card_display(card: Card, index: int) -> CardDisplay:
+	var container: CardDisplay = CardDisplay.new()
 	container.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	container.name = "CardDisplay%d" % index
@@ -503,14 +558,14 @@ func _create_card_display(card: Card, index: int) -> Control:
 	container.hand_ui = self
 
 	# Create SubViewport to render card content
-	var viewport = SubViewport.new()
+	var viewport: SubViewport = SubViewport.new()
 	viewport.name = "Viewport"
 	viewport.size = Vector2i(CARD_WIDTH, CARD_HEIGHT)
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
 	# Create SubViewportContainer to display and apply shader
-	var viewport_container = SubViewportContainer.new()
+	var viewport_container: SubViewportContainer = SubViewportContainer.new()
 	viewport_container.name = "ViewportContainer"
 	viewport_container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	viewport_container.stretch = true
@@ -519,7 +574,8 @@ func _create_card_display(card: Card, index: int) -> Control:
 	viewport_container.add_child(viewport)
 
 	# Instantiate CardVisual scene (preloaded at class level)
-	var card_visual = CARD_VISUAL_SCENE.instantiate() as CardVisual
+	var card_visual_variant: Variant = CARD_VISUAL_SCENE.instantiate()
+	var card_visual: CardVisual = card_visual_variant if card_visual_variant is CardVisual else null
 	if not card_visual:
 		push_error("HandUI: Failed to instantiate CardVisual")
 		return container
@@ -535,7 +591,7 @@ func _create_card_display(card: Card, index: int) -> Control:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Get catalog data to pass to CardVisual
-	var catalog_data = CardCatalog.get_card(card.catalog_id)
+	var catalog_data: Dictionary = CardCatalog.get_card(card.catalog_id)
 
 	# Set card data
 	card_visual.set_card_data(catalog_data)
@@ -546,7 +602,10 @@ func _create_card_display(card: Card, index: int) -> Control:
 	return container
 
 func _select_card(index: int) -> void:
-	if not summoner or index < 0 or index >= summoner.hand.size():
+	var hand_variant: Variant = summoner.get("hand") if summoner else null
+	var hand: Array = hand_variant if hand_variant is Array else []
+
+	if not summoner or index < 0 or index >= hand.size():
 		return
 
 	selected_card_index = index
@@ -554,23 +613,25 @@ func _select_card(index: int) -> void:
 	card_selected.emit(index)
 
 func _update_selection_visual() -> void:
-	for i in range(card_displays.size()):
+	for i: int in range(card_displays.size()):
 		if i >= card_displays.size():
 			continue
 
-		var display = card_displays[i] as CardDisplay
+		var display_variant: Variant = card_displays[i]
+		var display: CardDisplay = display_variant if display_variant is CardDisplay else null
 		if not display:
 			continue
 
-		var card_visual = display._get_card_visual()
+		var card_visual: CardVisual = display._get_card_visual()
 		if not card_visual:
 			continue
 
-		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		var border_panel_variant: Variant = card_visual.get_node_or_null("BorderPanel")
+		var border_panel: Panel = border_panel_variant if border_panel_variant is Panel else null
 		if not border_panel:
 			continue
 
-		var border_style = StyleBoxFlat.new()
+		var border_style: StyleBoxFlat = StyleBoxFlat.new()
 		border_style.set_corner_radius_all(card_visual.corner_radius)
 		border_style.anti_aliasing = true
 		border_style.anti_aliasing_size = 1
@@ -586,29 +647,37 @@ func _update_availability() -> void:
 	if not summoner:
 		return
 
-	for i in range(card_displays.size()):
-		if i >= summoner.hand.size():
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	var mana_variant: Variant = summoner.get("mana")
+	var summoner_mana: float = mana_variant if mana_variant is float else 0.0
+
+	for i: int in range(card_displays.size()):
+		if i >= hand.size():
 			continue
 
-		var card = summoner.hand[i]
-		var display = card_displays[i] as CardDisplay
+		var card: Card = hand[i]
+		var display_variant: Variant = card_displays[i]
+		var display: CardDisplay = display_variant if display_variant is CardDisplay else null
 		if not display:
 			continue
 
-		var card_visual = display._get_card_visual()
+		var card_visual: CardVisual = display._get_card_visual()
 		if not card_visual:
 			continue
 
-		var bg_panel = card_visual.get_node_or_null("BackgroundPanel") as Panel
-		var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+		var bg_panel_variant: Variant = card_visual.get_node_or_null("BackgroundPanel")
+		var bg_panel: Panel = bg_panel_variant if bg_panel_variant is Panel else null
+		var border_panel_variant: Variant = card_visual.get_node_or_null("BorderPanel")
+		var border_panel: Panel = border_panel_variant if border_panel_variant is Panel else null
 
 		# Check affordability
-		var can_afford = summoner.mana >= card.mana_cost
+		var can_afford: bool = summoner_mana >= card.mana_cost
 
 		if can_afford:
 			# Playable: normal background
 			if bg_panel:
-				var bg_style = StyleBoxFlat.new()
+				var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 				bg_style.bg_color = GameColorPalette.UI_BG_DARK
 				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
 				bg_style.anti_aliasing = true
@@ -622,7 +691,7 @@ func _update_availability() -> void:
 		else:
 			# Unaffordable: gray out background
 			if bg_panel:
-				var bg_style = StyleBoxFlat.new()
+				var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 				bg_style.bg_color = GameColorPalette.UI_BG_DARK
 				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
 				bg_style.anti_aliasing = true
@@ -634,14 +703,15 @@ func _update_availability() -> void:
 			if card_visual and i != selected_card_index:
 				# Kill pulse tween if it exists
 				if card_visual.has_meta("pulse_tween"):
-					var pulse_tween = card_visual.get_meta("pulse_tween") as Tween
+					var pulse_tween_variant: Variant = card_visual.get_meta("pulse_tween")
+					var pulse_tween: Tween = pulse_tween_variant if pulse_tween_variant is Tween else null
 					if pulse_tween and pulse_tween.is_valid():
 						pulse_tween.kill()
 					card_visual.remove_meta("pulse_tween")
 
 				# Dim the element color for unaffordable cards
 				if border_panel:
-					var border_style = StyleBoxFlat.new()
+					var border_style: StyleBoxFlat = StyleBoxFlat.new()
 					border_style.bg_color = card_visual.get_element_color().darkened(0.5)
 					border_style.set_corner_radius_all(card_visual.corner_radius)
 					border_style.anti_aliasing = true
@@ -655,22 +725,25 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 
 	# Don't create if already pulsing
 	if card_visual.has_meta("pulse_tween"):
-		var existing = card_visual.get_meta("pulse_tween") as Tween
+		var existing_variant: Variant = card_visual.get_meta("pulse_tween")
+		var existing: Tween = existing_variant if existing_variant is Tween else null
 		if existing and existing.is_valid():
 			return  # Already pulsing
 
 	# Kill any existing tween first
 	if card_visual.has_meta("pulse_tween"):
-		var old_tween = card_visual.get_meta("pulse_tween") as Tween
+		var old_tween_variant: Variant = card_visual.get_meta("pulse_tween")
+		var old_tween: Tween = old_tween_variant if old_tween_variant is Tween else null
 		if old_tween and old_tween.is_valid():
 			old_tween.kill()
 
-	var border_panel = card_visual.get_node_or_null("BorderPanel") as Panel
+	var border_panel_variant: Variant = card_visual.get_node_or_null("BorderPanel")
+	var border_panel: Panel = border_panel_variant if border_panel_variant is Panel else null
 	if not border_panel:
 		return
 
 	# Store tween reference on the card_visual node
-	var pulse_tween = create_tween()
+	var pulse_tween: Tween = create_tween()
 	card_visual.set_meta("pulse_tween", pulse_tween)
 
 	pulse_tween.set_loops()
@@ -678,16 +751,16 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 	pulse_tween.set_ease(Tween.EASE_IN_OUT)
 
 	# Get element color for this card
-	var element_color = card_visual.get_element_color()
+	var element_color: Color = card_visual.get_element_color()
 
 	# Pulse between dim and bright element color
-	var dim_color = element_color.darkened(PULSE_BRIGHTNESS_OFFSET)
-	var bright_color = element_color.lightened(PULSE_BRIGHTNESS_OFFSET)
+	var dim_color: Color = element_color.darkened(PULSE_BRIGHTNESS_OFFSET)
+	var bright_color: Color = element_color.lightened(PULSE_BRIGHTNESS_OFFSET)
 
 	# Create a custom method to update border color via StyleBox
-	var update_border_color = func(color: Color):
+	var update_border_color: Callable = func(color: Color) -> void:
 		if border_panel and card_visual:
-			var style = StyleBoxFlat.new()
+			var style: StyleBoxFlat = StyleBoxFlat.new()
 			style.bg_color = color
 			style.set_corner_radius_all(card_visual.corner_radius)
 			style.anti_aliasing = true
@@ -713,9 +786,12 @@ func get_selected_card_index() -> int:
 	return selected_card_index
 
 func select_next_card() -> void:
-	if not summoner or summoner.hand.is_empty():
+	var hand_variant: Variant = summoner.get("hand") if summoner else null
+	var hand: Array = hand_variant if hand_variant is Array else []
+
+	if not summoner or hand.is_empty():
 		return
-	selected_card_index = (selected_card_index + 1) % summoner.hand.size()
+	selected_card_index = (selected_card_index + 1) % hand.size()
 	_update_selection_visual()
 	card_selected.emit(selected_card_index)
 

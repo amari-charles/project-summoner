@@ -76,12 +76,15 @@ func _duplicate_materials() -> void:
 	if not visual_instance:
 		return
 
-	for child in visual_instance.get_children():
+	var visual_children: Array[Node] = visual_instance.get_children()
+	for child: Node in visual_children:
 		if child is MeshInstance3D:
-			var material = child.get_surface_override_material(0)
+			# Type narrow to MeshInstance3D for safe property access
+			var mesh_child: MeshInstance3D = child
+			var material: Resource = mesh_child.get_surface_override_material(0)
 			if material:
 				# Create a unique material instance for this projectile
-				child.set_surface_override_material(0, material.duplicate())
+				mesh_child.set_surface_override_material(0, material.duplicate() as Material)
 
 func _physics_process(delta: float) -> void:
 	if not is_active:
@@ -128,21 +131,21 @@ func _move_straight(delta: float) -> void:
 func _move_homing(delta: float) -> void:
 	if is_instance_valid(target):
 		# Update direction toward target
-		var target_dir = (target.global_position - global_position).normalized()
+		var target_dir: Vector3 = (target.global_position - global_position).normalized()
 		direction = direction.lerp(target_dir, homing_strength * delta).normalized()
 
 	global_position += direction * speed * delta
 
 ## Arc movement - follows arc to target position
-func _move_arc(delta: float) -> void:
-	var progress = travel_time * speed / start_position.distance_to(target_position)
+func _move_arc(_delta: float) -> void:
+	var progress: float = travel_time * speed / start_position.distance_to(target_position)
 	progress = clamp(progress, 0.0, 1.0)
 
 	# Horizontal movement (linear interpolation)
-	var horizontal_pos = start_position.lerp(target_position, progress)
+	var horizontal_pos: Vector3 = start_position.lerp(target_position, progress)
 
 	# Vertical offset (parabolic arc)
-	var arc_offset = arc_height * sin(progress * PI)
+	var arc_offset: float = arc_height * sin(progress * PI)
 	horizontal_pos.y += arc_offset
 
 	# Update position and direction
@@ -160,19 +163,19 @@ func _move_arc(delta: float) -> void:
 ## Ballistic movement - parabolic arc with gravity
 func _move_ballistic(delta: float) -> void:
 	# Calculate initial velocity to reach target
-	var displacement = target_position - start_position
-	var horizontal_dist = Vector2(displacement.x, displacement.z).length()
-	var vertical_dist = displacement.y
+	var displacement: Vector3 = target_position - start_position
+	var horizontal_dist: float = Vector2(displacement.x, displacement.z).length()
+	var vertical_dist: float = displacement.y
 
 	# Ballistic trajectory
-	var gravity = 9.8
-	var time_to_target = horizontal_dist / speed
-	var initial_velocity_y = (vertical_dist + 0.5 * gravity * time_to_target * time_to_target) / time_to_target
+	var gravity_force: float = 9.8
+	var time_to_target: float = horizontal_dist / speed
+	var initial_velocity_y: float = (vertical_dist + 0.5 * gravity_force * time_to_target * time_to_target) / time_to_target
 
 	# Apply velocity
-	var horizontal_dir = Vector3(displacement.x, 0, displacement.z).normalized()
-	var velocity = horizontal_dir * speed
-	velocity.y = initial_velocity_y - gravity * travel_time
+	var horizontal_dir: Vector3 = Vector3(displacement.x, 0, displacement.z).normalized()
+	var velocity: Vector3 = horizontal_dir * speed
+	velocity.y = initial_velocity_y - gravity_force * travel_time
 
 	direction = velocity.normalized()
 	global_position += velocity * delta
@@ -190,9 +193,12 @@ func initialize(data: Dictionary) -> void:
 	# Required fields
 	source = data.get("source")
 	target = data.get("target")
-	team = data.get("team", -1)
-	damage = data.get("damage", 10.0)
-	damage_type = data.get("damage_type", "physical")
+	var default_team: int = -1
+	team = data.get("team", default_team)
+	var default_damage: float = 10.0
+	damage = data.get("damage", default_damage)
+	var default_damage_type: String = "physical"
+	damage_type = data.get("damage_type", default_damage_type)
 
 	# Set position
 	if data.has("start_position"):
@@ -209,8 +215,9 @@ func initialize(data: Dictionary) -> void:
 		target_position = target.global_position
 
 	# Set direction
-	if data.has("direction"):
-		direction = data.direction.normalized()
+	if data.has("direction") and data.direction is Vector3:
+		var dir_val: Vector3 = data.direction
+		direction = dir_val.normalized()
 	elif target_position != Vector3.ZERO:
 		direction = (target_position - start_position).normalized()
 
@@ -246,9 +253,9 @@ func _on_area_entered(area: Area3D) -> void:
 		return
 
 	# Check if area belongs to a unit
-	var body = area.get_parent()
-	if body and _is_valid_target(body):
-		_hit_target(body)
+	var body: Node = area.get_parent()
+	if body and _is_valid_target(body as Node3D):
+		_hit_target(body as Node3D)
 
 ## Check if body is a valid target
 func _is_valid_target(body: Node3D) -> bool:
@@ -257,11 +264,11 @@ func _is_valid_target(body: Node3D) -> bool:
 		return false
 
 	# Check team
-	if "team" in body and body.team == team:
+	if "team" in body and body.get("team") == team:
 		return false
 
 	# Check if alive
-	if "is_alive" in body and not body.is_alive:
+	if "is_alive" in body and not body.get("is_alive"):
 		return false
 
 	return true
@@ -306,7 +313,7 @@ func _trigger_impact_effects(impact_position: Vector3) -> void:
 		VFXManager.play_effect(hit_vfx, impact_position)
 
 	# Apply AOE damage if radius is set
-	var proj_data = _get_projectile_data()
+	var proj_data: ProjectileData = _get_projectile_data()
 	# print("  Has ProjectileData: %s" % (proj_data != null))
 	if proj_data:
 		# print("  AOE radius: %.1f" % proj_data.aoe_radius)
@@ -329,7 +336,7 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 
 	# print("  Source: %s (team %d)" % [source.name, team])
 
-	var scene_tree = get_tree()
+	var scene_tree: SceneTree = get_tree()
 	if not scene_tree:
 		# print("  ERROR: No scene tree!")
 		return
@@ -338,51 +345,53 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 	_spawn_debug_aoe_sphere(center, radius)
 
 	# Determine target group based on team
-	var target_group = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
+	var target_group: String = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
 	# print("  Target group: '%s'" % target_group)
 
-	var enemies = scene_tree.get_nodes_in_group(target_group)
+	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 	# print("  Found %d potential targets in group" % enemies.size())
 
 	# Also check all units to see if grouping is the issue
-	var all_units = scene_tree.get_nodes_in_group("units")
-	# print("  Total units in scene: %d" % all_units.size())
+	var _all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	# print("  Total units in scene: %d" % _all_units.size())
 
-	# if enemies.size() == 0 and all_units.size() > 0:
+	# if enemies.size() == 0 and _all_units.size() > 0:
 		# print("  WARNING: No enemies in target group but units exist - group assignment issue?")
-		# for unit in all_units:
+		# for unit in _all_units:
 			# if unit is Unit3D:
 				# print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
 
-	var hit_count = 0
-	for enemy in enemies:
+	var _hit_count: int = 0
+	for enemy: Node in enemies:
 		if enemy is Unit3D:
-			var distance = enemy.global_position.distance_to(center)
-			# var alive_str = "alive" if enemy.is_alive else "DEAD"
-			# print("    %s: distance=%.1f, %s, team=%d" % [enemy.name, distance, alive_str, enemy.team])
+			# Type narrow to Unit3D for safe property access
+			var unit_enemy: Unit3D = enemy
+			var distance: float = unit_enemy.global_position.distance_to(center)
+			# var alive_str = "alive" if unit_enemy.is_alive else "DEAD"
+			# print("    %s: distance=%.1f, %s, team=%d" % [unit_enemy.name, distance, alive_str, unit_enemy.team])
 
-			if enemy.is_alive and distance <= radius:
+			if unit_enemy.is_alive and distance <= radius:
 				# print("      -> APPLYING DAMAGE: %.1f" % damage)
-				DamageSystem.apply_damage(source, enemy, damage, damage_type)
-				hit_count += 1
-			# elif not enemy.is_alive:
+				DamageSystem.apply_damage(source, unit_enemy, damage, damage_type)
+				_hit_count += 1
+			# elif not unit_enemy.is_alive:
 				# print("      -> Skipped (dead)")
 			# elif distance > radius:
 				# print("      -> Skipped (too far)")
 
-	# print("  RESULT: Hit %d enemies with %.1f damage each" % [hit_count, damage])
+	# print("  RESULT: Hit %d enemies with %.1f damage each" % [_hit_count, damage])
 	# print("--- END AOE CALCULATION ---\n")
 
 ## Spawn a debug visualization sphere to show AOE radius
 func _spawn_debug_aoe_sphere(center: Vector3, radius: float) -> void:
-	var sphere = MeshInstance3D.new()
-	var mesh = SphereMesh.new()
+	var sphere: MeshInstance3D = MeshInstance3D.new()
+	var mesh: SphereMesh = SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = radius * 2
 	sphere.mesh = mesh
 
 	# Semi-transparent red material
-	var material = StandardMaterial3D.new()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.albedo_color = Color(1, 0, 0, 0.2)
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -420,18 +429,23 @@ func _expire_with_fade() -> void:
 	fade_tween.set_parallel(true)
 
 	# Fade all materials on visual children
-	for child in visual_instance.get_children():
-		if child is MeshInstance3D:
-			var material = child.get_surface_override_material(0)
+	var fade_children: Array[Node] = visual_instance.get_children()
+	for child_node: Node in fade_children:
+		if child_node is MeshInstance3D:
+			# Type narrow to MeshInstance3D for safe property access
+			var mesh_child: MeshInstance3D = child_node
+			var material: Material = mesh_child.get_surface_override_material(0)
 			if material and material is StandardMaterial3D:
 				# Tween alpha from current to 0
 				fade_tween.tween_property(material, "albedo_color:a", 0.0, fade_duration)
-		elif child is GPUParticles3D:
+		elif child_node is GPUParticles3D:
+			# Type narrow to GPUParticles3D for safe property access
+			var particles_child: GPUParticles3D = child_node
 			# Stop emitting new particles
-			child.emitting = false
+			particles_child.emitting = false
 
 	# When tween finishes, hide and cleanup
-	fade_tween.finished.connect(func():
+	fade_tween.finished.connect(func() -> void:
 		visible = false
 		_expire_immediate()
 	)
@@ -467,24 +481,29 @@ func reset() -> void:
 
 	# Cancel any running tweens (only if in tree)
 	if is_inside_tree():
-		var tweens = get_tree().get_processed_tweens()
-		for tween in tweens:
+		var tweens: Array[Tween] = get_tree().get_processed_tweens()
+		for tween: Tween in tweens:
 			if tween.is_valid():
 				tween.kill()
 
 	# Reset visual alpha and visibility (but keep hidden until reused)
 	if visual_instance:
 		visual_instance.visible = false  # Keep hidden until next spawn
-		for child in visual_instance.get_children():
-			if child is MeshInstance3D:
-				child.visible = true
-				var material = child.get_surface_override_material(0)
+		var reset_children: Array[Node] = visual_instance.get_children()
+		for child_node: Node in reset_children:
+			if child_node is MeshInstance3D:
+				# Type narrow to MeshInstance3D for safe property access
+				var mesh_child: MeshInstance3D = child_node
+				mesh_child.visible = true
+				var material: Material = mesh_child.get_surface_override_material(0)
 				if material and material is StandardMaterial3D:
+					# Type narrow to StandardMaterial3D for safe property access
+					var std_material: StandardMaterial3D = material
 					# Reset transparency mode
-					material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-					var color = material.albedo_color
+					std_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					var color: Color = std_material.albedo_color
 					color.a = 1.0
-					material.albedo_color = color
+					std_material.albedo_color = color
 
 	# Only reset transform if node is in tree
 	if is_inside_tree():

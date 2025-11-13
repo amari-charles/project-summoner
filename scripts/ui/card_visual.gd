@@ -67,7 +67,7 @@ var element_color: Color = Color.GRAY
 ## LIFECYCLE
 ## =============================================================================
 
-func _ready():
+func _ready() -> void:
 	# Initial setup
 	if card_data:
 		_apply_visual_styling()
@@ -116,24 +116,24 @@ func _apply_visual_styling() -> void:
 	_apply_shine_effect()
 
 	# Apply cost label font size
-	var cost_lbl = get_node_or_null("CostLabel")
+	var cost_lbl: Label = get_node_or_null("CostLabel")
 	if cost_lbl:
 		cost_lbl.add_theme_font_size_override("font_size", cost_font_size)
 
 	# Apply name label font size
-	var name_lbl = get_node_or_null("NameLabel")
+	var name_lbl: Label = get_node_or_null("NameLabel")
 	if name_lbl:
 		name_lbl.add_theme_font_size_override("font_size", name_font_size)
 
 	# Apply description label font size
-	var desc_lbl = get_node_or_null("DescriptionLabel")
+	var desc_lbl: Label = get_node_or_null("DescriptionLabel")
 	if desc_lbl:
 		desc_lbl.add_theme_font_size_override("font_size", description_font_size)
 
 	# Apply element badge styling
-	var badge = get_node_or_null("ElementBadge")
+	var badge: Panel = get_node_or_null("ElementBadge")
 	if badge:
-		var badge_style = StyleBoxFlat.new()
+		var badge_style: StyleBoxFlat = StyleBoxFlat.new()
 		badge_style.bg_color = element_color
 		badge_style.set_corner_radius_all(element_badge_radius)
 		badge_style.anti_aliasing = true
@@ -145,9 +145,9 @@ func _apply_visual_styling() -> void:
 		desc_lbl.visible = show_description
 
 func _apply_border_color() -> void:
-	var border = get_node_or_null("BorderPanel")
+	var border: Panel = get_node_or_null("BorderPanel")
 	if border:
-		var border_style = StyleBoxFlat.new()
+		var border_style: StyleBoxFlat = StyleBoxFlat.new()
 		border_style.bg_color = element_color
 		border_style.set_corner_radius_all(corner_radius)
 		border_style.anti_aliasing = true
@@ -155,22 +155,26 @@ func _apply_border_color() -> void:
 		border.add_theme_stylebox_override("panel", border_style)
 
 func _apply_gradient_background() -> void:
-	var bg_panel = get_node_or_null("BackgroundPanel")
+	var bg_panel: Panel = get_node_or_null("BackgroundPanel")
 	if not bg_panel:
 		return
 
 	# Get element ID from card data
-	var element_id = _get_element_id_from_card_data()
+	var element_id: String = _get_element_id_from_card_data()
 
 	# Get gradient colors for this element
-	var gradient_colors = CardVisualHelper.get_element_gradient_colors(element_id)
+	var gradient_colors: Array = CardVisualHelper.get_element_gradient_colors(element_id)
 
 	# Create radial gradient texture
-	var gradient = Gradient.new()
-	gradient.set_color(0, gradient_colors[0])  # Center color (dark)
-	gradient.set_color(1, gradient_colors[1])  # Edge color (light)
+	var gradient: Gradient = Gradient.new()
+	var color0_variant: Variant = gradient_colors[0]
+	var color1_variant: Variant = gradient_colors[1]
+	var color0: Color = color0_variant if color0_variant is Color else Color.GRAY
+	var color1: Color = color1_variant if color1_variant is Color else Color.GRAY
+	gradient.set_color(0, color0)  # Center color (dark)
+	gradient.set_color(1, color1)  # Edge color (light)
 
-	var gradient_texture = GradientTexture2D.new()
+	var gradient_texture: GradientTexture2D = GradientTexture2D.new()
 	gradient_texture.gradient = gradient
 	gradient_texture.fill = GradientTexture2D.FILL_RADIAL
 	gradient_texture.fill_from = Vector2(0.5, 0.5)  # Center point
@@ -181,7 +185,7 @@ func _apply_gradient_background() -> void:
 	# Use StyleBoxFlat with gradient-like appearance
 	# Since StyleBoxFlat doesn't support gradients, we'll use the darker color
 	# and rely on the overall design for depth
-	var bg_style = StyleBoxFlat.new()
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
 	bg_style.bg_color = gradient_colors[0]  # Use darker center color
 	bg_style.set_corner_radius_all(corner_radius - border_width)
 	bg_style.anti_aliasing = true
@@ -190,52 +194,59 @@ func _apply_gradient_background() -> void:
 	bg_panel.add_theme_stylebox_override("panel", bg_style)
 
 func _apply_shine_effect() -> void:
-	var border = get_node_or_null("BorderPanel")
+	var border: Panel = get_node_or_null("BorderPanel")
 	if not border:
 		return
 
 	# Add subtle highlight to top-left of border for glossy effect
-	var border_style = border.get_theme_stylebox("panel")
+	var border_style: StyleBox = border.get_theme_stylebox("panel")
 	if border_style is StyleBoxFlat:
+		# Type narrow to StyleBoxFlat for safe property access
+		var flat_style: StyleBoxFlat = border_style
 		# Add a subtle border on the top-left for shine effect
-		border_style.border_color = element_color.lightened(0.4)
-		border_style.set_border_width(SIDE_TOP, 1)
-		border_style.set_border_width(SIDE_LEFT, 1)
+		flat_style.border_color = element_color.lightened(0.4)
+		flat_style.set_border_width(SIDE_TOP, 1)
+		flat_style.set_border_width(SIDE_LEFT, 1)
 
 func _get_element_id_from_card_data() -> String:
 	# Extract element ID from card data
-	var catalog_dict = card_data
+	var catalog_dict: Dictionary = card_data
 
 	# Check if this is a Card resource, need to fetch from catalog
 	if card_data.has("catalog_id") and not card_data.has("categories"):
-		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+		var catalog_id_variant: Variant = card_data.catalog_id
+		var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
+		var catalog_dict_variant: Variant = CardCatalog.get_card(catalog_id)
+		catalog_dict = catalog_dict_variant if catalog_dict_variant is Dictionary else {}
 
 	# Extract element ID
 	if catalog_dict.has("categories"):
-		var categories = catalog_dict.categories
-		if categories is Dictionary and categories.has("elemental_affinity"):
-			var affinity = categories.elemental_affinity
-			if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
-				return affinity.id
+		var categories_variant: Variant = catalog_dict.categories
+		if categories_variant is Dictionary:
+			var categories: Dictionary = categories_variant
+			if categories.has("elemental_affinity"):
+				var affinity: Variant = categories.elemental_affinity
+				if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
+					return affinity.id
 
 	return "neutral"  # Fallback
 
 func _update_cost() -> void:
-	var label = get_node_or_null("CostLabel")
+	var label: Label = get_node_or_null("CostLabel")
 	if label and card_data.has("mana_cost"):
 		label.text = str(card_data.mana_cost)
 
 func _update_name() -> void:
-	var label = get_node_or_null("NameLabel")
+	var label: Label = get_node_or_null("NameLabel")
 	if label and card_data.has("card_name"):
 		label.text = card_data.card_name
 
 func _update_type_icon() -> void:
-	var icon = get_node_or_null("TypeIcon")
+	var icon: TextureRect = get_node_or_null("TypeIcon")
 	if icon:
-		var icon_path = CardVisualHelper.get_card_type_icon_path(card_data)
+		var icon_path: String = CardVisualHelper.get_card_type_icon_path(card_data)
 		if not icon_path.is_empty():
-			var texture = load(icon_path)
+			var texture: Texture2D = load(icon_path)
 			if texture:
 				icon.texture = texture
 				icon.visible = true
@@ -246,23 +257,26 @@ func _update_type_icon() -> void:
 			icon.visible = false
 
 func _update_art() -> void:
-	var container = get_node_or_null("ArtContainer")
+	var container: Control = get_node_or_null("ArtContainer")
 	if not container:
 		return
 
-	var art_tex = container.get_node_or_null("ArtTexture")
-	var art_ph = container.get_node_or_null("ArtPlaceholder")
+	var art_tex: TextureRect = container.get_node_or_null("ArtTexture")
+	var art_ph: ColorRect = container.get_node_or_null("ArtPlaceholder")
 
 	# Try to load card art if path is specified
-	var art_loaded = false
-	if card_data.has("card_icon_path") and not card_data.card_icon_path.is_empty():
-		var texture = load(card_data.card_icon_path)
-		if texture and art_tex:
-			art_tex.texture = texture
-			art_tex.visible = true
-			if art_ph:
-				art_ph.visible = false
-			art_loaded = true
+	var art_loaded: bool = false
+	if card_data.has("card_icon_path"):
+		var card_icon_path_variant: Variant = card_data.card_icon_path
+		var card_icon_path: String = card_icon_path_variant if card_icon_path_variant is String else ""
+		if not card_icon_path.is_empty():
+			var texture: Texture2D = load(card_icon_path)
+			if texture and art_tex:
+				art_tex.texture = texture
+				art_tex.visible = true
+				if art_ph:
+					art_ph.visible = false
+				art_loaded = true
 
 	# Fall back to colored placeholder
 	if not art_loaded and art_ph:
@@ -272,9 +286,9 @@ func _update_art() -> void:
 			art_tex.visible = false
 
 func _update_description() -> void:
-	var label = get_node_or_null("DescriptionLabel")
+	var label: Label = get_node_or_null("DescriptionLabel")
 	if label and card_data.has("description"):
-		var desc = card_data.description
+		var desc: String = card_data.description
 		# Truncate if too long
 		if desc.length() > description_max_chars:
 			desc = desc.substr(0, description_max_chars - 3) + "..."

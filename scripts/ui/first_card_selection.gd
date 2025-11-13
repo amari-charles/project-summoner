@@ -20,22 +20,22 @@ func _on_card_selected(catalog_id: String) -> void:
 	print("FirstCardSelection: Player selected card: %s" % catalog_id)
 
 	# Grant the chosen card to collection
-	var collection = get_node("/root/Collection")
+	var collection: Node = get_node("/root/Collection")
 	var card_instance_id: String = ""
 	if collection:
 		card_instance_id = collection.grant_card(catalog_id, "common")
 		print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
 
 	# Create initial deck with this card
-	var decks = get_node("/root/Decks")
+	var decks: Node = get_node("/root/Decks")
 	if decks and card_instance_id != "":
-		var deck_id = decks.create_deck("Starter Deck", [card_instance_id])
+		var deck_id: String = decks.create_deck("Starter Deck", [card_instance_id])
 		print("FirstCardSelection: Created starter deck with card (deck_id: %s)" % deck_id)
 
 		# Set it as the active deck
-		var profile_repo = get_node("/root/ProfileRepo")
+		var profile_repo: Node = get_node("/root/ProfileRepo")
 		if profile_repo:
-			var profile = profile_repo.get_active_profile()
+			var profile: Dictionary = profile_repo.get_active_profile()
 			if not profile.is_empty():
 				profile["meta"]["selected_deck"] = deck_id
 				profile["meta"]["onboarding_complete"] = true
@@ -43,9 +43,9 @@ func _on_card_selected(catalog_id: String) -> void:
 				print("FirstCardSelection: Set starter deck as active and marked onboarding complete!")
 	else:
 		# Fallback: just mark onboarding complete even if deck creation failed
-		var profile_repo = get_node("/root/ProfileRepo")
+		var profile_repo: Node = get_node("/root/ProfileRepo")
 		if profile_repo:
-			var profile = profile_repo.get_active_profile()
+			var profile: Dictionary = profile_repo.get_active_profile()
 			if not profile.is_empty():
 				profile["meta"]["onboarding_complete"] = true
 				profile_repo.save_profile()

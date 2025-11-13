@@ -33,20 +33,20 @@ func _load_all_content() -> void:
 
 ## Load units from data/units/*.json
 func _load_units() -> void:
-	var units_dir = "res://data/units/"
-	var dir = DirAccess.open(units_dir)
+	var units_dir: String = "res://data/units/"
+	var dir: DirAccess = DirAccess.open(units_dir)
 
 	if not dir:
 		push_warning("ContentCatalog: units directory not found: " + units_dir)
 		return
 
 	dir.list_dir_begin()
-	var file_name = dir.get_next()
+	var file_name: String = dir.get_next()
 
 	while file_name != "":
 		if file_name.ends_with(".json"):
-			var file_path = units_dir + file_name
-			var unit_data = _load_unit_from_file(file_path)
+			var file_path: String = units_dir + file_name
+			var unit_data: UnitData = _load_unit_from_file(file_path)
 			if unit_data:
 				units[unit_data.unit_id] = unit_data
 		file_name = dir.get_next()
@@ -55,16 +55,16 @@ func _load_units() -> void:
 
 ## Load single unit from JSON file
 func _load_unit_from_file(file_path: String) -> UnitData:
-	var file = FileAccess.open(file_path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		push_error("ContentCatalog: Failed to open file: " + file_path)
 		return null
 
-	var json_text = file.get_as_text()
+	var json_text: String = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
+	var json: JSON = JSON.new()
+	var parse_result: Error = json.parse(json_text)
 
 	if parse_result != OK:
 		push_error("ContentCatalog: JSON parse error in %s at line %d: %s" % [
@@ -74,29 +74,30 @@ func _load_unit_from_file(file_path: String) -> UnitData:
 		])
 		return null
 
-	var data = json.get_data()
+	var data: Variant = json.get_data()
 	if not data is Dictionary:
 		push_error("ContentCatalog: JSON root is not a dictionary: " + file_path)
 		return null
 
-	return UnitData.from_dict(data)
+	var data_dict: Dictionary = data
+	return UnitData.from_dict(data_dict)
 
 ## Load cards from data/cards/*.json
 func _load_cards() -> void:
-	var cards_dir = "res://data/cards/"
-	var dir = DirAccess.open(cards_dir)
+	var cards_dir: String = "res://data/cards/"
+	var dir: DirAccess = DirAccess.open(cards_dir)
 
 	if not dir:
 		push_warning("ContentCatalog: cards directory not found: " + cards_dir)
 		return
 
 	dir.list_dir_begin()
-	var file_name = dir.get_next()
+	var file_name: String = dir.get_next()
 
 	while file_name != "":
 		if file_name.ends_with(".json"):
-			var file_path = cards_dir + file_name
-			var card_data = _load_card_from_file(file_path)
+			var file_path: String = cards_dir + file_name
+			var card_data: CardData = _load_card_from_file(file_path)
 			if card_data:
 				cards[card_data.card_id] = card_data
 		file_name = dir.get_next()
@@ -105,16 +106,16 @@ func _load_cards() -> void:
 
 ## Load single card from JSON file
 func _load_card_from_file(file_path: String) -> CardData:
-	var file = FileAccess.open(file_path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		push_error("ContentCatalog: Failed to open file: " + file_path)
 		return null
 
-	var json_text = file.get_as_text()
+	var json_text: String = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
+	var json: JSON = JSON.new()
+	var parse_result: Error = json.parse(json_text)
 
 	if parse_result != OK:
 		push_error("ContentCatalog: JSON parse error in %s at line %d: %s" % [
@@ -124,29 +125,30 @@ func _load_card_from_file(file_path: String) -> CardData:
 		])
 		return null
 
-	var data = json.get_data()
+	var data: Variant = json.get_data()
 	if not data is Dictionary:
 		push_error("ContentCatalog: JSON root is not a dictionary: " + file_path)
 		return null
 
-	return CardData.from_dict(data)
+	var data_dict: Dictionary = data
+	return CardData.from_dict(data_dict)
 
 ## Load projectiles from data/projectiles/*.json
 func _load_projectiles() -> void:
-	var proj_dir = "res://data/projectiles/"
-	var dir = DirAccess.open(proj_dir)
+	var proj_dir: String = "res://data/projectiles/"
+	var dir: DirAccess = DirAccess.open(proj_dir)
 
 	if not dir:
 		push_warning("ContentCatalog: projectiles directory not found: " + proj_dir)
 		return
 
 	dir.list_dir_begin()
-	var file_name = dir.get_next()
+	var file_name: String = dir.get_next()
 
 	while file_name != "":
 		if file_name.ends_with(".json"):
-			var file_path = proj_dir + file_name
-			var proj_data = _load_projectile_from_file(file_path)
+			var file_path: String = proj_dir + file_name
+			var proj_data: ProjectileData = _load_projectile_from_file(file_path)
 			if proj_data:
 				projectiles[proj_data.projectile_id] = proj_data
 		file_name = dir.get_next()
@@ -155,16 +157,16 @@ func _load_projectiles() -> void:
 
 ## Load single projectile from JSON file
 func _load_projectile_from_file(file_path: String) -> ProjectileData:
-	var file = FileAccess.open(file_path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
 	if not file:
 		push_error("ContentCatalog: Failed to open file: " + file_path)
 		return null
 
-	var json_text = file.get_as_text()
+	var json_text: String = file.get_as_text()
 	file.close()
 
-	var json = JSON.new()
-	var parse_result = json.parse(json_text)
+	var json: JSON = JSON.new()
+	var parse_result: Error = json.parse(json_text)
 
 	if parse_result != OK:
 		push_error("ContentCatalog: JSON parse error in %s at line %d: %s" % [
@@ -174,19 +176,20 @@ func _load_projectile_from_file(file_path: String) -> ProjectileData:
 		])
 		return null
 
-	var data = json.get_data()
+	var data: Variant = json.get_data()
 	if not data is Dictionary:
 		push_error("ContentCatalog: JSON root is not a dictionary: " + file_path)
 		return null
 
-	return ProjectileData.from_dict(data)
+	var data_dict: Dictionary = data
+	return ProjectileData.from_dict(data_dict)
 
 ## Validate all loaded content for consistency
 func _validate_content() -> void:
 	var errors: Array[String] = []
 
 	# Check that all summon cards reference valid units
-	for card_data in cards.values():
+	for card_data: CardData in cards.values():
 		if card_data.card_type == "summon":
 			if card_data.unit_id.is_empty():
 				errors.append("Summon card '%s' has no unit_id" % card_data.card_id)
@@ -197,7 +200,7 @@ func _validate_content() -> void:
 				])
 
 	# Check that all ranged units reference valid projectiles
-	for unit_data in units.values():
+	for unit_data: UnitData in units.values():
 		if unit_data.is_ranged:
 			if unit_data.projectile_id.is_empty():
 				errors.append("Ranged unit '%s' has no projectile_id" % unit_data.unit_id)
@@ -208,7 +211,7 @@ func _validate_content() -> void:
 				])
 
 	# Check for invalid stats
-	for unit_data in units.values():
+	for unit_data: UnitData in units.values():
 		if unit_data.max_hp <= 0:
 			errors.append("Unit '%s' has invalid HP: %.1f" % [unit_data.unit_id, unit_data.max_hp])
 		# Only validate attack speed for units that can actually attack
@@ -218,7 +221,7 @@ func _validate_content() -> void:
 	# Report errors
 	if errors.size() > 0:
 		push_error("ContentCatalog: Found %d validation errors:" % errors.size())
-		for error in errors:
+		for error: String in errors:
 			push_error("  - %s" % error)
 	else:
 		print("ContentCatalog: All content validated successfully")
@@ -246,7 +249,7 @@ func is_loaded() -> bool:
 ## Get all units with specific tag
 func get_units_with_tag(tag: String) -> Array[UnitData]:
 	var result: Array[UnitData] = []
-	for unit_data in units.values():
+	for unit_data: UnitData in units.values():
 		if tag in unit_data.tags:
 			result.append(unit_data)
 	return result
@@ -254,7 +257,7 @@ func get_units_with_tag(tag: String) -> Array[UnitData]:
 ## Get all cards of specific rarity
 func get_cards_by_rarity(rarity: String) -> Array[CardData]:
 	var result: Array[CardData] = []
-	for card_data in cards.values():
+	for card_data: CardData in cards.values():
 		if card_data.rarity == rarity:
 			result.append(card_data)
 	return result
@@ -262,7 +265,7 @@ func get_cards_by_rarity(rarity: String) -> Array[CardData]:
 ## Get all cards of specific type
 func get_cards_by_type(card_type: String) -> Array[CardData]:
 	var result: Array[CardData] = []
-	for card_data in cards.values():
+	for card_data: CardData in cards.values():
 		if card_data.card_type == card_type:
 			result.append(card_data)
 	return result

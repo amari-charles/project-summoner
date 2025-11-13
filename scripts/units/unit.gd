@@ -61,7 +61,7 @@ func _physics_process(delta: float) -> void:
 			target_lock_timer = target_lock_duration
 
 	if current_target != null:
-		var dist = global_position.distance_to(current_target.global_position)
+		var dist: float = global_position.distance_to(current_target.global_position)
 
 		# Attack if in range and cooldown ready
 		if dist <= attack_range:
@@ -71,13 +71,13 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 		else:
 			# Move toward target
-			var direction = (current_target.global_position - global_position).normalized()
+			var direction: Vector2 = (current_target.global_position - global_position).normalized()
 			velocity = direction * move_speed
 	else:
 		# No target - advance toward enemy base
-		var base = _get_enemy_base()
+		var base: Node2D = _get_enemy_base()
 		if base:
-			var direction = (base.global_position - global_position).normalized()
+			var direction: Vector2 = (base.global_position - global_position).normalized()
 			velocity = direction * move_speed
 		else:
 			velocity = Vector2.ZERO
@@ -88,40 +88,40 @@ func _is_valid_target(target: Node2D) -> bool:
 	## Check if a target is still valid (alive and in range)
 	if not target or not is_instance_valid(target):
 		return false
-	if target is Unit and not target.is_alive:
+	if target is Unit and not (target as Unit).is_alive:
 		return false
 	# Check if target is within aggro range (use distance_squared for performance)
-	var delta = target.global_position - global_position
-	var distance_sq = delta.x * delta.x + delta.y * delta.y
-	var max_range = aggro_radius * 1.5  # Allow some leeway
+	var delta: Vector2 = target.global_position - global_position
+	var distance_sq: float = delta.x * delta.x + delta.y * delta.y
+	var max_range: float = aggro_radius * 1.5  # Allow some leeway
 	return distance_sq <= max_range * max_range
 
 ## Find the best enemy unit using weighted scoring system
 func _acquire_target() -> Node2D:
-	var target_group = "enemy_units" if team == Team.PLAYER else "player_units"
-	var enemies = get_tree().get_nodes_in_group(target_group)
+	var target_group: StringName = StringName("enemy_units" if team == Team.PLAYER else "player_units")
+	var enemies: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
 	var best_target: Node2D = null
 	var best_score: float = -INF
-	var aggro_radius_sq = aggro_radius * aggro_radius
+	var aggro_radius_sq: float = aggro_radius * aggro_radius
 
-	for target in enemies:
-		if not (target is Unit and target.is_alive):
+	for target: Node in enemies:
+		if not (target is Unit and (target as Unit).is_alive):
 			continue
 
 		# Calculate distance_squared - no sqrt yet!
-		var delta = target.global_position - global_position
-		var distance_sq = delta.x * delta.x + delta.y * delta.y
+		var delta: Vector2 = (target as Node2D).global_position - global_position
+		var distance_sq: float = delta.x * delta.x + delta.y * delta.y
 
 		# Fast filtering: skip targets outside aggro range (no sqrt needed)
 		if distance_sq > aggro_radius_sq:
 			continue
 
 		# Only calculate actual distance (sqrt) for targets in range
-		var distance = sqrt(distance_sq)
+		var distance: float = sqrt(distance_sq)
 
 		# Calculate weighted score
-		var score = 0.0
+		var score: float = 0.0
 
 		# Distance component (inverse: closer = higher score)
 		if distance_weight > 0.0 and distance > 0.01:
@@ -129,7 +129,7 @@ func _acquire_target() -> Node2D:
 
 		# HP component (inverse: lower HP = higher score)
 		if hp_weight > 0.0:
-			var hp_percent = target.current_hp / target.max_hp
+			var hp_percent: float = (target as Unit).current_hp / (target as Unit).max_hp
 			# Add small epsilon to avoid division by zero
 			score += hp_weight / (hp_percent + 0.1)
 
@@ -147,18 +147,18 @@ func _acquire_target() -> Node2D:
 ## Get the enemy base/summoner
 func _get_enemy_base() -> Node2D:
 	# First try to find actual bases
-	var base_group = "enemy_bases" if team == Team.PLAYER else "player_bases"
-	var bases = get_tree().get_nodes_in_group(base_group)
+	var base_group: StringName = StringName("enemy_bases" if team == Team.PLAYER else "player_bases")
+	var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 
 	if bases.size() > 0:
-		return bases[0]
+		return bases[0] as Node2D
 
 	# Fallback to summoners if no bases exist
-	var summoner_group = "enemy_summoners" if team == Team.PLAYER else "player_summoners"
-	var summoners = get_tree().get_nodes_in_group(summoner_group)
+	var summoner_group: StringName = StringName("enemy_summoners" if team == Team.PLAYER else "player_summoners")
+	var summoners: Array[Node] = get_tree().get_nodes_in_group(summoner_group)
 
 	if summoners.size() > 0:
-		return summoners[0]
+		return summoners[0] as Node2D
 
 	return null
 
@@ -173,7 +173,8 @@ func _attack(target: Node2D) -> void:
 	else:
 		# Direct damage for melee attack
 		if target.has_method("take_damage"):
-			target.take_damage(attack_damage)
+			var typed_target: Node2D = target as Node2D
+			typed_target.call("take_damage", attack_damage)
 			if target is Unit:
 				unit_attacked.emit(target)
 
@@ -184,7 +185,7 @@ func _spawn_projectile(target: Node2D) -> void:
 		return
 
 	# Instantiate projectile
-	var projectile = projectile_scene.instantiate() as Projectile
+	var projectile: Node = projectile_scene.instantiate()
 	if projectile == null:
 		return
 
@@ -192,7 +193,8 @@ func _spawn_projectile(target: Node2D) -> void:
 	get_tree().root.add_child(projectile)
 
 	# Initialize projectile
-	projectile.initialize(global_position, target, attack_damage, team, self)
+	if projectile.has_method("initialize"):
+		projectile.call("initialize", global_position, target, attack_damage, team, self)
 
 ## Take damage from an attack
 func take_damage(damage: float) -> void:
@@ -218,20 +220,20 @@ func _die() -> void:
 func _setup_visuals() -> void:
 	# Only create default sprite if no custom visual exists in the scene
 	if not has_node("Visual"):
-		var sprite = ColorRect.new()
+		var sprite: ColorRect = ColorRect.new()
 		sprite.size = Vector2(32, 32)
 		sprite.position = Vector2(-16, -16)
 		sprite.color = Color.BLUE if team == Team.PLAYER else Color.RED
 		add_child(sprite)
 
 	# Add HP bar
-	var hp_bar_bg = ColorRect.new()
+	var hp_bar_bg: ColorRect = ColorRect.new()
 	hp_bar_bg.size = Vector2(40, 6)
 	hp_bar_bg.position = Vector2(-20, -30)
 	hp_bar_bg.color = Color.BLACK
 	add_child(hp_bar_bg)
 
-	var hp_bar = ColorRect.new()
+	var hp_bar: ColorRect = ColorRect.new()
 	hp_bar.name = "HPBar"
 	hp_bar.size = Vector2(40, 6)
 	hp_bar.position = Vector2(-20, -30)
@@ -241,8 +243,8 @@ func _setup_visuals() -> void:
 ## Update HP bar visual
 func _process(_delta: float) -> void:
 	if has_node("HPBar"):
-		var hp_bar = get_node("HPBar") as ColorRect
-		var hp_percent = current_hp / max_hp
+		var hp_bar: ColorRect = get_node("HPBar") as ColorRect
+		var hp_percent: float = current_hp / max_hp
 		hp_bar.size.x = 40 * hp_percent
 
 		# Change color based on HP

@@ -21,9 +21,9 @@ func _ready() -> void:
 	print("TestGameController: Initializing VFX test mode...")
 
 	# Configure BattleContext for practice mode
-	var battle_context = get_node_or_null("/root/BattleContext")
-	if battle_context:
-		battle_context.configure_practice_battle({
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if battle_context and battle_context.has_method("configure_practice_battle"):
+		battle_context.call("configure_practice_battle", {
 			"enemy_deck": [{"catalog_id": "warrior", "count": 30}],
 			"enemy_hp": 999999.0
 		})
@@ -49,13 +49,13 @@ func _ready() -> void:
 	# Set infinite HP for both bases
 	await get_tree().process_frame
 	if enemy_base and "max_hp" in enemy_base:
-		enemy_base.max_hp = 999999.0
-		enemy_base.current_hp = 999999.0
+		enemy_base.set("max_hp", 999999.0)
+		enemy_base.set("current_hp", 999999.0)
 		print("TestGameController: Enemy base set to infinite HP")
 
 	if player_base and "max_hp" in player_base:
-		player_base.max_hp = 999999.0
-		player_base.current_hp = 999999.0
+		player_base.set("max_hp", 999999.0)
+		player_base.set("current_hp", 999999.0)
 		print("TestGameController: Player base set to infinite HP")
 
 	print("TestGameController: Test mode ready!")
@@ -64,7 +64,7 @@ func _ready() -> void:
 	print("  - Enemy HP: 999999")
 	print("  - No time limit")
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	# Grant infinite mana to player
 	if player_summoner and "mana" in player_summoner:
 		player_summoner.mana = 999
@@ -77,8 +77,8 @@ func _process(delta: float) -> void:
 func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 	var cards: Array[Card] = []
 
-	for catalog_id in test_deck_cards:
-		var card = _load_card_resource(catalog_id)
+	for catalog_id: String in test_deck_cards:
+		var card: Card = _load_card_resource(catalog_id)
 		if card:
 			cards.append(card)
 
@@ -88,7 +88,7 @@ func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 
 	# Clear hand and redraw
 	summoner.hand.clear()
-	for i in summoner.max_hand_size:
+	for i: int in summoner.max_hand_size:
 		summoner.draw_card()
 
 	print("TestGameController: Loaded %d test cards for player" % cards.size())
@@ -98,8 +98,8 @@ func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 	var cards: Array[Card] = []
 
 	# Enemy gets 30 warriors (easy target practice)
-	for i in range(30):
-		var card = _load_card_resource("warrior")
+	for i: int in range(30):
+		var card: Card = _load_card_resource("warrior")
 		if card:
 			cards.append(card)
 
@@ -108,7 +108,7 @@ func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 
 	# Clear hand and redraw
 	summoner.hand.clear()
-	for i in summoner.max_hand_size:
+	for i: int in summoner.max_hand_size:
 		summoner.draw_card()
 
 	print("TestGameController: Loaded %d test cards for enemy" % cards.size())
@@ -120,7 +120,7 @@ func _load_card_resource(catalog_id: String) -> Card:
 		push_error("TestGameController: CardCatalog autoload not available")
 		return null
 
-	var card = CardCatalog.create_card_resource(catalog_id)
+	var card: Card = CardCatalog.create_card_resource(catalog_id)
 
 	if not card:
 		push_error("TestGameController: Failed to create card from catalog: %s" % catalog_id)

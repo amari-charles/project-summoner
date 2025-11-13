@@ -19,7 +19,7 @@ class_name Summoner
 ## Current state
 var current_hp: float
 var mana: float = 0.0
-const MANA_MAX := 10.0
+const MANA_MAX: float = 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var is_alive: bool = true
@@ -34,13 +34,23 @@ signal hand_changed(hand: Array[Card])
 func _ready() -> void:
 	# If loading enemy from campaign, override max_hp if specified
 	if load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
-		var campaign = get_node_or_null("/root/Campaign")
-		var profile_repo = get_node_or_null("/root/ProfileRepo")
+		var campaign: Node = get_node_or_null("/root/Campaign")
+		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 		if campaign and profile_repo:
-			var profile = profile_repo.get_active_profile()
-			var battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+			var profile_variant: Variant = {}
+			if profile_repo.has_method("get_active_profile"):
+				profile_variant = profile_repo.call("get_active_profile")
+			var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
+			var empty_dict: Dictionary = {}
+			var campaign_progress_variant: Variant = profile.get("campaign_progress", empty_dict)
+			var campaign_progress: Dictionary = campaign_progress_variant if campaign_progress_variant is Dictionary else {}
+			var battle_id_variant: Variant = campaign_progress.get("current_battle", "")
+			var battle_id: String = battle_id_variant if battle_id_variant is String else ""
 			if battle_id != "":
-				var battle = campaign.get_battle(battle_id)
+				var battle_variant: Variant = {}
+				if campaign.has_method("get_battle"):
+					battle_variant = campaign.call("get_battle", battle_id)
+				var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
 				if battle.has("enemy_hp"):
 					max_hp = battle.get("enemy_hp")
 					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
@@ -74,7 +84,7 @@ func _ready() -> void:
 	deck.shuffle()
 
 	# Draw starting hand
-	for i in max_hand_size:
+	for i: int in max_hand_size:
 		draw_card()
 
 	add_to_group("summoners")
@@ -104,17 +114,17 @@ func draw_card() -> void:
 	if hand.size() >= max_hand_size:
 		return
 
-	var card = deck.pop_front()
+	var card: Card = deck.pop_front()
 	hand.append(card)
 	card_drawn.emit(card)
 	hand_changed.emit(hand)
 
 ## Play a card from hand at the given position
-func play_card(card_index: int, position: Vector2) -> bool:
+func play_card(card_index: int, spawn_position: Vector2) -> bool:
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
-	var card = hand[card_index]
+	var card: Card = hand[card_index]
 
 	if not card.can_play(int(mana)):
 		return false
@@ -124,13 +134,13 @@ func play_card(card_index: int, position: Vector2) -> bool:
 	mana_changed.emit(mana, MANA_MAX)
 
 	# Find battlefield to spawn units in
-	var battlefield = get_tree().get_first_node_in_group("battlefield")
+	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
 		return false
 
 	# Play the card
-	card.play(position, team, battlefield)
+	card.play(spawn_position, team, battlefield)
 
 	# Remove from hand and draw new card
 	hand.remove_at(card_index)

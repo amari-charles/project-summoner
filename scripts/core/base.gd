@@ -34,23 +34,25 @@ func _ready() -> void:
 
 ## Load HP from campaign battle config
 func _load_campaign_hp() -> void:
-	var profile_repo = get_node_or_null("/root/ProfileRepo")
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 	if not profile_repo:
 		return
 
-	var profile = profile_repo.get_active_profile()
+	var profile: Dictionary = profile_repo.get_active_profile()
 	if profile.is_empty():
 		return
 
-	var current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	var empty_dict: Dictionary = {}
+	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
+	var current_battle_id: String = campaign_progress.get("current_battle", "")
 	if current_battle_id == "":
 		return  # Not a campaign battle
 
-	var campaign = get_node_or_null("/root/Campaign")
+	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		return
 
-	var battle = campaign.get_battle(current_battle_id)
+	var battle: Dictionary = campaign.get_battle(current_battle_id)
 	if battle.has("enemy_hp"):
 		max_hp = battle.get("enemy_hp")
 		print("Base: Set enemy base HP from campaign: %d" % max_hp)
@@ -86,12 +88,16 @@ func _setup_visuals() -> void:
 func _update_hp_bar() -> void:
 	# Look for HP bar in Visual node
 	if has_node("Visual/HPBar/HPBarFill"):
-		var hp_bar = get_node("Visual/HPBar/HPBarFill") as ColorRect
-		var hp_percent = current_hp / max_hp
-		hp_bar.size.x = 50 * hp_percent  # 50px is the full width
+		var hp_bar_node: Node = get_node("Visual/HPBar/HPBarFill")
+		# Type narrow to ColorRect for safe property access
+		if hp_bar_node is ColorRect:
+			var hp_bar: ColorRect = hp_bar_node
+			var hp_percent_value: Variant = current_hp / max_hp
+			var hp_percent: float = hp_percent_value
+			hp_bar.size.x = 50.0 * hp_percent  # 50px is the full width
 
-		# Use GameColorPalette colors for health
-		hp_bar.color = GameColorPalette.get_health_color(hp_percent)
+			# Use GameColorPalette colors for health
+			hp_bar.color = GameColorPalette.get_health_color(hp_percent)
 
 ## Update HP bar every frame
 func _process(_delta: float) -> void:

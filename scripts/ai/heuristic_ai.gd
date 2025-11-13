@@ -23,23 +23,30 @@ func _ready() -> void:
 	_set_next_play_time()
 
 func _process(delta: float) -> void:
-	if summoner == null or not summoner.is_alive:
+	var is_alive_variant: Variant = summoner.get("is_alive") if summoner else false
+	var is_alive: bool = is_alive_variant if is_alive_variant is bool else false
+	if summoner == null or not is_alive:
 		return
 
 	play_timer += delta
 
 	if play_timer >= next_play_time and should_play_card():
-		var card_index = select_card_to_play()
+		var card_index: int = select_card_to_play()
 		if card_index != -1:
-			var card = summoner.hand[card_index]
-			# Check if summoner is 3D or 2D
-			if summoner.has_method("play_card_3d"):
-				var pos_2d = select_spawn_position(card)
-				var pos_3d = BattlefieldConstants.screen_to_world_3d(pos_2d)
-				summoner.play_card_3d(card_index, pos_3d)
-			else:
-				var position = select_spawn_position(card)
-				summoner.play_card(card_index, position)
+			var hand_variant: Variant = summoner.get("hand")
+			var hand: Array = hand_variant if hand_variant is Array else []
+			if card_index >= 0 and card_index < hand.size():
+				var card_variant: Variant = hand[card_index]
+				var card: Card = card_variant if card_variant is Card else null
+				if card:
+					# Check if summoner is 3D or 2D
+					if summoner.has_method("play_card_3d"):
+						var pos_2d: Vector2 = select_spawn_position(card)
+						var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
+						summoner.call("play_card_3d", card_index, pos_3d)
+					else:
+						var spawn_pos: Vector2 = select_spawn_position(card)
+						summoner.call("play_card", card_index, spawn_pos)
 		_set_next_play_time()
 
 func on_battle_start() -> void:
@@ -48,13 +55,19 @@ func on_battle_start() -> void:
 
 ## Decide if we should play a card now
 func should_play_card() -> bool:
-	if summoner.hand.is_empty():
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	if hand.is_empty():
 		return false
 
 	# Check if we have any playable cards
-	var has_playable = false
-	for card in summoner.hand:
-		if card.can_play(int(summoner.mana)):
+	var has_playable: bool = false
+	var mana_variant: Variant = summoner.get("mana")
+	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
+	var mana_int: int = int(mana)
+	for card_variant: Variant in hand:
+		var card: Card = card_variant if card_variant is Card else null
+		if card and card.can_play(mana_int):
 			has_playable = true
 			break
 
@@ -62,20 +75,27 @@ func should_play_card() -> bool:
 
 ## Select which card to play based on strategy
 func select_card_to_play() -> int:
-	if summoner.hand.is_empty():
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	if hand.is_empty():
 		return -1
 
-	var battlefield_state = _evaluate_battlefield_state()
-	var best_card_index = -1
-	var best_score = -INF
+	var battlefield_state: BattlefieldState = _evaluate_battlefield_state()
+	var best_card_index: int = -1
+	var best_score: float = -INF
+
+	var mana_variant: Variant = summoner.get("mana")
+	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
+	var mana_int: int = int(mana)
 
 	# Score each playable card
-	for i in range(summoner.hand.size()):
-		var card = summoner.hand[i]
-		if not card.can_play(int(summoner.mana)):
+	for i: int in range(hand.size()):
+		var card_variant: Variant = hand[i]
+		var card: Card = card_variant if card_variant is Card else null
+		if not card or not card.can_play(mana_int):
 			continue
 
-		var score = _score_card(card, battlefield_state)
+		var score: float = _score_card(card, battlefield_state)
 		if score > best_score:
 			best_score = score
 			best_card_index = i
@@ -84,12 +104,12 @@ func select_card_to_play() -> int:
 
 ## Select spawn position based on strategy
 func select_spawn_position(card: Card) -> Vector2:
-	var zone = _select_spawn_zone(card)
+	var zone: String = _select_spawn_zone(card)
 	return _get_random_position_in_zone(zone)
 
 ## Score a card based on current situation
 func _score_card(card: Card, state: BattlefieldState) -> float:
-	var score = 0.0
+	var score: float = 0.0
 
 	# Base score: mana efficiency
 	score += 10.0 - card.mana_cost  # Prefer cheaper cards slightly
@@ -105,14 +125,14 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 	score += _apply_personality_bonus(card)
 
 	# Difficulty affects randomness (higher difficulty = more optimal play)
-	var randomness = 5.0 * (6 - difficulty)  # difficulty 1 = ±25, difficulty 5 = ±5
+	var randomness: float = 5.0 * (6 - difficulty)  # difficulty 1 = ±25, difficulty 5 = ±5
 	score += randf_range(-randomness, randomness)
 
 	return score
 
 ## Score summon cards
-func _score_summon_card(card: Card, state: BattlefieldState) -> float:
-	var score = 10.0  # Base preference for summons
+func _score_summon_card(_card: Card, state: BattlefieldState) -> float:
+	var score: float = 10.0  # Base preference for summons
 
 	match state:
 		BattlefieldState.LOSING_BADLY:
@@ -125,11 +145,11 @@ func _score_summon_card(card: Card, state: BattlefieldState) -> float:
 	return score
 
 ## Score spell cards
-func _score_spell_card(card: Card, state: BattlefieldState) -> float:
-	var score = 5.0  # Base preference for spells
+func _score_spell_card(_card: Card, state: BattlefieldState) -> float:
+	var score: float = 5.0  # Base preference for spells
 
 	# Check if there are enemy units to target
-	var enemy_unit_count = count_enemy_units()
+	var enemy_unit_count: int = count_enemy_units()
 
 	match state:
 		BattlefieldState.LOSING_BADLY:
@@ -149,7 +169,7 @@ func _score_spell_card(card: Card, state: BattlefieldState) -> float:
 
 ## Apply personality bonuses to card scores
 func _apply_personality_bonus(card: Card) -> float:
-	var bonus = 0.0
+	var bonus: float = 0.0
 
 	match personality:
 		Personality.AGGRESSIVE:
@@ -177,17 +197,17 @@ func _apply_personality_bonus(card: Card) -> float:
 
 ## Evaluate current battlefield state
 func _evaluate_battlefield_state() -> BattlefieldState:
-	var our_units = count_friendly_units()
-	var enemy_units = count_enemy_units()
-	var our_hp_ratio = get_our_base_hp_ratio()
-	var enemy_hp_ratio = get_enemy_base_hp_ratio()
+	var our_units: int = count_friendly_units()
+	var enemy_units: int = count_enemy_units()
+	var our_hp_ratio: float = get_our_base_hp_ratio()
+	var enemy_hp_ratio: float = get_enemy_base_hp_ratio()
 
 	# Calculate advantage scores
-	var unit_advantage = float(our_units - enemy_units)
-	var hp_advantage = our_hp_ratio - enemy_hp_ratio
+	var unit_advantage: float = float(our_units - enemy_units)
+	var hp_advantage: float = our_hp_ratio - enemy_hp_ratio
 
 	# Combined score
-	var total_advantage = unit_advantage * 0.5 + hp_advantage * 0.5
+	var total_advantage: float = unit_advantage * 0.5 + hp_advantage * 0.5
 
 	if total_advantage < -0.4 or our_hp_ratio < 0.3:
 		return BattlefieldState.LOSING_BADLY
@@ -199,8 +219,8 @@ func _evaluate_battlefield_state() -> BattlefieldState:
 		return BattlefieldState.EVEN
 
 ## Select which zone to spawn in
-func _select_spawn_zone(card: Card) -> String:
-	var state = _evaluate_battlefield_state()
+func _select_spawn_zone(_card: Card) -> String:
+	var state: BattlefieldState = _evaluate_battlefield_state()
 
 	# Determine zone preference based on personality and state
 	match personality:
@@ -235,12 +255,14 @@ func _select_spawn_zone(card: Card) -> String:
 
 ## Get random position within a zone
 func _get_random_position_in_zone(zone: String) -> Vector2:
-	var bounds = get_battlefield_bounds()
-	var x: float
-	var y: float
+	var bounds: Rect2 = get_battlefield_bounds()
+	var x: float = 0.0
+	var y: float = 0.0
 
 	# X position based on zone and team
-	if summoner.team == Unit.Team.ENEMY:
+	var summoner_team_variant: Variant = summoner.get("team")
+	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
+	if summoner_team == Unit.Team.ENEMY:
 		# Enemy spawns on right side
 		match zone:
 			"defensive":
@@ -272,9 +294,9 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 func _set_next_play_time() -> void:
 	play_timer = 0.0
 
-	var state = _evaluate_battlefield_state()
-	var base_min = play_interval_min
-	var base_max = play_interval_max
+	var state: BattlefieldState = _evaluate_battlefield_state()
+	var base_min: float = play_interval_min
+	var base_max: float = play_interval_max
 
 	# Adjust intervals based on battlefield state
 	match state:
@@ -289,7 +311,7 @@ func _set_next_play_time() -> void:
 			base_max *= 1.3
 
 	# Adjust based on difficulty (higher difficulty = faster play)
-	var difficulty_factor = 1.0 - (difficulty - 3) * 0.1  # diff 1 = 1.2x, diff 5 = 0.8x
+	var difficulty_factor: float = 1.0 - (difficulty - 3) * 0.1  # diff 1 = 1.2x, diff 5 = 0.8x
 	base_min *= difficulty_factor
 	base_max *= difficulty_factor
 

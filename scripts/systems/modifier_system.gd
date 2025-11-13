@@ -13,7 +13,7 @@ var _providers: Dictionary = {}  # provider_id -> provider object
 ## PROVIDER REGISTRATION
 ## =============================================================================
 
-func register_provider(provider_id: String, provider) -> void:
+func register_provider(provider_id: String, provider: Object) -> void:
 	if _providers.has(provider_id):
 		push_warning("ModifierSystem: Provider '%s' already registered, replacing" % provider_id)
 
@@ -31,24 +31,26 @@ func clear_providers() -> void:
 
 ## Get all modifiers that apply to a target
 ##
-## @param target_type: Type of target ("unit", "card", "summoner", etc.)
+## @param _target_type: Type of target ("unit", "card", "summoner", etc.)
 ## @param categories: Dictionary of card/unit categories for condition matching
 ## @param context: Additional context (hero_id, team, etc.)
 ## @return Array of modifier dictionaries
-func get_modifiers_for(target_type: String, categories: Dictionary, context: Dictionary = {}) -> Array:
-	var all_modifiers = []
+func get_modifiers_for(_target_type: String, categories: Dictionary, context: Dictionary = {}) -> Array:
+	var all_modifiers: Array = []
 
 	# Collect modifiers from all providers
-	for provider_id in _providers.keys():
-		var provider = _providers[provider_id]
-		if provider.has_method("get_modifiers"):
-			var provider_mods = provider.get_modifiers()
+	for provider_id: String in _providers.keys():
+		var provider_variant: Variant = _providers[provider_id]
+		var provider: Object = provider_variant
+		if provider != null and provider.has_method("get_modifiers"):
+			var provider_mods: Array = provider.call("get_modifiers")
 			all_modifiers.append_array(provider_mods)
 
 	# Filter by conditions
-	var filtered = []
-	for mod in all_modifiers:
-		if _matches_conditions(mod, categories, context):
+	var filtered: Array = []
+	for mod_variant: Variant in all_modifiers:
+		var mod: Dictionary = mod_variant
+		if mod != null and _matches_conditions(mod, categories, context):
 			filtered.append(mod)
 
 	# Apply amplification
@@ -60,17 +62,19 @@ func get_modifiers_for(target_type: String, categories: Dictionary, context: Dic
 ## CONDITION MATCHING
 ## =============================================================================
 
-func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: Dictionary) -> bool:
-	var conditions = modifier.get("conditions", {})
+func _matches_conditions(modifier: Dictionary, categories: Dictionary, _context: Dictionary) -> bool:
+	var empty_dict: Dictionary = {}
+	var conditions: Dictionary = modifier.get("conditions", empty_dict)
 
 	# If no conditions, modifier always applies
 	if conditions.is_empty():
 		return true
 
 	# Check each condition
-	for condition_key in conditions.keys():
-		var required_value = conditions[condition_key]
-		var actual_value = categories.get(condition_key)
+	for condition_key_variant: Variant in conditions.keys():
+		var condition_key: String = condition_key_variant
+		var required_value: Variant = conditions[condition_key]
+		var actual_value: Variant = categories.get(condition_key)
 
 		# Handle array values (tags)
 		if actual_value is Array:
@@ -87,14 +91,15 @@ func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: 
 	return true
 
 ## Helper: Check if actual element matches required (including origin check)
-func _matches_element(actual, required) -> bool:
+func _matches_element(actual: Variant, required: Variant) -> bool:
 	# Null safety - if either is null, no match
 	if actual == null or required == null:
 		return false
 
 	# Handle Element objects (from ElementTypes) - check origin inheritance
-	if actual != null and actual.has_method("matches_affinity"):
-		return actual.matches_affinity(required)
+	var actual_obj: Object = actual
+	if actual_obj != null and actual_obj.has_method("matches_affinity"):
+		return actual_obj.call("matches_affinity", required)
 
 	# Handle string comparison (backwards compatibility)
 	if actual is String and required is String:
@@ -111,40 +116,55 @@ func _matches_element(actual, required) -> bool:
 ## Amplifiers multiply the bonuses provided by tagged modifiers
 func _apply_amplification(modifiers: Array) -> Array:
 	# Step 1: Find all amplifiers and calculate total amplification per tag
-	var amplifiers = {}  # tag -> total multiplier
+	var amplifiers: Dictionary = {}  # tag -> total multiplier
 
-	for mod in modifiers:
-		if mod.has("amplify_tag"):
-			var tag = mod.amplify_tag
-			var factor = mod.get("factor", 1.0)
+	for mod_variant: Variant in modifiers:
+		var mod_dict: Dictionary = mod_variant
+		if mod_dict != null and mod_dict.has("amplify_tag"):
+			var tag: Variant = mod_dict.get("amplify_tag")
+			var factor: float = mod_dict.get("factor", 1.0)
 
 			if not amplifiers.has(tag):
 				amplifiers[tag] = 1.0
 			amplifiers[tag] *= factor
 
 	# Step 2: Apply amplification to tagged modifiers
-	for mod in modifiers:
-		if mod.has("tags") and not mod.has("amplify_tag"):  # Don't amplify amplifiers
-			var total_amp = 1.0
+	for mod_variant2: Variant in modifiers:
+		var mod_dict: Dictionary = mod_variant2
+		if mod_dict != null and mod_dict.has("tags") and not mod_dict.has("amplify_tag"):  # Don't amplify amplifiers
+			var total_amp: float = 1.0
 
 			# Check all tags on this modifier
-			for tag in mod.tags:
-				if amplifiers.has(tag):
-					total_amp *= amplifiers[tag]
+			var tags: Variant = mod_dict.get("tags")
+			if tags is Array:
+				var tags_array: Array = tags
+				for tag_variant: Variant in tags_array:
+					if amplifiers.has(tag_variant):
+						total_amp *= amplifiers[tag_variant]
 
 			# Amplify bonuses (not base values)
 			if total_amp != 1.0:
 				# Amplify additive bonuses
-				if mod.has("stat_adds"):
-					for stat in mod.stat_adds.keys():
-						mod.stat_adds[stat] *= total_amp
+				var stat_adds_variant: Variant = mod_dict.get("stat_adds")
+				if stat_adds_variant != null and mod_dict.has("stat_adds"):
+					var stat_adds_dict: Dictionary = stat_adds_variant
+					if stat_adds_dict != null:
+						for stat_variant: Variant in stat_adds_dict.keys():
+							var stat: String = stat_variant
+							if stat != null:
+								stat_adds_dict[stat] *= total_amp
 
 				# Amplify multiplicative bonuses
-				if mod.has("stat_mults"):
-					for stat in mod.stat_mults.keys():
-						var bonus = mod.stat_mults[stat] - 1.0
-						bonus *= total_amp
-						mod.stat_mults[stat] = 1.0 + bonus
+				var stat_mults_variant: Variant = mod_dict.get("stat_mults")
+				if stat_mults_variant != null and mod_dict.has("stat_mults"):
+					var stat_mults_dict: Dictionary = stat_mults_variant
+					if stat_mults_dict != null:
+						for stat_variant2: Variant in stat_mults_dict.keys():
+							var stat: String = stat_variant2
+							if stat != null:
+								var bonus: float = stat_mults_dict[stat] - 1.0
+								bonus *= total_amp
+								stat_mults_dict[stat] = 1.0 + bonus
 
 	return modifiers
 
@@ -155,15 +175,19 @@ func _apply_amplification(modifiers: Array) -> Array:
 func debug_print_providers() -> void:
 	print("=== ModifierSystem Debug ===")
 	print("Registered providers: %d" % _providers.size())
-	for provider_id in _providers.keys():
-		print("  - %s" % provider_id)
+	for provider_id_variant: Variant in _providers.keys():
+		var provider_id: String = provider_id_variant
+		if provider_id != null:
+			print("  - %s" % provider_id)
 
 func debug_print_modifiers(categories: Dictionary = {}) -> void:
-	var modifiers = get_modifiers_for("unit", categories, {})
+	var modifiers: Array = get_modifiers_for("unit", categories, {})
 	print("=== Modifiers for categories: %s ===" % categories)
 	print("Total modifiers: %d" % modifiers.size())
-	for mod in modifiers:
-		print("  - Source: %s" % mod.get("source", "unknown"))
-		print("    Tags: %s" % mod.get("tags", []))
-		print("    Stat mults: %s" % mod.get("stat_mults", {}))
-		print("    Stat adds: %s" % mod.get("stat_adds", {}))
+	for mod_variant: Variant in modifiers:
+		var mod_dict: Dictionary = mod_variant
+		if mod_dict != null:
+			print("  - Source: %s" % mod_dict.get("source", "unknown"))
+			print("    Tags: %s" % mod_dict.get("tags", []))
+			print("    Stat mults: %s" % mod_dict.get("stat_mults", {}))
+			print("    Stat adds: %s" % mod_dict.get("stat_adds", {}))

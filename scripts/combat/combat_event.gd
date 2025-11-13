@@ -46,11 +46,11 @@ func is_critical() -> bool:
 ## Helper: Get source team (if available)
 func get_source_team() -> int:
 	if source and "team" in source:
-		return source.team
+		return (source as Node3D).get("team")
 	return -1
 
 ## Helper: Get target team (if available)
 func get_target_team() -> int:
 	if target and "team" in target:
-		return target.team
+		return (target as Node3D).get("team")
 	return -1

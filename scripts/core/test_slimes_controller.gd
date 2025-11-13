@@ -27,9 +27,9 @@ func _ready() -> void:
 	]
 
 	# Configure BattleContext for practice mode
-	var battle_context = get_node_or_null("/root/BattleContext")
-	if battle_context:
-		battle_context.configure_practice_battle({
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if battle_context and battle_context.has_method("configure_practice_battle"):
+		battle_context.call("configure_practice_battle", {
 			"enemy_deck": [{"catalog_id": "warrior", "count": 30}],
 			"enemy_hp": 999999.0
 		})
@@ -48,13 +48,13 @@ func _ready() -> void:
 	# Set infinite HP for both bases
 	await get_tree().process_frame
 	if enemy_base and "max_hp" in enemy_base:
-		enemy_base.max_hp = 999999.0
-		enemy_base.current_hp = 999999.0
+		enemy_base.set("max_hp", 999999.0)
+		enemy_base.set("current_hp", 999999.0)
 		print("TestSlimesController: Enemy base set to infinite HP")
 
 	if player_base and "max_hp" in player_base:
-		player_base.max_hp = 999999.0
-		player_base.current_hp = 999999.0
+		player_base.set("max_hp", 999999.0)
+		player_base.set("current_hp", 999999.0)
 		print("TestSlimesController: Player base set to infinite HP")
 
 	print("TestSlimesController: Slime test mode ready!")

@@ -19,7 +19,7 @@ class_name CampaignScreen
 
 ## State
 var selected_battle_id: String = ""
-var all_battles: Array = []
+var all_battles: Array[Dictionary] = []
 
 ## =============================================================================
 ## LIFECYCLE
@@ -33,10 +33,14 @@ func _ready() -> void:
 	start_battle_button.pressed.connect(_on_start_battle_pressed)
 
 	# Connect to campaign service
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
-		campaign.battle_completed.connect(_on_battle_completed)
-		campaign.campaign_progress_changed.connect(_on_progress_changed)
+		if campaign.has_signal("battle_completed"):
+			var battle_completed_signal: Signal = campaign.get("battle_completed")
+			battle_completed_signal.connect(_on_battle_completed)
+		if campaign.has_signal("campaign_progress_changed"):
+			var campaign_progress_changed_signal: Signal = campaign.get("campaign_progress_changed")
+			campaign_progress_changed_signal.connect(_on_progress_changed)
 
 	# Load battles
 	_refresh_battle_list()
@@ -51,18 +55,22 @@ func _ready() -> void:
 
 func _refresh_battle_list() -> void:
 	# Clear existing list
-	for child in battle_list.get_children():
+	for child: Node in battle_list.get_children():
 		child.queue_free()
 
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		push_error("CampaignScreen: Campaign service not found!")
 		return
 
-	all_battles = campaign.get_all_battles()
+	var battles_variant: Variant = campaign.call("get_all_battles")
+	if battles_variant is Array:
+		all_battles.assign(battles_variant as Array)
+	else:
+		all_battles = []
 
 	if all_battles.is_empty():
-		var label = Label.new()
+		var label: Label = Label.new()
 		label.text = "No battles available."
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override("font_size", 20)
@@ -70,38 +78,42 @@ func _refresh_battle_list() -> void:
 		return
 
 	# Create battle list items
-	for battle in all_battles:
-		var battle_item = _create_battle_list_item(battle)
+	for battle: Dictionary in all_battles:
+		var battle_item: PanelContainer = _create_battle_list_item(battle)
 		battle_list.add_child(battle_item)
 
 	print("CampaignScreen: Loaded %d battles" % all_battles.size())
 
 func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
-	var panel = PanelContainer.new()
-	var margin = MarginContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 15)
 	margin.add_theme_constant_override("margin_top", 10)
 	margin.add_theme_constant_override("margin_right", 15)
 	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 
-	var hbox = HBoxContainer.new()
+	var hbox: HBoxContainer = HBoxContainer.new()
 	margin.add_child(hbox)
 
-	var campaign = get_node("/root/Campaign")
-	var battle_id = battle_data.get("id", "")
-	var is_completed = campaign.is_battle_completed(battle_id)
-	var is_unlocked = campaign.is_battle_unlocked(battle_id)
+	var campaign: Node = get_node("/root/Campaign")
+	var battle_id_variant: Variant = battle_data.get("id", "")
+	var battle_id: String = battle_id_variant as String if battle_id_variant is String else ""
+	var is_completed_variant: Variant = campaign.call("is_battle_completed", battle_id)
+	var is_completed: bool = is_completed_variant as bool if is_completed_variant is bool else false
+	var is_unlocked_variant: Variant = campaign.call("is_battle_unlocked", battle_id)
+	var is_unlocked: bool = is_unlocked_variant as bool if is_unlocked_variant is bool else false
 
 	# Battle name
-	var name_label = Label.new()
-	name_label.text = battle_data.get("name", "Unknown Battle")
+	var name_label: Label = Label.new()
+	var name_variant: Variant = battle_data.get("name", "Unknown Battle")
+	name_label.text = name_variant as String if name_variant is String else "Unknown Battle"
 	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
 	# Status indicator
-	var status_label = Label.new()
+	var status_label: Label = Label.new()
 	if is_completed:
 		status_label.text = "✓ COMPLETE"
 		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
@@ -117,7 +129,7 @@ func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 
 	# Make clickable if unlocked
 	if is_unlocked:
-		var button = Button.new()
+		var button: Button = Button.new()
 		button.flat = true
 		button.custom_minimum_size = panel.custom_minimum_size
 		button.pressed.connect(_on_battle_selected.bind(battle_id))
@@ -125,7 +137,7 @@ func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 
 		# Style for selected
 		if battle_id == selected_battle_id:
-			var style = StyleBoxFlat.new()
+			var style: StyleBoxFlat = StyleBoxFlat.new()
 			style.bg_color = Color(0.3, 0.3, 0.4)
 			style.border_width_left = 3
 			style.border_width_right = 3
@@ -155,34 +167,43 @@ func _update_detail_panel() -> void:
 		start_battle_button.disabled = true
 		return
 
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		return
 
-	var battle = campaign.get_battle(selected_battle_id)
+	var battle_variant: Variant = campaign.call("get_battle", selected_battle_id)
+	var battle: Dictionary = battle_variant as Dictionary if battle_variant is Dictionary else {}
 	if battle.is_empty():
 		return
 
 	# Update labels
-	battle_name_label.text = battle.get("name", "Unknown")
+	var name_variant: Variant = battle.get("name", "Unknown")
+	battle_name_label.text = name_variant as String if name_variant is String else "Unknown"
 
-	var difficulty = battle.get("difficulty", 1)
-	var diff_stars = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
+	var difficulty_variant: Variant = battle.get("difficulty", 1)
+	var difficulty: int = difficulty_variant as int if difficulty_variant is int else 1
+	var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
 	difficulty_label.text = "Difficulty: %s" % diff_stars
 
-	description_label.text = battle.get("description", "No description.")
+	var description_variant: Variant = battle.get("description", "No description.")
+	description_label.text = description_variant as String if description_variant is String else "No description."
 
 	# Reward summary
-	var reward_type = battle.get("reward_type", "fixed")
-	var reward_cards = battle.get("reward_cards", [])
-	var reward_text = ""
+	var reward_type_variant: Variant = battle.get("reward_type", "fixed")
+	var reward_type: String = reward_type_variant as String if reward_type_variant is String else "fixed"
+	var reward_cards_variant: Variant = battle.get("reward_cards", [])
+	var reward_cards: Array = reward_cards_variant as Array if reward_cards_variant is Array else []
+	var reward_text: String = ""
 
 	match reward_type:
 		"fixed":
-			var card_names = []
-			for reward in reward_cards:
-				var count = reward.get("count", 1)
-				var catalog_id = reward.get("catalog_id", "")
+			var card_names: Array[String] = []
+			for reward_item: Variant in reward_cards:
+				var reward: Dictionary = reward_item as Dictionary if reward_item is Dictionary else {}
+				var count_variant: Variant = reward.get("count", 1)
+				var count: int = count_variant as int if count_variant is int else 1
+				var catalog_id_variant: Variant = reward.get("catalog_id", "")
+				var catalog_id: String = catalog_id_variant as String if catalog_id_variant is String else ""
 				if count > 1:
 					card_names.append("%dx %s" % [count, catalog_id.capitalize()])
 				else:
@@ -190,21 +211,28 @@ func _update_detail_panel() -> void:
 			reward_text = "Reward: " + ", ".join(card_names)
 
 		"choice":
-			var options = []
-			for reward in reward_cards:
-				options.append(reward.get("catalog_id", "").capitalize())
+			var options: Array[String] = []
+			for reward_item: Variant in reward_cards:
+				var reward: Dictionary = reward_item as Dictionary if reward_item is Dictionary else {}
+				var catalog_id_variant: Variant = reward.get("catalog_id", "")
+				var catalog_id: String = catalog_id_variant as String if catalog_id_variant is String else ""
+				options.append(catalog_id.capitalize())
 			reward_text = "Reward: Choose from " + ", ".join(options)
 
 		"random":
-			var count = 0
-			for reward in reward_cards:
-				count += reward.get("count", 1)
+			var count: int = 0
+			for reward_item: Variant in reward_cards:
+				var reward: Dictionary = reward_item as Dictionary if reward_item is Dictionary else {}
+				var count_variant: Variant = reward.get("count", 1)
+				var reward_count: int = count_variant as int if count_variant is int else 1
+				count += reward_count
 			reward_text = "Reward: Random (%d cards)" % count
 
 	reward_label.text = reward_text
 
 	# Enable/disable start button
-	var is_completed = campaign.is_battle_completed(selected_battle_id)
+	var is_completed_variant: Variant = campaign.call("is_battle_completed", selected_battle_id)
+	var is_completed: bool = is_completed_variant as bool if is_completed_variant is bool else false
 	if is_completed:
 		start_battle_button.text = "REPLAY BATTLE (no reward)"
 		start_battle_button.disabled = false
@@ -217,12 +245,17 @@ func _update_detail_panel() -> void:
 ## =============================================================================
 
 func _update_progress_display() -> void:
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		return
 
-	var completed = campaign.get_completed_battles().size()
-	var total = campaign.get_all_battles().size()
+	var completed_variant: Variant = campaign.call("get_completed_battles")
+	var completed_battles: Array = completed_variant as Array if completed_variant is Array else []
+	var completed: int = completed_battles.size()
+
+	var total_variant: Variant = campaign.call("get_all_battles")
+	var total_battles: Array = total_variant as Array if total_variant is Array else []
+	var total: int = total_battles.size()
 
 	progress_label.text = "%d / %d Complete" % [completed, total]
 
@@ -237,19 +270,23 @@ func _on_start_battle_pressed() -> void:
 	print("CampaignScreen: Starting battle: %s" % selected_battle_id)
 
 	# Store selected battle in campaign service for game to access
-	var campaign = get_node("/root/Campaign")
+	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
-		var profile = get_node("/root/ProfileRepo").get_active_profile()
+		var profile_repo: Node = get_node("/root/ProfileRepo")
+		var profile_variant: Variant = profile_repo.call("get_active_profile")
+		var profile: Dictionary = profile_variant as Dictionary if profile_variant is Dictionary else {}
 		if not profile.is_empty():
 			if not profile.has("campaign_progress"):
 				profile["campaign_progress"] = {}
-			profile["campaign_progress"]["current_battle"] = selected_battle_id
-			get_node("/root/ProfileRepo").save_profile(true)  # Force immediate save
+			var campaign_progress: Variant = profile["campaign_progress"]
+			if campaign_progress is Dictionary:
+				(campaign_progress as Dictionary)["current_battle"] = selected_battle_id
+			profile_repo.call("save_profile", true)  # Force immediate save
 
 	# Configure battle context for campaign mode
-	var battle_context = get_node("/root/BattleContext")
+	var battle_context: Node = get_node("/root/BattleContext")
 	if battle_context:
-		battle_context.configure_campaign_battle(selected_battle_id)
+		battle_context.call("configure_campaign_battle", selected_battle_id)
 
 	# Launch battle scene (generic, mode-agnostic)
 	get_tree().change_scene_to_file("res://scenes/battlefield/battle_3d.tscn")

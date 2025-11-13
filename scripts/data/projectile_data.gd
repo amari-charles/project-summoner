@@ -46,44 +46,59 @@ class_name ProjectileData
 
 ## Create from dictionary (for JSON loading)
 static func from_dict(data: Dictionary) -> ProjectileData:
-	var proj = ProjectileData.new()
+	var proj: ProjectileData = ProjectileData.new()
 
-	proj.projectile_id = data.get("projectile_id", "")
-	proj.projectile_name = data.get("projectile_name", "")
+	var default_empty_string: String = ""
+	proj.projectile_id = data.get("projectile_id", default_empty_string)
+	proj.projectile_name = data.get("projectile_name", default_empty_string)
 
-	proj.model_scene_path = data.get("model_scene_path", "")
-	proj.trail_effect_id = data.get("trail_effect_id", "")
-	proj.impact_effect_id = data.get("impact_effect_id", "")
-	proj.hit_vfx = data.get("hit_vfx", data.get("impact_effect_id", ""))
-	proj.trail_vfx = data.get("trail_vfx", data.get("trail_effect_id", ""))
+	proj.model_scene_path = data.get("model_scene_path", default_empty_string)
+	proj.trail_effect_id = data.get("trail_effect_id", default_empty_string)
+	proj.impact_effect_id = data.get("impact_effect_id", default_empty_string)
+	proj.hit_vfx = data.get("hit_vfx", data.get("impact_effect_id", default_empty_string))
+	proj.trail_vfx = data.get("trail_vfx", data.get("trail_effect_id", default_empty_string))
 
 	# Load visual scene if path provided (force reload to bypass cache)
-	if not proj.model_scene_path.is_empty():
-		proj.visual_scene = ResourceLoader.load(proj.model_scene_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	var model_path_variant: Variant = proj.model_scene_path
+	if model_path_variant is String:
+		var model_path: String = model_path_variant
+		if not model_path.is_empty():
+			proj.visual_scene = ResourceLoader.load(model_path, "", ResourceLoader.CACHE_MODE_IGNORE)
 
-	proj.movement_type = data.get("movement_type", "straight")
-	proj.speed = data.get("speed", 15.0)
-	proj.acceleration = data.get("acceleration", 0.0)
-	proj.lifetime = data.get("lifetime", 5.0)
-	proj.rotate_to_direction = data.get("rotate_to_direction", true)
+	var default_movement_type: String = "straight"
+	proj.movement_type = data.get("movement_type", default_movement_type)
+	var default_speed: float = 15.0
+	proj.speed = data.get("speed", default_speed)
+	var default_acceleration: float = 0.0
+	proj.acceleration = data.get("acceleration", default_acceleration)
+	var default_lifetime: float = 5.0
+	proj.lifetime = data.get("lifetime", default_lifetime)
+	var default_rotate: bool = true
+	proj.rotate_to_direction = data.get("rotate_to_direction", default_rotate)
 
-	proj.arc_height = data.get("arc_height", 2.0)
-	proj.gravity = data.get("gravity", -9.8)
+	var default_arc_height: float = 2.0
+	proj.arc_height = data.get("arc_height", default_arc_height)
+	var default_gravity: float = -9.8
+	proj.gravity = data.get("gravity", default_gravity)
 
-	proj.homing_strength = data.get("homing_strength", 5.0)
-	proj.homing_delay = data.get("homing_delay", 0.0)
+	var default_homing_strength: float = 5.0
+	proj.homing_strength = data.get("homing_strength", default_homing_strength)
+	var default_homing_delay: float = 0.0
+	proj.homing_delay = data.get("homing_delay", default_homing_delay)
 
-	proj.pierce_count = data.get("pierce_count", 0)
-	proj.aoe_radius = data.get("aoe_radius", 0.0)
+	var default_pierce_count: int = 0
+	proj.pierce_count = data.get("pierce_count", default_pierce_count)
+	var default_aoe_radius: float = 0.0
+	proj.aoe_radius = data.get("aoe_radius", default_aoe_radius)
 
-	proj.launch_sound = data.get("launch_sound", "")
-	proj.impact_sound = data.get("impact_sound", "")
+	proj.launch_sound = data.get("launch_sound", default_empty_string)
+	proj.impact_sound = data.get("impact_sound", default_empty_string)
 
 	return proj
 
 ## Convert to dictionary (for saving/debugging)
 func to_dict() -> Dictionary:
-	return {
+	var result: Dictionary = {
 		"projectile_id": projectile_id,
 		"projectile_name": projectile_name,
 		"model_scene_path": model_scene_path,
@@ -103,3 +118,4 @@ func to_dict() -> Dictionary:
 		"launch_sound": launch_sound,
 		"impact_sound": impact_sound
 	}
+	return result

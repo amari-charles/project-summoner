@@ -57,8 +57,8 @@ func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void
 		push_error("Card '%s' has no unit_scene assigned!" % card_name)
 		return
 
-	for i in spawn_count:
-		var unit = unit_scene.instantiate() as Unit
+	for i: int in spawn_count:
+		var unit: Unit = unit_scene.instantiate() as Unit
 		if unit:
 			unit.global_position = position + Vector2(i * 40, 0)  # Slight offset for multiple units
 			unit.team = team
@@ -71,21 +71,23 @@ func _cast_spell(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 
 ## Apply AOE damage to enemies in range
 func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
-	var target_group = "enemy_units" if team == Unit.Team.PLAYER else "player_units"
-	var scene_tree = battlefield.get_tree()
+	var target_group: String = "enemy_units" if team == Unit.Team.PLAYER else "player_units"
+	var scene_tree: SceneTree = battlefield.get_tree()
 	if scene_tree == null:
 		return
 
-	var enemies = scene_tree.get_nodes_in_group(target_group)
+	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
-	for enemy in enemies:
-		if enemy is Unit and enemy.is_alive:
-			var distance = enemy.global_position.distance_to(position)
-			if distance <= spell_radius:
-				enemy.take_damage(spell_damage)
+	for enemy: Node in enemies:
+		if enemy is Unit:
+			var enemy_unit: Unit = enemy
+			if enemy_unit.is_alive:
+				var distance: float = enemy_unit.global_position.distance_to(position)
+				if distance <= spell_radius:
+					enemy_unit.take_damage(spell_damage)
 
 	# Visual effect placeholder
-	var explosion = ColorRect.new()
+	var explosion: ColorRect = ColorRect.new()
 	explosion.size = Vector2(spell_radius * 2, spell_radius * 2)
 	explosion.position = position - explosion.size / 2
 	explosion.color = Color(1, 0.5, 0, 0.5)  # Orange translucent
@@ -100,32 +102,35 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 		push_error("Card '%s' has no unit_scene assigned!" % card_name)
 		return
 
-	var gameplay_layer = battlefield.get_gameplay_layer() if battlefield.has_method("get_gameplay_layer") else battlefield
+	var gameplay_layer: Node = battlefield
+	if battlefield.has_method("get_gameplay_layer"):
+		gameplay_layer = battlefield.call("get_gameplay_layer")
 
 	# Get card categories from catalog
-	var categories = {}
+	var categories: Dictionary = {}
 	if not catalog_id.is_empty() and CardCatalog:
-		var card_def = CardCatalog.get_card(catalog_id)
+		var card_def: Dictionary = CardCatalog.get_card(catalog_id)
 		if not card_def.is_empty():
-			categories = card_def.get("categories", {})
+			var empty_dict: Dictionary = {}
+			categories = card_def.get("categories", empty_dict)
 
 	# Build context for modifier system
-	var context = {
+	var context: Dictionary = {
 		"card_name": card_name,
 		"team": team
 	}
 
 	# Get modifiers from ModifierSystem
-	var modifiers = _get_modifiers_from_system("unit", categories, context, modifier_system)
+	var modifiers: Array = _get_modifiers_from_system("unit", categories, context, modifier_system)
 
 	# Card data for apply_modifiers
-	var card_data = {
+	var card_data: Dictionary = {
 		"card_name": card_name,
 		"mana_cost": mana_cost
 	}
 
-	for i in spawn_count:
-		var unit = unit_scene.instantiate() as Unit3D
+	for i: int in spawn_count:
+		var unit: Unit3D = unit_scene.instantiate() as Unit3D
 		if unit:
 			unit.team = team
 
@@ -141,23 +146,24 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	# Get card categories from catalog
-	var categories = {}
+	var categories: Dictionary = {}
 	if not catalog_id.is_empty() and CardCatalog:
-		var card_def = CardCatalog.get_card(catalog_id)
+		var card_def: Dictionary = CardCatalog.get_card(catalog_id)
 		if not card_def.is_empty():
-			categories = card_def.get("categories", {})
+			var empty_dict: Dictionary = {}
+			categories = card_def.get("categories", empty_dict)
 
 	# Build context for modifier system
-	var context = {
+	var context: Dictionary = {
 		"card_name": card_name,
 		"team": team
 	}
 
 	# Get modifiers from ModifierSystem
-	var modifiers = _get_modifiers_from_system("spell", categories, context, modifier_system)
+	var modifiers: Array = _get_modifiers_from_system("spell", categories, context, modifier_system)
 
 	# Apply modifiers to spell damage
-	var modified_spell_damage = _apply_spell_modifiers(spell_damage, modifiers)
+	var modified_spell_damage: float = _apply_spell_modifiers(spell_damage, modifiers)
 
 	# If spell uses a projectile, spawn it instead of instant cast
 	if not projectile_id.is_empty():
@@ -175,21 +181,23 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 ## NOTE: Both keys are checked and summed. If a modifier has both keys,
 ## both values will be applied (this allows for future flexibility).
 func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
-	var damage = base_damage
+	var damage: float = base_damage
 
 	# Phase 1: Sum additive bonuses
-	var add_bonus = 0.0
-	for mod in modifiers:
-		var stat_adds = mod.get("stat_adds", {})
+	var add_bonus: float = 0.0
+	for mod: Dictionary in modifiers:
+		var empty_adds: Dictionary = {}
+		var stat_adds: Dictionary = mod.get("stat_adds", empty_adds)
 		add_bonus += stat_adds.get("attack_damage", 0.0)
 		add_bonus += stat_adds.get("spell_damage", 0.0)
 
 	damage += add_bonus
 
 	# Phase 2: Apply multiplicative bonuses
-	var mult_bonus = 0.0
-	for mod in modifiers:
-		var stat_mults = mod.get("stat_mults", {})
+	var mult_bonus: float = 0.0
+	for mod: Dictionary in modifiers:
+		var empty_mults: Dictionary = {}
+		var stat_mults: Dictionary = mod.get("stat_mults", empty_mults)
 		# Convert multipliers (1.1 → 0.1) and sum
 		if stat_mults.has("attack_damage"):
 			mult_bonus += stat_mults.attack_damage - 1.0
@@ -203,7 +211,7 @@ func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
 ## Spawn a spell projectile
 func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
 	# Use provided damage or fall back to spell_damage
-	var final_damage = damage if damage > 0 else spell_damage
+	var final_damage: float = damage if damage > 0 else spell_damage
 
 	# Find source (player or enemy base)
 	var source: Node3D = _find_base_by_team(team, battlefield)
@@ -214,7 +222,7 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 		return
 
 	# Spawn projectile using ProjectileManager
-	var projectile = ProjectileManager.spawn_projectile(
+	var projectile: Node = ProjectileManager.spawn_projectile(
 		projectile_id,
 		source,
 		null,  # No target unit, targeting a position
@@ -231,15 +239,17 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 
 ## Find the base for the given team
 func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
-	var scene_tree = battlefield.get_tree()
+	var scene_tree: SceneTree = battlefield.get_tree()
 	if not scene_tree:
 		return null
 
 	# Try to find base in the scene
-	var bases = scene_tree.get_nodes_in_group("bases")
-	for base in bases:
-		if "team" in base and base.team == team:
-			return base as Node3D
+	var bases: Array[Node] = scene_tree.get_nodes_in_group("bases")
+	for base: Node in bases:
+		if "team" in base:
+			var base_team: Variant = base.get("team")
+			if base_team == team:
+				return base as Node3D
 
 	# Fallback: just return battlefield root if no base found
 	return battlefield as Node3D
@@ -247,32 +257,34 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 ## Apply AOE damage to enemies in 3D range
 func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
 	# Use provided damage or fall back to spell_damage
-	var final_damage = damage if damage > 0 else spell_damage
+	var final_damage: float = damage if damage > 0 else spell_damage
 
-	var target_group = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
-	var scene_tree = battlefield.get_tree()
+	var target_group: String = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
+	var scene_tree: SceneTree = battlefield.get_tree()
 	if scene_tree == null:
 		return
 
-	var enemies = scene_tree.get_nodes_in_group(target_group)
+	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
-	for enemy in enemies:
-		if enemy is Unit3D and enemy.is_alive:
-			var distance = enemy.global_position.distance_to(position)
-			if distance <= spell_radius:
-				enemy.take_damage(final_damage)
+	for enemy: Node in enemies:
+		if enemy is Unit3D:
+			var enemy_unit: Unit3D = enemy
+			if enemy_unit.is_alive:
+				var distance: float = enemy_unit.global_position.distance_to(position)
+				if distance <= spell_radius:
+					enemy_unit.take_damage(final_damage)
 
 	# TODO: Add 3D visual effect for spell
 
 ## Helper to safely access ModifierSystem
 ## Prefers passed reference, falls back to autoload lookup if not provided
 func _get_modifiers_from_system(target_type: String, categories: Dictionary, context: Dictionary, modifier_system: Node = null) -> Array:
-	var modifiers = []
+	var modifiers: Array = []
 
 	# Use passed reference if available (preferred method)
 	if modifier_system:
 		if modifier_system.has_method("get_modifiers_for"):
-			modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+			modifiers = modifier_system.call("get_modifiers_for", target_type, categories, context)
 		else:
 			push_error("Card: Passed modifier_system missing get_modifiers_for method")
 		return modifiers
@@ -284,7 +296,17 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 		return modifiers
 
 	# Access ModifierSystem via root node
-	var root = Engine.get_main_loop().root if Engine.get_main_loop() else null
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop:
+		push_warning("Card: ModifierSystem not passed and failed to access main loop, modifiers unavailable")
+		return modifiers
+
+	if not main_loop is SceneTree:
+		push_warning("Card: Main loop is not SceneTree, modifiers unavailable")
+		return modifiers
+
+	var scene_tree: SceneTree = main_loop
+	var root: Window = scene_tree.root
 	if not root:
 		push_warning("Card: ModifierSystem not passed and failed to access scene tree root, modifiers unavailable")
 		return modifiers
@@ -298,5 +320,5 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 		push_error("Card: ModifierSystem missing get_modifiers_for method")
 		return modifiers
 
-	modifiers = modifier_system.get_modifiers_for(target_type, categories, context)
+	modifiers = modifier_system.call("get_modifiers_for", target_type, categories, context)
 	return modifiers
