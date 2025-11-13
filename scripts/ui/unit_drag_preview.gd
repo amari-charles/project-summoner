@@ -91,15 +91,19 @@ func _create_unit_visual() -> void:
 	if "sprite_scale" in visual_component:
 		visual_component.set("sprite_scale", sprite_scale)
 
-	# Set ghost transparency
-	visual_component.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
-
 	# Play idle animation
 	if visual_component.has_method("play_animation"):
 		visual_component.call("play_animation", "idle", true)
 
 	# Add to scene tree (we'll position it in _process)
 	add_child(visual_component)
+
+	# Set ghost transparency after adding to tree (so children are initialized)
+	await get_tree().process_frame
+	var sprite_3d: Node = visual_component.get_node_or_null("Sprite3D")
+	if sprite_3d and sprite_3d is Sprite3D:
+		var sprite_3d_typed: Sprite3D = sprite_3d
+		sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
 
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
