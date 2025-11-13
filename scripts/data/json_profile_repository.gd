@@ -63,14 +63,16 @@ func load_profile(profile_id: String) -> bool:
 	print("JsonProfileRepo: Loading profile '%s'..." % profile_id)
 	_current_profile_id = profile_id
 
-	var profile_dir: String = _get_profile_dir(profile_id)
+	var profile_dir_result: Variant = _get_profile_dir(profile_id)
+	var profile_dir: String = profile_dir_result
 	var main_path: String = profile_dir + "/profile.json"
 	var bak1_path: String = profile_dir + "/profile.bak1"
 	var bak2_path: String = profile_dir + "/profile.bak2"
 
 	# Try main save first
 	if FileAccess.file_exists(main_path):
-		var loaded_data: Variant = _load_from_file(main_path)
+		var loaded_data_result: Variant = _load_from_file(main_path)
+		var loaded_data: Variant = loaded_data_result
 		if loaded_data != null:
 			_data = loaded_data
 			_migrate_if_needed()
@@ -83,7 +85,8 @@ func load_profile(profile_id: String) -> bool:
 
 	# Try backup1
 	if FileAccess.file_exists(bak1_path):
-		var loaded_data: Variant = _load_from_file(bak1_path)
+		var loaded_data_result2: Variant = _load_from_file(bak1_path)
+		var loaded_data: Variant = loaded_data_result2
 		if loaded_data != null:
 			_data = loaded_data
 			_migrate_if_needed()
@@ -97,7 +100,8 @@ func load_profile(profile_id: String) -> bool:
 
 	# Try backup2
 	if FileAccess.file_exists(bak2_path):
-		var loaded_data: Variant = _load_from_file(bak2_path)
+		var loaded_data_result3: Variant = _load_from_file(bak2_path)
+		var loaded_data: Variant = loaded_data_result3
 		if loaded_data != null:
 			_data = loaded_data
 			_migrate_if_needed()
@@ -147,15 +151,21 @@ func get_resources() -> Dictionary:
 	return _data.get("resources", {})
 
 func update_resources(delta: Dictionary) -> void:
-	var resources: Variant = _data.get("resources", {})
+	var resources_variant: Variant = _data.get("resources", {})
+	var resources: Dictionary = resources_variant
 
 	for key: String in delta:
+		var delta_value: Variant = delta[key]
 		if key in resources:
-			resources[key] += delta[key]
+			var res_value_variant: Variant = resources[key]
+			var res_value: int = res_value_variant
+			var delta_int: int = delta_value
+			res_value += delta_int
 			# Clamp to prevent negative (except for testing)
-			if resources[key] < 0:
-				push_warning("JsonProfileRepo: Resource '%s' went negative (%d), clamping to 0" % [key, resources[key]])
-				resources[key] = 0
+			if res_value < 0:
+				push_warning("JsonProfileRepo: Resource '%s' went negative (%d), clamping to 0" % [key, res_value])
+				res_value = 0
+			resources[key] = res_value
 
 	_data["resources"]["updated_at"] = Time.get_unix_time_from_system()
 
@@ -173,27 +183,30 @@ func update_resources(delta: Dictionary) -> void:
 ## =============================================================================
 
 func grant_cards(cards: Array) -> Array:
-	var collection: Variant = _data.get("collection", [])
+	var collection_variant: Variant = _data.get("collection", [])
+	var collection: Array = collection_variant
 	var instance_ids: Array = []
 
 	for card: Variant in cards:
 		if not card is Dictionary:
 			continue
 		var card_dict: Dictionary = card
+		var catalog_id_variant: Variant = card_dict.get("catalog_id", "")
+		var catalog_id: String = catalog_id_variant
+		var rarity_variant: Variant = card_dict.get("rarity", "common")
+		var rarity: String = rarity_variant
 		var instance: Dictionary = {
 			"id": _generate_uuid(),
 			"profile_id": _current_profile_id,
-			"catalog_id": card_dict.get("catalog_id", ""),
-			"rarity": card_dict.get("rarity", "common"),
+			"catalog_id": catalog_id,
+			"rarity": rarity,
 			"roll_json": null,  # Future: stat rolls
 			"created_at": Time.get_unix_time_from_system()
 		}
-		if collection is Array:
-			var coll_array: Array = collection
-			coll_array.append(instance)
-		var inst_id: Variant = instance.get("id")
-		if inst_id is String:
-			instance_ids.append(inst_id)
+		collection.append(instance)
+		var inst_id_variant: Variant = instance.get("id")
+		var inst_id: String = inst_id_variant
+		instance_ids.append(inst_id)
 
 	_data["collection"] = collection
 
@@ -209,17 +222,18 @@ func grant_cards(cards: Array) -> Array:
 	return instance_ids
 
 func remove_card(card_instance_id: String) -> bool:
-	var collection: Variant = _data.get("collection", [])
-	if not collection is Array:
+	var collection_variant: Variant = _data.get("collection", [])
+	if not collection_variant is Array:
 		return false
-	var coll_array: Array = collection
+	var coll_array: Array = collection_variant
 	var found_index: int = -1
 
 	for i: int in range(coll_array.size()):
-		var item: Variant = coll_array[i]
-		if item is Dictionary:
-			var item_dict: Dictionary = item
-			if item_dict.get("id") == card_instance_id:
+		var item_variant: Variant = coll_array[i]
+		if item_variant is Dictionary:
+			var item_dict: Dictionary = item_variant
+			var item_id_variant: Variant = item_dict.get("id")
+			if item_id_variant == card_instance_id:
 				found_index = i
 				break
 
@@ -245,27 +259,29 @@ func list_cards() -> Array:
 	return _data.get("collection", [])
 
 func get_card_count(catalog_id: String) -> int:
-	var collection: Variant = _data.get("collection", [])
-	if not collection is Array:
+	var collection_variant: Variant = _data.get("collection", [])
+	if not collection_variant is Array:
 		return 0
-	var coll_array: Array = collection
+	var coll_array: Array = collection_variant
 	var count: int = 0
 	for card: Variant in coll_array:
 		if card is Dictionary:
 			var card_dict: Dictionary = card
-			if card_dict.get("catalog_id") == catalog_id:
+			var card_catalog_id_variant: Variant = card_dict.get("catalog_id")
+			if card_catalog_id_variant == catalog_id:
 				count += 1
 	return count
 
 func get_card(card_instance_id: String) -> Dictionary:
-	var collection: Variant = _data.get("collection", [])
-	if not collection is Array:
+	var collection_variant: Variant = _data.get("collection", [])
+	if not collection_variant is Array:
 		return {}
-	var coll_array: Array = collection
+	var coll_array: Array = collection_variant
 	for card: Variant in coll_array:
 		if card is Dictionary:
 			var card_dict: Dictionary = card
-			if card_dict.get("id") == card_instance_id:
+			var card_id_variant: Variant = card_dict.get("id")
+			if card_id_variant == card_instance_id:
 				return card_dict
 	return {}
 
@@ -274,10 +290,10 @@ func get_card(card_instance_id: String) -> Dictionary:
 ## =============================================================================
 
 func upsert_deck(deck: Dictionary) -> String:
-	var decks: Variant = _data.get("decks", [])
-	if not decks is Array:
+	var decks_variant: Variant = _data.get("decks", [])
+	if not decks_variant is Array:
 		return ""
-	var decks_array: Array = decks
+	var decks_array: Array = decks_variant
 	var deck_id: String = ""
 	var deck_id_var: Variant = deck.get("id", "")
 	if deck_id_var is String:
@@ -286,26 +302,29 @@ func upsert_deck(deck: Dictionary) -> String:
 	# If no ID, create new deck
 	if deck_id == "":
 		deck_id = _generate_uuid()
+		var deck_name_variant: Variant = deck.get("name", "Untitled Deck")
+		var deck_name: String = deck_name_variant
 		var new_deck: Dictionary = {
 			"id": deck_id,
 			"profile_id": _current_profile_id,
-			"name": deck.get("name", "Untitled Deck"),
+			"name": deck_name,
 			"created_at": Time.get_unix_time_from_system()
 		}
 		decks_array.append(new_deck)
 
 		# Create deck_cards entries
-		var deck_cards: Variant = _data.get("deck_cards", [])
-		if not deck_cards is Array:
-			deck_cards = []
-		var deck_cards_array: Array = deck_cards
-		var card_instance_ids: Variant = deck.get("card_instance_ids", [])
-		if card_instance_ids is Array:
-			var card_ids_array: Array = card_instance_ids
+		var deck_cards_variant: Variant = _data.get("deck_cards", [])
+		if not deck_cards_variant is Array:
+			deck_cards_variant = []
+		var deck_cards_array: Array = deck_cards_variant
+		var card_instance_ids_variant: Variant = deck.get("card_instance_ids", [])
+		if card_instance_ids_variant is Array:
+			var card_ids_array: Array = card_instance_ids_variant
 			for i: int in range(card_ids_array.size()):
+				var card_id_at_i_variant: Variant = card_ids_array[i]
 				deck_cards_array.append({
 					"deck_id": deck_id,
-					"card_instance_id": card_ids_array[i],
+					"card_instance_id": card_id_at_i_variant,
 					"slot_index": i
 				})
 		_data["deck_cards"] = deck_cards_array
@@ -313,11 +332,13 @@ func upsert_deck(deck: Dictionary) -> String:
 		# Update existing deck
 		var found: bool = false
 		for i: int in range(decks_array.size()):
-			var deck_item: Variant = decks_array[i]
-			if deck_item is Dictionary:
-				var deck_dict: Dictionary = deck_item
-				if deck_dict.get("id") == deck_id:
-					deck_dict["name"] = deck.get("name", deck_dict["name"])
+			var deck_item_variant: Variant = decks_array[i]
+			if deck_item_variant is Dictionary:
+				var deck_dict: Dictionary = deck_item_variant
+				var deck_dict_id_variant: Variant = deck_dict.get("id")
+				if deck_dict_id_variant == deck_id:
+					var deck_name_variant: Variant = deck.get("name", deck_dict["name"])
+					deck_dict["name"] = deck_name_variant
 					found = true
 					break
 
@@ -326,25 +347,27 @@ func upsert_deck(deck: Dictionary) -> String:
 			return ""
 
 		# Update deck_cards
-		var deck_cards: Variant = _data.get("deck_cards", [])
-		if not deck_cards is Array:
-			deck_cards = []
-		var deck_cards_array: Array = deck_cards
+		var deck_cards_variant2: Variant = _data.get("deck_cards", [])
+		if not deck_cards_variant2 is Array:
+			deck_cards_variant2 = []
+		var deck_cards_array2: Array = deck_cards_variant2
 		# Remove old entries
 		var new_deck_cards: Array = []
-		for dc: Variant in deck_cards_array:
+		for dc: Variant in deck_cards_array2:
 			if dc is Dictionary:
 				var dc_dict: Dictionary = dc
-				if dc_dict.get("deck_id") != deck_id:
+				var dc_deck_id_variant: Variant = dc_dict.get("deck_id")
+				if dc_deck_id_variant != deck_id:
 					new_deck_cards.append(dc)
 		# Add new entries
-		var card_instance_ids: Variant = deck.get("card_instance_ids", [])
-		if card_instance_ids is Array:
-			var card_ids_array: Array = card_instance_ids
-			for i: int in range(card_ids_array.size()):
+		var card_instance_ids_variant2: Variant = deck.get("card_instance_ids", [])
+		if card_instance_ids_variant2 is Array:
+			var card_ids_array2: Array = card_instance_ids_variant2
+			for i: int in range(card_ids_array2.size()):
+				var card_id_at_i_variant2: Variant = card_ids_array2[i]
 				new_deck_cards.append({
 					"deck_id": deck_id,
-					"card_instance_id": card_ids_array[i],
+					"card_instance_id": card_id_at_i_variant2,
 					"slot_index": i
 				})
 		_data["deck_cards"] = new_deck_cards
@@ -357,17 +380,18 @@ func upsert_deck(deck: Dictionary) -> String:
 	return deck_id
 
 func delete_deck(deck_id: String) -> bool:
-	var decks: Variant = _data.get("decks", [])
-	if not decks is Array:
+	var decks_variant: Variant = _data.get("decks", [])
+	if not decks_variant is Array:
 		return false
-	var decks_array: Array = decks
+	var decks_array: Array = decks_variant
 	var found_index: int = -1
 
 	for i: int in range(decks_array.size()):
-		var deck_item: Variant = decks_array[i]
-		if deck_item is Dictionary:
-			var deck_dict: Dictionary = deck_item
-			if deck_dict.get("id") == deck_id:
+		var deck_item_variant: Variant = decks_array[i]
+		if deck_item_variant is Dictionary:
+			var deck_dict: Dictionary = deck_item_variant
+			var deck_dict_id_variant: Variant = deck_dict.get("id")
+			if deck_dict_id_variant == deck_id:
 				found_index = i
 				break
 
@@ -379,15 +403,16 @@ func delete_deck(deck_id: String) -> bool:
 	_data["decks"] = decks_array
 
 	# Remove deck_cards entries
-	var deck_cards: Variant = _data.get("deck_cards", [])
-	if not deck_cards is Array:
+	var deck_cards_variant: Variant = _data.get("deck_cards", [])
+	if not deck_cards_variant is Array:
 		return true
-	var deck_cards_array: Array = deck_cards
+	var deck_cards_array: Array = deck_cards_variant
 	var new_deck_cards: Array = []
 	for dc: Variant in deck_cards_array:
 		if dc is Dictionary:
 			var dc_dict: Dictionary = dc
-			if dc_dict.get("deck_id") != deck_id:
+			var dc_deck_id_variant: Variant = dc_dict.get("deck_id")
+			if dc_deck_id_variant != deck_id:
 				new_deck_cards.append(dc)
 	_data["deck_cards"] = new_deck_cards
 
@@ -397,14 +422,14 @@ func delete_deck(deck_id: String) -> bool:
 	return true
 
 func list_decks() -> Array:
-	var decks: Variant = _data.get("decks", [])
-	if not decks is Array:
+	var decks_variant: Variant = _data.get("decks", [])
+	if not decks_variant is Array:
 		return []
-	var decks_array: Array = decks
-	var deck_cards: Variant = _data.get("deck_cards", [])
-	if not deck_cards is Array:
-		deck_cards = []
-	var deck_cards_array: Array = deck_cards
+	var decks_array: Array = decks_variant
+	var deck_cards_variant: Variant = _data.get("deck_cards", [])
+	if not deck_cards_variant is Array:
+		deck_cards_variant = []
+	var deck_cards_array: Array = deck_cards_variant
 
 	# Enrich decks with card_instance_ids
 	var enriched_decks: Array = []
@@ -412,17 +437,19 @@ func list_decks() -> Array:
 		if not deck is Dictionary:
 			continue
 		var deck_dict: Dictionary = deck
-		var enriched: Variant = deck_dict.duplicate()
-		if not enriched is Dictionary:
+		var enriched_variant: Variant = deck_dict.duplicate()
+		if not enriched_variant is Dictionary:
 			continue
-		var enriched_dict: Dictionary = enriched
+		var enriched_dict: Dictionary = enriched_variant
 		var cards: Array = []
+		var deck_dict_id_variant: Variant = deck_dict.get("id")
 		for dc: Variant in deck_cards_array:
 			if dc is Dictionary:
 				var dc_dict: Dictionary = dc
-				if dc_dict.get("deck_id") == deck_dict.get("id"):
-					var card_inst_id: Variant = dc_dict.get("card_instance_id")
-					cards.append(card_inst_id)
+				var dc_deck_id_variant: Variant = dc_dict.get("deck_id")
+				if dc_deck_id_variant == deck_dict_id_variant:
+					var card_inst_id_variant: Variant = dc_dict.get("card_instance_id")
+					cards.append(card_inst_id_variant)
 		enriched_dict["card_instance_ids"] = cards
 		enriched_decks.append(enriched_dict)
 
@@ -433,7 +460,8 @@ func get_deck(deck_id: String) -> Dictionary:
 	for deck: Variant in decks:
 		if deck is Dictionary:
 			var deck_dict: Dictionary = deck
-			if deck_dict.get("id") == deck_id:
+			var deck_dict_id_variant: Variant = deck_dict.get("id")
+			if deck_dict_id_variant == deck_id:
 				return deck_dict
 	return {}
 
@@ -445,12 +473,13 @@ func get_profile_meta() -> Dictionary:
 	return _data.get("meta", {})
 
 func update_profile_meta(meta: Dictionary) -> void:
-	var current_meta: Variant = _data.get("meta", {})
-	if current_meta is Dictionary:
-		var meta_dict: Dictionary = current_meta
+	var current_meta_variant: Variant = _data.get("meta", {})
+	if current_meta_variant is Dictionary:
+		var meta_dict: Dictionary = current_meta_variant
 		for key: String in meta:
-			meta_dict[key] = meta[key]
-	_data["meta"] = current_meta
+			var meta_value_variant: Variant = meta[key]
+			meta_dict[key] = meta_value_variant
+	_data["meta"] = current_meta_variant
 	save_profile()  # Debounced
 	data_changed.emit()
 
@@ -458,12 +487,13 @@ func get_settings() -> Dictionary:
 	return _data.get("settings", {})
 
 func update_settings(settings: Dictionary) -> void:
-	var current_settings: Variant = _data.get("settings", {})
-	if current_settings is Dictionary:
-		var settings_dict: Dictionary = current_settings
+	var current_settings_variant: Variant = _data.get("settings", {})
+	if current_settings_variant is Dictionary:
+		var settings_dict: Dictionary = current_settings_variant
 		for key: String in settings:
-			settings_dict[key] = settings[key]
-	_data["settings"] = current_settings
+			var settings_value_variant: Variant = settings[key]
+			settings_dict[key] = settings_value_variant
+	_data["settings"] = current_settings_variant
 	save_profile(true)  # Immediate for settings
 	data_changed.emit()
 
@@ -652,9 +682,9 @@ func _create_card_instance(catalog_id: String, rarity: String) -> Dictionary:
 	}
 
 func _migrate_if_needed() -> void:
-	var version: Variant = _data.get("version", 0)
-	if version is int:
-		var ver_int: int = version
+	var version_variant: Variant = _data.get("version", 0)
+	if version_variant is int:
+		var ver_int: int = version_variant
 		if ver_int < CURRENT_VERSION:
 			print("JsonProfileRepo: Migrating save from version %d to %d" % [ver_int, CURRENT_VERSION])
 			_migrate(ver_int)
@@ -674,16 +704,18 @@ func _migrate(from_version: int) -> void:
 ## =============================================================================
 
 func _append_to_wal(entry: Dictionary) -> void:
-	var wal: Variant = _data.get("wal", [])
-	if not wal is Array:
-		wal = []
-	var wal_array: Array = wal
+	var wal_variant: Variant = _data.get("wal", [])
+	if not wal_variant is Array:
+		wal_variant = []
+	var wal_array: Array = wal_variant
 
+	var entry_action_variant: Variant = entry.get("action")
+	var entry_params_variant: Variant = entry.get("params")
 	var wal_entry: Dictionary = {
 		"op_id": _generate_uuid(),
 		"profile_id": _current_profile_id,
-		"action": entry.get("action"),
-		"params": entry.get("params"),
+		"action": entry_action_variant,
+		"params": entry_params_variant,
 		"timestamp": Time.get_unix_time_from_system()
 	}
 
@@ -692,9 +724,10 @@ func _append_to_wal(entry: Dictionary) -> void:
 
 	# Trim WAL if it gets too large (keep last 100 entries)
 	if wal_array.size() > 100:
-		var trimmed: Variant = wal_array.slice(-100)
-		if trimmed is Array:
-			_data["wal"] = trimmed
+		var trimmed_variant: Variant = wal_array.slice(-100)
+		if trimmed_variant is Array:
+			var trimmed_array: Array = trimmed_variant
+			_data["wal"] = trimmed_array
 
 ## =============================================================================
 ## INTERNAL - UTILITIES

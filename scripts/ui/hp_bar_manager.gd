@@ -64,15 +64,14 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 	# Check if unit already has a bar
 	if active_bars.has(unit):
 		push_warning("HPBarManager: Unit already has an HP bar")
-		return active_bars[unit]
+		var existing_bar: FloatingHPBar = active_bars[unit]
+		return existing_bar
 
 	# Get bar from pool or create new
 	var bar: FloatingHPBar = null
 	if bar_pool.size() > 0:
-		var popped: Variant = bar_pool.pop_back()
-		if popped is FloatingHPBar:
-			bar = popped
-			bar.reset()
+		bar = bar_pool.pop_back()
+		bar.reset()
 		# print("HPBarManager: Reusing bar from pool (pool size: %d)" % bar_pool.size())
 	else:
 		bar = _instantiate_bar()
@@ -90,23 +89,28 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 	if settings.has("bar_width"):
 		var bar_width_val: Variant = settings.get("bar_width")
 		if bar_width_val is float:
-			bar.bar_width = bar_width_val
+			var bar_width_float: float = bar_width_val
+			bar.bar_width = bar_width_float
 	if settings.has("bar_height"):
 		var bar_height_val: Variant = settings.get("bar_height")
 		if bar_height_val is float:
-			bar.bar_height = bar_height_val
+			var bar_height_float: float = bar_height_val
+			bar.bar_height = bar_height_float
 	if settings.has("offset_y"):
 		var offset_y_val: Variant = settings.get("offset_y")
 		if offset_y_val is float:
-			bar.offset_y = offset_y_val
+			var offset_y_float: float = offset_y_val
+			bar.offset_y = offset_y_float
 	if settings.has("show_on_damage_only"):
 		var show_val: Variant = settings.get("show_on_damage_only")
 		if show_val is bool:
-			bar.show_on_damage_only = show_val
+			var show_bool: bool = show_val
+			bar.show_on_damage_only = show_bool
 	if settings.has("fade_delay"):
 		var fade_delay_val: Variant = settings.get("fade_delay")
 		if fade_delay_val is float:
-			bar.fade_delay = fade_delay_val
+			var fade_delay_float: float = fade_delay_val
+			bar.fade_delay = fade_delay_float
 
 	# Set target unit
 	bar.set_target(unit)

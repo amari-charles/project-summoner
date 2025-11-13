@@ -48,7 +48,8 @@ class_name UnitData
 
 ## Create from dictionary (for JSON loading)
 static func from_dict(data: Dictionary) -> UnitData:
-	var unit: UnitData = UnitData.new()
+	var unit_instance: Resource = UnitData.new()
+	var unit: UnitData = unit_instance
 
 	unit.unit_id = data.get("unit_id", "")
 	unit.unit_name = data.get("unit_name", "")
@@ -83,11 +84,12 @@ static func from_dict(data: Dictionary) -> UnitData:
 		var tags_variant: Variant = data.get("tags")
 		if tags_variant is Array:
 			var tags_array: Array = tags_variant
-			unit.tags.clear()
+			var unit_tags: Array[String] = unit.tags
+			unit_tags.clear()
 			for tag: Variant in tags_array:
 				if tag is String:
 					var tag_str: String = tag
-					unit.tags.append(tag_str)
+					unit_tags.append(tag_str)
 
 	return unit
 

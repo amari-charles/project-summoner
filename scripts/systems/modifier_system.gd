@@ -39,15 +39,15 @@ func get_modifiers_for(target_type: String, categories: Dictionary, context: Dic
 	var all_modifiers: Array = []
 
 	# Collect modifiers from all providers
-	for provider_id in _providers.keys():
+	for provider_id: String in _providers.keys():
 		var provider: Object = _providers[provider_id]
 		if provider.has_method("get_modifiers"):
-			var provider_mods: Array = provider.get_modifiers()
+			var provider_mods: Array = provider.call("get_modifiers")
 			all_modifiers.append_array(provider_mods)
 
 	# Filter by conditions
 	var filtered: Array = []
-	for mod in all_modifiers:
+	for mod: Dictionary in all_modifiers:
 		if _matches_conditions(mod, categories, context):
 			filtered.append(mod)
 
@@ -68,7 +68,7 @@ func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: 
 		return true
 
 	# Check each condition
-	for condition_key in conditions.keys():
+	for condition_key: String in conditions.keys():
 		var required_value: Variant = conditions[condition_key]
 		var actual_value: Variant = categories.get(condition_key)
 
@@ -93,8 +93,9 @@ func _matches_element(actual: Variant, required: Variant) -> bool:
 		return false
 
 	# Handle Element objects (from ElementTypes) - check origin inheritance
-	if actual != null and actual.has_method("matches_affinity"):
-		return actual.matches_affinity(required)
+	if actual != null and (actual as Object).has_method("matches_affinity"):
+		var actual_obj: Object = actual as Object
+		return actual_obj.call("matches_affinity", required)
 
 	# Handle string comparison (backwards compatibility)
 	if actual is String and required is String:
@@ -113,38 +114,48 @@ func _apply_amplification(modifiers: Array) -> Array:
 	# Step 1: Find all amplifiers and calculate total amplification per tag
 	var amplifiers: Dictionary = {}  # tag -> total multiplier
 
-	for mod in modifiers:
-		if mod.has("amplify_tag"):
-			var tag: Variant = mod.amplify_tag
-			var factor: float = mod.get("factor", 1.0)
+	for mod: Dictionary in modifiers:
+		var mod_dict: Dictionary = mod
+		if mod_dict.has("amplify_tag"):
+			var tag: Variant = mod_dict.get("amplify_tag")
+			var factor: float = mod_dict.get("factor", 1.0)
 
 			if not amplifiers.has(tag):
 				amplifiers[tag] = 1.0
 			amplifiers[tag] *= factor
 
 	# Step 2: Apply amplification to tagged modifiers
-	for mod in modifiers:
-		if mod.has("tags") and not mod.has("amplify_tag"):  # Don't amplify amplifiers
+	for mod: Dictionary in modifiers:
+		var mod_dict: Dictionary = mod
+		if mod_dict.has("tags") and not mod_dict.has("amplify_tag"):  # Don't amplify amplifiers
 			var total_amp: float = 1.0
 
 			# Check all tags on this modifier
-			for tag in mod.tags:
-				if amplifiers.has(tag):
-					total_amp *= amplifiers[tag]
+			var tags: Variant = mod_dict.get("tags")
+			if tags is Array:
+				for tag: Variant in (tags as Array):
+					if amplifiers.has(tag):
+						total_amp *= amplifiers[tag]
 
 			# Amplify bonuses (not base values)
 			if total_amp != 1.0:
 				# Amplify additive bonuses
-				if mod.has("stat_adds"):
-					for stat in mod.stat_adds.keys():
-						mod.stat_adds[stat] *= total_amp
+				if mod_dict.has("stat_adds"):
+					var stat_adds: Variant = mod_dict.get("stat_adds")
+					if stat_adds is Dictionary:
+						var stat_adds_dict: Dictionary = stat_adds as Dictionary
+						for stat: String in stat_adds_dict.keys():
+							stat_adds_dict[stat] *= total_amp
 
 				# Amplify multiplicative bonuses
-				if mod.has("stat_mults"):
-					for stat in mod.stat_mults.keys():
-						var bonus: float = mod.stat_mults[stat] - 1.0
-						bonus *= total_amp
-						mod.stat_mults[stat] = 1.0 + bonus
+				if mod_dict.has("stat_mults"):
+					var stat_mults: Variant = mod_dict.get("stat_mults")
+					if stat_mults is Dictionary:
+						var stat_mults_dict: Dictionary = stat_mults as Dictionary
+						for stat: String in stat_mults_dict.keys():
+							var bonus: float = stat_mults_dict[stat] - 1.0
+							bonus *= total_amp
+							stat_mults_dict[stat] = 1.0 + bonus
 
 	return modifiers
 
@@ -155,15 +166,16 @@ func _apply_amplification(modifiers: Array) -> Array:
 func debug_print_providers() -> void:
 	print("=== ModifierSystem Debug ===")
 	print("Registered providers: %d" % _providers.size())
-	for provider_id in _providers.keys():
+	for provider_id: String in _providers.keys():
 		print("  - %s" % provider_id)
 
 func debug_print_modifiers(categories: Dictionary = {}) -> void:
 	var modifiers: Array = get_modifiers_for("unit", categories, {})
 	print("=== Modifiers for categories: %s ===" % categories)
 	print("Total modifiers: %d" % modifiers.size())
-	for mod in modifiers:
-		print("  - Source: %s" % mod.get("source", "unknown"))
-		print("    Tags: %s" % mod.get("tags", []))
-		print("    Stat mults: %s" % mod.get("stat_mults", {}))
-		print("    Stat adds: %s" % mod.get("stat_adds", {}))
+	for mod: Dictionary in modifiers:
+		var mod_dict: Dictionary = mod
+		print("  - Source: %s" % mod_dict.get("source", "unknown"))
+		print("    Tags: %s" % mod_dict.get("tags", []))
+		print("    Stat mults: %s" % mod_dict.get("stat_mults", {}))
+		print("    Stat adds: %s" % mod_dict.get("stat_adds", {}))

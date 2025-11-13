@@ -175,8 +175,8 @@ func update_hp(current: float, maximum: float) -> void:
 	current_hp = current
 	max_hp = maximum
 
-	var hp_percent: float = current_hp / max_hp if max_hp > 0 else 0.0
-	hp_percent = clamp(hp_percent, 0.0, 1.0)
+	var hp_percent_calc: float = current_hp / max_hp if max_hp > 0 else 0.0
+	var hp_percent: float = clamp(hp_percent_calc, 0.0, 1.0)
 
 	# Redraw the bar texture with new HP percentage
 	_redraw_bar_texture(hp_percent)

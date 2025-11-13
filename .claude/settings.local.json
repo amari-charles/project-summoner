@@ -3,7 +3,8 @@
     "allow": [
       "Bash(/Applications/Godot.app/Contents/MacOS/Godot:*)",
       "Bash(mdfind:*)",
-      "Bash(/Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)"
+      "Bash(/Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)",
+      "Bash(timeout 120 /Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)"
     ],
     "deny": [],
     "ask": []
