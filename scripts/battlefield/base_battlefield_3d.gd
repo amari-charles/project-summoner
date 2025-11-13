@@ -39,18 +39,19 @@ func _ready() -> void:
 
 ## Load and apply biome from BattleContext
 func _apply_biome_from_context() -> void:
-	var battle_context = get_node_or_null("/root/BattleContext")
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if not battle_context:
 		push_warning("BaseBattlefield3D: BattleContext not found, using default visuals")
 		return
 
-	var biome_id = battle_context.biome_id
+	var biome_id_variant: Variant = battle_context.get("biome_id")
+	var biome_id: String = biome_id_variant if biome_id_variant is String else ""
 	if biome_id.is_empty():
 		push_warning("BaseBattlefield3D: No biome_id in BattleContext, using default visuals")
 		return
 
 	# Load biome resource
-	var biome_path = "res://resources/biomes/%s.tres" % biome_id
+	var biome_path: String = "res://resources/biomes/%s.tres" % biome_id
 	var loaded_biome: Resource = load(biome_path)
 
 	if not loaded_biome or not loaded_biome is BiomeConfig:
@@ -78,8 +79,8 @@ func _update_ground_position() -> void:
 		return
 
 	# Calculate the lowest Y the camera can see
-	var camera_up = camera.transform.basis.y
-	var lowest_view_y = camera.position.y - (camera_up.y * camera.size)
+	var camera_up: Vector3 = camera.transform.basis.y
+	var lowest_view_y: float = camera.position.y - (camera_up.y * camera.size)
 
 	# Position ground below visible area with small margin
 	background.position.y = lowest_view_y - 1.0
