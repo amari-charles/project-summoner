@@ -250,7 +250,18 @@ class CardDisplay extends Control:
 			return null
 
 		# Create a visual duplicate as preview
+		# Temporarily disable stretch to prevent SubViewport resize warning during duplication
+		var original_stretch: bool = false
+		if viewport_container:
+			original_stretch = viewport_container.stretch
+			viewport_container.stretch = false
+
 		var preview_node: Node = duplicate(DUPLICATE_USE_INSTANTIATION)
+
+		# Restore stretch setting
+		if viewport_container:
+			viewport_container.stretch = original_stretch
+
 		if not preview_node is Control:
 			return null
 		var preview: Control = preview_node
