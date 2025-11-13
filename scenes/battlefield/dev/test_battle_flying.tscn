@@ -16,13 +16,13 @@ script = ExtResource("2_test_controller")
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
 script = ExtResource("3_summoner")
-deck_load_strategy = 1
+deck_load_strategy = 0
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
-deck_load_strategy = 1
+deck_load_strategy = 0
 
 [node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
