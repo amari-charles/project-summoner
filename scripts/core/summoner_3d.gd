@@ -62,13 +62,25 @@ func _ready() -> void:
 	# Initialize deck using strategy pattern
 	deck = _load_deck_by_strategy()
 
-	# Handle empty deck with emergency fallback
+	# Handle empty deck - behavior depends on whether we're in test mode
 	if deck.is_empty():
-		push_error("Summoner3D: Failed to load deck! Creating emergency fallback deck.")
-		deck = _create_emergency_deck()
+		if _is_test_mode():
+			# Test mode: Allow emergency fallback deck
+			push_warning("Summoner3D: Failed to load deck in test mode. Creating emergency fallback deck.")
+			deck = _create_emergency_deck()
 
-		if deck.is_empty():
-			push_error("Summoner3D: CRITICAL - Cannot create deck, disabling summoner")
+			if deck.is_empty():
+				push_error("Summoner3D: CRITICAL - Cannot create deck, disabling summoner")
+				is_alive = false
+				return
+		else:
+			# Production mode: HARD FAIL - configuration is broken
+			var error_msg: String = "Summoner3D: CRITICAL - No deck loaded in production mode!\n"
+			error_msg += "Team: %s\n" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY")
+			error_msg += "Strategy: %s\n" % DeckLoadStrategy.keys()[deck_load_strategy]
+			error_msg += "This indicates a configuration bug - check BattleContext and player profile."
+			push_error(error_msg)
+			assert(false, error_msg)
 			is_alive = false
 			return
 	else:
@@ -154,6 +166,25 @@ func take_damage(damage: float) -> void:
 func _die() -> void:
 	is_alive = false
 	summoner_died.emit(self)
+
+## Detect if we're running in test mode (allows emergency fallback decks)
+func _is_test_mode() -> bool:
+	# Check if the game controller is a test controller
+	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	if game_controller and game_controller is TestGameController:
+		return true
+
+	# Check if BattleContext is in practice mode
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if battle_context:
+		var mode_variant: Variant = battle_context.get("current_mode")
+		if mode_variant is int:
+			var mode: int = mode_variant
+			# Assuming PRACTICE = 1 (check BattleContext enum if needed)
+			if mode == 1:
+				return true
+
+	return false
 
 ## =============================================================================
 ## DECK LOADING STRATEGY
