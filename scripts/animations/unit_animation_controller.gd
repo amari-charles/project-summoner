@@ -64,11 +64,11 @@ func _find_references() -> void:
 	if not sprite:
 		push_error("UnitAnimationController: No AnimatedSprite2D found in Character2D5Component")
 
-func _find_child_of_type(node: Node, type) -> Node:
-	for child in node.get_children():
+func _find_child_of_type(node: Node, type: Variant) -> Node:
+	for child: Node in node.get_children():
 		if is_instance_of(child, type):
 			return child
-		var result = _find_child_of_type(child, type)
+		var result: Node = _find_child_of_type(child, type)
 		if result:
 			return result
 	return null
@@ -79,7 +79,7 @@ func play_state(state_name: String, force: bool = false) -> bool:
 		push_warning("UnitAnimationController: State '%s' not found" % state_name)
 		return false
 
-	var new_state = animation_config.get_state(state_name)
+	var new_state: AnimationStateData = animation_config.get_state(state_name)
 
 	# Check if we can interrupt current state
 	if current_state and not force:
@@ -87,14 +87,14 @@ func play_state(state_name: String, force: bool = false) -> bool:
 			return false
 
 	# Store old state
-	var old_state_name = current_state_name
+	var old_state_name: String = current_state_name
 
 	# Transition to new state
 	current_state = new_state
 	current_state_name = state_name
 	state_time = 0.0
 	last_frame = -1
-	triggered_frames.clear()
+	(triggered_frames as Dictionary).clear()
 
 	# Update sprite animation
 	if sprite and animation_config.sprite_frames:
@@ -106,7 +106,7 @@ func play_state(state_name: String, force: bool = false) -> bool:
 			push_warning("UnitAnimationController: Animation '%s' not found in SpriteFrames" % new_state.animation_name)
 
 	# Trigger VFX on start
-	if not new_state.vfx_on_start.is_empty() and unit:
+	if not (new_state.vfx_on_start as String).is_empty() and unit:
 		VFXManager.play_effect(new_state.vfx_on_start, unit.global_position)
 
 	# Play sound on start
@@ -124,7 +124,7 @@ func _check_frame_events() -> void:
 	if not sprite or not current_state:
 		return
 
-	var current_frame = sprite.frame
+	var current_frame: int = sprite.frame
 
 	# Only process if we're on a new frame
 	if current_frame == last_frame:
@@ -133,24 +133,24 @@ func _check_frame_events() -> void:
 	last_frame = current_frame
 
 	# Check damage frame
-	if current_state.damage_frame == current_frame and not triggered_frames.get("damage", false):
+	if current_state.damage_frame == current_frame and not (triggered_frames as Dictionary).get("damage", false):
 		triggered_frames["damage"] = true
 		frame_event_triggered.emit("damage", current_frame)
 
 	# Check projectile spawn frame
-	if current_state.projectile_spawn_frame == current_frame and not triggered_frames.get("projectile", false):
+	if current_state.projectile_spawn_frame == current_frame and not (triggered_frames as Dictionary).get("projectile", false):
 		triggered_frames["projectile"] = true
 		frame_event_triggered.emit("projectile_spawn", current_frame)
 
 	# Check footstep frames
 	if current_frame in current_state.footstep_frames:
-		var footstep_key = "footstep_%d" % current_frame
-		if not triggered_frames.get(footstep_key, false):
+		var footstep_key: String = "footstep_%d" % current_frame
+		if not (triggered_frames as Dictionary).get(footstep_key, false):
 			triggered_frames[footstep_key] = true
 			frame_event_triggered.emit("footstep", current_frame)
 
 	# Trigger VFX on damage frame
-	if current_state.damage_frame == current_frame and not current_state.vfx_on_damage_frame.is_empty() and unit:
+	if current_state.damage_frame == current_frame and not (current_state.vfx_on_damage_frame as String).is_empty() and unit:
 		VFXManager.play_effect(current_state.vfx_on_damage_frame, unit.global_position)
 
 ## Called when animation finishes
@@ -159,14 +159,14 @@ func _on_animation_finished() -> void:
 		return
 
 	# Trigger VFX on end
-	if not current_state.vfx_on_end.is_empty() and unit:
+	if not (current_state.vfx_on_end as String).is_empty() and unit:
 		VFXManager.play_effect(current_state.vfx_on_end, unit.global_position)
 
 	# Emit signal
 	animation_finished.emit(current_state_name)
 
 	# Auto transition
-	if not current_state.auto_transition_to.is_empty():
+	if not (current_state.auto_transition_to as String).is_empty():
 		if current_state.transition_delay > 0.0:
 			await get_tree().create_timer(current_state.transition_delay).timeout
 		play_state(current_state.auto_transition_to)
@@ -199,7 +199,7 @@ func _play_sound(sound: AudioStream, volume_db: float) -> void:
 	if not unit:
 		return
 
-	var audio_player = AudioStreamPlayer3D.new()
+	var audio_player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
 	audio_player.stream = sound
 	audio_player.volume_db = volume_db
 	audio_player.global_position = unit.global_position
@@ -208,7 +208,7 @@ func _play_sound(sound: AudioStream, volume_db: float) -> void:
 	unit.add_child(audio_player)
 
 	# Auto-cleanup when sound finishes
-	audio_player.finished.connect(func():
+	audio_player.finished.connect(func() -> void:
 		if is_instance_valid(audio_player):
 			audio_player.queue_free()
 	)

@@ -62,7 +62,7 @@ static func get_element_border_color(element_id: String) -> Color:
 
 ## Get a secondary/lighter color for element (for glows, highlights)
 static func get_element_glow_color(element_id: String) -> Color:
-	var base_color = get_element_border_color(element_id)
+	var base_color: Color = get_element_border_color(element_id)
 	# Lighten the color and increase saturation slightly
 	return base_color.lightened(0.3)
 
@@ -121,22 +121,24 @@ static func get_card_element_color(card_data) -> Color:
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
 		# Get catalog data from CardCatalog
-		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+		var card_instance: Card = card_data as Card
+		catalog_dict = CardCatalog.get_card(card_instance.catalog_id)
 	elif card_data is Dictionary:
-		catalog_dict = card_data
+		catalog_dict = card_data as Dictionary
 	else:
 		push_warning("CardVisualHelper: Invalid card_data type")
 		return GameColorPalette.NEUTRAL_MID
 
 	# Check if card has elemental affinity in categories
 	if catalog_dict.has("categories"):
-		var categories = catalog_dict.categories
-		if categories is Dictionary and categories.has("elemental_affinity"):
-			var affinity = categories.elemental_affinity
+		var categories: Variant = catalog_dict.get("categories")
+		if categories is Dictionary and (categories as Dictionary).has("elemental_affinity"):
+			var categories_dict: Dictionary = categories as Dictionary
+			var affinity: Variant = categories_dict.get("elemental_affinity")
 			if affinity:
 				# Validate Element object - fail loudly if invalid
 				if typeof(affinity) == TYPE_OBJECT and "id" in affinity:
-					var affinity_id = affinity.id
+					var affinity_id: String = affinity.id
 					return get_element_border_color(affinity_id)
 				else:
 					push_error("CardVisualHelper: Invalid elemental_affinity for card '%s' - expected Element object, got type %s with value: %s" % [catalog_dict.get("card_name", "unknown"), typeof(affinity), affinity])
@@ -144,7 +146,7 @@ static func get_card_element_color(card_data) -> Color:
 					return Color.MAGENTA  # Unreachable in debug, but needed for release builds
 
 	# Fallback: use card type-based colors (should rarely happen)
-	var card_type = catalog_dict.get("card_type", 0)
+	var card_type: int = catalog_dict.get("card_type", 0) as int
 	if card_type == 0:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
 	elif card_type == 1:
@@ -163,16 +165,17 @@ static func get_card_type_icon_path(card_data) -> String:
 
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
-		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+		var card_instance: Card = card_data as Card
+		catalog_dict = CardCatalog.get_card(card_instance.catalog_id)
 	elif card_data is Dictionary:
-		catalog_dict = card_data
+		catalog_dict = card_data as Dictionary
 	else:
 		push_warning("CardVisualHelper: Invalid card_data type for icon lookup")
 		return ""
 
 	# Get card type and unit type
-	var card_type = catalog_dict.get("card_type", 0)
-	var unit_type = catalog_dict.get("unit_type", "")
+	var card_type: int = catalog_dict.get("card_type", 0) as int
+	var unit_type: String = catalog_dict.get("unit_type", "") as String
 
 	# Map to icon path
 	if card_type == 1:  # SPELL
@@ -197,49 +200,59 @@ static func get_card_type_icon_path(card_data) -> String:
 
 ## Calculate layout dimensions for a card of given size
 static func get_card_layout(card_size: Vector2, show_description: bool) -> Dictionary:
-	var layout = {}
+	var layout: Dictionary = {}
 
 	# Border width (scales with card size)
-	layout.border_width = max(2, int(card_size.x * 0.025))
+	var border_width: int = max(2, int(card_size.x * 0.025))
+	layout.border_width = border_width
 
 	# Cost circle (top-left corner)
-	layout.cost_circle_radius = card_size.x * 0.15
-	layout.cost_circle_pos = Vector2(
-		layout.cost_circle_radius + layout.border_width + 4,
-		layout.cost_circle_radius + layout.border_width + 4
+	var cost_circle_radius: float = card_size.x * 0.15
+	layout.cost_circle_radius = cost_circle_radius
+	var cost_circle_pos: Vector2 = Vector2(
+		float(cost_circle_radius + border_width + 4),
+		float(cost_circle_radius + border_width + 4)
 	)
+	layout.cost_circle_pos = cost_circle_pos
 
 	# Card name (top-middle)
-	layout.name_height = card_size.y * 0.12
-	layout.name_rect = Rect2(
-		layout.cost_circle_pos.x + layout.cost_circle_radius + 4,
-		layout.border_width + 4,
-		card_size.x - (layout.cost_circle_pos.x + layout.cost_circle_radius + 8),
-		layout.name_height
+	var name_height: float = card_size.y * 0.12
+	layout.name_height = name_height
+	var name_rect: Rect2 = Rect2(
+		float(cost_circle_pos.x + cost_circle_radius + 4),
+		float(border_width + 4),
+		float(card_size.x - (cost_circle_pos.x + cost_circle_radius + 8)),
+		float(name_height)
 	)
+	layout.name_rect = name_rect
 
 	# Description (bottom area, optional)
+	var desc_height: float
+	var desc_rect: Rect2
 	if show_description:
-		layout.desc_height = card_size.y * 0.25
-		layout.desc_rect = Rect2(
-			layout.border_width + 4,
-			card_size.y - layout.desc_height - layout.border_width - 4,
-			card_size.x - (layout.border_width * 2) - 8,
-			layout.desc_height
+		desc_height = card_size.y * 0.25
+		desc_rect = Rect2(
+			float(border_width + 4),
+			float(card_size.y - desc_height - border_width - 4),
+			float(card_size.x - (border_width * 2) - 8),
+			float(desc_height)
 		)
 	else:
-		layout.desc_height = 0
-		layout.desc_rect = Rect2()
+		desc_height = 0.0
+		desc_rect = Rect2()
+	layout.desc_height = desc_height
+	layout.desc_rect = desc_rect
 
 	# Card art (center, fills remaining space)
-	var art_top = layout.cost_circle_pos.y + layout.cost_circle_radius + 4
-	var art_bottom = card_size.y - layout.desc_height - layout.border_width - 4
-	layout.art_rect = Rect2(
-		layout.border_width + 4,
-		art_top,
-		card_size.x - (layout.border_width * 2) - 8,
-		art_bottom - art_top
+	var art_top: float = cost_circle_pos.y + cost_circle_radius + 4
+	var art_bottom: float = card_size.y - desc_height - border_width - 4
+	var art_rect: Rect2 = Rect2(
+		float(border_width + 4),
+		float(art_top),
+		float(card_size.x - (border_width * 2) - 8),
+		float(art_bottom - art_top)
 	)
+	layout.art_rect = art_rect
 
 	return layout
 
@@ -253,7 +266,7 @@ static func format_card_name(card_name: String, max_length: int = 20) -> String:
 		return card_name
 
 	# Try to wrap at word boundaries
-	var words = card_name.split(" ")
+	var words: PackedStringArray = card_name.split(" ")
 	if words.size() > 1:
 		return "\n".join(words)
 
