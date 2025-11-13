@@ -100,21 +100,27 @@ func _create_unit_visual() -> void:
 		visual_component_3d = null
 		return
 
-	# Configure the visual component
-	if visual_component_3d.has_method("set_sprite_frames"):
-		visual_component_3d.call("set_sprite_frames", sprite_frames)
-
-	if "sprite_scale" in visual_component_3d:
-		visual_component_3d.set("sprite_scale", sprite_scale)
-
-	# Add to battlefield (3D world) BEFORE playing animation
+	# Add to battlefield (3D world) FIRST so _ready() gets called
 	battlefield.add_child(visual_component_3d)
 
-	# Wait for it to be added to tree
+	# Wait for _ready() to complete
 	if get_tree():
 		await get_tree().process_frame
 
-	# Now play idle animation (after added to tree)
+	# NOW configure the visual component (after _ready() has set up children)
+	if visual_component_3d.has_method("set_sprite_frames"):
+		visual_component_3d.call("set_sprite_frames", sprite_frames)
+		print("UnitDragPreview: Set sprite frames")
+
+	if "sprite_scale" in visual_component_3d:
+		visual_component_3d.set("sprite_scale", sprite_scale)
+		print("UnitDragPreview: Set sprite scale to ", sprite_scale)
+
+	# Wait a frame for sprite_frames to be applied
+	if get_tree():
+		await get_tree().process_frame
+
+	# Now play idle animation
 	if visual_component_3d.has_method("play_animation"):
 		visual_component_3d.call("play_animation", "idle", true)
 		print("UnitDragPreview: Playing idle animation")
