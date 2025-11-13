@@ -158,7 +158,7 @@ func get_time_remaining() -> float:
 
 func get_time_string() -> String:
 	var remaining: float = get_time_remaining()
-	var minutes: int = int(remaining) / 60
+	var minutes: int = int(remaining) // 60
 	var seconds: int = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
 
