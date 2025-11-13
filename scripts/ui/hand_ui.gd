@@ -106,7 +106,6 @@ class CardDisplay extends Control:
 		var viewport_variant: Variant = get_node_or_null("ViewportContainer/Viewport")
 		var viewport: Node = viewport_variant if viewport_variant is Node else null
 		if viewport:
-			var children_variant: Variant = viewport.get("children")
 			var children: Array = viewport.get_children()
 			for child: Node in children:
 				if child is CardVisual:

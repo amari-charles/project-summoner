@@ -64,7 +64,7 @@ func _ready() -> void:
 	print("  - Enemy HP: 999999")
 	print("  - No time limit")
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	# Grant infinite mana to player
 	if player_summoner and "mana" in player_summoner:
 		player_summoner.mana = 999
