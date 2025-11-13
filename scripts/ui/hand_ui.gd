@@ -249,33 +249,17 @@ class CardDisplay extends Control:
 		if summoner_mana < card.mana_cost:
 			return null
 
-		# Create a visual duplicate as preview
-		# Temporarily disable stretch to prevent SubViewport resize warning during duplication
-		var original_stretch: bool = false
-		if viewport_container:
-			original_stretch = viewport_container.stretch
-			viewport_container.stretch = false
+		# Create unit preview instead of card preview
+		var unit_preview: UnitDragPreview = UnitDragPreview.new()
+		var viewport: Viewport = hand_ui.get_viewport()
+		var camera: Camera3D = viewport.get_camera_3d() if viewport else null
+		var drop_zone: Node = hand_ui.get_tree().get_first_node_in_group("drop_zone")
 
-		var preview_node: Node = duplicate(DUPLICATE_USE_INSTANTIATION)
+		# Initialize preview with card and references
+		unit_preview.initialize(card, viewport, camera, drop_zone)
 
-		# Restore stretch setting
-		if viewport_container:
-			viewport_container.stretch = original_stretch
-
-		if not preview_node is Control:
-			return null
-		var preview: Control = preview_node
-		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
-
-		# Create wrapper to control preview offset
-		var preview_wrapper: Control = Control.new()
-		preview_wrapper.add_child(preview)
-
-		# Position preview so the grab point stays under cursor
-		# at_position is where on THIS card the user clicked
-		preview.position = -at_position * HOVER_SCALE
-
-		set_drag_preview(preview_wrapper)
+		# Set as drag preview
+		set_drag_preview(unit_preview)
 
 		# Card physically leaves the hand (completely invisible)
 		visible = false

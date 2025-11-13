@@ -9,6 +9,9 @@ var camera_3d: Camera3D = null
 var is_3d: bool = false
 
 func _ready() -> void:
+	# Add to group so preview can find us
+	add_to_group("drop_zone")
+
 	# Wait one frame to ensure summoners have joined their groups
 	await get_tree().process_frame
 
