@@ -192,10 +192,14 @@ func _create_preview_texture() -> void:
 	# Make it semi-transparent
 	preview_texture.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
 
+	# Set z_index to ensure it's above the indicator
+	preview_texture.z_index = 10
+
 	add_child(preview_texture)
 
 	print("UnitDragPreview: Created preview texture with size ", preview_texture.size)
 	print("UnitDragPreview: Texture rect has texture: ", preview_texture.texture != null)
+	print("UnitDragPreview: Texture z_index: ", preview_texture.z_index)
 
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
@@ -205,6 +209,7 @@ func _create_spawn_indicator() -> void:
 	spawn_indicator.custom_minimum_size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
 	spawn_indicator.size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
 	spawn_indicator.pivot_offset = Vector2(INDICATOR_RADIUS, INDICATOR_RADIUS)
+	spawn_indicator.z_index = -1  # Behind everything
 	add_child(spawn_indicator)
 
 ## Update preview position every frame to follow cursor
