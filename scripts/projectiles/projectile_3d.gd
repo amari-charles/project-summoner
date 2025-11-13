@@ -193,9 +193,12 @@ func initialize(data: Dictionary) -> void:
 	# Required fields
 	source = data.get("source")
 	target = data.get("target")
-	team = data.get("team", -1)
-	damage = data.get("damage", 10.0)
-	damage_type = data.get("damage_type", "physical")
+	var default_team: int = -1
+	team = data.get("team", default_team)
+	var default_damage: float = 10.0
+	damage = data.get("damage", default_damage)
+	var default_damage_type: String = "physical"
+	damage_type = data.get("damage_type", default_damage_type)
 
 	# Set position
 	if data.has("start_position"):

@@ -31,11 +31,12 @@ class_name VFXDefinition
 static func from_dict(data: Dictionary) -> VFXDefinition:
 	var vfx: VFXDefinition = VFXDefinition.new()
 
-	vfx.effect_id = data.get("effect_id", "")
-	vfx.effect_name = data.get("effect_name", "")
+	var default_empty_string: String = ""
+	vfx.effect_id = data.get("effect_id", default_empty_string)
+	vfx.effect_name = data.get("effect_name", default_empty_string)
 
 	# Scene path needs to be loaded
-	var scene_path_variant: Variant = data.get("effect_scene_path", "")
+	var scene_path_variant: Variant = data.get("effect_scene_path", default_empty_string)
 	if scene_path_variant is String:
 		var scene_path: String = scene_path_variant
 		if not scene_path.is_empty():
@@ -43,21 +44,27 @@ static func from_dict(data: Dictionary) -> VFXDefinition:
 			if loaded_scene is PackedScene:
 				vfx.effect_scene = loaded_scene
 
-	vfx.duration = data.get("duration", 1.0)
-	vfx.pooled = data.get("pooled", true)
-	vfx.pool_size = data.get("pool_size", 10)
+	var default_duration: float = 1.0
+	vfx.duration = data.get("duration", default_duration)
+	var default_pooled: bool = true
+	vfx.pooled = data.get("pooled", default_pooled)
+	var default_pool_size: int = 10
+	vfx.pool_size = data.get("pool_size", default_pool_size)
 
 	# Audio
-	var sound_path_variant: Variant = data.get("sound_path", "")
+	var sound_path_variant: Variant = data.get("sound_path", default_empty_string)
 	if sound_path_variant is String:
 		var sound_path: String = sound_path_variant
 		if not sound_path.is_empty():
 			var loaded_sound: Resource = load(sound_path)
 			if loaded_sound is AudioStream:
 				vfx.play_sound = loaded_sound
-	vfx.sound_volume = data.get("sound_volume", 0.0)
+	var default_sound_volume: float = 0.0
+	vfx.sound_volume = data.get("sound_volume", default_sound_volume)
 
-	vfx.camera_shake = data.get("camera_shake", 0.0)
-	vfx.camera_shake_duration = data.get("camera_shake_duration", 0.2)
+	var default_camera_shake: float = 0.0
+	vfx.camera_shake = data.get("camera_shake", default_camera_shake)
+	var default_camera_shake_duration: float = 0.2
+	vfx.camera_shake_duration = data.get("camera_shake_duration", default_camera_shake_duration)
 
 	return vfx

@@ -58,19 +58,26 @@ static func from_dict(data: Dictionary) -> UnitAnimationConfig:
 	if (data as Dictionary).has("states"):
 		for state_dict: Variant in data["states"]:
 			var state: AnimationStateData = AnimationStateData.new()
-			state.state_name = (state_dict as Dictionary).get("state_name", "")
+			var default_empty_string: String = ""
+			state.state_name = (state_dict as Dictionary).get("state_name", default_empty_string)
 			state.animation_name = (state_dict as Dictionary).get("animation_name", state.state_name)
-			state.loop = (state_dict as Dictionary).get("loop", true)
-			state.priority = (state_dict as Dictionary).get("priority", 0)
-			state.speed_scale = (state_dict as Dictionary).get("speed_scale", 1.0)
-			state.can_be_interrupted = (state_dict as Dictionary).get("can_be_interrupted", true)
-			state.auto_transition_to = (state_dict as Dictionary).get("auto_transition_to", "")
-			state.transition_delay = (state_dict as Dictionary).get("transition_delay", 0.0)
-			state.damage_frame = (state_dict as Dictionary).get("damage_frame", -1)
-			state.projectile_spawn_frame = (state_dict as Dictionary).get("projectile_spawn_frame", -1)
-			state.vfx_on_start = (state_dict as Dictionary).get("vfx_on_start", "")
-			state.vfx_on_end = (state_dict as Dictionary).get("vfx_on_end", "")
-			state.vfx_on_damage_frame = (state_dict as Dictionary).get("vfx_on_damage_frame", "")
+			var default_loop: bool = true
+			state.loop = (state_dict as Dictionary).get("loop", default_loop)
+			var default_priority: int = 0
+			state.priority = (state_dict as Dictionary).get("priority", default_priority)
+			var default_speed_scale: float = 1.0
+			state.speed_scale = (state_dict as Dictionary).get("speed_scale", default_speed_scale)
+			var default_can_be_interrupted: bool = true
+			state.can_be_interrupted = (state_dict as Dictionary).get("can_be_interrupted", default_can_be_interrupted)
+			state.auto_transition_to = (state_dict as Dictionary).get("auto_transition_to", default_empty_string)
+			var default_transition_delay: float = 0.0
+			state.transition_delay = (state_dict as Dictionary).get("transition_delay", default_transition_delay)
+			var default_frame_index: int = -1
+			state.damage_frame = (state_dict as Dictionary).get("damage_frame", default_frame_index)
+			state.projectile_spawn_frame = (state_dict as Dictionary).get("projectile_spawn_frame", default_frame_index)
+			state.vfx_on_start = (state_dict as Dictionary).get("vfx_on_start", default_empty_string)
+			state.vfx_on_end = (state_dict as Dictionary).get("vfx_on_end", default_empty_string)
+			state.vfx_on_damage_frame = (state_dict as Dictionary).get("vfx_on_damage_frame", default_empty_string)
 			var empty_metadata: Dictionary = {}
 			state.metadata = (state_dict as Dictionary).get("metadata", empty_metadata)
 
@@ -84,7 +91,8 @@ static func from_dict(data: Dictionary) -> UnitAnimationConfig:
 			# Load sound
 			if (state_dict as Dictionary).has("sound_on_start_path"):
 				state.sound_on_start = load(state_dict["sound_on_start_path"]) as AudioStream
-			state.sound_volume = (state_dict as Dictionary).get("sound_volume", 0.0)
+			var default_sound_volume: float = 0.0
+			state.sound_volume = (state_dict as Dictionary).get("sound_volume", default_sound_volume)
 
 			config.add_state(state)
 
