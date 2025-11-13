@@ -99,11 +99,12 @@ func _create_unit_visual() -> void:
 	add_child(visual_component)
 
 	# Set ghost transparency after adding to tree (so children are initialized)
-	await get_tree().process_frame
-	var sprite_3d: Node = visual_component.get_node_or_null("Sprite3D")
-	if sprite_3d and sprite_3d is Sprite3D:
-		var sprite_3d_typed: Sprite3D = sprite_3d
-		sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
+	if get_tree():
+		await get_tree().process_frame
+		var sprite_3d: Node = visual_component.get_node_or_null("Sprite3D")
+		if sprite_3d and sprite_3d is Sprite3D:
+			var sprite_3d_typed: Sprite3D = sprite_3d
+			sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
 
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
