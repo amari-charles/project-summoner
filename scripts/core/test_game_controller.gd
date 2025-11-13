@@ -77,8 +77,8 @@ func _process(delta: float) -> void:
 func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 	var cards: Array[Card] = []
 
-	for catalog_id in test_deck_cards:
-		var card = _load_card_resource(catalog_id)
+	for catalog_id: String in test_deck_cards:
+		var card: Card = _load_card_resource(catalog_id)
 		if card:
 			cards.append(card)
 
@@ -88,7 +88,7 @@ func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 
 	# Clear hand and redraw
 	summoner.hand.clear()
-	for i in summoner.max_hand_size:
+	for i: int in summoner.max_hand_size:
 		summoner.draw_card()
 
 	print("TestGameController: Loaded %d test cards for player" % cards.size())
@@ -98,8 +98,8 @@ func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 	var cards: Array[Card] = []
 
 	# Enemy gets 30 warriors (easy target practice)
-	for i in range(30):
-		var card = _load_card_resource("warrior")
+	for i: int in range(30):
+		var card: Card = _load_card_resource("warrior")
 		if card:
 			cards.append(card)
 
@@ -108,7 +108,7 @@ func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 
 	# Clear hand and redraw
 	summoner.hand.clear()
-	for i in summoner.max_hand_size:
+	for i: int in summoner.max_hand_size:
 		summoner.draw_card()
 
 	print("TestGameController: Loaded %d test cards for enemy" % cards.size())
@@ -120,7 +120,7 @@ func _load_card_resource(catalog_id: String) -> Card:
 		push_error("TestGameController: CardCatalog autoload not available")
 		return null
 
-	var card = CardCatalog.create_card_resource(catalog_id)
+	var card: Card = CardCatalog.create_card_resource(catalog_id)
 
 	if not card:
 		push_error("TestGameController: Failed to create card from catalog: %s" % catalog_id)
