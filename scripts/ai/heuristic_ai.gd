@@ -260,7 +260,9 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 	var y: float = 0.0
 
 	# X position based on zone and team
-	if summoner.team == Unit.Team.ENEMY:
+	var summoner_team_variant: Variant = summoner.get("team")
+	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
+	if summoner_team == Unit.Team.ENEMY:
 		# Enemy spawns on right side
 		match zone:
 			"defensive":
