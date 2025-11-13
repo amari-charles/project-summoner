@@ -6,8 +6,8 @@ class_name UnitDragPreview
 ## with a spawn indicator showing valid/invalid placement
 
 ## Visual components
-var unit_sprite: AnimatedSprite2D = null
-var spawn_indicator: ColorRect = null
+var visual_component: Node3D = null  # Character2D5Component
+var spawn_indicator: TextureRect = null
 
 ## References for position tracking
 var viewport: Viewport = null
@@ -16,31 +16,20 @@ var drop_zone: Node = null
 
 ## Preview configuration
 const GHOST_ALPHA: float = 0.6
-const INDICATOR_SIZE: float = 60.0
+const INDICATOR_RADIUS: float = 30.0
 const INDICATOR_VALID_COLOR: Color = Color(0.0, 1.0, 0.0, 0.5)  # Green
 const INDICATOR_INVALID_COLOR: Color = Color(1.0, 0.0, 0.0, 0.5)  # Red
 
 ## Card being previewed
 var card: Card = null
 
+## Current world position (cached)
+var current_world_pos: Vector3 = Vector3.ZERO
+
 func _ready() -> void:
 	# Set up container properties
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # Don't interfere with drag system
-	set_anchors_preset(Control.PRESET_TOP_LEFT)
-
-	# Create spawn indicator (ground circle)
-	spawn_indicator = ColorRect.new()
-	spawn_indicator.size = Vector2(INDICATOR_SIZE, INDICATOR_SIZE)
-	spawn_indicator.pivot_offset = spawn_indicator.size / 2.0
-	spawn_indicator.color = INDICATOR_VALID_COLOR
-	add_child(spawn_indicator)
-
-	# Create unit sprite container
-	var sprite_container: Control = Control.new()
-	sprite_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(sprite_container)
-
-	# Unit sprite will be added when initialized
+	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 ## Initialize preview with card data and references
 func initialize(p_card: Card, p_viewport: Viewport, p_camera: Camera3D, p_drop_zone: Node) -> void:
@@ -52,66 +41,107 @@ func initialize(p_card: Card, p_viewport: Viewport, p_camera: Camera3D, p_drop_z
 	# Extract and create unit visual
 	_create_unit_visual()
 
-## Extract sprite frames from card's unit scene and create ghost visual
+	# Create spawn indicator
+	_create_spawn_indicator()
+
+## Extract visual component from card's unit scene and create ghost
 func _create_unit_visual() -> void:
 	if not card or not card.unit_scene:
 		push_error("UnitDragPreview: No unit scene in card!")
 		return
 
-	# Temporarily instantiate unit to extract sprite data
-	var temp_unit: Node = card.unit_scene.instantiate()
-	if not temp_unit:
-		push_error("UnitDragPreview: Failed to instantiate unit scene!")
+	# Load the sprite character component scene
+	var component_scene: PackedScene = load("res://scenes/units/sprite_character_2d5_component.tscn")
+	if not component_scene:
+		push_error("UnitDragPreview: Failed to load sprite_character_2d5_component.tscn")
 		return
 
-	# Get sprite frames from unit
+	# Instantiate the visual component
+	visual_component = component_scene.instantiate()
+	if not visual_component:
+		push_error("UnitDragPreview: Failed to instantiate visual component")
+		return
+
+	# Get sprite frames from the unit scene
+	var temp_unit: Node = card.unit_scene.instantiate()
+	if not temp_unit:
+		push_error("UnitDragPreview: Failed to instantiate unit scene")
+		return
+
 	var sprite_frames_variant: Variant = temp_unit.get("sprite_frames")
 	var sprite_frames: SpriteFrames = sprite_frames_variant if sprite_frames_variant is SpriteFrames else null
 
-	if not sprite_frames:
-		push_error("UnitDragPreview: Unit has no sprite_frames!")
-		temp_unit.queue_free()
-		return
-
-	# Create animated sprite for preview
-	unit_sprite = AnimatedSprite2D.new()
-	unit_sprite.sprite_frames = sprite_frames
-	unit_sprite.modulate.a = GHOST_ALPHA
-	unit_sprite.play("idle")
-
-	# Scale sprite to reasonable preview size
-	unit_sprite.scale = Vector2(2.0, 2.0)
-
-	# Add to scene (second child, after spawn_indicator)
-	if get_child_count() >= 2:
-		var sprite_container: Node = get_child(1)
-		if sprite_container is Control:
-			var container: Control = sprite_container
-			container.add_child(unit_sprite)
+	# Get sprite scale if available
+	var sprite_scale_variant: Variant = temp_unit.get("sprite_scale")
+	var sprite_scale: float = sprite_scale_variant if sprite_scale_variant is float else 1.0
 
 	# Clean up temporary unit
 	temp_unit.queue_free()
 
+	if not sprite_frames:
+		push_error("UnitDragPreview: Unit has no sprite_frames!")
+		visual_component.queue_free()
+		visual_component = null
+		return
+
+	# Configure the visual component
+	if visual_component.has_method("set_sprite_frames"):
+		visual_component.call("set_sprite_frames", sprite_frames)
+
+	if "sprite_scale" in visual_component:
+		visual_component.set("sprite_scale", sprite_scale)
+
+	# Set ghost transparency
+	visual_component.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
+
+	# Play idle animation
+	if visual_component.has_method("play_animation"):
+		visual_component.call("play_animation", "idle", true)
+
+	# Add to scene tree (we'll position it in _process)
+	add_child(visual_component)
+
+## Create circular spawn indicator on ground
+func _create_spawn_indicator() -> void:
+	spawn_indicator = TextureRect.new()
+	spawn_indicator.modulate = INDICATOR_VALID_COLOR
+	spawn_indicator.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	spawn_indicator.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	spawn_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Create a simple circle texture using a placeholder
+	# In production, you'd use an actual texture asset
+	spawn_indicator.custom_minimum_size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
+	spawn_indicator.pivot_offset = spawn_indicator.custom_minimum_size / 2.0
+
+	# Create a simple colored rect as indicator for now
+	var circle_bg: ColorRect = ColorRect.new()
+	circle_bg.color = Color(1, 1, 1, 0.3)
+	circle_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	spawn_indicator.add_child(circle_bg)
+
+	add_child(spawn_indicator)
+
 ## Update preview position every frame to follow cursor
 func _process(_delta: float) -> void:
-	if not viewport or not camera_3d or not drop_zone:
+	if not viewport or not camera_3d:
 		return
 
 	# Get current mouse position
 	var mouse_pos: Vector2 = viewport.get_mouse_position()
 
 	# Convert to 3D world position
-	var world_pos: Vector3 = _screen_to_world_3d(mouse_pos)
+	current_world_pos = _screen_to_world_3d(mouse_pos)
 
-	# Convert back to screen space for indicator positioning
-	var screen_pos: Vector2 = camera_3d.unproject_position(world_pos)
+	# Position visual component at world position
+	if visual_component:
+		visual_component.global_position = current_world_pos
 
-	# Position spawn indicator at ground level
-	spawn_indicator.position = screen_pos - spawn_indicator.pivot_offset
-
-	# Position unit sprite slightly above indicator
-	if unit_sprite:
-		unit_sprite.global_position = screen_pos - Vector2(0, 40)  # Offset up slightly
+	# Position spawn indicator on ground
+	if spawn_indicator:
+		var ground_pos: Vector3 = Vector3(current_world_pos.x, 0.0, current_world_pos.z)
+		var screen_pos: Vector2 = camera_3d.unproject_position(ground_pos)
+		spawn_indicator.position = screen_pos - spawn_indicator.pivot_offset
 
 	# Update indicator color based on drop validity
 	_update_indicator_validity(mouse_pos)
@@ -123,7 +153,8 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 
 	# Project ray from camera through screen position
 	var from: Vector3 = camera_3d.project_ray_origin(screen_pos)
-	var to: Vector3 = from + camera_3d.project_ray_normal(screen_pos) * 1000.0
+	var direction: Vector3 = camera_3d.project_ray_normal(screen_pos)
+	var to: Vector3 = from + direction * 1000.0
 
 	# Intersect with spawn plane (Y = 0.0)
 	var spawn_y: float = 0.0
@@ -134,6 +165,11 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 		return Vector3(from.x, spawn_y, from.z)
 
 	var t: float = (spawn_y - from.y) / ray_dir.y
+
+	# Only intersect if ray is pointing toward plane
+	if t < 0:
+		return Vector3(from.x, spawn_y, from.z)
+
 	var hit_pos: Vector3 = from + ray_dir * t
 
 	return hit_pos
@@ -150,4 +186,4 @@ func _update_indicator_validity(mouse_pos: Vector2) -> void:
 		is_valid = drop_zone.call("_can_drop_data", mouse_pos, drag_data)
 
 	# Update indicator color
-	spawn_indicator.color = INDICATOR_VALID_COLOR if is_valid else INDICATOR_INVALID_COLOR
+	spawn_indicator.modulate = INDICATOR_VALID_COLOR if is_valid else INDICATOR_INVALID_COLOR
