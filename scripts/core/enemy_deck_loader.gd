@@ -17,7 +17,10 @@ static func load_enemy_deck_for_battle() -> Array[Card]:
 		push_error("EnemyDeckLoader: BattleContext not found!")
 		return cards
 
-	var battle_config_variant: Variant = battle_context.get("battle_config") if battle_context else {}
+	var battle_config_variant: Variant = {}
+	if battle_context is Object:
+		var battle_context_obj: Object = battle_context
+		battle_config_variant = battle_context_obj.get("battle_config")
 	var battle_config: Dictionary = battle_config_variant if battle_config_variant is Dictionary else {}
 	if battle_config.is_empty():
 		push_error("EnemyDeckLoader: Battle config is empty! Configure BattleContext before loading battle scene.")
@@ -66,7 +69,10 @@ static func load_deck_for_battle(battle_id: String) -> Array[Card]:
 		return cards
 
 	# Get battle data
-	var battle_variant: Variant = campaign.call("get_battle", battle_id) if campaign else {}
+	var battle_variant: Variant = {}
+	if campaign is Object:
+		var campaign_obj: Object = campaign
+		battle_variant = campaign_obj.call("get_battle", battle_id)
 	var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
 	if battle.is_empty():
 		push_error("EnemyDeckLoader: Battle not found: %s" % battle_id)
@@ -113,7 +119,10 @@ static func _create_card_from_catalog(catalog_id: String) -> Card:
 		return null
 
 	# Check if card exists
-	var has_card_result: bool = catalog.call("has_card", catalog_id) if catalog else false
+	var has_card_result: bool = false
+	if catalog is Object:
+		var catalog_obj: Object = catalog
+		has_card_result = catalog_obj.call("has_card", catalog_id)
 	if not has_card_result:
 		push_error("EnemyDeckLoader: Card '%s' not found in catalog!" % catalog_id)
 		return null
@@ -141,8 +150,10 @@ static func _create_card_from_catalog(catalog_id: String) -> Card:
 	return card
 
 ## Helper to get autoload service safely
-static func _get_service(path: String):
-	var tree = Engine.get_main_loop() as SceneTree
-	if tree and tree.root:
-		return tree.root.get_node_or_null(path)
+static func _get_service(path: String) -> Variant:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if main_loop is SceneTree:
+		var tree: SceneTree = main_loop
+		if tree and tree.root:
+			return tree.root.get_node_or_null(path)
 	return null
