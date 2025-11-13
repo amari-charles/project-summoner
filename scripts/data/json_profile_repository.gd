@@ -605,14 +605,15 @@ func _atomic_write(save_data: Dictionary, temp_path: String, main_path: String) 
 		return false
 
 	# Remove old main save if it exists
+	var err: Error = OK
 	if FileAccess.file_exists(main_path):
-		var err: Error = dir.remove(main_path.get_file())
+		err = dir.remove(main_path.get_file())
 		if err != OK:
 			push_error("JsonProfileRepo: Failed to remove old save")
 			return false
 
 	# Rename temp to main
-	var err: Error = dir.rename(temp_path.get_file(), main_path.get_file())
+	err = dir.rename(temp_path.get_file(), main_path.get_file())
 	if err != OK:
 		push_error("JsonProfileRepo: Failed to rename temp to main")
 		return false

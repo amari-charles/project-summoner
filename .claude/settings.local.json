@@ -13,7 +13,8 @@
       "Bash(godot:*)",
       "Bash(git commit:*)",
       "Bash(pkill:*)",
-      "Bash(godot4:*)"
+      "Bash(godot4:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

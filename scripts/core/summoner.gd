@@ -120,7 +120,7 @@ func draw_card() -> void:
 	hand_changed.emit(hand)
 
 ## Play a card from hand at the given position
-func play_card(card_index: int, position: Vector2) -> bool:
+func play_card(card_index: int, spawn_position: Vector2) -> bool:
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
@@ -140,7 +140,7 @@ func play_card(card_index: int, position: Vector2) -> bool:
 		return false
 
 	# Play the card
-	card.play(position, team, battlefield)
+	card.play(spawn_position, team, battlefield)
 
 	# Remove from hand and draw new card
 	hand.remove_at(card_index)

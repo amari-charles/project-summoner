@@ -84,7 +84,7 @@ func _init_pools() -> void:
 			])
 
 ## Play an effect at a 3D position
-func play_effect(effect_id: String, position: Vector3, data: Dictionary = {}) -> VFXInstance:
+func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = {}) -> VFXInstance:
 	if not effect_library.has(effect_id):
 		push_error("VFXManager: Effect '%s' not found in library" % effect_id)
 		return null
@@ -112,7 +112,7 @@ func play_effect(effect_id: String, position: Vector3, data: Dictionary = {}) ->
 		return null
 
 	# Configure instance
-	instance.global_position = position
+	instance.global_position = spawn_position
 	if vfx_def.duration > 0:
 		instance.lifetime = vfx_def.duration
 
@@ -141,7 +141,7 @@ func play_effect(effect_id: String, position: Vector3, data: Dictionary = {}) ->
 
 	# Play sound
 	if vfx_def.play_sound:
-		_play_sound(vfx_def.play_sound, position, vfx_def.sound_volume)
+		_play_sound(vfx_def.play_sound, spawn_position, vfx_def.sound_volume)
 
 	# Camera shake
 	if vfx_def.camera_shake > 0.0:
@@ -150,9 +150,9 @@ func play_effect(effect_id: String, position: Vector3, data: Dictionary = {}) ->
 	return instance
 
 ## Play effect in 2D screen space (for UI effects, future)
-func play_effect_2d(effect_id: String, position: Vector2, data: Dictionary = {}) -> VFXInstance:
+func play_effect_2d(effect_id: String, spawn_position: Vector2, data: Dictionary = {}) -> VFXInstance:
 	# Convert 2D position to 3D
-	var pos_3d: Vector3 = Vector3(position.x, position.y, 0)
+	var pos_3d: Vector3 = Vector3(spawn_position.x, spawn_position.y, 0)
 	return play_effect(effect_id, pos_3d, data)
 
 ## Get effect from pool or create new
@@ -201,11 +201,11 @@ func _on_effect_finished(effect_id: String, instance: VFXInstance) -> void:
 		pool.append(instance)
 
 ## Play sound at position
-func _play_sound(sound: AudioStream, position: Vector3, volume_db: float) -> void:
+func _play_sound(sound: AudioStream, spawn_position: Vector3, volume_db: float) -> void:
 	var audio_player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
 	audio_player.stream = sound
 	audio_player.volume_db = volume_db
-	audio_player.global_position = position
+	audio_player.global_position = spawn_position
 	audio_player.autoplay = true
 
 	effects_container.add_child(audio_player)

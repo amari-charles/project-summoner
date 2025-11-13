@@ -104,7 +104,7 @@ func draw_card() -> void:
 	hand_changed.emit(hand)
 
 ## Play a card from hand at the given 3D position
-func play_card_3d(card_index: int, position: Vector3) -> bool:
+func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
@@ -125,7 +125,7 @@ func play_card_3d(card_index: int, position: Vector3) -> bool:
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 
 	# Play the card in 3D
-	card.play_3d(position, team, battlefield, modifier_system)
+	card.play_3d(spawn_position, team, battlefield, modifier_system)
 
 	hand.remove_at(card_index)
 	draw_card()

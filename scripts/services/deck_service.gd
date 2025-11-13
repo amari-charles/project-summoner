@@ -123,12 +123,12 @@ func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Arr
 		push_warning("DeckService: Deck not found: %s" % deck_id)
 		return false
 
-	var name: String = deck_name if deck_name != "" else existing_deck.get("name")
+	var deck_display_name: String = deck_name if deck_name != "" else existing_deck.get("name")
 	var card_ids: Array = card_instance_ids if card_instance_ids.size() > 0 else existing_deck.get("card_instance_ids", [])
 
 	var updated_deck: Dictionary = {
 		"id": deck_id,
-		"name": name,
+		"name": deck_display_name,
 		"card_instance_ids": card_ids
 	}
 

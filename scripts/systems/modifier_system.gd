@@ -62,7 +62,7 @@ func get_modifiers_for(target_type: String, categories: Dictionary, context: Dic
 ## CONDITION MATCHING
 ## =============================================================================
 
-func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: Dictionary) -> bool:
+func _matches_conditions(modifier: Dictionary, categories: Dictionary, _context: Dictionary) -> bool:
 	var empty_dict: Dictionary = {}
 	var conditions: Dictionary = modifier.get("conditions", empty_dict)
 

@@ -54,7 +54,7 @@ func load_script(script_data: Array) -> void:
 ## Execute a single spawn event from the script
 func _execute_spawn_event(event: Dictionary) -> void:
 	var card_name: String = event.get("card_name", "")
-	var position: Vector2 = event.get("position", Vector2.ZERO)
+	var spawn_pos: Vector2 = event.get("position", Vector2.ZERO)
 
 	# Find the card in hand by name
 	var card_index: int = _find_card_by_name(card_name)
@@ -81,10 +81,10 @@ func _execute_spawn_event(event: Dictionary) -> void:
 
 	# Play the card
 	if summoner.has_method("play_card_3d"):
-		var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(position)
+		var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(spawn_pos)
 		summoner.call("play_card_3d", card_index, pos_3d)
 	else:
-		summoner.call("play_card", card_index, position)
+		summoner.call("play_card", card_index, spawn_pos)
 
 ## Find card in hand by catalog ID or card name
 func _find_card_by_name(card_name: String) -> int:
@@ -107,4 +107,4 @@ func select_card_to_play() -> int:
 	return -1
 
 func select_spawn_position(_card: Card) -> Vector2:
-	return Vector2.ZERO
+	return Vector2.ZERO  # Not used by scripted AI, positions come from script

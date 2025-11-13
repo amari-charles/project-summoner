@@ -45,8 +45,8 @@ func _process(delta: float) -> void:
 						var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
 						summoner.call("play_card_3d", card_index, pos_3d)
 					else:
-						var position: Vector2 = select_spawn_position(card)
-						summoner.call("play_card", card_index, position)
+						var spawn_pos: Vector2 = select_spawn_position(card)
+						summoner.call("play_card", card_index, spawn_pos)
 		_set_next_play_time()
 
 func on_battle_start() -> void:
@@ -131,7 +131,7 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 	return score
 
 ## Score summon cards
-func _score_summon_card(card: Card, state: BattlefieldState) -> float:
+func _score_summon_card(_card: Card, state: BattlefieldState) -> float:
 	var score: float = 10.0  # Base preference for summons
 
 	match state:
@@ -145,7 +145,7 @@ func _score_summon_card(card: Card, state: BattlefieldState) -> float:
 	return score
 
 ## Score spell cards
-func _score_spell_card(card: Card, state: BattlefieldState) -> float:
+func _score_spell_card(_card: Card, state: BattlefieldState) -> float:
 	var score: float = 5.0  # Base preference for spells
 
 	# Check if there are enemy units to target
@@ -219,7 +219,7 @@ func _evaluate_battlefield_state() -> BattlefieldState:
 		return BattlefieldState.EVEN
 
 ## Select which zone to spawn in
-func _select_spawn_zone(card: Card) -> String:
+func _select_spawn_zone(_card: Card) -> String:
 	var state: BattlefieldState = _evaluate_battlefield_state()
 
 	# Determine zone preference based on personality and state

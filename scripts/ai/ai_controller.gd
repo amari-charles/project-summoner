@@ -23,7 +23,7 @@ func select_card_to_play() -> int:
 
 ## Select where to spawn the card
 ## Returns the world position to spawn at
-func select_spawn_position(card: Card) -> Vector2:
+func select_spawn_position(_card: Card) -> Vector2:
 	return Vector2.ZERO
 
 ## Helper: Get battlefield dimensions
