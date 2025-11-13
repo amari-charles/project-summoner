@@ -107,20 +107,36 @@ func _create_unit_visual() -> void:
 	if "sprite_scale" in visual_component_3d:
 		visual_component_3d.set("sprite_scale", sprite_scale)
 
-	# Play idle animation
-	if visual_component_3d.has_method("play_animation"):
-		visual_component_3d.call("play_animation", "idle", true)
-
-	# Add to battlefield (3D world)
+	# Add to battlefield (3D world) BEFORE playing animation
 	battlefield.add_child(visual_component_3d)
 
-	# Set ghost transparency after adding to tree
+	# Wait for it to be added to tree
 	if get_tree():
 		await get_tree().process_frame
-		var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
+
+	# Now play idle animation (after added to tree)
+	if visual_component_3d.has_method("play_animation"):
+		visual_component_3d.call("play_animation", "idle", true)
+		print("UnitDragPreview: Playing idle animation")
+
+	# Debug: Check if sprite is actually set up
+	var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
+	if sprite_3d:
+		var viewport_node: Node = sprite_3d.get_node_or_null("SubViewport/Model2D/CharacterSprite")
+		if viewport_node and viewport_node is AnimatedSprite2D:
+			var char_sprite: AnimatedSprite2D = viewport_node
+			print("UnitDragPreview: CharacterSprite animation: ", char_sprite.animation)
+			print("UnitDragPreview: CharacterSprite playing: ", char_sprite.is_playing())
+			print("UnitDragPreview: CharacterSprite visible: ", char_sprite.visible)
+			print("UnitDragPreview: CharacterSprite has frames: ", char_sprite.sprite_frames != null)
+
+	# Set ghost transparency
+	if get_tree():
+		await get_tree().process_frame
 		if sprite_3d and sprite_3d is Sprite3D:
 			var sprite_3d_typed: Sprite3D = sprite_3d
 			sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
+			print("UnitDragPreview: Set Sprite3D alpha to ", GHOST_ALPHA)
 
 ## Create texture rect to display unit visual from viewport
 func _create_preview_texture() -> void:
