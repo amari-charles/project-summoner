@@ -172,33 +172,28 @@ func _die() -> void:
 	summoner_died.emit(self)
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
+## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
 func _is_test_mode() -> bool:
-	# Method 1: Check via game_controller group
+	# Check via game_controller group
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
-	if game_controller:
-		print("Summoner3D: Found game controller: %s (is TestGameController: %s)" % [game_controller.get_class(), game_controller is TestGameController])
-		if game_controller is TestGameController:
-			return true
+	if game_controller and game_controller is TestGameController:
+		return true
 
-	# Method 2: Check root node of scene (test scenes have test controller as root)
+	# Check root node of scene (test scenes have test controller as root)
 	var root: Node = get_tree().current_scene
-	if root:
-		print("Summoner3D: Scene root is: %s (is TestGameController: %s)" % [root.get_class(), root is TestGameController])
-		if root is TestGameController:
-			return true
+	if root and root is TestGameController:
+		return true
 
-	# Method 3: Check if BattleContext is in practice mode
+	# Check if BattleContext is in practice mode
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context:
 		var mode_variant: Variant = battle_context.get("current_mode")
 		if mode_variant is int:
 			var mode: int = mode_variant
-			print("Summoner3D: BattleContext mode: %d" % mode)
-			# Assuming PRACTICE = 1 (check BattleContext enum if needed)
+			# PRACTICE = 1 in BattleContext enum
 			if mode == 1:
 				return true
 
-	print("Summoner3D: Test mode NOT detected - will fail hard if deck is empty")
 	return false
 
 ## =============================================================================

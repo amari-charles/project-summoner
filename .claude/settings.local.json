@@ -1,24 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(/Applications/Godot.app/Contents/MacOS/Godot:*)",
-      "Bash(mdfind:*)",
       "Bash(/Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)",
-      "Bash(timeout 120 /Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)",
+      "Bash(mdfind:*)",
       "Bash(tee:*)",
       "Bash(cat:*)",
       "mcp__ide__getDiagnostics",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Bash(godot:*)",
       "Bash(git commit:*)",
       "Bash(pkill:*)",
-      "Bash(godot4:*)",
       "Bash(find:*)",
-      "Bash(timeout 60 /Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)",
-      "Bash(timeout 90 godot:*)",
-      "Bash(timeout 10 /Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)",
-      "Bash(gtimeout:*)",
       "Bash(python3 -m py_compile:*)"
     ],
     "deny": [],
