@@ -67,7 +67,7 @@ var element_color: Color = Color.GRAY
 ## LIFECYCLE
 ## =============================================================================
 
-func _ready():
+func _ready() -> void:
 	# Initial setup
 	if card_data:
 		_apply_visual_styling()
@@ -167,8 +167,12 @@ func _apply_gradient_background() -> void:
 
 	# Create radial gradient texture
 	var gradient: Gradient = Gradient.new()
-	gradient.set_color(0, gradient_colors[0])  # Center color (dark)
-	gradient.set_color(1, gradient_colors[1])  # Edge color (light)
+	var color0_variant: Variant = gradient_colors[0]
+	var color1_variant: Variant = gradient_colors[1]
+	var color0: Color = color0_variant if color0_variant is Color else Color.GRAY
+	var color1: Color = color1_variant if color1_variant is Color else Color.GRAY
+	gradient.set_color(0, color0)  # Center color (dark)
+	gradient.set_color(1, color1)  # Edge color (light)
 
 	var gradient_texture: GradientTexture2D = GradientTexture2D.new()
 	gradient_texture.gradient = gradient
@@ -210,15 +214,20 @@ func _get_element_id_from_card_data() -> String:
 
 	# Check if this is a Card resource, need to fetch from catalog
 	if card_data.has("catalog_id") and not card_data.has("categories"):
-		catalog_dict = CardCatalog.get_card(card_data.catalog_id)
+		var catalog_id_variant: Variant = card_data.catalog_id
+		var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
+		var catalog_dict_variant: Variant = CardCatalog.get_card(catalog_id)
+		catalog_dict = catalog_dict_variant if catalog_dict_variant is Dictionary else {}
 
 	# Extract element ID
 	if catalog_dict.has("categories"):
-		var categories: Variant = catalog_dict.categories
-		if categories is Dictionary and categories.has("elemental_affinity"):
-			var affinity: Variant = categories.elemental_affinity
-			if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
-				return affinity.id
+		var categories_variant: Variant = catalog_dict.categories
+		if categories_variant is Dictionary:
+			var categories: Dictionary = categories_variant
+			if categories.has("elemental_affinity"):
+				var affinity: Variant = categories.elemental_affinity
+				if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
+					return affinity.id
 
 	return "neutral"  # Fallback
 
@@ -257,14 +266,17 @@ func _update_art() -> void:
 
 	# Try to load card art if path is specified
 	var art_loaded: bool = false
-	if card_data.has("card_icon_path") and not card_data.card_icon_path.is_empty():
-		var texture: Texture2D = load(card_data.card_icon_path)
-		if texture and art_tex:
-			art_tex.texture = texture
-			art_tex.visible = true
-			if art_ph:
-				art_ph.visible = false
-			art_loaded = true
+	if card_data.has("card_icon_path"):
+		var card_icon_path_variant: Variant = card_data.card_icon_path
+		var card_icon_path: String = card_icon_path_variant if card_icon_path_variant is String else ""
+		if not card_icon_path.is_empty():
+			var texture: Texture2D = load(card_icon_path)
+			if texture and art_tex:
+				art_tex.texture = texture
+				art_tex.visible = true
+				if art_ph:
+					art_ph.visible = false
+				art_loaded = true
 
 	# Fall back to colored placeholder
 	if not art_loaded and art_ph:
