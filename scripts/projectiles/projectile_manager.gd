@@ -147,14 +147,14 @@ func _get_from_pool(projectile_id: String) -> Projectile3D:
 
 	var pool: Array = projectile_pools[projectile_id]
 	if pool.size() > 0:
-		var projectile: Projectile3D = pool.pop_back()
-		projectile.reset()
-		return projectile
+		var pooled_projectile: Projectile3D = pool.pop_back()
+		pooled_projectile.reset()
+		return pooled_projectile
 
 	# Pool exhausted, create new
-	var projectile: Projectile3D = _instantiate_projectile()
-	projectile.is_pooled = true
-	return projectile
+	var new_projectile: Projectile3D = _instantiate_projectile()
+	new_projectile.is_pooled = true
+	return new_projectile
 
 ## Return projectile to pool
 func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:

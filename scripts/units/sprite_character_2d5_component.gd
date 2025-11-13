@@ -50,8 +50,8 @@ func play_animation(_anim_name: String, _auto_play: bool = false) -> void:
 		# Check if animation exists before trying to play it
 		if character_sprite.sprite_frames.has_animation(_anim_name):
 			character_sprite.animation = _anim_name
-			if _auto_play:
-				character_sprite.autoplay = _anim_name
+			# Note: autoplay should only be set before node is added to scene
+			# Since we're already in the scene, just play() is sufficient
 			character_sprite.play()
 		else:
 			push_warning("Animation '%s' not found in sprite_frames, falling back to 'idle'" % _anim_name)

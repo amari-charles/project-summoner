@@ -1,8 +1,8 @@
 [gd_resource type="SpriteFrames" load_steps=24 format=3 uid="uid://diwi2hkk8tnyo"]
 
-[ext_resource type="Texture2D" uid="uid://bxq613018l38d" path="res://assets/characters/soldier/soldier_idle.png" id="1_idle"]
-[ext_resource type="Texture2D" uid="uid://dh5bbbr86gpqd" path="res://assets/characters/soldier/soldier_walk.png" id="2_walk"]
-[ext_resource type="Texture2D" uid="uid://bkch28e2gmi5b" path="res://assets/characters/soldier/soldier_attack01.png" id="3_attack"]
+[ext_resource type="Texture2D" path="res://assets/characters/soldier/soldier_idle.png" id="1_idle"]
+[ext_resource type="Texture2D" path="res://assets/characters/soldier/soldier_walk.png" id="2_walk"]
+[ext_resource type="Texture2D" path="res://assets/characters/soldier/soldier_attack01.png" id="3_attack"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_attack_1"]
 atlas = ExtResource("3_attack")
