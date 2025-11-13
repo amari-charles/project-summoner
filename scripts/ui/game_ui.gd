@@ -58,8 +58,8 @@ func _ready() -> void:
 
 func _on_time_updated(remaining: float) -> void:
 	if timer_label:
-		var minutes = int(remaining) // 60
-		var seconds = int(remaining) % 60
+		var minutes: int = floori(remaining / 60.0)
+		var seconds: int = int(remaining) % 60
 		timer_label.text = "%02d:%02d" % [minutes, seconds]
 
 func _on_mana_changed(current: float, maximum: float) -> void:
