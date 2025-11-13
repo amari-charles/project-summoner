@@ -38,6 +38,12 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
+	# Auto-correct deck loading strategy based on team if using wrong default
+	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+		deck_load_strategy = DeckLoadStrategy.PROFILE
+	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
+		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
+
 	# For enemy summoners, load config from BattleContext
 	if team == Unit3D.Team.ENEMY:
 		var battle_context: Node = get_node_or_null("/root/BattleContext")
