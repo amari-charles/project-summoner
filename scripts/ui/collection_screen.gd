@@ -55,7 +55,7 @@ var selected_deck_id: String = ""
 var collection_summary: Array = []
 
 ## Card widget scene
-const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
+const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
 
 ## =============================================================================
 ## LIFECYCLE
@@ -85,15 +85,19 @@ func _ready() -> void:
 
 	# Connect to collection service
 	var collection: Node = get_node("/root/Collection")
-	if collection:
-		collection.collection_changed.connect(_on_collection_changed)
+	if collection and collection.has_signal("collection_changed"):
+		var collection_changed_sig: Signal = collection.collection_changed
+		collection_changed_sig.connect(_on_collection_changed)
 
 	# Connect to deck service
 	var decks: Node = get_node("/root/Decks")
-	if decks:
-		decks.deck_changed.connect(_on_deck_changed)
-		decks.deck_created.connect(_on_deck_created)
-		decks.deck_deleted.connect(_on_deck_deleted)
+	if decks and decks.has_signal("deck_changed") and decks.has_signal("deck_created") and decks.has_signal("deck_deleted"):
+		var deck_changed_sig: Signal = decks.deck_changed
+		var deck_created_sig: Signal = decks.deck_created
+		var deck_deleted_sig: Signal = decks.deck_deleted
+		deck_changed_sig.connect(_on_deck_changed)
+		deck_created_sig.connect(_on_deck_created)
+		deck_deleted_sig.connect(_on_deck_deleted)
 
 	# Load initial data
 	_refresh_collection()
@@ -131,23 +135,31 @@ func _switch_to_tab(tab: Tab) -> void:
 
 func _refresh_collection() -> void:
 	var collection: Node = get_node("/root/Collection")
-	if not collection:
+	if not collection or not collection.has_method("get_collection_summary"):
 		push_error("CollectionScreen: Collection service not found!")
 		return
 
 	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog:
+	if not catalog or not catalog.has_method("get_card"):
 		push_error("CollectionScreen: CardCatalog not found!")
 		return
 
 	# Get collection summary (grouped by catalog_id)
-	collection_summary = collection.get_collection_summary()
+	var summary_result: Variant = collection.call("get_collection_summary")
+	if not summary_result is Array:
+		return
+	collection_summary = summary_result
 
 	# Update stats
 	var total_cards: int = 0
 	var unique_cards: int = collection_summary.size()
-	for entry in collection_summary:
-		total_cards += entry.count
+	for entry_var: Variant in collection_summary:
+		if not entry_var is Dictionary:
+			continue
+		var entry: Dictionary = entry_var
+		var count_val: Variant = entry.get("count", 0)
+		if count_val is int:
+			total_cards += count_val
 
 	stats_label.text = "%d Cards (%d Unique)" % [total_cards, unique_cards]
 
@@ -156,43 +168,77 @@ func _refresh_collection() -> void:
 
 func _refresh_grid() -> void:
 	# Clear existing cards
-	for child in card_grid.get_children():
+	for child: Node in card_grid.get_children():
 		child.queue_free()
 
 	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog:
+	if not catalog or not catalog.has_method("get_card"):
 		return
 
 	# Filter collection summary
 	var filtered_cards: Array = []
-	for entry in collection_summary:
-		var catalog_id: String = entry.catalog_id
-		var catalog_data: Dictionary = catalog.get_card(catalog_id)
+	for entry_var: Variant in collection_summary:
+		if not entry_var is Dictionary:
+			continue
+		var entry: Dictionary = entry_var
+		var catalog_id_val: Variant = entry.get("catalog_id", "")
+		if not catalog_id_val is String:
+			continue
+		var catalog_id: String = catalog_id_val
+
+		var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
+		if not catalog_data_result is Dictionary:
+			continue
+		var catalog_data: Dictionary = catalog_data_result
 
 		if catalog_data.is_empty():
 			continue
 
 		# Apply type filter
 		if current_filter_type != -1:
-			if catalog_data.get("card_type", 0) != current_filter_type:
+			var card_type_val: Variant = catalog_data.get("card_type", 0)
+			if card_type_val is int and card_type_val != current_filter_type:
 				continue
 
 		# Apply rarity filter
 		if current_filter_rarity != "":
-			if catalog_data.get("rarity", "common") != current_filter_rarity:
+			var rarity_val: Variant = catalog_data.get("rarity", "common")
+			if rarity_val is String and rarity_val != current_filter_rarity:
 				continue
 
 		filtered_cards.append(entry)
 
 	# Create card widgets - show each instance individually
 	var total_widgets: int = 0
-	for entry in filtered_cards:
-		var instances: Array = entry.instances
-		var catalog_data: Dictionary = catalog.get_card(entry.catalog_id)
+	for entry_var: Variant in filtered_cards:
+		if not entry_var is Dictionary:
+			continue
+		var entry: Dictionary = entry_var
+		var instances_val: Variant = entry.get("instances", [])
+		if not instances_val is Array:
+			continue
+		var instances: Array = instances_val
+
+		var catalog_id_val: Variant = entry.get("catalog_id", "")
+		if not catalog_id_val is String:
+			continue
+		var entry_catalog_id: String = catalog_id_val
+
+		var catalog_data_result: Variant = catalog.call("get_card", entry_catalog_id)
+		if not catalog_data_result is Dictionary:
+			continue
+		var catalog_data: Dictionary = catalog_data_result
 
 		# Create a widget for EACH individual card instance
-		for card_data in instances:
-			var widget: CardWidget = CardWidgetScene.instantiate()
+		for card_data_var: Variant in instances:
+			if not card_data_var is Dictionary:
+				continue
+			var card_data: Dictionary = card_data_var
+
+			var widget_node: Node = CardWidgetScene.instantiate()
+			if not widget_node is CardWidget:
+				continue
+			var widget: CardWidget = widget_node
 			card_grid.add_child(widget)
 
 			# Set card data
@@ -200,8 +246,10 @@ func _refresh_grid() -> void:
 			widget.set_draggable(false)
 
 			# Connect selection (pass instance ID, not catalog ID)
-			var instance_id: String = card_data.get("id", "")
-			widget.card_clicked.connect(_on_card_instance_selected.bind(instance_id, entry.catalog_id))
+			var instance_id_val: Variant = card_data.get("id", "")
+			var instance_id: String = instance_id_val if instance_id_val is String else ""
+			var card_clicked_sig: Signal = widget.card_clicked
+			card_clicked_sig.connect(_on_card_instance_selected.bind(instance_id, entry_catalog_id))
 
 			total_widgets += 1
 
@@ -237,28 +285,46 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 	selected_catalog_id = catalog_id
 
 	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog:
+	if not catalog or not catalog.has_method("get_card"):
 		return
 
-	var catalog_data: Dictionary = catalog.get_card(catalog_id)
+	var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
+	if not catalog_data_result is Dictionary:
+		return
+	var catalog_data: Dictionary = catalog_data_result
 	if catalog_data.is_empty():
 		return
 
 	# Update detail panel
-	card_name_label.text = catalog_data.get("card_name", "Unknown")
-	rarity_label.text = "Rarity: %s" % catalog_data.get("rarity", "common").capitalize()
+	var card_name_val: Variant = catalog_data.get("card_name", "Unknown")
+	card_name_label.text = card_name_val if card_name_val is String else "Unknown"
 
-	var card_type: int = catalog_data.get("card_type", 0)
+	var rarity_val: Variant = catalog_data.get("rarity", "common")
+	var rarity_str: String = rarity_val if rarity_val is String else "common"
+	rarity_label.text = "Rarity: %s" % rarity_str.capitalize()
+
+	var card_type_val: Variant = catalog_data.get("card_type", 0)
+	var card_type: int = card_type_val if card_type_val is int else 0
 	type_label.text = "Type: %s" % ("Summon" if card_type == 0 else "Spell")
 
-	cost_label.text = "Cost: %d Mana" % catalog_data.get("mana_cost", 0)
-	description_label.text = catalog_data.get("description", "No description.")
+	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
+	var mana_cost: int = mana_cost_val if mana_cost_val is int else 0
+	cost_label.text = "Cost: %d Mana" % mana_cost
+
+	var description_val: Variant = catalog_data.get("description", "No description.")
+	description_label.text = description_val if description_val is String else "No description."
 
 	# Get count of this card type from collection summary
 	var count: int = 0
-	for entry in collection_summary:
-		if entry.catalog_id == catalog_id:
-			count = entry.count
+	for entry_var: Variant in collection_summary:
+		if not entry_var is Dictionary:
+			continue
+		var entry: Dictionary = entry_var
+		var entry_catalog_id_val: Variant = entry.get("catalog_id", "")
+		if entry_catalog_id_val is String and entry_catalog_id_val == catalog_id:
+			var count_val: Variant = entry.get("count", 0)
+			if count_val is int:
+				count = count_val
 			break
 
 	owned_label.text = "Owned: %d" % count
@@ -271,15 +337,18 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 
 func _refresh_deck_list() -> void:
 	# Clear existing deck items
-	for child in deck_list.get_children():
+	for child: Node in deck_list.get_children():
 		child.queue_free()
 
 	var decks: Node = get_node("/root/Decks")
-	if not decks:
+	if not decks or not decks.has_method("list_decks"):
 		push_error("CollectionScreen: Decks service not found!")
 		return
 
-	var deck_list_data: Array = decks.list_decks()
+	var deck_list_result: Variant = decks.call("list_decks")
+	if not deck_list_result is Array:
+		return
+	var deck_list_data: Array = deck_list_result
 
 	if deck_list_data.size() == 0:
 		var label: Label = Label.new()
@@ -290,7 +359,10 @@ func _refresh_deck_list() -> void:
 		return
 
 	# Create deck list items
-	for deck_data in deck_list_data:
+	for deck_data_var: Variant in deck_list_data:
+		if not deck_data_var is Dictionary:
+			continue
+		var deck_data: Dictionary = deck_data_var
 		var deck_item: PanelContainer = _create_deck_list_item(deck_data)
 		deck_list.add_child(deck_item)
 
@@ -310,13 +382,15 @@ func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
 
 	# Deck name
 	var name_label: Label = Label.new()
-	name_label.text = deck_data.get("name", "Unnamed Deck")
+	var name_val: Variant = deck_data.get("name", "Unnamed Deck")
+	name_label.text = name_val if name_val is String else "Unnamed Deck"
 	name_label.add_theme_font_size_override("font_size", 24)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
 	# Card count
-	var card_ids: Array = deck_data.get("card_instance_ids", [])
+	var card_ids_val: Variant = deck_data.get("card_instance_ids", [])
+	var card_ids: Array = card_ids_val if card_ids_val is Array else []
 	var count_label: Label = Label.new()
 	count_label.text = "%d / 30" % card_ids.size()
 	count_label.add_theme_font_size_override("font_size", 20)
@@ -325,7 +399,13 @@ func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
 
 	# Validation status
 	var decks: Node = get_node("/root/Decks")
-	var is_valid: bool = decks.validate_deck(deck_data.get("id", ""))
+	var deck_id_val: Variant = deck_data.get("id", "")
+	var deck_id: String = deck_id_val if deck_id_val is String else ""
+	var is_valid: bool = false
+	if decks and decks.has_method("validate_deck"):
+		var valid_result: Variant = decks.call("validate_deck", deck_id)
+		if valid_result is bool:
+			is_valid = valid_result
 	var status_label: Label = Label.new()
 	status_label.text = "✓" if is_valid else "⚠"
 	status_label.add_theme_font_size_override("font_size", 24)
@@ -336,8 +416,8 @@ func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
 	var button: Button = Button.new()
 	button.flat = true
 	button.custom_minimum_size = panel.custom_minimum_size
-	var deck_id: String = deck_data.get("id", "")
-	button.pressed.connect(_on_deck_item_clicked.bind(deck_id))
+	var pressed_sig: Signal = button.pressed
+	pressed_sig.connect(_on_deck_item_clicked.bind(deck_id))
 	panel.add_child(button)
 
 	return panel
@@ -347,18 +427,25 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 
 	# Check if deck editing is locked (tutorial not complete)
 	var campaign: Node = get_node("/root/Campaign")
-	if campaign and not campaign.is_tutorial_complete():
-		print("CollectionScreen: Deck editing locked - tutorial not complete")
-		_show_deck_locked_message()
-		return
+	if campaign and campaign.has_method("is_tutorial_complete"):
+		var is_complete_result: Variant = campaign.call("is_tutorial_complete")
+		if is_complete_result is bool and not is_complete_result:
+			print("CollectionScreen: Deck editing locked - tutorial not complete")
+			_show_deck_locked_message()
+			return
 
 	# Store selected deck ID in profile meta temporarily so deck builder can read it
 	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo:
-		var profile: Dictionary = profile_repo.get_active_profile()
-		if not profile.is_empty():
-			profile["meta"]["editing_deck_id"] = deck_id
-			print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
+	if profile_repo and profile_repo.has_method("get_active_profile"):
+		var profile_result: Variant = profile_repo.call("get_active_profile")
+		if profile_result is Dictionary:
+			var profile: Dictionary = profile_result
+			if not profile.is_empty():
+				var meta_val: Variant = profile.get("meta", {})
+				if meta_val is Dictionary:
+					var meta: Dictionary = meta_val
+					meta["editing_deck_id"] = deck_id
+					print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
 
 	get_tree().change_scene_to_file("res://scenes/ui/deck_builder.tscn")
 
@@ -370,14 +457,16 @@ func _show_deck_locked_message() -> void:
 	dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
 	add_child(dialog)
 	dialog.popup_centered()
-	dialog.confirmed.connect(dialog.queue_free)
+	var confirmed_sig: Signal = dialog.confirmed
+	confirmed_sig.connect(dialog.queue_free)
 
 func _on_new_deck_pressed() -> void:
 	var decks: Node = get_node("/root/Decks")
-	if not decks:
+	if not decks or not decks.has_method("create_deck"):
 		return
 
-	var deck_id: String = decks.create_deck("New Deck", [])
+	var deck_id_result: Variant = decks.call("create_deck", "New Deck", [])
+	var deck_id: String = deck_id_result if deck_id_result is String else ""
 	print("CollectionScreen: Created new deck: %s" % deck_id)
 
 func _on_delete_deck_pressed() -> void:
