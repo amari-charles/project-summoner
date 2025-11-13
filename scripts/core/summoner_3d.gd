@@ -202,7 +202,7 @@ func _load_profile_deck() -> Array[Card]:
 	var loaded_deck: Array[Card] = DeckLoader.load_player_deck()
 
 	if loaded_deck.is_empty():
-		push_error("Summoner3D: Failed to load from profile, falling back to static deck")
+		push_warning("Summoner3D: Failed to load from profile, falling back to static deck")
 		return _load_static_deck()
 
 	return loaded_deck

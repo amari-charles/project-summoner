@@ -26,7 +26,7 @@ static func load_deck_for_battle(deck_id: String) -> Array[Card]:
 		deck_variant = decks_obj.call("get_deck", deck_id)
 	var deck: Dictionary = deck_variant if deck_variant is Dictionary else {}
 	if deck.is_empty():
-		push_error("DeckLoader: Deck not found: %s" % deck_id)
+		push_warning("DeckLoader: Deck not found: %s" % deck_id)
 		return cards
 
 	var card_instance_ids_variant: Variant = deck.get("card_instance_ids", [])
