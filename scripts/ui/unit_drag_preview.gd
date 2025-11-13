@@ -233,6 +233,17 @@ func _process(_delta: float) -> void:
 
 	# Preview texture position is already set during creation, don't move it
 
+	# Debug: Log actual control position and preview positions
+	if get_tree().get_frame() % 60 == 0:
+		print("=== Drag Preview Debug ===")
+		print("Control global_position: ", global_position)
+		print("Control position: ", position)
+		print("Mouse position: ", mouse_pos)
+		if preview_texture:
+			print("Preview texture position: ", preview_texture.position)
+			print("Preview texture global_position: ", preview_texture.global_position)
+			print("Preview texture size: ", preview_texture.size)
+
 	# Position spawn indicator relative to this control
 	# Project world ground position to screen, then make it relative to this control's position
 	if spawn_indicator:
