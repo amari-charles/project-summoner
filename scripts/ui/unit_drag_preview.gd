@@ -178,11 +178,13 @@ func _create_preview_texture() -> void:
 
 	preview_texture = TextureRect.new()
 	preview_texture.texture = viewport_texture
-	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	preview_texture.stretch_mode = TextureRect.STRETCH_SCALE
+	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Force the size to PREVIEW_SIZE
+	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
+	preview_texture.custom_maximum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
 
 	# Position it centered at origin
 	preview_texture.position = Vector2(-PREVIEW_SIZE / 2, -PREVIEW_SIZE / 2)
