@@ -213,9 +213,7 @@ func _create_spawn_indicator() -> void:
 	spawn_indicator = ColorRect.new()
 	spawn_indicator.color = INDICATOR_VALID_COLOR
 	spawn_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	spawn_indicator.custom_minimum_size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
 	spawn_indicator.size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
-	spawn_indicator.pivot_offset = Vector2(INDICATOR_RADIUS, INDICATOR_RADIUS)
 	spawn_indicator.z_index = -1  # Behind everything
 	add_child(spawn_indicator)
 
@@ -241,9 +239,11 @@ func _process(_delta: float) -> void:
 		var ground_pos: Vector3 = Vector3(current_world_pos.x, 0.0, current_world_pos.z)
 		var screen_pos: Vector2 = camera_3d.unproject_position(ground_pos)
 
-		# Make position relative to the drag preview control
+		# Make position relative to the drag preview control (which is at mouse_pos)
+		# screen_pos - mouse_pos gives us the offset from cursor to ground position
 		var relative_pos: Vector2 = screen_pos - mouse_pos
-		spawn_indicator.position = relative_pos - spawn_indicator.pivot_offset
+		# Center the indicator at that position
+		spawn_indicator.position = relative_pos - Vector2(INDICATOR_RADIUS, INDICATOR_RADIUS)
 
 	# Update indicator color based on drop validity
 	_update_indicator_validity(mouse_pos)
