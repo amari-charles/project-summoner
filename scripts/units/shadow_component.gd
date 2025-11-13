@@ -76,7 +76,8 @@ func _create_radial_gradient_texture() -> ImageTexture:
 func set_shadow_radius(radius: float) -> void:
 	shadow_radius = radius
 	if mesh is QuadMesh:
-		mesh.size = Vector2(shadow_radius, shadow_radius)
+		var quad_mesh: QuadMesh = mesh
+		quad_mesh.size = Vector2(shadow_radius, shadow_radius)
 
 ## Update shadow opacity at runtime
 func set_shadow_opacity(opacity: float) -> void:

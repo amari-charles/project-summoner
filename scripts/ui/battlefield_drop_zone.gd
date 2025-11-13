@@ -54,10 +54,16 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if not data is Dictionary:
 		return false
 
-	if not data.has("card_index") or not data.has("card") or not data.has("source"):
+	var data_dict: Dictionary = data
+
+	if not data_dict.has("card_index") or not data_dict.has("card") or not data_dict.has("source"):
 		return false
 
-	if data.source != "hand":
+	var source_variant: Variant = data_dict.get("source")
+	if not source_variant is String:
+		return false
+	var source: String = source_variant
+	if source != "hand":
 		return false
 
 	# Check if we have a summoner
