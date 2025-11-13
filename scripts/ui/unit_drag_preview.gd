@@ -23,7 +23,7 @@ const GHOST_ALPHA: float = 0.6
 const INDICATOR_RADIUS: float = 30.0
 const INDICATOR_VALID_COLOR: Color = Color(0.0, 1.0, 0.0, 0.5)  # Green
 const INDICATOR_INVALID_COLOR: Color = Color(1.0, 0.0, 0.0, 0.5)  # Red
-const PREVIEW_SIZE: float = 100.0  # Size of preview sprite in pixels
+const PREVIEW_SIZE: float = 64.0  # Size of preview sprite in pixels (smaller to match card size)
 
 ## Card being previewed
 var card: Card = null
@@ -179,22 +179,18 @@ func _create_preview_texture() -> void:
 	preview_texture = TextureRect.new()
 	preview_texture.texture = viewport_texture
 	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Set explicit size to control the display size
+	preview_texture.set_size(Vector2(PREVIEW_SIZE, PREVIEW_SIZE))
+
 	# Center the pivot so rotation/positioning works correctly
 	preview_texture.pivot_offset = Vector2(PREVIEW_SIZE / 2, PREVIEW_SIZE / 2)
 
 	# Make it semi-transparent
 	preview_texture.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
-
-	# Add a debug background to see if the TextureRect is positioned correctly
-	var debug_bg: ColorRect = ColorRect.new()
-	debug_bg.color = Color(0, 1, 0, 0.2)  # Semi-transparent green
-	debug_bg.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	debug_bg.z_index = -1
-	preview_texture.add_child(debug_bg)
 
 	add_child(preview_texture)
 
@@ -225,11 +221,17 @@ func _process(_delta: float) -> void:
 	# DON'T move the 3D visual component - keep it hidden far away
 	# The viewport renders it wherever it is, and we show that via TextureRect
 
-	# The preview texture stays at origin (0,0) since Godot's drag system
-	# automatically positions the preview control at the cursor
-	# We just need to center it
-	if preview_texture and preview_texture.position == Vector2.ZERO:
+	# The preview texture should be centered on the cursor
+	# Since the drag preview control follows the cursor, position at (0,0) relative to control
+	# But offset by pivot to center it
+	if preview_texture:
 		preview_texture.position = -preview_texture.pivot_offset
+
+	# Debug: Show where things are
+	if preview_texture and get_tree().get_frame() % 60 == 0:  # Every 60 frames
+		print("Preview texture position: ", preview_texture.position)
+		print("Preview texture pivot: ", preview_texture.pivot_offset)
+		print("Preview texture size: ", preview_texture.size)
 
 	# Position spawn indicator relative to this control
 	# Project world ground position to screen, then make it relative to this control's position
