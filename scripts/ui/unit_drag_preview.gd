@@ -179,15 +179,13 @@ func _create_preview_texture() -> void:
 	preview_texture = TextureRect.new()
 	preview_texture.texture = viewport_texture
 	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview_texture.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
+	preview_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview_texture.stretch_mode = TextureRect.STRETCH_SCALE
 	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Set explicit size to control the display size
-	preview_texture.set_size(Vector2(PREVIEW_SIZE, PREVIEW_SIZE))
-
-	# Center the pivot so rotation/positioning works correctly
-	preview_texture.pivot_offset = Vector2(PREVIEW_SIZE / 2, PREVIEW_SIZE / 2)
+	# Position it centered at origin
+	preview_texture.position = Vector2(-PREVIEW_SIZE / 2, -PREVIEW_SIZE / 2)
 
 	# Make it semi-transparent
 	preview_texture.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
@@ -195,11 +193,20 @@ func _create_preview_texture() -> void:
 	# Set z_index to ensure it's above the indicator
 	preview_texture.z_index = 10
 
+	# Add a visible background to confirm the TextureRect is there
+	var debug_bg: ColorRect = ColorRect.new()
+	debug_bg.color = Color(1, 1, 0, 0.3)  # Yellow semi-transparent
+	debug_bg.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
+	debug_bg.position = Vector2.ZERO
+	debug_bg.z_index = -1
+	preview_texture.add_child(debug_bg)
+
 	add_child(preview_texture)
 
 	print("UnitDragPreview: Created preview texture with size ", preview_texture.size)
+	print("UnitDragPreview: Preview texture position: ", preview_texture.position)
 	print("UnitDragPreview: Texture rect has texture: ", preview_texture.texture != null)
-	print("UnitDragPreview: Texture z_index: ", preview_texture.z_index)
+	print("UnitDragPreview: Viewport texture get_size: ", viewport_texture.get_size() if viewport_texture else "null")
 
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
@@ -226,17 +233,7 @@ func _process(_delta: float) -> void:
 	# DON'T move the 3D visual component - keep it hidden far away
 	# The viewport renders it wherever it is, and we show that via TextureRect
 
-	# The preview texture should be centered on the cursor
-	# Since the drag preview control follows the cursor, position at (0,0) relative to control
-	# But offset by pivot to center it
-	if preview_texture:
-		preview_texture.position = -preview_texture.pivot_offset
-
-	# Debug: Show where things are
-	if preview_texture and get_tree().get_frame() % 60 == 0:  # Every 60 frames
-		print("Preview texture position: ", preview_texture.position)
-		print("Preview texture pivot: ", preview_texture.pivot_offset)
-		print("Preview texture size: ", preview_texture.size)
+	# Preview texture position is already set during creation, don't move it
 
 	# Position spawn indicator relative to this control
 	# Project world ground position to screen, then make it relative to this control's position
