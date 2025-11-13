@@ -62,12 +62,12 @@ func _create_pool_for(projectile_id: String, pool_size: int) -> void:
 	active_projectiles[projectile_id] = []
 
 	for i: int in range(pool_size):
-		var projectile: Projectile3D = _instantiate_projectile()
-		if projectile:
-			projectile.is_pooled = true
-			projectile.reset()
+		var pooled: Projectile3D = _instantiate_projectile()
+		if pooled:
+			pooled.is_pooled = true
+			pooled.reset()
 			var pool: Array = projectile_pools[projectile_id]
-			pool.append(projectile)
+			pool.append(pooled)
 
 	print("ProjectileManager: Created pool of %d for '%s'" % [pool_size, projectile_id])
 
