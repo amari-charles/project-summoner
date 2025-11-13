@@ -63,7 +63,8 @@ func get_modifiers_for(target_type: String, categories: Dictionary, context: Dic
 ## =============================================================================
 
 func _matches_conditions(modifier: Dictionary, categories: Dictionary, context: Dictionary) -> bool:
-	var conditions: Dictionary = modifier.get("conditions", {})
+	var empty_dict: Dictionary = {}
+	var conditions: Dictionary = modifier.get("conditions", empty_dict)
 
 	# If no conditions, modifier always applies
 	if conditions.is_empty():

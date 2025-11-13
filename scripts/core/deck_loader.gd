@@ -70,7 +70,8 @@ static func load_player_deck() -> Array[Card]:
 		return []
 
 	# Get selected deck ID
-	var meta_variant: Variant = profile.get("meta", {})
+	var empty_dict: Dictionary = {}
+	var meta_variant: Variant = profile.get("meta", empty_dict)
 	var meta: Dictionary = meta_variant if meta_variant is Dictionary else {}
 	var deck_id_variant: Variant = meta.get("selected_deck", "")
 	var deck_id: String = deck_id_variant if deck_id_variant is String else ""

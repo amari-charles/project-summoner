@@ -214,7 +214,8 @@ func _load_progress() -> void:
 		push_warning("CampaignService: No active profile")
 		return
 
-	var campaign_progress: Dictionary = profile.get("campaign_progress", {})
+	var empty_progress: Dictionary = {}
+	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_progress)
 	var completed_battles_raw: Array = campaign_progress.get("completed_battles", [])
 	_completed_battles.clear()
 	for battle_id: Variant in completed_battles_raw:
@@ -256,7 +257,8 @@ func get_all_battles() -> Array[Dictionary]:
 	return battles
 
 func get_battle(battle_id: String) -> Dictionary:
-	return _battles.get(battle_id, {})
+	var empty_battle: Dictionary = {}
+	return _battles.get(battle_id, empty_battle)
 
 func is_battle_completed(battle_id: String) -> bool:
 	return battle_id in _completed_battles

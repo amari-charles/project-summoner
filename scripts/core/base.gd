@@ -42,7 +42,9 @@ func _load_campaign_hp() -> void:
 	if profile.is_empty():
 		return
 
-	var current_battle_id: String = profile.get("campaign_progress", {}).get("current_battle", "")
+	var empty_dict: Dictionary = {}
+	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
+	var current_battle_id: String = campaign_progress.get("current_battle", "")
 	if current_battle_id == "":
 		return  # Not a campaign battle
 

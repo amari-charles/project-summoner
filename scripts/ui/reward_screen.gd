@@ -46,7 +46,9 @@ func _load_battle_results() -> void:
 	if profile.is_empty():
 		return
 
-	current_battle_id = profile.get("campaign_progress", {}).get("current_battle", "")
+	var empty_dict: Dictionary = {}
+	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
+	current_battle_id = campaign_progress.get("current_battle", "")
 	if current_battle_id == "":
 		push_error("RewardScreen: No current battle set!")
 		return
@@ -225,7 +227,9 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		push_error("RewardScreen: No active profile!")
 		return
 
-	var deck_id: String = profile.get("meta", {}).get("selected_deck", "")
+	var empty_meta: Dictionary = {}
+	var meta: Dictionary = profile.get("meta", empty_meta) if profile.get("meta", empty_meta) is Dictionary else {}
+	var deck_id: String = meta.get("selected_deck", "")
 	if deck_id == "":
 		push_warning("RewardScreen: No active deck selected!")
 		return

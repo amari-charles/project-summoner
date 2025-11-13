@@ -290,7 +290,8 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 		if not mod is Dictionary:
 			continue
 		var mod_dict: Dictionary = mod
-		var stat_adds: Dictionary = mod_dict.get("stat_adds", {})
+		var empty_adds: Dictionary = {}
+		var stat_adds: Dictionary = mod_dict.get("stat_adds", empty_adds)
 		var stat_keys: Array = stat_adds.keys()
 		for stat: Variant in stat_keys:
 			if stat is String and adds.has(stat):
@@ -316,7 +317,8 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 		if not mod is Dictionary:
 			continue
 		var mod_dict: Dictionary = mod
-		var stat_mults: Dictionary = mod_dict.get("stat_mults", {})
+		var empty_mults: Dictionary = {}
+		var stat_mults: Dictionary = mod_dict.get("stat_mults", empty_mults)
 		var mult_keys: Array = stat_mults.keys()
 		for stat: Variant in mult_keys:
 			if stat is String and mults.has(stat):
@@ -345,7 +347,8 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary = {}) -> void:
 		if not mod is Dictionary:
 			continue
 		var mod_dict: Dictionary = mod
-		var flags: Dictionary = mod_dict.get("flags", {})
+		var empty_flags: Dictionary = {}
+		var flags: Dictionary = mod_dict.get("flags", empty_flags)
 		active_modifiers.merge(flags, true)
 
 

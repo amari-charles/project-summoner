@@ -109,7 +109,8 @@ func _ready() -> void:
 		if profile_result is Dictionary:
 			var profile: Dictionary = profile_result
 			if not profile.is_empty():
-				var meta_val: Variant = profile.get("meta", {})
+				var empty_meta_startup: Dictionary = {}
+				var meta_val: Variant = profile.get("meta", empty_meta_startup)
 				if meta_val is Dictionary:
 					var meta: Dictionary = meta_val
 					var selected: Variant = meta.get("selected_deck", null)
@@ -382,7 +383,8 @@ func _drop_data_on_deck(_at_position: Vector2, data: Variant) -> void:
 		return
 
 	var data_dict: Dictionary = data
-	var card_data_val: Variant = data_dict.get("card_data", {})
+	var empty_dict: Dictionary = {}
+	var card_data_val: Variant = data_dict.get("card_data", empty_dict)
 	if not card_data_val is Dictionary:
 		return
 
@@ -565,7 +567,8 @@ func _on_set_active_pressed() -> void:
 			return
 		var profile: Dictionary = profile_result
 		if not profile.is_empty():
-			var meta_val: Variant = profile.get("meta", {})
+			var empty_dict: Dictionary = {}
+			var meta_val: Variant = profile.get("meta", empty_dict)
 			if not meta_val is Dictionary:
 				return
 			var meta: Dictionary = meta_val
@@ -600,7 +603,8 @@ func _update_active_deck_button() -> void:
 	if profile.is_empty():
 		return
 
-	var meta_val: Variant = profile.get("meta", {})
+	var empty_dict: Dictionary = {}
+	var meta_val: Variant = profile.get("meta", empty_dict)
 	if not meta_val is Dictionary:
 		return
 	var meta: Dictionary = meta_val

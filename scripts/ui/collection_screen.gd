@@ -449,7 +449,8 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 		if profile_result is Dictionary:
 			var profile: Dictionary = profile_result
 			if not profile.is_empty():
-				var meta_val: Variant = profile.get("meta", {})
+				var empty_dict: Dictionary = {}
+				var meta_val: Variant = profile.get("meta", empty_dict)
 				if meta_val is Dictionary:
 					var meta: Dictionary = meta_val
 					meta["editing_deck_id"] = deck_id

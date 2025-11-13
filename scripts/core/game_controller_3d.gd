@@ -245,7 +245,8 @@ func _register_hero_provider() -> void:
 		push_warning("GameController3D: No active profile, no hero bonuses will apply")
 		return
 
-	var meta_variant: Variant = profile.get("meta", {})
+	var empty_dict: Dictionary = {}
+	var meta_variant: Variant = profile.get("meta", empty_dict)
 	var meta: Dictionary = meta_variant if meta_variant is Dictionary else {}
 	var hero_id: String = meta.get("selected_hero", "")
 	if hero_id.is_empty():

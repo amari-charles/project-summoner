@@ -28,7 +28,8 @@ func _on_play_pressed() -> void:
 	if profile_repo:
 		var profile: Dictionary = profile_repo.call("get_active_profile")
 		if not profile.is_empty():
-			var meta: Dictionary = profile.get("meta", {})
+			var empty_dict: Dictionary = {}
+			var meta: Dictionary = profile.get("meta", empty_dict)
 			var onboarding_complete: bool = meta.get("onboarding_complete", false)
 
 			if not onboarding_complete:

@@ -111,7 +111,8 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 	if not catalog_id.is_empty() and CardCatalog:
 		var card_def: Dictionary = CardCatalog.get_card(catalog_id)
 		if not card_def.is_empty():
-			categories = card_def.get("categories", {})
+			var empty_dict: Dictionary = {}
+			categories = card_def.get("categories", empty_dict)
 
 	# Build context for modifier system
 	var context: Dictionary = {
@@ -149,7 +150,8 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 	if not catalog_id.is_empty() and CardCatalog:
 		var card_def: Dictionary = CardCatalog.get_card(catalog_id)
 		if not card_def.is_empty():
-			categories = card_def.get("categories", {})
+			var empty_dict: Dictionary = {}
+			categories = card_def.get("categories", empty_dict)
 
 	# Build context for modifier system
 	var context: Dictionary = {
@@ -184,7 +186,8 @@ func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
 	# Phase 1: Sum additive bonuses
 	var add_bonus: float = 0.0
 	for mod: Dictionary in modifiers:
-		var stat_adds: Dictionary = mod.get("stat_adds", {})
+		var empty_adds: Dictionary = {}
+		var stat_adds: Dictionary = mod.get("stat_adds", empty_adds)
 		add_bonus += stat_adds.get("attack_damage", 0.0)
 		add_bonus += stat_adds.get("spell_damage", 0.0)
 
@@ -193,7 +196,8 @@ func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
 	# Phase 2: Apply multiplicative bonuses
 	var mult_bonus: float = 0.0
 	for mod: Dictionary in modifiers:
-		var stat_mults: Dictionary = mod.get("stat_mults", {})
+		var empty_mults: Dictionary = {}
+		var stat_mults: Dictionary = mod.get("stat_mults", empty_mults)
 		# Convert multipliers (1.1 → 0.1) and sum
 		if stat_mults.has("attack_damage"):
 			mult_bonus += stat_mults.attack_damage - 1.0

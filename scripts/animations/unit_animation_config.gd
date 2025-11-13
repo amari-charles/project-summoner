@@ -71,7 +71,8 @@ static func from_dict(data: Dictionary) -> UnitAnimationConfig:
 			state.vfx_on_start = (state_dict as Dictionary).get("vfx_on_start", "")
 			state.vfx_on_end = (state_dict as Dictionary).get("vfx_on_end", "")
 			state.vfx_on_damage_frame = (state_dict as Dictionary).get("vfx_on_damage_frame", "")
-			state.metadata = (state_dict as Dictionary).get("metadata", {})
+			var empty_metadata: Dictionary = {}
+			state.metadata = (state_dict as Dictionary).get("metadata", empty_metadata)
 
 			# Load footstep frames
 			if (state_dict as Dictionary).has("footstep_frames"):

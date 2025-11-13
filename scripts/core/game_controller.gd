@@ -207,7 +207,9 @@ func _handle_campaign_victory(winner: Unit.Team) -> void:
 	if profile.is_empty():
 		return
 
-	var current_battle: String = profile.get("campaign_progress", {}).get("current_battle", "")
+	var empty_dict: Dictionary = {}
+	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
+	var current_battle: String = campaign_progress.get("current_battle", "")
 	if current_battle == "":
 		# Not a campaign battle, no special handling
 		return
@@ -240,7 +242,9 @@ func _setup_campaign_ai() -> void:
 	if profile.is_empty():
 		return
 
-	var current_battle_id: String = profile.get("campaign_progress", {}).get("current_battle", "")
+	var empty_dict_2: Dictionary = {}
+	var campaign_progress_2: Dictionary = profile.get("campaign_progress", empty_dict_2) if profile.get("campaign_progress", empty_dict_2) is Dictionary else {}
+	var current_battle_id: String = campaign_progress_2.get("current_battle", "")
 	if current_battle_id == "":
 		return  # Not a campaign battle
 

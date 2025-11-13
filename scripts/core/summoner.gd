@@ -41,7 +41,8 @@ func _ready() -> void:
 			if profile_repo.has_method("get_active_profile"):
 				profile_variant = profile_repo.call("get_active_profile")
 			var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
-			var campaign_progress_variant: Variant = profile.get("campaign_progress", {})
+			var empty_dict: Dictionary = {}
+			var campaign_progress_variant: Variant = profile.get("campaign_progress", empty_dict)
 			var campaign_progress: Dictionary = campaign_progress_variant if campaign_progress_variant is Dictionary else {}
 			var battle_id_variant: Variant = campaign_progress.get("current_battle", "")
 			var battle_id: String = battle_id_variant if battle_id_variant is String else ""

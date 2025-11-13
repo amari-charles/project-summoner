@@ -148,10 +148,12 @@ func snapshot() -> Dictionary:
 ## =============================================================================
 
 func get_resources() -> Dictionary:
-	return _data.get("resources", {})
+	var empty_dict: Dictionary = {}
+	return _data.get("resources", empty_dict)
 
 func update_resources(delta: Dictionary) -> void:
-	var resources_variant: Variant = _data.get("resources", {})
+	var empty_resources: Dictionary = {}
+	var resources_variant: Variant = _data.get("resources", empty_resources)
 	var resources: Dictionary = resources_variant
 
 	for key: String in delta:
@@ -473,10 +475,12 @@ func get_deck(deck_id: String) -> Dictionary:
 ## =============================================================================
 
 func get_profile_meta() -> Dictionary:
-	return _data.get("meta", {})
+	var empty_meta: Dictionary = {}
+	return _data.get("meta", empty_meta)
 
 func update_profile_meta(meta: Dictionary) -> void:
-	var current_meta_variant: Variant = _data.get("meta", {})
+	var empty_meta_update: Dictionary = {}
+	var current_meta_variant: Variant = _data.get("meta", empty_meta_update)
 	if current_meta_variant is Dictionary:
 		var meta_dict: Dictionary = current_meta_variant
 		for key: String in meta:
@@ -487,10 +491,12 @@ func update_profile_meta(meta: Dictionary) -> void:
 	data_changed.emit()
 
 func get_settings() -> Dictionary:
-	return _data.get("settings", {})
+	var empty_settings: Dictionary = {}
+	return _data.get("settings", empty_settings)
 
 func update_settings(settings: Dictionary) -> void:
-	var current_settings_variant: Variant = _data.get("settings", {})
+	var empty_settings_update: Dictionary = {}
+	var current_settings_variant: Variant = _data.get("settings", empty_settings_update)
 	if current_settings_variant is Dictionary:
 		var settings_dict: Dictionary = current_settings_variant
 		for key: String in settings:
@@ -501,7 +507,8 @@ func update_settings(settings: Dictionary) -> void:
 	data_changed.emit()
 
 func get_last_match() -> Dictionary:
-	return _data.get("last_match", {})
+	var empty_match: Dictionary = {}
+	return _data.get("last_match", empty_match)
 
 func update_last_match(match_info: Dictionary) -> void:
 	_data["last_match"] = match_info

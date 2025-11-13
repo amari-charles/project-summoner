@@ -75,7 +75,8 @@ static func _create_heuristic_ai(battle_config: Dictionary) -> HeuristicAI:
 	ai.difficulty = battle_config.get("ai_difficulty", 3)
 
 	# Apply additional config
-	var ai_config_variant: Variant = battle_config.get("ai_config", {})
+	var empty_dict: Dictionary = {}
+	var ai_config_variant: Variant = battle_config.get("ai_config", empty_dict)
 	var ai_config: Dictionary = ai_config_variant if ai_config_variant is Dictionary else {}
 	if ai_config.has("play_interval_min"):
 		ai.play_interval_min = ai_config["play_interval_min"]
