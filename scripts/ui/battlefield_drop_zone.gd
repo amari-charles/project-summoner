@@ -76,13 +76,20 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		return false
 
 	# Get the card
-	var card_index: int = data.card_index
+	var card_index_variant: Variant = data_dict.get("card_index")
+	if not card_index_variant is int:
+		return false
+	var card_index: int = card_index_variant
+
 	var hand_variant: Variant = summoner.get("hand")
 	var hand: Array = hand_variant if hand_variant is Array else []
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
-	var card: Card = data.card
+	var card_variant: Variant = data_dict.get("card")
+	if not card_variant is Card:
+		return false
+	var card: Card = card_variant
 
 	# Check if we can afford it
 	var mana_variant: Variant = summoner.get("mana")
@@ -98,7 +105,14 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if not _can_drop_data(at_position, data):
 		return
 
-	var card_index: int = data.card_index
+	if not data is Dictionary:
+		return
+	var data_dict: Dictionary = data
+
+	var card_index_variant: Variant = data_dict.get("card_index")
+	if not card_index_variant is int:
+		return
+	var card_index: int = card_index_variant
 
 	if is_3d:
 		# Convert screen to 3D world position
