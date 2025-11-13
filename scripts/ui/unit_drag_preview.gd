@@ -6,19 +6,24 @@ class_name UnitDragPreview
 ## with a spawn indicator showing valid/invalid placement
 
 ## Visual components
-var visual_component: Node3D = null  # Character2D5Component
-var spawn_indicator: TextureRect = null
+var preview_texture: TextureRect = null  # Displays the unit sprite
+var spawn_indicator: ColorRect = null
 
 ## References for position tracking
 var viewport: Viewport = null
 var camera_3d: Camera3D = null
 var drop_zone: Node = null
+var battlefield: Node = null
+
+## 3D visual component (added to battlefield, not this control)
+var visual_component_3d: Node3D = null
 
 ## Preview configuration
 const GHOST_ALPHA: float = 0.6
 const INDICATOR_RADIUS: float = 30.0
 const INDICATOR_VALID_COLOR: Color = Color(0.0, 1.0, 0.0, 0.5)  # Green
 const INDICATOR_INVALID_COLOR: Color = Color(1.0, 0.0, 0.0, 0.5)  # Red
+const PREVIEW_SIZE: float = 100.0  # Size of preview sprite in pixels
 
 ## Card being previewed
 var card: Card = null
@@ -38,16 +43,27 @@ func initialize(p_card: Card, p_viewport: Viewport, p_camera: Camera3D, p_drop_z
 	camera_3d = p_camera
 	drop_zone = p_drop_zone
 
-	# Extract and create unit visual
-	_create_unit_visual()
+	# Find battlefield
+	if p_viewport:
+		battlefield = p_viewport.get_tree().get_first_node_in_group("battlefield") if p_viewport.get_tree() else null
 
 	# Create spawn indicator
 	_create_spawn_indicator()
+
+	# Extract and create unit visual (added to battlefield)
+	_create_unit_visual()
+
+	# Create texture rect to display the unit
+	_create_preview_texture()
 
 ## Extract visual component from card's unit scene and create ghost
 func _create_unit_visual() -> void:
 	if not card or not card.unit_scene:
 		push_error("UnitDragPreview: No unit scene in card!")
+		return
+
+	if not battlefield:
+		push_error("UnitDragPreview: No battlefield found!")
 		return
 
 	# Load the sprite character component scene
@@ -57,8 +73,8 @@ func _create_unit_visual() -> void:
 		return
 
 	# Instantiate the visual component
-	visual_component = component_scene.instantiate()
-	if not visual_component:
+	visual_component_3d = component_scene.instantiate()
+	if not visual_component_3d:
 		push_error("UnitDragPreview: Failed to instantiate visual component")
 		return
 
@@ -80,51 +96,64 @@ func _create_unit_visual() -> void:
 
 	if not sprite_frames:
 		push_error("UnitDragPreview: Unit has no sprite_frames!")
-		visual_component.queue_free()
-		visual_component = null
+		visual_component_3d.queue_free()
+		visual_component_3d = null
 		return
 
 	# Configure the visual component
-	if visual_component.has_method("set_sprite_frames"):
-		visual_component.call("set_sprite_frames", sprite_frames)
+	if visual_component_3d.has_method("set_sprite_frames"):
+		visual_component_3d.call("set_sprite_frames", sprite_frames)
 
-	if "sprite_scale" in visual_component:
-		visual_component.set("sprite_scale", sprite_scale)
+	if "sprite_scale" in visual_component_3d:
+		visual_component_3d.set("sprite_scale", sprite_scale)
 
 	# Play idle animation
-	if visual_component.has_method("play_animation"):
-		visual_component.call("play_animation", "idle", true)
+	if visual_component_3d.has_method("play_animation"):
+		visual_component_3d.call("play_animation", "idle", true)
 
-	# Add to scene tree (we'll position it in _process)
-	add_child(visual_component)
+	# Add to battlefield (3D world)
+	battlefield.add_child(visual_component_3d)
 
-	# Set ghost transparency after adding to tree (so children are initialized)
+	# Set ghost transparency after adding to tree
 	if get_tree():
 		await get_tree().process_frame
-		var sprite_3d: Node = visual_component.get_node_or_null("Sprite3D")
+		var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
 		if sprite_3d and sprite_3d is Sprite3D:
 			var sprite_3d_typed: Sprite3D = sprite_3d
 			sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
 
+## Create texture rect to display unit visual from viewport
+func _create_preview_texture() -> void:
+	if not visual_component_3d:
+		return
+
+	# Get the viewport texture from the visual component
+	var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
+	if not sprite_3d:
+		return
+
+	var sub_viewport: Node = sprite_3d.get_node_or_null("SubViewport")
+	if not sub_viewport or not sub_viewport is SubViewport:
+		return
+
+	var viewport_typed: SubViewport = sub_viewport
+	preview_texture = TextureRect.new()
+	preview_texture.texture = viewport_typed.get_texture()
+	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
+	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview_texture.pivot_offset = Vector2(PREVIEW_SIZE / 2, PREVIEW_SIZE / 2)
+	add_child(preview_texture)
+
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
-	spawn_indicator = TextureRect.new()
-	spawn_indicator.modulate = INDICATOR_VALID_COLOR
-	spawn_indicator.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	spawn_indicator.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	spawn_indicator = ColorRect.new()
+	spawn_indicator.color = INDICATOR_VALID_COLOR
 	spawn_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# Create a simple circle texture using a placeholder
-	# In production, you'd use an actual texture asset
 	spawn_indicator.custom_minimum_size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
-	spawn_indicator.pivot_offset = spawn_indicator.custom_minimum_size / 2.0
-
-	# Create a simple colored rect as indicator for now
-	var circle_bg: ColorRect = ColorRect.new()
-	circle_bg.color = Color(1, 1, 1, 0.3)
-	circle_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	spawn_indicator.add_child(circle_bg)
-
+	spawn_indicator.size = Vector2(INDICATOR_RADIUS * 2, INDICATOR_RADIUS * 2)
+	spawn_indicator.pivot_offset = Vector2(INDICATOR_RADIUS, INDICATOR_RADIUS)
 	add_child(spawn_indicator)
 
 ## Update preview position every frame to follow cursor
@@ -138,15 +167,19 @@ func _process(_delta: float) -> void:
 	# Convert to 3D world position
 	current_world_pos = _screen_to_world_3d(mouse_pos)
 
-	# Position visual component at world position
-	if visual_component:
-		visual_component.global_position = current_world_pos
+	# Position 3D visual component at world position
+	if visual_component_3d:
+		visual_component_3d.global_position = current_world_pos
 
-	# Position spawn indicator on ground
+	# Position spawn indicator on ground (in 2D UI space)
 	if spawn_indicator:
 		var ground_pos: Vector3 = Vector3(current_world_pos.x, 0.0, current_world_pos.z)
 		var screen_pos: Vector2 = camera_3d.unproject_position(ground_pos)
 		spawn_indicator.position = screen_pos - spawn_indicator.pivot_offset
+
+	# Position preview texture at cursor
+	if preview_texture:
+		preview_texture.position = mouse_pos - preview_texture.pivot_offset
 
 	# Update indicator color based on drop validity
 	_update_indicator_validity(mouse_pos)
@@ -191,4 +224,12 @@ func _update_indicator_validity(mouse_pos: Vector2) -> void:
 		is_valid = drop_zone.call("_can_drop_data", mouse_pos, drag_data)
 
 	# Update indicator color
-	spawn_indicator.modulate = INDICATOR_VALID_COLOR if is_valid else INDICATOR_INVALID_COLOR
+	spawn_indicator.color = INDICATOR_VALID_COLOR if is_valid else INDICATOR_INVALID_COLOR
+
+## Clean up when preview is destroyed
+func _exit_tree() -> void:
+	# Remove 3D visual component from battlefield
+	if visual_component_3d and is_instance_valid(visual_component_3d):
+		if visual_component_3d.get_parent():
+			visual_component_3d.get_parent().remove_child(visual_component_3d)
+		visual_component_3d.queue_free()
