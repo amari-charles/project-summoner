@@ -125,7 +125,8 @@ func _cmd_grant_cards(args: PackedStringArray) -> bool:
 	for i: int in range(count):
 		var catalog_id: String = TEST_CARDS[randi() % TEST_CARDS.size()]
 		var rarity: String = TEST_RARITIES[randi() % TEST_RARITIES.size()]
-		cards_to_grant.append({"catalog_id": catalog_id, "rarity": rarity})
+		var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": rarity}
+		cards_to_grant.append(card_grant)
 
 	var instance_ids: Array = _collection.call("grant_cards", cards_to_grant)
 	print("DevConsole: Granted %d cards (instance IDs: %s)" % [instance_ids.size(), str(instance_ids)])
@@ -289,7 +290,8 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 		var cards_to_grant: Array = []
 		for i: int in range(30):
 			var catalog_id: String = TEST_CARDS[randi() % TEST_CARDS.size()]
-			cards_to_grant.append({"catalog_id": catalog_id, "rarity": "common"})
+			var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": "common"}
+			cards_to_grant.append(card_grant)
 		_collection.call("grant_cards", cards_to_grant)
 
 		# Refresh collection

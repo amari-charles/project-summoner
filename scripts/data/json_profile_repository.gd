@@ -326,11 +326,12 @@ func upsert_deck(deck: Dictionary) -> String:
 			var card_ids_array: Array = card_instance_ids_variant
 			for i: int in range(card_ids_array.size()):
 				var card_id_at_i_variant: Variant = card_ids_array[i]
-				deck_cards_array.append({
+				var deck_card_entry: Dictionary = {
 					"deck_id": deck_id,
 					"card_instance_id": card_id_at_i_variant,
 					"slot_index": i
-				})
+				}
+				deck_cards_array.append(deck_card_entry)
 		_data["deck_cards"] = deck_cards_array
 	else:
 		# Update existing deck
@@ -369,11 +370,12 @@ func upsert_deck(deck: Dictionary) -> String:
 			var card_ids_array2: Array = card_instance_ids_variant2
 			for i: int in range(card_ids_array2.size()):
 				var card_id_at_i_variant2: Variant = card_ids_array2[i]
-				new_deck_cards.append({
+				var deck_card_entry2: Dictionary = {
 					"deck_id": deck_id,
 					"card_instance_id": card_id_at_i_variant2,
 					"slot_index": i
-				})
+				}
+				new_deck_cards.append(deck_card_entry2)
 		_data["deck_cards"] = new_deck_cards
 
 	_data["decks"] = decks_array

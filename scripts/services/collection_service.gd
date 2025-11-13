@@ -133,12 +133,13 @@ func get_collection_summary() -> Array[Dictionary]:
 			if first_item is Dictionary:
 				var first_dict: Dictionary = first_item
 				rarity = first_dict.get("rarity", "common")
-		summary.append({
+		var summary_entry: Dictionary = {
 			"catalog_id": catalog_id,
 			"count": instances.size(),
 			"rarity": rarity,
 			"instances": instances
-		})
+		}
+		summary.append(summary_entry)
 
 	return summary
 
