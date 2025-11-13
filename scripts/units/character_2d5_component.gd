@@ -11,7 +11,7 @@ class_name Character2D5Component
 
 ## Play an animation
 ## @virtual
-func play_animation(anim_name: String, auto_play: bool = false) -> void:
+func play_animation(_anim_name: String, _auto_play: bool = false) -> void:
 	push_error("Character2D5Component.play_animation() called on base class - must be overridden in child class")
 
 ## Stop current animation
@@ -33,12 +33,12 @@ func is_playing() -> bool:
 
 ## Flip the sprite horizontally (for enemy units)
 ## @virtual
-func set_flip_h(flip: bool) -> void:
+func set_flip_h(_flip: bool) -> void:
 	push_error("Character2D5Component.set_flip_h() called on base class - must be overridden in child class")
 
 ## Get the duration of an animation in seconds
 ## @virtual
-func get_animation_duration(anim_name: String) -> float:
+func get_animation_duration(_anim_name: String) -> float:
 	push_error("Character2D5Component.get_animation_duration() called on base class - must be overridden in child class")
 	return 1.0  # Fallback duration
 

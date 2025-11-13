@@ -361,7 +361,7 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 			# if unit is Unit3D:
 				# print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
 
-	var hit_count: int = 0
+	var _hit_count: int = 0
 	for enemy: Node in enemies:
 		if enemy is Unit3D:
 			# Type narrow to Unit3D for safe property access
@@ -373,13 +373,13 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 			if unit_enemy.is_alive and distance <= radius:
 				# print("      -> APPLYING DAMAGE: %.1f" % damage)
 				DamageSystem.apply_damage(source, unit_enemy, damage, damage_type)
-				hit_count += 1
+				_hit_count += 1
 			# elif not unit_enemy.is_alive:
 				# print("      -> Skipped (dead)")
 			# elif distance > radius:
 				# print("      -> Skipped (too far)")
 
-	# print("  RESULT: Hit %d enemies with %.1f damage each" % [hit_count, damage])
+	# print("  RESULT: Hit %d enemies with %.1f damage each" % [_hit_count, damage])
 	# print("--- END AOE CALCULATION ---\n")
 
 ## Spawn a debug visualization sphere to show AOE radius

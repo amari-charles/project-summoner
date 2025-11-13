@@ -31,11 +31,11 @@ func clear_providers() -> void:
 
 ## Get all modifiers that apply to a target
 ##
-## @param target_type: Type of target ("unit", "card", "summoner", etc.)
+## @param _target_type: Type of target ("unit", "card", "summoner", etc.)
 ## @param categories: Dictionary of card/unit categories for condition matching
 ## @param context: Additional context (hero_id, team, etc.)
 ## @return Array of modifier dictionaries
-func get_modifiers_for(target_type: String, categories: Dictionary, context: Dictionary = {}) -> Array:
+func get_modifiers_for(_target_type: String, categories: Dictionary, context: Dictionary = {}) -> Array:
 	var all_modifiers: Array = []
 
 	# Collect modifiers from all providers

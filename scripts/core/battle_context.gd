@@ -64,7 +64,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	print("BattleContext: Configured practice battle")
 
 ## Configure for arena battle (future)
-func configure_arena_battle(difficulty: int) -> void:
+func configure_arena_battle(_difficulty: int) -> void:
 	current_mode = BattleMode.ARENA
 
 	# TODO: ArenaService would generate random battle config
@@ -74,7 +74,7 @@ func configure_arena_battle(difficulty: int) -> void:
 	completion_callback = _handle_arena_completion
 
 ## Configure for endless mode (future)
-func configure_endless_wave(wave_number: int) -> void:
+func configure_endless_wave(_wave_number: int) -> void:
 	current_mode = BattleMode.ENDLESS
 
 	# TODO: EndlessService would provide wave config
