@@ -125,11 +125,13 @@ func _create_unit_visual() -> void:
 ## Create texture rect to display unit visual from viewport
 func _create_preview_texture() -> void:
 	if not visual_component_3d:
+		print("UnitDragPreview: No visual_component_3d")
 		return
 
 	# Wait for viewport to be ready
 	if get_tree():
 		await get_tree().process_frame
+		await get_tree().process_frame  # Wait extra frame for viewport to render
 
 	# Get the viewport texture from the visual component
 	var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
@@ -145,11 +147,14 @@ func _create_preview_texture() -> void:
 	var viewport_typed: SubViewport = sub_viewport
 	var viewport_texture: ViewportTexture = viewport_typed.get_texture()
 
+	print("UnitDragPreview: Viewport size: ", viewport_typed.size)
+	print("UnitDragPreview: Viewport texture: ", viewport_texture)
+
 	preview_texture = TextureRect.new()
 	preview_texture.texture = viewport_texture
 	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
 	preview_texture.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	preview_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Center the pivot so rotation/positioning works correctly
@@ -158,9 +163,17 @@ func _create_preview_texture() -> void:
 	# Make it semi-transparent
 	preview_texture.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
 
+	# Add a debug background to see if the TextureRect is positioned correctly
+	var debug_bg: ColorRect = ColorRect.new()
+	debug_bg.color = Color(0, 1, 0, 0.2)  # Semi-transparent green
+	debug_bg.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
+	debug_bg.z_index = -1
+	preview_texture.add_child(debug_bg)
+
 	add_child(preview_texture)
 
 	print("UnitDragPreview: Created preview texture with size ", preview_texture.size)
+	print("UnitDragPreview: Texture rect has texture: ", preview_texture.texture != null)
 
 ## Create circular spawn indicator on ground
 func _create_spawn_indicator() -> void:
