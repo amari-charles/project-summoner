@@ -87,13 +87,13 @@ func clamp_to_map() -> void:
 	## For orthographic cameras, moving camera in XZ translates footprint 1:1.
 
 	# Get viewport size (handles SubViewport correctly)
-	var vp := get_viewport()
+	var vp: Viewport = get_viewport()
 	var view_size: Vector2i = vp.get_visible_rect().size
 	var w: float = float(view_size.x)
 	var h: float = float(view_size.y)
 
 	# Define 4 screen corners
-	var screen_corners := [
+	var screen_corners: Array[Vector2] = [
 		Vector2(0.0, 0.0),       # Top-left
 		Vector2(w, 0.0),         # Top-right
 		Vector2(w, h),           # Bottom-right
@@ -102,7 +102,7 @@ func clamp_to_map() -> void:
 
 	# Project each corner to ground plane (y = ground_y)
 	var world_points: Array[Vector3] = []
-	for corner in screen_corners:
+	for corner: Vector2 in screen_corners:
 		var origin: Vector3 = project_ray_origin(corner)
 		var dir: Vector3 = project_ray_normal(corner)
 
@@ -128,7 +128,7 @@ func clamp_to_map() -> void:
 	var view_min_z: float = world_points[0].z
 	var view_max_z: float = view_min_z
 
-	for p in world_points:
+	for p: Vector3 in world_points:
 		view_min_x = min(view_min_x, p.x)
 		view_max_x = max(view_max_x, p.x)
 		view_min_z = min(view_min_z, p.z)
@@ -191,26 +191,29 @@ func _input(event: InputEvent) -> void:
 func _handle_zoom(event: InputEvent) -> void:
 	## Handle mouse scroll wheel zoom and trackpad gestures
 	if event is InputEventMouseButton:
-		if event.pressed:
-			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		var mouse_event: InputEventMouseButton = event
+		if mouse_event.pressed:
+			if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
 				# Zoom in (decrease ortho size)
 				_apply_zoom(-zoom_speed)
-			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				# Zoom out (increase ortho size)
 				_apply_zoom(zoom_speed)
 
 	# Support macOS/Linux trackpad pinch-to-zoom gesture
 	elif event is InputEventMagnifyGesture:
+		var magnify_event: InputEventMagnifyGesture = event
 		# factor > 1.0 means pinch out (zoom out), < 1.0 means pinch in (zoom in)
 		# We invert this to make pinch-in zoom in (decrease size)
-		var zoom_delta = (1.0 - event.factor) * zoom_speed * 10.0
+		var zoom_delta: float = (1.0 - magnify_event.factor) * zoom_speed * 10.0
 		_apply_zoom(zoom_delta)
 
 	# Support macOS/Linux trackpad two-finger scroll for zoom
 	elif event is InputEventPanGesture:
+		var pan_gesture: InputEventPanGesture = event
 		# delta.y > 0 means scroll down, < 0 means scroll up
 		# Scroll up = zoom in (decrease size), scroll down = zoom out (increase size)
-		var zoom_delta = event.delta.y * zoom_speed * 0.2
+		var zoom_delta: float = pan_gesture.delta.y * zoom_speed * 0.2
 		_apply_zoom(zoom_delta)
 
 func _apply_zoom(delta: float) -> void:
@@ -224,32 +227,36 @@ func _handle_mouse_pan(event: InputEvent) -> void:
 
 	# Check if middle or right mouse button was pressed/released
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_MIDDLE or event.button_index == MOUSE_BUTTON_RIGHT:
-			if event.pressed:
+		var mouse_button: InputEventMouseButton = event
+		if mouse_button.button_index == MOUSE_BUTTON_MIDDLE or mouse_button.button_index == MOUSE_BUTTON_RIGHT:
+			if mouse_button.pressed:
 				is_panning = true
-				last_mouse_position = event.position
+				last_mouse_position = mouse_button.position
 			else:
 				is_panning = false
 
 	# Check if mouse moved while panning
 	elif event is InputEventMouseMotion and is_panning:
-		var delta = event.position - last_mouse_position
-		last_mouse_position = event.position
+		var mouse_motion: InputEventMouseMotion = event
+		var delta: Vector2 = mouse_motion.position - last_mouse_position
+		last_mouse_position = mouse_motion.position
 		_apply_pan_delta(delta)
 
 func _handle_touch_pan(event: InputEvent) -> void:
 	## Pan the camera by dragging with one finger on mobile
 
 	if event is InputEventScreenTouch:
-		if event.pressed:
+		var touch_event: InputEventScreenTouch = event
+		if touch_event.pressed:
 			is_panning = true
-			last_mouse_position = event.position
+			last_mouse_position = touch_event.position
 		else:
 			is_panning = false
 
 	elif event is InputEventScreenDrag and is_panning:
+		var drag_event: InputEventScreenDrag = event
 		# For touch, we use 'relative' which gives us the movement delta directly
-		_apply_pan_delta(event.relative)
+		_apply_pan_delta(drag_event.relative)
 
 func _apply_pan_delta(delta: Vector2) -> void:
 	## Apply a pan movement delta (in screen pixels) to the camera position
@@ -281,7 +288,7 @@ func _process(delta: float) -> void:
 func _handle_keyboard_pan(delta: float) -> void:
 	## Pan the camera using WASD or arrow keys
 
-	var pan_input = Vector2.ZERO
+	var pan_input: Vector2 = Vector2.ZERO
 
 	# Collect horizontal input (always allowed)
 	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
@@ -311,10 +318,10 @@ func _handle_keyboard_pan(delta: float) -> void:
 func _handle_edge_pan(delta: float) -> void:
 	## Pan the camera when mouse is near screen edges (RTS-style)
 
-	var viewport_size = get_viewport().get_visible_rect().size
-	var mouse_pos = get_viewport().get_mouse_position()
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 
-	var pan_input = Vector2.ZERO
+	var pan_input: Vector2 = Vector2.ZERO
 
 	# Check horizontal edges (always allowed)
 	if mouse_pos.x <= edge_pan_margin:
