@@ -19,7 +19,7 @@ class_name Summoner
 ## Current state
 var current_hp: float
 var mana: float = 0.0
-const MANA_MAX := 10.0
+const MANA_MAX: float = 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var is_alive: bool = true
@@ -37,10 +37,19 @@ func _ready() -> void:
 		var campaign: Node = get_node_or_null("/root/Campaign")
 		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 		if campaign and profile_repo:
-			var profile: Dictionary = profile_repo.get_active_profile()
-			var battle_id: String = profile.get("campaign_progress", {}).get("current_battle", "")
+			var profile_variant: Variant = {}
+			if profile_repo.has_method("get_active_profile"):
+				profile_variant = profile_repo.call("get_active_profile")
+			var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
+			var campaign_progress_variant: Variant = profile.get("campaign_progress", {})
+			var campaign_progress: Dictionary = campaign_progress_variant if campaign_progress_variant is Dictionary else {}
+			var battle_id_variant: Variant = campaign_progress.get("current_battle", "")
+			var battle_id: String = battle_id_variant if battle_id_variant is String else ""
 			if battle_id != "":
-				var battle: Dictionary = campaign.get_battle(battle_id)
+				var battle_variant: Variant = {}
+				if campaign.has_method("get_battle"):
+					battle_variant = campaign.call("get_battle", battle_id)
+				var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
 				if battle.has("enemy_hp"):
 					max_hp = battle.get("enemy_hp")
 					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
@@ -104,7 +113,7 @@ func draw_card() -> void:
 	if hand.size() >= max_hand_size:
 		return
 
-	var card = deck.pop_front()
+	var card: Card = deck.pop_front()
 	hand.append(card)
 	card_drawn.emit(card)
 	hand_changed.emit(hand)
