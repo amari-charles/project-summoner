@@ -17,7 +17,7 @@ func initialize(radius: float, opacity: float) -> void:
 	shadow_opacity = opacity
 
 	# Create quad mesh
-	var quad = QuadMesh.new()
+	var quad: QuadMesh = QuadMesh.new()
 	quad.size = Vector2(shadow_radius, shadow_radius)
 	mesh = quad
 
@@ -31,7 +31,7 @@ func initialize(radius: float, opacity: float) -> void:
 	shadow_texture = _create_radial_gradient_texture()
 
 	# Create material with proper transparent gradient shadow
-	var material = StandardMaterial3D.new()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -49,23 +49,23 @@ func initialize(radius: float, opacity: float) -> void:
 
 ## Create a radial gradient texture for the shadow
 func _create_radial_gradient_texture() -> ImageTexture:
-	var size_px = 128
-	var image = Image.create(size_px, size_px, false, Image.FORMAT_RGBA8)
+	var size_px: int = 128
+	var image: Image = Image.create(size_px, size_px, false, Image.FORMAT_RGBA8)
 
-	var center = Vector2(size_px / 2.0, size_px / 2.0)
-	var max_radius = size_px / 2.0
+	var center: Vector2 = Vector2(size_px / 2.0, size_px / 2.0)
+	var max_radius: float = size_px / 2.0
 
-	for y in range(size_px):
-		for x in range(size_px):
-			var pos = Vector2(x, y)
-			var dist = pos.distance_to(center)
+	for y: int in range(size_px):
+		for x: int in range(size_px):
+			var pos: Vector2 = Vector2(x, y)
+			var dist: float = pos.distance_to(center)
 
 			# Normalize distance (0 at center, 1 at edge)
-			var normalized_dist = dist / max_radius
+			var normalized_dist: float = dist / max_radius
 
 			# Create soft falloff with smoothstep
 			# Make it more aggressive than quadratic for softer edges
-			var alpha = 1.0 - smoothstep(0.0, 1.0, normalized_dist)
+			var alpha: float = 1.0 - smoothstep(0.0, 1.0, normalized_dist)
 
 			# Set pixel (white with varying alpha - color comes from albedo_color)
 			image.set_pixel(x, y, Color(1, 1, 1, alpha))
@@ -81,8 +81,9 @@ func set_shadow_radius(radius: float) -> void:
 ## Update shadow opacity at runtime
 func set_shadow_opacity(opacity: float) -> void:
 	shadow_opacity = opacity
-	var mat = get_surface_override_material(0)
-	if mat is StandardMaterial3D:
-		var color = mat.albedo_color
+	var mat_variant: Variant = get_surface_override_material(0)
+	if mat_variant is StandardMaterial3D:
+		var mat: StandardMaterial3D = mat_variant
+		var color: Color = mat.albedo_color
 		color.a = opacity
 		mat.albedo_color = color

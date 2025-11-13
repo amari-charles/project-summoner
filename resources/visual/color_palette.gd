@@ -150,6 +150,6 @@ static func get_health_color(hp_percent: float) -> Color:
 
 ## Create semi-transparent version of color
 static func with_alpha(color: Color, alpha: float) -> Color:
-	var result = color
+	var result: Color = color
 	result.a = alpha
 	return result

@@ -110,7 +110,8 @@ class CardDisplay extends Control:
 			var children: Array = viewport.get_children()
 			for child: Node in children:
 				if child is CardVisual:
-					return child as CardVisual
+					var card_visual: CardVisual = child
+					return card_visual
 		return null
 
 	func _process(delta: float) -> void:
@@ -234,7 +235,7 @@ class CardDisplay extends Control:
 		entrance_tween.tween_property(self, "modulate:a", 1.0, DRAW_ANIMATION_DURATION * 0.5)
 
 		# Update base_position after animation completes
-		entrance_tween.finished.connect(func():
+		entrance_tween.finished.connect(func() -> void:
 			base_position = position
 		)
 
@@ -282,7 +283,7 @@ class CardDisplay extends Control:
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton:
-			var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+			var mouse_event: InputEventMouseButton = event
 			if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 				if hand_ui:
 					hand_ui._select_card(card_index)
@@ -446,12 +447,12 @@ func _ready() -> void:
 
 		# Check for both Summoner and Summoner3D with proper type checking
 		if node is Summoner:
-			var summoner_2d: Summoner = node as Summoner
+			var summoner_2d: Summoner = node
 			var team_variant: Variant = summoner_2d.get("team")
 			var team_value: int = team_variant if team_variant is int else -1
 			is_player = team_value == Unit.Team.PLAYER
 		elif node is Summoner3D:
-			var summoner_3d: Summoner3D = node as Summoner3D
+			var summoner_3d: Summoner3D = node
 			var team_variant: Variant = summoner_3d.get("team")
 			var team_value: int = team_variant if team_variant is int else -1
 			is_player = team_value == Unit3D.Team.PLAYER
@@ -516,7 +517,10 @@ func _rebuild_hand_display() -> void:
 
 	for i: int in range(hand.size()):
 		var card: Card = hand[i]
-		var card_display: Control = _create_card_display(card, i)
+		var card_display_variant: Variant = _create_card_display(card, i)
+		if not card_display_variant is CardDisplay:
+			continue
+		var card_display: CardDisplay = card_display_variant
 		card_display.position = Vector2(start_x + i * (CARD_WIDTH + CARD_SPACING), 10)
 		add_child(card_display)
 		card_displays.append(card_display)
@@ -530,7 +534,7 @@ func _rebuild_hand_display() -> void:
 	# Rebuild complete
 	is_rebuilding = false
 
-func _create_card_display(card: Card, index: int) -> Control:
+func _create_card_display(card: Card, index: int) -> CardDisplay:
 	var container: CardDisplay = CardDisplay.new()
 	container.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
 	container.size = Vector2(CARD_WIDTH, CARD_HEIGHT)

@@ -115,16 +115,16 @@ static func get_element_gradient_colors(element_id: String) -> Array[Color]:
 
 ## Get element color from a card's elemental affinity
 ## Handles both Card resources and Dictionary catalog data
-static func get_card_element_color(card_data) -> Color:
+static func get_card_element_color(card_data: Variant) -> Color:
 	var catalog_dict: Dictionary = {}
 
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
 		# Get catalog data from CardCatalog
-		var card_instance: Card = card_data as Card
+		var card_instance: Card = card_data
 		catalog_dict = CardCatalog.get_card(card_instance.catalog_id)
 	elif card_data is Dictionary:
-		catalog_dict = card_data as Dictionary
+		catalog_dict = card_data
 	else:
 		push_warning("CardVisualHelper: Invalid card_data type")
 		return GameColorPalette.NEUTRAL_MID
@@ -132,21 +132,23 @@ static func get_card_element_color(card_data) -> Color:
 	# Check if card has elemental affinity in categories
 	if catalog_dict.has("categories"):
 		var categories: Variant = catalog_dict.get("categories")
-		if categories is Dictionary and (categories as Dictionary).has("elemental_affinity"):
-			var categories_dict: Dictionary = categories as Dictionary
-			var affinity: Variant = categories_dict.get("elemental_affinity")
-			if affinity:
-				# Validate Element object - fail loudly if invalid
-				if typeof(affinity) == TYPE_OBJECT and "id" in affinity:
-					var affinity_id: String = affinity.id
-					return get_element_border_color(affinity_id)
-				else:
-					push_error("CardVisualHelper: Invalid elemental_affinity for card '%s' - expected Element object, got type %s with value: %s" % [catalog_dict.get("card_name", "unknown"), typeof(affinity), affinity])
-					assert(false, "Corrupted element data - fix the card catalog!")
-					return Color.MAGENTA  # Unreachable in debug, but needed for release builds
+		if categories is Dictionary:
+			var categories_dict: Dictionary = categories
+			if categories_dict.has("elemental_affinity"):
+				var affinity: Variant = categories_dict.get("elemental_affinity")
+				if affinity:
+					# Validate Element object - fail loudly if invalid
+					if typeof(affinity) == TYPE_OBJECT and "id" in affinity:
+						var affinity_id: String = affinity.id
+						return get_element_border_color(affinity_id)
+					else:
+						push_error("CardVisualHelper: Invalid elemental_affinity for card '%s' - expected Element object, got type %s with value: %s" % [catalog_dict.get("card_name", "unknown"), typeof(affinity), affinity])
+						assert(false, "Corrupted element data - fix the card catalog!")
+						return Color.MAGENTA  # Unreachable in debug, but needed for release builds
 
 	# Fallback: use card type-based colors (should rarely happen)
-	var card_type: int = catalog_dict.get("card_type", 0) as int
+	var card_type_variant: Variant = catalog_dict.get("card_type", 0)
+	var card_type: int = card_type_variant if card_type_variant is int else 0
 	if card_type == 0:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
 	elif card_type == 1:
@@ -160,22 +162,24 @@ static func get_card_element_color(card_data) -> Color:
 
 ## Get icon path for a card based on its type and unit_type
 ## Returns the appropriate icon for display in card UI
-static func get_card_type_icon_path(card_data) -> String:
+static func get_card_type_icon_path(card_data: Variant) -> String:
 	var catalog_dict: Dictionary = {}
 
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
-		var card_instance: Card = card_data as Card
+		var card_instance: Card = card_data
 		catalog_dict = CardCatalog.get_card(card_instance.catalog_id)
 	elif card_data is Dictionary:
-		catalog_dict = card_data as Dictionary
+		catalog_dict = card_data
 	else:
 		push_warning("CardVisualHelper: Invalid card_data type for icon lookup")
 		return ""
 
 	# Get card type and unit type
-	var card_type: int = catalog_dict.get("card_type", 0) as int
-	var unit_type: String = catalog_dict.get("unit_type", "") as String
+	var card_type_variant: Variant = catalog_dict.get("card_type", 0)
+	var card_type: int = card_type_variant if card_type_variant is int else 0
+	var unit_type_variant: Variant = catalog_dict.get("unit_type", "")
+	var unit_type: String = unit_type_variant if unit_type_variant is String else ""
 
 	# Map to icon path
 	if card_type == 1:  # SPELL

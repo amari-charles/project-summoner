@@ -86,18 +86,26 @@ func _ready() -> void:
 	# Connect to collection service
 	var collection: Node = get_node("/root/Collection")
 	if collection and collection.has_signal("collection_changed"):
-		var collection_changed_sig: Signal = collection.collection_changed
-		collection_changed_sig.connect(_on_collection_changed)
+		var collection_changed_variant: Variant = collection.get("collection_changed")
+		if collection_changed_variant is Signal:
+			var collection_changed_sig: Signal = collection_changed_variant
+			collection_changed_sig.connect(_on_collection_changed)
 
 	# Connect to deck service
 	var decks: Node = get_node("/root/Decks")
 	if decks and decks.has_signal("deck_changed") and decks.has_signal("deck_created") and decks.has_signal("deck_deleted"):
-		var deck_changed_sig: Signal = decks.deck_changed
-		var deck_created_sig: Signal = decks.deck_created
-		var deck_deleted_sig: Signal = decks.deck_deleted
-		deck_changed_sig.connect(_on_deck_changed)
-		deck_created_sig.connect(_on_deck_created)
-		deck_deleted_sig.connect(_on_deck_deleted)
+		var deck_changed_variant: Variant = decks.get("deck_changed")
+		var deck_created_variant: Variant = decks.get("deck_created")
+		var deck_deleted_variant: Variant = decks.get("deck_deleted")
+		if deck_changed_variant is Signal:
+			var deck_changed_sig: Signal = deck_changed_variant
+			deck_changed_sig.connect(_on_deck_changed)
+		if deck_created_variant is Signal:
+			var deck_created_sig: Signal = deck_created_variant
+			deck_created_sig.connect(_on_deck_created)
+		if deck_deleted_variant is Signal:
+			var deck_deleted_sig: Signal = deck_deleted_variant
+			deck_deleted_sig.connect(_on_deck_deleted)
 
 	# Load initial data
 	_refresh_collection()

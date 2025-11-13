@@ -19,9 +19,15 @@ func _ready() -> void:
 
 		# Check for both Summoner and Summoner3D with proper type checking
 		if node is Summoner:
-			is_player = node.team == Unit.Team.PLAYER
+			var summoner_2d: Summoner = node
+			var team_variant: Variant = summoner_2d.get("team")
+			var team_value: int = team_variant if team_variant is int else -1
+			is_player = team_value == Unit.Team.PLAYER
 		elif node is Summoner3D:
-			is_player = node.team == Unit3D.Team.PLAYER
+			var summoner_3d: Summoner3D = node
+			var team_variant: Variant = summoner_3d.get("team")
+			var team_value: int = team_variant if team_variant is int else -1
+			is_player = team_value == Unit3D.Team.PLAYER
 
 		if is_player:
 			summoner = node
@@ -55,18 +61,27 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		return false
 
 	# Check if we have a summoner
-	if not summoner or not summoner.is_alive:
+	if not summoner:
+		return false
+
+	var is_alive_variant: Variant = summoner.get("is_alive")
+	var is_alive: bool = is_alive_variant if is_alive_variant is bool else false
+	if not is_alive:
 		return false
 
 	# Get the card
 	var card_index: int = data.card_index
-	if card_index < 0 or card_index >= summoner.hand.size():
+	var hand_variant: Variant = summoner.get("hand")
+	var hand: Array = hand_variant if hand_variant is Array else []
+	if card_index < 0 or card_index >= hand.size():
 		return false
 
 	var card: Card = data.card
 
 	# Check if we can afford it
-	if summoner.mana < card.mana_cost:
+	var mana_variant: Variant = summoner.get("mana")
+	var mana: float = mana_variant if mana_variant is float else 0.0
+	if mana < card.mana_cost:
 		return false
 
 	# Valid drop
@@ -82,11 +97,13 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if is_3d:
 		# Convert screen to 3D world position
 		var world_pos_3d: Vector3 = _screen_to_world_3d(at_position)
-		summoner.play_card_3d(card_index, world_pos_3d)
+		if summoner.has_method("play_card_3d"):
+			summoner.call("play_card_3d", card_index, world_pos_3d)
 	else:
 		# Convert screen to 2D world position
 		var world_pos_2d: Vector2 = _screen_to_world_2d(at_position)
-		summoner.play_card(card_index, world_pos_2d)
+		if summoner.has_method("play_card"):
+			summoner.call("play_card", card_index, world_pos_2d)
 
 ## Convert screen coordinates to 2D world coordinates
 func _screen_to_world_2d(screen_pos: Vector2) -> Vector2:
