@@ -128,11 +128,13 @@ func end_game(winner: Unit3D.Team) -> void:
 	# Delegate to BattleContext for mode-specific completion handling
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context:
-		var callback: Variant = battle_context.get("completion_callback")
-		if callback is Callable and callback.is_valid():
-			await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
-			get_tree().paused = false
-			callback.call(winner as int)
+		var callback_variant: Variant = battle_context.get("completion_callback")
+		if callback_variant is Callable:
+			var callback: Callable = callback_variant
+			if callback.is_valid():
+				await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
+				get_tree().paused = false
+				callback.call(winner as int)
 
 func _on_summoner_died(summoner: Summoner3D) -> void:
 	if summoner == player_summoner:
