@@ -41,13 +41,14 @@ func _ready() -> void:
 	# For enemy summoners, load config from BattleContext
 	if team == Unit3D.Team.ENEMY:
 		var battle_context: Node = get_node_or_null("/root/BattleContext")
-		if battle_context and not battle_context.battle_config.is_empty():
-			var battle_config: Dictionary = battle_context.battle_config
-
-			# Set enemy HP from config
-			if battle_config.has("enemy_hp"):
-				max_hp = battle_config.get("enemy_hp")
-				print("Summoner3D: Set enemy HP from BattleContext: %d" % max_hp)
+		if battle_context:
+			var battle_config_variant: Variant = battle_context.get("battle_config")
+			var battle_config: Dictionary = battle_config_variant if battle_config_variant is Dictionary else {}
+			if not battle_config.is_empty():
+				# Set enemy HP from config
+				if battle_config.has("enemy_hp"):
+					max_hp = battle_config.get("enemy_hp")
+					print("Summoner3D: Set enemy HP from BattleContext: %d" % max_hp)
 
 	current_hp = max_hp
 	mana = MANA_MAX
