@@ -44,9 +44,11 @@ func _ready() -> void:
 
 	# Connect summoner death signals (for backward compatibility)
 	if player_summoner and player_summoner.has_signal("summoner_died"):
-		player_summoner.summoner_died.connect(_on_summoner_died)
+		var player_summoner_died_signal: Signal = player_summoner.get("summoner_died")
+		player_summoner_died_signal.connect(_on_summoner_died)
 	if enemy_summoner and enemy_summoner.has_signal("summoner_died"):
-		enemy_summoner.summoner_died.connect(_on_summoner_died)
+		var enemy_summoner_died_signal: Signal = enemy_summoner.get("summoner_died")
+		enemy_summoner_died_signal.connect(_on_summoner_died)
 
 	# Connect base destruction signals
 	await get_tree().process_frame  # Wait for bases to be ready
@@ -55,13 +57,15 @@ func _ready() -> void:
 
 	for base: Node in player_bases:
 		if base.has_signal("base_destroyed"):
-			base.base_destroyed.connect(_on_base_destroyed)
+			var base_destroyed_signal: Signal = base.get("base_destroyed")
+			base_destroyed_signal.connect(_on_base_destroyed)
 			player_base = base
 			print("Connected to player base")
 
 	for base: Node in enemy_bases:
 		if base.has_signal("base_destroyed"):
-			base.base_destroyed.connect(_on_base_destroyed)
+			var base_destroyed_signal: Signal = base.get("base_destroyed")
+			base_destroyed_signal.connect(_on_base_destroyed)
 			enemy_base = base
 			print("Connected to enemy base")
 

@@ -37,9 +37,11 @@ func _ready() -> void:
 		enemy_summoner = get_tree().get_first_node_in_group("enemy_summoners")
 
 	if player_summoner and player_summoner.has_signal("summoner_died"):
-		player_summoner.summoner_died.connect(_on_summoner_died)
+		var player_summoner_died_signal: Signal = player_summoner.get("summoner_died")
+		player_summoner_died_signal.connect(_on_summoner_died)
 	if enemy_summoner and enemy_summoner.has_signal("summoner_died"):
-		enemy_summoner.summoner_died.connect(_on_summoner_died)
+		var enemy_summoner_died_signal: Signal = enemy_summoner.get("summoner_died")
+		enemy_summoner_died_signal.connect(_on_summoner_died)
 
 	await get_tree().process_frame
 	var player_bases: Array = get_tree().get_nodes_in_group("player_base")

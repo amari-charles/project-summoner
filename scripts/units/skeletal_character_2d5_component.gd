@@ -56,7 +56,8 @@ func _instance_skeletal_scene() -> void:
 
 	# Connect animation event signals (e.g., attack_impact)
 	if skeletal_instance.has_signal("attack_impact"):
-		skeletal_instance.attack_impact.connect(_on_attack_impact)
+		var attack_impact_signal: Signal = skeletal_instance.get("attack_impact")
+		attack_impact_signal.connect(_on_attack_impact)
 
 ## Recursively find AnimationPlayer in node tree
 func _find_animation_player(node: Node) -> AnimationPlayer:

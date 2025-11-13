@@ -24,7 +24,7 @@ var draggable: bool = false
 
 ## Hold detection
 var hold_timer: Timer = null
-const HOLD_DURATION = 0.5  # seconds
+const HOLD_DURATION: float = 0.5  ## seconds
 
 ## Animation state
 var hover_tween: Tween = null
@@ -161,18 +161,20 @@ func _on_mouse_exited() -> void:
 		hold_timer.stop()
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			# Mouse button pressed - start hold timer
-			if hold_timer:
-				hold_timer.start(HOLD_DURATION)
-		else:
-			# Mouse button released
-			if hold_timer and hold_timer.time_left > 0:
-				# Released before hold duration - it's a quick click
-				hold_timer.stop()
-				card_clicked.emit(card_data)
-			# If timer expired, card_held was already emitted
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			if mouse_event.pressed:
+				# Mouse button pressed - start hold timer
+				if hold_timer:
+					hold_timer.start(HOLD_DURATION)
+			else:
+				# Mouse button released
+				if hold_timer and hold_timer.time_left > 0:
+					# Released before hold duration - it's a quick click
+					hold_timer.stop()
+					card_clicked.emit(card_data)
+				# If timer expired, card_held was already emitted
 
 func _on_hold_timeout() -> void:
 	# Hold duration reached - emit held signal

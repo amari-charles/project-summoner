@@ -100,7 +100,7 @@ func _setup_sprite_alignment() -> void:
 	sprite_3d.position.y = world_height / 2.0  # 3.125 for standard sprites
 
 	# Get actual texture size for precise feet positioning
-	var texture_size = _get_current_frame_size()
+	var texture_size: Vector2 = _get_current_frame_size()
 
 	if texture_size.y > 0:
 		# PRECISE: Calculate position so sprite's actual feet align with viewport bottom
@@ -119,7 +119,7 @@ func get_sprite_height() -> float:
 	assert(sprite_3d != null, "SpriteChar2D5: sprite_3d is null")
 
 	# Get actual texture size to calculate real character height
-	var texture_size = _get_current_frame_size()
+	var texture_size: Vector2 = _get_current_frame_size()
 
 	if texture_size.y > 0:
 		# Actual sprite height in world units, accounting for feet offset
@@ -140,7 +140,7 @@ func _get_current_frame_size() -> Vector2:
 		return Vector2.ZERO
 
 	# Get current animation name (default to "idle" if not set)
-	var anim = character_sprite.animation
+	var anim: String = character_sprite.animation
 	if anim == "":
 		anim = "idle"
 
@@ -149,12 +149,12 @@ func _get_current_frame_size() -> Vector2:
 		return Vector2.ZERO
 
 	# Get frame count
-	var frame_count = character_sprite.sprite_frames.get_frame_count(anim)
+	var frame_count: int = character_sprite.sprite_frames.get_frame_count(anim)
 	if frame_count == 0:
 		return Vector2.ZERO
 
 	# Get first frame texture (assume all frames same size)
-	var frame_texture = character_sprite.sprite_frames.get_frame_texture(anim, 0)
+	var frame_texture: Texture2D = character_sprite.sprite_frames.get_frame_texture(anim, 0)
 	if not frame_texture:
 		return Vector2.ZERO
 

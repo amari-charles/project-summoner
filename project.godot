@@ -34,6 +34,15 @@ DevConsole="*res://scripts/debug/dev_console.gd"
 ModifierSystem="*res://scripts/systems/modifier_system.gd"
 PhysicsLayers="*res://scripts/core/physics_layers.gd"
 
+[debug]
+
+gdscript/warnings/untyped_declaration=2
+gdscript/warnings/inferred_declaration=2
+gdscript/warnings/unsafe_property_access=2
+gdscript/warnings/unsafe_method_access=2
+gdscript/warnings/unsafe_cast=2
+gdscript/warnings/unsafe_call_argument=2
+
 [display]
 
 window/size/viewport_width=1920
@@ -47,12 +56,3 @@ window/stretch/mode="canvas_items"
 3d_physics/layer_2="Flying Units"
 3d_physics/layer_3="Terrain"
 3d_physics/layer_4="Projectiles"
-
-[debug]
-
-gdscript/warnings/untyped_declaration=2
-gdscript/warnings/inferred_declaration=2
-gdscript/warnings/unsafe_property_access=2
-gdscript/warnings/unsafe_method_access=2
-gdscript/warnings/unsafe_call_argument=2
-gdscript/warnings/unsafe_cast=2

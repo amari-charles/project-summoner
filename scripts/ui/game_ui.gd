@@ -3,13 +3,13 @@ class_name GameUI
 
 ## Manages all UI updates for the match
 
-@export var timer_label: Label
-@export var player_mana_label: Label
-@export var game_over_label: Label
-@export var restart_button: Button
+@export var timer_label: Label = null
+@export var player_mana_label: Label = null
+@export var game_over_label: Label = null
+@export var restart_button: Button = null
 
-var game_controller: GameController
-var player_summoner: Summoner
+var game_controller: GameController = null
+var player_summoner: Summoner = null
 
 func _ready() -> void:
 	# Find nodes if not assigned
@@ -34,11 +34,13 @@ func _ready() -> void:
 	game_controller = get_tree().get_first_node_in_group("game_controller")
 
 	# Find the actual Summoner node (not Base) in player_summoners group
-	var summoners = get_tree().get_nodes_in_group("summoners")
-	for node in summoners:
-		if node is Summoner and node.team == Unit.Team.PLAYER:
-			player_summoner = node
-			break
+	var summoners: Array[Node] = get_tree().get_nodes_in_group("summoners")
+	for node: Node in summoners:
+		if node is Summoner:
+			var summoner: Summoner = node as Summoner
+			if summoner.team == Unit.Team.PLAYER:
+				player_summoner = summoner
+				break
 
 	# Connect signals
 	if game_controller:

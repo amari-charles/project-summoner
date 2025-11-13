@@ -36,9 +36,11 @@ func _ready() -> void:
 	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
 		if campaign.has_signal("battle_completed"):
-			campaign.battle_completed.connect(_on_battle_completed)
+			var battle_completed_signal: Signal = campaign.get("battle_completed")
+			battle_completed_signal.connect(_on_battle_completed)
 		if campaign.has_signal("campaign_progress_changed"):
-			campaign.campaign_progress_changed.connect(_on_progress_changed)
+			var campaign_progress_changed_signal: Signal = campaign.get("campaign_progress_changed")
+			campaign_progress_changed_signal.connect(_on_progress_changed)
 
 	# Load battles
 	_refresh_battle_list()

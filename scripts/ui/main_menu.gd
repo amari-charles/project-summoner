@@ -13,7 +13,7 @@ func _input(event: InputEvent) -> void:
 	# Debug: F11 to reset profile
 	if event is InputEventKey:
 		var key_event: InputEventKey = event as InputEventKey
-		if key_event.pressed and key_event.keycode == KEY_F11:
+		if key_event.pressed and not key_event.is_echo() and key_event.keycode == KEY_F11:
 			print("MainMenu: F11 pressed - resetting profile...")
 			var dev_console: Node = get_node_or_null("/root/DevConsole")
 			if dev_console:
@@ -28,11 +28,8 @@ func _on_play_pressed() -> void:
 	if profile_repo:
 		var profile: Dictionary = profile_repo.call("get_active_profile")
 		if not profile.is_empty():
-			var meta: Variant = profile.get("meta", {})
-			var onboarding_complete: bool = false
-			if meta is Dictionary:
-				var meta_dict: Dictionary = meta
-				onboarding_complete = meta_dict.get("onboarding_complete", false)
+			var meta: Dictionary = profile.get("meta", {})
+			var onboarding_complete: bool = meta.get("onboarding_complete", false)
 
 			if not onboarding_complete:
 				print("Opening onboarding - hero selection...")
