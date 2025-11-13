@@ -271,11 +271,12 @@ class CardDisplay extends Control:
 		visible = false
 
 		# Return drag data
-		return {
+		var drag_data: Dictionary = {
 			"card_index": card_index,
 			"card": card,
 			"source": "hand"
 		}
+		return drag_data
 
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
