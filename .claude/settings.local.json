@@ -11,7 +11,8 @@
       "Bash(git commit:*)",
       "Bash(pkill:*)",
       "Bash(find:*)",
-      "Bash(python3 -m py_compile:*)"
+      "Bash(python3 -m py_compile:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

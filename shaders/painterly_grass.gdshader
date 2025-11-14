@@ -32,6 +32,14 @@ uniform float secondary_intensity : hint_range(0.0, 1.0) = 0.4;
 uniform float tertiary_scale : hint_range(0.1, 30.0) = 12.0;
 uniform float tertiary_intensity : hint_range(0.0, 1.0) = 0.2;
 
+// --- DETAIL SPOTS (Green/Tan patches) ---
+// Creates sparse colored spots across the grass
+uniform float detail_scale : hint_range(1.0, 50.0) = 20.0;
+uniform float detail_threshold : hint_range(0.0, 1.0) = 0.7;  // Higher = fewer spots
+uniform float detail_intensity : hint_range(0.0, 1.0) = 0.3;
+uniform vec4 detail_color_1 : source_color = vec4(0.2, 0.5, 0.2, 1.0);  // Dark green
+uniform vec4 detail_color_2 : source_color = vec4(0.6, 0.5, 0.3, 1.0);  // Tan/brown
+
 // --- VISUAL TWEAKS ---
 // Overall contrast: higher = more variation between light/dark areas
 uniform float contrast : hint_range(0.0, 2.0) = 1.0;
@@ -143,6 +151,26 @@ void fragment() {
 
     // Apply global tint (for biome variations)
     grass_color *= tint_color.rgb;
+
+    // --- LAYER 4: DETAIL SPOTS (Sparse green/tan patches) ---
+    vec2 detail_uv = uv * detail_scale;
+    float detail_noise = fbm(detail_uv, 2);
+
+    // Apply threshold to make spots sparse
+    if (detail_noise > detail_threshold) {
+        // Determine if this spot is green or tan based on another noise sample
+        vec2 color_select_uv = uv * detail_scale * 0.5 + vec2(100.0, 200.0);  // Offset for variation
+        float color_selector = noise(color_select_uv);
+
+        // Mix between dark green and tan
+        vec3 spot_color = mix(detail_color_1.rgb, detail_color_2.rgb, color_selector);
+
+        // Fade the spot edges based on how far above threshold
+        float spot_strength = smoothstep(detail_threshold, 1.0, detail_noise) * detail_intensity;
+
+        // Blend the spot color into the grass
+        grass_color = mix(grass_color, spot_color, spot_strength);
+    }
 
     // Output final color (spatial shader uses ALBEDO for unshaded materials)
     ALBEDO = grass_color;
