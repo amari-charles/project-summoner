@@ -11,6 +11,9 @@ class_name GameUI
 var game_controller: Node = null
 var player_summoner: Node = null  # Can be Summoner or Summoner3D
 
+## Player team value that works for both Unit.Team.PLAYER (2D) and Unit3D.Team.PLAYER (3D)
+const PLAYER_TEAM_VALUE: int = 0
+
 func _ready() -> void:
 	# Find nodes if not assigned
 	if timer_label == null:
@@ -40,8 +43,7 @@ func _ready() -> void:
 		if "team" in node:
 			var team_value: Variant = node.get("team")
 			# Check if it's the player team (works for both 2D and 3D)
-			# Unit.Team.PLAYER = 0, Unit3D.Team.PLAYER = 0
-			if team_value == 0:  # PLAYER team
+			if team_value == PLAYER_TEAM_VALUE:
 				player_summoner = node
 				break
 

@@ -40,8 +40,7 @@ var _completed_battles: Array[String] = []
 func _ready() -> void:
 	print("CampaignService: Initializing...")
 
-	# Initialize dependencies
-	await get_tree().process_frame
+	# Initialize dependencies (autoloads are always available in _ready)
 	_profile_repo = get_node("/root/ProfileRepo")
 	_collection = get_node("/root/Collection")
 

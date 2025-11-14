@@ -22,6 +22,30 @@ var selected_battle_id: String = ""
 var all_battles: Array[Dictionary] = []
 
 ## =============================================================================
+## TYPE HELPERS
+## =============================================================================
+
+## Safely cast Variant to String with default value
+func _safe_string(variant: Variant, default: String = "") -> String:
+	return variant if variant is String else default
+
+## Safely cast Variant to int with default value
+func _safe_int(variant: Variant, default: int = 0) -> int:
+	return variant if variant is int else default
+
+## Safely cast Variant to Dictionary with default value
+func _safe_dict(variant: Variant) -> Dictionary:
+	return variant if variant is Dictionary else {}
+
+## Safely cast Variant to Array with default value
+func _safe_array(variant: Variant) -> Array:
+	return variant if variant is Array else []
+
+## Safely cast Variant to bool with default value
+func _safe_bool(variant: Variant, default: bool = false) -> bool:
+	return variant if variant is bool else default
+
+## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
@@ -64,11 +88,8 @@ func _refresh_battle_list() -> void:
 		return
 
 	var battles_variant: Variant = campaign.call("get_all_battles")
-	if battles_variant is Array:
-		var battles_array: Array = battles_variant
-		all_battles.assign(battles_array)
-	else:
-		all_battles = []
+	var battles_array: Array = _safe_array(battles_variant)
+	all_battles.assign(battles_array)
 
 	if all_battles.is_empty():
 		var label: Label = Label.new()
@@ -98,17 +119,13 @@ func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 	margin.add_child(hbox)
 
 	var campaign: Node = get_node("/root/Campaign")
-	var battle_id_variant: Variant = battle_data.get("id", "")
-	var battle_id: String = battle_id_variant if battle_id_variant is String else ""
-	var is_completed_variant: Variant = campaign.call("is_battle_completed", battle_id)
-	var is_completed: bool = is_completed_variant if is_completed_variant is bool else false
-	var is_unlocked_variant: Variant = campaign.call("is_battle_unlocked", battle_id)
-	var is_unlocked: bool = is_unlocked_variant if is_unlocked_variant is bool else false
+	var battle_id: String = _safe_string(battle_data.get("id", ""))
+	var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", battle_id))
+	var is_unlocked: bool = _safe_bool(campaign.call("is_battle_unlocked", battle_id))
 
 	# Battle name
 	var name_label: Label = Label.new()
-	var name_variant: Variant = battle_data.get("name", "Unknown Battle")
-	name_label.text = name_variant if name_variant is String else "Unknown Battle"
+	name_label.text = _safe_string(battle_data.get("name", "Unknown Battle"), "Unknown Battle")
 	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
@@ -172,39 +189,31 @@ func _update_detail_panel() -> void:
 	if not campaign:
 		return
 
-	var battle_variant: Variant = campaign.call("get_battle", selected_battle_id)
-	var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
+	var battle: Dictionary = _safe_dict(campaign.call("get_battle", selected_battle_id))
 	if battle.is_empty():
 		return
 
 	# Update labels
-	var name_variant: Variant = battle.get("name", "Unknown")
-	battle_name_label.text = name_variant if name_variant is String else "Unknown"
+	battle_name_label.text = _safe_string(battle.get("name", "Unknown"), "Unknown")
 
-	var difficulty_variant: Variant = battle.get("difficulty", 1)
-	var difficulty: int = difficulty_variant if difficulty_variant is int else 1
+	var difficulty: int = _safe_int(battle.get("difficulty", 1), 1)
 	var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
 	difficulty_label.text = "Difficulty: %s" % diff_stars
 
-	var description_variant: Variant = battle.get("description", "No description.")
-	description_label.text = description_variant if description_variant is String else "No description."
+	description_label.text = _safe_string(battle.get("description", "No description."), "No description.")
 
 	# Reward summary
-	var reward_type_variant: Variant = battle.get("reward_type", "fixed")
-	var reward_type: String = reward_type_variant if reward_type_variant is String else "fixed"
-	var reward_cards_variant: Variant = battle.get("reward_cards", [])
-	var reward_cards: Array = reward_cards_variant if reward_cards_variant is Array else []
+	var reward_type: String = _safe_string(battle.get("reward_type", "fixed"), "fixed")
+	var reward_cards: Array = _safe_array(battle.get("reward_cards", []))
 	var reward_text: String = ""
 
 	match reward_type:
 		"fixed":
 			var card_names: Array[String] = []
 			for reward_item: Variant in reward_cards:
-				var reward: Dictionary = reward_item if reward_item is Dictionary else {}
-				var count_variant: Variant = reward.get("count", 1)
-				var count: int = count_variant if count_variant is int else 1
-				var catalog_id_variant: Variant = reward.get("catalog_id", "")
-				var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
+				var reward: Dictionary = _safe_dict(reward_item)
+				var count: int = _safe_int(reward.get("count", 1), 1)
+				var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
 				if count > 1:
 					card_names.append("%dx %s" % [count, catalog_id.capitalize()])
 				else:
@@ -214,26 +223,23 @@ func _update_detail_panel() -> void:
 		"choice":
 			var options: Array[String] = []
 			for reward_item: Variant in reward_cards:
-				var reward: Dictionary = reward_item if reward_item is Dictionary else {}
-				var catalog_id_variant: Variant = reward.get("catalog_id", "")
-				var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
+				var reward: Dictionary = _safe_dict(reward_item)
+				var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
 				options.append(catalog_id.capitalize())
 			reward_text = "Reward: Choose from " + ", ".join(options)
 
 		"random":
 			var count: int = 0
 			for reward_item: Variant in reward_cards:
-				var reward: Dictionary = reward_item if reward_item is Dictionary else {}
-				var count_variant: Variant = reward.get("count", 1)
-				var reward_count: int = count_variant if count_variant is int else 1
+				var reward: Dictionary = _safe_dict(reward_item)
+				var reward_count: int = _safe_int(reward.get("count", 1), 1)
 				count += reward_count
 			reward_text = "Reward: Random (%d cards)" % count
 
 	reward_label.text = reward_text
 
 	# Enable/disable start button
-	var is_completed_variant: Variant = campaign.call("is_battle_completed", selected_battle_id)
-	var is_completed: bool = is_completed_variant if is_completed_variant is bool else false
+	var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", selected_battle_id))
 	if is_completed:
 		start_battle_button.text = "REPLAY BATTLE (no reward)"
 		start_battle_button.disabled = false
@@ -250,12 +256,10 @@ func _update_progress_display() -> void:
 	if not campaign:
 		return
 
-	var completed_variant: Variant = campaign.call("get_completed_battles")
-	var completed_battles: Array = completed_variant if completed_variant is Array else []
+	var completed_battles: Array = _safe_array(campaign.call("get_completed_battles"))
 	var completed: int = completed_battles.size()
 
-	var total_variant: Variant = campaign.call("get_all_battles")
-	var total_battles: Array = total_variant if total_variant is Array else []
+	var total_battles: Array = _safe_array(campaign.call("get_all_battles"))
 	var total: int = total_battles.size()
 
 	progress_label.text = "%d / %d Complete" % [completed, total]
@@ -274,15 +278,12 @@ func _on_start_battle_pressed() -> void:
 	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
 		var profile_repo: Node = get_node("/root/ProfileRepo")
-		var profile_variant: Variant = profile_repo.call("get_active_profile")
-		var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
+		var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
 		if not profile.is_empty():
 			if not profile.has("campaign_progress"):
 				profile["campaign_progress"] = {}
-			var campaign_progress: Variant = profile["campaign_progress"]
-			if campaign_progress is Dictionary:
-				var progress_dict: Dictionary = campaign_progress
-				progress_dict["current_battle"] = selected_battle_id
+			var campaign_progress: Dictionary = _safe_dict(profile["campaign_progress"])
+			campaign_progress["current_battle"] = selected_battle_id
 			profile_repo.call("save_profile", true)  # Force immediate save
 
 	# Configure battle context for campaign mode

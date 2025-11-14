@@ -33,9 +33,9 @@ func _ready() -> void:
 		progress_bar.max_value = 10.0
 		progress_bar.value = 10.0
 
-		# Fill style with bright cyan color
+		# Fill style - transparent to let gradient layers show through
 		var fill_style: StyleBoxFlat = StyleBoxFlat.new()
-		fill_style.bg_color = MANA_BRIGHT
+		fill_style.bg_color = Color(0, 0, 0, 0)  # Fully transparent
 
 		# Rounded corners
 		fill_style.corner_radius_top_left = 6
@@ -88,16 +88,19 @@ func _ready() -> void:
 		glow_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Setup gradient layers to create depth
-	# Bottom layer: dark blue that covers bottom 60% of bar
+	# Strategy: ProgressBar fill is transparent, so gradients underneath show through.
+	# Gradients are clipped by _update_gradient_clip() to match fill percentage.
+	# This creates a multi-layer depth effect with darker base and bright highlights.
+
+	# Bottom layer: darker blue for depth
 	if gradient_base:
-		gradient_base.color = Color(0.05, 0.2, 0.5, 0.8)  # Dark blue semi-transparent
-		gradient_base.anchor_bottom = 0.6  # Only cover bottom 60%
+		gradient_base.color = MANA_DARK  # Deep blue base
 
-	# Top layer: very subtle highlight
+	# Top layer: bright cyan overlay
 	if gradient_top:
-		gradient_top.visible = false  # Not using this layer
+		gradient_top.color = Color(MANA_BRIGHT.r, MANA_BRIGHT.g, MANA_BRIGHT.b, 0.6)  # Semi-transparent bright cyan
 
-	# Edge highlight: bright strip at top
+	# Edge highlight: bright strip at top for glossy effect
 	if edge_highlight:
 		edge_highlight.color = Color(0.9, 0.98, 1.0, 0.7)  # Very bright white-cyan
 
@@ -144,6 +147,10 @@ func _animate_bar_to(target_value: float) -> void:
 ## Update gradient and highlight to match fill amount
 func _update_gradient_clip(current_value: float) -> void:
 	if not progress_bar:
+		return
+
+	# Validate bar is ready and has non-zero size
+	if progress_bar.size.x <= 0:
 		return
 
 	# Calculate fill percentage
