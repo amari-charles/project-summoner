@@ -62,6 +62,10 @@ func _on_profile_data_changed() -> void:
 ## =============================================================================
 
 func _init_battles() -> void:
+	# TODO: Ensure reward_cards here stay in sync with what's displayed in the campaign menu UI
+	# When updating battle rewards, also update the corresponding UI display in campaign_screen.gd
+	# to prevent divergence between advertised and actual rewards
+
 	# Battle 0: Tutorial - First card
 	_battles["battle_00"] = {
 		"id": "battle_00",

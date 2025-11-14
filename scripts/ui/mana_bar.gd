@@ -6,6 +6,9 @@ class_name ManaBar
 @onready var progress_bar: ProgressBar = $ProgressBar
 @onready var mana_label: Label = $ManaLabel
 @onready var glow_overlay: ColorRect = $GlowOverlay
+@onready var gradient_base: ColorRect = $GradientBase
+@onready var gradient_top: ColorRect = $GradientTop
+@onready var edge_highlight: ColorRect = $EdgeHighlight
 
 ## Tween for smooth bar animation
 var fill_tween: Tween = null
@@ -84,6 +87,10 @@ func _ready() -> void:
 		glow_overlay.visible = false
 		glow_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+	# Setup gradient layers - clip to progress bar fill area
+	if progress_bar:
+		_update_gradient_clip(progress_bar.value)
+
 ## Update mana display with smooth animation
 func update_mana(current: float, maximum: float) -> void:
 	# Update label
@@ -113,9 +120,29 @@ func _animate_bar_to(target_value: float) -> void:
 	fill_tween = create_tween()
 	fill_tween.set_ease(Tween.EASE_OUT)
 	fill_tween.set_trans(Tween.TRANS_CUBIC)
+	fill_tween.set_parallel(true)
 
-	# Animate to target value over 0.25 seconds
+	# Animate progress bar and gradient layers together
+	var current_val: float = progress_bar.value
 	fill_tween.tween_property(progress_bar, "value", target_value, 0.25)
+	fill_tween.tween_method(_update_gradient_clip, current_val, target_value, 0.25)
+
+## Update gradient and highlight to match fill amount
+func _update_gradient_clip(current_value: float) -> void:
+	if not progress_bar:
+		return
+
+	# Calculate fill percentage
+	var fill_percent: float = current_value / progress_bar.max_value
+	var bar_width: float = progress_bar.size.x
+
+	# Clip gradient layers to match fill
+	if gradient_base:
+		gradient_base.size.x = bar_width * fill_percent
+	if gradient_top:
+		gradient_top.size.x = bar_width * fill_percent
+	if edge_highlight:
+		edge_highlight.size.x = bar_width * fill_percent
 
 ## Start pulsing glow effect
 func _start_glow_pulse() -> void:
