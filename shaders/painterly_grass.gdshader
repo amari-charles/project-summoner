@@ -156,21 +156,23 @@ void fragment() {
     vec2 detail_uv = uv * detail_scale;
     float detail_noise = fbm(detail_uv, 2);
 
-    // Apply threshold to make spots sparse
-    if (detail_noise > detail_threshold) {
-        // Determine if this spot is green or tan based on another noise sample
-        vec2 color_select_uv = uv * detail_scale * 0.5 + vec2(100.0, 200.0);  // Offset for variation
-        float color_selector = noise(color_select_uv);
+    // Soft threshold: fade in spots near the threshold for natural edges
+    // This creates a smooth transition from no-spot to full-spot
+    float threshold_fade = 0.05; // How soft the threshold edge is
+    float spot_mask = smoothstep(detail_threshold - threshold_fade, detail_threshold + threshold_fade, detail_noise);
 
-        // Mix between dark green and tan
-        vec3 spot_color = mix(detail_color_1.rgb, detail_color_2.rgb, color_selector);
+    // Determine if this spot is green or tan
+    vec2 color_select_uv = uv * detail_scale * 0.5 + vec2(100.0, 200.0);
+    float color_selector = noise(color_select_uv);
 
-        // Fade the spot edges based on how far above threshold
-        float spot_strength = smoothstep(detail_threshold, 1.0, detail_noise) * detail_intensity;
+    // Mix between dark green and tan
+    vec3 spot_color = mix(detail_color_1.rgb, detail_color_2.rgb, color_selector);
 
-        // Blend the spot color into the grass
-        grass_color = mix(grass_color, spot_color, spot_strength);
-    }
+    // Combine masks: threshold mask * intensity
+    float spot_strength = spot_mask * detail_intensity;
+
+    // Blend the spot color into the grass (GPU-friendly, no branching)
+    grass_color = mix(grass_color, spot_color, spot_strength);
 
     // Output final color (spatial shader uses ALBEDO for unshaded materials)
     ALBEDO = grass_color;
