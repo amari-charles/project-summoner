@@ -37,8 +37,8 @@ uniform float tertiary_intensity : hint_range(0.0, 1.0) = 0.2;
 uniform float detail_scale : hint_range(1.0, 50.0) = 20.0;
 uniform float detail_threshold : hint_range(0.0, 1.0) = 0.7;  // Higher = fewer spots
 uniform float detail_intensity : hint_range(0.0, 1.0) = 0.3;
-uniform vec4 detail_color_1 : source_color = vec4(0.2, 0.5, 0.2, 1.0);  // Dark green
-uniform vec4 detail_color_2 : source_color = vec4(0.6, 0.5, 0.3, 1.0);  // Tan/brown
+uniform vec4 detail_color_1 : source_color = vec4(0.3, 0.6, 0.3, 1.0);  // Brighter green
+uniform vec4 detail_color_2 : source_color = vec4(0.85, 0.75, 0.55, 1.0);  // Light tan/beige
 
 // --- VISUAL TWEAKS ---
 // Overall contrast: higher = more variation between light/dark areas
