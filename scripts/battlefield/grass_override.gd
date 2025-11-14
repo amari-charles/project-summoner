@@ -43,18 +43,17 @@ func _ready() -> void:
 	# Override the material with our painterly grass shader
 	background.set_surface_override_material(0, grass_material)
 
-	# Lower the background mesh so bases appear above it
-	background.position.y = -0.1
-
 	# Set render priority to ensure grass renders behind everything
 	# Lower values render first (behind), higher values render last (on top)
+	# Material already has render_priority set, but we can ensure it's applied
 	var mat: ShaderMaterial = background.get_surface_override_material(0)
 	if mat:
-		mat.render_priority = -10  # Render grass first (behind units)
+		# Ensure render_priority is set (material should already have -10)
+		if mat.render_priority == 0:
+			mat.render_priority = -10
+		print("GrassOverride: ✓ Render priority: ", mat.render_priority)
 
 	print("GrassOverride: ✓ Applied painterly grass shader to Background mesh!")
-	print("GrassOverride: ✓ Lowered Background mesh to Y = -0.1")
-	print("GrassOverride: ✓ Set render priority to -10")
 
 	# Verify it was applied
 	var current_mat: Material = background.get_surface_override_material(0)
