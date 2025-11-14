@@ -63,7 +63,8 @@ func _get_mana_value() -> int:
 	if mana_variant is int:
 		return mana_variant
 	elif mana_variant is float:
-		return int(mana_variant)
+		var mana_float: float = mana_variant
+		return int(mana_float)
 	return -1
 
 ## Get indices of cards that can be played with current mana
