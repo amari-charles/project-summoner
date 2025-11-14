@@ -190,8 +190,8 @@ func _is_test_mode() -> bool:
 		var mode_variant: Variant = battle_context.get("current_mode")
 		if mode_variant is int:
 			var mode: int = mode_variant
-			# PRACTICE = 1 in BattleContext enum
-			if mode == 1:
+			# PRACTICE = 4 in BattleContext enum (CAMPAIGN=0, ARENA=1, ENDLESS=2, TUTORIAL=3, PRACTICE=4)
+			if mode == 4:
 				return true
 
 	return false

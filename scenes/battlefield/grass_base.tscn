@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3 uid="uid://clcwjqim6yr7j"]
+
+[ext_resource type="Shader" uid="uid://cwk3pfqoa8wnf" path="res://shaders/painterly_grass.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_grass"]
+shader = ExtResource("1_shader")
+shader_parameter/dark_grass = Color(0.369, 0.541, 0.196, 1)
+shader_parameter/mid_grass = Color(0.459, 0.706, 0.255, 1)
+shader_parameter/light_grass = Color(0.616, 0.863, 0.361, 1)
+shader_parameter/highlight_grass = Color(0.725, 0.902, 0.459, 1)
+shader_parameter/tint_color = Color(1, 1, 1, 1)
+shader_parameter/primary_scale = 2.0
+shader_parameter/primary_intensity = 0.7
+shader_parameter/secondary_scale = 5.0
+shader_parameter/secondary_intensity = 0.4
+shader_parameter/tertiary_scale = 12.0
+shader_parameter/tertiary_intensity = 0.2
+shader_parameter/contrast = 1.0
+shader_parameter/color_spread = 0.8
+shader_parameter/animation_speed = 0.0
+
+[node name="GrassBase" type="ColorRect"]
+material = SubResource("ShaderMaterial_grass")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -385.0
+offset_top = -190.0
+offset_right = -385.0
+offset_bottom = -190.0
+grow_horizontal = 2
+grow_vertical = 2

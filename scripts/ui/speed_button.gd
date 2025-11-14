@@ -40,14 +40,21 @@ func _setup() -> void:
 	_check_battle_mode()
 
 func _check_battle_mode() -> void:
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if not battle_context:
+	var battle_context_node: Node = get_node_or_null("/root/BattleContext")
+	if not battle_context_node:
 		push_warning("SpeedButton: BattleContext not found, disabling button")
 		disabled = true
 		return
 
+	# Get current_mode using Variant access for type safety
+	var mode_variant: Variant = battle_context_node.get("current_mode")
+	if mode_variant == null:
+		push_warning("SpeedButton: current_mode not found in BattleContext")
+		disabled = true
+		return
+
 	# Enable only for campaign and tutorial modes
-	var is_campaign_mode: bool = battle_context.current_mode in [
+	var is_campaign_mode: bool = mode_variant in [
 		BattleContext.BattleMode.CAMPAIGN,
 		BattleContext.BattleMode.TUTORIAL
 	]
