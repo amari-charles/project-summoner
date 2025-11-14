@@ -87,7 +87,21 @@ func _ready() -> void:
 		glow_overlay.visible = false
 		glow_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Setup gradient layers - clip to progress bar fill area
+	# Setup gradient layers to create depth
+	# Bottom layer: dark blue that covers bottom 60% of bar
+	if gradient_base:
+		gradient_base.color = Color(0.05, 0.2, 0.5, 0.8)  # Dark blue semi-transparent
+		gradient_base.anchor_bottom = 0.6  # Only cover bottom 60%
+
+	# Top layer: very subtle highlight
+	if gradient_top:
+		gradient_top.visible = false  # Not using this layer
+
+	# Edge highlight: bright strip at top
+	if edge_highlight:
+		edge_highlight.color = Color(0.9, 0.98, 1.0, 0.7)  # Very bright white-cyan
+
+	# Clip gradient layers to progress bar fill area
 	if progress_bar:
 		_update_gradient_clip(progress_bar.value)
 
