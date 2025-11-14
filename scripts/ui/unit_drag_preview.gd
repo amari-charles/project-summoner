@@ -17,6 +17,9 @@ var battlefield: Node = null
 ## 3D ghost unit in the battlefield
 var ghost_unit: Node3D = null
 
+## Y offset to compensate for sprite's internal positioning
+var sprite_y_offset: float = 0.0
+
 ## Preview configuration
 const GHOST_ALPHA: float = 0.6
 const INDICATOR_RADIUS: float = 30.0
@@ -108,7 +111,16 @@ func _create_ghost_unit() -> void:
 		ghost_unit.call("set_sprite_frames", sprite_frames)
 
 	if "sprite_scale" in ghost_unit:
+		print("UnitDragPreview: Setting sprite_scale to ", sprite_scale)
 		ghost_unit.set("sprite_scale", sprite_scale)
+
+		# Recalculate sprite alignment with the new scale
+		# This updates sprite_3d.position.y based on the actual sprite_scale
+		if ghost_unit.has_method("_setup_sprite_alignment"):
+			print("UnitDragPreview: Calling _setup_sprite_alignment()")
+			ghost_unit.call("_setup_sprite_alignment")
+		else:
+			print("UnitDragPreview: WARNING - _setup_sprite_alignment method not found!")
 
 	# Wait a frame for sprite_frames to be applied
 	if get_tree():
@@ -118,13 +130,21 @@ func _create_ghost_unit() -> void:
 	if ghost_unit.has_method("play_animation"):
 		ghost_unit.call("play_animation", "idle", true)
 
-	# Set ghost transparency (make it look ghostly)
+	# Wait for sprite positioning to complete (sprite_3d.position.y is set in _ready())
 	if get_tree():
 		await get_tree().process_frame
-		var sprite_3d: Node = ghost_unit.get_node_or_null("Sprite3D")
-		if sprite_3d and sprite_3d is Sprite3D:
-			var sprite_3d_typed: Sprite3D = sprite_3d
-			sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
+		await get_tree().process_frame  # Extra frame to ensure positioning completes
+
+	# Set ghost transparency (make it look ghostly)
+	var sprite_3d: Node = ghost_unit.get_node_or_null("Sprite3D")
+	if sprite_3d and sprite_3d is Sprite3D:
+		var sprite_3d_typed: Sprite3D = sprite_3d
+		sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
+
+		# Capture the Y offset so we can compensate when positioning the ghost
+		# The sprite is offset upward locally, so we need to offset the unit downward
+		sprite_y_offset = -sprite_3d_typed.position.y
+		print("UnitDragPreview: Sprite3D local Y=", sprite_3d_typed.position.y, ", compensating with offset=", sprite_y_offset)
 
 	print("UnitDragPreview: Ghost unit created in battlefield")
 
@@ -149,7 +169,8 @@ func _process(_delta: float) -> void:
 	current_world_pos = _project_mouse_to_ground(mouse_pos)
 
 	# Move the 3D ghost unit to follow the cursor on the ground
-	ghost_unit.global_position = current_world_pos
+	# Apply Y offset to compensate for sprite's internal positioning
+	ghost_unit.global_position = Vector3(current_world_pos.x, sprite_y_offset, current_world_pos.z)
 
 	# Update spawn indicator position (UI element that shows where unit will spawn)
 	if spawn_indicator:
