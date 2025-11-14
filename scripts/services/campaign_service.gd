@@ -12,8 +12,8 @@ signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
 
 ## Dependencies
-@onready var _profile_repo: Node = get_node("/root/ProfileRepo")
-@onready var _collection: Node = get_node("/root/Collection")
+var _profile_repo: Node = null
+var _collection: Node = null
 
 ## Battle data structure
 const BattleData: Dictionary = {
@@ -39,6 +39,12 @@ var _completed_battles: Array[String] = []
 
 func _ready() -> void:
 	print("CampaignService: Initializing...")
+
+	# Initialize dependencies
+	await get_tree().process_frame
+	_profile_repo = get_node("/root/ProfileRepo")
+	_collection = get_node("/root/Collection")
+
 	_init_battles()
 	_load_progress()
 

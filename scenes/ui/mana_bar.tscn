@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=3 uid="uid://bkj8q7n5vx8"]
+
+[ext_resource type="Script" path="res://scripts/ui/mana_bar.gd" id="1_mana_bar_script"]
+
+[node name="ManaBar" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 60.0
+script = ExtResource("1_mana_bar_script")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+min_value = 0.0
+max_value = 10.0
+value = 10.0
+show_percentage = false
+
+[node name="ManaLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 20.0
+grow_horizontal = 2
+text = "Mana: 10/10"
+horizontal_alignment = 1
+
+[node name="GlowOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.4, 0.8, 1, 0.3)

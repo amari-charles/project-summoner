@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://battle_3d"]
+[gd_scene load_steps=12 format=3 uid="uid://battle_3d"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/ui/pause_menu.tscn" id="8_pause_menu"]
 [ext_resource type="Script" path="res://scripts/ui/pause_button.gd" id="9_pause_button"]
 [ext_resource type="Script" path="res://scripts/ui/speed_button.gd" id="10_speed_button"]
+[ext_resource type="PackedScene" uid="uid://bkj8q7n5vx8" path="res://scenes/ui/mana_bar.tscn" id="11_mana_bar"]
+[ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="12_game_ui"]
 
 [node name="Battle3D" type="Node3D"]
 script = ExtResource("2_game_controller")
@@ -34,6 +36,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 
 [node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource("12_game_ui")
+player_mana_bar = NodePath("PlayerManaBar")
 
 [node name="BattlefieldDropZone" type="Control" parent="UI"]
 layout_mode = 3
@@ -76,17 +80,15 @@ grow_horizontal = 0
 text = "⏸ Pause"
 script = ExtResource("9_pause_button")
 
-[node name="PlayerManaLabel" type="Label" parent="UI"]
+[node name="PlayerManaBar" parent="UI" instance=ExtResource("11_mana_bar")]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
 offset_top = -80.0
-offset_right = 200.0
-offset_bottom = -40.0
+offset_right = 220.0
+offset_bottom = -20.0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 24
-text = "Mana: 10/10"
 
 [node name="PlayerHPLabel" type="Label" parent="UI"]
 offset_left = 20.0

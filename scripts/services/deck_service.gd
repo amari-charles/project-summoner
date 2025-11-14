@@ -60,7 +60,10 @@ func list_decks() -> Array[Dictionary]:
 	if _repo.has_method("list_decks"):
 		var result: Variant = _repo.call("list_decks")
 		if result is Array:
-			return result
+			var result_array: Array = result
+			var typed_result: Array[Dictionary] = []
+			typed_result.assign(result_array)
+			return typed_result
 	return []
 
 ## Get a specific deck by ID

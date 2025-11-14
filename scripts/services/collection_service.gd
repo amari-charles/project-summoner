@@ -63,7 +63,10 @@ func list_cards() -> Array[Dictionary]:
 	if _repo.has_method("list_cards"):
 		var result: Variant = _repo.call("list_cards")
 		if result is Array:
-			return result
+			var result_array: Array = result
+			var typed_result: Array[Dictionary] = []
+			typed_result.assign(result_array)
+			return typed_result
 	return []
 
 ## Get a specific card instance by ID

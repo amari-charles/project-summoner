@@ -47,7 +47,12 @@ func _check_battle_mode() -> void:
 		return
 
 	# Enable only for campaign and tutorial modes
-	var is_campaign_mode: bool = battle_context.current_mode in [
+	if not "current_mode" in battle_context:
+		disabled = true
+		return
+
+	var current_mode: Variant = battle_context.get("current_mode")
+	var is_campaign_mode: bool = current_mode in [
 		BattleContext.BattleMode.CAMPAIGN,
 		BattleContext.BattleMode.TUTORIAL
 	]

@@ -38,7 +38,10 @@ func _load_campaign_hp() -> void:
 	if not profile_repo:
 		return
 
-	var profile: Dictionary = profile_repo.get_active_profile()
+	if not profile_repo.has_method("get_active_profile"):
+		return
+	var profile_variant: Variant = profile_repo.call("get_active_profile")
+	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
 	if profile.is_empty():
 		return
 
@@ -52,7 +55,10 @@ func _load_campaign_hp() -> void:
 	if not campaign:
 		return
 
-	var battle: Dictionary = campaign.get_battle(current_battle_id)
+	if not campaign.has_method("get_battle"):
+		return
+	var battle_variant: Variant = campaign.call("get_battle", current_battle_id)
+	var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
 	if battle.has("enemy_hp"):
 		max_hp = battle.get("enemy_hp")
 		print("Base: Set enemy base HP from campaign: %d" % max_hp)
