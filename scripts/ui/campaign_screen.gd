@@ -68,7 +68,7 @@ func _refresh_battle_list() -> void:
 		# Create a properly typed Array and append items one by one
 		all_battles.clear()
 		var temp_array: Array = battles_variant
-		for item in temp_array:
+		for item: Variant in temp_array:
 			all_battles.append(item)
 	else:
 		all_battles = []
