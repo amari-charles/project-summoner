@@ -1,12 +1,11 @@
 extends Control
 class_name UnitDragPreview
 
-## Clash Royale-style unit preview during card drag
-## Shows a ghost/semi-transparent unit sprite at the cursor position
+## Clash Royale-style world-space unit preview during card drag
+## Shows a ghost unit in the 3D battlefield that follows the cursor
 ## with a spawn indicator showing valid/invalid placement
 
 ## Visual components
-var preview_texture: TextureRect = null  # Displays the unit sprite
 var spawn_indicator: ColorRect = null
 
 ## References for position tracking
@@ -15,15 +14,15 @@ var camera_3d: Camera3D = null
 var drop_zone: Node = null
 var battlefield: Node = null
 
-## 3D visual component (added to battlefield, not this control)
-var visual_component_3d: Node3D = null
+## 3D ghost unit in the battlefield
+var ghost_unit: Node3D = null
 
 ## Preview configuration
 const GHOST_ALPHA: float = 0.6
 const INDICATOR_RADIUS: float = 30.0
 const INDICATOR_VALID_COLOR: Color = Color(0.0, 1.0, 0.0, 0.5)  # Green
 const INDICATOR_INVALID_COLOR: Color = Color(1.0, 0.0, 0.0, 0.5)  # Red
-const PREVIEW_SIZE: float = 64.0  # Size of preview sprite in pixels (smaller to match card size)
+const GROUND_Y: float = 0.0  # Y level of the ground plane
 
 ## Card being previewed
 var card: Card = null
@@ -34,7 +33,8 @@ var current_world_pos: Vector3 = Vector3.ZERO
 func _ready() -> void:
 	# Set up container properties
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # Don't interfere with drag system
-	# Don't set anchors - let drag system handle positioning
+	# This Control is just a placeholder for Godot's drag system
+	# The actual visual is the 3D ghost in the battlefield
 
 ## Initialize preview with card data and references
 func initialize(p_card: Card, p_viewport: Viewport, p_camera: Camera3D, p_drop_zone: Node) -> void:
@@ -47,17 +47,14 @@ func initialize(p_card: Card, p_viewport: Viewport, p_camera: Camera3D, p_drop_z
 	if p_viewport:
 		battlefield = p_viewport.get_tree().get_first_node_in_group("battlefield") if p_viewport.get_tree() else null
 
-	# Create spawn indicator
+	# Create spawn indicator (UI element)
 	_create_spawn_indicator()
 
-	# Extract and create unit visual (added to battlefield)
-	_create_unit_visual()
+	# Create ghost unit in battlefield (3D element)
+	_create_ghost_unit()
 
-	# Create texture rect to display the unit
-	_create_preview_texture()
-
-## Extract visual component from card's unit scene and create ghost
-func _create_unit_visual() -> void:
+## Create ghost unit in the 3D battlefield
+func _create_ghost_unit() -> void:
 	if not card or not card.unit_scene:
 		push_error("UnitDragPreview: No unit scene in card!")
 		return
@@ -73,12 +70,12 @@ func _create_unit_visual() -> void:
 		return
 
 	# Instantiate the visual component
-	visual_component_3d = component_scene.instantiate()
-	if not visual_component_3d:
-		push_error("UnitDragPreview: Failed to instantiate visual component")
+	ghost_unit = component_scene.instantiate()
+	if not ghost_unit:
+		push_error("UnitDragPreview: Failed to instantiate ghost unit")
 		return
 
-	# Get sprite frames from the unit scene
+	# Get sprite frames and scale from the unit scene
 	var temp_unit: Node = card.unit_scene.instantiate()
 	if not temp_unit:
 		push_error("UnitDragPreview: Failed to instantiate unit scene")
@@ -87,7 +84,6 @@ func _create_unit_visual() -> void:
 	var sprite_frames_variant: Variant = temp_unit.get("sprite_frames")
 	var sprite_frames: SpriteFrames = sprite_frames_variant if sprite_frames_variant is SpriteFrames else null
 
-	# Get sprite scale if available
 	var sprite_scale_variant: Variant = temp_unit.get("sprite_scale")
 	var sprite_scale: float = sprite_scale_variant if sprite_scale_variant is float else 1.0
 
@@ -96,121 +92,43 @@ func _create_unit_visual() -> void:
 
 	if not sprite_frames:
 		push_error("UnitDragPreview: Unit has no sprite_frames!")
-		visual_component_3d.queue_free()
-		visual_component_3d = null
+		ghost_unit.queue_free()
+		ghost_unit = null
 		return
 
-	# Add to battlefield (3D world) FIRST so _ready() gets called
-	battlefield.add_child(visual_component_3d)
-
-	# Hide the 3D component from the main camera (we only want viewport rendering)
-	# Position it far away so it doesn't appear in the game world
-	visual_component_3d.global_position = Vector3(999999, 999999, 999999)
+	# Add to battlefield (3D world) so it's rendered by the main camera
+	battlefield.add_child(ghost_unit)
 
 	# Wait for _ready() to complete
 	if get_tree():
 		await get_tree().process_frame
 
-	# NOW configure the visual component (after _ready() has set up children)
-	if visual_component_3d.has_method("set_sprite_frames"):
-		visual_component_3d.call("set_sprite_frames", sprite_frames)
-		print("UnitDragPreview: Set sprite frames")
+	# Configure the ghost unit
+	if ghost_unit.has_method("set_sprite_frames"):
+		ghost_unit.call("set_sprite_frames", sprite_frames)
 
-	if "sprite_scale" in visual_component_3d:
-		visual_component_3d.set("sprite_scale", sprite_scale)
-		print("UnitDragPreview: Set sprite scale to ", sprite_scale)
+	if "sprite_scale" in ghost_unit:
+		ghost_unit.set("sprite_scale", sprite_scale)
 
 	# Wait a frame for sprite_frames to be applied
 	if get_tree():
 		await get_tree().process_frame
 
-	# Now play idle animation
-	if visual_component_3d.has_method("play_animation"):
-		visual_component_3d.call("play_animation", "idle", true)
-		print("UnitDragPreview: Playing idle animation")
+	# Play idle animation
+	if ghost_unit.has_method("play_animation"):
+		ghost_unit.call("play_animation", "idle", true)
 
-	# Debug: Check if sprite is actually set up
-	var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
-	if sprite_3d:
-		var viewport_node: Node = sprite_3d.get_node_or_null("SubViewport/Model2D/CharacterSprite")
-		if viewport_node and viewport_node is AnimatedSprite2D:
-			var char_sprite: AnimatedSprite2D = viewport_node
-			print("UnitDragPreview: CharacterSprite animation: ", char_sprite.animation)
-			print("UnitDragPreview: CharacterSprite playing: ", char_sprite.is_playing())
-			print("UnitDragPreview: CharacterSprite visible: ", char_sprite.visible)
-			print("UnitDragPreview: CharacterSprite has frames: ", char_sprite.sprite_frames != null)
-
-	# Set ghost transparency
+	# Set ghost transparency (make it look ghostly)
 	if get_tree():
 		await get_tree().process_frame
+		var sprite_3d: Node = ghost_unit.get_node_or_null("Sprite3D")
 		if sprite_3d and sprite_3d is Sprite3D:
 			var sprite_3d_typed: Sprite3D = sprite_3d
 			sprite_3d_typed.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
-			print("UnitDragPreview: Set Sprite3D alpha to ", GHOST_ALPHA)
 
-## Create texture rect to display unit visual from viewport
-func _create_preview_texture() -> void:
-	if not visual_component_3d:
-		print("UnitDragPreview: No visual_component_3d")
-		return
+	print("UnitDragPreview: Ghost unit created in battlefield")
 
-	# Wait for viewport to be ready
-	if get_tree():
-		await get_tree().process_frame
-		await get_tree().process_frame  # Wait extra frame for viewport to render
-
-	# Get the viewport texture from the visual component
-	var sprite_3d: Node = visual_component_3d.get_node_or_null("Sprite3D")
-	if not sprite_3d:
-		push_error("UnitDragPreview: No Sprite3D in visual component")
-		return
-
-	var sub_viewport: Node = sprite_3d.get_node_or_null("SubViewport")
-	if not sub_viewport or not sub_viewport is SubViewport:
-		push_error("UnitDragPreview: No SubViewport in Sprite3D")
-		return
-
-	var viewport_typed: SubViewport = sub_viewport
-	var viewport_texture: ViewportTexture = viewport_typed.get_texture()
-
-	print("UnitDragPreview: Viewport size: ", viewport_typed.size)
-	print("UnitDragPreview: Viewport texture: ", viewport_texture)
-
-	preview_texture = TextureRect.new()
-	preview_texture.texture = viewport_texture
-	preview_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	preview_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	preview_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# Force the size to PREVIEW_SIZE
-	preview_texture.custom_minimum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	preview_texture.custom_maximum_size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-
-	# Position it centered at origin
-	preview_texture.position = Vector2(-PREVIEW_SIZE / 2, -PREVIEW_SIZE / 2)
-
-	# Make it semi-transparent
-	preview_texture.modulate = Color(1.0, 1.0, 1.0, GHOST_ALPHA)
-
-	# Set z_index to ensure it's above the indicator
-	preview_texture.z_index = 10
-
-	# Add a visible background to confirm the TextureRect is there
-	var debug_bg: ColorRect = ColorRect.new()
-	debug_bg.color = Color(1, 1, 0, 0.3)  # Yellow semi-transparent
-	debug_bg.size = Vector2(PREVIEW_SIZE, PREVIEW_SIZE)
-	debug_bg.position = Vector2.ZERO
-	debug_bg.z_index = -1
-	preview_texture.add_child(debug_bg)
-
-	add_child(preview_texture)
-
-	print("UnitDragPreview: Created preview texture with size ", preview_texture.size)
-	print("UnitDragPreview: Preview texture position: ", preview_texture.position)
-	print("UnitDragPreview: Texture rect has texture: ", preview_texture.texture != null)
-	print("UnitDragPreview: Viewport texture get_size: ", viewport_texture.get_size() if viewport_texture else "null")
-
-## Create circular spawn indicator on ground
+## Create circular spawn indicator on ground (UI element)
 func _create_spawn_indicator() -> void:
 	spawn_indicator = ColorRect.new()
 	spawn_indicator.color = INDICATOR_VALID_COLOR
@@ -219,73 +137,54 @@ func _create_spawn_indicator() -> void:
 	spawn_indicator.z_index = -1  # Behind everything
 	add_child(spawn_indicator)
 
-## Update preview position every frame to follow cursor
+## Update ghost position every frame to follow cursor
 func _process(_delta: float) -> void:
-	if not viewport or not camera_3d:
+	if not viewport or not camera_3d or not ghost_unit:
 		return
 
 	# Get current mouse position in viewport space
 	var mouse_pos: Vector2 = viewport.get_mouse_position()
 
-	# Convert to 3D world position
-	current_world_pos = _screen_to_world_3d(mouse_pos)
+	# Project mouse to ground plane in 3D world
+	current_world_pos = _project_mouse_to_ground(mouse_pos)
 
-	# DON'T move the 3D visual component - keep it hidden far away
-	# The viewport renders it wherever it is, and we show that via TextureRect
+	# Move the 3D ghost unit to follow the cursor on the ground
+	ghost_unit.global_position = current_world_pos
 
-	# Preview texture position is already set during creation, don't move it
-
-	# Debug: Log actual control position and preview positions
-	if get_tree().get_frame() % 60 == 0:
-		print("=== Drag Preview Debug ===")
-		print("Control global_position: ", global_position)
-		print("Control position: ", position)
-		print("Mouse position: ", mouse_pos)
-		if preview_texture:
-			print("Preview texture position: ", preview_texture.position)
-			print("Preview texture global_position: ", preview_texture.global_position)
-			print("Preview texture size: ", preview_texture.size)
-
-	# Position spawn indicator relative to this control
-	# Project world ground position to screen, then make it relative to this control's position
+	# Update spawn indicator position (UI element that shows where unit will spawn)
 	if spawn_indicator:
-		var ground_pos: Vector3 = Vector3(current_world_pos.x, 0.0, current_world_pos.z)
-		var screen_pos: Vector2 = camera_3d.unproject_position(ground_pos)
+		var ground_screen_pos: Vector2 = camera_3d.unproject_position(current_world_pos)
 
-		# Make position relative to the drag preview control (which is at mouse_pos)
-		# screen_pos - mouse_pos gives us the offset from cursor to ground position
-		var relative_pos: Vector2 = screen_pos - mouse_pos
-		# Center the indicator at that position
+		# Position relative to this Control (which Godot keeps at mouse cursor)
+		var relative_pos: Vector2 = ground_screen_pos - mouse_pos
 		spawn_indicator.position = relative_pos - Vector2(INDICATOR_RADIUS, INDICATOR_RADIUS)
 
 	# Update indicator color based on drop validity
 	_update_indicator_validity(mouse_pos)
 
-## Convert screen position to 3D world position on spawn plane
-func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
+## Project screen position to ground plane (Y = 0) in 3D world
+func _project_mouse_to_ground(screen_pos: Vector2) -> Vector3:
 	if not camera_3d:
 		return Vector3.ZERO
 
-	# Project ray from camera through screen position
+	# Ray from camera through screen position
 	var from: Vector3 = camera_3d.project_ray_origin(screen_pos)
-	var direction: Vector3 = camera_3d.project_ray_normal(screen_pos)
-	var to: Vector3 = from + direction * 1000.0
+	var dir: Vector3 = camera_3d.project_ray_normal(screen_pos)
 
-	# Intersect with spawn plane (Y = 0.0)
-	var spawn_y: float = 0.0
-	var ray_dir: Vector3 = to - from
-
+	# Ray-plane intersection with ground (Y = GROUND_Y)
 	# Avoid division by zero
-	if abs(ray_dir.y) < 0.001:
-		return Vector3(from.x, spawn_y, from.z)
+	if abs(dir.y) < 0.001:
+		return Vector3(from.x, GROUND_Y, from.z)
 
-	var t: float = (spawn_y - from.y) / ray_dir.y
+	# Calculate intersection parameter t
+	var t: float = (GROUND_Y - from.y) / dir.y
 
-	# Only intersect if ray is pointing toward plane
+	# Only intersect if ray points toward ground
 	if t < 0:
-		return Vector3(from.x, spawn_y, from.z)
+		return Vector3(from.x, GROUND_Y, from.z)
 
-	var hit_pos: Vector3 = from + ray_dir * t
+	# Calculate intersection point
+	var hit_pos: Vector3 = from + dir * t
 
 	return hit_pos
 
@@ -305,8 +204,8 @@ func _update_indicator_validity(mouse_pos: Vector2) -> void:
 
 ## Clean up when preview is destroyed
 func _exit_tree() -> void:
-	# Remove 3D visual component from battlefield
-	if visual_component_3d and is_instance_valid(visual_component_3d):
-		if visual_component_3d.get_parent():
-			visual_component_3d.get_parent().remove_child(visual_component_3d)
-		visual_component_3d.queue_free()
+	# Remove ghost unit from battlefield
+	if ghost_unit and is_instance_valid(ghost_unit):
+		if ghost_unit.get_parent():
+			ghost_unit.get_parent().remove_child(ghost_unit)
+		ghost_unit.queue_free()
