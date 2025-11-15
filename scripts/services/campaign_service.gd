@@ -209,6 +209,39 @@ func _init_battles() -> void:
 		}
 	}
 
+	# Dev Test Battle: All ability cards unlocked for testing
+	_battles["dev_test"] = {
+		"id": "dev_test",
+		"biome_id": "summer_plains",
+		"name": "[DEV] Ability Test Arena",
+		"description": "Test all abilities. Full deck of ability cards available.",
+		"difficulty": 2,
+		"reward_type": "fixed",
+		"reward_cards": [],
+		"enemy_deck": [
+			{"catalog_id": "fire_recruit", "count": 5}
+		],
+		"enemy_hp": 300.0,
+		"unlock_requirements": [],  # Always available
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "defensive",
+		"ai_difficulty": 1,
+		"ai_config": {
+			"play_interval_min": 5.0,
+			"play_interval_max": 8.0
+		},
+		# Special dev deck override for player
+		"dev_player_deck": [
+			{"catalog_id": "fire_recruit", "count": 2},
+			{"catalog_id": "ember_slinger", "count": 2},
+			{"catalog_id": "blaze_rider", "count": 2},
+			{"catalog_id": "ash_vanguard", "count": 2},
+			{"catalog_id": "ember_guard", "count": 2},
+			{"catalog_id": "fireball", "count": 2}
+		]
+	}
+
 	print("CampaignService: Loaded %d battles" % _battles.size())
 
 ## =============================================================================
