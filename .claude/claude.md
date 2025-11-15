@@ -4,7 +4,11 @@
 
 ### Development Philosophy: Foundation First, Content Later
 
-**CRITICAL PRINCIPLE: Do NOT add more content (battles, cards, levels) at this stage.**
+**CRITICAL PRINCIPLE: Do NOT add polished artwork or extensive content at this stage.**
+
+**Placeholder Content vs Polished Content:**
+- **ALLOWED**: Simple placeholder content (basic shapes, test units) needed to build and test core systems
+- **NOT ALLOWED**: Polished artwork, detailed sprites, extensive level/battle content
 
 The current priority is building an exceptional foundation:
 
@@ -24,9 +28,9 @@ The current priority is building an exceptional foundation:
    - Players should feel "this is a quality game"
    - Foundation systems should be robust and extensible
 
-**ONLY AFTER** achieving this strong baseline should we pour in content. Adding battles, cards, or levels now would be building on a weak foundation.
+**ONLY AFTER** achieving this strong baseline should we create polished artwork and pour in extensive content. Adding detailed artwork now would be premature when core mechanics still need refinement.
 
-**Reject suggestions** for new battles, campaign levels, or content expansion until the foundation is solid.
+**Reject suggestions** for polished artwork, extensive battle content, or detailed level design until the foundation is solid. Simple placeholders for testing are always acceptable.
 
 ### Backwards Compatibility
 **NEVER worry about backwards compatibility.** When implementing new features or changes, prioritize the new approach and remove old code paths. Don't keep fallback mechanisms or dual implementations.
