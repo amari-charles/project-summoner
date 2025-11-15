@@ -159,7 +159,7 @@ func _apply_heal_aura(targets: Array[Unit3D]) -> void:
 
 	for target: Unit3D in targets:
 		if target.has_method("heal"):
-			target.heal(heal_per_tick)
+			target.call("heal", heal_per_tick)
 
 ## Apply speed buff to all targets
 func _apply_speed_buff_aura(targets: Array[Unit3D]) -> void:
@@ -169,7 +169,7 @@ func _apply_speed_buff_aura(targets: Array[Unit3D]) -> void:
 	for target: Unit3D in targets:
 		# Apply temporary speed modifier
 		if target.has_method("apply_modifier"):
-			target.apply_modifier({
+			target.call("apply_modifier", {
 				"source": "aura_speed_buff_%s" % owner_unit.name,
 				"duration": modifier_duration,
 				"stats": {"move_speed": speed_modifier},
@@ -184,7 +184,7 @@ func _apply_speed_debuff_aura(targets: Array[Unit3D]) -> void:
 	var debuff_value: float = -abs(speed_modifier)  # Ensure negative
 	for target: Unit3D in targets:
 		if target.has_method("apply_modifier"):
-			target.apply_modifier({
+			target.call("apply_modifier", {
 				"source": "aura_slow_%s" % owner_unit.name,
 				"duration": modifier_duration,
 				"stats": {"move_speed": debuff_value},
