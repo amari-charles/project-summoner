@@ -322,6 +322,47 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Ember Slinger - Fragile ranged attacker
+	_catalog["ember_slinger"] = {
+		# Identity
+		"catalog_id": "ember_slinger",
+		"card_name": "Ember Slinger",
+		"description": "A fragile ranged attacker. Flings burning embers for steady chip damage from a safe distance.",
+		"rarity": "common",
+
+		# Card properties
+		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "ranged",
+		"mana_cost": 2,
+		"cooldown": 1.5,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/ember_slinger_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 40.0,
+		"attack_damage": 8.0,
+		"attack_range": 300.0,
+		"attack_speed": 0.8,
+		"move_speed": 65.0,
+		"aggro_radius": 350.0,
+		"is_ranged": true,
+		"projectile_scene_path": "res://scenes/units/projectile.tscn",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["ranged", "fire", "cheap", "fragile"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats
