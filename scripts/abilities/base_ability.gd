@@ -36,7 +36,8 @@ func setup(unit: Unit3D) -> void:
 	_connect_to_unit_events()
 	_initialize()
 
-	var script_name: String = get_script().resource_path.get_file().get_basename()
+	var resource_path: String = get_script().resource_path
+	var script_name: String = resource_path.get_file().get_basename()
 	print("BaseAbility: %s setup complete for unit %s" % [script_name, unit.name])
 
 ## Override in subclasses for custom initialization
@@ -113,5 +114,6 @@ func _spawn_vfx(vfx_id: String, position: Vector3, parent: Node = null) -> Node:
 	var vfx: Node = VFXManager.play_effect(vfx_id, position)
 	if vfx and parent:
 		vfx.reparent(parent)
-		vfx.position = Vector3.ZERO
+		if vfx is Node3D:
+			(vfx as Node3D).position = Vector3.ZERO
 	return vfx
