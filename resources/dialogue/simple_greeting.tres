@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "simple_greeting"
+character_name = "Friendly Wizard"
+portrait = null
+lines = Array[String](["Hello, young summoner!", "Welcome to the world of card battles.", "May your deck be strong and your mana plentiful!"])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "chain_start"
+character_name = "Old Sage"
+portrait = null
+lines = Array[String](["This is the beginning of a longer story...", "It will continue in the next dialogue."])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = "chain_end"
+auto_advance = false
