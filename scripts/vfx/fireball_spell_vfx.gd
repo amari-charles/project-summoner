@@ -42,6 +42,15 @@ func _ready() -> void:
 
 	super._ready()
 
+## Receive custom data from VFXManager (called before _on_play)
+func receive_data(data: Dictionary) -> void:
+	# Accept radius from Card's spell_radius for accurate AOE indicator sizing
+	if data.has("radius"):
+		if data.radius is float or data.radius is int:
+			damage_radius = float(data.radius)
+		else:
+			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float)" % typeof(data.radius))
+
 ## Override _on_play to start the descent animation
 func _on_play() -> void:
 	if not animated_sprite:
