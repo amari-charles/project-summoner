@@ -363,6 +363,47 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Blaze Rider - Fast charger
+	_catalog["blaze_rider"] = {
+		# Identity
+		"catalog_id": "blaze_rider",
+		"card_name": "Blaze Rider",
+		"description": "A swift cavalry unit wreathed in flames. Charges across the battlefield to deliver explosive burst damage.",
+		"rarity": "common",
+
+		# Card properties
+		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",
+		"mana_cost": 3,
+		"cooldown": 2.0,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/blaze_rider_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 80.0,
+		"attack_damage": 15.0,
+		"attack_range": 80.0,
+		"attack_speed": 1.2,
+		"move_speed": 100.0,  # Fast charger - high movement speed
+		"aggro_radius": 400.0,  # Increased aggro to leverage speed
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "fast", "charger"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats
