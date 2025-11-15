@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3 uid="uid://d2kj9vh8m3nx1"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://c3vh3mq8k7xy8" path="res://resources/animations/ash_vanguard_sprite_frames.tres" id="2_sprite_frames"]
+[ext_resource type="Script" path="res://scripts/abilities/death_explosion_ability.gd" id="3_ability"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ash_vanguard"]
+radius = 0.4
+height = 1.6
+
+[resource]
+animations = []
+
+[node name="AshVanguard3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+max_hp = 150.0
+attack_damage = 25.0
+attack_range = 1.5
+attack_speed = 1.2
+move_speed = 50.0
+is_ranged = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_ash_vanguard")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+billboard = 1
+sprite_frames = ExtResource("2_sprite_frames")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="DeathExplosionAbility" type="Node" parent="."]
+script = ExtResource("3_ability")
+explosion_radius = 3.0
+explosion_damage = 50.0
+damage_type = "fire"
+affects_enemies = true
+affects_allies = false
+explosion_vfx = "explosion_default"
+explosion_delay = 0.0

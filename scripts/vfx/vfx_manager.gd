@@ -116,7 +116,12 @@ func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = 
 	if vfx_def.duration > 0:
 		instance.lifetime = vfx_def.duration
 
-	# Apply custom data
+	# Apply custom data via receive_data() contract
+	# VFX can override receive_data() to extract and validate custom parameters
+	if instance.has_method("receive_data"):
+		instance.receive_data(data)
+
+	# Apply built-in Node3D properties for convenience
 	if data.has("scale") and data.scale is float:
 		instance.scale = Vector3.ONE * data.scale
 	if data.has("rotation") and data.rotation is Vector3:

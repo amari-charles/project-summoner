@@ -25,6 +25,7 @@ enum CardType { SUMMON, SPELL }
 @export var spell_radius: float = 0.0
 @export var spell_duration: float = 0.0
 @export var projectile_id: String = ""  # If set, spell spawns a projectile instead of instant cast
+@export var spell_vfx: String = ""  # VFX ID to spawn when spell hits (for instant AOE spells)
 
 ## Visual
 @export var card_icon: Texture2D = null
@@ -99,7 +100,8 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 ## Spawn unit(s) at the 3D position
 func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	if unit_scene == null:
-		push_error("Card '%s' has no unit_scene assigned!" % card_name)
+		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
+		assert(false, "Summon card must have unit_scene!")
 		return
 
 	var gameplay_layer: Node = battlefield
@@ -134,14 +136,35 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 		if unit:
 			unit.team = team
 
-			# Initialize with modifiers BEFORE adding to scene
+			# Apply stats from card catalog (single source of truth)
+			# Get catalog data - MUST exist
+			var catalog_data: Dictionary = CardCatalog.get_card(catalog_id)
+			assert(not catalog_data.is_empty(), "Card catalog data must exist for catalog_id: '%s'" % catalog_id)
+
+			# Apply stats from catalog - MUST have all required stats (NO FALLBACKS!)
+			assert(catalog_data.has("max_hp"), "Card '%s' missing max_hp in catalog!" % catalog_id)
+			assert(catalog_data.has("attack_damage"), "Card '%s' missing attack_damage in catalog!" % catalog_id)
+			assert(catalog_data.has("attack_speed"), "Card '%s' missing attack_speed in catalog!" % catalog_id)
+			assert(catalog_data.has("move_speed"), "Card '%s' missing move_speed in catalog!" % catalog_id)
+
+			unit.max_hp = catalog_data.max_hp
+			unit.attack_damage = catalog_data.attack_damage
+			unit.attack_speed = catalog_data.attack_speed
+			unit.move_speed = catalog_data.move_speed
+
+			# Attack range is optional (different defaults for melee vs ranged)
+			if catalog_data.has("attack_range"):
+				unit.attack_range = catalog_data.attack_range
+
+			# Initialize with modifiers AFTER catalog stats applied
 			unit.initialize_with_modifiers(modifiers, card_data)
 
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
 			unit.global_position = position + Vector3(i * 2.0, 0, 0)
 		else:
-			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene!")
+			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
+			assert(false, "Unit must instantiate successfully!")
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
@@ -235,7 +258,8 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 	)
 
 	if not projectile:
-		push_error("Card: Failed to spawn spell projectile '%s'" % projectile_id)
+		push_error("Card: Failed to spawn spell projectile '%s' for card '%s'. Check projectile_id in catalog or ProjectileManager registration." % [projectile_id, card_name])
+		assert(false, "Spell projectile must spawn successfully!")
 
 ## Find the base for the given team
 func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
@@ -274,7 +298,9 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 				if distance <= spell_radius:
 					enemy_unit.take_damage(final_damage)
 
-	# TODO: Add 3D visual effect for spell
+	# Spawn VFX at impact position, passing radius for accurate visual sizing
+	if not spell_vfx.is_empty() and VFXManager:
+		VFXManager.play_effect(spell_vfx, position, {"radius": spell_radius})
 
 ## Helper to safely access ModifierSystem
 ## Prefers passed reference, falls back to autoload lookup if not provided

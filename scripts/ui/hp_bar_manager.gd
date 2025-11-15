@@ -48,6 +48,7 @@ func _init_pool() -> void:
 		if bar:
 			bar.is_pooled = true
 			bar.reset()
+			bar.visible = false  # Hide pooled bars until assigned to units
 			bar_pool.append(bar)
 
 func _instantiate_bar() -> FloatingHPBar:
@@ -179,10 +180,16 @@ func _on_bar_hidden(_unit: Node3D, _bar: FloatingHPBar) -> void:
 
 ## Remove all bars (useful for scene transitions)
 func clear_all_bars() -> void:
-	for unit: Node3D in active_bars.keys():
-		var bar_variant: Variant = active_bars.get(unit)
+	# Get all bars from values (don't iterate over unit keys which may be freed)
+	var bars_to_clear: Array[FloatingHPBar] = []
+	for bar_variant: Variant in active_bars.values():
 		if bar_variant is FloatingHPBar:
 			var bar: FloatingHPBar = bar_variant
+			bars_to_clear.append(bar)
+
+	# Clear all bars
+	for bar: FloatingHPBar in bars_to_clear:
+		if is_instance_valid(bar):
 			if bar.get_parent():
 				bar.get_parent().remove_child(bar)
 			_return_to_pool(bar)

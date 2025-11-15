@@ -3,7 +3,7 @@ class_name FirstCardSelection
 
 ## FirstCardSelection - Choose your first card
 ##
-## Part of onboarding flow. Player picks Warrior or Archer as their starter.
+## Part of onboarding flow. Player picks Fire Recruit or Ember Slinger as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
 @onready var select_warrior_button: Button = %SelectWarriorButton
@@ -13,8 +13,8 @@ func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect buttons
-	select_warrior_button.pressed.connect(_on_card_selected.bind("warrior"))
-	select_archer_button.pressed.connect(_on_card_selected.bind("archer"))
+	select_warrior_button.pressed.connect(_on_card_selected.bind("fire_recruit"))
+	select_archer_button.pressed.connect(_on_card_selected.bind("ember_slinger"))
 
 func _on_card_selected(catalog_id: String) -> void:
 	print("FirstCardSelection: Player selected card: %s" % catalog_id)

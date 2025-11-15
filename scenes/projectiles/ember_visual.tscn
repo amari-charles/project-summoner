@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://ember_visual"]
+
+[ext_resource type="Texture2D" path="res://assets/projectiles/ember.png" id="1_sprite"]
+
+[node name="EmberVisual" type="Node3D"]
+
+[node name="EmberSprite" type="Sprite3D" parent="."]
+texture = ExtResource("1_sprite")
+billboard = 1
+pixel_size = 0.01

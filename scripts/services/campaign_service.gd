@@ -75,17 +75,17 @@ func _init_battles() -> void:
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "fixed",
 		"reward_cards": [
-			{"catalog_id": "warrior", "rarity": "common", "count": 1}
+			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "slime_green", "count": 1}
+			{"catalog_id": "fire_recruit", "count": 1}
 		],
 		"enemy_hp": 30.0,  # Very low HP for tutorial (2 hits)
 		"unlock_requirements": [],
 		# AI Configuration
 		"ai_type": "scripted",
 		"ai_script": [
-			{"delay": 0.0, "card_name": "Green Slime", "position": {"x": 1400, "y": 540}}
+			{"delay": 0.0, "card_name": "Fire Recruit", "position": {"x": 1400, "y": 540}}
 		]
 	}
 
@@ -99,11 +99,11 @@ func _init_battles() -> void:
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "choice",
 		"reward_cards": [
-			{"catalog_id": "warrior", "rarity": "common", "count": 1},
-			{"catalog_id": "archer", "rarity": "common", "count": 1}
+			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
+			{"catalog_id": "ember_slinger", "rarity": "common", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "warrior", "count": 2}
+			{"catalog_id": "fire_recruit", "count": 2}
 		],
 		"enemy_hp": 100.0,
 		"unlock_requirements": ["battle_00"],
@@ -121,17 +121,17 @@ func _init_battles() -> void:
 	_battles["battle_02"] = {
 		"id": "battle_02",
 		"biome_id": "summer_plains",
-		"name": "Fortify Your Position",
-		"description": "Defense is key. Earn defensive cards.",
+		"name": "Flames Rising",
+		"description": "Face mixed fire forces. Earn a swift charger.",
 		"difficulty": 2,
 		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
 		"reward_type": "fixed",
 		"reward_cards": [
-			{"catalog_id": "wall", "rarity": "common", "count": 2}
+			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2}
 		],
 		"enemy_deck": [
-			{"catalog_id": "warrior", "count": 2},
-			{"catalog_id": "archer", "count": 1}
+			{"catalog_id": "fire_recruit", "count": 2},
+			{"catalog_id": "ember_slinger", "count": 1}
 		],
 		"enemy_hp": 250.0,
 		"unlock_requirements": ["battle_01"],
@@ -154,14 +154,16 @@ func _init_battles() -> void:
 		"difficulty": 2,
 		"reward_type": "random",
 		"reward_cards": [
-			{"catalog_id": "warrior", "rarity": "common", "count": 2},
-			{"catalog_id": "archer", "rarity": "common", "count": 2},
-			{"catalog_id": "wall", "rarity": "common", "count": 2}
+			{"catalog_id": "fire_recruit", "rarity": "common", "count": 2},
+			{"catalog_id": "ember_slinger", "rarity": "common", "count": 2},
+			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2},
+			{"catalog_id": "ash_vanguard", "rarity": "rare", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "warrior", "count": 3},
-			{"catalog_id": "archer", "count": 2},
-			{"catalog_id": "wall", "count": 1}
+			{"catalog_id": "fire_recruit", "count": 3},
+			{"catalog_id": "ember_slinger", "count": 2},
+			{"catalog_id": "blaze_rider", "count": 1},
+			{"catalog_id": "ash_vanguard", "count": 1}
 		],
 		"enemy_hp": 400.0,
 		"unlock_requirements": ["battle_02"],
@@ -175,32 +177,69 @@ func _init_battles() -> void:
 		}
 	}
 
-	# Battle 4: Rare reward
+	# Battle 4: Fire onslaught
 	_battles["battle_04"] = {
 		"id": "battle_04",
 		"biome_id": "summer_plains",
-		"name": "Arcane Knowledge",
-		"description": "Master advanced tactics. Rare card awaits!",
+		"name": "Inferno Assault",
+		"description": "Face the full fury of fire! Rare units await.",
 		"difficulty": 3,
-		"reward_type": "fixed",
+		"reward_type": "choice",
+		"reward_count": 1,
 		"reward_cards": [
-			{"catalog_id": "fireball", "rarity": "rare", "count": 1}
+			{"catalog_id": "ash_vanguard", "rarity": "rare", "count": 1},
+			{"catalog_id": "ember_guard", "rarity": "rare", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "warrior", "count": 4},
-			{"catalog_id": "archer", "count": 3},
-			{"catalog_id": "wall", "count": 2}
+			{"catalog_id": "fire_recruit", "count": 4},
+			{"catalog_id": "ember_slinger", "count": 3},
+			{"catalog_id": "blaze_rider", "count": 2},
+			{"catalog_id": "ash_vanguard", "count": 1},
+			{"catalog_id": "ember_guard", "count": 1}
 		],
 		"enemy_hp": 600.0,
 		"unlock_requirements": ["battle_03"],
 		# AI Configuration
 		"ai_type": "heuristic",
-		"ai_personality": "spell_focused",
+		"ai_personality": "aggressive",
 		"ai_difficulty": 4,
 		"ai_config": {
 			"play_interval_min": 2.0,
 			"play_interval_max": 4.0
 		}
+	}
+
+	# Dev Test Battle: All ability cards unlocked for testing
+	_battles["dev_test"] = {
+		"id": "dev_test",
+		"biome_id": "summer_plains",
+		"name": "[DEV] Ability Test Arena",
+		"description": "Test all abilities. Full deck of ability cards available.",
+		"difficulty": 2,
+		"reward_type": "fixed",
+		"reward_cards": [],
+		"enemy_deck": [
+			{"catalog_id": "fire_recruit", "count": 5}
+		],
+		"enemy_hp": 300.0,
+		"unlock_requirements": [],  # Always available
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "defensive",
+		"ai_difficulty": 1,
+		"ai_config": {
+			"play_interval_min": 5.0,
+			"play_interval_max": 8.0
+		},
+		# Special dev deck override for player
+		"dev_player_deck": [
+			{"catalog_id": "fire_recruit", "count": 2},
+			{"catalog_id": "ember_slinger", "count": 2},
+			{"catalog_id": "blaze_rider", "count": 2},
+			{"catalog_id": "ash_vanguard", "count": 2},
+			{"catalog_id": "ember_guard", "count": 2},
+			{"catalog_id": "fireball", "count": 2}
+		]
 	}
 
 	print("CampaignService: Loaded %d battles" % _battles.size())

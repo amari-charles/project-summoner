@@ -37,6 +37,15 @@ func _on_play() -> void:
 	# Start particles, animations, etc.
 	pass
 
+## Called by VFXManager to pass custom runtime data to VFX
+## Override in subclasses to receive and validate custom parameters
+## Called AFTER instantiation, BEFORE adding to scene tree
+## Safe to modify properties that will be used in _on_play() or later
+func receive_data(data: Dictionary) -> void:
+	# Default: do nothing
+	# Subclasses override to extract and validate data
+	pass
+
 ## Reset state for pooling reuse
 func reset() -> void:
 	time_alive = 0.0

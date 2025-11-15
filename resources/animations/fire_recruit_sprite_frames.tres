@@ -1,0 +1,38 @@
+[gd_resource type="SpriteFrames" load_steps=2 format=3 uid="uid://fire_recruit_frames"]
+
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_recruit.png" id="1_sprite"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_sprite")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_sprite")
+}],
+"loop": false,
+"name": &"death",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_sprite")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_sprite")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 1.0
+}]

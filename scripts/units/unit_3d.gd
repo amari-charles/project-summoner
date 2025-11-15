@@ -143,6 +143,16 @@ func _ready() -> void:
 	# Spawn HP bar using HPBarManager
 	HPBarManager.create_bar_for_unit(self)
 
+	# Setup abilities
+	_setup_abilities()
+
+func _setup_abilities() -> void:
+	# Find all BaseAbility components attached as children
+	for child: Node in get_children():
+		if child is BaseAbility:
+			var ability: BaseAbility = child as BaseAbility
+			ability.setup(self)
+
 func _setup_visuals() -> void:
 	# Check if a visual component already exists (e.g., Skeletal2D5Component added in scene)
 	visual_component = get_node_or_null("Visual")

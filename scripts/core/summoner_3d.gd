@@ -242,6 +242,16 @@ func _load_profile_deck() -> Array[Card]:
 		push_warning("Summoner3D: PROFILE strategy used for enemy team, using static deck instead")
 		return _load_static_deck()
 
+	# Check for dev test deck override in BattleContext
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if battle_context:
+		var config: Variant = battle_context.get("battle_config")
+		if config is Dictionary:
+			var battle_config: Dictionary = config
+			if battle_config.has("dev_player_deck"):
+				print("Summoner3D: Loading DEV TEST deck from BattleContext...")
+				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
+
 	print("Summoner3D: Loading deck from player profile...")
 	var loaded_deck: Array[Card] = DeckLoader.load_player_deck()
 
@@ -250,6 +260,33 @@ func _load_profile_deck() -> Array[Card]:
 		return _load_static_deck()
 
 	return loaded_deck
+
+## Load dev test deck from battle configuration
+func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
+	if not dev_deck_config is Array:
+		push_error("Summoner3D: dev_player_deck is not an Array")
+		return []
+
+	var deck: Array[Card] = []
+	var card_configs: Array = dev_deck_config
+
+	for config_variant: Variant in card_configs:
+		if not config_variant is Dictionary:
+			continue
+
+		var config: Dictionary = config_variant
+		var catalog_id: String = config.get("catalog_id", "")
+		var count: int = config.get("count", 1)
+
+		for i: int in count:
+			var card: Card = CardCatalog.create_card_resource(catalog_id)
+			if card:
+				deck.append(card)
+			else:
+				push_warning("Summoner3D: Failed to create dev card: %s" % catalog_id)
+
+	print("Summoner3D: Loaded %d cards from dev_player_deck" % deck.size())
+	return deck
 
 ## Emergency fallback: Create minimal deck when all strategies fail
 ## Uses basic warrior cards as last resort to prevent game breaking

@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://scripts/vfx/aoe_indicator.gdshader" id="1_shader"]
+
+[resource]
+render_priority = 1
+shader = ExtResource("1_shader")
+shader_parameter/aoe_color = Color(1, 0.3, 0, 0.8)
+shader_parameter/edge_width = 0.08
