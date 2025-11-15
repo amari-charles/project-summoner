@@ -125,6 +125,7 @@ func _init_catalog() -> void:
 		"spell_damage": 100.0,
 		"spell_radius": 80.0,
 		"spell_duration": 0.5,
+		"spell_vfx": "explosion_default",
 
 		"card_icon_path": "",
 		"tags": ["spell", "aoe", "damage"],
@@ -404,6 +405,88 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Ash Vanguard - Explosive tank
+	_catalog["ash_vanguard"] = {
+		# Identity
+		"catalog_id": "ash_vanguard",
+		"card_name": "Ash Vanguard",
+		"description": "A heavily armored warrior that explodes on death, dealing AoE damage to nearby enemies.",
+		"rarity": "rare",
+
+		# Card properties
+		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",
+		"mana_cost": 5,
+		"cooldown": 3.0,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/ash_vanguard_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 150.0,
+		"attack_damage": 25.0,
+		"attack_range": 80.0,
+		"attack_speed": 1.2,
+		"move_speed": 50.0,  # Slow tank
+		"aggro_radius": 300.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "tank", "explosive", "death_explosion"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
+	# Ember Guard - Damage aura
+	_catalog["ember_guard"] = {
+		# Identity
+		"catalog_id": "ember_guard",
+		"card_name": "Ember Guard",
+		"description": "A defensive unit that burns nearby enemies with a constant damage aura.",
+		"rarity": "rare",
+
+		# Card properties
+		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",
+		"mana_cost": 4,
+		"cooldown": 2.5,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/ember_guard_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 120.0,
+		"attack_damage": 12.0,
+		"attack_range": 80.0,
+		"attack_speed": 1.0,
+		"move_speed": 50.0,  # Slow defensive unit
+		"aggro_radius": 300.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "defensive", "aura", "damage_over_time"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats
@@ -600,6 +683,7 @@ func create_card_resource(catalog_id: String) -> Resource:
 		card.spell_radius = card_def.get("spell_radius", 0.0)
 		card.spell_duration = card_def.get("spell_duration", 0.0)
 		card.projectile_id = card_def.get("projectile_id", "")
+		card.spell_vfx = card_def.get("spell_vfx", "")
 
 	# Set icon if available
 	var icon_path: String = card_def.get("card_icon_path", "")

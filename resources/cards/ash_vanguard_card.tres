@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Card" load_steps=3 format=3 uid="uid://bkxm3pn8r7qx4"]
+
+[ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card_script"]
+[ext_resource type="PackedScene" path="res://scenes/units/ash_vanguard_3d.tscn" id="2_unit_scene"]
+
+[resource]
+script = ExtResource("1_card_script")
+card_name = "Ash Vanguard"
+description = "A heavily armored warrior that explodes on death, dealing AoE damage to nearby enemies."
+rarity = "rare"
+card_type = 0
+mana_cost = 5
+unit_scene = ExtResource("2_unit_scene")

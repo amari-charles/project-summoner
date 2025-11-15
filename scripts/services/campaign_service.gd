@@ -156,12 +156,14 @@ func _init_battles() -> void:
 		"reward_cards": [
 			{"catalog_id": "fire_recruit", "rarity": "common", "count": 2},
 			{"catalog_id": "ember_slinger", "rarity": "common", "count": 2},
-			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2}
+			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2},
+			{"catalog_id": "ash_vanguard", "rarity": "rare", "count": 1}
 		],
 		"enemy_deck": [
 			{"catalog_id": "fire_recruit", "count": 3},
 			{"catalog_id": "ember_slinger", "count": 2},
-			{"catalog_id": "blaze_rider", "count": 1}
+			{"catalog_id": "blaze_rider", "count": 1},
+			{"catalog_id": "ash_vanguard", "count": 1}
 		],
 		"enemy_hp": 400.0,
 		"unlock_requirements": ["battle_02"],
@@ -180,16 +182,20 @@ func _init_battles() -> void:
 		"id": "battle_04",
 		"biome_id": "summer_plains",
 		"name": "Inferno Assault",
-		"description": "Face the full fury of fire! Swift chargers await.",
+		"description": "Face the full fury of fire! Rare units await.",
 		"difficulty": 3,
-		"reward_type": "fixed",
+		"reward_type": "choice",
+		"reward_count": 1,
 		"reward_cards": [
-			{"catalog_id": "blaze_rider", "rarity": "common", "count": 3}
+			{"catalog_id": "ash_vanguard", "rarity": "rare", "count": 1},
+			{"catalog_id": "ember_guard", "rarity": "rare", "count": 1}
 		],
 		"enemy_deck": [
 			{"catalog_id": "fire_recruit", "count": 4},
 			{"catalog_id": "ember_slinger", "count": 3},
-			{"catalog_id": "blaze_rider", "count": 2}
+			{"catalog_id": "blaze_rider", "count": 2},
+			{"catalog_id": "ash_vanguard", "count": 1},
+			{"catalog_id": "ember_guard", "count": 1}
 		],
 		"enemy_hp": 600.0,
 		"unlock_requirements": ["battle_03"],

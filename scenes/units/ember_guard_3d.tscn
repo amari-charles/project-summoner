@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3 uid="uid://c9kj2vh8n4px2"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://bqn7vh3mk8xy9" path="res://resources/animations/ember_guard_sprite_frames.tres" id="2_sprite_frames"]
+[ext_resource type="Script" path="res://scripts/abilities/aura_ability.gd" id="3_ability"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ember_guard"]
+radius = 0.4
+height = 1.6
+
+[resource]
+animations = []
+
+[node name="EmberGuard3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+max_hp = 120.0
+attack_damage = 12.0
+attack_range = 1.5
+attack_speed = 1.0
+move_speed = 50.0
+is_ranged = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_ember_guard")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+billboard = 1
+sprite_frames = ExtResource("2_sprite_frames")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="AuraAbility" type="Node" parent="."]
+script = ExtResource("3_ability")
+aura_type = 0
+radius = 4.0
+tick_rate = 1.0
+damage_per_tick = 5.0
+affects_enemies = true
+affects_allies = false
+affects_self = false
+persistent_aura_vfx = ""
+tick_vfx = ""

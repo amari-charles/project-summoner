@@ -25,6 +25,7 @@ enum CardType { SUMMON, SPELL }
 @export var spell_radius: float = 0.0
 @export var spell_duration: float = 0.0
 @export var projectile_id: String = ""  # If set, spell spawns a projectile instead of instant cast
+@export var spell_vfx: String = ""  # VFX ID to spawn when spell hits (for instant AOE spells)
 
 ## Visual
 @export var card_icon: Texture2D = null
@@ -274,7 +275,9 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 				if distance <= spell_radius:
 					enemy_unit.take_damage(final_damage)
 
-	# TODO: Add 3D visual effect for spell
+	# Spawn VFX at impact position
+	if not spell_vfx.is_empty() and VFXManager:
+		VFXManager.play_effect(spell_vfx, position)
 
 ## Helper to safely access ModifierSystem
 ## Prefers passed reference, falls back to autoload lookup if not provided

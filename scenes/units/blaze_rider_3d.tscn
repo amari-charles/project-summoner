@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://blaze_rider_3d"]
+[gd_scene load_steps=5 format=3 uid="uid://blaze_rider_3d"]
 
 [ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
 [ext_resource type="SpriteFrames" path="res://resources/animations/blaze_rider_sprite_frames.tres" id="2_frames"]
+[ext_resource type="Script" path="res://scripts/abilities/charge_ability.gd" id="3_ability"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -29,3 +30,12 @@ shape = SubResource("CapsuleShape3D_1")
 
 [node name="ProjectileTargetPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+
+[node name="ChargeAbility" type="Node" parent="."]
+script = ExtResource("3_ability")
+charge_threshold = 5.0
+damage_bonus = 30.0
+bonus_type = 0
+reset_on_any_attack = true
+charge_ready_vfx = ""
+charge_impact_vfx = ""

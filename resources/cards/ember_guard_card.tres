@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Card" load_steps=3 format=3 uid="uid://cqxm9pn8s8rx5"]
+
+[ext_resource type="Script" path="res://scripts/cards/card.gd" id="1_card_script"]
+[ext_resource type="PackedScene" path="res://scenes/units/ember_guard_3d.tscn" id="2_unit_scene"]
+
+[resource]
+script = ExtResource("1_card_script")
+card_name = "Ember Guard"
+description = "A defensive unit that burns nearby enemies with a constant damage aura."
+rarity = "rare"
+card_type = 0
+mana_cost = 4
+unit_scene = ExtResource("2_unit_scene")
