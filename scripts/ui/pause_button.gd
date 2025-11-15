@@ -36,9 +36,11 @@ func _on_game_ended(_winner: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	# ESC key handling (works even when paused because PROCESS_MODE_ALWAYS)
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		_toggle_pause()
-		get_viewport().set_input_as_handled()
+	if event is InputEventKey:
+		var key_event: InputEventKey = event
+		if key_event.pressed and key_event.keycode == KEY_ESCAPE:
+			_toggle_pause()
+			get_viewport().set_input_as_handled()
 
 func _on_pressed() -> void:
 	_toggle_pause()

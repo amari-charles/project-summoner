@@ -203,7 +203,11 @@ func _handle_campaign_victory(winner: Unit.Team) -> void:
 	if not profile_repo:
 		return
 
-	var profile: Dictionary = profile_repo.get_active_profile()
+	if not profile_repo.has_method("get_active_profile"):
+		return
+
+	var profile_variant: Variant = profile_repo.call("get_active_profile")
+	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
 	if profile.is_empty():
 		return
 
@@ -238,7 +242,11 @@ func _setup_campaign_ai() -> void:
 	if not profile_repo:
 		return
 
-	var profile: Dictionary = profile_repo.get_active_profile()
+	if not profile_repo.has_method("get_active_profile"):
+		return
+
+	var profile_variant: Variant = profile_repo.call("get_active_profile")
+	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
 	if profile.is_empty():
 		return
 
@@ -253,7 +261,11 @@ func _setup_campaign_ai() -> void:
 	if not campaign:
 		return
 
-	var battle_config: Dictionary = campaign.get_battle(current_battle_id)
+	if not campaign.has_method("get_battle"):
+		return
+
+	var battle_config_variant: Variant = campaign.call("get_battle", current_battle_id)
+	var battle_config: Dictionary = battle_config_variant if battle_config_variant is Dictionary else {}
 	if battle_config.is_empty():
 		return
 

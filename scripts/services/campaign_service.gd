@@ -12,8 +12,8 @@ signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
 
 ## Dependencies
-@onready var _profile_repo: Node = get_node("/root/ProfileRepo")
-@onready var _collection: Node = get_node("/root/Collection")
+var _profile_repo: Node = null
+var _collection: Node = null
 
 ## Battle data structure
 const BattleData: Dictionary = {
@@ -39,6 +39,11 @@ var _completed_battles: Array[String] = []
 
 func _ready() -> void:
 	print("CampaignService: Initializing...")
+
+	# Initialize dependencies (autoloads are always available in _ready)
+	_profile_repo = get_node("/root/ProfileRepo")
+	_collection = get_node("/root/Collection")
+
 	_init_battles()
 	_load_progress()
 
@@ -56,6 +61,10 @@ func _on_profile_data_changed() -> void:
 ## =============================================================================
 
 func _init_battles() -> void:
+	# TODO: Ensure reward_cards here stay in sync with what's displayed in the campaign menu UI
+	# When updating battle rewards, also update the corresponding UI display in campaign_screen.gd
+	# to prevent divergence between advertised and actual rewards
+
 	# Battle 0: Tutorial - First card
 	_battles["battle_00"] = {
 		"id": "battle_00",
