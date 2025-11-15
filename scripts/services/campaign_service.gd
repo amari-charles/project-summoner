@@ -203,6 +203,34 @@ func _init_battles() -> void:
 		}
 	}
 
+	# TEST BATTLE: Fire Units Test
+	_battles["battle_fire_test"] = {
+		"id": "battle_fire_test",
+		"biome_id": "summer_plains",
+		"name": "Fire Test Battle",
+		"description": "Test battle for fire element units (Fire Recruit, Ember Slinger, Blaze Rider)",
+		"difficulty": 2,
+		"reward_type": "fixed",
+		"reward_cards": [
+			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1}
+		],
+		"enemy_deck": [
+			{"catalog_id": "fire_recruit", "count": 2},
+			{"catalog_id": "ember_slinger", "count": 2},
+			{"catalog_id": "blaze_rider", "count": 1}
+		],
+		"enemy_hp": 400.0,
+		"unlock_requirements": [],  # No requirements - available for testing
+		# AI Configuration
+		"ai_type": "heuristic",
+		"ai_personality": "balanced",
+		"ai_difficulty": 3,
+		"ai_config": {
+			"play_interval_min": 2.0,
+			"play_interval_max": 3.5
+		}
+	}
+
 	print("CampaignService: Loaded %d battles" % _battles.size())
 
 ## =============================================================================
