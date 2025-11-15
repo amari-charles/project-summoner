@@ -118,7 +118,7 @@ func _physics_process(delta: float) -> void:
 ## =============================================================================
 
 func _trigger_aura() -> void:
-	var targets = _get_units_in_radius(owner_unit.global_position, radius, affects_enemies, affects_allies, affects_self)
+	var targets: Array[Unit3D] = _get_units_in_radius(owner_unit.global_position, radius, affects_enemies, affects_allies, affects_self)
 
 	if targets.is_empty():
 		return
@@ -149,7 +149,7 @@ func _apply_damage_aura(targets: Array[Unit3D]) -> void:
 	if damage_per_tick <= 0:
 		return
 
-	for target in targets:
+	for target: Unit3D in targets:
 		_apply_damage(target, damage_per_tick, "fire")
 
 ## Apply healing to all targets
@@ -157,36 +157,39 @@ func _apply_heal_aura(targets: Array[Unit3D]) -> void:
 	if heal_per_tick <= 0:
 		return
 
-	for target in targets:
-		target.heal(heal_per_tick)
+	for target: Unit3D in targets:
+		if target.has_method("heal"):
+			target.heal(heal_per_tick)
 
 ## Apply speed buff to all targets
 func _apply_speed_buff_aura(targets: Array[Unit3D]) -> void:
 	if speed_modifier == 0:
 		return
 
-	for target in targets:
+	for target: Unit3D in targets:
 		# Apply temporary speed modifier
-		target.apply_modifier({
-			"source": "aura_speed_buff_%s" % owner_unit.name,
-			"duration": modifier_duration,
-			"stats": {"move_speed": speed_modifier},
-			"amplification": "MULTIPLICATIVE"  # Percentage-based
-		})
+		if target.has_method("apply_modifier"):
+			target.apply_modifier({
+				"source": "aura_speed_buff_%s" % owner_unit.name,
+				"duration": modifier_duration,
+				"stats": {"move_speed": speed_modifier},
+				"amplification": "MULTIPLICATIVE"  # Percentage-based
+			})
 
 ## Apply speed debuff to all targets
 func _apply_speed_debuff_aura(targets: Array[Unit3D]) -> void:
 	if speed_modifier == 0:
 		return
 
-	var debuff_value = -abs(speed_modifier)  # Ensure negative
-	for target in targets:
-		target.apply_modifier({
-			"source": "aura_slow_%s" % owner_unit.name,
-			"duration": modifier_duration,
-			"stats": {"move_speed": debuff_value},
-			"amplification": "MULTIPLICATIVE"
-		})
+	var debuff_value: float = -abs(speed_modifier)  # Ensure negative
+	for target: Unit3D in targets:
+		if target.has_method("apply_modifier"):
+			target.apply_modifier({
+				"source": "aura_slow_%s" % owner_unit.name,
+				"duration": modifier_duration,
+				"stats": {"move_speed": debuff_value},
+				"amplification": "MULTIPLICATIVE"
+			})
 
 ## =============================================================================
 ## CLEANUP

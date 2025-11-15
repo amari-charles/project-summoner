@@ -79,18 +79,18 @@ func _on_owner_died(_unit: Unit3D) -> void:
 func _trigger_explosion() -> void:
 	has_exploded = true
 
-	var explosion_center = owner_unit.global_position
+	var explosion_center: Vector3 = owner_unit.global_position
 
 	# Spawn VFX first
 	if not explosion_vfx.is_empty():
 		_spawn_vfx(explosion_vfx, explosion_center)
 
 	# Get targets in explosion radius
-	var targets = _get_units_in_radius(explosion_center, explosion_radius, affects_enemies, affects_allies, false)
+	var targets: Array[Unit3D] = _get_units_in_radius(explosion_center, explosion_radius, affects_enemies, affects_allies, false)
 
 	# Apply damage to all targets
-	var hit_count = 0
-	for target in targets:
+	var hit_count: int = 0
+	for target: Unit3D in targets:
 		_apply_damage(target, explosion_damage, damage_type)
 		hit_count += 1
 

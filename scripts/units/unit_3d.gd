@@ -148,9 +148,9 @@ func _ready() -> void:
 
 func _setup_abilities() -> void:
 	# Find all BaseAbility components attached as children
-	for child in get_children():
+	for child: Node in get_children():
 		if child is BaseAbility:
-			var ability: BaseAbility = child
+			var ability: BaseAbility = child as BaseAbility
 			ability.setup(self)
 
 func _setup_visuals() -> void:

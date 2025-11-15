@@ -70,14 +70,14 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Track distance moved
-	var current_position = owner_unit.global_position
-	var distance_moved = current_position.distance_to(last_position)
+	var current_position: Vector3 = owner_unit.global_position
+	var distance_moved: float = current_position.distance_to(last_position)
 	last_position = current_position
 
 	distance_traveled_since_attack += distance_moved
 
 	# Check if charge is ready
-	var was_charged = is_charged
+	var was_charged: bool = is_charged
 	is_charged = distance_traveled_since_attack >= charge_threshold
 
 	# Show VFX when charge becomes ready
@@ -113,7 +113,7 @@ func _on_owner_attacked(target: Unit3D) -> void:
 		_reset_charge()
 
 func _apply_charge_damage(target: Unit3D) -> void:
-	var bonus_damage = damage_bonus
+	var bonus_damage: float = damage_bonus
 
 	# Calculate final damage based on bonus type
 	match bonus_type:
@@ -123,8 +123,8 @@ func _apply_charge_damage(target: Unit3D) -> void:
 
 		BonusType.PERCENTAGE:
 			# Percentage of base attack damage
-			var base_damage = owner_unit.attack_damage if owner_unit else 0
-			var percentage_bonus = base_damage * (bonus_damage / 100.0)
+			var base_damage: float = owner_unit.attack_damage if owner_unit else 0.0
+			var percentage_bonus: float = base_damage * (bonus_damage / 100.0)
 			_apply_damage(target, percentage_bonus, "physical")
 
 	# Play charge impact VFX

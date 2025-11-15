@@ -36,7 +36,8 @@ func setup(unit: Unit3D) -> void:
 	_connect_to_unit_events()
 	_initialize()
 
-	print("BaseAbility: %s setup complete for unit %s" % [get_script().get_global_name(), unit.name])
+	var script_name: String = get_script().resource_path.get_file().get_basename()
+	print("BaseAbility: %s setup complete for unit %s" % [script_name, unit.name])
 
 ## Override in subclasses for custom initialization
 ## Called after owner_unit is set and events are connected
@@ -78,21 +79,23 @@ func _get_units_in_radius(center: Vector3, radius: float, target_enemies: bool =
 	# Determine which groups to check
 	var groups_to_check: Array[String] = []
 	if target_enemies:
-		var enemy_group = "enemy_units" if owner_unit.team == Unit3D.Team.PLAYER else "player_units"
+		var enemy_group: String = "enemy_units" if owner_unit.team == Unit3D.Team.PLAYER else "player_units"
 		groups_to_check.append(enemy_group)
 	if target_allies:
-		var ally_group = "player_units" if owner_unit.team == Unit3D.Team.PLAYER else "enemy_units"
+		var ally_group: String = "player_units" if owner_unit.team == Unit3D.Team.PLAYER else "enemy_units"
 		groups_to_check.append(ally_group)
 
 	# Find units in range
-	for group in groups_to_check:
-		var group_units = get_tree().get_nodes_in_group(group)
-		for unit in group_units:
-			if unit is Unit3D and unit.is_alive:
-				var distance = unit.global_position.distance_to(center)
-				if distance <= radius:
-					if unit != owner_unit or include_self:
-						units.append(unit)
+	for group: String in groups_to_check:
+		var group_units: Array[Node] = get_tree().get_nodes_in_group(group)
+		for node: Node in group_units:
+			if node is Unit3D:
+				var unit: Unit3D = node as Unit3D
+				if unit.is_alive:
+					var distance: float = unit.global_position.distance_to(center)
+					if distance <= radius:
+						if unit != owner_unit or include_self:
+							units.append(unit)
 
 	return units
 
@@ -107,7 +110,7 @@ func _spawn_vfx(vfx_id: String, position: Vector3, parent: Node = null) -> Node:
 	if vfx_id.is_empty():
 		return null
 
-	var vfx = VFXManager.play_effect(vfx_id, position)
+	var vfx: Node = VFXManager.play_effect(vfx_id, position)
 	if vfx and parent:
 		vfx.reparent(parent)
 		vfx.position = Vector3.ZERO
