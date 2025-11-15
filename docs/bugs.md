@@ -124,6 +124,135 @@ When a melee unit (e.g., slime) gets directly on top of a ranged unit (e.g., arc
 
 ### 🟡 MEDIUM PRIORITY
 
+#### VFX Pooling System Lacks Resource Isolation
+**Status:** Open
+**Reported:** 2025-01-15
+**Component:** VFX / Pooling System
+**Type:** Architecture Issue
+
+**Description:**
+The VFX pooling system doesn't properly isolate shared resources (meshes, materials) between pooled instances. Modifying properties like mesh.size affects all instances using that resource, causing bugs when VFX objects are reused.
+
+**Expected Behavior:**
+- Pooled VFX instances should be completely independent
+- Modifying resources on one instance shouldn't affect others
+- Resources should be properly duplicated or instances should use scaling/transforms instead
+- Reset logic should restore all modified properties
+
+**Current Behavior:**
+- Shared resources (QuadMesh, materials) are modified directly
+- Changes persist across pooling cycles
+- Workarounds required (using scale instead of mesh.size)
+- Each VFX needs careful consideration of what can/can't be modified
+
+**Impact:**
+- Creates subtle bugs that only appear on second+ use of pooled VFX
+- Developers must remember to use workarounds
+- Makes VFX system error-prone and harder to maintain
+- Increases cognitive load for VFX development
+
+**Proposed Solution:**
+- Implement resource duplication for pooled instances (mesh.duplicate())
+- Create VFXInstance base class guidelines for safe resource modification
+- Add validation/warnings when shared resources are modified
+- Consider using node properties (scale, modulate) instead of resource modification
+- Document best practices for VFX pooling
+
+**Related Files:**
+- `scripts/vfx/vfx_instance.gd` - Base class for pooled VFX
+- `scripts/vfx/fireball_spell_vfx.gd` - Example workaround using scale
+- `scripts/vfx/vfx_manager.gd` - Pooling system
+
+**Notes:**
+- Current workaround: Use node transforms (scale, modulate) instead of modifying resources
+- Need comprehensive solution before creating many more VFX
+- Consider making mesh/material unique per instance on spawn
+
+#### Mana Bar Uses Hardcoded Values Instead of Hero System
+**Status:** Open
+**Reported:** 2025-01-14
+**Component:** UI / Mana System
+**Type:** Architecture Issue
+
+**Description:**
+The mana bar currently has hardcoded default values in the scene file and uses Summoner as the mana source. When the Hero system is implemented, mana should be a Hero property, not Summoner.
+
+**Expected Behavior:**
+- Mana bar should display values from Hero.mana and Hero.max_mana
+- Hero should emit mana_changed signal
+- No hardcoded mana values in scene files
+- Mana max should be determined by Hero stats/equipment
+
+**Current Behavior:**
+- Mana is managed by Summoner class
+- MANA_MAX is a constant (15.0) in Summoner
+- Scene file has hardcoded "Mana: 15/15" text
+- No hero system implemented yet
+
+**Impact:**
+- Creates technical debt for future Hero implementation
+- Mana system needs refactoring when Hero is added
+- Not critical for current functionality
+
+**Proposed Solution:**
+- Create Hero system with mana as a property
+- Move mana management from Summoner to Hero
+- Update ManaBar to listen to Hero.mana_changed signal
+- Remove hardcoded values from mana_bar.tscn
+
+**Related Files:**
+- `scripts/ui/mana_bar.gd` - Has TODO comments
+- `scripts/core/summoner_3d.gd:29` - MANA_MAX constant
+- `scenes/ui/mana_bar.tscn` - Hardcoded display values
+
+**Notes:**
+- Can be deferred until Hero system implementation
+- TODOs added to relevant files
+- Part of larger Hero system feature work
+
+#### Projectile Cleanup Not Working Properly
+**Status:** Open
+**Reported:** 2025-01-14
+**Component:** Projectiles / Memory Management
+**Type:** Memory Leak / Cleanup Issue
+
+**Description:**
+Projectiles are not being cleaned up properly after impact or expiration, potentially causing memory leaks or visual artifacts.
+
+**Expected Behavior:**
+- Projectiles should be returned to pool or destroyed after hitting target
+- No lingering projectile nodes in scene tree
+- Clean visual feedback (no ghost projectiles)
+- Proper memory management with object pooling
+
+**Current Behavior:**
+- Projectiles may not be cleaned up correctly
+- Possible memory leak from unreleased projectile instances
+- Scene tree may accumulate orphaned projectile nodes
+
+**Impact:**
+- Performance degradation over long play sessions
+- Potential memory leaks
+- Visual clutter from lingering projectiles
+- Affects game polish
+
+**Proposed Solution:**
+- Audit projectile lifecycle in ProjectileManager
+- Ensure proper cleanup on hit/miss/expire
+- Verify pool return logic works correctly
+- Add safeguards for orphaned projectiles
+- Consider using `queue_free()` for non-pooled projectiles
+
+**Related Files:**
+- `scripts/projectiles/projectile_manager.gd` - Pool management
+- `scripts/projectiles/projectile_3d.gd` - Lifecycle logic
+- `scripts/units/projectile.gd` - Legacy projectile code
+
+**Notes:**
+- Should be investigated and fixed soon
+- May be related to pooling system
+- Test with long battles to observe behavior
+
 #### AI Scoring Magic Numbers Should Be Constants
 **Status:** Open
 **Reported:** 2025-01-06
@@ -271,4 +400,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-01-11 - Added HP bar positioning and projectile targeting bugs*
+*Last Updated: 2025-01-15 - Added VFX pooling resource isolation issue*

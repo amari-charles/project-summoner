@@ -121,6 +121,10 @@ func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = 
 		instance.scale = Vector3.ONE * data.scale
 	if data.has("rotation") and data.rotation is Vector3:
 		instance.rotation = data.rotation
+	if data.has("radius") and data.radius is float:
+		# For VFX with damage_radius property (e.g., AOE indicators)
+		if "damage_radius" in instance:
+			instance.set("damage_radius", data.radius)
 
 	# Add to scene
 	effects_container.add_child(instance)

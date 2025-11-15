@@ -32,81 +32,6 @@ func _ready() -> void:
 ## =============================================================================
 
 func _init_catalog() -> void:
-	# Warrior - Basic melee unit
-	_catalog["warrior"] = {
-		# Identity
-		"catalog_id": "warrior",
-		"card_name": "Warrior",
-		"description": "A stalwart melee fighter. Charges into battle with sword and shield.",
-		"rarity": "common",
-
-		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
-		"unit_type": "melee",  # For icon display
-		"mana_cost": 3,
-		"cooldown": 2.0,
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/soldier_3d.tscn",  # Uses soldier scene
-		"spawn_count": 1,
-
-		# Unit stats (centralized here)
-		"max_hp": 100.0,
-		"attack_damage": 15.0,
-		"attack_range": 80.0,
-		"attack_speed": 1.0,  # attacks per second
-		"move_speed": 60.0,
-		"aggro_radius": 300.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",  # TODO: Add card art
-
-		# Metadata
-		"tags": ["melee", "starter", "durable"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.EARTH
-		}
-	}
-
-	# Archer - Ranged attacker
-	_catalog["archer"] = {
-		"catalog_id": "archer",
-		"card_name": "Archer",
-		"description": "A skilled ranged attacker. Rains arrows from a distance.",
-		"rarity": "common",
-
-		"card_type": 0,  # SUMMON
-		"unit_type": "ranged",  # For icon display
-		"mana_cost": 3,
-		"cooldown": 2.0,
-
-		"unit_scene_path": "res://scenes/units/archer_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 60.0,
-		"attack_damage": 15.0,
-		"attack_range": 200.0,
-		"attack_speed": 0.8,
-		"move_speed": 50.0,
-		"aggro_radius": 250.0,
-		"is_ranged": true,
-		"projectile_scene_path": "res://scenes/units/projectile.tscn",
-
-		"card_icon_path": "",
-		"tags": ["ranged", "starter", "agile"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.WIND
-		}
-	}
-
 	# Fireball - AOE damage spell
 	_catalog["fireball"] = {
 		"catalog_id": "fireball",
@@ -123,9 +48,9 @@ func _init_catalog() -> void:
 
 		# Spell properties
 		"spell_damage": 100.0,
-		"spell_radius": 80.0,
+		"spell_radius": 10.0,  # Passed to VFX for accurate indicator sizing
 		"spell_duration": 0.5,
-		"spell_vfx": "explosion_default",
+		"spell_vfx": "fireball_spell",
 
 		"card_icon_path": "",
 		"tags": ["spell", "aoe", "damage"],
@@ -186,12 +111,12 @@ func _init_catalog() -> void:
 		"unit_scene_path": "res://scenes/units/neade_3d.tscn",
 		"spawn_count": 1,
 
-		"max_hp": 120.0,
+		"max_hp": 9999.0,
 		"attack_damage": 28.0,
-		"attack_range": 70.0,
+		"attack_range": 2.0,
 		"attack_speed": 0.55,
-		"move_speed": 55.0,
-		"aggro_radius": 220.0,
+		"move_speed": 3.0,
+		"aggro_radius": 20.0,
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
@@ -258,10 +183,10 @@ func _init_catalog() -> void:
 		# Unit stats (centralized here)
 		"max_hp": 70.0,
 		"attack_damage": 12.0,
-		"attack_range": 60.0,
+		"attack_range": 2.0,
 		"attack_speed": 1.2,
-		"move_speed": 90.0,
-		"aggro_radius": 250.0,
+		"move_speed": 4.5,
+		"aggro_radius": 20.0,
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
@@ -303,10 +228,10 @@ func _init_catalog() -> void:
 		# Unit stats (centralized here)
 		"max_hp": 50.0,
 		"attack_damage": 10.0,
-		"attack_range": 80.0,
+		"attack_range": 2.0,
 		"attack_speed": 1.0,
-		"move_speed": 70.0,
-		"aggro_radius": 300.0,
+		"move_speed": 3.0,
+		"aggro_radius": 20.0,
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
@@ -344,10 +269,10 @@ func _init_catalog() -> void:
 		# Unit stats (centralized here)
 		"max_hp": 40.0,
 		"attack_damage": 8.0,
-		"attack_range": 300.0,
+		"attack_range": 10.0,
 		"attack_speed": 0.8,
-		"move_speed": 65.0,
-		"aggro_radius": 350.0,
+		"move_speed": 3.0,
+		"aggro_radius": 20.0,
 		"is_ranged": true,
 		"projectile_scene_path": "",  # Projectile defined in unit scene (projectile_id: "ember")
 
@@ -385,10 +310,10 @@ func _init_catalog() -> void:
 		# Unit stats (centralized here)
 		"max_hp": 80.0,
 		"attack_damage": 15.0,
-		"attack_range": 80.0,
+		"attack_range": 2.0,
 		"attack_speed": 1.2,
-		"move_speed": 100.0,  # Fast charger - high movement speed
-		"aggro_radius": 400.0,  # Increased aggro to leverage speed
+		"move_speed": 5.0,  # Fast charger - high movement speed (but not crazy fast!)
+		"aggro_radius": 20.0,
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
@@ -426,10 +351,10 @@ func _init_catalog() -> void:
 		# Unit stats (centralized here)
 		"max_hp": 150.0,
 		"attack_damage": 25.0,
-		"attack_range": 80.0,
+		"attack_range": 1.5,
 		"attack_speed": 1.2,
-		"move_speed": 50.0,  # Slow tank
-		"aggro_radius": 300.0,
+		"move_speed": 2.0,  # Slow tank - slower than normal units
+		"aggro_radius": 20.0,
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
@@ -467,10 +392,10 @@ func _init_catalog() -> void:
 		# Unit stats (centralized here)
 		"max_hp": 120.0,
 		"attack_damage": 12.0,
-		"attack_range": 80.0,
+		"attack_range": 1.5,  # Proper melee range
 		"attack_speed": 1.0,
-		"move_speed": 50.0,  # Slow defensive unit
-		"aggro_radius": 300.0,
+		"move_speed": 1.5,  # Very slow defensive unit (slower than normal 3.0)
+		"aggro_radius": 20.0,
 		"is_ranged": false,
 		"projectile_scene_path": "",
 
@@ -583,15 +508,17 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 ## Returns a shallow duplicate to protect catalog data from external modifications
 func get_card(catalog_id: String) -> Dictionary:
 	if not _catalog.has(catalog_id):
-		push_warning("CardCatalog: Card '%s' not found in catalog" % catalog_id)
+		push_error("CardCatalog: Card '%s' not found in catalog. Fix typo or register card." % catalog_id)
+		assert(false, "Card must exist in catalog!")
 		var empty: Dictionary = {}
-		return empty
+		return empty  # Unreachable in debug builds
 	# Return shallow duplicate - preserves Element object references while preventing corruption
 	var card_dict_variant: Variant = _catalog[catalog_id]
 	if not card_dict_variant is Dictionary:
-		push_error("CardCatalog: _catalog[%s] is not a Dictionary" % catalog_id)
+		push_error("CardCatalog: _catalog[%s] is not a Dictionary - catalog corrupted!" % catalog_id)
+		assert(false, "Catalog data corruption detected!")
 		var empty: Dictionary = {}
-		return empty
+		return empty  # Unreachable in debug builds
 	var card_dict: Dictionary = card_dict_variant
 	return card_dict.duplicate(false)
 
@@ -654,7 +581,8 @@ func create_card_resource(catalog_id: String) -> Resource:
 	var card_def: Dictionary = get_card(catalog_id)
 	if card_def.is_empty():
 		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
-		return null
+		assert(false, "Card must exist in catalog! Fix card registration or typo in catalog_id.")
+		return null  # Unreachable in debug builds
 
 	# Create Card instance from preloaded script
 	# Type narrow to Card for safe property access
@@ -674,8 +602,9 @@ func create_card_resource(catalog_id: String) -> Resource:
 		if unit_scene_path != "":
 			var scene: PackedScene = load(unit_scene_path)
 			if not scene:
-				push_error("CardCatalog: Failed to load unit scene '%s' for card '%s'" % [unit_scene_path, catalog_id])
-				return null
+				push_error("CardCatalog: Failed to load unit scene '%s' for card '%s'. Check if scene file exists and is valid." % [unit_scene_path, catalog_id])
+				assert(false, "Unit scene must load successfully! Fix scene file or path.")
+				return null  # Unreachable in debug builds
 			card.unit_scene = scene
 		card.spawn_count = card_def.get("spawn_count", 1)
 	elif card.card_type == 1:  # SPELL

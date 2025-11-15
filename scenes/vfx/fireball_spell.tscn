@@ -14,10 +14,11 @@ auto_free = true
 fall_duration = 0.8
 start_offset = Vector3(0, 25, 0)
 damage = 100.0
-damage_radius = 80.0
+damage_radius = 10.0
 explosion_vfx_id = "fireball_explosion"
 camera_shake_intensity = 0.2
 camera_shake_duration = 0.4
+indicator_visual_scale = 1.0
 
 [node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
 layers = 1
