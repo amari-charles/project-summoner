@@ -48,6 +48,7 @@ func _init_pool() -> void:
 		if bar:
 			bar.is_pooled = true
 			bar.reset()
+			bar.visible = false  # Hide pooled bars until assigned to units
 			bar_pool.append(bar)
 
 func _instantiate_bar() -> FloatingHPBar:
