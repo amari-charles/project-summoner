@@ -1,5 +1,4 @@
 extends Node
-class_name DialogueManager
 
 ## DialogueManager - Singleton service for managing dialogue state and flow
 ##
