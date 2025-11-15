@@ -136,11 +136,12 @@ func _complete_dialogue() -> void:
 	# No choices - check for next dialogue or end
 	if not current_dialogue.next_dialogue_id.is_empty():
 		var next_id: String = current_dialogue.next_dialogue_id
+		var should_auto_advance: bool = current_dialogue.auto_advance
 		dialogue_ended.emit()
 		current_dialogue = null
 		current_line_index = 0
 
-		if current_dialogue.auto_advance:
+		if should_auto_advance:
 			start_dialogue(next_id)
 	else:
 		# End of dialogue chain
