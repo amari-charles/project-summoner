@@ -244,7 +244,7 @@ func _load_profile_deck() -> Array[Card]:
 
 	# Check for dev test deck override in BattleContext
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if battle_context and battle_context.has("battle_config"):
+	if battle_context:
 		var config: Variant = battle_context.get("battle_config")
 		if config is Dictionary:
 			var battle_config: Dictionary = config
