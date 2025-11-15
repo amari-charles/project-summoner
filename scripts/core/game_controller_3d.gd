@@ -28,6 +28,9 @@ signal state_changed(new_state: GameState)
 func _ready() -> void:
 	add_to_group("game_controller")
 
+	# Reset all battle state before initialization
+	reset_battle_state()
+
 	if battlefield == null:
 		battlefield = get_node_or_null("Battlefield3D")
 
@@ -78,6 +81,44 @@ func _exit_tree() -> void:
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 	if modifier_system and modifier_system.has_method("unregister_provider"):
 		modifier_system.call("unregister_provider", "hero")
+
+## Comprehensive battle state reset
+## Clears all units, projectiles, HP bars, and manager state
+func reset_battle_state() -> void:
+	print("GameController3D: Resetting all battle state...")
+
+	# Clear all active projectiles
+	if ProjectileManager:
+		ProjectileManager.clear_all_projectiles()
+		print("  - Cleared projectiles")
+
+	# Clear all HP bars
+	if HPBarManager:
+		HPBarManager.clear_all_bars()
+		print("  - Cleared HP bars")
+
+	# Clear all units from the battlefield
+	_clear_all_units()
+
+	# Reset game state
+	current_state = GameState.SETUP
+	match_time = 0.0
+	is_overtime = false
+
+	print("GameController3D: Battle state reset complete")
+
+## Clear all unit instances from the battlefield
+func _clear_all_units() -> void:
+	var units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var cleared_count: int = 0
+
+	for node: Node in units:
+		if is_instance_valid(node):
+			node.queue_free()
+			cleared_count += 1
+
+	if cleared_count > 0:
+		print("  - Cleared %d units" % cleared_count)
 
 func _process(delta: float) -> void:
 	if current_state != GameState.PLAYING:

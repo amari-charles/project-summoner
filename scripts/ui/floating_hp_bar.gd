@@ -246,8 +246,8 @@ func reset() -> void:
 	current_hp = 100.0
 	max_hp = 100.0
 	fade_timer = 0.0
-	bar_is_visible = true
-	visible = true
+	bar_is_visible = false
+	visible = false  # Hide when returned to pool
 	cached_offset_x = 0.0
 
 	# Reset sprite properties
