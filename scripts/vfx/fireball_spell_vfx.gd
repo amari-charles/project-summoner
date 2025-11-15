@@ -46,10 +46,11 @@ func _ready() -> void:
 func receive_data(data: Dictionary) -> void:
 	# Accept radius from Card's spell_radius for accurate AOE indicator sizing
 	if data.has("radius"):
-		if data.radius is float or data.radius is int:
-			damage_radius = float(data.radius)
+		var radius_value: Variant = data.radius
+		if radius_value is float or radius_value is int:
+			damage_radius = radius_value
 		else:
-			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float)" % typeof(data.radius))
+			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float)" % typeof(radius_value))
 
 ## Override _on_play to start the descent animation
 func _on_play() -> void:
