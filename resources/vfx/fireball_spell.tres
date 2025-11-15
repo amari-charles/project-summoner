@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="VFXDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/vfx_definition.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://fireball_spell" path="res://scenes/vfx/fireball_spell.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+effect_id = "fireball_spell"
+effect_name = "Fireball Spell"
+effect_scene = ExtResource("2_scene")
+duration = 2.0
+pooled = true
+pool_size = 5
+sound_volume = 0.0
+camera_shake = 0.2
+camera_shake_duration = 0.4

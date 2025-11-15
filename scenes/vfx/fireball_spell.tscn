@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://fireball_spell"]
+
+[ext_resource type="Script" path="res://scripts/vfx/fireball_spell_vfx.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/vfx/fireball_spell_frames.tres" id="2_frames"]
+[ext_resource type="Material" path="res://resources/vfx/aoe_indicator_material.tres" id="3_material"]
+
+[sub_resource id="QuadMesh_aoe" type="QuadMesh"]
+size = Vector2(20, 20)
+
+[node name="FireballSpell" type="Node3D"]
+script = ExtResource("1_script")
+lifetime = 2.0
+auto_free = true
+fall_duration = 0.8
+start_offset = Vector3(0, 25, 0)
+damage = 100.0
+damage_radius = 80.0
+explosion_vfx_id = "fireball_explosion"
+camera_shake_intensity = 0.2
+camera_shake_duration = 0.4
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+layers = 1
+billboard = 1
+texture_filter = 0
+sprite_frames = ExtResource("2_frames")
+animation = &"default"
+autoplay = "default"
+frame_progress = 0.0
+
+[node name="AOEIndicator" type="MeshInstance3D" parent="."]
+visible = false
+rotation_degrees = Vector3(-90, 0, 0)
+mesh = SubResource("QuadMesh_aoe")
+surface_material_override/0 = ExtResource("3_material")
+gi_mode = 0
+extra_cull_margin = 100.0
