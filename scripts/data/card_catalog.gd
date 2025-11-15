@@ -277,6 +277,51 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# =========================================================================
+	# FIRE ELEMENT UNITS
+	# =========================================================================
+
+	# Fire Recruit - Cheap melee soldier
+	_catalog["fire_recruit"] = {
+		# Identity
+		"catalog_id": "fire_recruit",
+		"card_name": "Fire Recruit",
+		"description": "A basic fire soldier. Cheap and eager to fight, establishing early pressure on the battlefield.",
+		"rarity": "common",
+
+		# Card properties
+		"card_type": 0,  # Card.CardType.SUMMON
+		"unit_type": "melee",
+		"mana_cost": 2,
+		"cooldown": 1.5,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/fire_recruit_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 50.0,
+		"attack_damage": 10.0,
+		"attack_range": 80.0,
+		"attack_speed": 1.0,
+		"move_speed": 70.0,
+		"aggro_radius": 300.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "cheap", "starter"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats
