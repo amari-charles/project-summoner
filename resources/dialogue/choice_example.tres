@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_choice.gd" id="2_1"]
+
+[sub_resource type="Resource" id="DialogueChoice_friendly"]
+script = ExtResource("2_1")
+choice_text = "I'm ready to learn!"
+next_dialogue_id = "chain_start"
+condition = ""
+action = "friendly=true"
+
+[sub_resource type="Resource" id="DialogueChoice_neutral"]
+script = ExtResource("2_1")
+choice_text = "Just browsing, thanks."
+next_dialogue_id = ""
+condition = ""
+action = ""
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "choice_example"
+character_name = "Mysterious Merchant"
+portrait = null
+lines = Array[String](["Ah, another traveler seeks my wares!", "Will you join me on this journey?"])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([SubResource("DialogueChoice_friendly"), SubResource("DialogueChoice_neutral")])
+next_dialogue_id = ""
+auto_advance = false
