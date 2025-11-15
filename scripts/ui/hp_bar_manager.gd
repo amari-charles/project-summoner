@@ -184,7 +184,8 @@ func clear_all_bars() -> void:
 	var bars_to_clear: Array[FloatingHPBar] = []
 	for bar_variant: Variant in active_bars.values():
 		if bar_variant is FloatingHPBar:
-			bars_to_clear.append(bar_variant as FloatingHPBar)
+			var bar: FloatingHPBar = bar_variant
+			bars_to_clear.append(bar)
 
 	# Clear all bars
 	for bar: FloatingHPBar in bars_to_clear:
