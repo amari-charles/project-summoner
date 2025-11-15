@@ -348,7 +348,7 @@ func _init_catalog() -> void:
 		"move_speed": 65.0,
 		"aggro_radius": 350.0,
 		"is_ranged": true,
-		"projectile_scene_path": "res://scenes/units/projectile.tscn",
+		"projectile_scene_path": "",  # Projectile defined in unit scene (projectile_id: "ember")
 
 		# Visual
 		"card_icon_path": "",

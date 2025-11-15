@@ -19,6 +19,7 @@ move_speed = 3.0
 team = 0
 aggro_radius = 20.0
 is_ranged = true
+projectile_id = "ember"
 sprite_frames = ExtResource("2_frames")
 sprite_feet_offset_pixels = 15.0
 sprite_scale = 0.6
