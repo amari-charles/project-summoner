@@ -17,6 +17,12 @@ var target_position: Vector3 = Vector3.ZERO
 var animated_sprite: AnimatedSprite3D = null
 var aoe_indicator: MeshInstance3D = null
 var tween: Tween = null
+var fade_tween: Tween = null  # Track fade tween for proper cleanup
+
+# Damage parameters (received from Card via receive_data)
+var spell_damage: float = 0.0
+var spell_team: int = 0  # Unit3D.Team enum value
+var spell_battlefield: Node = null
 
 func _ready() -> void:
 	# Find child nodes
@@ -37,8 +43,9 @@ func _ready() -> void:
 	if animated_sprite and sprite_rotation_degrees != 0.0:
 		animated_sprite.rotation_degrees.z = sprite_rotation_degrees
 
-	# Store the landing position (global_position is set by VFXManager)
-	target_position = global_position
+	# Disable auto-expire - we manually call stop() when animation completes
+	# VFX needs ~3.3s total (0.8s fall + 2s linger + 0.5s fade)
+	lifetime = 0.0  # 0 = infinite, manual control
 
 	super._ready()
 
@@ -47,10 +54,33 @@ func receive_data(data: Dictionary) -> void:
 	# Accept radius from Card's spell_radius for accurate AOE indicator sizing
 	if data.has("radius"):
 		var radius_value: Variant = data.radius
-		if radius_value is float or radius_value is int:
+		# Type-safe assignment after type check
+		if radius_value is float:
 			damage_radius = radius_value
+		elif radius_value is int:
+			var radius_int: int = radius_value
+			damage_radius = float(radius_int)
 		else:
-			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float)" % typeof(radius_value))
+			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float or int)" % typeof(radius_value))
+
+	# Accept damage parameters from Card
+	if data.has("damage"):
+		var damage_value: Variant = data.damage
+		if damage_value is float:
+			spell_damage = damage_value
+		elif damage_value is int:
+			var damage_int: int = damage_value
+			spell_damage = float(damage_int)
+
+	if data.has("team"):
+		var team_value: Variant = data.team
+		if team_value is int:
+			spell_team = team_value
+
+	if data.has("battlefield"):
+		var battlefield_value: Variant = data.battlefield
+		if battlefield_value is Node:
+			spell_battlefield = battlefield_value
 
 ## Override _on_play to start the descent animation
 func _on_play() -> void:
@@ -58,10 +88,11 @@ func _on_play() -> void:
 		push_error("FireballSpellVFX: No AnimatedSprite3D child found!")
 		return
 
-	# Update target position only on first call (ZERO from _on_reset)
-	# This prevents double-call issues where global_position has already been modified
-	if target_position == Vector3.ZERO:
-		target_position = global_position
+	# Ensure sprite is visible
+	animated_sprite.visible = true
+
+	# Store the landing position (global_position is set by VFXManager before play)
+	target_position = global_position
 
 	# Start the fireball animation
 	animated_sprite.play("default")
@@ -85,6 +116,9 @@ func _on_play() -> void:
 
 ## Called when fireball reaches target position
 func _on_impact() -> void:
+	# Apply AOE damage at impact
+	_apply_aoe_damage()
+
 	# Show and position AOE indicator at impact location
 	if aoe_indicator:
 		# Dynamically scale the indicator to match damage radius
@@ -112,8 +146,12 @@ func _on_impact() -> void:
 			material.set_shader_parameter("center_color", Color(1.0, 0.5, 0.0, 0.9))
 			material.set_shader_parameter("edge_color", Color(1.0, 0.2, 0.0, 0.6))
 
+			# Kill any existing fade tween before creating a new one
+			if fade_tween:
+				fade_tween.kill()
+
 			# Create fade-out tween after linger duration
-			var fade_tween: Tween = create_tween()
+			fade_tween = create_tween()
 			fade_tween.tween_interval(indicator_linger_duration)
 
 			# Fade both center and edge colors to transparent
@@ -139,24 +177,57 @@ func _on_impact() -> void:
 				stop()
 			)
 
-	# Spawn explosion VFX
-	if not explosion_vfx_id.is_empty() and VFXManager:
-		VFXManager.play_effect(explosion_vfx_id, global_position)
-
-	# NOTE: Damage is applied by Card.gd, not by this VFX
-	# This VFX is purely visual
+	# NOTE: VFX now handles damage application directly at impact
+	# This ensures perfect timing synchronization between visuals and gameplay
 
 	# NOTE: stop() is now called after the AOE indicator fade completes (see fade_tween.finished above)
 	# This keeps the node active long enough for the indicator to be visible
 
+## Apply AOE damage to enemies in range
+func _apply_aoe_damage() -> void:
+	# Validate we have all required parameters
+	if spell_damage <= 0:
+		return  # No damage to apply
+
+	if not spell_battlefield:
+		push_error("FireballSpellVFX: Cannot apply damage - battlefield reference is null")
+		return
+
+	# Get scene tree for group lookup
+	var scene_tree: SceneTree = spell_battlefield.get_tree()
+	if not scene_tree:
+		push_error("FireballSpellVFX: Cannot apply damage - battlefield has no scene tree")
+		return
+
+	# Determine target group based on team
+	var target_group: String = "enemy_units" if spell_team == 0 else "player_units"  # 0 = PLAYER
+	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
+
+	# Apply damage to all enemies in radius
+	var damage_count: int = 0
+	for enemy: Node in enemies:
+		if enemy is Unit3D:
+			var enemy_unit: Unit3D = enemy as Unit3D
+			if enemy_unit.is_alive:
+				var distance: float = enemy_unit.global_position.distance_to(target_position)
+				if distance <= damage_radius:
+					enemy_unit.take_damage(spell_damage)
+					damage_count += 1
+
 ## Override _on_reset for pooling
 func _on_reset() -> void:
+	# Kill tweens
 	if tween:
 		tween.kill()
 		tween = null
 
+	if fade_tween:
+		fade_tween.kill()
+		fade_tween = null
+
 	if animated_sprite:
 		animated_sprite.stop()
+		animated_sprite.visible = false  # Hide for next use
 
 	# Hide and reset AOE indicator
 	if aoe_indicator:
@@ -164,3 +235,8 @@ func _on_reset() -> void:
 		aoe_indicator.scale = Vector3.ONE  # Reset scale for next use
 
 	target_position = Vector3.ZERO
+
+	# Reset damage parameters
+	spell_damage = 0.0
+	spell_team = 0
+	spell_battlefield = null

@@ -18,6 +18,9 @@ var _catalog: Dictionary = {}
 ## Cached Card script for efficient resource creation
 const CardScript = preload("res://scripts/cards/card.gd")
 
+## Preload ID constant classes for use in catalog definitions
+const ProjectileIDsScript = preload("res://scripts/data/projectile_ids.gd")
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -26,6 +29,7 @@ func _ready() -> void:
 	print("CardCatalog: Initializing...")
 	_init_catalog()
 	print("CardCatalog: Loaded %d cards" % _catalog.size())
+	_validate_card_ids_sync()
 
 ## =============================================================================
 ## CATALOG INITIALIZATION
@@ -50,7 +54,7 @@ func _init_catalog() -> void:
 		"spell_damage": 100.0,
 		"spell_radius": 10.0,  # Passed to VFX for accurate indicator sizing
 		"spell_duration": 0.5,
-		"spell_vfx": "fireball_spell",
+		"spell_vfx": "fireball_spell",  # Instant VFX spawn at click location
 
 		"card_icon_path": "",
 		"tags": ["spell", "aoe", "damage"],
@@ -506,7 +510,8 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 ## Get card definition by catalog_id
 ## Returns Dictionary or empty {} if not found
 ## Returns a shallow duplicate to protect catalog data from external modifications
-func get_card(catalog_id: String) -> Dictionary:
+## Accepts StringName (preferred) or String for backward compatibility
+func get_card(catalog_id: StringName) -> Dictionary:
 	if not _catalog.has(catalog_id):
 		push_error("CardCatalog: Card '%s' not found in catalog. Fix typo or register card." % catalog_id)
 		assert(false, "Card must exist in catalog!")
@@ -523,7 +528,8 @@ func get_card(catalog_id: String) -> Dictionary:
 	return card_dict.duplicate(false)
 
 ## Check if a card exists in the catalog
-func has_card(catalog_id: String) -> bool:
+## Accepts StringName (preferred) or String for backward compatibility
+func has_card(catalog_id: StringName) -> bool:
 	return _catalog.has(catalog_id)
 
 ## Get all card IDs
@@ -577,7 +583,8 @@ func get_starter_cards() -> Array[Dictionary]:
 
 ## Create a Card resource from a catalog definition
 ## This generates a runtime Card object that can be played in-game
-func create_card_resource(catalog_id: String) -> Resource:
+## Accepts StringName (preferred) or String for backward compatibility
+func create_card_resource(catalog_id: StringName) -> Resource:
 	var card_def: Dictionary = get_card(catalog_id)
 	if card_def.is_empty():
 		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
@@ -673,5 +680,56 @@ func print_catalog_summary() -> void:
 	print("\nStarter Cards:")
 	for card: Dictionary in get_starter_cards():
 		print("  - %s (%s, %d mana)" % [card.card_name, card.rarity, card.mana_cost])
+
+## =============================================================================
+## VALIDATION
+## =============================================================================
+
+## Validate that CardIDs constants match catalog entries
+## Called in _ready() to catch desync issues at startup
+func _validate_card_ids_sync() -> void:
+	# Load CardIDs script
+	var card_ids_script: GDScript = load("res://scripts/data/card_ids.gd")
+	if not card_ids_script:
+		push_warning("CardCatalog: Failed to load card_ids.gd - skipping validation")
+		return
+	var constants: Dictionary = card_ids_script.get_script_constant_map()
+
+	var missing_in_catalog: Array[String] = []
+	var missing_in_card_ids: Array[String] = []
+
+	# Check: All CardIDs constants exist in catalog
+	for const_name: String in constants.keys():
+		var id_value: Variant = constants[const_name]
+		if id_value is StringName or id_value is String:
+			var id_string: String = str(id_value)
+			if not _catalog.has(id_string):
+				missing_in_catalog.append("%s = '%s'" % [const_name, id_string])
+
+	# Check: All catalog cards have corresponding CardIDs constant
+	for catalog_id: String in _catalog.keys():
+		var found: bool = false
+		for const_value: Variant in constants.values():
+			if str(const_value) == catalog_id:
+				found = true
+				break
+		if not found:
+			missing_in_card_ids.append(catalog_id)
+
+	# Report issues
+	if missing_in_catalog.size() > 0:
+		push_error("CardCatalog: CardIDs constants reference non-existent cards:")
+		for missing: String in missing_in_catalog:
+			push_error("  - CardIDs.%s" % missing)
+		assert(false, "Fix CardIDs constants or add missing cards to catalog!")
+
+	if missing_in_card_ids.size() > 0:
+		push_warning("CardCatalog: Catalog has cards without CardIDs constants (test/mod cards?):")
+		for missing: String in missing_in_card_ids:
+			push_warning("  - '%s' (no constant in CardIDs)" % missing)
+		print("  This is OK for test cards, but official cards should have CardIDs constants.")
+
+	if missing_in_catalog.size() == 0 and missing_in_card_ids.size() == 0:
+		print("CardCatalog: ✓ CardIDs validation passed - all %d constants match catalog" % constants.size())
 
 	print("===========================\n")

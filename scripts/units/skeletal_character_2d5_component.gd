@@ -64,8 +64,8 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 	if node is AnimationPlayer:
 		return node
 
-	for child in node.get_children():
-		var result = _find_animation_player(child)
+	for child: Node in node.get_children():
+		var result: AnimationPlayer = _find_animation_player(child)
 		if result:
 			return result
 
@@ -77,7 +77,7 @@ func play_animation(anim_name: String, _auto_play: bool = false) -> void:
 		return
 
 	# Map animation names (unit_3d uses these names)
-	var mapped_name = anim_name
+	var mapped_name: String = anim_name
 	match anim_name:
 		"walk":
 			mapped_name = "idle"  # Use idle for walking (no walk animation yet)
@@ -87,8 +87,9 @@ func play_animation(anim_name: String, _auto_play: bool = false) -> void:
 			mapped_name = "idle"  # Use idle for death (no death animation yet)
 
 	# Only play if the animation exists
-	if animation_player.has_animation(mapped_name):
-		animation_player.play(mapped_name)
+	var mapped_stringname: StringName = StringName(mapped_name)
+	if animation_player.has_animation(mapped_stringname):
+		animation_player.play(mapped_stringname)
 	else:
 		push_warning("Skeletal2D5Component: Animation '%s' not found, available: %s" % [mapped_name, animation_player.get_animation_list()])
 
@@ -120,7 +121,7 @@ func get_animation_duration(_anim_name: String) -> float:
 		return 1.0  # Fallback duration
 
 	# Map animation names (same mapping as play_animation)
-	var mapped_name = _anim_name
+	var mapped_name: String = _anim_name
 	match _anim_name:
 		"walk":
 			mapped_name = "idle"
@@ -130,8 +131,9 @@ func get_animation_duration(_anim_name: String) -> float:
 			mapped_name = "idle"
 
 	# Get animation duration from AnimationPlayer
-	if animation_player.has_animation(mapped_name):
-		var animation = animation_player.get_animation(mapped_name)
+	var mapped_stringname: StringName = StringName(mapped_name)
+	if animation_player.has_animation(mapped_stringname):
+		var animation: Animation = animation_player.get_animation(mapped_stringname)
 		return animation.length
 
 	return 1.0  # Fallback duration
@@ -139,9 +141,9 @@ func get_animation_duration(_anim_name: String) -> float:
 ## Animation event handler - called when attack animation fires impact event
 func _on_attack_impact() -> void:
 	# Forward to parent Unit3D
-	var unit = get_parent()
+	var unit: Node = get_parent()
 	if unit and unit.has_method("_on_attack_impact"):
-		unit._on_attack_impact()
+		unit.call("_on_attack_impact")
 
 ## Setup sprite alignment so character feet are at origin (Y=0)
 ## Positions BOTH the Sprite3D and the 2D skeletal content within viewport
@@ -150,14 +152,14 @@ func _setup_sprite_alignment() -> void:
 		return
 
 	# Calculate actual sprite height in world units
-	var world_height = viewport.size.y * sprite_3d.pixel_size  # 600 * 0.01 = 6.0
+	var world_height: float = viewport.size.y * sprite_3d.pixel_size  # 600 * 0.01 = 6.0
 
 	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.0 for skeletal sprites
 
 	# Try to get skeletal bounds for precise positioning
 	if skeletal_instance:
-		var bounds = _get_skeletal_bounds()
+		var bounds: Rect2 = _get_skeletal_bounds()
 
 		if bounds.size.y > 0:
 			# PRECISE: Calculate position so model's bottom edge aligns with viewport bottom
@@ -185,7 +187,7 @@ func get_sprite_height() -> float:
 
 	# Auto-calculate from skeletal bounds
 	assert(skeletal_instance != null, "SkeletalChar2D5: skeletal_instance is null and no manual height set")
-	var bounds = _get_skeletal_bounds()
+	var bounds: Rect2 = _get_skeletal_bounds()
 	assert(bounds.size.y > 0, "SkeletalChar2D5: calculated bounds height is 0 and no manual height set")
 
 	return bounds.size.y * scale_factor.y * sprite_3d.pixel_size
@@ -206,24 +208,25 @@ func _get_skeletal_bounds() -> Rect2:
 		return Rect2()
 
 	# Try to find all Sprite2D children and calculate combined bounds
-	var min_y = INF
-	var max_y = -INF
-	var min_x = INF
-	var max_x = -INF
-	var found_sprites = false
+	var min_y: float = INF
+	var max_y: float = -INF
+	var min_x: float = INF
+	var max_x: float = -INF
+	var found_sprites: bool = false
 
 	# Recursively find all Sprite2D nodes
-	var sprites = _find_all_sprites(skeletal_instance)
+	var sprites: Array = _find_all_sprites(skeletal_instance)
 
-	for sprite in sprites:
+	for sprite: Variant in sprites:
 		if sprite is Sprite2D:
+			var sprite_2d: Sprite2D = sprite
 			# Get sprite's local rect
-			var sprite_rect = sprite.get_rect()
-			var sprite_pos = sprite.global_position - skeletal_instance.global_position
+			var sprite_rect: Rect2 = sprite_2d.get_rect()
+			var sprite_pos: Vector2 = sprite_2d.global_position - skeletal_instance.global_position
 
 			# Calculate bounds including sprite size
-			var sprite_min = sprite_pos + sprite_rect.position
-			var sprite_max = sprite_pos + sprite_rect.position + sprite_rect.size
+			var sprite_min: Vector2 = sprite_pos + sprite_rect.position
+			var sprite_max: Vector2 = sprite_pos + sprite_rect.position + sprite_rect.size
 
 			min_x = min(min_x, sprite_min.x)
 			max_x = max(max_x, sprite_max.x)
@@ -238,12 +241,31 @@ func _get_skeletal_bounds() -> Rect2:
 
 ## Recursively find all Sprite2D nodes in the tree
 func _find_all_sprites(node: Node) -> Array:
-	var sprites = []
+	var sprites: Array = []
 
 	if node is Sprite2D:
 		sprites.append(node)
 
-	for child in node.get_children():
+	for child: Node in node.get_children():
 		sprites.append_array(_find_all_sprites(child))
 
 	return sprites
+
+## Flash the character white briefly (hit feedback)
+func flash_white() -> void:
+	if not skeletal_instance:
+		return
+
+	# IMPORTANT: Must modulate the 2D content INSIDE the SubViewport, not the Sprite3D!
+	# Sprite3D displays a ViewportTexture which is pre-rendered, so modulating it has no effect.
+	# We need to modulate the source (skeletal instance) before it's rendered to the texture.
+
+	# Store original color to restore it
+	var original_color: Color = skeletal_instance.modulate
+
+	# Create flash tween - longer and more visible
+	var flash_tween: Tween = create_tween()
+	# Flash to pure white, hold briefly, then fade back
+	flash_tween.tween_property(skeletal_instance, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.05)  # Brighten quickly
+	flash_tween.tween_property(skeletal_instance, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.1)   # Hold
+	flash_tween.tween_property(skeletal_instance, "modulate", original_color, 0.15)             # Fade back

@@ -734,6 +734,12 @@ func take_damage(amount: float) -> void:
 	# Emit signal for HP bars
 	hp_changed.emit(current_hp, max_hp)
 
+	# Visual feedback: white flash on hit
+	_flash_white()
+
+	# TODO: Play hit sound here - different sounds for melee/ranged/magic damage
+	# Future: Integrate with HitFeedbackManager or SoundManager
+
 	# TODO: Hurt animations disabled for now to prevent interrupting attacks
 	# _update_animation("hurt")
 
@@ -767,6 +773,15 @@ func _update_animation(anim_name: String) -> void:
 	if current_anim != anim_name:
 		# SpriteCharacter2D5Component.play_animation() handles missing animations with fallback to "idle"
 		visual_component.play_animation(anim_name)
+
+## Flash the unit white briefly when taking damage
+func _flash_white() -> void:
+	if not visual_component:
+		return
+
+	# Delegate to the visual component's flash implementation
+	if visual_component.has_method("flash_white"):
+		visual_component.flash_white()
 
 ## Get the world position where projectiles should spawn from
 func get_projectile_spawn_position() -> Vector3:
