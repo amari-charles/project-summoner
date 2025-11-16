@@ -4,7 +4,7 @@
 
 	"model_scene_path": "res://scenes/projectiles/fireball_visual.tscn",
 	"trail_effect_id": "",
-	"impact_effect_id": "fireball_explosion",
+	"impact_effect_id": "fireball_spell",
 
 	"movement_type": "arc",
 	"speed": 22.0,

@@ -171,3 +171,22 @@ static func calculate_sprite_scale(sprite_height_pixels: int) -> float:
 		push_warning("SpriteChar2D5: Invalid sprite height %d, using default scale" % sprite_height_pixels)
 		return DEFAULT_SPRITE_SCALE
 	return float(VIEWPORT_SIZE) / float(sprite_height_pixels)
+
+## Flash the character white briefly (hit feedback)
+func flash_white() -> void:
+	if not character_sprite:
+		return
+
+	# IMPORTANT: Must modulate the 2D content INSIDE the SubViewport, not the Sprite3D!
+	# Sprite3D displays a ViewportTexture which is pre-rendered, so modulating it has no effect.
+	# We need to modulate the source (AnimatedSprite2D) before it's rendered to the texture.
+
+	# Store original color to restore it
+	var original_color: Color = character_sprite.modulate
+
+	# Create flash tween - longer and more visible
+	var flash_tween: Tween = create_tween()
+	# Flash to pure white, hold briefly, then fade back
+	flash_tween.tween_property(character_sprite, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.05)  # Brighten quickly
+	flash_tween.tween_property(character_sprite, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.1)   # Hold
+	flash_tween.tween_property(character_sprite, "modulate", original_color, 0.15)             # Fade back

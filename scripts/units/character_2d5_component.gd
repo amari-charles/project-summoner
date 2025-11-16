@@ -47,3 +47,8 @@ func get_animation_duration(_anim_name: String) -> float:
 func get_sprite_height() -> float:
 	push_error("Character2D5Component.get_sprite_height() called on base class - must be overridden in child class")
 	return 3.0  # Fallback height
+
+## Flash the character white briefly (hit feedback)
+## @virtual
+func flash_white() -> void:
+	push_error("Character2D5Component.flash_white() called on base class - must be overridden in child class")

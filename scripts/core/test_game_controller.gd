@@ -8,13 +8,13 @@ class_name TestGameController
 ## - No time limit
 
 ## Test deck configuration - edit this to test different cards
-var test_deck_cards: Array[String] = [
-	"neade", "neade", "neade", "neade", "neade",
-	"neade", "neade", "neade", "neade", "neade",
-	"fireball", "fireball", "fireball", "fireball", "fireball",
-	"fireball", "fireball", "fireball", "fireball", "fireball",
-	"warrior", "warrior", "warrior", "warrior", "warrior",
-	"archer", "archer", "archer", "archer", "archer"
+var test_deck_cards: Array[StringName] = [
+	CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE,
+	CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE,
+	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
+	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
+	CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT,
+	CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER
 ]
 
 func _ready() -> void:
@@ -24,7 +24,7 @@ func _ready() -> void:
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context and battle_context.has_method("configure_practice_battle"):
 		battle_context.call("configure_practice_battle", {
-			"enemy_deck": [{"catalog_id": "warrior", "count": 30}],
+			"enemy_deck": [{"catalog_id": CardIDs.FIRE_RECRUIT, "count": 30}],
 			"enemy_hp": 999999.0
 		})
 
@@ -65,9 +65,12 @@ func _ready() -> void:
 	print("  - No time limit")
 
 func _process(_delta: float) -> void:
-	# Grant infinite mana to player
+	# Grant infinite mana to both player and enemy
 	if player_summoner and "mana" in player_summoner:
 		player_summoner.mana = 999
+
+	if enemy_summoner and "mana" in enemy_summoner:
+		enemy_summoner.mana = 999
 
 	# Don't run timer
 	# Skip parent _process to disable time limit
@@ -77,7 +80,7 @@ func _process(_delta: float) -> void:
 func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 	var cards: Array[Card] = []
 
-	for catalog_id: String in test_deck_cards:
+	for catalog_id: StringName in test_deck_cards:
 		var card: Card = _load_card_resource(catalog_id)
 		if card:
 			cards.append(card)
@@ -93,13 +96,13 @@ func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 
 	print("TestGameController: Loaded %d test cards for player" % cards.size())
 
-## Load simple enemy deck (just warriors)
+## Load simple enemy deck (just fire recruits)
 func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 	var cards: Array[Card] = []
 
-	# Enemy gets 30 warriors (easy target practice)
+	# Enemy gets 30 fire recruits (easy target practice)
 	for i: int in range(30):
-		var card: Card = _load_card_resource("warrior")
+		var card: Card = _load_card_resource(CardIDs.FIRE_RECRUIT)
 		if card:
 			cards.append(card)
 
@@ -114,7 +117,7 @@ func _load_enemy_test_deck(summoner: Summoner3D) -> void:
 	print("TestGameController: Loaded %d test cards for enemy" % cards.size())
 
 ## Load a card resource from catalog ID
-func _load_card_resource(catalog_id: String) -> Card:
+func _load_card_resource(catalog_id: StringName) -> Card:
 	# Use CardCatalog to create card dynamically
 	if not CardCatalog:
 		push_error("TestGameController: CardCatalog autoload not available")
@@ -127,6 +130,34 @@ func _load_card_resource(catalog_id: String) -> Card:
 		return null
 
 	return card
+
+## Spawn a test enemy unit on the battlefield (for testing)
+## Called by spawn buttons in test_battle_abilities.tscn
+func _spawn_test_enemy(catalog_id: String) -> void:
+	print("TestGameController: Spawning test enemy: %s" % catalog_id)
+
+	# Create card from catalog
+	var card: Card = _load_card_resource(StringName(catalog_id))
+	if not card:
+		push_error("TestGameController: Failed to load card for spawn: %s" % catalog_id)
+		return
+
+	# Spawn the unit using enemy summoner
+	if not enemy_summoner:
+		push_error("TestGameController: No enemy summoner available")
+		return
+
+	# Add card to enemy's hand temporarily
+	enemy_summoner.hand.append(card)
+
+	# Play the card from hand (use correct API)
+	var card_index: int = enemy_summoner.hand.size() - 1
+	var spawn_pos: Vector3 = Vector3(5.0, 1.0, 0.0)  # Enemy territory
+
+	if enemy_summoner.play_card_3d(card_index, spawn_pos):
+		print("TestGameController: Spawned %s successfully at %s" % [catalog_id, spawn_pos])
+	else:
+		print("TestGameController: Failed to spawn %s (not enough mana?)" % catalog_id)
 
 ## Override game end to prevent auto-transition
 func end_game(winner: Unit3D.Team) -> void:

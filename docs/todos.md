@@ -237,7 +237,7 @@ Research and implement proper framerate-independent game mechanics to ensure con
 ---
 
 #### Audit Codebase for Magic Strings - Replace with Constants/Enums
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Core Game Systems / Code Quality
 **Effort:** Medium
 
@@ -264,6 +264,36 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Better IDE autocomplete support
 - Foundation for type safety across the codebase
 - Start with high-impact areas (modifier system, card catalog)
+
+**Progress Tracking:**
+
+##### CardIDs Constants Class ✅ Completed (2025-11-15)
+- Created `scripts/data/card_ids.gd` with StringName constants for all 18 cards
+- Updated `CardCatalog` API to accept StringName instead of String
+- Added validation in `CardCatalog._validate_card_ids_sync()` to ensure sync
+- Updated `test_game_controller.gd` and `first_card_selection.gd` to use CardIDs
+
+##### ProjectileIDs Constants Class ✅ Completed (2025-11-15)
+- Created `scripts/data/projectile_ids.gd` with FIREBALL, ARROW, EMBER constants
+- Updated fireball card in `card_catalog.gd` to use `ProjectileIDs.FIREBALL`
+- Fixes fireball damage timing issue (now applies on impact, not on cast)
+
+##### VFXIDs Constants Class ⬜ Not Started (HIGH PRIORITY)
+- ~5-7 VFX effects used across multiple systems (fireball_spell, etc.)
+- Need to create `scripts/data/vfx_ids.gd`
+- Update all spell cards, abilities, and VFX system to use constants
+- Critical for consistency across spell/ability VFX
+
+##### BiomeIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
+- Currently 1 biome, will expand significantly
+- Create `scripts/data/biome_ids.gd` when adding second biome
+- Good foundation for campaign/world building
+
+##### BattleIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
+- ~5-10 battle IDs used in campaign system
+- Create `scripts/data/battle_ids.gd`
+- Update `campaign_service.gd` to use constants
+- Makes campaign content management safer
 
 ---
 

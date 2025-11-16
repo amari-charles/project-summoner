@@ -13,10 +13,10 @@ func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect buttons
-	select_warrior_button.pressed.connect(_on_card_selected.bind("fire_recruit"))
-	select_archer_button.pressed.connect(_on_card_selected.bind("ember_slinger"))
+	select_warrior_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_RECRUIT))
+	select_archer_button.pressed.connect(_on_card_selected.bind(CardIDs.EMBER_SLINGER))
 
-func _on_card_selected(catalog_id: String) -> void:
+func _on_card_selected(catalog_id: StringName) -> void:
 	print("FirstCardSelection: Player selected card: %s" % catalog_id)
 
 	# Grant the chosen card to collection
