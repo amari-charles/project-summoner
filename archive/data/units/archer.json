@@ -1,0 +1,26 @@
+{
+	"unit_id": "archer",
+	"unit_name": "Archer",
+	"description": "A skilled ranged attacker. Rains arrows from a distance.",
+
+	"max_hp": 60.0,
+	"attack_damage": 15.0,
+	"attack_range": 8.0,
+	"attack_speed": 0.8,
+	"move_speed": 2.5,
+	"aggro_radius": 25.0,
+
+	"is_ranged": true,
+	"projectile_id": "arrow",
+
+	"sprite_frames_path": "res://resources/animations/soldier_sprite_frames.tres",
+	"animation_config_path": "",
+	"scale": 1.0,
+	"tint_color": "#ffffff",
+
+	"attack_sound": "",
+	"hurt_sound": "",
+	"death_sound": "",
+
+	"tags": ["ranged", "starter", "agile"]
+}
