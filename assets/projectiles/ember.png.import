@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ember_projectile_texture"
-path="res://.godot/imported/ember.png-e1234567890abcdef1234567890abcd.ctex"
+uid="uid://d0p5igvu52lnu"
+path="res://.godot/imported/ember.png-9228ab7b9e963b3a2b1dbb0378b017eb.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/projectiles/ember.png"
-dest_files=["res://.godot/imported/ember.png-e1234567890abcdef1234567890abcd.ctex"]
+dest_files=["res://.godot/imported/ember.png-9228ab7b9e963b3a2b1dbb0378b017eb.ctex"]
 
 [params]
 
