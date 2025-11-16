@@ -54,8 +54,7 @@ func _init_catalog() -> void:
 		"spell_damage": 100.0,
 		"spell_radius": 10.0,  # Passed to VFX for accurate indicator sizing
 		"spell_duration": 0.5,
-		"projectile_id": ProjectileIDsScript.FIREBALL,  # Use projectile system for proper impact timing
-		"spell_vfx": "fireball_spell",
+		"spell_vfx": "fireball_spell",  # Instant VFX spawn at click location
 
 		"card_icon_path": "",
 		"tags": ["spell", "aoe", "damage"],
@@ -689,13 +688,11 @@ func print_catalog_summary() -> void:
 ## Validate that CardIDs constants match catalog entries
 ## Called in _ready() to catch desync issues at startup
 func _validate_card_ids_sync() -> void:
-	# Check if CardIDs class exists
-	if not ClassDB.class_exists("CardIDs"):
-		push_warning("CardCatalog: CardIDs class not found - skipping validation. This is expected if CardIDs hasn't been created yet.")
-		return
-
-	# Get all constant names from CardIDs
+	# Load CardIDs script
 	var card_ids_script: GDScript = load("res://scripts/data/card_ids.gd")
+	if not card_ids_script:
+		push_warning("CardCatalog: Failed to load card_ids.gd - skipping validation")
+		return
 	var constants: Dictionary = card_ids_script.get_script_constant_map()
 
 	var missing_in_catalog: Array[String] = []

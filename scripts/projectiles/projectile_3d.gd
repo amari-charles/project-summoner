@@ -42,6 +42,7 @@ var hits_remaining: int = 0
 var is_pooled: bool = false
 var is_active: bool = false
 var is_fading: bool = false
+var impact_triggered: bool = false  ## Prevent duplicate impact VFX
 var fade_tween: Tween = null  ## Tween for fade out animation
 
 ## Visual component instance
@@ -301,6 +302,12 @@ func _hit_target(target_node: Node3D) -> void:
 
 ## Trigger impact effects (VFX and AOE damage)
 func _trigger_impact_effects(impact_position: Vector3) -> void:
+	# Prevent duplicate calls (can be triggered by both arc completion and ground collision)
+	if impact_triggered:
+		push_error("Projectile3D: _trigger_impact_effects() called twice! This should not happen. Projectile ID: %s" % projectile_id)
+		return
+	impact_triggered = true
+
 	# print("\n=== PROJECTILE IMPACT ===")
 	# print("  Position: %v" % impact_position)
 	# print("  Projectile ID: '%s'" % projectile_id)
@@ -341,8 +348,8 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 		# print("  ERROR: No scene tree!")
 		return
 
-	# Spawn debug visualization sphere
-	_spawn_debug_aoe_sphere(center, radius)
+	# Debug visualization sphere removed - use orange AOE indicator from VFX instead
+	# _spawn_debug_aoe_sphere(center, radius)
 
 	# Determine target group based on team
 	var target_group: String = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
@@ -478,6 +485,7 @@ func reset() -> void:
 	hits_remaining = 0
 	is_active = false
 	is_fading = false
+	impact_triggered = false  ## Reset impact guard for next use
 
 	# Cancel any running tweens (only if in tree)
 	if is_inside_tree():

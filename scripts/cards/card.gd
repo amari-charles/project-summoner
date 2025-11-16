@@ -188,8 +188,18 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 	# Apply modifiers to spell damage
 	var modified_spell_damage: float = _apply_spell_modifiers(spell_damage, modifiers)
 
+	# Check for instant spell VFX first (spawns immediately at click location)
+	if not spell_vfx.is_empty():
+		# Spawn VFX immediately with damage parameters
+		# VFX will handle damage application at impact time
+		VFXManager.play_effect(spell_vfx, position, {
+			"radius": spell_radius,
+			"damage": modified_spell_damage,
+			"team": team,
+			"battlefield": battlefield
+		})
 	# If spell uses a projectile, spawn it instead of instant cast
-	if not projectile_id.is_empty():
+	elif not projectile_id.is_empty():
 		_spawn_spell_projectile(position, team, battlefield, modified_spell_damage)
 	elif modified_spell_damage > 0:
 		# Fallback to instant AOE damage (legacy behavior)
@@ -297,10 +307,6 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 				var distance: float = enemy_unit.global_position.distance_to(position)
 				if distance <= spell_radius:
 					enemy_unit.take_damage(final_damage)
-
-	# Spawn VFX at impact position, passing radius for accurate visual sizing
-	if not spell_vfx.is_empty() and VFXManager:
-		VFXManager.play_effect(spell_vfx, position, {"radius": spell_radius})
 
 ## Helper to safely access ModifierSystem
 ## Prefers passed reference, falls back to autoload lookup if not provided

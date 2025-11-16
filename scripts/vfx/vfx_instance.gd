@@ -15,7 +15,10 @@ var is_playing: bool = false
 signal effect_finished()
 
 func _ready() -> void:
-	play()
+	# Don't auto-play for pooled instances - VFXManager will call play() after setup
+	# Pooled instances need data (position, custom params) set before playing
+	if not is_pooled:
+		play()
 
 ## Start/restart the effect
 func play() -> void:
