@@ -1,9 +1,23 @@
-[gd_scene load_steps=4 format=3 uid="uid://cm2j43v0j4iiv"]
+[gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battlefield/base_battlefield_3d.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
+[ext_resource type="Shader" path="res://shaders/ground_ao.gdshader" id="3_ground_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
+shader = ExtResource("3_ground_shader")
+shader_parameter/ground_color = Vector3(0.3, 0.5, 0.3)
+shader_parameter/ground_roughness = 0.9
+shader_parameter/ao_strength = 0.4
+shader_parameter/ao_radius = 15.0
+shader_parameter/ao_falloff = 2.0
+shader_parameter/light_direction = Vector3(0.866, -0.433, 0.25)
+shader_parameter/directional_strength = 0.15
+shader_parameter/edge_darkening = 0.2
+shader_parameter/battlefield_size = Vector2(100, 80)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
+material = SubResource("ShaderMaterial_ground")
 size = Vector2(100, 80)
 
 [sub_resource type="Environment" id="Environment_1"]
