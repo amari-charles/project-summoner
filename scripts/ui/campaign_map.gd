@@ -62,9 +62,11 @@ func _ready() -> void:
 	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
 		if campaign.has_signal("battle_completed"):
-			campaign.battle_completed.connect(_on_event_completed)
+			var battle_completed_signal: Signal = campaign.get("battle_completed")
+			battle_completed_signal.connect(_on_event_completed)
 		if campaign.has_signal("campaign_progress_changed"):
-			campaign.campaign_progress_changed.connect(_on_progress_changed)
+			var campaign_progress_signal: Signal = campaign.get("campaign_progress_changed")
+			campaign_progress_signal.connect(_on_progress_changed)
 
 	# Load and display map
 	_refresh_map()
@@ -88,20 +90,23 @@ func _draw() -> void:
 
 	var path_start_index: int = 0 if onboarding_complete else 1
 
-	for i in range(path_start_index, event_list.size()):
+	for i: int in range(path_start_index, event_list.size()):
 		var current_id: String = ""
 		var next_id: String = ""
 
 		if i == 0 and not onboarding_complete:
 			current_id = "onboarding"
 			if event_list.size() > 0:
-				next_id = _safe_string(event_list[0].get("id", ""))
+				var first_event: Dictionary = _safe_dict(event_list[0])
+				next_id = _safe_string(first_event.get("id", ""))
 		else:
 			var idx: int = i - (0 if onboarding_complete else 1)
 			if idx >= 0 and idx < event_list.size():
-				current_id = _safe_string(event_list[idx].get("id", ""))
+				var current_event: Dictionary = _safe_dict(event_list[idx])
+				current_id = _safe_string(current_event.get("id", ""))
 				if idx + 1 < event_list.size():
-					next_id = _safe_string(event_list[idx + 1].get("id", ""))
+					var next_event: Dictionary = _safe_dict(event_list[idx + 1])
+					next_id = _safe_string(next_event.get("id", ""))
 
 		if current_id != "" and next_id != "" and event_nodes.has(current_id) and event_nodes.has(next_id):
 			var start_node: Control = event_nodes[current_id]
