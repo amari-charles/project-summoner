@@ -82,6 +82,17 @@ func _refresh_battle_list() -> void:
 	for child: Node in battle_list.get_children():
 		child.queue_free()
 
+	# Check if onboarding is complete
+	var profile_repo: Node = get_node("/root/ProfileRepo")
+	var onboarding_complete: bool = false
+	if profile_repo:
+		onboarding_complete = _safe_bool(profile_repo.call("is_onboarding_complete"))
+
+	# If onboarding not complete, add special onboarding event as first item
+	if not onboarding_complete:
+		var onboarding_event: PanelContainer = _create_onboarding_event_item()
+		battle_list.add_child(onboarding_event)
+
 	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		push_error("CampaignScreen: Campaign service not found!")
@@ -91,7 +102,7 @@ func _refresh_battle_list() -> void:
 	var battles_array: Array = _safe_array(battles_variant)
 	all_battles.assign(battles_array)
 
-	if all_battles.is_empty():
+	if all_battles.is_empty() and onboarding_complete:
 		var label: Label = Label.new()
 		label.text = "No battles available."
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -104,7 +115,56 @@ func _refresh_battle_list() -> void:
 		var battle_item: PanelContainer = _create_battle_list_item(battle)
 		battle_list.add_child(battle_item)
 
-	print("CampaignScreen: Loaded %d battles" % all_battles.size())
+	var total_items: int = all_battles.size()
+	if not onboarding_complete:
+		total_items += 1
+	print("CampaignScreen: Loaded %d event(s)" % total_items)
+
+func _create_onboarding_event_item() -> PanelContainer:
+	var panel: PanelContainer = PanelContainer.new()
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 15)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 15)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	panel.add_child(margin)
+
+	var hbox: HBoxContainer = HBoxContainer.new()
+	margin.add_child(hbox)
+
+	# Event name with special styling
+	var name_label: Label = Label.new()
+	name_label.text = "⭐ Begin Your Journey"
+	name_label.add_theme_font_size_override("font_size", 22)
+	name_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(name_label)
+
+	# Status indicator
+	var status_label: Label = Label.new()
+	status_label.text = "START HERE"
+	status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
+	status_label.add_theme_font_size_override("font_size", 18)
+	hbox.add_child(status_label)
+
+	# Make clickable - navigates to hero selection
+	var button: Button = Button.new()
+	button.flat = true
+	button.custom_minimum_size = panel.custom_minimum_size
+	button.pressed.connect(_on_onboarding_event_pressed)
+	panel.add_child(button)
+
+	# Special highlight styling
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.3, 0.25, 0.15)
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(1.0, 0.85, 0.3)
+	panel.add_theme_stylebox_override("panel", style)
+
+	return panel
 
 func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 	var panel: PanelContainer = PanelContainer.new()
@@ -165,6 +225,10 @@ func _create_battle_list_item(battle_data: Dictionary) -> PanelContainer:
 			panel.add_theme_stylebox_override("panel", style)
 
 	return panel
+
+func _on_onboarding_event_pressed() -> void:
+	print("CampaignScreen: Starting onboarding journey...")
+	get_tree().change_scene_to_file("res://scenes/ui/hero_selection.tscn")
 
 func _on_battle_selected(battle_id: String) -> void:
 	selected_battle_id = battle_id
@@ -299,8 +363,8 @@ func _on_start_battle_pressed() -> void:
 ## =============================================================================
 
 func _on_back_pressed() -> void:
-	print("CampaignScreen: Returning to main menu")
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	print("CampaignScreen: Returning to game mode menu")
+	get_tree().change_scene_to_file("res://scenes/ui/game_mode_menu.tscn")
 
 ## =============================================================================
 ## SIGNALS

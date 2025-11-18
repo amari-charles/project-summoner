@@ -1,0 +1,91 @@
+[gd_scene load_steps=2 format=3 uid="uid://game_mode_menu"]
+
+[ext_resource type="Script" path="res://scripts/ui/game_mode_menu.gd" id="1_script"]
+
+[node name="GameModeMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.2, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 120.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 48
+text = "SELECT GAME MODE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameModeButtons" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 60.0
+offset_top = -180.0
+offset_right = 360.0
+offset_bottom = 180.0
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="CampaignButton" type="Button" parent="GameModeButtons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "CAMPAIGN"
+
+[node name="ShopButton" type="Button" parent="GameModeButtons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "SHOP"
+
+[node name="CollectionButton" type="Button" parent="GameModeButtons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "COLLECTION"
+
+[node name="EventsButton" type="Button" parent="GameModeButtons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "EVENTS"
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -60.0
+offset_right = 180.0
+offset_bottom = -20.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "← BACK"
+
+[node name="PlaceholderPopup" type="AcceptDialog" parent="."]
+title = "Coming Soon"
+initial_position = 2
+size = Vector2i(400, 150)
+dialog_text = "This feature is coming soon!"
+dialog_autowrap = true
+
+[connection signal="pressed" from="GameModeButtons/CampaignButton" to="." method="_on_campaign_pressed"]
+[connection signal="pressed" from="GameModeButtons/ShopButton" to="." method="_on_shop_pressed"]
+[connection signal="pressed" from="GameModeButtons/CollectionButton" to="." method="_on_collection_pressed"]
+[connection signal="pressed" from="GameModeButtons/EventsButton" to="." method="_on_events_pressed"]
+[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

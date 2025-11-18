@@ -21,29 +21,15 @@ func _input(event: InputEvent) -> void:
 				# Reload the main menu to reflect fresh state
 				get_tree().reload_current_scene()
 
-## Launch the campaign screen (or onboarding if needed)
+## Open game mode selection screen
 func _on_play_pressed() -> void:
-	# Check if player has completed onboarding
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo:
-		var profile: Dictionary = profile_repo.call("get_active_profile")
-		if not profile.is_empty():
-			var empty_dict: Dictionary = {}
-			var meta: Dictionary = profile.get("meta", empty_dict)
-			var onboarding_complete: bool = meta.get("onboarding_complete", false)
+	print("Opening game mode selection...")
+	get_tree().change_scene_to_file("res://scenes/ui/game_mode_menu.tscn")
 
-			if not onboarding_complete:
-				print("Opening onboarding - hero selection...")
-				get_tree().change_scene_to_file("res://scenes/ui/hero_selection.tscn")
-				return
-
-	print("Opening campaign...")
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
-
-## Open collection screen
-func _on_collection_pressed() -> void:
-	print("Opening collection screen...")
-	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+## PLACEHOLDER - Achievements not yet implemented
+func _on_achievements_pressed() -> void:
+	print("Achievements button pressed (PLACEHOLDER)")
+	placeholder_popup.popup_centered()
 
 ## PLACEHOLDER - Settings screen not yet implemented
 func _on_settings_pressed() -> void:

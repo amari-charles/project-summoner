@@ -58,10 +58,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "PLAY"
 
-[node name="CollectionButton" type="Button" parent="MenuButtons"]
+[node name="AchievementsButton" type="Button" parent="MenuButtons"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "COLLECTION"
+text = "ACHIEVEMENTS"
 
 [node name="SettingsButton" type="Button" parent="MenuButtons"]
 layout_mode = 2
@@ -100,7 +100,7 @@ theme_override_font_sizes/font_size = 16
 text = "DEBUG: Reset Profile"
 
 [connection signal="pressed" from="MenuButtons/PlayButton" to="." method="_on_play_pressed"]
-[connection signal="pressed" from="MenuButtons/CollectionButton" to="." method="_on_collection_pressed"]
+[connection signal="pressed" from="MenuButtons/AchievementsButton" to="." method="_on_achievements_pressed"]
 [connection signal="pressed" from="MenuButtons/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="MenuButtons/QuitButton" to="." method="_on_quit_pressed"]
 [connection signal="pressed" from="DebugResetButton" to="." method="_on_debug_reset_pressed"]
