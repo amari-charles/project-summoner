@@ -86,7 +86,10 @@ func _refresh_battle_list() -> void:
 	var profile_repo: Node = get_node("/root/ProfileRepo")
 	var onboarding_complete: bool = false
 	if profile_repo:
-		onboarding_complete = _safe_bool(profile_repo.call("is_onboarding_complete"))
+		var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
+		if not profile.is_empty():
+			var meta: Dictionary = _safe_dict(profile.get("meta", {}))
+			onboarding_complete = _safe_bool(meta.get("onboarding_complete", false))
 
 	# If onboarding not complete, add special onboarding event as first item
 	if not onboarding_complete:
