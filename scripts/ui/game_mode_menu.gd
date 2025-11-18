@@ -9,10 +9,10 @@ class_name GameModeMenu
 func _ready() -> void:
 	print("Game Mode Menu loaded")
 
-## Navigate to Campaign screen
+## Navigate to Campaign map
 func _on_campaign_pressed() -> void:
-	print("Opening campaign screen...")
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+	print("Opening campaign map...")
+	get_tree().change_scene_to_file("res://scenes/ui/campaign_map.tscn")
 
 ## PLACEHOLDER - Shop not yet implemented
 func _on_shop_pressed() -> void:

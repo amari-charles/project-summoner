@@ -57,5 +57,5 @@ func _on_card_selected(catalog_id: StringName) -> void:
 					profile_repo.call("save_profile")
 				print("FirstCardSelection: Onboarding complete (no deck created)!")
 
-	# Continue to campaign screen
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+	# Continue to campaign map
+	get_tree().change_scene_to_file("res://scenes/ui/campaign_map.tscn")
