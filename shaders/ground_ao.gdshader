@@ -17,9 +17,16 @@ uniform float directional_strength : hint_range(0.0, 1.0) = 0.15;
 uniform float edge_darkening : hint_range(0.0, 1.0) = 0.2;
 uniform vec2 battlefield_size = vec2(100.0, 80.0);
 
+// Pass world position from vertex to fragment shader
+varying vec3 world_pos;
+
+void vertex() {
+	// Calculate world position in vertex shader
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
 void fragment() {
-	// Get world position
-	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	// Use world_pos from varying (calculated in vertex shader)
 
 	// Player spawn AO (-40, 0, -7.5)
 	vec2 player_spawn = vec2(-40.0, -7.5);
