@@ -44,7 +44,7 @@ void fragment() {
 
 	// Directional gradient (darker opposite to light)
 	vec3 to_light = normalize(light_direction);
-	float directional = dot(normalize(vec3(world_pos.x, 0.0, world_pos.z)), to_light.xz);
+	float directional = dot(normalize(vec3(world_pos.x, 0.0, world_pos.z)), normalize(to_light));
 	directional = directional * 0.5 + 0.5; // Remap to 0-1
 	float directional_shadow = 1.0 - (directional * directional_strength);
 
