@@ -6,7 +6,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
 shader = ExtResource("3_ground_shader")
-shader_parameter/ground_color = Vector3(0.3, 0.5, 0.3)
+shader_parameter/ground_color = Vector3(0.4, 0.7, 0.35)
 shader_parameter/ground_roughness = 0.9
 shader_parameter/ao_strength = 0.4
 shader_parameter/ao_radius = 15.0
@@ -16,9 +16,6 @@ shader_parameter/directional_strength = 0.15
 shader_parameter/edge_darkening = 0.2
 shader_parameter/battlefield_size = Vector2(100, 80)
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-material = SubResource("ShaderMaterial_ground")
-size = Vector2(100, 80)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -44,9 +41,10 @@ shadow_enabled = true
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
 
-[node name="Background" type="MeshInstance3D" parent="."]
+[node name="Background" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-mesh = SubResource("PlaneMesh_background")
+size = Vector3(100, 0.1, 80)
+material = SubResource("ShaderMaterial_ground")
 
 [node name="GroundLayer" type="Node3D" parent="."]
 

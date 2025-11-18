@@ -27,7 +27,7 @@ class_name BaseBattlefield3D
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var camera: Camera3D = $Camera3D
-@onready var background: MeshInstance3D = $Background
+@onready var background: CSGBox3D = $Background
 @onready var player_spawn_marker: Marker3D = $PlayerSpawnMarker
 @onready var enemy_spawn_marker: Marker3D = $EnemySpawnMarker
 @onready var gameplay_layer: Node3D = $GameplayLayer
