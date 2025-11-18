@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
 [ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
 [ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
-[ext_resource type="Script" uid="uid://bt4v6ur0kkioe" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
+[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/ui/pause_menu.tscn" id="8_pause_menu"]
 [ext_resource type="Script" path="res://scripts/ui/pause_button.gd" id="9_pause_button"]
 [ext_resource type="Script" path="res://scripts/ui/speed_button.gd" id="10_speed_button"]
