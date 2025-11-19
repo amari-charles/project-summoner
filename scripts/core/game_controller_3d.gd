@@ -304,3 +304,104 @@ func _register_hero_provider() -> void:
 	var hero_provider: HeroModifierProvider = HeroModifierProvider.new(hero_id)
 	if modifier_system.has_method("register_provider"):
 		modifier_system.call("register_provider", "hero", hero_provider)
+
+## =============================================================================
+## REDIRECT INPUT HANDLING
+## =============================================================================
+
+## State for redirect drag operation
+var _redirect_drag_active: bool = false
+var _redirect_start_point: Vector3 = Vector3.ZERO
+var _redirect_selected_units: Array[Unit3D] = []
+
+## Camera for raycasting (cached)
+var _camera: Camera3D = null
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Only handle redirect input during active gameplay
+	if current_state != GameState.PLAYING:
+		return
+
+	# Only process if redirect mode is active
+	if RedirectManager.current_mode == RedirectManager.RedirectMode.NORMAL:
+		return
+
+	# Ensure we have camera for raycasting
+	if not _camera:
+		_camera = get_viewport().get_camera_3d()
+		if not _camera:
+			return
+
+	# Handle mouse button press (start of redirect)
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			# Click detected - select units in radius
+			var click_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
+			if click_point != Vector3.ZERO:
+				_redirect_start_point = click_point
+				_redirect_selected_units = RedirectManager.select_units_in_radius(
+					click_point,
+					RedirectManager.REDIRECT_RADIUS,
+					player_summoner.team
+				)
+				_redirect_drag_active = true
+				print("GameController3D: Redirect started, selected %d units" % _redirect_selected_units.size())
+
+		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
+			# Release detected - apply redirect
+			var release_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
+			if release_point != Vector3.ZERO:
+				_on_redirect_release(release_point)
+			_redirect_drag_active = false
+
+## Convert 2D screen position to 3D battlefield point via raycast
+func _get_battlefield_point_from_mouse(screen_pos: Vector2) -> Vector3:
+	if not _camera:
+		return Vector3.ZERO
+
+	# Raycast from camera through mouse position
+	var from: Vector3 = _camera.project_ray_origin(screen_pos)
+	var to: Vector3 = from + _camera.project_ray_normal(screen_pos) * 1000.0
+
+	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
+
+	# Raycast against terrain layer (layer 3)
+	query.collision_mask = 1 << 2  # Layer 3 (terrain)
+
+	var result: Dictionary = space_state.intersect_ray(query)
+	if result.is_empty():
+		return Vector3.ZERO
+
+	return result.get("position", Vector3.ZERO)
+
+## Handle redirect release (apply forced targets)
+func _on_redirect_release(release_point: Vector3) -> void:
+	if _redirect_selected_units.is_empty():
+		print("GameController3D: No units selected for redirect")
+		RedirectManager.cancel_redirect()
+		return
+
+	# Find nearest enemy at release point
+	var target: Node3D = RedirectManager.find_nearest_enemy(
+		release_point,
+		player_summoner.team,
+		RedirectManager.TARGET_SEARCH_RADIUS
+	)
+
+	if not target:
+		print("GameController3D: No valid target found at release point")
+		RedirectManager.cancel_redirect()
+		return
+
+	# Apply forced targets
+	RedirectManager.apply_forced_targets(
+		_redirect_selected_units,
+		target,
+		RedirectManager.FORCED_TARGET_DURATION,
+		release_point
+	)
+
+	print("GameController3D: Redirect applied to %d units targeting %s" % [_redirect_selected_units.size(), target.name])
