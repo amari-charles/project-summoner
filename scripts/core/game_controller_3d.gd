@@ -388,26 +388,34 @@ func _unhandled_input(event: InputEvent) -> void:
 		if current_point != Vector3.ZERO:
 			_redirect_indicator.update_drag(_redirect_start_point, current_point)
 
-## Convert 2D screen position to 3D battlefield point via raycast
+## Convert 2D screen position to 3D battlefield point via plane intersection
+## Uses mathematical plane intersection instead of physics raycasting
 func _get_battlefield_point_from_mouse(screen_pos: Vector2) -> Vector3:
 	if not _camera:
 		return Vector3.ZERO
 
-	# Raycast from camera through mouse position
-	var from: Vector3 = _camera.project_ray_origin(screen_pos)
-	var to: Vector3 = from + _camera.project_ray_normal(screen_pos) * 1000.0
+	# Get ray from camera through mouse position
+	var ray_origin: Vector3 = _camera.project_ray_origin(screen_pos)
+	var ray_direction: Vector3 = _camera.project_ray_normal(screen_pos)
 
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
+	# Intersect with Y=0 plane (battlefield ground level)
+	# Formula: intersection_point = ray_origin + ray_direction * t
+	# where t = (plane_y - ray_origin.y) / ray_direction.y
+	var plane_y: float = 0.0
 
-	# Raycast against terrain layer (layer 3)
-	query.collision_mask = 1 << 2  # Layer 3 (terrain)
-
-	var result: Dictionary = space_state.intersect_ray(query)
-	if result.is_empty():
+	# Check if ray is parallel to ground plane
+	if abs(ray_direction.y) < 0.0001:
 		return Vector3.ZERO
 
-	return result.get("position", Vector3.ZERO)
+	# Calculate intersection distance
+	var t: float = (plane_y - ray_origin.y) / ray_direction.y
+
+	# Check if intersection is behind camera
+	if t < 0:
+		return Vector3.ZERO
+
+	# Calculate and return intersection point
+	return ray_origin + ray_direction * t
 
 ## Handle redirect release (apply forced targets)
 func _on_redirect_release(release_point: Vector3) -> void:
