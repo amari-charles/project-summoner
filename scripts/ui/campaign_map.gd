@@ -45,7 +45,9 @@ var event_render_order: Array[String] = []  # Explicit draw order
 
 ## Panning state
 var is_panning: bool = false
+var pan_start_position: Vector2 = Vector2.ZERO
 var last_mouse_position: Vector2 = Vector2.ZERO
+const PAN_THRESHOLD: float = 5.0  # Pixels to move before panning starts
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -307,28 +309,43 @@ func _input(event: InputEvent) -> void:
 						get_viewport().set_input_as_handled()
 						return
 
-				# Start panning if clicking in scroll area (and popup not blocking)
+				# Record potential panning start (but don't claim input yet to allow button clicks)
 				if not detail_panel.visible:
 					var scroll_rect: Rect2 = map_scroll.get_global_rect()
 					if scroll_rect.has_point(mouse_event.position):
-						is_panning = true
+						pan_start_position = mouse_event.position
 						last_mouse_position = mouse_event.position
-						get_viewport().set_input_as_handled()
 			else:
 				# Stop panning on release
 				is_panning = false
 
 	# Handle mouse motion for panning
-	elif event is InputEventMouseMotion and is_panning:
+	elif event is InputEventMouseMotion:
 		var motion_event: InputEventMouseMotion = event as InputEventMouseMotion
-		var delta: Vector2 = motion_event.position - last_mouse_position
 
-		# Update scroll positions (inverted - drag right scrolls left)
-		map_scroll.scroll_horizontal -= int(delta.x)
-		map_scroll.scroll_vertical -= int(delta.y)
+		# Only start panning if mouse button is held and we've moved beyond threshold
+		if motion_event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			if not is_panning and not detail_panel.visible:
+				# Check if we've moved beyond the threshold to start panning
+				var distance: float = motion_event.position.distance_to(pan_start_position)
+				if distance > PAN_THRESHOLD:
+					var scroll_rect: Rect2 = map_scroll.get_global_rect()
+					if scroll_rect.has_point(motion_event.position):
+						is_panning = true
+						last_mouse_position = motion_event.position
 
-		last_mouse_position = motion_event.position
-		get_viewport().set_input_as_handled()
+			if is_panning:
+				var delta: Vector2 = motion_event.position - last_mouse_position
+
+				# Update scroll positions (inverted - drag right scrolls left)
+				map_scroll.scroll_horizontal -= int(delta.x)
+				map_scroll.scroll_vertical -= int(delta.y)
+
+				last_mouse_position = motion_event.position
+				get_viewport().set_input_as_handled()
+		else:
+			# Reset pan tracking when button not held
+			pan_start_position = Vector2.ZERO
 
 ## =============================================================================
 ## DETAIL PANEL
