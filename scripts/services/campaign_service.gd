@@ -15,19 +15,7 @@ signal campaign_progress_changed()
 var _profile_repo: Node = null
 var _collection: Node = null
 
-## Battle data structure
-const BattleData: Dictionary = {
-	"id": "",
-	"name": "",
-	"description": "",
-	"difficulty": 1,  # 1-5
-	"reward_type": "",  # "fixed", "choice", "random"
-	"reward_cards": [],  # Array of {catalog_id, rarity, count}
-	"enemy_deck": [],  # For now, placeholder
-	"unlock_requirements": []  # Array of battle_ids that must be completed
-}
-
-## Campaign battles (placeholder data)
+## Campaign battles
 var _battles: Dictionary = {}
 
 ## Current profile's campaign progress
@@ -62,8 +50,25 @@ func _on_profile_data_changed() -> void:
 
 func _init_battles() -> void:
 	# TODO: Ensure reward_cards here stay in sync with what's displayed in the campaign menu UI
-	# When updating battle rewards, also update the corresponding UI display in campaign_screen.gd
+	# When updating battle rewards, also update the corresponding UI displays in:
+	#   - campaign_map.gd (visual node-based map)
+	#   - campaign_screen.gd (list-based screen)
 	# to prevent divergence between advertised and actual rewards
+
+	# Onboarding Event: Hero selection and first card
+	_battles["event_onboarding"] = {
+		"id": "event_onboarding",
+		"biome_id": "",  # No biome, not a battle
+		"name": "Begin Your Journey",
+		"description": "Choose your hero and receive your first card to begin your adventure!",
+		"difficulty": 0,
+		"event_type": "onboarding",
+		"repeatable": false,  # One-time event
+		"reward_type": "fixed",
+		"reward_cards": [],  # Reward handled by hero_selection/first_card_selection flow
+		"enemy_deck": [],  # Not a battle
+		"unlock_requirements": [],  # First event, always available
+	}
 
 	# Battle 0: Tutorial - First card
 	_battles["battle_00"] = {
@@ -72,6 +77,8 @@ func _init_battles() -> void:
 		"name": "First Summons",
 		"description": "Learn the basics of summoning. Win to earn your first card!",
 		"difficulty": 1,
+		"event_type": "battle",
+		"repeatable": true,  # Can be replayed (no reward after first completion)
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "fixed",
 		"reward_cards": [
@@ -96,6 +103,8 @@ func _init_battles() -> void:
 		"name": "Building Your Army",
 		"description": "Expand your forces. Choose your reward.",
 		"difficulty": 1,
+		"event_type": "battle",
+		"repeatable": true,
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "choice",
 		"reward_cards": [
@@ -124,6 +133,8 @@ func _init_battles() -> void:
 		"name": "Flames Rising",
 		"description": "Face mixed fire forces. Earn a swift charger.",
 		"difficulty": 2,
+		"event_type": "battle",
+		"repeatable": true,
 		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
 		"reward_type": "fixed",
 		"reward_cards": [
@@ -152,6 +163,8 @@ func _init_battles() -> void:
 		"name": "Growing Power",
 		"description": "Test your strength. Random reward awaits.",
 		"difficulty": 2,
+		"event_type": "battle",
+		"repeatable": true,
 		"reward_type": "random",
 		"reward_cards": [
 			{"catalog_id": "fire_recruit", "rarity": "common", "count": 2},
@@ -184,6 +197,8 @@ func _init_battles() -> void:
 		"name": "Inferno Assault",
 		"description": "Face the full fury of fire! Rare units await.",
 		"difficulty": 3,
+		"event_type": "battle",
+		"repeatable": true,
 		"reward_type": "choice",
 		"reward_count": 1,
 		"reward_cards": [
@@ -216,6 +231,8 @@ func _init_battles() -> void:
 		"name": "[DEV] Ability Test Arena",
 		"description": "Test all abilities. Full deck of ability cards available.",
 		"difficulty": 2,
+		"event_type": "battle",
+		"repeatable": true,
 		"reward_type": "fixed",
 		"reward_cards": [],
 		"enemy_deck": [

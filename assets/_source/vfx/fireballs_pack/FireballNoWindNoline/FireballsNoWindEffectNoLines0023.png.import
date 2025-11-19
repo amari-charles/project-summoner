@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8qgao58hhtvp"
-path="res://.godot/imported/FireballsNoWindEffectNoLines0023.png-dc033661b77fee55a17ca6e2e6a870a9.ctex"
+path="res://.godot/imported/FireballsNoWindEffectNoLines0023.png-8a496ac685775fc0ceae9d3e9f257b75.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Fireballs by Weentermakesgames/FireballNoWindNoline/FireballsNoWindEffectNoLines0023.png"
-dest_files=["res://.godot/imported/FireballsNoWindEffectNoLines0023.png-dc033661b77fee55a17ca6e2e6a870a9.ctex"]
+source_file="res://assets/_source/vfx/fireballs_pack/FireballNoWindNoline/FireballsNoWindEffectNoLines0023.png"
+dest_files=["res://.godot/imported/FireballsNoWindEffectNoLines0023.png-8a496ac685775fc0ceae9d3e9f257b75.ctex"]
 
 [params]
 

@@ -82,24 +82,19 @@ func _refresh_battle_list() -> void:
 	for child: Node in battle_list.get_children():
 		child.queue_free()
 
-	# Check if onboarding is complete
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	var onboarding_complete: bool = false
-	if profile_repo:
-		var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
-		if not profile.is_empty():
-			var meta: Dictionary = _safe_dict(profile.get("meta", {}))
-			onboarding_complete = _safe_bool(meta.get("onboarding_complete", false))
+	# Get campaign service - fail early if not found
+	var campaign: Node = get_node("/root/Campaign")
+	if not campaign:
+		push_error("CampaignScreen: Campaign service not found!")
+		return
+
+	# Check if onboarding event is complete
+	var onboarding_complete: bool = _safe_bool(campaign.call("is_battle_completed", "event_onboarding"))
 
 	# If onboarding not complete, add special onboarding event as first item
 	if not onboarding_complete:
 		var onboarding_event: PanelContainer = _create_onboarding_event_item()
 		battle_list.add_child(onboarding_event)
-
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		push_error("CampaignScreen: Campaign service not found!")
-		return
 
 	var battles_variant: Variant = campaign.call("get_all_battles")
 	var battles_array: Array = _safe_array(battles_variant)

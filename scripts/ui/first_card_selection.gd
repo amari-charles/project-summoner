@@ -41,21 +41,15 @@ func _on_card_selected(catalog_id: StringName) -> void:
 			var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
 			if not profile.is_empty():
 				profile["meta"]["selected_deck"] = deck_id
-				profile["meta"]["onboarding_complete"] = true
 				if profile_repo.has_method("save_profile"):
 					profile_repo.call("save_profile", true)  # Force immediate save
-				print("FirstCardSelection: Set starter deck as active and marked onboarding complete!")
-	else:
-		# Fallback: just mark onboarding complete even if deck creation failed
-		var profile_repo: Node = get_node("/root/ProfileRepo")
-		if profile_repo and profile_repo.has_method("get_active_profile"):
-			var profile_variant: Variant = profile_repo.call("get_active_profile")
-			var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
-			if not profile.is_empty():
-				profile["meta"]["onboarding_complete"] = true
-				if profile_repo.has_method("save_profile"):
-					profile_repo.call("save_profile")
-				print("FirstCardSelection: Onboarding complete (no deck created)!")
+				print("FirstCardSelection: Set starter deck as active!")
+
+	# Mark onboarding event as completed
+	var campaign: Node = get_node("/root/Campaign")
+	if campaign and campaign.has_method("complete_battle"):
+		campaign.call("complete_battle", "event_onboarding")
+		print("FirstCardSelection: Marked onboarding event as completed!")
 
 	# Continue to campaign map
 	get_tree().change_scene_to_file("res://scenes/ui/campaign_map.tscn")
