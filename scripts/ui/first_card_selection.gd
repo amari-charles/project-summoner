@@ -6,6 +6,9 @@ class_name FirstCardSelection
 ## Part of onboarding flow. Player picks Fire Recruit or Ember Slinger as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
+# Deck name constant
+const STARTER_DECK_NAME: String = STARTER_DECK_NAME
+
 @onready var select_warrior_button: Button = %SelectWarriorButton
 @onready var select_archer_button: Button = %SelectArcherButton
 
@@ -49,16 +52,16 @@ func _on_card_selected(catalog_id: StringName) -> void:
 		card_instance_id = result if result is String else ""
 		print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
 
-	# Find or create "Starter Deck"
+	# Find or create STARTER_DECK_NAME
 	var decks: Node = get_node("/root/Decks")
 	var deck_id: String = ""
 
 	if decks and card_instance_id != "":
-		# Search for existing "Starter Deck"
+		# Search for existing STARTER_DECK_NAME
 		if decks.has_method("list_decks"):
 			var all_decks: Array[Dictionary] = decks.call("list_decks")
 			for deck_dict: Dictionary in all_decks:
-				if deck_dict.get("name", "") == "Starter Deck":
+				if deck_dict.get("name", "") == STARTER_DECK_NAME:
 					deck_id = deck_dict.get("id", "")
 					print("FirstCardSelection: Found existing Starter Deck (id: %s)" % deck_id)
 					break
@@ -70,7 +73,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 				print("FirstCardSelection: Added card to existing Starter Deck")
 		else:
 			if decks.has_method("create_deck"):
-				var result: Variant = decks.call("create_deck", "Starter Deck", [card_instance_id])
+				var result: Variant = decks.call("create_deck", STARTER_DECK_NAME, [card_instance_id])
 				deck_id = result if result is String else ""
 				print("FirstCardSelection: Created new Starter Deck (id: %s)" % deck_id)
 

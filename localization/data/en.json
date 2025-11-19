@@ -1,0 +1,53 @@
+{
+  "campaign": {
+    "event": {
+      "affinity": {
+        "name": "Trial of Affinities",
+        "description": "Welcome to the Academy of Summoning Arts. Headmaster Merlin awaits in the crystal chamber—the ancient stones will measure your connection to the elemental forces. This trial will reveal your path, initiate. Choose wisely, for in the art of summoning, all choices endure."
+      },
+      "first_summon": {
+        "name": "First Summon",
+        "description": "With your affinity revealed, the time has come to bind your first companion. Headmaster Merlin presents two candidates, each eager to join your journey. Remember, initiate: what you bind, stays bound. Choose your partner carefully."
+      }
+    },
+    "starter_deck_name": "Starter Deck"
+  },
+  "card": {
+    "fire_recruit": {
+      "name": "Fire Recruit",
+      "description": "A basic fire unit."
+    },
+    "ember_slinger": {
+      "name": "Ember Slinger",
+      "description": "A ranged fire unit."
+    }
+  },
+  "menu": {
+    "play": "Play",
+    "collection": "Collection",
+    "settings": "Settings",
+    "quit": "Quit",
+    "back": "Back",
+    "continue": "Continue",
+    "new_game": "New Game"
+  },
+  "battle": {
+    "victory": "Victory!",
+    "defeat": "Defeat",
+    "damage": "Deal {amount} damage",
+    "heal": "Heal {amount} health",
+    "draw_card": "Draw {count} card",
+    "draw_cards": "Draw {count} cards"
+  },
+  "ui": {
+    "mana": "Mana: {current}/{max}",
+    "health": "Health: {current}/{max}",
+    "deck_size": "Deck: {count}",
+    "hand_size": "Hand: {count}"
+  },
+  "error": {
+    "not_enough_mana": "Not enough mana",
+    "invalid_target": "Invalid target",
+    "deck_empty": "Deck is empty"
+  }
+}

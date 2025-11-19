@@ -59,8 +59,8 @@ func _init_battles() -> void:
 	_battles["event_affinity"] = {
 		"id": "event_affinity",
 		"biome_id": "",  # No biome, not a battle
-		"name": "Trial of Affinities",
-		"description": "Welcome to the Academy of Summoning Arts. Headmaster Merlin awaits in the crystal chamber—the ancient stones will measure your connection to the elemental forces. This trial will reveal your path, initiate. Choose wisely, for in the art of summoning, all choices endure.",
+		"name": Loc.tr("campaign.event.affinity.name"),
+		"description": Loc.tr("campaign.event.affinity.description"),
 		"difficulty": 0,
 		"event_type": "affinity",
 		"requires_deck": false,  # No deck selection needed
@@ -75,8 +75,8 @@ func _init_battles() -> void:
 	_battles["event_first_summon"] = {
 		"id": "event_first_summon",
 		"biome_id": "",  # No biome, not a battle
-		"name": "First Summon",
-		"description": "With your affinity revealed, the time has come to bind your first companion. Headmaster Merlin presents two candidates, each eager to join your journey. Remember, initiate: what you bind, stays bound. Choose your partner carefully.",
+		"name": Loc.tr("campaign.event.first_summon.name"),
+		"description": Loc.tr("campaign.event.first_summon.description"),
 		"difficulty": 0,
 		"event_type": "first_summon",
 		"requires_deck": false,  # No deck selection needed

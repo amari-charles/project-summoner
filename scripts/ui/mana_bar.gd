@@ -104,9 +104,12 @@ func _ready() -> void:
 	if edge_highlight:
 		edge_highlight.color = Color(0.9, 0.98, 1.0, 0.7)  # Very bright white-cyan
 
-	# Clip gradient layers to progress bar fill area
+	# Defer gradient initialization until after layout pass
+	# (ProgressBar needs valid size before gradient layers can be clipped)
 	if progress_bar:
+		await get_tree().process_frame
 		_update_gradient_clip(progress_bar.value)
+		print("ManaBar: Initial gradient clip - bar size: %s, value: %s" % [progress_bar.size, progress_bar.value])
 
 ## Update mana display with smooth animation
 func update_mana(current: float, maximum: float) -> void:
