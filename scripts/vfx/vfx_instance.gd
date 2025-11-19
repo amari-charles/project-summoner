@@ -44,7 +44,7 @@ func _on_play() -> void:
 ## Override in subclasses to receive and validate custom parameters
 ## Called AFTER instantiation, BEFORE adding to scene tree
 ## Safe to modify properties that will be used in _on_play() or later
-func receive_data(data: Dictionary) -> void:
+func receive_data(_data: Dictionary) -> void:
 	# Default: do nothing
 	# Subclasses override to extract and validate data
 	pass

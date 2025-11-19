@@ -163,9 +163,9 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 		var active: Array = active_projectiles[projectile_id]
 		active.erase(projectile)
 
-	# Remove from scene
+	# Remove from scene (deferred to avoid physics callback issues)
 	if projectile.get_parent():
-		projectile.get_parent().remove_child(projectile)
+		projectile.get_parent().remove_child.call_deferred(projectile)
 
 	# Return to pool if not full
 	var pool: Array = projectile_pools[projectile_id]

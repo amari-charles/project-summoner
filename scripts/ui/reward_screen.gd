@@ -83,7 +83,7 @@ func _load_battle_results() -> void:
 
 func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	var campaign: Node = get_node("/root/Campaign")
-	var catalog: Node = get_node("/root/CardCatalog")
+	var _catalog: Node = get_node("/root/CardCatalog")
 
 	if is_replay:
 		# Show message for replayed battles
