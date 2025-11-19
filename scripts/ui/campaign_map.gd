@@ -548,14 +548,21 @@ func _scroll_to_event(event_id: String) -> void:
 
 	var node: Control = event_nodes[event_id]
 	var node_center_x: float = node.position.x + node.size.x / 2
+	var node_center_y: float = node.position.y + node.size.y / 2
 
-	# Calculate scroll position to center the node in viewport
+	# Calculate scroll position to center the node in viewport (both X and Y)
 	var viewport_width: float = map_scroll.size.x
-	var scroll_target: float = node_center_x - (viewport_width / 2)
-	scroll_target = max(0, scroll_target)  # Clamp to valid range
+	var viewport_height: float = map_scroll.size.y
 
-	# Set scroll position
-	map_scroll.scroll_horizontal = int(scroll_target)
+	var scroll_target_x: float = node_center_x - (viewport_width / 2)
+	scroll_target_x = max(0, scroll_target_x)  # Clamp to valid range
+
+	var scroll_target_y: float = node_center_y - (viewport_height / 2)
+	scroll_target_y = max(0, scroll_target_y)  # Clamp to valid range
+
+	# Set scroll position (both horizontal and vertical)
+	map_scroll.scroll_horizontal = int(scroll_target_x)
+	map_scroll.scroll_vertical = int(scroll_target_y)
 
 ## =============================================================================
 ## SIGNALS
