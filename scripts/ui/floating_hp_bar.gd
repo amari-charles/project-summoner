@@ -55,6 +55,10 @@ func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
 		return
 
+	# Safety check: ensure we're in the scene tree before accessing transforms
+	if not is_inside_tree():
+		return
+
 	# Follow target unit with cached offsets
 	var target_pos: Vector3 = target_unit.global_position + Vector3(cached_offset_x, offset_y, 0)
 	global_position = target_pos

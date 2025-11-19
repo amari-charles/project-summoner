@@ -437,6 +437,7 @@ func _expire_with_fade() -> void:
 
 	# Fade all materials on visual children
 	var fade_children: Array[Node] = visual_instance.get_children()
+	var has_tweeners: bool = false
 	for child_node: Node in fade_children:
 		if child_node is MeshInstance3D:
 			# Type narrow to MeshInstance3D for safe property access
@@ -445,17 +446,24 @@ func _expire_with_fade() -> void:
 			if material and material is StandardMaterial3D:
 				# Tween alpha from current to 0
 				fade_tween.tween_property(material, "albedo_color:a", 0.0, fade_duration)
+				has_tweeners = true
 		elif child_node is GPUParticles3D:
 			# Type narrow to GPUParticles3D for safe property access
 			var particles_child: GPUParticles3D = child_node
 			# Stop emitting new particles
 			particles_child.emitting = false
 
-	# When tween finishes, hide and cleanup
-	fade_tween.finished.connect(func() -> void:
+	# Only connect finished signal if we actually added tweeners
+	if has_tweeners:
+		# When tween finishes, hide and cleanup
+		fade_tween.finished.connect(func() -> void:
+			visible = false
+			_expire_immediate()
+		)
+	else:
+		# No materials to fade, cleanup immediately
 		visible = false
 		_expire_immediate()
-	)
 
 ## Expire projectile immediately (no animation)
 func _expire_immediate() -> void:
