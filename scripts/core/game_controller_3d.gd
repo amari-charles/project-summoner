@@ -348,7 +348,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			# Click detected - select units in radius
+			print("GameController3D: Mouse click detected in redirect mode")
 			var click_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
+			print("GameController3D: Click point = ", click_point)
 			if click_point != Vector3.ZERO:
 				_redirect_start_point = click_point
 				_redirect_selected_units = RedirectManager.select_units_in_radius(
@@ -360,12 +362,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 				# Show visual indicator
 				var indicator_color: Color = RedirectManager.get_current_mode_color()
+				print("GameController3D: Showing indicator at ", click_point, " with color ", indicator_color)
 				_redirect_indicator.show_selection_circle(click_point, indicator_color)
 
 				# Tint selected units
 				_apply_unit_tint(indicator_color)
 
 				print("GameController3D: Redirect started, selected %d units" % _redirect_selected_units.size())
+			else:
+				print("GameController3D: Click point was ZERO, raycast failed")
 
 		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
 			# Release detected - apply redirect

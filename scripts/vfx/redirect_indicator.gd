@@ -52,14 +52,19 @@ func _process(_delta: float) -> void:
 
 ## Show selection circle at position
 func show_selection_circle(position: Vector3, color: Color = Color.WHITE) -> void:
+	# Raise circle slightly above ground to avoid z-fighting
+	var raised_position: Vector3 = position + Vector3(0, 0.1, 0)
+
 	if color != Color.WHITE:
 		var mat: StandardMaterial3D = selection_circle.material_override as StandardMaterial3D
 		if mat:
 			mat.albedo_color = color
 
-	global_position = position
+	print("RedirectIndicator: Showing circle at ", raised_position, " with color ", color)
+	global_position = raised_position
 	selection_circle.visible = true
 	is_active = true
+	print("RedirectIndicator: Circle visible=", selection_circle.visible, " global_pos=", selection_circle.global_position)
 
 ## Hide selection circle
 func hide_selection_circle() -> void:
@@ -69,6 +74,7 @@ func hide_selection_circle() -> void:
 
 ## Update drag arrow from start to end point
 func update_drag(start: Vector3, end: Vector3) -> void:
+	print("RedirectIndicator: Updating drag arrow from ", start, " to ", end)
 	drag_start = start
 	drag_end = end
 	drag_arrow.visible = true
