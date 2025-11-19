@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://battle_3d"]
+[gd_scene load_steps=14 format=3 uid="uid://battle_3d"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://scripts/ui/speed_button.gd" id="10_speed_button"]
 [ext_resource type="PackedScene" uid="uid://bkj8q7n5vx8" path="res://scenes/ui/mana_bar.tscn" id="11_mana_bar"]
 [ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="12_game_ui"]
+[ext_resource type="CompressedTexture2D" uid="uid://c4k76x55jp4va" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png" id="13_attack_icon"]
+[ext_resource type="CompressedTexture2D" uid="uid://care5io1wrrv0" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Difficulty_3_Medium_Buckler_Targe_Shield.png" id="14_defend_icon"]
 
 [node name="Battle3D" type="Node3D"]
 script = ExtResource("2_game_controller")
@@ -98,13 +100,29 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -210.0
+offset_left = -250.0
 offset_top = -80.0
-offset_right = -150.0
+offset_right = -130.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "⚔"
+icon = ExtResource("13_attack_icon")
+text = "Attack"
+
+[node name="CooldownProgress" type="TextureProgressBar" parent="UI/RedirectAttackButton"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -50.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = 50.0
+grow_horizontal = 0
+max_value = 12.0
+fill_mode = 4
+radial_initial_angle = 270.0
+radial_fill_degrees = 360.0
 
 [node name="RedirectDefendButton" type="Button" parent="UI"]
 anchors_preset = 3
@@ -112,13 +130,29 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -140.0
+offset_left = -120.0
 offset_top = -80.0
-offset_right = -80.0
+offset_right = 0.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "🛡"
+icon = ExtResource("14_defend_icon")
+text = "Defend"
+
+[node name="CooldownProgress" type="TextureProgressBar" parent="UI/RedirectDefendButton"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -50.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = 50.0
+grow_horizontal = 0
+max_value = 8.0
+fill_mode = 4
+radial_initial_angle = 270.0
+radial_fill_degrees = 360.0
 
 [node name="PlayerHPLabel" type="Label" parent="UI"]
 offset_left = 20.0

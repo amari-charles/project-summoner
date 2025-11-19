@@ -318,6 +318,9 @@ var _redirect_drag_active: bool = false
 var _redirect_start_point: Vector3 = Vector3.ZERO
 var _redirect_selected_units: Array[Unit3D] = []
 
+## Store original modulate values for tinting
+var _unit_original_modulates: Dictionary = {}
+
 ## Camera for raycasting (cached)
 var _camera: Camera3D = null
 
@@ -359,6 +362,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				var indicator_color: Color = RedirectManager.get_current_mode_color()
 				_redirect_indicator.show_selection_circle(click_point, indicator_color)
 
+				# Tint selected units
+				_apply_unit_tint(indicator_color)
+
 				print("GameController3D: Redirect started, selected %d units" % _redirect_selected_units.size())
 
 		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
@@ -369,6 +375,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 			# Hide visual indicator
 			_redirect_indicator.hide_selection_circle()
+
+			# Restore unit colors
+			_restore_unit_tint()
+
 			_redirect_drag_active = false
 
 	# Handle mouse motion (update drag arrow)
@@ -427,3 +437,23 @@ func _on_redirect_release(release_point: Vector3) -> void:
 	)
 
 	print("GameController3D: Redirect applied to %d units targeting %s" % [_redirect_selected_units.size(), target.name])
+
+## Apply color tint to selected units
+func _apply_unit_tint(tint_color: Color) -> void:
+	_unit_original_modulates.clear()
+
+	for unit: Unit3D in _redirect_selected_units:
+		if is_instance_valid(unit):
+			# Store original modulate
+			_unit_original_modulates[unit] = unit.modulate
+
+			# Apply tinted color (lighter version of the redirect color)
+			unit.modulate = tint_color.lightened(0.3)
+
+## Restore original colors to selected units
+func _restore_unit_tint() -> void:
+	for unit: Unit3D in _unit_original_modulates.keys():
+		if is_instance_valid(unit):
+			unit.modulate = _unit_original_modulates[unit]
+
+	_unit_original_modulates.clear()

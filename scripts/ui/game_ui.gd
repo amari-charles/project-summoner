@@ -114,11 +114,23 @@ func _update_redirect_buttons() -> void:
 		var attack_available: bool = RedirectManager.is_attack_available()
 		redirect_attack_button.disabled = not attack_available
 
+		# Update button text
 		if attack_available:
-			redirect_attack_button.text = "Redirect Attack"
+			redirect_attack_button.text = "Attack"
 		else:
 			var cd: float = RedirectManager.attack_cooldown
-			redirect_attack_button.text = "Attack (%.1fs)" % cd
+			redirect_attack_button.text = "Attack\n%.1fs" % cd
+
+		# Update cooldown progress bar
+		var attack_progress: TextureProgressBar = redirect_attack_button.get_node_or_null("CooldownProgress")
+		if attack_progress:
+			if attack_available:
+				attack_progress.value = attack_progress.max_value
+				attack_progress.visible = false
+			else:
+				var remaining: float = RedirectManager.attack_cooldown
+				attack_progress.value = attack_progress.max_value - remaining
+				attack_progress.visible = true
 
 		# Highlight if active
 		if RedirectManager.current_mode == RedirectManager.RedirectMode.REDIRECT_ATTACK:
@@ -131,11 +143,23 @@ func _update_redirect_buttons() -> void:
 		var defend_available: bool = RedirectManager.is_defend_available()
 		redirect_defend_button.disabled = not defend_available
 
+		# Update button text
 		if defend_available:
-			redirect_defend_button.text = "Redirect Defend"
+			redirect_defend_button.text = "Defend"
 		else:
 			var cd: float = RedirectManager.defend_cooldown
-			redirect_defend_button.text = "Defend (%.1fs)" % cd
+			redirect_defend_button.text = "Defend\n%.1fs" % cd
+
+		# Update cooldown progress bar
+		var defend_progress: TextureProgressBar = redirect_defend_button.get_node_or_null("CooldownProgress")
+		if defend_progress:
+			if defend_available:
+				defend_progress.value = defend_progress.max_value
+				defend_progress.visible = false
+			else:
+				var remaining: float = RedirectManager.defend_cooldown
+				defend_progress.value = defend_progress.max_value - remaining
+				defend_progress.visible = true
 
 		# Highlight if active
 		if RedirectManager.current_mode == RedirectManager.RedirectMode.REDIRECT_DEFEND:
