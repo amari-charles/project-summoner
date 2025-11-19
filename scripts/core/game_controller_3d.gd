@@ -443,17 +443,25 @@ func _apply_unit_tint(tint_color: Color) -> void:
 	_unit_original_modulates.clear()
 
 	for unit: Unit3D in _redirect_selected_units:
-		if is_instance_valid(unit):
-			# Store original modulate
-			_unit_original_modulates[unit] = unit.modulate
+		if is_instance_valid(unit) and unit.visual_component:
+			# Check if this is a sprite-based component
+			if unit.visual_component.has_method("get") and unit.visual_component.has("character_sprite"):
+				var sprite: AnimatedSprite2D = unit.visual_component.get("character_sprite")
+				if sprite:
+					# Store original modulate
+					_unit_original_modulates[unit] = sprite.modulate
 
-			# Apply tinted color (lighter version of the redirect color)
-			unit.modulate = tint_color.lightened(0.3)
+					# Apply tinted color (lighter version of the redirect color)
+					sprite.modulate = tint_color.lightened(0.3)
 
 ## Restore original colors to selected units
 func _restore_unit_tint() -> void:
 	for unit: Unit3D in _unit_original_modulates.keys():
-		if is_instance_valid(unit):
-			unit.modulate = _unit_original_modulates[unit]
+		if is_instance_valid(unit) and unit.visual_component:
+			# Check if this is a sprite-based component
+			if unit.visual_component.has_method("get") and unit.visual_component.has("character_sprite"):
+				var sprite: AnimatedSprite2D = unit.visual_component.get("character_sprite")
+				if sprite:
+					sprite.modulate = _unit_original_modulates[unit]
 
 	_unit_original_modulates.clear()
