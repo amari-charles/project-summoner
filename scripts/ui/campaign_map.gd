@@ -8,9 +8,13 @@ class_name CampaignMap
 
 ## Node references
 @onready var back_button: Button = %BackButton
+@onready var center_button: Button = %CenterButton
 @onready var progress_label: Label = %ProgressLabel
+@onready var map_scroll: ScrollContainer = %MapScrollContainer
 @onready var map_container: Control = %MapContainer
-@onready var detail_panel: PanelContainer = %DetailPanel
+@onready var map_background: TextureRect = %MapBackground
+@onready var detail_panel: Panel = %DetailPanel
+@onready var popup_background: NinePatchRect = %Background
 @onready var event_name_label: Label = %EventNameLabel
 @onready var difficulty_label: Label = %DifficultyLabel
 @onready var description_label: Label = %DescriptionLabel
@@ -23,10 +27,25 @@ const NODE_SIZE: Vector2 = Vector2(80, 80)
 const PATH_COLOR: Color = Color(0.4, 0.4, 0.5)
 const PATH_WIDTH: float = 4.0
 
+## Asset paths - Replace these with real artwork when available
+## Map background: Place your map texture here (any resolution, will scale to fit)
+const MAP_BACKGROUND_TEXTURE: String = "res://assets/ui/campaign_map_background.png"
+
+## Popup panel: 9-slice texture for the detail popup background
+## Recommended 9-slice margins: 40px on all sides for rounded corners
+## Texture size: 200x200 minimum (margins will be preserved, center will stretch)
+const POPUP_NINEPATCH_TEXTURE: String = "res://assets/ui/popup_panel_9slice.png"
+const POPUP_NINEPATCH_MARGINS: Rect2 = Rect2(40, 40, 40, 40)  # left, top, right, bottom
+
 ## State
 var selected_event_id: String = ""
 var all_events: Array[Dictionary] = []
-var event_nodes: Dictionary = {}  # event_id -> Node2D
+var event_nodes: Dictionary = {}  # event_id -> Control (fast lookup)
+var event_render_order: Array[String] = []  # Explicit draw order
+
+## Panning state
+var is_panning: bool = false
+var last_mouse_position: Vector2 = Vector2.ZERO
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -56,7 +75,45 @@ func _ready() -> void:
 
 	# Connect buttons
 	back_button.pressed.connect(_on_back_pressed)
+	center_button.pressed.connect(_on_center_latest_pressed)
 	start_event_button.pressed.connect(_on_start_event_pressed)
+
+	# Load map background texture if available
+	if FileAccess.file_exists(MAP_BACKGROUND_TEXTURE):
+		var map_tex: Texture2D = load(MAP_BACKGROUND_TEXTURE)
+		if map_tex:
+			map_background.texture = map_tex
+			print("CampaignMap: Loaded map background texture")
+	else:
+		# Use placeholder color if no texture
+		map_background.modulate = Color(0.15, 0.15, 0.2)
+
+	# Load popup 9-slice texture if available
+	if FileAccess.file_exists(POPUP_NINEPATCH_TEXTURE):
+		var popup_tex: Texture2D = load(POPUP_NINEPATCH_TEXTURE)
+		if popup_tex:
+			popup_background.texture = popup_tex
+			# Apply 9-slice margins
+			popup_background.region_rect = POPUP_NINEPATCH_MARGINS
+			popup_background.patch_margin_left = int(POPUP_NINEPATCH_MARGINS.position.x)
+			popup_background.patch_margin_top = int(POPUP_NINEPATCH_MARGINS.position.y)
+			popup_background.patch_margin_right = int(POPUP_NINEPATCH_MARGINS.size.x)
+			popup_background.patch_margin_bottom = int(POPUP_NINEPATCH_MARGINS.size.y)
+			print("CampaignMap: Loaded popup 9-slice texture")
+	else:
+		# Use placeholder style if no texture
+		var popup_style: StyleBoxFlat = StyleBoxFlat.new()
+		popup_style.bg_color = Color(0.15, 0.15, 0.2)
+		popup_style.corner_radius_top_left = 20
+		popup_style.corner_radius_top_right = 20
+		popup_style.corner_radius_bottom_left = 20
+		popup_style.corner_radius_bottom_right = 20
+		popup_style.border_width_left = 2
+		popup_style.border_width_right = 2
+		popup_style.border_width_top = 2
+		popup_style.border_width_bottom = 2
+		popup_style.border_color = Color(0.4, 0.5, 0.7)
+		detail_panel.add_theme_stylebox_override("panel", popup_style)
 
 	# Connect to campaign service
 	var campaign: Node = get_node("/root/Campaign")
@@ -72,58 +129,38 @@ func _ready() -> void:
 	_refresh_map()
 	_update_progress_display()
 
-	# Hide detail panel initially
-	start_event_button.disabled = true
+	# Auto-scroll to latest mission
+	_on_center_latest_pressed()
 
 func _draw() -> void:
-	# Draw paths connecting events
-	var event_list: Array = all_events.duplicate()
+	# Draw paths connecting events using explicit render order
+	for i: int in range(event_render_order.size() - 1):
+		var current_id: String = event_render_order[i]
+		var next_id: String = event_render_order[i + 1]
 
-	# Add onboarding event if needed
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	var onboarding_complete: bool = false
-	if profile_repo:
-		var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
-		if not profile.is_empty():
-			var meta: Dictionary = _safe_dict(profile.get("meta", {}))
-			onboarding_complete = _safe_bool(meta.get("onboarding_complete", false))
+		if not event_nodes.has(current_id):
+			push_warning("CampaignMap: Missing node for event '%s'" % current_id)
+			continue
+		if not event_nodes.has(next_id):
+			push_warning("CampaignMap: Missing node for event '%s'" % next_id)
+			continue
 
-	var path_start_index: int = 0 if onboarding_complete else 1
-
-	for i: int in range(path_start_index, event_list.size()):
-		var current_id: String = ""
-		var next_id: String = ""
-
-		if i == 0 and not onboarding_complete:
-			current_id = "onboarding"
-			if event_list.size() > 0:
-				var first_event: Dictionary = _safe_dict(event_list[0])
-				next_id = _safe_string(first_event.get("id", ""))
-		else:
-			var idx: int = i - (0 if onboarding_complete else 1)
-			if idx >= 0 and idx < event_list.size():
-				var current_event: Dictionary = _safe_dict(event_list[idx])
-				current_id = _safe_string(current_event.get("id", ""))
-				if idx + 1 < event_list.size():
-					var next_event: Dictionary = _safe_dict(event_list[idx + 1])
-					next_id = _safe_string(next_event.get("id", ""))
-
-		if current_id != "" and next_id != "" and event_nodes.has(current_id) and event_nodes.has(next_id):
-			var start_node: Control = event_nodes[current_id]
-			var end_node: Control = event_nodes[next_id]
-			var start_pos: Vector2 = start_node.position + start_node.size / 2
-			var end_pos: Vector2 = end_node.position + end_node.size / 2
-			draw_line(start_pos, end_pos, PATH_COLOR, PATH_WIDTH)
+		var start_node: Control = event_nodes[current_id]
+		var end_node: Control = event_nodes[next_id]
+		var start_pos: Vector2 = start_node.position + start_node.size / 2
+		var end_pos: Vector2 = end_node.position + end_node.size / 2
+		draw_line(start_pos, end_pos, PATH_COLOR, PATH_WIDTH)
 
 ## =============================================================================
 ## MAP DISPLAY
 ## =============================================================================
 
 func _refresh_map() -> void:
-	# Clear existing nodes
+	# Clear existing state
 	for child: Node in map_container.get_children():
 		child.queue_free()
 	event_nodes.clear()
+	event_render_order.clear()
 
 	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
@@ -134,35 +171,27 @@ func _refresh_map() -> void:
 	var events_array: Array = _safe_array(events_variant)
 	all_events.assign(events_array)
 
-	# Check if onboarding is complete
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	var onboarding_complete: bool = false
-	if profile_repo:
-		var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
-		if not profile.is_empty():
-			var meta: Dictionary = _safe_dict(profile.get("meta", {}))
-			onboarding_complete = _safe_bool(meta.get("onboarding_complete", false))
+	# Calculate centered starting position
+	var event_count: int = all_events.size()
+	var total_width: float = (event_count - 1) * NODE_SPACING if event_count > 0 else 0
+	var map_width: float = map_container.custom_minimum_size.x
+	var start_x: float = (map_width - total_width) / 2.0
 
-	# Add onboarding event as first node if not complete
+	# Create nodes for all events and build render order
 	var node_index: int = 0
-	if not onboarding_complete:
-		var onboarding_node: Control = _create_event_node("onboarding", node_index, true, false)
-		map_container.add_child(onboarding_node)
-		event_nodes["onboarding"] = onboarding_node
-		node_index += 1
-
-	# Create nodes for all events
 	for event: Dictionary in all_events:
 		var event_id: String = _safe_string(event.get("id", ""))
-		if event_id == "":
+		if event_id.is_empty():
+			push_warning("CampaignMap: Event missing 'id', skipping")
 			continue
 
 		var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", event_id))
 		var is_unlocked: bool = _safe_bool(campaign.call("is_battle_unlocked", event_id))
 
-		var event_node: Control = _create_event_node(event_id, node_index, is_unlocked, is_completed)
+		var event_node: Control = _create_event_node(event, node_index, start_x, is_unlocked, is_completed)
 		map_container.add_child(event_node)
 		event_nodes[event_id] = event_node
+		event_render_order.append(event_id)
 		node_index += 1
 
 	# Trigger redraw for paths
@@ -170,18 +199,38 @@ func _refresh_map() -> void:
 
 	print("CampaignMap: Created %d event nodes" % event_nodes.size())
 
-func _create_event_node(event_id: String, index: int, is_unlocked: bool, is_completed: bool) -> Control:
+func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_unlocked: bool, is_completed: bool) -> Control:
 	var node_container: Control = Control.new()
 	node_container.custom_minimum_size = NODE_SIZE
-	node_container.position = Vector2(100 + index * NODE_SPACING, 200)
+
+	# Use map_position if available, otherwise calculate position
+	var node_position: Vector2
+	if event_data.has("map_position") and event_data.get("map_position") is Vector2:
+		# Use fixed position from event data
+		node_position = event_data.get("map_position")
+	else:
+		# Calculate position: winding path using sine wave
+		var base_y: float = 800.0  # Center of 1600px height
+		var wave_amplitude: float = 300.0  # Vertical variation from center
+		var y_offset: float = sin(float(index) * 0.5) * wave_amplitude
+		node_position = Vector2(start_x + index * NODE_SPACING, base_y + y_offset)
+		if event_data.has("map_position"):
+			push_warning("CampaignMap: Invalid map_position format for event, using calculated position")
+
+	node_container.position = node_position
+
+	var event_id: String = _safe_string(event_data.get("id", ""))
+	var event_type: String = _safe_string(event_data.get("event_type", "battle"))
 
 	# Create visual button
 	var button: Button = Button.new()
 	button.custom_minimum_size = NODE_SIZE
 	button.size = NODE_SIZE
 
-	# Style based on state
-	if event_id == "onboarding":
+	# Style based on event type and state
+	var is_onboarding_event: bool = (event_type == "onboarding")
+
+	if is_onboarding_event:
 		button.text = "⭐"
 		button.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	elif is_completed:
@@ -197,7 +246,7 @@ func _create_event_node(event_id: String, index: int, is_unlocked: bool, is_comp
 
 	# Make button circular-ish
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	if event_id == "onboarding":
+	if is_onboarding_event:
 		style.bg_color = Color(0.4, 0.35, 0.2)
 		style.border_color = Color(1.0, 0.85, 0.3)
 	elif is_completed:
@@ -223,7 +272,7 @@ func _create_event_node(event_id: String, index: int, is_unlocked: bool, is_comp
 	button.add_theme_font_size_override("font_size", 32)
 
 	# Connect click handler
-	if is_unlocked or event_id == "onboarding":
+	if is_unlocked:
 		button.pressed.connect(_on_event_node_clicked.bind(event_id))
 
 	node_container.add_child(button)
@@ -232,7 +281,54 @@ func _create_event_node(event_id: String, index: int, is_unlocked: bool, is_comp
 func _on_event_node_clicked(event_id: String) -> void:
 	selected_event_id = event_id
 	_update_detail_panel()
+	_show_popup()
 	print("CampaignMap: Selected event: %s" % event_id)
+
+func _show_popup() -> void:
+	# Center the popup on screen
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var popup_size: Vector2 = detail_panel.custom_minimum_size
+	detail_panel.position = (viewport_size - popup_size) / 2
+	detail_panel.size = popup_size
+	detail_panel.visible = true
+
+func _input(event: InputEvent) -> void:
+	# Handle mouse button events
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			if mouse_event.pressed:
+				# Check if clicking outside popup to dismiss it
+				if detail_panel.visible:
+					var popup_rect: Rect2 = Rect2(detail_panel.position, detail_panel.size)
+					if not popup_rect.has_point(mouse_event.position):
+						detail_panel.visible = false
+						get_viewport().set_input_as_handled()
+						return
+
+				# Start panning if clicking in scroll area (and popup not blocking)
+				if not detail_panel.visible:
+					var scroll_rect: Rect2 = map_scroll.get_global_rect()
+					if scroll_rect.has_point(mouse_event.position):
+						is_panning = true
+						last_mouse_position = mouse_event.position
+						get_viewport().set_input_as_handled()
+			else:
+				# Stop panning on release
+				is_panning = false
+
+	# Handle mouse motion for panning
+	elif event is InputEventMouseMotion and is_panning:
+		var motion_event: InputEventMouseMotion = event as InputEventMouseMotion
+		var delta: Vector2 = motion_event.position - last_mouse_position
+
+		# Update scroll positions (inverted - drag right scrolls left)
+		map_scroll.scroll_horizontal -= int(delta.x)
+		map_scroll.scroll_vertical -= int(delta.y)
+
+		last_mouse_position = motion_event.position
+		get_viewport().set_input_as_handled()
 
 ## =============================================================================
 ## DETAIL PANEL
@@ -247,17 +343,7 @@ func _update_detail_panel() -> void:
 		start_event_button.disabled = true
 		return
 
-	# Handle onboarding event
-	if selected_event_id == "onboarding":
-		event_name_label.text = "Begin Your Journey"
-		difficulty_label.text = ""
-		description_label.text = "Choose your hero and receive your first card to begin your adventure!"
-		reward_label.text = ""
-		start_event_button.text = "START"
-		start_event_button.disabled = false
-		return
-
-	# Handle campaign events
+	# Get event data
 	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		return
@@ -266,12 +352,18 @@ func _update_detail_panel() -> void:
 	if event.is_empty():
 		return
 
+	var event_type: String = _safe_string(event.get("event_type", "battle"))
+
 	# Update labels
 	event_name_label.text = _safe_string(event.get("name", "Unknown"), "Unknown")
 
-	var difficulty: int = _safe_int(event.get("difficulty", 1), 1)
-	var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
-	difficulty_label.text = "Difficulty: %s" % diff_stars
+	# Show difficulty for battles, hide for other event types
+	var difficulty: int = _safe_int(event.get("difficulty", 0), 0)
+	if difficulty > 0:
+		var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
+		difficulty_label.text = "Difficulty: %s" % diff_stars
+	else:
+		difficulty_label.text = ""
 
 	description_label.text = _safe_string(event.get("description", "No description."), "No description.")
 
@@ -280,44 +372,55 @@ func _update_detail_panel() -> void:
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
 	var reward_text: String = ""
 
-	match reward_type:
-		"fixed":
-			var card_names: Array[String] = []
-			for reward_item: Variant in reward_cards:
-				var reward: Dictionary = _safe_dict(reward_item)
-				var count: int = _safe_int(reward.get("count", 1), 1)
-				var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
-				if count > 1:
-					card_names.append("%dx %s" % [count, catalog_id.capitalize()])
-				else:
-					card_names.append(catalog_id.capitalize())
-			reward_text = "Reward: " + ", ".join(card_names)
+	if reward_cards.size() > 0:
+		match reward_type:
+			"fixed":
+				var card_names: Array[String] = []
+				for reward_item: Variant in reward_cards:
+					var reward: Dictionary = _safe_dict(reward_item)
+					var count: int = _safe_int(reward.get("count", 1), 1)
+					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
+					if count > 1:
+						card_names.append("%dx %s" % [count, catalog_id.capitalize()])
+					else:
+						card_names.append(catalog_id.capitalize())
+				reward_text = "Reward: " + ", ".join(card_names)
 
-		"choice":
-			var options: Array[String] = []
-			for reward_item: Variant in reward_cards:
-				var reward: Dictionary = _safe_dict(reward_item)
-				var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
-				options.append(catalog_id.capitalize())
-			reward_text = "Reward: Choose from " + ", ".join(options)
+			"choice":
+				var options: Array[String] = []
+				for reward_item: Variant in reward_cards:
+					var reward: Dictionary = _safe_dict(reward_item)
+					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
+					options.append(catalog_id.capitalize())
+				reward_text = "Reward: Choose from " + ", ".join(options)
 
-		"random":
-			var count: int = 0
-			for reward_item: Variant in reward_cards:
-				var reward: Dictionary = _safe_dict(reward_item)
-				var reward_count: int = _safe_int(reward.get("count", 1), 1)
-				count += reward_count
-			reward_text = "Reward: Random (%d cards)" % count
+			"random":
+				var count: int = 0
+				for reward_item: Variant in reward_cards:
+					var reward: Dictionary = _safe_dict(reward_item)
+					var reward_count: int = _safe_int(reward.get("count", 1), 1)
+					count += reward_count
+				reward_text = "Reward: Random (%d cards)" % count
 
 	reward_label.text = reward_text
 
-	# Enable/disable start button
+	# Enable/disable start button based on completion and repeatability
 	var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", selected_event_id))
+	var is_repeatable: bool = _safe_bool(event.get("repeatable", true))
+
 	if is_completed:
-		start_event_button.text = "REPLAY (no reward)"
-		start_event_button.disabled = false
+		if is_repeatable:
+			start_event_button.text = "REPLAY (no reward)"
+			start_event_button.disabled = false
+		else:
+			# Non-repeatable events cannot be replayed
+			start_event_button.text = "COMPLETED"
+			start_event_button.disabled = true
 	else:
-		start_event_button.text = "START EVENT"
+		if event_type == "onboarding":
+			start_event_button.text = "START"
+		else:
+			start_event_button.text = "START EVENT"
 		start_event_button.disabled = false
 
 ## =============================================================================
@@ -345,25 +448,35 @@ func _on_start_event_pressed() -> void:
 	if selected_event_id == "":
 		return
 
-	# Handle onboarding event
-	if selected_event_id == "onboarding":
+	# Get event data to check event_type
+	var campaign: Node = get_node("/root/Campaign")
+	if not campaign:
+		return
+
+	var event: Dictionary = _safe_dict(campaign.call("get_battle", selected_event_id))
+	if event.is_empty():
+		return
+
+	var event_type: String = _safe_string(event.get("event_type", "battle"))
+
+	# Handle onboarding event - route to hero selection
+	if event_type == "onboarding":
 		print("CampaignMap: Starting onboarding...")
 		get_tree().change_scene_to_file("res://scenes/ui/hero_selection.tscn")
 		return
 
+	# Handle battle events
 	print("CampaignMap: Starting event: %s" % selected_event_id)
 
 	# Store selected event in campaign service
-	var campaign: Node = get_node("/root/Campaign")
-	if campaign:
-		var profile_repo: Node = get_node("/root/ProfileRepo")
-		var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
-		if not profile.is_empty():
-			if not profile.has("campaign_progress"):
-				profile["campaign_progress"] = {}
-			var campaign_progress: Dictionary = _safe_dict(profile["campaign_progress"])
-			campaign_progress["current_battle"] = selected_event_id
-			profile_repo.call("save_profile", true)
+	var profile_repo: Node = get_node("/root/ProfileRepo")
+	var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
+	if not profile.is_empty():
+		if not profile.has("campaign_progress"):
+			profile["campaign_progress"] = {}
+		var campaign_progress: Dictionary = _safe_dict(profile["campaign_progress"])
+		campaign_progress["current_battle"] = selected_event_id
+		profile_repo.call("save_profile", true)
 
 	# Configure battle context
 	var battle_context: Node = get_node("/root/BattleContext")
@@ -380,6 +493,52 @@ func _on_start_event_pressed() -> void:
 func _on_back_pressed() -> void:
 	print("CampaignMap: Returning to game mode menu")
 	get_tree().change_scene_to_file("res://scenes/ui/game_mode_menu.tscn")
+
+func _on_center_latest_pressed() -> void:
+	var latest_unlocked_id: String = _find_latest_unlocked_mission()
+	if latest_unlocked_id.is_empty():
+		print("CampaignMap: No unlocked missions to center on")
+		return
+
+	_scroll_to_event(latest_unlocked_id)
+	print("CampaignMap: Centered on latest mission: %s" % latest_unlocked_id)
+
+func _find_latest_unlocked_mission() -> String:
+	# Iterate through event_render_order in reverse
+	# Return first event that is unlocked but not completed
+	var campaign: Node = get_node("/root/Campaign")
+	if not campaign:
+		return ""
+
+	for i: int in range(event_render_order.size() - 1, -1, -1):
+		var event_id: String = event_render_order[i]
+		var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", event_id))
+		var is_unlocked: bool = _safe_bool(campaign.call("is_battle_unlocked", event_id))
+
+		if is_unlocked and not is_completed:
+			return event_id
+
+	# If all completed, return last event
+	if event_render_order.size() > 0:
+		return event_render_order[event_render_order.size() - 1]
+
+	return ""
+
+func _scroll_to_event(event_id: String) -> void:
+	if not event_nodes.has(event_id):
+		push_warning("CampaignMap: Cannot scroll to missing event '%s'" % event_id)
+		return
+
+	var node: Control = event_nodes[event_id]
+	var node_center_x: float = node.position.x + node.size.x / 2
+
+	# Calculate scroll position to center the node in viewport
+	var viewport_width: float = map_scroll.size.x
+	var scroll_target: float = node_center_x - (viewport_width / 2)
+	scroll_target = max(0, scroll_target)  # Clamp to valid range
+
+	# Set scroll position
+	map_scroll.scroll_horizontal = int(scroll_target)
 
 ## =============================================================================
 ## SIGNALS

@@ -38,12 +38,19 @@ theme_override_constants/separation = 20
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 15
 
 [node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "← BACK"
+
+[node name="CenterButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "📍 Latest Mission"
 
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2
@@ -65,71 +72,99 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="MapScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentArea"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-horizontal_scroll_mode = 2
+horizontal_scroll_mode = 3
+vertical_scroll_mode = 3
 
 [node name="MapContainer" type="Control" parent="MarginContainer/VBoxContainer/ContentArea/MapScrollContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(1200, 400)
+custom_minimum_size = Vector2(3600, 1600)
 layout_mode = 2
 
-[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentArea"]
+[node name="MapBackground" type="TextureRect" parent="MarginContainer/VBoxContainer/ContentArea/MapScrollContainer/MapContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(350, 0)
-layout_mode = 2
-size_flags_horizontal = 8
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 3600.0
+offset_bottom = 800.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
+[node name="DetailPanel" type="Panel" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(800, 350)
+layout_mode = 0
+offset_right = 800.0
+offset_bottom = 350.0
+visible = false
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 15
+[node name="Background" type="NinePatchRect" parent="DetailPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture_filter = 1
+region_rect = Rect2(40, 40, 40, 40)
 
-[node name="EventNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DetailPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="EventNameLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 32
 text = "Select an Event"
 horizontal_alignment = 1
 
-[node name="DifficultyLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="DifficultyLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = ""
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="DetailPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Click an event node to see details."
-autowrap_mode = 3
-
-[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="RewardLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="DescriptionLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
+text = "Click an event node to see details."
+autowrap_mode = 3
+
+[node name="HSeparator2" type="HSeparator" parent="DetailPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="RewardLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
 text = ""
 autowrap_mode = 3
 
-[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="Spacer" type="Control" parent="DetailPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="StartEventButton" type="Button" parent="MarginContainer/VBoxContainer/ContentArea/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="StartEventButton" type="Button" parent="DetailPanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "START EVENT"
