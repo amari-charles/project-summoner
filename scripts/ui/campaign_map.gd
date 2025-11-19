@@ -19,7 +19,8 @@ class_name CampaignMap
 @onready var difficulty_label: Label = %DifficultyLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var reward_label: Label = %RewardLabel
-@onready var deck_selector: OptionButton = %DeckSelector
+@onready var deck_column: VBoxContainer = $DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn
+@onready var deck_selector: ItemList = %DeckSelector
 @onready var deck_info_label: Label = %DeckInfoLabel
 @onready var active_deck_indicator: Label = %ActiveDeckIndicator
 @onready var start_event_button: Button = %StartEventButton
@@ -381,10 +382,16 @@ func _update_detail_panel() -> void:
 	if event.is_empty():
 		return
 
+	# Check if this event requires deck selection
+	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
 	var event_type: String = _safe_string(event.get("event_type", "battle"))
 
-	# Load available decks (skip for onboarding events)
-	if event_type != "onboarding":
+	# Show/hide deck selection based on event configuration
+	if deck_column:
+		deck_column.visible = requires_deck
+
+	# Load available decks only if required
+	if requires_deck:
 		_load_decks()
 
 	# Update labels
@@ -479,17 +486,14 @@ func _load_decks() -> void:
 
 	if available_decks.is_empty():
 		deck_selector.add_item("No decks available")
-		deck_selector.disabled = true
 		deck_info_label.text = "Create a deck first"
 		active_deck_indicator.text = ""
 		return
 
-	# Populate OptionButton with deck names
+	# Populate ItemList with deck names
 	for deck: Dictionary in available_decks:
 		var deck_name: String = _safe_string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
 		deck_selector.add_item(deck_name)
-
-	deck_selector.disabled = false
 
 	# Get currently selected deck from profile
 	var profile_repo: Node = get_node("/root/ProfileRepo")
@@ -614,28 +618,36 @@ func _on_start_event_pressed() -> void:
 		return
 
 	var event_type: String = _safe_string(event.get("event_type", "battle"))
+	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
 
-	# Handle onboarding event - route to hero selection
-	if event_type == "onboarding":
-		print("CampaignMap: Starting onboarding...")
+	# Handle affinity selection event - route to hero selection
+	if event_type == "affinity":
+		print("CampaignMap: Starting affinity selection...")
 		SceneManager.change_scene(SceneManager.SCENE_HERO_SELECTION)
+		return
+
+	# Handle first summon event - route to first card selection
+	if event_type == "first_summon":
+		print("CampaignMap: Starting first summon selection...")
+		SceneManager.change_scene(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
 
 	# Handle battle events
 	print("CampaignMap: Starting event: %s" % selected_event_id)
 
-	# Validate deck selection
-	if selected_deck_id.is_empty():
-		push_error("CampaignMap: No deck selected!")
-		# Update UI to show error
-		active_deck_indicator.text = "⚠ Select a deck first!"
-		active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)
-		return
+	# Validate deck selection only if this event requires a deck
+	if requires_deck:
+		if selected_deck_id.is_empty():
+			push_error("CampaignMap: No deck selected!")
+			# Update UI to show error
+			active_deck_indicator.text = "⚠ Select a deck first!"
+			active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)
+			return
 
-	if not _validate_selected_deck():
-		push_error("CampaignMap: Selected deck is invalid!")
-		# Error already shown in UI by _update_deck_info
-		return
+		if not _validate_selected_deck():
+			push_error("CampaignMap: Selected deck is invalid!")
+			# Error already shown in UI by _update_deck_info
+			return
 
 	# Store selected event in campaign service
 	var profile_repo: Node = get_node("/root/ProfileRepo")
@@ -650,7 +662,7 @@ func _on_start_event_pressed() -> void:
 	# Configure battle context
 	var battle_context: Node = get_node("/root/BattleContext")
 	if battle_context:
-		battle_context.call("configure_campaign_battle", selected_event_id, selected_deck_id)
+		battle_context.call("configure_campaign_battle", selected_event_id)
 
 	# Launch battle scene
 	SceneManager.change_scene(SceneManager.SCENE_BATTLE_3D)

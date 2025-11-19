@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "merlin_first_card_intro"
+character_name = "Merlin"
+portrait = null
+lines = Array[String](["Welcome to the Academy, Initiate. I am Merlin, your Headmaster.", "You stand at the beginning of your journey as a summoner—a path of great power and greater responsibility.", "Here at the Academy, we teach one principle above all: choices have consequences. What you bind, stays bound.", "Your first choice lies before you. Select your starting companion—warrior or archer.", "Choose with intention, Initiate. This decision is permanent, as all true summoning must be."])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

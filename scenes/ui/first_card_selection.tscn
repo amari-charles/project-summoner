@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c6vhr71i56ovf"]
+[gd_scene load_steps=3 format=3 uid="uid://c6vhr71i56ovf"]
 
 [ext_resource type="Script" path="res://scripts/ui/first_card_selection.gd" id="1_first_card"]
+[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/ui/dialogue_box.tscn" id="2_dialogue_box"]
 
 [node name="FirstCardSelection" type="Control"]
 layout_mode = 3
@@ -195,3 +196,5 @@ mouse_filter = 2
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
+
+[node name="DialogueBox" parent="." instance=ExtResource("2_dialogue_box")]

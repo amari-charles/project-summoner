@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "merlin_hero_intro"
+character_name = "Merlin"
+portrait = null
+lines = Array[String](["Welcome to the Academy, Initiate. I am Merlin, your Headmaster.", "Before we begin your trials, you must select your path—the elemental affinity that will shape your journey as a summoner.", "Each path offers unique strengths. Earth brings resilience, Fire passion, Water adaptability, Air swiftness... and for the daring, there is always the path of chance.", "This choice will define your approach to the summoning arts. Choose wisely, but do not hesitate.", "Fortune favors the bold."])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

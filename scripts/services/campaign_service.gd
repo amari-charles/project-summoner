@@ -55,19 +55,36 @@ func _init_battles() -> void:
 	#   - campaign_screen.gd (list-based screen)
 	# to prevent divergence between advertised and actual rewards
 
-	# Onboarding Event: Hero selection and first card
-	_battles["event_onboarding"] = {
-		"id": "event_onboarding",
+	# Onboarding Event 1: Hero/Affinity selection
+	_battles["event_affinity"] = {
+		"id": "event_affinity",
 		"biome_id": "",  # No biome, not a battle
-		"name": "Begin Your Journey",
-		"description": "Choose your hero and receive your first card to begin your adventure!",
+		"name": "Trial of Affinities",
+		"description": "Welcome to the Academy of Summoning Arts. Headmaster Merlin awaits in the crystal chamber—the ancient stones will measure your connection to the elemental forces. This trial will reveal your path, initiate. Choose wisely, for in the art of summoning, all choices endure.",
 		"difficulty": 0,
-		"event_type": "onboarding",
+		"event_type": "affinity",
+		"requires_deck": false,  # No deck selection needed
 		"repeatable": false,  # One-time event
 		"reward_type": "fixed",
-		"reward_cards": [],  # Reward handled by hero_selection/first_card_selection flow
+		"reward_cards": [],  # Reward handled by hero_selection flow
 		"enemy_deck": [],  # Not a battle
 		"unlock_requirements": [],  # First event, always available
+	}
+
+	# Onboarding Event 2: First summon selection
+	_battles["event_first_summon"] = {
+		"id": "event_first_summon",
+		"biome_id": "",  # No biome, not a battle
+		"name": "First Summon",
+		"description": "With your affinity revealed, the time has come to bind your first companion. Headmaster Merlin presents two candidates, each eager to join your journey. Remember, initiate: what you bind, stays bound. Choose your partner carefully.",
+		"difficulty": 0,
+		"event_type": "first_summon",
+		"requires_deck": false,  # No deck selection needed
+		"repeatable": false,  # One-time event
+		"reward_type": "fixed",
+		"reward_cards": [],  # Reward handled by first_card_selection flow
+		"enemy_deck": [],  # Not a battle
+		"unlock_requirements": ["event_affinity"],  # Requires completing affinity selection
 	}
 
 	# Battle 0: Tutorial - First card
