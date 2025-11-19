@@ -35,6 +35,7 @@ DialogueManager="*res://scripts/services/dialogue_manager.gd"
 DevConsole="*res://scripts/debug/dev_console.gd"
 ModifierSystem="*res://scripts/systems/modifier_system.gd"
 SceneManager="*res://scripts/core/scene_manager.gd"
+RedirectManager="*res://scripts/managers/redirect_manager.gd"
 PhysicsLayers="*res://scripts/core/physics_layers.gd"
 
 [debug]

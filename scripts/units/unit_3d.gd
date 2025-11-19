@@ -82,6 +82,11 @@ var is_facing_left: bool = false  # Current facing direction
 var is_attacking: bool = false  # Track if currently in attack animation
 var target_lock_timer: float = 0.0  # Time remaining before re-evaluating target
 
+## Redirect system (forced targeting)
+var forced_target: Node3D = null  ## Target assigned by redirect system (overrides normal targeting)
+var forced_target_timer: float = 0.0  ## Time remaining for forced target commitment
+var original_redirect_point: Vector3 = Vector3.ZERO  ## Original point for fallback targeting
+
 ## Projectile prediction cache
 var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
 
@@ -377,6 +382,14 @@ func _physics_process(delta: float) -> void:
 	attack_cooldown = max(attack_cooldown - delta, 0.0)
 	target_lock_timer = max(target_lock_timer - delta, 0.0)
 
+	# Tick down forced_target timer
+	if forced_target_timer > 0.0:
+		forced_target_timer -= delta
+		if forced_target_timer <= 0.0:
+			# Forced target expired - clear redirect state
+			forced_target = null
+			original_redirect_point = Vector3.ZERO
+
 	# Re-acquire target if lock expired or current target is invalid
 	if target_lock_timer <= 0.0 or not _is_valid_target(current_target):
 		current_target = _acquire_target()
@@ -417,6 +430,29 @@ func _is_valid_target(target: Node3D) -> bool:
 
 func _acquire_target() -> Node3D:
 	## Find the best target using weighted scoring system
+
+	# Priority 1: Check forced_target from redirect system
+	if forced_target and _is_valid_target(forced_target):
+		return forced_target
+
+	# Priority 2: If forced_target died but timer still active, try fallback in original area
+	if forced_target_timer > 0.0 and original_redirect_point != Vector3.ZERO:
+		var fallback: Node3D = RedirectManager.find_fallback_target(
+			original_redirect_point,
+			team,
+			RedirectManager.TARGET_SEARCH_RADIUS,
+			forced_target  # Exclude the dead target
+		)
+		if fallback:
+			forced_target = fallback
+			return fallback
+		else:
+			# No fallback found - clear forced targeting and resume normal behavior
+			forced_target = null
+			forced_target_timer = 0.0
+			original_redirect_point = Vector3.ZERO
+
+	# Priority 3: Normal targeting behavior
 	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
 	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
