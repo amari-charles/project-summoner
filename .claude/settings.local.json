@@ -11,7 +11,10 @@
       "Bash(git commit:*)",
       "Bash(pkill:*)",
       "Bash(find:*)",
-      "Bash(python3 -m py_compile:*)"
+      "Bash(python3 -m py_compile:*)",
+      "Bash(/Applications/Godot.app/Contents/MacOS/Godot:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []

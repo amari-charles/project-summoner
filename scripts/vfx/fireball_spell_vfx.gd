@@ -57,8 +57,7 @@ func receive_data(data: Dictionary) -> void:
 		if data.radius is float:
 			damage_radius = data.radius
 		elif data.radius is int:
-			var radius_int: int = data.radius
-			damage_radius = float(radius_int)
+				damage_radius = data.radius  # Implicit int-to-float conversion
 		else:
 			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float or int)" % typeof(data.radius))
 
@@ -67,8 +66,7 @@ func receive_data(data: Dictionary) -> void:
 		if data.damage is float:
 			spell_damage = data.damage
 		elif data.damage is int:
-			var damage_int: int = data.damage
-			spell_damage = float(damage_int)
+			spell_damage = data.damage  # Implicit int-to-float conversion
 
 	if data.has("team") and data.team is int:
 		spell_team = data.team
