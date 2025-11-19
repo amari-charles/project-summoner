@@ -98,10 +98,10 @@ stretch_mode = 5
 
 [node name="DetailPanel" type="Panel" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(800, 350)
+custom_minimum_size = Vector2(800, 700)
 layout_mode = 0
 offset_right = 800.0
-offset_bottom = 350.0
+offset_bottom = 700.0
 visible = false
 
 [node name="Background" type="NinePatchRect" parent="DetailPanel"]
