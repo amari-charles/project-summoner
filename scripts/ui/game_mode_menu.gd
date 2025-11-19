@@ -12,7 +12,7 @@ func _ready() -> void:
 ## Navigate to Campaign map
 func _on_campaign_pressed() -> void:
 	print("Opening campaign map...")
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_map.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## PLACEHOLDER - Shop not yet implemented
 func _on_shop_pressed() -> void:
@@ -22,7 +22,7 @@ func _on_shop_pressed() -> void:
 ## Navigate to Collection screen
 func _on_collection_pressed() -> void:
 	print("Opening collection screen...")
-	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_COLLECTION_SCREEN)
 
 ## PLACEHOLDER - Events not yet implemented
 func _on_events_pressed() -> void:
@@ -32,4 +32,4 @@ func _on_events_pressed() -> void:
 ## Return to Main Menu
 func _on_back_pressed() -> void:
 	print("Returning to main menu...")
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_MAIN_MENU)

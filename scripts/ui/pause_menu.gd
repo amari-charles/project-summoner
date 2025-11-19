@@ -62,4 +62,4 @@ func _on_quit_pressed() -> void:
 	# CRITICAL: Unpause before changing scenes
 	get_tree().paused = false
 	# TODO: Use BattleContext to track origin screen and return to correct location
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)

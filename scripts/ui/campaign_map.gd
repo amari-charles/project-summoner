@@ -618,7 +618,7 @@ func _on_start_event_pressed() -> void:
 	# Handle onboarding event - route to hero selection
 	if event_type == "onboarding":
 		print("CampaignMap: Starting onboarding...")
-		get_tree().change_scene_to_file("res://scenes/ui/hero_selection.tscn")
+		SceneManager.change_scene(SceneManager.SCENE_HERO_SELECTION)
 		return
 
 	# Handle battle events
@@ -653,7 +653,7 @@ func _on_start_event_pressed() -> void:
 		battle_context.call("configure_campaign_battle", selected_event_id, selected_deck_id)
 
 	# Launch battle scene
-	get_tree().change_scene_to_file("res://scenes/battlefield/battle_3d.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_BATTLE_3D)
 
 ## =============================================================================
 ## NAVIGATION
@@ -661,7 +661,7 @@ func _on_start_event_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	print("CampaignMap: Returning to game mode menu")
-	get_tree().change_scene_to_file("res://scenes/ui/game_mode_menu.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)
 
 func _on_center_latest_pressed() -> void:
 	var latest_unlocked_id: String = _find_latest_unlocked_mission()

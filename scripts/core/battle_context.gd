@@ -99,11 +99,11 @@ func _handle_campaign_completion(winner: int) -> void:
 
 	if winner == 0:  # Player won
 		# Transition to reward screen (it will handle completion and rewards)
-		get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
+		SceneManager.change_scene(SceneManager.SCENE_REWARD_SCREEN)
 	else:  # Player lost
 		# Return to campaign screen
 		# TODO: Track origin screen to return to correct location (arena, practice, etc.)
-		get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+		SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## Handle practice battle completion
 func _handle_practice_completion(winner: int) -> void:

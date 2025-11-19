@@ -224,13 +224,13 @@ func _handle_campaign_victory(winner: Unit.Team) -> void:
 		print("GameController: Campaign battle won! Transitioning to reward screen...")
 		await get_tree().create_timer(2.0).timeout  # Show victory for 2 seconds
 		get_tree().paused = false
-		get_tree().change_scene_to_file("res://scenes/ui/reward_screen.tscn")
+		SceneManager.change_scene(SceneManager.SCENE_REWARD_SCREEN)
 	else:
 		# Player lost - return to campaign screen
 		print("GameController: Campaign battle lost. Returning to campaign...")
 		await get_tree().create_timer(2.0).timeout
 		get_tree().paused = false
-		get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+		SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## Setup AI for campaign battles
 func _setup_campaign_ai() -> void:

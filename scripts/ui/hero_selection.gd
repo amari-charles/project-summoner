@@ -42,4 +42,4 @@ func _on_hero_selected(hero_id: String) -> void:
 			profile_repo.call("save_profile")
 
 	# Continue to first card selection
-	get_tree().change_scene_to_file("res://scenes/ui/first_card_selection.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_FIRST_CARD_SELECTION)

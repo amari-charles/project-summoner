@@ -52,4 +52,4 @@ func _on_card_selected(catalog_id: StringName) -> void:
 		print("FirstCardSelection: Marked onboarding event as completed!")
 
 	# Continue to campaign map
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_map.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
