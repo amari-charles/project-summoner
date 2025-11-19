@@ -267,7 +267,7 @@ func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
 		push_error("Summoner3D: dev_player_deck is not an Array")
 		return []
 
-	var deck: Array[Card] = []
+	var loaded_deck: Array[Card] = []
 	var card_configs: Array = dev_deck_config
 
 	for config_variant: Variant in card_configs:
@@ -281,12 +281,12 @@ func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
 		for i: int in count:
 			var card: Card = CardCatalog.create_card_resource(catalog_id)
 			if card:
-				deck.append(card)
+				loaded_deck.append(card)
 			else:
 				push_warning("Summoner3D: Failed to create dev card: %s" % catalog_id)
 
-	print("Summoner3D: Loaded %d cards from dev_player_deck" % deck.size())
-	return deck
+	print("Summoner3D: Loaded %d cards from dev_player_deck" % loaded_deck.size())
+	return loaded_deck
 
 ## Emergency fallback: Create minimal deck when all strategies fail
 ## Uses basic warrior cards as last resort to prevent game breaking

@@ -196,7 +196,6 @@ func _apply_aoe_damage() -> void:
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
 	# Apply damage to all enemies in radius
-	var damage_count: int = 0
 	for enemy: Node in enemies:
 		if enemy is Unit3D:
 			var enemy_unit: Unit3D = enemy as Unit3D
@@ -204,7 +203,6 @@ func _apply_aoe_damage() -> void:
 				var distance: float = enemy_unit.global_position.distance_to(target_position)
 				if distance <= damage_radius:
 					enemy_unit.take_damage(spell_damage)
-					damage_count += 1
 
 ## Override _on_reset for pooling
 func _on_reset() -> void:
