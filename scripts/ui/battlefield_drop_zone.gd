@@ -48,6 +48,13 @@ func _ready() -> void:
 	# so HandUI will receive mouse events in its area first
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
+func _process(_delta: float) -> void:
+	# Pass through mouse input when redirect mode is active
+	if RedirectManager.current_mode != RedirectManager.RedirectMode.NORMAL:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+	else:
+		mouse_filter = Control.MOUSE_FILTER_STOP
+
 ## Check if we can drop the card here
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	# Validate drop data
