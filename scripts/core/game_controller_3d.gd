@@ -74,6 +74,10 @@ func _ready() -> void:
 	# Register hero modifier provider
 	_register_hero_provider()
 
+	# Initialize redirect indicator
+	_redirect_indicator = RedirectIndicator.new()
+	add_child(_redirect_indicator)
+
 	call_deferred("start_game")
 
 func _exit_tree() -> void:
@@ -317,6 +321,9 @@ var _redirect_selected_units: Array[Unit3D] = []
 ## Camera for raycasting (cached)
 var _camera: Camera3D = null
 
+## Visual indicator for redirect
+var _redirect_indicator: RedirectIndicator = null
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Only handle redirect input during active gameplay
 	if current_state != GameState.PLAYING:
@@ -347,6 +354,11 @@ func _unhandled_input(event: InputEvent) -> void:
 					player_summoner.team
 				)
 				_redirect_drag_active = true
+
+				# Show visual indicator
+				var indicator_color: Color = RedirectManager.get_current_mode_color()
+				_redirect_indicator.show_selection_circle(click_point, indicator_color)
+
 				print("GameController3D: Redirect started, selected %d units" % _redirect_selected_units.size())
 
 		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
@@ -354,7 +366,17 @@ func _unhandled_input(event: InputEvent) -> void:
 			var release_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
 			if release_point != Vector3.ZERO:
 				_on_redirect_release(release_point)
+
+			# Hide visual indicator
+			_redirect_indicator.hide_selection_circle()
 			_redirect_drag_active = false
+
+	# Handle mouse motion (update drag arrow)
+	if event is InputEventMouseMotion and _redirect_drag_active:
+		var mouse_motion: InputEventMouseMotion = event
+		var current_point: Vector3 = _get_battlefield_point_from_mouse(mouse_motion.position)
+		if current_point != Vector3.ZERO:
+			_redirect_indicator.update_drag(_redirect_start_point, current_point)
 
 ## Convert 2D screen position to 3D battlefield point via raycast
 func _get_battlefield_point_from_mouse(screen_pos: Vector2) -> Vector3:
