@@ -424,12 +424,16 @@ func _get_battlefield_point_from_mouse(screen_pos: Vector2) -> Vector3:
 
 ## Handle redirect release (apply forced targets)
 func _on_redirect_release(release_point: Vector3) -> void:
+	print("GameController3D: Redirect release at ", release_point)
+	print("GameController3D: Selected units count: ", _redirect_selected_units.size())
+
 	if _redirect_selected_units.is_empty():
 		print("GameController3D: No units selected for redirect")
 		RedirectManager.cancel_redirect()
 		return
 
 	# Find nearest enemy at release point
+	print("GameController3D: Searching for target at ", release_point, " with radius ", RedirectManager.TARGET_SEARCH_RADIUS)
 	var target: Node3D = RedirectManager.find_nearest_enemy(
 		release_point,
 		player_summoner.team,
@@ -440,6 +444,8 @@ func _on_redirect_release(release_point: Vector3) -> void:
 		print("GameController3D: No valid target found at release point")
 		RedirectManager.cancel_redirect()
 		return
+
+	print("GameController3D: Found target: ", target.name, " at ", target.global_position)
 
 	# Apply forced targets
 	RedirectManager.apply_forced_targets(

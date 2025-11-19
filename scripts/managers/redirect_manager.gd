@@ -284,15 +284,26 @@ func apply_forced_targets(units: Array[Unit3D], target: Node3D, duration: float,
 
 	var is_attack: bool = current_mode == RedirectMode.REDIRECT_ATTACK
 
+	print("RedirectManager: Applying to ", units.size(), " units, target=", target.name, " duration=", duration)
+
+	var applied_count: int = 0
 	for unit: Unit3D in units:
 		if not is_instance_valid(unit) or not unit.is_alive:
+			print("RedirectManager: Skipping invalid/dead unit")
 			continue
 
 		unit.forced_target = target
 		unit.forced_target_timer = duration
 		unit.original_redirect_point = original_point
 
-	print("RedirectManager: Applied forced targets to %d units for %.1fs" % [units.size(), duration])
+		# Reset target lock timer to force immediate re-acquisition
+		unit.target_lock_timer = 0.0
+
+		applied_count += 1
+
+		print("RedirectManager: Unit ", unit.name, " forced_target=", unit.forced_target.name if unit.forced_target else "null", " timer=", unit.forced_target_timer)
+
+	print("RedirectManager: Applied forced targets to %d/%d units for %.1fs" % [applied_count, units.size(), duration])
 	redirect_applied.emit(units, target, is_attack)
 
 	# Return to normal mode

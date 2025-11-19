@@ -16,6 +16,9 @@ enum BonusType {
 	PERCENTAGE  ## Multiply base damage by (1 + bonus/100)
 }
 
+## Signals
+signal ability_triggered(data: Dictionary)
+
 ## =============================================================================
 ## CONFIGURATION
 ## =============================================================================
