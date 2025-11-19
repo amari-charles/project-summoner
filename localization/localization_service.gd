@@ -7,8 +7,8 @@ class_name LocalizationService
 ## Supports flat and nested JSON structures, with English fallback.
 ##
 ## Usage:
-##   Loc.tr("menu.play") → "Play"
-##   Loc.tr("battle.damage", {"amount": 5}) → "Deal 5 damage"
+##   Loc.t("menu.play") → "Play"
+##   Loc.t("battle.damage", {"amount": 5}) → "Deal 5 damage"
 
 signal language_changed(new_locale: String)
 
@@ -42,11 +42,11 @@ func _ready() -> void:
 ## Replaces {param} placeholders with values from params dict.
 ##
 ## Examples:
-##   tr("menu.play") → "Play"
-##   tr("battle.damage", {"amount": 5}) → "Deal 5 damage"
+##   t("menu.play") → "Play"
+##   t("battle.damage", {"amount": 5}) → "Deal 5 damage"
 ##
 ## Returns "[MISSING:key]" if key not found in any dictionary.
-func tr(key: String, params := {}) -> String:
+func t(key: String, params: Dictionary = {}) -> String:
 	var text: String = ""
 
 	# Try current language first
@@ -127,7 +127,7 @@ func _load_language_file(locale: String) -> Dictionary:
 		return {}
 
 	# Flatten nested dictionaries into dot notation
-	var flattened: Dictionary = _flatten_dictionary(data)
+	var flattened: Dictionary = _flatten_dictionary(data, "")
 
 	return flattened
 
@@ -136,8 +136,14 @@ func _load_language_file(locale: String) -> Dictionary:
 ##
 ## Converts {"menu": {"play": "Play"}} → {"menu.play": "Play"}
 ## Also preserves flat keys: {"menu.play": "Play"} → {"menu.play": "Play"}
-func _flatten_dictionary(dict: Dictionary, prefix: String = "") -> Dictionary:
+func _flatten_dictionary(input: Variant, prefix: String = "") -> Dictionary:
 	var result: Dictionary = {}
+
+	# Safety check: input must be a Dictionary
+	if not input is Dictionary:
+		return result
+
+	var dict: Dictionary = input
 
 	for key: String in dict.keys():
 		var full_key: String = prefix + key if prefix == "" else prefix + "." + key

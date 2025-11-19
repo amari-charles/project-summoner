@@ -70,4 +70,4 @@ func _update_text() -> void:
 		text = "[NO LOC]"
 		return
 
-	text = Loc.tr(localization_key, _params)
+	text = Loc.t(localization_key, _params)

@@ -59,8 +59,8 @@ func _init_battles() -> void:
 	_battles["event_affinity"] = {
 		"id": "event_affinity",
 		"biome_id": "",  # No biome, not a battle
-		"name": Loc.tr("campaign.event.affinity.name"),
-		"description": Loc.tr("campaign.event.affinity.description"),
+		"name": Loc.t("campaign.event.affinity.name"),
+		"description": Loc.t("campaign.event.affinity.description"),
 		"difficulty": 0,
 		"event_type": "affinity",
 		"requires_deck": false,  # No deck selection needed
@@ -75,8 +75,8 @@ func _init_battles() -> void:
 	_battles["event_first_summon"] = {
 		"id": "event_first_summon",
 		"biome_id": "",  # No biome, not a battle
-		"name": Loc.tr("campaign.event.first_summon.name"),
-		"description": Loc.tr("campaign.event.first_summon.description"),
+		"name": Loc.t("campaign.event.first_summon.name"),
+		"description": Loc.t("campaign.event.first_summon.description"),
 		"difficulty": 0,
 		"event_type": "first_summon",
 		"requires_deck": false,  # No deck selection needed

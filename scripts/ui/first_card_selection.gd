@@ -7,7 +7,7 @@ class_name FirstCardSelection
 ## Card is granted to collection and onboarding is marked complete.
 
 # Deck name constant
-const STARTER_DECK_NAME: String = STARTER_DECK_NAME
+const STARTER_DECK_NAME: String = "Starter Deck"
 
 @onready var select_warrior_button: Button = %SelectWarriorButton
 @onready var select_archer_button: Button = %SelectArcherButton
