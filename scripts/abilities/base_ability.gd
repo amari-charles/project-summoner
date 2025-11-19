@@ -12,9 +12,6 @@ class_name BaseAbility
 ##   3. Override _connect_to_unit_events() to listen to unit signals
 ##   4. Add as child node to unit in scene or via code
 
-## Emitted when ability triggers an effect (currently unused - reserved for future use)
-signal _ability_triggered(data: Dictionary)
-
 ## Reference to the unit this ability is attached to
 var owner_unit: Unit3D = null
 

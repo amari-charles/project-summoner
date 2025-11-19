@@ -184,7 +184,7 @@ func _refresh_map() -> void:
 
 	# Calculate centered starting position
 	var event_count: int = all_events.size()
-	var total_width: float = (event_count - 1) * NODE_SPACING if event_count > 0 else 0
+	var total_width: float = (event_count - 1) * NODE_SPACING if event_count > 0 else 0.0
 	var map_width: float = map_container.custom_minimum_size.x
 	var start_x: float = (map_width - total_width) / 2.0
 
