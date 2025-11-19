@@ -131,8 +131,8 @@ func _ready() -> void:
 	_refresh_map()
 	_update_progress_display()
 
-	# Auto-scroll to latest mission
-	_on_center_latest_pressed()
+	# Auto-scroll to latest mission (deferred to next frame so nodes are fully laid out)
+	call_deferred("_on_center_latest_pressed")
 
 func _draw() -> void:
 	# Draw paths connecting events using explicit render order
