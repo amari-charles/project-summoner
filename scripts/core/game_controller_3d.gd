@@ -444,9 +444,11 @@ func _apply_unit_tint(tint_color: Color) -> void:
 
 	for unit: Unit3D in _redirect_selected_units:
 		if is_instance_valid(unit) and unit.visual_component:
-			# Check if this is a sprite-based component
-			if unit.visual_component.has_method("get") and unit.visual_component.has("character_sprite"):
-				var sprite: AnimatedSprite2D = unit.visual_component.get("character_sprite")
+			# Check if this is a sprite-based component (use duck typing via Variant)
+			var visual: Variant = unit.visual_component
+			if visual is SpriteCharacter2D5Component:
+				var sprite_component: SpriteCharacter2D5Component = visual as SpriteCharacter2D5Component
+				var sprite: AnimatedSprite2D = sprite_component.character_sprite
 				if sprite:
 					# Store original modulate
 					_unit_original_modulates[unit] = sprite.modulate
@@ -458,9 +460,11 @@ func _apply_unit_tint(tint_color: Color) -> void:
 func _restore_unit_tint() -> void:
 	for unit: Unit3D in _unit_original_modulates.keys():
 		if is_instance_valid(unit) and unit.visual_component:
-			# Check if this is a sprite-based component
-			if unit.visual_component.has_method("get") and unit.visual_component.has("character_sprite"):
-				var sprite: AnimatedSprite2D = unit.visual_component.get("character_sprite")
+			# Check if this is a sprite-based component (use duck typing via Variant)
+			var visual: Variant = unit.visual_component
+			if visual is SpriteCharacter2D5Component:
+				var sprite_component: SpriteCharacter2D5Component = visual as SpriteCharacter2D5Component
+				var sprite: AnimatedSprite2D = sprite_component.character_sprite
 				if sprite:
 					sprite.modulate = _unit_original_modulates[unit]
 
