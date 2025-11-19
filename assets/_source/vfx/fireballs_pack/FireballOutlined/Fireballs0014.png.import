@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bwj752jsjq7f3"
-path="res://.godot/imported/Fireballs0014.png-c9db1d84de174c89c0ff50aba72eeacc.ctex"
+path="res://.godot/imported/Fireballs0014.png-90877b1e318cae2fabb265acf704dd90.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Fireballs by Weentermakesgames/FireballOutlined/Fireballs0014.png"
-dest_files=["res://.godot/imported/Fireballs0014.png-c9db1d84de174c89c0ff50aba72eeacc.ctex"]
+source_file="res://assets/_source/vfx/fireballs_pack/FireballOutlined/Fireballs0014.png"
+dest_files=["res://.godot/imported/Fireballs0014.png-90877b1e318cae2fabb265acf704dd90.ctex"]
 
 [params]
 

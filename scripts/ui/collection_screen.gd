@@ -487,8 +487,8 @@ func _on_delete_deck_pressed() -> void:
 ## =============================================================================
 
 func _on_back_pressed() -> void:
-	print("CollectionScreen: Returning to main menu")
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	print("CollectionScreen: Returning to game mode menu")
+	get_tree().change_scene_to_file("res://scenes/ui/game_mode_menu.tscn")
 
 ## =============================================================================
 ## SIGNALS

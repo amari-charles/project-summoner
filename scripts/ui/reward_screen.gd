@@ -83,7 +83,7 @@ func _load_battle_results() -> void:
 
 func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	var campaign: Node = get_node("/root/Campaign")
-	var catalog: Node = get_node("/root/CardCatalog")
+	var _catalog: Node = get_node("/root/CardCatalog")
 
 	if is_replay:
 		# Show message for replayed battles
@@ -201,7 +201,7 @@ func _on_choice_selected(index: int) -> void:
 
 func _on_continue_pressed() -> void:
 	print("RewardScreen: Continuing to campaign screen")
-	get_tree().change_scene_to_file("res://scenes/ui/campaign_screen.tscn")
+	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## =============================================================================
 ## AUTO-FILL DECK (TUTORIAL MODE)

@@ -53,34 +53,26 @@ func _ready() -> void:
 func receive_data(data: Dictionary) -> void:
 	# Accept radius from Card's spell_radius for accurate AOE indicator sizing
 	if data.has("radius"):
-		var radius_value: Variant = data.radius
 		# Type-safe assignment after type check
-		if radius_value is float:
-			damage_radius = radius_value
-		elif radius_value is int:
-			var radius_int: int = radius_value
-			damage_radius = float(radius_int)
+		if data.radius is float:
+			damage_radius = data.radius
+		elif data.radius is int:
+				damage_radius = data.radius  # Implicit int-to-float conversion
 		else:
-			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float or int)" % typeof(radius_value))
+			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float or int)" % typeof(data.radius))
 
 	# Accept damage parameters from Card
 	if data.has("damage"):
-		var damage_value: Variant = data.damage
-		if damage_value is float:
-			spell_damage = damage_value
-		elif damage_value is int:
-			var damage_int: int = damage_value
-			spell_damage = float(damage_int)
+		if data.damage is float:
+			spell_damage = data.damage
+		elif data.damage is int:
+			spell_damage = data.damage  # Implicit int-to-float conversion
 
-	if data.has("team"):
-		var team_value: Variant = data.team
-		if team_value is int:
-			spell_team = team_value
+	if data.has("team") and data.team is int:
+		spell_team = data.team
 
-	if data.has("battlefield"):
-		var battlefield_value: Variant = data.battlefield
-		if battlefield_value is Node:
-			spell_battlefield = battlefield_value
+	if data.has("battlefield") and data.battlefield is Node:
+		spell_battlefield = data.battlefield
 
 ## Override _on_play to start the descent animation
 func _on_play() -> void:
@@ -204,7 +196,6 @@ func _apply_aoe_damage() -> void:
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
 	# Apply damage to all enemies in radius
-	var damage_count: int = 0
 	for enemy: Node in enemies:
 		if enemy is Unit3D:
 			var enemy_unit: Unit3D = enemy as Unit3D
@@ -212,7 +203,6 @@ func _apply_aoe_damage() -> void:
 				var distance: float = enemy_unit.global_position.distance_to(target_position)
 				if distance <= damage_radius:
 					enemy_unit.take_damage(spell_damage)
-					damage_count += 1
 
 ## Override _on_reset for pooling
 func _on_reset() -> void:

@@ -41,6 +41,10 @@ Example: When implementing drag-and-drop for cards, remove click-to-play entirel
 - Prefer clean, single-path implementations
 - Remove deprecated code immediately
 - Don't hedge with "we can keep the old way too"
+- **Avoid bandaid fixes**: Don't suppress warnings with `@warning_ignore` or similar. Fix the root cause instead:
+  - Use `has_method()` checks for duck typing
+  - Properly type variables when possible
+  - Address the underlying type safety issue
 
 ### Git Workflow
 **ALWAYS use feature branches and PRs for non-trivial changes.**
