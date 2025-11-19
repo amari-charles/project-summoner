@@ -215,6 +215,28 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 			nearest = structure
 			nearest_dist = dist
 
+	# Search for enemy bases (Base3D uses @export var team, not meta)
+	var all_bases: Array[Node] = get_tree().get_nodes_in_group("bases")
+	for node: Node in all_bases:
+		if not node is Node3D:
+			continue
+
+		var base: Node3D = node as Node3D
+
+		# Check if base has team property
+		if not "team" in base:
+			continue
+
+		var base_team_variant: Variant = base.get("team")
+		var base_team: int = base_team_variant if base_team_variant is int else -1
+		if base_team == team:
+			continue
+
+		var dist: float = point.distance_to(base.global_position)
+		if dist < search_radius and dist < nearest_dist:
+			nearest = base
+			nearest_dist = dist
+
 	if nearest:
 		print("RedirectManager: Found nearest enemy at distance %.1f" % nearest_dist)
 	else:
@@ -268,6 +290,32 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 		var dist: float = original_point.distance_to(structure.global_position)
 		if dist < search_radius and dist < fallback_dist:
 			fallback = structure
+			fallback_dist = dist
+
+	# Search for enemy bases
+	var all_bases: Array[Node] = get_tree().get_nodes_in_group("bases")
+	for node: Node in all_bases:
+		if not node is Node3D:
+			continue
+
+		var base: Node3D = node as Node3D
+
+		# Skip excluded base
+		if base == exclude:
+			continue
+
+		# Check if base has team property
+		if not "team" in base:
+			continue
+
+		var base_team_variant: Variant = base.get("team")
+		var base_team: int = base_team_variant if base_team_variant is int else -1
+		if base_team == team:
+			continue
+
+		var dist: float = original_point.distance_to(base.global_position)
+		if dist < search_radius and dist < fallback_dist:
+			fallback = base
 			fallback_dist = dist
 
 	if fallback:
