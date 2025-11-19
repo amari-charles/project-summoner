@@ -19,6 +19,9 @@ class_name CampaignMap
 @onready var difficulty_label: Label = %DifficultyLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var reward_label: Label = %RewardLabel
+@onready var deck_selector: OptionButton = %DeckSelector
+@onready var deck_info_label: Label = %DeckInfoLabel
+@onready var active_deck_indicator: Label = %ActiveDeckIndicator
 @onready var start_event_button: Button = %StartEventButton
 
 ## Map layout constants
@@ -48,6 +51,10 @@ var is_panning: bool = false
 var pan_start_position: Vector2 = Vector2.ZERO
 var last_mouse_position: Vector2 = Vector2.ZERO
 const PAN_THRESHOLD: float = 5.0  # Pixels to move before panning starts
+
+## Deck selection state
+var available_decks: Array[Dictionary] = []
+var selected_deck_id: String = ""
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -79,6 +86,7 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	center_button.pressed.connect(_on_center_latest_pressed)
 	start_event_button.pressed.connect(_on_start_event_pressed)
+	deck_selector.item_selected.connect(_on_deck_selected)
 
 	# Load map background texture if available
 	if FileAccess.file_exists(MAP_BACKGROUND_TEXTURE):
@@ -358,6 +366,10 @@ func _update_detail_panel() -> void:
 		description_label.text = "Click an event node to see details."
 		reward_label.text = ""
 		start_event_button.disabled = true
+		# Clear deck selection UI
+		deck_selector.clear()
+		deck_info_label.text = ""
+		active_deck_indicator.text = ""
 		return
 
 	# Get event data
@@ -370,6 +382,10 @@ func _update_detail_panel() -> void:
 		return
 
 	var event_type: String = _safe_string(event.get("event_type", "battle"))
+
+	# Load available decks (skip for onboarding events)
+	if event_type != "onboarding":
+		_load_decks()
 
 	# Update labels
 	event_name_label.text = _safe_string(event.get("name", "Unknown"), "Unknown")
@@ -441,6 +457,129 @@ func _update_detail_panel() -> void:
 		start_event_button.disabled = false
 
 ## =============================================================================
+## DECK SELECTION
+## =============================================================================
+
+func _load_decks() -> void:
+	# Clear existing items
+	deck_selector.clear()
+	available_decks.clear()
+
+	# Get decks service
+	var decks: Node = get_node("/root/Decks")
+	if not decks:
+		push_error("CampaignMap: Decks service not found!")
+		deck_info_label.text = "Error: Decks service unavailable"
+		return
+
+	# Get all decks
+	var decks_variant: Variant = decks.call("list_decks")
+	var decks_array: Array = _safe_array(decks_variant)
+	available_decks.assign(decks_array)
+
+	if available_decks.is_empty():
+		deck_selector.add_item("No decks available")
+		deck_selector.disabled = true
+		deck_info_label.text = "Create a deck first"
+		active_deck_indicator.text = ""
+		return
+
+	# Populate OptionButton with deck names
+	for deck: Dictionary in available_decks:
+		var deck_name: String = _safe_string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
+		deck_selector.add_item(deck_name)
+
+	deck_selector.disabled = false
+
+	# Get currently selected deck from profile
+	var profile_repo: Node = get_node("/root/ProfileRepo")
+	if profile_repo:
+		var profile_variant: Variant = profile_repo.call("get_active_profile")
+		var profile: Dictionary = _safe_dict(profile_variant)
+		if not profile.is_empty() and profile.has("meta"):
+			var meta: Dictionary = _safe_dict(profile.get("meta"))
+			var active_deck: String = _safe_string(meta.get("selected_deck", ""))
+
+			# Find the deck in available_decks and select it
+			for i: int in range(available_decks.size()):
+				var deck: Dictionary = available_decks[i]
+				var deck_id: String = _safe_string(deck.get("id", ""))
+				if deck_id == active_deck:
+					deck_selector.select(i)
+					selected_deck_id = deck_id
+					break
+
+	# Update deck info display
+	_update_deck_info()
+
+func _on_deck_selected(index: int) -> void:
+	if index < 0 or index >= available_decks.size():
+		return
+
+	var deck: Dictionary = available_decks[index]
+	selected_deck_id = _safe_string(deck.get("id", ""))
+
+	# Update deck info display
+	_update_deck_info()
+
+	# Save selection to profile
+	var profile_repo: Node = get_node("/root/ProfileRepo")
+	if profile_repo:
+		var profile_variant: Variant = profile_repo.call("get_active_profile")
+		var profile: Dictionary = _safe_dict(profile_variant)
+		if not profile.is_empty():
+			if not profile.has("meta"):
+				profile["meta"] = {}
+			var meta: Dictionary = _safe_dict(profile.get("meta"))
+			meta["selected_deck"] = selected_deck_id
+			profile_repo.call("save_profile", true)  # Immediate save
+
+	print("CampaignMap: Selected deck: %s" % selected_deck_id)
+
+func _update_deck_info() -> void:
+	if selected_deck_id.is_empty():
+		deck_info_label.text = ""
+		active_deck_indicator.text = ""
+		return
+
+	# Find the selected deck
+	var selected_deck: Dictionary = {}
+	for deck: Dictionary in available_decks:
+		if _safe_string(deck.get("id", "")) == selected_deck_id:
+			selected_deck = deck
+			break
+
+	if selected_deck.is_empty():
+		deck_info_label.text = ""
+		active_deck_indicator.text = ""
+		return
+
+	# Show card count
+	var card_ids: Array = _safe_array(selected_deck.get("card_ids", []))
+	var card_count: int = card_ids.size()
+	deck_info_label.text = "%d cards" % card_count
+
+	# Validate deck and show status
+	var is_valid: bool = _validate_selected_deck()
+	if is_valid:
+		active_deck_indicator.text = "✓ Ready"
+		active_deck_indicator.modulate = Color(0.3, 1.0, 0.3)
+	else:
+		active_deck_indicator.text = "⚠ Invalid deck"
+		active_deck_indicator.modulate = Color(1.0, 0.5, 0.0)
+
+func _validate_selected_deck() -> bool:
+	if selected_deck_id.is_empty():
+		return false
+
+	var decks: Node = get_node("/root/Decks")
+	if not decks:
+		return false
+
+	var is_valid_variant: Variant = decks.call("validate_deck", selected_deck_id)
+	return _safe_bool(is_valid_variant, false)
+
+## =============================================================================
 ## PROGRESS DISPLAY
 ## =============================================================================
 
@@ -485,6 +624,19 @@ func _on_start_event_pressed() -> void:
 	# Handle battle events
 	print("CampaignMap: Starting event: %s" % selected_event_id)
 
+	# Validate deck selection
+	if selected_deck_id.is_empty():
+		push_error("CampaignMap: No deck selected!")
+		# Update UI to show error
+		active_deck_indicator.text = "⚠ Select a deck first!"
+		active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)
+		return
+
+	if not _validate_selected_deck():
+		push_error("CampaignMap: Selected deck is invalid!")
+		# Error already shown in UI by _update_deck_info
+		return
+
 	# Store selected event in campaign service
 	var profile_repo: Node = get_node("/root/ProfileRepo")
 	var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
@@ -498,7 +650,7 @@ func _on_start_event_pressed() -> void:
 	# Configure battle context
 	var battle_context: Node = get_node("/root/BattleContext")
 	if battle_context:
-		battle_context.call("configure_campaign_battle", selected_event_id)
+		battle_context.call("configure_campaign_battle", selected_event_id, selected_deck_id)
 
 	# Launch battle scene
 	get_tree().change_scene_to_file("res://scenes/battlefield/battle_3d.tscn")
