@@ -48,6 +48,48 @@ func _ready() -> void:
 	# so HandUI will receive mouse events in its area first
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
+## Handle mouse events for two-stage spell targeting
+func _gui_input(event: InputEvent) -> void:
+	# Forward input to SpellTargetingManager if it's active
+	if not SpellTargetingManager or not SpellTargetingManager.get("is_active"):
+		return
+
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+		var world_pos: Vector3 = _screen_to_world_3d(mouse_event.position)
+
+		if world_pos == Vector3.ZERO:
+			return
+
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			if mouse_event.pressed:
+				# Mouse down - place circle and start arrow drag
+				print("BattlefieldDropZone: Mouse down at %s" % world_pos)
+				if SpellTargetingManager.has_method("handle_mouse_down"):
+					SpellTargetingManager.call("handle_mouse_down", world_pos)
+					accept_event()
+			else:
+				# Mouse up - confirm rally destination
+				print("BattlefieldDropZone: Mouse up at %s" % world_pos)
+				if SpellTargetingManager.has_method("handle_mouse_up"):
+					SpellTargetingManager.call("handle_mouse_up", world_pos)
+					accept_event()
+		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
+			# Cancel targeting
+			print("BattlefieldDropZone: Right-click cancel")
+			if SpellTargetingManager.has_method("_cancel_targeting"):
+				SpellTargetingManager.call("_cancel_targeting")
+				accept_event()
+
+	elif event is InputEventMouseMotion:
+		# Update arrow endpoint during drag
+		var mouse_motion: InputEventMouseMotion = event
+		var world_pos: Vector3 = _screen_to_world_3d(mouse_motion.position)
+
+		if world_pos != Vector3.ZERO and SpellTargetingManager.has_method("handle_mouse_move"):
+			SpellTargetingManager.call("handle_mouse_move", world_pos)
+			accept_event()
+
 ## Check if we can drop the card here
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	# Validate drop data
@@ -114,13 +156,26 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		return
 	var card_index: int = card_index_variant
 
-	if is_3d:
-		# Convert screen to 3D world position
+	# Get the card to check if it needs click-targeting
+	var card_variant: Variant = data_dict.get("card")
+	if not card_variant is Card:
+		return
+	var card: Card = card_variant
+
+	# Check if this card needs click-targeting (Rally/Guard with command_type)
+	var needs_targeting: bool = _card_needs_click_targeting(card)
+
+	if needs_targeting and SpellTargetingManager and is_3d:
+		# Delegate to targeting manager for click-targeting
+		print("BattlefieldDropZone: Starting click-targeting for %s" % card.card_name)
+		SpellTargetingManager.start_targeting(card, card_index, summoner, camera_3d)
+	elif is_3d:
+		# Immediate play in 3D
 		var world_pos_3d: Vector3 = _screen_to_world_3d(at_position)
 		if summoner.has_method("play_card_3d"):
 			summoner.call("play_card_3d", card_index, world_pos_3d)
 	else:
-		# Convert screen to 2D world position
+		# Immediate play in 2D
 		var world_pos_2d: Vector2 = _screen_to_world_2d(at_position)
 		if summoner.has_method("play_card"):
 			summoner.call("play_card", card_index, world_pos_2d)
@@ -151,3 +206,9 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 
 	var hit_pos: Vector3 = from + (to - from) * t
 	return hit_pos
+
+## Check if a card needs click-targeting (Rally/Guard with command_type)
+func _card_needs_click_targeting(card: Card) -> bool:
+	var needs_targeting: bool = card.needs_click_targeting()
+	print("BattlefieldDropZone: Card %s needs targeting: %s" % [card.card_name, needs_targeting])
+	return needs_targeting

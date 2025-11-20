@@ -12,6 +12,9 @@ class_name DeathExplosionAbility
 ##   affects_enemies = true    # Damage enemies
 ##   affects_allies = false    # No friendly fire
 
+## Signal emitted when ability triggers
+signal ability_triggered(data: Dictionary)
+
 ## =============================================================================
 ## CONFIGURATION
 ## =============================================================================

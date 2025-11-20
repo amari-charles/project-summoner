@@ -19,6 +19,9 @@ enum AuraType {
 	CUSTOM       ## For future custom effects
 }
 
+## Signals
+signal ability_triggered(data: Dictionary)
+
 ## =============================================================================
 ## CONFIGURATION
 ## =============================================================================

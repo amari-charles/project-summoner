@@ -74,6 +74,10 @@ func _ready() -> void:
 	# Register hero modifier provider
 	_register_hero_provider()
 
+	# Initialize redirect indicator
+	_redirect_indicator = RedirectIndicator.new()
+	add_child(_redirect_indicator)
+
 	call_deferred("start_game")
 
 func _exit_tree() -> void:
@@ -304,3 +308,181 @@ func _register_hero_provider() -> void:
 	var hero_provider: HeroModifierProvider = HeroModifierProvider.new(hero_id)
 	if modifier_system.has_method("register_provider"):
 		modifier_system.call("register_provider", "hero", hero_provider)
+
+## =============================================================================
+## REDIRECT INPUT HANDLING
+## =============================================================================
+
+## State for redirect drag operation
+var _redirect_drag_active: bool = false
+var _redirect_start_point: Vector3 = Vector3.ZERO
+var _redirect_selected_units: Array[Unit3D] = []
+
+## Store original modulate values for tinting
+var _unit_original_modulates: Dictionary = {}
+
+## Camera for raycasting (cached)
+var _camera: Camera3D = null
+
+## Visual indicator for redirect
+var _redirect_indicator: RedirectIndicator = null
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Only handle redirect input during active gameplay
+	if current_state != GameState.PLAYING:
+		return
+
+	# Only process if redirect mode is active
+	if RedirectManager.current_mode == RedirectManager.RedirectMode.NORMAL:
+		return
+
+	# Ensure we have camera for raycasting
+	if not _camera:
+		_camera = get_viewport().get_camera_3d()
+		if not _camera:
+			return
+
+	# Handle mouse button press (start of redirect)
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			# Click detected - select units in radius
+			print("GameController3D: Mouse click detected in redirect mode")
+			var click_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
+			print("GameController3D: Click point = ", click_point)
+			if click_point != Vector3.ZERO:
+				_redirect_start_point = click_point
+				_redirect_selected_units = RedirectManager.select_units_in_radius(
+					click_point,
+					RedirectManager.REDIRECT_RADIUS,
+					player_summoner.team
+				)
+				_redirect_drag_active = true
+
+				# Show visual indicator
+				var indicator_color: Color = RedirectManager.get_current_mode_color()
+				print("GameController3D: Showing indicator at ", click_point, " with color ", indicator_color)
+				_redirect_indicator.show_selection_circle(click_point, indicator_color)
+
+				# Tint selected units
+				_apply_unit_tint(indicator_color)
+
+				print("GameController3D: Redirect started, selected %d units" % _redirect_selected_units.size())
+			else:
+				print("GameController3D: Click point was ZERO, raycast failed")
+
+		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
+			# Release detected - apply redirect
+			var release_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
+			if release_point != Vector3.ZERO:
+				_on_redirect_release(release_point)
+
+			# Hide visual indicator
+			_redirect_indicator.hide_selection_circle()
+
+			# Restore unit colors
+			_restore_unit_tint()
+
+			_redirect_drag_active = false
+
+	# Handle mouse motion (update drag arrow)
+	if event is InputEventMouseMotion and _redirect_drag_active:
+		var mouse_motion: InputEventMouseMotion = event
+		var current_point: Vector3 = _get_battlefield_point_from_mouse(mouse_motion.position)
+		if current_point != Vector3.ZERO:
+			_redirect_indicator.update_drag(_redirect_start_point, current_point)
+
+## Convert 2D screen position to 3D battlefield point via plane intersection
+## Uses mathematical plane intersection instead of physics raycasting
+func _get_battlefield_point_from_mouse(screen_pos: Vector2) -> Vector3:
+	if not _camera:
+		return Vector3.ZERO
+
+	# Get ray from camera through mouse position
+	var ray_origin: Vector3 = _camera.project_ray_origin(screen_pos)
+	var ray_direction: Vector3 = _camera.project_ray_normal(screen_pos)
+
+	# Intersect with Y=0 plane (battlefield ground level)
+	# Formula: intersection_point = ray_origin + ray_direction * t
+	# where t = (plane_y - ray_origin.y) / ray_direction.y
+	var plane_y: float = 0.0
+
+	# Check if ray is parallel to ground plane
+	if abs(ray_direction.y) < 0.0001:
+		return Vector3.ZERO
+
+	# Calculate intersection distance
+	var t: float = (plane_y - ray_origin.y) / ray_direction.y
+
+	# Check if intersection is behind camera
+	if t < 0:
+		return Vector3.ZERO
+
+	# Calculate and return intersection point
+	return ray_origin + ray_direction * t
+
+## Handle redirect release (apply forced targets)
+func _on_redirect_release(release_point: Vector3) -> void:
+	print("GameController3D: Redirect release at ", release_point)
+	print("GameController3D: Selected units count: ", _redirect_selected_units.size())
+
+	if _redirect_selected_units.is_empty():
+		print("GameController3D: No units selected for redirect")
+		RedirectManager.cancel_redirect()
+		return
+
+	# Find nearest enemy at release point
+	print("GameController3D: Searching for target at ", release_point, " with radius ", RedirectManager.TARGET_SEARCH_RADIUS)
+	var target: Node3D = RedirectManager.find_nearest_enemy(
+		release_point,
+		player_summoner.team,
+		RedirectManager.TARGET_SEARCH_RADIUS
+	)
+
+	if not target:
+		print("GameController3D: No valid target found at release point")
+		RedirectManager.cancel_redirect()
+		return
+
+	print("GameController3D: Found target: ", target.name, " at ", target.global_position)
+
+	# Apply forced targets
+	RedirectManager.apply_forced_targets(
+		_redirect_selected_units,
+		target,
+		RedirectManager.FORCED_TARGET_DURATION,
+		release_point
+	)
+
+	print("GameController3D: Redirect applied to %d units targeting %s" % [_redirect_selected_units.size(), target.name])
+
+## Apply color tint to selected units
+func _apply_unit_tint(tint_color: Color) -> void:
+	_unit_original_modulates.clear()
+
+	for unit: Unit3D in _redirect_selected_units:
+		if is_instance_valid(unit) and unit.visual_component:
+			# Access sprite via Variant to avoid type system issues
+			var visual: Variant = unit.visual_component
+			if visual is SpriteCharacter2D5Component:
+				var sprite: Variant = visual.character_sprite
+				if sprite != null:
+					# Store original modulate
+					_unit_original_modulates[unit] = sprite.modulate
+
+					# Apply tinted color (lighter version of the redirect color)
+					sprite.modulate = tint_color.lightened(0.3)
+
+## Restore original colors to selected units
+func _restore_unit_tint() -> void:
+	for unit: Unit3D in _unit_original_modulates.keys():
+		if is_instance_valid(unit) and unit.visual_component:
+			# Access sprite via Variant to avoid type system issues
+			var visual: Variant = unit.visual_component
+			if visual is SpriteCharacter2D5Component:
+				var sprite: Variant = visual.character_sprite
+				if sprite != null:
+					sprite.modulate = _unit_original_modulates[unit]
+
+	_unit_original_modulates.clear()
