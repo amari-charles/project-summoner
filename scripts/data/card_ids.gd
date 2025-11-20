@@ -21,6 +21,9 @@ class_name CardIDs
 # ============================================================================
 
 const FIREBALL: StringName = &"fireball"
+const RALLY: StringName = &"rally"
+const GUARD: StringName = &"guard"
+const CHARGE: StringName = &"charge"
 
 # ============================================================================
 # STRUCTURES

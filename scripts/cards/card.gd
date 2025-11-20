@@ -34,6 +34,14 @@ enum CardType { SUMMON, SPELL }
 func can_play(current_mana: int) -> bool:
 	return current_mana >= mana_cost
 
+## Check if this card needs click-targeting (Rally/Guard with command_type)
+func needs_click_targeting() -> bool:
+	if card_type != CardType.SPELL:
+		return false
+
+	var card_def: Dictionary = CardCatalog.get_card(catalog_id)
+	return card_def.has("command_type")
+
 ## Execute the card effect at the given position
 ## Note: This is called from Summoner which has scene tree access
 func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
@@ -168,13 +176,21 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+	# Get card definition from catalog
+	var card_def: Dictionary = {}
+	if not catalog_id.is_empty() and CardCatalog:
+		card_def = CardCatalog.get_card(catalog_id)
+
+	# Check for tactical command spells (Rally/Guard) - handle separately
+	if card_def.has("command_type"):
+		_cast_command_spell(position, team, battlefield, card_def)
+		return
+
 	# Get card categories from catalog
 	var categories: Dictionary = {}
-	if not catalog_id.is_empty() and CardCatalog:
-		var card_def: Dictionary = CardCatalog.get_card(catalog_id)
-		if not card_def.is_empty():
-			var empty_dict: Dictionary = {}
-			categories = card_def.get("categories", empty_dict)
+	if not card_def.is_empty():
+		var empty_dict: Dictionary = {}
+		categories = card_def.get("categories", empty_dict)
 
 	# Build context for modifier system
 	var context: Dictionary = {
@@ -271,6 +287,124 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 		push_error("Card: Failed to spawn spell projectile '%s' for card '%s'. Check projectile_id in catalog or ProjectileManager registration." % [projectile_id, card_name])
 		assert(false, "Spell projectile must spawn successfully!")
 
+## Cast tactical command spell (Rally/Guard)
+func _cast_command_spell(position: Vector3, team: Unit3D.Team, battlefield: Node, card_def: Dictionary) -> void:
+	var command_type: String = card_def.get("command_type", "")
+	var selection_radius: float = card_def.get("selection_radius", 8.0)
+	print("Card: _cast_command_spell - card_name='%s', command_type='%s', catalog_id='%s'" % [card_name, command_type, catalog_id])
+
+	# Select all friendly units in radius
+	var scene_tree: SceneTree = battlefield.get_tree()
+	if not scene_tree:
+		return
+
+	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	var selected_units: Array[Unit3D] = []
+
+	for node: Node in all_units:
+		if not node is Unit3D:
+			continue
+
+		var unit: Unit3D = node as Unit3D
+
+		# Only select friendly units that are alive
+		if unit.team != team or not unit.is_alive:
+			continue
+
+		# Check if unit is within selection radius
+		var distance: float = position.distance_to(unit.global_position)
+		if distance <= selection_radius:
+			selected_units.append(unit)
+
+	if selected_units.is_empty():
+		# Failed cast: No units in range
+		print("Card: No units in radius for command spell '%s'" % card_name)
+		_spawn_failed_cast_vfx(position)
+		return
+
+	# Successful cast: Execute command and show VFX
+	match command_type:
+		"rally":
+			# Check SpellTargetingManager singleton for rally_destination from two-stage targeting
+			# If available, use that as the rally point; otherwise use circle center
+			var rally_target: Vector3 = position
+			var rally_dest: Vector3 = SpellTargetingManager.get_rally_destination()
+			if rally_dest != Vector3.ZERO:
+				rally_target = rally_dest
+				print("Card: Using rally_destination: %s (circle was at %s)" % [rally_target, position])
+				SpellTargetingManager.clear_rally_destination()
+			else:
+				print("Card: No rally_destination found, using circle center: %s" % position)
+
+			_apply_rally_command(selected_units, rally_target, card_def)
+			_spawn_rally_vfx(rally_target)
+		"guard":
+			# Check SpellTargetingManager singleton for guard formation position from two-stage targeting
+			var guard_position: Vector3 = position
+			var guard_dest: Vector3 = SpellTargetingManager.get_rally_destination()
+			if guard_dest != Vector3.ZERO:
+				guard_position = guard_dest
+				print("Card: Using guard formation position: %s (circle was at %s)" % [guard_position, position])
+				SpellTargetingManager.clear_rally_destination()
+			else:
+				print("Card: No guard destination found, using circle center: %s" % position)
+
+			_apply_guard_command(selected_units, guard_position, card_def)
+			_spawn_guard_vfx(selected_units)
+		"charge":
+			# Check SpellTargetingManager singleton for charge_destination from two-stage targeting
+			var charge_destination: Vector3 = position
+			var charge_dest: Vector3 = SpellTargetingManager.get_rally_destination()
+			if charge_dest != Vector3.ZERO:
+				charge_destination = charge_dest
+				print("Card: Using charge destination: %s (circle was at %s)" % [charge_destination, position])
+				SpellTargetingManager.clear_rally_destination()
+			else:
+				print("Card: No charge destination found, using circle center: %s" % position)
+
+			_apply_charge_command(selected_units, charge_destination, team, card_def)
+			_spawn_charge_vfx(charge_destination)
+		_:
+			push_warning("Card: Unknown command_type '%s' for card '%s'" % [command_type, card_name])
+
+	print("Card: Applied %s command to %d units" % [command_type, selected_units.size()])
+
+## Apply Rally command to selected units
+func _apply_rally_command(units: Array[Unit3D], rally_point: Vector3, _card_def: Dictionary) -> void:
+	for unit: Unit3D in units:
+		unit.rally_point = rally_point
+		unit.rally_mode = true
+		print("Card: Unit %s rallied to %s" % [unit.name, rally_point])
+
+## Apply Guard command to selected units
+func _apply_guard_command(units: Array[Unit3D], center: Vector3, _card_def: Dictionary) -> void:
+	# Use Unit3D's static formation calculator
+	Unit3D.calculate_formation_positions(units, center)
+	print("Card: Formed guard formation with %d units at %s" % [units.size(), center])
+
+## Apply Charge command to selected units (focus-fire on closest enemy)
+func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_team: Unit3D.Team, _card_def: Dictionary) -> void:
+	if units.is_empty():
+		return
+
+	# Find the closest enemy to the charge destination (units, bases, or structures)
+	var closest_enemy: Node3D = RedirectManager.find_nearest_enemy(
+		charge_dest,
+		caster_team,
+		RedirectManager.TARGET_SEARCH_RADIUS
+	)
+
+	if not closest_enemy:
+		print("Card: No valid enemy targets found for Charge spell")
+		return
+
+	# Set forced target for all selected units
+	var charge_duration: float = 30.0  # Focus on this target for 30 seconds
+	for unit: Unit3D in units:
+		unit.forced_target = closest_enemy
+		unit.forced_target_timer = charge_duration
+		print("Card: Unit %s charging toward %s" % [unit.name, closest_enemy.name])
+
 ## Find the base for the given team
 func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 	var scene_tree: SceneTree = battlefield.get_tree()
@@ -354,3 +488,161 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 
 	modifiers = modifier_system.call("get_modifiers_for", target_type, categories, context)
 	return modifiers
+
+## =============================================================================
+## VFX HELPERS (Placeholder visuals for Rally/Guard spells)
+## TODO: Replace with proper VFX scenes once art assets are ready
+## =============================================================================
+
+## Spawn failed cast VFX (fizzle effect)
+func _spawn_failed_cast_vfx(position: Vector3) -> void:
+	# Try to use VFXManager if available
+	if VFXManager and VFXManager.has_effect("spell_fizzle"):
+		VFXManager.play_effect("spell_fizzle", position)
+		return
+
+	# Fallback: Simple procedural fizzle effect
+	_spawn_placeholder_fizzle(position)
+
+## Spawn Rally VFX (selection circle + rally point marker)
+func _spawn_rally_vfx(rally_point: Vector3) -> void:
+	# Fixed visual marker radius (not gameplay-related, just for visual feedback)
+	var visual_radius: float = 2.0
+
+	# Try to use VFXManager if available
+	if VFXManager and VFXManager.has_effect("rally_circle"):
+		VFXManager.play_effect("rally_circle", rally_point, {"radius": visual_radius})
+		return
+
+	# Fallback: Simple procedural marker
+	_spawn_placeholder_circle(rally_point, visual_radius, Color(0.2, 0.5, 1.0, 0.6))
+
+## Spawn Guard VFX (formation position markers)
+func _spawn_guard_vfx(units: Array[Unit3D]) -> void:
+	# Try to use VFXManager if available
+	if VFXManager and VFXManager.has_effect("guard_marker"):
+		for unit: Unit3D in units:
+			VFXManager.play_effect("guard_marker", unit.formation_position)
+		return
+
+	# Fallback: Simple procedural markers
+	for unit: Unit3D in units:
+		_spawn_placeholder_marker(unit.formation_position, Color(0.8, 0.3, 0.2, 0.6))
+
+## Spawn Charge VFX (attack target marker)
+func _spawn_charge_vfx(charge_point: Vector3) -> void:
+	# Fixed visual marker radius
+	var visual_radius: float = 2.0
+
+	# Try to use VFXManager if available
+	if VFXManager and VFXManager.has_effect("charge_marker"):
+		VFXManager.play_effect("charge_marker", charge_point, {"radius": visual_radius})
+		return
+
+	# Fallback: Simple procedural marker (red/orange for aggressive command)
+	_spawn_placeholder_circle(charge_point, visual_radius, Color(1.0, 0.4, 0.2, 0.7))
+
+## Spawn a simple fizzle effect using procedural geometry
+func _spawn_placeholder_fizzle(position: Vector3) -> void:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop or not main_loop is SceneTree:
+		return
+
+	var scene_tree: SceneTree = main_loop
+	var root: Window = scene_tree.root
+	if not root:
+		return
+
+	# Create small sphere mesh for fizzle
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	var sphere: SphereMesh = SphereMesh.new()
+	sphere.radius = 0.3
+	sphere.height = 0.6
+	mesh_instance.mesh = sphere
+
+	# Simple unshaded material
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = Color(0.6, 0.4, 0.6, 0.8)
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh_instance.material_override = material
+
+	mesh_instance.global_position = position
+	root.add_child(mesh_instance)
+
+	# Auto-cleanup after 0.5 seconds
+	var timer: SceneTreeTimer = scene_tree.create_timer(0.5)
+	timer.timeout.connect(func() -> void:
+		if is_instance_valid(mesh_instance):
+			mesh_instance.queue_free()
+	)
+
+## Spawn a simple circle marker using procedural geometry
+func _spawn_placeholder_circle(position: Vector3, radius: float, color: Color) -> void:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop or not main_loop is SceneTree:
+		return
+
+	var scene_tree: SceneTree = main_loop
+	var root: Window = scene_tree.root
+	if not root:
+		return
+
+	# Create cylinder mesh for circle outline
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	var cylinder: CylinderMesh = CylinderMesh.new()
+	cylinder.top_radius = radius
+	cylinder.bottom_radius = radius
+	cylinder.height = 0.1
+	mesh_instance.mesh = cylinder
+
+	# Simple unshaded material
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = color
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh_instance.material_override = material
+
+	mesh_instance.global_position = position
+	root.add_child(mesh_instance)
+
+	# Auto-cleanup after 1.5 seconds
+	var timer: SceneTreeTimer = scene_tree.create_timer(1.5)
+	timer.timeout.connect(func() -> void:
+		if is_instance_valid(mesh_instance):
+			mesh_instance.queue_free()
+	)
+
+## Spawn a simple marker using procedural geometry
+func _spawn_placeholder_marker(position: Vector3, color: Color) -> void:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop or not main_loop is SceneTree:
+		return
+
+	var scene_tree: SceneTree = main_loop
+	var root: Window = scene_tree.root
+	if not root:
+		return
+
+	# Create box mesh for marker
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	var box: BoxMesh = BoxMesh.new()
+	box.size = Vector3(0.5, 0.2, 0.5)
+	mesh_instance.mesh = box
+
+	# Simple unshaded material
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = color
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh_instance.material_override = material
+
+	mesh_instance.global_position = position
+	root.add_child(mesh_instance)
+
+	# Auto-cleanup after 1.0 seconds
+	var timer: SceneTreeTimer = scene_tree.create_timer(1.0)
+	timer.timeout.connect(func() -> void:
+		if is_instance_valid(mesh_instance):
+			mesh_instance.queue_free()
+	)

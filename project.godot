@@ -37,6 +37,7 @@ ModifierSystem="*res://scripts/systems/modifier_system.gd"
 SceneManager="*res://scripts/core/scene_manager.gd"
 RedirectManager="*res://scripts/managers/redirect_manager.gd"
 PhysicsLayers="*res://scripts/core/physics_layers.gd"
+SpellTargetingManager="*res://scripts/ui/spell_targeting_manager.gd"
 
 [debug]
 

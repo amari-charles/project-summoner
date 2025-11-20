@@ -1,21 +1,20 @@
-[gd_scene load_steps=14 format=3 uid="uid://battle_3d"]
+[gd_scene load_steps=14 format=3 uid="uid://7oxpfxkhfr3h"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
+[ext_resource type="Script" uid="uid://bejquix54he1c" path="res://scripts/core/test_game_controller.gd" id="2_game_controller"]
 [ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner_3d.gd" id="3_summoner"]
-[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
-[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
-[ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
-[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
-[ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/ui/pause_menu.tscn" id="8_pause_menu"]
-[ext_resource type="Script" path="res://scripts/ui/pause_button.gd" id="9_pause_button"]
-[ext_resource type="Script" path="res://scripts/ui/speed_button.gd" id="10_speed_button"]
-[ext_resource type="PackedScene" uid="uid://bkj8q7n5vx8" path="res://scenes/ui/mana_bar.tscn" id="11_mana_bar"]
-[ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="12_game_ui"]
-[ext_resource type="CompressedTexture2D" uid="uid://c4k76x55jp4va" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png" id="13_attack_icon"]
-[ext_resource type="CompressedTexture2D" uid="uid://care5io1wrrv0" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Difficulty_3_Medium_Buckler_Targe_Shield.png" id="14_defend_icon"]
+[ext_resource type="Script" uid="uid://cylw80td53yei" path="res://scripts/test/rally_guard_test_setup.gd" id="4_test_setup"]
+[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="5_player_base"]
+[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="6_enemy_base"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hand_ui.tscn" id="7_hand_ui"]
+[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="8_drop_zone"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause_menu"]
+[ext_resource type="Script" uid="uid://dk6842l272muf" path="res://scripts/ui/pause_button.gd" id="10_pause_button"]
+[ext_resource type="Script" uid="uid://c5j735p3yll2r" path="res://scripts/ui/speed_button.gd" id="11_speed_button"]
+[ext_resource type="PackedScene" uid="uid://bkj8q7n5vx8" path="res://scenes/ui/mana_bar.tscn" id="12_mana_bar"]
+[ext_resource type="Script" uid="uid://er3rhu64om6j" path="res://scripts/ui/game_ui.gd" id="13_game_ui"]
 
-[node name="Battle3D" type="Node3D"]
+[node name="RallyGuardTest" type="Node3D"]
 script = ExtResource("2_game_controller")
 
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
@@ -23,22 +22,24 @@ script = ExtResource("2_game_controller")
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
 script = ExtResource("3_summoner")
-team = 0
-load_deck_from_profile = true
+deck_load_strategy = 0
+
+[node name="TestSetup" type="Node" parent="PlayerSummoner"]
+script = ExtResource("4_test_setup")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
 
-[node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
+[node name="PlayerBase3D" parent="." instance=ExtResource("5_player_base")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 
-[node name="EnemyBase3D" parent="." instance=ExtResource("5_enemy_base")]
+[node name="EnemyBase3D" parent="." instance=ExtResource("6_enemy_base")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 
 [node name="UI" type="CanvasLayer" parent="."]
-script = ExtResource("12_game_ui")
+script = ExtResource("13_game_ui")
 player_mana_bar = NodePath("PlayerManaBar")
 
 [node name="BattlefieldDropZone" type="Control" parent="UI"]
@@ -48,7 +49,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("7_drop_zone")
+script = ExtResource("8_drop_zone")
 
 [node name="TimerLabel" type="Label" parent="UI"]
 offset_left = 20.0
@@ -57,6 +58,36 @@ offset_right = 200.0
 offset_bottom = 60.0
 theme_override_font_sizes/font_size = 32
 text = "03:00"
+
+[node name="TestModeLabel" type="Label" parent="UI"]
+offset_left = 220.0
+offset_top = 20.0
+offset_right = 600.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.2, 1, 0.2, 1)
+theme_override_font_sizes/font_size = 28
+text = "RALLY/GUARD TEST MODE"
+
+[node name="InstructionsLabel" type="Label" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -140.0
+offset_right = 400.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.8, 0.9)
+theme_override_font_sizes/font_size = 18
+text = "TEST INSTRUCTIONS:
+1. Summon units from your hand
+2. Use Rally spell to command units to defend a zone
+3. Use Guard spell to form defensive formations
+4. Try failed casts (no units nearby) to see fizzle effect"
+horizontal_alignment = 1
 
 [node name="SpeedButton" type="Button" parent="UI"]
 anchors_preset = 1
@@ -68,7 +99,7 @@ offset_right = -130.0
 offset_bottom = 60.0
 grow_horizontal = 0
 text = "▶ 1x"
-script = ExtResource("10_speed_button")
+script = ExtResource("11_speed_button")
 
 [node name="PauseButton" type="Button" parent="UI"]
 anchors_preset = 1
@@ -80,9 +111,9 @@ offset_right = -20.0
 offset_bottom = 60.0
 grow_horizontal = 0
 text = "⏸ Pause"
-script = ExtResource("9_pause_button")
+script = ExtResource("10_pause_button")
 
-[node name="PlayerManaBar" parent="UI" instance=ExtResource("11_mana_bar")]
+[node name="PlayerManaBar" parent="UI" instance=ExtResource("12_mana_bar")]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -134,9 +165,9 @@ text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
+[node name="HandUI" parent="UI" instance=ExtResource("7_hand_ui")]
 
-[node name="PauseMenu" parent="UI" instance=ExtResource("8_pause_menu")]
+[node name="PauseMenu" parent="UI" instance=ExtResource("9_pause_menu")]
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]

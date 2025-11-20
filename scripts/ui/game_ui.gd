@@ -7,8 +7,6 @@ class_name GameUI
 @export var player_mana_bar: ManaBar = null
 @export var game_over_label: Label = null
 @export var restart_button: Button = null
-@export var redirect_attack_button: Button = null
-@export var redirect_defend_button: Button = null
 
 var game_controller: Node = null
 var player_summoner: Node = null  # Can be Summoner or Summoner3D
@@ -26,21 +24,11 @@ func _ready() -> void:
 		game_over_label = get_node_or_null("GameOverLabel")
 	if restart_button == null:
 		restart_button = get_node_or_null("RestartButton")
-	if redirect_attack_button == null:
-		redirect_attack_button = get_node_or_null("RedirectAttackButton")
-	if redirect_defend_button == null:
-		redirect_defend_button = get_node_or_null("RedirectDefendButton")
 
 	# Connect restart button
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
 		restart_button.visible = false  # Hidden until game over
-
-	# Connect redirect buttons
-	if redirect_attack_button:
-		redirect_attack_button.pressed.connect(_on_redirect_attack_pressed)
-	if redirect_defend_button:
-		redirect_defend_button.pressed.connect(_on_redirect_defend_pressed)
 
 	# Wait a frame for all nodes to be ready
 	await get_tree().process_frame
@@ -104,73 +92,3 @@ func _on_game_ended(winner: Unit.Team) -> void:
 func _on_restart_pressed() -> void:
 	if game_controller and game_controller.has_method("restart_game"):
 		game_controller.call("restart_game")
-
-func _process(_delta: float) -> void:
-	_update_redirect_buttons()
-
-func _update_redirect_buttons() -> void:
-	# Update attack redirect button
-	if redirect_attack_button:
-		var attack_available: bool = RedirectManager.is_attack_available()
-		redirect_attack_button.disabled = not attack_available
-
-		# Update button text
-		if attack_available:
-			redirect_attack_button.text = "Attack"
-		else:
-			var cd: float = RedirectManager.attack_cooldown
-			redirect_attack_button.text = "Attack\n%.1fs" % cd
-
-		# Update cooldown progress bar
-		var attack_progress: TextureProgressBar = redirect_attack_button.get_node_or_null("CooldownProgress")
-		if attack_progress:
-			if attack_available:
-				attack_progress.value = attack_progress.max_value
-				attack_progress.visible = false
-			else:
-				var remaining: float = RedirectManager.attack_cooldown
-				attack_progress.value = attack_progress.max_value - remaining
-				attack_progress.visible = true
-
-		# Highlight if active
-		if RedirectManager.current_mode == RedirectManager.RedirectMode.REDIRECT_ATTACK:
-			redirect_attack_button.modulate = Color(0.5, 1.0, 1.5)  # Bright blue highlight
-		else:
-			redirect_attack_button.modulate = Color.WHITE
-
-	# Update defend redirect button
-	if redirect_defend_button:
-		var defend_available: bool = RedirectManager.is_defend_available()
-		redirect_defend_button.disabled = not defend_available
-
-		# Update button text
-		if defend_available:
-			redirect_defend_button.text = "Defend"
-		else:
-			var cd: float = RedirectManager.defend_cooldown
-			redirect_defend_button.text = "Defend\n%.1fs" % cd
-
-		# Update cooldown progress bar
-		var defend_progress: TextureProgressBar = redirect_defend_button.get_node_or_null("CooldownProgress")
-		if defend_progress:
-			if defend_available:
-				defend_progress.value = defend_progress.max_value
-				defend_progress.visible = false
-			else:
-				var remaining: float = RedirectManager.defend_cooldown
-				defend_progress.value = defend_progress.max_value - remaining
-				defend_progress.visible = true
-
-		# Highlight if active
-		if RedirectManager.current_mode == RedirectManager.RedirectMode.REDIRECT_DEFEND:
-			redirect_defend_button.modulate = Color(0.5, 1.5, 1.0)  # Bright green highlight
-		else:
-			redirect_defend_button.modulate = Color.WHITE
-
-func _on_redirect_attack_pressed() -> void:
-	RedirectManager.activate_redirect_attack()
-	print("GameUI: Redirect Attack activated")
-
-func _on_redirect_defend_pressed() -> void:
-	RedirectManager.activate_redirect_defend()
-	print("GameUI: Redirect Defend activated")

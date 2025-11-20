@@ -87,6 +87,15 @@ var forced_target: Node3D = null  ## Target assigned by redirect system (overrid
 var forced_target_timer: float = 0.0  ## Time remaining for forced target commitment
 var original_redirect_point: Vector3 = Vector3.ZERO  ## Original point for fallback targeting
 
+## Rally system (simple movement)
+var rally_point: Vector3 = Vector3.ZERO  ## Point to move toward
+var rally_mode: bool = false  ## Whether unit is in rally mode
+
+## Guard system (formation hold)
+var guard_mode: bool = false  ## Whether unit is in guard mode
+var guard_timer: float = 0.0  ## Time remaining for guard mode
+var formation_position: Vector3 = Vector3.ZERO  ## Target position in formation
+
 ## Projectile prediction cache
 var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
 
@@ -390,8 +399,30 @@ func _physics_process(delta: float) -> void:
 			forced_target = null
 			original_redirect_point = Vector3.ZERO
 
-	# Re-acquire target if lock expired or current target is invalid
-	if target_lock_timer <= 0.0 or not _is_valid_target(current_target):
+	# Handle Guard mode (formation + hold position)
+	if guard_mode:
+		guard_timer -= delta
+		_update_guard_behavior(delta)
+		return  # Guard overrides normal behavior
+
+	# Handle Rally mode (move to point + defend zone)
+	if rally_mode:
+		_update_rally_behavior(delta)
+		return  # Rally overrides normal behavior
+
+	# Re-acquire target if:
+	# - Lock expired
+	# - Current target invalid
+	# - Forced target exists and differs from current (Charge spell override)
+	var has_forced: bool = forced_target != null and forced_target != current_target
+
+	var should_reacquire: bool = (
+		target_lock_timer <= 0.0 or
+		not _is_valid_target(current_target) or
+		(forced_target and forced_target != current_target and _is_valid_target(forced_target))
+	)
+
+	if should_reacquire:
 		current_target = _acquire_target()
 		if current_target:
 			target_lock_timer = target_lock_duration
@@ -422,6 +453,12 @@ func _is_valid_target(target: Node3D) -> bool:
 		var unit_target: Unit3D = target
 		if not unit_target.is_alive:
 			return false
+
+	# Skip distance check for forced targets from Charge spell
+	# Forced targets should be pursued regardless of initial distance
+	if target == forced_target and forced_target_timer > 0.0:
+		return true
+
 	# Check if target is within aggro range (use distance_squared for performance)
 	var delta: Vector3 = target.global_position - global_position
 	var distance_sq: float = delta.x * delta.x + delta.z * delta.z
@@ -818,6 +855,147 @@ func _flash_white() -> void:
 	# Delegate to the visual component's flash implementation
 	if visual_component.has_method("flash_white"):
 		visual_component.flash_white()
+
+## =============================================================================
+## RALLY & GUARD SPELL BEHAVIOR
+## =============================================================================
+
+## Update Rally behavior (simple movement to rally point)
+func _update_rally_behavior(_delta: float) -> void:
+	# Check if we're at the rally point
+	var distance_to_rally: float = global_position.distance_to(rally_point)
+
+	if distance_to_rally > 1.0:
+		# Move toward rally point
+		_move_towards_position(rally_point)
+		_update_animation("walk")
+	else:
+		# Reached rally point - clear rally mode and resume normal AI
+		_clear_rally_mode()
+
+## Clear rally mode and resume normal AI
+func _clear_rally_mode() -> void:
+	rally_mode = false
+	rally_point = Vector3.ZERO
+	print("Unit %s: Reached rally point, resuming normal AI" % name)
+
+## Update Guard behavior (formation + hold)
+func _update_guard_behavior(_delta: float) -> void:
+	# Check if we've reached formation position
+	var distance_to_formation: float = global_position.distance_to(formation_position)
+
+	if distance_to_formation > 0.5:
+		# Still moving to formation
+		_move_towards_position(formation_position)
+		_update_animation("walk")
+	else:
+		# At formation - hold and defend
+		# Acquire nearby enemies
+		if target_lock_timer <= 0.0 or not _is_valid_target(current_target):
+			current_target = _acquire_guard_target()
+			if current_target:
+				target_lock_timer = target_lock_duration
+
+		if current_target and _is_in_attack_range(current_target):
+			if not is_attacking:
+				_update_facing(current_target.global_position)
+				_update_animation("idle")
+			if attack_cooldown <= 0.0:
+				_perform_attack()
+		else:
+			if not is_attacking:
+				_update_animation("idle")
+
+	# Check guard expiration (10 seconds or no enemies for 5 seconds)
+	if guard_timer <= 0.0:
+		_clear_guard_mode()
+
+## Acquire target for guard mode (only nearby enemies, no chasing)
+func _acquire_guard_target() -> Node3D:
+	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(target_group)
+
+	var closest_enemy: Unit3D = null
+	var closest_dist: float = INF
+	var guard_radius: float = aggro_radius * 0.5  # Smaller radius for guard
+
+	for node: Node in all_units:
+		if not node is Unit3D:
+			continue
+		var enemy: Unit3D = node as Unit3D
+		if not enemy.is_alive:
+			continue
+
+		var dist: float = enemy.global_position.distance_to(global_position)
+		if dist <= guard_radius and dist < closest_dist:
+			closest_enemy = enemy
+			closest_dist = dist
+
+	return closest_enemy
+
+## Clear guard mode and resume normal AI
+func _clear_guard_mode() -> void:
+	guard_mode = false
+	guard_timer = 0.0
+	formation_position = Vector3.ZERO
+	print("Unit %s: Guard mode ended, resuming normal AI" % name)
+
+## Move toward a specific position (used by rally/guard)
+func _move_towards_position(target_position: Vector3) -> void:
+	var direction: Vector3 = (target_position - global_position).normalized()
+	direction.y = 0  # 2.5D movement
+	_update_facing_from_direction(direction)
+	velocity = direction * move_speed
+	move_and_slide()
+
+## Calculate formation positions for a group of units (static helper)
+static func calculate_formation_positions(units: Array[Unit3D], center: Vector3) -> void:
+	if units.is_empty():
+		return
+
+	# Separate by unit type
+	var melee_units: Array[Unit3D] = []
+	var ranged_units: Array[Unit3D] = []
+
+	for unit: Unit3D in units:
+		if unit.unit_type == UnitType.MELEE:
+			melee_units.append(unit)
+		else:
+			ranged_units.append(unit)
+
+	# Dynamic radius scaling based on unit count
+	# For a 180-degree arc (PI radians), calculate radius to fit units with proper spacing
+	const UNIT_SPACING: float = 1.5  # Minimum spacing between units
+	const MIN_RADIUS: float = 2.0    # Minimum formation radius
+	const FORMATION_ANGLE: float = PI  # 180 degrees
+
+	# Calculate radius for melee arc (arc_length = num_units × spacing, radius = arc_length / angle)
+	var front_radius: float = MIN_RADIUS
+	if melee_units.size() > 1:
+		var arc_length: float = melee_units.size() * UNIT_SPACING
+		front_radius = max(MIN_RADIUS, arc_length / FORMATION_ANGLE)
+
+	# Calculate radius for ranged arc (always behind melee, add 2.0 offset)
+	var back_radius: float = front_radius + 2.0
+	if ranged_units.size() > 1:
+		var arc_length: float = ranged_units.size() * UNIT_SPACING
+		back_radius = max(front_radius + 2.0, arc_length / FORMATION_ANGLE)
+
+	# Position melee units in front arc
+	for i: int in range(melee_units.size()):
+		var angle: float = (float(i) / max(melee_units.size(), 1)) * PI - PI/2  # Spread across 180 degrees in front
+		var offset: Vector3 = Vector3(cos(angle) * front_radius, 0, sin(angle) * front_radius)
+		melee_units[i].formation_position = center + offset
+		melee_units[i].guard_mode = true
+		melee_units[i].guard_timer = 25.0  # 25 second guard duration
+
+	# Position ranged units in back arc
+	for i: int in range(ranged_units.size()):
+		var angle: float = (float(i) / max(ranged_units.size(), 1)) * PI - PI/2  # Spread across 180 degrees behind
+		var offset: Vector3 = Vector3(cos(angle) * back_radius, 0, sin(angle) * back_radius)
+		ranged_units[i].formation_position = center + offset
+		ranged_units[i].guard_mode = true
+		ranged_units[i].guard_timer = 25.0  # 25 second guard duration
 
 ## Get the world position where projectiles should spawn from
 func get_projectile_spawn_position() -> Vector3:

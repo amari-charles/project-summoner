@@ -349,7 +349,7 @@ func apply_forced_targets(units: Array[Unit3D], target: Node3D, duration: float,
 
 		applied_count += 1
 
-		print("RedirectManager: Unit ", unit.name, " forced_target=", unit.forced_target.name if unit.forced_target else "null", " timer=", unit.forced_target_timer)
+		print("RedirectManager: Unit ", unit.name, " forced_target=", str(unit.forced_target.name) if unit.forced_target else "null", " timer=", unit.forced_target_timer)
 
 	print("RedirectManager: Applied forced targets to %d/%d units for %.1fs" % [applied_count, units.size(), duration])
 	redirect_applied.emit(units, target, is_attack)

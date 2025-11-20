@@ -417,6 +417,128 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# =========================================================================
+	# TACTICAL COMMAND SPELLS
+	# =========================================================================
+
+	# Rally - Simple movement command
+	_catalog["rally"] = {
+		# Identity
+		"catalog_id": "rally",
+		"card_name": "Rally",
+		"description": "Command nearby units to move to a target location and defend that zone until enemies are cleared.",
+		"rarity": "common",
+
+		# Card properties
+		"card_type": 1,  # Card.CardType.SPELL
+		"mana_cost": 0,
+		"cooldown": 1.0,
+
+		# Spell properties (not a traditional damage spell)
+		"unit_scene_path": "",
+		"spawn_count": 0,
+		"spell_damage": 0.0,
+		"spell_radius": 0.0,
+		"spell_duration": 0.0,
+		"projectile_id": "",
+		"spell_vfx": "",
+
+		# Tactical command properties (custom handling)
+		"command_type": "rally",
+		"selection_radius": 8.0,  # Radius to select units
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["spell", "command", "tactical", "movement"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.NEUTRAL
+		}
+	}
+
+	# Guard - Formation command
+	_catalog["guard"] = {
+		# Identity
+		"catalog_id": "guard",
+		"card_name": "Guard",
+		"description": "Command nearby units to form a defensive formation for 25 seconds. Melee units protect ranged units in the back line.",
+		"rarity": "common",
+
+		# Card properties
+		"card_type": 1,  # Card.CardType.SPELL
+		"mana_cost": 0,
+		"cooldown": 1.0,
+
+		# Spell properties (not a traditional damage spell)
+		"unit_scene_path": "",
+		"spawn_count": 0,
+		"spell_damage": 0.0,
+		"spell_radius": 0.0,
+		"spell_duration": 0.0,
+		"projectile_id": "",
+		"spell_vfx": "",
+
+		# Tactical command properties (custom handling)
+		"command_type": "guard",
+		"selection_radius": 8.0,  # Radius to select units
+		"formation_duration": 25.0,  # Duration of guard mode
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["spell", "command", "tactical", "formation"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.NEUTRAL
+		}
+	}
+
+	# Charge - Focus-fire command
+	_catalog["charge"] = {
+		# Identity
+		"catalog_id": "charge",
+		"card_name": "Charge",
+		"description": "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or base) to the target location for 30 seconds.",
+		"rarity": "common",
+
+		# Card properties
+		"card_type": 1,  # Card.CardType.SPELL
+		"mana_cost": 0,
+		"cooldown": 1.0,
+
+		# Spell properties (not a traditional damage spell)
+		"unit_scene_path": "",
+		"spawn_count": 0,
+		"spell_damage": 0.0,
+		"spell_radius": 0.0,
+		"spell_duration": 0.0,
+		"projectile_id": "",
+		"spell_vfx": "",
+
+		# Tactical command properties (custom handling)
+		"command_type": "charge",
+		"selection_radius": 8.0,  # Radius to select units
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["spell", "command", "tactical", "focus_fire"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.NEUTRAL
+		}
+	}
+
 ## Factory method for creating slime cards with size templates
 func _add_slime_card(color: String, size: String, element: ElementTypes.Element, description: String, overrides: Dictionary = {}) -> void:
 	# Size templates with default stats
