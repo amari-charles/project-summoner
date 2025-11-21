@@ -46,6 +46,16 @@ func start_dialogue(dialogue_id: String) -> void:
 		push_error("DialogueManager: Dialogue not found: %s" % dialogue_id)
 		return
 
+	# Block capabilities during dialogue
+	CapabilityManager.block_capability(
+		CapabilityManager.Capability.PLAY_CARDS,
+		CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+	)
+	CapabilityManager.block_capability(
+		CapabilityManager.Capability.PAUSE_GAME,
+		CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+	)
+
 	current_dialogue = dialogue
 	current_line_index = 0
 	dialogue_started.emit(dialogue)
@@ -77,6 +87,16 @@ func select_choice(choice: DialogueChoice) -> void:
 	if not choice.action.is_empty():
 		_execute_action(choice.action)
 
+	# Unblock capabilities before ending dialogue
+	CapabilityManager.unblock_capability(
+		CapabilityManager.Capability.PLAY_CARDS,
+		CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+	)
+	CapabilityManager.unblock_capability(
+		CapabilityManager.Capability.PAUSE_GAME,
+		CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+	)
+
 	# End current dialogue
 	dialogue_ended.emit()
 	current_dialogue = null
@@ -89,6 +109,16 @@ func select_choice(choice: DialogueChoice) -> void:
 ## End the current dialogue immediately
 func end_dialogue() -> void:
 	if current_dialogue:
+		# Unblock capabilities before ending
+		CapabilityManager.unblock_capability(
+			CapabilityManager.Capability.PLAY_CARDS,
+			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+		)
+		CapabilityManager.unblock_capability(
+			CapabilityManager.Capability.PAUSE_GAME,
+			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+		)
+
 		dialogue_ended.emit()
 		current_dialogue = null
 		current_line_index = 0
@@ -137,14 +167,35 @@ func _complete_dialogue() -> void:
 	if not current_dialogue.next_dialogue_id.is_empty():
 		var next_id: String = current_dialogue.next_dialogue_id
 		var should_auto_advance: bool = current_dialogue.auto_advance
+
+		# Unblock capabilities before ending
+		CapabilityManager.unblock_capability(
+			CapabilityManager.Capability.PLAY_CARDS,
+			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+		)
+		CapabilityManager.unblock_capability(
+			CapabilityManager.Capability.PAUSE_GAME,
+			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+		)
+
 		dialogue_ended.emit()
 		current_dialogue = null
 		current_line_index = 0
 
 		if should_auto_advance:
+			# start_dialogue will block capabilities again
 			start_dialogue(next_id)
 	else:
-		# End of dialogue chain
+		# End of dialogue chain - unblock capabilities
+		CapabilityManager.unblock_capability(
+			CapabilityManager.Capability.PLAY_CARDS,
+			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+		)
+		CapabilityManager.unblock_capability(
+			CapabilityManager.Capability.PAUSE_GAME,
+			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
+		)
+
 		dialogue_ended.emit()
 		current_dialogue = null
 		current_line_index = 0

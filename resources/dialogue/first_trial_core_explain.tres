@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "first_trial_core_explain"
+character_name = "Headmaster Merlin"
+portrait = null
+lines = Array[String](["Excellent work. Your companion has reached the enemy's core.", "That glowing crystal is the heart of your opponent's power. Destroy it, and victory is yours.", "Strike now, Initiate. Show no hesitation!"])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

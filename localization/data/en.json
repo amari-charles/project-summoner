@@ -10,6 +10,12 @@
         "description": "With your affinity revealed, the time has come to bind your first companion. Headmaster Merlin presents two candidates, each eager to join your journey. Remember, initiate: what you bind, stays bound. Choose your partner carefully."
       }
     },
+    "battle": {
+      "first_trial": {
+        "name": "The First Trial",
+        "description": "Your affinity chosen, your companion bound—Headmaster Merlin now calls you to the training grounds. This first trial will test whether theory translates to practice. Prove your worth, initiate, and earn your place among the Academy's summoners."
+      }
+    },
     "starter_deck_name": "Starter Deck"
   },
   "card": {

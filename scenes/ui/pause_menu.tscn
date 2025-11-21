@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://pause_menu"]
+[gd_scene load_steps=3 format=3 uid="uid://pause_menu"]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://snapshot_manager" path="res://scenes/ui/snapshot_manager.tscn" id="2_snapshot_manager"]
 
 [node name="PauseMenu" type="Control"]
 visible = false
@@ -57,7 +58,15 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Resume"
 
+[node name="ManageSnapshotsButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Manage Snapshots"
+
 [node name="QuitButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quit to Menu"
+
+[node name="SnapshotManager" parent="." instance=ExtResource("2_snapshot_manager")]
+visible = false

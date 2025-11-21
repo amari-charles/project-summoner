@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="EventSequence" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_sequence.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/event_step.gd" id="2"]
+
+[sub_resource type="Resource" id="EventStep_1"]
+script = ExtResource("2")
+step_type = 0
+description = "Welcome to training grounds"
+dialogue_id = "first_trial_intro"
+
+[sub_resource type="Resource" id="EventStep_2"]
+script = ExtResource("2")
+step_type = 10
+description = "Show hand UI"
+hand_visible = true
+
+[sub_resource type="Resource" id="EventStep_3"]
+script = ExtResource("2")
+step_type = 11
+description = "Disable hand interaction"
+hand_enabled = false
+
+[sub_resource type="Resource" id="EventStep_4"]
+script = ExtResource("2")
+step_type = 0
+description = "Explain card mechanics"
+dialogue_id = "first_trial_card_explain"
+
+[sub_resource type="Resource" id="EventStep_5"]
+script = ExtResource("2")
+step_type = 3
+description = "Spawn tutorial slime"
+card_id = "slime_green"
+spawn_position = Vector3(2.5, 1, 0)
+team = 1
+
+[sub_resource type="Resource" id="EventStep_6"]
+script = ExtResource("2")
+step_type = 0
+description = "Enemy appears announcement"
+dialogue_id = "first_trial_enemy_appears"
+
+[sub_resource type="Resource" id="EventStep_7"]
+script = ExtResource("2")
+step_type = 0
+description = "Prompt to play card"
+dialogue_id = "first_trial_play_prompt"
+
+[sub_resource type="Resource" id="EventStep_8"]
+script = ExtResource("2")
+step_type = 11
+description = "Enable hand interaction"
+hand_enabled = true
+
+[sub_resource type="Resource" id="EventStep_9"]
+script = ExtResource("2")
+step_type = 2
+description = "Wait for unit to reach enemy base"
+signal_source = "GameStateEvents"
+signal_name = "player_base_damaged"
+
+[sub_resource type="Resource" id="EventStep_10"]
+script = ExtResource("2")
+step_type = 0
+description = "Explain victory condition"
+dialogue_id = "first_trial_core_explain"
+
+[resource]
+script = ExtResource("1")
+sequence_id = "first_trial_tutorial"
+description = "First Trial tutorial sequence - introduces basic mechanics"
+steps = Array[Resource]([SubResource("EventStep_1"), SubResource("EventStep_2"), SubResource("EventStep_3"), SubResource("EventStep_4"), SubResource("EventStep_5"), SubResource("EventStep_6"), SubResource("EventStep_7"), SubResource("EventStep_8"), SubResource("EventStep_9"), SubResource("EventStep_10")])

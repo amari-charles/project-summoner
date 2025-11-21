@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bu336tax8od6i"]
+[gd_scene load_steps=3 format=3 uid="uid://bu336tax8od6i"]
 
 [ext_resource type="Script" uid="uid://depayoe7sesvj" path="res://scripts/ui/main_menu.gd" id="1_main_menu"]
+[ext_resource type="PackedScene" uid="uid://snapshot_manager" path="res://scenes/ui/snapshot_manager.tscn" id="2_snapshot_manager"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -82,7 +83,7 @@ dialog_text = "This feature is not yet implemented.
 PLACEHOLDER - Coming in future update"
 dialog_autowrap = true
 
-[node name="DebugResetButton" type="Button" parent="."]
+[node name="DebugMenuButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -97,10 +98,13 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
 theme_override_font_sizes/font_size = 16
-text = "DEBUG: Reset Profile"
+text = "DEBUG: Manage Snapshots"
+
+[node name="SnapshotManager" parent="." instance=ExtResource("2_snapshot_manager")]
+visible = false
 
 [connection signal="pressed" from="MenuButtons/PlayButton" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="MenuButtons/AchievementsButton" to="." method="_on_achievements_pressed"]
 [connection signal="pressed" from="MenuButtons/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="MenuButtons/QuitButton" to="." method="_on_quit_pressed"]
-[connection signal="pressed" from="DebugResetButton" to="." method="_on_debug_reset_pressed"]
+[connection signal="pressed" from="DebugMenuButton" to="." method="_on_debug_menu_pressed"]

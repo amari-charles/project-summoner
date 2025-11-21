@@ -57,6 +57,9 @@ var is_panning: bool = false
 var last_mouse_position: Vector2
 
 func _ready() -> void:
+	# Set process mode to ALWAYS so camera panning works during dialogues
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	# Ensure orthographic projection for true 2.5D
 	projection = PROJECTION_ORTHOGONAL
 	# Wait one frame for transform initialization, then clamp

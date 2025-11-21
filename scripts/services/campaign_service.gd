@@ -87,30 +87,45 @@ func _init_battles() -> void:
 		"unlock_requirements": ["event_affinity"],  # Requires completing affinity selection
 	}
 
-	# Battle 0: Tutorial - First card
-	_battles["battle_00"] = {
-		"id": "battle_00",
+	# Battle 0: The First Trial
+	_battles["first_trial"] = {
+		"id": "first_trial",
 		"biome_id": "summer_plains",
-		"name": "First Summons",
-		"description": "Learn the basics of summoning. Win to earn your first card!",
+		"name": Loc.t("campaign.battle.first_trial.name"),
+		"description": Loc.t("campaign.battle.first_trial.description"),
 		"difficulty": 1,
 		"event_type": "battle",
-		"repeatable": true,  # Can be replayed (no reward after first completion)
+		"repeatable": false,  # One-time tutorial battle
+		"requires_deck": true,  # Requires deck selection
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "fixed",
 		"reward_cards": [
-			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1}
+			{"catalog_id": "charge", "rarity": "common", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 1}
+			{"catalog_id": "slime_green", "count": 1}
 		],
-		"enemy_hp": 30.0,  # Very low HP for tutorial (2 hits)
-		"unlock_requirements": [],
-		# AI Configuration
+		"enemy_hp": 30.0,  # Very low HP for tutorial (3 hits × 10 damage)
+		"unlock_requirements": ["event_first_summon"],
+		# Tutorial Dialogue Configuration
+		"dialogues": [
+			# Stage 1: Battle intro - welcome to training grounds
+			{"trigger": "battle_start", "dialogue_id": "first_trial_intro"},
+			# Stage 2: Explain card mechanics and show hand (disabled)
+			{"trigger": "after_dialogue", "previous": "first_trial_intro", "action": "show_hand"},
+			{"trigger": "after_dialogue", "previous": "first_trial_intro", "dialogue_id": "first_trial_card_explain"},
+			# Stage 3: Spawn enemy after card explanation
+			{"trigger": "after_dialogue", "previous": "first_trial_card_explain", "action": "spawn_enemy"},
+			{"trigger": "after_dialogue", "previous": "first_trial_card_explain", "dialogue_id": "first_trial_enemy_appears"},
+			# Stage 4: Prompt player to play card and enable hand
+			{"trigger": "after_dialogue", "previous": "first_trial_enemy_appears", "dialogue_id": "first_trial_play_prompt"},
+			{"trigger": "after_dialogue", "previous": "first_trial_play_prompt", "action": "enable_hand"},
+			# Stage 5: When unit reaches enemy base - explain victory condition
+			{"trigger": "base_damaged_first", "dialogue_id": "first_trial_core_explain"}
+		],
+		# AI Configuration (disabled for tutorial - manual spawn via dialogue system)
 		"ai_type": "scripted",
-		"ai_script": [
-			{"delay": 0.0, "card_name": "Fire Recruit", "position": {"x": 1400, "y": 540}}
-		]
+		"ai_script": []
 	}
 
 	# Battle 1: Building army
@@ -132,7 +147,7 @@ func _init_battles() -> void:
 			{"catalog_id": "fire_recruit", "count": 2}
 		],
 		"enemy_hp": 100.0,
-		"unlock_requirements": ["battle_00"],
+		"unlock_requirements": ["first_trial"],
 		# AI Configuration
 		"ai_type": "heuristic",
 		"ai_personality": "defensive",

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "first_trial_intro"
+character_name = "Headmaster Merlin"
+portrait = null
+lines = Array[String](["Welcome to the training grounds, Initiate.", "Your affinity chosen, your companion bound—now we put theory into practice.", "Before you lies a simple trial. A single slime awaits beyond.", "Show me you understand the fundamentals. Victory here earns your place among the Academy's summoners."])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

@@ -16,6 +16,10 @@ extends Node
 ##   /save_info - Print current save state
 ##   /save_reload - Force reload from disk
 ##   /save_create_deck <name> - Create a test deck
+##   /snapshot_save <name> - Save current profile state as a snapshot
+##   /snapshot_load <name> - Load a profile snapshot
+##   /snapshot_list - List all available snapshots
+##   /snapshot_delete <name> - Delete a snapshot
 ##
 ## Usage in game:
 ##   Press F12 to toggle console (future implementation)
@@ -30,6 +34,7 @@ var _repo: Node = null  # ProfileRepo autoload
 var _economy: Node = null  # Economy autoload
 var _collection: Node = null  # Collection autoload
 var _decks: Node = null  # Decks autoload
+var _snapshots: Node = null  # DebugSnapshots autoload
 
 ## =============================================================================
 ## LIFECYCLE
@@ -45,6 +50,7 @@ func _ready() -> void:
 	_economy = get_node_or_null("/root/Economy")
 	_collection = get_node_or_null("/root/Collection")
 	_decks = get_node_or_null("/root/Decks")
+	_snapshots = get_node_or_null("/root/DebugSnapshots")
 
 	if _repo == null:
 		push_error("DevConsole: ProfileRepo not found!")
@@ -91,6 +97,14 @@ func execute_command(command: String) -> bool:
 			return _cmd_save_reload()
 		"/save_create_deck":
 			return _cmd_create_deck(args)
+		"/snapshot_save":
+			return _cmd_snapshot_save(args)
+		"/snapshot_load":
+			return _cmd_snapshot_load(args)
+		"/snapshot_list":
+			return _cmd_snapshot_list()
+		"/snapshot_delete":
+			return _cmd_snapshot_delete(args)
 		_:
 			print("DevConsole: Unknown command: %s" % cmd)
 			return false
@@ -314,3 +328,81 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 	print("DevConsole: Deck created (id: %s) [%s]" % [deck_id, "VALID" if is_valid else "INVALID"])
 
 	return true
+
+func _cmd_snapshot_save(args: PackedStringArray) -> bool:
+	if _snapshots == null:
+		push_error("DevConsole: DebugSnapshots service not available")
+		return false
+
+	if args.size() == 0:
+		print("DevConsole: Usage: /snapshot_save <name>")
+		return false
+
+	var snapshot_name: String = " ".join(args)
+	print("DevConsole: Saving snapshot '%s'..." % snapshot_name)
+
+	var success: bool = _snapshots.call("save_snapshot", snapshot_name)
+	if success:
+		print("DevConsole: Snapshot saved successfully")
+	else:
+		print("DevConsole: Failed to save snapshot")
+
+	return success
+
+func _cmd_snapshot_load(args: PackedStringArray) -> bool:
+	if _snapshots == null:
+		push_error("DevConsole: DebugSnapshots service not available")
+		return false
+
+	if args.size() == 0:
+		print("DevConsole: Usage: /snapshot_load <name>")
+		return false
+
+	var snapshot_name: String = " ".join(args)
+	print("DevConsole: Loading snapshot '%s'..." % snapshot_name)
+
+	var success: bool = _snapshots.call("load_snapshot", snapshot_name)
+	if success:
+		print("DevConsole: Snapshot loaded successfully")
+	else:
+		print("DevConsole: Failed to load snapshot")
+
+	return success
+
+func _cmd_snapshot_list() -> bool:
+	if _snapshots == null:
+		push_error("DevConsole: DebugSnapshots service not available")
+		return false
+
+	print("=== AVAILABLE SNAPSHOTS ===")
+
+	var snapshots: Array = _snapshots.call("list_snapshots")
+	if snapshots.size() == 0:
+		print("No snapshots found")
+		return true
+
+	for snapshot: Dictionary in snapshots:
+		print("  - %s (created: %s)" % [snapshot.name, snapshot.created_at])
+
+	print("===========================")
+	return true
+
+func _cmd_snapshot_delete(args: PackedStringArray) -> bool:
+	if _snapshots == null:
+		push_error("DevConsole: DebugSnapshots service not available")
+		return false
+
+	if args.size() == 0:
+		print("DevConsole: Usage: /snapshot_delete <name>")
+		return false
+
+	var snapshot_name: String = " ".join(args)
+	print("DevConsole: Deleting snapshot '%s'..." % snapshot_name)
+
+	var success: bool = _snapshots.call("delete_snapshot", snapshot_name)
+	if success:
+		print("DevConsole: Snapshot deleted successfully")
+	else:
+		print("DevConsole: Failed to delete snapshot (may not exist)")
+
+	return success

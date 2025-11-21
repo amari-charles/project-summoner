@@ -32,6 +32,9 @@ var dialogue_manager: Node = null
 ## =============================================================================
 
 func _ready() -> void:
+	# Set process mode to ALWAYS so dialogue works while game is paused
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	# Hide by default
 	visible = false
 	continue_indicator.visible = false
@@ -73,6 +76,15 @@ func _input(event: InputEvent) -> void:
 			_on_click()
 	elif event is InputEventKey:
 		var key_event: InputEventKey = event
+
+		# DEBUG: Ctrl+D to instantly skip dialogue (for testing)
+		if key_event.pressed and key_event.ctrl_pressed and key_event.keycode == KEY_D:
+			print("DEBUG: Force-skipping dialogue")
+			if dialogue_manager and dialogue_manager.has_method("advance_dialogue"):
+				dialogue_manager.call("advance_dialogue")
+			get_viewport().set_input_as_handled()
+			return
+
 		if key_event.pressed and (key_event.keycode == KEY_SPACE or key_event.keycode == KEY_ENTER):
 			_on_click()
 

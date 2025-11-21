@@ -45,6 +45,11 @@ Example: When implementing drag-and-drop for cards, remove click-to-play entirel
   - Use `has_method()` checks for duck typing
   - Properly type variables when possible
   - Address the underlying type safety issue
+- **Always use localization**: All user-facing text must use the `Loc.t()` pattern for internationalization:
+  - Campaign events: `Loc.t("campaign.event.event_id.name")` and `Loc.t("campaign.event.event_id.description")`
+  - Battle names/descriptions: `Loc.t("campaign.battle.battle_id.name")` and `Loc.t("campaign.battle.battle_id.description")`
+  - Add corresponding entries to `localization/data/en.json`
+  - Never hardcode user-facing strings in GDScript files
 
 ### Git Workflow
 **ALWAYS use feature branches and PRs for non-trivial changes.**

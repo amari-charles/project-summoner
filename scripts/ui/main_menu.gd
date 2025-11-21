@@ -5,6 +5,7 @@ class_name MainMenu
 ## Provides navigation to game modes and settings
 
 @onready var placeholder_popup: AcceptDialog = $PlaceholderPopup
+@onready var snapshot_manager: SnapshotManager = $SnapshotManager
 
 func _ready() -> void:
 	print("Main Menu loaded")
@@ -36,16 +37,9 @@ func _on_settings_pressed() -> void:
 	print("Settings button pressed (PLACEHOLDER)")
 	placeholder_popup.popup_centered()
 
-## DEBUG: Reset profile button
-func _on_debug_reset_pressed() -> void:
-	print("MainMenu: Debug reset button pressed - resetting profile...")
-	var dev_console: Node = get_node_or_null("/root/DevConsole")
-	if dev_console:
-		dev_console.call("execute_command", "/save_wipe")
-		# Reload the main menu to reflect fresh state
-		get_tree().reload_current_scene()
-	else:
-		push_warning("DevConsole not found - cannot reset profile")
+## DEBUG: Manage snapshots button - opens snapshot manager
+func _on_debug_menu_pressed() -> void:
+	snapshot_manager.show_manager()
 
 ## Quit the game
 func _on_quit_pressed() -> void:
