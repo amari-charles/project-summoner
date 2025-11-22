@@ -19,7 +19,14 @@ signal dialogue_choices_presented(choices: Array[DialogueChoice])
 ## Emitted when the current dialogue ends
 signal dialogue_ended()
 
+## Emitted when the DialogueManager system is fully initialized and ready to handle requests
+## (Both manager and UI components are connected and functional)
+signal system_ready()
+
 ## State
+
+## Track if the dialogue system is fully initialized
+var _is_system_ready: bool = false
 
 ## Currently active dialogue
 var current_dialogue: DialogueData = null
@@ -38,13 +45,28 @@ var dialogue_cache: Dictionary = {}
 ## PUBLIC API
 ## =============================================================================
 
+## Notify that the UI (DialogueBox) has connected and is ready
+## This should be called by DialogueBox after it completes its signal connections
+func notify_ui_connected() -> void:
+	if not _is_system_ready:
+		_is_system_ready = true
+		system_ready.emit()
+		print("DialogueManager: System ready - UI connected")
+
+## Check if the dialogue system is ready to handle requests
+func is_system_ready() -> bool:
+	return _is_system_ready
+
 ## Start a dialogue by ID
 ## Loads the dialogue resource and begins displaying it
 func start_dialogue(dialogue_id: String) -> void:
+	print("DialogueManager: start_dialogue called with ID: %s" % dialogue_id)
 	var dialogue: DialogueData = _load_dialogue(dialogue_id)
 	if not dialogue:
 		push_error("DialogueManager: Dialogue not found: %s" % dialogue_id)
 		return
+
+	print("DialogueManager: Dialogue loaded successfully")
 
 	# Block capabilities during dialogue
 	CapabilityManager.block_capability(
@@ -58,24 +80,31 @@ func start_dialogue(dialogue_id: String) -> void:
 
 	current_dialogue = dialogue
 	current_line_index = 0
+	print("DialogueManager: Emitting dialogue_started signal")
 	dialogue_started.emit(dialogue)
 
 	# Display first line
+	print("DialogueManager: Calling _display_current_line()")
 	_display_current_line()
 
 ## Advance to the next line in the current dialogue
 ## If all lines are shown, either present choices or end dialogue
 func advance_dialogue() -> void:
+	print("DialogueManager: advance_dialogue called")
 	if not current_dialogue:
+		print("DialogueManager: No current dialogue, returning")
 		return
 
 	current_line_index += 1
+	print("DialogueManager: Incremented line index to %d (total lines: %d)" % [current_line_index, current_dialogue.lines.size()])
 
 	# Check if more lines remain
 	if current_line_index < current_dialogue.lines.size():
+		print("DialogueManager: More lines remain, displaying next line")
 		_display_current_line()
 	else:
 		# All lines shown - check for choices or next dialogue
+		print("DialogueManager: All lines shown, completing dialogue")
 		_complete_dialogue()
 
 ## Select a choice and navigate to the next dialogue
@@ -148,9 +177,12 @@ func _display_current_line() -> void:
 
 ## Complete the current dialogue (all lines shown)
 func _complete_dialogue() -> void:
+	print("DialogueManager: _complete_dialogue called")
 	if not current_dialogue:
+		print("DialogueManager: No current dialogue in _complete_dialogue")
 		return
 
+	print("DialogueManager: Checking for choices (count: %d)" % current_dialogue.choices.size())
 	# Check for choices
 	if not current_dialogue.choices.is_empty():
 		# Filter choices by condition
@@ -187,6 +219,7 @@ func _complete_dialogue() -> void:
 			start_dialogue(next_id)
 	else:
 		# End of dialogue chain - unblock capabilities
+		print("DialogueManager: No choices and no next_dialogue_id - ending dialogue")
 		CapabilityManager.unblock_capability(
 			CapabilityManager.Capability.PLAY_CARDS,
 			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
@@ -196,9 +229,11 @@ func _complete_dialogue() -> void:
 			CapabilityManager.BlockReason.DIALOGUE_ACTIVE
 		)
 
+		print("DialogueManager: Emitting dialogue_ended signal")
 		dialogue_ended.emit()
 		current_dialogue = null
 		current_line_index = 0
+		print("DialogueManager: Dialogue ended successfully")
 
 ## Load a dialogue resource by ID
 ## First checks cache, then attempts to load from resources/dialogue/

@@ -107,22 +107,8 @@ func _init_battles() -> void:
 		],
 		"enemy_hp": 30.0,  # Very low HP for tutorial (3 hits × 10 damage)
 		"unlock_requirements": ["event_first_summon"],
-		# Tutorial Dialogue Configuration
-		"dialogues": [
-			# Stage 1: Battle intro - welcome to training grounds
-			{"trigger": "battle_start", "dialogue_id": "first_trial_intro"},
-			# Stage 2: Explain card mechanics and show hand (disabled)
-			{"trigger": "after_dialogue", "previous": "first_trial_intro", "action": "show_hand"},
-			{"trigger": "after_dialogue", "previous": "first_trial_intro", "dialogue_id": "first_trial_card_explain"},
-			# Stage 3: Spawn enemy after card explanation
-			{"trigger": "after_dialogue", "previous": "first_trial_card_explain", "action": "spawn_enemy"},
-			{"trigger": "after_dialogue", "previous": "first_trial_card_explain", "dialogue_id": "first_trial_enemy_appears"},
-			# Stage 4: Prompt player to play card and enable hand
-			{"trigger": "after_dialogue", "previous": "first_trial_enemy_appears", "dialogue_id": "first_trial_play_prompt"},
-			{"trigger": "after_dialogue", "previous": "first_trial_play_prompt", "action": "enable_hand"},
-			# Stage 5: When unit reaches enemy base - explain victory condition
-			{"trigger": "base_damaged_first", "dialogue_id": "first_trial_core_explain"}
-		],
+		# Tutorial Event Sequence (Phase 3: Event System)
+		"event_sequence": "res://resources/sequences/first_trial_tutorial.tres",
 		# AI Configuration (disabled for tutorial - manual spawn via dialogue system)
 		"ai_type": "scripted",
 		"ai_script": []

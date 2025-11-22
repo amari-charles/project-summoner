@@ -50,11 +50,38 @@ func _ready() -> void:
 
 ## Load dialogue configuration from BattleContext
 func _load_dialogue_config() -> void:
+	# Phase 3: Check for EventSequence first (new system)
+	if BattleContext.battle_config.has("event_sequence"):
+		var sequence_path: String = BattleContext.battle_config.get("event_sequence", "")
+		if not sequence_path.is_empty():
+			_load_and_play_event_sequence(sequence_path)
+			return  # Use new system, skip old dialogue config
+
+	# Fallback to old dialogue config system
 	if not BattleContext.battle_config.has("dialogues"):
 		return
 
 	dialogue_config = BattleContext.battle_config.get("dialogues", [])
 	print("BattleDialogueController: Loaded %d dialogue triggers" % dialogue_config.size())
+
+
+## Load and play an EventSequence (Phase 3: New System)
+func _load_and_play_event_sequence(sequence_path: String) -> void:
+	var sequence: Resource = load(sequence_path)
+	if not sequence:
+		push_error("BattleDialogueController: Failed to load EventSequence: %s" % sequence_path)
+		return
+
+	var seq_id: String = sequence.get("sequence_id") if sequence.get("sequence_id") else "unknown"
+	print("BattleDialogueController: Playing EventSequence '%s'" % seq_id)
+
+	# Enable debug mode for tutorial sequences
+	if BattleContext.battle_config.get("is_tutorial", false):
+		EventSequencer.debug_mode = true
+
+	# Play the sequence
+	# EventSequencer will now wait for DialogueManager.system_ready signal
+	EventSequencer.play_sequence(sequence)
 
 
 ## Connect to relevant battle signals

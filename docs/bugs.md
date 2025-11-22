@@ -124,6 +124,45 @@ When a melee unit (e.g., slime) gets directly on top of a ranged unit (e.g., arc
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Battle Marked Complete When Quitting Mid-Battle
+**Status:** Open
+**Reported:** 2025-01-21
+**Component:** Campaign / Battle System
+**Type:** Progression Bug
+
+**Description:**
+When a player quits a battle before finishing it (e.g., returning to main menu mid-battle), the campaign system incorrectly marks the battle as completed.
+
+**Expected Behavior:**
+- Battles should only be marked complete when won
+- Quitting mid-battle should not affect battle completion status
+- Player should be able to retry battles they quit without it counting as completed
+
+**Current Behavior:**
+- Quitting a battle marks it as completed in campaign progress
+- Affects campaign unlock progression
+- Player loses ability to properly complete the battle
+
+**Impact:**
+- Breaks campaign progression system
+- Players can accidentally skip battles
+- Rewards may be granted incorrectly
+
+**Proposed Solution:**
+- Track battle completion state separately from battle start
+- Only mark battles complete in the reward screen after victory
+- Add "battle_in_progress" vs "battle_completed" distinction
+- Verify completion state is only set on actual victory condition
+
+**Related Files:**
+- `scripts/services/campaign_service.gd` - Campaign completion tracking
+- `scripts/ui/reward_screen.gd` - Reward granting logic
+- `scripts/core/game_controller_3d.gd` - Battle lifecycle
+
+**Notes:**
+- May be related to scene transitions or cleanup logic
+- Check where battle completion is saved
+
 #### VFX Pooling System Lacks Resource Isolation
 **Status:** Open
 **Reported:** 2025-01-15

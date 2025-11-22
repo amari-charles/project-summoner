@@ -162,7 +162,10 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 
 			# Attack range is optional (different defaults for melee vs ranged)
 			if catalog_data.has("attack_range"):
+				print("Card: Setting attack_range from catalog: %.2f for card '%s'" % [catalog_data.attack_range, card_name])
 				unit.attack_range = catalog_data.attack_range
+			else:
+				print("Card: No attack_range in catalog for '%s', using scene default: %.2f" % [card_name, unit.attack_range])
 
 			# Initialize with modifiers AFTER catalog stats applied
 			unit.initialize_with_modifiers(modifiers, card_data)

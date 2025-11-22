@@ -58,6 +58,10 @@ func _ready() -> void:
 			var dialogue_ended_signal: Signal = dialogue_manager.get("dialogue_ended")
 			dialogue_ended_signal.connect(_on_dialogue_ended)
 		print("DialogueBox: Connected to DialogueManager")
+
+		# Notify DialogueManager that UI is ready
+		if dialogue_manager.has_method("notify_ui_connected"):
+			dialogue_manager.call("notify_ui_connected")
 	else:
 		push_warning("DialogueBox: DialogueManager not found in autoloads")
 
@@ -73,6 +77,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			print("DialogueBox: Mouse click detected")
 			_on_click()
 	elif event is InputEventKey:
 		var key_event: InputEventKey = event
@@ -86,6 +91,7 @@ func _input(event: InputEvent) -> void:
 			return
 
 		if key_event.pressed and (key_event.keycode == KEY_SPACE or key_event.keycode == KEY_ENTER):
+			print("DialogueBox: Space/Enter key detected")
 			_on_click()
 
 ## =============================================================================
@@ -93,12 +99,14 @@ func _input(event: InputEvent) -> void:
 ## =============================================================================
 
 func _on_dialogue_started(dialogue_data: DialogueData) -> void:
+	print("DialogueBox: _on_dialogue_started called")
 	visible = true
 	_clear_choices()
 	continue_indicator.visible = false
 
 	# Set character name
 	character_name_label.text = dialogue_data.character_name
+	print("DialogueBox: Set character name to: %s" % dialogue_data.character_name)
 
 	# Set portrait if available
 	if dialogue_data.portrait:
@@ -107,7 +115,10 @@ func _on_dialogue_started(dialogue_data: DialogueData) -> void:
 	else:
 		portrait.visible = false
 
+	print("DialogueBox: Now visible, waiting for line display")
+
 func _on_dialogue_line_displayed(text: String, character: String, portrait_texture: Texture2D) -> void:
+	print("DialogueBox: _on_dialogue_line_displayed called with text: %s" % text)
 	_clear_choices()
 	continue_indicator.visible = false
 
@@ -122,6 +133,7 @@ func _on_dialogue_line_displayed(text: String, character: String, portrait_textu
 		portrait.visible = false
 
 	# Start typewriter effect
+	print("DialogueBox: Starting typewriter effect")
 	_start_typewriter(text)
 
 func _on_dialogue_choices_presented(choices: Array[DialogueChoice]) -> void:
