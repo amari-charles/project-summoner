@@ -62,6 +62,7 @@ enum StepType {
 @export var card_id: String = ""  ## Card ID from CardCatalog
 @export var spawn_position: Vector3 = Vector3.ZERO
 @export var team: int = 1  ## 0 = player, 1 = enemy
+@export var stat_overrides: Dictionary = {}  ## Override unit stats (e.g., {"move_speed": 0.0})
 
 ## =============================================================================
 ## SET_CAPABILITY STEP

@@ -65,6 +65,10 @@ signal unit_removed(unit: Node3D)
 ## Parameters: unit (Node3D), ability_name (String)
 signal unit_ability_used(unit: Node3D, ability_name: String)
 
+## Emitted when a player unit gets close to the enemy base
+## Parameters: unit (Node3D), distance (float)
+signal unit_near_enemy_base(unit: Node3D, distance: float)
+
 ## =============================================================================
 ## BASE/OBJECTIVE SIGNALS
 ## =============================================================================

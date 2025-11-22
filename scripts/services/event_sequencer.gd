@@ -29,6 +29,10 @@ var is_playing: bool = false
 var debug_mode: bool = false
 
 func _ready() -> void:
+	# CRITICAL: EventSequencer must continue running even when game is paused
+	# This allows it to control dialogue sequences and other scripted events
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	if debug_mode:
 		print("EventSequencer: Initialized")
 
@@ -149,6 +153,10 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 	var dialogue_id_val: Variant = step.get("dialogue_id")
 	var dialogue_id: String = dialogue_id_val if dialogue_id_val is String else ""
+
+	if debug_mode:
+		print("EventSequencer: _execute_dialogue called with dialogue_id='%s'" % dialogue_id)
+
 	if dialogue_id.is_empty():
 		push_warning("EventSequencer: DIALOGUE step has empty dialogue_id")
 		return
@@ -161,25 +169,70 @@ func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 	if not dialogue_manager:
 		dialogue_manager = get_tree().get_first_node_in_group("dialogue_manager")
 
+	if debug_mode:
+		print("EventSequencer: Found DialogueManager: %s" % (dialogue_manager != null))
+
 	if dialogue_manager and dialogue_manager.has_method("start_dialogue"):
+		# Wait for DialogueManager system to be ready (UI connected)
+		if dialogue_manager.has_method("is_system_ready"):
+			var is_ready: bool = dialogue_manager.call("is_system_ready")
+			if not is_ready:
+				if debug_mode:
+					print("EventSequencer: Waiting for DialogueManager system to be ready...")
+				if dialogue_manager.has_signal("system_ready"):
+					await dialogue_manager.get("system_ready")
+					if debug_mode:
+						print("EventSequencer: DialogueManager ready!")
+				else:
+					push_warning("EventSequencer: DialogueManager not ready and no system_ready signal")
+
+		# CRITICAL: Freeze game during dialogue
+		var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+		if game_controller and game_controller.has_method("freeze_game"):
+			if debug_mode:
+				print("EventSequencer: Freezing game for dialogue")
+			game_controller.call("freeze_game")
+
 		# Create a completion tracker before starting dialogue
-		var dialogue_complete: bool = false
+		# Use a Dictionary to capture by reference (bools are captured by value in GDScript!)
+		var dialogue_state: Dictionary = {"complete": false}
 		var completion_callback: Callable = func() -> void:
-			dialogue_complete = true
+			if debug_mode:
+				print("EventSequencer: dialogue_ended callback fired! Setting complete flag")
+			dialogue_state["complete"] = true
+			if debug_mode:
+				print("EventSequencer: complete flag is now: %s" % dialogue_state["complete"])
 
 		# Connect to the signal
 		if dialogue_manager.has_signal("dialogue_ended"):
+			if debug_mode:
+				print("EventSequencer: Connecting to dialogue_ended signal")
 			dialogue_manager.connect("dialogue_ended", completion_callback, CONNECT_ONE_SHOT)
 		else:
 			push_error("EventSequencer: DialogueManager doesn't have 'dialogue_ended' signal")
 			return
 
+		if debug_mode:
+			print("EventSequencer: Starting dialogue '%s'" % dialogue_id)
+
 		# Start the dialogue
 		dialogue_manager.call("start_dialogue", dialogue_id)
 
+		if debug_mode:
+			print("EventSequencer: Waiting for dialogue to complete...")
+
 		# Wait for completion
-		while not dialogue_complete:
+		while not dialogue_state["complete"]:
 			await get_tree().process_frame
+
+		if debug_mode:
+			print("EventSequencer: Dialogue complete!")
+
+		# CRITICAL: Unfreeze game after dialogue
+		if game_controller and game_controller.has_method("unfreeze_game"):
+			if debug_mode:
+				print("EventSequencer: Unfreezing game after dialogue")
+			game_controller.call("unfreeze_game")
 	else:
 		push_error("EventSequencer: DialogueManager not found or doesn't have start_dialogue method")
 
@@ -193,6 +246,10 @@ func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
 	var signal_name_val: Variant = step.get("signal_name")
 	var signal_source: String = signal_source_val if signal_source_val is String else ""
 	var signal_name: String = signal_name_val if signal_name_val is String else ""
+
+	if debug_mode:
+		print("EventSequencer: _execute_wait_signal - source: %s, signal: %s" % [signal_source, signal_name])
+
 	if signal_source.is_empty() or signal_name.is_empty():
 		push_warning("EventSequencer: WAIT_SIGNAL step has empty source or signal name")
 		return
@@ -210,8 +267,14 @@ func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
 		push_error("EventSequencer: Source '%s' doesn't have signal '%s'" % [signal_source, signal_name])
 		return
 
+	if debug_mode:
+		print("EventSequencer: Waiting for signal '%s' from '%s'..." % [signal_name, signal_source])
+
 	# Wait for signal
 	await source.get(signal_name)
+
+	if debug_mode:
+		print("EventSequencer: Signal '%s' received!" % signal_name)
 
 func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	var card_id_val: Variant = step.get("card_id")
@@ -225,6 +288,14 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	var team_val: Variant = step.get("team")
 	var spawn_position: Vector3 = spawn_position_val if spawn_position_val is Vector3 else Vector3.ZERO
 	var team: int = team_val if team_val is int else 0
+
+	# CRITICAL: Unfreeze game before spawning
+	# Units need a running game state to initialize properly
+	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	if game_controller and game_controller.has_method("unfreeze_game"):
+		if debug_mode:
+			print("EventSequencer: Unfreezing game for unit spawn")
+		game_controller.call("unfreeze_game")
 
 	# Create card from CardCatalog
 	var card: Card = CardCatalog.create_card_resource(card_id)
@@ -241,9 +312,35 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	# Get ModifierSystem
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 
+	if debug_mode:
+		print("EventSequencer: Spawning %s at %s for team %d" % [card_id, spawn_position, team])
+
 	# Spawn unit
 	if card.has_method("play_3d"):
 		card.call("play_3d", spawn_position, team, battlefield, modifier_system)
+		if debug_mode:
+			print("EventSequencer: Unit spawned successfully")
+
+		# Apply stat overrides if specified
+		var stat_overrides_val: Variant = step.get("stat_overrides")
+		var stat_overrides: Dictionary = stat_overrides_val if stat_overrides_val is Dictionary else {}
+		if not stat_overrides.is_empty():
+			# Find the unit we just spawned (most recently added unit at spawn_position)
+			await get_tree().process_frame  # Wait for unit to be added to scene tree
+			var units: Array[Node] = get_tree().get_nodes_in_group("units")
+			for unit_node: Node in units:
+				# Type check and narrow to Node3D for safe position access
+				if unit_node is Node3D:
+					var unit_3d: Node3D = unit_node as Node3D
+					if unit_3d.global_position.distance_to(spawn_position) < 0.1:
+						# Apply each stat override
+						for stat_key: String in stat_overrides.keys():
+							var stat_value: Variant = stat_overrides[stat_key]
+							if unit_node.has_method("set"):
+								unit_node.set(stat_key, stat_value)
+								if debug_mode:
+									print("EventSequencer: Applied stat override %s = %s" % [stat_key, stat_value])
+						break
 	else:
 		push_error("EventSequencer: Card doesn't have play_3d method")
 
