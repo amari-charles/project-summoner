@@ -52,6 +52,7 @@ signal unit_damaged(unit: Node3D, damage: float, attacker: Node3D)
 
 ## Emitted when a unit is healed
 ## Parameters: unit (Node3D), amount (float), healer (Node3D)
+@warning_ignore("unused_signal")
 signal unit_healed(unit: Node3D, amount: float, healer: Node3D)
 
 ## Emitted when a unit dies
@@ -59,14 +60,17 @@ signal unit_healed(unit: Node3D, amount: float, healer: Node3D)
 signal unit_died(unit: Node3D, killer: Node3D)
 
 ## Emitted when a unit is removed from battlefield (despawn)
+@warning_ignore("unused_signal")
 signal unit_removed(unit: Node3D)
 
 ## Emitted when a unit uses an ability
 ## Parameters: unit (Node3D), ability_name (String)
+@warning_ignore("unused_signal")
 signal unit_ability_used(unit: Node3D, ability_name: String)
 
 ## Emitted when a player unit gets close to the enemy base
 ## Parameters: unit (Node3D), distance (float)
+@warning_ignore("unused_signal")
 signal unit_near_enemy_base(unit: Node3D, distance: float)
 
 ## =============================================================================
@@ -78,12 +82,15 @@ signal unit_near_enemy_base(unit: Node3D, distance: float)
 signal player_base_damaged(damage: float, current_health: float, max_health: float)
 
 ## Emitted when enemy's base takes damage
+@warning_ignore("unused_signal")
 signal enemy_base_damaged(damage: float, current_health: float, max_health: float)
 
 ## Emitted when player's base is destroyed
+@warning_ignore("unused_signal")
 signal player_base_destroyed()
 
 ## Emitted when enemy's base is destroyed
+@warning_ignore("unused_signal")
 signal enemy_base_destroyed()
 
 ## =============================================================================
@@ -95,12 +102,15 @@ signal enemy_base_destroyed()
 signal card_played(card: Card, play_position: Vector3, team: int)
 
 ## Emitted when a card is drawn
+@warning_ignore("unused_signal")
 signal card_drawn(card: Card)
 
 ## Emitted when hand changes (card added/removed)
+@warning_ignore("unused_signal")
 signal hand_changed(hand_size: int)
 
 ## Emitted when mana changes
+@warning_ignore("unused_signal")
 signal mana_changed(current: int, max: int)
 
 ## =============================================================================
@@ -108,6 +118,7 @@ signal mana_changed(current: int, max: int)
 ## =============================================================================
 
 ## Emitted when a new turn begins
+@warning_ignore("unused_signal")
 signal turn_started(turn_number: int)
 
 ## Emitted when turn ends

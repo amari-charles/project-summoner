@@ -53,12 +53,12 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 
 ## Execute the card effect at the given 3D position
 ## modifier_system: Optional ModifierSystem reference for more efficient access
-func play_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	match card_type:
 		CardType.SUMMON:
-			_summon_unit_3d(position, team, battlefield, modifier_system)
+			_summon_unit_3d(play_position, team, battlefield, modifier_system)
 		CardType.SPELL:
-			_cast_spell_3d(position, team, battlefield, modifier_system)
+			_cast_spell_3d(play_position, team, battlefield, modifier_system)
 
 ## Spawn unit(s) at the position
 func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
@@ -106,7 +106,7 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 	explosion.queue_free()
 
 ## Spawn unit(s) at the 3D position
-func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
 		assert(false, "Summon card must have unit_scene!")
@@ -172,13 +172,13 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
-			unit.global_position = position + Vector3(i * 2.0, 0, 0)
+			unit.global_position = spawn_pos + Vector3(i * 2.0, 0, 0)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")
 
 ## Execute spell effect at the 3D position
-func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	# Get card definition from catalog
 	var card_def: Dictionary = {}
 	if not catalog_id.is_empty() and CardCatalog:
@@ -186,7 +186,7 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 
 	# Check for tactical command spells (Rally/Guard) - handle separately
 	if card_def.has("command_type"):
-		_cast_command_spell(position, team, battlefield, card_def)
+		_cast_command_spell(cast_pos, team, battlefield, card_def)
 		return
 
 	# Get card categories from catalog
@@ -211,7 +211,7 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 	if not spell_vfx.is_empty():
 		# Spawn VFX immediately with damage parameters
 		# VFX will handle damage application at impact time
-		VFXManager.play_effect(spell_vfx, position, {
+		VFXManager.play_effect(spell_vfx, cast_pos, {
 			"radius": spell_radius,
 			"damage": modified_spell_damage,
 			"team": team,
@@ -219,10 +219,10 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 		})
 	# If spell uses a projectile, spawn it instead of instant cast
 	elif not projectile_id.is_empty():
-		_spawn_spell_projectile(position, team, battlefield, modified_spell_damage)
+		_spawn_spell_projectile(cast_pos, team, battlefield, modified_spell_damage)
 	elif modified_spell_damage > 0:
 		# Fallback to instant AOE damage (legacy behavior)
-		_apply_aoe_damage_3d(position, team, battlefield, modified_spell_damage)
+		_apply_aoe_damage_3d(cast_pos, team, battlefield, modified_spell_damage)
 
 ## Apply modifiers to spell damage
 ##
@@ -291,7 +291,7 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 		assert(false, "Spell projectile must spawn successfully!")
 
 ## Cast tactical command spell (Rally/Guard)
-func _cast_command_spell(position: Vector3, team: Unit3D.Team, battlefield: Node, card_def: Dictionary) -> void:
+func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: Node, card_def: Dictionary) -> void:
 	var command_type: String = card_def.get("command_type", "")
 	var selection_radius: float = card_def.get("selection_radius", 8.0)
 	print("Card: _cast_command_spell - card_name='%s', command_type='%s', catalog_id='%s'" % [card_name, command_type, catalog_id])
