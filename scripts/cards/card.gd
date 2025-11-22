@@ -426,7 +426,7 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 	return battlefield as Node3D
 
 ## Apply AOE damage to enemies in 3D range
-func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
+func _apply_aoe_damage_3d(aoe_center: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
 	# Use provided damage or fall back to spell_damage
 	var final_damage: float = damage if damage > 0 else spell_damage
 
@@ -498,7 +498,7 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 ## =============================================================================
 
 ## Spawn failed cast VFX (fizzle effect)
-func _spawn_failed_cast_vfx(position: Vector3) -> void:
+func _spawn_failed_cast_vfx(fail_pos: Vector3) -> void:
 	# Try to use VFXManager if available
 	if VFXManager and VFXManager.has_effect("spell_fizzle"):
 		VFXManager.play_effect("spell_fizzle", position)
@@ -546,7 +546,7 @@ func _spawn_charge_vfx(charge_point: Vector3) -> void:
 	_spawn_placeholder_circle(charge_point, visual_radius, Color(1.0, 0.4, 0.2, 0.7))
 
 ## Spawn a simple fizzle effect using procedural geometry
-func _spawn_placeholder_fizzle(position: Vector3) -> void:
+func _spawn_placeholder_fizzle(fizzle_pos: Vector3) -> void:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if not main_loop or not main_loop is SceneTree:
 		return
