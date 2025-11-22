@@ -315,14 +315,14 @@ func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: No
 			continue
 
 		# Check if unit is within selection radius
-		var distance: float = position.distance_to(unit.global_position)
+		var distance: float = target_pos.distance_to(unit.global_position)
 		if distance <= selection_radius:
 			selected_units.append(unit)
 
 	if selected_units.is_empty():
 		# Failed cast: No units in range
 		print("Card: No units in radius for command spell '%s'" % card_name)
-		_spawn_failed_cast_vfx(position)
+		_spawn_failed_cast_vfx(target_pos)
 		return
 
 	# Successful cast: Execute command and show VFX
@@ -330,40 +330,40 @@ func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: No
 		"rally":
 			# Check SpellTargetingManager singleton for rally_destination from two-stage targeting
 			# If available, use that as the rally point; otherwise use circle center
-			var rally_target: Vector3 = position
+			var rally_target: Vector3 = target_pos
 			var rally_dest: Vector3 = SpellTargetingManager.get_rally_destination()
 			if rally_dest != Vector3.ZERO:
 				rally_target = rally_dest
-				print("Card: Using rally_destination: %s (circle was at %s)" % [rally_target, position])
+				print("Card: Using rally_destination: %s (circle was at %s)" % [rally_target, target_pos])
 				SpellTargetingManager.clear_rally_destination()
 			else:
-				print("Card: No rally_destination found, using circle center: %s" % position)
+				print("Card: No rally_destination found, using circle center: %s" % target_pos)
 
 			_apply_rally_command(selected_units, rally_target, card_def)
 			_spawn_rally_vfx(rally_target)
 		"guard":
 			# Check SpellTargetingManager singleton for guard formation position from two-stage targeting
-			var guard_position: Vector3 = position
+			var guard_position: Vector3 = target_pos
 			var guard_dest: Vector3 = SpellTargetingManager.get_rally_destination()
 			if guard_dest != Vector3.ZERO:
 				guard_position = guard_dest
-				print("Card: Using guard formation position: %s (circle was at %s)" % [guard_position, position])
+				print("Card: Using guard formation position: %s (circle was at %s)" % [guard_position, target_pos])
 				SpellTargetingManager.clear_rally_destination()
 			else:
-				print("Card: No guard destination found, using circle center: %s" % position)
+				print("Card: No guard destination found, using circle center: %s" % target_pos)
 
 			_apply_guard_command(selected_units, guard_position, card_def)
 			_spawn_guard_vfx(selected_units)
 		"charge":
 			# Check SpellTargetingManager singleton for charge_destination from two-stage targeting
-			var charge_destination: Vector3 = position
+			var charge_destination: Vector3 = target_pos
 			var charge_dest: Vector3 = SpellTargetingManager.get_rally_destination()
 			if charge_dest != Vector3.ZERO:
 				charge_destination = charge_dest
-				print("Card: Using charge destination: %s (circle was at %s)" % [charge_destination, position])
+				print("Card: Using charge destination: %s (circle was at %s)" % [charge_destination, target_pos])
 				SpellTargetingManager.clear_rally_destination()
 			else:
-				print("Card: No charge destination found, using circle center: %s" % position)
+				print("Card: No charge destination found, using circle center: %s" % target_pos)
 
 			_apply_charge_command(selected_units, charge_destination, team, card_def)
 			_spawn_charge_vfx(charge_destination)
@@ -441,7 +441,7 @@ func _apply_aoe_damage_3d(aoe_center: Vector3, team: Unit3D.Team, battlefield: N
 		if enemy is Unit3D:
 			var enemy_unit: Unit3D = enemy
 			if enemy_unit.is_alive:
-				var distance: float = enemy_unit.global_position.distance_to(position)
+				var distance: float = enemy_unit.global_position.distance_to(aoe_center)
 				if distance <= spell_radius:
 					enemy_unit.take_damage(final_damage)
 
@@ -501,11 +501,11 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 func _spawn_failed_cast_vfx(fail_pos: Vector3) -> void:
 	# Try to use VFXManager if available
 	if VFXManager and VFXManager.has_effect("spell_fizzle"):
-		VFXManager.play_effect("spell_fizzle", position)
+		VFXManager.play_effect("spell_fizzle", fail_pos)
 		return
 
 	# Fallback: Simple procedural fizzle effect
-	_spawn_placeholder_fizzle(position)
+	_spawn_placeholder_fizzle(fail_pos)
 
 ## Spawn Rally VFX (selection circle + rally point marker)
 func _spawn_rally_vfx(rally_point: Vector3) -> void:
@@ -570,7 +570,7 @@ func _spawn_placeholder_fizzle(fizzle_pos: Vector3) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = position
+	mesh_instance.global_position = fizzle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 0.5 seconds
@@ -606,7 +606,7 @@ func _spawn_placeholder_circle(position: Vector3, radius: float, color: Color) -
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = position
+	mesh_instance.global_position = fizzle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 1.5 seconds
@@ -640,7 +640,7 @@ func _spawn_placeholder_marker(position: Vector3, color: Color) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = position
+	mesh_instance.global_position = fizzle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 1.0 seconds
