@@ -455,7 +455,7 @@ func _execute_move_camera(step: Resource) -> void:  # EventStep parameter
 	push_warning("EventSequencer: MOVE_CAMERA not yet implemented")
 	await get_tree().create_timer(camera_duration).timeout
 
-func _execute_play_animation(step: Resource) -> void:  # EventStep parameter
+func _execute_play_animation(_step: Resource) -> void:  # EventStep parameter
 	# TODO: Implement animation playback
 	push_warning("EventSequencer: PLAY_ANIMATION not yet implemented")
 

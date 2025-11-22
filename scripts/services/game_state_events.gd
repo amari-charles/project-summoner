@@ -43,8 +43,8 @@ signal battle_ended(victory: bool)
 ## =============================================================================
 
 ## Emitted when a unit is spawned on the battlefield
-## Parameters: unit (Node3D), team (int), position (Vector3)
-signal unit_spawned(unit: Node3D, team: int, position: Vector3)
+## Parameters: unit (Node3D), team (int), spawn_position (Vector3)
+signal unit_spawned(unit: Node3D, team: int, spawn_position: Vector3)
 
 ## Emitted when a unit takes damage
 ## Parameters: unit (Node3D), damage (float), attacker (Node3D)
@@ -91,8 +91,8 @@ signal enemy_base_destroyed()
 ## =============================================================================
 
 ## Emitted when a card is played from hand
-## Parameters: card (Card), position (Vector3), team (int)
-signal card_played(card: Card, position: Vector3, team: int)
+## Parameters: card (Card), play_position (Vector3), team (int)
+signal card_played(card: Card, play_position: Vector3, team: int)
 
 ## Emitted when a card is drawn
 signal card_drawn(card: Card)
@@ -111,12 +111,15 @@ signal mana_changed(current: int, max: int)
 signal turn_started(turn_number: int)
 
 ## Emitted when turn ends
+@warning_ignore("unused_signal")
 signal turn_ended(turn_number: int)
 
 ## Emitted when player's turn starts
+@warning_ignore("unused_signal")
 signal player_turn_started()
 
 ## Emitted when enemy's turn starts
+@warning_ignore("unused_signal")
 signal enemy_turn_started()
 
 ## =============================================================================
@@ -140,17 +143,18 @@ func _connect_debug_listeners() -> void:
 	battle_ending.connect(func(victory: bool) -> void: print("GameStateEvents: battle_ending(victory=%s)" % victory))
 	battle_ended.connect(func(victory: bool) -> void: print("GameStateEvents: battle_ended(victory=%s)" % victory))
 
-	unit_spawned.connect(func(unit: Node3D, team: int, position: Vector3) -> void:
-		print("GameStateEvents: unit_spawned(unit=%s, team=%d, pos=%s)" % [unit.name, team, position])
+	unit_spawned.connect(func(unit: Node3D, team: int, _position: Vector3) -> void:
+		print("GameStateEvents: unit_spawned(unit=%s, team=%d)" % [unit.name, team])
 	)
-	unit_damaged.connect(func(unit: Node3D, damage: float, attacker: Node3D) -> void:
+	unit_damaged.connect(func(unit: Node3D, damage: float, _attacker: Node3D) -> void:
 		print("GameStateEvents: unit_damaged(unit=%s, damage=%.1f)" % [unit.name, damage])
 	)
 	unit_died.connect(func(unit: Node3D, killer: Node3D) -> void:
-		print("GameStateEvents: unit_died(unit=%s, killer=%s)" % [unit.name, killer.name if killer else "none"])
+		var killer_name: String = killer.name if killer else "none"
+		print("GameStateEvents: unit_died(unit=%s, killer=%s)" % [unit.name, killer_name])
 	)
 
-	card_played.connect(func(card: Resource, position: Vector3, team: int) -> void:
+	card_played.connect(func(card: Resource, _position: Vector3, team: int) -> void:
 		var card_name_val: Variant = card.call("get_card_name") if card.has_method("get_card_name") else "unknown"
 		var card_name: String = card_name_val if card_name_val is String else "unknown"
 		print("GameStateEvents: card_played(card=%s, team=%d)" % [card_name, team])

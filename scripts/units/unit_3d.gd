@@ -422,8 +422,6 @@ func _physics_process(delta: float) -> void:
 	# - Lock expired
 	# - Current target invalid
 	# - Forced target exists and differs from current (Charge spell override)
-	var has_forced: bool = forced_target != null and forced_target != current_target
-
 	var should_reacquire: bool = (
 		target_lock_timer <= 0.0 or
 		not _is_valid_target(current_target) or

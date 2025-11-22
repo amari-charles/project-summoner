@@ -202,9 +202,9 @@ func _refresh_snapshot_list() -> void:
 		return
 
 	for snapshot: Dictionary in snapshots:
-		var name: String = snapshot.get("name", "unknown")
+		var snapshot_name: String = snapshot.get("name", "unknown")
 		var created_at: String = snapshot.get("created_at", "unknown")
-		var display_text: String = "%s (created: %s)" % [name, created_at]
+		var display_text: String = "%s (created: %s)" % [snapshot_name, created_at]
 		snapshot_list.add_item(display_text)
 
 	# Clear selection
