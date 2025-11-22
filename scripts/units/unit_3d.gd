@@ -494,7 +494,11 @@ func _check_proximity_to_enemy_base() -> void:
 	if distance_2d <= PROXIMITY_THRESHOLD:
 		_has_emitted_proximity_signal = true
 		GameStateEvents.unit_near_enemy_base.emit(self, distance_2d)
-		print("Unit3D: Player unit '%s' near enemy base (distance: %.2f)" % [name, distance_2d])
+
+		# Debug logging (only if EventSequencer has debug_mode enabled)
+		var event_sequencer: Node = get_node_or_null("/root/EventSequencer")
+		if event_sequencer and event_sequencer.get("debug_mode"):
+			print("Unit3D: Player unit '%s' near enemy base (distance: %.2f)" % [name, distance_2d])
 
 func _is_valid_target(target: Node3D) -> bool:
 	## Check if a target is still valid (alive and in range)
