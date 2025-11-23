@@ -1,28 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(/Users/amaricharles/Downloads/Godot.app/Contents/MacOS/Godot:*)",
-      "Bash(mdfind:*)",
-      "Bash(tee:*)",
-      "Bash(cat:*)",
-      "mcp__ide__getDiagnostics",
-      "Bash(git add:*)",
-      "Bash(git push:*)",
-      "Bash(git commit:*)",
-      "Bash(pkill:*)",
-      "Bash(find:*)",
-      "Bash(python3 -m py_compile:*)",
-      "Bash(/Applications/Godot.app/Contents/MacOS/Godot:*)",
-      "Bash(gh pr diff:*)",
-      "Bash(git branch:*)",
-      "Bash(gh pr list:*)",
       "Bash(godot:*)",
-      "WebSearch",
-      "Bash(done)",
-      "Bash(git checkout:*)",
-      "Bash(git reset:*)",
-      "Bash(python3:*)",
-      "Bash(echo \"Please provide the full console output, especially the lines showing:\n- ''BattleContext: configure_campaign_battle() called with battle_id=...''\n- ''CampaignService: get_battle(...)''\n- ''BattleContext: Configured campaign battle...''\n- ''EnemyDeckLoader: Starting deck load...''\n\nThese diagnostic logs should appear BEFORE the assertion failure and will tell us exactly where the battle_config becomes empty.\")"
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

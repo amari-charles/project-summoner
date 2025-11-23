@@ -22,6 +22,7 @@ no_depth_test = true
 
 [node name="FloatingHPBar" type="Node3D"]
 script = ExtResource("1_script")
+show_on_damage_only = true
 
 [node name="Background" type="MeshInstance3D" parent="."]
 mesh = SubResource("QuadMesh_bg")

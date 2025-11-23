@@ -132,6 +132,19 @@ func reset_battle_state() -> void:
 	# Clear all units from the battlefield
 	_clear_all_units()
 
+	# Reset autoload singletons that persist between battles
+	if EventSequencer:
+		EventSequencer.reset()
+		print("  - Reset EventSequencer")
+
+	if DialogueManager:
+		DialogueManager.reset()
+		print("  - Reset DialogueManager")
+
+	if SpellTargetingManager:
+		SpellTargetingManager.reset()
+		print("  - Reset SpellTargetingManager")
+
 	# Reset game state
 	current_state = GameState.SETUP
 	match_time = 0.0

@@ -11,7 +11,7 @@ const BASE_HP_BAR_HEIGHT: float = 3.2
 @export var bar_width: float = 0.8  ## Width in world units (smaller for units)
 @export var bar_height: float = 0.08  ## Height in world units
 @export var offset_y: float = 3.2  ## Height above unit (above character head)
-@export var show_on_damage_only: bool = false  ## Hide when at full HP
+@export var show_on_damage_only: bool = true  ## Hide when at full HP
 @export var fade_delay: float = 3.0  ## Seconds before fading when damaged
 @export var fade_duration: float = 0.5  ## Fade out time
 
@@ -182,16 +182,22 @@ func update_hp(current: float, maximum: float) -> void:
 	var hp_percent_calc: float = current_hp / max_hp if max_hp > 0 else 0.0
 	var hp_percent: float = clamp(hp_percent_calc, 0.0, 1.0)
 
+	print("FloatingHPBar.update_hp: current=%f, max=%f, percent=%f, show_on_damage_only=%s, offset_y=%f, global_pos=%v, visible=%s" % [current, maximum, hp_percent, show_on_damage_only, offset_y, global_position, visible])
+
 	# Redraw the bar texture with new HP percentage
 	_redraw_bar_texture(hp_percent)
 
 	# Handle show_on_damage_only behavior
 	if show_on_damage_only:
 		if hp_percent < 1.0:
+			print("FloatingHPBar: Showing bar (HP < 100%)")
 			_show()
 			fade_timer = fade_delay
 		else:
+			print("FloatingHPBar: Hiding bar (HP = 100%)")
 			_hide_immediate()
+	else:
+		print("FloatingHPBar: show_on_damage_only is false, not changing visibility")
 
 ## Get color based on HP percentage
 func _get_hp_color(hp_percent: float) -> Color:
@@ -206,7 +212,9 @@ func _get_hp_color(hp_percent: float) -> Color:
 
 ## Show the bar
 func _show() -> void:
+	print("FloatingHPBar._show: called, bar_is_visible=%s, current visible=%s" % [bar_is_visible, visible])
 	if bar_is_visible:
+		print("FloatingHPBar._show: Already visible, returning")
 		return
 
 	bar_is_visible = true
@@ -215,6 +223,8 @@ func _show() -> void:
 	# Reset alpha
 	if hp_bar_sprite:
 		hp_bar_sprite.modulate.a = 1.0
+
+	print("FloatingHPBar._show: Set visible=true, global_pos=%v, offset_y=%f" % [global_position, offset_y])
 
 ## Hide immediately
 func _hide_immediate() -> void:
@@ -254,6 +264,15 @@ func reset() -> void:
 	visible = false  # Hide when returned to pool
 	cached_offset_x = 0.0
 
+	# CRITICAL: Reset all configurable properties to defaults
+	# This prevents settings from one entity (e.g., bases) from leaking to others
+	show_on_damage_only = true  # Units should hide bars when at full HP
+	bar_width = 0.8  # Default unit bar width
+	bar_height = 0.08  # Default bar height
+	offset_y = 3.2  # Default height above unit
+	fade_delay = 3.0  # Default fade delay
+	fade_duration = 0.5  # Default fade duration
+
 	# Reset sprite properties
 	if hp_bar_sprite:
 		hp_bar_sprite.modulate = Color.WHITE
@@ -269,14 +288,22 @@ func _calculate_bar_offset() -> float:
 	var visual: Node = target_unit.get_node_or_null("Visual")
 	if not visual:
 		# Base units don't have Visual components, use default
+		print("FloatingHPBar._calculate_bar_offset: No Visual component, using BASE_HP_BAR_HEIGHT=%f" % BASE_HP_BAR_HEIGHT)
 		return BASE_HP_BAR_HEIGHT
 
 	# Query sprite height from visual component
 	if visual.has_method("get_sprite_height"):
 		var sprite_height: float = visual.call("get_sprite_height")
-		return sprite_height * 1.1
+		var base_offset: float = sprite_height * 1.1
+
+		# Account for unit scale (for boss/giant units)
+		var scale_factor: float = target_unit.scale.y
+		var final_offset: float = base_offset * scale_factor
+		print("FloatingHPBar._calculate_bar_offset: sprite_height=%f, base_offset=%f, scale=%v, final_offset=%f" % [sprite_height, base_offset, target_unit.scale, final_offset])
+		return final_offset
 
 	# Visual component doesn't support height calculation, use default
+	print("FloatingHPBar._calculate_bar_offset: Visual has no get_sprite_height, using BASE_HP_BAR_HEIGHT=%f" % BASE_HP_BAR_HEIGHT)
 	return BASE_HP_BAR_HEIGHT
 
 ## Signal handler for unit HP changes

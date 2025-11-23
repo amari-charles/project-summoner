@@ -159,7 +159,7 @@ func _ready() -> void:
 			var opacity_scale: float = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
 			shadow_component.call("set_shadow_opacity", shadow_opacity * opacity_scale)
 
-	# Spawn HP bar using HPBarManager
+	# Spawn HP bar using HPBarManager (offset calculated automatically based on scale)
 	HPBarManager.create_bar_for_unit(self)
 
 	# Setup abilities
@@ -435,19 +435,15 @@ func _physics_process(delta: float) -> void:
 
 	if current_target:
 		var in_range: bool = _is_in_attack_range(current_target)
-		var distance: float = global_position.distance_to(current_target.global_position)
-		if distance < 5.0:  # Only log when close
-			print("Unit3D [team %d]: Distance to target: %.2f, in_range: %s, attack_range: %.2f" % [team, distance, in_range, attack_range])
 		if in_range:
 			# Face opponent when idle in range (but not during attack)
 			if not is_attacking:
 				_update_facing(current_target.global_position)
 				_update_animation("idle")
 			if attack_cooldown <= 0.0:
-				print("Unit3D [team %d]: Performing attack on target!" % team)
 				_perform_attack()
 			else:
-				print("Unit3D [team %d]: In range but on cooldown (%.2fs remaining)" % [team, attack_cooldown])
+				pass  # On cooldown, wait
 		else:
 			# Don't move during attack animation
 			if not is_attacking:
@@ -455,7 +451,8 @@ func _physics_process(delta: float) -> void:
 				var old_pos: Vector3 = global_position
 				_move_towards_target(delta)
 				var moved: float = global_position.distance_to(old_pos)
-				if moved < 0.01:
+				# Only warn if move_speed > 0 (intentionally stationary units shouldn't warn)
+				if moved < 0.01 and move_speed > 0.01:
 					print("Unit3D [team %d]: WARNING - Not moving! pos: %s, target pos: %s" % [team, global_position, current_target.global_position])
 	else:
 		if not is_attacking:
