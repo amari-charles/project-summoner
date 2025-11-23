@@ -161,7 +161,9 @@ func _connect_debug_listeners() -> void:
 		print("GameStateEvents: unit_damaged(unit=%s, damage=%.1f)" % [unit.name, damage])
 	)
 	unit_died.connect(func(unit: Node3D, killer: Node3D) -> void:
-		var killer_name: String = killer.name if killer else "none"
+		var killer_name: String = "none"
+		if killer:
+			killer_name = killer.name
 		print("GameStateEvents: unit_died(unit=%s, killer=%s)" % [unit.name, killer_name])
 	)
 
