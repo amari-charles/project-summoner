@@ -45,7 +45,9 @@ func _ready() -> void:
 	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
 
-	# For enemy: Check if battle uses event_sequence (enemies spawned via dialogue/events)
+	# For enemy: Auto-detect event_sequence battles (enemies spawned via dialogue/events)
+	# Pattern: battle_config has "event_sequence" AND "enemy_deck" is empty array
+	# This is intentional - enemies are spawned manually via BattleDialogueController/EventSequencer
 	if team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
 		if BattleContext.battle_config.has("event_sequence") and BattleContext.battle_config.has("enemy_deck"):
 			var enemy_deck_variant: Variant = BattleContext.battle_config.get("enemy_deck")

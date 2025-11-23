@@ -55,6 +55,12 @@ func _init_battles() -> void:
 	#   - campaign_screen.gd (list-based screen)
 	# to prevent divergence between advertised and actual rewards
 
+	# IMPORTANT: Battles using event_sequence system
+	# If a battle uses "event_sequence" for spawning enemies via dialogue/events:
+	# - Set "enemy_deck": [] (empty array, NOT omit the key)
+	# - Summoner3D will auto-detect this and use DEFERRED deck loading strategy
+	# - Enemies are spawned manually via BattleDialogueController or EventSequencer
+
 	# Onboarding Event 1: Hero/Affinity selection
 	_battles["event_affinity"] = {
 		"id": "event_affinity",
