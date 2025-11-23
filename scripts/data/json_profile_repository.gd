@@ -143,6 +143,36 @@ func reset_profile() -> void:
 func snapshot() -> Dictionary:
 	return _data.duplicate(true)
 
+## Get complete profile data for snapshots/debugging
+func get_profile_data() -> Dictionary:
+	return _data.duplicate(true)
+
+## Load complete profile data from snapshot
+func load_profile_data(profile_data: Dictionary) -> void:
+	if profile_data.is_empty():
+		push_error("JsonProfileRepo: Cannot load empty profile data")
+		return
+
+	print("JsonProfileRepo: Loading profile data from snapshot...")
+	_data = profile_data.duplicate(true)
+
+	# Update the profile_id to match current profile
+	_data["profile_id"] = _current_profile_id
+	if _data.has("resources"):
+		_data["resources"]["profile_id"] = _current_profile_id
+
+	# Update timestamp
+	_data["updated_at"] = Time.get_unix_time_from_system()
+
+	# Save immediately to disk
+	save_profile(true)
+
+	# Emit signals
+	profile_loaded.emit(_current_profile_id)
+	data_changed.emit()
+
+	print("JsonProfileRepo: Profile data loaded successfully")
+
 ## =============================================================================
 ## RESOURCE OPERATIONS
 ## =============================================================================
@@ -633,9 +663,9 @@ func _rotate_backups(main_path: String, bak1_path: String, bak2_path: String) ->
 			dir.remove(bak2_path.get_file())
 		dir.rename(bak1_path.get_file(), bak2_path.get_file())
 
-	# Copy main → bak1
+	# Copy main → bak1 (using full paths)
 	if FileAccess.file_exists(main_path):
-		dir.copy(main_path.get_file(), bak1_path.get_file())
+		dir.copy(main_path, bak1_path)
 
 ## =============================================================================
 ## INTERNAL - DATA MANAGEMENT

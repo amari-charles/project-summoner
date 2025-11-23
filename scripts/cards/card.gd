@@ -53,12 +53,12 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 
 ## Execute the card effect at the given 3D position
 ## modifier_system: Optional ModifierSystem reference for more efficient access
-func play_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	match card_type:
 		CardType.SUMMON:
-			_summon_unit_3d(position, team, battlefield, modifier_system)
+			_summon_unit_3d(play_position, team, battlefield, modifier_system)
 		CardType.SPELL:
-			_cast_spell_3d(position, team, battlefield, modifier_system)
+			_cast_spell_3d(play_position, team, battlefield, modifier_system)
 
 ## Spawn unit(s) at the position
 func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
@@ -106,7 +106,7 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 	explosion.queue_free()
 
 ## Spawn unit(s) at the 3D position
-func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
 		assert(false, "Summon card must have unit_scene!")
@@ -162,20 +162,23 @@ func _summon_unit_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mo
 
 			# Attack range is optional (different defaults for melee vs ranged)
 			if catalog_data.has("attack_range"):
+				print("Card: Setting attack_range from catalog: %.2f for card '%s'" % [catalog_data.attack_range, card_name])
 				unit.attack_range = catalog_data.attack_range
+			else:
+				print("Card: No attack_range in catalog for '%s', using scene default: %.2f" % [card_name, unit.attack_range])
 
 			# Initialize with modifiers AFTER catalog stats applied
 			unit.initialize_with_modifiers(modifiers, card_data)
 
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
-			unit.global_position = position + Vector3(i * 2.0, 0, 0)
+			unit.global_position = spawn_pos + Vector3(i * 2.0, 0, 0)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")
 
 ## Execute spell effect at the 3D position
-func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	# Get card definition from catalog
 	var card_def: Dictionary = {}
 	if not catalog_id.is_empty() and CardCatalog:
@@ -183,7 +186,7 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 
 	# Check for tactical command spells (Rally/Guard) - handle separately
 	if card_def.has("command_type"):
-		_cast_command_spell(position, team, battlefield, card_def)
+		_cast_command_spell(cast_pos, team, battlefield, card_def)
 		return
 
 	# Get card categories from catalog
@@ -208,7 +211,7 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 	if not spell_vfx.is_empty():
 		# Spawn VFX immediately with damage parameters
 		# VFX will handle damage application at impact time
-		VFXManager.play_effect(spell_vfx, position, {
+		VFXManager.play_effect(spell_vfx, cast_pos, {
 			"radius": spell_radius,
 			"damage": modified_spell_damage,
 			"team": team,
@@ -216,10 +219,10 @@ func _cast_spell_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, mod
 		})
 	# If spell uses a projectile, spawn it instead of instant cast
 	elif not projectile_id.is_empty():
-		_spawn_spell_projectile(position, team, battlefield, modified_spell_damage)
+		_spawn_spell_projectile(cast_pos, team, battlefield, modified_spell_damage)
 	elif modified_spell_damage > 0:
 		# Fallback to instant AOE damage (legacy behavior)
-		_apply_aoe_damage_3d(position, team, battlefield, modified_spell_damage)
+		_apply_aoe_damage_3d(cast_pos, team, battlefield, modified_spell_damage)
 
 ## Apply modifiers to spell damage
 ##
@@ -288,7 +291,7 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 		assert(false, "Spell projectile must spawn successfully!")
 
 ## Cast tactical command spell (Rally/Guard)
-func _cast_command_spell(position: Vector3, team: Unit3D.Team, battlefield: Node, card_def: Dictionary) -> void:
+func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: Node, card_def: Dictionary) -> void:
 	var command_type: String = card_def.get("command_type", "")
 	var selection_radius: float = card_def.get("selection_radius", 8.0)
 	print("Card: _cast_command_spell - card_name='%s', command_type='%s', catalog_id='%s'" % [card_name, command_type, catalog_id])
@@ -312,14 +315,14 @@ func _cast_command_spell(position: Vector3, team: Unit3D.Team, battlefield: Node
 			continue
 
 		# Check if unit is within selection radius
-		var distance: float = position.distance_to(unit.global_position)
+		var distance: float = target_pos.distance_to(unit.global_position)
 		if distance <= selection_radius:
 			selected_units.append(unit)
 
 	if selected_units.is_empty():
 		# Failed cast: No units in range
 		print("Card: No units in radius for command spell '%s'" % card_name)
-		_spawn_failed_cast_vfx(position)
+		_spawn_failed_cast_vfx(target_pos)
 		return
 
 	# Successful cast: Execute command and show VFX
@@ -327,40 +330,40 @@ func _cast_command_spell(position: Vector3, team: Unit3D.Team, battlefield: Node
 		"rally":
 			# Check SpellTargetingManager singleton for rally_destination from two-stage targeting
 			# If available, use that as the rally point; otherwise use circle center
-			var rally_target: Vector3 = position
+			var rally_target: Vector3 = target_pos
 			var rally_dest: Vector3 = SpellTargetingManager.get_rally_destination()
 			if rally_dest != Vector3.ZERO:
 				rally_target = rally_dest
-				print("Card: Using rally_destination: %s (circle was at %s)" % [rally_target, position])
+				print("Card: Using rally_destination: %s (circle was at %s)" % [rally_target, target_pos])
 				SpellTargetingManager.clear_rally_destination()
 			else:
-				print("Card: No rally_destination found, using circle center: %s" % position)
+				print("Card: No rally_destination found, using circle center: %s" % target_pos)
 
 			_apply_rally_command(selected_units, rally_target, card_def)
 			_spawn_rally_vfx(rally_target)
 		"guard":
 			# Check SpellTargetingManager singleton for guard formation position from two-stage targeting
-			var guard_position: Vector3 = position
+			var guard_position: Vector3 = target_pos
 			var guard_dest: Vector3 = SpellTargetingManager.get_rally_destination()
 			if guard_dest != Vector3.ZERO:
 				guard_position = guard_dest
-				print("Card: Using guard formation position: %s (circle was at %s)" % [guard_position, position])
+				print("Card: Using guard formation position: %s (circle was at %s)" % [guard_position, target_pos])
 				SpellTargetingManager.clear_rally_destination()
 			else:
-				print("Card: No guard destination found, using circle center: %s" % position)
+				print("Card: No guard destination found, using circle center: %s" % target_pos)
 
 			_apply_guard_command(selected_units, guard_position, card_def)
 			_spawn_guard_vfx(selected_units)
 		"charge":
 			# Check SpellTargetingManager singleton for charge_destination from two-stage targeting
-			var charge_destination: Vector3 = position
+			var charge_destination: Vector3 = target_pos
 			var charge_dest: Vector3 = SpellTargetingManager.get_rally_destination()
 			if charge_dest != Vector3.ZERO:
 				charge_destination = charge_dest
-				print("Card: Using charge destination: %s (circle was at %s)" % [charge_destination, position])
+				print("Card: Using charge destination: %s (circle was at %s)" % [charge_destination, target_pos])
 				SpellTargetingManager.clear_rally_destination()
 			else:
-				print("Card: No charge destination found, using circle center: %s" % position)
+				print("Card: No charge destination found, using circle center: %s" % target_pos)
 
 			_apply_charge_command(selected_units, charge_destination, team, card_def)
 			_spawn_charge_vfx(charge_destination)
@@ -423,7 +426,7 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 	return battlefield as Node3D
 
 ## Apply AOE damage to enemies in 3D range
-func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
+func _apply_aoe_damage_3d(aoe_center: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
 	# Use provided damage or fall back to spell_damage
 	var final_damage: float = damage if damage > 0 else spell_damage
 
@@ -438,7 +441,7 @@ func _apply_aoe_damage_3d(position: Vector3, team: Unit3D.Team, battlefield: Nod
 		if enemy is Unit3D:
 			var enemy_unit: Unit3D = enemy
 			if enemy_unit.is_alive:
-				var distance: float = enemy_unit.global_position.distance_to(position)
+				var distance: float = enemy_unit.global_position.distance_to(aoe_center)
 				if distance <= spell_radius:
 					enemy_unit.take_damage(final_damage)
 
@@ -495,14 +498,14 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 ## =============================================================================
 
 ## Spawn failed cast VFX (fizzle effect)
-func _spawn_failed_cast_vfx(position: Vector3) -> void:
+func _spawn_failed_cast_vfx(fail_pos: Vector3) -> void:
 	# Try to use VFXManager if available
 	if VFXManager and VFXManager.has_effect("spell_fizzle"):
-		VFXManager.play_effect("spell_fizzle", position)
+		VFXManager.play_effect("spell_fizzle", fail_pos)
 		return
 
 	# Fallback: Simple procedural fizzle effect
-	_spawn_placeholder_fizzle(position)
+	_spawn_placeholder_fizzle(fail_pos)
 
 ## Spawn Rally VFX (selection circle + rally point marker)
 func _spawn_rally_vfx(rally_point: Vector3) -> void:
@@ -543,7 +546,7 @@ func _spawn_charge_vfx(charge_point: Vector3) -> void:
 	_spawn_placeholder_circle(charge_point, visual_radius, Color(1.0, 0.4, 0.2, 0.7))
 
 ## Spawn a simple fizzle effect using procedural geometry
-func _spawn_placeholder_fizzle(position: Vector3) -> void:
+func _spawn_placeholder_fizzle(fizzle_pos: Vector3) -> void:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if not main_loop or not main_loop is SceneTree:
 		return
@@ -567,7 +570,7 @@ func _spawn_placeholder_fizzle(position: Vector3) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = position
+	mesh_instance.global_position = fizzle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 0.5 seconds
@@ -578,7 +581,7 @@ func _spawn_placeholder_fizzle(position: Vector3) -> void:
 	)
 
 ## Spawn a simple circle marker using procedural geometry
-func _spawn_placeholder_circle(position: Vector3, radius: float, color: Color) -> void:
+func _spawn_placeholder_circle(circle_pos: Vector3, radius: float, color: Color) -> void:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if not main_loop or not main_loop is SceneTree:
 		return
@@ -603,7 +606,7 @@ func _spawn_placeholder_circle(position: Vector3, radius: float, color: Color) -
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = position
+	mesh_instance.global_position = circle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 1.5 seconds

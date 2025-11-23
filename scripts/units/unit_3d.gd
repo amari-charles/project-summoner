@@ -96,6 +96,9 @@ var guard_mode: bool = false  ## Whether unit is in guard mode
 var guard_timer: float = 0.0  ## Time remaining for guard mode
 var formation_position: Vector3 = Vector3.ZERO  ## Target position in formation
 
+## Proximity tracking (for tutorial/events)
+var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitted proximity signal
+
 ## Projectile prediction cache
 var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
 
@@ -123,8 +126,10 @@ func _ready() -> void:
 
 	if team == Team.PLAYER:
 		add_to_group("player_units")
+		print("Unit3D: Added to player_units group (team=%d)" % team)
 	else:
 		add_to_group("enemy_units")
+		print("Unit3D: Added to enemy_units group (team=%d)" % team)
 
 	_setup_visuals()
 	_setup_shadow()
@@ -410,12 +415,13 @@ func _physics_process(delta: float) -> void:
 		_update_rally_behavior(delta)
 		return  # Rally overrides normal behavior
 
+	# Check proximity to enemy base (for tutorial/events)
+	_check_proximity_to_enemy_base()
+
 	# Re-acquire target if:
 	# - Lock expired
 	# - Current target invalid
 	# - Forced target exists and differs from current (Charge spell override)
-	var has_forced: bool = forced_target != null and forced_target != current_target
-
 	var should_reacquire: bool = (
 		target_lock_timer <= 0.0 or
 		not _is_valid_target(current_target) or
@@ -428,21 +434,69 @@ func _physics_process(delta: float) -> void:
 			target_lock_timer = target_lock_duration
 
 	if current_target:
-		if _is_in_attack_range(current_target):
+		var in_range: bool = _is_in_attack_range(current_target)
+		var distance: float = global_position.distance_to(current_target.global_position)
+		if distance < 5.0:  # Only log when close
+			print("Unit3D [team %d]: Distance to target: %.2f, in_range: %s, attack_range: %.2f" % [team, distance, in_range, attack_range])
+		if in_range:
 			# Face opponent when idle in range (but not during attack)
 			if not is_attacking:
 				_update_facing(current_target.global_position)
 				_update_animation("idle")
 			if attack_cooldown <= 0.0:
+				print("Unit3D [team %d]: Performing attack on target!" % team)
 				_perform_attack()
+			else:
+				print("Unit3D [team %d]: In range but on cooldown (%.2fs remaining)" % [team, attack_cooldown])
 		else:
 			# Don't move during attack animation
 			if not is_attacking:
 				_update_animation("walk")
+				var old_pos: Vector3 = global_position
 				_move_towards_target(delta)
+				var moved: float = global_position.distance_to(old_pos)
+				if moved < 0.01:
+					print("Unit3D [team %d]: WARNING - Not moving! pos: %s, target pos: %s" % [team, global_position, current_target.global_position])
 	else:
 		if not is_attacking:
 			_update_animation("idle")
+
+func _check_proximity_to_enemy_base() -> void:
+	## Check if player unit is near enemy base and emit signal (once per unit)
+	## Used for tutorial/event triggers
+
+	# Only check for player units
+	if team != Team.PLAYER:
+		return
+
+	# Only emit once per unit
+	if _has_emitted_proximity_signal:
+		return
+
+	# Find enemy base
+	var enemy_bases: Array[Node] = get_tree().get_nodes_in_group("enemy_base")
+	if enemy_bases.is_empty():
+		return
+
+	var enemy_base: Node3D = enemy_bases[0] as Node3D
+	if not enemy_base:
+		return
+
+	# Check distance (use 2D distance on XZ plane)
+	var distance_2d: float = Vector2(global_position.x, global_position.z).distance_to(
+		Vector2(enemy_base.global_position.x, enemy_base.global_position.z)
+	)
+
+	# Emit signal when within 10 units
+	const PROXIMITY_THRESHOLD: float = 10.0
+	if distance_2d <= PROXIMITY_THRESHOLD:
+		_has_emitted_proximity_signal = true
+		GameStateEvents.unit_near_enemy_base.emit(self, distance_2d)
+
+		# Debug logging (only if EventSequencer has debug_mode enabled)
+		var event_sequencer: Node = get_node_or_null("/root/EventSequencer")
+		if event_sequencer and event_sequencer.get("debug_mode"):
+			print("Unit3D: Player unit '%s' near enemy base (distance: %.2f)" % [name, distance_2d])
 
 func _is_valid_target(target: Node3D) -> bool:
 	## Check if a target is still valid (alive and in range)
@@ -492,6 +546,12 @@ func _acquire_target() -> Node3D:
 	# Priority 3: Normal targeting behavior
 	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
 	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
+
+	# DEBUG: Log target acquisition attempts
+	if targets.size() == 0:
+		print("Unit3D [team %d]: No targets found in group '%s'" % [team, target_group])
+	else:
+		print("Unit3D [team %d]: Found %d potential targets in group '%s'" % [team, targets.size(), target_group])
 
 	var best_target: Node3D = null
 	var best_score: float = -INF

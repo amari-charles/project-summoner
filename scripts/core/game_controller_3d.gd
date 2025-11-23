@@ -68,6 +68,21 @@ func _ready() -> void:
 			var base_destroyed_signal: Signal = enemy_base.get("base_destroyed")
 			base_destroyed_signal.connect(_on_base_destroyed)
 
+		# Apply enemy HP override from battle config (for tutorial/special battles)
+		if BattleContext.battle_config.has("enemy_hp"):
+			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
+			if enemy_base.has_method("set") and enemy_base.get("max_hp") != null:
+				enemy_base.set("max_hp", custom_hp)
+				enemy_base.set("current_hp", custom_hp)
+				print("GameController3D: Overrode enemy base HP to %s" % custom_hp)
+
+				# Force update the HP label
+				var enemy_hp_label: Node = get_node_or_null("UI/EnemyHPLabel")
+				if enemy_hp_label:
+					var e_current_hp: int = int(custom_hp)
+					var e_max_hp: int = int(custom_hp)
+					enemy_hp_label.set("text", "Enemy Base: %d/%d" % [e_current_hp, e_max_hp])
+
 	# Load AI for enemy summoner from campaign config
 	_load_ai_for_enemy()
 
@@ -158,6 +173,17 @@ func resume_game() -> void:
 		current_state = GameState.PLAYING
 		get_tree().paused = false
 		state_changed.emit(current_state)
+
+func freeze_game() -> void:
+	"""Freeze gameplay without activating pause state (for dialogues, cutscenes, etc)"""
+	# Use tree pause instead of time_scale so UI with PROCESS_MODE_ALWAYS still works
+	get_tree().paused = true
+
+func unfreeze_game() -> void:
+	"""Unfreeze gameplay and restore normal gameplay"""
+	# Only unpause if we're not in PAUSED state (don't interfere with pause menu)
+	if current_state != GameState.PAUSED:
+		get_tree().paused = false
 
 func restart_game() -> void:
 	get_tree().paused = false

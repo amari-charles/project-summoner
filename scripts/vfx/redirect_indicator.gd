@@ -51,9 +51,9 @@ func _process(_delta: float) -> void:
 		_update_arrow()
 
 ## Show selection circle at position
-func show_selection_circle(position: Vector3, color: Color = Color.WHITE) -> void:
+func show_selection_circle(target_position: Vector3, color: Color = Color.WHITE) -> void:
 	# Raise circle slightly above ground to avoid z-fighting
-	var raised_position: Vector3 = position + Vector3(0, 0.1, 0)
+	var raised_position: Vector3 = target_position + Vector3(0, 0.1, 0)
 
 	if color != Color.WHITE:
 		var mat: StandardMaterial3D = selection_circle.material_override as StandardMaterial3D

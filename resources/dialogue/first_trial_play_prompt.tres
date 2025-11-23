@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "first_trial_play_prompt"
+character_name = "Headmaster Merlin"
+portrait = null
+lines = Array[String](["You try—play a card to defend!", "Drag it onto the battlefield to summon your unit."])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

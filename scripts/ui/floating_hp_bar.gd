@@ -55,8 +55,8 @@ func _process(delta: float) -> void:
 	if not target_unit or not is_instance_valid(target_unit):
 		return
 
-	# Safety check: ensure we're in the scene tree before accessing transforms
-	if not is_inside_tree():
+	# Safety check: ensure both we and the target are in the scene tree before accessing transforms
+	if not is_inside_tree() or not target_unit.is_inside_tree():
 		return
 
 	# Follow target unit with cached offsets

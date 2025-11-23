@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://battle_3d"]
+[gd_scene load_steps=16 format=3 uid="uid://battle_3d"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
@@ -14,9 +14,15 @@
 [ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="12_game_ui"]
 [ext_resource type="CompressedTexture2D" uid="uid://c4k76x55jp4va" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Crossed_Swords_Duel_PvP_Combat_Battle_War.png" id="13_attack_icon"]
 [ext_resource type="CompressedTexture2D" uid="uid://care5io1wrrv0" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/RPG_Difficulty_3_Medium_Buckler_Targe_Shield.png" id="14_defend_icon"]
+[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/ui/dialogue_box.tscn" id="15_dialogue_box"]
+[ext_resource type="Script" path="res://scripts/core/battle_dialogue_controller.gd" id="16_battle_dialogue_controller"]
 
 [node name="Battle3D" type="Node3D"]
 script = ExtResource("2_game_controller")
+
+[node name="BattleDialogueController" type="Node" parent="."]
+script = ExtResource("16_battle_dialogue_controller")
+debug_skip_tutorial_intro = false
 
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
@@ -137,6 +143,9 @@ vertical_alignment = 1
 [node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
 
 [node name="PauseMenu" parent="UI" instance=ExtResource("8_pause_menu")]
+
+[node name="DialogueBox" parent="UI" instance=ExtResource("15_dialogue_box")]
+process_mode = 3
 
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
 [connection signal="time_updated" from="." to="." method="_on_time_updated"]

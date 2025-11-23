@@ -87,30 +87,31 @@ func _init_battles() -> void:
 		"unlock_requirements": ["event_affinity"],  # Requires completing affinity selection
 	}
 
-	# Battle 0: Tutorial - First card
-	_battles["battle_00"] = {
-		"id": "battle_00",
+	# Battle 0: The First Trial
+	_battles["first_trial"] = {
+		"id": "first_trial",
 		"biome_id": "summer_plains",
-		"name": "First Summons",
-		"description": "Learn the basics of summoning. Win to earn your first card!",
+		"name": Loc.t("campaign.battle.first_trial.name"),
+		"description": Loc.t("campaign.battle.first_trial.description"),
 		"difficulty": 1,
 		"event_type": "battle",
-		"repeatable": true,  # Can be replayed (no reward after first completion)
+		"repeatable": false,  # One-time tutorial battle
+		"requires_deck": true,  # Requires deck selection
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "fixed",
 		"reward_cards": [
-			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1}
+			{"catalog_id": "charge", "rarity": "common", "count": 1}
 		],
 		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 1}
+			{"catalog_id": "slime_green", "count": 1}
 		],
-		"enemy_hp": 30.0,  # Very low HP for tutorial (2 hits)
-		"unlock_requirements": [],
-		# AI Configuration
+		"enemy_hp": 30.0,  # Very low HP for tutorial (3 hits × 10 damage)
+		"unlock_requirements": ["event_first_summon"],
+		# Tutorial Event Sequence (Phase 3: Event System)
+		"event_sequence": "res://resources/sequences/first_trial_tutorial.tres",
+		# AI Configuration (disabled for tutorial - manual spawn via dialogue system)
 		"ai_type": "scripted",
-		"ai_script": [
-			{"delay": 0.0, "card_name": "Fire Recruit", "position": {"x": 1400, "y": 540}}
-		]
+		"ai_script": []
 	}
 
 	# Battle 1: Building army
@@ -132,7 +133,7 @@ func _init_battles() -> void:
 			{"catalog_id": "fire_recruit", "count": 2}
 		],
 		"enemy_hp": 100.0,
-		"unlock_requirements": ["battle_00"],
+		"unlock_requirements": ["first_trial"],
 		# AI Configuration
 		"ai_type": "heuristic",
 		"ai_personality": "defensive",

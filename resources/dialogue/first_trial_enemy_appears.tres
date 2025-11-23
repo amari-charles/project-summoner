@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_1"]
+
+[resource]
+script = ExtResource("1_1")
+dialogue_id = "first_trial_enemy_appears"
+character_name = "Headmaster Merlin"
+portrait = null
+lines = Array[String](["That's an enemy!", "If it reaches your base, you'll take damage."])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false
