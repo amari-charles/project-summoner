@@ -132,7 +132,7 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 			await _execute_move_camera(step)
 
 		step_type_enum.PLAY_ANIMATION:
-			await _execute_play_animation(step)
+			_execute_play_animation(step)
 
 		step_type_enum.FADE_SCREEN:
 			await _execute_fade_screen(step)
