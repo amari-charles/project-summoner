@@ -208,7 +208,14 @@ func get_all_battles() -> Array[Dictionary]:
 
 func get_battle(battle_id: String) -> Dictionary:
 	var empty_battle: Dictionary = {}
-	return _battles.get(battle_id, empty_battle)
+	var battle: Dictionary = _battles.get(battle_id, empty_battle)
+	print("CampaignService: get_battle('%s') - found: %s, has_enemy_deck: %s, enemy_deck_size: %d" % [
+		battle_id,
+		not battle.is_empty(),
+		battle.has("enemy_deck"),
+		battle.get("enemy_deck", []).size()
+	])
+	return battle
 
 func is_battle_completed(battle_id: String) -> bool:
 	return battle_id in _completed_battles

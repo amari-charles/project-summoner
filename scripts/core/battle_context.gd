@@ -33,19 +33,40 @@ var completion_callback: Callable
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
 
+	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
+
 	var campaign: Node = get_node_or_null("/root/Campaign")
 	if not campaign:
 		push_error("BattleContext: Campaign service not found")
 		return
 
+	print("BattleContext: Campaign service found, calling get_battle('%s')..." % battle_id)
+
 	if campaign.has_method("get_battle"):
 		var result: Variant = campaign.call("get_battle", battle_id)
+		print("BattleContext: get_battle() returned type: %s, is_empty: %s" % [type_string(typeof(result)), result.is_empty() if result is Dictionary else "N/A"])
+
 		if result is Dictionary:
 			battle_config = result
+			if battle_config.is_empty():
+				push_error("BattleContext: Battle config is empty for battle '%s'" % battle_id)
+		else:
+			push_error("BattleContext: get_battle() did not return a Dictionary for battle '%s'" % battle_id)
+	else:
+		push_error("BattleContext: Campaign service does not have get_battle() method")
+
+	if battle_config.is_empty():
+		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
+		push_error("BattleContext: This will cause enemy deck loading to fail")
+
 	biome_id = battle_config.get("biome_id", "summer_plains")
 	completion_callback = _handle_campaign_completion
 
-	print("BattleContext: Configured campaign battle '%s'" % battle_id)
+	print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
+		battle_id,
+		battle_config.has("enemy_deck"),
+		battle_config.get("enemy_deck", []).size()
+	])
 
 ## Configure for practice/test battle
 func configure_practice_battle(config: Dictionary = {}) -> void:

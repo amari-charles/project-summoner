@@ -1,10 +1,12 @@
-# Shop & Caravan System Architecture
+# High-Level Design: Shop & Caravan System
 
 ## Overview
 
 Two distinct shop systems serving different gameplay purposes:
 1. **Caravan Shop** - Campaign event-driven, narrative shops with fixed offerings
 2. **General Shop** - UI-accessible shop with potentially rotating inventory
+
+**Critical Design Rule**: Any item critical to campaign progression must come from Caravan shops or campaign rewards, not the General shop. This ensures the General shop never bypasses story progression.
 
 ---
 
@@ -93,6 +95,9 @@ Affinity-Specific Caravan:
 - All gold operations go through ProfileRepo (data layer)
 - ShopService reads gold, but doesn't mutate directly
 - WAL logging for all currency transactions
+- `ProfileRepo.update_resources(delta)` is additive and can be negative
+  - Example: `{"gold": -50}` deducts 50 gold
+  - Example: `{"gold": 100}` adds 100 gold
 
 ---
 
@@ -114,6 +119,17 @@ Each `ShopOffering` can use:
 - `price_formula: "rarity"` - Rarity tier pricing
 - `discount_percent` - Sale pricing
 
+### Power Formula Implementation
+
+When `price_formula: "power"`, uses `card.power_rating` from Card System:
+- **Base calculation**: `power_rating × price_per_power_point`
+- **Rarity modifier**: +0-50% based on card rarity
+- **Future extensions**:
+  - Affinity discounts (hero's main element -10%, off-element +10%)
+  - Seasonal modifiers ("Fire Week: all fire cards -10% gold")
+
+This keeps shop pricing consistent with the game's balance system.
+
 ---
 
 ## Purchase Limits
@@ -132,10 +148,44 @@ Each `ShopOffering` can use:
    - Hard cap on total purchases ever
    - Use for: Caravan one-time offerings, special items
 
-### Purchase History
-- Tracked in ProfileRepository: `shop_purchases: {offering_id -> count}`
-- Persisted permanently (not reset on shop refresh)
+### Purchase History Keys
+
+Purchase history uses namespaced keys to avoid conflicts:
+
+```
+shop_purchases: {
+  "caravan_tutorial::fire_recruit::0": 1,
+  "general::basic_fire_recruit::7": 5
+}
+```
+
+Format: `"<shop_id>::<offering_id>::<refresh_epoch>"` ensures:
+- Account-level limits don't bleed across shops
+- Same card can appear in multiple shops with separate limits
+- Clear tracking of where purchases were made
+- Per-refresh limits use the current epoch
+- Lifetime stats can be computed by summing across all epochs for a given (shop_id, offering_id) if needed later
+- Persisted permanently in ProfileRepository
 - Loaded on ShopService initialization
+
+### Shop Refresh State
+
+Each rotating shop tracks refresh epochs for per-refresh limits:
+
+```
+shop_refresh_state: {
+  "general": {
+    "refresh_epoch": 7,
+    "last_refresh_at": "2025-11-22T10:00:00Z"
+  }
+}
+```
+
+Per-refresh limits are keyed by `(shop_id, offering_id, refresh_epoch)`.
+When shop rotates, `refresh_epoch` increments, resetting per-refresh
+limits while preserving lifetime purchase history for account-limited offerings.
+
+**Implementation**: In code, this triple `(shop_id, offering_id, refresh_epoch)` is flattened into a single string key via `_build_purchase_key(shop_id, offering_id, refresh_epoch)`.
 
 ---
 
@@ -188,27 +238,27 @@ Later: Migrate to JSON files for easier editing.
 
 ## Reward Granting
 
-### Shared Logic Extraction
+### RewardService Pattern
 
-Both ShopService and CampaignService grant card rewards. Extract to shared utility:
+We will introduce a **RewardService** autoload which grants gold, cards, and cosmetics. Both Campaign and Shop call into this shared service so reward logic is never duplicated.
 
-**Option A: Extend CollectionService**
+**RewardService API**:
 ```gdscript
-# CollectionService gains:
-func grant_cards(card_grants: Array[Dictionary]) -> bool
-```
-
-**Option B: New RewardService**
-```gdscript
-# New autoload:
+# New autoload in project.godot
 RewardService.grant_rewards({
-    "cards": [{catalog_id: "fire_recruit", count: 2}],
+    "cards": [{"catalog_id": "fire_recruit", "count": 2}],
     "gold": 50,
-    "special": ["cosmetic_id"]
-})
+    "cosmetics": ["banner_flame_01"]
+}) -> bool
 ```
 
-Both services call the same underlying logic.
+**Benefits**:
+- Single source of truth for reward granting
+- Used by: ShopService, CampaignService, future achievement/daily quest systems
+- Centralized validation and error handling
+- Consistent reward feedback/animations across all sources
+
+**Implementation Location**: `scripts/services/reward_service.gd`
 
 ---
 
@@ -230,7 +280,31 @@ _battles["event_caravan_tutorial"] = {
 }
 ```
 
-EventSequencer gains new step type: `OPEN_CARAVAN`
+### Caravan Event Completion
+
+When a caravan event completes, it returns purchase results to the campaign system:
+
+```gdscript
+# EventSequencer OPEN_CARAVAN step returns:
+{
+    "event_completed": true,
+    "purchases_made": [
+        {"offering_id": "tutorial_fire_recruit", "count": 2},
+        {"offering_id": "tutorial_spell_pack", "count": 1}
+    ],
+    "gold_spent": 100
+}
+```
+
+This allows:
+- Campaign to track player shopping behavior
+- Conditional event chains based on purchases ("if bought fire cards, show fire mentor")
+- Analytics/telemetry for balancing shop offerings
+- Post-shop dialogue that references what player bought
+
+**Note**: `purchases_made` uses the same `offering_id` as in the shop catalog, so it's easy to do follow-up logic without extra mapping.
+
+EventSequencer gains new step type: `OPEN_CARAVAN` which shows shop UI and waits for player to exit.
 
 ---
 

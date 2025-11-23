@@ -4,27 +4,30 @@ extends Node
 ## ShopService - Manages shop offerings and purchases
 ##
 ## Handles both Caravan (campaign event) shops and General UI shop.
-## Tracks purchase history, manages currency, validates purchases.
+## Data layer: ProfileRepo owns all persistent state
+## Service layer: ShopService orchestrates purchases and validates
+##
+## Architecture:
+## - ProfileRepo: Single source of truth for gold, purchase history, refresh state
+## - ShopService: Catalog, validation, transaction orchestration
+## - RewardService: Centralized reward granting
+## - ShopOffering: Pure configuration/template (no runtime state)
 ##
 ## Usage:
-##   var offerings = Shop.get_caravan_offerings("caravan_tutorial")
+##   var offerings = Shop.get_shop_offerings("caravan_tutorial")
 ##   var success = Shop.purchase_offering(offering_id, "caravan_tutorial")
-##   var gold = Shop.get_player_gold()
 
 ## Signals
 signal purchase_completed(offering_id: String, shop_id: String)
 signal purchase_failed(offering_id: String, reason: String)
-signal gold_changed(new_amount: int)
 signal shop_refreshed(shop_id: String)
 
-## Dependencies
-var _profile_repo: Node = null
-var _collection: Node = null
+## Shop catalog (_init_shops pattern like CampaignService._init_battles)
+var _shops: Dictionary = {}  # shop_id -> shop_definition
 
-## Shop data
-var _caravan_shops: Dictionary = {}  # shop_id -> Array[ShopOffering]
-var _general_shop_offerings: Array[ShopOffering] = []
-var _purchase_history: Dictionary = {}  # offering_id -> purchase_count
+## Purchase history cache (for read performance during validation)
+## Source of truth is ProfileRepo, cache is loaded on _ready()
+var _purchase_cache: Dictionary = {}  # "shop_id::offering_id::refresh_epoch" -> count
 
 ## =============================================================================
 ## LIFECYCLE
@@ -36,133 +39,77 @@ func _ready() -> void:
 	# Wait for dependencies
 	await get_tree().process_frame
 
-	_profile_repo = get_node("/root/ProfileRepo")
-	_collection = get_node("/root/Collection")
+	# Load purchase history into cache
+	_purchase_cache = ProfileRepo.get_shop_purchases()
 
-	if _profile_repo == null:
-		push_error("ShopService: ProfileRepo not found!")
-		return
+	# Initialize shop catalog
+	_init_shops()
 
-	if _collection == null:
-		push_error("ShopService: Collection not found!")
-		return
-
-	_load_purchase_history()
-	_init_caravan_shops()
-
-	print("ShopService: Ready")
+	print("ShopService: Ready (%d shops loaded)" % _shops.size())
 
 ## =============================================================================
-## CURRENCY MANAGEMENT
+## SHOP CATALOG
 ## =============================================================================
 
-## Get player's current gold
-func get_player_gold() -> int:
-	if not _profile_repo or not _profile_repo.has_method("get_active_profile"):
-		return 0
+func _init_shops() -> void:
+	# Tutorial caravan
+	_shops["caravan_tutorial"] = {
+		"id": "caravan_tutorial",
+		"shop_type": "caravan",
+		"name": "Merlin's Trading Post",
+		"offerings": [
+			{
+				"offering_id": "tutorial_fire_recruit",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": "Fire Recruit",
+				"description": "A basic fire unit",
+				"card_catalog_id": "fire_recruit",
+				"card_count": 1,
+				"base_price": 25,
+				"purchase_limit_type": "account",
+				"purchase_limit": 3
+			},
+			{
+				"offering_id": "tutorial_spell_pack",
+				"offering_type": ShopOffering.OfferingType.CARD_PACK,
+				"display_name": "Tactical Spell Pack",
+				"description": "Essential tactical spells",
+				"pack_cards": [
+					{"catalog_id": "charge", "count": 1},
+					{"catalog_id": "rally", "count": 1}
+				],
+				"base_price": 50,
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			}
+		]
+	}
 
-	var profile: Variant = _profile_repo.call("get_active_profile")
-	if not profile is Dictionary:
-		return 0
+	print("ShopService: Initialized %d shops" % _shops.size())
 
-	var profile_dict: Dictionary = profile
-	var resources: Variant = profile_dict.get("resources", {})
-	if not resources is Dictionary:
-		return 0
+## Get all offerings for a shop
+func get_shop_offerings(shop_id: String) -> Array[ShopOffering]:
+	var shop_variant: Variant = _shops.get(shop_id)
+	if shop_variant == null:
+		return []
 
-	var resources_dict: Dictionary = resources
-	var gold_val: Variant = resources_dict.get("gold", 0)
-	return gold_val if gold_val is int else 0
+	var shop: Dictionary = shop_variant
+	var offerings_variant: Variant = shop.get("offerings", [])
+	if not offerings_variant is Array:
+		return []
 
-## Add gold to player's account
-func add_gold(amount: int) -> bool:
-	if amount <= 0:
-		return false
+	var offerings_array: Array = offerings_variant
+	var result: Array[ShopOffering] = []
 
-	var current_gold: int = get_player_gold()
-	return _set_player_gold(current_gold + amount)
+	for offering_def: Variant in offerings_array:
+		if not offering_def is Dictionary:
+			continue
+		var offering_dict: Dictionary = offering_def
+		var offering: ShopOffering = _build_offering_from_dict(offering_dict)
+		if offering:
+			result.append(offering)
 
-## Subtract gold from player's account
-func subtract_gold(amount: int) -> bool:
-	if amount <= 0:
-		return false
-
-	var current_gold: int = get_player_gold()
-	if current_gold < amount:
-		return false
-
-	return _set_player_gold(current_gold - amount)
-
-## Internal: Set player gold
-func _set_player_gold(new_amount: int) -> bool:
-	if not _profile_repo or not _profile_repo.has_method("get_active_profile"):
-		return false
-
-	var profile: Variant = _profile_repo.call("get_active_profile")
-	if not profile is Dictionary:
-		return false
-
-	var profile_dict: Dictionary = profile
-	if not profile_dict.has("resources"):
-		profile_dict["resources"] = {}
-
-	var resources: Variant = profile_dict["resources"]
-	if not resources is Dictionary:
-		return false
-
-	var resources_dict: Dictionary = resources
-	resources_dict["gold"] = new_amount
-	resources_dict["updated_at"] = Time.get_unix_time_from_system()
-
-	# Save profile
-	if _profile_repo.has_method("save_profile"):
-		_profile_repo.call("save_profile", true)
-
-	gold_changed.emit(new_amount)
-	return true
-
-## =============================================================================
-## CARAVAN SHOP MANAGEMENT
-## =============================================================================
-
-func _init_caravan_shops() -> void:
-	# TODO: Load caravan shop definitions from resources
-	# For now, create placeholder tutorial caravan
-	_caravan_shops["caravan_tutorial"] = []
-
-	print("ShopService: Initialized %d caravan shops" % _caravan_shops.size())
-
-## Get offerings for a specific caravan shop
-func get_caravan_offerings(shop_id: String) -> Array[ShopOffering]:
-	var offerings_variant: Variant = _caravan_shops.get(shop_id, [])
-	if offerings_variant is Array:
-		var offerings_array: Array = offerings_variant
-		var typed_offerings: Array[ShopOffering] = []
-		for offering: Variant in offerings_array:
-			if offering is ShopOffering:
-				typed_offerings.append(offering)
-		return typed_offerings
-	return []
-
-## Register a caravan shop (called by campaign events)
-func register_caravan_shop(shop_id: String, offerings: Array[ShopOffering]) -> void:
-	_caravan_shops[shop_id] = offerings
-	print("ShopService: Registered caravan shop '%s' with %d offerings" % [shop_id, offerings.size()])
-
-## =============================================================================
-## GENERAL SHOP MANAGEMENT
-## =============================================================================
-
-## Get general shop offerings
-func get_general_shop_offerings() -> Array[ShopOffering]:
-	return _general_shop_offerings
-
-## Refresh general shop (for rotating shops)
-func refresh_general_shop() -> void:
-	# TODO: Implement rotation logic
-	_general_shop_offerings.clear()
-	shop_refreshed.emit("general")
-	print("ShopService: General shop refreshed")
+	return result
 
 ## =============================================================================
 ## PURCHASE LOGIC
@@ -170,132 +117,161 @@ func refresh_general_shop() -> void:
 
 ## Purchase an offering
 func purchase_offering(offering_id: String, shop_id: String = "general") -> bool:
-	# Find the offering
 	var offering: ShopOffering = _find_offering(offering_id, shop_id)
 	if not offering:
 		_emit_purchase_failed(offering_id, "Offering not found")
 		return false
 
-	# Get purchase count
-	var purchase_count: int = _get_purchase_count(offering_id)
+	# Get shop refresh state
+	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
+	var epoch_variant: Variant = shop_refresh_state.get("refresh_epoch", 0)
+	var refresh_epoch: int = epoch_variant if epoch_variant is int else 0
 
-	# Check if can purchase
-	var player_gold: int = get_player_gold()
-	if not offering.can_purchase(player_gold, purchase_count):
-		var reason: String = "Insufficient gold or purchase limit reached"
-		if player_gold < offering.get_price():
-			reason = "Not enough gold (need %d, have %d)" % [offering.get_price(), player_gold]
-		elif offering.get_remaining_stock() == 0:
-			reason = "Out of stock"
+	# Build namespaced key with refresh epoch
+	var purchase_key: String = _build_purchase_key(shop_id, offering_id, refresh_epoch)
+
+	# Get state from ProfileRepo (typed calls, no .call())
+	var resources: Dictionary = ProfileRepo.get_resources()
+	var gold: int = resources.get("gold", 0)
+	var purchase_count: int = _purchase_cache.get(purchase_key, 0)
+
+	# Build context for validation
+	var context: ShopPurchaseContext = ShopPurchaseContext.new()
+	context.player_gold = gold
+	context.purchase_count = purchase_count
+	context.hero_affinity = ""  # TODO: ProfileRepo.get_hero_affinity() when implemented
+	context.refresh_epoch = refresh_epoch
+
+	# Validate
+	if not offering.can_purchase(context):
+		var reason: String = _get_failure_reason(offering, context)
 		_emit_purchase_failed(offering_id, reason)
 		return false
 
-	# Deduct gold
-	if not subtract_gold(offering.get_price()):
-		_emit_purchase_failed(offering_id, "Failed to deduct gold")
-		return false
+	# Transaction atomicity: All-or-nothing guarantee
+	var price: int = offering.get_price(context)
 
-	# Grant rewards
-	if not _grant_offering_rewards(offering):
-		# Refund gold
-		add_gold(offering.get_price())
+	# Step 1: Deduct gold
+	ProfileRepo.update_resources({"gold": -price})
+	# update_resources doesn't return bool, assume success
+
+	# Step 2: Grant rewards via RewardService
+	var rewards: Dictionary = _build_reward_dict(offering)
+	if not RewardService.grant_rewards(rewards):
+		# Rollback: Refund gold
+		ProfileRepo.update_resources({"gold": price})
 		_emit_purchase_failed(offering_id, "Failed to grant rewards")
 		return false
 
-	# Track purchase
-	_increment_purchase_count(offering_id)
-	offering.purchases_made += 1
+	# Step 3: Track purchase (namespaced key)
+	if not ProfileRepo.increment_purchase_count(purchase_key):
+		push_warning("ShopService: Failed to track purchase count")
+		# Don't rollback - player got their items, tracking is non-critical
+	else:
+		# Update cache
+		_purchase_cache[purchase_key] = _purchase_cache.get(purchase_key, 0) + 1
 
 	purchase_completed.emit(offering_id, shop_id)
-	print("ShopService: Purchased '%s' for %d gold" % [offering_id, offering.get_price()])
+	print("ShopService: Purchased '%s' for %d gold" % [offering_id, price])
 	return true
 
-## Internal: Find offering by ID
-func _find_offering(offering_id: String, shop_id: String) -> ShopOffering:
-	# Check caravan shops
-	if shop_id != "general":
-		var offerings: Array[ShopOffering] = get_caravan_offerings(shop_id)
-		for offering: ShopOffering in offerings:
-			if offering.offering_id == offering_id:
-				return offering
+## =============================================================================
+## INTERNAL HELPERS
+## =============================================================================
 
-	# Check general shop
-	for offering: ShopOffering in _general_shop_offerings:
-		if offering.offering_id == offering_id:
-			return offering
+## Build purchase key with refresh epoch
+func _build_purchase_key(shop_id: String, offering_id: String, refresh_epoch: int) -> String:
+	# Per-refresh and account-limited offerings both include the epoch
+	# Account-limited offerings can ignore epoch changes or pass 0
+	return "%s::%s::%d" % [shop_id, offering_id, refresh_epoch]
+
+## Find offering by ID in shop catalog
+func _find_offering(offering_id: String, shop_id: String) -> ShopOffering:
+	var shop_variant: Variant = _shops.get(shop_id)
+	if shop_variant == null:
+		return null
+
+	var shop: Dictionary = shop_variant
+	var offerings_variant: Variant = shop.get("offerings", [])
+	if not offerings_variant is Array:
+		return null
+
+	var offerings_array: Array = offerings_variant
+	for offering_def: Variant in offerings_array:
+		if not offering_def is Dictionary:
+			continue
+		var def_dict: Dictionary = offering_def
+		if def_dict.get("offering_id") == offering_id:
+			return _build_offering_from_dict(def_dict)
 
 	return null
 
-## Internal: Grant offering rewards
-func _grant_offering_rewards(offering: ShopOffering) -> bool:
-	if not _collection:
-		return false
+## Build ShopOffering instance from dictionary definition
+func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
+	var offering: ShopOffering = ShopOffering.new()
+	offering.offering_id = def.get("offering_id", "")
+	offering.offering_type = def.get("offering_type", ShopOffering.OfferingType.CARD)
+	offering.display_name = def.get("display_name", "")
+	offering.description = def.get("description", "")
+	offering.card_catalog_id = def.get("card_catalog_id", "")
+	offering.card_count = def.get("card_count", 1)
+	offering.base_price = def.get("base_price", 0)
+	offering.purchase_limit_type = def.get("purchase_limit_type", "none")
+	offering.purchase_limit = def.get("purchase_limit", 0)
+
+	# For CARD_PACK types
+	if def.has("pack_cards"):
+		var pack_cards_variant: Variant = def["pack_cards"]
+		if pack_cards_variant is Array:
+			var pack_cards_array: Array = pack_cards_variant
+			for card_data: Variant in pack_cards_array:
+				if card_data is Dictionary:
+					var card_dict: Dictionary = card_data
+					offering.pack_cards.append(card_dict)
+
+	return offering
+
+## Build reward dictionary for RewardService
+func _build_reward_dict(offering: ShopOffering) -> Dictionary:
+	var rewards: Dictionary = {}
 
 	match offering.offering_type:
 		ShopOffering.OfferingType.CARD:
-			# Add card to collection
-			if offering.card_catalog_id.is_empty():
-				push_error("ShopService: Card offering has no catalog_id")
-				return false
-
-			for _i in range(offering.card_count):
-				if _collection.has_method("add_card"):
-					var result: Variant = _collection.call("add_card", offering.card_catalog_id, "common")
-					if not result is String or (result as String).is_empty():
-						push_error("ShopService: Failed to add card '%s'" % offering.card_catalog_id)
-						return false
-
-			return true
+			rewards["cards"] = [{"catalog_id": offering.card_catalog_id, "count": offering.card_count, "rarity": "common"}]
 
 		ShopOffering.OfferingType.CARD_PACK:
-			# Add multiple cards
+			var cards: Array[Dictionary] = []
 			for card_data: Dictionary in offering.pack_cards:
-				var catalog_id: String = card_data.get("catalog_id", "")
-				var count: int = card_data.get("count", 1)
-				if catalog_id.is_empty():
-					continue
-
-				for _i in range(count):
-					if _collection.has_method("add_card"):
-						var result: Variant = _collection.call("add_card", catalog_id, "common")
-						if not result is String or (result as String).is_empty():
-							push_error("ShopService: Failed to add pack card '%s'" % catalog_id)
-							return false
-
-			return true
+				cards.append({
+					"catalog_id": card_data.get("catalog_id", ""),
+					"count": card_data.get("count", 1),
+					"rarity": "common"
+				})
+			rewards["cards"] = cards
 
 		ShopOffering.OfferingType.CURRENCY:
-			# Add currency
 			# TODO: Implement currency rewards
-			return true
+			pass
 
 		ShopOffering.OfferingType.SPECIAL:
-			# Special items
-			# TODO: Implement special item grants
-			return true
+			# TODO: Implement special rewards
+			pass
 
-	return false
+	return rewards
 
-## =============================================================================
-## PURCHASE HISTORY
-## =============================================================================
+## Get human-readable failure reason
+func _get_failure_reason(offering: ShopOffering, context: ShopPurchaseContext) -> String:
+	var price: int = offering.get_price(context)
+	if context.player_gold < price:
+		return "Not enough gold (need %d, have %d)" % [price, context.player_gold]
 
-func _load_purchase_history() -> void:
-	# TODO: Load from profile
-	_purchase_history.clear()
+	if offering.purchase_limit_type != "none" and offering.purchase_limit > 0:
+		if context.purchase_count >= offering.purchase_limit:
+			return "Purchase limit reached"
 
-func _get_purchase_count(offering_id: String) -> int:
-	return _purchase_history.get(offering_id, 0)
+	return "Unknown error"
 
-func _increment_purchase_count(offering_id: String) -> void:
-	var count: int = _get_purchase_count(offering_id)
-	_purchase_history[offering_id] = count + 1
-	# TODO: Save to profile
-
-## =============================================================================
-## HELPERS
-## =============================================================================
-
+## Emit purchase failed signal
 func _emit_purchase_failed(offering_id: String, reason: String) -> void:
 	push_warning("ShopService: Purchase failed for '%s': %s" % [offering_id, reason])
 	purchase_failed.emit(offering_id, reason)

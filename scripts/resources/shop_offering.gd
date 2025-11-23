@@ -35,16 +35,20 @@ enum OfferingType {
 ## Purchase limits
 @export var purchase_limit_type: String = "none"  # "none", "per_refresh", "account"
 @export var purchase_limit: int = 0  # 0 = unlimited
-@export var purchases_made: int = 0  # Tracked at runtime
 
 ## Availability conditions
 @export var required_battles: Array[String] = []  # Battle IDs that must be completed
 @export var required_affinity: String = ""  # "fire", "ice", "nature", "" = any
 @export var available_once: bool = false  # Disappears after purchase
 
-## Calculated price
-func get_price() -> int:
+## Calculated price (context-aware for future affinity/event pricing)
+func get_price(context: ShopPurchaseContext = null) -> int:
 	var price: int = base_price
+
+	# When we implement affinity/event pricing, callers should pass context
+	# so price reflects discounts/bonuses.
+	# if context and context.hero_affinity == required_affinity:
+	#     price = int(price * 0.9)  # 10% discount for matching affinity
 
 	# Apply discount
 	if discount_percent > 0:
@@ -52,23 +56,26 @@ func get_price() -> int:
 
 	return max(1, price)  # Minimum price of 1
 
-## Check if can be purchased
-func can_purchase(player_gold: int, purchases_count: int = 0) -> bool:
-	# Check price
-	if player_gold < get_price():
+## Check if can be purchased (uses context for all validation data)
+func can_purchase(context: ShopPurchaseContext) -> bool:
+	# Check gold
+	var price: int = get_price(context)
+	if context.player_gold < price:
 		return false
 
 	# Check purchase limits
 	if purchase_limit_type != "none" and purchase_limit > 0:
-		if purchases_count >= purchase_limit:
+		if context.purchase_count >= purchase_limit:
 			return false
 
-	# Available
+	# Future: Check affinity discounts, event bonuses, etc.
+	# All data available in context object
+
 	return true
 
 ## Get remaining stock
-func get_remaining_stock() -> int:
+func get_remaining_stock(context: ShopPurchaseContext) -> int:
 	if purchase_limit_type == "none":
 		return -1  # Unlimited
 
-	return max(0, purchase_limit - purchases_made)
+	return max(0, purchase_limit - context.purchase_count)

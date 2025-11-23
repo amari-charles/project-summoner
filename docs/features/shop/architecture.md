@@ -1,4 +1,4 @@
-# Shop System Architecture Refactor Proposal
+# Implementation Plan: Shop System Refactor
 
 ## Current State & Problems
 
@@ -98,20 +98,30 @@ An initial shop system was created with:
 
 **Add to schema** (`_create_fresh_profile()`):
 ```gdscript
-"shop_purchases": {},  // offering_id -> purchase_count
+"shop_purchases": {},  // "shop_id::offering_id::refresh_epoch" -> purchase_count
+"shop_refresh_state": {  // Per-shop refresh tracking
+    "general": {
+        "refresh_epoch": 0,
+        "last_refresh_at": ""
+    }
+}
 ```
 
-**Add methods**:
+**Add methods** (typed, no stringly-typed `call()`):
 ```gdscript
 func get_shop_purchases() -> Dictionary:
     return _data.get("shop_purchases", {})
 
-func increment_purchase_count(offering_id: String) -> bool:
+func get_purchase_count(purchase_key: String) -> int:
     var purchases: Dictionary = _data.get("shop_purchases", {})
-    var count: int = purchases.get(offering_id, 0)
-    purchases[offering_id] = count + 1
+    return purchases.get(purchase_key, 0)
+
+func increment_purchase_count(purchase_key: String) -> bool:
+    var purchases: Dictionary = _data.get("shop_purchases", {})
+    var count: int = purchases.get(purchase_key, 0)
+    purchases[purchase_key] = count + 1
     _data["shop_purchases"] = purchases
-    _append_to_wal({"op": "shop_purchase", "offering_id": offering_id})
+    _append_to_wal({"op": "shop_purchase", "key": purchase_key})
     return save_profile(true)
 
 func get_resources() -> Dictionary:
@@ -125,7 +135,74 @@ func update_resources(delta: Dictionary) -> bool:
     _data["resources"] = resources
     _append_to_wal({"op": "update_resources", "delta": delta})
     return save_profile(true)
+
+func get_shop_refresh_state(shop_id: String) -> Dictionary:
+    var state: Dictionary = _data.get("shop_refresh_state", {})
+    return state.get(shop_id, {"refresh_epoch": 0, "last_refresh_at": ""})
+
+func increment_shop_refresh_epoch(shop_id: String) -> bool:
+    var state: Dictionary = _data.get("shop_refresh_state", {})
+    var shop_state: Dictionary = state.get(shop_id, {"refresh_epoch": 0, "last_refresh_at": ""})
+    shop_state["refresh_epoch"] = shop_state.get("refresh_epoch", 0) + 1
+    shop_state["last_refresh_at"] = Time.get_datetime_string_from_system()
+    state[shop_id] = shop_state
+    _data["shop_refresh_state"] = state
+    _append_to_wal({"op": "shop_refresh", "shop_id": shop_id})
+    return save_profile(true)
 ```
+
+**Note**: `ProfileRepo.get_hero_affinity()` is assumed to exist (or to be added) to support affinity-based pricing and conditional caravan content.
+
+### Design Pattern: Resource vs Dictionary
+
+**ShopOffering as Resource** (current approach):
+- **Pros**: Type safety, inspector integration, reusable assets
+- **Cons**: Runtime state confusion (removed `purchases_made`), harder to generate dynamically
+- **Best for**: Static shop definitions (tutorial caravan, fixed offerings)
+
+**Dictionary-based shop definitions** (alternative):
+- **Pros**: Easy to generate from JSON, flexible, no resource file clutter
+- **Cons**: No type checking, more boilerplate validation
+- **Best for**: Rotating shops, procedurally generated offerings
+
+**Current Decision**: Hybrid approach
+- **ShopOffering Resource**: Use for well-defined, reusable offerings (tutorial packs, special bundles)
+- **Dictionary catalog**: Use for shop definitions in `_init_shops()` that create ShopOffering instances at runtime
+- **Future**: When shop count grows (20+ shops), migrate catalog to JSON files
+
+This keeps the benefits of typed ShopOffering while allowing data-driven shop configuration.
+
+**Bridge: Dictionary → ShopOffering**
+
+Here's how dictionary definitions become typed ShopOffering instances:
+
+```gdscript
+func _find_offering(offering_id: String, shop_id: String) -> ShopOffering:
+    var shop: Dictionary = _shops.get(shop_id)
+    if shop == null:
+        return null
+
+    for offering_def in shop["offerings"]:
+        if offering_def.get("offering_id") == offering_id:
+            return _build_offering_from_dict(offering_def)
+
+    return null
+
+func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
+    var offering := ShopOffering.new()
+    offering.offering_id = def.get("offering_id", "")
+    offering.type = def.get("type", "CARD")
+    offering.card_catalog_id = def.get("card_catalog_id", "")
+    offering.base_price = def.get("base_price", 0)
+    offering.purchase_limit_type = def.get("purchase_limit_type", "none")
+    offering.purchase_limit = def.get("purchase_limit", 0)
+    # For CARD_PACK types:
+    if def.has("cards"):
+        offering.cards = def["cards"]
+    return offering
+```
+
+---
 
 ### ShopService Refactor
 
@@ -171,7 +248,26 @@ func _init_shops() -> void:
     print("ShopService: Initialized %d shops" % _shops.size())
 ```
 
-**Refactor purchase flow to use ProfileRepo**:
+**Add in-memory cache for performance**:
+```gdscript
+var _purchase_cache: Dictionary = {}  # "shop_id::offering_id::refresh_epoch" -> count
+
+func _ready() -> void:
+    # ... existing code ...
+
+    # Load purchase history into cache
+    _purchase_cache = ProfileRepo.get_shop_purchases()
+```
+
+**Add helper for purchase key generation**:
+```gdscript
+func _build_purchase_key(shop_id: String, offering_id: String, refresh_epoch: int) -> String:
+    # Per-refresh and account-limited offerings both include the epoch
+    # Account-limited offerings can ignore epoch changes or pass 0
+    return "%s::%s::%d" % [shop_id, offering_id, refresh_epoch]
+```
+
+**Refactor purchase flow with typed calls and atomicity**:
 ```gdscript
 func purchase_offering(offering_id: String, shop_id: String = "general") -> bool:
     var offering: ShopOffering = _find_offering(offering_id, shop_id)
@@ -179,47 +275,71 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
         _emit_purchase_failed(offering_id, "Offering not found")
         return false
 
-    # Get state from ProfileRepo
-    var resources: Dictionary = _profile_repo.call("get_resources")
+    # Get shop refresh state
+    var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
+    var refresh_epoch: int = int(shop_refresh_state.get("refresh_epoch", 0))
+
+    # Build namespaced key with refresh epoch
+    var purchase_key: String = _build_purchase_key(shop_id, offering_id, refresh_epoch)
+
+    # Get state from ProfileRepo (typed calls, no .call())
+    var resources: Dictionary = ProfileRepo.get_resources()
     var gold: int = resources.get("gold", 0)
-    var purchases: Dictionary = _profile_repo.call("get_shop_purchases")
-    var purchase_count: int = purchases.get(offering_id, 0)
+    var purchase_count: int = _purchase_cache.get(purchase_key, 0)
+
+    # Build context for validation
+    var context: ShopPurchaseContext = ShopPurchaseContext.new()
+    context.player_gold = gold
+    context.purchase_count = purchase_count
+    context.hero_affinity = ProfileRepo.get_hero_affinity()  # Assumed to exist for affinity-based pricing
+    context.refresh_epoch = refresh_epoch
 
     # Validate
-    if not offering.can_purchase(gold, purchase_count):
-        var reason: String = _get_failure_reason(offering, gold, purchase_count)
+    if not offering.can_purchase(context):
+        var reason: String = _get_failure_reason(offering, context)
         _emit_purchase_failed(offering_id, reason)
         return false
 
-    # Deduct gold via ProfileRepo
+    # Transaction atomicity: All-or-nothing guarantee
     var price: int = offering.get_price()
-    if not _profile_repo.call("update_resources", {"gold": -price}):
+
+    # Step 1: Deduct gold
+    if not ProfileRepo.update_resources({"gold": -price}):
         _emit_purchase_failed(offering_id, "Failed to deduct gold")
         return false
 
-    # Grant rewards
-    if not _grant_offering_rewards(offering):
-        # Refund
-        _profile_repo.call("update_resources", {"gold": price})
+    # Step 2: Grant rewards via RewardService
+    var rewards: Dictionary = _build_reward_dict(offering)
+    if not RewardService.grant_rewards(rewards):
+        # Rollback: Refund gold
+        ProfileRepo.update_resources({"gold": price})
         _emit_purchase_failed(offering_id, "Failed to grant rewards")
         return false
 
-    # Track purchase via ProfileRepo
-    if not _profile_repo.call("increment_purchase_count", offering_id):
+    # Step 3: Track purchase (namespaced key)
+    if not ProfileRepo.increment_purchase_count(purchase_key):
         push_warning("ShopService: Failed to track purchase count")
+        # Don't rollback - player got their items, tracking is non-critical
+    else:
+        # Update cache
+        _purchase_cache[purchase_key] = _purchase_cache.get(purchase_key, 0) + 1
 
     purchase_completed.emit(offering_id, shop_id)
     return true
 ```
 
-**Load purchase history in _ready()**:
-```gdscript
-func _ready() -> void:
-    # ... existing code ...
+**Transaction Atomicity Guarantees**:
+- If gold deduction fails → No changes made
+- If reward granting fails → Gold refunded automatically
+- If purchase tracking fails → Warning logged, but player keeps purchase
+- All state changes go through ProfileRepo with WAL logging
+- ProfileRepo.save_profile() ensures disk persistence
 
-    # Purchase history now loaded from ProfileRepo when needed
-    # No in-memory cache required
-```
+**Note**: `RewardService.grant_rewards()` is best-effort and does not roll back partial success internally. If `grant_rewards()` returns false, ShopService refunds gold but any already-granted rewards may remain. These cases should be rare and are logged for later correction.
+
+**Purchase History Caching**:
+
+ShopService maintains a thin `_purchase_cache` keyed by `"shop_id::offering_id::refresh_epoch"`, loaded from ProfileRepo on `_ready()` and updated after successful purchases. ProfileRepo remains the single source of truth; the cache is purely for read performance during purchase validation.
 
 ### ShopOffering Changes
 
@@ -233,48 +353,131 @@ func _ready() -> void:
 @export var purchase_limit_type: String = "none"
 ```
 
-**Update methods to take purchase_count as parameter**:
+**Add ShopPurchaseContext class** (future-proof API):
 ```gdscript
-func can_purchase(player_gold: int, purchase_count: int) -> bool:
-    if player_gold < get_price():
+# In scripts/resources/shop_purchase_context.gd
+class_name ShopPurchaseContext
+extends RefCounted
+
+var player_gold: int = 0
+var purchase_count: int = 0
+var hero_affinity: String = ""  # For future affinity discounts
+var active_bonuses: Array[String] = []  # For future event bonuses ("fire_week", etc.)
+var refresh_epoch: int = 0  # For per-refresh limits
+```
+
+**Update methods to use context object**:
+```gdscript
+func can_purchase(context: ShopPurchaseContext) -> bool:
+    # Check gold
+    var price: int = get_price()
+    if context.player_gold < price:
         return false
 
+    # Check purchase limits
     if purchase_limit_type != "none" and purchase_limit > 0:
-        if purchase_count >= purchase_limit:
+        if context.purchase_count >= purchase_limit:
             return false
+
+    # Future: Check affinity discounts, event bonuses, etc.
+    # All data available in context object
 
     return true
 
-func get_remaining_stock(purchase_count: int) -> int:
+func get_remaining_stock(context: ShopPurchaseContext) -> int:
     if purchase_limit_type == "none":
         return -1  # Unlimited
 
-    return max(0, purchase_limit - purchase_count)
+    return max(0, purchase_limit - context.purchase_count)
+
+func get_price(context: ShopPurchaseContext = null) -> int:
+    var base: int = base_price
+
+    # When we implement affinity/event pricing, callers should pass context
+    # so price reflects discounts/bonuses.
+    # if context and context.hero_affinity == card_affinity:
+    #     base = int(base * 0.9)  # 10% discount for matching affinity
+
+    return base
 ```
+
+**Benefits of Context Object**:
+- Future-proof: Add new fields without breaking API
+- Clean signature: One parameter instead of growing list
+- Extensible: Easy to add affinity discounts, event bonuses, VIP status, etc.
+- Testable: Mock context for unit tests
 
 ### Reward Granting
 
-**Option A: Extract to CollectionService**
-```gdscript
-// In collection_service.gd
-func grant_cards(card_grants: Array[Dictionary]) -> bool:
-    for grant in card_grants:
-        var catalog_id: String = grant.get("catalog_id", "")
-        var count: int = grant.get("count", 1)
-        var rarity: String = grant.get("rarity", "common")
+**Implement RewardService autoload** to centralize all reward granting across the game.
 
-        for i in range(count):
-            if not add_card(catalog_id, rarity):
-                return false
-    return true
+**Why Now**:
+- Already have: Campaign rewards, Shop rewards
+- Coming soon: Achievements, daily quests, event rewards
+- Prevents logic duplication and ensures consistency
+
+**RewardService Implementation**:
+```gdscript
+# scripts/services/reward_service.gd
+class_name RewardServiceClass
+extends Node
+
+func grant_rewards(rewards: Dictionary) -> bool:
+    var success: bool = true
+
+    # Grant gold
+    if rewards.has("gold"):
+        var gold: int = rewards["gold"]
+        if not ProfileRepo.update_resources({"gold": gold}):
+            push_error("RewardService: Failed to grant gold")
+            success = false
+
+    # Grant cards
+    if rewards.has("cards"):
+        var cards: Array = rewards["cards"]
+        for card_grant in cards:
+            var catalog_id: String = card_grant.get("catalog_id", "")
+            var count: int = card_grant.get("count", 1)
+            var rarity: String = card_grant.get("rarity", "common")
+
+            for i in range(count):
+                if not Collection.add_card(catalog_id, rarity):
+                    push_error("RewardService: Failed to grant card %s" % catalog_id)
+                    success = false
+
+    # Grant cosmetics (future)
+    if rewards.has("cosmetics"):
+        # TODO: Implement cosmetic granting
+        pass
+
+    return success
 ```
 
-**Option B: New RewardService** (future consideration)
-```gdscript
-// Unified reward granting for shop, campaign, achievements, etc.
+**Add to project.godot**:
+```
+RewardService="*res://scripts/services/reward_service.gd"
 ```
 
-**For now**: Keep duplicate logic but extract to shared utility function within ShopService and CampaignService.
+**Atomicity & Rollback Semantics**:
+
+`grant_rewards()` is **best-effort**: it does not roll back partial success internally. For example, if granting 3 cards and the second fails, the first card is already in the player's collection.
+
+Callers that require atomic behavior (like ShopService) must treat a `false` result as a failure and handle rollback of their part (e.g., refunding gold). We accept that extremely rare partial reward cases may slip through during crashes, and log them aggressively for later correction.
+
+If true transactional atomicity is needed, that's a bigger "transaction log" problem for future consideration.
+
+**Usage in ShopService**:
+```gdscript
+func _build_reward_dict(offering: ShopOffering) -> Dictionary:
+    var rewards: Dictionary = {}
+
+    if offering.type == "CARD":
+        rewards["cards"] = [{"catalog_id": offering.card_catalog_id, "count": 1}]
+    elif offering.type == "CARD_PACK":
+        rewards["cards"] = offering.cards  # Array of card grants
+
+    return rewards
+```
 
 ---
 
@@ -338,17 +541,20 @@ func grant_cards(card_grants: Array[Dictionary]) -> bool:
 
 ## Open Questions
 
-1. **Reward granting**: Extract now or later?
-   - **Recommendation**: Later, during reward system refactor
+1. **Reward granting**: Done now via RewardService
+   - Campaign and Shop will call `RewardService.grant_rewards()` going forward
+   - Centralized logic prevents duplication across all reward sources
 
 2. **Shop catalog storage**: Keep in code or move to JSON?
    - **Recommendation**: Code for now, JSON when we have 10+ shops
 
-3. **Purchase history reset**: Should per-refresh limits reset?
-   - **Recommendation**: Add `shop_refresh_state` to track this separately
+3. **Purchase history reset**: Handled via refresh epochs
+   - `shop_refresh_state` tracks per-shop epochs for per-refresh limits
+   - Purchase keys include epoch: `"shop_id::offering_id::refresh_epoch"`
 
 4. **Resource management**: Generic or gold-specific?
-   - **Recommendation**: Keep `update_resources()` generic for future currencies
+   - **Decision**: Keep `update_resources()` generic for future currencies
+   - `delta` is additive and can be negative: `{"gold": -50}` deducts 50 gold
 
 ---
 

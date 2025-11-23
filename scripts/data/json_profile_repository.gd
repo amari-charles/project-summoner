@@ -211,6 +211,67 @@ func update_resources(delta: Dictionary) -> void:
 	data_changed.emit()
 
 ## =============================================================================
+## SHOP OPERATIONS
+## =============================================================================
+
+func get_shop_purchases() -> Dictionary:
+	var empty_dict: Dictionary = {}
+	return _data.get("shop_purchases", empty_dict)
+
+func get_purchase_count(purchase_key: String) -> int:
+	var purchases: Dictionary = _data.get("shop_purchases", {})
+	var count_variant: Variant = purchases.get(purchase_key, 0)
+	var count: int = count_variant
+	return count
+
+func increment_purchase_count(purchase_key: String) -> bool:
+	var purchases_variant: Variant = _data.get("shop_purchases", {})
+	var purchases: Dictionary = purchases_variant
+	var count: int = purchases.get(purchase_key, 0)
+	purchases[purchase_key] = count + 1
+	_data["shop_purchases"] = purchases
+
+	_append_to_wal({
+		"action": "shop_purchase",
+		"params": {"key": purchase_key}
+	})
+
+	save_profile()  # Debounced
+	data_changed.emit()
+	return true
+
+func get_shop_refresh_state(shop_id: String) -> Dictionary:
+	var state_variant: Variant = _data.get("shop_refresh_state", {})
+	var state: Dictionary = state_variant
+	var empty_shop_state: Dictionary = {"refresh_epoch": 0, "last_refresh_at": ""}
+	var shop_state_variant: Variant = state.get(shop_id, empty_shop_state)
+	var shop_state: Dictionary = shop_state_variant
+	return shop_state
+
+func increment_shop_refresh_epoch(shop_id: String) -> bool:
+	var state_variant: Variant = _data.get("shop_refresh_state", {})
+	var state: Dictionary = state_variant
+	var empty_shop_state: Dictionary = {"refresh_epoch": 0, "last_refresh_at": ""}
+	var shop_state_variant: Variant = state.get(shop_id, empty_shop_state)
+	var shop_state: Dictionary = shop_state_variant
+
+	var epoch_variant: Variant = shop_state.get("refresh_epoch", 0)
+	var epoch: int = epoch_variant
+	shop_state["refresh_epoch"] = epoch + 1
+	shop_state["last_refresh_at"] = Time.get_datetime_string_from_system()
+	state[shop_id] = shop_state
+	_data["shop_refresh_state"] = state
+
+	_append_to_wal({
+		"action": "shop_refresh",
+		"params": {"shop_id": shop_id}
+	})
+
+	save_profile()  # Debounced
+	data_changed.emit()
+	return true
+
+## =============================================================================
 ## CARD COLLECTION OPERATIONS
 ## =============================================================================
 
@@ -692,6 +753,10 @@ func _create_fresh_profile() -> void:
 		"campaign_progress": {
 			"completed_battles": [],
 			"current_battle": null
+		},
+		"shop_purchases": {},  # "shop_id::offering_id::refresh_epoch" -> purchase_count
+		"shop_refresh_state": {  # Per-shop refresh tracking
+			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}
 		},
 		"meta": {
 			"selected_hero": null,
