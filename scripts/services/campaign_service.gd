@@ -209,11 +209,19 @@ func get_all_battles() -> Array[Dictionary]:
 func get_battle(battle_id: String) -> Dictionary:
 	var empty_battle: Dictionary = {}
 	var battle: Dictionary = _battles.get(battle_id, empty_battle)
+
+	# Get enemy deck size safely
+	var enemy_deck_variant: Variant = battle.get("enemy_deck", [])
+	var enemy_deck_size: int = 0
+	if enemy_deck_variant is Array:
+		var enemy_deck_array: Array = enemy_deck_variant
+		enemy_deck_size = enemy_deck_array.size()
+
 	print("CampaignService: get_battle('%s') - found: %s, has_enemy_deck: %s, enemy_deck_size: %d" % [
 		battle_id,
 		not battle.is_empty(),
 		battle.has("enemy_deck"),
-		battle.get("enemy_deck", []).size()
+		enemy_deck_size
 	])
 	return battle
 
