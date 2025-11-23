@@ -35,25 +35,8 @@ func configure_campaign_battle(battle_id: String) -> void:
 
 	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		push_error("BattleContext: Campaign service not found")
-		return
-
-	print("BattleContext: Campaign service found, calling get_battle('%s')..." % battle_id)
-
-	if campaign.has_method("get_battle"):
-		var result: Variant = campaign.call("get_battle", battle_id)
-		print("BattleContext: get_battle() returned type: %s, is_empty: %s" % [type_string(typeof(result)), result.is_empty() if result is Dictionary else "N/A"])
-
-		if result is Dictionary:
-			battle_config = result
-			if battle_config.is_empty():
-				push_error("BattleContext: Battle config is empty for battle '%s'" % battle_id)
-		else:
-			push_error("BattleContext: get_battle() did not return a Dictionary for battle '%s'" % battle_id)
-	else:
-		push_error("BattleContext: Campaign service does not have get_battle() method")
+	# Campaign is an autoload, access it directly
+	battle_config = Campaign.get_battle(battle_id)
 
 	if battle_config.is_empty():
 		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
@@ -120,11 +103,6 @@ func clear() -> void:
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		push_error("BattleContext: Campaign service not found for completion")
-		return
-
 	if winner == 0:  # Player won
 		# Transition to reward screen (it will handle completion and rewards)
 		SceneManager.change_scene(SceneManager.SCENE_REWARD_SCREEN)
