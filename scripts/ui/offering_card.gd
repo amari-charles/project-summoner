@@ -9,7 +9,6 @@ class_name OfferingCard
 @onready var offering_name_label: Label = %OfferingName
 @onready var type_label: Label = %TypeLabel
 @onready var price_label: Label = %PriceLabel
-@onready var select_button: Button = %SelectButton
 
 ## State
 var offering: ShopOffering = null
@@ -18,11 +17,15 @@ var offering: ShopOffering = null
 signal card_clicked()
 
 func _ready() -> void:
-	select_button.pressed.connect(_on_select_button_pressed)
-
 	# Add hover effect
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			card_clicked.emit()
 
 ## Set offering data
 func set_offering(new_offering: ShopOffering) -> void:
@@ -51,9 +54,6 @@ func set_offering(new_offering: ShopOffering) -> void:
 ## =============================================================================
 ## SIGNAL HANDLERS
 ## =============================================================================
-
-func _on_select_button_pressed() -> void:
-	card_clicked.emit()
 
 func _on_mouse_entered() -> void:
 	# Hover effect: slightly brighten panel
