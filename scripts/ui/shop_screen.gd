@@ -90,15 +90,18 @@ func _exit_tree() -> void:
 
 ## Set up caravan-specific UI elements
 func _setup_caravan_ui() -> void:
-	# Hide back button, keep done_shopping_button hidden until dialogue completes
+	# Hide back button
 	back_button.visible = false
+
+	# Update done shopping button text
+	done_shopping_button.text = "Leave Caravan"
 	done_shopping_button.visible = false  # Will be shown after dialogue
 
 	# Create confirmation popup
 	leave_confirmation_popup = ConfirmationDialog.new()
-	leave_confirmation_popup.dialog_text = "Are you sure you want to leave?\n\nThis caravan will move on and cannot be visited again."
-	leave_confirmation_popup.ok_button_text = "Leave"
-	leave_confirmation_popup.cancel_button_text = "Keep Shopping"
+	leave_confirmation_popup.dialog_text = "Leave this caravan?\n\nThis caravan will move on and you won't be able to return."
+	leave_confirmation_popup.ok_button_text = "Leave Caravan"
+	leave_confirmation_popup.cancel_button_text = "Stay"
 	leave_confirmation_popup.confirmed.connect(_on_leave_confirmed)
 	add_child(leave_confirmation_popup)
 
@@ -251,9 +254,9 @@ func _on_caravan_sequence_complete(sequence: Resource) -> void:
 		done_shopping_button.visible = true
 		print("ShopScreen: 'Done Shopping' button now visible")
 
-## Handle "Done Shopping" button (caravan events only)
+## Handle "Leave Caravan" button (caravan events only)
 func _on_done_shopping_pressed() -> void:
-	print("ShopScreen: Done shopping pressed")
+	print("ShopScreen: Leave Caravan pressed")
 	# Show confirmation popup
 	if leave_confirmation_popup:
 		leave_confirmation_popup.popup_centered()
