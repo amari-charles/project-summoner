@@ -11,26 +11,41 @@ class_name EnemyDeckLoader
 static func load_enemy_deck_for_battle() -> Array[Card]:
 	var cards: Array[Card] = []
 
+	print("EnemyDeckLoader: Starting deck load...")
+
 	# Get battle context
 	var battle_context: Variant = _get_service("/root/BattleContext")
 	if not battle_context:
 		push_error("EnemyDeckLoader: BattleContext not found!")
 		return cards
 
+	print("EnemyDeckLoader: BattleContext found, reading battle_config...")
+
 	var battle_config_variant: Variant = {}
 	if battle_context is Object:
 		var battle_context_obj: Object = battle_context
 		battle_config_variant = battle_context_obj.get("battle_config")
 	var battle_config: Dictionary = battle_config_variant if battle_config_variant is Dictionary else {}
+
+	print("EnemyDeckLoader: battle_config is_empty=%s, keys=%s" % [battle_config.is_empty(), battle_config.keys()])
+
 	if battle_config.is_empty():
 		push_error("EnemyDeckLoader: Battle config is empty! Configure BattleContext before loading battle scene.")
+		push_error("EnemyDeckLoader: Did you call BattleContext.configure_campaign_battle() before changing scene?")
 		return cards
 
 	# Get enemy deck definition from config
 	var enemy_deck_def_variant: Variant = battle_config.get("enemy_deck", [])
 	var enemy_deck_def: Array = enemy_deck_def_variant if enemy_deck_def_variant is Array else []
+
+	print("EnemyDeckLoader: enemy_deck definition: %s (size: %d)" % [enemy_deck_def, enemy_deck_def.size()])
+
 	if enemy_deck_def.is_empty():
-		push_warning("EnemyDeckLoader: Battle has no enemy deck defined!")
+		# Check if this battle uses event sequence for spawning
+		if battle_config.has("event_sequence"):
+			print("EnemyDeckLoader: Battle uses event_sequence for enemy spawning - deck intentionally empty")
+		else:
+			push_warning("EnemyDeckLoader: Battle has no enemy deck defined!")
 		return cards
 
 	print("EnemyDeckLoader: Loading enemy deck from BattleContext")

@@ -27,6 +27,9 @@ enum CardType { SUMMON, SPELL }
 @export var projectile_id: String = ""  # If set, spell spawns a projectile instead of instant cast
 @export var spell_vfx: String = ""  # VFX ID to spawn when spell hits (for instant AOE spells)
 
+## Event sequence stat overrides (set by EventSequencer before spawning)
+var custom_stat_overrides: Dictionary = {}
+
 ## Visual
 @export var card_icon: Texture2D = null
 
@@ -149,6 +152,12 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			var catalog_data: Dictionary = CardCatalog.get_card(catalog_id)
 			assert(not catalog_data.is_empty(), "Card catalog data must exist for catalog_id: '%s'" % catalog_id)
 
+			# Apply custom stat overrides from EventSequencer (if set)
+			if not custom_stat_overrides.is_empty():
+				for stat_key: String in custom_stat_overrides.keys():
+					catalog_data[stat_key] = custom_stat_overrides[stat_key]
+					print("Card: Applied custom override %s = %s for '%s'" % [stat_key, custom_stat_overrides[stat_key], card_name])
+
 			# Apply stats from catalog - MUST have all required stats (NO FALLBACKS!)
 			assert(catalog_data.has("max_hp"), "Card '%s' missing max_hp in catalog!" % catalog_id)
 			assert(catalog_data.has("attack_damage"), "Card '%s' missing attack_damage in catalog!" % catalog_id)
@@ -166,6 +175,12 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 				unit.attack_range = catalog_data.attack_range
 			else:
 				print("Card: No attack_range in catalog for '%s', using scene default: %.2f" % [card_name, unit.attack_range])
+
+			# Apply scale_multiplier override if present (not a catalog stat)
+			if custom_stat_overrides.has("scale_multiplier"):
+				var multiplier: float = custom_stat_overrides["scale_multiplier"]
+				unit.scale = Vector3.ONE * multiplier
+				print("Card: Applied scale multiplier %f for '%s'" % [multiplier, card_name])
 
 			# Initialize with modifiers AFTER catalog stats applied
 			unit.initialize_with_modifiers(modifiers, card_data)

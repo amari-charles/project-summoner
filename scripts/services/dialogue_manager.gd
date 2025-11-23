@@ -61,12 +61,21 @@ func is_system_ready() -> bool:
 ## Loads the dialogue resource and begins displaying it
 func start_dialogue(dialogue_id: String) -> void:
 	print("DialogueManager: start_dialogue called with ID: %s" % dialogue_id)
+
+	# Debug: Check if file exists
+	var expected_path: String = "res://resources/dialogue/%s.tres" % dialogue_id
+	print("DialogueManager: Looking for dialogue at: %s" % expected_path)
+	print("DialogueManager: File exists: %s" % ResourceLoader.exists(expected_path))
+
 	var dialogue: DialogueData = _load_dialogue(dialogue_id)
 	if not dialogue:
 		push_error("DialogueManager: Dialogue not found: %s" % dialogue_id)
+		push_error("DialogueManager: Expected path: %s" % expected_path)
 		return
 
 	print("DialogueManager: Dialogue loaded successfully")
+	print("DialogueManager: Dialogue character_name: %s" % dialogue.character_name)
+	print("DialogueManager: Dialogue lines count: %d" % dialogue.lines.size())
 
 	# Block capabilities during dialogue
 	CapabilityManager.block_capability(
@@ -169,8 +178,8 @@ func _display_current_line() -> void:
 	if not current_dialogue or current_line_index >= current_dialogue.lines.size():
 		return
 
-	var line_text: String = current_dialogue.lines[current_line_index]
-	var character: String = current_dialogue.character_name
+	var line_text: String = Loc.t(current_dialogue.lines[current_line_index])
+	var character: String = Loc.t(current_dialogue.character_name)
 	var portrait: Texture2D = current_dialogue.portrait
 
 	dialogue_line_displayed.emit(line_text, character, portrait)
@@ -275,3 +284,20 @@ func _execute_action(action: String) -> void:
 
 	set_variable(variable_name, value)
 	print("DialogueManager: Set %s = %s" % [variable_name, value])
+
+## Reset the DialogueManager to initial state
+## Called between battles to clear any persisted state from autoload
+func reset() -> void:
+	print("DialogueManager: Resetting state...")
+
+	# End any active dialogue
+	if current_dialogue:
+		end_dialogue()
+
+	# Clear all state
+	current_dialogue = null
+	current_line_index = 0
+	variables.clear()
+	# Note: dialogue_cache is intentionally preserved for performance
+
+	print("DialogueManager: Reset complete")

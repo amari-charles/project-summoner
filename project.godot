@@ -29,6 +29,8 @@ ProfileRepo="*res://scripts/data/json_profile_repository.gd"
 Economy="*res://scripts/services/economy_service.gd"
 Collection="*res://scripts/services/collection_service.gd"
 Decks="*res://scripts/services/deck_service.gd"
+RewardService="*res://scripts/services/reward_service.gd"
+Shop="*res://scripts/services/shop_service.gd"
 Campaign="*res://scripts/services/campaign_service.gd"
 BattleContext="*res://scripts/core/battle_context.gd"
 CapabilityManager="*res://scripts/services/capability_manager.gd"
@@ -47,10 +49,10 @@ SpellTargetingManager="*res://scripts/ui/spell_targeting_manager.gd"
 
 gdscript/warnings/untyped_declaration=2
 gdscript/warnings/inferred_declaration=2
-gdscript/warnings/unsafe_property_access=2
-gdscript/warnings/unsafe_method_access=2
-gdscript/warnings/unsafe_cast=2
-gdscript/warnings/unsafe_call_argument=2
+gdscript/warnings/unsafe_property_access=1
+gdscript/warnings/unsafe_method_access=1
+gdscript/warnings/unsafe_cast=1
+gdscript/warnings/unsafe_call_argument=1
 
 [display]
 

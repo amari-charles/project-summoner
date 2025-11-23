@@ -11,7 +11,7 @@ const BASE_HP_BAR_HEIGHT: float = 3.2
 @export var bar_width: float = 0.8  ## Width in world units (smaller for units)
 @export var bar_height: float = 0.08  ## Height in world units
 @export var offset_y: float = 3.2  ## Height above unit (above character head)
-@export var show_on_damage_only: bool = false  ## Hide when at full HP
+@export var show_on_damage_only: bool = true  ## Hide when at full HP
 @export var fade_delay: float = 3.0  ## Seconds before fading when damaged
 @export var fade_duration: float = 0.5  ## Fade out time
 
@@ -254,6 +254,15 @@ func reset() -> void:
 	visible = false  # Hide when returned to pool
 	cached_offset_x = 0.0
 
+	# CRITICAL: Reset all configurable properties to defaults
+	# This prevents settings from one entity (e.g., bases) from leaking to others
+	show_on_damage_only = true  # Units should hide bars when at full HP
+	bar_width = 0.8  # Default unit bar width
+	bar_height = 0.08  # Default bar height
+	offset_y = 3.2  # Default height above unit
+	fade_delay = 3.0  # Default fade delay
+	fade_duration = 0.5  # Default fade duration
+
 	# Reset sprite properties
 	if hp_bar_sprite:
 		hp_bar_sprite.modulate = Color.WHITE
@@ -274,7 +283,16 @@ func _calculate_bar_offset() -> float:
 	# Query sprite height from visual component
 	if visual.has_method("get_sprite_height"):
 		var sprite_height: float = visual.call("get_sprite_height")
-		return sprite_height * 1.1
+
+		# sprite_height is in LOCAL space (before parent scale is applied)
+		# When unit.scale = 3.0, the visual height becomes sprite_height * 3.0
+		# HP bar should float above the TOP of the scaled sprite
+		var scale_factor: float = target_unit.scale.y
+		var scaled_sprite_height: float = sprite_height * scale_factor
+		var padding: float = 0.8  # Small fixed padding above sprite top
+		var final_offset: float = scaled_sprite_height + padding
+
+		return final_offset
 
 	# Visual component doesn't support height calculation, use default
 	return BASE_HP_BAR_HEIGHT

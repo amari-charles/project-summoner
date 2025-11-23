@@ -209,6 +209,4 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 
 ## Check if a card needs click-targeting (Rally/Guard with command_type)
 func _card_needs_click_targeting(card: Card) -> bool:
-	var needs_targeting: bool = card.needs_click_targeting()
-	print("BattlefieldDropZone: Card %s needs targeting: %s" % [card.card_name, needs_targeting])
-	return needs_targeting
+	return card.needs_click_targeting()

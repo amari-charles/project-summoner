@@ -25,6 +25,9 @@ var battle_config: Dictionary = {}
 ## Biome ID for visual theme
 var biome_id: String = "summer_plains"
 
+## Track if battle was configured (for debugging)
+var was_configured: bool = false
+
 ## Callback to execute when battle ends
 ## Signature: func(winner: int) where 0 = player, 1 = enemy
 var completion_callback: Callable
@@ -32,24 +35,37 @@ var completion_callback: Callable
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
+	was_configured = true
 
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		push_error("BattleContext: Campaign service not found")
-		return
+	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
-	if campaign.has_method("get_battle"):
-		var result: Variant = campaign.call("get_battle", battle_id)
-		if result is Dictionary:
-			battle_config = result
+	# Campaign is an autoload, access it directly
+	battle_config = Campaign.get_battle(battle_id)
+
+	if battle_config.is_empty():
+		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
+		push_error("BattleContext: This will cause enemy deck loading to fail")
+
 	biome_id = battle_config.get("biome_id", "summer_plains")
 	completion_callback = _handle_campaign_completion
 
-	print("BattleContext: Configured campaign battle '%s'" % battle_id)
+	# Get enemy deck size safely
+	var enemy_deck_variant: Variant = battle_config.get("enemy_deck", [])
+	var enemy_deck_size: int = 0
+	if enemy_deck_variant is Array:
+		var enemy_deck_array: Array = enemy_deck_variant
+		enemy_deck_size = enemy_deck_array.size()
+
+	print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
+		battle_id,
+		battle_config.has("enemy_deck"),
+		enemy_deck_size
+	])
 
 ## Configure for practice/test battle
 func configure_practice_battle(config: Dictionary = {}) -> void:
 	current_mode = BattleMode.PRACTICE
+	was_configured = true
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {
@@ -92,11 +108,6 @@ func clear() -> void:
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		push_error("BattleContext: Campaign service not found for completion")
-		return
-
 	if winner == 0:  # Player won
 		# Transition to reward screen (it will handle completion and rewards)
 		SceneManager.change_scene(SceneManager.SCENE_REWARD_SCREEN)

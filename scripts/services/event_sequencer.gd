@@ -118,7 +118,7 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 			await _execute_wait_signal(step)
 
 		step_type_enum.SPAWN_UNIT:
-			_execute_spawn_unit(step)
+			await _execute_spawn_unit(step)
 
 		step_type_enum.SET_CAPABILITY:
 			_execute_set_capability(step)
@@ -313,48 +313,21 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	# Get ModifierSystem
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 
+	# Apply stat overrides to Card BEFORE spawning
+	var stat_overrides_val: Variant = step.get("stat_overrides")
+	var stat_overrides: Dictionary = stat_overrides_val if stat_overrides_val is Dictionary else {}
+	if not stat_overrides.is_empty():
+		card.custom_stat_overrides = stat_overrides
+		print("EventSequencer: Set custom stat overrides on card: %s" % stat_overrides.keys())
+
 	if debug_mode:
 		print("EventSequencer: Spawning %s at %s for team %d" % [card_id, spawn_position, team])
 
-	# Spawn unit
+	# Spawn unit (Card will apply custom_stat_overrides during spawning)
 	if card.has_method("play_3d"):
 		card.call("play_3d", spawn_position, team, battlefield, modifier_system)
 		if debug_mode:
 			print("EventSequencer: Unit spawned successfully")
-
-		# Apply stat overrides if specified
-		var stat_overrides_val: Variant = step.get("stat_overrides")
-		var stat_overrides: Dictionary = stat_overrides_val if stat_overrides_val is Dictionary else {}
-		if not stat_overrides.is_empty():
-			# Find the unit we just spawned (most recently added unit at spawn_position)
-			await get_tree().process_frame  # Wait for unit to be added to scene tree
-
-			const SPAWN_POSITION_TOLERANCE: float = 0.1
-			const ALLOWED_STAT_OVERRIDES: Array[String] = [
-				"move_speed", "attack_damage", "max_hp", "attack_range",
-				"attack_speed", "aggro_radius", "attack_range_depth", "attack_range_vertical"
-			]
-
-			var units: Array[Node] = get_tree().get_nodes_in_group("units")
-			for unit_node: Node in units:
-				# Type check and narrow to Node3D for safe position access
-				if unit_node is Node3D:
-					var unit_3d: Node3D = unit_node as Node3D
-					if unit_3d.global_position.distance_to(spawn_position) < SPAWN_POSITION_TOLERANCE:
-						# Apply each stat override (with whitelist validation)
-						for stat_key: String in stat_overrides.keys():
-							if stat_key not in ALLOWED_STAT_OVERRIDES:
-								push_warning("EventSequencer: Stat override '%s' not in whitelist, skipping" % stat_key)
-								continue
-
-							var stat_value: Variant = stat_overrides[stat_key]
-							if unit_node.has_method("set"):
-								unit_node.set(stat_key, stat_value)
-								if debug_mode:
-									print("EventSequencer: Applied stat override %s = %s" % [stat_key, stat_value])
-							else:
-								push_warning("EventSequencer: Unit doesn't support setting property: %s" % stat_key)
-						break
 	else:
 		push_error("EventSequencer: Card doesn't have play_3d method")
 
@@ -515,3 +488,21 @@ func stop_sequence() -> void:
 	is_playing = false
 
 	sequence_finished.emit(stopped_sequence)
+
+## Reset the EventSequencer to initial state
+## Called between battles to clear any persisted state from autoload
+func reset() -> void:
+	if debug_mode:
+		print("EventSequencer: Resetting state...")
+
+	# Stop any active sequence
+	if is_playing:
+		stop_sequence()
+
+	# Clear all state
+	current_sequence = null
+	current_step_index = -1
+	is_playing = false
+
+	if debug_mode:
+		print("EventSequencer: Reset complete")

@@ -182,6 +182,14 @@ func _refresh_map() -> void:
 	var events_array: Array = _safe_array(events_variant)
 	all_events.assign(events_array)
 
+	print("CampaignMap: Loaded %d total battles from Campaign service" % all_events.size())
+	for event: Dictionary in all_events:
+		print("  - %s (unlocked: %s, completed: %s)" % [
+			event.get("id", "unknown"),
+			campaign.call("is_battle_unlocked", event.get("id", "")),
+			campaign.call("is_battle_completed", event.get("id", ""))
+		])
+
 	# Calculate centered starting position
 	var event_count: int = all_events.size()
 	var total_width: float = (event_count - 1) * NODE_SPACING if event_count > 0 else 0.0
@@ -660,11 +668,11 @@ func _on_start_event_pressed() -> void:
 		profile_repo.call("save_profile", true)
 
 	# Configure battle context
-	var battle_context: Node = get_node("/root/BattleContext")
-	if battle_context:
-		battle_context.call("configure_campaign_battle", selected_event_id)
+	print("CampaignMap: Configuring BattleContext with battle_id='%s'" % selected_event_id)
+	BattleContext.configure_campaign_battle(selected_event_id)
 
 	# Launch battle scene
+	print("CampaignMap: Launching battle scene...")
 	SceneManager.change_scene(SceneManager.SCENE_BATTLE_3D)
 
 ## =============================================================================

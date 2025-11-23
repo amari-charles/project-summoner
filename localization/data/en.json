@@ -14,6 +14,10 @@
       "first_trial": {
         "name": "The First Trial",
         "description": "Your affinity chosen, your companion bound—Headmaster Merlin now calls you to the training grounds. This first trial will test whether theory translates to practice. Prove your worth, initiate, and earn your place among the Academy's summoners."
+      },
+      "charge_tutorial": {
+        "name": "The Ironhide Slime",
+        "description": "A peculiar slime blocks the path ahead. Merlin senses something unusual about its defenses. Learn to use tactical commands wisely."
       }
     },
     "starter_deck_name": "Starter Deck"
@@ -55,5 +59,19 @@
     "not_enough_mana": "Not enough mana",
     "invalid_target": "Invalid target",
     "deck_empty": "Deck is empty"
+  },
+  "dialogue": {
+    "charge_intro": {
+      "text": "A wild slime blocks your path. This one looks... different. Tougher.",
+      "speaker": "Merlin"
+    },
+    "charge_tanky_slime": {
+      "text": "By the stones! This slime's hide is incredibly thick. Your units' attacks barely scratch it!",
+      "speaker": "Merlin"
+    },
+    "charge_explain": {
+      "text": "Use your Charge card! Command a unit to rush past the slime to the enemy core. Sometimes victory isn't about fighting—it's about strategy.",
+      "speaker": "Merlin"
+    }
   }
 }

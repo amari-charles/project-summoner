@@ -26,6 +26,19 @@ signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
 
 func _ready() -> void:
+	print("GameController3D: _ready() called")
+	print("GameController3D: BattleContext.was_configured: %s" % BattleContext.was_configured)
+	print("GameController3D: BattleContext.battle_config is_empty: %s" % BattleContext.battle_config.is_empty())
+
+	if not BattleContext.was_configured:
+		push_error("GameController3D: BattleContext was NEVER configured!")
+		push_error("GameController3D: Did you run the battle scene directly (F6) instead of through the campaign map?")
+		push_error("GameController3D: Configuring with practice mode defaults...")
+		BattleContext.configure_practice_battle()
+
+	if not BattleContext.battle_config.is_empty():
+		print("GameController3D: BattleContext.battle_config keys: %s" % [BattleContext.battle_config.keys()])
+
 	add_to_group("game_controller")
 
 	# Reset all battle state before initialization
@@ -118,6 +131,19 @@ func reset_battle_state() -> void:
 
 	# Clear all units from the battlefield
 	_clear_all_units()
+
+	# Reset autoload singletons that persist between battles
+	if EventSequencer:
+		EventSequencer.reset()
+		print("  - Reset EventSequencer")
+
+	if DialogueManager:
+		DialogueManager.reset()
+		print("  - Reset DialogueManager")
+
+	if SpellTargetingManager:
+		SpellTargetingManager.reset()
+		print("  - Reset SpellTargetingManager")
 
 	# Reset game state
 	current_state = GameState.SETUP

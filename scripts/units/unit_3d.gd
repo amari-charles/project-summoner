@@ -65,6 +65,7 @@ var active_modifiers: Dictionary = {}
 ## Visuals
 @export var sprite_frames: SpriteFrames = null  # Animation frames for this unit
 @export var sprite_feet_offset_pixels: float = 0.0  ## Offset from texture bottom to actual feet (for sprites with empty space below)
+@export var sprite_head_offset_pixels: float = 0.0  ## Offset from texture top to actual head (for sprites with empty space above)
 @export var sprite_scale: float = 2.5  ## Scale for sprite in viewport (default 2.5 for 100px sprites, use 0.806 for 310px sprites)
 
 ## Shadow settings
@@ -159,7 +160,7 @@ func _ready() -> void:
 			var opacity_scale: float = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
 			shadow_component.call("set_shadow_opacity", shadow_opacity * opacity_scale)
 
-	# Spawn HP bar using HPBarManager
+	# Spawn HP bar using HPBarManager (offset calculated automatically based on scale)
 	HPBarManager.create_bar_for_unit(self)
 
 	# Setup abilities
@@ -197,6 +198,10 @@ func _setup_visuals() -> void:
 		# Configure feet offset if specified
 		if sprite_feet_offset_pixels > 0.0 and "feet_offset_pixels" in visual_component:
 			visual_component.set("feet_offset_pixels", sprite_feet_offset_pixels)
+
+		# Configure head offset if specified
+		if sprite_head_offset_pixels > 0.0 and "head_offset_pixels" in visual_component:
+			visual_component.set("head_offset_pixels", sprite_head_offset_pixels)
 
 		# Configure sprite scale if specified
 		if "sprite_scale" in visual_component:
@@ -435,19 +440,15 @@ func _physics_process(delta: float) -> void:
 
 	if current_target:
 		var in_range: bool = _is_in_attack_range(current_target)
-		var distance: float = global_position.distance_to(current_target.global_position)
-		if distance < 5.0:  # Only log when close
-			print("Unit3D [team %d]: Distance to target: %.2f, in_range: %s, attack_range: %.2f" % [team, distance, in_range, attack_range])
 		if in_range:
 			# Face opponent when idle in range (but not during attack)
 			if not is_attacking:
 				_update_facing(current_target.global_position)
 				_update_animation("idle")
 			if attack_cooldown <= 0.0:
-				print("Unit3D [team %d]: Performing attack on target!" % team)
 				_perform_attack()
 			else:
-				print("Unit3D [team %d]: In range but on cooldown (%.2fs remaining)" % [team, attack_cooldown])
+				pass  # On cooldown, wait
 		else:
 			# Don't move during attack animation
 			if not is_attacking:
@@ -455,7 +456,8 @@ func _physics_process(delta: float) -> void:
 				var old_pos: Vector3 = global_position
 				_move_towards_target(delta)
 				var moved: float = global_position.distance_to(old_pos)
-				if moved < 0.01:
+				# Only warn if move_speed > 0 (intentionally stationary units shouldn't warn)
+				if moved < 0.01 and move_speed > 0.01:
 					print("Unit3D [team %d]: WARNING - Not moving! pos: %s, target pos: %s" % [team, global_position, current_target.global_position])
 	else:
 		if not is_attacking:
@@ -546,12 +548,6 @@ func _acquire_target() -> Node3D:
 	# Priority 3: Normal targeting behavior
 	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
 	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
-
-	# DEBUG: Log target acquisition attempts
-	if targets.size() == 0:
-		print("Unit3D [team %d]: No targets found in group '%s'" % [team, target_group])
-	else:
-		print("Unit3D [team %d]: Found %d potential targets in group '%s'" % [team, targets.size(), target_group])
 
 	var best_target: Node3D = null
 	var best_score: float = -INF

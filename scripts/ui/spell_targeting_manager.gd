@@ -139,6 +139,31 @@ func clear_rally_destination() -> void:
 	print("SpellTargetingManager: clear_rally_destination() called - clearing %s" % rally_destination)
 	rally_destination = Vector3.ZERO
 
+## Reset the SpellTargetingManager to initial state
+## Called between battles to clear any persisted state
+func reset() -> void:
+	print("SpellTargetingManager: Resetting state...")
+
+	# Cancel any active targeting
+	if is_active:
+		_cancel_targeting()
+
+	# Clear all state (defensive reset)
+	is_active = false
+	current_state = State.INACTIVE
+	pending_card_index = -1
+	pending_card = null
+	summoner = null
+	camera_3d = null
+	circle_center = Vector3.ZERO
+	rally_destination = Vector3.ZERO
+	selected_units.clear()
+	_hide_preview_circle()
+	_hide_arrow_visual()
+	set_process(false)
+
+	print("SpellTargetingManager: Reset complete")
+
 ## Handle first click - place circle and select units
 func handle_mouse_down(world_pos: Vector3) -> void:
 	if current_state != State.AWAITING_FIRST_CLICK:

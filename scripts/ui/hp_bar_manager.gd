@@ -86,6 +86,13 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 
 	# print("HPBarManager: Bar instance valid: %s" % is_instance_valid(bar))
 
+	# IMPORTANT: Ensure defaults are set for units
+	# The reset() function handles this, but we explicitly set show_on_damage_only
+	# here if not provided to guarantee units get the right behavior
+	if not settings.has("show_on_damage_only"):
+		# Default: units hide bars when at full HP, bases always show them
+		bar.show_on_damage_only = true
+
 	# Apply custom settings
 	if settings.has("bar_width"):
 		var bar_width_val: Variant = settings.get("bar_width")

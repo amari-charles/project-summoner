@@ -55,6 +55,12 @@ func _init_battles() -> void:
 	#   - campaign_screen.gd (list-based screen)
 	# to prevent divergence between advertised and actual rewards
 
+	# IMPORTANT: Battles using event_sequence system
+	# If a battle uses "event_sequence" for spawning enemies via dialogue/events:
+	# - Set "enemy_deck": [] (empty array, NOT omit the key)
+	# - Summoner3D will auto-detect this and use DEFERRED deck loading strategy
+	# - Enemies are spawned manually via BattleDialogueController or EventSequencer
+
 	# Onboarding Event 1: Hero/Affinity selection
 	_battles["event_affinity"] = {
 		"id": "event_affinity",
@@ -114,167 +120,30 @@ func _init_battles() -> void:
 		"ai_script": []
 	}
 
-	# Battle 1: Building army
-	_battles["battle_01"] = {
-		"id": "battle_01",
+	# Tutorial: Charge Card Introduction
+	_battles["charge_tutorial"] = {
+		"id": "charge_tutorial",
 		"biome_id": "summer_plains",
-		"name": "Building Your Army",
-		"description": "Expand your forces. Choose your reward.",
+		"name": Loc.t("campaign.battle.charge_tutorial.name"),
+		"description": Loc.t("campaign.battle.charge_tutorial.description"),
 		"difficulty": 1,
 		"event_type": "battle",
-		"repeatable": true,
-		"is_tutorial": true,  # Tutorial battle - deck editing locked
-		"reward_type": "choice",
+		"repeatable": false,  # One-time tutorial battle
+		"requires_deck": true,
+		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
+		"reward_type": "fixed",
 		"reward_cards": [
 			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
 			{"catalog_id": "ember_slinger", "rarity": "common", "count": 1}
 		],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 2}
-		],
-		"enemy_hp": 100.0,
+		"enemy_deck": [],  # Spawned via event sequence
+		"enemy_hp": 50.0,
 		"unlock_requirements": ["first_trial"],
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "defensive",
-		"ai_difficulty": 1,
-		"ai_config": {
-			"play_interval_min": 4.0,
-			"play_interval_max": 7.0
-		}
-	}
-
-	# Battle 2: Fortification
-	_battles["battle_02"] = {
-		"id": "battle_02",
-		"biome_id": "summer_plains",
-		"name": "Flames Rising",
-		"description": "Face mixed fire forces. Earn a swift charger.",
-		"difficulty": 2,
-		"event_type": "battle",
-		"repeatable": true,
-		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
-		"reward_type": "fixed",
-		"reward_cards": [
-			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2}
-		],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 2},
-			{"catalog_id": "ember_slinger", "count": 1}
-		],
-		"enemy_hp": 250.0,
-		"unlock_requirements": ["battle_01"],
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "balanced",
-		"ai_difficulty": 2,
-		"ai_config": {
-			"play_interval_min": 3.0,
-			"play_interval_max": 6.0
-		}
-	}
-
-	# Battle 3: Random reward
-	_battles["battle_03"] = {
-		"id": "battle_03",
-		"biome_id": "summer_plains",
-		"name": "Growing Power",
-		"description": "Test your strength. Random reward awaits.",
-		"difficulty": 2,
-		"event_type": "battle",
-		"repeatable": true,
-		"reward_type": "random",
-		"reward_cards": [
-			{"catalog_id": "fire_recruit", "rarity": "common", "count": 2},
-			{"catalog_id": "ember_slinger", "rarity": "common", "count": 2},
-			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2},
-			{"catalog_id": "ash_vanguard", "rarity": "rare", "count": 1}
-		],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 3},
-			{"catalog_id": "ember_slinger", "count": 2},
-			{"catalog_id": "blaze_rider", "count": 1},
-			{"catalog_id": "ash_vanguard", "count": 1}
-		],
-		"enemy_hp": 400.0,
-		"unlock_requirements": ["battle_02"],
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "aggressive",
-		"ai_difficulty": 3,
-		"ai_config": {
-			"play_interval_min": 2.5,
-			"play_interval_max": 5.0
-		}
-	}
-
-	# Battle 4: Fire onslaught
-	_battles["battle_04"] = {
-		"id": "battle_04",
-		"biome_id": "summer_plains",
-		"name": "Inferno Assault",
-		"description": "Face the full fury of fire! Rare units await.",
-		"difficulty": 3,
-		"event_type": "battle",
-		"repeatable": true,
-		"reward_type": "choice",
-		"reward_count": 1,
-		"reward_cards": [
-			{"catalog_id": "ash_vanguard", "rarity": "rare", "count": 1},
-			{"catalog_id": "ember_guard", "rarity": "rare", "count": 1}
-		],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 4},
-			{"catalog_id": "ember_slinger", "count": 3},
-			{"catalog_id": "blaze_rider", "count": 2},
-			{"catalog_id": "ash_vanguard", "count": 1},
-			{"catalog_id": "ember_guard", "count": 1}
-		],
-		"enemy_hp": 600.0,
-		"unlock_requirements": ["battle_03"],
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "aggressive",
-		"ai_difficulty": 4,
-		"ai_config": {
-			"play_interval_min": 2.0,
-			"play_interval_max": 4.0
-		}
-	}
-
-	# Dev Test Battle: All ability cards unlocked for testing
-	_battles["dev_test"] = {
-		"id": "dev_test",
-		"biome_id": "summer_plains",
-		"name": "[DEV] Ability Test Arena",
-		"description": "Test all abilities. Full deck of ability cards available.",
-		"difficulty": 2,
-		"event_type": "battle",
-		"repeatable": true,
-		"reward_type": "fixed",
-		"reward_cards": [],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 5}
-		],
-		"enemy_hp": 300.0,
-		"unlock_requirements": [],  # Always available
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "defensive",
-		"ai_difficulty": 1,
-		"ai_config": {
-			"play_interval_min": 5.0,
-			"play_interval_max": 8.0
-		},
-		# Special dev deck override for player
-		"dev_player_deck": [
-			{"catalog_id": "fire_recruit", "count": 2},
-			{"catalog_id": "ember_slinger", "count": 2},
-			{"catalog_id": "blaze_rider", "count": 2},
-			{"catalog_id": "ash_vanguard", "count": 2},
-			{"catalog_id": "ember_guard", "count": 2},
-			{"catalog_id": "fireball", "count": 2}
-		]
+		# Tutorial Event Sequence
+		"event_sequence": "res://resources/sequences/charge_tutorial.tres",
+		# AI Configuration (disabled for tutorial)
+		"ai_type": "scripted",
+		"ai_script": []
 	}
 
 	print("CampaignService: Loaded %d battles" % _battles.size())
@@ -345,7 +214,22 @@ func get_all_battles() -> Array[Dictionary]:
 
 func get_battle(battle_id: String) -> Dictionary:
 	var empty_battle: Dictionary = {}
-	return _battles.get(battle_id, empty_battle)
+	var battle: Dictionary = _battles.get(battle_id, empty_battle)
+
+	# Get enemy deck size safely
+	var enemy_deck_variant: Variant = battle.get("enemy_deck", [])
+	var enemy_deck_size: int = 0
+	if enemy_deck_variant is Array:
+		var enemy_deck_array: Array = enemy_deck_variant
+		enemy_deck_size = enemy_deck_array.size()
+
+	print("CampaignService: get_battle('%s') - found: %s, has_enemy_deck: %s, enemy_deck_size: %d" % [
+		battle_id,
+		not battle.is_empty(),
+		battle.has("enemy_deck"),
+		enemy_deck_size
+	])
+	return battle
 
 func is_battle_completed(battle_id: String) -> bool:
 	return battle_id in _completed_battles
