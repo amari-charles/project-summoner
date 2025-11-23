@@ -74,8 +74,8 @@ func start_dialogue(dialogue_id: String) -> void:
 		return
 
 	print("DialogueManager: Dialogue loaded successfully")
-	print("DialogueManager: Dialogue text key: %s" % dialogue.text)
-	print("DialogueManager: Dialogue speaker key: %s" % dialogue.speaker)
+	print("DialogueManager: Dialogue character_name: %s" % dialogue.character_name)
+	print("DialogueManager: Dialogue lines count: %d" % dialogue.lines.size())
 
 	# Block capabilities during dialogue
 	CapabilityManager.block_capability(

@@ -92,6 +92,7 @@ func _run() -> void:
 	print("  Total dialogues: %d" % dialogues.size())
 
 func _generate_dialogue_resource(dialogue_id: String, output_path: String) -> void:
+	# Create correct format matching DialogueData class structure
 	var tres_content: String = """[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_dialogue"]
@@ -99,10 +100,8 @@ func _generate_dialogue_resource(dialogue_id: String, output_path: String) -> vo
 [resource]
 script = ExtResource("1_dialogue")
 dialogue_id = "%s"
-text = "dialogue.%s.text"
-speaker = "dialogue.%s.speaker"
-portrait = ""
-duration = 0.0
+character_name = "dialogue.%s.speaker"
+lines = Array[String](["dialogue.%s.text"])
 """ % [dialogue_id, dialogue_id, dialogue_id]
 
 	var file: FileAccess = FileAccess.open(output_path, FileAccess.WRITE)
