@@ -356,6 +356,16 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 								unit_3d.scale = Vector3.ONE * multiplier
 								if debug_mode:
 									print("EventSequencer: Applied scale multiplier %f" % multiplier)
+							# Special handling for max_hp - also update current_hp
+							elif stat_key == "max_hp":
+								if unit_node.has_method("set"):
+									var hp_value: float = stat_value if stat_value is float else 100.0
+									unit_node.set("max_hp", hp_value)
+									unit_node.set("current_hp", hp_value)  # Start at full HP
+									if debug_mode:
+										print("EventSequencer: Applied max_hp override %f (and set current_hp)" % hp_value)
+								else:
+									push_warning("EventSequencer: Unit doesn't support setting max_hp")
 							elif unit_node.has_method("set"):
 								unit_node.set(stat_key, stat_value)
 								if debug_mode:
