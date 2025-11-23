@@ -64,6 +64,11 @@
     "invalid_target": "Invalid target",
     "deck_empty": "Deck is empty"
   },
+  "character": {
+    "Mr. Merriweather": "Mr. Merriweather",
+    "Headmaster Merlin": "Headmaster Merlin",
+    "Merlin": "Merlin"
+  },
   "dialogue": {
     "charge_intro": {
       "text": "A wild slime blocks your path. This one looks... different. Tougher.",
