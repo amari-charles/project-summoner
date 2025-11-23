@@ -118,7 +118,7 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 			await _execute_wait_signal(step)
 
 		step_type_enum.SPAWN_UNIT:
-			await _execute_spawn_unit(step)
+			_execute_spawn_unit(step)
 
 		step_type_enum.SET_CAPABILITY:
 			_execute_set_capability(step)
