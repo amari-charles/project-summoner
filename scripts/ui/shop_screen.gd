@@ -187,4 +187,4 @@ func _on_data_changed() -> void:
 		_update_detail_panel(selected_offering)
 
 func _on_back_pressed() -> void:
-	SceneManager.change_scene(SceneManager.SCENE_MAIN_MENU)
+	SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)

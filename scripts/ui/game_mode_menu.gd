@@ -14,10 +14,10 @@ func _on_campaign_pressed() -> void:
 	print("Opening campaign map...")
 	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 
-## PLACEHOLDER - Shop not yet implemented
+## Navigate to Shop screen
 func _on_shop_pressed() -> void:
-	print("Shop button pressed (PLACEHOLDER)")
-	placeholder_popup.popup_centered()
+	print("Opening shop...")
+	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
 
 ## Navigate to Collection screen
 func _on_collection_pressed() -> void:
