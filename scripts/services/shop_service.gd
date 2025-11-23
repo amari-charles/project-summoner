@@ -124,13 +124,13 @@ func _init_shops() -> void:
 	_shops["caravan_tutorial"] = {
 		"id": "caravan_tutorial",
 		"shop_type": "caravan",
-		"name": "Merlin's Trading Post",
+		"name": Loc.t("shop.caravan.tutorial.name"),
 		"offerings": [
 			{
 				"offering_id": "tutorial_fire_recruit",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": "Fire Recruit",
-				"description": "A basic fire unit",
+				"display_name": Loc.t("shop.offering.tutorial_fire_recruit.name"),
+				"description": Loc.t("shop.offering.tutorial_fire_recruit.description"),
 				"card_catalog_id": "fire_recruit",
 				"card_count": 1,
 				"base_price": 25,
@@ -140,8 +140,8 @@ func _init_shops() -> void:
 			{
 				"offering_id": "tutorial_spell_pack",
 				"offering_type": ShopOffering.OfferingType.CARD_PACK,
-				"display_name": "Tactical Spell Pack",
-				"description": "Essential tactical spells",
+				"display_name": Loc.t("shop.offering.tutorial_spell_pack.name"),
+				"description": Loc.t("shop.offering.tutorial_spell_pack.description"),
 				"pack_cards": [
 					{"catalog_id": "charge", "count": 1},
 					{"catalog_id": "rally", "count": 1}

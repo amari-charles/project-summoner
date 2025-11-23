@@ -79,6 +79,11 @@
       "name": "General Shop",
       "title": "Shop"
     },
+    "caravan": {
+      "tutorial": {
+        "name": "Merlin's Trading Post"
+      }
+    },
     "offering": {
       "fire_recruit": {
         "name": "Fire Recruit",
@@ -99,6 +104,14 @@
       "summon_pack": {
         "name": "Summon Pack",
         "description": "Assorted summon cards."
+      },
+      "tutorial_fire_recruit": {
+        "name": "Fire Recruit",
+        "description": "A basic fire unit."
+      },
+      "tutorial_spell_pack": {
+        "name": "Tactical Spell Pack",
+        "description": "Essential tactical spells."
       }
     },
     "purchase_button": "Purchase",
