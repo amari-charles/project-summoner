@@ -332,7 +332,8 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 			const SPAWN_POSITION_TOLERANCE: float = 0.1
 			const ALLOWED_STAT_OVERRIDES: Array[String] = [
 				"move_speed", "attack_damage", "max_hp", "attack_range",
-				"attack_speed", "aggro_radius", "attack_range_depth", "attack_range_vertical"
+				"attack_speed", "aggro_radius", "attack_range_depth", "attack_range_vertical",
+				"scale_multiplier"  # Special: multiplies the unit's scale
 			]
 
 			var units: Array[Node] = get_tree().get_nodes_in_group("units")
@@ -348,7 +349,14 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 								continue
 
 							var stat_value: Variant = stat_overrides[stat_key]
-							if unit_node.has_method("set"):
+
+							# Special handling for scale_multiplier
+							if stat_key == "scale_multiplier":
+								var multiplier: float = stat_value if stat_value is float else 1.0
+								unit_3d.scale = Vector3.ONE * multiplier
+								if debug_mode:
+									print("EventSequencer: Applied scale multiplier %f" % multiplier)
+							elif unit_node.has_method("set"):
 								unit_node.set(stat_key, stat_value)
 								if debug_mode:
 									print("EventSequencer: Applied stat override %s = %s" % [stat_key, stat_value])

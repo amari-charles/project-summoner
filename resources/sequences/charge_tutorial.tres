@@ -16,7 +16,8 @@ spawn_position = Vector3(10, 0, 0)
 team = 1
 stat_overrides = {
 "max_hp": 1000.0,
-"move_speed": 1.0
+"move_speed": 0.0,
+"scale_multiplier": 3.0
 }
 
 [sub_resource type="Resource" id="step_wait_damage"]
