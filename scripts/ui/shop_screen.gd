@@ -25,6 +25,10 @@ const OFFERING_CARD_SCENE: PackedScene = preload("res://scenes/ui/offering_card.
 var current_offerings: Array[ShopOffering] = []
 var selected_offering: ShopOffering = null
 var shop_id: String = "general"
+var is_caravan_event: bool = false
+var caravan_sequence_complete: bool = false
+var done_shopping_button: Button = null
+var leave_confirmation_popup: ConfirmationDialog = null
 
 func _ready() -> void:
 	# Connect buttons
@@ -45,8 +49,12 @@ func _ready() -> void:
 		var event_shop_id: String = event_config.get("shop_id", "")
 
 		if not event_shop_id.is_empty():
+			is_caravan_event = true
 			shop_id = event_shop_id
 			print("ShopScreen: Loaded as caravan event '%s' with shop_id '%s'" % [event_id, shop_id])
+
+			# Set up caravan-specific UI
+			_setup_caravan_ui()
 
 			# Play event sequence on top of shop UI
 			var sequence_path: String = event_config.get("event_sequence", "")
@@ -78,6 +86,35 @@ func _exit_tree() -> void:
 ## =============================================================================
 ## INITIALIZATION
 ## =============================================================================
+
+## Set up caravan-specific UI elements
+func _setup_caravan_ui() -> void:
+	# Hide back button for caravan events
+	if back_button:
+		back_button.visible = false
+
+	# Create "Done Shopping" button (initially hidden until dialogue completes)
+	done_shopping_button = Button.new()
+	done_shopping_button.text = "Done Shopping"
+	done_shopping_button.theme_type_variation = "BackButton"
+	done_shopping_button.theme_override_font_sizes["font_size"] = 24
+	done_shopping_button.visible = false  # Hidden until dialogue completes
+	done_shopping_button.pressed.connect(_on_done_shopping_pressed)
+
+	# Add to header (where back button is)
+	var header: HBoxContainer = back_button.get_parent()
+	if header:
+		header.add_child(done_shopping_button)
+
+	# Create confirmation popup
+	leave_confirmation_popup = ConfirmationDialog.new()
+	leave_confirmation_popup.dialog_text = "Are you sure you want to leave?\n\nThis caravan will move on and cannot be visited again."
+	leave_confirmation_popup.ok_button_text = "Leave"
+	leave_confirmation_popup.cancel_button_text = "Keep Shopping"
+	leave_confirmation_popup.confirmed.connect(_on_leave_confirmed)
+	add_child(leave_confirmation_popup)
+
+	print("ShopScreen: Caravan UI set up")
 
 ## Set the shop ID and reload offerings (called by EventSequencer for caravans)
 func set_shop_id(new_shop_id: String) -> void:
@@ -219,16 +256,42 @@ func _on_data_changed() -> void:
 ## Handle caravan sequence completion (dialogue finished)
 func _on_caravan_sequence_complete(sequence: Resource) -> void:
 	print("ShopScreen: Caravan sequence completed")
-	# Sequence is done, user can now shop
-	# Event will be marked complete when they leave the shop
+	caravan_sequence_complete = true
+
+	# Show "Done Shopping" button now that dialogue is complete
+	if done_shopping_button:
+		done_shopping_button.visible = true
+		print("ShopScreen: 'Done Shopping' button now visible")
+
+## Handle "Done Shopping" button (caravan events only)
+func _on_done_shopping_pressed() -> void:
+	print("ShopScreen: Done shopping pressed")
+	# Show confirmation popup
+	if leave_confirmation_popup:
+		leave_confirmation_popup.popup_centered()
+
+## Handle leave confirmation (user confirmed they want to leave caravan)
+func _on_leave_confirmed() -> void:
+	print("ShopScreen: Leave confirmed")
+	_leave_shop()
 
 func _on_back_pressed() -> void:
+	# This should only be called for non-caravan shops
+	if is_caravan_event:
+		push_warning("ShopScreen: Back button pressed for caravan event (should be hidden)")
+		return
+
+	_leave_shop()
+
+## Leave the shop and return to previous scene
+func _leave_shop() -> void:
 	# If this was a caravan event, mark it complete before leaving
-	var event_id: String = EventContext.get_current_event_id()
-	if not event_id.is_empty():
-		print("ShopScreen: Completing caravan event '%s'" % event_id)
-		EventContext.complete_event()
-		EventContext.clear_event()
+	if is_caravan_event:
+		var event_id: String = EventContext.get_current_event_id()
+		if not event_id.is_empty():
+			print("ShopScreen: Completing caravan event '%s'" % event_id)
+			EventContext.complete_event()
+			EventContext.clear_event()
 
 	# Check if we have a return destination from NavigationContext
 	if NavigationContext.has_return():
