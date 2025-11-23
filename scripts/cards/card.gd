@@ -640,7 +640,7 @@ func _spawn_placeholder_marker(position: Vector3, color: Color) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = circle_pos
+	mesh_instance.global_position = position
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 1.0 seconds
