@@ -581,7 +581,7 @@ func _spawn_placeholder_fizzle(fizzle_pos: Vector3) -> void:
 	)
 
 ## Spawn a simple circle marker using procedural geometry
-func _spawn_placeholder_circle(position: Vector3, radius: float, color: Color) -> void:
+func _spawn_placeholder_circle(circle_pos: Vector3, radius: float, color: Color) -> void:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if not main_loop or not main_loop is SceneTree:
 		return
@@ -606,7 +606,7 @@ func _spawn_placeholder_circle(position: Vector3, radius: float, color: Color) -
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = fizzle_pos
+	mesh_instance.global_position = circle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 1.5 seconds
@@ -640,7 +640,7 @@ func _spawn_placeholder_marker(position: Vector3, color: Color) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = fizzle_pos
+	mesh_instance.global_position = circle_pos
 	root.add_child(mesh_instance)
 
 	# Auto-cleanup after 1.0 seconds
