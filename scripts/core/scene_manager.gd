@@ -17,6 +17,7 @@ const SCENE_GAME_MODE_MENU: String = "res://scenes/ui/game_mode_menu.tscn"
 
 ## Campaign Scenes
 const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/campaign_map.tscn"
+const SCENE_EVENT_SCREEN: String = "res://scenes/ui/event_screen.tscn"
 const SCENE_HERO_SELECTION: String = "res://scenes/ui/hero_selection.tscn"
 const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/ui/first_card_selection.tscn"
 

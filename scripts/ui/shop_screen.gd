@@ -194,4 +194,12 @@ func _on_data_changed() -> void:
 		_update_detail_panel(selected_offering)
 
 func _on_back_pressed() -> void:
-	SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)
+	# Check if we have a return destination from NavigationContext
+	# (e.g., when opened from event screen via OPEN_CARAVAN)
+	if NavigationContext.has_return():
+		var return_to: String = NavigationContext.pop_return()
+		print("ShopScreen: Returning to %s via NavigationContext" % return_to)
+		SceneManager.change_scene(return_to)
+	else:
+		# Default: return to game mode menu
+		SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)

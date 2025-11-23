@@ -640,32 +640,23 @@ func _on_start_event_pressed() -> void:
 		SceneManager.change_scene(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
 
-	# Handle caravan events - run event sequence directly without battle
+	# Handle caravan events - navigate to event screen
 	if event_type == "caravan":
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
-		# Get event sequence path
-		var event_sequence_path: String = _safe_string(event.get("event_sequence", ""))
-		if event_sequence_path.is_empty():
-			push_error("CampaignMap: Caravan event has no event_sequence!")
+		# Check if event is already completed and not repeatable
+		var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", selected_event_id), false)
+		var is_repeatable: bool = _safe_bool(event.get("repeatable", false), false)
+
+		if is_completed and not is_repeatable:
+			push_warning("CampaignMap: Cannot start event '%s' - already completed and not repeatable" % selected_event_id)
 			return
 
-		# Load and play the event sequence
-		var event_sequencer: Node = get_node_or_null("/root/EventSequencer")
-		if not event_sequencer:
-			push_error("CampaignMap: EventSequencer not found!")
-			return
+		# Configure EventContext with this event
+		EventContext.configure_event(selected_event_id, SceneManager.SCENE_CAMPAIGN_MAP)
 
-		var sequence: Resource = load(event_sequence_path)
-		if not sequence:
-			push_error("CampaignMap: Failed to load event sequence: %s" % event_sequence_path)
-			return
-
-		# Play the sequence (it will handle opening the shop)
-		event_sequencer.call("play_sequence", sequence)
-
-		# Mark event as completed (caravans are one-time events)
-		campaign.call("complete_battle", selected_event_id)
+		# Navigate to event screen (it will load and execute the sequence)
+		SceneManager.change_scene(SceneManager.SCENE_EVENT_SCREEN)
 		return
 
 	# Handle battle events

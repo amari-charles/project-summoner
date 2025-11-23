@@ -17,6 +17,8 @@ const EventStepClass: GDScript = preload("res://scripts/resources/event_step.gd"
 ## Signals
 signal sequence_started(sequence: Resource) #EventSequence
 signal sequence_finished(sequence: Resource) #EventSequence
+signal sequence_paused()
+signal sequence_resumed()
 signal step_started(step: Resource, index: int) #EventStep
 signal step_finished(step: Resource, index: int) #EventStep
 
@@ -24,6 +26,8 @@ signal step_finished(step: Resource, index: int) #EventStep
 var current_sequence: Resource = null  # EventSequence
 var current_step_index: int = -1
 var is_playing: bool = false
+var is_paused: bool = false
+var _resume_signal: Signal
 
 ## Debug mode
 var debug_mode: bool = false
@@ -95,6 +99,18 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 	is_playing = false
 
 	sequence_finished.emit(finished_sequence)
+
+## Resume a paused sequence (called when returning from shop, etc.)
+func resume_sequence() -> void:
+	if not is_paused:
+		push_warning("EventSequencer: resume_sequence() called but sequence is not paused")
+		return
+
+	if debug_mode:
+		print("EventSequencer: Resuming sequence")
+
+	is_paused = false
+	sequence_resumed.emit()
 
 ## Execute a single step (async)
 func _execute_step(step: Resource) -> void:  # EventStep parameter
@@ -522,8 +538,10 @@ func _execute_open_caravan(step: Resource) -> void:
 	if debug_mode:
 		print("EventSequencer: Opening caravan shop '%s'" % shop_id)
 
+	# Push event screen as return destination
+	NavigationContext.push_return(SceneManager.SCENE_EVENT_SCREEN)
+
 	# Navigate to shop screen with the specified shop_id
-	# The shop screen will handle navigation back when closed
 	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
 
 	# Wait for shop screen to load and then set the shop_id
@@ -536,5 +554,14 @@ func _execute_open_caravan(step: Resource) -> void:
 	else:
 		push_warning("EventSequencer: Could not find shop_screen to set shop_id")
 
-	# Wait for player to finish shopping (shop screen returns to campaign map)
-	# For now, the sequence will end here and resume when returning to campaign
+	# Pause the sequence and wait for resume
+	is_paused = true
+	sequence_paused.emit()
+	if debug_mode:
+		print("EventSequencer: Sequence paused for shop visit, awaiting resume...")
+
+	# Wait for resume signal
+	await sequence_resumed
+
+	if debug_mode:
+		print("EventSequencer: Sequence resumed after shop visit")
