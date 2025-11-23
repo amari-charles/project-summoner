@@ -61,12 +61,21 @@ func is_system_ready() -> bool:
 ## Loads the dialogue resource and begins displaying it
 func start_dialogue(dialogue_id: String) -> void:
 	print("DialogueManager: start_dialogue called with ID: %s" % dialogue_id)
+
+	# Debug: Check if file exists
+	var expected_path: String = "res://resources/dialogue/%s.tres" % dialogue_id
+	print("DialogueManager: Looking for dialogue at: %s" % expected_path)
+	print("DialogueManager: File exists: %s" % ResourceLoader.exists(expected_path))
+
 	var dialogue: DialogueData = _load_dialogue(dialogue_id)
 	if not dialogue:
 		push_error("DialogueManager: Dialogue not found: %s" % dialogue_id)
+		push_error("DialogueManager: Expected path: %s" % expected_path)
 		return
 
 	print("DialogueManager: Dialogue loaded successfully")
+	print("DialogueManager: Dialogue text key: %s" % dialogue.text)
+	print("DialogueManager: Dialogue speaker key: %s" % dialogue.speaker)
 
 	# Block capabilities during dialogue
 	CapabilityManager.block_capability(
