@@ -41,7 +41,11 @@ static func load_enemy_deck_for_battle() -> Array[Card]:
 	print("EnemyDeckLoader: enemy_deck definition: %s (size: %d)" % [enemy_deck_def, enemy_deck_def.size()])
 
 	if enemy_deck_def.is_empty():
-		push_warning("EnemyDeckLoader: Battle has no enemy deck defined!")
+		# Check if this battle uses event sequence for spawning
+		if battle_config.has("event_sequence"):
+			print("EnemyDeckLoader: Battle uses event_sequence for enemy spawning - deck intentionally empty")
+		else:
+			push_warning("EnemyDeckLoader: Battle has no enemy deck defined!")
 		return cards
 
 	print("EnemyDeckLoader: Loading enemy deck from BattleContext")

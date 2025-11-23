@@ -45,6 +45,16 @@ func _ready() -> void:
 	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
 
+	# For enemy: Check if battle uses event_sequence (enemies spawned via dialogue/events)
+	if team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+		if BattleContext.battle_config.has("event_sequence") and BattleContext.battle_config.has("enemy_deck"):
+			var enemy_deck_variant: Variant = BattleContext.battle_config.get("enemy_deck")
+			if enemy_deck_variant is Array:
+				var enemy_deck_array: Array = enemy_deck_variant
+				if enemy_deck_array.is_empty():
+					print("Summoner3D: Battle uses event_sequence with empty enemy_deck - switching to DEFERRED strategy")
+					deck_load_strategy = DeckLoadStrategy.DEFERRED
+
 	# For enemy summoners, load config from BattleContext
 	if team == Unit3D.Team.ENEMY:
 		var battle_context: Node = get_node_or_null("/root/BattleContext")
