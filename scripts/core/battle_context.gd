@@ -62,10 +62,17 @@ func configure_campaign_battle(battle_id: String) -> void:
 	biome_id = battle_config.get("biome_id", "summer_plains")
 	completion_callback = _handle_campaign_completion
 
+	# Get enemy deck size safely
+	var enemy_deck_variant: Variant = battle_config.get("enemy_deck", [])
+	var enemy_deck_size: int = 0
+	if enemy_deck_variant is Array:
+		var enemy_deck_array: Array = enemy_deck_variant
+		enemy_deck_size = enemy_deck_array.size()
+
 	print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
 		battle_id,
 		battle_config.has("enemy_deck"),
-		battle_config.get("enemy_deck", []).size()
+		enemy_deck_size
 	])
 
 ## Configure for practice/test battle
