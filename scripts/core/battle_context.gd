@@ -25,6 +25,9 @@ var battle_config: Dictionary = {}
 ## Biome ID for visual theme
 var biome_id: String = "summer_plains"
 
+## Track if battle was configured (for debugging)
+var was_configured: bool = false
+
 ## Callback to execute when battle ends
 ## Signature: func(winner: int) where 0 = player, 1 = enemy
 var completion_callback: Callable
@@ -32,6 +35,7 @@ var completion_callback: Callable
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
+	was_configured = true
 
 	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
@@ -61,6 +65,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 ## Configure for practice/test battle
 func configure_practice_battle(config: Dictionary = {}) -> void:
 	current_mode = BattleMode.PRACTICE
+	was_configured = true
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {

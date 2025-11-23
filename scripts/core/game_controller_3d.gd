@@ -27,7 +27,15 @@ signal state_changed(new_state: GameState)
 
 func _ready() -> void:
 	print("GameController3D: _ready() called")
+	print("GameController3D: BattleContext.was_configured: %s" % BattleContext.was_configured)
 	print("GameController3D: BattleContext.battle_config is_empty: %s" % BattleContext.battle_config.is_empty())
+
+	if not BattleContext.was_configured:
+		push_error("GameController3D: BattleContext was NEVER configured!")
+		push_error("GameController3D: Did you run the battle scene directly (F6) instead of through the campaign map?")
+		push_error("GameController3D: Configuring with practice mode defaults...")
+		BattleContext.configure_practice_battle()
+
 	if not BattleContext.battle_config.is_empty():
 		print("GameController3D: BattleContext.battle_config keys: %s" % BattleContext.battle_config.keys())
 
