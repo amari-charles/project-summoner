@@ -17,11 +17,15 @@ const SCENE_GAME_MODE_MENU: String = "res://scenes/ui/game_mode_menu.tscn"
 
 ## Campaign Scenes
 const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/campaign_map.tscn"
+const SCENE_EVENT_SCREEN: String = "res://scenes/ui/event_screen.tscn"
 const SCENE_HERO_SELECTION: String = "res://scenes/ui/hero_selection.tscn"
 const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/ui/first_card_selection.tscn"
 
 ## Collection Scenes
 const SCENE_COLLECTION_SCREEN: String = "res://scenes/ui/collection_screen.tscn"
+
+## Shop Scenes
+const SCENE_SHOP_SCREEN: String = "res://scenes/ui/shop_screen.tscn"
 
 ## Battle Scenes
 const SCENE_BATTLE_3D: String = "res://scenes/battlefield/battle_3d.tscn"

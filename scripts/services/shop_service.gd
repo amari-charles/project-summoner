@@ -52,17 +52,85 @@ func _ready() -> void:
 ## =============================================================================
 
 func _init_shops() -> void:
-	# Tutorial caravan
+	# General shop (persistent UI shop)
+	_shops["general"] = {
+		"id": "general",
+		"shop_type": "general",
+		"name": Loc.t("shop.general.name"),
+		"offerings": [
+			{
+				"offering_id": "general_fire_recruit",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.fire_recruit.name"),
+				"description": Loc.t("shop.offering.fire_recruit.description"),
+				"card_catalog_id": "fire_recruit",
+				"card_count": 1,
+				"base_price": 30,
+				"purchase_limit_type": "none",
+				"purchase_limit": 0
+			},
+			{
+				"offering_id": "general_slime_violet",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.slime_violet.name"),
+				"description": Loc.t("shop.offering.slime_violet.description"),
+				"card_catalog_id": "slime_violet",
+				"card_count": 1,
+				"base_price": 20,
+				"purchase_limit_type": "none",
+				"purchase_limit": 0
+			},
+			{
+				"offering_id": "general_slime_yellow",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.slime_yellow.name"),
+				"description": Loc.t("shop.offering.slime_yellow.description"),
+				"card_catalog_id": "slime_yellow",
+				"card_count": 1,
+				"base_price": 35,
+				"purchase_limit_type": "none",
+				"purchase_limit": 0
+			},
+			{
+				"offering_id": "general_basic_spell_pack",
+				"offering_type": ShopOffering.OfferingType.CARD_PACK,
+				"display_name": Loc.t("shop.offering.basic_spell_pack.name"),
+				"description": Loc.t("shop.offering.basic_spell_pack.description"),
+				"pack_cards": [
+					{"catalog_id": "charge", "count": 1},
+					{"catalog_id": "fireball", "count": 1}
+				],
+				"base_price": 50,
+				"purchase_limit_type": "none",
+				"purchase_limit": 0
+			},
+			{
+				"offering_id": "general_summon_pack",
+				"offering_type": ShopOffering.OfferingType.CARD_PACK,
+				"display_name": Loc.t("shop.offering.summon_pack.name"),
+				"description": Loc.t("shop.offering.summon_pack.description"),
+				"pack_cards": [
+					{"catalog_id": "slime_violet", "count": 2},
+					{"catalog_id": "fire_recruit", "count": 1}
+				],
+				"base_price": 70,
+				"purchase_limit_type": "none",
+				"purchase_limit": 0
+			}
+		]
+	}
+
+	# Mr. Merriweather's Caravan (tutorial caravan)
 	_shops["caravan_tutorial"] = {
 		"id": "caravan_tutorial",
 		"shop_type": "caravan",
-		"name": "Merlin's Trading Post",
+		"name": Loc.t("shop.caravan.merriweather.name"),
 		"offerings": [
 			{
 				"offering_id": "tutorial_fire_recruit",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": "Fire Recruit",
-				"description": "A basic fire unit",
+				"display_name": Loc.t("shop.offering.tutorial_fire_recruit.name"),
+				"description": Loc.t("shop.offering.tutorial_fire_recruit.description"),
 				"card_catalog_id": "fire_recruit",
 				"card_count": 1,
 				"base_price": 25,
@@ -72,8 +140,8 @@ func _init_shops() -> void:
 			{
 				"offering_id": "tutorial_spell_pack",
 				"offering_type": ShopOffering.OfferingType.CARD_PACK,
-				"display_name": "Tactical Spell Pack",
-				"description": "Essential tactical spells",
+				"display_name": Loc.t("shop.offering.tutorial_spell_pack.name"),
+				"description": Loc.t("shop.offering.tutorial_spell_pack.description"),
 				"pack_cards": [
 					{"catalog_id": "charge", "count": 1},
 					{"catalog_id": "rally", "count": 1}

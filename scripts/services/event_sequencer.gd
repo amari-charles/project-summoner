@@ -17,6 +17,8 @@ const EventStepClass: GDScript = preload("res://scripts/resources/event_step.gd"
 ## Signals
 signal sequence_started(sequence: Resource) #EventSequence
 signal sequence_finished(sequence: Resource) #EventSequence
+signal sequence_paused()
+signal sequence_resumed()
 signal step_started(step: Resource, index: int) #EventStep
 signal step_finished(step: Resource, index: int) #EventStep
 
@@ -24,6 +26,8 @@ signal step_finished(step: Resource, index: int) #EventStep
 var current_sequence: Resource = null  # EventSequence
 var current_step_index: int = -1
 var is_playing: bool = false
+var is_paused: bool = false
+var _resume_signal: Signal
 
 ## Debug mode
 var debug_mode: bool = false
@@ -96,6 +100,18 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 
 	sequence_finished.emit(finished_sequence)
 
+## Resume a paused sequence (called when returning from shop, etc.)
+func resume_sequence() -> void:
+	if not is_paused:
+		push_warning("EventSequencer: resume_sequence() called but sequence is not paused")
+		return
+
+	if debug_mode:
+		print("EventSequencer: Resuming sequence")
+
+	is_paused = false
+	sequence_resumed.emit()
+
 ## Execute a single step (async)
 func _execute_step(step: Resource) -> void:  # EventStep parameter
 	var step_type_variant: Variant = step.get("step_type")
@@ -118,7 +134,7 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 			await _execute_wait_signal(step)
 
 		step_type_enum.SPAWN_UNIT:
-			await _execute_spawn_unit(step)
+			_execute_spawn_unit(step)
 
 		step_type_enum.SET_CAPABILITY:
 			_execute_set_capability(step)
@@ -137,6 +153,9 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 
 		step_type_enum.FADE_SCREEN:
 			await _execute_fade_screen(step)
+
+		step_type_enum.OPEN_CARAVAN:
+			await _execute_open_caravan(step)
 
 		step_type_enum.SET_HAND_VISIBILITY:
 			_execute_set_hand_visibility(step)
@@ -318,7 +337,7 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	var stat_overrides: Dictionary = stat_overrides_val if stat_overrides_val is Dictionary else {}
 	if not stat_overrides.is_empty():
 		card.custom_stat_overrides = stat_overrides
-		print("EventSequencer: Set custom stat overrides on card: %s" % stat_overrides.keys())
+		print("EventSequencer: Set custom stat overrides on card: %s" % [stat_overrides.keys()])
 
 	if debug_mode:
 		print("EventSequencer: Spawning %s at %s for team %d" % [card_id, spawn_position, team])
@@ -506,3 +525,55 @@ func reset() -> void:
 
 	if debug_mode:
 		print("EventSequencer: Reset complete")
+
+## Execute OPEN_CARAVAN step
+##
+## NOTE: This step is currently unused for caravan events. Caravan events navigate
+## directly to ShopScreen from CampaignMap, which detects EventContext and plays
+## dialogue on top of the shop UI. This approach allows seamless browsing during dialogue.
+##
+## OPEN_CARAVAN is preserved for potential future use cases where:
+## - EventScreen needs to navigate to shop mid-sequence
+## - Multiple shops are visited within a single event sequence
+## - Shop navigation needs to be conditional based on event state
+##
+## Current caravan flow: CampaignMap → ShopScreen (with EventContext) → Dialogue on top
+## Alternative flow: EventScreen → Sequence → OPEN_CARAVAN step → ShopScreen → Resume
+func _execute_open_caravan(step: Resource) -> void:
+	var shop_id_val: Variant = step.get("shop_id")
+	var shop_id: String = shop_id_val if shop_id_val is String else ""
+
+	if shop_id.is_empty():
+		push_warning("EventSequencer: OPEN_CARAVAN step has empty shop_id")
+		return
+
+	if debug_mode:
+		print("EventSequencer: Opening caravan shop '%s'" % shop_id)
+
+	# Push event screen as return destination
+	NavigationContext.push_return(SceneManager.SCENE_EVENT_SCREEN)
+
+	# Navigate to shop screen with the specified shop_id
+	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+
+	# Wait for shop screen to load and then set the shop_id
+	await get_tree().process_frame
+
+	# Find the shop screen and set its shop_id
+	var shop_screen: Node = get_tree().get_first_node_in_group("shop_screen")
+	if shop_screen and shop_screen.has_method("set_shop_id"):
+		shop_screen.call("set_shop_id", shop_id)
+	else:
+		push_warning("EventSequencer: Could not find shop_screen to set shop_id")
+
+	# Pause the sequence and wait for resume
+	is_paused = true
+	sequence_paused.emit()
+	if debug_mode:
+		print("EventSequencer: Sequence paused for shop visit, awaiting resume...")
+
+	# Wait for resume signal
+	await sequence_resumed
+
+	if debug_mode:
+		print("EventSequencer: Sequence resumed after shop visit")

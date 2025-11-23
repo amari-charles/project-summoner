@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EventSequence" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_sequence.gd" id="1_sequence"]
+[ext_resource type="Script" path="res://scripts/resources/event_step.gd" id="2_step"]
+
+[sub_resource type="Resource" id="step_greeting"]
+script = ExtResource("2_step")
+step_type = 0
+dialogue_id = "merriweather_greeting"
+
+[sub_resource type="Resource" id="step_offer"]
+script = ExtResource("2_step")
+step_type = 0
+dialogue_id = "merriweather_offer"
+
+[sub_resource type="Resource" id="step_closing"]
+script = ExtResource("2_step")
+step_type = 0
+dialogue_id = "merriweather_closing"
+
+[sub_resource type="Resource" id="step_open_shop"]
+script = ExtResource("2_step")
+step_type = 12
+shop_id = "caravan_tutorial"
+
+[resource]
+script = ExtResource("1_sequence")
+sequence_id = "caravan_tutorial"
+steps = Array[Resource]([SubResource("step_greeting"), SubResource("step_offer"), SubResource("step_closing")])

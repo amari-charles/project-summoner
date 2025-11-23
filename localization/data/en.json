@@ -8,6 +8,10 @@
       "first_summon": {
         "name": "First Summon",
         "description": "With your affinity revealed, the time has come to bind your first companion. Headmaster Merlin presents two candidates, each eager to join your journey. Remember, initiate: what you bind, stays bound. Choose your partner carefully."
+      },
+      "caravan_tutorial": {
+        "name": "A Fortuitous Encounter",
+        "description": "A cheerful merchant has set up camp along the path. Mr. Merriweather offers supplies for your journey ahead."
       }
     },
     "battle": {
@@ -60,6 +64,11 @@
     "invalid_target": "Invalid target",
     "deck_empty": "Deck is empty"
   },
+  "character": {
+    "Mr. Merriweather": "Mr. Merriweather",
+    "Headmaster Merlin": "Headmaster Merlin",
+    "Merlin": "Merlin"
+  },
   "dialogue": {
     "charge_intro": {
       "text": "A wild slime blocks your path. This one looks... different. Tougher.",
@@ -72,6 +81,65 @@
     "charge_explain": {
       "text": "Use your Charge card! Command a unit to rush past the slime to the enemy core. Sometimes victory isn't about fighting—it's about strategy.",
       "speaker": "Merlin"
+    },
+    "merriweather_greeting": {
+      "text": "Why, hello there, young summoner! What wonderful timing! I'm Mr. Merriweather, traveling merchant and purveyor of fine magical goods. I've journeyed far to bring these quality wares to aspiring summoners such as yourself!",
+      "speaker": "Mr. Merriweather"
+    },
+    "merriweather_offer": {
+      "text": "Please, take your time browsing! Every item in my collection has been carefully curated. I pride myself on offering only the finest selections at fair prices. After all, helping young summoners succeed is its own reward!",
+      "speaker": "Mr. Merriweather"
+    },
+    "merriweather_closing": {
+      "text": "Do let me know if anything catches your eye! I'll be in the area for a while—there are several other summoners I'm hoping to assist today. Such a joy to support the next generation of heroes!",
+      "speaker": "Mr. Merriweather"
     }
+  },
+  "shop": {
+    "general": {
+      "name": "General Shop",
+      "title": "Shop"
+    },
+    "caravan": {
+      "merriweather": {
+        "name": "Mr. Merriweather's Caravan"
+      },
+      "leave_confirmation": "Leave this caravan?\n\nThis caravan will move on and you won't be able to return.",
+      "leave_button": "Leave Caravan",
+      "stay_button": "Stay"
+    },
+    "offering": {
+      "fire_recruit": {
+        "name": "Fire Recruit",
+        "description": "A basic fire unit with balanced stats."
+      },
+      "slime_violet": {
+        "name": "Violet Slime",
+        "description": "Fast, agile slime unit."
+      },
+      "slime_yellow": {
+        "name": "Yellow Slime",
+        "description": "Sturdy slime with high health."
+      },
+      "basic_spell_pack": {
+        "name": "Basic Spell Pack",
+        "description": "Contains Charge and Fireball spells."
+      },
+      "summon_pack": {
+        "name": "Summon Pack",
+        "description": "Assorted summon cards."
+      },
+      "tutorial_fire_recruit": {
+        "name": "Fire Recruit",
+        "description": "A basic fire unit."
+      },
+      "tutorial_spell_pack": {
+        "name": "Tactical Spell Pack",
+        "description": "Essential tactical spells."
+      }
+    },
+    "purchase_button": "Purchase",
+    "purchased": "Purchased!",
+    "not_enough_gold": "Not enough gold"
   }
 }
