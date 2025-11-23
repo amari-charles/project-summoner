@@ -109,8 +109,8 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 				var catalog_id: String = card_data.get("catalog_id", "")
 				var count: int = card_data.get("count", 1)
 				# Look up card display name from catalog
-				var card: Card = CardCatalog.get_card(catalog_id)
-				var display_name: String = card.name if card else catalog_id
+				var card_dict: Dictionary = CardCatalog.get_card(catalog_id)
+				var display_name: String = card_dict.get("name", catalog_id) if card_dict else catalog_id
 				contents_text += "• %dx %s\n" % [count, display_name]
 		ShopOffering.OfferingType.CURRENCY:
 			contents_text += "• Currency offering"
