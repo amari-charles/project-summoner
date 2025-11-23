@@ -27,6 +27,11 @@ func _on_play_pressed() -> void:
 	print("Opening game mode selection...")
 	SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)
 
+## Open shop screen
+func _on_shop_pressed() -> void:
+	print("Opening shop...")
+	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+
 ## PLACEHOLDER - Achievements not yet implemented
 func _on_achievements_pressed() -> void:
 	print("Achievements button pressed (PLACEHOLDER)")

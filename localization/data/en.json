@@ -73,5 +73,36 @@
       "text": "Use your Charge card! Command a unit to rush past the slime to the enemy core. Sometimes victory isn't about fighting—it's about strategy.",
       "speaker": "Merlin"
     }
+  },
+  "shop": {
+    "general": {
+      "name": "General Shop",
+      "title": "Shop"
+    },
+    "offering": {
+      "fire_recruit": {
+        "name": "Fire Recruit",
+        "description": "A basic fire unit with balanced stats."
+      },
+      "slime_violet": {
+        "name": "Violet Slime",
+        "description": "Fast, agile slime unit."
+      },
+      "slime_yellow": {
+        "name": "Yellow Slime",
+        "description": "Sturdy slime with high health."
+      },
+      "basic_spell_pack": {
+        "name": "Basic Spell Pack",
+        "description": "Contains Charge and Fireball spells."
+      },
+      "summon_pack": {
+        "name": "Summon Pack",
+        "description": "Assorted summon cards."
+      }
+    },
+    "purchase_button": "Purchase",
+    "purchased": "Purchased!",
+    "not_enough_gold": "Not enough gold"
   }
 }
