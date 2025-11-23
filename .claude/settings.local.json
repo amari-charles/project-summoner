@@ -21,7 +21,8 @@
       "Bash(done)",
       "Bash(git checkout:*)",
       "Bash(git reset:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(echo \"Please provide the full console output, especially the lines showing:\n- ''BattleContext: configure_campaign_battle() called with battle_id=...''\n- ''CampaignService: get_battle(...)''\n- ''BattleContext: Configured campaign battle...''\n- ''EnemyDeckLoader: Starting deck load...''\n\nThese diagnostic logs should appear BEFORE the assertion failure and will tell us exactly where the battle_config becomes empty.\")"
     ],
     "deny": [],
     "ask": []

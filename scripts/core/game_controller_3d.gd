@@ -26,6 +26,11 @@ signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
 
 func _ready() -> void:
+	print("GameController3D: _ready() called")
+	print("GameController3D: BattleContext.battle_config is_empty: %s" % BattleContext.battle_config.is_empty())
+	if not BattleContext.battle_config.is_empty():
+		print("GameController3D: BattleContext.battle_config keys: %s" % BattleContext.battle_config.keys())
+
 	add_to_group("game_controller")
 
 	# Reset all battle state before initialization
