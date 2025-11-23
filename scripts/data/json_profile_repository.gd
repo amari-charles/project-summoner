@@ -663,9 +663,9 @@ func _rotate_backups(main_path: String, bak1_path: String, bak2_path: String) ->
 			dir.remove(bak2_path.get_file())
 		dir.rename(bak1_path.get_file(), bak2_path.get_file())
 
-	# Copy main → bak1
+	# Copy main → bak1 (using full paths)
 	if FileAccess.file_exists(main_path):
-		dir.copy(main_path.get_file(), bak1_path.get_file())
+		dir.copy(main_path, bak1_path)
 
 ## =============================================================================
 ## INTERNAL - DATA MANAGEMENT
