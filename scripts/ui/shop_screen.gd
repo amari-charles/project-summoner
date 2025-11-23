@@ -7,6 +7,7 @@ class_name ShopScreen
 
 ## Node references
 @onready var back_button: Button = %BackButton
+@onready var done_shopping_button: Button = %DoneShoppingButton
 @onready var gold_label: Label = %GoldLabel
 @onready var offering_grid: GridContainer = %OfferingGrid
 @onready var detail_panel: PanelContainer = %DetailPanel
@@ -27,12 +28,12 @@ var selected_offering: ShopOffering = null
 var shop_id: String = "general"
 var is_caravan_event: bool = false
 var caravan_sequence_complete: bool = false
-var done_shopping_button: Button = null
 var leave_confirmation_popup: ConfirmationDialog = null
 
 func _ready() -> void:
 	# Connect buttons
 	back_button.pressed.connect(_on_back_pressed)
+	done_shopping_button.pressed.connect(_on_done_shopping_pressed)
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
 	# Connect shop signals
@@ -89,21 +90,9 @@ func _exit_tree() -> void:
 
 ## Set up caravan-specific UI elements
 func _setup_caravan_ui() -> void:
-	# Hide back button for caravan events
-	if back_button:
-		back_button.visible = false
-
-	# Create "Done Shopping" button (initially hidden until dialogue completes)
-	done_shopping_button = Button.new()
-	done_shopping_button.text = "Done Shopping"
-	done_shopping_button.add_theme_font_size_override("font_size", 24)
-	done_shopping_button.visible = false  # Hidden until dialogue completes
-	done_shopping_button.pressed.connect(_on_done_shopping_pressed)
-
-	# Add to header (where back button is)
-	var header: HBoxContainer = back_button.get_parent()
-	if header:
-		header.add_child(done_shopping_button)
+	# Hide back button, keep done_shopping_button hidden until dialogue completes
+	back_button.visible = false
+	done_shopping_button.visible = false  # Will be shown after dialogue
 
 	# Create confirmation popup
 	leave_confirmation_popup = ConfirmationDialog.new()
