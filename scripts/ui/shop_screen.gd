@@ -96,8 +96,7 @@ func _setup_caravan_ui() -> void:
 	# Create "Done Shopping" button (initially hidden until dialogue completes)
 	done_shopping_button = Button.new()
 	done_shopping_button.text = "Done Shopping"
-	done_shopping_button.theme_type_variation = "BackButton"
-	done_shopping_button.theme_override_font_sizes["font_size"] = 24
+	done_shopping_button.add_theme_font_size_override("font_size", 24)
 	done_shopping_button.visible = false  # Hidden until dialogue completes
 	done_shopping_button.pressed.connect(_on_done_shopping_pressed)
 
