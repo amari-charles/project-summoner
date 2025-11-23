@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_dialogue_data"]
+
+[resource]
+script = ExtResource("1_dialogue_data")
+character_name = "Mr. Merriweather"
+lines = Array[String](["Please, take your time browsing! Every item in my collection has been carefully curated. I pride myself on offering only the finest selections at fair prices. After all, helping young summoners succeed is its own reward!"])
+choices = Array[Resource]([])
