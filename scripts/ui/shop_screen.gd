@@ -36,7 +36,7 @@ func _ready() -> void:
 	Shop.purchase_failed.connect(_on_purchase_failed)
 
 	# Connect profile signals for gold updates
-	ProfileRepo.resources_updated.connect(_on_resources_updated)
+	ProfileRepo.data_changed.connect(_on_data_changed)
 
 	# Initialize display
 	_update_gold_display()
@@ -49,8 +49,8 @@ func _exit_tree() -> void:
 		Shop.purchase_completed.disconnect(_on_purchase_completed)
 	if Shop.purchase_failed.is_connected(_on_purchase_failed):
 		Shop.purchase_failed.disconnect(_on_purchase_failed)
-	if ProfileRepo.resources_updated.is_connected(_on_resources_updated):
-		ProfileRepo.resources_updated.disconnect(_on_resources_updated)
+	if ProfileRepo.data_changed.is_connected(_on_data_changed):
+		ProfileRepo.data_changed.disconnect(_on_data_changed)
 
 ## =============================================================================
 ## INITIALIZATION
@@ -179,7 +179,7 @@ func _on_purchase_failed(offering_id: String, reason: String) -> void:
 	error_popup.dialog_text = reason
 	error_popup.popup_centered()
 
-func _on_resources_updated() -> void:
+func _on_data_changed() -> void:
 	_update_gold_display()
 
 	# Update detail panel if an offering is selected (affordability may have changed)
