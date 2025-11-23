@@ -49,7 +49,9 @@ func _ready() -> void:
 		var event_config: Dictionary = EventContext.get_event_config()
 		var event_shop_id: String = event_config.get("shop_id", "")
 
-		if not event_shop_id.is_empty():
+		if event_shop_id.is_empty():
+			push_error("ShopScreen: Caravan event '%s' is missing shop_id! Falling back to general shop." % event_id)
+		else:
 			is_caravan_event = true
 			shop_id = event_shop_id
 			print("ShopScreen: Loaded as caravan event '%s' with shop_id '%s'" % [event_id, shop_id])
@@ -84,6 +86,10 @@ func _exit_tree() -> void:
 	if ProfileRepo.data_changed.is_connected(_on_data_changed):
 		ProfileRepo.data_changed.disconnect(_on_data_changed)
 
+	# Disconnect caravan-specific signals
+	if is_caravan_event and EventSequencer.sequence_finished.is_connected(_on_caravan_sequence_complete):
+		EventSequencer.sequence_finished.disconnect(_on_caravan_sequence_complete)
+
 ## =============================================================================
 ## INITIALIZATION
 ## =============================================================================
@@ -99,9 +105,9 @@ func _setup_caravan_ui() -> void:
 
 	# Create confirmation popup
 	leave_confirmation_popup = ConfirmationDialog.new()
-	leave_confirmation_popup.dialog_text = "Leave this caravan?\n\nThis caravan will move on and you won't be able to return."
-	leave_confirmation_popup.ok_button_text = "Leave Caravan"
-	leave_confirmation_popup.cancel_button_text = "Stay"
+	leave_confirmation_popup.dialog_text = Loc.t("shop.caravan.leave_confirmation")
+	leave_confirmation_popup.ok_button_text = Loc.t("shop.caravan.leave_button")
+	leave_confirmation_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
 	leave_confirmation_popup.confirmed.connect(_on_leave_confirmed)
 	add_child(leave_confirmation_popup)
 

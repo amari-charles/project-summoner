@@ -641,6 +641,23 @@ func _on_start_event_pressed() -> void:
 		return
 
 	# Handle caravan events - navigate directly to shop with event context
+	#
+	# CARAVAN EVENT FLOW:
+	# 1. CampaignMap configures EventContext with event data
+	# 2. Navigate directly to ShopScreen (not EventScreen)
+	# 3. ShopScreen detects EventContext.current_event_id is set
+	# 4. ShopScreen switches to caravan mode:
+	#    - Hides back button, shows "Leave Caravan" button
+	#    - Loads event sequence from event_config
+	#    - Plays dialogue on top of shop UI (seamless browsing during dialogue)
+	# 5. After dialogue completes, "Leave Caravan" button becomes visible
+	# 6. User can browse/purchase, then click "Leave Caravan"
+	# 7. Confirmation modal appears (repeatable check)
+	# 8. On confirm: EventContext.complete_event() marks event done
+	# 9. NavigationContext returns to SCENE_CAMPAIGN_MAP
+	#
+	# This approach allows dialogue to play while shop is visible, avoiding
+	# the jarring dialogue → black screen → shop transition.
 	if event_type == "caravan":
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
@@ -652,17 +669,12 @@ func _on_start_event_pressed() -> void:
 			push_warning("CampaignMap: Cannot start event '%s' - already completed and not repeatable" % selected_event_id)
 			return
 
-		# Configure EventContext with this event (shop will check this)
+		# Configure EventContext with this event (ShopScreen will detect this)
 		EventContext.configure_event(selected_event_id, SceneManager.SCENE_CAMPAIGN_MAP)
 
-		# Get shop_id from event
-		var shop_id: String = _safe_string(event.get("shop_id", ""))
-
-		# Navigate to shop (shop will play event sequence on top of UI)
+		# Navigate to shop (ShopScreen will play event sequence on top of UI)
 		NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 		SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
-
-		# Shop will detect EventContext and play the sequence
 		return
 
 	# Handle battle events

@@ -103,7 +103,10 @@
     "caravan": {
       "merriweather": {
         "name": "Mr. Merriweather's Caravan"
-      }
+      },
+      "leave_confirmation": "Leave this caravan?\n\nThis caravan will move on and you won't be able to return.",
+      "leave_button": "Leave Caravan",
+      "stay_button": "Stay"
     },
     "offering": {
       "fire_recruit": {

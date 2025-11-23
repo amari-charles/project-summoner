@@ -527,6 +527,18 @@ func reset() -> void:
 		print("EventSequencer: Reset complete")
 
 ## Execute OPEN_CARAVAN step
+##
+## NOTE: This step is currently unused for caravan events. Caravan events navigate
+## directly to ShopScreen from CampaignMap, which detects EventContext and plays
+## dialogue on top of the shop UI. This approach allows seamless browsing during dialogue.
+##
+## OPEN_CARAVAN is preserved for potential future use cases where:
+## - EventScreen needs to navigate to shop mid-sequence
+## - Multiple shops are visited within a single event sequence
+## - Shop navigation needs to be conditional based on event state
+##
+## Current caravan flow: CampaignMap → ShopScreen (with EventContext) → Dialogue on top
+## Alternative flow: EventScreen → Sequence → OPEN_CARAVAN step → ShopScreen → Resume
 func _execute_open_caravan(step: Resource) -> void:
 	var shop_id_val: Variant = step.get("shop_id")
 	var shop_id: String = shop_id_val if shop_id_val is String else ""
