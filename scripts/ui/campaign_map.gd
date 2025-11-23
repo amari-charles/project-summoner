@@ -660,11 +660,11 @@ func _on_start_event_pressed() -> void:
 		profile_repo.call("save_profile", true)
 
 	# Configure battle context
-	var battle_context: Node = get_node("/root/BattleContext")
-	if battle_context:
-		battle_context.call("configure_campaign_battle", selected_event_id)
+	print("CampaignMap: Configuring BattleContext with battle_id='%s'" % selected_event_id)
+	BattleContext.configure_campaign_battle(selected_event_id)
 
 	# Launch battle scene
+	print("CampaignMap: Launching battle scene...")
 	SceneManager.change_scene(SceneManager.SCENE_BATTLE_3D)
 
 ## =============================================================================
