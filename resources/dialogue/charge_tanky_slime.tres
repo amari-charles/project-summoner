@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Dialogue" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue.gd" id="1_dialogue"]
+
+[resource]
+script = ExtResource("1_dialogue")
+dialogue_id = "charge_tanky_slime"
+text = "dialogue.charge_tanky_slime.text"
+speaker = "dialogue.charge_tanky_slime.speaker"
+portrait = ""
+duration = 0.0

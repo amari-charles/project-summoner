@@ -144,6 +144,32 @@ func _init_battles() -> void:
 		}
 	}
 
+	# Tutorial: Charge Card Introduction
+	_battles["charge_tutorial"] = {
+		"id": "charge_tutorial",
+		"biome_id": "summer_plains",
+		"name": Loc.t("campaign.battle.charge_tutorial.name"),
+		"description": Loc.t("campaign.battle.charge_tutorial.description"),
+		"difficulty": 1,
+		"event_type": "battle",
+		"repeatable": false,  # One-time tutorial battle
+		"requires_deck": true,
+		"is_tutorial": true,  # Tutorial battle - deck editing locked
+		"reward_type": "fixed",
+		"reward_cards": [
+			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
+			{"catalog_id": "ember_slinger", "rarity": "common", "count": 1}
+		],
+		"enemy_deck": [],  # Spawned via event sequence
+		"enemy_hp": 50.0,
+		"unlock_requirements": ["first_trial"],
+		# Tutorial Event Sequence
+		"event_sequence": "res://resources/sequences/charge_tutorial.tres",
+		# AI Configuration (disabled for tutorial)
+		"ai_type": "scripted",
+		"ai_script": []
+	}
+
 	# Battle 2: Fortification
 	_battles["battle_02"] = {
 		"id": "battle_02",
@@ -163,7 +189,7 @@ func _init_battles() -> void:
 			{"catalog_id": "ember_slinger", "count": 1}
 		],
 		"enemy_hp": 250.0,
-		"unlock_requirements": ["battle_01"],
+		"unlock_requirements": ["charge_tutorial"],
 		# AI Configuration
 		"ai_type": "heuristic",
 		"ai_personality": "balanced",
