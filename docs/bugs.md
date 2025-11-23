@@ -8,42 +8,6 @@ This document tracks known bugs and issues in Project Summoner.
 
 ### 🔴 HIGH PRIORITY
 
-#### HP Bar Floating Too High Above Units
-**Status:** Open
-**Reported:** 2025-01-11
-**Component:** UI / Visual
-**Type:** Visual Bug
-
-**Description:**
-Unit HP bars are positioned too high above the units, floating in the air instead of being close to the unit model.
-
-**Expected Behavior:**
-- HP bars should be positioned just above the unit's head/top
-- Should maintain proper spacing relative to unit size
-- Should be visually connected to the unit
-
-**Current Behavior:**
-- HP bars are floating significantly above units
-- Appears disconnected from the unit visually
-- Makes it harder to quickly associate HP with specific units
-
-**Impact:**
-- Reduces visual polish and professional feel
-- Makes combat harder to read at a glance
-- Degrades overall game presentation quality
-
-**Proposed Solution:**
-- Adjust HP bar Y-offset in unit script or HP bar component
-- May need to account for different unit heights
-- Test with various unit types to ensure consistent positioning
-
-**Related Files:**
-- Unit HP bar scripts/scenes
-- Unit base scripts
-
-**Notes:**
-- High priority due to visual polish impact
-- Affects all units in battle
 
 #### Projectile Targeting on Moving Units
 **Status:** Open
@@ -124,44 +88,98 @@ When a melee unit (e.g., slime) gets directly on top of a ranged unit (e.g., arc
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Battle Marked Complete When Quitting Mid-Battle
+#### Battle Marked Complete When Starting Event Sequence
 **Status:** Open
-**Reported:** 2025-01-21
+**Reported:** 2025-01-22
 **Component:** Campaign / Battle System
 **Type:** Progression Bug
 
 **Description:**
-When a player quits a battle before finishing it (e.g., returning to main menu mid-battle), the campaign system incorrectly marks the battle as completed.
+When a battle with an event sequence is started (like charge_tutorial), the campaign system incorrectly marks the battle as completed immediately, even if the player quits mid-battle or doesn't complete objectives.
 
 **Expected Behavior:**
-- Battles should only be marked complete when won
-- Quitting mid-battle should not affect battle completion status
-- Player should be able to retry battles they quit without it counting as completed
+- Battles should only be marked complete when won or objectives completed
+- Event sequence battles should track completion state properly
+- Player should be able to retry event battles without it counting as completed
+- If player quits without selecting reward, battle should remain incomplete
 
 **Current Behavior:**
-- Quitting a battle marks it as completed in campaign progress
-- Affects campaign unlock progression
-- Player loses ability to properly complete the battle
+- Starting charge_tutorial marks it as completed immediately
+- Battle appears complete even if player quits
+- No tracking of whether reward was selected
+- Player cannot properly retry the battle
 
 **Impact:**
-- Breaks campaign progression system
-- Players can accidentally skip battles
-- Rewards may be granted incorrectly
+- Breaks campaign progression for tutorial/event battles
+- Players can accidentally skip battles by starting and quitting
+- Rewards may be lost if player doesn't select them
+- Cannot test event sequences properly
 
 **Proposed Solution:**
 - Track battle completion state separately from battle start
-- Only mark battles complete in the reward screen after victory
+- Only mark event battles complete after sequence finishes successfully
+- Track reward selection state separately
+- If reward not selected, keep battle incomplete or show reward screen again
 - Add "battle_in_progress" vs "battle_completed" distinction
-- Verify completion state is only set on actual victory condition
+- Verify completion state is only set on actual victory/completion condition
 
 **Related Files:**
 - `scripts/services/campaign_service.gd` - Campaign completion tracking
 - `scripts/ui/reward_screen.gd` - Reward granting logic
-- `scripts/core/game_controller_3d.gd` - Battle lifecycle
+- `scripts/core/battle_dialogue_controller.gd` - Event sequence handling
+- `scripts/services/event_sequencer.gd` - Sequence lifecycle
 
 **Notes:**
-- May be related to scene transitions or cleanup logic
-- Check where battle completion is saved
+- Likely related to how event sequences interact with battle completion
+- Need to differentiate between "sequence started" and "battle completed"
+- Reward selection state should be tracked in profile data
+
+#### Battle Rewards Not Validated Against Configuration
+**Status:** Open
+**Reported:** 2025-01-22
+**Component:** Rewards / Campaign System
+**Type:** Data Validation Bug
+
+**Description:**
+There is no validation that the rewards displayed to the player match the rewards actually granted, or that both match the battle configuration. Battle configs specify rewards, but there's no guarantee the reward screen shows the correct options or that the granted rewards match what was configured.
+
+**Expected Behavior:**
+- Rewards shown in reward screen should match battle config exactly
+- Rewards granted to player should match what they selected from the displayed options
+- System should validate reward_cards in battle config exist in card catalog
+- Error/warning if displayed rewards don't match configured rewards
+- Error/warning if granted rewards don't match selected rewards
+
+**Current Behavior:**
+- No validation between battle config rewards and reward screen display
+- No validation between reward screen options and granted rewards
+- Possible for configuration errors to go unnoticed
+- Player could see different rewards than configured
+- Player could receive different rewards than selected
+
+**Impact:**
+- Silent data inconsistencies in reward flow
+- Players may not receive promised rewards
+- Configuration errors not caught during development
+- Breaks player trust if rewards don't match promises
+
+**Proposed Solution:**
+- Add validation in reward screen: verify displayed rewards match battle config
+- Add validation when granting rewards: verify granted rewards match selection
+- Add validation in battle config: verify reward card IDs exist in catalog
+- Log warnings/errors when mismatches detected
+- Consider adding unit tests for reward flow validation
+
+**Related Files:**
+- `scripts/ui/reward_screen.gd` - Displays and grants rewards
+- `scripts/services/campaign_service.gd` - Battle config with reward definitions
+- `scripts/services/reward_service.gd` - Reward granting logic
+- `scripts/data/card_catalog.gd` - Card existence validation
+
+**Notes:**
+- Should validate at multiple points: config load, display, grant
+- Consider adding developer warnings in editor when battle rewards misconfigured
+- Related to battle completion tracking bug
 
 #### VFX Pooling System Lacks Resource Isolation
 **Status:** Open
@@ -439,4 +457,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-01-15 - Added VFX pooling resource isolation issue*
+*Last Updated: 2025-01-22 - Fixed HP bar positioning, added event sequence completion bug*

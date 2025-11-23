@@ -13,6 +13,10 @@ const DEFAULT_SPRITE_SCALE: float = 2.5  ## Default scale for 100px sprites (250
 ## Use this when sprite artwork has empty space below the character's feet
 ## Example: 100px texture with feet at 70px from top = 30px offset
 @export var feet_offset_pixels: float = 0.0
+## Offset in pixels from texture top to actual character head
+## Use this when sprite artwork has empty space above the character's head
+## Example: 310px texture with head at 60px from top = 60px offset
+@export var head_offset_pixels: float = 0.0
 @export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
 ## Scale for sprite within viewport
 ## Use calculate_sprite_scale() helper or calculate manually: VIEWPORT_SIZE / sprite_height
@@ -122,8 +126,8 @@ func get_sprite_height() -> float:
 	var texture_size: Vector2 = _get_current_frame_size()
 
 	if texture_size.y > 0:
-		# Actual sprite height in world units, accounting for feet offset
-		return (texture_size.y - feet_offset_pixels) * sprite_3d.pixel_size
+		# Actual sprite height in world units, accounting for feet and head offsets
+		return (texture_size.y - feet_offset_pixels - head_offset_pixels) * sprite_3d.pixel_size
 
 	# Fallback: use viewport height (sprite frames not loaded yet)
 	push_warning("SpriteChar2D5: No texture data available, using viewport fallback. Check sprite_frames configuration.")

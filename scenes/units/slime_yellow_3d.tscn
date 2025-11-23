@@ -21,6 +21,7 @@ aggro_radius = 20.0
 is_ranged = false
 sprite_frames = ExtResource("2_frames")
 sprite_feet_offset_pixels = 15.0
+sprite_head_offset_pixels = 200.0
 sprite_scale = 0.6
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
