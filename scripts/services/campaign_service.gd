@@ -114,36 +114,6 @@ func _init_battles() -> void:
 		"ai_script": []
 	}
 
-	# Battle 1: Building army
-	_battles["battle_01"] = {
-		"id": "battle_01",
-		"biome_id": "summer_plains",
-		"name": "Building Your Army",
-		"description": "Expand your forces. Choose your reward.",
-		"difficulty": 1,
-		"event_type": "battle",
-		"repeatable": true,
-		"is_tutorial": true,  # Tutorial battle - deck editing locked
-		"reward_type": "choice",
-		"reward_cards": [
-			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
-			{"catalog_id": "ember_slinger", "rarity": "common", "count": 1}
-		],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 2}
-		],
-		"enemy_hp": 100.0,
-		"unlock_requirements": ["first_trial"],
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "defensive",
-		"ai_difficulty": 1,
-		"ai_config": {
-			"play_interval_min": 4.0,
-			"play_interval_max": 7.0
-		}
-	}
-
 	# Tutorial: Charge Card Introduction
 	_battles["charge_tutorial"] = {
 		"id": "charge_tutorial",
@@ -154,7 +124,7 @@ func _init_battles() -> void:
 		"event_type": "battle",
 		"repeatable": false,  # One-time tutorial battle
 		"requires_deck": true,
-		"is_tutorial": true,  # Tutorial battle - deck editing locked
+		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
 		"reward_type": "fixed",
 		"reward_cards": [
 			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
@@ -170,42 +140,13 @@ func _init_battles() -> void:
 		"ai_script": []
 	}
 
-	# Battle 2: Fortification
-	_battles["battle_02"] = {
-		"id": "battle_02",
+	# TODO: Additional battles to be designed
+	# Next battles will unlock deck editing and introduce more mechanics
+	_battles["placeholder_battle"] = {
+		"id": "placeholder_battle",
 		"biome_id": "summer_plains",
-		"name": "Flames Rising",
-		"description": "Face mixed fire forces. Earn a swift charger.",
-		"difficulty": 2,
-		"event_type": "battle",
-		"repeatable": true,
-		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
-		"reward_type": "fixed",
-		"reward_cards": [
-			{"catalog_id": "blaze_rider", "rarity": "common", "count": 2}
-		],
-		"enemy_deck": [
-			{"catalog_id": "fire_recruit", "count": 2},
-			{"catalog_id": "ember_slinger", "count": 1}
-		],
-		"enemy_hp": 250.0,
-		"unlock_requirements": ["charge_tutorial"],
-		# AI Configuration
-		"ai_type": "heuristic",
-		"ai_personality": "balanced",
-		"ai_difficulty": 2,
-		"ai_config": {
-			"play_interval_min": 3.0,
-			"play_interval_max": 6.0
-		}
-	}
-
-	# Battle 3: Random reward
-	_battles["battle_03"] = {
-		"id": "battle_03",
-		"biome_id": "summer_plains",
-		"name": "Growing Power",
-		"description": "Test your strength. Random reward awaits.",
+		"name": "Coming Soon",
+		"description": "More battles in development.",
 		"difficulty": 2,
 		"event_type": "battle",
 		"repeatable": true,
@@ -223,7 +164,7 @@ func _init_battles() -> void:
 			{"catalog_id": "ash_vanguard", "count": 1}
 		],
 		"enemy_hp": 400.0,
-		"unlock_requirements": ["battle_02"],
+		"unlock_requirements": ["charge_tutorial"],
 		# AI Configuration
 		"ai_type": "heuristic",
 		"ai_personality": "aggressive",
@@ -234,7 +175,7 @@ func _init_battles() -> void:
 		}
 	}
 
-	# Battle 4: Fire onslaught
+	# Placeholder for future battles - can be removed later
 	_battles["battle_04"] = {
 		"id": "battle_04",
 		"biome_id": "summer_plains",
