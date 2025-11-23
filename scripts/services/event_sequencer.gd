@@ -100,11 +100,12 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 func _execute_step(step: Resource) -> void:  # EventStep parameter
 	var step_type_variant: Variant = step.get("step_type")
 	var step_type_val: int = step_type_variant if step_type_variant is int else 0
-	var step_type_enum: Variant = EventStepClass.StepType if EventStepClass else null
 
-	if not step_type_enum:
+	if not EventStepClass:
 		push_error("EventSequencer: EventStep class not loaded")
 		return
+
+	var step_type_enum: Variant = EventStepClass.StepType
 
 	match step_type_val:
 		step_type_enum.DIALOGUE:
