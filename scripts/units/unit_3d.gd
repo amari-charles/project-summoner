@@ -547,12 +547,6 @@ func _acquire_target() -> Node3D:
 	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
 	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
-	# DEBUG: Log target acquisition attempts
-	if targets.size() == 0:
-		print("Unit3D [team %d]: No targets found in group '%s'" % [team, target_group])
-	else:
-		print("Unit3D [team %d]: Found %d potential targets in group '%s'" % [team, targets.size(), target_group])
-
 	var best_target: Node3D = null
 	var best_score: float = -INF
 	var aggro_radius_sq: float = aggro_radius * aggro_radius
