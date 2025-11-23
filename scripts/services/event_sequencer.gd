@@ -318,7 +318,7 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	var stat_overrides: Dictionary = stat_overrides_val if stat_overrides_val is Dictionary else {}
 	if not stat_overrides.is_empty():
 		card.custom_stat_overrides = stat_overrides
-		print("EventSequencer: Set custom stat overrides on card: %s" % stat_overrides.keys())
+		print("EventSequencer: Set custom stat overrides on card: %s" % [stat_overrides.keys()])
 
 	if debug_mode:
 		print("EventSequencer: Spawning %s at %s for team %d" % [card_id, spawn_position, team])
