@@ -95,12 +95,6 @@ func _ready() -> void:
 			error_msg += "Team: %s\n" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY")
 			error_msg += "Strategy: %s\n" % DeckLoadStrategy.keys()[deck_load_strategy]
 			error_msg += "This indicates a configuration bug - check BattleContext and player profile."
-E 0:00:35:652   summoner_3d.gd:98 @ _ready(): Summoner3D: CRITICAL - No deck loaded in production mode!
-Team: ENEMY
-Strategy: BATTLE_CONTEXT
-This indicates a configuration bug - check BattleContext and player profile.
-  <C++ Source>  core/variant/variant_utility.cpp:1024 @ push_error()
-  <Stack Trace> summoner_3d.gd:98 @ _ready()
 			push_error(error_msg)
 			assert(false, error_msg)
 			is_alive = false

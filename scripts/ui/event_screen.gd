@@ -8,6 +8,7 @@ extends Control
 ## Architecture:
 ## - CampaignMap calls EventContext.configure_event() then navigates here
 ## - We load and execute the event sequence
+## - EventSequencer + DialogueManager handle dialogue display
 ## - OPEN_CARAVAN and other steps can pause/navigate elsewhere
 ## - On completion, we mark event complete and return to campaign
 ##
@@ -17,12 +18,6 @@ extends Control
 ##   3. Sequence may pause (e.g., OPEN_CARAVAN navigates to shop)
 ##   4. On sequence completion, _on_event_sequence_complete() fires
 ##   5. Mark event complete and return to campaign
-
-## UI References
-@onready var dialogue_box: Panel = $DialogueBox
-@onready var dialogue_label: RichTextLabel = $DialogueBox/VBoxContainer/DialogueText
-@onready var speaker_label: Label = $DialogueBox/VBoxContainer/SpeakerLabel
-@onready var continue_button: Button = $DialogueBox/VBoxContainer/ContinueButton
 
 ## Event state
 var _event_id: String = ""
@@ -35,14 +30,6 @@ var _sequence: Resource = null
 
 func _ready() -> void:
 	print("EventScreen: Ready")
-
-	# Hide dialogue initially
-	if dialogue_box:
-		dialogue_box.visible = false
-
-	# Connect continue button
-	if continue_button:
-		continue_button.pressed.connect(_on_continue_pressed)
 
 	# Check if we're resuming a paused sequence (e.g., returning from shop)
 	if EventSequencer.is_paused:
@@ -99,82 +86,22 @@ func _start_event() -> void:
 
 	print("EventScreen: Starting event sequence...")
 
-	# Connect to EventSequencer signals
+	# Connect to EventSequencer completion signal
 	if EventSequencer.has_signal("sequence_finished"):
 		if not EventSequencer.sequence_finished.is_connected(_on_event_sequence_complete):
 			EventSequencer.sequence_finished.connect(_on_event_sequence_complete)
 
-	# Connect to DialogueManager for dialogue display
-	if DialogueManager.has_signal("dialogue_started"):
-		if not DialogueManager.dialogue_started.is_connected(_on_dialogue_started):
-			DialogueManager.dialogue_started.connect(_on_dialogue_started)
-
-	# Play sequence
+	# Play sequence (EventSequencer + DialogueManager handle dialogue display)
 	EventSequencer.play_sequence(_sequence)
-
-## Handle dialogue started (show dialogue UI)
-func _on_dialogue_started(dialogue_id: String) -> void:
-	print("EventScreen: Dialogue started: %s" % dialogue_id)
-
-	# Get dialogue data from DialogueManager
-	var dialogue_data: Dictionary = {}
-	if DialogueManager.has_method("get_dialogue"):
-		var result: Variant = DialogueManager.call("get_dialogue", dialogue_id)
-		if result is Dictionary:
-			dialogue_data = result
-
-	if dialogue_data.is_empty():
-		push_warning("EventScreen: No dialogue found for '%s'" % dialogue_id)
-		return
-
-	# Show dialogue
-	_show_dialogue(dialogue_data)
-
-## Show dialogue in UI
-func _show_dialogue(dialogue_data: Dictionary) -> void:
-	if not dialogue_box:
-		return
-
-	var text: String = dialogue_data.get("text", "")
-	var speaker: String = dialogue_data.get("speaker", "")
-
-	if speaker_label:
-		speaker_label.text = speaker
-		speaker_label.visible = not speaker.is_empty()
-
-	if dialogue_label:
-		dialogue_label.text = text
-
-	if continue_button:
-		continue_button.visible = true
-		continue_button.grab_focus()
-
-	dialogue_box.visible = true
-
-## Hide dialogue UI
-func _hide_dialogue() -> void:
-	if dialogue_box:
-		dialogue_box.visible = false
-
-## Continue button pressed
-func _on_continue_pressed() -> void:
-	_hide_dialogue()
-
-	# Continue sequence
-	if EventSequencer.has_method("continue_sequence"):
-		EventSequencer.call("continue_sequence")
 
 ## Event sequence completed
 func _on_event_sequence_complete(sequence: Resource) -> void:
 	var sequence_id: String = sequence.get("sequence_id") if sequence.get("sequence_id") is String else "unknown"
 	print("EventScreen: Event sequence completed: %s" % sequence_id)
 
-	# Disconnect signals
+	# Disconnect signal
 	if EventSequencer.sequence_finished.is_connected(_on_event_sequence_complete):
 		EventSequencer.sequence_finished.disconnect(_on_event_sequence_complete)
-
-	if DialogueManager.dialogue_started.is_connected(_on_dialogue_started):
-		DialogueManager.dialogue_started.disconnect(_on_dialogue_started)
 
 	# Mark event complete
 	EventContext.complete_event()
