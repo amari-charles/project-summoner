@@ -182,6 +182,14 @@ func _refresh_map() -> void:
 	var events_array: Array = _safe_array(events_variant)
 	all_events.assign(events_array)
 
+	print("CampaignMap: Loaded %d total battles from Campaign service" % all_events.size())
+	for event: Dictionary in all_events:
+		print("  - %s (unlocked: %s, completed: %s)" % [
+			event.get("id", "unknown"),
+			campaign.call("is_battle_unlocked", event.get("id", "")),
+			campaign.call("is_battle_completed", event.get("id", ""))
+		])
+
 	# Calculate centered starting position
 	var event_count: int = all_events.size()
 	var total_width: float = (event_count - 1) * NODE_SPACING if event_count > 0 else 0.0
