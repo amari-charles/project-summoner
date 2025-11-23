@@ -56,6 +56,13 @@ func _exit_tree() -> void:
 ## INITIALIZATION
 ## =============================================================================
 
+## Set the shop ID and reload offerings (called by EventSequencer for caravans)
+func set_shop_id(new_shop_id: String) -> void:
+	shop_id = new_shop_id
+	_load_offerings()
+	_update_gold_display()
+	_clear_detail_panel()
+
 func _load_offerings() -> void:
 	# Clear existing offering cards
 	for child: Node in offering_grid.get_children():

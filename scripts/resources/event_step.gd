@@ -23,6 +23,7 @@ enum StepType {
 	PLAY_ANIMATION,        ## Play an animation
 	FADE_SCREEN,           ## Fade screen in/out
 	ENABLE_HAND,           ## Enable/disable hand interaction
+	OPEN_CARAVAN,          ## Open caravan shop UI
 }
 
 ## =============================================================================
@@ -124,3 +125,10 @@ enum StepType {
 
 @export_group("Enable Hand")
 @export var hand_enabled: bool = true
+
+## =============================================================================
+## OPEN_CARAVAN STEP
+## =============================================================================
+
+@export_group("Open Caravan")
+@export var shop_id: String = ""  ## Shop ID to open (e.g., "caravan_tutorial")

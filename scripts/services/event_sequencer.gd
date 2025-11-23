@@ -138,6 +138,9 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 		step_type_enum.FADE_SCREEN:
 			await _execute_fade_screen(step)
 
+		step_type_enum.OPEN_CARAVAN:
+			await _execute_open_caravan(step)
+
 		step_type_enum.SET_HAND_VISIBILITY:
 			_execute_set_hand_visibility(step)
 
@@ -506,3 +509,32 @@ func reset() -> void:
 
 	if debug_mode:
 		print("EventSequencer: Reset complete")
+
+## Execute OPEN_CARAVAN step
+func _execute_open_caravan(step: Resource) -> void:
+	var shop_id_val: Variant = step.get("shop_id")
+	var shop_id: String = shop_id_val if shop_id_val is String else ""
+
+	if shop_id.is_empty():
+		push_warning("EventSequencer: OPEN_CARAVAN step has empty shop_id")
+		return
+
+	if debug_mode:
+		print("EventSequencer: Opening caravan shop '%s'" % shop_id)
+
+	# Navigate to shop screen with the specified shop_id
+	# The shop screen will handle navigation back when closed
+	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+
+	# Wait for shop screen to load and then set the shop_id
+	await get_tree().process_frame
+
+	# Find the shop screen and set its shop_id
+	var shop_screen: Node = get_tree().get_first_node_in_group("shop_screen")
+	if shop_screen and shop_screen.has_method("set_shop_id"):
+		shop_screen.call("set_shop_id", shop_id)
+	else:
+		push_warning("EventSequencer: Could not find shop_screen to set shop_id")
+
+	# Wait for player to finish shopping (shop screen returns to campaign map)
+	# For now, the sequence will end here and resume when returning to campaign

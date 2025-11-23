@@ -120,11 +120,11 @@ func _init_shops() -> void:
 		]
 	}
 
-	# Tutorial caravan
+	# Mr. Merriweather's Caravan (tutorial caravan)
 	_shops["caravan_tutorial"] = {
 		"id": "caravan_tutorial",
 		"shop_type": "caravan",
-		"name": Loc.t("shop.caravan.tutorial.name"),
+		"name": Loc.t("shop.caravan.merriweather.name"),
 		"offerings": [
 			{
 				"offering_id": "tutorial_fire_recruit",

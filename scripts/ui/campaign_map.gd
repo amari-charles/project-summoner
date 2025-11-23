@@ -640,7 +640,7 @@ func _on_start_event_pressed() -> void:
 		SceneManager.change_scene(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
 
-	# Handle battle events
+	# Handle battle events (and caravan events which use event sequences)
 	print("CampaignMap: Starting event: %s" % selected_event_id)
 
 	# Validate deck selection only if this event requires a deck

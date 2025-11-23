@@ -146,6 +146,25 @@ func _init_battles() -> void:
 		"ai_script": []
 	}
 
+	# Caravan Event: Mr. Merriweather's Trading Post
+	_battles["event_caravan_tutorial"] = {
+		"id": "event_caravan_tutorial",
+		"event_type": "caravan",
+		"name": Loc.t("campaign.event.caravan_tutorial.name"),
+		"description": Loc.t("campaign.event.caravan_tutorial.description"),
+		"difficulty": 1,
+		"gold_reward": 0,  # Handled by shop purchases
+		"unlock_requirements": ["charge_tutorial"],
+		"requires_deck": false,
+		"repeatable": false,
+		"reward_type": "none",  # Rewards from shop
+		"reward_cards": [],
+		# Caravan shop ID
+		"shop_id": "caravan_tutorial",
+		# Event Sequence (dialogue + shop opening)
+		"event_sequence": "res://resources/sequences/caravan_tutorial.tres"
+	}
+
 	print("CampaignService: Loaded %d battles" % _battles.size())
 
 ## =============================================================================

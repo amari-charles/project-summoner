@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ui/shop_screen.gd" id="1_shop"]
 
-[node name="ShopScreen" type="Control"]
+[node name="ShopScreen" type="Control" groups=["shop_screen"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
