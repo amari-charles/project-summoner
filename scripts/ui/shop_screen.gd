@@ -38,6 +38,29 @@ func _ready() -> void:
 	# Connect profile signals for gold updates
 	ProfileRepo.data_changed.connect(_on_data_changed)
 
+	# Check if this is a caravan event (EventContext is configured)
+	var event_id: String = EventContext.get_current_event_id()
+	if not event_id.is_empty():
+		var event_config: Dictionary = EventContext.get_event_config()
+		var event_shop_id: String = event_config.get("shop_id", "")
+
+		if not event_shop_id.is_empty():
+			shop_id = event_shop_id
+			print("ShopScreen: Loaded as caravan event '%s' with shop_id '%s'" % [event_id, shop_id])
+
+			# Play event sequence on top of shop UI
+			var sequence_path: String = event_config.get("event_sequence", "")
+			if not sequence_path.is_empty():
+				var sequence: Resource = load(sequence_path)
+				if sequence:
+					# Connect to sequence completion
+					if not EventSequencer.sequence_finished.is_connected(_on_caravan_sequence_complete):
+						EventSequencer.sequence_finished.connect(_on_caravan_sequence_complete)
+
+					# Play sequence (dialogue will appear on top of shop)
+					await get_tree().process_frame  # Wait for shop UI to be ready
+					EventSequencer.play_sequence(sequence)
+
 	# Initialize display
 	_update_gold_display()
 	_load_offerings()
@@ -193,9 +216,21 @@ func _on_data_changed() -> void:
 	if selected_offering:
 		_update_detail_panel(selected_offering)
 
+## Handle caravan sequence completion (dialogue finished)
+func _on_caravan_sequence_complete(sequence: Resource) -> void:
+	print("ShopScreen: Caravan sequence completed")
+	# Sequence is done, user can now shop
+	# Event will be marked complete when they leave the shop
+
 func _on_back_pressed() -> void:
+	# If this was a caravan event, mark it complete before leaving
+	var event_id: String = EventContext.get_current_event_id()
+	if not event_id.is_empty():
+		print("ShopScreen: Completing caravan event '%s'" % event_id)
+		EventContext.complete_event()
+		EventContext.clear_event()
+
 	# Check if we have a return destination from NavigationContext
-	# (e.g., when opened from event screen via OPEN_CARAVAN)
 	if NavigationContext.has_return():
 		var return_to: String = NavigationContext.pop_return()
 		print("ShopScreen: Returning to %s via NavigationContext" % return_to)

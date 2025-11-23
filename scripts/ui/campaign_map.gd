@@ -640,7 +640,7 @@ func _on_start_event_pressed() -> void:
 		SceneManager.change_scene(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
 
-	# Handle caravan events - navigate to event screen
+	# Handle caravan events - navigate directly to shop with event context
 	if event_type == "caravan":
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
@@ -652,11 +652,17 @@ func _on_start_event_pressed() -> void:
 			push_warning("CampaignMap: Cannot start event '%s' - already completed and not repeatable" % selected_event_id)
 			return
 
-		# Configure EventContext with this event
+		# Configure EventContext with this event (shop will check this)
 		EventContext.configure_event(selected_event_id, SceneManager.SCENE_CAMPAIGN_MAP)
 
-		# Navigate to event screen (it will load and execute the sequence)
-		SceneManager.change_scene(SceneManager.SCENE_EVENT_SCREEN)
+		# Get shop_id from event
+		var shop_id: String = _safe_string(event.get("shop_id", ""))
+
+		# Navigate to shop (shop will play event sequence on top of UI)
+		NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+		SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+
+		# Shop will detect EventContext and play the sequence
 		return
 
 	# Handle battle events
