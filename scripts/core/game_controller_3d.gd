@@ -37,7 +37,7 @@ func _ready() -> void:
 		BattleContext.configure_practice_battle()
 
 	if not BattleContext.battle_config.is_empty():
-		print("GameController3D: BattleContext.battle_config keys: %s" % BattleContext.battle_config.keys())
+		print("GameController3D: BattleContext.battle_config keys: %s" % [BattleContext.battle_config.keys()])
 
 	add_to_group("game_controller")
 
