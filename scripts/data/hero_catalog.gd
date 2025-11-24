@@ -151,14 +151,14 @@ func get_all_hero_ids() -> Array[String]:
 ## Get all heroes as an array of dictionaries
 func list_all_heroes() -> Array[Dictionary]:
 	var heroes: Array[Dictionary] = []
-	for hero_data in _catalog.values():
+	for hero_data: Dictionary in _catalog.values():
 		heroes.append(hero_data.duplicate(true))
 	return heroes
 
 ## Get heroes that can be selected as starting heroes (4 core heroes)
 func get_starting_heroes() -> Array[Dictionary]:
 	var starting: Array[Dictionary] = []
-	for hero_data in _catalog.values():
+	for hero_data: Dictionary in _catalog.values():
 		if hero_data.get("unlock_condition", "") == "starting_choice":
 			starting.append(hero_data.duplicate(true))
 	return starting
@@ -166,7 +166,7 @@ func get_starting_heroes() -> Array[Dictionary]:
 ## Get heroes available for "Random" option (core + starter-only)
 func get_random_pool_heroes() -> Array[Dictionary]:
 	var random_pool: Array[Dictionary] = []
-	for hero_data in _catalog.values():
+	for hero_data: Dictionary in _catalog.values():
 		var condition: String = hero_data.get("unlock_condition", "")
 		if condition == "starting_choice" or condition == "random_starter_only":
 			random_pool.append(hero_data.duplicate(true))
@@ -175,21 +175,21 @@ func get_random_pool_heroes() -> Array[Dictionary]:
 ## Get heroes by element
 func get_heroes_by_element(element: ElementTypes.Element) -> Array[Dictionary]:
 	var heroes: Array[Dictionary] = []
-	for hero_data in _catalog.values():
+	for hero_data: Dictionary in _catalog.values():
 		if hero_data.get("element", ElementTypes.NEUTRAL) == element:
 			heroes.append(hero_data.duplicate(true))
 	return heroes
 
 ## Get hero name (localized)
 func get_hero_name(hero_id: String) -> String:
-	var hero := get_hero(hero_id)
+	var hero: Dictionary = get_hero(hero_id)
 	if hero.is_empty():
 		return ""
 	return hero.get("hero_name", "")
 
 ## Get hero element
 func get_hero_element(hero_id: String) -> ElementTypes.Element:
-	var hero := get_hero(hero_id)
+	var hero: Dictionary = get_hero(hero_id)
 	if hero.is_empty():
 		return ElementTypes.NEUTRAL
 	return hero.get("element", ElementTypes.NEUTRAL)
@@ -199,7 +199,7 @@ func print_catalog_summary() -> void:
 	print("=== Hero Catalog Summary ===")
 	print("Total Heroes: %d" % _catalog.size())
 	print("\nStarting Heroes:")
-	for hero in get_starting_heroes():
+	for hero: Dictionary in get_starting_heroes():
 		print("  - %s (%s) | HP: %.0f | Mana: %.0f (%.1f/s)" % [
 			hero.hero_name,
 			ElementTypes.get_element_name(hero.element),
@@ -208,7 +208,7 @@ func print_catalog_summary() -> void:
 			hero.mana_regen
 		])
 	print("\nRandom Pool Heroes:")
-	for hero in get_random_pool_heroes():
+	for hero: Dictionary in get_random_pool_heroes():
 		print("  - %s (%s) | HP: %.0f | Mana: %.0f (%.1f/s)" % [
 			hero.hero_name,
 			ElementTypes.get_element_name(hero.element),
