@@ -141,5 +141,34 @@
     "purchase_button": "Purchase",
     "purchased": "Purchased!",
     "not_enough_gold": "Not enough gold"
+  },
+  "hero": {
+    "hero_fire": {
+      "name": "Pyralis",
+      "description": "Master of flame and passion"
+    },
+    "hero_water": {
+      "name": "Aquira",
+      "description": "Embodiment of adaptability and flow"
+    },
+    "hero_wind": {
+      "name": "Zephyrion",
+      "description": "Spirit of freedom and motion"
+    },
+    "hero_earth": {
+      "name": "Terravorn",
+      "description": "Guardian of stability and endurance"
+    },
+    "hero_shadow_initiate": {
+      "name": "Shadow Initiate",
+      "description": "A mysterious figure cloaked in darkness"
+    },
+    "stat_health": "Health: {value}",
+    "stat_mana": "Mana: {value}",
+    "stat_mana_regen": "Mana Regen: {value}/s",
+    "random_hero": "Random",
+    "random_hero_description": "Let fate choose your hero",
+    "trait_fortune_favors_bold": "Fortune Favors the Bold",
+    "trait_fortune_favors_bold_desc": "Start with bonus {bonus_type}"
   }
 }
