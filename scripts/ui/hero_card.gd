@@ -68,7 +68,8 @@ func _update_display() -> void:
 
 	# Element
 	if element_label:
-		var element: int = hero_data.get("element", 0)
+		var element_var: Variant = hero_data.get("element", 0)
+		var element: int = element_var if element_var is int else 0
 		var element_name: String = ElementTypes.get_element_name(element)
 		element_label.text = element_name
 
