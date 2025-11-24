@@ -521,10 +521,13 @@ func upsert_deck(deck: Dictionary) -> String:
 		deck_id = _generate_uuid()
 		var deck_name_variant: Variant = deck.get("name", "Untitled Deck")
 		var deck_name: String = deck_name_variant
+		var hero_id_variant: Variant = deck.get("hero_id", "")
+		var hero_id: String = hero_id_variant if hero_id_variant is String else ""
 		var new_deck: Dictionary = {
 			"id": deck_id,
 			"profile_id": _current_profile_id,
 			"name": deck_name,
+			"hero_id": hero_id,
 			"created_at": Time.get_unix_time_from_system()
 		}
 		decks_array.append(new_deck)
@@ -557,6 +560,11 @@ func upsert_deck(deck: Dictionary) -> String:
 				if deck_dict_id_variant == deck_id:
 					var deck_name_variant: Variant = deck.get("name", deck_dict["name"])
 					deck_dict["name"] = deck_name_variant
+					# Update hero_id if provided
+					if deck.has("hero_id"):
+						var hero_id_variant: Variant = deck.get("hero_id")
+						if hero_id_variant is String:
+							deck_dict["hero_id"] = hero_id_variant
 					found = true
 					break
 
