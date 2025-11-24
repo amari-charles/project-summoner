@@ -120,16 +120,20 @@ static func load_player_deck() -> Dictionary:
 		"hero_instance": null
 	}
 
+	print("DeckLoader.load_player_deck: Starting deck load...")
 	var profile_repo: Variant = _get_service("/root/ProfileRepo")
 	if not profile_repo:
 		push_error("DeckLoader: ProfileRepo not found!")
 		return empty_result
+
+	print("DeckLoader: ProfileRepo found")
 
 	var profile_variant: Variant = {}
 	if profile_repo is Object:
 		var profile_repo_obj: Object = profile_repo
 		profile_variant = profile_repo_obj.call("get_active_profile")
 	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
+	print("DeckLoader: Profile loaded, is_empty=%s" % profile.is_empty())
 	if profile.is_empty():
 		push_error("DeckLoader: No active profile!")
 		return empty_result
@@ -150,13 +154,19 @@ static func load_player_deck() -> Dictionary:
 
 	# If no deck selected, use first available deck
 	if deck_id == "" or deck_id == null:
+		print("DeckLoader: No deck selected, searching for first available deck...")
 		var decks: Variant = _get_service("/root/Decks")
+		if not decks:
+			push_error("DeckLoader: Decks service not found!")
+			return empty_result
+		print("DeckLoader: Decks service found")
 		if decks:
 			var deck_list_variant: Variant = []
 			if decks is Object:
 				var decks_obj: Object = decks
 				deck_list_variant = decks_obj.call("list_decks")
 			var deck_list: Array = deck_list_variant if deck_list_variant is Array else []
+			print("DeckLoader: Found %d decks" % deck_list.size())
 			if deck_list.size() > 0:
 				var first_deck_variant: Variant = deck_list[0]
 				var first_deck: Dictionary = first_deck_variant if first_deck_variant is Dictionary else {}
