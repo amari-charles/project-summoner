@@ -32,11 +32,15 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
+	print("Summoner._ready: Starting initialization (team=%s, load_from_profile=%s)" % [team, load_deck_from_profile])
+
 	# Initialize deck and apply hero bonuses (must happen before setting current_hp/mana)
 	if load_deck_from_profile and team == Unit.Team.PLAYER:
 		# Load deck from player's profile
 		print("Summoner: Loading deck from profile...")
 		var deck_data: Dictionary = DeckLoader.load_player_deck()
+		print("Summoner: DeckLoader returned %d keys: %s" % [deck_data.size(), deck_data.keys()])
+
 		var cards_variant: Variant = deck_data.get("cards", [])
 		if cards_variant is Array:
 			var cards_array: Array = cards_variant
@@ -48,8 +52,10 @@ func _ready() -> void:
 
 		# Apply hero bonuses
 		var hero_instance_variant: Variant = deck_data.get("hero_instance")
+		print("Summoner: hero_instance type = %s" % type_string(typeof(hero_instance_variant)))
 		if hero_instance_variant is HeroInstance:
 			var hero_instance: HeroInstance = hero_instance_variant
+			print("Summoner: HeroInstance found, applying bonuses...")
 			_apply_hero_bonuses(hero_instance)
 		else:
 			push_warning("Summoner: No valid HeroInstance in deck data")
