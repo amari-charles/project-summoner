@@ -4,8 +4,9 @@ class_name HeroSelection
 ## HeroSelection - Choose your starting hero
 ##
 ## Part of onboarding flow. Player picks one of five heroes representing the
-## four core elements (Earth, Fire, Air, Water) plus a random option.
-## Hero choice is saved to profile for future use.
+## four core elements (Earth, Fire, Wind, Water) plus a random option.
+## Hero choice is saved to profile via ProfileRepo.set_starting_hero()
+## If random is chosen, grants "Fortune Favors the Bold" trait.
 
 @onready var select_button1: Button = %SelectButton1
 @onready var select_button2: Button = %SelectButton2
@@ -15,12 +16,12 @@ class_name HeroSelection
 
 var dialogue_manager: Node = null
 
-# Core elemental heroes
-const HERO_EARTH: String = "earth_hero"
-const HERO_FIRE: String = "fire_hero"
-const HERO_RANDOM: String = "random_hero"
-const HERO_AIR: String = "air_hero"
-const HERO_WATER: String = "water_hero"
+# Core elemental heroes (match HeroCatalog hero_ids)
+const HERO_EARTH: String = "hero_earth"
+const HERO_FIRE: String = "hero_fire"
+const HERO_RANDOM: String = "random"
+const HERO_WIND: String = "hero_wind"
+const HERO_WATER: String = "hero_water"
 
 func _ready() -> void:
 	print("HeroSelection: Initializing...")
@@ -36,7 +37,7 @@ func _ready() -> void:
 	select_button1.pressed.connect(_on_hero_selected.bind(HERO_EARTH))
 	select_button2.pressed.connect(_on_hero_selected.bind(HERO_FIRE))
 	select_button3.pressed.connect(_on_hero_selected.bind(HERO_RANDOM))
-	select_button4.pressed.connect(_on_hero_selected.bind(HERO_AIR))
+	select_button4.pressed.connect(_on_hero_selected.bind(HERO_WIND))
 	select_button5.pressed.connect(_on_hero_selected.bind(HERO_WATER))
 
 	# Start Merlin's introduction dialogue
@@ -64,13 +65,26 @@ func _show_hero_selection() -> void:
 func _on_hero_selected(hero_id: String) -> void:
 	print("HeroSelection: Player selected hero: %s" % hero_id)
 
-	# Save hero choice to profile
+	# Handle random selection
+	var final_hero_id: String = hero_id
+	var chosen_random: bool = false
+	if hero_id == HERO_RANDOM:
+		chosen_random = true
+		# Pick random hero from starting pool
+		var random_pool: Array = [HERO_EARTH, HERO_FIRE, HERO_WIND, HERO_WATER]
+		final_hero_id = random_pool[randi() % random_pool.size()]
+		print("HeroSelection: Random selection chose: %s" % final_hero_id)
+
+	# Save hero choice to profile using new ProfileRepo method
 	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo:
-		var profile: Dictionary = profile_repo.call("get_active_profile")
-		if not profile.is_empty():
-			profile["meta"]["selected_hero"] = hero_id
-			profile_repo.call("save_profile")
+	if profile_repo and profile_repo.has_method("set_starting_hero"):
+		var success: bool = profile_repo.call("set_starting_hero", final_hero_id, chosen_random)
+		if success:
+			print("HeroSelection: Successfully set starting hero: %s (random: %s)" % [final_hero_id, chosen_random])
+		else:
+			push_error("HeroSelection: Failed to set starting hero!")
+	else:
+		push_error("HeroSelection: ProfileRepo.set_starting_hero() not available!")
 
 	# Mark affinity selection event as completed
 	var campaign: Node = get_node("/root/Campaign")
