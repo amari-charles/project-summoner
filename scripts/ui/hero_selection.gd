@@ -8,13 +8,13 @@ class_name HeroSelection
 ## Hero choice is saved to profile via ProfileRepo.set_starting_hero()
 ## If random is chosen, grants "Fortune Favors the Bold" trait.
 
-@onready var select_button1: Button = %SelectButton1
-@onready var select_button2: Button = %SelectButton2
-@onready var select_button3: Button = %SelectButton3
-@onready var select_button4: Button = %SelectButton4
-@onready var select_button5: Button = %SelectButton5
+@onready var hero_container: HBoxContainer = %HeroContainer
 
 var dialogue_manager: Node = null
+var hero_cards: Array[HeroCard] = []
+
+# Hero card scene
+const HeroCardScene: PackedScene = preload("res://scenes/ui/hero_card.tscn")
 
 # Core elemental heroes (match HeroCatalog hero_ids)
 const HERO_EARTH: String = "hero_earth"
@@ -26,19 +26,12 @@ const HERO_WATER: String = "hero_water"
 func _ready() -> void:
 	print("HeroSelection: Initializing...")
 
-	# Hide hero buttons initially - will show after Merlin's dialogue
-	select_button1.visible = false
-	select_button2.visible = false
-	select_button3.visible = false
-	select_button4.visible = false
-	select_button5.visible = false
+	# Create hero cards
+	_create_hero_cards()
 
-	# Connect all hero selection buttons
-	select_button1.pressed.connect(_on_hero_selected.bind(HERO_EARTH))
-	select_button2.pressed.connect(_on_hero_selected.bind(HERO_FIRE))
-	select_button3.pressed.connect(_on_hero_selected.bind(HERO_RANDOM))
-	select_button4.pressed.connect(_on_hero_selected.bind(HERO_WIND))
-	select_button5.pressed.connect(_on_hero_selected.bind(HERO_WATER))
+	# Hide hero cards initially - will show after Merlin's dialogue
+	if hero_container:
+		hero_container.visible = false
 
 	# Start Merlin's introduction dialogue
 	await get_tree().process_frame
@@ -56,11 +49,55 @@ func _on_merlin_dialogue_ended() -> void:
 	_show_hero_selection()
 
 func _show_hero_selection() -> void:
-	select_button1.visible = true
-	select_button2.visible = true
-	select_button3.visible = true
-	select_button4.visible = true
-	select_button5.visible = true
+	if hero_container:
+		hero_container.visible = true
+
+## Create hero cards dynamically
+func _create_hero_cards() -> void:
+	if not hero_container:
+		push_error("HeroSelection: HeroContainer not found!")
+		return
+
+	# List of heroes to display (4 core + random)
+	var heroes_to_show: Array[String] = [
+		HERO_EARTH,
+		HERO_FIRE,
+		HERO_WIND,
+		HERO_WATER,
+		HERO_RANDOM
+	]
+
+	for hero_id: String in heroes_to_show:
+		var card: HeroCard = HeroCardScene.instantiate()
+		hero_container.add_child(card)
+		hero_cards.append(card)
+
+		# Special handling for "random" option
+		if hero_id == HERO_RANDOM:
+			_setup_random_card(card)
+		else:
+			card.set_hero(hero_id)
+
+		# Connect signal
+		card.hero_selected.connect(_on_hero_selected)
+
+## Setup the random hero card
+func _setup_random_card(card: HeroCard) -> void:
+	# Set random card data manually since it's not in catalog
+	card.hero_id = HERO_RANDOM
+
+	if card.hero_name_label:
+		card.hero_name_label.text = "Random"
+	if card.element_label:
+		card.element_label.text = "???"
+	if card.description_label:
+		card.description_label.text = "Let fate choose your path"
+	if card.hp_label:
+		card.hp_label.text = "HP: ???"
+	if card.mana_label:
+		card.mana_label.text = "Mana: ???"
+	if card.regen_label:
+		card.regen_label.text = "Regen: ???"
 
 func _on_hero_selected(hero_id: String) -> void:
 	print("HeroSelection: Player selected hero: %s" % hero_id)
