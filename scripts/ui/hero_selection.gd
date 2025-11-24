@@ -70,7 +70,7 @@ func _create_hero_cards() -> void:
 		hero_container.add_child(button)
 
 		var hero_id: String = hero_data["id"]
-		button.pressed.connect(func(): _on_hero_selected(hero_id))
+		button.pressed.connect(func() -> void: _on_hero_selected(hero_id))
 
 func _on_hero_selected(hero_id: String) -> void:
 	print("HeroSelection: Player selected hero: %s" % hero_id)
