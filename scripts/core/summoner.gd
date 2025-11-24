@@ -34,6 +34,9 @@ signal hand_changed(hand: Array[Card])
 func _ready() -> void:
 	print("Summoner._ready: Starting initialization (team=%s, load_from_profile=%s)" % [team, load_deck_from_profile])
 
+	# Wait one frame to ensure autoload services are fully initialized
+	await get_tree().process_frame
+
 	# Initialize deck and apply hero bonuses (must happen before setting current_hp/mana)
 	if load_deck_from_profile and team == Unit.Team.PLAYER:
 		# Load deck from player's profile
