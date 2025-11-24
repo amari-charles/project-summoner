@@ -8,13 +8,9 @@ class_name HeroSelection
 ## Hero choice is saved to profile via ProfileRepo.set_starting_hero()
 ## If random is chosen, grants "Fortune Favors the Bold" trait.
 
-@onready var hero_container: HBoxContainer = %HeroContainer
+@onready var hero_container: VBoxContainer = %HeroContainer
 
 var dialogue_manager: Node = null
-var hero_cards: Array[HeroCard] = []
-
-# Hero card scene
-const HeroCardScene: PackedScene = preload("res://scenes/ui/hero_card.tscn")
 
 # Core elemental heroes (match HeroCatalog hero_ids)
 const HERO_EARTH: String = "hero_earth"
@@ -52,52 +48,29 @@ func _show_hero_selection() -> void:
 	if hero_container:
 		hero_container.visible = true
 
-## Create hero cards dynamically
+## Create simple hero buttons
 func _create_hero_cards() -> void:
 	if not hero_container:
 		push_error("HeroSelection: HeroContainer not found!")
 		return
 
-	# List of heroes to display (4 core + random)
-	var heroes_to_show: Array[String] = [
-		HERO_EARTH,
-		HERO_FIRE,
-		HERO_WIND,
-		HERO_WATER,
-		HERO_RANDOM
+	# Hero display data (name and element)
+	var heroes_data: Array[Dictionary] = [
+		{"id": HERO_FIRE, "label": "Fire - Pyralis"},
+		{"id": HERO_WATER, "label": "Water - Aquira"},
+		{"id": HERO_WIND, "label": "Wind - Zephyrion"},
+		{"id": HERO_EARTH, "label": "Earth - Terravorn"},
+		{"id": HERO_RANDOM, "label": "Random - Let Fate Decide"}
 	]
 
-	for hero_id: String in heroes_to_show:
-		var card: HeroCard = HeroCardScene.instantiate()
-		hero_container.add_child(card)
-		hero_cards.append(card)
+	for hero_data: Dictionary in heroes_data:
+		var button: Button = Button.new()
+		button.text = hero_data["label"]
+		button.custom_minimum_size = Vector2(400, 60)
+		hero_container.add_child(button)
 
-		# Special handling for "random" option
-		if hero_id == HERO_RANDOM:
-			_setup_random_card(card)
-		else:
-			card.set_hero(hero_id)
-
-		# Connect signal
-		card.hero_selected.connect(_on_hero_selected)
-
-## Setup the random hero card
-func _setup_random_card(card: HeroCard) -> void:
-	# Set random card data manually since it's not in catalog
-	card.hero_id = HERO_RANDOM
-
-	if card.hero_name_label:
-		card.hero_name_label.text = "Random"
-	if card.element_label:
-		card.element_label.text = "???"
-	if card.description_label:
-		card.description_label.text = "Let fate choose your path"
-	if card.hp_label:
-		card.hp_label.text = "HP: ???"
-	if card.mana_label:
-		card.mana_label.text = "Mana: ???"
-	if card.regen_label:
-		card.regen_label.text = "Regen: ???"
+		var hero_id: String = hero_data["id"]
+		button.pressed.connect(func(): _on_hero_selected(hero_id))
 
 func _on_hero_selected(hero_id: String) -> void:
 	print("HeroSelection: Player selected hero: %s" % hero_id)
@@ -129,5 +102,5 @@ func _on_hero_selected(hero_id: String) -> void:
 		campaign.call("complete_battle", "event_affinity")
 		print("HeroSelection: Marked affinity selection as completed!")
 
-	# Return to campaign map
-	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	# Transition to reveal scene (hero data already saved in ProfileRepo)
+	SceneManager.change_scene(SceneManager.SCENE_HERO_REVEAL)

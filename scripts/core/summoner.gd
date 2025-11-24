@@ -47,9 +47,12 @@ func _ready() -> void:
 			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
 
 		# Apply hero bonuses
-		var hero_data: Dictionary = deck_data.get("hero_data", {})
-		if not hero_data.is_empty():
-			_apply_hero_bonuses(hero_data)
+		var hero_instance_variant: Variant = deck_data.get("hero_instance")
+		if hero_instance_variant is HeroInstance:
+			var hero_instance: HeroInstance = hero_instance_variant
+			_apply_hero_bonuses(hero_instance)
+		else:
+			push_warning("Summoner: No valid HeroInstance in deck data")
 	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
 		# Load enemy deck from current campaign battle
 		print("Summoner: Loading enemy deck from campaign...")
@@ -177,17 +180,27 @@ func _die() -> void:
 	summoner_died.emit(self)
 
 ## Apply hero bonuses to summoner stats
-func _apply_hero_bonuses(hero_data: Dictionary) -> void:
-	# Set base health from hero
-	var base_health: float = hero_data.get("base_health", 1000.0)
-	max_hp = base_health
+func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
+	if hero_instance == null:
+		push_warning("Summoner: Cannot apply bonuses from null HeroInstance")
+		return
 
-	# Set mana regen from hero
-	var hero_mana_regen: float = hero_data.get("mana_regen", 1.0)
+	# Get computed stats (includes modifiers)
+	var stats: Dictionary = hero_instance.get_computed_stats()
+
+	# Set health from hero (with modifiers applied)
+	var health: float = stats.get("health", 1000.0)
+	max_hp = health
+
+	# Set mana regen from hero (with modifiers applied)
+	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
 	mana_regen_rate = hero_mana_regen
 
-	# Note: max_mana from hero_data is not applied here because Summoner uses MANA_MAX constant
-	# In a future refactor, MANA_MAX could be made a variable and set from hero_data.get("max_mana")
+	# Note: max_mana from stats is not applied here because Summoner uses MANA_MAX constant
+	# In a future refactor, MANA_MAX could be made a variable and set from stats.get("max_mana")
 
-	var hero_name: String = hero_data.get("hero_name", "Unknown")
-	print("Summoner: Applied hero bonuses from '%s' - HP: %.0f, Mana Regen: %.1f/s" % [hero_name, max_hp, mana_regen_rate])
+	var hero_name: String = hero_instance.config.hero_name
+	var modifier_count: int = hero_instance.active_modifiers.size()
+	print("Summoner: Applied hero bonuses from '%s' (Level %d, %d modifiers) - HP: %.0f, Mana Regen: %.1f/s" % [
+		hero_name, hero_instance.level, modifier_count, max_hp, mana_regen_rate
+	])

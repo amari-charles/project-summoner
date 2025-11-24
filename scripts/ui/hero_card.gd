@@ -25,7 +25,7 @@ signal hero_unhovered()
 
 ## Data
 var hero_id: String = ""
-var hero_data: Dictionary = {}
+var hero_config: HeroConfig = null
 
 func _ready() -> void:
 	# Connect click button
@@ -38,75 +38,73 @@ func _ready() -> void:
 	if glow_panel:
 		glow_panel.visible = false
 
-## Set hero data and populate UI
+## Set hero configuration and populate UI
 func set_hero(hero_id_param: String) -> void:
 	self.hero_id = hero_id_param
 
-	# Get hero data from catalog
+	# Get hero config from catalog
 	var catalog: Node = get_node_or_null("/root/HeroCatalog")
-	if not catalog or not catalog.has_method("get_hero"):
+	if not catalog or not catalog.has_method("get_hero_config"):
 		push_error("HeroCard: HeroCatalog not available")
 		return
 
-	var data: Variant = catalog.call("get_hero", hero_id)
-	if not data is Dictionary:
+	var config: Variant = catalog.call("get_hero_config", hero_id)
+	if not config is HeroConfig:
 		push_error("HeroCard: Invalid hero_id: %s" % hero_id)
 		return
 
-	hero_data = data
+	hero_config = config
 	_update_display()
 
-## Update all UI elements with hero data
+## Update all UI elements with hero config
 func _update_display() -> void:
-	if hero_data.is_empty():
+	if hero_config == null:
 		return
 
 	# Hero name
 	if hero_name_label:
-		var name: String = hero_data.get("hero_name", "Unknown Hero")
-		hero_name_label.text = name
+		hero_name_label.text = hero_config.hero_name
 
 	# Element
 	if element_label:
-		var element_var: Variant = hero_data.get("element", 0)
-		var element: int = element_var if element_var is int else 0
-		var element_name: String = ElementTypes.get_element_name(element)
+		var element: ElementTypes.Element = hero_config.get_element()
+		var element_name: String = ElementTypes.get_display_name(element)
 		element_label.text = element_name
 
 		# Color code by element
 		var element_color: Color = _get_element_color(element)
 		element_label.add_theme_color_override("font_color", element_color)
 
-	# Stats
+	# Stats (base stats from config)
 	if hp_label:
-		var hp: float = hero_data.get("base_health", 0.0)
-		hp_label.text = "HP: %.0f" % hp
+		hp_label.text = "HP: %.0f" % hero_config.base_health
 
 	if mana_label:
-		var mana: float = hero_data.get("max_mana", 0.0)
-		mana_label.text = "Mana: %.0f" % mana
+		mana_label.text = "Mana: %.0f" % hero_config.max_mana
 
 	if regen_label:
-		var regen: float = hero_data.get("mana_regen", 0.0)
-		regen_label.text = "Regen: %.1f/s" % regen
+		regen_label.text = "Regen: %.1f/s" % hero_config.mana_regen
 
 	# Description
 	if description_label:
-		var desc: String = hero_data.get("description", "")
-		description_label.text = desc
+		description_label.text = hero_config.description
 
 ## Get color for element type
-func _get_element_color(element: int) -> Color:
-	match element:
-		ElementTypes.FIRE:
+func _get_element_color(element: ElementTypes.Element) -> Color:
+	if element == null:
+		return Color.WHITE
+
+	# Match by element ID
+	match element.id:
+		"fire":
 			return Color(1.0, 0.3, 0.2)  # Red
-		ElementTypes.WATER:
+		"water":
 			return Color(0.2, 0.5, 1.0)  # Blue
-		ElementTypes.WIND:
+		"wind":
 			return Color(0.8, 1.0, 0.9)  # Cyan
-		ElementTypes.EARTH:
+		"earth":
 			return Color(0.6, 0.4, 0.2)  # Brown
-		ElementTypes.SHADOW:
+		"shadow":
 			return Color(0.5, 0.3, 0.6)  # Purple
 		_:
 			return Color.WHITE

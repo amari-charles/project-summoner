@@ -31,8 +31,8 @@ var hand: Array[Card] = []
 var deck: Array[Card] = []
 var is_alive: bool = true
 
-## Hero data (loaded from profile when using PROFILE strategy)
-var _loaded_hero_data: Dictionary = {}
+## Hero instance (loaded from profile when using PROFILE strategy)
+var _loaded_hero_instance: HeroInstance = null
 
 ## Signals
 signal summoner_died(summoner: Summoner3D)
@@ -65,8 +65,8 @@ func _ready() -> void:
 
 	# Apply hero bonuses for player using PROFILE strategy
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
-		if not _loaded_hero_data.is_empty():
-			_apply_hero_bonuses(_loaded_hero_data)
+		if _loaded_hero_instance != null:
+			_apply_hero_bonuses(_loaded_hero_instance)
 
 	# For enemy summoners, load config from BattleContext
 	if team == Unit3D.Team.ENEMY:
@@ -281,8 +281,10 @@ func _load_profile_deck() -> Array[Card]:
 		var temp_array: Array = loaded_deck_variant
 		loaded_deck.assign(temp_array)
 
-	# Store hero data for later application in _ready()
-	_loaded_hero_data = deck_data.get("hero_data", {})
+	# Store hero instance for later application in _ready()
+	var hero_instance_variant: Variant = deck_data.get("hero_instance")
+	if hero_instance_variant is HeroInstance:
+		_loaded_hero_instance = hero_instance_variant
 
 	if loaded_deck.is_empty():
 		push_warning("Summoner3D: Failed to load from profile, falling back to static deck")
@@ -345,17 +347,27 @@ func _create_emergency_deck() -> Array[Card]:
 	return emergency_deck
 
 ## Apply hero bonuses to summoner stats
-func _apply_hero_bonuses(hero_data: Dictionary) -> void:
-	# Set base health from hero
-	var base_health: float = hero_data.get("base_health", 1000.0)
-	max_hp = base_health
+func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
+	if hero_instance == null:
+		push_warning("Summoner3D: Cannot apply bonuses from null HeroInstance")
+		return
 
-	# Set mana regen from hero
-	var hero_mana_regen: float = hero_data.get("mana_regen", 1.0)
+	# Get computed stats (includes modifiers)
+	var stats: Dictionary = hero_instance.get_computed_stats()
+
+	# Set health from hero (with modifiers applied)
+	var health: float = stats.get("health", 1000.0)
+	max_hp = health
+
+	# Set mana regen from hero (with modifiers applied)
+	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
 	mana_regen_rate = hero_mana_regen
 
-	# Note: max_mana from hero_data is not applied here because Summoner3D uses MANA_MAX constant
-	# In a future refactor, MANA_MAX could be made a variable and set from hero_data.get("max_mana")
+	# Note: max_mana from stats is not applied here because Summoner3D uses MANA_MAX constant
+	# In a future refactor, MANA_MAX could be made a variable and set from stats.get("max_mana")
 
-	var hero_name: String = hero_data.get("hero_name", "Unknown")
-	print("Summoner3D: Applied hero bonuses from '%s' - HP: %.0f, Mana Regen: %.1f/s" % [hero_name, max_hp, mana_regen_rate])
+	var hero_name: String = hero_instance.config.hero_name
+	var modifier_count: int = hero_instance.active_modifiers.size()
+	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d modifiers) - HP: %.0f, Mana Regen: %.1f/s" % [
+		hero_name, hero_instance.level, modifier_count, max_hp, mana_regen_rate
+	])

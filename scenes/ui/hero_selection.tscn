@@ -43,16 +43,16 @@ horizontal_alignment = 1
 [node name="SubtitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Each hero has unique stats that shape your playstyle"
+text = "Choose an element to discover your champion"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="HeroContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+[node name="HeroContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 20
 alignment = 1
 
 [node name="DialogueBox" parent="." instance=ExtResource("2_dialogue_box")]
