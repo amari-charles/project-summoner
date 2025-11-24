@@ -100,6 +100,7 @@ func _on_hero_selected(hero_id: String) -> void:
 
 ## Assign the selected hero to the starter deck
 func _assign_hero_to_starter_deck(hero_id: String) -> void:
+	print("HeroSelection: Attempting to assign hero '%s' to Starter Deck" % hero_id)
 	var decks: Node = get_node_or_null("/root/Decks")
 	if not decks:
 		push_error("HeroSelection: Decks service not found!")
@@ -108,12 +109,15 @@ func _assign_hero_to_starter_deck(hero_id: String) -> void:
 	# Find the "Starter Deck"
 	const STARTER_DECK_NAME: String = "Starter Deck"
 	var deck_list: Array = decks.call("list_decks")
+	print("HeroSelection: Found %d decks" % deck_list.size())
 	var starter_deck_id: String = ""
 
 	for deck: Variant in deck_list:
 		if deck is Dictionary:
+			print("HeroSelection: Checking deck '%s'" % deck.get("name", ""))
 			if deck.get("name", "") == STARTER_DECK_NAME:
 				starter_deck_id = deck.get("id", "")
+				print("HeroSelection: Found Starter Deck with ID: %s" % starter_deck_id)
 				break
 
 	if starter_deck_id.is_empty():
@@ -122,9 +126,10 @@ func _assign_hero_to_starter_deck(hero_id: String) -> void:
 
 	# Update the deck with the hero_id
 	if decks.has_method("set_deck_hero"):
+		print("HeroSelection: Calling set_deck_hero('%s', '%s')" % [starter_deck_id, hero_id])
 		var success: bool = decks.call("set_deck_hero", starter_deck_id, hero_id)
 		if success:
-			print("HeroSelection: Assigned hero '%s' to Starter Deck" % hero_id)
+			print("HeroSelection: Successfully assigned hero '%s' to Starter Deck" % hero_id)
 		else:
 			push_error("HeroSelection: Failed to assign hero to Starter Deck")
 	else:

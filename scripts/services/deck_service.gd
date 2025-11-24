@@ -305,6 +305,7 @@ func get_deck_hero(deck_id: String) -> String:
 ## Validate a deck
 ## Returns true if deck is valid and playable
 func validate_deck(deck_id: String) -> bool:
+	print("DeckService.validate_deck: Validating deck '%s'" % deck_id)
 	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		_emit_validation_failed(deck_id, "Deck not found")
@@ -312,6 +313,7 @@ func validate_deck(deck_id: String) -> bool:
 
 	# Check hero is set and unlocked
 	var hero_id: String = deck.get("hero_id", "")
+	print("DeckService.validate_deck: Deck hero_id = '%s'" % hero_id)
 	if hero_id.is_empty():
 		_emit_validation_failed(deck_id, "Deck has no hero assigned")
 		return false
@@ -322,7 +324,13 @@ func validate_deck(deck_id: String) -> bool:
 		if result is bool:
 			is_unlocked = result
 
+	print("DeckService.validate_deck: Hero '%s' unlocked = %s" % [hero_id, is_unlocked])
 	if not is_unlocked:
+		# Debug: Show what heroes ARE unlocked
+		var unlocked_heroes: Array = []
+		if _repo and _repo.has_method("get_unlocked_heroes"):
+			unlocked_heroes = _repo.call("get_unlocked_heroes")
+		print("DeckService.validate_deck: Unlocked heroes in profile: %s" % str(unlocked_heroes))
 		_emit_validation_failed(deck_id, "Hero not unlocked: %s" % hero_id)
 		return false
 
