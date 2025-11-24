@@ -49,7 +49,7 @@ var collection_summary: Array = []  # Array of collection entry dictionaries
 var deck_editing_locked: bool = false  # Tutorial mode lock
 
 ## Card widget scene
-const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
+const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
 
 ## =============================================================================
 ## LIFECYCLE
