@@ -86,6 +86,9 @@ func _on_hero_selected(hero_id: String) -> void:
 	else:
 		push_error("HeroSelection: ProfileRepo.set_starting_hero() not available!")
 
+	# Update starter deck with selected hero
+	_assign_hero_to_starter_deck(final_hero_id)
+
 	# Mark affinity selection event as completed
 	var campaign: Node = get_node("/root/Campaign")
 	if campaign and campaign.has_method("complete_battle"):
@@ -94,3 +97,35 @@ func _on_hero_selected(hero_id: String) -> void:
 
 	# Transition to reveal scene (hero data already saved in ProfileRepo)
 	SceneManager.change_scene(SceneManager.SCENE_HERO_REVEAL)
+
+## Assign the selected hero to the starter deck
+func _assign_hero_to_starter_deck(hero_id: String) -> void:
+	var decks: Node = get_node_or_null("/root/Decks")
+	if not decks:
+		push_error("HeroSelection: Decks service not found!")
+		return
+
+	# Find the "Starter Deck"
+	const STARTER_DECK_NAME: String = "Starter Deck"
+	var deck_list: Array = decks.call("list_decks")
+	var starter_deck_id: String = ""
+
+	for deck: Variant in deck_list:
+		if deck is Dictionary:
+			if deck.get("name", "") == STARTER_DECK_NAME:
+				starter_deck_id = deck.get("id", "")
+				break
+
+	if starter_deck_id.is_empty():
+		push_warning("HeroSelection: Starter Deck not found, hero will be assigned when deck is created")
+		return
+
+	# Update the deck with the hero_id
+	if decks.has_method("set_deck_hero"):
+		var success: bool = decks.call("set_deck_hero", starter_deck_id, hero_id)
+		if success:
+			print("HeroSelection: Assigned hero '%s' to Starter Deck" % hero_id)
+		else:
+			push_error("HeroSelection: Failed to assign hero to Starter Deck")
+	else:
+		push_error("HeroSelection: set_deck_hero method not available!")
