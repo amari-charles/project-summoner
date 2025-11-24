@@ -92,14 +92,42 @@ func get_deck_count() -> int:
 
 ## Create a new deck
 ## Returns: deck_id
-func create_deck(deck_name: String, card_instance_ids: Array = []) -> String:
+func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: String = "") -> String:
 	if _repo == null:
 		push_error("DeckService: Cannot create deck, repo not initialized")
 		return ""
 
+	# Determine hero_id
+	var final_hero_id: String = hero_id
+	if final_hero_id.is_empty():
+		# Default to first unlocked hero
+		var unlocked: Array = []
+		if _repo.has_method("get_unlocked_heroes"):
+			var result: Variant = _repo.call("get_unlocked_heroes")
+			if result is Array:
+				unlocked = result
+
+		if unlocked.is_empty():
+			push_error("DeckService: Cannot create deck - no heroes unlocked")
+			return ""
+
+		final_hero_id = unlocked[0]
+	else:
+		# Validate hero is unlocked
+		var is_unlocked: bool = false
+		if _repo.has_method("is_hero_unlocked"):
+			var result: Variant = _repo.call("is_hero_unlocked", final_hero_id)
+			if result is bool:
+				is_unlocked = result
+
+		if not is_unlocked:
+			push_error("DeckService: Cannot create deck - hero not unlocked: %s" % final_hero_id)
+			return ""
+
 	var deck: Dictionary = {
 		"name": deck_name,
-		"card_instance_ids": card_instance_ids
+		"card_instance_ids": card_instance_ids,
+		"hero_id": final_hero_id
 	}
 
 	var deck_id: String = ""
@@ -108,7 +136,7 @@ func create_deck(deck_name: String, card_instance_ids: Array = []) -> String:
 		if result is String:
 			deck_id = result
 
-	print("DeckService: Created deck '%s' (id: %s)" % [deck_name, deck_id])
+	print("DeckService: Created deck '%s' with hero '%s' (id: %s)" % [deck_name, final_hero_id, deck_id])
 	deck_created.emit(deck_id)
 	deck_changed.emit(deck_id)
 
@@ -116,7 +144,7 @@ func create_deck(deck_name: String, card_instance_ids: Array = []) -> String:
 
 ## Update an existing deck
 ## Returns true if successful
-func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Array = []) -> bool:
+func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Array = [], hero_id: String = "") -> bool:
 	if _repo == null:
 		push_error("DeckService: Cannot update deck, repo not initialized")
 		return false
@@ -132,10 +160,14 @@ func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Arr
 	var existing_cards: Variant = existing_deck.get("card_instance_ids", [])
 	var card_ids: Array = card_instance_ids if card_instance_ids.size() > 0 else (existing_cards if existing_cards is Array else [])
 
+	var existing_hero: Variant = existing_deck.get("hero_id", "")
+	var final_hero_id: String = hero_id if hero_id != "" else (existing_hero if existing_hero is String else "")
+
 	var updated_deck: Dictionary = {
 		"id": deck_id,
 		"name": deck_display_name,
-		"card_instance_ids": card_ids
+		"card_instance_ids": card_ids,
+		"hero_id": final_hero_id
 	}
 
 	var result_id: String = ""
@@ -221,6 +253,51 @@ func remove_card_from_deck(deck_id: String, card_instance_id: String) -> bool:
 
 	return update_deck(deck_id, "", card_instance_ids)
 
+## Set the hero for a deck
+## Returns true if successful
+func set_deck_hero(deck_id: String, hero_id: String) -> bool:
+	if _repo == null:
+		push_error("DeckService: Cannot set deck hero, repo not initialized")
+		return false
+
+	var deck: Dictionary = get_deck(deck_id)
+	if deck.is_empty():
+		push_warning("DeckService: Deck not found: %s" % deck_id)
+		return false
+
+	# Validate hero exists in catalog
+	var hero_catalog: Node = get_node("/root/HeroCatalog")
+	if hero_catalog and hero_catalog.has_method("is_valid_hero"):
+		var is_valid: Variant = hero_catalog.call("is_valid_hero", hero_id)
+		if is_valid is bool and not is_valid:
+			push_error("DeckService: Invalid hero_id: %s" % hero_id)
+			return false
+
+	# Validate hero is unlocked
+	var is_unlocked: bool = false
+	if _repo.has_method("is_hero_unlocked"):
+		var result: Variant = _repo.call("is_hero_unlocked", hero_id)
+		if result is bool:
+			is_unlocked = result
+
+	if not is_unlocked:
+		push_error("DeckService: Hero not unlocked for this profile: %s" % hero_id)
+		return false
+
+	return update_deck(deck_id, "", [], hero_id)
+
+## Get the hero ID for a deck
+## Returns empty string if deck not found or hero not set
+func get_deck_hero(deck_id: String) -> String:
+	var deck: Dictionary = get_deck(deck_id)
+	if deck.is_empty():
+		return ""
+
+	var hero_id: Variant = deck.get("hero_id", "")
+	if hero_id is String:
+		return hero_id
+	return ""
+
 ## =============================================================================
 ## DECK VALIDATION
 ## =============================================================================
@@ -231,6 +308,22 @@ func validate_deck(deck_id: String) -> bool:
 	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		_emit_validation_failed(deck_id, "Deck not found")
+		return false
+
+	# Check hero is set and unlocked
+	var hero_id: String = deck.get("hero_id", "")
+	if hero_id.is_empty():
+		_emit_validation_failed(deck_id, "Deck has no hero assigned")
+		return false
+
+	var is_unlocked: bool = false
+	if _repo and _repo.has_method("is_hero_unlocked"):
+		var result: Variant = _repo.call("is_hero_unlocked", hero_id)
+		if result is bool:
+			is_unlocked = result
+
+	if not is_unlocked:
+		_emit_validation_failed(deck_id, "Hero not unlocked: %s" % hero_id)
 		return false
 
 	var card_instance_ids: Array = deck.get("card_instance_ids", [])
@@ -269,6 +362,20 @@ func get_validation_errors(deck_id: String) -> Array[String]:
 	if deck.is_empty():
 		errors.append("Deck not found")
 		return errors
+
+	# Check hero
+	var hero_id: String = deck.get("hero_id", "")
+	if hero_id.is_empty():
+		errors.append("No hero assigned")
+	else:
+		var is_unlocked: bool = false
+		if _repo and _repo.has_method("is_hero_unlocked"):
+			var result: Variant = _repo.call("is_hero_unlocked", hero_id)
+			if result is bool:
+				is_unlocked = result
+
+		if not is_unlocked:
+			errors.append("Hero not unlocked: %s" % hero_id)
 
 	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 

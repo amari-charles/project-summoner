@@ -32,8 +32,35 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
-	# If loading enemy from campaign, override max_hp if specified
-	if load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+	# Initialize deck and apply hero bonuses (must happen before setting current_hp/mana)
+	if load_deck_from_profile and team == Unit.Team.PLAYER:
+		# Load deck from player's profile
+		print("Summoner: Loading deck from profile...")
+		var deck_data: Dictionary = DeckLoader.load_player_deck()
+		var cards_variant: Variant = deck_data.get("cards", [])
+		if cards_variant is Array:
+			var cards_array: Array = cards_variant
+			deck.assign(cards_array)
+		if deck.is_empty():
+			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
+		else:
+			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
+
+		# Apply hero bonuses
+		var hero_data: Dictionary = deck_data.get("hero_data", {})
+		if not hero_data.is_empty():
+			_apply_hero_bonuses(hero_data)
+	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+		# Load enemy deck from current campaign battle
+		print("Summoner: Loading enemy deck from campaign...")
+		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
+		if deck.is_empty():
+			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback deck.")
+			deck = starting_deck.duplicate()
+		else:
+			print("Summoner: Successfully loaded %d cards for enemy from campaign" % deck.size())
+
+		# Override enemy max_hp from campaign if specified
 		var campaign: Node = get_node_or_null("/root/Campaign")
 		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 		if campaign and profile_repo:
@@ -54,32 +81,14 @@ func _ready() -> void:
 				if battle.has("enemy_hp"):
 					max_hp = battle.get("enemy_hp")
 					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
-
-	current_hp = max_hp
-	mana = MANA_MAX
-
-	# Initialize deck
-	if load_deck_from_profile and team == Unit.Team.PLAYER:
-		# Load deck from player's profile
-		print("Summoner: Loading deck from profile...")
-		deck = DeckLoader.load_player_deck()
-		if deck.is_empty():
-			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
-		else:
-			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
-	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
-		# Load enemy deck from current campaign battle
-		print("Summoner: Loading enemy deck from campaign...")
-		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
-		if deck.is_empty():
-			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback deck.")
-			deck = starting_deck.duplicate()
-		else:
-			print("Summoner: Successfully loaded %d cards for enemy from campaign" % deck.size())
 	else:
 		# Use exported starting_deck (for testing/AI)
 		deck = starting_deck.duplicate()
 		print("Summoner: Using exported starting_deck (%d cards)" % deck.size())
+
+	# Initialize HP and mana
+	current_hp = max_hp
+	mana = MANA_MAX
 
 	deck.shuffle()
 
@@ -166,3 +175,19 @@ func take_damage(damage: float) -> void:
 func _die() -> void:
 	is_alive = false
 	summoner_died.emit(self)
+
+## Apply hero bonuses to summoner stats
+func _apply_hero_bonuses(hero_data: Dictionary) -> void:
+	# Set base health from hero
+	var base_health: float = hero_data.get("base_health", 1000.0)
+	max_hp = base_health
+
+	# Set mana regen from hero
+	var hero_mana_regen: float = hero_data.get("mana_regen", 1.0)
+	mana_regen_rate = hero_mana_regen
+
+	# Note: max_mana from hero_data is not applied here because Summoner uses MANA_MAX constant
+	# In a future refactor, MANA_MAX could be made a variable and set from hero_data.get("max_mana")
+
+	var hero_name: String = hero_data.get("hero_name", "Unknown")
+	print("Summoner: Applied hero bonuses from '%s' - HP: %.0f, Mana Regen: %.1f/s" % [hero_name, max_hp, mana_regen_rate])

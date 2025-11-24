@@ -1,23 +1,31 @@
 extends Node
 class_name DeckLoader
 
-## DeckLoader - Converts profile deck data to Card resources for battle
+## DeckLoader - Converts profile deck data to Card resources and hero for battle
 ##
 ## Static utility class that bridges the gap between:
-## - Profile deck data (array of card_instance_ids)
-## - Battle requirements (Array[Card] resources)
+## - Profile deck data (array of card_instance_ids + hero_id)
+## - Battle requirements (Array[Card] resources + hero data)
 
-## Load a specific deck by ID and convert to Card resources
-static func load_deck_for_battle(deck_id: String) -> Array[Card]:
+## Load a specific deck by ID and convert to Card resources with hero data
+## Returns: Dictionary with "cards", "hero_id", and "hero_data"
+static func load_deck_for_battle(deck_id: String) -> Dictionary:
+	var result: Dictionary = {
+		"cards": [],
+		"hero_id": "hero_fire",  # Default fallback
+		"hero_data": {}
+	}
 	var cards: Array[Card] = []
 
 	# Get services
 	var decks: Variant = _get_service("/root/Decks")
 	var collection: Variant = _get_service("/root/Collection")
+	var hero_catalog: Variant = _get_service("/root/HeroCatalog")
 
 	if not decks or not collection:
 		push_error("DeckLoader: Required services not found!")
-		return cards
+		result["cards"] = cards
+		return result
 
 	# Get deck data
 	var deck_variant: Variant = {}
@@ -27,7 +35,8 @@ static func load_deck_for_battle(deck_id: String) -> Array[Card]:
 	var deck: Dictionary = deck_variant if deck_variant is Dictionary else {}
 	if deck.is_empty():
 		push_warning("DeckLoader: Deck not found: %s" % deck_id)
-		return cards
+		result["cards"] = cards
+		return result
 
 	var card_instance_ids_variant: Variant = deck.get("card_instance_ids", [])
 	var card_instance_ids: Array = card_instance_ids_variant if card_instance_ids_variant is Array else []
@@ -38,7 +47,6 @@ static func load_deck_for_battle(deck_id: String) -> Array[Card]:
 
 	if card_instance_ids.is_empty():
 		print("DeckLoader: Deck '%s' is empty!" % deck_name)
-		return cards
 
 	# Convert each card instance to a Card resource
 	for instance_id_variant: Variant in card_instance_ids:
@@ -51,14 +59,47 @@ static func load_deck_for_battle(deck_id: String) -> Array[Card]:
 			push_warning("DeckLoader: Skipping invalid card instance: %s" % instance_id)
 
 	print("DeckLoader: Successfully loaded %d cards from deck '%s'" % [cards.size(), deck_name])
-	return cards
+
+	# Load hero data
+	var hero_id_variant: Variant = deck.get("hero_id", "hero_fire")
+	var hero_id: String = hero_id_variant if hero_id_variant is String else "hero_fire"
+
+	result["hero_id"] = hero_id
+	if hero_catalog:
+		var hero_data_variant: Variant = {}
+		if hero_catalog is Object:
+			var hero_catalog_obj: Object = hero_catalog
+			hero_data_variant = hero_catalog_obj.call("get_hero", hero_id)
+		var hero_data: Dictionary = hero_data_variant if hero_data_variant is Dictionary else {}
+		result["hero_data"] = hero_data
+
+		if hero_data.is_empty():
+			push_warning("DeckLoader: Hero not found '%s', using default" % hero_id)
+			result["hero_id"] = "hero_fire"
+			if hero_catalog is Object:
+				var hero_catalog_obj: Object = hero_catalog
+				hero_data_variant = hero_catalog_obj.call("get_hero", "hero_fire")
+			result["hero_data"] = hero_data_variant if hero_data_variant is Dictionary else {}
+	else:
+		push_warning("DeckLoader: HeroCatalog not found, hero data unavailable")
+
+	result["cards"] = cards
+	print("DeckLoader: Loaded hero '%s' for deck '%s'" % [result["hero_id"], deck_name])
+	return result
 
 ## Load the player's currently selected deck from profile
-static func load_player_deck() -> Array[Card]:
+## Returns: Dictionary with "cards", "hero_id", and "hero_data"
+static func load_player_deck() -> Dictionary:
+	var empty_result: Dictionary = {
+		"cards": [],
+		"hero_id": "hero_fire",
+		"hero_data": {}
+	}
+
 	var profile_repo: Variant = _get_service("/root/ProfileRepo")
 	if not profile_repo:
 		push_error("DeckLoader: ProfileRepo not found!")
-		return []
+		return empty_result
 
 	var profile_variant: Variant = {}
 	if profile_repo is Object:
@@ -67,7 +108,7 @@ static func load_player_deck() -> Array[Card]:
 	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
 	if profile.is_empty():
 		push_error("DeckLoader: No active profile!")
-		return []
+		return empty_result
 
 	# Get selected deck ID
 	var empty_dict: Dictionary = {}
@@ -102,10 +143,10 @@ static func load_player_deck() -> Array[Card]:
 				print("DeckLoader: No deck selected, using first deck: %s" % first_deck_name)
 			else:
 				push_error("DeckLoader: No decks available!")
-				return []
+				return empty_result
 		else:
 			push_error("DeckLoader: Decks service not found!")
-			return []
+			return empty_result
 
 	print("DeckLoader: Loading deck with ID: %s" % deck_id)
 	return load_deck_for_battle(deck_id)

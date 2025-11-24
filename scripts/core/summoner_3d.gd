@@ -31,6 +31,9 @@ var hand: Array[Card] = []
 var deck: Array[Card] = []
 var is_alive: bool = true
 
+## Hero data (loaded from profile when using PROFILE strategy)
+var _loaded_hero_data: Dictionary = {}
+
 ## Signals
 signal summoner_died(summoner: Summoner3D)
 signal card_played(card: Card)
@@ -57,6 +60,14 @@ func _ready() -> void:
 					print("Summoner3D: Battle uses event_sequence with empty enemy_deck - switching to DEFERRED strategy")
 					deck_load_strategy = DeckLoadStrategy.DEFERRED
 
+	# Initialize deck using strategy pattern (before HP/mana init for hero bonuses)
+	deck = _load_deck_by_strategy()
+
+	# Apply hero bonuses for player using PROFILE strategy
+	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
+		if not _loaded_hero_data.is_empty():
+			_apply_hero_bonuses(_loaded_hero_data)
+
 	# For enemy summoners, load config from BattleContext
 	if team == Unit3D.Team.ENEMY:
 		var battle_context: Node = get_node_or_null("/root/BattleContext")
@@ -69,11 +80,9 @@ func _ready() -> void:
 					max_hp = battle_config.get("enemy_hp")
 					print("Summoner3D: Set enemy HP from BattleContext: %d" % max_hp)
 
+	# Initialize HP and mana (after hero bonuses and enemy config)
 	current_hp = max_hp
 	mana = MANA_MAX
-
-	# Initialize deck using strategy pattern
-	deck = _load_deck_by_strategy()
 
 	# Handle empty deck - behavior depends on deck loading strategy
 	if deck.is_empty():
@@ -265,7 +274,15 @@ func _load_profile_deck() -> Array[Card]:
 				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
 
 	print("Summoner3D: Loading deck from player profile...")
-	var loaded_deck: Array[Card] = DeckLoader.load_player_deck()
+	var deck_data: Dictionary = DeckLoader.load_player_deck()
+	var loaded_deck_variant: Variant = deck_data.get("cards", [])
+	var loaded_deck: Array[Card] = []
+	if loaded_deck_variant is Array:
+		var temp_array: Array = loaded_deck_variant
+		loaded_deck.assign(temp_array)
+
+	# Store hero data for later application in _ready()
+	_loaded_hero_data = deck_data.get("hero_data", {})
 
 	if loaded_deck.is_empty():
 		push_warning("Summoner3D: Failed to load from profile, falling back to static deck")
@@ -326,3 +343,19 @@ func _create_emergency_deck() -> Array[Card]:
 		print("Summoner3D: Created emergency deck with %d cards" % emergency_deck.size())
 
 	return emergency_deck
+
+## Apply hero bonuses to summoner stats
+func _apply_hero_bonuses(hero_data: Dictionary) -> void:
+	# Set base health from hero
+	var base_health: float = hero_data.get("base_health", 1000.0)
+	max_hp = base_health
+
+	# Set mana regen from hero
+	var hero_mana_regen: float = hero_data.get("mana_regen", 1.0)
+	mana_regen_rate = hero_mana_regen
+
+	# Note: max_mana from hero_data is not applied here because Summoner3D uses MANA_MAX constant
+	# In a future refactor, MANA_MAX could be made a variable and set from hero_data.get("max_mana")
+
+	var hero_name: String = hero_data.get("hero_name", "Unknown")
+	print("Summoner3D: Applied hero bonuses from '%s' - HP: %.0f, Mana Regen: %.1f/s" % [hero_name, max_hp, mana_regen_rate])

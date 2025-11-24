@@ -211,6 +211,57 @@ func update_resources(delta: Dictionary) -> void:
 	data_changed.emit()
 
 ## =============================================================================
+## HERO OPERATIONS
+## =============================================================================
+
+## Get list of unlocked hero IDs
+func get_unlocked_heroes() -> Array:
+	return _data.get("unlocked_heroes", [])
+
+## Check if a specific hero is unlocked
+func is_hero_unlocked(hero_id: String) -> bool:
+	var unlocked: Array = _data.get("unlocked_heroes", [])
+	return hero_id in unlocked
+
+## Unlock a new hero
+func unlock_hero(hero_id: String) -> bool:
+	var unlocked: Array = _data.get("unlocked_heroes", [])
+	if hero_id not in unlocked:
+		unlocked.append(hero_id)
+		_data["unlocked_heroes"] = unlocked
+		_append_to_wal({"op": "unlock_hero", "hero_id": hero_id})
+		save_profile()
+		data_changed.emit()
+		return true
+	return false
+
+## Set starting hero (called during onboarding)
+## chosen_random: whether player selected "Random" option (passed to WAL for tracking)
+func set_starting_hero(hero_id: String, chosen_random: bool) -> bool:
+	# Validate this is called on a fresh profile
+	var unlocked: Array = _data.get("unlocked_heroes", [])
+	if not unlocked.is_empty():
+		push_error("ProfileRepo: Cannot set starting hero - heroes already unlocked")
+		return false
+
+	# Add hero
+	unlocked.append(hero_id)
+	_data["unlocked_heroes"] = unlocked
+
+	# Note: If chosen_random is true, the hero itself should have
+	# "fortune_favors_the_bold" in its traits array. This is handled
+	# by the hero creation/initialization logic, not by ProfileRepo.
+
+	_append_to_wal({
+		"op": "set_starting_hero",
+		"hero_id": hero_id,
+		"chosen_random": chosen_random
+	})
+	save_profile()
+	data_changed.emit()
+	return true
+
+## =============================================================================
 ## SHOP OPERATIONS
 ## =============================================================================
 
@@ -748,6 +799,7 @@ func _create_fresh_profile() -> void:
 		"collection": [
 			# Start with ZERO cards - build collection through campaign
 		],
+		"unlocked_heroes": [],  # Empty - populated after onboarding hero selection
 		"decks": [],
 		"deck_cards": [],
 		"campaign_progress": {
@@ -759,7 +811,6 @@ func _create_fresh_profile() -> void:
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}
 		},
 		"meta": {
-			"selected_hero": null,
 			"selected_deck": null,
 			"tutorial_flags": {},
 			"achievements": {},
