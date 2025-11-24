@@ -27,10 +27,10 @@ You win not by outspending, but by **out-summoning**: using timing, positioning,
 - Single-use cards — every deployment matters
 - Decks up to 30 cards, creating pacing from skirmish to all-out war
 
-### 3. Asymmetric Heroes & Fate
+### 3. Asymmetric Heroes & Choice
 
 - Collectable summoners with unique mana curves, affinities, and growth potential
-- First hero chosen by *fate* to create a unique player journey
+- First hero chosen by player during onboarding to create a unique journey
 
 ### 4. Meaningful Risk, Earned Reward
 
@@ -47,7 +47,7 @@ You win not by outspending, but by **out-summoning**: using timing, positioning,
 - **Single-use deck system** — Deep tactical decisions unlike any other mobile battler
 - **Summoner heroes as resource engines** — Bases with personality and strategic identity
 - **Optional wagers** — Emotional stakes without gambling
-- **Randomized fated origins** — Every player's story begins uniquely
+- **Player-chosen starting hero** — Choose your path or embrace randomness for bonus rewards
 - **Fast, pannable RTS feel** — Real-time readability built for mobile and desktop
 
 ## Tone & Emotion

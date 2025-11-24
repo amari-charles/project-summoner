@@ -86,6 +86,51 @@ When a melee unit (e.g., slime) gets directly on top of a ranged unit (e.g., arc
 - Affects all ranged vs melee matchups
 - May be related to ProjectileTargetPoint position or projectile collision setup
 
+#### Battles Not Working on First Play with Dialogue
+**Status:** Open
+**Reported:** 2025-01-24
+**Component:** Battle System / Dialogue / Event Sequencer
+**Type:** Gameplay Bug
+
+**Description:**
+Battles are not functioning properly the first time they are played when dialogue or event sequences are involved. The exact nature of the malfunction needs investigation.
+
+**Expected Behavior:**
+- Battle should start correctly on first play
+- Dialogue/event sequences should display properly
+- Player should be able to complete the battle normally
+- All battle systems should initialize correctly on first run
+
+**Current Behavior:**
+- Battles fail to work properly on initial playthrough when dialogue is involved
+- Issue appears specific to first-time play (may work on subsequent attempts)
+- Dialogue or event sequencer may not be initializing correctly
+
+**Impact:**
+- Breaks first-time player experience
+- Makes tutorial and story battles unplayable
+- Creates negative first impression
+- Blocks campaign progression on first attempt
+
+**Proposed Solution:**
+- Investigate initialization order of battle systems with dialogue
+- Check for race conditions between event sequencer, dialogue controller, and battle controller
+- Verify all signals and connections are set up before first use
+- Add proper initialization sequencing and ready checks
+- May be related to Battle Marked Complete bug (see above)
+
+**Related Files:**
+- `scripts/core/battle_dialogue_controller.gd` - Dialogue integration with battles
+- `scripts/services/event_sequencer.gd` - Event sequence handling
+- `scripts/core/game_controller_3d.gd` - Battle initialization
+- `scripts/services/campaign_service.gd` - Battle startup logic
+
+**Notes:**
+- High priority - affects first-time user experience
+- Need detailed reproduction steps and error logs
+- May be related to event sequence completion tracking bug
+- Investigate whether this is a timing/initialization issue
+
 ### 🟡 MEDIUM PRIORITY
 
 #### Battle Marked Complete When Starting Event Sequence

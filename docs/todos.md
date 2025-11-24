@@ -936,25 +936,26 @@ Design and implement the UI screen where players choose their hero before battle
 
 ---
 
-#### Implement Hero Roll/Randomization System
+#### Implement Hero Unlock System (Post-MVP)
 **Status:** ⬜ Not Started
-**Category:** Heroes
+**Category:** Heroes / Progression
 **Effort:** Medium
-**Dependencies:** Design Hero Data Structure
+**Dependencies:** MVP Hero System, Campaign Progression
 
 **Description:**
-Implement the system for random hero selection/roll mechanics (roguelike style).
+Implement the system for unlocking additional heroes beyond the starting hero.
 
 **Requirements:**
-- Random hero generation/selection
-- Rarity/tier system (if applicable)
-- Unlock progression
-- Save/load integration
+- Hero unlock conditions (campaign milestones, achievements)
+- UI for hero collection/roster management
+- Save/load integration for unlocked heroes
+- Hero switching between campaigns/decks
 
 **Notes:**
-- Adds replayability
-- Consider if this replaces or complements direct selection
-- Balance unlock curve
+- **MVP**: Player chooses starting hero during onboarding (4 core elements + Random option)
+- **Post-MVP**: This system allows unlocking additional heroes through gameplay
+- Random option at start grants "Fortune Favors the Bold" profile bonus
+- Adds long-term replayability with different hero builds
 
 ---
 
