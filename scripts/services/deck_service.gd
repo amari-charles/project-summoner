@@ -24,9 +24,6 @@ signal deck_created(deck_id: String)
 signal deck_deleted(deck_id: String)
 signal validation_failed(deck_id: String, reason: String)
 
-## Repository reference (injected by autoload order)
-var _repo: Node = null  # JsonProfileRepo instance
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -34,18 +31,8 @@ var _repo: Node = null  # JsonProfileRepo instance
 func _ready() -> void:
 	print("DeckService: Initializing...")
 
-	# Wait for ProfileRepo to be ready
-	await get_tree().process_frame
-
-	_repo = get_node("/root/ProfileRepo")
-	if _repo == null:
-		push_error("DeckService: ProfileRepo not found! Ensure it's registered as autoload.")
-		return
-
-	# Connect to repo signals
-	if _repo.has_signal("data_changed"):
-		var data_changed_signal: Signal = _repo.get("data_changed")
-		data_changed_signal.connect(_on_repo_data_changed)
+	# Connect to repo signals for reactive updates
+	ProfileRepo.data_changed.connect(_on_repo_data_changed)
 
 	print("DeckService: Ready")
 
@@ -55,28 +42,14 @@ func _ready() -> void:
 
 ## Get all decks for the current profile
 func list_decks() -> Array[Dictionary]:
-	if _repo == null:
-		return []
-	if _repo.has_method("list_decks"):
-		var result: Variant = _repo.call("list_decks")
-		if result is Array:
-			var result_array: Array = result
-			var typed_result: Array[Dictionary] = []
-			typed_result.assign(result_array)
-			return typed_result
-	return []
+	var result: Array = ProfileRepo.list_decks()
+	var typed_result: Array[Dictionary] = []
+	typed_result.assign(result)
+	return typed_result
 
 ## Get a specific deck by ID
 func get_deck(deck_id: String) -> Dictionary:
-	if _repo == null:
-		var empty: Dictionary = {}
-		return empty
-	if _repo.has_method("get_deck"):
-		var result: Variant = _repo.call("get_deck", deck_id)
-		if result is Dictionary:
-			return result
-	var default: Dictionary = {}
-	return default
+	return ProfileRepo.get_deck(deck_id)
 
 ## Check if a deck exists
 func has_deck(deck_id: String) -> bool:
@@ -93,19 +66,11 @@ func get_deck_count() -> int:
 ## Create a new deck
 ## Returns: deck_id
 func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: String = "") -> String:
-	if _repo == null:
-		push_error("DeckService: Cannot create deck, repo not initialized")
-		return ""
-
 	# Determine hero_id
 	var final_hero_id: String = hero_id
 	if final_hero_id.is_empty():
 		# Default to first unlocked hero
-		var unlocked: Array = []
-		if _repo.has_method("get_unlocked_heroes"):
-			var result: Variant = _repo.call("get_unlocked_heroes")
-			if result is Array:
-				unlocked = result
+		var unlocked: Array = ProfileRepo.get_unlocked_heroes()
 
 		if unlocked.is_empty():
 			push_error("DeckService: Cannot create deck - no heroes unlocked")
@@ -114,13 +79,7 @@ func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: Stri
 		final_hero_id = unlocked[0]
 	else:
 		# Validate hero is unlocked
-		var is_unlocked: bool = false
-		if _repo.has_method("is_hero_unlocked"):
-			var result: Variant = _repo.call("is_hero_unlocked", final_hero_id)
-			if result is bool:
-				is_unlocked = result
-
-		if not is_unlocked:
+		if not ProfileRepo.is_hero_unlocked(final_hero_id):
 			push_error("DeckService: Cannot create deck - hero not unlocked: %s" % final_hero_id)
 			return ""
 
@@ -130,11 +89,7 @@ func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: Stri
 		"hero_id": final_hero_id
 	}
 
-	var deck_id: String = ""
-	if _repo.has_method("upsert_deck"):
-		var result: Variant = _repo.call("upsert_deck", deck)
-		if result is String:
-			deck_id = result
+	var deck_id: String = ProfileRepo.upsert_deck(deck)
 
 	print("DeckService: Created deck '%s' with hero '%s' (id: %s)" % [deck_name, final_hero_id, deck_id])
 	deck_created.emit(deck_id)
@@ -145,10 +100,6 @@ func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: Stri
 ## Update an existing deck
 ## Returns true if successful
 func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Array = [], hero_id: String = "") -> bool:
-	if _repo == null:
-		push_error("DeckService: Cannot update deck, repo not initialized")
-		return false
-
 	var existing_deck: Dictionary = get_deck(deck_id)
 	if existing_deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
@@ -170,11 +121,7 @@ func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Arr
 		"hero_id": final_hero_id
 	}
 
-	var result_id: String = ""
-	if _repo.has_method("upsert_deck"):
-		var result: Variant = _repo.call("upsert_deck", updated_deck)
-		if result is String:
-			result_id = result
+	var result_id: String = ProfileRepo.upsert_deck(updated_deck)
 
 	if result_id != "":
 		print("DeckService: Updated deck '%s'" % deck_id)
@@ -187,15 +134,7 @@ func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Arr
 ## Delete a deck
 ## Returns true if successful
 func delete_deck(deck_id: String) -> bool:
-	if _repo == null:
-		push_error("DeckService: Cannot delete deck, repo not initialized")
-		return false
-
-	var success: bool = false
-	if _repo.has_method("delete_deck"):
-		var result: Variant = _repo.call("delete_deck", deck_id)
-		if result is bool:
-			success = result
+	var success: bool = ProfileRepo.delete_deck(deck_id)
 
 	if success:
 		print("DeckService: Deleted deck '%s'" % deck_id)
@@ -221,14 +160,10 @@ func add_card_to_deck(deck_id: String, card_instance_id: String) -> bool:
 		return false
 
 	# Check if card exists in collection
-	var collection: Node = get_node("/root/Collection")
-	if collection and collection.has_method("get_card"):
-		var card_result: Variant = collection.call("get_card", card_instance_id)
-		if card_result is Dictionary:
-			var card_dict: Dictionary = card_result
-			if card_dict.is_empty():
-				push_warning("DeckService: Card instance not found in collection: %s" % card_instance_id)
-				return false
+	var card: Dictionary = Collection.get_card(card_instance_id)
+	if card.is_empty():
+		push_warning("DeckService: Card instance not found in collection: %s" % card_instance_id)
+		return false
 
 	card_instance_ids.append(card_instance_id)
 
@@ -256,31 +191,18 @@ func remove_card_from_deck(deck_id: String, card_instance_id: String) -> bool:
 ## Set the hero for a deck
 ## Returns true if successful
 func set_deck_hero(deck_id: String, hero_id: String) -> bool:
-	if _repo == null:
-		push_error("DeckService: Cannot set deck hero, repo not initialized")
-		return false
-
 	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
 		return false
 
 	# Validate hero exists in catalog
-	var hero_catalog: Node = get_node("/root/HeroCatalog")
-	if hero_catalog and hero_catalog.has_method("is_valid_hero"):
-		var is_valid: Variant = hero_catalog.call("is_valid_hero", hero_id)
-		if is_valid is bool and not is_valid:
-			push_error("DeckService: Invalid hero_id: %s" % hero_id)
-			return false
+	if not HeroCatalog.is_valid_hero(hero_id):
+		push_error("DeckService: Invalid hero_id: %s" % hero_id)
+		return false
 
 	# Validate hero is unlocked
-	var is_unlocked: bool = false
-	if _repo.has_method("is_hero_unlocked"):
-		var result: Variant = _repo.call("is_hero_unlocked", hero_id)
-		if result is bool:
-			is_unlocked = result
-
-	if not is_unlocked:
+	if not ProfileRepo.is_hero_unlocked(hero_id):
 		push_error("DeckService: Hero not unlocked for this profile: %s" % hero_id)
 		return false
 
@@ -316,13 +238,7 @@ func validate_deck(deck_id: String) -> bool:
 		_emit_validation_failed(deck_id, "Deck has no hero assigned")
 		return false
 
-	var is_unlocked: bool = false
-	if _repo and _repo.has_method("is_hero_unlocked"):
-		var result: Variant = _repo.call("is_hero_unlocked", hero_id)
-		if result is bool:
-			is_unlocked = result
-
-	if not is_unlocked:
+	if not ProfileRepo.is_hero_unlocked(hero_id):
 		_emit_validation_failed(deck_id, "Hero not unlocked: %s" % hero_id)
 		return false
 
@@ -339,16 +255,12 @@ func validate_deck(deck_id: String) -> bool:
 		return false
 
 	# Validate all cards exist in collection
-	var collection: Node = get_node("/root/Collection")
-	if collection and collection.has_method("get_card"):
-		for card_instance_id: Variant in card_instance_ids:
-			if card_instance_id is String:
-				var card_result: Variant = collection.call("get_card", card_instance_id)
-				if card_result is Dictionary:
-					var card_dict: Dictionary = card_result
-					if card_dict.is_empty():
-						_emit_validation_failed(deck_id, "Card instance not found in collection: %s" % card_instance_id)
-						return false
+	for card_instance_id: Variant in card_instance_ids:
+		if card_instance_id is String:
+			var card: Dictionary = Collection.get_card(card_instance_id)
+			if card.is_empty():
+				_emit_validation_failed(deck_id, "Card instance not found in collection: %s" % card_instance_id)
+				return false
 
 	# All checks passed
 	return true
@@ -367,15 +279,8 @@ func get_validation_errors(deck_id: String) -> Array[String]:
 	var hero_id: String = deck.get("hero_id", "")
 	if hero_id.is_empty():
 		errors.append("No hero assigned")
-	else:
-		var is_unlocked: bool = false
-		if _repo and _repo.has_method("is_hero_unlocked"):
-			var result: Variant = _repo.call("is_hero_unlocked", hero_id)
-			if result is bool:
-				is_unlocked = result
-
-		if not is_unlocked:
-			errors.append("Hero not unlocked: %s" % hero_id)
+	elif not ProfileRepo.is_hero_unlocked(hero_id):
+		errors.append("Hero not unlocked: %s" % hero_id)
 
 	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 
@@ -387,19 +292,15 @@ func get_validation_errors(deck_id: String) -> Array[String]:
 		errors.append("Deck has %d too many cards (maximum: %d)" % [card_instance_ids.size() - MAX_DECK_SIZE, MAX_DECK_SIZE])
 
 	# Check missing cards
-	var collection: Node = get_node("/root/Collection")
-	if collection and collection.has_method("get_card"):
-		var missing_count: int = 0
-		for card_instance_id: Variant in card_instance_ids:
-			if card_instance_id is String:
-				var card_result: Variant = collection.call("get_card", card_instance_id)
-				if card_result is Dictionary:
-					var card_dict: Dictionary = card_result
-					if card_dict.is_empty():
-						missing_count += 1
+	var missing_count: int = 0
+	for card_instance_id: Variant in card_instance_ids:
+		if card_instance_id is String:
+			var card: Dictionary = Collection.get_card(card_instance_id)
+			if card.is_empty():
+				missing_count += 1
 
-		if missing_count > 0:
-			errors.append("%d cards no longer exist in collection" % missing_count)
+	if missing_count > 0:
+		errors.append("%d cards no longer exist in collection" % missing_count)
 
 	return errors
 
@@ -411,22 +312,16 @@ func clean_deck(deck_id: String) -> int:
 		return 0
 
 	var card_instance_ids: Array = deck.get("card_instance_ids", [])
-	var collection: Node = get_node("/root/Collection")
-	if not collection or not collection.has_method("get_card"):
-		return 0
-
 	var valid_cards: Array = []
 	var removed_count: int = 0
 
 	for card_instance_id: Variant in card_instance_ids:
 		if card_instance_id is String:
-			var card_result: Variant = collection.call("get_card", card_instance_id)
-			if card_result is Dictionary:
-				var card_dict: Dictionary = card_result
-				if not card_dict.is_empty():
-					valid_cards.append(card_instance_id)
-				else:
-					removed_count += 1
+			var card: Dictionary = Collection.get_card(card_instance_id)
+			if not card.is_empty():
+				valid_cards.append(card_instance_id)
+			else:
+				removed_count += 1
 
 	if removed_count > 0:
 		update_deck(deck_id, "", valid_cards)

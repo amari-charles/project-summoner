@@ -126,6 +126,21 @@ func get_deck(deck_id: String) -> Dictionary:
 	return empty
 
 ## =============================================================================
+## CAMPAIGN PROGRESS OPERATIONS
+## =============================================================================
+
+## Get campaign progress data (completed battles, current battle, etc.)
+func get_campaign_progress() -> Dictionary:
+	push_error("IProfileRepo.get_campaign_progress() not implemented")
+	var empty: Dictionary = {}
+	return empty
+
+## Update campaign progress data
+## progress: {completed_battles: Array[String], current_battle: String or null}
+func update_campaign_progress(progress: Dictionary) -> void:
+	push_error("IProfileRepo.update_campaign_progress() not implemented")
+
+## =============================================================================
 ## METADATA OPERATIONS
 ## =============================================================================
 

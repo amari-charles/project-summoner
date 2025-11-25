@@ -18,9 +18,6 @@ signal resources_changed(gold: int, essence: int, fragments: int)
 signal transaction_completed(delta: Dictionary)
 signal transaction_failed(reason: String)
 
-## Repository reference (injected by autoload order)
-var _repo: Node = null  # JsonProfileRepo instance
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -28,18 +25,8 @@ var _repo: Node = null  # JsonProfileRepo instance
 func _ready() -> void:
 	print("EconomyService: Initializing...")
 
-	# Wait for ProfileRepo to be ready
-	await get_tree().process_frame
-
-	_repo = get_node("/root/ProfileRepo")
-	if _repo == null:
-		push_error("EconomyService: ProfileRepo not found! Ensure it's registered as autoload.")
-		return
-
-	# Connect to repo signals
-	if _repo.has_signal("data_changed"):
-		var data_changed_signal: Signal = _repo.get("data_changed")
-		data_changed_signal.connect(_on_repo_data_changed)
+	# Connect to repo signals for reactive updates
+	ProfileRepo.data_changed.connect(_on_repo_data_changed)
 
 	print("EconomyService: Ready")
 
@@ -52,15 +39,7 @@ func _ready() -> void:
 
 ## Get current resource values
 func get_resources() -> Dictionary:
-	if _repo == null:
-		var empty: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
-		return empty
-	if _repo.has_method("get_resources"):
-		var result: Variant = _repo.call("get_resources")
-		if result is Dictionary:
-			return result
-	var default: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
-	return default
+	return ProfileRepo.get_resources()
 
 ## Get specific resource amount
 func get_gold() -> int:
@@ -145,12 +124,7 @@ func grant_rewards(rewards: Dictionary) -> void:
 ## =============================================================================
 
 func _update_resources(delta: Dictionary) -> void:
-	if _repo == null:
-		push_error("EconomyService: Cannot update resources, repo not initialized")
-		return
-
-	if _repo.has_method("update_resources"):
-		_repo.call("update_resources", delta)
+	ProfileRepo.update_resources(delta)
 	transaction_completed.emit(delta)
 	_emit_current_resources()
 

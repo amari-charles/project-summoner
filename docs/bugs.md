@@ -96,6 +96,103 @@ const SCORE_AGGRESSIVE_BONUS: float = 5.0
 
 ---
 
+### 🟡 MEDIUM PRIORITY
+
+#### WAL (Write-Ahead Log) Uses Inconsistent Key Names
+**Status:** Open
+**Reported:** 2025-11-25
+**Component:** Database / ProfileRepository
+**Type:** Data Consistency Issue
+
+**Description:**
+The Write-Ahead Log in `json_profile_repository.gd` uses inconsistent key names for entries, which will break future WAL replay/sync functionality.
+
+**Expected Behavior:**
+- All WAL entries use consistent format: `{"action": "...", "params": {...}}`
+
+**Current Behavior:**
+- Some entries use `"action"` + `"params"` keys
+- Other entries use `"op"` key (e.g., `{"op": "unlock_hero", "hero_id": hero_id}`)
+
+**Impact:**
+- WAL replay logic would need special handling for each format
+- Inconsistency makes cloud sync harder to implement
+- May cause bugs if WAL replay is implemented without accounting for both formats
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:219-222` - uses "action"/"params"
+- `scripts/data/json_profile_repository.gd:246` - uses "op"
+
+**Proposed Solution:**
+Standardize all WAL entries to use `{"action": "...", "params": {...}}` format.
+
+---
+
+#### UUID Generation Is Weak and Could Cause Collisions
+**Status:** Open
+**Reported:** 2025-11-25
+**Component:** Database / ProfileRepository
+**Type:** Data Integrity Risk
+
+**Description:**
+The `_generate_uuid()` function uses weak entropy sources that could produce duplicate IDs.
+
+**Expected Behavior:**
+- UUID collisions should be astronomically unlikely
+- IDs should be unique across sessions
+
+**Current Behavior:**
+```gdscript
+func _generate_uuid() -> String:
+    var timestamp: int = Time.get_ticks_msec()  # Wraps after ~49 days
+    var random: int = randi()  # Predictable without randomize()
+    return "%x-%x" % [timestamp, random]
+```
+
+**Impact:**
+- Two IDs generated in same millisecond with same randi seed = collision
+- Could cause card/deck duplication bugs
+- Not critical now but will be as player base grows
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:989-993`
+
+**Proposed Solution:**
+Add more entropy: use `Time.get_unix_time_from_system()`, `Time.get_ticks_usec()`, and multiple `randi()` calls.
+
+---
+
+#### Backup Rotation Happens After Write Success
+**Status:** Open
+**Reported:** 2025-11-25
+**Component:** Database / ProfileRepository
+**Type:** Data Safety Issue
+
+**Description:**
+Backup files are rotated after the main write succeeds, meaning a crash between write and rotation loses a backup generation.
+
+**Expected Behavior:**
+- Backups should be rotated BEFORE the new write
+- Pattern: rotate bak1→bak2, copy main→bak1, THEN write new main
+
+**Current Behavior:**
+```gdscript
+if _atomic_write(_data, temp_path, main_path):
+    _rotate_backups(...)  # Crash here = lost backup
+```
+
+**Impact:**
+- Low probability but could reduce recovery options after crash
+- Players could lose more progress than necessary
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:810-811`
+
+**Proposed Solution:**
+Reorder to: rotate backups first, then atomic write.
+
+---
+
 ## Bug Report Template
 
 ```markdown
@@ -134,4 +231,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-11-24 - Moved resolved bugs to bugs-resolved.md*
+*Last Updated: 2025-11-25 - Added database bugs from comprehensive review*

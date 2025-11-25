@@ -708,6 +708,31 @@ func get_deck(deck_id: String) -> Dictionary:
 	return not_found
 
 ## =============================================================================
+## CAMPAIGN PROGRESS OPERATIONS
+## =============================================================================
+
+func get_campaign_progress() -> Dictionary:
+	var empty_progress: Dictionary = {"completed_battles": [], "current_battle": null}
+	var progress_variant: Variant = _data.get("campaign_progress", empty_progress)
+	if progress_variant is Dictionary:
+		return progress_variant
+	return empty_progress
+
+func update_campaign_progress(progress: Dictionary) -> void:
+	if not _data.has("campaign_progress"):
+		_data["campaign_progress"] = {"completed_battles": [], "current_battle": null}
+
+	var current_progress_variant: Variant = _data.get("campaign_progress")
+	if current_progress_variant is Dictionary:
+		var current_progress: Dictionary = current_progress_variant
+		for key: String in progress:
+			current_progress[key] = progress[key]
+
+	_append_to_wal({"action": "update_campaign_progress", "params": progress})
+	save_profile(true)  # Immediate save for campaign progress
+	data_changed.emit()
+
+## =============================================================================
 ## METADATA OPERATIONS
 ## =============================================================================
 

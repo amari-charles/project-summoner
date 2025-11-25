@@ -203,6 +203,279 @@ Design and implement additional spell cards for more strategic variety.
 
 ---
 
+## Database & Data Layer
+
+### 🔴 HIGH PRIORITY
+
+#### Consolidate Dual Catalog System (CardCatalog vs ContentCatalog)
+**Status:** ⬜ Not Started
+**Category:** Database / Architecture
+**Effort:** Medium
+
+**Description:**
+The codebase has TWO card catalog systems with incompatible data formats, creating confusion and potential bugs.
+
+**Current State:**
+| Feature | CardCatalog | ContentCatalog |
+|---------|-------------|----------------|
+| Source | Hardcoded GDScript | JSON files |
+| Card Type | `int` (0, 1) | `String` ("summon") |
+| Cards | ~21 cards | 4 cards |
+| Used By | All gameplay | Rarely |
+
+**Problems:**
+- `CardCatalog` uses `card_type: int` (0 = SUMMON, 1 = SPELL)
+- `ContentCatalog/CardData` uses `card_type: String` ("summon", "spell")
+- Type mismatches if systems are used together
+- Duplicate maintenance burden
+
+**Requirements:**
+- Decide: keep CardCatalog (hardcoded) OR migrate to ContentCatalog (JSON)
+- Remove the unused system entirely
+- Ensure consistent type format across remaining system
+
+**Recommendation:**
+Keep `CardCatalog` for now (it has all the cards), remove card-loading from `ContentCatalog`. Later migrate CardCatalog to JSON when content volume grows.
+
+**Related Files:**
+- `scripts/data/card_catalog.gd` - Primary system (26KB, 21 cards)
+- `scripts/data/content_catalog.gd` - Secondary system (loads JSON)
+- `scripts/data/card_data.gd` - JSON card format
+
+---
+
+#### Fix Services Using Dynamic call() Instead of Typed Access
+**Status:** ✅ Completed (2025-11-25)
+**Category:** Database / Code Quality
+**Effort:** Small
+
+**Description:**
+Domain services use `has_method()` + `call()` pattern instead of direct typed method calls, defeating the purpose of having a typed interface.
+
+**Current Pattern (fragile):**
+```gdscript
+if _repo.has_method("get_resources"):
+    var result: Variant = _repo.call("get_resources")
+    if result is Dictionary:
+        return result
+```
+
+**Correct Pattern (used by ShopService):**
+```gdscript
+var resources: Dictionary = ProfileRepo.get_resources()
+```
+
+**Problems:**
+- Bypasses compile-time type checking
+- Slower than direct calls
+- Extra boilerplate in every method
+
+**Requirements:**
+- Update EconomyService, CollectionService, DeckService, CampaignService
+- Use direct `ProfileRepo.method()` calls
+- Remove `has_method()` guards
+
+**Related Files:**
+- `scripts/services/economy_service.gd:59` (and throughout)
+- `scripts/services/collection_service.gd:64` (and throughout)
+- `scripts/services/deck_service.gd:61` (and throughout)
+- `scripts/services/campaign_service.gd:213` (and throughout)
+- `scripts/services/shop_service.gd` - Already correct (use as reference)
+
+---
+
+#### Fix JsonProfileRepository Not Extending IProfileRepo Interface
+**Status:** ⬜ Not Started
+**Category:** Database / Architecture
+**Effort:** Small
+
+**Description:**
+`JsonProfileRepository` extends `Node` instead of `IProfileRepo`, making the interface unused.
+
+**Current:**
+```gdscript
+# json_profile_repository.gd
+extends Node  # Wrong!
+
+# profile_repository.gd
+extends Node
+class_name IProfileRepo
+```
+
+**Impact:**
+- Interface exists but isn't enforced
+- Can't swap implementations without breaking things
+- Defeats purpose of repository pattern
+
+**Requirements:**
+- Change `JsonProfileRepository` to `extends IProfileRepo`
+- Ensure all interface methods are properly overridden
+- Test that everything still works
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:1`
+- `scripts/data/profile_repository.gd`
+
+---
+
+### 🟡 MEDIUM PRIORITY
+
+#### Add Cascade Delete When Removing Cards from Collection
+**Status:** ⬜ Not Started
+**Category:** Database / Data Integrity
+**Effort:** Small
+
+**Description:**
+When a card is removed from collection (`ProfileRepo.remove_card()`), it's not automatically removed from decks. This leaves orphaned references.
+
+**Current Behavior:**
+- Card removed from collection
+- Decks still reference the deleted card instance ID
+- `DeckService.clean_deck()` exists but must be called manually
+
+**Requirements:**
+- Add cascade delete in `remove_card()` to also remove from all decks
+- Or: auto-call `clean_deck()` for all affected decks
+- Add validation to prevent orphan references
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:453-485` - `remove_card()`
+- `scripts/services/deck_service.gd:408-435` - `clean_deck()`
+
+---
+
+#### Localize HeroCatalog Names (Currently Hardcoded English)
+**Status:** ⬜ Not Started
+**Category:** Database / Localization
+**Effort:** Small
+
+**Description:**
+HeroCatalog stores hardcoded English strings for hero names and descriptions, even though localization keys exist in `en.json`.
+
+**Current:**
+```gdscript
+hero_fire.hero_name = "Pyralis"  # Hardcoded!
+hero_fire.description = "Master of flame and passion"
+```
+
+**Localization Keys Exist:**
+```json
+"hero": {
+  "hero_fire": {
+    "name": "Pyralis",
+    "description": "Master of flame and passion"
+  }
+}
+```
+
+**Requirements:**
+- Replace hardcoded strings with `Loc.t()` calls
+- Example: `hero_fire.hero_name = Loc.t("hero.hero_fire.name")`
+
+**Related Files:**
+- `scripts/data/hero_catalog.gd:35-87` - All hero definitions
+- `localization/data/en.json:214-241` - Existing keys
+
+---
+
+#### Add Schema Validation for JSON Content Loading
+**Status:** ⬜ Not Started
+**Category:** Database / Data Validation
+**Effort:** Medium
+
+**Description:**
+`ContentCatalog` loads JSON files without validating required fields. Missing fields silently use defaults which can cause bugs later.
+
+**Current:**
+```gdscript
+func _load_unit_from_file(file_path: String) -> UnitData:
+    # ... parse JSON ...
+    return UnitData.from_dict(data_dict)  # No validation!
+```
+
+**Problems:**
+- Missing `unit_id` silently becomes empty string
+- Invalid stats (negative HP) not caught at load time
+- Errors surface much later during gameplay
+
+**Requirements:**
+- Add required field validation in `from_dict()` methods
+- Return null and log error if required fields missing
+- Validate stat ranges (HP > 0, etc.)
+
+**Related Files:**
+- `scripts/data/content_catalog.gd:57-83`
+- `scripts/data/unit_data.gd:50-107` - `from_dict()`
+- `scripts/data/card_data.gd:43-78` - `from_dict()`
+
+---
+
+#### Add CampaignProgress Methods to ProfileRepo
+**Status:** ✅ Completed (2025-11-25)
+**Category:** Database / Architecture
+**Effort:** Small
+
+**Description:**
+`CampaignService` bypasses the service layer and directly mutates `profile["campaign_progress"]`. This violates the repository pattern.
+
+**Current (direct mutation):**
+```gdscript
+var campaign_progress: Dictionary = profile["campaign_progress"]
+campaign_progress["completed_battles"] = _completed_battles.duplicate()
+_profile_repo.call("save_profile", true)
+```
+
+**Expected (through repository):**
+```gdscript
+ProfileRepo.update_campaign_progress({"completed_battles": _completed_battles})
+```
+
+**Requirements:**
+- Add `get_campaign_progress()` to ProfileRepo
+- Add `update_campaign_progress()` to ProfileRepo
+- Update CampaignService to use new methods
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd` - Add methods
+- `scripts/data/profile_repository.gd` - Add interface methods
+- `scripts/services/campaign_service.gd:230-255` - Update to use repo
+
+---
+
+### 🟢 LOW PRIORITY
+
+#### Clean Up Redundant/Unused Profile Data Fields
+**Status:** ⬜ Not Started
+**Category:** Database / Cleanup
+**Effort:** Small
+
+**Description:**
+The profile data structure has redundant and unused fields that waste storage and create confusion.
+
+**Issues:**
+1. **Duplicated `profile_id`**: Stored at root AND inside `resources`
+   ```json
+   "profile_id": "default",
+   "resources": {
+     "profile_id": "default",  // Redundant
+   }
+   ```
+
+2. **Unused `roll_json` field**: Every card instance has `"roll_json": null`
+   - Intended for future stat rolls
+   - Currently unused, wastes space
+
+**Requirements:**
+- Remove `profile_id` from inside `resources`
+- Consider removing `roll_json` until actually implemented
+- Add migration if needed for existing saves
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:879-924` - `_create_fresh_profile()`
+- `scripts/data/json_profile_repository.gd:427-438` - Card instance creation
+
+---
+
 ## Core Game Systems
 
 ### 🔴 HIGH PRIORITY
@@ -339,11 +612,22 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Updated fireball card in `card_catalog.gd` to use `ProjectileIDs.FIREBALL`
 - Fixes fireball damage timing issue (now applies on impact, not on cast)
 
+##### CardTypeIDs or Card.CardType Enum Usage ⬜ Not Started (HIGH PRIORITY)
+- `CardCatalog` uses magic numbers `0` and `1` for card types
+- Should use `Card.CardType.SUMMON` and `Card.CardType.SPELL` directly
+- ~21 cards need updating in `card_catalog.gd`
+- Prevents silent breakage if enum order changes
+
 ##### VFXIDs Constants Class ⬜ Not Started (HIGH PRIORITY)
 - ~5-7 VFX effects used across multiple systems (fireball_spell, etc.)
 - Need to create `scripts/data/vfx_ids.gd`
 - Update all spell cards, abilities, and VFX system to use constants
 - Critical for consistency across spell/ability VFX
+
+##### RarityIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
+- Rarity strings ("common", "rare", "epic", "legendary") used in multiple places
+- Create `scripts/data/rarity_ids.gd` with StringName constants
+- Prevents typos and enables autocomplete
 
 ##### BiomeIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
 - Currently 1 biome, will expand significantly
@@ -1123,4 +1407,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Completed Add Leave Buttons to Caravan Event*
+*Last Updated: 2025-11-25 - Added Database & Data Layer section from comprehensive review*

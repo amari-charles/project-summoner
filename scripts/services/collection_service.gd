@@ -21,10 +21,6 @@ signal collection_changed
 signal cards_granted(instance_ids: Array)
 signal card_removed(card_instance_id: String)
 
-## Service references (injected by autoload order)
-var _repo: Node = null  # JsonProfileRepo instance
-var _catalog: Node = null  # CardCatalog instance
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -32,23 +28,8 @@ var _catalog: Node = null  # CardCatalog instance
 func _ready() -> void:
 	print("CollectionService: Initializing...")
 
-	# Wait for autoloads to be ready
-	await get_tree().process_frame
-
-	_repo = get_node("/root/ProfileRepo")
-	if _repo == null:
-		push_error("CollectionService: ProfileRepo not found! Ensure it's registered as autoload.")
-		return
-
-	_catalog = get_node("/root/CardCatalog")
-	if _catalog == null:
-		push_error("CollectionService: CardCatalog not found! Ensure it's registered as autoload.")
-		return
-
-	# Connect to repo signals
-	if _repo.has_signal("data_changed"):
-		var data_changed_signal: Signal = _repo.get("data_changed")
-		data_changed_signal.connect(_on_repo_data_changed)
+	# Connect to repo signals for reactive updates
+	ProfileRepo.data_changed.connect(_on_repo_data_changed)
 
 	print("CollectionService: Ready")
 
@@ -58,38 +39,18 @@ func _ready() -> void:
 
 ## Get all card instances in the collection
 func list_cards() -> Array[Dictionary]:
-	if _repo == null:
-		return []
-	if _repo.has_method("list_cards"):
-		var result: Variant = _repo.call("list_cards")
-		if result is Array:
-			var result_array: Array = result
-			var typed_result: Array[Dictionary] = []
-			typed_result.assign(result_array)
-			return typed_result
-	return []
+	var result: Array = ProfileRepo.list_cards()
+	var typed_result: Array[Dictionary] = []
+	typed_result.assign(result)
+	return typed_result
 
 ## Get a specific card instance by ID
 func get_card(card_instance_id: String) -> Dictionary:
-	if _repo == null:
-		var empty: Dictionary = {}
-		return empty
-	if _repo.has_method("get_card"):
-		var result: Variant = _repo.call("get_card", card_instance_id)
-		if result is Dictionary:
-			return result
-	var default: Dictionary = {}
-	return default
+	return ProfileRepo.get_card(card_instance_id)
 
 ## Get count of cards by catalog ID
 func get_card_count(catalog_id: String) -> int:
-	if _repo == null:
-		return 0
-	if _repo.has_method("get_card_count"):
-		var result: Variant = _repo.call("get_card_count", catalog_id)
-		if result is int:
-			return result
-	return 0
+	return ProfileRepo.get_card_count(catalog_id)
 
 ## Check if player owns at least one of a card
 func has_card(catalog_id: String) -> bool:
@@ -154,26 +115,13 @@ func get_collection_summary() -> Array[Dictionary]:
 ## cards: Array of {catalog_id: String, rarity: String}
 ## Returns: Array of created card instance IDs
 func grant_cards(cards: Array) -> Array[String]:
-	if _repo == null:
-		push_error("CollectionService: Cannot grant cards, repo not initialized")
-		return []
-
-	if _catalog == null:
-		push_error("CollectionService: Cannot grant cards, catalog not initialized")
-		return []
-
 	# Validate all cards exist in catalog
 	var valid_cards: Array[Dictionary] = []
 	for card_data: Variant in cards:
 		if card_data is Dictionary:
 			var card_dict: Dictionary = card_data
 			var catalog_id: String = card_dict.get("catalog_id", "")
-			var has_card_result: bool = false
-			if _catalog.has_method("has_card"):
-				var result: Variant = _catalog.call("has_card", catalog_id)
-				if result is bool:
-					has_card_result = result
-			if has_card_result:
+			if CardCatalog.has_card(catalog_id):
 				valid_cards.append(card_dict)
 			else:
 				push_warning("CollectionService: Cannot grant card '%s' - not found in CardCatalog" % catalog_id)
@@ -182,14 +130,11 @@ func grant_cards(cards: Array) -> Array[String]:
 		push_warning("CollectionService: No valid cards to grant")
 		return []
 
+	var result: Array = ProfileRepo.grant_cards(valid_cards)
 	var instance_ids: Array[String] = []
-	if _repo.has_method("grant_cards"):
-		var result: Variant = _repo.call("grant_cards", valid_cards)
-		if result is Array:
-			var result_array: Array = result
-			for item: Variant in result_array:
-				if item is String:
-					instance_ids.append(item)
+	for item: Variant in result:
+		if item is String:
+			instance_ids.append(item)
 
 	print("CollectionService: Granted %d cards (requested: %d, valid: %d)" % [instance_ids.size(), cards.size(), valid_cards.size()])
 	cards_granted.emit(instance_ids)
@@ -206,15 +151,7 @@ func grant_card(catalog_id: String, rarity: String = "common") -> String:
 ## Remove a card instance from the collection
 ## Returns true if successful, false if card not found
 func remove_card(card_instance_id: String) -> bool:
-	if _repo == null:
-		push_error("CollectionService: Cannot remove card, repo not initialized")
-		return false
-
-	var success: bool = false
-	if _repo.has_method("remove_card"):
-		var result: Variant = _repo.call("remove_card", card_instance_id)
-		if result is bool:
-			success = result
+	var success: bool = ProfileRepo.remove_card(card_instance_id)
 
 	if success:
 		print("CollectionService: Removed card instance: %s" % card_instance_id)
@@ -242,9 +179,7 @@ func dismantle_card(card_instance_id: String) -> bool:
 		return false
 
 	# Grant essence
-	var economy: Node = get_node("/root/Economy")
-	if economy and economy.has_method("add_essence"):
-		economy.call("add_essence", essence_value)
+	Economy.add_essence(essence_value)
 
 	print("CollectionService: Dismantled card %s for %d essence" % [card_instance_id, essence_value])
 	return true
