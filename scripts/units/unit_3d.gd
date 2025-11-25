@@ -1018,14 +1018,16 @@ func _move_towards_position(target_position: Vector3) -> void:
 	velocity = final_direction * move_speed
 	move_and_slide()
 
-## Calculate separation steering force to avoid overlapping with nearby units
+## Calculate separation steering force to avoid overlapping with nearby FRIENDLY units
+## Only separates from same-team units to avoid interfering with combat movement
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
 
-	# Check all units (both teams - we don't want to overlap with anyone)
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	# Only separate from friendly units (same team)
+	var friendly_group: String = "player_units" if team == Team.PLAYER else "enemy_units"
+	var friendly_units: Array[Node] = get_tree().get_nodes_in_group(friendly_group)
 
-	for node: Node in all_units:
+	for node: Node in friendly_units:
 		if node == self:
 			continue
 
