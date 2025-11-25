@@ -1043,9 +1043,14 @@ func _move_towards_position(target_position: Vector3) -> void:
 
 ## Calculate separation steering force to avoid overlapping with nearby units
 ## Separates from ALL units (both teams) EXCEPT the current attack target
+## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
 	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	# Early exit for trivial cases
+	if all_units.size() <= 1:
+		return Vector3.ZERO
 
 	for node: Node in all_units:
 		if node == self:
@@ -1112,8 +1117,13 @@ func _calculate_flank_force() -> Vector3:
 
 ## Correct severe overlaps by pushing units apart after movement
 ## This is a "hard" correction for when soft separation wasn't enough
+## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
 func _correct_overlaps() -> void:
 	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	# Early exit for trivial cases
+	if all_units.size() <= 1:
+		return
 
 	for node: Node in all_units:
 		if node == self:
@@ -1128,19 +1138,24 @@ func _correct_overlaps() -> void:
 
 		# Minimum distance is the sum of both collision radii
 		var min_dist: float = collision_radius + other.collision_radius
+		var min_dist_sq: float = min_dist * min_dist
 
-		# Calculate 2D distance (ignore Y-axis)
+		# Calculate 2D distance squared first (avoid sqrt if not overlapping)
 		var delta: Vector3 = global_position - other.global_position
 		delta.y = 0
-		var distance: float = sqrt(delta.x * delta.x + delta.z * delta.z)
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
 
-		# If overlapping, push apart
-		if distance < min_dist and distance > 0.001:
-			var overlap: float = min_dist - distance
-			var push_dir: Vector3 = delta.normalized()
+		# Skip if not overlapping (use squared comparison)
+		if distance_sq >= min_dist_sq or distance_sq < 0.000001:
+			continue
 
-			# Push self by half the overlap (other unit will push itself too)
-			global_position += push_dir * overlap * 0.5
+		# Only now calculate actual distance for push amount
+		var distance: float = sqrt(distance_sq)
+		var overlap: float = min_dist - distance
+		var push_dir: Vector3 = delta.normalized()
+
+		# Push self by half the overlap (other unit will push itself too)
+		global_position += push_dir * overlap * 0.5
 
 ## Calculate formation positions for a group of units (static helper)
 static func calculate_formation_positions(units: Array[Unit3D], center: Vector3) -> void:

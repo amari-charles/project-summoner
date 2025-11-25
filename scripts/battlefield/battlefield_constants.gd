@@ -38,3 +38,57 @@ static func world_to_screen_2d(world_pos: Vector3) -> Vector2:
 		world_pos.x * SCREEN_TO_WORLD_SCALE + SCREEN_CENTER_X,
 		world_pos.z * SCREEN_TO_WORLD_SCALE + SCREEN_CENTER_Y
 	)
+
+## Spawn position constants
+const MIN_UNIT_SPACING: float = 1.5  ## Minimum distance between unit centers
+const SPAWN_SEARCH_ATTEMPTS: int = 8  ## Number of positions to check in each ring
+const SPAWN_SEARCH_RINGS: int = 3  ## Number of expanding rings to search
+
+## Find a safe spawn position that doesn't overlap with existing units
+## Uses spiral search pattern: checks desired position first, then expands outward
+static func find_safe_spawn_position(desired_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5) -> Vector3:
+	if not scene_tree:
+		return desired_pos
+
+	# Check if desired position is safe
+	if is_spawn_position_safe(desired_pos, scene_tree, spawning_collision_radius):
+		return desired_pos
+
+	# Search in expanding rings around desired position
+	for ring: int in range(1, SPAWN_SEARCH_RINGS + 1):
+		var radius: float = MIN_UNIT_SPACING * ring
+		for attempt: int in range(SPAWN_SEARCH_ATTEMPTS):
+			var angle: float = (float(attempt) / SPAWN_SEARCH_ATTEMPTS) * TAU
+			var offset: Vector3 = Vector3(cos(angle) * radius, 0, sin(angle) * radius)
+			var test_pos: Vector3 = desired_pos + offset
+
+			if is_spawn_position_safe(test_pos, scene_tree, spawning_collision_radius):
+				return test_pos
+
+	# Fallback: no safe position found, use desired (units will overlap but game continues)
+	return desired_pos
+
+## Check if a spawn position is safe (no existing units too close)
+static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5) -> bool:
+	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+
+	for node: Node in all_units:
+		if not node is Unit3D:
+			continue
+
+		var unit: Unit3D = node as Unit3D
+		if not unit.is_alive:
+			continue
+
+		# Minimum spacing is sum of both collision radii
+		var min_spacing: float = spawning_collision_radius + unit.collision_radius
+		var spacing_sq: float = min_spacing * min_spacing
+
+		# Check 2D distance (ignore Y-axis)
+		var delta: Vector3 = unit.global_position - check_pos
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		if distance_sq < spacing_sq:
+			return false
+
+	return true
