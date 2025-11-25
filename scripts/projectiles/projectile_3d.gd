@@ -507,12 +507,10 @@ func reset() -> void:
 	is_fading = false
 	impact_triggered = false  ## Reset impact guard for next use
 
-	# Cancel any running tweens (only if in tree)
-	if is_inside_tree():
-		var tweens: Array[Tween] = get_tree().get_processed_tweens()
-		for tween: Tween in tweens:
-			if tween.is_valid():
-				tween.kill()
+	# Cancel this projectile's fade tween if running
+	if fade_tween and fade_tween.is_valid():
+		fade_tween.kill()
+	fade_tween = null
 
 	# Reset visual alpha and visibility (but keep hidden until reused)
 	if visual_instance:
