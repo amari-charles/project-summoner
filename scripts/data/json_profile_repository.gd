@@ -243,7 +243,7 @@ func unlock_hero(hero_id: String) -> bool:
 	if hero_id not in unlocked:
 		unlocked.append(hero_id)
 		_data["unlocked_heroes"] = unlocked
-		_append_to_wal({"op": "unlock_hero", "hero_id": hero_id})
+		_append_to_wal({"action": "unlock_hero", "params": {"hero_id": hero_id}})
 		save_profile()
 		data_changed.emit()
 		return true
@@ -267,9 +267,8 @@ func set_starting_hero(hero_id: String, chosen_random: bool) -> bool:
 	# The caller should create the HeroInstance with this modifier.
 
 	_append_to_wal({
-		"op": "set_starting_hero",
-		"hero_id": hero_id,
-		"chosen_random": chosen_random
+		"action": "set_starting_hero",
+		"params": {"hero_id": hero_id, "chosen_random": chosen_random}
 	})
 	save_profile()
 	data_changed.emit()
@@ -831,9 +830,11 @@ func _write_save() -> void:
 	var bak2_path: String = profile_dir + "/profile.bak2"
 	var temp_path: String = profile_dir + "/profile.tmp"
 
+	# Rotate backups BEFORE writing (preserves old data in case of crash)
+	_rotate_backups(main_path, bak1_path, bak2_path)
+
 	# Atomic write: write to temp, then rename
 	if _atomic_write(_data, temp_path, main_path):
-		_rotate_backups(main_path, bak1_path, bak2_path)
 		profile_saved.emit(_current_profile_id)
 		print("JsonProfileRepo: Save completed successfully")
 	else:
@@ -1012,10 +1013,12 @@ func _append_to_wal(entry: Dictionary) -> void:
 ## =============================================================================
 
 func _generate_uuid() -> String:
-	# Simple UUID-like string for instance IDs
-	var timestamp: int = Time.get_ticks_msec()
-	var random: int = randi()
-	return "%x-%x" % [timestamp, random]
+	# UUID-like string with improved entropy for instance IDs
+	var unix_time: int = Time.get_unix_time_from_system()
+	var usec: int = Time.get_ticks_usec()
+	var rand1: int = randi()
+	var rand2: int = randi()
+	return "%x-%x-%x-%x" % [unix_time, usec, rand1, rand2]
 
 func _on_save_timer_timeout() -> void:
 	if _pending_save:

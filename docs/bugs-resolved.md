@@ -4,6 +4,79 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### AI Scoring Magic Numbers Extracted to Constants
+**Resolved:** 2025-11-25
+**Component:** AI System
+
+**Description:**
+The HeuristicAI class used many hardcoded magic numbers for card scoring and decision-making thresholds, making AI tuning difficult.
+
+**Solution Implemented:**
+Extracted ~41 magic numbers to named class-level constants organized by category:
+- Card scoring (SCORE_BASE_SUMMON, SCORE_MANA_EFFICIENCY_BASE, etc.)
+- Enemy count thresholds (ENEMY_COUNT_THRESHOLD_LOSING_BADLY, etc.)
+- Personality bonuses (PERSONALITY_AGGRESSIVE_SUMMON_BONUS, etc.)
+- Battlefield state thresholds (STATE_LOSING_BADLY_THRESHOLD, etc.)
+- Difficulty/randomness (DIFFICULTY_RANDOMNESS_MULTIPLIER, etc.)
+- Play timing multipliers (TIMING_LOSING_BADLY_MULTIPLIER, etc.)
+- Spawn zones (SPAWN_ENEMY_DEFENSIVE_MIN, SPAWN_PLAYER_NEUTRAL_MAX, etc.)
+
+**Related Files:**
+- `scripts/ai/heuristic_ai.gd` - All constants added at top of file
+
+---
+
+### WAL Uses Inconsistent Key Names
+**Resolved:** 2025-11-25
+**Component:** Database / ProfileRepository
+
+**Description:**
+The Write-Ahead Log used inconsistent key formats - some entries used "action"/"params" while others used "op".
+
+**Solution Implemented:**
+Standardized all WAL entries to use `{"action": "...", "params": {...}}` format:
+- `unlock_hero` - changed from `"op"` to `"action"/"params"`
+- `set_starting_hero` - changed from `"op"` to `"action"/"params"`
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:246, 269-272`
+
+---
+
+### UUID Generation Weak Entropy
+**Resolved:** 2025-11-25
+**Component:** Database / ProfileRepository
+
+**Description:**
+The `_generate_uuid()` function used weak entropy sources (only ticks_msec and single randi) that could cause collisions.
+
+**Solution Implemented:**
+Added more entropy sources:
+- `Time.get_unix_time_from_system()` - absolute timestamp
+- `Time.get_ticks_usec()` - microsecond precision
+- Two `randi()` calls instead of one
+- Format: `"%x-%x-%x-%x"` with 4 components
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:1013-1019`
+
+---
+
+### Backup Rotation Happens After Write Success
+**Resolved:** 2025-11-25
+**Component:** Database / ProfileRepository
+
+**Description:**
+Backup files were rotated after the main write succeeded, meaning a crash between write and rotation could lose a backup generation.
+
+**Solution Implemented:**
+Reordered operations: rotate backups BEFORE writing new data. This ensures old data is preserved in backup chain before being overwritten.
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd:833-842`
+
+---
+
 ## 2025-11 Fixes
 
 ### VFX Pooling System Resource Isolation

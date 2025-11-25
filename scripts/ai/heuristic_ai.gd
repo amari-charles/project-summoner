@@ -7,9 +7,76 @@ class_name HeuristicAI
 enum Personality { AGGRESSIVE, DEFENSIVE, BALANCED, SPELL_FOCUSED }
 enum BattlefieldState { LOSING_BADLY, LOSING, EVEN, WINNING }
 
+# === CARD SCORING CONSTANTS ===
+const SCORE_MANA_EFFICIENCY_BASE: float = 10.0
+const SCORE_BASE_SUMMON: float = 10.0
+const SCORE_BASE_SPELL: float = 5.0
+const SCORE_LOSING_BADLY_SUMMON_BONUS: float = 15.0
+const SCORE_LOSING_SUMMON_BONUS: float = 10.0
+const SCORE_WINNING_SUMMON_BONUS: float = 5.0
+const SCORE_LOSING_BADLY_SPELL_BONUS: float = 20.0
+const SCORE_LOSING_SPELL_BONUS: float = 10.0
+const SCORE_WINNING_SPELL_BONUS: float = 8.0
+const SCORE_NO_ENEMIES_SPELL_PENALTY: float = 10.0
+
+# === ENEMY COUNT THRESHOLDS ===
+const ENEMY_COUNT_THRESHOLD_LOSING_BADLY: int = 3
+const ENEMY_COUNT_THRESHOLD_LOSING: int = 2
+
+# === PERSONALITY BONUSES ===
+const PERSONALITY_AGGRESSIVE_SUMMON_BONUS: float = 5.0
+const PERSONALITY_AGGRESSIVE_CHEAP_THRESHOLD: int = 3
+const PERSONALITY_AGGRESSIVE_CHEAP_BONUS: float = 3.0
+const PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD: int = 4
+const PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS: float = 3.0
+const PERSONALITY_SPELL_FOCUSED_BONUS: float = 10.0
+const PERSONALITY_SPELL_FOCUSED_PENALTY: float = 3.0
+
+# === BATTLEFIELD STATE THRESHOLDS ===
+const STATE_UNIT_ADVANTAGE_WEIGHT: float = 0.5
+const STATE_HP_ADVANTAGE_WEIGHT: float = 0.5
+const STATE_LOSING_BADLY_THRESHOLD: float = -0.4
+const STATE_LOSING_BADLY_HP_RATIO: float = 0.3
+const STATE_LOSING_THRESHOLD: float = -0.1
+const STATE_WINNING_THRESHOLD: float = 0.2
+
+# === DIFFICULTY/RANDOMNESS ===
+const DIFFICULTY_DEFAULT: int = 3
+const DIFFICULTY_MAX: int = 6
+const DIFFICULTY_RANDOMNESS_MULTIPLIER: float = 5.0
+const DIFFICULTY_TIMING_BASELINE: int = 3
+const DIFFICULTY_TIMING_SCALE: float = 0.1
+
+# === PLAY TIMING MULTIPLIERS ===
+const TIMING_LOSING_BADLY_MULTIPLIER: float = 0.5
+const TIMING_LOSING_MULTIPLIER: float = 0.7
+const TIMING_WINNING_MULTIPLIER: float = 1.3
+
+# === SPAWN ZONES (as fractions of battlefield) ===
+const SPAWN_ENEMY_DEFENSIVE_MIN: float = 0.75
+const SPAWN_ENEMY_DEFENSIVE_MAX: float = 0.95
+const SPAWN_ENEMY_NEUTRAL_MIN: float = 0.5
+const SPAWN_ENEMY_NEUTRAL_MAX: float = 0.7
+const SPAWN_ENEMY_AGGRESSIVE_MIN: float = 0.3
+const SPAWN_ENEMY_AGGRESSIVE_MAX: float = 0.5
+const SPAWN_ENEMY_DEFAULT_MIN: float = 0.6
+const SPAWN_ENEMY_DEFAULT_MAX: float = 0.8
+
+const SPAWN_PLAYER_DEFENSIVE_MIN: float = 0.05
+const SPAWN_PLAYER_DEFENSIVE_MAX: float = 0.25
+const SPAWN_PLAYER_NEUTRAL_MIN: float = 0.3
+const SPAWN_PLAYER_NEUTRAL_MAX: float = 0.5
+const SPAWN_PLAYER_AGGRESSIVE_MIN: float = 0.5
+const SPAWN_PLAYER_AGGRESSIVE_MAX: float = 0.7
+const SPAWN_PLAYER_DEFAULT_MIN: float = 0.2
+const SPAWN_PLAYER_DEFAULT_MAX: float = 0.4
+
+const SPAWN_Y_MIN: float = 0.2
+const SPAWN_Y_MAX: float = 0.8
+
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
-@export var difficulty: int = 3  # 1-5, affects decision quality and speed
+@export var difficulty: int = DIFFICULTY_DEFAULT
 @export var play_interval_min: float = 3.0
 @export var play_interval_max: float = 6.0
 
@@ -112,7 +179,7 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 	var score: float = 0.0
 
 	# Base score: mana efficiency
-	score += 10.0 - card.mana_cost  # Prefer cheaper cards slightly
+	score += SCORE_MANA_EFFICIENCY_BASE - card.mana_cost  # Prefer cheaper cards slightly
 
 	# Adjust based on card type
 	match card.card_type:
@@ -125,45 +192,45 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 	score += _apply_personality_bonus(card)
 
 	# Difficulty affects randomness (higher difficulty = more optimal play)
-	var randomness: float = 5.0 * (6 - difficulty)  # difficulty 1 = ±25, difficulty 5 = ±5
+	var randomness: float = DIFFICULTY_RANDOMNESS_MULTIPLIER * (DIFFICULTY_MAX - difficulty)
 	score += randf_range(-randomness, randomness)
 
 	return score
 
 ## Score summon cards
 func _score_summon_card(_card: Card, state: BattlefieldState) -> float:
-	var score: float = 10.0  # Base preference for summons
+	var score: float = SCORE_BASE_SUMMON
 
 	match state:
 		BattlefieldState.LOSING_BADLY:
-			score += 15.0  # Desperately need units
+			score += SCORE_LOSING_BADLY_SUMMON_BONUS  # Desperately need units
 		BattlefieldState.LOSING:
-			score += 10.0
+			score += SCORE_LOSING_SUMMON_BONUS
 		BattlefieldState.WINNING:
-			score += 5.0  # Still good but less urgent
+			score += SCORE_WINNING_SUMMON_BONUS  # Still good but less urgent
 
 	return score
 
 ## Score spell cards
 func _score_spell_card(_card: Card, state: BattlefieldState) -> float:
-	var score: float = 5.0  # Base preference for spells
+	var score: float = SCORE_BASE_SPELL
 
 	# Check if there are enemy units to target
 	var enemy_unit_count: int = count_enemy_units()
 
 	match state:
 		BattlefieldState.LOSING_BADLY:
-			if enemy_unit_count > 3:
-				score += 20.0  # Use spells to clear threats
+			if enemy_unit_count > ENEMY_COUNT_THRESHOLD_LOSING_BADLY:
+				score += SCORE_LOSING_BADLY_SPELL_BONUS  # Use spells to clear threats
 		BattlefieldState.LOSING:
-			if enemy_unit_count > 2:
-				score += 10.0
+			if enemy_unit_count > ENEMY_COUNT_THRESHOLD_LOSING:
+				score += SCORE_LOSING_SPELL_BONUS
 		BattlefieldState.WINNING:
-			score += 8.0  # Good for finishing
+			score += SCORE_WINNING_SPELL_BONUS  # Good for finishing
 
 	# If no enemies, spells are less useful
 	if enemy_unit_count == 0:
-		score -= 10.0
+		score -= SCORE_NO_ENEMIES_SPELL_PENALTY
 
 	return score
 
@@ -174,20 +241,20 @@ func _apply_personality_bonus(card: Card) -> float:
 	match personality:
 		Personality.AGGRESSIVE:
 			if card.card_type == Card.CardType.SUMMON:
-				bonus += 5.0
-			if card.mana_cost <= 3:  # Prefer cheaper cards for faster spam
-				bonus += 3.0
+				bonus += PERSONALITY_AGGRESSIVE_SUMMON_BONUS
+			if card.mana_cost <= PERSONALITY_AGGRESSIVE_CHEAP_THRESHOLD:
+				bonus += PERSONALITY_AGGRESSIVE_CHEAP_BONUS
 
 		Personality.DEFENSIVE:
 			# TODO: When we have wall cards, prefer them
-			if card.mana_cost >= 4:  # Prefer higher cost units (stronger)
-				bonus += 3.0
+			if card.mana_cost >= PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD:
+				bonus += PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS
 
 		Personality.SPELL_FOCUSED:
 			if card.card_type == Card.CardType.SPELL:
-				bonus += 10.0
+				bonus += PERSONALITY_SPELL_FOCUSED_BONUS
 			else:
-				bonus -= 3.0
+				bonus -= PERSONALITY_SPELL_FOCUSED_PENALTY
 
 		Personality.BALANCED:
 			# No special bonuses, balanced play
@@ -207,13 +274,13 @@ func _evaluate_battlefield_state() -> BattlefieldState:
 	var hp_advantage: float = our_hp_ratio - enemy_hp_ratio
 
 	# Combined score
-	var total_advantage: float = unit_advantage * 0.5 + hp_advantage * 0.5
+	var total_advantage: float = unit_advantage * STATE_UNIT_ADVANTAGE_WEIGHT + hp_advantage * STATE_HP_ADVANTAGE_WEIGHT
 
-	if total_advantage < -0.4 or our_hp_ratio < 0.3:
+	if total_advantage < STATE_LOSING_BADLY_THRESHOLD or our_hp_ratio < STATE_LOSING_BADLY_HP_RATIO:
 		return BattlefieldState.LOSING_BADLY
-	elif total_advantage < -0.1:
+	elif total_advantage < STATE_LOSING_THRESHOLD:
 		return BattlefieldState.LOSING
-	elif total_advantage > 0.2:
+	elif total_advantage > STATE_WINNING_THRESHOLD:
 		return BattlefieldState.WINNING
 	else:
 		return BattlefieldState.EVEN
@@ -266,27 +333,27 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 		# Enemy spawns on right side
 		match zone:
 			"defensive":
-				x = randf_range(bounds.size.x * 0.75, bounds.size.x * 0.95)
+				x = randf_range(bounds.size.x * SPAWN_ENEMY_DEFENSIVE_MIN, bounds.size.x * SPAWN_ENEMY_DEFENSIVE_MAX)
 			"neutral":
-				x = randf_range(bounds.size.x * 0.5, bounds.size.x * 0.7)
+				x = randf_range(bounds.size.x * SPAWN_ENEMY_NEUTRAL_MIN, bounds.size.x * SPAWN_ENEMY_NEUTRAL_MAX)
 			"aggressive":
-				x = randf_range(bounds.size.x * 0.3, bounds.size.x * 0.5)
+				x = randf_range(bounds.size.x * SPAWN_ENEMY_AGGRESSIVE_MIN, bounds.size.x * SPAWN_ENEMY_AGGRESSIVE_MAX)
 			_:
-				x = randf_range(bounds.size.x * 0.6, bounds.size.x * 0.8)
+				x = randf_range(bounds.size.x * SPAWN_ENEMY_DEFAULT_MIN, bounds.size.x * SPAWN_ENEMY_DEFAULT_MAX)
 	else:
 		# Player spawns on left side
 		match zone:
 			"defensive":
-				x = randf_range(bounds.size.x * 0.05, bounds.size.x * 0.25)
+				x = randf_range(bounds.size.x * SPAWN_PLAYER_DEFENSIVE_MIN, bounds.size.x * SPAWN_PLAYER_DEFENSIVE_MAX)
 			"neutral":
-				x = randf_range(bounds.size.x * 0.3, bounds.size.x * 0.5)
+				x = randf_range(bounds.size.x * SPAWN_PLAYER_NEUTRAL_MIN, bounds.size.x * SPAWN_PLAYER_NEUTRAL_MAX)
 			"aggressive":
-				x = randf_range(bounds.size.x * 0.5, bounds.size.x * 0.7)
+				x = randf_range(bounds.size.x * SPAWN_PLAYER_AGGRESSIVE_MIN, bounds.size.x * SPAWN_PLAYER_AGGRESSIVE_MAX)
 			_:
-				x = randf_range(bounds.size.x * 0.2, bounds.size.x * 0.4)
+				x = randf_range(bounds.size.x * SPAWN_PLAYER_DEFAULT_MIN, bounds.size.x * SPAWN_PLAYER_DEFAULT_MAX)
 
 	# Y position - full height with some margin
-	y = randf_range(bounds.size.y * 0.2, bounds.size.y * 0.8)
+	y = randf_range(bounds.size.y * SPAWN_Y_MIN, bounds.size.y * SPAWN_Y_MAX)
 
 	return Vector2(x, y)
 
@@ -301,17 +368,17 @@ func _set_next_play_time() -> void:
 	# Adjust intervals based on battlefield state
 	match state:
 		BattlefieldState.LOSING_BADLY:
-			base_min *= 0.5
-			base_max *= 0.5
+			base_min *= TIMING_LOSING_BADLY_MULTIPLIER
+			base_max *= TIMING_LOSING_BADLY_MULTIPLIER
 		BattlefieldState.LOSING:
-			base_min *= 0.7
-			base_max *= 0.7
+			base_min *= TIMING_LOSING_MULTIPLIER
+			base_max *= TIMING_LOSING_MULTIPLIER
 		BattlefieldState.WINNING:
-			base_min *= 1.3
-			base_max *= 1.3
+			base_min *= TIMING_WINNING_MULTIPLIER
+			base_max *= TIMING_WINNING_MULTIPLIER
 
 	# Adjust based on difficulty (higher difficulty = faster play)
-	var difficulty_factor: float = 1.0 - (difficulty - 3) * 0.1  # diff 1 = 1.2x, diff 5 = 0.8x
+	var difficulty_factor: float = 1.0 - (difficulty - DIFFICULTY_TIMING_BASELINE) * DIFFICULTY_TIMING_SCALE
 	base_min *= difficulty_factor
 	base_max *= difficulty_factor
 
