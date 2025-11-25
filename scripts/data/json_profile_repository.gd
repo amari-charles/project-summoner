@@ -53,16 +53,13 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_CLOSE_REQUEST:
 			# Desktop: Save before window closes
-			print("JsonProfileRepo: Application closing - saving immediately...")
 			save_profile(true)
 		NOTIFICATION_APPLICATION_PAUSED:
 			# Mobile: Save when app is backgrounded (may be killed by OS)
-			print("JsonProfileRepo: Application paused - saving immediately...")
 			save_profile(true)
 		NOTIFICATION_APPLICATION_FOCUS_OUT:
 			# Save when losing focus (optional extra safety)
 			if _pending_save:
-				print("JsonProfileRepo: Lost focus with pending save - saving immediately...")
 				save_profile(true)
 
 func _setup_save_timer() -> void:

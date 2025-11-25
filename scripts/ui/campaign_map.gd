@@ -445,7 +445,7 @@ func _update_detail_panel() -> void:
 						card_names.append("%dx %s" % [count, card_name])
 					else:
 						card_names.append(card_name)
-				reward_text = "Reward: " + ", ".join(card_names)
+				reward_text = Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)})
 
 			"choice":
 				var options: Array[String] = []
@@ -454,7 +454,7 @@ func _update_detail_panel() -> void:
 					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
 					var card_name: String = _get_card_display_name(catalog, catalog_id)
 					options.append(card_name)
-				reward_text = "Reward: Choose from " + ", ".join(options)
+				reward_text = Loc.t("campaign.rewards.choice", {"options": ", ".join(options)})
 
 			"random":
 				var count: int = 0
@@ -462,7 +462,7 @@ func _update_detail_panel() -> void:
 					var reward: Dictionary = _safe_dict(reward_item)
 					var reward_count: int = _safe_int(reward.get("count", 1), 1)
 					count += reward_count
-				reward_text = "Reward: Random (%d cards)" % count
+				reward_text = Loc.t("campaign.rewards.random", {"count": count})
 
 	reward_label.text = reward_text
 

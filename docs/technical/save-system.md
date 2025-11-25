@@ -53,7 +53,7 @@ user://profiles/{profile_id}/
 
 ### Priority 1: Critical Safety
 
-1. **Checksum/CRC Verification**
+1. **Checksum/CRC Verification** (Not Yet Implemented)
    - Add SHA-256 hash to save file
    - Verify integrity on load
    - Detect silent corruption
@@ -70,18 +70,10 @@ func _verify_checksum(data: Dictionary) -> bool:
     return stored_checksum == calculated
 ```
 
-2. **Crash Protection**
-   - Save on `NOTIFICATION_WM_CLOSE_REQUEST`
-   - Save on `NOTIFICATION_APPLICATION_PAUSED` (mobile)
-   - Mark save as "clean close" vs "crash recovery"
-
-```gdscript
-func _notification(what: int) -> void:
-    if what == NOTIFICATION_WM_CLOSE_REQUEST:
-        save_profile(true)  # Immediate save before close
-    elif what == NOTIFICATION_APPLICATION_PAUSED:
-        save_profile(true)  # Mobile: save when backgrounded
-```
+2. **Crash Protection** ✅ IMPLEMENTED
+   - Saves on `NOTIFICATION_WM_CLOSE_REQUEST` (desktop close)
+   - Saves on `NOTIFICATION_APPLICATION_PAUSED` (mobile background)
+   - Saves on `NOTIFICATION_APPLICATION_FOCUS_OUT` if pending changes
 
 ### Priority 2: User Experience
 

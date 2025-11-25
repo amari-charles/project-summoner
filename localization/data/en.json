@@ -24,7 +24,12 @@
         "description": "A peculiar slime blocks the path ahead. Merlin senses something unusual about its defenses. Learn to use tactical commands wisely."
       }
     },
-    "starter_deck_name": "Starter Deck"
+    "starter_deck_name": "Starter Deck",
+    "rewards": {
+      "fixed": "Reward: {cards}",
+      "choice": "Reward: Choose from {options}",
+      "random": "Reward: Random ({count} cards)"
+    }
   },
   "card": {
     "fire_recruit": {
