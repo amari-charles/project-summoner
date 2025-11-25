@@ -6,6 +6,49 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2025-11 Fixes
 
+### VFX Pooling System Resource Isolation
+**Resolved:** 2025-11-24
+**Component:** VFX / Pooling System
+
+**Description:**
+The VFX pooling system didn't properly isolate shared resources (meshes, materials) between pooled instances. Modifying properties like mesh.size or material colors affected all instances using that resource, causing bugs when VFX objects were reused.
+
+**Solution Implemented:**
+Added resource isolation helpers to `VFXInstance` base class:
+- `isolate_mesh_resources(mesh_instance, isolate_mesh, isolate_materials)` - Makes a MeshInstance3D's resources unique
+- `isolate_all_mesh_resources()` - Convenience method for all descendant meshes (recursive)
+- Documentation in class header explaining safe patterns for pooled VFX
+- Updated `fireball_spell_vfx.gd` to use the new helper
+
+Safe patterns documented:
+1. Use node transforms (scale, modulate) instead of resource properties
+2. Call `isolate_mesh_resources()` in `_ready()` for nodes you'll modify
+3. Create resources dynamically in code (they're unique per-instance)
+
+**Related Files:**
+- `scripts/vfx/vfx_instance.gd` - Added isolation helpers and documentation
+- `scripts/vfx/fireball_spell_vfx.gd` - Uses new helper method
+
+---
+
+### Projectile Cleanup Not Working Properly
+**Resolved:** 2025-11-24
+**Component:** Projectiles / Memory Management
+
+**Description:**
+Projectiles were not being cleaned up properly after impact or expiration, causing memory leaks and orphaned nodes in the scene tree.
+
+**Solution Implemented:**
+Fixed projectile lifecycle management in ProjectileManager to ensure proper cleanup on hit/miss/expire. Projectiles are now correctly returned to pool or freed.
+
+**Related Files:**
+- `scripts/projectiles/projectile_manager.gd` - Pool management fixes
+- `scripts/projectiles/projectile_3d.gd` - Lifecycle logic fixes
+
+**PR:** #65
+
+---
+
 ### Projectile Targeting on Moving Units
 **Resolved:** 2025-11-24
 **Component:** Combat / Projectiles
