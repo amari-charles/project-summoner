@@ -47,12 +47,16 @@ const DIFFICULTY_RANDOMNESS_MULTIPLIER: float = 5.0
 const DIFFICULTY_TIMING_BASELINE: int = 3
 const DIFFICULTY_TIMING_SCALE: float = 0.1
 
-# === PLAY TIMING MULTIPLIERS ===
+# === PLAY TIMING ===
+const PLAY_INTERVAL_MIN_DEFAULT: float = 3.0
+const PLAY_INTERVAL_MAX_DEFAULT: float = 6.0
 const TIMING_LOSING_BADLY_MULTIPLIER: float = 0.5
 const TIMING_LOSING_MULTIPLIER: float = 0.7
 const TIMING_WINNING_MULTIPLIER: float = 1.3
 
-# === SPAWN ZONES (as fractions of battlefield) ===
+# === SPAWN ZONES (as fractions of battlefield width/height) ===
+# X: 0.0 = left edge (player side), 1.0 = right edge (enemy side)
+# Y: 0.0 = top edge, 1.0 = bottom edge
 const SPAWN_ENEMY_DEFENSIVE_MIN: float = 0.75
 const SPAWN_ENEMY_DEFENSIVE_MAX: float = 0.95
 const SPAWN_ENEMY_NEUTRAL_MIN: float = 0.5
@@ -77,8 +81,8 @@ const SPAWN_Y_MAX: float = 0.8
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
 @export var difficulty: int = DIFFICULTY_DEFAULT
-@export var play_interval_min: float = 3.0
-@export var play_interval_max: float = 6.0
+@export var play_interval_min: float = PLAY_INTERVAL_MIN_DEFAULT
+@export var play_interval_max: float = PLAY_INTERVAL_MAX_DEFAULT
 
 ## State
 var play_timer: float = 0.0
@@ -378,6 +382,7 @@ func _set_next_play_time() -> void:
 			base_max *= TIMING_WINNING_MULTIPLIER
 
 	# Adjust based on difficulty (higher difficulty = faster play)
+	# diff 1 = 1.2x slower, diff 3 = 1.0x normal, diff 5 = 0.8x faster
 	var difficulty_factor: float = 1.0 - (difficulty - DIFFICULTY_TIMING_BASELINE) * DIFFICULTY_TIMING_SCALE
 	base_min *= difficulty_factor
 	base_max *= difficulty_factor
