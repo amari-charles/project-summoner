@@ -821,7 +821,7 @@ Improve pause menu design and functionality.
 ### 🔴 HIGH PRIORITY
 
 #### Add Leave Buttons to Caravan Event
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (2025-11-25)
 **Category:** Campaign / Events
 **Effort:** Small
 
@@ -834,33 +834,14 @@ The caravan event needs proper exit options for players who don't want to make a
 - Both buttons should have appropriate visual distinction
 - Clear messaging about consequences of each choice
 
-**Notes:**
-- Important for player agency - shouldn't be forced to purchase
-- "Leave" (incomplete) is for players who want to return later
-- "Leave without purchasing" (complete) is for players who want to skip entirely
+**Implementation:**
+- Added `LeaveIncompleteButton` ("Leave") - exits without completing, player can return
+- Added `LeaveCompleteButton` ("Leave without purchasing") - completes event, allows progression
+- Each button has its own confirmation popup with clear messaging
+- Localization keys added for all button text and confirmation dialogs
 
 ---
 
-#### Fix Dialogue Localization 'Missing:' Prefix
-**Status:** ⬜ Not Started
-**Category:** Campaign / Localization
-**Effort:** Small
-
-**Description:**
-All dialogues currently display with a "Missing:" prefix, indicating localization keys are not being found properly.
-
-**Requirements:**
-- Investigate why localization lookups are failing
-- Ensure dialogue keys exist in `localization/data/en.json`
-- Fix key path format if incorrect
-- Verify DialogueManager is using Loc.t() correctly
-
-**Notes:**
-- Affects all dialogue in the game
-- Likely a key path mismatch or missing entries
-- Should be quick to diagnose and fix
-
----
 
 #### Design Campaign Map Interface
 **Status:** ⬜ Not Started
@@ -1107,4 +1088,39 @@ Final integration of hero system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-11-24 - Added caravan leave buttons and dialogue localization fix tasks*
+## Developer Tools
+
+### 🟢 LOW PRIORITY
+
+#### Campaign Level Editor (Dev-Only Tool)
+**Status:** ⬜ Not Started
+**Category:** Developer Tools
+**Effort:** Large
+
+**Description:**
+A UI tool for developers to design and configure campaign battles without touching code.
+
+**Purpose:**
+- Allow designers to create/edit campaign battles without touching code
+- Configure enemy decks, AI behavior, rewards, difficulty
+- Test battles directly from the editor
+
+**Requirements:**
+- **Access**: Dev-only tool (not accessible to players)
+- **Location**: Separate scene, accessible from main menu in debug builds or via dev console
+- Drag-and-drop cards to build enemy deck
+- Set deck size (no player limits for enemies)
+- Configure AI behavior (aggression, card priority, play speed)
+- Set battle metadata (name, description, difficulty)
+- Define reward structure (fixed/choice/random cards)
+- Set unlock requirements (which battles must be completed first)
+- Preview/test battle
+- Save battle definitions to `campaign_service.gd` or separate JSON files
+
+**Notes:**
+- Hardcoded decks in `campaign_service.gd` work fine for now
+- Only needed when managing 20+ battles becomes cumbersome
+
+---
+
+*Last Updated: 2025-11-25 - Completed Add Leave Buttons to Caravan Event*

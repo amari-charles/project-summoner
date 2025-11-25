@@ -170,8 +170,10 @@
       "merriweather": {
         "name": "Mr. Merriweather's Caravan"
       },
-      "leave_confirmation": "Leave this caravan?\n\nThis caravan will move on and you won't be able to return.",
-      "leave_button": "Leave Caravan",
+      "leave_incomplete_confirmation": "Leave for now?\n\nYou can return to this caravan later, but you won't be able to continue to the next area until you complete this stop.",
+      "leave_incomplete_button": "Leave for Now",
+      "leave_complete_confirmation": "Leave without purchasing?\n\nThe caravan will move on and you won't be able to return, but you can continue your journey.",
+      "leave_complete_button": "Leave & Continue",
       "stay_button": "Stay"
     },
     "offering": {

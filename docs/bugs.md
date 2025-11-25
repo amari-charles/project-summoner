@@ -4,6 +4,8 @@ This document tracks known bugs and issues in Project Summoner.
 
 For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
+**Note:** When resolving a bug, move it to `bugs-resolved.md` with the resolution date and details.
+
 ---
 
 ## Active Bugs

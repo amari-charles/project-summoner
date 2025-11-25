@@ -8,6 +8,7 @@
 
 ## Table of Contents
 
+- [Dialogue System & Localization (2025-11)](#dialogue-system--localization-2025-11)
 - [Visual Polish & Game Feel Improvements (2025-11-12)](#visual-polish--game-feel-improvements-2025-11-12)
 - [Documentation & Asset Reorganization (2025-11-10)](#documentation--asset-reorganization-2025-11-10)
 - [3D Architecture & Visual Systems (2025-11-08)](#3d-architecture--visual-systems-2025-11-08)
@@ -16,6 +17,40 @@
 - [Core Card System Expansion (2025-11-04)](#core-card-system-expansion-2025-11-04)
 - [Foundation: Core Gameplay (2025-11-04)](#foundation-core-gameplay-2025-11-04)
 - [Initial Project Setup (2025-11-03)](#initial-project-setup-2025-11-03)
+
+---
+
+## Dialogue System & Localization (2025-11)
+
+### What We Built
+- Complete dialogue system with DialogueManager service
+- DialogueData resources for defining dialogue content
+- DialogueChoice system for branching conversations
+- Full localization integration using Loc.t() for all dialogue text
+- Dialogue UI with character names, portraits, and choice buttons
+
+### Technical Decisions
+
+**Localization-First Dialogue:**
+- **Decision:** Store localization keys in dialogue resources, not raw text
+- **Why:** Enables future translations without touching dialogue resources
+- **Approach:** DialogueData stores keys like `dialogue.first_trial_intro.line_1`, DialogueManager calls `Loc.t()` at display time
+- **Impact:** All 15+ dialogue sequences fully localized in en.json
+
+**Dialogue Resource Structure:**
+- **Decision:** Use .tres resources for dialogue definitions
+- **Why:** Godot-native, easy to create/edit, supports typed arrays for lines and choices
+- **Structure:** dialogue_id, character_name (loc key), lines (array of loc keys), choices, next_dialogue_id
+
+**Capability Blocking:**
+- **Decision:** Block card playing and pause during active dialogue
+- **Why:** Prevents player from ignoring tutorial content or breaking game state
+- **Approach:** CapabilityManager integration with DIALOGUE_ACTIVE block reason
+
+### Lessons Learned
+- Localization keys in resources > hardcoded text (even for single language)
+- Dialogue system needs UI registration pattern to handle scene changes
+- Capability blocking essential for tutorial sequences
 
 ---
 
@@ -355,4 +390,4 @@ Throughout development, we've maintained these core principles:
 
 *This document is living - updated as we build and learn.*
 
-**Last Updated:** 2025-11-12
+**Last Updated:** 2025-11-25
