@@ -24,6 +24,11 @@ const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow i
 const SEPARATION_MULTIPLIER: float = 1.5  ## Separation kicks in at collision_radius * this
 const SEPARATION_STRENGTH: float = 2.0  ## Strength of separation push (reduced for smoother movement)
 
+## Clump mitigation constants (blocked detection & flanking)
+const BLOCKED_THRESHOLD: float = 0.3  ## Seconds before flanking kicks in
+const BLOCKED_MOVE_THRESHOLD: float = 0.1  ## Min movement per second to not be blocked
+const FLANK_STRENGTH: float = 0.5  ## Lateral force multiplier when blocked
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -104,6 +109,10 @@ var formation_position: Vector3 = Vector3.ZERO  ## Target position in formation
 
 ## Proximity tracking (for tutorial/events)
 var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitted proximity signal
+
+## Clump mitigation - blocked detection
+var _blocked_time: float = 0.0  ## How long unit has been blocked
+var _last_move_position: Vector3 = Vector3.ZERO  ## For movement detection
 
 ## Projectile prediction cache
 var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
@@ -605,9 +614,12 @@ func _acquire_target() -> Node3D:
 
 	return best_target
 
-func _move_towards_target(_delta: float) -> void:
+func _move_towards_target(delta: float) -> void:
 	if not current_target:
 		return
+
+	# Store position before moving for blocked detection
+	var pos_before_move: Vector3 = global_position
 
 	var direction: Vector3 = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
@@ -615,7 +627,11 @@ func _move_towards_target(_delta: float) -> void:
 
 	# Apply separation steering to avoid stacking with nearby units
 	var separation: Vector3 = _calculate_separation_force()
-	var final_direction: Vector3 = (direction * move_speed + separation).normalized()
+
+	# Apply flank steering when blocked by allies
+	var flank: Vector3 = _calculate_flank_force()
+
+	var final_direction: Vector3 = (direction * move_speed + separation + flank).normalized()
 
 	# Face the direction we're moving (use base direction, not separation-adjusted)
 	_update_facing_from_direction(direction)
@@ -625,6 +641,13 @@ func _move_towards_target(_delta: float) -> void:
 
 	# Post-move: correct any severe overlaps
 	_correct_overlaps()
+
+	# Update blocked detection (check if we actually moved)
+	var movement_this_frame: float = global_position.distance_to(pos_before_move)
+	if movement_this_frame < BLOCKED_MOVE_THRESHOLD * delta:
+		_blocked_time += delta
+	else:
+		_blocked_time = 0.0
 
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:
@@ -1063,6 +1086,30 @@ func _calculate_separation_force() -> Vector3:
 		separation += push_dir * strength
 
 	return separation
+
+## Calculate lateral flanking force when blocked by allies
+## Helps units go around obstacles instead of just pushing forward
+func _calculate_flank_force() -> Vector3:
+	if _blocked_time < BLOCKED_THRESHOLD:
+		return Vector3.ZERO
+	if not current_target:
+		return Vector3.ZERO
+
+	# Get direction to target
+	var to_target: Vector3 = (current_target.global_position - global_position).normalized()
+	to_target.y = 0
+
+	# Calculate perpendicular direction (left or right based on unit instance ID)
+	# This prevents all units going the same direction
+	var lateral_dir: Vector3
+	if get_instance_id() % 2 == 0:
+		lateral_dir = Vector3(-to_target.z, 0, to_target.x)  # Rotate 90 degrees left
+	else:
+		lateral_dir = Vector3(to_target.z, 0, -to_target.x)  # Rotate 90 degrees right
+
+	# Stronger flank force the longer we've been blocked (caps at 1.0)
+	var strength: float = min((_blocked_time - BLOCKED_THRESHOLD) * 2.0, 1.0)
+	return lateral_dir * strength * move_speed * FLANK_STRENGTH
 
 ## Correct severe overlaps by pushing units apart after movement
 ## This is a "hard" correction for when soft separation wasn't enough
