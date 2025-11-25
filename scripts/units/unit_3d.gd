@@ -112,7 +112,6 @@ var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitt
 
 ## Clump mitigation - blocked detection
 var _blocked_time: float = 0.0  ## How long unit has been blocked
-var _last_move_position: Vector3 = Vector3.ZERO  ## For movement detection
 
 ## Projectile prediction cache
 var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
