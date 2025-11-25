@@ -21,8 +21,8 @@ const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 6
 const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
 
 ## Unit separation constants (prevents stacking during movement)
-const SEPARATION_RADIUS: float = 1.5  ## Distance at which separation force kicks in
-const SEPARATION_STRENGTH: float = 3.0  ## Strength of separation push
+const SEPARATION_MULTIPLIER: float = 1.5  ## Separation kicks in at collision_radius * this
+const SEPARATION_STRENGTH: float = 2.0  ## Strength of separation push (reduced for smoother movement)
 
 ## Core stats
 @export var max_hp: float = 100.0
@@ -31,7 +31,7 @@ const SEPARATION_STRENGTH: float = 3.0  ## Strength of separation push
 @export var move_speed: float = 3.0
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
-@export var unit_size: float = 1.0  ## Size multiplier for spacing (1.0 = standard, 2.0 = large unit)
+@export var collision_radius: float = 0.5  ## Collision circle radius for spacing (larger for tanks, smaller for swarms)
 
 ## Base stats (before modifiers)
 var base_max_hp: float
@@ -628,6 +628,9 @@ func _move_towards_target(_delta: float) -> void:
 	velocity = final_direction * move_speed
 	move_and_slide()
 
+	# Post-move: correct any severe overlaps
+	_correct_overlaps()
+
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:
 	if not target is Unit3D:
@@ -1018,16 +1021,60 @@ func _move_towards_position(target_position: Vector3) -> void:
 	velocity = final_direction * move_speed
 	move_and_slide()
 
-## Calculate separation steering force to avoid overlapping with nearby FRIENDLY units
-## Only separates from same-team units to avoid interfering with combat movement
+	# Post-move: correct any severe overlaps
+	_correct_overlaps()
+
+## Calculate separation steering force to avoid overlapping with nearby units
+## Separates from ALL units (both teams) EXCEPT the current attack target
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
+	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
 
-	# Only separate from friendly units (same team)
-	var friendly_group: String = "player_units" if team == Team.PLAYER else "enemy_units"
-	var friendly_units: Array[Node] = get_tree().get_nodes_in_group(friendly_group)
+	for node: Node in all_units:
+		if node == self:
+			continue
 
-	for node: Node in friendly_units:
+		# Don't separate from current attack target - we need to approach it!
+		if node == current_target:
+			continue
+
+		if not node is Unit3D:
+			continue
+
+		var other: Unit3D = node as Unit3D
+		if not other.is_alive:
+			continue
+
+		# Calculate separation distance based on combined collision radii
+		var combined_collision: float = collision_radius + other.collision_radius
+		var separation_dist: float = combined_collision * SEPARATION_MULTIPLIER
+		var separation_dist_sq: float = separation_dist * separation_dist
+
+		# Calculate 2D distance (ignore Y-axis)
+		var delta: Vector3 = global_position - other.global_position
+		delta.y = 0
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		# Skip if outside separation distance
+		if distance_sq >= separation_dist_sq or distance_sq < 0.001:
+			continue
+
+		# Calculate push direction (away from other unit)
+		var distance: float = sqrt(distance_sq)
+		var push_dir: Vector3 = delta.normalized()
+
+		# Stronger push when closer (inverse relationship)
+		var strength: float = (1.0 - distance / separation_dist) * SEPARATION_STRENGTH
+		separation += push_dir * strength
+
+	return separation
+
+## Correct severe overlaps by pushing units apart after movement
+## This is a "hard" correction for when soft separation wasn't enough
+func _correct_overlaps() -> void:
+	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	for node: Node in all_units:
 		if node == self:
 			continue
 
@@ -1038,28 +1085,21 @@ func _calculate_separation_force() -> Vector3:
 		if not other.is_alive:
 			continue
 
-		# Calculate combined separation radius based on both units' sizes
-		var combined_radius: float = (unit_size + other.unit_size) * SEPARATION_RADIUS * 0.5
-		var combined_radius_sq: float = combined_radius * combined_radius
+		# Minimum distance is the sum of both collision radii
+		var min_dist: float = collision_radius + other.collision_radius
 
 		# Calculate 2D distance (ignore Y-axis)
 		var delta: Vector3 = global_position - other.global_position
 		delta.y = 0
-		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+		var distance: float = sqrt(delta.x * delta.x + delta.z * delta.z)
 
-		# Skip if outside combined separation radius
-		if distance_sq >= combined_radius_sq or distance_sq < 0.001:
-			continue
+		# If overlapping, push apart
+		if distance < min_dist and distance > 0.001:
+			var overlap: float = min_dist - distance
+			var push_dir: Vector3 = delta.normalized()
 
-		# Calculate push direction (away from other unit)
-		var distance: float = sqrt(distance_sq)
-		var push_dir: Vector3 = delta.normalized()
-
-		# Stronger push when closer (inverse relationship)
-		var strength: float = (1.0 - distance / combined_radius) * SEPARATION_STRENGTH
-		separation += push_dir * strength
-
-	return separation
+			# Push self by half the overlap (other unit will push itself too)
+			global_position += push_dir * overlap * 0.5
 
 ## Calculate formation positions for a group of units (static helper)
 static func calculate_formation_positions(units: Array[Unit3D], center: Vector3) -> void:

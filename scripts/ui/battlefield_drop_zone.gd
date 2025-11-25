@@ -282,17 +282,17 @@ func _calculate_safe_spawn_position(desired_pos: Vector3, card: Card) -> Vector3
 	if not scene_tree:
 		return desired_pos
 
-	# Get unit_size from the unit scene (instantiate temporarily to check)
-	var unit_size: float = 1.0
+	# Get collision_radius from the unit scene (instantiate temporarily to check)
+	var collision_radius: float = 0.5
 	if card.unit_scene:
 		var temp_unit: Node = card.unit_scene.instantiate()
-		if temp_unit and "unit_size" in temp_unit:
-			unit_size = temp_unit.get("unit_size")
+		if temp_unit and "collision_radius" in temp_unit:
+			collision_radius = temp_unit.get("collision_radius")
 		if temp_unit:
 			temp_unit.queue_free()
 
 	# Check if desired position is safe
-	if _is_spawn_position_safe(desired_pos, scene_tree, unit_size):
+	if _is_spawn_position_safe(desired_pos, scene_tree, collision_radius):
 		return desired_pos
 
 	# Search in expanding rings around desired position
@@ -301,22 +301,21 @@ func _calculate_safe_spawn_position(desired_pos: Vector3, card: Card) -> Vector3
 	const MIN_SPACING: float = 1.5
 
 	for ring: int in range(1, SEARCH_RINGS + 1):
-		var radius: float = MIN_SPACING * unit_size * ring
+		var radius: float = MIN_SPACING * ring  # Fixed spacing for search rings
 		for attempt: int in range(SEARCH_ATTEMPTS):
 			var angle: float = (float(attempt) / SEARCH_ATTEMPTS) * TAU
 			var offset: Vector3 = Vector3(cos(angle) * radius, 0, sin(angle) * radius)
 			var test_pos: Vector3 = desired_pos + offset
 
-			if _is_spawn_position_safe(test_pos, scene_tree, unit_size):
+			if _is_spawn_position_safe(test_pos, scene_tree, collision_radius):
 				return test_pos
 
 	# Fallback to desired position
 	return desired_pos
 
 ## Check if a spawn position is safe (mirrors Card._is_position_safe)
-func _is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_unit_size: float) -> bool:
+func _is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float) -> bool:
 	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
-	const MIN_SPACING: float = 1.5
 
 	for node: Node in all_units:
 		if not node is Unit3D:
@@ -326,9 +325,9 @@ func _is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning
 		if not unit.is_alive:
 			continue
 
-		# Calculate combined spacing based on both units' sizes
-		var combined_spacing: float = (spawning_unit_size + unit.unit_size) * MIN_SPACING * 0.5
-		var spacing_sq: float = combined_spacing * combined_spacing
+		# Minimum spacing is sum of both collision radii (touching, not overlapping)
+		var min_spacing: float = spawning_collision_radius + unit.collision_radius
+		var spacing_sq: float = min_spacing * min_spacing
 
 		# Check 2D distance (ignore Y-axis)
 		var delta: Vector3 = unit.global_position - check_pos
