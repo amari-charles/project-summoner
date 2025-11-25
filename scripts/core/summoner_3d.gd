@@ -28,7 +28,7 @@ var mana: float = 0.0
 const MANA_MAX: float = 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
-var is_alive: bool = true
+var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
 
 ## Hero instance (loaded from profile when using PROFILE strategy)
 var _loaded_hero_instance: HeroInstance = null
@@ -103,7 +103,7 @@ func init() -> void:
 
 			if deck.is_empty():
 				push_error("Summoner3D: CRITICAL - Cannot create deck, disabling summoner")
-				is_alive = false
+				is_enabled = false
 				return
 		else:
 			# Production mode: HARD FAIL - configuration is broken
@@ -113,7 +113,7 @@ func init() -> void:
 			error_msg += "This indicates a configuration bug - check BattleContext and player profile."
 			push_error(error_msg)
 			assert(false, error_msg)
-			is_alive = false
+			is_enabled = false
 			return
 	else:
 		print("Summoner3D: Loaded %d cards using %s strategy" % [deck.size(), DeckLoadStrategy.keys()[deck_load_strategy]])
@@ -129,7 +129,7 @@ func init() -> void:
 	print("Summoner3D: Initialization complete")
 
 func _process(delta: float) -> void:
-	if not is_alive:
+	if not is_enabled:
 		return
 
 	if mana < MANA_MAX:
