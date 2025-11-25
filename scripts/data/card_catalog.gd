@@ -74,7 +74,7 @@ func _init_catalog() -> void:
 		"description": "A sturdy barrier to block enemy advances. High health but no attack.",
 		"rarity": "common",
 
-		"card_type": Card.CardType.SUMMON, (structure is just a unit with 0 move_speed)
+		"card_type": Card.CardType.SUMMON,  # Structure is just a unit with 0 move_speed
 		"unit_type": "structure",  # For icon display
 		"mana_cost": 2,
 		"cooldown": 2.0,
