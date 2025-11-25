@@ -26,9 +26,7 @@
     },
     "starter_deck_name": "Starter Deck",
     "rewards": {
-      "fixed": "Reward: {cards}",
-      "choice": "Reward: Choose from {options}",
-      "random": "Reward: Random ({count} cards)"
+      "fixed": "Reward: {cards}"
     }
   },
   "card": {
