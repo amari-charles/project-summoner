@@ -13,42 +13,18 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 ### 🔴 HIGH PRIORITY
 
 #### Cards Cannot Be Played in Campaign Battles
-**Status:** Open (Investigating)
+**Status:** ✅ Fixed (2025-11-25)
 **Reported:** 2025-11-25
 **Component:** Cards / Battle System
 **Type:** Critical Bug
 
-**Description:**
-After refactoring card_type to use `Card.CardType` enum instead of magic numbers (0/1), cards cannot be played in campaign battles. The game loads correctly and cards appear in hand, but they cannot be interacted with.
+**Root Cause:**
+`BattlefieldDropZone._can_drop_data()` was checking `summoner.get("is_alive")`, but a previous refactor renamed this property to `is_enabled` in Summoner3D. Since the property didn't exist, `get()` returned null, which defaulted to `false`, blocking all drops.
 
-**Expected Behavior:**
-- Cards should be draggable from hand
-- Cards should be playable on the battlefield
-- Units should spawn when summon cards are played
+**Fix:**
+Changed `is_alive` to `is_enabled` in `battlefield_drop_zone.gd:116-118`.
 
-**Current Behavior:**
-- Cards appear in hand (visually correct)
-- Cards may not be draggable or droppable
-- No units spawn
-
-**Impact:**
-- Game is unplayable in current state
-- Blocks all gameplay testing
-
-**Suspected Cause:**
-- GDScript 4.x enum values stored in dictionaries may not pass `is int` checks
-- Partial fix applied to card_visual_helper.gd, collection_screen.gd, deck_builder.gd
-- May be other places with similar issues
-
-**Related Files:**
-- `scripts/data/card_catalog.gd` - Changed to use `Card.CardType.SUMMON/SPELL`
-- `scripts/ui/card_visual_helper.gd` - Fixed `is int` checks
-- `scripts/ui/hand_ui.gd` - Card drag/drop
-- `scripts/ui/battlefield_drop_zone.gd` - Drop handling
-
-**Notes:**
-- Need to verify if issue persists after latest fixes
-- May need to trace through full card play flow to find blocking issue
+**Note:** Move to bugs-resolved.md after verifying fix works.
 
 ---
 
