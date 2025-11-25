@@ -46,12 +46,19 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "< BACK"
 
-[node name="DoneShoppingButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+[node name="LeaveIncompleteButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Leave Caravan"
+text = "Leave"
+
+[node name="LeaveCompleteButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Leave without purchasing"
 
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2

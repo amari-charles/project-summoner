@@ -7,7 +7,8 @@ class_name ShopScreen
 
 ## Node references
 @onready var back_button: Button = %BackButton
-@onready var done_shopping_button: Button = %DoneShoppingButton
+@onready var leave_incomplete_button: Button = %LeaveIncompleteButton
+@onready var leave_complete_button: Button = %LeaveCompleteButton
 @onready var gold_label: Label = %GoldLabel
 @onready var offering_grid: GridContainer = %OfferingGrid
 @onready var detail_panel: PanelContainer = %DetailPanel
@@ -28,12 +29,14 @@ var selected_offering: ShopOffering = null
 var shop_id: String = "general"
 var is_caravan_event: bool = false
 var caravan_sequence_complete: bool = false
-var leave_confirmation_popup: ConfirmationDialog = null
+var leave_incomplete_popup: ConfirmationDialog = null
+var leave_complete_popup: ConfirmationDialog = null
 
 func _ready() -> void:
 	# Connect buttons
 	back_button.pressed.connect(_on_back_pressed)
-	done_shopping_button.pressed.connect(_on_done_shopping_pressed)
+	leave_incomplete_button.pressed.connect(_on_leave_incomplete_pressed)
+	leave_complete_button.pressed.connect(_on_leave_complete_pressed)
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
 	# Connect shop signals
@@ -99,17 +102,25 @@ func _setup_caravan_ui() -> void:
 	# Hide back button
 	back_button.visible = false
 
-	# Update done shopping button text
-	done_shopping_button.text = "Leave Caravan"
-	done_shopping_button.visible = false  # Will be shown after dialogue
+	# Both leave buttons start hidden, shown after dialogue
+	leave_incomplete_button.visible = false
+	leave_complete_button.visible = false
 
-	# Create confirmation popup
-	leave_confirmation_popup = ConfirmationDialog.new()
-	leave_confirmation_popup.dialog_text = Loc.t("shop.caravan.leave_confirmation")
-	leave_confirmation_popup.ok_button_text = Loc.t("shop.caravan.leave_button")
-	leave_confirmation_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
-	leave_confirmation_popup.confirmed.connect(_on_leave_confirmed)
-	add_child(leave_confirmation_popup)
+	# Create "Leave" confirmation popup (exits without completing - can return)
+	leave_incomplete_popup = ConfirmationDialog.new()
+	leave_incomplete_popup.dialog_text = Loc.t("shop.caravan.leave_incomplete_confirmation")
+	leave_incomplete_popup.ok_button_text = Loc.t("shop.caravan.leave_incomplete_button")
+	leave_incomplete_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
+	leave_incomplete_popup.confirmed.connect(_on_leave_incomplete_confirmed)
+	add_child(leave_incomplete_popup)
+
+	# Create "Leave without purchasing" confirmation popup (completes event - allows progression)
+	leave_complete_popup = ConfirmationDialog.new()
+	leave_complete_popup.dialog_text = Loc.t("shop.caravan.leave_complete_confirmation")
+	leave_complete_popup.ok_button_text = Loc.t("shop.caravan.leave_complete_button")
+	leave_complete_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
+	leave_complete_popup.confirmed.connect(_on_leave_complete_confirmed)
+	add_child(leave_complete_popup)
 
 	print("ShopScreen: Caravan UI set up")
 
@@ -251,26 +262,38 @@ func _on_data_changed() -> void:
 		_update_detail_panel(selected_offering)
 
 ## Handle caravan sequence completion (dialogue finished)
-func _on_caravan_sequence_complete(sequence: Resource) -> void:
+func _on_caravan_sequence_complete(_sequence: Resource) -> void:
 	print("ShopScreen: Caravan sequence completed")
 	caravan_sequence_complete = true
 
-	# Show "Done Shopping" button now that dialogue is complete
-	if done_shopping_button:
-		done_shopping_button.visible = true
-		print("ShopScreen: 'Done Shopping' button now visible")
+	# Show both leave buttons now that dialogue is complete
+	if leave_incomplete_button:
+		leave_incomplete_button.visible = true
+	if leave_complete_button:
+		leave_complete_button.visible = true
+	print("ShopScreen: Leave buttons now visible")
 
-## Handle "Leave Caravan" button (caravan events only)
-func _on_done_shopping_pressed() -> void:
-	print("ShopScreen: Leave Caravan pressed")
-	# Show confirmation popup
-	if leave_confirmation_popup:
-		leave_confirmation_popup.popup_centered()
+## Handle "Leave" button (exit without completing - can return later)
+func _on_leave_incomplete_pressed() -> void:
+	print("ShopScreen: Leave (incomplete) pressed")
+	if leave_incomplete_popup:
+		leave_incomplete_popup.popup_centered()
 
-## Handle leave confirmation (user confirmed they want to leave caravan)
-func _on_leave_confirmed() -> void:
-	print("ShopScreen: Leave confirmed")
-	_leave_shop()
+## Handle "Leave without purchasing" button (completes event - allows progression)
+func _on_leave_complete_pressed() -> void:
+	print("ShopScreen: Leave (complete) pressed")
+	if leave_complete_popup:
+		leave_complete_popup.popup_centered()
+
+## Handle leave incomplete confirmation (user wants to leave but can return)
+func _on_leave_incomplete_confirmed() -> void:
+	print("ShopScreen: Leave incomplete confirmed")
+	_leave_shop(false)  # Don't complete the event
+
+## Handle leave complete confirmation (user wants to skip and move on)
+func _on_leave_complete_confirmed() -> void:
+	print("ShopScreen: Leave complete confirmed")
+	_leave_shop(true)  # Complete the event
 
 func _on_back_pressed() -> void:
 	# This should only be called for non-caravan shops
@@ -281,13 +304,17 @@ func _on_back_pressed() -> void:
 	_leave_shop()
 
 ## Leave the shop and return to previous scene
-func _leave_shop() -> void:
-	# If this was a caravan event, mark it complete before leaving
+## If complete_event is true, marks the caravan event as complete (allows progression)
+## If complete_event is false, leaves the event incomplete (can return later, blocks progression)
+func _leave_shop(complete_event: bool = true) -> void:
 	if is_caravan_event:
 		var event_id: String = EventContext.get_current_event_id()
 		if not event_id.is_empty():
-			print("ShopScreen: Completing caravan event '%s'" % event_id)
-			EventContext.complete_event()
+			if complete_event:
+				print("ShopScreen: Completing caravan event '%s'" % event_id)
+				EventContext.complete_event()
+			else:
+				print("ShopScreen: Leaving caravan event '%s' incomplete (can return)" % event_id)
 			EventContext.clear_event()
 
 	# Check if we have a return destination from NavigationContext
