@@ -211,6 +211,128 @@ func update_resources(delta: Dictionary) -> void:
 	data_changed.emit()
 
 ## =============================================================================
+## HERO OPERATIONS
+## =============================================================================
+
+## Get list of unlocked hero IDs
+func get_unlocked_heroes() -> Array:
+	return _data.get("unlocked_heroes", [])
+
+## Check if a specific hero is unlocked
+func is_hero_unlocked(hero_id: String) -> bool:
+	var unlocked: Array = _data.get("unlocked_heroes", [])
+	return hero_id in unlocked
+
+## Unlock a new hero
+func unlock_hero(hero_id: String) -> bool:
+	var unlocked: Array = _data.get("unlocked_heroes", [])
+	if hero_id not in unlocked:
+		unlocked.append(hero_id)
+		_data["unlocked_heroes"] = unlocked
+		_append_to_wal({"op": "unlock_hero", "hero_id": hero_id})
+		save_profile()
+		data_changed.emit()
+		return true
+	return false
+
+## Set starting hero (called during onboarding)
+## chosen_random: whether player selected "Random" option (passed to WAL for tracking)
+func set_starting_hero(hero_id: String, chosen_random: bool) -> bool:
+	# Validate this is called on a fresh profile
+	var unlocked: Array = _data.get("unlocked_heroes", [])
+	if not unlocked.is_empty():
+		push_error("ProfileRepo: Cannot set starting hero - heroes already unlocked")
+		return false
+
+	# Add hero
+	unlocked.append(hero_id)
+	_data["unlocked_heroes"] = unlocked
+
+	# Note: If chosen_random is true, the hero should have the
+	# "fortune_favors_the_bold" modifier in its active_modifiers.
+	# The caller should create the HeroInstance with this modifier.
+
+	_append_to_wal({
+		"op": "set_starting_hero",
+		"hero_id": hero_id,
+		"chosen_random": chosen_random
+	})
+	save_profile()
+	data_changed.emit()
+	return true
+
+## =============================================================================
+## HERO INSTANCE OPERATIONS (Typed Hero System)
+## =============================================================================
+
+## Get all hero instances
+func get_hero_instances() -> Array:
+	return _data.get("hero_instances", [])
+
+## Get a specific hero instance by hero_id
+func get_hero_instance(hero_id: String) -> Dictionary:
+	var instances_variant: Variant = _data.get("hero_instances", [])
+	if not instances_variant is Array:
+		return {}
+	var instances_array: Array = instances_variant
+
+	for instance: Variant in instances_array:
+		if instance is Dictionary:
+			var instance_dict: Dictionary = instance
+			var instance_hero_id_variant: Variant = instance_dict.get("hero_id")
+			if instance_hero_id_variant == hero_id:
+				return instance_dict
+	return {}
+
+## Save or update a hero instance
+func save_hero_instance(hero_instance: HeroInstance) -> bool:
+	if not hero_instance.is_valid():
+		push_error("ProfileRepo: Cannot save invalid HeroInstance")
+		return false
+
+	var instances_variant: Variant = _data.get("hero_instances", [])
+	if not instances_variant is Array:
+		instances_variant = []
+	var instances_array: Array = instances_variant
+
+	var hero_data: Dictionary = hero_instance.to_dict()
+	var hero_id: String = hero_data.get("hero_id", "")
+
+	# Check if instance already exists
+	var found_index: int = -1
+	for i: int in range(instances_array.size()):
+		var instance: Variant = instances_array[i]
+		if instance is Dictionary:
+			var instance_dict: Dictionary = instance
+			var instance_hero_id_variant: Variant = instance_dict.get("hero_id")
+			if instance_hero_id_variant == hero_id:
+				found_index = i
+				break
+
+	if found_index >= 0:
+		# Update existing
+		instances_array[found_index] = hero_data
+	else:
+		# Add new
+		instances_array.append(hero_data)
+		# Also add to unlocked_heroes for legacy compatibility
+		var unlocked: Array = _data.get("unlocked_heroes", [])
+		if hero_id not in unlocked:
+			unlocked.append(hero_id)
+			_data["unlocked_heroes"] = unlocked
+
+	_data["hero_instances"] = instances_array
+
+	_append_to_wal({
+		"action": "save_hero_instance",
+		"params": {"hero_id": hero_id}
+	})
+
+	save_profile()
+	data_changed.emit()
+	return true
+
+## =============================================================================
 ## SHOP OPERATIONS
 ## =============================================================================
 
@@ -399,10 +521,13 @@ func upsert_deck(deck: Dictionary) -> String:
 		deck_id = _generate_uuid()
 		var deck_name_variant: Variant = deck.get("name", "Untitled Deck")
 		var deck_name: String = deck_name_variant
+		var hero_id_variant: Variant = deck.get("hero_id", "")
+		var hero_id: String = hero_id_variant if hero_id_variant is String else ""
 		var new_deck: Dictionary = {
 			"id": deck_id,
 			"profile_id": _current_profile_id,
 			"name": deck_name,
+			"hero_id": hero_id,
 			"created_at": Time.get_unix_time_from_system()
 		}
 		decks_array.append(new_deck)
@@ -435,6 +560,11 @@ func upsert_deck(deck: Dictionary) -> String:
 				if deck_dict_id_variant == deck_id:
 					var deck_name_variant: Variant = deck.get("name", deck_dict["name"])
 					deck_dict["name"] = deck_name_variant
+					# Update hero_id if provided
+					if deck.has("hero_id"):
+						var hero_id_variant: Variant = deck.get("hero_id")
+						if hero_id_variant is String:
+							deck_dict["hero_id"] = hero_id_variant
 					found = true
 					break
 
@@ -748,6 +878,8 @@ func _create_fresh_profile() -> void:
 		"collection": [
 			# Start with ZERO cards - build collection through campaign
 		],
+		"unlocked_heroes": [],  # Array of hero_id strings (legacy compatibility)
+		"hero_instances": [],   # Array of HeroInstance data (level, XP, modifiers)
 		"decks": [],
 		"deck_cards": [],
 		"campaign_progress": {
@@ -759,8 +891,7 @@ func _create_fresh_profile() -> void:
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}
 		},
 		"meta": {
-			"selected_hero": null,
-			"selected_deck": null,
+			"selected_deck": "",
 			"tutorial_flags": {},
 			"achievements": {},
 			"analytics_opt_in": false

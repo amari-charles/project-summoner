@@ -24,70 +24,118 @@ signal game_started()
 signal game_ended(winner: Unit3D.Team)
 signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
+signal initialization_complete()  ## Emitted when all battle systems are ready
 
 func _ready() -> void:
-	print("GameController3D: _ready() called")
-	print("GameController3D: BattleContext.was_configured: %s" % BattleContext.was_configured)
-	print("GameController3D: BattleContext.battle_config is_empty: %s" % BattleContext.battle_config.is_empty())
+	print("BattleCoordinator: Starting battle initialization...")
 
-	if not BattleContext.was_configured:
-		push_error("GameController3D: BattleContext was NEVER configured!")
-		push_error("GameController3D: Did you run the battle scene directly (F6) instead of through the campaign map?")
-		push_error("GameController3D: Configuring with practice mode defaults...")
-		BattleContext.configure_practice_battle()
-
-	if not BattleContext.battle_config.is_empty():
-		print("GameController3D: BattleContext.battle_config keys: %s" % [BattleContext.battle_config.keys()])
-
+	# Add to groups for discovery
 	add_to_group("game_controller")
+	add_to_group("battle_coordinator")  # For SceneCoordinator to find us
+
+	# Validate BattleContext
+	if not BattleContext.is_configured():
+		push_error("BattleCoordinator: BattleContext was NEVER configured!")
+		push_error("BattleCoordinator: Did you run the battle scene directly (F6)?")
+		push_error("BattleCoordinator: Configuring with practice mode defaults...")
+		BattleContext.configure_practice_battle()
 
 	# Reset all battle state before initialization
 	reset_battle_state()
 
+	# Wait one frame for all scene nodes to be in tree
+	await get_tree().process_frame
+
+	# =============================================================================
+	# EXPLICIT INITIALIZATION PHASES
+	# =============================================================================
+
+	# Phase 1: Initialize battlefield
+	print("BattleCoordinator: Phase 1 - Battlefield...")
 	if battlefield == null:
 		battlefield = get_node_or_null("Battlefield3D")
+	print("BattleCoordinator: Phase 1 complete - Battlefield ready")
 
+	# Phase 2: Initialize summoners
+	print("BattleCoordinator: Phase 2 - Summoners...")
+	_init_summoners()
+	print("BattleCoordinator: Phase 2 complete - Summoners ready")
+
+	# Phase 3: Initialize bases
+	print("BattleCoordinator: Phase 3 - Bases...")
+	_init_bases()
+	print("BattleCoordinator: Phase 3 complete - Bases ready")
+
+	# Phase 4: Initialize AI
+	print("BattleCoordinator: Phase 4 - AI...")
+	_load_ai_for_enemy()
+	print("BattleCoordinator: Phase 4 complete - AI ready")
+
+	# Phase 5: Initialize hero modifiers
+	print("BattleCoordinator: Phase 5 - Hero modifiers...")
+	_register_hero_provider()
+	print("BattleCoordinator: Phase 5 complete - Hero modifiers ready")
+
+	# Phase 6: Initialize UI components
+	print("BattleCoordinator: Phase 6 - UI...")
+	_init_ui()
+	print("BattleCoordinator: Phase 6 complete - UI ready")
+
+	# =============================================================================
+	# INITIALIZATION COMPLETE
+	# =============================================================================
+
+	print("BattleCoordinator: All phases complete, emitting initialization_complete")
+	initialization_complete.emit()
+
+	# Start the game
+	start_game()
+
+## Initialize summoners and connect their signals
+func _init_summoners() -> void:
 	if player_summoner == null:
 		player_summoner = get_tree().get_first_node_in_group("player_summoners")
 	if enemy_summoner == null:
 		enemy_summoner = get_tree().get_first_node_in_group("enemy_summoners")
 
+	# Call init() on summoners (synchronous - no need to await since signal emits during init())
+	if player_summoner and player_summoner.has_method("init"):
+		player_summoner.init()
+		print("BattleCoordinator: Player summoner initialized")
+
+	if enemy_summoner and enemy_summoner.has_method("init"):
+		enemy_summoner.init()
+		print("BattleCoordinator: Enemy summoner initialized")
+
+	# Connect death signals
 	if player_summoner and player_summoner.has_signal("summoner_died"):
 		var player_summoner_died_signal: Signal = player_summoner.get("summoner_died")
 		player_summoner_died_signal.connect(_on_summoner_died)
+
 	if enemy_summoner and enemy_summoner.has_signal("summoner_died"):
 		var enemy_summoner_died_signal: Signal = enemy_summoner.get("summoner_died")
 		enemy_summoner_died_signal.connect(_on_summoner_died)
 
-	await get_tree().process_frame
-	var player_bases: Array = get_tree().get_nodes_in_group("player_base")
-	var enemy_bases: Array = get_tree().get_nodes_in_group("enemy_base")
+## Initialize bases and connect their signals
+func _init_bases() -> void:
+	# Find bases (direct lookup - bases add themselves to groups in _ready())
+	player_base = _find_base("player_base")
+	enemy_base = _find_base("enemy_base")
 
-	if player_bases.size() > 0:
-		player_base = player_bases[0]
-		if player_base.has_signal("base_damaged"):
-			var base_damaged_signal: Signal = player_base.get("base_damaged")
-			base_damaged_signal.connect(_on_base_damaged)
-		if player_base.has_signal("base_destroyed"):
-			var base_destroyed_signal: Signal = player_base.get("base_destroyed")
-			base_destroyed_signal.connect(_on_base_destroyed)
+	if player_base:
+		_connect_base_signals(player_base)
+	else:
+		push_warning("BattleCoordinator: Could not find player_base")
 
-	if enemy_bases.size() > 0:
-		enemy_base = enemy_bases[0]
-		if enemy_base.has_signal("base_damaged"):
-			var base_damaged_signal: Signal = enemy_base.get("base_damaged")
-			base_damaged_signal.connect(_on_base_damaged)
-		if enemy_base.has_signal("base_destroyed"):
-			var base_destroyed_signal: Signal = enemy_base.get("base_destroyed")
-			base_destroyed_signal.connect(_on_base_destroyed)
-
+	if enemy_base:
+		_connect_base_signals(enemy_base)
 		# Apply enemy HP override from battle config (for tutorial/special battles)
 		if BattleContext.battle_config.has("enemy_hp"):
 			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
 			if enemy_base.has_method("set") and enemy_base.get("max_hp") != null:
 				enemy_base.set("max_hp", custom_hp)
 				enemy_base.set("current_hp", custom_hp)
-				print("GameController3D: Overrode enemy base HP to %s" % custom_hp)
+				print("BattleCoordinator: Overrode enemy base HP to %s" % custom_hp)
 
 				# Force update the HP label
 				var enemy_hp_label: Node = get_node_or_null("UI/EnemyHPLabel")
@@ -95,18 +143,8 @@ func _ready() -> void:
 					var e_current_hp: int = int(custom_hp)
 					var e_max_hp: int = int(custom_hp)
 					enemy_hp_label.set("text", "Enemy Base: %d/%d" % [e_current_hp, e_max_hp])
-
-	# Load AI for enemy summoner from campaign config
-	_load_ai_for_enemy()
-
-	# Register hero modifier provider
-	_register_hero_provider()
-
-	# Initialize redirect indicator
-	_redirect_indicator = RedirectIndicator.new()
-	add_child(_redirect_indicator)
-
-	call_deferred("start_game")
+	else:
+		push_warning("BattleCoordinator: Could not find enemy_base")
 
 func _exit_tree() -> void:
 	# Cleanup: unregister hero provider to prevent memory leak
@@ -115,42 +153,24 @@ func _exit_tree() -> void:
 		modifier_system.call("unregister_provider", "hero")
 
 ## Comprehensive battle state reset
-## Clears all units, projectiles, HP bars, and manager state
+## Clears all units, projectiles, HP bars from the scene
+## Note: Autoload resets (EventSequencer, DialogueManager, etc.) are handled by SceneCoordinator
 func reset_battle_state() -> void:
-	print("GameController3D: Resetting all battle state...")
-
 	# Clear all active projectiles
 	if ProjectileManager:
 		ProjectileManager.clear_all_projectiles()
-		print("  - Cleared projectiles")
 
 	# Clear all HP bars
 	if HPBarManager:
 		HPBarManager.clear_all_bars()
-		print("  - Cleared HP bars")
 
 	# Clear all units from the battlefield
 	_clear_all_units()
-
-	# Reset autoload singletons that persist between battles
-	if EventSequencer:
-		EventSequencer.reset()
-		print("  - Reset EventSequencer")
-
-	if DialogueManager:
-		DialogueManager.reset()
-		print("  - Reset DialogueManager")
-
-	if SpellTargetingManager:
-		SpellTargetingManager.reset()
-		print("  - Reset SpellTargetingManager")
 
 	# Reset game state
 	current_state = GameState.SETUP
 	match_time = 0.0
 	is_overtime = false
-
-	print("GameController3D: Battle state reset complete")
 
 ## Clear all unit instances from the battlefield
 func _clear_all_units() -> void:
@@ -538,3 +558,51 @@ func _restore_unit_tint() -> void:
 					sprite.modulate = _unit_original_modulates[unit]
 
 	_unit_original_modulates.clear()
+
+## =============================================================================
+## INITIALIZATION HELPERS
+## =============================================================================
+
+## Initialize UI components with proper dependencies
+func _init_ui() -> void:
+	# Create redirect indicator
+	_redirect_indicator = RedirectIndicator.new()
+	add_child(_redirect_indicator)
+
+	# Find and initialize HandUI
+	var hand_ui: Node = get_tree().get_first_node_in_group("hand_ui")
+	if hand_ui and hand_ui.has_method("init"):
+		hand_ui.init(player_summoner)
+	else:
+		push_warning("BattleCoordinator: HandUI not found or has no init() method")
+
+	# Find and initialize GameUI
+	var game_ui: Node = get_node_or_null("UI")
+	if game_ui and game_ui.has_method("init"):
+		game_ui.init(self, player_summoner)
+	else:
+		push_warning("BattleCoordinator: GameUI not found or has no init() method")
+
+	# Find and initialize BattlefieldDropZone
+	var drop_zone: Node = get_node_or_null("UI/BattlefieldDropZone")
+	if drop_zone and drop_zone.has_method("init"):
+		drop_zone.init(player_summoner)
+	else:
+		push_warning("BattleCoordinator: BattlefieldDropZone not found or has no init() method")
+
+## Find a base by group name (direct lookup - no retry)
+## Bases add themselves to groups in _ready(), so they're available after scene tree is built
+func _find_base(group_name: String) -> Node3D:
+	var bases: Array = get_tree().get_nodes_in_group(group_name)
+	if bases.size() > 0:
+		return bases[0]
+	return null
+
+## Connect signals from a base
+func _connect_base_signals(base: Node3D) -> void:
+	if base.has_signal("base_damaged"):
+		var base_damaged_signal: Signal = base.get("base_damaged")
+		base_damaged_signal.connect(_on_base_damaged)
+	if base.has_signal("base_destroyed"):
+		var base_destroyed_signal: Signal = base.get("base_destroyed")
+		base_destroyed_signal.connect(_on_base_destroyed)

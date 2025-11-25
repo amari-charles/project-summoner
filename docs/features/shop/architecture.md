@@ -151,7 +151,7 @@ func increment_shop_refresh_epoch(shop_id: String) -> bool:
     return save_profile(true)
 ```
 
-**Note**: `ProfileRepo.get_hero_affinity()` is assumed to exist (or to be added) to support affinity-based pricing and conditional caravan content.
+**Note**: Hero affinity for pricing should be obtained from the active deck's hero via `DeckService` → `HeroCatalog.get_hero(deck.hero_id)` to support affinity-based pricing and conditional caravan content.
 
 ### Design Pattern: Resource vs Dictionary
 
@@ -291,7 +291,10 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
     var context: ShopPurchaseContext = ShopPurchaseContext.new()
     context.player_gold = gold
     context.purchase_count = purchase_count
-    context.hero_affinity = ProfileRepo.get_hero_affinity()  # Assumed to exist for affinity-based pricing
+    # Get hero affinity from active deck
+    var active_deck = Decks.get_active_deck()
+    var hero_data = HeroCatalog.get_hero(active_deck.hero_id) if active_deck else {}
+    context.hero_affinity = hero_data.get("element", ElementTypes.NEUTRAL)
     context.refresh_epoch = refresh_epoch
 
     # Validate

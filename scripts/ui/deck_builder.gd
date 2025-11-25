@@ -37,6 +37,10 @@ class_name DeckBuilder
 @onready var popup_action: Label = %ActionLabel
 @onready var popup_close_button: Button = %CloseButton
 
+## Hero selection UI (optional - add to scene if not present)
+@onready var hero_selector: OptionButton = get_node_or_null("%HeroSelector")
+@onready var hero_stats_label: Label = get_node_or_null("%HeroStatsLabel")
+
 ## State
 var current_deck_id: String = ""
 var current_deck_data: Dictionary = {}
@@ -45,7 +49,7 @@ var collection_summary: Array = []  # Array of collection entry dictionaries
 var deck_editing_locked: bool = false  # Tutorial mode lock
 
 ## Card widget scene
-const CardWidgetScene = preload("res://scenes/ui/card_widget.tscn")
+const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
 
 ## =============================================================================
 ## LIFECYCLE
@@ -66,6 +70,11 @@ func _ready() -> void:
 	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
 	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
 	popup_close_button.pressed.connect(_on_popup_close_pressed)
+
+	# Connect hero selector if present
+	if hero_selector:
+		hero_selector.item_selected.connect(_on_hero_selected)
+		_populate_hero_selector()
 
 	# Connect to services
 	var decks: Node = get_node("/root/Decks")
@@ -216,6 +225,9 @@ func _load_deck(deck_id: String) -> void:
 	_refresh_collection()
 	_refresh_deck_display()
 	_update_validation()
+
+	# Load and display hero
+	_load_deck_hero()
 
 	# Debug: Check for duplicate cards
 	var unique_ids: Dictionary = {}
@@ -722,7 +734,7 @@ func _on_popup_close_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	print("DeckBuilder: Returning to collection")
-	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 
 ## =============================================================================
 ## SIGNALS
@@ -786,3 +798,106 @@ func _show_locked_message() -> void:
 	if deck_editing_locked:
 		validation_label.text = "🔒 DECK LOCKED - Complete tutorial battles to unlock editing"
 		validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+
+## =============================================================================
+## HERO MANAGEMENT
+## =============================================================================
+
+## Populate hero selector with unlocked heroes
+func _populate_hero_selector() -> void:
+	if not hero_selector:
+		return
+
+	hero_selector.clear()
+
+	var profile_repo: Node = get_node("/root/ProfileRepo")
+	if not profile_repo or not profile_repo.has_method("get_unlocked_heroes"):
+		return
+
+	var unlocked: Array = profile_repo.call("get_unlocked_heroes")
+	if unlocked.is_empty():
+		push_warning("DeckBuilder: No heroes unlocked!")
+		return
+
+	var hero_catalog: Node = get_node("/root/HeroCatalog")
+	if not hero_catalog or not hero_catalog.has_method("get_hero"):
+		return
+
+	# Add each unlocked hero to selector
+	for hero_id: Variant in unlocked:
+		if hero_id is String:
+			var hero_data: Variant = hero_catalog.call("get_hero", hero_id)
+			if hero_data is Dictionary:
+				var hero_dict: Dictionary = hero_data
+				var hero_name: String = hero_dict.get("hero_name", hero_id)
+				hero_selector.add_item(hero_name)
+				hero_selector.set_item_metadata(hero_selector.item_count - 1, hero_id)
+
+	print("DeckBuilder: Populated hero selector with %d heroes" % hero_selector.item_count)
+
+## Load and display hero for current deck
+func _load_deck_hero() -> void:
+	if not hero_selector or current_deck_data.is_empty():
+		return
+
+	var hero_id: String = current_deck_data.get("hero_id", "")
+	if hero_id.is_empty():
+		push_warning("DeckBuilder: Deck has no hero assigned!")
+		return
+
+	# Find and select the hero in the dropdown
+	for i: int in hero_selector.item_count:
+		var metadata: Variant = hero_selector.get_item_metadata(i)
+		if metadata is String and metadata == hero_id:
+			hero_selector.selected = i
+			break
+
+	# Update hero stats display
+	_update_hero_stats_display(hero_id)
+
+## Update hero stats label with hero data
+func _update_hero_stats_display(hero_id: String) -> void:
+	if not hero_stats_label:
+		return
+
+	var hero_catalog: Node = get_node("/root/HeroCatalog")
+	if not hero_catalog or not hero_catalog.has_method("get_hero"):
+		return
+
+	var hero_data: Variant = hero_catalog.call("get_hero", hero_id)
+	if not hero_data is Dictionary:
+		return
+
+	var hero_dict: Dictionary = hero_data
+	var health: float = hero_dict.get("base_health", 0.0)
+	var mana: float = hero_dict.get("max_mana", 0.0)
+	var regen: float = hero_dict.get("mana_regen", 0.0)
+
+	hero_stats_label.text = "HP: %.0f | Mana: %.0f | Regen: %.1f/s" % [health, mana, regen]
+
+## Called when hero selector changes
+func _on_hero_selected(index: int) -> void:
+	if deck_editing_locked:
+		_show_locked_message()
+		_load_deck_hero()  # Reset to original hero
+		return
+
+	if not hero_selector or current_deck_id.is_empty():
+		return
+
+	var hero_id: Variant = hero_selector.get_item_metadata(index)
+	if not hero_id is String:
+		return
+
+	var hero_id_str: String = hero_id
+
+	# Update deck hero
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("set_deck_hero"):
+		var success: Variant = decks.call("set_deck_hero", current_deck_id, hero_id_str)
+		if success is bool and success:
+			print("DeckBuilder: Changed deck hero to: %s" % hero_id_str)
+			_update_hero_stats_display(hero_id_str)
+		else:
+			push_error("DeckBuilder: Failed to set deck hero!")
+			_load_deck_hero()  # Reset to original

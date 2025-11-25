@@ -32,8 +32,36 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
-	# If loading enemy from campaign, override max_hp if specified
-	if load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+	# Wait one frame to ensure autoload services are fully initialized
+	await get_tree().process_frame
+
+	# Initialize deck and apply hero bonuses (must happen before setting current_hp/mana)
+	if load_deck_from_profile and team == Unit.Team.PLAYER:
+		# Load deck from player's profile
+		var deck_data: Dictionary = DeckLoader.load_player_deck()
+
+		var cards_variant: Variant = deck_data.get("cards", [])
+		if cards_variant is Array:
+			var cards_array: Array = cards_variant
+			deck.assign(cards_array)
+		if deck.is_empty():
+			push_error("Summoner: Failed to load deck from profile!")
+
+		# Apply hero bonuses
+		var hero_instance_variant: Variant = deck_data.get("hero_instance")
+		if hero_instance_variant is HeroInstance:
+			var hero_instance: HeroInstance = hero_instance_variant
+			_apply_hero_bonuses(hero_instance)
+		else:
+			push_warning("Summoner: No valid HeroInstance in deck data")
+	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
+		# Load enemy deck from current campaign battle
+		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
+		if deck.is_empty():
+			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback.")
+			deck = starting_deck.duplicate()
+
+		# Override enemy max_hp from campaign if specified
 		var campaign: Node = get_node_or_null("/root/Campaign")
 		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 		if campaign and profile_repo:
@@ -53,33 +81,13 @@ func _ready() -> void:
 				var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
 				if battle.has("enemy_hp"):
 					max_hp = battle.get("enemy_hp")
-					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
-
-	current_hp = max_hp
-	mana = MANA_MAX
-
-	# Initialize deck
-	if load_deck_from_profile and team == Unit.Team.PLAYER:
-		# Load deck from player's profile
-		print("Summoner: Loading deck from profile...")
-		deck = DeckLoader.load_player_deck()
-		if deck.is_empty():
-			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
-		else:
-			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
-	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
-		# Load enemy deck from current campaign battle
-		print("Summoner: Loading enemy deck from campaign...")
-		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
-		if deck.is_empty():
-			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback deck.")
-			deck = starting_deck.duplicate()
-		else:
-			print("Summoner: Successfully loaded %d cards for enemy from campaign" % deck.size())
 	else:
 		# Use exported starting_deck (for testing/AI)
 		deck = starting_deck.duplicate()
-		print("Summoner: Using exported starting_deck (%d cards)" % deck.size())
+
+	# Initialize HP and mana
+	current_hp = max_hp
+	mana = MANA_MAX
 
 	deck.shuffle()
 
@@ -166,3 +174,29 @@ func take_damage(damage: float) -> void:
 func _die() -> void:
 	is_alive = false
 	summoner_died.emit(self)
+
+## Apply hero bonuses to summoner stats
+func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
+	if hero_instance == null:
+		push_warning("Summoner: Cannot apply bonuses from null HeroInstance")
+		return
+
+	# Get computed stats (includes modifiers)
+	var stats: Dictionary = hero_instance.get_computed_stats()
+
+	# Set health from hero (with modifiers applied)
+	var health: float = stats.get("health", 1000.0)
+	max_hp = health
+
+	# Set mana regen from hero (with modifiers applied)
+	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
+	mana_regen_rate = hero_mana_regen
+
+	# Note: max_mana from stats is not applied here because Summoner uses MANA_MAX constant
+	# In a future refactor, MANA_MAX could be made a variable and set from stats.get("max_mana")
+
+	var hero_name: String = hero_instance.config.hero_name
+	var modifier_count: int = hero_instance.active_modifiers.size()
+	print("Summoner: Applied hero bonuses from '%s' (Level %d, %d modifiers) - HP: %.0f, Mana Regen: %.1f/s" % [
+		hero_name, hero_instance.level, modifier_count, max_hp, mana_regen_rate
+	])

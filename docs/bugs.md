@@ -86,7 +86,81 @@ When a melee unit (e.g., slime) gets directly on top of a ranged unit (e.g., arc
 - Affects all ranged vs melee matchups
 - May be related to ProjectileTargetPoint position or projectile collision setup
 
+#### Battles Not Working on First Play with Dialogue
+**Status:** FIXED
+**Reported:** 2025-01-24
+**Resolved:** 2025-01-24
+**Component:** Battle System / Dialogue / Event Sequencer
+**Type:** Gameplay Bug
+
+**Description:**
+Battles are not functioning properly the first time they are played when dialogue or event sequences are involved. Dialogue doesn't show and enemies don't spawn on first load.
+
+**Root Cause:**
+Race condition between DialogueManager (autoload) and DialogueBox (scene node):
+1. HeroSelection scene's DialogueBox calls `DialogueManager.notify_ui_connected()` setting `_is_system_ready = true`
+2. When battle scene loads, DialogueManager is autoload so `_is_system_ready` stays true
+3. But the OLD DialogueBox from HeroSelection is gone, NEW DialogueBox hasn't connected yet
+4. EventSequencer checks `is_system_ready()`, sees true, starts dialogue immediately
+5. DialogueBox misses the dialogue_started/dialogue_line_displayed signals
+
+**Solution Implemented:**
+Reset `_is_system_ready = false` in `DialogueManager.reset()` so each new scene's DialogueBox must reconnect. This ensures EventSequencer properly waits for the new DialogueBox to be ready.
+
+**Workarounds (before fix):**
+- Pausing and unpausing seems to trigger deck reload (partial fix)
+- Quitting to menu and restarting temporarily fixes it
+- Quitting again and loading brings back the bugged state
+
+**Related Files:**
+- `scripts/services/dialogue_manager.gd:305` - Added `_is_system_ready = false` in reset()
+- `scripts/core/battle_dialogue_controller.gd` - Calls EventSequencer.play_sequence()
+- `scripts/services/event_sequencer.gd:196-207` - Checks is_system_ready() before dialogue
+
 ### 🟡 MEDIUM PRIORITY
+
+#### Charge Spell Not Attacking - Only Moving to Destination
+**Status:** Open
+**Reported:** 2025-01-24
+**Component:** Spells / Charge Ability
+**Type:** Gameplay Bug
+
+**Description:**
+The Charge spell (granted in first card selection tutorial) is not working correctly. Units only move to the designated spot but do not attack the nearest enemy upon arrival. Additionally, debug logs incorrectly reference "rally" instead of "charge".
+
+**Expected Behavior:**
+- Units should move to the targeted location
+- Upon reaching destination, units should attack the nearest enemy
+- Debug logs should reference "charge" not "rally"
+
+**Current Behavior:**
+- Units move to the designated spot correctly
+- Units do NOT attack enemies after arriving
+- SpellTargetingManager logs show "rally_destination" instead of charge-related terminology:
+  ```
+  SpellTargetingManager[66337113570]: _process() updated rally_destination from (35.44445, 0.0, -7.467197) to (35.42388, 0.000002, -7.538952)
+  ```
+
+**Impact:**
+- Charge spell is functionally broken - doesn't provide combat benefit
+- Tutorial teaches broken mechanic
+- Player confusion about spell functionality
+
+**Proposed Solution:**
+- Investigate why attack behavior isn't triggering after movement completes
+- Check if charge spell is incorrectly using rally logic
+- Ensure proper spell type distinction between rally (move only) and charge (move + attack)
+- Update SpellTargetingManager to use correct terminology for charge spells
+
+**Related Files:**
+- `scripts/ui/spell_targeting_manager.gd` - Shows rally terminology in logs
+- Charge spell resource/card definition
+- Unit movement/attack state machine
+
+**Notes:**
+- May be using rally implementation instead of charge-specific logic
+- Need to verify the charge spell card is properly configured
+- Check if there's a separate charge vs rally code path
 
 #### Battle Marked Complete When Starting Event Sequence
 **Status:** Open
@@ -457,4 +531,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-01-22 - Fixed HP bar positioning, added event sequence completion bug*
+*Last Updated: 2025-01-24 - Added Charge spell not attacking bug*

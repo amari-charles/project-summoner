@@ -41,7 +41,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 	if already_completed:
 		print("FirstCardSelection: First summon event already completed, skipping")
-		SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 		return
 
 	# Grant the chosen card to collection
@@ -72,10 +72,12 @@ func _on_card_selected(catalog_id: StringName) -> void:
 				decks.call("add_card_to_deck", deck_id, card_instance_id)
 				print("FirstCardSelection: Added card to existing Starter Deck")
 		else:
+			# Get the player's unlocked hero to assign to the deck
+			var hero_id: String = _get_first_unlocked_hero()
 			if decks.has_method("create_deck"):
-				var result: Variant = decks.call("create_deck", STARTER_DECK_NAME, [card_instance_id])
+				var result: Variant = decks.call("create_deck", STARTER_DECK_NAME, [card_instance_id], hero_id)
 				deck_id = result if result is String else ""
-				print("FirstCardSelection: Created new Starter Deck (id: %s)" % deck_id)
+				print("FirstCardSelection: Created new Starter Deck (id: %s) with hero '%s'" % [deck_id, hero_id])
 
 		# Set as active deck
 		if deck_id != "":
@@ -95,4 +97,20 @@ func _on_card_selected(catalog_id: StringName) -> void:
 		print("FirstCardSelection: Marked first summon event as completed!")
 
 	# Return to campaign map
-	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+
+## Get the first unlocked hero from the profile
+func _get_first_unlocked_hero() -> String:
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		return ""
+
+	if profile_repo.has_method("get_unlocked_heroes"):
+		var unlocked_variant: Variant = profile_repo.call("get_unlocked_heroes")
+		if unlocked_variant is Array:
+			var unlocked: Array = unlocked_variant
+			if unlocked.size() > 0:
+				var first_hero: Variant = unlocked[0]
+				if first_hero is String:
+					return first_hero
+	return ""

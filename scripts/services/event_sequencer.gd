@@ -554,7 +554,7 @@ func _execute_open_caravan(step: Resource) -> void:
 	NavigationContext.push_return(SceneManager.SCENE_EVENT_SCREEN)
 
 	# Navigate to shop screen with the specified shop_id
-	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
 
 	# Wait for shop screen to load and then set the shop_id
 	await get_tree().process_frame

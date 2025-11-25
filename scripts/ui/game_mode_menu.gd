@@ -12,17 +12,17 @@ func _ready() -> void:
 ## Navigate to Campaign map
 func _on_campaign_pressed() -> void:
 	print("Opening campaign map...")
-	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## Navigate to Shop screen
 func _on_shop_pressed() -> void:
 	print("Opening shop...")
-	SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
 
 ## Navigate to Collection screen
 func _on_collection_pressed() -> void:
 	print("Opening collection screen...")
-	SceneManager.change_scene(SceneManager.SCENE_COLLECTION_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 
 ## PLACEHOLDER - Events not yet implemented
 func _on_events_pressed() -> void:
@@ -32,4 +32,4 @@ func _on_events_pressed() -> void:
 ## Return to Main Menu
 func _on_back_pressed() -> void:
 	print("Returning to main menu...")
-	SceneManager.change_scene(SceneManager.SCENE_MAIN_MENU)
+	SceneManager.transition_to(SceneManager.SCENE_MAIN_MENU)

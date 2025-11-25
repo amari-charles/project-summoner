@@ -523,9 +523,9 @@ func get_modifiers() -> Array:
 
 ```gdscript
 func _ready():
-    # Register hero provider
-    var profile = ProfileRepo.get_active_profile()
-    var hero_id = profile.get("meta", {}).get("selected_hero", "")
+    # Register hero provider from active deck
+    var active_deck = Decks.get_active_deck()
+    var hero_id = active_deck.get("hero_id", "") if active_deck else ""
 
     if hero_id:
         var hero_provider = HeroModifierProvider.new(hero_id)

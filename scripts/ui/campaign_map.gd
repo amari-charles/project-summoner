@@ -631,13 +631,13 @@ func _on_start_event_pressed() -> void:
 	# Handle affinity selection event - route to hero selection
 	if event_type == "affinity":
 		print("CampaignMap: Starting affinity selection...")
-		SceneManager.change_scene(SceneManager.SCENE_HERO_SELECTION)
+		SceneManager.transition_to(SceneManager.SCENE_HERO_SELECTION)
 		return
 
 	# Handle first summon event - route to first card selection
 	if event_type == "first_summon":
 		print("CampaignMap: Starting first summon selection...")
-		SceneManager.change_scene(SceneManager.SCENE_FIRST_CARD_SELECTION)
+		SceneManager.transition_to(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
 
 	# Handle caravan events - navigate directly to shop with event context
@@ -674,7 +674,7 @@ func _on_start_event_pressed() -> void:
 
 		# Navigate to shop (ShopScreen will play event sequence on top of UI)
 		NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-		SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+		SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
 		return
 
 	# Handle battle events
@@ -710,7 +710,7 @@ func _on_start_event_pressed() -> void:
 
 	# Launch battle scene
 	print("CampaignMap: Launching battle scene...")
-	SceneManager.change_scene(SceneManager.SCENE_BATTLE_3D)
+	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 ## =============================================================================
 ## NAVIGATION
@@ -718,7 +718,7 @@ func _on_start_event_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	print("CampaignMap: Returning to game mode menu")
-	SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)
+	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
 
 func _on_center_latest_pressed() -> void:
 	var latest_unlocked_id: String = _find_latest_unlocked_mission()
