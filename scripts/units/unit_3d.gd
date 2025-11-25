@@ -633,7 +633,10 @@ func _move_towards_target(delta: float) -> void:
 	# Store position before moving for blocked detection
 	var pos_before_move: Vector3 = global_position
 
-	var direction: Vector3 = (current_target.global_position - global_position).normalized()
+	# Get target position - use nearest point on collision for large structures
+	var target_pos: Vector3 = _get_target_attack_position(current_target)
+
+	var direction: Vector3 = (target_pos - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
 
@@ -693,11 +696,14 @@ func _is_in_attack_range(target: Node3D) -> bool:
 	if not target:
 		return false
 
-	var delta: Vector3 = target.global_position - global_position
+	# Get target position - use nearest point on collision for large structures
+	var target_pos: Vector3 = _get_target_attack_position(target)
+
+	var delta: Vector3 = target_pos - global_position
 
 	# Ranged units use simple 3D distance (sphere)
 	if unit_type == UnitType.RANGED or is_ranged:  # Support legacy is_ranged
-		var distance: float = global_position.distance_to(target.global_position)
+		var distance: float = global_position.distance_to(target_pos)
 		return distance <= attack_range
 
 	# Melee units use box-shaped range (per-axis checking)
@@ -723,6 +729,32 @@ func _is_in_attack_range(target: Node3D) -> bool:
 		return false
 
 	return true
+
+
+## Get the best position to move toward when attacking a target
+## For large structures (bases, summoners with collision), returns nearest point on collision boundary
+## For small targets (units), returns global_position
+## This prevents units from clustering at a single point when attacking large structures
+func _get_target_attack_position(target: Node3D) -> Vector3:
+	# Look for a collision shape child with BoxShape3D
+	for child: Node in target.get_children():
+		if child is CollisionShape3D:
+			var collision: CollisionShape3D = child
+			if collision.shape is BoxShape3D:
+				var box: BoxShape3D = collision.shape
+				# Only use nearest-point calculation for "large" structures (size > 1.5 on any axis)
+				if box.size.x > 1.5 or box.size.z > 1.5:
+					var half: Vector3 = box.size / 2.0
+					var local: Vector3 = global_position - target.global_position
+					return target.global_position + Vector3(
+						clampf(local.x, -half.x, half.x),
+						0,  # Keep at ground level
+						clampf(local.z, -half.z, half.z)
+					)
+
+	# No large collision found - use center position (fine for units and small targets)
+	return target.global_position
+
 
 func _update_facing(target_position: Vector3) -> void:
 	# Calculate direction to target and face that direction

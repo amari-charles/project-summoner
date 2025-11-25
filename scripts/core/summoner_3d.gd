@@ -1,8 +1,9 @@
 extends Node3D
 class_name Summoner3D
 
-## 3D Player base/summoner that spawns units and manages cards
-## Each player has one Summoner that represents their base
+## Hero/Summoner - The player character that manages cards and mana
+## NOT a battlefield entity - cannot be attacked or damaged
+## The Nexus (Base3D) is what units attack to win the game
 
 ## Deck loading strategies
 enum DeckLoadStrategy {
@@ -12,7 +13,6 @@ enum DeckLoadStrategy {
 	DEFERRED         ## Don't load deck in _ready(), wait for manual override (test controllers)
 }
 
-@export var max_hp: float = 1000.0
 @export var team: Unit3D.Team = Unit3D.Team.PLAYER
 
 ## Deck and hand
@@ -24,12 +24,11 @@ enum DeckLoadStrategy {
 @export var mana_regen_rate: float = 1.0
 
 ## Current state
-var current_hp: float = 0.0
 var mana: float = 0.0
 const MANA_MAX: float = 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
-var is_alive: bool = true
+var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
 
 ## Hero instance (loaded from profile when using PROFILE strategy)
 var _loaded_hero_instance: HeroInstance = null
@@ -38,7 +37,6 @@ var _loaded_hero_instance: HeroInstance = null
 var _initialized: bool = false
 
 ## Signals
-signal summoner_died(summoner: Summoner3D)
 signal card_played(card: Card)
 signal card_drawn(card: Card)
 signal mana_changed(current: float, max: float)
@@ -49,7 +47,7 @@ func _ready() -> void:
 	# Minimal setup - just add to groups for discovery
 	# Full initialization happens in init() called by BattleCoordinator
 	add_to_group("summoners")
-	add_to_group("bases")  # Allows spell cards to find summoner as projectile source
+	# Note: NOT in "bases" group - summoners are not attack targets
 	if team == Unit3D.Team.PLAYER:
 		add_to_group("player_summoners")
 	else:
@@ -90,20 +88,7 @@ func init() -> void:
 		if _loaded_hero_instance != null:
 			_apply_hero_bonuses(_loaded_hero_instance)
 
-	# For enemy summoners, load config from BattleContext
-	if team == Unit3D.Team.ENEMY:
-		var battle_context: Node = get_node_or_null("/root/BattleContext")
-		if battle_context:
-			var battle_config_variant: Variant = battle_context.get("battle_config")
-			var battle_config: Dictionary = battle_config_variant if battle_config_variant is Dictionary else {}
-			if not battle_config.is_empty():
-				# Set enemy HP from config
-				if battle_config.has("enemy_hp"):
-					max_hp = battle_config.get("enemy_hp")
-					print("Summoner3D: Set enemy HP from BattleContext: %d" % max_hp)
-
-	# Initialize HP and mana (after hero bonuses and enemy config)
-	current_hp = max_hp
+	# Initialize mana
 	mana = MANA_MAX
 
 	# Handle empty deck - behavior depends on deck loading strategy
@@ -118,7 +103,7 @@ func init() -> void:
 
 			if deck.is_empty():
 				push_error("Summoner3D: CRITICAL - Cannot create deck, disabling summoner")
-				is_alive = false
+				is_enabled = false
 				return
 		else:
 			# Production mode: HARD FAIL - configuration is broken
@@ -128,7 +113,7 @@ func init() -> void:
 			error_msg += "This indicates a configuration bug - check BattleContext and player profile."
 			push_error(error_msg)
 			assert(false, error_msg)
-			is_alive = false
+			is_enabled = false
 			return
 	else:
 		print("Summoner3D: Loaded %d cards using %s strategy" % [deck.size(), DeckLoadStrategy.keys()[deck_load_strategy]])
@@ -144,7 +129,7 @@ func init() -> void:
 	print("Summoner3D: Initialization complete")
 
 func _process(delta: float) -> void:
-	if not is_alive:
+	if not is_enabled:
 		return
 
 	if mana < MANA_MAX:
@@ -194,20 +179,6 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	hand_changed.emit(hand)
 
 	return true
-
-func take_damage(damage: float) -> void:
-	if not is_alive:
-		return
-
-	current_hp -= damage
-
-	if current_hp <= 0:
-		current_hp = 0
-		_die()
-
-func _die() -> void:
-	is_alive = false
-	summoner_died.emit(self)
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
@@ -372,19 +343,15 @@ func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
 	# Get computed stats (includes modifiers)
 	var stats: Dictionary = hero_instance.get_computed_stats()
 
-	# Set health from hero (with modifiers applied)
-	var health: float = stats.get("health", 1000.0)
-	max_hp = health
-
 	# Set mana regen from hero (with modifiers applied)
 	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
 	mana_regen_rate = hero_mana_regen
 
-	# Note: max_mana from stats is not applied here because Summoner3D uses MANA_MAX constant
-	# In a future refactor, MANA_MAX could be made a variable and set from stats.get("max_mana")
+	# TODO: Hero health stat should flow to Nexus (Base3D), not stored here
+	# TODO: max_mana from stats should be applied (MANA_MAX is currently a constant)
 
 	var hero_name: String = hero_instance.config.hero_name
 	var modifier_count: int = hero_instance.active_modifiers.size()
-	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d modifiers) - HP: %.0f, Mana Regen: %.1f/s" % [
-		hero_name, hero_instance.level, modifier_count, max_hp, mana_regen_rate
+	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d modifiers) - Mana Regen: %.1f/s" % [
+		hero_name, hero_instance.level, modifier_count, mana_regen_rate
 	])

@@ -4,6 +4,29 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Charge Spell Causes Units to Bounce When Targeting Above Base
+**Resolved:** 2025-11-25
+**Component:** Spells / Unit Movement
+
+**Description:**
+When using the Charge spell with a target location visually "above" the enemy base, units bounced back and forth instead of attacking. The issue was that `find_nearest_enemy()` found the EnemySummoner (at Z=0) instead of EnemyBase (at Z=-7.5), and Summoner had no collision shape for unit spreading.
+
+**Root Cause:**
+Summoner3D was in the "bases" group, making it a valid attack target. This was legacy code from when the Summoner was intended to be attackable, but in the actual game design only the Nexus (Base3D) should be attackable.
+
+**Solution Implemented:**
+1. Removed `add_to_group("bases")` from Summoner3D - summoners are no longer found as attack targets
+2. Removed vestigial HP/death code from Summoner3D (max_hp, current_hp, take_damage, _die, summoner_died signal)
+3. Removed `_on_summoner_died` handler from GameController3D
+4. Documented intended architecture in `docs/design/hero-and-nexus.md`
+
+**Related Files:**
+- `scripts/core/summoner_3d.gd` - Removed HP/death code and bases group membership
+- `scripts/core/game_controller_3d.gd` - Removed summoner_died signal handling
+- `docs/design/hero-and-nexus.md` - New architecture documentation
+
+---
+
 ### AI Scoring Magic Numbers Extracted to Constants
 **Resolved:** 2025-11-25
 **Component:** AI System

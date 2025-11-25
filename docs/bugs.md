@@ -10,6 +10,52 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ## Active Bugs
 
+### 🔴 HIGH PRIORITY
+
+#### Mission Rewards Auto-Accepted Without Player Choice
+**Status:** Open
+**Reported:** 2025-11-25
+**Component:** Campaign / Rewards
+**Type:** UX Bug
+
+**Description:**
+If a mission finishes and the player doesn't explicitly accept rewards (e.g., closes the game, crashes, or navigates away), the rewards may be auto-accepted. This is problematic for reward screens that require player choice (e.g., "pick 1 of 3 cards").
+
+**Expected Behavior:**
+- Rewards requiring choice should NOT be auto-accepted
+- Player must explicitly make their selection
+- If player leaves without choosing, reward should be pending on next session
+- Or: prevent leaving the reward screen until choice is made
+
+**Current Behavior:**
+- Unclear what happens if player exits during reward selection
+- May auto-grant rewards without player input
+- Could grant wrong reward or first option by default
+
+**Impact:**
+- Player may miss out on preferred reward choice
+- Frustrating experience if "wrong" reward is auto-selected
+- Could break progression if reward is required for next mission
+
+**Proposed Solution:**
+- Track reward state: PENDING_CHOICE vs CLAIMED
+- On mission complete, mark reward as PENDING_CHOICE
+- Only mark CLAIMED after explicit player action
+- On game load, check for PENDING_CHOICE rewards and show selection screen
+- Consider: block navigation away from reward screen until choice is made
+
+**Related Files:**
+- `scenes/ui/reward_screen.tscn`
+- `scripts/ui/reward_screen.gd` (if exists)
+- `scripts/services/campaign_service.gd` - Progress tracking
+
+**Notes:**
+- Need to audit current reward flow to understand exact behavior
+- Consider edge cases: app crash, force quit, alt+F4
+- May need persistent "pending rewards" queue in save data
+
+---
+
 ### 🟡 MEDIUM PRIORITY
 
 #### Mana Bar Uses Hardcoded Values Instead of Hero System
@@ -94,4 +140,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-11-25 - Added database bugs from comprehensive review*
+*Last Updated: 2025-11-25 - Resolved charge bug, rewards auto-accept bug still open*
