@@ -115,13 +115,13 @@ func stop() -> void:
 ## Call this in _ready() for any MeshInstance3D whose mesh or material you'll modify
 ## Parameters:
 ##   mesh_instance: The MeshInstance3D to isolate
-##   isolate_mesh: Duplicate the mesh resource (for size/geometry changes)
+##   isolate_mesh: Duplicate the mesh resource (for modifying mesh properties like QuadMesh.size)
 ##   isolate_materials: Duplicate all materials (for color/shader changes)
 func isolate_mesh_resources(mesh_instance: MeshInstance3D, isolate_mesh: bool = false, isolate_materials: bool = true) -> void:
 	if not mesh_instance:
 		return
 
-	# Duplicate mesh if requested (needed for mesh.size changes)
+	# Duplicate mesh if requested (needed for modifying mesh properties)
 	if isolate_mesh and mesh_instance.mesh:
 		mesh_instance.mesh = mesh_instance.mesh.duplicate()
 
@@ -129,17 +129,27 @@ func isolate_mesh_resources(mesh_instance: MeshInstance3D, isolate_mesh: bool = 
 	if isolate_materials and mesh_instance.material_override:
 		mesh_instance.material_override = mesh_instance.material_override.duplicate()
 
-	# Duplicate surface override materials
-	if isolate_materials:
+	# Duplicate surface override materials (set via set_surface_override_material)
+	if isolate_materials and mesh_instance.mesh:
 		for surface_idx: int in range(mesh_instance.get_surface_override_material_count()):
 			var material: Material = mesh_instance.get_surface_override_material(surface_idx)
 			if material:
 				mesh_instance.set_surface_override_material(surface_idx, material.duplicate())
 
+	# Duplicate materials embedded directly in the mesh resource
+	# These are set on the mesh itself, not as overrides on the MeshInstance3D
+	if isolate_materials and mesh_instance.mesh:
+		# Must duplicate mesh first to avoid affecting other instances
+		if not isolate_mesh:
+			mesh_instance.mesh = mesh_instance.mesh.duplicate()
+		for surface_idx: int in range(mesh_instance.mesh.get_surface_count()):
+			var surface_mat: Material = mesh_instance.mesh.surface_get_material(surface_idx)
+			if surface_mat:
+				mesh_instance.mesh.surface_set_material(surface_idx, surface_mat.duplicate())
 
-## Convenience: Isolate all MeshInstance3D children
+
+## Convenience: Isolate all MeshInstance3D descendants (recursive)
 ## Useful when you have multiple meshes that all need isolation
 func isolate_all_mesh_resources(isolate_mesh: bool = false, isolate_materials: bool = true) -> void:
-	for child: Node in get_children():
-		if child is MeshInstance3D:
-			isolate_mesh_resources(child as MeshInstance3D, isolate_mesh, isolate_materials)
+	for child: Node in find_children("*", "MeshInstance3D"):
+		isolate_mesh_resources(child as MeshInstance3D, isolate_mesh, isolate_materials)
