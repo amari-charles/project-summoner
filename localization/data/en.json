@@ -70,7 +70,10 @@
   "character": {
     "Mr. Merriweather": "Mr. Merriweather",
     "Headmaster Merlin": "Headmaster Merlin",
-    "Merlin": "Merlin"
+    "Merlin": "Merlin",
+    "Old Sage": "Old Sage",
+    "Mysterious Merchant": "Mysterious Merchant",
+    "Friendly Wizard": "Friendly Wizard"
   },
   "dialogue": {
     "charge_intro": {

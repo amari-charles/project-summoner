@@ -201,8 +201,21 @@ func _display_current_line() -> void:
 	if not current_dialogue or current_line_index >= current_dialogue.lines.size():
 		return
 
-	var line_text: String = Loc.t(current_dialogue.lines[current_line_index])
-	var character: String = Loc.t(current_dialogue.character_name)
+	# Handle both localization key format and raw text format for lines:
+	# - If starts with "dialogue." it's a localization key (e.g., "dialogue.charge_intro.text")
+	# - Otherwise it's raw text that should be displayed as-is
+	var raw_line: String = current_dialogue.lines[current_line_index]
+	var line_text: String = Loc.t(raw_line) if raw_line.begins_with("dialogue.") else raw_line
+
+	# Handle both localization key format and raw name format for character:
+	# - If starts with "dialogue." it's a localization key (e.g., "dialogue.charge_intro.speaker")
+	# - Otherwise it's a raw name that needs "character." prefix (e.g., "Headmaster Merlin")
+	var character: String = ""
+	if current_dialogue.character_name:
+		if current_dialogue.character_name.begins_with("dialogue."):
+			character = Loc.t(current_dialogue.character_name)
+		else:
+			character = Loc.t("character." + current_dialogue.character_name)
 	var portrait: Texture2D = current_dialogue.portrait
 
 	dialogue_line_displayed.emit(line_text, character, portrait)

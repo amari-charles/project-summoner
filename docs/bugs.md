@@ -213,38 +213,42 @@ Added validation at two points:
 - Future: Consider adding editor-time validation for faster feedback
 
 #### Dialogue Speaker Names Not Properly Localized
-**Status:** Open
+**Status:** FIXED
 **Reported:** 2025-11-24
+**Resolved:** 2025-11-24
 **Component:** Dialogue / Localization
 **Type:** Localization Bug
 
 **Description:**
 The dialogue system calls `Loc.t(character_name)` with the raw character name (e.g., "Headmaster Merlin"), but the localization keys are nested under `character.*` (e.g., "character.Headmaster Merlin").
 
-**Expected Behavior:**
-- Speaker names should be properly localized using `Loc.t("character." + character_name)`
-- Or the system should fall back gracefully to the raw name if no translation exists
+**Complication:**
+Dialogues use two different formats:
+- 3 dialogues use localization keys: `character_name = "dialogue.charge_intro.speaker"`
+- 14 dialogues use raw names: `character_name = "Headmaster Merlin"`
 
-**Current Behavior:**
-- Warning spam: `Missing translation key: Headmaster Merlin`
-- Speaker names still display correctly (Loc.t returns the key as fallback)
-- But console is cluttered with warnings
+**Solution Implemented:**
+Changed `dialogue_manager.gd:204-218` to handle both formats for BOTH lines and character names:
 
-**Impact:**
-- Console warning spam during dialogue
-- Non-blocking but noisy
+For lines:
+```gdscript
+var raw_line: String = current_dialogue.lines[current_line_index]
+var line_text: String = Loc.t(raw_line) if raw_line.begins_with("dialogue.") else raw_line
+```
 
-**Proposed Solution:**
-- Option A: Change `dialogue_manager.gd:205` to prefix with "character.":
-  ```gdscript
-  var character: String = Loc.t("character." + current_dialogue.character_name)
-  ```
-- Option B: Update localization_service.gd to suppress warnings for character names
-- Option C: Add top-level keys for character names in en.json
+For character names:
+```gdscript
+if current_dialogue.character_name.begins_with("dialogue."):
+    character = Loc.t(current_dialogue.character_name)  # Already a loc key
+else:
+    character = Loc.t("character." + current_dialogue.character_name)  # Raw name
+```
+
+Also added missing character entries to en.json: Old Sage, Mysterious Merchant, Friendly Wizard.
 
 **Related Files:**
-- `scripts/services/dialogue_manager.gd:205` - Where Loc.t is called
-- `localization/data/en.json` - character.* keys exist but aren't being found
+- `scripts/services/dialogue_manager.gd:204-218` - Fixed localization for both lines and speaker names
+- `localization/data/en.json` - Added missing character entries
 
 #### VFX Pooling System Lacks Resource Isolation
 **Status:** Open
