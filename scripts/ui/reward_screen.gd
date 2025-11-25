@@ -83,7 +83,10 @@ func _load_battle_results() -> void:
 
 func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	var campaign: Node = get_node("/root/Campaign")
-	var _catalog: Node = get_node("/root/CardCatalog")
+	var catalog: Node = get_node("/root/CardCatalog")
+
+	# Validate rewards before displaying
+	_validate_rewards(battle, catalog)
 
 	if is_replay:
 		# Show message for replayed battles
@@ -253,3 +256,43 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 
 	if added_count > 0:
 		print("RewardScreen: Auto-added %d card(s) to deck (tutorial mode)" % added_count)
+
+## =============================================================================
+## REWARD VALIDATION
+## =============================================================================
+
+## Validate that reward cards in battle config exist in catalog
+## This is a runtime check to catch configuration errors
+func _validate_rewards(battle: Dictionary, catalog: Node) -> void:
+	if not catalog:
+		push_warning("RewardScreen: CardCatalog not available for validation")
+		return
+
+	var battle_id: String = battle.get("id", "unknown")
+	var reward_cards: Array = battle.get("reward_cards", [])
+
+	if reward_cards.is_empty():
+		return  # No rewards is valid (some battles have no rewards)
+
+	var invalid_cards: Array[String] = []
+
+	for reward_variant: Variant in reward_cards:
+		if not reward_variant is Dictionary:
+			push_warning("RewardScreen: Invalid reward format in battle '%s'" % battle_id)
+			continue
+
+		var reward: Dictionary = reward_variant
+		var catalog_id: String = reward.get("catalog_id", "")
+
+		if catalog_id.is_empty():
+			push_warning("RewardScreen: Empty catalog_id in battle '%s' rewards" % battle_id)
+			continue
+
+		if not catalog.call("has_card", catalog_id):
+			invalid_cards.append(catalog_id)
+
+	if not invalid_cards.is_empty():
+		push_error("RewardScreen: VALIDATION FAILED - Battle '%s' has invalid reward cards: %s" % [battle_id, invalid_cards])
+		push_error("RewardScreen: These cards don't exist in CardCatalog! Player may not receive promised rewards.")
+	else:
+		print("RewardScreen: Rewards validated for battle '%s'" % battle_id)

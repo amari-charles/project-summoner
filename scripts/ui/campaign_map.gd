@@ -76,6 +76,15 @@ func _safe_array(variant: Variant) -> Array:
 func _safe_bool(variant: Variant, default: bool = false) -> bool:
 	return variant if variant is bool else default
 
+## Get display name for a card from CardCatalog, with fallback
+func _get_card_display_name(catalog: Node, catalog_id: String) -> String:
+	if catalog and catalog.has_method("get_card"):
+		var card_data: Dictionary = _safe_dict(catalog.call("get_card", catalog_id))
+		if not card_data.is_empty():
+			return _safe_string(card_data.get("card_name", catalog_id), catalog_id)
+	# Fallback: convert catalog_id to title case (fire_recruit → Fire Recruit)
+	return catalog_id.replace("_", " ").capitalize()
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -420,6 +429,9 @@ func _update_detail_panel() -> void:
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
 	var reward_text: String = ""
 
+	# Get CardCatalog for proper card names
+	var catalog: Node = get_node_or_null("/root/CardCatalog")
+
 	if reward_cards.size() > 0:
 		match reward_type:
 			"fixed":
@@ -428,10 +440,11 @@ func _update_detail_panel() -> void:
 					var reward: Dictionary = _safe_dict(reward_item)
 					var count: int = _safe_int(reward.get("count", 1), 1)
 					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
+					var card_name: String = _get_card_display_name(catalog, catalog_id)
 					if count > 1:
-						card_names.append("%dx %s" % [count, catalog_id.capitalize()])
+						card_names.append("%dx %s" % [count, card_name])
 					else:
-						card_names.append(catalog_id.capitalize())
+						card_names.append(card_name)
 				reward_text = "Reward: " + ", ".join(card_names)
 
 			"choice":
@@ -439,7 +452,8 @@ func _update_detail_panel() -> void:
 				for reward_item: Variant in reward_cards:
 					var reward: Dictionary = _safe_dict(reward_item)
 					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
-					options.append(catalog_id.capitalize())
+					var card_name: String = _get_card_display_name(catalog, catalog_id)
+					options.append(card_name)
 				reward_text = "Reward: Choose from " + ", ".join(options)
 
 			"random":

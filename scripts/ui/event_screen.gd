@@ -43,6 +43,13 @@ func _ready() -> void:
 	# Start event sequence
 	await _start_event()
 
+## Clean up signal connections when this screen is destroyed
+func _exit_tree() -> void:
+	# Ensure we disconnect from EventSequencer if we're destroyed mid-sequence
+	if EventSequencer.sequence_finished.is_connected(_on_event_sequence_complete):
+		EventSequencer.sequence_finished.disconnect(_on_event_sequence_complete)
+		print("EventScreen: Cleaned up sequence_finished connection on exit")
+
 ## =============================================================================
 ## EVENT LOADING
 ## =============================================================================

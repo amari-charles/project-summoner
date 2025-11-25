@@ -406,10 +406,13 @@ func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_te
 		return
 
 	# Find the closest enemy to the charge destination (units, bases, or structures)
+	# Use a large search radius (999) so Charge can target any enemy on the battlefield
+	# This differs from regular redirect which only affects nearby enemies
+	const CHARGE_SEARCH_RADIUS: float = 999.0
 	var closest_enemy: Node3D = RedirectManager.find_nearest_enemy(
 		charge_dest,
 		caster_team,
-		RedirectManager.TARGET_SEARCH_RADIUS
+		CHARGE_SEARCH_RADIUS
 	)
 
 	if not closest_enemy:
@@ -421,6 +424,8 @@ func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_te
 	for unit: Unit3D in units:
 		unit.forced_target = closest_enemy
 		unit.forced_target_timer = charge_duration
+		# Also store original point for fallback targeting
+		unit.original_redirect_point = charge_dest
 		print("Card: Unit %s charging toward %s" % [unit.name, closest_enemy.name])
 
 ## Find the base for the given team
