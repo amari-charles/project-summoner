@@ -701,10 +701,9 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 		var rarity_str: String = rarity_val
 		popup_rarity.text = "Rarity: %s" % rarity_str.capitalize()
 
-	var card_type_val: Variant = catalog_data.get("card_type", 0)
-	if card_type_val is int:
-		var card_type: int = card_type_val
-		popup_type.text = "Type: %s" % ("Summon" if card_type == 0 else "Spell")
+	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
+	var card_type: int = int(card_type_val)  # Works for both int and enum values
+	popup_type.text = "Type: %s" % ("Summon" if card_type == Card.CardType.SUMMON else "Spell")
 
 	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
 	if mana_cost_val is int:

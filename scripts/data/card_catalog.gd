@@ -43,7 +43,7 @@ func _init_catalog() -> void:
 		"description": "Unleash a devastating explosion of flame. Deals area damage to all enemies caught in the blast.",
 		"rarity": "rare",
 
-		"card_type": 1,  # Card.CardType.SPELL
+		"card_type": Card.CardType.SPELL,
 		"mana_cost": 5,
 		"cooldown": 2.0,
 
@@ -74,7 +74,7 @@ func _init_catalog() -> void:
 		"description": "A sturdy barrier to block enemy advances. High health but no attack.",
 		"rarity": "common",
 
-		"card_type": 0,  # SUMMON (structure is just a unit with 0 move_speed)
+		"card_type": Card.CardType.SUMMON,  # Structure is just a unit with 0 move_speed
 		"unit_type": "structure",  # For icon display
 		"mana_cost": 2,
 		"cooldown": 2.0,
@@ -108,7 +108,7 @@ func _init_catalog() -> void:
 		"description": "A fierce lancer who strikes with devastating precision. Slow but powerful melee attacks.",
 		"rarity": "rare",
 
-		"card_type": 0,  # SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",  # For icon display
 		"mana_cost": 4,
 		"cooldown": 2.0,
@@ -176,7 +176,7 @@ func _init_catalog() -> void:
 		"rarity": "uncommon",
 
 		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",  # For icon display (combat type, not movement type)
 		"mana_cost": 4,
 		"cooldown": 2.0,
@@ -221,7 +221,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",
 		"mana_cost": 2,
 		"cooldown": 1.5,
@@ -262,7 +262,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "ranged",
 		"mana_cost": 2,
 		"cooldown": 1.5,
@@ -303,7 +303,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",
 		"mana_cost": 3,
 		"cooldown": 2.0,
@@ -344,7 +344,7 @@ func _init_catalog() -> void:
 		"rarity": "rare",
 
 		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",
 		"mana_cost": 5,
 		"cooldown": 3.0,
@@ -385,7 +385,7 @@ func _init_catalog() -> void:
 		"rarity": "rare",
 
 		# Card properties
-		"card_type": 0,  # Card.CardType.SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",
 		"mana_cost": 4,
 		"cooldown": 2.5,
@@ -430,7 +430,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		# Card properties
-		"card_type": 1,  # Card.CardType.SPELL
+		"card_type": Card.CardType.SPELL,
 		"mana_cost": 0,
 		"cooldown": 1.0,
 
@@ -469,7 +469,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		# Card properties
-		"card_type": 1,  # Card.CardType.SPELL
+		"card_type": Card.CardType.SPELL,
 		"mana_cost": 0,
 		"cooldown": 1.0,
 
@@ -509,7 +509,7 @@ func _init_catalog() -> void:
 		"rarity": "common",
 
 		# Card properties
-		"card_type": 1,  # Card.CardType.SPELL
+		"card_type": Card.CardType.SPELL,
 		"mana_cost": 0,
 		"cooldown": 1.0,
 
@@ -599,7 +599,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 		"description": description,
 		"rarity": overrides.get("rarity", template.rarity),
 
-		"card_type": 0,  # SUMMON
+		"card_type": Card.CardType.SUMMON,
 		"unit_type": "melee",
 		"mana_cost": overrides.get("mana_cost", template.mana_cost),
 		"cooldown": overrides.get("cooldown", template.cooldown),
@@ -675,7 +675,7 @@ func get_cards_by_rarity(rarity: String) -> Array[Dictionary]:
 			results.append(card)
 	return results
 
-## Get cards filtered by type (0 = SUMMON, 1 = SPELL)
+## Get cards filtered by type (Card.CardType.SUMMON or Card.CardType.SPELL)
 func get_cards_by_type(card_type: int) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
 	for card: Dictionary in _catalog.values():
@@ -727,7 +727,7 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 	card.cooldown = card_def.get("cooldown", 2.0)
 
 	# Set type-specific properties
-	if card.card_type == 0:  # SUMMON
+	if card.card_type == Card.CardType.SUMMON:
 		var unit_scene_path: String = card_def.get("unit_scene_path", "")
 		if unit_scene_path != "":
 			var scene: PackedScene = load(unit_scene_path)
@@ -737,7 +737,7 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 				return null  # Unreachable in debug builds
 			card.unit_scene = scene
 		card.spawn_count = card_def.get("spawn_count", 1)
-	elif card.card_type == 1:  # SPELL
+	elif card.card_type == Card.CardType.SPELL:
 		card.spell_damage = card_def.get("spell_damage", 0.0)
 		card.spell_radius = card_def.get("spell_radius", 0.0)
 		card.spell_duration = card_def.get("spell_duration", 0.0)
@@ -786,8 +786,8 @@ func print_catalog_summary() -> void:
 		by_rarity[rarity] += 1
 
 		# Count by type
-		var type: int = card.get("card_type", 0)
-		if type == 0:
+		var type: int = card.get("card_type", Card.CardType.SUMMON)
+		if type == Card.CardType.SUMMON:
 			by_type["summon"] += 1
 		else:
 			by_type["spell"] += 1

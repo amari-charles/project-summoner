@@ -7,6 +7,11 @@ class_name HeroConfig
 ## Includes base stats and modifier system for extensibility.
 ## Can be created from JSON/Dictionary data (data-driven).
 
+## Default stat values (used for @export defaults and from_dict() fallbacks)
+const DEFAULT_BASE_HEALTH: float = 1000.0
+const DEFAULT_MAX_MANA: float = 10.0
+const DEFAULT_MANA_REGEN: float = 1.0
+
 ## Identity
 @export var hero_id: String = ""
 @export var hero_name: String = ""
@@ -15,9 +20,9 @@ class_name HeroConfig
 var element_id: int = ElementRegistry.ElementId.NEUTRAL
 
 ## Base Stats (before modifiers)
-@export var base_health: float = 1000.0
-@export var max_mana: float = 10.0
-@export var mana_regen: float = 1.0
+@export var base_health: float = DEFAULT_BASE_HEALTH
+@export var max_mana: float = DEFAULT_MAX_MANA
+@export var mana_regen: float = DEFAULT_MANA_REGEN
 
 ## Visual
 @export var hero_icon_path: String = ""
@@ -68,9 +73,9 @@ static func from_dict(data: Dictionary) -> HeroConfig:
 		config.element_id = ElementRegistry.ElementId.NEUTRAL
 
 	# Base Stats
-	config.base_health = data.get("base_health", 1000.0)
-	config.max_mana = data.get("max_mana", 10.0)
-	config.mana_regen = data.get("mana_regen", 1.0)
+	config.base_health = data.get("base_health", DEFAULT_BASE_HEALTH)
+	config.max_mana = data.get("max_mana", DEFAULT_MAX_MANA)
+	config.mana_regen = data.get("mana_regen", DEFAULT_MANA_REGEN)
 
 	# Visual
 	config.hero_icon_path = data.get("hero_icon_path", "")

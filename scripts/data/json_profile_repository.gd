@@ -1,4 +1,4 @@
-extends Node
+extends IProfileRepo
 # JsonProfileRepo is registered as autoload "ProfileRepo", no class_name needed
 
 ## JSON Profile Repository Implementation
@@ -22,11 +22,7 @@ const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 ## Current save version for migrations
 const CURRENT_VERSION: int = 1
 
-## Signals
-signal profile_loaded(profile_id: String)
-signal profile_saved(profile_id: String)
-signal save_failed(error: String)
-signal data_changed
+## Signals inherited from IProfileRepo (do not redeclare)
 
 ## In-memory profile data
 var _data: Dictionary = {}
