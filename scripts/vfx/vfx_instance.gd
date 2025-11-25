@@ -140,7 +140,7 @@ func isolate_mesh_resources(mesh_instance: MeshInstance3D, isolate_mesh: bool = 
 	# These are set on the mesh itself, not as overrides on the MeshInstance3D
 	if isolate_materials and mesh_instance.mesh:
 		# Check if mesh has any embedded materials before duplicating
-		var has_embedded_materials := false
+		var has_embedded_materials: bool = false
 		for surface_idx: int in range(mesh_instance.mesh.get_surface_count()):
 			if mesh_instance.mesh.surface_get_material(surface_idx):
 				has_embedded_materials = true
