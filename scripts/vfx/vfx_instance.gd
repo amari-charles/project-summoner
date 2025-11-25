@@ -139,13 +139,21 @@ func isolate_mesh_resources(mesh_instance: MeshInstance3D, isolate_mesh: bool = 
 	# Duplicate materials embedded directly in the mesh resource
 	# These are set on the mesh itself, not as overrides on the MeshInstance3D
 	if isolate_materials and mesh_instance.mesh:
-		# Must duplicate mesh first to avoid affecting other instances
-		if not isolate_mesh:
-			mesh_instance.mesh = mesh_instance.mesh.duplicate()
+		# Check if mesh has any embedded materials before duplicating
+		var has_embedded_materials := false
 		for surface_idx: int in range(mesh_instance.mesh.get_surface_count()):
-			var surface_mat: Material = mesh_instance.mesh.surface_get_material(surface_idx)
-			if surface_mat:
-				mesh_instance.mesh.surface_set_material(surface_idx, surface_mat.duplicate())
+			if mesh_instance.mesh.surface_get_material(surface_idx):
+				has_embedded_materials = true
+				break
+
+		if has_embedded_materials:
+			# Must duplicate mesh first to avoid affecting other instances
+			if not isolate_mesh:
+				mesh_instance.mesh = mesh_instance.mesh.duplicate()
+			for surface_idx: int in range(mesh_instance.mesh.get_surface_count()):
+				var surface_mat: Material = mesh_instance.mesh.surface_get_material(surface_idx)
+				if surface_mat:
+					mesh_instance.mesh.surface_set_material(surface_idx, surface_mat.duplicate())
 
 
 ## Convenience: Isolate all MeshInstance3D descendants (recursive)

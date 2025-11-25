@@ -16,7 +16,7 @@ The VFX pooling system didn't properly isolate shared resources (meshes, materia
 **Solution Implemented:**
 Added resource isolation helpers to `VFXInstance` base class:
 - `isolate_mesh_resources(mesh_instance, isolate_mesh, isolate_materials)` - Makes a MeshInstance3D's resources unique
-- `isolate_all_mesh_resources()` - Convenience method for all child meshes
+- `isolate_all_mesh_resources()` - Convenience method for all descendant meshes (recursive)
 - Documentation in class header explaining safe patterns for pooled VFX
 - Updated `fireball_spell_vfx.gd` to use the new helper
 
