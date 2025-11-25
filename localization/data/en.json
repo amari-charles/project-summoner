@@ -67,14 +67,6 @@
     "invalid_target": "Invalid target",
     "deck_empty": "Deck is empty"
   },
-  "character": {
-    "Mr. Merriweather": "Mr. Merriweather",
-    "Headmaster Merlin": "Headmaster Merlin",
-    "Merlin": "Merlin",
-    "Old Sage": "Old Sage",
-    "Mysterious Merchant": "Mysterious Merchant",
-    "Friendly Wizard": "Friendly Wizard"
-  },
   "dialogue": {
     "charge_intro": {
       "speaker": "Merlin",
@@ -164,7 +156,9 @@
     "choice_example": {
       "speaker": "Mysterious Merchant",
       "line_1": "Ah, another traveler seeks my wares!",
-      "line_2": "Will you join me on this journey?"
+      "line_2": "Will you join me on this journey?",
+      "choice_1": "I'm ready to learn!",
+      "choice_2": "Just browsing, thanks."
     }
   },
   "shop": {

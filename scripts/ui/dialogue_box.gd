@@ -57,8 +57,6 @@ func _ready() -> void:
 		if dialogue_manager.has_signal("dialogue_ended"):
 			var dialogue_ended_signal: Signal = dialogue_manager.get("dialogue_ended")
 			dialogue_ended_signal.connect(_on_dialogue_ended)
-		print("DialogueBox: Connected to DialogueManager")
-
 		# Register with DialogueManager using instance ID for proper lifecycle tracking
 		if dialogue_manager.has_method("register_ui"):
 			dialogue_manager.call("register_ui", get_instance_id())
@@ -82,21 +80,18 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			print("DialogueBox: Mouse click detected")
 			_on_click()
 	elif event is InputEventKey:
 		var key_event: InputEventKey = event
 
 		# DEBUG: Ctrl+D to instantly skip dialogue (for testing)
 		if key_event.pressed and key_event.ctrl_pressed and key_event.keycode == KEY_D:
-			print("DEBUG: Force-skipping dialogue")
 			if dialogue_manager and dialogue_manager.has_method("advance_dialogue"):
 				dialogue_manager.call("advance_dialogue")
 			get_viewport().set_input_as_handled()
 			return
 
 		if key_event.pressed and (key_event.keycode == KEY_SPACE or key_event.keycode == KEY_ENTER):
-			print("DialogueBox: Space/Enter key detected")
 			_on_click()
 
 ## =============================================================================
@@ -104,14 +99,12 @@ func _input(event: InputEvent) -> void:
 ## =============================================================================
 
 func _on_dialogue_started(dialogue_data: DialogueData) -> void:
-	print("DialogueBox: _on_dialogue_started called")
 	visible = true
 	_clear_choices()
 	continue_indicator.visible = false
 
 	# Set character name
 	character_name_label.text = dialogue_data.character_name
-	print("DialogueBox: Set character name to: %s" % dialogue_data.character_name)
 
 	# Set portrait if available
 	if dialogue_data.portrait:
@@ -120,10 +113,7 @@ func _on_dialogue_started(dialogue_data: DialogueData) -> void:
 	else:
 		portrait.visible = false
 
-	print("DialogueBox: Now visible, waiting for line display")
-
 func _on_dialogue_line_displayed(text: String, character: String, portrait_texture: Texture2D) -> void:
-	print("DialogueBox: _on_dialogue_line_displayed called with text: %s" % text)
 	_clear_choices()
 	continue_indicator.visible = false
 
@@ -138,7 +128,6 @@ func _on_dialogue_line_displayed(text: String, character: String, portrait_textu
 		portrait.visible = false
 
 	# Start typewriter effect
-	print("DialogueBox: Starting typewriter effect")
 	_start_typewriter(text)
 
 func _on_dialogue_choices_presented(choices: Array[DialogueChoice]) -> void:
@@ -148,7 +137,7 @@ func _on_dialogue_choices_presented(choices: Array[DialogueChoice]) -> void:
 	# Create button for each choice
 	for choice: DialogueChoice in choices:
 		var button: Button = Button.new()
-		button.text = choice.choice_text
+		button.text = Loc.t(choice.choice_text)
 		button.pressed.connect(_on_choice_selected.bind(choice))
 		choice_container.add_child(button)
 

@@ -220,35 +220,43 @@ Added validation at two points:
 **Type:** Localization Bug
 
 **Description:**
-The dialogue system calls `Loc.t(character_name)` with the raw character name (e.g., "Headmaster Merlin"), but the localization keys are nested under `character.*` (e.g., "character.Headmaster Merlin").
-
-**Complication:**
-Dialogues use two different formats:
-- 3 dialogues use localization keys: `character_name = "dialogue.charge_intro.speaker"`
-- 14 dialogues use raw names: `character_name = "Headmaster Merlin"`
+The dialogue system had inconsistent formats - some dialogues used localization keys while others used raw text strings, causing `[MISSING:...]` warnings and broken localization.
 
 **Solution Implemented:**
-Changed `dialogue_manager.gd:204-218` to handle both formats for BOTH lines and character names:
+Standardized ALL 17 dialogue files to use localization keys:
 
-For lines:
-```gdscript
-var raw_line: String = current_dialogue.lines[current_line_index]
-var line_text: String = Loc.t(raw_line) if raw_line.begins_with("dialogue.") else raw_line
-```
+1. **Dialogue .tres files** now use consistent format:
+   - `character_name = "dialogue.{id}.speaker"`
+   - `lines = ["dialogue.{id}.line_1", "dialogue.{id}.line_2", ...]`
+   - `choice_text = "dialogue.{id}.choice_1"` (for choices)
 
-For character names:
-```gdscript
-if current_dialogue.character_name.begins_with("dialogue."):
-    character = Loc.t(current_dialogue.character_name)  # Already a loc key
-else:
-    character = Loc.t("character." + current_dialogue.character_name)  # Raw name
-```
+2. **en.json** contains all dialogue text:
+   ```json
+   "dialogue": {
+     "first_trial_intro": {
+       "speaker": "Headmaster Merlin",
+       "line_1": "Welcome to the training grounds, Initiate.",
+       "line_2": "Your affinity chosen, your companion bound..."
+     }
+   }
+   ```
 
-Also added missing character entries to en.json: Old Sage, Mysterious Merchant, Friendly Wizard.
+3. **dialogue_manager.gd** simplified to just call `Loc.t()`:
+   ```gdscript
+   var line_text: String = Loc.t(line_key)
+   var character: String = Loc.t(current_dialogue.character_name)
+   ```
+
+4. **dialogue_box.gd** updated to localize choice text:
+   ```gdscript
+   button.text = Loc.t(choice.choice_text)
+   ```
 
 **Related Files:**
-- `scripts/services/dialogue_manager.gd:204-218` - Fixed localization for both lines and speaker names
-- `localization/data/en.json` - Added missing character entries
+- `scripts/services/dialogue_manager.gd` - Simplified localization
+- `scripts/ui/dialogue_box.gd` - Added choice text localization
+- `localization/data/en.json` - All dialogue text entries
+- `resources/dialogue/*.tres` - All 17 dialogue files standardized
 
 #### VFX Pooling System Lacks Resource Isolation
 **Status:** Open
