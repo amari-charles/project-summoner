@@ -139,14 +139,22 @@ func _move_homing(delta: float) -> void:
 
 ## Arc movement - follows arc to target position
 func _move_arc(_delta: float) -> void:
-	var progress: float = travel_time * speed / start_position.distance_to(target_position)
+	# Guard against division by near-zero
+	var distance: float = max(start_position.distance_to(target_position), 0.1)
+
+	# Scale arc height based on distance - full arc at 5+ units, reduced at close range
+	# This prevents arrows from arcing over close targets
+	var arc_scale: float = clamp(distance / 5.0, 0.0, 1.0)
+	var effective_arc_height: float = arc_height * arc_scale
+
+	var progress: float = travel_time * speed / distance
 	progress = clamp(progress, 0.0, 1.0)
 
 	# Horizontal movement (linear interpolation)
 	var horizontal_pos: Vector3 = start_position.lerp(target_position, progress)
 
-	# Vertical offset (parabolic arc)
-	var arc_offset: float = arc_height * sin(progress * PI)
+	# Vertical offset (parabolic arc) - uses scaled height
+	var arc_offset: float = effective_arc_height * sin(progress * PI)
 	horizontal_pos.y += arc_offset
 
 	# Update position and direction
