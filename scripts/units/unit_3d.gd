@@ -458,12 +458,7 @@ func _physics_process(delta: float) -> void:
 			# Don't move during attack animation
 			if not is_attacking:
 				_update_animation("walk")
-				var old_pos: Vector3 = global_position
 				_move_towards_target(delta)
-				var moved: float = global_position.distance_to(old_pos)
-				# Only warn if move_speed > 0 (intentionally stationary units shouldn't warn)
-				if moved < 0.01 and move_speed > 0.01:
-					print("Unit3D [team %d]: WARNING - Not moving! pos: %s, target pos: %s" % [team, global_position, current_target.global_position])
 	else:
 		if not is_attacking:
 			_update_animation("idle")
