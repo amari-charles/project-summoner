@@ -111,7 +111,9 @@ Docs/comments
 
 Related helpers or configuration
 
-Call out any place where behavior changed but tests or documentation clearly lag behind.
+Documentation in `docs/` folder (especially `docs/technical/` for systems)
+
+Call out any place where behavior changed but tests or documentation clearly lag behind. For significant system changes, check if relevant docs in `docs/technical/` or `docs/features/` need updating.
 
 Non-idiomatic / outdated usage
 

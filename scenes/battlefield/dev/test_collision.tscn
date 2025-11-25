@@ -182,7 +182,7 @@ horizontal_alignment = 1
 
 [node name="SpawnSlime" type="Button" parent="UI/EnemySpawnPanel"]
 layout_mode = 2
-text = "Slime (Small)"
+text = "Pink Slime (Small)"
 
 [node name="SpawnFireRecruit" type="Button" parent="UI/EnemySpawnPanel"]
 layout_mode = 2
@@ -204,7 +204,7 @@ horizontal_alignment = 1
 
 [node name="ClusterSlimes" type="Button" parent="UI/EnemySpawnPanel"]
 layout_mode = 2
-text = "5 Slimes (same pos)"
+text = "5 Pink Slimes (same pos)"
 
 [node name="ClusterRecruits" type="Button" parent="UI/EnemySpawnPanel"]
 layout_mode = 2
@@ -229,10 +229,10 @@ text = "Clear All Units"
 [connection signal="pressed" from="UI/PlayerSpawnPanel/SpawnAshVanguard" to="." method="spawn_player_at_position" binds= ["ash_vanguard"]]
 [connection signal="pressed" from="UI/PlayerSpawnPanel/ClusterSlimes" to="." method="spawn_player_cluster" binds= ["slime_green"]]
 [connection signal="pressed" from="UI/PlayerSpawnPanel/ClusterRecruits" to="." method="spawn_player_cluster" binds= ["fire_recruit"]]
-[connection signal="pressed" from="UI/EnemySpawnPanel/SpawnSlime" to="." method="spawn_enemy_at_position" binds= ["slime_green"]]
+[connection signal="pressed" from="UI/EnemySpawnPanel/SpawnSlime" to="." method="spawn_enemy_at_position" binds= ["slime_pink"]]
 [connection signal="pressed" from="UI/EnemySpawnPanel/SpawnFireRecruit" to="." method="spawn_enemy_at_position" binds= ["fire_recruit"]]
 [connection signal="pressed" from="UI/EnemySpawnPanel/SpawnAshVanguard" to="." method="spawn_enemy_at_position" binds= ["ash_vanguard"]]
-[connection signal="pressed" from="UI/EnemySpawnPanel/ClusterSlimes" to="." method="spawn_enemy_cluster" binds= ["slime_green"]]
+[connection signal="pressed" from="UI/EnemySpawnPanel/ClusterSlimes" to="." method="spawn_enemy_cluster" binds= ["slime_pink"]]
 [connection signal="pressed" from="UI/EnemySpawnPanel/ClusterRecruits" to="." method="spawn_enemy_cluster" binds= ["fire_recruit"]]
 [connection signal="pressed" from="UI/ClearButton" to="." method="clear_all_units"]
 [connection signal="game_ended" from="." to="." method="_on_game_ended"]
