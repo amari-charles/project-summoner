@@ -2,6 +2,8 @@
 
 This document tracks planned features, improvements, and tasks for Project Summoner.
 
+For completed tasks, see [todos-completed.md](todos-completed.md).
+
 **Status Legend:**
 - ⬜ Not Started
 - 🔄 In Progress
@@ -98,26 +100,34 @@ Flesh out and refine unit hitboxes for better collision detection and combat int
 
 ---
 
-#### Fix Projectile Aiming on Moving Targets
-**Status:** ✅ Completed (2025-11-12)
+#### Lane-Based Unit Movement (Walk Forward Until Target in Range)
+**Status:** ⬜ Not Started
 **Category:** Units & Combat
 **Effort:** Medium
 
 **Description:**
-Implement predictive targeting for projectiles so they lead moving targets instead of aiming at current position.
+Units should not path directly towards the enemy base. Instead, they should walk forward across the map on a line parallel to the battlefield (like lanes) until an enemy unit or the base comes into attack range, at which point they retarget.
+
+**Current Behavior:**
+- Units path directly towards the enemy base from spawn
+- Creates a funneling effect where all units converge on one point
+
+**Expected Behavior:**
+- Units walk forward in their "lane" (parallel to map axis)
+- When enemy unit enters attack range → retarget and engage
+- When base enters attack range → retarget and attack base
+- Creates more spread-out, strategic combat
 
 **Requirements:**
-- Calculate target's future position based on velocity
-- Compute intercept point using projectile speed and target movement
-- Update projectile direction to aim at intercept point
-- Handle edge cases (target stops, changes direction, dies mid-flight)
-- Test with different projectile speeds and target velocities
+- Modify unit movement to walk forward (towards enemy side) rather than path to base
+- Implement range-based target acquisition during forward march
+- Maintain current targeting behavior once engaged
+- Consider what happens after killing a target (resume forward march?)
 
 **Notes:**
-- Significantly improves ranged unit effectiveness and game feel
-- Should work for both homing and straight-line projectiles
-- May need to account for acceleration/deceleration curves
-- Important for combat balance - currently projectiles miss moving targets frequently
+- Similar to lane-based games like Clash Royale / auto-battlers
+- May need to define "lanes" or just use spawn X position as the lane
+- Charge spell should still override this behavior
 
 ---
 
@@ -244,80 +254,6 @@ Keep `CardCatalog` for now (it has all the cards), remove card-loading from `Con
 
 ---
 
-#### Fix Services Using Dynamic call() Instead of Typed Access
-**Status:** ✅ Completed (2025-11-25)
-**Category:** Database / Code Quality
-**Effort:** Small
-
-**Description:**
-Domain services use `has_method()` + `call()` pattern instead of direct typed method calls, defeating the purpose of having a typed interface.
-
-**Current Pattern (fragile):**
-```gdscript
-if _repo.has_method("get_resources"):
-    var result: Variant = _repo.call("get_resources")
-    if result is Dictionary:
-        return result
-```
-
-**Correct Pattern (used by ShopService):**
-```gdscript
-var resources: Dictionary = ProfileRepo.get_resources()
-```
-
-**Problems:**
-- Bypasses compile-time type checking
-- Slower than direct calls
-- Extra boilerplate in every method
-
-**Requirements:**
-- Update EconomyService, CollectionService, DeckService, CampaignService
-- Use direct `ProfileRepo.method()` calls
-- Remove `has_method()` guards
-
-**Related Files:**
-- `scripts/services/economy_service.gd:59` (and throughout)
-- `scripts/services/collection_service.gd:64` (and throughout)
-- `scripts/services/deck_service.gd:61` (and throughout)
-- `scripts/services/campaign_service.gd:213` (and throughout)
-- `scripts/services/shop_service.gd` - Already correct (use as reference)
-
----
-
-#### Fix JsonProfileRepository Not Extending IProfileRepo Interface
-**Status:** ⬜ Not Started
-**Category:** Database / Architecture
-**Effort:** Small
-
-**Description:**
-`JsonProfileRepository` extends `Node` instead of `IProfileRepo`, making the interface unused.
-
-**Current:**
-```gdscript
-# json_profile_repository.gd
-extends Node  # Wrong!
-
-# profile_repository.gd
-extends Node
-class_name IProfileRepo
-```
-
-**Impact:**
-- Interface exists but isn't enforced
-- Can't swap implementations without breaking things
-- Defeats purpose of repository pattern
-
-**Requirements:**
-- Change `JsonProfileRepository` to `extends IProfileRepo`
-- Ensure all interface methods are properly overridden
-- Test that everything still works
-
-**Related Files:**
-- `scripts/data/json_profile_repository.gd:1`
-- `scripts/data/profile_repository.gd`
-
----
-
 ### 🟡 MEDIUM PRIORITY
 
 #### Add Cascade Delete When Removing Cards from Collection
@@ -410,38 +346,6 @@ func _load_unit_from_file(file_path: String) -> UnitData:
 
 ---
 
-#### Add CampaignProgress Methods to ProfileRepo
-**Status:** ✅ Completed (2025-11-25)
-**Category:** Database / Architecture
-**Effort:** Small
-
-**Description:**
-`CampaignService` bypasses the service layer and directly mutates `profile["campaign_progress"]`. This violates the repository pattern.
-
-**Current (direct mutation):**
-```gdscript
-var campaign_progress: Dictionary = profile["campaign_progress"]
-campaign_progress["completed_battles"] = _completed_battles.duplicate()
-_profile_repo.call("save_profile", true)
-```
-
-**Expected (through repository):**
-```gdscript
-ProfileRepo.update_campaign_progress({"completed_battles": _completed_battles})
-```
-
-**Requirements:**
-- Add `get_campaign_progress()` to ProfileRepo
-- Add `update_campaign_progress()` to ProfileRepo
-- Update CampaignService to use new methods
-
-**Related Files:**
-- `scripts/data/json_profile_repository.gd` - Add methods
-- `scripts/data/profile_repository.gd` - Add interface methods
-- `scripts/services/campaign_service.gd:230-255` - Update to use repo
-
----
-
 ### 🟢 LOW PRIORITY
 
 #### Clean Up Redundant/Unused Profile Data Fields
@@ -504,40 +408,6 @@ Many UI files have hardcoded user-facing strings instead of using the `Loc.t()` 
 - Critical for future localization support
 - Defined in CLAUDE.md as a project requirement
 - Should be addressed systematically file by file
-
----
-
-#### Extract Magic Numbers in Hero System to Constants
-**Status:** ⬜ Not Started
-**Category:** Core Game Systems / Code Quality
-**Effort:** Small
-
-**Description:**
-Default stat values in the hero system are hardcoded without named constants, making them harder to maintain and tune.
-
-**Locations:**
-- `hero_config.gd:18-20` - `base_health = 1000.0`, `max_mana = 10.0`, `mana_regen = 1.0`
-- `hero_config.gd:70-72` - Same defaults repeated in `from_dict()`
-- `hero_instance.gd:110` - `"health": 1000.0` default in `get_computed_stats()`
-
-**Requirements:**
-- Extract defaults to class-level constants with descriptive names
-- Use constants consistently throughout the file
-- Add comments explaining the reasoning behind values
-
-**Example:**
-```gdscript
-const DEFAULT_BASE_HEALTH: float = 1000.0
-const DEFAULT_MAX_MANA: float = 10.0
-const DEFAULT_MANA_REGEN: float = 1.0
-
-@export var base_health: float = DEFAULT_BASE_HEALTH
-```
-
-**Notes:**
-- Quick fix that improves maintainability
-- Makes balancing easier in the future
-- Part of broader magic numbers audit
 
 ---
 
@@ -612,11 +482,10 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Updated fireball card in `card_catalog.gd` to use `ProjectileIDs.FIREBALL`
 - Fixes fireball damage timing issue (now applies on impact, not on cast)
 
-##### CardTypeIDs or Card.CardType Enum Usage ⬜ Not Started (HIGH PRIORITY)
-- `CardCatalog` uses magic numbers `0` and `1` for card types
-- Should use `Card.CardType.SUMMON` and `Card.CardType.SPELL` directly
-- ~21 cards need updating in `card_catalog.gd`
-- Prevents silent breakage if enum order changes
+##### CardTypeIDs or Card.CardType Enum Usage ✅ Completed (2025-11-25)
+- Replaced all magic numbers with `Card.CardType.SUMMON` and `Card.CardType.SPELL`
+- Updated comparisons in `create_card_resource()` and `print_catalog_summary()`
+- See `todos-completed.md` for details
 
 ##### VFXIDs Constants Class ⬜ Not Started (HIGH PRIORITY)
 - ~5-7 VFX effects used across multiple systems (fireball_spell, etc.)
@@ -694,28 +563,6 @@ When a player's deck is exhausted (all cards drawn), shuffle the discard pile ba
 ---
 
 ## Visual Polish
-
-### 🔴 HIGH PRIORITY
-
-#### Add Building Hit/Damage Animation
-**Status:** ✅ Completed (2025-11-12)
-**Category:** Visual Polish
-**Effort:** Small
-
-**Description:**
-Add visual feedback when buildings (summoner bases) take damage.
-
-**Requirements:**
-- Create shake/flash animation
-- Add impact particle effects
-- Trigger on damage events
-
-**Notes:**
-- Should clearly communicate damage to player
-- Don't obscure important information
-- Implemented with dynamic flash speed based on attack intensity
-
----
 
 ### 🟡 MEDIUM PRIORITY
 
@@ -1079,53 +926,9 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ---
 
-#### Revamp Pause Menu
-**Status:** ✅ Completed (2025-11-12)
-**Category:** UI/UX
-**Effort:** Small
-
-**Description:**
-Improve pause menu design and functionality.
-
-**Requirements:**
-- Clear options (Resume, Settings, Quit, etc.)
-- Visual polish
-- Proper background overlay
-- Smooth transitions
-
-**Notes:**
-- Should not feel intrusive
-- Easy to resume gameplay
-- Implemented with ESC key support and pause button in battle HUD
-
----
-
 ## Campaign System
 
 ### 🔴 HIGH PRIORITY
-
-#### Add Leave Buttons to Caravan Event
-**Status:** ✅ Completed (2025-11-25)
-**Category:** Campaign / Events
-**Effort:** Small
-
-**Description:**
-The caravan event needs proper exit options for players who don't want to make a purchase.
-
-**Requirements:**
-- Add "Leave" button that exits without completing the event (blocks next chapter)
-- Add "Leave without purchasing" button that exits and completes the event (allows progression)
-- Both buttons should have appropriate visual distinction
-- Clear messaging about consequences of each choice
-
-**Implementation:**
-- Added `LeaveIncompleteButton` ("Leave") - exits without completing, player can return
-- Added `LeaveCompleteButton` ("Leave without purchasing") - completes event, allows progression
-- Each button has its own confirmation popup with clear messaging
-- Localization keys added for all button text and confirmation dialogs
-
----
-
 
 #### Design Campaign Map Interface
 **Status:** ⬜ Not Started
@@ -1215,6 +1018,38 @@ Connect battle completion to map progression - unlocking next nodes, visual upda
 ## Hero System
 
 ### 🔴 HIGH PRIORITY
+
+#### Standardize "Hero" vs "Summoner" Language
+**Status:** ⬜ Not Started
+**Category:** Heroes / Architecture
+**Effort:** Medium
+
+**Description:**
+The codebase inconsistently uses "Summoner" and "Hero" to refer to the same concept (the player character). This should be standardized to one term throughout codebase, docs, and UI.
+
+**Current State:**
+- Class is named `Summoner3D` but represents the "Hero"
+- `HeroInstance` exists for hero progression/stats
+- Design doc uses "Hero (Summoner3D)" as mapping
+- Variables use `player_summoner`, `enemy_summoner`
+- Groups use `summoners`, `player_summoners`
+
+**Decision Needed:**
+- Pick ONE canonical term: "Hero" or "Summoner"
+- Recommendation: **Hero** (more intuitive for players, "Summoner" is a genre term)
+
+**Requirements:**
+- Rename `Summoner3D` → `Hero3D` (or keep and document why)
+- Update all variable names, signals, groups
+- Update UI text and documentation
+- Update scene node names
+
+**Notes:**
+- See `docs/design/hero-and-nexus.md` for architecture context
+- This is a refactor - no gameplay changes
+- Consider doing alongside Hero System implementation
+
+---
 
 #### Design Hero Data Structure
 **Status:** ⬜ Not Started
@@ -1407,4 +1242,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Added Database & Data Layer section from comprehensive review*
+*Last Updated: 2025-11-25 - Moved completed items to todos-completed.md, fixed JsonProfileRepository interface, extracted hero magic numbers, replaced card_type magic numbers*

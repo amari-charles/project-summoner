@@ -1,4 +1,4 @@
-extends Node
+extends IProfileRepo
 # JsonProfileRepo is registered as autoload "ProfileRepo", no class_name needed
 
 ## JSON Profile Repository Implementation
