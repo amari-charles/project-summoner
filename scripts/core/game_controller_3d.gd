@@ -107,15 +107,6 @@ func _init_summoners() -> void:
 		enemy_summoner.init()
 		print("BattleCoordinator: Enemy summoner initialized")
 
-	# Connect death signals
-	if player_summoner and player_summoner.has_signal("summoner_died"):
-		var player_summoner_died_signal: Signal = player_summoner.get("summoner_died")
-		player_summoner_died_signal.connect(_on_summoner_died)
-
-	if enemy_summoner and enemy_summoner.has_signal("summoner_died"):
-		var enemy_summoner_died_signal: Signal = enemy_summoner.get("summoner_died")
-		enemy_summoner_died_signal.connect(_on_summoner_died)
-
 ## Initialize bases and connect their signals
 func _init_bases() -> void:
 	# Find bases (direct lookup - bases add themselves to groups in _ready())
@@ -254,12 +245,6 @@ func end_game(winner: Unit3D.Team) -> void:
 				await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
 				get_tree().paused = false
 				callback.call(winner as int)
-
-func _on_summoner_died(summoner: Summoner3D) -> void:
-	if summoner == player_summoner:
-		end_game(Unit3D.Team.ENEMY)
-	elif summoner == enemy_summoner:
-		end_game(Unit3D.Team.PLAYER)
 
 func _check_timeout_victory() -> void:
 	# Simplified: player wins on timeout for now
