@@ -256,62 +256,6 @@ Keep `CardCatalog` for now (it has all the cards), remove card-loading from `Con
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Add Cascade Delete When Removing Cards from Collection
-**Status:** ⬜ Not Started
-**Category:** Database / Data Integrity
-**Effort:** Small
-
-**Description:**
-When a card is removed from collection (`ProfileRepo.remove_card()`), it's not automatically removed from decks. This leaves orphaned references.
-
-**Current Behavior:**
-- Card removed from collection
-- Decks still reference the deleted card instance ID
-- `DeckService.clean_deck()` exists but must be called manually
-
-**Requirements:**
-- Add cascade delete in `remove_card()` to also remove from all decks
-- Or: auto-call `clean_deck()` for all affected decks
-- Add validation to prevent orphan references
-
-**Related Files:**
-- `scripts/data/json_profile_repository.gd:453-485` - `remove_card()`
-- `scripts/services/deck_service.gd:408-435` - `clean_deck()`
-
----
-
-#### Localize HeroCatalog Names (Currently Hardcoded English)
-**Status:** ⬜ Not Started
-**Category:** Database / Localization
-**Effort:** Small
-
-**Description:**
-HeroCatalog stores hardcoded English strings for hero names and descriptions, even though localization keys exist in `en.json`.
-
-**Current:**
-```gdscript
-hero_fire.hero_name = "Pyralis"  # Hardcoded!
-hero_fire.description = "Master of flame and passion"
-```
-
-**Localization Keys Exist:**
-```json
-"hero": {
-  "hero_fire": {
-    "name": "Pyralis",
-    "description": "Master of flame and passion"
-  }
-}
-```
-
-**Requirements:**
-- Replace hardcoded strings with `Loc.t()` calls
-- Example: `hero_fire.hero_name = Loc.t("hero.hero_fire.name")`
-
-**Related Files:**
-- `scripts/data/hero_catalog.gd:35-87` - All hero definitions
-- `localization/data/en.json:214-241` - Existing keys
-
 ---
 
 #### Add Schema Validation for JSON Content Loading
@@ -493,10 +437,10 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Update all spell cards, abilities, and VFX system to use constants
 - Critical for consistency across spell/ability VFX
 
-##### RarityIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
-- Rarity strings ("common", "rare", "epic", "legendary") used in multiple places
-- Create `scripts/data/rarity_ids.gd` with StringName constants
-- Prevents typos and enables autocomplete
+##### RarityIDs Constants Class ✅ Completed (2025-11-25)
+- Created `scripts/data/rarity_ids.gd` with StringName constants for COMMON, RARE, EPIC, LEGENDARY
+- Added utility methods: `ALL_RARITIES`, `get_tier()`, `is_valid()`
+- Updated `collection_service.gd`, `campaign_service.gd`, `color_palette.gd`, `dev_console.gd`
 
 ##### BiomeIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
 - Currently 1 biome, will expand significantly
@@ -1276,4 +1220,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Moved completed items to todos-completed.md, fixed JsonProfileRepository interface, extracted hero magic numbers, replaced card_type magic numbers*
+*Last Updated: 2025-11-25 - Added RarityIDs constants class, localized HeroCatalog names, added cascade delete for card removal*

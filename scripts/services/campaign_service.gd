@@ -96,7 +96,7 @@ func _init_battles() -> void:
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
 		"reward_type": "fixed",
 		"reward_cards": [
-			{"catalog_id": "charge", "rarity": "common", "count": 1}
+			{"catalog_id": "charge", "rarity": RarityIDs.COMMON, "count": 1}
 		],
 		"enemy_deck": [
 			{"catalog_id": "slime_green", "count": 1}
@@ -123,8 +123,8 @@ func _init_battles() -> void:
 		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
 		"reward_type": "fixed",
 		"reward_cards": [
-			{"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
-			{"catalog_id": "ember_slinger", "rarity": "common", "count": 1}
+			{"catalog_id": "fire_recruit", "rarity": RarityIDs.COMMON, "count": 1},
+			{"catalog_id": "ember_slinger", "rarity": RarityIDs.COMMON, "count": 1}
 		],
 		"enemy_deck": [],  # Spawned via event sequence
 		"enemy_hp": 50.0,
@@ -360,7 +360,7 @@ func _grant_reward_card(reward: Dictionary) -> Array[String]:
 	var instance_ids: Array[String] = []
 
 	var catalog_id: String = reward.get("catalog_id", "")
-	var rarity: String = reward.get("rarity", "common")
+	var rarity: String = reward.get("rarity", RarityIDs.COMMON)
 	var count: int = reward.get("count", 1)
 
 	for i: int in range(count):

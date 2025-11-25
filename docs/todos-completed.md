@@ -59,6 +59,71 @@ Changed `JsonProfileRepository` to `extends IProfileRepo`. The interface methods
 
 ---
 
+### Add Cascade Delete When Removing Cards from Collection
+**Completed:** 2025-11-25
+**Category:** Database / Data Integrity
+**Effort:** Small
+
+**Description:**
+When a card was removed from collection, it wasn't automatically removed from decks, leaving orphaned references.
+
+**Solution Implemented:**
+Added cascade delete logic to `Collection.remove_card()` in collection_service.gd. After successfully removing a card from the collection, iterates through all decks and calls `Decks.clean_deck()` to remove any orphaned card references.
+
+**Related Files:**
+- `scripts/services/collection_service.gd`
+
+---
+
+### Localize HeroCatalog Names
+**Completed:** 2025-11-25
+**Category:** Database / Localization
+**Effort:** Small
+
+**Description:**
+HeroCatalog stored hardcoded English strings for hero names and descriptions instead of using the localization system.
+
+**Solution Implemented:**
+Replaced all hardcoded `hero_name` and `description` strings with `Loc.t()` calls:
+- `hero_fire.hero_name = Loc.t("hero.hero_fire.name")`
+- `hero_fire.description = Loc.t("hero.hero_fire.description")`
+- Same pattern for all 5 heroes (fire, water, wind, earth, shadow_initiate)
+
+**Related Files:**
+- `scripts/data/hero_catalog.gd`
+
+---
+
+### RarityIDs Constants Class
+**Completed:** 2025-11-25
+**Category:** Database / Code Quality
+**Effort:** Small
+
+**Description:**
+Rarity strings ("common", "rare", "epic", "legendary") were used as magic strings throughout the codebase.
+
+**Solution Implemented:**
+Created `scripts/data/rarity_ids.gd` with:
+- StringName constants: `COMMON`, `RARE`, `EPIC`, `LEGENDARY`
+- `ALL_RARITIES` array for iteration
+- `get_tier()` method to get rarity index
+- `is_valid()` method for validation
+
+Updated all usages in:
+- `scripts/services/collection_service.gd` - match statements and default values
+- `scripts/services/campaign_service.gd` - reward card definitions
+- `resources/visual/color_palette.gd` - rarity color lookup
+- `scripts/debug/dev_console.gd` - test data
+
+**Related Files:**
+- `scripts/data/rarity_ids.gd` (new)
+- `scripts/services/collection_service.gd`
+- `scripts/services/campaign_service.gd`
+- `resources/visual/color_palette.gd`
+- `scripts/debug/dev_console.gd`
+
+---
+
 ## Core Game Systems
 
 ### Extract Magic Numbers in Hero System to Constants

@@ -133,10 +133,10 @@ static func get_element_color(element_name: String) -> Color:
 ## Get rarity color by name
 static func get_rarity_color(rarity: String) -> Color:
 	match rarity.to_lower():
-		"common": return RARITY_COMMON
-		"rare": return RARITY_RARE
-		"epic": return RARITY_EPIC
-		"legendary": return RARITY_LEGENDARY
+		RarityIDs.COMMON: return RARITY_COMMON
+		RarityIDs.RARE: return RARITY_RARE
+		RarityIDs.EPIC: return RARITY_EPIC
+		RarityIDs.LEGENDARY: return RARITY_LEGENDARY
 		_: return RARITY_COMMON
 
 ## Get health color based on percentage
