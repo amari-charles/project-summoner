@@ -930,6 +930,40 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ### 🔴 HIGH PRIORITY
 
+#### Implement Win Condition System for Campaign Events
+**Status:** ⬜ Not Started
+**Category:** Campaign / Battle System
+**Effort:** Medium
+
+**Description:**
+Campaign battles currently lack proper win/loss conditions tied to the event sequence system. If the player doesn't complete the objective in time (e.g., kill enemy base), they should lose the fight.
+
+**Requirements:**
+- Define win condition types: DESTROY_BASE, SURVIVE_TIME, KILL_ALL, PROTECT_ALLY, etc.
+- Configure win conditions per battle in battle definitions
+- Support time limits (e.g., "destroy base within 2 minutes")
+- Proper loss handling when conditions aren't met
+- Integration with EventSequencer for tutorial/scripted battles
+- UI feedback showing current objective and timer (if applicable)
+
+**Example Use Cases:**
+- Tutorial: "Damage the training dummy" (wait for unit_damaged signal)
+- Regular battle: "Destroy the enemy base" (no time limit)
+- Challenge mode: "Destroy enemy base within 60 seconds" (time limit)
+- Defense: "Survive for 90 seconds" (timer-based win)
+
+**Related Files:**
+- `scripts/core/game_controller_3d.gd` - Battle end conditions
+- `scripts/services/campaign_service.gd` - Battle definitions
+- `scripts/services/event_sequencer.gd` - Tutorial event flow
+
+**Notes:**
+- Currently battles only check if a base is destroyed
+- No support for time-based win/loss conditions
+- Event sequences can pause gameplay but don't enforce completion
+
+---
+
 #### Design Campaign Map Interface
 **Status:** ⬜ Not Started
 **Category:** Campaign / UI

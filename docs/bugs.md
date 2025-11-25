@@ -12,6 +12,46 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ### 🔴 HIGH PRIORITY
 
+#### Cards Cannot Be Played in Campaign Battles
+**Status:** Open (Investigating)
+**Reported:** 2025-11-25
+**Component:** Cards / Battle System
+**Type:** Critical Bug
+
+**Description:**
+After refactoring card_type to use `Card.CardType` enum instead of magic numbers (0/1), cards cannot be played in campaign battles. The game loads correctly and cards appear in hand, but they cannot be interacted with.
+
+**Expected Behavior:**
+- Cards should be draggable from hand
+- Cards should be playable on the battlefield
+- Units should spawn when summon cards are played
+
+**Current Behavior:**
+- Cards appear in hand (visually correct)
+- Cards may not be draggable or droppable
+- No units spawn
+
+**Impact:**
+- Game is unplayable in current state
+- Blocks all gameplay testing
+
+**Suspected Cause:**
+- GDScript 4.x enum values stored in dictionaries may not pass `is int` checks
+- Partial fix applied to card_visual_helper.gd, collection_screen.gd, deck_builder.gd
+- May be other places with similar issues
+
+**Related Files:**
+- `scripts/data/card_catalog.gd` - Changed to use `Card.CardType.SUMMON/SPELL`
+- `scripts/ui/card_visual_helper.gd` - Fixed `is int` checks
+- `scripts/ui/hand_ui.gd` - Card drag/drop
+- `scripts/ui/battlefield_drop_zone.gd` - Drop handling
+
+**Notes:**
+- Need to verify if issue persists after latest fixes
+- May need to trace through full card play flow to find blocking issue
+
+---
+
 #### Mission Rewards Auto-Accepted Without Player Choice
 **Status:** Open
 **Reported:** 2025-11-25
@@ -140,4 +180,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-11-25 - Resolved charge bug, rewards auto-accept bug still open*
+*Last Updated: 2025-11-25 - Added card playing bug (investigating)*
