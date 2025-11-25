@@ -587,8 +587,8 @@ func _spawn_placeholder_fizzle(fizzle_pos: Vector3) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = fizzle_pos
 	root.add_child(mesh_instance)
+	mesh_instance.global_position = fizzle_pos
 
 	# Auto-cleanup after 0.5 seconds
 	var timer: SceneTreeTimer = scene_tree.create_timer(0.5)
@@ -623,8 +623,8 @@ func _spawn_placeholder_circle(circle_pos: Vector3, radius: float, color: Color)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = circle_pos
 	root.add_child(mesh_instance)
+	mesh_instance.global_position = circle_pos
 
 	# Auto-cleanup after 1.5 seconds
 	var timer: SceneTreeTimer = scene_tree.create_timer(1.5)
@@ -657,8 +657,8 @@ func _spawn_placeholder_marker(position: Vector3, color: Color) -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh_instance.material_override = material
 
-	mesh_instance.global_position = position
 	root.add_child(mesh_instance)
+	mesh_instance.global_position = position
 
 	# Auto-cleanup after 1.0 seconds
 	var timer: SceneTreeTimer = scene_tree.create_timer(1.0)

@@ -132,10 +132,12 @@ func spawn_projectile(
 	var active: Array = active_projectiles[projectile_id]
 	active.append(projectile)
 
-	# Connect signals
+	# Connect signal (only once per projectile instance)
+	# Note: We don't use .bind() because is_connected() can't detect bound callables,
+	# which caused multiple connections to accumulate on pooled projectiles.
+	# Instead, we read projectile_id from the projectile itself in the handler.
 	if not projectile.projectile_expired.is_connected(_on_projectile_expired):
-		# Signal already passes projectile, only bind projectile_id
-		projectile.projectile_expired.connect(_on_projectile_expired.bind(projectile_id))
+		projectile.projectile_expired.connect(_on_projectile_expired)
 
 	return projectile
 
@@ -177,9 +179,12 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 		projectile.queue_free()
 
 ## Signal handler for projectile expiration
-## Note: Signal emits projectile first, then bind adds projectile_id
-func _on_projectile_expired(projectile: Projectile3D, projectile_id_arg: String) -> void:
-	_return_to_pool(projectile_id_arg, projectile)
+func _on_projectile_expired(projectile: Projectile3D) -> void:
+	if projectile.projectile_id.is_empty():
+		push_error("ProjectileManager: Projectile expired with empty projectile_id")
+		projectile.queue_free()
+		return
+	_return_to_pool(projectile.projectile_id, projectile)
 
 ## Clear all active projectiles (for scene transitions)
 func clear_all_projectiles() -> void:
