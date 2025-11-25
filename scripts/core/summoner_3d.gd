@@ -34,14 +34,36 @@ var is_alive: bool = true
 ## Hero instance (loaded from profile when using PROFILE strategy)
 var _loaded_hero_instance: HeroInstance = null
 
+## Track initialization state
+var _initialized: bool = false
+
 ## Signals
 signal summoner_died(summoner: Summoner3D)
 signal card_played(card: Card)
 signal card_drawn(card: Card)
 signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
+signal summoner_ready(summoner: Summoner3D)  ## Emitted after init() completes
 
 func _ready() -> void:
+	# Minimal setup - just add to groups for discovery
+	# Full initialization happens in init() called by BattleCoordinator
+	add_to_group("summoners")
+	add_to_group("bases")  # Allows spell cards to find summoner as projectile source
+	if team == Unit3D.Team.PLAYER:
+		add_to_group("player_summoners")
+	else:
+		add_to_group("enemy_summoners")
+
+## Initialize summoner - called by BattleCoordinator after scene is ready
+## This replaces the old self-initialization pattern
+func init() -> void:
+	if _initialized:
+		return
+	_initialized = true
+
+	print("Summoner3D: Initializing (team: %s)..." % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
+
 	# Auto-correct deck loading strategy based on team if using wrong default
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
 		deck_load_strategy = DeckLoadStrategy.PROFILE
@@ -117,14 +139,9 @@ func _ready() -> void:
 	for i: int in max_hand_size:
 		draw_card()
 
-	add_to_group("summoners")
-	add_to_group("bases")  # Allows spell cards to find summoner as projectile source
-	if team == Unit3D.Team.PLAYER:
-		add_to_group("player_summoners")
-	else:
-		add_to_group("enemy_summoners")
-
 	mana_changed.emit(mana, MANA_MAX)
+	summoner_ready.emit(self)
+	print("Summoner3D: Initialization complete")
 
 func _process(delta: float) -> void:
 	if not is_alive:
@@ -281,7 +298,7 @@ func _load_profile_deck() -> Array[Card]:
 		var temp_array: Array = loaded_deck_variant
 		loaded_deck.assign(temp_array)
 
-	# Store hero instance for later application in _ready()
+	# Store hero instance for bonus application in init()
 	var hero_instance_variant: Variant = deck_data.get("hero_instance")
 	if hero_instance_variant is HeroInstance:
 		_loaded_hero_instance = hero_instance_variant

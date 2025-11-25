@@ -86,6 +86,9 @@ func _on_hero_selected(hero_id: String) -> void:
 	else:
 		push_error("HeroSelection: ProfileRepo.set_starting_hero() not available!")
 
+	# Create and save HeroInstance with proper modifiers
+	_create_hero_instance(final_hero_id, chosen_random, profile_repo)
+
 	# Update starter deck with selected hero
 	_assign_hero_to_starter_deck(final_hero_id)
 
@@ -96,7 +99,7 @@ func _on_hero_selected(hero_id: String) -> void:
 		print("HeroSelection: Marked affinity selection as completed!")
 
 	# Transition to reveal scene (hero data already saved in ProfileRepo)
-	SceneManager.change_scene(SceneManager.SCENE_HERO_REVEAL)
+	SceneManager.transition_to(SceneManager.SCENE_HERO_REVEAL)
 
 ## Assign the selected hero to the starter deck
 func _assign_hero_to_starter_deck(hero_id: String) -> void:
@@ -134,3 +137,51 @@ func _assign_hero_to_starter_deck(hero_id: String) -> void:
 			push_error("HeroSelection: Failed to assign hero to Starter Deck")
 	else:
 		push_error("HeroSelection: set_deck_hero method not available!")
+
+## Create and save HeroInstance for the selected hero
+func _create_hero_instance(hero_id: String, chosen_random: bool, profile_repo: Node) -> void:
+	var hero_catalog: Node = get_node_or_null("/root/HeroCatalog")
+	if not hero_catalog:
+		push_error("HeroSelection: HeroCatalog not found!")
+		return
+
+	# Get hero config
+	var hero_config_variant: Variant = null
+	if hero_catalog.has_method("get_hero_config"):
+		hero_config_variant = hero_catalog.call("get_hero_config", hero_id)
+
+	if not hero_config_variant is HeroConfig:
+		push_error("HeroSelection: Failed to get HeroConfig for '%s'" % hero_id)
+		return
+
+	var hero_config: HeroConfig = hero_config_variant
+
+	# Create HeroInstance from config
+	var hero_instance: HeroInstance = HeroInstance.new()
+	hero_instance.init_from_config(hero_config)
+
+	# Add "fortune_favors_the_bold" modifier if player chose random
+	if chosen_random:
+		var fortune_modifier_id: int = ModifierRegistry.ModifierId.FORTUNE_FAVORS_BOLD
+		var modifier_db: Node = get_node_or_null("/root/ModifierDatabase")
+		if modifier_db and modifier_db.has_method("has_modifier"):
+			var has_mod: bool = modifier_db.call("has_modifier", fortune_modifier_id)
+			if has_mod:
+				hero_instance.add_modifier(fortune_modifier_id, ModifierConfig.ModifierSource.INNATE)
+				print("HeroSelection: Added 'Fortune Favors the Bold' modifier for random selection")
+			else:
+				push_warning("HeroSelection: FORTUNE_FAVORS_BOLD modifier not found in database")
+		else:
+			push_warning("HeroSelection: ModifierDatabase not available")
+
+	# Save HeroInstance to profile
+	if profile_repo and profile_repo.has_method("save_hero_instance"):
+		var success: bool = profile_repo.call("save_hero_instance", hero_instance)
+		if success:
+			print("HeroSelection: Saved HeroInstance for '%s' (level %d, %d modifiers)" % [
+				hero_id, hero_instance.level, hero_instance.active_modifiers.size()
+			])
+		else:
+			push_error("HeroSelection: Failed to save HeroInstance!")
+	else:
+		push_error("HeroSelection: ProfileRepo.save_hero_instance() not available!")

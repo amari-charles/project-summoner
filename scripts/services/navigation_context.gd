@@ -13,11 +13,11 @@ extends Node
 ## Usage:
 ##   # Before navigating to shop from event
 ##   NavigationContext.push_return(SceneManager.SCENE_EVENT_SCREEN)
-##   SceneManager.change_scene(SceneManager.SCENE_SHOP_SCREEN)
+##   SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
 ##
 ##   # In shop back button
 ##   var return_to: String = NavigationContext.pop_return()
-##   SceneManager.change_scene(return_to)
+##   SceneManager.transition_to(return_to)
 
 ## Navigation stack
 var _return_stack: Array[String] = []

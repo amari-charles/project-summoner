@@ -734,7 +734,7 @@ func _on_popup_close_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	print("DeckBuilder: Returning to collection")
-	get_tree().change_scene_to_file("res://scenes/ui/collection_screen.tscn")
+	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 
 ## =============================================================================
 ## SIGNALS

@@ -294,7 +294,7 @@ func _leave_shop() -> void:
 	if NavigationContext.has_return():
 		var return_to: String = NavigationContext.pop_return()
 		print("ShopScreen: Returning to %s via NavigationContext" % return_to)
-		SceneManager.change_scene(return_to)
+		SceneManager.transition_to(return_to)
 	else:
 		# Default: return to game mode menu
-		SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)
+		SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)

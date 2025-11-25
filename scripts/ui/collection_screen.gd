@@ -456,7 +456,7 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 					meta["editing_deck_id"] = deck_id
 					print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
 
-	get_tree().change_scene_to_file("res://scenes/ui/deck_builder.tscn")
+	SceneManager.transition_to(SceneManager.SCENE_DECK_BUILDER)
 
 func _show_deck_locked_message() -> void:
 	# Show popup dialog informing player deck editing is locked
@@ -488,7 +488,7 @@ func _on_delete_deck_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	print("CollectionScreen: Returning to game mode menu")
-	get_tree().change_scene_to_file("res://scenes/ui/game_mode_menu.tscn")
+	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
 
 ## =============================================================================
 ## SIGNALS

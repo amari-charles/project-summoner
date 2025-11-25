@@ -7,46 +7,34 @@ var summoner: Node = null  # Can be Summoner or Summoner3D
 var camera_2d: Camera2D = null
 var camera_3d: Camera3D = null
 var is_3d: bool = false
+var _initialized: bool = false  # Track initialization state
 
 func _ready() -> void:
-	# Wait one frame to ensure summoners have joined their groups
-	await get_tree().process_frame
+	# Minimal setup - just configure mouse filter
+	# STOP filter is needed to receive drop events, but we're behind HandUI
+	# so HandUI will receive mouse events in its area first
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# Find player summoner (2D or 3D)
-	var summoners: Array[Node] = get_tree().get_nodes_in_group("summoners")
-	for node: Node in summoners:
-		var is_player: bool = false
+## Initialize BattlefieldDropZone with the player summoner
+## Called by BattleCoordinator after summoners are ready
+func init(player_summoner: Node) -> void:
+	if _initialized:
+		return
+	_initialized = true
 
-		# Check for both Summoner and Summoner3D with proper type checking
-		if node is Summoner:
-			var summoner_2d: Summoner = node
-			var team_variant: Variant = summoner_2d.get("team")
-			var team_value: int = team_variant if team_variant is int else -1
-			is_player = team_value == Unit.Team.PLAYER
-		elif node is Summoner3D:
-			var summoner_3d: Summoner3D = node
-			var team_variant: Variant = summoner_3d.get("team")
-			var team_value: int = team_variant if team_variant is int else -1
-			is_player = team_value == Unit3D.Team.PLAYER
+	if not player_summoner:
+		push_error("BattlefieldDropZone: init() called with null summoner!")
+		return
 
-		if is_player:
-			summoner = node
-			break
+	summoner = player_summoner
 
-	if not summoner:
-		push_error("BattlefieldDropZone: Could not find player Summoner!")
-
-	# Find camera (2D or 3D)
+	# Find camera (2D or 3D) - these are scene-level, not coordinator-dependent
 	camera_2d = get_viewport().get_camera_2d()
 	camera_3d = get_viewport().get_camera_3d()
 	is_3d = camera_3d != null and camera_2d == null
 
 	if not camera_2d and not camera_3d:
 		push_error("BattlefieldDropZone: Could not find camera!")
-
-	# STOP filter is needed to receive drop events, but we're behind HandUI
-	# so HandUI will receive mouse events in its area first
-	mouse_filter = Control.MOUSE_FILTER_STOP
 
 ## Handle mouse events for two-stage spell targeting
 func _gui_input(event: InputEvent) -> void:

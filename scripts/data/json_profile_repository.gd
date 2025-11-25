@@ -891,7 +891,7 @@ func _create_fresh_profile() -> void:
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}
 		},
 		"meta": {
-			"selected_deck": null,
+			"selected_deck": "",
 			"tutorial_flags": {},
 			"achievements": {},
 			"analytics_opt_in": false

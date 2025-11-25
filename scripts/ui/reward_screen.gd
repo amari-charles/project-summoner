@@ -201,7 +201,7 @@ func _on_choice_selected(index: int) -> void:
 
 func _on_continue_pressed() -> void:
 	print("RewardScreen: Continuing to campaign screen")
-	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## =============================================================================
 ## AUTO-FILL DECK (TUTORIAL MODE)

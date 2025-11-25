@@ -126,4 +126,4 @@ func _return_to_campaign() -> void:
 		return_to = SceneManager.SCENE_CAMPAIGN_MAP
 
 	print("EventScreen: Returning to %s" % return_to)
-	SceneManager.change_scene(return_to)
+	SceneManager.transition_to(return_to)

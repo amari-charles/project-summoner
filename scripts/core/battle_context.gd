@@ -99,22 +99,31 @@ func configure_endless_wave(_wave_number: int) -> void:
 	biome_id = "summer_plains"
 	completion_callback = _handle_endless_completion
 
+## Check if battle context has been configured
+func is_configured() -> bool:
+	return was_configured and not battle_config.is_empty()
+
 ## Clear battle context
 func clear() -> void:
 	battle_config = {}
 	biome_id = "summer_plains"
 	completion_callback = Callable()
+	was_configured = false
 	print("BattleContext: Cleared")
+
+## Reset battle context (alias for clear, called between battles)
+func reset() -> void:
+	clear()
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
 	if winner == 0:  # Player won
 		# Transition to reward screen (it will handle completion and rewards)
-		SceneManager.change_scene(SceneManager.SCENE_REWARD_SCREEN)
+		SceneManager.transition_to(SceneManager.SCENE_REWARD_SCREEN)
 	else:  # Player lost
 		# Return to campaign screen
 		# TODO: Track origin screen to return to correct location (arena, practice, etc.)
-		SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## Handle practice battle completion
 func _handle_practice_completion(winner: int) -> void:

@@ -28,6 +28,10 @@ signal system_ready()
 ## Track if the dialogue system is fully initialized
 var _is_system_ready: bool = false
 
+## Track currently connected DialogueBox by instance ID
+## When 0, no UI is connected
+var _connected_ui_id: int = 0
+
 ## Currently active dialogue
 var current_dialogue: DialogueData = null
 
@@ -45,17 +49,36 @@ var dialogue_cache: Dictionary = {}
 ## PUBLIC API
 ## =============================================================================
 
-## Notify that the UI (DialogueBox) has connected and is ready
-## This should be called by DialogueBox after it completes its signal connections
-func notify_ui_connected() -> void:
+## Register a DialogueBox UI component
+## Called by DialogueBox in _ready() after connecting signals
+func register_ui(instance_id: int) -> void:
+	_connected_ui_id = instance_id
 	if not _is_system_ready:
 		_is_system_ready = true
 		system_ready.emit()
-		print("DialogueManager: System ready - UI connected")
+	print("DialogueManager: UI registered (id: %d)" % instance_id)
+
+## Unregister a DialogueBox UI component
+## Called by DialogueBox in _exit_tree() when scene changes
+func unregister_ui(instance_id: int) -> void:
+	# Only unregister if this is the currently registered UI
+	if _connected_ui_id == instance_id:
+		_connected_ui_id = 0
+		_is_system_ready = false
+		print("DialogueManager: UI unregistered (id: %d)" % instance_id)
+
+## Legacy method - redirects to register_ui
+func notify_ui_connected() -> void:
+	push_warning("DialogueManager: notify_ui_connected() is deprecated, use register_ui()")
+	# Can't get instance_id here, so just mark as ready without tracking
+	if not _is_system_ready:
+		_is_system_ready = true
+		system_ready.emit()
+		print("DialogueManager: System ready - UI connected (legacy)")
 
 ## Check if the dialogue system is ready to handle requests
 func is_system_ready() -> bool:
-	return _is_system_ready
+	return _is_system_ready and _connected_ui_id != 0
 
 ## Start a dialogue by ID
 ## Loads the dialogue resource and begins displaying it
@@ -299,5 +322,9 @@ func reset() -> void:
 	current_line_index = 0
 	variables.clear()
 	# Note: dialogue_cache is intentionally preserved for performance
+
+	# CRITICAL: Reset system ready state so new scene's DialogueBox must reconnect
+	# Without this, EventSequencer thinks system is ready but the old DialogueBox is gone
+	_is_system_ready = false
 
 	print("DialogueManager: Reset complete")

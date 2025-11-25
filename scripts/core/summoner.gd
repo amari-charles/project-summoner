@@ -32,45 +32,34 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 
 func _ready() -> void:
-	print("Summoner._ready: Starting initialization (team=%s, load_from_profile=%s)" % [team, load_deck_from_profile])
-
 	# Wait one frame to ensure autoload services are fully initialized
 	await get_tree().process_frame
 
 	# Initialize deck and apply hero bonuses (must happen before setting current_hp/mana)
 	if load_deck_from_profile and team == Unit.Team.PLAYER:
 		# Load deck from player's profile
-		print("Summoner: Loading deck from profile...")
 		var deck_data: Dictionary = DeckLoader.load_player_deck()
-		print("Summoner: DeckLoader returned %d keys: %s" % [deck_data.size(), deck_data.keys()])
 
 		var cards_variant: Variant = deck_data.get("cards", [])
 		if cards_variant is Array:
 			var cards_array: Array = cards_variant
 			deck.assign(cards_array)
 		if deck.is_empty():
-			push_error("Summoner: Failed to load deck from profile! Using empty deck.")
-		else:
-			print("Summoner: Successfully loaded %d cards from profile" % deck.size())
+			push_error("Summoner: Failed to load deck from profile!")
 
 		# Apply hero bonuses
 		var hero_instance_variant: Variant = deck_data.get("hero_instance")
-		print("Summoner: hero_instance type = %s" % type_string(typeof(hero_instance_variant)))
 		if hero_instance_variant is HeroInstance:
 			var hero_instance: HeroInstance = hero_instance_variant
-			print("Summoner: HeroInstance found, applying bonuses...")
 			_apply_hero_bonuses(hero_instance)
 		else:
 			push_warning("Summoner: No valid HeroInstance in deck data")
 	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
 		# Load enemy deck from current campaign battle
-		print("Summoner: Loading enemy deck from campaign...")
 		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
 		if deck.is_empty():
-			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback deck.")
+			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback.")
 			deck = starting_deck.duplicate()
-		else:
-			print("Summoner: Successfully loaded %d cards for enemy from campaign" % deck.size())
 
 		# Override enemy max_hp from campaign if specified
 		var campaign: Node = get_node_or_null("/root/Campaign")
@@ -92,11 +81,9 @@ func _ready() -> void:
 				var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
 				if battle.has("enemy_hp"):
 					max_hp = battle.get("enemy_hp")
-					print("Summoner: Set enemy HP from campaign: %d" % max_hp)
 	else:
 		# Use exported starting_deck (for testing/AI)
 		deck = starting_deck.duplicate()
-		print("Summoner: Using exported starting_deck (%d cards)" % deck.size())
 
 	# Initialize HP and mana
 	current_hp = max_hp

@@ -25,7 +25,7 @@ func _input(event: InputEvent) -> void:
 ## Open game mode selection screen
 func _on_play_pressed() -> void:
 	print("Opening game mode selection...")
-	SceneManager.change_scene(SceneManager.SCENE_GAME_MODE_MENU)
+	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
 
 ## PLACEHOLDER - Achievements not yet implemented
 func _on_achievements_pressed() -> void:

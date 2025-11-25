@@ -31,6 +31,7 @@ var active_feedback_tween: Tween = null  # Track tween for cleanup
 signal base_destroyed(base: Base3D)
 signal base_damaged(base: Base3D, damage: float)
 signal hp_changed(new_hp: float, new_max_hp: float)
+signal base_ready(base: Base3D)  ## Emitted after initialization and groups joined
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -59,6 +60,7 @@ func _ready() -> void:
 	})
 
 	print("Base3D ready: Team %d, HP %d" % [team, max_hp])
+	base_ready.emit(self)
 
 func _exit_tree() -> void:
 	# Kill any active tweens to prevent lambda capture errors

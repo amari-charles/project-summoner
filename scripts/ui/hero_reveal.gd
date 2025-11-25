@@ -94,4 +94,4 @@ func _show_continue_button() -> void:
 
 ## Continue to campaign map
 func _on_continue_pressed() -> void:
-	SceneManager.change_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)

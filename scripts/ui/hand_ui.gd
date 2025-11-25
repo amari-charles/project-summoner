@@ -442,42 +442,29 @@ var summoner: Node  # Can be Summoner or Summoner3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 var is_rebuilding: bool = false  # Prevents concurrent rebuilds
+var _initialized: bool = false  # Track initialization state
 
 signal card_selected(index: int)
 
 func _ready() -> void:
+	# Minimal setup - just add to groups for discovery
 	add_to_group("hand_ui")
 
 	# Block clicks to battlefield
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# Wait one frame to ensure summoners have joined their groups
-	await get_tree().process_frame
-
-	# Find player summoner (2D or 3D)
-	var summoners: Array[Node] = get_tree().get_nodes_in_group("summoners")
-	for node: Node in summoners:
-		var is_player: bool = false
-
-		# Check for both Summoner and Summoner3D with proper type checking
-		if node is Summoner:
-			var summoner_2d: Summoner = node
-			var team_variant: Variant = summoner_2d.get("team")
-			var team_value: int = team_variant if team_variant is int else -1
-			is_player = team_value == Unit.Team.PLAYER
-		elif node is Summoner3D:
-			var summoner_3d: Summoner3D = node
-			var team_variant: Variant = summoner_3d.get("team")
-			var team_value: int = team_variant if team_variant is int else -1
-			is_player = team_value == Unit3D.Team.PLAYER
-
-		if is_player:
-			summoner = node
-			break
-
-	if not summoner:
-		push_error("HandUI: Could not find player Summoner!")
+## Initialize HandUI with the player summoner
+## Called by BattleCoordinator after summoners are ready
+func init(player_summoner: Node) -> void:
+	if _initialized:
 		return
+	_initialized = true
+
+	if not player_summoner:
+		push_error("HandUI: init() called with null summoner!")
+		return
+
+	summoner = player_summoner
 
 	# Connect to summoner signals
 	var card_played_signal: Signal = summoner.get("card_played")

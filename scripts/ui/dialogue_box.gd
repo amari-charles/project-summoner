@@ -59,11 +59,16 @@ func _ready() -> void:
 			dialogue_ended_signal.connect(_on_dialogue_ended)
 		print("DialogueBox: Connected to DialogueManager")
 
-		# Notify DialogueManager that UI is ready
-		if dialogue_manager.has_method("notify_ui_connected"):
-			dialogue_manager.call("notify_ui_connected")
+		# Register with DialogueManager using instance ID for proper lifecycle tracking
+		if dialogue_manager.has_method("register_ui"):
+			dialogue_manager.call("register_ui", get_instance_id())
 	else:
 		push_warning("DialogueBox: DialogueManager not found in autoloads")
+
+func _exit_tree() -> void:
+	# Unregister from DialogueManager when being freed (scene change, etc.)
+	if dialogue_manager and dialogue_manager.has_method("unregister_ui"):
+		dialogue_manager.call("unregister_ui", get_instance_id())
 
 func _process(delta: float) -> void:
 	if is_typing:

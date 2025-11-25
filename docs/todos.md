@@ -207,6 +207,67 @@ Design and implement additional spell cards for more strategic variety.
 
 ### 🔴 HIGH PRIORITY
 
+#### Fix Hardcoded UI Strings - Add Localization
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Localization
+**Effort:** Medium
+
+**Description:**
+Many UI files have hardcoded user-facing strings instead of using the `Loc.t()` localization pattern. All user-facing text must be localized.
+
+**Files Requiring Updates:**
+- `reward_screen.gd` - "Battle Already Completed", "No rewards for replaying battles", "Unknown Card", rarity text
+- `collection_screen.gd` - Card stats labels, deck info labels, empty state messages
+- `campaign_map.gd` - Event labels, difficulty stars, "REPLAY (no reward)", button states
+- `game_ui.gd` - Timer format
+- `player_input_3d.gd` - Mana/hand debug labels
+
+**Requirements:**
+- Replace all hardcoded strings with `Loc.t("key.path")` calls
+- Add corresponding entries to `localization/data/en.json`
+- Follow naming convention: `category.subcategory.item`
+
+**Notes:**
+- Critical for future localization support
+- Defined in CLAUDE.md as a project requirement
+- Should be addressed systematically file by file
+
+---
+
+#### Extract Magic Numbers in Hero System to Constants
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Code Quality
+**Effort:** Small
+
+**Description:**
+Default stat values in the hero system are hardcoded without named constants, making them harder to maintain and tune.
+
+**Locations:**
+- `hero_config.gd:18-20` - `base_health = 1000.0`, `max_mana = 10.0`, `mana_regen = 1.0`
+- `hero_config.gd:70-72` - Same defaults repeated in `from_dict()`
+- `hero_instance.gd:110` - `"health": 1000.0` default in `get_computed_stats()`
+
+**Requirements:**
+- Extract defaults to class-level constants with descriptive names
+- Use constants consistently throughout the file
+- Add comments explaining the reasoning behind values
+
+**Example:**
+```gdscript
+const DEFAULT_BASE_HEALTH: float = 1000.0
+const DEFAULT_MAX_MANA: float = 10.0
+const DEFAULT_MANA_REGEN: float = 1.0
+
+@export var base_health: float = DEFAULT_BASE_HEALTH
+```
+
+**Notes:**
+- Quick fix that improves maintainability
+- Makes balancing easier in the future
+- Part of broader magic numbers audit
+
+---
+
 #### Research and Implement Framerate Independence
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Performance
@@ -759,6 +820,48 @@ Improve pause menu design and functionality.
 
 ### 🔴 HIGH PRIORITY
 
+#### Add Leave Buttons to Caravan Event
+**Status:** ⬜ Not Started
+**Category:** Campaign / Events
+**Effort:** Small
+
+**Description:**
+The caravan event needs proper exit options for players who don't want to make a purchase.
+
+**Requirements:**
+- Add "Leave" button that exits without completing the event (blocks next chapter)
+- Add "Leave without purchasing" button that exits and completes the event (allows progression)
+- Both buttons should have appropriate visual distinction
+- Clear messaging about consequences of each choice
+
+**Notes:**
+- Important for player agency - shouldn't be forced to purchase
+- "Leave" (incomplete) is for players who want to return later
+- "Leave without purchasing" (complete) is for players who want to skip entirely
+
+---
+
+#### Fix Dialogue Localization 'Missing:' Prefix
+**Status:** ⬜ Not Started
+**Category:** Campaign / Localization
+**Effort:** Small
+
+**Description:**
+All dialogues currently display with a "Missing:" prefix, indicating localization keys are not being found properly.
+
+**Requirements:**
+- Investigate why localization lookups are failing
+- Ensure dialogue keys exist in `localization/data/en.json`
+- Fix key path format if incorrect
+- Verify DialogueManager is using Loc.t() correctly
+
+**Notes:**
+- Affects all dialogue in the game
+- Likely a key path mismatch or missing entries
+- Should be quick to diagnose and fix
+
+---
+
 #### Design Campaign Map Interface
 **Status:** ⬜ Not Started
 **Category:** Campaign / UI
@@ -1004,4 +1107,4 @@ Final integration of hero system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-11-12 - Marked completed items: Predictive targeting, building hit animations, pause menu*
+*Last Updated: 2025-11-24 - Added caravan leave buttons and dialogue localization fix tasks*
