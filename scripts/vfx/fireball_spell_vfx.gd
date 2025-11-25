@@ -32,12 +32,9 @@ func _ready() -> void:
 		elif child is MeshInstance3D and child.name == "AOEIndicator":
 			aoe_indicator = child as MeshInstance3D
 
-	# Duplicate material to avoid shared resource issues with pooling
+	# Isolate materials for pooling safety (we modify shader params on impact)
 	if aoe_indicator:
-		var shared_material: ShaderMaterial = aoe_indicator.get_surface_override_material(0) as ShaderMaterial
-		if shared_material:
-			var instance_material: ShaderMaterial = shared_material.duplicate()
-			aoe_indicator.set_surface_override_material(0, instance_material)
+		isolate_mesh_resources(aoe_indicator)
 
 	# Apply sprite rotation
 	if animated_sprite and sprite_rotation_degrees != 0.0:
