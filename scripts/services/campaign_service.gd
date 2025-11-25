@@ -167,6 +167,39 @@ func _init_battles() -> void:
 
 	print("CampaignService: Loaded %d battles" % _battles.size())
 
+	# Validate all battle rewards exist in card catalog
+	_validate_battle_rewards()
+
+## Validate that all reward cards in battle configs exist in the card catalog
+func _validate_battle_rewards() -> void:
+	var catalog: Node = get_node_or_null("/root/CardCatalog")
+	if not catalog:
+		push_warning("CampaignService: CardCatalog not found - skipping reward validation")
+		return
+
+	var invalid_count: int = 0
+	for battle_id: String in _battles.keys():
+		var battle: Dictionary = _battles[battle_id]
+		var reward_cards: Array = battle.get("reward_cards", [])
+
+		for reward_variant: Variant in reward_cards:
+			if not reward_variant is Dictionary:
+				continue
+			var reward: Dictionary = reward_variant
+			var catalog_id: String = reward.get("catalog_id", "")
+
+			if catalog_id.is_empty():
+				continue
+
+			if not catalog.call("has_card", catalog_id):
+				push_error("CampaignService: INVALID REWARD - Battle '%s' has reward card '%s' which doesn't exist in CardCatalog!" % [battle_id, catalog_id])
+				invalid_count += 1
+
+	if invalid_count > 0:
+		push_error("CampaignService: Found %d invalid reward card references! Fix these before shipping." % invalid_count)
+	else:
+		print("CampaignService: All %d battles validated - rewards are properly configured" % _battles.size())
+
 ## =============================================================================
 ## PROGRESS MANAGEMENT
 ## =============================================================================

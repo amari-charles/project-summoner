@@ -406,14 +406,15 @@ func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_te
 		return
 
 	# Find the closest enemy to the charge destination (units, bases, or structures)
+	# Use INF radius so Charge can target any enemy on the entire battlefield
+	# This differs from regular redirect which only affects nearby enemies
 	var closest_enemy: Node3D = RedirectManager.find_nearest_enemy(
 		charge_dest,
 		caster_team,
-		RedirectManager.TARGET_SEARCH_RADIUS
+		INF
 	)
 
 	if not closest_enemy:
-		print("Card: No valid enemy targets found for Charge spell")
 		return
 
 	# Set forced target for all selected units
@@ -421,7 +422,8 @@ func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_te
 	for unit: Unit3D in units:
 		unit.forced_target = closest_enemy
 		unit.forced_target_timer = charge_duration
-		print("Card: Unit %s charging toward %s" % [unit.name, closest_enemy.name])
+		# Also store original point for fallback targeting
+		unit.original_redirect_point = charge_dest
 
 ## Find the base for the given team
 func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:

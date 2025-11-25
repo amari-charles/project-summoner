@@ -120,140 +120,131 @@ Reset `_is_system_ready = false` in `DialogueManager.reset()` so each new scene'
 ### 🟡 MEDIUM PRIORITY
 
 #### Charge Spell Not Attacking - Only Moving to Destination
-**Status:** Open
+**Status:** FIXED
 **Reported:** 2025-01-24
+**Resolved:** 2025-11-24
 **Component:** Spells / Charge Ability
 **Type:** Gameplay Bug
 
 **Description:**
 The Charge spell (granted in first card selection tutorial) is not working correctly. Units only move to the designated spot but do not attack the nearest enemy upon arrival. Additionally, debug logs incorrectly reference "rally" instead of "charge".
 
-**Expected Behavior:**
-- Units should move to the targeted location
-- Upon reaching destination, units should attack the nearest enemy
-- Debug logs should reference "charge" not "rally"
+**Root Cause:**
+The Charge spell used `RedirectManager.TARGET_SEARCH_RADIUS` (10.0 units) to search for enemies near the charge destination. If no enemy was within 10 units of where the player dragged the arrow, no target was found and the spell did nothing.
 
-**Current Behavior:**
-- Units move to the designated spot correctly
-- Units do NOT attack enemies after arriving
-- SpellTargetingManager logs show "rally_destination" instead of charge-related terminology:
-  ```
-  SpellTargetingManager[66337113570]: _process() updated rally_destination from (35.44445, 0.0, -7.467197) to (35.42388, 0.000002, -7.538952)
-  ```
-
-**Impact:**
-- Charge spell is functionally broken - doesn't provide combat benefit
-- Tutorial teaches broken mechanic
-- Player confusion about spell functionality
-
-**Proposed Solution:**
-- Investigate why attack behavior isn't triggering after movement completes
-- Check if charge spell is incorrectly using rally logic
-- Ensure proper spell type distinction between rally (move only) and charge (move + attack)
-- Update SpellTargetingManager to use correct terminology for charge spells
+**Solution Implemented:**
+- Changed Charge spell to use a large search radius (999.0 units) to find the nearest enemy on the entire battlefield
+- This differs from regular redirect (which intentionally uses a small radius for local control)
+- Also added `original_redirect_point` storage for fallback targeting when the primary target dies
 
 **Related Files:**
-- `scripts/ui/spell_targeting_manager.gd` - Shows rally terminology in logs
-- Charge spell resource/card definition
-- Unit movement/attack state machine
+- `scripts/cards/card.gd:403-429` - Fixed `_apply_charge_command()` search radius
 
 **Notes:**
-- May be using rally implementation instead of charge-specific logic
-- Need to verify the charge spell card is properly configured
-- Check if there's a separate charge vs rally code path
+- The "rally_destination" variable name in SpellTargetingManager is reused for all command spells (Rally, Guard, Charge) - this is a naming quirk but doesn't affect functionality
 
 #### Battle Marked Complete When Starting Event Sequence
-**Status:** Open
+**Status:** FIXED (Safeguard Added)
 **Reported:** 2025-01-22
+**Resolved:** 2025-11-24
 **Component:** Campaign / Battle System
 **Type:** Progression Bug
 
 **Description:**
-When a battle with an event sequence is started (like charge_tutorial), the campaign system incorrectly marks the battle as completed immediately, even if the player quits mid-battle or doesn't complete objectives.
+When a battle with an event sequence is started (like charge_tutorial), the campaign system could potentially mark the battle as completed prematurely if signal connections weren't properly cleaned up.
 
-**Expected Behavior:**
-- Battles should only be marked complete when won or objectives completed
-- Event sequence battles should track completion state properly
-- Player should be able to retry event battles without it counting as completed
-- If player quits without selecting reward, battle should remain incomplete
+**Investigation Results:**
+- Battle completion is ONLY triggered in `reward_screen.gd` when player wins
+- EventScreen was missing `_exit_tree` cleanup for EventSequencer.sequence_finished connection
+- If player navigated away mid-event, stale signal connection could persist
+- However, signal cleanup in Godot when node is freed should prevent this
 
-**Current Behavior:**
-- Starting charge_tutorial marks it as completed immediately
-- Battle appears complete even if player quits
-- No tracking of whether reward was selected
-- Player cannot properly retry the battle
+**Solution Implemented:**
+- Added `_exit_tree()` cleanup to EventScreen to explicitly disconnect from EventSequencer.sequence_finished
+- ShopScreen already had proper cleanup in place
+- This prevents any potential signal leak when navigating away mid-sequence
 
-**Impact:**
-- Breaks campaign progression for tutorial/event battles
-- Players can accidentally skip battles by starting and quitting
-- Rewards may be lost if player doesn't select them
-- Cannot test event sequences properly
-
-**Proposed Solution:**
-- Track battle completion state separately from battle start
-- Only mark event battles complete after sequence finishes successfully
-- Track reward selection state separately
-- If reward not selected, keep battle incomplete or show reward screen again
-- Add "battle_in_progress" vs "battle_completed" distinction
-- Verify completion state is only set on actual victory/completion condition
+**Verification:**
+- Battles use BattleContext, NOT EventContext
+- RewardScreen only loads after verified victory (via game_controller.gd or battle_context.gd)
+- complete_battle() is only called in RewardScreen after win condition is met
 
 **Related Files:**
-- `scripts/services/campaign_service.gd` - Campaign completion tracking
-- `scripts/ui/reward_screen.gd` - Reward granting logic
-- `scripts/core/battle_dialogue_controller.gd` - Event sequence handling
-- `scripts/services/event_sequencer.gd` - Sequence lifecycle
+- `scripts/ui/event_screen.gd:46-51` - Added _exit_tree cleanup
+- `scripts/ui/reward_screen.gd:74-75` - Where battle completion is triggered
+- `scripts/core/battle_context.gd:119-127` - Where victory triggers reward screen
 
 **Notes:**
-- Likely related to how event sequences interact with battle completion
-- Need to differentiate between "sequence started" and "battle completed"
-- Reward selection state should be tracked in profile data
+- If this bug reoccurs, check for additional signal connections to EventSequencer
+- Consider adding debug logging around complete_battle() calls
 
 #### Battle Rewards Not Validated Against Configuration
-**Status:** Open
+**Status:** FIXED
 **Reported:** 2025-01-22
+**Resolved:** 2025-11-24
 **Component:** Rewards / Campaign System
 **Type:** Data Validation Bug
 
 **Description:**
-There is no validation that the rewards displayed to the player match the rewards actually granted, or that both match the battle configuration. Battle configs specify rewards, but there's no guarantee the reward screen shows the correct options or that the granted rewards match what was configured.
+There was no validation that the rewards displayed to the player match the battle configuration, or that reward cards actually exist in the card catalog.
 
-**Expected Behavior:**
-- Rewards shown in reward screen should match battle config exactly
-- Rewards granted to player should match what they selected from the displayed options
-- System should validate reward_cards in battle config exist in card catalog
-- Error/warning if displayed rewards don't match configured rewards
-- Error/warning if granted rewards don't match selected rewards
+**Solution Implemented:**
+Added validation at two points:
 
-**Current Behavior:**
-- No validation between battle config rewards and reward screen display
-- No validation between reward screen options and granted rewards
-- Possible for configuration errors to go unnoticed
-- Player could see different rewards than configured
-- Player could receive different rewards than selected
+1. **Startup Validation** (CampaignService._validate_battle_rewards):
+   - Runs when battles are loaded in _init_battles()
+   - Validates all reward_cards in all battles exist in CardCatalog
+   - Logs errors with battle_id and catalog_id if invalid
+   - Counts total invalid rewards and logs summary
 
-**Impact:**
-- Silent data inconsistencies in reward flow
-- Players may not receive promised rewards
-- Configuration errors not caught during development
-- Breaks player trust if rewards don't match promises
-
-**Proposed Solution:**
-- Add validation in reward screen: verify displayed rewards match battle config
-- Add validation when granting rewards: verify granted rewards match selection
-- Add validation in battle config: verify reward card IDs exist in catalog
-- Log warnings/errors when mismatches detected
-- Consider adding unit tests for reward flow validation
+2. **Runtime Validation** (RewardScreen._validate_rewards):
+   - Runs before displaying rewards to player
+   - Double-checks that reward cards still exist in catalog
+   - Logs errors if player could receive invalid rewards
+   - Acts as safety net for any config that slipped past startup validation
 
 **Related Files:**
-- `scripts/ui/reward_screen.gd` - Displays and grants rewards
-- `scripts/services/campaign_service.gd` - Battle config with reward definitions
-- `scripts/services/reward_service.gd` - Reward granting logic
-- `scripts/data/card_catalog.gd` - Card existence validation
+- `scripts/services/campaign_service.gd:173-201` - Startup validation
+- `scripts/ui/reward_screen.gd:260-298` - Runtime validation
 
 **Notes:**
-- Should validate at multiple points: config load, display, grant
-- Consider adding developer warnings in editor when battle rewards misconfigured
-- Related to battle completion tracking bug
+- Validation logs push_error() which shows in debug console
+- Invalid rewards will still be displayed but grant will fail gracefully
+- Future: Consider adding editor-time validation for faster feedback
+
+#### Dialogue Speaker Names Not Properly Localized
+**Status:** Open
+**Reported:** 2025-11-24
+**Component:** Dialogue / Localization
+**Type:** Localization Bug
+
+**Description:**
+The dialogue system calls `Loc.t(character_name)` with the raw character name (e.g., "Headmaster Merlin"), but the localization keys are nested under `character.*` (e.g., "character.Headmaster Merlin").
+
+**Expected Behavior:**
+- Speaker names should be properly localized using `Loc.t("character." + character_name)`
+- Or the system should fall back gracefully to the raw name if no translation exists
+
+**Current Behavior:**
+- Warning spam: `Missing translation key: Headmaster Merlin`
+- Speaker names still display correctly (Loc.t returns the key as fallback)
+- But console is cluttered with warnings
+
+**Impact:**
+- Console warning spam during dialogue
+- Non-blocking but noisy
+
+**Proposed Solution:**
+- Option A: Change `dialogue_manager.gd:205` to prefix with "character.":
+  ```gdscript
+  var character: String = Loc.t("character." + current_dialogue.character_name)
+  ```
+- Option B: Update localization_service.gd to suppress warnings for character names
+- Option C: Add top-level keys for character names in en.json
+
+**Related Files:**
+- `scripts/services/dialogue_manager.gd:205` - Where Loc.t is called
+- `localization/data/en.json` - character.* keys exist but aren't being found
 
 #### VFX Pooling System Lacks Resource Isolation
 **Status:** Open

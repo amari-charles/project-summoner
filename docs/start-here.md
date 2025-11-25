@@ -1,7 +1,7 @@
 # Getting Started with Project Summoner
 
 **Status:** CURRENT
-**Last Updated:** 2025-01-10
+**Last Updated:** 2025-11-24
 **Purpose:** New developer onboarding and documentation guide
 
 Welcome to Project Summoner! This document will help you get oriented with the project structure, key systems, and where to find information.
@@ -10,14 +10,14 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 
 | What do you want to do? | Where to go |
 |-------------------------|-------------|
-| Understand the project vision | [Design Vision](design/vision.md) |
+| Understand the project vision | [Design Vision](project/vision.md) |
 | See what's currently implemented | [Current State](current-state.md) |
 | Learn the 3D architecture | [Current State - Architecture](current-state.md#architecture) |
-| Create a new card | [Card System API](api/card-system.md) |
-| Add a new unit type | [Combat System API](api/combat-system.md) |
-| Understand the coordinate system | [Coordinate System](api/coordinate-system.md) |
+| Create a new card | [Card System](features/cards/system.md) |
+| Add a new unit type | [Combat System](features/combat/system.md) |
+| Understand the coordinate system | [Coordinate System](features/coordinates/system.md) |
 | Find art asset specs | [Asset Specifications](art/asset-specifications.md) |
-| Check known bugs | [Bug Tracker](technical/bugs.md) |
+| Check known bugs | [Bug Tracker](bugs.md) |
 
 ## Project Overview
 
@@ -38,25 +38,38 @@ Welcome to Project Summoner! This document will help you get oriented with the p
 
 ```
 docs/
-├── start-here.md             ← You are here
+├── start-here.md              ← You are here
 ├── current-state.md           Main project reference
-├── changelog.md               Public release notes (for future)
+├── bugs.md                    Known bugs and issues
+├── todos.md                   Planned features and tasks
+├── changelog.md               Public release notes
 ├── development-history.md     Internal progress tracking
-├── api/                       System APIs and references
-│   ├── card-system.md
-│   ├── hero-system.md
-│   ├── combat-system.md
-│   ├── battlefield-system.md
-│   └── coordinate-system.md
-├── design/                    Design documents
+├── project/                   Vision & planning
 │   ├── vision.md
-│   ├── roadmap.md
-│   └── visual-style-references.md
-├── art/                       Art specifications
-│   └── asset-specifications.md
-└── technical/                 Technical references
-    ├── bugs.md
-    └── integration-status.md
+│   └── roadmap.md
+├── features/                  Feature specifications
+│   ├── cards/system.md
+│   ├── combat/system.md
+│   ├── battlefield/system.md
+│   ├── coordinates/system.md
+│   ├── heroes/               Hero system docs
+│   ├── spells/               Spell mechanics
+│   ├── campaign/             Campaign & narrative
+│   ├── events/               Event system
+│   ├── shop/                 Shop system
+│   ├── elemental-system.md
+│   └── modifier-system.md
+├── technical/                 Technical references
+│   ├── integration-status.md
+│   ├── dialogue-system.md
+│   ├── battle-enemy-spawning.md
+│   └── vfx/                  VFX documentation
+├── workflows/                 Development workflows
+│   ├── creating-dialogue.md
+│   └── pr-review-guidelines.md
+└── art/                       Art specifications
+    ├── asset-specifications.md
+    └── visual-style-references.md
 ```
 
 ## Project Structure
@@ -95,21 +108,21 @@ docs/
 ### For New Developers
 
 1. **[Current State](current-state.md)** - Read this first! Complete overview and architecture
-2. **[Card System API](api/card-system.md)** - How cards and units work
-3. **[Combat System API](api/combat-system.md)** - Unit AI and battle mechanics
-4. **[Coordinate System](api/coordinate-system.md)** - Understanding 3D positioning
+2. **[Card System](features/cards/system.md)** - How cards and units work
+3. **[Combat System](features/combat/system.md)** - Unit AI and battle mechanics
+4. **[Coordinate System](features/coordinates/system.md)** - Understanding 3D positioning
 
 ### For Artists
 
 1. **[Asset Specifications](art/asset-specifications.md)** - Technical requirements for assets
-2. **[Visual Style References](design/visual-style-references.md)** - Art style guidelines
+2. **[Visual Style References](art/visual-style-references.md)** - Art style guidelines
 3. **`assets/README.md`** - How assets are organized
 
 ### For Designers
 
-1. **[Design Vision](design/vision.md)** - Project goals and philosophy
-2. **[Roadmap](design/roadmap.md)** - Planned features and milestones
-3. **[Combat System](api/combat-system.md)** - Battle mechanics and AI behavior
+1. **[Design Vision](project/vision.md)** - Project goals and philosophy
+2. **[Roadmap](project/roadmap.md)** - Planned features and milestones
+3. **[Combat System](features/combat/system.md)** - Battle mechanics and AI behavior
 
 ## Development Workflow
 
@@ -163,7 +176,7 @@ See [`.claude/CLAUDE.md`](../.claude/CLAUDE.md) for detailed git workflow.
 
 ### What's Next
 
-See [Roadmap](design/roadmap.md) for detailed plans.
+See [Roadmap](project/roadmap.md) for detailed plans.
 
 **Current priorities:**
 1. Polish existing VFX and animations
@@ -193,8 +206,8 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 ## Getting Help
 
 - **Questions about code?** Check inline comments (heavily documented)
-- **Questions about design?** See [Design Vision](design/vision.md)
-- **Found a bug?** Add to [Bug Tracker](technical/bugs.md)
+- **Questions about design?** See [Design Vision](project/vision.md)
+- **Found a bug?** Add to [Bug Tracker](bugs.md)
 - **Want to contribute?** Follow git workflow in [`.claude/CLAUDE.md`](../.claude/CLAUDE.md)
 
 ## Next Steps
@@ -202,7 +215,7 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 1. Read [Current State](current-state.md) for a complete overview
 2. Run the VFX test scene to see the game in action
 3. Explore the codebase - scripts are heavily commented
-4. Check [Roadmap](design/roadmap.md) to see what's planned
+4. Check [Roadmap](project/roadmap.md) to see what's planned
 5. Pick a task and create a feature branch!
 
 ---
@@ -211,6 +224,6 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 
 *Related Documents:*
 - [Current State](current-state.md)
-- [Card System](api/card-system.md)
-- [Combat System](api/combat-system.md)
-- [Design Vision](design/vision.md)
+- [Card System](features/cards/system.md)
+- [Combat System](features/combat/system.md)
+- [Design Vision](project/vision.md)
