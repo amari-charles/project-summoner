@@ -311,9 +311,9 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 	var rarity_str: String = rarity_val if rarity_val is String else "common"
 	rarity_label.text = "Rarity: %s" % rarity_str.capitalize()
 
-	var card_type_val: Variant = catalog_data.get("card_type", 0)
-	var card_type: int = card_type_val if card_type_val is int else 0
-	type_label.text = "Type: %s" % ("Summon" if card_type == 0 else "Spell")
+	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
+	var card_type: int = int(card_type_val)  # Works for both int and enum values
+	type_label.text = "Type: %s" % ("Summon" if card_type == Card.CardType.SUMMON else "Spell")
 
 	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
 	var mana_cost: int = mana_cost_val if mana_cost_val is int else 0

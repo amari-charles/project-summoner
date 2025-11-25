@@ -147,11 +147,11 @@ static func get_card_element_color(card_data: Variant) -> Color:
 						return Color.MAGENTA  # Unreachable in debug, but needed for release builds
 
 	# Fallback: use card type-based colors (should rarely happen)
-	var card_type_variant: Variant = catalog_dict.get("card_type", 0)
-	var card_type: int = card_type_variant if card_type_variant is int else 0
-	if card_type == 0:
+	var card_type_variant: Variant = catalog_dict.get("card_type", Card.CardType.SUMMON)
+	var card_type: int = int(card_type_variant)  # Works for both int and enum values
+	if card_type == Card.CardType.SUMMON:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
-	elif card_type == 1:
+	elif card_type == Card.CardType.SPELL:
 		return GameColorPalette.STORM_PRIMARY  # Spell
 	else:
 		return GameColorPalette.NEUTRAL_MID
@@ -176,15 +176,15 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 		return ""
 
 	# Get card type and unit type
-	var card_type_variant: Variant = catalog_dict.get("card_type", 0)
-	var card_type: int = card_type_variant if card_type_variant is int else 0
+	var card_type_variant: Variant = catalog_dict.get("card_type", Card.CardType.SUMMON)
+	var card_type: int = int(card_type_variant)  # Works for both int and enum values
 	var unit_type_variant: Variant = catalog_dict.get("unit_type", "")
 	var unit_type: String = unit_type_variant if unit_type_variant is String else ""
 
 	# Map to icon path
-	if card_type == 1:  # SPELL
+	if card_type == Card.CardType.SPELL:
 		return "res://assets/icons/card_types/wizard_hat.png"
-	elif card_type == 0:  # SUMMON
+	elif card_type == Card.CardType.SUMMON:
 		match unit_type:
 			"melee":
 				return "res://assets/icons/card_types/sword.png"
