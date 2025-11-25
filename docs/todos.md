@@ -411,7 +411,7 @@ func _load_unit_from_file(file_path: String) -> UnitData:
 ---
 
 #### Add CampaignProgress Methods to ProfileRepo
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (2025-11-25)
 **Category:** Database / Architecture
 **Effort:** Small
 

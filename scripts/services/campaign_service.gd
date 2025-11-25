@@ -195,13 +195,7 @@ func _validate_battle_rewards() -> void:
 ## =============================================================================
 
 func _load_progress() -> void:
-	var profile: Dictionary = ProfileRepo.get_active_profile()
-	if profile.is_empty():
-		push_warning("CampaignService: No active profile")
-		return
-
-	var empty_progress: Dictionary = {}
-	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_progress)
+	var campaign_progress: Dictionary = ProfileRepo.get_campaign_progress()
 	var completed_battles_raw: Array = campaign_progress.get("completed_battles", [])
 	_completed_battles.clear()
 	for battle_id: Variant in completed_battles_raw:
@@ -210,21 +204,9 @@ func _load_progress() -> void:
 	print("CampaignService: Loaded progress - %d battles completed" % _completed_battles.size())
 
 func save_progress() -> void:
-	var profile: Dictionary = ProfileRepo.get_active_profile()
-	if profile.is_empty():
-		return
-
-	if not profile.has("campaign_progress"):
-		profile["campaign_progress"] = {}
-
-	var campaign_progress_variant: Variant = profile["campaign_progress"]
-	if not campaign_progress_variant is Dictionary:
-		push_error("CampaignService: profile['campaign_progress'] is not a Dictionary")
-		return
-	var campaign_progress: Dictionary = campaign_progress_variant
-	campaign_progress["completed_battles"] = _completed_battles.duplicate()
-
-	ProfileRepo.save_profile(true)  # Force immediate save
+	ProfileRepo.update_campaign_progress({
+		"completed_battles": _completed_battles.duplicate()
+	})
 	campaign_progress_changed.emit()
 	print("CampaignService: Saved progress - %d battles completed" % _completed_battles.size())
 
