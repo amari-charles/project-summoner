@@ -14,10 +14,10 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 Projectiles did not properly track or predict the position of moving units, causing misses or incorrect targeting.
 
 **Solution Implemented:**
-Projectiles now track moving targets correctly. (Details to be documented if needed.)
+Added target position prediction - projectiles now calculate where the target will be upon landing based on current velocity, rather than aiming at current position. This allows arc projectiles to lead moving targets.
 
 **Related Files:**
-- `scripts/projectiles/projectile_3d.gd`
+- `scripts/projectiles/projectile_3d.gd` - Target position prediction logic
 
 ---
 

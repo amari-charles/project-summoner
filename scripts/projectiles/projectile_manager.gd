@@ -180,6 +180,10 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 
 ## Signal handler for projectile expiration
 func _on_projectile_expired(projectile: Projectile3D) -> void:
+	if projectile.projectile_id.is_empty():
+		push_error("ProjectileManager: Projectile expired with empty projectile_id")
+		projectile.queue_free()
+		return
 	_return_to_pool(projectile.projectile_id, projectile)
 
 ## Clear all active projectiles (for scene transitions)
