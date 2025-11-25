@@ -6,4 +6,4 @@
 script = ExtResource("1_dialogue")
 dialogue_id = "charge_intro"
 character_name = "dialogue.charge_intro.speaker"
-lines = Array[String](["dialogue.charge_intro.text"])
+lines = Array[String](["dialogue.charge_intro.line_1"])

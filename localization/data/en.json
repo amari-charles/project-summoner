@@ -77,28 +77,94 @@
   },
   "dialogue": {
     "charge_intro": {
-      "text": "A wild slime blocks your path. This one looks... different. Tougher.",
-      "speaker": "Merlin"
+      "speaker": "Merlin",
+      "line_1": "A wild slime blocks your path. This one looks... different. Tougher."
     },
     "charge_tanky_slime": {
-      "text": "By the stones! This slime's hide is incredibly thick. Your units' attacks barely scratch it!",
-      "speaker": "Merlin"
+      "speaker": "Merlin",
+      "line_1": "By the stones! This slime's hide is incredibly thick. Your units' attacks barely scratch it!"
     },
     "charge_explain": {
-      "text": "Use your Charge card! Command a unit to rush past the slime to the enemy core. Sometimes victory isn't about fighting—it's about strategy.",
-      "speaker": "Merlin"
+      "speaker": "Merlin",
+      "line_1": "Use your Charge card! Command a unit to rush past the slime to the enemy core. Sometimes victory isn't about fighting—it's about strategy."
     },
     "merriweather_greeting": {
-      "text": "Why, hello there, young summoner! What wonderful timing! I'm Mr. Merriweather, traveling merchant and purveyor of fine magical goods. I've journeyed far to bring these quality wares to aspiring summoners such as yourself!",
-      "speaker": "Mr. Merriweather"
+      "speaker": "Mr. Merriweather",
+      "line_1": "Why, hello there, young summoner! What wonderful timing! I'm Mr. Merriweather, traveling merchant and purveyor of fine magical goods. I've journeyed far to bring these quality wares to aspiring summoners such as yourself!"
     },
     "merriweather_offer": {
-      "text": "Please, take your time browsing! Every item in my collection has been carefully curated. I pride myself on offering only the finest selections at fair prices. After all, helping young summoners succeed is its own reward!",
-      "speaker": "Mr. Merriweather"
+      "speaker": "Mr. Merriweather",
+      "line_1": "Please, take your time browsing! Every item in my collection has been carefully curated. I pride myself on offering only the finest selections at fair prices. After all, helping young summoners succeed is its own reward!"
     },
     "merriweather_closing": {
-      "text": "Do let me know if anything catches your eye! I'll be in the area for a while—there are several other summoners I'm hoping to assist today. Such a joy to support the next generation of heroes!",
-      "speaker": "Mr. Merriweather"
+      "speaker": "Mr. Merriweather",
+      "line_1": "Do let me know if anything catches your eye! I'll be in the area for a while—there are several other summoners I'm hoping to assist today. Such a joy to support the next generation of heroes!"
+    },
+    "merlin_hero_intro": {
+      "speaker": "Merlin",
+      "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
+      "line_2": "Before we begin your trials, you must select your path—the elemental affinity that will shape your journey as a summoner.",
+      "line_3": "Each path offers unique strengths. Earth brings resilience, Fire passion, Water adaptability, Air swiftness... and for the daring, there is always the path of chance.",
+      "line_4": "This choice will define your approach to the summoning arts. Choose wisely, but do not hesitate.",
+      "line_5": "Fortune favors the bold."
+    },
+    "merlin_first_card_intro": {
+      "speaker": "Merlin",
+      "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
+      "line_2": "You stand at the beginning of your journey as a summoner—a path of great power and greater responsibility.",
+      "line_3": "Here at the Academy, we teach one principle above all: choices have consequences. What you bind, stays bound.",
+      "line_4": "Your first choice lies before you. Select your starting companion—warrior or archer.",
+      "line_5": "Choose with intention, Initiate. This decision is permanent, as all true summoning must be."
+    },
+    "first_trial_intro": {
+      "speaker": "Headmaster Merlin",
+      "line_1": "Welcome to the training grounds, Initiate.",
+      "line_2": "Your affinity chosen, your companion bound—now we put theory into practice.",
+      "line_3": "Before you lies a simple trial. A single slime awaits beyond.",
+      "line_4": "Show me you understand the fundamentals. Victory here earns your place among the Academy's summoners."
+    },
+    "first_trial_card_explain": {
+      "speaker": "Headmaster Merlin",
+      "line_1": "These cards summon units to defend your base.",
+      "line_2": "Each shows its mana cost, attack, and health.",
+      "line_3": "You start with 10 mana—enough for several summons."
+    },
+    "first_trial_core_explain": {
+      "speaker": "Headmaster Merlin",
+      "line_1": "That's how you stop enemies!",
+      "line_2": "Beat them before they reach your base. Destroy their core to win!"
+    },
+    "first_trial_enemy_appears": {
+      "speaker": "Headmaster Merlin",
+      "line_1": "That's an enemy!",
+      "line_2": "If it reaches your base, you'll take damage."
+    },
+    "first_trial_play_prompt": {
+      "speaker": "Headmaster Merlin",
+      "line_1": "You try—play a card to defend!",
+      "line_2": "Drag it onto the battlefield to summon your unit."
+    },
+    "simple_greeting": {
+      "speaker": "Friendly Wizard",
+      "line_1": "Hello, young summoner!",
+      "line_2": "Welcome to the world of card battles.",
+      "line_3": "May your deck be strong and your mana plentiful!"
+    },
+    "chain_start": {
+      "speaker": "Old Sage",
+      "line_1": "This is the beginning of a longer story...",
+      "line_2": "It will continue in the next dialogue."
+    },
+    "chain_end": {
+      "speaker": "Old Sage",
+      "line_1": "And here we are at the conclusion.",
+      "line_2": "Dialogue chains allow for multi-part conversations!",
+      "line_3": "This is very useful for storytelling."
+    },
+    "choice_example": {
+      "speaker": "Mysterious Merchant",
+      "line_1": "Ah, another traveler seeks my wares!",
+      "line_2": "Will you join me on this journey?"
     }
   },
   "shop": {

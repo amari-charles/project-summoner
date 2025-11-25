@@ -20,9 +20,9 @@ action = ""
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "choice_example"
-character_name = "Mysterious Merchant"
+character_name = "dialogue.choice_example.speaker"
 portrait = null
-lines = Array[String](["Ah, another traveler seeks my wares!", "Will you join me on this journey?"])
+lines = Array[String](["dialogue.choice_example.line_1", "dialogue.choice_example.line_2"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([SubResource("DialogueChoice_friendly"), SubResource("DialogueChoice_neutral")])
 next_dialogue_id = ""
 auto_advance = false

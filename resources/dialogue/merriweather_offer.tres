@@ -4,6 +4,10 @@
 
 [resource]
 script = ExtResource("1_dialogue_data")
-character_name = "Mr. Merriweather"
-lines = Array[String](["Please, take your time browsing! Every item in my collection has been carefully curated. I pride myself on offering only the finest selections at fair prices. After all, helping young summoners succeed is its own reward!"])
-choices = Array[Resource]([])
+dialogue_id = "merriweather_offer"
+character_name = "dialogue.merriweather_offer.speaker"
+portrait = null
+lines = Array[String](["dialogue.merriweather_offer.line_1"])
+choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
+next_dialogue_id = ""
+auto_advance = false

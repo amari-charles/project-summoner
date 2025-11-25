@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "first_trial_core_explain"
-character_name = "Headmaster Merlin"
+character_name = "dialogue.first_trial_core_explain.speaker"
 portrait = null
-lines = Array[String](["That's how you stop enemies!", "Beat them before they reach your base. Destroy their core to win!"])
+lines = Array[String](["dialogue.first_trial_core_explain.line_1", "dialogue.first_trial_core_explain.line_2"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
 next_dialogue_id = ""
 auto_advance = false

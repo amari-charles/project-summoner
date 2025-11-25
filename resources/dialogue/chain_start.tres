@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "chain_start"
-character_name = "Old Sage"
+character_name = "dialogue.chain_start.speaker"
 portrait = null
-lines = Array[String](["This is the beginning of a longer story...", "It will continue in the next dialogue."])
+lines = Array[String](["dialogue.chain_start.line_1", "dialogue.chain_start.line_2"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
 next_dialogue_id = "chain_end"
 auto_advance = false
