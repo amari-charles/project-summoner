@@ -6,6 +6,11 @@ class_name Card
 
 enum CardType { SUMMON, SPELL }
 
+## Unit spacing constants for spawn collision prevention
+const MIN_UNIT_SPACING: float = 1.5  ## Minimum distance between unit centers
+const SPAWN_SEARCH_ATTEMPTS: int = 8  ## Number of positions to check in each ring
+const SPAWN_SEARCH_RINGS: int = 3  ## Number of expanding rings to search
+
 ## Card identity
 @export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
 @export var card_name: String = "Unknown Card"
@@ -187,10 +192,62 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
-			unit.global_position = spawn_pos + Vector3(i * 2.0, 0, 0)
+
+			# Find a safe spawn position that doesn't overlap with existing units
+			var desired_pos: Vector3 = spawn_pos + Vector3(i * 2.0, 0, 0)
+			var safe_pos: Vector3 = _find_safe_spawn_position(desired_pos, gameplay_layer)
+			unit.global_position = safe_pos
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")
+
+## Find a safe spawn position that doesn't overlap with existing units
+## Uses spiral search pattern: checks desired position first, then expands outward
+func _find_safe_spawn_position(desired_pos: Vector3, gameplay_layer: Node) -> Vector3:
+	# Get scene tree from gameplay_layer
+	var scene_tree: SceneTree = gameplay_layer.get_tree()
+	if not scene_tree:
+		return desired_pos  # Can't check, use desired position
+
+	# Check if desired position is safe
+	if _is_position_safe(desired_pos, scene_tree):
+		return desired_pos
+
+	# Search in expanding rings around desired position
+	for ring: int in range(1, SPAWN_SEARCH_RINGS + 1):
+		var radius: float = MIN_UNIT_SPACING * ring
+		for attempt: int in range(SPAWN_SEARCH_ATTEMPTS):
+			var angle: float = (float(attempt) / SPAWN_SEARCH_ATTEMPTS) * TAU
+			var offset: Vector3 = Vector3(cos(angle) * radius, 0, sin(angle) * radius)
+			var test_pos: Vector3 = desired_pos + offset
+
+			if _is_position_safe(test_pos, scene_tree):
+				return test_pos
+
+	# Fallback: no safe position found, use desired (units will overlap but game continues)
+	return desired_pos
+
+## Check if a position is safe (no existing units too close)
+func _is_position_safe(check_pos: Vector3, scene_tree: SceneTree) -> bool:
+	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	var spacing_sq: float = MIN_UNIT_SPACING * MIN_UNIT_SPACING
+
+	for node: Node in all_units:
+		if not node is Unit3D:
+			continue
+
+		var unit: Unit3D = node as Unit3D
+		if not unit.is_alive:
+			continue
+
+		# Check 2D distance (ignore Y-axis for ground units)
+		var delta: Vector3 = unit.global_position - check_pos
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		if distance_sq < spacing_sq:
+			return false  # Too close to existing unit
+
+	return true
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:

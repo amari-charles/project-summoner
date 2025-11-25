@@ -20,6 +20,10 @@ const MAX_FLIGHT_ALTITUDE: float = 10.0  ## Maximum altitude for flying units (a
 const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 60% of original size (1.0 - 0.4)
 const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
 
+## Unit separation constants (prevents stacking during movement)
+const SEPARATION_RADIUS: float = 1.5  ## Distance at which separation force kicks in
+const SEPARATION_STRENGTH: float = 3.0  ## Strength of separation push
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -613,10 +617,14 @@ func _move_towards_target(_delta: float) -> void:
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
 
-	# Face the direction we're moving
+	# Apply separation steering to avoid stacking with nearby units
+	var separation: Vector3 = _calculate_separation_force()
+	var final_direction: Vector3 = (direction * move_speed + separation).normalized()
+
+	# Face the direction we're moving (use base direction, not separation-adjusted)
 	_update_facing_from_direction(direction)
 
-	velocity = direction * move_speed
+	velocity = final_direction * move_speed
 	move_and_slide()
 
 ## Check if we can attack this target's layer
@@ -1000,9 +1008,54 @@ func _clear_guard_mode() -> void:
 func _move_towards_position(target_position: Vector3) -> void:
 	var direction: Vector3 = (target_position - global_position).normalized()
 	direction.y = 0  # 2.5D movement
+
+	# Apply separation steering to avoid stacking with nearby units
+	var separation: Vector3 = _calculate_separation_force()
+	var final_direction: Vector3 = (direction * move_speed + separation).normalized()
+
 	_update_facing_from_direction(direction)
-	velocity = direction * move_speed
+	velocity = final_direction * move_speed
 	move_and_slide()
+
+## Calculate separation steering force to avoid overlapping with nearby units
+func _calculate_separation_force() -> Vector3:
+	var separation: Vector3 = Vector3.ZERO
+	var neighbors: int = 0
+	var radius_sq: float = SEPARATION_RADIUS * SEPARATION_RADIUS
+
+	# Check all units (both teams - we don't want to overlap with anyone)
+	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	for node: Node in all_units:
+		if node == self:
+			continue
+
+		if not node is Unit3D:
+			continue
+
+		var other: Unit3D = node as Unit3D
+		if not other.is_alive:
+			continue
+
+		# Calculate 2D distance (ignore Y-axis)
+		var delta: Vector3 = global_position - other.global_position
+		delta.y = 0
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		# Skip if outside separation radius
+		if distance_sq >= radius_sq or distance_sq < 0.001:
+			continue
+
+		# Calculate push direction (away from other unit)
+		var distance: float = sqrt(distance_sq)
+		var push_dir: Vector3 = delta.normalized()
+
+		# Stronger push when closer (inverse relationship)
+		var strength: float = (1.0 - distance / SEPARATION_RADIUS) * SEPARATION_STRENGTH
+		separation += push_dir * strength
+		neighbors += 1
+
+	return separation
 
 ## Calculate formation positions for a group of units (static helper)
 static func calculate_formation_positions(units: Array[Unit3D], center: Vector3) -> void:
