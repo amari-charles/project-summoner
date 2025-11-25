@@ -195,7 +195,7 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 
 			# Find a safe spawn position that doesn't overlap with existing units
 			var desired_pos: Vector3 = spawn_pos + Vector3(i * 2.0, 0, 0)
-			var safe_pos: Vector3 = _find_safe_spawn_position(desired_pos, gameplay_layer)
+			var safe_pos: Vector3 = _find_safe_spawn_position(desired_pos, gameplay_layer, unit.unit_size)
 			unit.global_position = safe_pos
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
@@ -203,34 +203,35 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 
 ## Find a safe spawn position that doesn't overlap with existing units
 ## Uses spiral search pattern: checks desired position first, then expands outward
-func _find_safe_spawn_position(desired_pos: Vector3, gameplay_layer: Node) -> Vector3:
+## @param spawning_unit_size: Size of the unit being spawned (for size-aware spacing)
+func _find_safe_spawn_position(desired_pos: Vector3, gameplay_layer: Node, spawning_unit_size: float = 1.0) -> Vector3:
 	# Get scene tree from gameplay_layer
 	var scene_tree: SceneTree = gameplay_layer.get_tree()
 	if not scene_tree:
 		return desired_pos  # Can't check, use desired position
 
 	# Check if desired position is safe
-	if _is_position_safe(desired_pos, scene_tree):
+	if _is_position_safe(desired_pos, scene_tree, spawning_unit_size):
 		return desired_pos
 
 	# Search in expanding rings around desired position
 	for ring: int in range(1, SPAWN_SEARCH_RINGS + 1):
-		var radius: float = MIN_UNIT_SPACING * ring
+		var radius: float = MIN_UNIT_SPACING * spawning_unit_size * ring
 		for attempt: int in range(SPAWN_SEARCH_ATTEMPTS):
 			var angle: float = (float(attempt) / SPAWN_SEARCH_ATTEMPTS) * TAU
 			var offset: Vector3 = Vector3(cos(angle) * radius, 0, sin(angle) * radius)
 			var test_pos: Vector3 = desired_pos + offset
 
-			if _is_position_safe(test_pos, scene_tree):
+			if _is_position_safe(test_pos, scene_tree, spawning_unit_size):
 				return test_pos
 
 	# Fallback: no safe position found, use desired (units will overlap but game continues)
 	return desired_pos
 
 ## Check if a position is safe (no existing units too close)
-func _is_position_safe(check_pos: Vector3, scene_tree: SceneTree) -> bool:
+## @param spawning_unit_size: Size of the unit being spawned (for size-aware spacing)
+func _is_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_unit_size: float = 1.0) -> bool:
 	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
-	var spacing_sq: float = MIN_UNIT_SPACING * MIN_UNIT_SPACING
 
 	for node: Node in all_units:
 		if not node is Unit3D:
@@ -239,6 +240,10 @@ func _is_position_safe(check_pos: Vector3, scene_tree: SceneTree) -> bool:
 		var unit: Unit3D = node as Unit3D
 		if not unit.is_alive:
 			continue
+
+		# Calculate combined spacing based on both units' sizes
+		var combined_spacing: float = (spawning_unit_size + unit.unit_size) * MIN_UNIT_SPACING * 0.5
+		var spacing_sq: float = combined_spacing * combined_spacing
 
 		# Check 2D distance (ignore Y-axis for ground units)
 		var delta: Vector3 = unit.global_position - check_pos

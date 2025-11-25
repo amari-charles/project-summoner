@@ -9,11 +9,19 @@ var camera_3d: Camera3D = null
 var is_3d: bool = false
 var _initialized: bool = false  # Track initialization state
 
+## Spawn preview for summon cards
+var _spawn_preview: SpawnPreview = null
+var _preview_card: Card = null  # Track which card we're previewing
+
 func _ready() -> void:
 	# Minimal setup - just configure mouse filter
 	# STOP filter is needed to receive drop events, but we're behind HandUI
 	# so HandUI will receive mouse events in its area first
 	mouse_filter = Control.MOUSE_FILTER_STOP
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END:
+		_cleanup_spawn_preview()
 
 ## Initialize BattlefieldDropZone with the player summoner
 ## Called by BattleCoordinator after summoners are ready
@@ -79,45 +87,54 @@ func _gui_input(event: InputEvent) -> void:
 			accept_event()
 
 ## Check if we can drop the card here
-func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	# Validate drop data
 	if not data is Dictionary:
+		_cleanup_spawn_preview()
 		return false
 
 	var data_dict: Dictionary = data
 
 	if not data_dict.has("card_index") or not data_dict.has("card") or not data_dict.has("source"):
+		_cleanup_spawn_preview()
 		return false
 
 	var source_variant: Variant = data_dict.get("source")
 	if not source_variant is String:
+		_cleanup_spawn_preview()
 		return false
 	var source: String = source_variant
 	if source != "hand":
+		_cleanup_spawn_preview()
 		return false
 
 	# Check if we have a summoner
 	if not summoner:
+		_cleanup_spawn_preview()
 		return false
 
 	var is_alive_variant: Variant = summoner.get("is_alive")
 	var is_alive: bool = is_alive_variant if is_alive_variant is bool else false
 	if not is_alive:
+		_cleanup_spawn_preview()
 		return false
 
 	# Get the card
 	var card_index_variant: Variant = data_dict.get("card_index")
 	if not card_index_variant is int:
+		_cleanup_spawn_preview()
 		return false
 	var card_index: int = card_index_variant
 
 	var hand_variant: Variant = summoner.get("hand")
 	var hand: Array = hand_variant if hand_variant is Array else []
 	if card_index < 0 or card_index >= hand.size():
+		_cleanup_spawn_preview()
 		return false
 
 	var card_variant: Variant = data_dict.get("card")
 	if not card_variant is Card:
+		_cleanup_spawn_preview()
 		return false
 	var card: Card = card_variant
 
@@ -125,7 +142,12 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	var mana_variant: Variant = summoner.get("mana")
 	var mana: float = mana_variant if mana_variant is float else 0.0
 	if mana < card.mana_cost:
+		_cleanup_spawn_preview()
 		return false
+
+	# Update spawn preview for summon cards (3D only)
+	if is_3d and card.card_type == Card.CardType.SUMMON:
+		_update_spawn_preview(at_position, card)
 
 	# Valid drop
 	return true
@@ -198,3 +220,128 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 ## Check if a card needs click-targeting (Rally/Guard with command_type)
 func _card_needs_click_targeting(card: Card) -> bool:
 	return card.needs_click_targeting()
+
+## Update spawn preview position and visibility
+func _update_spawn_preview(screen_pos: Vector2, card: Card) -> void:
+	var world_pos: Vector3 = _screen_to_world_3d(screen_pos)
+	if world_pos == Vector3.ZERO:
+		_cleanup_spawn_preview()
+		return
+
+	# Create preview if needed or if card changed
+	if not _spawn_preview or _preview_card != card:
+		_cleanup_spawn_preview()
+		_create_spawn_preview(card)
+
+	if not _spawn_preview:
+		return
+
+	# Calculate safe spawn position (same logic as actual spawning)
+	var safe_pos: Vector3 = _calculate_safe_spawn_position(world_pos, card)
+	_spawn_preview.update_position(safe_pos)
+
+## Create a new spawn preview for the card
+func _create_spawn_preview(card: Card) -> void:
+	if not card.unit_scene:
+		return
+
+	_spawn_preview = SpawnPreview.new()
+	_preview_card = card
+
+	# Add to 3D scene (find a suitable parent)
+	var viewport: Viewport = get_viewport()
+	if viewport:
+		var root_3d: Node = _find_3d_root(viewport)
+		if root_3d:
+			root_3d.add_child(_spawn_preview)
+			_spawn_preview.setup(card.unit_scene)
+
+## Find a suitable 3D root node to parent the preview
+func _find_3d_root(viewport: Viewport) -> Node:
+	# Try to find the battlefield or any Node3D
+	var root: Node = viewport.get_tree().current_scene
+	if root:
+		# Look for battlefield
+		var battlefield: Node = root.find_child("Battlefield*", true, false)
+		if battlefield:
+			return battlefield
+
+		# Fallback to any Node3D
+		if root is Node3D:
+			return root
+
+		for child: Node in root.get_children():
+			if child is Node3D:
+				return child
+
+	return null
+
+## Calculate safe spawn position using the same logic as Card._find_safe_spawn_position
+func _calculate_safe_spawn_position(desired_pos: Vector3, card: Card) -> Vector3:
+	var scene_tree: SceneTree = get_tree()
+	if not scene_tree:
+		return desired_pos
+
+	# Get unit_size from the unit scene (instantiate temporarily to check)
+	var unit_size: float = 1.0
+	if card.unit_scene:
+		var temp_unit: Node = card.unit_scene.instantiate()
+		if temp_unit and "unit_size" in temp_unit:
+			unit_size = temp_unit.get("unit_size")
+		if temp_unit:
+			temp_unit.queue_free()
+
+	# Check if desired position is safe
+	if _is_spawn_position_safe(desired_pos, scene_tree, unit_size):
+		return desired_pos
+
+	# Search in expanding rings around desired position
+	const SEARCH_RINGS: int = 3
+	const SEARCH_ATTEMPTS: int = 8
+	const MIN_SPACING: float = 1.5
+
+	for ring: int in range(1, SEARCH_RINGS + 1):
+		var radius: float = MIN_SPACING * unit_size * ring
+		for attempt: int in range(SEARCH_ATTEMPTS):
+			var angle: float = (float(attempt) / SEARCH_ATTEMPTS) * TAU
+			var offset: Vector3 = Vector3(cos(angle) * radius, 0, sin(angle) * radius)
+			var test_pos: Vector3 = desired_pos + offset
+
+			if _is_spawn_position_safe(test_pos, scene_tree, unit_size):
+				return test_pos
+
+	# Fallback to desired position
+	return desired_pos
+
+## Check if a spawn position is safe (mirrors Card._is_position_safe)
+func _is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_unit_size: float) -> bool:
+	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	const MIN_SPACING: float = 1.5
+
+	for node: Node in all_units:
+		if not node is Unit3D:
+			continue
+
+		var unit: Unit3D = node as Unit3D
+		if not unit.is_alive:
+			continue
+
+		# Calculate combined spacing based on both units' sizes
+		var combined_spacing: float = (spawning_unit_size + unit.unit_size) * MIN_SPACING * 0.5
+		var spacing_sq: float = combined_spacing * combined_spacing
+
+		# Check 2D distance (ignore Y-axis)
+		var delta: Vector3 = unit.global_position - check_pos
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		if distance_sq < spacing_sq:
+			return false
+
+	return true
+
+## Clean up the spawn preview
+func _cleanup_spawn_preview() -> void:
+	if _spawn_preview and is_instance_valid(_spawn_preview):
+		_spawn_preview.cleanup()
+	_spawn_preview = null
+	_preview_card = null

@@ -31,6 +31,7 @@ const SEPARATION_STRENGTH: float = 3.0  ## Strength of separation push
 @export var move_speed: float = 3.0
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
+@export var unit_size: float = 1.0  ## Size multiplier for spacing (1.0 = standard, 2.0 = large unit)
 
 ## Base stats (before modifiers)
 var base_max_hp: float
@@ -1020,8 +1021,6 @@ func _move_towards_position(target_position: Vector3) -> void:
 ## Calculate separation steering force to avoid overlapping with nearby units
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
-	var neighbors: int = 0
-	var radius_sq: float = SEPARATION_RADIUS * SEPARATION_RADIUS
 
 	# Check all units (both teams - we don't want to overlap with anyone)
 	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
@@ -1037,13 +1036,17 @@ func _calculate_separation_force() -> Vector3:
 		if not other.is_alive:
 			continue
 
+		# Calculate combined separation radius based on both units' sizes
+		var combined_radius: float = (unit_size + other.unit_size) * SEPARATION_RADIUS * 0.5
+		var combined_radius_sq: float = combined_radius * combined_radius
+
 		# Calculate 2D distance (ignore Y-axis)
 		var delta: Vector3 = global_position - other.global_position
 		delta.y = 0
 		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
 
-		# Skip if outside separation radius
-		if distance_sq >= radius_sq or distance_sq < 0.001:
+		# Skip if outside combined separation radius
+		if distance_sq >= combined_radius_sq or distance_sq < 0.001:
 			continue
 
 		# Calculate push direction (away from other unit)
@@ -1051,9 +1054,8 @@ func _calculate_separation_force() -> Vector3:
 		var push_dir: Vector3 = delta.normalized()
 
 		# Stronger push when closer (inverse relationship)
-		var strength: float = (1.0 - distance / SEPARATION_RADIUS) * SEPARATION_STRENGTH
+		var strength: float = (1.0 - distance / combined_radius) * SEPARATION_STRENGTH
 		separation += push_dir * strength
-		neighbors += 1
 
 	return separation
 
