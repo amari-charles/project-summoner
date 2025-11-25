@@ -22,11 +22,7 @@ const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 ## Current save version for migrations
 const CURRENT_VERSION: int = 1
 
-## Signals are inherited from IProfileRepo:
-## - profile_loaded(profile_id: String)
-## - profile_saved(profile_id: String)
-## - save_failed(error: String)
-## - data_changed
+## Signals inherited from IProfileRepo (do not redeclare)
 
 ## In-memory profile data
 var _data: Dictionary = {}
