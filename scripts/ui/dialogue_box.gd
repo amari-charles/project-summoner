@@ -103,8 +103,8 @@ func _on_dialogue_started(dialogue_data: DialogueData) -> void:
 	_clear_choices()
 	continue_indicator.visible = false
 
-	# Set character name
-	character_name_label.text = dialogue_data.character_name
+	# Set character name (localized)
+	character_name_label.text = Loc.t(dialogue_data.character_name) if dialogue_data.character_name else ""
 
 	# Set portrait if available
 	if dialogue_data.portrait:
