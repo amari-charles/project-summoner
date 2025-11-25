@@ -69,6 +69,17 @@ Exceptions (can commit directly to main):
 
 **Never merge PRs without user approval.**
 
+### Documentation Updates
+**ALWAYS update relevant documentation before merging a PR.**
+
+Before finalizing any PR, ensure all related docs are updated:
+- `docs/todos.md` - Mark tasks as completed or update status
+- `docs/todos-completed.md` - Move completed tasks to archive
+- `docs/bugs.md` - Update bug status if fixed
+- `docs/bugs-resolved.md` - Move resolved bugs to archive
+
+This keeps documentation in sync with code changes and prevents stale task lists.
+
 ### PR Reviews
 When asked to review a PR, follow the guidelines in `docs/workflows/pr-review-guidelines.md`. Key points:
 - Check for AI-typical issues (meta comments, suspicious fallbacks, magic numbers)
@@ -76,29 +87,3 @@ When asked to review a PR, follow the guidelines in `docs/workflows/pr-review-gu
 - Flag incomplete updates (tests, types, docs)
 - Use the structured output format from the guidelines doc
 
-## Future Features / TODOs
-
-### Campaign Level Editor (Dev-Only Tool)
-A UI tool for developers to design and configure campaign battles.
-
-**Purpose:**
-- Allow designers to create/edit campaign battles without touching code
-- Configure enemy decks, AI behavior, rewards, difficulty
-- Test battles directly from the editor
-
-**Design Approach:**
-- **Access**: Dev-only tool (not accessible to players)
-- **Location**: Separate scene, maybe accessible from main menu in debug builds or via dev console
-- **Features**:
-  - Drag-and-drop cards to build enemy deck
-  - Set deck size (no player limits for enemies)
-  - Configure AI behavior (aggression, card priority, play speed)
-  - Set battle metadata (name, description, difficulty)
-  - Define reward structure (fixed/choice/random cards)
-  - Set unlock requirements (which battles must be completed first)
-  - Preview/test battle
-- **Storage**: Save battle definitions to `campaign_service.gd` or separate JSON files
-
-**Current Status**: Not started - hardcoded decks in `campaign_service.gd` work fine for now
-
-**Priority**: Low - Only needed when managing 20+ battles becomes cumbersome
