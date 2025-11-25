@@ -187,7 +187,13 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
-			unit.global_position = spawn_pos + Vector3(i * 2.0, 0, 0)
+
+			# Find a safe spawn position that doesn't overlap with existing units
+			var desired_pos: Vector3 = spawn_pos + Vector3(i * 2.0, 0, 0)
+			var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(
+				desired_pos, gameplay_layer.get_tree(), unit.collision_radius
+			)
+			unit.global_position = safe_pos
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")

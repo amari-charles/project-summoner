@@ -20,6 +20,23 @@ const MAX_FLIGHT_ALTITUDE: float = 10.0  ## Maximum altitude for flying units (a
 const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 60% of original size (1.0 - 0.4)
 const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
 
+## Unit separation constants (prevents stacking during movement)
+const SEPARATION_MULTIPLIER: float = 1.5  ## Separation kicks in at collision_radius * this
+const SEPARATION_STRENGTH: float = 2.0  ## Strength of separation push (reduced for smoother movement)
+const LATERAL_SEPARATION_BOOST: float = 3.0  ## Extra separation on axis perpendicular to movement
+
+## Clump mitigation constants (blocked detection & flanking)
+const BLOCKED_THRESHOLD: float = 0.3  ## Seconds before flanking kicks in
+const BLOCKED_MOVE_THRESHOLD: float = 0.1  ## Min movement per second to not be blocked
+const FLANK_STRENGTH: float = 1.2  ## Lateral force multiplier when blocked (increased for decisive flanking)
+
+## Flanking progression constants (adaptive wrapping)
+const FLANK_ANGLE_MIN: float = 90.0         ## Start perpendicular to target
+const FLANK_ANGLE_MAX: float = 135.0        ## Max backwards arc (nearly reversing)
+const FLANK_ANGLE_STEP: float = 15.0        ## Angle increase per step
+const FLANK_PROGRESS_INTERVAL: float = 0.5  ## Seconds before trying wider angle
+const FLANK_SCORE_THRESHOLD: float = 0.2    ## Min score difference to prefer one side
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -27,6 +44,7 @@ const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow i
 @export var move_speed: float = 3.0
 @export var team: Team = Team.PLAYER
 @export var aggro_radius: float = 20.0
+@export var collision_radius: float = 0.5  ## Collision circle radius for spacing (larger for tanks, smaller for swarms)
 
 ## Base stats (before modifiers)
 var base_max_hp: float
@@ -99,6 +117,14 @@ var formation_position: Vector3 = Vector3.ZERO  ## Target position in formation
 
 ## Proximity tracking (for tutorial/events)
 var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitted proximity signal
+
+## Clump mitigation - blocked detection
+var _blocked_time: float = 0.0  ## How long unit has been blocked
+
+## Flanking state (adaptive wrapping)
+var _flank_angle: float = 90.0           ## Current flanking angle (degrees)
+var _flank_direction: int = 0            ## -1 = left, 1 = right, 0 = not chosen
+var _flank_progress_timer: float = 0.0   ## Time spent at current angle
 
 ## Projectile prediction cache
 var cached_projectile_speed: float = -1.0  # Cached speed lookup (-1 = not cached)
@@ -453,12 +479,7 @@ func _physics_process(delta: float) -> void:
 			# Don't move during attack animation
 			if not is_attacking:
 				_update_animation("walk")
-				var old_pos: Vector3 = global_position
 				_move_towards_target(delta)
-				var moved: float = global_position.distance_to(old_pos)
-				# Only warn if move_speed > 0 (intentionally stationary units shouldn't warn)
-				if moved < 0.01 and move_speed > 0.01:
-					print("Unit3D [team %d]: WARNING - Not moving! pos: %s, target pos: %s" % [team, global_position, current_target.global_position])
 	else:
 		if not is_attacking:
 			_update_animation("idle")
@@ -605,19 +626,44 @@ func _acquire_target() -> Node3D:
 
 	return best_target
 
-func _move_towards_target(_delta: float) -> void:
+func _move_towards_target(delta: float) -> void:
 	if not current_target:
 		return
+
+	# Store position before moving for blocked detection
+	var pos_before_move: Vector3 = global_position
 
 	var direction: Vector3 = (current_target.global_position - global_position).normalized()
 	# Only move on X and Z axes (2.5D movement)
 	direction.y = 0
 
-	# Face the direction we're moving
+	# Apply separation steering to avoid stacking with nearby units
+	var separation: Vector3 = _calculate_separation_force()
+
+	# Apply flank steering when blocked by allies
+	var flank: Vector3 = _calculate_flank_force()
+
+	var final_direction: Vector3 = (direction * move_speed + separation + flank).normalized()
+
+	# Face the direction we're moving (use base direction, not separation-adjusted)
 	_update_facing_from_direction(direction)
 
-	velocity = direction * move_speed
+	velocity = final_direction * move_speed
 	move_and_slide()
+
+	# Post-move: correct any severe overlaps
+	_correct_overlaps()
+
+	# Update blocked detection (check if we actually moved)
+	var movement_this_frame: float = global_position.distance_to(pos_before_move)
+	if movement_this_frame < BLOCKED_MOVE_THRESHOLD * delta:
+		_blocked_time += delta
+	else:
+		_blocked_time = 0.0
+		# Reset flanking state when movement resumes
+		_flank_angle = FLANK_ANGLE_MIN
+		_flank_direction = 0
+		_flank_progress_timer = 0.0
 
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:
@@ -1000,9 +1046,241 @@ func _clear_guard_mode() -> void:
 func _move_towards_position(target_position: Vector3) -> void:
 	var direction: Vector3 = (target_position - global_position).normalized()
 	direction.y = 0  # 2.5D movement
+
+	# Apply separation steering to avoid stacking with nearby units
+	var separation: Vector3 = _calculate_separation_force()
+	var final_direction: Vector3 = (direction * move_speed + separation).normalized()
+
 	_update_facing_from_direction(direction)
-	velocity = direction * move_speed
+	velocity = final_direction * move_speed
 	move_and_slide()
+
+	# Post-move: correct any severe overlaps
+	_correct_overlaps()
+
+## Calculate separation steering force to avoid overlapping with nearby units
+## Separates from ALL units (both teams) EXCEPT the current attack target
+## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
+func _calculate_separation_force() -> Vector3:
+	var separation: Vector3 = Vector3.ZERO
+	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	# Early exit for trivial cases
+	if all_units.size() <= 1:
+		return Vector3.ZERO
+
+	# Get movement direction (toward target) for lateral boost calculation
+	var move_dir: Vector3 = Vector3.ZERO
+	if current_target:
+		move_dir = (current_target.global_position - global_position).normalized()
+		move_dir.y = 0
+
+	for node: Node in all_units:
+		if node == self:
+			continue
+
+		# Don't separate from current attack target - we need to approach it!
+		if node == current_target:
+			continue
+
+		if not node is Unit3D:
+			continue
+
+		var other: Unit3D = node as Unit3D
+		if not other.is_alive:
+			continue
+
+		# Calculate separation distance based on combined collision radii
+		var combined_collision: float = collision_radius + other.collision_radius
+		var separation_dist: float = combined_collision * SEPARATION_MULTIPLIER
+		var separation_dist_sq: float = separation_dist * separation_dist
+
+		# Calculate 2D distance (ignore Y-axis)
+		var delta: Vector3 = global_position - other.global_position
+		delta.y = 0
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		# Skip if outside separation distance
+		if distance_sq >= separation_dist_sq or distance_sq < 0.001:
+			continue
+
+		# Calculate push direction (away from other unit)
+		var distance: float = sqrt(distance_sq)
+		var push_dir: Vector3 = delta.normalized()
+
+		# Stronger push when closer (inverse relationship)
+		var strength: float = (1.0 - distance / separation_dist) * SEPARATION_STRENGTH
+		separation += push_dir * strength
+
+		# LATERAL BOOST: Add extra lateral separation when units are aligned with movement
+		# This spreads units sideways as they advance, preventing tight bunching
+		if move_dir.length_squared() > 0.01:
+			var lateral_dir: Vector3 = Vector3(-move_dir.z, 0, move_dir.x)
+			# Check how aligned the other unit is with our movement (front/back vs side)
+			var forward_alignment: float = abs(push_dir.dot(move_dir))
+			# More lateral push when units are in front/behind (aligned), less when already to the side
+			# Use instance ID to decide which way to push (prevents oscillation)
+			var lateral_sign: float = 1.0 if (get_instance_id() % 2 == 0) else -1.0
+			separation += lateral_dir * lateral_sign * forward_alignment * strength * LATERAL_SEPARATION_BOOST
+
+	return separation
+
+## Calculate lateral flanking force when blocked by allies
+## Uses smart direction choice + progressive angle rotation for wrap-around behavior
+func _calculate_flank_force() -> Vector3:
+	# Reset state when not blocked
+	if _blocked_time < BLOCKED_THRESHOLD:
+		_flank_angle = FLANK_ANGLE_MIN
+		_flank_direction = 0
+		_flank_progress_timer = 0.0
+		return Vector3.ZERO
+
+	if not current_target:
+		return Vector3.ZERO
+
+	var to_target: Vector3 = (current_target.global_position - global_position).normalized()
+	to_target.y = 0
+
+	# PHASE 1: Choose direction (runs once when first blocked)
+	if _flank_direction == 0:
+		var scores: Dictionary = _calculate_flank_direction_scores()
+		var left_score: float = scores.get("left", 0.0)
+		var right_score: float = scores.get("right", 0.0)
+
+		# Pick less congested side, or use instance ID as tiebreaker
+		if abs(left_score - right_score) < FLANK_SCORE_THRESHOLD:
+			_flank_direction = -1 if (get_instance_id() % 2 == 0) else 1
+		else:
+			_flank_direction = -1 if left_score < right_score else 1
+
+		_flank_angle = FLANK_ANGLE_MIN
+		_flank_progress_timer = 0.0
+
+	# PHASE 2: Progressive angle increase + direction re-evaluation
+	_flank_progress_timer += get_physics_process_delta_time()
+	if _flank_progress_timer >= FLANK_PROGRESS_INTERVAL:
+		if _blocked_time > BLOCKED_THRESHOLD + FLANK_PROGRESS_INTERVAL:
+			# Re-evaluate direction - maybe the other side is now better
+			var scores: Dictionary = _calculate_flank_direction_scores()
+			var left_score: float = scores.get("left", 0.0)
+			var right_score: float = scores.get("right", 0.0)
+			var current_score: float = left_score if _flank_direction < 0 else right_score
+			var other_score: float = right_score if _flank_direction < 0 else left_score
+
+			# Switch sides if other direction is significantly better
+			if other_score < current_score - FLANK_SCORE_THRESHOLD:
+				_flank_direction = -_flank_direction  # Flip direction
+				_flank_angle = FLANK_ANGLE_MIN  # Reset angle for new direction
+			else:
+				# Same direction, increase angle
+				_flank_angle = min(_flank_angle + FLANK_ANGLE_STEP, FLANK_ANGLE_MAX)
+
+			_flank_progress_timer = 0.0
+
+	# PHASE 3: Apply force at current angle
+	var angle_rad: float = deg_to_rad(_flank_angle)
+	var lateral_component: float = sin(angle_rad)
+	var forward_component: float = cos(angle_rad)
+
+	var lateral_dir: Vector3
+	if _flank_direction < 0:
+		lateral_dir = Vector3(-to_target.z, 0, to_target.x)  # Left
+	else:
+		lateral_dir = Vector3(to_target.z, 0, -to_target.x)  # Right
+
+	var flank_dir: Vector3 = (to_target * forward_component + lateral_dir * lateral_component).normalized()
+	var strength: float = min((_blocked_time - BLOCKED_THRESHOLD) * 2.0, 1.0)
+
+	return flank_dir * strength * move_speed * FLANK_STRENGTH
+
+## Calculate congestion scores for left and right flanking directions
+## Lower score = less congestion = better direction to flank
+func _calculate_flank_direction_scores() -> Dictionary:
+	if not current_target:
+		return {"left": 0.0, "right": 0.0}
+
+	var to_target: Vector3 = (current_target.global_position - global_position).normalized()
+	to_target.y = 0
+
+	var left_dir: Vector3 = Vector3(-to_target.z, 0, to_target.x)
+	var right_dir: Vector3 = Vector3(to_target.z, 0, -to_target.x)
+
+	var left_score: float = 0.0
+	var right_score: float = 0.0
+	var check_distance: float = collision_radius * 3.0
+	var check_distance_sq: float = check_distance * check_distance
+
+	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	for node: Node in all_units:
+		if node == self or node == current_target:
+			continue
+		if not node is Unit3D:
+			continue
+		var other: Unit3D = node as Unit3D
+		if not other.is_alive:
+			continue
+
+		var to_other: Vector3 = other.global_position - global_position
+		to_other.y = 0
+		var dist_sq: float = to_other.x * to_other.x + to_other.z * to_other.z
+
+		if dist_sq >= check_distance_sq or dist_sq < 0.001:
+			continue
+
+		var dist: float = sqrt(dist_sq)
+		var to_other_norm: Vector3 = to_other / dist
+		var weight: float = 1.0 - (dist / check_distance)
+
+		# 70° cone check (dot > 0.3 means within ~70° of direction)
+		if to_other_norm.dot(left_dir) > 0.3:
+			left_score += weight
+		if to_other_norm.dot(right_dir) > 0.3:
+			right_score += weight
+
+	return {"left": left_score, "right": right_score}
+
+## Correct severe overlaps by pushing units apart after movement
+## This is a "hard" correction for when soft separation wasn't enough
+## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
+func _correct_overlaps() -> void:
+	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+
+	# Early exit for trivial cases
+	if all_units.size() <= 1:
+		return
+
+	for node: Node in all_units:
+		if node == self:
+			continue
+
+		if not node is Unit3D:
+			continue
+
+		var other: Unit3D = node as Unit3D
+		if not other.is_alive:
+			continue
+
+		# Minimum distance is the sum of both collision radii
+		var min_dist: float = collision_radius + other.collision_radius
+		var min_dist_sq: float = min_dist * min_dist
+
+		# Calculate 2D distance squared first (avoid sqrt if not overlapping)
+		var delta: Vector3 = global_position - other.global_position
+		delta.y = 0
+		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
+
+		# Skip if not overlapping (use squared comparison)
+		if distance_sq >= min_dist_sq or distance_sq < 0.000001:
+			continue
+
+		# Only now calculate actual distance for push amount
+		var distance: float = sqrt(distance_sq)
+		var overlap: float = min_dist - distance
+		var push_dir: Vector3 = delta.normalized()
+
+		# Push self by half the overlap (other unit will push itself too)
+		global_position += push_dir * overlap * 0.5
 
 ## Calculate formation positions for a group of units (static helper)
 static func calculate_formation_positions(units: Array[Unit3D], center: Vector3) -> void:
