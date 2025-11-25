@@ -113,9 +113,9 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		_cleanup_spawn_preview()
 		return false
 
-	var is_alive_variant: Variant = summoner.get("is_alive")
-	var is_alive: bool = is_alive_variant if is_alive_variant is bool else false
-	if not is_alive:
+	var is_enabled_variant: Variant = summoner.get("is_enabled")
+	var is_enabled: bool = is_enabled_variant if is_enabled_variant is bool else true  # Default true for backwards compat
+	if not is_enabled:
 		_cleanup_spawn_preview()
 		return false
 
