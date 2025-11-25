@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "first_trial_intro"
-character_name = "Headmaster Merlin"
+character_name = "dialogue.first_trial_intro.speaker"
 portrait = null
-lines = Array[String](["Welcome to the training grounds, Initiate.", "Your affinity chosen, your companion bound—now we put theory into practice.", "Before you lies a simple trial. A single slime awaits beyond.", "Show me you understand the fundamentals. Victory here earns your place among the Academy's summoners."])
+lines = Array[String](["dialogue.first_trial_intro.line_1", "dialogue.first_trial_intro.line_2", "dialogue.first_trial_intro.line_3", "dialogue.first_trial_intro.line_4"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
 next_dialogue_id = ""
 auto_advance = false

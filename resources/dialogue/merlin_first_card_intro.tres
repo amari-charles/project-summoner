@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "merlin_first_card_intro"
-character_name = "Merlin"
+character_name = "dialogue.merlin_first_card_intro.speaker"
 portrait = null
-lines = Array[String](["Welcome to the Academy, Initiate. I am Merlin, your Headmaster.", "You stand at the beginning of your journey as a summoner—a path of great power and greater responsibility.", "Here at the Academy, we teach one principle above all: choices have consequences. What you bind, stays bound.", "Your first choice lies before you. Select your starting companion—warrior or archer.", "Choose with intention, Initiate. This decision is permanent, as all true summoning must be."])
+lines = Array[String](["dialogue.merlin_first_card_intro.line_1", "dialogue.merlin_first_card_intro.line_2", "dialogue.merlin_first_card_intro.line_3", "dialogue.merlin_first_card_intro.line_4", "dialogue.merlin_first_card_intro.line_5"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
 next_dialogue_id = ""
 auto_advance = false

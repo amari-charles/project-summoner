@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "first_trial_card_explain"
-character_name = "Headmaster Merlin"
+character_name = "dialogue.first_trial_card_explain.speaker"
 portrait = null
-lines = Array[String](["These cards summon units to defend your base.", "Each shows its mana cost, attack, and health.", "You start with 10 mana—enough for several summons."])
+lines = Array[String](["dialogue.first_trial_card_explain.line_1", "dialogue.first_trial_card_explain.line_2", "dialogue.first_trial_card_explain.line_3"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
 next_dialogue_id = ""
 auto_advance = false

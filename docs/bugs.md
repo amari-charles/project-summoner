@@ -213,38 +213,50 @@ Added validation at two points:
 - Future: Consider adding editor-time validation for faster feedback
 
 #### Dialogue Speaker Names Not Properly Localized
-**Status:** Open
+**Status:** FIXED
 **Reported:** 2025-11-24
+**Resolved:** 2025-11-24
 **Component:** Dialogue / Localization
 **Type:** Localization Bug
 
 **Description:**
-The dialogue system calls `Loc.t(character_name)` with the raw character name (e.g., "Headmaster Merlin"), but the localization keys are nested under `character.*` (e.g., "character.Headmaster Merlin").
+The dialogue system had inconsistent formats - some dialogues used localization keys while others used raw text strings, causing `[MISSING:...]` warnings and broken localization.
 
-**Expected Behavior:**
-- Speaker names should be properly localized using `Loc.t("character." + character_name)`
-- Or the system should fall back gracefully to the raw name if no translation exists
+**Solution Implemented:**
+Standardized ALL 17 dialogue files to use localization keys:
 
-**Current Behavior:**
-- Warning spam: `Missing translation key: Headmaster Merlin`
-- Speaker names still display correctly (Loc.t returns the key as fallback)
-- But console is cluttered with warnings
+1. **Dialogue .tres files** now use consistent format:
+   - `character_name = "dialogue.{id}.speaker"`
+   - `lines = ["dialogue.{id}.line_1", "dialogue.{id}.line_2", ...]`
+   - `choice_text = "dialogue.{id}.choice_1"` (for choices)
 
-**Impact:**
-- Console warning spam during dialogue
-- Non-blocking but noisy
+2. **en.json** contains all dialogue text:
+   ```json
+   "dialogue": {
+     "first_trial_intro": {
+       "speaker": "Headmaster Merlin",
+       "line_1": "Welcome to the training grounds, Initiate.",
+       "line_2": "Your affinity chosen, your companion bound..."
+     }
+   }
+   ```
 
-**Proposed Solution:**
-- Option A: Change `dialogue_manager.gd:205` to prefix with "character.":
-  ```gdscript
-  var character: String = Loc.t("character." + current_dialogue.character_name)
-  ```
-- Option B: Update localization_service.gd to suppress warnings for character names
-- Option C: Add top-level keys for character names in en.json
+3. **dialogue_manager.gd** simplified to just call `Loc.t()`:
+   ```gdscript
+   var line_text: String = Loc.t(line_key)
+   var character: String = Loc.t(current_dialogue.character_name)
+   ```
+
+4. **dialogue_box.gd** updated to localize choice text:
+   ```gdscript
+   button.text = Loc.t(choice.choice_text)
+   ```
 
 **Related Files:**
-- `scripts/services/dialogue_manager.gd:205` - Where Loc.t is called
-- `localization/data/en.json` - character.* keys exist but aren't being found
+- `scripts/services/dialogue_manager.gd` - Simplified localization
+- `scripts/ui/dialogue_box.gd` - Added choice text localization
+- `localization/data/en.json` - All dialogue text entries
+- `resources/dialogue/*.tres` - All 17 dialogue files standardized
 
 #### VFX Pooling System Lacks Resource Isolation
 **Status:** Open

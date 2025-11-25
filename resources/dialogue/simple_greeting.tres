@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_1")
 dialogue_id = "simple_greeting"
-character_name = "Friendly Wizard"
+character_name = "dialogue.simple_greeting.speaker"
 portrait = null
-lines = Array[String](["Hello, young summoner!", "Welcome to the world of card battles.", "May your deck be strong and your mana plentiful!"])
+lines = Array[String](["dialogue.simple_greeting.line_1", "dialogue.simple_greeting.line_2", "dialogue.simple_greeting.line_3"])
 choices = Array[Resource("res://scripts/dialogue/dialogue_choice.gd")]([])
 next_dialogue_id = ""
 auto_advance = false
