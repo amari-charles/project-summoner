@@ -114,7 +114,9 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		return false
 
 	var is_enabled_variant: Variant = summoner.get("is_enabled")
-	var is_enabled: bool = is_enabled_variant if is_enabled_variant is bool else true  # Default true for backwards compat
+	if not is_enabled_variant is bool:
+		push_warning("BattlefieldDropZone: summoner missing is_enabled property")
+	var is_enabled: bool = is_enabled_variant if is_enabled_variant is bool else false  # Fail safe
 	if not is_enabled:
 		_cleanup_spawn_preview()
 		return false
