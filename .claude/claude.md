@@ -69,6 +69,13 @@ Exceptions (can commit directly to main):
 
 **Never merge PRs without user approval.**
 
+### PR Reviews
+When asked to review a PR, follow the guidelines in `docs/workflows/pr-review-guidelines.md`. Key points:
+- Check for AI-typical issues (meta comments, suspicious fallbacks, magic numbers)
+- Enforce repo conventions and structure
+- Flag incomplete updates (tests, types, docs)
+- Use the structured output format from the guidelines doc
+
 ## Future Features / TODOs
 
 ### Campaign Level Editor (Dev-Only Tool)
