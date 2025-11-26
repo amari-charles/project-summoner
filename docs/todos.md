@@ -605,6 +605,28 @@ Redesign the main menu with improved visual style and layout.
 
 ---
 
+#### Add Hero Select UI
+**Status:** ⬜ Not Started
+**Category:** UI/UX
+**Effort:** Medium
+
+**Description:**
+Create a hero selection screen allowing players to choose their hero before battle.
+
+**Requirements:**
+- Display available heroes with icons/portraits
+- Show hero stats (health, mana, mana regen)
+- Show hero element/affinity
+- Indicate locked/unlocked heroes
+- Preview hero abilities or bonuses
+
+**Notes:**
+- Could be accessed from main menu or pre-battle screen
+- Should integrate with existing HeroCatalog system
+- Consider hero unlock progression display
+
+---
+
 #### Revamp Battle HUD
 **Status:** ⬜ Not Started
 **Category:** UI/UX
