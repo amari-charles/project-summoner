@@ -356,4 +356,40 @@ When a player's deck is exhausted (all cards drawn), shuffle the discard pile ba
 
 ---
 
+## Campaign System
+
+### Implement Win Condition System for Campaign Events
+**Completed:** 2025-11-25
+**Category:** Campaign / Battle System
+**Effort:** Medium
+
+**Description:**
+Campaign battles now support configurable win/loss conditions beyond simple base destruction. Different battle types can have different objectives with time limits.
+
+**Solution Implemented:**
+- Created `WinConditionIDs` constants class with type-safe win condition references
+- Four win condition types:
+  - `DESTROY_BASE` - Default, destroy enemy base to win (no time limit)
+  - `SURVIVE_TIME` - Survive for specified duration (win on timeout)
+  - `TIMED_DESTROY` - Destroy base within time limit (lose on timeout)
+  - `KILL_COUNT` - Kill specified number of enemy units
+- Updated `GameController3D` to read win conditions from battle config
+- Added kill tracking system for KILL_COUNT objective
+- Added `objective_progress` signal for UI updates
+- Documented usage in `campaign_service.gd`
+
+**Usage in Battle Definitions:**
+```gdscript
+"win_condition": WinConditionIDs.TIMED_DESTROY,
+"time_limit": 60.0,  # seconds
+"kill_target": 10,   # for KILL_COUNT
+```
+
+**Related Files:**
+- `scripts/data/win_condition_ids.gd` (new)
+- `scripts/core/game_controller_3d.gd`
+- `scripts/services/campaign_service.gd`
+
+---
+
 *Last Updated: 2025-11-25*

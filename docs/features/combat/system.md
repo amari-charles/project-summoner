@@ -19,7 +19,7 @@ Order each frame:
 4. Projectiles / Spells update
 5. Damage queue resolve → Deaths handled
 6. FX + Events
-7. Win check (base HP ≤ 0)
+7. Win condition check (see Section 9.1)
 
 ---
 
@@ -95,6 +95,28 @@ Keeps tempo and ensures bases die when front is won.
 * Each base is a static unit with `is_base = true`.
 * Attacked like any unit; destroyed = instant victory for opponent.
 * Units that win their fight resume advancing → attack base automatically.
+
+### 9.1 Win Condition System
+
+Battles can define different win conditions via `WinConditionIDs`:
+
+| Condition | Behavior | Config Fields |
+|-----------|----------|---------------|
+| `DESTROY_BASE` | Default - destroy enemy base to win | (none) |
+| `SURVIVE_TIME` | Survive for duration, win on timeout | `time_limit` (seconds) |
+| `TIMED_DESTROY` | Destroy base within time limit, lose on timeout | `time_limit` (seconds) |
+| `KILL_COUNT` | Kill N enemy units to win | `kill_target` (int) |
+
+**Configuration in campaign_service.gd:**
+```gdscript
+_battles["timed_challenge"] = {
+    "win_condition": WinConditionIDs.TIMED_DESTROY,
+    "time_limit": 60.0,  # seconds
+    # ...
+}
+```
+
+**Implementation:** `scripts/core/game_controller_3d.gd` reads win conditions from `BattleContext.battle_config` and handles timeout/objective completion accordingly.
 
 ---
 
