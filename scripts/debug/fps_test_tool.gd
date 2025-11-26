@@ -149,8 +149,8 @@ func _create_ui() -> void:
 	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(instructions)
 
-	# Start visible for easy testing
-	_panel.visible = true
+	# Start hidden by default (press ` or F12 to show)
+	_panel.visible = false
 
 
 func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) -> void:
