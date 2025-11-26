@@ -51,8 +51,6 @@ When a player exits a battle in the middle of it (e.g., via pause menu or back b
 
 ---
 
----
-
 ## Bug Report Template
 
 ```markdown

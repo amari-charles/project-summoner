@@ -22,7 +22,9 @@ const TIER_COLORS: Array[Dictionary] = [
 const BG_COLOR: Color = Color(0.08, 0.08, 0.12, 0.95)
 const BORDER_COLOR: Color = Color(0.3, 0.3, 0.4, 1.0)
 const HIGHLIGHT_ALPHA: float = 0.4
+const HIGHLIGHT_HEIGHT: float = 4.0  # Thin highlight strip height
 const FILL_PADDING: float = 4.0  # Padding from background edge
+const FILL_ANIM_DURATION: float = 0.2  # Animation duration in seconds
 
 ## Node references
 @onready var background: ColorRect = $Background
@@ -160,17 +162,17 @@ func _update_display(current: float, maximum: float, animate: bool) -> void:
 		fill.size.y = bar_height
 
 		if animate:
-			fill_tween.tween_property(fill, "size:x", target_width, 0.2)
+			fill_tween.tween_property(fill, "size:x", target_width, FILL_ANIM_DURATION)
 		else:
 			fill.size.x = target_width
 
 	# Update highlight to match top-most visible tier
-	_update_highlight(complete_tiers, partial_tier, partial_percent, bar_width, bar_height, animate)
+	_update_highlight(complete_tiers, partial_tier, partial_percent, bar_width, animate)
 
 	# Update labels
 	_update_labels(current, maximum, complete_tiers)
 
-func _update_highlight(complete_tiers: int, partial_tier: int, partial_percent: float, bar_width: float, bar_height: float, animate: bool) -> void:
+func _update_highlight(complete_tiers: int, partial_tier: int, partial_percent: float, bar_width: float, animate: bool) -> void:
 	if not highlight:
 		return
 
@@ -195,10 +197,10 @@ func _update_highlight(complete_tiers: int, partial_tier: int, partial_percent: 
 			HIGHLIGHT_ALPHA
 		)
 
-	highlight.size.y = 4.0  # Thin highlight strip
+	highlight.size.y = HIGHLIGHT_HEIGHT
 
 	if animate and fill_tween:
-		fill_tween.tween_property(highlight, "size:x", highlight_width, 0.2)
+		fill_tween.tween_property(highlight, "size:x", highlight_width, FILL_ANIM_DURATION)
 	else:
 		highlight.size.x = highlight_width
 
@@ -210,7 +212,7 @@ func _update_labels(current: float, maximum: float, complete_tiers: int) -> void
 	# Tier indicator (only show if we have complete tiers)
 	if tier_label:
 		if complete_tiers > 0:
-			tier_label.text = "x%d" % (complete_tiers + 1)
+			tier_label.text = Loc.t("ui.mana_bar.tier_multiplier", {"tier": complete_tiers + 1})
 			tier_label.visible = true
 		else:
 			tier_label.visible = false

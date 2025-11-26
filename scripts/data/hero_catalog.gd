@@ -120,8 +120,8 @@ func _init_catalog() -> void:
 	# Mana Test Hero - High mana pool for testing tiered mana bar
 	var hero_mana_test: HeroConfig = HeroConfig.new()
 	hero_mana_test.hero_id = "hero_mana_test"
-	hero_mana_test.hero_name = "Mana Tester"
-	hero_mana_test.description = "Dev hero for testing tiered mana bar UI"
+	hero_mana_test.hero_name = Loc.t("hero.hero_mana_test.name")
+	hero_mana_test.description = Loc.t("hero.hero_mana_test.description")
 	hero_mana_test.element_id = ElementRegistry.ElementId.NEUTRAL
 	hero_mana_test.base_health = 1000.0
 	hero_mana_test.max_mana = 25.0      # High mana to test tiers (blue->orange->purple)
