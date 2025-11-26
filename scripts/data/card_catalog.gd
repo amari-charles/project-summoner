@@ -793,7 +793,7 @@ func print_catalog_summary() -> void:
 			by_type["spell"] += 1
 
 	print("\nBy Rarity:")
-	for rarity: String in by_rarity:
+	for rarity: StringName in by_rarity:
 		print("  %s: %d" % [rarity, by_rarity[rarity]])
 
 	print("\nBy Type:")

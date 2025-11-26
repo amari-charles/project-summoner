@@ -376,7 +376,7 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 		var empty_result: Dictionary = {}
 		return empty_result
 
-	var reward_type: StringName = battle.get("reward_type", RewardTypeIDs.FIXED)
+	var reward_type: StringName = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = battle.get("reward_cards", [])
 
 	if reward_cards.is_empty():
