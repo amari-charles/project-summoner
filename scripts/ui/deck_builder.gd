@@ -713,9 +713,11 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 	if mana_cost_val is int:
 		popup_cost.text = Loc.t("ui.collection.cost_label", {"cost": mana_cost_val})
 
-	var desc_val: Variant = catalog_data.get("description", "No description.")
-	if desc_val is String:
+	var desc_val: Variant = catalog_data.get("description", "")
+	if desc_val is String and not desc_val.is_empty():
 		popup_description.text = desc_val
+	else:
+		popup_description.text = Loc.t("ui.collection.no_description")
 
 	# Update action label based on source
 	if from_collection:
