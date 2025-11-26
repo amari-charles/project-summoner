@@ -21,6 +21,34 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Investigate Pathfinding & Targeting System Robustness
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Performance
+**Effort:** Medium
+
+**Description:**
+Audit the current pathfinding and targeting systems for robustness and efficiency. Identify potential issues with edge cases, performance bottlenecks, and areas for improvement.
+
+**Areas to Investigate:**
+- Target acquisition logic (`_acquire_target()` in unit_3d.gd)
+- Target lock timer and re-acquisition behavior
+- Flanking/pathfinding when blocked
+- Performance with large unit counts (N² targeting checks?)
+- Edge cases: targets dying mid-attack, multiple units targeting same enemy
+- Redirect system robustness (forced targets, guard mode)
+
+**Questions to Answer:**
+- How does targeting scale with 50+ units on screen?
+- Are there race conditions in target switching?
+- Is the blocked detection / flanking logic reliable?
+- Should we use spatial partitioning for target queries?
+
+**Notes:**
+- Related to lane-based movement todo (may affect targeting behavior)
+- Consider profiling with large battles before optimizing
+
+---
+
 #### Add Flying Unit Type
 **Status:** ⬜ Not Started
 **Category:** Units & Combat
@@ -233,35 +261,6 @@ The profile data structure has redundant and unused fields that waste storage an
 ## Core Game Systems
 
 ### 🔴 HIGH PRIORITY
-
-#### Research and Implement Framerate Independence
-**Status:** ⬜ Not Started
-**Category:** Core Game Systems / Performance
-**Effort:** Medium
-
-**Description:**
-Research and implement proper framerate-independent game mechanics to ensure consistent gameplay across different hardware and frame rates.
-
-**Requirements:**
-- Audit all movement and physics calculations
-- Ensure delta time is used for all time-dependent calculations (movement speed, attack speed, animations)
-- Test on different framerates (30fps, 60fps, 120fps+, variable)
-- Fix any framerate-dependent behaviors
-- Document best practices for framerate independence
-
-**Examples of Issues to Fix:**
-- Movement speed should use `velocity * delta` instead of just `velocity`
-- Attack cooldowns should accumulate `delta` instead of frame counts
-- Animations should be time-based, not frame-based
-- Mana regeneration should scale with delta time
-
-**Notes:**
-- Critical for game feel and fairness
-- Players with different hardware should have identical gameplay
-- Godot provides delta time in `_process(delta)` and `_physics_process(delta)`
-- Important foundation - fix early before adding more content
-
----
 
 #### Implement Card and Hero Level System
 **Status:** ⬜ Not Started
@@ -939,6 +938,27 @@ Final integration of hero system into the core battle gameplay loop.
 
 ### 🟢 LOW PRIORITY
 
+#### Hide/Remove FPS Test Tool Before Release
+**Status:** ⬜ Not Started
+**Category:** Developer Tools / Release Prep
+**Effort:** Trivial
+
+**Description:**
+The FPS Test Tool (`scripts/debug/fps_test_tool.gd`) currently shows by default in debug builds. Before release, either:
+- Remove the autoload entirely, or
+- Ensure it only activates with a specific dev flag/command
+
+**Current Behavior:**
+- Panel shows automatically on game start (debug builds only)
+- Toggle with ` or F12
+- Already disabled in release builds via `OS.is_debug_build()` check
+
+**Notes:**
+- Low priority - it's already hidden in release builds
+- May want to keep for internal testing but hide from players in beta/early access
+
+---
+
 #### Campaign Level Editor (Dev-Only Tool)
 **Status:** ⬜ Not Started
 **Category:** Developer Tools
@@ -970,4 +990,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Completed Magic Strings audit with EventTypeIDs, RewardTypeIDs, UnitTypeIDs, ElementNameIDs constants*
+*Last Updated: 2025-11-25 - Added pathfinding/targeting investigation todo*

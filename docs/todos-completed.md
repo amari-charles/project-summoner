@@ -392,4 +392,36 @@ Campaign battles now support configurable win/loss conditions beyond simple base
 
 ---
 
+### Research and Implement Framerate Independence
+**Completed:** 2025-11-25
+**Category:** Core Game Systems / Performance
+**Effort:** Medium
+
+**Description:**
+Audited codebase and implemented proper framerate-independent game mechanics to ensure consistent gameplay across different hardware and frame rates.
+
+**Findings:**
+- Codebase was already ~98% framerate-independent (excellent delta usage throughout)
+- All movement code properly uses delta or Godot 4's move_and_slide() pattern
+- All timers/cooldowns use time-based accumulation, not frame counts
+- Mana regeneration correctly uses `mana_regen_rate * delta`
+
+**Solution Implemented:**
+- Enabled physics interpolation in project.godot for smooth motion at varying FPS
+- Created FPS Test Tool (`scripts/debug/fps_test_tool.gd`) with F5-F8 hotkeys
+- Created best practices documentation (`docs/technical/framerate-independence.md`)
+
+**Testing:**
+- F5: 30 FPS (mobile simulation)
+- F6: 60 FPS (standard)
+- F7: 120 FPS (high refresh)
+- F8: Uncapped
+
+**Related Files:**
+- `project.godot` - Added physics interpolation setting
+- `scripts/debug/fps_test_tool.gd` (new)
+- `docs/technical/framerate-independence.md` (new)
+
+---
+
 *Last Updated: 2025-11-25*
