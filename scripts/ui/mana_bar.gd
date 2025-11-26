@@ -23,7 +23,6 @@ const TIER_COLORS: Array[Dictionary] = [
 
 ## UI styling
 const BG_COLOR: Color = Color(0.08, 0.08, 0.12, 0.95)
-const BORDER_COLOR: Color = Color(0.3, 0.3, 0.4, 1.0)
 const HIGHLIGHT_ALPHA: float = 0.4
 const HIGHLIGHT_HEIGHT: float = 4.0  # Thin highlight strip height
 const FILL_PADDING: float = 4.0  # Padding from background edge
