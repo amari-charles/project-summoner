@@ -29,6 +29,7 @@ var selected_offering: ShopOffering = null
 var shop_id: String = "general"
 var is_caravan_event: bool = false
 var caravan_sequence_complete: bool = false
+var has_purchased: bool = false  # Tracks if player made any purchase this session
 var leave_incomplete_popup: ConfirmationDialog = null
 var leave_complete_popup: ConfirmationDialog = null
 
@@ -239,6 +240,9 @@ func _on_offering_card_clicked(offering: ShopOffering) -> void:
 	_update_detail_panel(offering)
 
 func _on_purchase_completed(offering_id: String, _shop_id: String) -> void:
+	# Track that player made a purchase
+	has_purchased = true
+
 	# Show success popup
 	purchase_popup.dialog_text = Loc.t("shop.purchased")
 	purchase_popup.popup_centered()
@@ -283,6 +287,11 @@ func _on_leave_incomplete_pressed() -> void:
 func _on_leave_complete_pressed() -> void:
 	print("ShopScreen: Leave (complete) pressed")
 	if leave_complete_popup:
+		# Update popup text based on whether player made a purchase
+		if has_purchased:
+			leave_complete_popup.dialog_text = Loc.t("shop.caravan.leave_complete_confirmation_purchased")
+		else:
+			leave_complete_popup.dialog_text = Loc.t("shop.caravan.leave_complete_confirmation")
 		leave_complete_popup.popup_centered()
 
 ## Handle leave incomplete confirmation (user wants to leave but can return)

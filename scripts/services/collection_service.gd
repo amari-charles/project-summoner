@@ -91,12 +91,12 @@ func get_collection_summary() -> Array[Dictionary]:
 		if not instances_var is Array:
 			continue
 		var instances: Array = instances_var
-		var rarity: String = "common"
+		var rarity: String = RarityIDs.COMMON
 		if instances.size() > 0:
 			var first_item: Variant = instances[0]
 			if first_item is Dictionary:
 				var first_dict: Dictionary = first_item
-				rarity = first_dict.get("rarity", "common")
+				rarity = first_dict.get("rarity", RarityIDs.COMMON)
 		var summary_entry: Dictionary = {
 			"catalog_id": catalog_id,
 			"count": instances.size(),
@@ -144,17 +144,29 @@ func grant_cards(cards: Array) -> Array[String]:
 
 ## Grant a single card (convenience method)
 ## Returns: card instance ID
-func grant_card(catalog_id: String, rarity: String = "common") -> String:
+func grant_card(catalog_id: String, rarity: String = RarityIDs.COMMON) -> String:
 	var instance_ids: Array[String] = grant_cards([{"catalog_id": catalog_id, "rarity": rarity}])
 	return instance_ids[0] if instance_ids.size() > 0 else ""
 
 ## Remove a card instance from the collection
+## Also removes the card from any decks containing it (cascade delete)
 ## Returns true if successful, false if card not found
 func remove_card(card_instance_id: String) -> bool:
 	var success: bool = ProfileRepo.remove_card(card_instance_id)
 
 	if success:
 		print("CollectionService: Removed card instance: %s" % card_instance_id)
+
+		# Cascade delete: remove from all decks
+		var decks: Array[Dictionary] = Decks.list_decks()
+		for deck: Dictionary in decks:
+			var deck_id: String = deck.get("id", "")
+			if deck_id.is_empty():
+				continue
+			var removed_count: int = Decks.clean_deck(deck_id)
+			if removed_count > 0:
+				print("CollectionService: Cascade delete removed %d cards from deck '%s'" % [removed_count, deck_id])
+
 		card_removed.emit(card_instance_id)
 		collection_changed.emit()
 	else:
@@ -190,13 +202,13 @@ func dismantle_card(card_instance_id: String) -> bool:
 
 func _get_dismantle_value(rarity: String) -> int:
 	match rarity:
-		"common":
+		RarityIDs.COMMON:
 			return 5
-		"rare":
+		RarityIDs.RARE:
 			return 20
-		"epic":
+		RarityIDs.EPIC:
 			return 100
-		"legendary":
+		RarityIDs.LEGENDARY:
 			return 500
 		_:
 			return 5

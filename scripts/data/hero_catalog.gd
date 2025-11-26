@@ -33,8 +33,8 @@ func _init_catalog() -> void:
 	# Fire Hero - Pyralis
 	var hero_fire: HeroConfig = HeroConfig.new()
 	hero_fire.hero_id = "hero_fire"
-	hero_fire.hero_name = "Pyralis"
-	hero_fire.description = "Master of flame and passion"
+	hero_fire.hero_name = Loc.t("hero.hero_fire.name")
+	hero_fire.description = Loc.t("hero.hero_fire.description")
 	hero_fire.element_id = ElementRegistry.ElementId.FIRE
 	hero_fire.base_health = 1000.0
 	hero_fire.max_mana = 10.0
@@ -47,8 +47,8 @@ func _init_catalog() -> void:
 	# Water Hero - Aquira
 	var hero_water: HeroConfig = HeroConfig.new()
 	hero_water.hero_id = "hero_water"
-	hero_water.hero_name = "Aquira"
-	hero_water.description = "Embodiment of adaptability and flow"
+	hero_water.hero_name = Loc.t("hero.hero_water.name")
+	hero_water.description = Loc.t("hero.hero_water.description")
 	hero_water.element_id = ElementRegistry.ElementId.WATER
 	hero_water.base_health = 1200.0  # Higher health, lower regen
 	hero_water.max_mana = 10.0
@@ -61,8 +61,8 @@ func _init_catalog() -> void:
 	# Wind Hero - Zephyrion
 	var hero_wind: HeroConfig = HeroConfig.new()
 	hero_wind.hero_id = "hero_wind"
-	hero_wind.hero_name = "Zephyrion"
-	hero_wind.description = "Spirit of freedom and motion"
+	hero_wind.hero_name = Loc.t("hero.hero_wind.name")
+	hero_wind.description = Loc.t("hero.hero_wind.description")
 	hero_wind.element_id = ElementRegistry.ElementId.WIND
 	hero_wind.base_health = 900.0   # Lower health
 	hero_wind.max_mana = 12.0       # Higher mana pool
@@ -75,8 +75,8 @@ func _init_catalog() -> void:
 	# Earth Hero - Terravorn
 	var hero_earth: HeroConfig = HeroConfig.new()
 	hero_earth.hero_id = "hero_earth"
-	hero_earth.hero_name = "Terravorn"
-	hero_earth.description = "Guardian of stability and endurance"
+	hero_earth.hero_name = Loc.t("hero.hero_earth.name")
+	hero_earth.description = Loc.t("hero.hero_earth.description")
 	hero_earth.element_id = ElementRegistry.ElementId.EARTH
 	hero_earth.base_health = 1500.0 # Highest health
 	hero_earth.max_mana = 8.0       # Lower mana
@@ -96,8 +96,8 @@ func _init_catalog() -> void:
 	# Shadow Initiate (starter-only)
 	var hero_shadow: HeroConfig = HeroConfig.new()
 	hero_shadow.hero_id = "hero_shadow_initiate"
-	hero_shadow.hero_name = "Shadow Initiate"
-	hero_shadow.description = "A mysterious figure cloaked in darkness"
+	hero_shadow.hero_name = Loc.t("hero.hero_shadow_initiate.name")
+	hero_shadow.description = Loc.t("hero.hero_shadow_initiate.description")
 	hero_shadow.element_id = ElementRegistry.ElementId.SHADOW
 	hero_shadow.base_health = 950.0
 	hero_shadow.max_mana = 11.0

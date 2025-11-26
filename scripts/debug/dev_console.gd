@@ -27,7 +27,7 @@ extends Node
 
 ## Available card catalog IDs for testing
 const TEST_CARDS: Array = ["warrior", "archer", "fireball", "wall"]
-const TEST_RARITIES: Array = ["common", "common", "common", "rare", "epic"]  # Weighted
+const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
 ## Service references (injected by autoload order)
 var _repo: Node = null  # ProfileRepo autoload
@@ -304,7 +304,7 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 		var cards_to_grant: Array = []
 		for i: int in range(30):
 			var catalog_id: String = TEST_CARDS[randi() % TEST_CARDS.size()]
-			var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": "common"}
+			var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": RarityIDs.COMMON}
 			cards_to_grant.append(card_grant)
 		_collection.call("grant_cards", cards_to_grant)
 
