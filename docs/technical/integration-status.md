@@ -125,16 +125,12 @@ func _die():
   2. Create animation configs for soldier, archer, wall
   3. Replace `_update_animation()` calls with controller
 
-### ContentCatalog Migration
-- **Status:** ⏳ Not Yet Integrated
-- **Why Optional:** Cards already work via CardCatalog
-- **What it Adds:**
-  - Spawn units directly from JSON data
-  - Single source of truth for all content
-- **Integration Steps:**
-  1. Add helper method to spawn Unit3D from UnitData
-  2. Update card play logic to use ContentCatalog
-  3. (Optional) Migrate all units to JSON-only
+### ContentCatalog (Projectiles Only)
+- **Status:** ✅ Integrated
+- **What it Does:**
+  - Loads projectile definitions from JSON (`data/projectiles/*.json`)
+  - Used by ProjectileManager and Unit3D for projectile spawning
+- **Note:** Card and unit data are managed by CardCatalog (hardcoded GDScript), not ContentCatalog. The dual catalog system was consolidated in PR #77.
 
 ## 🧪 Testing Checklist
 
