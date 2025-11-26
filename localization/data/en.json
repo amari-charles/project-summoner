@@ -118,6 +118,9 @@
       "price_placeholder": "Price: -",
       "description_placeholder": "Offering description will appear here.",
       "contents_label": "Contents:",
+      "contents_card": "• {count}x {name}",
+      "contents_currency": "• Currency offering",
+      "contents_special": "• Special offering",
       "price_format": "Price: {price} gold"
     },
     "offering": {

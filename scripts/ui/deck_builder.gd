@@ -51,6 +51,9 @@ var deck_editing_locked: bool = false  # Tutorial mode lock
 ## Card widget scene
 const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
 
+## Duration to show temporary lock message before resetting (seconds)
+const LOCK_MESSAGE_DURATION: float = 2.0
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -793,8 +796,8 @@ func _show_locked_message() -> void:
 	validation_label.text = Loc.t("ui.deck_builder.locked_temporary")
 	validation_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.3))  # Orange
 
-	# Reset to normal lock message after 2 seconds
-	await get_tree().create_timer(2.0).timeout
+	# Reset to normal lock message after delay
+	await get_tree().create_timer(LOCK_MESSAGE_DURATION).timeout
 	if deck_editing_locked:
 		validation_label.text = Loc.t("ui.deck_builder.locked")
 		validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))

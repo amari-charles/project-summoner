@@ -179,7 +179,7 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 	var contents_text: String = Loc.t("ui.shop.contents_label") + "\n"
 	match offering.offering_type:
 		ShopOffering.OfferingType.CARD:
-			contents_text += "• %dx %s" % [offering.card_count, offering.display_name]
+			contents_text += Loc.t("ui.shop.contents_card", {"count": offering.card_count, "name": offering.display_name})
 		ShopOffering.OfferingType.CARD_PACK:
 			for card_data: Dictionary in offering.pack_cards:
 				var catalog_id: String = card_data.get("catalog_id", "")
@@ -187,11 +187,11 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 				# Look up card display name from catalog
 				var card_dict: Dictionary = CardCatalog.get_card(catalog_id)
 				var display_name: String = card_dict.get("name", catalog_id) if card_dict else catalog_id
-				contents_text += "• %dx %s\n" % [count, display_name]
+				contents_text += Loc.t("ui.shop.contents_card", {"count": count, "name": display_name}) + "\n"
 		ShopOffering.OfferingType.CURRENCY:
-			contents_text += "• Currency offering"
+			contents_text += Loc.t("ui.shop.contents_currency")
 		ShopOffering.OfferingType.SPECIAL:
-			contents_text += "• Special offering"
+			contents_text += Loc.t("ui.shop.contents_special")
 
 	contents_label.text = contents_text
 
