@@ -85,7 +85,7 @@ mouse_filter = 2
 [node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "WARRIOR"
+text = "FIRE RECRUIT"
 horizontal_alignment = 1
 mouse_filter = 2
 
@@ -103,9 +103,9 @@ mouse_filter = 2
 [node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Cost: 3 Mana
-HP: 100
-Attack: 15"
+text = "Cost: 2 Mana
+HP: 50
+Attack: 10"
 horizontal_alignment = 1
 mouse_filter = 2
 
@@ -115,7 +115,7 @@ mouse_filter = 2
 
 [node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "A reliable melee fighter. Charges forward to engage enemies in close combat."
+text = "A basic fire soldier. Cheap and eager to fight, establishing early pressure on the battlefield."
 autowrap_mode = 3
 horizontal_alignment = 1
 mouse_filter = 2
@@ -156,7 +156,7 @@ mouse_filter = 2
 [node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "ARCHER"
+text = "EMBER SLINGER"
 horizontal_alignment = 1
 mouse_filter = 2
 
@@ -174,9 +174,9 @@ mouse_filter = 2
 [node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Cost: 3 Mana
-HP: 70
-Attack: 12
+text = "Cost: 2 Mana
+HP: 40
+Attack: 8
 Range: Long"
 horizontal_alignment = 1
 mouse_filter = 2
@@ -187,7 +187,7 @@ mouse_filter = 2
 
 [node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "A versatile ranged unit. Attacks from a distance, staying safe from melee threats."
+text = "A fragile ranged attacker. Flings burning embers for steady chip damage from a safe distance."
 autowrap_mode = 3
 horizontal_alignment = 1
 mouse_filter = 2
