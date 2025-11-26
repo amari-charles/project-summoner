@@ -424,4 +424,36 @@ Audited codebase and implemented proper framerate-independent game mechanics to 
 
 ---
 
-*Last Updated: 2025-11-25*
+## Visual Polish
+
+### Improve Mana Bar UI Design (Tiered Mana Bar)
+**Completed:** 2025-11-26
+**Category:** UI/UX
+**Effort:** Medium
+
+**Description:**
+Implemented a tiered mana bar system that wraps at 10 mana per tier with different colors, rather than growing the bar larger for higher mana values.
+
+**Solution Implemented:**
+- Created layered ColorRect system where previous tiers show underneath current tier
+- Blue intensity color progression: Light Blue → Royal Blue → Indigo → Purple → Magenta
+- Smooth fill animations using Tweens (0.2s duration)
+- Tier multiplier label (x2, x3, etc.) for completed tiers
+- Localized all UI text (mana label, tier multiplier)
+- Extracted magic numbers to named constants (HIGHLIGHT_HEIGHT, FILL_ANIM_DURATION)
+
+**Technical Details:**
+- Each tier represents 10 mana (MANA_PER_TIER constant)
+- Up to 5 tiers supported (50 max mana)
+- Dynamically creates ColorRect fills for each tier
+- Lower tiers render first (at bottom), higher tiers on top
+- Example: 15/25 mana = full Light Blue (tier 1) + half Royal Blue (tier 2)
+
+**Related Files:**
+- `scripts/ui/mana_bar.gd` - Complete rewrite with tiered system
+- `scenes/ui/mana_bar.tscn` - Updated scene structure
+- `localization/data/en.json` - Added tier_multiplier localization
+
+---
+
+*Last Updated: 2025-11-26*

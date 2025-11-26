@@ -324,25 +324,6 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Improve Mana Bar UI Design
-**Status:** ⬜ Not Started
-**Category:** UI/UX
-**Effort:** Small
-
-**Description:**
-Enhance the visual design of the mana bar to be more polished and readable.
-
-**Requirements:**
-- Refine visual style (colors, gradients, borders)
-- Improve readability of current/max mana
-- Add juice (fill animations, glow effects)
-
-**Notes:**
-- Should match overall UI style
-- Consider mana regeneration visual feedback
-
----
-
 #### Improve Card Visual UI
 **Status:** ⬜ Not Started
 **Category:** UI/UX
@@ -1021,4 +1002,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-26 - Updated card progression status (PR #85), added upgrade-specific resource costs todo*
+*Last Updated: 2025-11-26 - Moved completed mana bar UI task to archive*

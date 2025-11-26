@@ -55,6 +55,31 @@ The mana bar had hardcoded values and MANA_MAX was a constant in Summoner3D inst
 
 ---
 
+### Projectile Pooling Race Condition with Deferred Removal
+**Resolved:** 2025-11-26
+**Component:** Projectiles / Pooling System
+
+**Description:**
+Projectiles spawned rapidly in succession would cause errors: "Parent node is busy setting up children, cannot add child". This happened because pooled projectiles were being reused before their deferred removal from the scene tree had completed.
+
+**Root Cause:**
+In `ProjectileManager._return_to_pool()`, projectiles were removed from the scene tree using `remove_child.call_deferred()` to avoid physics callback issues. However, the projectile was immediately returned to the pool and could be grabbed by `_get_from_pool()` before the deferred removal completed.
+
+**Solution Implemented:**
+Added synchronous parent check in `_get_from_pool()`:
+```gdscript
+# Ensure projectile is removed from any parent (handles deferred removal race condition)
+if pooled_projectile.get_parent():
+    pooled_projectile.get_parent().remove_child(pooled_projectile)
+```
+
+This ensures that if a projectile is retrieved from the pool while still technically parented (due to pending deferred removal), it gets synchronously unparented before being added to the new container.
+
+**Related Files:**
+- `scripts/projectiles/projectile_manager.gd:153-156` - Added parent check in `_get_from_pool()`
+
+---
+
 ### Mission Rewards Auto-Accepted Without Player Choice
 **Resolved:** 2025-11-25
 **Component:** Campaign / Rewards
