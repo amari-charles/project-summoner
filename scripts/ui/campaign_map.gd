@@ -248,7 +248,7 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 	node_container.position = node_position
 
 	var event_id: String = _safe_string(event_data.get("id", ""))
-	var event_type: String = _safe_string(event_data.get("event_type", "battle"))
+	var event_type: StringName = StringName(event_data.get("event_type", EventTypeIDs.BATTLE))
 
 	# Create visual button
 	var button: Button = Button.new()
@@ -256,7 +256,7 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 	button.size = NODE_SIZE
 
 	# Style based on event type and state
-	var is_onboarding_event: bool = (event_type == "onboarding")
+	var is_onboarding_event: bool = (event_type == EventTypeIDs.ONBOARDING)
 
 	if is_onboarding_event:
 		button.text = "⭐"
@@ -401,7 +401,7 @@ func _update_detail_panel() -> void:
 
 	# Check if this event requires deck selection
 	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
-	var event_type: String = _safe_string(event.get("event_type", "battle"))
+	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
 
 	# Show/hide deck selection based on event configuration
 	if deck_column:
@@ -425,14 +425,14 @@ func _update_detail_panel() -> void:
 	description_label.text = _safe_string(event.get("description", "No description."), "No description.")
 
 	# Reward summary
-	var reward_type: String = _safe_string(event.get("reward_type", "fixed"), "fixed")
+	var reward_type: StringName = StringName(event.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
 	var reward_text: String = ""
 
 	# Get CardCatalog for proper card names
 	var catalog: Node = get_node_or_null("/root/CardCatalog")
 
-	if reward_cards.size() > 0 and reward_type == "fixed":
+	if reward_cards.size() > 0 and reward_type == RewardTypeIDs.FIXED:
 		var card_names: Array[String] = []
 		for reward_item: Variant in reward_cards:
 			var reward: Dictionary = _safe_dict(reward_item)
@@ -460,7 +460,7 @@ func _update_detail_panel() -> void:
 			start_event_button.text = Loc.t("campaign.map.button_completed")
 			start_event_button.disabled = true
 	else:
-		if event_type == "onboarding":
+		if event_type == EventTypeIDs.ONBOARDING:
 			start_event_button.text = Loc.t("campaign.map.button_start")
 		else:
 			start_event_button.text = Loc.t("campaign.map.button_start_event")
@@ -620,17 +620,17 @@ func _on_start_event_pressed() -> void:
 	if event.is_empty():
 		return
 
-	var event_type: String = _safe_string(event.get("event_type", "battle"))
+	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
 	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
 
 	# Handle affinity selection event - route to hero selection
-	if event_type == "affinity":
+	if event_type == EventTypeIDs.AFFINITY:
 		print("CampaignMap: Starting affinity selection...")
 		SceneManager.transition_to(SceneManager.SCENE_HERO_SELECTION)
 		return
 
 	# Handle first summon event - route to first card selection
-	if event_type == "first_summon":
+	if event_type == EventTypeIDs.FIRST_SUMMON:
 		print("CampaignMap: Starting first summon selection...")
 		SceneManager.transition_to(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
@@ -653,7 +653,7 @@ func _on_start_event_pressed() -> void:
 	#
 	# This approach allows dialogue to play while shop is visible, avoiding
 	# the jarring dialogue → black screen → shop transition.
-	if event_type == "caravan":
+	if event_type == EventTypeIDs.CARAVAN:
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
 		# Check if event is already completed and not repeatable

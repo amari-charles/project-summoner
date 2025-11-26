@@ -183,7 +183,7 @@ func dismantle_card(card_instance_id: String) -> bool:
 		return false
 
 	# Calculate essence value based on rarity
-	var rarity: String = card.get("rarity", "common")
+	var rarity: StringName = card.get("rarity", RarityIDs.COMMON)
 	var essence_value: int = _get_dismantle_value(rarity)
 
 	# Remove card from collection

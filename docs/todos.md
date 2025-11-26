@@ -263,88 +263,6 @@ Research and implement proper framerate-independent game mechanics to ensure con
 
 ---
 
-#### Audit Codebase for Magic Strings - Replace with Constants/Enums
-**Status:** 🔄 In Progress
-**Category:** Core Game Systems / Code Quality
-**Effort:** Medium
-
-**Description:**
-Audit the entire codebase to identify places where magic strings are used instead of constants or enums, and refactor to use type-safe definitions.
-
-**Requirements:**
-- Search for hardcoded string literals throughout codebase
-- Identify candidates for replacement (element names, stat names, group names, etc.)
-- Create or update constant/enum definitions
-- Refactor code to use constants instead of strings
-- Test to ensure no regressions
-
-**Examples of Magic Strings to Replace:**
-- Element names: "fire", "water", "wind", "earth", etc.
-- Stat names: "attack_damage", "max_hp", "move_speed", "attack_speed"
-- Group names: "player_units", "enemy_units", "bases"
-- Card types: "unit", "spell"
-- Team identifiers: Team.PLAYER, Team.ENEMY (already enums, but check usage)
-
-**Notes:**
-- Improves code maintainability and catches typos at compile time
-- Makes refactoring easier (rename in one place)
-- Better IDE autocomplete support
-- Foundation for type safety across the codebase
-- Start with high-impact areas (modifier system, card catalog)
-
-**Progress Tracking:**
-
-##### CardIDs Constants Class ✅ Completed (2025-11-15)
-- Created `scripts/data/card_ids.gd` with StringName constants for all 18 cards
-- Updated `CardCatalog` API to accept StringName instead of String
-- Added validation in `CardCatalog._validate_card_ids_sync()` to ensure sync
-- Updated `test_game_controller.gd` and `first_card_selection.gd` to use CardIDs
-
-##### ProjectileIDs Constants Class ✅ Completed (2025-11-15)
-- Created `scripts/data/projectile_ids.gd` with FIREBALL, ARROW, EMBER constants
-- Updated fireball card in `card_catalog.gd` to use `ProjectileIDs.FIREBALL`
-- Fixes fireball damage timing issue (now applies on impact, not on cast)
-
-##### CardTypeIDs or Card.CardType Enum Usage ✅ Completed (2025-11-25)
-- Replaced all magic numbers with `Card.CardType.SUMMON` and `Card.CardType.SPELL`
-- Updated comparisons in `create_card_resource()` and `print_catalog_summary()`
-- See `todos-completed.md` for details
-
-##### VFXIDs Constants Class ✅ Completed (2025-11-25)
-- Created `scripts/data/vfx_ids.gd` with StringName constants for 7 VFX effects
-- Implemented: FIREBALL_EXPLOSION, FIREBALL_TRAIL, FIREBALL_SPELL
-- Placeholders: SPELL_FIZZLE, RALLY_CIRCLE, GUARD_MARKER, CHARGE_MARKER
-- Updated `card_catalog.gd` and `card.gd` to use VFXIDs constants
-- Added `_validate_vfx_ids_sync()` in VFXManager to ensure sync with .tres files
-
-##### RarityIDs Constants Class ✅ Completed (2025-11-25)
-- Created `scripts/data/rarity_ids.gd` with StringName constants for COMMON, RARE, EPIC, LEGENDARY
-- Added utility methods: `ALL_RARITIES`, `get_tier()`, `is_valid()`
-- Updated `collection_service.gd`, `campaign_service.gd`, `color_palette.gd`, `dev_console.gd`
-
-##### BiomeIDs Constants Class ✅ Completed (2025-11-25)
-- Created `scripts/data/biome_ids.gd` with SUMMER_PLAINS constant
-- Added utility methods: `get_resource_path()`, `is_valid()`
-- Updated `battle_context.gd` to use BiomeIDs.SUMMER_PLAINS
-- Updated `campaign_service.gd` to use BiomeIDs.SUMMER_PLAINS
-
-##### BattleIDs Constants Class ✅ Completed (2025-11-25)
-- Created `scripts/data/battle_ids.gd` with constants for all 5 battles/events
-- Organized by type: EVENTS (3), TUTORIALS (2)
-- Added utility methods: `all_ids()`, `is_valid()`, `is_event()`, `is_tutorial()`
-- Updated `campaign_service.gd` to use BattleIDs constants
-- Updated `first_card_selection.gd` and `hero_selection.gd` to use BattleIDs
-
-##### GroupIDs Constants Class ✅ Completed (2025-11-25)
-- Created `scripts/data/group_ids.gd` with StringName constants for all group names
-- Groups: UNITS, PLAYER_UNITS, ENEMY_UNITS, BASES, PLAYER_BASES, ENEMY_BASES
-- Additional: SUMMONERS, PLAYER_SUMMONERS, ENEMY_SUMMONERS, STRUCTURES, PROJECTILES
-- UI groups: HAND_UI, GAME_CONTROLLER
-- Added utility methods: `enemy_units_for()`, `ally_units_for()`, `enemy_bases_for()`, `ally_bases_for()`
-- Updated 25+ files to use GroupIDs constants instead of magic strings
-
----
-
 #### Implement Card and Hero Level System
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Progression
@@ -1110,4 +1028,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Added GroupIDs constants class and UI localization progress*
+*Last Updated: 2025-11-25 - Completed Magic Strings audit with EventTypeIDs, RewardTypeIDs, UnitTypeIDs, ElementNameIDs constants*

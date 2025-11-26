@@ -95,16 +95,16 @@ func _get_element_color(element: ElementTypes.Element) -> Color:
 		return Color.WHITE
 
 	# Match by element ID
-	match element.id:
-		"fire":
+	match StringName(element.id):
+		ElementNameIDs.FIRE:
 			return Color(1.0, 0.3, 0.2)  # Red
-		"water":
+		ElementNameIDs.WATER:
 			return Color(0.2, 0.5, 1.0)  # Blue
-		"wind":
+		ElementNameIDs.WIND:
 			return Color(0.8, 1.0, 0.9)  # Cyan
-		"earth":
+		ElementNameIDs.EARTH:
 			return Color(0.6, 0.4, 0.2)  # Brown
-		"shadow":
+		ElementNameIDs.SHADOW:
 			return Color(0.5, 0.3, 0.6)  # Purple
 		_:
 			return Color.WHITE

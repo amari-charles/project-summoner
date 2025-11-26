@@ -41,7 +41,7 @@ func _init_catalog() -> void:
 		"catalog_id": "fireball",
 		"card_name": "Fireball",
 		"description": "Unleash a devastating explosion of flame. Deals area damage to all enemies caught in the blast.",
-		"rarity": "rare",
+		"rarity": RarityIDs.RARE,
 
 		"card_type": Card.CardType.SPELL,
 		"mana_cost": 5,
@@ -72,10 +72,10 @@ func _init_catalog() -> void:
 		"catalog_id": "wall",
 		"card_name": "Wall",
 		"description": "A sturdy barrier to block enemy advances. High health but no attack.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		"card_type": Card.CardType.SUMMON,  # Structure is just a unit with 0 move_speed
-		"unit_type": "structure",  # For icon display
+		"unit_type": UnitTypeIDs.STRUCTURE,  # For icon display
 		"mana_cost": 2,
 		"cooldown": 2.0,
 
@@ -106,10 +106,10 @@ func _init_catalog() -> void:
 		"catalog_id": "neade",
 		"card_name": "Neade",
 		"description": "A fierce lancer who strikes with devastating precision. Slow but powerful melee attacks.",
-		"rarity": "rare",
+		"rarity": RarityIDs.RARE,
 
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",  # For icon display
+		"unit_type": UnitTypeIDs.MELEE,  # For icon display
 		"mana_cost": 4,
 		"cooldown": 2.0,
 
@@ -157,15 +157,15 @@ func _init_catalog() -> void:
 
 	_add_slime_card("grey", "large", ElementTypes.EARTH,
 		"A massive grey slime. Slow but incredibly durable with devastating attacks.",
-		{"rarity": "rare"})
+		{"rarity": RarityIDs.RARE})
 
 	_add_slime_card("purple", "large", ElementTypes.POISON,
 		"A huge, toxic purple slime. Extremely durable with powerful poison-infused attacks.",
-		{"rarity": "rare"})
+		{"rarity": RarityIDs.RARE})
 
 	_add_slime_card("red", "large", ElementTypes.FIRE,
 		"An enormous crimson slime. The largest of its kind, boasting incredible strength and resilience.",
-		{"rarity": "rare"})
+		{"rarity": RarityIDs.RARE})
 
 	# Demon Imp - Flying melee attacker
 	_catalog["demon_imp"] = {
@@ -177,7 +177,7 @@ func _init_catalog() -> void:
 
 		# Card properties
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",  # For icon display (combat type, not movement type)
+		"unit_type": UnitTypeIDs.MELEE,  # For icon display (combat type, not movement type)
 		"mana_cost": 4,
 		"cooldown": 2.0,
 
@@ -218,11 +218,11 @@ func _init_catalog() -> void:
 		"catalog_id": "fire_recruit",
 		"card_name": "Fire Recruit",
 		"description": "A basic fire soldier. Cheap and eager to fight, establishing early pressure on the battlefield.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		# Card properties
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",
+		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 2,
 		"cooldown": 1.5,
 
@@ -259,11 +259,11 @@ func _init_catalog() -> void:
 		"catalog_id": "ember_slinger",
 		"card_name": "Ember Slinger",
 		"description": "A fragile ranged attacker. Flings burning embers for steady chip damage from a safe distance.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		# Card properties
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "ranged",
+		"unit_type": UnitTypeIDs.RANGED,
 		"mana_cost": 2,
 		"cooldown": 1.5,
 
@@ -300,11 +300,11 @@ func _init_catalog() -> void:
 		"catalog_id": "blaze_rider",
 		"card_name": "Blaze Rider",
 		"description": "A swift cavalry unit wreathed in flames. Charges across the battlefield to deliver explosive burst damage.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		# Card properties
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",
+		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 3,
 		"cooldown": 2.0,
 
@@ -341,11 +341,11 @@ func _init_catalog() -> void:
 		"catalog_id": "ash_vanguard",
 		"card_name": "Ash Vanguard",
 		"description": "A heavily armored warrior that explodes on death, dealing AoE damage to nearby enemies.",
-		"rarity": "rare",
+		"rarity": RarityIDs.RARE,
 
 		# Card properties
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",
+		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 5,
 		"cooldown": 3.0,
 
@@ -382,11 +382,11 @@ func _init_catalog() -> void:
 		"catalog_id": "ember_guard",
 		"card_name": "Ember Guard",
 		"description": "A defensive unit that burns nearby enemies with a constant damage aura.",
-		"rarity": "rare",
+		"rarity": RarityIDs.RARE,
 
 		# Card properties
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",
+		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 4,
 		"cooldown": 2.5,
 
@@ -427,7 +427,7 @@ func _init_catalog() -> void:
 		"catalog_id": "rally",
 		"card_name": "Rally",
 		"description": "Command nearby units to move to a target location and defend that zone until enemies are cleared.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		# Card properties
 		"card_type": Card.CardType.SPELL,
@@ -466,7 +466,7 @@ func _init_catalog() -> void:
 		"catalog_id": "guard",
 		"card_name": "Guard",
 		"description": "Command nearby units to form a defensive formation for 25 seconds. Melee units protect ranged units in the back line.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		# Card properties
 		"card_type": Card.CardType.SPELL,
@@ -506,7 +506,7 @@ func _init_catalog() -> void:
 		"catalog_id": "charge",
 		"card_name": "Charge",
 		"description": "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or base) to the target location for 30 seconds.",
-		"rarity": "common",
+		"rarity": RarityIDs.COMMON,
 
 		# Card properties
 		"card_type": Card.CardType.SPELL,
@@ -553,7 +553,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 			"mana_cost": 2,
 			"cooldown": 1.5,
 			"tags": ["melee", "swarm", "fast"],
-			"rarity": "common"
+			"rarity": RarityIDs.COMMON
 		},
 		"medium": {
 			"max_hp": 100.0,
@@ -565,7 +565,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 			"mana_cost": 3,
 			"cooldown": 2.0,
 			"tags": ["melee", "balanced"],
-			"rarity": "common"
+			"rarity": RarityIDs.COMMON
 		},
 		"large": {
 			"max_hp": 180.0,
@@ -577,7 +577,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 			"mana_cost": 5,
 			"cooldown": 2.5,
 			"tags": ["melee", "tank", "heavy"],
-			"rarity": "rare"
+			"rarity": RarityIDs.RARE
 		}
 	}
 
@@ -600,7 +600,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 		"rarity": overrides.get("rarity", template.rarity),
 
 		"card_type": Card.CardType.SUMMON,
-		"unit_type": "melee",
+		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": overrides.get("mana_cost", template.mana_cost),
 		"cooldown": overrides.get("cooldown", template.cooldown),
 
@@ -761,9 +761,9 @@ func get_card_name(catalog_id: String) -> String:
 	return card.get("card_name", catalog_id)
 
 ## Get card rarity (for UI coloring, etc.)
-func get_card_rarity(catalog_id: String) -> String:
+func get_card_rarity(catalog_id: String) -> StringName:
 	var card: Dictionary = get_card(catalog_id)
-	return card.get("rarity", "common")
+	return card.get("rarity", RarityIDs.COMMON)
 
 ## Get card mana cost (for deck building validation)
 func get_card_cost(catalog_id: String) -> int:
@@ -780,7 +780,7 @@ func print_catalog_summary() -> void:
 
 	for card: Dictionary in _catalog.values():
 		# Count by rarity
-		var rarity: String = card.get("rarity", "common")
+		var rarity: StringName = card.get("rarity", RarityIDs.COMMON)
 		if not by_rarity.has(rarity):
 			by_rarity[rarity] = 0
 		by_rarity[rarity] += 1
@@ -793,7 +793,7 @@ func print_catalog_summary() -> void:
 			by_type["spell"] += 1
 
 	print("\nBy Rarity:")
-	for rarity: String in by_rarity:
+	for rarity: StringName in by_rarity:
 		print("  %s: %d" % [rarity, by_rarity[rarity]])
 
 	print("\nBy Type:")

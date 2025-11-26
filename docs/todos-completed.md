@@ -204,6 +204,46 @@ Replaced all `"card_type": 0` with `Card.CardType.SUMMON` and `"card_type": 1` w
 
 ---
 
+### Audit Codebase for Magic Strings - Replace with Constants/Enums
+**Completed:** 2025-11-25
+**Category:** Core Game Systems / Code Quality
+**Effort:** Medium
+
+**Description:**
+Comprehensive audit to replace hardcoded string literals with type-safe constants throughout the codebase. This improves maintainability, catches typos at compile time, and provides better IDE autocomplete support.
+
+**Solution Implemented:**
+Created 11 constants classes with StringName constants:
+
+1. **CardIDs** - 18 card catalog ID constants
+2. **ProjectileIDs** - FIREBALL, ARROW, EMBER constants
+3. **VFXIDs** - 7 VFX effect name constants
+4. **RarityIDs** - COMMON, RARE, EPIC, LEGENDARY
+5. **BiomeIDs** - SUMMER_PLAINS
+6. **BattleIDs** - 5 battle/event ID constants
+7. **GroupIDs** - 15+ Godot group name constants
+8. **EventTypeIDs** - BATTLE, AFFINITY, FIRST_SUMMON, CARAVAN, ONBOARDING
+9. **RewardTypeIDs** - FIXED, RANDOM, CHOICE, NONE
+10. **UnitTypeIDs** - MELEE, RANGED, STRUCTURE
+11. **ElementNameIDs** - 15 element name string constants
+
+Updated 30+ files to use these constants instead of magic strings.
+
+**Related Files:**
+- `scripts/data/card_ids.gd`
+- `scripts/data/projectile_ids.gd`
+- `scripts/data/vfx_ids.gd`
+- `scripts/data/rarity_ids.gd`
+- `scripts/data/biome_ids.gd`
+- `scripts/data/battle_ids.gd`
+- `scripts/data/group_ids.gd`
+- `scripts/data/event_type_ids.gd`
+- `scripts/data/reward_type_ids.gd`
+- `scripts/data/unit_type_ids.gd`
+- `scripts/data/element_name_ids.gd`
+
+---
+
 ## Visual Polish
 
 ### Add Building Hit/Damage Animation

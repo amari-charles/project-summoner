@@ -305,7 +305,7 @@ func _build_reward_dict(offering: ShopOffering) -> Dictionary:
 
 	match offering.offering_type:
 		ShopOffering.OfferingType.CARD:
-			rewards["cards"] = [{"catalog_id": offering.card_catalog_id, "count": offering.card_count, "rarity": "common"}]
+			rewards["cards"] = [{"catalog_id": offering.card_catalog_id, "count": offering.card_count, "rarity": RarityIDs.COMMON}]
 
 		ShopOffering.OfferingType.CARD_PACK:
 			var cards: Array[Dictionary] = []
@@ -313,7 +313,7 @@ func _build_reward_dict(offering: ShopOffering) -> Dictionary:
 				cards.append({
 					"catalog_id": card_data.get("catalog_id", ""),
 					"count": card_data.get("count", 1),
-					"rarity": "common"
+					"rarity": RarityIDs.COMMON
 				})
 			rewards["cards"] = cards
 

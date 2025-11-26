@@ -39,7 +39,7 @@ func grant_rewards(rewards: Dictionary) -> bool:
 				var catalog_id: String = card_dict.get("catalog_id", "")
 				var count_variant: Variant = card_dict.get("count", 1)
 				var count: int = count_variant
-				var rarity: String = card_dict.get("rarity", "common")
+				var rarity: StringName = card_dict.get("rarity", RarityIDs.COMMON)
 
 				# Prepare cards array for grant_cards() call
 				var cards_to_grant: Array[Dictionary] = []
