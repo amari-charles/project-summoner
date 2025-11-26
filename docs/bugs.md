@@ -10,7 +10,46 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ## Active Bugs
 
-*No active bugs at this time.*
+### 🟡 MEDIUM PRIORITY
+
+#### Exiting Battle Mid-Fight Incorrectly Completes Event
+**Status:** Open
+**Reported:** 2025-11-26
+**Component:** Campaign / Battle System
+
+**Description:**
+When a player exits a battle in the middle of it (e.g., via pause menu or back button), the event/battle is incorrectly marked as completed.
+
+**Expected Behavior:**
+- Exiting mid-battle should NOT complete the event
+- Player should be able to retry the battle
+- Progress should only be saved on actual victory
+
+**Current Behavior:**
+- Exiting mid-battle marks the event as complete
+- Player cannot replay the battle properly
+
+**Impact:**
+- Breaks campaign progression
+- Players can accidentally skip content
+- Corrupts save state
+
+**Reproduction Steps:**
+1. Start a campaign battle
+2. Exit mid-battle (pause menu, back button, etc.)
+3. Observe that the event is marked as completed
+
+**Proposed Solution:**
+- Only call `complete_battle()` on actual victory
+- Ensure exit/quit paths don't trigger completion
+- Add explicit "forfeit" vs "exit" distinction if needed
+
+**Related Files:**
+- `scripts/core/battle_context.gd`
+- `scripts/ui/reward_screen.gd`
+- `scripts/services/campaign_service.gd`
+
+---
 
 ---
 

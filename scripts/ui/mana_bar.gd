@@ -9,13 +9,13 @@ class_name ManaBar
 ## Mana per tier (bar wraps at this value)
 const MANA_PER_TIER: float = 10.0
 
-## Tier colors - each tier gets a distinct color (index 0 = bottom layer)
+## Tier colors - Blue intensity progression (magic-themed)
 const TIER_COLORS: Array[Dictionary] = [
-	{"fill": Color(0.2, 0.5, 0.9), "glow": Color(0.3, 0.6, 1.0, 0.6), "name": "blue"},      # Tier 1: Blue (0-10)
-	{"fill": Color(0.9, 0.6, 0.1), "glow": Color(1.0, 0.7, 0.2, 0.6), "name": "orange"},    # Tier 2: Orange (10-20)
-	{"fill": Color(0.7, 0.3, 0.9), "glow": Color(0.8, 0.4, 1.0, 0.6), "name": "purple"},    # Tier 3: Purple (20-30)
-	{"fill": Color(0.2, 0.8, 0.4), "glow": Color(0.3, 0.9, 0.5, 0.6), "name": "green"},     # Tier 4: Green (30-40)
-	{"fill": Color(0.9, 0.2, 0.3), "glow": Color(1.0, 0.3, 0.4, 0.6), "name": "red"},       # Tier 5: Red (40-50)
+	{"fill": Color(0.4, 0.7, 1.0), "name": "light_blue"},    # Tier 1: Light Blue (0-10)
+	{"fill": Color(0.25, 0.45, 0.95), "name": "royal_blue"}, # Tier 2: Royal Blue (10-20)
+	{"fill": Color(0.3, 0.2, 0.7), "name": "indigo"},        # Tier 3: Indigo (20-30)
+	{"fill": Color(0.55, 0.2, 0.8), "name": "purple"},       # Tier 4: Purple (30-40)
+	{"fill": Color(0.85, 0.3, 0.75), "name": "magenta"},     # Tier 5: Magenta (40-50)
 ]
 
 ## UI styling
@@ -28,7 +28,6 @@ const FILL_PADDING: float = 4.0  # Padding from background edge
 @onready var background: ColorRect = $Background
 @onready var fill_container: Control = $FillContainer
 @onready var highlight: ColorRect = $Highlight
-@onready var glow_overlay: ColorRect = $GlowOverlay
 @onready var mana_label: Label = $ManaLabel
 @onready var tier_label: Label = $TierLabel
 
@@ -40,15 +39,12 @@ var current_mana: float = 0.0
 var max_mana: float = 10.0
 var current_tier: int = 0
 var fill_tween: Tween = null
-var glow_tween: Tween = null
-var is_regenerating: bool = false
 
 func _ready() -> void:
 	_setup_background()
 	_setup_fill_container()
 	_create_tier_fills()
 	_setup_highlight()
-	_setup_glow()
 	_setup_labels()
 
 	# Initialize display after layout
@@ -89,13 +85,6 @@ func _setup_highlight() -> void:
 		return
 	highlight.color = Color(1.0, 1.0, 1.0, HIGHLIGHT_ALPHA)
 
-func _setup_glow() -> void:
-	if not glow_overlay:
-		return
-	glow_overlay.color = TIER_COLORS[0].glow
-	glow_overlay.visible = false
-	glow_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
 func _setup_labels() -> void:
 	if mana_label:
 		mana_label.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
@@ -112,17 +101,7 @@ func _setup_labels() -> void:
 func update_mana(current: float, maximum: float) -> void:
 	current_mana = current
 	max_mana = maximum
-
 	_update_display(current, maximum, true)
-
-	# Handle regeneration glow
-	var new_is_regenerating: bool = current < maximum
-	if new_is_regenerating != is_regenerating:
-		is_regenerating = new_is_regenerating
-		if is_regenerating:
-			_start_glow_pulse()
-		else:
-			_stop_glow_pulse()
 
 func _update_display(current: float, maximum: float, animate: bool) -> void:
 	if not background or tier_fills.is_empty():
@@ -147,13 +126,10 @@ func _update_display(current: float, maximum: float, animate: bool) -> void:
 		partial_tier = complete_tiers
 		partial_percent = 0.0
 
-	# Update current_tier for glow color
+	# Track current tier for label display
 	var display_tier: int = maxi(complete_tiers - 1, 0) if partial_percent == 0 and complete_tiers > 0 else complete_tiers
 	display_tier = clampi(display_tier, 0, TIER_COLORS.size() - 1)
-
-	if display_tier != current_tier:
-		current_tier = display_tier
-		_update_glow_color()
+	current_tier = display_tier
 
 	# Cancel existing animation
 	if animate and fill_tween and fill_tween.is_running():
@@ -226,10 +202,6 @@ func _update_highlight(complete_tiers: int, partial_tier: int, partial_percent: 
 	else:
 		highlight.size.x = highlight_width
 
-func _update_glow_color() -> void:
-	if glow_overlay and current_tier < TIER_COLORS.size():
-		glow_overlay.color = TIER_COLORS[current_tier].glow
-
 func _update_labels(current: float, maximum: float, complete_tiers: int) -> void:
 	# Main mana label
 	if mana_label:
@@ -242,32 +214,3 @@ func _update_labels(current: float, maximum: float, complete_tiers: int) -> void
 			tier_label.visible = true
 		else:
 			tier_label.visible = false
-
-func _start_glow_pulse() -> void:
-	if not glow_overlay:
-		return
-
-	glow_overlay.visible = true
-	glow_overlay.modulate.a = 1.0
-
-	if glow_tween and glow_tween.is_running():
-		glow_tween.kill()
-
-	var tier_idx: int = clampi(current_tier, 0, TIER_COLORS.size() - 1)
-	var base_color: Color = TIER_COLORS[tier_idx].glow
-	var dim_color: Color = Color(base_color.r, base_color.g, base_color.b, 0.15)
-	var bright_color: Color = Color(base_color.r, base_color.g, base_color.b, 0.5)
-
-	glow_tween = create_tween()
-	glow_tween.set_loops()
-	glow_tween.tween_property(glow_overlay, "color", bright_color, 0.6)
-	glow_tween.tween_property(glow_overlay, "color", dim_color, 0.6)
-
-func _stop_glow_pulse() -> void:
-	if glow_tween and glow_tween.is_running():
-		glow_tween.kill()
-
-	if glow_overlay:
-		var fade_tween: Tween = create_tween()
-		fade_tween.tween_property(glow_overlay, "modulate:a", 0.0, 0.25)
-		fade_tween.tween_callback(func() -> void: glow_overlay.visible = false)
