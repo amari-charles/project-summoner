@@ -42,7 +42,6 @@ var tier_fills: Array[ColorRect] = []
 ## State
 var current_mana: float = 0.0
 var max_mana: float = 10.0
-var current_tier: int = 0
 var fill_tween: Tween = null
 
 func _ready() -> void:
@@ -130,11 +129,6 @@ func _update_display(current: float, maximum: float, animate: bool) -> void:
 		# At exact boundary - show previous tier as full, no partial
 		partial_tier = complete_tiers
 		partial_percent = 0.0
-
-	# Track current tier for label display
-	var display_tier: int = maxi(complete_tiers - 1, 0) if partial_percent == 0 and complete_tiers > 0 else complete_tiers
-	display_tier = clampi(display_tier, 0, TIER_COLORS.size() - 1)
-	current_tier = display_tier
 
 	# Cancel existing animation
 	if animate and fill_tween and fill_tween.is_running():

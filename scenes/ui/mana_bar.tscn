@@ -43,7 +43,7 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 18.0
 grow_horizontal = 2
-text = "Mana: 10/10"
+text = ""
 horizontal_alignment = 1
 
 [node name="TierLabel" type="Label" parent="."]
@@ -56,6 +56,6 @@ offset_left = -30.0
 offset_top = 20.0
 offset_bottom = 48.0
 grow_horizontal = 0
-text = "x2"
+text = ""
 horizontal_alignment = 2
 vertical_alignment = 1

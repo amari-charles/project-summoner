@@ -124,7 +124,7 @@ func _init_catalog() -> void:
 	hero_mana_test.description = Loc.t("hero.hero_mana_test.description")
 	hero_mana_test.element_id = ElementRegistry.ElementId.NEUTRAL
 	hero_mana_test.base_health = 1000.0
-	hero_mana_test.max_mana = 25.0      # High mana to test tiers (blue->orange->purple)
+	hero_mana_test.max_mana = 25.0      # High mana to test tiers (light_blue->royal_blue->indigo)
 	hero_mana_test.mana_regen = 0.8     # Slower regen so mana can be depleted
 	hero_mana_test.hero_icon_path = ""
 	hero_mana_test.card_frame_style = "common"
