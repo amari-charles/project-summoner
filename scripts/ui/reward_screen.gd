@@ -49,7 +49,7 @@ func _load_battle_results() -> void:
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
 		current_battle_id = pending_dict.get("battle_id", "")
-		reward_type = pending_dict.get("reward_type", RewardTypeIDs.FIXED)
+		reward_type = StringName(pending_dict.get("reward_type", RewardTypeIDs.FIXED))
 		chosen_reward_index = pending_dict.get("choice_index", -1)
 		is_pending_reward = true
 		print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
@@ -80,7 +80,7 @@ func _load_battle_results() -> void:
 	# Update UI
 	battle_name_label.text = battle.get("name", "Unknown Battle")
 	if not is_pending_reward:
-		reward_type = battle.get("reward_type", RewardTypeIDs.FIXED)
+		reward_type = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
 
 	# Check if battle was already completed (replay scenario)
 	var is_replay: bool = campaign.call("is_battle_completed", current_battle_id)

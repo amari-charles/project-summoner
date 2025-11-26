@@ -213,7 +213,7 @@ Replaced all `"card_type": 0` with `Card.CardType.SUMMON` and `"card_type": 1` w
 Comprehensive audit to replace hardcoded string literals with type-safe constants throughout the codebase. This improves maintainability, catches typos at compile time, and provides better IDE autocomplete support.
 
 **Solution Implemented:**
-Created 12 constants classes with StringName constants:
+Created 11 constants classes with StringName constants:
 
 1. **CardIDs** - 18 card catalog ID constants
 2. **ProjectileIDs** - FIREBALL, ARROW, EMBER constants

@@ -248,7 +248,7 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 	node_container.position = node_position
 
 	var event_id: String = _safe_string(event_data.get("id", ""))
-	var event_type: StringName = event_data.get("event_type", EventTypeIDs.BATTLE)
+	var event_type: StringName = StringName(event_data.get("event_type", EventTypeIDs.BATTLE))
 
 	# Create visual button
 	var button: Button = Button.new()
@@ -401,7 +401,7 @@ func _update_detail_panel() -> void:
 
 	# Check if this event requires deck selection
 	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
-	var event_type: StringName = event.get("event_type", EventTypeIDs.BATTLE)
+	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
 
 	# Show/hide deck selection based on event configuration
 	if deck_column:
@@ -425,7 +425,7 @@ func _update_detail_panel() -> void:
 	description_label.text = _safe_string(event.get("description", "No description."), "No description.")
 
 	# Reward summary
-	var reward_type: StringName = event.get("reward_type", RewardTypeIDs.FIXED)
+	var reward_type: StringName = StringName(event.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
 	var reward_text: String = ""
 
@@ -620,7 +620,7 @@ func _on_start_event_pressed() -> void:
 	if event.is_empty():
 		return
 
-	var event_type: StringName = event.get("event_type", EventTypeIDs.BATTLE)
+	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
 	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
 
 	# Handle affinity selection event - route to hero selection
