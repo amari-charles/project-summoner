@@ -4,6 +4,24 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Cards Cannot Be Played in Campaign Battles
+**Resolved:** 2025-11-25
+**Component:** Cards / Battle System
+
+**Description:**
+Cards could not be played during campaign battles - dragging cards to the battlefield did nothing.
+
+**Root Cause:**
+`BattlefieldDropZone._can_drop_data()` was checking `summoner.get("is_alive")`, but a previous refactor renamed this property to `is_enabled` in Summoner3D. Since the property didn't exist, `get()` returned null, which defaulted to `false`, blocking all drops.
+
+**Solution Implemented:**
+Changed `is_alive` to `is_enabled` in `battlefield_drop_zone.gd:116-118`.
+
+**Related Files:**
+- `scripts/ui/battlefield_drop_zone.gd`
+
+---
+
 ### Charge Spell Causes Units to Bounce When Targeting Above Base
 **Resolved:** 2025-11-25
 **Component:** Spells / Unit Movement

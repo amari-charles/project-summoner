@@ -78,6 +78,8 @@ Before finalizing any PR, ensure all related docs are updated:
 - `docs/bugs.md` - Update bug status if fixed
 - `docs/bugs-resolved.md` - Move resolved bugs to archive
 
+**IMPORTANT: When you see items marked as "✅ Fixed" or "✅ Completed" in bugs.md or todos.md, you MUST move them to the corresponding resolved/completed archive file. Do not leave fixed/completed items in the active docs.**
+
 This keeps documentation in sync with code changes and prevents stale task lists.
 
 ### PR Reviews

@@ -12,22 +12,6 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ### 🔴 HIGH PRIORITY
 
-#### Cards Cannot Be Played in Campaign Battles
-**Status:** ✅ Fixed (2025-11-25)
-**Reported:** 2025-11-25
-**Component:** Cards / Battle System
-**Type:** Critical Bug
-
-**Root Cause:**
-`BattlefieldDropZone._can_drop_data()` was checking `summoner.get("is_alive")`, but a previous refactor renamed this property to `is_enabled` in Summoner3D. Since the property didn't exist, `get()` returned null, which defaulted to `false`, blocking all drops.
-
-**Fix:**
-Changed `is_alive` to `is_enabled` in `battlefield_drop_zone.gd:116-118`.
-
-**Note:** Move to bugs-resolved.md after verifying fix works.
-
----
-
 #### Mission Rewards Auto-Accepted Without Player Choice
 **Status:** Open
 **Reported:** 2025-11-25
@@ -156,4 +140,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-11-25 - Added card playing bug (investigating)*
+*Last Updated: 2025-11-25 - Moved fixed card playing bug to resolved*
