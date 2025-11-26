@@ -199,6 +199,10 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 		for i: int in mini(max_hand_size, deck.size()):
 			draw_card()
 
+	# Register card for XP tracking (player only)
+	if team == Unit3D.Team.PLAYER and not card.instance_id.is_empty():
+		BattleContext.register_card_played(card.instance_id)
+
 	card_played.emit(card)
 	hand_changed.emit(hand)
 

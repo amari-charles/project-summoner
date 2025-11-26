@@ -32,6 +32,10 @@ var was_configured: bool = false
 ## Signature: func(winner: int) where 0 = player, 1 = enemy
 var completion_callback: Callable
 
+## Cards played during this battle (for XP rewards)
+## Array of card instance IDs
+var _cards_played: Array[String] = []
+
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
@@ -109,15 +113,55 @@ func clear() -> void:
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = Callable()
 	was_configured = false
+	_cards_played.clear()
 	print("BattleContext: Cleared")
 
 ## Reset battle context (alias for clear, called between battles)
 func reset() -> void:
 	clear()
 
+## =============================================================================
+## CARD XP TRACKING
+## =============================================================================
+
+## Register a card as played during this battle (for XP rewards)
+## Called by card hand manager when a card is successfully played
+func register_card_played(card_instance_id: String) -> void:
+	if card_instance_id.is_empty():
+		return
+	# Only track unique plays (don't double-count if same card played twice)
+	if card_instance_id not in _cards_played:
+		_cards_played.append(card_instance_id)
+		print("BattleContext: Registered card played: %s (total: %d)" % [card_instance_id, _cards_played.size()])
+
+## Get list of cards played this battle
+func get_cards_played() -> Array[String]:
+	return _cards_played.duplicate()
+
+## Grant XP to all cards played in this battle
+## Called on battle victory
+func grant_xp_to_played_cards() -> void:
+	var card_xp: int = battle_config.get("card_xp_reward", 0)
+	if card_xp <= 0:
+		print("BattleContext: No card XP reward configured for this battle")
+		return
+
+	if _cards_played.is_empty():
+		print("BattleContext: No cards were played this battle")
+		return
+
+	print("BattleContext: Granting %d XP to %d played cards" % [card_xp, _cards_played.size()])
+	var progression_node: Node = get_node_or_null("/root/CardProgression")
+	if progression_node:
+		progression_node.call("grant_xp_to_cards", _cards_played, card_xp)
+	else:
+		push_warning("BattleContext: CardProgression autoload not found")
+
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
 	if winner == 0:  # Player won
+		# Grant XP to cards played during battle
+		grant_xp_to_played_cards()
 		# Transition to reward screen (it will handle completion and rewards)
 		SceneManager.transition_to(SceneManager.SCENE_REWARD_SCREEN)
 	else:  # Player lost

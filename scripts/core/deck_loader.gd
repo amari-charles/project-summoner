@@ -206,6 +206,7 @@ static func _create_card_from_instance(instance_id: String, collection: Variant)
 
 	var card: Card = duplicated_card
 	card.catalog_id = catalog_id
+	card.instance_id = instance_id  # Track for XP rewards
 
 	return card
 

@@ -21,7 +21,6 @@ class_name CollectionScreen
 
 ## Collection tab nodes
 @onready var card_grid: GridContainer = %CardGrid
-@onready var detail_panel: PanelContainer = %DetailPanel
 
 ## Filter buttons
 @onready var all_button: Button = %AllButton
@@ -31,13 +30,13 @@ class_name CollectionScreen
 @onready var rare_button: Button = %RareButton
 @onready var epic_button: Button = %EpicButton
 
-## Detail panel labels
-@onready var card_name_label: Label = %CardNameLabel
-@onready var rarity_label: Label = %RarityLabel
-@onready var type_label: Label = %TypeLabel
-@onready var cost_label: Label = %CostLabel
-@onready var description_label: Label = %DescriptionLabel
-@onready var owned_label: Label = %OwnedLabel
+## Sort buttons
+@onready var name_sort_button: Button = %NameSortButton
+@onready var cost_sort_button: Button = %CostSortButton
+@onready var rarity_sort_button: Button = %RaritySortButton
+@onready var type_sort_button: Button = %TypeSortButton
+@onready var level_sort_button: Button = %LevelSortButton
+@onready var element_sort_button: Button = %ElementSortButton
 
 ## My Decks tab nodes
 @onready var deck_list: VBoxContainer = %DeckList
@@ -51,8 +50,26 @@ var current_tab: Tab = Tab.COLLECTION
 var current_filter_type: int = -1  # -1 = all, 0 = summon, 1 = spell
 var current_filter_rarity: StringName = &""  # &"" = all, RarityIDs.COMMON/RARE/EPIC
 var selected_catalog_id: String = ""
+var selected_instance_id: String = ""  ## Currently selected card instance for progression
 var selected_deck_id: String = ""
 var collection_summary: Array = []
+
+## Sort state
+enum SortField { NAME, COST, RARITY, TYPE, LEVEL, ELEMENT }
+var current_sort_field: SortField = SortField.NAME
+var sort_ascending: bool = true
+
+## Rarity order for sorting (lower = more common)
+const RARITY_ORDER: Dictionary = {
+	"common": 0,
+	"rare": 1,
+	"epic": 2,
+	"legendary": 3
+}
+
+## Modal scenes
+const CardDetailModalScene: PackedScene = preload("res://scenes/ui/card_detail_modal.tscn")
+const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/card_level_up_panel.tscn")
 
 ## Card widget scene
 const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
@@ -83,6 +100,14 @@ func _ready() -> void:
 	rare_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.RARE))
 	epic_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.EPIC))
 
+	# Connect sort buttons
+	name_sort_button.pressed.connect(func() -> void: _set_sort(SortField.NAME))
+	cost_sort_button.pressed.connect(func() -> void: _set_sort(SortField.COST))
+	rarity_sort_button.pressed.connect(func() -> void: _set_sort(SortField.RARITY))
+	type_sort_button.pressed.connect(func() -> void: _set_sort(SortField.TYPE))
+	level_sort_button.pressed.connect(func() -> void: _set_sort(SortField.LEVEL))
+	element_sort_button.pressed.connect(func() -> void: _set_sort(SortField.ELEMENT))
+
 	# Connect to collection service
 	var collection: Node = get_node("/root/Collection")
 	if collection and collection.has_signal("collection_changed"):
@@ -110,6 +135,9 @@ func _ready() -> void:
 	# Load initial data
 	_refresh_collection()
 	_refresh_deck_list()
+
+	# Initialize sort button states
+	_update_sort_button_states()
 
 	# Show collection tab by default
 	_switch_to_tab(Tab.COLLECTION)
@@ -216,50 +244,37 @@ func _refresh_grid() -> void:
 
 		filtered_cards.append(entry)
 
-	# Create card widgets - show each instance individually
+	# Sort the filtered cards
+	var sorted_cards: Array = _sort_cards(filtered_cards)
+
+	# Create card widgets from sorted data
 	var total_widgets: int = 0
-	for entry_var: Variant in filtered_cards:
-		if not entry_var is Dictionary:
+	for sorted_entry: Variant in sorted_cards:
+		if not sorted_entry is Dictionary:
 			continue
-		var entry: Dictionary = entry_var
-		var instances_val: Variant = entry.get("instances", [])
-		if not instances_val is Array:
+		var sort_data: Dictionary = sorted_entry
+
+		var card_data: Dictionary = sort_data.get("instance", {})
+		var catalog_data: Dictionary = sort_data.get("catalog_data", {})
+		var entry_catalog_id: String = sort_data.get("catalog_id", "")
+
+		var widget_node: Node = CardWidgetScene.instantiate()
+		if not widget_node is CardWidget:
 			continue
-		var instances: Array = instances_val
+		var widget: CardWidget = widget_node
+		card_grid.add_child(widget)
 
-		var catalog_id_val: Variant = entry.get("catalog_id", "")
-		if not catalog_id_val is String:
-			continue
-		var entry_catalog_id: String = catalog_id_val
+		# Set card data
+		widget.set_card(card_data, catalog_data)
+		widget.set_draggable(false)
 
-		var catalog_data_result: Variant = catalog.call("get_card", entry_catalog_id)
-		if not catalog_data_result is Dictionary:
-			continue
-		var catalog_data: Dictionary = catalog_data_result
+		# Connect selection (pass instance ID, not catalog ID)
+		var instance_id_val: Variant = card_data.get("id", "")
+		var instance_id: String = instance_id_val if instance_id_val is String else ""
+		var card_clicked_sig: Signal = widget.card_clicked
+		card_clicked_sig.connect(_on_card_instance_selected.bind(instance_id, entry_catalog_id))
 
-		# Create a widget for EACH individual card instance
-		for card_data_var: Variant in instances:
-			if not card_data_var is Dictionary:
-				continue
-			var card_data: Dictionary = card_data_var
-
-			var widget_node: Node = CardWidgetScene.instantiate()
-			if not widget_node is CardWidget:
-				continue
-			var widget: CardWidget = widget_node
-			card_grid.add_child(widget)
-
-			# Set card data
-			widget.set_card(card_data, catalog_data)
-			widget.set_draggable(false)
-
-			# Connect selection (pass instance ID, not catalog ID)
-			var instance_id_val: Variant = card_data.get("id", "")
-			var instance_id: String = instance_id_val if instance_id_val is String else ""
-			var card_clicked_sig: Signal = widget.card_clicked
-			card_clicked_sig.connect(_on_card_instance_selected.bind(instance_id, entry_catalog_id))
-
-			total_widgets += 1
+		total_widgets += 1
 
 	print("CollectionScreen: Showing %d individual cards" % total_widgets)
 
@@ -289,55 +304,138 @@ func _update_filter_button_states() -> void:
 	rare_button.disabled = (current_filter_rarity == RarityIDs.RARE)
 	epic_button.disabled = (current_filter_rarity == RarityIDs.EPIC)
 
-func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void:
-	selected_catalog_id = catalog_id
+## =============================================================================
+## SORTING
+## =============================================================================
 
+func _set_sort(field: SortField) -> void:
+	if current_sort_field == field:
+		# Toggle direction if clicking same field
+		sort_ascending = not sort_ascending
+	else:
+		# New field, default to ascending
+		current_sort_field = field
+		sort_ascending = true
+
+	_refresh_grid()
+	_update_sort_button_states()
+
+func _update_sort_button_states() -> void:
+	var arrow: String = " ▲" if sort_ascending else " ▼"
+
+	# Update all buttons with localized text
+	name_sort_button.text = Loc.t("ui.collection.sort_name") + (arrow if current_sort_field == SortField.NAME else "")
+	cost_sort_button.text = Loc.t("ui.collection.sort_cost") + (arrow if current_sort_field == SortField.COST else "")
+	rarity_sort_button.text = Loc.t("ui.collection.sort_rarity") + (arrow if current_sort_field == SortField.RARITY else "")
+	type_sort_button.text = Loc.t("ui.collection.sort_type") + (arrow if current_sort_field == SortField.TYPE else "")
+	level_sort_button.text = Loc.t("ui.collection.sort_level") + (arrow if current_sort_field == SortField.LEVEL else "")
+	element_sort_button.text = Loc.t("ui.collection.sort_element") + (arrow if current_sort_field == SortField.ELEMENT else "")
+
+func _sort_cards(cards: Array) -> Array:
 	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog or not catalog.has_method("get_card"):
-		return
+	var progression_node: Node = get_node_or_null("/root/CardProgression")
 
-	var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
-	if not catalog_data_result is Dictionary:
-		return
-	var catalog_data: Dictionary = catalog_data_result
-	if catalog_data.is_empty():
-		return
-
-	# Update detail panel
-	var card_name_val: Variant = catalog_data.get("card_name", "Unknown")
-	card_name_label.text = card_name_val if card_name_val is String else "Unknown"
-
-	var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
-	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": String(rarity_val).capitalize()})
-
-	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
-	var card_type: int = int(card_type_val)  # Works for both int and enum values
-	var type_str: String = Loc.t("ui.collection.type_summon") if card_type == Card.CardType.SUMMON else Loc.t("ui.collection.type_spell")
-	type_label.text = Loc.t("ui.collection.type_label", {"type": type_str})
-
-	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
-	var mana_cost: int = mana_cost_val if mana_cost_val is int else 0
-	cost_label.text = Loc.t("ui.collection.cost_label", {"cost": mana_cost})
-
-	var description_val: Variant = catalog_data.get("description", "No description.")
-	description_label.text = description_val if description_val is String else "No description."
-
-	# Get count of this card type from collection summary
-	var count: int = 0
-	for entry_var: Variant in collection_summary:
-		if not entry_var is Dictionary:
+	# Create sortable array with all needed data
+	var sortable: Array = []
+	for card_entry: Variant in cards:
+		if not card_entry is Dictionary:
 			continue
-		var entry: Dictionary = entry_var
-		var entry_catalog_id_val: Variant = entry.get("catalog_id", "")
-		if entry_catalog_id_val is String and entry_catalog_id_val == catalog_id:
-			var count_val: Variant = entry.get("count", 0)
-			if count_val is int:
-				count = count_val
-			break
+		var entry: Dictionary = card_entry
 
-	owned_label.text = Loc.t("ui.collection.owned_label", {"count": count})
+		var catalog_id_val: Variant = entry.get("catalog_id", "")
+		if not catalog_id_val is String:
+			continue
+		var catalog_id: String = catalog_id_val
+
+		var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
+		if not catalog_data_result is Dictionary:
+			continue
+		var catalog_data: Dictionary = catalog_data_result
+
+		var instances_val: Variant = entry.get("instances", [])
+		if not instances_val is Array:
+			continue
+		var instances: Array = instances_val
+
+		# Get sort values
+		var card_name: String = catalog_data.get("card_name", "")
+		var mana_cost: int = catalog_data.get("mana_cost", 0)
+		var rarity: String = String(catalog_data.get("rarity", "common")).to_lower()
+		var card_type: int = catalog_data.get("card_type", 0)
+
+		# Get element from categories
+		var element: String = "neutral"
+		var categories_val: Variant = catalog_data.get("categories", {})
+		if categories_val is Dictionary:
+			var categories: Dictionary = categories_val
+			var affinity_val: Variant = categories.get("elemental_affinity", null)
+			if affinity_val and typeof(affinity_val) == TYPE_OBJECT and "id" in affinity_val:
+				element = affinity_val.id
+
+		# For each instance, add to sortable
+		for instance_var: Variant in instances:
+			if not instance_var is Dictionary:
+				continue
+			var instance: Dictionary = instance_var
+			var instance_id_val: Variant = instance.get("id", "")
+			var instance_id: String = instance_id_val if instance_id_val is String else ""
+
+			# Get level from progression
+			var level: int = 1
+			if progression_node and not instance_id.is_empty():
+				var info: Dictionary = progression_node.call("get_card_progression_info", instance_id)
+				level = info.get("level", 1)
+
+			sortable.append({
+				"entry": entry,
+				"instance": instance,
+				"catalog_id": catalog_id,
+				"catalog_data": catalog_data,
+				"card_name": card_name,
+				"mana_cost": mana_cost,
+				"rarity": rarity,
+				"rarity_order": RARITY_ORDER.get(rarity, 0),
+				"card_type": card_type,
+				"level": level,
+				"element": element
+			})
+
+	# Sort based on current field
+	sortable.sort_custom(_compare_cards)
+
+	return sortable
+
+func _compare_cards(a: Dictionary, b: Dictionary) -> bool:
+	var result: bool = false
+
+	match current_sort_field:
+		SortField.NAME:
+			result = a.card_name.to_lower() < b.card_name.to_lower()
+		SortField.COST:
+			result = a.mana_cost < b.mana_cost
+		SortField.RARITY:
+			result = a.rarity_order < b.rarity_order
+		SortField.TYPE:
+			result = a.card_type < b.card_type
+		SortField.LEVEL:
+			result = a.level < b.level
+		SortField.ELEMENT:
+			result = a.element.to_lower() < b.element.to_lower()
+
+	# Reverse if descending
+	if not sort_ascending:
+		result = not result
+
+	return result
+
+func _on_card_instance_selected(_card_data: Dictionary, instance_id: String, catalog_id: String) -> void:
+	selected_catalog_id = catalog_id
+	selected_instance_id = instance_id
 
 	print("CollectionScreen: Selected card instance: %s (%s)" % [instance_id, catalog_id])
+
+	# Open card detail modal
+	_open_card_detail_modal(instance_id, catalog_id)
 
 ## =============================================================================
 ## MY DECKS TAB
@@ -481,6 +579,78 @@ func _on_new_deck_pressed() -> void:
 func _on_delete_deck_pressed() -> void:
 	# TODO: Show confirmation dialog and delete selected deck
 	print("CollectionScreen: Delete deck not yet implemented")
+
+## =============================================================================
+## CARD DETAIL MODAL
+## =============================================================================
+
+## Open the card detail modal for a card instance
+func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
+	print("CollectionScreen: Opening card detail modal for %s (%s)" % [instance_id, catalog_id])
+
+	var modal_node: Node = CardDetailModalScene.instantiate()
+	if not modal_node:
+		push_error("CollectionScreen: Failed to instantiate card detail modal")
+		return
+
+	add_child(modal_node)
+
+	# Open for the selected card
+	if modal_node.has_method("open_for_card"):
+		modal_node.call("open_for_card", instance_id, catalog_id)
+
+	# Connect signals
+	if modal_node.has_signal("level_up_requested"):
+		var level_up_sig: Signal = modal_node.get("level_up_requested")
+		level_up_sig.connect(_on_level_up_from_modal)
+
+	if modal_node.has_signal("closed"):
+		var closed_sig: Signal = modal_node.get("closed")
+		closed_sig.connect(_on_card_detail_modal_closed.bind(modal_node))
+
+## Handle level-up request from card detail modal
+func _on_level_up_from_modal(instance_id: String) -> void:
+	print("CollectionScreen: Level-up requested for %s" % instance_id)
+	_open_level_up_modal(instance_id)
+
+## Handle card detail modal close
+func _on_card_detail_modal_closed(modal: Node) -> void:
+	if modal and is_instance_valid(modal):
+		modal.queue_free()
+
+## Open the level-up modal for a card
+func _open_level_up_modal(instance_id: String) -> void:
+	print("CollectionScreen: Opening level-up modal for %s" % instance_id)
+
+	var modal_node: Node = LevelUpPanelScene.instantiate()
+	if not modal_node:
+		push_error("CollectionScreen: Failed to instantiate level-up panel")
+		return
+
+	add_child(modal_node)
+
+	# Open for the selected card
+	if modal_node.has_method("open_for_card"):
+		modal_node.call("open_for_card", instance_id)
+
+	# Connect to completion signal
+	if modal_node.has_signal("level_up_completed"):
+		var completed_sig: Signal = modal_node.get("level_up_completed")
+		completed_sig.connect(_on_level_up_completed)
+
+	if modal_node.has_signal("cancelled"):
+		var cancelled_sig: Signal = modal_node.get("cancelled")
+		cancelled_sig.connect(_on_level_up_modal_closed.bind(modal_node))
+
+## Handle level-up completion
+func _on_level_up_completed(_card_instance_id: String) -> void:
+	print("CollectionScreen: Level-up completed")
+	_refresh_collection()
+
+## Handle modal close
+func _on_level_up_modal_closed(modal: Node) -> void:
+	if modal and is_instance_valid(modal):
+		modal.queue_free()
 
 ## =============================================================================
 ## NAVIGATION
