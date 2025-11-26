@@ -15,45 +15,45 @@ static func get_element_border_color(element_id: String) -> Color:
 	if element_id.is_empty():
 		return GameColorPalette.NEUTRAL_MID
 
-	match element_id.to_lower():
+	match StringName(element_id.to_lower()):
 		# Neutral
-		"neutral":
+		ElementNameIDs.NEUTRAL:
 			return GameColorPalette.NEUTRAL_MID
 
 		# Core elements
-		"fire":
+		ElementNameIDs.FIRE:
 			return GameColorPalette.FIRE_PRIMARY
-		"water":
+		ElementNameIDs.WATER:
 			return GameColorPalette.WATER_PRIMARY
-		"wind":
+		ElementNameIDs.WIND:
 			return Color("#eeeeee")  # White with gray tint
-		"earth":
+		ElementNameIDs.EARTH:
 			return GameColorPalette.EARTH_PRIMARY
 
 		# Outer elements
-		"lightning":
+		ElementNameIDs.LIGHTNING:
 			return GameColorPalette.STORM_PRIMARY
-		"shadow":
+		ElementNameIDs.SHADOW:
 			return Color("#4a0e4e")  # Deep purple-black
-		"poison":
+		ElementNameIDs.POISON:
 			return Color("#8fbc8f")  # Toxic green
-		"life":
+		ElementNameIDs.LIFE:
 			return GameColorPalette.NATURE_PRIMARY
-		"death":
+		ElementNameIDs.DEATH:
 			return Color("#2f2f2f")  # Dark gray
 
 		# Occultist
-		"occultist":
+		ElementNameIDs.OCCULTIST:
 			return Color("#6a0dad")  # Deep occult purple
 
 		# Elevated elements
-		"holy":
+		ElementNameIDs.HOLY:
 			return Color("#ffd700")  # Divine gold
-		"ice":
+		ElementNameIDs.ICE:
 			return Color("#b0e0e6")  # Pale ice blue
-		"metal":
+		ElementNameIDs.METAL:
 			return Color("#c0c0c0")  # Metallic silver
-		"spirit":
+		ElementNameIDs.SPIRIT:
 			return Color("#e6e6fa")  # Ethereal lavender
 
 		_:
@@ -69,45 +69,45 @@ static func get_element_glow_color(element_id: String) -> Color:
 ## Get gradient color pair for element background
 ## Returns [dark_color, light_color] for radial gradient (center to edge)
 static func get_element_gradient_colors(element_id: String) -> Array[Color]:
-	match element_id.to_lower():
+	match StringName(element_id.to_lower()):
 		# Neutral
-		"neutral":
+		ElementNameIDs.NEUTRAL:
 			return [Color("#3a3a3a"), Color("#6a6a6a")]  # Dark gray → Mid gray
 
 		# Core elements
-		"fire":
+		ElementNameIDs.FIRE:
 			return [GameColorPalette.FIRE_DARK, GameColorPalette.FIRE_PRIMARY]  # Deep ember → Bright orange
-		"water":
+		ElementNameIDs.WATER:
 			return [GameColorPalette.WATER_DARK, GameColorPalette.WATER_PRIMARY]  # Deep ocean → Bright blue
-		"wind":
+		ElementNameIDs.WIND:
 			return [Color("#e0e0e0"), Color("#ffffff")]  # Light gray → White
-		"earth":
+		ElementNameIDs.EARTH:
 			return [GameColorPalette.EARTH_PRIMARY, GameColorPalette.EARTH_SECONDARY]  # Dark brown → Tan
 
 		# Outer elements
-		"lightning":
+		ElementNameIDs.LIGHTNING:
 			return [GameColorPalette.STORM_DARK, GameColorPalette.STORM_PRIMARY]  # Deep violet → Bright purple
-		"shadow":
+		ElementNameIDs.SHADOW:
 			return [Color("#1a0520"), Color("#4a0e4e")]  # Very dark purple → Deep purple-black
-		"poison":
+		ElementNameIDs.POISON:
 			return [Color("#2d4a2d"), Color("#8fbc8f")]  # Dark green → Toxic green
-		"life":
+		ElementNameIDs.LIFE:
 			return [GameColorPalette.NATURE_DARK, GameColorPalette.NATURE_PRIMARY]  # Deep forest → Bright green
-		"death":
+		ElementNameIDs.DEATH:
 			return [Color("#1a1a1a"), Color("#2f2f2f")]  # Very dark → Dark gray
 
 		# Occultist
-		"occultist":
+		ElementNameIDs.OCCULTIST:
 			return [Color("#2d0547"), Color("#6a0dad")]  # Very dark purple → Deep occult purple
 
 		# Elevated elements
-		"holy":
+		ElementNameIDs.HOLY:
 			return [Color("#c49a00"), Color("#ffd700")]  # Dark gold → Divine gold
-		"ice":
+		ElementNameIDs.ICE:
 			return [Color("#6fa8b0"), Color("#b0e0e6")]  # Cool blue → Pale ice blue
-		"metal":
+		ElementNameIDs.METAL:
 			return [Color("#808080"), Color("#c0c0c0")]  # Dark silver → Metallic silver
-		"spirit":
+		ElementNameIDs.SPIRIT:
 			return [Color("#a0a0d0"), Color("#e6e6fa")]  # Muted lavender → Ethereal lavender
 
 		_:
@@ -178,19 +178,18 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 	# Get card type and unit type
 	var card_type_variant: Variant = catalog_dict.get("card_type", Card.CardType.SUMMON)
 	var card_type: int = int(card_type_variant)  # Works for both int and enum values
-	var unit_type_variant: Variant = catalog_dict.get("unit_type", "")
-	var unit_type: String = unit_type_variant if unit_type_variant is String else ""
+	var unit_type: StringName = catalog_dict.get("unit_type", UnitTypeIDs.MELEE)
 
 	# Map to icon path
 	if card_type == Card.CardType.SPELL:
 		return "res://assets/icons/card_types/wizard_hat.png"
 	elif card_type == Card.CardType.SUMMON:
 		match unit_type:
-			"melee":
+			UnitTypeIDs.MELEE:
 				return "res://assets/icons/card_types/sword.png"
-			"ranged":
+			UnitTypeIDs.RANGED:
 				return "res://assets/icons/card_types/bow.png"
-			"structure":
+			UnitTypeIDs.STRUCTURE:
 				return "res://assets/icons/card_types/tower.png"
 			_:
 				push_warning("CardVisualHelper: Unknown unit_type '%s', defaulting to sword" % unit_type)

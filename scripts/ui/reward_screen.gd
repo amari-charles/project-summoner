@@ -16,7 +16,7 @@ class_name RewardScreen
 
 ## State
 var current_battle_id: String = ""
-var reward_type: String = ""
+var reward_type: StringName = &""
 var chosen_reward_index: int = -1  ## Index of chosen reward (-1 = not chosen)
 var is_pending_reward: bool = false  ## True if resuming a pending reward
 var reward_ready_to_claim: bool = false  ## True when reward is ready to be claimed
@@ -49,7 +49,7 @@ func _load_battle_results() -> void:
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
 		current_battle_id = pending_dict.get("battle_id", "")
-		reward_type = pending_dict.get("reward_type", "fixed")
+		reward_type = pending_dict.get("reward_type", RewardTypeIDs.FIXED)
 		chosen_reward_index = pending_dict.get("choice_index", -1)
 		is_pending_reward = true
 		print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
@@ -80,7 +80,7 @@ func _load_battle_results() -> void:
 	# Update UI
 	battle_name_label.text = battle.get("name", "Unknown Battle")
 	if not is_pending_reward:
-		reward_type = battle.get("reward_type", "fixed")
+		reward_type = battle.get("reward_type", RewardTypeIDs.FIXED)
 
 	# Check if battle was already completed (replay scenario)
 	var is_replay: bool = campaign.call("is_battle_completed", current_battle_id)
@@ -114,20 +114,20 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 		return
 
 	match reward_type:
-		"fixed", "random":
+		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
 			# Display the reward preview (don't grant yet - grant on Continue)
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				_display_card_reward(reward_cards[0])
 			reward_ready_to_claim = true
 
-		"choice":
+		RewardTypeIDs.CHOICE:
 			# Show choice UI - player must pick before continuing
 			var reward_cards: Array = battle.get("reward_cards", [])
 			_show_choice_ui(reward_cards)
 			reward_ready_to_claim = false  # Must choose first
 
-		"none":
+		RewardTypeIDs.NONE:
 			# No rewards for this battle
 			reward_card_label.text = Loc.t("ui.reward.victory")
 			reward_detail_label.text = ""
@@ -138,14 +138,14 @@ func _resume_pending_reward(battle: Dictionary) -> void:
 	print("RewardScreen: Resuming pending reward (type: %s, choice_index: %d)" % [reward_type, chosen_reward_index])
 
 	match reward_type:
-		"fixed", "random":
+		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
 			# Fixed/random rewards just need to show the preview
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				_display_card_reward(reward_cards[0])
 			reward_ready_to_claim = true
 
-		"choice":
+		RewardTypeIDs.CHOICE:
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if chosen_reward_index >= 0 and chosen_reward_index < reward_cards.size():
 				# Player already made a choice - show it
@@ -157,7 +157,7 @@ func _resume_pending_reward(battle: Dictionary) -> void:
 				_show_choice_ui(reward_cards)
 				reward_ready_to_claim = false
 
-		"none":
+		RewardTypeIDs.NONE:
 			reward_card_label.text = Loc.t("ui.reward.victory")
 			reward_detail_label.text = ""
 			reward_ready_to_claim = true
@@ -168,7 +168,7 @@ func _display_card_reward(reward: Dictionary) -> void:
 		return
 
 	var catalog_id: String = reward.get("catalog_id", "")
-	var rarity: String = reward.get("rarity", "common")
+	var rarity: StringName = reward.get("rarity", RarityIDs.COMMON)
 	var count: int = reward.get("count", 1)
 
 	var card_data: Dictionary = catalog.call("get_card", catalog_id)
@@ -188,13 +188,13 @@ func _display_card_reward(reward: Dictionary) -> void:
 
 	# Color based on rarity
 	match rarity:
-		"common":
+		RarityIDs.COMMON:
 			reward_card_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-		"rare":
+		RarityIDs.RARE:
 			reward_card_label.add_theme_color_override("font_color", Color(0.4, 0.6, 1.0))
-		"epic":
+		RarityIDs.EPIC:
 			reward_card_label.add_theme_color_override("font_color", Color(0.8, 0.4, 1.0))
-		"legendary":
+		RarityIDs.LEGENDARY:
 			reward_card_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
 
 func _show_choice_ui(reward_options: Array) -> void:

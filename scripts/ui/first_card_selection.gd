@@ -48,7 +48,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 	var collection: Node = get_node("/root/Collection")
 	var card_instance_id: String = ""
 	if collection and collection.has_method("grant_card"):
-		var result: Variant = collection.call("grant_card", catalog_id, "common")
+		var result: Variant = collection.call("grant_card", catalog_id, RarityIDs.COMMON)
 		card_instance_id = result if result is String else ""
 		print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
 

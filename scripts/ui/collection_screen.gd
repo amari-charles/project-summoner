@@ -49,7 +49,7 @@ enum Tab { COLLECTION, MY_DECKS }
 var current_tab: Tab = Tab.COLLECTION
 
 var current_filter_type: int = -1  # -1 = all, 0 = summon, 1 = spell
-var current_filter_rarity: String = ""  # "" = all, "common", "rare", "epic"
+var current_filter_rarity: StringName = &""  # &"" = all, RarityIDs.COMMON/RARE/EPIC
 var selected_catalog_id: String = ""
 var selected_deck_id: String = ""
 var collection_summary: Array = []
@@ -79,9 +79,9 @@ func _ready() -> void:
 	all_button.pressed.connect(func() -> void: _set_type_filter(-1))
 	summon_button.pressed.connect(func() -> void: _set_type_filter(0))
 	spell_button.pressed.connect(func() -> void: _set_type_filter(1))
-	common_button.pressed.connect(func() -> void: _set_rarity_filter("common"))
-	rare_button.pressed.connect(func() -> void: _set_rarity_filter("rare"))
-	epic_button.pressed.connect(func() -> void: _set_rarity_filter("epic"))
+	common_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.COMMON))
+	rare_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.RARE))
+	epic_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.EPIC))
 
 	# Connect to collection service
 	var collection: Node = get_node("/root/Collection")
@@ -209,9 +209,9 @@ func _refresh_grid() -> void:
 				continue
 
 		# Apply rarity filter
-		if current_filter_rarity != "":
-			var rarity_val: Variant = catalog_data.get("rarity", "common")
-			if rarity_val is String and rarity_val != current_filter_rarity:
+		if current_filter_rarity != &"":
+			var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
+			if rarity_val != current_filter_rarity:
 				continue
 
 		filtered_cards.append(entry)
@@ -285,9 +285,9 @@ func _update_filter_button_states() -> void:
 	spell_button.disabled = (current_filter_type == 1)
 
 	# Rarity buttons
-	common_button.disabled = (current_filter_rarity == "common")
-	rare_button.disabled = (current_filter_rarity == "rare")
-	epic_button.disabled = (current_filter_rarity == "epic")
+	common_button.disabled = (current_filter_rarity == RarityIDs.COMMON)
+	rare_button.disabled = (current_filter_rarity == RarityIDs.RARE)
+	epic_button.disabled = (current_filter_rarity == RarityIDs.EPIC)
 
 func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void:
 	selected_catalog_id = catalog_id
@@ -307,9 +307,8 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 	var card_name_val: Variant = catalog_data.get("card_name", "Unknown")
 	card_name_label.text = card_name_val if card_name_val is String else "Unknown"
 
-	var rarity_val: Variant = catalog_data.get("rarity", "common")
-	var rarity_str: String = rarity_val if rarity_val is String else "common"
-	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": rarity_str.capitalize()})
+	var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
+	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": String(rarity_val).capitalize()})
 
 	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
 	var card_type: int = int(card_type_val)  # Works for both int and enum values

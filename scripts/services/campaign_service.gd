@@ -59,10 +59,10 @@ func _init_battles() -> void:
 		"name": Loc.t("campaign.event.affinity.name"),
 		"description": Loc.t("campaign.event.affinity.description"),
 		"difficulty": 0,
-		"event_type": "affinity",
+		"event_type": EventTypeIDs.AFFINITY,
 		"requires_deck": false,  # No deck selection needed
 		"repeatable": false,  # One-time event
-		"reward_type": "fixed",
+		"reward_type": RewardTypeIDs.FIXED,
 		"reward_cards": [],  # Reward handled by hero_selection flow
 		"enemy_deck": [],  # Not a battle
 		"unlock_requirements": [],  # First event, always available
@@ -75,10 +75,10 @@ func _init_battles() -> void:
 		"name": Loc.t("campaign.event.first_summon.name"),
 		"description": Loc.t("campaign.event.first_summon.description"),
 		"difficulty": 0,
-		"event_type": "first_summon",
+		"event_type": EventTypeIDs.FIRST_SUMMON,
 		"requires_deck": false,  # No deck selection needed
 		"repeatable": false,  # One-time event
-		"reward_type": "fixed",
+		"reward_type": RewardTypeIDs.FIXED,
 		"reward_cards": [],  # Reward handled by first_card_selection flow
 		"enemy_deck": [],  # Not a battle
 		"unlock_requirements": [String(BattleIDs.EVENT_AFFINITY)],  # Requires completing affinity selection
@@ -91,11 +91,11 @@ func _init_battles() -> void:
 		"name": Loc.t("campaign.battle.first_trial.name"),
 		"description": Loc.t("campaign.battle.first_trial.description"),
 		"difficulty": 1,
-		"event_type": "battle",
+		"event_type": EventTypeIDs.BATTLE,
 		"repeatable": false,  # One-time tutorial battle
 		"requires_deck": true,  # Requires deck selection
 		"is_tutorial": true,  # Tutorial battle - deck editing locked
-		"reward_type": "fixed",
+		"reward_type": RewardTypeIDs.FIXED,
 		"reward_cards": [
 			{"catalog_id": "charge", "rarity": RarityIDs.COMMON, "count": 1}
 		],
@@ -118,11 +118,11 @@ func _init_battles() -> void:
 		"name": Loc.t("campaign.battle.charge_tutorial.name"),
 		"description": Loc.t("campaign.battle.charge_tutorial.description"),
 		"difficulty": 1,
-		"event_type": "battle",
+		"event_type": EventTypeIDs.BATTLE,
 		"repeatable": false,  # One-time tutorial battle
 		"requires_deck": true,
 		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
-		"reward_type": "fixed",
+		"reward_type": RewardTypeIDs.FIXED,
 		"reward_cards": [
 			{"catalog_id": "fire_recruit", "rarity": RarityIDs.COMMON, "count": 1},
 			{"catalog_id": "ember_slinger", "rarity": RarityIDs.COMMON, "count": 1}
@@ -140,7 +140,7 @@ func _init_battles() -> void:
 	# Caravan Event: Mr. Merriweather's Trading Post
 	_battles[String(BattleIDs.EVENT_CARAVAN_TUTORIAL)] = {
 		"id": String(BattleIDs.EVENT_CARAVAN_TUTORIAL),
-		"event_type": "caravan",
+		"event_type": EventTypeIDs.CARAVAN,
 		"name": Loc.t("campaign.event.caravan_tutorial.name"),
 		"description": Loc.t("campaign.event.caravan_tutorial.description"),
 		"difficulty": 1,
@@ -148,7 +148,7 @@ func _init_battles() -> void:
 		"unlock_requirements": [String(BattleIDs.CHARGE_TUTORIAL)],
 		"requires_deck": false,
 		"repeatable": false,
-		"reward_type": "none",  # Rewards from shop
+		"reward_type": RewardTypeIDs.NONE,  # Rewards from shop
 		"reward_cards": [],
 		# Caravan shop ID
 		"shop_id": "caravan_tutorial",
@@ -328,7 +328,7 @@ func claim_pending_reward() -> Dictionary:
 		return {}
 
 	# For choice rewards, ensure a choice was made
-	if reward_type == "choice" and choice_index < 0:
+	if reward_type == RewardTypeIDs.CHOICE and choice_index < 0:
 		push_error("CampaignService: Cannot claim choice reward without making a choice")
 		return {}
 
@@ -376,7 +376,7 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 		var empty_result: Dictionary = {}
 		return empty_result
 
-	var reward_type: String = battle.get("reward_type", "fixed")
+	var reward_type: StringName = battle.get("reward_type", RewardTypeIDs.FIXED)
 	var reward_cards: Array = battle.get("reward_cards", [])
 
 	if reward_cards.is_empty():
@@ -388,7 +388,7 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 	var granted_instance_ids: Array[String] = []  # Track actual card instance IDs
 
 	match reward_type:
-		"fixed":
+		RewardTypeIDs.FIXED:
 			# Grant all reward cards
 			for reward: Variant in reward_cards:
 				if reward is Dictionary:
@@ -398,7 +398,7 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				granted_card = reward_cards[0]  # Return first for display
 
-		"choice":
+		RewardTypeIDs.CHOICE:
 			# Player chooses one from the list
 			if chosen_index >= 0 and chosen_index < reward_cards.size():
 				var chosen_reward_variant: Variant = reward_cards[chosen_index]
@@ -412,7 +412,7 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 			else:
 				push_error("CampaignService: Invalid choice index %d" % chosen_index)
 
-		"random":
+		RewardTypeIDs.RANDOM:
 			# Pick random card from pool
 			var random_reward_variant: Variant = reward_cards[randi() % reward_cards.size()]
 			if not random_reward_variant is Dictionary:
