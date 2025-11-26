@@ -51,6 +51,18 @@ func _init_battles() -> void:
 	# - Summoner3D will auto-detect this and use DEFERRED deck loading strategy
 	# - Enemies are spawned manually via BattleDialogueController or EventSequencer
 
+	# WIN CONDITIONS:
+	# Each battle can specify a win condition using these fields:
+	#   - "win_condition": WinConditionIDs constant (default: DESTROY_BASE)
+	#   - "time_limit": seconds for timed conditions (required for SURVIVE_TIME, TIMED_DESTROY)
+	#   - "kill_target": number of kills for KILL_COUNT condition
+	#
+	# Available win conditions (see WinConditionIDs):
+	#   - DESTROY_BASE: Destroy enemy base to win (default, no time limit)
+	#   - SURVIVE_TIME: Survive for time_limit seconds (player wins on timeout)
+	#   - TIMED_DESTROY: Destroy base within time_limit (player loses on timeout)
+	#   - KILL_COUNT: Kill kill_target enemy units to win
+
 	# Onboarding Event 1: Hero/Affinity selection
 	# Note: Convert StringName to String for dictionary keys (String lookups won't find StringName keys)
 	_battles[String(BattleIDs.EVENT_AFFINITY)] = {

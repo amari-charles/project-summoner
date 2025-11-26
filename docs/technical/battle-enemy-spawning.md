@@ -14,6 +14,10 @@ _battles["first_trial"] = {
         {"catalog_id": "slime_green", "count": 1}
     ],
     "enemy_hp": 30.0,
+    // Optional win condition (defaults to DESTROY_BASE)
+    "win_condition": WinConditionIDs.DESTROY_BASE,
+    "time_limit": 60.0,  // Required for SURVIVE_TIME, TIMED_DESTROY
+    "kill_target": 10,   // Required for KILL_COUNT
     // ... other config
 }
 ```
@@ -124,3 +128,5 @@ _battles["my_battle"] = {
 - `scripts/core/summoner_3d.gd` - Deck loading strategy auto-detection
 - `scripts/core/enemy_deck_loader.gd` - Loads enemy decks from battle config
 - `scripts/core/battle_dialogue_controller.gd` - Handles event_sequence playback
+- `scripts/core/game_controller_3d.gd` - Win condition handling
+- `scripts/data/win_condition_ids.gd` - Win condition type constants

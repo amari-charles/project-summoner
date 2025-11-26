@@ -20,11 +20,28 @@ var current_state: GameState = GameState.SETUP
 var match_time: float = 0.0
 var is_overtime: bool = false
 
+## =============================================================================
+## WIN CONDITION SYSTEM
+## =============================================================================
+
+## Current win condition type (from battle config)
+var win_condition: StringName = WinConditionIDs.DEFAULT
+
+## Time limit for timed win conditions (seconds, 0 = no limit)
+var win_condition_time_limit: float = 0.0
+
+## Kill target for KILL_COUNT win condition
+var win_condition_kill_target: int = 0
+
+## Current kill count for KILL_COUNT tracking
+var _enemy_kill_count: int = 0
+
 signal game_started()
 signal game_ended(winner: Unit3D.Team)
 signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
 signal initialization_complete()  ## Emitted when all battle systems are ready
+signal objective_progress(current: int, target: int)  ## For kill count objectives
 
 func _ready() -> void:
 	print("BattleCoordinator: Starting battle initialization...")
@@ -66,20 +83,25 @@ func _ready() -> void:
 	_init_bases()
 	print("BattleCoordinator: Phase 3 complete - Bases ready")
 
-	# Phase 4: Initialize AI
-	print("BattleCoordinator: Phase 4 - AI...")
+	# Phase 4: Initialize win conditions
+	print("BattleCoordinator: Phase 4 - Win conditions...")
+	_init_win_conditions()
+	print("BattleCoordinator: Phase 4 complete - Win conditions ready")
+
+	# Phase 5: Initialize AI
+	print("BattleCoordinator: Phase 5 - AI...")
 	_load_ai_for_enemy()
-	print("BattleCoordinator: Phase 4 complete - AI ready")
+	print("BattleCoordinator: Phase 5 complete - AI ready")
 
-	# Phase 5: Initialize hero modifiers
-	print("BattleCoordinator: Phase 5 - Hero modifiers...")
+	# Phase 6: Initialize hero modifiers
+	print("BattleCoordinator: Phase 6 - Hero modifiers...")
 	_register_hero_provider()
-	print("BattleCoordinator: Phase 5 complete - Hero modifiers ready")
+	print("BattleCoordinator: Phase 6 complete - Hero modifiers ready")
 
-	# Phase 6: Initialize UI components
-	print("BattleCoordinator: Phase 6 - UI...")
+	# Phase 7: Initialize UI components
+	print("BattleCoordinator: Phase 7 - UI...")
 	_init_ui()
-	print("BattleCoordinator: Phase 6 complete - UI ready")
+	print("BattleCoordinator: Phase 7 complete - UI ready")
 
 	# =============================================================================
 	# INITIALIZATION COMPLETE
@@ -143,6 +165,10 @@ func _exit_tree() -> void:
 	if modifier_system and modifier_system.has_method("unregister_provider"):
 		modifier_system.call("unregister_provider", "hero")
 
+	# Cleanup: disconnect kill tracking signal to prevent memory leak
+	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
+		get_tree().node_added.disconnect(_on_node_added_for_kill_tracking)
+
 ## Comprehensive battle state reset
 ## Clears all units, projectiles, HP bars from the scene
 ## Note: Autoload resets (EventSequencer, DialogueManager, etc.) are handled by SceneCoordinator
@@ -181,17 +207,27 @@ func _process(delta: float) -> void:
 		return
 
 	match_time += delta
-	var remaining: float = match_duration - match_time
 
-	if not is_overtime:
+	# Handle timed win conditions
+	if WinConditionIDs.has_time_limit(win_condition) and win_condition_time_limit > 0:
+		var remaining: float = win_condition_time_limit - match_time
 		time_updated.emit(remaining)
+
 		if remaining <= 0:
-			_check_timeout_victory()
+			_handle_win_condition_timeout()
 	else:
-		var overtime_remaining: float = overtime_duration - (match_time - match_duration)
-		time_updated.emit(overtime_remaining)
-		if overtime_remaining <= 0:
-			_check_overtime_victory()
+		# Default timer behavior (no time limit or DESTROY_BASE)
+		var remaining: float = match_duration - match_time
+
+		if not is_overtime:
+			time_updated.emit(remaining)
+			if remaining <= 0:
+				_check_timeout_victory()
+		else:
+			var overtime_remaining: float = overtime_duration - (match_time - match_duration)
+			time_updated.emit(overtime_remaining)
+			if overtime_remaining <= 0:
+				_check_overtime_victory()
 
 func start_game() -> void:
 	current_state = GameState.PLAYING
@@ -543,6 +579,107 @@ func _restore_unit_tint() -> void:
 					sprite.modulate = _unit_original_modulates[unit]
 
 	_unit_original_modulates.clear()
+
+## =============================================================================
+## WIN CONDITION INITIALIZATION
+## =============================================================================
+
+## Initialize win conditions from battle config
+func _init_win_conditions() -> void:
+	# Reset state
+	win_condition = WinConditionIDs.DEFAULT
+	win_condition_time_limit = 0.0
+	win_condition_kill_target = 0
+	_enemy_kill_count = 0
+
+	# Get win condition from battle config
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if not battle_context:
+		print("BattleCoordinator: No BattleContext, using default win condition")
+		return
+
+	var config_variant: Variant = battle_context.get("battle_config")
+	var config: Dictionary = config_variant if config_variant is Dictionary else {}
+	if config.is_empty():
+		print("BattleCoordinator: Empty battle config, using default win condition")
+		return
+
+	# Read win condition type
+	var condition_str: String = config.get(&"win_condition", "")
+	if not condition_str.is_empty() and WinConditionIDs.is_valid(condition_str):
+		win_condition = StringName(condition_str)
+	else:
+		win_condition = WinConditionIDs.DEFAULT
+
+	# Read time limit for timed conditions
+	win_condition_time_limit = config.get(&"time_limit", 0.0)
+
+	# Read kill target for KILL_COUNT
+	win_condition_kill_target = config.get(&"kill_target", 0)
+
+	# Validate configuration
+	if win_condition == WinConditionIDs.KILL_COUNT and win_condition_kill_target <= 0:
+		push_warning("BattleCoordinator: KILL_COUNT win condition has no kill_target set!")
+
+	if WinConditionIDs.has_time_limit(win_condition) and win_condition_time_limit <= 0:
+		push_warning("BattleCoordinator: Timed win condition has no time_limit set!")
+
+	# Connect to unit death signal for kill counting
+	if win_condition == WinConditionIDs.KILL_COUNT:
+		_connect_unit_death_tracking()
+
+	print("BattleCoordinator: Win condition = %s, time_limit = %.1fs, kill_target = %d" % [
+		win_condition, win_condition_time_limit, win_condition_kill_target
+	])
+
+## Handle timeout based on win condition type
+func _handle_win_condition_timeout() -> void:
+	if WinConditionIDs.timeout_is_win(win_condition):
+		# Player wins by surviving the time limit (SURVIVE_TIME)
+		end_game(Unit3D.Team.PLAYER)
+	elif WinConditionIDs.timeout_is_loss(win_condition):
+		# Player loses if they didn't complete objective in time (TIMED_DESTROY)
+		end_game(Unit3D.Team.ENEMY)
+	else:
+		# Default: player wins on timeout
+		_check_timeout_victory()
+
+## Connect to unit death signals for kill count tracking
+func _connect_unit_death_tracking() -> void:
+	# Connect to any existing units
+	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
+	for node: Node in units:
+		if node is Unit3D:
+			var unit: Unit3D = node
+			if not unit.unit_died.is_connected(_on_unit_died_for_kill_count):
+				unit.unit_died.connect(_on_unit_died_for_kill_count)
+
+	# Connect to future units via tree signal
+	get_tree().node_added.connect(_on_node_added_for_kill_tracking)
+
+## Track newly added units for kill counting
+func _on_node_added_for_kill_tracking(node: Node) -> void:
+	if win_condition != WinConditionIDs.KILL_COUNT:
+		return
+
+	if node is Unit3D:
+		var unit: Unit3D = node
+		if not unit.unit_died.is_connected(_on_unit_died_for_kill_count):
+			unit.unit_died.connect(_on_unit_died_for_kill_count)
+
+## Handle unit death for kill count objective
+func _on_unit_died_for_kill_count(unit: Unit3D) -> void:
+	if win_condition != WinConditionIDs.KILL_COUNT:
+		return
+
+	# Only count enemy kills
+	if unit.team == Unit3D.Team.ENEMY:
+		_enemy_kill_count += 1
+		objective_progress.emit(_enemy_kill_count, win_condition_kill_target)
+
+		# Check if objective met
+		if _enemy_kill_count >= win_condition_kill_target:
+			end_game(Unit3D.Team.PLAYER)
 
 ## =============================================================================
 ## INITIALIZATION HELPERS
