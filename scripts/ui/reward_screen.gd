@@ -173,7 +173,7 @@ func _display_card_reward(reward: Dictionary) -> void:
 
 	var card_data: Dictionary = catalog.call("get_card", catalog_id)
 	if card_data.is_empty():
-		reward_card_label.text = "Unknown Card"
+		reward_card_label.text = Loc.t("ui.reward.unknown_card")
 		reward_detail_label.text = ""
 		return
 
@@ -184,7 +184,7 @@ func _display_card_reward(reward: Dictionary) -> void:
 	else:
 		reward_card_label.text = card_name
 
-	reward_detail_label.text = "Rarity: %s" % rarity.capitalize()
+	reward_detail_label.text = Loc.t("ui.reward.rarity", {"rarity": rarity.capitalize()})
 
 	# Color based on rarity
 	match rarity:

@@ -9,8 +9,8 @@ class_name FirstCardSelection
 # Deck name constant
 const STARTER_DECK_NAME: String = "Starter Deck"
 
-@onready var select_warrior_button: Button = %SelectWarriorButton
-@onready var select_archer_button: Button = %SelectArcherButton
+@onready var select_fire_recruit_button: Button = %SelectFireRecruitButton
+@onready var select_ember_slinger_button: Button = %SelectEmberSlingerButton
 
 var dialogue_manager: Node = null
 
@@ -18,8 +18,8 @@ func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect button handlers
-	select_warrior_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_RECRUIT))
-	select_archer_button.pressed.connect(_on_card_selected.bind(CardIDs.EMBER_SLINGER))
+	select_fire_recruit_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_RECRUIT))
+	select_ember_slinger_button.pressed.connect(_on_card_selected.bind(CardIDs.EMBER_SLINGER))
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)
 	await get_tree().process_frame

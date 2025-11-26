@@ -27,6 +27,22 @@
     "starter_deck_name": "Starter Deck",
     "rewards": {
       "fixed": "Reward: {cards}"
+    },
+    "map": {
+      "select_event": "Select an Event",
+      "click_to_see_details": "Click an event node to see details.",
+      "difficulty": "Difficulty: {stars}",
+      "button_replay": "REPLAY (no reward)",
+      "button_completed": "COMPLETED",
+      "button_start": "START",
+      "button_start_event": "START EVENT",
+      "error_decks_unavailable": "Error: Decks service unavailable",
+      "error_create_deck_first": "Create a deck first",
+      "deck_card_count": "{count} cards",
+      "deck_status_ready": "✓ Ready",
+      "deck_status_invalid": "⚠ Invalid deck",
+      "deck_status_select_first": "⚠ Select a deck first!",
+      "progress": "{completed} / {total} Complete"
     }
   },
   "card": {
@@ -64,7 +80,9 @@
     "reward": {
       "already_completed": "Battle Already Completed",
       "no_replay_rewards": "No rewards for replaying battles",
-      "victory": "Victory!"
+      "victory": "Victory!",
+      "unknown_card": "Unknown Card",
+      "rarity": "Rarity: {rarity}"
     }
   },
   "error": {
