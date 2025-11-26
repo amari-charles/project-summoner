@@ -77,13 +77,13 @@ func _update_display() -> void:
 
 	# Stats (base stats from config)
 	if hp_label:
-		hp_label.text = "HP: %.0f" % hero_config.base_health
+		hp_label.text = Loc.t("ui.hero_card.hp_label", {"value": "%.0f" % hero_config.base_health})
 
 	if mana_label:
-		mana_label.text = "Mana: %.0f" % hero_config.max_mana
+		mana_label.text = Loc.t("ui.hero_card.mana_label", {"value": "%.0f" % hero_config.max_mana})
 
 	if regen_label:
-		regen_label.text = "Regen: %.1f/s" % hero_config.mana_regen
+		regen_label.text = Loc.t("ui.hero_card.regen_label", {"value": "%.1f" % hero_config.mana_regen})
 
 	# Description
 	if description_label:

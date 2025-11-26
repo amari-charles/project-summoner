@@ -40,16 +40,16 @@ func set_offering(new_offering: ShopOffering) -> void:
 	# Type label
 	match offering.offering_type:
 		ShopOffering.OfferingType.CARD:
-			type_label.text = "Type: Card"
+			type_label.text = Loc.t("ui.offering.type_card")
 		ShopOffering.OfferingType.CARD_PACK:
-			type_label.text = "Type: Card Pack"
+			type_label.text = Loc.t("ui.offering.type_card_pack")
 		ShopOffering.OfferingType.CURRENCY:
-			type_label.text = "Type: Currency"
+			type_label.text = Loc.t("ui.offering.type_currency")
 		ShopOffering.OfferingType.SPECIAL:
-			type_label.text = "Type: Special"
+			type_label.text = Loc.t("ui.offering.type_special")
 
 	# Price (base price, context-dependent pricing handled by detail panel)
-	price_label.text = "Price: %d gold" % offering.base_price
+	price_label.text = Loc.t("ui.offering.price_format", {"price": offering.base_price})
 
 ## =============================================================================
 ## SIGNAL HANDLERS

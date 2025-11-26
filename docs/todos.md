@@ -234,37 +234,6 @@ The profile data structure has redundant and unused fields that waste storage an
 
 ### 🔴 HIGH PRIORITY
 
-#### Fix Hardcoded UI Strings - Add Localization
-**Status:** 🔄 In Progress
-**Category:** Core Game Systems / Localization
-**Effort:** Medium
-
-**Description:**
-Many UI files have hardcoded user-facing strings instead of using the `Loc.t()` localization pattern. All user-facing text must be localized.
-
-**Files Requiring Updates:**
-- ✅ `game_ui.gd` - Win/lose messages
-- ✅ `collection_screen.gd` - Card stats labels, deck info labels, empty state messages
-- ✅ `mana_bar.gd` - Mana display format
-- ✅ `speed_button.gd` - Tooltips
-- ⬜ `deck_builder.gd` - Various labels and messages (many strings)
-- ⬜ `shop_screen.gd` - Gold label, offering details
-- ⬜ `offering_card.gd` - Type labels, price
-- ⬜ `hero_card.gd` - HP/Mana/Regen labels
-- ⬜ `hero_reveal.gd` - Title text
-
-**Requirements:**
-- Replace all hardcoded strings with `Loc.t("key.path")` calls
-- Add corresponding entries to `localization/data/en.json`
-- Follow naming convention: `category.subcategory.item`
-
-**Notes:**
-- Critical for future localization support
-- Defined in CLAUDE.md as a project requirement
-- Localization keys added to en.json for all planned strings
-
----
-
 #### Research and Implement Framerate Independence
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Performance
