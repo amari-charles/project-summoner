@@ -150,7 +150,7 @@ func _load_offerings() -> void:
 func _update_gold_display() -> void:
 	var resources: Dictionary = ProfileRepo.get_resources()
 	var gold: int = resources.get("gold", 0)
-	gold_label.text = "Gold: %d" % gold
+	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
 
 ## =============================================================================
 ## DETAIL PANEL
@@ -158,10 +158,10 @@ func _update_gold_display() -> void:
 
 func _clear_detail_panel() -> void:
 	selected_offering = null
-	offering_name_label.text = "Select an offering"
-	price_label.text = "Price: -"
-	description_label.text = "Offering description will appear here."
-	contents_label.text = "Contents:"
+	offering_name_label.text = Loc.t("ui.shop.select_offering")
+	price_label.text = Loc.t("ui.shop.price_placeholder")
+	description_label.text = Loc.t("ui.shop.description_placeholder")
+	contents_label.text = Loc.t("ui.shop.contents_label")
 	purchase_button.disabled = true
 
 func _update_detail_panel(offering: ShopOffering) -> void:
@@ -171,12 +171,12 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 	# Calculate price with current context
 	var context: ShopPurchaseContext = _build_purchase_context(offering)
 	var price: int = offering.get_price(context)
-	price_label.text = "Price: %d gold" % price
+	price_label.text = Loc.t("ui.shop.price_format", {"price": price})
 
 	description_label.text = offering.description
 
 	# Build contents text
-	var contents_text: String = "Contents:\n"
+	var contents_text: String = Loc.t("ui.shop.contents_label") + "\n"
 	match offering.offering_type:
 		ShopOffering.OfferingType.CARD:
 			contents_text += "• %dx %s" % [offering.card_count, offering.display_name]

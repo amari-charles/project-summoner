@@ -35,7 +35,7 @@ func _ready() -> void:
 
 	# Update title for random selection
 	if was_random and title_label:
-		title_label.text = "FATE HAS CHOSEN YOUR CHAMPION"
+		title_label.text = Loc.t("ui.hero_reveal.random_title")
 
 	# Create and add hero card
 	_create_hero_card()

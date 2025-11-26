@@ -366,7 +366,7 @@ func _refresh_deck_display() -> void:
 		widget.card_held.connect(_on_deck_card_held.bind(card_instance_id))
 
 	# Update card count
-	card_count_label.text = "%d / 30" % deck_card_ids.size()
+	card_count_label.text = Loc.t("ui.collection.card_count_format", {"count": deck_card_ids.size()})
 
 	print("DeckBuilder: Displaying deck with %d individual cards" % deck_card_ids.size())
 
@@ -524,14 +524,14 @@ func _update_validation() -> void:
 
 	var errors: Array = errors_result
 	if errors.size() == 0:
-		validation_label.text = "✓ Deck is valid and ready for battle!"
+		validation_label.text = Loc.t("ui.deck_builder.valid")
 		validation_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
 	else:
 		var first_error_val: Variant = errors[0]
 		if first_error_val is String:
 			validation_label.text = "⚠ " + first_error_val
 		else:
-			validation_label.text = "⚠ Deck has errors"
+			validation_label.text = Loc.t("ui.deck_builder.invalid")
 		validation_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 ## =============================================================================
@@ -633,10 +633,10 @@ func _update_active_deck_button() -> void:
 	print("  - Match: %s" % (active_deck_id == current_deck_id))
 
 	if active_deck_id == current_deck_id:
-		set_active_button.text = "✓ ACTIVE DECK"
+		set_active_button.text = Loc.t("ui.deck_builder.active_deck")
 		set_active_button.disabled = true
 	else:
-		set_active_button.text = "SET AS ACTIVE"
+		set_active_button.text = Loc.t("ui.deck_builder.set_active")
 		set_active_button.disabled = false
 
 func _on_delete_confirmed() -> void:
@@ -699,15 +699,16 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 	var rarity_val: Variant = catalog_data.get("rarity", "common")
 	if rarity_val is String:
 		var rarity_str: String = rarity_val
-		popup_rarity.text = "Rarity: %s" % rarity_str.capitalize()
+		popup_rarity.text = Loc.t("ui.collection.rarity_label", {"rarity": rarity_str.capitalize()})
 
 	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
 	var card_type: int = int(card_type_val)  # Works for both int and enum values
-	popup_type.text = "Type: %s" % ("Summon" if card_type == Card.CardType.SUMMON else "Spell")
+	var type_str: String = Loc.t("ui.collection.type_summon") if card_type == Card.CardType.SUMMON else Loc.t("ui.collection.type_spell")
+	popup_type.text = Loc.t("ui.collection.type_label", {"type": type_str})
 
 	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
 	if mana_cost_val is int:
-		popup_cost.text = "Cost: %d Mana" % mana_cost_val
+		popup_cost.text = Loc.t("ui.collection.cost_label", {"cost": mana_cost_val})
 
 	var desc_val: Variant = catalog_data.get("description", "No description.")
 	if desc_val is String:
@@ -715,9 +716,9 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 
 	# Update action label based on source
 	if from_collection:
-		popup_action.text = "Click card to ADD to deck"
+		popup_action.text = Loc.t("ui.deck_builder.action_add")
 	else:
-		popup_action.text = "Click card to REMOVE from deck"
+		popup_action.text = Loc.t("ui.deck_builder.action_remove")
 
 	# Show popup
 	card_detail_popup.popup_centered()
@@ -777,7 +778,7 @@ func _on_collection_changed() -> void:
 
 func _setup_locked_ui() -> void:
 	# Show lock message in validation label
-	validation_label.text = "🔒 DECK LOCKED - Complete tutorial battles to unlock editing"
+	validation_label.text = Loc.t("ui.deck_builder.locked")
 	validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))  # Yellow/orange
 
 	# Disable deck management buttons
@@ -789,13 +790,13 @@ func _setup_locked_ui() -> void:
 func _show_locked_message() -> void:
 	# Show temporary notification that editing is locked
 	print("DeckBuilder: User attempted edit while locked")
-	validation_label.text = "🔒 Complete tutorial battles to unlock deck editing"
+	validation_label.text = Loc.t("ui.deck_builder.locked_temporary")
 	validation_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.3))  # Orange
 
 	# Reset to normal lock message after 2 seconds
 	await get_tree().create_timer(2.0).timeout
 	if deck_editing_locked:
-		validation_label.text = "🔒 DECK LOCKED - Complete tutorial battles to unlock editing"
+		validation_label.text = Loc.t("ui.deck_builder.locked")
 		validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
 
 ## =============================================================================
@@ -872,7 +873,7 @@ func _update_hero_stats_display(hero_id: String) -> void:
 	var mana: float = hero_dict.get("max_mana", 0.0)
 	var regen: float = hero_dict.get("mana_regen", 0.0)
 
-	hero_stats_label.text = "HP: %.0f | Mana: %.0f | Regen: %.1f/s" % [health, mana, regen]
+	hero_stats_label.text = Loc.t("ui.deck_builder.hero_stats", {"hp": "%.0f" % health, "mana": "%.0f" % mana, "regen": "%.1f" % regen})
 
 ## Called when hero selector changes
 func _on_hero_selected(index: int) -> void:

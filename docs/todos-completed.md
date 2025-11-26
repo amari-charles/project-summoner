@@ -256,4 +256,28 @@ Added proper exit options for players who don't want to make a purchase in carav
 
 ---
 
+## Core Game Systems
+
+### Fix Hardcoded UI Strings - Add Localization
+**Completed:** 2025-11-25
+**Category:** Core Game Systems / Localization
+**Effort:** Medium
+
+**Description:**
+Many UI files had hardcoded user-facing strings instead of using the `Loc.t()` localization pattern. All user-facing text must be localized for internationalization support.
+
+**Solution Implemented:**
+Updated all UI files to use `Loc.t()` with localization keys from `localization/data/en.json`:
+- `game_ui.gd` - Win/lose messages
+- `collection_screen.gd` - Card stats labels, deck info labels, empty state messages
+- `mana_bar.gd` - Mana display format
+- `speed_button.gd` - Tooltips
+- `deck_builder.gd` - Validation messages, button labels, card popup labels
+- `shop_screen.gd` - Gold label, offering details, price display
+- `offering_card.gd` - Type labels, price format
+- `hero_card.gd` - HP/Mana/Regen stat labels
+- `hero_reveal.gd` - Random hero title text
+
+---
+
 *Last Updated: 2025-11-25*
