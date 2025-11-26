@@ -324,25 +324,6 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Improve Mana Bar UI Design
-**Status:** ⬜ Not Started
-**Category:** UI/UX
-**Effort:** Small
-
-**Description:**
-Enhance the visual design of the mana bar to be more polished and readable.
-
-**Requirements:**
-- Refine visual style (colors, gradients, borders)
-- Improve readability of current/max mana
-- Add juice (fill animations, glow effects)
-
-**Notes:**
-- Should match overall UI style
-- Consider mana regeneration visual feedback
-
----
-
 #### Improve Card Visual UI
 **Status:** ⬜ Not Started
 **Category:** UI/UX
@@ -621,6 +602,28 @@ Redesign the main menu with improved visual style and layout.
 **Notes:**
 - First impression matters
 - Should set tone for game quality
+
+---
+
+#### Add Hero Select UI
+**Status:** ⬜ Not Started
+**Category:** UI/UX
+**Effort:** Medium
+
+**Description:**
+Create a hero selection screen allowing players to choose their hero before battle.
+
+**Requirements:**
+- Display available heroes with icons/portraits
+- Show hero stats (health, mana, mana regen)
+- Show hero element/affinity
+- Indicate locked/unlocked heroes
+- Preview hero abilities or bonuses
+
+**Notes:**
+- Could be accessed from main menu or pre-battle screen
+- Should integrate with existing HeroCatalog system
+- Consider hero unlock progression display
 
 ---
 
@@ -1021,4 +1024,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-26 - Updated card progression status (PR #85), added upgrade-specific resource costs todo*
+*Last Updated: 2025-11-26 - Moved completed mana bar UI task to archive*

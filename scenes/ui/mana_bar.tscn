@@ -3,74 +3,59 @@
 [ext_resource type="Script" path="res://scripts/ui/mana_bar.gd" id="1_mana_bar_script"]
 
 [node name="ManaBar" type="Control"]
+custom_minimum_size = Vector2(180, 50)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 200.0
-offset_bottom = 60.0
+offset_right = 180.0
+offset_bottom = 50.0
 script = ExtResource("1_mana_bar_script")
 
-[node name="GradientBase" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 20.0
+offset_top = 18.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0.1, 0.3, 0.7, 1)
+color = Color(0.08, 0.08, 0.12, 0.95)
 
-[node name="GradientTop" type="ColorRect" parent="."]
+[node name="FillContainer" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 20.0
+offset_top = 18.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0.3, 0.7, 1, 0.6)
 
-[node name="ProgressBar" type="ProgressBar" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-min_value = 0.0
-max_value = 10.0
-value = 10.0
-show_percentage = false
-
-[node name="EdgeHighlight" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 20.0
-offset_bottom = 23.0
-grow_horizontal = 2
-mouse_filter = 2
-color = Color(0.7, 0.95, 1, 0.5)
+[node name="Highlight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 22.0
+offset_right = 176.0
+offset_bottom = 26.0
+color = Color(1, 1, 1, 0.4)
 
 [node name="ManaLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 20.0
+offset_bottom = 18.0
 grow_horizontal = 2
-text = "Mana: 10/10"
+text = ""
 horizontal_alignment = 1
 
-[node name="GlowOverlay" type="ColorRect" parent="."]
+[node name="TierLabel" type="Label" parent="."]
 visible = false
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 1
+anchor_left = 1.0
 anchor_right = 1.0
-anchor_bottom = 1.0
+offset_left = -30.0
 offset_top = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.4, 0.8, 1, 0.3)
+offset_bottom = 48.0
+grow_horizontal = 0
+text = ""
+horizontal_alignment = 2
+vertical_alignment = 1

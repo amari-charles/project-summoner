@@ -171,7 +171,8 @@
       "random_title": "FATE HAS CHOSEN YOUR CHAMPION"
     },
     "mana_bar": {
-      "format": "Mana: {current}/{max}"
+      "format": "Mana: {current}/{max}",
+      "tier_multiplier": "x{tier}"
     },
     "speed": {
       "disabled_tooltip": "Speed control disabled for this mode",
@@ -347,6 +348,10 @@
     "hero_shadow_initiate": {
       "name": "Shadow Initiate",
       "description": "A mysterious figure cloaked in darkness"
+    },
+    "hero_mana_test": {
+      "name": "Mana Tester",
+      "description": "Dev hero for testing tiered mana bar UI"
     },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",

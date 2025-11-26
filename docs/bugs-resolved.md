@@ -4,6 +4,82 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Slimes Getting Stuck Between Life and Death
+**Resolved:** 2025-11-26
+**Component:** Units / Combat
+
+**Description:**
+Slime units sometimes got stuck in a state between being alive and dead. They would stop functioning properly but not fully die or despawn.
+
+**Root Cause:**
+Race condition in `unit_3d.gd:_die()`. Multiple damage events in the same frame could call `_die()` multiple times before `is_alive` was set to false. Additionally, using `await` for death animation could fail silently if the scene tree changed.
+
+**Solution Implemented:**
+1. Added `is_dying` guard flag to prevent multiple `_die()` calls
+2. Changed from `await get_tree().create_timer()` to a `Tween` for more reliable cleanup
+3. Updated `take_damage()` to check `is_dying` flag
+4. Updated `_is_valid_target()` to exclude dying units
+5. Updated `_acquire_target()` to skip dying units
+
+**Related Files:**
+- `scripts/units/unit_3d.gd:97` - Added `is_dying` flag
+- `scripts/units/unit_3d.gd:957-974` - Improved `_die()` function
+- `scripts/units/unit_3d.gd:935-937` - Updated `take_damage()`
+- `scripts/units/unit_3d.gd:525-533` - Updated `_is_valid_target()`
+- `scripts/units/unit_3d.gd:582-586` - Updated target acquisition
+
+---
+
+### Mana Bar Uses Hardcoded Values Instead of Hero System
+**Resolved:** 2025-11-26
+**Component:** UI / Mana System
+
+**Description:**
+The mana bar had hardcoded values and MANA_MAX was a constant in Summoner3D instead of using HeroInstance stats.
+
+**Root Cause:**
+`summoner_3d.gd` defined `const MANA_MAX: float = 10.0` instead of a variable that could be set from HeroInstance. The `_apply_hero_bonuses()` function had a TODO to apply max_mana but it was never implemented.
+
+**Solution Implemented:**
+1. Changed `const MANA_MAX` to `var max_mana` in summoner_3d.gd
+2. Updated `_apply_hero_bonuses()` to set max_mana from HeroInstance stats
+3. Updated all references from `MANA_MAX` to `max_mana`
+4. Updated `mana_bar.gd:update_mana()` to update `progress_bar.max_value` when maximum changes
+5. Added `DEFAULT_MAX_MANA` constant to mana_bar.gd for clarity
+
+**Related Files:**
+- `scripts/core/summoner_3d.gd:28` - Changed const to var
+- `scripts/core/summoner_3d.gd:365-388` - Updated `_apply_hero_bonuses()`
+- `scripts/ui/mana_bar.gd:29-30` - Added DEFAULT_MAX_MANA constant
+- `scripts/ui/mana_bar.gd:123-127` - Update max_value in update_mana()
+
+---
+
+### Projectile Pooling Race Condition with Deferred Removal
+**Resolved:** 2025-11-26
+**Component:** Projectiles / Pooling System
+
+**Description:**
+Projectiles spawned rapidly in succession would cause errors: "Parent node is busy setting up children, cannot add child". This happened because pooled projectiles were being reused before their deferred removal from the scene tree had completed.
+
+**Root Cause:**
+In `ProjectileManager._return_to_pool()`, projectiles were removed from the scene tree using `remove_child.call_deferred()` to avoid physics callback issues. However, the projectile was immediately returned to the pool and could be grabbed by `_get_from_pool()` before the deferred removal completed.
+
+**Solution Implemented:**
+Added synchronous parent check in `_get_from_pool()`:
+```gdscript
+# Ensure projectile is removed from any parent (handles deferred removal race condition)
+if pooled_projectile.get_parent():
+    pooled_projectile.get_parent().remove_child(pooled_projectile)
+```
+
+This ensures that if a projectile is retrieved from the pool while still technically parented (due to pending deferred removal), it gets synchronously unparented before being added to the new container.
+
+**Related Files:**
+- `scripts/projectiles/projectile_manager.gd:153-156` - Added parent check in `_get_from_pool()`
+
+---
+
 ### Mission Rewards Auto-Accepted Without Player Choice
 **Resolved:** 2025-11-25
 **Component:** Campaign / Rewards

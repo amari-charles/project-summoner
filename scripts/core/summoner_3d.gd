@@ -25,7 +25,7 @@ enum DeckLoadStrategy {
 
 ## Current state
 var mana: float = 0.0
-const MANA_MAX: float = 10.0
+var max_mana: float = 10.0  ## Default max mana (can be overridden by HeroInstance)
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
@@ -91,7 +91,7 @@ func init() -> void:
 			_apply_hero_bonuses(_loaded_hero_instance)
 
 	# Initialize mana
-	mana = MANA_MAX
+	mana = max_mana
 
 	# Handle empty deck - behavior depends on deck loading strategy
 	if deck.is_empty():
@@ -126,7 +126,7 @@ func init() -> void:
 	for i: int in max_hand_size:
 		draw_card()
 
-	mana_changed.emit(mana, MANA_MAX)
+	mana_changed.emit(mana, max_mana)
 	summoner_ready.emit(self)
 	print("Summoner3D: Initialization complete")
 
@@ -134,9 +134,9 @@ func _process(delta: float) -> void:
 	if not is_enabled:
 		return
 
-	if mana < MANA_MAX:
-		mana = clamp(mana + mana_regen_rate * delta, 0.0, MANA_MAX)
-		mana_changed.emit(mana, MANA_MAX)
+	if mana < max_mana:
+		mana = clamp(mana + mana_regen_rate * delta, 0.0, max_mana)
+		mana_changed.emit(mana, max_mana)
 
 func draw_card() -> void:
 	if deck.is_empty():
@@ -173,7 +173,7 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 		return false
 
 	mana -= card.mana_cost
-	mana_changed.emit(mana, MANA_MAX)
+	mana_changed.emit(mana, max_mana)
 
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
@@ -375,11 +375,14 @@ func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
 	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
 	mana_regen_rate = hero_mana_regen
 
+	# Set max mana from hero (with modifiers applied)
+	var hero_max_mana: float = stats.get("max_mana", 10.0)
+	max_mana = hero_max_mana
+
 	# TODO: Hero health stat should flow to Nexus (Base3D), not stored here
-	# TODO: max_mana from stats should be applied (MANA_MAX is currently a constant)
 
 	var hero_name: String = hero_instance.config.hero_name
 	var modifier_count: int = hero_instance.active_modifiers.size()
-	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d modifiers) - Mana Regen: %.1f/s" % [
-		hero_name, hero_instance.level, modifier_count, mana_regen_rate
+	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d modifiers) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
+		hero_name, hero_instance.level, modifier_count, max_mana, mana_regen_rate
 	])

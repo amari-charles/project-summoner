@@ -12,47 +12,42 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Mana Bar Uses Hardcoded Values Instead of Hero System
-**Status:** Open (Deferred)
-**Reported:** 2025-01-14
-**Component:** UI / Mana System
-**Type:** Architecture Issue
+#### Exiting Battle Mid-Fight Incorrectly Completes Event
+**Status:** Open
+**Reported:** 2025-11-26
+**Component:** Campaign / Battle System
 
 **Description:**
-The mana bar currently has hardcoded default values in the scene file and uses Summoner as the mana source. When the Hero system is implemented, mana should be a Hero property, not Summoner.
+When a player exits a battle in the middle of it (e.g., via pause menu or back button), the event/battle is incorrectly marked as completed.
 
 **Expected Behavior:**
-- Mana bar should display values from Hero.mana and Hero.max_mana
-- Hero should emit mana_changed signal
-- No hardcoded mana values in scene files
-- Mana max should be determined by Hero stats/equipment
+- Exiting mid-battle should NOT complete the event
+- Player should be able to retry the battle
+- Progress should only be saved on actual victory
 
 **Current Behavior:**
-- Mana is managed by Summoner class
-- MANA_MAX is a constant (15.0) in Summoner
-- Scene file has hardcoded "Mana: 15/15" text
-- No hero system implemented yet
+- Exiting mid-battle marks the event as complete
+- Player cannot replay the battle properly
 
 **Impact:**
-- Creates technical debt for future Hero implementation
-- Mana system needs refactoring when Hero is added
-- Not critical for current functionality
+- Breaks campaign progression
+- Players can accidentally skip content
+- Corrupts save state
+
+**Reproduction Steps:**
+1. Start a campaign battle
+2. Exit mid-battle (pause menu, back button, etc.)
+3. Observe that the event is marked as completed
 
 **Proposed Solution:**
-- Create Hero system with mana as a property
-- Move mana management from Summoner to Hero
-- Update ManaBar to listen to Hero.mana_changed signal
-- Remove hardcoded values from mana_bar.tscn
+- Only call `complete_battle()` on actual victory
+- Ensure exit/quit paths don't trigger completion
+- Add explicit "forfeit" vs "exit" distinction if needed
 
 **Related Files:**
-- `scripts/ui/mana_bar.gd` - Has TODO comments
-- `scripts/core/summoner_3d.gd:29` - MANA_MAX constant
-- `scenes/ui/mana_bar.tscn` - Hardcoded display values
-
-**Notes:**
-- Can be deferred until Hero system implementation
-- TODOs added to relevant files
-- Part of larger Hero system feature work
+- `scripts/core/battle_context.gd`
+- `scripts/ui/reward_screen.gd`
+- `scripts/services/campaign_service.gd`
 
 ---
 
@@ -94,4 +89,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-11-25 - Moved fixed card playing bug to resolved*
+*Last Updated: 2025-11-26 - Fixed slime death state bug and mana bar hardcoded values*

@@ -150,6 +150,9 @@ func _get_from_pool(projectile_id: String) -> Projectile3D:
 	var pool: Array = projectile_pools[projectile_id]
 	if pool.size() > 0:
 		var pooled_projectile: Projectile3D = pool.pop_back()
+		# Ensure projectile is removed from any parent (handles deferred removal race condition)
+		if pooled_projectile.get_parent():
+			pooled_projectile.get_parent().remove_child(pooled_projectile)
 		pooled_projectile.reset()
 		return pooled_projectile
 

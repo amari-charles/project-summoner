@@ -65,7 +65,7 @@ func _init_catalog() -> void:
 	hero_wind.description = Loc.t("hero.hero_wind.description")
 	hero_wind.element_id = ElementRegistry.ElementId.WIND
 	hero_wind.base_health = 900.0   # Lower health
-	hero_wind.max_mana = 12.0       # Higher mana pool
+	hero_wind.max_mana = 10.0       # Standard mana pool
 	hero_wind.mana_regen = 1.2      # Faster regen
 	hero_wind.hero_icon_path = ""
 	hero_wind.card_frame_style = "legendary"
@@ -111,6 +111,25 @@ func _init_catalog() -> void:
 	# - Lightning Adept
 	# - Verdant Sage (Life)
 	# - Void Walker (Death)
+
+	# =========================================================================
+	# DEV/TEST HEROES
+	# These heroes are for testing features. Not available to players.
+	# =========================================================================
+
+	# Mana Test Hero - High mana pool for testing tiered mana bar
+	var hero_mana_test: HeroConfig = HeroConfig.new()
+	hero_mana_test.hero_id = "hero_mana_test"
+	hero_mana_test.hero_name = Loc.t("hero.hero_mana_test.name")
+	hero_mana_test.description = Loc.t("hero.hero_mana_test.description")
+	hero_mana_test.element_id = ElementRegistry.ElementId.NEUTRAL
+	hero_mana_test.base_health = 1000.0
+	hero_mana_test.max_mana = 25.0      # High mana to test tiers (light_blue->royal_blue->indigo)
+	hero_mana_test.mana_regen = 0.8     # Slower regen so mana can be depleted
+	hero_mana_test.hero_icon_path = ""
+	hero_mana_test.card_frame_style = "common"
+	hero_mana_test.unlock_condition = "dev_only"
+	_catalog["hero_mana_test"] = hero_mana_test
 
 ## =============================================================================
 ## LOOKUP METHODS
