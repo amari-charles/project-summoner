@@ -431,11 +431,12 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Updated comparisons in `create_card_resource()` and `print_catalog_summary()`
 - See `todos-completed.md` for details
 
-##### VFXIDs Constants Class ⬜ Not Started (HIGH PRIORITY)
-- ~5-7 VFX effects used across multiple systems (fireball_spell, etc.)
-- Need to create `scripts/data/vfx_ids.gd`
-- Update all spell cards, abilities, and VFX system to use constants
-- Critical for consistency across spell/ability VFX
+##### VFXIDs Constants Class ✅ Completed (2025-11-25)
+- Created `scripts/data/vfx_ids.gd` with StringName constants for 7 VFX effects
+- Implemented: FIREBALL_EXPLOSION, FIREBALL_TRAIL, FIREBALL_SPELL
+- Placeholders: SPELL_FIZZLE, RALLY_CIRCLE, GUARD_MARKER, CHARGE_MARKER
+- Updated `card_catalog.gd` and `card.gd` to use VFXIDs constants
+- Added `_validate_vfx_ids_sync()` in VFXManager to ensure sync with .tres files
 
 ##### RarityIDs Constants Class ✅ Completed (2025-11-25)
 - Created `scripts/data/rarity_ids.gd` with StringName constants for COMMON, RARE, EPIC, LEGENDARY
@@ -1220,4 +1221,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Added RarityIDs constants class, localized HeroCatalog names, added cascade delete for card removal*
+*Last Updated: 2025-11-25 - Added VFXIDs constants class with validation*
