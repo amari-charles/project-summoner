@@ -46,12 +46,12 @@ signal summoner_ready(summoner: Summoner3D)  ## Emitted after init() completes
 func _ready() -> void:
 	# Minimal setup - just add to groups for discovery
 	# Full initialization happens in init() called by BattleCoordinator
-	add_to_group("summoners")
+	add_to_group(GroupIDs.SUMMONERS)
 	# Note: NOT in "bases" group - summoners are not attack targets
 	if team == Unit3D.Team.PLAYER:
-		add_to_group("player_summoners")
+		add_to_group(GroupIDs.PLAYER_SUMMONERS)
 	else:
-		add_to_group("enemy_summoners")
+		add_to_group(GroupIDs.ENEMY_SUMMONERS)
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
@@ -184,7 +184,7 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
 func _is_test_mode() -> bool:
 	# Check via game_controller group
-	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller is TestGameController:
 		return true
 

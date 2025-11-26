@@ -24,11 +24,11 @@ func _ready() -> void:
 	current_hp = max_hp
 
 	# Add to groups
-	add_to_group("bases")
+	add_to_group(GroupIDs.BASES)
 	if team == Team.PLAYER:
-		add_to_group("player_bases")
+		add_to_group(GroupIDs.PLAYER_BASES)
 	else:
-		add_to_group("enemy_bases")
+		add_to_group(GroupIDs.ENEMY_BASES)
 
 	_setup_visuals()
 

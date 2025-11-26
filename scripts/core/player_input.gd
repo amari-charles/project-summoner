@@ -17,10 +17,10 @@ func _ready() -> void:
 
 	# Find HandUI
 	await get_tree().process_frame  # Wait for UI to be ready
-	hand_ui = get_tree().get_first_node_in_group("hand_ui")
+	hand_ui = get_tree().get_first_node_in_group(GroupIDs.HAND_UI)
 	if not hand_ui:
 		# Try to find it manually
-		var ui_layer = get_tree().get_first_node_in_group("game_ui")
+		var ui_layer: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_UI)
 		if ui_layer:
 			hand_ui = ui_layer.get_node_or_null("HandUI")
 

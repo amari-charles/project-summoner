@@ -235,7 +235,7 @@ The profile data structure has redundant and unused fields that waste storage an
 ### 🔴 HIGH PRIORITY
 
 #### Fix Hardcoded UI Strings - Add Localization
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Core Game Systems / Localization
 **Effort:** Medium
 
@@ -243,11 +243,15 @@ The profile data structure has redundant and unused fields that waste storage an
 Many UI files have hardcoded user-facing strings instead of using the `Loc.t()` localization pattern. All user-facing text must be localized.
 
 **Files Requiring Updates:**
-- `reward_screen.gd` - "Battle Already Completed", "No rewards for replaying battles", "Unknown Card", rarity text
-- `collection_screen.gd` - Card stats labels, deck info labels, empty state messages
-- `campaign_map.gd` - Event labels, difficulty stars, "REPLAY (no reward)", button states
-- `game_ui.gd` - Timer format
-- `player_input_3d.gd` - Mana/hand debug labels
+- ✅ `game_ui.gd` - Win/lose messages
+- ✅ `collection_screen.gd` - Card stats labels, deck info labels, empty state messages
+- ✅ `mana_bar.gd` - Mana display format
+- ✅ `speed_button.gd` - Tooltips
+- ⬜ `deck_builder.gd` - Various labels and messages (many strings)
+- ⬜ `shop_screen.gd` - Gold label, offering details
+- ⬜ `offering_card.gd` - Type labels, price
+- ⬜ `hero_card.gd` - HP/Mana/Regen labels
+- ⬜ `hero_reveal.gd` - Title text
 
 **Requirements:**
 - Replace all hardcoded strings with `Loc.t("key.path")` calls
@@ -257,7 +261,7 @@ Many UI files have hardcoded user-facing strings instead of using the `Loc.t()` 
 **Notes:**
 - Critical for future localization support
 - Defined in CLAUDE.md as a project requirement
-- Should be addressed systematically file by file
+- Localization keys added to en.json for all planned strings
 
 ---
 
@@ -361,6 +365,14 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Added utility methods: `all_ids()`, `is_valid()`, `is_event()`, `is_tutorial()`
 - Updated `campaign_service.gd` to use BattleIDs constants
 - Updated `first_card_selection.gd` and `hero_selection.gd` to use BattleIDs
+
+##### GroupIDs Constants Class ✅ Completed (2025-11-25)
+- Created `scripts/data/group_ids.gd` with StringName constants for all group names
+- Groups: UNITS, PLAYER_UNITS, ENEMY_UNITS, BASES, PLAYER_BASES, ENEMY_BASES
+- Additional: SUMMONERS, PLAYER_SUMMONERS, ENEMY_SUMMONERS, STRUCTURES, PROJECTILES
+- UI groups: HAND_UI, GAME_CONTROLLER
+- Added utility methods: `enemy_units_for()`, `ally_units_for()`, `enemy_bases_for()`, `ally_bases_for()`
+- Updated 25+ files to use GroupIDs constants instead of magic strings
 
 ---
 
@@ -1129,4 +1141,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Added BiomeIDs and BattleIDs constants classes*
+*Last Updated: 2025-11-25 - Added GroupIDs constants class and UI localization progress*

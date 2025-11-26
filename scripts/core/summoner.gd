@@ -95,11 +95,11 @@ func _ready() -> void:
 	for i: int in max_hand_size:
 		draw_card()
 
-	add_to_group("summoners")
+	add_to_group(GroupIDs.SUMMONERS)
 	if team == Unit.Team.PLAYER:
-		add_to_group("player_summoners")
+		add_to_group(GroupIDs.PLAYER_SUMMONERS)
 	else:
-		add_to_group("enemy_summoners")
+		add_to_group(GroupIDs.ENEMY_SUMMONERS)
 
 	# Emit initial mana state
 	mana_changed.emit(mana, MANA_MAX)

@@ -169,7 +169,7 @@ func _refresh_collection() -> void:
 		if count_val is int:
 			total_cards += count_val
 
-	stats_label.text = "%d Cards (%d Unique)" % [total_cards, unique_cards]
+	stats_label.text = Loc.t("ui.collection.stats", {"total": total_cards, "unique": unique_cards})
 
 	# Refresh grid
 	_refresh_grid()
@@ -309,15 +309,16 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 
 	var rarity_val: Variant = catalog_data.get("rarity", "common")
 	var rarity_str: String = rarity_val if rarity_val is String else "common"
-	rarity_label.text = "Rarity: %s" % rarity_str.capitalize()
+	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": rarity_str.capitalize()})
 
 	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
 	var card_type: int = int(card_type_val)  # Works for both int and enum values
-	type_label.text = "Type: %s" % ("Summon" if card_type == Card.CardType.SUMMON else "Spell")
+	var type_str: String = Loc.t("ui.collection.type_summon") if card_type == Card.CardType.SUMMON else Loc.t("ui.collection.type_spell")
+	type_label.text = Loc.t("ui.collection.type_label", {"type": type_str})
 
 	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
 	var mana_cost: int = mana_cost_val if mana_cost_val is int else 0
-	cost_label.text = "Cost: %d Mana" % mana_cost
+	cost_label.text = Loc.t("ui.collection.cost_label", {"cost": mana_cost})
 
 	var description_val: Variant = catalog_data.get("description", "No description.")
 	description_label.text = description_val if description_val is String else "No description."
@@ -335,7 +336,7 @@ func _on_card_instance_selected(instance_id: String, catalog_id: String) -> void
 				count = count_val
 			break
 
-	owned_label.text = "Owned: %d" % count
+	owned_label.text = Loc.t("ui.collection.owned_label", {"count": count})
 
 	print("CollectionScreen: Selected card instance: %s (%s)" % [instance_id, catalog_id])
 
@@ -360,7 +361,7 @@ func _refresh_deck_list() -> void:
 
 	if deck_list_data.size() == 0:
 		var label: Label = Label.new()
-		label.text = "No decks yet. Click 'NEW DECK' to create one!"
+		label.text = Loc.t("ui.collection.empty_decks")
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override("font_size", 20)
 		deck_list.add_child(label)
@@ -400,7 +401,7 @@ func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
 	var card_ids_val: Variant = deck_data.get("card_instance_ids", [])
 	var card_ids: Array = card_ids_val if card_ids_val is Array else []
 	var count_label: Label = Label.new()
-	count_label.text = "%d / 30" % card_ids.size()
+	count_label.text = Loc.t("ui.collection.card_count_format", {"count": card_ids.size()})
 	count_label.add_theme_font_size_override("font_size", 20)
 	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hbox.add_child(count_label)
@@ -461,8 +462,8 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 func _show_deck_locked_message() -> void:
 	# Show popup dialog informing player deck editing is locked
 	var dialog: AcceptDialog = AcceptDialog.new()
-	dialog.title = "Deck Locked"
-	dialog.dialog_text = "Complete the tutorial battles to unlock deck editing!\n\nYour deck will be automatically updated as you earn new cards."
+	dialog.title = Loc.t("ui.collection.deck_locked_title")
+	dialog.dialog_text = Loc.t("ui.collection.deck_locked_message")
 	dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
 	add_child(dialog)
 	dialog.popup_centered()

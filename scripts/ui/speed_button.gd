@@ -27,7 +27,7 @@ func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 
 func _setup() -> void:
-	game_controller = get_tree().get_first_node_in_group("game_controller")
+	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 
 	if not game_controller:
 		push_error("SpeedButton: Could not find GameController3D")
@@ -61,9 +61,9 @@ func _check_battle_mode() -> void:
 
 	if disabled:
 		text = "▶ 1x"
-		tooltip_text = "Speed control disabled for this mode"
+		tooltip_text = Loc.t("ui.speed.disabled_tooltip")
 	else:
-		tooltip_text = "Toggle game speed (1x / 2x)"
+		tooltip_text = Loc.t("ui.speed.enabled_tooltip")
 
 func _on_game_ended(_winner: int) -> void:
 	visible = false

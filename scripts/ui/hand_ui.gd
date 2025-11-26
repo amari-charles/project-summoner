@@ -448,7 +448,7 @@ signal card_selected(index: int)
 
 func _ready() -> void:
 	# Minimal setup - just add to groups for discovery
-	add_to_group("hand_ui")
+	add_to_group(GroupIDs.HAND_UI)
 
 	# Block clicks to battlefield
 	mouse_filter = Control.MOUSE_FILTER_STOP

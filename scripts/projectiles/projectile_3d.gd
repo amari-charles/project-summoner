@@ -364,14 +364,14 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 	# _spawn_debug_aoe_sphere(center, radius)
 
 	# Determine target group based on team
-	var target_group: String = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
+	var target_group: StringName = GroupIDs.enemy_units_for(team)
 	# print("  Target group: '%s'" % target_group)
 
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 	# print("  Found %d potential targets in group" % enemies.size())
 
 	# Also check all units to see if grouping is the issue
-	var _all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	var _all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
 	# print("  Total units in scene: %d" % _all_units.size())
 
 	# if enemies.size() == 0 and _all_units.size() > 0:

@@ -22,7 +22,7 @@ func _exit_tree() -> void:
 		game_controller.game_ended.disconnect(_on_game_ended)
 
 func _find_game_controller() -> void:
-	game_controller = get_tree().get_first_node_in_group("game_controller")
+	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 
 	if not game_controller:
 		push_error("PauseButton: Could not find GameController3D")

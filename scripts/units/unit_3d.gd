@@ -149,13 +149,13 @@ func _ready() -> void:
 		_store_base_stats()
 		current_hp = max_hp
 
-	add_to_group("units")
+	add_to_group(GroupIDs.UNITS)
 
 	if team == Team.PLAYER:
-		add_to_group("player_units")
+		add_to_group(GroupIDs.PLAYER_UNITS)
 		print("Unit3D: Added to player_units group (team=%d)" % team)
 	else:
-		add_to_group("enemy_units")
+		add_to_group(GroupIDs.ENEMY_UNITS)
 		print("Unit3D: Added to enemy_units group (team=%d)" % team)
 
 	_setup_visuals()
@@ -497,7 +497,7 @@ func _check_proximity_to_enemy_base() -> void:
 		return
 
 	# Find enemy base
-	var enemy_bases: Array[Node] = get_tree().get_nodes_in_group("enemy_base")
+	var enemy_bases: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.ENEMY_BASES)
 	if enemy_bases.is_empty():
 		return
 
@@ -567,7 +567,7 @@ func _acquire_target() -> Node3D:
 			original_redirect_point = Vector3.ZERO
 
 	# Priority 3: Normal targeting behavior
-	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
+	var target_group: StringName = GroupIDs.enemy_units_for(team)
 	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
 	var best_target: Node3D = null
@@ -619,7 +619,7 @@ func _acquire_target() -> Node3D:
 
 	# If no unit found, target the enemy base
 	if not best_target:
-		var base_group: String = "enemy_base" if team == Team.PLAYER else "player_base"
+		var base_group: StringName = GroupIDs.enemy_bases_for(team)
 		var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 		if bases.size() > 0:
 			best_target = bases[0] as Node3D
@@ -1046,7 +1046,7 @@ func _update_guard_behavior(_delta: float) -> void:
 
 ## Acquire target for guard mode (only nearby enemies, no chasing)
 func _acquire_guard_target() -> Node3D:
-	var target_group: String = "enemy_units" if team == Team.PLAYER else "player_units"
+	var target_group: StringName = GroupIDs.enemy_units_for(team)
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
 	var closest_enemy: Unit3D = null
@@ -1095,7 +1095,7 @@ func _move_towards_position(target_position: Vector3) -> void:
 ## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 
 	# Early exit for trivial cases
 	if all_units.size() <= 1:
@@ -1242,7 +1242,7 @@ func _calculate_flank_direction_scores() -> Dictionary:
 	var check_distance: float = collision_radius * 3.0
 	var check_distance_sq: float = check_distance * check_distance
 
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 
 	for node: Node in all_units:
 		if node == self or node == current_target:
@@ -1276,7 +1276,7 @@ func _calculate_flank_direction_scores() -> Dictionary:
 ## This is a "hard" correction for when soft separation wasn't enough
 ## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
 func _correct_overlaps() -> void:
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 
 	# Early exit for trivial cases
 	if all_units.size() <= 1:

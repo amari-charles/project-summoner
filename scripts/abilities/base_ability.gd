@@ -75,16 +75,14 @@ func _get_units_in_radius(center: Vector3, radius: float, target_enemies: bool =
 		return units
 
 	# Determine which groups to check
-	var groups_to_check: Array[String] = []
+	var groups_to_check: Array[StringName] = []
 	if target_enemies:
-		var enemy_group: String = "enemy_units" if owner_unit.team == Unit3D.Team.PLAYER else "player_units"
-		groups_to_check.append(enemy_group)
+		groups_to_check.append(GroupIDs.enemy_units_for(owner_unit.team))
 	if target_allies:
-		var ally_group: String = "player_units" if owner_unit.team == Unit3D.Team.PLAYER else "enemy_units"
-		groups_to_check.append(ally_group)
+		groups_to_check.append(GroupIDs.ally_units_for(owner_unit.team))
 
 	# Find units in range
-	for group: String in groups_to_check:
+	for group: StringName in groups_to_check:
 		var group_units: Array[Node] = get_tree().get_nodes_in_group(group)
 		for node: Node in group_units:
 			if node is Unit3D:

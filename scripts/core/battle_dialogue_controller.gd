@@ -102,14 +102,14 @@ func _process(_delta: float) -> void:
 		return
 
 	# Get player base
-	var player_base: Node3D = get_tree().get_first_node_in_group("player_base") as Node3D
+	var player_base: Node3D = get_tree().get_first_node_in_group(GroupIDs.PLAYER_BASES) as Node3D
 	if not player_base:
 		return
 
 	var base_pos: Vector3 = player_base.global_position
 
 	# Check all units to see if any enemy units are close to player base
-	var units: Array = get_tree().get_nodes_in_group("units")
+	var units: Array = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	const PROXIMITY_DISTANCE: float = 15.0  # Trigger when enemy is within 15 units
 
 	for unit: Node in units:

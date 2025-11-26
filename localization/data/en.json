@@ -83,6 +83,64 @@
       "victory": "Victory!",
       "unknown_card": "Unknown Card",
       "rarity": "Rarity: {rarity}"
+    },
+    "battle": {
+      "player_wins": "PLAYER WINS!",
+      "enemy_wins": "ENEMY WINS!"
+    },
+    "collection": {
+      "empty_decks": "No decks yet. Click 'NEW DECK' to create one!",
+      "rarity_label": "Rarity: {rarity}",
+      "type_label": "Type: {type}",
+      "type_summon": "Summon",
+      "type_spell": "Spell",
+      "cost_label": "Cost: {cost} Mana",
+      "owned_label": "Owned: {count}",
+      "stats": "{total} Cards ({unique} Unique)",
+      "deck_locked_title": "Deck Locked",
+      "deck_locked_message": "Complete the tutorial battles to unlock deck editing!\n\nYour deck will be automatically updated as you earn new cards.",
+      "card_count_format": "{count} / 30"
+    },
+    "deck_builder": {
+      "valid": "✓ Deck is valid and ready for battle!",
+      "invalid": "⚠ Deck has errors",
+      "locked": "🔒 DECK LOCKED - Complete tutorial battles to unlock editing",
+      "locked_temporary": "🔒 Complete tutorial battles to unlock deck editing",
+      "action_add": "Click card to ADD to deck",
+      "action_remove": "Click card to REMOVE from deck",
+      "hero_stats": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
+      "active_deck": "✓ ACTIVE DECK",
+      "set_active": "SET AS ACTIVE"
+    },
+    "shop": {
+      "gold_label": "Gold: {amount}",
+      "select_offering": "Select an offering",
+      "price_placeholder": "Price: -",
+      "description_placeholder": "Offering description will appear here.",
+      "contents_label": "Contents:",
+      "price_format": "Price: {price} gold"
+    },
+    "offering": {
+      "type_card": "Type: Card",
+      "type_card_pack": "Type: Card Pack",
+      "type_currency": "Type: Currency",
+      "type_special": "Type: Special",
+      "price_format": "Price: {price} gold"
+    },
+    "hero_card": {
+      "hp_label": "HP: {value}",
+      "mana_label": "Mana: {value}",
+      "regen_label": "Regen: {value}/s"
+    },
+    "hero_reveal": {
+      "random_title": "FATE HAS CHOSEN YOUR CHAMPION"
+    },
+    "mana_bar": {
+      "format": "Mana: {current}/{max}"
+    },
+    "speed": {
+      "disabled_tooltip": "Speed control disabled for this mode",
+      "enabled_tooltip": "Toggle game speed (1x / 2x)"
     }
   },
   "error": {
