@@ -1,7 +1,7 @@
 extends Node
 
 ## Centralized VFX spawning and pooling system
-## Usage: VFXManager.play_effect("fireball_explosion", position)
+## Usage: VFXManager.play_effect(VFXIDs.FIREBALL_EXPLOSION, position)
 ## Autoload as: /root/VFXManager
 
 var effect_library: Dictionary = {}  ## effect_id -> VFXDefinition
@@ -20,6 +20,7 @@ func _ready() -> void:
 
 	_load_effect_library()
 	_init_pools()
+	_validate_vfx_ids_sync()
 
 	print("VFXManager: Loaded %d effects" % effect_library.size())
 
@@ -248,3 +249,37 @@ func print_pool_stats() -> void:
 			var active: Array = active_effects[effect_id]
 			active_size = active.size()
 		print("  %s: %d in pool, %d active" % [effect_id, pool_size, active_size])
+
+## Validate VFXIDs constants match loaded effect library
+func _validate_vfx_ids_sync() -> void:
+	var missing_in_library: Array[String] = []
+	var missing_in_vfx_ids: Array[String] = []
+
+	# Check: All VFXIDs.IMPLEMENTED constants exist in effect_library
+	for vfx_id: StringName in VFXIDs.IMPLEMENTED:
+		if not effect_library.has(vfx_id):
+			missing_in_library.append(str(vfx_id))
+
+	# Check: All effect_library entries have corresponding VFXIDs constant
+	for library_id: String in effect_library.keys():
+		if not VFXIDs.is_known(library_id):
+			missing_in_vfx_ids.append(library_id)
+
+	# Report issues
+	if missing_in_library.size() > 0:
+		push_error("VFXManager: VFXIDs.IMPLEMENTED constants reference non-existent VFX:")
+		for missing: String in missing_in_library:
+			push_error("  - VFXIDs.%s (no .tres file in resources/vfx/)" % missing.to_upper())
+		push_error("  Add .tres files or move constants to VFXIDs.PLACEHOLDERS")
+
+	if missing_in_vfx_ids.size() > 0:
+		push_warning("VFXManager: Effect library has VFX without VFXIDs constants:")
+		for missing: String in missing_in_vfx_ids:
+			push_warning("  - '%s' (no constant in VFXIDs)" % missing)
+		print("  Add constants to VFXIDs.IMPLEMENTED for official effects.")
+
+	if missing_in_library.size() == 0 and missing_in_vfx_ids.size() == 0:
+		print("VFXManager: ✓ VFXIDs validation passed - %d implemented, %d placeholders" % [
+			VFXIDs.IMPLEMENTED.size(),
+			VFXIDs.PLACEHOLDERS.size()
+		])

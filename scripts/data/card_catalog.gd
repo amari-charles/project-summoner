@@ -55,7 +55,7 @@ func _init_catalog() -> void:
 		"spell_radius": 10.0,  # Passed to VFX for accurate indicator sizing
 		"spell_duration": 0.5,
 		"projectile_id": ProjectileIDsScript.FIREBALL,  # Use projectile system for proper impact timing
-		"spell_vfx": "fireball_spell",
+		"spell_vfx": VFXIDs.FIREBALL_SPELL,
 
 		"card_icon_path": "",
 		"tags": ["spell", "aoe", "damage"],

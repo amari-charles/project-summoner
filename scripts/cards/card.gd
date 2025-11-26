@@ -523,8 +523,8 @@ func _get_modifiers_from_system(target_type: String, categories: Dictionary, con
 ## Spawn failed cast VFX (fizzle effect)
 func _spawn_failed_cast_vfx(fail_pos: Vector3) -> void:
 	# Try to use VFXManager if available
-	if VFXManager and VFXManager.has_effect("spell_fizzle"):
-		VFXManager.play_effect("spell_fizzle", fail_pos)
+	if VFXManager and VFXManager.has_effect(VFXIDs.SPELL_FIZZLE):
+		VFXManager.play_effect(VFXIDs.SPELL_FIZZLE, fail_pos)
 		return
 
 	# Fallback: Simple procedural fizzle effect
@@ -536,8 +536,8 @@ func _spawn_rally_vfx(rally_point: Vector3) -> void:
 	var visual_radius: float = 2.0
 
 	# Try to use VFXManager if available
-	if VFXManager and VFXManager.has_effect("rally_circle"):
-		VFXManager.play_effect("rally_circle", rally_point, {"radius": visual_radius})
+	if VFXManager and VFXManager.has_effect(VFXIDs.RALLY_CIRCLE):
+		VFXManager.play_effect(VFXIDs.RALLY_CIRCLE, rally_point, {"radius": visual_radius})
 		return
 
 	# Fallback: Simple procedural marker
@@ -546,9 +546,9 @@ func _spawn_rally_vfx(rally_point: Vector3) -> void:
 ## Spawn Guard VFX (formation position markers)
 func _spawn_guard_vfx(units: Array[Unit3D]) -> void:
 	# Try to use VFXManager if available
-	if VFXManager and VFXManager.has_effect("guard_marker"):
+	if VFXManager and VFXManager.has_effect(VFXIDs.GUARD_MARKER):
 		for unit: Unit3D in units:
-			VFXManager.play_effect("guard_marker", unit.formation_position)
+			VFXManager.play_effect(VFXIDs.GUARD_MARKER, unit.formation_position)
 		return
 
 	# Fallback: Simple procedural markers
@@ -561,8 +561,8 @@ func _spawn_charge_vfx(charge_point: Vector3) -> void:
 	var visual_radius: float = 2.0
 
 	# Try to use VFXManager if available
-	if VFXManager and VFXManager.has_effect("charge_marker"):
-		VFXManager.play_effect("charge_marker", charge_point, {"radius": visual_radius})
+	if VFXManager and VFXManager.has_effect(VFXIDs.CHARGE_MARKER):
+		VFXManager.play_effect(VFXIDs.CHARGE_MARKER, charge_point, {"radius": visual_radius})
 		return
 
 	# Fallback: Simple procedural marker (red/orange for aggressive command)
