@@ -36,7 +36,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 	var campaign: Node = get_node("/root/Campaign")
 	var already_completed: bool = false
 	if campaign and campaign.has_method("is_battle_completed"):
-		var result: Variant = campaign.call("is_battle_completed", "event_first_summon")
+		var result: Variant = campaign.call("is_battle_completed", BattleIDs.EVENT_FIRST_SUMMON)
 		already_completed = result if result is bool else false
 
 	if already_completed:
@@ -93,7 +93,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 	# Mark event as completed
 	if campaign and campaign.has_method("complete_battle"):
-		campaign.call("complete_battle", "event_first_summon")
+		campaign.call("complete_battle", BattleIDs.EVENT_FIRST_SUMMON)
 		print("FirstCardSelection: Marked first summon event as completed!")
 
 	# Return to campaign map

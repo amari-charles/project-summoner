@@ -349,16 +349,18 @@ Audit the entire codebase to identify places where magic strings are used instea
 - Added utility methods: `ALL_RARITIES`, `get_tier()`, `is_valid()`
 - Updated `collection_service.gd`, `campaign_service.gd`, `color_palette.gd`, `dev_console.gd`
 
-##### BiomeIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
-- Currently 1 biome, will expand significantly
-- Create `scripts/data/biome_ids.gd` when adding second biome
-- Good foundation for campaign/world building
+##### BiomeIDs Constants Class ✅ Completed (2025-11-25)
+- Created `scripts/data/biome_ids.gd` with SUMMER_PLAINS constant
+- Added utility methods: `get_resource_path()`, `is_valid()`
+- Updated `battle_context.gd` to use BiomeIDs.SUMMER_PLAINS
+- Updated `campaign_service.gd` to use BiomeIDs.SUMMER_PLAINS
 
-##### BattleIDs Constants Class ⬜ Not Started (MEDIUM PRIORITY)
-- ~5-10 battle IDs used in campaign system
-- Create `scripts/data/battle_ids.gd`
-- Update `campaign_service.gd` to use constants
-- Makes campaign content management safer
+##### BattleIDs Constants Class ✅ Completed (2025-11-25)
+- Created `scripts/data/battle_ids.gd` with constants for all 5 battles/events
+- Organized by type: EVENTS (3), TUTORIALS (2)
+- Added utility methods: `all_ids()`, `is_valid()`, `is_event()`, `is_tutorial()`
+- Updated `campaign_service.gd` to use BattleIDs constants
+- Updated `first_card_selection.gd` and `hero_selection.gd` to use BattleIDs
 
 ---
 
@@ -1127,4 +1129,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Consolidated dual catalog system (removed CardData/UnitData)*
+*Last Updated: 2025-11-25 - Added BiomeIDs and BattleIDs constants classes*

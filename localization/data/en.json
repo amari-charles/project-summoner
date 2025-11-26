@@ -60,7 +60,12 @@
     "mana": "Mana: {current}/{max}",
     "health": "Health: {current}/{max}",
     "deck_size": "Deck: {count}",
-    "hand_size": "Hand: {count}"
+    "hand_size": "Hand: {count}",
+    "reward": {
+      "already_completed": "Battle Already Completed",
+      "no_replay_rewards": "No rewards for replaying battles",
+      "victory": "Victory!"
+    }
   },
   "error": {
     "not_enough_mana": "Not enough mana",

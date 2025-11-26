@@ -23,7 +23,7 @@ var current_mode: BattleMode = BattleMode.PRACTICE
 var battle_config: Dictionary = {}
 
 ## Biome ID for visual theme
-var biome_id: String = "summer_plains"
+var biome_id: StringName = BiomeIDs.SUMMER_PLAINS
 
 ## Track if battle was configured (for debugging)
 var was_configured: bool = false
@@ -46,7 +46,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
 		push_error("BattleContext: This will cause enemy deck loading to fail")
 
-	biome_id = battle_config.get("biome_id", "summer_plains")
+	biome_id = battle_config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
 	completion_callback = _handle_campaign_completion
 
 	# Get enemy deck size safely
@@ -74,7 +74,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 		"ai_type": "scripted"
 	}
 
-	biome_id = config.get("biome_id", "summer_plains")
+	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
 	completion_callback = _handle_practice_completion
 
 	print("BattleContext: Configured practice battle")
@@ -86,7 +86,7 @@ func configure_arena_battle(_difficulty: int) -> void:
 	# TODO: ArenaService would generate random battle config
 	push_warning("BattleContext: Arena mode not yet implemented")
 
-	biome_id = "summer_plains"  # Random biome selection later
+	biome_id = BiomeIDs.SUMMER_PLAINS  # Random biome selection later
 	completion_callback = _handle_arena_completion
 
 ## Configure for endless mode (future)
@@ -96,7 +96,7 @@ func configure_endless_wave(_wave_number: int) -> void:
 	# TODO: EndlessService would provide wave config
 	push_warning("BattleContext: Endless mode not yet implemented")
 
-	biome_id = "summer_plains"
+	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = _handle_endless_completion
 
 ## Check if battle context has been configured
@@ -106,7 +106,7 @@ func is_configured() -> bool:
 ## Clear battle context
 func clear() -> void:
 	battle_config = {}
-	biome_id = "summer_plains"
+	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = Callable()
 	was_configured = false
 	print("BattleContext: Cleared")

@@ -4,6 +4,34 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Mission Rewards Auto-Accepted Without Player Choice
+**Resolved:** 2025-11-25
+**Component:** Campaign / Rewards
+
+**Description:**
+If a mission finished and the player didn't explicitly accept rewards (e.g., closed the game or crashed), the rewards could be auto-accepted or lost. This was problematic for reward screens requiring player choice.
+
+**Root Cause:**
+The RewardScreen called `complete_battle()` immediately when loading, BEFORE the player had a chance to make a choice for "choice" type rewards. If the game exited before the player clicked Continue, the battle was marked complete but no reward was granted.
+
+**Solution Implemented:**
+Added pending reward state tracking:
+1. Added `pending_reward` field to profile campaign_progress schema
+2. Added CampaignService methods: `set_pending_reward()`, `get_pending_reward()`, `update_pending_choice()`, `clear_pending_reward()`, `claim_pending_reward()`
+3. RewardScreen now:
+   - Sets pending reward on first load (doesn't complete battle yet)
+   - Checks for pending reward on load (resumes if found)
+   - Only grants reward AND completes battle when Continue is pressed
+   - Saves choice to pending state immediately when player picks (for choice rewards)
+
+**Related Files:**
+- `scripts/data/json_profile_repository.gd` - Added `pending_reward` to schema
+- `scripts/services/campaign_service.gd` - Added pending reward management methods
+- `scripts/ui/reward_screen.gd` - Complete rewrite of reward flow
+- `localization/data/en.json` - Added ui.reward localization keys
+
+---
+
 ### Cards Cannot Be Played in Campaign Battles
 **Resolved:** 2025-11-25
 **Component:** Cards / Battle System

@@ -95,7 +95,7 @@ func _on_hero_selected(hero_id: String) -> void:
 	# Mark affinity selection event as completed
 	var campaign: Node = get_node("/root/Campaign")
 	if campaign and campaign.has_method("complete_battle"):
-		campaign.call("complete_battle", "event_affinity")
+		campaign.call("complete_battle", BattleIDs.EVENT_AFFINITY)
 		print("HeroSelection: Marked affinity selection as completed!")
 
 	# Transition to reveal scene (hero data already saved in ProfileRepo)
