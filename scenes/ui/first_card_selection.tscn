@@ -54,12 +54,12 @@ layout_mode = 2
 theme_override_constants/separation = 50
 alignment = 1
 
-[node name="SelectWarriorButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer"]
+[node name="SelectFireRecruitButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton"]
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -68,7 +68,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
@@ -76,56 +76,56 @@ theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 alignment = 1
 mouse_filter = 2
 
-[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "WARRIOR"
+text = "FIRE RECRUIT"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Summon • Common"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Cost: 3 Mana
-HP: 100
-Attack: 15"
+text = "Cost: 2 Mana
+HP: 50
+Attack: 10"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "A reliable melee fighter. Charges forward to engage enemies in close combat."
+text = "A basic fire soldier. Cheap and eager to fight, establishing early pressure on the battlefield."
 autowrap_mode = 3
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/SelectWarriorButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireRecruitButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="SelectArcherButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer"]
+[node name="SelectEmberSlingerButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 2
@@ -139,7 +139,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
@@ -147,52 +147,52 @@ theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 alignment = 1
 mouse_filter = 2
 
-[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "ARCHER"
+text = "EMBER SLINGER"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Summon • Common"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Cost: 3 Mana
-HP: 70
-Attack: 12
+text = "Cost: 2 Mana
+HP: 40
+Attack: 8
 Range: Long"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "A versatile ranged unit. Attacks from a distance, staying safe from melee threats."
+text = "A fragile ranged attacker. Flings burning embers for steady chip damage from a safe distance."
 autowrap_mode = 3
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2

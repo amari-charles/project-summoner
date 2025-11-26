@@ -920,7 +920,8 @@ func _create_fresh_profile() -> void:
 		"deck_cards": [],
 		"campaign_progress": {
 			"completed_battles": [],
-			"current_battle": null
+			"current_battle": null,
+			"pending_reward": null  # {battle_id, reward_type, choice_index} or null if claimed
 		},
 		"shop_purchases": {},  # "shop_id::offering_id::refresh_epoch" -> purchase_count
 		"shop_refresh_state": {  # Per-shop refresh tracking

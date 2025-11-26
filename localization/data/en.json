@@ -27,6 +27,22 @@
     "starter_deck_name": "Starter Deck",
     "rewards": {
       "fixed": "Reward: {cards}"
+    },
+    "map": {
+      "select_event": "Select an Event",
+      "click_to_see_details": "Click an event node to see details.",
+      "difficulty": "Difficulty: {stars}",
+      "button_replay": "REPLAY (no reward)",
+      "button_completed": "COMPLETED",
+      "button_start": "START",
+      "button_start_event": "START EVENT",
+      "error_decks_unavailable": "Error: Decks service unavailable",
+      "error_create_deck_first": "Create a deck first",
+      "deck_card_count": "{count} cards",
+      "deck_status_ready": "✓ Ready",
+      "deck_status_invalid": "⚠ Invalid deck",
+      "deck_status_select_first": "⚠ Select a deck first!",
+      "progress": "{completed} / {total} Complete"
     }
   },
   "card": {
@@ -60,7 +76,14 @@
     "mana": "Mana: {current}/{max}",
     "health": "Health: {current}/{max}",
     "deck_size": "Deck: {count}",
-    "hand_size": "Hand: {count}"
+    "hand_size": "Hand: {count}",
+    "reward": {
+      "already_completed": "Battle Already Completed",
+      "no_replay_rewards": "No rewards for replaying battles",
+      "victory": "Victory!",
+      "unknown_card": "Unknown Card",
+      "rarity": "Rarity: {rarity}"
+    }
   },
   "error": {
     "not_enough_mana": "Not enough mana",
@@ -105,7 +128,7 @@
       "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
       "line_2": "You stand at the beginning of your journey as a summoner—a path of great power and greater responsibility.",
       "line_3": "Here at the Academy, we teach one principle above all: choices have consequences. What you bind, stays bound.",
-      "line_4": "Your first choice lies before you. Select your starting companion—warrior or archer.",
+      "line_4": "Your first choice lies before you. Select your starting companion—Fire Recruit or Ember Slinger.",
       "line_5": "Choose with intention, Initiate. This decision is permanent, as all true summoning must be."
     },
     "first_trial_intro": {

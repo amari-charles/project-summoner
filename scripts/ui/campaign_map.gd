@@ -379,9 +379,9 @@ func _input(event: InputEvent) -> void:
 
 func _update_detail_panel() -> void:
 	if selected_event_id == "":
-		event_name_label.text = "Select an Event"
+		event_name_label.text = Loc.t("campaign.map.select_event")
 		difficulty_label.text = ""
-		description_label.text = "Click an event node to see details."
+		description_label.text = Loc.t("campaign.map.click_to_see_details")
 		reward_label.text = ""
 		start_event_button.disabled = true
 		# Clear deck selection UI
@@ -418,7 +418,7 @@ func _update_detail_panel() -> void:
 	var difficulty: int = _safe_int(event.get("difficulty", 0), 0)
 	if difficulty > 0:
 		var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
-		difficulty_label.text = "Difficulty: %s" % diff_stars
+		difficulty_label.text = Loc.t("campaign.map.difficulty", {"stars": diff_stars})
 	else:
 		difficulty_label.text = ""
 
@@ -453,17 +453,17 @@ func _update_detail_panel() -> void:
 
 	if is_completed:
 		if is_repeatable:
-			start_event_button.text = "REPLAY (no reward)"
+			start_event_button.text = Loc.t("campaign.map.button_replay")
 			start_event_button.disabled = false
 		else:
 			# Non-repeatable events cannot be replayed
-			start_event_button.text = "COMPLETED"
+			start_event_button.text = Loc.t("campaign.map.button_completed")
 			start_event_button.disabled = true
 	else:
 		if event_type == "onboarding":
-			start_event_button.text = "START"
+			start_event_button.text = Loc.t("campaign.map.button_start")
 		else:
-			start_event_button.text = "START EVENT"
+			start_event_button.text = Loc.t("campaign.map.button_start_event")
 		start_event_button.disabled = false
 
 ## =============================================================================
@@ -479,7 +479,7 @@ func _load_decks() -> void:
 	var decks: Node = get_node("/root/Decks")
 	if not decks:
 		push_error("CampaignMap: Decks service not found!")
-		deck_info_label.text = "Error: Decks service unavailable"
+		deck_info_label.text = Loc.t("campaign.map.error_decks_unavailable")
 		return
 
 	# Get all decks
@@ -488,8 +488,8 @@ func _load_decks() -> void:
 	available_decks.assign(decks_array)
 
 	if available_decks.is_empty():
-		deck_selector.add_item("No decks available")
-		deck_info_label.text = "Create a deck first"
+		deck_selector.add_item(Loc.t("campaign.map.error_create_deck_first"))
+		deck_info_label.text = Loc.t("campaign.map.error_create_deck_first")
 		active_deck_indicator.text = ""
 		return
 
@@ -564,15 +564,15 @@ func _update_deck_info() -> void:
 	# Show card count
 	var card_ids: Array = _safe_array(selected_deck.get("card_ids", []))
 	var card_count: int = card_ids.size()
-	deck_info_label.text = "%d cards" % card_count
+	deck_info_label.text = Loc.t("campaign.map.deck_card_count", {"count": card_count})
 
 	# Validate deck and show status
 	var is_valid: bool = _validate_selected_deck()
 	if is_valid:
-		active_deck_indicator.text = "✓ Ready"
+		active_deck_indicator.text = Loc.t("campaign.map.deck_status_ready")
 		active_deck_indicator.modulate = Color(0.3, 1.0, 0.3)
 	else:
-		active_deck_indicator.text = "⚠ Invalid deck"
+		active_deck_indicator.text = Loc.t("campaign.map.deck_status_invalid")
 		active_deck_indicator.modulate = Color(1.0, 0.5, 0.0)
 
 func _validate_selected_deck() -> bool:
@@ -601,7 +601,7 @@ func _update_progress_display() -> void:
 	var total_events: Array = _safe_array(campaign.call("get_all_battles"))
 	var total: int = total_events.size()
 
-	progress_label.text = "%d / %d Complete" % [completed, total]
+	progress_label.text = Loc.t("campaign.map.progress", {"completed": completed, "total": total})
 
 ## =============================================================================
 ## EVENT START
@@ -680,7 +680,7 @@ func _on_start_event_pressed() -> void:
 		if selected_deck_id.is_empty():
 			push_error("CampaignMap: No deck selected!")
 			# Update UI to show error
-			active_deck_indicator.text = "⚠ Select a deck first!"
+			active_deck_indicator.text = Loc.t("campaign.map.deck_status_select_first")
 			active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)
 			return
 

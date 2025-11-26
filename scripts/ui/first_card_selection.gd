@@ -9,8 +9,8 @@ class_name FirstCardSelection
 # Deck name constant
 const STARTER_DECK_NAME: String = "Starter Deck"
 
-@onready var select_warrior_button: Button = %SelectWarriorButton
-@onready var select_archer_button: Button = %SelectArcherButton
+@onready var select_fire_recruit_button: Button = %SelectFireRecruitButton
+@onready var select_ember_slinger_button: Button = %SelectEmberSlingerButton
 
 var dialogue_manager: Node = null
 
@@ -18,8 +18,8 @@ func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect button handlers
-	select_warrior_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_RECRUIT))
-	select_archer_button.pressed.connect(_on_card_selected.bind(CardIDs.EMBER_SLINGER))
+	select_fire_recruit_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_RECRUIT))
+	select_ember_slinger_button.pressed.connect(_on_card_selected.bind(CardIDs.EMBER_SLINGER))
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)
 	await get_tree().process_frame
@@ -36,7 +36,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 	var campaign: Node = get_node("/root/Campaign")
 	var already_completed: bool = false
 	if campaign and campaign.has_method("is_battle_completed"):
-		var result: Variant = campaign.call("is_battle_completed", "event_first_summon")
+		var result: Variant = campaign.call("is_battle_completed", BattleIDs.EVENT_FIRST_SUMMON)
 		already_completed = result if result is bool else false
 
 	if already_completed:
@@ -93,7 +93,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 	# Mark event as completed
 	if campaign and campaign.has_method("complete_battle"):
-		campaign.call("complete_battle", "event_first_summon")
+		campaign.call("complete_battle", BattleIDs.EVENT_FIRST_SUMMON)
 		print("FirstCardSelection: Marked first summon event as completed!")
 
 	# Return to campaign map

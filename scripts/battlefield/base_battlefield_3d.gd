@@ -45,7 +45,11 @@ func _apply_biome_from_context() -> void:
 		return
 
 	var biome_id_variant: Variant = battle_context.get("biome_id")
-	var biome_id: String = biome_id_variant if biome_id_variant is String else ""
+	var biome_id: String = ""
+	if biome_id_variant is StringName:
+		biome_id = String(biome_id_variant)
+	elif biome_id_variant is String:
+		biome_id = biome_id_variant
 	if biome_id.is_empty():
 		push_warning("BaseBattlefield3D: No biome_id in BattleContext, using default visuals")
 		return

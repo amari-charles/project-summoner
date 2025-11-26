@@ -17,7 +17,9 @@ class_name RewardScreen
 ## State
 var current_battle_id: String = ""
 var reward_type: String = ""
-var chosen_reward_index: int = 0  ## Unused for now
+var chosen_reward_index: int = -1  ## Index of chosen reward (-1 = not chosen)
+var is_pending_reward: bool = false  ## True if resuming a pending reward
+var reward_ready_to_claim: bool = false  ## True when reward is ready to be claimed
 
 ## =============================================================================
 ## LIFECYCLE
@@ -37,25 +39,37 @@ func _ready() -> void:
 ## =============================================================================
 
 func _load_battle_results() -> void:
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if not profile_repo:
-		push_error("RewardScreen: ProfileRepository not found!")
-		return
-
-	var profile: Dictionary = profile_repo.call("get_active_profile")
-	if profile.is_empty():
-		return
-
-	var empty_dict: Dictionary = {}
-	var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
-	current_battle_id = campaign_progress.get("current_battle", "")
-	if current_battle_id == "":
-		push_error("RewardScreen: No current battle set!")
-		return
-
 	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		push_error("RewardScreen: Campaign service not found!")
+		return
+
+	# Check for pending reward first (resuming after exit/crash)
+	var pending_reward: Variant = campaign.call("get_pending_reward")
+	if pending_reward != null and pending_reward is Dictionary:
+		var pending_dict: Dictionary = pending_reward
+		current_battle_id = pending_dict.get("battle_id", "")
+		reward_type = pending_dict.get("reward_type", "fixed")
+		chosen_reward_index = pending_dict.get("choice_index", -1)
+		is_pending_reward = true
+		print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
+	else:
+		# No pending reward - load from current battle
+		var profile_repo: Node = get_node("/root/ProfileRepo")
+		if not profile_repo:
+			push_error("RewardScreen: ProfileRepository not found!")
+			return
+
+		var profile: Dictionary = profile_repo.call("get_active_profile")
+		if profile.is_empty():
+			return
+
+		var empty_dict: Dictionary = {}
+		var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
+		current_battle_id = campaign_progress.get("current_battle", "")
+
+	if current_battle_id == "":
+		push_error("RewardScreen: No current battle set!")
 		return
 
 	var battle: Dictionary = campaign.call("get_battle", current_battle_id)
@@ -65,24 +79,28 @@ func _load_battle_results() -> void:
 
 	# Update UI
 	battle_name_label.text = battle.get("name", "Unknown Battle")
-	reward_type = battle.get("reward_type", "fixed")
+	if not is_pending_reward:
+		reward_type = battle.get("reward_type", "fixed")
 
 	# Check if battle was already completed (replay scenario)
 	var is_replay: bool = campaign.call("is_battle_completed", current_battle_id)
 
-	# Mark battle as completed (if first time)
-	if not is_replay:
-		campaign.call("complete_battle", current_battle_id)
-
-	# Show rewards based on type (only grant if first time)
-	_show_rewards(battle, is_replay)
+	if is_replay:
+		# Battle already completed - show replay message
+		_show_rewards(battle, true)
+	elif is_pending_reward:
+		# Resuming pending reward - show appropriate UI
+		_resume_pending_reward(battle)
+	else:
+		# First time victory - set pending reward (don't complete yet!)
+		campaign.call("set_pending_reward", current_battle_id, reward_type, -1)
+		_show_rewards(battle, false)
 
 ## =============================================================================
 ## REWARD DISPLAY
 ## =============================================================================
 
 func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
-	var campaign: Node = get_node("/root/Campaign")
 	var catalog: Node = get_node("/root/CardCatalog")
 
 	# Validate rewards before displaying
@@ -90,29 +108,59 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 
 	if is_replay:
 		# Show message for replayed battles
-		reward_card_label.text = "Battle Already Completed"
-		reward_detail_label.text = "No rewards for replaying battles"
+		reward_card_label.text = Loc.t("ui.reward.already_completed")
+		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
+		reward_ready_to_claim = false
 		return
 
 	match reward_type:
-		"fixed":
-			# Auto-grant rewards and display first card
-			var granted_card: Dictionary = campaign.call("grant_battle_reward", current_battle_id)
-			if not granted_card.is_empty():
-				_display_card_reward(granted_card)
-				_auto_add_cards_to_deck(granted_card)
+		"fixed", "random":
+			# Display the reward preview (don't grant yet - grant on Continue)
+			var reward_cards: Array = battle.get("reward_cards", [])
+			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
+				_display_card_reward(reward_cards[0])
+			reward_ready_to_claim = true
 
 		"choice":
-			# Show choice UI
+			# Show choice UI - player must pick before continuing
 			var reward_cards: Array = battle.get("reward_cards", [])
 			_show_choice_ui(reward_cards)
+			reward_ready_to_claim = false  # Must choose first
 
-		"random":
-			# Roll random and display
-			var granted_card: Dictionary = campaign.call("grant_battle_reward", current_battle_id)
-			if not granted_card.is_empty():
-				_display_card_reward(granted_card)
-				_auto_add_cards_to_deck(granted_card)
+		"none":
+			# No rewards for this battle
+			reward_card_label.text = Loc.t("ui.reward.victory")
+			reward_detail_label.text = ""
+			reward_ready_to_claim = true
+
+## Resume a pending reward (called when returning to screen after exit)
+func _resume_pending_reward(battle: Dictionary) -> void:
+	print("RewardScreen: Resuming pending reward (type: %s, choice_index: %d)" % [reward_type, chosen_reward_index])
+
+	match reward_type:
+		"fixed", "random":
+			# Fixed/random rewards just need to show the preview
+			var reward_cards: Array = battle.get("reward_cards", [])
+			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
+				_display_card_reward(reward_cards[0])
+			reward_ready_to_claim = true
+
+		"choice":
+			var reward_cards: Array = battle.get("reward_cards", [])
+			if chosen_reward_index >= 0 and chosen_reward_index < reward_cards.size():
+				# Player already made a choice - show it
+				var chosen_reward: Dictionary = reward_cards[chosen_reward_index]
+				_display_card_reward(chosen_reward)
+				reward_ready_to_claim = true
+			else:
+				# Player hasn't chosen yet - show choice UI
+				_show_choice_ui(reward_cards)
+				reward_ready_to_claim = false
+
+		"none":
+			reward_card_label.text = Loc.t("ui.reward.victory")
+			reward_detail_label.text = ""
+			reward_ready_to_claim = true
 
 func _display_card_reward(reward: Dictionary) -> void:
 	var catalog: Node = get_node("/root/CardCatalog")
@@ -125,7 +173,7 @@ func _display_card_reward(reward: Dictionary) -> void:
 
 	var card_data: Dictionary = catalog.call("get_card", catalog_id)
 	if card_data.is_empty():
-		reward_card_label.text = "Unknown Card"
+		reward_card_label.text = Loc.t("ui.reward.unknown_card")
 		reward_detail_label.text = ""
 		return
 
@@ -136,7 +184,7 @@ func _display_card_reward(reward: Dictionary) -> void:
 	else:
 		reward_card_label.text = card_name
 
-	reward_detail_label.text = "Rarity: %s" % rarity.capitalize()
+	reward_detail_label.text = Loc.t("ui.reward.rarity", {"rarity": rarity.capitalize()})
 
 	# Color based on rarity
 	match rarity:
@@ -183,19 +231,25 @@ func _show_choice_ui(reward_options: Array) -> void:
 
 func _on_choice_selected(index: int) -> void:
 	print("RewardScreen: Player chose option %d" % index)
+	chosen_reward_index = index
 
-	# Grant the chosen reward
+	# Save choice to pending reward state (persists if player exits)
 	var campaign: Node = get_node("/root/Campaign")
 	if campaign:
-		var granted_card: Dictionary = campaign.call("grant_battle_reward", current_battle_id, index)
-		if not granted_card.is_empty():
-			# Hide choice UI and show selected card
-			choice_container.visible = false
-			reward_container.visible = true
-			_display_card_reward(granted_card)
-			_auto_add_cards_to_deck(granted_card)
+		campaign.call("update_pending_choice", index)
 
-	# Enable continue
+	# Get the chosen reward to display
+	var battle: Dictionary = campaign.call("get_battle", current_battle_id)
+	var reward_cards: Array = battle.get("reward_cards", [])
+
+	if index >= 0 and index < reward_cards.size() and reward_cards[index] is Dictionary:
+		# Hide choice UI and show selected card preview
+		choice_container.visible = false
+		reward_container.visible = true
+		_display_card_reward(reward_cards[index])
+
+	# Mark ready to claim and enable continue
+	reward_ready_to_claim = true
 	continue_button.disabled = false
 
 ## =============================================================================
@@ -203,7 +257,28 @@ func _on_choice_selected(index: int) -> void:
 ## =============================================================================
 
 func _on_continue_pressed() -> void:
-	print("RewardScreen: Continuing to campaign screen")
+	print("RewardScreen: Continue pressed")
+
+	var campaign: Node = get_node("/root/Campaign")
+	if not campaign:
+		push_error("RewardScreen: Campaign service not found!")
+		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+		return
+
+	# Check if we have a reward to claim
+	if reward_ready_to_claim:
+		# Claim the pending reward (grants cards + marks battle complete)
+		var granted_card: Dictionary = campaign.call("claim_pending_reward")
+
+		# Auto-add to deck if tutorial battle
+		if not granted_card.is_empty():
+			_auto_add_cards_to_deck(granted_card)
+			print("RewardScreen: Claimed reward for battle '%s'" % current_battle_id)
+	else:
+		# No reward to claim (replay or no rewards) - just clear any stale pending state
+		campaign.call("clear_pending_reward")
+
+	print("RewardScreen: Transitioning to campaign map")
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## =============================================================================

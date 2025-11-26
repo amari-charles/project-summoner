@@ -52,8 +52,9 @@ func _init_battles() -> void:
 	# - Enemies are spawned manually via BattleDialogueController or EventSequencer
 
 	# Onboarding Event 1: Hero/Affinity selection
-	_battles["event_affinity"] = {
-		"id": "event_affinity",
+	# Note: Convert StringName to String for dictionary keys (String lookups won't find StringName keys)
+	_battles[String(BattleIDs.EVENT_AFFINITY)] = {
+		"id": String(BattleIDs.EVENT_AFFINITY),
 		"biome_id": "",  # No biome, not a battle
 		"name": Loc.t("campaign.event.affinity.name"),
 		"description": Loc.t("campaign.event.affinity.description"),
@@ -68,8 +69,8 @@ func _init_battles() -> void:
 	}
 
 	# Onboarding Event 2: First summon selection
-	_battles["event_first_summon"] = {
-		"id": "event_first_summon",
+	_battles[String(BattleIDs.EVENT_FIRST_SUMMON)] = {
+		"id": String(BattleIDs.EVENT_FIRST_SUMMON),
 		"biome_id": "",  # No biome, not a battle
 		"name": Loc.t("campaign.event.first_summon.name"),
 		"description": Loc.t("campaign.event.first_summon.description"),
@@ -80,13 +81,13 @@ func _init_battles() -> void:
 		"reward_type": "fixed",
 		"reward_cards": [],  # Reward handled by first_card_selection flow
 		"enemy_deck": [],  # Not a battle
-		"unlock_requirements": ["event_affinity"],  # Requires completing affinity selection
+		"unlock_requirements": [String(BattleIDs.EVENT_AFFINITY)],  # Requires completing affinity selection
 	}
 
 	# Battle 0: The First Trial
-	_battles["first_trial"] = {
-		"id": "first_trial",
-		"biome_id": "summer_plains",
+	_battles[String(BattleIDs.FIRST_TRIAL)] = {
+		"id": String(BattleIDs.FIRST_TRIAL),
+		"biome_id": String(BiomeIDs.SUMMER_PLAINS),
 		"name": Loc.t("campaign.battle.first_trial.name"),
 		"description": Loc.t("campaign.battle.first_trial.description"),
 		"difficulty": 1,
@@ -102,7 +103,7 @@ func _init_battles() -> void:
 			{"catalog_id": "slime_green", "count": 1}
 		],
 		"enemy_hp": 30.0,  # Very low HP for tutorial (3 hits × 10 damage)
-		"unlock_requirements": ["event_first_summon"],
+		"unlock_requirements": [String(BattleIDs.EVENT_FIRST_SUMMON)],
 		# Tutorial Event Sequence (Phase 3: Event System)
 		"event_sequence": "res://resources/sequences/first_trial_tutorial.tres",
 		# AI Configuration (disabled for tutorial - manual spawn via dialogue system)
@@ -111,9 +112,9 @@ func _init_battles() -> void:
 	}
 
 	# Tutorial: Charge Card Introduction
-	_battles["charge_tutorial"] = {
-		"id": "charge_tutorial",
-		"biome_id": "summer_plains",
+	_battles[String(BattleIDs.CHARGE_TUTORIAL)] = {
+		"id": String(BattleIDs.CHARGE_TUTORIAL),
+		"biome_id": String(BiomeIDs.SUMMER_PLAINS),
 		"name": Loc.t("campaign.battle.charge_tutorial.name"),
 		"description": Loc.t("campaign.battle.charge_tutorial.description"),
 		"difficulty": 1,
@@ -128,7 +129,7 @@ func _init_battles() -> void:
 		],
 		"enemy_deck": [],  # Spawned via event sequence
 		"enemy_hp": 50.0,
-		"unlock_requirements": ["first_trial"],
+		"unlock_requirements": [String(BattleIDs.FIRST_TRIAL)],
 		# Tutorial Event Sequence
 		"event_sequence": "res://resources/sequences/charge_tutorial.tres",
 		# AI Configuration (disabled for tutorial)
@@ -137,14 +138,14 @@ func _init_battles() -> void:
 	}
 
 	# Caravan Event: Mr. Merriweather's Trading Post
-	_battles["event_caravan_tutorial"] = {
-		"id": "event_caravan_tutorial",
+	_battles[String(BattleIDs.EVENT_CARAVAN_TUTORIAL)] = {
+		"id": String(BattleIDs.EVENT_CARAVAN_TUTORIAL),
 		"event_type": "caravan",
 		"name": Loc.t("campaign.event.caravan_tutorial.name"),
 		"description": Loc.t("campaign.event.caravan_tutorial.description"),
 		"difficulty": 1,
 		"gold_reward": 0,  # Handled by shop purchases
-		"unlock_requirements": ["charge_tutorial"],
+		"unlock_requirements": [String(BattleIDs.CHARGE_TUTORIAL)],
 		"requires_deck": false,
 		"repeatable": false,
 		"reward_type": "none",  # Rewards from shop
@@ -272,6 +273,76 @@ func get_completed_battles() -> Array[Dictionary]:
 		if not battle.is_empty():
 			completed.append(battle)
 	return completed
+
+## =============================================================================
+## PENDING REWARD MANAGEMENT
+## =============================================================================
+
+## Set a pending reward for a battle (called when player wins but hasn't claimed yet)
+func set_pending_reward(battle_id: String, reward_type: String, choice_index: int = -1) -> void:
+	var pending: Dictionary = {
+		"battle_id": battle_id,
+		"reward_type": reward_type,
+		"choice_index": choice_index  # -1 = not chosen yet (for choice rewards)
+	}
+	ProfileRepo.update_campaign_progress({"pending_reward": pending})
+	print("CampaignService: Set pending reward for battle '%s' (type: %s)" % [battle_id, reward_type])
+
+## Get the current pending reward (null if none)
+func get_pending_reward() -> Variant:
+	var campaign_progress: Dictionary = ProfileRepo.get_campaign_progress()
+	return campaign_progress.get("pending_reward", null)
+
+## Update choice index for a pending choice reward
+func update_pending_choice(choice_index: int) -> void:
+	var pending: Variant = get_pending_reward()
+	if pending == null or not pending is Dictionary:
+		push_warning("CampaignService: No pending reward to update choice for")
+		return
+
+	var pending_dict: Dictionary = pending
+	pending_dict["choice_index"] = choice_index
+	ProfileRepo.update_campaign_progress({"pending_reward": pending_dict})
+	print("CampaignService: Updated pending choice to index %d" % choice_index)
+
+## Clear the pending reward (called after reward is claimed)
+func clear_pending_reward() -> void:
+	ProfileRepo.update_campaign_progress({"pending_reward": null})
+	print("CampaignService: Cleared pending reward")
+
+## Claim the pending reward (grants cards and marks battle complete)
+## Returns the granted card info or empty dict if failed
+func claim_pending_reward() -> Dictionary:
+	var pending: Variant = get_pending_reward()
+	if pending == null or not pending is Dictionary:
+		push_warning("CampaignService: No pending reward to claim")
+		return {}
+
+	var pending_dict: Dictionary = pending
+	var battle_id: String = pending_dict.get("battle_id", "")
+	var reward_type: String = pending_dict.get("reward_type", "")
+	var choice_index: int = pending_dict.get("choice_index", 0)
+
+	if battle_id.is_empty():
+		push_error("CampaignService: Invalid pending reward - no battle_id")
+		return {}
+
+	# For choice rewards, ensure a choice was made
+	if reward_type == "choice" and choice_index < 0:
+		push_error("CampaignService: Cannot claim choice reward without making a choice")
+		return {}
+
+	# Grant the reward
+	var granted_card: Dictionary = grant_battle_reward(battle_id, choice_index)
+
+	# Mark battle as completed
+	complete_battle(battle_id)
+
+	# Clear the pending reward
+	clear_pending_reward()
+
+	print("CampaignService: Claimed reward for battle '%s'" % battle_id)
+	return granted_card
 
 ## =============================================================================
 ## BATTLE COMPLETION & REWARDS
