@@ -5,11 +5,14 @@ class_name ManaBar
 ## Each tier represents MANA_PER_TIER mana (default 10)
 ## Lower tiers show as full bars underneath higher tiers
 ## Example: 15/25 mana = full blue (tier 1) + half-filled orange (tier 2)
+## Note: Maximum supported mana is MANA_PER_TIER * TIER_COLORS.size() (default 50)
+##       Mana beyond this will display at max tier color
 
 ## Mana per tier (bar wraps at this value)
 const MANA_PER_TIER: float = 10.0
 
 ## Tier colors - Blue intensity progression (magic-themed)
+## Add more colors here to support higher max mana values
 const TIER_COLORS: Array[Dictionary] = [
 	{"fill": Color(0.4, 0.7, 1.0), "name": "light_blue"},    # Tier 1: Light Blue (0-10)
 	{"fill": Color(0.25, 0.45, 0.95), "name": "royal_blue"}, # Tier 2: Royal Blue (10-20)

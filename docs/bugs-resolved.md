@@ -15,14 +15,14 @@ Slime units sometimes got stuck in a state between being alive and dead. They wo
 Race condition in `unit_3d.gd:_die()`. Multiple damage events in the same frame could call `_die()` multiple times before `is_alive` was set to false. Additionally, using `await` for death animation could fail silently if the scene tree changed.
 
 **Solution Implemented:**
-1. Added `_is_dying` guard flag to prevent multiple `_die()` calls
+1. Added `is_dying` guard flag to prevent multiple `_die()` calls
 2. Changed from `await get_tree().create_timer()` to a `Tween` for more reliable cleanup
-3. Updated `take_damage()` to check `_is_dying` flag
+3. Updated `take_damage()` to check `is_dying` flag
 4. Updated `_is_valid_target()` to exclude dying units
 5. Updated `_acquire_target()` to skip dying units
 
 **Related Files:**
-- `scripts/units/unit_3d.gd:97` - Added `_is_dying` flag
+- `scripts/units/unit_3d.gd:97` - Added `is_dying` flag
 - `scripts/units/unit_3d.gd:957-974` - Improved `_die()` function
 - `scripts/units/unit_3d.gd:935-937` - Updated `take_damage()`
 - `scripts/units/unit_3d.gd:525-533` - Updated `_is_valid_target()`
