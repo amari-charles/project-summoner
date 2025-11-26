@@ -132,7 +132,7 @@ static func get_element_color(element_name: String) -> Color:
 
 ## Get rarity color by name
 static func get_rarity_color(rarity: String) -> Color:
-	match rarity.to_lower():
+	match rarity:
 		RarityIDs.COMMON: return RARITY_COMMON
 		RarityIDs.RARE: return RARITY_RARE
 		RarityIDs.EPIC: return RARITY_EPIC

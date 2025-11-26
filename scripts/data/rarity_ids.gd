@@ -32,9 +32,11 @@ const ALL_RARITIES: Array[StringName] = [COMMON, RARE, EPIC, LEGENDARY]
 
 ## Get the tier index of a rarity (0 = common, 3 = legendary)
 ## Returns -1 if rarity is invalid
-static func get_tier(rarity: StringName) -> int:
-	return ALL_RARITIES.find(rarity)
+## Accepts String or StringName (JSON data often arrives as String)
+static func get_tier(rarity: String) -> int:
+	return ALL_RARITIES.find(StringName(rarity))
 
 ## Check if a rarity string is valid
-static func is_valid(rarity: StringName) -> bool:
-	return rarity in ALL_RARITIES
+## Accepts String or StringName (JSON data often arrives as String)
+static func is_valid(rarity: String) -> bool:
+	return StringName(rarity) in ALL_RARITIES
