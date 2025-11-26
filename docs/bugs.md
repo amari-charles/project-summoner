@@ -10,49 +10,7 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ## Active Bugs
 
-### 🟡 MEDIUM PRIORITY
-
-#### Mana Bar Uses Hardcoded Values Instead of Hero System
-**Status:** Open (Deferred)
-**Reported:** 2025-01-14
-**Component:** UI / Mana System
-**Type:** Architecture Issue
-
-**Description:**
-The mana bar currently has hardcoded default values in the scene file and uses Summoner as the mana source. When the Hero system is implemented, mana should be a Hero property, not Summoner.
-
-**Expected Behavior:**
-- Mana bar should display values from Hero.mana and Hero.max_mana
-- Hero should emit mana_changed signal
-- No hardcoded mana values in scene files
-- Mana max should be determined by Hero stats/equipment
-
-**Current Behavior:**
-- Mana is managed by Summoner class
-- MANA_MAX is a constant (15.0) in Summoner
-- Scene file has hardcoded "Mana: 15/15" text
-- No hero system implemented yet
-
-**Impact:**
-- Creates technical debt for future Hero implementation
-- Mana system needs refactoring when Hero is added
-- Not critical for current functionality
-
-**Proposed Solution:**
-- Create Hero system with mana as a property
-- Move mana management from Summoner to Hero
-- Update ManaBar to listen to Hero.mana_changed signal
-- Remove hardcoded values from mana_bar.tscn
-
-**Related Files:**
-- `scripts/ui/mana_bar.gd` - Has TODO comments
-- `scripts/core/summoner_3d.gd:29` - MANA_MAX constant
-- `scenes/ui/mana_bar.tscn` - Hardcoded display values
-
-**Notes:**
-- Can be deferred until Hero system implementation
-- TODOs added to relevant files
-- Part of larger Hero system feature work
+*No active bugs at this time.*
 
 ---
 
@@ -94,4 +52,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-11-25 - Moved fixed card playing bug to resolved*
+*Last Updated: 2025-11-26 - Fixed slime death state bug and mana bar hardcoded values*

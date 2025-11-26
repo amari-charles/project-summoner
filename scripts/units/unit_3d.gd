@@ -94,6 +94,7 @@ var active_modifiers: Dictionary = {}
 ## Current state
 var current_hp: float
 var is_alive: bool = true
+var _is_dying: bool = false  ## Guard against multiple _die() calls
 var current_target: Node3D = null
 var attack_cooldown: float = 0.0
 var pending_attack_target: Node3D = null  # Target for animation-driven damage
@@ -522,13 +523,13 @@ func _check_proximity_to_enemy_base() -> void:
 			print("Unit3D: Player unit '%s' near enemy base (distance: %.2f)" % [name, distance_2d])
 
 func _is_valid_target(target: Node3D) -> bool:
-	## Check if a target is still valid (alive and in range)
+	## Check if a target is still valid (alive, not dying, and in range)
 	if not target or not is_instance_valid(target):
 		return false
 	if target is Unit3D:
 		# Type narrow to Unit3D for safe property access
 		var unit_target: Unit3D = target
-		if not unit_target.is_alive:
+		if not unit_target.is_alive or unit_target._is_dying:
 			return false
 
 	# Skip distance check for forced targets from Charge spell
@@ -581,7 +582,7 @@ func _acquire_target() -> Node3D:
 		# Type narrow to Unit3D for safe property access
 		var target_unit: Unit3D = target
 
-		if not target_unit.is_alive:
+		if not target_unit.is_alive or target_unit._is_dying:
 			continue
 
 		# Skip targets we cannot attack based on layer restrictions
@@ -932,7 +933,7 @@ func _on_attack_impact() -> void:
 	pending_attack_target = null
 
 func take_damage(amount: float) -> void:
-	if not is_alive:
+	if not is_alive or _is_dying:
 		return
 
 	current_hp -= amount
@@ -954,7 +955,12 @@ func take_damage(amount: float) -> void:
 		_die()
 
 func _die() -> void:
+	# Guard against multiple _die() calls (race condition from rapid damage)
+	if _is_dying:
+		return
+	_is_dying = true
 	is_alive = false
+
 	_update_animation("death")
 	unit_died.emit(self)
 
@@ -962,8 +968,10 @@ func _die() -> void:
 	HPBarManager.remove_bar_from_unit(self)
 
 	# Wait for death animation then remove
-	await get_tree().create_timer(1.0).timeout
-	queue_free()
+	# Use a tween instead of timer for more reliable cleanup
+	var death_tween: Tween = create_tween()
+	death_tween.tween_interval(1.0)
+	death_tween.tween_callback(queue_free)
 
 func _update_animation(anim_name: String) -> void:
 	if not visual_component:

@@ -26,12 +26,15 @@ const GLOW_COLOR: Color = Color(0.5, 0.9, 1.0, 0.5)  # Bright cyan glow
 const BORDER_COLOR: Color = Color(0.15, 0.4, 0.8)  # Blue border
 const BG_COLOR: Color = Color(0.05, 0.05, 0.1, 0.9)  # Dark blue-black
 
+## Default max mana (will be updated by summoner signal)
+const DEFAULT_MAX_MANA: float = 10.0
+
 func _ready() -> void:
-	# Setup progress bar
+	# Setup progress bar with defaults (will be updated by summoner mana_changed signal)
 	if progress_bar:
 		progress_bar.min_value = 0.0
-		progress_bar.max_value = 10.0
-		progress_bar.value = 10.0
+		progress_bar.max_value = DEFAULT_MAX_MANA
+		progress_bar.value = DEFAULT_MAX_MANA
 
 		# Fill style - transparent to let gradient layers show through
 		var fill_style: StyleBoxFlat = StyleBoxFlat.new()
@@ -117,8 +120,10 @@ func update_mana(current: float, maximum: float) -> void:
 	if mana_label:
 		mana_label.text = Loc.t("ui.mana_bar.format", {"current": int(current), "max": int(maximum)})
 
-	# Animate progress bar
+	# Update progress bar max value if changed (hero stats can modify max mana)
 	if progress_bar:
+		if progress_bar.max_value != maximum:
+			progress_bar.max_value = maximum
 		_animate_bar_to(current)
 
 	# Check if regenerating (mana increasing and not at max)
