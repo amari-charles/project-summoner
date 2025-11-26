@@ -52,8 +52,9 @@ func _init_battles() -> void:
 	# - Enemies are spawned manually via BattleDialogueController or EventSequencer
 
 	# Onboarding Event 1: Hero/Affinity selection
-	_battles[BattleIDs.EVENT_AFFINITY] = {
-		"id": BattleIDs.EVENT_AFFINITY,
+	# Note: Convert StringName to String for dictionary keys (String lookups won't find StringName keys)
+	_battles[String(BattleIDs.EVENT_AFFINITY)] = {
+		"id": String(BattleIDs.EVENT_AFFINITY),
 		"biome_id": "",  # No biome, not a battle
 		"name": Loc.t("campaign.event.affinity.name"),
 		"description": Loc.t("campaign.event.affinity.description"),
@@ -68,8 +69,8 @@ func _init_battles() -> void:
 	}
 
 	# Onboarding Event 2: First summon selection
-	_battles[BattleIDs.EVENT_FIRST_SUMMON] = {
-		"id": BattleIDs.EVENT_FIRST_SUMMON,
+	_battles[String(BattleIDs.EVENT_FIRST_SUMMON)] = {
+		"id": String(BattleIDs.EVENT_FIRST_SUMMON),
 		"biome_id": "",  # No biome, not a battle
 		"name": Loc.t("campaign.event.first_summon.name"),
 		"description": Loc.t("campaign.event.first_summon.description"),
@@ -80,13 +81,13 @@ func _init_battles() -> void:
 		"reward_type": "fixed",
 		"reward_cards": [],  # Reward handled by first_card_selection flow
 		"enemy_deck": [],  # Not a battle
-		"unlock_requirements": [BattleIDs.EVENT_AFFINITY],  # Requires completing affinity selection
+		"unlock_requirements": [String(BattleIDs.EVENT_AFFINITY)],  # Requires completing affinity selection
 	}
 
 	# Battle 0: The First Trial
-	_battles[BattleIDs.FIRST_TRIAL] = {
-		"id": BattleIDs.FIRST_TRIAL,
-		"biome_id": BiomeIDs.SUMMER_PLAINS,
+	_battles[String(BattleIDs.FIRST_TRIAL)] = {
+		"id": String(BattleIDs.FIRST_TRIAL),
+		"biome_id": String(BiomeIDs.SUMMER_PLAINS),
 		"name": Loc.t("campaign.battle.first_trial.name"),
 		"description": Loc.t("campaign.battle.first_trial.description"),
 		"difficulty": 1,
@@ -102,7 +103,7 @@ func _init_battles() -> void:
 			{"catalog_id": "slime_green", "count": 1}
 		],
 		"enemy_hp": 30.0,  # Very low HP for tutorial (3 hits × 10 damage)
-		"unlock_requirements": [BattleIDs.EVENT_FIRST_SUMMON],
+		"unlock_requirements": [String(BattleIDs.EVENT_FIRST_SUMMON)],
 		# Tutorial Event Sequence (Phase 3: Event System)
 		"event_sequence": "res://resources/sequences/first_trial_tutorial.tres",
 		# AI Configuration (disabled for tutorial - manual spawn via dialogue system)
@@ -111,9 +112,9 @@ func _init_battles() -> void:
 	}
 
 	# Tutorial: Charge Card Introduction
-	_battles[BattleIDs.CHARGE_TUTORIAL] = {
-		"id": BattleIDs.CHARGE_TUTORIAL,
-		"biome_id": BiomeIDs.SUMMER_PLAINS,
+	_battles[String(BattleIDs.CHARGE_TUTORIAL)] = {
+		"id": String(BattleIDs.CHARGE_TUTORIAL),
+		"biome_id": String(BiomeIDs.SUMMER_PLAINS),
 		"name": Loc.t("campaign.battle.charge_tutorial.name"),
 		"description": Loc.t("campaign.battle.charge_tutorial.description"),
 		"difficulty": 1,
@@ -128,7 +129,7 @@ func _init_battles() -> void:
 		],
 		"enemy_deck": [],  # Spawned via event sequence
 		"enemy_hp": 50.0,
-		"unlock_requirements": [BattleIDs.FIRST_TRIAL],
+		"unlock_requirements": [String(BattleIDs.FIRST_TRIAL)],
 		# Tutorial Event Sequence
 		"event_sequence": "res://resources/sequences/charge_tutorial.tres",
 		# AI Configuration (disabled for tutorial)
@@ -137,14 +138,14 @@ func _init_battles() -> void:
 	}
 
 	# Caravan Event: Mr. Merriweather's Trading Post
-	_battles[BattleIDs.EVENT_CARAVAN_TUTORIAL] = {
-		"id": BattleIDs.EVENT_CARAVAN_TUTORIAL,
+	_battles[String(BattleIDs.EVENT_CARAVAN_TUTORIAL)] = {
+		"id": String(BattleIDs.EVENT_CARAVAN_TUTORIAL),
 		"event_type": "caravan",
 		"name": Loc.t("campaign.event.caravan_tutorial.name"),
 		"description": Loc.t("campaign.event.caravan_tutorial.description"),
 		"difficulty": 1,
 		"gold_reward": 0,  # Handled by shop purchases
-		"unlock_requirements": [BattleIDs.CHARGE_TUTORIAL],
+		"unlock_requirements": [String(BattleIDs.CHARGE_TUTORIAL)],
 		"requires_deck": false,
 		"repeatable": false,
 		"reward_type": "none",  # Rewards from shop
