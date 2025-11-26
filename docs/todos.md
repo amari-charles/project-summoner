@@ -60,25 +60,6 @@ Implement the movement system for flying units including pathfinding and collisi
 
 ---
 
-#### Prevent Units from Stacking on Same Coordinates
-**Status:** ⬜ Not Started
-**Category:** Units & Combat
-**Effort:** Small
-
-**Description:**
-Add collision/placement validation to prevent multiple units from occupying the same grid position.
-
-**Requirements:**
-- Check for existing unit before placement
-- Block movement to occupied tiles
-- Handle edge cases (unit death, teleportation)
-
-**Notes:**
-- Should work for both player and AI units
-- May need visual feedback for invalid placement
-
----
-
 #### Improve Unit Hitboxes
 **Status:** ⬜ Not Started
 **Category:** Units & Combat
@@ -214,81 +195,6 @@ Design and implement additional spell cards for more strategic variety.
 ---
 
 ## Database & Data Layer
-
-### 🔴 HIGH PRIORITY
-
-#### Consolidate Dual Catalog System (CardCatalog vs ContentCatalog)
-**Status:** ⬜ Not Started
-**Category:** Database / Architecture
-**Effort:** Medium
-
-**Description:**
-The codebase has TWO card catalog systems with incompatible data formats, creating confusion and potential bugs.
-
-**Current State:**
-| Feature | CardCatalog | ContentCatalog |
-|---------|-------------|----------------|
-| Source | Hardcoded GDScript | JSON files |
-| Card Type | `int` (0, 1) | `String` ("summon") |
-| Cards | ~21 cards | 4 cards |
-| Used By | All gameplay | Rarely |
-
-**Problems:**
-- `CardCatalog` uses `card_type: int` (0 = SUMMON, 1 = SPELL)
-- `ContentCatalog/CardData` uses `card_type: String` ("summon", "spell")
-- Type mismatches if systems are used together
-- Duplicate maintenance burden
-
-**Requirements:**
-- Decide: keep CardCatalog (hardcoded) OR migrate to ContentCatalog (JSON)
-- Remove the unused system entirely
-- Ensure consistent type format across remaining system
-
-**Recommendation:**
-Keep `CardCatalog` for now (it has all the cards), remove card-loading from `ContentCatalog`. Later migrate CardCatalog to JSON when content volume grows.
-
-**Related Files:**
-- `scripts/data/card_catalog.gd` - Primary system (26KB, 21 cards)
-- `scripts/data/content_catalog.gd` - Secondary system (loads JSON)
-- `scripts/data/card_data.gd` - JSON card format
-
----
-
-### 🟡 MEDIUM PRIORITY
-
----
-
-#### Add Schema Validation for JSON Content Loading
-**Status:** ⬜ Not Started
-**Category:** Database / Data Validation
-**Effort:** Medium
-
-**Description:**
-`ContentCatalog` loads JSON files without validating required fields. Missing fields silently use defaults which can cause bugs later.
-
-**Current:**
-```gdscript
-func _load_unit_from_file(file_path: String) -> UnitData:
-    # ... parse JSON ...
-    return UnitData.from_dict(data_dict)  # No validation!
-```
-
-**Problems:**
-- Missing `unit_id` silently becomes empty string
-- Invalid stats (negative HP) not caught at load time
-- Errors surface much later during gameplay
-
-**Requirements:**
-- Add required field validation in `from_dict()` methods
-- Return null and log error if required fields missing
-- Validate stat ranges (HP > 0, etc.)
-
-**Related Files:**
-- `scripts/data/content_catalog.gd:57-83`
-- `scripts/data/unit_data.gd:50-107` - `from_dict()`
-- `scripts/data/card_data.gd:43-78` - `from_dict()`
-
----
 
 ### 🟢 LOW PRIORITY
 
@@ -1221,4 +1127,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Added VFXIDs constants class with validation*
+*Last Updated: 2025-11-25 - Consolidated dual catalog system (removed CardData/UnitData)*

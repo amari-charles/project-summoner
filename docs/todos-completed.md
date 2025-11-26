@@ -4,7 +4,48 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## Units & Combat
+
+### Prevent Units from Stacking on Same Coordinates
+**Completed:** 2025-11-25
+**Category:** Units & Combat
+**Effort:** Small
+
+**Description:**
+Added collision/placement validation to prevent multiple units from occupying the same grid position.
+
+**Solution Implemented:**
+- Check for existing unit before placement
+- Block movement to occupied tiles
+- Handle edge cases (unit death, teleportation)
+- Works for both player and AI units
+
+---
+
 ## Database & Data Layer
+
+### Consolidate Dual Catalog System (CardCatalog vs ContentCatalog)
+**Completed:** 2025-11-25
+**Category:** Database / Architecture
+**Effort:** Medium
+
+**Description:**
+The codebase had TWO card catalog systems with incompatible data formats - `CardCatalog` (hardcoded GDScript, 21+ cards) and `ContentCatalog` (JSON-based, 4 cards). This created confusion and potential bugs due to type mismatches (`card_type: int` vs `card_type: String`).
+
+**Solution Implemented:**
+- Kept `CardCatalog` as the single source of truth for card data (it has all the cards)
+- Removed card and unit loading from `ContentCatalog` (unused functionality)
+- Deleted unused data classes: `CardData`, `UnitData`
+- Deleted unused JSON content: `data/cards/`, `data/units/`
+- Kept `ContentCatalog` for projectile data only (actively used by projectile system)
+- `ContentCatalog` is now a focused "ProjectileCatalog" in function
+
+**Files Changed:**
+- `scripts/data/content_catalog.gd` - Removed card/unit loading, simplified to projectiles only
+- Deleted: `scripts/data/card_data.gd`, `scripts/data/unit_data.gd`
+- Deleted: `data/cards/*.json`, `data/units/*.json`
+
+---
 
 ### Fix Services Using Dynamic call() Instead of Typed Access
 **Completed:** 2025-11-25
