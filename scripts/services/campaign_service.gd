@@ -111,6 +111,8 @@ func _init_battles() -> void:
 		"reward_cards": [
 			{"catalog_id": "charge", "rarity": RarityIDs.COMMON, "count": 1}
 		],
+		"gold_reward": 30,       # Base gold reward for winning
+		"card_xp_reward": 15,    # XP granted to cards played in battle
 		"enemy_deck": [
 			{"catalog_id": "slime_green", "count": 1}
 		],
@@ -139,6 +141,8 @@ func _init_battles() -> void:
 			{"catalog_id": "fire_recruit", "rarity": RarityIDs.COMMON, "count": 1},
 			{"catalog_id": "ember_slinger", "rarity": RarityIDs.COMMON, "count": 1}
 		],
+		"gold_reward": 40,       # Slightly more gold for second battle
+		"card_xp_reward": 15,    # XP granted to cards played in battle
 		"enemy_deck": [],  # Spawned via event sequence
 		"enemy_hp": 50.0,
 		"unlock_requirements": [String(BattleIDs.FIRST_TRIAL)],
@@ -391,7 +395,16 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 	var reward_type: StringName = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = battle.get("reward_cards", [])
 
+	# Grant gold reward
+	var gold_reward: int = battle.get("gold_reward", 0)
+	if gold_reward > 0:
+		Economy.add_gold(gold_reward)
+		print("CampaignService: Granted %d gold for battle '%s'" % [gold_reward, battle_id])
+
+	# Handle case where there are no card rewards but there is gold
 	if reward_cards.is_empty():
+		if gold_reward > 0:
+			return {"gold_reward": gold_reward, "instance_ids": []}
 		push_warning("CampaignService: No rewards defined for battle '%s'" % battle_id)
 		var empty_rewards: Dictionary = {}
 		return empty_rewards
@@ -435,8 +448,9 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 			granted_instance_ids.append_array(ids)
 			granted_card = random_reward
 
-	# Add instance IDs to return value
+	# Add instance IDs and gold to return value
 	granted_card["instance_ids"] = granted_instance_ids
+	granted_card["gold_reward"] = gold_reward
 	return granted_card
 
 func _grant_reward_card(reward: Dictionary) -> Array[String]:

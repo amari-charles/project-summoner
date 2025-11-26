@@ -12,6 +12,9 @@ enum CardType { SUMMON, SPELL }
 @export var card_type: CardType = CardType.SUMMON
 @export var description: String = ""
 
+## Instance tracking (for progression system)
+var instance_id: String = ""  # Collection instance ID (for XP tracking)
+
 ## Cost and gameplay
 @export var mana_cost: int = 1
 @export var cooldown: float = 2.0  # Seconds before another card can be played
@@ -36,6 +39,52 @@ var custom_stat_overrides: Dictionary = {}
 ## Validate if this card can be played
 func can_play(current_mana: int) -> bool:
 	return current_mana >= mana_cost
+
+## Get effective stats with card upgrades applied
+## Returns a Dictionary with the same structure as CardCatalog.get_card() but with
+## upgrade modifiers (from CardProgressionService) applied multiplicatively.
+func get_effective_stats() -> Dictionary:
+	# Get base stats from catalog
+	var base_stats: Dictionary = CardCatalog.get_card(catalog_id).duplicate(true)
+
+	# If no instance_id, return base stats (enemy cards, test cards)
+	if instance_id.is_empty():
+		return base_stats
+
+	# Get upgrade stat modifiers from CardProgressionService
+	var progression_node: Node = _get_autoload_node("/root/CardProgression")
+	if not progression_node:
+		return base_stats
+
+	var modifiers_result: Variant = progression_node.call("get_upgrade_stat_modifiers", instance_id)
+	if not modifiers_result is Dictionary:
+		return base_stats
+
+	var modifiers: Dictionary = modifiers_result
+	if modifiers.is_empty():
+		return base_stats
+
+	# Apply modifiers multiplicatively
+	for stat_key: Variant in modifiers:
+		if stat_key is String:
+			var multiplier: float = modifiers[stat_key]
+			if base_stats.has(stat_key):
+				var base_val: Variant = base_stats[stat_key]
+				if base_val is float:
+					base_stats[stat_key] = base_val * multiplier
+				elif base_val is int:
+					base_stats[stat_key] = int(base_val * multiplier)
+
+	return base_stats
+
+## Helper to get autoload nodes (Card is a Resource, not a Node)
+func _get_autoload_node(path: String) -> Node:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if main_loop is SceneTree:
+		var tree: SceneTree = main_loop
+		if tree and tree.root:
+			return tree.root.get_node_or_null(path)
+	return null
 
 ## Check if this card needs click-targeting (Rally/Guard with command_type)
 func needs_click_targeting() -> bool:
@@ -147,9 +196,9 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 		if unit:
 			unit.team = team
 
-			# Apply stats from card catalog (single source of truth)
-			# Get catalog data - MUST exist
-			var catalog_data: Dictionary = CardCatalog.get_card(catalog_id)
+			# Apply stats from card catalog WITH upgrade modifiers applied
+			# get_effective_stats() returns catalog data with upgrade bonuses
+			var catalog_data: Dictionary = get_effective_stats()
 			assert(not catalog_data.is_empty(), "Card catalog data must exist for catalog_id: '%s'" % catalog_id)
 
 			# Apply custom stat overrides from EventSequencer (if set)
@@ -200,10 +249,12 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
-	# Get card definition from catalog
-	var card_def: Dictionary = {}
-	if not catalog_id.is_empty() and CardCatalog:
-		card_def = CardCatalog.get_card(catalog_id)
+	# Get card definition WITH upgrade modifiers applied
+	var card_def: Dictionary = get_effective_stats()
+
+	# Use effective spell_damage and spell_radius from upgraded stats
+	var effective_spell_damage: float = card_def.get("spell_damage", spell_damage)
+	var effective_spell_radius: float = card_def.get("spell_radius", spell_radius)
 
 	# Check for tactical command spells (Rally/Guard) - handle separately
 	if card_def.has("command_type"):
@@ -225,15 +276,15 @@ func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, mod
 	# Get modifiers from ModifierSystem
 	var modifiers: Array = _get_modifiers_from_system("spell", categories, context, modifier_system)
 
-	# Apply modifiers to spell damage
-	var modified_spell_damage: float = _apply_spell_modifiers(spell_damage, modifiers)
+	# Apply modifiers to spell damage (base is already upgrade-modified)
+	var modified_spell_damage: float = _apply_spell_modifiers(effective_spell_damage, modifiers)
 
 	# Check for instant spell VFX first (spawns immediately at click location)
 	if not spell_vfx.is_empty():
 		# Spawn VFX immediately with damage parameters
 		# VFX will handle damage application at impact time
 		VFXManager.play_effect(spell_vfx, cast_pos, {
-			"radius": spell_radius,
+			"radius": effective_spell_radius,
 			"damage": modified_spell_damage,
 			"team": team,
 			"battlefield": battlefield

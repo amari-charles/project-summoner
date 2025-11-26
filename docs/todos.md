@@ -263,7 +263,7 @@ The profile data structure has redundant and unused fields that waste storage an
 ### 🔴 HIGH PRIORITY
 
 #### Implement Card and Hero Level System
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Core Game Systems / Progression
 **Effort:** Large
 
@@ -271,14 +271,14 @@ The profile data structure has redundant and unused fields that waste storage an
 Implement leveling system for cards and heroes that allows them to grow stronger through gameplay.
 
 **Requirements:**
-- Card level data structure and storage
+- ✅ Card level data structure and storage
 - Hero level data structure and storage
-- Experience/level-up mechanics
-- Stat scaling per level (HP, attack, abilities)
-- UI display for card/hero levels
-- Level-up rewards and feedback
-- Max level caps
-- Save/load integration
+- ✅ Experience/level-up mechanics
+- ✅ Stat scaling per level (HP, attack, abilities)
+- ✅ UI display for card/hero levels
+- ✅ Level-up rewards and feedback
+- ✅ Max level caps
+- ✅ Save/load integration
 
 **Notes:**
 - Foundation for long-term progression
@@ -286,6 +286,37 @@ Implement leveling system for cards and heroes that allows them to grow stronger
 - Consider different level curves for different rarities
 - May need separate systems for card levels vs hero levels
 - Important for player retention and sense of progression
+- **Card progression implemented in PR #85** - hero leveling still needed
+
+---
+
+### 🟢 LOW PRIORITY
+
+#### Support Upgrade-Specific Resource Costs
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Progression
+**Effort:** Small
+**Dependencies:** Card Level System (implemented)
+
+**Description:**
+Currently all card upgrades cost a flat gold amount. Add support for upgrade-specific resource costs defined in CardUpgradeCatalog.
+
+**Current Behavior:**
+- All level-ups cost gold only (amount scales with level)
+- Cost is calculated in `CardProgressionService.get_card_progression_info()`
+
+**Future Enhancement:**
+- Individual upgrades can specify resource costs (essence, fragments, etc.)
+- CardUpgradeCatalog already has structure to support this
+- Would allow rare/powerful upgrades to require special resources
+
+**Related Code:**
+- `scripts/services/card_progression_service.gd:247` - TODO comment marking this location
+- `scripts/data/card_upgrade_catalog.gd` - upgrade definitions
+
+**Notes:**
+- Low priority - current gold-only system works fine
+- Implement when adding resource variety to progression
 
 ---
 
@@ -990,4 +1021,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-25 - Added pathfinding/targeting investigation todo*
+*Last Updated: 2025-11-26 - Updated card progression status (PR #85), added upgrade-specific resource costs todo*

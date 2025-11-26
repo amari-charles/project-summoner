@@ -97,6 +97,13 @@ func get_card(card_instance_id: String) -> Dictionary:
 	var empty: Dictionary = {}
 	return empty
 
+## Update a card instance with new data (for progression system)
+## updates: Dictionary of fields to update (e.g., {"xp": 50, "level": 2})
+## Returns true if successful, false if card not found
+func update_card(card_instance_id: String, updates: Dictionary) -> bool:
+	push_error("IProfileRepo.update_card() not implemented")
+	return false
+
 ## =============================================================================
 ## DECK OPERATIONS
 ## =============================================================================

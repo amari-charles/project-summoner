@@ -20,7 +20,7 @@ extends IProfileRepo
 const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 
 ## Current save version for migrations
-const CURRENT_VERSION: int = 1
+const CURRENT_VERSION: int = 2
 
 ## Signals inherited from IProfileRepo (do not redeclare)
 
@@ -424,6 +424,9 @@ func grant_cards(cards: Array) -> Array:
 			"profile_id": _current_profile_id,
 			"catalog_id": catalog_id,
 			"rarity": rarity,
+			"level": 1,         # Card progression level (1-10)
+			"xp": 0,            # XP towards next level
+			"upgrades": [],     # Array of chosen upgrade IDs
 			"roll_json": null,  # Future: stat rolls
 			"created_at": Time.get_unix_time_from_system()
 		}
@@ -510,6 +513,39 @@ func get_card(card_instance_id: String) -> Dictionary:
 				return card_dict
 	var not_found: Dictionary = {}
 	return not_found
+
+## Update a card instance with new data (for progression system)
+## updates: Dictionary of fields to update (e.g., {"xp": 50, "level": 2})
+func update_card(card_instance_id: String, updates: Dictionary) -> bool:
+	var collection_variant: Variant = _data.get("collection", [])
+	if not collection_variant is Array:
+		return false
+	var coll_array: Array = collection_variant
+
+	for i: int in range(coll_array.size()):
+		var card: Variant = coll_array[i]
+		if card is Dictionary:
+			var card_dict: Dictionary = card
+			var card_id_variant: Variant = card_dict.get("id")
+			if card_id_variant == card_instance_id:
+				# Apply updates
+				for key: String in updates:
+					card_dict[key] = updates[key]
+				coll_array[i] = card_dict
+				_data["collection"] = coll_array
+
+				# Log to WAL
+				_append_to_wal({
+					"action": "update_card",
+					"params": {"card_instance_id": card_instance_id, "updates": updates}
+				})
+
+				save_profile()  # Debounced
+				data_changed.emit()
+				return true
+
+	push_warning("JsonProfileRepo: Card instance '%s' not found for update" % card_instance_id)
+	return false
 
 ## =============================================================================
 ## DECK OPERATIONS
@@ -952,6 +988,9 @@ func _create_card_instance(catalog_id: String, rarity: String) -> Dictionary:
 		"profile_id": _current_profile_id,
 		"catalog_id": catalog_id,
 		"rarity": rarity,
+		"level": 1,         # Card progression level (1-10)
+		"xp": 0,            # XP towards next level
+		"upgrades": [],     # Array of chosen upgrade IDs
 		"roll_json": null,
 		"created_at": Time.get_unix_time_from_system()
 	}
@@ -969,11 +1008,37 @@ func _migrate_if_needed() -> void:
 func _migrate(from_version: int) -> void:
 	match from_version:
 		0:
-			# Example: Version 0 → 1 migration
-			# Add new fields, convert old data, etc.
+			# Version 0 → 1 migration (legacy)
 			pass
+		1:
+			# Version 1 → 2 migration: Add card progression fields
+			_migrate_v1_to_v2()
 		_:
 			push_warning("JsonProfileRepo: No migration defined for version " + str(from_version))
+
+## Migration: Add level, xp, upgrades to existing card instances
+func _migrate_v1_to_v2() -> void:
+	print("JsonProfileRepo: Migrating cards to include progression fields...")
+	var collection_variant: Variant = _data.get("collection", [])
+	if not collection_variant is Array:
+		return
+	var coll_array: Array = collection_variant
+
+	for i: int in range(coll_array.size()):
+		var card: Variant = coll_array[i]
+		if card is Dictionary:
+			var card_dict: Dictionary = card
+			# Add progression fields if missing
+			if not card_dict.has("level"):
+				card_dict["level"] = 1
+			if not card_dict.has("xp"):
+				card_dict["xp"] = 0
+			if not card_dict.has("upgrades"):
+				card_dict["upgrades"] = []
+			coll_array[i] = card_dict
+
+	_data["collection"] = coll_array
+	print("JsonProfileRepo: Card migration complete - %d cards updated" % coll_array.size())
 
 ## =============================================================================
 ## INTERNAL - WRITE-AHEAD LOG

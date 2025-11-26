@@ -13,9 +13,9 @@ signal card_held(card_data: Dictionary)
 
 ## Layout configuration (editable in scene editor)
 @export_group("Layout")
-@export var border_width: int = 3
-@export var corner_radius: int = 6
-@export var element_badge_radius: int = 9
+@export var border_width: int = 4
+@export var corner_radius: int = 8
+@export var element_badge_radius: int = 16
 
 ## Card data
 var card_data: Dictionary = {}

@@ -11,6 +11,7 @@ class_name RewardScreen
 @onready var reward_container: VBoxContainer = %RewardContainer
 @onready var reward_card_label: Label = %RewardCardLabel
 @onready var reward_detail_label: Label = %RewardDetailLabel
+@onready var gold_reward_label: Label = %GoldRewardLabel
 @onready var choice_container: HBoxContainer = %ChoiceContainer
 @onready var continue_button: Button = %ContinueButton
 
@@ -106,12 +107,19 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	# Validate rewards before displaying
 	_validate_rewards(battle, catalog)
 
+	# Get gold reward for display
+	var gold_reward: int = battle.get("gold_reward", 0)
+
 	if is_replay:
 		# Show message for replayed battles
 		reward_card_label.text = Loc.t("ui.reward.already_completed")
 		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
+		gold_reward_label.text = ""
 		reward_ready_to_claim = false
 		return
+
+	# Display gold reward
+	_display_gold_reward(gold_reward)
 
 	match reward_type:
 		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
@@ -119,6 +127,10 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				_display_card_reward(reward_cards[0])
+			elif reward_cards.is_empty() and gold_reward > 0:
+				# Gold only reward
+				reward_card_label.text = Loc.t("ui.reward.victory")
+				reward_detail_label.text = ""
 			reward_ready_to_claim = true
 
 		RewardTypeIDs.CHOICE:
@@ -128,7 +140,7 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 			reward_ready_to_claim = false  # Must choose first
 
 		RewardTypeIDs.NONE:
-			# No rewards for this battle
+			# No card rewards for this battle (may still have gold)
 			reward_card_label.text = Loc.t("ui.reward.victory")
 			reward_detail_label.text = ""
 			reward_ready_to_claim = true
@@ -137,12 +149,19 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 func _resume_pending_reward(battle: Dictionary) -> void:
 	print("RewardScreen: Resuming pending reward (type: %s, choice_index: %d)" % [reward_type, chosen_reward_index])
 
+	# Display gold reward
+	var gold_reward: int = battle.get("gold_reward", 0)
+	_display_gold_reward(gold_reward)
+
 	match reward_type:
 		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
 			# Fixed/random rewards just need to show the preview
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				_display_card_reward(reward_cards[0])
+			elif reward_cards.is_empty() and gold_reward > 0:
+				reward_card_label.text = Loc.t("ui.reward.victory")
+				reward_detail_label.text = ""
 			reward_ready_to_claim = true
 
 		RewardTypeIDs.CHOICE:
@@ -161,6 +180,13 @@ func _resume_pending_reward(battle: Dictionary) -> void:
 			reward_card_label.text = Loc.t("ui.reward.victory")
 			reward_detail_label.text = ""
 			reward_ready_to_claim = true
+
+## Display gold reward amount
+func _display_gold_reward(gold: int) -> void:
+	if gold > 0:
+		gold_reward_label.text = "+ %d Gold" % gold
+	else:
+		gold_reward_label.text = ""
 
 func _display_card_reward(reward: Dictionary) -> void:
 	var catalog: Node = get_node("/root/CardCatalog")
