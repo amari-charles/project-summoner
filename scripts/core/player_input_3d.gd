@@ -22,7 +22,7 @@ func _ready() -> void:
 		push_error("PlayerInput3D: Could not find Camera3D!")
 
 	# Find hand display labels
-	var ui: Node = get_tree().get_first_node_in_group("game_controller")
+	var ui: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if ui:
 		ui = ui.get_node_or_null("UI/HandDisplay")
 		if ui:
@@ -41,7 +41,7 @@ func _on_hand_changed(_hand: Array) -> void:
 	_update_hand_display()
 
 func _on_mana_changed(current: float, _max: float) -> void:
-	var mana_label: Node = get_tree().get_first_node_in_group("game_controller")
+	var mana_label: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if mana_label:
 		mana_label = mana_label.get_node_or_null("UI/PlayerManaLabel")
 		if mana_label:

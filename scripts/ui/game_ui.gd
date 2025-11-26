@@ -79,7 +79,7 @@ func _on_mana_changed(current: float, maximum: float) -> void:
 
 func _on_game_ended(winner: Unit.Team) -> void:
 	if game_over_label:
-		var winner_text: String = "PLAYER WINS!" if winner == Unit.Team.PLAYER else "ENEMY WINS!"
+		var winner_text: String = Loc.t("ui.battle.player_wins") if winner == Unit.Team.PLAYER else Loc.t("ui.battle.enemy_wins")
 		game_over_label.text = winner_text
 		game_over_label.visible = true
 

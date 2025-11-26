@@ -41,11 +41,11 @@ func _ready() -> void:
 		visual = $Visual
 
 	# Add to groups
-	add_to_group("bases")
+	add_to_group(GroupIDs.BASES)
 	if team == Team.PLAYER:
-		add_to_group("player_base")
+		add_to_group(GroupIDs.PLAYER_BASES)
 	else:
-		add_to_group("enemy_base")
+		add_to_group(GroupIDs.ENEMY_BASES)
 
 	# Store original color and position for hit feedback
 	if visual:

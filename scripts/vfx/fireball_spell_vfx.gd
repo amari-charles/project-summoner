@@ -189,7 +189,7 @@ func _apply_aoe_damage() -> void:
 		return
 
 	# Determine target group based on team
-	var target_group: String = "enemy_units" if spell_team == 0 else "player_units"  # 0 = PLAYER
+	var target_group: StringName = GroupIDs.enemy_units_for(spell_team)  # 0 = PLAYER
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
 	# Apply damage to all enemies in radius

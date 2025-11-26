@@ -70,7 +70,7 @@ static func find_safe_spawn_position(desired_pos: Vector3, scene_tree: SceneTree
 
 ## Check if a spawn position is safe (no existing units too close)
 static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5) -> bool:
-	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	var all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
 
 	for node: Node in all_units:
 		if not node is Unit3D:

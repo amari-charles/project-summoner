@@ -30,7 +30,7 @@ func _ready() -> void:
 	print("BattleCoordinator: Starting battle initialization...")
 
 	# Add to groups for discovery
-	add_to_group("game_controller")
+	add_to_group(GroupIDs.GAME_CONTROLLER)
 	add_to_group("battle_coordinator")  # For SceneCoordinator to find us
 
 	# Validate BattleContext
@@ -94,9 +94,9 @@ func _ready() -> void:
 ## Initialize summoners and connect their signals
 func _init_summoners() -> void:
 	if player_summoner == null:
-		player_summoner = get_tree().get_first_node_in_group("player_summoners")
+		player_summoner = get_tree().get_first_node_in_group(GroupIDs.PLAYER_SUMMONERS)
 	if enemy_summoner == null:
-		enemy_summoner = get_tree().get_first_node_in_group("enemy_summoners")
+		enemy_summoner = get_tree().get_first_node_in_group(GroupIDs.ENEMY_SUMMONERS)
 
 	# Call init() on summoners (synchronous - no need to await since signal emits during init())
 	if player_summoner and player_summoner.has_method("init"):
@@ -110,8 +110,8 @@ func _init_summoners() -> void:
 ## Initialize bases and connect their signals
 func _init_bases() -> void:
 	# Find bases (direct lookup - bases add themselves to groups in _ready())
-	player_base = _find_base("player_base")
-	enemy_base = _find_base("enemy_base")
+	player_base = _find_base(GroupIDs.PLAYER_BASES)
+	enemy_base = _find_base(GroupIDs.ENEMY_BASES)
 
 	if player_base:
 		_connect_base_signals(player_base)
@@ -165,7 +165,7 @@ func reset_battle_state() -> void:
 
 ## Clear all unit instances from the battlefield
 func _clear_all_units() -> void:
-	var units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	var cleared_count: int = 0
 
 	for node: Node in units:
@@ -555,7 +555,7 @@ func _init_ui() -> void:
 	add_child(_redirect_indicator)
 
 	# Find and initialize HandUI
-	var hand_ui: Node = get_tree().get_first_node_in_group("hand_ui")
+	var hand_ui: Node = get_tree().get_first_node_in_group(GroupIDs.HAND_UI)
 	if hand_ui and hand_ui.has_method("init"):
 		hand_ui.init(player_summoner)
 	else:
@@ -577,7 +577,7 @@ func _init_ui() -> void:
 
 ## Find a base by group name (direct lookup - no retry)
 ## Bases add themselves to groups in _ready(), so they're available after scene tree is built
-func _find_base(group_name: String) -> Node3D:
+func _find_base(group_name: StringName) -> Node3D:
 	var bases: Array = get_tree().get_nodes_in_group(group_name)
 	if bases.size() > 0:
 		return bases[0]

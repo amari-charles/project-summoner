@@ -36,13 +36,13 @@ signal unit_attacked(target: Unit)
 
 func _ready() -> void:
 	current_hp = max_hp
-	add_to_group("units")
+	add_to_group(GroupIDs.UNITS)
 
 	# Add team-specific group membership
 	if team == Team.PLAYER:
-		add_to_group("player_units")
+		add_to_group(GroupIDs.PLAYER_UNITS)
 	else:
-		add_to_group("enemy_units")
+		add_to_group(GroupIDs.ENEMY_UNITS)
 
 	_setup_visuals()
 
@@ -98,7 +98,7 @@ func _is_valid_target(target: Node2D) -> bool:
 
 ## Find the best enemy unit using weighted scoring system
 func _acquire_target() -> Node2D:
-	var target_group: StringName = StringName("enemy_units" if team == Team.PLAYER else "player_units")
+	var target_group: StringName = GroupIDs.enemy_units_for(team)
 	var enemies: Array[Node] = get_tree().get_nodes_in_group(target_group)
 
 	var best_target: Node2D = null
@@ -147,14 +147,14 @@ func _acquire_target() -> Node2D:
 ## Get the enemy base/summoner
 func _get_enemy_base() -> Node2D:
 	# First try to find actual bases
-	var base_group: StringName = StringName("enemy_bases" if team == Team.PLAYER else "player_bases")
+	var base_group: StringName = GroupIDs.enemy_bases_for(team)
 	var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 
 	if bases.size() > 0:
 		return bases[0] as Node2D
 
 	# Fallback to summoners if no bases exist
-	var summoner_group: StringName = StringName("enemy_summoners" if team == Team.PLAYER else "player_summoners")
+	var summoner_group: StringName = GroupIDs.ENEMY_SUMMONERS if team == Team.PLAYER else GroupIDs.PLAYER_SUMMONERS
 	var summoners: Array[Node] = get_tree().get_nodes_in_group(summoner_group)
 
 	if summoners.size() > 0:

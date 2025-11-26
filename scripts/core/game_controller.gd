@@ -30,7 +30,7 @@ signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
 
 func _ready() -> void:
-	add_to_group("game_controller")
+	add_to_group(GroupIDs.GAME_CONTROLLER)
 
 	# Find or create battlefield
 	if battlefield == null:
@@ -38,9 +38,9 @@ func _ready() -> void:
 
 	# Find summoners
 	if player_summoner == null:
-		player_summoner = get_tree().get_first_node_in_group("player_summoners")
+		player_summoner = get_tree().get_first_node_in_group(GroupIDs.PLAYER_SUMMONERS)
 	if enemy_summoner == null:
-		enemy_summoner = get_tree().get_first_node_in_group("enemy_summoners")
+		enemy_summoner = get_tree().get_first_node_in_group(GroupIDs.ENEMY_SUMMONERS)
 
 	# Connect summoner death signals (for backward compatibility)
 	if player_summoner and player_summoner.has_signal("summoner_died"):
@@ -52,8 +52,8 @@ func _ready() -> void:
 
 	# Connect base destruction signals
 	await get_tree().process_frame  # Wait for bases to be ready
-	var player_bases: Array[Node] = get_tree().get_nodes_in_group("player_bases")
-	var enemy_bases: Array[Node] = get_tree().get_nodes_in_group("enemy_bases")
+	var player_bases: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.PLAYER_BASES)
+	var enemy_bases: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.ENEMY_BASES)
 
 	for base: Node in player_bases:
 		if base.has_signal("base_destroyed"):

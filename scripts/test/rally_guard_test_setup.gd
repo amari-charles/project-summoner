@@ -91,7 +91,7 @@ func _spawn_test_enemies() -> void:
 
 	# Find enemy summoner
 	var enemy_summoner: Node = null
-	var summoners: Array[Node] = get_tree().get_nodes_in_group("summoners")
+	var summoners: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.SUMMONERS)
 	for node: Node in summoners:
 		if node != summoner and "team" in node:
 			var team_variant: Variant = node.get("team")

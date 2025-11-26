@@ -235,7 +235,7 @@ func _select_units_in_radius() -> void:
 	selected_units.clear()
 
 	# Find all units in the scene
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 
 	for unit_node: Node in all_units:
 		if not unit_node is Node3D:

@@ -115,7 +115,7 @@ func _ready() -> void:
 func update_mana(current: float, maximum: float) -> void:
 	# Update label
 	if mana_label:
-		mana_label.text = "Mana: %d/%d" % [int(current), int(maximum)]
+		mana_label.text = Loc.t("ui.mana_bar.format", {"current": int(current), "max": int(maximum)})
 
 	# Animate progress bar
 	if progress_bar:

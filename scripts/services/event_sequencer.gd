@@ -207,7 +207,7 @@ func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 					push_warning("EventSequencer: DialogueManager not ready and no system_ready signal")
 
 		# CRITICAL: Freeze game during dialogue
-		var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+		var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 		if game_controller and game_controller.has_method("freeze_game"):
 			if debug_mode:
 				print("EventSequencer: Freezing game for dialogue")
@@ -311,7 +311,7 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 
 	# CRITICAL: Unfreeze game before spawning
 	# Units need a running game state to initialize properly
-	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("unfreeze_game"):
 		if debug_mode:
 			print("EventSequencer: Unfreezing game for unit spawn")
@@ -488,7 +488,7 @@ func _execute_enable_hand(step: Resource) -> void:  # EventStep parameter
 
 func _find_hand_ui() -> Node:
 	# Try to find HandUI in current scene
-	return get_tree().get_first_node_in_group("hand_ui")
+	return get_tree().get_first_node_in_group(GroupIDs.HAND_UI)
 
 ## Stop current sequence (emergency stop)
 func stop_sequence() -> void:

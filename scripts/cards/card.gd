@@ -83,7 +83,7 @@ func _cast_spell(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 
 ## Apply AOE damage to enemies in range
 func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
-	var target_group: String = "enemy_units" if team == Unit.Team.PLAYER else "player_units"
+	var target_group: StringName = GroupIDs.enemy_units_for(team)
 	var scene_tree: SceneTree = battlefield.get_tree()
 	if scene_tree == null:
 		return
@@ -322,7 +322,7 @@ func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: No
 	if not scene_tree:
 		return
 
-	var all_units: Array[Node] = scene_tree.get_nodes_in_group("units")
+	var all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
 	var selected_units: Array[Unit3D] = []
 
 	for node: Node in all_units:
@@ -438,7 +438,7 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 		return null
 
 	# Try to find base in the scene
-	var bases: Array[Node] = scene_tree.get_nodes_in_group("bases")
+	var bases: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.BASES)
 	for base: Node in bases:
 		if "team" in base:
 			var base_team: Variant = base.get("team")
@@ -453,7 +453,7 @@ func _apply_aoe_damage_3d(aoe_center: Vector3, team: Unit3D.Team, battlefield: N
 	# Use provided damage or fall back to spell_damage
 	var final_damage: float = damage if damage > 0 else spell_damage
 
-	var target_group: String = "enemy_units" if team == Unit3D.Team.PLAYER else "player_units"
+	var target_group: StringName = GroupIDs.enemy_units_for(team)
 	var scene_tree: SceneTree = battlefield.get_tree()
 	if scene_tree == null:
 		return

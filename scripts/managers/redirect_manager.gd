@@ -151,7 +151,7 @@ func cancel_redirect() -> void:
 func select_units_in_radius(point: Vector3, radius: float, team: int) -> Array[Unit3D]:
 	selected_units.clear()
 
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
 		if not node is Unit3D:
 			continue
@@ -178,7 +178,7 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 	var nearest_dist: float = INF
 
 	# Search for enemy units
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
 		if not node is Unit3D:
 			continue
@@ -195,7 +195,7 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 			nearest_dist = dist
 
 	# Search for enemy structures
-	var all_structures: Array[Node] = get_tree().get_nodes_in_group("structures")
+	var all_structures: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.STRUCTURES)
 	for node: Node in all_structures:
 		if not node is Node3D:
 			continue
@@ -216,7 +216,7 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 			nearest_dist = dist
 
 	# Search for enemy bases (Base3D uses @export var team, not meta)
-	var all_bases: Array[Node] = get_tree().get_nodes_in_group("bases")
+	var all_bases: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.BASES)
 	for node: Node in all_bases:
 		if not node is Node3D:
 			continue
@@ -251,7 +251,7 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 	var fallback_dist: float = INF
 
 	# Search for enemy units (excluding the dead one)
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
 		if not node is Unit3D:
 			continue
@@ -268,7 +268,7 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 			fallback_dist = dist
 
 	# Search for enemy structures
-	var all_structures: Array[Node] = get_tree().get_nodes_in_group("structures")
+	var all_structures: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.STRUCTURES)
 	for node: Node in all_structures:
 		if not node is Node3D:
 			continue
@@ -293,7 +293,7 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 			fallback_dist = dist
 
 	# Search for enemy bases
-	var all_bases: Array[Node] = get_tree().get_nodes_in_group("bases")
+	var all_bases: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.BASES)
 	for node: Node in all_bases:
 		if not node is Node3D:
 			continue

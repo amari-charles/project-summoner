@@ -128,7 +128,7 @@ func spawn_player_cluster(catalog_id: String, count: int = 5) -> void:
 func clear_all_units() -> void:
 	print("TestCollisionController: Clearing all units...")
 
-	var all_units: Array[Node] = get_tree().get_nodes_in_group("units")
+	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for unit: Node in all_units:
 		unit.queue_free()
 
