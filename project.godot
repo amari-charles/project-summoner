@@ -49,6 +49,7 @@ SceneCoordinator="*res://scripts/services/scene_coordinator.gd"
 RedirectManager="*res://scripts/managers/redirect_manager.gd"
 PhysicsLayers="*res://scripts/core/physics_layers.gd"
 SpellTargetingManager="*res://scripts/ui/spell_targeting_manager.gd"
+FPSTestTool="*res://scripts/debug/fps_test_tool.gd"
 
 [debug]
 
@@ -72,3 +73,7 @@ window/stretch/mode="canvas_items"
 3d_physics/layer_2="Flying Units"
 3d_physics/layer_3="Terrain"
 3d_physics/layer_4="Projectiles"
+
+[physics]
+
+common/physics_interpolation=true
