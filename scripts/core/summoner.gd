@@ -22,6 +22,7 @@ var mana: float = 0.0
 const MANA_MAX: float = 10.0
 var hand: Array[Card] = []
 var deck: Array[Card] = []
+var discard_pile: Array[Card] = []
 var is_alive: bool = true
 
 ## Signals
@@ -30,6 +31,7 @@ signal card_played(card: Card)
 signal card_drawn(card: Card)
 signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
+signal deck_recycled(card_count: int)  ## Emitted when discard pile is shuffled back into deck
 
 func _ready() -> void:
 	# Wait one frame to ensure autoload services are fully initialized
@@ -127,6 +129,18 @@ func draw_card() -> void:
 	card_drawn.emit(card)
 	hand_changed.emit(hand)
 
+## Shuffle discard pile back into deck when deck is exhausted
+func _recycle_discard_pile() -> void:
+	if discard_pile.is_empty():
+		return
+
+	var card_count: int = discard_pile.size()
+	deck = discard_pile.duplicate()
+	discard_pile.clear()
+	deck.shuffle()
+
+	deck_recycled.emit(card_count)
+
 ## Play a card from hand at the given position
 func play_card(card_index: int, spawn_position: Vector2) -> bool:
 	if card_index < 0 or card_index >= hand.size():
@@ -150,9 +164,18 @@ func play_card(card_index: int, spawn_position: Vector2) -> bool:
 	# Play the card
 	card.play(spawn_position, team, battlefield)
 
-	# Remove from hand and draw new card
+	# Remove from hand and add to discard pile
 	hand.remove_at(card_index)
+	discard_pile.append(card)
+
+	# Try to draw a new card
 	draw_card()
+
+	# If hand and deck are both empty, recycle discard pile and draw new hand
+	if hand.is_empty() and deck.is_empty():
+		_recycle_discard_pile()
+		for i: int in mini(max_hand_size, deck.size()):
+			draw_card()
 
 	card_played.emit(card)
 	hand_changed.emit(hand)

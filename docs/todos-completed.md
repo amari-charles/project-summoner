@@ -320,4 +320,40 @@ Updated all UI files to use `Loc.t()` with localization keys from `localization/
 
 ---
 
+## Core Game Systems
+
+### Implement Deck Recycling After Exhaustion
+**Completed:** 2025-11-25
+**Category:** Core Game Systems
+**Effort:** Small
+
+**Description:**
+When a player's deck is exhausted (all cards drawn), shuffle the discard pile back into the deck to continue play.
+
+**Solution Implemented:**
+- Added `discard_pile: Array[Card]` variable to track played cards
+- Added `deck_recycled(card_count: int)` signal for UI/audio feedback
+- Modified `play_card()` / `play_card_3d()` to add played cards to discard pile
+- Recycle triggers only when BOTH hand AND deck are empty (not just deck)
+- When recycling: shuffle discard into deck, then draw fresh full hand
+- Added `_recycle_discard_pile()` helper that shuffles discard pile into deck
+- Implemented in both `Summoner` (2D) and `Summoner3D` classes
+- Logs deck recycle events for debugging
+
+**Behavior:**
+1. Play card → goes to discard pile → try to draw from deck
+2. If deck has cards: draw 1 card
+3. If deck empty but hand has cards: continue playing without drawing
+4. When hand AND deck both empty: recycle discard → draw full new hand
+
+**Edge Cases Handled:**
+- Empty deck but cards in hand: keep playing until hand exhausted
+- Empty deck AND empty discard pile: draw_card() safely returns
+
+**Related Files:**
+- `scripts/core/summoner.gd`
+- `scripts/core/summoner_3d.gd`
+
+---
+
 *Last Updated: 2025-11-25*
