@@ -19,19 +19,40 @@ signal transaction_completed(delta: Dictionary)
 signal transaction_failed(reason: String)
 
 ## =============================================================================
+## DEPENDENCIES
+## =============================================================================
+
+## Injectable profile repository - defaults to global autoload
+## For testing: set this before calling _ready() or use init_for_testing()
+var profile_repo: IProfileRepo = null
+
+## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
 	print("EconomyService: Initializing...")
 
+	# Use injected repo or fall back to autoload
+	if profile_repo == null:
+		profile_repo = ProfileRepo
+
 	# Connect to repo signals for reactive updates
-	ProfileRepo.data_changed.connect(_on_repo_data_changed)
+	profile_repo.data_changed.connect(_on_repo_data_changed)
 
 	print("EconomyService: Ready")
 
 	# Emit initial state
 	_emit_current_resources()
+
+
+## Initialize for unit testing with mock dependencies
+## Call this instead of relying on _ready() in tests
+func init_for_testing(repo: IProfileRepo) -> void:
+	profile_repo = repo
+	if profile_repo.data_changed.is_connected(_on_repo_data_changed):
+		profile_repo.data_changed.disconnect(_on_repo_data_changed)
+	profile_repo.data_changed.connect(_on_repo_data_changed)
 
 ## =============================================================================
 ## RESOURCE QUERIES
@@ -39,7 +60,7 @@ func _ready() -> void:
 
 ## Get current resource values
 func get_resources() -> Dictionary:
-	return ProfileRepo.get_resources()
+	return profile_repo.get_resources()
 
 ## Get specific resource amount
 func get_gold() -> int:
@@ -124,7 +145,7 @@ func grant_rewards(rewards: Dictionary) -> void:
 ## =============================================================================
 
 func _update_resources(delta: Dictionary) -> void:
-	ProfileRepo.update_resources(delta)
+	profile_repo.update_resources(delta)
 	transaction_completed.emit(delta)
 	_emit_current_resources()
 

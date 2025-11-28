@@ -732,4 +732,39 @@ Connected hero system to battle mechanics for stat application.
 
 ---
 
+## Developer Tools
+
+### Implement Automated Testing Framework
+**Completed:** 2025-11-28
+**Category:** Developer Tools / Testing
+**Effort:** Medium
+
+**Description:**
+Added GUT (Godot Unit Test) framework for automated testing of game services and logic.
+
+**Solution Implemented:**
+- Installed GUT v9.3.0 addon
+- Created test directory structure (`tests/unit/`, `tests/integration/`, `tests/mocks/`)
+- Created MockProfileRepo implementing IProfileRepo interface
+- Created MockEconomyService and MockCollectionService for service mocking
+- Refactored EconomyService and CampaignService for dependency injection
+- Services now have `init_for_testing()` method for mock injection
+- Created unit tests for EconomyService (15 tests)
+- Created unit tests for CampaignService (20+ tests)
+- Created unit tests for BattleContext (20+ tests)
+- Added tests/README.md with documentation
+
+**Related Files:**
+- `addons/gut/` - GUT framework
+- `tests/unit/test_economy_service.gd`
+- `tests/unit/test_campaign_service.gd`
+- `tests/unit/test_battle_context.gd`
+- `tests/mocks/mock_profile_repo.gd`
+- `tests/mocks/mock_economy_service.gd`
+- `tests/mocks/mock_collection_service.gd`
+- `scripts/services/economy_service.gd` - Added DI support
+- `scripts/services/campaign_service.gd` - Added DI support
+
+---
+
 *Last Updated: 2025-11-28*
