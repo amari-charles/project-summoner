@@ -8,8 +8,22 @@ extends GutTest
 var economy: Node  # EconomyService instance
 var mock_repo: MockProfileRepo
 
+# Signal capture variables (class-level for lambda access)
+var _signal_received: bool = false
+var _received_delta: Dictionary = {}
+var _received_gold: int = 0
+var _received_reason: String = ""
+var _signal_count: int = 0
+
 
 func before_each() -> void:
+	# Reset signal capture state
+	_signal_received = false
+	_received_delta = {}
+	_received_gold = 0
+	_received_reason = ""
+	_signal_count = 0
+
 	# Create fresh mock and service for each test
 	mock_repo = MockProfileRepo.new()
 	mock_repo.set_resources({"gold": 100, "essence": 50, "fragments": 10})
@@ -104,6 +118,7 @@ func test_add_gold_ignores_zero_or_negative() -> void:
 
 	assert_eq(economy.get_gold(), 100)  # unchanged
 	assert_eq(mock_repo.get_call_count("update_resources"), 0)
+	# Note: These emit push_warning() calls which GUT doesn't capture
 
 
 func test_add_essence_increases_essence() -> void:
@@ -134,6 +149,7 @@ func test_spend_returns_false_when_cannot_afford() -> void:
 
 	assert_false(result)
 	assert_eq(economy.get_gold(), 100)  # unchanged
+	# Note: This emits a push_warning() which GUT doesn't capture
 
 
 func test_spend_multiple_resources() -> void:
@@ -166,59 +182,54 @@ func test_grant_rewards_adds_multiple_resources() -> void:
 ## SIGNAL TESTS
 ## =============================================================================
 
-func test_add_gold_emits_transaction_completed() -> void:
-	var signal_received := false
-	var received_delta: Dictionary = {}
+func _on_transaction_completed(delta: Dictionary) -> void:
+	_signal_received = true
+	_received_delta = delta
 
-	economy.transaction_completed.connect(func(delta: Dictionary) -> void:
-		signal_received = true
-		received_delta = delta
-	)
+
+func test_add_gold_emits_transaction_completed() -> void:
+	economy.transaction_completed.connect(_on_transaction_completed)
 
 	economy.add_gold(50)
 
-	assert_true(signal_received)
-	assert_eq(received_delta, {"gold": 50})
+	assert_true(_signal_received)
+	assert_eq(_received_delta, {"gold": 50})
+
+
+func _on_resources_changed(gold: int, _essence: int, _fragments: int) -> void:
+	_signal_received = true
+	_received_gold = gold
+	_signal_count += 1
 
 
 func test_add_gold_emits_resources_changed() -> void:
-	var signal_received := false
-	var received_gold: int = 0
-
-	economy.resources_changed.connect(func(gold: int, _essence: int, _fragments: int) -> void:
-		signal_received = true
-		received_gold = gold
-	)
+	economy.resources_changed.connect(_on_resources_changed)
 
 	economy.add_gold(50)
 
-	assert_true(signal_received)
-	assert_eq(received_gold, 150)
+	assert_true(_signal_received)
+	assert_eq(_received_gold, 150)
+
+
+func _on_transaction_failed(reason: String) -> void:
+	_signal_received = true
+	_received_reason = reason
 
 
 func test_spend_failure_emits_transaction_failed() -> void:
-	var signal_received := false
-	var received_reason: String = ""
-
-	economy.transaction_failed.connect(func(reason: String) -> void:
-		signal_received = true
-		received_reason = reason
-	)
+	economy.transaction_failed.connect(_on_transaction_failed)
 
 	economy.spend({"gold": 500})
 
-	assert_true(signal_received)
-	assert_true(received_reason.contains("Cannot afford"))
+	assert_true(_signal_received)
+	assert_true(_received_reason.contains("Cannot afford"))
+	# Note: This also emits a push_warning() which GUT doesn't capture
 
 
 func test_repo_data_changed_triggers_resources_changed_signal() -> void:
-	var signal_count: int = 0
-
-	economy.resources_changed.connect(func(_gold: int, _essence: int, _fragments: int) -> void:
-		signal_count += 1
-	)
+	economy.resources_changed.connect(_on_resources_changed)
 
 	# Simulate external data change
 	mock_repo.data_changed.emit()
 
-	assert_eq(signal_count, 1)
+	assert_eq(_signal_count, 1)

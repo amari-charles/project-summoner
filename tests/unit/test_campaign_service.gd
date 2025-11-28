@@ -10,8 +10,20 @@ var mock_repo: MockProfileRepo
 var mock_economy: MockEconomyService
 var mock_collection: MockCollectionService
 
+# Signal capture variables
+var _signal_received: bool = false
+var _received_battle_id: String = ""
+var _unlocked_battles: Array = []
+var _signal_count: int = 0
+
 
 func before_each() -> void:
+	# Reset signal capture state
+	_signal_received = false
+	_received_battle_id = ""
+	_unlocked_battles = []
+	_signal_count = 0
+
 	# Create fresh mocks for each test
 	mock_repo = MockProfileRepo.new()
 	mock_economy = MockEconomyService.new()
@@ -87,21 +99,21 @@ func test_complete_battle_ignores_already_completed() -> void:
 
 	# Should not save again
 	assert_eq(mock_repo.get_call_count("update_campaign_progress"), initial_call_count)
+	# Note: This emits a push_warning() which GUT doesn't capture
+
+
+func _on_battle_completed(battle_id: String) -> void:
+	_signal_received = true
+	_received_battle_id = battle_id
 
 
 func test_complete_battle_emits_signal() -> void:
-	var signal_received := false
-	var received_id: String = ""
-
-	campaign.battle_completed.connect(func(battle_id: String) -> void:
-		signal_received = true
-		received_id = battle_id
-	)
+	campaign.battle_completed.connect(_on_battle_completed)
 
 	campaign.complete_battle(String(BattleIDs.EVENT_AFFINITY))
 
-	assert_true(signal_received)
-	assert_eq(received_id, String(BattleIDs.EVENT_AFFINITY))
+	assert_true(_signal_received)
+	assert_eq(_received_battle_id, String(BattleIDs.EVENT_AFFINITY))
 
 
 func test_loads_progress_from_profile() -> void:
@@ -246,6 +258,7 @@ func test_claim_pending_reward_returns_empty_when_none() -> void:
 	var result: Dictionary = campaign.claim_pending_reward()
 
 	assert_true(result.is_empty())
+	# Note: This emits a push_warning() which GUT doesn't capture
 
 
 ## =============================================================================
@@ -285,29 +298,29 @@ func test_get_tutorial_battles_returns_tutorials() -> void:
 ## SIGNAL TESTS
 ## =============================================================================
 
-func test_battle_unlocked_emitted_when_requirements_met() -> void:
-	var unlocked_battles: Array = []
+func _on_battle_unlocked(battle_id: String) -> void:
+	_unlocked_battles.append(battle_id)
 
-	campaign.battle_unlocked.connect(func(battle_id: String) -> void:
-		unlocked_battles.append(battle_id)
-	)
+
+func test_battle_unlocked_emitted_when_requirements_met() -> void:
+	campaign.battle_unlocked.connect(_on_battle_unlocked)
 
 	# Complete EVENT_AFFINITY which should unlock EVENT_FIRST_SUMMON
 	campaign.complete_battle(String(BattleIDs.EVENT_AFFINITY))
 
-	assert_true(String(BattleIDs.EVENT_FIRST_SUMMON) in unlocked_battles)
+	assert_true(String(BattleIDs.EVENT_FIRST_SUMMON) in _unlocked_battles)
+
+
+func _on_campaign_progress_changed() -> void:
+	_signal_count += 1
 
 
 func test_campaign_progress_changed_emitted_on_save() -> void:
-	var signal_count: int = 0
-
-	campaign.campaign_progress_changed.connect(func() -> void:
-		signal_count += 1
-	)
+	campaign.campaign_progress_changed.connect(_on_campaign_progress_changed)
 
 	campaign.save_progress()
 
-	assert_eq(signal_count, 1)
+	assert_eq(_signal_count, 1)
 
 
 ## =============================================================================

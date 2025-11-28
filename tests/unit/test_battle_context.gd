@@ -97,11 +97,12 @@ func test_start_battle_transitions_to_in_progress() -> void:
 
 
 func test_start_battle_fails_if_not_configured() -> void:
-	# Try to start without configuring first
+	# Try to start without configuring first - this emits a warning
 	context.start_battle()
 
 	# Should still be NONE since transition was invalid
 	assert_eq(context.battle_state, context.BattleState.NONE)
+	# Note: This emits a push_warning() which GUT doesn't capture
 
 
 func test_end_battle_victory_transitions_from_in_progress() -> void:
@@ -130,6 +131,7 @@ func test_end_battle_victory_fails_if_not_in_progress() -> void:
 
 	# Should still be CONFIGURED
 	assert_eq(context.battle_state, context.BattleState.CONFIGURED)
+	# Note: This emits a push_warning() which GUT doesn't capture
 
 
 func test_end_battle_defeat_fails_if_not_in_progress() -> void:
@@ -140,15 +142,18 @@ func test_end_battle_defeat_fails_if_not_in_progress() -> void:
 
 	# Should still be CONFIGURED
 	assert_eq(context.battle_state, context.BattleState.CONFIGURED)
+	# Note: This emits a push_warning() which GUT doesn't capture
 
 
 func test_abandon_battle_sets_abandoned_state() -> void:
 	context.configure_practice_battle()
 	context.start_battle()
 
+	# This uses get_node_or_null which fails outside scene tree
 	context.abandon_battle()
 
 	assert_eq(context.battle_state, context.BattleState.ABANDONED)
+	# Note: get_node_or_null outside scene tree may emit warnings
 
 
 func test_abandon_battle_clears_cards_played() -> void:
@@ -157,9 +162,11 @@ func test_abandon_battle_clears_cards_played() -> void:
 	context.register_card_played("card_1")
 	context.register_card_played("card_2")
 
+	# This uses get_node_or_null which fails outside scene tree
 	context.abandon_battle()
 
 	assert_eq(context.get_cards_played().size(), 0)
+	# Note: get_node_or_null outside scene tree may emit warnings
 
 
 func test_abandon_battle_does_nothing_when_none() -> void:
@@ -311,14 +318,18 @@ func test_get_origin_scene_returns_default_when_empty() -> void:
 ## =============================================================================
 
 func test_configure_arena_sets_mode() -> void:
+	# Arena mode emits a "not implemented" warning
 	context.configure_arena_battle(1)
 
 	assert_eq(context.current_mode, context.BattleMode.ARENA)
 	assert_eq(context.battle_state, context.BattleState.CONFIGURED)
+	# Note: This emits a "not implemented" push_warning()
 
 
 func test_configure_endless_sets_mode() -> void:
+	# Endless mode emits a "not implemented" warning
 	context.configure_endless_wave(1)
 
 	assert_eq(context.current_mode, context.BattleMode.ENDLESS)
 	assert_eq(context.battle_state, context.BattleState.CONFIGURED)
+	# Note: This emits a "not implemented" push_warning()
