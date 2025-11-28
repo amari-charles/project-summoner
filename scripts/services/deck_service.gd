@@ -59,6 +59,16 @@ func has_deck(deck_id: String) -> bool:
 func get_deck_count() -> int:
 	return list_decks().size()
 
+## Get all decks for a specific hero
+func list_decks_for_hero(hero_id: String) -> Array[Dictionary]:
+	var all_decks: Array[Dictionary] = list_decks()
+	var filtered: Array[Dictionary] = []
+	for deck: Dictionary in all_decks:
+		var deck_hero: Variant = deck.get("hero_id", "")
+		if deck_hero is String and deck_hero == hero_id:
+			filtered.append(deck)
+	return filtered
+
 ## =============================================================================
 ## DECK OPERATIONS
 ## =============================================================================

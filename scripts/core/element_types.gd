@@ -393,6 +393,66 @@ func get_variant_element(variant_name: String) -> Element:
 	return VARIANT_TO_ELEMENT.get(variant_name, null)
 
 ## =============================================================================
+## UI DISPLAY CONSTANTS
+## =============================================================================
+
+## Colors for element display in UI (portraits, backgrounds, etc.)
+const ELEMENT_COLORS: Dictionary = {
+	"fire": Color(0.9, 0.3, 0.2),
+	"water": Color(0.2, 0.5, 0.9),
+	"wind": Color(0.5, 0.9, 0.5),
+	"earth": Color(0.6, 0.4, 0.2),
+	"lightning": Color(0.9, 0.9, 0.3),
+	"shadow": Color(0.4, 0.2, 0.5),
+	"poison": Color(0.4, 0.7, 0.2),
+	"life": Color(0.3, 0.9, 0.5),
+	"death": Color(0.3, 0.2, 0.3),
+	"occultist": Color(0.6, 0.1, 0.4),
+	"holy": Color(0.95, 0.9, 0.6),
+	"ice": Color(0.6, 0.85, 0.95),
+	"metal": Color(0.6, 0.6, 0.7),
+	"spirit": Color(0.7, 0.8, 0.95),
+	"neutral": Color(0.5, 0.5, 0.5)
+}
+
+## Short symbols for element display (1-2 characters)
+const ELEMENT_SYMBOLS: Dictionary = {
+	"fire": "F",
+	"water": "W",
+	"wind": "A",
+	"earth": "E",
+	"lightning": "L",
+	"shadow": "S",
+	"poison": "P",
+	"life": "Li",
+	"death": "D",
+	"occultist": "O",
+	"holy": "H",
+	"ice": "I",
+	"metal": "M",
+	"spirit": "Sp",
+	"neutral": "?"
+}
+
+## Get UI color for an element
+func get_color(element: Variant) -> Color:
+	var element_id: String = ""
+	if element is Element:
+		element_id = element.id
+	elif element is String:
+		element_id = element
+	return ELEMENT_COLORS.get(element_id, ELEMENT_COLORS["neutral"])
+
+## Get UI symbol for an element
+func get_symbol(element: Variant) -> String:
+	var element_id: String = ""
+	if element is Element:
+		element_id = element.id
+	elif element is String:
+		element_id = element
+	return ELEMENT_SYMBOLS.get(element_id, "?")
+
+## =============================================================================
 ## DEBUGGING
 ## =============================================================================
 

@@ -3,7 +3,31 @@ Hero Leveling (1-10), Traits (Story + Level + Ultimate), Boons, and Global Event
 
 **Version:** 2.0
 **Date:** 2025-01-24
-**Status:** DESIGN SPEC (Not Yet Implemented)
+**Status:** DESIGN SPEC (Phase 2 Foundation Implemented)
+
+---
+
+## Implementation Status
+
+### ✅ Phase 2: Foundation (Implemented)
+- XP and level tracking (1-10)
+- Level-up mechanics with gold cost
+- TraitCatalog with innate traits and acquirable boons
+- HeroProgressionService and HeroSelectionService
+- Per-hero campaign progress
+- Hero management UI (panel, roster, icon widget)
+- Hero stat modifiers applied in battle
+
+### 🔲 Phase 3: Level Traits (Not Yet Implemented)
+- Trait Lines (prerequisite chains)
+- Level-up trait selection UI
+- Trait tree visualization
+
+### 🔲 Phase 4: Ultimate Traits (Not Yet Implemented)
+- Level 10 capstone abilities
+- Ultimate trait activation mechanics
+
+See [architecture.md](architecture.md) for current implementation details.
 
 ---
 

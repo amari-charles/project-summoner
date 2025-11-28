@@ -260,36 +260,6 @@ The profile data structure has redundant and unused fields that waste storage an
 
 ## Core Game Systems
 
-### 🔴 HIGH PRIORITY
-
-#### Implement Card and Hero Level System
-**Status:** 🔄 In Progress
-**Category:** Core Game Systems / Progression
-**Effort:** Large
-
-**Description:**
-Implement leveling system for cards and heroes that allows them to grow stronger through gameplay.
-
-**Requirements:**
-- ✅ Card level data structure and storage
-- Hero level data structure and storage
-- ✅ Experience/level-up mechanics
-- ✅ Stat scaling per level (HP, attack, abilities)
-- ✅ UI display for card/hero levels
-- ✅ Level-up rewards and feedback
-- ✅ Max level caps
-- ✅ Save/load integration
-
-**Notes:**
-- Foundation for long-term progression
-- Balance carefully - levels shouldn't trivialize content
-- Consider different level curves for different rarities
-- May need separate systems for card levels vs hero levels
-- Important for player retention and sense of progression
-- **Card progression implemented in PR #85** - hero leveling still needed
-
----
-
 ### 🟢 LOW PRIORITY
 
 #### Support Upgrade-Specific Resource Costs
@@ -606,7 +576,7 @@ Redesign the main menu with improved visual style and layout.
 ---
 
 #### Add Hero Select UI
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** UI/UX
 **Effort:** Medium
 
@@ -620,10 +590,10 @@ Create a hero selection screen allowing players to choose their hero before batt
 - Indicate locked/unlocked heroes
 - Preview hero abilities or bonuses
 
-**Notes:**
-- Could be accessed from main menu or pre-battle screen
-- Should integrate with existing HeroCatalog system
-- Consider hero unlock progression display
+**Implementation:**
+- HeroManagementPanel provides full hero roster view
+- HeroIconWidget provides persistent hero button on screens
+- HeroRosterItem shows individual hero details with stats
 
 ---
 
@@ -687,95 +657,6 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ---
 
-## Campaign System
-
-### 🔴 HIGH PRIORITY
-
-#### Design Campaign Map Interface
-**Status:** ⬜ Not Started
-**Category:** Campaign / UI
-**Effort:** Large
-
-**Description:**
-Design the visual and UX approach for the new map-based campaign interface to replace the current list view.
-
-**Requirements:**
-- Map layout concept (linear path, branching, open world?)
-- Visual style (world map, battle map, abstract?)
-- Node/point design for battles
-- Progression visualization
-- Lock/unlock indicators
-
-**Notes:**
-- Major UX change - needs careful design
-- Reference: Slay the Spire, FTL, etc.
-- Should feel like a journey
-
----
-
-#### Implement Map Node System for Battles
-**Status:** ⬜ Not Started
-**Category:** Campaign
-**Effort:** Medium
-**Dependencies:** Design Campaign Map Interface
-
-**Description:**
-Implement the technical system for map nodes representing battles and their connections.
-
-**Requirements:**
-- Node data structure
-- Node connection/progression logic
-- Lock/unlock state management
-- Save/load integration
-
-**Notes:**
-- Should support future expansion (non-battle nodes)
-- Clean data structure for easy content addition
-
----
-
-#### Add Map Navigation/Selection
-**Status:** ⬜ Not Started
-**Category:** Campaign / UI
-**Effort:** Medium
-**Dependencies:** Implement Map Node System for Battles
-
-**Description:**
-Implement player interaction with the campaign map - selecting and starting battles.
-
-**Requirements:**
-- Node click/selection
-- Preview battle info
-- Path highlighting for available battles
-- Smooth camera movement (if needed)
-
-**Notes:**
-- Should feel intuitive and responsive
-- Clear visual feedback for available vs locked battles
-
----
-
-#### Integrate Battle Progression on Map
-**Status:** ⬜ Not Started
-**Category:** Campaign
-**Effort:** Small
-**Dependencies:** Add Map Navigation/Selection
-
-**Description:**
-Connect battle completion to map progression - unlocking next nodes, visual updates.
-
-**Requirements:**
-- Mark completed nodes
-- Unlock next available nodes
-- Update map visuals on completion
-- Save progression state
-
-**Notes:**
-- Should feel rewarding
-- Clear visual feedback for progress
-
----
-
 ## Hero System
 
 ### 🔴 HIGH PRIORITY
@@ -813,158 +694,119 @@ The codebase inconsistently uses "Summoner" and "Hero" to refer to the same conc
 ---
 
 #### Design Hero Data Structure
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Heroes / Architecture
 **Effort:** Medium
 
 **Description:**
 Define the data structure and resource format for hero characters.
 
-**Requirements:**
-- Hero stats (HP, mana, abilities)
-- Hero passive/active abilities
-- Visual/art references
-- Deck building constraints (if any)
-- Extensible design for future heroes
-
-**Notes:**
-- Foundation for entire hero system
-- Should support variety (tank, mage, etc.)
-- Consider balance implications
+**Implementation:**
+- HeroConfig: Static hero configuration (base stats, innate traits)
+- HeroInstance: Runtime state (level, xp, acquired boons, computed stats)
+- TraitCatalog: Central trait/boon registry with modifiers
+- See `docs/features/heroes/architecture.md` for details
 
 ---
 
 #### Implement Hero Stats System
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Heroes
 **Effort:** Medium
-**Dependencies:** Design Hero Data Structure
 
 **Description:**
 Implement the technical system for hero-specific stats and attributes.
 
-**Requirements:**
-- Override/modify base summoner stats
-- Hero HP pools
-- Hero-specific mana rules (if any)
-- Stat display integration
-
-**Notes:**
-- Should work with existing summoner system
-- Clean integration with combat
+**Implementation:**
+- HeroInstance.get_computed_stats() applies trait modifiers to base stats
+- BattleContext.set_player_hero_stats() caches stats for DamageSystem
+- Trait modifiers support flat and percent bonuses
+- Element-specific damage bonuses (fire_damage_bonus, etc.)
 
 ---
 
 #### Implement Hero Special Abilities
-**Status:** ⬜ Not Started
+**Status:** ⬜ Not Started (Phase 3/4)
 **Category:** Heroes
 **Effort:** Large
-**Dependencies:** Implement Hero Stats System
 
 **Description:**
 Implement the system for hero active and passive abilities.
 
-**Requirements:**
-- Ability triggering system
-- Ability cooldowns/costs
-- Ability effect implementation
-- Visual/audio feedback
-
 **Notes:**
-- Most complex part of hero system
-- Each hero will need unique abilities
-- Balance is critical
+- Phase 3: Level Traits (trait selection at level-up)
+- Phase 4: Ultimate Traits (level 10 capstone abilities)
+- Foundation is ready via TraitCatalog modifier system
 
 ---
 
 #### Create Hero Selection Screen UI
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Heroes / UI
 **Effort:** Medium
-**Dependencies:** Design Hero Data Structure
 
 **Description:**
 Design and implement the UI screen where players choose their hero before battle.
 
-**Requirements:**
-- Display available heroes
-- Show hero stats and abilities
-- Locked/unlocked state
-- Selection confirmation
-- Visual polish
-
-**Notes:**
-- Important for player engagement
-- Should show off hero variety
-- Clear ability descriptions
+**Implementation:**
+- HeroManagementPanel: Full roster view with stats, traits, level-up
+- HeroIconWidget: Persistent hero button (click to open panel)
+- HeroRosterItem: Individual hero row with select/level-up buttons
+- Hero switching via HeroSelection service
 
 ---
 
 #### Implement Hero Unlock System (Post-MVP)
-**Status:** ⬜ Not Started
+**Status:** ⬜ Not Started (Post-MVP)
 **Category:** Heroes / Progression
 **Effort:** Medium
-**Dependencies:** MVP Hero System, Campaign Progression
 
 **Description:**
 Implement the system for unlocking additional heroes beyond the starting hero.
 
-**Requirements:**
-- Hero unlock conditions (campaign milestones, achievements)
-- UI for hero collection/roster management
-- Save/load integration for unlocked heroes
-- Hero switching between campaigns/decks
-
 **Notes:**
-- **MVP**: Player chooses starting hero during onboarding (4 core elements + Random option)
-- **Post-MVP**: This system allows unlocking additional heroes through gameplay
-- Random option at start grants "Fortune Favors the Bold" profile bonus
-- Adds long-term replayability with different hero builds
+- Foundation exists: HeroInstance persistence, profile hero_instances array
+- Need: Campaign milestone triggers for unlocking new heroes
+- Need: UI to show locked heroes and unlock progress
 
 ---
 
 #### Design Hero In-Battle UI Elements
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (Foundation)
 **Category:** Heroes / UI
 **Effort:** Medium
-**Dependencies:** Implement Hero Stats System, Implement Hero Special Abilities
 
 **Description:**
 Design UI elements for displaying hero information and abilities during battle.
 
-**Requirements:**
-- Hero portrait/avatar
-- Ability buttons/indicators
-- Cooldown displays
-- Visual integration with battle HUD
+**Implementation:**
+- HeroIconWidget added to CampaignMap, CollectionScreen, GameModeMenu
+- Shows active hero element color and level
+- Click opens HeroManagementPanel
 
-**Notes:**
-- Should not clutter battlefield
-- Abilities should be easy to use
-- Clear cooldown/availability feedback
+**Remaining:**
+- Ability buttons/cooldowns (Phase 3/4 - when abilities are added)
 
 ---
 
 #### Integrate Heroes into Battle System
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (Foundation)
 **Category:** Heroes
 **Effort:** Large
-**Dependencies:** All other hero tasks
 
 **Description:**
 Final integration of hero system into the core battle gameplay loop.
 
-**Requirements:**
-- Heroes replace or augment base summoner
-- All hero abilities functional in battle
-- Proper save/load of hero state
-- AI integration (if enemies can be heroes)
-- Campaign integration
+**Implementation:**
+- Summoner loads HeroInstance via DeckLoader
+- Hero stats applied via BattleContext.set_player_hero_stats()
+- DamageSystem reads hero stats for damage bonuses
+- HeroModifierProvider passes unit modifiers to ModifierSystem
+- Per-hero campaign progress in ProfileRepo
 
-**Notes:**
-- Final step - pulls everything together
-- Extensive testing required
-- May reveal balance issues
+**Remaining:**
+- Hero abilities (Phase 3/4)
+- AI heroes for enemies (future)
 
 ---
 
@@ -1024,4 +866,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-26 - Moved completed mana bar UI task to archive*
+*Last Updated: 2025-11-28 - Hero System Phase 2 complete (traits, progression, UI, per-hero campaign progress)*

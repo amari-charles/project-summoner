@@ -70,9 +70,14 @@ const RARITY_ORDER: Dictionary = {
 ## Modal scenes
 const CardDetailModalScene: PackedScene = preload("res://scenes/ui/card_detail_modal.tscn")
 const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/card_level_up_panel.tscn")
+const HeroIconWidgetScene: PackedScene = preload("res://scenes/ui/hero_icon_widget.tscn")
+const HeroManagementPanelScene: PackedScene = preload("res://scenes/ui/hero_management_panel.tscn")
 
 ## Card widget scene
 const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
+
+## Hero icon widget reference
+var hero_icon: HeroIconWidget = null
 
 ## =============================================================================
 ## LIFECYCLE
@@ -131,6 +136,14 @@ func _ready() -> void:
 		if deck_deleted_variant is Signal:
 			var deck_deleted_sig: Signal = deck_deleted_variant
 			deck_deleted_sig.connect(_on_deck_deleted)
+
+	# Connect to hero selection changes
+	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
+	if hero_selection and hero_selection.has_signal("hero_changed"):
+		hero_selection.hero_changed.connect(_on_hero_selection_changed)
+
+	# Setup hero icon
+	_setup_hero_icon()
 
 	# Load initial data
 	_refresh_collection()
@@ -451,7 +464,20 @@ func _refresh_deck_list() -> void:
 		push_error("CollectionScreen: Decks service not found!")
 		return
 
-	var deck_list_result: Variant = decks.call("list_decks")
+	# Get active hero ID to filter decks
+	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
+	var active_hero_id: String = ""
+	if hero_selection and hero_selection.has_method("get_active_hero_id"):
+		var result: Variant = hero_selection.call("get_active_hero_id")
+		if result is String:
+			active_hero_id = result
+
+	# Get decks filtered by active hero
+	var deck_list_result: Variant
+	if not active_hero_id.is_empty() and decks.has_method("list_decks_for_hero"):
+		deck_list_result = decks.call("list_decks_for_hero", active_hero_id)
+	else:
+		deck_list_result = decks.call("list_decks")
 	if not deck_list_result is Array:
 		return
 	var deck_list_data: Array = deck_list_result
@@ -661,6 +687,39 @@ func _on_back_pressed() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
 
 ## =============================================================================
+## HERO ICON
+## =============================================================================
+
+func _setup_hero_icon() -> void:
+	# Only show hero icon after affinity event is completed
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if campaign and campaign.has_method("is_battle_completed"):
+		var is_completed: bool = campaign.call("is_battle_completed", BattleIDs.EVENT_AFFINITY)
+		if not is_completed:
+			return
+
+	hero_icon = HeroIconWidgetScene.instantiate()
+	add_child(hero_icon)
+
+	# Position in top-left corner
+	hero_icon.anchor_left = 0.0
+	hero_icon.anchor_right = 0.0
+	hero_icon.anchor_top = 0.0
+	hero_icon.anchor_bottom = 0.0
+	hero_icon.offset_left = 20
+	hero_icon.offset_right = 70
+	hero_icon.offset_top = 20
+	hero_icon.offset_bottom = 70
+
+	# Connect signal
+	hero_icon.icon_clicked.connect(_on_hero_icon_clicked)
+
+func _on_hero_icon_clicked() -> void:
+	var panel: HeroManagementPanel = HeroManagementPanelScene.instantiate()
+	add_child(panel)
+	panel.open()
+
+## =============================================================================
 ## SIGNALS
 ## =============================================================================
 
@@ -675,4 +734,10 @@ func _on_deck_created(_deck_id: String) -> void:
 	_refresh_deck_list()
 
 func _on_deck_deleted(_deck_id: String) -> void:
+	_refresh_deck_list()
+
+func _on_hero_selection_changed(_old_hero_id: String, _new_hero_id: String) -> void:
+	# Refresh hero icon and deck list when hero changes
+	if hero_icon:
+		hero_icon.refresh()
 	_refresh_deck_list()

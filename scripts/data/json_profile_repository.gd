@@ -742,24 +742,122 @@ func get_deck(deck_id: String) -> Dictionary:
 ## CAMPAIGN PROGRESS OPERATIONS
 ## =============================================================================
 
-func get_campaign_progress() -> Dictionary:
+## Get campaign progress for a specific hero (or active hero if not specified)
+func get_campaign_progress(hero_id: String = "") -> Dictionary:
 	var empty_progress: Dictionary = {"completed_battles": [], "current_battle": null}
-	var progress_variant: Variant = _data.get("campaign_progress", empty_progress)
-	if progress_variant is Dictionary:
-		return progress_variant
+
+	# Determine which hero to use
+	var target_hero_id: String = hero_id
+	if target_hero_id.is_empty():
+		target_hero_id = _get_active_hero_id()
+
+	# Get campaign_progress data
+	var campaign_progress: Variant = _data.get("campaign_progress", {})
+	if not campaign_progress is Dictionary:
+		return empty_progress
+
+	var progress_dict: Dictionary = campaign_progress
+
+	# Check for old structure (has "completed_battles" at root level - not per-hero)
+	if progress_dict.has("completed_battles") and not _is_per_hero_structure(progress_dict):
+		# Migrate old structure to new per-hero format
+		_migrate_campaign_progress_to_per_hero(progress_dict)
+		progress_dict = _data.get("campaign_progress", {})
+
+	# Return hero-specific progress
+	if target_hero_id.is_empty():
+		return empty_progress
+
+	var hero_progress: Variant = progress_dict.get(target_hero_id, empty_progress)
+	if hero_progress is Dictionary:
+		return hero_progress
 	return empty_progress
 
-func update_campaign_progress(progress: Dictionary) -> void:
+## Check if progress dict is already per-hero structure
+func _is_per_hero_structure(progress: Dictionary) -> bool:
+	# Per-hero structure has hero IDs as keys, each containing completed_battles
+	# Old structure has "completed_battles" directly at the root
+	for key: String in progress.keys():
+		var value: Variant = progress[key]
+		# If a key maps to a Dictionary with completed_battles, it's per-hero
+		if value is Dictionary:
+			var value_dict: Dictionary = value
+			if value_dict.has("completed_battles"):
+				return true
+	return false
+
+## Migrate old single-progress structure to per-hero
+func _migrate_campaign_progress_to_per_hero(old_progress: Dictionary) -> void:
+	print("ProfileRepo: Migrating campaign progress to per-hero structure...")
+
+	var active_hero_id: String = _get_active_hero_id()
+	if active_hero_id.is_empty():
+		# Fallback to first unlocked hero
+		var unlocked: Array = get_unlocked_heroes()
+		if unlocked.size() > 0:
+			active_hero_id = unlocked[0]
+
+	if active_hero_id.is_empty():
+		# SAFETY: Preserve old progress in a backup key instead of discarding
+		push_warning("ProfileRepo: No hero available for migration, preserving old progress in _legacy_progress")
+		_data["campaign_progress"] = {
+			"_legacy_progress": old_progress.duplicate(true)
+		}
+		return
+
+	# Move old progress to active hero
+	var new_structure: Dictionary = {}
+	new_structure[active_hero_id] = {
+		"completed_battles": old_progress.get("completed_battles", []),
+		"current_battle": old_progress.get("current_battle", null),
+		"pending_reward": old_progress.get("pending_reward", null)
+	}
+
+	_data["campaign_progress"] = new_structure
+	save_profile(true)  # Immediate save after migration
+	print("ProfileRepo: Migrated campaign progress to hero '%s'" % active_hero_id)
+
+func _get_active_hero_id() -> String:
+	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
+	if hero_selection and hero_selection.has_method("get_active_hero_id"):
+		var result: Variant = hero_selection.call("get_active_hero_id")
+		if result is String:
+			return result
+	return ""
+
+## Update campaign progress for a specific hero (or active hero if not specified)
+func update_campaign_progress(progress: Dictionary, hero_id: String = "") -> void:
+	# Determine which hero to use
+	var target_hero_id: String = hero_id
+	if target_hero_id.is_empty():
+		target_hero_id = _get_active_hero_id()
+
+	if target_hero_id.is_empty():
+		push_warning("ProfileRepo: Cannot update campaign progress - no active hero")
+		return
+
+	# Ensure campaign_progress dict exists
 	if not _data.has("campaign_progress"):
-		_data["campaign_progress"] = {"completed_battles": [], "current_battle": null}
+		_data["campaign_progress"] = {}
 
-	var current_progress_variant: Variant = _data.get("campaign_progress")
-	if current_progress_variant is Dictionary:
-		var current_progress: Dictionary = current_progress_variant
+	var campaign_progress: Variant = _data.get("campaign_progress")
+	if not campaign_progress is Dictionary:
+		_data["campaign_progress"] = {}
+		campaign_progress = _data["campaign_progress"]
+
+	var campaign_dict: Dictionary = campaign_progress
+
+	# Ensure hero-specific progress exists
+	if not campaign_dict.has(target_hero_id):
+		campaign_dict[target_hero_id] = {"completed_battles": [], "current_battle": null}
+
+	var hero_progress: Variant = campaign_dict.get(target_hero_id)
+	if hero_progress is Dictionary:
+		var hero_dict: Dictionary = hero_progress
 		for key: String in progress:
-			current_progress[key] = progress[key]
+			hero_dict[key] = progress[key]
 
-	_append_to_wal({"action": "update_campaign_progress", "params": progress})
+	_append_to_wal({"action": "update_campaign_progress", "params": progress, "hero_id": target_hero_id})
 	save_profile(true)  # Immediate save for campaign progress
 	data_changed.emit()
 
@@ -954,11 +1052,7 @@ func _create_fresh_profile() -> void:
 		"hero_instances": [],   # Array of HeroInstance data (level, XP, modifiers)
 		"decks": [],
 		"deck_cards": [],
-		"campaign_progress": {
-			"completed_battles": [],
-			"current_battle": null,
-			"pending_reward": null  # {battle_id, reward_type, choice_index} or null if claimed
-		},
+		"campaign_progress": {},  # Per-hero structure: { "hero_id": { completed_battles, current_battle, pending_reward } }
 		"shop_purchases": {},  # "shop_id::offering_id::refresh_epoch" -> purchase_count
 		"shop_refresh_state": {  # Per-shop refresh tracking
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}

@@ -1,7 +1,7 @@
 extends Control
-class_name HeroSelection
+class_name HeroSelectionScreen
 
-## HeroSelection - Choose your starting hero
+## HeroSelectionScreen - Choose your starting hero
 ##
 ## Part of onboarding flow. Player picks one of five heroes representing the
 ## four core elements (Earth, Fire, Wind, Water) plus a random option.
@@ -160,26 +160,19 @@ func _create_hero_instance(hero_id: String, chosen_random: bool, profile_repo: N
 	var hero_instance: HeroInstance = HeroInstance.new()
 	hero_instance.init_from_config(hero_config)
 
-	# Add "fortune_favors_the_bold" modifier if player chose random
+	# Add "Fortune Favors the Bold" trait if player chose random
 	if chosen_random:
-		var fortune_modifier_id: int = ModifierRegistry.ModifierId.FORTUNE_FAVORS_BOLD
-		var modifier_db: Node = get_node_or_null("/root/ModifierDatabase")
-		if modifier_db and modifier_db.has_method("has_modifier"):
-			var has_mod: bool = modifier_db.call("has_modifier", fortune_modifier_id)
-			if has_mod:
-				hero_instance.add_modifier(fortune_modifier_id, ModifierConfig.ModifierSource.INNATE)
-				print("HeroSelection: Added 'Fortune Favors the Bold' modifier for random selection")
-			else:
-				push_warning("HeroSelection: FORTUNE_FAVORS_BOLD modifier not found in database")
+		if hero_instance.add_boon("trait_fortune_favors_bold"):
+			print("HeroSelection: Added 'Fortune Favors the Bold' trait for random selection")
 		else:
-			push_warning("HeroSelection: ModifierDatabase not available")
+			push_warning("HeroSelection: Failed to add fortune_favors_bold trait")
 
 	# Save HeroInstance to profile
 	if profile_repo and profile_repo.has_method("save_hero_instance"):
 		var success: bool = profile_repo.call("save_hero_instance", hero_instance)
 		if success:
-			print("HeroSelection: Saved HeroInstance for '%s' (level %d, %d modifiers)" % [
-				hero_id, hero_instance.level, hero_instance.active_modifiers.size()
+			print("HeroSelection: Saved HeroInstance for '%s' (level %d, %d boons)" % [
+				hero_id, hero_instance.level, hero_instance.acquired_boon_ids.size()
 			])
 		else:
 			push_error("HeroSelection: Failed to save HeroInstance!")

@@ -456,4 +456,280 @@ Implemented a tiered mana bar system that wraps at 10 mana per tier with differe
 
 ---
 
-*Last Updated: 2025-11-26*
+## Core Game Systems
+
+### Implement Card and Hero Level System
+**Completed:** 2025-11-27
+**Category:** Core Game Systems / Progression
+**Effort:** Large
+
+**Description:**
+Implemented leveling system for cards and heroes that allows them to grow stronger through gameplay.
+
+**Solution Implemented:**
+
+**Card Progression (PR #85):**
+- CardProgressionService autoload with XP and level management
+- XP thresholds and gold costs with rarity scaling
+- CardUpgradeCatalog with upgrade choices per level
+- UI display for card levels and progress
+- Level-up with upgrade selection modal
+
+**Hero Progression (Phase 2 Foundation):**
+- HeroProgressionService autoload (`scripts/services/hero_progression_service.gd`)
+- XP thresholds: 0, 100, 250, 500, 850, 1300, 1900, 2700, 3800, 5200
+- Gold costs: 0, 50, 100, 200, 400, 700, 1000, 1500, 2000, 3000
+- Max level: 10
+- Signals: `hero_xp_changed`, `hero_leveled_up`, `hero_ready_to_level_up`
+- Battle completion grants hero XP via `hero_xp_reward` in battle config
+- Helper methods: `grant_hero_xp()`, `can_level_up()`, `level_up_hero()`, `get_hero_progression_info()`
+
+**Related Files:**
+- `scripts/services/card_progression_service.gd` - Card XP/levels
+- `scripts/services/hero_progression_service.gd` - Hero XP/levels (new)
+- `scripts/core/battle_context.gd` - Battle completion XP grants
+- `scripts/services/campaign_service.gd` - Battle XP reward definitions
+
+**Future Phases (tracked in design spec):**
+- Phase 3: Level Traits with Trait Lines
+- Phase 4: Ultimate Traits at level 10
+- Phase 5: Story Traits from campaign events
+- Phase 6: Boon System
+
+---
+
+## Campaign System
+
+### Design Campaign Map Interface
+**Completed:** 2025-11-19
+**Category:** Campaign / UI
+**Effort:** Large
+**PR:** #54
+
+**Description:**
+Designed and implemented the visual and UX approach for the new map-based campaign interface to replace the old list view.
+
+**Solution Implemented:**
+- Visual map-based campaign screen with event nodes
+- Linear path layout with sine wave positioning for visual interest
+- Node/point design showing completed (✓), unlocked (number), and locked (🔒) states
+- Progression visualization with path lines connecting nodes
+- Lock/unlock indicators with distinct colors per state
+
+---
+
+### Implement Map Node System for Battles
+**Completed:** 2025-11-19
+**Category:** Campaign
+**Effort:** Medium
+**PR:** #54
+
+**Description:**
+Implemented the technical system for map nodes representing battles and their connections.
+
+**Solution Implemented:**
+- `event_nodes` dictionary for fast lookup by event_id
+- `event_render_order` array for explicit draw order
+- Lock/unlock state read from Campaign service
+- Full save/load integration through profile system
+- Supports multiple event types (battle, affinity, first_summon, caravan, onboarding)
+
+---
+
+### Add Map Navigation/Selection
+**Completed:** 2025-11-19
+**Category:** Campaign / UI
+**Effort:** Medium
+**PR:** #54
+
+**Description:**
+Implemented player interaction with the campaign map - selecting and starting battles.
+
+**Solution Implemented:**
+- Node click handler with visual feedback
+- Detail panel popup showing event name, difficulty, description, rewards
+- 2D panning with drag threshold (5px before panning starts)
+- Auto-centering on latest unlocked mission
+- Deck selector integration in detail panel
+
+---
+
+### Integrate Battle Progression on Map
+**Completed:** 2025-11-19
+**Category:** Campaign
+**Effort:** Small
+**PR:** #54
+
+**Description:**
+Connected battle completion to map progression - unlocking next nodes, visual updates.
+
+**Solution Implemented:**
+- Completed nodes show checkmark (✓) with green styling
+- Automatic refresh of map on event completion
+- Progress label showing "X/Y Battles Completed"
+- Save progression state through Campaign service
+- Signal connections for `battle_completed` and `campaign_progress_changed`
+
+---
+
+## Hero System
+
+### Hero System Phase 2: Foundation Implementation
+**Completed:** 2025-11-28
+**Category:** Heroes / Architecture
+**Effort:** Large
+
+**Description:**
+Implemented the foundational hero system with traits, progression services, per-hero campaign progress, and hero management UI.
+
+**Solution Implemented:**
+
+**Services:**
+- `HeroSelectionService` - Manages active hero selection, hero switching
+- `HeroProgressionService` - XP and level management (1-10), gold costs
+- `TraitCatalog` - Central trait/boon registry with hero and unit modifiers
+
+**Data Structures:**
+- `HeroConfig` - Static configuration with base stats and innate trait IDs
+- `HeroInstance` - Runtime state (level, xp, acquired boons, computed stats)
+- Trait data with hero stat modifiers (flat/percent) and unit modifiers
+
+**Battle Integration:**
+- `BattleContext.set_player_hero_stats()` caches computed stats for DamageSystem
+- `HeroModifierProvider` passes unit modifiers to ModifierSystem
+- Element-specific damage bonuses (fire_damage_bonus, damage_reduction, etc.)
+
+**Per-Hero Campaign Progress:**
+- ProfileRepo stores campaign_progress per hero ID
+- Migration preserves legacy progress in `_legacy_progress` backup
+- New profiles start with empty per-hero structure
+
+**UI Components:**
+- `HeroManagementPanel` - Full roster view, stats, traits, level-up
+- `HeroIconWidget` - Persistent hero button on screens (click to open panel)
+- `HeroRosterItem` - Individual hero row with select/level-up buttons
+- Element colors and symbols centralized in `ElementTypes`
+
+**Localization:**
+- All UI strings use `Loc.t()` pattern
+- Trait names/descriptions use localization keys
+
+**Deleted Old System:**
+- Removed: ActiveModifier, ModifierConfig, ModifierDatabase, ModifierEffect, ModifierRegistry
+- These were replaced by TraitCatalog + HeroInstance trait system
+
+**Related Files:**
+- `scripts/services/hero_selection_service.gd` (new)
+- `scripts/services/hero_progression_service.gd` (new)
+- `scripts/data/trait_catalog.gd` (new)
+- `scripts/core/hero_instance.gd` (updated for traits)
+- `scripts/core/hero_config.gd` (updated: innate_trait_ids)
+- `scripts/data/json_profile_repository.gd` (per-hero campaign progress)
+- `scripts/ui/hero_management_panel.gd` (new)
+- `scripts/ui/hero_icon_widget.gd` (new)
+- `scripts/ui/hero_roster_item.gd` (new)
+- `scripts/systems/hero_modifier_provider.gd` (updated)
+- `scripts/core/battle_context.gd` (hero stats caching)
+- `scripts/combat/damage_system.gd` (hero damage bonuses)
+- `docs/features/heroes/architecture.md` (updated)
+
+---
+
+### Add Hero Select UI
+**Completed:** 2025-11-28
+**Category:** UI/UX
+**Effort:** Medium
+
+**Description:**
+Created hero selection/management UI for viewing and switching between heroes.
+
+**Solution Implemented:**
+- `HeroManagementPanel` - Modal panel showing full hero roster
+- `HeroIconWidget` - Clickable hero portrait in corner of screens
+- `HeroRosterItem` - Individual hero card with stats, XP, level-up button
+- Added to CampaignMap, CollectionScreen, GameModeMenu
+
+---
+
+### Design Hero Data Structure
+**Completed:** 2025-11-28
+**Category:** Heroes / Architecture
+**Effort:** Medium
+
+**Description:**
+Defined the data structures for hero configuration and runtime state.
+
+**Solution Implemented:**
+- `HeroConfig` resource with base stats, innate_trait_ids, element
+- `HeroInstance` runtime class with level, xp, acquired_boon_ids
+- `TraitCatalog` for trait definitions with modifiers
+- Computed stats via `HeroInstance.get_computed_stats()`
+
+---
+
+### Implement Hero Stats System
+**Completed:** 2025-11-28
+**Category:** Heroes
+**Effort:** Medium
+
+**Description:**
+Implemented hero stat computation with trait modifiers applied in battle.
+
+**Solution Implemented:**
+- Base stats from HeroConfig (base_health, max_mana, mana_regen)
+- Trait modifiers apply flat/percent bonuses to stats
+- Element-specific bonuses (fire_damage_bonus, damage_reduction)
+- BattleContext caches hero stats for DamageSystem
+- DamageSystem applies damage_bonus and damage_reduction
+
+---
+
+### Create Hero Selection Screen UI
+**Completed:** 2025-11-28
+**Category:** Heroes / UI
+**Effort:** Medium
+
+**Description:**
+Implemented UI for selecting and switching between heroes.
+
+**Solution Implemented:**
+- HeroManagementPanel shows all unlocked heroes
+- Hero switching via HeroSelection.switch_hero()
+- Active hero highlighted in roster
+- Stats, traits, XP progress displayed per hero
+
+---
+
+### Design Hero In-Battle UI Elements (Foundation)
+**Completed:** 2025-11-28
+**Category:** Heroes / UI
+**Effort:** Medium
+
+**Description:**
+Added hero UI elements to game screens for battle context.
+
+**Solution Implemented:**
+- HeroIconWidget shows active hero element color and level
+- Widget added to CampaignMap, CollectionScreen, GameModeMenu
+- Click opens HeroManagementPanel for hero management
+
+---
+
+### Integrate Heroes into Battle System (Foundation)
+**Completed:** 2025-11-28
+**Category:** Heroes
+**Effort:** Large
+
+**Description:**
+Connected hero system to battle mechanics for stat application.
+
+**Solution Implemented:**
+- Summoner loads HeroInstance via DeckLoader
+- Hero stats applied via BattleContext.set_player_hero_stats()
+- DamageSystem reads hero stats for damage calculations
+- HeroModifierProvider passes unit modifiers to ModifierSystem
+- Per-hero campaign progress saved and loaded correctly
+
+---
+
+*Last Updated: 2025-11-28*

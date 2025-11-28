@@ -19,7 +19,7 @@ class_name Summoner
 ## Current state
 var current_hp: float
 var mana: float = 0.0
-const MANA_MAX: float = 10.0
+var max_mana: float = 10.0  # Set from hero stats in _apply_hero_bonuses()
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
@@ -89,7 +89,7 @@ func _ready() -> void:
 
 	# Initialize HP and mana
 	current_hp = max_hp
-	mana = MANA_MAX
+	mana = max_mana
 
 	deck.shuffle()
 
@@ -104,17 +104,17 @@ func _ready() -> void:
 		add_to_group(GroupIDs.ENEMY_SUMMONERS)
 
 	# Emit initial mana state
-	mana_changed.emit(mana, MANA_MAX)
+	mana_changed.emit(mana, max_mana)
 
 func _process(delta: float) -> void:
 	if not is_alive:
 		return
 
 	# Regenerate mana (FIXED: use float accumulation)
-	if mana < MANA_MAX:
-		mana = clamp(mana + mana_regen_rate * delta, 0.0, MANA_MAX)
+	if mana < max_mana:
+		mana = clamp(mana + mana_regen_rate * delta, 0.0, max_mana)
 		# Emit signal every frame while regenerating for smooth UI updates
-		mana_changed.emit(mana, MANA_MAX)
+		mana_changed.emit(mana, max_mana)
 
 ## Draw a card from the deck
 func draw_card() -> void:
@@ -153,7 +153,7 @@ func play_card(card_index: int, spawn_position: Vector2) -> bool:
 
 	# Deduct mana
 	mana -= card.mana_cost
-	mana_changed.emit(mana, MANA_MAX)
+	mana_changed.emit(mana, max_mana)
 
 	# Find battlefield to spawn units in
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
@@ -215,11 +215,15 @@ func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
 	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
 	mana_regen_rate = hero_mana_regen
 
-	# Note: max_mana from stats is not applied here because Summoner uses MANA_MAX constant
-	# In a future refactor, MANA_MAX could be made a variable and set from stats.get("max_mana")
+	# Set max mana from hero (with modifiers applied)
+	var hero_max_mana: float = stats.get("max_mana", 10.0)
+	max_mana = hero_max_mana
+
+	# Cache hero stats in BattleContext for DamageSystem to use
+	BattleContext.set_player_hero_stats(stats)
 
 	var hero_name: String = hero_instance.config.hero_name
-	var modifier_count: int = hero_instance.active_modifiers.size()
-	print("Summoner: Applied hero bonuses from '%s' (Level %d, %d modifiers) - HP: %.0f, Mana Regen: %.1f/s" % [
-		hero_name, hero_instance.level, modifier_count, max_hp, mana_regen_rate
+	var trait_count: int = hero_instance.get_all_trait_ids().size()
+	print("Summoner: Applied hero stats from '%s' (Level %d, %d traits) - HP: %.0f, Mana: %.0f, Regen: %.1f/s" % [
+		hero_name, hero_instance.level, trait_count, max_hp, max_mana, mana_regen_rate
 	])

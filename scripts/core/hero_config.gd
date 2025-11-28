@@ -4,7 +4,7 @@ class_name HeroConfig
 ## HeroConfig - Typed configuration for a hero
 ##
 ## Replaces dictionary-based hero data with typed class.
-## Includes base stats and modifier system for extensibility.
+## Includes base stats and trait system for extensibility.
 ## Can be created from JSON/Dictionary data (data-driven).
 
 ## Default stat values (used for @export defaults and from_dict() fallbacks)
@@ -19,7 +19,7 @@ const DEFAULT_MANA_REGEN: float = 1.0
 @export_enum("NEUTRAL", "FIRE", "WATER", "WIND", "EARTH", "LIGHTNING", "SHADOW", "POISON", "LIFE", "DEATH", "OCCULTIST", "HOLY", "ICE", "METAL", "SPIRIT")
 var element_id: int = ElementRegistry.ElementId.NEUTRAL
 
-## Base Stats (before modifiers)
+## Base Stats (before traits)
 @export var base_health: float = DEFAULT_BASE_HEALTH
 @export var max_mana: float = DEFAULT_MAX_MANA
 @export var mana_regen: float = DEFAULT_MANA_REGEN
@@ -31,11 +31,8 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 ## Unlock
 @export var unlock_condition: String = "starting_choice"  ## "starting_choice", "random_starter_only", "unlock_after_battle"
 
-## Modifier System
-@export var innate_modifier_ids: Array[int] = []   ## Modifiers this hero starts with (enum IDs)
-
-## Level-up choices (Post-MVP)
-var level_choice_modifier_ids_by_level: Dictionary = {}   ## Key: int (level), Value: PackedStringArray (modifier IDs)
+## Trait System - trait IDs from TraitCatalog
+@export var innate_trait_ids: Array[String] = []
 
 ## Get the Element object for this hero (runtime)
 func get_element() -> ElementTypes.Element:
@@ -84,50 +81,30 @@ static func from_dict(data: Dictionary) -> HeroConfig:
 	# Unlock
 	config.unlock_condition = data.get("unlock_condition", "starting_choice")
 
-	# Modifiers - handle both StringName keys and int enum IDs
-	var innate_var: Variant = data.get("innate_modifier_ids", [])
-	if innate_var is Array:
-		var innate_array: Array = innate_var
-		for mod_id_var: Variant in innate_array:
-			if mod_id_var is int:
-				# Already an enum ID
-				config.innate_modifier_ids.append(mod_id_var)
-			elif mod_id_var is StringName or mod_id_var is String:
-				# StringName key - convert to enum
-				var key: StringName = StringName(mod_id_var)
-				if ModifierRegistry.is_valid_key(key):
-					var id: int = ModifierRegistry.get_id_from_key(key)
-					config.innate_modifier_ids.append(id)
-				else:
-					push_warning("HeroConfig.from_dict: Unknown modifier key '%s'" % key)
-
-	# Level choices (Post-MVP)
-	var level_choices_var: Variant = data.get("level_choice_modifier_ids_by_level", {})
-	if level_choices_var is Dictionary:
-		config.level_choice_modifier_ids_by_level = level_choices_var
+	# Traits - from TraitCatalog
+	var traits_var: Variant = data.get("innate_trait_ids", [])
+	if traits_var is Array:
+		var traits_array: Array = traits_var
+		for trait_id_var: Variant in traits_array:
+			if trait_id_var is String:
+				config.innate_trait_ids.append(trait_id_var)
 
 	return config
 
 ## Convert to dictionary (for saving/debugging)
 func to_dict() -> Dictionary:
-	# Convert modifier enum IDs to StringName keys for serialization
-	var modifier_keys: Array = []
-	for mod_id: int in innate_modifier_ids:
-		modifier_keys.append(ModifierRegistry.get_key_from_id(mod_id))
-
 	return {
 		"hero_id": hero_id,
 		"hero_name": hero_name,
 		"description": description,
-		"element": get_element_key(),  ## Store as StringName key for serialization
+		"element": get_element_key(),
 		"base_health": base_health,
 		"max_mana": max_mana,
 		"mana_regen": mana_regen,
 		"hero_icon_path": hero_icon_path,
 		"card_frame_style": card_frame_style,
 		"unlock_condition": unlock_condition,
-		"innate_modifier_ids": modifier_keys,  ## Store as StringName keys
-		"level_choice_modifier_ids_by_level": level_choice_modifier_ids_by_level
+		"innate_trait_ids": innate_trait_ids
 	}
 
 ## Validation

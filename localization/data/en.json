@@ -177,6 +177,81 @@
     "speed": {
       "disabled_tooltip": "Speed control disabled for this mode",
       "enabled_tooltip": "Toggle game speed (1x / 2x)"
+    },
+    "hero_panel": {
+      "title": "HERO ROSTER",
+      "gold_display": "Gold: {gold}",
+      "close_button": "CLOSE",
+      "select_button": "SELECT",
+      "selected_button": "SELECTED",
+      "level_up_button": "LEVEL UP ({cost}g)",
+      "level_up_locked": "Need XP",
+      "level_up_max": "MAX LEVEL",
+      "level_display": "Lv.{level}",
+      "xp_progress": "XP: {current} / {required}",
+      "active_indicator": "[Active]",
+      "no_traits": "No traits yet",
+      "level_up_preview": "+{hp} HP, +{mana} Mana, +{regen} Regen",
+      "regen_per_sec": "{value}/s",
+      "stats_summary": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
+      "picker_active_suffix": " [Active]"
+    },
+    "hero_icon": {
+      "no_hero": "No hero selected"
+    }
+  },
+  "trait": {
+    "fire_affinity": {
+      "name": "Fire Affinity",
+      "description": "+10% fire damage. Fire units deal 10% more damage."
+    },
+    "burning_spirit": {
+      "name": "Burning Spirit",
+      "description": "Inner fire fuels faster mana regeneration. +0.3 mana/sec."
+    },
+    "water_affinity": {
+      "name": "Water Affinity",
+      "description": "+10% water damage. Water units deal 10% more damage."
+    },
+    "tidal_resilience": {
+      "name": "Tidal Resilience",
+      "description": "The flow of water grants increased vitality. +10% max health."
+    },
+    "wind_affinity": {
+      "name": "Wind Affinity",
+      "description": "+10% wind damage. Wind units deal 10% more damage."
+    },
+    "swift_casting": {
+      "name": "Swift Casting",
+      "description": "Wind carries your commands faster. +10% cast speed."
+    },
+    "earth_affinity": {
+      "name": "Earth Affinity",
+      "description": "+10% earth damage. Earth units deal 10% more damage."
+    },
+    "stone_fortitude": {
+      "name": "Stone Fortitude",
+      "description": "The resilience of stone reduces incoming damage."
+    },
+    "veteran": {
+      "name": "Veteran",
+      "description": "Battle experience has hardened your resolve."
+    },
+    "mana_well": {
+      "name": "Mana Well",
+      "description": "Your mana pool has expanded through practice."
+    },
+    "battle_hardened": {
+      "name": "Battle Hardened",
+      "description": "Combat experience increases your effectiveness."
+    },
+    "fortune_favors": {
+      "name": "Fortune Favors",
+      "description": "Luck smiles upon those who take risks."
+    },
+    "fortune_favors_bold": {
+      "name": "Fortune Favors the Bold",
+      "description": "Choosing the path of chance grants fortified vitality. +50 Health"
     }
   },
   "error": {
