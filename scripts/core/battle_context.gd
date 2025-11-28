@@ -111,6 +111,9 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 ## Configure for arena battle (future)
 func configure_arena_battle(_difficulty: int) -> void:
 	current_mode = BattleMode.ARENA
+	battle_state = BattleState.CONFIGURED
+	was_configured = true
+	origin_scene = SceneManager.SCENE_GAME_MODE_MENU
 
 	# TODO: ArenaService would generate random battle config
 	push_warning("BattleContext: Arena mode not yet implemented")
@@ -121,6 +124,9 @@ func configure_arena_battle(_difficulty: int) -> void:
 ## Configure for endless mode (future)
 func configure_endless_wave(_wave_number: int) -> void:
 	current_mode = BattleMode.ENDLESS
+	battle_state = BattleState.CONFIGURED
+	was_configured = true
+	origin_scene = SceneManager.SCENE_GAME_MODE_MENU
 
 	# TODO: EndlessService would provide wave config
 	push_warning("BattleContext: Endless mode not yet implemented")
@@ -152,17 +158,25 @@ func get_origin_scene() -> String:
 
 ## Mark battle as started (called by GameController when battle begins)
 func start_battle() -> void:
-	if battle_state == BattleState.CONFIGURED:
-		battle_state = BattleState.IN_PROGRESS
-		print("BattleContext: Battle started")
+	if battle_state != BattleState.CONFIGURED:
+		push_warning("BattleContext: start_battle() called in invalid state: %d" % battle_state)
+		return
+	battle_state = BattleState.IN_PROGRESS
+	print("BattleContext: Battle started")
 
 ## Mark battle as victory (called by GameController on player win)
 func end_battle_victory() -> void:
+	if battle_state != BattleState.IN_PROGRESS:
+		push_warning("BattleContext: end_battle_victory() called in invalid state: %d" % battle_state)
+		return
 	battle_state = BattleState.VICTORY
 	print("BattleContext: Battle ended - VICTORY")
 
 ## Mark battle as defeat (called by GameController on player loss)
 func end_battle_defeat() -> void:
+	if battle_state != BattleState.IN_PROGRESS:
+		push_warning("BattleContext: end_battle_defeat() called in invalid state: %d" % battle_state)
+		return
 	battle_state = BattleState.DEFEAT
 	print("BattleContext: Battle ended - DEFEAT")
 

@@ -264,6 +264,8 @@ func unfreeze_game() -> void:
 
 func restart_game() -> void:
 	get_tree().paused = false
+	# Reset battle state to CONFIGURED so start_battle() works correctly after reload
+	BattleContext.battle_state = BattleContext.BattleState.CONFIGURED
 	get_tree().reload_current_scene()
 
 func end_game(winner: Unit3D.Team) -> void:
