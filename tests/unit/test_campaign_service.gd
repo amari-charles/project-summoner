@@ -99,7 +99,8 @@ func test_complete_battle_ignores_already_completed() -> void:
 
 	# Should not save again
 	assert_eq(mock_repo.get_call_count("update_campaign_progress"), initial_call_count)
-	# Note: This emits a push_warning() which GUT doesn't capture
+	# Expect the push_warning about already completed
+	assert_engine_error("already completed")
 
 
 func _on_battle_completed(battle_id: String) -> void:
@@ -258,7 +259,8 @@ func test_claim_pending_reward_returns_empty_when_none() -> void:
 	var result: Dictionary = campaign.claim_pending_reward()
 
 	assert_true(result.is_empty())
-	# Note: This emits a push_warning() which GUT doesn't capture
+	# Expect the push_warning about no pending reward
+	assert_engine_error("No pending reward")
 
 
 ## =============================================================================

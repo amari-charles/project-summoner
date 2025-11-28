@@ -66,7 +66,7 @@ func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node
 		profile_repo.data_changed.disconnect(_on_profile_data_changed)
 	profile_repo.data_changed.connect(_on_profile_data_changed)
 
-	_init_battles()
+	_init_battles(true)  # Skip validation in tests (no scene tree access)
 	_load_progress()
 
 func _on_profile_data_changed() -> void:
@@ -82,7 +82,7 @@ func _on_hero_changed(_old_hero_id: String, new_hero_id: String) -> void:
 ## BATTLE DEFINITIONS
 ## =============================================================================
 
-func _init_battles() -> void:
+func _init_battles(skip_validation: bool = false) -> void:
 	# TODO: Ensure reward_cards here stay in sync with what's displayed in the campaign menu UI
 	# When updating battle rewards, also update the corresponding UI displays in:
 	#   - campaign_map.gd (visual node-based map)
@@ -220,8 +220,9 @@ func _init_battles() -> void:
 
 	print("CampaignService: Loaded %d battles" % _battles.size())
 
-	# Validate all battle rewards exist in card catalog
-	_validate_battle_rewards()
+	# Validate all battle rewards exist in card catalog (skip in tests)
+	if not skip_validation:
+		_validate_battle_rewards()
 
 ## Validate that all reward cards in battle configs exist in the card catalog
 func _validate_battle_rewards() -> void:

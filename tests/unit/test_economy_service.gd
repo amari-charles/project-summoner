@@ -118,7 +118,8 @@ func test_add_gold_ignores_zero_or_negative() -> void:
 
 	assert_eq(economy.get_gold(), 100)  # unchanged
 	assert_eq(mock_repo.get_call_count("update_resources"), 0)
-	# Note: These emit push_warning() calls which GUT doesn't capture
+	# Expect 2 push_warnings about non-positive amounts
+	assert_engine_error(2)
 
 
 func test_add_essence_increases_essence() -> void:
@@ -149,7 +150,8 @@ func test_spend_returns_false_when_cannot_afford() -> void:
 
 	assert_false(result)
 	assert_eq(economy.get_gold(), 100)  # unchanged
-	# Note: This emits a push_warning() which GUT doesn't capture
+	# Expect the push_warning about cannot afford
+	assert_engine_error("Cannot afford")
 
 
 func test_spend_multiple_resources() -> void:
@@ -223,7 +225,8 @@ func test_spend_failure_emits_transaction_failed() -> void:
 
 	assert_true(_signal_received)
 	assert_true(_received_reason.contains("Cannot afford"))
-	# Note: This also emits a push_warning() which GUT doesn't capture
+	# Expect the push_warning about cannot afford
+	assert_engine_error("Cannot afford")
 
 
 func test_repo_data_changed_triggers_resources_changed_signal() -> void:
