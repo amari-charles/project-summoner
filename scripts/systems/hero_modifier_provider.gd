@@ -1,77 +1,37 @@
 extends RefCounted
 class_name HeroModifierProvider
 
-## HeroModifierProvider - Provides modifiers based on selected hero
+## HeroModifierProvider - Provides unit modifiers from hero traits
 ##
-## Each hero grants affinity bonuses to units matching their element.
+## Reads unit modifiers from TraitCatalog based on the hero's traits.
+## This provider feeds into ModifierSystem to apply trait bonuses to spawned units.
 
-var hero_id: String
+var _hero_instance: HeroInstance
 
-func _init(id: String) -> void:
-	hero_id = id
+func _init(hero_inst: HeroInstance) -> void:
+	_hero_instance = hero_inst
 
-## Get all modifiers this hero provides
+## Get all unit modifiers from hero traits
 func get_modifiers() -> Array:
 	var modifiers: Array = []
 
-	match hero_id:
-		"fire_hero":
-			var fire_mod: Dictionary = {
-				"source": "fire_hero",
-				"tags": ["sun_blessed"],
-				"conditions": {
-					"elemental_affinity": ElementTypes.FIRE
-				},
-				"stat_mults": {
-					"attack_damage": 1.1  # +10% attack to fire units
-				}
-			}
-			modifiers.append(fire_mod)
+	if not _hero_instance:
+		return modifiers
 
-		"earth_hero":
-			var earth_mod: Dictionary = {
-				"source": "earth_hero",
-				"tags": ["stone_guardian"],
-				"conditions": {
-					"elemental_affinity": ElementTypes.EARTH
-				},
-				"stat_mults": {
-					"attack_damage": 1.1  # +10% attack to earth units
-				}
-			}
-			modifiers.append(earth_mod)
+	# Get TraitCatalog autoload
+	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("/root/TraitCatalog")
+	if not trait_catalog:
+		push_warning("HeroModifierProvider: TraitCatalog not found")
+		return modifiers
 
-		"wind_hero":
-			var wind_mod: Dictionary = {
-				"source": "wind_hero",
-				"tags": ["wind_walker"],
-				"conditions": {
-					"elemental_affinity": ElementTypes.WIND
-				},
-				"stat_mults": {
-					"attack_damage": 1.1  # +10% attack to wind units
-				}
-			}
-			modifiers.append(wind_mod)
+	if not trait_catalog.has_method("get_unit_modifiers_for_trait"):
+		push_warning("HeroModifierProvider: TraitCatalog.get_unit_modifiers_for_trait() not available")
+		return modifiers
 
-		"water_hero":
-			var water_mod: Dictionary = {
-				"source": "water_hero",
-				"tags": ["tide_caller"],
-				"conditions": {
-					"elemental_affinity": ElementTypes.WATER
-				},
-				"stat_mults": {
-					"attack_damage": 1.1  # +10% attack to water units
-				}
-			}
-			modifiers.append(water_mod)
+	# Collect unit modifiers from all hero traits
+	var trait_ids: Array[String] = _hero_instance.get_all_trait_ids()
+	for trait_id: String in trait_ids:
+		var trait_mods: Array = trait_catalog.call("get_unit_modifiers_for_trait", trait_id)
+		modifiers.append_array(trait_mods)
 
-		"random_hero":
-			# Random hero gets no bonuses (for now)
-			pass
-
-		_:
-			push_warning("HeroModifierProvider: Unknown hero_id '%s'" % hero_id)
-
-	return modifiers
+	return modifiers  # Already in ModifierSystem format!

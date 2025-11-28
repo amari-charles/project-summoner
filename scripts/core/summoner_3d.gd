@@ -379,10 +379,13 @@ func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
 	var hero_max_mana: float = stats.get("max_mana", 10.0)
 	max_mana = hero_max_mana
 
+	# Cache hero stats in BattleContext for DamageSystem to use
+	BattleContext.set_player_hero_stats(stats)
+
 	# TODO: Hero health stat should flow to Nexus (Base3D), not stored here
 
 	var hero_name: String = hero_instance.config.hero_name
-	var modifier_count: int = hero_instance.active_modifiers.size()
-	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d modifiers) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
-		hero_name, hero_instance.level, modifier_count, max_mana, mana_regen_rate
+	var trait_count: int = hero_instance.get_all_trait_ids().size()
+	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
+		hero_name, hero_instance.level, trait_count, max_mana, mana_regen_rate
 	])

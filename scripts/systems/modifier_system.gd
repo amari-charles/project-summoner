@@ -33,10 +33,11 @@ func clear_providers() -> void:
 ##
 ## @param _target_type: Type of target ("unit", "card", "summoner", etc.)
 ## @param categories: Dictionary of card/unit categories for condition matching
-## @param context: Additional context (hero_id, team, etc.)
+## @param context: Additional context (card_instance_id, hero_id, team, etc.)
 ## @return Array of modifier dictionaries
 func get_modifiers_for(_target_type: String, categories: Dictionary, context: Dictionary = {}) -> Array:
 	var all_modifiers: Array = []
+	var card_instance_id: String = context.get("card_instance_id", "")
 
 	# Collect modifiers from all providers
 	for provider_id: String in _providers.keys():
@@ -46,11 +47,21 @@ func get_modifiers_for(_target_type: String, categories: Dictionary, context: Di
 			var provider_mods: Array = provider.call("get_modifiers")
 			all_modifiers.append_array(provider_mods)
 
-	# Filter by conditions
+	# Filter by conditions AND instance scope
 	var filtered: Array = []
 	for mod_variant: Variant in all_modifiers:
 		var mod: Dictionary = mod_variant
-		if mod != null and _matches_conditions(mod, categories, context):
+		if mod == null:
+			continue
+
+		# Instance-scoped modifiers only apply to matching card
+		var mod_instance_id: String = mod.get("card_instance_id", "")
+		if not mod_instance_id.is_empty():
+			if mod_instance_id != card_instance_id:
+				continue  # Skip - wrong card instance
+
+		# Condition-based filtering (hero modifiers, etc.)
+		if _matches_conditions(mod, categories, context):
 			filtered.append(mod)
 
 	# Apply amplification

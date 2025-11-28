@@ -130,7 +130,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectArcherButton"]
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectEmberSlingerButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

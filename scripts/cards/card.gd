@@ -179,7 +179,8 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 	# Build context for modifier system
 	var context: Dictionary = {
 		"card_name": card_name,
-		"team": team
+		"team": team,
+		"card_instance_id": instance_id  # For instance-scoped modifier filtering
 	}
 
 	# Get modifiers from ModifierSystem
@@ -270,7 +271,8 @@ func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, mod
 	# Build context for modifier system
 	var context: Dictionary = {
 		"card_name": card_name,
-		"team": team
+		"team": team,
+		"card_instance_id": instance_id  # For instance-scoped modifier filtering
 	}
 
 	# Get modifiers from ModifierSystem

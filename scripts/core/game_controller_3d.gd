@@ -371,24 +371,30 @@ func _load_ai_for_enemy() -> void:
 		push_error("GameController3D: Failed to create AI!")
 
 func _register_hero_provider() -> void:
-	# Get hero from profile
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if not profile_repo:
-		push_warning("GameController3D: ProfileRepo not found, no hero bonuses will apply")
+	# Get active hero using HeroSelection service (handles fallbacks)
+	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
+	if not hero_selection:
+		push_warning("GameController3D: HeroSelection not found, no hero bonuses will apply")
 		return
 
-	var profile_variant: Variant = profile_repo.call("get_active_profile")
-	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
-	if profile.is_empty():
-		push_warning("GameController3D: No active profile, no hero bonuses will apply")
-		return
+	var hero_id: String = ""
+	if hero_selection.has_method("get_active_hero_id"):
+		hero_id = hero_selection.call("get_active_hero_id")
 
-	var empty_dict: Dictionary = {}
-	var meta_variant: Variant = profile.get("meta", empty_dict)
-	var meta: Dictionary = meta_variant if meta_variant is Dictionary else {}
-	var hero_id: String = meta.get("selected_hero", "")
 	if hero_id.is_empty():
 		push_warning("GameController3D: No hero selected, no hero bonuses will apply")
+		return
+
+	# Get hero instance data and create HeroInstance
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	var hero_instance: HeroInstance = null
+	if profile_repo and profile_repo.has_method("get_hero_instance"):
+		var hero_data: Variant = profile_repo.call("get_hero_instance", hero_id)
+		if hero_data is Dictionary and not hero_data.is_empty():
+			hero_instance = HeroInstance.from_dict(hero_data)
+
+	if not hero_instance:
+		push_warning("GameController3D: Failed to load HeroInstance for '%s', no hero bonuses will apply" % hero_id)
 		return
 
 	# Register hero modifier provider
@@ -397,8 +403,8 @@ func _register_hero_provider() -> void:
 		push_error("GameController3D: ModifierSystem not found!")
 		return
 
-	# Create and register hero provider
-	var hero_provider: HeroModifierProvider = HeroModifierProvider.new(hero_id)
+	# Create and register hero provider with HeroInstance
+	var hero_provider: HeroModifierProvider = HeroModifierProvider.new(hero_instance)
 	if modifier_system.has_method("register_provider"):
 		modifier_system.call("register_provider", "hero", hero_provider)
 

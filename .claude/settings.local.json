@@ -11,7 +11,8 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
       "mcp__ide__getDiagnostics",
-      "WebSearch"
+      "WebSearch",
+      "Bash(gh pr list:*)"
     ],
     "deny": [],
     "ask": []

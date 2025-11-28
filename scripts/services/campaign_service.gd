@@ -30,9 +30,19 @@ func _ready() -> void:
 	# Reload progress when profile changes (e.g., on reset)
 	ProfileRepo.data_changed.connect(_on_profile_data_changed)
 
+	# Reload progress when active hero changes
+	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
+	if hero_selection and hero_selection.has_signal("hero_changed"):
+		hero_selection.hero_changed.connect(_on_hero_changed)
+
 func _on_profile_data_changed() -> void:
 	print("CampaignService: Profile data changed - reloading progress...")
 	_load_progress()
+
+func _on_hero_changed(_old_hero_id: String, new_hero_id: String) -> void:
+	print("CampaignService: Hero changed to '%s' - reloading progress..." % new_hero_id)
+	_load_progress()
+	campaign_progress_changed.emit()
 
 ## =============================================================================
 ## BATTLE DEFINITIONS
@@ -113,6 +123,7 @@ func _init_battles() -> void:
 		],
 		"gold_reward": 30,       # Base gold reward for winning
 		"card_xp_reward": 15,    # XP granted to cards played in battle
+		"hero_xp_reward": 50,    # XP granted to hero for winning
 		"enemy_deck": [
 			{"catalog_id": "slime_green", "count": 1}
 		],
@@ -143,6 +154,7 @@ func _init_battles() -> void:
 		],
 		"gold_reward": 40,       # Slightly more gold for second battle
 		"card_xp_reward": 15,    # XP granted to cards played in battle
+		"hero_xp_reward": 75,    # XP granted to hero for winning
 		"enemy_deck": [],  # Spawned via event sequence
 		"enemy_hp": 50.0,
 		"unlock_requirements": [String(BattleIDs.FIRST_TRIAL)],

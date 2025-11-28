@@ -24,6 +24,8 @@ func _ready() -> void:
 	print("HeroCatalog: Initializing...")
 	_init_catalog()
 	print("HeroCatalog: Loaded %d heroes" % _catalog.size())
+	# Validate trait IDs after all autoloads are ready
+	call_deferred("_validate_trait_ids")
 
 ## =============================================================================
 ## CATALOG INITIALIZATION
@@ -42,6 +44,7 @@ func _init_catalog() -> void:
 	hero_fire.hero_icon_path = ""
 	hero_fire.card_frame_style = "legendary"
 	hero_fire.unlock_condition = "starting_choice"
+	hero_fire.innate_trait_ids = ["trait_fire_affinity", "trait_burning_spirit"]
 	_catalog["hero_fire"] = hero_fire
 
 	# Water Hero - Aquira
@@ -56,6 +59,7 @@ func _init_catalog() -> void:
 	hero_water.hero_icon_path = ""
 	hero_water.card_frame_style = "legendary"
 	hero_water.unlock_condition = "starting_choice"
+	hero_water.innate_trait_ids = ["trait_water_affinity", "trait_tidal_resilience"]
 	_catalog["hero_water"] = hero_water
 
 	# Wind Hero - Zephyrion
@@ -70,6 +74,7 @@ func _init_catalog() -> void:
 	hero_wind.hero_icon_path = ""
 	hero_wind.card_frame_style = "legendary"
 	hero_wind.unlock_condition = "starting_choice"
+	hero_wind.innate_trait_ids = ["trait_wind_affinity", "trait_swift_casting"]
 	_catalog["hero_wind"] = hero_wind
 
 	# Earth Hero - Terravorn
@@ -84,6 +89,7 @@ func _init_catalog() -> void:
 	hero_earth.hero_icon_path = ""
 	hero_earth.card_frame_style = "legendary"
 	hero_earth.unlock_condition = "starting_choice"
+	hero_earth.innate_trait_ids = ["trait_earth_affinity", "trait_stone_fortitude"]
 	_catalog["hero_earth"] = hero_earth
 
 	# =========================================================================
@@ -246,3 +252,32 @@ func print_catalog_summary() -> void:
 				config.mana_regen
 			])
 	print("===========================")
+
+## =============================================================================
+## VALIDATION
+## =============================================================================
+
+## Validate all trait IDs in hero configs against TraitCatalog
+## Called after autoloads are initialized to ensure TraitCatalog is available
+func _validate_trait_ids() -> void:
+	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
+	if not trait_catalog:
+		push_warning("HeroCatalog: Cannot validate trait IDs - TraitCatalog not found")
+		return
+
+	if not trait_catalog.has_method("has_trait"):
+		push_warning("HeroCatalog: Cannot validate trait IDs - TraitCatalog.has_trait() not available")
+		return
+
+	var invalid_count: int = 0
+	for hero_id: String in _catalog.keys():
+		var config: HeroConfig = _catalog[hero_id]
+		for trait_id: String in config.innate_trait_ids:
+			if not trait_catalog.call("has_trait", trait_id):
+				push_error("HeroCatalog: Hero '%s' has unknown trait ID: '%s'" % [hero_id, trait_id])
+				invalid_count += 1
+
+	if invalid_count > 0:
+		push_error("HeroCatalog: Found %d invalid trait ID(s) - these traits will not be applied!" % invalid_count)
+	else:
+		print("HeroCatalog: All trait IDs validated successfully")
