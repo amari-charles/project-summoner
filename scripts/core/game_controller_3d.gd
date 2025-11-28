@@ -232,6 +232,10 @@ func _process(delta: float) -> void:
 func start_game() -> void:
 	current_state = GameState.PLAYING
 	match_time = 0.0
+
+	# Mark battle as in progress in BattleContext
+	BattleContext.start_battle()
+
 	game_started.emit()
 	state_changed.emit(current_state)
 
@@ -260,6 +264,8 @@ func unfreeze_game() -> void:
 
 func restart_game() -> void:
 	get_tree().paused = false
+	# Reset battle state to CONFIGURED so start_battle() works correctly after reload
+	BattleContext.battle_state = BattleContext.BattleState.CONFIGURED
 	get_tree().reload_current_scene()
 
 func end_game(winner: Unit3D.Team) -> void:
@@ -270,6 +276,12 @@ func end_game(winner: Unit3D.Team) -> void:
 	state_changed.emit(current_state)
 	game_ended.emit(winner)
 	get_tree().paused = true
+
+	# Update BattleContext state based on winner
+	if winner == Unit3D.Team.PLAYER:
+		BattleContext.end_battle_victory()
+	else:
+		BattleContext.end_battle_defeat()
 
 	# Delegate to BattleContext for mode-specific completion handling
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
