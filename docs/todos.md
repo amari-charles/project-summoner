@@ -294,6 +294,36 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Add 2.5D Character Rotation for Correct Perspective
+**Status:** ⬜ Not Started
+**Category:** Visual Polish
+**Effort:** Small-Medium
+
+**Description:**
+Rotate in-game characters/units to face the camera at the correct angle for 2.5D perspective. This gives the proper "billboard" or angled sprite effect common in 2.5D games where characters appear to face the player while maintaining the isometric/angled view.
+
+**Current Behavior:**
+- Characters may not be rotated to account for the camera's viewing angle
+- Can look flat or incorrect from the game's perspective
+
+**Expected Behavior:**
+- Characters should be rotated to face the camera appropriately for 2.5D aesthetic
+- Maintains the illusion of depth while keeping characters readable
+- Similar to how games like Octopath Traveler, Diablo, or classic RTS games handle sprite orientation
+
+**Requirements:**
+- Determine the correct rotation angle based on camera setup
+- Apply rotation to all unit types (player units, enemy units, summoners)
+- Ensure rotation works with existing animations
+- Test with different camera angles if camera can move
+
+**Notes:**
+- Common approaches: billboard sprites (always face camera), fixed rotation offset, or Y-axis rotation only
+- May need to adjust based on whether using 3D models or 2D sprites
+- Consider if buildings/structures also need this treatment
+
+---
+
 #### Improve Card Visual UI
 **Status:** ⬜ Not Started
 **Category:** UI/UX
