@@ -77,6 +77,10 @@ window/stretch/mode="canvas_items"
 3d_physics/layer_3="Terrain"
 3d_physics/layer_4="Projectiles"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
 [physics]
 
 common/physics_interpolation=true

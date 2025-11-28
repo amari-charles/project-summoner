@@ -11,6 +11,16 @@ signal battle_completed(battle_id: String)
 signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
 
+## =============================================================================
+## DEPENDENCIES
+## =============================================================================
+
+## Injectable dependencies - defaults to global autoloads
+## For testing: set these before calling _ready() or use init_for_testing()
+var profile_repo: IProfileRepo = null
+var economy_service: Node = null  # EconomyService
+var collection_service: Node = null  # CollectionService
+
 ## Campaign battles
 var _battles: Dictionary = {}
 
@@ -24,16 +34,40 @@ var _completed_battles: Array[String] = []
 func _ready() -> void:
 	print("CampaignService: Initializing...")
 
+	# Use injected dependencies or fall back to autoloads
+	if profile_repo == null:
+		profile_repo = ProfileRepo
+	if economy_service == null:
+		economy_service = Economy
+	if collection_service == null:
+		collection_service = Collection
+
 	_init_battles()
 	_load_progress()
 
 	# Reload progress when profile changes (e.g., on reset)
-	ProfileRepo.data_changed.connect(_on_profile_data_changed)
+	profile_repo.data_changed.connect(_on_profile_data_changed)
 
 	# Reload progress when active hero changes
 	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
 	if hero_selection and hero_selection.has_signal("hero_changed"):
 		hero_selection.hero_changed.connect(_on_hero_changed)
+
+
+## Initialize for unit testing with mock dependencies
+## Call this instead of relying on _ready() in tests
+func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null) -> void:
+	profile_repo = repo
+	economy_service = economy
+	collection_service = collection
+
+	# Disconnect previous connections if any
+	if profile_repo.data_changed.is_connected(_on_profile_data_changed):
+		profile_repo.data_changed.disconnect(_on_profile_data_changed)
+	profile_repo.data_changed.connect(_on_profile_data_changed)
+
+	_init_battles()
+	_load_progress()
 
 func _on_profile_data_changed() -> void:
 	print("CampaignService: Profile data changed - reloading progress...")
@@ -224,7 +258,7 @@ func _validate_battle_rewards() -> void:
 ## =============================================================================
 
 func _load_progress() -> void:
-	var campaign_progress: Dictionary = ProfileRepo.get_campaign_progress()
+	var campaign_progress: Dictionary = profile_repo.get_campaign_progress()
 	var completed_battles_raw: Array = campaign_progress.get("completed_battles", [])
 	_completed_battles.clear()
 	for battle_id: Variant in completed_battles_raw:
@@ -233,7 +267,7 @@ func _load_progress() -> void:
 	print("CampaignService: Loaded progress - %d battles completed" % _completed_battles.size())
 
 func save_progress() -> void:
-	ProfileRepo.update_campaign_progress({
+	profile_repo.update_campaign_progress({
 		"completed_battles": _completed_battles.duplicate()
 	})
 	campaign_progress_changed.emit()
@@ -313,12 +347,12 @@ func set_pending_reward(battle_id: String, reward_type: String, choice_index: in
 		"reward_type": reward_type,
 		"choice_index": choice_index  # -1 = not chosen yet (for choice rewards)
 	}
-	ProfileRepo.update_campaign_progress({"pending_reward": pending})
+	profile_repo.update_campaign_progress({"pending_reward": pending})
 	print("CampaignService: Set pending reward for battle '%s' (type: %s)" % [battle_id, reward_type])
 
 ## Get the current pending reward (null if none)
 func get_pending_reward() -> Variant:
-	var campaign_progress: Dictionary = ProfileRepo.get_campaign_progress()
+	var campaign_progress: Dictionary = profile_repo.get_campaign_progress()
 	return campaign_progress.get("pending_reward", null)
 
 ## Update choice index for a pending choice reward
@@ -330,12 +364,12 @@ func update_pending_choice(choice_index: int) -> void:
 
 	var pending_dict: Dictionary = pending
 	pending_dict["choice_index"] = choice_index
-	ProfileRepo.update_campaign_progress({"pending_reward": pending_dict})
+	profile_repo.update_campaign_progress({"pending_reward": pending_dict})
 	print("CampaignService: Updated pending choice to index %d" % choice_index)
 
 ## Clear the pending reward (called after reward is claimed)
 func clear_pending_reward() -> void:
-	ProfileRepo.update_campaign_progress({"pending_reward": null})
+	profile_repo.update_campaign_progress({"pending_reward": null})
 	print("CampaignService: Cleared pending reward")
 
 ## Claim the pending reward (grants cards and marks battle complete)
@@ -409,8 +443,8 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 
 	# Grant gold reward
 	var gold_reward: int = battle.get("gold_reward", 0)
-	if gold_reward > 0:
-		Economy.add_gold(gold_reward)
+	if gold_reward > 0 and economy_service != null:
+		economy_service.add_gold(gold_reward)
 		print("CampaignService: Granted %d gold for battle '%s'" % [gold_reward, battle_id])
 
 	# Handle case where there are no card rewards but there is gold
@@ -472,8 +506,12 @@ func _grant_reward_card(reward: Dictionary) -> Array[String]:
 	var rarity: String = reward.get("rarity", RarityIDs.COMMON)
 	var count: int = reward.get("count", 1)
 
+	if collection_service == null:
+		push_warning("CampaignService: No collection service - skipping card grant")
+		return instance_ids
+
 	for i: int in range(count):
-		var instance_id: String = Collection.grant_card(catalog_id, rarity)
+		var instance_id: String = collection_service.grant_card(catalog_id, rarity)
 		instance_ids.append(instance_id)
 
 	print("CampaignService: Granted %dx %s (%s)" % [count, catalog_id, rarity])
