@@ -3,8 +3,7 @@ extends GutTest
 ## Unit Tests for BattleContext
 ##
 ## Tests the battle state machine, configuration, and card tracking.
-## Note: Some tests are limited because BattleContext uses direct autoload access.
-## Full integration would require running in the Godot scene tree.
+## Uses init_for_testing() to avoid scene tree dependencies.
 
 var context: Node  # BattleContext instance
 
@@ -13,6 +12,8 @@ func before_each() -> void:
 	# Load the BattleContext script and create instance
 	var BattleContextScript: GDScript = load("res://scripts/core/battle_context.gd")
 	context = BattleContextScript.new()
+	# Initialize for testing to avoid scene tree access errors
+	context.init_for_testing(null, null)
 
 
 func after_each() -> void:
@@ -152,12 +153,9 @@ func test_abandon_battle_sets_abandoned_state() -> void:
 	context.configure_practice_battle()
 	context.start_battle()
 
-	# This uses get_node_or_null which fails outside scene tree
 	context.abandon_battle()
 
 	assert_eq(context.battle_state, context.BattleState.ABANDONED)
-	# Expect engine errors from get_node_or_null outside scene tree
-	assert_engine_error(2)
 
 
 func test_abandon_battle_clears_cards_played() -> void:
@@ -166,12 +164,9 @@ func test_abandon_battle_clears_cards_played() -> void:
 	context.register_card_played("card_1")
 	context.register_card_played("card_2")
 
-	# This uses get_node_or_null which fails outside scene tree
 	context.abandon_battle()
 
 	assert_eq(context.get_cards_played().size(), 0)
-	# Expect engine errors from get_node_or_null outside scene tree
-	assert_engine_error(2)
 
 
 func test_abandon_battle_does_nothing_when_none() -> void:

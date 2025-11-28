@@ -57,6 +57,37 @@ var _cards_played: Array[String] = []
 ## Set by Summoner._apply_hero_bonuses(), read by DamageSystem
 var _player_hero_stats: Dictionary = {}
 
+## =============================================================================
+## DEPENDENCIES (injectable for testing)
+## =============================================================================
+
+## Injectable dependencies - defaults to autoload lookup
+## For testing: set these before calling abandon_battle() or use init_for_testing()
+var _profile_repo: Node = null
+var _campaign_service: Node = null
+
+## Get profile repo (lazy lookup from scene tree if not injected)
+func _get_profile_repo() -> Node:
+	if _profile_repo != null:
+		return _profile_repo
+	if is_inside_tree():
+		return get_node_or_null("/root/ProfileRepo")
+	return null
+
+## Get campaign service (lazy lookup from scene tree if not injected)
+func _get_campaign_service() -> Node:
+	if _campaign_service != null:
+		return _campaign_service
+	if is_inside_tree():
+		return get_node_or_null("/root/Campaign")
+	return null
+
+## Initialize for unit testing with mock dependencies
+## Call this to inject mocks and avoid scene tree access
+func init_for_testing(profile_repo: Node = null, campaign_service: Node = null) -> void:
+	_profile_repo = profile_repo
+	_campaign_service = campaign_service
+
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
@@ -190,7 +221,7 @@ func abandon_battle() -> void:
 	battle_state = BattleState.ABANDONED
 
 	# Clear current_battle from profile to prevent stale state
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	var profile_repo: Node = _get_profile_repo()
 	if profile_repo:
 		var profile: Dictionary = profile_repo.call("get_active_profile")
 		if not profile.is_empty() and profile.has("campaign_progress"):
@@ -202,7 +233,7 @@ func abandon_battle() -> void:
 				print("BattleContext: Cleared current_battle from profile")
 
 	# Clear any pending reward (shouldn't exist mid-battle, but be safe)
-	var campaign: Node = get_node_or_null("/root/Campaign")
+	var campaign: Node = _get_campaign_service()
 	if campaign and campaign.has_method("clear_pending_reward"):
 		campaign.call("clear_pending_reward")
 
