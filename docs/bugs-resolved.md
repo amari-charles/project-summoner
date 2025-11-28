@@ -4,6 +4,36 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Exiting Battle Mid-Fight Incorrectly Completes Event
+**Resolved:** 2025-11-28
+**Component:** Campaign / Battle System
+
+**Description:**
+When a player exits a battle in the middle of it (via pause menu), the event/battle could be incorrectly marked as completed, breaking campaign progression.
+
+**Root Cause:**
+The battle system lacked explicit state tracking for the battle lifecycle. When quitting mid-battle:
+1. `current_battle` in profile persisted (never cleared on exit)
+2. No distinction between quit/loss/victory/crash states
+3. Stale state could cause confusion on subsequent battle attempts
+
+**Solution Implemented:**
+Added explicit battle state machine to BattleContext:
+
+1. **BattleState enum** - Tracks lifecycle: `NONE → CONFIGURED → IN_PROGRESS → VICTORY/DEFEAT/ABANDONED`
+2. **`abandon_battle()`** - Called on pause menu quit, clears `current_battle` from profile and pending rewards
+3. **`origin_scene`** tracking - Returns player to correct scene (campaign map, game mode menu, etc.)
+4. **State transitions** - GameController3D calls `start_battle()`, `end_battle_victory()`, `end_battle_defeat()`
+5. **RewardScreen guard** - Validates `BattleState.VICTORY` before showing rewards, redirects otherwise
+
+**Related Files:**
+- `scripts/core/battle_context.gd` - BattleState enum, abandon_battle(), origin_scene tracking
+- `scripts/ui/pause_menu.gd` - Calls abandon_battle() on quit
+- `scripts/core/game_controller_3d.gd` - Sets battle states on start/end
+- `scripts/ui/reward_screen.gd` - State validation guard
+
+---
+
 ### Slimes Getting Stuck Between Life and Death
 **Resolved:** 2025-11-26
 **Component:** Units / Combat

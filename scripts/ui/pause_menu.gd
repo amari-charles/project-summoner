@@ -64,9 +64,19 @@ func _on_resume_pressed() -> void:
 func _on_manage_snapshots_pressed() -> void:
 	snapshot_manager.show_manager()
 
-## Quit button - return to campaign screen
+## Quit button - abandon battle and return to origin screen
 func _on_quit_pressed() -> void:
 	# CRITICAL: Unpause before changing scenes
 	get_tree().paused = false
-	# TODO: Use BattleContext to track origin screen and return to correct location
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+
+	# Mark battle as abandoned (clears current_battle, pending_reward, etc.)
+	BattleContext.abandon_battle()
+
+	# Get return destination before clearing context
+	var return_scene: String = BattleContext.get_origin_scene()
+
+	# Clear battle context
+	BattleContext.clear()
+
+	# Return to origin screen
+	SceneManager.transition_to(return_scene)

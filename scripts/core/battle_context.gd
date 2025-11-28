@@ -16,8 +16,22 @@ enum BattleMode {
 	PRACTICE    ## Free play / testing
 }
 
+## Battle lifecycle state machine
+## Tracks the current state of the battle for proper cleanup and validation
+enum BattleState {
+	NONE,        ## No battle configured
+	CONFIGURED,  ## Battle configured, ready to start
+	IN_PROGRESS, ## Battle actively running
+	VICTORY,     ## Player won, awaiting rewards
+	DEFEAT,      ## Player lost
+	ABANDONED    ## Player quit mid-battle
+}
+
 ## Current battle mode
 var current_mode: BattleMode = BattleMode.PRACTICE
+
+## Current battle state (lifecycle tracking)
+var battle_state: BattleState = BattleState.NONE
 
 ## Battle configuration (enemy deck, HP, AI, etc.)
 var battle_config: Dictionary = {}
@@ -27,6 +41,9 @@ var biome_id: StringName = BiomeIDs.SUMMER_PLAINS
 
 ## Track if battle was configured (for debugging)
 var was_configured: bool = false
+
+## Scene to return to after battle (campaign map, arena menu, etc.)
+var origin_scene: String = ""
 
 ## Callback to execute when battle ends
 ## Signature: func(winner: int) where 0 = player, 1 = enemy
@@ -43,7 +60,9 @@ var _player_hero_stats: Dictionary = {}
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
+	battle_state = BattleState.CONFIGURED
 	was_configured = true
+	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
 
 	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
@@ -73,7 +92,9 @@ func configure_campaign_battle(battle_id: String) -> void:
 ## Configure for practice/test battle
 func configure_practice_battle(config: Dictionary = {}) -> void:
 	current_mode = BattleMode.PRACTICE
+	battle_state = BattleState.CONFIGURED
 	was_configured = true
+	origin_scene = SceneManager.SCENE_GAME_MODE_MENU
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {
@@ -117,9 +138,62 @@ func clear() -> void:
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = Callable()
 	was_configured = false
+	battle_state = BattleState.NONE
+	origin_scene = ""
 	_cards_played.clear()
 	_player_hero_stats.clear()
 	print("BattleContext: Cleared")
+
+## Get the scene to return to after battle
+func get_origin_scene() -> String:
+	if origin_scene.is_empty():
+		return SceneManager.SCENE_CAMPAIGN_MAP
+	return origin_scene
+
+## Mark battle as started (called by GameController when battle begins)
+func start_battle() -> void:
+	if battle_state == BattleState.CONFIGURED:
+		battle_state = BattleState.IN_PROGRESS
+		print("BattleContext: Battle started")
+
+## Mark battle as victory (called by GameController on player win)
+func end_battle_victory() -> void:
+	battle_state = BattleState.VICTORY
+	print("BattleContext: Battle ended - VICTORY")
+
+## Mark battle as defeat (called by GameController on player loss)
+func end_battle_defeat() -> void:
+	battle_state = BattleState.DEFEAT
+	print("BattleContext: Battle ended - DEFEAT")
+
+## Abandon battle (called when player quits mid-battle)
+## Clears all battle-related state from profile to prevent stale data
+func abandon_battle() -> void:
+	if battle_state == BattleState.NONE:
+		return
+
+	print("BattleContext: Battle abandoned")
+	battle_state = BattleState.ABANDONED
+
+	# Clear current_battle from profile to prevent stale state
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if profile_repo:
+		var profile: Dictionary = profile_repo.call("get_active_profile")
+		if not profile.is_empty() and profile.has("campaign_progress"):
+			var campaign_progress: Variant = profile.get("campaign_progress")
+			if campaign_progress is Dictionary:
+				var progress_dict: Dictionary = campaign_progress
+				progress_dict["current_battle"] = null
+				profile_repo.call("save_profile", true)
+				print("BattleContext: Cleared current_battle from profile")
+
+	# Clear any pending reward (shouldn't exist mid-battle, but be safe)
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if campaign and campaign.has_method("clear_pending_reward"):
+		campaign.call("clear_pending_reward")
+
+	# Clear cards played tracking
+	_cards_played.clear()
 
 ## =============================================================================
 ## PLAYER HERO STATS (for DamageSystem)

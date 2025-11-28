@@ -40,6 +40,21 @@ func _ready() -> void:
 ## =============================================================================
 
 func _load_battle_results() -> void:
+	# Validate we're in a valid state to show rewards
+	# This guards against navigating here without actually winning a battle
+	if BattleContext.battle_state != BattleContext.BattleState.VICTORY:
+		# Check for pending reward - player may have won, exited, and returned
+		var campaign_check: Node = get_node_or_null("/root/Campaign")
+		var has_pending: bool = false
+		if campaign_check:
+			var pending: Variant = campaign_check.call("get_pending_reward")
+			has_pending = pending != null and pending is Dictionary
+
+		if not has_pending:
+			push_error("RewardScreen: Invalid battle state (%d) - not a victory!" % BattleContext.battle_state)
+			SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+			return
+
 	var campaign: Node = get_node("/root/Campaign")
 	if not campaign:
 		push_error("RewardScreen: Campaign service not found!")
