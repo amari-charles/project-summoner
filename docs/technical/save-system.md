@@ -126,7 +126,7 @@ func _verify_checksum(data: Dictionary) -> bool:
 - Deck changes: Debounced
 - Settings changes: Immediate
 - Match results: Immediate
-- Hero unlocks: Debounced
+- Summoner unlocks: Debounced
 
 ### When to Save (Recommended Additions)
 - Scene transitions (entering battle, leaving shop)

@@ -93,10 +93,10 @@ func _ready() -> void:
 	_load_ai_for_enemy()
 	print("BattleCoordinator: Phase 5 complete - AI ready")
 
-	# Phase 6: Initialize hero modifiers
-	print("BattleCoordinator: Phase 6 - Hero modifiers...")
-	_register_hero_provider()
-	print("BattleCoordinator: Phase 6 complete - Hero modifiers ready")
+	# Phase 6: Initialize summoner modifiers
+	print("BattleCoordinator: Phase 6 - Summoner modifiers...")
+	_register_summoner_provider()
+	print("BattleCoordinator: Phase 6 complete - Summoner modifiers ready")
 
 	# Phase 7: Initialize UI components
 	print("BattleCoordinator: Phase 7 - UI...")
@@ -160,10 +160,10 @@ func _init_bases() -> void:
 		push_warning("BattleCoordinator: Could not find enemy_base")
 
 func _exit_tree() -> void:
-	# Cleanup: unregister hero provider to prevent memory leak
+	# Cleanup: unregister summoner provider to prevent memory leak
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 	if modifier_system and modifier_system.has_method("unregister_provider"):
-		modifier_system.call("unregister_provider", "hero")
+		modifier_system.call("unregister_provider", "summoner")
 
 	# Cleanup: disconnect kill tracking signal to prevent memory leak
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
@@ -382,43 +382,43 @@ func _load_ai_for_enemy() -> void:
 	else:
 		push_error("GameController3D: Failed to create AI!")
 
-func _register_hero_provider() -> void:
-	# Get active hero using HeroSelection service (handles fallbacks)
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if not hero_selection:
-		push_warning("GameController3D: HeroSelection not found, no hero bonuses will apply")
+func _register_summoner_provider() -> void:
+	# Get active summoner using SummonerSelection service (handles fallbacks)
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection:
+		push_warning("GameController3D: SummonerSelection not found, no summoner bonuses will apply")
 		return
 
-	var hero_id: String = ""
-	if hero_selection.has_method("get_active_hero_id"):
-		hero_id = hero_selection.call("get_active_hero_id")
+	var summoner_id: String = ""
+	if summoner_selection.has_method("get_active_summoner_id"):
+		summoner_id = summoner_selection.call("get_active_summoner_id")
 
-	if hero_id.is_empty():
-		push_warning("GameController3D: No hero selected, no hero bonuses will apply")
+	if summoner_id.is_empty():
+		push_warning("GameController3D: No summoner selected, no summoner bonuses will apply")
 		return
 
-	# Get hero instance data and create HeroInstance
+	# Get summoner instance data and create SummonerInstance
 	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	var hero_instance: HeroInstance = null
-	if profile_repo and profile_repo.has_method("get_hero_instance"):
-		var hero_data: Variant = profile_repo.call("get_hero_instance", hero_id)
-		if hero_data is Dictionary and not hero_data.is_empty():
-			hero_instance = HeroInstance.from_dict(hero_data)
+	var summoner_instance: SummonerInstance = null
+	if profile_repo and profile_repo.has_method("get_summoner_instance"):
+		var summoner_data: Variant = profile_repo.call("get_summoner_instance", summoner_id)
+		if summoner_data is Dictionary and not summoner_data.is_empty():
+			summoner_instance = SummonerInstance.from_dict(summoner_data)
 
-	if not hero_instance:
-		push_warning("GameController3D: Failed to load HeroInstance for '%s', no hero bonuses will apply" % hero_id)
+	if not summoner_instance:
+		push_warning("GameController3D: Failed to load SummonerInstance for '%s', no summoner bonuses will apply" % summoner_id)
 		return
 
-	# Register hero modifier provider
+	# Register summoner modifier provider
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 	if not modifier_system:
 		push_error("GameController3D: ModifierSystem not found!")
 		return
 
-	# Create and register hero provider with HeroInstance
-	var hero_provider: HeroModifierProvider = HeroModifierProvider.new(hero_instance)
+	# Create and register summoner provider with SummonerInstance
+	var summoner_provider: SummonerModifierProvider = SummonerModifierProvider.new(summoner_instance)
 	if modifier_system.has_method("register_provider"):
-		modifier_system.call("register_provider", "hero", hero_provider)
+		modifier_system.call("register_provider", "summoner", summoner_provider)
 
 ## =============================================================================
 ## REDIRECT INPUT HANDLING

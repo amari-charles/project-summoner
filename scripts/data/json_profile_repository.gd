@@ -221,66 +221,66 @@ func update_resources(delta: Dictionary) -> void:
 	data_changed.emit()
 
 ## =============================================================================
-## HERO OPERATIONS
+## SUMMONER OPERATIONS
 ## =============================================================================
 
-## Get list of unlocked hero IDs
-func get_unlocked_heroes() -> Array:
-	return _data.get("unlocked_heroes", [])
+## Get list of unlocked summoner IDs
+func get_unlocked_summoners() -> Array:
+	return _data.get("unlocked_summoners", [])
 
-## Check if a specific hero is unlocked
-func is_hero_unlocked(hero_id: String) -> bool:
-	var unlocked: Array = _data.get("unlocked_heroes", [])
-	return hero_id in unlocked
+## Check if a specific summoner is unlocked
+func is_summoner_unlocked(summoner_id: String) -> bool:
+	var unlocked: Array = _data.get("unlocked_summoners", [])
+	return summoner_id in unlocked
 
-## Unlock a new hero
-func unlock_hero(hero_id: String) -> bool:
-	var unlocked: Array = _data.get("unlocked_heroes", [])
-	if hero_id not in unlocked:
-		unlocked.append(hero_id)
-		_data["unlocked_heroes"] = unlocked
-		_append_to_wal({"action": "unlock_hero", "params": {"hero_id": hero_id}})
+## Unlock a new summoner
+func unlock_summoner(summoner_id: String) -> bool:
+	var unlocked: Array = _data.get("unlocked_summoners", [])
+	if summoner_id not in unlocked:
+		unlocked.append(summoner_id)
+		_data["unlocked_summoners"] = unlocked
+		_append_to_wal({"action": "unlock_summoner", "params": {"summoner_id": summoner_id}})
 		save_profile()
 		data_changed.emit()
 		return true
 	return false
 
-## Set starting hero (called during onboarding)
+## Set starting summoner (called during onboarding)
 ## chosen_random: whether player selected "Random" option (passed to WAL for tracking)
-func set_starting_hero(hero_id: String, chosen_random: bool) -> bool:
+func set_starting_summoner(summoner_id: String, chosen_random: bool) -> bool:
 	# Validate this is called on a fresh profile
-	var unlocked: Array = _data.get("unlocked_heroes", [])
+	var unlocked: Array = _data.get("unlocked_summoners", [])
 	if not unlocked.is_empty():
-		push_error("ProfileRepo: Cannot set starting hero - heroes already unlocked")
+		push_error("ProfileRepo: Cannot set starting summoner - summoners already unlocked")
 		return false
 
-	# Add hero
-	unlocked.append(hero_id)
-	_data["unlocked_heroes"] = unlocked
+	# Add summoner
+	unlocked.append(summoner_id)
+	_data["unlocked_summoners"] = unlocked
 
-	# Note: If chosen_random is true, the hero should have the
+	# Note: If chosen_random is true, the summoner should have the
 	# "fortune_favors_the_bold" modifier in its active_modifiers.
-	# The caller should create the HeroInstance with this modifier.
+	# The caller should create the SummonerInstance with this modifier.
 
 	_append_to_wal({
-		"action": "set_starting_hero",
-		"params": {"hero_id": hero_id, "chosen_random": chosen_random}
+		"action": "set_starting_summoner",
+		"params": {"summoner_id": summoner_id, "chosen_random": chosen_random}
 	})
 	save_profile()
 	data_changed.emit()
 	return true
 
 ## =============================================================================
-## HERO INSTANCE OPERATIONS (Typed Hero System)
+## SUMMONER INSTANCE OPERATIONS (Typed Summoner System)
 ## =============================================================================
 
-## Get all hero instances
-func get_hero_instances() -> Array:
-	return _data.get("hero_instances", [])
+## Get all summoner instances
+func get_summoner_instances() -> Array:
+	return _data.get("summoner_instances", [])
 
-## Get a specific hero instance by hero_id
-func get_hero_instance(hero_id: String) -> Dictionary:
-	var instances_variant: Variant = _data.get("hero_instances", [])
+## Get a specific summoner instance by summoner_id
+func get_summoner_instance(summoner_id: String) -> Dictionary:
+	var instances_variant: Variant = _data.get("summoner_instances", [])
 	if not instances_variant is Array:
 		return {}
 	var instances_array: Array = instances_variant
@@ -288,24 +288,24 @@ func get_hero_instance(hero_id: String) -> Dictionary:
 	for instance: Variant in instances_array:
 		if instance is Dictionary:
 			var instance_dict: Dictionary = instance
-			var instance_hero_id_variant: Variant = instance_dict.get("hero_id")
-			if instance_hero_id_variant == hero_id:
+			var instance_summoner_id_variant: Variant = instance_dict.get("summoner_id")
+			if instance_summoner_id_variant == summoner_id:
 				return instance_dict
 	return {}
 
-## Save or update a hero instance
-func save_hero_instance(hero_instance: HeroInstance) -> bool:
-	if not hero_instance.is_valid():
-		push_error("ProfileRepo: Cannot save invalid HeroInstance")
+## Save or update a summoner instance
+func save_summoner_instance(summoner_instance: SummonerInstance) -> bool:
+	if not summoner_instance.is_valid():
+		push_error("ProfileRepo: Cannot save invalid SummonerInstance")
 		return false
 
-	var instances_variant: Variant = _data.get("hero_instances", [])
+	var instances_variant: Variant = _data.get("summoner_instances", [])
 	if not instances_variant is Array:
 		instances_variant = []
 	var instances_array: Array = instances_variant
 
-	var hero_data: Dictionary = hero_instance.to_dict()
-	var hero_id: String = hero_data.get("hero_id", "")
+	var summoner_data: Dictionary = summoner_instance.to_dict()
+	var summoner_id: String = summoner_data.get("summoner_id", "")
 
 	# Check if instance already exists
 	var found_index: int = -1
@@ -313,28 +313,28 @@ func save_hero_instance(hero_instance: HeroInstance) -> bool:
 		var instance: Variant = instances_array[i]
 		if instance is Dictionary:
 			var instance_dict: Dictionary = instance
-			var instance_hero_id_variant: Variant = instance_dict.get("hero_id")
-			if instance_hero_id_variant == hero_id:
+			var instance_summoner_id_variant: Variant = instance_dict.get("summoner_id")
+			if instance_summoner_id_variant == summoner_id:
 				found_index = i
 				break
 
 	if found_index >= 0:
 		# Update existing
-		instances_array[found_index] = hero_data
+		instances_array[found_index] = summoner_data
 	else:
 		# Add new
-		instances_array.append(hero_data)
-		# Also add to unlocked_heroes for legacy compatibility
-		var unlocked: Array = _data.get("unlocked_heroes", [])
-		if hero_id not in unlocked:
-			unlocked.append(hero_id)
-			_data["unlocked_heroes"] = unlocked
+		instances_array.append(summoner_data)
+		# Also add to unlocked_summoners for compatibility
+		var unlocked: Array = _data.get("unlocked_summoners", [])
+		if summoner_id not in unlocked:
+			unlocked.append(summoner_id)
+			_data["unlocked_summoners"] = unlocked
 
-	_data["hero_instances"] = instances_array
+	_data["summoner_instances"] = instances_array
 
 	_append_to_wal({
-		"action": "save_hero_instance",
-		"params": {"hero_id": hero_id}
+		"action": "save_summoner_instance",
+		"params": {"summoner_id": summoner_id}
 	})
 
 	save_profile()
@@ -566,13 +566,13 @@ func upsert_deck(deck: Dictionary) -> String:
 		deck_id = _generate_uuid()
 		var deck_name_variant: Variant = deck.get("name", "Untitled Deck")
 		var deck_name: String = deck_name_variant
-		var hero_id_variant: Variant = deck.get("hero_id", "")
-		var hero_id: String = hero_id_variant if hero_id_variant is String else ""
+		var summoner_id_variant: Variant = deck.get("summoner_id", "")
+		var summoner_id: String = summoner_id_variant if summoner_id_variant is String else ""
 		var new_deck: Dictionary = {
 			"id": deck_id,
 			"profile_id": _current_profile_id,
 			"name": deck_name,
-			"hero_id": hero_id,
+			"summoner_id": summoner_id,
 			"created_at": Time.get_unix_time_from_system()
 		}
 		decks_array.append(new_deck)
@@ -605,11 +605,11 @@ func upsert_deck(deck: Dictionary) -> String:
 				if deck_dict_id_variant == deck_id:
 					var deck_name_variant: Variant = deck.get("name", deck_dict["name"])
 					deck_dict["name"] = deck_name_variant
-					# Update hero_id if provided
-					if deck.has("hero_id"):
-						var hero_id_variant: Variant = deck.get("hero_id")
-						if hero_id_variant is String:
-							deck_dict["hero_id"] = hero_id_variant
+					# Update summoner_id if provided
+					if deck.has("summoner_id"):
+						var summoner_id_variant: Variant = deck.get("summoner_id")
+						if summoner_id_variant is String:
+							deck_dict["summoner_id"] = summoner_id_variant
 					found = true
 					break
 
@@ -742,14 +742,14 @@ func get_deck(deck_id: String) -> Dictionary:
 ## CAMPAIGN PROGRESS OPERATIONS
 ## =============================================================================
 
-## Get campaign progress for a specific hero (or active hero if not specified)
-func get_campaign_progress(hero_id: String = "") -> Dictionary:
+## Get campaign progress for a specific summoner (or active summoner if not specified)
+func get_campaign_progress(summoner_id: String = "") -> Dictionary:
 	var empty_progress: Dictionary = {"completed_battles": [], "current_battle": null}
 
-	# Determine which hero to use
-	var target_hero_id: String = hero_id
-	if target_hero_id.is_empty():
-		target_hero_id = _get_active_hero_id()
+	# Determine which summoner to use
+	var target_summoner_id: String = summoner_id
+	if target_summoner_id.is_empty():
+		target_summoner_id = _get_active_summoner_id()
 
 	# Get campaign_progress data
 	var campaign_progress: Variant = _data.get("campaign_progress", {})
@@ -758,56 +758,56 @@ func get_campaign_progress(hero_id: String = "") -> Dictionary:
 
 	var progress_dict: Dictionary = campaign_progress
 
-	# Check for old structure (has "completed_battles" at root level - not per-hero)
-	if progress_dict.has("completed_battles") and not _is_per_hero_structure(progress_dict):
-		# Migrate old structure to new per-hero format
-		_migrate_campaign_progress_to_per_hero(progress_dict)
+	# Check for old structure (has "completed_battles" at root level - not per-summoner)
+	if progress_dict.has("completed_battles") and not _is_per_summoner_structure(progress_dict):
+		# Migrate old structure to new per-summoner format
+		_migrate_campaign_progress_to_per_summoner(progress_dict)
 		progress_dict = _data.get("campaign_progress", {})
 
-	# Return hero-specific progress
-	if target_hero_id.is_empty():
+	# Return summoner-specific progress
+	if target_summoner_id.is_empty():
 		return empty_progress
 
-	var hero_progress: Variant = progress_dict.get(target_hero_id, empty_progress)
-	if hero_progress is Dictionary:
-		return hero_progress
+	var summoner_progress: Variant = progress_dict.get(target_summoner_id, empty_progress)
+	if summoner_progress is Dictionary:
+		return summoner_progress
 	return empty_progress
 
-## Check if progress dict is already per-hero structure
-func _is_per_hero_structure(progress: Dictionary) -> bool:
-	# Per-hero structure has hero IDs as keys, each containing completed_battles
+## Check if progress dict is already per-summoner structure
+func _is_per_summoner_structure(progress: Dictionary) -> bool:
+	# Per-summoner structure has summoner IDs as keys, each containing completed_battles
 	# Old structure has "completed_battles" directly at the root
 	for key: String in progress.keys():
 		var value: Variant = progress[key]
-		# If a key maps to a Dictionary with completed_battles, it's per-hero
+		# If a key maps to a Dictionary with completed_battles, it's per-summoner
 		if value is Dictionary:
 			var value_dict: Dictionary = value
 			if value_dict.has("completed_battles"):
 				return true
 	return false
 
-## Migrate old single-progress structure to per-hero
-func _migrate_campaign_progress_to_per_hero(old_progress: Dictionary) -> void:
-	print("ProfileRepo: Migrating campaign progress to per-hero structure...")
+## Migrate old single-progress structure to per-summoner
+func _migrate_campaign_progress_to_per_summoner(old_progress: Dictionary) -> void:
+	print("ProfileRepo: Migrating campaign progress to per-summoner structure...")
 
-	var active_hero_id: String = _get_active_hero_id()
-	if active_hero_id.is_empty():
-		# Fallback to first unlocked hero
-		var unlocked: Array = get_unlocked_heroes()
+	var active_summoner_id: String = _get_active_summoner_id()
+	if active_summoner_id.is_empty():
+		# Fallback to first unlocked summoner
+		var unlocked: Array = get_unlocked_summoners()
 		if unlocked.size() > 0:
-			active_hero_id = unlocked[0]
+			active_summoner_id = unlocked[0]
 
-	if active_hero_id.is_empty():
+	if active_summoner_id.is_empty():
 		# SAFETY: Preserve old progress in a backup key instead of discarding
-		push_warning("ProfileRepo: No hero available for migration, preserving old progress in _legacy_progress")
+		push_warning("ProfileRepo: No summoner available for migration, preserving old progress in _legacy_progress")
 		_data["campaign_progress"] = {
 			"_legacy_progress": old_progress.duplicate(true)
 		}
 		return
 
-	# Move old progress to active hero
+	# Move old progress to active summoner
 	var new_structure: Dictionary = {}
-	new_structure[active_hero_id] = {
+	new_structure[active_summoner_id] = {
 		"completed_battles": old_progress.get("completed_battles", []),
 		"current_battle": old_progress.get("current_battle", null),
 		"pending_reward": old_progress.get("pending_reward", null)
@@ -815,25 +815,25 @@ func _migrate_campaign_progress_to_per_hero(old_progress: Dictionary) -> void:
 
 	_data["campaign_progress"] = new_structure
 	save_profile(true)  # Immediate save after migration
-	print("ProfileRepo: Migrated campaign progress to hero '%s'" % active_hero_id)
+	print("ProfileRepo: Migrated campaign progress to summoner '%s'" % active_summoner_id)
 
-func _get_active_hero_id() -> String:
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_method("get_active_hero_id"):
-		var result: Variant = hero_selection.call("get_active_hero_id")
+func _get_active_summoner_id() -> String:
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
+		var result: Variant = summoner_selection.call("get_active_summoner_id")
 		if result is String:
 			return result
 	return ""
 
-## Update campaign progress for a specific hero (or active hero if not specified)
-func update_campaign_progress(progress: Dictionary, hero_id: String = "") -> void:
-	# Determine which hero to use
-	var target_hero_id: String = hero_id
-	if target_hero_id.is_empty():
-		target_hero_id = _get_active_hero_id()
+## Update campaign progress for a specific summoner (or active summoner if not specified)
+func update_campaign_progress(progress: Dictionary, summoner_id: String = "") -> void:
+	# Determine which summoner to use
+	var target_summoner_id: String = summoner_id
+	if target_summoner_id.is_empty():
+		target_summoner_id = _get_active_summoner_id()
 
-	if target_hero_id.is_empty():
-		push_warning("ProfileRepo: Cannot update campaign progress - no active hero")
+	if target_summoner_id.is_empty():
+		push_warning("ProfileRepo: Cannot update campaign progress - no active summoner")
 		return
 
 	# Ensure campaign_progress dict exists
@@ -847,17 +847,17 @@ func update_campaign_progress(progress: Dictionary, hero_id: String = "") -> voi
 
 	var campaign_dict: Dictionary = campaign_progress
 
-	# Ensure hero-specific progress exists
-	if not campaign_dict.has(target_hero_id):
-		campaign_dict[target_hero_id] = {"completed_battles": [], "current_battle": null}
+	# Ensure summoner-specific progress exists
+	if not campaign_dict.has(target_summoner_id):
+		campaign_dict[target_summoner_id] = {"completed_battles": [], "current_battle": null}
 
-	var hero_progress: Variant = campaign_dict.get(target_hero_id)
-	if hero_progress is Dictionary:
-		var hero_dict: Dictionary = hero_progress
+	var summoner_progress: Variant = campaign_dict.get(target_summoner_id)
+	if summoner_progress is Dictionary:
+		var summoner_dict: Dictionary = summoner_progress
 		for key: String in progress:
-			hero_dict[key] = progress[key]
+			summoner_dict[key] = progress[key]
 
-	_append_to_wal({"action": "update_campaign_progress", "params": progress, "hero_id": target_hero_id})
+	_append_to_wal({"action": "update_campaign_progress", "params": progress, "summoner_id": target_summoner_id})
 	save_profile(true)  # Immediate save for campaign progress
 	data_changed.emit()
 
@@ -1048,11 +1048,11 @@ func _create_fresh_profile() -> void:
 		"collection": [
 			# Start with ZERO cards - build collection through campaign
 		],
-		"unlocked_heroes": [],  # Array of hero_id strings (legacy compatibility)
-		"hero_instances": [],   # Array of HeroInstance data (level, XP, modifiers)
+		"unlocked_summoners": [],  # Array of summoner_id strings
+		"summoner_instances": [],   # Array of SummonerInstance data (level, XP, modifiers)
 		"decks": [],
 		"deck_cards": [],
-		"campaign_progress": {},  # Per-hero structure: { "hero_id": { completed_battles, current_battle, pending_reward } }
+		"campaign_progress": {},  # Per-summoner structure: { "summoner_id": { completed_battles, current_battle, pending_reward } }
 		"shop_purchases": {},  # "shop_id::offering_id::refresh_epoch" -> purchase_count
 		"shop_refresh_state": {  # Per-shop refresh tracking
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}

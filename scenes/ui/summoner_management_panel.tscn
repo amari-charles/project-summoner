@@ -1,0 +1,297 @@
+[gd_scene load_steps=2 format=3 uid="uid://bv8x2wq4mpn3e"]
+
+[ext_resource type="Script" path="res://scripts/ui/summoner_management_panel.gd" id="1_panel"]
+
+[node name="SummonerManagementPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_panel")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.85)
+
+[node name="MainContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ContentPanel" type="PanelContainer" parent="MainContainer"]
+custom_minimum_size = Vector2(800, 700)
+layout_mode = 2
+
+[node name="MainMargin" type="MarginContainer" parent="MainContainer/ContentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 25
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainContainer/ContentPanel/MainMargin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "SUMMONER ROSTER"
+
+[node name="CloseButton" type="Button" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "X"
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentRow" type="HBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 30
+
+[node name="LeftColumn" type="VBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="PortraitContainer" type="CenterContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
+layout_mode = 2
+
+[node name="PortraitRect" type="ColorRect" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/PortraitContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="ElementLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/PortraitContainer/PortraitRect"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_font_sizes/font_size = 72
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SummonerNameLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Summoner Name"
+horizontal_alignment = 1
+
+[node name="InfoRow" type="HBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 15
+
+[node name="LevelLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/InfoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "Lv.1"
+
+[node name="ElementNameLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/InfoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "Fire"
+
+[node name="StatsPanel" type="PanelContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
+layout_mode = 2
+
+[node name="StatsMargin" type="MarginContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 10
+
+[node name="StatsGrid" type="GridContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin"]
+layout_mode = 2
+columns = 2
+
+[node name="HPLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 16
+text = "HP:"
+
+[node name="HPValue" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "1000"
+
+[node name="ManaLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.5, 0.9, 1)
+theme_override_font_sizes/font_size = 16
+text = "Mana:"
+
+[node name="ManaValue" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "10"
+
+[node name="RegenLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "Regen:"
+
+[node name="RegenValue" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn/StatsPanel/StatsMargin/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "1.0/s"
+
+[node name="RightColumn" type="VBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
+
+[node name="TraitsHeader" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "TRAITS & BOONS"
+
+[node name="TraitsScroll" type="ScrollContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TraitsContainer" type="VBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/RightColumn/TraitsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="HSeparator2" type="HSeparator" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+layout_mode = 2
+
+[node name="XPRow" type="HBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="XPLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/XPRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "XP: 0 / 100"
+
+[node name="XPProgressBar" type="ProgressBar" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/XPRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+value = 50.0
+show_percentage = false
+
+[node name="LevelUpRow" type="HBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LevelUpButton" type="Button" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/LevelUpRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 45)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "LEVEL UP (50g)"
+
+[node name="LevelUpPreview" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/LevelUpRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.6, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "+50 HP, +0.5 Mana, +0.05 Regen"
+vertical_alignment = 1
+
+[node name="SwitchSummonerButton" type="Button" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "SWITCH SUMMONER"
+
+[node name="SummonerPickerPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -200.0
+offset_right = 150.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PickerMargin" type="MarginContainer" parent="SummonerPickerPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 15
+
+[node name="PickerVBox" type="VBoxContainer" parent="SummonerPickerPanel/PickerMargin"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="PickerHeader" type="HBoxContainer" parent="SummonerPickerPanel/PickerMargin/PickerVBox"]
+layout_mode = 2
+
+[node name="PickerTitle" type="Label" parent="SummonerPickerPanel/PickerMargin/PickerVBox/PickerHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Select Summoner"
+
+[node name="PickerCloseButton" type="Button" parent="SummonerPickerPanel/PickerMargin/PickerVBox/PickerHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+text = "X"
+
+[node name="PickerScroll" type="ScrollContainer" parent="SummonerPickerPanel/PickerMargin/PickerVBox"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SummonerPickerList" type="VBoxContainer" parent="SummonerPickerPanel/PickerMargin/PickerVBox/PickerScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8

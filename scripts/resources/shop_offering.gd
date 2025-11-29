@@ -47,7 +47,7 @@ func get_price(context: ShopPurchaseContext = null) -> int:
 
 	# When we implement affinity/event pricing, callers should pass context
 	# so price reflects discounts/bonuses.
-	# if context and context.hero_affinity == required_affinity:
+	# if context and context.summoner_affinity == required_affinity:
 	#     price = int(price * 0.9)  # 10% discount for matching affinity
 
 	# Apply discount

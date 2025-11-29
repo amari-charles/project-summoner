@@ -20,7 +20,7 @@ class_name EventTypeIDs
 ## Standard combat battle event
 const BATTLE: StringName = &"battle"
 
-## Hero element affinity selection event (onboarding)
+## Summoner element affinity selection event (onboarding)
 const AFFINITY: StringName = &"affinity"
 
 ## First card summon tutorial event (onboarding)

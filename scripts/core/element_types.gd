@@ -4,7 +4,7 @@ extends Node
 ## ElementTypes - Central registry for all elemental types in Project Summoner
 ##
 ## Provides type-safe Element objects for elemental affinities.
-## Elements are used in the modifier system, card categorization, and hero bonuses.
+## Elements are used in the modifier system, card categorization, and summoner bonuses.
 ##
 ## Usage:
 ##   var affinity = ElementTypes.FIRE
