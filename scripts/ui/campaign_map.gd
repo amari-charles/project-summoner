@@ -9,11 +9,12 @@ class_name CampaignMap
 ## Preloads
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_icon_widget.tscn")
 const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
+const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/hamburger_button.tscn")
+const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
 
 ## Node references
 @onready var back_button: Button = %BackButton
-@onready var center_button: Button = %CenterButton
-@onready var progress_label: Label = %ProgressLabel
+@onready var locator_button: Button = %LocatorButton
 @onready var map_scroll: ScrollContainer = %MapScrollContainer
 @onready var map_container: Control = %MapContainer
 @onready var map_background: TextureRect = %MapBackground
@@ -64,6 +65,10 @@ var selected_deck_id: String = ""
 ## Summoner icon widget reference
 var summoner_icon: SummonerIconWidget = null
 
+## Navigation components
+var hamburger_button: HamburgerButton = null
+var nav_drawer: NavDrawer = null
+
 ## =============================================================================
 ## TYPE HELPERS
 ## =============================================================================
@@ -101,7 +106,7 @@ func _ready() -> void:
 
 	# Connect buttons
 	back_button.pressed.connect(_on_back_pressed)
-	center_button.pressed.connect(_on_center_latest_pressed)
+	locator_button.pressed.connect(_on_center_latest_pressed)
 	start_event_button.pressed.connect(_on_start_event_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
 
@@ -157,12 +162,14 @@ func _ready() -> void:
 	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
 		summoner_selection.summoner_changed.connect(_on_summoner_selection_changed)
 
+	# Setup navigation (hamburger menu + nav drawer)
+	_setup_navigation()
+
 	# Setup summoner icon
 	_setup_summoner_icon()
 
 	# Load and display map
 	_refresh_map()
-	_update_progress_display()
 
 	# Auto-scroll to latest mission (deferred to next frame so nodes are fully laid out)
 	call_deferred("_on_center_latest_pressed")
@@ -615,23 +622,6 @@ func _validate_selected_deck() -> bool:
 	return _safe_bool(is_valid_variant, false)
 
 ## =============================================================================
-## PROGRESS DISPLAY
-## =============================================================================
-
-func _update_progress_display() -> void:
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		return
-
-	var completed_events: Array = _safe_array(campaign.call("get_completed_battles"))
-	var completed: int = completed_events.size()
-
-	var total_events: Array = _safe_array(campaign.call("get_all_battles"))
-	var total: int = total_events.size()
-
-	progress_label.text = Loc.t("campaign.map.progress", {"completed": completed, "total": total})
-
-## =============================================================================
 ## EVENT START
 ## =============================================================================
 
@@ -740,8 +730,9 @@ func _on_start_event_pressed() -> void:
 ## =============================================================================
 
 func _on_back_pressed() -> void:
-	print("CampaignMap: Returning to game mode menu")
-	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
+	# DEPRECATED: Back button hidden - Campaign Map is now the main hub
+	# Keep function for backwards compatibility with scene connections
+	pass
 
 func _on_center_latest_pressed() -> void:
 	var latest_unlocked_id: String = _find_latest_unlocked_mission()
@@ -797,6 +788,64 @@ func _scroll_to_event(event_id: String) -> void:
 	map_scroll.scroll_vertical = int(scroll_target_y)
 
 ## =============================================================================
+## NAVIGATION (Hamburger Menu + Nav Drawer)
+## =============================================================================
+
+func _setup_navigation() -> void:
+	# Hide the old back button (no longer needed - campaign is the hub)
+	if back_button:
+		back_button.visible = false
+
+	# Create hamburger button in top-right corner
+	hamburger_button = HamburgerButtonScene.instantiate()
+	add_child(hamburger_button)
+
+	hamburger_button.anchor_left = 1.0
+	hamburger_button.anchor_right = 1.0
+	hamburger_button.anchor_top = 0.0
+	hamburger_button.anchor_bottom = 0.0
+	hamburger_button.offset_left = -68
+	hamburger_button.offset_right = -20
+	hamburger_button.offset_top = 20
+	hamburger_button.offset_bottom = 68
+
+	hamburger_button.pressed.connect(_on_hamburger_pressed)
+
+	# Create nav drawer (hidden by default)
+	nav_drawer = NavDrawerScene.instantiate()
+	add_child(nav_drawer)
+
+	# Connect nav drawer signals
+	nav_drawer.collection_pressed.connect(_on_nav_collection_pressed)
+	nav_drawer.events_pressed.connect(_on_nav_events_pressed)
+	nav_drawer.shop_pressed.connect(_on_nav_shop_pressed)
+	nav_drawer.settings_pressed.connect(_on_nav_settings_pressed)
+
+func _on_hamburger_pressed() -> void:
+	if nav_drawer:
+		nav_drawer.open()
+
+func _on_nav_collection_pressed() -> void:
+	print("CampaignMap: Opening Collection...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
+
+func _on_nav_events_pressed() -> void:
+	print("CampaignMap: Opening Special Events...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SPECIAL_EVENTS)
+
+func _on_nav_shop_pressed() -> void:
+	print("CampaignMap: Opening Shop...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
+
+func _on_nav_settings_pressed() -> void:
+	print("CampaignMap: Opening Settings...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
+
+## =============================================================================
 ## SUMMONER ICON
 ## =============================================================================
 
@@ -835,17 +884,14 @@ func _on_summoner_icon_clicked() -> void:
 
 func _on_event_completed(_event_id: String) -> void:
 	_refresh_map()
-	_update_progress_display()
 	_update_detail_panel()
 
 func _on_progress_changed() -> void:
-	_update_progress_display()
+	_refresh_map()
 
 func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
 	# Refresh summoner icon, map, and deck list when summoner changes
 	if summoner_icon:
 		summoner_icon.refresh()
-	# Map and progress are refreshed by CampaignService emitting campaign_progress_changed
 	_refresh_map()
-	_update_progress_display()
 	_update_detail_panel()

@@ -125,7 +125,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	current_mode = BattleMode.PRACTICE
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_GAME_MODE_MENU
+	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {
@@ -144,7 +144,7 @@ func configure_arena_battle(_difficulty: int) -> void:
 	current_mode = BattleMode.ARENA
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_GAME_MODE_MENU
+	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
 
 	# TODO: ArenaService would generate random battle config
 	push_warning("BattleContext: Arena mode not yet implemented")
@@ -157,7 +157,7 @@ func configure_endless_wave(_wave_number: int) -> void:
 	current_mode = BattleMode.ENDLESS
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_GAME_MODE_MENU
+	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
 
 	# TODO: EndlessService would provide wave config
 	push_warning("BattleContext: Endless mode not yet implemented")

@@ -6,7 +6,7 @@ class_name ShopScreen
 ## Displays offerings from ShopService and handles purchase flow
 
 ## Node references
-@onready var back_button: Button = %BackButton
+@onready var close_button: Button = %CloseButton
 @onready var leave_incomplete_button: Button = %LeaveIncompleteButton
 @onready var leave_complete_button: Button = %LeaveCompleteButton
 @onready var gold_label: Label = %GoldLabel
@@ -35,7 +35,7 @@ var leave_complete_popup: ConfirmationDialog = null
 
 func _ready() -> void:
 	# Connect buttons
-	back_button.pressed.connect(_on_back_pressed)
+	close_button.pressed.connect(_on_close_pressed)
 	leave_incomplete_button.pressed.connect(_on_leave_incomplete_pressed)
 	leave_complete_button.pressed.connect(_on_leave_complete_pressed)
 	purchase_button.pressed.connect(_on_purchase_pressed)
@@ -100,8 +100,8 @@ func _exit_tree() -> void:
 
 ## Set up caravan-specific UI elements
 func _setup_caravan_ui() -> void:
-	# Hide back button
-	back_button.visible = false
+	# Hide close button
+	close_button.visible = false
 
 	# Both leave buttons start hidden, shown after dialogue
 	leave_incomplete_button.visible = false
@@ -304,10 +304,10 @@ func _on_leave_complete_confirmed() -> void:
 	print("ShopScreen: Leave complete confirmed")
 	_leave_shop(true)  # Complete the event
 
-func _on_back_pressed() -> void:
+func _on_close_pressed() -> void:
 	# This should only be called for non-caravan shops
 	if is_caravan_event:
-		push_warning("ShopScreen: Back button pressed for caravan event (should be hidden)")
+		push_warning("ShopScreen: Close button pressed for caravan event (should be hidden)")
 		return
 
 	_leave_shop()
@@ -332,5 +332,5 @@ func _leave_shop(complete_event: bool = true) -> void:
 		print("ShopScreen: Returning to %s via NavigationContext" % return_to)
 		SceneManager.transition_to(return_to)
 	else:
-		# Default: return to game mode menu
-		SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
+		# Default: return to campaign map (main hub)
+		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)

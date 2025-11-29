@@ -39,11 +39,13 @@ theme_override_constants/separation = 20
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "< BACK"
+theme_override_font_sizes/font_size = 28
+text = "✕"
+flat = true
 
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2

@@ -46,12 +46,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "← BACK"
 
-[node name="CenterButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "📍 Latest Mission"
-
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -59,13 +53,6 @@ theme_override_font_sizes/font_size = 48
 text = "CAMPAIGN"
 horizontal_alignment = 1
 
-[node name="ProgressLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "0 / 5 Complete"
-horizontal_alignment = 2
-vertical_alignment = 1
 
 [node name="ContentArea" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -226,3 +213,21 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "START EVENT"
+
+[node name="LocatorButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -76.0
+offset_top = -76.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 28
+text = "📍"
