@@ -10,37 +10,6 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ## Active Bugs
 
-#### Orphaned Nodes from Autoload Object Pools During Unit Tests
-**Status:** Open
-**Reported:** 2025-01-28
-**Component:** Unit Testing / Object Pools
-
-**Description:**
-GUT reports ~155 orphaned nodes during test runs from autoload object pools.
-
-**Current Behavior:**
-Test output shows orphaned nodes:
-- FireballExplosion, FireballTrail, FireballSpell (VFXManager pool)
-- FloatingHPBar (HPBarManager pool)
-- Projectile3D (ProjectileManager pool)
-
-**Impact:**
-Cosmetic - tests pass but output is noisy. Does not affect game runtime.
-
-**Root Cause:**
-Autoload managers pre-instantiate object pools at startup. These pooled objects exist outside the scene tree and are never freed during test runs.
-
-**Proposed Solution:**
-- Add cleanup methods to pool managers that can be called during test teardown
-- Or configure GUT to ignore autoload-created nodes
-
-**Related Files:**
-- scripts/systems/vfx_manager.gd
-- scripts/systems/hp_bar_manager.gd
-- scripts/systems/projectile_manager.gd
-
----
-
 #### RID/Resource Leaks at Exit in Headless Mode
 **Status:** Open
 **Reported:** 2025-01-28

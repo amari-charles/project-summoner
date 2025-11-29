@@ -1,16 +1,91 @@
 # VFX and Pooling Best Practices
 
 **Created**: 2025-01-16
+**Updated**: 2025-11-28
 **Purpose**: Document lessons learned from fireball spell debugging to avoid similar issues in the future
 
 ---
 
 ## Table of Contents
 
-1. [Resources vs Nodes for Timing Logic](#resources-vs-nodes-for-timing-logic)
-2. [VFX Pooling State Management](#vfx-pooling-state-management)
-3. [VFX Lifecycle in Pooled Systems](#vfx-lifecycle-in-pooled-systems)
-4. [Debugging Approach](#debugging-approach)
+1. [Pool Container Architecture](#pool-container-architecture)
+2. [Resources vs Nodes for Timing Logic](#resources-vs-nodes-for-timing-logic)
+3. [VFX Pooling State Management](#vfx-pooling-state-management)
+4. [VFX Lifecycle in Pooled Systems](#vfx-lifecycle-in-pooled-systems)
+5. [Debugging Approach](#debugging-approach)
+
+---
+
+## Pool Container Architecture
+
+### The Problem
+
+Pooled objects stored in arrays outside the scene tree are considered "orphaned nodes" by Godot. This causes:
+- Test frameworks (GUT) reporting orphan warnings
+- Objects not properly cleaned up when the manager exits
+- Nodes existing outside the scene tree lifecycle
+
+### The Solution: Pool Container Pattern
+
+Keep pooled objects **in the scene tree** by adding them to a dedicated container node:
+
+```gdscript
+var effects_container: Node3D = null  ## Parent for active effects
+var pool_container: Node3D = null     ## Parent for pooled effects
+
+func _ready() -> void:
+    # Container for active effects (visible, in use)
+    effects_container = Node3D.new()
+    effects_container.name = "VFXContainer"
+    add_child(effects_container)
+
+    # Container for pooled effects (hidden, waiting for reuse)
+    pool_container = Node3D.new()
+    pool_container.name = "VFXPool"
+    add_child(pool_container)
+```
+
+### Pool Lifecycle with Containers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ POOL INITIALIZATION                                          │
+│ 1. Create instance                                           │
+│ 2. instance.visible = false  ← Hide while pooled             │
+│ 3. pool_container.add_child(instance)  ← In scene tree       │
+│ 4. pool_array.append(instance)                               │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│ RETRIEVAL (get from pool)                                    │
+│ 1. instance = pool_array.pop_back()                          │
+│ 2. pool_container.remove_child(instance)  ← Remove from pool │
+│ 3. instance.visible = true  ← Show for use                   │
+│ 4. effects_container.add_child(instance)  ← Add to active    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│ RETURN (back to pool)                                        │
+│ 1. effects_container.remove_child(instance)                  │
+│ 2. instance.reset()                                          │
+│ 3. instance.visible = false  ← Hide while pooled             │
+│ 4. pool_container.add_child(instance)  ← Back in pool        │
+│ 5. pool_array.append(instance)                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Benefits
+
+1. **No orphan warnings** - All objects are in scene tree
+2. **Automatic cleanup** - Scene tree frees children when manager exits
+3. **Clear separation** - Active vs pooled objects in different containers
+4. **Debuggable** - Can inspect pool contents in Remote scene tree
+
+### Managers Using This Pattern
+
+- `VFXManager` - pool_container for VFX instances
+- `HPBarManager` - pool_container for floating HP bars
+- `ProjectileManager` - pool_container for projectiles
 
 ---
 

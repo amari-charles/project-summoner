@@ -12,8 +12,9 @@ const MAX_POOL_SIZE: int = 50
 var projectile_pools: Dictionary = {}  ## projectile_id -> Array[Projectile3D]
 var active_projectiles: Dictionary = {}  ## projectile_id -> Array[Projectile3D]
 
-## Container
-var projectiles_container: Node3D = null
+## Containers
+var projectiles_container: Node3D = null  ## Parent for active projectiles
+var pool_container: Node3D = null  ## Parent for pooled projectiles (keeps them in scene tree)
 
 ## Base projectile scene
 var base_projectile_scene: PackedScene = null
@@ -21,10 +22,15 @@ var base_projectile_scene: PackedScene = null
 func _ready() -> void:
 	print("ProjectileManager: Initializing...")
 
-	# Create container
+	# Create container for active projectiles
 	projectiles_container = Node3D.new()
 	projectiles_container.name = "ProjectilesContainer"
 	add_child(projectiles_container)
+
+	# Create container for pooled projectiles (keeps them in scene tree, avoids orphans)
+	pool_container = Node3D.new()
+	pool_container.name = "ProjectilePool"
+	add_child(pool_container)
 
 	# Load base projectile scene (or will instantiate from script)
 	_load_projectile_scene()
@@ -66,6 +72,9 @@ func _create_pool_for(projectile_id: String, pool_size: int) -> void:
 		if projectile:
 			projectile.is_pooled = true
 			projectile.reset()
+			projectile.visible = false  # Hide while pooled
+			# Add to pool container (keeps in scene tree, avoids orphans)
+			pool_container.add_child(projectile)
 			var pool: Array = projectile_pools[projectile_id]
 			pool.append(projectile)
 
@@ -154,6 +163,7 @@ func _get_from_pool(projectile_id: String) -> Projectile3D:
 		if pooled_projectile.get_parent():
 			pooled_projectile.get_parent().remove_child(pooled_projectile)
 		pooled_projectile.reset()
+		pooled_projectile.visible = true  # Show when retrieved
 		return pooled_projectile
 
 	# Pool exhausted, create new
@@ -176,7 +186,11 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 	var pool: Array = projectile_pools[projectile_id]
 	if pool.size() < MAX_POOL_SIZE:
 		projectile.reset()
+		projectile.visible = false  # Hide while pooled
 		pool.append(projectile)
+		# Add to pool container (deferred because projectiles expire during physics
+		# callbacks, so removal above is deferred - add must match to avoid errors)
+		pool_container.add_child.call_deferred(projectile)
 	else:
 		# Pool full, destroy
 		projectile.queue_free()

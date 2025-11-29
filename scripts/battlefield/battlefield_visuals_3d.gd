@@ -19,13 +19,13 @@ func _ready() -> void:
 
 func _setup_sky() -> void:
 	# Create gradient for sky (top to bottom: light blue → peachy horizon)
-	var gradient = Gradient.new()
+	var gradient: Gradient = Gradient.new()
 	gradient.add_point(0.0, Color(0.53, 0.81, 0.98, 1.0))  # Light sky blue at top
 	gradient.add_point(0.6, Color(0.39, 0.58, 0.93, 1.0))  # Azure in middle
 	gradient.add_point(1.0, Color(0.95, 0.85, 0.75, 1.0))  # Warm peachy horizon
 
 	# Create gradient texture
-	var gradient_texture = GradientTexture2D.new()
+	var gradient_texture: GradientTexture2D = GradientTexture2D.new()
 	gradient_texture.gradient = gradient
 	gradient_texture.fill = GradientTexture2D.FILL_LINEAR
 	gradient_texture.fill_from = Vector2(0, 0)
@@ -40,7 +40,7 @@ func _setup_sky() -> void:
 
 func _setup_ground() -> void:
 	# Load grass tile texture (existing texture from 2D implementation)
-	var grass_texture = load("res://assets/textures/grass_tile.png")
+	var grass_texture: Texture2D = load("res://assets/textures/grass_tile.png")
 	if grass_texture:
 		ground_layer.texture = grass_texture
 		print("BattlefieldVisuals3D: Applied grass tile texture to ground Sprite3D")
