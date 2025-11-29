@@ -109,37 +109,6 @@ Flesh out and refine unit hitboxes for better collision detection and combat int
 
 ---
 
-#### Lane-Based Unit Movement (Walk Forward Until Target in Range)
-**Status:** ⬜ Not Started
-**Category:** Units & Combat
-**Effort:** Medium
-
-**Description:**
-Units should not path directly towards the enemy base. Instead, they should walk forward across the map on a line parallel to the battlefield (like lanes) until an enemy unit or the base comes into attack range, at which point they retarget.
-
-**Current Behavior:**
-- Units path directly towards the enemy base from spawn
-- Creates a funneling effect where all units converge on one point
-
-**Expected Behavior:**
-- Units walk forward in their "lane" (parallel to map axis)
-- When enemy unit enters attack range → retarget and engage
-- When base enters attack range → retarget and attack base
-- Creates more spread-out, strategic combat
-
-**Requirements:**
-- Modify unit movement to walk forward (towards enemy side) rather than path to base
-- Implement range-based target acquisition during forward march
-- Maintain current targeting behavior once engaged
-- Consider what happens after killing a target (resume forward march?)
-
-**Notes:**
-- Similar to lane-based games like Clash Royale / auto-battlers
-- May need to define "lanes" or just use spawn X position as the lane
-- Charge spell should still override this behavior
-
----
-
 #### Implement Single Target vs Multi Target Attack System
 **Status:** ⬜ Not Started
 **Category:** Units & Combat
@@ -293,36 +262,6 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 ## Visual Polish
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Add 2.5D Character Rotation for Correct Perspective
-**Status:** ⬜ Not Started
-**Category:** Visual Polish
-**Effort:** Small-Medium
-
-**Description:**
-Rotate in-game characters/units to face the camera at the correct angle for 2.5D perspective. This gives the proper "billboard" or angled sprite effect common in 2.5D games where characters appear to face the player while maintaining the isometric/angled view.
-
-**Current Behavior:**
-- Characters may not be rotated to account for the camera's viewing angle
-- Can look flat or incorrect from the game's perspective
-
-**Expected Behavior:**
-- Characters should be rotated to face the camera appropriately for 2.5D aesthetic
-- Maintains the illusion of depth while keeping characters readable
-- Similar to how games like Octopath Traveler, Diablo, or classic RTS games handle sprite orientation
-
-**Requirements:**
-- Determine the correct rotation angle based on camera setup
-- Apply rotation to all unit types (player units, enemy units, summoners)
-- Ensure rotation works with existing animations
-- Test with different camera angles if camera can move
-
-**Notes:**
-- Common approaches: billboard sprites (always face camera), fixed rotation offset, or Y-axis rotation only
-- May need to adjust based on whether using 3D models or 2D sprites
-- Consider if buildings/structures also need this treatment
-
----
 
 #### Improve Card Visual UI
 **Status:** ⬜ Not Started
@@ -864,4 +803,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-28 - Implemented unit testing infrastructure (moved to completed)*
+*Last Updated: 2025-11-29 - Lane-based movement completed (moved to completed)*

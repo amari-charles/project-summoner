@@ -36,6 +36,33 @@ The codebase inconsistently used "Summoner" and "Hero" to refer to the same conc
 
 ## Units & Combat
 
+### Lane-Based Unit Movement
+**Completed:** 2025-11-29
+**Category:** Units & Combat
+**Effort:** Medium
+
+**Description:**
+Implemented lane-based movement where units march forward along the X-axis instead of pathfinding directly to the enemy base. Units only engage enemies that enter their attack range.
+
+**Solution Implemented:**
+- Units march forward in their lane (along X-axis) rather than pathing to base
+- Lane-based targeting: units only consider enemies within their current lane (Z-axis tolerance)
+- Turn zone system: units resume normal targeting when near enemy base
+- Constants: `PLAYER_TURN_ZONE_X`, `ENEMY_TURN_ZONE_X`, `LANE_WIDTH_MULTIPLIER`
+- New method `_move_forward_in_lane()` for lane marching behavior
+- New method `_is_in_turn_zone()` to detect when near enemy base
+
+**Behavior:**
+1. Spawn → march forward in lane (X-axis movement only)
+2. Enemy enters attack range → engage and attack
+3. Enter turn zone near enemy base → resume normal target-based pathing
+4. After killing target → resume lane marching (unless in turn zone)
+
+**Related Files:**
+- `scripts/units/unit_3d.gd`
+
+---
+
 ### Prevent Units from Stacking on Same Coordinates
 **Completed:** 2025-11-25
 **Category:** Units & Combat
@@ -797,4 +824,4 @@ Added GUT (Godot Unit Test) framework for automated testing of game services and
 
 ---
 
-*Last Updated: 2025-11-28*
+*Last Updated: 2025-11-29*

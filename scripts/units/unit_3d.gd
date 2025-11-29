@@ -30,6 +30,11 @@ const BLOCKED_THRESHOLD: float = 0.3  ## Seconds before flanking kicks in
 const BLOCKED_MOVE_THRESHOLD: float = 0.1  ## Min movement per second to not be blocked
 const FLANK_STRENGTH: float = 1.2  ## Lateral force multiplier when blocked (increased for decisive flanking)
 
+## Lane-based movement constants
+const PLAYER_TURN_ZONE_X: float = 30.0   ## Player units turn toward base when X > this
+const ENEMY_TURN_ZONE_X: float = -30.0   ## Enemy units turn toward base when X < this
+const LANE_WIDTH_MULTIPLIER: float = 2.0  ## Lane width = attack_range_depth * this
+
 ## Flanking progression constants (adaptive wrapping)
 const FLANK_ANGLE_MIN: float = 90.0         ## Start perpendicular to target
 const FLANK_ANGLE_MAX: float = 135.0        ## Max backwards arc (nearly reversing)
@@ -124,6 +129,7 @@ var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitt
 
 ## Clump mitigation - blocked detection
 var _blocked_time: float = 0.0  ## How long unit has been blocked
+
 
 ## Flanking state (adaptive wrapping)
 var _flank_angle: float = 90.0           ## Current flanking angle (degrees)
@@ -468,25 +474,29 @@ func _physics_process(delta: float) -> void:
 		if current_target:
 			target_lock_timer = target_lock_duration
 
-	if current_target:
-		var in_range: bool = _is_in_attack_range(current_target)
-		if in_range:
-			# Face opponent when idle in range (but not during attack)
-			if not is_attacking:
-				_update_facing(current_target.global_position)
-				_update_animation("idle")
-			if attack_cooldown <= 0.0:
-				_perform_attack()
-			else:
-				pass  # On cooldown, wait
-		else:
-			# Don't move during attack animation
-			if not is_attacking:
-				_update_animation("walk")
-				_move_towards_target(delta)
-	else:
+	# Lane-based movement with turn zone logic
+	# Priority: Attack if in range > Turn zone pathing > Lane marching
+
+	if current_target and _is_in_attack_range(current_target):
+		# Target in attack range - face and attack
 		if not is_attacking:
+			_update_facing(current_target.global_position)
 			_update_animation("idle")
+		if attack_cooldown <= 0.0:
+			_perform_attack()
+	elif _is_in_turn_zone():
+		# In turn zone near enemy base - path toward base (existing behavior)
+		# This ensures units converge on the base when close enough
+		if not is_attacking:
+			if current_target:
+				_move_towards_target(delta)
+			else:
+				_update_animation("idle")
+	else:
+		# Not in turn zone and no target in range - march forward in lane
+		# Don't chase enemies, just walk forward until one enters range
+		if not is_attacking:
+			_move_forward_in_lane(delta)
 
 func _check_proximity_to_enemy_base() -> void:
 	## Check if player unit is near enemy base and emit signal (once per unit)
@@ -592,6 +602,11 @@ func _acquire_target() -> Node3D:
 		if not _can_attack_layer(target_unit):
 			continue
 
+		# Lane-based targeting: only consider enemies within lane tolerance
+		var z_diff: float = abs(target_unit.global_position.z - global_position.z)
+		if z_diff > attack_range_depth * LANE_WIDTH_MULTIPLIER:
+			continue  # Skip enemies outside our current lane
+
 		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
 		var delta: Vector3 = target_unit.global_position - global_position
 		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
@@ -671,6 +686,39 @@ func _move_towards_target(delta: float) -> void:
 		_flank_angle = FLANK_ANGLE_MIN
 		_flank_direction = 0
 		_flank_progress_timer = 0.0
+
+## Move forward in lane (lane-based movement)
+## Units march along X-axis toward enemy side, staying at their current Z position
+func _move_forward_in_lane(_delta: float) -> void:
+	# Forward direction based on team (X-axis only, no Z movement)
+	var forward_dir: Vector3
+	if team == Team.PLAYER:
+		forward_dir = Vector3(1, 0, 0)  # Player units march right (+X toward enemy)
+	else:
+		forward_dir = Vector3(-1, 0, 0)  # Enemy units march left (-X toward player)
+
+	# Separation from allies (keep existing logic)
+	var separation: Vector3 = _calculate_separation_force()
+
+	var final_direction: Vector3 = (forward_dir + separation).normalized()
+
+	# Face the forward direction
+	_update_facing_from_direction(forward_dir)
+
+	velocity = final_direction * move_speed
+	move_and_slide()
+
+	# Post-move: correct any severe overlaps
+	_correct_overlaps()
+
+	_update_animation("walk")
+
+## Check if unit is in the turn zone (near enemy base)
+func _is_in_turn_zone() -> bool:
+	if team == Team.PLAYER:
+		return global_position.x >= PLAYER_TURN_ZONE_X
+	else:
+		return global_position.x <= ENEMY_TURN_ZONE_X
 
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:
