@@ -13,7 +13,6 @@ const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/ha
 const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
 
 ## Node references
-@onready var back_button: Button = %BackButton
 @onready var locator_button: Button = %LocatorButton
 @onready var map_scroll: ScrollContainer = %MapScrollContainer
 @onready var map_container: Control = %MapContainer
@@ -105,7 +104,6 @@ func _ready() -> void:
 	print("CampaignMap: Initializing...")
 
 	# Connect buttons
-	back_button.pressed.connect(_on_back_pressed)
 	locator_button.pressed.connect(_on_center_latest_pressed)
 	start_event_button.pressed.connect(_on_start_event_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
@@ -729,11 +727,6 @@ func _on_start_event_pressed() -> void:
 ## NAVIGATION
 ## =============================================================================
 
-func _on_back_pressed() -> void:
-	# DEPRECATED: Back button hidden - Campaign Map is now the main hub
-	# Keep function for backwards compatibility with scene connections
-	pass
-
 func _on_center_latest_pressed() -> void:
 	var latest_unlocked_id: String = _find_latest_unlocked_mission()
 	if latest_unlocked_id.is_empty():
@@ -792,10 +785,6 @@ func _scroll_to_event(event_id: String) -> void:
 ## =============================================================================
 
 func _setup_navigation() -> void:
-	# Hide the old back button (no longer needed - campaign is the hub)
-	if back_button:
-		back_button.visible = false
-
 	# Create hamburger button in top-right corner
 	hamburger_button = HamburgerButtonScene.instantiate()
 	add_child(hamburger_button)

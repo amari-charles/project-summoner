@@ -4,14 +4,22 @@ class_name TitleScreen
 ## Simple title screen - tap/click to start
 ## Entry point for the game, transitions to Campaign Map
 
+## Time to wait before allowing interaction (lets animations settle)
+const INITIAL_DELAY_SECONDS: float = 0.5
+
+@onready var title_label: Label = $CenterContainer/VBoxContainer/Title
 @onready var tap_prompt: Label = $CenterContainer/VBoxContainer/TapPrompt
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 var _can_proceed: bool = false
 
 func _ready() -> void:
+	# Set localized text
+	title_label.text = Loc.t("ui.title.game_name")
+	tap_prompt.text = Loc.t("ui.title.tap_prompt")
+
 	# Start fade-in and prompt animation after brief delay
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(INITIAL_DELAY_SECONDS).timeout
 	_can_proceed = true
 	animation_player.play("pulse_prompt")
 

@@ -12,6 +12,7 @@ signal closed
 
 @onready var overlay: ColorRect = $Overlay
 @onready var panel: PanelContainer = $Panel
+@onready var title_label: Label = $Panel/MarginContainer/VBoxContainer/Header/Title
 @onready var close_button: Button = $Panel/MarginContainer/VBoxContainer/Header/CloseButton
 @onready var collection_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/CollectionButton
 @onready var events_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/EventsButton
@@ -25,6 +26,13 @@ var _is_open: bool = false
 var _tween: Tween
 
 func _ready() -> void:
+	# Set localized text
+	title_label.text = Loc.t("ui.nav.menu")
+	collection_button.text = Loc.t("ui.nav.collection")
+	events_button.text = Loc.t("ui.nav.events")
+	shop_button.text = Loc.t("ui.nav.shop")
+	settings_button.text = Loc.t("ui.nav.settings")
+
 	# Start hidden
 	visible = false
 	overlay.modulate.a = 0.0

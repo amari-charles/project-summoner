@@ -13,8 +13,6 @@ class_name SceneManagerClass
 
 ## Main UI Scenes
 const SCENE_TITLE_SCREEN: String = "res://scenes/ui/title_screen.tscn"
-const SCENE_MAIN_MENU: String = "res://scenes/ui/main_menu.tscn"  # DEPRECATED - use SCENE_TITLE_SCREEN
-const SCENE_GAME_MODE_MENU: String = "res://scenes/ui/game_mode_menu.tscn"  # DEPRECATED - navigation moved to hamburger menu
 
 ## Campaign Scenes
 const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/campaign_map.tscn"
