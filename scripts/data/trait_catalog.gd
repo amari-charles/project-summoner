@@ -1,11 +1,11 @@
 extends Node
 # TraitCatalog is registered as autoload "TraitCatalog", no class_name needed
 
-## Trait Catalog - Defines all hero traits and boons
+## Trait Catalog - Defines all summoner traits and boons
 ##
-## Traits are passive abilities that modify hero stats or provide special effects.
-## - Innate traits: Come with the hero (defined in HeroConfig)
-## - Acquired boons: Earned through gameplay (stored in HeroInstance)
+## Traits are passive abilities that modify summoner stats or provide special effects.
+## - Innate traits: Come with the summoner (defined in SummonerConfig)
+## - Acquired boons: Earned through gameplay (stored in SummonerInstance)
 ##
 ## Usage:
 ##   var trait_data = TraitCatalog.get_trait("trait_fire_affinity")
@@ -29,10 +29,10 @@ func _ready() -> void:
 
 func _init_traits() -> void:
 	# ==========================================================================
-	# INNATE TRAITS (come with specific heroes)
+	# INNATE TRAITS (come with specific summoners)
 	# ==========================================================================
 
-	# Fire Hero Traits
+	# Fire Summoner Traits
 	_register_trait({
 		"id": "trait_fire_affinity",
 		"name_key": "trait.fire_affinity.name",
@@ -40,7 +40,7 @@ func _init_traits() -> void:
 		"category": "elemental",
 		"is_innate": true,
 		"modifiers": [
-			# Hero stat modifier
+			# Summoner stat modifier
 			{"stat": "fire_damage_bonus", "type": "percent", "value": 10.0},
 			# Unit modifier - buffs all fire units
 			{
@@ -63,7 +63,7 @@ func _init_traits() -> void:
 		]
 	})
 
-	# Water Hero Traits
+	# Water Summoner Traits
 	_register_trait({
 		"id": "trait_water_affinity",
 		"name_key": "trait.water_affinity.name",
@@ -71,7 +71,7 @@ func _init_traits() -> void:
 		"category": "elemental",
 		"is_innate": true,
 		"modifiers": [
-			# Hero stat modifier
+			# Summoner stat modifier
 			{"stat": "water_damage_bonus", "type": "percent", "value": 10.0},
 			# Unit modifier - buffs all water units
 			{
@@ -94,7 +94,7 @@ func _init_traits() -> void:
 		]
 	})
 
-	# Wind Hero Traits
+	# Wind Summoner Traits
 	_register_trait({
 		"id": "trait_wind_affinity",
 		"name_key": "trait.wind_affinity.name",
@@ -102,7 +102,7 @@ func _init_traits() -> void:
 		"category": "elemental",
 		"is_innate": true,
 		"modifiers": [
-			# Hero stat modifier
+			# Summoner stat modifier
 			{"stat": "wind_damage_bonus", "type": "percent", "value": 10.0},
 			# Unit modifier - buffs all wind units
 			{
@@ -125,7 +125,7 @@ func _init_traits() -> void:
 		]
 	})
 
-	# Earth Hero Traits
+	# Earth Summoner Traits
 	_register_trait({
 		"id": "trait_earth_affinity",
 		"name_key": "trait.earth_affinity.name",
@@ -133,7 +133,7 @@ func _init_traits() -> void:
 		"category": "elemental",
 		"is_innate": true,
 		"modifiers": [
-			# Hero stat modifier
+			# Summoner stat modifier
 			{"stat": "earth_damage_bonus", "type": "percent", "value": 10.0},
 			# Unit modifier - buffs all earth units
 			{
@@ -204,13 +204,13 @@ func _init_traits() -> void:
 		]
 	})
 
-	# Special trait granted for choosing "Random" hero
+	# Special trait granted for choosing "Random" summoner
 	_register_trait({
 		"id": "trait_fortune_favors_bold",
 		"name_key": "trait.fortune_favors_bold.name",
 		"description_key": "trait.fortune_favors_bold.description",
 		"category": "special",
-		"is_innate": false,  # Not innate to any hero, but granted by system
+		"is_innate": false,  # Not innate to any summoner, but granted by system
 		"modifiers": [
 			{"stat": "max_health", "type": "flat", "value": 50.0}
 		]
@@ -297,7 +297,7 @@ func get_trait_description(trait_id: String) -> String:
 		return ""
 	return Loc.t(desc_key)
 
-## Get unit modifiers for a trait (for HeroModifierProvider)
+## Get unit modifiers for a trait (for SummonerModifierProvider)
 ## Returns modifiers that have target="unit" - these affect spawned units
 func get_unit_modifiers_for_trait(trait_id: String) -> Array[Dictionary]:
 	var trait_data: Dictionary = get_trait(trait_id)

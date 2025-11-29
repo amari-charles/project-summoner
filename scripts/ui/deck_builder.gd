@@ -37,9 +37,9 @@ class_name DeckBuilder
 @onready var popup_action: Label = %ActionLabel
 @onready var popup_close_button: Button = %CloseButton
 
-## Hero selection UI (optional - add to scene if not present)
-@onready var hero_selector: OptionButton = get_node_or_null("%HeroSelector")
-@onready var hero_stats_label: Label = get_node_or_null("%HeroStatsLabel")
+## Summoner selection UI (optional - add to scene if not present)
+@onready var summoner_selector: OptionButton = get_node_or_null("%SummonerSelector")
+@onready var summoner_stats_label: Label = get_node_or_null("%SummonerStatsLabel")
 
 ## State
 var current_deck_id: String = ""
@@ -74,10 +74,10 @@ func _ready() -> void:
 	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
 	popup_close_button.pressed.connect(_on_popup_close_pressed)
 
-	# Connect hero selector if present
-	if hero_selector:
-		hero_selector.item_selected.connect(_on_hero_selected)
-		_populate_hero_selector()
+	# Connect summoner selector if present
+	if summoner_selector:
+		summoner_selector.item_selected.connect(_on_summoner_selected)
+		_populate_summoner_selector()
 
 	# Connect to services
 	var decks: Node = get_node("/root/Decks")
@@ -229,8 +229,8 @@ func _load_deck(deck_id: String) -> void:
 	_refresh_deck_display()
 	_update_validation()
 
-	# Load and display hero
-	_load_deck_hero()
+	# Load and display summoner
+	_load_deck_summoner()
 
 	# Debug: Check for duplicate cards
 	var unique_ids: Dictionary = {}
@@ -805,104 +805,104 @@ func _show_locked_message() -> void:
 		validation_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
 
 ## =============================================================================
-## HERO MANAGEMENT
+## SUMMONER MANAGEMENT
 ## =============================================================================
 
-## Populate hero selector with unlocked heroes
-func _populate_hero_selector() -> void:
-	if not hero_selector:
+## Populate summoner selector with unlocked summoners
+func _populate_summoner_selector() -> void:
+	if not summoner_selector:
 		return
 
-	hero_selector.clear()
+	summoner_selector.clear()
 
 	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if not profile_repo or not profile_repo.has_method("get_unlocked_heroes"):
+	if not profile_repo or not profile_repo.has_method("get_unlocked_summoners"):
 		return
 
-	var unlocked: Array = profile_repo.call("get_unlocked_heroes")
+	var unlocked: Array = profile_repo.call("get_unlocked_summoners")
 	if unlocked.is_empty():
-		push_warning("DeckBuilder: No heroes unlocked!")
+		push_warning("DeckBuilder: No summoners unlocked!")
 		return
 
-	var hero_catalog: Node = get_node("/root/HeroCatalog")
-	if not hero_catalog or not hero_catalog.has_method("get_hero"):
+	var summoner_catalog: Node = get_node("/root/SummonerCatalog")
+	if not summoner_catalog or not summoner_catalog.has_method("get_summoner"):
 		return
 
-	# Add each unlocked hero to selector
-	for hero_id: Variant in unlocked:
-		if hero_id is String:
-			var hero_data: Variant = hero_catalog.call("get_hero", hero_id)
-			if hero_data is Dictionary:
-				var hero_dict: Dictionary = hero_data
-				var hero_name: String = hero_dict.get("hero_name", hero_id)
-				hero_selector.add_item(hero_name)
-				hero_selector.set_item_metadata(hero_selector.item_count - 1, hero_id)
+	# Add each unlocked summoner to selector
+	for summoner_id: Variant in unlocked:
+		if summoner_id is String:
+			var summoner_data: Variant = summoner_catalog.call("get_summoner", summoner_id)
+			if summoner_data is Dictionary:
+				var summoner_dict: Dictionary = summoner_data
+				var summoner_name: String = summoner_dict.get("summoner_name", summoner_id)
+				summoner_selector.add_item(summoner_name)
+				summoner_selector.set_item_metadata(summoner_selector.item_count - 1, summoner_id)
 
-	print("DeckBuilder: Populated hero selector with %d heroes" % hero_selector.item_count)
+	print("DeckBuilder: Populated summoner selector with %d summoners" % summoner_selector.item_count)
 
-## Load and display hero for current deck
-func _load_deck_hero() -> void:
-	if not hero_selector or current_deck_data.is_empty():
+## Load and display summoner for current deck
+func _load_deck_summoner() -> void:
+	if not summoner_selector or current_deck_data.is_empty():
 		return
 
-	var hero_id: String = current_deck_data.get("hero_id", "")
-	if hero_id.is_empty():
-		push_warning("DeckBuilder: Deck has no hero assigned!")
+	var summoner_id: String = current_deck_data.get("summoner_id", "")
+	if summoner_id.is_empty():
+		push_warning("DeckBuilder: Deck has no summoner assigned!")
 		return
 
-	# Find and select the hero in the dropdown
-	for i: int in hero_selector.item_count:
-		var metadata: Variant = hero_selector.get_item_metadata(i)
-		if metadata is String and metadata == hero_id:
-			hero_selector.selected = i
+	# Find and select the summoner in the dropdown
+	for i: int in summoner_selector.item_count:
+		var metadata: Variant = summoner_selector.get_item_metadata(i)
+		if metadata is String and metadata == summoner_id:
+			summoner_selector.selected = i
 			break
 
-	# Update hero stats display
-	_update_hero_stats_display(hero_id)
+	# Update summoner stats display
+	_update_summoner_stats_display(summoner_id)
 
-## Update hero stats label with hero data
-func _update_hero_stats_display(hero_id: String) -> void:
-	if not hero_stats_label:
+## Update summoner stats label with summoner data
+func _update_summoner_stats_display(summoner_id: String) -> void:
+	if not summoner_stats_label:
 		return
 
-	var hero_catalog: Node = get_node("/root/HeroCatalog")
-	if not hero_catalog or not hero_catalog.has_method("get_hero"):
+	var summoner_catalog: Node = get_node("/root/SummonerCatalog")
+	if not summoner_catalog or not summoner_catalog.has_method("get_summoner"):
 		return
 
-	var hero_data: Variant = hero_catalog.call("get_hero", hero_id)
-	if not hero_data is Dictionary:
+	var summoner_data: Variant = summoner_catalog.call("get_summoner", summoner_id)
+	if not summoner_data is Dictionary:
 		return
 
-	var hero_dict: Dictionary = hero_data
-	var health: float = hero_dict.get("base_health", 0.0)
-	var mana: float = hero_dict.get("max_mana", 0.0)
-	var regen: float = hero_dict.get("mana_regen", 0.0)
+	var summoner_dict: Dictionary = summoner_data
+	var health: float = summoner_dict.get("base_health", 0.0)
+	var mana: float = summoner_dict.get("max_mana", 0.0)
+	var regen: float = summoner_dict.get("mana_regen", 0.0)
 
-	hero_stats_label.text = Loc.t("ui.deck_builder.hero_stats", {"hp": "%.0f" % health, "mana": "%.0f" % mana, "regen": "%.1f" % regen})
+	summoner_stats_label.text = Loc.t("ui.deck_builder.summoner_stats", {"hp": "%.0f" % health, "mana": "%.0f" % mana, "regen": "%.1f" % regen})
 
-## Called when hero selector changes
-func _on_hero_selected(index: int) -> void:
+## Called when summoner selector changes
+func _on_summoner_selected(index: int) -> void:
 	if deck_editing_locked:
 		_show_locked_message()
-		_load_deck_hero()  # Reset to original hero
+		_load_deck_summoner()  # Reset to original summoner
 		return
 
-	if not hero_selector or current_deck_id.is_empty():
+	if not summoner_selector or current_deck_id.is_empty():
 		return
 
-	var hero_id: Variant = hero_selector.get_item_metadata(index)
-	if not hero_id is String:
+	var summoner_id: Variant = summoner_selector.get_item_metadata(index)
+	if not summoner_id is String:
 		return
 
-	var hero_id_str: String = hero_id
+	var summoner_id_str: String = summoner_id
 
-	# Update deck hero
+	# Update deck summoner
 	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("set_deck_hero"):
-		var success: Variant = decks.call("set_deck_hero", current_deck_id, hero_id_str)
+	if decks and decks.has_method("set_deck_summoner"):
+		var success: Variant = decks.call("set_deck_summoner", current_deck_id, summoner_id_str)
 		if success is bool and success:
-			print("DeckBuilder: Changed deck hero to: %s" % hero_id_str)
-			_update_hero_stats_display(hero_id_str)
+			print("DeckBuilder: Changed deck summoner to: %s" % summoner_id_str)
+			_update_summoner_stats_display(summoner_id_str)
 		else:
-			push_error("DeckBuilder: Failed to set deck hero!")
-			_load_deck_hero()  # Reset to original
+			push_error("DeckBuilder: Failed to set deck summoner!")
+			_load_deck_summoner()  # Reset to original

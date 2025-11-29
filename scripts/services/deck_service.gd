@@ -59,13 +59,13 @@ func has_deck(deck_id: String) -> bool:
 func get_deck_count() -> int:
 	return list_decks().size()
 
-## Get all decks for a specific hero
-func list_decks_for_hero(hero_id: String) -> Array[Dictionary]:
+## Get all decks for a specific summoner
+func list_decks_for_summoner(summoner_id: String) -> Array[Dictionary]:
 	var all_decks: Array[Dictionary] = list_decks()
 	var filtered: Array[Dictionary] = []
 	for deck: Dictionary in all_decks:
-		var deck_hero: Variant = deck.get("hero_id", "")
-		if deck_hero is String and deck_hero == hero_id:
+		var deck_summoner: Variant = deck.get("summoner_id", "")
+		if deck_summoner is String and deck_summoner == summoner_id:
 			filtered.append(deck)
 	return filtered
 
@@ -75,33 +75,33 @@ func list_decks_for_hero(hero_id: String) -> Array[Dictionary]:
 
 ## Create a new deck
 ## Returns: deck_id
-func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: String = "") -> String:
-	# Determine hero_id
-	var final_hero_id: String = hero_id
-	if final_hero_id.is_empty():
-		# Default to first unlocked hero
-		var unlocked: Array = ProfileRepo.get_unlocked_heroes()
+func create_deck(deck_name: String, card_instance_ids: Array = [], summoner_id: String = "") -> String:
+	# Determine summoner_id
+	var final_summoner_id: String = summoner_id
+	if final_summoner_id.is_empty():
+		# Default to first unlocked summoner
+		var unlocked: Array = ProfileRepo.get_unlocked_summoners()
 
 		if unlocked.is_empty():
-			push_error("DeckService: Cannot create deck - no heroes unlocked")
+			push_error("DeckService: Cannot create deck - no summoners unlocked")
 			return ""
 
-		final_hero_id = unlocked[0]
+		final_summoner_id = unlocked[0]
 	else:
-		# Validate hero is unlocked
-		if not ProfileRepo.is_hero_unlocked(final_hero_id):
-			push_error("DeckService: Cannot create deck - hero not unlocked: %s" % final_hero_id)
+		# Validate summoner is unlocked
+		if not ProfileRepo.is_summoner_unlocked(final_summoner_id):
+			push_error("DeckService: Cannot create deck - summoner not unlocked: %s" % final_summoner_id)
 			return ""
 
 	var deck: Dictionary = {
 		"name": deck_name,
 		"card_instance_ids": card_instance_ids,
-		"hero_id": final_hero_id
+		"summoner_id": final_summoner_id
 	}
 
 	var deck_id: String = ProfileRepo.upsert_deck(deck)
 
-	print("DeckService: Created deck '%s' with hero '%s' (id: %s)" % [deck_name, final_hero_id, deck_id])
+	print("DeckService: Created deck '%s' with summoner '%s' (id: %s)" % [deck_name, final_summoner_id, deck_id])
 	deck_created.emit(deck_id)
 	deck_changed.emit(deck_id)
 
@@ -109,7 +109,7 @@ func create_deck(deck_name: String, card_instance_ids: Array = [], hero_id: Stri
 
 ## Update an existing deck
 ## Returns true if successful
-func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Array = [], hero_id: String = "") -> bool:
+func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Array = [], summoner_id: String = "") -> bool:
 	var existing_deck: Dictionary = get_deck(deck_id)
 	if existing_deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
@@ -121,14 +121,14 @@ func update_deck(deck_id: String, deck_name: String = "", card_instance_ids: Arr
 	var existing_cards: Variant = existing_deck.get("card_instance_ids", [])
 	var card_ids: Array = card_instance_ids if card_instance_ids.size() > 0 else (existing_cards if existing_cards is Array else [])
 
-	var existing_hero: Variant = existing_deck.get("hero_id", "")
-	var final_hero_id: String = hero_id if hero_id != "" else (existing_hero if existing_hero is String else "")
+	var existing_summoner: Variant = existing_deck.get("summoner_id", "")
+	var final_summoner_id: String = summoner_id if summoner_id != "" else (existing_summoner if existing_summoner is String else "")
 
 	var updated_deck: Dictionary = {
 		"id": deck_id,
 		"name": deck_display_name,
 		"card_instance_ids": card_ids,
-		"hero_id": final_hero_id
+		"summoner_id": final_summoner_id
 	}
 
 	var result_id: String = ProfileRepo.upsert_deck(updated_deck)
@@ -198,36 +198,36 @@ func remove_card_from_deck(deck_id: String, card_instance_id: String) -> bool:
 
 	return update_deck(deck_id, "", card_instance_ids)
 
-## Set the hero for a deck
+## Set the summoner for a deck
 ## Returns true if successful
-func set_deck_hero(deck_id: String, hero_id: String) -> bool:
+func set_deck_summoner(deck_id: String, summoner_id: String) -> bool:
 	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		push_warning("DeckService: Deck not found: %s" % deck_id)
 		return false
 
-	# Validate hero exists in catalog
-	if not HeroCatalog.is_valid_hero(hero_id):
-		push_error("DeckService: Invalid hero_id: %s" % hero_id)
+	# Validate summoner exists in catalog
+	if not SummonerCatalog.is_valid_summoner(summoner_id):
+		push_error("DeckService: Invalid summoner_id: %s" % summoner_id)
 		return false
 
-	# Validate hero is unlocked
-	if not ProfileRepo.is_hero_unlocked(hero_id):
-		push_error("DeckService: Hero not unlocked for this profile: %s" % hero_id)
+	# Validate summoner is unlocked
+	if not ProfileRepo.is_summoner_unlocked(summoner_id):
+		push_error("DeckService: Summoner not unlocked for this profile: %s" % summoner_id)
 		return false
 
-	return update_deck(deck_id, "", [], hero_id)
+	return update_deck(deck_id, "", [], summoner_id)
 
-## Get the hero ID for a deck
-## Returns empty string if deck not found or hero not set
-func get_deck_hero(deck_id: String) -> String:
+## Get the summoner ID for a deck
+## Returns empty string if deck not found or summoner not set
+func get_deck_summoner(deck_id: String) -> String:
 	var deck: Dictionary = get_deck(deck_id)
 	if deck.is_empty():
 		return ""
 
-	var hero_id: Variant = deck.get("hero_id", "")
-	if hero_id is String:
-		return hero_id
+	var summoner_id: Variant = deck.get("summoner_id", "")
+	if summoner_id is String:
+		return summoner_id
 	return ""
 
 ## =============================================================================
@@ -242,14 +242,14 @@ func validate_deck(deck_id: String) -> bool:
 		_emit_validation_failed(deck_id, "Deck not found")
 		return false
 
-	# Check hero is set and unlocked
-	var hero_id: String = deck.get("hero_id", "")
-	if hero_id.is_empty():
-		_emit_validation_failed(deck_id, "Deck has no hero assigned")
+	# Check summoner is set and unlocked
+	var summoner_id: String = deck.get("summoner_id", "")
+	if summoner_id.is_empty():
+		_emit_validation_failed(deck_id, "Deck has no summoner assigned")
 		return false
 
-	if not ProfileRepo.is_hero_unlocked(hero_id):
-		_emit_validation_failed(deck_id, "Hero not unlocked: %s" % hero_id)
+	if not ProfileRepo.is_summoner_unlocked(summoner_id):
+		_emit_validation_failed(deck_id, "Summoner not unlocked: %s" % summoner_id)
 		return false
 
 	var card_instance_ids: Array = deck.get("card_instance_ids", [])
@@ -285,12 +285,12 @@ func get_validation_errors(deck_id: String) -> Array[String]:
 		errors.append("Deck not found")
 		return errors
 
-	# Check hero
-	var hero_id: String = deck.get("hero_id", "")
-	if hero_id.is_empty():
-		errors.append("No hero assigned")
-	elif not ProfileRepo.is_hero_unlocked(hero_id):
-		errors.append("Hero not unlocked: %s" % hero_id)
+	# Check summoner
+	var summoner_id: String = deck.get("summoner_id", "")
+	if summoner_id.is_empty():
+		errors.append("No summoner assigned")
+	elif not ProfileRepo.is_summoner_unlocked(summoner_id):
+		errors.append("Summoner not unlocked: %s" % summoner_id)
 
 	var card_instance_ids: Array = deck.get("card_instance_ids", [])
 

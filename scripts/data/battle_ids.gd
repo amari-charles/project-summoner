@@ -8,7 +8,7 @@ class_name BattleIDs
 ## Usage:
 ##   Campaign.start_battle(BattleIDs.FIRST_TRIAL)
 ##   if current_battle == BattleIDs.EVENT_AFFINITY:
-##       # Show hero selection
+##       # Show summoner selection
 ##
 ## When adding new battles:
 ##   1. Add battle definition to CampaignService._init_battles()
@@ -21,7 +21,7 @@ class_name BattleIDs
 # ONBOARDING EVENTS (Non-combat story/selection events)
 # ============================================================================
 
-## Onboarding Event 1: Hero affinity selection
+## Onboarding Event 1: Summoner affinity selection
 const EVENT_AFFINITY: StringName = &"event_affinity"
 
 ## Onboarding Event 2: First summon card selection

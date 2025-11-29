@@ -218,7 +218,7 @@ func _build_purchase_context(offering: ShopOffering) -> ShopPurchaseContext:
 	var purchases: Dictionary = ProfileRepo.get_shop_purchases()
 	context.purchase_count = purchases.get(purchase_key, 0)
 
-	context.hero_affinity = ""  # TODO: Get from profile when hero system implemented
+	context.summoner_affinity = ""  # TODO: Get from profile when summoner system implemented
 
 	return context
 

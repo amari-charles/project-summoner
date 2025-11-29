@@ -4,6 +4,36 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## Summoner System
+
+### Standardize "Hero" vs "Summoner" Language
+**Completed:** 2025-11-28
+**Category:** Summoners / Architecture
+**Effort:** Medium
+
+**Description:**
+The codebase inconsistently used "Summoner" and "Hero" to refer to the same concept (the player character). Standardized to "Summoner" throughout codebase, docs, and UI.
+
+**Solution Implemented:**
+- Renamed all `Hero*` classes to `Summoner*` (HeroConfig→SummonerConfig, HeroInstance→SummonerInstance, etc.)
+- Updated all services: HeroCatalog→SummonerCatalog, HeroSelection→SummonerSelection, HeroProgression→SummonerProgression
+- Updated UI components: HeroManagementPanel→SummonerManagementPanel, HeroIconWidget→SummonerIconWidget, etc.
+- Updated all scenes (.tscn) with new script paths and node names
+- Updated localization keys in en.json (hero→summoner)
+- Updated documentation in docs/features/summoners/
+- Created SummonerIDs class for type-safe summoner references
+
+**Files Changed:**
+- Renamed: `scripts/core/hero_*.gd` → `scripts/core/summoner_*.gd`
+- Renamed: `scripts/services/hero_*.gd` → `scripts/services/summoner_*.gd`
+- Renamed: `scripts/ui/hero_*.gd` → `scripts/ui/summoner_*.gd`
+- Renamed: `scenes/ui/hero_*.tscn` → `scenes/ui/summoner_*.tscn`
+- Updated: `project.godot` autoloads
+- Updated: `localization/data/en.json`
+- Updated: `docs/features/summoners/*`
+
+---
+
 ## Units & Combat
 
 ### Prevent Units from Stacking on Same Coordinates

@@ -66,13 +66,13 @@ func apply_damage(
 	if flags.has("damage_multiplier"):
 		final_damage *= flags.damage_multiplier
 
-	# Apply player hero damage bonuses if attacker is on player team
+	# Apply player summoner damage bonuses if attacker is on player team
 	if _is_player_team(attacker):
-		final_damage = _apply_hero_damage_bonuses(final_damage, damage_type)
+		final_damage = _apply_summoner_damage_bonuses(final_damage, damage_type)
 
-	# Apply player hero damage reduction if target is on player team
+	# Apply player summoner damage reduction if target is on player team
 	if _is_player_team(target):
-		final_damage = _apply_hero_damage_reduction(final_damage)
+		final_damage = _apply_summoner_damage_reduction(final_damage)
 
 	# Round to avoid floating point issues
 	final_damage = round(final_damage * 10) / 10.0
@@ -267,7 +267,7 @@ func preview_damage(
 	return result
 
 ## =============================================================================
-## HERO TRAIT INTEGRATION
+## SUMMONER TRAIT INTEGRATION
 ## =============================================================================
 
 ## Check if a node is on the player team
@@ -281,41 +281,41 @@ func _is_player_team(node: Node3D) -> bool:
 		return team_value == Unit.Team.PLAYER
 	return false
 
-## Apply hero damage bonuses from traits
-func _apply_hero_damage_bonuses(damage: float, damage_type: String) -> float:
-	var hero_stats: Dictionary = BattleContext.get_player_hero_stats()
-	if hero_stats.is_empty():
-		# In campaign mode, empty hero stats indicates a timing/initialization bug
+## Apply summoner damage bonuses from traits
+func _apply_summoner_damage_bonuses(damage: float, damage_type: String) -> float:
+	var summoner_stats: Dictionary = BattleContext.get_player_summoner_stats()
+	if summoner_stats.is_empty():
+		# In campaign mode, empty summoner stats indicates a timing/initialization bug
 		if BattleContext.current_mode == BattleContext.BattleMode.CAMPAIGN:
-			push_warning("DamageSystem: No hero stats cached in campaign mode - trait bonuses not applied")
+			push_warning("DamageSystem: No summoner stats cached in campaign mode - trait bonuses not applied")
 		return damage
 
 	var modified_damage: float = damage
 
 	# Apply general damage bonus (applies to all damage)
-	var damage_bonus: float = hero_stats.get("damage_bonus", 0.0)
+	var damage_bonus: float = summoner_stats.get("damage_bonus", 0.0)
 	if damage_bonus > 0.0:
 		modified_damage *= (1.0 + damage_bonus / 100.0)
 
 	# Apply elemental damage bonus based on damage type
 	var elemental_bonus_key: String = damage_type + "_damage_bonus"
-	var elemental_bonus: float = hero_stats.get(elemental_bonus_key, 0.0)
+	var elemental_bonus: float = summoner_stats.get(elemental_bonus_key, 0.0)
 	if elemental_bonus > 0.0:
 		modified_damage *= (1.0 + elemental_bonus / 100.0)
 
 	return modified_damage
 
-## Apply hero damage reduction from traits
-func _apply_hero_damage_reduction(damage: float) -> float:
-	var hero_stats: Dictionary = BattleContext.get_player_hero_stats()
-	if hero_stats.is_empty():
-		# In campaign mode, empty hero stats indicates a timing/initialization bug
+## Apply summoner damage reduction from traits
+func _apply_summoner_damage_reduction(damage: float) -> float:
+	var summoner_stats: Dictionary = BattleContext.get_player_summoner_stats()
+	if summoner_stats.is_empty():
+		# In campaign mode, empty summoner stats indicates a timing/initialization bug
 		if BattleContext.current_mode == BattleContext.BattleMode.CAMPAIGN:
-			push_warning("DamageSystem: No hero stats cached in campaign mode - trait reduction not applied")
+			push_warning("DamageSystem: No summoner stats cached in campaign mode - trait reduction not applied")
 		return damage
 
 	# Apply flat damage reduction
-	var damage_reduction: float = hero_stats.get("damage_reduction", 0.0)
+	var damage_reduction: float = summoner_stats.get("damage_reduction", 0.0)
 	if damage_reduction > 0.0:
 		damage = maxf(damage - damage_reduction, 0.0)
 

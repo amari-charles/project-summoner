@@ -140,7 +140,7 @@
       "locked_temporary": "🔒 Complete tutorial battles to unlock deck editing",
       "action_add": "Click card to ADD to deck",
       "action_remove": "Click card to REMOVE from deck",
-      "hero_stats": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
+      "summoner_stats": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
       "active_deck": "✓ ACTIVE DECK",
       "set_active": "SET AS ACTIVE"
     },
@@ -162,12 +162,12 @@
       "type_special": "Type: Special",
       "price_format": "Price: {price} gold"
     },
-    "hero_card": {
+    "summoner_card": {
       "hp_label": "HP: {value}",
       "mana_label": "Mana: {value}",
       "regen_label": "Regen: {value}/s"
     },
-    "hero_reveal": {
+    "summoner_reveal": {
       "random_title": "FATE HAS CHOSEN YOUR CHAMPION"
     },
     "mana_bar": {
@@ -178,8 +178,8 @@
       "disabled_tooltip": "Speed control disabled for this mode",
       "enabled_tooltip": "Toggle game speed (1x / 2x)"
     },
-    "hero_panel": {
-      "title": "HERO ROSTER",
+    "summoner_panel": {
+      "title": "SUMMONER ROSTER",
       "gold_display": "Gold: {gold}",
       "close_button": "CLOSE",
       "select_button": "SELECT",
@@ -196,8 +196,8 @@
       "stats_summary": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
       "picker_active_suffix": " [Active]"
     },
-    "hero_icon": {
-      "no_hero": "No hero selected"
+    "summoner_icon": {
+      "no_summoner": "No summoner selected"
     }
   },
   "trait": {
@@ -282,9 +282,9 @@
     },
     "merriweather_closing": {
       "speaker": "Mr. Merriweather",
-      "line_1": "Do let me know if anything catches your eye! I'll be in the area for a while—there are several other summoners I'm hoping to assist today. Such a joy to support the next generation of heroes!"
+      "line_1": "Do let me know if anything catches your eye! I'll be in the area for a while—there are several other summoners I'm hoping to assist today. Such a joy to support the next generation of summoners!"
     },
-    "merlin_hero_intro": {
+    "merlin_summoner_intro": {
       "speaker": "Merlin",
       "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
       "line_2": "Before we begin your trials, you must select your path—the elemental affinity that will shape your journey as a summoner.",
@@ -403,36 +403,36 @@
     "purchased": "Purchased!",
     "not_enough_gold": "Not enough gold"
   },
-  "hero": {
-    "hero_fire": {
+  "summoner": {
+    "summoner_fire": {
       "name": "Pyralis",
       "description": "Master of flame and passion"
     },
-    "hero_water": {
+    "summoner_water": {
       "name": "Aquira",
       "description": "Embodiment of adaptability and flow"
     },
-    "hero_wind": {
+    "summoner_wind": {
       "name": "Zephyrion",
       "description": "Spirit of freedom and motion"
     },
-    "hero_earth": {
+    "summoner_earth": {
       "name": "Terravorn",
       "description": "Guardian of stability and endurance"
     },
-    "hero_shadow_initiate": {
+    "summoner_shadow_initiate": {
       "name": "Shadow Initiate",
       "description": "A mysterious figure cloaked in darkness"
     },
-    "hero_mana_test": {
+    "summoner_mana_test": {
       "name": "Mana Tester",
-      "description": "Dev hero for testing tiered mana bar UI"
+      "description": "Dev summoner for testing tiered mana bar UI"
     },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",
     "stat_mana_regen": "Mana Regen: {value}/s",
-    "random_hero": "Random",
-    "random_hero_description": "Let fate choose your hero",
+    "random_summoner": "Random",
+    "random_summoner_description": "Let fate choose your summoner",
     "trait_fortune_favors_bold": "Fortune Favors the Bold",
     "trait_fortune_favors_bold_desc": "Start with bonus {bonus_type}"
   }
