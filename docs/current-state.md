@@ -509,8 +509,8 @@ Implementation (JsonProfileRepo → future: DbProfileRepo, SupabaseRepo)
 - **Save Compression:** For larger collections
 - **Undo/Redo System:** Accidental operation recovery
 - **Card Variants:** Stat rolls and effect modifiers
-- **Hero System:** Persistent commander with abilities
-- **Progression System:** Level up cards and heroes
+- **Summoner System:** Persistent commander with abilities
+- **Progression System:** Level up cards and summoners
 - **Achievement System:** Unlock conditions and rewards
 
 ### Performance Considerations
