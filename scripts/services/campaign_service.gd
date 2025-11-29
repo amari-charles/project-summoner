@@ -48,10 +48,10 @@ func _ready() -> void:
 	# Reload progress when profile changes (e.g., on reset)
 	profile_repo.data_changed.connect(_on_profile_data_changed)
 
-	# Reload progress when active hero changes
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_signal("hero_changed"):
-		hero_selection.hero_changed.connect(_on_hero_changed)
+	# Reload progress when active summoner changes
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
+		summoner_selection.summoner_changed.connect(_on_summoner_changed)
 
 
 ## Initialize for unit testing with mock dependencies
@@ -73,8 +73,8 @@ func _on_profile_data_changed() -> void:
 	print("CampaignService: Profile data changed - reloading progress...")
 	_load_progress()
 
-func _on_hero_changed(_old_hero_id: String, new_hero_id: String) -> void:
-	print("CampaignService: Hero changed to '%s' - reloading progress..." % new_hero_id)
+func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> void:
+	print("CampaignService: Summoner changed to '%s' - reloading progress..." % new_summoner_id)
 	_load_progress()
 	campaign_progress_changed.emit()
 
@@ -107,7 +107,7 @@ func _init_battles(skip_validation: bool = false) -> void:
 	#   - TIMED_DESTROY: Destroy base within time_limit (player loses on timeout)
 	#   - KILL_COUNT: Kill kill_target enemy units to win
 
-	# Onboarding Event 1: Hero/Affinity selection
+	# Onboarding Event 1: Summoner/Affinity selection
 	# Note: Convert StringName to String for dictionary keys (String lookups won't find StringName keys)
 	_battles[String(BattleIDs.EVENT_AFFINITY)] = {
 		"id": String(BattleIDs.EVENT_AFFINITY),
@@ -119,7 +119,7 @@ func _init_battles(skip_validation: bool = false) -> void:
 		"requires_deck": false,  # No deck selection needed
 		"repeatable": false,  # One-time event
 		"reward_type": RewardTypeIDs.FIXED,
-		"reward_cards": [],  # Reward handled by hero_selection flow
+		"reward_cards": [],  # Reward handled by summoner_selection flow
 		"enemy_deck": [],  # Not a battle
 		"unlock_requirements": [],  # First event, always available
 	}
@@ -157,7 +157,7 @@ func _init_battles(skip_validation: bool = false) -> void:
 		],
 		"gold_reward": 30,       # Base gold reward for winning
 		"card_xp_reward": 15,    # XP granted to cards played in battle
-		"hero_xp_reward": 50,    # XP granted to hero for winning
+		"summoner_xp_reward": 50,    # XP granted to summoner for winning
 		"enemy_deck": [
 			{"catalog_id": "slime_green", "count": 1}
 		],
@@ -188,7 +188,7 @@ func _init_battles(skip_validation: bool = false) -> void:
 		],
 		"gold_reward": 40,       # Slightly more gold for second battle
 		"card_xp_reward": 15,    # XP granted to cards played in battle
-		"hero_xp_reward": 75,    # XP granted to hero for winning
+		"summoner_xp_reward": 75,    # XP granted to summoner for winning
 		"enemy_deck": [],  # Spawned via event sequence
 		"enemy_hp": 50.0,
 		"unlock_requirements": [String(BattleIDs.FIRST_TRIAL)],

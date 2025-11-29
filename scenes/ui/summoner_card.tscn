@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://hero_card_temp"]
 
-[ext_resource type="Script" path="res://scripts/ui/hero_card.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/ui/summoner_card.gd" id="1_script"]
 
-[node name="HeroCard" type="Control"]
+[node name="SummonerCard" type="Control"]
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 3
 anchors_preset = 0
@@ -46,11 +46,11 @@ theme_override_constants/margin_bottom = 20
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="HeroNameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="SummonerNameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Hero Name"
+text = "Summoner Name"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -107,7 +107,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "Hero description goes here"
+text = "Summoner description goes here"
 horizontal_alignment = 1
 autowrap_mode = 3
 

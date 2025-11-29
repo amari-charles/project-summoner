@@ -207,7 +207,7 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 	var context: ShopPurchaseContext = ShopPurchaseContext.new()
 	context.player_gold = gold
 	context.purchase_count = purchase_count
-	context.hero_affinity = ""  # TODO: ProfileRepo.get_hero_affinity() when implemented
+	context.summoner_affinity = ""  # TODO: ProfileRepo.get_summoner_affinity() when implemented
 	context.refresh_epoch = refresh_epoch
 
 	# Validate

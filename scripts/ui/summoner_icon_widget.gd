@@ -1,15 +1,15 @@
 extends Control
-class_name HeroIconWidget
+class_name SummonerIconWidget
 
-## HeroIconWidget - Persistent hero portrait button
+## SummonerIconWidget - Persistent summoner portrait button
 ##
-## A reusable component that displays the active hero's portrait.
-## Click to open hero management panel.
+## A reusable component that displays the active summoner's portrait.
+## Click to open summoner management panel.
 ##
 ## Usage:
 ##   - Add scene instance to any screen
 ##   - Connect to icon_clicked signal
-##   - Widget auto-updates when active hero changes
+##   - Widget auto-updates when active summoner changes
 
 ## Emitted when the icon is clicked
 signal icon_clicked()
@@ -29,10 +29,10 @@ func _ready() -> void:
 	# Connect button
 	icon_button.pressed.connect(_on_icon_pressed)
 
-	# Connect to hero selection changes
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_signal("hero_changed"):
-		hero_selection.hero_changed.connect(_on_hero_changed)
+	# Connect to summoner selection changes
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
+		summoner_selection.summoner_changed.connect(_on_summoner_changed)
 
 	# Initial refresh
 	refresh()
@@ -41,41 +41,41 @@ func _ready() -> void:
 ## PUBLIC API
 ## =============================================================================
 
-## Refresh the display from current active hero
+## Refresh the display from current active summoner
 func refresh() -> void:
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if not hero_selection or not hero_selection.has_method("get_active_hero_id"):
-		_show_no_hero()
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection or not summoner_selection.has_method("get_active_summoner_id"):
+		_show_no_summoner()
 		return
 
-	var result: Variant = hero_selection.call("get_active_hero_id")
+	var result: Variant = summoner_selection.call("get_active_summoner_id")
 	if not result is String:
-		_show_no_hero()
+		_show_no_summoner()
 		return
 
-	var hero_id: String = result
-	if hero_id.is_empty():
-		_show_no_hero()
+	var summoner_id: String = result
+	if summoner_id.is_empty():
+		_show_no_summoner()
 		return
 
-	_update_display(hero_id)
+	_update_display(summoner_id)
 
 ## =============================================================================
 ## PRIVATE METHODS
 ## =============================================================================
 
-func _update_display(hero_id: String) -> void:
-	# Get hero config
-	var config: HeroConfig = HeroCatalog.get_hero_config(hero_id)
+func _update_display(summoner_id: String) -> void:
+	# Get summoner config
+	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
 	if not config:
-		_show_no_hero()
+		_show_no_summoner()
 		return
 
-	# Get hero instance for level
-	var hero_progression: Node = get_node_or_null("/root/HeroProgression")
+	# Get summoner instance for level
+	var summoner_progression: Node = get_node_or_null("/root/SummonerProgression")
 	var level: int = 1
-	if hero_progression:
-		var info: Dictionary = hero_progression.call("get_hero_progression_info", hero_id)
+	if summoner_progression:
+		var info: Dictionary = summoner_progression.call("get_summoner_progression_info", summoner_id)
 		level = info.get("level", 1)
 
 	# Get element
@@ -90,17 +90,17 @@ func _update_display(hero_id: String) -> void:
 	level_badge.visible = true
 
 	# Tooltip
-	icon_button.tooltip_text = config.hero_name
+	icon_button.tooltip_text = config.summoner_name
 
-func _show_no_hero() -> void:
+func _show_no_summoner() -> void:
 	portrait_rect.color = ElementTypes.get_color("neutral")
 	element_label.text = ElementTypes.get_symbol("neutral")
 	level_badge.text = ""
 	level_badge.visible = false
-	icon_button.tooltip_text = Loc.t("ui.hero_icon.no_hero")
+	icon_button.tooltip_text = Loc.t("ui.summoner_icon.no_summoner")
 
 func _on_icon_pressed() -> void:
 	icon_clicked.emit()
 
-func _on_hero_changed(_old_hero_id: String, _new_hero_id: String) -> void:
+func _on_summoner_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
 	refresh()

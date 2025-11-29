@@ -19,7 +19,7 @@ class_name Summoner
 ## Current state
 var current_hp: float
 var mana: float = 0.0
-var max_mana: float = 10.0  # Set from hero stats in _apply_hero_bonuses()
+var max_mana: float = 10.0  # Set from summoner stats in _apply_summoner_bonuses()
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
@@ -37,7 +37,7 @@ func _ready() -> void:
 	# Wait one frame to ensure autoload services are fully initialized
 	await get_tree().process_frame
 
-	# Initialize deck and apply hero bonuses (must happen before setting current_hp/mana)
+	# Initialize deck and apply summoner bonuses (must happen before setting current_hp/mana)
 	if load_deck_from_profile and team == Unit.Team.PLAYER:
 		# Load deck from player's profile
 		var deck_data: Dictionary = DeckLoader.load_player_deck()
@@ -49,13 +49,13 @@ func _ready() -> void:
 		if deck.is_empty():
 			push_error("Summoner: Failed to load deck from profile!")
 
-		# Apply hero bonuses
-		var hero_instance_variant: Variant = deck_data.get("hero_instance")
-		if hero_instance_variant is HeroInstance:
-			var hero_instance: HeroInstance = hero_instance_variant
-			_apply_hero_bonuses(hero_instance)
+		# Apply summoner bonuses
+		var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
+		if summoner_instance_variant is SummonerInstance:
+			var summoner_instance: SummonerInstance = summoner_instance_variant
+			_apply_summoner_bonuses(summoner_instance)
 		else:
-			push_warning("Summoner: No valid HeroInstance in deck data")
+			push_warning("Summoner: No valid SummonerInstance in deck data")
 	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
 		# Load enemy deck from current campaign battle
 		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
@@ -198,32 +198,32 @@ func _die() -> void:
 	is_alive = false
 	summoner_died.emit(self)
 
-## Apply hero bonuses to summoner stats
-func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
-	if hero_instance == null:
-		push_warning("Summoner: Cannot apply bonuses from null HeroInstance")
+## Apply summoner bonuses to summoner stats
+func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
+	if summoner_instance == null:
+		push_warning("Summoner: Cannot apply bonuses from null SummonerInstance")
 		return
 
 	# Get computed stats (includes modifiers)
-	var stats: Dictionary = hero_instance.get_computed_stats()
+	var stats: Dictionary = summoner_instance.get_computed_stats()
 
-	# Set health from hero (with modifiers applied)
+	# Set health from summoner (with modifiers applied)
 	var health: float = stats.get("health", 1000.0)
 	max_hp = health
 
-	# Set mana regen from hero (with modifiers applied)
-	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
-	mana_regen_rate = hero_mana_regen
+	# Set mana regen from summoner (with modifiers applied)
+	var summoner_mana_regen: float = stats.get("mana_regen", 1.0)
+	mana_regen_rate = summoner_mana_regen
 
-	# Set max mana from hero (with modifiers applied)
-	var hero_max_mana: float = stats.get("max_mana", 10.0)
-	max_mana = hero_max_mana
+	# Set max mana from summoner (with modifiers applied)
+	var summoner_max_mana: float = stats.get("max_mana", 10.0)
+	max_mana = summoner_max_mana
 
-	# Cache hero stats in BattleContext for DamageSystem to use
-	BattleContext.set_player_hero_stats(stats)
+	# Cache summoner stats in BattleContext for DamageSystem to use
+	BattleContext.set_player_summoner_stats(stats)
 
-	var hero_name: String = hero_instance.config.hero_name
-	var trait_count: int = hero_instance.get_all_trait_ids().size()
-	print("Summoner: Applied hero stats from '%s' (Level %d, %d traits) - HP: %.0f, Mana: %.0f, Regen: %.1f/s" % [
-		hero_name, hero_instance.level, trait_count, max_hp, max_mana, mana_regen_rate
+	var summoner_name: String = summoner_instance.config.summoner_name
+	var trait_count: int = summoner_instance.get_all_trait_ids().size()
+	print("Summoner: Applied summoner stats from '%s' (Level %d, %d traits) - HP: %.0f, Mana: %.0f, Regen: %.1f/s" % [
+		summoner_name, summoner_instance.level, trait_count, max_hp, max_mana, mana_regen_rate
 	])

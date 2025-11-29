@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://bv8x2wq4mpn3e"]
 
-[ext_resource type="Script" path="res://scripts/ui/hero_management_panel.gd" id="1_panel"]
+[ext_resource type="Script" path="res://scripts/ui/summoner_management_panel.gd" id="1_panel"]
 
-[node name="HeroManagementPanel" type="Control"]
+[node name="SummonerManagementPanel" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -51,7 +51,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
-text = "HERO"
+text = "SUMMONER ROSTER"
 
 [node name="CloseButton" type="Button" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/HeaderRow"]
 unique_name_in_owner = true
@@ -97,11 +97,11 @@ text = "?"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HeroNameLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
+[node name="SummonerNameLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "Hero Name"
+text = "Summoner Name"
 horizontal_alignment = 1
 
 [node name="InfoRow" type="HBoxContainer" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/ContentRow/LeftColumn"]
@@ -235,14 +235,14 @@ theme_override_font_sizes/font_size = 14
 text = "+50 HP, +0.5 Mana, +0.05 Regen"
 vertical_alignment = 1
 
-[node name="SwitchHeroButton" type="Button" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
+[node name="SwitchSummonerButton" type="Button" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "SWITCH HERO"
+text = "SWITCH SUMMONER"
 
-[node name="HeroPickerPanel" type="PanelContainer" parent="."]
+[node name="SummonerPickerPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -258,39 +258,39 @@ offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PickerMargin" type="MarginContainer" parent="HeroPickerPanel"]
+[node name="PickerMargin" type="MarginContainer" parent="SummonerPickerPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 15
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 15
 
-[node name="PickerVBox" type="VBoxContainer" parent="HeroPickerPanel/PickerMargin"]
+[node name="PickerVBox" type="VBoxContainer" parent="SummonerPickerPanel/PickerMargin"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="PickerHeader" type="HBoxContainer" parent="HeroPickerPanel/PickerMargin/PickerVBox"]
+[node name="PickerHeader" type="HBoxContainer" parent="SummonerPickerPanel/PickerMargin/PickerVBox"]
 layout_mode = 2
 
-[node name="PickerTitle" type="Label" parent="HeroPickerPanel/PickerMargin/PickerVBox/PickerHeader"]
+[node name="PickerTitle" type="Label" parent="SummonerPickerPanel/PickerMargin/PickerVBox/PickerHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
-text = "Select Hero"
+text = "Select Summoner"
 
-[node name="PickerCloseButton" type="Button" parent="HeroPickerPanel/PickerMargin/PickerVBox/PickerHeader"]
+[node name="PickerCloseButton" type="Button" parent="SummonerPickerPanel/PickerMargin/PickerVBox/PickerHeader"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 text = "X"
 
-[node name="PickerScroll" type="ScrollContainer" parent="HeroPickerPanel/PickerMargin/PickerVBox"]
+[node name="PickerScroll" type="ScrollContainer" parent="SummonerPickerPanel/PickerMargin/PickerVBox"]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="HeroPickerList" type="VBoxContainer" parent="HeroPickerPanel/PickerMargin/PickerVBox/PickerScroll"]
+[node name="SummonerPickerList" type="VBoxContainer" parent="SummonerPickerPanel/PickerMargin/PickerVBox/PickerScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

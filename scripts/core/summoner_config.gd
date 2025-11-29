@@ -1,9 +1,9 @@
 extends Resource
-class_name HeroConfig
+class_name SummonerConfig
 
-## HeroConfig - Typed configuration for a hero
+## SummonerConfig - Typed configuration for a summoner
 ##
-## Replaces dictionary-based hero data with typed class.
+## Replaces dictionary-based summoner data with typed class.
 ## Includes base stats and trait system for extensibility.
 ## Can be created from JSON/Dictionary data (data-driven).
 
@@ -13,8 +13,8 @@ const DEFAULT_MAX_MANA: float = 10.0
 const DEFAULT_MANA_REGEN: float = 1.0
 
 ## Identity
-@export var hero_id: String = ""
-@export var hero_name: String = ""
+@export var summoner_id: String = ""
+@export var summoner_name: String = ""
 @export var description: String = ""
 @export_enum("NEUTRAL", "FIRE", "WATER", "WIND", "EARTH", "LIGHTNING", "SHADOW", "POISON", "LIFE", "DEATH", "OCCULTIST", "HOLY", "ICE", "METAL", "SPIRIT")
 var element_id: int = ElementRegistry.ElementId.NEUTRAL
@@ -25,7 +25,7 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 @export var mana_regen: float = DEFAULT_MANA_REGEN
 
 ## Visual
-@export var hero_icon_path: String = ""
+@export var summoner_icon_path: String = ""
 @export var card_frame_style: String = "legendary"
 
 ## Unlock
@@ -34,7 +34,7 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 ## Trait System - trait IDs from TraitCatalog
 @export var innate_trait_ids: Array[String] = []
 
-## Get the Element object for this hero (runtime)
+## Get the Element object for this summoner (runtime)
 func get_element() -> ElementTypes.Element:
 	return ElementRegistry.get_element_from_id(element_id)
 
@@ -43,12 +43,12 @@ func get_element_key() -> StringName:
 	return ElementRegistry.get_key_from_id(element_id)
 
 ## Create from dictionary (for data-driven config from JSON)
-static func from_dict(data: Dictionary) -> HeroConfig:
-	var config: HeroConfig = HeroConfig.new()
+static func from_dict(data: Dictionary) -> SummonerConfig:
+	var config: SummonerConfig = SummonerConfig.new()
 
 	# Identity
-	config.hero_id = data.get("hero_id", "")
-	config.hero_name = data.get("hero_name", "")
+	config.summoner_id = data.get("summoner_id", "")
+	config.summoner_name = data.get("summoner_name", "")
 	config.description = data.get("description", "")
 
 	# Element - handle Element objects, StringName keys, and legacy strings
@@ -64,7 +64,7 @@ static func from_dict(data: Dictionary) -> HeroConfig:
 		if ElementRegistry.is_valid_key(key):
 			config.element_id = ElementRegistry.get_id_from_key(key)
 		else:
-			push_warning("HeroConfig.from_dict: Unknown element key '%s', using NEUTRAL" % key)
+			push_warning("SummonerConfig.from_dict: Unknown element key '%s', using NEUTRAL" % key)
 			config.element_id = ElementRegistry.ElementId.NEUTRAL
 	else:
 		config.element_id = ElementRegistry.ElementId.NEUTRAL
@@ -75,7 +75,7 @@ static func from_dict(data: Dictionary) -> HeroConfig:
 	config.mana_regen = data.get("mana_regen", DEFAULT_MANA_REGEN)
 
 	# Visual
-	config.hero_icon_path = data.get("hero_icon_path", "")
+	config.summoner_icon_path = data.get("summoner_icon_path", "")
 	config.card_frame_style = data.get("card_frame_style", "legendary")
 
 	# Unlock
@@ -94,14 +94,14 @@ static func from_dict(data: Dictionary) -> HeroConfig:
 ## Convert to dictionary (for saving/debugging)
 func to_dict() -> Dictionary:
 	return {
-		"hero_id": hero_id,
-		"hero_name": hero_name,
+		"summoner_id": summoner_id,
+		"summoner_name": summoner_name,
 		"description": description,
 		"element": get_element_key(),
 		"base_health": base_health,
 		"max_mana": max_mana,
 		"mana_regen": mana_regen,
-		"hero_icon_path": hero_icon_path,
+		"summoner_icon_path": summoner_icon_path,
 		"card_frame_style": card_frame_style,
 		"unlock_condition": unlock_condition,
 		"innate_trait_ids": innate_trait_ids
@@ -109,13 +109,13 @@ func to_dict() -> Dictionary:
 
 ## Validation
 func is_valid() -> bool:
-	if hero_id.is_empty():
-		push_error("HeroConfig: hero_id is empty")
+	if summoner_id.is_empty():
+		push_error("SummonerConfig: summoner_id is empty")
 		return false
-	if hero_name.is_empty():
-		push_error("HeroConfig: hero_name is empty for %s" % hero_id)
+	if summoner_name.is_empty():
+		push_error("SummonerConfig: summoner_name is empty for %s" % summoner_id)
 		return false
 	if base_health <= 0:
-		push_error("HeroConfig: base_health must be positive for %s" % hero_id)
+		push_error("SummonerConfig: base_health must be positive for %s" % summoner_id)
 		return false
 	return true

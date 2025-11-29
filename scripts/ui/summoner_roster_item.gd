@@ -1,13 +1,13 @@
 extends PanelContainer
-class_name HeroRosterItem
+class_name SummonerRosterItem
 
-## HeroRosterItem - Individual hero row in the management panel
+## SummonerRosterItem - Individual summoner row in the management panel
 ##
-## Displays hero info with Select and Level Up actions.
+## Displays summoner info with Select and Level Up actions.
 
 ## Signals
-signal select_pressed(hero_id: String)
-signal level_up_pressed(hero_id: String)
+signal select_pressed(summoner_id: String)
+signal level_up_pressed(summoner_id: String)
 
 ## Node references
 @onready var portrait_rect: ColorRect = %PortraitRect
@@ -22,7 +22,7 @@ signal level_up_pressed(hero_id: String)
 @onready var active_indicator: Label = %ActiveIndicator
 
 ## State
-var _hero_id: String = ""
+var _summoner_id: String = ""
 var _is_active: bool = false
 
 ## =============================================================================
@@ -37,31 +37,31 @@ func _ready() -> void:
 ## PUBLIC API
 ## =============================================================================
 
-## Set hero data for display
-func set_hero_data(hero_id: String) -> void:
-	_hero_id = hero_id
+## Set summoner data for display
+func set_summoner_data(summoner_id: String) -> void:
+	_summoner_id = summoner_id
 	refresh()
 
-## Mark this hero as active (currently selected)
+## Mark this summoner as active (currently selected)
 func set_active(is_active: bool) -> void:
 	_is_active = is_active
 	_update_active_display()
 
 ## Refresh display from services
 func refresh() -> void:
-	if _hero_id.is_empty():
+	if _summoner_id.is_empty():
 		return
 
-	# Get hero config
-	var config: HeroConfig = HeroCatalog.get_hero_config(_hero_id)
+	# Get summoner config
+	var config: SummonerConfig = SummonerCatalog.get_summoner_config(_summoner_id)
 	if not config:
 		return
 
 	# Get progression info
-	var progression_node: Node = get_node_or_null("/root/HeroProgression")
+	var progression_node: Node = get_node_or_null("/root/SummonerProgression")
 	var info: Dictionary = {}
 	if progression_node:
-		info = progression_node.call("get_hero_progression_info", _hero_id)
+		info = progression_node.call("get_summoner_progression_info", _summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)
@@ -80,64 +80,64 @@ func refresh() -> void:
 	element_label.text = ElementTypes.get_symbol(element)
 
 	# Name and level
-	name_label.text = config.hero_name
-	level_label.text = Loc.t("ui.hero_panel.level_display", {"level": level})
+	name_label.text = config.summoner_name
+	level_label.text = Loc.t("ui.summoner_panel.level_display", {"level": level})
 
 	# Stats
 	var computed_stats: Dictionary = _get_computed_stats()
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
 	var regen: float = computed_stats.get("mana_regen", config.mana_regen)
-	stats_label.text = Loc.t("ui.hero_panel.stats_summary", {"hp": int(hp), "mana": int(mana), "regen": "%.1f" % regen})
+	stats_label.text = Loc.t("ui.summoner_panel.stats_summary", {"hp": int(hp), "mana": int(mana), "regen": "%.1f" % regen})
 
 	# XP Progress
 	if is_max_level:
-		xp_label.text = Loc.t("ui.hero_panel.level_up_max")
+		xp_label.text = Loc.t("ui.summoner_panel.level_up_max")
 		xp_progress_bar.value = 100.0
 	else:
-		xp_label.text = Loc.t("ui.hero_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
+		xp_label.text = Loc.t("ui.summoner_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
 	# Level up button state
 	if is_max_level:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_max")
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_max")
 		level_up_button.disabled = true
 	elif not can_level_up:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_locked")
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_locked")
 		level_up_button.disabled = true
 	elif not can_afford:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_button", {"cost": gold_cost})
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": gold_cost})
 		level_up_button.disabled = true
 		level_up_button.add_theme_color_override("font_color", Color(0.7, 0.3, 0.3))
 	else:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_button", {"cost": gold_cost})
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": gold_cost})
 		level_up_button.disabled = false
 		level_up_button.remove_theme_color_override("font_color")
 
 	_update_active_display()
 
 func _get_computed_stats() -> Dictionary:
-	var hero_instance_data: Dictionary = ProfileRepo.get_hero_instance(_hero_id)
-	if hero_instance_data.is_empty():
+	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_summoner_id)
+	if summoner_instance_data.is_empty():
 		return {}
 
-	var hero_instance: HeroInstance = HeroInstance.from_dict(hero_instance_data)
-	if not hero_instance:
+	var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
+	if not summoner_instance:
 		return {}
 
-	return hero_instance.get_computed_stats()
+	return summoner_instance.get_computed_stats()
 
 func _update_active_display() -> void:
 	if _is_active:
-		active_indicator.text = Loc.t("ui.hero_panel.active_indicator")
+		active_indicator.text = Loc.t("ui.summoner_panel.active_indicator")
 		active_indicator.visible = true
-		select_button.text = Loc.t("ui.hero_panel.selected_button")
+		select_button.text = Loc.t("ui.summoner_panel.selected_button")
 		select_button.disabled = true
 		# Highlight panel
 		add_theme_stylebox_override("panel", _create_highlight_style())
 	else:
 		active_indicator.visible = false
-		select_button.text = Loc.t("ui.hero_panel.select_button")
+		select_button.text = Loc.t("ui.summoner_panel.select_button")
 		select_button.disabled = false
 		# Normal panel
 		remove_theme_stylebox_override("panel")
@@ -155,7 +155,7 @@ func _create_highlight_style() -> StyleBoxFlat:
 ## =============================================================================
 
 func _on_select_pressed() -> void:
-	select_pressed.emit(_hero_id)
+	select_pressed.emit(_summoner_id)
 
 func _on_level_up_pressed() -> void:
-	level_up_pressed.emit(_hero_id)
+	level_up_pressed.emit(_summoner_id)

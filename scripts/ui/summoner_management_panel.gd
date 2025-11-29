@@ -1,10 +1,10 @@
 extends Control
-class_name HeroManagementPanel
+class_name SummonerManagementPanel
 
-## HeroManagementPanel - Full-screen hero showcase
+## SummonerManagementPanel - Full-screen summoner showcase
 ##
-## Displays the active hero's portrait, stats, traits, and progression.
-## Allows leveling up and switching to a different hero.
+## Displays the active summoner's portrait, stats, traits, and progression.
+## Allows leveling up and switching to a different summoner.
 
 ## Signals
 signal closed()
@@ -13,7 +13,7 @@ signal closed()
 @onready var background: ColorRect = %Background
 @onready var portrait_rect: ColorRect = %PortraitRect
 @onready var element_label: Label = %ElementLabel
-@onready var hero_name_label: Label = %HeroNameLabel
+@onready var summoner_name_label: Label = %SummonerNameLabel
 @onready var level_label: Label = %LevelLabel
 @onready var element_name_label: Label = %ElementNameLabel
 
@@ -27,12 +27,12 @@ signal closed()
 @onready var traits_container: VBoxContainer = %TraitsContainer
 @onready var level_up_button: Button = %LevelUpButton
 @onready var level_up_preview: Label = %LevelUpPreview
-@onready var switch_hero_button: Button = %SwitchHeroButton
+@onready var switch_summoner_button: Button = %SwitchSummonerButton
 @onready var close_button: Button = %CloseButton
 
-## Hero Picker Panel
-@onready var hero_picker_panel: PanelContainer = %HeroPickerPanel
-@onready var hero_picker_list: VBoxContainer = %HeroPickerList
+## Summoner Picker Panel
+@onready var summoner_picker_panel: PanelContainer = %SummonerPickerPanel
+@onready var summoner_picker_list: VBoxContainer = %SummonerPickerList
 @onready var picker_close_button: Button = %PickerCloseButton
 
 
@@ -45,21 +45,21 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	background.gui_input.connect(_on_background_input)
 	level_up_button.pressed.connect(_on_level_up_pressed)
-	switch_hero_button.pressed.connect(_on_switch_hero_pressed)
+	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
 	picker_close_button.pressed.connect(_on_picker_close_pressed)
 
-	# Connect to hero selection changes
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_signal("hero_changed"):
-		hero_selection.hero_changed.connect(_on_hero_changed)
+	# Connect to summoner selection changes
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
+		summoner_selection.summoner_changed.connect(_on_summoner_changed)
 
 	# Connect to economy for gold updates
 	var economy: Node = get_node_or_null("/root/Economy")
 	if economy and economy.has_signal("gold_changed"):
 		economy.gold_changed.connect(_on_gold_changed)
 
-	# Hide hero picker initially
-	hero_picker_panel.visible = false
+	# Hide summoner picker initially
+	summoner_picker_panel.visible = false
 
 ## =============================================================================
 ## PUBLIC API
@@ -74,32 +74,32 @@ func open() -> void:
 ## =============================================================================
 
 func _refresh_display() -> void:
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if not hero_selection:
-		push_error("HeroManagementPanel: HeroSelection service not found")
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection:
+		push_error("SummonerManagementPanel: SummonerSelection service not found")
 		return
 
-	var hero_id: String = ""
-	if hero_selection.has_method("get_active_hero_id"):
-		var result: Variant = hero_selection.call("get_active_hero_id")
+	var summoner_id: String = ""
+	if summoner_selection.has_method("get_active_summoner_id"):
+		var result: Variant = summoner_selection.call("get_active_summoner_id")
 		if result is String:
-			hero_id = result
+			summoner_id = result
 
-	if hero_id.is_empty():
-		_show_no_hero()
+	if summoner_id.is_empty():
+		_show_no_summoner()
 		return
 
-	# Get hero config
-	var config: HeroConfig = HeroCatalog.get_hero_config(hero_id)
+	# Get summoner config
+	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
 	if not config:
-		_show_no_hero()
+		_show_no_summoner()
 		return
 
 	# Get progression info
-	var progression_node: Node = get_node_or_null("/root/HeroProgression")
+	var progression_node: Node = get_node_or_null("/root/SummonerProgression")
 	var info: Dictionary = {}
-	if progression_node and progression_node.has_method("get_hero_progression_info"):
-		info = progression_node.call("get_hero_progression_info", hero_id)
+	if progression_node and progression_node.has_method("get_summoner_progression_info"):
+		info = progression_node.call("get_summoner_progression_info", summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)
@@ -117,37 +117,37 @@ func _refresh_display() -> void:
 	portrait_rect.color = ElementTypes.get_color(element)
 	element_label.text = ElementTypes.get_symbol(element)
 
-	# Update hero info
-	hero_name_label.text = config.hero_name
-	level_label.text = Loc.t("ui.hero_panel.level_display", {"level": level})
+	# Update summoner info
+	summoner_name_label.text = config.summoner_name
+	level_label.text = Loc.t("ui.summoner_panel.level_display", {"level": level})
 	element_name_label.text = ElementTypes.get_display_name(element)
 
 	# Update stats
-	var computed_stats: Dictionary = _get_computed_stats(hero_id)
+	var computed_stats: Dictionary = _get_computed_stats(summoner_id)
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
 	var regen: float = computed_stats.get("mana_regen", config.mana_regen)
 
 	hp_value.text = str(int(hp))
 	mana_value.text = str(int(mana))
-	regen_value.text = Loc.t("ui.hero_panel.regen_per_sec", {"value": "%.1f" % regen})
+	regen_value.text = Loc.t("ui.summoner_panel.regen_per_sec", {"value": "%.1f" % regen})
 
 	# Update XP
 	if is_max_level:
-		xp_label.text = Loc.t("ui.hero_panel.level_up_max")
+		xp_label.text = Loc.t("ui.summoner_panel.level_up_max")
 		xp_progress_bar.value = 100.0
 	else:
-		xp_label.text = Loc.t("ui.hero_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
+		xp_label.text = Loc.t("ui.summoner_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
 	# Update level up button and preview
 	_update_level_up_display(is_max_level, can_level_up, can_afford, gold_cost, config, level)
 
 	# Update traits
-	_refresh_traits(hero_id, config)
+	_refresh_traits(summoner_id, config)
 
-func _show_no_hero() -> void:
-	hero_name_label.text = Loc.t("ui.hero_icon.no_hero")
+func _show_no_summoner() -> void:
+	summoner_name_label.text = Loc.t("ui.summoner_icon.no_summoner")
 	level_label.text = ""
 	element_name_label.text = ""
 	portrait_rect.color = ElementTypes.get_color("neutral")
@@ -165,50 +165,50 @@ func _show_no_hero() -> void:
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
-func _get_computed_stats(hero_id: String) -> Dictionary:
-	var hero_instance_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_instance_data.is_empty():
+func _get_computed_stats(summoner_id: String) -> Dictionary:
+	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_instance_data.is_empty():
 		return {}
 
-	var hero_instance: HeroInstance = HeroInstance.from_dict(hero_instance_data)
-	if not hero_instance:
+	var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
+	if not summoner_instance:
 		return {}
 
-	return hero_instance.get_computed_stats()
+	return summoner_instance.get_computed_stats()
 
-func _update_level_up_display(is_max: bool, can_level: bool, can_afford: bool, cost: int, config: HeroConfig, current_level: int) -> void:
+func _update_level_up_display(is_max: bool, can_level: bool, can_afford: bool, cost: int, config: SummonerConfig, current_level: int) -> void:
 	if is_max:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_max")
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_max")
 		level_up_button.disabled = true
 		level_up_preview.text = ""
 	elif not can_level:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_locked")
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_locked")
 		level_up_button.disabled = true
 		level_up_preview.text = ""
 	elif not can_afford:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_button", {"cost": cost})
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": cost})
 		level_up_button.disabled = true
 		level_up_button.add_theme_color_override("font_color", Color(0.7, 0.3, 0.3))
 		level_up_preview.text = _get_level_up_preview(config)
 	else:
-		level_up_button.text = Loc.t("ui.hero_panel.level_up_button", {"cost": cost})
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": cost})
 		level_up_button.disabled = false
 		level_up_button.remove_theme_color_override("font_color")
 		level_up_preview.text = _get_level_up_preview(config)
 
-func _get_level_up_preview(config: HeroConfig) -> String:
+func _get_level_up_preview(config: SummonerConfig) -> String:
 	# Simple preview - each level gives +5% to base stats
 	var hp_bonus: int = int(config.base_health * 0.05)
 	var mana_bonus: float = config.max_mana * 0.05
 	var regen_bonus: float = config.mana_regen * 0.05
 
-	return Loc.t("ui.hero_panel.level_up_preview", {
+	return Loc.t("ui.summoner_panel.level_up_preview", {
 		"hp": hp_bonus,
 		"mana": "%.1f" % mana_bonus,
 		"regen": "%.2f" % regen_bonus
 	})
 
-func _refresh_traits(hero_id: String, config: HeroConfig) -> void:
+func _refresh_traits(summoner_id: String, config: SummonerConfig) -> void:
 	# Clear existing traits
 	for child: Node in traits_container.get_children():
 		child.queue_free()
@@ -220,12 +220,12 @@ func _refresh_traits(hero_id: String, config: HeroConfig) -> void:
 	for trait_id: String in config.innate_trait_ids:
 		trait_ids.append(trait_id)
 
-	# Add acquired boons from hero instance
-	var hero_instance_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if not hero_instance_data.is_empty():
-		var hero_instance: HeroInstance = HeroInstance.from_dict(hero_instance_data)
-		if hero_instance:
-			for boon_id: String in hero_instance.acquired_boon_ids:
+	# Add acquired boons from summoner instance
+	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if not summoner_instance_data.is_empty():
+		var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
+		if summoner_instance:
+			for boon_id: String in summoner_instance.acquired_boon_ids:
 				if not boon_id in trait_ids:
 					trait_ids.append(boon_id)
 
@@ -242,7 +242,7 @@ func _refresh_traits(hero_id: String, config: HeroConfig) -> void:
 	# Show message if no traits
 	if trait_ids.is_empty():
 		var no_traits_label: Label = Label.new()
-		no_traits_label.text = Loc.t("ui.hero_panel.no_traits")
+		no_traits_label.text = Loc.t("ui.summoner_panel.no_traits")
 		no_traits_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 		traits_container.add_child(no_traits_label)
 
@@ -285,57 +285,57 @@ func _create_trait_item(trait_catalog: Node, trait_id: String) -> PanelContainer
 	return panel
 
 ## =============================================================================
-## HERO PICKER
+## SUMMONER PICKER
 ## =============================================================================
 
-func _show_hero_picker() -> void:
-	_populate_hero_picker()
-	hero_picker_panel.visible = true
+func _show_summoner_picker() -> void:
+	_populate_summoner_picker()
+	summoner_picker_panel.visible = true
 
-func _hide_hero_picker() -> void:
-	hero_picker_panel.visible = false
+func _hide_summoner_picker() -> void:
+	summoner_picker_panel.visible = false
 
-func _populate_hero_picker() -> void:
+func _populate_summoner_picker() -> void:
 	# Clear existing items
-	for child: Node in hero_picker_list.get_children():
+	for child: Node in summoner_picker_list.get_children():
 		child.queue_free()
 
-	# Get unlocked heroes
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if not hero_selection:
+	# Get unlocked summoners
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection:
 		return
 
 	var unlocked_ids: Array[String] = []
-	if hero_selection.has_method("get_unlocked_hero_ids"):
-		var result: Variant = hero_selection.call("get_unlocked_hero_ids")
+	if summoner_selection.has_method("get_unlocked_summoner_ids"):
+		var result: Variant = summoner_selection.call("get_unlocked_summoner_ids")
 		if result is Array:
 			for id: Variant in result:
 				if id is String:
 					unlocked_ids.append(id)
 
-	var active_hero_id: String = ""
-	if hero_selection.has_method("get_active_hero_id"):
-		var result: Variant = hero_selection.call("get_active_hero_id")
+	var active_summoner_id: String = ""
+	if summoner_selection.has_method("get_active_summoner_id"):
+		var result: Variant = summoner_selection.call("get_active_summoner_id")
 		if result is String:
-			active_hero_id = result
+			active_summoner_id = result
 
-	# Create hero picker items
-	for hero_id: String in unlocked_ids:
-		var item: Button = _create_hero_picker_item(hero_id, hero_id == active_hero_id)
-		hero_picker_list.add_child(item)
+	# Create summoner picker items
+	for summoner_id: String in unlocked_ids:
+		var item: Button = _create_summoner_picker_item(summoner_id, summoner_id == active_summoner_id)
+		summoner_picker_list.add_child(item)
 
-func _create_hero_picker_item(hero_id: String, is_active: bool) -> Button:
-	var config: HeroConfig = HeroCatalog.get_hero_config(hero_id)
-	var hero_name: String = config.hero_name if config else hero_id
+func _create_summoner_picker_item(summoner_id: String, is_active: bool) -> Button:
+	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	var summoner_name: String = config.summoner_name if config else summoner_id
 
 	var button: Button = Button.new()
-	button.text = hero_name + (Loc.t("ui.hero_panel.picker_active_suffix") if is_active else "")
+	button.text = summoner_name + (Loc.t("ui.summoner_panel.picker_active_suffix") if is_active else "")
 	button.custom_minimum_size = Vector2(200, 40)
 	button.add_theme_font_size_override("font_size", 18)
 	button.disabled = is_active
 
 	if not is_active:
-		button.pressed.connect(_on_hero_picker_selected.bind(hero_id))
+		button.pressed.connect(_on_summoner_picker_selected.bind(summoner_id))
 
 	return button
 
@@ -351,44 +351,44 @@ func _on_background_input(event: InputEvent) -> void:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			# Only close if picker is not visible
-			if not hero_picker_panel.visible:
+			if not summoner_picker_panel.visible:
 				_close()
 
 func _on_level_up_pressed() -> void:
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if not hero_selection:
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection:
 		return
 
-	var hero_id: String = ""
-	if hero_selection.has_method("get_active_hero_id"):
-		var result: Variant = hero_selection.call("get_active_hero_id")
+	var summoner_id: String = ""
+	if summoner_selection.has_method("get_active_summoner_id"):
+		var result: Variant = summoner_selection.call("get_active_summoner_id")
 		if result is String:
-			hero_id = result
+			summoner_id = result
 
-	if hero_id.is_empty():
+	if summoner_id.is_empty():
 		return
 
-	var progression_node: Node = get_node_or_null("/root/HeroProgression")
-	if progression_node and progression_node.has_method("level_up_hero"):
-		var success: Variant = progression_node.call("level_up_hero", hero_id)
+	var progression_node: Node = get_node_or_null("/root/SummonerProgression")
+	if progression_node and progression_node.has_method("level_up_summoner"):
+		var success: Variant = progression_node.call("level_up_summoner", summoner_id)
 		if success is bool and success:
 			_refresh_display()
 
-func _on_switch_hero_pressed() -> void:
-	_show_hero_picker()
+func _on_switch_summoner_pressed() -> void:
+	_show_summoner_picker()
 
 func _on_picker_close_pressed() -> void:
-	_hide_hero_picker()
+	_hide_summoner_picker()
 
-func _on_hero_picker_selected(hero_id: String) -> void:
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_method("set_active_hero"):
-		var success: Variant = hero_selection.call("set_active_hero", hero_id)
+func _on_summoner_picker_selected(summoner_id: String) -> void:
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_method("set_active_summoner"):
+		var success: Variant = summoner_selection.call("set_active_summoner", summoner_id)
 		if success is bool and success:
-			_hide_hero_picker()
+			_hide_summoner_picker()
 			_refresh_display()
 
-func _on_hero_changed(_old_hero_id: String, _new_hero_id: String) -> void:
+func _on_summoner_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
 	_refresh_display()
 
 func _on_gold_changed(_new_gold: int) -> void:

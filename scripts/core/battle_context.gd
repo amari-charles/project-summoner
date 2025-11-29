@@ -53,9 +53,9 @@ var completion_callback: Callable
 ## Array of card instance IDs
 var _cards_played: Array[String] = []
 
-## Player hero's computed stats (cached at battle start for damage calculations)
-## Set by Summoner._apply_hero_bonuses(), read by DamageSystem
-var _player_hero_stats: Dictionary = {}
+## Player summoner's computed stats (cached at battle start for damage calculations)
+## Set by Summoner._apply_summoner_bonuses(), read by DamageSystem
+var _player_summoner_stats: Dictionary = {}
 
 ## =============================================================================
 ## DEPENDENCIES (injectable for testing)
@@ -178,7 +178,7 @@ func clear() -> void:
 	battle_state = BattleState.NONE
 	origin_scene = ""
 	_cards_played.clear()
-	_player_hero_stats.clear()
+	_player_summoner_stats.clear()
 	print("BattleContext: Cleared")
 
 ## Get the scene to return to after battle
@@ -241,24 +241,24 @@ func abandon_battle() -> void:
 	_cards_played.clear()
 
 ## =============================================================================
-## PLAYER HERO STATS (for DamageSystem)
+## PLAYER SUMMONER STATS (for DamageSystem)
 ## =============================================================================
 
-## Set player hero stats (called by Summoner when hero is loaded)
-func set_player_hero_stats(stats: Dictionary) -> void:
-	_player_hero_stats = stats.duplicate()
-	print("BattleContext: Cached player hero stats - damage_bonus: %.0f%%, damage_reduction: %.0f" % [
-		_player_hero_stats.get("damage_bonus", 0.0),
-		_player_hero_stats.get("damage_reduction", 0.0)
+## Set player summoner stats (called by Summoner when summoner is loaded)
+func set_player_summoner_stats(stats: Dictionary) -> void:
+	_player_summoner_stats = stats.duplicate()
+	print("BattleContext: Cached player summoner stats - damage_bonus: %.0f%%, damage_reduction: %.0f" % [
+		_player_summoner_stats.get("damage_bonus", 0.0),
+		_player_summoner_stats.get("damage_reduction", 0.0)
 	])
 
-## Get player hero stats (called by DamageSystem)
-func get_player_hero_stats() -> Dictionary:
-	return _player_hero_stats
+## Get player summoner stats (called by DamageSystem)
+func get_player_summoner_stats() -> Dictionary:
+	return _player_summoner_stats
 
-## Get a specific player hero stat
-func get_player_hero_stat(stat_name: String, default_value: float = 0.0) -> float:
-	return _player_hero_stats.get(stat_name, default_value)
+## Get a specific player summoner stat
+func get_player_summoner_stat(stat_name: String, default_value: float = 0.0) -> float:
+	return _player_summoner_stats.get(stat_name, default_value)
 
 ## Reset battle context (alias for clear, called between battles)
 func reset() -> void:
@@ -301,29 +301,29 @@ func grant_xp_to_played_cards() -> void:
 	else:
 		push_warning("BattleContext: CardProgression autoload not found")
 
-## Grant XP to the active hero
+## Grant XP to the active summoner
 ## Called on battle victory
-func grant_xp_to_active_hero() -> void:
-	var hero_xp: int = battle_config.get("hero_xp_reward", 0)
-	if hero_xp <= 0:
-		print("BattleContext: No hero XP reward configured for this battle")
+func grant_xp_to_active_summoner() -> void:
+	var summoner_xp: int = battle_config.get("summoner_xp_reward", 0)
+	if summoner_xp <= 0:
+		print("BattleContext: No summoner XP reward configured for this battle")
 		return
 
-	print("BattleContext: Granting %d XP to active hero" % hero_xp)
-	var hero_progression: Node = get_node_or_null("/root/HeroProgression")
-	if hero_progression:
-		var new_xp: int = hero_progression.call("grant_active_hero_xp", hero_xp)
-		print("BattleContext: Hero now has %d XP" % new_xp)
+	print("BattleContext: Granting %d XP to active summoner" % summoner_xp)
+	var summoner_progression: Node = get_node_or_null("/root/SummonerProgression")
+	if summoner_progression:
+		var new_xp: int = summoner_progression.call("grant_active_summoner_xp", summoner_xp)
+		print("BattleContext: Summoner now has %d XP" % new_xp)
 	else:
-		push_warning("BattleContext: HeroProgression autoload not found")
+		push_warning("BattleContext: SummonerProgression autoload not found")
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
 	if winner == 0:  # Player won
 		# Grant XP to cards played during battle
 		grant_xp_to_played_cards()
-		# Grant XP to the active hero
-		grant_xp_to_active_hero()
+		# Grant XP to the active summoner
+		grant_xp_to_active_summoner()
 		# Transition to reward screen (it will handle completion and rewards)
 		SceneManager.transition_to(SceneManager.SCENE_REWARD_SCREEN)
 	else:  # Player lost

@@ -1,7 +1,7 @@
 extends Node3D
 class_name Summoner3D
 
-## Hero/Summoner - The player character that manages cards and mana
+## Summoner - The player character that manages cards and mana
 ## NOT a battlefield entity - cannot be attacked or damaged
 ## The Nexus (Base3D) is what units attack to win the game
 
@@ -25,14 +25,14 @@ enum DeckLoadStrategy {
 
 ## Current state
 var mana: float = 0.0
-var max_mana: float = 10.0  ## Default max mana (can be overridden by HeroInstance)
+var max_mana: float = 10.0  ## Default max mana (can be overridden by SummonerInstance)
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
 var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
 
-## Hero instance (loaded from profile when using PROFILE strategy)
-var _loaded_hero_instance: HeroInstance = null
+## Summoner instance (loaded from profile when using PROFILE strategy)
+var _loaded_summoner_instance: SummonerInstance = null
 
 ## Track initialization state
 var _initialized: bool = false
@@ -82,13 +82,13 @@ func init() -> void:
 					print("Summoner3D: Battle uses event_sequence with empty enemy_deck - switching to DEFERRED strategy")
 					deck_load_strategy = DeckLoadStrategy.DEFERRED
 
-	# Initialize deck using strategy pattern (before HP/mana init for hero bonuses)
+	# Initialize deck using strategy pattern (before HP/mana init for summoner bonuses)
 	deck = _load_deck_by_strategy()
 
-	# Apply hero bonuses for player using PROFILE strategy
+	# Apply summoner bonuses for player using PROFILE strategy
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
-		if _loaded_hero_instance != null:
-			_apply_hero_bonuses(_loaded_hero_instance)
+		if _loaded_summoner_instance != null:
+			_apply_summoner_bonuses(_loaded_summoner_instance)
 
 	# Initialize mana
 	mana = max_mana
@@ -297,10 +297,10 @@ func _load_profile_deck() -> Array[Card]:
 		var temp_array: Array = loaded_deck_variant
 		loaded_deck.assign(temp_array)
 
-	# Store hero instance for bonus application in init()
-	var hero_instance_variant: Variant = deck_data.get("hero_instance")
-	if hero_instance_variant is HeroInstance:
-		_loaded_hero_instance = hero_instance_variant
+	# Store summoner instance for bonus application in init()
+	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
+	if summoner_instance_variant is SummonerInstance:
+		_loaded_summoner_instance = summoner_instance_variant
 
 	if loaded_deck.is_empty():
 		push_warning("Summoner3D: Failed to load from profile, falling back to static deck")
@@ -362,30 +362,30 @@ func _create_emergency_deck() -> Array[Card]:
 
 	return emergency_deck
 
-## Apply hero bonuses to summoner stats
-func _apply_hero_bonuses(hero_instance: HeroInstance) -> void:
-	if hero_instance == null:
-		push_warning("Summoner3D: Cannot apply bonuses from null HeroInstance")
+## Apply summoner bonuses to summoner stats
+func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
+	if summoner_instance == null:
+		push_warning("Summoner3D: Cannot apply bonuses from null SummonerInstance")
 		return
 
 	# Get computed stats (includes modifiers)
-	var stats: Dictionary = hero_instance.get_computed_stats()
+	var stats: Dictionary = summoner_instance.get_computed_stats()
 
-	# Set mana regen from hero (with modifiers applied)
-	var hero_mana_regen: float = stats.get("mana_regen", 1.0)
-	mana_regen_rate = hero_mana_regen
+	# Set mana regen from summoner (with modifiers applied)
+	var summoner_mana_regen: float = stats.get("mana_regen", 1.0)
+	mana_regen_rate = summoner_mana_regen
 
-	# Set max mana from hero (with modifiers applied)
-	var hero_max_mana: float = stats.get("max_mana", 10.0)
-	max_mana = hero_max_mana
+	# Set max mana from summoner (with modifiers applied)
+	var summoner_max_mana: float = stats.get("max_mana", 10.0)
+	max_mana = summoner_max_mana
 
-	# Cache hero stats in BattleContext for DamageSystem to use
-	BattleContext.set_player_hero_stats(stats)
+	# Cache summoner stats in BattleContext for DamageSystem to use
+	BattleContext.set_player_summoner_stats(stats)
 
-	# TODO: Hero health stat should flow to Nexus (Base3D), not stored here
+	# TODO: Summoner health stat should flow to Nexus (Base3D), not stored here
 
-	var hero_name: String = hero_instance.config.hero_name
-	var trait_count: int = hero_instance.get_all_trait_ids().size()
-	print("Summoner3D: Applied hero bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
-		hero_name, hero_instance.level, trait_count, max_mana, mana_regen_rate
+	var summoner_name: String = summoner_instance.config.summoner_name
+	var trait_count: int = summoner_instance.get_all_trait_ids().size()
+	print("Summoner3D: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
+		summoner_name, summoner_instance.level, trait_count, max_mana, mana_regen_rate
 	])

@@ -1,16 +1,16 @@
-class_name HeroRegistry
+class_name SummonerRegistry
 extends RefCounted
 
-## HeroRegistry - Single source of truth for hero ID mapping
+## SummonerRegistry - Single source of truth for summoner ID mapping
 ##
 ## Maps between:
-## - HeroId enum (int) - for code
+## - SummonerId enum (int) - for code
 ## - StringName keys - for saves/JSON
 ##
-## Ensures no hardcoded hero strings in gameplay code.
+## Ensures no hardcoded summoner strings in gameplay code.
 
-## Hero ID enum - use this in code
-enum HeroId {
+## Summoner ID enum - use this in code
+enum SummonerId {
 	PYRALIS,        # Fire
 	AQUIRA,         # Water
 	ZEPHYRION,      # Wind
@@ -20,30 +20,30 @@ enum HeroId {
 
 ## Enum → StringName mapping (for serialization)
 const ID_TO_KEY: Dictionary = {
-	HeroId.PYRALIS:         &"hero_fire",
-	HeroId.AQUIRA:          &"hero_water",
-	HeroId.ZEPHYRION:       &"hero_wind",
-	HeroId.TERRAVORN:       &"hero_earth",
-	HeroId.SHADOW_INITIATE: &"hero_shadow_initiate"
+	SummonerId.PYRALIS:         SummonerIDs.FIRE,
+	SummonerId.AQUIRA:          SummonerIDs.WATER,
+	SummonerId.ZEPHYRION:       SummonerIDs.WIND,
+	SummonerId.TERRAVORN:       SummonerIDs.EARTH,
+	SummonerId.SHADOW_INITIATE: SummonerIDs.SHADOW_INITIATE
 }
 
 ## StringName → Enum mapping (for deserialization)
 const KEY_TO_ID: Dictionary = {
-	&"hero_fire":            HeroId.PYRALIS,
-	&"hero_water":           HeroId.AQUIRA,
-	&"hero_wind":            HeroId.ZEPHYRION,
-	&"hero_earth":           HeroId.TERRAVORN,
-	&"hero_shadow_initiate": HeroId.SHADOW_INITIATE
+	SummonerIDs.FIRE:            SummonerId.PYRALIS,
+	SummonerIDs.WATER:           SummonerId.AQUIRA,
+	SummonerIDs.WIND:            SummonerId.ZEPHYRION,
+	SummonerIDs.EARTH:           SummonerId.TERRAVORN,
+	SummonerIDs.SHADOW_INITIATE: SummonerId.SHADOW_INITIATE
 }
 
 ## Convert enum ID to StringName key (for saves/JSON)
 static func get_key_from_id(id: int) -> StringName:
-	assert(ID_TO_KEY.has(id), "Unknown hero ID: %s" % id)
+	assert(ID_TO_KEY.has(id), "Unknown summoner ID: %s" % id)
 	return ID_TO_KEY[id]
 
 ## Convert StringName key to enum ID (from saves/JSON)
 static func get_id_from_key(key: StringName) -> int:
-	assert(KEY_TO_ID.has(key), "Unknown hero key: %s" % key)
+	assert(KEY_TO_ID.has(key), "Unknown summoner key: %s" % key)
 	return KEY_TO_ID[key]
 
 ## Check if an ID is valid

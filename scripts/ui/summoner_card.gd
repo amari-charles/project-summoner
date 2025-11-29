@@ -1,19 +1,19 @@
 extends Control
-class_name HeroCard
+class_name SummonerCard
 
-## HeroCard - Large card UI for displaying hero information
+## SummonerCard - Large card UI for displaying summoner information
 ##
 ## Designed to be more prominent than game cards.
-## Shows hero portrait, name, stats, and element.
-## Used in hero selection and deck builder.
+## Shows summoner portrait, name, stats, and element.
+## Used in summoner selection and deck builder.
 
 ## Signals
-signal hero_selected(hero_id: String)
-signal hero_hovered(hero_id: String)
-signal hero_unhovered()
+signal summoner_selected(summoner_id: String)
+signal summoner_hovered(summoner_id: String)
+signal summoner_unhovered()
 
 ## UI References (add these to the scene with unique names %)
-@onready var hero_name_label: Label = get_node_or_null("%HeroNameLabel")
+@onready var summoner_name_label: Label = get_node_or_null("%SummonerNameLabel")
 @onready var element_label: Label = get_node_or_null("%ElementLabel")
 @onready var portrait_container: Control = get_node_or_null("%PortraitContainer")
 @onready var hp_label: Label = get_node_or_null("%HPLabel")
@@ -24,8 +24,8 @@ signal hero_unhovered()
 @onready var glow_panel: Panel = get_node_or_null("%GlowPanel")
 
 ## Data
-var hero_id: String = ""
-var hero_config: HeroConfig = null
+var summoner_id: String = ""
+var summoner_config: SummonerConfig = null
 
 func _ready() -> void:
 	# Connect click button
@@ -38,36 +38,36 @@ func _ready() -> void:
 	if glow_panel:
 		glow_panel.visible = false
 
-## Set hero configuration and populate UI
-func set_hero(hero_id_param: String) -> void:
-	self.hero_id = hero_id_param
+## Set summoner configuration and populate UI
+func set_summoner(summoner_id_param: String) -> void:
+	self.summoner_id = summoner_id_param
 
-	# Get hero config from catalog
-	var catalog: Node = get_node_or_null("/root/HeroCatalog")
-	if not catalog or not catalog.has_method("get_hero_config"):
-		push_error("HeroCard: HeroCatalog not available")
+	# Get summoner config from catalog
+	var catalog: Node = get_node_or_null("/root/SummonerCatalog")
+	if not catalog or not catalog.has_method("get_summoner_config"):
+		push_error("SummonerCard: SummonerCatalog not available")
 		return
 
-	var config: Variant = catalog.call("get_hero_config", hero_id)
-	if not config is HeroConfig:
-		push_error("HeroCard: Invalid hero_id: %s" % hero_id)
+	var config: Variant = catalog.call("get_summoner_config", summoner_id)
+	if not config is SummonerConfig:
+		push_error("SummonerCard: Invalid summoner_id: %s" % summoner_id)
 		return
 
-	hero_config = config
+	summoner_config = config
 	_update_display()
 
-## Update all UI elements with hero config
+## Update all UI elements with summoner config
 func _update_display() -> void:
-	if hero_config == null:
+	if summoner_config == null:
 		return
 
-	# Hero name
-	if hero_name_label:
-		hero_name_label.text = hero_config.hero_name
+	# Summoner name
+	if summoner_name_label:
+		summoner_name_label.text = summoner_config.summoner_name
 
 	# Element
 	if element_label:
-		var element: ElementTypes.Element = hero_config.get_element()
+		var element: ElementTypes.Element = summoner_config.get_element()
 		var element_name: String = ElementTypes.get_display_name(element)
 		element_label.text = element_name
 
@@ -77,17 +77,17 @@ func _update_display() -> void:
 
 	# Stats (base stats from config)
 	if hp_label:
-		hp_label.text = Loc.t("ui.hero_card.hp_label", {"value": "%.0f" % hero_config.base_health})
+		hp_label.text = Loc.t("ui.summoner_card.hp_label", {"value": "%.0f" % summoner_config.base_health})
 
 	if mana_label:
-		mana_label.text = Loc.t("ui.hero_card.mana_label", {"value": "%.0f" % hero_config.max_mana})
+		mana_label.text = Loc.t("ui.summoner_card.mana_label", {"value": "%.0f" % summoner_config.max_mana})
 
 	if regen_label:
-		regen_label.text = Loc.t("ui.hero_card.regen_label", {"value": "%.1f" % hero_config.mana_regen})
+		regen_label.text = Loc.t("ui.summoner_card.regen_label", {"value": "%.1f" % summoner_config.mana_regen})
 
 	# Description
 	if description_label:
-		description_label.text = hero_config.description
+		description_label.text = summoner_config.description
 
 ## Get color for element type
 func _get_element_color(element: ElementTypes.Element) -> Color:
@@ -121,13 +121,13 @@ func hide_glow() -> void:
 
 ## Button pressed
 func _on_button_pressed() -> void:
-	hero_selected.emit(hero_id)
+	summoner_selected.emit(summoner_id)
 
 ## Mouse hover effects
 func _on_mouse_entered() -> void:
 	show_glow()
-	hero_hovered.emit(hero_id)
+	summoner_hovered.emit(summoner_id)
 
 func _on_mouse_exited() -> void:
 	hide_glow()
-	hero_unhovered.emit()
+	summoner_unhovered.emit()

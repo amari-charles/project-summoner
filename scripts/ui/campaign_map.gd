@@ -7,8 +7,8 @@ class_name CampaignMap
 ## First event is onboarding if not yet complete.
 
 ## Preloads
-const HeroIconWidgetScene: PackedScene = preload("res://scenes/ui/hero_icon_widget.tscn")
-const HeroManagementPanelScene: PackedScene = preload("res://scenes/ui/hero_management_panel.tscn")
+const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_icon_widget.tscn")
+const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
 
 ## Node references
 @onready var back_button: Button = %BackButton
@@ -61,8 +61,8 @@ const PAN_THRESHOLD: float = 5.0  # Pixels to move before panning starts
 var available_decks: Array[Dictionary] = []
 var selected_deck_id: String = ""
 
-## Hero icon widget reference
-var hero_icon: HeroIconWidget = null
+## Summoner icon widget reference
+var summoner_icon: SummonerIconWidget = null
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -152,13 +152,13 @@ func _ready() -> void:
 			var campaign_progress_signal: Signal = campaign.get("campaign_progress_changed")
 			campaign_progress_signal.connect(_on_progress_changed)
 
-	# Connect to hero selection changes
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_signal("hero_changed"):
-		hero_selection.hero_changed.connect(_on_hero_selection_changed)
+	# Connect to summoner selection changes
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
+		summoner_selection.summoner_changed.connect(_on_summoner_selection_changed)
 
-	# Setup hero icon
-	_setup_hero_icon()
+	# Setup summoner icon
+	_setup_summoner_icon()
 
 	# Load and display map
 	_refresh_map()
@@ -497,18 +497,18 @@ func _load_decks() -> void:
 		deck_info_label.text = Loc.t("campaign.map.error_decks_unavailable")
 		return
 
-	# Get active hero ID to filter decks
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	var active_hero_id: String = ""
-	if hero_selection and hero_selection.has_method("get_active_hero_id"):
-		var result: Variant = hero_selection.call("get_active_hero_id")
+	# Get active summoner ID to filter decks
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	var active_summoner_id: String = ""
+	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
+		var result: Variant = summoner_selection.call("get_active_summoner_id")
 		if result is String:
-			active_hero_id = result
+			active_summoner_id = result
 
-	# Get decks filtered by active hero
+	# Get decks filtered by active summoner
 	var decks_array: Array
-	if not active_hero_id.is_empty() and decks.has_method("list_decks_for_hero"):
-		var decks_variant: Variant = decks.call("list_decks_for_hero", active_hero_id)
+	if not active_summoner_id.is_empty() and decks.has_method("list_decks_for_summoner"):
+		var decks_variant: Variant = decks.call("list_decks_for_summoner", active_summoner_id)
 		decks_array = _safe_array(decks_variant)
 	else:
 		var decks_variant: Variant = decks.call("list_decks")
@@ -651,10 +651,10 @@ func _on_start_event_pressed() -> void:
 	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
 	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
 
-	# Handle affinity selection event - route to hero selection
+	# Handle affinity selection event - route to summoner selection
 	if event_type == EventTypeIDs.AFFINITY:
 		print("CampaignMap: Starting affinity selection...")
-		SceneManager.transition_to(SceneManager.SCENE_HERO_SELECTION)
+		SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)
 		return
 
 	# Handle first summon event - route to first card selection
@@ -797,35 +797,35 @@ func _scroll_to_event(event_id: String) -> void:
 	map_scroll.scroll_vertical = int(scroll_target_y)
 
 ## =============================================================================
-## HERO ICON
+## SUMMONER ICON
 ## =============================================================================
 
-func _setup_hero_icon() -> void:
-	# Only show hero icon after affinity event is completed
+func _setup_summoner_icon() -> void:
+	# Only show summoner icon after affinity event is completed
 	var campaign: Node = get_node_or_null("/root/Campaign")
 	if campaign and campaign.has_method("is_battle_completed"):
 		var is_completed: bool = campaign.call("is_battle_completed", BattleIDs.EVENT_AFFINITY)
 		if not is_completed:
 			return
 
-	hero_icon = HeroIconWidgetScene.instantiate()
-	add_child(hero_icon)
+	summoner_icon = SummonerIconWidgetScene.instantiate()
+	add_child(summoner_icon)
 
 	# Position in top-left corner
-	hero_icon.anchor_left = 0.0
-	hero_icon.anchor_right = 0.0
-	hero_icon.anchor_top = 0.0
-	hero_icon.anchor_bottom = 0.0
-	hero_icon.offset_left = 20
-	hero_icon.offset_right = 70
-	hero_icon.offset_top = 20
-	hero_icon.offset_bottom = 70
+	summoner_icon.anchor_left = 0.0
+	summoner_icon.anchor_right = 0.0
+	summoner_icon.anchor_top = 0.0
+	summoner_icon.anchor_bottom = 0.0
+	summoner_icon.offset_left = 20
+	summoner_icon.offset_right = 70
+	summoner_icon.offset_top = 20
+	summoner_icon.offset_bottom = 70
 
 	# Connect signal
-	hero_icon.icon_clicked.connect(_on_hero_icon_clicked)
+	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
 
-func _on_hero_icon_clicked() -> void:
-	var panel: HeroManagementPanel = HeroManagementPanelScene.instantiate()
+func _on_summoner_icon_clicked() -> void:
+	var panel: SummonerManagementPanel = SummonerManagementPanelScene.instantiate()
 	add_child(panel)
 	panel.open()
 
@@ -841,10 +841,10 @@ func _on_event_completed(_event_id: String) -> void:
 func _on_progress_changed() -> void:
 	_update_progress_display()
 
-func _on_hero_selection_changed(_old_hero_id: String, _new_hero_id: String) -> void:
-	# Refresh hero icon, map, and deck list when hero changes
-	if hero_icon:
-		hero_icon.refresh()
+func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
+	# Refresh summoner icon, map, and deck list when summoner changes
+	if summoner_icon:
+		summoner_icon.refresh()
 	# Map and progress are refreshed by CampaignService emitting campaign_progress_changed
 	_refresh_map()
 	_update_progress_display()

@@ -1,15 +1,15 @@
 extends Node
-# HeroProgressionService is registered as autoload "HeroProgression", no class_name needed
+# SummonerProgressionService is registered as autoload "SummonerProgression", no class_name needed
 
-## Hero Progression Service - XP and Level Management
+## Summoner Progression Service - XP and Level Management
 ##
-## Handles hero XP gains and level-ups.
+## Handles summoner XP gains and level-ups.
 ## UI and gameplay code should call this, never the repository directly.
 ##
 ## Usage:
-##   HeroProgression.grant_hero_xp(hero_id, 50)
-##   if HeroProgression.can_level_up(hero_id):
-##       HeroProgression.level_up_hero(hero_id)
+##   SummonerProgression.grant_summoner_xp(summoner_id, 50)
+##   if SummonerProgression.can_level_up(summoner_id):
+##       SummonerProgression.level_up_summoner(summoner_id)
 ##
 ## Emits signals for reactive UI updates.
 ##
@@ -41,7 +41,7 @@ const XP_THRESHOLDS: Array[int] = [
 ]
 
 ## Gold cost per level-up (index = target level - 1)
-## Heroes cost more than cards since they're more significant
+## Summoners cost more than cards since they're more significant
 const LEVEL_UP_GOLD_COST: Array[int] = [
 	0,      # Level 1 (no cost)
 	50,     # Level 2
@@ -56,9 +56,9 @@ const LEVEL_UP_GOLD_COST: Array[int] = [
 ]
 
 ## Signals
-signal hero_xp_changed(hero_id: String, new_xp: int, new_level: int)
-signal hero_leveled_up(hero_id: String, new_level: int)
-signal hero_ready_to_level_up(hero_id: String)
+signal summoner_xp_changed(summoner_id: String, new_xp: int, new_level: int)
+signal summoner_leveled_up(summoner_id: String, new_level: int)
+signal summoner_ready_to_level_up(summoner_id: String)
 
 ## =============================================================================
 ## LIFECYCLE
@@ -71,46 +71,46 @@ func _ready() -> void:
 ## XP OPERATIONS
 ## =============================================================================
 
-## Grant XP to a hero
+## Grant XP to a summoner
 ## Returns the new total XP
-func grant_hero_xp(hero_id: String, amount: int) -> int:
+func grant_summoner_xp(summoner_id: String, amount: int) -> int:
 	if amount <= 0:
 		return 0
 
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
-		push_warning("HeroProgressionService: Hero instance not found: %s" % hero_id)
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
+		push_warning("SummonerProgressionService: Summoner instance not found: %s" % summoner_id)
 		return 0
 
-	var current_xp: int = hero_data.get("xp", 0)
-	var current_level: int = hero_data.get("level", 1)
+	var current_xp: int = summoner_data.get("xp", 0)
+	var current_level: int = summoner_data.get("level", 1)
 	var new_xp: int = current_xp + amount
 
-	# Create updated hero instance
-	var hero_instance: HeroInstance = HeroInstance.from_dict(hero_data)
-	if not hero_instance:
-		push_error("HeroProgressionService: Failed to load hero instance: %s" % hero_id)
+	# Create updated summoner instance
+	var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_data)
+	if not summoner_instance:
+		push_error("SummonerProgressionService: Failed to load summoner instance: %s" % summoner_id)
 		return 0
 
-	hero_instance.xp = new_xp
-	ProfileRepo.save_hero_instance(hero_instance)
+	summoner_instance.xp = new_xp
+	ProfileRepo.save_summoner_instance(summoner_instance)
 
-	hero_xp_changed.emit(hero_id, new_xp, current_level)
+	summoner_xp_changed.emit(summoner_id, new_xp, current_level)
 
-	# Check if hero can now level up
-	if can_level_up(hero_id):
-		hero_ready_to_level_up.emit(hero_id)
+	# Check if summoner can now level up
+	if can_level_up(summoner_id):
+		summoner_ready_to_level_up.emit(summoner_id)
 
 	return new_xp
 
-## Grant XP to the active hero (convenience method)
-## Returns the new total XP, or 0 if no active hero
-func grant_active_hero_xp(amount: int) -> int:
-	var active_hero_id: String = _get_active_hero_id()
-	if active_hero_id.is_empty():
-		push_warning("HeroProgressionService: No active hero to grant XP to")
+## Grant XP to the active summoner (convenience method)
+## Returns the new total XP, or 0 if no active summoner
+func grant_active_summoner_xp(amount: int) -> int:
+	var active_summoner_id: String = _get_active_summoner_id()
+	if active_summoner_id.is_empty():
+		push_warning("SummonerProgressionService: No active summoner to grant XP to")
 		return 0
-	return grant_hero_xp(active_hero_id, amount)
+	return grant_summoner_xp(active_summoner_id, amount)
 
 ## Get XP required to reach a specific level
 func get_xp_for_level(level: int) -> int:
@@ -119,13 +119,13 @@ func get_xp_for_level(level: int) -> int:
 	return XP_THRESHOLDS[level - 1]
 
 ## Get XP needed for the next level from current XP
-func get_xp_to_next_level(hero_id: String) -> int:
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
+func get_xp_to_next_level(summoner_id: String) -> int:
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
 		return 0
 
-	var current_xp: int = hero_data.get("xp", 0)
-	var current_level: int = hero_data.get("level", 1)
+	var current_xp: int = summoner_data.get("xp", 0)
+	var current_level: int = summoner_data.get("level", 1)
 
 	if current_level >= MAX_LEVEL:
 		return 0  # Already max level
@@ -134,13 +134,13 @@ func get_xp_to_next_level(hero_id: String) -> int:
 	return maxi(0, next_level_xp - current_xp)
 
 ## Get progress towards next level as a percentage (0.0 - 1.0)
-func get_level_progress(hero_id: String) -> float:
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
+func get_level_progress(summoner_id: String) -> float:
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
 		return 0.0
 
-	var current_xp: int = hero_data.get("xp", 0)
-	var current_level: int = hero_data.get("level", 1)
+	var current_xp: int = summoner_data.get("xp", 0)
+	var current_level: int = summoner_data.get("level", 1)
 
 	if current_level >= MAX_LEVEL:
 		return 1.0  # Max level
@@ -159,14 +159,14 @@ func get_level_progress(hero_id: String) -> float:
 ## LEVEL-UP OPERATIONS
 ## =============================================================================
 
-## Check if a hero has enough XP to level up
-func can_level_up(hero_id: String) -> bool:
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
+## Check if a summoner has enough XP to level up
+func can_level_up(summoner_id: String) -> bool:
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
 		return false
 
-	var current_xp: int = hero_data.get("xp", 0)
-	var current_level: int = hero_data.get("level", 1)
+	var current_xp: int = summoner_data.get("xp", 0)
+	var current_level: int = summoner_data.get("level", 1)
 
 	if current_level >= MAX_LEVEL:
 		return false  # Already max level
@@ -174,13 +174,13 @@ func can_level_up(hero_id: String) -> bool:
 	var next_level_xp: int = get_xp_for_level(current_level + 1)
 	return current_xp >= next_level_xp
 
-## Get the gold cost to level up a hero
-func get_level_up_gold_cost(hero_id: String) -> int:
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
+## Get the gold cost to level up a summoner
+func get_level_up_gold_cost(summoner_id: String) -> int:
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
 		return 0
 
-	var current_level: int = hero_data.get("level", 1)
+	var current_level: int = summoner_data.get("level", 1)
 
 	if current_level >= MAX_LEVEL:
 		return 0  # Already max level
@@ -188,46 +188,46 @@ func get_level_up_gold_cost(hero_id: String) -> int:
 	return LEVEL_UP_GOLD_COST[current_level]  # Index = current_level for next level cost
 
 ## Check if player can afford to level up (XP + gold)
-func can_afford_level_up(hero_id: String) -> bool:
-	if not can_level_up(hero_id):
+func can_afford_level_up(summoner_id: String) -> bool:
+	if not can_level_up(summoner_id):
 		return false
 
-	var gold_cost: int = get_level_up_gold_cost(hero_id)
+	var gold_cost: int = get_level_up_gold_cost(summoner_id)
 	return Economy.get_gold() >= gold_cost
 
-## Level up a hero (requires XP threshold met + gold)
+## Level up a summoner (requires XP threshold met + gold)
 ## Phase 2: Simple level-up without trait selection
-## Phase 3 will add: level_up_hero(hero_id, trait_id) for trait selection
+## Phase 3 will add: level_up_summoner(summoner_id, trait_id) for trait selection
 ## Returns true if successful
-func level_up_hero(hero_id: String) -> bool:
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
-		push_warning("HeroProgressionService: Hero not found: %s" % hero_id)
+func level_up_summoner(summoner_id: String) -> bool:
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
+		push_warning("SummonerProgressionService: Summoner not found: %s" % summoner_id)
 		return false
 
 	# Check XP requirement
-	if not can_level_up(hero_id):
-		push_warning("HeroProgressionService: Hero does not have enough XP to level up")
+	if not can_level_up(summoner_id):
+		push_warning("SummonerProgressionService: Summoner does not have enough XP to level up")
 		return false
 
 	# Check gold cost
-	var gold_cost: int = get_level_up_gold_cost(hero_id)
+	var gold_cost: int = get_level_up_gold_cost(summoner_id)
 	if not Economy.can_afford({"gold": gold_cost}):
-		push_warning("HeroProgressionService: Cannot afford level-up cost (%d gold)" % gold_cost)
+		push_warning("SummonerProgressionService: Cannot afford level-up cost (%d gold)" % gold_cost)
 		return false
 
 	# TRANSACTION: Validate everything before making any changes
-	# 1. Validate hero instance can be loaded
-	var hero_instance: HeroInstance = HeroInstance.from_dict(hero_data)
-	if not hero_instance:
-		push_error("HeroProgressionService: Failed to load hero instance: %s" % hero_id)
+	# 1. Validate summoner instance can be loaded
+	var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_data)
+	if not summoner_instance:
+		push_error("SummonerProgressionService: Failed to load summoner instance: %s" % summoner_id)
 		return false
 
 	# 2. Validate new level is valid
-	var current_level: int = hero_data.get("level", 1)
+	var current_level: int = summoner_data.get("level", 1)
 	var new_level: int = current_level + 1
 	if new_level > MAX_LEVEL:
-		push_error("HeroProgressionService: Cannot level beyond MAX_LEVEL")
+		push_error("SummonerProgressionService: Cannot level beyond MAX_LEVEL")
 		return false
 
 	# All validations passed - now apply changes atomically
@@ -235,64 +235,64 @@ func level_up_hero(hero_id: String) -> bool:
 	Economy.spend({"gold": gold_cost})
 
 	# Apply level up and save
-	hero_instance.level = new_level
-	var save_success: bool = ProfileRepo.save_hero_instance(hero_instance)
+	summoner_instance.level = new_level
+	var save_success: bool = ProfileRepo.save_summoner_instance(summoner_instance)
 
 	if not save_success:
 		# Refund gold if save failed
-		push_error("HeroProgressionService: Failed to save hero instance, refunding gold")
+		push_error("SummonerProgressionService: Failed to save summoner instance, refunding gold")
 		Economy.grant({"gold": gold_cost})
 		return false
 
-	hero_leveled_up.emit(hero_id, new_level)
+	summoner_leveled_up.emit(summoner_id, new_level)
 	return true
 
 ## =============================================================================
 ## QUERY HELPERS
 ## =============================================================================
 
-## Get hero progression info (for UI display)
-func get_hero_progression_info(hero_id: String) -> Dictionary:
-	var hero_data: Dictionary = ProfileRepo.get_hero_instance(hero_id)
-	if hero_data.is_empty():
+## Get summoner progression info (for UI display)
+func get_summoner_progression_info(summoner_id: String) -> Dictionary:
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if summoner_data.is_empty():
 		return {}
 
-	var current_level: int = hero_data.get("level", 1)
-	var current_xp: int = hero_data.get("xp", 0)
+	var current_level: int = summoner_data.get("level", 1)
+	var current_xp: int = summoner_data.get("xp", 0)
 
 	return {
-		"hero_id": hero_id,
+		"summoner_id": summoner_id,
 		"level": current_level,
 		"max_level": MAX_LEVEL,
 		"xp": current_xp,
 		"xp_for_current_level": get_xp_for_level(current_level),
 		"xp_for_next_level": get_xp_for_level(current_level + 1) if current_level < MAX_LEVEL else 0,
-		"xp_to_next_level": get_xp_to_next_level(hero_id),
-		"xp_progress": get_level_progress(hero_id),
-		"can_level_up": can_level_up(hero_id),
-		"can_afford_level_up": can_afford_level_up(hero_id),
-		"level_up_gold_cost": get_level_up_gold_cost(hero_id),
+		"xp_to_next_level": get_xp_to_next_level(summoner_id),
+		"xp_progress": get_level_progress(summoner_id),
+		"can_level_up": can_level_up(summoner_id),
+		"can_afford_level_up": can_afford_level_up(summoner_id),
+		"level_up_gold_cost": get_level_up_gold_cost(summoner_id),
 		"is_max_level": current_level >= MAX_LEVEL
 	}
 
-## Get active hero's progression info (convenience method)
-func get_active_hero_progression_info() -> Dictionary:
-	var active_hero_id: String = _get_active_hero_id()
-	if active_hero_id.is_empty():
+## Get active summoner's progression info (convenience method)
+func get_active_summoner_progression_info() -> Dictionary:
+	var active_summoner_id: String = _get_active_summoner_id()
+	if active_summoner_id.is_empty():
 		return {}
-	return get_hero_progression_info(active_hero_id)
+	return get_summoner_progression_info(active_summoner_id)
 
-## Get all heroes that can level up
-func get_heroes_ready_to_level_up() -> Array[String]:
-	var heroes: Array = ProfileRepo.get_hero_instances()
+## Get all summoners that can level up
+func get_summoners_ready_to_level_up() -> Array[String]:
+	var summoners: Array = ProfileRepo.get_summoner_instances()
 	var ready: Array[String] = []
 
-	for hero_data: Variant in heroes:
-		if hero_data is Dictionary:
-			var hero_dict: Dictionary = hero_data
-			var hero_id: String = hero_dict.get("hero_id", "")
-			if can_level_up(hero_id):
-				ready.append(hero_id)
+	for summoner_data: Variant in summoners:
+		if summoner_data is Dictionary:
+			var summoner_dict: Dictionary = summoner_data
+			var summoner_id: String = summoner_dict.get("summoner_id", "")
+			if can_level_up(summoner_id):
+				ready.append(summoner_id)
 
 	return ready
 
@@ -300,9 +300,9 @@ func get_heroes_ready_to_level_up() -> Array[String]:
 ## PRIVATE HELPERS
 ## =============================================================================
 
-## Get the active hero ID from HeroSelection service
-func _get_active_hero_id() -> String:
-	var hero_selection: Node = get_node_or_null("/root/HeroSelection")
-	if hero_selection and hero_selection.has_method("get_active_hero_id"):
-		return hero_selection.get_active_hero_id()
+## Get the active summoner ID from SummonerSelection service
+func _get_active_summoner_id() -> String:
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
+		return summoner_selection.get_active_summoner_id()
 	return ""

@@ -1,18 +1,18 @@
 extends RefCounted
-class_name HeroInstance
+class_name SummonerInstance
 
-## HeroInstance - Runtime instance of a hero during a run
+## SummonerInstance - Runtime instance of a summoner during a run
 ##
-## Represents an active hero with level progression and traits.
+## Represents an active summoner with level progression and traits.
 ## Computes final stats by applying trait modifiers to base config stats.
 ## Serializes to JSON (saves only IDs + state, reconstructs from config).
 ##
 ## All traits come from TraitCatalog:
-## - Innate traits: Defined in HeroConfig.innate_trait_ids
+## - Innate traits: Defined in SummonerConfig.innate_trait_ids
 ## - Acquired boons: Earned through gameplay, stored in acquired_boon_ids
 
-## Reference to the hero's configuration (template)
-var config: HeroConfig = null
+## Reference to the summoner's configuration (template)
+var config: SummonerConfig = null
 
 ## Progression
 var level: int = 1
@@ -25,9 +25,9 @@ var acquired_boon_ids: Array[String] = []
 var _cached_stats: Dictionary = {}
 var _stats_dirty: bool = true
 
-## Initialize from a HeroConfig (called when starting a new run)
-func init_from_config(hero_config: HeroConfig) -> void:
-	config = hero_config
+## Initialize from a SummonerConfig (called when starting a new run)
+func init_from_config(summoner_config: SummonerConfig) -> void:
+	config = summoner_config
 	level = 1
 	xp = 0
 	acquired_boon_ids.clear()
@@ -40,13 +40,13 @@ func init_from_config(hero_config: HeroConfig) -> void:
 ## Add an acquired boon
 func add_boon(boon_id: String) -> bool:
 	if boon_id in acquired_boon_ids:
-		push_warning("HeroInstance.add_boon: Boon already acquired: %s" % boon_id)
+		push_warning("SummonerInstance.add_boon: Boon already acquired: %s" % boon_id)
 		return false
 
 	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("/root/TraitCatalog")
 	if trait_catalog and trait_catalog.has_method("has_trait"):
 		if not trait_catalog.call("has_trait", boon_id):
-			push_error("HeroInstance.add_boon: Unknown boon ID: %s" % boon_id)
+			push_error("SummonerInstance.add_boon: Unknown boon ID: %s" % boon_id)
 			return false
 
 	acquired_boon_ids.append(boon_id)
@@ -63,7 +63,7 @@ func remove_boon(boon_id: String) -> bool:
 	_mark_stats_dirty()
 	return true
 
-## Check if hero has a specific boon
+## Check if summoner has a specific boon
 func has_boon(boon_id: String) -> bool:
 	return boon_id in acquired_boon_ids
 
@@ -110,28 +110,28 @@ func to_dict() -> Dictionary:
 		boons_array.append(boon_id)
 
 	return {
-		"hero_id": config.hero_id,
+		"summoner_id": config.summoner_id,
 		"level": level,
 		"xp": xp,
 		"acquired_boon_ids": boons_array
 	}
 
 ## Create from dictionary (when loading from save)
-static func from_dict(data: Dictionary) -> HeroInstance:
-	var instance: HeroInstance = HeroInstance.new()
+static func from_dict(data: Dictionary) -> SummonerInstance:
+	var instance: SummonerInstance = SummonerInstance.new()
 
-	# Load config from HeroCatalog
-	var hero_id: String = data.get("hero_id", "")
-	if hero_id.is_empty():
-		push_error("HeroInstance.from_dict: Missing hero_id")
+	# Load config from SummonerCatalog
+	var summoner_id: String = data.get("summoner_id", "")
+	if summoner_id.is_empty():
+		push_error("SummonerInstance.from_dict: Missing summoner_id")
 		return null
 
-	var hero_config: HeroConfig = HeroCatalog.get_hero_config(hero_id)
-	if not hero_config:
-		push_error("HeroInstance.from_dict: Hero config not found: %s" % hero_id)
+	var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	if not summoner_config:
+		push_error("SummonerInstance.from_dict: Summoner config not found: %s" % summoner_id)
 		return null
 
-	instance.config = hero_config
+	instance.config = summoner_config
 	instance.level = data.get("level", 1)
 	instance.xp = data.get("xp", 0)
 
@@ -149,12 +149,12 @@ static func from_dict(data: Dictionary) -> HeroInstance:
 ## Validation
 func is_valid() -> bool:
 	if config == null:
-		push_error("HeroInstance: config is null")
+		push_error("SummonerInstance: config is null")
 		return false
 	if not config.is_valid():
 		return false
 	if level < 1:
-		push_error("HeroInstance: level must be >= 1")
+		push_error("SummonerInstance: level must be >= 1")
 		return false
 	return true
 
@@ -192,7 +192,7 @@ func _recompute_stats() -> void:
 func _apply_trait_modifiers(stats: Dictionary) -> void:
 	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("/root/TraitCatalog")
 	if not trait_catalog:
-		push_warning("HeroInstance: TraitCatalog not found, traits will not be applied")
+		push_warning("SummonerInstance: TraitCatalog not found, traits will not be applied")
 		return
 
 	var all_trait_ids: Array[String] = get_all_trait_ids()
@@ -202,7 +202,7 @@ func _apply_trait_modifiers(stats: Dictionary) -> void:
 
 		var trait_data: Dictionary = trait_catalog.call("get_trait", trait_id)
 		if trait_data.is_empty():
-			push_warning("HeroInstance: Unknown trait '%s' - skipping" % trait_id)
+			push_warning("SummonerInstance: Unknown trait '%s' - skipping" % trait_id)
 			continue
 
 		var modifiers: Variant = trait_data.get("modifiers", [])

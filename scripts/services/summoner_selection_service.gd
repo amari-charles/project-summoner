@@ -1,24 +1,24 @@
 extends Node
-# HeroSelectionService is registered as autoload "HeroSelection", no class_name needed
+# SummonerSelectionService is registered as autoload "SummonerSelection", no class_name needed
 
-## Hero Selection Service - Active Hero Management
+## Summoner Selection Service - Active Summoner Management
 ##
-## Manages which hero is currently active across the game.
-## Emits signals when hero changes so UI can react.
+## Manages which summoner is currently active across the game.
+## Emits signals when summoner changes so UI can react.
 ##
 ## Usage:
-##   HeroSelection.get_active_hero_id()
-##   HeroSelection.set_active_hero("hero_fire")
-##   HeroSelection.hero_changed.connect(_on_hero_changed)
+##   SummonerSelection.get_active_summoner_id()
+##   SummonerSelection.set_active_summoner(SummonerIDs.FIRE)
+##   SummonerSelection.summoner_changed.connect(_on_summoner_changed)
 ##
-## Active hero affects:
-##   - Which decks are visible (hero-bound decks)
-##   - Which campaign progress loads (per-hero progress)
+## Active summoner affects:
+##   - Which decks are visible (summoner-bound decks)
+##   - Which campaign progress loads (per-summoner progress)
 ##   - Who receives XP from battles
 
 ## Signals
-signal hero_changed(old_hero_id: String, new_hero_id: String)
-signal hero_selection_blocked(reason: String)
+signal summoner_changed(old_summoner_id: String, new_summoner_id: String)
+signal summoner_selection_blocked(reason: String)
 
 ## State tracking
 var _is_in_battle: bool = false
@@ -36,104 +36,104 @@ func _ready() -> void:
 		game_state.battle_ended.connect(_on_battle_ended)
 
 ## =============================================================================
-## ACTIVE HERO QUERIES
+## ACTIVE SUMMONER QUERIES
 ## =============================================================================
 
-## Get the currently active hero ID
-func get_active_hero_id() -> String:
+## Get the currently active summoner ID
+func get_active_summoner_id() -> String:
 	var profile: Dictionary = ProfileRepo.get_active_profile()
 	if profile.is_empty():
 		return ""
 
-	# Check for selected_hero in meta
+	# Check for selected_summoner in meta
 	var meta: Dictionary = profile.get("meta", {})
-	var selected_hero: String = meta.get("selected_hero", "")
-	if not selected_hero.is_empty():
-		return selected_hero
+	var selected_summoner: String = meta.get("selected_summoner", "")
+	if not selected_summoner.is_empty():
+		return selected_summoner
 
-	# Fallback: return first hero instance
-	var hero_instances: Array = ProfileRepo.get_hero_instances()
-	if hero_instances.size() > 0:
-		var first_hero: Dictionary = hero_instances[0]
-		return first_hero.get("hero_id", "")
+	# Fallback: return first summoner instance
+	var summoner_instances: Array = ProfileRepo.get_summoner_instances()
+	if summoner_instances.size() > 0:
+		var first_summoner: Dictionary = summoner_instances[0]
+		return first_summoner.get("summoner_id", "")
 
 	return ""
 
-## Get the active hero's config (from HeroCatalog)
-func get_active_hero_config() -> HeroConfig:
-	var hero_id: String = get_active_hero_id()
-	if hero_id.is_empty():
+## Get the active summoner's config (from SummonerCatalog)
+func get_active_summoner_config() -> SummonerConfig:
+	var summoner_id: String = get_active_summoner_id()
+	if summoner_id.is_empty():
 		return null
-	return HeroCatalog.get_hero_config(hero_id)
+	return SummonerCatalog.get_summoner_config(summoner_id)
 
-## Get the active hero's instance data (level, xp, modifiers)
-func get_active_hero_instance() -> Dictionary:
-	var hero_id: String = get_active_hero_id()
-	if hero_id.is_empty():
+## Get the active summoner's instance data (level, xp, modifiers)
+func get_active_summoner_instance() -> Dictionary:
+	var summoner_id: String = get_active_summoner_id()
+	if summoner_id.is_empty():
 		return {}
-	return ProfileRepo.get_hero_instance(hero_id)
+	return ProfileRepo.get_summoner_instance(summoner_id)
 
-## Get list of all unlocked hero IDs
-func get_unlocked_hero_ids() -> Array[String]:
-	var hero_instances: Array = ProfileRepo.get_hero_instances()
+## Get list of all unlocked summoner IDs
+func get_unlocked_summoner_ids() -> Array[String]:
+	var summoner_instances: Array = ProfileRepo.get_summoner_instances()
 	var ids: Array[String] = []
-	for hero_data: Variant in hero_instances:
-		if hero_data is Dictionary:
-			var hero_dict: Dictionary = hero_data
-			var hero_id: String = hero_dict.get("hero_id", "")
-			if not hero_id.is_empty():
-				ids.append(hero_id)
+	for summoner_data: Variant in summoner_instances:
+		if summoner_data is Dictionary:
+			var summoner_dict: Dictionary = summoner_data
+			var summoner_id: String = summoner_dict.get("summoner_id", "")
+			if not summoner_id.is_empty():
+				ids.append(summoner_id)
 	return ids
 
 ## =============================================================================
-## HERO SWITCHING
+## SUMMONER SWITCHING
 ## =============================================================================
 
-## Check if hero switching is currently allowed
-func can_switch_hero() -> bool:
+## Check if summoner switching is currently allowed
+func can_switch_summoner() -> bool:
 	if _is_in_battle:
 		return false
 	return true
 
-## Set the active hero
+## Set the active summoner
 ## Returns true if successful, false if blocked or invalid
-func set_active_hero(hero_id: String) -> bool:
-	# Validate hero ID
-	if hero_id.is_empty():
-		push_warning("HeroSelectionService: Cannot set empty hero ID")
+func set_active_summoner(summoner_id: String) -> bool:
+	# Validate summoner ID
+	if summoner_id.is_empty():
+		push_warning("SummonerSelectionService: Cannot set empty summoner ID")
 		return false
 
-	# Check if hero is unlocked
-	if not ProfileRepo.is_hero_unlocked(hero_id):
-		push_warning("HeroSelectionService: Hero not unlocked: %s" % hero_id)
+	# Check if summoner is unlocked
+	if not ProfileRepo.is_summoner_unlocked(summoner_id):
+		push_warning("SummonerSelectionService: Summoner not unlocked: %s" % summoner_id)
 		return false
 
 	# Check if switching is allowed
-	if not can_switch_hero():
-		hero_selection_blocked.emit(Loc.t("ui.hero_panel.switch_blocked_battle"))
+	if not can_switch_summoner():
+		summoner_selection_blocked.emit(Loc.t("ui.summoner_panel.switch_blocked_battle"))
 		return false
 
-	# Get old hero ID for signal
-	var old_hero_id: String = get_active_hero_id()
+	# Get old summoner ID for signal
+	var old_summoner_id: String = get_active_summoner_id()
 
 	# No change needed
-	if old_hero_id == hero_id:
+	if old_summoner_id == summoner_id:
 		return true
 
 	# Update profile meta
 	var profile: Dictionary = ProfileRepo.get_active_profile()
 	if profile.is_empty():
-		push_error("HeroSelectionService: No active profile")
+		push_error("SummonerSelectionService: No active profile")
 		return false
 
 	if not profile.has("meta"):
 		profile["meta"] = {}
 	var meta: Dictionary = profile.get("meta", {})
-	meta["selected_hero"] = hero_id
+	meta["selected_summoner"] = summoner_id
 	ProfileRepo.save_profile(true)  # Immediate save
 
 	# Emit signal for UI updates
-	hero_changed.emit(old_hero_id, hero_id)
+	summoner_changed.emit(old_summoner_id, summoner_id)
 
 	return true
 

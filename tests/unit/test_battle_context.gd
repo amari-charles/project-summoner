@@ -184,7 +184,7 @@ func test_clear_resets_all_state() -> void:
 	context.configure_practice_battle()
 	context.start_battle()
 	context.register_card_played("card_1")
-	context.set_player_hero_stats({"damage_bonus": 10.0})
+	context.set_player_summoner_stats({"damage_bonus": 10.0})
 
 	context.clear()
 
@@ -192,7 +192,7 @@ func test_clear_resets_all_state() -> void:
 	assert_false(context.was_configured)
 	assert_true(context.battle_config.is_empty())
 	assert_eq(context.get_cards_played().size(), 0)
-	assert_true(context.get_player_hero_stats().is_empty())
+	assert_true(context.get_player_summoner_stats().is_empty())
 
 
 func test_reset_is_alias_for_clear() -> void:
@@ -252,48 +252,48 @@ func test_get_cards_played_returns_copy() -> void:
 
 
 ## =============================================================================
-## HERO STATS TESTS
+## SUMMONER STATS TESTS
 ## =============================================================================
 
-func test_set_player_hero_stats_stores_stats() -> void:
+func test_set_player_summoner_stats_stores_stats() -> void:
 	var stats: Dictionary = {
 		"damage_bonus": 15.0,
 		"damage_reduction": 5.0,
 		"fire_damage_bonus": 20.0
 	}
 
-	context.set_player_hero_stats(stats)
+	context.set_player_summoner_stats(stats)
 
-	var stored: Dictionary = context.get_player_hero_stats()
+	var stored: Dictionary = context.get_player_summoner_stats()
 	assert_eq(stored.get("damage_bonus"), 15.0)
 	assert_eq(stored.get("damage_reduction"), 5.0)
 	assert_eq(stored.get("fire_damage_bonus"), 20.0)
 
 
-func test_get_player_hero_stat_returns_specific_stat() -> void:
-	context.set_player_hero_stats({"damage_bonus": 25.0})
+func test_get_player_summoner_stat_returns_specific_stat() -> void:
+	context.set_player_summoner_stats({"damage_bonus": 25.0})
 
-	var bonus: float = context.get_player_hero_stat("damage_bonus")
+	var bonus: float = context.get_player_summoner_stat("damage_bonus")
 
 	assert_eq(bonus, 25.0)
 
 
-func test_get_player_hero_stat_returns_default_for_missing() -> void:
-	context.set_player_hero_stats({})
+func test_get_player_summoner_stat_returns_default_for_missing() -> void:
+	context.set_player_summoner_stats({})
 
-	var bonus: float = context.get_player_hero_stat("nonexistent", 99.0)
+	var bonus: float = context.get_player_summoner_stat("nonexistent", 99.0)
 
 	assert_eq(bonus, 99.0)
 
 
-func test_set_player_hero_stats_duplicates_input() -> void:
+func test_set_player_summoner_stats_duplicates_input() -> void:
 	var original: Dictionary = {"damage_bonus": 10.0}
-	context.set_player_hero_stats(original)
+	context.set_player_summoner_stats(original)
 
 	original["damage_bonus"] = 999.0  # Modify original
 
 	# Stored value should be unchanged
-	assert_eq(context.get_player_hero_stat("damage_bonus"), 10.0)
+	assert_eq(context.get_player_summoner_stat("damage_bonus"), 10.0)
 
 
 ## =============================================================================

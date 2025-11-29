@@ -605,25 +605,25 @@ Redesign the main menu with improved visual style and layout.
 
 ---
 
-#### Add Hero Select UI
+#### Add Summoner Select UI
 **Status:** ✅ Completed
 **Category:** UI/UX
 **Effort:** Medium
 
 **Description:**
-Create a hero selection screen allowing players to choose their hero before battle.
+Create a summoner selection screen allowing players to choose their summoner before battle.
 
 **Requirements:**
-- Display available heroes with icons/portraits
-- Show hero stats (health, mana, mana regen)
-- Show hero element/affinity
-- Indicate locked/unlocked heroes
-- Preview hero abilities or bonuses
+- Display available summoners with icons/portraits
+- Show summoner stats (health, mana, mana regen)
+- Show summoner element/affinity
+- Indicate locked/unlocked summoners
+- Preview summoner abilities or bonuses
 
 **Implementation:**
-- HeroManagementPanel provides full hero roster view
-- HeroIconWidget provides persistent hero button on screens
-- HeroRosterItem shows individual hero details with stats
+- SummonerManagementPanel provides full summoner roster view
+- SummonerIconWidget provides persistent summoner button on screens
+- SummonerRosterItem shows individual summoner details with stats
 
 ---
 
@@ -687,81 +687,49 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ---
 
-## Hero System
+## Summoner System
 
-### 🔴 HIGH PRIORITY
+### 🟢 LOW PRIORITY
 
-#### Standardize "Hero" vs "Summoner" Language
-**Status:** ⬜ Not Started
-**Category:** Heroes / Architecture
-**Effort:** Medium
-
-**Description:**
-The codebase inconsistently uses "Summoner" and "Hero" to refer to the same concept (the player character). This should be standardized to one term throughout codebase, docs, and UI.
-
-**Current State:**
-- Class is named `Summoner3D` but represents the "Hero"
-- `HeroInstance` exists for hero progression/stats
-- Design doc uses "Hero (Summoner3D)" as mapping
-- Variables use `player_summoner`, `enemy_summoner`
-- Groups use `summoners`, `player_summoners`
-
-**Decision Needed:**
-- Pick ONE canonical term: "Hero" or "Summoner"
-- Recommendation: **Hero** (more intuitive for players, "Summoner" is a genre term)
-
-**Requirements:**
-- Rename `Summoner3D` → `Hero3D` (or keep and document why)
-- Update all variable names, signals, groups
-- Update UI text and documentation
-- Update scene node names
-
-**Notes:**
-- See `docs/design/hero-and-nexus.md` for architecture context
-- This is a refactor - no gameplay changes
-- Consider doing alongside Hero System implementation
-
----
-
-#### Design Hero Data Structure
+#### Design Summoner Data Structure
 **Status:** ✅ Completed
-**Category:** Heroes / Architecture
+**Category:** Summoners / Architecture
 **Effort:** Medium
 
 **Description:**
-Define the data structure and resource format for hero characters.
+Define the data structure and resource format for summoner characters.
 
 **Implementation:**
-- HeroConfig: Static hero configuration (base stats, innate traits)
-- HeroInstance: Runtime state (level, xp, acquired boons, computed stats)
+- SummonerConfig: Static summoner configuration (base stats, innate traits)
+- SummonerInstance: Runtime state (level, xp, acquired boons, computed stats)
 - TraitCatalog: Central trait/boon registry with modifiers
-- See `docs/features/heroes/architecture.md` for details
+- See `docs/features/summoners/architecture.md` for details
 
 ---
 
-#### Implement Hero Stats System
+#### Implement Summoner Stats System
 **Status:** ✅ Completed
-**Category:** Heroes
+**Category:** Summoners
 **Effort:** Medium
 
 **Description:**
-Implement the technical system for hero-specific stats and attributes.
+Implement the technical system for summoner-specific stats and attributes.
 
 **Implementation:**
-- HeroInstance.get_computed_stats() applies trait modifiers to base stats
-- BattleContext.set_player_hero_stats() caches stats for DamageSystem
+- SummonerInstance.get_computed_stats() applies trait modifiers to base stats
+- BattleContext.set_player_summoner_stats() caches stats for DamageSystem
 - Trait modifiers support flat and percent bonuses
 - Element-specific damage bonuses (fire_damage_bonus, etc.)
 
 ---
 
-#### Implement Hero Special Abilities
+#### Implement Summoner Special Abilities
 **Status:** ⬜ Not Started (Phase 3/4)
-**Category:** Heroes
+**Category:** Summoners
 **Effort:** Large
 
 **Description:**
-Implement the system for hero active and passive abilities.
+Implement the system for summoner active and passive abilities.
 
 **Notes:**
 - Phase 3: Level Traits (trait selection at level-up)
@@ -770,73 +738,73 @@ Implement the system for hero active and passive abilities.
 
 ---
 
-#### Create Hero Selection Screen UI
+#### Create Summoner Selection Screen UI
 **Status:** ✅ Completed
-**Category:** Heroes / UI
+**Category:** Summoners / UI
 **Effort:** Medium
 
 **Description:**
-Design and implement the UI screen where players choose their hero before battle.
+Design and implement the UI screen where players choose their summoner before battle.
 
 **Implementation:**
-- HeroManagementPanel: Full roster view with stats, traits, level-up
-- HeroIconWidget: Persistent hero button (click to open panel)
-- HeroRosterItem: Individual hero row with select/level-up buttons
-- Hero switching via HeroSelection service
+- SummonerManagementPanel: Full roster view with stats, traits, level-up
+- SummonerIconWidget: Persistent summoner button (click to open panel)
+- SummonerRosterItem: Individual summoner row with select/level-up buttons
+- Summoner switching via SummonerSelection service
 
 ---
 
-#### Implement Hero Unlock System (Post-MVP)
+#### Implement Summoner Unlock System (Post-MVP)
 **Status:** ⬜ Not Started (Post-MVP)
-**Category:** Heroes / Progression
+**Category:** Summoners / Progression
 **Effort:** Medium
 
 **Description:**
-Implement the system for unlocking additional heroes beyond the starting hero.
+Implement the system for unlocking additional summoners beyond the starting summoner.
 
 **Notes:**
-- Foundation exists: HeroInstance persistence, profile hero_instances array
-- Need: Campaign milestone triggers for unlocking new heroes
-- Need: UI to show locked heroes and unlock progress
+- Foundation exists: SummonerInstance persistence, profile summoner_instances array
+- Need: Campaign milestone triggers for unlocking new summoners
+- Need: UI to show locked summoners and unlock progress
 
 ---
 
-#### Design Hero In-Battle UI Elements
+#### Design Summoner In-Battle UI Elements
 **Status:** ✅ Completed (Foundation)
-**Category:** Heroes / UI
+**Category:** Summoners / UI
 **Effort:** Medium
 
 **Description:**
-Design UI elements for displaying hero information and abilities during battle.
+Design UI elements for displaying summoner information and abilities during battle.
 
 **Implementation:**
-- HeroIconWidget added to CampaignMap, CollectionScreen, GameModeMenu
-- Shows active hero element color and level
-- Click opens HeroManagementPanel
+- SummonerIconWidget added to CampaignMap, CollectionScreen, GameModeMenu
+- Shows active summoner element color and level
+- Click opens SummonerManagementPanel
 
 **Remaining:**
 - Ability buttons/cooldowns (Phase 3/4 - when abilities are added)
 
 ---
 
-#### Integrate Heroes into Battle System
+#### Integrate Summoners into Battle System
 **Status:** ✅ Completed (Foundation)
-**Category:** Heroes
+**Category:** Summoners
 **Effort:** Large
 
 **Description:**
-Final integration of hero system into the core battle gameplay loop.
+Final integration of summoner system into the core battle gameplay loop.
 
 **Implementation:**
-- Summoner loads HeroInstance via DeckLoader
-- Hero stats applied via BattleContext.set_player_hero_stats()
-- DamageSystem reads hero stats for damage bonuses
-- HeroModifierProvider passes unit modifiers to ModifierSystem
-- Per-hero campaign progress in ProfileRepo
+- Summoner loads SummonerInstance via DeckLoader
+- Summoner stats applied via BattleContext.set_player_summoner_stats()
+- DamageSystem reads summoner stats for damage bonuses
+- SummonerModifierProvider passes unit modifiers to ModifierSystem
+- Per-summoner campaign progress in ProfileRepo
 
 **Remaining:**
-- Hero abilities (Phase 3/4)
-- AI heroes for enemies (future)
+- Summoner abilities (Phase 3/4)
+- AI summoners for enemies (future)
 
 ---
 

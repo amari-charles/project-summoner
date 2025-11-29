@@ -1,17 +1,17 @@
-# Hero System Architecture
+# Summoner System Architecture
 
 ## Overview
 
-Heroes are deck leaders that provide passive bonuses and define core battle parameters. They do not fight directly but influence the player's capabilities through their stats (base health, mana, mana regen) and traits.
+Summoners are deck leaders that provide passive bonuses and define core battle parameters. They do not fight directly but influence the player's capabilities through their stats (base health, mana, mana regen) and traits.
 
-**This document covers the implemented hero system.** For the full progression design (Level Traits, Ultimate Traits, etc.), see [Hero Progression System](progression-system.md).
+**This document covers the implemented summoner system.** For the full progression design (Level Traits, Ultimate Traits, etc.), see [Summoner Progression System](progression-system.md).
 
 ### Key Principles
-- **Non-combat entities**: Heroes don't appear on the battlefield
+- **Non-combat entities**: Summoners don't appear on the battlefield
 - **Passive bonuses**: Affect base health, mana system, and unit performance via traits
-- **Trait-based modifiers**: All hero bonuses come from TraitCatalog
-- **Per-hero campaign progress**: Each hero has separate campaign state
-- **Active hero selection**: Profile tracks which hero is currently active
+- **Trait-based modifiers**: All summoner bonuses come from TraitCatalog
+- **Per-summoner campaign progress**: Each summoner has separate campaign state
+- **Active summoner selection**: Profile tracks which summoner is currently active
 
 ---
 
@@ -22,70 +22,70 @@ Heroes are deck leaders that provide passive bonuses and define core battle para
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    UI Layer                                  │
-│  - HeroManagementPanel (hero roster, level-up, traits)      │
-│  - HeroIconWidget (persistent hero button on screens)        │
-│  - HeroRosterItem (individual hero display in roster)        │
+│  - SummonerManagementPanel (summoner roster, level-up, traits)│
+│  - SummonerIconWidget (persistent summoner button on screens) │
+│  - SummonerRosterItem (individual summoner display in roster) │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
 │                 Service Layer (Autoloads)                    │
 │                                                              │
-│  HeroSelection          HeroProgression       TraitCatalog   │
-│  - get_active_hero_id   - grant_xp           - get_trait     │
-│  - switch_hero          - level_up_hero      - get_modifiers │
+│  SummonerSelection      SummonerProgression   TraitCatalog   │
+│  - get_active_summoner_id - grant_xp         - get_trait     │
+│  - switch_summoner      - level_up_summoner  - get_modifiers │
 │  - get_unlocked_ids     - can_level_up       - has_trait     │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
 │                    Data Layer                                │
 │                                                              │
-│  HeroCatalog            ProfileRepo           HeroInstance   │
-│  - Hero configs         - hero_instances[]    - level, xp    │
+│  SummonerCatalog        ProfileRepo           SummonerInstance│
+│  - Summoner configs     - summoner_instances[]- level, xp    │
 │  - innate_trait_ids     - campaign_progress   - boon_ids     │
-│  - base stats           - meta.selected_hero  - computed stats│
+│  - base stats           - meta.selected_summoner- computed stats│
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Services
 
-#### HeroSelection (autoload: `/root/HeroSelection`)
-Manages which hero is currently active.
+#### SummonerSelection (autoload: `/root/SummonerSelection`)
+Manages which summoner is currently active.
 
 ```gdscript
-# Get active hero
-var hero_id: String = HeroSelection.get_active_hero_id()
-var config: HeroConfig = HeroSelection.get_active_hero_config()
+# Get active summoner
+var summoner_id: String = SummonerSelection.get_active_summoner_id()
+var config: SummonerConfig = SummonerSelection.get_active_summoner_config()
 
-# Switch heroes
-HeroSelection.switch_hero("hero_water")
+# Switch summoners
+SummonerSelection.switch_summoner("summoner_water")
 
-# List unlocked heroes
-var ids: Array[String] = HeroSelection.get_unlocked_hero_ids()
+# List unlocked summoners
+var ids: Array[String] = SummonerSelection.get_unlocked_summoner_ids()
 ```
 
 **Signals:**
-- `hero_changed(old_hero_id, new_hero_id)` - Emitted when active hero changes
+- `summoner_changed(old_summoner_id, new_summoner_id)` - Emitted when active summoner changes
 
-#### HeroProgression (autoload: `/root/HeroProgression`)
+#### SummonerProgression (autoload: `/root/SummonerProgression`)
 Manages XP and level-up mechanics.
 
 ```gdscript
 # Grant XP
-HeroProgression.grant_hero_xp("hero_fire", 50)
-HeroProgression.grant_active_hero_xp(100)
+SummonerProgression.grant_summoner_xp("summoner_fire", 50)
+SummonerProgression.grant_active_summoner_xp(100)
 
 # Level up
-if HeroProgression.can_level_up("hero_fire"):
-    HeroProgression.level_up_hero("hero_fire")
+if SummonerProgression.can_level_up("summoner_fire"):
+    SummonerProgression.level_up_summoner("summoner_fire")
 
 # Query progression
-var info: Dictionary = HeroProgression.get_hero_progression_info("hero_fire")
+var info: Dictionary = SummonerProgression.get_summoner_progression_info("summoner_fire")
 # Returns: {level, xp, xp_for_next_level, xp_progress, can_level_up, ...}
 ```
 
 **Signals:**
-- `hero_xp_changed(hero_id, new_xp, new_level)`
-- `hero_leveled_up(hero_id, new_level)`
+- `summoner_xp_changed(summoner_id, new_xp, new_level)`
+- `summoner_leveled_up(summoner_id, new_level)`
 
 #### TraitCatalog (autoload: `/root/TraitCatalog`)
 Central registry for all trait definitions.
@@ -106,14 +106,14 @@ var innate: Array[Dictionary] = TraitCatalog.get_innate_traits()
 
 ## Data Structures
 
-### HeroConfig (Resource)
-Static hero configuration from HeroCatalog.
+### SummonerConfig (Resource)
+Static summoner configuration from SummonerCatalog.
 
 ```gdscript
-class_name HeroConfig extends Resource
+class_name SummonerConfig extends Resource
 
-var hero_id: String              # "hero_fire"
-var hero_name: String            # "Pyralis"
+var summoner_id: String          # "summoner_fire"
+var summoner_name: String        # "Pyralis"
 var description: String          # Flavor text
 var element_id: int              # ElementRegistry.ElementId.FIRE
 
@@ -126,20 +126,20 @@ var mana_regen: float            # 1.0
 var innate_trait_ids: Array[String]  # ["trait_fire_affinity", "trait_burning_spirit"]
 
 # Visual
-var hero_icon_path: String
+var summoner_icon_path: String
 var card_frame_style: String     # "legendary"
 
 # Unlock
 var unlock_condition: String     # "starting_choice", "random_starter_only"
 ```
 
-### HeroInstance (RefCounted)
-Runtime hero state with progression.
+### SummonerInstance (RefCounted)
+Runtime summoner state with progression.
 
 ```gdscript
-class_name HeroInstance extends RefCounted
+class_name SummonerInstance extends RefCounted
 
-var config: HeroConfig           # Reference to static config
+var config: SummonerConfig       # Reference to static config
 var level: int = 1               # Current level (1-10)
 var xp: int = 0                  # Current XP
 
@@ -165,7 +165,7 @@ Stored in TraitCatalog.
     "category": "elemental",
     "is_innate": true,
     "modifiers": [
-        # Hero stat modifier
+        # Summoner stat modifier
         {"stat": "fire_damage_bonus", "type": "percent", "value": 10.0},
         # Unit modifier (passed to ModifierSystem)
         {
@@ -183,19 +183,19 @@ Stored in TraitCatalog.
 ## Trait System
 
 ### Trait Categories
-- **Innate Traits**: Come with the hero (defined in HeroConfig.innate_trait_ids)
-- **Acquired Boons**: Earned through gameplay (stored in HeroInstance.acquired_boon_ids)
+- **Innate Traits**: Come with the summoner (defined in SummonerConfig.innate_trait_ids)
+- **Acquired Boons**: Earned through gameplay (stored in SummonerInstance.acquired_boon_ids)
 
 ### Modifier Types
 
-**Hero Stat Modifiers** (applied in HeroInstance._recompute_stats):
+**Summoner Stat Modifiers** (applied in SummonerInstance._recompute_stats):
 ```gdscript
 {"stat": "max_health", "type": "percent", "value": 10.0}  # +10% health
 {"stat": "mana_regen", "type": "flat", "value": 0.3}      # +0.3 regen/sec
 {"stat": "fire_damage_bonus", "type": "percent", "value": 10.0}  # Sets 10% bonus
 ```
 
-**Unit Modifiers** (passed to ModifierSystem via HeroModifierProvider):
+**Unit Modifiers** (passed to ModifierSystem via SummonerModifierProvider):
 ```gdscript
 {
     "target": "unit",
@@ -208,18 +208,18 @@ Stored in TraitCatalog.
 ### Modifier Flow
 
 ```
-HeroInstance.get_all_trait_ids()
+SummonerInstance.get_all_trait_ids()
         │
         ▼
 TraitCatalog.get_trait(trait_id)
         │
-        ├──► Hero modifiers → HeroInstance._apply_trait_modifiers()
+        ├──► Summoner modifiers → SummonerInstance._apply_trait_modifiers()
         │                            │
         │                            ▼
-        │                     Computed hero stats
+        │                     Computed summoner stats
         │                     (health, mana, damage_bonus, etc.)
         │
-        └──► Unit modifiers → HeroModifierProvider.get_modifiers()
+        └──► Unit modifiers → SummonerModifierProvider.get_modifiers()
                                      │
                                      ▼
                               ModifierSystem
@@ -232,51 +232,51 @@ TraitCatalog.get_trait(trait_id)
 
 ## Battle Integration
 
-### Hero Stats in Battle
+### Summoner Stats in Battle
 
-1. **Summoner loads hero** via DeckLoader
-2. **Summoner._apply_hero_bonuses()** computes final stats
-3. **BattleContext.set_player_hero_stats()** caches stats for DamageSystem
+1. **Summoner loads summoner data** via DeckLoader
+2. **Summoner._apply_summoner_bonuses()** computes final stats
+3. **BattleContext.set_player_summoner_stats()** caches stats for DamageSystem
 4. **DamageSystem** reads cached stats for damage bonuses/reduction
 
 ```gdscript
-# In Summoner._apply_hero_bonuses():
-var computed_stats: Dictionary = hero_instance.get_computed_stats()
-BattleContext.set_player_hero_stats(computed_stats)
+# In Summoner._apply_summoner_bonuses():
+var computed_stats: Dictionary = summoner_instance.get_computed_stats()
+BattleContext.set_player_summoner_stats(computed_stats)
 
-# In DamageSystem._apply_hero_damage_bonuses():
-var hero_stats: Dictionary = BattleContext.get_player_hero_stats()
-var damage_bonus: float = hero_stats.get("damage_bonus", 0.0)
+# In DamageSystem._apply_summoner_damage_bonuses():
+var summoner_stats: Dictionary = BattleContext.get_player_summoner_stats()
+var damage_bonus: float = summoner_stats.get("damage_bonus", 0.0)
 ```
 
 ### Unit Modifiers in Battle
 
-1. **GameController** registers HeroModifierProvider with ModifierSystem
+1. **GameController** registers SummonerModifierProvider with ModifierSystem
 2. **When units spawn**, ModifierSystem queries all providers
-3. **HeroModifierProvider** returns unit modifiers from hero's traits
+3. **SummonerModifierProvider** returns unit modifiers from summoner's traits
 4. **Modifiers are applied** to matching units (by element, tags, etc.)
 
 ```gdscript
 # In GameController._setup_modifier_system():
-var hero_instance: HeroInstance = _load_hero_instance()
-var provider: HeroModifierProvider = HeroModifierProvider.new(hero_instance)
-ModifierSystem.register_provider("hero", provider)
+var summoner_instance: SummonerInstance = _load_summoner_instance()
+var provider: SummonerModifierProvider = SummonerModifierProvider.new(summoner_instance)
+ModifierSystem.register_provider("summoner", provider)
 ```
 
 ---
 
-## Per-Hero Campaign Progress
+## Per-Summoner Campaign Progress
 
-Campaign progress is stored per-hero in ProfileRepo:
+Campaign progress is stored per-summoner in ProfileRepo:
 
 ```gdscript
 "campaign_progress": {
-    "hero_fire": {
+    "summoner_fire": {
         "completed_battles": ["battle_tutorial", "battle_first_slime"],
         "current_battle": null,
         "pending_reward": null
     },
-    "hero_water": {
+    "summoner_water": {
         "completed_battles": ["battle_tutorial"],
         "current_battle": "battle_first_slime",
         "pending_reward": null
@@ -287,13 +287,13 @@ Campaign progress is stored per-hero in ProfileRepo:
 ### Accessing Progress
 
 ```gdscript
-# Get progress for active hero
+# Get progress for active summoner
 var progress: Dictionary = ProfileRepo.get_campaign_progress()
 
-# Get progress for specific hero
-var progress: Dictionary = ProfileRepo.get_campaign_progress("hero_fire")
+# Get progress for specific summoner
+var progress: Dictionary = ProfileRepo.get_campaign_progress("summoner_fire")
 
-# Update progress (uses active hero by default)
+# Update progress (uses active summoner by default)
 ProfileRepo.update_campaign_progress({"current_battle": "battle_02"})
 ```
 
@@ -301,28 +301,28 @@ ProfileRepo.update_campaign_progress({"current_battle": "battle_02"})
 
 ## UI Components
 
-### HeroManagementPanel
-Full-screen modal for hero management:
-- Hero roster with all unlocked heroes
-- Active hero details (stats, traits, XP)
+### SummonerManagementPanel
+Full-screen modal for summoner management:
+- Summoner roster with all unlocked summoners
+- Active summoner details (stats, traits, XP)
 - Level-up button (spends gold + requires XP threshold)
-- Hero switching
+- Summoner switching
 
-### HeroIconWidget
-Persistent hero portrait button:
-- Shows active hero's element color and level
-- Click to open HeroManagementPanel
-- Auto-updates when hero changes
+### SummonerIconWidget
+Persistent summoner portrait button:
+- Shows active summoner's element color and level
+- Click to open SummonerManagementPanel
+- Auto-updates when summoner changes
 
-### HeroRosterItem
-Individual hero row in roster:
+### SummonerRosterItem
+Individual summoner row in roster:
 - Portrait, name, level, stats
 - XP progress bar
 - Select/Level-up buttons
 
 ---
 
-## Starting Hero Assignment
+## Starting Summoner Assignment
 
 ### Available Starting Choices
 - **Fire** (Pyralis) - trait_fire_affinity, trait_burning_spirit
@@ -332,8 +332,8 @@ Individual hero row in roster:
 - **Random** - Picks from above + grants "Fortune Favors the Bold" boon
 
 ### Fortune Favors the Bold
-Special boon granted only to heroes created via Random selection:
-- Stored in `HeroInstance.acquired_boon_ids`
+Special boon granted only to summoners created via Random selection:
+- Stored in `SummonerInstance.acquired_boon_ids`
 - Provides +50 max health
 - Trait ID: `trait_fortune_favors_bold`
 
@@ -342,40 +342,40 @@ Special boon granted only to heroes created via Random selection:
 ## Implementation Files
 
 ### Services
-- `scripts/services/hero_selection_service.gd` - HeroSelection autoload
-- `scripts/services/hero_progression_service.gd` - HeroProgression autoload
+- `scripts/services/summoner_selection_service.gd` - SummonerSelection autoload
+- `scripts/services/summoner_progression_service.gd` - SummonerProgression autoload
 - `scripts/data/trait_catalog.gd` - TraitCatalog autoload
 
 ### Data
-- `scripts/core/hero_config.gd` - HeroConfig resource class
-- `scripts/core/hero_instance.gd` - HeroInstance runtime class
-- `scripts/data/hero_catalog.gd` - HeroCatalog autoload (static configs)
+- `scripts/core/summoner_config.gd` - SummonerConfig resource class
+- `scripts/core/summoner_instance.gd` - SummonerInstance runtime class
+- `scripts/data/summoner_catalog.gd` - SummonerCatalog autoload (static configs)
 
 ### Modifier Integration
-- `scripts/systems/hero_modifier_provider.gd` - Provides unit modifiers from traits
+- `scripts/systems/summoner_modifier_provider.gd` - Provides unit modifiers from traits
 - `scripts/systems/modifier_system.gd` - Central modifier registry
 
 ### UI
-- `scripts/ui/hero_management_panel.gd` - Main hero panel
-- `scripts/ui/hero_roster_item.gd` - Individual hero in roster
-- `scripts/ui/hero_icon_widget.gd` - Persistent hero button
+- `scripts/ui/summoner_management_panel.gd` - Main summoner panel
+- `scripts/ui/summoner_roster_item.gd` - Individual summoner in roster
+- `scripts/ui/summoner_icon_widget.gd` - Persistent summoner button
 
 ### Scenes
-- `scenes/ui/hero_management_panel.tscn`
-- `scenes/ui/hero_roster_item.tscn`
-- `scenes/ui/hero_icon_widget.tscn`
+- `scenes/ui/summoner_management_panel.tscn`
+- `scenes/ui/summoner_roster_item.tscn`
+- `scenes/ui/summoner_icon_widget.tscn`
 
 ---
 
 ## Localization
 
-All hero UI uses the localization system:
+All summoner UI uses the localization system:
 
 ```json
 {
   "ui": {
-    "hero_panel": {
-      "title": "HERO ROSTER",
+    "summoner_panel": {
+      "title": "SUMMONER ROSTER",
       "level_display": "Lv.{level}",
       "xp_progress": "XP: {current} / {required}",
       "level_up_button": "LEVEL UP ({cost}g)",

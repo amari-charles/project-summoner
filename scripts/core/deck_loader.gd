@@ -1,26 +1,26 @@
 extends Node
 class_name DeckLoader
 
-## DeckLoader - Converts profile deck data to Card resources and hero for battle
+## DeckLoader - Converts profile deck data to Card resources and summoner for battle
 ##
 ## Static utility class that bridges the gap between:
-## - Profile deck data (array of card_instance_ids + hero_id)
-## - Battle requirements (Array[Card] resources + HeroInstance)
+## - Profile deck data (array of card_instance_ids + summoner_id)
+## - Battle requirements (Array[Card] resources + SummonerInstance)
 
-## Load a specific deck by ID and convert to Card resources with HeroInstance
-## Returns: Dictionary with "cards", "hero_id", and "hero_instance"
+## Load a specific deck by ID and convert to Card resources with SummonerInstance
+## Returns: Dictionary with "cards", "summoner_id", and "summoner_instance"
 static func load_deck_for_battle(deck_id: String) -> Dictionary:
 	var result: Dictionary = {
 		"cards": [],
-		"hero_id": "hero_fire",  # Default fallback
-		"hero_instance": null
+		"summoner_id": SummonerIDs.DEFAULT,  # Default fallback
+		"summoner_instance": null
 	}
 	var cards: Array[Card] = []
 
 	# Get services
 	var decks: Variant = _get_service("/root/Decks")
 	var collection: Variant = _get_service("/root/Collection")
-	var hero_catalog: Variant = _get_service("/root/HeroCatalog")
+	var summoner_catalog: Variant = _get_service("/root/SummonerCatalog")
 
 	if not decks or not collection:
 		push_error("DeckLoader: Required services not found!")
@@ -56,66 +56,66 @@ static func load_deck_for_battle(deck_id: String) -> Dictionary:
 		else:
 			push_warning("DeckLoader: Skipping invalid card instance: %s" % instance_id)
 
-	# Load hero instance
-	var hero_id_variant: Variant = deck.get("hero_id", "")
-	var hero_id: String = hero_id_variant if hero_id_variant is String else ""
+	# Load summoner instance
+	var summoner_id_variant: Variant = deck.get("summoner_id", "")
+	var summoner_id: String = summoner_id_variant if summoner_id_variant is String else ""
 
-	# Fallback to default hero if hero_id is empty
-	if hero_id.is_empty():
-		hero_id = "hero_fire"
-		push_warning("DeckLoader: Deck has no hero_id, using fallback: %s" % hero_id)
+	# Fallback to default summoner if summoner_id is empty
+	if summoner_id.is_empty():
+		summoner_id = SummonerIDs.DEFAULT
+		push_warning("DeckLoader: Deck has no summoner_id, using fallback: %s" % summoner_id)
 
-	result["hero_id"] = hero_id
+	result["summoner_id"] = summoner_id
 
-	# Try to load existing HeroInstance from ProfileRepo
+	# Try to load existing SummonerInstance from ProfileRepo
 	var profile_repo: Variant = _get_service("/root/ProfileRepo")
-	var hero_instance: HeroInstance = null
+	var summoner_instance: SummonerInstance = null
 
 	if profile_repo and profile_repo is Object:
 		var profile_repo_obj: Object = profile_repo
-		var instance_data_variant: Variant = profile_repo_obj.call("get_hero_instance", hero_id)
+		var instance_data_variant: Variant = profile_repo_obj.call("get_summoner_instance", summoner_id)
 		var instance_data: Dictionary = instance_data_variant if instance_data_variant is Dictionary else {}
 
 		if not instance_data.is_empty():
 			# Load from saved instance
-			hero_instance = HeroInstance.from_dict(instance_data)
+			summoner_instance = SummonerInstance.from_dict(instance_data)
 		else:
 			# Create new instance from config
-			if hero_catalog and hero_catalog is Object:
-				var hero_catalog_obj: Object = hero_catalog
-				var hero_config_variant: Variant = hero_catalog_obj.call("get_hero_config", hero_id)
-				if hero_config_variant is HeroConfig:
-					var hero_config: HeroConfig = hero_config_variant
-					hero_instance = HeroInstance.new()
-					hero_instance.init_from_config(hero_config)
+			if summoner_catalog and summoner_catalog is Object:
+				var summoner_catalog_obj: Object = summoner_catalog
+				var summoner_config_variant: Variant = summoner_catalog_obj.call("get_summoner_config", summoner_id)
+				if summoner_config_variant is SummonerConfig:
+					var summoner_config: SummonerConfig = summoner_config_variant
+					summoner_instance = SummonerInstance.new()
+					summoner_instance.init_from_config(summoner_config)
 				else:
-					push_warning("DeckLoader: Hero config not found '%s', using fallback" % hero_id)
+					push_warning("DeckLoader: Summoner config not found '%s', using fallback" % summoner_id)
 			else:
-				push_warning("DeckLoader: HeroCatalog not available")
+				push_warning("DeckLoader: SummonerCatalog not available")
 
-	# Fallback to default hero if loading failed
-	if hero_instance == null:
-		push_warning("DeckLoader: Failed to load hero '%s', creating fallback" % hero_id)
-		result["hero_id"] = "hero_fire"
-		if hero_catalog and hero_catalog is Object:
-			var hero_catalog_obj: Object = hero_catalog
-			var fallback_config_variant: Variant = hero_catalog_obj.call("get_hero_config", "hero_fire")
-			if fallback_config_variant is HeroConfig:
-				var fallback_config: HeroConfig = fallback_config_variant
-				hero_instance = HeroInstance.new()
-				hero_instance.init_from_config(fallback_config)
+	# Fallback to default summoner if loading failed
+	if summoner_instance == null:
+		push_warning("DeckLoader: Failed to load summoner '%s', creating fallback" % summoner_id)
+		result["summoner_id"] = SummonerIDs.DEFAULT
+		if summoner_catalog and summoner_catalog is Object:
+			var summoner_catalog_obj: Object = summoner_catalog
+			var fallback_config_variant: Variant = summoner_catalog_obj.call("get_summoner_config", SummonerIDs.DEFAULT)
+			if fallback_config_variant is SummonerConfig:
+				var fallback_config: SummonerConfig = fallback_config_variant
+				summoner_instance = SummonerInstance.new()
+				summoner_instance.init_from_config(fallback_config)
 
-	result["hero_instance"] = hero_instance
+	result["summoner_instance"] = summoner_instance
 	result["cards"] = cards
 	return result
 
 ## Load the player's currently selected deck from profile
-## Returns: Dictionary with "cards", "hero_id", and "hero_instance"
+## Returns: Dictionary with "cards", "summoner_id", and "summoner_instance"
 static func load_player_deck() -> Dictionary:
 	var empty_result: Dictionary = {
 		"cards": [],
-		"hero_id": "hero_fire",
-		"hero_instance": null
+		"summoner_id": SummonerIDs.DEFAULT,
+		"summoner_instance": null
 	}
 
 	var profile_repo: Variant = _get_service("/root/ProfileRepo")

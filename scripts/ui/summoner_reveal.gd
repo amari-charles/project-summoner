@@ -1,9 +1,9 @@
 extends Control
-class_name HeroReveal
+class_name SummonerReveal
 
-## HeroReveal - Animated reveal of selected hero
+## SummonerReveal - Animated reveal of selected summoner
 ##
-## Shows the full hero card with stats after selection.
+## Shows the full summoner card with stats after selection.
 ## Animates the card in with a dramatic reveal.
 
 @onready var title_label: Label = %TitleLabel
@@ -11,9 +11,9 @@ class_name HeroReveal
 @onready var continue_button: Button = %ContinueButton
 @onready var animation_player: AnimationPlayer = %AnimationPlayer
 
-const HeroCardScene: PackedScene = preload("res://scenes/ui/hero_card.tscn")
+const SummonerCardScene: PackedScene = preload("res://scenes/ui/summoner_card.tscn")
 
-var hero_id: String = ""
+var summoner_id: String = ""
 var was_random: bool = false
 
 func _ready() -> void:
@@ -22,12 +22,12 @@ func _ready() -> void:
 		continue_button.visible = false
 		continue_button.pressed.connect(_on_continue_pressed)
 
-	# Read hero data from ProfileRepo (just saved by hero_selection)
+	# Read summoner data from ProfileRepo (just saved by summoner_selection)
 	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_unlocked_heroes"):
-		var unlocked: Array = profile_repo.call("get_unlocked_heroes")
+	if profile_repo and profile_repo.has_method("get_unlocked_summoners"):
+		var unlocked: Array = profile_repo.call("get_unlocked_summoners")
 		if not unlocked.is_empty():
-			hero_id = unlocked[0]  # Starting hero is first unlocked
+			summoner_id = unlocked[0]  # Starting summoner is first unlocked
 
 	# Check WAL for whether random was chosen (for title text)
 	# For now, just use default title
@@ -35,22 +35,22 @@ func _ready() -> void:
 
 	# Update title for random selection
 	if was_random and title_label:
-		title_label.text = Loc.t("ui.hero_reveal.random_title")
+		title_label.text = Loc.t("ui.summoner_reveal.random_title")
 
-	# Create and add hero card
-	_create_hero_card()
+	# Create and add summoner card
+	_create_summoner_card()
 
 	# Start reveal animation
 	_animate_reveal()
 
-## Create the hero card
-func _create_hero_card() -> void:
+## Create the summoner card
+func _create_summoner_card() -> void:
 	if not card_container:
 		return
 
-	var card: HeroCard = HeroCardScene.instantiate()
+	var card: SummonerCard = SummonerCardScene.instantiate()
 	card_container.add_child(card)
-	card.set_hero(hero_id)
+	card.set_summoner(summoner_id)
 
 	# Hide card initially for animation
 	card.modulate = Color(1, 1, 1, 0)

@@ -1,33 +1,33 @@
-# Hero and Nexus Architecture
+# Summoner and Nexus Architecture
 
-This document describes the intended architecture for the Hero (player character) and Nexus (win condition structure) systems.
+This document describes the intended architecture for the Summoner (player character) and Nexus (win condition structure) systems.
 
 ## Overview
 
 In Project Summoner, two key entities exist per player:
 
-1. **Hero (Summoner3D)** - The player character who commands units
+1. **Summoner (Summoner3D)** - The player character who commands units
 2. **Nexus (Base3D)** - The mana construct being defended
 
-## Hero (Summoner3D)
+## Summoner (Summoner3D)
 
-The Hero represents the player on the battlefield. They are the "summoner" who plays cards and commands units.
+The Summoner represents the player on the battlefield. They play cards and command units.
 
 ### Responsibilities
 
 - Manage deck, hand, and card drawing
 - Manage mana pool and regeneration
 - Play cards to spawn units and cast spells
-- Store hero-specific stats and bonuses
+- Store summoner-specific stats and bonuses
 
 ### NOT Responsible For
 
-- **Combat HP** - Heroes cannot be attacked or damaged
-- **Win/Loss Condition** - Destroying a hero does not end the game
+- **Combat HP** - Summoners cannot be attacked or damaged
+- **Win/Loss Condition** - Destroying a summoner does not end the game
 
-### Hero Stats
+### Summoner Stats
 
-Hero stats affect gameplay in the following ways:
+Summoner stats affect gameplay in the following ways:
 
 | Stat | Effect |
 |------|--------|
@@ -60,7 +60,7 @@ The Nexus is the mana construct that each player defends. It's the physical targ
 ### Future Considerations
 
 The "Base" concept may evolve into:
-- **Incarnation** - A manifestation of the hero's power
+- **Incarnation** - A manifestation of the summoner's power
 - **Nexus** - A mana construct
 - **Crystal** - A magical focal point
 
@@ -74,15 +74,15 @@ The visual representation can change, but the core mechanic remains: it's the st
 - GameController3D listens for this and calls `end_game()`
 - The team whose base was destroyed loses
 
-## Hero Stats Flowing to Nexus
+## Summoner Stats Flowing to Nexus
 
 Currently planned (not yet implemented):
 
 ```
-Hero.health stat → Nexus.max_hp
+Summoner.health stat → Nexus.max_hp
 ```
 
-This allows hero progression to affect game difficulty through increased nexus durability.
+This allows summoner progression to affect game difficulty through increased nexus durability.
 
 ## Group Usage
 

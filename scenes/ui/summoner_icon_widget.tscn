@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8h4wdx3pqvme"]
 
-[ext_resource type="Script" path="res://scripts/ui/hero_icon_widget.gd" id="1_icon"]
+[ext_resource type="Script" path="res://scripts/ui/summoner_icon_widget.gd" id="1_icon"]
 
-[node name="HeroIconWidget" type="Control"]
+[node name="SummonerIconWidget" type="Control"]
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 3
 anchors_preset = 0
