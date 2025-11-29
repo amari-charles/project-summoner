@@ -34,6 +34,8 @@ const NODE_SPACING: float = 150.0  # Horizontal spacing between nodes
 const NODE_SIZE: Vector2 = Vector2(80, 80)
 const PATH_COLOR: Color = Color(0.4, 0.4, 0.5)
 const PATH_WIDTH: float = 4.0
+const MAP_CENTER_Y: float = 800.0  # Vertical center of 1600px map height
+const MAP_WAVE_AMPLITUDE: float = 300.0  # Vertical variation for winding path
 
 ## Asset paths - Replace these with real artwork when available
 ## Map background: Place your map texture here (any resolution, will scale to fit)
@@ -258,10 +260,8 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 		node_position = event_data.get("map_position")
 	else:
 		# Calculate position: winding path using sine wave
-		var base_y: float = 800.0  # Center of 1600px height
-		var wave_amplitude: float = 300.0  # Vertical variation from center
-		var y_offset: float = sin(float(index) * 0.5) * wave_amplitude
-		node_position = Vector2(start_x + index * NODE_SPACING, base_y + y_offset)
+		var y_offset: float = sin(float(index) * 0.5) * MAP_WAVE_AMPLITUDE
+		node_position = Vector2(start_x + index * NODE_SPACING, MAP_CENTER_Y + y_offset)
 		if event_data.has("map_position"):
 			push_warning("CampaignMap: Invalid map_position format for event, using calculated position")
 

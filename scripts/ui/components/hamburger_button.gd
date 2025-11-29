@@ -11,8 +11,7 @@ func _ready() -> void:
 	# Style the button
 	flat = true
 
-	# Use hamburger unicode character as icon placeholder
-	# TODO: Replace with proper icon asset when available
+	# Hamburger menu icon (☰)
 	text = "☰"
 
 	# Connect our own hover effects

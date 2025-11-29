@@ -51,7 +51,7 @@ flat = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 36
-text = "SPECIAL EVENTS"
+text = ""
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/Header"]
@@ -83,17 +83,12 @@ theme_override_constants/separation = 30
 [node name="ComingSoonLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/ComingSoonPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "COMING SOON"
+text = ""
 horizontal_alignment = 1
 
 [node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/ComingSoonPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Special events will include:
-
-• Limited-time seasonal events
-• Holiday celebrations with exclusive rewards
-• Daily & weekly challenges
-• Milestone rewards for completing objectives"
+text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
