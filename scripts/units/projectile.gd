@@ -21,14 +21,14 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Move toward target
-	var direction = (target.global_position - global_position).normalized()
+	var direction: Vector2 = (target.global_position - global_position).normalized()
 	global_position += direction * speed * delta
 
 	# Rotate to face direction of travel
 	rotation = direction.angle()
 
 	# Check if we've reached the target
-	var dist = global_position.distance_to(target.global_position)
+	var dist: float = global_position.distance_to(target.global_position)
 	if dist < 10.0:
 		_hit_target()
 

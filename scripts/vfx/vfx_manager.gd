@@ -8,15 +8,21 @@ var effect_library: Dictionary = {}  ## effect_id -> VFXDefinition
 var effect_pools: Dictionary = {}  ## effect_id -> Array[VFXInstance]
 var active_effects: Dictionary = {}  ## effect_id -> Array[VFXInstance]
 
-var effects_container: Node3D = null  ## Parent for all effects
+var effects_container: Node3D = null  ## Parent for active effects
+var pool_container: Node3D = null  ## Parent for pooled effects (keeps them in scene tree)
 
 func _ready() -> void:
 	print("VFXManager: Initializing...")
 
-	# Create container for effects
+	# Create container for active effects
 	effects_container = Node3D.new()
 	effects_container.name = "VFXContainer"
 	add_child(effects_container)
+
+	# Create container for pooled effects (keeps them in scene tree, avoids orphans)
+	pool_container = Node3D.new()
+	pool_container.name = "VFXPool"
+	add_child(pool_container)
 
 	_load_effect_library()
 	_init_pools()
@@ -76,6 +82,9 @@ func _init_pools() -> void:
 				if instance:
 					instance.is_pooled = true
 					instance.reset()
+					instance.visible = false  # Hide while pooled
+					# Add to pool container (keeps in scene tree, avoids orphans)
+					pool_container.add_child(instance)
 					var pool: Array = effect_pools[effect_id]
 					pool.append(instance)
 
@@ -171,7 +180,11 @@ func _get_from_pool(effect_id: String) -> VFXInstance:
 		var instance_variant: Variant = pool.pop_back()
 		if instance_variant is VFXInstance:
 			var instance: VFXInstance = instance_variant
+			# Remove from pool container before use
+			if instance.get_parent():
+				instance.get_parent().remove_child(instance)
 			instance.reset()
+			instance.visible = true  # Show when retrieved
 			return instance
 
 	# Pool exhausted, instantiate new
@@ -197,14 +210,16 @@ func _on_effect_finished(effect_id: String, instance: VFXInstance) -> void:
 		var active: Array = active_effects[effect_id]
 		active.erase(instance)
 
-	# Remove from scene
+	# Remove from effects container
 	if instance.get_parent():
 		instance.get_parent().remove_child(instance)
 
-	# Return to pool
+	# Return to pool container (keeps in scene tree)
 	if effect_pools.has(effect_id):
 		var pool: Array = effect_pools[effect_id]
 		pool.append(instance)
+		instance.visible = false  # Hide while pooled
+		pool_container.add_child(instance)
 
 ## Play sound at position
 func _play_sound(sound: AudioStream, spawn_position: Vector3, volume_db: float) -> void:

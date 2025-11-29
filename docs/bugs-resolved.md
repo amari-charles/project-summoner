@@ -4,6 +4,33 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Orphaned Nodes from Autoload Object Pools During Unit Tests
+**Resolved:** 2025-11-28
+**Component:** Unit Testing / Object Pools
+
+**Description:**
+GUT reported ~155 orphaned nodes during test runs from autoload object pools (VFXManager, HPBarManager, ProjectileManager).
+
+**Root Cause:**
+Autoload managers pre-instantiated object pools at startup. These pooled objects were stored in arrays *outside* the scene tree, making them "orphans" by Godot's definition. GUT detects orphans using `Node.get_orphan_node_ids()` which finds any node not in the scene tree.
+
+**Solution Implemented:**
+Keep pooled objects IN the scene tree by adding them to a dedicated pool container node:
+
+1. **Added `pool_container: Node3D`** to each manager - a hidden child node that holds pooled objects
+2. **On pool creation:** Add instances to `pool_container` instead of just storing in arrays
+3. **On retrieval:** Remove from `pool_container` before adding to active container
+4. **On return:** Add back to `pool_container` after removing from active container
+
+This ensures pooled objects are always in the scene tree (either in `pool_container` or `active_container`), eliminating orphan warnings. The scene tree also automatically handles cleanup when the autoload exits.
+
+**Related Files:**
+- `scripts/vfx/vfx_manager.gd` - Added pool_container, updated _init_pools, _get_from_pool, _on_effect_finished
+- `scripts/ui/hp_bar_manager.gd` - Added pool_container, updated _init_pool, create_bar_for_unit, _return_to_pool
+- `scripts/projectiles/projectile_manager.gd` - Added pool_container, updated _create_pool_for, _return_to_pool
+
+---
+
 ### Exiting Battle Mid-Fight Incorrectly Completes Event
 **Resolved:** 2025-11-28
 **Component:** Campaign / Battle System

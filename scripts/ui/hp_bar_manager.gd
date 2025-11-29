@@ -12,8 +12,9 @@ const MAX_POOL_SIZE: int = 50
 var bar_pool: Array[FloatingHPBar] = []
 var active_bars: Dictionary = {}  ## unit -> FloatingHPBar
 
-## Container
-var bars_container: Node3D = null
+## Containers
+var bars_container: Node3D = null  ## Parent for active HP bars
+var pool_container: Node3D = null  ## Parent for pooled HP bars (keeps them in scene tree)
 
 ## HP bar scene
 var hp_bar_scene: PackedScene = null
@@ -21,10 +22,15 @@ var hp_bar_scene: PackedScene = null
 func _ready() -> void:
 	print("HPBarManager: Initializing...")
 
-	# Create container
+	# Create container for active bars
 	bars_container = Node3D.new()
 	bars_container.name = "HPBarsContainer"
 	add_child(bars_container)
+
+	# Create container for pooled bars (keeps them in scene tree, avoids orphans)
+	pool_container = Node3D.new()
+	pool_container.name = "HPBarPool"
+	add_child(pool_container)
 
 	# Load HP bar scene (will create if not exists)
 	_load_hp_bar_scene()
@@ -49,6 +55,8 @@ func _init_pool() -> void:
 			bar.is_pooled = true
 			bar.reset()
 			bar.visible = false  # Hide pooled bars until assigned to units
+			# Add to pool container (keeps in scene tree, avoids orphans)
+			pool_container.add_child(bar)
 			bar_pool.append(bar)
 
 func _instantiate_bar() -> FloatingHPBar:
@@ -72,6 +80,9 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 	var bar: FloatingHPBar = null
 	if bar_pool.size() > 0:
 		bar = bar_pool.pop_back()
+		# Remove from pool container before use
+		if bar.get_parent():
+			bar.get_parent().remove_child(bar)
 		bar.reset()
 		# print("HPBarManager: Reusing bar from pool (pool size: %d)" % bar_pool.size())
 	else:
@@ -174,6 +185,8 @@ func _return_to_pool(bar: FloatingHPBar) -> void:
 	if bar_pool.size() < MAX_POOL_SIZE:
 		bar.reset()
 		bar_pool.append(bar)
+		# Add to pool container (keeps in scene tree)
+		pool_container.add_child(bar)
 	else:
 		# Pool full, destroy bar
 		bar.queue_free()
