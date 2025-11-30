@@ -21,6 +21,7 @@ signal closed
 
 const SLIDE_DURATION: float = 0.25
 const PANEL_WIDTH: float = 300.0
+const OVERLAY_OPACITY: float = 0.6
 
 var _is_open: bool = false
 var _tween: Tween
@@ -75,7 +76,7 @@ func open() -> void:
 		_tween.kill()
 	_tween = create_tween()
 	_tween.set_parallel(true)
-	_tween.tween_property(overlay, "modulate:a", 0.6, SLIDE_DURATION)
+	_tween.tween_property(overlay, "modulate:a", OVERLAY_OPACITY, SLIDE_DURATION)
 	_tween.tween_property(panel, "position:x", viewport_width - PANEL_WIDTH, SLIDE_DURATION).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
 func _close() -> void:

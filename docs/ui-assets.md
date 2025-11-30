@@ -12,7 +12,7 @@ This document tracks all UI assets needed for the visual rework and their reuse 
 
 | Asset | Reuse Locations |
 |-------|-----------------|
-| **Primary Button** | Main Menu, Game Mode Menu, Pause Menu, Reward Screen, Shop, Deck Builder, Collection, all modals |
+| **Primary Button** | Title Screen, Pause Menu, Reward Screen, Shop, Deck Builder, Collection, Settings, Special Events, all modals |
 | **Secondary Button** (smaller) | Back buttons, Close buttons, Tab buttons, filter toggles |
 | **Icon Button** (circular/square) | Settings gear, Speed controls, Pause button |
 
@@ -93,13 +93,14 @@ NinePatch textures for scaling
 |-------|-----------------|
 | **Back Arrow** | All screens with back navigation (15+ screens) |
 | **Close X** | All modals (6+ modals) |
-| **Settings Gear** | Main Menu, Pause Menu |
+| **Settings Gear** | Pause Menu, Nav Drawer |
 | **Gold/Currency** | Shop, Reward Screen, Card Level Up, resource displays |
 | **Mana Crystal** | CardWidget cost, ManaBar |
 | **Plus/Add** | New Deck button, Add card buttons |
 | **Trash/Delete** | Delete Deck, remove card |
 | **Check/Confirm** | Confirmations, active indicators |
 | **Lock** | Locked summoners, locked content |
+| **Hamburger Menu** | Campaign Map (opens Nav Drawer) |
 
 ---
 
@@ -119,8 +120,8 @@ NinePatch textures for scaling
 
 | Asset | Reuse Locations |
 |-------|-----------------|
-| **Main Menu BG** | Main Menu (exists: `main_menu_background.png`) |
-| **Dark Gradient/Pattern** | Game Mode Menu, Collection, Deck Builder, Campaign Map |
+| **Title Screen BG** | Title Screen (exists: `main_menu_background.png`) |
+| **Dark Gradient/Pattern** | Collection, Deck Builder, Campaign Map, Settings, Special Events |
 | **Battle Arena BG** | Battle scenes |
 | **Modal Overlay** | All modals (semi-transparent dark) |
 
@@ -209,31 +210,36 @@ For reference when creating assets:
 
 ## Screen Inventory
 
-All 26 UI screens for reference:
+All 27 UI screens for reference:
 
-1. Main Menu
-2. Game Mode Menu
-3. Pause Menu
-4. Campaign Map
-5. Event Screen
-6. Summoner Reveal
-7. Deck Builder
-8. Collection Screen
-9. Card Detail Modal
-10. Card Level Up Panel
-11. Shop Screen
-12. Reward Screen
-13. Summoner Selection
-14. First Card Selection
-15. Summoner Management Panel
-16. Dialogue Box (reusable component)
-17. Hand UI
-18. Mana Bar
-19. Floating HP Bar
-20. Card Widget
-21. Card Visual
-22. Offering Card
-23. Summoner Card
-24. Summoner Icon Widget
-25. Summoner Roster Item
-26. Snapshot Manager
+1. Title Screen
+2. Pause Menu
+3. Campaign Map
+4. Event Screen
+5. Summoner Reveal
+6. Deck Builder
+7. Collection Screen
+8. Card Detail Modal
+9. Card Level Up Panel
+10. Shop Screen
+11. Reward Screen
+12. Summoner Selection
+13. First Card Selection
+14. Summoner Management Panel
+15. Settings Screen
+16. Special Events Screen
+17. Dialogue Box (reusable component)
+18. Hand UI
+19. Mana Bar
+20. Floating HP Bar
+21. Card Widget
+22. Card Visual
+23. Offering Card
+24. Summoner Card
+25. Summoner Icon Widget
+26. Summoner Roster Item
+27. Snapshot Manager
+
+### Reusable Components
+- Nav Drawer
+- Hamburger Button

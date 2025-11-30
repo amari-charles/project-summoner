@@ -37,6 +37,10 @@ const PATH_WIDTH: float = 4.0
 const MAP_CENTER_Y: float = 800.0  # Vertical center of 1600px map height
 const MAP_WAVE_AMPLITUDE: float = 300.0  # Vertical variation for winding path
 
+## UI positioning constants
+const HAMBURGER_BUTTON_MARGIN: float = 20.0
+const HAMBURGER_BUTTON_SIZE: float = 48.0
+
 ## Asset paths - Replace these with real artwork when available
 ## Map background: Place your map texture here (any resolution, will scale to fit)
 const MAP_BACKGROUND_TEXTURE: String = "res://assets/ui/campaign_map_background.png"
@@ -793,10 +797,10 @@ func _setup_navigation() -> void:
 	hamburger_button.anchor_right = 1.0
 	hamburger_button.anchor_top = 0.0
 	hamburger_button.anchor_bottom = 0.0
-	hamburger_button.offset_left = -68
-	hamburger_button.offset_right = -20
-	hamburger_button.offset_top = 20
-	hamburger_button.offset_bottom = 68
+	hamburger_button.offset_left = -(HAMBURGER_BUTTON_MARGIN + HAMBURGER_BUTTON_SIZE)
+	hamburger_button.offset_right = -HAMBURGER_BUTTON_MARGIN
+	hamburger_button.offset_top = HAMBURGER_BUTTON_MARGIN
+	hamburger_button.offset_bottom = HAMBURGER_BUTTON_MARGIN + HAMBURGER_BUTTON_SIZE
 
 	hamburger_button.pressed.connect(_on_hamburger_pressed)
 
