@@ -11,6 +11,8 @@ const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_i
 const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
 const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/hamburger_button.tscn")
 const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
+const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/snapshot_manager.tscn")
+const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/components/campaign_selector_modal.tscn")
 
 ## Node references
 @onready var locator_button: Button = %LocatorButton
@@ -73,6 +75,11 @@ var summoner_icon: SummonerIconWidget = null
 ## Navigation components
 var hamburger_button: HamburgerButton = null
 var nav_drawer: NavDrawer = null
+var snapshot_manager: Node = null
+
+## Campaign selector components
+var campaign_banner: Button = null
+var campaign_selector_modal: CampaignSelectorModal = null
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -168,6 +175,9 @@ func _ready() -> void:
 
 	# Setup navigation (hamburger menu + nav drawer)
 	_setup_navigation()
+
+	# Setup campaign banner (top-left)
+	_setup_campaign_banner()
 
 	# Setup summoner icon
 	_setup_summoner_icon()
@@ -814,6 +824,10 @@ func _setup_navigation() -> void:
 	nav_drawer.shop_pressed.connect(_on_nav_shop_pressed)
 	nav_drawer.settings_pressed.connect(_on_nav_settings_pressed)
 
+	# Connect debug-only signals
+	if OS.is_debug_build():
+		nav_drawer.snapshots_pressed.connect(_on_nav_snapshots_pressed)
+
 func _on_hamburger_pressed() -> void:
 	if nav_drawer:
 		nav_drawer.open()
@@ -838,6 +852,81 @@ func _on_nav_settings_pressed() -> void:
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
 
+func _on_nav_snapshots_pressed() -> void:
+	print("CampaignMap: Opening Snapshot Manager...")
+	if snapshot_manager == null:
+		snapshot_manager = SnapshotManagerScene.instantiate()
+		add_child(snapshot_manager)
+	if snapshot_manager.has_method("show_manager"):
+		snapshot_manager.show_manager()
+
+## =============================================================================
+## CAMPAIGN BANNER
+## =============================================================================
+
+func _setup_campaign_banner() -> void:
+	campaign_banner = Button.new()
+	add_child(campaign_banner)
+
+	# Position in top-left corner
+	campaign_banner.anchor_left = 0.0
+	campaign_banner.anchor_right = 0.0
+	campaign_banner.anchor_top = 0.0
+	campaign_banner.anchor_bottom = 0.0
+	campaign_banner.offset_left = 20
+	campaign_banner.offset_right = 280
+	campaign_banner.offset_top = 20
+	campaign_banner.offset_bottom = 60
+
+	campaign_banner.flat = true
+	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	campaign_banner.add_theme_font_size_override("font_size", 20)
+
+	_update_campaign_banner_text()
+	campaign_banner.pressed.connect(_on_campaign_banner_pressed)
+
+func _update_campaign_banner_text() -> void:
+	if not campaign_banner:
+		return
+
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if campaign and campaign.has_method("get_current_campaign_id"):
+		var campaign_id: String = campaign.call("get_current_campaign_id")
+		if campaign.has_method("get_campaign"):
+			var campaign_data: Dictionary = campaign.call("get_campaign", campaign_id)
+			var name_key: String = campaign_data.get("name_key", "")
+			if not name_key.is_empty():
+				campaign_banner.text = Loc.t(name_key) + " ▼"
+			else:
+				campaign_banner.text = campaign_id + " ▼"
+		else:
+			campaign_banner.text = campaign_id + " ▼"
+	else:
+		campaign_banner.text = Loc.t("campaign.selector.title") + " ▼"
+
+func _on_campaign_banner_pressed() -> void:
+	if campaign_selector_modal == null:
+		campaign_selector_modal = CampaignSelectorModalScene.instantiate()
+		add_child(campaign_selector_modal)
+		campaign_selector_modal.campaign_selected.connect(_on_campaign_selected)
+		campaign_selector_modal.closed.connect(_on_campaign_modal_closed)
+
+	campaign_selector_modal.open()
+
+func _on_campaign_selected(campaign_id: String) -> void:
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if campaign and campaign.has_method("set_current_campaign"):
+		var success: bool = campaign.call("set_current_campaign", campaign_id)
+		if success:
+			_update_campaign_banner_text()
+			_refresh_map()
+
+	if campaign_selector_modal:
+		campaign_selector_modal.hide()
+
+func _on_campaign_modal_closed() -> void:
+	pass  # Modal hides itself
+
 ## =============================================================================
 ## SUMMONER ICON
 ## =============================================================================
@@ -853,15 +942,15 @@ func _setup_summoner_icon() -> void:
 	summoner_icon = SummonerIconWidgetScene.instantiate()
 	add_child(summoner_icon)
 
-	# Position in top-left corner
+	# Position in bottom-left corner
 	summoner_icon.anchor_left = 0.0
 	summoner_icon.anchor_right = 0.0
-	summoner_icon.anchor_top = 0.0
-	summoner_icon.anchor_bottom = 0.0
+	summoner_icon.anchor_top = 1.0
+	summoner_icon.anchor_bottom = 1.0
 	summoner_icon.offset_left = 20
 	summoner_icon.offset_right = 70
-	summoner_icon.offset_top = 20
-	summoner_icon.offset_bottom = 70
+	summoner_icon.offset_top = -70
+	summoner_icon.offset_bottom = -20
 
 	# Connect signal
 	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
@@ -880,7 +969,12 @@ func _on_event_completed(_event_id: String) -> void:
 	_update_detail_panel()
 
 func _on_progress_changed() -> void:
+	# Full refresh when progress changes (e.g., snapshot loaded)
 	_refresh_map()
+	_update_detail_panel()
+	_update_campaign_banner_text()
+	if summoner_icon:
+		summoner_icon.refresh()
 
 func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
 	# Refresh summoner icon, map, and deck list when summoner changes

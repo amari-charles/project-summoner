@@ -6,10 +6,14 @@ class_name CampaignService
 ## Tracks which battles have been completed and handles reward distribution.
 ## Battle definitions and progression are managed here.
 
+## Preload CampaignIDs to ensure class is available
+const _CampaignIDs = preload("res://scripts/data/campaign_ids.gd")
+
 ## Signals
 signal battle_completed(battle_id: String)
 signal battle_unlocked(battle_id: String)
 signal campaign_progress_changed()
+signal campaign_changed(old_campaign_id: String, new_campaign_id: String)
 
 ## =============================================================================
 ## DEPENDENCIES
@@ -23,6 +27,10 @@ var collection_service: Node = null  # CollectionService
 
 ## Campaign battles
 var _battles: Dictionary = {}
+
+## Campaign metadata
+var _campaigns: Dictionary = {}  # campaign_id -> campaign metadata
+var _current_campaign_id: String = ""
 
 ## Current profile's campaign progress
 var _completed_battles: Array[String] = []
@@ -42,7 +50,16 @@ func _ready() -> void:
 	if collection_service == null:
 		collection_service = Collection
 
-	_init_battles()
+	_load_campaigns()
+
+	# Load selected campaign from profile meta (default to first campaign)
+	var meta: Dictionary = profile_repo.get_profile_meta()
+	_current_campaign_id = meta.get("selected_campaign", String(_CampaignIDs.DEFAULT))
+
+	# Ensure current campaign is valid
+	if not _campaigns.has(_current_campaign_id):
+		_current_campaign_id = String(_CampaignIDs.DEFAULT)
+
 	_load_progress()
 
 	# Reload progress when profile changes (e.g., on reset)
@@ -66,12 +83,14 @@ func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node
 		profile_repo.data_changed.disconnect(_on_profile_data_changed)
 	profile_repo.data_changed.connect(_on_profile_data_changed)
 
-	_init_battles(true)  # Skip validation in tests (no scene tree access)
+	_load_campaigns(true)  # Skip validation in tests (no scene tree access)
+	_current_campaign_id = String(_CampaignIDs.DEFAULT)
 	_load_progress()
 
 func _on_profile_data_changed() -> void:
 	print("CampaignService: Profile data changed - reloading progress...")
 	_load_progress()
+	campaign_progress_changed.emit()
 
 func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> void:
 	print("CampaignService: Summoner changed to '%s' - reloading progress..." % new_summoner_id)
@@ -79,150 +98,114 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 	campaign_progress_changed.emit()
 
 ## =============================================================================
-## BATTLE DEFINITIONS
+## CAMPAIGN LOADING
 ## =============================================================================
 
-func _init_battles(skip_validation: bool = false) -> void:
-	# TODO: Ensure reward_cards here stay in sync with what's displayed in the campaign menu UI
-	# When updating battle rewards, also update the corresponding UI displays in:
-	#   - campaign_map.gd (visual node-based map)
-	#   - campaign_screen.gd (list-based screen)
-	# to prevent divergence between advertised and actual rewards
+## Load all campaigns from JSON files in data/campaigns/
+func _load_campaigns(skip_validation: bool = false) -> void:
+	_campaigns.clear()
+	_battles.clear()
 
-	# IMPORTANT: Battles using event_sequence system
-	# If a battle uses "event_sequence" for spawning enemies via dialogue/events:
-	# - Set "enemy_deck": [] (empty array, NOT omit the key)
-	# - Summoner3D will auto-detect this and use DEFERRED deck loading strategy
-	# - Enemies are spawned manually via BattleDialogueController or EventSequencer
+	var campaign_dir: String = "res://data/campaigns/"
+	var dir: DirAccess = DirAccess.open(campaign_dir)
 
-	# WIN CONDITIONS:
-	# Each battle can specify a win condition using these fields:
-	#   - "win_condition": WinConditionIDs constant (default: DESTROY_BASE)
-	#   - "time_limit": seconds for timed conditions (required for SURVIVE_TIME, TIMED_DESTROY)
-	#   - "kill_target": number of kills for KILL_COUNT condition
-	#
-	# Available win conditions (see WinConditionIDs):
-	#   - DESTROY_BASE: Destroy enemy base to win (default, no time limit)
-	#   - SURVIVE_TIME: Survive for time_limit seconds (player wins on timeout)
-	#   - TIMED_DESTROY: Destroy base within time_limit (player loses on timeout)
-	#   - KILL_COUNT: Kill kill_target enemy units to win
+	if not dir:
+		push_warning("CampaignService: campaigns directory not found: " + campaign_dir)
+		return
 
-	# Onboarding Event 1: Summoner/Affinity selection
-	# Note: Convert StringName to String for dictionary keys (String lookups won't find StringName keys)
-	_battles[String(BattleIDs.EVENT_AFFINITY)] = {
-		"id": String(BattleIDs.EVENT_AFFINITY),
-		"biome_id": "",  # No biome, not a battle
-		"name": Loc.t("campaign.event.affinity.name"),
-		"description": Loc.t("campaign.event.affinity.description"),
-		"difficulty": 0,
-		"event_type": EventTypeIDs.AFFINITY,
-		"requires_deck": false,  # No deck selection needed
-		"repeatable": false,  # One-time event
-		"reward_type": RewardTypeIDs.FIXED,
-		"reward_cards": [],  # Reward handled by summoner_selection flow
-		"enemy_deck": [],  # Not a battle
-		"unlock_requirements": [],  # First event, always available
-	}
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
 
-	# Onboarding Event 2: First summon selection
-	_battles[String(BattleIDs.EVENT_FIRST_SUMMON)] = {
-		"id": String(BattleIDs.EVENT_FIRST_SUMMON),
-		"biome_id": "",  # No biome, not a battle
-		"name": Loc.t("campaign.event.first_summon.name"),
-		"description": Loc.t("campaign.event.first_summon.description"),
-		"difficulty": 0,
-		"event_type": EventTypeIDs.FIRST_SUMMON,
-		"requires_deck": false,  # No deck selection needed
-		"repeatable": false,  # One-time event
-		"reward_type": RewardTypeIDs.FIXED,
-		"reward_cards": [],  # Reward handled by first_card_selection flow
-		"enemy_deck": [],  # Not a battle
-		"unlock_requirements": [String(BattleIDs.EVENT_AFFINITY)],  # Requires completing affinity selection
-	}
+	while file_name != "":
+		if file_name.ends_with(".json"):
+			var file_path: String = campaign_dir + file_name
+			var campaign_data: Dictionary = _load_campaign_from_file(file_path)
+			if not campaign_data.is_empty():
+				var campaign_id: String = campaign_data.get("campaign_id", "")
+				if not campaign_id.is_empty():
+					_campaigns[campaign_id] = campaign_data
+					_load_battles_from_campaign(campaign_data)
+		file_name = dir.get_next()
 
-	# Battle 0: The First Trial
-	_battles[String(BattleIDs.FIRST_TRIAL)] = {
-		"id": String(BattleIDs.FIRST_TRIAL),
-		"biome_id": String(BiomeIDs.SUMMER_PLAINS),
-		"name": Loc.t("campaign.battle.first_trial.name"),
-		"description": Loc.t("campaign.battle.first_trial.description"),
-		"difficulty": 1,
-		"event_type": EventTypeIDs.BATTLE,
-		"repeatable": false,  # One-time tutorial battle
-		"requires_deck": true,  # Requires deck selection
-		"is_tutorial": true,  # Tutorial battle - deck editing locked
-		"reward_type": RewardTypeIDs.FIXED,
-		"reward_cards": [
-			{"catalog_id": "charge", "rarity": RarityIDs.COMMON, "count": 1}
-		],
-		"gold_reward": 30,       # Base gold reward for winning
-		"card_xp_reward": 15,    # XP granted to cards played in battle
-		"summoner_xp_reward": 50,    # XP granted to summoner for winning
-		"enemy_deck": [
-			{"catalog_id": "slime_green", "count": 1}
-		],
-		"enemy_hp": 30.0,  # Very low HP for tutorial (3 hits × 10 damage)
-		"unlock_requirements": [String(BattleIDs.EVENT_FIRST_SUMMON)],
-		# Tutorial Event Sequence (Phase 3: Event System)
-		"event_sequence": "res://resources/sequences/first_trial_tutorial.tres",
-		# AI Configuration (disabled for tutorial - manual spawn via dialogue system)
-		"ai_type": "scripted",
-		"ai_script": []
-	}
-
-	# Tutorial: Charge Card Introduction
-	_battles[String(BattleIDs.CHARGE_TUTORIAL)] = {
-		"id": String(BattleIDs.CHARGE_TUTORIAL),
-		"biome_id": String(BiomeIDs.SUMMER_PLAINS),
-		"name": Loc.t("campaign.battle.charge_tutorial.name"),
-		"description": Loc.t("campaign.battle.charge_tutorial.description"),
-		"difficulty": 1,
-		"event_type": EventTypeIDs.BATTLE,
-		"repeatable": false,  # One-time tutorial battle
-		"requires_deck": true,
-		"is_tutorial": true,  # Last tutorial battle - deck editing unlocks after this
-		"reward_type": RewardTypeIDs.FIXED,
-		"reward_cards": [
-			{"catalog_id": "fire_recruit", "rarity": RarityIDs.COMMON, "count": 1},
-			{"catalog_id": "ember_slinger", "rarity": RarityIDs.COMMON, "count": 1}
-		],
-		"gold_reward": 40,       # Slightly more gold for second battle
-		"card_xp_reward": 15,    # XP granted to cards played in battle
-		"summoner_xp_reward": 75,    # XP granted to summoner for winning
-		"enemy_deck": [],  # Spawned via event sequence
-		"enemy_hp": 50.0,
-		"unlock_requirements": [String(BattleIDs.FIRST_TRIAL)],
-		# Tutorial Event Sequence
-		"event_sequence": "res://resources/sequences/charge_tutorial.tres",
-		# AI Configuration (disabled for tutorial)
-		"ai_type": "scripted",
-		"ai_script": []
-	}
-
-	# Caravan Event: Mr. Merriweather's Trading Post
-	_battles[String(BattleIDs.EVENT_CARAVAN_TUTORIAL)] = {
-		"id": String(BattleIDs.EVENT_CARAVAN_TUTORIAL),
-		"event_type": EventTypeIDs.CARAVAN,
-		"name": Loc.t("campaign.event.caravan_tutorial.name"),
-		"description": Loc.t("campaign.event.caravan_tutorial.description"),
-		"difficulty": 1,
-		"gold_reward": 0,  # Handled by shop purchases
-		"unlock_requirements": [String(BattleIDs.CHARGE_TUTORIAL)],
-		"requires_deck": false,
-		"repeatable": false,
-		"reward_type": RewardTypeIDs.NONE,  # Rewards from shop
-		"reward_cards": [],
-		# Caravan shop ID
-		"shop_id": "caravan_tutorial",
-		# Event Sequence (dialogue + shop opening)
-		"event_sequence": "res://resources/sequences/caravan_tutorial.tres"
-	}
-
-	print("CampaignService: Loaded %d battles" % _battles.size())
+	dir.list_dir_end()
+	print("CampaignService: Loaded %d campaigns with %d total battles" % [_campaigns.size(), _battles.size()])
 
 	# Validate all battle rewards exist in card catalog (skip in tests)
 	if not skip_validation:
 		_validate_battle_rewards()
+
+## Load a single campaign from a JSON file
+func _load_campaign_from_file(file_path: String) -> Dictionary:
+	var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
+	if not file:
+		push_error("CampaignService: Failed to open file: " + file_path)
+		return {}
+
+	var json_text: String = file.get_as_text()
+	file.close()
+
+	var json: JSON = JSON.new()
+	var parse_result: Error = json.parse(json_text)
+
+	if parse_result != OK:
+		push_error("CampaignService: JSON parse error in %s: %s" % [file_path, json.get_error_message()])
+		return {}
+
+	var data: Variant = json.get_data()
+	if not data is Dictionary:
+		push_error("CampaignService: JSON root is not a dictionary: " + file_path)
+		return {}
+
+	return data
+
+## Load battles from a campaign data dictionary into _battles
+func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
+	var battles_array: Array = campaign_data.get("battles", [])
+
+	for battle_variant: Variant in battles_array:
+		if not battle_variant is Dictionary:
+			continue
+		var battle: Dictionary = battle_variant
+		var battle_id: String = battle.get("id", "")
+		if battle_id.is_empty():
+			push_warning("CampaignService: Battle missing 'id' field, skipping")
+			continue
+
+		# Convert localization keys to localized strings
+		var name_key: String = battle.get("name_key", "")
+		var desc_key: String = battle.get("description_key", "")
+		battle["name"] = Loc.t(name_key) if not name_key.is_empty() else ""
+		battle["description"] = Loc.t(desc_key) if not desc_key.is_empty() else ""
+
+		# Convert event_type string to StringName
+		var event_type_str: String = battle.get("event_type", "battle")
+		battle["event_type"] = _string_to_event_type(event_type_str)
+
+		# Convert reward_type string to StringName
+		var reward_type_str: String = battle.get("reward_type", "fixed")
+		battle["reward_type"] = _string_to_reward_type(reward_type_str)
+
+		# Store battle
+		_battles[battle_id] = battle
+
+## Convert event type string to EventTypeIDs constant
+func _string_to_event_type(type_str: String) -> StringName:
+	match type_str.to_lower():
+		"battle": return EventTypeIDs.BATTLE
+		"affinity": return EventTypeIDs.AFFINITY
+		"first_summon": return EventTypeIDs.FIRST_SUMMON
+		"caravan": return EventTypeIDs.CARAVAN
+		"onboarding": return EventTypeIDs.ONBOARDING
+		_: return EventTypeIDs.BATTLE
+
+## Convert reward type string to RewardTypeIDs constant
+func _string_to_reward_type(type_str: String) -> StringName:
+	match type_str.to_lower():
+		"fixed": return RewardTypeIDs.FIXED
+		"choice": return RewardTypeIDs.CHOICE
+		"random": return RewardTypeIDs.RANDOM
+		"none": return RewardTypeIDs.NONE
+		_: return RewardTypeIDs.FIXED
 
 ## Validate that all reward cards in battle configs exist in the card catalog
 func _validate_battle_rewards() -> void:
@@ -253,6 +236,62 @@ func _validate_battle_rewards() -> void:
 		push_error("CampaignService: Found %d invalid reward card references! Fix these before shipping." % invalid_count)
 	else:
 		print("CampaignService: All %d battles validated - rewards are properly configured" % _battles.size())
+
+## =============================================================================
+## CAMPAIGN QUERIES
+## =============================================================================
+
+## Get all campaigns with unlock status
+func get_all_campaigns() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for campaign_id: String in _campaigns.keys():
+		var campaign: Dictionary = _campaigns[campaign_id].duplicate()
+		campaign["is_unlocked"] = is_campaign_unlocked(campaign_id)
+		result.append(campaign)
+	# Sort by sort_order
+	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return a.get("sort_order", 999) < b.get("sort_order", 999)
+	)
+	return result
+
+## Get a specific campaign's metadata
+func get_campaign(campaign_id: String) -> Dictionary:
+	return _campaigns.get(campaign_id, {})
+
+## Get the currently selected campaign ID
+func get_current_campaign_id() -> String:
+	return _current_campaign_id
+
+## Set the current campaign and save to profile
+func set_current_campaign(campaign_id: String) -> bool:
+	if not _campaigns.has(campaign_id):
+		push_warning("CampaignService: Invalid campaign ID: %s" % campaign_id)
+		return false
+
+	if not is_campaign_unlocked(campaign_id):
+		push_warning("CampaignService: Campaign '%s' is locked" % campaign_id)
+		return false
+
+	var old_id: String = _current_campaign_id
+	_current_campaign_id = campaign_id
+
+	# Save to profile meta
+	profile_repo.update_profile_meta({"selected_campaign": campaign_id})
+
+	campaign_changed.emit(old_id, campaign_id)
+	print("CampaignService: Switched to campaign '%s'" % campaign_id)
+	return true
+
+## Check if a campaign is unlocked
+func is_campaign_unlocked(campaign_id: String) -> bool:
+	var campaign: Dictionary = _campaigns.get(campaign_id, {})
+	var requirements: Array = campaign.get("unlock_requirements", [])
+
+	if requirements.is_empty():
+		return true
+
+	# Future: implement requirement checking (e.g., completed other campaigns)
+	return true
 
 ## =============================================================================
 ## PROGRESS MANAGEMENT

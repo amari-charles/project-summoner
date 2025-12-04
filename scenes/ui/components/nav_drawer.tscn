@@ -22,9 +22,12 @@ color = Color(0, 0, 0, 0.6)
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 9
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 300.0
+offset_left = -300.0
+offset_right = 0.0
 grow_vertical = 2
 size_flags_vertical = 3
 
@@ -86,3 +89,9 @@ custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "SETTINGS"
+
+[node name="SnapshotsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SNAPSHOTS"

@@ -1,5 +1,14 @@
 {
   "campaign": {
+    "academy_trials": {
+      "name": "Academy Trials",
+      "description": "Begin your journey at the Summoning Academy. Master the fundamentals of summoning and prove your worth."
+    },
+    "selector": {
+      "title": "SELECT CAMPAIGN",
+      "locked": "LOCKED",
+      "current": "CURRENT"
+    },
     "event": {
       "affinity": {
         "name": "Trial of Affinities",
@@ -218,7 +227,8 @@
       "collection": "COLLECTION",
       "events": "EVENTS",
       "shop": "SHOP",
-      "settings": "SETTINGS"
+      "settings": "SETTINGS",
+      "snapshots": "SNAPSHOTS"
     }
   },
   "trait": {
