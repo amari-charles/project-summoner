@@ -21,6 +21,7 @@ signal closed
 @onready var settings_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/SettingsButton
 @onready var snapshots_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/SnapshotsButton
 
+## Animation timing for drawer slide in/out - fast enough to feel responsive
 const SLIDE_DURATION: float = 0.25
 const PANEL_WIDTH: float = 300.0
 const OVERLAY_OPACITY: float = 0.6

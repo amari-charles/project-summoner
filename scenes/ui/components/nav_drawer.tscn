@@ -49,7 +49,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 28
-text = "MENU"
+text = "[ui.nav.menu]"
 
 [node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/Header"]
 custom_minimum_size = Vector2(48, 48)
@@ -70,28 +70,28 @@ theme_override_constants/separation = 15
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "COLLECTION"
+text = "[ui.nav.collection]"
 
 [node name="EventsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "EVENTS"
+text = "[ui.nav.events]"
 
 [node name="ShopButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "SHOP"
+text = "[ui.nav.shop]"
 
 [node name="SettingsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "SETTINGS"
+text = "[ui.nav.settings]"
 
 [node name="SnapshotsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "SNAPSHOTS"
+text = "[ui.nav.snapshots]"

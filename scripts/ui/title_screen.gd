@@ -4,7 +4,8 @@ class_name TitleScreen
 ## Simple title screen - tap/click to start
 ## Entry point for the game, transitions to Campaign Map
 
-## Time to wait before allowing interaction (lets animations settle)
+## Time to wait before allowing interaction
+## Allows UI elements to fully render and any intro animations to settle
 const INITIAL_DELAY_SECONDS: float = 0.5
 
 @onready var title_label: Label = $CenterContainer/VBoxContainer/Title

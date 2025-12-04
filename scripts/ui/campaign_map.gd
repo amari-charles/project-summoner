@@ -42,6 +42,11 @@ const MAP_WAVE_AMPLITUDE: float = 300.0  # Vertical variation for winding path
 ## UI positioning constants
 const HAMBURGER_BUTTON_MARGIN: float = 20.0
 const HAMBURGER_BUTTON_SIZE: float = 48.0
+const CAMPAIGN_BANNER_MARGIN: float = 20.0
+const CAMPAIGN_BANNER_WIDTH: float = 260.0  # Fits campaign name + dropdown arrow
+const CAMPAIGN_BANNER_HEIGHT: float = 40.0
+const SUMMONER_ICON_SIZE: float = 50.0
+const SUMMONER_ICON_MARGIN: float = 20.0
 
 ## Asset paths - Replace these with real artwork when available
 ## Map background: Place your map texture here (any resolution, will scale to fit)
@@ -873,10 +878,10 @@ func _setup_campaign_banner() -> void:
 	campaign_banner.anchor_right = 0.0
 	campaign_banner.anchor_top = 0.0
 	campaign_banner.anchor_bottom = 0.0
-	campaign_banner.offset_left = 20
-	campaign_banner.offset_right = 280
-	campaign_banner.offset_top = 20
-	campaign_banner.offset_bottom = 60
+	campaign_banner.offset_left = CAMPAIGN_BANNER_MARGIN
+	campaign_banner.offset_right = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_WIDTH
+	campaign_banner.offset_top = CAMPAIGN_BANNER_MARGIN
+	campaign_banner.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
 
 	campaign_banner.flat = true
 	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -947,10 +952,10 @@ func _setup_summoner_icon() -> void:
 	summoner_icon.anchor_right = 0.0
 	summoner_icon.anchor_top = 1.0
 	summoner_icon.anchor_bottom = 1.0
-	summoner_icon.offset_left = 20
-	summoner_icon.offset_right = 70
-	summoner_icon.offset_top = -70
-	summoner_icon.offset_bottom = -20
+	summoner_icon.offset_left = SUMMONER_ICON_MARGIN
+	summoner_icon.offset_right = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE
+	summoner_icon.offset_top = -(SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE)
+	summoner_icon.offset_bottom = -SUMMONER_ICON_MARGIN
 
 	# Connect signal
 	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
