@@ -9,11 +9,13 @@ class_name CampaignMap
 ## Preloads
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_icon_widget.tscn")
 const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
+const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/hamburger_button.tscn")
+const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
+const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/snapshot_manager.tscn")
+const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/components/campaign_selector_modal.tscn")
 
 ## Node references
-@onready var back_button: Button = %BackButton
-@onready var center_button: Button = %CenterButton
-@onready var progress_label: Label = %ProgressLabel
+@onready var locator_button: Button = %LocatorButton
 @onready var map_scroll: ScrollContainer = %MapScrollContainer
 @onready var map_container: Control = %MapContainer
 @onready var map_background: TextureRect = %MapBackground
@@ -34,6 +36,17 @@ const NODE_SPACING: float = 150.0  # Horizontal spacing between nodes
 const NODE_SIZE: Vector2 = Vector2(80, 80)
 const PATH_COLOR: Color = Color(0.4, 0.4, 0.5)
 const PATH_WIDTH: float = 4.0
+const MAP_CENTER_Y: float = 800.0  # Vertical center of 1600px map height
+const MAP_WAVE_AMPLITUDE: float = 300.0  # Vertical variation for winding path
+
+## UI positioning constants
+const HAMBURGER_BUTTON_MARGIN: float = 20.0
+const HAMBURGER_BUTTON_SIZE: float = 48.0
+const CAMPAIGN_BANNER_MARGIN: float = 20.0
+const CAMPAIGN_BANNER_WIDTH: float = 260.0  # Fits campaign name + dropdown arrow
+const CAMPAIGN_BANNER_HEIGHT: float = 40.0
+const SUMMONER_ICON_SIZE: float = 50.0
+const SUMMONER_ICON_MARGIN: float = 20.0
 
 ## Asset paths - Replace these with real artwork when available
 ## Map background: Place your map texture here (any resolution, will scale to fit)
@@ -63,6 +76,15 @@ var selected_deck_id: String = ""
 
 ## Summoner icon widget reference
 var summoner_icon: SummonerIconWidget = null
+
+## Navigation components
+var hamburger_button: HamburgerButton = null
+var nav_drawer: NavDrawer = null
+var snapshot_manager: Node = null
+
+## Campaign selector components
+var campaign_banner: Button = null
+var campaign_selector_modal: CampaignSelectorModal = null
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -100,8 +122,7 @@ func _ready() -> void:
 	print("CampaignMap: Initializing...")
 
 	# Connect buttons
-	back_button.pressed.connect(_on_back_pressed)
-	center_button.pressed.connect(_on_center_latest_pressed)
+	locator_button.pressed.connect(_on_center_latest_pressed)
 	start_event_button.pressed.connect(_on_start_event_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
 
@@ -157,12 +178,17 @@ func _ready() -> void:
 	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
 		summoner_selection.summoner_changed.connect(_on_summoner_selection_changed)
 
+	# Setup navigation (hamburger menu + nav drawer)
+	_setup_navigation()
+
+	# Setup campaign banner (top-left)
+	_setup_campaign_banner()
+
 	# Setup summoner icon
 	_setup_summoner_icon()
 
 	# Load and display map
 	_refresh_map()
-	_update_progress_display()
 
 	# Auto-scroll to latest mission (deferred to next frame so nodes are fully laid out)
 	call_deferred("_on_center_latest_pressed")
@@ -253,10 +279,8 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 		node_position = event_data.get("map_position")
 	else:
 		# Calculate position: winding path using sine wave
-		var base_y: float = 800.0  # Center of 1600px height
-		var wave_amplitude: float = 300.0  # Vertical variation from center
-		var y_offset: float = sin(float(index) * 0.5) * wave_amplitude
-		node_position = Vector2(start_x + index * NODE_SPACING, base_y + y_offset)
+		var y_offset: float = sin(float(index) * 0.5) * MAP_WAVE_AMPLITUDE
+		node_position = Vector2(start_x + index * NODE_SPACING, MAP_CENTER_Y + y_offset)
 		if event_data.has("map_position"):
 			push_warning("CampaignMap: Invalid map_position format for event, using calculated position")
 
@@ -615,23 +639,6 @@ func _validate_selected_deck() -> bool:
 	return _safe_bool(is_valid_variant, false)
 
 ## =============================================================================
-## PROGRESS DISPLAY
-## =============================================================================
-
-func _update_progress_display() -> void:
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		return
-
-	var completed_events: Array = _safe_array(campaign.call("get_completed_battles"))
-	var completed: int = completed_events.size()
-
-	var total_events: Array = _safe_array(campaign.call("get_all_battles"))
-	var total: int = total_events.size()
-
-	progress_label.text = Loc.t("campaign.map.progress", {"completed": completed, "total": total})
-
-## =============================================================================
 ## EVENT START
 ## =============================================================================
 
@@ -739,10 +746,6 @@ func _on_start_event_pressed() -> void:
 ## NAVIGATION
 ## =============================================================================
 
-func _on_back_pressed() -> void:
-	print("CampaignMap: Returning to game mode menu")
-	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
-
 func _on_center_latest_pressed() -> void:
 	var latest_unlocked_id: String = _find_latest_unlocked_mission()
 	if latest_unlocked_id.is_empty():
@@ -797,6 +800,139 @@ func _scroll_to_event(event_id: String) -> void:
 	map_scroll.scroll_vertical = int(scroll_target_y)
 
 ## =============================================================================
+## NAVIGATION (Hamburger Menu + Nav Drawer)
+## =============================================================================
+
+func _setup_navigation() -> void:
+	# Create hamburger button in top-right corner
+	hamburger_button = HamburgerButtonScene.instantiate()
+	add_child(hamburger_button)
+
+	hamburger_button.anchor_left = 1.0
+	hamburger_button.anchor_right = 1.0
+	hamburger_button.anchor_top = 0.0
+	hamburger_button.anchor_bottom = 0.0
+	hamburger_button.offset_left = -(HAMBURGER_BUTTON_MARGIN + HAMBURGER_BUTTON_SIZE)
+	hamburger_button.offset_right = -HAMBURGER_BUTTON_MARGIN
+	hamburger_button.offset_top = HAMBURGER_BUTTON_MARGIN
+	hamburger_button.offset_bottom = HAMBURGER_BUTTON_MARGIN + HAMBURGER_BUTTON_SIZE
+
+	hamburger_button.pressed.connect(_on_hamburger_pressed)
+
+	# Create nav drawer (hidden by default)
+	nav_drawer = NavDrawerScene.instantiate()
+	add_child(nav_drawer)
+
+	# Connect nav drawer signals
+	nav_drawer.collection_pressed.connect(_on_nav_collection_pressed)
+	nav_drawer.events_pressed.connect(_on_nav_events_pressed)
+	nav_drawer.shop_pressed.connect(_on_nav_shop_pressed)
+	nav_drawer.settings_pressed.connect(_on_nav_settings_pressed)
+
+	# Connect debug-only signals
+	if OS.is_debug_build():
+		nav_drawer.snapshots_pressed.connect(_on_nav_snapshots_pressed)
+
+func _on_hamburger_pressed() -> void:
+	if nav_drawer:
+		nav_drawer.open()
+
+func _on_nav_collection_pressed() -> void:
+	print("CampaignMap: Opening Collection...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
+
+func _on_nav_events_pressed() -> void:
+	print("CampaignMap: Opening Special Events...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SPECIAL_EVENTS)
+
+func _on_nav_shop_pressed() -> void:
+	print("CampaignMap: Opening Shop...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
+
+func _on_nav_settings_pressed() -> void:
+	print("CampaignMap: Opening Settings...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
+
+func _on_nav_snapshots_pressed() -> void:
+	print("CampaignMap: Opening Snapshot Manager...")
+	if snapshot_manager == null:
+		snapshot_manager = SnapshotManagerScene.instantiate()
+		add_child(snapshot_manager)
+	if snapshot_manager.has_method("show_manager"):
+		snapshot_manager.show_manager()
+
+## =============================================================================
+## CAMPAIGN BANNER
+## =============================================================================
+
+func _setup_campaign_banner() -> void:
+	campaign_banner = Button.new()
+	add_child(campaign_banner)
+
+	# Position in top-left corner
+	campaign_banner.anchor_left = 0.0
+	campaign_banner.anchor_right = 0.0
+	campaign_banner.anchor_top = 0.0
+	campaign_banner.anchor_bottom = 0.0
+	campaign_banner.offset_left = CAMPAIGN_BANNER_MARGIN
+	campaign_banner.offset_right = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_WIDTH
+	campaign_banner.offset_top = CAMPAIGN_BANNER_MARGIN
+	campaign_banner.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
+
+	campaign_banner.flat = true
+	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	campaign_banner.add_theme_font_size_override("font_size", 20)
+
+	_update_campaign_banner_text()
+	campaign_banner.pressed.connect(_on_campaign_banner_pressed)
+
+func _update_campaign_banner_text() -> void:
+	if not campaign_banner:
+		return
+
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if campaign and campaign.has_method("get_current_campaign_id"):
+		var campaign_id: String = campaign.call("get_current_campaign_id")
+		if campaign.has_method("get_campaign"):
+			var campaign_data: Dictionary = campaign.call("get_campaign", campaign_id)
+			var name_key: String = campaign_data.get("name_key", "")
+			if not name_key.is_empty():
+				campaign_banner.text = Loc.t(name_key) + " ▼"
+			else:
+				campaign_banner.text = campaign_id + " ▼"
+		else:
+			campaign_banner.text = campaign_id + " ▼"
+	else:
+		campaign_banner.text = Loc.t("campaign.selector.title") + " ▼"
+
+func _on_campaign_banner_pressed() -> void:
+	if campaign_selector_modal == null:
+		campaign_selector_modal = CampaignSelectorModalScene.instantiate()
+		add_child(campaign_selector_modal)
+		campaign_selector_modal.campaign_selected.connect(_on_campaign_selected)
+		campaign_selector_modal.closed.connect(_on_campaign_modal_closed)
+
+	campaign_selector_modal.open()
+
+func _on_campaign_selected(campaign_id: String) -> void:
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if campaign and campaign.has_method("set_current_campaign"):
+		var success: bool = campaign.call("set_current_campaign", campaign_id)
+		if success:
+			_update_campaign_banner_text()
+			_refresh_map()
+
+	if campaign_selector_modal:
+		campaign_selector_modal.hide()
+
+func _on_campaign_modal_closed() -> void:
+	pass  # Modal hides itself
+
+## =============================================================================
 ## SUMMONER ICON
 ## =============================================================================
 
@@ -811,15 +947,15 @@ func _setup_summoner_icon() -> void:
 	summoner_icon = SummonerIconWidgetScene.instantiate()
 	add_child(summoner_icon)
 
-	# Position in top-left corner
+	# Position in bottom-left corner
 	summoner_icon.anchor_left = 0.0
 	summoner_icon.anchor_right = 0.0
-	summoner_icon.anchor_top = 0.0
-	summoner_icon.anchor_bottom = 0.0
-	summoner_icon.offset_left = 20
-	summoner_icon.offset_right = 70
-	summoner_icon.offset_top = 20
-	summoner_icon.offset_bottom = 70
+	summoner_icon.anchor_top = 1.0
+	summoner_icon.anchor_bottom = 1.0
+	summoner_icon.offset_left = SUMMONER_ICON_MARGIN
+	summoner_icon.offset_right = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE
+	summoner_icon.offset_top = -(SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE)
+	summoner_icon.offset_bottom = -SUMMONER_ICON_MARGIN
 
 	# Connect signal
 	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
@@ -835,17 +971,19 @@ func _on_summoner_icon_clicked() -> void:
 
 func _on_event_completed(_event_id: String) -> void:
 	_refresh_map()
-	_update_progress_display()
 	_update_detail_panel()
 
 func _on_progress_changed() -> void:
-	_update_progress_display()
+	# Full refresh when progress changes (e.g., snapshot loaded)
+	_refresh_map()
+	_update_detail_panel()
+	_update_campaign_banner_text()
+	if summoner_icon:
+		summoner_icon.refresh()
 
 func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
 	# Refresh summoner icon, map, and deck list when summoner changes
 	if summoner_icon:
 		summoner_icon.refresh()
-	# Map and progress are refreshed by CampaignService emitting campaign_progress_changed
 	_refresh_map()
-	_update_progress_display()
 	_update_detail_panel()

@@ -1,5 +1,14 @@
 {
   "campaign": {
+    "academy_trials": {
+      "name": "Academy Trials",
+      "description": "Begin your journey at the Summoning Academy. Master the fundamentals of summoning and prove your worth."
+    },
+    "selector": {
+      "title": "SELECT CAMPAIGN",
+      "locked": "LOCKED",
+      "current": "CURRENT"
+    },
     "event": {
       "affinity": {
         "name": "Trial of Affinities",
@@ -198,6 +207,28 @@
     },
     "summoner_icon": {
       "no_summoner": "No summoner selected"
+    },
+    "title": {
+      "game_name": "PROJECT SUMMONER",
+      "tap_prompt": "TAP TO START"
+    },
+    "settings": {
+      "title": "SETTINGS",
+      "coming_soon": "COMING SOON",
+      "description": "Settings will include:\n\n• Audio controls (music & sound effects)\n• Display preferences\n• Account management\n• Return to title screen"
+    },
+    "events": {
+      "title": "SPECIAL EVENTS",
+      "coming_soon": "COMING SOON",
+      "description": "Special events will include:\n\n• Limited-time seasonal events\n• Holiday celebrations with exclusive rewards\n• Daily & weekly challenges\n• Milestone rewards for completing objectives"
+    },
+    "nav": {
+      "menu": "MENU",
+      "collection": "COLLECTION",
+      "events": "EVENTS",
+      "shop": "SHOP",
+      "settings": "SETTINGS",
+      "snapshots": "SNAPSHOTS"
     }
   },
   "trait": {

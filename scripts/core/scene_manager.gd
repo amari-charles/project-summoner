@@ -12,8 +12,7 @@ class_name SceneManagerClass
 ## =============================================================================
 
 ## Main UI Scenes
-const SCENE_MAIN_MENU: String = "res://scenes/ui/main_menu.tscn"
-const SCENE_GAME_MODE_MENU: String = "res://scenes/ui/game_mode_menu.tscn"
+const SCENE_TITLE_SCREEN: String = "res://scenes/ui/title_screen.tscn"
 
 ## Campaign Scenes
 const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/campaign_map.tscn"
@@ -28,6 +27,10 @@ const SCENE_DECK_BUILDER: String = "res://scenes/ui/deck_builder.tscn"
 
 ## Shop Scenes
 const SCENE_SHOP_SCREEN: String = "res://scenes/ui/shop_screen.tscn"
+
+## Special Events & Settings
+const SCENE_SPECIAL_EVENTS: String = "res://scenes/ui/special_events_screen.tscn"
+const SCENE_SETTINGS: String = "res://scenes/ui/settings_screen.tscn"
 
 ## Battle Scenes
 const SCENE_BATTLE_3D: String = "res://scenes/battlefield/battle_3d.tscn"

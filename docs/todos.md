@@ -524,26 +524,6 @@ Add sound effect for mana regeneration/gain events.
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Revamp Main Menu UI
-**Status:** ⬜ Not Started
-**Category:** UI/UX
-**Effort:** Medium
-
-**Description:**
-Redesign the main menu with improved visual style and layout.
-
-**Requirements:**
-- Modern, polished visual design
-- Clear button hierarchy
-- Proper spacing and alignment
-- Background art/effects
-
-**Notes:**
-- First impression matters
-- Should set tone for game quality
-
----
-
 #### Add Summoner Select UI
 **Status:** ✅ Completed
 **Category:** UI/UX
@@ -623,6 +603,33 @@ Redesign settings/options screen for better usability and visual consistency.
 **Notes:**
 - Should be functional first, pretty second
 - Consider accessibility options
+
+---
+
+### 🟢 LOW PRIORITY
+
+#### Standardize .tscn Placeholder Text Pattern
+**Status:** ⬜ Not Started
+**Category:** UI / Code Style
+**Effort:** Trivial
+
+**Description:**
+Standardize placeholder text in `.tscn` scene files for UI screens. Currently there's inconsistency:
+- Some files use `[ui.nav.menu]` style placeholders
+- Some files use actual display text like `"PROJECT SUMMONER"`
+- All get overwritten by GDScript `_ready()` with `Loc.t()` calls
+
+**Solution:**
+Use empty strings `""` in all `.tscn` files since GDScript sets localized text anyway.
+
+**Files to Update:**
+- `scenes/ui/components/nav_drawer.tscn`
+- `scenes/ui/title_screen.tscn`
+- Any other new UI screens with placeholder text
+
+**Notes:**
+- Purely cosmetic - no runtime impact
+- Low priority polish item
 
 ---
 
@@ -803,4 +810,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-29 - Lane-based movement completed (moved to completed)*
+*Last Updated: 2025-12-04 - Added .tscn placeholder text standardization todo*

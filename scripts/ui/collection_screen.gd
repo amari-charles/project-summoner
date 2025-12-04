@@ -16,7 +16,7 @@ class_name CollectionScreen
 @onready var my_decks_tab_button: Button = %MyDecksTabButton
 
 ## Header
-@onready var back_button: Button = %BackButton
+@onready var close_button: Button = %CloseButton
 @onready var stats_label: Label = %Stats
 
 ## Collection tab nodes
@@ -70,14 +70,10 @@ const RARITY_ORDER: Dictionary = {
 ## Modal scenes
 const CardDetailModalScene: PackedScene = preload("res://scenes/ui/card_detail_modal.tscn")
 const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/card_level_up_panel.tscn")
-const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_icon_widget.tscn")
-const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
 
 ## Card widget scene
 const CardWidgetScene: PackedScene = preload("res://scenes/ui/card_widget.tscn")
 
-## Summoner icon widget reference
-var summoner_icon: SummonerIconWidget = null
 
 ## =============================================================================
 ## LIFECYCLE
@@ -91,7 +87,7 @@ func _ready() -> void:
 	my_decks_tab_button.pressed.connect(_on_my_decks_tab_pressed)
 
 	# Connect header buttons
-	back_button.pressed.connect(_on_back_pressed)
+	close_button.pressed.connect(_on_close_pressed)
 
 	# Connect deck buttons
 	new_deck_button.pressed.connect(_on_new_deck_pressed)
@@ -141,9 +137,6 @@ func _ready() -> void:
 	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
 	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
 		summoner_selection.summoner_changed.connect(_on_summoner_selection_changed)
-
-	# Setup summoner icon
-	_setup_summoner_icon()
 
 	# Load initial data
 	_refresh_collection()
@@ -682,42 +675,13 @@ func _on_level_up_modal_closed(modal: Node) -> void:
 ## NAVIGATION
 ## =============================================================================
 
-func _on_back_pressed() -> void:
-	print("CollectionScreen: Returning to game mode menu")
-	SceneManager.transition_to(SceneManager.SCENE_GAME_MODE_MENU)
-
-## =============================================================================
-## SUMMONER ICON
-## =============================================================================
-
-func _setup_summoner_icon() -> void:
-	# Only show summoner icon after affinity event is completed
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if campaign and campaign.has_method("is_battle_completed"):
-		var is_completed: bool = campaign.call("is_battle_completed", BattleIDs.EVENT_AFFINITY)
-		if not is_completed:
-			return
-
-	summoner_icon = SummonerIconWidgetScene.instantiate()
-	add_child(summoner_icon)
-
-	# Position in top-left corner
-	summoner_icon.anchor_left = 0.0
-	summoner_icon.anchor_right = 0.0
-	summoner_icon.anchor_top = 0.0
-	summoner_icon.anchor_bottom = 0.0
-	summoner_icon.offset_left = 20
-	summoner_icon.offset_right = 70
-	summoner_icon.offset_top = 20
-	summoner_icon.offset_bottom = 70
-
-	# Connect signal
-	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
-
-func _on_summoner_icon_clicked() -> void:
-	var panel: SummonerManagementPanel = SummonerManagementPanelScene.instantiate()
-	add_child(panel)
-	panel.open()
+func _on_close_pressed() -> void:
+	print("CollectionScreen: Closing...")
+	# Return to previous screen (Campaign Map) via NavigationContext
+	var return_scene: String = NavigationContext.pop_return()
+	if return_scene.is_empty():
+		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	SceneManager.transition_to(return_scene)
 
 ## =============================================================================
 ## SIGNALS
@@ -737,7 +701,5 @@ func _on_deck_deleted(_deck_id: String) -> void:
 	_refresh_deck_list()
 
 func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
-	# Refresh summoner icon and deck list when summoner changes
-	if summoner_icon:
-		summoner_icon.refresh()
+	# Refresh deck list when summoner changes
 	_refresh_deck_list()

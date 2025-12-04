@@ -325,6 +325,37 @@ Implemented predictive targeting for projectiles so they lead moving targets ins
 
 ## UI Revamp
 
+### Revamp Main Menu UI / Navigation
+**Completed:** 2025-12-04
+**Category:** UI/UX
+**Effort:** Medium
+**PR:** #94
+
+**Description:**
+Replaced the main menu + game mode menu with a streamlined navigation system centered on the Campaign Map.
+
+**Solution Implemented:**
+- Replaced MainMenu scene with TitleScreen (tap-to-start entry point)
+- Removed GameModeMenu entirely
+- Campaign Map now serves as the central hub
+- Added hamburger menu button (top-right) opening slide-in Nav Drawer
+- Nav Drawer provides access to: Collection, Events, Shop, Settings
+- Added campaign selector banner (top-left) to switch between campaigns
+- Added Settings and Special Events placeholder screens
+- Added NavigationContext service for proper back button behavior
+- Moved campaign battle definitions from hardcoded GDScript to JSON files
+
+**Files Changed:**
+- New: `title_screen.tscn/gd`, `nav_drawer.tscn/gd`, `hamburger_button.tscn/gd`
+- New: `settings_screen.tscn/gd`, `special_events_screen.tscn/gd`
+- New: `campaign_selector_modal.tscn/gd`, `campaign_ids.gd`
+- New: `data/campaigns/academy_trials.json`
+- Deleted: `main_menu.tscn/gd`, `game_mode_menu.tscn/gd`
+- Updated: `campaign_map.gd`, `campaign_service.gd`, `scene_manager.gd`
+- Updated: `collection_screen.gd`, `shop_screen.gd` (NavigationContext back navigation)
+
+---
+
 ### Revamp Pause Menu
 **Completed:** 2025-11-12
 **Category:** UI/UX
@@ -824,4 +855,4 @@ Added GUT (Godot Unit Test) framework for automated testing of game services and
 
 ---
 
-*Last Updated: 2025-11-29*
+*Last Updated: 2025-12-04 - Added Main Menu UI/Navigation refactor (PR #94)*
