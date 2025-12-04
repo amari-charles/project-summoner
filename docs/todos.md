@@ -606,6 +606,33 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ---
 
+### 🟢 LOW PRIORITY
+
+#### Standardize .tscn Placeholder Text Pattern
+**Status:** ⬜ Not Started
+**Category:** UI / Code Style
+**Effort:** Trivial
+
+**Description:**
+Standardize placeholder text in `.tscn` scene files for UI screens. Currently there's inconsistency:
+- Some files use `[ui.nav.menu]` style placeholders
+- Some files use actual display text like `"PROJECT SUMMONER"`
+- All get overwritten by GDScript `_ready()` with `Loc.t()` calls
+
+**Solution:**
+Use empty strings `""` in all `.tscn` files since GDScript sets localized text anyway.
+
+**Files to Update:**
+- `scenes/ui/components/nav_drawer.tscn`
+- `scenes/ui/title_screen.tscn`
+- Any other new UI screens with placeholder text
+
+**Notes:**
+- Purely cosmetic - no runtime impact
+- Low priority polish item
+
+---
+
 ## Summoner System
 
 ### 🟢 LOW PRIORITY
@@ -783,4 +810,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-12-04 - Main Menu UI refactor completed (moved to completed)*
+*Last Updated: 2025-12-04 - Added .tscn placeholder text standardization todo*
