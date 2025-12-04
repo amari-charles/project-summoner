@@ -6,8 +6,6 @@ class_name CampaignService
 ## Tracks which battles have been completed and handles reward distribution.
 ## Battle definitions and progression are managed here.
 
-## Preload CampaignIDs to ensure class is available
-const _CampaignIDs = preload("res://scripts/data/campaign_ids.gd")
 
 ## Signals
 signal battle_completed(battle_id: String)
@@ -54,11 +52,11 @@ func _ready() -> void:
 
 	# Load selected campaign from profile meta (default to first campaign)
 	var meta: Dictionary = profile_repo.get_profile_meta()
-	_current_campaign_id = meta.get("selected_campaign", String(_CampaignIDs.DEFAULT))
+	_current_campaign_id = meta.get("selected_campaign", String(CampaignIDs.DEFAULT))
 
 	# Ensure current campaign is valid
 	if not _campaigns.has(_current_campaign_id):
-		_current_campaign_id = String(_CampaignIDs.DEFAULT)
+		_current_campaign_id = String(CampaignIDs.DEFAULT)
 
 	_load_progress()
 
@@ -84,7 +82,7 @@ func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node
 	profile_repo.data_changed.connect(_on_profile_data_changed)
 
 	_load_campaigns(true)  # Skip validation in tests (no scene tree access)
-	_current_campaign_id = String(_CampaignIDs.DEFAULT)
+	_current_campaign_id = String(CampaignIDs.DEFAULT)
 	_load_progress()
 
 func _on_profile_data_changed() -> void:

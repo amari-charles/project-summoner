@@ -524,26 +524,6 @@ Add sound effect for mana regeneration/gain events.
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Revamp Main Menu UI
-**Status:** ⬜ Not Started
-**Category:** UI/UX
-**Effort:** Medium
-
-**Description:**
-Redesign the main menu with improved visual style and layout.
-
-**Requirements:**
-- Modern, polished visual design
-- Clear button hierarchy
-- Proper spacing and alignment
-- Background art/effects
-
-**Notes:**
-- First impression matters
-- Should set tone for game quality
-
----
-
 #### Add Summoner Select UI
 **Status:** ✅ Completed
 **Category:** UI/UX
@@ -803,4 +783,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-11-29 - Lane-based movement completed (moved to completed)*
+*Last Updated: 2025-12-04 - Main Menu UI refactor completed (moved to completed)*
