@@ -524,28 +524,6 @@ Add sound effect for mana regeneration/gain events.
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Add Summoner Select UI
-**Status:** ✅ Completed
-**Category:** UI/UX
-**Effort:** Medium
-
-**Description:**
-Create a summoner selection screen allowing players to choose their summoner before battle.
-
-**Requirements:**
-- Display available summoners with icons/portraits
-- Show summoner stats (health, mana, mana regen)
-- Show summoner element/affinity
-- Indicate locked/unlocked summoners
-- Preview summoner abilities or bonuses
-
-**Implementation:**
-- SummonerManagementPanel provides full summoner roster view
-- SummonerIconWidget provides persistent summoner button on screens
-- SummonerRosterItem shows individual summoner details with stats
-
----
-
 #### Revamp Battle HUD
 **Status:** ⬜ Not Started
 **Category:** UI/UX
@@ -637,38 +615,6 @@ Use empty strings `""` in all `.tscn` files since GDScript sets localized text a
 
 ### 🟢 LOW PRIORITY
 
-#### Design Summoner Data Structure
-**Status:** ✅ Completed
-**Category:** Summoners / Architecture
-**Effort:** Medium
-
-**Description:**
-Define the data structure and resource format for summoner characters.
-
-**Implementation:**
-- SummonerConfig: Static summoner configuration (base stats, innate traits)
-- SummonerInstance: Runtime state (level, xp, acquired boons, computed stats)
-- TraitCatalog: Central trait/boon registry with modifiers
-- See `docs/features/summoners/architecture.md` for details
-
----
-
-#### Implement Summoner Stats System
-**Status:** ✅ Completed
-**Category:** Summoners
-**Effort:** Medium
-
-**Description:**
-Implement the technical system for summoner-specific stats and attributes.
-
-**Implementation:**
-- SummonerInstance.get_computed_stats() applies trait modifiers to base stats
-- BattleContext.set_player_summoner_stats() caches stats for DamageSystem
-- Trait modifiers support flat and percent bonuses
-- Element-specific damage bonuses (fire_damage_bonus, etc.)
-
----
-
 #### Implement Summoner Special Abilities
 **Status:** ⬜ Not Started (Phase 3/4)
 **Category:** Summoners
@@ -684,22 +630,6 @@ Implement the system for summoner active and passive abilities.
 
 ---
 
-#### Create Summoner Selection Screen UI
-**Status:** ✅ Completed
-**Category:** Summoners / UI
-**Effort:** Medium
-
-**Description:**
-Design and implement the UI screen where players choose their summoner before battle.
-
-**Implementation:**
-- SummonerManagementPanel: Full roster view with stats, traits, level-up
-- SummonerIconWidget: Persistent summoner button (click to open panel)
-- SummonerRosterItem: Individual summoner row with select/level-up buttons
-- Summoner switching via SummonerSelection service
-
----
-
 #### Implement Summoner Unlock System (Post-MVP)
 **Status:** ⬜ Not Started (Post-MVP)
 **Category:** Summoners / Progression
@@ -712,45 +642,6 @@ Implement the system for unlocking additional summoners beyond the starting summ
 - Foundation exists: SummonerInstance persistence, profile summoner_instances array
 - Need: Campaign milestone triggers for unlocking new summoners
 - Need: UI to show locked summoners and unlock progress
-
----
-
-#### Design Summoner In-Battle UI Elements
-**Status:** ✅ Completed (Foundation)
-**Category:** Summoners / UI
-**Effort:** Medium
-
-**Description:**
-Design UI elements for displaying summoner information and abilities during battle.
-
-**Implementation:**
-- SummonerIconWidget added to CampaignMap, CollectionScreen, GameModeMenu
-- Shows active summoner element color and level
-- Click opens SummonerManagementPanel
-
-**Remaining:**
-- Ability buttons/cooldowns (Phase 3/4 - when abilities are added)
-
----
-
-#### Integrate Summoners into Battle System
-**Status:** ✅ Completed (Foundation)
-**Category:** Summoners
-**Effort:** Large
-
-**Description:**
-Final integration of summoner system into the core battle gameplay loop.
-
-**Implementation:**
-- Summoner loads SummonerInstance via DeckLoader
-- Summoner stats applied via BattleContext.set_player_summoner_stats()
-- DamageSystem reads summoner stats for damage bonuses
-- SummonerModifierProvider passes unit modifiers to ModifierSystem
-- Per-summoner campaign progress in ProfileRepo
-
-**Remaining:**
-- Summoner abilities (Phase 3/4)
-- AI summoners for enemies (future)
 
 ---
 
@@ -810,4 +701,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-12-04 - Added .tscn placeholder text standardization todo*
+*Last Updated: 2025-12-05 - Moved completed Summoner System tasks to archive*

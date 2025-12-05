@@ -104,8 +104,7 @@
         {"catalog_id": "fire_recruit", "count": 2},
         {"catalog_id": "ember_slinger", "count": 2},
         {"catalog_id": "blaze_rider", "count": 1},
-        {"catalog_id": "ash_vanguard", "count": 1},
-        {"catalog_id": "wall", "count": 1}
+        {"catalog_id": "ash_vanguard", "count": 1}
       ],
       "enemy_deck": [
         {"catalog_id": "fire_recruit", "count": 2},

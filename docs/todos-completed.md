@@ -855,4 +855,108 @@ Added GUT (Godot Unit Test) framework for automated testing of game services and
 
 ---
 
-*Last Updated: 2025-12-04 - Added Main Menu UI/Navigation refactor (PR #94)*
+## Summoner System
+
+### Add Summoner Select UI
+**Completed:** 2025-12-04
+**Category:** UI/UX
+**Effort:** Medium
+
+**Description:**
+Created a summoner selection screen allowing players to choose their summoner before battle.
+
+**Implementation:**
+- SummonerManagementPanel provides full summoner roster view
+- SummonerIconWidget provides persistent summoner button on screens
+- SummonerRosterItem shows individual summoner details with stats
+
+---
+
+### Design Summoner Data Structure
+**Completed:** 2025-12-04
+**Category:** Summoners / Architecture
+**Effort:** Medium
+
+**Description:**
+Defined the data structure and resource format for summoner characters.
+
+**Implementation:**
+- SummonerConfig: Static summoner configuration (base stats, innate traits)
+- SummonerInstance: Runtime state (level, xp, acquired boons, computed stats)
+- TraitCatalog: Central trait/boon registry with modifiers
+- See `docs/features/summoners/architecture.md` for details
+
+---
+
+### Implement Summoner Stats System
+**Completed:** 2025-12-04
+**Category:** Summoners
+**Effort:** Medium
+
+**Description:**
+Implemented the technical system for summoner-specific stats and attributes.
+
+**Implementation:**
+- SummonerInstance.get_computed_stats() applies trait modifiers to base stats
+- BattleContext.set_player_summoner_stats() caches stats for DamageSystem
+- Trait modifiers support flat and percent bonuses
+- Element-specific damage bonuses (fire_damage_bonus, etc.)
+
+---
+
+### Create Summoner Selection Screen UI
+**Completed:** 2025-12-04
+**Category:** Summoners / UI
+**Effort:** Medium
+
+**Description:**
+Designed and implemented the UI screen where players choose their summoner before battle.
+
+**Implementation:**
+- SummonerManagementPanel: Full roster view with stats, traits, level-up
+- SummonerIconWidget: Persistent summoner button (click to open panel)
+- SummonerRosterItem: Individual summoner row with select/level-up buttons
+- Summoner switching via SummonerSelection service
+
+---
+
+### Design Summoner In-Battle UI Elements (Foundation)
+**Completed:** 2025-12-04
+**Category:** Summoners / UI
+**Effort:** Medium
+
+**Description:**
+Designed UI elements for displaying summoner information and abilities during battle.
+
+**Implementation:**
+- SummonerIconWidget added to CampaignMap, CollectionScreen, GameModeMenu
+- Shows active summoner element color and level
+- Click opens SummonerManagementPanel
+
+**Notes:**
+- Ability buttons/cooldowns deferred to Phase 3/4 when abilities are added
+
+---
+
+### Integrate Summoners into Battle System (Foundation)
+**Completed:** 2025-12-04
+**Category:** Summoners
+**Effort:** Large
+
+**Description:**
+Final integration of summoner system into the core battle gameplay loop.
+
+**Implementation:**
+- Summoner loads SummonerInstance via DeckLoader
+- Summoner stats applied via BattleContext.set_player_summoner_stats()
+- DamageSystem reads summoner stats for damage bonuses
+- SummonerModifierProvider passes unit modifiers to ModifierSystem
+- Per-summoner campaign progress in ProfileRepo
+
+**Notes:**
+- Summoner abilities deferred to Phase 3/4
+- AI summoners for enemies planned for future
+
+---
+
+*Last Updated: 2025-12-05 - Moved completed Summoner System tasks from todos.md*
