@@ -42,6 +42,31 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 
 ---
 
+#### Summoner Stats Not Cached in Campaign Mode
+**Status:** Open
+**Reported:** 2025-12-05
+**Component:** DamageSystem / Summoner
+
+**Description:**
+Warning appears during battles: "DamageSystem: No summoner stats cached in campaign mode - trait bonuses not applied"
+
+**Current Behavior:**
+When units deal damage in campaign battles, the DamageSystem tries to apply summoner trait bonuses but finds no cached stats.
+
+**Impact:**
+Summoner damage bonuses and damage reduction traits are not being applied to combat.
+
+**Related Files:**
+- scripts/combat/damage_system.gd:290
+- scripts/core/battle_context.gd (set_player_summoner_stats)
+- scripts/core/summoner_3d.gd (_apply_summoner_bonuses)
+
+**Notes:**
+- Stats should be cached via `BattleContext.set_player_summoner_stats()` during summoner init
+- Likely an issue with when/if `_apply_summoner_bonuses()` is called for dev_player_deck battles
+
+---
+
 ## Bug Report Template
 
 ```markdown
@@ -80,4 +105,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-01-28 - Added unit test warning bugs (orphans, headless RID leaks)*
+*Last Updated: 2025-12-05 - Added summoner stats caching bug*
