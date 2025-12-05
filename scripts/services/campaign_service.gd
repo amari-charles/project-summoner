@@ -316,10 +316,16 @@ func save_progress() -> void:
 ## =============================================================================
 
 func get_all_battles() -> Array[Dictionary]:
-	var battles: Array[Dictionary] = []
-	for battle_id: String in _battles.keys():
-		battles.append(_battles[battle_id])
-	return battles
+	# Return battles for current campaign only (not all campaigns)
+	var campaign: Dictionary = _campaigns.get(_current_campaign_id, {})
+	var battles_variant: Variant = campaign.get("battles", [])
+	if battles_variant is Array:
+		var result: Array[Dictionary] = []
+		for battle: Variant in battles_variant:
+			if battle is Dictionary:
+				result.append(battle)
+		return result
+	return []
 
 func get_battle(battle_id: String) -> Dictionary:
 	var empty_battle: Dictionary = {}
