@@ -1,95 +1,124 @@
-extends Node2D
+extends Node3D
 class_name Summoner
 
-## Player base/summoner that spawns units and manages cards
-## Each player has one Summoner that represents their base
+## Summoner - The player character that manages cards and mana
+## NOT a battlefield entity - cannot be attacked or damaged
+## The Nexus (Base3D) is what units attack to win the game
 
-@export var max_hp: float = 1000.0
-@export var team: Unit.Team = Unit.Team.PLAYER
+## Deck loading strategies
+enum DeckLoadStrategy {
+	STATIC,           ## Use starting_deck (test scenes, fallback)
+	BATTLE_CONTEXT,   ## Load from BattleContext (normal enemy behavior)
+	PROFILE,          ## Load from player profile (normal player behavior)
+	DEFERRED         ## Don't load deck in _ready(), wait for manual override (test controllers)
+}
+
+@export var team: Unit3D.Team = Unit3D.Team.PLAYER
 
 ## Deck and hand
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
-@export var load_deck_from_profile: bool = false  # If true, load player's deck from profile
-@export var load_enemy_deck_from_campaign: bool = false  # If true, load enemy deck from current campaign battle
+@export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
 
 ## Resources
-@export var mana_regen_rate: float = 1.0  # Mana per second
+@export var mana_regen_rate: float = 1.0
 
 ## Current state
-var current_hp: float
 var mana: float = 0.0
-var max_mana: float = 10.0  # Set from summoner stats in _apply_summoner_bonuses()
+var max_mana: float = 10.0  ## Default max mana (can be overridden by SummonerInstance)
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
-var is_alive: bool = true
+var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
+
+## Summoner instance (loaded from profile when using PROFILE strategy)
+var _loaded_summoner_instance: SummonerInstance = null
+
+## Track initialization state
+var _initialized: bool = false
 
 ## Signals
-signal summoner_died(summoner: Summoner)
 signal card_played(card: Card)
 signal card_drawn(card: Card)
 signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
+signal summoner_ready(summoner: Summoner)  ## Emitted after init() completes
 signal deck_recycled(card_count: int)  ## Emitted when discard pile is shuffled back into deck
 
 func _ready() -> void:
-	# Wait one frame to ensure autoload services are fully initialized
-	await get_tree().process_frame
-
-	# Initialize deck and apply summoner bonuses (must happen before setting current_hp/mana)
-	if load_deck_from_profile and team == Unit.Team.PLAYER:
-		# Load deck from player's profile
-		var deck_data: Dictionary = DeckLoader.load_player_deck()
-
-		var cards_variant: Variant = deck_data.get("cards", [])
-		if cards_variant is Array:
-			var cards_array: Array = cards_variant
-			deck.assign(cards_array)
-		if deck.is_empty():
-			push_error("Summoner: Failed to load deck from profile!")
-
-		# Apply summoner bonuses
-		var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
-		if summoner_instance_variant is SummonerInstance:
-			var summoner_instance: SummonerInstance = summoner_instance_variant
-			_apply_summoner_bonuses(summoner_instance)
-		else:
-			push_warning("Summoner: No valid SummonerInstance in deck data")
-	elif load_enemy_deck_from_campaign and team == Unit.Team.ENEMY:
-		# Load enemy deck from current campaign battle
-		deck = EnemyDeckLoader.load_enemy_deck_for_battle()
-		if deck.is_empty():
-			push_warning("Summoner: Failed to load enemy deck from campaign! Using fallback.")
-			deck = starting_deck.duplicate()
-
-		# Override enemy max_hp from campaign if specified
-		var campaign: Node = get_node_or_null("/root/Campaign")
-		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-		if campaign and profile_repo:
-			var profile_variant: Variant = {}
-			if profile_repo.has_method("get_active_profile"):
-				profile_variant = profile_repo.call("get_active_profile")
-			var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
-			var empty_dict: Dictionary = {}
-			var campaign_progress_variant: Variant = profile.get("campaign_progress", empty_dict)
-			var campaign_progress: Dictionary = campaign_progress_variant if campaign_progress_variant is Dictionary else {}
-			var battle_id_variant: Variant = campaign_progress.get("current_battle", "")
-			var battle_id: String = battle_id_variant if battle_id_variant is String else ""
-			if battle_id != "":
-				var battle_variant: Variant = {}
-				if campaign.has_method("get_battle"):
-					battle_variant = campaign.call("get_battle", battle_id)
-				var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
-				if battle.has("enemy_hp"):
-					max_hp = battle.get("enemy_hp")
+	# Minimal setup - just add to groups for discovery
+	# Full initialization happens in init() called by BattleCoordinator
+	add_to_group(GroupIDs.SUMMONERS)
+	# Note: NOT in "bases" group - summoners are not attack targets
+	if team == Unit3D.Team.PLAYER:
+		add_to_group(GroupIDs.PLAYER_SUMMONERS)
 	else:
-		# Use exported starting_deck (for testing/AI)
-		deck = starting_deck.duplicate()
+		add_to_group(GroupIDs.ENEMY_SUMMONERS)
 
-	# Initialize HP and mana
-	current_hp = max_hp
+## Initialize summoner - called by BattleCoordinator after scene is ready
+## This replaces the old self-initialization pattern
+func init() -> void:
+	if _initialized:
+		return
+	_initialized = true
+
+	print("Summoner: Initializing (team: %s)..." % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
+
+	# Auto-correct deck loading strategy based on team if using wrong default
+	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+		deck_load_strategy = DeckLoadStrategy.PROFILE
+	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
+		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
+
+	# For enemy: Auto-detect event_sequence battles (enemies spawned via dialogue/events)
+	# Pattern: battle_config has "event_sequence" AND "enemy_deck" is empty array
+	# This is intentional - enemies are spawned manually via BattleDialogueController/EventSequencer
+	if team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+		if BattleContext.battle_config.has("event_sequence") and BattleContext.battle_config.has("enemy_deck"):
+			var enemy_deck_variant: Variant = BattleContext.battle_config.get("enemy_deck")
+			if enemy_deck_variant is Array:
+				var enemy_deck_array: Array = enemy_deck_variant
+				if enemy_deck_array.is_empty():
+					print("Summoner: Battle uses event_sequence with empty enemy_deck - switching to DEFERRED strategy")
+					deck_load_strategy = DeckLoadStrategy.DEFERRED
+
+	# Initialize deck using strategy pattern (before HP/mana init for summoner bonuses)
+	deck = _load_deck_by_strategy()
+
+	# Apply summoner bonuses for player using PROFILE strategy
+	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
+		if _loaded_summoner_instance != null:
+			_apply_summoner_bonuses(_loaded_summoner_instance)
+
+	# Initialize mana
 	mana = max_mana
+
+	# Handle empty deck - behavior depends on deck loading strategy
+	if deck.is_empty():
+		if deck_load_strategy == DeckLoadStrategy.DEFERRED:
+			# DEFERRED strategy: Empty deck is expected, will be populated by controller
+			print("Summoner: Deck deferred - waiting for manual population")
+		elif _is_test_mode():
+			# Test mode: Allow emergency fallback deck
+			push_warning("Summoner: Failed to load deck in test mode. Creating emergency fallback deck.")
+			deck = _create_emergency_deck()
+
+			if deck.is_empty():
+				push_error("Summoner: CRITICAL - Cannot create deck, disabling summoner")
+				is_enabled = false
+				return
+		else:
+			# Production mode: HARD FAIL - configuration is broken
+			var error_msg: String = "Summoner: CRITICAL - No deck loaded in production mode!\n"
+			error_msg += "Team: %s\n" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY")
+			error_msg += "Strategy: %s\n" % DeckLoadStrategy.keys()[deck_load_strategy]
+			error_msg += "This indicates a configuration bug - check BattleContext and player profile."
+			push_error(error_msg)
+			assert(false, error_msg)
+			is_enabled = false
+			return
+	else:
+		print("Summoner: Loaded %d cards using %s strategy" % [deck.size(), DeckLoadStrategy.keys()[deck_load_strategy]])
 
 	deck.shuffle()
 
@@ -97,26 +126,18 @@ func _ready() -> void:
 	for i: int in max_hand_size:
 		draw_card()
 
-	add_to_group(GroupIDs.SUMMONERS)
-	if team == Unit.Team.PLAYER:
-		add_to_group(GroupIDs.PLAYER_SUMMONERS)
-	else:
-		add_to_group(GroupIDs.ENEMY_SUMMONERS)
-
-	# Emit initial mana state
 	mana_changed.emit(mana, max_mana)
+	summoner_ready.emit(self)
+	print("Summoner: Initialization complete")
 
 func _process(delta: float) -> void:
-	if not is_alive:
+	if not is_enabled:
 		return
 
-	# Regenerate mana (FIXED: use float accumulation)
 	if mana < max_mana:
 		mana = clamp(mana + mana_regen_rate * delta, 0.0, max_mana)
-		# Emit signal every frame while regenerating for smooth UI updates
 		mana_changed.emit(mana, max_mana)
 
-## Draw a card from the deck
 func draw_card() -> void:
 	if deck.is_empty():
 		return
@@ -141,8 +162,8 @@ func _recycle_discard_pile() -> void:
 
 	deck_recycled.emit(card_count)
 
-## Play a card from hand at the given position
-func play_card(card_index: int, spawn_position: Vector2) -> bool:
+## Play a card from hand at the given 3D position
+func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
@@ -151,18 +172,19 @@ func play_card(card_index: int, spawn_position: Vector2) -> bool:
 	if not card.can_play(int(mana)):
 		return false
 
-	# Deduct mana
 	mana -= card.mana_cost
 	mana_changed.emit(mana, max_mana)
 
-	# Find battlefield to spawn units in
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
 		return false
 
-	# Play the card
-	card.play(spawn_position, team, battlefield)
+	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
+	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
+
+	# Play the card in 3D
+	card.play_3d(spawn_position, team, battlefield, modifier_system)
 
 	# Remove from hand and add to discard pile
 	hand.remove_at(card_index)
@@ -177,26 +199,168 @@ func play_card(card_index: int, spawn_position: Vector2) -> bool:
 		for i: int in mini(max_hand_size, deck.size()):
 			draw_card()
 
+	# Register card for XP tracking (player only)
+	if team == Unit3D.Team.PLAYER and not card.instance_id.is_empty():
+		BattleContext.register_card_played(card.instance_id)
+
 	card_played.emit(card)
 	hand_changed.emit(hand)
 
 	return true
 
-## Take damage (when enemy units reach this summoner)
-func take_damage(damage: float) -> void:
-	if not is_alive:
-		return
+## Detect if we're running in test mode (allows emergency fallback decks)
+## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
+func _is_test_mode() -> bool:
+	# Check via game_controller group
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
+	if game_controller and game_controller is TestGameController:
+		return true
 
-	current_hp -= damage
+	# Check root node of scene (test scenes have test controller as root)
+	var root: Node = get_tree().current_scene
+	if root and root is TestGameController:
+		return true
 
-	if current_hp <= 0:
-		current_hp = 0
-		_die()
+	# Check if BattleContext is in practice mode
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if battle_context:
+		var mode_variant: Variant = battle_context.get("current_mode")
+		if mode_variant is int:
+			var mode: int = mode_variant
+			# PRACTICE = 1 in BattleContext enum
+			if mode == 1:
+				return true
 
-## Handle summoner death
-func _die() -> void:
-	is_alive = false
-	summoner_died.emit(self)
+	return false
+
+## =============================================================================
+## DECK LOADING STRATEGY
+## =============================================================================
+
+## Load deck based on configured strategy
+func _load_deck_by_strategy() -> Array[Card]:
+	match deck_load_strategy:
+		DeckLoadStrategy.STATIC:
+			return _load_static_deck()
+		DeckLoadStrategy.BATTLE_CONTEXT:
+			return _load_battle_context_deck()
+		DeckLoadStrategy.PROFILE:
+			return _load_profile_deck()
+		DeckLoadStrategy.DEFERRED:
+			print("Summoner: Using DEFERRED strategy - deck will be set manually later")
+			return []  # Empty deck, will be populated by controller
+		_:
+			push_error("Summoner: Unknown deck load strategy %d" % deck_load_strategy)
+			return []
+
+## Strategy: Load from starting_deck (test scenes, fallback)
+func _load_static_deck() -> Array[Card]:
+	print("Summoner: Using static starting_deck")
+	return starting_deck.duplicate()
+
+## Strategy: Load from BattleContext (normal enemy behavior)
+func _load_battle_context_deck() -> Array[Card]:
+	if team == Unit3D.Team.PLAYER:
+		push_warning("Summoner: BATTLE_CONTEXT strategy used for player team, using static deck instead")
+		return _load_static_deck()
+
+	print("Summoner: Loading enemy deck from BattleContext...")
+	var loaded_deck: Array[Card] = EnemyDeckLoader.load_enemy_deck_for_battle()
+
+	if loaded_deck.is_empty():
+		push_warning("Summoner: Failed to load from BattleContext, falling back to static deck")
+		return _load_static_deck()
+
+	return loaded_deck
+
+## Strategy: Load from player profile (normal player behavior)
+func _load_profile_deck() -> Array[Card]:
+	if team == Unit3D.Team.ENEMY:
+		push_warning("Summoner: PROFILE strategy used for enemy team, using static deck instead")
+		return _load_static_deck()
+
+	# Check for dev test deck override in BattleContext
+	var battle_context: Node = get_node_or_null("/root/BattleContext")
+	if battle_context:
+		var config: Variant = battle_context.get("battle_config")
+		if config is Dictionary:
+			var battle_config: Dictionary = config
+			if battle_config.has("dev_player_deck"):
+				print("Summoner: Loading DEV TEST deck from BattleContext...")
+				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
+
+	print("Summoner: Loading deck from player profile...")
+	var deck_data: Dictionary = DeckLoader.load_player_deck()
+	var loaded_deck_variant: Variant = deck_data.get("cards", [])
+	var loaded_deck: Array[Card] = []
+	if loaded_deck_variant is Array:
+		var temp_array: Array = loaded_deck_variant
+		loaded_deck.assign(temp_array)
+
+	# Store summoner instance for bonus application in init()
+	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
+	if summoner_instance_variant is SummonerInstance:
+		_loaded_summoner_instance = summoner_instance_variant
+
+	if loaded_deck.is_empty():
+		push_warning("Summoner: Failed to load from profile, falling back to static deck")
+		return _load_static_deck()
+
+	return loaded_deck
+
+## Load dev test deck from battle configuration
+func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
+	if not dev_deck_config is Array:
+		push_error("Summoner: dev_player_deck is not an Array")
+		return []
+
+	var loaded_deck: Array[Card] = []
+	var card_configs: Array = dev_deck_config
+
+	for config_variant: Variant in card_configs:
+		if not config_variant is Dictionary:
+			continue
+
+		var config: Dictionary = config_variant
+		var catalog_id: String = config.get("catalog_id", "")
+		var count: int = config.get("count", 1)
+
+		for i: int in count:
+			var card: Card = CardCatalog.create_card_resource(catalog_id)
+			if card:
+				loaded_deck.append(card)
+			else:
+				push_warning("Summoner: Failed to create dev card: %s" % catalog_id)
+
+	print("Summoner: Loaded %d cards from dev_player_deck" % loaded_deck.size())
+	return loaded_deck
+
+## Emergency fallback: Create minimal deck when all strategies fail
+## Uses basic warrior cards as last resort to prevent game breaking
+func _create_emergency_deck() -> Array[Card]:
+	print("Summoner: Creating emergency fallback deck (3x warrior)")
+
+	var emergency_deck: Array[Card] = []
+
+	# Validate CardCatalog autoload exists
+	if not CardCatalog:
+		push_error("Summoner: CardCatalog autoload not available - cannot create emergency deck")
+		return emergency_deck
+
+	# Try to create 3 neade cards (basic unit)
+	for i: int in 3:
+		var card: Card = CardCatalog.create_card_resource("neade")
+		if card:
+			emergency_deck.append(card)
+		else:
+			push_error("Summoner: Failed to create emergency neade card %d" % i)
+
+	if emergency_deck.is_empty():
+		push_error("Summoner: Emergency deck creation failed - CardCatalog may be broken")
+	else:
+		print("Summoner: Created emergency deck with %d cards" % emergency_deck.size())
+
+	return emergency_deck
 
 ## Apply summoner bonuses to summoner stats
 func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
@@ -206,10 +370,6 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 
 	# Get computed stats (includes modifiers)
 	var stats: Dictionary = summoner_instance.get_computed_stats()
-
-	# Set health from summoner (with modifiers applied)
-	var health: float = stats.get("health", 1000.0)
-	max_hp = health
 
 	# Set mana regen from summoner (with modifiers applied)
 	var summoner_mana_regen: float = stats.get("mana_regen", 1.0)
@@ -222,8 +382,10 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	# Cache summoner stats in BattleContext for DamageSystem to use
 	BattleContext.set_player_summoner_stats(stats)
 
+	# TODO: Summoner health stat should flow to Nexus (Base3D), not stored here
+
 	var summoner_name: String = summoner_instance.config.summoner_name
 	var trait_count: int = summoner_instance.get_all_trait_ids().size()
-	print("Summoner: Applied summoner stats from '%s' (Level %d, %d traits) - HP: %.0f, Mana: %.0f, Regen: %.1f/s" % [
-		summoner_name, summoner_instance.level, trait_count, max_hp, max_mana, mana_regen_rate
+	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
+		summoner_name, summoner_instance.level, trait_count, max_mana, mana_regen_rate
 	])

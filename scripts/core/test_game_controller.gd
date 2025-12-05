@@ -77,7 +77,7 @@ func _process(_delta: float) -> void:
 	pass
 
 ## Load hardcoded test deck for player
-func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
+func _load_test_deck_for_summoner(summoner: Summoner) -> void:
 	var cards: Array[Card] = []
 
 	for catalog_id: StringName in test_deck_cards:
@@ -97,7 +97,7 @@ func _load_test_deck_for_summoner(summoner: Summoner3D) -> void:
 	print("TestGameController: Loaded %d test cards for player" % cards.size())
 
 ## Load simple enemy deck (just fire recruits)
-func _load_enemy_test_deck(summoner: Summoner3D) -> void:
+func _load_enemy_test_deck(summoner: Summoner) -> void:
 	var cards: Array[Card] = []
 
 	# Enemy gets 30 fire recruits (easy target practice)

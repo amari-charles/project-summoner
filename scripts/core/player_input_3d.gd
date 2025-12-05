@@ -3,7 +3,7 @@ class_name PlayerInput3D
 
 ## Handles player input for 3D battlefield card playing
 
-@export var summoner: Summoner3D
+@export var summoner: Summoner
 
 var camera: Camera3D
 var selected_card_index: int = -1
@@ -11,9 +11,9 @@ var hand_labels: Array[Label] = []
 
 func _ready() -> void:
 	if summoner == null:
-		summoner = get_parent() as Summoner3D
+		summoner = get_parent() as Summoner
 		if summoner == null:
-			push_error("PlayerInput3D: Could not find parent Summoner3D!")
+			push_error("PlayerInput3D: Could not find parent Summoner!")
 
 	# Find the camera
 	await get_tree().process_frame

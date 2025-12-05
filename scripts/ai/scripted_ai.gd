@@ -13,8 +13,9 @@ var is_active: bool = true
 
 func _ready() -> void:
 	if summoner == null:
-		# Use duck typing - works with both Summoner and Summoner3D
-		summoner = get_parent()
+		var parent: Node = get_parent()
+		if parent is Summoner:
+			summoner = parent
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -63,41 +64,28 @@ func _execute_spawn_event(event: Dictionary) -> void:
 		push_warning("ScriptedAI: Card '%s' not found in hand" % card_name)
 		return
 
-	var hand_variant: Variant = summoner.get("hand")
-	var hand: Array = hand_variant if hand_variant is Array else []
-	if card_index < 0 or card_index >= hand.size():
-		return
-	var card_variant: Variant = hand[card_index]
-	var card: Card = card_variant if card_variant is Card else null
-	if not card:
+	if card_index >= summoner.hand.size():
 		return
 
+	var card: Card = summoner.hand[card_index]
+
 	# Check if we can afford it
-	var mana_variant: Variant = summoner.get("mana")
-	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
-	var mana_int: int = int(mana)
+	var mana_int: int = int(summoner.mana)
 	if not card.can_play(mana_int):
 		push_warning("ScriptedAI: Not enough mana to play '%s'" % card_name)
 		return
 
-	# Play the card
-	if summoner.has_method("play_card_3d"):
-		var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(spawn_pos)
-		summoner.call("play_card_3d", card_index, pos_3d)
-	else:
-		summoner.call("play_card", card_index, spawn_pos)
+	# Play the card in 3D
+	var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(spawn_pos)
+	summoner.play_card_3d(card_index, pos_3d)
 
 ## Find card in hand by catalog ID or card name
 func _find_card_by_name(card_name: String) -> int:
-	var hand_variant: Variant = summoner.get("hand")
-	var hand: Array = hand_variant if hand_variant is Array else []
-	for i: int in range(hand.size()):
-		var card_variant: Variant = hand[i]
-		var card: Card = card_variant if card_variant is Card else null
-		if card:
-			# Match by card_name or catalog_id
-			if card.card_name.to_lower() == card_name.to_lower():
-				return i
+	for i: int in range(summoner.hand.size()):
+		var card: Card = summoner.hand[i]
+		# Match by card_name or catalog_id
+		if card.card_name.to_lower() == card_name.to_lower():
+			return i
 	return -1
 
 ## Override base methods (scripted AI doesn't use these)
