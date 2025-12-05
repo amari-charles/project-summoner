@@ -13,7 +13,8 @@ var is_active: bool = true
 
 func _ready() -> void:
 	if summoner == null:
-		summoner = get_parent() as Summoner
+		# Use duck typing - works with both Summoner and Summoner3D
+		summoner = get_parent()
 
 func _process(delta: float) -> void:
 	if not is_active:

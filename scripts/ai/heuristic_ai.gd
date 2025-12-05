@@ -90,7 +90,8 @@ var next_play_time: float = 0.0
 
 func _ready() -> void:
 	if summoner == null:
-		summoner = get_parent() as Summoner
+		# Use duck typing - works with both Summoner and Summoner3D
+		summoner = get_parent()
 	_set_next_play_time()
 
 func _process(delta: float) -> void:
