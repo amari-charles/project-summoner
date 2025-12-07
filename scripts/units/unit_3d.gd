@@ -71,7 +71,7 @@ var active_modifiers: Dictionary = {}
 
 ## Attack range (per-axis for melee, ignored for ranged)
 @export var attack_range: float = 2.0              # X-axis (left-right) / base range for ranged
-@export var attack_range_depth: float = 1.0        # Z-axis (lane depth) - melee only
+@export var attack_range_depth: float = 2.0        # Z-axis (lane depth) - melee only
 @export var attack_range_vertical: float = 0.5     # Y-axis (height tolerance) - melee only
 
 ## Ranged attack settings
@@ -473,9 +473,7 @@ func _physics_process(delta: float) -> void:
 		if current_target:
 			target_lock_timer = target_lock_duration
 
-	# Lane-based movement with turn zone logic
-	# Priority: Attack if in range > Turn zone pathing > Lane marching
-
+	# Movement priority: Attack > Chase target > March forward
 	if current_target and _is_in_attack_range(current_target):
 		# Target in attack range - face and attack
 		if not is_attacking:
@@ -483,17 +481,12 @@ func _physics_process(delta: float) -> void:
 			_update_animation("idle")
 		if attack_cooldown <= 0.0:
 			_perform_attack()
-	elif _is_in_turn_zone():
-		# In turn zone near enemy base - path toward base (existing behavior)
-		# This ensures units converge on the base when close enough
+	elif current_target:
+		# Target exists but not in attack range - chase it
 		if not is_attacking:
-			if current_target:
-				_move_towards_target(delta)
-			else:
-				_update_animation("idle")
+			_move_towards_target(delta)
 	else:
-		# Not in turn zone and no target in range - march forward in lane
-		# Don't chase enemies, just walk forward until one enters range
+		# No target - march forward in lane toward enemy base
 		if not is_attacking:
 			_move_forward_in_lane(delta)
 
