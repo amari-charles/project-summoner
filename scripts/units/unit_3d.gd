@@ -33,7 +33,6 @@ const FLANK_STRENGTH: float = 1.2  ## Lateral force multiplier when blocked (inc
 ## Lane-based movement constants
 const PLAYER_TURN_ZONE_X: float = 30.0   ## Player units turn toward base when X > this
 const ENEMY_TURN_ZONE_X: float = -30.0   ## Enemy units turn toward base when X < this
-const LANE_WIDTH_MULTIPLIER: float = 2.0  ## Lane width = attack_range_depth * this
 
 ## Flanking progression constants (adaptive wrapping)
 const FLANK_ANGLE_MIN: float = 90.0         ## Start perpendicular to target
@@ -601,11 +600,6 @@ func _acquire_target() -> Node3D:
 		# Skip targets we cannot attack based on layer restrictions
 		if not _can_attack_layer(target_unit):
 			continue
-
-		# Lane-based targeting: only consider enemies within lane tolerance
-		var z_diff: float = abs(target_unit.global_position.z - global_position.z)
-		if z_diff > attack_range_depth * LANE_WIDTH_MULTIPLIER:
-			continue  # Skip enemies outside our current lane
 
 		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
 		var delta: Vector3 = target_unit.global_position - global_position
