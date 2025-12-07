@@ -325,10 +325,12 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 				# Default: safe middle position
 				x = randf_range(left_edge * 0.40, left_edge * 0.70)
 
-	# Z position (vertical on screen) - use middle 60% of bounds to avoid edges
-	var z_min: float = bounds.position.y + bounds.size.y * 0.2
-	var z_max: float = bounds.position.y + bounds.size.y * 0.8
-	z = randf_range(z_min, z_max)
+	# Z position - spawn in the battle lane (centered around Z = -7.5 with spread)
+	# The camera bounds are much larger than the actual battle lane
+	# Use battlefield's spawn marker Z as the center, with ±15 unit spread
+	var battle_lane_z: float = -7.5  # Standard battle lane Z position
+	var z_spread: float = 15.0
+	z = randf_range(battle_lane_z - z_spread, battle_lane_z + z_spread)
 
 	return Vector2(x, z)  # Return as Vector2 representing XZ world coordinates
 
