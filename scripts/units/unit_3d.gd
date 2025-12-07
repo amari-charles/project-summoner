@@ -34,6 +34,8 @@ const FLANK_STRENGTH: float = 1.2  ## Lateral force multiplier when blocked (inc
 ## Turn zone ratio: units turn toward enemy base when they've crossed this fraction of the battlefield
 ## 0.6 = 60% of the way from center to edge (e.g., X > 30 on a -50 to +50 battlefield)
 const TURN_ZONE_RATIO: float = 0.6
+## Default turn zone threshold used when camera bounds unavailable (fallback for edge cases)
+const DEFAULT_TURN_ZONE_X: float = 30.0
 
 ## Flanking progression constants (adaptive wrapping)
 const FLANK_ANGLE_MIN: float = 90.0         ## Start perpendicular to target
@@ -71,9 +73,11 @@ var active_modifiers: Dictionary = {}
 @export var invert_facing: bool = false  ## Invert default facing logic (for sprites that face right instead of left)
 
 ## Attack range (per-axis for melee, ignored for ranged)
-@export var attack_range: float = 2.0              # X-axis (left-right) / base range for ranged
-@export var attack_range_depth: float = 2.0        # Z-axis (lane depth) - melee only
-@export var attack_range_vertical: float = 0.5     # Y-axis (height tolerance) - melee only
+@export var attack_range: float = 2.0              ## X-axis (left-right) / base range for ranged
+## Z-axis (lane depth) for melee attacks - set to 2.0 to match typical unit spacing
+## and ensure units can engage enemies in adjacent lanes during combat clumps
+@export var attack_range_depth: float = 2.0
+@export var attack_range_vertical: float = 0.5     ## Y-axis (height tolerance) - melee only
 
 ## Ranged attack settings
 @export var is_ranged: bool = false  # DEPRECATED: Use unit_type instead
@@ -126,6 +130,9 @@ var formation_position: Vector3 = Vector3.ZERO  ## Target position in formation
 
 ## Proximity tracking (for tutorial/events)
 var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitted proximity signal
+
+## Cached turn zone threshold (calculated once at spawn from camera bounds)
+var _cached_turn_zone_x: float = DEFAULT_TURN_ZONE_X
 
 ## Clump mitigation - blocked detection
 var _blocked_time: float = 0.0  ## How long unit has been blocked
@@ -199,6 +206,9 @@ func _ready() -> void:
 
 	# Setup abilities
 	_setup_abilities()
+
+	# Cache turn zone bounds from camera (avoids per-frame lookups)
+	_cache_turn_zone_bounds()
 
 func _setup_abilities() -> void:
 	# Find all BaseAbility components attached as children
@@ -703,26 +713,36 @@ func _move_forward_in_lane(_delta: float) -> void:
 
 	_update_animation("walk")
 
-## Check if unit is in the turn zone (near enemy base)
-## Turn zone is calculated dynamically from camera's map_rect_xz bounds
-func _is_in_turn_zone() -> bool:
+## Cache turn zone bounds from camera at spawn time
+## This avoids per-frame viewport/camera lookups in _is_in_turn_zone()
+func _cache_turn_zone_bounds() -> void:
 	var viewport: Viewport = get_viewport()
-	assert(viewport != null, "Unit3D: No viewport available")
+	if not viewport:
+		push_warning("Unit3D: No viewport available - using default turn zone bounds")
+		_cached_turn_zone_x = DEFAULT_TURN_ZONE_X if team == Team.PLAYER else -DEFAULT_TURN_ZONE_X
+		return
 
 	var camera: Camera3D = viewport.get_camera_3d()
-	assert(camera != null, "Unit3D: No Camera3D found - battlefield must have CameraController3D")
-	assert(camera.get("map_rect_xz") != null, "Unit3D: Camera missing map_rect_xz - must use CameraController3D")
+	if not camera or camera.get("map_rect_xz") == null:
+		push_warning("Unit3D: No camera bounds available - using default turn zone bounds")
+		_cached_turn_zone_x = DEFAULT_TURN_ZONE_X if team == Team.PLAYER else -DEFAULT_TURN_ZONE_X
+		return
 
 	var bounds: Rect2 = camera.map_rect_xz
-	# Calculate turn zone thresholds from battlefield bounds
+	# Calculate turn zone threshold based on team
 	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)
-	var player_turn_x: float = bounds.end.x * TURN_ZONE_RATIO    # e.g., 50 * 0.6 = 30
-	var enemy_turn_x: float = bounds.position.x * TURN_ZONE_RATIO  # e.g., -50 * 0.6 = -30
-
 	if team == Team.PLAYER:
-		return global_position.x >= player_turn_x
+		_cached_turn_zone_x = bounds.end.x * TURN_ZONE_RATIO  # e.g., 50 * 0.6 = 30
 	else:
-		return global_position.x <= enemy_turn_x
+		_cached_turn_zone_x = bounds.position.x * TURN_ZONE_RATIO  # e.g., -50 * 0.6 = -30
+
+## Check if unit is in the turn zone (near enemy base)
+## Uses cached bounds calculated at spawn time for performance
+func _is_in_turn_zone() -> bool:
+	if team == Team.PLAYER:
+		return global_position.x >= _cached_turn_zone_x
+	else:
+		return global_position.x <= _cached_turn_zone_x
 
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:

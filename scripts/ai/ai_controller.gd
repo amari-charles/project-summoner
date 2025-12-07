@@ -26,16 +26,23 @@ func select_card_to_play() -> int:
 func select_spawn_position(_card: Card) -> Vector2:
 	return Vector2.ZERO
 
+## Default battlefield bounds used when camera bounds unavailable (fallback for edge cases)
+## Matches typical battlefield layout: X from -50 to +50, Z from -40 to +40
+const DEFAULT_BATTLEFIELD_BOUNDS: Rect2 = Rect2(-50.0, -40.0, 100.0, 80.0)
+
 ## Get battlefield bounds in 3D world space (XZ plane)
 ## Returns Rect2 where position = min corner (e.g., -50, -40), size = dimensions (e.g., 100, 80)
 ## This represents the actual playable battlefield area in world coordinates
 func get_battlefield_bounds_3d() -> Rect2:
 	var viewport: Viewport = get_viewport()
-	assert(viewport != null, "AIController: No viewport available - AI must be in scene tree")
+	if not viewport:
+		push_warning("AIController: No viewport available - using default battlefield bounds")
+		return DEFAULT_BATTLEFIELD_BOUNDS
 
 	var camera: Camera3D = viewport.get_camera_3d()
-	assert(camera != null, "AIController: No Camera3D found in viewport")
-	assert(camera.get("map_rect_xz") != null, "AIController: Camera missing map_rect_xz property - must use CameraController3D")
+	if not camera or camera.get("map_rect_xz") == null:
+		push_warning("AIController: No camera bounds available - using default battlefield bounds")
+		return DEFAULT_BATTLEFIELD_BOUNDS
 
 	return camera.map_rect_xz
 

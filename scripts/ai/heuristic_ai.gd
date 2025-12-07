@@ -8,50 +8,85 @@ enum Personality { AGGRESSIVE, DEFENSIVE, BALANCED, SPELL_FOCUSED }
 enum BattlefieldState { LOSING_BADLY, LOSING, EVEN, WINNING }
 
 # === CARD SCORING CONSTANTS ===
+## Base score per mana point of cost (higher = prefer expensive cards)
 const SCORE_MANA_EFFICIENCY_BASE: float = 10.0
+## Base score for playing summon cards (units)
 const SCORE_BASE_SUMMON: float = 10.0
+## Base score for playing spell cards (lower than summons - prefer units)
 const SCORE_BASE_SPELL: float = 5.0
+## Bonus for summons when losing badly (desperately need units)
 const SCORE_LOSING_BADLY_SUMMON_BONUS: float = 15.0
+## Bonus for summons when losing (need more units)
 const SCORE_LOSING_SUMMON_BONUS: float = 10.0
+## Bonus for summons when winning (press the advantage)
 const SCORE_WINNING_SUMMON_BONUS: float = 5.0
+## Bonus for spells when losing badly (need immediate impact)
 const SCORE_LOSING_BADLY_SPELL_BONUS: float = 20.0
+## Bonus for spells when losing (tactical advantage needed)
 const SCORE_LOSING_SPELL_BONUS: float = 10.0
+## Bonus for spells when winning (finish them off)
 const SCORE_WINNING_SPELL_BONUS: float = 8.0
+## Penalty for casting spells when no enemies exist (wasted potential)
 const SCORE_NO_ENEMIES_SPELL_PENALTY: float = 10.0
 
 # === ENEMY COUNT THRESHOLDS ===
+## Enemy unit advantage to be considered "losing badly" (3+ more enemies than allies)
 const ENEMY_COUNT_THRESHOLD_LOSING_BADLY: int = 3
+## Enemy unit advantage to be considered "losing" (2+ more enemies than allies)
 const ENEMY_COUNT_THRESHOLD_LOSING: int = 2
 
 # === PERSONALITY BONUSES ===
+## Score bonus for aggressive AI when considering summon cards
 const PERSONALITY_AGGRESSIVE_SUMMON_BONUS: float = 5.0
+## Mana cost threshold below which cards are considered "cheap" for aggressive AI
 const PERSONALITY_AGGRESSIVE_CHEAP_THRESHOLD: int = 3
+## Bonus for aggressive AI when playing cheap cards (spam units quickly)
 const PERSONALITY_AGGRESSIVE_CHEAP_BONUS: float = 3.0
+## Mana cost threshold above which cards are considered "expensive" for defensive AI
 const PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD: int = 4
+## Bonus for defensive AI when playing expensive cards (value over quantity)
 const PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS: float = 3.0
+## Score bonus for spell-focused AI when considering spell cards
 const PERSONALITY_SPELL_FOCUSED_BONUS: float = 10.0
+## Score penalty for spell-focused AI when considering summon cards
 const PERSONALITY_SPELL_FOCUSED_PENALTY: float = 3.0
 
 # === BATTLEFIELD STATE THRESHOLDS ===
+## Weight for unit count advantage when calculating battlefield state (0-1)
 const STATE_UNIT_ADVANTAGE_WEIGHT: float = 0.5
+## Weight for base HP advantage when calculating battlefield state (0-1)
 const STATE_HP_ADVANTAGE_WEIGHT: float = 0.5
+## Combined score below this = LOSING_BADLY state (very negative)
 const STATE_LOSING_BADLY_THRESHOLD: float = -0.4
+## Base HP ratio below this = LOSING_BADLY state regardless of units
 const STATE_LOSING_BADLY_HP_RATIO: float = 0.3
+## Combined score below this = LOSING state (slightly negative)
 const STATE_LOSING_THRESHOLD: float = -0.1
+## Combined score above this = WINNING state (positive advantage)
 const STATE_WINNING_THRESHOLD: float = 0.2
 
 # === DIFFICULTY/RANDOMNESS ===
+## Default AI difficulty level (1-6 scale)
 const DIFFICULTY_DEFAULT: int = 3
+## Maximum AI difficulty level
 const DIFFICULTY_MAX: int = 6
+## Randomness added to card scores at low difficulty (makes AI less optimal)
 const DIFFICULTY_RANDOMNESS_MULTIPLIER: float = 5.0
+## Baseline difficulty for timing calculations
 const DIFFICULTY_TIMING_BASELINE: int = 3
+## How much difficulty affects play interval (higher diff = faster play)
 const DIFFICULTY_TIMING_SCALE: float = 0.1
 
 # === PLAY TIMING ===
+## Minimum seconds between card plays (faster = more aggressive)
 const PLAY_INTERVAL_MIN_DEFAULT: float = 3.0
+## Maximum seconds between card plays (randomized within range)
 const PLAY_INTERVAL_MAX_DEFAULT: float = 6.0
+## Timing multiplier when losing badly (0.5 = play 2x faster)
 const TIMING_LOSING_BADLY_MULTIPLIER: float = 0.5
+## Timing multiplier when losing (0.7 = play ~1.4x faster)
 const TIMING_LOSING_MULTIPLIER: float = 0.7
+## Timing multiplier when winning (1.3 = play slower, conserve resources)
 const TIMING_WINNING_MULTIPLIER: float = 1.3
 
 # === SPAWN POSITIONING ===
