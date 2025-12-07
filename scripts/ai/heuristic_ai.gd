@@ -54,6 +54,10 @@ const TIMING_LOSING_BADLY_MULTIPLIER: float = 0.5
 const TIMING_LOSING_MULTIPLIER: float = 0.7
 const TIMING_WINNING_MULTIPLIER: float = 1.3
 
+# === SPAWN POSITIONING ===
+const BATTLE_LANE_Z: float = -7.5  # Center Z position of battle lane
+const SPAWN_Z_SPREAD: float = 15.0  # Half-range for random Z spread
+
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
 @export var difficulty: int = DIFFICULTY_DEFAULT
@@ -204,7 +208,6 @@ func _apply_personality_bonus(card: Card) -> float:
 				bonus += PERSONALITY_AGGRESSIVE_CHEAP_BONUS
 
 		Personality.DEFENSIVE:
-			# TODO: When we have wall cards, prefer them
 			if card.mana_cost >= PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD:
 				bonus += PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS
 
@@ -285,9 +288,7 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 	var x: float = 0.0
 	var z: float = 0.0
 
-	# Get team safely with duck typing
-	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit3D.Team.PLAYER
+	var summoner_team: int = summoner.team
 
 	# Calculate zone positions as percentages of the battlefield
 	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)
@@ -325,12 +326,8 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 				# Default: safe middle position
 				x = randf_range(left_edge * 0.40, left_edge * 0.70)
 
-	# Z position - spawn in the battle lane (centered around Z = -7.5 with spread)
-	# The camera bounds are much larger than the actual battle lane
-	# Use battlefield's spawn marker Z as the center, with ±15 unit spread
-	var battle_lane_z: float = -7.5  # Standard battle lane Z position
-	var z_spread: float = 15.0
-	z = randf_range(battle_lane_z - z_spread, battle_lane_z + z_spread)
+	# Z position - spawn in the battle lane (camera bounds are larger than actual battle area)
+	z = randf_range(BATTLE_LANE_Z - SPAWN_Z_SPREAD, BATTLE_LANE_Z + SPAWN_Z_SPREAD)
 
 	return Vector2(x, z)  # Return as Vector2 representing XZ world coordinates
 

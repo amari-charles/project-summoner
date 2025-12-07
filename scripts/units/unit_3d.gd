@@ -162,10 +162,8 @@ func _ready() -> void:
 
 	if team == Team.PLAYER:
 		add_to_group(GroupIDs.PLAYER_UNITS)
-		print("Unit3D: Added to player_units group (team=%d)" % team)
 	else:
 		add_to_group(GroupIDs.ENEMY_UNITS)
-		print("Unit3D: Added to enemy_units group (team=%d)" % team)
 
 	_setup_visuals()
 	_setup_shadow()
@@ -1061,7 +1059,6 @@ func _update_rally_behavior(_delta: float) -> void:
 func _clear_rally_mode() -> void:
 	rally_mode = false
 	rally_point = Vector3.ZERO
-	print("Unit %s: Reached rally point, resuming normal AI" % name)
 
 ## Update Guard behavior (formation + hold)
 func _update_guard_behavior(_delta: float) -> void:
@@ -1122,7 +1119,6 @@ func _clear_guard_mode() -> void:
 	guard_mode = false
 	guard_timer = 0.0
 	formation_position = Vector3.ZERO
-	print("Unit %s: Guard mode ended, resuming normal AI" % name)
 
 ## Move toward a specific position (used by rally/guard)
 func _move_towards_position(target_position: Vector3) -> void:
