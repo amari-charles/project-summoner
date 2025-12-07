@@ -67,40 +67,6 @@ func _init_catalog() -> void:
 		}
 	}
 
-	# Wall - Defensive structure
-	_catalog["wall"] = {
-		"catalog_id": "wall",
-		"card_name": "Wall",
-		"description": "A sturdy barrier to block enemy advances. High health but no attack.",
-		"rarity": RarityIDs.COMMON,
-
-		"card_type": Card.CardType.SUMMON,  # Structure is just a unit with 0 move_speed
-		"unit_type": UnitTypeIDs.STRUCTURE,  # For icon display
-		"mana_cost": 2,
-		"cooldown": 2.0,
-
-		"unit_scene_path": "res://scenes/units/wall_3d.tscn",
-		"spawn_count": 1,
-
-		"max_hp": 300.0,
-		"attack_damage": 0.0,
-		"attack_range": 0.0,
-		"attack_speed": 0.0,
-		"move_speed": 0.0,
-		"aggro_radius": 0.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		"card_icon_path": "",
-		"tags": ["structure", "defensive", "barrier"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.EARTH
-		}
-	}
-
 	# Neade - Heavy lancer
 	_catalog["neade"] = {
 		"catalog_id": "neade",

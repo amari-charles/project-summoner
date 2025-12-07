@@ -41,6 +41,22 @@ const FIRST_TRIAL: StringName = &"first_trial"
 const CHARGE_TUTORIAL: StringName = &"charge_tutorial"
 
 # ============================================================================
+# COMBAT ARENA (Debug/test battles with fixed decks)
+# ============================================================================
+
+## Arena Battle 1: Melee Basics - Slime vs Slime
+const ARENA_MELEE_BASICS: StringName = &"arena_melee_basics"
+
+## Arena Battle 2: Ranged Intro - Fire units with ranged attackers
+const ARENA_RANGED_INTRO: StringName = &"arena_ranged_intro"
+
+## Arena Battle 3: Mixed Tactics - Combined melee and ranged
+const ARENA_MIXED_TACTICS: StringName = &"arena_mixed_tactics"
+
+## Arena Battle 4: Full Combat - All unit types
+const ARENA_FULL_COMBAT: StringName = &"arena_full_combat"
+
+# ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
 
@@ -57,8 +73,13 @@ const ALL_TUTORIALS: Array[StringName] = [
 	CHARGE_TUTORIAL,
 ]
 
-## All campaign battle IDs (future expansion)
-const ALL_CAMPAIGN_BATTLES: Array[StringName] = []
+## All campaign battle IDs
+const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
+	ARENA_MELEE_BASICS,
+	ARENA_RANGED_INTRO,
+	ARENA_MIXED_TACTICS,
+	ARENA_FULL_COMBAT,
+]
 
 ## All battle IDs (events + tutorials + campaign)
 static func all_ids() -> Array[StringName]:

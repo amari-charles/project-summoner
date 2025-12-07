@@ -31,9 +31,11 @@ const BLOCKED_MOVE_THRESHOLD: float = 0.1  ## Min movement per second to not be 
 const FLANK_STRENGTH: float = 1.2  ## Lateral force multiplier when blocked (increased for decisive flanking)
 
 ## Lane-based movement constants
-const PLAYER_TURN_ZONE_X: float = 30.0   ## Player units turn toward base when X > this
-const ENEMY_TURN_ZONE_X: float = -30.0   ## Enemy units turn toward base when X < this
-const LANE_WIDTH_MULTIPLIER: float = 2.0  ## Lane width = attack_range_depth * this
+## Turn zone ratio: units turn toward enemy base when they've crossed this fraction of the battlefield
+## 0.6 = 60% of the way from center to edge (e.g., X > 30 on a -50 to +50 battlefield)
+const TURN_ZONE_RATIO: float = 0.6
+## Default turn zone threshold used when camera bounds unavailable (fallback for edge cases)
+const DEFAULT_TURN_ZONE_X: float = 30.0
 
 ## Flanking progression constants (adaptive wrapping)
 const FLANK_ANGLE_MIN: float = 90.0         ## Start perpendicular to target
@@ -71,9 +73,11 @@ var active_modifiers: Dictionary = {}
 @export var invert_facing: bool = false  ## Invert default facing logic (for sprites that face right instead of left)
 
 ## Attack range (per-axis for melee, ignored for ranged)
-@export var attack_range: float = 2.0              # X-axis (left-right) / base range for ranged
-@export var attack_range_depth: float = 1.0        # Z-axis (lane depth) - melee only
-@export var attack_range_vertical: float = 0.5     # Y-axis (height tolerance) - melee only
+@export var attack_range: float = 2.0              ## X-axis (left-right) / base range for ranged
+## Z-axis (lane depth) for melee attacks - set to 2.0 to match typical unit spacing
+## and ensure units can engage enemies in adjacent lanes during combat clumps
+@export var attack_range_depth: float = 2.0
+@export var attack_range_vertical: float = 0.5     ## Y-axis (height tolerance) - melee only
 
 ## Ranged attack settings
 @export var is_ranged: bool = false  # DEPRECATED: Use unit_type instead
@@ -127,6 +131,9 @@ var formation_position: Vector3 = Vector3.ZERO  ## Target position in formation
 ## Proximity tracking (for tutorial/events)
 var _has_emitted_proximity_signal: bool = false  ## Track if we've already emitted proximity signal
 
+## Cached turn zone threshold (calculated once at spawn from camera bounds)
+var _cached_turn_zone_x: float = DEFAULT_TURN_ZONE_X
+
 ## Clump mitigation - blocked detection
 var _blocked_time: float = 0.0  ## How long unit has been blocked
 
@@ -163,10 +170,8 @@ func _ready() -> void:
 
 	if team == Team.PLAYER:
 		add_to_group(GroupIDs.PLAYER_UNITS)
-		print("Unit3D: Added to player_units group (team=%d)" % team)
 	else:
 		add_to_group(GroupIDs.ENEMY_UNITS)
-		print("Unit3D: Added to enemy_units group (team=%d)" % team)
 
 	_setup_visuals()
 	_setup_shadow()
@@ -201,6 +206,9 @@ func _ready() -> void:
 
 	# Setup abilities
 	_setup_abilities()
+
+	# Cache turn zone bounds from camera (avoids per-frame lookups)
+	_cache_turn_zone_bounds()
 
 func _setup_abilities() -> void:
 	# Find all BaseAbility components attached as children
@@ -474,9 +482,7 @@ func _physics_process(delta: float) -> void:
 		if current_target:
 			target_lock_timer = target_lock_duration
 
-	# Lane-based movement with turn zone logic
-	# Priority: Attack if in range > Turn zone pathing > Lane marching
-
+	# Movement priority: Attack > Chase unit > Chase base (turn zone only) > March forward
 	if current_target and _is_in_attack_range(current_target):
 		# Target in attack range - face and attack
 		if not is_attacking:
@@ -484,17 +490,16 @@ func _physics_process(delta: float) -> void:
 			_update_animation("idle")
 		if attack_cooldown <= 0.0:
 			_perform_attack()
-	elif _is_in_turn_zone():
-		# In turn zone near enemy base - path toward base (existing behavior)
-		# This ensures units converge on the base when close enough
+	elif current_target and current_target is Unit3D:
+		# Target is an enemy unit - chase it anywhere
 		if not is_attacking:
-			if current_target:
-				_move_towards_target(delta)
-			else:
-				_update_animation("idle")
+			_move_towards_target(delta)
+	elif current_target and _is_in_turn_zone():
+		# Target is the base and we're in turn zone - chase it
+		if not is_attacking:
+			_move_towards_target(delta)
 	else:
-		# Not in turn zone and no target in range - march forward in lane
-		# Don't chase enemies, just walk forward until one enters range
+		# No unit target, not near base - march forward in lane
 		if not is_attacking:
 			_move_forward_in_lane(delta)
 
@@ -602,11 +607,6 @@ func _acquire_target() -> Node3D:
 		if not _can_attack_layer(target_unit):
 			continue
 
-		# Lane-based targeting: only consider enemies within lane tolerance
-		var z_diff: float = abs(target_unit.global_position.z - global_position.z)
-		if z_diff > attack_range_depth * LANE_WIDTH_MULTIPLIER:
-			continue  # Skip enemies outside our current lane
-
 		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
 		var delta: Vector3 = target_unit.global_position - global_position
 		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
@@ -713,12 +713,36 @@ func _move_forward_in_lane(_delta: float) -> void:
 
 	_update_animation("walk")
 
+## Cache turn zone bounds from camera at spawn time
+## This avoids per-frame viewport/camera lookups in _is_in_turn_zone()
+func _cache_turn_zone_bounds() -> void:
+	var viewport: Viewport = get_viewport()
+	if not viewport:
+		push_warning("Unit3D: No viewport available - using default turn zone bounds")
+		_cached_turn_zone_x = DEFAULT_TURN_ZONE_X if team == Team.PLAYER else -DEFAULT_TURN_ZONE_X
+		return
+
+	var camera: Camera3D = viewport.get_camera_3d()
+	if not camera or camera.get("map_rect_xz") == null:
+		push_warning("Unit3D: No camera bounds available - using default turn zone bounds")
+		_cached_turn_zone_x = DEFAULT_TURN_ZONE_X if team == Team.PLAYER else -DEFAULT_TURN_ZONE_X
+		return
+
+	var bounds: Rect2 = camera.map_rect_xz
+	# Calculate turn zone threshold based on team
+	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)
+	if team == Team.PLAYER:
+		_cached_turn_zone_x = bounds.end.x * TURN_ZONE_RATIO  # e.g., 50 * 0.6 = 30
+	else:
+		_cached_turn_zone_x = bounds.position.x * TURN_ZONE_RATIO  # e.g., -50 * 0.6 = -30
+
 ## Check if unit is in the turn zone (near enemy base)
+## Uses cached bounds calculated at spawn time for performance
 func _is_in_turn_zone() -> bool:
 	if team == Team.PLAYER:
-		return global_position.x >= PLAYER_TURN_ZONE_X
+		return global_position.x >= _cached_turn_zone_x
 	else:
-		return global_position.x <= ENEMY_TURN_ZONE_X
+		return global_position.x <= _cached_turn_zone_x
 
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:
@@ -1070,7 +1094,6 @@ func _update_rally_behavior(_delta: float) -> void:
 func _clear_rally_mode() -> void:
 	rally_mode = false
 	rally_point = Vector3.ZERO
-	print("Unit %s: Reached rally point, resuming normal AI" % name)
 
 ## Update Guard behavior (formation + hold)
 func _update_guard_behavior(_delta: float) -> void:
@@ -1131,7 +1154,6 @@ func _clear_guard_mode() -> void:
 	guard_mode = false
 	guard_timer = 0.0
 	formation_position = Vector3.ZERO
-	print("Unit %s: Guard mode ended, resuming normal AI" % name)
 
 ## Move toward a specific position (used by rally/guard)
 func _move_towards_position(target_position: Vector3) -> void:

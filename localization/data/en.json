@@ -4,6 +4,10 @@
       "name": "Academy Trials",
       "description": "Begin your journey at the Summoning Academy. Master the fundamentals of summoning and prove your worth."
     },
+    "combat_arena": {
+      "name": "Combat Arena",
+      "description": "Test battles for core combat mechanics. Uses fixed decks - no collection required."
+    },
     "selector": {
       "title": "SELECT CAMPAIGN",
       "locked": "LOCKED",
@@ -31,6 +35,22 @@
       "charge_tutorial": {
         "name": "The Ironhide Slime",
         "description": "A peculiar slime blocks the path ahead. Merlin senses something unusual about its defenses. Learn to use tactical commands wisely."
+      },
+      "arena_melee_basics": {
+        "name": "Melee Basics",
+        "description": "Slime vs slime. Test basic melee combat and unit movement."
+      },
+      "arena_ranged_intro": {
+        "name": "Ranged Introduction",
+        "description": "Fire units with ranged attackers. Test ranged combat mechanics."
+      },
+      "arena_mixed_tactics": {
+        "name": "Mixed Tactics",
+        "description": "Combined melee and ranged units. Test combined arms tactics."
+      },
+      "arena_full_combat": {
+        "name": "Full Combat",
+        "description": "All unit types including structures. Comprehensive combat test."
       }
     },
     "starter_deck_name": "Starter Deck",

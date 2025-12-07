@@ -56,7 +56,7 @@ static func load_enemy_deck_for_battle() -> Array[Card]:
 		var catalog_id_variant: Variant = entry.get("catalog_id", "")
 		var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
 		var count_variant: Variant = entry.get("count", 1)
-		var count: int = count_variant if count_variant is int else 1
+		var count: int = int(count_variant) if (count_variant is int or count_variant is float) else 1
 
 		if catalog_id == "":
 			push_warning("EnemyDeckLoader: Empty catalog_id in enemy deck definition")
@@ -108,7 +108,7 @@ static func load_deck_for_battle(battle_id: String) -> Array[Card]:
 		var catalog_id_variant: Variant = entry.get("catalog_id", "")
 		var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
 		var count_variant: Variant = entry.get("count", 1)
-		var count: int = count_variant if count_variant is int else 1
+		var count: int = int(count_variant) if (count_variant is int or count_variant is float) else 1
 
 		if catalog_id == "":
 			push_warning("EnemyDeckLoader: Empty catalog_id in enemy deck definition")

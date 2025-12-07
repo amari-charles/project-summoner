@@ -10,8 +10,8 @@ enum GameState { SETUP, PLAYING, PAUSED, GAME_OVER }
 @export var overtime_duration: float = 60.0
 
 @export var battlefield: Node3D
-@export var player_summoner: Summoner3D
-@export var enemy_summoner: Summoner3D
+@export var player_summoner: Summoner
+@export var enemy_summoner: Summoner
 
 var player_base: Node3D
 var enemy_base: Node3D

@@ -438,7 +438,7 @@ class CardDisplay extends Control:
 		border_style.anti_aliasing_size = 1
 		border_panel.add_theme_stylebox_override("panel", border_style)
 
-var summoner: Node  # Can be Summoner or Summoner3D
+var summoner: Summoner
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 var is_rebuilding: bool = false  # Prevents concurrent rebuilds

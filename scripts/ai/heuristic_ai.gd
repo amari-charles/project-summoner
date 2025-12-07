@@ -8,75 +8,107 @@ enum Personality { AGGRESSIVE, DEFENSIVE, BALANCED, SPELL_FOCUSED }
 enum BattlefieldState { LOSING_BADLY, LOSING, EVEN, WINNING }
 
 # === CARD SCORING CONSTANTS ===
+## Base score per mana point of cost (higher = prefer expensive cards)
 const SCORE_MANA_EFFICIENCY_BASE: float = 10.0
+## Base score for playing summon cards (units)
 const SCORE_BASE_SUMMON: float = 10.0
+## Base score for playing spell cards (lower than summons - prefer units)
 const SCORE_BASE_SPELL: float = 5.0
+## Bonus for summons when losing badly (desperately need units)
 const SCORE_LOSING_BADLY_SUMMON_BONUS: float = 15.0
+## Bonus for summons when losing (need more units)
 const SCORE_LOSING_SUMMON_BONUS: float = 10.0
+## Bonus for summons when winning (press the advantage)
 const SCORE_WINNING_SUMMON_BONUS: float = 5.0
+## Bonus for spells when losing badly (need immediate impact)
 const SCORE_LOSING_BADLY_SPELL_BONUS: float = 20.0
+## Bonus for spells when losing (tactical advantage needed)
 const SCORE_LOSING_SPELL_BONUS: float = 10.0
+## Bonus for spells when winning (finish them off)
 const SCORE_WINNING_SPELL_BONUS: float = 8.0
+## Penalty for casting spells when no enemies exist (wasted potential)
 const SCORE_NO_ENEMIES_SPELL_PENALTY: float = 10.0
 
 # === ENEMY COUNT THRESHOLDS ===
+## Enemy unit advantage to be considered "losing badly" (3+ more enemies than allies)
 const ENEMY_COUNT_THRESHOLD_LOSING_BADLY: int = 3
+## Enemy unit advantage to be considered "losing" (2+ more enemies than allies)
 const ENEMY_COUNT_THRESHOLD_LOSING: int = 2
 
 # === PERSONALITY BONUSES ===
+## Score bonus for aggressive AI when considering summon cards
 const PERSONALITY_AGGRESSIVE_SUMMON_BONUS: float = 5.0
+## Mana cost threshold below which cards are considered "cheap" for aggressive AI
 const PERSONALITY_AGGRESSIVE_CHEAP_THRESHOLD: int = 3
+## Bonus for aggressive AI when playing cheap cards (spam units quickly)
 const PERSONALITY_AGGRESSIVE_CHEAP_BONUS: float = 3.0
+## Mana cost threshold above which cards are considered "expensive" for defensive AI
 const PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD: int = 4
+## Bonus for defensive AI when playing expensive cards (value over quantity)
 const PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS: float = 3.0
+## Score bonus for spell-focused AI when considering spell cards
 const PERSONALITY_SPELL_FOCUSED_BONUS: float = 10.0
+## Score penalty for spell-focused AI when considering summon cards
 const PERSONALITY_SPELL_FOCUSED_PENALTY: float = 3.0
 
 # === BATTLEFIELD STATE THRESHOLDS ===
+## Weight for unit count advantage when calculating battlefield state (0-1)
 const STATE_UNIT_ADVANTAGE_WEIGHT: float = 0.5
+## Weight for base HP advantage when calculating battlefield state (0-1)
 const STATE_HP_ADVANTAGE_WEIGHT: float = 0.5
+## Combined score below this = LOSING_BADLY state (very negative)
 const STATE_LOSING_BADLY_THRESHOLD: float = -0.4
+## Base HP ratio below this = LOSING_BADLY state regardless of units
 const STATE_LOSING_BADLY_HP_RATIO: float = 0.3
+## Combined score below this = LOSING state (slightly negative)
 const STATE_LOSING_THRESHOLD: float = -0.1
+## Combined score above this = WINNING state (positive advantage)
 const STATE_WINNING_THRESHOLD: float = 0.2
 
 # === DIFFICULTY/RANDOMNESS ===
+## Default AI difficulty level (1-6 scale)
 const DIFFICULTY_DEFAULT: int = 3
+## Maximum AI difficulty level
 const DIFFICULTY_MAX: int = 6
+## Randomness added to card scores at low difficulty (makes AI less optimal)
 const DIFFICULTY_RANDOMNESS_MULTIPLIER: float = 5.0
+## Baseline difficulty for timing calculations
 const DIFFICULTY_TIMING_BASELINE: int = 3
+## How much difficulty affects play interval (higher diff = faster play)
 const DIFFICULTY_TIMING_SCALE: float = 0.1
 
 # === PLAY TIMING ===
+## Minimum seconds between card plays (faster = more aggressive)
 const PLAY_INTERVAL_MIN_DEFAULT: float = 3.0
+## Maximum seconds between card plays (randomized within range)
 const PLAY_INTERVAL_MAX_DEFAULT: float = 6.0
+## Timing multiplier when losing badly (0.5 = play 2x faster)
 const TIMING_LOSING_BADLY_MULTIPLIER: float = 0.5
+## Timing multiplier when losing (0.7 = play ~1.4x faster)
 const TIMING_LOSING_MULTIPLIER: float = 0.7
+## Timing multiplier when winning (1.3 = play slower, conserve resources)
 const TIMING_WINNING_MULTIPLIER: float = 1.3
 
-# === SPAWN ZONES (as fractions of battlefield width/height) ===
-# X: 0.0 = left edge (player side), 1.0 = right edge (enemy side)
-# Y: 0.0 = top edge, 1.0 = bottom edge
-const SPAWN_ENEMY_DEFENSIVE_MIN: float = 0.75
-const SPAWN_ENEMY_DEFENSIVE_MAX: float = 0.95
-const SPAWN_ENEMY_NEUTRAL_MIN: float = 0.5
-const SPAWN_ENEMY_NEUTRAL_MAX: float = 0.7
-const SPAWN_ENEMY_AGGRESSIVE_MIN: float = 0.3
-const SPAWN_ENEMY_AGGRESSIVE_MAX: float = 0.5
-const SPAWN_ENEMY_DEFAULT_MIN: float = 0.6
-const SPAWN_ENEMY_DEFAULT_MAX: float = 0.8
+# === SPAWN POSITIONING ===
+## Spawn lane ratios (relative to battlefield Z bounds from camera's map_rect_xz)
+## Center offset: -0.1875 = 18.75% toward negative Z from center (battle lane is slightly offset)
+## Width ratio: 0.375 = spawn area covers 37.5% of total Z range (battle lane narrower than camera view)
+const SPAWN_LANE_CENTER_OFFSET_RATIO: float = -0.1875
+const SPAWN_LANE_WIDTH_RATIO: float = 0.375
 
-const SPAWN_PLAYER_DEFENSIVE_MIN: float = 0.05
-const SPAWN_PLAYER_DEFENSIVE_MAX: float = 0.25
-const SPAWN_PLAYER_NEUTRAL_MIN: float = 0.3
-const SPAWN_PLAYER_NEUTRAL_MAX: float = 0.5
-const SPAWN_PLAYER_AGGRESSIVE_MIN: float = 0.5
-const SPAWN_PLAYER_AGGRESSIVE_MAX: float = 0.7
-const SPAWN_PLAYER_DEFAULT_MIN: float = 0.2
-const SPAWN_PLAYER_DEFAULT_MAX: float = 0.4
-
-const SPAWN_Y_MIN: float = 0.2
-const SPAWN_Y_MAX: float = 0.8
+## Spawn zone X-position ratios (percentage of battlefield half from center to edge)
+## Example: On a -50 to +50 battlefield, enemy right_edge = 50
+##   defensive: 50 * 0.75 to 50 * 0.95 = 37.5 to 47.5 (near base)
+##   neutral: 50 * 0.30 to 50 * 0.60 = 15 to 30 (middle ground)
+##   aggressive: 50 * 0.05 to 50 * 0.30 = 2.5 to 15 (near center)
+const SPAWN_ZONE_DEFENSIVE_MIN: float = 0.75
+const SPAWN_ZONE_DEFENSIVE_MAX: float = 0.95
+const SPAWN_ZONE_NEUTRAL_MIN: float = 0.30
+const SPAWN_ZONE_NEUTRAL_MAX: float = 0.60
+const SPAWN_ZONE_AGGRESSIVE_MIN: float = 0.05
+const SPAWN_ZONE_AGGRESSIVE_MAX: float = 0.30
+const SPAWN_ZONE_DEFAULT_MIN: float = 0.40
+const SPAWN_ZONE_DEFAULT_MAX: float = 0.70
 
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
@@ -90,34 +122,25 @@ var next_play_time: float = 0.0
 
 func _ready() -> void:
 	if summoner == null:
-		summoner = get_parent() as Summoner
+		var parent: Node = get_parent()
+		if parent is Summoner:
+			summoner = parent
 	_set_next_play_time()
 
 func _process(delta: float) -> void:
-	var is_alive_variant: Variant = summoner.get("is_alive") if summoner else false
-	var is_alive: bool = is_alive_variant if is_alive_variant is bool else false
-	if summoner == null or not is_alive:
+	if summoner == null or not summoner.is_enabled:
 		return
 
 	play_timer += delta
 
 	if play_timer >= next_play_time and should_play_card():
 		var card_index: int = select_card_to_play()
-		if card_index != -1:
-			var hand_variant: Variant = summoner.get("hand")
-			var hand: Array = hand_variant if hand_variant is Array else []
-			if card_index >= 0 and card_index < hand.size():
-				var card_variant: Variant = hand[card_index]
-				var card: Card = card_variant if card_variant is Card else null
-				if card:
-					# Check if summoner is 3D or 2D
-					if summoner.has_method("play_card_3d"):
-						var pos_2d: Vector2 = select_spawn_position(card)
-						var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
-						summoner.call("play_card_3d", card_index, pos_3d)
-					else:
-						var spawn_pos: Vector2 = select_spawn_position(card)
-						summoner.call("play_card", card_index, spawn_pos)
+		if card_index != -1 and card_index < summoner.hand.size():
+			var card: Card = summoner.hand[card_index]
+			var xz_pos: Vector2 = select_spawn_position(card)
+			# Direct 3D position from world coordinates - no screen conversion needed
+			var pos_3d: Vector3 = Vector3(xz_pos.x, 0.0, xz_pos.y)
+			summoner.play_card_3d(card_index, pos_3d)
 		_set_next_play_time()
 
 func on_battle_start() -> void:
@@ -126,44 +149,31 @@ func on_battle_start() -> void:
 
 ## Decide if we should play a card now
 func should_play_card() -> bool:
-	var hand_variant: Variant = summoner.get("hand")
-	var hand: Array = hand_variant if hand_variant is Array else []
-	if hand.is_empty():
+	if summoner.hand.is_empty():
 		return false
 
 	# Check if we have any playable cards
-	var has_playable: bool = false
-	var mana_variant: Variant = summoner.get("mana")
-	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
-	var mana_int: int = int(mana)
-	for card_variant: Variant in hand:
-		var card: Card = card_variant if card_variant is Card else null
-		if card and card.can_play(mana_int):
-			has_playable = true
-			break
+	var mana_int: int = int(summoner.mana)
+	for card: Card in summoner.hand:
+		if card.can_play(mana_int):
+			return true
 
-	return has_playable
+	return false
 
 ## Select which card to play based on strategy
 func select_card_to_play() -> int:
-	var hand_variant: Variant = summoner.get("hand")
-	var hand: Array = hand_variant if hand_variant is Array else []
-	if hand.is_empty():
+	if summoner.hand.is_empty():
 		return -1
 
 	var battlefield_state: BattlefieldState = _evaluate_battlefield_state()
 	var best_card_index: int = -1
 	var best_score: float = -INF
-
-	var mana_variant: Variant = summoner.get("mana")
-	var mana: float = mana_variant if mana_variant is float else (mana_variant if mana_variant is int else 0.0)
-	var mana_int: int = int(mana)
+	var mana_int: int = int(summoner.mana)
 
 	# Score each playable card
-	for i: int in range(hand.size()):
-		var card_variant: Variant = hand[i]
-		var card: Card = card_variant if card_variant is Card else null
-		if not card or not card.can_play(mana_int):
+	for i: int in range(summoner.hand.size()):
+		var card: Card = summoner.hand[i]
+		if not card.can_play(mana_int):
 			continue
 
 		var score: float = _score_card(card, battlefield_state)
@@ -250,7 +260,6 @@ func _apply_personality_bonus(card: Card) -> float:
 				bonus += PERSONALITY_AGGRESSIVE_CHEAP_BONUS
 
 		Personality.DEFENSIVE:
-			# TODO: When we have wall cards, prefer them
 			if card.mana_cost >= PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD:
 				bonus += PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS
 
@@ -324,42 +333,52 @@ func _select_spawn_zone(_card: Card) -> String:
 
 	return "neutral"
 
-## Get random position within a zone
+## Get random position within a zone (in 3D world coordinates, XZ plane)
+## Returns Vector2 where x = world X, y = world Z
 func _get_random_position_in_zone(zone: String) -> Vector2:
-	var bounds: Rect2 = get_battlefield_bounds()
+	var bounds: Rect2 = get_battlefield_bounds_3d()  # XZ plane in world space
 	var x: float = 0.0
-	var y: float = 0.0
+	var z: float = 0.0
 
-	# X position based on zone and team
-	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
-	if summoner_team == Unit.Team.ENEMY:
-		# Enemy spawns on right side
+	var summoner_team: int = summoner.team
+
+	# Calculate zone positions as percentages of the battlefield
+	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)
+	var right_edge: float = bounds.end.x  # Positive X (enemy side)
+	var left_edge: float = bounds.position.x  # Negative X (player side)
+
+	if summoner_team == Unit3D.Team.ENEMY:
+		# Enemy spawns on positive X side (right half of battlefield)
 		match zone:
 			"defensive":
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_DEFENSIVE_MIN, bounds.size.x * SPAWN_ENEMY_DEFENSIVE_MAX)
+				x = randf_range(right_edge * SPAWN_ZONE_DEFENSIVE_MIN, right_edge * SPAWN_ZONE_DEFENSIVE_MAX)
 			"neutral":
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_NEUTRAL_MIN, bounds.size.x * SPAWN_ENEMY_NEUTRAL_MAX)
+				x = randf_range(right_edge * SPAWN_ZONE_NEUTRAL_MIN, right_edge * SPAWN_ZONE_NEUTRAL_MAX)
 			"aggressive":
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_AGGRESSIVE_MIN, bounds.size.x * SPAWN_ENEMY_AGGRESSIVE_MAX)
+				x = randf_range(right_edge * SPAWN_ZONE_AGGRESSIVE_MIN, right_edge * SPAWN_ZONE_AGGRESSIVE_MAX)
 			_:
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_DEFAULT_MIN, bounds.size.x * SPAWN_ENEMY_DEFAULT_MAX)
+				x = randf_range(right_edge * SPAWN_ZONE_DEFAULT_MIN, right_edge * SPAWN_ZONE_DEFAULT_MAX)
 	else:
-		# Player spawns on left side
+		# Player AI spawns on negative X side (left half of battlefield)
 		match zone:
 			"defensive":
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_DEFENSIVE_MIN, bounds.size.x * SPAWN_PLAYER_DEFENSIVE_MAX)
+				x = randf_range(left_edge * SPAWN_ZONE_DEFENSIVE_MIN, left_edge * SPAWN_ZONE_DEFENSIVE_MAX)
 			"neutral":
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_NEUTRAL_MIN, bounds.size.x * SPAWN_PLAYER_NEUTRAL_MAX)
+				x = randf_range(left_edge * SPAWN_ZONE_NEUTRAL_MIN, left_edge * SPAWN_ZONE_NEUTRAL_MAX)
 			"aggressive":
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_AGGRESSIVE_MIN, bounds.size.x * SPAWN_PLAYER_AGGRESSIVE_MAX)
+				x = randf_range(left_edge * SPAWN_ZONE_AGGRESSIVE_MIN, left_edge * SPAWN_ZONE_AGGRESSIVE_MAX)
 			_:
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_DEFAULT_MIN, bounds.size.x * SPAWN_PLAYER_DEFAULT_MAX)
+				x = randf_range(left_edge * SPAWN_ZONE_DEFAULT_MIN, left_edge * SPAWN_ZONE_DEFAULT_MAX)
 
-	# Y position - full height with some margin
-	y = randf_range(bounds.size.y * SPAWN_Y_MIN, bounds.size.y * SPAWN_Y_MAX)
+	# Z position - spawn in the battle lane (derived from camera bounds)
+	# Battle lane is narrower than camera view and slightly offset toward negative Z
+	var z_center: float = bounds.position.y + bounds.size.y * 0.5  # Center of map Z
+	var z_half_height: float = bounds.size.y * 0.5
+	var lane_center: float = z_center + (z_half_height * SPAWN_LANE_CENTER_OFFSET_RATIO)
+	var lane_spread: float = bounds.size.y * SPAWN_LANE_WIDTH_RATIO * 0.5  # Half-width for randf_range
+	z = randf_range(lane_center - lane_spread, lane_center + lane_spread)
 
-	return Vector2(x, y)
+	return Vector2(x, z)  # Return as Vector2 representing XZ world coordinates
 
 ## Set next play time based on state and difficulty
 func _set_next_play_time() -> void:

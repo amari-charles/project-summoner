@@ -4,8 +4,8 @@ class_name AIController
 ## Abstract base class for all AI implementations
 ## Subclasses implement specific AI strategies (heuristic, scripted, RL, etc.)
 
-## Reference to the summoner this AI controls (can be Summoner or Summoner3D)
-var summoner: Node
+## Reference to the summoner this AI controls
+var summoner: Summoner
 
 ## Called when the battle starts
 func on_battle_start() -> void:
@@ -26,53 +26,60 @@ func select_card_to_play() -> int:
 func select_spawn_position(_card: Card) -> Vector2:
 	return Vector2.ZERO
 
-## Helper: Get battlefield dimensions
-func get_battlefield_bounds() -> Rect2:
-	# Default battlefield bounds (can be overridden)
-	return Rect2(0, 0, 1920, 1080)
+## Default battlefield bounds used when camera bounds unavailable (fallback for edge cases)
+## Matches typical battlefield layout: X from -50 to +50, Z from -40 to +40
+const DEFAULT_BATTLEFIELD_BOUNDS: Rect2 = Rect2(-50.0, -40.0, 100.0, 80.0)
+
+## Get battlefield bounds in 3D world space (XZ plane)
+## Returns Rect2 where position = min corner (e.g., -50, -40), size = dimensions (e.g., 100, 80)
+## This represents the actual playable battlefield area in world coordinates
+func get_battlefield_bounds_3d() -> Rect2:
+	var viewport: Viewport = get_viewport()
+	if not viewport:
+		push_warning("AIController: No viewport available - using default battlefield bounds")
+		return DEFAULT_BATTLEFIELD_BOUNDS
+
+	var camera: Camera3D = viewport.get_camera_3d()
+	if not camera or camera.get("map_rect_xz") == null:
+		push_warning("AIController: No camera bounds available - using default battlefield bounds")
+		return DEFAULT_BATTLEFIELD_BOUNDS
+
+	return camera.map_rect_xz
 
 ## Helper: Count friendly units
 func count_friendly_units() -> int:
-	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
+	var summoner_team: int = summoner.team
 	var group_name: StringName = GroupIDs.ally_units_for(summoner_team)
 	return get_tree().get_nodes_in_group(group_name).size()
 
 ## Helper: Count enemy units
 func count_enemy_units() -> int:
-	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
+	var summoner_team: int = summoner.team
 	var group_name: StringName = GroupIDs.enemy_units_for(summoner_team)
 	return get_tree().get_nodes_in_group(group_name).size()
 
 ## Helper: Get our base HP ratio (0-1)
 func get_our_base_hp_ratio() -> float:
-	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
+	var summoner_team: int = summoner.team
 	var base_group: StringName = GroupIDs.ally_bases_for(summoner_team)
 	var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 	if bases.size() > 0:
 		var base: Node = bases[0]
-		var current_hp_variant: Variant = base.get("current_hp")
-		var max_hp_variant: Variant = base.get("max_hp")
-		var current_hp: float = current_hp_variant if current_hp_variant is float else (current_hp_variant if current_hp_variant is int else 1.0)
-		var max_hp: float = max_hp_variant if max_hp_variant is float else (max_hp_variant if max_hp_variant is int else 1.0)
+		var current_hp: float = base.get("current_hp")
+		var max_hp: float = base.get("max_hp")
 		if max_hp > 0:
 			return current_hp / max_hp
 	return 1.0
 
 ## Helper: Get enemy base HP ratio (0-1)
 func get_enemy_base_hp_ratio() -> float:
-	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
+	var summoner_team: int = summoner.team
 	var base_group: StringName = GroupIDs.enemy_bases_for(summoner_team)
 	var bases: Array[Node] = get_tree().get_nodes_in_group(base_group)
 	if bases.size() > 0:
 		var base: Node = bases[0]
-		var current_hp_variant: Variant = base.get("current_hp")
-		var max_hp_variant: Variant = base.get("max_hp")
-		var current_hp: float = current_hp_variant if current_hp_variant is float else (current_hp_variant if current_hp_variant is int else 1.0)
-		var max_hp: float = max_hp_variant if max_hp_variant is float else (max_hp_variant if max_hp_variant is int else 1.0)
+		var current_hp: float = base.get("current_hp")
+		var max_hp: float = base.get("max_hp")
 		if max_hp > 0:
 			return current_hp / max_hp
 	return 1.0

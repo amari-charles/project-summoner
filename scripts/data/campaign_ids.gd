@@ -24,6 +24,9 @@ class_name CampaignIDs
 ## Academy Trials - The introductory campaign for new summoners
 const ACADEMY_TRIALS: StringName = &"academy_trials"
 
+## Combat Arena - Debug campaign for testing core combat mechanics
+const COMBAT_ARENA: StringName = &"combat_arena"
+
 # ============================================================================
 # UTILITY
 # ============================================================================
@@ -31,6 +34,7 @@ const ACADEMY_TRIALS: StringName = &"academy_trials"
 ## All campaign IDs
 const ALL_CAMPAIGNS: Array[StringName] = [
 	ACADEMY_TRIALS,
+	COMBAT_ARENA,
 ]
 
 ## Default campaign for new players
