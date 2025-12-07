@@ -54,30 +54,6 @@ const TIMING_LOSING_BADLY_MULTIPLIER: float = 0.5
 const TIMING_LOSING_MULTIPLIER: float = 0.7
 const TIMING_WINNING_MULTIPLIER: float = 1.3
 
-# === SPAWN ZONES (as fractions of battlefield width/height) ===
-# X: 0.0 = left edge (player side), 1.0 = right edge (enemy side)
-# Y: 0.0 = top edge, 1.0 = bottom edge
-const SPAWN_ENEMY_DEFENSIVE_MIN: float = 0.75
-const SPAWN_ENEMY_DEFENSIVE_MAX: float = 0.95
-const SPAWN_ENEMY_NEUTRAL_MIN: float = 0.5
-const SPAWN_ENEMY_NEUTRAL_MAX: float = 0.7
-const SPAWN_ENEMY_AGGRESSIVE_MIN: float = 0.3
-const SPAWN_ENEMY_AGGRESSIVE_MAX: float = 0.5
-const SPAWN_ENEMY_DEFAULT_MIN: float = 0.6
-const SPAWN_ENEMY_DEFAULT_MAX: float = 0.8
-
-const SPAWN_PLAYER_DEFENSIVE_MIN: float = 0.05
-const SPAWN_PLAYER_DEFENSIVE_MAX: float = 0.25
-const SPAWN_PLAYER_NEUTRAL_MIN: float = 0.3
-const SPAWN_PLAYER_NEUTRAL_MAX: float = 0.5
-const SPAWN_PLAYER_AGGRESSIVE_MIN: float = 0.5
-const SPAWN_PLAYER_AGGRESSIVE_MAX: float = 0.7
-const SPAWN_PLAYER_DEFAULT_MIN: float = 0.2
-const SPAWN_PLAYER_DEFAULT_MAX: float = 0.4
-
-const SPAWN_Y_MIN: float = 0.2
-const SPAWN_Y_MAX: float = 0.8
-
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
 @export var difficulty: int = DIFFICULTY_DEFAULT
@@ -105,8 +81,9 @@ func _process(delta: float) -> void:
 		var card_index: int = select_card_to_play()
 		if card_index != -1 and card_index < summoner.hand.size():
 			var card: Card = summoner.hand[card_index]
-			var pos_2d: Vector2 = select_spawn_position(card)
-			var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(pos_2d)
+			var xz_pos: Vector2 = select_spawn_position(card)
+			# Direct 3D position from world coordinates - no screen conversion needed
+			var pos_3d: Vector3 = Vector3(xz_pos.x, 0.0, xz_pos.y)
 			summoner.play_card_3d(card_index, pos_3d)
 		_set_next_play_time()
 
@@ -301,42 +278,59 @@ func _select_spawn_zone(_card: Card) -> String:
 
 	return "neutral"
 
-## Get random position within a zone
+## Get random position within a zone (in 3D world coordinates, XZ plane)
+## Returns Vector2 where x = world X, y = world Z
 func _get_random_position_in_zone(zone: String) -> Vector2:
-	var bounds: Rect2 = get_battlefield_bounds()
+	var bounds: Rect2 = get_battlefield_bounds_3d()  # XZ plane in world space
 	var x: float = 0.0
-	var y: float = 0.0
+	var z: float = 0.0
 
-	# X position based on zone and team
+	# Get team safely with duck typing
 	var summoner_team_variant: Variant = summoner.get("team")
-	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit.Team.PLAYER
-	if summoner_team == Unit.Team.ENEMY:
-		# Enemy spawns on right side
+	var summoner_team: int = summoner_team_variant if summoner_team_variant is int else Unit3D.Team.PLAYER
+
+	# Calculate zone positions as percentages of the battlefield
+	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)
+	var right_edge: float = bounds.end.x  # Positive X (enemy side)
+	var left_edge: float = bounds.position.x  # Negative X (player side)
+
+	if summoner_team == Unit3D.Team.ENEMY:
+		# Enemy spawns on positive X side (right half of battlefield)
 		match zone:
 			"defensive":
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_DEFENSIVE_MIN, bounds.size.x * SPAWN_ENEMY_DEFENSIVE_MAX)
+				# Near enemy base (far right): 75-95% of right half
+				x = randf_range(right_edge * 0.75, right_edge * 0.95)
 			"neutral":
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_NEUTRAL_MIN, bounds.size.x * SPAWN_ENEMY_NEUTRAL_MAX)
+				# Middle ground: 30-60% of right half
+				x = randf_range(right_edge * 0.30, right_edge * 0.60)
 			"aggressive":
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_AGGRESSIVE_MIN, bounds.size.x * SPAWN_ENEMY_AGGRESSIVE_MAX)
+				# Pushing toward player: 5-30% of right half (near center)
+				x = randf_range(right_edge * 0.05, right_edge * 0.30)
 			_:
-				x = randf_range(bounds.size.x * SPAWN_ENEMY_DEFAULT_MIN, bounds.size.x * SPAWN_ENEMY_DEFAULT_MAX)
+				# Default: safe middle position
+				x = randf_range(right_edge * 0.40, right_edge * 0.70)
 	else:
-		# Player spawns on left side
+		# Player AI spawns on negative X side (left half of battlefield)
 		match zone:
 			"defensive":
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_DEFENSIVE_MIN, bounds.size.x * SPAWN_PLAYER_DEFENSIVE_MAX)
+				# Near player base (far left): 75-95% of left half
+				x = randf_range(left_edge * 0.75, left_edge * 0.95)
 			"neutral":
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_NEUTRAL_MIN, bounds.size.x * SPAWN_PLAYER_NEUTRAL_MAX)
+				# Middle ground: 30-60% of left half
+				x = randf_range(left_edge * 0.30, left_edge * 0.60)
 			"aggressive":
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_AGGRESSIVE_MIN, bounds.size.x * SPAWN_PLAYER_AGGRESSIVE_MAX)
+				# Pushing toward enemy: 5-30% of left half (near center)
+				x = randf_range(left_edge * 0.05, left_edge * 0.30)
 			_:
-				x = randf_range(bounds.size.x * SPAWN_PLAYER_DEFAULT_MIN, bounds.size.x * SPAWN_PLAYER_DEFAULT_MAX)
+				# Default: safe middle position
+				x = randf_range(left_edge * 0.40, left_edge * 0.70)
 
-	# Y position - full height with some margin
-	y = randf_range(bounds.size.y * SPAWN_Y_MIN, bounds.size.y * SPAWN_Y_MAX)
+	# Z position (vertical on screen) - use middle 60% of bounds to avoid edges
+	var z_min: float = bounds.position.y + bounds.size.y * 0.2
+	var z_max: float = bounds.position.y + bounds.size.y * 0.8
+	z = randf_range(z_min, z_max)
 
-	return Vector2(x, y)
+	return Vector2(x, z)  # Return as Vector2 representing XZ world coordinates
 
 ## Set next play time based on state and difficulty
 func _set_next_play_time() -> void:

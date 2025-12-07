@@ -26,10 +26,16 @@ func select_card_to_play() -> int:
 func select_spawn_position(_card: Card) -> Vector2:
 	return Vector2.ZERO
 
-## Helper: Get battlefield dimensions
-func get_battlefield_bounds() -> Rect2:
-	# Default battlefield bounds (can be overridden)
-	return Rect2(0, 0, 1920, 1080)
+## Get battlefield bounds in 3D world space (XZ plane)
+## Returns Rect2 where position = min corner (e.g., -50, -40), size = dimensions (e.g., 100, 80)
+## This represents the actual playable battlefield area in world coordinates
+func get_battlefield_bounds_3d() -> Rect2:
+	# Use camera's map bounds if available (robust across any resolution/camera setup)
+	var camera: Camera3D = get_viewport().get_camera_3d() if get_viewport() else null
+	if camera and camera.get("map_rect_xz"):
+		return camera.map_rect_xz
+	# Fallback to reasonable defaults matching typical battlefield
+	return Rect2(Vector2(-50, -40), Vector2(100, 80))
 
 ## Helper: Count friendly units
 func count_friendly_units() -> int:
