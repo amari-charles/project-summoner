@@ -55,8 +55,11 @@ const TIMING_LOSING_MULTIPLIER: float = 0.7
 const TIMING_WINNING_MULTIPLIER: float = 1.3
 
 # === SPAWN POSITIONING ===
-const BATTLE_LANE_Z: float = -7.5  # Center Z position of battle lane
-const SPAWN_Z_SPREAD: float = 15.0  # Half-range for random Z spread
+## Spawn lane ratios (relative to battlefield Z bounds from camera's map_rect_xz)
+## Center offset: -0.1875 = 18.75% toward negative Z from center (battle lane is slightly offset)
+## Width ratio: 0.375 = spawn area covers 37.5% of total Z range (battle lane narrower than camera view)
+const SPAWN_LANE_CENTER_OFFSET_RATIO: float = -0.1875
+const SPAWN_LANE_WIDTH_RATIO: float = 0.375
 
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
@@ -326,8 +329,13 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 				# Default: safe middle position
 				x = randf_range(left_edge * 0.40, left_edge * 0.70)
 
-	# Z position - spawn in the battle lane (camera bounds are larger than actual battle area)
-	z = randf_range(BATTLE_LANE_Z - SPAWN_Z_SPREAD, BATTLE_LANE_Z + SPAWN_Z_SPREAD)
+	# Z position - spawn in the battle lane (derived from camera bounds)
+	# Battle lane is narrower than camera view and slightly offset toward negative Z
+	var z_center: float = bounds.position.y + bounds.size.y * 0.5  # Center of map Z
+	var z_half_height: float = bounds.size.y * 0.5
+	var lane_center: float = z_center + (z_half_height * SPAWN_LANE_CENTER_OFFSET_RATIO)
+	var lane_spread: float = bounds.size.y * SPAWN_LANE_WIDTH_RATIO * 0.5  # Half-width for randf_range
+	z = randf_range(lane_center - lane_spread, lane_center + lane_spread)
 
 	return Vector2(x, z)  # Return as Vector2 representing XZ world coordinates
 

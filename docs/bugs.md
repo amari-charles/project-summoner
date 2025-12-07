@@ -43,7 +43,7 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 ---
 
 #### Summoner Stats Not Cached in Campaign Mode
-**Status:** Open
+**Status:** Open (Pre-existing)
 **Reported:** 2025-12-05
 **Component:** DamageSystem / Summoner
 
@@ -56,14 +56,19 @@ When units deal damage in campaign battles, the DamageSystem tries to apply summ
 **Impact:**
 Summoner damage bonuses and damage reduction traits are not being applied to combat.
 
+**Root Cause:**
+`_apply_summoner_bonuses()` in `summoner.gd` is only called for `DeckLoadStrategy.PROFILE` (line 89-91). Battles using `dev_player_deck` load the deck via `_load_dev_deck_from_config()` which bypasses summoner bonus application entirely.
+
 **Related Files:**
 - scripts/combat/damage_system.gd:290
 - scripts/core/battle_context.gd (set_player_summoner_stats)
-- scripts/core/summoner_3d.gd (_apply_summoner_bonuses)
+- scripts/core/summoner.gd:89-91 (_apply_summoner_bonuses only for PROFILE strategy)
+- scripts/core/summoner.gd:288-290 (_load_dev_deck_from_config path)
 
-**Notes:**
-- Stats should be cached via `BattleContext.set_player_summoner_stats()` during summoner init
-- Likely an issue with when/if `_apply_summoner_bonuses()` is called for dev_player_deck battles
+**Fix Required:**
+Either:
+1. Load SummonerInstance for dev_player_deck battles and apply bonuses, OR
+2. Skip summoner bonuses intentionally for dev/test battles (update DamageSystem to not warn)
 
 ---
 

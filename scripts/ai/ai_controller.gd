@@ -30,12 +30,14 @@ func select_spawn_position(_card: Card) -> Vector2:
 ## Returns Rect2 where position = min corner (e.g., -50, -40), size = dimensions (e.g., 100, 80)
 ## This represents the actual playable battlefield area in world coordinates
 func get_battlefield_bounds_3d() -> Rect2:
-	# Use camera's map bounds if available (robust across any resolution/camera setup)
-	var camera: Camera3D = get_viewport().get_camera_3d() if get_viewport() else null
-	if camera and camera.get("map_rect_xz"):
-		return camera.map_rect_xz
-	# Fallback to reasonable defaults matching typical battlefield
-	return Rect2(Vector2(-50, -40), Vector2(100, 80))
+	var viewport: Viewport = get_viewport()
+	assert(viewport != null, "AIController: No viewport available - AI must be in scene tree")
+
+	var camera: Camera3D = viewport.get_camera_3d()
+	assert(camera != null, "AIController: No Camera3D found in viewport")
+	assert(camera.get("map_rect_xz") != null, "AIController: Camera missing map_rect_xz property - must use CameraController3D")
+
+	return camera.map_rect_xz
 
 ## Helper: Count friendly units
 func count_friendly_units() -> int:

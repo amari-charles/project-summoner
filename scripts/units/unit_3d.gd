@@ -31,8 +31,9 @@ const BLOCKED_MOVE_THRESHOLD: float = 0.1  ## Min movement per second to not be 
 const FLANK_STRENGTH: float = 1.2  ## Lateral force multiplier when blocked (increased for decisive flanking)
 
 ## Lane-based movement constants
-const PLAYER_TURN_ZONE_X: float = 30.0   ## Player units turn toward base when X > this
-const ENEMY_TURN_ZONE_X: float = -30.0   ## Enemy units turn toward base when X < this
+## Turn zone ratio: units turn toward enemy base when they've crossed this fraction of the battlefield
+## 0.6 = 60% of the way from center to edge (e.g., X > 30 on a -50 to +50 battlefield)
+const TURN_ZONE_RATIO: float = 0.6
 
 ## Flanking progression constants (adaptive wrapping)
 const FLANK_ANGLE_MIN: float = 90.0         ## Start perpendicular to target
@@ -703,11 +704,25 @@ func _move_forward_in_lane(_delta: float) -> void:
 	_update_animation("walk")
 
 ## Check if unit is in the turn zone (near enemy base)
+## Turn zone is calculated dynamically from camera's map_rect_xz bounds
 func _is_in_turn_zone() -> bool:
+	var viewport: Viewport = get_viewport()
+	assert(viewport != null, "Unit3D: No viewport available")
+
+	var camera: Camera3D = viewport.get_camera_3d()
+	assert(camera != null, "Unit3D: No Camera3D found - battlefield must have CameraController3D")
+	assert(camera.get("map_rect_xz") != null, "Unit3D: Camera missing map_rect_xz - must use CameraController3D")
+
+	var bounds: Rect2 = camera.map_rect_xz
+	# Calculate turn zone thresholds from battlefield bounds
+	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)
+	var player_turn_x: float = bounds.end.x * TURN_ZONE_RATIO    # e.g., 50 * 0.6 = 30
+	var enemy_turn_x: float = bounds.position.x * TURN_ZONE_RATIO  # e.g., -50 * 0.6 = -30
+
 	if team == Team.PLAYER:
-		return global_position.x >= PLAYER_TURN_ZONE_X
+		return global_position.x >= player_turn_x
 	else:
-		return global_position.x <= ENEMY_TURN_ZONE_X
+		return global_position.x <= enemy_turn_x
 
 ## Check if we can attack this target's layer
 func _can_attack_layer(target: Node3D) -> bool:
