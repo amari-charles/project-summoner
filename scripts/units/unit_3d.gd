@@ -473,7 +473,7 @@ func _physics_process(delta: float) -> void:
 		if current_target:
 			target_lock_timer = target_lock_duration
 
-	# Movement priority: Attack > Chase target > March forward
+	# Movement priority: Attack > Chase unit > Chase base (turn zone only) > March forward
 	if current_target and _is_in_attack_range(current_target):
 		# Target in attack range - face and attack
 		if not is_attacking:
@@ -481,12 +481,16 @@ func _physics_process(delta: float) -> void:
 			_update_animation("idle")
 		if attack_cooldown <= 0.0:
 			_perform_attack()
-	elif current_target:
-		# Target exists but not in attack range - chase it
+	elif current_target and current_target is Unit3D:
+		# Target is an enemy unit - chase it anywhere
+		if not is_attacking:
+			_move_towards_target(delta)
+	elif current_target and _is_in_turn_zone():
+		# Target is the base and we're in turn zone - chase it
 		if not is_attacking:
 			_move_towards_target(delta)
 	else:
-		# No target - march forward in lane toward enemy base
+		# No unit target, not near base - march forward in lane
 		if not is_attacking:
 			_move_forward_in_lane(delta)
 
