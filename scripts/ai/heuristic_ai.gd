@@ -61,6 +61,20 @@ const TIMING_WINNING_MULTIPLIER: float = 1.3
 const SPAWN_LANE_CENTER_OFFSET_RATIO: float = -0.1875
 const SPAWN_LANE_WIDTH_RATIO: float = 0.375
 
+## Spawn zone X-position ratios (percentage of battlefield half from center to edge)
+## Example: On a -50 to +50 battlefield, enemy right_edge = 50
+##   defensive: 50 * 0.75 to 50 * 0.95 = 37.5 to 47.5 (near base)
+##   neutral: 50 * 0.30 to 50 * 0.60 = 15 to 30 (middle ground)
+##   aggressive: 50 * 0.05 to 50 * 0.30 = 2.5 to 15 (near center)
+const SPAWN_ZONE_DEFENSIVE_MIN: float = 0.75
+const SPAWN_ZONE_DEFENSIVE_MAX: float = 0.95
+const SPAWN_ZONE_NEUTRAL_MIN: float = 0.30
+const SPAWN_ZONE_NEUTRAL_MAX: float = 0.60
+const SPAWN_ZONE_AGGRESSIVE_MIN: float = 0.05
+const SPAWN_ZONE_AGGRESSIVE_MAX: float = 0.30
+const SPAWN_ZONE_DEFAULT_MIN: float = 0.40
+const SPAWN_ZONE_DEFAULT_MAX: float = 0.70
+
 ## Configuration
 @export var personality: Personality = Personality.BALANCED
 @export var difficulty: int = DIFFICULTY_DEFAULT
@@ -302,32 +316,24 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 		# Enemy spawns on positive X side (right half of battlefield)
 		match zone:
 			"defensive":
-				# Near enemy base (far right): 75-95% of right half
-				x = randf_range(right_edge * 0.75, right_edge * 0.95)
+				x = randf_range(right_edge * SPAWN_ZONE_DEFENSIVE_MIN, right_edge * SPAWN_ZONE_DEFENSIVE_MAX)
 			"neutral":
-				# Middle ground: 30-60% of right half
-				x = randf_range(right_edge * 0.30, right_edge * 0.60)
+				x = randf_range(right_edge * SPAWN_ZONE_NEUTRAL_MIN, right_edge * SPAWN_ZONE_NEUTRAL_MAX)
 			"aggressive":
-				# Pushing toward player: 5-30% of right half (near center)
-				x = randf_range(right_edge * 0.05, right_edge * 0.30)
+				x = randf_range(right_edge * SPAWN_ZONE_AGGRESSIVE_MIN, right_edge * SPAWN_ZONE_AGGRESSIVE_MAX)
 			_:
-				# Default: safe middle position
-				x = randf_range(right_edge * 0.40, right_edge * 0.70)
+				x = randf_range(right_edge * SPAWN_ZONE_DEFAULT_MIN, right_edge * SPAWN_ZONE_DEFAULT_MAX)
 	else:
 		# Player AI spawns on negative X side (left half of battlefield)
 		match zone:
 			"defensive":
-				# Near player base (far left): 75-95% of left half
-				x = randf_range(left_edge * 0.75, left_edge * 0.95)
+				x = randf_range(left_edge * SPAWN_ZONE_DEFENSIVE_MIN, left_edge * SPAWN_ZONE_DEFENSIVE_MAX)
 			"neutral":
-				# Middle ground: 30-60% of left half
-				x = randf_range(left_edge * 0.30, left_edge * 0.60)
+				x = randf_range(left_edge * SPAWN_ZONE_NEUTRAL_MIN, left_edge * SPAWN_ZONE_NEUTRAL_MAX)
 			"aggressive":
-				# Pushing toward enemy: 5-30% of left half (near center)
-				x = randf_range(left_edge * 0.05, left_edge * 0.30)
+				x = randf_range(left_edge * SPAWN_ZONE_AGGRESSIVE_MIN, left_edge * SPAWN_ZONE_AGGRESSIVE_MAX)
 			_:
-				# Default: safe middle position
-				x = randf_range(left_edge * 0.40, left_edge * 0.70)
+				x = randf_range(left_edge * SPAWN_ZONE_DEFAULT_MIN, left_edge * SPAWN_ZONE_DEFAULT_MAX)
 
 	# Z position - spawn in the battle lane (derived from camera bounds)
 	# Battle lane is narrower than camera view and slightly offset toward negative Z

@@ -9,7 +9,7 @@ class_name GameUI
 @export var restart_button: Button = null
 
 var game_controller: Node = null
-var player_summoner: Node = null  # Can be Summoner or Summoner3D
+var player_summoner: Summoner = null
 var _initialized: bool = false  # Track initialization state
 
 ## Player team value that works for both Unit.Team.PLAYER (2D) and Unit3D.Team.PLAYER (3D)

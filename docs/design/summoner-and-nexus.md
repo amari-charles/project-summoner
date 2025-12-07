@@ -6,10 +6,10 @@ This document describes the intended architecture for the Summoner (player chara
 
 In Project Summoner, two key entities exist per player:
 
-1. **Summoner (Summoner3D)** - The player character who commands units
+1. **Summoner** - The player character who commands units
 2. **Nexus (Base3D)** - The mana construct being defended
 
-## Summoner (Summoner3D)
+## Summoner
 
 The Summoner represents the player on the battlefield. They play cards and command units.
 
@@ -37,7 +37,7 @@ Summoner stats affect gameplay in the following ways:
 
 ### Code Location
 
-- `scripts/core/summoner_3d.gd`
+- `scripts/core/summoner.gd`
 - Groups: `summoners`, `player_summoners` / `enemy_summoners`
 
 ## Nexus (Base3D)
@@ -88,9 +88,9 @@ This allows summoner progression to affect game difficulty through increased nex
 
 | Group | Contains | Used For |
 |-------|----------|----------|
-| `summoners` | All Summoner3D instances | Finding summoners for UI/spell targeting |
-| `player_summoners` | Player's Summoner3D | Team-specific lookups |
-| `enemy_summoners` | Enemy's Summoner3D | Team-specific lookups |
+| `summoners` | All Summoner instances | Finding summoners for UI/spell targeting |
+| `player_summoners` | Player's Summoner | Team-specific lookups |
+| `enemy_summoners` | Enemy's Summoner | Team-specific lookups |
 | `bases` | All Base3D instances | Unit attack targeting, win condition |
 | `player_base` | Player's Base3D | Team-specific lookups |
 | `enemy_base` | Enemy's Base3D | Team-specific lookups |
@@ -101,11 +101,13 @@ This allows summoner progression to affect game difficulty through increased nex
 
 As of 2025-11-25, the following cleanup was performed:
 
-1. Removed `add_to_group("bases")` from Summoner3D
-2. Removed unused HP/death code from Summoner3D:
+1. Removed `add_to_group("bases")` from Summoner
+2. Removed unused HP/death code from Summoner:
    - `max_hp`, `current_hp` variables
    - `take_damage()`, `_die()` methods
    - `summoner_died` signal
 3. Removed `_on_summoner_died` handler from GameController3D
 
 These were vestigial from an earlier design where both Summoner and Base could be attacked.
+
+As of 2025-12-07, `Summoner3D` was renamed to `Summoner` (consolidating the 2D and 3D implementations into a single 3D-only class).

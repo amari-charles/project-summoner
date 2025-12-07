@@ -25,7 +25,7 @@ _battles["first_trial"] = {
 **How it works:**
 1. `EnemyDeckLoader.load_enemy_deck_for_battle()` reads `enemy_deck` from battle config
 2. Creates Card resources for each entry
-3. `Summoner3D` (enemy) loads these cards using `BATTLE_CONTEXT` strategy
+3. `Summoner` (enemy) loads these cards using `BATTLE_CONTEXT` strategy
 4. Enemy plays cards from deck according to AI behavior
 
 **When to use:**
@@ -52,7 +52,7 @@ _battles["charge_tutorial"] = {
 **How it works:**
 1. `enemy_deck` is intentionally set to `[]` (empty array)
 2. `event_sequence` points to an EventSequence resource
-3. `Summoner3D` auto-detects this pattern and switches to `DEFERRED` deck loading strategy
+3. `Summoner` auto-detects this pattern and switches to `DEFERRED` deck loading strategy
 4. `BattleDialogueController` or `EventSequencer` spawns enemies manually via actions
 5. Example: `_spawn_tutorial_enemy()` creates and spawns units directly
 
@@ -65,12 +65,12 @@ _battles["charge_tutorial"] = {
 
 ## Critical Implementation Details
 
-### Auto-Detection in Summoner3D
+### Auto-Detection in Summoner
 
 The enemy summoner automatically detects event_sequence battles:
 
 ```gdscript
-// summoner_3d.gd:48-58
+// summoner.gd:76-83
 if team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
     if BattleContext.battle_config.has("event_sequence") and
        BattleContext.battle_config.has("enemy_deck"):
@@ -125,7 +125,7 @@ _battles["my_battle"] = {
 ## Related Files
 
 - `scripts/services/campaign_service.gd` - Battle definitions
-- `scripts/core/summoner_3d.gd` - Deck loading strategy auto-detection
+- `scripts/core/summoner.gd` - Deck loading strategy auto-detection
 - `scripts/core/enemy_deck_loader.gd` - Loads enemy decks from battle config
 - `scripts/core/battle_dialogue_controller.gd` - Handles event_sequence playback
 - `scripts/core/game_controller_3d.gd` - Win condition handling
