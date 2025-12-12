@@ -157,7 +157,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		var world_pos: Vector3 = _screen_to_world_3d(at_position)
 		is_valid_zone = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
 		# Always show preview (with validity color) during drag
-		_update_spawn_preview(at_position, card, is_valid_zone)
+		_update_spawn_preview(world_pos, card, is_valid_zone)
 		# Show spawn zone overlay while dragging summon cards
 		_show_spawn_zone_overlay()
 
@@ -238,8 +238,7 @@ func _card_needs_click_targeting(card: Card) -> bool:
 	return card.needs_click_targeting()
 
 ## Update spawn preview position and visibility
-func _update_spawn_preview(screen_pos: Vector2, card: Card, is_valid_zone: bool = true) -> void:
-	var world_pos: Vector3 = _screen_to_world_3d(screen_pos)
+func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true) -> void:
 	if world_pos == Vector3.ZERO:
 		_cleanup_spawn_preview()
 		return
