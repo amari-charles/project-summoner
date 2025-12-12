@@ -47,6 +47,7 @@ const BATTLEFIELD_HALF_DEPTH: float = 40.0  ## Half the Z-axis extent (-40 to +4
 ## Spawn zone boundary (halfway mark of battlefield)
 ## Player (team 0) spawns at X ≤ 0, Enemy (team 1) spawns at X > 0
 const SPAWN_BOUNDARY_X: float = 0.0
+const SPAWN_BOUNDARY_EPSILON: float = 0.001  ## Small offset to ensure enemy clamps to valid position
 
 ## Spawn position constants
 const MIN_UNIT_SPACING: float = 1.5  ## Minimum distance between unit centers
@@ -116,6 +117,6 @@ static func clamp_spawn_position_for_team(pos: Vector3, team: int) -> Vector3:
 	var clamped: Vector3 = pos
 	if team == Unit3D.Team.PLAYER and pos.x > SPAWN_BOUNDARY_X:
 		clamped.x = SPAWN_BOUNDARY_X
-	elif team == Unit3D.Team.ENEMY and pos.x < SPAWN_BOUNDARY_X:
-		clamped.x = SPAWN_BOUNDARY_X
+	elif team == Unit3D.Team.ENEMY and pos.x <= SPAWN_BOUNDARY_X:
+		clamped.x = SPAWN_BOUNDARY_X + SPAWN_BOUNDARY_EPSILON
 	return clamped

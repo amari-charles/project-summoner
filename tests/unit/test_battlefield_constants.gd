@@ -136,18 +136,18 @@ func test_clamp_enemy_position_in_invalid_zone_snaps_to_boundary() -> void:
 
 	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.ENEMY)
 
-	assert_eq(result.x, 0.0)
+	assert_almost_eq(result.x, BattlefieldConstants.SPAWN_BOUNDARY_EPSILON, 0.0001)  # Snaps to valid territory
 	assert_eq(result.y, 5.0)  # Y preserved
 	assert_eq(result.z, 15.0)  # Z preserved
 
 
 func test_clamp_enemy_position_at_boundary_snaps() -> void:
-	# Enemy requires X > 0, so X = 0 is invalid and should stay at boundary
+	# Enemy requires X > 0, so X = 0 is invalid and snaps to epsilon
 	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)
 
 	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.ENEMY)
 
-	assert_eq(result.x, 0.0)  # Stays at boundary (closest valid point)
+	assert_almost_eq(result.x, BattlefieldConstants.SPAWN_BOUNDARY_EPSILON, 0.0001)  # Snaps to valid territory
 
 
 func test_clamp_preserves_y_and_z_coordinates() -> void:
