@@ -21,6 +21,9 @@ const GROUND_Y: float = 0.0
 ## Y-coordinate where units spawn in 3D battlefield
 const SPAWN_PLANE_HEIGHT: float = GROUND_Y
 
+## Height offset for ground overlays to prevent z-fighting
+const GROUND_OVERLAY_OFFSET: float = 0.02
+
 ## Raycast distance for screen-to-world conversion
 const RAYCAST_DISTANCE: float = 1000.0
 

@@ -5,7 +5,6 @@ class_name SpawnZoneOverlay
 ## Displayed while dragging summon cards to indicate where units cannot be placed
 
 const INVALID_COLOR: Color = Color(0.8, 0.2, 0.2, 0.25)  # Red, semi-transparent
-const OVERLAY_Y: float = 0.02  # Slightly above ground to avoid z-fighting
 
 var invalid_zone: MeshInstance3D
 
@@ -32,7 +31,7 @@ func _create_invalid_zone() -> void:
 	# Position at center of enemy's half (X > 0)
 	invalid_zone.position = Vector3(
 		BattlefieldConstants.BATTLEFIELD_HALF_WIDTH / 2,
-		OVERLAY_Y,
+		BattlefieldConstants.GROUND_OVERLAY_OFFSET,
 		0
 	)
 	add_child(invalid_zone)

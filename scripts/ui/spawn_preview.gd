@@ -76,7 +76,7 @@ func _update_circle_size() -> void:
 	circle_marker.material_override = material
 
 	# Position slightly above ground to avoid z-fighting
-	circle_marker.position.y = CIRCLE_HEIGHT / 2 + 0.01
+	circle_marker.position.y = CIRCLE_HEIGHT / 2 + BattlefieldConstants.GROUND_OVERLAY_OFFSET
 
 ## Clean up resources
 func cleanup() -> void:
