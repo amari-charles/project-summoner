@@ -173,6 +173,9 @@ func _ready() -> void:
 	else:
 		add_to_group(GroupIDs.ENEMY_UNITS)
 
+	# Register with spatial grid for efficient proximity queries
+	SpatialGrid.register_unit(self)
+
 	_setup_visuals()
 	_setup_shadow()
 
@@ -503,6 +506,9 @@ func _physics_process(delta: float) -> void:
 		if not is_attacking:
 			_move_forward_in_lane(delta)
 
+	# Update position in spatial grid (for efficient proximity queries)
+	SpatialGrid.update_unit_position(self)
+
 func _check_proximity_to_enemy_base() -> void:
 	## Check if player unit is near enemy base and emit signal (once per unit)
 	## Used for tutorial/event triggers
@@ -563,6 +569,7 @@ func _is_valid_target(target: Node3D) -> bool:
 
 func _acquire_target() -> Node3D:
 	## Find the best target using weighted scoring system
+	## Uses SpatialGrid for efficient O(k) proximity queries
 
 	# Priority 1: Check forced_target from redirect system
 	if forced_target and _is_valid_target(forced_target):
@@ -585,38 +592,35 @@ func _acquire_target() -> Node3D:
 			forced_target_timer = 0.0
 			original_redirect_point = Vector3.ZERO
 
-	# Priority 3: Normal targeting behavior
-	var target_group: StringName = GroupIDs.enemy_units_for(team)
-	var targets: Array[Node] = get_tree().get_nodes_in_group(target_group)
+	# Priority 3: Normal targeting behavior - use spatial grid for O(k) query
+	var enemy_team: int = 1 - team  # Opposite team
+	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
+		global_position,
+		aggro_radius,
+		enemy_team,
+		self
+	)
 
 	var best_target: Node3D = null
 	var best_score: float = -INF
-	var aggro_radius_sq: float = aggro_radius * aggro_radius
 
-	for target: Node in targets:
+	for target: Node3D in nearby_units:
 		if not target is Unit3D:
 			continue
 
 		# Type narrow to Unit3D for safe property access
 		var target_unit: Unit3D = target
 
-		if not target_unit.is_alive or target_unit.is_dying:
+		if target_unit.is_dying:
 			continue
 
 		# Skip targets we cannot attack based on layer restrictions
 		if not _can_attack_layer(target_unit):
 			continue
 
-		# Calculate horizontal distance_squared (ignore Y-axis) - no sqrt yet!
+		# Calculate distance (already filtered by aggro_radius)
 		var delta: Vector3 = target_unit.global_position - global_position
-		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
-
-		# Fast filtering: skip targets outside aggro range (no sqrt needed)
-		if distance_sq > aggro_radius_sq:
-			continue
-
-		# Only calculate actual distance (sqrt) for targets in range
-		var distance: float = sqrt(distance_sq)
+		var distance: float = sqrt(delta.x * delta.x + delta.z * delta.z)
 
 		# Calculate weighted score
 		var score: float = 0.0
@@ -1036,6 +1040,9 @@ func _die() -> void:
 	is_dying = true
 	is_alive = false
 
+	# Unregister from spatial grid
+	SpatialGrid.unregister_unit(self)
+
 	_update_animation("death")
 	unit_died.emit(self)
 
@@ -1171,15 +1178,25 @@ func _move_towards_position(target_position: Vector3) -> void:
 	# Post-move: correct any severe overlaps
 	_correct_overlaps()
 
+	# Update position in spatial grid
+	SpatialGrid.update_unit_position(self)
+
 ## Calculate separation steering force to avoid overlapping with nearby units
 ## Separates from ALL units (both teams) EXCEPT the current attack target
-## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
+## Uses SpatialGrid for efficient O(k) proximity queries
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
-	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 
-	# Early exit for trivial cases
-	if all_units.size() <= 1:
+	# Query radius: max separation distance we care about (assumes max collision_radius ~1.5)
+	var separation_radius: float = collision_radius * SEPARATION_MULTIPLIER * 2.0
+	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
+		global_position,
+		separation_radius,
+		-1,  # All teams
+		self
+	)
+
+	if nearby_units.is_empty():
 		return Vector3.ZERO
 
 	# Get movement direction (toward target) for lateral boost calculation
@@ -1188,25 +1205,19 @@ func _calculate_separation_force() -> Vector3:
 		move_dir = (current_target.global_position - global_position).normalized()
 		move_dir.y = 0
 
-	for node: Node in all_units:
-		if node == self:
-			continue
-
+	for unit: Node3D in nearby_units:
 		# Don't separate from current attack target - we need to approach it!
-		if node == current_target:
+		if unit == current_target:
 			continue
 
-		if not node is Unit3D:
+		if not unit is Unit3D:
 			continue
 
-		var other: Unit3D = node as Unit3D
-		if not other.is_alive:
-			continue
+		var other: Unit3D = unit as Unit3D
 
 		# Calculate separation distance based on combined collision radii
 		var combined_collision: float = collision_radius + other.collision_radius
 		var separation_dist: float = combined_collision * SEPARATION_MULTIPLIER
-		var separation_dist_sq: float = separation_dist * separation_dist
 
 		# Calculate 2D distance (ignore Y-axis)
 		var delta: Vector3 = global_position - other.global_position
@@ -1214,7 +1225,7 @@ func _calculate_separation_force() -> Vector3:
 		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
 
 		# Skip if outside separation distance
-		if distance_sq >= separation_dist_sq or distance_sq < 0.001:
+		if distance_sq >= separation_dist * separation_dist or distance_sq < 0.001:
 			continue
 
 		# Calculate push direction (away from other unit)
@@ -1308,6 +1319,7 @@ func _calculate_flank_force() -> Vector3:
 
 ## Calculate congestion scores for left and right flanking directions
 ## Lower score = less congestion = better direction to flank
+## Uses SpatialGrid for efficient O(k) proximity queries
 func _calculate_flank_direction_scores() -> Dictionary:
 	if not current_target:
 		return {"left": 0.0, "right": 0.0}
@@ -1321,27 +1333,28 @@ func _calculate_flank_direction_scores() -> Dictionary:
 	var left_score: float = 0.0
 	var right_score: float = 0.0
 	var check_distance: float = collision_radius * 3.0
-	var check_distance_sq: float = check_distance * check_distance
 
-	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
+	# Use spatial grid for efficient query
+	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
+		global_position,
+		check_distance,
+		-1,  # All teams
+		self
+	)
 
-	for node: Node in all_units:
-		if node == self or node == current_target:
+	for unit: Node3D in nearby_units:
+		if unit == current_target:
 			continue
-		if not node is Unit3D:
-			continue
-		var other: Unit3D = node as Unit3D
-		if not other.is_alive:
+		if not unit is Unit3D:
 			continue
 
-		var to_other: Vector3 = other.global_position - global_position
+		var to_other: Vector3 = unit.global_position - global_position
 		to_other.y = 0
-		var dist_sq: float = to_other.x * to_other.x + to_other.z * to_other.z
+		var dist: float = to_other.length()
 
-		if dist_sq >= check_distance_sq or dist_sq < 0.001:
+		if dist < 0.001:
 			continue
 
-		var dist: float = sqrt(dist_sq)
 		var to_other_norm: Vector3 = to_other / dist
 		var weight: float = 1.0 - (dist / check_distance)
 
@@ -1355,28 +1368,25 @@ func _calculate_flank_direction_scores() -> Dictionary:
 
 ## Correct severe overlaps by pushing units apart after movement
 ## This is a "hard" correction for when soft separation wasn't enough
-## Note: O(n) per unit = O(n²) total. Acceptable for typical card game unit counts (~20-30).
+## Uses SpatialGrid for efficient O(k) proximity queries
 func _correct_overlaps() -> void:
-	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
+	# Query radius: check units that could overlap (max combined collision radius ~3.0)
+	var check_radius: float = collision_radius * 2.0
+	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
+		global_position,
+		check_radius,
+		-1,  # All teams
+		self
+	)
 
-	# Early exit for trivial cases
-	if all_units.size() <= 1:
-		return
-
-	for node: Node in all_units:
-		if node == self:
+	for unit: Node3D in nearby_units:
+		if not unit is Unit3D:
 			continue
 
-		if not node is Unit3D:
-			continue
-
-		var other: Unit3D = node as Unit3D
-		if not other.is_alive:
-			continue
+		var other: Unit3D = unit as Unit3D
 
 		# Minimum distance is the sum of both collision radii
 		var min_dist: float = collision_radius + other.collision_radius
-		var min_dist_sq: float = min_dist * min_dist
 
 		# Calculate 2D distance squared first (avoid sqrt if not overlapping)
 		var delta: Vector3 = global_position - other.global_position
@@ -1384,7 +1394,7 @@ func _correct_overlaps() -> void:
 		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
 
 		# Skip if not overlapping (use squared comparison)
-		if distance_sq >= min_dist_sq or distance_sq < 0.000001:
+		if distance_sq >= min_dist * min_dist or distance_sq < 0.000001:
 			continue
 
 		# Only now calculate actual distance for push amount

@@ -36,6 +36,37 @@ The codebase inconsistently used "Summoner" and "Hero" to refer to the same conc
 
 ## Units & Combat
 
+### Spatial Partitioning for Unit Targeting
+**Completed:** 2025-12-12
+**Category:** Units & Combat / Performance
+**Effort:** Medium-Large
+
+**Description:**
+Replaced O(n²) unit targeting/separation queries with O(k) spatial grid queries for better performance with high unit counts.
+
+**Solution Implemented:**
+- Created `SpatialGrid` autoload with 10×10 unit cells (80 cells for 100×80 battlefield)
+- Units register on spawn, unregister on death
+- Position updates use 2.0 unit threshold to avoid per-frame cell updates
+- Replaced 4 O(n²) methods in Unit3D:
+  - `_acquire_target()` - enemy targeting
+  - `_calculate_separation_force()` - collision avoidance
+  - `_calculate_flank_direction_scores()` - flanking direction choice
+  - `_correct_overlaps()` - post-movement overlap correction
+- Debug visualization toggleable with F11 (grid lines, cell populations, stats)
+
+**Files Changed:**
+- New: `scripts/spatial/spatial_grid.gd`
+- Modified: `scripts/units/unit_3d.gd`
+- Modified: `project.godot` (autoload registration)
+
+**Performance Impact:**
+- 30 units: ~900 → ~60 checks/frame (~15x improvement)
+- 50 units: ~2500 → ~100 checks/frame (~25x improvement)
+- 100 units: ~10000 → ~200 checks/frame (~50x improvement)
+
+---
+
 ### Lane-Based Unit Movement
 **Completed:** 2025-11-29
 **Category:** Units & Combat

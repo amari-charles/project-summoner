@@ -49,49 +49,6 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 
 ---
 
-#### Implement Spatial Partitioning for Unit Targeting
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Performance
-**Effort:** Medium-Large
-
-**Description:**
-Replace the current O(n²) nearest enemy targeting system with spatial partitioning (grid or quadtree) to improve performance with high unit counts. Currently, every unit iterates through all enemy units each frame to find targets.
-
-**Current Problem:**
-- `_acquire_target()` in `unit_3d.gd` iterates through all units in the enemy group
-- `_calculate_separation_force()` iterates through all units for collision avoidance
-- With 50+ units, this becomes 2500+ distance calculations per frame
-- Performance degrades quadratically as unit count increases
-
-**Proposed Solutions:**
-
-1. **Grid-based spatial hash** (Recommended for card games)
-   - Divide battlefield into cells (e.g., 5x5 unit cells)
-   - Units register in cells based on position
-   - Only check units in nearby cells for targeting/separation
-   - O(1) cell lookup, O(k) where k = units in nearby cells
-   - Simple to implement, good for uniformly distributed units
-
-2. **Quadtree**
-   - Better for non-uniform unit distributions
-   - More complex to implement and maintain
-   - May be overkill for typical card game unit counts
-
-**Implementation Notes:**
-- Create `SpatialGrid` autoload or component
-- Units register/unregister on spawn/death
-- Update cell assignment when units move significantly
-- Expose `get_units_in_radius(position, radius)` API
-- Profile before/after to validate improvement
-
-**Acceptance Criteria:**
-- Targeting performance scales linearly with unit count (not quadratically)
-- No regression in targeting accuracy or behavior
-- Works correctly with flying units (2D grid on XZ plane)
-- Stress test with 100+ units maintains 60fps
-
----
-
 #### Add Flying Unit Type
 **Status:** ⬜ Not Started
 **Category:** Units & Combat
@@ -744,4 +701,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-12-07 - Added spatial partitioning todo for unit targeting performance*
+*Last Updated: 2025-12-12 - Completed spatial partitioning implementation (moved to todos-completed.md)*
