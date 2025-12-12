@@ -1,6 +1,6 @@
 # Assets Directory
 
-This directory contains all visual and audio assets for Project Summoner.
+This directory contains all visual and audio assets for Fateforged.
 
 ## Structure
 

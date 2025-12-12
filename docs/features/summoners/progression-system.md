@@ -33,7 +33,7 @@ See [architecture.md](architecture.md) for current implementation details.
 
 ## 1. Overview
 
-This document defines the persistent progression system for summoners in Project Summoner, including:
+This document defines the persistent progression system for summoners in Fateforged, including:
 
 - **Summoner Leveling** (Levels 1-10 with XP progression)
 - **Level Traits** (9 traits chosen at levels 1-9, following Trait Lines)
@@ -876,7 +876,7 @@ This hybrid summoner progression system strikes a balance between:
 - ✔ Balance does not explode over time (level cap, boon slots)
 - ✔ The system scales indefinitely (can add new trait lines and boons)
 
-**This is the most stable, flexible, and expressive progression structure for Project Summoner.**
+**This is the most stable, flexible, and expressive progression structure for Fateforged.**
 
 ### The Three-Layer Design
 

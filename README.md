@@ -1,10 +1,14 @@
-# Project Summoner
+# Fateforged
 
-A tactical card battler inspired by Mini Warriors and Clash Royale, built in Godot 4.5.
+A 1v1 real-time tactical battler built in Godot 4.5.
 
 ## Overview
 
-Project Summoner is a real-time strategy card game where players summon units onto a battlefield to destroy their opponent's base. The game features a 2.5D perspective with an angled orthographic camera, creating a modern take on classic tactical card battlers.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter finite, non-replayable events that offer small sets of cards. Choosing one card permanently closes off the others for that run, and because the campaign has only a limited number of these junctions, every player's deck naturally diverges in composition and strategy.
+
+This asymmetry — and the player's responsibility for shaping it — is the core of the game's identity and the reason it's called Fateforged: your fate is literally forged by the choices you make at each branching point.
+
+The game features a 2.5D perspective with an angled orthographic camera, creating a modern take on tactical card battlers.
 
 ## Quick Start
 
@@ -32,8 +36,7 @@ Open the project in Godot 4.5 and run the VFX test scene:
 - [📝 Changelog](docs/changelog.md) - Public release notes (for future versions)
 
 **Developer Guides:**
-- [API Documentation](docs/api/) - Card system, combat system, coordinate system
-- [Development Guides](docs/guides/) - How to create cards, battles, and more
+- [Feature Documentation](docs/features/) - Card, combat, battlefield, and coordinate systems
 - [Design Documents](docs/design/) - Vision, roadmap, and visual style references
 
 ## Project Structure
@@ -91,4 +94,4 @@ See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with Godot 4.5** | **Last Updated:** 2025-01-10
+**Built with Godot 4.5** | **Last Updated:** 2025-12-11

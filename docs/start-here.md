@@ -1,10 +1,10 @@
-# Getting Started with Project Summoner
+# Getting Started with Fateforged
 
 **Status:** CURRENT
-**Last Updated:** 2025-11-24
+**Last Updated:** 2025-12-11
 **Purpose:** New developer onboarding and documentation guide
 
-Welcome to Project Summoner! This document will help you get oriented with the project structure, key systems, and where to find information.
+Welcome to Fateforged! This document will help you get oriented with the project structure, key systems, and where to find information.
 
 ## Quick Links
 
@@ -188,7 +188,7 @@ See [Roadmap](project/roadmap.md) for detailed plans.
 
 ### Adding a New Card
 
-1. Create JSON in `data/cards/` (see [Card System API](api/card-system.md))
+1. Create JSON in `data/cards/` (see [Card System](features/cards/system.md))
 2. Add sprite to `assets/characters/` or `assets/vfx/`
 3. Test in VFX test scene
 

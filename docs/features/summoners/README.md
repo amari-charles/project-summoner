@@ -1,6 +1,6 @@
 # Summoner System Documentation
 
-This directory contains all documentation for the Summoner system in Project Summoner.
+This directory contains all documentation for the Summoner system in Fateforged.
 
 **Note:** Previously outdated `system.md` has been removed. All current documentation is now consistent and accurate.
 

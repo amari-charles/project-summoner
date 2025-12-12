@@ -1,6 +1,6 @@
 # Art Asset Specifications
 
-This document specifies the technical requirements for hand-drawn/painted art assets for Project Summoner.
+This document specifies the technical requirements for hand-drawn/painted art assets for Fateforged.
 
 ---
 

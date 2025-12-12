@@ -4,7 +4,7 @@ This document describes the intended architecture for the Summoner (player chara
 
 ## Overview
 
-In Project Summoner, two key entities exist per player:
+In Fateforged, two key entities exist per player:
 
 1. **Summoner** - The player character who commands units
 2. **Nexus (Base3D)** - The mana construct being defended

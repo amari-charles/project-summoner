@@ -1,6 +1,6 @@
-# Elemental System - Project Summoner
+# Elemental System - Fateforged
 
-This document defines the elemental structure for Project Summoner. It organizes all known elements into categories that balance worldbuilding clarity with gameplay purpose.
+This document defines the elemental structure for Fateforged. It organizes all known elements into categories that balance worldbuilding clarity with gameplay purpose.
 
 ---
 
@@ -16,7 +16,7 @@ This document defines the elemental structure for Project Summoner. It organizes
 
 ## Overview
 
-The elemental system in Project Summoner consists of **14 distinct element types** organized into tiers based on their narrative and gameplay roles. Each tier serves a specific purpose in campaign progression, worldbuilding, and mechanical design.
+The elemental system in Fateforged consists of **14 distinct element types** organized into tiers based on their narrative and gameplay roles. Each tier serves a specific purpose in campaign progression, worldbuilding, and mechanical design.
 
 **Important:** Variants (Solar, Mist, Tempest, Crystal) and Hybrids (Magma) are **NOT** separate element types. They are thematic card flavors that use their parent element's affinity.
 
@@ -268,7 +268,7 @@ var modifiers = ModifierSystem.get_modifiers_for("unit", categories, {})
 
 ## Summary
 
-This elemental structure ensures that every element tier has a purpose — not just in lore, but in how the player experiences discovery, power, and growth throughout Project Summoner.
+This elemental structure ensures that every element tier has a purpose — not just in lore, but in how the player experiences discovery, power, and growth throughout Fateforged.
 
 **Element Counts:**
 - Core Elements: 4 (fire, water, wind, earth)

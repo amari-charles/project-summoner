@@ -1,6 +1,6 @@
 # Framerate Independence
 
-This document describes the patterns and conventions for writing framerate-independent code in Project Summoner.
+This document describes the patterns and conventions for writing framerate-independent code in Fateforged.
 
 ## Overview
 

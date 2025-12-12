@@ -1,6 +1,6 @@
 # Battlefield Scenes
 
-This directory contains all battlefield-related scenes for Project Summoner.
+This directory contains all battlefield-related scenes for Fateforged.
 
 ## Structure
 

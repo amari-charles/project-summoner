@@ -1,6 +1,6 @@
 # Project TODOs
 
-This document tracks planned features, improvements, and tasks for Project Summoner.
+This document tracks planned features, improvements, and tasks for Fateforged.
 
 For completed tasks, see [todos-completed.md](todos-completed.md).
 

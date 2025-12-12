@@ -13,6 +13,9 @@ var _initialized: bool = false  # Track initialization state
 var _spawn_preview: SpawnPreview = null
 var _preview_card: Card = null  # Track which card we're previewing
 
+## Spawn zone overlay (shows valid/invalid zones while dragging summon cards)
+var _spawn_zone_overlay: SpawnZoneOverlay = null
+
 func _ready() -> void:
 	# Minimal setup - just configure mouse filter
 	# STOP filter is needed to receive drop events, but we're behind HandUI
@@ -22,6 +25,7 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_DRAG_END:
 		_cleanup_spawn_preview()
+		_cleanup_spawn_zone_overlay()
 
 ## Initialize BattlefieldDropZone with the player summoner
 ## Called by BattleCoordinator after summoners are ready
@@ -60,19 +64,16 @@ func _gui_input(event: InputEvent) -> void:
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			if mouse_event.pressed:
 				# Mouse down - place circle and start arrow drag
-				print("BattlefieldDropZone: Mouse down at %s" % world_pos)
 				if SpellTargetingManager.has_method("handle_mouse_down"):
 					SpellTargetingManager.call("handle_mouse_down", world_pos)
 					accept_event()
 			else:
 				# Mouse up - confirm rally destination
-				print("BattlefieldDropZone: Mouse up at %s" % world_pos)
 				if SpellTargetingManager.has_method("handle_mouse_up"):
 					SpellTargetingManager.call("handle_mouse_up", world_pos)
 					accept_event()
 		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
 			# Cancel targeting
-			print("BattlefieldDropZone: Right-click cancel")
 			if SpellTargetingManager.has_method("_cancel_targeting"):
 				SpellTargetingManager.call("_cancel_targeting")
 				accept_event()
@@ -147,11 +148,20 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		_cleanup_spawn_preview()
 		return false
 
-	# Update spawn preview for summon cards (3D only)
+	# Handle spawn zone for summon cards (snap to valid zone if needed)
 	if is_3d and card.card_type == Card.CardType.SUMMON:
-		_update_spawn_preview(at_position, card)
+		var world_pos: Vector3 = _screen_to_world_3d(at_position)
+		# Check if cursor is in valid territory (for visual feedback)
+		var is_valid_zone: bool = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+		# Clamp position to valid zone for actual spawn location
+		var clamped_pos: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+		# Show preview at clamped position with color based on cursor validity
+		# Red = cursor over invalid zone (unit will snap), Blue = cursor over valid zone
+		_update_spawn_preview(clamped_pos, card, is_valid_zone)
+		# Show spawn zone overlay while dragging summon cards (red overlay shows invalid territory)
+		_show_spawn_zone_overlay()
 
-	# Valid drop
+	# Valid drop (snapping handles invalid zones)
 	return true
 
 ## Handle the card drop
@@ -179,11 +189,13 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 
 	if needs_targeting and SpellTargetingManager and is_3d:
 		# Delegate to targeting manager for click-targeting
-		print("BattlefieldDropZone: Starting click-targeting for %s" % card.card_name)
 		SpellTargetingManager.start_targeting(card, card_index, summoner, camera_3d)
 	elif is_3d:
 		# Immediate play in 3D
 		var world_pos_3d: Vector3 = _screen_to_world_3d(at_position)
+		# Clamp spawn position for summon cards only (spells can target anywhere)
+		if card.card_type == Card.CardType.SUMMON:
+			world_pos_3d = BattlefieldConstants.clamp_spawn_position_for_team(world_pos_3d, Unit3D.Team.PLAYER)
 		if summoner.has_method("play_card_3d"):
 			summoner.call("play_card_3d", card_index, world_pos_3d)
 	else:
@@ -224,8 +236,7 @@ func _card_needs_click_targeting(card: Card) -> bool:
 	return card.needs_click_targeting()
 
 ## Update spawn preview position and visibility
-func _update_spawn_preview(screen_pos: Vector2, card: Card) -> void:
-	var world_pos: Vector3 = _screen_to_world_3d(screen_pos)
+func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true) -> void:
 	if world_pos == Vector3.ZERO:
 		_cleanup_spawn_preview()
 		return
@@ -241,6 +252,7 @@ func _update_spawn_preview(screen_pos: Vector2, card: Card) -> void:
 	# Calculate safe spawn position (same logic as actual spawning)
 	var safe_pos: Vector3 = _calculate_safe_spawn_position(world_pos, card)
 	_spawn_preview.update_position(safe_pos)
+	_spawn_preview.set_valid(is_valid_zone)
 
 ## Create a new spawn preview for the card
 func _create_spawn_preview(card: Card) -> void:
@@ -301,3 +313,23 @@ func _cleanup_spawn_preview() -> void:
 		_spawn_preview.cleanup()
 	_spawn_preview = null
 	_preview_card = null
+
+## Show spawn zone overlay (valid/invalid zones on the ground)
+func _show_spawn_zone_overlay() -> void:
+	if _spawn_zone_overlay:
+		return  # Already showing
+
+	_spawn_zone_overlay = SpawnZoneOverlay.new()
+
+	# Add to 3D scene
+	var viewport: Viewport = get_viewport()
+	if viewport:
+		var root_3d: Node = _find_3d_root(viewport)
+		if root_3d:
+			root_3d.add_child(_spawn_zone_overlay)
+
+## Clean up the spawn zone overlay
+func _cleanup_spawn_zone_overlay() -> void:
+	if _spawn_zone_overlay and is_instance_valid(_spawn_zone_overlay):
+		_spawn_zone_overlay.cleanup()
+	_spawn_zone_overlay = null

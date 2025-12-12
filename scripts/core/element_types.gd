@@ -1,7 +1,7 @@
 extends Node
 # Note: No class_name needed - this will be registered as an autoload
 
-## ElementTypes - Central registry for all elemental types in Project Summoner
+## ElementTypes - Central registry for all elemental types in Fateforged
 ##
 ## Provides type-safe Element objects for elemental affinities.
 ## Elements are used in the modifier system, card categorization, and summoner bonuses.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document preserves the narrative context and story arc for Project Summoner's campaign mode. Use this as a reference when designing battles, events, and campaign content.
+This document preserves the narrative context and story arc for Fateforged's campaign mode. Use this as a reference when designing battles, events, and campaign content.
 
 ---
 
@@ -10,7 +10,9 @@ This document preserves the narrative context and story arc for Project Summoner
 
 **The Academy of Summoning Arts**
 
-An ancient institution where initiates learn the mystical art of summoning. The Academy is overseen by Headmaster Merlin, a wise mentor who guides students through their journey from novice to master summoner.
+The world is a bright, welcoming magical academy that outwardly treats every student with warmth and encouragement, yet quietly operates on a ruthless meritocratic truth: only the strongest are nurtured and valued, while others are left to slip through the cracks. Strength is both a practical necessity against the threats beyond the academy and an ingrained cultural belief about whose path deserves to continue.
+
+The Academy is overseen by Headmaster Merlin, who guides students through their journey from novice to master summoner with measured patience—though even his mentorship reflects the institution's deeper values.
 
 ### Key Locations
 
@@ -46,8 +48,8 @@ An ancient institution where initiates learn the mystical art of summoning. The 
 ### Tone Guidelines
 - **Formal but accessible**: Elevated language without being pretentious
 - **Mystical academy**: Magic is real but treated as a learned art, not random
-- **Mentorship**: Supportive guidance rather than harsh judgment
-- **Stakes are personal**: Not world-ending, but meaningful to the player's growth
+- **Warm surface, hard truths**: Outwardly supportive, but merit determines who truly advances
+- **Stakes are personal**: Not world-ending, but meaningful to the player's growth and survival
 
 ---
 

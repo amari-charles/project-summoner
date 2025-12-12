@@ -1,6 +1,6 @@
 # Known Bugs
 
-This document tracks known bugs and issues in Project Summoner.
+This document tracks known bugs and issues in Fateforged.
 
 For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
@@ -9,6 +9,62 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 ---
 
 ## Active Bugs
+
+#### Hand UI Area Blocks Unit Spawning
+**Status:** Open
+**Reported:** 2025-12-12
+**Component:** UI / Battlefield Drop Zone
+
+**Description:**
+The card hand UI area at the bottom of the screen prevents unit spawning in that region of the battlefield.
+
+**Expected Behavior:**
+Players should be able to spawn units anywhere on their half of the battlefield, including areas that visually overlap with the hand UI.
+
+**Current Behavior:**
+Attempting to drag and drop a summon card to spawn a unit in the bottom portion of the battlefield (where the hand UI is rendered) fails because the hand UI intercepts the drop.
+
+**Impact:**
+Restricts valid spawn positions, limiting tactical options for players.
+
+**Proposed Solution:**
+Allow drops to pass through the hand UI to the battlefield when a card is being dragged. The hand should not block spawning during active card drag operations.
+
+**Related Files:**
+- scripts/ui/battlefield_drop_zone.gd
+- scenes/ui/hand_ui.tscn
+
+---
+
+#### Aggro Manipulation Exploit - Units Can Be Permanently Occupied
+**Status:** Open
+**Reported:** 2025-12-12
+**Component:** AI / Combat / Targeting
+
+**Description:**
+Players can permanently keep enemy units occupied by spawning new units, as all available enemies change aggro to target the newly spawned unit.
+
+**Expected Behavior:**
+Enemy units should maintain focus on existing threats or use intelligent target prioritization that prevents trivial aggro manipulation.
+
+**Current Behavior:**
+When a player spawns a new unit, all nearby enemy units immediately switch aggro to target it, abandoning their current targets. This allows players to repeatedly spawn cheap units to keep expensive enemy units permanently distracted.
+
+**Impact:**
+Significant balance issue. Players can exploit this to neutralize high-value enemy units with a stream of cheap fodder units.
+
+**Proposed Solution:**
+Consider one or more of:
+1. Add aggro stickiness - units don't immediately switch targets
+2. Implement threat priority based on unit value/danger
+3. Add a cooldown before units can switch targets
+4. Only allow target switching when current target dies or moves out of range
+
+**Related Files:**
+- scripts/units/unit_3d.gd (targeting logic)
+- scripts/combat/ (combat system)
+
+---
 
 #### RID/Resource Leaks at Exit in Headless Mode
 **Status:** Open
@@ -110,4 +166,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-12-07 - Added summoner stats caching bug*
+*Last Updated: 2025-12-12 - Added hand UI blocking spawns and aggro exploit bugs*

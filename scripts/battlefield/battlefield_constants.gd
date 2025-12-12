@@ -21,6 +21,9 @@ const GROUND_Y: float = 0.0
 ## Y-coordinate where units spawn in 3D battlefield
 const SPAWN_PLANE_HEIGHT: float = GROUND_Y
 
+## Height offset for ground overlays to prevent z-fighting
+const GROUND_OVERLAY_OFFSET: float = 0.02
+
 ## Raycast distance for screen-to-world conversion
 const RAYCAST_DISTANCE: float = 1000.0
 
@@ -38,6 +41,16 @@ static func world_to_screen_2d(world_pos: Vector3) -> Vector2:
 		world_pos.x * SCREEN_TO_WORLD_SCALE + SCREEN_CENTER_X,
 		world_pos.z * SCREEN_TO_WORLD_SCALE + SCREEN_CENTER_Y
 	)
+
+## Battlefield dimensions (world units)
+## Used for spawn zone overlays and boundary calculations
+const BATTLEFIELD_HALF_WIDTH: float = 50.0  ## Half the X-axis extent (-50 to +50)
+const BATTLEFIELD_HALF_DEPTH: float = 40.0  ## Half the Z-axis extent (-40 to +40)
+
+## Spawn zone boundary (halfway mark of battlefield)
+## Player (team 0) spawns at X ≤ 0, Enemy (team 1) spawns at X > 0
+const SPAWN_BOUNDARY_X: float = 0.0
+const SPAWN_BOUNDARY_EPSILON: float = 0.001  ## Small offset to ensure enemy clamps to valid position
 
 ## Spawn position constants
 const MIN_UNIT_SPACING: float = 1.5  ## Minimum distance between unit centers
@@ -92,3 +105,21 @@ static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, sp
 			return false
 
 	return true
+
+## Check if spawn position is valid for the given team
+## Player (team 0) can spawn at X <= 0, Enemy (team 1) can spawn at X > 0
+static func is_valid_spawn_position_for_team(pos: Vector3, team: int) -> bool:
+	if team == Unit3D.Team.PLAYER:
+		return pos.x <= SPAWN_BOUNDARY_X
+	else:  # Unit3D.Team.ENEMY
+		return pos.x > SPAWN_BOUNDARY_X
+
+## Clamp spawn position to valid zone for the given team
+## Snaps X coordinate to boundary if in invalid territory
+static func clamp_spawn_position_for_team(pos: Vector3, team: int) -> Vector3:
+	var clamped: Vector3 = pos
+	if team == Unit3D.Team.PLAYER and pos.x > SPAWN_BOUNDARY_X:
+		clamped.x = SPAWN_BOUNDARY_X
+	elif team == Unit3D.Team.ENEMY and pos.x <= SPAWN_BOUNDARY_X:
+		clamped.x = SPAWN_BOUNDARY_X + SPAWN_BOUNDARY_EPSILON
+	return clamped

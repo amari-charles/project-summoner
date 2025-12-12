@@ -1,6 +1,6 @@
 # Unit Testing Infrastructure
 
-This directory contains the unit testing infrastructure for Project Summoner using the [GUT (Godot Unit Test)](https://github.com/bitwes/Gut) framework.
+This directory contains the unit testing infrastructure for Fateforged using the [GUT (Godot Unit Test)](https://github.com/bitwes/Gut) framework.
 
 ## Directory Structure
 
