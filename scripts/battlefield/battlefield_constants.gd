@@ -109,3 +109,13 @@ static func is_valid_spawn_position_for_team(pos: Vector3, team: int) -> bool:
 		return pos.x <= SPAWN_BOUNDARY_X
 	else:  # Unit3D.Team.ENEMY
 		return pos.x > SPAWN_BOUNDARY_X
+
+## Clamp spawn position to valid zone for the given team
+## Snaps X coordinate to boundary if in invalid territory
+static func clamp_spawn_position_for_team(pos: Vector3, team: int) -> Vector3:
+	var clamped: Vector3 = pos
+	if team == Unit3D.Team.PLAYER and pos.x > SPAWN_BOUNDARY_X:
+		clamped.x = SPAWN_BOUNDARY_X
+	elif team == Unit3D.Team.ENEMY and pos.x < SPAWN_BOUNDARY_X:
+		clamped.x = SPAWN_BOUNDARY_X
+	return clamped

@@ -151,21 +151,18 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		_cleanup_spawn_preview()
 		return false
 
-	# Check spawn zone validity for summon cards (player can only spawn on their half)
-	var is_valid_zone: bool = true
+	# Handle spawn zone for summon cards (snap to valid zone if needed)
 	if is_3d and card.card_type == Card.CardType.SUMMON:
 		var world_pos: Vector3 = _screen_to_world_3d(at_position)
-		is_valid_zone = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
-		# Always show preview (with validity color) during drag
-		_update_spawn_preview(world_pos, card, is_valid_zone)
+		var is_valid_zone: bool = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+		# Clamp position to valid zone for preview
+		var clamped_pos: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+		# Show preview at clamped position with validity color feedback
+		_update_spawn_preview(clamped_pos, card, is_valid_zone)
 		# Show spawn zone overlay while dragging summon cards
 		_show_spawn_zone_overlay()
 
-	# Block drop if in invalid spawn zone
-	if not is_valid_zone:
-		return false
-
-	# Valid drop
+	# Valid drop (snapping handles invalid zones)
 	return true
 
 ## Handle the card drop
@@ -198,6 +195,9 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	elif is_3d:
 		# Immediate play in 3D
 		var world_pos_3d: Vector3 = _screen_to_world_3d(at_position)
+		# Clamp spawn position for summon cards only (spells can target anywhere)
+		if card.card_type == Card.CardType.SUMMON:
+			world_pos_3d = BattlefieldConstants.clamp_spawn_position_for_team(world_pos_3d, Unit3D.Team.PLAYER)
 		if summoner.has_method("play_card_3d"):
 			summoner.call("play_card_3d", card_index, world_pos_3d)
 	else:
