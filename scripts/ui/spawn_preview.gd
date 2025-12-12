@@ -4,11 +4,13 @@ class_name SpawnPreview
 ## Visual preview showing where a unit will spawn during card drag
 ## Shows a circle marker at the spawn position (ghost unit can be added later for 3D models)
 
-const CIRCLE_COLOR: Color = Color(0.3, 0.7, 1.0, 0.5)  # Light blue, semi-transparent
+const VALID_COLOR: Color = Color(0.3, 0.7, 1.0, 0.5)  # Light blue, semi-transparent (valid spawn)
+const INVALID_COLOR: Color = Color(1.0, 0.3, 0.3, 0.5)  # Red, semi-transparent (invalid spawn)
 const CIRCLE_HEIGHT: float = 0.05
 
 var circle_marker: MeshInstance3D = null
 var _collision_radius: float = 0.5
+var _is_valid: bool = true
 
 func _ready() -> void:
 	_create_circle_marker()
@@ -29,6 +31,20 @@ func setup(unit_scene: PackedScene) -> void:
 ## Update the preview position
 func update_position(pos: Vector3) -> void:
 	global_position = pos
+
+## Set whether the spawn position is valid (changes color)
+func set_valid(is_valid: bool) -> void:
+	if _is_valid == is_valid:
+		return
+	_is_valid = is_valid
+	_update_material_color()
+
+## Update material color based on validity
+func _update_material_color() -> void:
+	if circle_marker and circle_marker.material_override:
+		var mat: StandardMaterial3D = circle_marker.material_override as StandardMaterial3D
+		if mat:
+			mat.albedo_color = VALID_COLOR if _is_valid else INVALID_COLOR
 
 ## Create the circle marker mesh
 func _create_circle_marker() -> void:
@@ -53,7 +69,7 @@ func _update_circle_size() -> void:
 
 	# Create semi-transparent material
 	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.albedo_color = CIRCLE_COLOR
+	material.albedo_color = VALID_COLOR if _is_valid else INVALID_COLOR
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED

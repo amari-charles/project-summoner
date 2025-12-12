@@ -1,12 +1,11 @@
 # Card System API
 
 **Status:** CURRENT
-**Last Updated:** 2025-01-10
-**Source:** Extracted from PROJECT_DOC.md
+**Last Updated:** 2025-12-11
 
 ## Overview
 
-This document defines how cards work in Project Summoner, from data model to variance systems, generation rules, and lifecycle. Cards are the only way to act in battle, and all cards are single-use per match.
+This document defines how cards work in Fateforged, from data model to variance systems, generation rules, and lifecycle. Cards are the only way to act in battle, and all cards are single-use per match.
 
 ## Card Taxonomy
 
@@ -144,6 +143,6 @@ Effects are **data-driven payloads** attached to cards. These define primary and
 ---
 
 *Related Documents:*
-- [Combat System](combat-system.md)
-- [Hero System](hero-system.md)
+- [Combat System](../combat/system.md)
+- [Summoner System](../summoners/README.md)
 - [Current State](../current-state.md)

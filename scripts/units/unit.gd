@@ -1,7 +1,7 @@
 extends CharacterBody2D
 class_name Unit
 
-## Base class for all units in Project Summoner
+## Base class for all units in Fateforged
 ## Units have HP, attack damage, range, and team affiliation
 
 enum Team { PLAYER, ENEMY }

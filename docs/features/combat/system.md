@@ -1,8 +1,7 @@
-# Project Summoner — Combat System Spec (v1.1)
+# Fateforged — Combat System Spec (v1.1)
 
 **Status:** IMPLEMENTED (MVP)
-**Last Updated:** 2025-01-10
-**Source:** Extracted from PROJECT_DOC.md
+**Last Updated:** 2025-12-11
 
 **Scope:** Defines unit simulation, targeting, movement, damage, and objective behavior for the MVP offline prototype.
 
@@ -178,6 +177,6 @@ _battles["timed_challenge"] = {
 ---
 
 *Related Documents:*
-- [Card System](card-system.md)
-- [Hero System](hero-system.md)
-- [Coordinate System](coordinate-system.md)
+- [Card System](../cards/system.md)
+- [Summoner System](../summoners/README.md)
+- [Coordinate System](../coordinates/system.md)

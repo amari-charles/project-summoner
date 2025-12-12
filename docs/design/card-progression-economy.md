@@ -1,10 +1,10 @@
-# Project Summoner - Card Progression, Resources & Economy
+# Fateforged - Card Progression, Resources & Economy
 
 > High-Level Design Document (Premise-Only Version)
 
 ## 1. Core Goal of Progression
 
-Project Summoner's progression must emphasize:
+Fateforged's progression must emphasize:
 
 - **Player uniqueness** through meaningful choices
 - **Scoped choice pools** that prevent card convergence
@@ -175,7 +175,7 @@ What you collect determines which stat upgrades you can afford — giving identi
 
 ## One-Paragraph Summary
 
-Project Summoner uses a choice-driven progression system where cards gain levels capped at 10, and each level unlocks a meaningful upgrade chosen by the player. Upgrades require XP, gold, and themed resources, which tie your build direction to the activities you engage in. Resources come primarily from events, trials, and gauntlets—optional modes outside the main campaign—while the campaign itself stays simple. A two-shop system separates run-bound decisions (Caravan) from long-term monetization (Meta Shop). Monetization revolves around selling extra attempts at events that yield XP, resources, and scoped upgrade-choice opportunities, ensuring paying players never buy power directly and all progression remains earned. This preserves deck uniqueness, fairness, and long-term engagement while keeping development scope low.
+Fateforged uses a choice-driven progression system where cards gain levels capped at 10, and each level unlocks a meaningful upgrade chosen by the player. Upgrades require XP, gold, and themed resources, which tie your build direction to the activities you engage in. Resources come primarily from events, trials, and gauntlets—optional modes outside the main campaign—while the campaign itself stays simple. A two-shop system separates run-bound decisions (Caravan) from long-term monetization (Meta Shop). Monetization revolves around selling extra attempts at events that yield XP, resources, and scoped upgrade-choice opportunities, ensuring paying players never buy power directly and all progression remains earned. This preserves deck uniqueness, fairness, and long-term engagement while keeping development scope low.
 
 ---
 

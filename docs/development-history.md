@@ -1,4 +1,4 @@
-# Project Summoner - Development History
+# Fateforged - Development History
 
 **Purpose:** Internal record of development progress, technical decisions, and lessons learned.
 

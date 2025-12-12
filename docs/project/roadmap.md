@@ -1,7 +1,7 @@
-# Project Summoner — Development Roadmap
+# Fateforged — Development Roadmap
 
 **Status:** CURRENT
-**Last Updated:** 2025-01-10
+**Last Updated:** 2025-12-11
 **Source:** Extracted from PROJECT_DOC.md
 
 ⚙️ **Engine:** Godot 4.5 (3D perspective with orthographic camera)

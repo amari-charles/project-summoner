@@ -1,18 +1,19 @@
-# Project Summoner — Vision Document
+# Fateforged — Vision Document
 
 **Status:** CURRENT
-**Last Updated:** 2025-01-10
-**Source:** Extracted from PROJECT_DOC.md
+**Last Updated:** 2025-12-11
 
-## One-Sentence Elevator Pitch
+## Game Premise
 
-A real-time **1v1 summoning battler** where every card is single-use, every hero is unique, and every match feels like commanding your own army of magic.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter finite, non-replayable events that offer small sets of cards. Choosing one card permanently closes off the others for that run, and because the campaign has only a limited number of these junctions, every player's deck naturally diverges in composition and strategy.
+
+This asymmetry — and the player's responsibility for shaping it — is the core of the game's identity and the reason it's called **Fateforged**: your fate is literally forged by the choices you make at each branching point.
 
 ## Core Fantasy
 
-You are a **wizard-commander**, leading a living army of summons and spells. Each match is a duel of wits and will — limited resources, shifting odds, and one decisive ultimate.
+You are a **wizard-commander**, leading a living army of summons and spells. Each match is a duel of wits and will — limited resources, shifting odds, and permanent consequences.
 
-You win not by outspending, but by **out-summoning**: using timing, positioning, and courage to turn your finite deck into victory.
+You win not by outspending, but by **out-summoning**: using timing, positioning, and courage to turn your finite deck into victory. Every choice you've made to build that deck matters.
 
 ## Design Pillars
 
@@ -66,7 +67,7 @@ High-contrast fantasy with distinct elemental identities. Serious, mystical, and
 
 ## Vision Summary
 
-**Project Summoner** is a competitive, emotionally charged dueling game where individuality is built into the rules.
+**Fateforged** is a competitive, emotionally charged dueling game where individuality is built into the rules.
 
 Every match is different. Every army is unique. Every victory is personal.
 

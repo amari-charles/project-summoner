@@ -1,9 +1,8 @@
-# Project Summoner — Battlefield Spec
+# Fateforged — Battlefield Spec
 
 **Status:** IMPLEMENTED (MVP)
 **Version:** 1.0
-**Last Updated:** 2025-01-10
-**Source:** Extracted from PROJECT_DOC.md
+**Last Updated:** 2025-12-11
 
 **Scope:** Defines the MVP battlefield structure, visibility rules, and summoning constraints for all real-time matches.
 
@@ -117,6 +116,6 @@ It is intentionally simple for the first playable build—flat terrain, one base
 ---
 
 *Related Documents:*
-- [Combat System](combat-system.md)
-- [Card System](card-system.md)
-- [Coordinate System](coordinate-system.md)
+- [Combat System](../combat/system.md)
+- [Card System](../cards/system.md)
+- [Coordinate System](../coordinates/system.md)

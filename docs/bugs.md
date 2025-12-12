@@ -1,6 +1,6 @@
 # Known Bugs
 
-This document tracks known bugs and issues in Project Summoner.
+This document tracks known bugs and issues in Fateforged.
 
 For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 

@@ -1,11 +1,11 @@
-# Project Summoner - Current State
+# Fateforged - Current State
 
-**Last Updated:** 2025-11-04
+**Last Updated:** 2025-12-11
 **Version:** Pre-Alpha (Phase 1 - Save System IMPLEMENTED)
 
 ## Project Overview
 
-Project Summoner is a card-based auto-battler inspired by Mini Warriors Reborn, built in Godot 4.5. Players command summoned units on a 3D battlefield with 2.5D perspective using cards to spawn units, cast spells, and deploy structures.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Built in Godot 4.5 with a 2.5D perspective, players use cards to spawn units, cast spells, and deploy structures on a 3D battlefield.
 
 ## Architecture
 
