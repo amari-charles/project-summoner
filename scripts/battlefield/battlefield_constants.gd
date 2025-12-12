@@ -103,9 +103,9 @@ static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, sp
 	return true
 
 ## Check if spawn position is valid for the given team
-## Player (team 0) can spawn at X < 0, Enemy (team 1) can spawn at X > 0
+## Player (team 0) can spawn at X <= 0, Enemy (team 1) can spawn at X > 0
 static func is_valid_spawn_position_for_team(pos: Vector3, team: int) -> bool:
 	if team == Unit3D.Team.PLAYER:
-		return pos.x < SPAWN_BOUNDARY_X
+		return pos.x <= SPAWN_BOUNDARY_X
 	else:  # Unit3D.Team.ENEMY
 		return pos.x > SPAWN_BOUNDARY_X
