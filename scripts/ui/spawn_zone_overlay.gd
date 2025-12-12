@@ -15,14 +15,14 @@ func _ready() -> void:
 func _create_invalid_zone() -> void:
 	invalid_zone = MeshInstance3D.new()
 
-	var plane := PlaneMesh.new()
+	var plane: PlaneMesh = PlaneMesh.new()
 	plane.size = Vector2(
 		BattlefieldConstants.BATTLEFIELD_HALF_WIDTH,
 		BattlefieldConstants.BATTLEFIELD_HALF_DEPTH * 2
 	)
 	invalid_zone.mesh = plane
 
-	var material := StandardMaterial3D.new()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.albedo_color = INVALID_COLOR
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
