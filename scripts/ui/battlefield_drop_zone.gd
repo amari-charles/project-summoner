@@ -64,19 +64,16 @@ func _gui_input(event: InputEvent) -> void:
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			if mouse_event.pressed:
 				# Mouse down - place circle and start arrow drag
-				print("BattlefieldDropZone: Mouse down at %s" % world_pos)
 				if SpellTargetingManager.has_method("handle_mouse_down"):
 					SpellTargetingManager.call("handle_mouse_down", world_pos)
 					accept_event()
 			else:
 				# Mouse up - confirm rally destination
-				print("BattlefieldDropZone: Mouse up at %s" % world_pos)
 				if SpellTargetingManager.has_method("handle_mouse_up"):
 					SpellTargetingManager.call("handle_mouse_up", world_pos)
 					accept_event()
 		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
 			# Cancel targeting
-			print("BattlefieldDropZone: Right-click cancel")
 			if SpellTargetingManager.has_method("_cancel_targeting"):
 				SpellTargetingManager.call("_cancel_targeting")
 				accept_event()
@@ -192,7 +189,6 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 
 	if needs_targeting and SpellTargetingManager and is_3d:
 		# Delegate to targeting manager for click-targeting
-		print("BattlefieldDropZone: Starting click-targeting for %s" % card.card_name)
 		SpellTargetingManager.start_targeting(card, card_index, summoner, camera_3d)
 	elif is_3d:
 		# Immediate play in 3D
