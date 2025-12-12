@@ -63,6 +63,23 @@ It is intentionally simple for the first playable build—flat terrain, one base
 | **Vision Requirement** | Both **summons** and **spells** require vision at target location. |
 | **Spawn Feedback** | Units appear with brief materialization FX for clarity. |
 
+### Spawn Zone Restrictions
+
+Units can only be spawned on the player's own half of the battlefield:
+
+| Team | Valid Spawn Zone | Boundary Behavior |
+| ----- | ----- | ----- |
+| **Player** | X ≤ 0 (left half) | Attempts to spawn at X > 0 snap to X = 0 |
+| **Enemy** | X > 0 (right half) | Attempts to spawn at X ≤ 0 snap to X = 0 |
+
+**Visual Feedback:**
+- While dragging a summon card, a red overlay appears on the enemy's half indicating invalid spawn territory
+- The spawn preview circle shows blue when cursor is over valid territory, red when over invalid territory
+- When cursor is over invalid territory, the preview is positioned at the boundary where the unit will actually spawn
+- Spells are unaffected and can target anywhere on the battlefield
+
+**Implementation:** See `BattlefieldConstants.clamp_spawn_position_for_team()` for the clamping logic.
+
 ---
 
 ## 6 Combat and Interaction Assumptions

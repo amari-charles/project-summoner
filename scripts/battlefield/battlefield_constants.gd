@@ -45,7 +45,7 @@ const BATTLEFIELD_HALF_WIDTH: float = 50.0  ## Half the X-axis extent (-50 to +5
 const BATTLEFIELD_HALF_DEPTH: float = 40.0  ## Half the Z-axis extent (-40 to +40)
 
 ## Spawn zone boundary (halfway mark of battlefield)
-## Player (team 0) spawns at X < 0, Enemy (team 1) spawns at X > 0
+## Player (team 0) spawns at X ≤ 0, Enemy (team 1) spawns at X > 0
 const SPAWN_BOUNDARY_X: float = 0.0
 
 ## Spawn position constants

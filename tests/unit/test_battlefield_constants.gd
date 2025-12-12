@@ -91,3 +91,70 @@ func test_battlefield_half_depth_is_positive() -> void:
 
 func test_spawn_boundary_is_at_zero() -> void:
 	assert_eq(BattlefieldConstants.SPAWN_BOUNDARY_X, 0.0)
+
+
+## =============================================================================
+## SPAWN POSITION CLAMPING TESTS
+## =============================================================================
+
+func test_clamp_player_position_in_valid_zone_unchanged() -> void:
+	var pos: Vector3 = Vector3(-10.0, 5.0, 15.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.PLAYER)
+
+	assert_eq(result, pos)
+
+
+func test_clamp_player_position_in_invalid_zone_snaps_to_boundary() -> void:
+	var pos: Vector3 = Vector3(10.0, 5.0, 15.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.PLAYER)
+
+	assert_eq(result.x, 0.0)
+	assert_eq(result.y, 5.0)  # Y preserved
+	assert_eq(result.z, 15.0)  # Z preserved
+
+
+func test_clamp_player_position_at_boundary_unchanged() -> void:
+	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.PLAYER)
+
+	assert_eq(result, pos)
+
+
+func test_clamp_enemy_position_in_valid_zone_unchanged() -> void:
+	var pos: Vector3 = Vector3(10.0, 5.0, 15.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.ENEMY)
+
+	assert_eq(result, pos)
+
+
+func test_clamp_enemy_position_in_invalid_zone_snaps_to_boundary() -> void:
+	var pos: Vector3 = Vector3(-10.0, 5.0, 15.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.ENEMY)
+
+	assert_eq(result.x, 0.0)
+	assert_eq(result.y, 5.0)  # Y preserved
+	assert_eq(result.z, 15.0)  # Z preserved
+
+
+func test_clamp_enemy_position_at_boundary_snaps() -> void:
+	# Enemy requires X > 0, so X = 0 is invalid and should stay at boundary
+	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.ENEMY)
+
+	assert_eq(result.x, 0.0)  # Stays at boundary (closest valid point)
+
+
+func test_clamp_preserves_y_and_z_coordinates() -> void:
+	var pos: Vector3 = Vector3(25.0, 7.5, -30.0)
+
+	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, Unit3D.Team.PLAYER)
+
+	assert_eq(result.x, 0.0)  # Clamped
+	assert_eq(result.y, 7.5)  # Preserved
+	assert_eq(result.z, -30.0)  # Preserved
