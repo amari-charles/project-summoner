@@ -88,4 +88,5 @@ When asked to review a PR, follow the guidelines in `docs/workflows/pr-review-gu
 - Enforce repo conventions and structure
 - Flag incomplete updates (tests, types, docs)
 - Use the structured output format from the guidelines doc
+- **Keep bug/todo additions**: If a PR adds new items to `docs/bugs.md` or `docs/todos.md`, keep them even if unrelated to the PR's main feature. These are valuable captures of future work.
 

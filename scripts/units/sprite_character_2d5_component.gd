@@ -379,14 +379,14 @@ func _attack_pulse() -> void:
 	var original_color: Color = character_sprite.modulate
 
 	_attack_tween = create_tween()
+	# Step 1: Expand + brighten (parallel)
 	_attack_tween.set_parallel(true)
-	# Rapid expand
 	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * PULSE_SCALE_MULTIPLIER, PULSE_EXPAND_DURATION).set_ease(Tween.EASE_OUT)
-	# Brighten during pulse
 	_attack_tween.tween_property(character_sprite, "modulate", PULSE_BRIGHTNESS, PULSE_EXPAND_DURATION)
-	# Shrink back
+	# Step 2: Shrink + dim (parallel)
 	_attack_tween.chain().tween_property(character_sprite, "scale", _base_sprite_scale, PULSE_SHRINK_DURATION).set_ease(Tween.EASE_IN_OUT)
-	_attack_tween.chain().tween_property(character_sprite, "modulate", original_color, PULSE_SHRINK_DURATION)
+	_attack_tween.parallel().tween_property(character_sprite, "modulate", original_color, PULSE_SHRINK_DURATION)
+	# Step 3: Callback
 	_attack_tween.chain().tween_callback(_on_attack_finished)
 
 ## Called when attack animation finishes - resumes bobbing
