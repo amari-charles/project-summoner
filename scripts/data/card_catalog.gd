@@ -342,6 +342,47 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Fire Elemental - Floating fire spirit
+	_catalog["fire_elemental"] = {
+		# Identity
+		"catalog_id": "fire_elemental",
+		"card_name": "Fire Elemental",
+		"description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path.",
+		"rarity": RarityIDs.COMMON,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 3,
+		"cooldown": 2.0,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 60.0,
+		"attack_damage": 12.0,
+		"attack_range": 2.0,
+		"attack_speed": 1.2,
+		"move_speed": 3.5,
+		"aggro_radius": 20.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "floating", "spirit"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
 	# Ember Guard - Damage aura
 	_catalog["ember_guard"] = {
 		# Identity

@@ -22,6 +22,26 @@ const DEFAULT_SPRITE_SCALE: float = 2.5  ## Default scale for 100px sprites (250
 ## Use calculate_sprite_scale() helper or calculate manually: VIEWPORT_SIZE / sprite_height
 @export var sprite_scale: float = DEFAULT_SPRITE_SCALE
 
+## Walking/bobbing animation settings
+@export var enable_bobbing: bool = false  ## Enable walking bob animation
+@export var bob_speed: float = 8.0  ## Speed of walk cycle (higher = faster steps)
+@export var bob_amplitude: float = 6.0  ## Vertical bounce in pixels
+@export var bob_rotation_amplitude: float = 4.0  ## Side-to-side tilt in degrees
+
+## Attack animation styles for single-frame sprites
+enum AttackStyle { NONE, LUNGE, SQUASH_SPRING, SPIN, PULSE }
+@export var attack_style: AttackStyle = AttackStyle.NONE
+@export var cycle_attack_styles: bool = false  ## Cycle through all styles for testing
+@export var attacks_per_style: int = 2  ## How many attacks before switching style
+
+## Bobbing state
+var _bob_time: float = 0.0  ## Accumulated time for bobbing animation
+var _base_sprite_y: float = 0.0  ## Base Y position before bobbing
+var _base_sprite_scale: Vector2 = Vector2.ONE  ## Base scale before attack effects
+var _attack_tween: Tween = null  ## Current attack animation tween
+var _cycle_attack_count: int = 0  ## Counter for cycling through styles
+var _cycle_current_style: int = 1  ## Current style when cycling (starts at LUNGE)
+
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
 @onready var character_sprite: AnimatedSprite2D = $Sprite3D/SubViewport/Model2D/CharacterSprite
@@ -36,12 +56,42 @@ func _ready() -> void:
 	# Bottom-align sprite using offset (feet at origin)
 	_setup_sprite_alignment()
 
+	# Store base values for animations
+	_base_sprite_scale = character_sprite.scale
+	_base_sprite_y = character_sprite.position.y
+
+	# Setup bobbing animation
+	if enable_bobbing:
+		# Randomize starting phase so multiple units don't bob in sync
+		_bob_time = randf() * TAU
+
+func _process(delta: float) -> void:
+	if not enable_bobbing or not character_sprite:
+		return
+
+	# Update walk animation
+	_bob_time += delta * bob_speed
+
+	# Bouncy vertical motion using abs(sin()) - simulates stepping/bouncing
+	# The -abs() makes it bounce DOWN from base position (feet hitting ground)
+	var bob_offset: float = -abs(sin(_bob_time)) * bob_amplitude
+
+	# Side-to-side tilt like a waddle - alternates left/right with each "step"
+	var rotation_offset: float = sin(_bob_time) * bob_rotation_amplitude
+
+	# Apply walk animation
+	character_sprite.position.y = _base_sprite_y + bob_offset
+	character_sprite.rotation_degrees = rotation_offset
+
 ## Set the SpriteFrames resource for this character
 func set_sprite_frames(frames: SpriteFrames) -> void:
 	if character_sprite:
 		character_sprite.sprite_frames = frames
 		# Recalculate alignment now that we have actual texture data
 		_setup_sprite_alignment()
+		# Update base Y position for bobbing
+		if enable_bobbing:
+			_base_sprite_y = character_sprite.position.y
 
 ## Flip the sprite horizontally
 func set_flip_h(_flip: bool) -> void:
@@ -57,6 +107,10 @@ func play_animation(_anim_name: String, _auto_play: bool = false) -> void:
 			# Note: autoplay should only be set before node is added to scene
 			# Since we're already in the scene, just play() is sufficient
 			character_sprite.play()
+
+			# Trigger attack effect for single-frame sprites
+			if _anim_name == "attack" and attack_style != AttackStyle.NONE:
+				_play_attack_effect()
 		else:
 			push_warning("Animation '%s' not found in sprite_frames, falling back to 'idle'" % _anim_name)
 			if character_sprite.sprite_frames.has_animation("idle"):
@@ -194,3 +248,107 @@ func flash_white() -> void:
 	flash_tween.tween_property(character_sprite, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.05)  # Brighten quickly
 	flash_tween.tween_property(character_sprite, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.1)   # Hold
 	flash_tween.tween_property(character_sprite, "modulate", original_color, 0.15)             # Fade back
+
+## =============================================================================
+## ATTACK ANIMATION EFFECTS
+## =============================================================================
+
+## Play the appropriate attack effect based on attack_style
+func _play_attack_effect() -> void:
+	# Kill any existing attack tween
+	if _attack_tween and _attack_tween.is_valid():
+		_attack_tween.kill()
+
+	# Determine which style to use
+	var style_to_use: int = attack_style
+	if cycle_attack_styles:
+		style_to_use = _cycle_current_style
+		_cycle_attack_count += 1
+		# Switch to next style after attacks_per_style attacks
+		if _cycle_attack_count >= attacks_per_style:
+			_cycle_attack_count = 0
+			_cycle_current_style += 1
+			# Wrap back to LUNGE (1) after PULSE (4)
+			if _cycle_current_style > AttackStyle.PULSE:
+				_cycle_current_style = AttackStyle.LUNGE
+			print("Attack style switched to: ", AttackStyle.keys()[_cycle_current_style])
+
+	match style_to_use:
+		AttackStyle.LUNGE:
+			_attack_lunge()
+		AttackStyle.SQUASH_SPRING:
+			_attack_squash_spring()
+		AttackStyle.SPIN:
+			_attack_spin()
+		AttackStyle.PULSE:
+			_attack_pulse()
+
+## Lunge/Ram - Quick thrust forward then snap back
+func _attack_lunge() -> void:
+	if not character_sprite:
+		return
+
+	var base_x: float = character_sprite.position.x
+	var lunge_distance: float = 20.0  # Pixels to lunge forward
+	# Lunge direction based on flip (attacking toward enemy)
+	var direction: float = -1.0 if character_sprite.flip_h else 1.0
+
+	_attack_tween = create_tween()
+	_attack_tween.tween_property(character_sprite, "position:x", base_x + (lunge_distance * direction), 0.1).set_ease(Tween.EASE_OUT)
+	_attack_tween.tween_property(character_sprite, "position:x", base_x, 0.15).set_ease(Tween.EASE_IN)
+
+## Squash & Spring - Compress then spring forward
+func _attack_squash_spring() -> void:
+	if not character_sprite:
+		return
+
+	var base_x: float = character_sprite.position.x
+	var direction: float = -1.0 if character_sprite.flip_h else 1.0
+	var spring_distance: float = 15.0
+
+	_attack_tween = create_tween()
+	# Squash down (compress vertically, expand horizontally)
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * Vector2(1.3, 0.7), 0.08).set_ease(Tween.EASE_OUT)
+	# Spring forward and stretch
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * Vector2(0.85, 1.2), 0.1).set_ease(Tween.EASE_OUT)
+	_attack_tween.parallel().tween_property(character_sprite, "position:x", base_x + (spring_distance * direction), 0.1).set_ease(Tween.EASE_OUT)
+	# Return to normal
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale, 0.12).set_ease(Tween.EASE_IN_OUT)
+	_attack_tween.parallel().tween_property(character_sprite, "position:x", base_x, 0.12).set_ease(Tween.EASE_IN)
+
+## Spin Attack - Quick rotation
+func _attack_spin() -> void:
+	if not character_sprite:
+		return
+
+	var base_rotation: float = character_sprite.rotation_degrees
+	# Spin direction based on facing
+	var spin_direction: float = 1.0 if character_sprite.flip_h else -1.0
+
+	_attack_tween = create_tween()
+	# Wind up slightly
+	_attack_tween.tween_property(character_sprite, "rotation_degrees", base_rotation + (15.0 * -spin_direction), 0.05)
+	# Full spin
+	_attack_tween.tween_property(character_sprite, "rotation_degrees", base_rotation + (360.0 * spin_direction), 0.2).set_ease(Tween.EASE_OUT)
+	# Slight scale pulse during spin
+	_attack_tween.parallel().tween_property(character_sprite, "scale", _base_sprite_scale * 1.1, 0.1)
+	_attack_tween.parallel().chain().tween_property(character_sprite, "scale", _base_sprite_scale, 0.1)
+	# Return rotation to base (accounting for bobbing)
+	_attack_tween.tween_property(character_sprite, "rotation_degrees", base_rotation, 0.05)
+
+## Pulse/Expand - Rapidly grow then shrink
+func _attack_pulse() -> void:
+	if not character_sprite:
+		return
+
+	var original_color: Color = character_sprite.modulate
+
+	_attack_tween = create_tween()
+	_attack_tween.set_parallel(true)
+	# Rapid expand
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * 1.4, 0.08).set_ease(Tween.EASE_OUT)
+	# Brighten during pulse
+	_attack_tween.tween_property(character_sprite, "modulate", Color(1.5, 1.5, 1.5, 1.0), 0.08)
+	# Shrink back
+	_attack_tween.chain().tween_property(character_sprite, "scale", _base_sprite_scale, 0.15).set_ease(Tween.EASE_IN_OUT)
+	_attack_tween.chain().tween_property(character_sprite, "modulate", original_color, 0.15)
