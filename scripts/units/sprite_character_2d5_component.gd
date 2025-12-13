@@ -102,8 +102,8 @@ func _process(delta: float) -> void:
 	if not enable_bobbing or not character_sprite or _is_attacking:
 		return
 
-	# Update walk animation
-	_bob_time += delta * bob_speed
+	# Update walk animation (wrap to prevent unbounded growth)
+	_bob_time = fmod(_bob_time + delta * bob_speed, TAU * 2.0)
 
 	# Bouncy vertical motion using abs(sin()) - simulates stepping/bouncing
 	# The -abs() makes it bounce DOWN from base position (feet hitting ground)
@@ -391,4 +391,6 @@ func _attack_pulse() -> void:
 
 ## Called when attack animation finishes - resumes bobbing
 func _on_attack_finished() -> void:
+	if not is_instance_valid(self):
+		return
 	_is_attacking = false
