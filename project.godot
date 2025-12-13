@@ -53,6 +53,7 @@ RedirectManager="*res://scripts/managers/redirect_manager.gd"
 PhysicsLayers="*res://scripts/core/physics_layers.gd"
 SpellTargetingManager="*res://scripts/ui/spell_targeting_manager.gd"
 FPSTestTool="*res://scripts/debug/fps_test_tool.gd"
+SpatialGrid="*res://scripts/spatial/spatial_grid.gd"
 
 [debug]
 
