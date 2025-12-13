@@ -9,7 +9,7 @@ extends Node
 ## Grid covers the battlefield (100x80 units) with 10x10 cells = 80 cells total.
 ## Units register on spawn, unregister on death, and update position when moving.
 ##
-## Debug visualization: Toggle with F11 (only in debug builds)
+## Debug visualization: Toggle via FPS Test Tool debug panel
 
 ## ============================================================================
 ## CONFIGURATION
@@ -81,21 +81,6 @@ func _process(_delta: float) -> void:
 	# Reset frame stats
 	_stats_queries_this_frame = 0
 	_stats_cell_updates_this_frame = 0
-
-
-func _input(event: InputEvent) -> void:
-	if not OS.is_debug_build():
-		return
-
-	if not event is InputEventKey:
-		return
-
-	var key_event: InputEventKey = event as InputEventKey
-	if not key_event.pressed or key_event.echo:
-		return
-
-	if key_event.keycode == KEY_F11:
-		_toggle_debug()
 
 
 ## ============================================================================
@@ -227,16 +212,15 @@ func get_units_in_radius(
 
 		var cell: Array = _grid[cell_idx]
 		for unit_variant: Variant in cell:
+			# Skip invalid/freed units first
+			if not is_instance_valid(unit_variant):
+				continue
 			if not unit_variant is Node3D:
 				continue
 			var unit: Node3D = unit_variant
 
 			# Skip excluded unit
 			if unit == exclude_unit:
-				continue
-
-			# Skip invalid units
-			if not is_instance_valid(unit):
 				continue
 
 			# Check if unit is alive (Unit3D has is_alive property)
@@ -362,13 +346,6 @@ func _setup_debug_ui() -> void:
 	_debug_stats_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
 	vbox.add_child(_debug_stats_label)
 
-	# Instructions
-	var instructions: Label = Label.new()
-	instructions.text = "F11 to toggle"
-	instructions.add_theme_font_size_override("font_size", 10)
-	instructions.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	vbox.add_child(instructions)
-
 	# Create 3D mesh for grid visualization
 	_debug_mesh = ImmediateMesh.new()
 	_debug_mesh_instance = MeshInstance3D.new()
@@ -383,13 +360,19 @@ func _setup_debug_ui() -> void:
 	_debug_mesh_instance.material_override = material
 
 
-func _toggle_debug() -> void:
+## Check if debug visualization is enabled
+func is_debug_enabled() -> bool:
+	return _debug_enabled
+
+
+## Toggle debug visualization on/off
+func toggle_debug() -> void:
 	_debug_enabled = not _debug_enabled
 
 	if _debug_panel:
 		_debug_panel.visible = _debug_enabled
 
-	if _debug_mesh_instance:
+	if is_instance_valid(_debug_mesh_instance):
 		_debug_mesh_instance.visible = _debug_enabled
 
 		# Add/remove 3D mesh from scene tree
@@ -433,7 +416,7 @@ func _update_debug_stats() -> void:
 
 
 func _draw_debug_grid() -> void:
-	if not _debug_mesh or not _debug_mesh_instance.visible:
+	if not _debug_mesh or not is_instance_valid(_debug_mesh_instance) or not _debug_mesh_instance.visible:
 		return
 
 	_debug_mesh.clear_surfaces()
@@ -444,13 +427,13 @@ func _draw_debug_grid() -> void:
 	# Draw grid lines
 	for x: int in range(GRID_WIDTH + 1):
 		var world_x: float = GRID_MIN_X + x * CELL_SIZE
-		_debug_mesh.surface_set_color(Color(0.3, 0.5, 0.3, 0.4))
+		_debug_mesh.surface_set_color(Color(1.0, 1.0, 1.0, 0.7))
 		_debug_mesh.surface_add_vertex(Vector3(world_x, grid_y, GRID_MIN_Z))
 		_debug_mesh.surface_add_vertex(Vector3(world_x, grid_y, GRID_MAX_Z))
 
 	for z: int in range(GRID_HEIGHT + 1):
 		var world_z: float = GRID_MIN_Z + z * CELL_SIZE
-		_debug_mesh.surface_set_color(Color(0.3, 0.5, 0.3, 0.4))
+		_debug_mesh.surface_set_color(Color(1.0, 1.0, 1.0, 0.7))
 		_debug_mesh.surface_add_vertex(Vector3(GRID_MIN_X, grid_y, world_z))
 		_debug_mesh.surface_add_vertex(Vector3(GRID_MAX_X, grid_y, world_z))
 

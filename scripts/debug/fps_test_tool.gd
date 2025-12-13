@@ -24,6 +24,7 @@ var _panel: PanelContainer
 var _fps_label: Label
 var _target_label: Label
 var _buttons: Dictionary = {}  # fps -> Button
+var _grid_button: Button
 
 
 ## =============================================================================
@@ -149,6 +150,17 @@ func _create_ui() -> void:
 	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(instructions)
 
+	# Debug toggles separator
+	var debug_separator: HSeparator = HSeparator.new()
+	vbox.add_child(debug_separator)
+
+	# Grid Lines toggle button
+	_grid_button = Button.new()
+	_grid_button.text = "Grid Lines: Off"
+	_grid_button.custom_minimum_size = Vector2(200, 32)
+	_grid_button.pressed.connect(_on_grid_toggle_pressed)
+	vbox.add_child(_grid_button)
+
 	# Start hidden by default (press ` or F12 to show)
 	_panel.visible = false
 
@@ -188,3 +200,9 @@ func _set_fps(target: int) -> void:
 
 func _on_fps_button_pressed(fps: int) -> void:
 	_set_fps(fps)
+
+
+func _on_grid_toggle_pressed() -> void:
+	SpatialGrid.toggle_debug()
+	var state: String = "On" if SpatialGrid.is_debug_enabled() else "Off"
+	_grid_button.text = "Grid Lines: %s" % state
