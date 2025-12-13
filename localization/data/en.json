@@ -36,6 +36,10 @@
         "name": "The Ironhide Slime",
         "description": "A peculiar slime blocks the path ahead. Merlin senses something unusual about its defenses. Learn to use tactical commands wisely."
       },
+      "arena_fire_elemental": {
+        "name": "Fire Elemental Test",
+        "description": "Test the new Fire Elemental unit. Watch it bob and float across the battlefield."
+      },
       "arena_melee_basics": {
         "name": "Melee Basics",
         "description": "Slime vs slime. Test basic melee combat and unit movement."
@@ -78,6 +82,10 @@
     "fire_recruit": {
       "name": "Fire Recruit",
       "description": "A basic fire unit."
+    },
+    "fire_elemental": {
+      "name": "Fire Elemental",
+      "description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path."
     },
     "ember_slinger": {
       "name": "Ember Slinger",

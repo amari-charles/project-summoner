@@ -56,6 +56,7 @@ const SLIME_RED: StringName = &"slime_red"
 # ============================================================================
 
 const FIRE_RECRUIT: StringName = &"fire_recruit"
+const FIRE_ELEMENTAL: StringName = &"fire_elemental"
 const EMBER_SLINGER: StringName = &"ember_slinger"
 const BLAZE_RIDER: StringName = &"blaze_rider"
 const ASH_VANGUARD: StringName = &"ash_vanguard"

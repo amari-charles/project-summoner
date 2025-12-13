@@ -104,6 +104,13 @@ var active_modifiers: Dictionary = {}
 @export var shadow_size: float = 0.0  ## Auto-calculated from sprite size (set to 0 for auto)
 @export var shadow_opacity: float = 0.6
 
+## Floating/bobbing animation (for spirits, elementals, etc.)
+@export var enable_bobbing: bool = false  ## Enable gentle bobbing animation for floating units
+
+## Attack animation style (0=None, 1=Lunge, 2=Squash&Spring, 3=Spin, 4=Pulse)
+@export_range(0, 4) var attack_style: int = 0  ## Attack effect for single-frame sprites
+@export var cycle_attack_styles: bool = false  ## Cycle through all attack styles for testing
+
 ## Current state
 var current_hp: float
 var is_alive: bool = true
@@ -254,6 +261,18 @@ func _setup_visuals() -> void:
 		# Configure sprite scale if specified
 		if "sprite_scale" in visual_component:
 			visual_component.set("sprite_scale", sprite_scale)
+
+		# Configure bobbing animation for floating units
+		if enable_bobbing and "enable_bobbing" in visual_component:
+			visual_component.set("enable_bobbing", true)
+
+		# Configure attack animation style
+		if attack_style > 0 and "attack_style" in visual_component:
+			visual_component.set("attack_style", attack_style)
+
+		# Configure attack style cycling for testing
+		if cycle_attack_styles and "cycle_attack_styles" in visual_component:
+			visual_component.set("cycle_attack_styles", true)
 
 		add_child(visual_component)
 
