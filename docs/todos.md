@@ -229,6 +229,36 @@ The profile data structure has redundant and unused fields that waste storage an
 
 ## Core Game Systems
 
+### 🟡 MEDIUM PRIORITY
+
+#### Card Returns to Pool When Summoned Unit Dies
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Card Mechanics
+**Effort:** Medium
+
+**Description:**
+Currently, when a summon card is played, it returns to the card pool immediately after being played. This allows players to redraw and replay the same summon multiple times while previous summons are still alive.
+
+Change this so that summon cards only return to the card pool after their summoned unit dies on the battlefield.
+
+**Requirements:**
+- Track which card instance spawned each unit
+- When a unit dies, return its associated card to the draw pool
+- Handle edge cases: what happens if battle ends while units are alive?
+- Update card pool/hand logic to exclude "in-play" cards from draw calculations
+
+**Benefits:**
+- Prevents spam strategies with powerful summons
+- Adds strategic depth (protecting your units = keeping options limited)
+- More realistic deck management
+
+**Notes:**
+- May need a visual indicator showing which cards are "in play" on the battlefield
+- Consider: should this apply to all summon cards or just certain ones?
+- Consider: multi-spawn cards (spawn_count > 1) - when does card return?
+
+---
+
 ### 🟢 LOW PRIORITY
 
 #### Support Upgrade-Specific Resource Costs
