@@ -21,8 +21,9 @@
       "card_xp_reward": 0,
       "summoner_xp_reward": 0,
       "dev_player_deck": [
-        {"catalog_id": "fire_elemental", "count": 4},
-        {"catalog_id": "fire_recruit", "count": 2}
+        {"catalog_id": "fire_elemental", "count": 2},
+        {"catalog_id": "fire_titan", "count": 2},
+        {"catalog_id": "fire_elemental_swarm", "count": 2}
       ],
       "enemy_deck": [
         {"catalog_id": "slime_green", "count": 3},

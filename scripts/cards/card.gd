@@ -6,6 +6,11 @@ class_name Card
 
 enum CardType { SUMMON, SPELL }
 
+## Multi-unit spawn clumping constants
+## When spawning multiple units, they form a random clump around the target position
+const CLUMP_BASE_RADIUS: float = 1.5  ## Minimum spawn radius (world units) for multi-unit summons
+const CLUMP_RADIUS_SCALE: float = 0.5  ## Additional radius per sqrt(unit_count) to prevent overcrowding
+
 ## Card identity
 @export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
 @export var card_name: String = "Unknown Card"
@@ -238,8 +243,18 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
 
+			# Calculate spawn offset - clump pattern for multiple units
+			var offset: Vector3 = Vector3.ZERO
+			if spawn_count > 1:
+				# Use a clump pattern: random positions within a radius
+				# Radius scales with spawn count to prevent overcrowding
+				var clump_radius: float = CLUMP_BASE_RADIUS + sqrt(spawn_count) * CLUMP_RADIUS_SCALE
+				var angle: float = randf() * TAU
+				var dist: float = randf() * clump_radius
+				offset = Vector3(cos(angle) * dist, 0, sin(angle) * dist)
+
 			# Find a safe spawn position that doesn't overlap with existing units
-			var desired_pos: Vector3 = spawn_pos + Vector3(i * 2.0, 0, 0)
+			var desired_pos: Vector3 = spawn_pos + offset
 			var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(
 				desired_pos, gameplay_layer.get_tree(), unit.collision_radius
 			)

@@ -5,7 +5,7 @@ class_name SpriteCharacter2D5Component
 ## Renders 2D sprite animations in 3D space using AnimatedSprite2D + SubViewport
 
 ## Sprite scaling constants
-const VIEWPORT_SIZE: int = 250  ## Fixed viewport height in pixels
+const BASE_VIEWPORT_SIZE: int = 250  ## Base viewport height in pixels
 const LEGACY_SPRITE_SIZE: int = 100  ## Original sprite height (soldier, archer, etc.)
 const DEFAULT_SPRITE_SCALE: float = 2.5  ## Default scale for 100px sprites (250 / 100 = 2.5)
 
@@ -51,8 +51,11 @@ const PULSE_SHRINK_DURATION: float = 0.15  ## Time to shrink back
 @export var head_offset_pixels: float = 0.0
 @export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
 ## Scale for sprite within viewport
-## Use calculate_sprite_scale() helper or calculate manually: VIEWPORT_SIZE / sprite_height
+## Use calculate_sprite_scale() helper or calculate manually: BASE_VIEWPORT_SIZE / sprite_height
 @export var sprite_scale: float = DEFAULT_SPRITE_SCALE
+## Scale multiplier for the viewport (for large units like titans)
+## Set to 4.0 for a unit 4x the normal size
+@export var viewport_scale: float = 1.0
 
 ## Walking/bobbing animation settings
 @export var enable_bobbing: bool = false  ## Enable walking bob animation
@@ -82,6 +85,13 @@ var _is_attacking: bool = false  ## True during attack animations (pauses bobbin
 func _ready() -> void:
 	# Force viewport to render every frame
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
+	# Apply viewport scaling for large units (titans, bosses, etc.)
+	if viewport_scale != 1.0:
+		var scaled_size: int = int(BASE_VIEWPORT_SIZE * viewport_scale)
+		viewport.size = Vector2i(scaled_size, scaled_size)
+		# Keep pixel_size constant so world-space size scales with viewport
+		# (larger viewport = larger unit in world)
 
 	# Apply sprite scale
 	character_sprite.scale = Vector2(sprite_scale, sprite_scale)
@@ -190,6 +200,9 @@ func _setup_sprite_alignment() -> void:
 	# Position Sprite3D so viewport bottom is at Y=0
 	sprite_3d.position.y = world_height / 2.0  # 3.125 for standard sprites
 
+	# Center sprite horizontally in viewport (important for scaled viewports)
+	character_sprite.position.x = viewport.size.x / 2.0
+
 	# Get actual texture size for precise feet positioning
 	var texture_size: Vector2 = _get_current_frame_size()
 
@@ -261,7 +274,7 @@ static func calculate_sprite_scale(sprite_height_pixels: int) -> float:
 	if sprite_height_pixels <= 0:
 		push_warning("SpriteChar2D5: Invalid sprite height %d, using default scale" % sprite_height_pixels)
 		return DEFAULT_SPRITE_SCALE
-	return float(VIEWPORT_SIZE) / float(sprite_height_pixels)
+	return float(BASE_VIEWPORT_SIZE) / float(sprite_height_pixels)
 
 ## Flash the character white briefly (hit feedback)
 func flash_white() -> void:

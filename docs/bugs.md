@@ -128,6 +128,41 @@ Either:
 
 ---
 
+#### Large Units Render In Front of Smaller Units Despite Z-Position
+**Status:** Open
+**Reported:** 2025-12-13
+**Component:** Rendering / Sprite3D / Depth Sorting
+
+**Description:**
+Large units (e.g., Fire Titan with 4x viewport scale) render in front of smaller units even when they are positioned behind them on the Z-axis (further from camera).
+
+**Expected Behavior:**
+Units should be sorted by their ground position (feet/base) on the Z-axis. A unit standing further back should render behind units standing in front, regardless of sprite size.
+
+**Current Behavior:**
+Large sprites appear to "pop" in front of smaller units, breaking depth perception. The sorting seems to be based on sprite center or some other point rather than the unit's ground position.
+
+**Impact:**
+Breaks visual coherence and depth perception on the battlefield. Large units look wrong when mixed with normal-sized units.
+
+**Possible Causes:**
+1. Sprite3D sorting uses sprite center rather than base/feet position
+2. Larger viewport size affects the render order calculation
+3. Billboard rendering interferes with depth sorting
+4. Sprite not anchored to bottom of bounding box
+
+**Related Files:**
+- scripts/units/sprite_character_2d5_component.gd (sprite positioning, `_setup_sprite_alignment()`)
+- scripts/units/unit_3d.gd (unit positioning)
+- scenes/units/fire_titan_3d.tscn (large unit example)
+
+**Notes:**
+- First observed with Fire Titan (viewport_scale = 4.0)
+- May need to adjust Sprite3D render priority or sorting offset
+- Godot's Sprite3D has `render_priority` and sorting properties that may help
+
+---
+
 ## Bug Report Template
 
 ```markdown
@@ -166,4 +201,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-12-12 - Added hand UI blocking spawns and aggro exploit bugs*
+*Last Updated: 2025-12-13 - Added large unit depth sorting bug*
