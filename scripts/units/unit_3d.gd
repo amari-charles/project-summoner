@@ -21,6 +21,7 @@ const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 6
 const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
 
 ## Unit separation constants (prevents stacking during movement)
+const MAX_COLLISION_RADIUS: float = 1.5  ## Largest expected collision_radius (for spatial query sizing)
 const SEPARATION_MULTIPLIER: float = 1.5  ## Separation kicks in at collision_radius * this
 const SEPARATION_STRENGTH: float = 2.0  ## Strength of separation push (reduced for smoother movement)
 const LATERAL_SEPARATION_BOOST: float = 3.0  ## Extra separation on axis perpendicular to movement
@@ -1178,8 +1179,8 @@ func _move_towards_position(target_position: Vector3) -> void:
 	# Post-move: correct any severe overlaps
 	_correct_overlaps()
 
-	# Update position in spatial grid
-	SpatialGrid.update_unit_position(self)
+	# Note: SpatialGrid.update_unit_position() is called in _physics_process()
+	# after all movement, so we don't need to call it here
 
 ## Calculate separation steering force to avoid overlapping with nearby units
 ## Separates from ALL units (both teams) EXCEPT the current attack target
@@ -1187,8 +1188,8 @@ func _move_towards_position(target_position: Vector3) -> void:
 func _calculate_separation_force() -> Vector3:
 	var separation: Vector3 = Vector3.ZERO
 
-	# Query radius: max separation distance we care about (assumes max collision_radius ~1.5)
-	var separation_radius: float = collision_radius * SEPARATION_MULTIPLIER * 2.0
+	# Query radius: max separation distance (self + largest possible other unit)
+	var separation_radius: float = (collision_radius + MAX_COLLISION_RADIUS) * SEPARATION_MULTIPLIER
 	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
 		global_position,
 		separation_radius,
@@ -1332,7 +1333,7 @@ func _calculate_flank_direction_scores() -> Dictionary:
 
 	var left_score: float = 0.0
 	var right_score: float = 0.0
-	var check_distance: float = collision_radius * 3.0
+	var check_distance: float = (collision_radius + MAX_COLLISION_RADIUS) * 1.5
 
 	# Use spatial grid for efficient query
 	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
@@ -1370,8 +1371,8 @@ func _calculate_flank_direction_scores() -> Dictionary:
 ## This is a "hard" correction for when soft separation wasn't enough
 ## Uses SpatialGrid for efficient O(k) proximity queries
 func _correct_overlaps() -> void:
-	# Query radius: check units that could overlap (max combined collision radius ~3.0)
-	var check_radius: float = collision_radius * 2.0
+	# Query radius: self + largest possible other unit
+	var check_radius: float = collision_radius + MAX_COLLISION_RADIUS
 	var nearby_units: Array[Node3D] = SpatialGrid.get_units_in_radius(
 		global_position,
 		check_radius,
