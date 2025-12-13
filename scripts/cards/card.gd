@@ -11,6 +11,27 @@ enum CardType { SUMMON, SPELL }
 const CLUMP_BASE_RADIUS: float = 1.5  ## Minimum spawn radius (world units) for multi-unit summons
 const CLUMP_RADIUS_SCALE: float = 0.5  ## Additional radius per sqrt(unit_count) to prevent overcrowding
 
+
+## Calculate the clump radius for multi-unit spawns
+## Formula: BASE_RADIUS + sqrt(unit_count) * RADIUS_SCALE
+## This ensures larger groups spread out more to prevent overcrowding
+static func calculate_clump_radius(unit_count: int) -> float:
+	if unit_count <= 1:
+		return 0.0
+	return CLUMP_BASE_RADIUS + sqrt(unit_count) * CLUMP_RADIUS_SCALE
+
+
+## Generate a random offset within the clump radius for multi-unit spawns
+## Returns Vector3.ZERO for single-unit spawns
+## Uses polar coordinates for uniform circular distribution
+static func generate_clump_offset(unit_count: int, rng_angle: float, rng_distance: float) -> Vector3:
+	if unit_count <= 1:
+		return Vector3.ZERO
+	var clump_radius: float = calculate_clump_radius(unit_count)
+	var angle: float = rng_angle * TAU
+	var dist: float = rng_distance * clump_radius
+	return Vector3(cos(angle) * dist, 0, sin(angle) * dist)
+
 ## Card identity
 @export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
 @export var card_name: String = "Unknown Card"
@@ -244,14 +265,7 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			gameplay_layer.add_child(unit)
 
 			# Calculate spawn offset - clump pattern for multiple units
-			var offset: Vector3 = Vector3.ZERO
-			if spawn_count > 1:
-				# Use a clump pattern: random positions within a radius
-				# Radius scales with spawn count to prevent overcrowding
-				var clump_radius: float = CLUMP_BASE_RADIUS + sqrt(spawn_count) * CLUMP_RADIUS_SCALE
-				var angle: float = randf() * TAU
-				var dist: float = randf() * clump_radius
-				offset = Vector3(cos(angle) * dist, 0, sin(angle) * dist)
+			var offset: Vector3 = generate_clump_offset(spawn_count, randf(), randf())
 
 			# Find a safe spawn position that doesn't overlap with existing units
 			var desired_pos: Vector3 = spawn_pos + offset

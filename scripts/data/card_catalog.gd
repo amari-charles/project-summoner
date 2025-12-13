@@ -386,8 +386,16 @@ func _init_catalog() -> void:
 	}
 
 	# Fire Titan - Giant tank version of Fire Elemental
-	# Visual: 4x scaled fire elemental (sprite_scale 1.04), bobbing animation
+	# Visual: 4x scaled fire elemental using viewport_scale system
 	# Role: Heavy tank with high HP, moderate damage, slow movement
+	#
+	# Scene values derived from fire_elemental_3d.tscn × 4 (viewport_scale):
+	#   - collision radius: 0.5 × 4 = 2.0
+	#   - collision height: 1.6 × 4 = 6.4
+	#   - collision Y pos:  0.8 × 4 = 3.2 (half of height)
+	#   - projectile Y:     1.2 × 4 = 4.8
+	#   - sprite_scale:     0.26 × 4 = 1.04
+	#   - sprite_feet_offset_pixels: 40.0 (unchanged - pixel offset within texture)
 	_catalog["fire_titan"] = {
 		# Identity
 		"catalog_id": "fire_titan",
