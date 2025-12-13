@@ -83,6 +83,10 @@
       "name": "Fire Recruit",
       "description": "A basic fire unit."
     },
+    "fire_elemental": {
+      "name": "Fire Elemental",
+      "description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path."
+    },
     "ember_slinger": {
       "name": "Ember Slinger",
       "description": "A ranged fire unit."

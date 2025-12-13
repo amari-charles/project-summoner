@@ -9,6 +9,38 @@ const VIEWPORT_SIZE: int = 250  ## Fixed viewport height in pixels
 const LEGACY_SPRITE_SIZE: int = 100  ## Original sprite height (soldier, archer, etc.)
 const DEFAULT_SPRITE_SCALE: float = 2.5  ## Default scale for 100px sprites (250 / 100 = 2.5)
 
+## =============================================================================
+## ATTACK ANIMATION CONSTANTS
+## =============================================================================
+## These values are tuned for visual appeal and game feel. Timings are in seconds.
+
+# Lunge attack - quick thrust forward and snap back
+const LUNGE_DISTANCE_PX: float = 20.0  ## How far to lunge toward enemy (pixels)
+const LUNGE_FORWARD_DURATION: float = 0.1  ## Time to reach full lunge
+const LUNGE_RETURN_DURATION: float = 0.15  ## Time to snap back (slightly slower for impact feel)
+
+# Squash & Spring attack - cartoon-style compression then spring
+const SPRING_DISTANCE_PX: float = 15.0  ## How far to spring forward (pixels)
+const SQUASH_SCALE: Vector2 = Vector2(1.3, 0.7)  ## Horizontal stretch, vertical compress
+const SPRING_SCALE: Vector2 = Vector2(0.85, 1.2)  ## Vertical stretch during spring
+const SQUASH_DURATION: float = 0.08  ## Time to compress
+const SPRING_DURATION: float = 0.1  ## Time to spring forward
+const SPRING_RETURN_DURATION: float = 0.12  ## Time to return to normal
+
+# Spin attack - full rotation with scale pulse
+const SPIN_WINDUP_DEGREES: float = 15.0  ## Slight wind-up rotation before spin
+const SPIN_FULL_ROTATION: float = 360.0  ## Full spin amount
+const SPIN_SCALE_MULTIPLIER: float = 1.1  ## Scale pulse during spin
+const SPIN_WINDUP_DURATION: float = 0.05  ## Time for wind-up
+const SPIN_DURATION: float = 0.2  ## Time for full rotation
+const SPIN_SCALE_DURATION: float = 0.1  ## Time for scale pulse (each direction)
+
+# Pulse attack - rapid expand then shrink with brightness
+const PULSE_SCALE_MULTIPLIER: float = 1.4  ## How much to expand
+const PULSE_BRIGHTNESS: Color = Color(1.5, 1.5, 1.5, 1.0)  ## Brightness during pulse
+const PULSE_EXPAND_DURATION: float = 0.08  ## Time to expand
+const PULSE_SHRINK_DURATION: float = 0.15  ## Time to shrink back
+
 ## Offset in pixels from texture bottom to actual character feet
 ## Use this when sprite artwork has empty space below the character's feet
 ## Example: 100px texture with feet at 70px from top = 30px offset
@@ -41,6 +73,7 @@ var _base_sprite_scale: Vector2 = Vector2.ONE  ## Base scale before attack effec
 var _attack_tween: Tween = null  ## Current attack animation tween
 var _cycle_attack_count: int = 0  ## Counter for cycling through styles
 var _cycle_current_style: int = 1  ## Current style when cycling (starts at LUNGE)
+var _is_attacking: bool = false  ## True during attack animations (pauses bobbing)
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
 @onready var viewport: SubViewport = $Sprite3D/SubViewport
@@ -66,7 +99,7 @@ func _ready() -> void:
 		_bob_time = randf() * TAU
 
 func _process(delta: float) -> void:
-	if not enable_bobbing or not character_sprite:
+	if not enable_bobbing or not character_sprite or _is_attacking:
 		return
 
 	# Update walk animation
@@ -259,6 +292,9 @@ func _play_attack_effect() -> void:
 	if _attack_tween and _attack_tween.is_valid():
 		_attack_tween.kill()
 
+	# Pause bobbing during attack animation
+	_is_attacking = true
+
 	# Determine which style to use
 	var style_to_use: int = attack_style
 	if cycle_attack_styles:
@@ -271,7 +307,6 @@ func _play_attack_effect() -> void:
 			# Wrap back to LUNGE (1) after PULSE (4)
 			if _cycle_current_style > AttackStyle.PULSE:
 				_cycle_current_style = AttackStyle.LUNGE
-			print("Attack style switched to: ", AttackStyle.keys()[_cycle_current_style])
 
 	match style_to_use:
 		AttackStyle.LUNGE:
@@ -289,13 +324,13 @@ func _attack_lunge() -> void:
 		return
 
 	var base_x: float = character_sprite.position.x
-	var lunge_distance: float = 20.0  # Pixels to lunge forward
 	# Lunge direction based on flip (attacking toward enemy)
 	var direction: float = -1.0 if character_sprite.flip_h else 1.0
 
 	_attack_tween = create_tween()
-	_attack_tween.tween_property(character_sprite, "position:x", base_x + (lunge_distance * direction), 0.1).set_ease(Tween.EASE_OUT)
-	_attack_tween.tween_property(character_sprite, "position:x", base_x, 0.15).set_ease(Tween.EASE_IN)
+	_attack_tween.tween_property(character_sprite, "position:x", base_x + (LUNGE_DISTANCE_PX * direction), LUNGE_FORWARD_DURATION).set_ease(Tween.EASE_OUT)
+	_attack_tween.tween_property(character_sprite, "position:x", base_x, LUNGE_RETURN_DURATION).set_ease(Tween.EASE_IN)
+	_attack_tween.tween_callback(_on_attack_finished)
 
 ## Squash & Spring - Compress then spring forward
 func _attack_squash_spring() -> void:
@@ -304,37 +339,37 @@ func _attack_squash_spring() -> void:
 
 	var base_x: float = character_sprite.position.x
 	var direction: float = -1.0 if character_sprite.flip_h else 1.0
-	var spring_distance: float = 15.0
 
 	_attack_tween = create_tween()
 	# Squash down (compress vertically, expand horizontally)
-	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * Vector2(1.3, 0.7), 0.08).set_ease(Tween.EASE_OUT)
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * SQUASH_SCALE, SQUASH_DURATION).set_ease(Tween.EASE_OUT)
 	# Spring forward and stretch
-	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * Vector2(0.85, 1.2), 0.1).set_ease(Tween.EASE_OUT)
-	_attack_tween.parallel().tween_property(character_sprite, "position:x", base_x + (spring_distance * direction), 0.1).set_ease(Tween.EASE_OUT)
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * SPRING_SCALE, SPRING_DURATION).set_ease(Tween.EASE_OUT)
+	_attack_tween.parallel().tween_property(character_sprite, "position:x", base_x + (SPRING_DISTANCE_PX * direction), SPRING_DURATION).set_ease(Tween.EASE_OUT)
 	# Return to normal
-	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale, 0.12).set_ease(Tween.EASE_IN_OUT)
-	_attack_tween.parallel().tween_property(character_sprite, "position:x", base_x, 0.12).set_ease(Tween.EASE_IN)
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale, SPRING_RETURN_DURATION).set_ease(Tween.EASE_IN_OUT)
+	_attack_tween.parallel().tween_property(character_sprite, "position:x", base_x, SPRING_RETURN_DURATION).set_ease(Tween.EASE_IN)
+	_attack_tween.tween_callback(_on_attack_finished)
 
 ## Spin Attack - Quick rotation
 func _attack_spin() -> void:
 	if not character_sprite:
 		return
 
-	var base_rotation: float = character_sprite.rotation_degrees
 	# Spin direction based on facing
 	var spin_direction: float = 1.0 if character_sprite.flip_h else -1.0
 
 	_attack_tween = create_tween()
-	# Wind up slightly
-	_attack_tween.tween_property(character_sprite, "rotation_degrees", base_rotation + (15.0 * -spin_direction), 0.05)
+	# Wind up slightly (opposite direction)
+	_attack_tween.tween_property(character_sprite, "rotation_degrees", SPIN_WINDUP_DEGREES * -spin_direction, SPIN_WINDUP_DURATION)
 	# Full spin
-	_attack_tween.tween_property(character_sprite, "rotation_degrees", base_rotation + (360.0 * spin_direction), 0.2).set_ease(Tween.EASE_OUT)
+	_attack_tween.tween_property(character_sprite, "rotation_degrees", SPIN_FULL_ROTATION * spin_direction, SPIN_DURATION).set_ease(Tween.EASE_OUT)
 	# Slight scale pulse during spin
-	_attack_tween.parallel().tween_property(character_sprite, "scale", _base_sprite_scale * 1.1, 0.1)
-	_attack_tween.parallel().chain().tween_property(character_sprite, "scale", _base_sprite_scale, 0.1)
-	# Return rotation to base (accounting for bobbing)
-	_attack_tween.tween_property(character_sprite, "rotation_degrees", base_rotation, 0.05)
+	_attack_tween.parallel().tween_property(character_sprite, "scale", _base_sprite_scale * SPIN_SCALE_MULTIPLIER, SPIN_SCALE_DURATION)
+	_attack_tween.parallel().chain().tween_property(character_sprite, "scale", _base_sprite_scale, SPIN_SCALE_DURATION)
+	# Return rotation to neutral (0) so bobbing can take over smoothly
+	_attack_tween.tween_property(character_sprite, "rotation_degrees", 0.0, SPIN_WINDUP_DURATION)
+	_attack_tween.tween_callback(_on_attack_finished)
 
 ## Pulse/Expand - Rapidly grow then shrink
 func _attack_pulse() -> void:
@@ -346,9 +381,14 @@ func _attack_pulse() -> void:
 	_attack_tween = create_tween()
 	_attack_tween.set_parallel(true)
 	# Rapid expand
-	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * 1.4, 0.08).set_ease(Tween.EASE_OUT)
+	_attack_tween.tween_property(character_sprite, "scale", _base_sprite_scale * PULSE_SCALE_MULTIPLIER, PULSE_EXPAND_DURATION).set_ease(Tween.EASE_OUT)
 	# Brighten during pulse
-	_attack_tween.tween_property(character_sprite, "modulate", Color(1.5, 1.5, 1.5, 1.0), 0.08)
+	_attack_tween.tween_property(character_sprite, "modulate", PULSE_BRIGHTNESS, PULSE_EXPAND_DURATION)
 	# Shrink back
-	_attack_tween.chain().tween_property(character_sprite, "scale", _base_sprite_scale, 0.15).set_ease(Tween.EASE_IN_OUT)
-	_attack_tween.chain().tween_property(character_sprite, "modulate", original_color, 0.15)
+	_attack_tween.chain().tween_property(character_sprite, "scale", _base_sprite_scale, PULSE_SHRINK_DURATION).set_ease(Tween.EASE_IN_OUT)
+	_attack_tween.chain().tween_property(character_sprite, "modulate", original_color, PULSE_SHRINK_DURATION)
+	_attack_tween.chain().tween_callback(_on_attack_finished)
+
+## Called when attack animation finishes - resumes bobbing
+func _on_attack_finished() -> void:
+	_is_attacking = false

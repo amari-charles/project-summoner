@@ -343,6 +343,8 @@ func _init_catalog() -> void:
 	}
 
 	# Fire Elemental - Floating fire spirit
+	# Visual: Uses bobbing animation (enable_bobbing=true), Lunge attack style
+	# Sprite scale 0.26 calculated for ~960px sprite (VIEWPORT_SIZE 250 / 960 ≈ 0.26)
 	_catalog["fire_elemental"] = {
 		# Identity
 		"catalog_id": "fire_elemental",
