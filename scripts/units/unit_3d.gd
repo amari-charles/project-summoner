@@ -98,6 +98,7 @@ var active_modifiers: Dictionary = {}
 @export var sprite_feet_offset_pixels: float = 0.0  ## Offset from texture bottom to actual feet (for sprites with empty space below)
 @export var sprite_head_offset_pixels: float = 0.0  ## Offset from texture top to actual head (for sprites with empty space above)
 @export var sprite_scale: float = 2.5  ## Scale for sprite in viewport (default 2.5 for 100px sprites, use 0.806 for 310px sprites)
+@export var viewport_scale: float = 1.0  ## Viewport size multiplier (4.0 for titans, 1.0 for normal units)
 
 ## Shadow settings
 @export var shadow_enabled: bool = true
@@ -261,6 +262,10 @@ func _setup_visuals() -> void:
 		# Configure sprite scale if specified
 		if "sprite_scale" in visual_component:
 			visual_component.set("sprite_scale", sprite_scale)
+
+		# Configure viewport scale for large units (titans, bosses)
+		if viewport_scale != 1.0 and "viewport_scale" in visual_component:
+			visual_component.set("viewport_scale", viewport_scale)
 
 		# Configure bobbing animation for floating units
 		if enable_bobbing and "enable_bobbing" in visual_component:

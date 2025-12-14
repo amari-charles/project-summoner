@@ -344,7 +344,7 @@ func _init_catalog() -> void:
 
 	# Fire Elemental - Floating fire spirit
 	# Visual: Uses bobbing animation (enable_bobbing=true), Lunge attack style
-	# Sprite scale 0.26 calculated for ~960px sprite (VIEWPORT_SIZE 250 / 960 ≈ 0.26)
+	# Sprite scale 0.26 calculated for ~960px sprite (BASE_VIEWPORT_SIZE 250 / 960 ≈ 0.26)
 	_catalog["fire_elemental"] = {
 		# Identity
 		"catalog_id": "fire_elemental",
@@ -377,6 +377,99 @@ func _init_catalog() -> void:
 
 		# Metadata
 		"tags": ["melee", "fire", "floating", "spirit"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
+	# Fire Titan - Giant tank version of Fire Elemental
+	# Visual: 4x scaled fire elemental using viewport_scale system
+	# Role: Heavy tank with high HP, moderate damage, slow movement
+	#
+	# Scene values derived from fire_elemental_3d.tscn × 4 (viewport_scale):
+	#   - collision radius: 0.5 × 4 = 2.0
+	#   - collision height: 1.6 × 4 = 6.4
+	#   - collision Y pos:  0.8 × 4 = 3.2 (half of height)
+	#   - projectile Y:     1.2 × 4 = 4.8
+	#   - sprite_scale:     0.26 × 4 = 1.04
+	#   - sprite_feet_offset_pixels: 40.0 (unchanged - pixel offset within texture)
+	_catalog["fire_titan"] = {
+		# Identity
+		"catalog_id": "fire_titan",
+		"card_name": "Fire Titan",
+		"description": "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach.",
+		"rarity": RarityIDs.EPIC,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 7,
+		"cooldown": 3.0,
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/fire_titan_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats - Tank: high HP, moderate damage, slow
+		"max_hp": 300.0,
+		"attack_damage": 20.0,
+		"attack_range": 3.0,
+		"attack_speed": 0.8,
+		"move_speed": 2.0,
+		"aggro_radius": 20.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "floating", "spirit", "tank", "giant"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
+	# Fire Elemental Swarm - Spawns 10 weaker fire elementals
+	# Role: Swarm tactics - overwhelm with numbers
+	_catalog["fire_elemental_swarm"] = {
+		# Identity
+		"catalog_id": "fire_elemental_swarm",
+		"card_name": "Fire Swarm",
+		"description": "Unleash a horde of flame spirits. Ten smaller fire elementals surge forth to overwhelm the enemy.",
+		"rarity": RarityIDs.RARE,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 7,
+		"cooldown": 4.0,
+
+		# Summon properties - uses same scene but spawns 10
+		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
+		"spawn_count": 10,
+
+		# Unit stats - slightly weaker than base fire elemental
+		"max_hp": 45.0,
+		"attack_damage": 9.0,
+		"attack_range": 2.0,
+		"attack_speed": 1.2,
+		"move_speed": 3.5,
+		"aggro_radius": 20.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "floating", "spirit", "swarm"],
 		"unlock_condition": "default",
 
 		# Elemental affinity

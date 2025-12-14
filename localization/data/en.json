@@ -87,6 +87,14 @@
       "name": "Fire Elemental",
       "description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path."
     },
+    "fire_titan": {
+      "name": "Fire Titan",
+      "description": "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach."
+    },
+    "fire_elemental_swarm": {
+      "name": "Fire Swarm",
+      "description": "Unleash a horde of flame spirits. Ten smaller fire elementals surge forth to overwhelm the enemy."
+    },
     "ember_slinger": {
       "name": "Ember Slinger",
       "description": "A ranged fire unit."

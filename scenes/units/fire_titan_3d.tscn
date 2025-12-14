@@ -1,25 +1,26 @@
-[gd_scene load_steps=4 format=3 uid="uid://fire_elemental_3d"]
+[gd_scene load_steps=4 format=3 uid="uid://fire_titan_3d"]
 
 [ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
 [ext_resource type="SpriteFrames" path="res://resources/animations/fire_elemental_sprite_frames.tres" id="2_frames"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
-radius = 0.5
-height = 1.6
+radius = 2.0
+height = 6.4
 
-[node name="FireElemental3D" type="CharacterBody3D" groups=["units"]]
+[node name="FireTitan3D" type="CharacterBody3D" groups=["units"]]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_script")
 sprite_frames = ExtResource("2_frames")
 sprite_feet_offset_pixels = 40.0
-sprite_scale = 0.26
+sprite_scale = 1.04
+viewport_scale = 4.0
 enable_bobbing = true
 attack_style = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0)
 shape = SubResource("CapsuleShape3D_1")
 
 [node name="ProjectileTargetPoint" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.8, 0)

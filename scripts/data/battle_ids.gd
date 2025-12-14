@@ -44,6 +44,9 @@ const CHARGE_TUTORIAL: StringName = &"charge_tutorial"
 # COMBAT ARENA (Debug/test battles with fixed decks)
 # ============================================================================
 
+## Arena Battle: Fire Elemental Test - Fire elemental variants
+const ARENA_FIRE_ELEMENTAL: StringName = &"arena_fire_elemental"
+
 ## Arena Battle 1: Melee Basics - Slime vs Slime
 const ARENA_MELEE_BASICS: StringName = &"arena_melee_basics"
 
@@ -75,6 +78,7 @@ const ALL_TUTORIALS: Array[StringName] = [
 
 ## All campaign battle IDs
 const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
+	ARENA_FIRE_ELEMENTAL,
 	ARENA_MELEE_BASICS,
 	ARENA_RANGED_INTRO,
 	ARENA_MIXED_TACTICS,

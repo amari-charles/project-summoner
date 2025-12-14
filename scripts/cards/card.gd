@@ -6,6 +6,32 @@ class_name Card
 
 enum CardType { SUMMON, SPELL }
 
+## Multi-unit spawn clumping constants
+## When spawning multiple units, they form a random clump around the target position
+const CLUMP_BASE_RADIUS: float = 1.5  ## Minimum spawn radius (world units) for multi-unit summons
+const CLUMP_RADIUS_SCALE: float = 0.5  ## Additional radius per sqrt(unit_count) to prevent overcrowding
+
+
+## Calculate the clump radius for multi-unit spawns
+## Formula: BASE_RADIUS + sqrt(unit_count) * RADIUS_SCALE
+## This ensures larger groups spread out more to prevent overcrowding
+static func calculate_clump_radius(unit_count: int) -> float:
+	if unit_count <= 1:
+		return 0.0
+	return CLUMP_BASE_RADIUS + sqrt(unit_count) * CLUMP_RADIUS_SCALE
+
+
+## Generate a random offset within the clump radius for multi-unit spawns
+## Returns Vector3.ZERO for single-unit spawns
+## Uses polar coordinates for uniform circular distribution
+static func generate_clump_offset(unit_count: int, rng_angle: float, rng_distance: float) -> Vector3:
+	if unit_count <= 1:
+		return Vector3.ZERO
+	var clump_radius: float = calculate_clump_radius(unit_count)
+	var angle: float = rng_angle * TAU
+	var dist: float = rng_distance * clump_radius
+	return Vector3(cos(angle) * dist, 0, sin(angle) * dist)
+
 ## Card identity
 @export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
 @export var card_name: String = "Unknown Card"
@@ -238,8 +264,11 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
 
+			# Calculate spawn offset - clump pattern for multiple units
+			var offset: Vector3 = generate_clump_offset(spawn_count, randf(), randf())
+
 			# Find a safe spawn position that doesn't overlap with existing units
-			var desired_pos: Vector3 = spawn_pos + Vector3(i * 2.0, 0, 0)
+			var desired_pos: Vector3 = spawn_pos + offset
 			var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(
 				desired_pos, gameplay_layer.get_tree(), unit.collision_radius
 			)

@@ -293,6 +293,28 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Improve Hit Flash Feedback for Large Units
+**Status:** ⬜ Not Started
+**Category:** Visual Polish
+**Effort:** Small
+
+**Description:**
+Large units (like Fire Titan) appear permanently lit up when taking continuous damage from multiple attackers. The hit flash effect doesn't scale well for tanky units.
+
+**Possible Solutions:**
+1. **Threshold-based flashing**: Only show hit flash when damage exceeds a % of max HP (e.g., 5-10%)
+2. **Cooldown-based**: Add minimum time between flashes regardless of hits
+3. **Damage accumulation**: Accumulate damage over a short window, flash once for the total
+4. **Visual variation**: Use different flash intensity based on damage amount
+5. **Alternative feedback**: Replace constant flash with damage numbers, screen shake, or other effects for large units
+
+**Notes:**
+- Current `flash_white()` in `sprite_character_2d5_component.gd` triggers on every hit
+- Problem is most noticeable on high-HP units being attacked by multiple enemies
+- Solution should still provide clear feedback that damage is occurring
+
+---
+
 #### Improve Card Visual UI
 **Status:** ⬜ Not Started
 **Category:** UI/UX
