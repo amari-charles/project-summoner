@@ -11,7 +11,9 @@ class_name GameUI
 ## Two-phase battle system UI elements
 @export var phase_label: Label = null
 @export var prep_timer_label: Label = null
-@export var casting_progress_bar: ProgressBar = null
+
+## Casting indicator (created dynamically)
+var casting_indicator: CastingIndicator = null
 
 var game_controller: Node = null
 var player_summoner: Summoner = null
@@ -36,17 +38,16 @@ func _ready() -> void:
 		phase_label = get_node_or_null("PhaseLabel")
 	if prep_timer_label == null:
 		prep_timer_label = get_node_or_null("PrepTimerLabel")
-	if casting_progress_bar == null:
-		casting_progress_bar = get_node_or_null("CastingProgressBar")
+
+	# Create casting indicator dynamically
+	casting_indicator = CastingIndicator.new()
+	casting_indicator.name = "CastingIndicator"
+	add_child(casting_indicator)
 
 	# Connect restart button (always safe to do in _ready)
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
 		restart_button.visible = false  # Hidden until game over
-
-	# Hide casting progress bar initially
-	if casting_progress_bar:
-		casting_progress_bar.visible = false
 
 ## Initialize GameUI with controller and summoner references
 ## Called by BattleCoordinator after summoners are ready
@@ -158,19 +159,21 @@ func _on_prep_timer_updated(remaining: float) -> void:
 
 ## Handle casting started (summon_time delay begins)
 func _on_casting_started(card: Card, duration: float) -> void:
-	if casting_progress_bar:
-		casting_progress_bar.max_value = duration
-		casting_progress_bar.value = duration
-		casting_progress_bar.visible = true
-	# Could also show card name being cast
-	print("GameUI: Casting %s (%.1fs)" % [card.card_name, duration])
+	if casting_indicator:
+		# Position near the hand UI (bottom center, offset left)
+		var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+		casting_indicator.position = Vector2(
+			viewport_size.x / 2.0 - 200,  # Left of center
+			viewport_size.y - 180  # Above hand area
+		)
+		casting_indicator.start_casting(card, duration)
 
 ## Handle casting progress update
-func _on_casting_progress(remaining: float, _total: float) -> void:
-	if casting_progress_bar:
-		casting_progress_bar.value = remaining
+func _on_casting_progress(remaining: float, total: float) -> void:
+	if casting_indicator:
+		casting_indicator.update_progress(remaining, total)
 
 ## Handle casting completed
 func _on_casting_completed(_card: Card) -> void:
-	if casting_progress_bar:
-		casting_progress_bar.visible = false
+	if casting_indicator:
+		casting_indicator.stop_casting()

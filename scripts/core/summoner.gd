@@ -38,6 +38,7 @@ var casting_time_remaining: float = 0.0
 var casting_time_total: float = 0.0
 var casting_spawn_position: Vector3 = Vector3.ZERO
 var casting_card_index: int = -1
+var casting_vfx: Node = null  ## Active summoning circle VFX
 
 ## Summoner instance (loaded from profile when using PROFILE strategy)
 var _loaded_summoner_instance: SummonerInstance = null
@@ -209,6 +210,10 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 		casting_time_total = summon_time
 		casting_spawn_position = spawn_position
 		casting_card_index = card_index
+
+		# Spawn summoning circle VFX at target location
+		_spawn_summon_circle_vfx(spawn_position, summon_time)
+
 		casting_started.emit(card, summon_time)
 		return true
 	else:
@@ -259,6 +264,9 @@ func _complete_casting() -> void:
 	var index: int = casting_card_index
 	var pos: Vector3 = casting_spawn_position
 
+	# Clean up summoning circle VFX (it will auto-cleanup but we clear our reference)
+	casting_vfx = null
+
 	# Reset casting state first (before completing play which may fail)
 	is_casting = false
 	var completed_card: Card = casting_card  # Save for signal
@@ -271,6 +279,16 @@ func _complete_casting() -> void:
 	# Complete the card play
 	_complete_card_play(card, index, pos)
 	casting_completed.emit(completed_card)
+
+## Spawn the summoning circle VFX at the target position
+func _spawn_summon_circle_vfx(spawn_pos: Vector3, duration: float) -> void:
+	# Use VFXManager if available
+	var vfx_manager: Node = get_node_or_null("/root/VFXManager")
+	if vfx_manager and vfx_manager.has_method("play_effect"):
+		casting_vfx = vfx_manager.play_effect(VFXIDs.SUMMON_CIRCLE, spawn_pos, {
+			"duration": duration,
+			"team": team
+		})
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
