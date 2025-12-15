@@ -10,9 +10,9 @@ class_name GameUI
 
 ## Two-phase battle system UI elements
 @export var phase_label: Label = null
-@export var prep_timer_label: Label = null
 
-## Casting indicator (created dynamically)
+## Dynamically created UI elements
+var prep_timer_label: Label = null
 var casting_indicator: CastingIndicator = null
 
 var game_controller: Node = null
@@ -36,8 +36,9 @@ func _ready() -> void:
 	# Two-phase battle system UI elements
 	if phase_label == null:
 		phase_label = get_node_or_null("PhaseLabel")
-	if prep_timer_label == null:
-		prep_timer_label = get_node_or_null("PrepTimerLabel")
+
+	# Create prep timer label dynamically (large, center-top)
+	_create_prep_timer_label()
 
 	# Create casting indicator dynamically
 	casting_indicator = CastingIndicator.new()
@@ -137,6 +138,34 @@ func _on_restart_pressed() -> void:
 ## TWO-PHASE BATTLE SYSTEM HANDLERS
 ## =============================================================================
 
+## Create the preparation phase timer label
+func _create_prep_timer_label() -> void:
+	prep_timer_label = Label.new()
+	prep_timer_label.name = "PrepTimerLabel"
+
+	# Large, bold font for visibility
+	prep_timer_label.add_theme_font_size_override("font_size", 72)
+	prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))  # Gold/yellow
+	prep_timer_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	prep_timer_label.add_theme_constant_override("outline_size", 4)
+
+	# Center horizontally at top of screen
+	prep_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	prep_timer_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	prep_timer_label.anchors_preset = Control.PRESET_CENTER_TOP
+	prep_timer_label.anchor_top = 0.0
+	prep_timer_label.anchor_bottom = 0.0
+	prep_timer_label.anchor_left = 0.5
+	prep_timer_label.anchor_right = 0.5
+	prep_timer_label.offset_top = 60
+	prep_timer_label.offset_bottom = 150
+	prep_timer_label.offset_left = -100
+	prep_timer_label.offset_right = 100
+	prep_timer_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
+	prep_timer_label.visible = false
+	add_child(prep_timer_label)
+
 ## Handle battle phase change (PREPARATION -> BATTLE)
 func _on_phase_changed(new_phase: int) -> void:
 	if phase_label:
@@ -147,15 +176,24 @@ func _on_phase_changed(new_phase: int) -> void:
 			phase_label.text = Loc.t("ui.battle.phase_battle")
 		phase_label.visible = true
 
-	# Hide prep timer when entering battle
+	# Hide prep timer when entering battle phase
 	if prep_timer_label and new_phase == 1:
 		prep_timer_label.visible = false
 
 ## Handle preparation phase timer update
 func _on_prep_timer_updated(remaining: float) -> void:
 	if prep_timer_label:
-		prep_timer_label.text = "%d" % ceili(remaining)
+		var seconds: int = ceili(remaining)
+		prep_timer_label.text = "%d" % seconds
 		prep_timer_label.visible = true
+
+		# Color changes as time runs low
+		if seconds <= 5:
+			prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))  # Red
+		elif seconds <= 10:
+			prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))  # Orange
+		else:
+			prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))  # Gold
 
 ## Handle casting started (summon_time delay begins)
 func _on_casting_started(card: Card, duration: float) -> void:
