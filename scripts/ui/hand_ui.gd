@@ -480,8 +480,10 @@ func init(player_summoner: Node) -> void:
 	var mana_changed_signal: Signal = summoner.get("mana_changed")
 	mana_changed_signal.connect(_on_mana_changed)
 
-	# Initial hand display
-	_rebuild_hand_display()
+	# Initial hand display with availability update
+	# (mana_changed signal was emitted before we connected)
+	await _rebuild_hand_display()
+	_update_availability()
 
 func _exit_tree() -> void:
 	# Disconnect summoner signals to prevent memory leaks

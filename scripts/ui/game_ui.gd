@@ -88,6 +88,12 @@ func _connect_to_summoner(summoner: Node) -> void:
 		var mana_changed_signal: Signal = summoner.get("mana_changed")
 		mana_changed_signal.connect(_on_mana_changed)
 		print("GameUI: Connected to PlayerSummoner mana_changed signal")
+
+		# Manually trigger initial update with current values
+		# (signal was emitted before we connected)
+		var current_mana: float = summoner.get("mana") if "mana" in summoner else 0.0
+		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else 10.0
+		_on_mana_changed(current_mana, max_mana)
 	else:
 		push_warning("GameUI: PlayerSummoner found but has no mana_changed signal")
 
