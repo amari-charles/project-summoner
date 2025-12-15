@@ -243,6 +243,12 @@ class CardDisplay extends Control:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
+		# Block drag if summoner is currently casting (summon_time delay)
+		var is_casting_variant: Variant = hand_ui.summoner.get("is_casting")
+		var is_casting: bool = is_casting_variant if is_casting_variant is bool else false
+		if is_casting:
+			return null
+
 		# Check if we can afford this card
 		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana")
 		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0

@@ -20,16 +20,24 @@ enum DeckLoadStrategy {
 @export var max_hand_size: int = 4
 @export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
 
-## Resources
-@export var mana_regen_rate: float = 1.0
+## Resources (DEPRECATED: mana_regen_rate no longer used - mana is now a fixed pool)
+@export var mana_regen_rate: float = 0.0
 
 ## Current state
 var mana: float = 0.0
-var max_mana: float = 10.0  ## Default max mana (can be overridden by SummonerInstance)
+var max_mana: float = 50.0  ## Default max mana - fixed pool for entire battle (no regeneration)
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
 var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
+
+## Casting state (player is locked during summon_time)
+var is_casting: bool = false
+var casting_card: Card = null
+var casting_time_remaining: float = 0.0
+var casting_time_total: float = 0.0
+var casting_spawn_position: Vector3 = Vector3.ZERO
+var casting_card_index: int = -1
 
 ## Summoner instance (loaded from profile when using PROFILE strategy)
 var _loaded_summoner_instance: SummonerInstance = null
@@ -44,6 +52,11 @@ signal mana_changed(current: float, max: float)
 signal hand_changed(hand: Array[Card])
 signal summoner_ready(summoner: Summoner)  ## Emitted after init() completes
 signal deck_recycled(card_count: int)  ## Emitted when discard pile is shuffled back into deck
+
+## Casting signals (for UI feedback)
+signal casting_started(card: Card, duration: float)
+signal casting_progress(remaining: float, total: float)
+signal casting_completed(card: Card)
 
 func _ready() -> void:
 	# Minimal setup - just add to groups for discovery
@@ -134,9 +147,13 @@ func _process(delta: float) -> void:
 	if not is_enabled:
 		return
 
-	if mana < max_mana:
-		mana = clamp(mana + mana_regen_rate * delta, 0.0, max_mana)
-		mana_changed.emit(mana, max_mana)
+	# Handle casting timer (player is locked during summon_time)
+	if is_casting:
+		casting_time_remaining -= delta
+		casting_progress.emit(casting_time_remaining, casting_time_total)
+
+		if casting_time_remaining <= 0.0:
+			_complete_casting()
 
 func draw_card() -> void:
 	if deck.is_empty():
@@ -163,7 +180,12 @@ func _recycle_discard_pile() -> void:
 	deck_recycled.emit(card_count)
 
 ## Play a card from hand at the given 3D position
+## Returns true if the card play was accepted (may be instant or delayed by summon_time)
 func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
+	# Block if already casting another card
+	if is_casting:
+		return false
+
 	if card_index < 0 or card_index >= hand.size():
 		return false
 
@@ -172,9 +194,29 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	if not card.can_play(int(mana)):
 		return false
 
+	# Deduct mana immediately (committed to the cast)
 	mana -= card.mana_cost
 	mana_changed.emit(mana, max_mana)
 
+	# Check if this card has a summon_time delay
+	var summon_time: float = card.summon_time if "summon_time" in card else 0.0
+
+	if summon_time > 0.0:
+		# Start casting (delayed spawn)
+		is_casting = true
+		casting_card = card
+		casting_time_remaining = summon_time
+		casting_time_total = summon_time
+		casting_spawn_position = spawn_position
+		casting_card_index = card_index
+		casting_started.emit(card, summon_time)
+		return true
+	else:
+		# Instant cast (no summon_time)
+		return _complete_card_play(card, card_index, spawn_position)
+
+## Complete a card play (either immediately or after casting timer)
+func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3) -> bool:
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
@@ -207,6 +249,28 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	hand_changed.emit(hand)
 
 	return true
+
+## Complete casting after summon_time delay
+func _complete_casting() -> void:
+	if not is_casting or not casting_card:
+		return
+
+	var card: Card = casting_card
+	var index: int = casting_card_index
+	var pos: Vector3 = casting_spawn_position
+
+	# Reset casting state first (before completing play which may fail)
+	is_casting = false
+	var completed_card: Card = casting_card  # Save for signal
+	casting_card = null
+	casting_card_index = -1
+	casting_spawn_position = Vector3.ZERO
+	casting_time_remaining = 0.0
+	casting_time_total = 0.0
+
+	# Complete the card play
+	_complete_card_play(card, index, pos)
+	casting_completed.emit(completed_card)
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
@@ -371,12 +435,12 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	# Get computed stats (includes modifiers)
 	var stats: Dictionary = summoner_instance.get_computed_stats()
 
-	# Set mana regen from summoner (with modifiers applied)
-	var summoner_mana_regen: float = stats.get("mana_regen", 1.0)
-	mana_regen_rate = summoner_mana_regen
+	# Note: mana_regen is no longer used - mana is a fixed pool
+	# We keep it in stats for potential future use but don't apply it
 
 	# Set max mana from summoner (with modifiers applied)
-	var summoner_max_mana: float = stats.get("max_mana", 10.0)
+	# In the new system, this is the player's total mana budget for the battle
+	var summoner_max_mana: float = stats.get("max_mana", 50.0)
 	max_mana = summoner_max_mana
 
 	# Cache summoner stats in BattleContext for DamageSystem to use
@@ -386,6 +450,6 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 
 	var summoner_name: String = summoner_instance.config.summoner_name
 	var trait_count: int = summoner_instance.get_all_trait_ids().size()
-	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f, Mana Regen: %.1f/s" % [
-		summoner_name, summoner_instance.level, trait_count, max_mana, mana_regen_rate
+	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f" % [
+		summoner_name, summoner_instance.level, trait_count, max_mana
 	])
