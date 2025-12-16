@@ -242,8 +242,7 @@ func _check_initial_activation_state() -> void:
 		return  # Old controller without phase system, default to ACTIVE
 
 	var phase: Variant = game_controller.get("current_phase")
-	# BattlePhase.PREPARATION = 0, BattlePhase.BATTLE = 1
-	if phase == 0:  # PREPARATION phase
+	if phase == GameController3D.BattlePhase.PREPARATION:
 		activation_state = ActivationState.INACTIVE
 		# Unit will be activated by GameController3D when battle phase starts
 

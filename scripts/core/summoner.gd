@@ -20,9 +20,6 @@ enum DeckLoadStrategy {
 @export var max_hand_size: int = 4
 @export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
 
-## Resources (DEPRECATED: mana_regen_rate no longer used - mana is now a fixed pool)
-@export var mana_regen_rate: float = 0.0
-
 ## Current state
 var mana: float = 0.0
 var max_mana: float = 50.0  ## Default max mana - fixed pool for entire battle (no regeneration)
@@ -199,8 +196,7 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	mana -= card.mana_cost
 	mana_changed.emit(mana, max_mana)
 
-	# Check if this card has a summon_time delay
-	var summon_time: float = card.summon_time if "summon_time" in card else 0.0
+	var summon_time: float = card.summon_time
 
 	if summon_time > 0.0:
 		# Start casting (delayed spawn)

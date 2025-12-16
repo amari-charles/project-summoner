@@ -3,6 +3,27 @@ class_name GameUI
 
 ## Manages all UI updates for the match
 
+## Prep timer UI constants
+const PREP_TIMER_FONT_SIZE: int = 72
+const PREP_TIMER_OUTLINE_SIZE: int = 4
+const PREP_TIMER_OFFSET_TOP: float = 60.0
+const PREP_TIMER_OFFSET_BOTTOM: float = 150.0
+const PREP_TIMER_OFFSET_HORIZONTAL: float = 100.0
+
+## Prep timer color thresholds (seconds remaining)
+const PREP_TIMER_WARNING_THRESHOLD: int = 10  ## Orange warning
+const PREP_TIMER_CRITICAL_THRESHOLD: int = 5  ## Red critical
+
+## Prep timer colors
+const PREP_TIMER_COLOR_NORMAL: Color = Color(1.0, 0.9, 0.3)   ## Gold/yellow
+const PREP_TIMER_COLOR_WARNING: Color = Color(1.0, 0.6, 0.2)  ## Orange
+const PREP_TIMER_COLOR_CRITICAL: Color = Color(1.0, 0.3, 0.3) ## Red
+const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
+
+## Casting indicator positioning
+const CASTING_INDICATOR_OFFSET_X: float = -200.0  ## Left of center
+const CASTING_INDICATOR_OFFSET_Y: float = -180.0  ## Above hand area (from bottom)
+
 @export var timer_label: Label = null
 @export var player_mana_bar: ManaBar = null
 @export var game_over_label: Label = null
@@ -144,10 +165,10 @@ func _create_prep_timer_label() -> void:
 	prep_timer_label.name = "PrepTimerLabel"
 
 	# Large, bold font for visibility
-	prep_timer_label.add_theme_font_size_override("font_size", 72)
-	prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))  # Gold/yellow
-	prep_timer_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	prep_timer_label.add_theme_constant_override("outline_size", 4)
+	prep_timer_label.add_theme_font_size_override("font_size", PREP_TIMER_FONT_SIZE)
+	prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_NORMAL)
+	prep_timer_label.add_theme_color_override("font_outline_color", PREP_TIMER_OUTLINE_COLOR)
+	prep_timer_label.add_theme_constant_override("outline_size", PREP_TIMER_OUTLINE_SIZE)
 
 	# Center horizontally at top of screen
 	prep_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -157,10 +178,10 @@ func _create_prep_timer_label() -> void:
 	prep_timer_label.anchor_bottom = 0.0
 	prep_timer_label.anchor_left = 0.5
 	prep_timer_label.anchor_right = 0.5
-	prep_timer_label.offset_top = 60
-	prep_timer_label.offset_bottom = 150
-	prep_timer_label.offset_left = -100
-	prep_timer_label.offset_right = 100
+	prep_timer_label.offset_top = PREP_TIMER_OFFSET_TOP
+	prep_timer_label.offset_bottom = PREP_TIMER_OFFSET_BOTTOM
+	prep_timer_label.offset_left = -PREP_TIMER_OFFSET_HORIZONTAL
+	prep_timer_label.offset_right = PREP_TIMER_OFFSET_HORIZONTAL
 	prep_timer_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 
 	prep_timer_label.visible = false
@@ -169,15 +190,14 @@ func _create_prep_timer_label() -> void:
 ## Handle battle phase change (PREPARATION -> BATTLE)
 func _on_phase_changed(new_phase: int) -> void:
 	if phase_label:
-		# BattlePhase.PREPARATION = 0, BattlePhase.BATTLE = 1
-		if new_phase == 0:
+		if new_phase == GameController3D.BattlePhase.PREPARATION:
 			phase_label.text = Loc.t("ui.battle.phase_preparation")
 		else:
 			phase_label.text = Loc.t("ui.battle.phase_battle")
 		phase_label.visible = true
 
 	# Hide prep timer when entering battle phase
-	if prep_timer_label and new_phase == 1:
+	if prep_timer_label and new_phase == GameController3D.BattlePhase.BATTLE:
 		prep_timer_label.visible = false
 
 ## Handle preparation phase timer update
@@ -188,12 +208,12 @@ func _on_prep_timer_updated(remaining: float) -> void:
 		prep_timer_label.visible = true
 
 		# Color changes as time runs low
-		if seconds <= 5:
-			prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))  # Red
-		elif seconds <= 10:
-			prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))  # Orange
+		if seconds <= PREP_TIMER_CRITICAL_THRESHOLD:
+			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_CRITICAL)
+		elif seconds <= PREP_TIMER_WARNING_THRESHOLD:
+			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_WARNING)
 		else:
-			prep_timer_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))  # Gold
+			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_NORMAL)
 
 ## Handle casting started (summon_time delay begins)
 func _on_casting_started(card: Card, duration: float) -> void:
@@ -201,8 +221,8 @@ func _on_casting_started(card: Card, duration: float) -> void:
 		# Position near the hand UI (bottom center, offset left)
 		var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 		casting_indicator.position = Vector2(
-			viewport_size.x / 2.0 - 200,  # Left of center
-			viewport_size.y - 180  # Above hand area
+			viewport_size.x / 2.0 + CASTING_INDICATOR_OFFSET_X,
+			viewport_size.y + CASTING_INDICATOR_OFFSET_Y
 		)
 		casting_indicator.start_casting(card, duration)
 
