@@ -66,6 +66,8 @@ func _instance_skeletal_scene() -> void:
 	# Calculate bounds and resize viewport dynamically
 	_cached_bounds = _get_skeletal_bounds()
 
+	print("SkeletalChar2D5 DEBUG: bounds=%s, center=%s" % [_cached_bounds, _cached_bounds.get_center()])
+
 	if _cached_bounds.size.x > 0 and _cached_bounds.size.y > 0:
 		# Resize viewport to fit content with padding
 		var new_width: int = int(_cached_bounds.size.x + viewport_padding * 2)
@@ -75,6 +77,8 @@ func _instance_skeletal_scene() -> void:
 		# Position content: center horizontally, bottom-align vertically
 		skeletal_instance.position.x = (new_width / 2.0) - _cached_bounds.get_center().x
 		skeletal_instance.position.y = new_height - _cached_bounds.end.y - viewport_padding
+
+		print("SkeletalChar2D5 DEBUG: viewport=%s, skeletal_pos=%s" % [viewport.size, skeletal_instance.position])
 	else:
 		push_warning("SkeletalChar2D5: Could not calculate bounds, using default viewport size")
 
