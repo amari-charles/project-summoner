@@ -126,8 +126,18 @@ func is_playing() -> bool:
 
 ## Flip the sprite horizontally (for enemy units)
 func set_flip_h(_flip: bool) -> void:
-	if skeletal_instance:
+	if skeletal_instance and viewport:
 		skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if _flip else 1)
+		# Recalculate X position to keep content centered after flip
+		# When flipped, the content mirrors around local origin, so we need to adjust
+		if _cached_bounds.size.x > 0:
+			var center_x: float = viewport.size.x / 2.0
+			if _flip:
+				# When flipped, offset from center in opposite direction
+				skeletal_instance.position.x = center_x + _cached_bounds.get_center().x
+			else:
+				# Normal: offset to center the bounds
+				skeletal_instance.position.x = center_x - _cached_bounds.get_center().x
 
 ## Get the duration of an animation in seconds
 func get_animation_duration(_anim_name: String) -> float:

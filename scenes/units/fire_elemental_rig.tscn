@@ -130,10 +130,10 @@ tracks/3/path = NodePath("BodyPivot/LeftLegPivot:rotation")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"times": PackedFloat32Array(0, 0.75, 1.5),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.375, 0.75, 1.125, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
-"values": [0.0, -0.15, 0.0]
+"values": [0.15, 0.0, -0.15, 0.0, 0.15]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -142,10 +142,34 @@ tracks/4/path = NodePath("BodyPivot/RightLegPivot:rotation")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.75, 1.5),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.375, 0.75, 1.125, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
-"values": [0.0, 0.15, 0.0]
+"values": [-0.15, 0.0, 0.15, 0.0, -0.15]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("BodyPivot/LeftLegPivot:position")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.375, 0.75, 1.125, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(-185, 678), Vector2(-185, 658), Vector2(-185, 678), Vector2(-185, 678), Vector2(-185, 678)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("BodyPivot/RightLegPivot:position")
+tracks/6/interp = 2
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.375, 0.75, 1.125, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(225, 700), Vector2(225, 700), Vector2(225, 700), Vector2(225, 680), Vector2(225, 700)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
