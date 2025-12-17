@@ -28,13 +28,14 @@ static func load_deck_for_battle(deck_id: String) -> Dictionary:
 		return result
 
 	# Get deck data
+	print("DeckLoader: Loading deck '%s'" % deck_id)
 	var deck_variant: Variant = {}
 	if decks is Object:
 		var decks_obj: Object = decks
 		deck_variant = decks_obj.call("get_deck", deck_id)
 	var deck: Dictionary = deck_variant if deck_variant is Dictionary else {}
 	if deck.is_empty():
-		push_warning("DeckLoader: Deck not found: %s" % deck_id)
+		push_error("DeckLoader: Deck not found: %s - CANNOT load summoner without deck!" % deck_id)
 		result["cards"] = cards
 		return result
 
@@ -154,6 +155,7 @@ static func load_player_deck() -> Dictionary:
 
 	# If no deck selected, use first available deck
 	if deck_id == "":
+		print("DeckLoader: No deck selected in profile, finding first available...")
 		var decks: Variant = _get_service("/root/Decks")
 		if not decks:
 			push_error("DeckLoader: Decks service not found!")
@@ -164,17 +166,21 @@ static func load_player_deck() -> Dictionary:
 				var decks_obj: Object = decks
 				deck_list_variant = decks_obj.call("list_decks")
 			var deck_list: Array = deck_list_variant if deck_list_variant is Array else []
+			print("DeckLoader: Found %d decks" % deck_list.size())
 			if deck_list.size() > 0:
 				var first_deck_variant: Variant = deck_list[0]
 				var first_deck: Dictionary = first_deck_variant if first_deck_variant is Dictionary else {}
 				var id_variant: Variant = first_deck.get("id", "")
 				deck_id = id_variant if id_variant is String else ""
+				print("DeckLoader: Using first deck: '%s'" % deck_id)
 			else:
 				push_error("DeckLoader: No decks available!")
 				return empty_result
 		else:
 			push_error("DeckLoader: Decks service not found!")
 			return empty_result
+	else:
+		print("DeckLoader: Profile has selected deck: '%s'" % deck_id)
 
 	return load_deck_for_battle(deck_id)
 
