@@ -112,6 +112,17 @@ func stop_animation() -> void:
 	if animation_player:
 		animation_player.stop()
 
+## Set animation playback speed (1.0 = normal, 2.0 = double speed, 0.5 = half speed)
+func set_animation_speed(speed: float) -> void:
+	if animation_player:
+		animation_player.speed_scale = speed
+
+## Get current animation speed
+func get_animation_speed() -> float:
+	if animation_player:
+		return animation_player.speed_scale
+	return 1.0
+
 ## Get current animation name
 func get_current_animation() -> String:
 	if animation_player:
