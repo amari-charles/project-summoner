@@ -282,13 +282,26 @@ func _get_skeletal_bounds() -> Rect2:
 	for sprite: Variant in sprites:
 		if sprite is Sprite2D:
 			var sprite_2d: Sprite2D = sprite
-			# Get sprite's local rect
-			var sprite_rect: Rect2 = sprite_2d.get_rect()
-			var sprite_pos: Vector2 = sprite_2d.global_position - skeletal_instance.global_position
+			var texture: Texture2D = sprite_2d.texture
+			if not texture:
+				continue
 
-			# Calculate bounds including sprite size
-			var sprite_min: Vector2 = sprite_pos + sprite_rect.position
-			var sprite_max: Vector2 = sprite_pos + sprite_rect.position + sprite_rect.size
+			# Get texture size and sprite center position relative to skeletal instance
+			var tex_size: Vector2 = texture.get_size()
+			var sprite_center: Vector2 = sprite_2d.global_position - skeletal_instance.global_position
+
+			# Calculate bounds based on centering mode
+			# For centered sprites, global_position IS the visual center
+			# For non-centered sprites, global_position is the top-left
+			var sprite_min: Vector2
+			var sprite_max: Vector2
+			if sprite_2d.centered:
+				var half_size: Vector2 = tex_size / 2.0
+				sprite_min = sprite_center - half_size
+				sprite_max = sprite_center + half_size
+			else:
+				sprite_min = sprite_center
+				sprite_max = sprite_center + tex_size
 
 			min_x = min(min_x, sprite_min.x)
 			max_x = max(max_x, sprite_max.x)
