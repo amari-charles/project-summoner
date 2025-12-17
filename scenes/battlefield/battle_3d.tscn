@@ -29,7 +29,6 @@ debug_skip_tutorial_intro = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 script = ExtResource("3_summoner")
 team = 0
-load_deck_from_profile = true
 
 [node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
 pixel_size = 0.015

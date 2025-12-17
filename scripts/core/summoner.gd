@@ -411,6 +411,13 @@ func _load_profile_deck() -> Array[Card]:
 		push_warning("Summoner: PROFILE strategy used for enemy team, using static deck instead")
 		return _load_static_deck()
 
+	# Always load summoner instance first (needed for stats/bonuses even with dev deck)
+	print("Summoner: Loading summoner from player profile...")
+	var deck_data: Dictionary = DeckLoader.load_player_deck()
+	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
+	if summoner_instance_variant is SummonerInstance:
+		_loaded_summoner_instance = summoner_instance_variant
+
 	# Check for dev test deck override in BattleContext
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context:
@@ -418,21 +425,16 @@ func _load_profile_deck() -> Array[Card]:
 		if config is Dictionary:
 			var battle_config: Dictionary = config
 			if battle_config.has("dev_player_deck"):
-				print("Summoner: Loading DEV TEST deck from BattleContext...")
+				print("Summoner: Loading DEV TEST deck (summoner stats still apply)...")
 				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
 
+	# Normal path: use profile deck
 	print("Summoner: Loading deck from player profile...")
-	var deck_data: Dictionary = DeckLoader.load_player_deck()
 	var loaded_deck_variant: Variant = deck_data.get("cards", [])
 	var loaded_deck: Array[Card] = []
 	if loaded_deck_variant is Array:
 		var temp_array: Array = loaded_deck_variant
 		loaded_deck.assign(temp_array)
-
-	# Store summoner instance for bonus application in init()
-	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
-	if summoner_instance_variant is SummonerInstance:
-		_loaded_summoner_instance = summoner_instance_variant
 
 	if loaded_deck.is_empty():
 		push_warning("Summoner: Failed to load from profile, falling back to static deck")

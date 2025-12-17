@@ -4,6 +4,24 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Summoner Stats Not Cached in Campaign Mode (Combat Arena)
+**Resolved:** 2025-12-17
+**Component:** DamageSystem / Summoner
+
+**Description:**
+Warning appeared during combat arena battles: "DamageSystem: No summoner stats cached in campaign mode - trait bonuses not applied"
+
+**Root Cause:**
+Combat arena battles use `dev_player_deck` in their config. The `_load_profile_deck()` function checked for dev_player_deck first and returned early, bypassing the code that loads the summoner instance for stats/bonuses.
+
+**Solution Implemented:**
+Reordered `_load_profile_deck()` to always load the summoner instance first (for stats), then check for dev_player_deck override. Now dev deck battles still get summoner trait bonuses applied.
+
+**Related Files:**
+- scripts/core/summoner.gd - `_load_profile_deck()` reordered
+
+---
+
 ### Orphaned Nodes from Autoload Object Pools During Unit Tests
 **Resolved:** 2025-11-28
 **Component:** Unit Testing / Object Pools
