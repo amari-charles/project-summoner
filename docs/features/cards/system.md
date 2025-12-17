@@ -180,6 +180,34 @@ When playing a card, there's a delay before the unit appears:
 
 ---
 
+## Multi-Unit Spawn Formations
+
+When a card spawns multiple units (e.g., Fire Elemental Swarm with 12 units), they form a **staggered row formation** around the target position.
+
+### Formation Layout
+
+- Units arrange in a grid pattern with 2 rows for groups up to 20 units
+- Larger swarms (20+) automatically expand to more rows
+- Alternating rows are offset (brick pattern) for visual appeal and collision avoidance
+
+### Formation Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `FORMATION_SPACING` | 1.8 | Distance between units (world units) |
+| `FORMATION_ROW_OFFSET` | 0.5 | Stagger offset for alternating rows (fraction of spacing) |
+
+### Example: 12-Unit Swarm
+
+```
+Row 1:  O   O   O   O   O   O     (6 units)
+Row 0:    O   O   O   O   O   O   (6 units, staggered)
+```
+
+**Design Intent:** Creates army-like formations that look organized and spread out naturally, avoiding the chaotic overlap of random clump spawning.
+
+---
+
 ## Implementation Status
 
 **Current:** Card system with rarity, summon times, and drag-and-drop

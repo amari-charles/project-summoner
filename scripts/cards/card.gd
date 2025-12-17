@@ -6,31 +6,45 @@ class_name Card
 
 enum CardType { SUMMON, SPELL }
 
-## Multi-unit spawn clumping constants
-## When spawning multiple units, they form a random clump around the target position
-const CLUMP_BASE_RADIUS: float = 1.5  ## Minimum spawn radius (world units) for multi-unit summons
-const CLUMP_RADIUS_SCALE: float = 0.5  ## Additional radius per sqrt(unit_count) to prevent overcrowding
+## Multi-unit spawn formation constants
+## When spawning multiple units, they form a staggered row formation around the target position
+const FORMATION_SPACING: float = 1.8  ## Distance between units in formation (world units)
+const FORMATION_ROW_OFFSET: float = 0.5  ## Fraction of spacing to offset alternating rows (brick pattern)
+const FORMATION_TWO_ROW_MAX: int = 20  ## Max units for 2-row formation; larger swarms use more rows
+const FORMATION_LARGE_ROW_DENSITY: float = 3.0  ## Target units per row for large swarms (20+)
 
 
-## Calculate the clump radius for multi-unit spawns
-## Formula: BASE_RADIUS + sqrt(unit_count) * RADIUS_SCALE
-## This ensures larger groups spread out more to prevent overcrowding
-static func calculate_clump_radius(unit_count: int) -> float:
-	if unit_count <= 1:
-		return 0.0
-	return CLUMP_BASE_RADIUS + sqrt(unit_count) * CLUMP_RADIUS_SCALE
-
-
-## Generate a random offset within the clump radius for multi-unit spawns
-## Returns Vector3.ZERO for single-unit spawns
-## Uses polar coordinates for uniform circular distribution
-static func generate_clump_offset(unit_count: int, rng_angle: float, rng_distance: float) -> Vector3:
+## Generate formation offset for staggered row spawning
+## Returns position offset for unit at given index in a staggered grid formation
+## Formation is centered on spawn point with alternating rows offset (brick pattern)
+static func generate_formation_offset(unit_index: int, unit_count: int) -> Vector3:
 	if unit_count <= 1:
 		return Vector3.ZERO
-	var clump_radius: float = calculate_clump_radius(unit_count)
-	var angle: float = rng_angle * TAU
-	var dist: float = rng_distance * clump_radius
-	return Vector3(cos(angle) * dist, 0, sin(angle) * dist)
+
+	# Calculate grid dimensions - prefer 2 rows for army-like formations
+	# Only use more rows if we have a very large swarm
+	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
+	var cols: int = ceili(float(unit_count) / float(rows))
+
+	# Get row and column for this unit
+	var row: int = unit_index / cols
+	var col: int = unit_index % cols
+
+	# Calculate how many units are in this row (last row may be partial)
+	var units_in_row: int = mini(cols, unit_count - row * cols)
+
+	# Calculate position with stagger offset for alternating rows
+	var stagger: float = FORMATION_ROW_OFFSET * FORMATION_SPACING if row % 2 == 1 else 0.0
+
+	# X axis = row depth (front row closer to enemy, back row behind)
+	var formation_depth: float = (rows - 1) * FORMATION_SPACING
+	var x_offset: float = row * FORMATION_SPACING - formation_depth / 2.0
+
+	# Z axis = column spread (units spread out perpendicular to enemy direction)
+	var row_width: float = (units_in_row - 1) * FORMATION_SPACING
+	var z_offset: float = col * FORMATION_SPACING - row_width / 2.0 + stagger
+
+	return Vector3(x_offset, 0, z_offset)
 
 ## Card identity
 @export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
@@ -261,8 +275,8 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			# Add to tree first, then set position
 			gameplay_layer.add_child(unit)
 
-			# Calculate spawn offset - clump pattern for multiple units
-			var offset: Vector3 = generate_clump_offset(spawn_count, randf(), randf())
+			# Calculate spawn offset - staggered row formation for multiple units
+			var offset: Vector3 = generate_formation_offset(i, spawn_count)
 
 			# Find a safe spawn position that doesn't overlap with existing units
 			var desired_pos: Vector3 = spawn_pos + offset

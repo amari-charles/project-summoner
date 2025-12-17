@@ -108,11 +108,9 @@ func play_animation(anim_name: String, _auto_play: bool = false) -> void:
 	if not animation_player:
 		return
 
-	# Map animation names (unit_3d uses these names)
+	# Map animation names for missing animations (fallback to idle)
 	var mapped_name: String = anim_name
 	match anim_name:
-		"walk":
-			mapped_name = "idle"  # Use idle for walking (no walk animation yet)
 		"hurt":
 			mapped_name = "idle"  # Use idle for hurt (no hurt animation yet)
 		"death":

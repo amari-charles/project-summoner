@@ -308,7 +308,8 @@ func save_progress() -> void:
 	profile_repo.update_campaign_progress({
 		"completed_battles": _completed_battles.duplicate()
 	})
-	campaign_progress_changed.emit()
+	# Note: campaign_progress_changed is emitted via _on_profile_data_changed()
+	# when the repo emits data_changed after update_campaign_progress()
 	print("CampaignService: Saved progress - %d battles completed" % _completed_battles.size())
 
 ## =============================================================================

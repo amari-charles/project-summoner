@@ -445,13 +445,13 @@ func _init_catalog() -> void:
 		}
 	}
 
-	# Fire Elemental Swarm - Spawns 10 weaker fire elementals
+	# Fire Elemental Swarm - Spawns 12 weaker fire elementals in 2 rows
 	# Role: Swarm tactics - overwhelm with numbers
 	_catalog["fire_elemental_swarm"] = {
 		# Identity
 		"catalog_id": "fire_elemental_swarm",
 		"card_name": "Fire Swarm",
-		"description": "Unleash a horde of flame spirits. Ten smaller fire elementals surge forth to overwhelm the enemy.",
+		"description": "Unleash a horde of flame spirits. Twelve smaller fire elementals surge forth to overwhelm the enemy.",
 		"rarity": RarityIDs.RARE,
 
 		# Card properties
@@ -461,9 +461,9 @@ func _init_catalog() -> void:
 		"cooldown": 4.0,
 		"summon_time": 2.5,  # Swarm card (extra time for multiple units)
 
-		# Summon properties - uses same scene but spawns 10
+		# Summon properties - uses same scene but spawns 12
 		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
-		"spawn_count": 10,
+		"spawn_count": 12,
 
 		# Unit stats - slightly weaker than base fire elemental
 		"max_hp": 45.0,

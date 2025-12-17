@@ -738,6 +738,8 @@ func _move_towards_target(delta: float) -> void:
 	# Post-move: correct any severe overlaps
 	_correct_overlaps()
 
+	_update_animation("walk")
+
 	# Update blocked detection (check if we actually moved)
 	var movement_this_frame: float = global_position.distance_to(pos_before_move)
 	if movement_this_frame < BLOCKED_MOVE_THRESHOLD * delta:
