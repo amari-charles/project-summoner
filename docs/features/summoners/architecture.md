@@ -2,13 +2,13 @@
 
 ## Overview
 
-Summoners are deck leaders that provide passive bonuses and define core battle parameters. They do not fight directly but influence the player's capabilities through their stats (base health, mana, mana regen) and traits.
+Summoners are deck leaders that provide passive bonuses and define core battle parameters. They do not fight directly but influence the player's capabilities through their stats (Incarnation health, max mana) and traits.
 
 **This document covers the implemented summoner system.** For the full progression design (Level Traits, Ultimate Traits, etc.), see [Summoner Progression System](progression-system.md).
 
 ### Key Principles
-- **Non-combat entities**: Summoners don't appear on the battlefield
-- **Passive bonuses**: Affect base health, mana system, and unit performance via traits
+- **Non-combat entities**: Summoners don't appear on the battlefield (their Incarnation does)
+- **Passive bonuses**: Affect Incarnation health, mana pool, and unit performance via traits
 - **Trait-based modifiers**: All summoner bonuses come from TraitCatalog
 - **Per-summoner campaign progress**: Each summoner has separate campaign state
 - **Active summoner selection**: Profile tracks which summoner is currently active
@@ -118,9 +118,8 @@ var description: String          # Flavor text
 var element_id: int              # ElementRegistry.ElementId.FIRE
 
 # Base Stats (before traits)
-var base_health: float           # 1000.0
-var max_mana: float              # 10.0
-var mana_regen: float            # 1.0
+var base_health: float           # 1000.0 (flows to Incarnation HP)
+var max_mana: float              # 50.0 (fixed pool, no regen during battle)
 
 # Traits from TraitCatalog
 var innate_trait_ids: Array[String]  # ["trait_fire_affinity", "trait_burning_spirit"]
@@ -151,7 +150,7 @@ func get_all_trait_ids() -> Array[String]
 
 # Get computed stats (base + all trait modifiers)
 func get_computed_stats() -> Dictionary
-# Returns: {health, max_mana, mana_regen, fire_damage_bonus, damage_reduction, ...}
+# Returns: {health, max_mana, fire_damage_bonus, damage_reduction, ...}
 ```
 
 ### Trait Data (Dictionary)
@@ -190,8 +189,8 @@ Stored in TraitCatalog.
 
 **Summoner Stat Modifiers** (applied in SummonerInstance._recompute_stats):
 ```gdscript
-{"stat": "max_health", "type": "percent", "value": 10.0}  # +10% health
-{"stat": "mana_regen", "type": "flat", "value": 0.3}      # +0.3 regen/sec
+{"stat": "max_health", "type": "percent", "value": 10.0}  # +10% Incarnation health
+{"stat": "max_mana", "type": "flat", "value": 10.0}       # +10 mana pool
 {"stat": "fire_damage_bonus", "type": "percent", "value": 10.0}  # Sets 10% bonus
 ```
 
@@ -379,7 +378,7 @@ All summoner UI uses the localization system:
       "level_display": "Lv.{level}",
       "xp_progress": "XP: {current} / {required}",
       "level_up_button": "LEVEL UP ({cost}g)",
-      "stats_summary": "HP: {hp} | Mana: {mana} | Regen: {regen}/s"
+      "stats_summary": "HP: {hp} | Mana: {mana}"
     }
   },
   "trait": {

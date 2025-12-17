@@ -2,7 +2,7 @@
 
 **Status:** IMPLEMENTED (MVP)
 **Version:** 1.0
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-16
 
 **Scope:** Defines the MVP battlefield structure, visibility rules, and summoning constraints for all real-time matches.
 
@@ -27,15 +27,15 @@ It is intentionally simple for the first playable build—flat terrain, one base
 
 ---
 
-## 3 Base & Hero
+## 3 Incarnation & Summoner
 
 | Aspect | Rule |
 | ----- | ----- |
-| **Base Object** | Fixed, physical structure at the rear of each territory. Possesses HP only. |
-| **Victory Condition** | Destroying an opponent's base immediately ends the match. |
-| **Hero Concept** | The summoner is *implied* to reside inside the base; not a controllable unit. |
-| **Visual Representation** | Optional—may appear as energy core, tower, or similar focus. |
-| **Future Hooks** | Elemental upgrades, add-on towers, or hero ultimates can be layered later. |
+| **Incarnation** | The summoner's magical presence projected onto the battlefield. Possesses HP only. |
+| **Victory Condition** | Destroying an opponent's Incarnation immediately ends the match. |
+| **Summoner Concept** | The summoner commands from elsewhere; the Incarnation is their projection of power. |
+| **Visual Representation** | Glowing elemental orb/presence matching summoner's affinity. |
+| **Future Hooks** | Elemental variations, visual upgrades, or summoner ultimates can be layered later. |
 
 ---
 
@@ -59,7 +59,7 @@ It is intentionally simple for the first playable build—flat terrain, one base
 | **Precision** | Tap or click exact point → unit spawns at nearest open space if blocked. |
 | **Card Usage** | Cards are single-use per match. |
 | **Cooldowns** | None; mana is the sole gating resource. |
-| **Mana System** | Pay full cost on cast; mana regenerates over time via base/hero stats. |
+| **Mana System** | Fixed mana pool (50 by default); no regeneration during battle. |
 | **Vision Requirement** | Both **summons** and **spells** require vision at target location. |
 | **Spawn Feedback** | Units appear with brief materialization FX for clarity. |
 
@@ -93,11 +93,17 @@ Units can only be spawned on the player's own half of the battlefield:
 
 ---
 
-## 7 Pacing and Readability
+## 7 Battle Phases and Pacing
 
+Battles use a two-phase system:
+
+1. **PREPARATION (30 seconds):** Build army formations with full mana pool. Units spawn but remain inactive.
+2. **BATTLE (until victory):** All units activate and fight. Reinforcements can still be summoned.
+
+**Pacing Notes:**
 * Target match length: **3 – 5 minutes.**
-* Midline visibility ensures immediate engagement opportunities.
-* Fog of war and mana gating sustain tactical rhythm throughout the duel.
+* Preparation phase creates "two armies facing off" moment.
+* Fixed mana pool forces strategic commitment rather than reactive play.
 * Player-controlled camera panning allows tactical positioning and awareness across the battlefield.
 
 ---
@@ -126,8 +132,9 @@ Units can only be spawned on the player's own half of the battlefield:
 ## Definition of Done (MVP Battlefield)
 
 * Continuous horizontal arena implemented with fog-of-war masking.
+* Two-phase battle system (PREPARATION → BATTLE) functional.
 * Summon, spell, and vision systems respect placement rules.
-* Base HP determines win/loss.
+* Incarnation HP determines win/loss.
 * 3–5 minute loop playable end-to-end with clear camera framing.
 
 ---
