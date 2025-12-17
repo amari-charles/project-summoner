@@ -1,7 +1,7 @@
 # Card System API
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-16
 
 ## Overview
 
@@ -25,6 +25,28 @@ Tags drive synergy and affinity bias:
 - **Family:** e.g., `pyre`, `thorn`, `wisp`
 - **Mechanics:** `burn | freeze | heal | shield | root | silence | dash | stealth | summon_on_death | lifesteal | taunt`
 
+## Army Rarity System
+
+Card rarity is designed to make battles *feel* like real army warfare with clear hierarchy:
+
+| Rarity | Max Copies in Deck | Role in Army |
+|--------|--------------------|--------------|
+| **Common** | 12 | Low individual impact, strength in numbers |
+| **Uncommon** | 6 | Moderate impact, noticeable presence |
+| **Epic** | 3 | High impact, battle-shifting |
+| **Legendary** | 1 | Decisive, game-defining |
+
+### Design Philosophy
+
+The rarity system creates natural army composition:
+- **Many units** that collectively matter but individually don't decide battles
+- **Fewer units** with real individual impact
+- **One or two key pieces** that demand attention
+
+**Key principle:** Higher rarity = more individual impact and battlefield influence, not just bigger stats. A common unit can be frontline melee or backline support — they're just not individually decisive.
+
+---
+
 ## Core Balance Fields
 
 Each card has a baseline before variance and modifiers.
@@ -32,8 +54,8 @@ Each card has a baseline before variance and modifiers.
 ### Shared Fields
 
 - `mana_cost` (1-10 typical)
-- `deployment_time_ms`
-- `rarity_base` (`common | rare | epic | legendary`)
+- `summon_time` (seconds) — delay before unit appears after playing card
+- `rarity` (`common | uncommon | epic | legendary`)
 - `element`, `tags`, and derived `power_rating`
 
 ### Per Type
@@ -135,9 +157,32 @@ Effects are **data-driven payloads** attached to cards. These define primary and
 - Every card feels handcrafted — no duplicates, no grind
 - Players develop emotional attachment to their army through uniqueness and expression
 
+## Summon Time Mechanics
+
+When playing a card, there's a delay before the unit appears:
+
+1. Player drags card to battlefield location
+2. **Casting begins** — player sees circular cooldown indicator
+3. **Summoning circle VFX** appears at spawn location
+4. Player cannot play other cards during summon time
+5. After delay, unit spawns
+
+### Summon Time by Rarity (Typical)
+
+| Rarity | Typical Summon Time |
+|--------|---------------------|
+| Common | 0.5 - 1.0 seconds |
+| Uncommon | 1.0 - 1.5 seconds |
+| Epic | 1.5 - 2.0 seconds |
+| Legendary | 2.0 - 3.0 seconds |
+
+**Design Intent:** Adds weight to summoning powerful units. Creates anticipation and windows for counterplay.
+
+---
+
 ## Implementation Status
 
-**Current:** Basic card system with fixed stats
+**Current:** Card system with rarity, summon times, and drag-and-drop
 **Planned:** Variance system, crafting, visual variance
 
 ---
