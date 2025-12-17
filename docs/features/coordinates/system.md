@@ -58,13 +58,13 @@ Due to the 35° camera tilt:
 
 ## Current Spawn Positions
 
-### Player Base (Left Side)
+### Player Incarnation (Left Side)
 - Position: **(-80, 0, -7.5)**
   - X=-80: Far left
   - Y=0: On ground
   - Z=-7.5: Shifted toward camera for visual centering
 
-### Enemy Base (Right Side)
+### Enemy Incarnation (Right Side)
 - Position: **(80, 0, -7.5)**
   - X=80: Far right
   - Y=0: On ground
@@ -72,21 +72,21 @@ Due to the 35° camera tilt:
 
 ### Why Z=-7.5?
 
-The castle sprites are 6 units tall (400px × 0.015 pixel_size). From the tilted camera view:
-- The sprite's vertical height appears as "depth" in screen space
-- Without Z offset, castles appear too high in the viewport
+The Incarnation visuals are positioned for optimal camera framing. From the tilted camera view:
+- The visual's vertical height appears as "depth" in screen space
+- Without Z offset, Incarnations appear too high in the viewport
 - **Z=-7.5 shifts them forward** to center them vertically in the view
-- This is approximately half the sprite height adjusted for camera angle
+- This is approximately half the visual height adjusted for camera angle
 
 **Note:** This value may need fine-tuning based on aesthetic preferences.
 
 ## Unit Spawning
 
-Units spawn at the marker positions, which currently match the base positions:
+Units spawn at the marker positions near their Incarnation:
 - Player units: (-80, 0, -7.5)
 - Enemy units: (80, 0, -7.5)
 
-Units then move along the **X-axis** toward their targets (player units move right +X, enemy units move left -X).
+During the BATTLE phase, units move along the **X-axis** toward enemies and the enemy Incarnation (player units move right +X, enemy units move left -X).
 
 ## Camera Bounds
 
@@ -105,16 +105,16 @@ The camera can pan within these bounds but cannot see beyond the 200×150 ground
     Z-axis (depth)
     ↑ +Z (further away, appears higher on screen)
     |
-    |   [Enemy Base]     (+80, 0, -7.5)
+    |   [Enemy Incarnation]  (+80, 0, -7.5)
     |
     |----+----[Origin]----+---- X-axis (left/right)
-    |  [Player Base]
+    |  [Player Incarnation]
     |    (-80, 0, -7.5)
     |
     ↓ -Z (toward camera, appears lower on screen)
 
     Y-axis (height) goes into/out of page:
-    - Y=0 is ground level (bases sit here)
+    - Y=0 is ground level (Incarnations sit here)
     - Y+ goes "up into the air"
 ```
 

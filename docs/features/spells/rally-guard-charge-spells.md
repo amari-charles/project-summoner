@@ -213,7 +213,7 @@ static func calculate_formation_positions(units: Array[Unit3D], center: Vector3)
 ## Charge Spell
 
 ### Description
-> "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or base) to the target location for 30 seconds."
+> "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or Incarnation) to the target location for 30 seconds."
 
 ### Behavior
 
@@ -223,7 +223,7 @@ static func calculate_formation_positions(units: Array[Unit3D], center: Vector3)
    - Show fizzle VFX (purple puff)
    - Card consumed (no refund)
 3. If units in range:
-   - Find closest enemy to arrow destination (searches units, structures, AND bases)
+   - Find closest enemy to arrow destination (searches units, structures, AND Incarnations)
    - If no valid target found: Spell fizzles
    - Set `forced_target` on each selected unit
    - Set `forced_target_timer` to **30 seconds**
@@ -254,7 +254,7 @@ static func calculate_formation_positions(units: Array[Unit3D], center: Vector3)
 
 **Structure Destruction:**
 - Charge enemy towers or walls to quickly break defenses
-- Direct assault on enemy base for final push
+- Direct assault on enemy Incarnation for final push
 - Ignore distractions and focus on objective
 
 **Breaking Enemy Lines:**
@@ -262,10 +262,10 @@ static func calculate_formation_positions(units: Array[Unit3D], center: Vector3)
 - Bypass frontline tanks to eliminate ranged threats
 - Force units to ignore nearby enemies and push to backline
 
-**Base Rush:**
-- Direct all units to attack enemy base
+**Incarnation Rush:**
+- Direct all units to attack enemy Incarnation
 - Ignore all other enemies and structures
-- Win condition: Kill the base before timer expires
+- Win condition: Destroy the Incarnation before timer expires
 
 ### Technical Details
 
@@ -303,7 +303,7 @@ var closest_enemy: Node3D = RedirectManager.find_nearest_enemy(
     RedirectManager.TARGET_SEARCH_RADIUS
 )
 ```
-- Uses `RedirectManager` to search for ANY enemy (units, structures, bases)
+- Uses `RedirectManager` to search for ANY enemy (units, structures, Incarnations)
 - Finds closest enemy to arrow destination, not to unit positions
 - This allows precise targeting of specific structures or backline units
 
@@ -461,7 +461,7 @@ When testing tactical spells:
 - [ ] Selects units within 8.0 radius of circle
 - [ ] Fizzle VFX when no units in range (card consumed)
 - [ ] Fizzle VFX when no valid target found near arrow
-- [ ] Can target enemy units, structures, AND bases
+- [ ] Can target enemy units, structures, AND Incarnations
 - [ ] Units immediately switch targets (even mid-combat)
 - [ ] Units chase forced_target across entire battlefield
 - [ ] Charge lasts exactly 30 seconds
@@ -557,7 +557,7 @@ When testing tactical spells:
 - **Multiple Singleton Instances:** Rally_guard_test.tscn manually added SpellTargetingManager node, creating duplicate instance separate from autoload. Fixed by removing manual node and using autoload directly.
 - **Wrong Singleton Access:** Used `Engine.get_singleton("SpellTargetingManager")` which only works for built-in engine singletons. Fixed by using direct autoload access: `SpellTargetingManager.get_rally_destination()`.
 - **Race Condition:** `_end_targeting()` was clearing `rally_destination` before card could retrieve it. Fixed by calling `set_process(false)` BEFORE `play_card_3d()`.
-- **Charge Targeting Limitation:** Only searched units groups, couldn't target towers/bases. Fixed by using `RedirectManager.find_nearest_enemy()` which searches all enemy types.
+- **Charge Targeting Limitation:** Only searched units groups, couldn't target towers/Incarnations. Fixed by using `RedirectManager.find_nearest_enemy()` which searches all enemy types.
 - **Charge Not Switching Targets:** Units didn't switch to forced_target if already in combat. Fixed by adding forced_target as trigger for immediate target reacquisition.
 - **Charge Duration Too Short:** 10 seconds wasn't enough to cross battlefield. Increased to 30 seconds.
 - **Guard Duration Too Short:** 10 seconds wasn't enough for meaningful defense. Increased to 25 seconds.

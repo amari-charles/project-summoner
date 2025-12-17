@@ -14,8 +14,8 @@ _battles["first_trial"] = {
         {"catalog_id": "slime_green", "count": 1}
     ],
     "enemy_hp": 30.0,
-    // Optional win condition (defaults to DESTROY_BASE)
-    "win_condition": WinConditionIDs.DESTROY_BASE,
+    // Optional win condition (defaults to DESTROY_INCARNATION)
+    "win_condition": WinConditionIDs.DESTROY_INCARNATION,
     "time_limit": 60.0,  // Required for SURVIVE_TIME, TIMED_DESTROY
     "kill_target": 10,   // Required for KILL_COUNT
     // ... other config
