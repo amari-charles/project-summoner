@@ -26,7 +26,7 @@ debug_skip_tutorial_intro = false
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 script = ExtResource("3_summoner")
 team = 0
 load_deck_from_profile = true
@@ -39,7 +39,7 @@ modulate = Color(0.831, 0.647, 0.455, 1)
 texture = ExtResource("17_castle_sprite")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 script = ExtResource("3_summoner")
 team = 1
 
