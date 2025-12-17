@@ -26,6 +26,7 @@ const CASTING_INDICATOR_OFFSET_Y: float = -180.0  ## Above hand area (from botto
 
 @export var timer_label: Label = null
 @export var player_mana_bar: ManaBar = null
+@export var enemy_mana_bar: ManaBar = null
 @export var game_over_label: Label = null
 @export var restart_button: Button = null
 
@@ -64,6 +65,10 @@ func _ready() -> void:
 		player_hp_bar = get_node_or_null("PlayerHPBar")
 	if enemy_hp_bar == null:
 		enemy_hp_bar = get_node_or_null("EnemyHPBar")
+
+	# Enemy mana bar
+	if enemy_mana_bar == null:
+		enemy_mana_bar = get_node_or_null("EnemyManaBar")
 
 	# Two-phase battle system UI elements
 	if phase_label == null:
@@ -118,9 +123,10 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 	else:
 		push_error("GameUI: init() called with null player_summoner!")
 
-	# Connect to enemy summoner HP signals
+	# Connect to enemy summoner HP and mana signals
 	if enemy_summoner:
 		_connect_to_hp_signals(enemy_summoner, false)
+		_connect_to_enemy_mana(enemy_summoner)
 
 	# Initialize HP bar colors
 	_setup_hp_bars()
@@ -151,6 +157,21 @@ func _connect_to_summoner(summoner: Node) -> void:
 		var casting_completed_signal: Signal = summoner.get("casting_completed")
 		casting_completed_signal.connect(_on_casting_completed)
 
+## Connect to enemy mana signals
+func _connect_to_enemy_mana(summoner: Node) -> void:
+	if summoner.has_signal("mana_changed"):
+		var mana_changed_signal: Signal = summoner.get("mana_changed")
+		mana_changed_signal.connect(_on_enemy_mana_changed)
+
+		# Trigger initial update
+		var current_mana: float = summoner.get("mana") if "mana" in summoner else 0.0
+		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else 10.0
+		_on_enemy_mana_changed(current_mana, max_mana)
+
+func _on_enemy_mana_changed(current: float, maximum: float) -> void:
+	if enemy_mana_bar:
+		enemy_mana_bar.update_mana(current, maximum)
+
 ## Connect to HP signals for a summoner
 func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
 	if summoner.has_signal("hp_changed"):
@@ -170,14 +191,14 @@ func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
 
 ## Setup HP bar colors
 func _setup_hp_bars() -> void:
-	# Player HP bar - team color (warm tan)
+	# Player HP bar - red
 	if player_hp_bar:
-		player_hp_bar.set_colors(Color(0.831, 0.647, 0.455))
+		player_hp_bar.set_colors(Color(0.85, 0.25, 0.25))
 		player_hp_bar.set_label_config(true, "{current}/{max}")
 
-	# Enemy HP bar - team color (cool blue-gray)
+	# Enemy HP bar - red
 	if enemy_hp_bar:
-		enemy_hp_bar.set_colors(Color(0.353, 0.482, 0.549))
+		enemy_hp_bar.set_colors(Color(0.85, 0.25, 0.25))
 		enemy_hp_bar.set_label_config(true, "{current}/{max}")
 
 ## Handle player HP changes

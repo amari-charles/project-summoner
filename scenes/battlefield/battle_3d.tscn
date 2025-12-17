@@ -56,6 +56,7 @@ script = ExtResource("12_game_ui")
 player_mana_bar = NodePath("PlayerManaBar")
 player_hp_bar = NodePath("PlayerHPBar")
 enemy_hp_bar = NodePath("EnemyHPBar")
+enemy_mana_bar = NodePath("EnemyManaBar")
 
 [node name="BattlefieldDropZone" type="Control" parent="UI"]
 layout_mode = 3
@@ -70,25 +71,36 @@ script = ExtResource("7_drop_zone")
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 280.0
-offset_bottom = 48.0
+offset_right = 520.0
+offset_bottom = 52.0
 
 [node name="PlayerManaBar" parent="UI" instance=ExtResource("11_mana_bar")]
 layout_mode = 0
 offset_left = 20.0
-offset_top = 56.0
-offset_right = 200.0
-offset_bottom = 106.0
+offset_top = 60.0
+offset_right = 420.0
+offset_bottom = 115.0
 
 [node name="EnemyHPBar" parent="UI" instance=ExtResource("18_stat_bar")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 layout_mode = 0
-offset_left = -280.0
+offset_left = -520.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 48.0
+offset_bottom = 52.0
+grow_horizontal = 0
+
+[node name="EnemyManaBar" parent="UI" instance=ExtResource("11_mana_bar")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+layout_mode = 0
+offset_left = -420.0
+offset_top = 60.0
+offset_right = -20.0
+offset_bottom = 115.0
 grow_horizontal = 0
 
 [node name="SpeedButton" type="Button" parent="UI"]
