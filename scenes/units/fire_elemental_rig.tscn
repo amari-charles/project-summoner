@@ -18,7 +18,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.15, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 0.3, 1, 1),
 "update": 0,
-"values": [Vector2(300, 500), Vector2(350, 470), Vector2(400, 500), Vector2(300, 500)]
+"values": [Vector2(300, 350), Vector2(350, 320), Vector2(400, 350), Vector2(300, 350)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -73,7 +73,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.75, 1.5),
 "transitions": PackedFloat32Array(0.5, 0.5, 0.5),
 "update": 0,
-"values": [Vector2(300, 500), Vector2(300, 480), Vector2(300, 500)]
+"values": [Vector2(300, 350), Vector2(300, 330), Vector2(300, 350)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -141,36 +141,35 @@ autoplay = "idle"
 [node name="Skeleton2D" type="Skeleton2D" parent="."]
 
 [node name="LeftLegBone" type="Bone2D" parent="Skeleton2D"]
-position = Vector2(220, 620)
-rest = Transform2D(1, 0, 0, 1, 220, 620)
+position = Vector2(300, 550)
+rest = Transform2D(1, 0, 0, 1, 300, 550)
 
 [node name="LeftLegSprite" type="Sprite2D" parent="Skeleton2D/LeftLegBone"]
 z_index = -1
-position = Vector2(147, -230)
+position = Vector2(67, -160)
 texture = ExtResource("3_leg_left")
 
 [node name="RightLegBone" type="Bone2D" parent="Skeleton2D"]
-position = Vector2(380, 620)
-rest = Transform2D(1, 0, 0, 1, 380, 620)
+position = Vector2(300, 550)
+rest = Transform2D(1, 0, 0, 1, 300, 550)
 
 [node name="RightLegSprite" type="Sprite2D" parent="Skeleton2D/RightLegBone"]
 z_index = -1
-position = Vector2(-71, -252)
+position = Vector2(9, -182)
 texture = ExtResource("4_leg_right")
 
 [node name="BodyBone" type="Bone2D" parent="Skeleton2D"]
-position = Vector2(300, 500)
-rest = Transform2D(1, 0, 0, 1, 300, 500)
+position = Vector2(300, 350)
+rest = Transform2D(1, 0, 0, 1, 300, 350)
 
 [node name="BodySprite" type="Sprite2D" parent="Skeleton2D/BodyBone"]
-position = Vector2(0, -150)
 texture = ExtResource("1_body")
 
 [node name="EyeBone" type="Bone2D" parent="Skeleton2D/BodyBone"]
-position = Vector2(120, -80)
-rest = Transform2D(1, 0, 0, 1, 120, -80)
+position = Vector2(106, 68)
+rest = Transform2D(1, 0, 0, 1, 106, 68)
 
 [node name="EyeSprite" type="Sprite2D" parent="Skeleton2D/BodyBone/EyeBone"]
 z_index = 1
-position = Vector2(-134, -52)
+position = Vector2(-148, -40)
 texture = ExtResource("2_eye")
