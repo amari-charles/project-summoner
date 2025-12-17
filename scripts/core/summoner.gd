@@ -15,6 +15,7 @@ enum DeckLoadStrategy {
 @export var team: Unit3D.Team = Unit3D.Team.PLAYER
 
 ## HP (summoner is the attack target)
+## Default 300 HP provides ~60 seconds of survivability against typical early-game damage
 @export var max_hp: float = 300.0
 
 ## Deck and hand
@@ -27,6 +28,11 @@ const BASE_FLASH_DURATION: float = 0.3
 const MIN_FLASH_DURATION: float = 0.05
 const FLASH_SPEED_MULTIPLIER: float = 0.3
 const RECENT_HITS_DECAY_RATE: float = 2.0
+
+## HP bar display configuration (summoner uses larger bar than units)
+const HP_BAR_WIDTH: float = 1.5  # Wider than unit bars for visibility
+const HP_BAR_OFFSET_Y: float = 2.5  # Height above summoner position
+const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 
 ## Current state
 var mana: float = 0.0
@@ -103,9 +109,9 @@ func _ready() -> void:
 
 	# Create HP bar for summoner
 	HPBarManager.create_bar_for_unit(self, {
-		"bar_width": 1.5,
-		"offset_y": 2.5,
-		"show_on_damage_only": false
+		"bar_width": HP_BAR_WIDTH,
+		"offset_y": HP_BAR_OFFSET_Y,
+		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
 	})
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready

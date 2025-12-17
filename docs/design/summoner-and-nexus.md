@@ -1,113 +1,87 @@
-# Summoner and Incarnation Architecture
+# Summoner Architecture
 
-**Last Updated:** 2025-12-16
+**Last Updated:** 2025-12-17
 
-This document describes the architecture for the Summoner (player character) and Incarnation (win condition target) systems.
+This document describes the architecture for the Summoner system, which serves as both the player character and the attack target (win condition).
 
 ## Overview
 
-In Fateforged, two key entities exist per player:
+In Fateforged, the **Summoner** is the central entity for each player, handling:
 
-1. **Summoner** - The wizard-commander who builds and commands the army
-2. **Incarnation** - The summoner's magical presence on the battlefield (win condition)
+1. **Card Management** - Deck, hand, and card playing
+2. **Mana System** - Fixed pool for the battle
+3. **Win Condition** - The target units attack to win
 
-## The Incarnation Concept
+## The Unified Summoner Concept
 
-### What Is the Incarnation?
+### What Is the Summoner?
 
-The **Incarnation** is the summoner's magical presence projected onto the battlefield. It's what makes the summoner's army real and functional in that space.
+The **Summoner** is the wizard-commander who projects their power onto the battlefield. They are:
 
-- **Not the summoner themselves** — the summoner commands from elsewhere
-- **A projection of power** — breaking it severs their connection to this battle
-- **Works for any context** — duels, sparring, academic competitions, or war
+- **The army commander** - plays cards to spawn units and cast spells
+- **The attack target** - destroying the summoner wins the game
+- **The magical anchor** - their presence sustains the battle
 
-### Why Incarnation Instead of Base/Nexus?
+### Why Unified Design?
 
 | Old Approach | Problem | New Approach |
 |--------------|---------|--------------|
-| Base/Nexus as target | Arbitrary structure with no narrative meaning | Incarnation — the summoner's magical presence |
-| Static building | Doesn't fit contexts like sparring or duels | Works universally |
-| "Destroy enemy base" | Generic, no fantasy | "Sever their connection to the battle" |
+| Separate Summoner + Base3D | Two entities to manage, confusing architecture | Single Summoner class |
+| Base as "Incarnation" | Extra abstraction with unclear benefit | Summoner IS the target |
+| Dual signal systems | hp_changed on base, mana on summoner | All signals on Summoner |
 
 ### Visual Representation
 
-The Incarnation is represented as a **glowing elemental orb/presence** — a manifestation of magical energy. The exact visual can vary by summoner affinity (fire summoner = fiery orb, water summoner = flowing water presence, etc.).
+The Summoner is represented by a castle sprite on the battlefield. Future plans include summoner-specific visuals based on element/faction (fire summoner = fiery presence, etc.).
 
-## Summoner
+## Summoner Responsibilities
 
-The Summoner represents the player character. They play cards and command units.
-
-### Responsibilities
-
+### Card & Mana Management
 - Manage deck, hand, and card drawing
-- Manage fixed mana pool (50 mana default, no regeneration)
-- Play cards to spawn units and cast spells (with summon time delay)
-- Store summoner-specific stats and bonuses
+- Fixed mana pool (50 mana default, no regeneration)
+- Play cards with summon time delay (casting indicator)
+- Store summoner-specific stats and bonuses from traits
 
-### NOT Responsible For
-
-- **Combat HP** — Summoners cannot be attacked or damaged
-- **Win/Loss Condition** — Destroying a summoner does not end the game
+### Combat & Win Condition
+- Track HP (default 300, configurable via traits)
+- Receive damage from enemy units
+- Emit `summoner_destroyed` signal when HP reaches 0
+- Display HP bar above position
+- Show hit feedback animation (flash + shake)
 
 ### Summoner Stats
 
 | Stat | Effect |
 |------|--------|
 | `max_mana` | Starting mana pool for the battle |
-| `mana_regen` | Reserved for future mechanics (currently 0) |
-| `health` | Flows to Incarnation HP |
+| `max_hp` | Summoner's health (default 300) |
+| `damage_bonus` | Applied to friendly unit attacks |
+| `damage_reduction` | Applied to incoming damage |
 
-### Code Location
+## Code Location
 
 - `scripts/core/summoner.gd`
-- Groups: `summoners`, `player_summoners` / `enemy_summoners`
-
-## Incarnation (Base3D)
-
-The Incarnation is the magical target that each player defends. It's what units attack to win.
-
-### Responsibilities
-
-- Be the target for enemy unit attacks
-- Track HP and emit damage/destroyed signals
-- Serve as the win condition (destroy enemy Incarnation to win)
-
-### Current Implementation
-
-- `scripts/core/base_3d.gd`
-- Groups: `bases`, `player_base` / `enemy_base`
-- Has collision shape (BoxShape3D) for unit targeting
-- HP bar displayed above the presence
-
-### Future Visual Development
-
-The Incarnation visual will evolve to:
-- Reflect summoner element (fire orb, water presence, etc.)
-- Pulse and react to battle events
-- Show clear damage states
-- Have a satisfying destruction animation
+- Groups: `summoners`, `bases`, `player_summoners`/`enemy_summoners`, `player_bases`/`enemy_bases`
 
 ## Win Condition
 
-**Only the Incarnation (Base3D) destruction triggers game end.**
+**Summoner destruction triggers game end.**
 
-- When a Base3D reaches 0 HP, it emits `base_destroyed`
-- GameController3D listens for this and calls `end_game()`
-- The team whose Incarnation was destroyed loses
+- When a Summoner reaches 0 HP, it emits `summoner_destroyed`
+- `GameController3D` listens for this signal and calls `end_game()`
+- The team whose Summoner was destroyed loses
 
 ## Battle Flow Integration
 
-The Incarnation ties into the two-phase battle system:
-
 ### PREPARATION Phase
-- Incarnations are invulnerable (units are INACTIVE anyway)
-- Players build formations around defending their own Incarnation
-- Strategic positioning relative to Incarnation placement
+- Summoners are invulnerable (units are INACTIVE)
+- Players place units to defend their Summoner
+- Strategic positioning relative to Summoner location
 
 ### BATTLE Phase
-- Units activate and advance toward enemy Incarnation
-- First Incarnation destroyed ends the match
-- Reinforcements can be summoned to protect weakened Incarnations
+- Units activate and advance toward enemy Summoner
+- First Summoner destroyed ends the match
+- Reinforcements can be summoned to protect weakened Summoners
 
 ## Group Usage
 
@@ -116,28 +90,31 @@ The Incarnation ties into the two-phase battle system:
 | `summoners` | All Summoner instances | Finding summoners for UI/spell targeting |
 | `player_summoners` | Player's Summoner | Team-specific lookups |
 | `enemy_summoners` | Enemy's Summoner | Team-specific lookups |
-| `bases` | All Incarnation (Base3D) instances | Unit attack targeting, win condition |
-| `player_base` | Player's Incarnation | Team-specific lookups |
-| `enemy_base` | Enemy's Incarnation | Team-specific lookups |
+| `bases` | All Summoner instances | Unit attack targeting (same as summoners) |
+| `player_bases` | Player's Summoner | Team-specific attack targets |
+| `enemy_bases` | Enemy's Summoner | Team-specific attack targets |
 
-**Note:** Summoners are NOT in the `bases` group. They should not be found as attack targets.
+**Note:** Summoners are in BOTH `summoners` and `bases` groups. They are the attack targets.
 
-## Terminology Migration
+## Signal Reference
 
-As of 2025-12-16, the following terminology is being adopted:
-
-| Old Term | New Term | Notes |
-|----------|----------|-------|
-| Base | Incarnation | Narrative-appropriate win condition |
-| Nexus | Incarnation | Same change |
-| Destroy base | Sever connection | More evocative language |
-
-The code still uses `Base3D` class name for now, but documentation and player-facing text should use "Incarnation."
+| Signal | Emitted When |
+|--------|--------------|
+| `summoner_ready(summoner)` | After init() completes |
+| `mana_changed(current, max)` | Mana spent or modified |
+| `hand_changed(hand)` | Card drawn or played |
+| `hp_changed(current, max)` | Damage taken or HP modified |
+| `summoner_damaged(summoner, damage)` | Damage received |
+| `summoner_destroyed(summoner)` | HP reaches 0 |
+| `casting_started(card, duration)` | Summon time delay begins |
+| `casting_completed(card)` | Unit spawns after delay |
 
 ## Migration History
 
 **2025-11-25:** Removed HP/death code from Summoner (summoners can't be attacked)
 
-**2025-12-07:** Consolidated `Summoner3D` → `Summoner` (single 3D-only class)
+**2025-12-07:** Consolidated `Summoner3D` to `Summoner` (single 3D-only class)
 
-**2025-12-16:** Adopted Incarnation terminology; updated documentation to reflect new battle system design
+**2025-12-16:** Adopted Incarnation terminology; documented separate Base3D concept
+
+**2025-12-17:** Merged Summoner and Base3D - Summoner is now the attack target. Removed Base3D class entirely. This simplifies the architecture by eliminating a redundant entity.
