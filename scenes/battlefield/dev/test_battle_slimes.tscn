@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://test_battle_slimes"]
+[gd_scene load_steps=7 format=3 uid="uid://test_battle_slimes"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" path="res://scripts/core/test_slimes_controller.gd" id="2_test_controller"]
 [ext_resource type="Script" path="res://scripts/core/summoner.gd" id="3_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
+[ext_resource type="CompressedTexture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_prop_magic_stone_tower.png" id="8_tower_sprite"]
 
 [node name="TestBattleSlimes" type="Node3D"]
 script = ExtResource("2_test_controller")
@@ -16,11 +17,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
 script = ExtResource("3_summoner")
 deck_load_strategy = 3
 
+[node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+pixel_size = 0.1
+texture = ExtResource("8_tower_sprite")
+
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
 deck_load_strategy = 3
+
+[node name="Visual" type="Sprite3D" parent="EnemySummoner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+pixel_size = 0.1
+texture = ExtResource("8_tower_sprite")
 
 [node name="UI" type="CanvasLayer" parent="."]
 

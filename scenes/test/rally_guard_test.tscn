@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://7oxpfxkhfr3h"]
+[gd_scene load_steps=13 format=3 uid="uid://7oxpfxkhfr3h"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" uid="uid://bejquix54he1c" path="res://scripts/core/test_game_controller.gd" id="2_game_controller"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://c5j735p3yll2r" path="res://scripts/ui/speed_button.gd" id="11_speed_button"]
 [ext_resource type="PackedScene" uid="uid://bkj8q7n5vx8" path="res://scenes/ui/mana_bar.tscn" id="12_mana_bar"]
 [ext_resource type="Script" uid="uid://er3rhu64om6j" path="res://scripts/ui/game_ui.gd" id="13_game_ui"]
+[ext_resource type="CompressedTexture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_prop_magic_stone_tower.png" id="14_tower_sprite"]
 
 [node name="RallyGuardTest" type="Node3D"]
 script = ExtResource("2_game_controller")
@@ -22,6 +23,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
 script = ExtResource("3_summoner")
 deck_load_strategy = 0
 
+[node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+pixel_size = 0.1
+texture = ExtResource("14_tower_sprite")
+
 [node name="TestSetup" type="Node" parent="PlayerSummoner"]
 script = ExtResource("4_test_setup")
 
@@ -29,6 +35,11 @@ script = ExtResource("4_test_setup")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
+
+[node name="Visual" type="Sprite3D" parent="EnemySummoner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+pixel_size = 0.1
+texture = ExtResource("14_tower_sprite")
 
 [node name="UI" type="CanvasLayer" parent="."]
 script = ExtResource("13_game_ui")
