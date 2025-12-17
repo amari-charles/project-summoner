@@ -31,6 +31,9 @@ func _ready() -> void:
 	_create_ui()
 	# Initialize display after layout
 	await get_tree().process_frame
+	# Guard against node being freed during await
+	if not is_inside_tree():
+		return
 	_update_display(max_value, max_value, false)
 
 func _create_ui() -> void:
