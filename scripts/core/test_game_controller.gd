@@ -46,17 +46,17 @@ func _ready() -> void:
 	if enemy_summoner:
 		_load_enemy_test_deck(enemy_summoner)
 
-	# Set infinite HP for both bases
+	# Set infinite HP for both summoners (summoner is the attack target)
 	await get_tree().process_frame
-	if enemy_base and "max_hp" in enemy_base:
-		enemy_base.set("max_hp", 999999.0)
-		enemy_base.set("current_hp", 999999.0)
-		print("TestGameController: Enemy base set to infinite HP")
+	if enemy_summoner and "max_hp" in enemy_summoner:
+		enemy_summoner.set("max_hp", 999999.0)
+		enemy_summoner.set("current_hp", 999999.0)
+		print("TestGameController: Enemy summoner set to infinite HP")
 
-	if player_base and "max_hp" in player_base:
-		player_base.set("max_hp", 999999.0)
-		player_base.set("current_hp", 999999.0)
-		print("TestGameController: Player base set to infinite HP")
+	if player_summoner and "max_hp" in player_summoner:
+		player_summoner.set("max_hp", 999999.0)
+		player_summoner.set("current_hp", 999999.0)
+		print("TestGameController: Player summoner set to infinite HP")
 
 	print("TestGameController: Test mode ready!")
 	print("  - Player deck: %d cards (mostly fireballs)" % test_deck_cards.size())
