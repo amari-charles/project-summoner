@@ -7,7 +7,7 @@ class_name SkeletalCharacter2D5Component
 
 @export var skeletal_scene: PackedScene = null  ## The skeletal animation scene to instance
 @export var scale_factor: Vector2 = Vector2(0.1, 0.1)  ## Scale of the skeletal model in 3D world
-@export var viewport_padding: float = 200.0  ## Padding around character in viewport (extra room for animation movement)
+@export var viewport_padding: float = 200.0  ## Extra pixels around character bounds to accommodate animation overshoot (squash/stretch, lunges)
 @export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
