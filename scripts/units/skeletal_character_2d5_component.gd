@@ -17,6 +17,8 @@ class_name SkeletalCharacter2D5Component
 var animation_player: AnimationPlayer = null
 var skeletal_instance: Node2D = null
 var _cached_bounds: Rect2 = Rect2()
+var _is_flipped: bool = false  ## Track flip state for race condition handling
+var _initialization_complete: bool = false  ## Track if bounds have been calculated
 
 func _ready() -> void:
 	# Force viewport to render every frame
@@ -75,6 +77,12 @@ func _instance_skeletal_scene() -> void:
 		skeletal_instance.position.y = new_height - _cached_bounds.end.y - viewport_padding
 	else:
 		push_warning("SkeletalChar2D5: Could not calculate bounds, using default viewport size")
+
+	# Mark initialization complete and re-apply flip state
+	# This handles the race condition where set_flip_h was called during await
+	_initialization_complete = true
+	if _is_flipped:
+		_apply_flip_position(true)
 
 ## Recursively find AnimationPlayer in node tree
 func _find_animation_player(node: Node) -> AnimationPlayer:
@@ -139,19 +147,33 @@ func is_playing() -> bool:
 	return false
 
 ## Flip the sprite horizontally (for enemy units)
-func set_flip_h(_flip: bool) -> void:
-	if skeletal_instance and viewport:
-		skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if _flip else 1)
-		# Recalculate X position to keep content centered after flip
-		# When flipped, the content mirrors around local origin, so we need to adjust
-		if _cached_bounds.size.x > 0:
-			var center_x: float = viewport.size.x / 2.0
-			if _flip:
-				# When flipped, offset from center in opposite direction
-				skeletal_instance.position.x = center_x + _cached_bounds.get_center().x
-			else:
-				# Normal: offset to center the bounds
-				skeletal_instance.position.x = center_x - _cached_bounds.get_center().x
+func set_flip_h(flip: bool) -> void:
+	_is_flipped = flip  # Always track the desired state
+
+	if not skeletal_instance:
+		return
+
+	# Apply scale flip
+	skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if flip else 1)
+
+	# Only adjust position if initialization is complete (bounds are valid)
+	# If called during initialization, the flip will be re-applied after bounds are calculated
+	if _initialization_complete:
+		_apply_flip_position(flip)
+
+## Apply position adjustment for flip state
+## Separated from set_flip_h to handle race condition during initialization
+func _apply_flip_position(flip: bool) -> void:
+	if not skeletal_instance or not viewport or _cached_bounds.size.x <= 0:
+		return
+
+	var center_x: float = viewport.size.x / 2.0
+	if flip:
+		# When flipped, offset from center in opposite direction
+		skeletal_instance.position.x = center_x + _cached_bounds.get_center().x
+	else:
+		# Normal: offset to center the bounds
+		skeletal_instance.position.x = center_x - _cached_bounds.get_center().x
 
 ## Randomize animation phase so multiple units don't animate in sync
 func _randomize_animation_phase() -> void:
