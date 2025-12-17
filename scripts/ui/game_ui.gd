@@ -58,15 +58,15 @@ func _ready() -> void:
 	if restart_button == null:
 		restart_button = get_node_or_null("RestartButton")
 
-	# Stat bars (all use StatBar now)
+	# Stat bars (all use StatBar now) - look in HUDContainer
 	if player_hp_bar == null:
-		player_hp_bar = get_node_or_null("PlayerHPBar")
+		player_hp_bar = get_node_or_null("HUDContainer/PlayerHPBar")
 	if player_mana_bar == null:
-		player_mana_bar = get_node_or_null("PlayerManaBar")
+		player_mana_bar = get_node_or_null("HUDContainer/PlayerManaBar")
 	if enemy_hp_bar == null:
-		enemy_hp_bar = get_node_or_null("EnemyHPBar")
+		enemy_hp_bar = get_node_or_null("HUDContainer/EnemyHPBar")
 	if enemy_mana_bar == null:
-		enemy_mana_bar = get_node_or_null("EnemyManaBar")
+		enemy_mana_bar = get_node_or_null("HUDContainer/EnemyManaBar")
 
 	# Two-phase battle system UI elements
 	if phase_label == null:

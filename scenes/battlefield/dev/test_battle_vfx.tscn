@@ -49,7 +49,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_drop_zone")
 
-[node name="TestModeLabel" type="Label" parent="UI"]
+[node name="HUDContainer" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TestModeLabel" type="Label" parent="UI/HUDContainer"]
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 400.0
@@ -58,7 +67,7 @@ theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
 theme_override_font_sizes/font_size = 28
 text = "VFX TEST MODE"
 
-[node name="InstructionsLabel" type="Label" parent="UI"]
+[node name="InstructionsLabel" type="Label" parent="UI/HUDContainer"]
 offset_left = 20.0
 offset_top = 60.0
 offset_right = 500.0
@@ -68,7 +77,7 @@ theme_override_font_sizes/font_size = 16
 text = "Infinite Mana | Infinite Enemy HP
 Edit test_game_controller.gd to change deck"
 
-[node name="PlayerManaLabel" type="Label" parent="UI"]
+[node name="PlayerManaLabel" type="Label" parent="UI/HUDContainer"]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -80,25 +89,25 @@ grow_vertical = 0
 theme_override_font_sizes/font_size = 24
 text = "Mana: ∞"
 
-[node name="PlayerHPBar" parent="UI" instance=ExtResource("9_stat_bar")]
-layout_mode = 0
+[node name="PlayerHPBar" parent="UI/HUDContainer" instance=ExtResource("9_stat_bar")]
+layout_mode = 1
 offset_left = 20.0
 offset_top = 120.0
 offset_right = 200.0
 offset_bottom = 148.0
 
-[node name="EnemyHPBar" parent="UI" instance=ExtResource("9_stat_bar")]
+[node name="EnemyHPBar" parent="UI/HUDContainer" instance=ExtResource("9_stat_bar")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-layout_mode = 0
+layout_mode = 1
 offset_left = -200.0
 offset_top = 120.0
 offset_right = -20.0
 offset_bottom = 148.0
 grow_horizontal = 0
 
-[node name="GameOverLabel" type="Label" parent="UI"]
+[node name="GameOverLabel" type="Label" parent="UI/HUDContainer"]
 process_mode = 3
 visible = false
 anchors_preset = 8

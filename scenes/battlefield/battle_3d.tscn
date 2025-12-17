@@ -52,10 +52,10 @@ texture = ExtResource("17_castle_sprite")
 
 [node name="UI" type="CanvasLayer" parent="."]
 script = ExtResource("12_game_ui")
-player_hp_bar = NodePath("PlayerHPBar")
-player_mana_bar = NodePath("PlayerManaBar")
-enemy_hp_bar = NodePath("EnemyHPBar")
-enemy_mana_bar = NodePath("EnemyManaBar")
+player_hp_bar = NodePath("HUDContainer/PlayerHPBar")
+player_mana_bar = NodePath("HUDContainer/PlayerManaBar")
+enemy_hp_bar = NodePath("HUDContainer/EnemyHPBar")
+enemy_mana_bar = NodePath("HUDContainer/EnemyManaBar")
 
 [node name="BattlefieldDropZone" type="Control" parent="UI"]
 layout_mode = 3
@@ -66,36 +66,45 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_drop_zone")
 
-[node name="PlayerHPBar" parent="UI" instance=ExtResource("18_stat_bar")]
-layout_mode = 0
+[node name="HUDContainer" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayerHPBar" parent="UI/HUDContainer" instance=ExtResource("18_stat_bar")]
+layout_mode = 1
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 520.0
 offset_bottom = 52.0
 
-[node name="PlayerManaBar" parent="UI" instance=ExtResource("18_stat_bar")]
-layout_mode = 0
+[node name="PlayerManaBar" parent="UI/HUDContainer" instance=ExtResource("18_stat_bar")]
+layout_mode = 1
 offset_left = 20.0
 offset_top = 60.0
 offset_right = 420.0
 offset_bottom = 92.0
 
-[node name="EnemyHPBar" parent="UI" instance=ExtResource("18_stat_bar")]
+[node name="EnemyHPBar" parent="UI/HUDContainer" instance=ExtResource("18_stat_bar")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-layout_mode = 0
+layout_mode = 1
 offset_left = -520.0
 offset_top = 20.0
 offset_right = -20.0
 offset_bottom = 52.0
 grow_horizontal = 0
 
-[node name="EnemyManaBar" parent="UI" instance=ExtResource("18_stat_bar")]
+[node name="EnemyManaBar" parent="UI/HUDContainer" instance=ExtResource("18_stat_bar")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-layout_mode = 0
+layout_mode = 1
 offset_left = -420.0
 offset_top = 60.0
 offset_right = -20.0
