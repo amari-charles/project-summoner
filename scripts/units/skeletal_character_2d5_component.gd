@@ -78,10 +78,12 @@ func _instance_skeletal_scene() -> void:
 	else:
 		push_warning("SkeletalChar2D5: Could not calculate bounds, using default viewport size")
 
-	# Mark initialization complete and re-apply flip state
+	# Mark initialization complete and apply deferred flip state
 	# This handles the race condition where set_flip_h was called during await
 	_initialization_complete = true
 	if _is_flipped:
+		# Apply scale flip (was deferred to not affect bounds calculation)
+		skeletal_instance.scale.x = -1
 		_apply_flip_position(true)
 
 	# Start idle animation after bounds are calculated
@@ -158,13 +160,16 @@ func set_flip_h(flip: bool) -> void:
 	if not skeletal_instance:
 		return
 
+	# Don't apply any transforms until initialization is complete
+	# Applying scale during init affects global_position calculations for bounds
+	if not _initialization_complete:
+		return
+
 	# Apply scale flip
 	skeletal_instance.scale.x = abs(skeletal_instance.scale.x) * (-1 if flip else 1)
 
-	# Only adjust position if initialization is complete (bounds are valid)
-	# If called during initialization, the flip will be re-applied after bounds are calculated
-	if _initialization_complete:
-		_apply_flip_position(flip)
+	# Adjust position for flip
+	_apply_flip_position(flip)
 
 ## Apply position adjustment for flip state
 ## Separated from set_flip_h to handle race condition during initialization
@@ -290,11 +295,6 @@ func _get_skeletal_bounds() -> Rect2:
 			var tex_size: Vector2 = texture.get_size()
 			var sprite_center: Vector2 = sprite_2d.global_position - skeletal_instance.global_position
 
-			# DEBUG
-			print("BOUNDS DEBUG: %s - global_pos=%s, skel_pos=%s, center=%s, tex=%s, centered=%s" % [
-				sprite_2d.name, sprite_2d.global_position, skeletal_instance.global_position,
-				sprite_center, tex_size, sprite_2d.centered])
-
 			# Calculate bounds based on centering mode
 			# For centered sprites, global_position IS the visual center
 			# For non-centered sprites, global_position is the top-left
@@ -315,9 +315,7 @@ func _get_skeletal_bounds() -> Rect2:
 			found_sprites = true
 
 	if found_sprites:
-		var result: Rect2 = Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
-		print("BOUNDS DEBUG: Final bounds=%s, center=%s" % [result, result.get_center()])
-		return result
+		return Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
 
 	return Rect2()
 
