@@ -614,6 +614,13 @@ func _is_valid_target(target: Node3D) -> bool:
 		if not unit_target.is_alive or unit_target.is_dying:
 			return false
 
+	# Check Summoner is_alive (summoner is attackable base)
+	if target.is_in_group(GroupIDs.BASES):
+		if "is_alive" in target and not target.is_alive:
+			return false
+		# Bases are always valid targets regardless of distance
+		return true
+
 	# Skip distance check for forced targets from Charge spell
 	# Forced targets should be pursued regardless of initial distance
 	if target == forced_target and forced_target_timer > 0.0:
