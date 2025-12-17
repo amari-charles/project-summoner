@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://broq83qx2t0d1"]
+[gd_scene load_steps=10 format=3 uid="uid://broq83qx2t0d1"]
 
 [ext_resource type="Script" path="res://scripts/units/fire_elemental_rig.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cvshrv6gn2rwh" path="res://assets/characters/fire_units/fire_elemental/body.png" id="2_body"]
@@ -48,7 +48,7 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("BodyPivot/LeftLegPivot:rotation")
+tracks/3/path = NodePath("LeftLegPivot:rotation")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
@@ -60,7 +60,7 @@ tracks/3/keys = {
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("BodyPivot/RightLegPivot:rotation")
+tracks/4/path = NodePath("RightLegPivot:rotation")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
@@ -124,59 +124,89 @@ tracks/2/keys = {
 "update": 0,
 "values": [0.0, 0.05, 0.0]
 }
+
+[sub_resource type="Animation" id="Animation_walk"]
+resource_name = "walk"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("LeftLegPivot:rotation")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
+"update": 0,
+"values": [0.03, 0.05, -0.03, -0.02, 0.03]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("RightLegPivot:rotation")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
+"update": 0,
+"values": [-0.15, -0.25, 0.15, 0.1, -0.15]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("LeftLegPivot:position")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
+"update": 0,
+"values": [Vector2(115, 990), Vector2(115, 1005), Vector2(115, 940), Vector2(115, 960), Vector2(115, 990)]
+}
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("BodyPivot/LeftLegPivot:rotation")
+tracks/3/path = NodePath("RightLegPivot:position")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
 "transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
 "update": 0,
-"values": [0.03, 0.05, -0.03, -0.02, 0.03]
+"values": [Vector2(525, 960), Vector2(525, 940), Vector2(525, 1020), Vector2(525, 1000), Vector2(525, 960)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("BodyPivot/RightLegPivot:rotation")
+tracks/4/path = NodePath("BodyPivot:position")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
-"transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
+"transitions": PackedFloat32Array(0.4, 2.5, 0.4, 2.0, 0.4),
 "update": 0,
-"values": [-0.15, -0.25, 0.15, 0.1, -0.15]
+"values": [Vector2(300, 300), Vector2(300, 312), Vector2(300, 280), Vector2(300, 292), Vector2(300, 300)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("BodyPivot/LeftLegPivot:position")
+tracks/5/path = NodePath("BodyPivot:scale")
 tracks/5/interp = 2
 tracks/5/loop_wrap = true
 tracks/5/keys = {
 "times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
-"transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
+"transitions": PackedFloat32Array(0.5, 2.0, 0.5, 2.0, 0.5),
 "update": 0,
-"values": [Vector2(-185, 690), Vector2(-185, 705), Vector2(-185, 640), Vector2(-185, 660), Vector2(-185, 690)]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("BodyPivot/RightLegPivot:position")
-tracks/6/interp = 2
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0, 0.15, 0.4, 0.6, 0.8),
-"transitions": PackedFloat32Array(0.5, 2.0, 2.0, 2.0, 0.5),
-"update": 0,
-"values": [Vector2(225, 660), Vector2(225, 640), Vector2(225, 720), Vector2(225, 700), Vector2(225, 660)]
+"values": [Vector2(1, 1), Vector2(1.05, 0.92), Vector2(0.97, 1.05), Vector2(1, 1), Vector2(1, 1)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
 _data = {
 &"attack": SubResource("Animation_attack"),
-&"idle": SubResource("Animation_idle")
+&"idle": SubResource("Animation_idle"),
+&"walk": SubResource("Animation_walk")
 }
 
 [node name="FireElementalRig" type="Node2D"]
@@ -187,22 +217,22 @@ libraries = {
 &"": SubResource("AnimationLibrary_main")
 }
 
-[node name="BodyPivot" type="Node2D" parent="."]
-position = Vector2(300, 300)
+[node name="LeftLegPivot" type="Node2D" parent="."]
+position = Vector2(115, 978)
 
-[node name="LeftLegPivot" type="Node2D" parent="BodyPivot"]
-position = Vector2(-185, 678)
-
-[node name="LeftLegSprite" type="Sprite2D" parent="BodyPivot/LeftLegPivot"]
+[node name="LeftLegSprite" type="Sprite2D" parent="LeftLegPivot"]
 z_index = -1
 texture = ExtResource("4_leg_left")
 
-[node name="RightLegPivot" type="Node2D" parent="BodyPivot"]
-position = Vector2(225, 700)
+[node name="RightLegPivot" type="Node2D" parent="."]
+position = Vector2(525, 1000)
 
-[node name="RightLegSprite" type="Sprite2D" parent="BodyPivot/RightLegPivot"]
+[node name="RightLegSprite" type="Sprite2D" parent="RightLegPivot"]
 z_index = -1
 texture = ExtResource("5_leg_right")
+
+[node name="BodyPivot" type="Node2D" parent="."]
+position = Vector2(300, 300)
 
 [node name="BodySprite" type="Sprite2D" parent="BodyPivot"]
 texture = ExtResource("2_body")
