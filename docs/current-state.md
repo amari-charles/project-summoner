@@ -1,6 +1,6 @@
 # Fateforged - Current State
 
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-16
 **Version:** Pre-Alpha (Phase 1 - Save System IMPLEMENTED)
 
 ## Project Overview
@@ -11,38 +11,42 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 
 ### Core Systems (Implemented)
 
-#### Game Controller (`scripts/core/game_controller.gd`)
-- Turn system (alternating player/enemy turns)
-- Win/loss detection (base destruction, timer-based victory)
-- Overtime system (extends match when close)
+#### Game Controller (`scripts/core/game_controller_3d.gd`)
+- Two-phase battle system (PREPARATION → BATTLE)
+- Preparation phase: 30 seconds for army building
+- Battle phase: units activate and fight until victory
+- Win/loss detection (Incarnation destruction)
 - Game pause and restart functionality
-- **Signals:** `turn_started`, `time_updated`, `game_ended`
+- **Signals:** `phase_changed`, `time_updated`, `game_ended`
 
-#### Unit System (`scripts/units/unit.gd`)
+#### Unit System (`scripts/units/unit_3d.gd`)
 - Base class for all battlefield entities
 - Team-based (PLAYER, ENEMY, NEUTRAL)
+- **Activation states:** INACTIVE (during prep), ACTIVE (during battle)
 - Movement with collision detection
 - Attack system with range checking
 - Health and death handling
-- **Unit Types:** Melee (WarriorUnit), Ranged (ArcherUnit)
+- **Unit Types:** Melee, Ranged, Flying
 
 #### Card System (`scripts/cards/card.gd`)
 - Base card class with drag-and-drop
 - Card types: UNIT, SPELL, STRUCTURE
+- **Summon time** — delay before unit appears (with casting indicator)
+- **Rarity system** — Common (12), Uncommon (6), Epic (3), Legendary (1) max copies
 - Hand management with visual layout
 - Mana cost system
-- **Implemented Cards:** Warrior, Archer, Fireball (AoE), Wall
 
-#### Base System (`scripts/core/base.gd`)
-- Team bases with 300 HP each
+#### Incarnation System (`scripts/core/base_3d.gd`)
+- **Incarnation** — the summoner's magical presence on the battlefield
 - Health bar visualization
-- Destruction triggers game end
+- Destruction triggers game end (win condition)
+- Represents the summoner's projection, not the summoner themselves
 
 #### Summoner System (`scripts/core/summoner.gd`)
-- Mana generation (1 per turn)
+- **Fixed mana pool** (50 mana by default, no regeneration)
 - Card hand management
-- Card playing logic (spawning, casting)
-- **Signals:** `mana_changed`, `hand_changed`
+- Card playing logic with summon time delay
+- **Signals:** `mana_changed`, `hand_changed`, `casting_started`, `casting_completed`
 
 ### Persistence Systems (Implemented - Phase 1)
 

@@ -1,7 +1,7 @@
 # Getting Started with Fateforged
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-16
 **Purpose:** New developer onboarding and documentation guide
 
 Welcome to Fateforged! This document will help you get oriented with the project structure, key systems, and where to find information.
@@ -28,11 +28,20 @@ Welcome to Fateforged! This document will help you get oriented with the project
 
 ### Core Gameplay Loop
 
-1. Player builds a deck of unit/spell cards
-2. Cards have mana costs; mana regenerates over time
-3. Play cards to summon units on the battlefield
-4. Units move and attack autonomously
-5. Destroy the enemy base to win
+Fateforged uses a two-phase battle system designed to create the fantasy of two armies clashing:
+
+**Phase 1: PREPARATION (30 seconds)**
+1. Both players start with a fixed mana pool (50 mana)
+2. Summon units to build your army formation
+3. Units spawn but remain **inactive** (they wait, don't fight yet)
+4. Plan your strategy before the clash
+
+**Phase 2: BATTLE (until victory)**
+1. All units **activate** and begin fighting autonomously
+2. Players can still summon reinforcements with remaining mana
+3. Battle continues until one side's **Incarnation** is destroyed
+
+**Win Condition:** Destroy the enemy's Incarnation — a magical manifestation of the summoner's power on the battlefield.
 
 ## Documentation Structure
 
@@ -165,10 +174,14 @@ See [`.claude/CLAUDE.md`](../.claude/CLAUDE.md) for detailed git workflow.
 
 ### What's Implemented
 
-✅ Card playing system with mana costs
+✅ Two-phase battle system (PREPARATION → BATTLE)
+✅ Fixed mana pool (no regeneration during battle)
+✅ Summon time mechanics with casting indicator
+✅ Unit activation states (inactive during prep, active during battle)
+✅ Card playing system with drag-and-drop
 ✅ Unit spawning and autonomous AI
 ✅ Melee and ranged combat
-✅ Base HP and destruction
+✅ Incarnation (win condition target)
 ✅ Pannable camera with boundaries
 ✅ VFX system for abilities
 ✅ Campaign progression
