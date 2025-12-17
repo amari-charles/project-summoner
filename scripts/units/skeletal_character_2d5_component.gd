@@ -290,6 +290,11 @@ func _get_skeletal_bounds() -> Rect2:
 			var tex_size: Vector2 = texture.get_size()
 			var sprite_center: Vector2 = sprite_2d.global_position - skeletal_instance.global_position
 
+			# DEBUG
+			print("BOUNDS DEBUG: %s - global_pos=%s, skel_pos=%s, center=%s, tex=%s, centered=%s" % [
+				sprite_2d.name, sprite_2d.global_position, skeletal_instance.global_position,
+				sprite_center, tex_size, sprite_2d.centered])
+
 			# Calculate bounds based on centering mode
 			# For centered sprites, global_position IS the visual center
 			# For non-centered sprites, global_position is the top-left
@@ -310,7 +315,9 @@ func _get_skeletal_bounds() -> Rect2:
 			found_sprites = true
 
 	if found_sprites:
-		return Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
+		var result: Rect2 = Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
+		print("BOUNDS DEBUG: Final bounds=%s, center=%s" % [result, result.get_center()])
+		return result
 
 	return Rect2()
 
