@@ -121,11 +121,15 @@ func init() -> void:
 		return
 	_initialized = true
 
-	print("Summoner: Initializing (team: %s)..." % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
+	print("Summoner: Initializing (team: %s, strategy: %s)..." % [
+		"PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY",
+		DeckLoadStrategy.keys()[deck_load_strategy]
+	])
 
 	# Auto-correct deck loading strategy based on team if using wrong default
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
 		deck_load_strategy = DeckLoadStrategy.PROFILE
+		print("Summoner: Auto-corrected to PROFILE strategy")
 	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
 
@@ -145,6 +149,10 @@ func init() -> void:
 	deck = _load_deck_by_strategy()
 
 	# Apply summoner bonuses for player using PROFILE strategy
+	print("Summoner: Checking bonuses (team=%s, strategy=%s, instance=%s)" % [
+		team, DeckLoadStrategy.keys()[deck_load_strategy],
+		"loaded" if _loaded_summoner_instance != null else "NULL"
+	])
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		if _loaded_summoner_instance != null:
 			_apply_summoner_bonuses(_loaded_summoner_instance)
