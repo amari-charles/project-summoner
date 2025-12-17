@@ -46,6 +46,7 @@ func _init_catalog() -> void:
 		"card_type": Card.CardType.SPELL,
 		"mana_cost": 5,
 		"cooldown": 2.0,
+		"summon_time": 0.0,  # Instant cast spell
 
 		"unit_scene_path": "",
 		"spawn_count": 0,
@@ -78,6 +79,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,  # For icon display
 		"mana_cost": 4,
 		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (3-4 mana)
 
 		"unit_scene_path": "res://scenes/units/neade_3d.tscn",
 		"spawn_count": 1,
@@ -146,6 +148,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,  # For icon display (combat type, not movement type)
 		"mana_cost": 4,
 		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (3-4 mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/demon_imp_3d.tscn",
@@ -191,6 +194,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 2,
 		"cooldown": 1.5,
+		"summon_time": 0.5,  # Cheap unit (2 mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/fire_recruit_3d.tscn",
@@ -232,6 +236,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.RANGED,
 		"mana_cost": 2,
 		"cooldown": 1.5,
+		"summon_time": 0.5,  # Cheap unit (2 mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/ember_slinger_3d.tscn",
@@ -273,6 +278,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 3,
 		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (3-4 mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/blaze_rider_3d.tscn",
@@ -314,6 +320,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 5,
 		"cooldown": 3.0,
+		"summon_time": 2.0,  # Expensive unit (5+ mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/ash_vanguard_3d.tscn",
@@ -357,6 +364,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 3,
 		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (3-4 mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
@@ -408,6 +416,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 7,
 		"cooldown": 3.0,
+		"summon_time": 2.0,  # Expensive unit (5+ mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/fire_titan_3d.tscn",
@@ -450,6 +459,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 7,
 		"cooldown": 4.0,
+		"summon_time": 2.5,  # Swarm card (extra time for multiple units)
 
 		# Summon properties - uses same scene but spawns 10
 		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
@@ -491,6 +501,7 @@ func _init_catalog() -> void:
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": 4,
 		"cooldown": 2.5,
+		"summon_time": 1.0,  # Medium unit (3-4 mana)
 
 		# Summon properties
 		"unit_scene_path": "res://scenes/units/ember_guard_3d.tscn",
@@ -535,6 +546,7 @@ func _init_catalog() -> void:
 		"card_type": Card.CardType.SPELL,
 		"mana_cost": 0,
 		"cooldown": 1.0,
+		"summon_time": 0.0,  # Instant cast spell
 
 		# Spell properties (not a traditional damage spell)
 		"unit_scene_path": "",
@@ -574,6 +586,7 @@ func _init_catalog() -> void:
 		"card_type": Card.CardType.SPELL,
 		"mana_cost": 0,
 		"cooldown": 1.0,
+		"summon_time": 0.0,  # Instant cast spell
 
 		# Spell properties (not a traditional damage spell)
 		"unit_scene_path": "",
@@ -614,6 +627,7 @@ func _init_catalog() -> void:
 		"card_type": Card.CardType.SPELL,
 		"mana_cost": 0,
 		"cooldown": 1.0,
+		"summon_time": 0.0,  # Instant cast spell
 
 		# Spell properties (not a traditional damage spell)
 		"unit_scene_path": "",
@@ -654,6 +668,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 			"aggro_radius": 18.0,
 			"mana_cost": 2,
 			"cooldown": 1.5,
+			"summon_time": 0.5,  # Cheap unit (2 mana)
 			"tags": ["melee", "swarm", "fast"],
 			"rarity": RarityIDs.COMMON
 		},
@@ -666,6 +681,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 			"aggro_radius": 18.0,
 			"mana_cost": 3,
 			"cooldown": 2.0,
+			"summon_time": 1.0,  # Medium unit (3-4 mana)
 			"tags": ["melee", "balanced"],
 			"rarity": RarityIDs.COMMON
 		},
@@ -678,6 +694,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 			"aggro_radius": 18.0,
 			"mana_cost": 5,
 			"cooldown": 2.5,
+			"summon_time": 2.0,  # Expensive unit (5+ mana)
 			"tags": ["melee", "tank", "heavy"],
 			"rarity": RarityIDs.RARE
 		}
@@ -705,6 +722,7 @@ func _add_slime_card(color: String, size: String, element: ElementTypes.Element,
 		"unit_type": UnitTypeIDs.MELEE,
 		"mana_cost": overrides.get("mana_cost", template.mana_cost),
 		"cooldown": overrides.get("cooldown", template.cooldown),
+		"summon_time": overrides.get("summon_time", template.summon_time),
 
 		"unit_scene_path": "res://scenes/units/slime_%s_3d.tscn" % color,
 		"spawn_count": 1,
@@ -827,6 +845,7 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 	card.description = card_def.get("description", "")
 	card.mana_cost = card_def.get("mana_cost", 0)
 	card.cooldown = card_def.get("cooldown", 2.0)
+	card.summon_time = card_def.get("summon_time", 1.0)
 
 	# Set type-specific properties
 	if card.card_type == Card.CardType.SUMMON:

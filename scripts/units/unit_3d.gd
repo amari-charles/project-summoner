@@ -8,6 +8,7 @@ enum Team { PLAYER, ENEMY }
 enum UnitType { MELEE, RANGED }
 enum MovementLayer { GROUND, AIR }
 enum TargetLayer { GROUND_ONLY, AIR_ONLY, BOTH }  # What layers this unit can target
+enum ActivationState { INACTIVE, ACTIVE }  # For two-phase battle system
 
 ## Projectile prediction constants
 const VELOCITY_STATIONARY_THRESHOLD: float = 0.01  # Squared velocity magnitude (units²/sec²) - below this, target is considered stationary
@@ -127,6 +128,11 @@ var is_facing_left: bool = false  # Current facing direction
 var is_attacking: bool = false  # Track if currently in attack animation
 var target_lock_timer: float = 0.0  # Time remaining before re-evaluating target
 
+## Activation state for two-phase battle system
+## INACTIVE units exist but don't act (during PREPARATION phase)
+## ACTIVE units behave normally (during BATTLE phase or when spawned during BATTLE)
+var activation_state: ActivationState = ActivationState.ACTIVE
+
 ## Redirect system (forced targeting)
 var forced_target: Node3D = null  ## Target assigned by redirect system (overrides normal targeting)
 var forced_target_timer: float = 0.0  ## Time remaining for forced target commitment
@@ -225,6 +231,24 @@ func _ready() -> void:
 
 	# Cache turn zone bounds from camera (avoids per-frame lookups)
 	_cache_turn_zone_bounds()
+
+	# Check if we should start inactive (spawned during PREPARATION phase)
+	_check_initial_activation_state()
+
+func _check_initial_activation_state() -> void:
+	# Look up the game controller to check current phase
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
+	if not game_controller:
+		return  # No controller found, default to ACTIVE
+
+	# Check if game controller has phase system (duck typing)
+	if not "current_phase" in game_controller:
+		return  # Old controller without phase system, default to ACTIVE
+
+	var phase: Variant = game_controller.get("current_phase")
+	if phase == GameController3D.BattlePhase.PREPARATION:
+		activation_state = ActivationState.INACTIVE
+		# Unit will be activated by GameController3D when battle phase starts
 
 func _setup_abilities() -> void:
 	# Find all BaseAbility components attached as children
@@ -468,6 +492,11 @@ func apply_modifiers(modifiers: Array, _card_data: Dictionary = {}) -> void:
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
+		return
+
+	# Inactive units don't act (waiting during PREPARATION phase)
+	# They still exist on the battlefield and play idle animation
+	if activation_state == ActivationState.INACTIVE:
 		return
 
 	# Flying units stay at constant altitude (disable gravity)
@@ -1083,6 +1112,14 @@ func _die() -> void:
 	var death_tween: Tween = create_tween()
 	death_tween.tween_interval(DEATH_CLEANUP_DELAY)
 	death_tween.tween_callback(queue_free)
+
+## Activate this unit (transition from INACTIVE to ACTIVE)
+## Called by GameController3D when battle phase starts
+func activate() -> void:
+	if activation_state == ActivationState.INACTIVE:
+		activation_state = ActivationState.ACTIVE
+		# Unit will start acting on next _physics_process
+		# TODO: Add activation VFX later (placeholder for visual feedback)
 
 func _update_animation(anim_name: String) -> void:
 	if not visual_component:

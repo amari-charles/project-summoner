@@ -44,6 +44,7 @@ var instance_id: String = ""  # Collection instance ID (for XP tracking)
 ## Cost and gameplay
 @export var mana_cost: int = 1
 @export var cooldown: float = 2.0  # Seconds before another card can be played
+@export var summon_time: float = 1.0  ## Seconds to cast this card (player locked during cast)
 
 ## Summon-specific data
 @export var unit_scene: PackedScene = null  # The unit to spawn (if CardType.SUMMON)
