@@ -243,6 +243,12 @@ class CardDisplay extends Control:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
+		# Block drag if summoner is currently casting (summon_time delay)
+		var is_casting_variant: Variant = hand_ui.summoner.get("is_casting")
+		var is_casting: bool = is_casting_variant if is_casting_variant is bool else false
+		if is_casting:
+			return null
+
 		# Check if we can afford this card
 		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana")
 		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
@@ -474,8 +480,10 @@ func init(player_summoner: Node) -> void:
 	var mana_changed_signal: Signal = summoner.get("mana_changed")
 	mana_changed_signal.connect(_on_mana_changed)
 
-	# Initial hand display
-	_rebuild_hand_display()
+	# Initial hand display with availability update
+	# (mana_changed signal was emitted before we connected)
+	await _rebuild_hand_display()
+	_update_availability()
 
 func _exit_tree() -> void:
 	# Disconnect summoner signals to prevent memory leaks

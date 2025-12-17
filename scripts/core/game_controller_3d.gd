@@ -5,9 +5,11 @@ class_name GameController3D
 ## Manages match flow, timers, victory conditions
 
 enum GameState { SETUP, PLAYING, PAUSED, GAME_OVER }
+enum BattlePhase { PREPARATION, BATTLE }  ## Two-phase battle system
 
 @export var match_duration: float = 180.0
 @export var overtime_duration: float = 60.0
+@export var preparation_duration: float = 30.0  ## Duration of PREPARATION phase (seconds)
 
 @export var battlefield: Node3D
 @export var player_summoner: Summoner
@@ -17,7 +19,9 @@ var player_base: Node3D
 var enemy_base: Node3D
 
 var current_state: GameState = GameState.SETUP
+var current_phase: BattlePhase = BattlePhase.PREPARATION
 var match_time: float = 0.0
+var prep_time_remaining: float = 0.0
 var is_overtime: bool = false
 
 ## =============================================================================
@@ -42,6 +46,10 @@ signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
 signal initialization_complete()  ## Emitted when all battle systems are ready
 signal objective_progress(current: int, target: int)  ## For kill count objectives
+
+## Battle phase signals (two-phase system)
+signal phase_changed(new_phase: BattlePhase)
+signal prep_timer_updated(remaining: float)
 
 func _ready() -> void:
 	print("BattleCoordinator: Starting battle initialization...")
@@ -186,7 +194,9 @@ func reset_battle_state() -> void:
 
 	# Reset game state
 	current_state = GameState.SETUP
+	current_phase = BattlePhase.PREPARATION
 	match_time = 0.0
+	prep_time_remaining = 0.0
 	is_overtime = false
 
 ## Clear all unit instances from the battlefield
@@ -206,6 +216,12 @@ func _process(delta: float) -> void:
 	if current_state != GameState.PLAYING:
 		return
 
+	# Handle PREPARATION phase
+	if current_phase == BattlePhase.PREPARATION:
+		_update_preparation_phase(delta)
+		return
+
+	# BATTLE phase - normal game flow
 	match_time += delta
 
 	# Handle timed win conditions
@@ -231,13 +247,17 @@ func _process(delta: float) -> void:
 
 func start_game() -> void:
 	current_state = GameState.PLAYING
+	current_phase = BattlePhase.PREPARATION
 	match_time = 0.0
+	prep_time_remaining = preparation_duration
 
 	# Mark battle as in progress in BattleContext
 	BattleContext.start_battle()
 
 	game_started.emit()
 	state_changed.emit(current_state)
+	phase_changed.emit(current_phase)
+	prep_timer_updated.emit(prep_time_remaining)
 
 func pause_game() -> void:
 	if current_state == GameState.PLAYING:
@@ -300,6 +320,36 @@ func _check_timeout_victory() -> void:
 
 func _check_overtime_victory() -> void:
 	end_game(Unit3D.Team.PLAYER)
+
+## =============================================================================
+## TWO-PHASE BATTLE SYSTEM
+## =============================================================================
+
+## Update preparation phase timer
+func _update_preparation_phase(delta: float) -> void:
+	prep_time_remaining -= delta
+	prep_timer_updated.emit(prep_time_remaining)
+
+	if prep_time_remaining <= 0.0:
+		_start_battle_phase()
+
+## Transition from PREPARATION to BATTLE phase
+func _start_battle_phase() -> void:
+	current_phase = BattlePhase.BATTLE
+	phase_changed.emit(current_phase)
+
+	# Activate all units that were spawned during PREPARATION
+	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
+	var activated_count: int = 0
+
+	for node: Node in units:
+		if node is Unit3D:
+			var unit: Unit3D = node
+			if unit.activation_state == Unit3D.ActivationState.INACTIVE:
+				unit.activate()
+				activated_count += 1
+
+	print("BattleCoordinator: Battle phase started - activated %d units" % activated_count)
 
 func get_time_remaining() -> float:
 	if is_overtime:

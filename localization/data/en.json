@@ -131,7 +131,9 @@
     },
     "battle": {
       "player_wins": "PLAYER WINS!",
-      "enemy_wins": "ENEMY WINS!"
+      "enemy_wins": "ENEMY WINS!",
+      "phase_preparation": "PREPARATION",
+      "phase_battle": "BATTLE!"
     },
     "collection": {
       "empty_decks": "No decks yet. Click 'NEW DECK' to create one!",
