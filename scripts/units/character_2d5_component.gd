@@ -31,6 +31,17 @@ func is_playing() -> bool:
 	push_error("Character2D5Component.is_playing() called on base class - must be overridden in child class")
 	return false
 
+## Set animation playback speed (1.0 = normal, 2.0 = double speed, 0.5 = half speed)
+## @virtual
+func set_animation_speed(_speed: float) -> void:
+	push_error("Character2D5Component.set_animation_speed() called on base class - must be overridden in child class")
+
+## Get current animation speed
+## @virtual
+func get_animation_speed() -> float:
+	push_error("Character2D5Component.get_animation_speed() called on base class - must be overridden in child class")
+	return 1.0
+
 ## Flip the sprite horizontally (for enemy units)
 ## @virtual
 func set_flip_h(_flip: bool) -> void:
