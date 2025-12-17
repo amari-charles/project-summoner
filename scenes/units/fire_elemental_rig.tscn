@@ -11,19 +11,19 @@ length = 0.8
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Skeleton2D/BodyBone:position")
+tracks/0/path = NodePath("BodyPivot:position")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.15, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 0.3, 1, 1),
 "update": 0,
-"values": [Vector2(300, 350), Vector2(350, 320), Vector2(400, 350), Vector2(300, 350)]
+"values": [Vector2(300, 300), Vector2(350, 270), Vector2(400, 300), Vector2(300, 300)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Skeleton2D/BodyBone:rotation")
+tracks/1/path = NodePath("BodyPivot:rotation")
 tracks/1/interp = 2
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -35,7 +35,7 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Skeleton2D/BodyBone/EyeBone:scale")
+tracks/2/path = NodePath("BodyPivot/EyePivot:scale")
 tracks/2/interp = 2
 tracks/2/loop_wrap = true
 tracks/2/keys = {
@@ -44,13 +44,37 @@ tracks/2/keys = {
 "update": 0,
 "values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1.1, 1.1), Vector2(1, 1)]
 }
-tracks/3/type = "method"
+tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("..")
-tracks/3/interp = 1
+tracks/3/path = NodePath("BodyPivot/LeftLegPivot:rotation")
+tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -0.25, 0.0, 0.25, 0.0]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("BodyPivot/RightLegPivot:rotation")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.25, 0.0, -0.25, 0.0]
+}
+tracks/5/type = "method"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("..")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
 "times": PackedFloat32Array(0.4),
 "transitions": PackedFloat32Array(1),
 "values": [{
@@ -66,19 +90,19 @@ loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Skeleton2D/BodyBone:position")
+tracks/0/path = NodePath("BodyPivot:position")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.75, 1.5),
 "transitions": PackedFloat32Array(0.5, 0.5, 0.5),
 "update": 0,
-"values": [Vector2(300, 350), Vector2(300, 330), Vector2(300, 350)]
+"values": [Vector2(300, 300), Vector2(300, 280), Vector2(300, 300)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Skeleton2D/BodyBone:rotation")
+tracks/1/path = NodePath("BodyPivot:rotation")
 tracks/1/interp = 2
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -90,7 +114,7 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Skeleton2D/BodyBone/EyeBone:rotation")
+tracks/2/path = NodePath("BodyPivot/EyePivot:rotation")
 tracks/2/interp = 2
 tracks/2/loop_wrap = true
 tracks/2/keys = {
@@ -102,26 +126,26 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton2D/LeftLegBone:rotation")
+tracks/3/path = NodePath("BodyPivot/LeftLegPivot:rotation")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.75, 1.5),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [0.0, -0.1, 0.0]
+"values": [0.0, -0.15, 0.0]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Skeleton2D/RightLegBone:rotation")
+tracks/4/path = NodePath("BodyPivot/RightLegPivot:rotation")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
 "times": PackedFloat32Array(0, 0.75, 1.5),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [0.0, 0.1, 0.0]
+"values": [0.0, 0.15, 0.0]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
@@ -138,38 +162,29 @@ libraries = {
 }
 autoplay = "idle"
 
-[node name="Skeleton2D" type="Skeleton2D" parent="."]
+[node name="BodyPivot" type="Node2D" parent="."]
+position = Vector2(300, 300)
 
-[node name="LeftLegBone" type="Bone2D" parent="Skeleton2D"]
-position = Vector2(300, 550)
-rest = Transform2D(1, 0, 0, 1, 300, 550)
+[node name="LeftLegPivot" type="Node2D" parent="BodyPivot"]
+position = Vector2(-185, 678)
 
-[node name="LeftLegSprite" type="Sprite2D" parent="Skeleton2D/LeftLegBone"]
+[node name="LeftLegSprite" type="Sprite2D" parent="BodyPivot/LeftLegPivot"]
 z_index = -1
-position = Vector2(67, -160)
 texture = ExtResource("3_leg_left")
 
-[node name="RightLegBone" type="Bone2D" parent="Skeleton2D"]
-position = Vector2(300, 550)
-rest = Transform2D(1, 0, 0, 1, 300, 550)
+[node name="RightLegPivot" type="Node2D" parent="BodyPivot"]
+position = Vector2(225, 700)
 
-[node name="RightLegSprite" type="Sprite2D" parent="Skeleton2D/RightLegBone"]
+[node name="RightLegSprite" type="Sprite2D" parent="BodyPivot/RightLegPivot"]
 z_index = -1
-position = Vector2(9, -182)
 texture = ExtResource("4_leg_right")
 
-[node name="BodyBone" type="Bone2D" parent="Skeleton2D"]
-position = Vector2(300, 350)
-rest = Transform2D(1, 0, 0, 1, 300, 350)
-
-[node name="BodySprite" type="Sprite2D" parent="Skeleton2D/BodyBone"]
+[node name="BodySprite" type="Sprite2D" parent="BodyPivot"]
 texture = ExtResource("1_body")
 
-[node name="EyeBone" type="Bone2D" parent="Skeleton2D/BodyBone"]
-position = Vector2(106, 68)
-rest = Transform2D(1, 0, 0, 1, 106, 68)
+[node name="EyePivot" type="Node2D" parent="BodyPivot"]
+position = Vector2(288, 243)
 
-[node name="EyeSprite" type="Sprite2D" parent="Skeleton2D/BodyBone/EyeBone"]
+[node name="EyeSprite" type="Sprite2D" parent="BodyPivot/EyePivot"]
 z_index = 1
-position = Vector2(-148, -40)
 texture = ExtResource("2_eye")

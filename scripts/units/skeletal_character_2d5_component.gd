@@ -2,12 +2,12 @@ extends Character2D5Component
 class_name SkeletalCharacter2D5Component
 
 ## Skeletal-based 2.5D Character Rendering Component
-## Renders skeletal 2D animations in 3D space using Skeleton2D/AnimationPlayer + SubViewport
+## Renders skeletal 2D animations in 3D space using Node2D pivots/AnimationPlayer + SubViewport
+## Viewport is automatically sized to fit the character content.
 
 @export var skeletal_scene: PackedScene = null  ## The skeletal animation scene to instance
-@export var scale_factor: Vector2 = Vector2(0.08, 0.08)  ## Scale of the skeletal model
-@export var position_offset: Vector2 = Vector2(300, 200)  ## Position offset in viewport
-@export var character_height_pixels: float = 0.0  ## Manual character height in texture space (0 = auto-calculate from bounds)
+@export var scale_factor: Vector2 = Vector2(0.1, 0.1)  ## Scale of the skeletal model in 3D world
+@export var viewport_padding: float = 100.0  ## Padding around character in viewport
 @export var hp_bar_offset_x: float = 0.0  ## Horizontal offset for HP bar in world units (negative = left, positive = right)
 
 @onready var sprite_3d: Sprite3D = $Sprite3D
@@ -16,6 +16,7 @@ class_name SkeletalCharacter2D5Component
 
 var animation_player: AnimationPlayer = null
 var skeletal_instance: Node2D = null
+var _cached_bounds: Rect2 = Rect2()
 
 func _ready() -> void:
 	# Force viewport to render every frame
@@ -23,41 +24,54 @@ func _ready() -> void:
 
 	# Instance the skeletal scene if provided
 	if skeletal_scene:
-		_instance_skeletal_scene()
+		await _instance_skeletal_scene()
 
-	# Bottom-align sprite using offset (feet at origin)
-	# Wait one frame for skeletal instance to be fully in tree
-	await get_tree().process_frame
+	# Setup sprite alignment after bounds are calculated
 	_setup_sprite_alignment()
 
 ## Instance the skeletal animation scene into the viewport
 func _instance_skeletal_scene() -> void:
 	if not skeletal_scene:
-		push_error("Skeletal2D5Component: No skeletal_scene provided")
+		push_error("SkeletalChar2D5: No skeletal_scene provided")
 		return
 
 	skeletal_instance = skeletal_scene.instantiate()
 	if not skeletal_instance:
-		push_error("Skeletal2D5Component: Failed to instance skeletal scene")
+		push_error("SkeletalChar2D5: Failed to instance skeletal scene")
 		return
 
-	# Apply scale and position
-	skeletal_instance.scale = scale_factor
-	skeletal_instance.position = position_offset
-
-	# Add to viewport
+	# Add to viewport first at origin with no scale (to calculate bounds)
+	skeletal_instance.position = Vector2.ZERO
+	skeletal_instance.scale = Vector2.ONE
 	model_container.add_child(skeletal_instance)
 
 	# Find the AnimationPlayer in the skeletal scene
 	animation_player = _find_animation_player(skeletal_instance)
-
 	if not animation_player:
-		push_warning("Skeletal2D5Component: No AnimationPlayer found in skeletal scene")
+		push_warning("SkeletalChar2D5: No AnimationPlayer found in skeletal scene")
 
 	# Connect animation event signals (e.g., attack_impact)
 	if skeletal_instance.has_signal("attack_impact"):
 		var attack_impact_signal: Signal = skeletal_instance.get("attack_impact")
 		attack_impact_signal.connect(_on_attack_impact)
+
+	# Wait for tree to update so we can calculate bounds
+	await get_tree().process_frame
+
+	# Calculate bounds and resize viewport dynamically
+	_cached_bounds = _get_skeletal_bounds()
+
+	if _cached_bounds.size.x > 0 and _cached_bounds.size.y > 0:
+		# Resize viewport to fit content with padding
+		var new_width: int = int(_cached_bounds.size.x + viewport_padding * 2)
+		var new_height: int = int(_cached_bounds.size.y + viewport_padding * 2)
+		viewport.size = Vector2i(new_width, new_height)
+
+		# Position content: center horizontally, bottom-align vertically
+		skeletal_instance.position.x = (new_width / 2.0) - _cached_bounds.get_center().x
+		skeletal_instance.position.y = new_height - _cached_bounds.end.y - viewport_padding
+	else:
+		push_warning("SkeletalChar2D5: Could not calculate bounds, using default viewport size")
 
 ## Recursively find AnimationPlayer in node tree
 func _find_animation_player(node: Node) -> AnimationPlayer:
@@ -91,7 +105,7 @@ func play_animation(anim_name: String, _auto_play: bool = false) -> void:
 	if animation_player.has_animation(mapped_stringname):
 		animation_player.play(mapped_stringname)
 	else:
-		push_warning("Skeletal2D5Component: Animation '%s' not found, available: %s" % [mapped_name, animation_player.get_animation_list()])
+		push_warning("SkeletalChar2D5: Animation '%s' not found, available: %s" % [mapped_name, animation_player.get_animation_list()])
 
 ## Stop current animation
 func stop_animation() -> void:
@@ -146,51 +160,30 @@ func _on_attack_impact() -> void:
 		unit.call("_on_attack_impact")
 
 ## Setup sprite alignment so character feet are at origin (Y=0)
-## Positions BOTH the Sprite3D and the 2D skeletal content within viewport
 func _setup_sprite_alignment() -> void:
 	if not sprite_3d or not viewport:
 		return
 
-	# Calculate actual sprite height in world units
-	var world_height: float = viewport.size.y * sprite_3d.pixel_size  # 600 * 0.01 = 6.0
+	# Calculate world height based on viewport size and scale
+	var world_height: float = viewport.size.y * scale_factor.y * sprite_3d.pixel_size
 
-	# Position Sprite3D so viewport bottom is at Y=0
-	sprite_3d.position.y = world_height / 2.0  # 3.0 for skeletal sprites
+	# Position Sprite3D so viewport bottom is at Y=0 (feet on ground)
+	sprite_3d.position.y = world_height / 2.0
 
-	# Try to get skeletal bounds for precise positioning
-	if skeletal_instance:
-		var bounds: Rect2 = _get_skeletal_bounds()
-
-		if bounds.size.y > 0:
-			# PRECISE: Calculate position so model's bottom edge aligns with viewport bottom
-			# Bottom edge = position.y + (bounds.end.y * scale.y)
-			# We want: bottom edge = viewport.size.y
-			# Therefore: position.y = viewport.size.y - (bounds.end.y * scale.y)
-			skeletal_instance.position.y = viewport.size.y - (bounds.end.y * scale_factor.y)
-		else:
-			# FALLBACK: Use manually configured position_offset
-			skeletal_instance.position.y = position_offset.y
-			push_warning("SkeletalChar2D5: Could not calculate bounds, using manual position_offset - configure export for precise alignment")
+	# Apply scale to the Sprite3D to control character size in 3D world
+	sprite_3d.pixel_size = 0.01 * scale_factor.y
 
 ## Get the world-space height of this sprite
 ## Used by HP bars, projectile spawns, etc.
 func get_sprite_height() -> float:
-	assert(viewport != null, "SkeletalChar2D5: viewport is null")
-	assert(sprite_3d != null, "SkeletalChar2D5: sprite_3d is null")
+	if not viewport or not sprite_3d:
+		return 1.0
 
-	# Use manual height if specified
-	if character_height_pixels > 0:
-		# Validate reasonable bounds
-		if character_height_pixels < 100 or character_height_pixels > 10000:
-			push_warning("SkeletalChar2D5: character_height_pixels = %f is outside reasonable range (100-10000). Check configuration." % character_height_pixels)
-		return character_height_pixels * scale_factor.y * sprite_3d.pixel_size
+	# Use cached bounds if available
+	if _cached_bounds.size.y > 0:
+		return _cached_bounds.size.y * sprite_3d.pixel_size
 
-	# Auto-calculate from skeletal bounds
-	assert(skeletal_instance != null, "SkeletalChar2D5: skeletal_instance is null and no manual height set")
-	var bounds: Rect2 = _get_skeletal_bounds()
-	assert(bounds.size.y > 0, "SkeletalChar2D5: calculated bounds height is 0 and no manual height set")
-
-	return bounds.size.y * scale_factor.y * sprite_3d.pixel_size
+	return viewport.size.y * sprite_3d.pixel_size
 
 ## Get the horizontal offset for HP bar positioning
 func get_hp_bar_offset_x() -> float:

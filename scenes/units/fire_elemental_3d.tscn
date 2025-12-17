@@ -19,9 +19,7 @@ attack_style = 1
 
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
 skeletal_scene = ExtResource("3_rig")
-scale_factor = Vector2(0.12, 0.12)
-position_offset = Vector2(300, 300)
-character_height_pixels = 900.0
+scale_factor = Vector2(0.15, 0.15)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)

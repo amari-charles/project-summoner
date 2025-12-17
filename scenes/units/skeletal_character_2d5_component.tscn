@@ -19,6 +19,6 @@ texture = SubResource("ViewportTexture_1")
 
 [node name="SubViewport" type="SubViewport" parent="Sprite3D"]
 transparent_bg = true
-size = Vector2i(600, 600)
+size = Vector2i(1200, 1200)
 
 [node name="ModelContainer" type="Node2D" parent="Sprite3D/SubViewport"]
