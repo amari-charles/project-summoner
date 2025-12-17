@@ -1,10 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://test_collision"]
+[gd_scene load_steps=6 format=3 uid="uid://test_collision"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" path="res://scripts/core/test_collision_controller.gd" id="2_test_controller"]
 [ext_resource type="Script" path="res://scripts/core/summoner.gd" id="3_summoner"]
-[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="4_player_base"]
-[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="5_enemy_base"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="7_drop_zone"]
 
@@ -23,12 +21,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
 script = ExtResource("3_summoner")
 team = 1
 deck_load_strategy = 3
-
-[node name="PlayerBase3D" parent="." instance=ExtResource("4_player_base")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
-
-[node name="EnemyBase3D" parent="." instance=ExtResource("5_enemy_base")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 
 [node name="UI" type="CanvasLayer" parent="."]
 

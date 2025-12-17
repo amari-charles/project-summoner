@@ -1,9 +1,8 @@
 extends Node3D
 class_name Summoner
 
-## Summoner - The player character that manages cards and mana
-## NOT a battlefield entity - cannot be attacked or damaged
-## The Nexus (Base3D) is what units attack to win the game
+## Summoner - The player character that manages cards, mana, and HP
+## This is the attack target that units try to destroy to win the game
 
 ## Deck loading strategies
 enum DeckLoadStrategy {
@@ -15,10 +14,19 @@ enum DeckLoadStrategy {
 
 @export var team: Unit3D.Team = Unit3D.Team.PLAYER
 
+## HP (summoner is the attack target)
+@export var max_hp: float = 300.0
+
 ## Deck and hand
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
 @export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
+
+## Hit feedback animation constants
+const BASE_FLASH_DURATION: float = 0.3
+const MIN_FLASH_DURATION: float = 0.05
+const FLASH_SPEED_MULTIPLIER: float = 0.3
+const RECENT_HITS_DECAY_RATE: float = 2.0
 
 ## Current state
 var mana: float = 0.0
@@ -27,6 +35,17 @@ var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
 var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
+
+## HP state (summoner is attackable)
+var current_hp: float = 0.0
+var is_alive: bool = true
+
+## Hit feedback state
+var recent_hits: float = 0.0
+var visual: Sprite3D = null
+var original_color: Color = Color.WHITE
+var original_visual_position: Vector3 = Vector3.ZERO
+var active_feedback_tween: Tween = null
 
 ## Casting state (player is locked during summon_time)
 var is_casting: bool = false
@@ -51,6 +70,11 @@ signal hand_changed(hand: Array[Card])
 signal summoner_ready(summoner: Summoner)  ## Emitted after init() completes
 signal deck_recycled(card_count: int)  ## Emitted when discard pile is shuffled back into deck
 
+## HP signals (summoner is attackable)
+signal summoner_destroyed(summoner: Summoner)
+signal summoner_damaged(summoner: Summoner, damage: float)
+signal hp_changed(new_hp: float, new_max_hp: float)
+
 ## Casting signals (for UI feedback)
 signal casting_started(card: Card, duration: float)
 signal casting_progress(remaining: float, total: float)
@@ -60,11 +84,29 @@ func _ready() -> void:
 	# Minimal setup - just add to groups for discovery
 	# Full initialization happens in init() called by BattleCoordinator
 	add_to_group(GroupIDs.SUMMONERS)
-	# Note: NOT in "bases" group - summoners are not attack targets
+	add_to_group(GroupIDs.BASES)  # Summoner is the attack target
 	if team == Unit3D.Team.PLAYER:
 		add_to_group(GroupIDs.PLAYER_SUMMONERS)
+		add_to_group(GroupIDs.PLAYER_BASES)
 	else:
 		add_to_group(GroupIDs.ENEMY_SUMMONERS)
+		add_to_group(GroupIDs.ENEMY_BASES)
+
+	# Initialize HP
+	current_hp = max_hp
+
+	# Initialize visual reference for hit feedback
+	if has_node("Visual"):
+		visual = $Visual
+		original_color = visual.modulate
+		original_visual_position = visual.position
+
+	# Create HP bar for summoner
+	HPBarManager.create_bar_for_unit(self, {
+		"bar_width": 1.5,
+		"offset_y": 2.5,
+		"show_on_damage_only": false
+	})
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
@@ -145,6 +187,11 @@ func _process(delta: float) -> void:
 	if not is_enabled:
 		return
 
+	# Decay recent hits counter (for hit feedback animation speed)
+	if recent_hits > 0:
+		recent_hits -= RECENT_HITS_DECAY_RATE * delta
+		recent_hits = max(recent_hits, 0.0)
+
 	# Handle casting timer (player is locked during summon_time)
 	if is_casting:
 		casting_time_remaining -= delta
@@ -152,6 +199,13 @@ func _process(delta: float) -> void:
 
 		if casting_time_remaining <= 0.0:
 			_complete_casting()
+
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
 
 func draw_card() -> void:
 	if deck.is_empty():
@@ -460,10 +514,89 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	# Cache summoner stats in BattleContext for DamageSystem to use
 	BattleContext.set_player_summoner_stats(stats)
 
-	# TODO: Summoner health stat should flow to Nexus (Base3D), not stored here
+	# Apply max_hp from summoner stats if available
+	var summoner_max_hp: float = stats.get("max_hp", 300.0)
+	max_hp = summoner_max_hp
+	current_hp = max_hp
+	hp_changed.emit(current_hp, max_hp)
 
 	var summoner_name: String = summoner_instance.config.summoner_name
 	var trait_count: int = summoner_instance.get_all_trait_ids().size()
 	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f" % [
 		summoner_name, summoner_instance.level, trait_count, max_mana
 	])
+
+## =============================================================================
+## COMBAT (Summoner is attackable)
+## =============================================================================
+
+## Take damage from units
+func take_damage(damage: float) -> void:
+	if not is_alive:
+		return
+
+	# Track attack intensity for dynamic feedback
+	recent_hits += 1.0
+
+	# Play hit feedback animation
+	_play_hit_feedback()
+
+	current_hp -= damage
+	current_hp = max(current_hp, 0.0)
+
+	# Emit signals for HP bar and damage feedback
+	hp_changed.emit(current_hp, max_hp)
+	summoner_damaged.emit(self, damage)
+
+	if current_hp <= 0:
+		_destroy()
+
+## Destroy the summoner (game over for this team)
+func _destroy() -> void:
+	is_alive = false
+
+	# Kill any active feedback animations
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+	active_feedback_tween = null
+
+	# Restore visual to original state
+	if visual and is_instance_valid(visual):
+		visual.modulate = original_color
+		visual.position = original_visual_position
+
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
+
+	summoner_destroyed.emit(self)
+	print("Summoner destroyed! Team: ", team)
+
+## Play hit feedback animation (flash + shake)
+func _play_hit_feedback() -> void:
+	if not visual or not is_alive:
+		return
+
+	# Kill previous tween if still running
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+
+	# Calculate duration based on attack intensity
+	var intensity_factor: float = 1.0 + (recent_hits * FLASH_SPEED_MULTIPLIER)
+	var flash_duration: float = max(MIN_FLASH_DURATION, BASE_FLASH_DURATION / intensity_factor)
+
+	var flash_to_white: float = flash_duration * 0.4
+	var flash_return: float = flash_duration * 0.6
+	var shake_out: float = flash_duration * 0.35
+	var shake_return: float = flash_duration * 0.25
+
+	active_feedback_tween = create_tween()
+	active_feedback_tween.set_parallel(true)
+
+	# Flash effect
+	active_feedback_tween.tween_property(visual, "modulate", Color.WHITE, flash_to_white)
+	active_feedback_tween.chain().tween_property(visual, "modulate", original_color, flash_return)
+
+	# Shake effect
+	var shake_offset: Vector3 = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
+	active_feedback_tween.tween_property(visual, "position", original_visual_position + shake_offset, shake_out)
+	active_feedback_tween.chain().tween_property(visual, "position", original_visual_position, shake_return)
