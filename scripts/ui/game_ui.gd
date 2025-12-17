@@ -29,6 +29,10 @@ const CASTING_INDICATOR_OFFSET_Y: float = -180.0  ## Above hand area (from botto
 @export var game_over_label: Label = null
 @export var restart_button: Button = null
 
+## HP bars for both players
+@export var player_hp_bar: StatBar = null
+@export var enemy_hp_bar: StatBar = null
+
 ## Two-phase battle system UI elements
 @export var phase_label: Label = null
 
@@ -38,6 +42,7 @@ var casting_indicator: CastingIndicator = null
 
 var game_controller: Node = null
 var player_summoner: Summoner = null
+var enemy_summoner: Summoner = null
 var _initialized: bool = false  # Track initialization state
 
 ## Player team value that works for both Unit.Team.PLAYER (2D) and Unit3D.Team.PLAYER (3D)
@@ -53,6 +58,12 @@ func _ready() -> void:
 		game_over_label = get_node_or_null("GameOverLabel")
 	if restart_button == null:
 		restart_button = get_node_or_null("RestartButton")
+
+	# HP bars
+	if player_hp_bar == null:
+		player_hp_bar = get_node_or_null("PlayerHPBar")
+	if enemy_hp_bar == null:
+		enemy_hp_bar = get_node_or_null("EnemyHPBar")
 
 	# Two-phase battle system UI elements
 	if phase_label == null:
@@ -73,13 +84,14 @@ func _ready() -> void:
 
 ## Initialize GameUI with controller and summoner references
 ## Called by BattleCoordinator after summoners are ready
-func init(controller: Node, summoner: Node) -> void:
+func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 	if _initialized:
 		return
 	_initialized = true
 
 	game_controller = controller
 	player_summoner = summoner
+	enemy_summoner = enemy
 
 	# Connect to game controller signals
 	if game_controller:
@@ -99,11 +111,19 @@ func init(controller: Node, summoner: Node) -> void:
 	else:
 		push_error("GameUI: init() called with null game_controller!")
 
-	# Connect to summoner signals
+	# Connect to player summoner signals (mana + HP)
 	if player_summoner:
 		_connect_to_summoner(player_summoner)
+		_connect_to_hp_signals(player_summoner, true)
 	else:
 		push_error("GameUI: init() called with null player_summoner!")
+
+	# Connect to enemy summoner HP signals
+	if enemy_summoner:
+		_connect_to_hp_signals(enemy_summoner, false)
+
+	# Initialize HP bar colors
+	_setup_hp_bars()
 
 ## Connect to summoner signals
 func _connect_to_summoner(summoner: Node) -> void:
@@ -130,6 +150,45 @@ func _connect_to_summoner(summoner: Node) -> void:
 	if summoner.has_signal("casting_completed"):
 		var casting_completed_signal: Signal = summoner.get("casting_completed")
 		casting_completed_signal.connect(_on_casting_completed)
+
+## Connect to HP signals for a summoner
+func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
+	if summoner.has_signal("hp_changed"):
+		var hp_signal: Signal = summoner.get("hp_changed")
+		if is_player:
+			hp_signal.connect(_on_player_hp_changed)
+		else:
+			hp_signal.connect(_on_enemy_hp_changed)
+
+		# Trigger initial update
+		var current_hp: float = summoner.get("current_hp") if "current_hp" in summoner else 0.0
+		var max_hp: float = summoner.get("max_hp") if "max_hp" in summoner else 300.0
+		if is_player:
+			_on_player_hp_changed(current_hp, max_hp)
+		else:
+			_on_enemy_hp_changed(current_hp, max_hp)
+
+## Setup HP bar colors
+func _setup_hp_bars() -> void:
+	# Player HP bar - team color (warm tan)
+	if player_hp_bar:
+		player_hp_bar.set_colors(Color(0.831, 0.647, 0.455))
+		player_hp_bar.set_label_config(true, "{current}/{max}")
+
+	# Enemy HP bar - team color (cool blue-gray)
+	if enemy_hp_bar:
+		enemy_hp_bar.set_colors(Color(0.353, 0.482, 0.549))
+		enemy_hp_bar.set_label_config(true, "{current}/{max}")
+
+## Handle player HP changes
+func _on_player_hp_changed(current: float, maximum: float) -> void:
+	if player_hp_bar:
+		player_hp_bar.update_value(current, maximum)
+
+## Handle enemy HP changes
+func _on_enemy_hp_changed(current: float, maximum: float) -> void:
+	if enemy_hp_bar:
+		enemy_hp_bar.update_value(current, maximum)
 
 func _on_time_updated(remaining: float) -> void:
 	if timer_label:

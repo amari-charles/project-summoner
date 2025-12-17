@@ -366,26 +366,14 @@ func _on_game_ended(winner: Unit3D.Team) -> void:
 		game_over_label.set("visible", true)
 
 func _on_summoner_damaged(_summoner: Summoner, _damage: float) -> void:
-	_update_hp_labels()
+	# HP display is handled by GameUI via hp_changed signals
+	pass
 
 func _on_summoner_destroyed(summoner: Summoner) -> void:
 	if summoner == player_summoner:
 		end_game(Unit3D.Team.ENEMY)
 	elif summoner == enemy_summoner:
 		end_game(Unit3D.Team.PLAYER)
-
-func _update_hp_labels() -> void:
-	var player_hp_label: Node = get_node_or_null("UI/PlayerHPLabel")
-	if player_hp_label and player_summoner:
-		var p_current_hp: int = int(player_summoner.current_hp)
-		var p_max_hp: int = int(player_summoner.max_hp)
-		player_hp_label.set("text", "Player: %d/%d" % [p_current_hp, p_max_hp])
-
-	var enemy_hp_label: Node = get_node_or_null("UI/EnemyHPLabel")
-	if enemy_hp_label and enemy_summoner:
-		var e_current_hp: int = int(enemy_summoner.current_hp)
-		var e_max_hp: int = int(enemy_summoner.max_hp)
-		enemy_hp_label.set("text", "Enemy: %d/%d" % [e_current_hp, e_max_hp])
 
 func _load_ai_for_enemy() -> void:
 	if not enemy_summoner:
@@ -753,7 +741,7 @@ func _init_ui() -> void:
 	# Find and initialize GameUI
 	var game_ui: Node = get_node_or_null("UI")
 	if game_ui and game_ui.has_method("init"):
-		game_ui.init(self, player_summoner)
+		game_ui.init(self, player_summoner, enemy_summoner)
 	else:
 		push_warning("BattleCoordinator: GameUI not found or has no init() method")
 
@@ -763,4 +751,3 @@ func _init_ui() -> void:
 		drop_zone.init(player_summoner)
 	else:
 		push_warning("BattleCoordinator: BattlefieldDropZone not found or has no init() method")
-
