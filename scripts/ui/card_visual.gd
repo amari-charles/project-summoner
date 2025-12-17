@@ -47,12 +47,13 @@ class_name CardVisual
 
 @onready var border_panel: Panel = $BorderPanel
 @onready var background_panel: Panel = $BackgroundPanel
+@onready var cost_badge: Panel = $CostBadge
 @onready var cost_label: Label = $CostLabel
 @onready var type_icon: TextureRect = $TypeIcon
 @onready var name_label: Label = $NameLabel
 @onready var art_container: Control = $ArtContainer
 @onready var art_texture: TextureRect = $ArtContainer/ArtTexture
-@onready var art_placeholder: ColorRect = $ArtContainer/ArtPlaceholder
+@onready var art_placeholder: Panel = $ArtContainer/ArtPlaceholder
 @onready var description_label: Label = $DescriptionLabel
 @onready var element_badge: Panel = $ElementBadge
 
@@ -115,6 +116,9 @@ func _apply_visual_styling() -> void:
 	# Apply shininess overlay
 	_apply_shine_effect()
 
+	# Apply cost badge styling
+	_apply_cost_badge_style()
+
 	# Apply cost label font size
 	var cost_lbl: Label = get_node_or_null("CostLabel")
 	if cost_lbl:
@@ -138,6 +142,13 @@ func _apply_visual_styling() -> void:
 		badge_style.set_corner_radius_all(element_badge_radius)
 		badge_style.anti_aliasing = true
 		badge_style.anti_aliasing_size = 1
+		# Add border for definition
+		badge_style.border_color = element_color.lightened(0.3)
+		badge_style.set_border_width_all(1)
+		# Subtle shadow for depth
+		badge_style.shadow_color = Color(0, 0, 0, 0.3)
+		badge_style.shadow_size = 2
+		badge_style.shadow_offset = Vector2(1, 1)
 		badge.add_theme_stylebox_override("panel", badge_style)
 
 	# Show/hide description
@@ -152,6 +163,10 @@ func _apply_border_color() -> void:
 		border_style.set_corner_radius_all(corner_radius)
 		border_style.anti_aliasing = true
 		border_style.anti_aliasing_size = 1
+		# Add drop shadow for depth
+		border_style.shadow_color = Color(0, 0, 0, 0.4)
+		border_style.shadow_size = 6
+		border_style.shadow_offset = Vector2(2, 4)
 		border.add_theme_stylebox_override("panel", border_style)
 
 func _apply_gradient_background() -> void:
@@ -190,6 +205,9 @@ func _apply_gradient_background() -> void:
 	bg_style.set_corner_radius_all(corner_radius - border_width)
 	bg_style.anti_aliasing = true
 	bg_style.anti_aliasing_size = 1
+	# Add subtle inner frame line for depth
+	bg_style.border_color = Color(1, 1, 1, 0.1)
+	bg_style.set_border_width_all(1)
 
 	bg_panel.add_theme_stylebox_override("panel", bg_style)
 
@@ -207,6 +225,23 @@ func _apply_shine_effect() -> void:
 		flat_style.border_color = element_color.lightened(0.4)
 		flat_style.set_border_width(SIDE_TOP, 1)
 		flat_style.set_border_width(SIDE_LEFT, 1)
+
+func _apply_cost_badge_style() -> void:
+	var badge: Panel = get_node_or_null("CostBadge")
+	if not badge:
+		return
+
+	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
+	# Dark background
+	badge_style.bg_color = Color(0.1, 0.1, 0.15, 1.0)
+	# Circular shape (26x26 panel, so radius = 13)
+	badge_style.set_corner_radius_all(13)
+	# Element-colored border
+	badge_style.border_color = element_color
+	badge_style.set_border_width_all(2)
+	badge_style.anti_aliasing = true
+	badge_style.anti_aliasing_size = 1
+	badge.add_theme_stylebox_override("panel", badge_style)
 
 func _get_element_id_from_card_data() -> String:
 	# Extract element ID from card data
@@ -262,7 +297,7 @@ func _update_art() -> void:
 		return
 
 	var art_tex: TextureRect = container.get_node_or_null("ArtTexture")
-	var art_ph: ColorRect = container.get_node_or_null("ArtPlaceholder")
+	var art_ph: Panel = container.get_node_or_null("ArtPlaceholder")
 
 	# Try to load card art if path is specified
 	var art_loaded: bool = false
@@ -278,9 +313,19 @@ func _update_art() -> void:
 					art_ph.visible = false
 				art_loaded = true
 
-	# Fall back to colored placeholder
+	# Fall back to styled placeholder with recessed look
 	if not art_loaded and art_ph:
-		art_ph.color = element_color.darkened(0.3)
+		var art_style: StyleBoxFlat = StyleBoxFlat.new()
+		art_style.bg_color = element_color.darkened(0.5)
+		art_style.set_corner_radius_all(4)
+		# Inner shadow effect via darker border on top/left
+		art_style.border_color = Color(0, 0, 0, 0.3)
+		art_style.set_border_width(SIDE_TOP, 2)
+		art_style.set_border_width(SIDE_LEFT, 2)
+		art_style.set_border_width(SIDE_BOTTOM, 1)
+		art_style.set_border_width(SIDE_RIGHT, 1)
+		art_style.anti_aliasing = true
+		art_ph.add_theme_stylebox_override("panel", art_style)
 		art_ph.visible = true
 		if art_tex:
 			art_tex.visible = false
