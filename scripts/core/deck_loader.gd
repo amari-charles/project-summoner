@@ -174,8 +174,9 @@ static func load_player_deck() -> Dictionary:
 				deck_id = id_variant if id_variant is String else ""
 				print("DeckLoader: Using first deck: '%s'" % deck_id)
 			else:
-				push_error("DeckLoader: No decks available!")
-				return empty_result
+				# No decks exist - still need to return a summoner instance
+				push_warning("DeckLoader: No decks available - creating default summoner")
+				return _create_default_summoner_result()
 		else:
 			push_error("DeckLoader: Decks service not found!")
 			return empty_result
@@ -232,3 +233,30 @@ static func _get_service(path: String) -> Variant:
 		if tree and tree.root:
 			return tree.root.get_node_or_null(path)
 	return null
+
+## Create a result with empty cards but a valid default summoner instance
+## Used when player has no decks but we still need summoner stats
+static func _create_default_summoner_result() -> Dictionary:
+	var result: Dictionary = {
+		"cards": [],
+		"summoner_id": SummonerIDs.DEFAULT,
+		"summoner_instance": null
+	}
+
+	# Create default summoner instance from catalog
+	var summoner_catalog: Variant = _get_service("/root/SummonerCatalog")
+	if summoner_catalog and summoner_catalog is Object:
+		var summoner_catalog_obj: Object = summoner_catalog
+		var summoner_config_variant: Variant = summoner_catalog_obj.call("get_summoner_config", SummonerIDs.DEFAULT)
+		if summoner_config_variant is SummonerConfig:
+			var summoner_config: SummonerConfig = summoner_config_variant
+			var summoner_instance: SummonerInstance = SummonerInstance.new()
+			summoner_instance.init_from_config(summoner_config)
+			result["summoner_instance"] = summoner_instance
+			print("DeckLoader: Created default summoner instance '%s'" % summoner_config.summoner_name)
+		else:
+			push_error("DeckLoader: Could not load default summoner config!")
+	else:
+		push_error("DeckLoader: SummonerCatalog not available for default summoner!")
+
+	return result
