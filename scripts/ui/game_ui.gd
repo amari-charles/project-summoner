@@ -25,14 +25,14 @@ const CASTING_INDICATOR_OFFSET_X: float = -200.0  ## Left of center
 const CASTING_INDICATOR_OFFSET_Y: float = -180.0  ## Above hand area (from bottom)
 
 @export var timer_label: Label = null
-@export var player_mana_bar: ManaBar = null
-@export var enemy_mana_bar: ManaBar = null
 @export var game_over_label: Label = null
 @export var restart_button: Button = null
 
-## HP bars for both players
+## Stat bars for both players (HP = red, Mana = blue)
 @export var player_hp_bar: StatBar = null
+@export var player_mana_bar: StatBar = null
 @export var enemy_hp_bar: StatBar = null
+@export var enemy_mana_bar: StatBar = null
 
 ## Two-phase battle system UI elements
 @export var phase_label: Label = null
@@ -53,20 +53,18 @@ func _ready() -> void:
 	# Minimal setup - find child nodes if not assigned via @export
 	if timer_label == null:
 		timer_label = get_node_or_null("TimerLabel")
-	if player_mana_bar == null:
-		player_mana_bar = get_node_or_null("PlayerManaBar")
 	if game_over_label == null:
 		game_over_label = get_node_or_null("GameOverLabel")
 	if restart_button == null:
 		restart_button = get_node_or_null("RestartButton")
 
-	# HP bars
+	# Stat bars (all use StatBar now)
 	if player_hp_bar == null:
 		player_hp_bar = get_node_or_null("PlayerHPBar")
+	if player_mana_bar == null:
+		player_mana_bar = get_node_or_null("PlayerManaBar")
 	if enemy_hp_bar == null:
 		enemy_hp_bar = get_node_or_null("EnemyHPBar")
-
-	# Enemy mana bar
 	if enemy_mana_bar == null:
 		enemy_mana_bar = get_node_or_null("EnemyManaBar")
 
@@ -170,7 +168,7 @@ func _connect_to_enemy_mana(summoner: Node) -> void:
 
 func _on_enemy_mana_changed(current: float, maximum: float) -> void:
 	if enemy_mana_bar:
-		enemy_mana_bar.update_mana(current, maximum)
+		enemy_mana_bar.update_value(current, maximum)
 
 ## Connect to HP signals for a summoner
 func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
@@ -189,17 +187,27 @@ func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
 		else:
 			_on_enemy_hp_changed(current_hp, max_hp)
 
-## Setup HP bar colors
+## Setup stat bar colors
 func _setup_hp_bars() -> void:
 	# Player HP bar - red
 	if player_hp_bar:
 		player_hp_bar.set_colors(Color(0.85, 0.25, 0.25))
 		player_hp_bar.set_label_config(true, "{current}/{max}")
 
+	# Player Mana bar - blue
+	if player_mana_bar:
+		player_mana_bar.set_colors(Color(0.3, 0.5, 0.9))
+		player_mana_bar.set_label_config(true, "{current}/{max}")
+
 	# Enemy HP bar - red
 	if enemy_hp_bar:
 		enemy_hp_bar.set_colors(Color(0.85, 0.25, 0.25))
 		enemy_hp_bar.set_label_config(true, "{current}/{max}")
+
+	# Enemy Mana bar - blue
+	if enemy_mana_bar:
+		enemy_mana_bar.set_colors(Color(0.3, 0.5, 0.9))
+		enemy_mana_bar.set_label_config(true, "{current}/{max}")
 
 ## Handle player HP changes
 func _on_player_hp_changed(current: float, maximum: float) -> void:
@@ -219,7 +227,7 @@ func _on_time_updated(remaining: float) -> void:
 
 func _on_mana_changed(current: float, maximum: float) -> void:
 	if player_mana_bar:
-		player_mana_bar.update_mana(current, maximum)
+		player_mana_bar.update_value(current, maximum)
 
 func _on_game_ended(winner: Unit.Team) -> void:
 	if game_over_label:
