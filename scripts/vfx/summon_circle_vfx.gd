@@ -32,7 +32,7 @@ func receive_data(data: Dictionary) -> void:
 		var material: ShaderMaterial = circle_mesh.material_override as ShaderMaterial
 		if material:
 			var team: int = data.team
-			var color: Color = PLAYER_COLOR if team == 0 else ENEMY_COLOR
+			var color: Color = PLAYER_COLOR if team == Unit3D.Team.PLAYER else ENEMY_COLOR
 			var glow_color: Color = color.lightened(0.3)
 			material.set_shader_parameter("circle_color", color)
 			material.set_shader_parameter("glow_color", glow_color)
