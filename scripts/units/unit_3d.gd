@@ -48,6 +48,10 @@ const FLANK_SCORE_THRESHOLD: float = 0.2    ## Min score difference to prefer on
 ## Death animation constants
 const DEATH_CLEANUP_DELAY: float = 1.0  ## Seconds to wait after death before queue_free
 
+## Animation speed scaling constants
+const MIN_ANIMATION_SPEED: float = 0.3  ## Minimum animation speed multiplier (when nearly stationary)
+const MAX_ANIMATION_SPEED: float = 2.0  ## Maximum animation speed multiplier (when moving fast)
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -1112,7 +1116,7 @@ func _update_animation_speed() -> void:
 	# Clamp to reasonable range to avoid too slow or too fast animations
 	var speed_ratio: float = 1.0
 	if base_move_speed > 0:
-		speed_ratio = clamp(current_speed / base_move_speed, 0.3, 2.0)
+		speed_ratio = clamp(current_speed / base_move_speed, MIN_ANIMATION_SPEED, MAX_ANIMATION_SPEED)
 
 	# Only apply speed scaling for idle/walk animations
 	var current_anim: String = visual_component.get_current_animation()
