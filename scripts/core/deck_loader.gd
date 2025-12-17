@@ -71,23 +71,31 @@ static func load_deck_for_battle(deck_id: String) -> Dictionary:
 	var profile_repo: Variant = _get_service("/root/ProfileRepo")
 	var summoner_instance: SummonerInstance = null
 
+	print("DeckLoader: Loading summoner instance for '%s'" % summoner_id)
+
 	if profile_repo and profile_repo is Object:
 		var profile_repo_obj: Object = profile_repo
 		var instance_data_variant: Variant = profile_repo_obj.call("get_summoner_instance", summoner_id)
 		var instance_data: Dictionary = instance_data_variant if instance_data_variant is Dictionary else {}
 
+		print("DeckLoader: ProfileRepo returned instance_data empty=%s" % instance_data.is_empty())
+
 		if not instance_data.is_empty():
 			# Load from saved instance
 			summoner_instance = SummonerInstance.from_dict(instance_data)
+			print("DeckLoader: from_dict returned %s" % ("instance" if summoner_instance else "NULL"))
 		else:
 			# Create new instance from config
+			print("DeckLoader: No saved instance, creating from catalog (catalog=%s)" % ("available" if summoner_catalog else "NULL"))
 			if summoner_catalog and summoner_catalog is Object:
 				var summoner_catalog_obj: Object = summoner_catalog
 				var summoner_config_variant: Variant = summoner_catalog_obj.call("get_summoner_config", summoner_id)
+				print("DeckLoader: get_summoner_config returned type=%s" % typeof(summoner_config_variant))
 				if summoner_config_variant is SummonerConfig:
 					var summoner_config: SummonerConfig = summoner_config_variant
 					summoner_instance = SummonerInstance.new()
 					summoner_instance.init_from_config(summoner_config)
+					print("DeckLoader: Created new instance from config")
 				else:
 					push_warning("DeckLoader: Summoner config not found '%s', using fallback" % summoner_id)
 			else:
