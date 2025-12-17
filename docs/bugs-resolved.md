@@ -6,7 +6,7 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ### Summoner Stats Not Cached in Campaign Mode
 **Resolved:** 2025-12-17
-**Component:** DamageSystem / Summoner
+**Component:** DamageSystem / Summoner / SummonerCatalog
 
 **Description:**
 Warning appeared during battles: "DamageSystem: No summoner stats cached in campaign mode - trait bonuses not applied"
@@ -14,17 +14,17 @@ Warning appeared during battles: "DamageSystem: No summoner stats cached in camp
 **Root Cause:**
 Two issues:
 1. Combat arena battles using `dev_player_deck` bypassed summoner instance loading
-2. If summoner instance loading failed for any reason, no stats were cached at all
+2. **String/StringName type mismatch**: `SummonerCatalog._catalog` uses `StringName` keys (from `SummonerIDs` constants), but `get_summoner_config()` was passing `String` to dictionary lookup. GDScript 4 treats these as different types, so lookups always failed.
 
 **Solution Implemented:**
 1. Reordered `_load_profile_deck()` to always load summoner instance first
-2. Added fallback in `init()` that caches default stats if no summoner instance is loaded
-3. Added debug logging to trace summoner instance loading failures
-
-Now player summoner stats are ALWAYS cached, preventing DamageSystem warnings.
+2. Fixed `SummonerCatalog.get_summoner_config()` to convert String to StringName before lookup
+3. Fixed `has_summoner()` and `is_valid_summoner()` with same conversion
+4. Added debug logging to trace summoner instance loading
 
 **Related Files:**
-- scripts/core/summoner.gd - `_load_profile_deck()` reordered, fallback stats added
+- scripts/core/summoner.gd - `_load_profile_deck()` reordered
+- scripts/data/summoner_catalog.gd - String to StringName conversion in lookup methods
 
 ---
 

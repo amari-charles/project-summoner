@@ -14,7 +14,7 @@ extends Node
 
 ## Summoner configurations
 ## Each summoner is a SummonerConfig instance
-var _catalog: Dictionary = {}  ## Key: summoner_id (String), Value: SummonerConfig
+var _catalog: Dictionary = {}  ## Key: summoner_id (StringName), Value: SummonerConfig
 
 ## =============================================================================
 ## LIFECYCLE
@@ -147,11 +147,13 @@ func get_summoner_config(summoner_id: String) -> SummonerConfig:
 		push_warning("SummonerCatalog.get_summoner_config: Empty summoner_id provided")
 		return null
 
-	if not _catalog.has(summoner_id):
+	# Convert to StringName for catalog lookup (catalog keys are StringName)
+	var key: StringName = StringName(summoner_id)
+	if not _catalog.has(key):
 		push_warning("SummonerCatalog.get_summoner_config: Summoner not found: %s" % summoner_id)
 		return null
 
-	return _catalog[summoner_id]
+	return _catalog[key]
 
 ## Get a summoner definition by ID (legacy Dictionary access)
 ## Returns empty Dictionary if summoner not found
@@ -163,11 +165,11 @@ func get_summoner(summoner_id: String) -> Dictionary:
 
 ## Check if a summoner exists in the catalog
 func has_summoner(summoner_id: String) -> bool:
-	return _catalog.has(summoner_id)
+	return _catalog.has(StringName(summoner_id))
 
 ## Validate if a summoner ID is valid (exists in catalog)
 func is_valid_summoner(summoner_id: String) -> bool:
-	return _catalog.has(summoner_id)
+	return _catalog.has(StringName(summoner_id))
 
 ## Get all summoner IDs
 func get_all_summoner_ids() -> Array[String]:

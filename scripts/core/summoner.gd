@@ -149,21 +149,7 @@ func init() -> void:
 		if _loaded_summoner_instance != null:
 			_apply_summoner_bonuses(_loaded_summoner_instance)
 		else:
-			push_warning("Summoner: No summoner instance loaded - using default stats")
-
-	# Ensure player summoner stats are always cached (for DamageSystem)
-	# This fallback prevents warnings when summoner instance loading fails
-	if team == Unit3D.Team.PLAYER:
-		var cached_stats: Dictionary = BattleContext.get_player_summoner_stats()
-		if cached_stats.is_empty():
-			var default_stats: Dictionary = {
-				"max_mana": max_mana,
-				"max_hp": max_hp,
-				"damage_bonus": 0.0,
-				"damage_reduction": 0.0
-			}
-			BattleContext.set_player_summoner_stats(default_stats)
-			print("Summoner: Cached default player stats (no summoner instance)")
+			push_error("Summoner: CRITICAL - No summoner instance loaded! This is a bug.")
 
 	# Initialize mana
 	mana = max_mana
