@@ -616,6 +616,25 @@ Improve the visual presentation of cards in the player's hand.
 
 ---
 
+#### Card Replacement Should Happen In-Place
+**Status:** ⬜ Not Started
+**Category:** UI/UX / Card System
+**Effort:** Small
+
+**Description:**
+When a card is played and a new card is drawn to replace it, the new card should appear in the same hand position as the played card. Currently, the hand reorders on card play, which is disorienting.
+
+**Requirements:**
+- Track the hand slot position of played cards
+- Draw replacement card into the same slot
+- No shifting/reordering of remaining cards
+
+**Notes:**
+- Improves hand readability and muscle memory
+- Players can remember card positions during battle
+
+---
+
 #### Revamp Settings Screen UI
 **Status:** ⬜ Not Started
 **Category:** UI/UX
