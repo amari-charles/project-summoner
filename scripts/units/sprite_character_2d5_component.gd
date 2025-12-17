@@ -108,6 +108,9 @@ func _ready() -> void:
 		# Randomize starting phase so multiple units don't bob in sync
 		_bob_time = randf() * TAU
 
+	# Randomize animation frame so multiple units don't animate in sync
+	_randomize_animation_phase()
+
 func _process(delta: float) -> void:
 	if not enable_bobbing or not character_sprite or _is_attacking:
 		return
@@ -198,6 +201,23 @@ func get_animation_duration(_anim_name: String) -> float:
 			if fps > 0:
 				return frame_count / fps
 	return 1.0  # Fallback duration
+
+## Randomize animation phase so multiple units don't animate in sync
+func _randomize_animation_phase() -> void:
+	if not character_sprite or not character_sprite.sprite_frames:
+		return
+
+	var anim: String = character_sprite.animation
+	if anim == "":
+		anim = "idle"
+
+	if not character_sprite.sprite_frames.has_animation(anim):
+		return
+
+	# Jump to a random frame in the animation
+	var frame_count: int = character_sprite.sprite_frames.get_frame_count(anim)
+	if frame_count > 1:
+		character_sprite.frame = randi() % frame_count
 
 ## Setup sprite alignment so character feet are at origin (Y=0)
 ## Positions BOTH the Sprite3D and the 2D sprite content within viewport

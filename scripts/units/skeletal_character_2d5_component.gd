@@ -29,6 +29,9 @@ func _ready() -> void:
 	# Setup sprite alignment after bounds are calculated
 	_setup_sprite_alignment()
 
+	# Randomize animation start position so multiple units don't sync
+	_randomize_animation_phase()
+
 ## Instance the skeletal animation scene into the viewport
 func _instance_skeletal_scene() -> void:
 	if not skeletal_scene:
@@ -149,6 +152,24 @@ func set_flip_h(_flip: bool) -> void:
 			else:
 				# Normal: offset to center the bounds
 				skeletal_instance.position.x = center_x - _cached_bounds.get_center().x
+
+## Randomize animation phase so multiple units don't animate in sync
+func _randomize_animation_phase() -> void:
+	if not animation_player:
+		return
+
+	# Get current animation length
+	var current_anim: String = animation_player.current_animation
+	if current_anim == "":
+		return
+
+	var anim: Animation = animation_player.get_animation(current_anim)
+	if not anim:
+		return
+
+	# Seek to a random point in the animation
+	var random_offset: float = randf() * anim.length
+	animation_player.seek(random_offset, true)
 
 ## Get the duration of an animation in seconds
 func get_animation_duration(_anim_name: String) -> float:
