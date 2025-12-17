@@ -85,9 +85,80 @@ attacks_per_style = 2       # Attacks before switching
 - Brightness flash during expansion
 - Good for ranged/energy attacks
 
-## Example: Fire Elemental
+## Skeletal Rigging System
 
-The Fire Elemental (`fire_elemental_3d.tscn`) demonstrates both systems:
+For units that need more expressive animations than sprite frames can provide, a skeletal rigging system is available using Node2D pivots and AnimationPlayer.
+
+### How It Works
+
+- Uses `SkeletalCharacter2D5Component` instead of `SpriteCharacter2D5Component`
+- Rig scenes contain Node2D pivot nodes for body parts (body, legs, eyes, etc.)
+- AnimationPlayer animates pivot positions, rotations, and scales
+- Viewport dynamically sizes to fit the character bounds
+- Animation phase is randomized so swarms don't animate in sync
+
+### Creating a Skeletal Rig
+
+1. Create a rig scene (`*_rig.tscn`) with:
+   - Root Node2D with a script extending Node2D
+   - AnimationPlayer child with animations (idle, attack, etc.)
+   - Pivot nodes (Node2D) for each body part
+   - Sprite2D children under each pivot
+
+2. Add a script to bridge animation events:
+```gdscript
+extends Node2D
+
+signal attack_impact
+
+func _on_attack_impact() -> void:
+    attack_impact.emit()
+```
+
+3. Use method tracks in AnimationPlayer to fire events at specific times
+
+### Using a Skeletal Rig in a Unit
+
+In your unit scene, add a `SkeletalCharacter2D5Component`:
+
+```
+[node name="Visual" parent="." instance=ExtResource("skeletal_component")]
+skeletal_scene = ExtResource("your_rig.tscn")
+scale_factor = Vector2(0.15, 0.15)
+```
+
+### Animation Speed Control
+
+Both sprite and skeletal components support animation speed scaling:
+
+```gdscript
+# Speed up animation when moving faster
+visual_component.set_animation_speed(2.0)
+
+# Get current speed
+var speed = visual_component.get_animation_speed()
+```
+
+## Example: Fire Elemental (Skeletal)
+
+The Fire Elemental (`fire_elemental_3d.tscn`) uses skeletal rigging for expressive bouncy hop animation:
+
+- **Rig**: `fire_elemental_rig.tscn` with body, eye, and leg pivots
+- **Idle**: 0.8s bouncy hop with squash/stretch and alternating legs
+- **Attack**: Forward lunge with eye scale pulse, impact at 0.4s
+
+```
+# In fire_elemental_3d.tscn:
+[node name="Visual" parent="." instance=ExtResource("skeletal_component")]
+skeletal_scene = ExtResource("fire_elemental_rig.tscn")
+scale_factor = Vector2(0.15, 0.15)
+```
+
+The Fire Titan uses the same rig at larger scale (`scale_factor = Vector2(0.6, 0.6)`).
+
+## Example: Soldier (Sprite-based)
+
+For simpler units, sprite-frame animation with procedural effects works well:
 
 ```gdscript
 # In scene properties:
@@ -95,11 +166,19 @@ enable_bobbing = true
 attack_style = 1  # Lunge
 ```
 
-This creates a floating fire spirit that bobs gently while idle and lunges forward when attacking.
+This creates a unit that bobs gently while idle and lunges forward when attacking.
 
 ## Adding to New Units
 
+### Sprite-based Units (simpler)
 1. Create your unit scene extending `Unit3D`
 2. Set `enable_bobbing = true` if the unit should float
-3. Choose an `attack_style` (1-4) if using single-frame sprites
+3. Choose an `attack_style` (1-4) for procedural attack effects
 4. The visual component handles the rest automatically
+
+### Skeletal Units (more expressive)
+1. Create a rig scene with pivots and AnimationPlayer
+2. Add a script to bridge animation events (attack_impact signal)
+3. Create your unit scene extending `Unit3D`
+4. Add `SkeletalCharacter2D5Component` as "Visual" child
+5. Set `skeletal_scene` and `scale_factor` exports

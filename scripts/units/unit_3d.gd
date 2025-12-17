@@ -49,6 +49,10 @@ const FLANK_SCORE_THRESHOLD: float = 0.2    ## Min score difference to prefer on
 ## Death animation constants
 const DEATH_CLEANUP_DELAY: float = 1.0  ## Seconds to wait after death before queue_free
 
+## Animation speed scaling constants
+const MIN_ANIMATION_SPEED: float = 0.3  ## Minimum animation speed multiplier (when nearly stationary)
+const MAX_ANIMATION_SPEED: float = 2.0  ## Maximum animation speed multiplier (when moving fast)
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -1132,6 +1136,32 @@ func _update_animation(anim_name: String) -> void:
 	if current_anim != anim_name:
 		# SpriteCharacter2D5Component.play_animation() handles missing animations with fallback to "idle"
 		visual_component.play_animation(anim_name)
+
+	# Scale animation speed based on movement velocity
+	_update_animation_speed()
+
+## Scale animation speed based on current velocity relative to base move speed
+func _update_animation_speed() -> void:
+	if not visual_component or not visual_component.has_method("set_animation_speed"):
+		return
+
+	# Get horizontal velocity (ignore Y)
+	var horizontal_velocity: Vector3 = Vector3(velocity.x, 0, velocity.z)
+	var current_speed: float = horizontal_velocity.length()
+
+	# Calculate speed ratio (current speed / base move speed)
+	# Clamp to reasonable range to avoid too slow or too fast animations
+	var speed_ratio: float = 1.0
+	if base_move_speed > 0:
+		speed_ratio = clamp(current_speed / base_move_speed, MIN_ANIMATION_SPEED, MAX_ANIMATION_SPEED)
+
+	# Only apply speed scaling for idle/walk animations
+	var current_anim: String = visual_component.get_current_animation()
+	if current_anim in ["idle", "walk"]:
+		visual_component.set_animation_speed(speed_ratio)
+	else:
+		# Reset to normal speed for attack/hurt/death animations
+		visual_component.set_animation_speed(1.0)
 
 ## Flash the unit white briefly when taking damage
 func _flash_white() -> void:
