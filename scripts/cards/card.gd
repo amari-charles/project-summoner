@@ -10,6 +10,8 @@ enum CardType { SUMMON, SPELL }
 ## When spawning multiple units, they form a staggered row formation around the target position
 const FORMATION_SPACING: float = 1.8  ## Distance between units in formation (world units)
 const FORMATION_ROW_OFFSET: float = 0.5  ## Fraction of spacing to offset alternating rows (brick pattern)
+const FORMATION_TWO_ROW_MAX: int = 20  ## Max units for 2-row formation; larger swarms use more rows
+const FORMATION_LARGE_ROW_DENSITY: float = 3.0  ## Target units per row for large swarms (20+)
 
 
 ## Generate formation offset for staggered row spawning
@@ -20,8 +22,8 @@ static func generate_formation_offset(unit_index: int, unit_count: int) -> Vecto
 		return Vector3.ZERO
 
 	# Calculate grid dimensions - prefer 2 rows for army-like formations
-	# Only use more rows if we have a very large swarm (20+)
-	var rows: int = 2 if unit_count <= 20 else ceili(sqrt(float(unit_count) / 3.0))
+	# Only use more rows if we have a very large swarm
+	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
 	var cols: int = ceili(float(unit_count) / float(rows))
 
 	# Get row and column for this unit

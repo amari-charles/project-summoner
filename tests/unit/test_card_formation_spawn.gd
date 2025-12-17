@@ -39,7 +39,7 @@ func test_two_units_form_two_rows() -> void:
 
 
 func test_twelve_units_form_two_rows() -> void:
-	# 12 units with <= 20 threshold should form 2 rows of 6 columns
+	# 12 units (within FORMATION_TWO_ROW_MAX) should form 2 rows of 6 columns
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(12):
@@ -52,7 +52,7 @@ func test_twelve_units_form_two_rows() -> void:
 
 
 func test_large_swarm_uses_more_rows() -> void:
-	# 25 units (> 20) should use more than 2 rows
+	# 25 units (exceeds FORMATION_TWO_ROW_MAX) should use more than 2 rows
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(25):
@@ -166,7 +166,7 @@ func test_odd_unit_count_handled() -> void:
 
 
 func test_twenty_units_still_uses_two_rows() -> void:
-	# Exactly 20 units should still use 2 rows (boundary condition)
+	# Exactly FORMATION_TWO_ROW_MAX (20) units should still use 2 rows (boundary condition)
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(20):
@@ -178,7 +178,7 @@ func test_twenty_units_still_uses_two_rows() -> void:
 
 
 func test_twentyone_units_uses_more_rows() -> void:
-	# 21 units (> 20) should trigger more than 2 rows
+	# 21 units (exceeds FORMATION_TWO_ROW_MAX) should trigger more than 2 rows
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(21):
