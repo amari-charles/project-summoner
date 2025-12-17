@@ -148,6 +148,22 @@ func init() -> void:
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		if _loaded_summoner_instance != null:
 			_apply_summoner_bonuses(_loaded_summoner_instance)
+		else:
+			push_warning("Summoner: No summoner instance loaded - using default stats")
+
+	# Ensure player summoner stats are always cached (for DamageSystem)
+	# This fallback prevents warnings when summoner instance loading fails
+	if team == Unit3D.Team.PLAYER:
+		var cached_stats: Dictionary = BattleContext.get_player_summoner_stats()
+		if cached_stats.is_empty():
+			var default_stats: Dictionary = {
+				"max_mana": max_mana,
+				"max_hp": max_hp,
+				"damage_bonus": 0.0,
+				"damage_reduction": 0.0
+			}
+			BattleContext.set_player_summoner_stats(default_stats)
+			print("Summoner: Cached default player stats (no summoner instance)")
 
 	# Initialize mana
 	mana = max_mana
@@ -423,6 +439,12 @@ func _load_profile_deck() -> Array[Card]:
 	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
 	if summoner_instance_variant is SummonerInstance:
 		_loaded_summoner_instance = summoner_instance_variant
+		print("Summoner: Loaded summoner instance '%s' (Level %d)" % [
+			_loaded_summoner_instance.config.summoner_name if _loaded_summoner_instance.config else "Unknown",
+			_loaded_summoner_instance.level
+		])
+	else:
+		push_warning("Summoner: DeckLoader returned no summoner instance (type: %s)" % typeof(summoner_instance_variant))
 
 	# Check for dev test deck override in BattleContext
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
