@@ -121,15 +121,11 @@ func init() -> void:
 		return
 	_initialized = true
 
-	print("Summoner: Initializing (team: %s, strategy: %s)..." % [
-		"PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY",
-		DeckLoadStrategy.keys()[deck_load_strategy]
-	])
+	print("Summoner: Initializing (team: %s)..." % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
 
 	# Auto-correct deck loading strategy based on team if using wrong default
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
 		deck_load_strategy = DeckLoadStrategy.PROFILE
-		print("Summoner: Auto-corrected to PROFILE strategy")
 	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
 
@@ -149,10 +145,6 @@ func init() -> void:
 	deck = _load_deck_by_strategy()
 
 	# Apply summoner bonuses for player using PROFILE strategy
-	print("Summoner: Checking bonuses (team=%s, strategy=%s, instance=%s)" % [
-		team, DeckLoadStrategy.keys()[deck_load_strategy],
-		"loaded" if _loaded_summoner_instance != null else "NULL"
-	])
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		if _loaded_summoner_instance != null:
 			_apply_summoner_bonuses(_loaded_summoner_instance)
@@ -427,18 +419,8 @@ func _load_profile_deck() -> Array[Card]:
 		push_warning("Summoner: PROFILE strategy used for enemy team, using static deck instead")
 		return _load_static_deck()
 
-	# Always load summoner instance first (needed for stats/bonuses even with dev deck)
-	print("Summoner: Loading summoner from player profile...")
-	var deck_data: Dictionary = DeckLoader.load_player_deck()
-	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
-	if summoner_instance_variant is SummonerInstance:
-		_loaded_summoner_instance = summoner_instance_variant
-		print("Summoner: Loaded summoner instance '%s' (Level %d)" % [
-			_loaded_summoner_instance.config.summoner_name if _loaded_summoner_instance.config else "Unknown",
-			_loaded_summoner_instance.level
-		])
-	else:
-		push_warning("Summoner: DeckLoader returned no summoner instance (type: %s)" % typeof(summoner_instance_variant))
+	# Load summoner instance directly from profile services (independent of decks)
+	_load_summoner_from_profile()
 
 	# Check for dev test deck override in BattleContext
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
@@ -450,8 +432,9 @@ func _load_profile_deck() -> Array[Card]:
 				print("Summoner: Loading DEV TEST deck (summoner stats still apply)...")
 				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
 
-	# Normal path: use profile deck
+	# Normal path: use profile deck via DeckLoader
 	print("Summoner: Loading deck from player profile...")
+	var deck_data: Dictionary = DeckLoader.load_player_deck()
 	var loaded_deck_variant: Variant = deck_data.get("cards", [])
 	var loaded_deck: Array[Card] = []
 	if loaded_deck_variant is Array:
@@ -463,6 +446,64 @@ func _load_profile_deck() -> Array[Card]:
 		return _load_static_deck()
 
 	return loaded_deck
+
+## Load summoner instance directly from profile services
+## This is independent of deck loading - summoners exist even without decks
+func _load_summoner_from_profile() -> void:
+	print("Summoner: Loading summoner from player profile...")
+
+	# Get active summoner ID via SummonerSelection service
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection:
+		push_error("Summoner: SummonerSelection service not found!")
+		return
+
+	var summoner_id: String = ""
+	if summoner_selection.has_method("get_active_summoner_id"):
+		summoner_id = summoner_selection.call("get_active_summoner_id")
+
+	if summoner_id.is_empty():
+		push_error("Summoner: No active summoner selected in profile!")
+		return
+
+	print("Summoner: Active summoner ID: '%s'" % summoner_id)
+
+	# Load summoner instance data from ProfileRepo
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		push_error("Summoner: ProfileRepo not found!")
+		return
+
+	var instance_data: Dictionary = {}
+	if profile_repo.has_method("get_summoner_instance"):
+		var instance_data_variant: Variant = profile_repo.call("get_summoner_instance", summoner_id)
+		instance_data = instance_data_variant if instance_data_variant is Dictionary else {}
+
+	if instance_data.is_empty():
+		# No saved instance - create from catalog config
+		print("Summoner: No saved instance, creating from catalog...")
+		var summoner_catalog: Node = get_node_or_null("/root/SummonerCatalog")
+		if summoner_catalog and summoner_catalog.has_method("get_summoner_config"):
+			var config_variant: Variant = summoner_catalog.call("get_summoner_config", summoner_id)
+			if config_variant is SummonerConfig:
+				var summoner_config: SummonerConfig = config_variant
+				_loaded_summoner_instance = SummonerInstance.new()
+				_loaded_summoner_instance.init_from_config(summoner_config)
+				print("Summoner: Created new instance from config '%s'" % summoner_config.summoner_name)
+			else:
+				push_error("Summoner: Could not load summoner config for '%s'" % summoner_id)
+		else:
+			push_error("Summoner: SummonerCatalog not available!")
+	else:
+		# Load from saved instance data
+		_loaded_summoner_instance = SummonerInstance.from_dict(instance_data)
+		if _loaded_summoner_instance:
+			print("Summoner: Loaded summoner instance '%s' (Level %d)" % [
+				_loaded_summoner_instance.config.summoner_name if _loaded_summoner_instance.config else "Unknown",
+				_loaded_summoner_instance.level
+			])
+		else:
+			push_error("Summoner: Failed to create SummonerInstance from saved data!")
 
 ## Load dev test deck from battle configuration
 func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:

@@ -12,19 +12,20 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 Warning appeared during battles: "DamageSystem: No summoner stats cached in campaign mode - trait bonuses not applied"
 
 **Root Cause:**
-Two issues:
-1. Combat arena battles using `dev_player_deck` bypassed summoner instance loading
-2. **String/StringName type mismatch**: `SummonerCatalog._catalog` uses `StringName` keys (from `SummonerIDs` constants), but `get_summoner_config()` was passing `String` to dictionary lookup. GDScript 4 treats these as different types, so lookups always failed.
+Three issues:
+1. **String/StringName type mismatch**: `SummonerCatalog._catalog` uses `StringName` keys, but `get_summoner_config()` was receiving `String` parameters. GDScript 4 treats these as different types.
+2. **Summoner loading coupled to deck loading**: `DeckLoader.load_player_deck()` required a deck to exist to get the summoner_id, but summoners exist independently in the profile.
+3. When no decks existed (common in dev/test scenarios), summoner instance loading was skipped entirely.
 
 **Solution Implemented:**
-1. Reordered `_load_profile_deck()` to always load summoner instance first
-2. Fixed `SummonerCatalog.get_summoner_config()` to convert String to StringName before lookup
-3. Fixed `has_summoner()` and `is_valid_summoner()` with same conversion
-4. Added debug logging to trace summoner instance loading
+1. Fixed `SummonerCatalog.get_summoner_config()` to convert String to StringName before lookup
+2. **Decoupled summoner loading from deck loading**: New `_load_summoner_from_profile()` function loads summoner directly via `SummonerSelection.get_active_summoner_id()` and `ProfileRepo.get_summoner_instance()`, independent of deck data
+3. Summoner bonuses now applied even when using `dev_player_deck` or when no decks exist
 
 **Related Files:**
-- scripts/core/summoner.gd - `_load_profile_deck()` reordered
+- scripts/core/summoner.gd - New `_load_summoner_from_profile()` function
 - scripts/data/summoner_catalog.gd - String to StringName conversion in lookup methods
+- scripts/core/deck_loader.gd - Removed bandaid fallback, now focuses only on card loading
 
 ---
 
