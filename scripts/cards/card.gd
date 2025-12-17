@@ -247,16 +247,12 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 
 			# Attack range is optional (different defaults for melee vs ranged)
 			if catalog_data.has("attack_range"):
-				print("Card: Setting attack_range from catalog: %.2f for card '%s'" % [catalog_data.attack_range, card_name])
 				unit.attack_range = catalog_data.attack_range
-			else:
-				print("Card: No attack_range in catalog for '%s', using scene default: %.2f" % [card_name, unit.attack_range])
 
 			# Apply scale_multiplier override if present (not a catalog stat)
 			if custom_stat_overrides.has("scale_multiplier"):
 				var multiplier: float = custom_stat_overrides["scale_multiplier"]
 				unit.scale = Vector3.ONE * multiplier
-				print("Card: Applied scale multiplier %f for '%s'" % [multiplier, card_name])
 
 			# Initialize with modifiers AFTER catalog stats applied
 			unit.initialize_with_modifiers(modifiers, card_data)
