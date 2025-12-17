@@ -24,7 +24,7 @@ enum DeckLoadStrategy {
 @export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
 
 ## Hit feedback animation constants
-const BASE_FLASH_DURATION: float = 0.3
+const DEFAULT_FLASH_DURATION: float = 0.3
 const MIN_FLASH_DURATION: float = 0.05
 const FLASH_SPEED_MULTIPLIER: float = 0.3
 const RECENT_HITS_DECAY_RATE: float = 2.0
@@ -577,7 +577,7 @@ func _destroy() -> void:
 	HPBarManager.remove_bar_from_unit(self)
 
 	summoner_destroyed.emit(self)
-	print("Summoner destroyed! Team: ", team)
+	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
 
 ## Play hit feedback animation (flash + shake)
 func _play_hit_feedback() -> void:
@@ -590,7 +590,7 @@ func _play_hit_feedback() -> void:
 
 	# Calculate duration based on attack intensity
 	var intensity_factor: float = 1.0 + (recent_hits * FLASH_SPEED_MULTIPLIER)
-	var flash_duration: float = max(MIN_FLASH_DURATION, BASE_FLASH_DURATION / intensity_factor)
+	var flash_duration: float = max(MIN_FLASH_DURATION, DEFAULT_FLASH_DURATION / intensity_factor)
 
 	var flash_to_white: float = flash_duration * 0.4
 	var flash_return: float = flash_duration * 0.6

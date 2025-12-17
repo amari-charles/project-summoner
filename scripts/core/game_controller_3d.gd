@@ -133,13 +133,11 @@ func _init_summoners() -> void:
 ## Connect summoner combat signals (summoner is now the attack target)
 func _connect_summoner_combat_signals() -> void:
 	if player_summoner:
-		player_summoner.summoner_damaged.connect(_on_summoner_damaged)
 		player_summoner.summoner_destroyed.connect(_on_summoner_destroyed)
 	else:
 		push_warning("BattleCoordinator: Could not find player_summoner")
 
 	if enemy_summoner:
-		enemy_summoner.summoner_damaged.connect(_on_summoner_damaged)
 		enemy_summoner.summoner_destroyed.connect(_on_summoner_destroyed)
 		# Apply enemy HP override from battle config (for tutorial/special battles)
 		if BattleContext.battle_config.has("enemy_hp"):
@@ -346,11 +344,6 @@ func get_time_string() -> String:
 	var seconds: int = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
 
-func _on_time_updated(_time_remaining: float) -> void:
-	var time_label: Node = get_node_or_null("UI/TimerLabel")
-	if time_label:
-		time_label.set("text", get_time_string())
-
 func _on_game_ended(winner: Unit3D.Team) -> void:
 	# Show game over label
 	var game_over_label: Node = get_node_or_null("UI/GameOverLabel")
@@ -364,10 +357,6 @@ func _on_game_ended(winner: Unit3D.Team) -> void:
 			if game_over_label.has_method("add_theme_color_override"):
 				game_over_label.call("add_theme_color_override", "font_color", Color(1.0, 0.3, 0.3))
 		game_over_label.set("visible", true)
-
-func _on_summoner_damaged(_summoner: Summoner, _damage: float) -> void:
-	# HP display is handled by GameUI via hp_changed signals
-	pass
 
 func _on_summoner_destroyed(summoner: Summoner) -> void:
 	if summoner == player_summoner:
