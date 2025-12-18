@@ -40,8 +40,6 @@ func setup(unit_scene: PackedScene, spawn_count: int = 1) -> void:
 
 ## Create ghost unit previews in formation
 func _create_ghost_units() -> void:
-	print("SpawnPreview: _create_ghost_units called, _unit_scene=", _unit_scene, " _spawn_count=", _spawn_count)
-
 	# Clear existing ghosts
 	for ghost: GhostUnit3D in ghost_units:
 		if is_instance_valid(ghost):
@@ -50,7 +48,6 @@ func _create_ghost_units() -> void:
 
 	if not _unit_scene:
 		# Fallback to circle marker if no unit scene
-		print("SpawnPreview: No unit scene, falling back to circle")
 		_create_circle_marker()
 		return
 
@@ -64,11 +61,9 @@ func _create_ghost_units() -> void:
 		ghost_units.append(ghost)
 		if ghost._visual_root:
 			any_ghost_valid = true
-		print("SpawnPreview: Created ghost ", i, " visual_root=", ghost._visual_root)
 
 	# If no ghosts have visuals, fallback to circle marker
 	if not any_ghost_valid:
-		print("SpawnPreview: No valid ghost visuals, falling back to circle")
 		# Clean up empty ghosts
 		for ghost: GhostUnit3D in ghost_units:
 			ghost.queue_free()
@@ -76,7 +71,6 @@ func _create_ghost_units() -> void:
 		_create_circle_marker()
 		return
 
-	print("SpawnPreview: Created ", ghost_units.size(), " ghost units with visuals")
 	# Position in formation
 	_update_formation_positions()
 

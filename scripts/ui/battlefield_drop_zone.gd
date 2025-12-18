@@ -270,9 +270,7 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 
 ## Create a new spawn preview for the card
 func _create_spawn_preview(card: Card) -> void:
-	print("BattlefieldDropZone: _create_spawn_preview called, unit_scene=", card.unit_scene, " spawn_count=", card.spawn_count)
 	if not card.unit_scene:
-		print("BattlefieldDropZone: No unit_scene on card!")
 		return
 
 	_spawn_preview = SpawnPreview.new()
@@ -282,11 +280,9 @@ func _create_spawn_preview(card: Card) -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport:
 		var root_3d: Node = _find_3d_root(viewport)
-		print("BattlefieldDropZone: root_3d=", root_3d)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
 			_spawn_preview.setup(card.unit_scene, card.spawn_count)
-			print("BattlefieldDropZone: SpawnPreview created and added to scene")
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:

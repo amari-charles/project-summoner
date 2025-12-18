@@ -4,12 +4,9 @@ class_name GhostUnit3D
 ## Transparent preview of a unit during card drag
 ## Shows what the spawned unit will look like with ghostly transparency
 
-const COMPONENT_SCENE_PATH: String = "res://scenes/units/sprite_character_2d5_component.tscn"
-
 const VALID_TINT: Color = Color(0.7, 0.85, 1.0, 0.5)  # Light blue, 50% alpha
 const INVALID_TINT: Color = Color(1.0, 0.5, 0.5, 0.5)  # Red, 50% alpha
 
-var visual_component: SpriteCharacter2D5Component = null
 var _visual_root: Node = null  # Store reference to the duplicated visual
 var _is_valid: bool = true
 
@@ -17,29 +14,21 @@ var _is_valid: bool = true
 ## Initialize ghost with unit scene data
 func setup(unit_scene: PackedScene) -> void:
 	if not unit_scene:
-		print("GhostUnit3D: No unit_scene provided")
 		return
 
 	# Instantiate unit to find its Visual child
 	var temp_unit: Node = unit_scene.instantiate()
 	if not temp_unit:
-		print("GhostUnit3D: Failed to instantiate unit")
 		return
-
-	print("GhostUnit3D: Instantiated temp_unit=", temp_unit.name)
 
 	# Find the Visual child node (works for both sprite and skeletal units)
 	var visual_node: Node = temp_unit.get_node_or_null("Visual")
 	if not visual_node:
-		print("GhostUnit3D: No Visual child found")
 		temp_unit.queue_free()
 		return
 
-	print("GhostUnit3D: Found Visual node: ", visual_node.get_class())
-
 	# Get the scene file path to instantiate fresh (avoids ViewportTexture reference issues)
 	var scene_path: String = visual_node.scene_file_path
-	print("GhostUnit3D: Visual scene_path=", scene_path)
 
 	var new_visual: Node = null
 
@@ -48,7 +37,6 @@ func setup(unit_scene: PackedScene) -> void:
 		var visual_scene: PackedScene = load(scene_path)
 		if visual_scene:
 			new_visual = visual_scene.instantiate()
-			print("GhostUnit3D: Instantiated fresh visual from scene")
 
 			# Copy relevant properties BEFORE adding to tree (so _ready() sees them)
 			# Copy skeletal_scene or other visual properties
@@ -56,7 +44,6 @@ func setup(unit_scene: PackedScene) -> void:
 				var skel_scene: Variant = visual_node.get("skeletal_scene")
 				if skel_scene:
 					new_visual.set("skeletal_scene", skel_scene)
-					print("GhostUnit3D: Copied skeletal_scene=", skel_scene)
 			if "scale_factor" in visual_node:
 				new_visual.set("scale_factor", visual_node.get("scale_factor"))
 			# For sprite-based units
@@ -72,25 +59,19 @@ func setup(unit_scene: PackedScene) -> void:
 	if not new_visual:
 		# Fallback to duplicate
 		new_visual = visual_node.duplicate(DUPLICATE_USE_INSTANTIATION | DUPLICATE_SCRIPTS | DUPLICATE_SIGNALS)
-		print("GhostUnit3D: Used duplicate fallback")
 
 	if not new_visual:
-		print("GhostUnit3D: Failed to create Visual")
 		temp_unit.queue_free()
 		return
 
 	# Add to ghost (this triggers _ready() which needs skeletal_scene to be set)
 	add_child(new_visual)
 
-	# Store references
+	# Store reference
 	_visual_root = new_visual
-	if new_visual is SpriteCharacter2D5Component:
-		visual_component = new_visual
 
 	# Clean up temp unit
 	temp_unit.queue_free()
-
-	print("GhostUnit3D: Setup complete, visual_root=", _visual_root)
 
 	# Apply ghost transparency AFTER the component fully initializes
 	# SkeletalCharacter2D5Component uses await in _ready(), so we need to wait
@@ -107,8 +88,6 @@ func _apply_ghost_appearance_deferred(node: Node) -> void:
 
 	if not is_instance_valid(node):
 		return
-
-	print("GhostUnit3D: Applying ghost appearance after init wait")
 
 	# Ensure ghost faces correct direction (player units face left in this game layout)
 	if node.has_method("set_flip_h"):
@@ -128,7 +107,6 @@ func _apply_ghost_appearance_to_node(node: Node) -> void:
 		var skeletal_comp: SkeletalCharacter2D5Component = node
 		if skeletal_comp.skeletal_instance:
 			skeletal_comp.skeletal_instance.modulate = tint
-			print("GhostUnit3D: Applied tint to skeletal_instance")
 		return  # Don't recurse into skeletal component
 
 	# For SpriteCharacter2D5Component, modulate works on the 2D sprite inside viewport
@@ -136,7 +114,6 @@ func _apply_ghost_appearance_to_node(node: Node) -> void:
 		var sprite_comp: SpriteCharacter2D5Component = node
 		if sprite_comp.animated_sprite:
 			sprite_comp.animated_sprite.modulate = tint
-			print("GhostUnit3D: Applied tint to animated_sprite")
 		return  # Don't recurse into sprite component
 
 	# Apply to Sprite3D (fallback for other cases)
@@ -173,5 +150,4 @@ func cleanup() -> void:
 	if _visual_root and is_instance_valid(_visual_root):
 		_visual_root.queue_free()
 	_visual_root = null
-	visual_component = null
 	queue_free()
