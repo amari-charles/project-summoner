@@ -4,6 +4,22 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Hand UI Area Blocks Unit Spawning
+**Resolved:** 2025-12-17
+**Component:** UI / Battlefield Drop Zone
+
+**Description:**
+The card hand UI area at the bottom of the screen prevented unit spawning in that region of the battlefield. Attempting to drag and drop a summon card to spawn a unit where the hand UI was rendered failed because the hand UI intercepted the drop.
+
+**Solution Implemented:**
+Hide the entire hand UI when dragging a card. This ensures the battlefield drop zone receives all drop events during card drag operations. The hand reappears when the drag ends (drop or cancel).
+
+**Related Files:**
+- `scripts/ui/hand_ui.gd:261` - Hide hand on drag start
+- `scripts/ui/hand_ui.gd:274-276` - Show hand on drag end via NOTIFICATION_DRAG_END
+
+---
+
 ### Summoner Stats Not Cached in Campaign Mode
 **Resolved:** 2025-12-17
 **Component:** DamageSystem / Summoner / SummonerCatalog

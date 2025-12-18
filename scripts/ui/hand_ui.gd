@@ -239,7 +239,9 @@ class CardDisplay extends Control:
 		)
 
 	## Start dragging this card
-	func _get_drag_data(at_position: Vector2) -> Variant:
+	## Note: No Godot drag preview is created - the 3D preview (ghost units or spell indicator)
+	## is managed by BattlefieldDropZone for better visual feedback
+	func _get_drag_data(_at_position: Vector2) -> Variant:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
@@ -255,36 +257,8 @@ class CardDisplay extends Control:
 		if summoner_mana < card.mana_cost:
 			return null
 
-		# Create a visual duplicate as preview
-		# Temporarily disable stretch to prevent SubViewport resize warning during duplication
-		var original_stretch: bool = false
-		if viewport_container:
-			original_stretch = viewport_container.stretch
-			viewport_container.stretch = false
-
-		var preview_node: Node = duplicate(DUPLICATE_USE_INSTANTIATION)
-
-		# Restore stretch setting
-		if viewport_container:
-			viewport_container.stretch = original_stretch
-
-		if not preview_node is Control:
-			return null
-		var preview: Control = preview_node
-		preview.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
-
-		# Create wrapper to control preview offset
-		var preview_wrapper: Control = Control.new()
-		preview_wrapper.add_child(preview)
-
-		# Position preview so the grab point stays under cursor
-		# at_position is where on THIS card the user clicked
-		preview.position = -at_position * HOVER_SCALE
-
-		set_drag_preview(preview_wrapper)
-
-		# Card physically leaves the hand (completely invisible)
-		visible = false
+		# Hide entire hand UI so it doesn't block play area
+		hand_ui.visible = false
 
 		# Return drag data
 		var drag_data: Dictionary = {
@@ -297,8 +271,9 @@ class CardDisplay extends Control:
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			# Card returns to hand (if drag was cancelled)
-			visible = true
+			# Show hand UI again
+			if hand_ui:
+				hand_ui.visible = true
 
 	## Allow clicking to select card
 	func _gui_input(event: InputEvent) -> void:
