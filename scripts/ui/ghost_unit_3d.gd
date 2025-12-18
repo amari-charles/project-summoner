@@ -82,7 +82,10 @@ func setup(unit_scene: PackedScene) -> void:
 ## Apply ghost transparency after waiting for component to initialize
 ## SkeletalCharacter2D5Component uses await in _ready(), so children don't exist immediately
 func _apply_ghost_appearance_deferred(node: Node) -> void:
-	# Wait for the component to fully initialize (skeletal components await 2 frames)
+	# Wait 2 frames for skeletal components to fully initialize:
+	# Frame 1: SkeletalCharacter2D5Component._ready() awaits for SubViewport setup
+	# Frame 2: The skeletal_instance is created and added as a child
+	# Only after both frames complete does skeletal_instance exist and can be modulated
 	await get_tree().process_frame
 	await get_tree().process_frame
 

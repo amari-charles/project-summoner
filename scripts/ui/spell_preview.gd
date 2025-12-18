@@ -10,6 +10,9 @@ const DEFAULT_RADIUS: float = 5.0  # Default spell radius when card has none spe
 const CROSSHAIR_LENGTH: float = 1.5
 const LINE_WIDTH: float = 0.08
 const RING_WIDTH: float = 0.15
+const CROSSHAIR_Y_OFFSET: float = 0.05  # Extra height above ground overlay for crosshair
+const DOT_Y_OFFSET: float = 0.1  # Extra height for center dot (above crosshair)
+const DOT_RADIUS: float = 0.15
 
 var radius_ring: MeshInstance3D = null
 var crosshair_h: MeshInstance3D = null
@@ -58,7 +61,7 @@ func _create_crosshair() -> void:
 	box_h.size = Vector3(CROSSHAIR_LENGTH, LINE_WIDTH, LINE_WIDTH)
 	crosshair_h.mesh = box_h
 	crosshair_h.material_override = _create_material()
-	crosshair_h.position.y = BattlefieldConstants.GROUND_OVERLAY_OFFSET + 0.05
+	crosshair_h.position.y = BattlefieldConstants.GROUND_OVERLAY_OFFSET + CROSSHAIR_Y_OFFSET
 	add_child(crosshair_h)
 
 	# Vertical line (Z-axis)
@@ -67,7 +70,7 @@ func _create_crosshair() -> void:
 	box_v.size = Vector3(LINE_WIDTH, LINE_WIDTH, CROSSHAIR_LENGTH)
 	crosshair_v.mesh = box_v
 	crosshair_v.material_override = _create_material()
-	crosshair_v.position.y = BattlefieldConstants.GROUND_OVERLAY_OFFSET + 0.05
+	crosshair_v.position.y = BattlefieldConstants.GROUND_OVERLAY_OFFSET + CROSSHAIR_Y_OFFSET
 	add_child(crosshair_v)
 
 
@@ -75,11 +78,11 @@ func _create_crosshair() -> void:
 func _create_center_dot() -> void:
 	center_dot = MeshInstance3D.new()
 	var sphere: SphereMesh = SphereMesh.new()
-	sphere.radius = 0.15
-	sphere.height = 0.3
+	sphere.radius = DOT_RADIUS
+	sphere.height = DOT_RADIUS * 2
 	center_dot.mesh = sphere
 	center_dot.material_override = _create_material()
-	center_dot.position.y = BattlefieldConstants.GROUND_OVERLAY_OFFSET + 0.1
+	center_dot.position.y = BattlefieldConstants.GROUND_OVERLAY_OFFSET + DOT_Y_OFFSET
 	add_child(center_dot)
 
 
