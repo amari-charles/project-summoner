@@ -18,7 +18,6 @@ signal summoner_unhovered()
 @onready var portrait_container: Control = get_node_or_null("%PortraitContainer")
 @onready var hp_label: Label = get_node_or_null("%HPLabel")
 @onready var mana_label: Label = get_node_or_null("%ManaLabel")
-@onready var regen_label: Label = get_node_or_null("%RegenLabel")
 @onready var description_label: Label = get_node_or_null("%DescriptionLabel")
 @onready var click_button: Button = get_node_or_null("%ClickButton")
 @onready var glow_panel: Panel = get_node_or_null("%GlowPanel")
@@ -81,9 +80,6 @@ func _update_display() -> void:
 
 	if mana_label:
 		mana_label.text = Loc.t("ui.summoner_card.mana_label", {"value": "%.0f" % summoner_config.max_mana})
-
-	if regen_label:
-		regen_label.text = Loc.t("ui.summoner_card.regen_label", {"value": "%.1f" % summoner_config.mana_regen})
 
 	# Description
 	if description_label:

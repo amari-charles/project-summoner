@@ -876,9 +876,8 @@ func _update_summoner_stats_display(summoner_id: String) -> void:
 	var summoner_dict: Dictionary = summoner_data
 	var health: float = summoner_dict.get("base_health", 0.0)
 	var mana: float = summoner_dict.get("max_mana", 0.0)
-	var regen: float = summoner_dict.get("mana_regen", 0.0)
 
-	summoner_stats_label.text = Loc.t("ui.deck_builder.summoner_stats", {"hp": "%.0f" % health, "mana": "%.0f" % mana, "regen": "%.1f" % regen})
+	summoner_stats_label.text = Loc.t("ui.deck_builder.summoner_stats", {"hp": "%.0f" % health, "mana": "%.0f" % mana})
 
 ## Called when summoner selector changes
 func _on_summoner_selected(index: int) -> void:

@@ -187,7 +187,7 @@
       "locked_temporary": "🔒 Complete tutorial battles to unlock deck editing",
       "action_add": "Click card to ADD to deck",
       "action_remove": "Click card to REMOVE from deck",
-      "summoner_stats": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
+      "summoner_stats": "HP: {hp} | Mana: {mana}",
       "active_deck": "✓ ACTIVE DECK",
       "set_active": "SET AS ACTIVE"
     },
@@ -211,8 +211,7 @@
     },
     "summoner_card": {
       "hp_label": "HP: {value}",
-      "mana_label": "Mana: {value}",
-      "regen_label": "Regen: {value}/s"
+      "mana_label": "Mana: {value}"
     },
     "summoner_reveal": {
       "random_title": "FATE HAS CHOSEN YOUR CHAMPION"
@@ -238,9 +237,8 @@
       "xp_progress": "XP: {current} / {required}",
       "active_indicator": "[Active]",
       "no_traits": "No traits yet",
-      "level_up_preview": "+{hp} HP, +{mana} Mana, +{regen} Regen",
-      "regen_per_sec": "{value}/s",
-      "stats_summary": "HP: {hp} | Mana: {mana} | Regen: {regen}/s",
+      "level_up_preview": "+{hp} HP, +{mana} Mana",
+      "stats_summary": "HP: {hp} | Mana: {mana}",
       "picker_active_suffix": " [Active]"
     },
     "summoner_icon": {
@@ -276,7 +274,7 @@
     },
     "burning_spirit": {
       "name": "Burning Spirit",
-      "description": "Inner fire fuels faster mana regeneration. +0.3 mana/sec."
+      "description": "Inner fire enhances flame attacks. +5% fire damage."
     },
     "water_affinity": {
       "name": "Water Affinity",
@@ -499,7 +497,6 @@
     },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",
-    "stat_mana_regen": "Mana Regen: {value}/s",
     "random_summoner": "Random",
     "random_summoner_description": "Let fate choose your summoner",
     "trait_fortune_favors_bold": "Fortune Favors the Bold",

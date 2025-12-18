@@ -769,7 +769,7 @@ This progression system builds on top of the **base summoner system** defined in
 ### Base System (MVP)
 - Summoner selection during onboarding
 - 4 core elemental summoners + Random option
-- Basic stats (base_health, max_mana, mana_regen)
+- Basic stats (base_health, max_mana)
 - Summoner-bound decks
 - `unlocked_summoners` in profile
 
@@ -789,7 +789,7 @@ This progression system builds on top of the **base summoner system** defined in
 
 ### Phase 1: Base Summoner System ✅ (See architecture.md)
 - Summoner selection
-- Basic summoner stats (base_health, max_mana, mana_regen)
+- Basic summoner stats (base_health, max_mana)
 - Summoner-deck binding
 - Profile unlocked_summoners
 

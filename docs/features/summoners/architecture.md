@@ -119,7 +119,7 @@ var element_id: int              # ElementRegistry.ElementId.FIRE
 
 # Base Stats (before traits)
 var base_health: float           # 1000.0 (flows to Incarnation HP)
-var max_mana: float              # 50.0 (fixed pool, no regen during battle)
+var max_mana: float              # 100.0 (fixed pool, no regen during battle)
 
 # Traits from TraitCatalog
 var innate_trait_ids: Array[String]  # ["trait_fire_affinity", "trait_burning_spirit"]

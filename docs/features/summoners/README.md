@@ -13,7 +13,7 @@ This directory contains all documentation for the Summoner system in Fateforged.
 
 Defines the foundational summoner system for MVP:
 - Summoner selection during onboarding (4 core elements + Random)
-- Summoner stats (base_health, max_mana, mana_regen)
+- Summoner stats (base_health, max_mana)
 - Fortune Favors the Bold (Story Trait) granted to the starting summoner only when choosing Random (summoner-bound, not profile-level)
 - Summoner-deck binding
 - Profile ownership vs deck selection model

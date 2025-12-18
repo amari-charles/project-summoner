@@ -9,8 +9,7 @@ class_name SummonerConfig
 
 ## Default stat values (used for @export defaults and from_dict() fallbacks)
 const DEFAULT_BASE_HEALTH: float = 1000.0
-const DEFAULT_MAX_MANA: float = 10.0
-const DEFAULT_MANA_REGEN: float = 1.0
+const DEFAULT_MAX_MANA: float = 100.0
 
 ## Identity
 @export var summoner_id: String = ""
@@ -22,7 +21,6 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 ## Base Stats (before traits)
 @export var base_health: float = DEFAULT_BASE_HEALTH
 @export var max_mana: float = DEFAULT_MAX_MANA
-@export var mana_regen: float = DEFAULT_MANA_REGEN
 
 ## Visual
 @export var summoner_icon_path: String = ""
@@ -72,7 +70,6 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 	# Base Stats
 	config.base_health = data.get("base_health", DEFAULT_BASE_HEALTH)
 	config.max_mana = data.get("max_mana", DEFAULT_MAX_MANA)
-	config.mana_regen = data.get("mana_regen", DEFAULT_MANA_REGEN)
 
 	# Visual
 	config.summoner_icon_path = data.get("summoner_icon_path", "")
@@ -100,7 +97,6 @@ func to_dict() -> Dictionary:
 		"element": get_element_key(),
 		"base_health": base_health,
 		"max_mana": max_mana,
-		"mana_regen": mana_regen,
 		"summoner_icon_path": summoner_icon_path,
 		"card_frame_style": card_frame_style,
 		"unlock_condition": unlock_condition,

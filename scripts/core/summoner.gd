@@ -36,7 +36,7 @@ const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 
 ## Current state
 var mana: float = 0.0
-var max_mana: float = 50.0  ## Default max mana - fixed pool for entire battle (no regeneration)
+var max_mana: float = SummonerConfig.DEFAULT_MAX_MANA  ## Fixed pool for entire battle (no regeneration)
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
@@ -568,12 +568,9 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	# Get computed stats (includes modifiers)
 	var stats: Dictionary = summoner_instance.get_computed_stats()
 
-	# Note: mana_regen is no longer used - mana is a fixed pool
-	# We keep it in stats for potential future use but don't apply it
-
 	# Set max mana from summoner (with modifiers applied)
 	# In the new system, this is the player's total mana budget for the battle
-	var summoner_max_mana: float = stats.get("max_mana", 50.0)
+	var summoner_max_mana: float = stats.get("max_mana", SummonerConfig.DEFAULT_MAX_MANA)
 	max_mana = summoner_max_mana
 
 	# Cache summoner stats in BattleContext for DamageSystem to use

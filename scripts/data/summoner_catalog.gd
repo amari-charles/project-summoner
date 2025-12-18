@@ -39,8 +39,7 @@ func _init_catalog() -> void:
 	summoner_fire.description = Loc.t("summoner.summoner_fire.description")
 	summoner_fire.element_id = ElementRegistry.ElementId.FIRE
 	summoner_fire.base_health = 1000.0
-	summoner_fire.max_mana = 10.0
-	summoner_fire.mana_regen = 1.0
+	summoner_fire.max_mana = 100.0
 	summoner_fire.summoner_icon_path = ""
 	summoner_fire.card_frame_style = "legendary"
 	summoner_fire.unlock_condition = "starting_choice"
@@ -53,9 +52,8 @@ func _init_catalog() -> void:
 	summoner_water.summoner_name = Loc.t("summoner.summoner_water.name")
 	summoner_water.description = Loc.t("summoner.summoner_water.description")
 	summoner_water.element_id = ElementRegistry.ElementId.WATER
-	summoner_water.base_health = 1200.0  # Higher health, lower regen
-	summoner_water.max_mana = 10.0
-	summoner_water.mana_regen = 0.8
+	summoner_water.base_health = 1200.0
+	summoner_water.max_mana = 100.0
 	summoner_water.summoner_icon_path = ""
 	summoner_water.card_frame_style = "legendary"
 	summoner_water.unlock_condition = "starting_choice"
@@ -68,9 +66,8 @@ func _init_catalog() -> void:
 	summoner_wind.summoner_name = Loc.t("summoner.summoner_wind.name")
 	summoner_wind.description = Loc.t("summoner.summoner_wind.description")
 	summoner_wind.element_id = ElementRegistry.ElementId.WIND
-	summoner_wind.base_health = 900.0   # Lower health
-	summoner_wind.max_mana = 10.0       # Standard mana pool
-	summoner_wind.mana_regen = 1.2      # Faster regen
+	summoner_wind.base_health = 900.0
+	summoner_wind.max_mana = 100.0
 	summoner_wind.summoner_icon_path = ""
 	summoner_wind.card_frame_style = "legendary"
 	summoner_wind.unlock_condition = "starting_choice"
@@ -83,9 +80,8 @@ func _init_catalog() -> void:
 	summoner_earth.summoner_name = Loc.t("summoner.summoner_earth.name")
 	summoner_earth.description = Loc.t("summoner.summoner_earth.description")
 	summoner_earth.element_id = ElementRegistry.ElementId.EARTH
-	summoner_earth.base_health = 1500.0 # Highest health
-	summoner_earth.max_mana = 8.0       # Lower mana
-	summoner_earth.mana_regen = 0.7     # Slower regen
+	summoner_earth.base_health = 1500.0
+	summoner_earth.max_mana = 100.0
 	summoner_earth.summoner_icon_path = ""
 	summoner_earth.card_frame_style = "legendary"
 	summoner_earth.unlock_condition = "starting_choice"
@@ -106,8 +102,7 @@ func _init_catalog() -> void:
 	summoner_shadow.description = Loc.t("summoner.summoner_shadow_initiate.description")
 	summoner_shadow.element_id = ElementRegistry.ElementId.SHADOW
 	summoner_shadow.base_health = 950.0
-	summoner_shadow.max_mana = 11.0
-	summoner_shadow.mana_regen = 1.1
+	summoner_shadow.max_mana = 100.0
 	summoner_shadow.summoner_icon_path = ""
 	summoner_shadow.card_frame_style = "rare"
 	summoner_shadow.unlock_condition = "random_starter_only"
@@ -130,8 +125,7 @@ func _init_catalog() -> void:
 	summoner_mana_test.description = Loc.t("summoner.summoner_mana_test.description")
 	summoner_mana_test.element_id = ElementRegistry.ElementId.NEUTRAL
 	summoner_mana_test.base_health = 1000.0
-	summoner_mana_test.max_mana = 25.0      # High mana to test tiers (light_blue->royal_blue->indigo)
-	summoner_mana_test.mana_regen = 0.8     # Slower regen so mana can be depleted
+	summoner_mana_test.max_mana = 100.0
 	summoner_mana_test.summoner_icon_path = ""
 	summoner_mana_test.card_frame_style = "common"
 	summoner_mana_test.unlock_condition = "dev_only"
@@ -236,22 +230,20 @@ func print_catalog_summary() -> void:
 	print("\nStarting Summoners:")
 	for config: SummonerConfig in _catalog.values():
 		if config.unlock_condition == "starting_choice":
-			print("  - %s (%s) | HP: %.0f | Mana: %.0f (%.1f/s)" % [
+			print("  - %s (%s) | HP: %.0f | Mana: %.0f" % [
 				config.summoner_name,
 				ElementTypes.get_display_name(config.get_element()),
 				config.base_health,
-				config.max_mana,
-				config.mana_regen
+				config.max_mana
 			])
 	print("\nRandom Pool Summoners:")
 	for config: SummonerConfig in _catalog.values():
 		if config.unlock_condition == "starting_choice" or config.unlock_condition == "random_starter_only":
-			print("  - %s (%s) | HP: %.0f | Mana: %.0f (%.1f/s)" % [
+			print("  - %s (%s) | HP: %.0f | Mana: %.0f" % [
 				config.summoner_name,
 				ElementTypes.get_display_name(config.get_element()),
 				config.base_health,
-				config.max_mana,
-				config.mana_regen
+				config.max_mana
 			])
 	print("===========================")
 
