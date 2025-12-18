@@ -139,7 +139,7 @@ func _connect_to_summoner(summoner: Node) -> void:
 		# Manually trigger initial update with current values
 		# (signal was emitted before we connected)
 		var current_mana: float = summoner.get("mana") if "mana" in summoner else 0.0
-		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else 10.0
+		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else SummonerConfig.DEFAULT_MAX_MANA
 		_on_mana_changed(current_mana, max_mana)
 	else:
 		push_warning("GameUI: PlayerSummoner found but has no mana_changed signal")
@@ -163,7 +163,7 @@ func _connect_to_enemy_mana(summoner: Node) -> void:
 
 		# Trigger initial update
 		var current_mana: float = summoner.get("mana") if "mana" in summoner else 0.0
-		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else 10.0
+		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else SummonerConfig.DEFAULT_MAX_MANA
 		_on_enemy_mana_changed(current_mana, max_mana)
 
 func _on_enemy_mana_changed(current: float, maximum: float) -> void:

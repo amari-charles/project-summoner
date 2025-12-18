@@ -87,8 +87,7 @@ func refresh() -> void:
 	var computed_stats: Dictionary = _get_computed_stats()
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
-	var regen: float = computed_stats.get("mana_regen", config.mana_regen)
-	stats_label.text = Loc.t("ui.summoner_panel.stats_summary", {"hp": int(hp), "mana": int(mana), "regen": "%.1f" % regen})
+	stats_label.text = Loc.t("ui.summoner_panel.stats_summary", {"hp": int(hp), "mana": int(mana)})
 
 	# XP Progress
 	if is_max_level:

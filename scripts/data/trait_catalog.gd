@@ -59,7 +59,7 @@ func _init_traits() -> void:
 		"category": "combat",
 		"is_innate": true,
 		"modifiers": [
-			{"stat": "mana_regen", "type": "flat", "value": 0.3}
+			{"stat": "fire_damage_bonus", "type": "percent", "value": 5.0}
 		]
 	})
 

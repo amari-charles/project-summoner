@@ -172,7 +172,6 @@ func _recompute_stats() -> void:
 	var stats: Dictionary = {
 		"health": config.base_health,
 		"max_mana": config.max_mana,
-		"mana_regen": config.mana_regen,
 		# Trait-related bonus stats (default to 0, modified by traits)
 		"fire_damage_bonus": 0.0,
 		"water_damage_bonus": 0.0,
@@ -216,8 +215,8 @@ func _apply_trait_modifiers(stats: Dictionary) -> void:
 ## Apply a single trait modifier to stats
 ##
 ## Modifier types:
-## - "flat": Adds value directly to the stat (e.g., +50 health, +0.3 mana_regen)
-## - "percent": For BASE stats (health, mana_regen, max_mana): Multiplies by (1 + value/100)
+## - "flat": Adds value directly to the stat (e.g., +50 health)
+## - "percent": For BASE stats (health, max_mana): Multiplies by (1 + value/100)
 ##              For BONUS stats (fire_damage_bonus, etc.): Adds value as the percentage amount
 ##
 ## Example: trait_fire_affinity has {"stat": "fire_damage_bonus", "type": "percent", "value": 10.0}

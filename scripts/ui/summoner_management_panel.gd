@@ -19,7 +19,6 @@ signal closed()
 
 @onready var hp_value: Label = %HPValue
 @onready var mana_value: Label = %ManaValue
-@onready var regen_value: Label = %RegenValue
 
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
@@ -126,11 +125,9 @@ func _refresh_display() -> void:
 	var computed_stats: Dictionary = _get_computed_stats(summoner_id)
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
-	var regen: float = computed_stats.get("mana_regen", config.mana_regen)
 
 	hp_value.text = str(int(hp))
 	mana_value.text = str(int(mana))
-	regen_value.text = Loc.t("ui.summoner_panel.regen_per_sec", {"value": "%.1f" % regen})
 
 	# Update XP
 	if is_max_level:
@@ -154,7 +151,6 @@ func _show_no_summoner() -> void:
 	element_label.text = ElementTypes.get_symbol("neutral")
 	hp_value.text = "-"
 	mana_value.text = "-"
-	regen_value.text = "-"
 	xp_label.text = ""
 	xp_progress_bar.value = 0
 	level_up_button.disabled = true
@@ -200,12 +196,10 @@ func _get_level_up_preview(config: SummonerConfig) -> String:
 	# Simple preview - each level gives +5% to base stats
 	var hp_bonus: int = int(config.base_health * 0.05)
 	var mana_bonus: float = config.max_mana * 0.05
-	var regen_bonus: float = config.mana_regen * 0.05
 
 	return Loc.t("ui.summoner_panel.level_up_preview", {
 		"hp": hp_bonus,
-		"mana": "%.1f" % mana_bonus,
-		"regen": "%.2f" % regen_bonus
+		"mana": "%.1f" % mana_bonus
 	})
 
 func _refresh_traits(summoner_id: String, config: SummonerConfig) -> void:
