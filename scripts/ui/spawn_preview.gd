@@ -59,7 +59,7 @@ func _create_ghost_units() -> void:
 		ghost.setup(_unit_scene)
 		ghost.set_valid(_is_valid)
 		ghost_units.append(ghost)
-		if ghost._visual_root:
+		if ghost.has_visual():
 			any_ghost_valid = true
 
 	# If no ghosts have visuals, fallback to circle marker

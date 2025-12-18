@@ -145,6 +145,11 @@ func set_valid(is_valid: bool) -> void:
 	_apply_ghost_appearance()
 
 
+## Check if this ghost has a valid visual (useful for fallback detection)
+func has_visual() -> bool:
+	return _visual_root != null
+
+
 ## Clean up resources
 func cleanup() -> void:
 	if _visual_root and is_instance_valid(_visual_root):

@@ -6,7 +6,7 @@ class_name SpellPreview
 
 const VALID_COLOR: Color = Color(0.3, 0.7, 1.0, 0.6)  # Cyan, 60% alpha
 const INVALID_COLOR: Color = Color(1.0, 0.3, 0.3, 0.6)  # Red, 60% alpha
-const RETICLE_SIZE: float = 0.5
+const DEFAULT_RADIUS: float = 5.0  # Default spell radius when card has none specified
 const CROSSHAIR_LENGTH: float = 1.5
 const LINE_WIDTH: float = 0.08
 const RING_WIDTH: float = 0.15

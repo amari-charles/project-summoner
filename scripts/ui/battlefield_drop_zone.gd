@@ -386,7 +386,7 @@ func _create_spell_preview(card: Card) -> void:
 		if root_3d:
 			root_3d.add_child(_spell_preview)
 			# Use spell radius if available, otherwise default
-			var radius: float = card.spell_radius if card.spell_radius > 0 else 5.0
+			var radius: float = card.spell_radius if card.spell_radius > 0 else SpellPreview.DEFAULT_RADIUS
 			_spell_preview.setup(radius)
 
 

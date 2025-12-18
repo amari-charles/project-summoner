@@ -10,32 +10,6 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ## Active Bugs
 
-#### Hand UI Area Blocks Unit Spawning
-**Status:** Open
-**Reported:** 2025-12-12
-**Component:** UI / Battlefield Drop Zone
-
-**Description:**
-The card hand UI area at the bottom of the screen prevents unit spawning in that region of the battlefield.
-
-**Expected Behavior:**
-Players should be able to spawn units anywhere on their half of the battlefield, including areas that visually overlap with the hand UI.
-
-**Current Behavior:**
-Attempting to drag and drop a summon card to spawn a unit in the bottom portion of the battlefield (where the hand UI is rendered) fails because the hand UI intercepts the drop.
-
-**Impact:**
-Restricts valid spawn positions, limiting tactical options for players.
-
-**Proposed Solution:**
-Allow drops to pass through the hand UI to the battlefield when a card is being dragged. The hand should not block spawning during active card drag operations.
-
-**Related Files:**
-- scripts/ui/battlefield_drop_zone.gd
-- scenes/ui/hand_ui.tscn
-
----
-
 #### Aggro Manipulation Exploit - Units Can Be Permanently Occupied
 **Status:** Open
 **Reported:** 2025-12-12
@@ -171,4 +145,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-12-13 - Added large unit depth sorting bug*
+*Last Updated: 2025-12-17 - Moved Hand UI blocking bug to resolved*
