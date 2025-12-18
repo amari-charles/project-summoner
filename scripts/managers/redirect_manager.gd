@@ -215,7 +215,7 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 			nearest = structure
 			nearest_dist = dist
 
-	# Search for enemy bases (Base3D uses @export var team, not meta)
+	# Search for enemy summoners (Summoner uses @export var team, not meta)
 	var all_bases: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.BASES)
 	for node: Node in all_bases:
 		if not node is Node3D:

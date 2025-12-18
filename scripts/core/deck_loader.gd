@@ -162,7 +162,7 @@ static func load_player_deck() -> Dictionary:
 				var id_variant: Variant = first_deck.get("id", "")
 				deck_id = id_variant if id_variant is String else ""
 			else:
-				push_error("DeckLoader: No decks available!")
+				push_warning("DeckLoader: No decks available")
 				return empty_result
 		else:
 			push_error("DeckLoader: Decks service not found!")

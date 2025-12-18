@@ -36,17 +36,13 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 - Hand management with visual layout
 - Mana cost system
 
-#### Incarnation System (`scripts/core/base_3d.gd`)
-- **Incarnation** — the summoner's magical presence on the battlefield
-- Health bar visualization
-- Destruction triggers game end (win condition)
-- Represents the summoner's projection, not the summoner themselves
-
 #### Summoner System (`scripts/core/summoner.gd`)
+- **Unified entity** — both commander and attack target
 - **Fixed mana pool** (50 mana by default, no regeneration)
-- Card hand management
-- Card playing logic with summon time delay
-- **Signals:** `mana_changed`, `hand_changed`, `casting_started`, `casting_completed`
+- **HP system** (300 HP by default, destruction triggers game end)
+- Card hand management with summon time delay
+- Hit feedback animation (flash + shake on damage)
+- **Signals:** `mana_changed`, `hand_changed`, `hp_changed`, `summoner_destroyed`, `casting_started`, `casting_completed`
 
 ### Persistence Systems (Implemented - Phase 1)
 

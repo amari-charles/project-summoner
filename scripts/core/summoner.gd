@@ -1,9 +1,8 @@
 extends Node3D
 class_name Summoner
 
-## Summoner - The player character that manages cards and mana
-## NOT a battlefield entity - cannot be attacked or damaged
-## The Nexus (Base3D) is what units attack to win the game
+## Summoner - The player character that manages cards, mana, and HP
+## This is the attack target that units try to destroy to win the game
 
 ## Deck loading strategies
 enum DeckLoadStrategy {
@@ -15,10 +14,25 @@ enum DeckLoadStrategy {
 
 @export var team: Unit3D.Team = Unit3D.Team.PLAYER
 
+## HP (summoner is the attack target)
+## Default 300 HP provides ~60 seconds of survivability against typical early-game damage
+@export var max_hp: float = 300.0
+
 ## Deck and hand
 @export var starting_deck: Array[Card] = []
 @export var max_hand_size: int = 4
 @export var deck_load_strategy: DeckLoadStrategy = DeckLoadStrategy.BATTLE_CONTEXT
+
+## Hit feedback animation constants
+const DEFAULT_FLASH_DURATION: float = 0.3
+const MIN_FLASH_DURATION: float = 0.05
+const FLASH_SPEED_MULTIPLIER: float = 0.3
+const RECENT_HITS_DECAY_RATE: float = 2.0
+
+## HP bar display configuration (summoner uses larger bar than units)
+const HP_BAR_WIDTH: float = 1.5  # Wider than unit bars for visibility
+const HP_BAR_OFFSET_Y: float = 2.5  # Height above summoner position
+const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 
 ## Current state
 var mana: float = 0.0
@@ -27,6 +41,17 @@ var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
 var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
+
+## HP state (summoner is attackable)
+var current_hp: float = 0.0
+var is_alive: bool = true
+
+## Hit feedback state
+var recent_hits: float = 0.0
+var visual: Sprite3D = null
+var original_color: Color = Color.WHITE
+var original_visual_position: Vector3 = Vector3.ZERO
+var active_feedback_tween: Tween = null
 
 ## Casting state (player is locked during summon_time)
 var is_casting: bool = false
@@ -51,6 +76,11 @@ signal hand_changed(hand: Array[Card])
 signal summoner_ready(summoner: Summoner)  ## Emitted after init() completes
 signal deck_recycled(card_count: int)  ## Emitted when discard pile is shuffled back into deck
 
+## HP signals (summoner is attackable)
+signal summoner_destroyed(summoner: Summoner)
+signal summoner_damaged(summoner: Summoner, damage: float)
+signal hp_changed(new_hp: float, new_max_hp: float)
+
 ## Casting signals (for UI feedback)
 signal casting_started(card: Card, duration: float)
 signal casting_progress(remaining: float, total: float)
@@ -60,11 +90,29 @@ func _ready() -> void:
 	# Minimal setup - just add to groups for discovery
 	# Full initialization happens in init() called by BattleCoordinator
 	add_to_group(GroupIDs.SUMMONERS)
-	# Note: NOT in "bases" group - summoners are not attack targets
+	add_to_group(GroupIDs.BASES)  # Summoner is the attack target
 	if team == Unit3D.Team.PLAYER:
 		add_to_group(GroupIDs.PLAYER_SUMMONERS)
+		add_to_group(GroupIDs.PLAYER_BASES)
 	else:
 		add_to_group(GroupIDs.ENEMY_SUMMONERS)
+		add_to_group(GroupIDs.ENEMY_BASES)
+
+	# Initialize HP
+	current_hp = max_hp
+
+	# Initialize visual reference for hit feedback
+	if has_node("Visual"):
+		visual = $Visual
+		original_color = visual.modulate
+		original_visual_position = visual.position
+
+	# Create HP bar for summoner
+	HPBarManager.create_bar_for_unit(self, {
+		"bar_width": HP_BAR_WIDTH,
+		"offset_y": HP_BAR_OFFSET_Y,
+		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
+	})
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
@@ -100,6 +148,8 @@ func init() -> void:
 	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		if _loaded_summoner_instance != null:
 			_apply_summoner_bonuses(_loaded_summoner_instance)
+		else:
+			push_error("Summoner: CRITICAL - No summoner instance loaded! This is a bug.")
 
 	# Initialize mana
 	mana = max_mana
@@ -145,6 +195,11 @@ func _process(delta: float) -> void:
 	if not is_enabled:
 		return
 
+	# Decay recent hits counter (for hit feedback animation speed)
+	if recent_hits > 0:
+		recent_hits -= RECENT_HITS_DECAY_RATE * delta
+		recent_hits = max(recent_hits, 0.0)
+
 	# Handle casting timer (player is locked during summon_time)
 	if is_casting:
 		casting_time_remaining -= delta
@@ -152,6 +207,13 @@ func _process(delta: float) -> void:
 
 		if casting_time_remaining <= 0.0:
 			_complete_casting()
+
+func _exit_tree() -> void:
+	# Kill any active tweens to prevent lambda capture errors
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
 
 func draw_card() -> void:
 	if deck.is_empty():
@@ -357,6 +419,9 @@ func _load_profile_deck() -> Array[Card]:
 		push_warning("Summoner: PROFILE strategy used for enemy team, using static deck instead")
 		return _load_static_deck()
 
+	# Load summoner instance directly from profile services (independent of decks)
+	_load_summoner_from_profile()
+
 	# Check for dev test deck override in BattleContext
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context:
@@ -364,9 +429,10 @@ func _load_profile_deck() -> Array[Card]:
 		if config is Dictionary:
 			var battle_config: Dictionary = config
 			if battle_config.has("dev_player_deck"):
-				print("Summoner: Loading DEV TEST deck from BattleContext...")
+				print("Summoner: Loading DEV TEST deck (summoner stats still apply)...")
 				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
 
+	# Normal path: use profile deck via DeckLoader
 	print("Summoner: Loading deck from player profile...")
 	var deck_data: Dictionary = DeckLoader.load_player_deck()
 	var loaded_deck_variant: Variant = deck_data.get("cards", [])
@@ -375,16 +441,69 @@ func _load_profile_deck() -> Array[Card]:
 		var temp_array: Array = loaded_deck_variant
 		loaded_deck.assign(temp_array)
 
-	# Store summoner instance for bonus application in init()
-	var summoner_instance_variant: Variant = deck_data.get("summoner_instance")
-	if summoner_instance_variant is SummonerInstance:
-		_loaded_summoner_instance = summoner_instance_variant
-
 	if loaded_deck.is_empty():
 		push_warning("Summoner: Failed to load from profile, falling back to static deck")
 		return _load_static_deck()
 
 	return loaded_deck
+
+## Load summoner instance directly from profile services
+## This is independent of deck loading - summoners exist even without decks
+func _load_summoner_from_profile() -> void:
+	print("Summoner: Loading summoner from player profile...")
+
+	# Get active summoner ID via SummonerSelection service
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if not summoner_selection:
+		push_error("Summoner: SummonerSelection service not found!")
+		return
+
+	var summoner_id: String = ""
+	if summoner_selection.has_method("get_active_summoner_id"):
+		summoner_id = summoner_selection.call("get_active_summoner_id")
+
+	if summoner_id.is_empty():
+		push_error("Summoner: No active summoner selected in profile!")
+		return
+
+	print("Summoner: Active summoner ID: '%s'" % summoner_id)
+
+	# Load summoner instance data from ProfileRepo
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if not profile_repo:
+		push_error("Summoner: ProfileRepo not found!")
+		return
+
+	var instance_data: Dictionary = {}
+	if profile_repo.has_method("get_summoner_instance"):
+		var instance_data_variant: Variant = profile_repo.call("get_summoner_instance", summoner_id)
+		instance_data = instance_data_variant if instance_data_variant is Dictionary else {}
+
+	if instance_data.is_empty():
+		# No saved instance - create from catalog config
+		print("Summoner: No saved instance, creating from catalog...")
+		var summoner_catalog: Node = get_node_or_null("/root/SummonerCatalog")
+		if summoner_catalog and summoner_catalog.has_method("get_summoner_config"):
+			var config_variant: Variant = summoner_catalog.call("get_summoner_config", summoner_id)
+			if config_variant is SummonerConfig:
+				var summoner_config: SummonerConfig = config_variant
+				_loaded_summoner_instance = SummonerInstance.new()
+				_loaded_summoner_instance.init_from_config(summoner_config)
+				print("Summoner: Created new instance from config '%s'" % summoner_config.summoner_name)
+			else:
+				push_error("Summoner: Could not load summoner config for '%s'" % summoner_id)
+		else:
+			push_error("Summoner: SummonerCatalog not available!")
+	else:
+		# Load from saved instance data
+		_loaded_summoner_instance = SummonerInstance.from_dict(instance_data)
+		if _loaded_summoner_instance:
+			print("Summoner: Loaded summoner instance '%s' (Level %d)" % [
+				_loaded_summoner_instance.config.summoner_name if _loaded_summoner_instance.config else "Unknown",
+				_loaded_summoner_instance.level
+			])
+		else:
+			push_error("Summoner: Failed to create SummonerInstance from saved data!")
 
 ## Load dev test deck from battle configuration
 func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
@@ -460,10 +579,89 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	# Cache summoner stats in BattleContext for DamageSystem to use
 	BattleContext.set_player_summoner_stats(stats)
 
-	# TODO: Summoner health stat should flow to Nexus (Base3D), not stored here
+	# Apply max_hp from summoner stats if available
+	var summoner_max_hp: float = stats.get("max_hp", 300.0)
+	max_hp = summoner_max_hp
+	current_hp = max_hp
+	hp_changed.emit(current_hp, max_hp)
 
 	var summoner_name: String = summoner_instance.config.summoner_name
 	var trait_count: int = summoner_instance.get_all_trait_ids().size()
 	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f" % [
 		summoner_name, summoner_instance.level, trait_count, max_mana
 	])
+
+## =============================================================================
+## COMBAT (Summoner is attackable)
+## =============================================================================
+
+## Take damage from units
+func take_damage(damage: float) -> void:
+	if not is_alive:
+		return
+
+	# Track attack intensity for dynamic feedback
+	recent_hits += 1.0
+
+	# Play hit feedback animation
+	_play_hit_feedback()
+
+	current_hp -= damage
+	current_hp = max(current_hp, 0.0)
+
+	# Emit signals for HP bar and damage feedback
+	hp_changed.emit(current_hp, max_hp)
+	summoner_damaged.emit(self, damage)
+
+	if current_hp <= 0:
+		_destroy()
+
+## Destroy the summoner (game over for this team)
+func _destroy() -> void:
+	is_alive = false
+
+	# Kill any active feedback animations
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+	active_feedback_tween = null
+
+	# Restore visual to original state
+	if visual and is_instance_valid(visual):
+		visual.modulate = original_color
+		visual.position = original_visual_position
+
+	# Remove HP bar
+	HPBarManager.remove_bar_from_unit(self)
+
+	summoner_destroyed.emit(self)
+	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
+
+## Play hit feedback animation (flash + shake)
+func _play_hit_feedback() -> void:
+	if not visual or not is_alive:
+		return
+
+	# Kill previous tween if still running
+	if active_feedback_tween and active_feedback_tween.is_valid():
+		active_feedback_tween.kill()
+
+	# Calculate duration based on attack intensity
+	var intensity_factor: float = 1.0 + (recent_hits * FLASH_SPEED_MULTIPLIER)
+	var flash_duration: float = max(MIN_FLASH_DURATION, DEFAULT_FLASH_DURATION / intensity_factor)
+
+	var flash_to_white: float = flash_duration * 0.4
+	var flash_return: float = flash_duration * 0.6
+	var shake_out: float = flash_duration * 0.35
+	var shake_return: float = flash_duration * 0.25
+
+	active_feedback_tween = create_tween()
+	active_feedback_tween.set_parallel(true)
+
+	# Flash effect
+	active_feedback_tween.tween_property(visual, "modulate", Color.WHITE, flash_to_white)
+	active_feedback_tween.chain().tween_property(visual, "modulate", original_color, flash_return)
+
+	# Shake effect
+	var shake_offset: Vector3 = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
+	active_feedback_tween.tween_property(visual, "position", original_visual_position + shake_offset, shake_out)
+	active_feedback_tween.chain().tween_property(visual, "position", original_visual_position, shake_return)

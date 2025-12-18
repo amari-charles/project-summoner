@@ -4,15 +4,17 @@
 [ext_resource type="Script" uid="uid://bejquix54he1c" path="res://scripts/core/test_game_controller.gd" id="2_game_controller"]
 [ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner.gd" id="3_summoner"]
 [ext_resource type="Script" uid="uid://cylw80td53yei" path="res://scripts/test/rally_guard_test_setup.gd" id="4_test_setup"]
-[ext_resource type="PackedScene" path="res://scenes/units/player_base_3d.tscn" id="5_player_base"]
-[ext_resource type="PackedScene" path="res://scenes/units/enemy_base_3d.tscn" id="6_enemy_base"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hand_ui.tscn" id="7_hand_ui"]
 [ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battlefield_drop_zone.gd" id="8_drop_zone"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause_menu"]
 [ext_resource type="Script" uid="uid://dk6842l272muf" path="res://scripts/ui/pause_button.gd" id="10_pause_button"]
 [ext_resource type="Script" uid="uid://c5j735p3yll2r" path="res://scripts/ui/speed_button.gd" id="11_speed_button"]
-[ext_resource type="PackedScene" uid="uid://bkj8q7n5vx8" path="res://scenes/ui/mana_bar.tscn" id="12_mana_bar"]
 [ext_resource type="Script" uid="uid://er3rhu64om6j" path="res://scripts/ui/game_ui.gd" id="13_game_ui"]
+[ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_prop_castle_square.png" id="14_castle_sprite"]
+[ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/ui/stat_bar.tscn" id="15_stat_bar"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_summoner"]
+size = Vector3(2, 4, 2)
 
 [node name="RallyGuardTest" type="Node3D"]
 script = ExtResource("2_game_controller")
@@ -20,27 +22,47 @@ script = ExtResource("2_game_controller")
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 script = ExtResource("3_summoner")
 deck_load_strategy = 0
+
+[node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
+pixel_size = 0.015
+offset = Vector2(0, 200)
+texture_filter = 0
+modulate = Color(0.831, 0.647, 0.455, 1)
+texture = ExtResource("14_castle_sprite")
+
+[node name="CollisionBody" type="StaticBody3D" parent="PlayerSummoner"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerSummoner/CollisionBody"]
+shape = SubResource("BoxShape3D_summoner")
 
 [node name="TestSetup" type="Node" parent="PlayerSummoner"]
 script = ExtResource("4_test_setup")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 script = ExtResource("3_summoner")
 team = 1
 
-[node name="PlayerBase3D" parent="." instance=ExtResource("5_player_base")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
+[node name="Visual" type="Sprite3D" parent="EnemySummoner"]
+pixel_size = 0.015
+offset = Vector2(0, 200)
+texture_filter = 0
+modulate = Color(0.353, 0.482, 0.549, 1)
+texture = ExtResource("14_castle_sprite")
 
-[node name="EnemyBase3D" parent="." instance=ExtResource("6_enemy_base")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
+[node name="CollisionBody" type="StaticBody3D" parent="EnemySummoner"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EnemySummoner/CollisionBody"]
+shape = SubResource("BoxShape3D_summoner")
 
 [node name="UI" type="CanvasLayer" parent="."]
 script = ExtResource("13_game_ui")
 player_mana_bar = NodePath("PlayerManaBar")
+player_hp_bar = NodePath("PlayerHPBar")
+enemy_hp_bar = NodePath("EnemyHPBar")
 
 [node name="BattlefieldDropZone" type="Control" parent="UI"]
 layout_mode = 3
@@ -50,14 +72,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("8_drop_zone")
-
-[node name="TimerLabel" type="Label" parent="UI"]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 200.0
-offset_bottom = 60.0
-theme_override_font_sizes/font_size = 32
-text = "03:00"
 
 [node name="TestModeLabel" type="Label" parent="UI"]
 offset_left = 220.0
@@ -90,61 +104,59 @@ text = "TEST INSTRUCTIONS:
 horizontal_alignment = 1
 
 [node name="SpeedButton" type="Button" parent="UI"]
-anchors_preset = 1
+anchors_preset = 3
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = -230.0
-offset_top = 20.0
+offset_top = -60.0
 offset_right = -130.0
-offset_bottom = 60.0
+offset_bottom = -20.0
 grow_horizontal = 0
+grow_vertical = 0
 text = "▶ 1x"
 script = ExtResource("11_speed_button")
 
 [node name="PauseButton" type="Button" parent="UI"]
-anchors_preset = 1
+anchors_preset = 3
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = -120.0
-offset_top = 20.0
+offset_top = -60.0
 offset_right = -20.0
-offset_bottom = 60.0
+offset_bottom = -20.0
 grow_horizontal = 0
+grow_vertical = 0
 text = "⏸ Pause"
 script = ExtResource("10_pause_button")
 
-[node name="PlayerManaBar" parent="UI" instance=ExtResource("12_mana_bar")]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
+[node name="PlayerHPBar" parent="UI" instance=ExtResource("15_stat_bar")]
+layout_mode = 0
 offset_left = 20.0
-offset_top = -80.0
-offset_right = 220.0
-offset_bottom = -20.0
-grow_vertical = 0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 48.0
 
-[node name="PlayerHPLabel" type="Label" parent="UI"]
+[node name="PlayerManaBar" parent="UI" instance=ExtResource("15_stat_bar")]
+layout_mode = 0
 offset_left = 20.0
-offset_top = 60.0
-offset_right = 300.0
-offset_bottom = 100.0
-theme_override_colors/font_color = Color(0.831, 0.647, 0.455, 1)
-theme_override_font_sizes/font_size = 24
-text = "Player Base: 300/300"
+offset_top = 56.0
+offset_right = 200.0
+offset_bottom = 84.0
 
-[node name="EnemyHPLabel" type="Label" parent="UI"]
+[node name="EnemyHPBar" parent="UI" instance=ExtResource("15_stat_bar")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -300.0
-offset_top = 60.0
+layout_mode = 0
+offset_left = -200.0
+offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 100.0
+offset_bottom = 48.0
 grow_horizontal = 0
-theme_override_colors/font_color = Color(0.353, 0.482, 0.549, 1)
-theme_override_font_sizes/font_size = 24
-text = "Enemy Base: 300/300"
-horizontal_alignment = 2
 
 [node name="GameOverLabel" type="Label" parent="UI"]
 process_mode = 3

@@ -121,8 +121,7 @@ func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = 
 		push_error("VFXManager: Failed to create instance of '%s'" % effect_id)
 		return null
 
-	# Configure instance
-	instance.global_position = spawn_position
+	# Configure instance properties that don't require tree membership
 	if vfx_def.duration > 0:
 		instance.lifetime = vfx_def.duration
 
@@ -137,8 +136,9 @@ func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = 
 	if data.has("rotation") and data.rotation is Vector3:
 		instance.rotation = data.rotation
 
-	# Add to scene
+	# Add to scene first, then set global_position (requires tree membership)
 	effects_container.add_child(instance)
+	instance.global_position = spawn_position
 
 	# Track active effect
 	if vfx_def.pooled:

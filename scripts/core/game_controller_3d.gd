@@ -15,9 +15,6 @@ enum BattlePhase { PREPARATION, BATTLE }  ## Two-phase battle system
 @export var player_summoner: Summoner
 @export var enemy_summoner: Summoner
 
-var player_base: Node3D
-var enemy_base: Node3D
-
 var current_state: GameState = GameState.SETUP
 var current_phase: BattlePhase = BattlePhase.PREPARATION
 var match_time: float = 0.0
@@ -81,35 +78,31 @@ func _ready() -> void:
 		battlefield = get_node_or_null("Battlefield3D")
 	print("BattleCoordinator: Phase 1 complete - Battlefield ready")
 
-	# Phase 2: Initialize summoners
+	# Phase 2: Initialize summoners (summoners are now the attack targets)
 	print("BattleCoordinator: Phase 2 - Summoners...")
 	_init_summoners()
+	_connect_summoner_combat_signals()
 	print("BattleCoordinator: Phase 2 complete - Summoners ready")
 
-	# Phase 3: Initialize bases
-	print("BattleCoordinator: Phase 3 - Bases...")
-	_init_bases()
-	print("BattleCoordinator: Phase 3 complete - Bases ready")
-
-	# Phase 4: Initialize win conditions
-	print("BattleCoordinator: Phase 4 - Win conditions...")
+	# Phase 3: Initialize win conditions
+	print("BattleCoordinator: Phase 3 - Win conditions...")
 	_init_win_conditions()
-	print("BattleCoordinator: Phase 4 complete - Win conditions ready")
+	print("BattleCoordinator: Phase 3 complete - Win conditions ready")
 
-	# Phase 5: Initialize AI
-	print("BattleCoordinator: Phase 5 - AI...")
+	# Phase 4: Initialize AI
+	print("BattleCoordinator: Phase 4 - AI...")
 	_load_ai_for_enemy()
-	print("BattleCoordinator: Phase 5 complete - AI ready")
+	print("BattleCoordinator: Phase 4 complete - AI ready")
 
-	# Phase 6: Initialize summoner modifiers
-	print("BattleCoordinator: Phase 6 - Summoner modifiers...")
+	# Phase 5: Initialize summoner modifiers
+	print("BattleCoordinator: Phase 5 - Summoner modifiers...")
 	_register_summoner_provider()
-	print("BattleCoordinator: Phase 6 complete - Summoner modifiers ready")
+	print("BattleCoordinator: Phase 5 complete - Summoner modifiers ready")
 
-	# Phase 7: Initialize UI components
-	print("BattleCoordinator: Phase 7 - UI...")
+	# Phase 6: Initialize UI components
+	print("BattleCoordinator: Phase 6 - UI...")
 	_init_ui()
-	print("BattleCoordinator: Phase 7 complete - UI ready")
+	print("BattleCoordinator: Phase 6 complete - UI ready")
 
 	# =============================================================================
 	# INITIALIZATION COMPLETE
@@ -137,35 +130,24 @@ func _init_summoners() -> void:
 		enemy_summoner.init()
 		print("BattleCoordinator: Enemy summoner initialized")
 
-## Initialize bases and connect their signals
-func _init_bases() -> void:
-	# Find bases (direct lookup - bases add themselves to groups in _ready())
-	player_base = _find_base(GroupIDs.PLAYER_BASES)
-	enemy_base = _find_base(GroupIDs.ENEMY_BASES)
-
-	if player_base:
-		_connect_base_signals(player_base)
+## Connect summoner combat signals (summoner is now the attack target)
+func _connect_summoner_combat_signals() -> void:
+	if player_summoner:
+		player_summoner.summoner_destroyed.connect(_on_summoner_destroyed)
 	else:
-		push_warning("BattleCoordinator: Could not find player_base")
+		push_warning("BattleCoordinator: Could not find player_summoner")
 
-	if enemy_base:
-		_connect_base_signals(enemy_base)
+	if enemy_summoner:
+		enemy_summoner.summoner_destroyed.connect(_on_summoner_destroyed)
 		# Apply enemy HP override from battle config (for tutorial/special battles)
 		if BattleContext.battle_config.has("enemy_hp"):
 			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
-			if enemy_base.has_method("set") and enemy_base.get("max_hp") != null:
-				enemy_base.set("max_hp", custom_hp)
-				enemy_base.set("current_hp", custom_hp)
-				print("BattleCoordinator: Overrode enemy base HP to %s" % custom_hp)
-
-				# Force update the HP label
-				var enemy_hp_label: Node = get_node_or_null("UI/EnemyHPLabel")
-				if enemy_hp_label:
-					var e_current_hp: int = int(custom_hp)
-					var e_max_hp: int = int(custom_hp)
-					enemy_hp_label.set("text", "Enemy Base: %d/%d" % [e_current_hp, e_max_hp])
+			enemy_summoner.max_hp = custom_hp
+			enemy_summoner.current_hp = custom_hp
+			enemy_summoner.hp_changed.emit(custom_hp, custom_hp)
+			print("BattleCoordinator: Overrode enemy summoner HP to %s" % custom_hp)
 	else:
-		push_warning("BattleCoordinator: Could not find enemy_base")
+		push_warning("BattleCoordinator: Could not find enemy_summoner")
 
 func _exit_tree() -> void:
 	# Cleanup: unregister summoner provider to prevent memory leak
@@ -362,11 +344,6 @@ func get_time_string() -> String:
 	var seconds: int = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
 
-func _on_time_updated(_time_remaining: float) -> void:
-	var time_label: Node = get_node_or_null("UI/TimerLabel")
-	if time_label:
-		time_label.set("text", get_time_string())
-
 func _on_game_ended(winner: Unit3D.Team) -> void:
 	# Show game over label
 	var game_over_label: Node = get_node_or_null("UI/GameOverLabel")
@@ -381,27 +358,11 @@ func _on_game_ended(winner: Unit3D.Team) -> void:
 				game_over_label.call("add_theme_color_override", "font_color", Color(1.0, 0.3, 0.3))
 		game_over_label.set("visible", true)
 
-func _on_base_damaged(_base: Variant, _damage: float) -> void:
-	_update_hp_labels()
-
-func _on_base_destroyed(base: Variant) -> void:
-	if base == player_base:
+func _on_summoner_destroyed(summoner: Summoner) -> void:
+	if summoner == player_summoner:
 		end_game(Unit3D.Team.ENEMY)
-	elif base == enemy_base:
+	elif summoner == enemy_summoner:
 		end_game(Unit3D.Team.PLAYER)
-
-func _update_hp_labels() -> void:
-	var player_hp_label: Node = get_node_or_null("UI/PlayerHPLabel")
-	if player_hp_label and player_base:
-		var p_current_hp: int = player_base.get("current_hp")
-		var p_max_hp: int = player_base.get("max_hp")
-		player_hp_label.set("text", "Player Base: %d/%d" % [p_current_hp, p_max_hp])
-
-	var enemy_hp_label: Node = get_node_or_null("UI/EnemyHPLabel")
-	if enemy_hp_label and enemy_base:
-		var e_current_hp: int = enemy_base.get("current_hp")
-		var e_max_hp: int = enemy_base.get("max_hp")
-		enemy_hp_label.set("text", "Enemy Base: %d/%d" % [e_current_hp, e_max_hp])
 
 func _load_ai_for_enemy() -> void:
 	if not enemy_summoner:
@@ -769,7 +730,7 @@ func _init_ui() -> void:
 	# Find and initialize GameUI
 	var game_ui: Node = get_node_or_null("UI")
 	if game_ui and game_ui.has_method("init"):
-		game_ui.init(self, player_summoner)
+		game_ui.init(self, player_summoner, enemy_summoner)
 	else:
 		push_warning("BattleCoordinator: GameUI not found or has no init() method")
 
@@ -779,20 +740,3 @@ func _init_ui() -> void:
 		drop_zone.init(player_summoner)
 	else:
 		push_warning("BattleCoordinator: BattlefieldDropZone not found or has no init() method")
-
-## Find a base by group name (direct lookup - no retry)
-## Bases add themselves to groups in _ready(), so they're available after scene tree is built
-func _find_base(group_name: StringName) -> Node3D:
-	var bases: Array = get_tree().get_nodes_in_group(group_name)
-	if bases.size() > 0:
-		return bases[0]
-	return null
-
-## Connect signals from a base
-func _connect_base_signals(base: Node3D) -> void:
-	if base.has_signal("base_damaged"):
-		var base_damaged_signal: Signal = base.get("base_damaged")
-		base_damaged_signal.connect(_on_base_damaged)
-	if base.has_signal("base_destroyed"):
-		var base_destroyed_signal: Signal = base.get("base_destroyed")
-		base_destroyed_signal.connect(_on_base_destroyed)
