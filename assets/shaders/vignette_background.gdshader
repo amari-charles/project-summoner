@@ -1,10 +1,11 @@
 shader_type canvas_item;
 
 uniform vec4 base_color : source_color = vec4(0.45, 0.07, 0.07, 1.0);
-uniform vec4 highlight_color : source_color = vec4(0.55, 0.12, 0.12, 1.0);
 uniform vec4 vignette_color : source_color = vec4(0.15, 0.02, 0.02, 1.0);
-uniform float pattern_scale : hint_range(3.0, 30.0) = 10.0;
-uniform float pillow_strength : hint_range(0.0, 1.0) = 0.7;
+uniform float pattern_scale : hint_range(3.0, 30.0) = 12.0;
+uniform float edge_width : hint_range(0.02, 0.15) = 0.06;
+uniform float highlight_amount : hint_range(0.0, 0.4) = 0.15;
+uniform float shadow_amount : hint_range(0.0, 0.4) = 0.12;
 uniform float vignette_strength : hint_range(0.0, 1.0) = 0.4;
 
 void fragment() {
@@ -19,15 +20,19 @@ void fragment() {
 	// Get position within current diamond cell (0 to 1)
 	vec2 cell = fract(diamond_uv);
 
-	// Distance from center of cell (0 at center, 0.5 at edges)
-	vec2 from_center = abs(cell - 0.5);
+	// Sharp edge detection for bevel
+	// Top-left edges (highlight): near 0 on either axis
+	float highlight_edge = step(cell.x, edge_width) + step(cell.y, edge_width);
+	highlight_edge = clamp(highlight_edge, 0.0, 1.0);
 
-	// Pillow effect: bright center, dark edges
-	// Use smooth falloff for that puffy/rounded look
-	float pillow = 1.0 - smoothstep(0.0, 0.5, max(from_center.x, from_center.y));
+	// Bottom-right edges (shadow): near 1 on either axis
+	float shadow_edge = step(1.0 - edge_width, cell.x) + step(1.0 - edge_width, cell.y);
+	shadow_edge = clamp(shadow_edge, 0.0, 1.0);
 
-	// Mix base and highlight based on pillow
-	vec3 pattern_color = mix(base_color.rgb, highlight_color.rgb, pillow * pillow_strength);
+	// Apply sharp highlight and shadow
+	vec3 pattern_color = base_color.rgb;
+	pattern_color += vec3(highlight_amount) * highlight_edge;
+	pattern_color -= vec3(shadow_amount) * shadow_edge;
 
 	// Vignette - darken edges of screen
 	vec2 center_uv = uv - 0.5;
