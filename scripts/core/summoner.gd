@@ -215,7 +215,10 @@ func _exit_tree() -> void:
 	# Remove HP bar
 	HPBarManager.remove_bar_from_unit(self)
 
-func draw_card() -> void:
+## Draw a card from deck into hand
+## If target_index is provided, insert at that position (for in-place replacement)
+## Otherwise append to end of hand
+func draw_card(target_index: int = -1) -> void:
 	if deck.is_empty():
 		return
 
@@ -223,7 +226,10 @@ func draw_card() -> void:
 		return
 
 	var card: Card = deck.pop_front()
-	hand.append(card)
+	if target_index >= 0 and target_index <= hand.size():
+		hand.insert(target_index, card)
+	else:
+		hand.append(card)
 	card_drawn.emit(card)
 	hand_changed.emit(hand)
 
@@ -295,8 +301,8 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3) -
 	hand.remove_at(card_index)
 	discard_pile.append(card)
 
-	# Try to draw a new card
-	draw_card()
+	# Draw a new card into the same slot (in-place replacement)
+	draw_card(card_index)
 
 	# If hand and deck are both empty, recycle discard pile and draw new hand
 	if hand.is_empty() and deck.is_empty():
