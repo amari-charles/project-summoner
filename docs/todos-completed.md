@@ -990,4 +990,26 @@ Final integration of summoner system into the core battle gameplay loop.
 
 ---
 
-*Last Updated: 2025-12-07 - Moved completed Summoner System tasks from todos.md*
+## UI/UX
+
+### Card Replacement Should Happen In-Place
+**Completed:** 2025-12-17
+**Category:** UI/UX / Card System
+**Effort:** Small
+
+**Description:**
+When a card was played and a new card was drawn to replace it, the hand reordered with the new card appearing at the end. This was disorienting as players couldn't remember card positions.
+
+**Solution Implemented:**
+- Modified `draw_card()` in summoner.gd to accept optional `target_index` parameter
+- When target_index is provided, inserts new card at that position instead of appending
+- Modified `_complete_card_play()` to pass the played card's index to draw_card()
+- New card now appears in the same slot as the played card
+- Other cards maintain their positions
+
+**Related Files:**
+- `scripts/core/summoner.gd` - Modified draw_card() and _complete_card_play()
+
+---
+
+*Last Updated: 2025-12-17 - Added Card Replacement In-Place fix*
