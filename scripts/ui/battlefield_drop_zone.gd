@@ -13,6 +13,9 @@ var _initialized: bool = false  # Track initialization state
 var _spawn_preview: SpawnPreview = null
 var _preview_card: Card = null  # Track which card we're previewing
 
+## Spell preview for spell cards
+var _spell_preview: SpellPreview = null
+
 ## Spawn zone overlay (shows valid/invalid zones while dragging summon cards)
 var _spawn_zone_overlay: SpawnZoneOverlay = null
 
@@ -25,6 +28,7 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_DRAG_END:
 		_cleanup_spawn_preview()
+		_cleanup_spell_preview()
 		_cleanup_spawn_zone_overlay()
 
 ## Initialize BattlefieldDropZone with the player summoner
@@ -148,18 +152,28 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		_cleanup_spawn_preview()
 		return false
 
-	# Handle spawn zone for summon cards (snap to valid zone if needed)
-	if is_3d and card.card_type == Card.CardType.SUMMON:
+	# Handle preview based on card type
+	if is_3d:
 		var world_pos: Vector3 = _screen_to_world_3d(at_position)
-		# Check if cursor is in valid territory (for visual feedback)
-		var is_valid_zone: bool = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
-		# Clamp position to valid zone for actual spawn location
-		var clamped_pos: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
-		# Show preview at clamped position with color based on cursor validity
-		# Red = cursor over invalid zone (unit will snap), Blue = cursor over valid zone
-		_update_spawn_preview(clamped_pos, card, is_valid_zone)
-		# Show spawn zone overlay while dragging summon cards (red overlay shows invalid territory)
-		_show_spawn_zone_overlay()
+
+		if card.card_type == Card.CardType.SUMMON:
+			# Clean up spell preview if switching card types
+			_cleanup_spell_preview()
+			# Check if cursor is in valid territory (for visual feedback)
+			var is_valid_zone: bool = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+			# Clamp position to valid zone for actual spawn location
+			var clamped_pos: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+			# Show preview at clamped position with color based on cursor validity
+			# Red = cursor over invalid zone (unit will snap), Blue = cursor over valid zone
+			_update_spawn_preview(clamped_pos, card, is_valid_zone)
+			# Show spawn zone overlay while dragging summon cards (red overlay shows invalid territory)
+			_show_spawn_zone_overlay()
+		elif card.card_type == Card.CardType.SPELL:
+			# Clean up spawn preview if switching card types
+			_cleanup_spawn_preview()
+			_cleanup_spawn_zone_overlay()
+			# Show spell targeting preview
+			_update_spell_preview(world_pos, card)
 
 	# Valid drop (snapping handles invalid zones)
 	return true
@@ -256,7 +270,9 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 
 ## Create a new spawn preview for the card
 func _create_spawn_preview(card: Card) -> void:
+	print("BattlefieldDropZone: _create_spawn_preview called, unit_scene=", card.unit_scene, " spawn_count=", card.spawn_count)
 	if not card.unit_scene:
+		print("BattlefieldDropZone: No unit_scene on card!")
 		return
 
 	_spawn_preview = SpawnPreview.new()
@@ -266,24 +282,32 @@ func _create_spawn_preview(card: Card) -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport:
 		var root_3d: Node = _find_3d_root(viewport)
+		print("BattlefieldDropZone: root_3d=", root_3d)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
-			_spawn_preview.setup(card.unit_scene)
+			_spawn_preview.setup(card.unit_scene, card.spawn_count)
+			print("BattlefieldDropZone: SpawnPreview created and added to scene")
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:
 	# Try to find the battlefield or any Node3D
 	var root: Node = viewport.get_tree().current_scene
 	if root:
-		# Look for battlefield
-		var battlefield: Node = root.find_child("Battlefield*", true, false)
-		if battlefield:
+		# Look for battlefield - must be a Node3D
+		var battlefield: Node = root.find_child("Battlefield3D", true, false)
+		if battlefield and battlefield is Node3D:
 			return battlefield
 
-		# Fallback to any Node3D
+		# Try pattern match but verify it's Node3D
+		var battlefield_match: Node = root.find_child("Battlefield*", true, false)
+		if battlefield_match and battlefield_match is Node3D:
+			return battlefield_match
+
+		# Fallback to scene root if it's Node3D
 		if root is Node3D:
 			return root
 
+		# Search for any Node3D child
 		for child: Node in root.get_children():
 			if child is Node3D:
 				return child
@@ -333,3 +357,45 @@ func _cleanup_spawn_zone_overlay() -> void:
 	if _spawn_zone_overlay and is_instance_valid(_spawn_zone_overlay):
 		_spawn_zone_overlay.cleanup()
 	_spawn_zone_overlay = null
+
+
+## Update spell preview position
+func _update_spell_preview(world_pos: Vector3, card: Card) -> void:
+	if world_pos == Vector3.ZERO:
+		_cleanup_spell_preview()
+		return
+
+	# Create preview if needed or if card changed
+	if not _spell_preview or _preview_card != card:
+		_cleanup_spell_preview()
+		_create_spell_preview(card)
+
+	if not _spell_preview:
+		return
+
+	_spell_preview.update_position(world_pos)
+	# Spells can be cast anywhere
+	_spell_preview.set_valid(true)
+
+
+## Create a new spell preview for the card
+func _create_spell_preview(card: Card) -> void:
+	_spell_preview = SpellPreview.new()
+	_preview_card = card
+
+	# Add to 3D scene
+	var viewport: Viewport = get_viewport()
+	if viewport:
+		var root_3d: Node = _find_3d_root(viewport)
+		if root_3d:
+			root_3d.add_child(_spell_preview)
+			# Use spell radius if available, otherwise default
+			var radius: float = card.spell_radius if card.spell_radius > 0 else 5.0
+			_spell_preview.setup(radius)
+
+
+## Clean up the spell preview
+func _cleanup_spell_preview() -> void:
+	if _spell_preview and is_instance_valid(_spell_preview):
+		_spell_preview.cleanup()
+	_spell_preview = null
