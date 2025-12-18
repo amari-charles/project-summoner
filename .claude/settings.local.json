@@ -22,7 +22,9 @@
       "Bash(find:*)",
       "Bash(gh pr merge:*)",
       "Bash(git rm:*)",
-      "WebFetch(domain:interfaceingame.com)"
+      "WebFetch(domain:interfaceingame.com)",
+      "WebFetch(domain:baymard.com)",
+      "WebFetch(domain:300mind.studio)"
     ],
     "deny": [],
     "ask": []

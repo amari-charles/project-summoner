@@ -5,13 +5,12 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
 shader = ExtResource("2_shader")
-shader_parameter/base_color = Color(0.45, 0.07, 0.07, 1)
-shader_parameter/vignette_color = Color(0.15, 0.02, 0.02, 1)
-shader_parameter/pattern_scale = 12.0
-shader_parameter/edge_width = 0.12
-shader_parameter/highlight_amount = 0.15
-shader_parameter/shadow_amount = 0.12
-shader_parameter/vignette_strength = 0.4
+shader_parameter/center_color = Color(0.5, 0.08, 0.08, 1)
+shader_parameter/edge_color = Color(0.18, 0.02, 0.02, 1)
+shader_parameter/vignette_strength = 0.8
+shader_parameter/vignette_softness = 0.5
+shader_parameter/noise_strength = 0.04
+shader_parameter/noise_scale = 400.0
 
 [node name="CampaignMap" type="Control"]
 layout_mode = 3
