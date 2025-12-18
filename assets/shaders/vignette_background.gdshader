@@ -1,36 +1,35 @@
 shader_type canvas_item;
 
 uniform vec4 base_color : source_color = vec4(0.45, 0.07, 0.07, 1.0);
+uniform vec4 highlight_color : source_color = vec4(0.55, 0.12, 0.12, 1.0);
 uniform vec4 vignette_color : source_color = vec4(0.15, 0.02, 0.02, 1.0);
-uniform float pattern_scale : hint_range(5.0, 50.0) = 20.0;
-uniform float bevel_strength : hint_range(0.0, 0.3) = 0.12;
-uniform float vignette_strength : hint_range(0.0, 1.0) = 0.5;
+uniform float pattern_scale : hint_range(3.0, 30.0) = 10.0;
+uniform float pillow_strength : hint_range(0.0, 1.0) = 0.7;
+uniform float vignette_strength : hint_range(0.0, 1.0) = 0.4;
 
 void fragment() {
 	vec2 uv = UV;
 
-	// Diamond pattern - two diagonal lines crossing
-	vec2 pattern_uv = uv * pattern_scale;
-	float d1 = fract(pattern_uv.x + pattern_uv.y);
-	float d2 = fract(pattern_uv.x - pattern_uv.y);
+	// Scale UV for diamond grid
+	vec2 scaled = uv * pattern_scale;
 
-	// Create diamond shape
-	float diamond = min(d1, 1.0 - d1) + min(d2, 1.0 - d2);
+	// Diamond coordinates: rotate 45 degrees
+	vec2 diamond_uv = vec2(scaled.x + scaled.y, scaled.x - scaled.y);
 
-	// Emboss effect - highlight top-left edges, shadow bottom-right
-	float offset = 0.02;
-	vec2 pattern_uv_offset = (uv + vec2(offset, offset)) * pattern_scale;
-	float d1_off = fract(pattern_uv_offset.x + pattern_uv_offset.y);
-	float d2_off = fract(pattern_uv_offset.x - pattern_uv_offset.y);
-	float diamond_offset = min(d1_off, 1.0 - d1_off) + min(d2_off, 1.0 - d2_off);
+	// Get position within current diamond cell (0 to 1)
+	vec2 cell = fract(diamond_uv);
 
-	// Bevel: difference creates highlight/shadow
-	float bevel = (diamond - diamond_offset) * bevel_strength;
+	// Distance from center of cell (0 at center, 0.5 at edges)
+	vec2 from_center = abs(cell - 0.5);
 
-	// Apply bevel to base color
-	vec3 pattern_color = base_color.rgb + vec3(bevel);
+	// Pillow effect: bright center, dark edges
+	// Use smooth falloff for that puffy/rounded look
+	float pillow = 1.0 - smoothstep(0.0, 0.5, max(from_center.x, from_center.y));
 
-	// Vignette - darken edges
+	// Mix base and highlight based on pillow
+	vec3 pattern_color = mix(base_color.rgb, highlight_color.rgb, pillow * pillow_strength);
+
+	// Vignette - darken edges of screen
 	vec2 center_uv = uv - 0.5;
 	float dist = length(center_uv) * 1.4;
 	float vignette = smoothstep(0.0, 1.0, dist) * vignette_strength;
