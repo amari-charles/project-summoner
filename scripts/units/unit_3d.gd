@@ -1698,7 +1698,8 @@ func _update_spawn_progress(progress: float) -> void:
 		_spawn_reveal_material.set_shader_parameter("progress", progress)
 
 
-## Complete the spawn reveal effect
+## Complete the spawn reveal effect (visual only - does NOT activate the unit)
+## The Summoner is responsible for calling activate() when the full cast time completes
 func _complete_spawn_reveal() -> void:
 	if not _is_spawning:
 		return
@@ -1723,13 +1724,18 @@ func _complete_spawn_reveal() -> void:
 		_spawn_reveal_tween.kill()
 	_spawn_reveal_tween = null
 
-	# Activate the unit (now it can fight)
-	activation_state = ActivationState.ACTIVE
+	# NOTE: Unit stays INACTIVE - Summoner will call activate() when cast completes
 
 
 ## Check if unit is currently in spawn animation
 func is_spawning() -> bool:
 	return _is_spawning
+
+
+## Activate the unit (allow it to fight)
+## Called by Summoner when the full cast time completes
+func activate() -> void:
+	activation_state = ActivationState.ACTIVE
 
 
 ## Cancel spawn reveal early (if needed)

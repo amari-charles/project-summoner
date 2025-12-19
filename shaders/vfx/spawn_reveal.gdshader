@@ -16,7 +16,9 @@ void fragment() {
 	float reveal_pos = 1.0 - UV.y;
 
 	// Calculate reveal threshold (where the edge currently is)
-	float threshold = progress;
+	// Scale progress so it goes from -edge_width to 1+edge_width
+	// This ensures nothing is visible at progress=0 and everything at progress=1
+	float threshold = progress * (1.0 + edge_width * 2.0) - edge_width;
 
 	// Distance from the reveal edge
 	float edge_dist = reveal_pos - threshold;

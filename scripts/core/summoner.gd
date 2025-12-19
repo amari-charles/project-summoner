@@ -60,6 +60,7 @@ var casting_time_remaining: float = 0.0
 var casting_time_total: float = 0.0
 var casting_spawn_position: Vector3 = Vector3.ZERO
 var casting_card_index: int = -1
+var casting_spawned_units: Array[Unit3D] = []  ## Units spawned during casting (activated when complete)
 
 ## Summoner instance (loaded from profile when using PROFILE strategy)
 var _loaded_summoner_instance: SummonerInstance = null
@@ -276,8 +277,8 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 		casting_spawn_position = spawn_position
 		casting_card_index = card_index
 
-		# Spawn the unit immediately with reveal effect
-		_complete_card_play(card, card_index, spawn_position, summon_time)
+		# Spawn the unit immediately with reveal effect, track spawned units
+		casting_spawned_units = _complete_card_play_with_units(card, card_index, spawn_position, summon_time)
 
 		casting_started.emit(card, summon_time)
 		return true
@@ -288,16 +289,22 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 ## Complete a card play (spawns unit/casts spell and manages hand)
 ## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
 func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, spawn_duration: float = 0.0) -> bool:
+	_complete_card_play_with_units(card, card_index, spawn_position, spawn_duration)
+	return true
+
+
+## Complete a card play and return spawned units (for tracking during casting)
+func _complete_card_play_with_units(card: Card, card_index: int, spawn_position: Vector3, spawn_duration: float = 0.0) -> Array[Unit3D]:
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
-		return false
+		return []
 
 	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 
 	# Play the card in 3D (with optional spawn reveal effect)
-	card.play_3d(spawn_position, team, battlefield, modifier_system, spawn_duration)
+	var spawned_units: Array[Unit3D] = card.play_3d(spawn_position, team, battlefield, modifier_system, spawn_duration)
 
 	# Remove from hand and add to discard pile
 	hand.remove_at(card_index)
@@ -319,16 +326,21 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, s
 	card_played.emit(card)
 	hand_changed.emit(hand)
 
-	return true
+	return spawned_units
 
 ## Complete casting after summon_time delay
-## With spawn reveal effect, the unit is already spawned - this just cleans up casting state
+## With spawn reveal effect, the unit is already spawned - this activates units and cleans up
 func _complete_casting() -> void:
 	if not is_casting or not casting_card:
 		return
 
 	# Save card reference for signal before clearing
 	var completed_card: Card = casting_card
+
+	# Activate all spawned units (they were inactive during the reveal animation)
+	for unit: Unit3D in casting_spawned_units:
+		if is_instance_valid(unit):
+			unit.activate()
 
 	# Reset casting state
 	is_casting = false
@@ -337,8 +349,9 @@ func _complete_casting() -> void:
 	casting_spawn_position = Vector3.ZERO
 	casting_time_remaining = 0.0
 	casting_time_total = 0.0
+	casting_spawned_units.clear()
 
-	# Emit signal (unit already spawned and active at this point)
+	# Emit signal (units now active)
 	casting_completed.emit(completed_card)
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
