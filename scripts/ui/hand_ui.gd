@@ -271,8 +271,8 @@ class CardDisplay extends Control:
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			# Show hand UI again (unless summoner is casting)
-			if hand_ui and not (hand_ui.summoner and hand_ui.summoner.get("is_casting")):
+			# Show hand UI again (unless disabled by casting)
+			if hand_ui and not hand_ui._casting_disabled:
 				hand_ui.visible = true
 
 	## Allow clicking to select card
@@ -424,6 +424,7 @@ var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 var is_rebuilding: bool = false  # Prevents concurrent rebuilds
 var _initialized: bool = false  # Track initialization state
+var _casting_disabled: bool = false  # Hand is locked during casting (single source of truth)
 
 signal card_selected(index: int)
 
@@ -490,8 +491,8 @@ func _rebuild_hand_display() -> void:
 	if is_rebuilding:
 		return
 
-	# Don't rebuild while casting (hand is hidden during summon time)
-	if summoner and summoner.get("is_casting"):
+	# Don't rebuild while casting (hand is disabled)
+	if _casting_disabled:
 		return
 
 	is_rebuilding = true
@@ -771,12 +772,14 @@ func _on_mana_changed(_current: float, _maximum: float) -> void:
 
 
 func _on_casting_started(_card: Card, _duration: float) -> void:
-	# Hide hand during casting (player can't play another card)
+	# Lock hand during casting (player can't play another card)
+	_casting_disabled = true
 	visible = false
 
 
 func _on_casting_completed(_card: Card) -> void:
-	# Show hand again when casting completes (player can summon again)
+	# Unlock hand when casting completes (player can summon again)
+	_casting_disabled = false
 	visible = true
 
 
