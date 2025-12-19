@@ -339,52 +339,10 @@ Enhance the visual design of card display including layout, typography, and effe
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Add Background Music System
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Medium
-
-**Description:**
-Implement core music system with playback, volume control, and transitions.
-
-**Requirements:**
-- Audio bus setup for music
-- Fade in/out transitions
-- Settings integration for volume control
-- Looping support
-
-**Notes:**
-- Foundation for all music features below
-- Consider dynamic music system for future
-
----
-
-#### Add Battle Music Tracks
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small (per track)
-**Dependencies:** Add Background Music System
-
-**Description:**
-Source and implement music tracks for active battle gameplay.
-
-**Requirements:**
-- Find/commission suitable battle music
-- Integrate with music system
-- Set appropriate looping points
-
-**Notes:**
-- Should be energetic but not overwhelming
-- Consider multiple tracks for variety
-
----
-
 #### Add Victory/Defeat Music
 **Status:** ⬜ Not Started
 **Category:** Audio
 **Effort:** Small
-**Dependencies:** Add Background Music System
-
 **Description:**
 Add musical stings or short tracks for win/loss conditions.
 
@@ -512,44 +470,6 @@ Add sound effects when buildings take damage.
 **Notes:**
 - Should be distinct from unit damage
 - Critical audio feedback for game state
-
----
-
-#### Add UI Click/Interaction Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small
-
-**Description:**
-Add sound feedback for UI interactions (button clicks, menu navigation, etc.).
-
-**Requirements:**
-- Source/create UI sound set
-- Integrate with all buttons and interactive elements
-- Consistent sound design across UI
-
-**Notes:**
-- Should be subtle and pleasant
-- Avoid annoying repetitive sounds
-
----
-
-#### Add Card Play Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small
-
-**Description:**
-Add sound effects when cards are played from hand.
-
-**Requirements:**
-- Card draw/shuffle sounds
-- Card play confirmation sound
-- Integrate with card system
-
-**Notes:**
-- Should feel satisfying
-- Consider different sounds for different card types
 
 ---
 
@@ -778,4 +698,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-12-17 - Completed card replacement in-place fix (moved to todos-completed.md)*
+*Last Updated: 2025-12-18 - Moved completed audio todos (BGM, battle music, UI clicks, card sounds) to todos-completed.md*

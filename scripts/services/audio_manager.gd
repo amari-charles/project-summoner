@@ -9,7 +9,7 @@ extends Node
 ## - Volume control with ProfileRepo persistence
 ##
 ## Usage:
-##   AudioManager.play_music("res://resources/audio/battle.ogg")
+##   AudioManager.play_music(AudioManager.MUSIC_BATTLE)
 ##   AudioManager.set_volume(AudioManager.BUS_MUSIC, 0.5)
 ##   AudioManager.play_ui_sound(AudioManager.UI_CLICK)
 
@@ -23,6 +23,9 @@ const BUS_SFX: String = "SFX"
 
 ## Default crossfade duration in seconds
 const DEFAULT_CROSSFADE: float = 1.0
+
+## Music track paths
+const MUSIC_BATTLE: String = "res://resources/audio/bgm/battle.mp3"
 
 ## UI Sound IDs
 const UI_CLICK: String = "ui_click"

@@ -260,7 +260,7 @@ func start_game() -> void:
 	BattleContext.start_battle()
 
 	# Start battle music
-	AudioManager.play_music("res://resources/audio/bgm/battle.mp3")
+	AudioManager.play_music(AudioManager.MUSIC_BATTLE)
 
 	game_started.emit()
 	state_changed.emit(current_state)

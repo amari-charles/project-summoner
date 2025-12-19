@@ -1012,4 +1012,95 @@ When a card was played and a new card was drawn to replace it, the hand reordere
 
 ---
 
-*Last Updated: 2025-12-17 - Added Card Replacement In-Place fix*
+## Audio
+
+### Add Background Music System
+**Completed:** 2025-12-18
+**Category:** Audio
+**Effort:** Medium
+
+**Description:**
+Implemented core music system with playback, volume control, and transitions.
+
+**Solution Implemented:**
+- Created AudioManager autoload (`scripts/services/audio_manager.gd`)
+- Audio bus setup (Master, Music, SFX) with dynamic creation
+- Crossfade transitions between music tracks (DEFAULT_CROSSFADE: 1.0s)
+- Volume control with linear-to-dB conversion
+- Settings persistence via ProfileRepo (music_volume, sfx_volume)
+- Process mode set to PROCESS_MODE_ALWAYS for pause menu support
+
+**Related Files:**
+- `scripts/services/audio_manager.gd` (new)
+- `project.godot` - AudioManager autoload registration
+
+---
+
+### Add Battle Music Tracks
+**Completed:** 2025-12-18
+**Category:** Audio
+**Effort:** Small
+**Dependencies:** Add Background Music System
+
+**Description:**
+Added battle music that plays during combat gameplay.
+
+**Solution Implemented:**
+- Added `battle.mp3` from freesound.org (humanoide9000, CC BY 4.0)
+- Music starts on `start_game()` in GameController3D
+- Music stops on battle end or quit with fade out
+- Proper attribution in `resources/audio/ATTRIBUTION.md`
+
+**Related Files:**
+- `resources/audio/bgm/battle.mp3` (new)
+- `resources/audio/ATTRIBUTION.md` (new)
+- `scripts/core/game_controller_3d.gd` - play_music/stop_music calls
+- `scripts/ui/pause_menu.gd` - stop music on quit
+
+---
+
+### Add UI Click/Interaction Sounds
+**Completed:** 2025-12-18
+**Category:** Audio
+**Effort:** Small
+
+**Description:**
+Added sound feedback for UI interactions (button clicks, menu navigation).
+
+**Solution Implemented:**
+- Added `ui_click.wav` from freesound.org (Jaszunio15, CC0)
+- `AudioManager.play_ui_sound(AudioManager.UI_CLICK)` pattern
+- Applied to all major UI buttons across screens:
+  - Campaign map, Nav drawer, Deck builder
+  - Settings screen, Shop screen, Pause menu
+  - Card detail modal, Reward screen
+  - Title screen, Summoner selection, Special events
+
+**Related Files:**
+- `resources/audio/sfx/ui_click.wav` (new)
+- Multiple UI scripts updated with play_ui_sound() calls
+
+---
+
+### Add Card Play Sounds
+**Completed:** 2025-12-18
+**Category:** Audio
+**Effort:** Small
+
+**Description:**
+Added sound effects when cards are played and drawn.
+
+**Solution Implemented:**
+- Added `card_draw.mp3` from freesound.org (Geoff-Bremner-Audio, CC0)
+- Added `card_play.wav` from freesound.org (theplax, CC BY 4.0)
+- Sounds triggered via `_on_card_played()` and `_on_card_drawn()` in hand_ui.gd
+- Proper attribution in `resources/audio/ATTRIBUTION.md`
+
+**Related Files:**
+- `resources/audio/sfx/card_draw.mp3` (new)
+- `resources/audio/sfx/card_play.wav` (new)
+- `scripts/ui/hand_ui.gd` - sound triggers on card events
+
+---
+
+*Last Updated: 2025-12-18 - Added audio system completion (BGM, UI clicks, card sounds)*
