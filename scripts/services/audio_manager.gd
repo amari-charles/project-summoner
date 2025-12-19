@@ -72,8 +72,8 @@ func _ready() -> void:
 ## AUDIO BUS SETUP
 ## =============================================================================
 
+## Create Music and SFX buses if they don't exist
 func _setup_audio_buses() -> void:
-	## Create Music and SFX buses if they don't exist
 	_music_bus_idx = AudioServer.get_bus_index(BUS_MUSIC)
 	if _music_bus_idx == -1:
 		var bus_count: int = AudioServer.bus_count
@@ -91,8 +91,8 @@ func _setup_audio_buses() -> void:
 		_sfx_bus_idx = bus_count
 
 
+## Create two AudioStreamPlayers for crossfade support
 func _create_music_players() -> void:
-	## Create two AudioStreamPlayers for crossfade support
 	_music_player_a = AudioStreamPlayer.new()
 	_music_player_a.name = "MusicPlayerA"
 	_music_player_a.bus = BUS_MUSIC
@@ -106,16 +106,16 @@ func _create_music_players() -> void:
 	_active_player = _music_player_a
 
 
+## Create a dedicated player for UI sounds (non-positional)
 func _create_ui_player() -> void:
-	## Create a dedicated player for UI sounds (non-positional)
 	_ui_player = AudioStreamPlayer.new()
 	_ui_player.name = "UIPlayer"
 	_ui_player.bus = BUS_SFX
 	add_child(_ui_player)
 
 
+## Preload all sound effects into cache
 func _preload_ui_sounds() -> void:
-	## Preload all sound effects into cache
 	for sound_id: String in _SFX_SOUNDS:
 		var path_val: Variant = _SFX_SOUNDS[sound_id]
 		if path_val is String:
@@ -298,6 +298,11 @@ func get_volume(bus_name: String) -> float:
 	if bus_idx >= 0:
 		return _db_to_linear(AudioServer.get_bus_volume_db(bus_idx))
 	return 1.0
+
+
+## Format volume as percentage string (e.g., "75%")
+static func format_volume_percent(volume: float) -> String:
+	return "%d%%" % int(volume * 100)
 
 
 ## Apply volume from ProfileRepo settings to audio buses

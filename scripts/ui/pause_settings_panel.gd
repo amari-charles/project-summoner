@@ -36,17 +36,8 @@ func _setup_localized_text() -> void:
 
 
 func _load_current_settings() -> void:
-	var settings: Dictionary = ProfileRepo.get_settings()
-
-	var music_vol_val: Variant = settings.get("music_volume", 1.0)
-	var music_vol: float = ProfileRepo.safe_float(music_vol_val, 1.0)
-
-	var sfx_vol_val: Variant = settings.get("sfx_volume", 1.0)
-	var sfx_vol: float = ProfileRepo.safe_float(sfx_vol_val, 1.0)
-
-	music_slider.value = music_vol
-	sfx_slider.value = sfx_vol
-
+	music_slider.value = AudioManager.get_volume(AudioManager.BUS_MUSIC)
+	sfx_slider.value = AudioManager.get_volume(AudioManager.BUS_SFX)
 	_update_value_labels()
 
 
@@ -57,8 +48,8 @@ func _connect_signals() -> void:
 
 
 func _update_value_labels() -> void:
-	music_value_label.text = "%d%%" % int(music_slider.value * 100)
-	sfx_value_label.text = "%d%%" % int(sfx_slider.value * 100)
+	music_value_label.text = AudioManager.format_volume_percent(music_slider.value)
+	sfx_value_label.text = AudioManager.format_volume_percent(sfx_slider.value)
 
 
 func show_panel() -> void:
