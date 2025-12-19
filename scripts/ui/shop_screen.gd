@@ -223,7 +223,7 @@ func _build_purchase_context(offering: ShopOffering) -> ShopPurchaseContext:
 	return context
 
 func _on_purchase_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if not selected_offering:
 		return
 
@@ -280,14 +280,14 @@ func _on_caravan_sequence_complete(_sequence: Resource) -> void:
 
 ## Handle "Leave" button (exit without completing - can return later)
 func _on_leave_incomplete_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	print("ShopScreen: Leave (incomplete) pressed")
 	if leave_incomplete_popup:
 		leave_incomplete_popup.popup_centered()
 
 ## Handle "Leave without purchasing" button (completes event - allows progression)
 func _on_leave_complete_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	print("ShopScreen: Leave (complete) pressed")
 	if leave_complete_popup:
 		# Update popup text based on whether player made a purchase
@@ -308,7 +308,7 @@ func _on_leave_complete_confirmed() -> void:
 	_leave_shop(true)  # Complete the event
 
 func _on_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	# This should only be called for non-caravan shops
 	if is_caravan_event:
 		push_warning("ShopScreen: Close button pressed for caravan event (should be hidden)")

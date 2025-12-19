@@ -113,7 +113,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "100%"
+text = ""
 horizontal_alignment = 2
 
 [node name="SFXRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]
@@ -142,7 +142,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "100%"
+text = ""
 horizontal_alignment = 2
 
 [node name="Separator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]

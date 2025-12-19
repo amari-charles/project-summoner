@@ -58,7 +58,7 @@ func _on_game_state_changed(new_state: GameController3D.GameState) -> void:
 
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if not game_controller:
 		push_error("PauseMenu: Cannot resume - no game controller")
 		return
@@ -66,21 +66,21 @@ func _on_resume_pressed() -> void:
 
 ## Settings button - show settings panel
 func _on_settings_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	settings_panel.show_panel()
 
 ## Manage Snapshots button - show snapshot manager
 func _on_manage_snapshots_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	snapshot_manager.show_manager()
 
 ## Quit button - abandon battle and return to origin screen
 func _on_quit_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	# CRITICAL: Unpause before changing scenes
 	get_tree().paused = false
 
-	# Stop battle music
+	# Stop battle music immediately (no fade) since we're transitioning scenes
 	AudioManager.stop_music(0.0)
 
 	# Mark battle as abandoned (clears current_battle, pending_reward, etc.)

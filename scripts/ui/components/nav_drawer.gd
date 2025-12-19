@@ -106,22 +106,22 @@ func _close() -> void:
 	)
 
 func _on_collection_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	collection_pressed.emit()
 	_close()
 
 func _on_events_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	events_pressed.emit()
 	_close()
 
 func _on_shop_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	shop_pressed.emit()
 	_close()
 
 func _on_settings_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	settings_pressed.emit()
 	_close()
 
@@ -136,7 +136,7 @@ func _setup_debug_buttons() -> void:
 	snapshots_button.pressed.connect(_on_snapshots_pressed)
 
 func _on_snapshots_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	snapshots_pressed.emit()
 	_close()
 

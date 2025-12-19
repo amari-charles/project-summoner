@@ -71,7 +71,7 @@ func _on_sfx_volume_changed(value: float) -> void:
 
 
 func _on_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP

@@ -81,5 +81,5 @@ func _on_sfx_volume_changed(value: float) -> void:
 
 
 func _on_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	hide_panel()

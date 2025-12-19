@@ -362,7 +362,7 @@ func _create_upgrade_box(upgrade: Dictionary) -> PanelContainer:
 ## =============================================================================
 
 func _on_level_up_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if card_instance_id.is_empty():
 		return
 
@@ -376,7 +376,7 @@ func _on_background_input(event: InputEvent) -> void:
 			_close()
 
 func _close() -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	closed.emit()
 	hide()
 	queue_free()

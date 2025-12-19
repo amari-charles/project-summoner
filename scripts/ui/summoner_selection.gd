@@ -59,7 +59,7 @@ func _show_summoner_selection() -> void:
 	select_button5.visible = true
 
 func _on_summoner_selected(summoner_id: String) -> void:
-	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	print("SummonerSelection: Player selected summoner: %s" % summoner_id)
 
 	# Handle random selection

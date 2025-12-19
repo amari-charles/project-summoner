@@ -1069,7 +1069,7 @@ Added sound feedback for UI interactions (button clicks, menu navigation).
 
 **Solution Implemented:**
 - Added `ui_click.wav` from freesound.org (Jaszunio15, CC0)
-- `AudioManager.play_ui_sound(AudioManager.UI_CLICK)` pattern
+- `AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)` pattern
 - Applied to all major UI buttons across screens:
   - Campaign map, Nav drawer, Deck builder
   - Settings screen, Shop screen, Pause menu

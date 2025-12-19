@@ -11,7 +11,7 @@ extends Node
 ## Usage:
 ##   AudioManager.play_music(AudioManager.MUSIC_BATTLE)
 ##   AudioManager.set_volume(AudioManager.BUS_MUSIC, 0.5)
-##   AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+##   AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 
 signal volume_changed(bus_name: String, volume: float)
 signal music_changed(track_path: String)
@@ -24,17 +24,20 @@ const BUS_SFX: String = "SFX"
 ## Default crossfade duration in seconds
 const DEFAULT_CROSSFADE: float = 1.0
 
+## Default fade-out duration when stopping music
+const DEFAULT_FADE_OUT: float = 0.5
+
 ## Music track paths
 const MUSIC_BATTLE: String = "res://resources/audio/bgm/battle.mp3"
 
-## UI Sound IDs
-const UI_CLICK: String = "ui_click"
+## Sound effect IDs (use with play_ui_sound)
+const SFX_UI_CLICK: String = "ui_click"
 const SFX_CARD_DRAW: String = "card_draw"
 const SFX_CARD_PLAY: String = "card_play"
 
-## UI Sound paths
-const _UI_SOUNDS: Dictionary = {
-	UI_CLICK: "res://resources/audio/sfx/ui_click.wav",
+## Sound effect paths
+const _SFX_SOUNDS: Dictionary = {
+	SFX_UI_CLICK: "res://resources/audio/sfx/ui_click.wav",
 	SFX_CARD_DRAW: "res://resources/audio/sfx/card_draw.mp3",
 	SFX_CARD_PLAY: "res://resources/audio/sfx/card_play.wav",
 }
@@ -56,7 +59,6 @@ var _ui_sound_cache: Dictionary = {}
 
 
 func _ready() -> void:
-	print("AudioManager: Initializing...")
 	# Process even when game is paused (for music fades, UI sounds)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_audio_buses()
@@ -64,7 +66,6 @@ func _ready() -> void:
 	_create_ui_player()
 	_preload_ui_sounds()
 	_apply_settings_volume()
-	print("AudioManager: Ready")
 
 
 ## =============================================================================
@@ -80,7 +81,6 @@ func _setup_audio_buses() -> void:
 		AudioServer.set_bus_name(bus_count, BUS_MUSIC)
 		AudioServer.set_bus_send(bus_count, BUS_MASTER)
 		_music_bus_idx = bus_count
-		print("AudioManager: Created Music bus")
 
 	_sfx_bus_idx = AudioServer.get_bus_index(BUS_SFX)
 	if _sfx_bus_idx == -1:
@@ -89,7 +89,6 @@ func _setup_audio_buses() -> void:
 		AudioServer.set_bus_name(bus_count, BUS_SFX)
 		AudioServer.set_bus_send(bus_count, BUS_MASTER)
 		_sfx_bus_idx = bus_count
-		print("AudioManager: Created SFX bus")
 
 
 func _create_music_players() -> void:
@@ -116,9 +115,9 @@ func _create_ui_player() -> void:
 
 
 func _preload_ui_sounds() -> void:
-	## Preload all UI sounds into cache
-	for sound_id: String in _UI_SOUNDS:
-		var path_val: Variant = _UI_SOUNDS[sound_id]
+	## Preload all sound effects into cache
+	for sound_id: String in _SFX_SOUNDS:
+		var path_val: Variant = _SFX_SOUNDS[sound_id]
 		if path_val is String:
 			var path: String = path_val
 			if ResourceLoader.exists(path):
@@ -129,7 +128,6 @@ func _preload_ui_sounds() -> void:
 					push_warning("AudioManager: Failed to load UI sound: %s" % path)
 			else:
 				push_warning("AudioManager: UI sound file not found: %s" % path)
-	print("AudioManager: Loaded %d UI sounds" % _ui_sound_cache.size())
 
 
 ## =============================================================================
@@ -233,7 +231,7 @@ func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> voi
 
 
 ## Stop current music with optional fade out
-func stop_music(fade_duration: float = 0.5) -> void:
+func stop_music(fade_duration: float = DEFAULT_FADE_OUT) -> void:
 	if not _active_player.playing:
 		_current_music_path = ""
 		return
@@ -317,8 +315,6 @@ func _apply_settings_volume() -> void:
 		AudioServer.set_bus_volume_db(_music_bus_idx, _linear_to_db(music_vol))
 	if _sfx_bus_idx >= 0:
 		AudioServer.set_bus_volume_db(_sfx_bus_idx, _linear_to_db(sfx_vol))
-
-	print("AudioManager: Applied volume - Music: %d%%, SFX: %d%%" % [int(music_vol * 100), int(sfx_vol * 100)])
 
 
 ## =============================================================================

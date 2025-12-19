@@ -51,7 +51,7 @@ theme_override_constants/separation = 15
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "SETTINGS"
+text = ""
 horizontal_alignment = 1
 
 [node name="MusicRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
@@ -62,7 +62,7 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-text = "Music"
+text = ""
 
 [node name="MusicSlider" type="HSlider" parent="Panel/MarginContainer/VBoxContainer/MusicRow"]
 unique_name_in_owner = true
@@ -77,7 +77,7 @@ value = 1.0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
-text = "100%"
+text = ""
 horizontal_alignment = 2
 
 [node name="SFXRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
@@ -88,7 +88,7 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-text = "Sound Effects"
+text = ""
 
 [node name="SFXSlider" type="HSlider" parent="Panel/MarginContainer/VBoxContainer/SFXRow"]
 unique_name_in_owner = true
@@ -103,7 +103,7 @@ value = 1.0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
-text = "100%"
+text = ""
 horizontal_alignment = 2
 
 [node name="Spacer" type="Control" parent="Panel/MarginContainer/VBoxContainer"]
@@ -114,4 +114,4 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Close"
+text = ""
