@@ -271,8 +271,8 @@ class CardDisplay extends Control:
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			# Show hand UI again
-			if hand_ui:
+			# Show hand UI again (unless summoner is casting)
+			if hand_ui and not (hand_ui.summoner and hand_ui.summoner.get("is_casting")):
 				hand_ui.visible = true
 
 	## Allow clicking to select card
