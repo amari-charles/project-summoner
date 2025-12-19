@@ -231,6 +231,46 @@ The profile data structure has redundant and unused fields that waste storage an
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Add Quit Game Functionality
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / UI
+**Effort:** Small
+
+**Description:**
+Add a way for players to quit the entire game from within the application.
+
+**Requirements:**
+- Add quit button to title screen or settings menu
+- Implement proper cleanup before exit
+- Handle unsaved progress (if applicable)
+
+**Notes:**
+- Standard feature expected by players
+- Should work on both desktop and mobile platforms
+
+---
+
+#### Investigate Mobile/Desktop Compatibility
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Platform
+**Effort:** Medium
+
+**Description:**
+Review the current game setup to ensure compatibility with both mobile and desktop platforms.
+
+**Areas to Investigate:**
+- UI scaling and touch input
+- Resolution and aspect ratio handling
+- Input method differences (touch vs mouse/keyboard)
+- Performance on mobile devices
+- Export settings for each platform
+
+**Notes:**
+- Important to address early to avoid major refactoring later
+- May need platform-specific adjustments
+
+---
+
 #### Card Returns to Pool When Summoned Unit Dies
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Card Mechanics

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://campaign_map"]
+[gd_scene load_steps=3 format=3 uid="uid://campaign_map"]
 
 [ext_resource type="Script" path="res://scripts/ui/campaign_map.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://assets/fonts/germania_one/GermaniaOne-Regular.ttf" id="2_title_font"]
 
 [node name="CampaignMap" type="Control"]
 layout_mode = 3
@@ -111,6 +112,7 @@ theme_override_constants/separation = 15
 [node name="EventNameLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_title_font")
 theme_override_font_sizes/font_size = 32
 text = "Select an Event"
 horizontal_alignment = 1
