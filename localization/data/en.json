@@ -124,6 +124,12 @@
       "cancel": "Cancel",
       "confirm": "Confirm"
     },
+    "pause_menu": {
+      "resume": "Resume",
+      "settings": "Settings",
+      "manage_snapshots": "Manage Snapshots",
+      "quit": "Quit to Menu"
+    },
     "mana": "Mana: {current}/{max}",
     "health": "Health: {current}/{max}",
     "deck_size": "Deck: {count}",

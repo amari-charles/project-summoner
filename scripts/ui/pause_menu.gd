@@ -25,6 +25,12 @@ func _ready() -> void:
 	if overlay:
 		overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
+	# Set localized text
+	resume_button.text = Loc.t("ui.pause_menu.resume")
+	settings_button.text = Loc.t("ui.pause_menu.settings")
+	manage_snapshots_button.text = Loc.t("ui.pause_menu.manage_snapshots")
+	quit_button.text = Loc.t("ui.pause_menu.quit")
+
 	# Connect button signals first
 	resume_button.pressed.connect(_on_resume_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)

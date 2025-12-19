@@ -138,7 +138,7 @@ func _preload_ui_sounds() -> void:
 ## =============================================================================
 
 ## Play a UI sound effect (non-positional)
-## sound_id: One of the UI_* constants (e.g., AudioManager.UI_CLICK)
+## sound_id: One of the SFX_* constants (e.g., AudioManager.SFX_UI_CLICK)
 func play_ui_sound(sound_id: String) -> void:
 	if not _ui_sound_cache.has(sound_id):
 		push_warning("AudioManager: Unknown UI sound: %s" % sound_id)
