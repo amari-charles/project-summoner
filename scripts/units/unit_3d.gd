@@ -53,6 +53,10 @@ const DEATH_CLEANUP_DELAY: float = 1.0  ## Seconds to wait after death before qu
 const MIN_ANIMATION_SPEED: float = 0.3  ## Minimum animation speed multiplier (when nearly stationary)
 const MAX_ANIMATION_SPEED: float = 2.0  ## Maximum animation speed multiplier (when moving fast)
 
+## Spawn reveal effect constants (ghost materialize animation)
+const SPAWN_GLOW_COLOR_PLAYER: Color = Color(0.4, 0.7, 1.0, 1.0)  ## Blue glow for player units
+const SPAWN_GLOW_COLOR_ENEMY: Color = Color(1.0, 0.4, 0.4, 1.0)   ## Red glow for enemy units
+
 ## Core stats
 @export var max_hp: float = 100.0
 @export var attack_damage: float = 10.0
@@ -1604,7 +1608,7 @@ func start_spawn_reveal(duration: float) -> void:
 	_is_spawning = true
 	activation_state = ActivationState.INACTIVE  # Unit can't act during spawn
 
-	# Load shader if not cached
+	# Load shader if not cached (canvas_item shader for 2D sprites in SubViewport)
 	if _spawn_reveal_shader == null:
 		_spawn_reveal_shader = load("res://shaders/vfx/spawn_reveal.gdshader")
 
@@ -1619,11 +1623,7 @@ func start_spawn_reveal(duration: float) -> void:
 	_spawn_reveal_material.set_shader_parameter("progress", 0.0)
 
 	# Set glow color based on team
-	var glow_color: Color
-	if team == Team.PLAYER:
-		glow_color = Color(0.4, 0.7, 1.0, 1.0)  # Blue for player
-	else:
-		glow_color = Color(1.0, 0.4, 0.4, 1.0)  # Red for enemy
+	var glow_color: Color = SPAWN_GLOW_COLOR_PLAYER if team == Team.PLAYER else SPAWN_GLOW_COLOR_ENEMY
 	_spawn_reveal_material.set_shader_parameter("glow_color", glow_color)
 
 	# Apply shader to visual component
@@ -1633,10 +1633,11 @@ func start_spawn_reveal(duration: float) -> void:
 
 ## Apply shader after waiting for component initialization
 func _apply_spawn_shader_deferred(duration: float) -> void:
-	# Wait 2 frames for skeletal components to fully initialize
-	# (same pattern as GhostUnit3D)
-	await get_tree().process_frame
-	await get_tree().process_frame
+	# Wait for visual component to finish async initialization
+	# Skeletal components set _initialization_complete after bounds calculation
+	if visual_component and visual_component.has_method("is_fully_initialized"):
+		while not visual_component.is_fully_initialized():
+			await get_tree().process_frame
 
 	if not is_instance_valid(self) or not _is_spawning:
 		return
@@ -1650,17 +1651,18 @@ func _apply_spawn_shader_deferred(duration: float) -> void:
 
 
 ## Apply the spawn shader to the visual component
+## Uses canvas_item shader on 2D sprites with SCREEN_UV for unified reveal
 func _apply_spawn_shader_to_visual() -> void:
 	if not visual_component or not _spawn_reveal_material:
 		return
 
 	_original_materials.clear()
 
-	# Check component type and apply shader appropriately
+	# Apply shader to all 2D sprites inside the viewport
+	# Using SCREEN_UV in the shader ensures all parts animate together
 	if visual_component is SkeletalCharacter2D5Component:
 		var skeletal_comp: SkeletalCharacter2D5Component = visual_component
 		if skeletal_comp.skeletal_instance:
-			# Find all Sprite2D nodes and apply shader
 			var sprites: Array = _find_all_canvas_items(skeletal_comp.skeletal_instance)
 			for node: Node in sprites:
 				if node is CanvasItem:
@@ -1724,18 +1726,12 @@ func _complete_spawn_reveal() -> void:
 		_spawn_reveal_tween.kill()
 	_spawn_reveal_tween = null
 
-	# NOTE: Unit stays INACTIVE - Summoner will call activate() when cast completes
+	# NOTE: Activation state is managed by GameController3D via _check_initial_activation_state()
 
 
 ## Check if unit is currently in spawn animation
 func is_spawning() -> bool:
 	return _is_spawning
-
-
-## Activate the unit (allow it to fight)
-## Called by Summoner when the full cast time completes
-func activate() -> void:
-	activation_state = ActivationState.ACTIVE
 
 
 ## Cancel spawn reveal early (if needed)

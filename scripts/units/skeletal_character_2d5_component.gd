@@ -261,6 +261,11 @@ func get_sprite_height() -> float:
 func get_hp_bar_offset_x() -> float:
 	return hp_bar_offset_x
 
+## Check if the component is fully initialized and ready for shader application
+## Skeletal components have async initialization, so we need to wait for it
+func is_fully_initialized() -> bool:
+	return _initialization_complete
+
 ## Calculate bounding rectangle of the skeletal model
 ## Returns Rect2 with local bounds (before scaling), or empty rect if unavailable
 func _get_skeletal_bounds() -> Rect2:

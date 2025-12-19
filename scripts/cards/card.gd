@@ -147,15 +147,12 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 ## Execute the card effect at the given 3D position
 ## modifier_system: Optional ModifierSystem reference for more efficient access
 ## spawn_duration: If > 0, applies spawn reveal effect over this duration (for summon cards)
-## Returns: Array of spawned Unit3D nodes (empty for spells)
-func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> Array[Unit3D]:
+func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
 	match card_type:
 		CardType.SUMMON:
-			return _summon_unit_3d(play_position, team, battlefield, modifier_system, spawn_duration)
+			_summon_unit_3d(play_position, team, battlefield, modifier_system, spawn_duration)
 		CardType.SPELL:
 			_cast_spell_3d(play_position, team, battlefield, modifier_system)
-			return []
-	return []
 
 ## Spawn unit(s) at the position
 func _summon_unit(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
@@ -204,14 +201,11 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 
 ## Spawn unit(s) at the 3D position
 ## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
-## Returns: Array of spawned Unit3D nodes
-func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> Array[Unit3D]:
-	var spawned_units: Array[Unit3D] = []
-
+func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
 		assert(false, "Summon card must have unit_scene!")
-		return spawned_units
+		return
 
 	var gameplay_layer: Node = battlefield
 	if battlefield.has_method("get_gameplay_layer"):
@@ -296,13 +290,9 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			# Start spawn reveal effect if duration specified (ghost materialize animation)
 			if spawn_duration > 0.0:
 				unit.start_spawn_reveal(spawn_duration)
-
-			spawned_units.append(unit)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")
-
-	return spawned_units
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:

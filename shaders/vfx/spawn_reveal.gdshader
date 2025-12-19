@@ -2,6 +2,7 @@ shader_type canvas_item;
 
 // Ghost spawn reveal shader
 // Reveals the sprite from bottom to top with a glowing edge
+// Uses viewport-relative coordinates so multi-part sprites animate together
 
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
 uniform float edge_width : hint_range(0.0, 0.3) = 0.1;
@@ -11,13 +12,13 @@ uniform float glow_intensity : hint_range(0.0, 3.0) = 1.5;
 void fragment() {
 	vec4 tex_color = texture(TEXTURE, UV);
 
-	// UV.y = 0 at top, 1 at bottom in Godot's default
-	// We want to reveal from bottom to top, so invert
-	float reveal_pos = 1.0 - UV.y;
+	// Use SCREEN_UV for viewport-relative position
+	// This ensures all sprite parts use the same Y reference
+	// SCREEN_UV.y = 0 at top of viewport, 1 at bottom
+	float reveal_pos = 1.0 - SCREEN_UV.y;
 
 	// Calculate reveal threshold (where the edge currently is)
 	// Scale progress so it goes from -edge_width to 1+edge_width
-	// This ensures nothing is visible at progress=0 and everything at progress=1
 	float threshold = progress * (1.0 + edge_width * 2.0) - edge_width;
 
 	// Distance from the reveal edge

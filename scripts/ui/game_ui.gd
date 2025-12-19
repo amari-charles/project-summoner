@@ -281,4 +281,3 @@ func _on_prep_timer_updated(remaining: float) -> void:
 			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_WARNING)
 		else:
 			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_NORMAL)
-

@@ -596,6 +596,31 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 
 ---
 
+#### Add Loading Screen with Asset Preloading
+**Status:** ⬜ Not Started
+**Category:** UI/UX / Performance
+**Effort:** Medium
+
+**Description:**
+Create a loading screen that displays during battle transitions and preloads all unit assets asynchronously. This eliminates first-spawn initialization delays and provides a polished user experience.
+
+**Requirements:**
+- Loading screen scene with progress bar
+- Use `ResourceLoader.load_threaded_request()` for async loading
+- Preload all unit scenes from CardCatalog
+- Optionally show tips, lore, or artwork during loading
+
+**Technical Notes:**
+- Currently using silent preload as stopgap (instantiate/free each unit scene)
+- Full solution should use async loading with accurate progress reporting
+- Consider caching loaded resources for session duration
+
+**Notes:**
+- Part of polish phase
+- Professional games use this approach for zero gameplay hitches
+
+---
+
 #### Revamp Card Hand Display
 **Status:** ⬜ Not Started
 **Category:** UI/UX
