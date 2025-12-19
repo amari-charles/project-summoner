@@ -259,6 +259,9 @@ func start_game() -> void:
 	# Mark battle as in progress in BattleContext
 	BattleContext.start_battle()
 
+	# Start battle music
+	AudioManager.play_music(AudioManager.MUSIC_BATTLE)
+
 	game_started.emit()
 	state_changed.emit(current_state)
 	phase_changed.emit(current_phase)
@@ -301,6 +304,9 @@ func end_game(winner: Unit3D.Team) -> void:
 	state_changed.emit(current_state)
 	game_ended.emit(winner)
 	get_tree().paused = true
+
+	# Stop battle music
+	AudioManager.stop_music()
 
 	# Update BattleContext state based on winner
 	if winner == Unit3D.Team.PLAYER:

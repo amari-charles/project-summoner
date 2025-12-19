@@ -547,10 +547,12 @@ func _on_deck_selected(index: int) -> void:
 		_load_deck(deck_meta)
 
 func _on_new_deck_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	deck_name_input.text = ""
 	new_deck_dialog.popup_centered()
 
 func _on_new_deck_confirmed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	var deck_name: String = deck_name_input.text
 	if deck_name == "":
 		deck_name = "New Deck"
@@ -564,12 +566,14 @@ func _on_new_deck_confirmed() -> void:
 		print("DeckBuilder: Created new deck '%s' (%s)" % [deck_name, deck_id_result])
 
 func _on_delete_deck_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if current_deck_id == "":
 		return
 
 	confirm_delete_dialog.popup_centered()
 
 func _on_set_active_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if current_deck_id == "":
 		push_warning("DeckBuilder: No deck selected to set as active")
 		return
@@ -731,6 +735,7 @@ func _show_card_details(card_instance_id: String, from_collection: bool) -> void
 	print("DeckBuilder: Showing details for card: %s" % card_instance_id)
 
 func _on_popup_close_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	card_detail_popup.hide()
 
 ## =============================================================================
@@ -738,6 +743,7 @@ func _on_popup_close_pressed() -> void:
 ## =============================================================================
 
 func _on_back_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	print("DeckBuilder: Returning to collection")
 	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 

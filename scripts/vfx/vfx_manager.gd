@@ -225,6 +225,7 @@ func _on_effect_finished(effect_id: String, instance: VFXInstance) -> void:
 func _play_sound(sound: AudioStream, spawn_position: Vector3, volume_db: float) -> void:
 	var audio_player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
 	audio_player.stream = sound
+	audio_player.bus = AudioManager.BUS_SFX
 	audio_player.volume_db = volume_db
 	audio_player.global_position = spawn_position
 	audio_player.autoplay = true

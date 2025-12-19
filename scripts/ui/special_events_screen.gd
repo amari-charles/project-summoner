@@ -21,6 +21,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 
 func _on_close_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP

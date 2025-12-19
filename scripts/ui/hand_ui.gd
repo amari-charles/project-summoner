@@ -760,11 +760,13 @@ func _create_glow_pulse(card_visual: CardVisual) -> void:
 	pulse_tween.tween_method(update_border_color, bright_color, dim_color, 1.0)
 
 func _on_card_played(_card: Card) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_CARD_PLAY)
 	# Deselect after playing - no card should be selected
 	selected_card_index = -1
 	_rebuild_hand_display()
 
 func _on_card_drawn(_card: Card) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_CARD_DRAW)
 	_rebuild_hand_display()
 
 func _on_mana_changed(_current: float, _maximum: float) -> void:

@@ -51,6 +51,7 @@ func _input(event: InputEvent) -> void:
 				_debug_reset_profile()
 
 func _proceed_to_campaign() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_can_proceed = false
 	animation_player.play("fade_out")
 	await animation_player.animation_finished

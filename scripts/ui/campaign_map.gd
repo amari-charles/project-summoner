@@ -643,6 +643,7 @@ func _validate_selected_deck() -> bool:
 ## =============================================================================
 
 func _on_start_event_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if selected_event_id == "":
 		return
 
