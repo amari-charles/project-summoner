@@ -250,8 +250,10 @@
     },
     "settings": {
       "title": "SETTINGS",
-      "coming_soon": "COMING SOON",
-      "description": "Settings will include:\n\n• Audio controls (music & sound effects)\n• Display preferences\n• Account management\n• Return to title screen"
+      "audio_header": "Audio",
+      "music_volume": "Music Volume",
+      "sfx_volume": "Sound Effects",
+      "coming_soon": "More settings coming soon..."
     },
     "events": {
       "title": "SPECIAL EVENTS",

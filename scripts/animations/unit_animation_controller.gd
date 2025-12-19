@@ -201,6 +201,7 @@ func _play_sound(sound: AudioStream, volume_db: float) -> void:
 
 	var audio_player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
 	audio_player.stream = sound
+	audio_player.bus = AudioManager.BUS_SFX
 	audio_player.volume_db = volume_db
 	audio_player.global_position = unit.global_position
 	audio_player.autoplay = true
