@@ -873,18 +873,18 @@ func _setup_campaign_banner() -> void:
 	campaign_banner = Button.new()
 	add_child(campaign_banner)
 
-	# Position in top-left corner
-	campaign_banner.anchor_left = 0.0
-	campaign_banner.anchor_right = 0.0
+	# Position centered at top
+	campaign_banner.anchor_left = 0.5
+	campaign_banner.anchor_right = 0.5
 	campaign_banner.anchor_top = 0.0
 	campaign_banner.anchor_bottom = 0.0
-	campaign_banner.offset_left = CAMPAIGN_BANNER_MARGIN
-	campaign_banner.offset_right = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_WIDTH
+	campaign_banner.offset_left = -CAMPAIGN_BANNER_WIDTH / 2
+	campaign_banner.offset_right = CAMPAIGN_BANNER_WIDTH / 2
 	campaign_banner.offset_top = CAMPAIGN_BANNER_MARGIN
 	campaign_banner.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
 
 	campaign_banner.flat = true
-	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	campaign_banner.add_theme_font_size_override("font_size", 20)
 
 	_update_campaign_banner_text()
@@ -947,15 +947,15 @@ func _setup_summoner_icon() -> void:
 	summoner_icon = SummonerIconWidgetScene.instantiate()
 	add_child(summoner_icon)
 
-	# Position in bottom-left corner
+	# Position in top-left corner
 	summoner_icon.anchor_left = 0.0
 	summoner_icon.anchor_right = 0.0
-	summoner_icon.anchor_top = 1.0
-	summoner_icon.anchor_bottom = 1.0
+	summoner_icon.anchor_top = 0.0
+	summoner_icon.anchor_bottom = 0.0
 	summoner_icon.offset_left = SUMMONER_ICON_MARGIN
 	summoner_icon.offset_right = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE
-	summoner_icon.offset_top = -(SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE)
-	summoner_icon.offset_bottom = -SUMMONER_ICON_MARGIN
+	summoner_icon.offset_top = SUMMONER_ICON_MARGIN
+	summoner_icon.offset_bottom = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE
 
 	# Connect signal
 	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
