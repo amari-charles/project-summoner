@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/card_detail_modal.gd" id="1_detail_modal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/card_visual.tscn" id="2_card_visual"]
-[ext_resource type="FontFile" path="res://assets/fonts/germania_one/GermaniaOne-Regular.ttf" id="3_title_font"]
 
 [node name="CardDetailModal" type="Control"]
 layout_mode = 3
@@ -88,7 +87,7 @@ theme_override_constants/separation = 12
 [node name="CardNameLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_title_font")
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 32
 text = "Card Name"
 

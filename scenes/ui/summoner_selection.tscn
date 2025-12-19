@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://dyamyrk7gbh4"]
+[gd_scene load_steps=3 format=3 uid="uid://dyamyrk7gbh4"]
 
 [ext_resource type="Script" path="res://scripts/ui/summoner_selection.gd" id="1_hero"]
 [ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/ui/dialogue_box.tscn" id="2_dialogue_box"]
-[ext_resource type="FontFile" path="res://assets/fonts/germania_one/GermaniaOne-Regular.ttf" id="3_title_font"]
 
 [node name="SummonerSelection" type="Control"]
 layout_mode = 3
@@ -37,7 +36,7 @@ alignment = 1
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_title_font")
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 56
 text = "CHOOSE YOUR SUMMONER"
 horizontal_alignment = 1

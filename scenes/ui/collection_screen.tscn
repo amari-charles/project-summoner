@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://bw7j2k5nq3xlm"]
+[gd_scene load_steps=2 format=3 uid="uid://bw7j2k5nq3xlm"]
 
 [ext_resource type="Script" path="res://scripts/ui/collection_screen.gd" id="1_collection"]
-[ext_resource type="FontFile" path="res://assets/fonts/germania_one/GermaniaOne-Regular.ttf" id="2_title_font"]
 
 [node name="CollectionScreen" type="Control"]
 layout_mode = 3
@@ -51,7 +50,7 @@ flat = true
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("2_title_font")
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 48
 text = "CARDS & DECKS"
 horizontal_alignment = 1

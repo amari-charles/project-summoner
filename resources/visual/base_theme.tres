@@ -1,8 +1,9 @@
-[gd_resource type="Theme" load_steps=4 format=3]
+[gd_resource type="Theme" load_steps=5 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/fira_sans/FiraSans-Regular.ttf" id="1_font_regular"]
 [ext_resource type="FontFile" path="res://assets/fonts/fira_sans/FiraSans-SemiBold.ttf" id="2_font_semibold"]
 [ext_resource type="FontFile" path="res://assets/fonts/fira_sans/FiraSans-Bold.ttf" id="3_font_bold"]
+[ext_resource type="FontFile" path="res://assets/fonts/germania_one/GermaniaOne-Regular.ttf" id="4_font_title"]
 
 [resource]
 default_font = ExtResource("1_font_regular")
@@ -13,6 +14,8 @@ Button/font_sizes/font_size = 18
 
 Label/fonts/font = ExtResource("1_font_regular")
 Label/font_sizes/font_size = 16
+
+TitleLabel/fonts/font = ExtResource("4_font_title")
 
 LineEdit/fonts/font = ExtResource("1_font_regular")
 LineEdit/font_sizes/font_size = 16

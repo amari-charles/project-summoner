@@ -3,7 +3,6 @@ extends Node
 
 # Body fonts (Fira Sans)
 const REGULAR: FontFile = preload("res://assets/fonts/fira_sans/FiraSans-Regular.ttf")
-const MEDIUM: FontFile = preload("res://assets/fonts/fira_sans/FiraSans-Medium.ttf")
 const SEMIBOLD: FontFile = preload("res://assets/fonts/fira_sans/FiraSans-SemiBold.ttf")
 const BOLD: FontFile = preload("res://assets/fonts/fira_sans/FiraSans-Bold.ttf")
 
