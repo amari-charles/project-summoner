@@ -50,6 +50,7 @@ theme_override_constants/separation = 15
 
 [node name="TitleLabel" type="Label" parent="PausePanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_override = "TitleLabel"
 text = "GAME PAUSED"
 horizontal_alignment = 1
 vertical_alignment = 1
