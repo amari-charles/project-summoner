@@ -27,6 +27,9 @@ const DEFAULT_CROSSFADE: float = 1.0
 ## Default fade-out duration when stopping music
 const DEFAULT_FADE_OUT: float = 0.5
 
+## Volume level in dB that's effectively silent
+const MUTE_DB: float = -80.0
+
 ## Music track paths
 const MUSIC_BATTLE: String = "res://resources/audio/bgm/battle.mp3"
 
@@ -156,21 +159,21 @@ func play_ui_sound(sound_id: String) -> void:
 ## track_path: Path to the audio resource (empty string to stop)
 ## crossfade: Duration of crossfade in seconds (0 = immediate switch)
 func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> void:
-	## Skip if already playing this track
+	# Skip if already playing this track
 	if track_path == _current_music_path and not track_path.is_empty():
 		return
 
-	## Kill any existing crossfade
+	# Kill any existing crossfade
 	if _crossfade_tween and _crossfade_tween.is_valid():
 		_crossfade_tween.kill()
 		_crossfade_tween = null
 
-	## Handle empty path as stop request
+	# Handle empty path as stop request
 	if track_path.is_empty():
 		stop_music(crossfade)
 		return
 
-	## Load the new track
+	# Load the new track
 	if not ResourceLoader.exists(track_path):
 		push_error("AudioManager: Music file not found: %s" % track_path)
 		return
@@ -180,30 +183,29 @@ func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> voi
 		push_error("AudioManager: Failed to load music: %s" % track_path)
 		return
 
-	## If starting from stopped state, ensure both players are clean
-	## (previous fade-out tween may have been interrupted)
+	# If starting from stopped state, ensure both players are clean
+	# (previous fade-out tween may have been interrupted)
 	if _current_music_path.is_empty():
 		_music_player_a.stop()
 		_music_player_b.stop()
 
 	_current_music_path = track_path
 
-	## Get the inactive player for the new track
+	# Get the inactive player for the new track
 	var new_player: AudioStreamPlayer = _music_player_b if _active_player == _music_player_a else _music_player_a
 	var old_player: AudioStreamPlayer = _active_player
 
-	## Setup new player
+	# Setup new player (start silent if crossfading, full volume otherwise)
 	new_player.stream = stream
-	## Start silent if crossfading, full volume otherwise
 	new_player.volume_db = _linear_to_db(0.0) if crossfade > 0.0 and old_player.playing else 0.0
 	new_player.play()
 
 	if crossfade > 0.0 and old_player.playing:
-		## Crossfade between players
+		# Crossfade between players
 		_crossfade_tween = create_tween()
 		_crossfade_tween.set_parallel(true)
 
-		## Fade out old
+		# Fade out old
 		_crossfade_tween.tween_method(
 			_set_player_volume.bind(old_player),
 			_db_to_linear(old_player.volume_db),
@@ -211,7 +213,7 @@ func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> voi
 			crossfade
 		)
 
-		## Fade in new
+		# Fade in new
 		_crossfade_tween.tween_method(
 			_set_player_volume.bind(new_player),
 			0.0,
@@ -219,10 +221,10 @@ func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> voi
 			crossfade
 		)
 
-		## Stop old player when done
+		# Stop old player when done
 		_crossfade_tween.chain().tween_callback(old_player.stop)
 	else:
-		## Immediate switch
+		# Immediate switch
 		old_player.stop()
 		new_player.volume_db = 0.0
 
@@ -236,7 +238,7 @@ func stop_music(fade_duration: float = DEFAULT_FADE_OUT) -> void:
 		_current_music_path = ""
 		return
 
-	## Kill any existing crossfade
+	# Kill any existing crossfade
 	if _crossfade_tween and _crossfade_tween.is_valid():
 		_crossfade_tween.kill()
 		_crossfade_tween = null
@@ -276,7 +278,7 @@ func get_current_music() -> String:
 func set_volume(bus_name: String, volume: float) -> void:
 	volume = clampf(volume, 0.0, 1.0)
 
-	## Apply to AudioServer
+	# Apply to AudioServer
 	var bus_idx: int = AudioServer.get_bus_index(bus_name)
 	if bus_idx >= 0:
 		AudioServer.set_bus_volume_db(bus_idx, _linear_to_db(volume))
@@ -284,7 +286,7 @@ func set_volume(bus_name: String, volume: float) -> void:
 		push_warning("AudioManager: Unknown bus '%s'" % bus_name)
 		return
 
-	## Persist to settings
+	# Persist to settings
 	var setting_key: String = _bus_to_setting_key(bus_name)
 	if not setting_key.is_empty():
 		ProfileRepo.update_settings({setting_key: volume})
@@ -315,7 +317,7 @@ func _apply_settings_volume() -> void:
 	var sfx_vol_val: Variant = settings.get("sfx_volume", 1.0)
 	var sfx_vol: float = ProfileRepo.safe_float(sfx_vol_val, 1.0)
 
-	## Apply without persisting (already in settings)
+	# Apply without persisting (already in settings)
 	if _music_bus_idx >= 0:
 		AudioServer.set_bus_volume_db(_music_bus_idx, _linear_to_db(music_vol))
 	if _sfx_bus_idx >= 0:
@@ -329,13 +331,13 @@ func _apply_settings_volume() -> void:
 ## Convert linear volume (0.0-1.0) to decibels
 func _linear_to_db(linear: float) -> float:
 	if linear <= 0.0:
-		return -80.0  # Effectively muted
+		return MUTE_DB
 	return 20.0 * log(linear) / log(10.0)
 
 
 ## Convert decibels to linear volume (0.0-1.0)
 func _db_to_linear(db: float) -> float:
-	if db <= -80.0:
+	if db <= MUTE_DB:
 		return 0.0
 	return pow(10.0, db / 20.0)
 

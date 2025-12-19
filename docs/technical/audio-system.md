@@ -44,6 +44,7 @@ AudioManager.SFX_CARD_PLAY
 # Timing
 AudioManager.DEFAULT_CROSSFADE  # 1.0 seconds
 AudioManager.DEFAULT_FADE_OUT   # 0.5 seconds
+AudioManager.MUTE_DB            # -80.0 dB (effectively silent)
 ```
 
 ## Usage Examples
@@ -172,15 +173,17 @@ AudioManager uses two `AudioStreamPlayer` nodes for seamless crossfades:
 ### Volume Conversion
 
 ```gdscript
+const MUTE_DB: float = -80.0  # Effectively silent
+
 # Linear (0.0-1.0) to decibels
 func _linear_to_db(linear: float) -> float:
     if linear <= 0.0:
-        return -80.0  # Effectively muted
+        return MUTE_DB
     return 20.0 * log(linear) / log(10.0)
 
 # Decibels to linear (0.0-1.0)
 func _db_to_linear(db: float) -> float:
-    if db <= -80.0:
+    if db <= MUTE_DB:
         return 0.0
     return pow(10.0, db / 20.0)
 ```
