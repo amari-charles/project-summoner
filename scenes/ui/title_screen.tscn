@@ -76,6 +76,7 @@ theme_override_constants/separation = 60
 
 [node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 72
 text = "PROJECT SUMMONER"
 horizontal_alignment = 1

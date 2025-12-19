@@ -87,6 +87,7 @@ theme_override_constants/separation = 12
 [node name="CardNameLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 32
 text = "Card Name"
 

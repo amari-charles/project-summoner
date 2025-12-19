@@ -36,6 +36,7 @@ alignment = 1
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 56
 text = "CHOOSE YOUR SUMMONER"
 horizontal_alignment = 1

@@ -50,6 +50,7 @@ layout_mode = 2
 [node name="TitleLabel" type="Label" parent="MainContainer/ContentPanel/MainMargin/VBoxContainer/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 32
 text = "SUMMONER ROSTER"
 

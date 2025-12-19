@@ -46,6 +46,7 @@ alignment = 1
 
 [node name="VictoryLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 56
 text = "VICTORY!"
 horizontal_alignment = 1

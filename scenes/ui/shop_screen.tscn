@@ -65,6 +65,7 @@ text = "Leave without purchasing"
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 48
 text = "SHOP"
 horizontal_alignment = 1
