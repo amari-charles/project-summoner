@@ -1653,14 +1653,16 @@ func _apply_spawn_shader_deferred(duration: float) -> void:
 
 	_apply_spawn_shader_to_visual()
 
-	# Animate progress from 0 to 1
+	# Animate progress from 0 to 1, with shadow growing alongside
 	_spawn_reveal_tween = create_tween()
 	_spawn_reveal_tween.tween_method(_update_spawn_progress, 0.0, 1.0, duration)
-	_spawn_reveal_tween.tween_callback(_complete_spawn_reveal)
 
-	# Animate shadow growing from center alongside reveal
+	# Animate shadow growing from center alongside reveal (parallel with main animation)
 	if shadow_component:
 		_spawn_reveal_tween.parallel().tween_property(shadow_component, "scale", Vector3.ONE, duration)
+
+	# Callback when animation completes
+	_spawn_reveal_tween.tween_callback(_complete_spawn_reveal)
 
 
 ## Apply the spawn shader to the visual component
