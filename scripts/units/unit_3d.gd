@@ -1636,8 +1636,13 @@ func _apply_spawn_shader_deferred(duration: float) -> void:
 	# Wait for visual component to finish async initialization
 	# Skeletal components set _initialization_complete after bounds calculation
 	if visual_component and visual_component.has_method("is_fully_initialized"):
-		while not visual_component.is_fully_initialized():
+		const MAX_WAIT_FRAMES: int = 300  # 5 seconds at 60fps
+		var wait_frames: int = 0
+		while not visual_component.is_fully_initialized() and wait_frames < MAX_WAIT_FRAMES:
 			await get_tree().process_frame
+			wait_frames += 1
+		if wait_frames >= MAX_WAIT_FRAMES:
+			push_warning("Unit3D: Timed out waiting for visual component initialization")
 
 	if not is_instance_valid(self) or not _is_spawning:
 		return
