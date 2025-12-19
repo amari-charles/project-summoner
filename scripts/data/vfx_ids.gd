@@ -32,13 +32,6 @@ const FIREBALL_TRAIL: StringName = &"fireball_trail"
 const FIREBALL_SPELL: StringName = &"fireball_spell"
 
 # ============================================================================
-# SUMMONING EFFECTS
-# ============================================================================
-
-## Summoning circle displayed during unit cast time
-const SUMMON_CIRCLE: StringName = &"summon_circle"
-
-# ============================================================================
 # SPELL COMMAND EFFECTS (used by card.gd for tactical commands)
 # Note: These are placeholders - VFX definitions may not exist yet
 # ============================================================================
@@ -64,7 +57,6 @@ const IMPLEMENTED: Array[StringName] = [
 	FIREBALL_EXPLOSION,
 	FIREBALL_TRAIL,
 	FIREBALL_SPELL,
-	SUMMON_CIRCLE,
 ]
 
 ## All placeholder VFX IDs (used in code but no .tres yet)

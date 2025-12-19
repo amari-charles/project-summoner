@@ -176,7 +176,7 @@ See [`.claude/CLAUDE.md`](../.claude/CLAUDE.md) for detailed git workflow.
 
 ✅ Two-phase battle system (PREPARATION → BATTLE)
 ✅ Fixed mana pool (no regeneration during battle)
-✅ Summon time mechanics with casting indicator
+✅ Summon time mechanics with ghost spawn reveal effect
 ✅ Unit activation states (inactive during prep, active during battle)
 ✅ Card playing system with drag-and-drop
 ✅ Unit spawning and autonomous AI

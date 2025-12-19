@@ -20,10 +20,6 @@ const PREP_TIMER_COLOR_WARNING: Color = Color(1.0, 0.6, 0.2)  ## Orange
 const PREP_TIMER_COLOR_CRITICAL: Color = Color(1.0, 0.3, 0.3) ## Red
 const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 
-## Casting indicator positioning
-const CASTING_INDICATOR_OFFSET_X: float = -200.0  ## Left of center
-const CASTING_INDICATOR_OFFSET_Y: float = -180.0  ## Above hand area (from bottom)
-
 @export var timer_label: Label = null
 @export var game_over_label: Label = null
 @export var restart_button: Button = null
@@ -39,7 +35,6 @@ const CASTING_INDICATOR_OFFSET_Y: float = -180.0  ## Above hand area (from botto
 
 ## Dynamically created UI elements
 var prep_timer_label: Label = null
-var casting_indicator: CastingIndicator = null
 
 var game_controller: Node = null
 var player_summoner: Summoner = null
@@ -74,11 +69,6 @@ func _ready() -> void:
 
 	# Create prep timer label dynamically (large, center-top)
 	_create_prep_timer_label()
-
-	# Create casting indicator dynamically
-	casting_indicator = CastingIndicator.new()
-	casting_indicator.name = "CastingIndicator"
-	add_child(casting_indicator)
 
 	# Connect restart button (always safe to do in _ready)
 	if restart_button:
@@ -143,17 +133,6 @@ func _connect_to_summoner(summoner: Node) -> void:
 		_on_mana_changed(current_mana, max_mana)
 	else:
 		push_warning("GameUI: PlayerSummoner found but has no mana_changed signal")
-
-	# Casting signals (for summon_time feedback)
-	if summoner.has_signal("casting_started"):
-		var casting_started_signal: Signal = summoner.get("casting_started")
-		casting_started_signal.connect(_on_casting_started)
-	if summoner.has_signal("casting_progress"):
-		var casting_progress_signal: Signal = summoner.get("casting_progress")
-		casting_progress_signal.connect(_on_casting_progress)
-	if summoner.has_signal("casting_completed"):
-		var casting_completed_signal: Signal = summoner.get("casting_completed")
-		casting_completed_signal.connect(_on_casting_completed)
 
 ## Connect to enemy mana signals
 func _connect_to_enemy_mana(summoner: Node) -> void:
@@ -302,24 +281,3 @@ func _on_prep_timer_updated(remaining: float) -> void:
 			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_WARNING)
 		else:
 			prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_NORMAL)
-
-## Handle casting started (summon_time delay begins)
-func _on_casting_started(card: Card, duration: float) -> void:
-	if casting_indicator:
-		# Position near the hand UI (bottom center, offset left)
-		var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-		casting_indicator.position = Vector2(
-			viewport_size.x / 2.0 + CASTING_INDICATOR_OFFSET_X,
-			viewport_size.y + CASTING_INDICATOR_OFFSET_Y
-		)
-		casting_indicator.start_casting(card, duration)
-
-## Handle casting progress update
-func _on_casting_progress(remaining: float, total: float) -> void:
-	if casting_indicator:
-		casting_indicator.update_progress(remaining, total)
-
-## Handle casting completed
-func _on_casting_completed(_card: Card) -> void:
-	if casting_indicator:
-		casting_indicator.stop_casting()

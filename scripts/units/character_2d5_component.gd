@@ -63,3 +63,8 @@ func get_sprite_height() -> float:
 ## @virtual
 func flash_white() -> void:
 	push_error("Character2D5Component.flash_white() called on base class - must be overridden in child class")
+
+## Check if the component is fully initialized and ready for shader application
+## Override in subclasses that have async initialization (e.g., SkeletalCharacter2D5Component)
+func is_fully_initialized() -> bool:
+	return true  # Default: immediately ready

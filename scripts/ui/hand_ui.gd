@@ -271,8 +271,8 @@ class CardDisplay extends Control:
 	## Called when drag ends (whether successful or cancelled)
 	func _notification(what: int) -> void:
 		if what == NOTIFICATION_DRAG_END:
-			# Show hand UI again
-			if hand_ui:
+			# Show hand UI again (unless disabled by casting)
+			if hand_ui and not hand_ui._casting_disabled:
 				hand_ui.visible = true
 
 	## Allow clicking to select card
@@ -424,6 +424,7 @@ var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 var is_rebuilding: bool = false  # Prevents concurrent rebuilds
 var _initialized: bool = false  # Track initialization state
+var _casting_disabled: bool = false  # Hand is locked during casting (single source of truth)
 
 signal card_selected(index: int)
 
@@ -455,6 +456,12 @@ func init(player_summoner: Node) -> void:
 	var mana_changed_signal: Signal = summoner.get("mana_changed")
 	mana_changed_signal.connect(_on_mana_changed)
 
+	# Connect casting signals (hide hand during summon time)
+	var casting_started_signal: Signal = summoner.get("casting_started")
+	casting_started_signal.connect(_on_casting_started)
+	var casting_completed_signal: Signal = summoner.get("casting_completed")
+	casting_completed_signal.connect(_on_casting_completed)
+
 	# Initial hand display with availability update
 	# (mana_changed signal was emitted before we connected)
 	await _rebuild_hand_display()
@@ -472,11 +479,22 @@ func _exit_tree() -> void:
 		var mana_changed_signal: Signal = summoner.get("mana_changed")
 		if mana_changed_signal.is_connected(_on_mana_changed):
 			mana_changed_signal.disconnect(_on_mana_changed)
+		var casting_started_signal: Signal = summoner.get("casting_started")
+		if casting_started_signal.is_connected(_on_casting_started):
+			casting_started_signal.disconnect(_on_casting_started)
+		var casting_completed_signal: Signal = summoner.get("casting_completed")
+		if casting_completed_signal.is_connected(_on_casting_completed):
+			casting_completed_signal.disconnect(_on_casting_completed)
 
 func _rebuild_hand_display() -> void:
 	# Prevent concurrent rebuilds (race condition protection)
 	if is_rebuilding:
 		return
+
+	# Don't rebuild while casting (hand is disabled)
+	if _casting_disabled:
+		return
+
 	is_rebuilding = true
 
 	# Clear existing displays with proper cleanup
@@ -751,6 +769,21 @@ func _on_card_drawn(_card: Card) -> void:
 
 func _on_mana_changed(_current: float, _maximum: float) -> void:
 	_update_availability()
+
+
+func _on_casting_started(_card: Card, _duration: float) -> void:
+	# Lock hand during casting (player can't play another card)
+	_casting_disabled = true
+	visible = false
+
+
+func _on_casting_completed(_card: Card) -> void:
+	# Unlock hand when casting completes (player can summon again)
+	_casting_disabled = false
+	visible = true
+	# Rebuild hand now (was skipped during casting)
+	_rebuild_hand_display()
+
 
 func get_selected_card_index() -> int:
 	return selected_card_index
