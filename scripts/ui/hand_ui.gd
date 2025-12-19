@@ -781,6 +781,8 @@ func _on_casting_completed(_card: Card) -> void:
 	# Unlock hand when casting completes (player can summon again)
 	_casting_disabled = false
 	visible = true
+	# Rebuild hand now (was skipped during casting)
+	_rebuild_hand_display()
 
 
 func get_selected_card_index() -> int:
