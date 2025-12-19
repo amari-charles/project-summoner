@@ -1715,8 +1715,8 @@ func _update_spawn_progress(progress: float) -> void:
 		_spawn_reveal_material.set_shader_parameter("progress", progress)
 
 
-## Complete the spawn reveal effect (visual only - does NOT activate the unit)
-## The Summoner is responsible for calling activate() when the full cast time completes
+## Complete the spawn reveal effect and activate the unit if in BATTLE phase
+## Units spawned during PREPARATION remain inactive until battle starts
 func _complete_spawn_reveal() -> void:
 	if not _is_spawning:
 		return
