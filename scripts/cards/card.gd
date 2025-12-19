@@ -146,10 +146,11 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 
 ## Execute the card effect at the given 3D position
 ## modifier_system: Optional ModifierSystem reference for more efficient access
-func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+## spawn_duration: If > 0, applies spawn reveal effect over this duration (for summon cards)
+func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
 	match card_type:
 		CardType.SUMMON:
-			_summon_unit_3d(play_position, team, battlefield, modifier_system)
+			_summon_unit_3d(play_position, team, battlefield, modifier_system, spawn_duration)
 		CardType.SPELL:
 			_cast_spell_3d(play_position, team, battlefield, modifier_system)
 
@@ -199,7 +200,8 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 	explosion.queue_free()
 
 ## Spawn unit(s) at the 3D position
-func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
+func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
 		assert(false, "Summon card must have unit_scene!")
@@ -284,6 +286,10 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 				desired_pos, gameplay_layer.get_tree(), unit.collision_radius
 			)
 			unit.global_position = safe_pos
+
+			# Start spawn reveal effect if duration specified (ghost materialize animation)
+			if spawn_duration > 0.0:
+				unit.start_spawn_reveal(spawn_duration)
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")

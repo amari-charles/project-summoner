@@ -1578,3 +1578,166 @@ func get_projectile_target_position() -> Vector3:
 		return global_position + Vector3(0, sprite_height * 0.6, 0)
 	# Fallback for units without visual component
 	return global_position + Vector3(0, 1.2, 0)
+
+
+## =============================================================================
+## SPAWN REVEAL EFFECT (Ghost materialize animation)
+## =============================================================================
+
+## Spawn reveal shader (loaded once, cached for reuse)
+static var _spawn_reveal_shader: Shader = null
+
+## Active spawn reveal state
+var _is_spawning: bool = false
+var _spawn_reveal_material: ShaderMaterial = null
+var _spawn_reveal_tween: Tween = null
+var _original_materials: Array = []  ## Store original materials to restore after spawn
+
+
+## Start the spawn reveal effect (ghost materialize from bottom to top)
+## Duration should match the card's summon_time
+## Unit will be inactive during the spawn animation
+func start_spawn_reveal(duration: float) -> void:
+	if _is_spawning:
+		return
+
+	_is_spawning = true
+	activation_state = ActivationState.INACTIVE  # Unit can't act during spawn
+
+	# Load shader if not cached
+	if _spawn_reveal_shader == null:
+		_spawn_reveal_shader = load("res://shaders/vfx/spawn_reveal.gdshader")
+
+	if _spawn_reveal_shader == null:
+		push_error("Unit3D: Failed to load spawn_reveal shader!")
+		_complete_spawn_reveal()
+		return
+
+	# Create shader material
+	_spawn_reveal_material = ShaderMaterial.new()
+	_spawn_reveal_material.shader = _spawn_reveal_shader
+	_spawn_reveal_material.set_shader_parameter("progress", 0.0)
+
+	# Set glow color based on team
+	var glow_color: Color
+	if team == Team.PLAYER:
+		glow_color = Color(0.4, 0.7, 1.0, 1.0)  # Blue for player
+	else:
+		glow_color = Color(1.0, 0.4, 0.4, 1.0)  # Red for enemy
+	_spawn_reveal_material.set_shader_parameter("glow_color", glow_color)
+
+	# Apply shader to visual component
+	# Wait for visual component to be ready (skeletal components need time to initialize)
+	_apply_spawn_shader_deferred(duration)
+
+
+## Apply shader after waiting for component initialization
+func _apply_spawn_shader_deferred(duration: float) -> void:
+	# Wait 2 frames for skeletal components to fully initialize
+	# (same pattern as GhostUnit3D)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	if not is_instance_valid(self) or not _is_spawning:
+		return
+
+	_apply_spawn_shader_to_visual()
+
+	# Animate progress from 0 to 1
+	_spawn_reveal_tween = create_tween()
+	_spawn_reveal_tween.tween_method(_update_spawn_progress, 0.0, 1.0, duration)
+	_spawn_reveal_tween.tween_callback(_complete_spawn_reveal)
+
+
+## Apply the spawn shader to the visual component
+func _apply_spawn_shader_to_visual() -> void:
+	if not visual_component or not _spawn_reveal_material:
+		return
+
+	_original_materials.clear()
+
+	# Check component type and apply shader appropriately
+	if visual_component is SkeletalCharacter2D5Component:
+		var skeletal_comp: SkeletalCharacter2D5Component = visual_component
+		if skeletal_comp.skeletal_instance:
+			# Find all Sprite2D nodes and apply shader
+			var sprites: Array = _find_all_canvas_items(skeletal_comp.skeletal_instance)
+			for node: Node in sprites:
+				if node is CanvasItem:
+					var canvas: CanvasItem = node
+					_original_materials.append({"node": canvas, "material": canvas.material})
+					canvas.material = _spawn_reveal_material
+
+	elif visual_component is SpriteCharacter2D5Component:
+		var sprite_comp: SpriteCharacter2D5Component = visual_component
+		if sprite_comp.character_sprite:
+			_original_materials.append({
+				"node": sprite_comp.character_sprite,
+				"material": sprite_comp.character_sprite.material
+			})
+			sprite_comp.character_sprite.material = _spawn_reveal_material
+
+
+## Find all CanvasItem nodes recursively (for shader application)
+func _find_all_canvas_items(node: Node) -> Array:
+	var result: Array = []
+
+	# Only add leaf CanvasItems (Sprite2D, AnimatedSprite2D) not containers
+	if node is Sprite2D or node is AnimatedSprite2D:
+		result.append(node)
+
+	for child: Node in node.get_children():
+		result.append_array(_find_all_canvas_items(child))
+
+	return result
+
+
+## Update spawn reveal progress (called by tween)
+func _update_spawn_progress(progress: float) -> void:
+	if _spawn_reveal_material:
+		_spawn_reveal_material.set_shader_parameter("progress", progress)
+
+
+## Complete the spawn reveal effect
+func _complete_spawn_reveal() -> void:
+	if not _is_spawning:
+		return
+
+	_is_spawning = false
+
+	# Restore original materials
+	for entry: Variant in _original_materials:
+		if entry is Dictionary:
+			var dict: Dictionary = entry
+			var node: Variant = dict.get("node")
+			var mat: Variant = dict.get("material")
+			if is_instance_valid(node) and node is CanvasItem:
+				var canvas: CanvasItem = node
+				canvas.material = mat if mat is Material else null
+
+	_original_materials.clear()
+	_spawn_reveal_material = null
+
+	# Kill tween if still running
+	if _spawn_reveal_tween and _spawn_reveal_tween.is_valid():
+		_spawn_reveal_tween.kill()
+	_spawn_reveal_tween = null
+
+	# Activate the unit (now it can fight)
+	activation_state = ActivationState.ACTIVE
+
+
+## Check if unit is currently in spawn animation
+func is_spawning() -> bool:
+	return _is_spawning
+
+
+## Cancel spawn reveal early (if needed)
+func cancel_spawn_reveal() -> void:
+	if not _is_spawning:
+		return
+
+	if _spawn_reveal_tween and _spawn_reveal_tween.is_valid():
+		_spawn_reveal_tween.kill()
+
+	_complete_spawn_reveal()

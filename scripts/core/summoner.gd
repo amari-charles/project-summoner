@@ -60,7 +60,6 @@ var casting_time_remaining: float = 0.0
 var casting_time_total: float = 0.0
 var casting_spawn_position: Vector3 = Vector3.ZERO
 var casting_card_index: int = -1
-var casting_vfx: Node = null  ## Active summoning circle VFX
 
 ## Summoner instance (loaded from profile when using PROFILE strategy)
 var _loaded_summoner_instance: SummonerInstance = null
@@ -266,8 +265,10 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 
 	var summon_time: float = card.summon_time
 
-	if summon_time > 0.0:
-		# Start casting (delayed spawn)
+	if summon_time > 0.0 and card.card_type == Card.CardType.SUMMON:
+		# Summon with spawn reveal effect (ghost materialize animation)
+		# Unit spawns immediately but animates in over summon_time
+		# Player is locked from playing another card during this time
 		is_casting = true
 		casting_card = card
 		casting_time_remaining = summon_time
@@ -275,17 +276,18 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 		casting_spawn_position = spawn_position
 		casting_card_index = card_index
 
-		# Spawn summoning circle VFX at target location
-		_spawn_summon_circle_vfx(spawn_position, summon_time)
+		# Spawn the unit immediately with reveal effect
+		_complete_card_play(card, card_index, spawn_position, summon_time)
 
 		casting_started.emit(card, summon_time)
 		return true
 	else:
-		# Instant cast (no summon_time)
+		# Instant cast (spells or units with no summon_time)
 		return _complete_card_play(card, card_index, spawn_position)
 
-## Complete a card play (either immediately or after casting timer)
-func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3) -> bool:
+## Complete a card play (spawns unit/casts spell and manages hand)
+## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
+func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, spawn_duration: float = 0.0) -> bool:
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
@@ -294,8 +296,8 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3) -
 	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
 	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
 
-	# Play the card in 3D
-	card.play_3d(spawn_position, team, battlefield, modifier_system)
+	# Play the card in 3D (with optional spawn reveal effect)
+	card.play_3d(spawn_position, team, battlefield, modifier_system, spawn_duration)
 
 	# Remove from hand and add to discard pile
 	hand.remove_at(card_index)
@@ -320,39 +322,24 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3) -
 	return true
 
 ## Complete casting after summon_time delay
+## With spawn reveal effect, the unit is already spawned - this just cleans up casting state
 func _complete_casting() -> void:
 	if not is_casting or not casting_card:
 		return
 
-	var card: Card = casting_card
-	var index: int = casting_card_index
-	var pos: Vector3 = casting_spawn_position
+	# Save card reference for signal before clearing
+	var completed_card: Card = casting_card
 
-	# Clean up summoning circle VFX (it will auto-cleanup but we clear our reference)
-	casting_vfx = null
-
-	# Reset casting state first (before completing play which may fail)
+	# Reset casting state
 	is_casting = false
-	var completed_card: Card = casting_card  # Save for signal
 	casting_card = null
 	casting_card_index = -1
 	casting_spawn_position = Vector3.ZERO
 	casting_time_remaining = 0.0
 	casting_time_total = 0.0
 
-	# Complete the card play
-	_complete_card_play(card, index, pos)
+	# Emit signal (unit already spawned and active at this point)
 	casting_completed.emit(completed_card)
-
-## Spawn the summoning circle VFX at the target position
-func _spawn_summon_circle_vfx(spawn_pos: Vector3, duration: float) -> void:
-	# Use VFXManager if available
-	var vfx_manager: Node = get_node_or_null("/root/VFXManager")
-	if vfx_manager and vfx_manager.has_method("play_effect"):
-		casting_vfx = vfx_manager.play_effect(VFXIDs.SUMMON_CIRCLE, spawn_pos, {
-			"duration": duration,
-			"team": team
-		})
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
