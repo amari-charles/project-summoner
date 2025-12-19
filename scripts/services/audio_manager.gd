@@ -175,6 +175,12 @@ func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> voi
 		push_error("AudioManager: Failed to load music: %s" % track_path)
 		return
 
+	## If starting from stopped state, ensure both players are clean
+	## (previous fade-out tween may have been interrupted)
+	if _current_music_path.is_empty():
+		_music_player_a.stop()
+		_music_player_b.stop()
+
 	_current_music_path = track_path
 
 	## Get the inactive player for the new track
@@ -183,6 +189,7 @@ func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> voi
 
 	## Setup new player
 	new_player.stream = stream
+	## Start silent if crossfading, full volume otherwise
 	new_player.volume_db = _linear_to_db(0.0) if crossfade > 0.0 and old_player.playing else 0.0
 	new_player.play()
 

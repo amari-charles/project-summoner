@@ -72,6 +72,9 @@ func _on_quit_pressed() -> void:
 	# CRITICAL: Unpause before changing scenes
 	get_tree().paused = false
 
+	# Stop battle music
+	AudioManager.stop_music(0.0)
+
 	# Mark battle as abandoned (clears current_battle, pending_reward, etc.)
 	BattleContext.abandon_battle()
 
