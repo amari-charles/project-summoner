@@ -118,6 +118,12 @@
     "draw_cards": "Draw {count} cards"
   },
   "ui": {
+    "common": {
+      "close": "Close",
+      "back": "Back",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
     "mana": "Mana: {current}/{max}",
     "health": "Health: {current}/{max}",
     "deck_size": "Deck: {count}",

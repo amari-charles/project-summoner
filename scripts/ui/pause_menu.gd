@@ -7,9 +7,11 @@ class_name PauseMenu
 var game_controller: GameController3D = null
 
 @onready var resume_button: Button = %ResumeButton
+@onready var settings_button: Button = %SettingsButton
 @onready var manage_snapshots_button: Button = %ManageSnapshotsButton
 @onready var quit_button: Button = %QuitButton
 @onready var snapshot_manager: SnapshotManager = $SnapshotManager
+@onready var settings_panel: PauseSettingsPanel = $SettingsPanel
 
 func _ready() -> void:
 	# CRITICAL: Process input even when game is paused
@@ -25,6 +27,7 @@ func _ready() -> void:
 
 	# Connect button signals first
 	resume_button.pressed.connect(_on_resume_pressed)
+	settings_button.pressed.connect(_on_settings_pressed)
 	manage_snapshots_button.pressed.connect(_on_manage_snapshots_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 
@@ -60,6 +63,11 @@ func _on_resume_pressed() -> void:
 		push_error("PauseMenu: Cannot resume - no game controller")
 		return
 	game_controller.resume_game()
+
+## Settings button - show settings panel
+func _on_settings_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
+	settings_panel.show_panel()
 
 ## Manage Snapshots button - show snapshot manager
 func _on_manage_snapshots_pressed() -> void:

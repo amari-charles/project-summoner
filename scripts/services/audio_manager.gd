@@ -26,10 +26,14 @@ const DEFAULT_CROSSFADE: float = 1.0
 
 ## UI Sound IDs
 const UI_CLICK: String = "ui_click"
+const SFX_CARD_DRAW: String = "card_draw"
+const SFX_CARD_PLAY: String = "card_play"
 
 ## UI Sound paths
 const _UI_SOUNDS: Dictionary = {
 	UI_CLICK: "res://resources/audio/sfx/ui_click.wav",
+	SFX_CARD_DRAW: "res://resources/audio/sfx/card_draw.mp3",
+	SFX_CARD_PLAY: "res://resources/audio/sfx/card_play.wav",
 }
 
 ## Music players for crossfade support
@@ -300,10 +304,10 @@ func _apply_settings_volume() -> void:
 	var settings: Dictionary = ProfileRepo.get_settings()
 
 	var music_vol_val: Variant = settings.get("music_volume", 1.0)
-	var music_vol: float = music_vol_val if music_vol_val is float else 1.0
+	var music_vol: float = ProfileRepo.safe_float(music_vol_val, 1.0)
 
 	var sfx_vol_val: Variant = settings.get("sfx_volume", 1.0)
-	var sfx_vol: float = sfx_vol_val if sfx_vol_val is float else 1.0
+	var sfx_vol: float = ProfileRepo.safe_float(sfx_vol_val, 1.0)
 
 	## Apply without persisting (already in settings)
 	if _music_bus_idx >= 0:

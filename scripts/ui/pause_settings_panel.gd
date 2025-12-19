@@ -1,26 +1,28 @@
 extends Control
-class_name SettingsScreen
+class_name PauseSettingsPanel
 
-## Settings Screen - Audio volume controls and future settings
-##
-## Features:
-## - Music volume slider
-## - SFX volume slider
-## - Settings persist via ProfileRepo
+## Settings panel overlay for pause menu
+## Shows volume controls without leaving the battle
 
-@onready var close_button: Button = %CloseButton
-@onready var title_label: Label = %Title
-@onready var audio_header: Label = %AudioHeader
+@onready var title_label: Label = %TitleLabel
 @onready var music_label: Label = %MusicLabel
 @onready var music_slider: HSlider = %MusicSlider
 @onready var music_value_label: Label = %MusicValueLabel
 @onready var sfx_label: Label = %SFXLabel
 @onready var sfx_slider: HSlider = %SFXSlider
 @onready var sfx_value_label: Label = %SFXValueLabel
-@onready var coming_soon_label: Label = %ComingSoonLabel
+@onready var close_button: Button = %CloseButton
 
 
 func _ready() -> void:
+	process_mode = PROCESS_MODE_WHEN_PAUSED
+	visible = false
+
+	# Prevent clicks from passing through overlay
+	var overlay: Control = get_node_or_null("BackgroundOverlay")
+	if overlay:
+		overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
 	_setup_localized_text()
 	_load_current_settings()
 	_connect_signals()
@@ -28,10 +30,9 @@ func _ready() -> void:
 
 func _setup_localized_text() -> void:
 	title_label.text = Loc.t("ui.settings.title")
-	audio_header.text = Loc.t("ui.settings.audio_header")
 	music_label.text = Loc.t("ui.settings.music_volume")
 	sfx_label.text = Loc.t("ui.settings.sfx_volume")
-	coming_soon_label.text = Loc.t("ui.settings.coming_soon")
+	close_button.text = Loc.t("ui.common.close")
 
 
 func _load_current_settings() -> void:
@@ -60,6 +61,15 @@ func _update_value_labels() -> void:
 	sfx_value_label.text = "%d%%" % int(sfx_slider.value * 100)
 
 
+func show_panel() -> void:
+	_load_current_settings()
+	visible = true
+
+
+func hide_panel() -> void:
+	visible = false
+
+
 func _on_music_volume_changed(value: float) -> void:
 	AudioManager.set_volume(AudioManager.BUS_MUSIC, value)
 	_update_value_labels()
@@ -72,7 +82,4 @@ func _on_sfx_volume_changed(value: float) -> void:
 
 func _on_close_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
-	var return_scene: String = NavigationContext.pop_return()
-	if return_scene.is_empty():
-		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
-	SceneManager.transition_to(return_scene)
+	hide_panel()

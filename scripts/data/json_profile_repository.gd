@@ -132,10 +132,16 @@ func load_profile(profile_id: String) -> bool:
 	return true
 
 func save_profile(immediate: bool = false) -> void:
+	# Always mark as pending first. This is critical because _write_save() checks
+	# this flag and returns early if false - preventing redundant writes when an
+	# immediate save happens before a pending timer save.
+	_pending_save = true
 	if immediate:
+		# Cancel any pending debounced save since we're writing now.
+		# This prevents a redundant write when the timer fires later.
+		_save_timer.stop()
 		_write_save()
 	else:
-		_pending_save = true
 		_save_timer.start(AUTOSAVE_DELAY)
 
 func get_current_profile_id() -> String:
@@ -884,6 +890,17 @@ func update_profile_meta(meta: Dictionary) -> void:
 func get_settings() -> Dictionary:
 	var empty_settings: Dictionary = {}
 	return _data.get("settings", empty_settings)
+
+
+## Safely convert a Variant to float (handles int from JSON parsing).
+## JSON doesn't distinguish int/float for whole numbers, so 1.0 may load as 1.
+static func safe_float(value: Variant, default: float) -> float:
+	if value is float:
+		return value
+	if value is int:
+		return float(value)
+	return default
+
 
 func update_settings(settings: Dictionary) -> void:
 	var empty_settings_update: Dictionary = {}
