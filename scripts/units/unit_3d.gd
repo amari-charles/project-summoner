@@ -1748,7 +1748,7 @@ func _complete_spawn_reveal() -> void:
 	# If spawned during BATTLE phase, activate immediately
 	# (Units spawned during PREPARATION stay inactive until battle starts)
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
-	if game_controller and game_controller.get("current_phase") == 1:  # BattlePhase.BATTLE
+	if game_controller and game_controller.get("current_phase") == GameController3D.BattlePhase.BATTLE:
 		activate()
 
 

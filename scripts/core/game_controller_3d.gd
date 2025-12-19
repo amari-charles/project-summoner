@@ -121,6 +121,8 @@ func _ready() -> void:
 
 ## Preload all unit scenes to prevent first-spawn initialization delays
 ## Instantiates and immediately frees each unit scene to force Godot to cache resources
+## NOTE: This is a synchronous stopgap that may cause brief stutter during battle load.
+## See docs/todos.md "Add Loading Screen with Asset Preloading" for the async solution.
 func _preload_unit_scenes() -> void:
 	var preloaded_count: int = 0
 	for card_id: String in CardCatalog.get_all_card_ids():
