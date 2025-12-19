@@ -50,6 +50,8 @@ var _ui_sound_cache: Dictionary = {}
 
 func _ready() -> void:
 	print("AudioManager: Initializing...")
+	# Process even when game is paused (for music fades, UI sounds)
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_audio_buses()
 	_create_music_players()
 	_create_ui_player()
