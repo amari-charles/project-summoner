@@ -269,6 +269,7 @@ func _show_choice_ui(reward_options: Array) -> void:
 	continue_button.disabled = true
 
 func _on_choice_selected(index: int) -> void:
+	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
 	print("RewardScreen: Player chose option %d" % index)
 	chosen_reward_index = index
 
@@ -296,6 +297,7 @@ func _on_choice_selected(index: int) -> void:
 ## =============================================================================
 
 func _on_continue_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.UI_CLICK)
 	print("RewardScreen: Continue pressed")
 
 	var campaign: Node = get_node("/root/Campaign")

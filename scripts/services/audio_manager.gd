@@ -5,11 +5,13 @@ extends Node
 ## Manages:
 ## - Audio bus setup (Master, Music, SFX)
 ## - Background music playback with crossfade transitions
+## - UI sound effects
 ## - Volume control with ProfileRepo persistence
 ##
 ## Usage:
 ##   AudioManager.play_music("res://resources/audio/battle.ogg")
 ##   AudioManager.set_volume(AudioManager.BUS_MUSIC, 0.5)
+##   AudioManager.play_ui_sound(AudioManager.UI_CLICK)
 
 signal volume_changed(bus_name: String, volume: float)
 signal music_changed(track_path: String)
@@ -22,6 +24,14 @@ const BUS_SFX: String = "SFX"
 ## Default crossfade duration in seconds
 const DEFAULT_CROSSFADE: float = 1.0
 
+## UI Sound IDs
+const UI_CLICK: String = "ui_click"
+
+## UI Sound paths
+const _UI_SOUNDS: Dictionary = {
+	UI_CLICK: "res://resources/audio/sfx/ui_click.wav",
+}
+
 ## Music players for crossfade support
 var _music_player_a: AudioStreamPlayer = null
 var _music_player_b: AudioStreamPlayer = null
@@ -33,11 +43,17 @@ var _crossfade_tween: Tween = null
 var _music_bus_idx: int = -1
 var _sfx_bus_idx: int = -1
 
+## UI sound player and cache
+var _ui_player: AudioStreamPlayer = null
+var _ui_sound_cache: Dictionary = {}
+
 
 func _ready() -> void:
 	print("AudioManager: Initializing...")
 	_setup_audio_buses()
 	_create_music_players()
+	_create_ui_player()
+	_preload_ui_sounds()
 	_apply_settings_volume()
 	print("AudioManager: Ready")
 
@@ -80,6 +96,49 @@ func _create_music_players() -> void:
 	add_child(_music_player_b)
 
 	_active_player = _music_player_a
+
+
+func _create_ui_player() -> void:
+	## Create a dedicated player for UI sounds (non-positional)
+	_ui_player = AudioStreamPlayer.new()
+	_ui_player.name = "UIPlayer"
+	_ui_player.bus = BUS_SFX
+	add_child(_ui_player)
+
+
+func _preload_ui_sounds() -> void:
+	## Preload all UI sounds into cache
+	for sound_id: String in _UI_SOUNDS:
+		var path_val: Variant = _UI_SOUNDS[sound_id]
+		if path_val is String:
+			var path: String = path_val
+			if ResourceLoader.exists(path):
+				var stream: AudioStream = load(path)
+				if stream:
+					_ui_sound_cache[sound_id] = stream
+				else:
+					push_warning("AudioManager: Failed to load UI sound: %s" % path)
+			else:
+				push_warning("AudioManager: UI sound file not found: %s" % path)
+	print("AudioManager: Loaded %d UI sounds" % _ui_sound_cache.size())
+
+
+## =============================================================================
+## PUBLIC API - UI SOUNDS
+## =============================================================================
+
+## Play a UI sound effect (non-positional)
+## sound_id: One of the UI_* constants (e.g., AudioManager.UI_CLICK)
+func play_ui_sound(sound_id: String) -> void:
+	if not _ui_sound_cache.has(sound_id):
+		push_warning("AudioManager: Unknown UI sound: %s" % sound_id)
+		return
+
+	var stream_val: Variant = _ui_sound_cache[sound_id]
+	if stream_val is AudioStream:
+		var stream: AudioStream = stream_val
+		_ui_player.stream = stream
+		_ui_player.play()
 
 
 ## =============================================================================
