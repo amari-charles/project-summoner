@@ -1608,6 +1608,10 @@ func start_spawn_reveal(duration: float) -> void:
 	_is_spawning = true
 	activation_state = ActivationState.INACTIVE  # Unit can't act during spawn
 
+	# Start shadow at scale 0 (will grow during reveal)
+	if shadow_component:
+		shadow_component.scale = Vector3.ZERO
+
 	# Load shader if not cached (canvas_item shader for 2D sprites in SubViewport)
 	if _spawn_reveal_shader == null:
 		_spawn_reveal_shader = load("res://shaders/vfx/spawn_reveal.gdshader")
@@ -1653,6 +1657,10 @@ func _apply_spawn_shader_deferred(duration: float) -> void:
 	_spawn_reveal_tween = create_tween()
 	_spawn_reveal_tween.tween_method(_update_spawn_progress, 0.0, 1.0, duration)
 	_spawn_reveal_tween.tween_callback(_complete_spawn_reveal)
+
+	# Animate shadow growing from center alongside reveal
+	if shadow_component:
+		_spawn_reveal_tween.parallel().tween_property(shadow_component, "scale", Vector3.ONE, duration)
 
 
 ## Apply the spawn shader to the visual component
@@ -1731,7 +1739,15 @@ func _complete_spawn_reveal() -> void:
 		_spawn_reveal_tween.kill()
 	_spawn_reveal_tween = null
 
-	# NOTE: Activation state is managed by GameController3D via _check_initial_activation_state()
+	# Ensure shadow is at full scale
+	if shadow_component:
+		shadow_component.scale = Vector3.ONE
+
+	# If spawned during BATTLE phase, activate immediately
+	# (Units spawned during PREPARATION stay inactive until battle starts)
+	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	if game_controller and game_controller.get("current_phase") == 1:  # BattlePhase.BATTLE
+		activate()
 
 
 ## Check if unit is currently in spawn animation

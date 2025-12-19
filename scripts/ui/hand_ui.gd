@@ -489,6 +489,11 @@ func _rebuild_hand_display() -> void:
 	# Prevent concurrent rebuilds (race condition protection)
 	if is_rebuilding:
 		return
+
+	# Don't rebuild while casting (hand is hidden during summon time)
+	if summoner and summoner.get("is_casting"):
+		return
+
 	is_rebuilding = true
 
 	# Clear existing displays with proper cleanup
