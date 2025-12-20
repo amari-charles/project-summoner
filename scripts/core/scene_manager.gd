@@ -19,6 +19,7 @@ const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/campaign_map.tscn"
 const SCENE_EVENT_SCREEN: String = "res://scenes/ui/event_screen.tscn"
 const SCENE_SUMMONER_SELECTION: String = "res://scenes/ui/summoner_selection.tscn"
 const SCENE_SUMMONER_REVEAL: String = "res://scenes/ui/summoner_reveal.tscn"
+const SCENE_SUMMONER_SCREEN: String = "res://scenes/ui/summoner_screen.tscn"
 const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/ui/first_card_selection.tscn"
 
 ## Collection Scenes

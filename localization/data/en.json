@@ -258,6 +258,15 @@
     "summoner_icon": {
       "no_summoner": "No summoner selected"
     },
+    "summoner_screen": {
+      "title": "SUMMONER ROSTER",
+      "summoners_header": "SUMMONERS",
+      "gold_display": "Gold: {gold}",
+      "active_indicator": "ACTIVE",
+      "no_traits": "No traits acquired yet",
+      "trait_innate": "Innate",
+      "trait_acquired": "Acquired"
+    },
     "title": {
       "game_name": "PROJECT SUMMONER",
       "tap_prompt": "TAP TO START"

@@ -8,7 +8,6 @@ class_name CampaignMap
 
 ## Preloads
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_icon_widget.tscn")
-const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
 const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/hamburger_button.tscn")
 const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
 const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/snapshot_manager.tscn")
@@ -962,9 +961,9 @@ func _setup_summoner_icon() -> void:
 	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
 
 func _on_summoner_icon_clicked() -> void:
-	var panel: SummonerManagementPanel = SummonerManagementPanelScene.instantiate()
-	add_child(panel)
-	panel.open()
+	# Push current scene for return navigation
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SCREEN)
 
 ## =============================================================================
 ## SIGNALS

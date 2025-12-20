@@ -1,0 +1,308 @@
+[gd_scene load_steps=2 format=3 uid="uid://c0summonerscreen1"]
+
+[ext_resource type="Script" path="res://scripts/ui/summoner_screen.gd" id="1_summoner_screen"]
+
+[node name="SummonerScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_summoner_screen")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.2, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "✕"
+flat = true
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 48
+text = "SUMMONER ROSTER"
+horizontal_alignment = 1
+
+[node name="GoldLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+text = "Gold: 500"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 30
+
+[node name="LeftPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentRow"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="LeftMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentRow/LeftPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="LeftVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/LeftPanel/LeftMargin"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="SummonersHeader" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/LeftPanel/LeftMargin/LeftVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "SUMMONERS"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentRow/LeftPanel/LeftMargin/LeftVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SummonerListContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/LeftPanel/LeftMargin/LeftVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="PortraitContainer" type="CenterContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PortraitFrame" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/PortraitContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 340)
+layout_mode = 2
+
+[node name="PortraitMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/PortraitContainer/PortraitFrame"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="PortraitStack" type="Control" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/PortraitContainer/PortraitFrame/PortraitMargin"]
+layout_mode = 2
+
+[node name="PortraitBackground" type="ColorRect" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.2, 0.15, 1)
+
+[node name="PortraitGlow" type="ColorRect" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.6, 0.4, 0.2, 0.3)
+
+[node name="PortraitSymbol" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 96
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InfoSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SummonerNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 36
+text = "Terravorn"
+horizontal_alignment = 1
+
+[node name="ElementLevelRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="ElementLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/ElementLevelRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.4, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "Earth"
+
+[node name="Separator" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/ElementLevelRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "•"
+
+[node name="LevelLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/ElementLevelRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "Level 5"
+
+[node name="StatsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 40
+
+[node name="HPContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/StatsRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HPIcon" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/StatsRow/HPContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 18
+text = "HP:"
+
+[node name="HPValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/StatsRow/HPContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "1500"
+
+[node name="ManaContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/StatsRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ManaIcon" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/StatsRow/ManaContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.5, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "Mana:"
+
+[node name="ManaValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/StatsRow/ManaContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "12"
+
+[node name="XPSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="XPLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/XPSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "XP: 75 / 100"
+horizontal_alignment = 1
+
+[node name="XPProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/XPSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+value = 75.0
+show_percentage = false
+
+[node name="LevelUpRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 15
+
+[node name="LevelUpButton" type="Button" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/LevelUpRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 45)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "LEVEL UP (100g)"
+
+[node name="LevelUpPreview" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/RightPanel/InfoSection/LevelUpRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "+75 HP, +0.6 Mana"
+vertical_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TraitsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TraitsHeader" type="Label" parent="MarginContainer/VBoxContainer/TraitsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "TRAITS & BOONS"
+
+[node name="TraitsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TraitsSection"]
+layout_mode = 2
+size_flags_vertical = 3
+vertical_scroll_mode = 0
+
+[node name="TraitsContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TraitsSection/TraitsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
