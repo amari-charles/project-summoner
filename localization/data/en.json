@@ -139,7 +139,9 @@
       "no_replay_rewards": "No rewards for replaying battles",
       "victory": "Victory!",
       "unknown_card": "Unknown Card",
-      "rarity": "Rarity: {rarity}"
+      "rarity": "Rarity: {rarity}",
+      "gold": "+ {amount} Gold",
+      "summoner_xp": "+ {amount} Summoner XP"
     },
     "battle": {
       "player_wins": "PLAYER WINS!",

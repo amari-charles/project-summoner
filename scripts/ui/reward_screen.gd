@@ -203,14 +203,14 @@ func _resume_pending_reward(battle: Dictionary) -> void:
 ## Display gold reward amount
 func _display_gold_reward(gold: int) -> void:
 	if gold > 0:
-		gold_reward_label.text = "+ %d Gold" % gold
+		gold_reward_label.text = Loc.t("ui.reward.gold", {"amount": gold})
 	else:
 		gold_reward_label.text = ""
 
 ## Display summoner XP reward amount
 func _display_summoner_xp_reward(xp: int) -> void:
 	if xp > 0:
-		summoner_xp_label.text = "+ %d Summoner XP" % xp
+		summoner_xp_label.text = Loc.t("ui.reward.summoner_xp", {"amount": xp})
 	else:
 		summoner_xp_label.text = ""
 
