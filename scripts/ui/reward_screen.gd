@@ -12,6 +12,7 @@ class_name RewardScreen
 @onready var reward_card_label: Label = %RewardCardLabel
 @onready var reward_detail_label: Label = %RewardDetailLabel
 @onready var gold_reward_label: Label = %GoldRewardLabel
+@onready var summoner_xp_label: Label = %SummonerXPLabel
 @onready var choice_container: HBoxContainer = %ChoiceContainer
 @onready var continue_button: Button = %ContinueButton
 
@@ -128,11 +129,14 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 		reward_card_label.text = Loc.t("ui.reward.already_completed")
 		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
 		gold_reward_label.text = ""
+		summoner_xp_label.text = ""
 		reward_ready_to_claim = false
 		return
 
-	# Display gold reward
+	# Display gold and summoner XP rewards
 	_display_gold_reward(gold_reward)
+	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
+	_display_summoner_xp_reward(summoner_xp)
 
 	match reward_type:
 		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
@@ -162,9 +166,11 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 func _resume_pending_reward(battle: Dictionary) -> void:
 	print("RewardScreen: Resuming pending reward (type: %s, choice_index: %d)" % [reward_type, chosen_reward_index])
 
-	# Display gold reward
+	# Display gold and summoner XP rewards
 	var gold_reward: int = battle.get("gold_reward", 0)
 	_display_gold_reward(gold_reward)
+	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
+	_display_summoner_xp_reward(summoner_xp)
 
 	match reward_type:
 		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
@@ -200,6 +206,13 @@ func _display_gold_reward(gold: int) -> void:
 		gold_reward_label.text = "+ %d Gold" % gold
 	else:
 		gold_reward_label.text = ""
+
+## Display summoner XP reward amount
+func _display_summoner_xp_reward(xp: int) -> void:
+	if xp > 0:
+		summoner_xp_label.text = "+ %d Summoner XP" % xp
+	else:
+		summoner_xp_label.text = ""
 
 func _display_card_reward(reward: Dictionary) -> void:
 	var catalog: Node = get_node("/root/CardCatalog")
