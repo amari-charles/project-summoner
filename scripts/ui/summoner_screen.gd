@@ -191,8 +191,8 @@ func _update_portrait(element: ElementTypes.Element, gradient_colors: Array[Colo
 	var frame_style: StyleBoxFlat = StyleBoxFlat.new()
 	frame_style.bg_color = Color(0.1, 0.1, 0.12, 1.0)
 	frame_style.border_color = border_color
-	frame_style.border_width_all = 4
-	frame_style.corner_radius_all = 12
+	frame_style.set_border_width_all(4)
+	frame_style.set_corner_radius_all(12)
 	frame_style.shadow_color = border_color * Color(1, 1, 1, 0.3)
 	frame_style.shadow_size = 8
 	portrait_frame.add_theme_stylebox_override("panel", frame_style)
@@ -377,7 +377,7 @@ func _create_trait_card(trait_catalog: Node, trait_id: String, is_innate: bool) 
 	style.border_width_right = 1
 	style.border_width_top = 1
 	style.border_width_bottom = 1
-	style.corner_radius_all = 4
+	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
 	# Margin
@@ -456,8 +456,8 @@ func _create_empty_boon_slot() -> PanelContainer:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.12, 1.0)
 	style.border_color = Color(0.3, 0.3, 0.35, 1.0)
-	style.border_width_all = 1
-	style.corner_radius_all = 4
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", style)
 
 	var margin: MarginContainer = MarginContainer.new()
