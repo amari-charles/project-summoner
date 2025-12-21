@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3 uid="uid://beelkm0j8osqm"]
+[gd_scene load_steps=4 format=3 uid="uid://beelkm0j8osqm"]
 
 [ext_resource type="Script" path="res://scripts/ui/summoner_screen.gd" id="1_summoner_screen"]
+[ext_resource type="Shader" path="res://shaders/ui/element_energy_waves.gdshader" id="2_energy_waves"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
+shader = ExtResource("2_energy_waves")
+shader_parameter/color_primary = Color(1, 0.478, 0.165, 1)
+shader_parameter/color_secondary = Color(0.722, 0.188, 0.125, 1)
+shader_parameter/color_dark = Color(0.08, 0.08, 0.1, 1)
+shader_parameter/wave_speed = 0.4
+shader_parameter/wave_intensity = 0.15
+shader_parameter/wave_scale = 3.0
+shader_parameter/glow_intensity = 0.3
+shader_parameter/vignette_strength = 0.4
 
 [node name="SummonerScreen" type="Control"]
 layout_mode = 3
@@ -12,12 +24,14 @@ grow_vertical = 2
 script = ExtResource("1_summoner_screen")
 
 [node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+material = SubResource("ShaderMaterial_background")
 color = Color(0.12, 0.12, 0.16, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]

@@ -22,6 +22,7 @@ const TWEEN_DURATION: float = 0.1
 ## NODE REFERENCES - Header
 ## =============================================================================
 
+@onready var background: ColorRect = %Background
 @onready var close_button: Button = %CloseButton
 @onready var summoner_name_label: Label = %SummonerNameLabel
 @onready var element_label: Label = %ElementLabel
@@ -147,6 +148,9 @@ func _refresh_all() -> void:
 	element_label.add_theme_color_override("font_color", element_color)
 	level_label.text = Loc.t("ui.summoner_panel.level_display", {"level": level})
 
+	# Update background with element-themed energy waves
+	_update_background_for_element(element)
+
 	# Update portrait
 	_update_portrait(element, gradient_colors)
 
@@ -170,6 +174,25 @@ func _refresh_all() -> void:
 	# Update traits and boons (separate sections)
 	_refresh_traits(config)
 	_refresh_boons()
+
+
+## =============================================================================
+## BACKGROUND
+## =============================================================================
+
+func _update_background_for_element(element: ElementTypes.Element) -> void:
+	var gradient_colors: Array[Color] = CardVisualHelper.get_element_gradient_colors(element.id)
+	var material: ShaderMaterial = background.material as ShaderMaterial
+	if not material:
+		return
+
+	# Primary is the brighter color (gradient[1]), secondary is darker (gradient[0])
+	if gradient_colors.size() >= 2:
+		material.set_shader_parameter("color_primary", gradient_colors[1])
+		material.set_shader_parameter("color_secondary", gradient_colors[0])
+	elif gradient_colors.size() == 1:
+		material.set_shader_parameter("color_primary", gradient_colors[0])
+		material.set_shader_parameter("color_secondary", gradient_colors[0].darkened(0.3))
 
 
 ## =============================================================================
