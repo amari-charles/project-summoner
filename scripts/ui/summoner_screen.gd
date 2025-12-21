@@ -50,7 +50,8 @@ const TWEEN_DURATION: float = 0.1
 
 @onready var description_label: Label = %DescriptionLabel
 @onready var stats_container: VBoxContainer = %StatsContainer
-@onready var traits_boons_container: VBoxContainer = %TraitsBoonsContainer
+@onready var traits_container: VBoxContainer = %TraitsContainer
+@onready var boons_container: VBoxContainer = %BoonsContainer
 
 ## =============================================================================
 ## STATE
@@ -166,8 +167,9 @@ func _refresh_all() -> void:
 	# Update stats
 	_refresh_stats(config)
 
-	# Update traits and boons (combined)
-	_refresh_traits_and_boons(config)
+	# Update traits and boons (separate sections)
+	_refresh_traits(config)
+	_refresh_boons()
 
 
 ## =============================================================================
@@ -317,17 +319,41 @@ func _get_computed_stats(summoner_id: String) -> Dictionary:
 
 
 ## =============================================================================
-## TRAITS & BOONS
+## TRAITS
 ## =============================================================================
 
-func _refresh_traits_and_boons(config: SummonerConfig) -> void:
-	# Clear existing items
-	for child: Node in traits_boons_container.get_children():
+func _refresh_traits(config: SummonerConfig) -> void:
+	# Clear existing
+	for child: Node in traits_container.get_children():
 		child.queue_free()
 
 	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
 	if not trait_catalog:
 		return
+
+	# Show innate traits
+	for trait_id: String in config.innate_trait_ids:
+		var trait_card: PanelContainer = _create_trait_card(trait_catalog, trait_id, true)
+		if trait_card:
+			traits_container.add_child(trait_card)
+
+	# Show message if no traits
+	if config.innate_trait_ids.is_empty():
+		var no_traits_label: Label = Label.new()
+		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
+		no_traits_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		no_traits_label.add_theme_font_size_override("font_size", 14)
+		traits_container.add_child(no_traits_label)
+
+
+## =============================================================================
+## BOONS
+## =============================================================================
+
+func _refresh_boons() -> void:
+	# Clear existing
+	for child: Node in boons_container.get_children():
+		child.queue_free()
 
 	# Get acquired boons from summoner instance
 	var acquired_boon_ids: Array[String] = []
@@ -339,25 +365,22 @@ func _refresh_traits_and_boons(config: SummonerConfig) -> void:
 				if boon_id is String:
 					acquired_boon_ids.append(boon_id)
 
-	# Show innate traits first
-	for trait_id: String in config.innate_trait_ids:
-		var trait_card: PanelContainer = _create_trait_card(trait_catalog, trait_id, true)
-		if trait_card:
-			traits_boons_container.add_child(trait_card)
+	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
 
-	# Then show acquired boons
+	# Show acquired boons
 	for boon_id: String in acquired_boon_ids:
-		var boon_card: PanelContainer = _create_trait_card(trait_catalog, boon_id, false)
-		if boon_card:
-			traits_boons_container.add_child(boon_card)
+		if trait_catalog:
+			var boon_card: PanelContainer = _create_trait_card(trait_catalog, boon_id, false)
+			if boon_card:
+				boons_container.add_child(boon_card)
 
-	# Show message if nothing
-	if config.innate_trait_ids.is_empty() and acquired_boon_ids.is_empty():
-		var no_traits_label: Label = Label.new()
-		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
-		no_traits_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		no_traits_label.add_theme_font_size_override("font_size", 14)
-		traits_boons_container.add_child(no_traits_label)
+	# Show message if no boons
+	if acquired_boon_ids.is_empty():
+		var no_boons_label: Label = Label.new()
+		no_boons_label.text = Loc.t("ui.summoner_screen.no_boons")
+		no_boons_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		no_boons_label.add_theme_font_size_override("font_size", 14)
+		boons_container.add_child(no_boons_label)
 
 
 func _create_trait_card(trait_catalog: Node, trait_id: String, is_innate: bool) -> PanelContainer:
@@ -442,7 +465,9 @@ func _show_no_summoner() -> void:
 	# Clear containers
 	for child: Node in stats_container.get_children():
 		child.queue_free()
-	for child: Node in traits_boons_container.get_children():
+	for child: Node in traits_container.get_children():
+		child.queue_free()
+	for child: Node in boons_container.get_children():
 		child.queue_free()
 
 

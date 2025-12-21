@@ -287,33 +287,65 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
-[node name="TraitsBoonsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf"]
+[node name="TraitsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TraitsBoonsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsBoonsPanel"]
+[node name="TraitsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 12
 
-[node name="TraitsBoonsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsBoonsPanel/TraitsBoonsMargin"]
+[node name="TraitsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsPanel/TraitsMargin"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TraitsBoonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsBoonsPanel/TraitsBoonsMargin/TraitsBoonsVBox"]
+[node name="TraitsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsPanel/TraitsMargin/TraitsVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
+theme_override_colors/font_color = Color(0.85, 0.75, 0.4, 1)
 theme_override_font_sizes/font_size = 13
-text = "TRAITS & BOONS"
+text = "TRAITS"
 
-[node name="TraitsBoonsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsBoonsPanel/TraitsBoonsMargin/TraitsBoonsVBox"]
+[node name="TraitsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsPanel/TraitsMargin/TraitsVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="TraitsBoonsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsBoonsPanel/TraitsBoonsMargin/TraitsBoonsVBox/TraitsBoonsScroll"]
+[node name="TraitsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/TraitsPanel/TraitsMargin/TraitsVBox/TraitsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BoonsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BoonsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 12
+
+[node name="BoonsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BoonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.6, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "BOONS"
+
+[node name="BoonsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BoonsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox/BoonsScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
