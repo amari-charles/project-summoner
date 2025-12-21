@@ -21,7 +21,9 @@
       "Bash(xargs basename:*)",
       "Bash(find:*)",
       "Bash(gh pr merge:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(wc:*)",
+      "WebFetch(domain:ui.aceternity.com)"
     ],
     "deny": [],
     "ask": []

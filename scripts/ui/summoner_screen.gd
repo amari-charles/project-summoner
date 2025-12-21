@@ -182,17 +182,21 @@ func _refresh_all() -> void:
 
 func _update_background_for_element(element: ElementTypes.Element) -> void:
 	var gradient_colors: Array[Color] = CardVisualHelper.get_element_gradient_colors(element.id)
+	var glow_color: Color = CardVisualHelper.get_element_glow_color(element.id)
 	var material: ShaderMaterial = background.material as ShaderMaterial
 	if not material:
 		return
 
 	# Primary is the brighter color (gradient[1]), secondary is darker (gradient[0])
+	# Accent is the glow/highlight color
 	if gradient_colors.size() >= 2:
 		material.set_shader_parameter("color_primary", gradient_colors[1])
 		material.set_shader_parameter("color_secondary", gradient_colors[0])
+		material.set_shader_parameter("color_accent", glow_color)
 	elif gradient_colors.size() == 1:
 		material.set_shader_parameter("color_primary", gradient_colors[0])
 		material.set_shader_parameter("color_secondary", gradient_colors[0].darkened(0.3))
+		material.set_shader_parameter("color_accent", gradient_colors[0].lightened(0.3))
 
 
 ## =============================================================================
