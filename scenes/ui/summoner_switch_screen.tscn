@@ -1,0 +1,120 @@
+[gd_scene load_steps=4 format=3 uid="uid://summoner_switch_screen"]
+
+[ext_resource type="Script" path="res://scripts/ui/summoner_switch_screen.gd" id="1_script"]
+[ext_resource type="Shader" path="res://shaders/ui/element_energy_waves.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
+shader = ExtResource("2_shader")
+shader_parameter/color_primary = Color(1, 0.478, 0.165, 1)
+shader_parameter/color_secondary = Color(0.722, 0.188, 0.125, 1)
+shader_parameter/gradient_angle = 135.0
+shader_parameter/gradient_smoothness = 1.0
+shader_parameter/vignette_strength = 0.4
+shader_parameter/vignette_softness = 0.5
+
+[node name="SummonerSwitchScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+material = SubResource("ShaderMaterial_bg")
+color = Color(0.12, 0.1, 0.08, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "X"
+flat = true
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 48
+text = "CHOOSE SUMMONER"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/Header"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+
+[node name="CarouselSection" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="LeftArrow" type="Button" parent="MarginContainer/VBoxContainer/CarouselSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 36
+text = "<"
+
+[node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/CarouselSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="CardContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/CarouselSection/CardScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_constants/separation = 30
+
+[node name="RightArrow" type="Button" parent="MarginContainer/VBoxContainer/CarouselSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 36
+text = ">"
+
+[node name="ConfirmContainer" type="CenterContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ConfirmButton" type="Button" parent="MarginContainer/VBoxContainer/ConfirmContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(250, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Confirm Selection"

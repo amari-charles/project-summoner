@@ -21,11 +21,23 @@ class_name CampaignIDs
 # CAMPAIGN IDS
 # ============================================================================
 
-## Academy Trials - The introductory campaign for new summoners
+## Onboarding - Account-wide tutorial completed once for all summoners
+const ONBOARDING: StringName = &"onboarding"
+
+## Academy Trials - The main campaign for new summoners (per-summoner progress)
 const ACADEMY_TRIALS: StringName = &"academy_trials"
 
 ## Combat Arena - Debug campaign for testing core combat mechanics
 const COMBAT_ARENA: StringName = &"combat_arena"
+
+# ============================================================================
+# SHARED CAMPAIGNS
+# ============================================================================
+
+## Campaigns with shared (account-wide) progress
+const SHARED_CAMPAIGNS: Array[StringName] = [
+	ONBOARDING,
+]
 
 # ============================================================================
 # UTILITY
@@ -33,14 +45,20 @@ const COMBAT_ARENA: StringName = &"combat_arena"
 
 ## All campaign IDs
 const ALL_CAMPAIGNS: Array[StringName] = [
+	ONBOARDING,
 	ACADEMY_TRIALS,
 	COMBAT_ARENA,
 ]
 
 ## Default campaign for new players
-const DEFAULT: StringName = ACADEMY_TRIALS
+const DEFAULT: StringName = ONBOARDING
 
 ## Check if a campaign ID is valid
 ## Accepts String or StringName
 static func is_valid(campaign_id: String) -> bool:
 	return StringName(campaign_id) in ALL_CAMPAIGNS
+
+## Check if a campaign uses shared (account-wide) progress
+## Accepts String or StringName
+static func is_shared_campaign(campaign_id: String) -> bool:
+	return StringName(campaign_id) in SHARED_CAMPAIGNS

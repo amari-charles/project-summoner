@@ -14,6 +14,7 @@ class_name SnapshotManager
 @onready var refresh_button: Button = %RefreshButton
 @onready var close_button: Button = %CloseButton
 @onready var reset_profile_button: Button = %ResetProfileButton
+@onready var unlock_summoners_button: Button = %UnlockSummonersButton
 
 ## Dialogs
 @onready var name_dialog: AcceptDialog = %NameDialog
@@ -46,6 +47,7 @@ func _ready() -> void:
 	refresh_button.pressed.connect(_on_refresh_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 	reset_profile_button.pressed.connect(_on_reset_profile_pressed)
+	unlock_summoners_button.pressed.connect(_on_unlock_summoners_pressed)
 
 	name_dialog.confirmed.connect(_on_name_confirmed)
 	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
@@ -132,6 +134,11 @@ func _on_reset_profile_pressed() -> void:
 	# Show confirmation
 	confirm_reset_dialog.dialog_text = "Reset profile to fresh state?\nThis will delete all progress!\n\nThis cannot be undone."
 	confirm_reset_dialog.popup_centered(Vector2i(400, 180))
+
+func _on_unlock_summoners_pressed() -> void:
+	if _dev_console:
+		_dev_console.call("execute_command", "/unlock_all_summoners")
+		print("SnapshotManager: Unlocked all summoners")
 
 ## =============================================================================
 ## DIALOG HANDLERS

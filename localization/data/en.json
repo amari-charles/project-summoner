@@ -1,5 +1,9 @@
 {
   "campaign": {
+    "onboarding": {
+      "name": "New Summoner Training",
+      "description": "Welcome to the Academy! Complete your initial training to begin your journey."
+    },
     "academy_trials": {
       "name": "Academy Trials",
       "description": "Begin your journey at the Summoning Academy. Master the fundamentals of summoning and prove your worth."
@@ -274,6 +278,10 @@
       "stats_mana": "Mana",
       "stats_damage": "Damage",
       "stats_defense": "Defense"
+    },
+    "summoner_switch": {
+      "title": "CHOOSE SUMMONER",
+      "confirm": "Confirm Selection"
     },
     "title": {
       "game_name": "PROJECT SUMMONER",

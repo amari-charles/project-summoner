@@ -586,8 +586,8 @@ func _on_level_up_pressed() -> void:
 
 
 func _on_switch_summoner_pressed() -> void:
-	# TODO: Navigate to Summoner Select Screen when implemented
-	print("Switch Summoner pressed - Summoner Select Screen not yet implemented")
+	NavigationContext.push_return(SceneManager.SCENE_SUMMONER_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SWITCH)
 
 
 func _on_manage_boons_pressed() -> void:
