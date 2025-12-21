@@ -289,9 +289,9 @@ func _on_card_selected(summoner_id: String) -> void:
 func _update_selection_visuals() -> void:
 	for card: SummonerCard in _summoner_cards:
 		if card.summoner_id == _selected_summoner_id:
-			card.show_glow()
+			card.show_glow(true)  # Mark as selected (persists through hover)
 		else:
-			card.hide_glow()
+			card.hide_glow(true)  # Force deselect
 
 
 ## =============================================================================
