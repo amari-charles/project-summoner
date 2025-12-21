@@ -20,6 +20,8 @@ extends Node
 ##   /snapshot_load <name> - Load a profile snapshot
 ##   /snapshot_list - List all available snapshots
 ##   /snapshot_delete <name> - Delete a snapshot
+##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_fire, summoner_water)
+##   /unlock_all_summoners - Unlock all starting summoners
 ##
 ## Usage in game:
 ##   Press F12 to toggle console (future implementation)
@@ -105,6 +107,10 @@ func execute_command(command: String) -> bool:
 			return _cmd_snapshot_list()
 		"/snapshot_delete":
 			return _cmd_snapshot_delete(args)
+		"/unlock_summoner":
+			return _cmd_unlock_summoner(args)
+		"/unlock_all_summoners":
+			return _cmd_unlock_all_summoners()
 		_:
 			print("DevConsole: Unknown command: %s" % cmd)
 			return false
@@ -406,3 +412,66 @@ func _cmd_snapshot_delete(args: PackedStringArray) -> bool:
 		print("DevConsole: Failed to delete snapshot (may not exist)")
 
 	return success
+
+func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
+	if _repo == null:
+		push_error("DevConsole: ProfileRepo not available")
+		return false
+
+	if args.size() == 0:
+		print("DevConsole: Usage: /unlock_summoner <summoner_id>")
+		print("DevConsole: Valid IDs: summoner_fire, summoner_water, summoner_wind, summoner_earth, summoner_shadow_initiate")
+		return false
+
+	var summoner_id: String = args[0]
+	print("DevConsole: Unlocking summoner '%s'..." % summoner_id)
+
+	# Check if valid summoner
+	if not SummonerIDs.is_valid(summoner_id):
+		print("DevConsole: Invalid summoner ID: %s" % summoner_id)
+		print("DevConsole: Valid IDs: summoner_fire, summoner_water, summoner_wind, summoner_earth, summoner_shadow_initiate")
+		return false
+
+	# Create summoner instance data
+	var summoner_data: Dictionary = {
+		"summoner_id": summoner_id,
+		"level": 1,
+		"xp": 0.0,
+		"acquired_boon_ids": []
+	}
+
+	# Save the instance (this also adds to unlocked_summoners)
+	_repo.call("save_summoner_instance", summoner_data)
+	print("DevConsole: Summoner '%s' unlocked!" % summoner_id)
+
+	return true
+
+func _cmd_unlock_all_summoners() -> bool:
+	if _repo == null:
+		push_error("DevConsole: ProfileRepo not available")
+		return false
+
+	print("DevConsole: Unlocking all starting summoners...")
+
+	var summoners_to_unlock: Array[StringName] = SummonerIDs.ALL_STARTING.duplicate()
+	summoners_to_unlock.append(SummonerIDs.SHADOW_INITIATE)
+
+	var unlocked_count: int = 0
+	for summoner_id: StringName in summoners_to_unlock:
+		# Check if already unlocked
+		if _repo.call("is_summoner_unlocked", String(summoner_id)):
+			print("DevConsole: %s already unlocked, skipping" % summoner_id)
+			continue
+
+		var summoner_data: Dictionary = {
+			"summoner_id": String(summoner_id),
+			"level": 1,
+			"xp": 0.0,
+			"acquired_boon_ids": []
+		}
+		_repo.call("save_summoner_instance", summoner_data)
+		unlocked_count += 1
+		print("DevConsole: Unlocked %s" % summoner_id)
+
+	print("DevConsole: Unlocked %d summoners!" % unlocked_count)
+	return true

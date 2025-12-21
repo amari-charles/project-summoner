@@ -194,9 +194,11 @@ Suggest specific refactors that would improve extensibility without over-enginee
 
 5. Testing & correctness
 
+**All tests must pass.** Run `godot --headless -s addons/gut/gut_cmdln.gd` and verify all tests pass before approving a PR. If tests fail, flag this as a blocking issue.
+
 Are there tests that cover the new behavior and important edge cases?
 
-Do tests assert meaningful behavior instead of just asserting that “something runs”?
+Do tests assert meaningful behavior instead of just asserting that "something runs"?
 
 Suggest additional test cases where:
 

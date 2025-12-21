@@ -26,6 +26,9 @@ signal summoner_unhovered()
 var summoner_id: String = ""
 var summoner_config: SummonerConfig = null
 
+## State
+var _is_selected: bool = false
+
 func _ready() -> void:
 	# Connect click button
 	if click_button:
@@ -105,14 +108,18 @@ func _get_element_color(element: ElementTypes.Element) -> Color:
 		_:
 			return Color.WHITE
 
-## Show glow effect
-func show_glow() -> void:
+## Show glow effect (selection state persists through hover)
+func show_glow(selected: bool = false) -> void:
+	if selected:
+		_is_selected = true
 	if glow_panel:
 		glow_panel.visible = true
 
-## Hide glow effect
-func hide_glow() -> void:
-	if glow_panel:
+## Hide glow effect (respects selection state)
+func hide_glow(force: bool = false) -> void:
+	if force:
+		_is_selected = false
+	if glow_panel and not _is_selected:
 		glow_panel.visible = false
 
 ## Button pressed

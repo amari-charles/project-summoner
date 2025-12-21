@@ -20,7 +20,7 @@ extends IProfileRepo
 const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 
 ## Current save version for migrations
-const CURRENT_VERSION: int = 2
+const CURRENT_VERSION: int = 3
 
 ## Signals inherited from IProfileRepo (do not redeclare)
 
@@ -868,6 +868,44 @@ func update_campaign_progress(progress: Dictionary, summoner_id: String = "") ->
 	data_changed.emit()
 
 ## =============================================================================
+## SHARED CAMPAIGN PROGRESS OPERATIONS (Account-wide)
+## =============================================================================
+
+## Get shared campaign progress (for onboarding and other account-wide campaigns)
+func get_shared_campaign_progress() -> Dictionary:
+	var empty_progress: Dictionary = {"completed_battles": [], "current_battle": null}
+	var shared_progress: Variant = _data.get("shared_campaign_progress", empty_progress)
+	if shared_progress is Dictionary:
+		return shared_progress
+	return empty_progress
+
+## Update shared campaign progress
+func update_shared_campaign_progress(progress: Dictionary) -> void:
+	# Ensure shared_campaign_progress dict exists
+	if not _data.has("shared_campaign_progress"):
+		_data["shared_campaign_progress"] = {"completed_battles": [], "current_battle": null}
+
+	var shared_progress: Variant = _data.get("shared_campaign_progress")
+	if not shared_progress is Dictionary:
+		_data["shared_campaign_progress"] = {"completed_battles": [], "current_battle": null}
+		shared_progress = _data["shared_campaign_progress"]
+
+	var shared_dict: Dictionary = shared_progress
+	for key: String in progress:
+		shared_dict[key] = progress[key]
+
+	_append_to_wal({"action": "update_shared_campaign_progress", "params": progress})
+	save_profile(true)  # Immediate save for campaign progress
+	data_changed.emit()
+
+## Check if onboarding is complete (convenience method)
+func is_onboarding_complete() -> bool:
+	var shared_progress: Dictionary = get_shared_campaign_progress()
+	var completed: Array = shared_progress.get("completed_battles", [])
+	# Onboarding is complete when caravan_tutorial is done (last event)
+	return "event_caravan_tutorial" in completed
+
+## =============================================================================
 ## METADATA OPERATIONS
 ## =============================================================================
 
@@ -1070,6 +1108,7 @@ func _create_fresh_profile() -> void:
 		"decks": [],
 		"deck_cards": [],
 		"campaign_progress": {},  # Per-summoner structure: { "summoner_id": { completed_battles, current_battle, pending_reward } }
+		"shared_campaign_progress": {},  # Account-wide progress for shared campaigns (onboarding)
 		"shop_purchases": {},  # "shop_id::offering_id::refresh_epoch" -> purchase_count
 		"shop_refresh_state": {  # Per-shop refresh tracking
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}
@@ -1124,6 +1163,9 @@ func _migrate(from_version: int) -> void:
 		1:
 			# Version 1 → 2 migration: Add card progression fields
 			_migrate_v1_to_v2()
+		2:
+			# Version 2 → 3 migration: Move onboarding battles to shared progress
+			_migrate_v2_to_v3()
 		_:
 			push_warning("JsonProfileRepo: No migration defined for version " + str(from_version))
 
@@ -1150,6 +1192,70 @@ func _migrate_v1_to_v2() -> void:
 
 	_data["collection"] = coll_array
 	print("JsonProfileRepo: Card migration complete - %d cards updated" % coll_array.size())
+
+## Migration: Move onboarding battles from per-summoner to shared progress
+func _migrate_v2_to_v3() -> void:
+	print("JsonProfileRepo: Migrating onboarding progress to shared storage...")
+
+	# Onboarding battle IDs that should be shared
+	var onboarding_battle_ids: Array[String] = [
+		"event_affinity",
+		"event_first_summon",
+		"first_trial",
+		"charge_tutorial",
+		"event_caravan_tutorial"
+	]
+
+	# Initialize shared progress if needed
+	if not _data.has("shared_campaign_progress"):
+		_data["shared_campaign_progress"] = {"completed_battles": [], "current_battle": null}
+
+	var shared_progress: Dictionary = _data["shared_campaign_progress"]
+	var shared_completed: Array = shared_progress.get("completed_battles", [])
+
+	# Scan all summoner progress for onboarding battles
+	var campaign_progress: Variant = _data.get("campaign_progress", {})
+	if not campaign_progress is Dictionary:
+		print("JsonProfileRepo: No campaign progress to migrate")
+		return
+
+	var progress_dict: Dictionary = campaign_progress
+	var migrated_count: int = 0
+
+	for summoner_id: String in progress_dict.keys():
+		var summoner_progress: Variant = progress_dict.get(summoner_id)
+		if not summoner_progress is Dictionary:
+			continue
+
+		var summoner_dict: Dictionary = summoner_progress
+		var completed_battles: Variant = summoner_dict.get("completed_battles", [])
+		if not completed_battles is Array:
+			continue
+
+		var completed_array: Array = completed_battles
+		var battles_to_remove: Array[String] = []
+
+		# Find onboarding battles in this summoner's progress
+		for battle_id: Variant in completed_array:
+			if battle_id is String:
+				var battle_str: String = battle_id
+				if battle_str in onboarding_battle_ids:
+					# Add to shared if not already there
+					if battle_str not in shared_completed:
+						shared_completed.append(battle_str)
+						migrated_count += 1
+					battles_to_remove.append(battle_str)
+
+		# Remove onboarding battles from summoner's progress
+		for battle_to_remove: String in battles_to_remove:
+			completed_array.erase(battle_to_remove)
+
+		summoner_dict["completed_battles"] = completed_array
+
+	shared_progress["completed_battles"] = shared_completed
+	_data["shared_campaign_progress"] = shared_progress
+
+	print("JsonProfileRepo: Migrated %d onboarding battles to shared progress" % migrated_count)
 
 ## =============================================================================
 ## INTERNAL - WRITE-AHEAD LOG

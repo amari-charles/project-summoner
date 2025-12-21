@@ -30,6 +30,9 @@ var _battles: Dictionary = {}
 var _campaigns: Dictionary = {}  # campaign_id -> campaign metadata
 var _current_campaign_id: String = ""
 
+## Shared campaigns (account-wide progress)
+var _shared_campaigns: Dictionary = {}  # campaign_id -> true for shared campaigns
+
 ## Current profile's campaign progress
 var _completed_battles: Array[String] = []
 
@@ -103,6 +106,7 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 func _load_campaigns(skip_validation: bool = false) -> void:
 	_campaigns.clear()
 	_battles.clear()
+	_shared_campaigns.clear()
 
 	var campaign_dir: String = "res://data/campaigns/"
 	var dir: DirAccess = DirAccess.open(campaign_dir)
@@ -123,6 +127,9 @@ func _load_campaigns(skip_validation: bool = false) -> void:
 				if not campaign_id.is_empty():
 					_campaigns[campaign_id] = campaign_data
 					_load_battles_from_campaign(campaign_data)
+					# Track shared campaigns
+					if campaign_data.get("is_shared", false):
+						_shared_campaigns[campaign_id] = true
 		file_name = dir.get_next()
 
 	dir.list_dir_end()
@@ -288,29 +295,89 @@ func is_campaign_unlocked(campaign_id: String) -> bool:
 	if requirements.is_empty():
 		return true
 
-	# Future: implement requirement checking (e.g., completed other campaigns)
+	# Check each requirement
+	for req: Variant in requirements:
+		if req is String:
+			var req_str: String = req
+			if not _is_campaign_complete(req_str):
+				return false
+
 	return true
+
+## Check if a campaign is complete (all battles finished)
+func _is_campaign_complete(campaign_id: String) -> bool:
+	var campaign: Dictionary = _campaigns.get(campaign_id, {})
+	var battles: Array = campaign.get("battles", [])
+
+	if battles.is_empty():
+		return false
+
+	# Get completed battles for this campaign
+	var completed: Array
+	if _is_shared_campaign(campaign_id):
+		var shared_progress: Dictionary = profile_repo.get_shared_campaign_progress()
+		completed = shared_progress.get("completed_battles", [])
+	else:
+		var summoner_progress: Dictionary = profile_repo.get_campaign_progress()
+		completed = summoner_progress.get("completed_battles", [])
+
+	# Check if all battles in campaign are completed
+	for battle: Variant in battles:
+		if battle is Dictionary:
+			var battle_dict: Dictionary = battle
+			var battle_id: String = battle_dict.get("id", "")
+			if not battle_id.is_empty() and battle_id not in completed:
+				return false
+
+	return true
+
+## Check if onboarding is complete (convenience method)
+func is_onboarding_complete() -> bool:
+	return _is_campaign_complete(String(CampaignIDs.ONBOARDING))
 
 ## =============================================================================
 ## PROGRESS MANAGEMENT
 ## =============================================================================
 
 func _load_progress() -> void:
-	var campaign_progress: Dictionary = profile_repo.get_campaign_progress()
+	var campaign_progress: Dictionary
+	if _is_shared_campaign(_current_campaign_id):
+		campaign_progress = profile_repo.get_shared_campaign_progress()
+	else:
+		campaign_progress = profile_repo.get_campaign_progress()
+
 	var completed_battles_raw: Array = campaign_progress.get("completed_battles", [])
 	_completed_battles.clear()
 	for battle_id: Variant in completed_battles_raw:
 		if battle_id is String:
 			_completed_battles.append(battle_id)
-	print("CampaignService: Loaded progress - %d battles completed" % _completed_battles.size())
+	print("CampaignService: Loaded progress for '%s' (shared=%s) - %d battles completed" % [
+		_current_campaign_id,
+		_is_shared_campaign(_current_campaign_id),
+		_completed_battles.size()
+	])
 
 func save_progress() -> void:
-	profile_repo.update_campaign_progress({
+	var progress_data: Dictionary = {
 		"completed_battles": _completed_battles.duplicate()
-	})
+	}
+
+	if _is_shared_campaign(_current_campaign_id):
+		profile_repo.update_shared_campaign_progress(progress_data)
+	else:
+		profile_repo.update_campaign_progress(progress_data)
+
 	# Note: campaign_progress_changed is emitted via _on_profile_data_changed()
 	# when the repo emits data_changed after update_campaign_progress()
-	print("CampaignService: Saved progress - %d battles completed" % _completed_battles.size())
+	print("CampaignService: Saved progress for '%s' (shared=%s) - %d battles completed" % [
+		_current_campaign_id,
+		_is_shared_campaign(_current_campaign_id),
+		_completed_battles.size()
+	])
+
+## Check if a campaign uses shared (account-wide) progress
+func _is_shared_campaign(campaign_id: String) -> bool:
+	return campaign_id in _shared_campaigns
 
 ## =============================================================================
 ## BATTLE QUERIES
@@ -392,12 +459,19 @@ func set_pending_reward(battle_id: String, reward_type: String, choice_index: in
 		"reward_type": reward_type,
 		"choice_index": choice_index  # -1 = not chosen yet (for choice rewards)
 	}
-	profile_repo.update_campaign_progress({"pending_reward": pending})
+	if _is_shared_campaign(_current_campaign_id):
+		profile_repo.update_shared_campaign_progress({"pending_reward": pending})
+	else:
+		profile_repo.update_campaign_progress({"pending_reward": pending})
 	print("CampaignService: Set pending reward for battle '%s' (type: %s)" % [battle_id, reward_type])
 
 ## Get the current pending reward (null if none)
 func get_pending_reward() -> Variant:
-	var campaign_progress: Dictionary = profile_repo.get_campaign_progress()
+	var campaign_progress: Dictionary
+	if _is_shared_campaign(_current_campaign_id):
+		campaign_progress = profile_repo.get_shared_campaign_progress()
+	else:
+		campaign_progress = profile_repo.get_campaign_progress()
 	return campaign_progress.get("pending_reward", null)
 
 ## Update choice index for a pending choice reward
@@ -409,12 +483,18 @@ func update_pending_choice(choice_index: int) -> void:
 
 	var pending_dict: Dictionary = pending
 	pending_dict["choice_index"] = choice_index
-	profile_repo.update_campaign_progress({"pending_reward": pending_dict})
+	if _is_shared_campaign(_current_campaign_id):
+		profile_repo.update_shared_campaign_progress({"pending_reward": pending_dict})
+	else:
+		profile_repo.update_campaign_progress({"pending_reward": pending_dict})
 	print("CampaignService: Updated pending choice to index %d" % choice_index)
 
 ## Clear the pending reward (called after reward is claimed)
 func clear_pending_reward() -> void:
-	profile_repo.update_campaign_progress({"pending_reward": null})
+	if _is_shared_campaign(_current_campaign_id):
+		profile_repo.update_shared_campaign_progress({"pending_reward": null})
+	else:
+		profile_repo.update_campaign_progress({"pending_reward": null})
 	print("CampaignService: Cleared pending reward")
 
 ## Claim the pending reward (grants cards and marks battle complete)

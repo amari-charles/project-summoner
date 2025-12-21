@@ -22,7 +22,7 @@ Summoners are deck leaders that provide passive bonuses and define core battle p
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    UI Layer                                  │
-│  - SummonerManagementPanel (summoner roster, level-up, traits)│
+│  - SummonerScreen (full-screen summoner roster, level-up, traits)│
 │  - SummonerIconWidget (persistent summoner button on screens) │
 │  - SummonerRosterItem (individual summoner display in roster) │
 └─────────────────────┬───────────────────────────────────────┘
@@ -300,17 +300,18 @@ ProfileRepo.update_campaign_progress({"current_battle": "battle_02"})
 
 ## UI Components
 
-### SummonerManagementPanel
-Full-screen modal for summoner management:
-- Summoner roster with all unlocked summoners
-- Active summoner details (stats, traits, XP)
-- Level-up button (spends gold + requires XP threshold)
-- Summoner switching
+### SummonerScreen
+Full-screen summoner management interface:
+- Summoner list panel (left) for switching between summoners
+- Enhanced portrait with element-themed gradients and glow
+- Stats display (HP, Mana with trait bonuses)
+- XP progress and level-up with gold cost
+- Traits section showing innate traits and acquired boons
 
 ### SummonerIconWidget
 Persistent summoner portrait button:
 - Shows active summoner's element color and level
-- Click to open SummonerManagementPanel
+- Click to open SummonerScreen
 - Auto-updates when summoner changes
 
 ### SummonerRosterItem

@@ -8,7 +8,6 @@ class_name CampaignMap
 
 ## Preloads
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/summoner_icon_widget.tscn")
-const SummonerManagementPanelScene: PackedScene = preload("res://scenes/ui/summoner_management_panel.tscn")
 const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/hamburger_button.tscn")
 const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
 const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/snapshot_manager.tscn")
@@ -184,6 +183,9 @@ func _ready() -> void:
 	# Setup campaign banner (top-left)
 	_setup_campaign_banner()
 
+	# Auto-redirect: If on onboarding but it's complete, switch to main campaign
+	_check_auto_redirect_from_onboarding()
+
 	# Setup summoner icon
 	_setup_summoner_icon()
 
@@ -211,6 +213,33 @@ func _draw() -> void:
 		var start_pos: Vector2 = start_node.position + start_node.size / 2
 		var end_pos: Vector2 = end_node.position + end_node.size / 2
 		draw_line(start_pos, end_pos, PATH_COLOR, PATH_WIDTH)
+
+## =============================================================================
+## AUTO-REDIRECT FROM COMPLETED ONBOARDING
+## =============================================================================
+
+func _check_auto_redirect_from_onboarding() -> void:
+	var campaign: Node = get_node_or_null("/root/Campaign")
+	if not campaign:
+		return
+
+	# Check if currently on onboarding campaign
+	var current_campaign_id: String = ""
+	if campaign.has_method("get_current_campaign_id"):
+		current_campaign_id = campaign.call("get_current_campaign_id")
+
+	if current_campaign_id != String(CampaignIDs.ONBOARDING):
+		return  # Not on onboarding, no redirect needed
+
+	# Check if onboarding is complete
+	if campaign.has_method("is_onboarding_complete"):
+		var is_complete: bool = campaign.call("is_onboarding_complete")
+		if is_complete:
+			# Switch to academy trials (main campaign)
+			print("CampaignMap: Onboarding complete, auto-switching to Academy Trials")
+			if campaign.has_method("set_current_campaign"):
+				campaign.call("set_current_campaign", String(CampaignIDs.ACADEMY_TRIALS))
+				_update_campaign_banner_text()
 
 ## =============================================================================
 ## MAP DISPLAY
@@ -939,10 +968,12 @@ func _on_campaign_modal_closed() -> void:
 
 func _setup_summoner_icon() -> void:
 	# Only show summoner icon after affinity event is completed
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if campaign and campaign.has_method("is_battle_completed"):
-		var is_completed: bool = campaign.call("is_battle_completed", BattleIDs.EVENT_AFFINITY)
-		if not is_completed:
+	# Check shared progress since affinity is part of onboarding (account-wide)
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if profile_repo and profile_repo.has_method("get_shared_campaign_progress"):
+		var shared_progress: Dictionary = profile_repo.call("get_shared_campaign_progress")
+		var completed_battles: Array = shared_progress.get("completed_battles", [])
+		if String(BattleIDs.EVENT_AFFINITY) not in completed_battles:
 			return
 
 	summoner_icon = SummonerIconWidgetScene.instantiate()
@@ -962,9 +993,9 @@ func _setup_summoner_icon() -> void:
 	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
 
 func _on_summoner_icon_clicked() -> void:
-	var panel: SummonerManagementPanel = SummonerManagementPanelScene.instantiate()
-	add_child(panel)
-	panel.open()
+	# Push current scene for return navigation
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SCREEN)
 
 ## =============================================================================
 ## SIGNALS

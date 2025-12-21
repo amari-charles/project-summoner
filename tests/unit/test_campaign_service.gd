@@ -84,10 +84,11 @@ func test_complete_battle_marks_as_completed() -> void:
 
 
 func test_complete_battle_saves_to_profile() -> void:
+	# Default campaign is onboarding (shared), so this saves to shared progress
 	campaign.complete_battle(String(BattleIDs.EVENT_AFFINITY))
 
-	assert_eq(mock_repo.get_call_count("update_campaign_progress"), 1)
-	var progress: Dictionary = mock_repo.get_campaign_progress()
+	assert_eq(mock_repo.get_call_count("update_shared_campaign_progress"), 1)
+	var progress: Dictionary = mock_repo.get_shared_campaign_progress()
 	assert_true(String(BattleIDs.EVENT_AFFINITY) in progress.get("completed_battles", []))
 
 
@@ -118,8 +119,8 @@ func test_complete_battle_emits_signal() -> void:
 
 
 func test_loads_progress_from_profile() -> void:
-	# Set up pre-existing progress
-	mock_repo.set_campaign_progress({
+	# Set up pre-existing shared progress (onboarding is the default campaign)
+	mock_repo.set_shared_campaign_progress({
 		"completed_battles": [String(BattleIDs.EVENT_AFFINITY), String(BattleIDs.EVENT_FIRST_SUMMON)]
 	})
 
@@ -330,13 +331,200 @@ func test_campaign_progress_changed_emitted_on_save() -> void:
 ## =============================================================================
 
 func test_reloads_progress_when_profile_data_changes() -> void:
-	# First complete a battle
+	# First complete a battle (onboarding uses shared progress)
 	campaign.complete_battle(String(BattleIDs.EVENT_AFFINITY))
 	assert_true(campaign.is_battle_completed(String(BattleIDs.EVENT_AFFINITY)))
 
-	# Simulate external change - reset progress
-	mock_repo.set_campaign_progress({"completed_battles": []})
+	# Simulate external change - reset shared progress
+	mock_repo.set_shared_campaign_progress({"completed_battles": []})
 	mock_repo.data_changed.emit()
 
 	# Should have reloaded and now show no battles completed
 	assert_false(campaign.is_battle_completed(String(BattleIDs.EVENT_AFFINITY)))
+
+
+## =============================================================================
+## SHARED CAMPAIGN TESTS
+## =============================================================================
+
+func test_onboarding_campaign_is_shared() -> void:
+	# Set current campaign to onboarding
+	campaign.set_current_campaign(String(CampaignIDs.ONBOARDING))
+
+	# Complete a battle - should save to shared progress
+	campaign.complete_battle(String(BattleIDs.EVENT_AFFINITY))
+
+	# Verify it was saved to shared progress, not per-summoner
+	assert_eq(mock_repo.get_call_count("update_shared_campaign_progress"), 1)
+	var shared_progress: Dictionary = mock_repo.get_shared_campaign_progress()
+	assert_true(String(BattleIDs.EVENT_AFFINITY) in shared_progress.get("completed_battles", []))
+
+
+func test_academy_trials_is_not_shared() -> void:
+	# First complete onboarding to unlock academy trials
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [
+			String(BattleIDs.EVENT_AFFINITY),
+			String(BattleIDs.EVENT_FIRST_SUMMON),
+			String(BattleIDs.FIRST_TRIAL),
+			String(BattleIDs.CHARGE_TUTORIAL),
+			String(BattleIDs.EVENT_CARAVAN_TUTORIAL)
+		]
+	})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	# Set current campaign to academy trials
+	campaign.set_current_campaign(String(CampaignIDs.ACADEMY_TRIALS))
+
+	# Verify academy trials has no battles (they're in onboarding now)
+	var battles: Array = campaign.get_all_battles()
+	assert_eq(battles.size(), 0, "Academy trials should have no battles yet")
+
+
+func test_loads_shared_progress_for_onboarding_campaign() -> void:
+	# Set up shared progress
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [String(BattleIDs.EVENT_AFFINITY)]
+	})
+
+	# Set current campaign to onboarding and reinit
+	mock_repo.update_profile_meta({"selected_campaign": String(CampaignIDs.ONBOARDING)})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	# Should load from shared progress
+	assert_true(campaign.is_battle_completed(String(BattleIDs.EVENT_AFFINITY)))
+
+
+func test_loads_per_summoner_progress_for_non_shared_campaign() -> void:
+	# Complete onboarding first
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [
+			String(BattleIDs.EVENT_AFFINITY),
+			String(BattleIDs.EVENT_FIRST_SUMMON),
+			String(BattleIDs.FIRST_TRIAL),
+			String(BattleIDs.CHARGE_TUTORIAL),
+			String(BattleIDs.EVENT_CARAVAN_TUTORIAL)
+		]
+	})
+
+	# Set up per-summoner progress for combat arena (a non-shared campaign with battles)
+	mock_repo.set_campaign_progress({
+		"completed_battles": [String(BattleIDs.ARENA_FIRE_ELEMENTAL)]
+	})
+
+	# Set current campaign to combat arena (non-shared, has battles)
+	mock_repo.update_profile_meta({"selected_campaign": String(CampaignIDs.COMBAT_ARENA)})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	# Switch to combat arena
+	campaign.set_current_campaign(String(CampaignIDs.COMBAT_ARENA))
+
+	# Should NOT have onboarding battles in completed list (they're in shared)
+	assert_false(campaign.is_battle_completed(String(BattleIDs.EVENT_AFFINITY)))
+	# Should have per-summoner battles
+	assert_true(campaign.is_battle_completed(String(BattleIDs.ARENA_FIRE_ELEMENTAL)))
+
+
+## =============================================================================
+## CAMPAIGN UNLOCK REQUIREMENT TESTS
+## =============================================================================
+
+func test_academy_trials_locked_without_onboarding() -> void:
+	# No shared progress - onboarding not complete
+	mock_repo.set_shared_campaign_progress({"completed_battles": []})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	assert_false(campaign.is_campaign_unlocked(String(CampaignIDs.ACADEMY_TRIALS)))
+
+
+func test_academy_trials_unlocked_after_onboarding() -> void:
+	# Complete all onboarding battles
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [
+			String(BattleIDs.EVENT_AFFINITY),
+			String(BattleIDs.EVENT_FIRST_SUMMON),
+			String(BattleIDs.FIRST_TRIAL),
+			String(BattleIDs.CHARGE_TUTORIAL),
+			String(BattleIDs.EVENT_CARAVAN_TUTORIAL)
+		]
+	})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	assert_true(campaign.is_campaign_unlocked(String(CampaignIDs.ACADEMY_TRIALS)))
+
+
+func test_onboarding_always_unlocked() -> void:
+	# No progress at all
+	mock_repo.set_shared_campaign_progress({"completed_battles": []})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	assert_true(campaign.is_campaign_unlocked(String(CampaignIDs.ONBOARDING)))
+
+
+## =============================================================================
+## IS_ONBOARDING_COMPLETE TESTS
+## =============================================================================
+
+func test_is_onboarding_complete_false_initially() -> void:
+	mock_repo.set_shared_campaign_progress({"completed_battles": []})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	assert_false(campaign.is_onboarding_complete())
+
+
+func test_is_onboarding_complete_false_partial() -> void:
+	# Some onboarding battles done but not all
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [
+			String(BattleIDs.EVENT_AFFINITY),
+			String(BattleIDs.EVENT_FIRST_SUMMON)
+		]
+	})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	assert_false(campaign.is_onboarding_complete())
+
+
+func test_is_onboarding_complete_true_when_all_done() -> void:
+	# All onboarding battles complete
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [
+			String(BattleIDs.EVENT_AFFINITY),
+			String(BattleIDs.EVENT_FIRST_SUMMON),
+			String(BattleIDs.FIRST_TRIAL),
+			String(BattleIDs.CHARGE_TUTORIAL),
+			String(BattleIDs.EVENT_CARAVAN_TUTORIAL)
+		]
+	})
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+
+	assert_true(campaign.is_onboarding_complete())
+
+
+## =============================================================================
+## PENDING REWARD WITH SHARED CAMPAIGNS
+## =============================================================================
+
+func test_pending_reward_uses_shared_storage_for_onboarding() -> void:
+	# Set campaign to onboarding
+	campaign.set_current_campaign(String(CampaignIDs.ONBOARDING))
+
+	campaign.set_pending_reward(String(BattleIDs.FIRST_TRIAL), String(RewardTypeIDs.FIXED))
+
+	# Should have called shared progress
+	assert_eq(mock_repo.get_call_count("update_shared_campaign_progress"), 1)
+
+
+func test_clear_pending_reward_uses_shared_storage_for_onboarding() -> void:
+	# Set campaign to onboarding
+	campaign.set_current_campaign(String(CampaignIDs.ONBOARDING))
+
+	# Set and then clear a pending reward
+	mock_repo.set_shared_campaign_progress({
+		"completed_battles": [],
+		"pending_reward": {"battle_id": String(BattleIDs.FIRST_TRIAL)}
+	})
+	campaign.clear_pending_reward()
+
+	# Should have called shared progress to clear
+	assert_gt(mock_repo.get_call_count("update_shared_campaign_progress"), 0)

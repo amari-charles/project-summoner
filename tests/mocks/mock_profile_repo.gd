@@ -12,6 +12,7 @@ var _resources: Dictionary = {"gold": 0, "essence": 0, "fragments": 0}
 var _cards: Array = []
 var _decks: Array = []
 var _campaign_progress: Dictionary = {"completed_battles": [], "current_battle": null}
+var _shared_campaign_progress: Dictionary = {"completed_battles": [], "current_battle": null}
 var _profile_meta: Dictionary = {}
 var _settings: Dictionary = {}
 var _last_match: Dictionary = {}
@@ -31,6 +32,7 @@ func reset() -> void:
 	_cards = []
 	_decks = []
 	_campaign_progress = {"completed_battles": [], "current_battle": null}
+	_shared_campaign_progress = {"completed_battles": [], "current_battle": null}
 	_profile_meta = {}
 	_settings = {}
 	_last_match = {}
@@ -50,6 +52,11 @@ func set_cards(cards: Array) -> void:
 ## Set campaign progress for test setup
 func set_campaign_progress(progress: Dictionary) -> void:
 	_campaign_progress = progress.duplicate(true)
+
+
+## Set shared campaign progress for test setup
+func set_shared_campaign_progress(progress: Dictionary) -> void:
+	_shared_campaign_progress = progress.duplicate(true)
 
 
 ## Get call count for a method (for spy assertions)
@@ -102,6 +109,7 @@ func snapshot() -> Dictionary:
 		"cards": _cards.duplicate(true),
 		"decks": _decks.duplicate(true),
 		"campaign_progress": _campaign_progress.duplicate(true),
+		"shared_campaign_progress": _shared_campaign_progress.duplicate(true),
 		"profile_meta": _profile_meta.duplicate(true),
 		"settings": _settings.duplicate(true),
 		"last_match": _last_match.duplicate(true),
@@ -245,6 +253,43 @@ func update_campaign_progress(progress: Dictionary) -> void:
 	for key: String in progress:
 		_campaign_progress[key] = progress[key]
 	data_changed.emit()
+
+
+## =============================================================================
+## SHARED CAMPAIGN PROGRESS OPERATIONS
+## =============================================================================
+
+func get_shared_campaign_progress() -> Dictionary:
+	return _shared_campaign_progress.duplicate(true)
+
+
+func update_shared_campaign_progress(progress: Dictionary) -> void:
+	_record_call("update_shared_campaign_progress", [progress.duplicate(true)])
+	for key: String in progress:
+		_shared_campaign_progress[key] = progress[key]
+	data_changed.emit()
+
+
+func is_onboarding_complete() -> bool:
+	var completed: Array = _shared_campaign_progress.get("completed_battles", [])
+	return "event_caravan_tutorial" in completed
+
+
+## =============================================================================
+## SUMMONER INSTANCE OPERATIONS
+## =============================================================================
+
+func get_summoner_instances() -> Array:
+	return []
+
+
+func get_summoner_instance(_summoner_id: String) -> Dictionary:
+	return {}
+
+
+func save_summoner_instance(_summoner_instance: SummonerInstance) -> bool:
+	_record_call("save_summoner_instance", [])
+	return true
 
 
 ## =============================================================================

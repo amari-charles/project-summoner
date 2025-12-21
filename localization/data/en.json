@@ -1,5 +1,9 @@
 {
   "campaign": {
+    "onboarding": {
+      "name": "New Summoner Training",
+      "description": "Welcome to the Academy! Complete your initial training to begin your journey."
+    },
     "academy_trials": {
       "name": "Academy Trials",
       "description": "Begin your journey at the Summoning Academy. Master the fundamentals of summoning and prove your worth."
@@ -257,6 +261,27 @@
     },
     "summoner_icon": {
       "no_summoner": "No summoner selected"
+    },
+    "summoner_screen": {
+      "title": "SUMMONER ROSTER",
+      "summoners_header": "SUMMONERS",
+      "gold_display": "Gold: {gold}",
+      "active_indicator": "ACTIVE",
+      "no_traits": "No innate traits",
+      "no_boons": "No boons acquired yet",
+      "trait_innate": "Innate",
+      "trait_acquired": "Acquired",
+      "switch_summoner": "Switch Summoner",
+      "no_description": "No description available.",
+      "empty_boon_slot": "Empty Slot",
+      "stats_hp": "HP",
+      "stats_mana": "Mana",
+      "stats_damage": "Damage",
+      "stats_defense": "Defense"
+    },
+    "summoner_switch": {
+      "title": "CHOOSE SUMMONER",
+      "confirm": "Confirm Selection"
     },
     "title": {
       "game_name": "PROJECT SUMMONER",
