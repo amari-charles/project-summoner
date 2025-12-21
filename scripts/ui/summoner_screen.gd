@@ -591,8 +591,8 @@ func _on_switch_summoner_pressed() -> void:
 
 
 func _on_manage_boons_pressed() -> void:
-	# TODO: Navigate to Boon Management Screen when implemented
-	print("Manage Boons pressed - Boon Management Screen not yet implemented")
+	# Boon management not yet implemented - button hidden until ready
+	pass
 
 
 func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> void:

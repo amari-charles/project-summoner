@@ -25,13 +25,14 @@ const SummonerCardScene: PackedScene = preload("res://scenes/ui/summoner_card.ts
 ## CAROUSEL SETTINGS
 ## =============================================================================
 
+const CARD_WIDTH: float = 300.0  # SummonerCard base width
+const CARD_HEIGHT: float = 400.0  # SummonerCard base height
 const CARD_SPACING: float = 320.0  # Horizontal distance between card centers
 const CARD_SCALE_CENTER: float = 1.0
 const CARD_SCALE_SIDE: float = 0.7
 const CARD_ALPHA_CENTER: float = 1.0
 const CARD_ALPHA_SIDE: float = 0.4
 const ANIMATION_DURATION: float = 0.35
-const VISIBLE_CARDS: int = 3  # Number of cards visible (center + sides)
 
 ## =============================================================================
 ## STATE
@@ -155,12 +156,8 @@ func _get_card_target_position(card_index: int) -> Vector2:
 	var center_x: float = card_area.size.x / 2.0
 	var center_y: float = card_area.size.y / 2.0
 
-	# Get card size for centering
-	var card_width: float = 300.0  # Approximate card width
-	var card_height: float = 400.0  # Approximate card height
-
-	var x: float = center_x + (offset_from_center * CARD_SPACING) - card_width / 2.0
-	var y: float = center_y - card_height / 2.0
+	var x: float = center_x + (offset_from_center * CARD_SPACING) - CARD_WIDTH / 2.0
+	var y: float = center_y - CARD_HEIGHT / 2.0
 
 	return Vector2(x, y)
 
