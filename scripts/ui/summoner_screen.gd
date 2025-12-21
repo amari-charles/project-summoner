@@ -46,13 +46,25 @@ const TWEEN_DURATION: float = 0.1
 @onready var level_up_preview: Label = %LevelUpPreview
 
 ## =============================================================================
-## NODE REFERENCES - Right Half
+## NODE REFERENCES - Right Half Panels
 ## =============================================================================
 
+@onready var description_panel: PanelContainer = %DescriptionPanel
+@onready var description_header: Label = %DescriptionHeader
 @onready var description_label: Label = %DescriptionLabel
+
+@onready var stats_panel: PanelContainer = %StatsPanel
+@onready var stats_header: Label = %StatsHeader
 @onready var stats_container: VBoxContainer = %StatsContainer
+
+@onready var traits_panel: PanelContainer = %TraitsPanel
+@onready var traits_header: Label = %TraitsHeader
 @onready var traits_container: VBoxContainer = %TraitsContainer
+
+@onready var boons_panel: PanelContainer = %BoonsPanel
+@onready var boons_header: Label = %BoonsHeader
 @onready var boons_container: VBoxContainer = %BoonsContainer
+@onready var manage_boons_button: Button = %ManageBoonsButton
 
 ## =============================================================================
 ## STATE
@@ -71,6 +83,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	level_up_button.pressed.connect(_on_level_up_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
+	manage_boons_button.pressed.connect(_on_manage_boons_pressed)
 
 	# Connect to service signals
 	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
@@ -151,6 +164,9 @@ func _refresh_all() -> void:
 	# Update background with element-themed energy waves
 	_update_background_for_element(element)
 
+	# Style the info panels with element accents
+	_style_panels(element_color)
+
 	# Update portrait
 	_update_portrait(element, gradient_colors)
 
@@ -182,21 +198,62 @@ func _refresh_all() -> void:
 
 func _update_background_for_element(element: ElementTypes.Element) -> void:
 	var gradient_colors: Array[Color] = CardVisualHelper.get_element_gradient_colors(element.id)
-	var glow_color: Color = CardVisualHelper.get_element_glow_color(element.id)
 	var material: ShaderMaterial = background.material as ShaderMaterial
 	if not material:
 		return
 
 	# Primary is the brighter color (gradient[1]), secondary is darker (gradient[0])
-	# Accent is the glow/highlight color
 	if gradient_colors.size() >= 2:
 		material.set_shader_parameter("color_primary", gradient_colors[1])
 		material.set_shader_parameter("color_secondary", gradient_colors[0])
-		material.set_shader_parameter("color_accent", glow_color)
 	elif gradient_colors.size() == 1:
 		material.set_shader_parameter("color_primary", gradient_colors[0])
 		material.set_shader_parameter("color_secondary", gradient_colors[0].darkened(0.3))
-		material.set_shader_parameter("color_accent", gradient_colors[0].lightened(0.3))
+
+
+## =============================================================================
+## PANEL STYLING
+## =============================================================================
+
+# Warm color constants
+const PANEL_BG_WARM: Color = Color(0.12, 0.10, 0.08, 0.95)  # Warm dark brown
+const PANEL_BORDER_BASE: Color = Color(0.25, 0.20, 0.15, 1.0)  # Warm brown border
+const HEADER_COLOR_WARM: Color = Color(0.95, 0.90, 0.80, 1.0)  # Cream/parchment
+const TEXT_COLOR_WARM: Color = Color(0.85, 0.80, 0.70, 1.0)  # Warm off-white
+
+
+func _style_panels(element_color: Color) -> void:
+	# Style each panel with warm colors and element accent
+	_style_single_panel(description_panel, description_header, element_color)
+	_style_single_panel(stats_panel, stats_header, element_color)
+	_style_single_panel(traits_panel, traits_header, element_color)
+	_style_single_panel(boons_panel, boons_header, element_color)
+
+	# Update text colors to warm tones
+	description_label.add_theme_color_override("font_color", TEXT_COLOR_WARM)
+
+
+func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Color) -> void:
+	# Create warm styled panel
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = PANEL_BG_WARM
+	style.border_color = PANEL_BORDER_BASE
+	style.set_border_width_all(2)
+	style.border_width_left = 4  # Thicker left border for accent
+	style.set_corner_radius_all(8)
+
+	# Add element-colored left accent
+	style.border_color = accent_color.darkened(0.3)
+
+	# Add shadow for depth
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(2, 2)
+
+	panel.add_theme_stylebox_override("panel", style)
+
+	# Style header with warm cream color
+	header.add_theme_color_override("font_color", accent_color.lightened(0.2))
 
 
 ## =============================================================================
@@ -207,26 +264,31 @@ func _update_portrait(element: ElementTypes.Element, gradient_colors: Array[Colo
 	var element_color: Color = ElementTypes.get_color(element)
 	var border_color: Color = CardVisualHelper.get_element_border_color(element.id)
 
-	# Style the frame with element-themed border
+	# Style the frame with element-themed border - warmer and deeper
 	var frame_style: StyleBoxFlat = StyleBoxFlat.new()
-	frame_style.bg_color = Color(0.1, 0.1, 0.12, 1.0)
+	frame_style.bg_color = Color(0.08, 0.06, 0.05, 1.0)  # Warm dark
 	frame_style.border_color = border_color
-	frame_style.set_border_width_all(4)
+	frame_style.set_border_width_all(5)
 	frame_style.set_corner_radius_all(12)
-	frame_style.shadow_color = border_color * Color(1, 1, 1, 0.3)
-	frame_style.shadow_size = 8
+	# Stronger shadow for depth
+	frame_style.shadow_color = Color(0.0, 0.0, 0.0, 0.6)
+	frame_style.shadow_size = 12
+	frame_style.shadow_offset = Vector2(4, 4)
 	portrait_frame.add_theme_stylebox_override("panel", frame_style)
 
-	# Set background color (darker gradient color)
-	portrait_background.color = gradient_colors[0] if gradient_colors.size() > 0 else element_color
+	# Set background color (darker gradient color) with warmer tone
+	var bg_color: Color = gradient_colors[0] if gradient_colors.size() > 0 else element_color
+	bg_color = bg_color.darkened(0.1)
+	portrait_background.color = bg_color
 
-	# Set glow color (lighter/brighter)
+	# Set glow color (lighter/brighter) - more prominent
 	var glow_color: Color = CardVisualHelper.get_element_glow_color(element.id)
-	glow_color.a = 0.5
+	glow_color.a = 0.6
 	portrait_glow.color = glow_color
 
-	# Set symbol
+	# Set symbol with element color tint
 	portrait_symbol.text = ElementTypes.get_symbol(element)
+	portrait_symbol.add_theme_color_override("font_color", element_color.lightened(0.3))
 
 	# Start breathing animation
 	_start_portrait_breathing()
@@ -319,14 +381,14 @@ func _add_stat_row(label_text: String, value_text: String, value_color: Color) -
 
 	var label: Label = Label.new()
 	label.text = label_text + ":"
-	label.add_theme_font_size_override("font_size", 15)
-	label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.15))
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(label)
 
 	var value: Label = Label.new()
 	value.text = value_text
-	value.add_theme_font_size_override("font_size", 15)
+	value.add_theme_font_size_override("font_size", 17)
 	value.add_theme_color_override("font_color", value_color)
 	hbox.add_child(value)
 
@@ -368,7 +430,7 @@ func _refresh_traits(config: SummonerConfig) -> void:
 	if config.innate_trait_ids.is_empty():
 		var no_traits_label: Label = Label.new()
 		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
-		no_traits_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		no_traits_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.3))
 		no_traits_label.add_theme_font_size_override("font_size", 14)
 		traits_container.add_child(no_traits_label)
 
@@ -405,7 +467,7 @@ func _refresh_boons() -> void:
 	if acquired_boon_ids.is_empty():
 		var no_boons_label: Label = Label.new()
 		no_boons_label.text = Loc.t("ui.summoner_screen.no_boons")
-		no_boons_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		no_boons_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.3))
 		no_boons_label.add_theme_font_size_override("font_size", 14)
 		boons_container.add_child(no_boons_label)
 
@@ -426,42 +488,47 @@ func _create_trait_card(trait_catalog: Node, trait_id: String, is_innate: bool) 
 	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	# Style
+	# Style with warm colors
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.15, 0.18, 1.0)
-	style.border_color = Color(0.85, 0.75, 0.4) if is_innate else Color(0.4, 0.6, 0.9)
-	style.border_width_left = 3
+	style.bg_color = Color(0.10, 0.08, 0.06, 0.9)  # Warmer, darker bg
+	var accent_color: Color = Color(0.85, 0.75, 0.4) if is_innate else Color(0.4, 0.6, 0.9)
+	style.border_color = accent_color.darkened(0.2)
+	style.border_width_left = 4
 	style.border_width_right = 1
 	style.border_width_top = 1
 	style.border_width_bottom = 1
-	style.set_corner_radius_all(4)
+	style.set_corner_radius_all(6)
+	# Add subtle shadow
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.3)
+	style.shadow_size = 3
+	style.shadow_offset = Vector2(1, 1)
 	panel.add_theme_stylebox_override("panel", style)
 
 	# Margin
 	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_bottom", 6)
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	panel.add_child(margin)
 
 	# VBox
 	var vbox: VBoxContainer = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 4)
 	margin.add_child(vbox)
 
-	# Name
+	# Name with accent color
 	var name_label: Label = Label.new()
 	name_label.text = trait_name
-	name_label.add_theme_font_size_override("font_size", 14)
-	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
+	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.add_theme_color_override("font_color", accent_color.lightened(0.1))
 	vbox.add_child(name_label)
 
-	# Description
+	# Description with warm muted color
 	var desc_label: Label = Label.new()
 	desc_label.text = trait_desc
-	desc_label.add_theme_font_size_override("font_size", 12)
-	desc_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.2))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(desc_label)
 
@@ -520,8 +587,12 @@ func _on_level_up_pressed() -> void:
 
 func _on_switch_summoner_pressed() -> void:
 	# TODO: Navigate to Summoner Select Screen when implemented
-	# For now, just print a message
 	print("Switch Summoner pressed - Summoner Select Screen not yet implemented")
+
+
+func _on_manage_boons_pressed() -> void:
+	# TODO: Navigate to Boon Management Screen when implemented
+	print("Manage Boons pressed - Boon Management Screen not yet implemented")
 
 
 func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> void:
