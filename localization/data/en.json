@@ -265,7 +265,14 @@
       "active_indicator": "ACTIVE",
       "no_traits": "No traits acquired yet",
       "trait_innate": "Innate",
-      "trait_acquired": "Acquired"
+      "trait_acquired": "Acquired",
+      "switch_summoner": "Switch Summoner",
+      "no_description": "No description available.",
+      "empty_boon_slot": "Empty Slot",
+      "stats_hp": "HP",
+      "stats_mana": "Mana",
+      "stats_damage": "Damage",
+      "stats_defense": "Defense"
     },
     "title": {
       "game_name": "PROJECT SUMMONER",
