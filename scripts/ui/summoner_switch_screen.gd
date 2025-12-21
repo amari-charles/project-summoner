@@ -128,9 +128,30 @@ func _create_visible_cards() -> void:
 ## CARD POSITIONING
 ## =============================================================================
 
+func _get_wrapped_offset(card_index: int) -> int:
+	# Calculate the shortest offset considering wrap-around
+	var count: int = _summoner_cards.size()
+	if count <= 1:
+		return 0
+
+	var direct_offset: int = card_index - _current_index
+
+	# Calculate wrapped offsets (going the other way around)
+	var wrap_left: int = direct_offset - count  # Wrap going left
+	var wrap_right: int = direct_offset + count  # Wrap going right
+
+	# Return the offset with smallest absolute value
+	if abs(wrap_left) < abs(direct_offset):
+		return wrap_left
+	elif abs(wrap_right) < abs(direct_offset):
+		return wrap_right
+	else:
+		return direct_offset
+
+
 func _get_card_target_position(card_index: int) -> Vector2:
-	# Calculate position relative to center
-	var offset_from_center: int = card_index - _current_index
+	# Calculate position relative to center using wrapped offset
+	var offset_from_center: int = _get_wrapped_offset(card_index)
 	var center_x: float = card_area.size.x / 2.0
 	var center_y: float = card_area.size.y / 2.0
 
@@ -145,7 +166,7 @@ func _get_card_target_position(card_index: int) -> Vector2:
 
 
 func _get_card_target_scale(card_index: int) -> float:
-	var offset: int = abs(card_index - _current_index)
+	var offset: int = abs(_get_wrapped_offset(card_index))
 	if offset == 0:
 		return CARD_SCALE_CENTER
 	else:
@@ -153,7 +174,7 @@ func _get_card_target_scale(card_index: int) -> float:
 
 
 func _get_card_target_alpha(card_index: int) -> float:
-	var offset: int = abs(card_index - _current_index)
+	var offset: int = abs(_get_wrapped_offset(card_index))
 	if offset == 0:
 		return CARD_ALPHA_CENTER
 	elif offset == 1:
@@ -175,8 +196,8 @@ func _position_cards_instant() -> void:
 		card.modulate.a = target_alpha
 		card.visible = target_alpha > 0.0
 
-		# Update z-index so center card is on top
-		card.z_index = 10 - abs(i - _current_index)
+		# Update z-index so center card is on top (use wrapped offset)
+		card.z_index = 10 - abs(_get_wrapped_offset(i))
 
 
 func _animate_cards_to_positions() -> void:
@@ -210,8 +231,8 @@ func _animate_cards_to_positions() -> void:
 		# Animate alpha
 		_animation_tween.tween_property(card, "modulate:a", target_alpha, ANIMATION_DURATION)
 
-		# Update z-index immediately so center card goes on top
-		card.z_index = 10 - abs(i - _current_index)
+		# Update z-index immediately so center card goes on top (use wrapped offset)
+		card.z_index = 10 - abs(_get_wrapped_offset(i))
 
 	_animation_tween.chain().tween_callback(_on_animation_complete)
 
@@ -230,26 +251,24 @@ func _on_animation_complete() -> void:
 ## =============================================================================
 
 func _on_left_arrow_pressed() -> void:
-	if _is_animating:
+	if _is_animating or _summoner_cards.size() <= 1:
 		return
-	if _current_index > 0:
-		_current_index -= 1
-		_animate_cards_to_positions()
-		_update_arrow_states()
+	_current_index = wrapi(_current_index - 1, 0, _summoner_cards.size())
+	_animate_cards_to_positions()
 
 
 func _on_right_arrow_pressed() -> void:
-	if _is_animating:
+	if _is_animating or _summoner_cards.size() <= 1:
 		return
-	if _current_index < _summoner_cards.size() - 1:
-		_current_index += 1
-		_animate_cards_to_positions()
-		_update_arrow_states()
+	_current_index = wrapi(_current_index + 1, 0, _summoner_cards.size())
+	_animate_cards_to_positions()
 
 
 func _update_arrow_states() -> void:
-	left_arrow.disabled = _current_index <= 0
-	right_arrow.disabled = _current_index >= _summoner_cards.size() - 1
+	# Arrows always enabled for infinite carousel (unless only 1 card)
+	var single_card: bool = _summoner_cards.size() <= 1
+	left_arrow.disabled = single_card
+	right_arrow.disabled = single_card
 
 
 ## =============================================================================
@@ -264,7 +283,6 @@ func _on_card_selected(summoner_id: String) -> void:
 	if selected_index != _current_index and not _is_animating:
 		_current_index = selected_index
 		_animate_cards_to_positions()
-		_update_arrow_states()
 
 	_selected_summoner_id = summoner_id
 	_update_selection_visuals()
