@@ -86,20 +86,12 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 36
 text = "<"
 
-[node name="CardScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/CarouselSection"]
+[node name="CardArea" type="Control" parent="MarginContainer/VBoxContainer/CarouselSection"]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-horizontal_scroll_mode = 2
-vertical_scroll_mode = 0
-
-[node name="CardContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/CarouselSection/CardScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 4
-theme_override_constants/separation = 30
 
 [node name="RightArrow" type="Button" parent="MarginContainer/VBoxContainer/CarouselSection"]
 unique_name_in_owner = true

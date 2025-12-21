@@ -1,10 +1,11 @@
 extends Control
 class_name SummonerSwitchScreen
 
-## SummonerSwitchScreen - Carousel for switching between unlocked summoners
+## SummonerSwitchScreen - Animated carousel for switching between unlocked summoners
 ##
-## Displays all unlocked summoners as cards in a horizontal carousel.
-## User can navigate with arrow buttons or swipe, select a card, then confirm.
+## Displays summoners as cards with smooth animations. Cards slide into position
+## when navigating left/right, with the center card at full scale and side cards
+## smaller and faded.
 
 const SummonerCardScene: PackedScene = preload("res://scenes/ui/summoner_card.tscn")
 
@@ -17,32 +18,32 @@ const SummonerCardScene: PackedScene = preload("res://scenes/ui/summoner_card.ts
 @onready var title_label: Label = %TitleLabel
 @onready var left_arrow: Button = %LeftArrow
 @onready var right_arrow: Button = %RightArrow
-@onready var card_scroll: ScrollContainer = %CardScroll
-@onready var card_container: HBoxContainer = %CardContainer
+@onready var card_area: Control = %CardArea
 @onready var confirm_button: Button = %ConfirmButton
 
 ## =============================================================================
 ## CAROUSEL SETTINGS
 ## =============================================================================
 
+const CARD_SPACING: float = 320.0  # Horizontal distance between card centers
 const CARD_SCALE_CENTER: float = 1.0
-const CARD_SCALE_SIDE: float = 0.75
+const CARD_SCALE_SIDE: float = 0.7
 const CARD_ALPHA_CENTER: float = 1.0
-const CARD_ALPHA_SIDE: float = 0.5
-const SNAP_THRESHOLD: float = 50.0  # Pixels from center to trigger snap
+const CARD_ALPHA_SIDE: float = 0.4
+const ANIMATION_DURATION: float = 0.35
+const VISIBLE_CARDS: int = 3  # Number of cards visible (center + sides)
 
 ## =============================================================================
 ## STATE
 ## =============================================================================
 
 var _summoner_cards: Array[SummonerCard] = []
+var _summoner_ids: Array[String] = []
 var _selected_summoner_id: String = ""
 var _active_summoner_id: String = ""
 var _current_index: int = 0
-var _scroll_tween: Tween = null
-var _last_scroll_pos: int = 0
-var _scroll_velocity: float = 0.0
-var _is_dragging: bool = false
+var _animation_tween: Tween = null
+var _is_animating: bool = false
 
 ## =============================================================================
 ## LIFECYCLE
@@ -76,14 +77,6 @@ func _ready() -> void:
 	# Update background based on active summoner's element
 	_update_background()
 
-	# Connect scroll signals for snap behavior
-	card_scroll.get_h_scroll_bar().value_changed.connect(_on_scroll_changed)
-
-
-func _process(_delta: float) -> void:
-	_update_card_visuals()
-	_check_snap_scroll()
-
 
 ## =============================================================================
 ## CARD LOADING
@@ -91,9 +84,10 @@ func _process(_delta: float) -> void:
 
 func _load_summoner_cards() -> void:
 	# Clear existing
-	for child: Node in card_container.get_children():
+	for child: Node in card_area.get_children():
 		child.queue_free()
 	_summoner_cards.clear()
+	_summoner_ids.clear()
 
 	# Get unlocked summoners
 	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
@@ -104,34 +98,131 @@ func _load_summoner_cards() -> void:
 	if not unlocked_ids is Array:
 		return
 
-	# Add left spacer so first card can be centered
-	var left_spacer: Control = Control.new()
-	left_spacer.custom_minimum_size.x = card_scroll.size.x / 2.0 - 150  # Half scroll width minus half card width
-	card_container.add_child(left_spacer)
-
-	# Create card for each unlocked summoner
+	# Store IDs and find active summoner index
 	for summoner_id: Variant in unlocked_ids:
 		if summoner_id is String:
-			var card: SummonerCard = SummonerCardScene.instantiate()
-			card_container.add_child(card)
-			card.set_summoner(summoner_id)
-			card.summoner_selected.connect(_on_card_selected)
-			_summoner_cards.append(card)
-
-			# Mark active summoner
+			_summoner_ids.append(summoner_id)
 			if summoner_id == _active_summoner_id:
-				_current_index = _summoner_cards.size() - 1
+				_current_index = _summoner_ids.size() - 1
 
-	# Add right spacer so last card can be centered
-	var right_spacer: Control = Control.new()
-	right_spacer.custom_minimum_size.x = card_scroll.size.x / 2.0 - 150
-	card_container.add_child(right_spacer)
+	# Create cards for visible range
+	_create_visible_cards()
 
-	# Scroll to active summoner after layout
+	# Position cards after layout
 	await get_tree().process_frame
-	await get_tree().process_frame
-	_scroll_to_index(_current_index, false)
-	_update_card_visuals()
+	_position_cards_instant()
+
+
+func _create_visible_cards() -> void:
+	# Create a card for each summoner
+	for i: int in range(_summoner_ids.size()):
+		var summoner_id: String = _summoner_ids[i]
+		var card: SummonerCard = SummonerCardScene.instantiate()
+		card_area.add_child(card)
+		card.set_summoner(summoner_id)
+		card.summoner_selected.connect(_on_card_selected)
+		_summoner_cards.append(card)
+
+
+## =============================================================================
+## CARD POSITIONING
+## =============================================================================
+
+func _get_card_target_position(card_index: int) -> Vector2:
+	# Calculate position relative to center
+	var offset_from_center: int = card_index - _current_index
+	var center_x: float = card_area.size.x / 2.0
+	var center_y: float = card_area.size.y / 2.0
+
+	# Get card size for centering
+	var card_width: float = 300.0  # Approximate card width
+	var card_height: float = 400.0  # Approximate card height
+
+	var x: float = center_x + (offset_from_center * CARD_SPACING) - card_width / 2.0
+	var y: float = center_y - card_height / 2.0
+
+	return Vector2(x, y)
+
+
+func _get_card_target_scale(card_index: int) -> float:
+	var offset: int = abs(card_index - _current_index)
+	if offset == 0:
+		return CARD_SCALE_CENTER
+	else:
+		return CARD_SCALE_SIDE
+
+
+func _get_card_target_alpha(card_index: int) -> float:
+	var offset: int = abs(card_index - _current_index)
+	if offset == 0:
+		return CARD_ALPHA_CENTER
+	elif offset == 1:
+		return CARD_ALPHA_SIDE
+	else:
+		return 0.0  # Hide cards beyond visible range
+
+
+func _position_cards_instant() -> void:
+	for i: int in range(_summoner_cards.size()):
+		var card: SummonerCard = _summoner_cards[i]
+		var target_pos: Vector2 = _get_card_target_position(i)
+		var target_scale: float = _get_card_target_scale(i)
+		var target_alpha: float = _get_card_target_alpha(i)
+
+		card.position = target_pos
+		card.pivot_offset = card.size / 2.0
+		card.scale = Vector2(target_scale, target_scale)
+		card.modulate.a = target_alpha
+		card.visible = target_alpha > 0.0
+
+		# Update z-index so center card is on top
+		card.z_index = 10 - abs(i - _current_index)
+
+
+func _animate_cards_to_positions() -> void:
+	if _animation_tween and _animation_tween.is_valid():
+		_animation_tween.kill()
+
+	_is_animating = true
+	_animation_tween = create_tween()
+	_animation_tween.set_parallel(true)
+	_animation_tween.set_ease(Tween.EASE_OUT)
+	_animation_tween.set_trans(Tween.TRANS_CUBIC)
+
+	for i: int in range(_summoner_cards.size()):
+		var card: SummonerCard = _summoner_cards[i]
+		var target_pos: Vector2 = _get_card_target_position(i)
+		var target_scale: float = _get_card_target_scale(i)
+		var target_alpha: float = _get_card_target_alpha(i)
+
+		# Make visible if it will be visible
+		if target_alpha > 0.0:
+			card.visible = true
+
+		card.pivot_offset = card.size / 2.0
+
+		# Animate position
+		_animation_tween.tween_property(card, "position", target_pos, ANIMATION_DURATION)
+
+		# Animate scale
+		_animation_tween.tween_property(card, "scale", Vector2(target_scale, target_scale), ANIMATION_DURATION)
+
+		# Animate alpha
+		_animation_tween.tween_property(card, "modulate:a", target_alpha, ANIMATION_DURATION)
+
+		# Update z-index immediately so center card goes on top
+		card.z_index = 10 - abs(i - _current_index)
+
+	_animation_tween.chain().tween_callback(_on_animation_complete)
+
+
+func _on_animation_complete() -> void:
+	_is_animating = false
+	# Hide cards that are fully transparent
+	for i: int in range(_summoner_cards.size()):
+		var card: SummonerCard = _summoner_cards[i]
+		if card.modulate.a <= 0.0:
+			card.visible = false
 
 
 ## =============================================================================
@@ -139,40 +230,21 @@ func _load_summoner_cards() -> void:
 ## =============================================================================
 
 func _on_left_arrow_pressed() -> void:
+	if _is_animating:
+		return
 	if _current_index > 0:
 		_current_index -= 1
-		_scroll_to_index(_current_index, true)
+		_animate_cards_to_positions()
 		_update_arrow_states()
 
 
 func _on_right_arrow_pressed() -> void:
+	if _is_animating:
+		return
 	if _current_index < _summoner_cards.size() - 1:
 		_current_index += 1
-		_scroll_to_index(_current_index, true)
+		_animate_cards_to_positions()
 		_update_arrow_states()
-
-
-func _scroll_to_index(index: int, animate: bool) -> void:
-	if _summoner_cards.is_empty():
-		return
-
-	index = clamp(index, 0, _summoner_cards.size() - 1)
-	var target_card: SummonerCard = _summoner_cards[index]
-
-	# Calculate scroll position to center the card
-	var scroll_width: float = card_scroll.size.x
-	var card_center: float = target_card.position.x + target_card.size.x / 2.0
-	var target_scroll: float = card_center - scroll_width / 2.0
-	target_scroll = max(0, target_scroll)
-
-	if animate:
-		if _scroll_tween and _scroll_tween.is_valid():
-			_scroll_tween.kill()
-		_scroll_tween = create_tween()
-		_scroll_tween.tween_property(card_scroll, "scroll_horizontal", int(target_scroll), 0.3)\
-			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	else:
-		card_scroll.scroll_horizontal = int(target_scroll)
 
 
 func _update_arrow_states() -> void:
@@ -185,6 +257,15 @@ func _update_arrow_states() -> void:
 ## =============================================================================
 
 func _on_card_selected(summoner_id: String) -> void:
+	# Find the index of the selected card
+	var selected_index: int = _summoner_ids.find(summoner_id)
+
+	# If clicking a side card, navigate to it first
+	if selected_index != _current_index and not _is_animating:
+		_current_index = selected_index
+		_animate_cards_to_positions()
+		_update_arrow_states()
+
 	_selected_summoner_id = summoner_id
 	_update_selection_visuals()
 	confirm_button.disabled = false
@@ -247,79 +328,3 @@ func _update_background() -> void:
 	if gradient_colors.size() >= 2:
 		material.set_shader_parameter("color_primary", gradient_colors[1])
 		material.set_shader_parameter("color_secondary", gradient_colors[0])
-
-
-## =============================================================================
-## CAROUSEL EFFECTS
-## =============================================================================
-
-func _update_card_visuals() -> void:
-	if _summoner_cards.is_empty():
-		return
-
-	var scroll_center: float = card_scroll.scroll_horizontal + card_scroll.size.x / 2.0
-
-	for card: SummonerCard in _summoner_cards:
-		# Get card center position relative to scroll
-		var card_center: float = card.position.x + card.size.x / 2.0
-		var distance: float = abs(card_center - scroll_center)
-
-		# Calculate scale and alpha based on distance from center
-		# Max distance where effect applies (half the scroll width)
-		var max_distance: float = card_scroll.size.x / 2.0
-		var t: float = clamp(distance / max_distance, 0.0, 1.0)
-
-		# Interpolate scale and alpha
-		var target_scale: float = lerp(CARD_SCALE_CENTER, CARD_SCALE_SIDE, t)
-		var target_alpha: float = lerp(CARD_ALPHA_CENTER, CARD_ALPHA_SIDE, t)
-
-		# Apply with pivot at center
-		card.pivot_offset = card.size / 2.0
-		card.scale = Vector2(target_scale, target_scale)
-		card.modulate.a = target_alpha
-
-
-func _on_scroll_changed(_value: float) -> void:
-	# Track scroll velocity for snap detection
-	var current_scroll: int = card_scroll.scroll_horizontal
-	_scroll_velocity = abs(current_scroll - _last_scroll_pos)
-	_last_scroll_pos = current_scroll
-	_is_dragging = true
-
-
-func _check_snap_scroll() -> void:
-	# Only snap when scroll has stopped (velocity near zero)
-	if not _is_dragging:
-		return
-
-	# Check if tween is running
-	var tween_running: bool = _scroll_tween != null and _scroll_tween.is_valid() and _scroll_tween.is_running()
-
-	if _scroll_velocity < 1.0 and not tween_running:
-		_is_dragging = false
-		_snap_to_nearest_card()
-
-
-func _snap_to_nearest_card() -> void:
-	if _summoner_cards.is_empty():
-		return
-
-	var scroll_center: float = card_scroll.scroll_horizontal + card_scroll.size.x / 2.0
-	var nearest_index: int = 0
-	var nearest_distance: float = INF
-
-	for i: int in range(_summoner_cards.size()):
-		var card: SummonerCard = _summoner_cards[i]
-		var card_center: float = card.position.x + card.size.x / 2.0
-		var distance: float = abs(card_center - scroll_center)
-
-		if distance < nearest_distance:
-			nearest_distance = distance
-			nearest_index = i
-
-	# Update current index and scroll to it
-	if nearest_index != _current_index:
-		_current_index = nearest_index
-		_update_arrow_states()
-
-	_scroll_to_index(_current_index, true)
