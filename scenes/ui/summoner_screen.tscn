@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://c0summonerscreen1"]
+[gd_scene load_steps=2 format=3 uid="uid://beelkm0j8osqm"]
 
 [ext_resource type="Script" path="res://scripts/ui/summoner_screen.gd" id="1_summoner_screen"]
 
@@ -28,13 +28,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 30
+theme_override_constants/margin_top = 25
 theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 30
+theme_override_constants/margin_bottom = 25
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 15
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -112,34 +112,106 @@ layout_mode = 2
 [node name="MainContent" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 40
+theme_override_constants/separation = 25
 
 [node name="LeftColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent"]
-custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-theme_override_constants/separation = 20
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.8
+theme_override_constants/separation = 15
 
-[node name="PortraitContainer" type="CenterContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn"]
+[node name="TraitsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TraitsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/TraitsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 12
+
+[node name="TraitsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/TraitsPanel/TraitsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TraitsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
+theme_override_font_sizes/font_size = 13
+text = "TRAITS"
+
+[node name="TraitsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TraitsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BoonsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BoonsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/BoonsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 12
+
+[node name="BoonsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/BoonsPanel/BoonsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BoonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/BoonsPanel/BoonsMargin/BoonsVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
+theme_override_font_sizes/font_size = 13
+text = "BOONS"
+
+[node name="BoonsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/BoonsPanel/BoonsMargin/BoonsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BoonsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/BoonsPanel/BoonsMargin/BoonsVBox/BoonsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="PortraitContainer" type="CenterContainer" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="PortraitFrame" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/PortraitContainer"]
+[node name="PortraitFrame" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/PortraitContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 320)
+custom_minimum_size = Vector2(320, 400)
 layout_mode = 2
 
-[node name="PortraitMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/PortraitContainer/PortraitFrame"]
+[node name="PortraitMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/PortraitContainer/PortraitFrame"]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="PortraitStack" type="Control" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin"]
+[node name="PortraitStack" type="Control" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/PortraitContainer/PortraitFrame/PortraitMargin"]
 layout_mode = 2
 
-[node name="PortraitBackground" type="ColorRect" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+[node name="PortraitBackground" type="ColorRect" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -149,21 +221,21 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.3, 0.2, 0.15, 1)
 
-[node name="PortraitGlow" type="ColorRect" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+[node name="PortraitGlow" type="ColorRect" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 25.0
-offset_top = 25.0
-offset_right = -25.0
-offset_bottom = -25.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.6, 0.4, 0.2, 0.4)
 
-[node name="PortraitSymbol" type="Label" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+[node name="PortraitSymbol" type="Label" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -175,42 +247,42 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 80
+theme_override_font_sizes/font_size = 100
 text = "E"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="XPSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn"]
+[node name="XPSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="XPLabel" type="Label" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/XPSection"]
+[node name="XPLabel" type="Label" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/XPSection"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "XP: 75 / 100"
 horizontal_alignment = 1
 
-[node name="XPProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/XPSection"]
+[node name="XPProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/XPSection"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 value = 75.0
 show_percentage = false
 
-[node name="LevelUpRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/XPSection"]
+[node name="LevelUpRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/XPSection"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 15
 
-[node name="LevelUpButton" type="Button" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/XPSection/LevelUpRow"]
+[node name="LevelUpButton" type="Button" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/XPSection/LevelUpRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 42)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "LEVEL UP (100g)"
 
-[node name="LevelUpPreview" type="Label" parent="MarginContainer/VBoxContainer/MainContent/LeftColumn/XPSection/LevelUpRow"]
+[node name="LevelUpPreview" type="Label" parent="MarginContainer/VBoxContainer/MainContent/CenterColumn/XPSection/LevelUpRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
@@ -221,11 +293,12 @@ vertical_alignment = 1
 [node name="RightColumn" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 20
+size_flags_stretch_ratio = 0.8
+theme_override_constants/separation = 15
 
 [node name="DescriptionPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn"]
-custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="DescriptionMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/DescriptionPanel"]
 layout_mode = 2
@@ -236,12 +309,12 @@ theme_override_constants/margin_bottom = 12
 
 [node name="DescriptionVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/DescriptionPanel/DescriptionMargin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="DescriptionHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/DescriptionPanel/DescriptionMargin/DescriptionVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "DESCRIPTION"
 
 [node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/DescriptionPanel/DescriptionMargin/DescriptionVBox"]
@@ -252,100 +325,28 @@ theme_override_font_sizes/font_size = 15
 text = "Guardian of stability and endurance. Masters of earth draw strength from the land itself."
 autowrap_mode = 2
 
-[node name="TraitsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn"]
+[node name="StatsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TraitsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/TraitsPanel"]
+[node name="StatsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/StatsPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 12
 
-[node name="TraitsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/TraitsPanel/TraitsMargin"]
+[node name="StatsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/StatsPanel/StatsMargin"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TraitsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
+[node name="StatsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/StatsPanel/StatsMargin/StatsVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
-theme_override_font_sizes/font_size = 12
-text = "TRAITS"
-
-[node name="TraitsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="TraitsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="BottomSection" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 130)
-layout_mode = 2
-theme_override_constants/separation = 30
-
-[node name="StatsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/BottomSection"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="StatsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/BottomSection/StatsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 15
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 15
-
-[node name="StatsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/BottomSection/StatsPanel/StatsMargin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="StatsHeader" type="Label" parent="MarginContainer/VBoxContainer/BottomSection/StatsPanel/StatsMargin/StatsVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "STATS"
 
-[node name="StatsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/BottomSection/StatsPanel/StatsMargin/StatsVBox"]
+[node name="StatsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightColumn/StatsPanel/StatsMargin/StatsVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="BoonsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/BottomSection"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="BoonsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/BottomSection/BoonsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 15
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 15
-
-[node name="BoonsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/BottomSection/BoonsPanel/BoonsMargin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BoonsHeader" type="Label" parent="MarginContainer/VBoxContainer/BottomSection/BoonsPanel/BoonsMargin/BoonsVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
-theme_override_font_sizes/font_size = 12
-text = "BOONS"
-
-[node name="BoonsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/BottomSection/BoonsPanel/BoonsMargin/BoonsVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="BoonsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/BottomSection/BoonsPanel/BoonsMargin/BoonsVBox/BoonsScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 6
