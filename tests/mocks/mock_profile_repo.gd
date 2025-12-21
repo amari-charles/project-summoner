@@ -276,6 +276,23 @@ func is_onboarding_complete() -> bool:
 
 
 ## =============================================================================
+## SUMMONER INSTANCE OPERATIONS
+## =============================================================================
+
+func get_summoner_instances() -> Array:
+	return []
+
+
+func get_summoner_instance(_summoner_id: String) -> Dictionary:
+	return {}
+
+
+func save_summoner_instance(_summoner_instance: SummonerInstance) -> bool:
+	_record_call("save_summoner_instance", [])
+	return true
+
+
+## =============================================================================
 ## METADATA OPERATIONS
 ## =============================================================================
 
