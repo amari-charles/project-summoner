@@ -45,18 +45,12 @@ const TWEEN_DURATION: float = 0.1
 @onready var level_up_preview: Label = %LevelUpPreview
 
 ## =============================================================================
-## NODE REFERENCES - Info Section (Right Column)
+## NODE REFERENCES - Right Half
 ## =============================================================================
 
 @onready var description_label: Label = %DescriptionLabel
-@onready var traits_container: VBoxContainer = %TraitsContainer
-
-## =============================================================================
-## NODE REFERENCES - Bottom Section
-## =============================================================================
-
 @onready var stats_container: VBoxContainer = %StatsContainer
-@onready var boons_container: VBoxContainer = %BoonsContainer
+@onready var traits_boons_container: VBoxContainer = %TraitsBoonsContainer
 
 ## =============================================================================
 ## STATE
@@ -169,14 +163,11 @@ func _refresh_all() -> void:
 	# Update level up button
 	_update_level_up_display(is_max_level, can_level_up, can_afford, gold_cost, config)
 
-	# Update traits (innate only)
-	_refresh_traits(config)
-
 	# Update stats
 	_refresh_stats(config)
 
-	# Update boons
-	_refresh_boons()
+	# Update traits and boons (combined)
+	_refresh_traits_and_boons(config)
 
 
 ## =============================================================================
@@ -326,31 +317,47 @@ func _get_computed_stats(summoner_id: String) -> Dictionary:
 
 
 ## =============================================================================
-## TRAITS
+## TRAITS & BOONS
 ## =============================================================================
 
-func _refresh_traits(config: SummonerConfig) -> void:
-	# Clear existing traits
-	for child: Node in traits_container.get_children():
+func _refresh_traits_and_boons(config: SummonerConfig) -> void:
+	# Clear existing items
+	for child: Node in traits_boons_container.get_children():
 		child.queue_free()
 
 	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
 	if not trait_catalog:
 		return
 
-	# Show innate traits only (boons go in boons section)
+	# Get acquired boons from summoner instance
+	var acquired_boon_ids: Array[String] = []
+	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_current_summoner_id)
+	if not summoner_instance_data.is_empty():
+		var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
+		if summoner_instance:
+			for boon_id: Variant in summoner_instance.acquired_boon_ids:
+				if boon_id is String:
+					acquired_boon_ids.append(boon_id)
+
+	# Show innate traits first
 	for trait_id: String in config.innate_trait_ids:
 		var trait_card: PanelContainer = _create_trait_card(trait_catalog, trait_id, true)
 		if trait_card:
-			traits_container.add_child(trait_card)
+			traits_boons_container.add_child(trait_card)
 
-	# Show message if no innate traits
-	if config.innate_trait_ids.is_empty():
+	# Then show acquired boons
+	for boon_id: String in acquired_boon_ids:
+		var boon_card: PanelContainer = _create_trait_card(trait_catalog, boon_id, false)
+		if boon_card:
+			traits_boons_container.add_child(boon_card)
+
+	# Show message if nothing
+	if config.innate_trait_ids.is_empty() and acquired_boon_ids.is_empty():
 		var no_traits_label: Label = Label.new()
 		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
 		no_traits_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 		no_traits_label.add_theme_font_size_override("font_size", 14)
-		traits_container.add_child(no_traits_label)
+		traits_boons_container.add_child(no_traits_label)
 
 
 func _create_trait_card(trait_catalog: Node, trait_id: String, is_innate: bool) -> PanelContainer:
@@ -415,69 +422,6 @@ func _create_trait_card(trait_catalog: Node, trait_id: String, is_innate: bool) 
 
 
 ## =============================================================================
-## BOONS
-## =============================================================================
-
-func _refresh_boons() -> void:
-	# Clear existing boons
-	for child: Node in boons_container.get_children():
-		child.queue_free()
-
-	# Get acquired boons from summoner instance
-	var acquired_boon_ids: Array[String] = []
-	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_current_summoner_id)
-	if not summoner_instance_data.is_empty():
-		var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
-		if summoner_instance:
-			for boon_id: Variant in summoner_instance.acquired_boon_ids:
-				if boon_id is String:
-					acquired_boon_ids.append(boon_id)
-
-	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
-
-	# Show acquired boons
-	for boon_id: String in acquired_boon_ids:
-		if trait_catalog:
-			var boon_card: PanelContainer = _create_trait_card(trait_catalog, boon_id, false)
-			if boon_card:
-				boons_container.add_child(boon_card)
-
-	# Fill remaining slots (up to 3 total)
-	var empty_slots: int = 3 - acquired_boon_ids.size()
-	for i: int in range(empty_slots):
-		var empty_slot: PanelContainer = _create_empty_boon_slot()
-		boons_container.add_child(empty_slot)
-
-
-func _create_empty_boon_slot() -> PanelContainer:
-	var panel: PanelContainer = PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.1, 0.12, 1.0)
-	style.border_color = Color(0.3, 0.3, 0.35, 1.0)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(4)
-	panel.add_theme_stylebox_override("panel", style)
-
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	panel.add_child(margin)
-
-	var label: Label = Label.new()
-	label.text = Loc.t("ui.summoner_screen.empty_boon_slot")
-	label.add_theme_font_size_override("font_size", 13)
-	label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	margin.add_child(label)
-
-	return panel
-
-
-## =============================================================================
 ## NO SUMMONER STATE
 ## =============================================================================
 
@@ -496,11 +440,9 @@ func _show_no_summoner() -> void:
 	level_up_preview.text = ""
 
 	# Clear containers
-	for child: Node in traits_container.get_children():
-		child.queue_free()
 	for child: Node in stats_container.get_children():
 		child.queue_free()
-	for child: Node in boons_container.get_children():
+	for child: Node in traits_boons_container.get_children():
 		child.queue_free()
 
 
