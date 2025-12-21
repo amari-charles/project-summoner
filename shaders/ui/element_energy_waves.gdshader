@@ -3,7 +3,7 @@ shader_type canvas_item;
 // Element colors - passed from script based on summoner element
 uniform vec4 color_primary : source_color = vec4(1.0, 0.478, 0.165, 1.0); // Fire orange #ff7a2a
 uniform vec4 color_secondary : source_color = vec4(0.722, 0.188, 0.125, 1.0); // Ember #b83020
-uniform vec4 color_dark : source_color = vec4(0.08, 0.08, 0.1, 1.0); // Deep background
+uniform float dark_blend : hint_range(0.1, 0.5) = 0.25; // How dark the background areas are
 
 // Animation parameters
 uniform float wave_speed : hint_range(0.1, 2.0) = 0.4;
@@ -78,8 +78,8 @@ void fragment() {
     float texture_noise = snoise(uv * 8.0 + vec2(time * 0.2, 0.0)) * 0.1 + 0.9;
     energy *= texture_noise;
 
-    // Create color gradient - dark at edges, element colors in energy bands
-    vec3 base_color = color_dark.rgb;
+    // Create color gradient - darkened element color at edges, bright element colors in energy bands
+    vec3 base_color = color_secondary.rgb * dark_blend; // Darkened element color, not pure black
     vec3 energy_color = mix(color_secondary.rgb, color_primary.rgb, energy * 0.7 + noise1 * 0.3);
 
     // Mix base with energy

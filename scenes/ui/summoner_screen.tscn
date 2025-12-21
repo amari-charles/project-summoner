@@ -7,7 +7,7 @@
 shader = ExtResource("2_energy_waves")
 shader_parameter/color_primary = Color(1, 0.478, 0.165, 1)
 shader_parameter/color_secondary = Color(0.722, 0.188, 0.125, 1)
-shader_parameter/color_dark = Color(0.08, 0.08, 0.1, 1)
+shader_parameter/dark_blend = 0.25
 shader_parameter/wave_speed = 0.4
 shader_parameter/wave_intensity = 0.15
 shader_parameter/wave_scale = 3.0
