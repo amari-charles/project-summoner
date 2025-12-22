@@ -12,32 +12,32 @@ class_name SceneManagerClass
 ## =============================================================================
 
 ## Main UI Scenes
-const SCENE_TITLE_SCREEN: String = "res://scenes/ui/title_screen.tscn"
+const SCENE_TITLE_SCREEN: String = "res://scenes/ui/screens/title_screen.tscn"
 
 ## Campaign Scenes
-const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/campaign_map.tscn"
-const SCENE_EVENT_SCREEN: String = "res://scenes/ui/event_screen.tscn"
-const SCENE_SUMMONER_SELECTION: String = "res://scenes/ui/summoner_selection.tscn"
-const SCENE_SUMMONER_REVEAL: String = "res://scenes/ui/summoner_reveal.tscn"
-const SCENE_SUMMONER_SCREEN: String = "res://scenes/ui/summoner_screen.tscn"
-const SCENE_SUMMONER_SWITCH: String = "res://scenes/ui/summoner_switch_screen.tscn"
-const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/ui/first_card_selection.tscn"
+const SCENE_CAMPAIGN_MAP: String = "res://scenes/ui/screens/campaign_map.tscn"
+const SCENE_EVENT_SCREEN: String = "res://scenes/ui/screens/event_screen.tscn"
+const SCENE_SUMMONER_SELECTION: String = "res://scenes/ui/screens/summoner_selection.tscn"
+const SCENE_SUMMONER_REVEAL: String = "res://scenes/ui/modals/summoner_reveal.tscn"
+const SCENE_SUMMONER_SCREEN: String = "res://scenes/ui/screens/summoner_screen.tscn"
+const SCENE_SUMMONER_SWITCH: String = "res://scenes/ui/screens/summoner_switch_screen.tscn"
+const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/ui/screens/first_card_selection.tscn"
 
 ## Collection Scenes
-const SCENE_COLLECTION_SCREEN: String = "res://scenes/ui/collection_screen.tscn"
-const SCENE_DECK_BUILDER: String = "res://scenes/ui/deck_builder.tscn"
+const SCENE_COLLECTION_SCREEN: String = "res://scenes/ui/screens/collection_screen.tscn"
+const SCENE_DECK_BUILDER: String = "res://scenes/ui/screens/deck_builder.tscn"
 
 ## Shop Scenes
-const SCENE_SHOP_SCREEN: String = "res://scenes/ui/shop_screen.tscn"
-const SCENE_PREMIUM_STORE: String = "res://scenes/ui/premium_store_screen.tscn"
+const SCENE_SHOP_SCREEN: String = "res://scenes/ui/screens/shop_screen.tscn"
+const SCENE_PREMIUM_STORE: String = "res://scenes/ui/screens/premium_store_screen.tscn"
 
 ## Special Events & Settings
-const SCENE_SPECIAL_EVENTS: String = "res://scenes/ui/special_events_screen.tscn"
-const SCENE_SETTINGS: String = "res://scenes/ui/settings_screen.tscn"
+const SCENE_SPECIAL_EVENTS: String = "res://scenes/ui/screens/special_events_screen.tscn"
+const SCENE_SETTINGS: String = "res://scenes/ui/screens/settings_screen.tscn"
 
 ## Battle Scenes
 const SCENE_BATTLE_3D: String = "res://scenes/battlefield/battle_3d.tscn"
-const SCENE_REWARD_SCREEN: String = "res://scenes/ui/reward_screen.tscn"
+const SCENE_REWARD_SCREEN: String = "res://scenes/ui/screens/reward_screen.tscn"
 
 ## =============================================================================
 ## SCENE TRANSITION API

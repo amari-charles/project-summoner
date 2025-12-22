@@ -41,10 +41,11 @@ enum OfferingType {
 @export var emote_id: String = ""
 
 ## Pricing
-@export var currency_type: String = "gold"  # "gold", "gems" (future)
+@export var currency_type: String = "gold"  # "gold", "gems", "real_money"
 @export var base_price: int = 10
 @export var price_formula: String = "base"  # "base", "rarity", "power", "custom"
 @export var discount_percent: int = 0  # 0-100
+@export var product_id: String = ""  # Platform billing product ID (for real_money purchases)
 
 ## Purchase limits
 @export var purchase_limit_type: String = "none"  # "none", "per_refresh", "account"
@@ -72,10 +73,21 @@ func get_price(context: ShopPurchaseContext = null) -> int:
 
 ## Check if can be purchased (uses context for all validation data)
 func can_purchase(context: ShopPurchaseContext) -> bool:
-	# Check gold
 	var price: int = get_price(context)
-	if context.player_gold < price:
-		return false
+
+	# Check currency based on type
+	match currency_type:
+		"gold":
+			if context.player_gold < price:
+				return false
+		"gems":
+			if context.player_gems < price:
+				return false
+		"real_money":
+			# Real-money purchases are always "affordable" - platform handles payment
+			pass
+		_:
+			return false  # Unknown currency type
 
 	# Check purchase limits
 	if purchase_limit_type != "none" and purchase_limit > 0:

@@ -1230,6 +1230,7 @@ func _create_fresh_profile() -> void:
 		"resources": {
 			"profile_id": _current_profile_id,
 			"gold": 100,
+			"gems": 0,  # Premium currency (purchased with real money)
 			"essence": 0,
 			"fragments": 0,
 			"updated_at": Time.get_unix_time_from_system()
