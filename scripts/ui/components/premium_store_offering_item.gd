@@ -9,6 +9,13 @@ class_name PremiumStoreOfferingItem
 ## Size presets
 enum CardSize { SMALL, MEDIUM, LARGE, FEATURED }
 
+## Card size configurations for different offering types.
+## Sizes are tuned for visual hierarchy in the grid layout:
+## - SMALL (140x180): Emotes - compact, many per row
+## - MEDIUM (180x220): Cosmetics - moderate emphasis
+## - LARGE (220x280): Summoners in grid - prominent
+## - FEATURED (320x340): Spotlight item at top - maximum emphasis
+## Preview height is ~60% of card height for visual balance.
 const SIZE_CONFIGS: Dictionary = {
 	CardSize.SMALL: {"width": 140, "height": 180, "preview": 100, "name_font": 14, "price_font": 16, "icon_font": 32},
 	CardSize.MEDIUM: {"width": 180, "height": 220, "preview": 130, "name_font": 16, "price_font": 18, "icon_font": 40},
@@ -30,7 +37,10 @@ var card_size: CardSize = CardSize.LARGE
 ## Signals
 signal item_clicked()
 
-## Element colors for summoner previews
+## Element colors for summoner previews.
+## Note: These are UI-specific preview colors, intentionally separate from
+## ElementTypes which defines gameplay element data. Consider centralizing
+## UI element colors if more screens need them.
 const ELEMENT_COLORS: Dictionary = {
 	"fire": Color(0.9, 0.3, 0.2),
 	"water": Color(0.2, 0.5, 0.9),

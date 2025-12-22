@@ -6,6 +6,10 @@ class_name PlatformBillingService
 ## Detects the current platform and routes purchases to the appropriate
 ## billing provider (Steam, iOS, Android, or Stub for development).
 ##
+## NOTE: This is scaffolding for future IAP support. Currently all Premium Store
+## offerings use in-game gold. When real-money purchases are added, this system
+## will handle platform-specific billing (App Store, Google Play, Steam).
+##
 ## Usage:
 ##   PlatformBilling.purchase("gems_100")
 ##   PlatformBilling.purchase_completed.connect(_on_purchase_completed)

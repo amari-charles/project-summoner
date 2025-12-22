@@ -269,7 +269,7 @@ func _on_purchase_completed(offering_id: String, shop_id: String) -> void:
 		_show_popup(selected_offering)
 
 func _on_purchase_failed(_offering_id: String, reason: String) -> void:
-	# Show error message (could add a popup here in the future)
+	# TODO: Add visual feedback for purchase failures (toast notification or modal)
 	push_warning("PremiumStoreScreen: Purchase failed - %s" % reason)
 
 func _on_data_changed() -> void:
