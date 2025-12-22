@@ -20,7 +20,7 @@ extends IProfileRepo
 const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 
 ## Current save version for migrations
-const CURRENT_VERSION: int = 3
+const CURRENT_VERSION: int = 4
 
 ## Signals inherited from IProfileRepo (do not redeclare)
 
@@ -405,6 +405,140 @@ func increment_shop_refresh_epoch(shop_id: String) -> bool:
 	})
 
 	save_profile()  # Debounced
+	data_changed.emit()
+	return true
+
+## =============================================================================
+## COSMETIC OPERATIONS
+## =============================================================================
+
+## Get list of owned cosmetic IDs
+func get_owned_cosmetics() -> Array:
+	var cosmetics: Dictionary = _data.get("cosmetics", {"owned": []})
+	return cosmetics.get("owned", [])
+
+## Check if a specific cosmetic is owned
+func is_cosmetic_owned(cosmetic_id: String) -> bool:
+	return cosmetic_id in get_owned_cosmetics()
+
+## Grant a cosmetic to the player
+func grant_cosmetic(cosmetic_id: String) -> bool:
+	var cosmetics: Dictionary = _data.get("cosmetics", {"owned": [], "equipped": {}, "summoner_skins": {}})
+	var owned: Array = cosmetics.get("owned", [])
+	if cosmetic_id not in owned:
+		owned.append(cosmetic_id)
+		cosmetics["owned"] = owned
+		_data["cosmetics"] = cosmetics
+		_append_to_wal({"action": "grant_cosmetic", "params": {"cosmetic_id": cosmetic_id}})
+		save_profile()
+		data_changed.emit()
+		return true
+	return false
+
+## Get equipped cosmetics by slot
+func get_equipped_cosmetics() -> Dictionary:
+	var cosmetics: Dictionary = _data.get("cosmetics", {"equipped": {}})
+	return cosmetics.get("equipped", {})
+
+## Equip a cosmetic to a slot (card_back, ui_theme)
+func equip_cosmetic(slot: String, cosmetic_id: String) -> bool:
+	# Validate cosmetic is owned (empty string means unequip)
+	if not cosmetic_id.is_empty() and not is_cosmetic_owned(cosmetic_id):
+		push_warning("ProfileRepo: Cannot equip cosmetic '%s' - not owned" % cosmetic_id)
+		return false
+
+	var cosmetics: Dictionary = _data.get("cosmetics", {"owned": [], "equipped": {}, "summoner_skins": {}})
+	var equipped: Dictionary = cosmetics.get("equipped", {})
+	equipped[slot] = cosmetic_id
+	cosmetics["equipped"] = equipped
+	_data["cosmetics"] = cosmetics
+	_append_to_wal({"action": "equip_cosmetic", "params": {"slot": slot, "cosmetic_id": cosmetic_id}})
+	save_profile()
+	data_changed.emit()
+	return true
+
+## Get summoner skin mappings
+func get_summoner_skins() -> Dictionary:
+	var cosmetics: Dictionary = _data.get("cosmetics", {"summoner_skins": {}})
+	return cosmetics.get("summoner_skins", {})
+
+## Set a skin for a specific summoner
+func set_summoner_skin(summoner_id: String, skin_id: String) -> bool:
+	# Validate skin is owned (empty string means remove skin)
+	if not skin_id.is_empty() and not is_cosmetic_owned(skin_id):
+		push_warning("ProfileRepo: Cannot set skin '%s' - not owned" % skin_id)
+		return false
+
+	var cosmetics: Dictionary = _data.get("cosmetics", {"owned": [], "equipped": {}, "summoner_skins": {}})
+	var skins: Dictionary = cosmetics.get("summoner_skins", {})
+	if skin_id.is_empty():
+		skins.erase(summoner_id)
+	else:
+		skins[summoner_id] = skin_id
+	cosmetics["summoner_skins"] = skins
+	_data["cosmetics"] = cosmetics
+	_append_to_wal({"action": "set_summoner_skin", "params": {"summoner_id": summoner_id, "skin_id": skin_id}})
+	save_profile()
+	data_changed.emit()
+	return true
+
+## =============================================================================
+## EMOTE OPERATIONS
+## =============================================================================
+
+## Get list of owned emote IDs
+func get_owned_emotes() -> Array:
+	var emotes: Dictionary = _data.get("emotes", {"owned": []})
+	return emotes.get("owned", [])
+
+## Check if a specific emote is owned
+func is_emote_owned(emote_id: String) -> bool:
+	return emote_id in get_owned_emotes()
+
+## Grant an emote to the player
+func grant_emote(emote_id: String) -> bool:
+	var emotes: Dictionary = _data.get("emotes", {"owned": [], "equipped": []})
+	var owned: Array = emotes.get("owned", [])
+	if emote_id not in owned:
+		owned.append(emote_id)
+		emotes["owned"] = owned
+		_data["emotes"] = emotes
+		_append_to_wal({"action": "grant_emote", "params": {"emote_id": emote_id}})
+		save_profile()
+		data_changed.emit()
+		return true
+	return false
+
+## Get equipped emotes (array of 4 slots)
+func get_equipped_emotes() -> Array:
+	var emotes: Dictionary = _data.get("emotes", {"equipped": ["", "", "", ""]})
+	var equipped: Array = emotes.get("equipped", ["", "", "", ""])
+	# Ensure we have exactly 4 slots
+	while equipped.size() < 4:
+		equipped.append("")
+	return equipped
+
+## Equip an emote to a slot (0-3)
+func equip_emote(slot: int, emote_id: String) -> bool:
+	if slot < 0 or slot >= 4:
+		push_warning("ProfileRepo: Invalid emote slot %d (must be 0-3)" % slot)
+		return false
+
+	# Validate emote is owned (empty string means unequip)
+	if not emote_id.is_empty() and not is_emote_owned(emote_id):
+		push_warning("ProfileRepo: Cannot equip emote '%s' - not owned" % emote_id)
+		return false
+
+	var emotes: Dictionary = _data.get("emotes", {"owned": [], "equipped": ["", "", "", ""]})
+	var equipped: Array = emotes.get("equipped", ["", "", "", ""])
+	# Ensure we have exactly 4 slots
+	while equipped.size() < 4:
+		equipped.append("")
+	equipped[slot] = emote_id
+	emotes["equipped"] = equipped
+	_data["emotes"] = emotes
+	_append_to_wal({"action": "equip_emote", "params": {"slot": slot, "emote_id": emote_id}})
+	save_profile()
 	data_changed.emit()
 	return true
 
@@ -1096,6 +1230,7 @@ func _create_fresh_profile() -> void:
 		"resources": {
 			"profile_id": _current_profile_id,
 			"gold": 100,
+			"gems": 0,  # Premium currency (purchased with real money)
 			"essence": 0,
 			"fragments": 0,
 			"updated_at": Time.get_unix_time_from_system()
@@ -1112,6 +1247,18 @@ func _create_fresh_profile() -> void:
 		"shop_purchases": {},  # "shop_id::offering_id::refresh_epoch" -> purchase_count
 		"shop_refresh_state": {  # Per-shop refresh tracking
 			# "general": {"refresh_epoch": 0, "last_refresh_at": ""}
+		},
+		"cosmetics": {  # Cosmetic items (skins, card backs, UI themes)
+			"owned": [],                # Array of cosmetic_id strings
+			"equipped": {               # Active cosmetics by slot
+				"card_back": "",
+				"ui_theme": ""
+			},
+			"summoner_skins": {}        # summoner_id -> skin_id mapping
+		},
+		"emotes": {  # Battle emotes
+			"owned": [],                # Array of emote_id strings
+			"equipped": ["", "", "", ""]  # 4 emote slots
 		},
 		"meta": {
 			"selected_deck": "",
@@ -1166,6 +1313,9 @@ func _migrate(from_version: int) -> void:
 		2:
 			# Version 2 → 3 migration: Move onboarding battles to shared progress
 			_migrate_v2_to_v3()
+		3:
+			# Version 3 → 4 migration: Add cosmetics and emotes
+			_migrate_v3_to_v4()
 		_:
 			push_warning("JsonProfileRepo: No migration defined for version " + str(from_version))
 
@@ -1256,6 +1406,30 @@ func _migrate_v2_to_v3() -> void:
 	_data["shared_campaign_progress"] = shared_progress
 
 	print("JsonProfileRepo: Migrated %d onboarding battles to shared progress" % migrated_count)
+
+## Migration: Add cosmetics and emotes structures
+func _migrate_v3_to_v4() -> void:
+	print("JsonProfileRepo: Adding cosmetics and emotes structures...")
+
+	# Add cosmetics if missing
+	if not _data.has("cosmetics"):
+		_data["cosmetics"] = {
+			"owned": [],
+			"equipped": {
+				"card_back": "",
+				"ui_theme": ""
+			},
+			"summoner_skins": {}
+		}
+
+	# Add emotes if missing
+	if not _data.has("emotes"):
+		_data["emotes"] = {
+			"owned": [],
+			"equipped": ["", "", "", ""]
+		}
+
+	print("JsonProfileRepo: Cosmetics and emotes migration complete")
 
 ## =============================================================================
 ## INTERNAL - WRITE-AHEAD LOG

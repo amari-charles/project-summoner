@@ -3,18 +3,19 @@ extends Node
 
 ## Economy Service - Resource Management
 ##
-## Handles all resource operations (gold, essence, fragments).
+## Handles all resource operations (gold, gems, essence, fragments).
 ## UI and gameplay code should call this, never the repository directly.
 ##
 ## Usage:
 ##   Economy.add_gold(50)
+##   Economy.add_gems(100)  # From real-money purchase
 ##   if Economy.can_afford({"gold": 100}):
 ##       Economy.spend({"gold": 100})
 ##
 ## Emits signals for reactive UI updates.
 
 ## Signals
-signal resources_changed(gold: int, essence: int, fragments: int)
+signal resources_changed(gold: int, gems: int, essence: int, fragments: int)
 signal transaction_completed(delta: Dictionary)
 signal transaction_failed(reason: String)
 
@@ -66,6 +67,9 @@ func get_resources() -> Dictionary:
 func get_gold() -> int:
 	return get_resources().get("gold", 0)
 
+func get_gems() -> int:
+	return get_resources().get("gems", 0)
+
 func get_essence() -> int:
 	return get_resources().get("essence", 0)
 
@@ -96,6 +100,15 @@ func add_gold(amount: int) -> void:
 
 	_update_resources({"gold": amount})
 	print("EconomyService: Added %d gold" % amount)
+
+## Add gems (positive amount only) - typically from real-money purchases
+func add_gems(amount: int) -> void:
+	if amount <= 0:
+		push_warning("EconomyService: add_gems called with non-positive amount: %d" % amount)
+		return
+
+	_update_resources({"gems": amount})
+	print("EconomyService: Added %d gems" % amount)
 
 ## Add essence (positive amount only)
 func add_essence(amount: int) -> void:
@@ -152,9 +165,10 @@ func _update_resources(delta: Dictionary) -> void:
 func _emit_current_resources() -> void:
 	var resources: Dictionary = get_resources()
 	var gold: int = resources.get("gold", 0)
+	var gems: int = resources.get("gems", 0)
 	var essence: int = resources.get("essence", 0)
 	var fragments: int = resources.get("fragments", 0)
-	resources_changed.emit(gold, essence, fragments)
+	resources_changed.emit(gold, gems, essence, fragments)
 
 func _on_repo_data_changed() -> void:
 	# Repo data changed (from external source or load)

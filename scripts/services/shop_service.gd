@@ -33,6 +33,9 @@ var _purchase_cache: Dictionary = {}  # "shop_id::offering_id::refresh_epoch" ->
 ## LIFECYCLE
 ## =============================================================================
 
+## Pending real-money purchases (product_id -> offering_id, shop_id)
+var _pending_billing_purchases: Dictionary = {}
+
 func _ready() -> void:
 	print("ShopService: Initializing...")
 
@@ -44,6 +47,11 @@ func _ready() -> void:
 
 	# Initialize shop catalog
 	_init_shops()
+
+	# Connect to PlatformBilling signals for real-money purchases
+	PlatformBilling.purchase_completed.connect(_on_billing_purchase_completed)
+	PlatformBilling.purchase_failed.connect(_on_billing_purchase_failed)
+	PlatformBilling.purchase_cancelled.connect(_on_billing_purchase_cancelled)
 
 	print("ShopService: Ready (%d shops loaded)" % _shops.size())
 
@@ -153,6 +161,172 @@ func _init_shops() -> void:
 		]
 	}
 
+	# Premium Store (account-level meta-progression purchases)
+	# Summoners, cosmetics, emotes - accessed from campaign map
+	_shops["premium_store"] = {
+		"id": "premium_store",
+		"shop_type": "premium",
+		"name": Loc.t("shop.premium.name"),
+		"offerings": [
+			# =====================================================================
+			# SUMMONER OFFERINGS
+			# =====================================================================
+			{
+				"offering_id": "summoner_lightning_adept",
+				"offering_type": ShopOffering.OfferingType.SUMMONER,
+				"display_name": Loc.t("shop.offering.lightning_adept.name"),
+				"description": Loc.t("shop.offering.lightning_adept.description"),
+				"summoner_id": "summoner_lightning_adept",
+				"base_price": 750,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "summoner_verdant_sage",
+				"offering_type": ShopOffering.OfferingType.SUMMONER,
+				"display_name": Loc.t("shop.offering.verdant_sage.name"),
+				"description": Loc.t("shop.offering.verdant_sage.description"),
+				"summoner_id": "summoner_verdant_sage",
+				"base_price": 750,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "summoner_void_walker",
+				"offering_type": ShopOffering.OfferingType.SUMMONER,
+				"display_name": Loc.t("shop.offering.void_walker.name"),
+				"description": Loc.t("shop.offering.void_walker.description"),
+				"summoner_id": "summoner_void_walker",
+				"base_price": 750,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			# =====================================================================
+			# COSMETIC OFFERINGS
+			# =====================================================================
+			{
+				"offering_id": "cosmetic_card_back_gold",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.card_back_gold.name"),
+				"description": Loc.t("shop.offering.card_back_gold.description"),
+				"cosmetic_type": "card_back",
+				"cosmetic_id": "card_back_gold",
+				"base_price": 300,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_card_back_obsidian",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.card_back_obsidian.name"),
+				"description": Loc.t("shop.offering.card_back_obsidian.description"),
+				"cosmetic_type": "card_back",
+				"cosmetic_id": "card_back_obsidian",
+				"base_price": 500,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_ui_theme_crimson",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.ui_theme_crimson.name"),
+				"description": Loc.t("shop.offering.ui_theme_crimson.description"),
+				"cosmetic_type": "ui_theme",
+				"cosmetic_id": "ui_theme_crimson",
+				"base_price": 400,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_ui_theme_void",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.ui_theme_void.name"),
+				"description": Loc.t("shop.offering.ui_theme_void.description"),
+				"cosmetic_type": "ui_theme",
+				"cosmetic_id": "ui_theme_void",
+				"base_price": 600,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			# =====================================================================
+			# EMOTE OFFERINGS
+			# =====================================================================
+			{
+				"offering_id": "emote_laugh",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_laugh.name"),
+				"description": Loc.t("shop.offering.emote_laugh.description"),
+				"emote_id": "emote_laugh",
+				"base_price": 150,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_shocked",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_shocked.name"),
+				"description": Loc.t("shop.offering.emote_shocked.description"),
+				"emote_id": "emote_shocked",
+				"base_price": 150,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_thinking",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_thinking.name"),
+				"description": Loc.t("shop.offering.emote_thinking.description"),
+				"emote_id": "emote_thinking",
+				"base_price": 200,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_taunt",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_taunt.name"),
+				"description": Loc.t("shop.offering.emote_taunt.description"),
+				"emote_id": "emote_taunt",
+				"base_price": 250,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_confident",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_confident.name"),
+				"description": Loc.t("shop.offering.emote_confident.description"),
+				"emote_id": "emote_confident",
+				"base_price": 300,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_victory",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_victory.name"),
+				"description": Loc.t("shop.offering.emote_victory.description"),
+				"emote_id": "emote_victory",
+				"base_price": 350,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			}
+		]
+	}
+
 	print("ShopService: Initialized %d shops" % _shops.size())
 
 ## Get all offerings for a shop
@@ -190,6 +364,12 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 		_emit_purchase_failed(offering_id, "Offering not found")
 		return false
 
+	# Check if already owned (for one-time purchases like summoners/cosmetics/emotes)
+	var already_owned_reason: String = _check_already_owned(offering)
+	if not already_owned_reason.is_empty():
+		_emit_purchase_failed(offering_id, already_owned_reason)
+		return false
+
 	# Get shop refresh state
 	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
 	var epoch_variant: Variant = shop_refresh_state.get("refresh_epoch", 0)
@@ -201,11 +381,13 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 	# Get state from ProfileRepo (typed calls, no .call())
 	var resources: Dictionary = ProfileRepo.get_resources()
 	var gold: int = resources.get("gold", 0)
+	var gems: int = resources.get("gems", 0)
 	var purchase_count: int = _purchase_cache.get(purchase_key, 0)
 
 	# Build context for validation
 	var context: ShopPurchaseContext = ShopPurchaseContext.new()
 	context.player_gold = gold
+	context.player_gems = gems
 	context.purchase_count = purchase_count
 	context.summoner_affinity = ""  # TODO: ProfileRepo.get_summoner_affinity() when implemented
 	context.refresh_epoch = refresh_epoch
@@ -218,29 +400,52 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 
 	# Transaction atomicity: All-or-nothing guarantee
 	var price: int = offering.get_price(context)
+	var currency: String = offering.currency_type
 
-	# Step 1: Deduct gold
-	ProfileRepo.update_resources({"gold": -price})
-	# update_resources doesn't return bool, assume success
+	# Handle different currency types
+	match currency:
+		"gold":
+			return _complete_currency_purchase(offering, offering_id, shop_id, purchase_key, price, "gold")
+		"gems":
+			return _complete_currency_purchase(offering, offering_id, shop_id, purchase_key, price, "gems")
+		"real_money":
+			# Delegate to PlatformBilling (async)
+			var product_id: String = offering.product_id if offering.product_id else offering_id
+			_pending_billing_purchases[product_id] = {
+				"offering_id": offering_id,
+				"shop_id": shop_id,
+				"purchase_key": purchase_key,
+				"offering": offering
+			}
+			PlatformBilling.purchase(product_id)
+			print("ShopService: Initiated real-money purchase for '%s'" % offering_id)
+			return true  # Async - result comes via billing signals
+		_:
+			_emit_purchase_failed(offering_id, "Unknown currency type: %s" % currency)
+			return false
+
+
+## Complete a purchase using in-game currency (gold or gems)
+func _complete_currency_purchase(offering: ShopOffering, offering_id: String, shop_id: String, purchase_key: String, price: int, currency: String) -> bool:
+	# Step 1: Deduct currency
+	ProfileRepo.update_resources({currency: -price})
 
 	# Step 2: Grant rewards via RewardService
 	var rewards: Dictionary = _build_reward_dict(offering)
 	if not RewardService.grant_rewards(rewards):
-		# Rollback: Refund gold
-		ProfileRepo.update_resources({"gold": price})
+		# Rollback: Refund currency
+		ProfileRepo.update_resources({currency: price})
 		_emit_purchase_failed(offering_id, "Failed to grant rewards")
 		return false
 
 	# Step 3: Track purchase (namespaced key)
 	if not ProfileRepo.increment_purchase_count(purchase_key):
 		push_warning("ShopService: Failed to track purchase count")
-		# Don't rollback - player got their items, tracking is non-critical
 	else:
-		# Update cache
 		_purchase_cache[purchase_key] = _purchase_cache.get(purchase_key, 0) + 1
 
 	purchase_completed.emit(offering_id, shop_id)
-	print("ShopService: Purchased '%s' for %d gold" % [offering_id, price])
+	print("ShopService: Purchased '%s' for %d %s" % [offering_id, price, currency])
 	return true
 
 ## =============================================================================
@@ -284,6 +489,8 @@ func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
 	offering.card_catalog_id = def.get("card_catalog_id", "")
 	offering.card_count = def.get("card_count", 1)
 	offering.base_price = def.get("base_price", 0)
+	offering.currency_type = def.get("currency_type", "gold")
+	offering.product_id = def.get("product_id", "")
 	offering.purchase_limit_type = def.get("purchase_limit_type", "none")
 	offering.purchase_limit = def.get("purchase_limit", 0)
 
@@ -296,6 +503,16 @@ func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
 				if card_data is Dictionary:
 					var card_dict: Dictionary = card_data
 					offering.pack_cards.append(card_dict)
+
+	# For SUMMONER types
+	offering.summoner_id = def.get("summoner_id", "")
+
+	# For COSMETIC types
+	offering.cosmetic_type = def.get("cosmetic_type", "")
+	offering.cosmetic_id = def.get("cosmetic_id", "")
+
+	# For EMOTE types
+	offering.emote_id = def.get("emote_id", "")
 
 	return offering
 
@@ -322,16 +539,32 @@ func _build_reward_dict(offering: ShopOffering) -> Dictionary:
 			pass
 
 		ShopOffering.OfferingType.SPECIAL:
-			# TODO: Implement special rewards
+			# Legacy - use COSMETIC/EMOTE instead
 			pass
+
+		ShopOffering.OfferingType.SUMMONER:
+			rewards["summoner"] = offering.summoner_id
+
+		ShopOffering.OfferingType.COSMETIC:
+			rewards["cosmetic"] = offering.cosmetic_id
+
+		ShopOffering.OfferingType.EMOTE:
+			rewards["emote"] = offering.emote_id
 
 	return rewards
 
 ## Get human-readable failure reason
 func _get_failure_reason(offering: ShopOffering, context: ShopPurchaseContext) -> String:
 	var price: int = offering.get_price(context)
-	if context.player_gold < price:
-		return "Not enough gold (need %d, have %d)" % [price, context.player_gold]
+
+	# Check currency
+	match offering.currency_type:
+		"gold":
+			if context.player_gold < price:
+				return "Not enough gold (need %d, have %d)" % [price, context.player_gold]
+		"gems":
+			if context.player_gems < price:
+				return "Not enough gems (need %d, have %d)" % [price, context.player_gems]
 
 	if offering.purchase_limit_type != "none" and offering.purchase_limit > 0:
 		if context.purchase_count >= offering.purchase_limit:
@@ -343,3 +576,93 @@ func _get_failure_reason(offering: ShopOffering, context: ShopPurchaseContext) -
 func _emit_purchase_failed(offering_id: String, reason: String) -> void:
 	push_warning("ShopService: Purchase failed for '%s': %s" % [offering_id, reason])
 	purchase_failed.emit(offering_id, reason)
+
+## Check if an offering is already owned (for one-time purchases)
+## Returns empty string if not owned, or failure reason if already owned
+func _check_already_owned(offering: ShopOffering) -> String:
+	match offering.offering_type:
+		ShopOffering.OfferingType.SUMMONER:
+			if ProfileRepo.is_summoner_unlocked(offering.summoner_id):
+				return Loc.t("shop.error.already_owned")
+
+		ShopOffering.OfferingType.COSMETIC:
+			if ProfileRepo.is_cosmetic_owned(offering.cosmetic_id):
+				return Loc.t("shop.error.already_owned")
+
+		ShopOffering.OfferingType.EMOTE:
+			if ProfileRepo.is_emote_owned(offering.emote_id):
+				return Loc.t("shop.error.already_owned")
+
+	return ""  # Not owned, can purchase
+
+## Check if an offering is already owned (public API for UI)
+func is_offering_owned(offering: ShopOffering) -> bool:
+	return not _check_already_owned(offering).is_empty()
+
+
+## =============================================================================
+## PLATFORM BILLING HANDLERS
+## =============================================================================
+
+func _on_billing_purchase_completed(product_id: String, transaction_id: String) -> void:
+	print("ShopService: Billing purchase completed - product: %s, txn: %s" % [product_id, transaction_id])
+
+	# Check if this was a shop offering purchase
+	if _pending_billing_purchases.has(product_id):
+		var pending: Dictionary = _pending_billing_purchases[product_id]
+		_pending_billing_purchases.erase(product_id)
+
+		var offering: ShopOffering = pending.offering
+		var offering_id: String = pending.offering_id
+		var shop_id: String = pending.shop_id
+		var purchase_key: String = pending.purchase_key
+
+		# Grant the offering rewards
+		var rewards: Dictionary = _build_reward_dict(offering)
+		if RewardService.grant_rewards(rewards):
+			# Track purchase
+			if ProfileRepo.increment_purchase_count(purchase_key):
+				_purchase_cache[purchase_key] = _purchase_cache.get(purchase_key, 0) + 1
+			purchase_completed.emit(offering_id, shop_id)
+			print("ShopService: Real-money purchase completed for '%s'" % offering_id)
+		else:
+			# Failed to grant rewards - this is a problem (payment went through)
+			push_error("ShopService: CRITICAL - Payment completed but failed to grant rewards for '%s'" % offering_id)
+			_emit_purchase_failed(offering_id, "Failed to grant rewards after payment")
+	else:
+		# Direct billing product (gem pack, not a shop offering)
+		var product: BillingProduct = BillingCatalog.get_product(product_id)
+		if product:
+			# Grant gems
+			if product.gems_amount > 0:
+				Economy.add_gems(product.gems_amount)
+				print("ShopService: Granted %d gems from billing purchase" % product.gems_amount)
+
+			# Grant direct rewards
+			if not product.rewards.is_empty():
+				RewardService.grant_rewards(product.rewards)
+				print("ShopService: Granted direct rewards from billing purchase")
+		else:
+			push_warning("ShopService: Unknown billing product: %s" % product_id)
+
+
+func _on_billing_purchase_failed(product_id: String, error: String) -> void:
+	print("ShopService: Billing purchase failed - product: %s, error: %s" % [product_id, error])
+
+	if _pending_billing_purchases.has(product_id):
+		var pending: Dictionary = _pending_billing_purchases[product_id]
+		_pending_billing_purchases.erase(product_id)
+
+		var offering_id: String = pending.offering_id
+		_emit_purchase_failed(offering_id, "Payment failed: %s" % error)
+
+
+func _on_billing_purchase_cancelled(product_id: String) -> void:
+	print("ShopService: Billing purchase cancelled - product: %s" % product_id)
+
+	if _pending_billing_purchases.has(product_id):
+		var pending: Dictionary = _pending_billing_purchases[product_id]
+		_pending_billing_purchases.erase(product_id)
+
+		var offering_id: String = pending.offering_id
+		_emit_purchase_failed(offering_id, "Purchase cancelled")

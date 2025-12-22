@@ -198,7 +198,7 @@ func test_add_gold_emits_transaction_completed() -> void:
 	assert_eq(_received_delta, {"gold": 50})
 
 
-func _on_resources_changed(gold: int, _essence: int, _fragments: int) -> void:
+func _on_resources_changed(gold: int, _gems: int, _essence: int, _fragments: int) -> void:
 	_signal_received = true
 	_received_gold = gold
 	_signal_count += 1

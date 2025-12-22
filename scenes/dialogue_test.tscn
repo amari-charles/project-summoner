@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dialogue_test"]
 
-[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/ui/dialogue_box.tscn" id="1_dialogue_box"]
+[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/ui/components/dialogue_box.tscn" id="1_dialogue_box"]
 [ext_resource type="Script" path="res://scripts/dialogue_test.gd" id="2_dialogue_test_script"]
 
 [node name="DialogueTest" type="Control"]

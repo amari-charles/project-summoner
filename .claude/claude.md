@@ -90,3 +90,23 @@ When asked to review a PR, follow the guidelines in `docs/workflows/pr-review-gu
 - Use the structured output format from the guidelines doc
 - **Keep bug/todo additions**: If a PR adds new items to `docs/bugs.md` or `docs/todos.md`, keep them even if unrelated to the PR's main feature. These are valuable captures of future work.
 
+### Design Context Documentation
+**Document decisions and context in every PR - not just code, but product and lore too.**
+
+When making decisions, ensure context is captured across three dimensions:
+
+1. **Architectural Context** - Technical decisions, patterns, system relationships
+2. **Product Context** - Why features exist, user goals, game design intent
+3. **Lore Context** - Story elements, world-building, character backgrounds
+
+**Documentation practices:**
+- Capture reasoning in relevant docs (e.g., `docs/features/`, `docs/lore/`)
+- PRs should include context for non-obvious design choices
+- Keep related docs consistent and updated together
+- If docs are inconsistent and it's unclear which is correct, **ask the user**
+
+**Key design contexts documented:**
+- **Shop vs Caravan**: Caravan = in-campaign card purchases during gameplay events. Premium Store = meta-progression outside campaigns (summoners, cosmetics, emotes)
+- **Currency**: Gold for gameplay progression, potentially gems for premium purchases (TBD)
+- **Summoners**: Elemental characters with progression (levels, traits, boons) - each has lore and personality
+

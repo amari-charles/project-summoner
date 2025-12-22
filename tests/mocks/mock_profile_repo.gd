@@ -37,6 +37,11 @@ func reset() -> void:
 	_settings = {}
 	_last_match = {}
 	_calls = {}
+	_shop_purchases = {}
+	_shop_refresh_states = {}
+	_unlocked_summoners = []
+	_owned_cosmetics = []
+	_owned_emotes = []
 
 
 ## Set initial resources for test setup
@@ -326,3 +331,92 @@ func update_last_match(match_info: Dictionary) -> void:
 	_record_call("update_last_match", [match_info.duplicate(true)])
 	_last_match = match_info.duplicate(true)
 	data_changed.emit()
+
+
+## =============================================================================
+## SHOP OPERATIONS
+## =============================================================================
+
+var _shop_purchases: Dictionary = {}
+var _shop_refresh_states: Dictionary = {}
+
+func get_shop_purchases() -> Dictionary:
+	return _shop_purchases.duplicate()
+
+
+func get_shop_refresh_state(shop_id: String) -> Dictionary:
+	return _shop_refresh_states.get(shop_id, {"refresh_epoch": 0})
+
+
+func increment_purchase_count(purchase_key: String) -> bool:
+	_record_call("increment_purchase_count", [purchase_key])
+	_shop_purchases[purchase_key] = _shop_purchases.get(purchase_key, 0) + 1
+	return true
+
+
+## =============================================================================
+## OWNERSHIP CHECKS (Summoners, Cosmetics, Emotes)
+## =============================================================================
+
+var _unlocked_summoners: Array = []
+var _owned_cosmetics: Array = []
+var _owned_emotes: Array = []
+
+
+## Set unlocked summoners for test setup
+func set_unlocked_summoners(summoner_ids: Array) -> void:
+	_unlocked_summoners = summoner_ids.duplicate()
+
+
+## Set owned cosmetics for test setup
+func set_owned_cosmetics(cosmetic_ids: Array) -> void:
+	_owned_cosmetics = cosmetic_ids.duplicate()
+
+
+## Set owned emotes for test setup
+func set_owned_emotes(emote_ids: Array) -> void:
+	_owned_emotes = emote_ids.duplicate()
+
+
+func is_summoner_unlocked(summoner_id: String) -> bool:
+	return summoner_id in _unlocked_summoners
+
+
+func is_cosmetic_owned(cosmetic_id: String) -> bool:
+	return cosmetic_id in _owned_cosmetics
+
+
+func is_emote_owned(emote_id: String) -> bool:
+	return emote_id in _owned_emotes
+
+
+func unlock_summoner(summoner_id: String) -> bool:
+	_record_call("unlock_summoner", [summoner_id])
+	if summoner_id not in _unlocked_summoners:
+		_unlocked_summoners.append(summoner_id)
+	data_changed.emit()
+	return true
+
+
+func grant_cosmetic(cosmetic_id: String) -> bool:
+	_record_call("grant_cosmetic", [cosmetic_id])
+	if cosmetic_id not in _owned_cosmetics:
+		_owned_cosmetics.append(cosmetic_id)
+	data_changed.emit()
+	return true
+
+
+func grant_emote(emote_id: String) -> bool:
+	_record_call("grant_emote", [emote_id])
+	if emote_id not in _owned_emotes:
+		_owned_emotes.append(emote_id)
+	data_changed.emit()
+	return true
+
+
+func get_owned_cosmetics() -> Array:
+	return _owned_cosmetics.duplicate()
+
+
+func get_owned_emotes() -> Array:
+	return _owned_emotes.duplicate()

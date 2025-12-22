@@ -52,9 +52,55 @@ func grant_rewards(rewards: Dictionary) -> bool:
 					push_error("RewardService: Failed to grant all %s cards (granted %d/%d)" % [catalog_id, instance_ids.size(), count])
 					success = false
 
-	# Grant cosmetics (future)
+	# Grant summoner unlock
+	if rewards.has("summoner"):
+		var summoner_id: String = rewards["summoner"]
+		if not summoner_id.is_empty():
+			if not ProfileRepo.is_summoner_unlocked(summoner_id):
+				if not ProfileRepo.unlock_summoner(summoner_id):
+					push_error("RewardService: Failed to unlock summoner %s" % summoner_id)
+					success = false
+				else:
+					# Create SummonerInstance for the new summoner
+					var summoner_instance: SummonerInstance = SummonerInstance.new()
+					summoner_instance.summoner_id = summoner_id
+					summoner_instance.level = 1
+					summoner_instance.xp = 0
+					if not ProfileRepo.save_summoner_instance(summoner_instance):
+						push_error("RewardService: Failed to save summoner instance for %s" % summoner_id)
+						# Don't fail the whole grant - summoner is unlocked, just instance save failed
+					print("RewardService: Unlocked summoner '%s'" % summoner_id)
+
+	# Grant cosmetic
+	if rewards.has("cosmetic"):
+		var cosmetic_id: String = rewards["cosmetic"]
+		if not cosmetic_id.is_empty():
+			if not ProfileRepo.grant_cosmetic(cosmetic_id):
+				push_error("RewardService: Failed to grant cosmetic %s" % cosmetic_id)
+				success = false
+			else:
+				print("RewardService: Granted cosmetic '%s'" % cosmetic_id)
+
+	# Grant emote
+	if rewards.has("emote"):
+		var emote_id: String = rewards["emote"]
+		if not emote_id.is_empty():
+			if not ProfileRepo.grant_emote(emote_id):
+				push_error("RewardService: Failed to grant emote %s" % emote_id)
+				success = false
+			else:
+				print("RewardService: Granted emote '%s'" % emote_id)
+
+	# Grant cosmetics array (legacy - kept for backwards compatibility)
 	if rewards.has("cosmetics"):
-		# TODO: Implement cosmetic granting
-		push_warning("RewardService: Cosmetic granting not yet implemented")
+		var cosmetics_variant: Variant = rewards["cosmetics"]
+		if cosmetics_variant is Array:
+			var cosmetics_array: Array = cosmetics_variant
+			for cosmetic_item: Variant in cosmetics_array:
+				if cosmetic_item is String:
+					var cosmetic_id: String = cosmetic_item
+					if not ProfileRepo.grant_cosmetic(cosmetic_id):
+						push_error("RewardService: Failed to grant cosmetic %s" % cosmetic_id)
+						success = false
 
 	return success

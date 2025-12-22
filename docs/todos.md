@@ -668,7 +668,7 @@ Implement the system for summoner active and passive abilities.
 ---
 
 #### Implement Summoner Unlock System (Post-MVP)
-**Status:** ⬜ Not Started (Post-MVP)
+**Status:** 🔄 In Progress (Infrastructure Complete)
 **Category:** Summoners / Progression
 **Effort:** Medium
 
@@ -676,9 +676,16 @@ Implement the system for summoner active and passive abilities.
 Implement the system for unlocking additional summoners beyond the starting summoner.
 
 **Notes:**
-- Foundation exists: SummonerInstance persistence, profile summoner_instances array
-- Need: Campaign milestone triggers for unlocking new summoners
-- Need: UI to show locked summoners and unlock progress
+- **Infrastructure complete** (see feature/premium-store-ui branch):
+  - Premium Store UI with Summoners tab
+  - ShopOffering SUMMONER type
+  - RewardService summoner unlock granting
+  - ProfileRepo unlock/instance tracking
+  - Shop "already owned" validation
+- Remaining work:
+  - Add actual purchasable summoners to SummonerCatalog
+  - Design summoner pricing and purchase limits
+  - Add campaign milestone unlocks (alternative to purchase)
 
 ---
 
