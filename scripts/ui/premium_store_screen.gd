@@ -186,7 +186,7 @@ func _add_summoner_info(offering: ShopOffering) -> void:
 
 	# Element
 	var element_label: Label = Label.new()
-	var element_name: String = ElementRegistry.get_element_name(config.element_id)
+	var element_name: String = ElementTypes.get_display_name(config.get_element())
 	element_label.text = Loc.t("ui.premium_store.element", {"element": element_name})
 	element_label.add_theme_font_size_override("font_size", 16)
 	detail_info_container.add_child(element_label)
