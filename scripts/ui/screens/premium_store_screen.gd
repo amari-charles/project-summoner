@@ -201,7 +201,7 @@ func _add_summoner_info(offering: ShopOffering) -> void:
 
 		for trait_id: String in config.innate_trait_ids:
 			var trait_label: Label = Label.new()
-			trait_label.text = "  - " + trait_id.capitalize()
+			trait_label.text = "  - " + TraitCatalog.get_trait_name(trait_id)
 			trait_label.add_theme_font_size_override("font_size", 12)
 			popup_info_container.add_child(trait_label)
 
