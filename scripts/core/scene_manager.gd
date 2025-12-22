@@ -29,6 +29,7 @@ const SCENE_DECK_BUILDER: String = "res://scenes/ui/deck_builder.tscn"
 
 ## Shop Scenes
 const SCENE_SHOP_SCREEN: String = "res://scenes/ui/shop_screen.tscn"
+const SCENE_PREMIUM_STORE: String = "res://scenes/ui/premium_store_screen.tscn"
 
 ## Special Events & Settings
 const SCENE_SPECIAL_EVENTS: String = "res://scenes/ui/special_events_screen.tscn"

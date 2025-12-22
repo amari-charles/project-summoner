@@ -878,9 +878,9 @@ func _on_nav_events_pressed() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_SPECIAL_EVENTS)
 
 func _on_nav_shop_pressed() -> void:
-	print("CampaignMap: Opening Shop...")
+	print("CampaignMap: Opening Premium Store...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-	SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_PREMIUM_STORE)
 
 func _on_nav_settings_pressed() -> void:
 	print("CampaignMap: Opening Settings...")

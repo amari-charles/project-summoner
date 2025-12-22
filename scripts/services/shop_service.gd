@@ -153,6 +153,29 @@ func _init_shops() -> void:
 		]
 	}
 
+	# Premium Store (account-level meta-progression purchases)
+	# Summoners, cosmetics, emotes - accessed from campaign map
+	_shops["premium_store"] = {
+		"id": "premium_store",
+		"shop_type": "premium",
+		"name": Loc.t("shop.premium.name"),
+		"offerings": [
+			# Summoner offerings (placeholder - will be populated with actual summoners)
+			{
+				"offering_id": "summoner_shadow_initiate",
+				"offering_type": ShopOffering.OfferingType.SUMMONER,
+				"display_name": Loc.t("shop.offering.shadow_initiate.name"),
+				"description": Loc.t("shop.offering.shadow_initiate.description"),
+				"summoner_id": "summoner_shadow_initiate",
+				"base_price": 500,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			}
+			# Future: Additional summoners, cosmetics, emotes will be added here
+		]
+	}
+
 	print("ShopService: Initialized %d shops" % _shops.size())
 
 ## Get all offerings for a shop
@@ -188,6 +211,12 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 	var offering: ShopOffering = _find_offering(offering_id, shop_id)
 	if not offering:
 		_emit_purchase_failed(offering_id, "Offering not found")
+		return false
+
+	# Check if already owned (for one-time purchases like summoners/cosmetics/emotes)
+	var already_owned_reason: String = _check_already_owned(offering)
+	if not already_owned_reason.is_empty():
+		_emit_purchase_failed(offering_id, already_owned_reason)
 		return false
 
 	# Get shop refresh state
@@ -284,6 +313,7 @@ func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
 	offering.card_catalog_id = def.get("card_catalog_id", "")
 	offering.card_count = def.get("card_count", 1)
 	offering.base_price = def.get("base_price", 0)
+	offering.currency_type = def.get("currency_type", "gold")
 	offering.purchase_limit_type = def.get("purchase_limit_type", "none")
 	offering.purchase_limit = def.get("purchase_limit", 0)
 
@@ -296,6 +326,16 @@ func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
 				if card_data is Dictionary:
 					var card_dict: Dictionary = card_data
 					offering.pack_cards.append(card_dict)
+
+	# For SUMMONER types
+	offering.summoner_id = def.get("summoner_id", "")
+
+	# For COSMETIC types
+	offering.cosmetic_type = def.get("cosmetic_type", "")
+	offering.cosmetic_id = def.get("cosmetic_id", "")
+
+	# For EMOTE types
+	offering.emote_id = def.get("emote_id", "")
 
 	return offering
 
@@ -322,8 +362,17 @@ func _build_reward_dict(offering: ShopOffering) -> Dictionary:
 			pass
 
 		ShopOffering.OfferingType.SPECIAL:
-			# TODO: Implement special rewards
+			# Legacy - use COSMETIC/EMOTE instead
 			pass
+
+		ShopOffering.OfferingType.SUMMONER:
+			rewards["summoner"] = offering.summoner_id
+
+		ShopOffering.OfferingType.COSMETIC:
+			rewards["cosmetic"] = offering.cosmetic_id
+
+		ShopOffering.OfferingType.EMOTE:
+			rewards["emote"] = offering.emote_id
 
 	return rewards
 
@@ -343,3 +392,25 @@ func _get_failure_reason(offering: ShopOffering, context: ShopPurchaseContext) -
 func _emit_purchase_failed(offering_id: String, reason: String) -> void:
 	push_warning("ShopService: Purchase failed for '%s': %s" % [offering_id, reason])
 	purchase_failed.emit(offering_id, reason)
+
+## Check if an offering is already owned (for one-time purchases)
+## Returns empty string if not owned, or failure reason if already owned
+func _check_already_owned(offering: ShopOffering) -> String:
+	match offering.offering_type:
+		ShopOffering.OfferingType.SUMMONER:
+			if ProfileRepo.is_summoner_unlocked(offering.summoner_id):
+				return Loc.t("shop.error.already_owned")
+
+		ShopOffering.OfferingType.COSMETIC:
+			if ProfileRepo.is_cosmetic_owned(offering.cosmetic_id):
+				return Loc.t("shop.error.already_owned")
+
+		ShopOffering.OfferingType.EMOTE:
+			if ProfileRepo.is_emote_owned(offering.emote_id):
+				return Loc.t("shop.error.already_owned")
+
+	return ""  # Not owned, can purchase
+
+## Check if an offering is already owned (public API for UI)
+func is_offering_owned(offering: ShopOffering) -> bool:
+	return not _check_already_owned(offering).is_empty()

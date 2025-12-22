@@ -11,7 +11,10 @@ enum OfferingType {
 	CARD,           # Single card purchase
 	CARD_PACK,      # Multiple cards in a bundle
 	CURRENCY,       # Gold or other currency
-	SPECIAL         # Special items (cosmetics, etc.)
+	SPECIAL,        # Special items (legacy - use COSMETIC/EMOTE instead)
+	SUMMONER,       # Unlock a new summoner
+	COSMETIC,       # Skins, card backs, UI themes
+	EMOTE           # Battle emotes/reactions
 }
 
 ## Offering metadata
@@ -27,7 +30,18 @@ enum OfferingType {
 ## Pack-specific (for CARD_PACK type)
 @export var pack_cards: Array[Dictionary] = []  # Array of {catalog_id: String, count: int}
 
+## Summoner-specific (for SUMMONER type)
+@export var summoner_id: String = ""  # References SummonerCatalog
+
+## Cosmetic-specific (for COSMETIC type)
+@export var cosmetic_type: String = ""  # "summoner_skin", "card_back", "ui_theme"
+@export var cosmetic_id: String = ""
+
+## Emote-specific (for EMOTE type)
+@export var emote_id: String = ""
+
 ## Pricing
+@export var currency_type: String = "gold"  # "gold", "gems" (future)
 @export var base_price: int = 10
 @export var price_formula: String = "base"  # "base", "rarity", "power", "custom"
 @export var discount_percent: int = 0  # 0-100

@@ -1,0 +1,65 @@
+[gd_scene load_steps=2 format=3 uid="uid://premium_store_item"]
+
+[ext_resource type="Script" path="res://scripts/ui/premium_store_offering_item.gd" id="1_item"]
+
+[node name="PremiumStoreOfferingItem" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 60)
+script = ExtResource("1_item")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 15
+
+[node name="LeftContent" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="MarginContainer/HBoxContainer/LeftContent"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = "Offering Name"
+
+[node name="TypeLabel" type="Label" parent="MarginContainer/HBoxContainer/LeftContent"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Summoner"
+
+[node name="RightContent" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="PriceLabel" type="Label" parent="MarginContainer/HBoxContainer/RightContent"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "500g"
+horizontal_alignment = 2
+
+[node name="OwnedIndicator" type="Label" parent="MarginContainer/HBoxContainer/RightContent"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "Owned"
+horizontal_alignment = 2
