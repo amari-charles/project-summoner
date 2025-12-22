@@ -180,13 +180,14 @@ func _populate_detail_info(offering: ShopOffering) -> void:
 
 func _add_summoner_info(offering: ShopOffering) -> void:
 	# Look up summoner config
-	var config: SummonerConfig = SummonerCatalog.get_summoner(offering.summoner_id)
+	var config: SummonerConfig = SummonerCatalog.get_summoner_config(offering.summoner_id)
 	if not config:
 		return
 
 	# Element
 	var element_label: Label = Label.new()
-	element_label.text = Loc.t("ui.premium_store.element", {"element": config.element_id.capitalize()})
+	var element_name: String = ElementRegistry.get_element_name(config.element_id)
+	element_label.text = Loc.t("ui.premium_store.element", {"element": element_name})
 	element_label.add_theme_font_size_override("font_size", 16)
 	detail_info_container.add_child(element_label)
 
