@@ -17,10 +17,10 @@ class_name PremiumStoreScreen
 @onready var gold_label: Label = %GoldLabel
 
 @onready var sections_scroll: ScrollContainer = %SectionsScroll
-@onready var featured_items: VBoxContainer = %FeaturedItems
-@onready var summoner_items: VBoxContainer = %SummonerItems
-@onready var cosmetic_items: VBoxContainer = %CosmeticItems
-@onready var emote_items: VBoxContainer = %EmoteItems
+@onready var featured_items: HFlowContainer = %FeaturedItems
+@onready var summoner_items: HFlowContainer = %SummonerItems
+@onready var cosmetic_items: HFlowContainer = %CosmeticItems
+@onready var emote_items: HFlowContainer = %EmoteItems
 
 @onready var detail_panel: PanelContainer = %DetailPanel
 @onready var detail_name_label: Label = %DetailNameLabel
@@ -103,7 +103,7 @@ func _populate_sections() -> void:
 		complete_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
 		featured_items.add_child(complete_label)
 
-func _add_offering_item(container: VBoxContainer, offering: ShopOffering) -> void:
+func _add_offering_item(container: HFlowContainer, offering: ShopOffering) -> void:
 	var item: Control = OFFERING_ITEM_SCENE.instantiate()
 	container.add_child(item)
 	if item.has_method("set_offering"):

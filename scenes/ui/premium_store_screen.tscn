@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.12, 0.12, 0.16, 1)
+color = Color(0.1, 0.1, 0.14, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -83,94 +83,97 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 20
+theme_override_constants/separation = 25
 
 [node name="FeaturedSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="FeaturedHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/FeaturedSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_font_sizes/font_size = 20
-text = "★ FEATURED ★"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+text = "FEATURED"
 
-[node name="FeaturedItems" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/FeaturedSection"]
+[node name="FeaturedItems" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/FeaturedSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="SummonersSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="SummonersHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/SummonersSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "SUMMONERS"
 
-[node name="SummonerItems" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/SummonersSection"]
+[node name="SummonerItems" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/SummonersSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="CosmeticsSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="CosmeticsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/CosmeticsSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "COSMETICS"
 
-[node name="CosmeticItems" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/CosmeticsSection"]
+[node name="CosmeticItems" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/CosmeticsSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="EmotesSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="EmotesHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/EmotesSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "EMOTES"
 
-[node name="EmoteItems" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/EmotesSection"]
+[node name="EmoteItems" type="HFlowContainer" parent="MarginContainer/VBoxContainer/MainContent/SectionsScroll/SectionsContainer/EmotesSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 
 [node name="DetailMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/DetailPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 25
+theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 25
+theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
 [node name="DetailVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/DetailPanel/DetailMargin"]
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
 [node name="DetailNameLabel" type="Label" parent="MarginContainer/VBoxContainer/MainContent/DetailPanel/DetailMargin/DetailVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "Select an item"
 
 [node name="DetailDescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/MainContent/DetailPanel/DetailMargin/DetailVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.82, 0.75, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = ""
 autowrap_mode = 2
 
@@ -181,7 +184,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/MainContent/DetailPanel/DetailMargin/DetailVBox"]
 layout_mode = 2
@@ -191,7 +194,7 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = ""
 horizontal_alignment = 1
 
@@ -200,15 +203,15 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
-theme_override_font_sizes/font_size = 24
-text = "Owned"
+theme_override_font_sizes/font_size = 22
+text = "OWNED"
 horizontal_alignment = 1
 
 [node name="PurchaseButton" type="Button" parent="MarginContainer/VBoxContainer/MainContent/DetailPanel/DetailMargin/DetailVBox"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(200, 50)
+custom_minimum_size = Vector2(180, 45)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "Purchase"

@@ -1,21 +1,39 @@
 extends PanelContainer
 class_name PremiumStoreOfferingItem
 
-## PremiumStoreOfferingItem - List item for Premium Store offerings
+## PremiumStoreOfferingItem - Visual card for Premium Store offerings
 ##
-## Displays offering name, type indicator, price, and owned status
+## Displays offering with colored preview area, name, and price
+## Designed for grid layout display
 
 ## Node references
+@onready var preview_area: ColorRect = %PreviewArea
 @onready var name_label: Label = %NameLabel
-@onready var type_label: Label = %TypeLabel
 @onready var price_label: Label = %PriceLabel
-@onready var owned_indicator: Label = %OwnedIndicator
+@onready var owned_overlay: ColorRect = %OwnedOverlay
 
 ## State
 var offering: ShopOffering = null
 
 ## Signals
 signal item_clicked()
+
+## Element colors for summoner previews
+const ELEMENT_COLORS: Dictionary = {
+	"fire": Color(0.9, 0.3, 0.2),
+	"water": Color(0.2, 0.5, 0.9),
+	"wind": Color(0.5, 0.8, 0.5),
+	"earth": Color(0.6, 0.5, 0.3),
+	"lightning": Color(0.9, 0.8, 0.2),
+	"shadow": Color(0.3, 0.2, 0.4),
+	"life": Color(0.3, 0.8, 0.4),
+	"death": Color(0.4, 0.2, 0.5),
+}
+
+## Category colors
+const COSMETIC_COLOR: Color = Color(0.6, 0.4, 0.7)
+const EMOTE_COLOR: Color = Color(0.8, 0.6, 0.3)
+const DEFAULT_COLOR: Color = Color(0.3, 0.3, 0.4)
 
 func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
@@ -38,38 +56,46 @@ func set_offering(new_offering: ShopOffering) -> void:
 	if not is_node_ready():
 		await ready
 
-	# Update labels
+	# Update name
 	name_label.text = offering.display_name
 
-	# Type indicator
-	match offering.offering_type:
-		ShopOffering.OfferingType.SUMMONER:
-			type_label.text = Loc.t("ui.premium_store.type_summoner")
-		ShopOffering.OfferingType.COSMETIC:
-			type_label.text = Loc.t("ui.premium_store.type_cosmetic")
-		ShopOffering.OfferingType.EMOTE:
-			type_label.text = Loc.t("ui.premium_store.type_emote")
-		_:
-			type_label.text = ""
+	# Set preview color based on offering type
+	_update_preview_color()
 
 	# Check if owned
 	var is_owned: bool = Shop.is_offering_owned(offering)
 
 	if is_owned:
-		price_label.visible = false
-		owned_indicator.visible = true
-		owned_indicator.text = Loc.t("shop.button.owned")
+		price_label.text = ""
+		owned_overlay.visible = true
 	else:
-		price_label.visible = true
-		price_label.text = Loc.t("ui.offering.price_format", {"price": offering.base_price})
-		owned_indicator.visible = false
+		price_label.text = "%dg" % offering.base_price
+		owned_overlay.visible = false
+
+func _update_preview_color() -> void:
+	match offering.offering_type:
+		ShopOffering.OfferingType.SUMMONER:
+			# Get element color for summoner
+			var config: SummonerConfig = SummonerCatalog.get_summoner_config(offering.summoner_id)
+			if config:
+				var element: ElementTypes.Element = config.get_element()
+				var element_key: String = element.id.to_lower() if element else "neutral"
+				preview_area.color = ELEMENT_COLORS.get(element_key, DEFAULT_COLOR)
+			else:
+				preview_area.color = DEFAULT_COLOR
+		ShopOffering.OfferingType.COSMETIC:
+			preview_area.color = COSMETIC_COLOR
+		ShopOffering.OfferingType.EMOTE:
+			preview_area.color = EMOTE_COLOR
+		_:
+			preview_area.color = DEFAULT_COLOR
 
 ## =============================================================================
 ## HOVER EFFECTS
 ## =============================================================================
 
 func _on_mouse_entered() -> void:
-	modulate = Color(1.1, 1.1, 1.1)
+	modulate = Color(1.15, 1.15, 1.15)
 
 func _on_mouse_exited() -> void:
 	modulate = Color.WHITE
