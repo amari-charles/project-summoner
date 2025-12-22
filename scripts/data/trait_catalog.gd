@@ -156,6 +156,61 @@ func _init_traits() -> void:
 		]
 	})
 
+	# Lightning Summoner Traits
+	_register_trait({
+		"id": "trait_lightning_affinity",
+		"name_key": "trait.lightning_affinity.name",
+		"description_key": "trait.lightning_affinity.description",
+		"category": "elemental",
+		"is_innate": true,
+		"modifiers": [
+			# Summoner stat modifier
+			{"stat": "lightning_damage_bonus", "type": "percent", "value": 15.0},
+			# Unit modifier - buffs all lightning units
+			{
+				"target": "unit",
+				"source": "trait_lightning_affinity",
+				"conditions": {"elemental_affinity": "lightning"},
+				"stat_mults": {"attack_damage": 1.15}
+			}
+		]
+	})
+
+	# Life Summoner Traits
+	_register_trait({
+		"id": "trait_life_affinity",
+		"name_key": "trait.life_affinity.name",
+		"description_key": "trait.life_affinity.description",
+		"category": "elemental",
+		"is_innate": true,
+		"modifiers": [
+			# Summoner stat modifier
+			{"stat": "healing_bonus", "type": "percent", "value": 15.0},
+			# Unit modifier - buffs all life units
+			{
+				"target": "unit",
+				"source": "trait_life_affinity",
+				"conditions": {"elemental_affinity": "life"},
+				"stat_mults": {"max_health": 1.10}
+			}
+		]
+	})
+
+	# Death Summoner Traits
+	_register_trait({
+		"id": "trait_death_affinity",
+		"name_key": "trait.death_affinity.name",
+		"description_key": "trait.death_affinity.description",
+		"category": "elemental",
+		"is_innate": true,
+		"modifiers": [
+			# Summoner stat modifier
+			{"stat": "death_damage_bonus", "type": "percent", "value": 10.0},
+			# Draining effect - gain health when dealing damage
+			{"stat": "lifesteal", "type": "percent", "value": 5.0}
+		]
+	})
+
 	# ==========================================================================
 	# ACQUIRED BOONS (earned through gameplay)
 	# ==========================================================================

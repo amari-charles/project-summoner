@@ -359,6 +359,18 @@
       "name": "Stone Fortitude",
       "description": "The resilience of stone reduces incoming damage."
     },
+    "lightning_affinity": {
+      "name": "Lightning Affinity",
+      "description": "+15% lightning damage. Lightning units deal 15% more damage."
+    },
+    "life_affinity": {
+      "name": "Life Affinity",
+      "description": "+15% healing. Life units have 10% more health."
+    },
+    "death_affinity": {
+      "name": "Death Affinity",
+      "description": "+10% death damage. 5% of damage dealt is restored as health."
+    },
     "veteran": {
       "name": "Veteran",
       "description": "Battle experience has hardened your resolve."
@@ -539,6 +551,58 @@
       "shadow_initiate": {
         "name": "Shadow Initiate",
         "description": "A mysterious summoner who draws power from the shadows. Unlock this rare summoner to add shadow-based abilities to your repertoire."
+      },
+      "lightning_adept": {
+        "name": "Voltara - Lightning Adept",
+        "description": "Unlock Voltara, a swift lightning wielder with devastating burst damage but lower health."
+      },
+      "verdant_sage": {
+        "name": "Thalindra - Verdant Sage",
+        "description": "Unlock Thalindra, an ancient healer whose life energy sustains allies through battle."
+      },
+      "void_walker": {
+        "name": "Morthos - Void Walker",
+        "description": "Unlock Morthos, a mysterious figure who drains life force to fuel dark powers."
+      },
+      "card_back_gold": {
+        "name": "Golden Card Back",
+        "description": "A luxurious golden card back that shimmers with elegance."
+      },
+      "card_back_obsidian": {
+        "name": "Obsidian Card Back",
+        "description": "A sleek dark card back forged from volcanic glass."
+      },
+      "ui_theme_crimson": {
+        "name": "Crimson Theme",
+        "description": "A bold red UI theme for those who embrace the flames."
+      },
+      "ui_theme_void": {
+        "name": "Void Theme",
+        "description": "A dark purple UI theme inspired by the endless void."
+      },
+      "emote_laugh": {
+        "name": "Laugh",
+        "description": "Let your opponent know you found that amusing."
+      },
+      "emote_shocked": {
+        "name": "Shocked",
+        "description": "Express surprise at an unexpected turn of events."
+      },
+      "emote_thinking": {
+        "name": "Thinking",
+        "description": "Show that you're contemplating your next move."
+      },
+      "emote_taunt": {
+        "name": "Taunt",
+        "description": "A playful taunt to keep things interesting."
+      },
+      "emote_confident": {
+        "name": "Confident",
+        "description": "Display unwavering confidence in your strategy."
+      },
+      "emote_victory": {
+        "name": "Victory",
+        "description": "Celebrate your impending triumph."
       }
     },
     "purchase_button": "Purchase",
@@ -570,11 +634,83 @@
       "name": "Mana Tester",
       "description": "Dev summoner for testing tiered mana bar UI"
     },
+    "summoner_lightning_adept": {
+      "name": "Voltara",
+      "description": "A swift and deadly lightning wielder who sacrifices durability for overwhelming burst damage"
+    },
+    "summoner_verdant_sage": {
+      "name": "Thalindra",
+      "description": "An ancient healer whose connection to life energy sustains allies through the darkest battles"
+    },
+    "summoner_void_walker": {
+      "name": "Morthos",
+      "description": "A mysterious figure who drains the life force of enemies to fuel dark and terrible powers"
+    },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",
     "random_summoner": "Random",
     "random_summoner_description": "Let fate choose your summoner",
     "trait_fortune_favors_bold": "Fortune Favors the Bold",
     "trait_fortune_favors_bold_desc": "Start with bonus {bonus_type}"
+  },
+  "cosmetic": {
+    "card_back_default": {
+      "name": "Standard Card Back",
+      "description": "The classic card back design."
+    },
+    "card_back_gold": {
+      "name": "Golden Card Back",
+      "description": "A luxurious golden card back that shimmers with elegance."
+    },
+    "card_back_obsidian": {
+      "name": "Obsidian Card Back",
+      "description": "A sleek dark card back forged from volcanic glass."
+    },
+    "ui_theme_default": {
+      "name": "Standard Theme",
+      "description": "The default UI color scheme."
+    },
+    "ui_theme_crimson": {
+      "name": "Crimson Theme",
+      "description": "A bold red UI theme for those who embrace the flames."
+    },
+    "ui_theme_void": {
+      "name": "Void Theme",
+      "description": "A dark purple UI theme inspired by the endless void."
+    }
+  },
+  "emote": {
+    "emote_hello": {
+      "name": "Hello",
+      "description": "A friendly greeting to your opponent."
+    },
+    "emote_good_game": {
+      "name": "Good Game",
+      "description": "Acknowledge a well-played match."
+    },
+    "emote_laugh": {
+      "name": "Laugh",
+      "description": "Let your opponent know you found that amusing."
+    },
+    "emote_shocked": {
+      "name": "Shocked",
+      "description": "Express surprise at an unexpected turn of events."
+    },
+    "emote_thinking": {
+      "name": "Thinking",
+      "description": "Show that you're contemplating your next move."
+    },
+    "emote_taunt": {
+      "name": "Taunt",
+      "description": "A playful taunt to keep things interesting."
+    },
+    "emote_confident": {
+      "name": "Confident",
+      "description": "Display unwavering confidence in your strategy."
+    },
+    "emote_victory": {
+      "name": "Victory",
+      "description": "Celebrate your impending triumph."
+    }
   }
 }

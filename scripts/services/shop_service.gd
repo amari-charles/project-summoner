@@ -160,19 +160,162 @@ func _init_shops() -> void:
 		"shop_type": "premium",
 		"name": Loc.t("shop.premium.name"),
 		"offerings": [
-			# Summoner offerings (placeholder - will be populated with actual summoners)
+			# =====================================================================
+			# SUMMONER OFFERINGS
+			# =====================================================================
 			{
-				"offering_id": "summoner_shadow_initiate",
+				"offering_id": "summoner_lightning_adept",
 				"offering_type": ShopOffering.OfferingType.SUMMONER,
-				"display_name": Loc.t("shop.offering.shadow_initiate.name"),
-				"description": Loc.t("shop.offering.shadow_initiate.description"),
-				"summoner_id": "summoner_shadow_initiate",
+				"display_name": Loc.t("shop.offering.lightning_adept.name"),
+				"description": Loc.t("shop.offering.lightning_adept.description"),
+				"summoner_id": "summoner_lightning_adept",
+				"base_price": 750,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "summoner_verdant_sage",
+				"offering_type": ShopOffering.OfferingType.SUMMONER,
+				"display_name": Loc.t("shop.offering.verdant_sage.name"),
+				"description": Loc.t("shop.offering.verdant_sage.description"),
+				"summoner_id": "summoner_verdant_sage",
+				"base_price": 750,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "summoner_void_walker",
+				"offering_type": ShopOffering.OfferingType.SUMMONER,
+				"display_name": Loc.t("shop.offering.void_walker.name"),
+				"description": Loc.t("shop.offering.void_walker.description"),
+				"summoner_id": "summoner_void_walker",
+				"base_price": 750,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			# =====================================================================
+			# COSMETIC OFFERINGS
+			# =====================================================================
+			{
+				"offering_id": "cosmetic_card_back_gold",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.card_back_gold.name"),
+				"description": Loc.t("shop.offering.card_back_gold.description"),
+				"cosmetic_type": "card_back",
+				"cosmetic_id": "card_back_gold",
+				"base_price": 300,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_card_back_obsidian",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.card_back_obsidian.name"),
+				"description": Loc.t("shop.offering.card_back_obsidian.description"),
+				"cosmetic_type": "card_back",
+				"cosmetic_id": "card_back_obsidian",
 				"base_price": 500,
 				"currency_type": "gold",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_ui_theme_crimson",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.ui_theme_crimson.name"),
+				"description": Loc.t("shop.offering.ui_theme_crimson.description"),
+				"cosmetic_type": "ui_theme",
+				"cosmetic_id": "ui_theme_crimson",
+				"base_price": 400,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_ui_theme_void",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.ui_theme_void.name"),
+				"description": Loc.t("shop.offering.ui_theme_void.description"),
+				"cosmetic_type": "ui_theme",
+				"cosmetic_id": "ui_theme_void",
+				"base_price": 600,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			# =====================================================================
+			# EMOTE OFFERINGS
+			# =====================================================================
+			{
+				"offering_id": "emote_laugh",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_laugh.name"),
+				"description": Loc.t("shop.offering.emote_laugh.description"),
+				"emote_id": "emote_laugh",
+				"base_price": 150,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_shocked",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_shocked.name"),
+				"description": Loc.t("shop.offering.emote_shocked.description"),
+				"emote_id": "emote_shocked",
+				"base_price": 150,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_thinking",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_thinking.name"),
+				"description": Loc.t("shop.offering.emote_thinking.description"),
+				"emote_id": "emote_thinking",
+				"base_price": 200,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_taunt",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_taunt.name"),
+				"description": Loc.t("shop.offering.emote_taunt.description"),
+				"emote_id": "emote_taunt",
+				"base_price": 250,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_confident",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_confident.name"),
+				"description": Loc.t("shop.offering.emote_confident.description"),
+				"emote_id": "emote_confident",
+				"base_price": 300,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "emote_victory",
+				"offering_type": ShopOffering.OfferingType.EMOTE,
+				"display_name": Loc.t("shop.offering.emote_victory.name"),
+				"description": Loc.t("shop.offering.emote_victory.description"),
+				"emote_id": "emote_victory",
+				"base_price": 350,
+				"currency_type": "gold",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
 			}
-			# Future: Additional summoners, cosmetics, emotes will be added here
 		]
 	}
 

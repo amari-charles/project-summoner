@@ -41,6 +41,19 @@ const EARTH: StringName = &"summoner_earth"
 const SHADOW_INITIATE: StringName = &"summoner_shadow_initiate"
 
 # ============================================================================
+# PURCHASABLE SUMMONERS (Available via Premium Store)
+# ============================================================================
+
+## Lightning Adept - Fast, high-risk/reward glass cannon
+const LIGHTNING_ADEPT: StringName = &"summoner_lightning_adept"
+
+## Verdant Sage - Life element healer/support summoner
+const VERDANT_SAGE: StringName = &"summoner_verdant_sage"
+
+## Void Walker - Death element with draining abilities
+const VOID_WALKER: StringName = &"summoner_void_walker"
+
+# ============================================================================
 # DEV/TEST SUMMONERS
 # ============================================================================
 
@@ -64,6 +77,13 @@ const ALL_RANDOM_POOL: Array[StringName] = [
 	SHADOW_INITIATE,
 ]
 
+## Purchasable summoners (available via Premium Store)
+const ALL_PURCHASABLE: Array[StringName] = [
+	LIGHTNING_ADEPT,
+	VERDANT_SAGE,
+	VOID_WALKER,
+]
+
 ## Dev/test summoners (not available to players)
 const ALL_DEV: Array[StringName] = [
 	MANA_TEST,
@@ -74,6 +94,7 @@ static func all_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
 	result.append_array(ALL_STARTING)
 	result.append_array(ALL_RANDOM_POOL)
+	result.append_array(ALL_PURCHASABLE)
 	result.append_array(ALL_DEV)
 	return result
 
@@ -96,6 +117,11 @@ static func is_random_pool(summoner_id: String) -> bool:
 ## Accepts String or StringName
 static func is_dev(summoner_id: String) -> bool:
 	return StringName(summoner_id) in ALL_DEV
+
+## Check if a summoner ID is purchasable via Premium Store
+## Accepts String or StringName
+static func is_purchasable(summoner_id: String) -> bool:
+	return StringName(summoner_id) in ALL_PURCHASABLE
 
 ## Default summoner ID (used for fallbacks)
 const DEFAULT: StringName = FIRE

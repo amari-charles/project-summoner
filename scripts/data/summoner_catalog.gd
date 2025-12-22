@@ -108,10 +108,53 @@ func _init_catalog() -> void:
 	summoner_shadow.unlock_condition = "random_starter_only"
 	_catalog[SummonerIDs.SHADOW_INITIATE] = summoner_shadow
 
-	# TODO: Add 3-4 more starter-only summoners for other outer elements
-	# - Lightning Adept
-	# - Verdant Sage (Life)
-	# - Void Walker (Death)
+	# =========================================================================
+	# PURCHASABLE SUMMONERS (Premium Store)
+	# These summoners can be unlocked via the Premium Store with gold.
+	# Once unlocked, they can be selected for any new campaign.
+	# =========================================================================
+
+	# Lightning Adept - Fast glass cannon with high burst potential
+	var summoner_lightning: SummonerConfig = SummonerConfig.new()
+	summoner_lightning.summoner_id = SummonerIDs.LIGHTNING_ADEPT
+	summoner_lightning.summoner_name = Loc.t("summoner.summoner_lightning_adept.name")
+	summoner_lightning.description = Loc.t("summoner.summoner_lightning_adept.description")
+	summoner_lightning.element_id = ElementRegistry.ElementId.LIGHTNING
+	summoner_lightning.base_health = 800.0
+	summoner_lightning.max_mana = 100.0
+	summoner_lightning.summoner_icon_path = ""
+	summoner_lightning.card_frame_style = "epic"
+	summoner_lightning.unlock_condition = "premium_purchase"
+	summoner_lightning.innate_trait_ids = ["trait_lightning_affinity"]
+	_catalog[SummonerIDs.LIGHTNING_ADEPT] = summoner_lightning
+
+	# Verdant Sage - Life element healer/support with high survivability
+	var summoner_life: SummonerConfig = SummonerConfig.new()
+	summoner_life.summoner_id = SummonerIDs.VERDANT_SAGE
+	summoner_life.summoner_name = Loc.t("summoner.summoner_verdant_sage.name")
+	summoner_life.description = Loc.t("summoner.summoner_verdant_sage.description")
+	summoner_life.element_id = ElementRegistry.ElementId.LIFE
+	summoner_life.base_health = 1100.0
+	summoner_life.max_mana = 100.0
+	summoner_life.summoner_icon_path = ""
+	summoner_life.card_frame_style = "epic"
+	summoner_life.unlock_condition = "premium_purchase"
+	summoner_life.innate_trait_ids = ["trait_life_affinity"]
+	_catalog[SummonerIDs.VERDANT_SAGE] = summoner_life
+
+	# Void Walker - Death element with draining abilities
+	var summoner_void: SummonerConfig = SummonerConfig.new()
+	summoner_void.summoner_id = SummonerIDs.VOID_WALKER
+	summoner_void.summoner_name = Loc.t("summoner.summoner_void_walker.name")
+	summoner_void.description = Loc.t("summoner.summoner_void_walker.description")
+	summoner_void.element_id = ElementRegistry.ElementId.DEATH
+	summoner_void.base_health = 950.0
+	summoner_void.max_mana = 100.0
+	summoner_void.summoner_icon_path = ""
+	summoner_void.card_frame_style = "epic"
+	summoner_void.unlock_condition = "premium_purchase"
+	summoner_void.innate_trait_ids = ["trait_death_affinity"]
+	_catalog[SummonerIDs.VOID_WALKER] = summoner_void
 
 	# =========================================================================
 	# DEV/TEST SUMMONERS
@@ -200,6 +243,14 @@ func get_random_pool_summoners() -> Array[Dictionary]:
 		if config.unlock_condition == "starting_choice" or config.unlock_condition == "random_starter_only":
 			random_pool.append(config.to_dict())
 	return random_pool
+
+## Get summoners available for purchase in the Premium Store
+func get_purchasable_summoners() -> Array[SummonerConfig]:
+	var purchasable: Array[SummonerConfig] = []
+	for config: SummonerConfig in _catalog.values():
+		if config.unlock_condition == "premium_purchase":
+			purchasable.append(config)
+	return purchasable
 
 ## Get summoners by element
 func get_summoners_by_element(element: ElementTypes.Element) -> Array[Dictionary]:
