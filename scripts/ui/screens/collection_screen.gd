@@ -106,8 +106,6 @@ const CardActionPopupScene: PackedScene = preload("res://scenes/ui/components/ca
 ## =============================================================================
 
 func _ready() -> void:
-	print("CollectionScreen: Initializing side-by-side view...")
-
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 
@@ -171,8 +169,6 @@ func _check_tutorial_lock() -> void:
 		var is_complete: Variant = campaign.call("is_tutorial_complete")
 		if is_complete is bool:
 			deck_editing_locked = not is_complete
-			if deck_editing_locked:
-				print("CollectionScreen: Deck editing LOCKED - tutorial not complete")
 
 
 ## =============================================================================
@@ -672,7 +668,7 @@ func _update_element_button_text() -> void:
 	elif selected_elements.size() == 1:
 		element_filter_button.text = Loc.t("elements." + selected_elements[0])
 	else:
-		element_filter_button.text = "%d Elements" % selected_elements.size()
+		element_filter_button.text = Loc.t("ui.collection.element_count", {"count": selected_elements.size()})
 
 
 func _populate_sort_dropdown() -> void:
@@ -785,19 +781,16 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 		return
 
 	if selected_deck_id == "":
-		print("CollectionScreen: No deck selected")
 		return
 
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
 	if deck_card_ids.size() >= MAX_DECK_SIZE:
-		print("CollectionScreen: Deck is full!")
 		return
 
 	var decks: Node = get_node("/root/Decks")
 	if decks and decks.has_method("add_card_to_deck"):
 		var success: Variant = decks.call("add_card_to_deck", selected_deck_id, card_instance_id)
 		if success is bool and success:
-			print("CollectionScreen: Added card to deck")
 			_refresh_deck_list()
 			_refresh_deck_panel()
 			_refresh_collection()
@@ -873,7 +866,6 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 	if decks and decks.has_method("remove_card_from_deck"):
 		var success: Variant = decks.call("remove_card_from_deck", selected_deck_id, card_instance_id)
 		if success is bool and success:
-			print("CollectionScreen: Removed card from deck")
 			_refresh_deck_list()
 			_refresh_deck_panel()
 			_refresh_collection()

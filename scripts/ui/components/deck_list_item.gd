@@ -35,6 +35,11 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
+	# Set tooltips
+	star_button.tooltip_text = Loc.t("ui.collection.set_active_deck_tooltip")
+	rename_button.tooltip_text = Loc.t("ui.collection.rename_deck_tooltip")
+	delete_button.tooltip_text = Loc.t("ui.collection.delete_deck_tooltip")
+
 
 func setup(data: Dictionary) -> void:
 	deck_id = data.get("id", "")
