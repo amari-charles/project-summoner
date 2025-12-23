@@ -15,12 +15,14 @@ signal card_held(card_data: Dictionary)
 @export_group("Layout")
 @export var border_width: int = 4
 @export var corner_radius: int = 8
-@export var element_badge_radius: int = 16
 
 ## Card data
 var card_data: Dictionary = {}
 var catalog_data: Dictionary = {}
 var draggable: bool = false
+
+## In-deck state
+var is_in_deck: bool = false
 
 ## Hold detection
 var hold_timer: Timer = null
@@ -35,6 +37,7 @@ var hover_tween: Tween = null
 @onready var card_name: Label = %CardName
 @onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
 @onready var element_badge: Panel = $ContentContainer/ElementBadge
+@onready var in_deck_badge: PanelContainer = $ContentContainer/InDeckBadge
 
 ## Current element color
 var element_color: Color = Color.GRAY
@@ -75,6 +78,11 @@ func set_card(p_card_data: Dictionary, p_catalog_data: Dictionary) -> void:
 ## Enable/disable drag support
 func set_draggable(p_draggable: bool) -> void:
 	draggable = p_draggable
+
+## Set whether this card is currently in the active deck
+func set_in_deck(in_deck: bool) -> void:
+	is_in_deck = in_deck
+	_update_in_deck_visual()
 
 ## =============================================================================
 ## DISPLAY UPDATE
@@ -129,14 +137,24 @@ func _update_theme() -> void:
 	if art_placeholder:
 		art_placeholder.color = element_color.darkened(0.4)
 
-	# Style the element badge with element color
+	# Style the element badge with element color (use large radius for circular look)
 	if element_badge:
 		var badge_style: StyleBoxFlat = StyleBoxFlat.new()
 		badge_style.bg_color = element_color
-		badge_style.set_corner_radius_all(element_badge_radius)
+		badge_style.set_corner_radius_all(100)  # Large value to make it circular
 		badge_style.anti_aliasing = true
 		badge_style.anti_aliasing_size = 1
 		element_badge.add_theme_stylebox_override("panel", badge_style)
+
+func _update_in_deck_visual() -> void:
+	if in_deck_badge:
+		in_deck_badge.visible = is_in_deck
+
+	# Dim the card when it's in the deck
+	if is_in_deck:
+		modulate.a = 0.5
+	else:
+		modulate.a = 1.0
 
 ## =============================================================================
 ## MOUSE INTERACTION

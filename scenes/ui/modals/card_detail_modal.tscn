@@ -198,3 +198,10 @@ theme_override_constants/separation = 6
 [node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="DeckActionButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "ADD TO DECK"

@@ -54,16 +54,16 @@ You win not by outspending, but by **out-summoning**: using timing, positioning,
 
 ### 3. Army Hierarchy Through Rarity
 
-Card rarity creates natural army composition that *feels* like real warfare:
+Card rarity creates natural army composition that *feels* like real warfare through **spawn counts**:
 
-| Rarity | Max Copies | Role in Army |
-|--------|-----------|--------------|
-| **Common** | 12 | Low individual impact, strength in numbers |
-| **Uncommon** | 6 | Moderate impact, noticeable presence |
-| **Epic** | 3 | High impact, battle-shifting |
-| **Legendary** | 1 | Decisive, game-defining |
+| Rarity | Units Per Card | Role in Army |
+|--------|---------------|--------------|
+| **Common** | up to 12 | Swarms with low individual impact, strength in numbers |
+| **Uncommon** | up to 6 | Moderate squads, noticeable presence |
+| **Epic** | up to 3 | Elite forces, battle-shifting |
+| **Legendary** | 1 | Single decisive champion, game-defining |
 
-*Key principle: Higher rarity = more individual impact, not just bigger stats. A common unit can be frontline or backline — they're just not individually decisive.*
+*Key principle: Higher rarity = fewer but more impactful units per card. A common card spawns a swarm; a legendary card spawns one game-changer.*
 
 ### 4. Asymmetric Summoners & Choice
 
