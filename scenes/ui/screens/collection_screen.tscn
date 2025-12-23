@@ -55,11 +55,17 @@ theme_override_constants/separation = 12
 [node name="Header" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
+[node name="CloseButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "X"
+flat = true
+
+[node name="Spacer" type="Control" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 32
-text = "MY CARDS"
 
 [node name="GoldContainer" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
 layout_mode = 2
@@ -75,14 +81,6 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "0"
-
-[node name="CloseButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "X"
-flat = true
 
 [node name="FilterBar" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
 layout_mode = 2
