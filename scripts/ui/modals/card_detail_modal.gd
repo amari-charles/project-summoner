@@ -10,6 +10,7 @@ class_name CardDetailModal
 ## Signals
 signal closed()
 signal level_up_requested(instance_id: String)
+signal deck_action_requested(instance_id: String, action: String)  ## "add" or "remove"
 
 ## UI Node References
 @onready var background: ColorRect = %Background
@@ -30,10 +31,15 @@ signal level_up_requested(instance_id: String)
 @onready var stats_section: VBoxContainer = %StatsSection
 @onready var stats_header: Label = %StatsHeader
 @onready var stats_container: GridContainer = %StatsContainer
+@onready var deck_action_button: Button = %DeckActionButton
 
 ## State
 var card_instance_id: String = ""
 var card_catalog_id: String = ""
+
+## Deck context state
+var current_deck_id: String = ""
+var is_card_in_deck: bool = false
 
 ## =============================================================================
 ## LIFECYCLE
@@ -43,6 +49,7 @@ func _ready() -> void:
 	# Connect buttons
 	close_button.pressed.connect(_close)
 	level_up_button.pressed.connect(_on_level_up_pressed)
+	deck_action_button.pressed.connect(_on_deck_action_pressed)
 
 	# Connect background click to close
 	background.gui_input.connect(_on_background_input)
@@ -60,8 +67,15 @@ func open_for_card(instance_id: String, catalog_id: String) -> void:
 	_update_stats_display()
 	_update_progression_display()
 	_update_upgrades_display()
+	_update_deck_action_button()
 
 	show()
+
+## Set deck context for the modal (call after open_for_card if deck actions needed)
+func set_deck_context(deck_id: String, card_in_deck: bool) -> void:
+	current_deck_id = deck_id
+	is_card_in_deck = card_in_deck
+	_update_deck_action_button()
 
 ## =============================================================================
 ## DATA LOADING
@@ -356,6 +370,30 @@ func _create_upgrade_box(upgrade: Dictionary) -> PanelContainer:
 	vbox.add_child(desc_label)
 
 	return box
+
+## =============================================================================
+## DECK ACTION
+## =============================================================================
+
+func _update_deck_action_button() -> void:
+	if current_deck_id.is_empty():
+		deck_action_button.visible = false
+		return
+
+	deck_action_button.visible = true
+	if is_card_in_deck:
+		deck_action_button.text = Loc.t("ui.collection.remove_from_deck")
+	else:
+		deck_action_button.text = Loc.t("ui.collection.add_to_deck")
+
+func _on_deck_action_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	if card_instance_id.is_empty() or current_deck_id.is_empty():
+		return
+
+	var action: String = "remove" if is_card_in_deck else "add"
+	deck_action_requested.emit(card_instance_id, action)
+	_close()
 
 ## =============================================================================
 ## EVENT HANDLERS

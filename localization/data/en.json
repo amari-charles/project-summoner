@@ -185,7 +185,26 @@
       "stat_attack_speed": "Atk Speed",
       "stat_move_speed": "Speed",
       "stat_spell_damage": "Damage",
-      "stat_spell_radius": "Radius"
+      "stat_spell_radius": "Radius",
+      "add_to_deck": "ADD TO DECK",
+      "remove_from_deck": "REMOVE FROM DECK",
+      "in_deck_badge": "IN DECK",
+      "deck_full": "Deck is full (30 cards max)",
+      "search_placeholder": "Search cards...",
+      "my_cards": "MY CARDS",
+      "current_deck": "CURRENT DECK",
+      "my_decks": "MY DECKS",
+      "deck_cards_count": "{count}/30 cards",
+      "new_deck": "+ New Deck",
+      "rename_deck": "Rename",
+      "delete_deck": "Delete",
+      "no_deck_selected": "Select a deck first",
+      "card_action_use": "Use",
+      "card_action_info": "Info",
+      "filter_all_elements": "All Elements",
+      "already_in_deck": "Already in deck",
+      "unnamed_deck": "Unnamed",
+      "new_deck_default": "New Deck"
     },
     "level_up": {
       "title": "LEVEL UP CARD",
@@ -392,6 +411,15 @@
       "name": "Fortune Favors the Bold",
       "description": "Choosing the path of chance grants fortified vitality. +50 Health"
     }
+  },
+  "elements": {
+    "fire": "Fire",
+    "water": "Water",
+    "earth": "Earth",
+    "air": "Air",
+    "light": "Light",
+    "dark": "Dark",
+    "neutral": "Neutral"
   },
   "error": {
     "not_enough_mana": "Not enough mana",

@@ -1,7 +1,7 @@
 # Card System API
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-16
+**Last Updated:** 2025-12-22
 
 ## Overview
 
@@ -29,8 +29,8 @@ Tags drive synergy and affinity bias:
 
 Card rarity is designed to make battles *feel* like real army warfare with clear hierarchy:
 
-| Rarity | Max Copies in Deck | Role in Army |
-|--------|--------------------|--------------|
+| Rarity | Units Per Card (Max Level) | Role in Army |
+|--------|---------------------------|--------------|
 | **Common** | 12 | Low individual impact, strength in numbers |
 | **Uncommon** | 6 | Moderate impact, noticeable presence |
 | **Epic** | 3 | High impact, battle-shifting |
@@ -38,12 +38,44 @@ Card rarity is designed to make battles *feel* like real army warfare with clear
 
 ### Design Philosophy
 
-The rarity system creates natural army composition:
-- **Many units** that collectively matter but individually don't decide battles
-- **Fewer units** with real individual impact
-- **One or two key pieces** that demand attention
+The rarity system creates natural army composition through **spawn counts**:
+- **Common cards** spawn many units (up to 12) — strength in numbers
+- **Uncommon cards** spawn moderate groups (up to 6) — balanced presence
+- **Epic cards** spawn small squads (up to 3) — elite forces
+- **Legendary cards** spawn a single powerful unit — decisive champions
 
-**Key principle:** Higher rarity = more individual impact and battlefield influence, not just bigger stats. A common unit can be frontline melee or backline support — they're just not individually decisive.
+**Key principle:** Higher rarity = fewer but more impactful units per card, not deck building restrictions. A common card spawns a swarm; a legendary card spawns one game-changer.
+
+---
+
+## Card Instances & Deck Building
+
+### Instance-Based Ownership
+
+Every card in a player's collection is a **unique instance** with its own ID, even if multiple cards share the same catalog definition:
+
+- **Card Instance** = A specific card you own (unique ID, level, XP, upgrades)
+- **Catalog Card** = The template/definition (stats, abilities, art)
+
+Example: If you own 3 Fire Elementals, you have 3 separate card instances. Each can be leveled independently.
+
+### Deck Rules
+
+| Rule | Description |
+|------|-------------|
+| **Instance Uniqueness** | Each card instance can only appear **once** per deck |
+| **Cross-Deck Sharing** | The same card instance **can** be in multiple decks |
+| **No Copy Limits** | No restrictions on how many cards of the same type you can put in a deck (limited only by what you own) |
+| **Deck Size** | 1-30 cards per deck |
+
+### Example
+
+If you own:
+- Fire Elemental #1 (Level 3)
+- Fire Elemental #2 (Level 1)
+- Fire Elemental #3 (Level 2)
+
+You can put all 3 in the same deck. You cannot put Fire Elemental #1 in the deck twice.
 
 ---
 

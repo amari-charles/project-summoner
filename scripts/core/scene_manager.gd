@@ -25,7 +25,6 @@ const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/ui/screens/first_card_s
 
 ## Collection Scenes
 const SCENE_COLLECTION_SCREEN: String = "res://scenes/ui/screens/collection_screen.tscn"
-const SCENE_DECK_BUILDER: String = "res://scenes/ui/screens/deck_builder.tscn"
 
 ## Shop Scenes
 const SCENE_SHOP_SCREEN: String = "res://scenes/ui/screens/shop_screen.tscn"

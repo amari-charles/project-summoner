@@ -1,65 +1,79 @@
 extends Control
 class_name CollectionScreen
 
-## CollectionScreen - Browse cards and manage decks with tabs
+## CollectionScreen - Side-by-side layout for collection and decks
 ##
-## Two tabs:
-## - COLLECTION: Browse owned cards with filtering
-## - MY DECKS: View and manage decks
+## Left panel (2/3): Collection grid with filters and search
+## Right panel (1/3): Deck list - click to select, double-click to open details
+## Click card → shows action popup ("Use" / "Info")
 
-## Tab views
-@onready var collection_view: VBoxContainer = %CollectionView
-@onready var my_decks_view: VBoxContainer = %MyDecksView
+## =============================================================================
+## NODE REFERENCES
+## =============================================================================
 
-## Tab buttons
-@onready var collection_tab_button: Button = %CollectionTabButton
-@onready var my_decks_tab_button: Button = %MyDecksTabButton
-
-## Header
+## Left panel - Header
 @onready var close_button: Button = %CloseButton
-@onready var stats_label: Label = %Stats
+@onready var gold_label: Label = %GoldLabel
 
-## Collection tab nodes
-@onready var card_grid: GridContainer = %CardGrid
-
-## Filter buttons
+## Left panel - Filters
 @onready var all_button: Button = %AllButton
 @onready var summon_button: Button = %SummonButton
 @onready var spell_button: Button = %SpellButton
-@onready var common_button: Button = %CommonButton
-@onready var rare_button: Button = %RareButton
-@onready var epic_button: Button = %EpicButton
+@onready var element_filter_button: Button = %ElementFilterButton
+@onready var element_popup: PopupMenu = %ElementPopup
+@onready var sort_dropdown: OptionButton = %SortDropdown
+@onready var search_edit: LineEdit = %SearchEdit
 
-## Sort buttons
-@onready var name_sort_button: Button = %NameSortButton
-@onready var cost_sort_button: Button = %CostSortButton
-@onready var rarity_sort_button: Button = %RaritySortButton
-@onready var type_sort_button: Button = %TypeSortButton
-@onready var level_sort_button: Button = %LevelSortButton
-@onready var element_sort_button: Button = %ElementSortButton
+## Left panel - Collection
+@onready var card_grid: GridContainer = %CardGrid
 
-## My Decks tab nodes
-@onready var deck_list: VBoxContainer = %DeckList
+## Left panel - Selected Deck Panel (inline deck view)
+@onready var selected_deck_panel: PanelContainer = %SelectedDeckPanel
+@onready var selected_deck_name: Label = %SelectedDeckName
+@onready var selected_deck_count: Label = %SelectedDeckCount
+@onready var deck_cards_container: HBoxContainer = %DeckCardsContainer
+
+## Right panel - Decks
+@onready var decks_list: VBoxContainer = %DecksList
 @onready var new_deck_button: Button = %NewDeckButton
-@onready var delete_deck_button: Button = %DeleteDeckButton
 
-## State
-enum Tab { COLLECTION, MY_DECKS }
-var current_tab: Tab = Tab.COLLECTION
+## Dialogs
+@onready var new_deck_dialog: AcceptDialog = %NewDeckDialog
+@onready var deck_name_input: LineEdit = %DeckNameInput
+@onready var confirm_delete_dialog: ConfirmationDialog = %ConfirmDeleteDialog
+@onready var rename_dialog: AcceptDialog = %RenameDialog
+@onready var rename_input: LineEdit = %RenameInput
 
-var current_filter_type: int = -1  # -1 = all, 0 = summon, 1 = spell
-var current_filter_rarity: StringName = &""  # &"" = all, RarityIDs.COMMON/RARE/EPIC
-var selected_catalog_id: String = ""
-var selected_instance_id: String = ""  ## Currently selected card instance for progression
+## =============================================================================
+## STATE
+## =============================================================================
+
+## Currently selected deck for adding cards
 var selected_deck_id: String = ""
+
+## Deck being renamed/deleted (for dialog callbacks)
+var deck_id_for_action: String = ""
+
+## Collection data
 var collection_summary: Array = []
+
+## Tutorial lock
+var deck_editing_locked: bool = false
+
+## Filter state
+var show_summons: bool = true
+var show_spells: bool = true
+var selected_elements: Array[String] = []  # Empty = all elements
+var search_text: String = ""
+
+## Element list for filtering
+const ELEMENTS: Array[String] = ["fire", "water", "earth", "air", "light", "dark", "neutral"]
 
 ## Sort state
 enum SortField { NAME, COST, RARITY, TYPE, LEVEL, ELEMENT }
-var current_sort_field: SortField = SortField.NAME
+var current_sort_field: SortField = SortField.COST
 var sort_ascending: bool = true
 
-## Rarity order for sorting (lower = more common)
 const RARITY_ORDER: Dictionary = {
 	"common": 0,
 	"rare": 1,
@@ -67,12 +81,24 @@ const RARITY_ORDER: Dictionary = {
 	"legendary": 3
 }
 
-## Modal scenes
+## Currently active action popup
+var active_popup: Control = null
+
+## Double-click tracking for collection cards
+var last_clicked_card_id: String = ""
+var last_click_time: int = 0
+const DOUBLE_CLICK_THRESHOLD_MS: int = 400
+
+## Constants
+const MAX_DECK_SIZE: int = 30
+const DECK_PANEL_CARD_SIZE: Vector2 = Vector2(100, 150)  # Compact cards for inline deck view
+
+## Scenes
+const CardWidgetScene: PackedScene = preload("res://scenes/ui/components/card_widget.tscn")
 const CardDetailModalScene: PackedScene = preload("res://scenes/ui/modals/card_detail_modal.tscn")
 const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/modals/card_level_up_panel.tscn")
-
-## Card widget scene
-const CardWidgetScene: PackedScene = preload("res://scenes/ui/components/card_widget.tscn")
+const DeckListItemScene: PackedScene = preload("res://scenes/ui/components/deck_list_item.tscn")
+const CardActionPopupScene: PackedScene = preload("res://scenes/ui/components/card_action_popup.tscn")
 
 
 ## =============================================================================
@@ -80,626 +106,835 @@ const CardWidgetScene: PackedScene = preload("res://scenes/ui/components/card_wi
 ## =============================================================================
 
 func _ready() -> void:
-	print("CollectionScreen: Initializing...")
-
-	# Connect tab buttons
-	collection_tab_button.pressed.connect(_on_collection_tab_pressed)
-	my_decks_tab_button.pressed.connect(_on_my_decks_tab_pressed)
+	print("CollectionScreen: Initializing side-by-side view...")
 
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 
-	# Connect deck buttons
+	# Connect deck management
 	new_deck_button.pressed.connect(_on_new_deck_pressed)
-	delete_deck_button.pressed.connect(_on_delete_deck_pressed)
 
-	# Connect filter buttons
-	all_button.pressed.connect(func() -> void: _set_type_filter(-1))
-	summon_button.pressed.connect(func() -> void: _set_type_filter(0))
-	spell_button.pressed.connect(func() -> void: _set_type_filter(1))
-	common_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.COMMON))
-	rare_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.RARE))
-	epic_button.pressed.connect(func() -> void: _set_rarity_filter(RarityIDs.EPIC))
+	# Connect dialogs
+	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
+	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
+	rename_dialog.confirmed.connect(_on_rename_confirmed)
 
-	# Connect sort buttons
-	name_sort_button.pressed.connect(func() -> void: _set_sort(SortField.NAME))
-	cost_sort_button.pressed.connect(func() -> void: _set_sort(SortField.COST))
-	rarity_sort_button.pressed.connect(func() -> void: _set_sort(SortField.RARITY))
-	type_sort_button.pressed.connect(func() -> void: _set_sort(SortField.TYPE))
-	level_sort_button.pressed.connect(func() -> void: _set_sort(SortField.LEVEL))
-	element_sort_button.pressed.connect(func() -> void: _set_sort(SortField.ELEMENT))
+	# Connect filter buttons (toggle mode)
+	all_button.pressed.connect(_on_all_filter_pressed)
+	summon_button.pressed.connect(_on_summon_filter_pressed)
+	spell_button.pressed.connect(_on_spell_filter_pressed)
+	_update_type_filter_buttons()
 
-	# Connect to collection service
+	# Connect element filter
+	_populate_element_popup()
+	element_filter_button.pressed.connect(_on_element_filter_pressed)
+	element_popup.id_pressed.connect(_on_element_toggled)
+
+	# Connect sort dropdown
+	_populate_sort_dropdown()
+	sort_dropdown.item_selected.connect(_on_sort_selected)
+
+	# Connect search
+	search_edit.text_changed.connect(_on_search_changed)
+
+	# Connect to services
+	_connect_services()
+
+	# Check tutorial lock
+	_check_tutorial_lock()
+
+	# Initial load
+	_refresh_deck_list()
+	_refresh_deck_panel()
+	_refresh_collection()
+	_refresh_gold_display()
+
+
+func _connect_services() -> void:
+	var decks: Node = get_node("/root/Decks")
+	if decks:
+		if decks.has_signal("deck_changed"):
+			decks.deck_changed.connect(_on_deck_changed)
+		if decks.has_signal("deck_created"):
+			decks.deck_created.connect(_on_deck_created)
+		if decks.has_signal("deck_deleted"):
+			decks.deck_deleted.connect(_on_deck_deleted)
+
 	var collection: Node = get_node("/root/Collection")
 	if collection and collection.has_signal("collection_changed"):
-		var collection_changed_variant: Variant = collection.get("collection_changed")
-		if collection_changed_variant is Signal:
-			var collection_changed_sig: Signal = collection_changed_variant
-			collection_changed_sig.connect(_on_collection_changed)
+		collection.collection_changed.connect(_on_collection_changed)
 
-	# Connect to deck service
+
+func _check_tutorial_lock() -> void:
+	var campaign: Node = get_node("/root/Campaign")
+	if campaign and campaign.has_method("is_tutorial_complete"):
+		var is_complete: Variant = campaign.call("is_tutorial_complete")
+		if is_complete is bool:
+			deck_editing_locked = not is_complete
+			if deck_editing_locked:
+				print("CollectionScreen: Deck editing LOCKED - tutorial not complete")
+
+
+## =============================================================================
+## DECK LIST (Right Panel)
+## =============================================================================
+
+func _refresh_deck_list() -> void:
 	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_signal("deck_changed") and decks.has_signal("deck_created") and decks.has_signal("deck_deleted"):
-		var deck_changed_variant: Variant = decks.get("deck_changed")
-		var deck_created_variant: Variant = decks.get("deck_created")
-		var deck_deleted_variant: Variant = decks.get("deck_deleted")
-		if deck_changed_variant is Signal:
-			var deck_changed_sig: Signal = deck_changed_variant
-			deck_changed_sig.connect(_on_deck_changed)
-		if deck_created_variant is Signal:
-			var deck_created_sig: Signal = deck_created_variant
-			deck_created_sig.connect(_on_deck_created)
-		if deck_deleted_variant is Signal:
-			var deck_deleted_sig: Signal = deck_deleted_variant
-			deck_deleted_sig.connect(_on_deck_deleted)
+	if not decks or not decks.has_method("list_decks"):
+		return
 
-	# Connect to summoner selection changes
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
-		summoner_selection.summoner_changed.connect(_on_summoner_selection_changed)
+	var deck_list_result: Variant = decks.call("list_decks")
+	if not deck_list_result is Array:
+		return
 
-	# Load initial data
-	_refresh_collection()
+	# Clear existing items
+	for child: Node in decks_list.get_children():
+		child.queue_free()
+
+	# Get active deck ID
+	var active_deck_id: String = ""
+	if decks.has_method("get_active_deck_id"):
+		var active_id: Variant = decks.call("get_active_deck_id")
+		if active_id is String:
+			active_deck_id = active_id
+
+	# Create deck items
+	for deck_item: Variant in deck_list_result:
+		if not deck_item is Dictionary:
+			continue
+		var deck: Dictionary = deck_item
+		var deck_id: String = deck.get("id", "")
+		if deck_id == "":
+			continue
+
+		var item: Control = DeckListItemScene.instantiate()
+		decks_list.add_child(item)
+
+		# Configure the item
+		if item.has_method("setup"):
+			var card_count: int = deck.get("card_instance_ids", []).size()
+			var is_valid: bool = true
+			if decks.has_method("get_validation_errors"):
+				var errors: Variant = decks.call("get_validation_errors", deck_id)
+				is_valid = errors is Array and errors.size() == 0
+
+			item.call("setup", {
+				"id": deck_id,
+				"name": deck.get("name", Loc.t("ui.collection.unnamed_deck")),
+				"card_count": card_count,
+				"max_cards": MAX_DECK_SIZE,
+				"is_active": deck_id == active_deck_id,
+				"is_selected": deck_id == selected_deck_id,
+				"is_valid": is_valid
+			})
+
+		# Connect signals
+		if item.has_signal("clicked"):
+			item.clicked.connect(_on_deck_item_clicked.bind(deck_id))
+		if item.has_signal("double_clicked"):
+			item.double_clicked.connect(_on_deck_item_double_clicked.bind(deck_id))
+		if item.has_signal("star_clicked"):
+			item.star_clicked.connect(_on_deck_star_clicked.bind(deck_id))
+		if item.has_signal("rename_clicked"):
+			item.rename_clicked.connect(_on_deck_rename_clicked.bind(deck_id))
+		if item.has_signal("delete_clicked"):
+			item.delete_clicked.connect(_on_deck_delete_clicked.bind(deck_id))
+
+	# Create default deck if none exist
+	if deck_list_result.size() == 0 and decks.has_method("create_deck"):
+		decks.call("create_deck", "My Deck", [])
+		_refresh_deck_list()
+		return
+
+	# Auto-select first deck if none selected
+	if selected_deck_id == "" and deck_list_result.size() > 0:
+		var first_deck: Dictionary = deck_list_result[0]
+		selected_deck_id = first_deck.get("id", "")
+		_refresh_deck_list()
+
+
+func _on_deck_item_clicked(deck_id: String) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	if deck_id == selected_deck_id:
+		return
+	selected_deck_id = deck_id
 	_refresh_deck_list()
+	_refresh_deck_panel()
+	_refresh_collection()  # Update in-deck badges
 
-	# Initialize sort button states
-	_update_sort_button_states()
 
-	# Show collection tab by default
-	_switch_to_tab(Tab.COLLECTION)
+func _on_deck_item_double_clicked(_deck_id: String) -> void:
+	# Double-click does the same as single-click (inline editing now)
+	pass
+
+
+func _on_deck_star_clicked(deck_id: String) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("set_active_deck"):
+		decks.call("set_active_deck", deck_id)
+		_refresh_deck_list()
+
+
+func _on_deck_rename_clicked(deck_id: String) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	deck_id_for_action = deck_id
+	# Get current deck name
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("get_deck"):
+		var deck: Variant = decks.call("get_deck", deck_id)
+		if deck is Dictionary:
+			rename_input.text = deck.get("name", "")
+	rename_dialog.popup_centered()
+
+
+func _on_deck_delete_clicked(deck_id: String) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	deck_id_for_action = deck_id
+	confirm_delete_dialog.popup_centered()
+
 
 ## =============================================================================
-## TAB SWITCHING
+## INLINE DECK PANEL
 ## =============================================================================
 
-func _on_collection_tab_pressed() -> void:
-	_switch_to_tab(Tab.COLLECTION)
+func _refresh_deck_panel() -> void:
+	# Clear existing cards
+	for child: Node in deck_cards_container.get_children():
+		child.queue_free()
 
-func _on_my_decks_tab_pressed() -> void:
-	_switch_to_tab(Tab.MY_DECKS)
+	# Update header
+	if selected_deck_id == "":
+		selected_deck_name.text = Loc.t("ui.collection.no_deck_selected")
+		selected_deck_count.text = ""
+		return
 
-func _switch_to_tab(tab: Tab) -> void:
-	current_tab = tab
+	var decks: Node = get_node("/root/Decks")
+	if not decks or not decks.has_method("get_deck"):
+		return
 
-	# Update visibility
-	collection_view.visible = (tab == Tab.COLLECTION)
-	my_decks_view.visible = (tab == Tab.MY_DECKS)
+	var deck_result: Variant = decks.call("get_deck", selected_deck_id)
+	if not deck_result is Dictionary or deck_result.is_empty():
+		return
 
-	# Update button states
-	collection_tab_button.disabled = (tab == Tab.COLLECTION)
-	my_decks_tab_button.disabled = (tab == Tab.MY_DECKS)
+	var deck: Dictionary = deck_result
+	selected_deck_name.text = deck.get("name", Loc.t("ui.collection.unnamed_deck"))
+	var card_ids: Array = deck.get("card_instance_ids", [])
+	selected_deck_count.text = "%d/%d" % [card_ids.size(), MAX_DECK_SIZE]
 
-	print("CollectionScreen: Switched to %s tab" % ("COLLECTION" if tab == Tab.COLLECTION else "MY DECKS"))
+	# Populate deck cards
+	var collection: Node = get_node("/root/Collection")
+	var catalog: Node = get_node("/root/CardCatalog")
+	if not collection or not catalog:
+		return
+
+	for card_id: Variant in card_ids:
+		if not card_id is String:
+			continue
+
+		var card_data: Variant = collection.call("get_card", card_id)
+		if not card_data is Dictionary or card_data.is_empty():
+			continue
+
+		var catalog_id: String = card_data.get("catalog_id", "")
+		var catalog_data: Variant = catalog.call("get_card", catalog_id)
+		if not catalog_data is Dictionary or catalog_data.is_empty():
+			continue
+
+		var widget: CardWidget = CardWidgetScene.instantiate()
+		deck_cards_container.add_child(widget)
+		widget.set_card(card_data, catalog_data)
+		widget.set_draggable(false)
+		widget.custom_minimum_size = DECK_PANEL_CARD_SIZE
+
+		# Click to remove from deck
+		widget.card_clicked.connect(_on_deck_card_clicked.bind(card_id))
+
+
+func _on_deck_card_clicked(_card_data: Dictionary, card_id: String) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	_remove_card_from_deck(card_id)
+
 
 ## =============================================================================
-## COLLECTION TAB
+## DECK CREATION/DELETION
+## =============================================================================
+
+func _on_new_deck_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	if deck_editing_locked:
+		return
+	deck_name_input.text = ""
+	new_deck_dialog.popup_centered()
+
+
+func _on_new_deck_confirmed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	var deck_name: String = deck_name_input.text
+	if deck_name == "":
+		deck_name = Loc.t("ui.collection.new_deck_default")
+
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("create_deck"):
+		decks.call("create_deck", deck_name, [])
+
+
+func _on_delete_confirmed() -> void:
+	if deck_id_for_action == "":
+		return
+
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("delete_deck"):
+		var success: Variant = decks.call("delete_deck", deck_id_for_action)
+		if success is bool and success:
+			if selected_deck_id == deck_id_for_action:
+				selected_deck_id = ""
+			deck_id_for_action = ""
+			_refresh_deck_panel()
+
+
+func _on_rename_confirmed() -> void:
+	if deck_id_for_action == "":
+		return
+
+	var new_name: String = rename_input.text
+	if new_name == "":
+		return
+
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("rename_deck"):
+		decks.call("rename_deck", deck_id_for_action, new_name)
+		deck_id_for_action = ""
+		_refresh_deck_list()
+		_refresh_deck_panel()
+
+
+## =============================================================================
+## COLLECTION DISPLAY (Left Panel)
 ## =============================================================================
 
 func _refresh_collection() -> void:
 	var collection: Node = get_node("/root/Collection")
-	if not collection or not collection.has_method("get_collection_summary"):
-		push_error("CollectionScreen: Collection service not found!")
-		return
-
 	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog or not catalog.has_method("get_card"):
-		push_error("CollectionScreen: CardCatalog not found!")
+	if not collection or not catalog:
 		return
 
-	# Get collection summary (grouped by catalog_id)
 	var summary_result: Variant = collection.call("get_collection_summary")
 	if not summary_result is Array:
 		return
 	collection_summary = summary_result
 
-	# Update stats
-	var total_cards: int = 0
-	var unique_cards: int = collection_summary.size()
-	for entry_var: Variant in collection_summary:
-		if not entry_var is Dictionary:
-			continue
-		var entry: Dictionary = entry_var
-		var count_val: Variant = entry.get("count", 0)
-		if count_val is int:
-			total_cards += count_val
+	# Get deck card IDs
+	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
 
-	stats_label.text = Loc.t("ui.collection.stats", {"total": total_cards, "unique": unique_cards})
-
-	# Refresh grid
-	_refresh_grid()
-
-func _refresh_grid() -> void:
-	# Clear existing cards
+	# Clear grid
 	for child: Node in card_grid.get_children():
 		child.queue_free()
 
-	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog or not catalog.has_method("get_card"):
-		return
+	# Filter and sort
+	var filtered_cards: Array = _get_filtered_sorted_cards()
 
-	# Filter collection summary
-	var filtered_cards: Array = []
-	for entry_var: Variant in collection_summary:
-		if not entry_var is Dictionary:
-			continue
-		var entry: Dictionary = entry_var
-		var catalog_id_val: Variant = entry.get("catalog_id", "")
-		if not catalog_id_val is String:
-			continue
-		var catalog_id: String = catalog_id_val
-
-		var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
-		if not catalog_data_result is Dictionary:
-			continue
-		var catalog_data: Dictionary = catalog_data_result
-
-		if catalog_data.is_empty():
-			continue
-
-		# Apply type filter
-		if current_filter_type != -1:
-			var card_type_val: Variant = catalog_data.get("card_type", 0)
-			if card_type_val is int and card_type_val != current_filter_type:
-				continue
-
-		# Apply rarity filter
-		if current_filter_rarity != &"":
-			var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
-			if rarity_val != current_filter_rarity:
-				continue
-
-		filtered_cards.append(entry)
-
-	# Sort the filtered cards
-	var sorted_cards: Array = _sort_cards(filtered_cards)
-
-	# Create card widgets from sorted data
-	var total_widgets: int = 0
-	for sorted_entry: Variant in sorted_cards:
-		if not sorted_entry is Dictionary:
-			continue
-		var sort_data: Dictionary = sorted_entry
-
-		var card_data: Dictionary = sort_data.get("instance", {})
-		var catalog_data: Dictionary = sort_data.get("catalog_data", {})
-		var entry_catalog_id: String = sort_data.get("catalog_id", "")
-
-		var widget_node: Node = CardWidgetScene.instantiate()
-		if not widget_node is CardWidget:
-			continue
-		var widget: CardWidget = widget_node
-		card_grid.add_child(widget)
-
-		# Set card data
-		widget.set_card(card_data, catalog_data)
-		widget.set_draggable(false)
-
-		# Connect selection (pass instance ID, not catalog ID)
-		var instance_id_val: Variant = card_data.get("id", "")
-		var instance_id: String = instance_id_val if instance_id_val is String else ""
-		var card_clicked_sig: Signal = widget.card_clicked
-		card_clicked_sig.connect(_on_card_instance_selected.bind(instance_id, entry_catalog_id))
-
-		total_widgets += 1
-
-	print("CollectionScreen: Showing %d individual cards" % total_widgets)
-
-func _set_type_filter(type: int) -> void:
-	current_filter_type = type
-	_refresh_grid()
-	_update_filter_button_states()
-
-func _set_rarity_filter(rarity: String) -> void:
-	# Toggle off if clicking same rarity
-	if current_filter_rarity == rarity:
-		current_filter_rarity = ""
-	else:
-		current_filter_rarity = rarity
-
-	_refresh_grid()
-	_update_filter_button_states()
-
-func _update_filter_button_states() -> void:
-	# Type buttons
-	all_button.disabled = (current_filter_type == -1)
-	summon_button.disabled = (current_filter_type == 0)
-	spell_button.disabled = (current_filter_type == 1)
-
-	# Rarity buttons
-	common_button.disabled = (current_filter_rarity == RarityIDs.COMMON)
-	rare_button.disabled = (current_filter_rarity == RarityIDs.RARE)
-	epic_button.disabled = (current_filter_rarity == RarityIDs.EPIC)
-
-## =============================================================================
-## SORTING
-## =============================================================================
-
-func _set_sort(field: SortField) -> void:
-	if current_sort_field == field:
-		# Toggle direction if clicking same field
-		sort_ascending = not sort_ascending
-	else:
-		# New field, default to ascending
-		current_sort_field = field
-		sort_ascending = true
-
-	_refresh_grid()
-	_update_sort_button_states()
-
-func _update_sort_button_states() -> void:
-	var arrow: String = " ▲" if sort_ascending else " ▼"
-
-	# Update all buttons with localized text
-	name_sort_button.text = Loc.t("ui.collection.sort_name") + (arrow if current_sort_field == SortField.NAME else "")
-	cost_sort_button.text = Loc.t("ui.collection.sort_cost") + (arrow if current_sort_field == SortField.COST else "")
-	rarity_sort_button.text = Loc.t("ui.collection.sort_rarity") + (arrow if current_sort_field == SortField.RARITY else "")
-	type_sort_button.text = Loc.t("ui.collection.sort_type") + (arrow if current_sort_field == SortField.TYPE else "")
-	level_sort_button.text = Loc.t("ui.collection.sort_level") + (arrow if current_sort_field == SortField.LEVEL else "")
-	element_sort_button.text = Loc.t("ui.collection.sort_element") + (arrow if current_sort_field == SortField.ELEMENT else "")
-
-func _sort_cards(cards: Array) -> Array:
-	var catalog: Node = get_node("/root/CardCatalog")
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-
-	# Create sortable array with all needed data
-	var sortable: Array = []
-	for card_entry: Variant in cards:
+	# Create widgets
+	for card_entry: Variant in filtered_cards:
 		if not card_entry is Dictionary:
 			continue
-		var entry: Dictionary = card_entry
 
-		var catalog_id_val: Variant = entry.get("catalog_id", "")
-		if not catalog_id_val is String:
-			continue
-		var catalog_id: String = catalog_id_val
+		var card_data: Dictionary = card_entry.get("card_data", {})
+		var catalog_data: Dictionary = card_entry.get("catalog_data", {})
+		var instance_id: String = card_entry.get("instance_id", "")
+		var catalog_id: String = card_entry.get("catalog_id", "")
+		var is_in_deck: bool = instance_id in deck_card_ids
 
-		var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
-		if not catalog_data_result is Dictionary:
-			continue
-		var catalog_data: Dictionary = catalog_data_result
+		var widget: CardWidget = CardWidgetScene.instantiate()
+		card_grid.add_child(widget)
+		widget.set_card(card_data, catalog_data)
+		widget.set_draggable(false)
+		widget.set_in_deck(is_in_deck)
 
-		var instances_val: Variant = entry.get("instances", [])
-		if not instances_val is Array:
-			continue
-		var instances: Array = instances_val
+		# Click shows action popup
+		widget.card_clicked.connect(_on_collection_card_clicked.bind(widget, instance_id, catalog_id))
+		widget.card_held.connect(_on_card_held.bind(instance_id, catalog_id))
 
-		# Get sort values
-		var card_name: String = catalog_data.get("card_name", "")
-		var mana_cost: int = catalog_data.get("mana_cost", 0)
-		var rarity: String = String(catalog_data.get("rarity", "common")).to_lower()
-		var card_type: int = catalog_data.get("card_type", 0)
 
-		# Get element from categories
-		var element: String = "neutral"
-		var categories_val: Variant = catalog_data.get("categories", {})
-		if categories_val is Dictionary:
-			var categories: Dictionary = categories_val
-			var affinity_val: Variant = categories.get("elemental_affinity", null)
-			if affinity_val and typeof(affinity_val) == TYPE_OBJECT and "id" in affinity_val:
-				element = affinity_val.id
+func _get_selected_deck_card_ids() -> Array[String]:
+	var result: Array[String] = []
+	if selected_deck_id == "":
+		return result
 
-		# For each instance, add to sortable
-		for instance_var: Variant in instances:
-			if not instance_var is Dictionary:
-				continue
-			var instance: Dictionary = instance_var
-			var instance_id_val: Variant = instance.get("id", "")
-			var instance_id: String = instance_id_val if instance_id_val is String else ""
+	var decks: Node = get_node("/root/Decks")
+	if not decks or not decks.has_method("get_deck"):
+		return result
 
-			# Get level from progression
-			var level: int = 1
-			if progression_node and not instance_id.is_empty():
-				var info: Dictionary = progression_node.call("get_card_progression_info", instance_id)
-				level = info.get("level", 1)
+	var deck_result: Variant = decks.call("get_deck", selected_deck_id)
+	if not deck_result is Dictionary:
+		return result
 
-			sortable.append({
-				"entry": entry,
-				"instance": instance,
-				"catalog_id": catalog_id,
-				"catalog_data": catalog_data,
-				"card_name": card_name,
-				"mana_cost": mana_cost,
-				"rarity": rarity,
-				"rarity_order": RARITY_ORDER.get(rarity, 0),
-				"card_type": card_type,
-				"level": level,
-				"element": element
-			})
-
-	# Sort based on current field
-	sortable.sort_custom(_compare_cards)
-
-	return sortable
-
-func _compare_cards(a: Dictionary, b: Dictionary) -> bool:
-	var result: bool = false
-
-	match current_sort_field:
-		SortField.NAME:
-			result = a.card_name.to_lower() < b.card_name.to_lower()
-		SortField.COST:
-			result = a.mana_cost < b.mana_cost
-		SortField.RARITY:
-			result = a.rarity_order < b.rarity_order
-		SortField.TYPE:
-			result = a.card_type < b.card_type
-		SortField.LEVEL:
-			result = a.level < b.level
-		SortField.ELEMENT:
-			result = a.element.to_lower() < b.element.to_lower()
-
-	# Reverse if descending
-	if not sort_ascending:
-		result = not result
+	var card_ids: Array = deck_result.get("card_instance_ids", [])
+	for card_id: Variant in card_ids:
+		if card_id is String:
+			result.append(card_id)
 
 	return result
 
-func _on_card_instance_selected(_card_data: Dictionary, instance_id: String, catalog_id: String) -> void:
-	selected_catalog_id = catalog_id
-	selected_instance_id = instance_id
 
-	print("CollectionScreen: Selected card instance: %s (%s)" % [instance_id, catalog_id])
+func _get_filtered_sorted_cards() -> Array:
+	var catalog: Node = get_node("/root/CardCatalog")
+	var progression: Node = get_node_or_null("/root/CardProgression")
+	var result: Array = []
 
-	# Open card detail modal
+	for entry: Variant in collection_summary:
+		if not entry is Dictionary:
+			continue
+
+		var catalog_id: String = entry.get("catalog_id", "")
+		var catalog_data: Variant = catalog.call("get_card", catalog_id)
+		if not catalog_data is Dictionary or catalog_data.is_empty():
+			continue
+
+		# Apply type filter
+		var card_type: int = catalog_data.get("card_type", 0)
+		if card_type == 0 and not show_summons:  # 0 = SUMMON
+			continue
+		if card_type == 1 and not show_spells:  # 1 = SPELL
+			continue
+
+		var card_name: String = catalog_data.get("card_name", "")
+
+		# Apply search filter
+		if search_text != "" and not card_name.to_lower().contains(search_text.to_lower()):
+			continue
+
+		# Get element for filtering
+		var card_element: String = "neutral"
+		var categories: Dictionary = catalog_data.get("categories", {})
+		var affinity: Variant = categories.get("elemental_affinity", null)
+		if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
+			card_element = affinity.id
+
+		# Apply element filter (if any elements selected, card must match one)
+		if selected_elements.size() > 0 and card_element not in selected_elements:
+			continue
+
+		# Process each instance
+		var instances: Array = entry.get("instances", [])
+		for instance: Variant in instances:
+			if not instance is Dictionary:
+				continue
+
+			var instance_id: String = instance.get("id", "")
+			var level: int = 1
+			if progression and not instance_id.is_empty():
+				var info: Dictionary = progression.call("get_card_progression_info", instance_id)
+				level = info.get("level", 1)
+
+			result.append({
+				"instance_id": instance_id,
+				"catalog_id": catalog_id,
+				"card_data": instance,
+				"catalog_data": catalog_data,
+				"card_name": card_name,
+				"mana_cost": catalog_data.get("mana_cost", 0),
+				"rarity": String(catalog_data.get("rarity", "common")).to_lower(),
+				"rarity_order": RARITY_ORDER.get(String(catalog_data.get("rarity", "common")).to_lower(), 0),
+				"card_type": catalog_data.get("card_type", 0),
+				"level": level,
+				"element": card_element
+			})
+
+	# Sort
+	result.sort_custom(_compare_cards)
+	return result
+
+
+func _compare_cards(a: Dictionary, b: Dictionary) -> bool:
+	var compare_result: bool = false
+
+	match current_sort_field:
+		SortField.NAME:
+			compare_result = a.card_name.to_lower() < b.card_name.to_lower()
+		SortField.COST:
+			compare_result = a.mana_cost < b.mana_cost
+		SortField.RARITY:
+			compare_result = a.rarity_order < b.rarity_order
+		SortField.TYPE:
+			compare_result = a.card_type < b.card_type
+		SortField.LEVEL:
+			compare_result = a.level < b.level
+		SortField.ELEMENT:
+			compare_result = a.element.to_lower() < b.element.to_lower()
+
+	if not sort_ascending:
+		compare_result = not compare_result
+
+	return compare_result
+
+
+## =============================================================================
+## FILTER AND SORT
+## =============================================================================
+
+func _on_all_filter_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	# "All" selects both types
+	show_summons = true
+	show_spells = true
+	_update_type_filter_buttons()
+	_refresh_collection()
+
+
+func _on_summon_filter_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	show_summons = not show_summons
+	# Ensure at least one is selected
+	if not show_summons and not show_spells:
+		show_spells = true
+	_update_type_filter_buttons()
+	_refresh_collection()
+
+
+func _on_spell_filter_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	show_spells = not show_spells
+	# Ensure at least one is selected
+	if not show_summons and not show_spells:
+		show_summons = true
+	_update_type_filter_buttons()
+	_refresh_collection()
+
+
+func _update_type_filter_buttons() -> void:
+	# "All" is highlighted when both are selected
+	var all_selected: bool = show_summons and show_spells
+	all_button.button_pressed = all_selected
+	all_button.disabled = all_selected
+
+	# Individual buttons show their toggle state
+	summon_button.button_pressed = show_summons
+	spell_button.button_pressed = show_spells
+
+
+func _populate_element_popup() -> void:
+	element_popup.clear()
+	# Add "All" option at index 0
+	element_popup.add_check_item(Loc.t("ui.collection.filter_all_elements"), 0)
+	element_popup.set_item_checked(0, true)
+	# Add each element
+	for i: int in range(ELEMENTS.size()):
+		var element: String = ELEMENTS[i]
+		element_popup.add_check_item(Loc.t("elements." + element), i + 1)
+	_update_element_button_text()
+
+
+func _on_element_filter_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	var button_rect: Rect2 = element_filter_button.get_global_rect()
+	element_popup.position = Vector2i(int(button_rect.position.x), int(button_rect.position.y + button_rect.size.y))
+	element_popup.popup()
+
+
+func _on_element_toggled(id: int) -> void:
+	if id == 0:
+		# "All" was clicked - clear selection
+		selected_elements.clear()
+		for i: int in range(1, element_popup.item_count):
+			element_popup.set_item_checked(i, false)
+		element_popup.set_item_checked(0, true)
+	else:
+		# Specific element toggled
+		var element_index: int = id - 1
+		var element: String = ELEMENTS[element_index]
+		var is_checked: bool = element_popup.is_item_checked(id)
+
+		if is_checked:
+			# Uncheck it
+			element_popup.set_item_checked(id, false)
+			selected_elements.erase(element)
+		else:
+			# Check it
+			element_popup.set_item_checked(id, true)
+			if element not in selected_elements:
+				selected_elements.append(element)
+
+		# Update "All" checkbox
+		if selected_elements.is_empty():
+			element_popup.set_item_checked(0, true)
+		else:
+			element_popup.set_item_checked(0, false)
+
+	_update_element_button_text()
+	_refresh_collection()
+
+
+func _update_element_button_text() -> void:
+	if selected_elements.is_empty():
+		element_filter_button.text = Loc.t("ui.collection.filter_all_elements")
+	elif selected_elements.size() == 1:
+		element_filter_button.text = Loc.t("elements." + selected_elements[0])
+	else:
+		element_filter_button.text = "%d Elements" % selected_elements.size()
+
+
+func _populate_sort_dropdown() -> void:
+	sort_dropdown.clear()
+	sort_dropdown.add_item(Loc.t("ui.collection.sort_cost"))
+	sort_dropdown.add_item(Loc.t("ui.collection.sort_name"))
+	sort_dropdown.add_item(Loc.t("ui.collection.sort_rarity"))
+	sort_dropdown.add_item(Loc.t("ui.collection.sort_type"))
+	sort_dropdown.add_item(Loc.t("ui.collection.sort_level"))
+	sort_dropdown.add_item(Loc.t("ui.collection.sort_element"))
+
+
+func _on_sort_selected(index: int) -> void:
+	match index:
+		0: current_sort_field = SortField.COST
+		1: current_sort_field = SortField.NAME
+		2: current_sort_field = SortField.RARITY
+		3: current_sort_field = SortField.TYPE
+		4: current_sort_field = SortField.LEVEL
+		5: current_sort_field = SortField.ELEMENT
+	_refresh_collection()
+
+
+func _on_search_changed(new_text: String) -> void:
+	search_text = new_text
+	_refresh_collection()
+
+
+## =============================================================================
+## CARD INTERACTIONS
+## =============================================================================
+
+func _on_collection_card_clicked(_card_data: Dictionary, widget: CardWidget, instance_id: String, catalog_id: String) -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	_dismiss_active_popup()
+
+	# Check for double-click
+	var current_time: int = Time.get_ticks_msec()
+	if instance_id == last_clicked_card_id and current_time - last_click_time < DOUBLE_CLICK_THRESHOLD_MS:
+		# Double-click: add to deck directly
+		last_clicked_card_id = ""
+		last_click_time = 0
+		_add_card_to_selected_deck(instance_id)
+		return
+
+	# Single click: show popup
+	last_clicked_card_id = instance_id
+	last_click_time = current_time
+	_show_card_action_popup(widget, instance_id, catalog_id)
+
+
+func _on_card_held(_card_data: Dictionary, instance_id: String, catalog_id: String) -> void:
+	_dismiss_active_popup()
 	_open_card_detail_modal(instance_id, catalog_id)
 
+
+func _show_card_action_popup(widget: CardWidget, instance_id: String, catalog_id: String) -> void:
+	var popup: Control = CardActionPopupScene.instantiate()
+	if not popup:
+		return
+
+	add_child(popup)
+	active_popup = popup
+
+	# Position below the widget
+	var widget_rect: Rect2 = widget.get_global_rect()
+	var popup_pos: Vector2 = Vector2(
+		widget_rect.position.x + widget_rect.size.x / 2,
+		widget_rect.position.y + widget_rect.size.y + 5
+	)
+
+	if popup.has_method("show_at"):
+		var is_in_deck: bool = instance_id in _get_selected_deck_card_ids()
+		popup.call("show_at", popup_pos, instance_id, catalog_id, is_in_deck, selected_deck_id != "")
+
+	if popup.has_signal("use_pressed"):
+		popup.use_pressed.connect(_on_popup_use_pressed)
+	if popup.has_signal("info_pressed"):
+		popup.info_pressed.connect(_on_popup_info_pressed)
+	if popup.has_signal("dismissed"):
+		popup.dismissed.connect(_on_popup_dismissed)
+
+
+func _dismiss_active_popup() -> void:
+	if active_popup and is_instance_valid(active_popup):
+		active_popup.queue_free()
+	active_popup = null
+
+
+func _on_popup_use_pressed(instance_id: String, _catalog_id: String) -> void:
+	_dismiss_active_popup()
+	_add_card_to_selected_deck(instance_id)
+
+
+func _on_popup_info_pressed(instance_id: String, catalog_id: String) -> void:
+	_dismiss_active_popup()
+	_open_card_detail_modal(instance_id, catalog_id)
+
+
+func _on_popup_dismissed() -> void:
+	_dismiss_active_popup()
+
+
 ## =============================================================================
-## MY DECKS TAB
+## DECK OPERATIONS
 ## =============================================================================
 
-func _refresh_deck_list() -> void:
-	# Clear existing deck items
-	for child: Node in deck_list.get_children():
-		child.queue_free()
+func _add_card_to_selected_deck(card_instance_id: String) -> void:
+	if deck_editing_locked:
+		return
+
+	if selected_deck_id == "":
+		print("CollectionScreen: No deck selected")
+		return
+
+	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
+	if deck_card_ids.size() >= MAX_DECK_SIZE:
+		print("CollectionScreen: Deck is full!")
+		return
 
 	var decks: Node = get_node("/root/Decks")
-	if not decks or not decks.has_method("list_decks"):
-		push_error("CollectionScreen: Decks service not found!")
-		return
+	if decks and decks.has_method("add_card_to_deck"):
+		var success: Variant = decks.call("add_card_to_deck", selected_deck_id, card_instance_id)
+		if success is bool and success:
+			print("CollectionScreen: Added card to deck")
+			_refresh_deck_list()
+			_refresh_deck_panel()
+			_refresh_collection()
 
-	# Get active summoner ID to filter decks
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	var active_summoner_id: String = ""
-	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
-		var result: Variant = summoner_selection.call("get_active_summoner_id")
-		if result is String:
-			active_summoner_id = result
-
-	# Get decks filtered by active summoner
-	var deck_list_result: Variant
-	if not active_summoner_id.is_empty() and decks.has_method("list_decks_for_summoner"):
-		deck_list_result = decks.call("list_decks_for_summoner", active_summoner_id)
-	else:
-		deck_list_result = decks.call("list_decks")
-	if not deck_list_result is Array:
-		return
-	var deck_list_data: Array = deck_list_result
-
-	if deck_list_data.size() == 0:
-		var label: Label = Label.new()
-		label.text = Loc.t("ui.collection.empty_decks")
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.add_theme_font_size_override("font_size", 20)
-		deck_list.add_child(label)
-		return
-
-	# Create deck list items
-	for deck_data_var: Variant in deck_list_data:
-		if not deck_data_var is Dictionary:
-			continue
-		var deck_data: Dictionary = deck_data_var
-		var deck_item: PanelContainer = _create_deck_list_item(deck_data)
-		deck_list.add_child(deck_item)
-
-	print("CollectionScreen: Loaded %d decks" % deck_list_data.size())
-
-func _create_deck_list_item(deck_data: Dictionary) -> PanelContainer:
-	var panel: PanelContainer = PanelContainer.new()
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 15)
-	margin.add_theme_constant_override("margin_top", 15)
-	margin.add_theme_constant_override("margin_right", 15)
-	margin.add_theme_constant_override("margin_bottom", 15)
-	panel.add_child(margin)
-
-	var hbox: HBoxContainer = HBoxContainer.new()
-	margin.add_child(hbox)
-
-	# Deck name
-	var name_label: Label = Label.new()
-	var name_val: Variant = deck_data.get("name", "Unnamed Deck")
-	name_label.text = name_val if name_val is String else "Unnamed Deck"
-	name_label.add_theme_font_size_override("font_size", 24)
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(name_label)
-
-	# Card count
-	var card_ids_val: Variant = deck_data.get("card_instance_ids", [])
-	var card_ids: Array = card_ids_val if card_ids_val is Array else []
-	var count_label: Label = Label.new()
-	count_label.text = Loc.t("ui.collection.card_count_format", {"count": card_ids.size()})
-	count_label.add_theme_font_size_override("font_size", 20)
-	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hbox.add_child(count_label)
-
-	# Validation status
-	var decks: Node = get_node("/root/Decks")
-	var deck_id_val: Variant = deck_data.get("id", "")
-	var deck_id: String = deck_id_val if deck_id_val is String else ""
-	var is_valid: bool = false
-	if decks and decks.has_method("validate_deck"):
-		var valid_result: Variant = decks.call("validate_deck", deck_id)
-		if valid_result is bool:
-			is_valid = valid_result
-	var status_label: Label = Label.new()
-	status_label.text = "✓" if is_valid else "⚠"
-	status_label.add_theme_font_size_override("font_size", 24)
-	status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3) if is_valid else Color(1.0, 0.7, 0.3))
-	hbox.add_child(status_label)
-
-	# Make clickable
-	var button: Button = Button.new()
-	button.flat = true
-	button.custom_minimum_size = panel.custom_minimum_size
-	var pressed_sig: Signal = button.pressed
-	pressed_sig.connect(_on_deck_item_clicked.bind(deck_id))
-	panel.add_child(button)
-
-	return panel
-
-func _on_deck_item_clicked(deck_id: String) -> void:
-	print("CollectionScreen: Opening deck editor for: %s" % deck_id)
-
-	# Check if deck editing is locked (tutorial not complete)
-	var campaign: Node = get_node("/root/Campaign")
-	if campaign and campaign.has_method("is_tutorial_complete"):
-		var is_complete_result: Variant = campaign.call("is_tutorial_complete")
-		if is_complete_result is bool and not is_complete_result:
-			print("CollectionScreen: Deck editing locked - tutorial not complete")
-			_show_deck_locked_message()
-			return
-
-	# Store selected deck ID in profile meta temporarily so deck builder can read it
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_active_profile"):
-		var profile_result: Variant = profile_repo.call("get_active_profile")
-		if profile_result is Dictionary:
-			var profile: Dictionary = profile_result
-			if not profile.is_empty():
-				var empty_dict: Dictionary = {}
-				var meta_val: Variant = profile.get("meta", empty_dict)
-				if meta_val is Dictionary:
-					var meta: Dictionary = meta_val
-					meta["editing_deck_id"] = deck_id
-					print("CollectionScreen: Set editing_deck_id to '%s'" % deck_id)
-
-	SceneManager.transition_to(SceneManager.SCENE_DECK_BUILDER)
-
-func _show_deck_locked_message() -> void:
-	# Show popup dialog informing player deck editing is locked
-	var dialog: AcceptDialog = AcceptDialog.new()
-	dialog.title = Loc.t("ui.collection.deck_locked_title")
-	dialog.dialog_text = Loc.t("ui.collection.deck_locked_message")
-	dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
-	add_child(dialog)
-	dialog.popup_centered()
-	var confirmed_sig: Signal = dialog.confirmed
-	confirmed_sig.connect(dialog.queue_free)
-
-func _on_new_deck_pressed() -> void:
-	var decks: Node = get_node("/root/Decks")
-	if not decks or not decks.has_method("create_deck"):
-		return
-
-	var deck_id_result: Variant = decks.call("create_deck", "New Deck", [])
-	var deck_id: String = deck_id_result if deck_id_result is String else ""
-	print("CollectionScreen: Created new deck: %s" % deck_id)
-
-func _on_delete_deck_pressed() -> void:
-	# TODO: Show confirmation dialog and delete selected deck
-	print("CollectionScreen: Delete deck not yet implemented")
 
 ## =============================================================================
 ## CARD DETAIL MODAL
 ## =============================================================================
 
-## Open the card detail modal for a card instance
 func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
-	print("CollectionScreen: Opening card detail modal for %s (%s)" % [instance_id, catalog_id])
-
-	var modal_node: Node = CardDetailModalScene.instantiate()
-	if not modal_node:
-		push_error("CollectionScreen: Failed to instantiate card detail modal")
+	var modal: Node = CardDetailModalScene.instantiate()
+	if not modal:
 		return
 
-	add_child(modal_node)
+	add_child(modal)
 
-	# Open for the selected card
-	if modal_node.has_method("open_for_card"):
-		modal_node.call("open_for_card", instance_id, catalog_id)
+	if modal.has_method("open_for_card"):
+		modal.call("open_for_card", instance_id, catalog_id)
+
+	# Set deck context so modal shows add/remove button
+	var is_in_deck: bool = instance_id in _get_selected_deck_card_ids()
+	if modal.has_method("set_deck_context"):
+		modal.call("set_deck_context", selected_deck_id, is_in_deck)
 
 	# Connect signals
-	if modal_node.has_signal("level_up_requested"):
-		var level_up_sig: Signal = modal_node.get("level_up_requested")
-		level_up_sig.connect(_on_level_up_from_modal)
+	if modal.has_signal("level_up_requested"):
+		modal.level_up_requested.connect(_on_level_up_from_modal)
 
-	if modal_node.has_signal("closed"):
-		var closed_sig: Signal = modal_node.get("closed")
-		closed_sig.connect(_on_card_detail_modal_closed.bind(modal_node))
+	if modal.has_signal("deck_action_requested"):
+		modal.deck_action_requested.connect(_on_deck_action_from_modal)
 
-## Handle level-up request from card detail modal
+	if modal.has_signal("closed"):
+		modal.closed.connect(_on_modal_closed.bind(modal))
+
+
 func _on_level_up_from_modal(instance_id: String) -> void:
-	print("CollectionScreen: Level-up requested for %s" % instance_id)
-	_open_level_up_modal(instance_id)
-
-## Handle card detail modal close
-func _on_card_detail_modal_closed(modal: Node) -> void:
-	if modal and is_instance_valid(modal):
-		modal.queue_free()
-
-## Open the level-up modal for a card
-func _open_level_up_modal(instance_id: String) -> void:
-	print("CollectionScreen: Opening level-up modal for %s" % instance_id)
-
-	var modal_node: Node = LevelUpPanelScene.instantiate()
-	if not modal_node:
-		push_error("CollectionScreen: Failed to instantiate level-up panel")
+	var panel: Node = LevelUpPanelScene.instantiate()
+	if not panel:
 		return
 
-	add_child(modal_node)
+	add_child(panel)
 
-	# Open for the selected card
-	if modal_node.has_method("open_for_card"):
-		modal_node.call("open_for_card", instance_id)
+	if panel.has_method("open_for_card"):
+		panel.call("open_for_card", instance_id)
 
-	# Connect to completion signal
-	if modal_node.has_signal("level_up_completed"):
-		var completed_sig: Signal = modal_node.get("level_up_completed")
-		completed_sig.connect(_on_level_up_completed)
+	if panel.has_signal("level_up_completed"):
+		panel.level_up_completed.connect(_on_level_up_completed)
 
-	if modal_node.has_signal("cancelled"):
-		var cancelled_sig: Signal = modal_node.get("cancelled")
-		cancelled_sig.connect(_on_level_up_modal_closed.bind(modal_node))
+	if panel.has_signal("cancelled"):
+		panel.cancelled.connect(_on_modal_closed.bind(panel))
 
-## Handle level-up completion
+
 func _on_level_up_completed(_card_instance_id: String) -> void:
-	print("CollectionScreen: Level-up completed")
 	_refresh_collection()
+	_refresh_deck_list()
 
-## Handle modal close
-func _on_level_up_modal_closed(modal: Node) -> void:
+
+func _on_deck_action_from_modal(instance_id: String, action: String) -> void:
+	if action == "add":
+		_add_card_to_selected_deck(instance_id)
+	elif action == "remove":
+		_remove_card_from_deck(instance_id)
+
+
+func _remove_card_from_deck(card_instance_id: String) -> void:
+	if deck_editing_locked:
+		return
+
+	if selected_deck_id == "":
+		return
+
+	var decks: Node = get_node("/root/Decks")
+	if decks and decks.has_method("remove_card_from_deck"):
+		var success: Variant = decks.call("remove_card_from_deck", selected_deck_id, card_instance_id)
+		if success is bool and success:
+			print("CollectionScreen: Removed card from deck")
+			_refresh_deck_list()
+			_refresh_deck_panel()
+			_refresh_collection()
+
+
+func _on_modal_closed(modal: Node) -> void:
 	if modal and is_instance_valid(modal):
 		modal.queue_free()
+
+
+## =============================================================================
+## GOLD DISPLAY
+## =============================================================================
+
+func _refresh_gold_display() -> void:
+	var profile_repo: Node = get_node("/root/ProfileRepo")
+	if profile_repo and profile_repo.has_method("get_gold"):
+		var gold: Variant = profile_repo.call("get_gold")
+		if gold is int:
+			gold_label.text = str(gold)
+
 
 ## =============================================================================
 ## NAVIGATION
 ## =============================================================================
 
 func _on_close_pressed() -> void:
-	print("CollectionScreen: Closing...")
-	# Return to previous screen (Campaign Map) via NavigationContext
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
 	SceneManager.transition_to(return_scene)
 
+
 ## =============================================================================
-## SIGNALS
+## SERVICE SIGNALS
 ## =============================================================================
 
-func _on_collection_changed() -> void:
-	print("CollectionScreen: Collection changed, refreshing...")
+func _on_deck_changed(deck_id: String) -> void:
+	if deck_id == selected_deck_id:
+		_refresh_deck_list()
+		_refresh_deck_panel()
+		_refresh_collection()
+
+
+func _on_deck_created(deck_id: String) -> void:
+	# Select the newly created deck
+	selected_deck_id = deck_id
+	_refresh_deck_list()
+	_refresh_deck_panel()
 	_refresh_collection()
 
-func _on_deck_changed(_deck_id: String) -> void:
-	_refresh_deck_list()
 
-func _on_deck_created(_deck_id: String) -> void:
+func _on_deck_deleted(deck_id: String) -> void:
+	if selected_deck_id == deck_id:
+		selected_deck_id = ""
 	_refresh_deck_list()
+	_refresh_deck_panel()
+	_refresh_collection()
 
-func _on_deck_deleted(_deck_id: String) -> void:
-	_refresh_deck_list()
 
-func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
-	# Refresh deck list when summoner changes
-	_refresh_deck_list()
+func _on_collection_changed() -> void:
+	_refresh_collection()
+	_refresh_deck_panel()

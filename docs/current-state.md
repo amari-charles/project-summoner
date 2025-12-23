@@ -32,7 +32,7 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 - Base card class with drag-and-drop
 - Card types: UNIT, SPELL, STRUCTURE
 - **Summon time** — delay before unit appears (with ghost spawn reveal effect)
-- **Rarity system** — Common (12), Uncommon (6), Epic (3), Legendary (1) max copies
+- **Rarity system** — Affects spawn count per card: Common (up to 12 units), Uncommon (6), Epic (3), Legendary (1)
 - Hand management with visual layout
 - Mana cost system
 

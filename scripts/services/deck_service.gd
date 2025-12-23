@@ -59,6 +59,25 @@ func has_deck(deck_id: String) -> bool:
 func get_deck_count() -> int:
 	return list_decks().size()
 
+
+## Get the active deck ID (the deck used for battles)
+func get_active_deck_id() -> String:
+	var meta: Dictionary = ProfileRepo.get_profile_meta()
+	var deck_id: Variant = meta.get("selected_deck", "")
+	return deck_id if deck_id is String else ""
+
+
+## Set the active deck (the deck used for battles)
+## Returns true if successful
+func set_active_deck(deck_id: String) -> bool:
+	if deck_id != "" and not has_deck(deck_id):
+		return false
+	var meta: Dictionary = ProfileRepo.get_profile_meta()
+	meta["selected_deck"] = deck_id
+	ProfileRepo.update_profile_meta(meta)
+	return true
+
+
 ## Get all decks for a specific summoner
 func list_decks_for_summoner(summoner_id: String) -> Array[Dictionary]:
 	var all_decks: Array[Dictionary] = list_decks()
@@ -167,6 +186,11 @@ func add_card_to_deck(deck_id: String, card_instance_id: String) -> bool:
 	# Check if at max size
 	if card_instance_ids.size() >= MAX_DECK_SIZE:
 		push_warning("DeckService: Deck is at maximum size (%d)" % MAX_DECK_SIZE)
+		return false
+
+	# Check if card is already in this deck (each instance can only appear once)
+	if card_instance_id in card_instance_ids:
+		push_warning("DeckService: Card instance already in deck: %s" % card_instance_id)
 		return false
 
 	# Check if card exists in collection
