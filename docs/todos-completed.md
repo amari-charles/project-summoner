@@ -6,6 +6,35 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## Summoner System
 
+### Implement Summoner Unlock System
+**Completed:** 2025-12-23
+**Category:** Summoners / Progression
+**Effort:** Medium
+
+**Description:**
+Implemented the system for unlocking additional summoners beyond the starting summoner.
+
+**Solution Implemented:**
+- Premium Store UI with Summoners tab
+- ShopOffering SUMMONER type with pricing (750 gold each)
+- Purchase limits (1 per account per summoner)
+- RewardService summoner unlock granting
+- ProfileRepo unlock/instance tracking (`unlock_summoner()`, `is_summoner_unlocked()`, `get_unlocked_summoners()`)
+- Shop "already owned" validation
+- Purchasable summoners in catalog: Lightning Adept, Verdant Sage, Void Walker
+- Dev console commands: `/unlock_summoner`, `/unlock_all_summoners`
+- SummonerSwitchScreen shows unlocked summoners
+
+**Related Files:**
+- `scripts/services/shop_service.gd` - Summoner offerings with pricing
+- `scripts/data/summoner_catalog.gd` - Purchasable summoner configs
+- `scripts/data/json_profile_repository.gd` - Unlock tracking
+- `scripts/services/reward_service.gd` - Unlock granting
+- `scripts/ui/screens/premium_store_screen.gd` - Shop UI
+- `scripts/debug/dev_console.gd` - Dev unlock commands
+
+---
+
 ### Standardize "Hero" vs "Summoner" Language
 **Completed:** 2025-11-28
 **Category:** Summoners / Architecture
@@ -35,6 +64,52 @@ The codebase inconsistently used "Summoner" and "Hero" to refer to the same conc
 ---
 
 ## Units & Combat
+
+### Add Flying Unit Type
+**Completed:** 2025-12-23
+**Category:** Units & Combat
+**Effort:** Medium
+
+**Description:**
+Created flying unit type that can move over obstacles and other units.
+
+**Solution Implemented:**
+- Added `MovementLayer` enum (GROUND, AIR) to Unit3D
+- Added `TargetLayer` enum (GROUND_ONLY, AIR_ONLY, BOTH) for targeting rules
+- Implemented `flight_altitude` export variable for visual height
+- Shadow scaling based on altitude (smaller/fainter shadows at higher altitudes)
+- Demon Imp card uses AIR movement layer as first flying unit
+- Targeting system respects ground vs air layers
+
+**Related Files:**
+- `scripts/units/unit_3d.gd` - MovementLayer, TargetLayer enums, flight constants
+- `scenes/units/demon_imp_3d.tscn` - Flying unit with movement_layer=1 (AIR)
+- `scripts/data/card_catalog.gd` - Demon Imp card definition
+
+---
+
+### Implement Flying Movement Logic
+**Completed:** 2025-12-23
+**Category:** Units & Combat
+**Effort:** Medium
+**Dependencies:** Add Flying Unit Type
+
+**Description:**
+Implemented movement system for flying units including pathfinding and collision rules.
+
+**Solution Implemented:**
+- Flying units set position.y to flight_altitude on spawn
+- Shadow scaling: size and opacity reduce with altitude
+- Height tolerance for attacks: flying units ignore height differences when attacking
+- Collision layers: FLYING_UNITS (layer 2) separate from ground units
+- Targeting respects can_target (GROUND_ONLY, AIR_ONLY, BOTH)
+- Flying units skip ground-based separation forces
+
+**Related Files:**
+- `scripts/units/unit_3d.gd` - Flying movement logic in _ready() and targeting
+- `scripts/core/physics_layers.gd` - FLYING_UNITS layer constant
+
+---
 
 ### Spatial Partitioning for Unit Targeting
 **Completed:** 2025-12-12
@@ -1103,4 +1178,28 @@ Added sound effects when cards are played and drawn.
 
 ---
 
-*Last Updated: 2025-12-18 - Added audio system completion (BGM, UI clicks, card sounds)*
+## UI Revamp
+
+### Revamp Card Hand Display
+**Completed:** 2025-12-23
+**Category:** UI/UX
+**Effort:** Medium
+
+**Description:**
+Improved the visual presentation of cards in the player's hand.
+
+**Solution Implemented:**
+- Card spacing and layout (CARD_WIDTH = 120, CARD_SPACING = 10)
+- Smooth hover animations (rises 40px, scales to 1.2x, 0.25s transition)
+- 3D rotation shader with velocity tracking
+- Playability indicators (glow for affordable cards, visual feedback for insufficient mana)
+- Pulsing glow effect for playable cards
+- Draw animation when cards enter hand (0.4s duration)
+- Handles varying hand sizes dynamically
+
+**Related Files:**
+- `scripts/ui/battle/hand_ui.gd` - Complete hand display implementation
+
+---
+
+*Last Updated: 2025-12-23 - Added Summoner Unlock System, Card Hand Display, Flying units*

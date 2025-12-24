@@ -49,42 +49,30 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 
 ---
 
-#### Add Flying Unit Type
+
+#### Implement Single Target vs Multi Target Attack System
 **Status:** ⬜ Not Started
 **Category:** Units & Combat
 **Effort:** Medium
 
 **Description:**
-Create a new flying unit type that can move over obstacles and other units.
+Add system to differentiate between single target attacks and multi target/AoE attacks for units.
+
+**Current State:**
+- Spells have AoE via `spell_radius` (Fireball works)
+- Units only attack single targets - no unit-level AoE/splash damage
 
 **Requirements:**
-- Design flying unit visuals/models
-- Define flying unit stats and behavior
-- Implement air layer combat mechanics
+- Define attack target type in unit data (single, multi, aoe)
+- Implement multi-target selection logic for units
+- Add AoE/splash damage radius for area attacks on units
+- Visual indicators for AoE attacks
+- Balance damage for multi-target vs single-target
 
 **Notes:**
-- Requires flying movement logic (see below)
-- May need separate targeting rules for ground vs air
-
----
-
-#### Implement Flying Movement Logic
-**Status:** ⬜ Not Started
-**Category:** Units & Combat
-**Effort:** Medium
-**Dependencies:** Add Flying Unit Type
-
-**Description:**
-Implement the movement system for flying units including pathfinding and collision rules.
-
-**Requirements:**
-- Flying units can move over obstacles
-- Flying units ignore ground unit collision during movement
-- Proper animation/visual feedback for flying
-
-**Notes:**
-- Consider height/elevation for 2.5D visual effect
-- May need separate pathfinding layer
+- Foundation for unit variety (e.g., dragons with breath attacks)
+- Multi-target may need reduced damage per target
+- Consider different AoE shapes (circle, cone, line)
 
 ---
 
@@ -109,40 +97,22 @@ Flesh out and refine unit hitboxes for better collision detection and combat int
 
 ---
 
-#### Implement Single Target vs Multi Target Attack System
-**Status:** ⬜ Not Started
-**Category:** Units & Combat
-**Effort:** Medium
-
-**Description:**
-Add system to differentiate between single target attacks and multi target/AoE attacks.
-
-**Requirements:**
-- Define attack target type in unit data (single, multi, aoe)
-- Implement multi-target selection logic
-- Add AoE damage radius for area attacks
-- Visual indicators for AoE attacks (ground circles, splash effects)
-- Balance damage for multi-target vs single-target
-
-**Notes:**
-- Foundation for spell variety and unit diversity
-- Multi-target may need reduced damage per target
-- Consider different AoE shapes (circle, cone, line)
-- Important for strategic depth
-
----
 
 #### Add Death Animations for Units
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Infrastructure Ready)
 **Category:** Visual Polish
 **Effort:** Medium
 
 **Description:**
 Create death animations for all unit types to improve visual feedback when units are defeated.
 
+**Current State:**
+- Infrastructure exists: `_die()` calls `_update_animation("death")` with 1.0s delay before queue_free()
+- Missing: Actual animation frames/assets for death animations
+
 **Requirements:**
 - Design death animation for each unit type
-- Implement animation triggers on unit death
+- Create animation assets/frames
 - Add fade-out or removal timing
 
 **Notes:**
@@ -237,12 +207,16 @@ The profile data structure has redundant and unused fields that waste storage an
 **Effort:** Small
 
 **Description:**
-Add a way for players to quit the entire game from within the application.
+Add a way for players to quit the entire game/application from within the game.
+
+**Current State:**
+- Pause menu has "Quit" but it only exits the battle back to menu
+- No way to exit the application entirely
 
 **Requirements:**
 - Add quit button to title screen or settings menu
-- Implement proper cleanup before exit
-- Handle unsaved progress (if applicable)
+- Call `get_tree().quit()` to exit the application
+- Handle any cleanup before exit
 
 **Notes:**
 - Standard feature expected by players
@@ -271,33 +245,6 @@ Review the current game setup to ensure compatibility with both mobile and deskt
 
 ---
 
-#### Card Returns to Pool When Summoned Unit Dies
-**Status:** ⬜ Not Started
-**Category:** Core Game Systems / Card Mechanics
-**Effort:** Medium
-
-**Description:**
-Currently, when a summon card is played, it returns to the card pool immediately after being played. This allows players to redraw and replay the same summon multiple times while previous summons are still alive.
-
-Change this so that summon cards only return to the card pool after their summoned unit dies on the battlefield.
-
-**Requirements:**
-- Track which card instance spawned each unit
-- When a unit dies, return its associated card to the draw pool
-- Handle edge cases: what happens if battle ends while units are alive?
-- Update card pool/hand logic to exclude "in-play" cards from draw calculations
-
-**Benefits:**
-- Prevents spam strategies with powerful summons
-- Adds strategic depth (protecting your units = keeping options limited)
-- More realistic deck management
-
-**Notes:**
-- May need a visual indicator showing which cards are "in play" on the battlefield
-- Consider: should this apply to all summon cards or just certain ones?
-- Consider: multi-spawn cards (spawn_count > 1) - when does card return?
-
----
 
 ### 🟢 LOW PRIORITY
 
@@ -380,16 +327,22 @@ Enhance the visual design of card display including layout, typography, and effe
 ### 🟡 MEDIUM PRIORITY
 
 #### Add Victory/Defeat Music
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Infrastructure Ready)
 **Category:** Audio
 **Effort:** Small
 **Description:**
 Add musical stings or short tracks for win/loss conditions.
 
+**Current State:**
+- AudioManager infrastructure exists with crossfade support
+- Battle music stops on game end
+- 2-second delay after battle end before callback
+- Missing: Actual victory/defeat audio files
+
 **Requirements:**
-- Victory fanfare
-- Defeat music
-- Integrate with battle end screens
+- Victory fanfare audio file
+- Defeat music audio file
+- Wire up to battle end logic
 
 **Notes:**
 - Should be short and impactful
@@ -581,43 +534,28 @@ Create a loading screen that displays during battle transitions and preloads all
 
 ---
 
-#### Revamp Card Hand Display
-**Status:** ⬜ Not Started
-**Category:** UI/UX
-**Effort:** Medium
-
-**Description:**
-Improve the visual presentation of cards in the player's hand.
-
-**Requirements:**
-- Better card spacing and layout
-- Smooth card hover/selection feedback
-- Clear playability indicators
-- Handle varying hand sizes
-
-**Notes:**
-- Already has 3D tilt effect - build on that
-- Should feel like holding physical cards
-
----
 
 #### Revamp Settings Screen UI
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Functional)
 **Category:** UI/UX
 **Effort:** Small
 
 **Description:**
 Redesign settings/options screen for better usability and visual consistency.
 
-**Requirements:**
-- Clear option categories
-- Intuitive controls
-- Visual consistency with other UI
-- Proper feedback for changes
+**Current State:**
+- Basic settings screen exists with audio volume sliders
+- Music and SFX sliders with value labels
+- "Coming soon" placeholder for future settings
+- Settings persist via ProfileRepo
+
+**Remaining Work:**
+- Visual polish to match other UI screens
+- Add more setting categories (graphics, controls, accessibility)
+- Consider accessibility options
 
 **Notes:**
-- Should be functional first, pretty second
-- Consider accessibility options
+- Functional but visually basic
 
 ---
 
@@ -667,27 +605,6 @@ Implement the system for summoner active and passive abilities.
 
 ---
 
-#### Implement Summoner Unlock System (Post-MVP)
-**Status:** 🔄 In Progress (Infrastructure Complete)
-**Category:** Summoners / Progression
-**Effort:** Medium
-
-**Description:**
-Implement the system for unlocking additional summoners beyond the starting summoner.
-
-**Notes:**
-- **Infrastructure complete** (see feature/premium-store-ui branch):
-  - Premium Store UI with Summoners tab
-  - ShopOffering SUMMONER type
-  - RewardService summoner unlock granting
-  - ProfileRepo unlock/instance tracking
-  - Shop "already owned" validation
-- Remaining work:
-  - Add actual purchasable summoners to SummonerCatalog
-  - Design summoner pricing and purchase limits
-  - Add campaign milestone unlocks (alternative to purchase)
-
----
 
 ## Developer Tools
 
@@ -745,4 +662,4 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-12-18 - Moved completed audio todos (BGM, battle music, UI clicks, card sounds) to todos-completed.md*
+*Last Updated: 2025-12-23 - Full audit completed. Moved to archive: Flying units, Summoner Unlock System, Card Hand Display. Updated status: Settings Screen (partial), Victory/Defeat Music (partial), Death Animations (partial). Removed: Card Returns to Pool (not needed).*
