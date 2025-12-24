@@ -31,6 +31,9 @@ const HOLD_DURATION: float = 0.5  ## seconds
 ## Animation state
 var hover_tween: Tween = null
 
+## Drag state
+var _hidden_for_drag: bool = false
+
 ## Node references
 @onready var type_icon: TextureRect = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
@@ -47,6 +50,9 @@ var element_color: Color = Color.GRAY
 ## =============================================================================
 
 func _ready() -> void:
+	# Allow drop events to pass through to parent drop zones
+	mouse_filter = Control.MOUSE_FILTER_PASS
+
 	# Create hold timer
 	hold_timer = Timer.new()
 	hold_timer.one_shot = true
@@ -203,22 +209,22 @@ func _on_hold_timeout() -> void:
 ## DRAG AND DROP
 ## =============================================================================
 
-func _get_drag_data(_at_position: Vector2) -> Variant:
+func _get_drag_data(at_position: Vector2) -> Variant:
 	if not draggable or card_data.is_empty():
 		return null
 
-	# Create drag preview
-	var preview: PanelContainer = PanelContainer.new()
-	preview.custom_minimum_size = custom_minimum_size
+	# Don't allow dragging cards that are already in deck (from collection view)
+	if is_in_deck:
+		return null
 
-	var label: Label = Label.new()
-	label.text = catalog_data.get("card_name", "Card")
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	preview.add_child(label)
+	# Make this card invisible while dragging (but keep space in grid)
+	modulate.a = 0.0
+	_hidden_for_drag = true
 
-	# Make preview semi-transparent
-	preview.modulate = Color(1, 1, 1, 0.7)
+	# Create physics-enabled drag preview
+	# Pass at_position so the card appears held where clicked
+	var preview: DraggableCardPreview = DraggableCardPreview.new()
+	preview.setup(card_data, catalog_data, size, at_position)
 
 	set_drag_preview(preview)
 
@@ -230,3 +236,12 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 		"source": self
 	}
 	return drag_data
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END:
+		# Drag ended (successful or cancelled) - show card again
+		# If successfully added to deck, collection refresh will remove it
+		if _hidden_for_drag:
+			modulate.a = 1.0
+			_hidden_for_drag = false

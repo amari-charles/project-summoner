@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://bw7j2k5nq3xlm"]
+[gd_scene load_steps=4 format=3 uid="uid://bw7j2k5nq3xlm"]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/collection_screen.gd" id="1_collection"]
+[ext_resource type="Script" path="res://scripts/ui/components/deck_drop_zone.gd" id="2_deck_drop_zone"]
+[ext_resource type="Script" path="res://scripts/ui/components/collection_drop_zone.gd" id="3_collection_drop_zone"]
 
 [node name="CollectionScreen" type="Control"]
 layout_mode = 3
@@ -140,10 +142,12 @@ clear_button_enabled = true
 [node name="SelectedDeckPanel" type="PanelContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 300)
+script = ExtResource("2_deck_drop_zone")
 
 [node name="DeckPanelMargin" type="MarginContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
@@ -151,14 +155,17 @@ theme_override_constants/margin_bottom = 8
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel/DeckPanelMargin"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="DeckHeader" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel/DeckPanelMargin/VBoxContainer"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="SelectedDeckName" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel/DeckPanelMargin/VBoxContainer/DeckHeader"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
 text = "No Deck Selected"
@@ -166,28 +173,34 @@ text = "No Deck Selected"
 [node name="SelectedDeckCount" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel/DeckPanelMargin/VBoxContainer/DeckHeader"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 text = "0/30"
 
 [node name="DeckCardsScroll" type="ScrollContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel/DeckPanelMargin/VBoxContainer"]
 layout_mode = 2
+mouse_filter = 2
 size_flags_vertical = 3
 vertical_scroll_mode = 0
 
 [node name="DeckCardsContainer" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/SelectedDeckPanel/DeckPanelMargin/VBoxContainer/DeckCardsScroll"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
 [node name="CollectionScroll" type="ScrollContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+script = ExtResource("3_collection_drop_zone")
 
 [node name="CardGrid" type="GridContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/CollectionScroll"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/h_separation = 10
