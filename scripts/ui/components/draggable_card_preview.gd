@@ -1,26 +1,34 @@
 extends Control
 class_name DraggableCardPreview
 
-## A drag preview with momentum-based swinging physics.
-## The card rotates based on horizontal mouse velocity and has spring physics.
+## =============================================================================
+## DRAG PREVIEW PHYSICS
+## =============================================================================
+## This is the card preview shown while dragging a card from collection to deck.
+## The preview tilts based on mouse movement (like holding a physical card) and
+## subtly scales/stretches to create an organic, weighted feel.
 
-## Physics constants - Rotation (spring-damper system for realistic swinging)
-## Higher SPRING_STIFFNESS = snappier return to center, higher DAMPING = less oscillation
-const ROTATION_SENSITIVITY: float = 0.8  ## How much velocity affects target rotation angle
-const MAX_ROTATION_DEG: float = 35.0  ## Maximum rotation in degrees (prevents extreme tilting)
-const SPRING_STIFFNESS: float = 18.0  ## Spring force pulling rotation back to center
-const DAMPING: float = 4.0  ## Friction that slows oscillation (lower = more swing)
+## -----------------------------------------------------------------------------
+## Rotation - The card tilts like a pendulum when dragged side to side.
+## Uses spring-damper physics: card swings past center, then settles.
+## -----------------------------------------------------------------------------
+const ROTATION_SENSITIVITY: float = 0.8  ## How much mouse speed affects tilt angle
+const MAX_ROTATION_DEG: float = 35.0  ## Maximum tilt (prevents card going sideways)
+const SPRING_STIFFNESS: float = 18.0  ## Spring force pulling card back to upright
+const DAMPING: float = 4.0  ## Friction slowing the swing (lower = more oscillation)
 
-## Physics constants - Scale/stretch effects
-## Creates subtle "depth" illusion: faster movement = card appears further from camera
-## Stretch adds squash-and-stretch animation principle for organic feel
-const VELOCITY_SMOOTHING: float = 0.3  ## Lerp factor to smooth velocity (prevents jitter)
-const SCALE_SPEED_FACTOR: float = 0.00008  ## Speed-to-scale multiplier (tuned for px/sec)
-const MAX_SCALE_REDUCTION: float = 0.08  ## Cap at 8% shrink to keep card visible
-const STRETCH_X_FACTOR: float = 0.00005  ## Horizontal squash sensitivity
-const MAX_STRETCH_X: float = 0.05  ## Cap horizontal compression at 5%
-const STRETCH_Y_FACTOR: float = 0.00003  ## Vertical stretch sensitivity
-const MAX_STRETCH_Y: float = 0.03  ## Cap vertical stretch at 3%
+## -----------------------------------------------------------------------------
+## Scale/Stretch - The card squashes and stretches based on movement.
+## Creates subtle "depth" illusion (faster = further from camera = smaller).
+## Stretch follows animation principle of squash-and-stretch for organic feel.
+## -----------------------------------------------------------------------------
+const VELOCITY_SMOOTHING: float = 0.3  ## Smooths mouse velocity (prevents jitter)
+const SCALE_SPEED_FACTOR: float = 0.00008  ## How speed shrinks the card (px/sec)
+const MAX_SCALE_REDUCTION: float = 0.08  ## Maximum 8% shrink at high speed
+const STRETCH_X_FACTOR: float = 0.00005  ## Horizontal compression when moving sideways
+const MAX_STRETCH_X: float = 0.05  ## Maximum 5% horizontal squeeze
+const STRETCH_Y_FACTOR: float = 0.00003  ## Vertical stretch when moving up/down
+const MAX_STRETCH_Y: float = 0.03  ## Maximum 3% vertical stretch
 
 ## State
 var _last_mouse_pos: Vector2 = Vector2.ZERO

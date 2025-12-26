@@ -26,7 +26,7 @@ class_name CollectionScreen
 
 ## Left panel - Collection
 @onready var collection_scroll: CollectionDropZone = %CollectionScroll
-@onready var card_grid: AnimatedGridContainer = %CardGrid
+@onready var card_grid: GridContainer = %CardGrid
 
 ## Left panel - Selected Deck Panel (inline deck view with drop zone)
 @onready var selected_deck_panel: DeckDropZone = %SelectedDeckPanel
@@ -506,9 +506,6 @@ func _refresh_collection() -> void:
 		var instance_id: String = card_entry.get("instance_id", "")
 		if instance_id not in deck_card_ids:
 			visible_ids.append(instance_id)
-
-	# Capture positions before any changes
-	card_grid.capture_positions()
 
 	# Remove widgets that should no longer be visible
 	var ids_to_remove: Array[String] = []
