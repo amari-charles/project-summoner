@@ -4,11 +4,23 @@ class_name DraggableCardPreview
 ## A drag preview with momentum-based swinging physics.
 ## The card rotates based on horizontal mouse velocity and has spring physics.
 
-## Physics constants
-const ROTATION_SENSITIVITY: float = 0.8  ## How much velocity affects rotation
-const MAX_ROTATION_DEG: float = 35.0  ## Maximum rotation in degrees
-const SPRING_STIFFNESS: float = 18.0  ## How quickly rotation returns to center
-const DAMPING: float = 4.0  ## How quickly oscillation dies down (lower = more swing)
+## Physics constants - Rotation (spring-damper system for realistic swinging)
+## Higher SPRING_STIFFNESS = snappier return to center, higher DAMPING = less oscillation
+const ROTATION_SENSITIVITY: float = 0.8  ## How much velocity affects target rotation angle
+const MAX_ROTATION_DEG: float = 35.0  ## Maximum rotation in degrees (prevents extreme tilting)
+const SPRING_STIFFNESS: float = 18.0  ## Spring force pulling rotation back to center
+const DAMPING: float = 4.0  ## Friction that slows oscillation (lower = more swing)
+
+## Physics constants - Scale/stretch effects
+## Creates subtle "depth" illusion: faster movement = card appears further from camera
+## Stretch adds squash-and-stretch animation principle for organic feel
+const VELOCITY_SMOOTHING: float = 0.3  ## Lerp factor to smooth velocity (prevents jitter)
+const SCALE_SPEED_FACTOR: float = 0.00008  ## Speed-to-scale multiplier (tuned for px/sec)
+const MAX_SCALE_REDUCTION: float = 0.08  ## Cap at 8% shrink to keep card visible
+const STRETCH_X_FACTOR: float = 0.00005  ## Horizontal squash sensitivity
+const MAX_STRETCH_X: float = 0.05  ## Cap horizontal compression at 5%
+const STRETCH_Y_FACTOR: float = 0.00003  ## Vertical stretch sensitivity
+const MAX_STRETCH_Y: float = 0.03  ## Cap vertical stretch at 3%
 
 ## State
 var _last_mouse_pos: Vector2 = Vector2.ZERO
@@ -26,7 +38,7 @@ func _process(delta: float) -> void:
 	# Calculate mouse velocity with smoothing
 	var current_mouse_pos: Vector2 = get_global_mouse_position()
 	var instant_velocity: Vector2 = (current_mouse_pos - _last_mouse_pos) / max(delta, 0.001)
-	_mouse_velocity = _mouse_velocity.lerp(instant_velocity, 0.3)  # Smooth velocity
+	_mouse_velocity = _mouse_velocity.lerp(instant_velocity, VELOCITY_SMOOTHING)
 	_last_mouse_pos = current_mouse_pos
 
 	# Apply spring physics for rotation
@@ -51,11 +63,11 @@ func _process(delta: float) -> void:
 
 	# Scale based on movement speed (faster = slightly smaller, like depth)
 	var speed: float = _mouse_velocity.length()
-	var scale_factor: float = 1.0 - clampf(speed * 0.00008, 0.0, 0.08)
+	var scale_factor: float = 1.0 - clampf(speed * SCALE_SPEED_FACTOR, 0.0, MAX_SCALE_REDUCTION)
 
-	# Add vertical stretch when moving fast
-	var stretch_x: float = 1.0 - clampf(abs(_mouse_velocity.x) * 0.00005, 0.0, 0.05)
-	var stretch_y: float = 1.0 + clampf(abs(_mouse_velocity.y) * 0.00003, 0.0, 0.03)
+	# Add stretch when moving fast (compression in direction of movement)
+	var stretch_x: float = 1.0 - clampf(abs(_mouse_velocity.x) * STRETCH_X_FACTOR, 0.0, MAX_STRETCH_X)
+	var stretch_y: float = 1.0 + clampf(abs(_mouse_velocity.y) * STRETCH_Y_FACTOR, 0.0, MAX_STRETCH_Y)
 
 	scale = Vector2(scale_factor * stretch_x, scale_factor * stretch_y)
 

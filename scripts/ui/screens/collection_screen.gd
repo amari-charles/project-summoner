@@ -424,47 +424,6 @@ func _on_card_dropped_to_remove(instance_id: String) -> void:
 	_remove_card_from_deck(instance_id)
 
 
-func _is_position_over_deck_panel(pos: Vector2) -> bool:
-	if not selected_deck_panel:
-		return false
-	return selected_deck_panel.get_global_rect().has_point(pos)
-
-
-## Handle drops on the collection grid area (for removing cards from deck)
-func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
-	if not data is Dictionary:
-		return false
-	if data.get("type") != "card":
-		return false
-
-	# Only accept drops outside the deck panel (for removing cards)
-	if _is_position_over_deck_panel(at_position):
-		return false
-
-	# Check if this card is in the current deck (meaning it's a removal action)
-	var card_data: Dictionary = data.get("card_data", {})
-	var instance_id: String = card_data.get("id", "")
-	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
-
-	# Accept drop if card is in the deck (to remove it)
-	return instance_id in deck_card_ids
-
-
-func _drop_data(_at_position: Vector2, data: Variant) -> void:
-	if not data is Dictionary:
-		return
-
-	var card_data: Dictionary = data.get("card_data", {})
-	var instance_id: String = card_data.get("id", "")
-
-	if instance_id.is_empty():
-		return
-
-	# Remove card from deck
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_remove_card_from_deck(instance_id)
-
-
 ## =============================================================================
 ## DECK CREATION/DELETION
 ## =============================================================================
