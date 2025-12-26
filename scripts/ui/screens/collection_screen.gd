@@ -26,7 +26,7 @@ class_name CollectionScreen
 
 ## Left panel - Collection
 @onready var collection_scroll: CollectionDropZone = %CollectionScroll
-@onready var card_grid: GridContainer = %CardGrid
+@onready var card_grid: AnimatedGridContainer = %CardGrid
 
 ## Left panel - Selected Deck Panel (inline deck view with drop zone)
 @onready var selected_deck_panel: DeckDropZone = %SelectedDeckPanel
@@ -85,6 +85,9 @@ const RARITY_ORDER: Dictionary = {
 ## Currently active action popup
 var active_popup: Control = null
 
+## Widget cache for animation (instance_id -> CardWidget)
+var _widget_cache: Dictionary = {}
+
 ## Double-click tracking for collection cards
 var last_clicked_card_id: String = ""
 var last_click_time: int = 0
@@ -109,6 +112,10 @@ const CardActionPopupScene: PackedScene = preload("res://scenes/ui/components/ca
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
+
+func _exit_tree() -> void:
+	_widget_cache.clear()
+
 
 func _ready() -> void:
 	# Connect header buttons
@@ -529,21 +536,40 @@ func _refresh_collection() -> void:
 	# Get deck card IDs
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
 
-	# Clear grid
-	for child: Node in card_grid.get_children():
-		child.queue_free()
-
 	# Filter and sort
 	var filtered_cards: Array = _get_filtered_sorted_cards()
 
-	# Create widgets
+	# Build list of instance_ids that should be visible
+	var visible_ids: Array[String] = []
 	for card_entry: Variant in filtered_cards:
 		if not card_entry is Dictionary:
 			continue
+		var instance_id: String = card_entry.get("instance_id", "")
+		if instance_id not in deck_card_ids:
+			visible_ids.append(instance_id)
 
+	# Capture positions before any changes
+	card_grid.capture_positions()
+
+	# Remove widgets that should no longer be visible
+	var ids_to_remove: Array[String] = []
+	for instance_id: String in _widget_cache.keys():
+		if instance_id not in visible_ids:
+			ids_to_remove.append(instance_id)
+
+	for instance_id: String in ids_to_remove:
+		var widget: CardWidget = _widget_cache[instance_id]
+		if is_instance_valid(widget):
+			widget.queue_free()
+		_widget_cache.erase(instance_id)
+
+	# Create or reuse widgets in the correct order
+	for card_entry: Variant in filtered_cards:
+		if not card_entry is Dictionary:
+			continue
 		var instance_id: String = card_entry.get("instance_id", "")
 
-		# Skip cards that are already in the deck
+		# Skip cards in deck
 		if instance_id in deck_card_ids:
 			continue
 
@@ -551,14 +577,22 @@ func _refresh_collection() -> void:
 		var catalog_data: Dictionary = card_entry.get("catalog_data", {})
 		var catalog_id: String = card_entry.get("catalog_id", "")
 
-		var widget: CardWidget = CardWidgetScene.instantiate()
-		card_grid.add_child(widget)
-		widget.set_card(card_data, catalog_data)
-		widget.set_draggable(true)
+		var widget: CardWidget
+		if _widget_cache.has(instance_id) and is_instance_valid(_widget_cache[instance_id]):
+			# Reuse existing widget
+			widget = _widget_cache[instance_id]
+		else:
+			# Create new widget
+			widget = CardWidgetScene.instantiate()
+			card_grid.add_child(widget)
+			widget.set_card(card_data, catalog_data)
+			widget.set_draggable(true)
+			widget.card_clicked.connect(_on_collection_card_clicked.bind(widget, instance_id, catalog_id))
+			widget.card_held.connect(_on_card_held.bind(instance_id, catalog_id))
+			_widget_cache[instance_id] = widget
 
-		# Click shows action popup
-		widget.card_clicked.connect(_on_collection_card_clicked.bind(widget, instance_id, catalog_id))
-		widget.card_held.connect(_on_card_held.bind(instance_id, catalog_id))
+		# Ensure correct order by moving to end (builds order as we iterate)
+		card_grid.move_child(widget, -1)
 
 
 func _get_selected_deck_card_ids() -> Array[String]:

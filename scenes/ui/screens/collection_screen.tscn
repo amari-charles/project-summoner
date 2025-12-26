@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://bw7j2k5nq3xlm"]
+[gd_scene load_steps=5 format=3 uid="uid://bw7j2k5nq3xlm"]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/collection_screen.gd" id="1_collection"]
 [ext_resource type="Script" path="res://scripts/ui/components/deck_drop_zone.gd" id="2_deck_drop_zone"]
 [ext_resource type="Script" path="res://scripts/ui/components/collection_drop_zone.gd" id="3_collection_drop_zone"]
+[ext_resource type="Script" path="res://scripts/ui/components/animated_grid_container.gd" id="4_animated_grid"]
 
 [node name="CollectionScreen" type="Control"]
 layout_mode = 3
@@ -206,6 +207,7 @@ size_flags_vertical = 3
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 4
+script = ExtResource("4_animated_grid")
 
 [node name="RightPanel" type="PanelContainer" parent="MarginContainer/MainSplit"]
 layout_mode = 2
