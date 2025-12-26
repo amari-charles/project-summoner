@@ -85,7 +85,7 @@ const RARITY_ORDER: Dictionary = {
 ## Currently active action popup
 var active_popup: Control = null
 
-## Widget cache for animation (instance_id -> CardWidget)
+## Widget cache for reuse (instance_id -> CardWidget)
 var _widget_cache: Dictionary = {}
 
 ## Double-click tracking for collection cards
@@ -531,7 +531,6 @@ func _refresh_collection() -> void:
 
 		var card_data: Dictionary = card_entry.get("card_data", {})
 		var catalog_data: Dictionary = card_entry.get("catalog_data", {})
-		var catalog_id: String = card_entry.get("catalog_id", "")
 
 		var widget: CardWidget
 		if _widget_cache.has(instance_id) and is_instance_valid(_widget_cache[instance_id]):
