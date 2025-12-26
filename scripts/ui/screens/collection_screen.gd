@@ -363,6 +363,7 @@ func _refresh_deck_panel() -> void:
 		widget.set_card(card_data, catalog_data)
 		widget.set_draggable(true)  # Enable dragging to remove
 		widget.custom_minimum_size = DECK_PANEL_CARD_SIZE
+		widget.tooltip_text = Loc.t("ui.collection.deck_card_remove_tooltip")
 
 		# Double-click to remove from deck
 		widget.card_clicked.connect(_on_deck_card_clicked.bind(card_id))

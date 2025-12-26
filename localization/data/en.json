@@ -208,7 +208,8 @@
       "element_count": "{count} Elements",
       "already_in_deck": "Already in deck",
       "unnamed_deck": "Unnamed",
-      "new_deck_default": "New Deck"
+      "new_deck_default": "New Deck",
+      "deck_card_remove_tooltip": "Drag out or double-click to remove"
     },
     "level_up": {
       "title": "LEVEL UP CARD",
