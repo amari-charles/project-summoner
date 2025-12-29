@@ -10,7 +10,7 @@ class_name ButtonStyleFactory
 enum BorderVariant { DEFAULT, DOUBLE }
 
 ## Change this to switch all borders at once
-const ACTIVE_VARIANT: BorderVariant = BorderVariant.DOUBLE
+const ACTIVE_VARIANT: BorderVariant = BorderVariant.DEFAULT
 
 ## Base path for Kenny fantasy-ui-borders assets
 const BASE_PATH: String = "res://assets/ui/kenny/fantasy-ui-borders/PNG/"
