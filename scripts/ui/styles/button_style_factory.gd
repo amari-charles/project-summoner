@@ -35,55 +35,59 @@ static func get_border_path(border_id: String) -> String:
 	return BASE_PATH + get_variant_folder() + "/Border/" + border_id + ".png"
 
 
+## Button border style (different from panel border 031)
+const BUTTON_BORDER_ID: String = "panel-border-007"
+
+
 ## Create a primary button style (main actions)
 static func create_primary_normal() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color.WHITE)
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color.WHITE)
 
 
 static func create_primary_hover() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(1.0, 1.0, 0.85))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 1.0, 0.85))
 
 
 static func create_primary_pressed() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.7, 0.7, 0.7))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.7, 0.7, 0.7))
 
 
 static func create_primary_disabled() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.5, 0.5, 0.5, 0.5))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.5, 0.5, 0.5, 0.5))
 
 
 ## Create a secondary button style (cancel/back)
 static func create_secondary_normal() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.8, 0.8, 0.8))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.8, 0.8, 0.8))
 
 
 static func create_secondary_hover() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(1.0, 1.0, 1.0))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 1.0, 1.0))
 
 
 static func create_secondary_pressed() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.6, 0.6, 0.6))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.6, 0.6, 0.6))
 
 
 static func create_secondary_disabled() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.4, 0.4, 0.4, 0.5))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.4, 0.4, 0.4, 0.5))
 
 
 ## Create a danger button style (destructive actions)
 static func create_danger_normal() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(1.0, 0.6, 0.6))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 0.6, 0.6))
 
 
 static func create_danger_hover() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(1.0, 0.8, 0.8))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 0.8, 0.8))
 
 
 static func create_danger_pressed() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.8, 0.4, 0.4))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.8, 0.4, 0.4))
 
 
 static func create_danger_disabled() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path("panel-border-000"), Color(0.5, 0.4, 0.4, 0.5))
+	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.5, 0.4, 0.4, 0.5))
 
 
 ## Internal helper to create a StyleBoxTexture with NinePatch margins
