@@ -36,7 +36,7 @@ static func get_border_path(border_id: String) -> String:
 
 
 ## Button border style (different from panel border 031)
-const BUTTON_BORDER_ID: String = "panel-border-007"
+const BUTTON_BORDER_ID: String = "panel-border-028"
 
 
 ## Create a primary button style (main actions)
