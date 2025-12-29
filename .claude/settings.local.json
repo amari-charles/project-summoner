@@ -28,7 +28,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
       "Bash(grep:*)",
-      "Bash({} ;)"
+      "Bash({} ;)",
+      "Bash(unzip:*)",
+      "Bash(identify:*)",
+      "Bash(sips:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
