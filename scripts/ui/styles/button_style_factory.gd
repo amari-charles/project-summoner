@@ -15,9 +15,9 @@ const ACTIVE_VARIANT: BorderVariant = BorderVariant.DEFAULT
 ## Base path for Kenny fantasy-ui-borders assets
 const BASE_PATH: String = "res://assets/ui/kenny/fantasy-ui-borders/PNG/"
 
-## Content margins for text padding
+## Content margins for text padding inside buttons
 const CONTENT_MARGIN_H: int = 16
-const CONTENT_MARGIN_V: int = 10
+const CONTENT_MARGIN_V: int = 20
 
 
 ## Get the NinePatch margin for the active variant
