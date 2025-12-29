@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://snapshot_manager" path="res://scenes/ui/screens/snapshot_manager.tscn" id="2_snapshot_manager"]
 [ext_resource type="PackedScene" uid="uid://pause_settings_panel" path="res://scenes/ui/modals/pause_settings_panel.tscn" id="3_settings_panel"]
 [ext_resource type="Script" path="res://scripts/ui/components/styled_button.gd" id="4_styled_button"]
-[ext_resource type="Texture2D" path="res://assets/ui/kenny/fantasy-ui-borders/PNG/Default/Border/panel-border-000.png" id="5_panel_texture"]
+[ext_resource type="Texture2D" path="res://assets/ui/kenny/fantasy-ui-borders/PNG/Default/Border/panel-border-007.png" id="5_panel_texture"]
 
 [node name="PauseMenu" type="Control"]
 visible = false
