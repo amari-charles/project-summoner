@@ -53,22 +53,22 @@ static func create_primary_disabled() -> StyleBoxFlat:
 	return style
 
 
-## Create a secondary button style (subtle border, cancel/back)
+## Create a secondary button style (neutral border, cancel/back)
 static func create_secondary_normal() -> StyleBoxFlat:
 	return _create_style(
 		GameColorPalette.BUTTON_SECONDARY_BG,
 		GameColorPalette.BUTTON_SECONDARY_BORDER,
-		BORDER_WIDTH_SUBTLE,
-		false  # no shadow for secondary
+		BORDER_WIDTH,
+		true  # with shadow for visibility
 	)
 
 
 static func create_secondary_hover() -> StyleBoxFlat:
 	return _create_style(
 		GameColorPalette.BUTTON_SECONDARY_BG_HOVER,
-		GameColorPalette.BUTTON_SECONDARY_BORDER.lightened(0.1),
-		BORDER_WIDTH_SUBTLE,
-		false
+		GameColorPalette.BUTTON_SECONDARY_BORDER.lightened(0.2),
+		BORDER_WIDTH,
+		true
 	)
 
 
@@ -76,7 +76,7 @@ static func create_secondary_pressed() -> StyleBoxFlat:
 	return _create_style(
 		GameColorPalette.BUTTON_SECONDARY_BG_PRESSED,
 		GameColorPalette.BUTTON_SECONDARY_BORDER.darkened(0.1),
-		BORDER_WIDTH_SUBTLE,
+		BORDER_WIDTH,
 		false
 	)
 
@@ -85,7 +85,7 @@ static func create_secondary_disabled() -> StyleBoxFlat:
 	return _create_style(
 		GameColorPalette.BUTTON_DISABLED,
 		GameColorPalette.BUTTON_SECONDARY_BORDER.darkened(0.3),
-		BORDER_WIDTH_SUBTLE,
+		BORDER_WIDTH,
 		false
 	)
 

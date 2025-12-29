@@ -99,7 +99,7 @@ const BUTTON_PRIMARY_BORDER: Color = Color("#f5c75c")  # Gold
 const BUTTON_SECONDARY_BG: Color = Color("#3a3a4a")
 const BUTTON_SECONDARY_BG_HOVER: Color = Color("#4a4a5a")
 const BUTTON_SECONDARY_BG_PRESSED: Color = Color("#2a2a34")
-const BUTTON_SECONDARY_BORDER: Color = Color("#5a5a6a")
+const BUTTON_SECONDARY_BORDER: Color = Color("#7a7a8a")  # Brighter for visibility
 
 ## Danger button (red accent - delete, quit)
 const BUTTON_DANGER_BG: Color = Color("#2a2025")
