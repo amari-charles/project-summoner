@@ -532,6 +532,7 @@ func _refresh_collection() -> void:
 
 		var card_data: Dictionary = card_entry.get("card_data", {})
 		var catalog_data: Dictionary = card_entry.get("catalog_data", {})
+		var catalog_id: String = card_data.get("catalog_id", "")
 
 		var widget: CardWidget
 		if _widget_cache.has(instance_id) and is_instance_valid(_widget_cache[instance_id]):
