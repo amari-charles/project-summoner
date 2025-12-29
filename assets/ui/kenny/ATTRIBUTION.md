@@ -8,20 +8,33 @@ This folder contains UI assets from Kenney (https://kenney.nl).
 - **License:** CC0 1.0 Universal (Public Domain)
 - **Downloaded:** 2024
 
-### License Details (CC0)
-These assets are released under the Creative Commons Zero (CC0) license.
-You can copy, modify, distribute, and use the assets for any purpose,
-including commercial projects, without asking for permission or providing attribution.
-
-However, attribution is appreciated:
-"UI assets by Kenney (www.kenney.nl)"
-
 ### Contents
-- `fantasy-ui-borders/PNG/Default/` - Standard border thickness
-  - `Panel/` - Full panel backgrounds (48x48, for NinePatch)
-  - `Border/` - Border-only frames
+- `fantasy-ui-borders/PNG/Default/` - Standard border thickness (48x48)
+- `fantasy-ui-borders/PNG/Double/` - Double border thickness (96x96)
+  - `Panel/` - Full panel backgrounds (for NinePatch)
+  - `Border/` - Border-only frames (transparent center)
   - `Divider/` - Horizontal dividers
   - `Divider Fade/` - Faded dividers
-  - `Transparent border/` - Border with transparent fill
-  - `Transparent center/` - Border with transparent center
-- `fantasy-ui-borders/PNG/Double/` - Double border thickness variants
+
+## UI Pack
+- **Source:** https://kenney.nl/assets/ui-pack
+- **Author:** Kenney (https://kenney.nl)
+- **License:** CC0 1.0 Universal (Public Domain)
+- **Downloaded:** 2024
+
+### Contents
+- `PNG/Blue/`, `PNG/Green/`, `PNG/Grey/`, `PNG/Red/`, `PNG/Yellow/` - Color variants
+- `PNG/Extra/` - Additional elements (dividers, icons, inputs)
+- Each color has `Default/` and `Double/` size variants
+- Elements include:
+  - `button_rectangle_*`, `button_round_*`, `button_square_*` - Various button styles
+  - `arrow_basic_*`, `arrow_decorative_*` - Directional arrows (N/S/E/W)
+  - `check_round_*`, `check_square_*` - Checkboxes
+  - `slide_horizontal_*`, `slide_vertical_*` - Sliders
+  - `star*` - Star ratings
+  - `icon_*` - Various icons (checkmark, cross, circle, square)
+- `Font/` - Kenney Future font family
+
+### License Details (CC0)
+These assets are released under the Creative Commons Zero (CC0) license.
+Attribution appreciated: "UI assets by Kenney (www.kenney.nl)"
