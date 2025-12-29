@@ -107,8 +107,8 @@ const BUTTON_DANGER_BG_HOVER: Color = Color("#3a2530")
 const BUTTON_DANGER_BG_PRESSED: Color = Color("#201a20")
 const BUTTON_DANGER_BORDER: Color = Color("#e84a3f")  # Red
 
-## Button shadow
-const BUTTON_SHADOW: Color = Color(0.0, 0.0, 0.0, 0.3)
+## Button shadow (solid for raised 3D effect)
+const BUTTON_SHADOW: Color = Color(0.05, 0.05, 0.08, 0.8)
 
 ## Health/Resource colors
 const HP_FULL: Color = Color("#5fc75c")      # Green

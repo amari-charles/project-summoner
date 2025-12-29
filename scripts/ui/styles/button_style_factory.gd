@@ -9,8 +9,8 @@ class_name ButtonStyleFactory
 const CORNER_RADIUS: int = 8
 const BORDER_WIDTH: int = 2
 const BORDER_WIDTH_SUBTLE: int = 1
-const SHADOW_SIZE: int = 4
-const SHADOW_OFFSET: Vector2 = Vector2(0, 2)
+const SHADOW_SIZE: int = 6
+const SHADOW_OFFSET: Vector2 = Vector2(3, 3)
 const CONTENT_MARGIN_H: int = 16
 const CONTENT_MARGIN_V: int = 10
 
