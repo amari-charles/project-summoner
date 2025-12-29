@@ -13,7 +13,7 @@ const CONTENT_MARGIN_H: int = 16
 const CONTENT_MARGIN_V: int = 10
 
 ## Texture path for border-only texture (transparent center)
-const BORDER_TEXTURE: String = "res://assets/ui/kenny/fantasy-ui-borders/PNG/Default/Border/panel-border-000.png"
+const BORDER_TEXTURE: String = "res://assets/ui/kenny/fantasy-ui-borders/PNG/Double/Border/panel-border-000.png"
 
 
 ## Create a primary button style (main actions)
