@@ -1,4 +1,4 @@
-extends Button
+extends TextureButton
 class_name HamburgerButton
 
 ## Hamburger menu button (☰) for opening navigation drawer
@@ -9,12 +9,6 @@ const HOVER_BRIGHTNESS: float = 1.2
 func _ready() -> void:
 	# Ensure minimum touch target size (44x44)
 	custom_minimum_size = Vector2(48, 48)
-
-	# Style the button
-	flat = true
-
-	# Hamburger menu icon (☰)
-	text = "☰"
 
 	# Connect our own hover effects
 	mouse_entered.connect(_on_mouse_entered)

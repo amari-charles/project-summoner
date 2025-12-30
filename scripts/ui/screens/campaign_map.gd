@@ -14,10 +14,10 @@ const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/screens/snaps
 const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/components/campaign_selector_modal.tscn")
 
 ## Node references
-@onready var locator_button: Button = %LocatorButton
+@onready var locator_button: TextureButton = %LocatorButton
 @onready var map_scroll: ScrollContainer = %MapScrollContainer
 @onready var map_container: Control = %MapContainer
-@onready var screen_background: ColorRect = %ScreenBackground
+@onready var screen_background: NinePatchRect = %ScreenBackground
 @onready var map_background: ColorRect = %MapBackground
 @onready var detail_panel: Panel = %DetailPanel
 @onready var event_name_label: Label = %EventNameLabel
@@ -48,9 +48,6 @@ const CAMPAIGN_BANNER_WIDTH: float = 260.0  # Fits campaign name + dropdown arro
 const CAMPAIGN_BANNER_HEIGHT: float = 40.0
 const SUMMONER_ICON_SIZE: float = 50.0
 const SUMMONER_ICON_MARGIN: float = 20.0
-
-## Gradient shader for map background
-const BACKGROUND_SHADER: String = "res://assets/shaders/campaign_background.gdshader"
 
 ## Kenny UI Pack star textures for difficulty display
 const STAR_FILLED_TEXTURE: String = "res://assets/ui/kenny/PNG/Yellow/Default/star.png"
@@ -130,8 +127,7 @@ func _ready() -> void:
 	start_event_button.pressed.connect(_on_start_event_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
 
-	# Apply gradient shader to background
-	_setup_background_shader()
+	# Background texture is set directly in the scene file
 
 	# Setup detail panel with fantasy border
 	_setup_detail_panel_border()
@@ -214,28 +210,6 @@ func _check_auto_redirect_from_onboarding() -> void:
 			if campaign.has_method("set_current_campaign"):
 				campaign.call("set_current_campaign", String(CampaignIDs.ACADEMY_TRIALS))
 				_update_campaign_banner_text()
-
-## =============================================================================
-## BACKGROUND SHADER
-## =============================================================================
-
-## Apply gradient shader to screen background
-func _setup_background_shader() -> void:
-	print("CampaignMap: Setting up background shader...")
-	print("  - screen_background node: ", screen_background)
-
-	var shader: Shader = load(BACKGROUND_SHADER)
-	if not shader:
-		push_error("CampaignMap: FAILED to load shader from: " + BACKGROUND_SHADER)
-		return
-	print("  - Shader loaded successfully")
-
-	var material: ShaderMaterial = ShaderMaterial.new()
-	material.shader = shader
-	screen_background.material = material
-	print("  - Material applied to screen_background")
-	print("CampaignMap: Gradient shader setup complete")
-
 
 ## =============================================================================
 ## MAP DISPLAY
@@ -947,22 +921,44 @@ func _on_nav_snapshots_pressed() -> void:
 ## =============================================================================
 
 func _setup_campaign_banner() -> void:
-	campaign_banner = Button.new()
-	add_child(campaign_banner)
+	# Create container for banner styling
+	var banner_container: Control = Control.new()
+	add_child(banner_container)
 
 	# Position centered at top
-	campaign_banner.anchor_left = 0.5
-	campaign_banner.anchor_right = 0.5
-	campaign_banner.anchor_top = 0.0
-	campaign_banner.anchor_bottom = 0.0
-	campaign_banner.offset_left = -CAMPAIGN_BANNER_WIDTH / 2
-	campaign_banner.offset_right = CAMPAIGN_BANNER_WIDTH / 2
-	campaign_banner.offset_top = CAMPAIGN_BANNER_MARGIN
-	campaign_banner.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
+	banner_container.anchor_left = 0.5
+	banner_container.anchor_right = 0.5
+	banner_container.anchor_top = 0.0
+	banner_container.anchor_bottom = 0.0
+	banner_container.offset_left = -CAMPAIGN_BANNER_WIDTH / 2
+	banner_container.offset_right = CAMPAIGN_BANNER_WIDTH / 2
+	banner_container.offset_top = CAMPAIGN_BANNER_MARGIN
+	banner_container.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
 
+	# Dark background
+	var dark_bg: ColorRect = ColorRect.new()
+	dark_bg.color = Color(0.12, 0.1, 0.15, 0.95)
+	dark_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner_container.add_child(dark_bg)
+
+	# Fantasy border overlay
+	var border: NinePatchRect = NinePatchRect.new()
+	border.texture = load(ButtonStyleFactory.get_border_path("panel-border-031"))
+	var margin: int = ButtonStyleFactory.get_patch_margin()
+	border.patch_margin_left = margin
+	border.patch_margin_top = margin
+	border.patch_margin_right = margin
+	border.patch_margin_bottom = margin
+	border.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner_container.add_child(border)
+
+	# Button on top
+	campaign_banner = Button.new()
 	campaign_banner.flat = true
 	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	campaign_banner.add_theme_font_size_override("font_size", 20)
+	campaign_banner.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner_container.add_child(campaign_banner)
 
 	_update_campaign_banner_text()
 	campaign_banner.pressed.connect(_on_campaign_banner_pressed)
