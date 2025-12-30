@@ -44,7 +44,7 @@ const MAP_WAVE_AMPLITUDE: float = 300.0  # Vertical variation for winding path
 const HAMBURGER_BUTTON_MARGIN: float = 20.0
 const HAMBURGER_BUTTON_SIZE: float = 48.0
 const CAMPAIGN_BANNER_MARGIN: float = 20.0
-const CAMPAIGN_BANNER_WIDTH: float = 260.0  # Fits campaign name + dropdown arrow
+const CAMPAIGN_BANNER_WIDTH: float = 220.0  # Fits campaign name
 const CAMPAIGN_BANNER_HEIGHT: float = 40.0
 const SUMMONER_ICON_SIZE: float = 50.0
 const SUMMONER_ICON_MARGIN: float = 20.0
@@ -974,13 +974,13 @@ func _update_campaign_banner_text() -> void:
 			var campaign_data: Dictionary = campaign.call("get_campaign", campaign_id)
 			var name_key: String = campaign_data.get("name_key", "")
 			if not name_key.is_empty():
-				campaign_banner.text = Loc.t(name_key) + " ▼"
+				campaign_banner.text = Loc.t(name_key)
 			else:
-				campaign_banner.text = campaign_id + " ▼"
+				campaign_banner.text = campaign_id
 		else:
-			campaign_banner.text = campaign_id + " ▼"
+			campaign_banner.text = campaign_id
 	else:
-		campaign_banner.text = Loc.t("campaign.selector.title") + " ▼"
+		campaign_banner.text = Loc.t("campaign.selector.title")
 
 func _on_campaign_banner_pressed() -> void:
 	if campaign_selector_modal == null:
