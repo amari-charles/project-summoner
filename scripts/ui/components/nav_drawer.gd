@@ -12,9 +12,10 @@ signal snapshots_pressed
 signal closed
 
 @onready var overlay: ColorRect = $Overlay
-@onready var panel: PanelContainer = $Panel
+@onready var panel: Control = $Panel
+@onready var border: NinePatchRect = %Border
 @onready var title_label: Label = $Panel/MarginContainer/VBoxContainer/Header/Title
-@onready var close_button: Button = $Panel/MarginContainer/VBoxContainer/Header/CloseButton
+@onready var close_button: TextureButton = $Panel/MarginContainer/VBoxContainer/Header/CloseButton
 @onready var collection_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/CollectionButton
 @onready var events_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/EventsButton
 @onready var shop_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/ShopButton
@@ -30,6 +31,9 @@ var _is_open: bool = false
 var _tween: Tween
 
 func _ready() -> void:
+	# Set up border using factory
+	ButtonStyleFactory.apply_panel_border(border)
+
 	# Set localized text
 	title_label.text = Loc.t("ui.nav.menu")
 	collection_button.text = Loc.t("ui.nav.collection")

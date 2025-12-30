@@ -14,14 +14,16 @@ const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/screens/snaps
 const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/components/campaign_selector_modal.tscn")
 
 ## Node references
-@onready var locator_button: Button = %LocatorButton
+@onready var locator_button: TextureButton = %LocatorButton
 @onready var map_scroll: ScrollContainer = %MapScrollContainer
 @onready var map_container: Control = %MapContainer
-@onready var map_background: TextureRect = %MapBackground
+@onready var screen_background: ColorRect = %ScreenBackground
+@onready var map_background: ColorRect = %MapBackground
 @onready var detail_panel: Panel = %DetailPanel
-@onready var popup_background: NinePatchRect = get_node_or_null("%Background")
 @onready var event_name_label: Label = %EventNameLabel
+@onready var difficulty_container: HBoxContainer = %DifficultyContainer
 @onready var difficulty_label: Label = %DifficultyLabel
+@onready var stars_container: HBoxContainer = %StarsContainer
 @onready var description_label: Label = %DescriptionLabel
 @onready var reward_label: Label = %RewardLabel
 @onready var deck_column: VBoxContainer = $DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn
@@ -42,20 +44,20 @@ const MAP_WAVE_AMPLITUDE: float = 300.0  # Vertical variation for winding path
 const HAMBURGER_BUTTON_MARGIN: float = 20.0
 const HAMBURGER_BUTTON_SIZE: float = 48.0
 const CAMPAIGN_BANNER_MARGIN: float = 20.0
-const CAMPAIGN_BANNER_WIDTH: float = 260.0  # Fits campaign name + dropdown arrow
+const CAMPAIGN_BANNER_WIDTH: float = 220.0  # Fits campaign name
 const CAMPAIGN_BANNER_HEIGHT: float = 40.0
 const SUMMONER_ICON_SIZE: float = 50.0
 const SUMMONER_ICON_MARGIN: float = 20.0
 
-## Asset paths - Replace these with real artwork when available
-## Map background: Place your map texture here (any resolution, will scale to fit)
-const MAP_BACKGROUND_TEXTURE: String = "res://assets/ui/campaign_map_background.png"
+## Kenny UI Pack star textures for difficulty display
+const STAR_FILLED_TEXTURE: String = "res://assets/ui/kenny/PNG/Yellow/Default/star.png"
+const STAR_EMPTY_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/star_outline.png"
+const STAR_SIZE: int = 24  # Size of each star icon
 
-## Popup panel: 9-slice texture for the detail popup background
-## Recommended 9-slice margins: 40px on all sides for rounded corners
-## Texture size: 200x200 minimum (margins will be preserved, center will stretch)
-const POPUP_NINEPATCH_TEXTURE: String = "res://assets/ui/popup_panel_9slice.png"
-const POPUP_NINEPATCH_MARGINS: Rect2 = Rect2(40, 40, 40, 40)  # left, top, right, bottom
+## Kenny UI Pack textures for event nodes
+const EVENT_NODE_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/button_round_depth_flat.png"
+const EVENT_NODE_CHECKMARK: String = "res://assets/ui/kenny/PNG/Green/Default/icon_checkmark.png"
+const CHECKMARK_SIZE: int = 32  # Size of checkmark overlay
 
 ## State
 var selected_event_id: String = ""
@@ -125,42 +127,10 @@ func _ready() -> void:
 	start_event_button.pressed.connect(_on_start_event_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
 
-	# Load map background texture if available
-	if FileAccess.file_exists(MAP_BACKGROUND_TEXTURE):
-		var map_tex: Texture2D = load(MAP_BACKGROUND_TEXTURE)
-		if map_tex:
-			map_background.texture = map_tex
-			print("CampaignMap: Loaded map background texture")
-	else:
-		# Use placeholder color if no texture
-		map_background.modulate = Color(0.15, 0.15, 0.2)
+	# Background texture is set directly in the scene file
 
-	# Load popup 9-slice texture if available
-	if FileAccess.file_exists(POPUP_NINEPATCH_TEXTURE):
-		var popup_tex: Texture2D = load(POPUP_NINEPATCH_TEXTURE)
-		if popup_tex:
-			popup_background.texture = popup_tex
-			# Apply 9-slice margins
-			popup_background.region_rect = POPUP_NINEPATCH_MARGINS
-			popup_background.patch_margin_left = int(POPUP_NINEPATCH_MARGINS.position.x)
-			popup_background.patch_margin_top = int(POPUP_NINEPATCH_MARGINS.position.y)
-			popup_background.patch_margin_right = int(POPUP_NINEPATCH_MARGINS.size.x)
-			popup_background.patch_margin_bottom = int(POPUP_NINEPATCH_MARGINS.size.y)
-			print("CampaignMap: Loaded popup 9-slice texture")
-	else:
-		# Use placeholder style if no texture
-		var popup_style: StyleBoxFlat = StyleBoxFlat.new()
-		popup_style.bg_color = Color(0.15, 0.15, 0.2)
-		popup_style.corner_radius_top_left = 20
-		popup_style.corner_radius_top_right = 20
-		popup_style.corner_radius_bottom_left = 20
-		popup_style.corner_radius_bottom_right = 20
-		popup_style.border_width_left = 2
-		popup_style.border_width_right = 2
-		popup_style.border_width_top = 2
-		popup_style.border_width_bottom = 2
-		popup_style.border_color = Color(0.4, 0.5, 0.7)
-		detail_panel.add_theme_stylebox_override("panel", popup_style)
+	# Setup detail panel with fantasy border
+	_setup_detail_panel_border()
 
 	# Connect to campaign service
 	var campaign: Node = get_node("/root/Campaign")
@@ -317,55 +287,61 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 
 	var event_id: String = _safe_string(event_data.get("id", ""))
 	var event_type: StringName = StringName(event_data.get("event_type", EventTypeIDs.BATTLE))
-
-	# Create visual button
-	var button: Button = Button.new()
-	button.custom_minimum_size = NODE_SIZE
-	button.size = NODE_SIZE
-
-	# Style based on event type and state
 	var is_onboarding_event: bool = (event_type == EventTypeIDs.ONBOARDING)
 
-	if is_onboarding_event:
-		button.text = "⭐"
-		button.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	elif is_completed:
-		button.text = "✓"
-		button.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-	elif is_unlocked:
-		button.text = str(index + 1)
-		button.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	else:
-		button.text = "🔒"
-		button.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	# Load the round button texture
+	var node_texture: Texture2D = load(EVENT_NODE_TEXTURE)
+
+	# Create texture button with Kenny round button
+	var button: TextureButton = TextureButton.new()
+	button.texture_normal = node_texture
+	button.custom_minimum_size = NODE_SIZE
+	button.size = NODE_SIZE
+	button.ignore_texture_size = true
+	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+
+	# Set opacity based on state (grey buttons, differentiate by opacity)
+	if not is_unlocked:
+		button.modulate = Color(1, 1, 1, 0.5)  # Locked: 50% opacity
 		button.disabled = true
-
-	# Make button circular-ish
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	if is_onboarding_event:
-		style.bg_color = Color(0.4, 0.35, 0.2)
-		style.border_color = Color(1.0, 0.85, 0.3)
-	elif is_completed:
-		style.bg_color = Color(0.2, 0.4, 0.2)
-		style.border_color = Color(0.3, 1.0, 0.3)
-	elif is_unlocked:
-		style.bg_color = Color(0.3, 0.3, 0.4)
-		style.border_color = Color(0.5, 0.7, 1.0)
 	else:
-		style.bg_color = Color(0.2, 0.2, 0.2)
-		style.border_color = Color(0.4, 0.4, 0.4)
+		button.modulate = Color(1, 1, 1, 1.0)  # Unlocked: full opacity
 
-	style.corner_radius_top_left = 40
-	style.corner_radius_top_right = 40
-	style.corner_radius_bottom_left = 40
-	style.corner_radius_bottom_right = 40
-	style.border_width_left = 3
-	style.border_width_right = 3
-	style.border_width_top = 3
-	style.border_width_bottom = 3
+	# Add overlay icon for completed events
+	if is_completed:
+		var checkmark: TextureRect = TextureRect.new()
+		checkmark.texture = load(EVENT_NODE_CHECKMARK)
+		checkmark.custom_minimum_size = Vector2(CHECKMARK_SIZE, CHECKMARK_SIZE)
+		checkmark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		checkmark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		# Center the checkmark on the button
+		checkmark.anchor_left = 0.5
+		checkmark.anchor_right = 0.5
+		checkmark.anchor_top = 0.5
+		checkmark.anchor_bottom = 0.5
+		checkmark.offset_left = -CHECKMARK_SIZE / 2.0
+		checkmark.offset_right = CHECKMARK_SIZE / 2.0
+		checkmark.offset_top = -CHECKMARK_SIZE / 2.0
+		checkmark.offset_bottom = CHECKMARK_SIZE / 2.0
+		button.add_child(checkmark)
 
-	button.add_theme_stylebox_override("normal", style)
-	button.add_theme_font_size_override("font_size", 32)
+	# Add star icon for onboarding events
+	if is_onboarding_event:
+		var star: TextureRect = TextureRect.new()
+		star.texture = load(STAR_FILLED_TEXTURE)
+		star.custom_minimum_size = Vector2(CHECKMARK_SIZE, CHECKMARK_SIZE)
+		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		# Center the star on the button
+		star.anchor_left = 0.5
+		star.anchor_right = 0.5
+		star.anchor_top = 0.5
+		star.anchor_bottom = 0.5
+		star.offset_left = -CHECKMARK_SIZE / 2.0
+		star.offset_right = CHECKMARK_SIZE / 2.0
+		star.offset_top = -CHECKMARK_SIZE / 2.0
+		star.offset_bottom = CHECKMARK_SIZE / 2.0
+		button.add_child(star)
 
 	# Connect click handler
 	if is_unlocked:
@@ -445,10 +421,49 @@ func _input(event: InputEvent) -> void:
 ## DETAIL PANEL
 ## =============================================================================
 
+## Set up the detail panel border texture using ButtonStyleFactory
+func _setup_detail_panel_border() -> void:
+	var panel_bg: NinePatchRect = get_node_or_null("%Background")
+	if not panel_bg:
+		return
+	ButtonStyleFactory.apply_panel_border(panel_bg)
+
+	# Remove default panel style (we're using NinePatchRect instead)
+	detail_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+
+
+## Update difficulty display with Kenny star icons
+func _update_difficulty_stars(difficulty: int) -> void:
+	# Clear existing stars
+	for child: Node in stars_container.get_children():
+		child.queue_free()
+
+	# Hide entire container if no difficulty
+	if difficulty <= 0:
+		difficulty_container.visible = false
+		return
+
+	difficulty_container.visible = true
+	difficulty_label.text = Loc.t("campaign.map.difficulty_label")
+
+	# Load star textures
+	var filled_tex: Texture2D = load(STAR_FILLED_TEXTURE)
+	var empty_tex: Texture2D = load(STAR_EMPTY_TEXTURE)
+
+	# Create 5 stars (filled for difficulty level, empty for rest)
+	for i: int in range(5):
+		var star: TextureRect = TextureRect.new()
+		star.texture = filled_tex if i < difficulty else empty_tex
+		star.custom_minimum_size = Vector2(STAR_SIZE, STAR_SIZE)
+		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		stars_container.add_child(star)
+
+
 func _update_detail_panel() -> void:
 	if selected_event_id == "":
 		event_name_label.text = Loc.t("campaign.map.select_event")
-		difficulty_label.text = ""
+		_update_difficulty_stars(0)  # Hide stars
 		description_label.text = Loc.t("campaign.map.click_to_see_details")
 		reward_label.text = ""
 		start_event_button.disabled = true
@@ -484,11 +499,7 @@ func _update_detail_panel() -> void:
 
 	# Show difficulty for battles, hide for other event types
 	var difficulty: int = _safe_int(event.get("difficulty", 0), 0)
-	if difficulty > 0:
-		var diff_stars: String = "★".repeat(difficulty) + "☆".repeat(5 - difficulty)
-		difficulty_label.text = Loc.t("campaign.map.difficulty", {"stars": diff_stars})
-	else:
-		difficulty_label.text = ""
+	_update_difficulty_stars(difficulty)
 
 	description_label.text = _safe_string(event.get("description", "No description."), "No description.")
 
@@ -900,22 +911,39 @@ func _on_nav_snapshots_pressed() -> void:
 ## =============================================================================
 
 func _setup_campaign_banner() -> void:
-	campaign_banner = Button.new()
-	add_child(campaign_banner)
+	# Create container for banner styling
+	var banner_container: Control = Control.new()
+	add_child(banner_container)
 
 	# Position centered at top
-	campaign_banner.anchor_left = 0.5
-	campaign_banner.anchor_right = 0.5
-	campaign_banner.anchor_top = 0.0
-	campaign_banner.anchor_bottom = 0.0
-	campaign_banner.offset_left = -CAMPAIGN_BANNER_WIDTH / 2
-	campaign_banner.offset_right = CAMPAIGN_BANNER_WIDTH / 2
-	campaign_banner.offset_top = CAMPAIGN_BANNER_MARGIN
-	campaign_banner.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
+	banner_container.anchor_left = 0.5
+	banner_container.anchor_right = 0.5
+	banner_container.anchor_top = 0.0
+	banner_container.anchor_bottom = 0.0
+	banner_container.offset_left = -CAMPAIGN_BANNER_WIDTH / 2
+	banner_container.offset_right = CAMPAIGN_BANNER_WIDTH / 2
+	banner_container.offset_top = CAMPAIGN_BANNER_MARGIN
+	banner_container.offset_bottom = CAMPAIGN_BANNER_MARGIN + CAMPAIGN_BANNER_HEIGHT
 
+	# Dark background
+	var dark_bg: ColorRect = ColorRect.new()
+	dark_bg.color = Color(0.12, 0.1, 0.15, 0.95)
+	dark_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner_container.add_child(dark_bg)
+
+	# Fantasy border overlay
+	var border: NinePatchRect = NinePatchRect.new()
+	ButtonStyleFactory.apply_panel_border(border)
+	border.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner_container.add_child(border)
+
+	# Button on top
+	campaign_banner = Button.new()
 	campaign_banner.flat = true
 	campaign_banner.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	campaign_banner.add_theme_font_size_override("font_size", 20)
+	campaign_banner.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner_container.add_child(campaign_banner)
 
 	_update_campaign_banner_text()
 	campaign_banner.pressed.connect(_on_campaign_banner_pressed)
@@ -931,13 +959,13 @@ func _update_campaign_banner_text() -> void:
 			var campaign_data: Dictionary = campaign.call("get_campaign", campaign_id)
 			var name_key: String = campaign_data.get("name_key", "")
 			if not name_key.is_empty():
-				campaign_banner.text = Loc.t(name_key) + " ▼"
+				campaign_banner.text = Loc.t(name_key)
 			else:
-				campaign_banner.text = campaign_id + " ▼"
+				campaign_banner.text = campaign_id
 		else:
-			campaign_banner.text = campaign_id + " ▼"
+			campaign_banner.text = campaign_id
 	else:
-		campaign_banner.text = Loc.t("campaign.selector.title") + " ▼"
+		campaign_banner.text = Loc.t("campaign.selector.title")
 
 func _on_campaign_banner_pressed() -> void:
 	if campaign_selector_modal == null:

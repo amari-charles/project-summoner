@@ -12,15 +12,19 @@ signal closed()
 
 ## UI Node References
 @onready var background: ColorRect = %Background
+@onready var border: NinePatchRect = %Border
 @onready var title_label: Label = %TitleLabel
 @onready var campaign_list: VBoxContainer = %CampaignList
-@onready var close_button: Button = %CloseButton
+@onready var close_button: TextureButton = %CloseButton
 
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
+	# Set up border using factory
+	ButtonStyleFactory.apply_panel_border(border)
+
 	# Set localized text
 	title_label.text = Loc.t("campaign.selector.title")
 

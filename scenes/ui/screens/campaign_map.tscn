@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://campaign_map"]
+[gd_scene load_steps=4 format=3 uid="uid://campaign_map"]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/campaign_map.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/ui/components/styled_button.gd" id="2_styled_button"]
+[ext_resource type="Texture2D" path="res://assets/ui/kenny/PNG/Grey/Default/button_round_depth_flat.png" id="4_round_button"]
 
 [node name="CampaignMap" type="Control"]
 layout_mode = 3
@@ -11,14 +13,15 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="ScreenBackground" type="ColorRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.15, 0.15, 0.2, 1)
+color = Color(0.75, 0.75, 0.75, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -52,18 +55,17 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(3600, 1600)
 layout_mode = 2
 
-[node name="MapBackground" type="TextureRect" parent="MarginContainer/VBoxContainer/ContentArea/MapScrollContainer/MapContainer"]
+[node name="MapBackground" type="ColorRect" parent="MarginContainer/VBoxContainer/ContentArea/MapScrollContainer/MapContainer"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = 3600.0
-offset_bottom = 800.0
+offset_bottom = 1600.0
 grow_horizontal = 2
 grow_vertical = 2
-expand_mode = 1
-stretch_mode = 5
+color = Color(0.1, 0.1, 0.15, 1)
 
 [node name="DetailPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -82,15 +84,23 @@ grow_horizontal = 2
 grow_vertical = 2
 visible = false
 
-[node name="Background" type="NinePatchRect" parent="DetailPanel"]
+[node name="PanelFill" type="ColorRect" parent="DetailPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture_filter = 1
-region_rect = Rect2(40, 40, 40, 40)
+color = Color(0, 0, 0, 0.7)
+
+[node name="Background" type="NinePatchRect" parent="DetailPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="DetailPanel"]
 layout_mode = 1
@@ -163,12 +173,21 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="DifficultyLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/LeftColumn"]
+[node name="DifficultyContainer" type="HBoxContainer" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/LeftColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="DifficultyLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/LeftColumn/DifficultyContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = ""
-horizontal_alignment = 1
+text = "Difficulty:"
+
+[node name="StarsContainer" type="HBoxContainer" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/LeftColumn/DifficultyContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="DetailSeparator" type="HSeparator" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/LeftColumn"]
 layout_mode = 2
@@ -196,8 +215,10 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "START EVENT"
+script = ExtResource("2_styled_button")
+variant = 0
 
-[node name="LocatorButton" type="Button" parent="."]
+[node name="LocatorButton" type="TextureButton" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 1
@@ -212,5 +233,18 @@ offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 28
+texture_normal = ExtResource("4_round_button")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Icon" type="Label" parent="LocatorButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
 text = "📍"
+horizontal_alignment = 1
+vertical_alignment = 1

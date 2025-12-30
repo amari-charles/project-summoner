@@ -37,6 +37,31 @@ The current priority is building an exceptional foundation:
 
 Example: When implementing drag-and-drop for cards, remove click-to-play entirely rather than keeping both systems.
 
+### Test Philosophy
+**Treat tests as the source of truth.** Do not modify, weaken, delete, or bypass tests unless the task explicitly says to change the tests.
+
+- **Prefer fixing product logic, not test logic.** Assume test failures indicate a bug or missing behavior in the implementation.
+- **Do not introduce "fake green" fixes**, such as:
+  - Swallowing exceptions / broad try-catch just to pass
+  - Adding sleeps, randomness, or timing hacks
+  - Changing configuration to disable validations
+  - Stubbing/mocking real functionality in production code
+- **Do not change public contracts** unless explicitly requested. Preserve API shape, semantics, and backwards compatibility.
+- **Keep behavior correct, not just passing.** If test behavior feels wrong or ambiguous, explain the concern instead of hacking around it.
+- **Prefer minimal, targeted changes** that clearly satisfy the intent of the system and the test.
+- **Run and satisfy the full suite**, not just the failing test in isolation.
+- **Maintain quality**: no regressions, no reduction in safety checks, type weakness, or silent failures.
+- If a test appears incorrect or incomplete, state why and propose a fix, but do not change it without instruction.
+
+### Persistence Philosophy
+**NEVER give up on a task without explicit permission.** When something doesn't work:
+1. Debug and investigate the root cause
+2. Try alternative approaches
+3. Research if needed
+4. Only ask the user if you want to abandon the current approach
+
+Do NOT just revert to a previous working state when encountering errors. Fix the problem.
+
 ### Code Philosophy
 - Prefer clean, single-path implementations
 - Remove deprecated code immediately

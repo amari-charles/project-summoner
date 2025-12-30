@@ -83,11 +83,32 @@ const TEXT_SECONDARY: Color = Color("#b0b0b0")  # Gray
 const TEXT_DISABLED: Color = Color("#606060")   # Dark gray
 const TEXT_HIGHLIGHT: Color = Color("#f5c75c")  # Gold accent
 
-## Button states
+## Button states (generic fallback)
 const BUTTON_NORMAL: Color = Color("#3a3a4a")
 const BUTTON_HOVER: Color = Color("#4a4a5a")
 const BUTTON_PRESSED: Color = Color("#5a5a6a")
 const BUTTON_DISABLED: Color = Color("#2a2a34")
+
+## Primary button (gold accent - main actions)
+const BUTTON_PRIMARY_BG: Color = Color("#2a2832")
+const BUTTON_PRIMARY_BG_HOVER: Color = Color("#353040")
+const BUTTON_PRIMARY_BG_PRESSED: Color = Color("#222028")
+const BUTTON_PRIMARY_BORDER: Color = Color("#f5c75c")  # Gold
+
+## Secondary button (neutral - cancel, back)
+const BUTTON_SECONDARY_BG: Color = Color("#3a3a4a")
+const BUTTON_SECONDARY_BG_HOVER: Color = Color("#4a4a5a")
+const BUTTON_SECONDARY_BG_PRESSED: Color = Color("#2a2a34")
+const BUTTON_SECONDARY_BORDER: Color = Color("#7a7a8a")  # Brighter for visibility
+
+## Danger button (red accent - delete, quit)
+const BUTTON_DANGER_BG: Color = Color("#2a2025")
+const BUTTON_DANGER_BG_HOVER: Color = Color("#3a2530")
+const BUTTON_DANGER_BG_PRESSED: Color = Color("#201a20")
+const BUTTON_DANGER_BORDER: Color = Color("#e84a3f")  # Red
+
+## Button shadow (solid for raised 3D effect)
+const BUTTON_SHADOW: Color = Color(0.05, 0.05, 0.08, 0.8)
 
 ## Health/Resource colors
 const HP_FULL: Color = Color("#5fc75c")      # Green

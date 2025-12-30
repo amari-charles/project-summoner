@@ -68,7 +68,7 @@
     "map": {
       "select_event": "Select an Event",
       "click_to_see_details": "Click an event node to see details.",
-      "difficulty": "Difficulty: {stars}",
+      "difficulty_label": "Difficulty:",
       "button_replay": "REPLAY (no reward)",
       "button_completed": "COMPLETED",
       "button_start": "START",

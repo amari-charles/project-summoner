@@ -25,6 +25,9 @@ func _ready() -> void:
 	if overlay:
 		overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 
+	# Set up panel border using ButtonStyleFactory variant system
+	_setup_panel_border()
+
 	# Set localized text
 	resume_button.text = Loc.t("ui.pause_menu.resume")
 	settings_button.text = Loc.t("ui.pause_menu.settings")
@@ -79,6 +82,14 @@ func _on_settings_pressed() -> void:
 func _on_manage_snapshots_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	snapshot_manager.show_manager()
+
+## Set up the panel border texture and margins from ButtonStyleFactory
+func _setup_panel_border() -> void:
+	var panel: NinePatchRect = get_node_or_null("PausePanel")
+	if not panel:
+		return
+	ButtonStyleFactory.apply_panel_border(panel)
+
 
 ## Quit button - abandon battle and return to origin screen
 func _on_quit_pressed() -> void:
