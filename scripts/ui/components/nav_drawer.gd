@@ -30,18 +30,9 @@ const OVERLAY_OPACITY: float = 0.6
 var _is_open: bool = false
 var _tween: Tween
 
-func _setup_border() -> void:
-	var texture_path: String = ButtonStyleFactory.get_border_path("panel-border-031")
-	border.texture = load(texture_path)
-	var margin: int = ButtonStyleFactory.get_patch_margin()
-	border.patch_margin_left = margin
-	border.patch_margin_top = margin
-	border.patch_margin_right = margin
-	border.patch_margin_bottom = margin
-
 func _ready() -> void:
 	# Set up border using factory
-	_setup_border()
+	ButtonStyleFactory.apply_panel_border(border)
 
 	# Set localized text
 	title_label.text = Loc.t("ui.nav.menu")

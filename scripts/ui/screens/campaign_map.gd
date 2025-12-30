@@ -426,17 +426,7 @@ func _setup_detail_panel_border() -> void:
 	var panel_bg: NinePatchRect = get_node_or_null("%Background")
 	if not panel_bg:
 		return
-
-	# Load texture using the factory's variant system (same as pause menu)
-	var texture_path: String = ButtonStyleFactory.get_border_path("panel-border-031")
-	panel_bg.texture = load(texture_path)
-
-	# Set NinePatch margins based on active variant
-	var margin: int = ButtonStyleFactory.get_patch_margin()
-	panel_bg.patch_margin_left = margin
-	panel_bg.patch_margin_top = margin
-	panel_bg.patch_margin_right = margin
-	panel_bg.patch_margin_bottom = margin
+	ButtonStyleFactory.apply_panel_border(panel_bg)
 
 	# Remove default panel style (we're using NinePatchRect instead)
 	detail_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
@@ -943,12 +933,7 @@ func _setup_campaign_banner() -> void:
 
 	# Fantasy border overlay
 	var border: NinePatchRect = NinePatchRect.new()
-	border.texture = load(ButtonStyleFactory.get_border_path("panel-border-031"))
-	var margin: int = ButtonStyleFactory.get_patch_margin()
-	border.patch_margin_left = margin
-	border.patch_margin_top = margin
-	border.patch_margin_right = margin
-	border.patch_margin_bottom = margin
+	ButtonStyleFactory.apply_panel_border(border)
 	border.set_anchors_preset(Control.PRESET_FULL_RECT)
 	banner_container.add_child(border)
 

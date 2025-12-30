@@ -88,17 +88,7 @@ func _setup_panel_border() -> void:
 	var panel: NinePatchRect = get_node_or_null("PausePanel")
 	if not panel:
 		return
-
-	# Load texture using the factory's variant system
-	var texture_path: String = ButtonStyleFactory.get_border_path("panel-border-031")
-	panel.texture = load(texture_path)
-
-	# Set NinePatch margins based on active variant
-	var margin: int = ButtonStyleFactory.get_patch_margin()
-	panel.patch_margin_left = margin
-	panel.patch_margin_top = margin
-	panel.patch_margin_right = margin
-	panel.patch_margin_bottom = margin
+	ButtonStyleFactory.apply_panel_border(panel)
 
 
 ## Quit button - abandon battle and return to origin screen

@@ -53,6 +53,15 @@ Example: When implementing drag-and-drop for cards, remove click-to-play entirel
 - **Maintain quality**: no regressions, no reduction in safety checks, type weakness, or silent failures.
 - If a test appears incorrect or incomplete, state why and propose a fix, but do not change it without instruction.
 
+### Persistence Philosophy
+**NEVER give up on a task without explicit permission.** When something doesn't work:
+1. Debug and investigate the root cause
+2. Try alternative approaches
+3. Research if needed
+4. Only ask the user if you want to abandon the current approach
+
+Do NOT just revert to a previous working state when encountering errors. Fix the problem.
+
 ### Code Philosophy
 - Prefer clean, single-path implementations
 - Remove deprecated code immediately

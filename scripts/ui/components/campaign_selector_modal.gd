@@ -23,7 +23,7 @@ signal closed()
 
 func _ready() -> void:
 	# Set up border using factory
-	_setup_border()
+	ButtonStyleFactory.apply_panel_border(border)
 
 	# Set localized text
 	title_label.text = Loc.t("campaign.selector.title")
@@ -31,15 +31,6 @@ func _ready() -> void:
 	# Connect buttons
 	close_button.pressed.connect(_on_close_pressed)
 	background.gui_input.connect(_on_background_input)
-
-func _setup_border() -> void:
-	var texture_path: String = ButtonStyleFactory.get_border_path("panel-border-031")
-	border.texture = load(texture_path)
-	var margin: int = ButtonStyleFactory.get_patch_margin()
-	border.patch_margin_left = margin
-	border.patch_margin_top = margin
-	border.patch_margin_right = margin
-	border.patch_margin_bottom = margin
 
 ## =============================================================================
 ## PUBLIC API

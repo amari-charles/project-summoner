@@ -35,6 +35,21 @@ static func get_border_path(border_id: String) -> String:
 	return BASE_PATH + get_variant_folder() + "/Border/" + border_id + ".png"
 
 
+## Default panel border ID used for UI panels, modals, and drawers
+const PANEL_BORDER_ID: String = "panel-border-031"
+
+
+## Apply panel border styling to a NinePatchRect
+## Use this for consistent panel/modal/drawer borders throughout the UI
+static func apply_panel_border(nine_patch: NinePatchRect, border_id: String = PANEL_BORDER_ID) -> void:
+	nine_patch.texture = load(get_border_path(border_id))
+	var margin: int = get_patch_margin()
+	nine_patch.patch_margin_left = margin
+	nine_patch.patch_margin_top = margin
+	nine_patch.patch_margin_right = margin
+	nine_patch.patch_margin_bottom = margin
+
+
 ## Button border style (different from panel border 031)
 const BUTTON_BORDER_ID: String = "panel-border-028"
 

@@ -32,7 +32,9 @@
       "Bash(unzip:*)",
       "Bash(identify:*)",
       "Bash(sips:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:opengameart.org)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
