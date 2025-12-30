@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://campaign_map"]
+[gd_scene load_steps=4 format=3 uid="uid://campaign_map"]
 
 [ext_resource type="Script" path="res://scripts/ui/screens/campaign_map.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/ui/components/styled_button.gd" id="2_styled_button"]
-[ext_resource type="Texture2D" path="res://assets/textures/parchment_background.png" id="3_parchment"]
 [ext_resource type="Texture2D" path="res://assets/ui/kenny/PNG/Grey/Default/button_round_depth_flat.png" id="4_round_button"]
 
 [node name="CampaignMap" type="Control"]
@@ -14,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="ScreenBackground" type="NinePatchRect" parent="."]
+[node name="ScreenBackground" type="ColorRect" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -22,12 +21,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("3_parchment")
-patch_margin_left = 25
-patch_margin_top = 25
-patch_margin_right = 25
-patch_margin_bottom = 25
-modulate = Color(0.85, 0.8, 0.75, 1)
+color = Color(0.75, 0.75, 0.75, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
