@@ -61,7 +61,7 @@ docs/
 │   ├── combat/system.md
 │   ├── battlefield/system.md
 │   ├── coordinates/system.md
-│   ├── heroes/               Hero system docs
+│   ├── summoners/            Summoner system docs
 │   ├── spells/               Spell mechanics
 │   ├── campaign/             Campaign & narrative
 │   ├── events/               Event system

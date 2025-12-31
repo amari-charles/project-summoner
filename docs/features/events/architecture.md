@@ -40,13 +40,13 @@ We're migrating from a tightly-coupled, `get_tree().paused`-driven system to a *
 4. **Debuggable** - Answer "why can't I do X?" and "what events fired?" instantly
 5. **Incremental migration** - No big-bang rewrite; old code coexists during transition
 
-### Timeline
+### Implementation Phases
 
-- **Phase 1** (Week 1): Core infrastructure - CapabilityManager, GameStateEvents, EventSequencer (4 step types)
-- **Phase 2** (Week 2): Migrate first_trial tutorial to event sequences
-- **Phase 3** (Week 3): Refactor GameController to use capabilities + events
-- **Phase 4** (Week 4+): Quest system with event-driven objectives
-- **Phase 5** (Week 5+): Advanced cutscenes (camera, animations, effects)
+- **Phase 1**: Core infrastructure - CapabilityManager, GameStateEvents, EventSequencer (4 step types)
+- **Phase 2**: Migrate first_trial tutorial to event sequences
+- **Phase 3**: Refactor GameController to use capabilities + events
+- **Phase 4**: Quest system with event-driven objectives
+- **Phase 5**: Advanced cutscenes (camera, animations, effects)
 
 ---
 
