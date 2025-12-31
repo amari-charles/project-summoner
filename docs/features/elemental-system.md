@@ -16,9 +16,9 @@ This document defines the elemental structure for Fateforged. It organizes all k
 
 ## Overview
 
-The elemental system in Fateforged consists of **14 distinct element types** organized into tiers based on their narrative and gameplay roles. Each tier serves a specific purpose in campaign progression, worldbuilding, and mechanical design.
+The elemental system in Fateforged consists of **13 distinct element types** organized into tiers based on their narrative and gameplay roles. Each tier serves a specific purpose in campaign progression, worldbuilding, and mechanical design.
 
-**Important:** Variants (Solar, Mist, Tempest, Crystal) and Hybrids (Magma) are **NOT** separate element types. They are thematic card flavors that use their parent element's affinity.
+**Important:** Variants (Ash, Coldfire, Mist, Smoke, Crystal, etc.) and Hybrids (Magma) are **NOT** separate element types. They are thematic card flavors that use their parent element's affinity.
 
 ---
 
@@ -28,12 +28,12 @@ The elemental system in Fateforged consists of **14 distinct element types** org
 
 The four primary campaign elements — the foundation of the world and the player's main path of progression. Each Core Element will receive a full campaign at launch.
 
-| Element | Variant Name | Description |
-|---------|--------------|-------------|
-| **Fire** | Solar | Embodies vitality, passion, and transformation. Solar Fire represents controlled, radiant heat — a tempered but fierce energy. |
-| **Water** | Mist | Symbolizes adaptability, empathy, and memory. Mist is elusive and reactive, emphasizing concealment and transformation. |
-| **Wind** | Tempest | Represents motion, freedom, and volatility. Tempest is chaotic, fast, and unpredictable. |
-| **Earth** | Crystal | Stands for stability, structure, and endurance. Crystal reflects refinement, resilience, and clarity. |
+| Element | Description | Gameplay Identity |
+|---------|-------------|-------------------|
+| **Fire** | Embodies vitality, passion, and transformation. | Erratic, burst damage, powerful up front |
+| **Water** | Symbolizes adaptability, empathy, and memory. | Nurturing, healing, flowy |
+| **Wind** | Represents motion, freedom, and volatility. | Fast, elusive, flowy |
+| **Earth** | Stands for stability, structure, and endurance. | Strong, slow, enduring |
 
 **Design Purpose:** Core Elements are the player's first exposure to the elemental system. Each offers a distinct aesthetic, mechanical identity, and story tone. These elements define early strategy diversity and form the backbone of deck and faction identity.
 
@@ -88,7 +88,7 @@ ElementTypes.OCCULTIST  # "occultist"
 
 ---
 
-### Elevated Elements (4)
+### Elevated Elements (3)
 
 Elevations are fundamental transformations — not stronger forms, but entirely new existential states. Only certain elements can elevate because true elevation requires an element to transcend its natural identity.
 
@@ -97,7 +97,6 @@ Elevations are fundamental transformations — not stronger forms, but entirely 
 | **Fire** | **Holy** | Physical → Moral / Sacred | Flame becomes sanctity. Energy with purpose, divine intention, and cleansing light. |
 | **Water** | **Ice** | Mutable → Immutable | Flow becomes control and stillness. Preservation through perfection. |
 | **Earth** | **Metal** | Organic → Forged | Matter learns to shape itself — civilization and artifice emerge. |
-| **Life** | **Spirit** | Biological → Metaphysical | Living energy transcends the body — consciousness becomes form. |
 
 **Design Purpose:** Elevated elements define world mythology and serve as long-term expansion potential. They represent philosophical transformation, not progression. Only certain forces can reach this state.
 
@@ -107,7 +106,6 @@ Elevations are fundamental transformations — not stronger forms, but entirely 
 ElementTypes.HOLY    # "holy"   (Fire → Holy)
 ElementTypes.ICE     # "ice"    (Water → Ice)
 ElementTypes.METAL   # "metal"  (Earth → Metal)
-ElementTypes.SPIRIT  # "spirit" (Life → Spirit)
 
 # Check elevation relationships
 if ElementTypes.can_elevate(ElementTypes.FIRE):
@@ -122,12 +120,12 @@ if ElementTypes.can_elevate(ElementTypes.FIRE):
 
 Variants are slightly stronger, reward-tier versions of base elemental cards. They appear as rare campaign rewards, achievement bonuses, or post-battle upgrades. **Variants maintain their parent element's typing** but feature enhanced effects or unique passives.
 
-| Element | Variant Name | Role |
-|---------|--------------|------|
-| Fire | **Solar** | Found in advanced campaign tiers. Stronger, radiant version of Fire units. |
-| Water | **Mist** | Earned through performance milestones. Prioritizes control and evasion. |
-| Wind | **Tempest** | Rewarded for mastery of Wind. Focuses on aggression and volatility. |
-| Earth | **Crystal** | Rewarded for precision or defense milestones. Represents fortified endurance. |
+| Element | Variants | Status |
+|---------|----------|--------|
+| Fire | **Ash**, **Coldfire**, **Star** | Exploring options |
+| Water | **Mist** | Confirmed |
+| Wind | **Smoke**, **Tempest** | Exploring options |
+| Earth | **Crystal** | Confirmed |
 
 **Important:** Variants are **NOT separate element types**. They are card name/flavor only.
 
@@ -241,7 +239,7 @@ var modifiers = ModifierSystem.get_modifiers_for("unit", categories, {})
 
 ### When Creating New Cards
 
-1. **Choose ONE element type** from the 14 available elements
+1. **Choose ONE element type** from the 13 available elements
 2. **Variants/Hybrids are name-only** - use parent element's affinity
 3. **Document the card's theme** in relation to its element
 
@@ -274,9 +272,9 @@ This elemental structure ensures that every element tier has a purpose — not j
 - Core Elements: 4 (fire, water, wind, earth)
 - Outer Elements: 5 (lightning, shadow, poison, life, death)
 - Occultist: 1 (occultist)
-- Elevated Elements: 4 (holy, ice, metal, spirit)
-- **Total: 14 distinct element types**
+- Elevated Elements: 3 (holy, ice, metal)
+- **Total: 13 distinct element types**
 
 **Card Flavors (NOT element types):**
-- Variants: Solar, Mist, Tempest, Crystal (parent element affinity)
+- Variants: Ash/Coldfire/Star (fire), Mist (water), Smoke/Tempest (wind), Crystal (earth)
 - Hybrids: Magma (picks one parent affinity)
