@@ -59,6 +59,10 @@
       "arena_full_combat": {
         "name": "Full Combat",
         "description": "All unit types including structures. Comprehensive combat test."
+      },
+      "arena_storm_cloud": {
+        "name": "Storm Cloud Test",
+        "description": "Test the flying storm cloud unit and its lightning attack VFX."
       }
     },
     "starter_deck_name": "Starter Deck",
@@ -102,6 +106,10 @@
     "ember_slinger": {
       "name": "Ember Slinger",
       "description": "A ranged fire unit."
+    },
+    "storm_cloud": {
+      "name": "Storm Cloud",
+      "description": "A hovering tempest that strikes foes with lightning. Floats above the battlefield, raining destruction on ground forces."
     }
   },
   "menu": {

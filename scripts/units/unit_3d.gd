@@ -20,6 +20,7 @@ const MIN_FLIGHT_ALTITUDE: float = 0.5  ## Minimum altitude for flying units
 const MAX_FLIGHT_ALTITUDE: float = 10.0  ## Maximum altitude for flying units (affects shadow scaling)
 const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 60% of original size (1.0 - 0.4)
 const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
+const BELOW_TARGET_SCORE_BONUS: float = 5.0  ## Max targeting bonus for targets directly below flying units
 
 ## Unit separation constants (prevents stacking during movement)
 const MAX_COLLISION_RADIUS: float = 1.5  ## Largest expected collision_radius (for spatial query sizing)
@@ -95,6 +96,11 @@ var active_modifiers: Dictionary = {}
 	set(value):
 		projectile_id = value
 		cached_projectile_speed = -1.0  # Invalidate cache when projectile changes
+@export var attack_vfx_id: String = ""  ## If set, uses VFX instead of projectile (for lightning, etc.)
+
+## Below targeting (for flying units like storm cloud)
+@export var prefer_targets_below: bool = false  ## Prefer targets directly below (for flying units)
+@export var below_target_radius: float = 6.0    ## XZ radius for "below" targeting bonus
 
 ## Targeting settings
 @export_group("Targeting")
@@ -226,6 +232,7 @@ func _ready() -> void:
 			# Fade shadow opacity with altitude
 			var opacity_scale: float = 1.0 - (altitude_factor * SHADOW_OPACITY_REDUCTION_FACTOR)
 			shadow_component.call("set_shadow_opacity", shadow_opacity * opacity_scale)
+			# Note: Shadow ground positioning is handled dynamically in _physics_process()
 
 	# Spawn HP bar using HPBarManager (offset calculated automatically based on scale)
 	HPBarManager.create_bar_for_unit(self)
@@ -506,6 +513,10 @@ func _physics_process(delta: float) -> void:
 	# Flying units stay at constant altitude (disable gravity)
 	if movement_layer == MovementLayer.AIR:
 		velocity.y = 0.0  # No vertical movement
+		# Keep shadow pinned to ground regardless of altitude
+		# +0.01 offset prevents z-fighting with ground plane
+		if shadow_component:
+			shadow_component.position.y = -global_position.y + 0.01
 
 	attack_cooldown = max(attack_cooldown - delta, 0.0)
 	target_lock_timer = max(target_lock_timer - delta, 0.0)
@@ -704,6 +715,18 @@ func _acquire_target() -> Node3D:
 			# Add small epsilon to avoid division by zero
 			score += hp_weight / (hp_percent + 0.1)
 
+		# Below targeting bonus (for flying units like storm cloud)
+		if prefer_targets_below and movement_layer == MovementLayer.AIR:
+			# Calculate XZ distance (horizontal only)
+			var xz_dist: float = sqrt(delta.x * delta.x + delta.z * delta.z)
+			# Calculate Y difference (positive = target is below us)
+			var y_diff: float = global_position.y - target_unit.global_position.y
+
+			# Strong bonus for targets directly below within radius
+			if xz_dist <= below_target_radius and y_diff > 0:
+				# Closer horizontally = more bonus
+				score += BELOW_TARGET_SCORE_BONUS * (1.0 - xz_dist / below_target_radius)
+
 		# Track best scoring target
 		if score > best_score:
 			best_score = score
@@ -828,6 +851,11 @@ func _can_attack_layer(target: Node3D) -> bool:
 	var target_unit: Unit3D = target
 	var target_layer: MovementLayer = target_unit.movement_layer
 
+	# Ground melee units cannot target flying units (can't reach them)
+	var is_ground_melee: bool = movement_layer == MovementLayer.GROUND and unit_type == UnitType.MELEE
+	if is_ground_melee and target_layer == MovementLayer.AIR:
+		return false
+
 	# Apply layer-based targeting restrictions
 	match can_target:
 		TargetLayer.GROUND_ONLY:
@@ -871,6 +899,10 @@ func _is_in_attack_range(target: Node3D) -> bool:
 		var target_unit: Unit3D = target
 		target_is_flying = target_unit.movement_layer == MovementLayer.AIR
 	var is_flying: bool = movement_layer == MovementLayer.AIR
+
+	# Ground melee units cannot attack flying targets (can't reach them)
+	if not is_flying and target_is_flying:
+		return false
 
 	if not is_flying and not target_is_flying:  # Both on ground
 		if abs(delta.y) > attack_range_vertical:  # Height tolerance
@@ -929,6 +961,14 @@ func _perform_attack() -> void:
 	if not current_target:
 		return
 
+	# Flying units that attack below must be positioned above target first
+	if prefer_targets_below:
+		var delta_pos: Vector3 = current_target.global_position - global_position
+		var xz_dist: float = sqrt(delta_pos.x * delta_pos.x + delta_pos.z * delta_pos.z)
+		# Can only attack if target is below us and within horizontal radius
+		if xz_dist > below_target_radius or delta_pos.y >= 0:
+			return  # Not in attack position yet - keep chasing
+
 	is_attacking = true
 	_update_animation("attack")
 
@@ -970,6 +1010,11 @@ func _spawn_projectile() -> void:
 	if not current_target:
 		return
 
+	# VFX-based attack (lightning, etc.) - instant effect instead of projectile
+	if not attack_vfx_id.is_empty():
+		_spawn_attack_vfx()
+		return
+
 	if not projectile_id.is_empty():
 		# Use attachment points for proper spawn/target positions
 		var spawn_pos: Vector3 = get_projectile_spawn_position()
@@ -989,6 +1034,25 @@ func _spawn_projectile() -> void:
 				"target_position": target_pos
 			}
 		)
+
+## Spawn VFX-based attack effect (for units that use VFX instead of projectiles)
+## VFX applies damage directly, no travel time
+func _spawn_attack_vfx() -> void:
+	if not current_target:
+		return
+
+	var spawn_pos: Vector3 = get_projectile_spawn_position()
+	var target_pos: Vector3 = current_target.global_position
+	if current_target.has_method("get_projectile_target_position"):
+		target_pos = current_target.get_projectile_target_position()
+
+	VFXManager.play_effect(attack_vfx_id, spawn_pos, {
+		"start_position": spawn_pos,
+		"end_position": target_pos,
+		"damage": attack_damage,
+		"target": current_target,
+		"team": team
+	})
 
 ## Calculate intercept point for projectile targeting
 ## Uses constant velocity assumption + 1 iteration refinement (industry standard approach)

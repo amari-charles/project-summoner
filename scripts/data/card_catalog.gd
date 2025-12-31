@@ -177,6 +177,48 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Storm Cloud - Flying ranged attacker with lightning
+	_catalog["storm_cloud"] = {
+		# Identity
+		"catalog_id": "storm_cloud",
+		"card_name": "Storm Cloud",
+		"description": "A hovering tempest that strikes foes with lightning. Floats above the battlefield, raining destruction on ground forces.",
+		"rarity": RarityIDs.RARE,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.RANGED,
+		"mana_cost": 4,
+		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (4 mana)
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/storm_cloud_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats (centralized here)
+		"max_hp": 60.0,
+		"attack_damage": 25.0,
+		"attack_range": 12.0,
+		"attack_speed": 0.7,
+		"move_speed": 2.5,
+		"aggro_radius": 20.0,
+		"is_ranged": true,
+		"projectile_scene_path": "",  # Uses VFX-based attack (lightning)
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["flying", "ranged", "lightning", "magic"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.LIGHTNING
+		}
+	}
+
 	# =========================================================================
 	# FIRE ELEMENT UNITS
 	# =========================================================================

@@ -34,7 +34,9 @@
       "Bash(sips:*)",
       "Bash(ls:*)",
       "WebFetch(domain:opengameart.org)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:godotshaders.com)",
+      "WebFetch(domain:gameidea.org)"
     ],
     "deny": [],
     "ask": []

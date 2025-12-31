@@ -32,6 +32,13 @@ const FIREBALL_TRAIL: StringName = &"fireball_trail"
 const FIREBALL_SPELL: StringName = &"fireball_spell"
 
 # ============================================================================
+# LIGHTNING EFFECTS
+# ============================================================================
+
+## Lightning strike bolt from attacker to target (used by storm cloud, etc.)
+const LIGHTNING_STRIKE: StringName = &"lightning_strike"
+
+# ============================================================================
 # SPELL COMMAND EFFECTS (used by card.gd for tactical commands)
 # Note: These are placeholders - VFX definitions may not exist yet
 # ============================================================================
@@ -57,6 +64,7 @@ const IMPLEMENTED: Array[StringName] = [
 	FIREBALL_EXPLOSION,
 	FIREBALL_TRAIL,
 	FIREBALL_SPELL,
+	LIGHTNING_STRIKE,
 ]
 
 ## All placeholder VFX IDs (used in code but no .tres yet)

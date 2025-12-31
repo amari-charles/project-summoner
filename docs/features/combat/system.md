@@ -1,7 +1,7 @@
 # Fateforged — Combat System Spec (v2.0)
 
 **Status:** IMPLEMENTED
-**Last Updated:** 2025-12-16
+**Last Updated:** 2025-12-30
 
 **Scope:** Defines battle phases, unit simulation, targeting, movement, damage, and win conditions.
 
@@ -160,6 +160,44 @@ Keeps tempo and ensures Incarnations die when the front is won.
 - **Separation:** repulse from near allies (<48 px)
 - **Clamp:** stay within battlefield bounds
 - **Flying flag:** ignores separation
+
+---
+
+## 9.1 Flying Units
+
+Flying units hover above the battlefield at a fixed altitude, creating vertical gameplay.
+
+### Properties
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| `movement_layer` | `GROUND` or `AIR` | `GROUND` |
+| `flight_altitude` | Height above ground (Y position) | 4.0 |
+| `prefer_targets_below` | Prioritize targets directly beneath | false |
+| `below_target_radius` | XZ radius for "below" targeting | 6.0 |
+
+### Targeting Rules
+
+| Attacker | Target | Can Target? | Notes |
+|----------|--------|-------------|-------|
+| Ground Melee | Flying | ❌ No | Can't reach |
+| Ground Ranged | Flying | ✅ Yes | Uses 3D distance for range |
+| Flying | Ground | ✅ Yes | Normal targeting |
+| Flying | Flying | ✅ Yes | Normal targeting |
+
+### Shadow System
+
+Flying units have a shadow component that stays pinned to the ground:
+- Shadow position updated every physics frame
+- Shadow scales smaller and fades with altitude
+- Provides visual grounding for floating units
+
+### Attack Positioning (e.g., Storm Cloud)
+
+Units with `prefer_targets_below = true` have special attack behavior:
+- **Target normally** — chase enemies like any unit
+- **Attack only when above** — must be within `below_target_radius` XZ distance
+- Creates "hover and strike" gameplay pattern
 
 ---
 
