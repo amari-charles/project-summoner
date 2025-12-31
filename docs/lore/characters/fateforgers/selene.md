@@ -1,6 +1,6 @@
 # Selene — Water Fateforger
 
-**Element:** Water (Mist variant)
+**Element:** Water
 **Gender:** Woman
 **Ethnicity:** Black
 

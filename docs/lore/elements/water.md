@@ -4,15 +4,19 @@
 
 **Nurturing, healing, flowy**
 
-Water fateforgers sustain and support. Their strength is in keeping allies alive and flowing around obstacles. They outlast opponents through persistence and care.
+Water summons sustain and support. Their strength is in keeping allies alive and flowing around obstacles. They outlast opponents through persistence and care.
 
 ## Philosophy
 
 Symbolizes adaptability, empathy, and memory. Water flows around obstacles and remembers every shore it has touched.
 
-## Variant: Mist
+## Elevated Form: Ice
 
-Elusive and reactive. Emphasizes concealment and subtle transformation.
+Flow becomes control and stillness. Preservation through perfection.
+
+## Variant
+
+- **Mist** — Elusive and reactive, emphasizes concealment and subtle transformation
 
 ---
 

@@ -1,6 +1,6 @@
 # Mei — Wind Fateforger
 
-**Element:** Wind (Tempest variant)
+**Element:** Wind
 **Gender:** Woman
 **Ethnicity:** Asian
 

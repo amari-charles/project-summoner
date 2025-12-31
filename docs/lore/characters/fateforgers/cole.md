@@ -1,6 +1,6 @@
 # Cole — Fire Fateforger
 
-**Element:** Fire (Solar variant)
+**Element:** Fire
 **Gender:** Man
 **Ethnicity:** White
 
