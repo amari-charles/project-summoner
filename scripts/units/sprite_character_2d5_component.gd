@@ -63,6 +63,11 @@ const PULSE_SHRINK_DURATION: float = 0.15  ## Time to shrink back
 @export var bob_amplitude: float = 6.0  ## Vertical bounce in pixels
 @export var bob_rotation_amplitude: float = 4.0  ## Side-to-side tilt in degrees
 
+## Breathing/pulsing animation settings (for idle units like clouds)
+@export var enable_breathing: bool = false  ## Enable gentle scale pulse animation
+@export var breathing_speed: float = 1.5  ## Speed of breathing cycle (lower = slower)
+@export var breathing_amplitude: float = 0.08  ## Scale change amount (0.08 = ±8% size change)
+
 ## Attack animation styles for single-frame sprites
 enum AttackStyle { NONE, LUNGE, SQUASH_SPRING, SPIN, PULSE }
 @export var attack_style: AttackStyle = AttackStyle.NONE
@@ -71,6 +76,7 @@ enum AttackStyle { NONE, LUNGE, SQUASH_SPRING, SPIN, PULSE }
 
 ## Bobbing state
 var _bob_time: float = 0.0  ## Accumulated time for bobbing animation
+var _breathing_time: float = 0.0  ## Accumulated time for breathing animation
 var _base_sprite_y: float = 0.0  ## Base Y position before bobbing
 var _base_sprite_scale: Vector2 = Vector2.ONE  ## Base scale before attack effects
 var _attack_tween: Tween = null  ## Current attack animation tween
@@ -108,26 +114,43 @@ func _ready() -> void:
 		# Randomize starting phase so multiple units don't bob in sync
 		_bob_time = randf() * TAU
 
+	# Setup breathing animation
+	if enable_breathing:
+		# Randomize starting phase so multiple units don't breathe in sync
+		_breathing_time = randf() * TAU
+
 	# Randomize animation frame so multiple units don't animate in sync
 	_randomize_animation_phase()
 
 func _process(delta: float) -> void:
-	if not enable_bobbing or not character_sprite or _is_attacking:
+	if not character_sprite or _is_attacking:
 		return
 
-	# Update walk animation (wrap to prevent unbounded growth)
-	_bob_time = fmod(_bob_time + delta * bob_speed, TAU * 2.0)
+	# Bobbing animation (walking bob)
+	if enable_bobbing:
+		# Update walk animation (wrap to prevent unbounded growth)
+		_bob_time = fmod(_bob_time + delta * bob_speed, TAU * 2.0)
 
-	# Bouncy vertical motion using abs(sin()) - simulates stepping/bouncing
-	# The -abs() makes it bounce DOWN from base position (feet hitting ground)
-	var bob_offset: float = -abs(sin(_bob_time)) * bob_amplitude
+		# Bouncy vertical motion using abs(sin()) - simulates stepping/bouncing
+		# The -abs() makes it bounce DOWN from base position (feet hitting ground)
+		var bob_offset: float = -abs(sin(_bob_time)) * bob_amplitude
 
-	# Side-to-side tilt like a waddle - alternates left/right with each "step"
-	var rotation_offset: float = sin(_bob_time) * bob_rotation_amplitude
+		# Side-to-side tilt like a waddle - alternates left/right with each "step"
+		var rotation_offset: float = sin(_bob_time) * bob_rotation_amplitude
 
-	# Apply walk animation
-	character_sprite.position.y = _base_sprite_y + bob_offset
-	character_sprite.rotation_degrees = rotation_offset
+		# Apply walk animation
+		character_sprite.position.y = _base_sprite_y + bob_offset
+		character_sprite.rotation_degrees = rotation_offset
+
+	# Breathing animation (slow scale pulse for idle units like clouds)
+	if enable_breathing:
+		_breathing_time = fmod(_breathing_time + delta * breathing_speed, TAU)
+
+		# Smooth scale pulse using sin wave (ranges from -1 to 1, scaled by amplitude)
+		var scale_factor: float = 1.0 + sin(_breathing_time) * breathing_amplitude
+
+		# Apply breathing scale (uniform X and Y)
+		character_sprite.scale = _base_sprite_scale * scale_factor
 
 ## Set the SpriteFrames resource for this character
 func set_sprite_frames(frames: SpriteFrames) -> void:

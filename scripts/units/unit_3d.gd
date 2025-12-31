@@ -122,6 +122,7 @@ var active_modifiers: Dictionary = {}
 
 ## Floating/bobbing animation (for spirits, elementals, etc.)
 @export var enable_bobbing: bool = false  ## Enable gentle bobbing animation for floating units
+@export var enable_breathing: bool = false  ## Enable gentle scale pulse animation for cloud-like units
 
 ## Attack animation style (0=None, 1=Lunge, 2=Squash&Spring, 3=Spin, 4=Pulse)
 @export_range(0, 4) var attack_style: int = 0  ## Attack effect for single-frame sprites
@@ -309,6 +310,10 @@ func _setup_visuals() -> void:
 		# Configure bobbing animation for floating units
 		if enable_bobbing and "enable_bobbing" in visual_component:
 			visual_component.set("enable_bobbing", true)
+
+		# Configure breathing animation for cloud-like units
+		if enable_breathing and "enable_breathing" in visual_component:
+			visual_component.set("enable_breathing", true)
 
 		# Configure attack animation style
 		if attack_style > 0 and "attack_style" in visual_component:
