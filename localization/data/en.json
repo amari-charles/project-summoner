@@ -44,6 +44,10 @@
         "name": "Earth Sprite Test",
         "description": "Test the Earth Sprite unit. A rocky elemental with a sapling on its head."
       },
+      "arena_puff": {
+        "name": "Puff Test",
+        "description": "Test the Puff unit. A mischievous wind cloud that blows gusts at enemies."
+      },
       "arena_fire_elemental": {
         "name": "Fire Elemental Test",
         "description": "Test the new Fire Elemental unit. Watch it bob and float across the battlefield."
@@ -118,6 +122,10 @@
     "earth_sprite": {
       "name": "Earth Sprite",
       "description": "A gentle rock spirit with a sapling growing from its head. Sturdy and dependable, it protects nature with rocky determination."
+    },
+    "puff": {
+      "name": "Puff",
+      "description": "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield."
     }
   },
   "menu": {

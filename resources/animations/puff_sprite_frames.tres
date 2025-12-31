@@ -1,0 +1,113 @@
+[gd_resource type="SpriteFrames" load_steps=25 format=3 uid="uid://puff_sprite_frames"]
+
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/idle_0.png" id="idle_0"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/idle_1.png" id="idle_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/idle_2.png" id="idle_2"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/idle_3.png" id="idle_3"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow1_0.png" id="blow1_0"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow1_1.png" id="blow1_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow1_2.png" id="blow1_2"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow1_3.png" id="blow1_3"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_windup_0.png" id="attack_windup_0"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_windup_1.png" id="attack_windup_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_windup_2.png" id="attack_windup_2"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_windup_3.png" id="attack_windup_3"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_hold_0.png" id="attack_hold_0"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_hold_1.png" id="attack_hold_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_release_0.png" id="attack_release_0"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_release_1.png" id="attack_release_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_release_2.png" id="attack_release_2"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/attack_release_3.png" id="attack_release_3"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow2_0.png" id="blow2_0"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow2_1.png" id="blow2_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow2_2.png" id="blow2_2"]
+[ext_resource type="Texture2D" path="res://assets/characters/wind_units/puff/blow2_3.png" id="blow2_3"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("idle_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("idle_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("idle_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("idle_3")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("blow1_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("blow1_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("blow1_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("blow1_3")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("attack_windup_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_windup_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_windup_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_windup_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_hold_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_hold_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_release_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_release_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_release_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("attack_release_3")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("blow2_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("blow2_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("blow2_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("blow2_3")
+}],
+"loop": false,
+"name": &"death",
+"speed": 6.0
+}]
