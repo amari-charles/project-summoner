@@ -66,4 +66,4 @@ How does Aquira's personality reflect their mechanics?
 
 ---
 
-*See also: [Elements - Water](../elements.md) | [Other Summoners](./)*
+*See also: [Elements - Water](../../elements.md) | [Other Fateforgers](./)*

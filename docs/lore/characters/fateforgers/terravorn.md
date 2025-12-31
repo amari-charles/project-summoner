@@ -66,4 +66,4 @@ How does Terravorn's personality reflect their mechanics?
 
 ---
 
-*See also: [Elements - Earth](../elements.md) | [Other Summoners](./)*
+*See also: [Elements - Earth](../../elements.md) | [Other Fateforgers](./)*

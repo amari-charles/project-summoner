@@ -60,4 +60,4 @@
 
 ---
 
-*See also: [World](../world.md) | [Narrative Arc](../narrative-arc.md)*
+*See also: [World](../../world.md) | [Narrative Arc](../../narrative-arc.md)*
