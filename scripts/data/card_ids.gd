@@ -63,3 +63,9 @@ const EMBER_SLINGER: StringName = &"ember_slinger"
 const BLAZE_RIDER: StringName = &"blaze_rider"
 const ASH_VANGUARD: StringName = &"ash_vanguard"
 const EMBER_GUARD: StringName = &"ember_guard"
+
+# ============================================================================
+# EARTH ELEMENT UNITS
+# ============================================================================
+
+const EARTH_SPRITE: StringName = &"earth_sprite"

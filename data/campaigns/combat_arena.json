@@ -7,6 +7,32 @@
   "unlock_requirements": [],
   "battles": [
     {
+      "id": "arena_earth_sprite",
+      "biome_id": "summer_plains",
+      "name_key": "campaign.battle.arena_earth_sprite.name",
+      "description_key": "campaign.battle.arena_earth_sprite.description",
+      "difficulty": 1,
+      "event_type": "battle",
+      "requires_deck": false,
+      "repeatable": true,
+      "reward_type": "none",
+      "reward_cards": [],
+      "gold_reward": 0,
+      "card_xp_reward": 0,
+      "summoner_xp_reward": 0,
+      "dev_player_deck": [
+        {"catalog_id": "earth_sprite", "count": 4},
+        {"catalog_id": "slime_green", "count": 2}
+      ],
+      "enemy_deck": [
+        {"catalog_id": "slime_blue", "count": 3},
+        {"catalog_id": "slime_pink", "count": 2}
+      ],
+      "enemy_hp": 100.0,
+      "unlock_requirements": [],
+      "ai_type": "heuristic"
+    },
+    {
       "id": "arena_fire_elemental",
       "biome_id": "summer_plains",
       "name_key": "campaign.battle.arena_fire_elemental.name",
@@ -82,7 +108,7 @@
         {"catalog_id": "ember_slinger", "count": 2}
       ],
       "enemy_hp": 150.0,
-      "unlock_requirements": ["arena_melee_basics"],
+      "unlock_requirements": [],
       "ai_type": "heuristic"
     },
     {
@@ -110,7 +136,7 @@
         {"catalog_id": "slime_blue", "count": 2}
       ],
       "enemy_hp": 200.0,
-      "unlock_requirements": ["arena_ranged_intro"],
+      "unlock_requirements": [],
       "ai_type": "heuristic"
     },
     {
@@ -140,7 +166,7 @@
         {"catalog_id": "neade", "count": 1}
       ],
       "enemy_hp": 250.0,
-      "unlock_requirements": ["arena_mixed_tactics"],
+      "unlock_requirements": [],
       "ai_type": "heuristic"
     },
     {

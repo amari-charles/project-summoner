@@ -572,6 +572,49 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Earth Sprite - Rocky elemental with a sapling
+	# Visual: Skeletal rig with body, arms, legs, eye, and sapling (stem + leaves)
+	_catalog["earth_sprite"] = {
+		# Identity
+		"catalog_id": "earth_sprite",
+		"card_name": "Earth Sprite",
+		"description": "A gentle rock spirit with a sapling growing from its head. Sturdy and dependable, it protects nature with rocky determination.",
+		"rarity": RarityIDs.COMMON,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 3,
+		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (3 mana)
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/earth_sprite_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats - sturdy but slow earth elemental
+		"max_hp": 150.0,
+		"attack_damage": 18.0,
+		"attack_range": 2.0,
+		"attack_speed": 0.9,
+		"move_speed": 1.8,  # Slow and heavy earth elemental
+		"aggro_radius": 20.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "earth", "elemental", "nature"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.EARTH
+		}
+	}
+
 	# =========================================================================
 	# TACTICAL COMMAND SPELLS
 	# =========================================================================

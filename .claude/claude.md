@@ -135,3 +135,30 @@ When making decisions, ensure context is captured across three dimensions:
 - **Currency**: Gold for gameplay progression, potentially gems for premium purchases (TBD)
 - **Summoners**: Elemental characters with progression (levels, traits, boons) - each has lore and personality
 
+### Skeletal Animation Principles
+
+**Walk Cycle Limb Synchronization:**
+
+When animating skeletal rigs with mirrored limbs (legs, arms), the math works as follows:
+
+1. **Sprite offset direction determines rotation effect:**
+   - Left limbs typically have positive X sprite offset from pivot
+   - Right limbs typically have negative X sprite offset from pivot
+   - Positive rotation moves a positive-X-offset sprite LEFT
+   - Positive rotation moves a negative-X-offset sprite RIGHT
+
+2. **For alternating leg motion:**
+   - Both legs at SAME keyframe times with OPPOSITE rotation values
+   - Example: Left leg `[+0.12, -0.12, +0.12]`, Right leg `[-0.12, +0.12, -0.12]`
+   - This creates one leg forward while the other is back
+
+3. **For proper cross-body arm motion:**
+   - Arms must swing OPPOSITE to their same-side leg
+   - If left leg is `[+A, -A, +A]` (back, forward, back), left arm should be `[-A, +A, -A]` (forward, back, forward)
+   - If right leg is `[-A, +A, -A]` (forward, back, forward), right arm should be `[+A, -A, +A]` (back, forward, back)
+
+4. **Attack animations must reset ALL animated properties:**
+   - Include tracks for leg rotation (reset to 0.0)
+   - Include tracks for leg position (reset to neutral)
+   - Otherwise legs stay in whatever walk position they were in when attack started
+
