@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3 uid="uid://storm_cloud_3d"]
+
+[ext_resource type="Script" path="res://scripts/units/unit_3d.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/animations/storm_cloud_sprite_frames.tres" id="2_frames"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.6
+height = 1.0
+
+[node name="StormCloud3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+max_hp = 60.0
+attack_damage = 25.0
+attack_speed = 0.7
+move_speed = 2.5
+team = 0
+aggro_radius = 20.0
+collision_radius = 0.6
+unit_type = 1
+movement_layer = 1
+can_target = 0
+flight_altitude = 4.0
+attack_range = 12.0
+is_ranged = true
+attack_vfx_id = "lightning_strike"
+prefer_targets_below = true
+below_target_radius = 6.0
+sprite_frames = ExtResource("2_frames")
+sprite_scale = 1.5
+enable_bobbing = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="ProjectileTargetPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)

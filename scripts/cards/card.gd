@@ -287,6 +287,10 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			)
 			unit.global_position = safe_pos
 
+			# Preserve flight altitude for flying units (spawn position is ground-level)
+			if unit.movement_layer == Unit3D.MovementLayer.AIR:
+				unit.global_position.y = unit.flight_altitude
+
 			# Start spawn reveal effect if duration specified (ghost materialize animation)
 			if spawn_duration > 0.0:
 				unit.start_spawn_reveal(spawn_duration)

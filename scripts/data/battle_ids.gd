@@ -59,6 +59,9 @@ const ARENA_MIXED_TACTICS: StringName = &"arena_mixed_tactics"
 ## Arena Battle 4: Full Combat - All unit types
 const ARENA_FULL_COMBAT: StringName = &"arena_full_combat"
 
+## Arena Battle: Storm Cloud Test - Flying lightning attackers
+const ARENA_STORM_CLOUD: StringName = &"arena_storm_cloud"
+
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
@@ -83,6 +86,7 @@ const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
 	ARENA_RANGED_INTRO,
 	ARENA_MIXED_TACTICS,
 	ARENA_FULL_COMBAT,
+	ARENA_STORM_CLOUD,
 ]
 
 ## All battle IDs (events + tutorials + campaign)
