@@ -20,6 +20,7 @@ const MIN_FLIGHT_ALTITUDE: float = 0.5  ## Minimum altitude for flying units
 const MAX_FLIGHT_ALTITUDE: float = 10.0  ## Maximum altitude for flying units (affects shadow scaling)
 const SHADOW_SIZE_REDUCTION_FACTOR: float = 0.4  ## At max altitude, shadow is 60% of original size (1.0 - 0.4)
 const SHADOW_OPACITY_REDUCTION_FACTOR: float = 0.6  ## At max altitude, shadow is 40% of original opacity (1.0 - 0.6)
+const BELOW_TARGET_SCORE_BONUS: float = 5.0  ## Max targeting bonus for targets directly below flying units
 
 ## Unit separation constants (prevents stacking during movement)
 const MAX_COLLISION_RADIUS: float = 1.5  ## Largest expected collision_radius (for spatial query sizing)
@@ -723,8 +724,8 @@ func _acquire_target() -> Node3D:
 
 			# Strong bonus for targets directly below within radius
 			if xz_dist <= below_target_radius and y_diff > 0:
-				# Closer horizontally = more bonus (5.0 max bonus)
-				score += 5.0 * (1.0 - xz_dist / below_target_radius)
+				# Closer horizontally = more bonus
+				score += BELOW_TARGET_SCORE_BONUS * (1.0 - xz_dist / below_target_radius)
 
 		# Track best scoring target
 		if score > best_score:
