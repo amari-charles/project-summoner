@@ -1,7 +1,7 @@
 # Fateforged - Current State
 
-**Last Updated:** 2025-12-16
-**Version:** Pre-Alpha (Phase 1 - Save System IMPLEMENTED)
+**Last Updated:** 2025-12-30
+**Version:** Pre-Alpha (Phase 2 - Core Loop Build)
 
 ## Project Overview
 
@@ -134,64 +134,14 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 
 ### Project Structure
 
-```
-project-summoner/
-├── assets/
-│   └── textures/
-│       └── grass_tile.png         # Battlefield ground texture
-├── scenes/
-│   ├── battlefield/
-│   │   ├── battlefield.tscn       # Main battlefield scene
-│   │   ├── ground.tscn            # Ground visual component
-│   │   └── test_game.tscn         # Test battle scene
-│   ├── cards/
-│   │   ├── warrior_card.tscn      # Melee unit card
-│   │   ├── archer_card.tscn       # Ranged unit card
-│   │   ├── fireball_card.tscn     # AoE spell card
-│   │   └── wall_card.tscn         # Structure card
-│   ├── units/
-│   │   ├── warrior.tscn           # Melee unit
-│   │   ├── archer.tscn            # Ranged unit
-│   │   └── wall.tscn              # Structure
-│   └── ui/
-│       ├── main_menu.tscn         # Entry point
-│       └── hand_ui.tscn           # Player hand display
-├── scripts/
-│   ├── battlefield/
-│   │   └── ground.gd              # Ground texture management
-│   ├── cards/
-│   │   ├── card.gd                # Base card class
-│   │   ├── unit_card.gd           # Unit spawning cards
-│   │   ├── spell_card.gd          # Spell casting cards
-│   │   └── structure_card.gd      # Structure placement cards
-│   ├── core/
-│   │   ├── base.gd                # Team base structures
-│   │   ├── game_controller.gd     # Game state management
-│   │   └── summoner.gd            # Player/AI summoner
-│   ├── data/
-│   │   ├── profile_repository.gd  # Abstract repo interface
-│   │   └── json_profile_repository.gd  # JSON file implementation
-│   ├── services/
-│   │   ├── economy_service.gd     # Resource management
-│   │   ├── collection_service.gd  # Card collection
-│   │   └── deck_service.gd        # Deck management
-│   ├── debug/
-│   │   └── dev_console.gd         # Debug commands
-│   ├── ui/
-│   │   ├── game_ui.gd             # In-game UI controller
-│   │   ├── hand_ui.gd             # Hand visualization
-│   │   └── main_menu.gd           # Main menu controller
-│   └── units/
-│       ├── unit.gd                # Base unit class
-│       ├── warrior_unit.gd        # Melee fighter
-│       ├── archer_unit.gd         # Ranged attacker
-│       └── wall_unit.gd           # Static structure
-├── docs/
-│   ├── current-state.md           # This file
-│   └── PROJECT_DOC.md             # Original design document
-└── .claude/
-    └── CLAUDE.md                  # Development guidelines
-```
+See `docs/start-here.md` for a current overview of the codebase organization.
+
+Key directories:
+- `scripts/` - GDScript source code
+- `scenes/` - Godot scene files
+- `assets/` - Art, audio, and other resources
+- `docs/` - Documentation
+- `tests/` - GUT unit tests
 
 ## Data Schema
 
@@ -411,93 +361,29 @@ Implementation (JsonProfileRepo → future: DbProfileRepo, SupabaseRepo)
 ## Current Limitations
 
 ### Not Yet Implemented
-- **Card Collection Screen** (Phase 4 - Planned)
-- **Deck Builder** (Phase 5 - Planned)
-- **Post-Match Rewards** (Phase 6 - Planned)
-- **Settings Screen** (Future)
 - **Sound/Music** (Future)
 - **Card Variants/Progression** (Future)
 - **AI Opponent Logic** (Current: Random cards only)
 
 ### Technical Debt
-- No unit animations (colored rectangles only)
-- No card art (placeholder text)
-- No particle effects for spells
 - No sound effects
-- Hardcoded card stats (no external data files yet)
+- AI opponent uses random card selection
 
 ### Known Issues
-- None currently
+- See `docs/bugs.md` for current issues
 
-## Planned Development Phases
+## Development Phases
 
-### Phase 1: Save System ✅ COMPLETE
-**Goal:** Persistent data storage for resources, cards, and decks
+See [roadmap.md](project/roadmap.md) for current development priorities.
 
-**Implemented Components:**
-- **Repository Layer:**
-  - `IProfileRepo` (abstract base class)
-  - `JsonProfileRepo` (JSON file implementation)
-- **Service Layer:**
-  - `EconomyService` (resource management)
-  - `CollectionService` (card collection)
-  - `DeckService` (deck management)
-- **Debug Tools:**
-  - `DevConsole` (test commands)
-
-**Architecture:**
-- Repository pattern with swappable implementations
-- DB-ready schema (UUID-based, row-oriented)
-- Atomic writes with dual backup system
-- Debounced autosave (0.5s idle + checkpoints)
-- Write-ahead log (WAL) for future sync
-
-**Acceptance Criteria:** ✅ All met (pending integration testing)
-- Saves persist across app restarts
-- Backup recovery works on corruption
-- Debounced autosave doesn't spam writes
-- Checkpoint saves are immediate
-- Dev console can manipulate save data
-
-### Phase 2: Card Catalog
-**Goal:** Static card definitions for all game cards
-
-**Components:**
-- CardDatabase.gd (autoload)
-- JSON data files for card stats
-- Card unlocking system
-
-### Phase 3: Economy Manager
-**Goal:** Resource tracking and rewards
-
-**Components:**
-- Integration with Economy.gd from Phase 1
-- Post-match reward calculation
-- Gold/Essence/Fragment systems
-
-### Phase 4: Collection Screen
-**Goal:** UI to view owned cards
-
-**Components:**
-- Collection UI scene
-- Card filtering/sorting
-- Card detail view
-
-### Phase 5: Deck Builder
-**Goal:** Player deck customization
-
-**Components:**
-- Deck builder UI
-- 30-card deck validation
-- Multiple deck support
-
-### Phase 6: Post-Match Rewards
-**Goal:** Reward screen after battles
-
-**Components:**
-- Victory/defeat rewards UI
-- Resource distribution
-- Card drops
+### Completed
+- ✅ Save system with repository pattern
+- ✅ Card catalog and collection system
+- ✅ Deck building (inline in Collection screen)
+- ✅ Campaign progression system
+- ✅ Summoner screen with carousel
+- ✅ VFX system (fireball, lightning)
+- ✅ Premium Store UI
 
 ## Future Considerations
 

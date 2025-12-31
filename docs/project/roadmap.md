@@ -1,7 +1,7 @@
 # Fateforged — Development Roadmap
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-30
 **Source:** Extracted from PROJECT_DOC.md
 
 ⚙️ **Engine:** Godot 4.5 (3D perspective with orthographic camera)
@@ -18,15 +18,17 @@
 
 ✅ 3D battlefield with pannable camera
 ✅ Mana system + card playing
-✅ Core unit types (melee, ranged, structures)
+✅ Core unit types (melee, ranged, flying, structures)
 ✅ Unit AI and autonomous behavior
 ✅ Base HP and win/loss conditions
 ✅ Campaign progression system
 ✅ Save/load functionality
-✅ VFX system for abilities
+✅ VFX system for abilities (fireball, lightning)
+✅ Collection screen with inline deck editor
+✅ Summoner screen with carousel
+✅ Premium Store UI
+✅ Dialogue system with localization
 
 ### What's Next
 
-See **Current Priorities** section below.
-
-##Human: Its gonna take too long to do the docs like this. are there any docs that we absolutely need like quick? We can wait for the rest. Lets prioritize the asset reorg now then circle back to creating the new docks later if we want to commit. Otherwise abort the rest of the doc creation and commit what you have
+See `docs/todos.md` for current priorities.
