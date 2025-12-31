@@ -32,12 +32,6 @@ Looking to the side, elsewhere—as if the viewer isn't interesting enough to ho
 
 ---
 
-## Gameplay Identity
-
-Wind fateforgers are fast and elusive. Flowy, hard to pin down, strike and slip away.
-
----
-
 ## Sample Quotes
 
 *To be developed*

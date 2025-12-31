@@ -26,12 +26,6 @@ Focused on nurturing something—at peace, not concerned with the viewer.
 
 ---
 
-## Gameplay Identity
-
-Water fateforgers are nurturing and healing. Flowy, supportive, sustaining.
-
----
-
 ## Sample Quotes
 
 *To be developed*

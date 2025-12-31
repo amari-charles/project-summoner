@@ -20,12 +20,6 @@ Looking down at the viewer with a cocky smile. You're the challenge he's been wa
 
 ---
 
-## Gameplay Identity
-
-Fire fateforgers are erratic and powerful up front. Burst damage, explosive plays.
-
----
-
 ## Sample Quotes
 
 *To be developed*

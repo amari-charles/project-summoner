@@ -28,16 +28,10 @@ Looking straight at the viewer, head on. Straightforward, steady gaze.
 
 ---
 
-## Gameplay Identity
-
-Earth fateforgers are strong, slow, and enduring. Immovable, outlast opponents.
-
----
-
 ## Sample Quotes
 
-_To be developed_
+*To be developed*
 
 ---
 
-_See also: [Earth Element](../../elements/earth.md) | [Other Fateforgers](./)_
+*See also: [Earth Element](../../elements/earth.md) | [Other Fateforgers](./)*
