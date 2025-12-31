@@ -88,8 +88,9 @@ docs/
 │   ├── world.md               The Academy, setting
 │   ├── elements.md            Elemental mythology
 │   ├── narrative-arc.md       Story progression
-│   ├── summoners/             Playable summoner bios
-│   └── characters/            NPC bios (Merlin, etc.)
+│   └── characters/
+│       ├── fateforgers/       Playable character bios
+│       └── npcs/              NPC bios (Merlin, etc.)
 └── design/                    Design decisions
     ├── summoner-and-nexus.md
     └── card-progression-economy.md
@@ -152,7 +153,7 @@ docs/
 1. **[Lore Overview](lore/README.md)** - All worldbuilding and narrative docs
 2. **[World & Setting](lore/world.md)** - The Academy, locations, tone
 3. **[Campaign Narrative](features/campaign/narrative.md)** - Writing guidelines for campaign content
-4. **[Summoner Bios](lore/summoners/)** - Character templates to fill in
+4. **[Fateforger Bios](lore/characters/fateforgers/)** - Character templates to fill in
 
 ## Development Workflow
 

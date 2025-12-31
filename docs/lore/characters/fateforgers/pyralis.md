@@ -66,4 +66,4 @@ How does Pyralis's personality reflect their mechanics?
 
 ---
 
-*See also: [Elements - Fire](../elements.md) | [Other Summoners](./)*
+*See also: [Elements - Fire](../../elements.md) | [Other Fateforgers](./)*

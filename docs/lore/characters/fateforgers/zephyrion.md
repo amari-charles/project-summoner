@@ -66,4 +66,4 @@ How does Zephyrion's personality reflect their mechanics?
 
 ---
 
-*See also: [Elements - Wind](../elements.md) | [Other Summoners](./)*
+*See also: [Elements - Wind](../../elements.md) | [Other Fateforgers](./)*

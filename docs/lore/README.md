@@ -13,15 +13,16 @@ This directory contains all worldbuilding, narrative, and character documentatio
 ### Story
 - **[narrative-arc.md](narrative-arc.md)** - Campaign story progression and themes
 
-### Summoners
-Character bios for playable summoners:
-- **[summoners/pyralis.md](summoners/pyralis.md)** - Fire summoner
-- **[summoners/aquira.md](summoners/aquira.md)** - Water summoner
-- **[summoners/zephyrion.md](summoners/zephyrion.md)** - Wind summoner
-- **[summoners/terravorn.md](summoners/terravorn.md)** - Earth summoner
+### Characters
 
-### NPCs & Characters
-- **[characters/merlin.md](characters/merlin.md)** - Headmaster of the Academy
+#### Fateforgers (Playable)
+- **[characters/fateforgers/pyralis.md](characters/fateforgers/pyralis.md)** - Fire
+- **[characters/fateforgers/aquira.md](characters/fateforgers/aquira.md)** - Water
+- **[characters/fateforgers/zephyrion.md](characters/fateforgers/zephyrion.md)** - Wind
+- **[characters/fateforgers/terravorn.md](characters/fateforgers/terravorn.md)** - Earth
+
+#### NPCs
+- **[characters/npcs/merlin.md](characters/npcs/merlin.md)** - Headmaster of the Academy
 
 ---
 
