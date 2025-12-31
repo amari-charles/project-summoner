@@ -8,10 +8,27 @@ This directory contains all worldbuilding, narrative, and character documentatio
 - **[world.md](world.md)** - The Academy of Summoning Arts, magic system, regions, threats
 
 ### Elements
-- **[elements/fire.md](elements/fire.md)** - Erratic, burst damage, powerful up front
-- **[elements/water.md](elements/water.md)** - Nurturing, healing, flowy
-- **[elements/wind.md](elements/wind.md)** - Fast, elusive, flowy
-- **[elements/earth.md](elements/earth.md)** - Strong, slow, enduring
+
+#### Core (4)
+- **[fire.md](elements/fire.md)** - Erratic, burst damage, powerful up front
+- **[water.md](elements/water.md)** - Nurturing, healing, flowy
+- **[wind.md](elements/wind.md)** - Fast, elusive, flowy
+- **[earth.md](elements/earth.md)** - Strong, slow, enduring
+
+#### Elevated (3)
+- **[holy.md](elements/holy.md)** - Fire elevated; divine purpose, cleansing light
+- **[ice.md](elements/ice.md)** - Water elevated; control, stillness, preservation
+- **[metal.md](elements/metal.md)** - Earth elevated; craft, civilization, forged strength
+
+#### Outer (5)
+- **[lightning.md](elements/lightning.md)** - Pure energy, speed, precision
+- **[shadow.md](elements/shadow.md)** - Secrecy, illusion, the unseen
+- **[poison.md](elements/poison.md)** - Corruption, persistence, decay
+- **[life.md](elements/life.md)** - Growth, restoration, connection
+- **[death.md](elements/death.md)** - Endings, transition, inevitability
+
+#### Antagonist (1)
+- **[occultist.md](elements/occultist.md)** - Corruption, forbidden knowledge, elemental inversion
 
 ### Story
 - **[narrative-arc.md](narrative-arc.md)** - Campaign story progression and themes
