@@ -513,6 +513,7 @@ func _physics_process(delta: float) -> void:
 	if movement_layer == MovementLayer.AIR:
 		velocity.y = 0.0  # No vertical movement
 		# Keep shadow pinned to ground regardless of altitude
+		# +0.01 offset prevents z-fighting with ground plane
 		if shadow_component:
 			shadow_component.position.y = -global_position.y + 0.01
 

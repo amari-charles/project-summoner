@@ -6,7 +6,6 @@ class_name LightningStrikeVFX
 ## Configurable parameters
 @export var hold_duration: float = 0.4  ## Time at full brightness
 @export var fade_duration: float = 0.4  ## Fade out time
-@export var bolt_segments: int = 8  ## Segments for the bolt mesh (more = smoother curves)
 
 ## Runtime state (received via receive_data)
 var start_position: Vector3 = Vector3.ZERO
