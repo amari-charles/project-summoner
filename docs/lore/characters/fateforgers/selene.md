@@ -8,7 +8,9 @@
 
 ## Personality
 
-Gentle, caring, relaxed. She is who she appears to be—no hidden edges or contradictions. At peace with herself and the world around her.
+Gentle, caring, relaxed. Intellectually sharp and emotionally intelligent—she reads people and situations well. At peace with herself and the world around her.
+
+Kind by nature, but good at setting boundaries. She's caring because she chooses to be, not because she can't say no.
 
 Has friendly water spirits she's close with.
 
