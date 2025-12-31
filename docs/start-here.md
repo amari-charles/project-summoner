@@ -1,7 +1,7 @@
 # Getting Started with Fateforged
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-16
+**Last Updated:** 2025-12-30
 **Purpose:** New developer onboarding and documentation guide
 
 Welcome to Fateforged! This document will help you get oriented with the project structure, key systems, and where to find information.
@@ -11,13 +11,13 @@ Welcome to Fateforged! This document will help you get oriented with the project
 | What do you want to do? | Where to go |
 |-------------------------|-------------|
 | Understand the project vision | [Design Vision](project/vision.md) |
-| See what's currently implemented | [Current State](current-state.md) |
-| Learn the 3D architecture | [Current State - Architecture](current-state.md#architecture) |
+| See what's currently implemented | [Current State](project/current-state.md) |
+| Learn the 3D architecture | [Current State - Architecture](project/current-state.md#architecture) |
 | Create a new card | [Card System](features/cards/system.md) |
 | Add a new unit type | [Combat System](features/combat/system.md) |
 | Understand the coordinate system | [Coordinate System](features/coordinates/system.md) |
 | Find art asset specs | [Asset Specifications](art/asset-specifications.md) |
-| Check known bugs | [Bug Tracker](bugs.md) |
+| Check known bugs | [Bug Tracker](tracking/bugs.md) |
 
 ## Project Overview
 
@@ -48,31 +48,35 @@ Fateforged uses a two-phase battle system designed to create the fantasy of two 
 ```
 docs/
 ├── start-here.md              ← You are here
-├── current-state.md           Main project reference
-├── bugs.md                    Known bugs and issues
-├── todos.md                   Planned features and tasks
-├── changelog.md               Public release notes
-├── development-history.md     Internal progress tracking
 ├── project/                   Vision & planning
 │   ├── vision.md
-│   └── roadmap.md
+│   ├── roadmap.md
+│   ├── brief.md               Studio-ready pitch doc
+│   ├── current-state.md       Main project reference
+│   ├── development-history.md Internal progress tracking
+│   └── changelog.md           Public release notes
+├── tracking/                  Task & bug tracking
+│   ├── bugs.md                Known bugs and issues
+│   ├── bugs-resolved.md       Resolved bugs archive
+│   ├── todos.md               Planned features and tasks
+│   └── todos-completed.md     Completed tasks archive
 ├── features/                  Feature specifications
 │   ├── cards/system.md
 │   ├── combat/system.md
 │   ├── battlefield/system.md
 │   ├── coordinates/system.md
-│   ├── heroes/               Hero system docs
-│   ├── spells/               Spell mechanics
-│   ├── campaign/             Campaign & narrative
-│   ├── events/               Event system
-│   ├── shop/                 Shop system
+│   ├── summoners/             Summoner system docs
+│   ├── spells/                Spell mechanics
+│   ├── campaign/              Campaign & narrative
+│   ├── events/                Event system
+│   ├── shop/                  Shop system
 │   ├── elemental-system.md
 │   └── modifier-system.md
 ├── technical/                 Technical references
 │   ├── integration-status.md
 │   ├── dialogue-system.md
 │   ├── battle-enemy-spawning.md
-│   └── vfx/                  VFX documentation
+│   └── vfx/                   VFX documentation
 ├── workflows/                 Development workflows
 │   ├── creating-dialogue.md
 │   └── pr-review-guidelines.md
@@ -81,11 +85,11 @@ docs/
 │   ├── visual-style-references.md
 │   └── ui-assets.md
 ├── lore/                      Worldbuilding & narrative
-│   ├── world.md              The Academy, setting
-│   ├── elements.md           Elemental mythology
-│   ├── narrative-arc.md      Story progression
-│   ├── summoners/            Playable summoner bios
-│   └── characters/           NPC bios (Merlin, etc.)
+│   ├── world.md               The Academy, setting
+│   ├── elements.md            Elemental mythology
+│   ├── narrative-arc.md       Story progression
+│   ├── summoners/             Playable summoner bios
+│   └── characters/            NPC bios (Merlin, etc.)
 └── design/                    Design decisions
     ├── summoner-and-nexus.md
     └── card-progression-economy.md
@@ -126,7 +130,7 @@ docs/
 
 ### For New Developers
 
-1. **[Current State](current-state.md)** - Read this first! Complete overview and architecture
+1. **[Current State](project/current-state.md)** - Read this first! Complete overview and architecture
 2. **[Card System](features/cards/system.md)** - How cards and units work
 3. **[Combat System](features/combat/system.md)** - Unit AI and battle mechanics
 4. **[Coordinate System](features/coordinates/system.md)** - Understanding 3D positioning
@@ -237,12 +241,12 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 
 - **Questions about code?** Check inline comments (heavily documented)
 - **Questions about design?** See [Design Vision](project/vision.md)
-- **Found a bug?** Add to [Bug Tracker](bugs.md)
+- **Found a bug?** Add to [Bug Tracker](tracking/bugs.md)
 - **Want to contribute?** Follow git workflow in [`.claude/CLAUDE.md`](../.claude/CLAUDE.md)
 
 ## Next Steps
 
-1. Read [Current State](current-state.md) for a complete overview
+1. Read [Current State](project/current-state.md) for a complete overview
 2. Run the VFX test scene to see the game in action
 3. Explore the codebase - scripts are heavily commented
 4. Check [Roadmap](project/roadmap.md) to see what's planned
@@ -253,7 +257,7 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 **Welcome to the team! Let's build something great.**
 
 *Related Documents:*
-- [Current State](current-state.md)
+- [Current State](project/current-state.md)
 - [Card System](features/cards/system.md)
 - [Combat System](features/combat/system.md)
 - [Design Vision](project/vision.md)
