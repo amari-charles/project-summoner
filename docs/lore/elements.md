@@ -9,24 +9,16 @@ The elemental system in Fateforged is built on deep philosophical foundations. E
 The foundation of summoning. These are the primary paths a summoner can walk.
 
 ### Fire (Variant: Solar)
-**Embodies:** Vitality, passion, transformation
-
-Fire is not merely destruction—it is change itself. Fire summoners burn with inner purpose, transforming everything they touch. Solar Fire represents the controlled, radiant aspect: tempered but fierce energy that illuminates rather than consumes.
+Embodies vitality, passion, and transformation. Solar Fire represents controlled, radiant heat—a tempered but fierce energy.
 
 ### Water (Variant: Mist)
-**Embodies:** Adaptability, empathy, memory
-
-Water flows around obstacles, remembers every shore it has touched, and reflects the world back upon itself. Mist is water's elusive face—reactive, concealing, transformative in subtle ways.
+Symbolizes adaptability, empathy, and memory. Mist is elusive and reactive, emphasizing concealment and transformation.
 
 ### Wind (Variant: Tempest)
-**Embodies:** Motion, freedom, volatility
-
-Wind cannot be held. It is speed, unpredictability, the joy of movement without destination. Tempest is wind unleashed—chaotic, fast, refusing to be tamed.
+Represents motion, freedom, and volatility. Tempest is chaotic, fast, and unpredictable.
 
 ### Earth (Variant: Crystal)
-**Embodies:** Stability, structure, endurance
-
-Earth endures. It is the foundation upon which all else is built, patient and unyielding. Crystal is earth refined—clarity through pressure, resilience through structure.
+Stands for stability, structure, and endurance. Crystal reflects refinement, resilience, and clarity.
 
 ---
 
@@ -54,16 +46,14 @@ Occultist forces often serve as antagonists, disrupting the balance that summone
 
 ## Elevated Elements
 
-True elevation is not power—it is transformation. Only certain elements can elevate, because elevation requires transcending one's fundamental nature.
+Elevations are fundamental transformations—not stronger forms, but entirely new existential states. Only certain elements can elevate because true elevation requires an element to transcend its natural identity.
 
-| Base Element | Elevated Form | Transformation |
-|--------------|---------------|----------------|
-| **Fire** | **Holy** | Physical becomes sacred. Flame becomes sanctity, divine intention, cleansing light. |
-| **Water** | **Ice** | Mutable becomes immutable. Flow becomes stillness, preservation through perfection. |
-| **Earth** | **Metal** | Organic becomes forged. Matter learns to shape itself into civilization and artifice. |
-| **Life** | **Spirit** | Biological becomes metaphysical. Living energy transcends the body; consciousness becomes form. |
-
-*Note: Wind and Death cannot elevate. Some natures are already at their final form.*
+| Base Element | Elevated Form | Nature of Change |
+|--------------|---------------|------------------|
+| **Fire** | **Holy** | Physical → Moral/Sacred. Flame becomes sanctity, divine intention, cleansing light. |
+| **Water** | **Ice** | Mutable → Immutable. Flow becomes control and stillness, preservation through perfection. |
+| **Earth** | **Metal** | Organic → Forged. Matter learns to shape itself—civilization and artifice emerge. |
+| **Life** | **Spirit** | Biological → Metaphysical. Living energy transcends the body; consciousness becomes form. |
 
 ---
 

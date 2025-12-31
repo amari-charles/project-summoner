@@ -7,12 +7,11 @@
 
 ## Personality
 
-- **Wise**: Centuries of experience inform every word
-- **Patient**: Understands that mastery takes time
-- **Formal but caring**: Maintains dignity while genuinely investing in students
-- **Meritocratic**: Believes strength must be earned, not given
+- Wise
+- Patient
+- Formal but caring
 
-Merlin embodies the Academy's dual nature: welcoming on the surface, but deeply committed to the belief that only the worthy should advance. He cares for his students, yet accepts that many will fail.
+*To be expanded in Phase 4*
 
 ---
 
@@ -40,11 +39,7 @@ Merlin embodies the Academy's dual nature: welcoming on the surface, but deeply 
 
 > "Remember, initiate: what you bind, stays bound. Choose your partner carefully."
 
-> "Your affinity chosen, your companion bound—now prove yourself worthy of them both."
-
-> "The Academy welcomes all who seek knowledge. But knowledge alone will not carry you forward."
-
-> "I have seen a thousand initiates stand where you stand now. Some became legends. Most are forgotten. Which will you be?"
+*Additional quotes to be developed in Phase 4*
 
 ---
 
@@ -62,18 +57,6 @@ Merlin embodies the Academy's dual nature: welcoming on the surface, but deeply 
 - How does Merlin's role evolve as player advances?
 - Does he have a personal stake in the player's journey?
 - What secrets does he keep?
-
----
-
-## Design Notes
-
-Merlin should feel like a **trustworthy mentor** whose approval matters. Players should want to impress him, not fear him. His high standards come from genuine belief in the player's potential, not cruelty.
-
-Avoid:
-- Making him comic relief
-- Modern slang or casual speech
-- Excessive exposition dumps
-- Being purely mechanical (he should have personality, not just explain tutorials)
 
 ---
 
