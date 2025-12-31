@@ -40,7 +40,7 @@ This directory contains all worldbuilding, narrative, and character documentatio
 - **[Selene](characters/fateforgers/selene.md)** - Water (Black woman)
 - **[Mei](characters/fateforgers/mei.md)** - Wind (Asian woman)
 - **[Teo](characters/fateforgers/teo.md)** - Earth (Hispanic man)
-- **[Kai Ise](characters/fateforgers/kai-ise.md)** - Space Spirit (Asian man, isekai'd)
+- **[Kai Ise](characters/fateforgers/kai-ise.md)** - No element/Space Spirit companion (Asian man, isekai'd)
 
 #### NPCs
 - **[Merlin](characters/npcs/merlin.md)** - Headmaster of the Academy

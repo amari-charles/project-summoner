@@ -22,14 +22,6 @@ Inspired by isekai light novels with absurdly long titles. Reference to drop int
 
 ---
 
-## Gameplay Identity
-
-Slight buff to all elements. The implied reason (never stated explicitly) is that his Space Spirit chooses the stronger summons.
-
-Jack of all trades, master of none—but with hidden advantages.
-
----
-
 ## Appearance
 
 - White tee
@@ -49,6 +41,12 @@ But in the card art, there will be brief flashes of anxiety:
 - Nervous tells that happen so fast you're not sure if you saw them
 
 The confident facade masks someone who's in way over his head.
+
+---
+
+## Portrait Art Direction
+
+Confident pose, looking assured—but with a subtle anxiety tell (eyes slightly too wide, or hand position suggesting tension). The Space Spirit on his shoulder looks completely unbothered.
 
 ---
 

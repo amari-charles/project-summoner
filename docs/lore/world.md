@@ -16,7 +16,7 @@ Strength is both a practical necessity against the threats beyond the academy an
 
 The Academy is overseen by **Headmaster Merlin**, who guides students through their journey from novice to master summoner with measured patience—though even his mentorship reflects the institution's deeper values.
 
-See: [Merlin Character Bio](characters/merlin.md)
+See: [Merlin Character Bio](characters/npcs/merlin.md)
 
 ---
 
@@ -80,4 +80,4 @@ The world of Fateforged blends:
 
 ---
 
-*See also: [Narrative Arc](narrative-arc.md) | [Elements](elements.md) | [Summoners](summoners/)*
+*See also: [Narrative Arc](narrative-arc.md) | [Elements](elements/) | [Fateforgers](characters/fateforgers/)*
