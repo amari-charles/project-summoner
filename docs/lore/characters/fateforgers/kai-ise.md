@@ -14,6 +14,14 @@ However, a **Space Spirit** found him and became his companion. Kai pretends to 
 
 ---
 
+## Inspiration
+
+Inspired by isekai light novels with absurdly long titles. Reference to drop into his lore somewhere:
+
+*"That Time I Reincarnated With No Powers But My Space Spirit Keeps Covering For Me So Now Everyone Thinks I'm A Genius"*
+
+---
+
 ## Gameplay Identity
 
 Slight buff to all elements. The implied reason (never stated explicitly) is that his Space Spirit chooses the stronger summons.

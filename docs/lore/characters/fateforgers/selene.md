@@ -8,13 +8,21 @@
 
 ## Personality
 
-*To be developed*
+Gentle, caring, relaxed. She is who she appears to be—no hidden edges or contradictions. At peace with herself and the world around her.
+
+Has friendly water spirits she's close with.
 
 ---
 
-## Backstory
+## Appearance
 
-*To be developed*
+Braids tied in a ponytail with silver cuffs/beads.
+
+---
+
+## Portrait Art Direction
+
+Focused on nurturing something—at peace, not concerned with the viewer.
 
 ---
 
