@@ -74,4 +74,4 @@ Theory must translate to practical application. Knowledge alone is insufficient;
 
 ---
 
-*See also: [World](world.md) | [Characters](characters/merlin.md)*
+*See also: [World](world.md) | [Characters](characters/)*
