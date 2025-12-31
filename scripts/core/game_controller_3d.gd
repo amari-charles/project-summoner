@@ -362,6 +362,14 @@ func _start_battle_phase() -> void:
 
 	print("BattleCoordinator: Battle phase started - activated %d units" % activated_count)
 
+
+## Skip preparation phase immediately (debug)
+func skip_prep_phase() -> void:
+	if current_phase == BattlePhase.PREPARATION:
+		prep_time_remaining = 0.0
+		_start_battle_phase()
+		print("BattleCoordinator: Prep phase skipped via debug")
+
 func get_time_remaining() -> float:
 	if is_overtime:
 		return overtime_duration - (match_time - match_duration)

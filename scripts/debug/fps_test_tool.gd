@@ -25,6 +25,7 @@ var _fps_label: Label
 var _target_label: Label
 var _buttons: Dictionary = {}  # fps -> Button
 var _grid_button: Button
+var _skip_prep_button: Button
 
 
 ## =============================================================================
@@ -161,6 +162,13 @@ func _create_ui() -> void:
 	_grid_button.pressed.connect(_on_grid_toggle_pressed)
 	vbox.add_child(_grid_button)
 
+	# Skip Prep Phase button
+	_skip_prep_button = Button.new()
+	_skip_prep_button.text = "Skip Prep Phase"
+	_skip_prep_button.custom_minimum_size = Vector2(200, 32)
+	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
+	vbox.add_child(_skip_prep_button)
+
 	# Start hidden by default (press ` or F12 to show)
 	_panel.visible = false
 
@@ -206,3 +214,12 @@ func _on_grid_toggle_pressed() -> void:
 	SpatialGrid.toggle_debug()
 	var state: String = "On" if SpatialGrid.is_debug_enabled() else "Off"
 	_grid_button.text = "Grid Lines: %s" % state
+
+
+func _on_skip_prep_pressed() -> void:
+	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	if game_controller and game_controller.has_method("skip_prep_phase"):
+		game_controller.skip_prep_phase()
+		print("[FPS Test] Skipped prep phase")
+	else:
+		print("[FPS Test] No game controller found - not in battle?")
