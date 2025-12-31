@@ -76,9 +76,19 @@ docs/
 ├── workflows/                 Development workflows
 │   ├── creating-dialogue.md
 │   └── pr-review-guidelines.md
-└── art/                       Art specifications
-    ├── asset-specifications.md
-    └── visual-style-references.md
+├── art/                       Art specifications
+│   ├── asset-specifications.md
+│   ├── visual-style-references.md
+│   └── ui-assets.md
+├── lore/                      Worldbuilding & narrative
+│   ├── world.md              The Academy, setting
+│   ├── elements.md           Elemental mythology
+│   ├── narrative-arc.md      Story progression
+│   ├── summoners/            Playable summoner bios
+│   └── characters/           NPC bios (Merlin, etc.)
+└── design/                    Design decisions
+    ├── summoner-and-nexus.md
+    └── card-progression-economy.md
 ```
 
 ## Project Structure
@@ -132,6 +142,13 @@ docs/
 1. **[Design Vision](project/vision.md)** - Project goals and philosophy
 2. **[Roadmap](project/roadmap.md)** - Planned features and milestones
 3. **[Combat System](features/combat/system.md)** - Battle mechanics and AI behavior
+
+### For Writers
+
+1. **[Lore Overview](lore/README.md)** - All worldbuilding and narrative docs
+2. **[World & Setting](lore/world.md)** - The Academy, locations, tone
+3. **[Campaign Narrative](features/campaign/narrative.md)** - Writing guidelines for campaign content
+4. **[Summoner Bios](lore/summoners/)** - Character templates to fill in
 
 ## Development Workflow
 
