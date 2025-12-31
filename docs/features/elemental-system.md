@@ -239,7 +239,7 @@ var modifiers = ModifierSystem.get_modifiers_for("unit", categories, {})
 
 ### When Creating New Cards
 
-1. **Choose ONE element type** from the 14 available elements
+1. **Choose ONE element type** from the 13 available elements
 2. **Variants/Hybrids are name-only** - use parent element's affinity
 3. **Document the card's theme** in relation to its element
 

@@ -1,6 +1,6 @@
 # Occultist
 
-**Category:** Antagonist Element
+**Category:** Occultist Element
 
 ## Concept
 
