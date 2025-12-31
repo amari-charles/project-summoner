@@ -8,6 +8,10 @@
 
 ## Table of Contents
 
+- [Documentation Reorganization (2025-12)](#documentation-reorganization-2025-12)
+- [New Units & VFX (2025-12)](#new-units--vfx-2025-12)
+- [UI Polish & Features (2025-12)](#ui-polish--features-2025-12)
+- [Summoner Screen Overhaul (2025-12)](#summoner-screen-overhaul-2025-12)
 - [Dialogue System & Localization (2025-11)](#dialogue-system--localization-2025-11)
 - [Visual Polish & Game Feel Improvements (2025-11-12)](#visual-polish--game-feel-improvements-2025-11-12)
 - [Documentation & Asset Reorganization (2025-11-10)](#documentation--asset-reorganization-2025-11-10)
@@ -17,6 +21,101 @@
 - [Core Card System Expansion (2025-11-04)](#core-card-system-expansion-2025-11-04)
 - [Foundation: Core Gameplay (2025-11-04)](#foundation-core-gameplay-2025-11-04)
 - [Initial Project Setup (2025-11-03)](#initial-project-setup-2025-11-03)
+
+---
+
+## Documentation Reorganization (2025-12)
+
+### What We Built
+- Created `docs/lore/` folder structure for narrative content
+- Added `docs/project/brief.md` - studio-ready pitch document
+- Migrated `CAMPAIGN_LORE.md` content to organized lore docs
+- Created summoner bio templates and character docs
+
+### Files Added
+- `docs/lore/README.md` - Index of lore documentation
+- `docs/lore/world.md` - Academy setting and worldbuilding
+- `docs/lore/elements.md` - Elemental mythology
+- `docs/lore/narrative-arc.md` - Campaign story structure
+- `docs/lore/summoners/*.md` - Templates for summoner bios
+- `docs/lore/characters/merlin.md` - Headmaster character doc
+- `docs/project/brief.md` - Game pitch document
+
+---
+
+## New Units & VFX (2025-12)
+
+### What We Built
+- Storm Cloud flying unit with lightning attack VFX
+- Lightning bolt projectile with electric arc visual effects
+
+### Technical Decisions
+
+**Flying Unit Type:**
+- Added FLYING movement type to unit system
+- Flying units ignore ground-based obstacles
+- Distinct visual treatment with shadow offset
+
+**Lightning VFX:**
+- Electric arc effect for lightning attacks
+- Particle-based bolt rendering
+
+---
+
+## UI Polish & Features (2025-12)
+
+### What We Built
+- Kenny UI Pack integration for consistent visual style
+- Campaign screen styling polish
+- Collection screen drag-and-drop with physics
+- Inline deck editor in Collection screen
+- Premium Store UI for summoners, cosmetics, and emotes
+- Collection screen header cleanup
+
+### Technical Decisions
+
+**Drag-and-Drop Physics:**
+- Cards respond to drag with physics-based movement
+- Smooth animations for card rearrangement
+- Tooltip hints for deck card removal
+
+**Inline Deck Editor:**
+- Edit decks directly within Collection screen
+- No separate deck builder scene needed
+- Real-time validation feedback
+
+**Premium Store:**
+- Separate from in-campaign shop (Caravan)
+- For meta-progression: summoners, cosmetics, emotes
+- Tab-based navigation
+
+---
+
+## Summoner Screen Overhaul (2025-12)
+
+### What We Built
+- Infinite carousel with wrap-around navigation
+- Animated card positions for smooth transitions
+- Element-themed background with energy wave shader
+- Shared campaign progress across summoners
+- Warm color palette and visual depth improvements
+
+### Technical Decisions
+
+**Infinite Carousel:**
+- Wrap-around navigation (last→first, first→last)
+- Animated card position transitions
+- Visual feedback for selected summoner
+
+**Shared Campaign Progress:**
+- Campaign progress not tied to individual summoner
+- Allows switching summoners without losing progress
+- Unit tests added for verification
+
+**Element Backgrounds:**
+- Each summoner has element-themed background color
+- Animated energy wave shader for visual interest
+- Replaced black background with warm, thematic colors
 
 ---
 
@@ -390,4 +489,4 @@ Throughout development, we've maintained these core principles:
 
 *This document is living - updated as we build and learn.*
 
-**Last Updated:** 2025-11-25
+**Last Updated:** 2025-12-30
