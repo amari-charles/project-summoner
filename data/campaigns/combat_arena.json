@@ -108,7 +108,7 @@
         {"catalog_id": "ember_slinger", "count": 2}
       ],
       "enemy_hp": 150.0,
-      "unlock_requirements": [],
+      "unlock_requirements": ["arena_melee_basics"],
       "ai_type": "heuristic"
     },
     {
@@ -136,7 +136,7 @@
         {"catalog_id": "slime_blue", "count": 2}
       ],
       "enemy_hp": 200.0,
-      "unlock_requirements": [],
+      "unlock_requirements": ["arena_ranged_intro"],
       "ai_type": "heuristic"
     },
     {
@@ -166,7 +166,7 @@
         {"catalog_id": "neade", "count": 1}
       ],
       "enemy_hp": 250.0,
-      "unlock_requirements": [],
+      "unlock_requirements": ["arena_mixed_tactics"],
       "ai_type": "heuristic"
     },
     {

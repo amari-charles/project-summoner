@@ -222,13 +222,4 @@ func _on_skip_prep_pressed() -> void:
 		game_controller.skip_prep_phase()
 		print("[FPS Test] Skipped prep phase")
 	else:
-		# Try finding by class
-		var controllers: Array = get_tree().get_nodes_in_group("game_controller")
-		if controllers.is_empty():
-			# Search for any node with the method
-			var root: Node = get_tree().current_scene
-			if root and root.has_method("skip_prep_phase"):
-				root.skip_prep_phase()
-				print("[FPS Test] Skipped prep phase (via scene root)")
-			else:
-				print("[FPS Test] No game controller found - not in battle?")
+		print("[FPS Test] No game controller found - not in battle?")
