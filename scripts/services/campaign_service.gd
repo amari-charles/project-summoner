@@ -199,15 +199,12 @@ func _convert_deck_entries(battle: Dictionary, key: String) -> void:
 		var entry: Dictionary = entry_variant.duplicate()
 		# Convert catalog_id from StringName to String
 		var catalog_id: Variant = entry.get("catalog_id", "")
-		var catalog_id_str: String = String(catalog_id)
-		entry["catalog_id"] = catalog_id_str
+		entry["catalog_id"] = String(catalog_id)
 		# Convert rarity if present (for reward_cards)
 		if entry.has("rarity"):
 			entry["rarity"] = String(entry.get("rarity", ""))
 		converted.append(entry)
 
-	if converted.size() > 0:
-		print("CampaignService: Converted %s for battle '%s': %s" % [key, battle.get("id", "?"), converted])
 	battle[key] = converted
 
 ## Validate that all reward cards in battle configs exist in the card catalog
