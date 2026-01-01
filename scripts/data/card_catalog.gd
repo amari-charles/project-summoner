@@ -615,6 +615,49 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Puff - Wind cloud that blows puffs of air
+	# Visual: Sprite sheet animation with idle, walk, attack animations
+	_catalog["puff"] = {
+		# Identity
+		"catalog_id": "puff",
+		"card_name": "Puff",
+		"description": "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield.",
+		"rarity": RarityIDs.COMMON,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.RANGED,
+		"mana_cost": 3,
+		"cooldown": 2.0,
+		"summon_time": 1.0,  # Medium unit (3 mana)
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/puff_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats - balanced ranged wind unit
+		"max_hp": 80.0,
+		"attack_damage": 12.0,
+		"attack_range": 8.0,
+		"attack_speed": 0.4,
+		"move_speed": 2.5,
+		"aggro_radius": 18.0,
+		"is_ranged": true,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["ranged", "wind", "elemental", "air"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.WIND
+		}
+	}
+
 	# =========================================================================
 	# TACTICAL COMMAND SPELLS
 	# =========================================================================

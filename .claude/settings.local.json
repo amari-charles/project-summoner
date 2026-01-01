@@ -36,7 +36,8 @@
       "WebFetch(domain:opengameart.org)",
       "Bash(curl:*)",
       "WebFetch(domain:godotshaders.com)",
-      "WebFetch(domain:gameidea.org)"
+      "WebFetch(domain:gameidea.org)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

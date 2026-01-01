@@ -19,6 +19,42 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ## Units & Combat
 
+### 🟢 LOW PRIORITY
+
+#### Refactor Character-Specific Animation Logic to Composition
+**Status:** ⬜ Not Started
+**Category:** Architecture / Units
+**Effort:** Medium
+
+**Description:**
+Move character-specific animation logic (breathing, bobbing, attack styles) out of the base `SpriteCharacter2D5Component` class into composable components.
+
+**Current State:**
+- Breathing animation: `enable_breathing`, `breathing_amplitude`, `breathing_speed` in base class
+- Bobbing animation: `enable_bobbing`, `bob_speed`, `bob_amplitude` in base class
+- Attack styles: `attack_style`, `cycle_attack_styles` in base class
+- Unit3D passes these to visual component via property setters
+
+**Problems:**
+- Every unit carries unused animation parameters
+- Base class grows with each new character type
+- Adding new behaviors requires modifying shared code
+
+**Proposed Solution:**
+Use composition pattern - create separate animation behavior components:
+- `BreathingAnimationComponent` - for cloud-like units (Puff)
+- `BobbingAnimationComponent` - for floating units
+- `AttackEffectComponent` - for single-frame sprite attack effects
+
+Units attach only the components they need.
+
+**Related Files:**
+- `scripts/units/sprite_character_2d5_component.gd`
+- `scripts/units/unit_3d.gd`
+- `scenes/units/puff_3d.tscn`
+
+---
+
 ### 🟡 MEDIUM PRIORITY
 
 #### Investigate Pathfinding & Targeting System Robustness

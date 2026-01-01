@@ -12,9 +12,9 @@ script = ExtResource("1_script")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 pixel_size = 0.01
 billboard = 2
-shaded = true
+shaded = false
 alpha_cut = 0
-texture_filter = 0
+texture_filter = 1
 texture = SubResource("ViewportTexture_1")
 
 [node name="SubViewport" type="SubViewport" parent="Sprite3D"]
