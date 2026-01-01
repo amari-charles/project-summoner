@@ -3,14 +3,14 @@ class_name FirstCardSelection
 
 ## FirstCardSelection - Choose your first card
 ##
-## Part of onboarding flow. Player picks Fire Recruit or Ember Slinger as their starter.
+## Part of onboarding flow. Player picks Fire Elemental or Earth Sprite as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
 # Deck name constant
 const STARTER_DECK_NAME: String = "Starter Deck"
 
-@onready var select_fire_recruit_button: Button = %SelectFireRecruitButton
-@onready var select_ember_slinger_button: Button = %SelectEmberSlingerButton
+@onready var select_fire_elemental_button: Button = %SelectFireElementalButton
+@onready var select_earth_sprite_button: Button = %SelectEarthSpriteButton
 
 var dialogue_manager: Node = null
 
@@ -18,8 +18,8 @@ func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect button handlers
-	select_fire_recruit_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_RECRUIT))
-	select_ember_slinger_button.pressed.connect(_on_card_selected.bind(CardIDs.EMBER_SLINGER))
+	select_fire_elemental_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_ELEMENTAL))
+	select_earth_sprite_button.pressed.connect(_on_card_selected.bind(CardIDs.EARTH_SPRITE))
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)
 	await get_tree().process_frame

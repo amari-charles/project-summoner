@@ -22,11 +22,11 @@
       "summoner_xp_reward": 0,
       "dev_player_deck": [
         {"catalog_id": "earth_sprite", "count": 4},
-        {"catalog_id": "slime_green", "count": 2}
+        {"catalog_id": "puff", "count": 2}
       ],
       "enemy_deck": [
-        {"catalog_id": "slime_blue", "count": 3},
-        {"catalog_id": "slime_pink", "count": 2}
+        {"catalog_id": "fire_elemental", "count": 3},
+        {"catalog_id": "puff", "count": 2}
       ],
       "enemy_hp": 100.0,
       "unlock_requirements": [],
@@ -48,11 +48,11 @@
       "summoner_xp_reward": 0,
       "dev_player_deck": [
         {"catalog_id": "puff", "count": 4},
-        {"catalog_id": "slime_green", "count": 2}
+        {"catalog_id": "earth_sprite", "count": 2}
       ],
       "enemy_deck": [
-        {"catalog_id": "slime_blue", "count": 3},
-        {"catalog_id": "slime_pink", "count": 2}
+        {"catalog_id": "fire_elemental", "count": 3},
+        {"catalog_id": "earth_sprite", "count": 2}
       ],
       "enemy_hp": 100.0,
       "unlock_requirements": [],
@@ -78,8 +78,8 @@
         {"catalog_id": "fire_elemental_swarm", "count": 2}
       ],
       "enemy_deck": [
-        {"catalog_id": "slime_green", "count": 3},
-        {"catalog_id": "slime_blue", "count": 2}
+        {"catalog_id": "earth_sprite", "count": 3},
+        {"catalog_id": "puff", "count": 2}
       ],
       "enemy_hp": 100.0,
       "unlock_requirements": [],
@@ -100,12 +100,12 @@
       "card_xp_reward": 0,
       "summoner_xp_reward": 0,
       "dev_player_deck": [
-        {"catalog_id": "slime_green", "count": 4},
-        {"catalog_id": "slime_blue", "count": 2}
+        {"catalog_id": "earth_sprite", "count": 4},
+        {"catalog_id": "fire_elemental", "count": 2}
       ],
       "enemy_deck": [
-        {"catalog_id": "slime_green", "count": 3},
-        {"catalog_id": "slime_pink", "count": 2}
+        {"catalog_id": "earth_sprite", "count": 3},
+        {"catalog_id": "fire_elemental", "count": 2}
       ],
       "enemy_hp": 100.0,
       "unlock_requirements": [],
@@ -126,12 +126,12 @@
       "card_xp_reward": 0,
       "summoner_xp_reward": 0,
       "dev_player_deck": [
-        {"catalog_id": "fire_recruit", "count": 3},
-        {"catalog_id": "ember_slinger", "count": 3}
+        {"catalog_id": "fire_elemental", "count": 3},
+        {"catalog_id": "puff", "count": 3}
       ],
       "enemy_deck": [
-        {"catalog_id": "fire_recruit", "count": 3},
-        {"catalog_id": "ember_slinger", "count": 2}
+        {"catalog_id": "fire_elemental", "count": 3},
+        {"catalog_id": "puff", "count": 2}
       ],
       "enemy_hp": 150.0,
       "unlock_requirements": ["arena_melee_basics"],
@@ -152,14 +152,14 @@
       "card_xp_reward": 0,
       "summoner_xp_reward": 0,
       "dev_player_deck": [
-        {"catalog_id": "fire_recruit", "count": 2},
-        {"catalog_id": "ember_slinger", "count": 2},
-        {"catalog_id": "blaze_rider", "count": 2}
+        {"catalog_id": "fire_elemental", "count": 2},
+        {"catalog_id": "puff", "count": 2},
+        {"catalog_id": "earth_sprite", "count": 2}
       ],
       "enemy_deck": [
-        {"catalog_id": "fire_recruit", "count": 2},
-        {"catalog_id": "ember_slinger", "count": 2},
-        {"catalog_id": "slime_blue", "count": 2}
+        {"catalog_id": "fire_elemental", "count": 2},
+        {"catalog_id": "puff", "count": 2},
+        {"catalog_id": "earth_sprite", "count": 2}
       ],
       "enemy_hp": 200.0,
       "unlock_requirements": ["arena_ranged_intro"],
@@ -180,46 +180,19 @@
       "card_xp_reward": 0,
       "summoner_xp_reward": 0,
       "dev_player_deck": [
-        {"catalog_id": "fire_recruit", "count": 2},
-        {"catalog_id": "ember_slinger", "count": 2},
-        {"catalog_id": "blaze_rider", "count": 1},
-        {"catalog_id": "ash_vanguard", "count": 1}
+        {"catalog_id": "fire_elemental", "count": 2},
+        {"catalog_id": "puff", "count": 2},
+        {"catalog_id": "earth_sprite", "count": 1},
+        {"catalog_id": "fire_titan", "count": 1}
       ],
       "enemy_deck": [
-        {"catalog_id": "fire_recruit", "count": 2},
-        {"catalog_id": "ember_slinger", "count": 2},
-        {"catalog_id": "blaze_rider", "count": 1},
-        {"catalog_id": "neade", "count": 1}
+        {"catalog_id": "fire_elemental", "count": 2},
+        {"catalog_id": "puff", "count": 2},
+        {"catalog_id": "earth_sprite", "count": 1},
+        {"catalog_id": "fire_titan", "count": 1}
       ],
       "enemy_hp": 250.0,
       "unlock_requirements": ["arena_mixed_tactics"],
-      "ai_type": "heuristic"
-    },
-    {
-      "id": "arena_storm_cloud",
-      "biome_id": "summer_plains",
-      "name_key": "campaign.battle.arena_storm_cloud.name",
-      "description_key": "campaign.battle.arena_storm_cloud.description",
-      "difficulty": 2,
-      "event_type": "battle",
-      "requires_deck": false,
-      "repeatable": true,
-      "reward_type": "none",
-      "reward_cards": [],
-      "gold_reward": 0,
-      "card_xp_reward": 0,
-      "summoner_xp_reward": 0,
-      "dev_player_deck": [
-        {"catalog_id": "storm_cloud", "count": 4},
-        {"catalog_id": "slime_blue", "count": 2}
-      ],
-      "enemy_deck": [
-        {"catalog_id": "slime_green", "count": 3},
-        {"catalog_id": "slime_blue", "count": 2},
-        {"catalog_id": "fire_recruit", "count": 2}
-      ],
-      "enemy_hp": 150.0,
-      "unlock_requirements": [],
       "ai_type": "heuristic"
     }
   ]

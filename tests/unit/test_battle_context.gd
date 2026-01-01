@@ -67,7 +67,7 @@ func test_configure_practice_marks_as_configured() -> void:
 
 func test_configure_practice_with_custom_config() -> void:
 	var custom_config: Dictionary = {
-		"enemy_deck": [{"catalog_id": "fire_recruit", "count": 3}],
+		"enemy_deck": [{"catalog_id": "fire_elemental", "count": 3}],
 		"enemy_hp": 500.0,
 		"ai_type": "aggressive"
 	}

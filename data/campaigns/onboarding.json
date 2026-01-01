@@ -53,7 +53,7 @@
       "card_xp_reward": 15,
       "summoner_xp_reward": 50,
       "enemy_deck": [
-        {"catalog_id": "slime_green", "count": 1}
+        {"catalog_id": "earth_sprite", "count": 1}
       ],
       "enemy_hp": 30.0,
       "unlock_requirements": ["event_first_summon"],
@@ -73,8 +73,8 @@
       "is_tutorial": true,
       "reward_type": "fixed",
       "reward_cards": [
-        {"catalog_id": "fire_recruit", "rarity": "common", "count": 1},
-        {"catalog_id": "ember_slinger", "rarity": "common", "count": 1}
+        {"catalog_id": "fire_elemental", "rarity": "common", "count": 1},
+        {"catalog_id": "puff", "rarity": "common", "count": 1}
       ],
       "gold_reward": 40,
       "card_xp_reward": 15,

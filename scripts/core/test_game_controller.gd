@@ -9,12 +9,12 @@ class_name TestGameController
 
 ## Test deck configuration - edit this to test different cards
 var test_deck_cards: Array[StringName] = [
-	CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE,
-	CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE, CardIDs.NEADE,
+	CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL,
+	CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE,
 	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
 	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
-	CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT,
-	CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER
+	CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF,
+	CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN
 ]
 
 func _ready() -> void:
@@ -24,7 +24,7 @@ func _ready() -> void:
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context and battle_context.has_method("configure_practice_battle"):
 		battle_context.call("configure_practice_battle", {
-			"enemy_deck": [{"catalog_id": CardIDs.FIRE_RECRUIT, "count": 30}],
+			"enemy_deck": [{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 30}],
 			"enemy_hp": 999999.0
 		})
 
@@ -96,13 +96,13 @@ func _load_test_deck_for_summoner(summoner: Summoner) -> void:
 
 	print("TestGameController: Loaded %d test cards for player" % cards.size())
 
-## Load simple enemy deck (just fire recruits)
+## Load simple enemy deck (just fire elementals)
 func _load_enemy_test_deck(summoner: Summoner) -> void:
 	var cards: Array[Card] = []
 
-	# Enemy gets 30 fire recruits (easy target practice)
+	# Enemy gets 30 fire elementals (easy target practice)
 	for i: int in range(30):
-		var card: Card = _load_card_resource(CardIDs.FIRE_RECRUIT)
+		var card: Card = _load_card_resource(CardIDs.FIRE_ELEMENTAL)
 		if card:
 			cards.append(card)
 

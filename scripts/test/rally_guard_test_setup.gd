@@ -16,18 +16,18 @@ extends Node
 
 ## Test deck composition
 var test_deck_ids: Array[String] = [
-	CardIDs.NEADE,        # Test units first
-	CardIDs.NEADE,
-	CardIDs.CHARGE,       # Charge spell
-	CardIDs.RALLY,        # Rally spell
-	CardIDs.GUARD,        # Guard spell
-	CardIDs.CHARGE,       # Extra charge
-	CardIDs.RALLY,        # Extra rally
-	CardIDs.GUARD,        # Extra guard
-	CardIDs.FIRE_RECRUIT, # More units
-	CardIDs.FIRE_RECRUIT,
-	CardIDs.EMBER_SLINGER,
-	CardIDs.EMBER_SLINGER,
+	CardIDs.FIRE_ELEMENTAL,  # Test units first
+	CardIDs.FIRE_ELEMENTAL,
+	CardIDs.CHARGE,          # Charge spell
+	CardIDs.RALLY,           # Rally spell
+	CardIDs.GUARD,           # Guard spell
+	CardIDs.CHARGE,          # Extra charge
+	CardIDs.RALLY,           # Extra rally
+	CardIDs.GUARD,           # Extra guard
+	CardIDs.EARTH_SPRITE,    # More units
+	CardIDs.EARTH_SPRITE,
+	CardIDs.PUFF,
+	CardIDs.PUFF,
 ]
 
 func _ready() -> void:
@@ -108,9 +108,9 @@ func _spawn_test_enemies() -> void:
 
 	# Spawn a few enemy units
 	var enemy_unit_ids: Array[String] = [
-		CardIDs.FIRE_RECRUIT,
-		CardIDs.FIRE_RECRUIT,
-		CardIDs.EMBER_SLINGER,
+		CardIDs.FIRE_ELEMENTAL,
+		CardIDs.FIRE_ELEMENTAL,
+		CardIDs.EARTH_SPRITE,
 	]
 
 	for card_id: String in enemy_unit_ids:

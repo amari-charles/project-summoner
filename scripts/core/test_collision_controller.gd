@@ -14,14 +14,14 @@ func _ready() -> void:
 	# Override test deck with varied units
 	test_deck_cards = [
 		# Small units (small collision radius)
-		CardIDs.SLIME_GREEN, CardIDs.SLIME_GREEN, CardIDs.SLIME_GREEN,
-		CardIDs.SLIME_PINK, CardIDs.SLIME_PINK, CardIDs.SLIME_PINK,
+		CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF,
+		CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF,
 		# Medium units
-		CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT, CardIDs.FIRE_RECRUIT,
-		CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER, CardIDs.EMBER_SLINGER,
+		CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL,
+		CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE,
 		# Larger units
-		CardIDs.SLIME_RED, CardIDs.SLIME_RED, CardIDs.SLIME_RED,
-		CardIDs.ASH_VANGUARD, CardIDs.ASH_VANGUARD, CardIDs.ASH_VANGUARD,
+		CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN,
+		CardIDs.FIRE_ELEMENTAL_SWARM, CardIDs.FIRE_ELEMENTAL_SWARM, CardIDs.FIRE_ELEMENTAL_SWARM,
 		# Spells (Charge to test movement)
 		CardIDs.CHARGE, CardIDs.CHARGE, CardIDs.CHARGE, CardIDs.CHARGE,
 	]
