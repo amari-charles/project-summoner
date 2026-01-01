@@ -169,6 +169,11 @@ func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
 				string_reqs.append(String(req))
 			battle["unlock_requirements"] = string_reqs
 
+		# Convert deck entries (enemy_deck, dev_player_deck, reward_cards) - catalog_id from StringName to String
+		_convert_deck_entries(battle, "enemy_deck")
+		_convert_deck_entries(battle, "dev_player_deck")
+		_convert_deck_entries(battle, "reward_cards")
+
 		# Convert localization keys to localized strings
 		var name_key: String = battle.get("name_key", "")
 		var desc_key: String = battle.get("description_key", "")
@@ -180,6 +185,27 @@ func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
 
 		# Store battle
 		_battles[battle_id] = battle
+
+## Convert deck entry arrays to use String catalog_ids (from StringName constants)
+func _convert_deck_entries(battle: Dictionary, key: String) -> void:
+	var raw_deck: Variant = battle.get(key, [])
+	if not raw_deck is Array:
+		return
+
+	var converted: Array[Dictionary] = []
+	for entry_variant: Variant in raw_deck:
+		if not entry_variant is Dictionary:
+			continue
+		var entry: Dictionary = entry_variant.duplicate()
+		# Convert catalog_id from StringName to String
+		var catalog_id: Variant = entry.get("catalog_id", "")
+		entry["catalog_id"] = String(catalog_id)
+		# Convert rarity if present (for reward_cards)
+		if entry.has("rarity"):
+			entry["rarity"] = String(entry.get("rarity", ""))
+		converted.append(entry)
+
+	battle[key] = converted
 
 ## Validate that all reward cards in battle configs exist in the card catalog
 func _validate_battle_rewards() -> void:
