@@ -562,6 +562,18 @@
       "stay_button": "Stay"
     },
     "offering": {
+      "fire_elemental": {
+        "name": "Fire Elemental",
+        "description": "A blazing spirit of pure fire. Burns with fierce intensity in melee combat."
+      },
+      "earth_sprite": {
+        "name": "Earth Sprite",
+        "description": "A small earth spirit. Sturdy and reliable, defending your front line with determination."
+      },
+      "puff": {
+        "name": "Puff",
+        "description": "A mischievous wind cloud. Blows gusts at enemies from a safe distance."
+      },
       "basic_spell_pack": {
         "name": "Basic Spell Pack",
         "description": "Contains Charge and Fireball spells."

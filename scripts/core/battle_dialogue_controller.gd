@@ -237,14 +237,14 @@ func _execute_action(action: String) -> void:
 func _spawn_tutorial_enemy() -> void:
 	print("BattleDialogueController: _spawn_tutorial_enemy() called")
 
-	# Create the slime card from CardCatalog (same as enemy deck loader)
-	var card_id: String = "slime_green"
+	# Create the enemy card from CardCatalog (same as enemy deck loader)
+	var card_id: String = "earth_sprite"
 	print("BattleDialogueController: Creating card from CardCatalog: %s" % card_id)
 
 	var card: Card = CardCatalog.create_card_resource(card_id)
 
 	if not card:
-		push_error("BattleDialogueController: Failed to create slime card from CardCatalog (id: %s)" % card_id)
+		push_error("BattleDialogueController: Failed to create enemy card from CardCatalog (id: %s)" % card_id)
 		return
 
 	print("BattleDialogueController: Card created successfully")
@@ -270,7 +270,7 @@ func _spawn_tutorial_enemy() -> void:
 	if card.has_method("play_3d"):
 		print("BattleDialogueController: Calling card.play_3d()...")
 		card.call("play_3d", spawn_pos_3d, 1, battlefield, modifier_system)
-		print("BattleDialogueController: Spawned tutorial slime at %s" % spawn_pos_3d)
+		print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
 	else:
 		push_error("BattleDialogueController: Card doesn't have play_3d method - card type is %s" % card.get_class())
 

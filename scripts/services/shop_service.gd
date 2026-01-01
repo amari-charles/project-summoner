@@ -67,33 +67,33 @@ func _init_shops() -> void:
 		"name": Loc.t("shop.general.name"),
 		"offerings": [
 			{
-				"offering_id": "general_fire_recruit",
+				"offering_id": "general_fire_elemental",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.fire_recruit.name"),
-				"description": Loc.t("shop.offering.fire_recruit.description"),
-				"card_catalog_id": "fire_recruit",
+				"display_name": Loc.t("shop.offering.fire_elemental.name"),
+				"description": Loc.t("shop.offering.fire_elemental.description"),
+				"card_catalog_id": "fire_elemental",
 				"card_count": 1,
 				"base_price": 30,
 				"purchase_limit_type": "none",
 				"purchase_limit": 0
 			},
 			{
-				"offering_id": "general_slime_violet",
+				"offering_id": "general_earth_sprite",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.slime_violet.name"),
-				"description": Loc.t("shop.offering.slime_violet.description"),
-				"card_catalog_id": "slime_violet",
+				"display_name": Loc.t("shop.offering.earth_sprite.name"),
+				"description": Loc.t("shop.offering.earth_sprite.description"),
+				"card_catalog_id": "earth_sprite",
 				"card_count": 1,
 				"base_price": 20,
 				"purchase_limit_type": "none",
 				"purchase_limit": 0
 			},
 			{
-				"offering_id": "general_slime_yellow",
+				"offering_id": "general_puff",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.slime_yellow.name"),
-				"description": Loc.t("shop.offering.slime_yellow.description"),
-				"card_catalog_id": "slime_yellow",
+				"display_name": Loc.t("shop.offering.puff.name"),
+				"description": Loc.t("shop.offering.puff.description"),
+				"card_catalog_id": "puff",
 				"card_count": 1,
 				"base_price": 35,
 				"purchase_limit_type": "none",
@@ -118,8 +118,8 @@ func _init_shops() -> void:
 				"display_name": Loc.t("shop.offering.summon_pack.name"),
 				"description": Loc.t("shop.offering.summon_pack.description"),
 				"pack_cards": [
-					{"catalog_id": "slime_violet", "count": 2},
-					{"catalog_id": "fire_recruit", "count": 1}
+					{"catalog_id": "earth_sprite", "count": 2},
+					{"catalog_id": "fire_elemental", "count": 1}
 				],
 				"base_price": 70,
 				"purchase_limit_type": "none",
@@ -135,11 +135,11 @@ func _init_shops() -> void:
 		"name": Loc.t("shop.caravan.merriweather.name"),
 		"offerings": [
 			{
-				"offering_id": "tutorial_fire_recruit",
+				"offering_id": "tutorial_fire_elemental",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.tutorial_fire_recruit.name"),
-				"description": Loc.t("shop.offering.tutorial_fire_recruit.description"),
-				"card_catalog_id": "fire_recruit",
+				"display_name": Loc.t("shop.offering.fire_elemental.name"),
+				"description": Loc.t("shop.offering.fire_elemental.description"),
+				"card_catalog_id": "fire_elemental",
 				"card_count": 1,
 				"base_price": 25,
 				"purchase_limit_type": "account",

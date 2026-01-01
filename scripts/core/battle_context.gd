@@ -129,7 +129,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {
-		"enemy_deck": [{"catalog_id": "slime_green", "count": 1}],
+		"enemy_deck": [{"catalog_id": "earth_sprite", "count": 1}],
 		"enemy_hp": 300.0,
 		"ai_type": "scripted"
 	}
