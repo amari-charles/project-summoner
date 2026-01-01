@@ -28,7 +28,7 @@ attack_vfx_id = "lightning_strike"
 prefer_targets_below = true
 below_target_radius = 6.0
 sprite_frames = ExtResource("2_frames")
-sprite_scale = 1.5
+sprite_scale = 3.0
 enable_bobbing = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

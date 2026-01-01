@@ -5,9 +5,9 @@ class_name SpriteCharacter2D5Component
 ## Renders 2D sprite animations in 3D space using AnimatedSprite2D + SubViewport
 
 ## Sprite scaling constants
-const BASE_VIEWPORT_SIZE: int = 250  ## Base viewport height in pixels
+const BASE_VIEWPORT_SIZE: int = 512  ## Base viewport height in pixels (higher = sharper on large displays)
 const LEGACY_SPRITE_SIZE: int = 100  ## Original sprite height (soldier, archer, etc.)
-const DEFAULT_SPRITE_SCALE: float = 2.5  ## Default scale for 100px sprites (250 / 100 = 2.5)
+const DEFAULT_SPRITE_SCALE: float = 5.12  ## Default scale for 100px sprites (512 / 100 = 5.12)
 
 ## =============================================================================
 ## ATTACK ANIMATION CONSTANTS
