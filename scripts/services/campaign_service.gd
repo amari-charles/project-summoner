@@ -120,6 +120,17 @@ func _load_campaigns(skip_validation: bool = false) -> void:
 		var campaign_data: Dictionary = get_campaign.call()
 		var campaign_id: String = String(campaign_data.get("campaign_id", ""))
 		if not campaign_id.is_empty():
+			# Convert campaign_id to String for consistency
+			campaign_data["campaign_id"] = campaign_id
+
+			# Convert unlock_requirements from StringName to String
+			var raw_reqs: Variant = campaign_data.get("unlock_requirements", [])
+			if raw_reqs is Array:
+				var string_reqs: Array[String] = []
+				for req: Variant in raw_reqs:
+					string_reqs.append(String(req))
+				campaign_data["unlock_requirements"] = string_reqs
+
 			_campaigns[campaign_id] = campaign_data
 			_load_battles_from_campaign(campaign_data)
 			# Track shared campaigns
@@ -146,6 +157,17 @@ func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
 		if battle_id.is_empty():
 			push_warning("CampaignService: Battle missing 'id' field, skipping")
 			continue
+
+		# Convert StringName id to String for compatibility with UI code
+		battle["id"] = battle_id
+
+		# Convert unlock_requirements from StringName to String
+		var raw_reqs: Variant = battle.get("unlock_requirements", [])
+		if raw_reqs is Array:
+			var string_reqs: Array[String] = []
+			for req: Variant in raw_reqs:
+				string_reqs.append(String(req))
+			battle["unlock_requirements"] = string_reqs
 
 		# Convert localization keys to localized strings
 		var name_key: String = battle.get("name_key", "")
