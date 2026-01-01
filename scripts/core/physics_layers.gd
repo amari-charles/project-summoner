@@ -8,8 +8,8 @@ extends Node
 ##   collision_mask = PhysicsLayers.combine([GROUND_UNITS, TERRAIN])
 
 ## Layer bit positions (1-based as in Godot editor)
-const GROUND_UNITS: int = 1  ## Layer 1: Ground-based units (warriors, archers, etc.)
-const FLYING_UNITS: int = 2  ## Layer 2: Airborne units (demon imps, etc.)
+const GROUND_UNITS: int = 1  ## Layer 1: Ground-based units (fire_elemental, earth_sprite, etc.)
+const FLYING_UNITS: int = 2  ## Layer 2: Airborne units (puff, etc.)
 const TERRAIN: int = 3  ## Layer 3: Environment collision (ground, obstacles)
 const PROJECTILES: int = 4  ## Layer 4: Projectile collision
 

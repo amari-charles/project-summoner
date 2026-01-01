@@ -54,11 +54,11 @@
       },
       "arena_melee_basics": {
         "name": "Melee Basics",
-        "description": "Slime vs slime. Test basic melee combat and unit movement."
+        "description": "Test basic melee combat and unit movement."
       },
       "arena_ranged_intro": {
         "name": "Ranged Introduction",
-        "description": "Fire units with ranged attackers. Test ranged combat mechanics."
+        "description": "Mixed melee and ranged units. Test ranged combat mechanics."
       },
       "arena_mixed_tactics": {
         "name": "Mixed Tactics",
@@ -67,10 +67,6 @@
       "arena_full_combat": {
         "name": "Full Combat",
         "description": "All unit types including structures. Comprehensive combat test."
-      },
-      "arena_storm_cloud": {
-        "name": "Storm Cloud Test",
-        "description": "Test the flying storm cloud unit and its lightning attack VFX."
       }
     },
     "starter_deck_name": "Starter Deck",
@@ -95,10 +91,6 @@
     }
   },
   "card": {
-    "fire_recruit": {
-      "name": "Fire Recruit",
-      "description": "A basic fire unit."
-    },
     "fire_elemental": {
       "name": "Fire Elemental",
       "description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path."
@@ -110,14 +102,6 @@
     "fire_elemental_swarm": {
       "name": "Fire Swarm",
       "description": "Unleash a horde of flame spirits. Ten smaller fire elementals surge forth to overwhelm the enemy."
-    },
-    "ember_slinger": {
-      "name": "Ember Slinger",
-      "description": "A ranged fire unit."
-    },
-    "storm_cloud": {
-      "name": "Storm Cloud",
-      "description": "A hovering tempest that strikes foes with lightning. Floats above the battlefield, raining destruction on ground forces."
     },
     "earth_sprite": {
       "name": "Earth Sprite",
@@ -493,7 +477,7 @@
       "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
       "line_2": "You stand at the beginning of your journey as a summoner—a path of great power and greater responsibility.",
       "line_3": "Here at the Academy, we teach one principle above all: choices have consequences. What you bind, stays bound.",
-      "line_4": "Your first choice lies before you. Select your starting companion—Fire Recruit or Ember Slinger.",
+      "line_4": "Your first choice lies before you. Select your starting companion—Fire Elemental or Earth Sprite.",
       "line_5": "Choose with intention, Initiate. This decision is permanent, as all true summoning must be."
     },
     "first_trial_intro": {
@@ -578,17 +562,17 @@
       "stay_button": "Stay"
     },
     "offering": {
-      "fire_recruit": {
-        "name": "Fire Recruit",
-        "description": "A basic fire unit with balanced stats."
+      "fire_elemental": {
+        "name": "Fire Elemental",
+        "description": "A blazing spirit of pure fire. Burns with fierce intensity in melee combat."
       },
-      "slime_violet": {
-        "name": "Violet Slime",
-        "description": "Fast, agile slime unit."
+      "earth_sprite": {
+        "name": "Earth Sprite",
+        "description": "A small earth spirit. Sturdy and reliable, defending your front line with determination."
       },
-      "slime_yellow": {
-        "name": "Yellow Slime",
-        "description": "Sturdy slime with high health."
+      "puff": {
+        "name": "Puff",
+        "description": "A mischievous wind cloud. Blows gusts at enemies from a safe distance."
       },
       "basic_spell_pack": {
         "name": "Basic Spell Pack",
@@ -597,10 +581,6 @@
       "summon_pack": {
         "name": "Summon Pack",
         "description": "Assorted summon cards."
-      },
-      "tutorial_fire_recruit": {
-        "name": "Fire Recruit",
-        "description": "A basic fire unit."
       },
       "tutorial_spell_pack": {
         "name": "Tactical Spell Pack",

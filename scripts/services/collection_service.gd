@@ -9,7 +9,7 @@ extends Node
 ## Usage:
 ##   var instance_ids = Collection.grant_cards([
 ##       {"catalog_id": "fireball", "rarity": "rare"},
-##       {"catalog_id": "warrior", "rarity": "common"}
+##       {"catalog_id": "fire_elemental", "rarity": "common"}
 ##   ])
 ##   var count = Collection.get_card_count("fireball")
 ##   var all_cards = Collection.list_cards()

@@ -133,36 +133,19 @@ static func _create_card_from_catalog(catalog_id: String) -> Card:
 		push_error("EnemyDeckLoader: CardCatalog not found!")
 		return null
 
-	# Check if card exists
-	var has_card_result: bool = false
+	# Use CardCatalog.create_card_resource() which creates cards dynamically
+	# This works for all cards (units and spells) registered in the catalog
 	if catalog is Object:
 		var catalog_obj: Object = catalog
-		has_card_result = catalog_obj.call("has_card", catalog_id)
-	if not has_card_result:
-		push_error("EnemyDeckLoader: Card '%s' not found in catalog!" % catalog_id)
-		return null
+		var card_resource: Variant = catalog_obj.call("create_card_resource", catalog_id)
+		if card_resource and card_resource is Card:
+			return card_resource
+		else:
+			push_error("EnemyDeckLoader: Failed to create card '%s' from catalog" % catalog_id)
+			return null
 
-	# Load the Card resource (.tres file)
-	var card_path: String = "res://resources/cards/%s_card.tres" % catalog_id
-	var loaded_card: Resource = load(card_path)
-
-	if not loaded_card or not loaded_card is Card:
-		push_error("EnemyDeckLoader: Failed to load card resource: %s" % card_path)
-		return null
-
-	# Type narrow to Card for safe property access
-	var card_template: Card = loaded_card
-
-	# Duplicate to avoid mutating shared resource
-	var duplicated_card: Resource = card_template.duplicate()
-	if not duplicated_card is Card:
-		push_error("EnemyDeckLoader: Card duplicate failed for: %s" % catalog_id)
-		return null
-
-	var card: Card = duplicated_card
-	card.catalog_id = catalog_id
-
-	return card
+	push_error("EnemyDeckLoader: CardCatalog is not a valid Object!")
+	return null
 
 ## Helper to get autoload service safely
 static func _get_service(path: String) -> Variant:

@@ -1,9 +1,0 @@
-{
-  "campaign_id": "academy_trials",
-  "name_key": "campaign.academy_trials.name",
-  "description_key": "campaign.academy_trials.description",
-  "icon": "",
-  "sort_order": 1,
-  "unlock_requirements": ["onboarding"],
-  "battles": []
-}

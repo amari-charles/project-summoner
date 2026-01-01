@@ -28,7 +28,7 @@ extends Node
 ##   Or call commands directly: DevConsole.execute_command("/save_info")
 
 ## Available card catalog IDs for testing
-const TEST_CARDS: Array = ["warrior", "archer", "fireball"]
+const TEST_CARDS: Array = ["fire_elemental", "earth_sprite", "puff", "fireball"]
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
 ## Service references (injected by autoload order)

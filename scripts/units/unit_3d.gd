@@ -1638,7 +1638,7 @@ func get_projectile_spawn_position() -> Vector3:
 	# Dynamic: query visual component for sprite height
 	if visual_component and visual_component.has_method("get_sprite_height"):
 		var sprite_height: float = visual_component.get_sprite_height()
-		# Spawn at ~60% of height (chest/hand level for archers)
+		# Spawn at ~60% of height (chest/hand level for ranged units)
 		return global_position + Vector3(0, sprite_height * 0.6, 0)
 	# Fallback for units without visual component
 	return global_position + Vector3(0, 1.0, 0)

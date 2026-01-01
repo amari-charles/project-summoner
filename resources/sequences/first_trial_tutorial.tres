@@ -18,8 +18,8 @@ wait_duration = 0.5
 [sub_resource type="Resource" id="EventStep_3"]
 script = ExtResource("2")
 step_type = 5
-description = "Spawn tutorial slime"
-card_id = "slime_green"
+description = "Spawn tutorial enemy"
+card_id = "earth_sprite"
 spawn_position = Vector3(2.5, 0, 0)
 team = 1
 stat_overrides = {

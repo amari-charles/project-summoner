@@ -102,79 +102,77 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 ## CAMPAIGN LOADING
 ## =============================================================================
 
-## Load all campaigns from JSON files in data/campaigns/
+## Load all campaigns from GDScript data files
+## Campaign data uses CardIDs constants for compile-time validation
 func _load_campaigns(skip_validation: bool = false) -> void:
 	_campaigns.clear()
 	_battles.clear()
 	_shared_campaigns.clear()
 
-	var campaign_dir: String = "res://data/campaigns/"
-	var dir: DirAccess = DirAccess.open(campaign_dir)
+	# Load campaigns from GDScript data files (compile-time validated CardIDs)
+	var campaign_data_sources: Array[Callable] = [
+		OnboardingData.get_campaign,
+		CombatArenaData.get_campaign,
+		AcademyTrialsData.get_campaign,
+	]
 
-	if not dir:
-		push_warning("CampaignService: campaigns directory not found: " + campaign_dir)
-		return
+	for get_campaign: Callable in campaign_data_sources:
+		var campaign_data: Dictionary = get_campaign.call()
+		var campaign_id: String = String(campaign_data.get("campaign_id", ""))
+		if not campaign_id.is_empty():
+			# Convert campaign_id to String for consistency
+			campaign_data["campaign_id"] = campaign_id
 
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
+			# Convert unlock_requirements from StringName to String
+			var raw_reqs: Variant = campaign_data.get("unlock_requirements", [])
+			if raw_reqs is Array:
+				var string_reqs: Array[String] = []
+				for req: Variant in raw_reqs:
+					string_reqs.append(String(req))
+				campaign_data["unlock_requirements"] = string_reqs
 
-	while file_name != "":
-		if file_name.ends_with(".json"):
-			var file_path: String = campaign_dir + file_name
-			var campaign_data: Dictionary = _load_campaign_from_file(file_path)
-			if not campaign_data.is_empty():
-				var campaign_id: String = campaign_data.get("campaign_id", "")
-				if not campaign_id.is_empty():
-					_campaigns[campaign_id] = campaign_data
-					_load_battles_from_campaign(campaign_data)
-					# Track shared campaigns
-					if campaign_data.get("is_shared", false):
-						_shared_campaigns[campaign_id] = true
-		file_name = dir.get_next()
+			_campaigns[campaign_id] = campaign_data
+			_load_battles_from_campaign(campaign_data)
+			# Track shared campaigns
+			if campaign_data.get("is_shared", false):
+				_shared_campaigns[campaign_id] = true
 
-	dir.list_dir_end()
 	print("CampaignService: Loaded %d campaigns with %d total battles" % [_campaigns.size(), _battles.size()])
 
 	# Validate all battle rewards exist in card catalog (skip in tests)
 	if not skip_validation:
 		_validate_battle_rewards()
 
-## Load a single campaign from a JSON file
-func _load_campaign_from_file(file_path: String) -> Dictionary:
-	var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
-	if not file:
-		push_error("CampaignService: Failed to open file: " + file_path)
-		return {}
-
-	var json_text: String = file.get_as_text()
-	file.close()
-
-	var json: JSON = JSON.new()
-	var parse_result: Error = json.parse(json_text)
-
-	if parse_result != OK:
-		push_error("CampaignService: JSON parse error in %s: %s" % [file_path, json.get_error_message()])
-		return {}
-
-	var data: Variant = json.get_data()
-	if not data is Dictionary:
-		push_error("CampaignService: JSON root is not a dictionary: " + file_path)
-		return {}
-
-	return data
-
 ## Load battles from a campaign data dictionary into _battles
 func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
-	var battles_array: Array = campaign_data.get("battles", [])
+	var battles_array: Variant = campaign_data.get("battles", [])
+	if not battles_array is Array:
+		return
 
 	for battle_variant: Variant in battles_array:
 		if not battle_variant is Dictionary:
 			continue
 		var battle: Dictionary = battle_variant
-		var battle_id: String = battle.get("id", "")
+		var battle_id: String = String(battle.get("id", ""))
 		if battle_id.is_empty():
 			push_warning("CampaignService: Battle missing 'id' field, skipping")
 			continue
+
+		# Convert StringName id to String for compatibility with UI code
+		battle["id"] = battle_id
+
+		# Convert unlock_requirements from StringName to String
+		var raw_reqs: Variant = battle.get("unlock_requirements", [])
+		if raw_reqs is Array:
+			var string_reqs: Array[String] = []
+			for req: Variant in raw_reqs:
+				string_reqs.append(String(req))
+			battle["unlock_requirements"] = string_reqs
+
+		# Convert deck entries (enemy_deck, dev_player_deck, reward_cards) - catalog_id from StringName to String
+		_convert_deck_entries(battle, "enemy_deck")
+		_convert_deck_entries(battle, "dev_player_deck")
+		_convert_deck_entries(battle, "reward_cards")
 
 		# Convert localization keys to localized strings
 		var name_key: String = battle.get("name_key", "")
@@ -182,35 +180,32 @@ func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
 		battle["name"] = Loc.t(name_key) if not name_key.is_empty() else ""
 		battle["description"] = Loc.t(desc_key) if not desc_key.is_empty() else ""
 
-		# Convert event_type string to StringName
-		var event_type_str: String = battle.get("event_type", "battle")
-		battle["event_type"] = _string_to_event_type(event_type_str)
-
-		# Convert reward_type string to StringName
-		var reward_type_str: String = battle.get("reward_type", "fixed")
-		battle["reward_type"] = _string_to_reward_type(reward_type_str)
+		# event_type and reward_type are already StringName from GDScript data
+		# No conversion needed
 
 		# Store battle
 		_battles[battle_id] = battle
 
-## Convert event type string to EventTypeIDs constant
-func _string_to_event_type(type_str: String) -> StringName:
-	match type_str.to_lower():
-		"battle": return EventTypeIDs.BATTLE
-		"affinity": return EventTypeIDs.AFFINITY
-		"first_summon": return EventTypeIDs.FIRST_SUMMON
-		"caravan": return EventTypeIDs.CARAVAN
-		"onboarding": return EventTypeIDs.ONBOARDING
-		_: return EventTypeIDs.BATTLE
+## Convert deck entry arrays to use String catalog_ids (from StringName constants)
+func _convert_deck_entries(battle: Dictionary, key: String) -> void:
+	var raw_deck: Variant = battle.get(key, [])
+	if not raw_deck is Array:
+		return
 
-## Convert reward type string to RewardTypeIDs constant
-func _string_to_reward_type(type_str: String) -> StringName:
-	match type_str.to_lower():
-		"fixed": return RewardTypeIDs.FIXED
-		"choice": return RewardTypeIDs.CHOICE
-		"random": return RewardTypeIDs.RANDOM
-		"none": return RewardTypeIDs.NONE
-		_: return RewardTypeIDs.FIXED
+	var converted: Array[Dictionary] = []
+	for entry_variant: Variant in raw_deck:
+		if not entry_variant is Dictionary:
+			continue
+		var entry: Dictionary = entry_variant.duplicate()
+		# Convert catalog_id from StringName to String
+		var catalog_id: Variant = entry.get("catalog_id", "")
+		entry["catalog_id"] = String(catalog_id)
+		# Convert rarity if present (for reward_cards)
+		if entry.has("rarity"):
+			entry["rarity"] = String(entry.get("rarity", ""))
+		converted.append(entry)
+
+	battle[key] = converted
 
 ## Validate that all reward cards in battle configs exist in the card catalog
 func _validate_battle_rewards() -> void:

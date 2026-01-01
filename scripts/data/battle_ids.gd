@@ -44,23 +44,26 @@ const CHARGE_TUTORIAL: StringName = &"charge_tutorial"
 # COMBAT ARENA (Debug/test battles with fixed decks)
 # ============================================================================
 
+## Arena Battle: Earth Sprite Test
+const ARENA_EARTH_SPRITE: StringName = &"arena_earth_sprite"
+
+## Arena Battle: Puff Test
+const ARENA_PUFF: StringName = &"arena_puff"
+
 ## Arena Battle: Fire Elemental Test - Fire elemental variants
 const ARENA_FIRE_ELEMENTAL: StringName = &"arena_fire_elemental"
 
-## Arena Battle 1: Melee Basics - Slime vs Slime
+## Arena Battle: Melee Basics - Earth melee combat
 const ARENA_MELEE_BASICS: StringName = &"arena_melee_basics"
 
-## Arena Battle 2: Ranged Intro - Fire units with ranged attackers
+## Arena Battle: Ranged Intro - Ranged unit tactics
 const ARENA_RANGED_INTRO: StringName = &"arena_ranged_intro"
 
-## Arena Battle 3: Mixed Tactics - Combined melee and ranged
+## Arena Battle: Mixed Tactics - Combined melee and ranged
 const ARENA_MIXED_TACTICS: StringName = &"arena_mixed_tactics"
 
-## Arena Battle 4: Full Combat - All unit types
+## Arena Battle: Full Combat - All unit types
 const ARENA_FULL_COMBAT: StringName = &"arena_full_combat"
-
-## Arena Battle: Storm Cloud Test - Flying lightning attackers
-const ARENA_STORM_CLOUD: StringName = &"arena_storm_cloud"
 
 # ============================================================================
 # UTILITY ARRAYS
@@ -81,12 +84,13 @@ const ALL_TUTORIALS: Array[StringName] = [
 
 ## All campaign battle IDs
 const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
+	ARENA_EARTH_SPRITE,
+	ARENA_PUFF,
 	ARENA_FIRE_ELEMENTAL,
 	ARENA_MELEE_BASICS,
 	ARENA_RANGED_INTRO,
 	ARENA_MIXED_TACTICS,
 	ARENA_FULL_COMBAT,
-	ARENA_STORM_CLOUD,
 ]
 
 ## All battle IDs (events + tutorials + campaign)

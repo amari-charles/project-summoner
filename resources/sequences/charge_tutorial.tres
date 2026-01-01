@@ -8,10 +8,10 @@ script = ExtResource("2_step")
 step_type = 0
 dialogue_id = "charge_intro"
 
-[sub_resource type="Resource" id="step_spawn_tanky_slime"]
+[sub_resource type="Resource" id="step_spawn_tanky_enemy"]
 script = ExtResource("2_step")
 step_type = 5
-card_id = "slime_green"
+card_id = "earth_sprite"
 spawn_position = Vector3(10, 0, 0)
 team = 1
 stat_overrides = {
@@ -40,4 +40,4 @@ dialogue_id = "charge_explain"
 [resource]
 script = ExtResource("1_sequence")
 sequence_id = "charge_tutorial"
-steps = Array[Resource]([SubResource("step_intro"), SubResource("step_spawn_tanky_slime"), SubResource("step_wait_damage"), SubResource("step_tanky_warning"), SubResource("step_explain_charge")])
+steps = Array[Resource]([SubResource("step_intro"), SubResource("step_spawn_tanky_enemy"), SubResource("step_wait_damage"), SubResource("step_tanky_warning"), SubResource("step_explain_charge")])
