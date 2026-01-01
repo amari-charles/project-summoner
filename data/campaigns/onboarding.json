@@ -79,7 +79,10 @@
       "gold_reward": 40,
       "card_xp_reward": 15,
       "summoner_xp_reward": 75,
-      "enemy_deck": [],
+      "enemy_deck": [
+        {"catalog_id": "puff", "count": 2},
+        {"catalog_id": "earth_sprite", "count": 2}
+      ],
       "enemy_hp": 50.0,
       "unlock_requirements": ["first_trial"],
       "event_sequence": "res://resources/sequences/charge_tutorial.tres",
