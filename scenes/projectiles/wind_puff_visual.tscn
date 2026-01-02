@@ -27,7 +27,7 @@ alpha_curve = SubResource("CurveTexture_7x23e")
 
 [sub_resource type="SphereMesh" id="SphereMesh_qf2te"]
 
-[node name="Puff" type="Node2D"]
+[node name="Puff" type="Node3D"]
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 material_override = SubResource("ShaderMaterial_7x23e")
