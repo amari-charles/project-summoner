@@ -13,13 +13,15 @@ collision_mask = 1
 script = ExtResource("1_script")
 max_hp = 80.0
 attack_damage = 12.0
-attack_range = 8.0
+attack_range = 24.0
 attack_speed = 0.4
 move_speed = 2.5
 team = 0
-aggro_radius = 18.0
+aggro_radius = 24.0
 unit_type = 1
 projectile_id = "wind_puff"
+delayed_projectile = true
+projectile_delay = 1.17
 sprite_frames = ExtResource("2_frames")
 enable_breathing = true
 breathing_amplitude = 0.03
@@ -30,6 +32,9 @@ sprite_scale = 1.0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("CapsuleShape3D_1")
+
+[node name="ProjectileSpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 1.5, 0)
 
 [node name="ProjectileTargetPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

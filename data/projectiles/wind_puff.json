@@ -2,16 +2,17 @@
 	"projectile_id": "wind_puff",
 	"projectile_name": "Wind Puff",
 
-	"_comment_model": "TODO: Replace ember_visual with wind-themed projectile visual",
-	"model_scene_path": "res://scenes/projectiles/ember_visual.tscn",
+	"model_scene_path": "res://scenes/projectiles/wind_puff_visual.tscn",
 	"trail_effect_id": "",
 	"impact_effect_id": "",
 
 	"movement_type": "straight",
-	"speed": 15.0,
-	"acceleration": 0.0,
+	"speed": 25.0,
+	"acceleration": -12.0,
+	"min_speed": 5.0,
 	"lifetime": 2.0,
 	"rotate_to_direction": false,
+	"fade_in_duration": 0.15,
 
 	"arc_height": 0.0,
 	"gravity": 0.0,

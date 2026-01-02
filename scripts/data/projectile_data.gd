@@ -3,6 +3,16 @@ class_name ProjectileData
 
 ## Data definition for projectile behavior
 ## Loaded from JSON files, defines how projectiles move and look
+##
+## Tuning Guide:
+## - speed: Initial velocity in units/second (typical range: 10-30)
+## - acceleration: Speed change per second. Use negative for deceleration (e.g., -12.0)
+## - min_speed: Floor for deceleration - prevents projectiles from stopping (e.g., 5.0)
+## - fade_in_duration: Time in seconds to fade from invisible to visible (e.g., 0.15)
+##
+## Example for a "puff" effect (starts fast, slows down):
+##   speed: 25.0, acceleration: -12.0, min_speed: 5.0
+##   This starts at 25 units/s and decelerates to 5 units/s over ~1.67 seconds
 
 @export var projectile_id: String = ""
 @export var projectile_name: String = ""
@@ -20,9 +30,11 @@ class_name ProjectileData
 @export_group("Behavior")
 @export var movement_type: String = "straight"  ## "straight", "homing", "arc", "ballistic"
 @export var speed: float = 15.0
-@export var acceleration: float = 0.0  ## For accelerating projectiles
+@export var acceleration: float = 0.0  ## Speed change per second (negative = decelerate)
+@export var min_speed: float = 1.0  ## Minimum speed (prevents stopping completely)
 @export var lifetime: float = 5.0  ## Max time before despawn
 @export var rotate_to_direction: bool = true
+@export var fade_in_duration: float = 0.0  ## Time to fade in (0 = instant)
 
 ## Arc/Ballistic Specific
 @export_group("Arc Properties")
@@ -63,7 +75,12 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	if model_path_variant is String:
 		var model_path: String = model_path_variant
 		if not model_path.is_empty():
-			proj.visual_scene = ResourceLoader.load(model_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+			if ResourceLoader.exists(model_path):
+				proj.visual_scene = ResourceLoader.load(model_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+				if proj.visual_scene == null:
+					push_error("ProjectileData: Failed to load visual scene at '%s'" % model_path)
+			else:
+				push_error("ProjectileData: Visual scene path does not exist: '%s'" % model_path)
 
 	var default_movement_type: String = "straight"
 	proj.movement_type = data.get("movement_type", default_movement_type)
@@ -71,10 +88,14 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	proj.speed = data.get("speed", default_speed)
 	var default_acceleration: float = 0.0
 	proj.acceleration = data.get("acceleration", default_acceleration)
+	var default_min_speed: float = 1.0
+	proj.min_speed = data.get("min_speed", default_min_speed)
 	var default_lifetime: float = 5.0
 	proj.lifetime = data.get("lifetime", default_lifetime)
 	var default_rotate: bool = true
 	proj.rotate_to_direction = data.get("rotate_to_direction", default_rotate)
+	var default_fade_in: float = 0.0
+	proj.fade_in_duration = data.get("fade_in_duration", default_fade_in)
 
 	var default_arc_height: float = 2.0
 	proj.arc_height = data.get("arc_height", default_arc_height)
@@ -107,8 +128,10 @@ func to_dict() -> Dictionary:
 		"movement_type": movement_type,
 		"speed": speed,
 		"acceleration": acceleration,
+		"min_speed": min_speed,
 		"lifetime": lifetime,
 		"rotate_to_direction": rotate_to_direction,
+		"fade_in_duration": fade_in_duration,
 		"arc_height": arc_height,
 		"gravity": gravity,
 		"homing_strength": homing_strength,

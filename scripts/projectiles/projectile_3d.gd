@@ -17,10 +17,19 @@ enum MovementType {
 const MIN_ARC_DISTANCE: float = 0.1  ## Minimum distance to prevent division by zero
 const FULL_ARC_DISTANCE: float = 5.0  ## Distance at which full arc height is used
 
+## Ground collision constants
+## Grace period before ground collision activates. Prevents false positives when projectiles
+## spawn near ground level (e.g., from short units like Puff at y=1.5). At typical projectile
+## speeds (15-25 units/s), 0.1s allows the projectile to travel 1.5-2.5 units away from spawn.
+const GROUND_COLLISION_GRACE_PERIOD: float = 0.1
+
 ## Configuration (set by ProjectileData)
 var projectile_id: String = ""
 var movement_type: MovementType = MovementType.STRAIGHT
 var speed: float = 15.0
+var acceleration: float = 0.0  ## Speed change per second (negative = decelerate)
+var min_speed: float = 1.0  ## Minimum speed (prevents stopping completely)
+var current_speed: float = 15.0  ## Current speed (changes with acceleration)
 var lifetime: float = 5.0
 var arc_height: float = 2.0
 var homing_strength: float = 5.0
@@ -32,6 +41,7 @@ var hit_vfx: String = ""
 var trail_vfx: String = ""
 var fade_on_hit: bool = true  ## Fade out when hitting target
 var fade_duration: float = 0.5  ## Time to fade out
+var fade_in_duration: float = 0.0  ## Time to fade in (0 = instant)
 
 ## State
 var source: Node3D = null
@@ -104,7 +114,9 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Check ground collision (explode if hit ground)
-	if global_position.y <= BattlefieldConstants.GROUND_Y + 0.2:
+	# Grace period: don't check ground collision for first 0.1s to avoid false positives
+	# when projectiles spawn near ground level (e.g., from short units like Puff)
+	if time_alive > GROUND_COLLISION_GRACE_PERIOD and global_position.y <= BattlefieldConstants.GROUND_Y + 0.2:
 		# print("GROUND HIT: Projectile at y=%.2f, triggering expire" % global_position.y)
 		_trigger_impact_effects(Vector3(global_position.x, BattlefieldConstants.GROUND_Y, global_position.z))
 		if fade_on_hit:
@@ -112,6 +124,14 @@ func _physics_process(delta: float) -> void:
 		else:
 			_expire_immediate()
 		return
+
+	# Apply acceleration (deceleration if negative)
+	if acceleration != 0.0:
+		current_speed += acceleration * delta
+		# Clamp to min_speed (prevents stopping or reversing)
+		if acceleration < 0.0:
+			current_speed = max(current_speed, min_speed)
+		# No max limit for positive acceleration
 
 	# Update movement based on type
 	match movement_type:
@@ -130,7 +150,7 @@ func _physics_process(delta: float) -> void:
 
 ## Straight line movement
 func _move_straight(delta: float) -> void:
-	global_position += direction * speed * delta
+	global_position += direction * current_speed * delta
 
 ## Homing movement - tracks target
 func _move_homing(delta: float) -> void:
@@ -139,7 +159,7 @@ func _move_homing(delta: float) -> void:
 		var target_dir: Vector3 = (target.global_position - global_position).normalized()
 		direction = direction.lerp(target_dir, homing_strength * delta).normalized()
 
-	global_position += direction * speed * delta
+	global_position += direction * current_speed * delta
 
 ## Arc movement - follows arc to target position
 func _move_arc(_delta: float) -> void:
@@ -239,11 +259,16 @@ func initialize(data: Dictionary) -> void:
 	time_alive = 0.0
 	hits_remaining = pierce_count
 	is_active = true
+	current_speed = speed  # Reset to initial speed
 
 	# Make projectile and visual visible when spawning
 	visible = true
 	if visual_instance:
 		visual_instance.visible = true
+
+	# Apply fade-in effect if configured
+	if fade_in_duration > 0.0 and visual_instance:
+		_apply_fade_in()
 
 	# Spawn trail VFX
 	if not trail_vfx.is_empty():
@@ -288,8 +313,8 @@ func _is_valid_target(body: Node3D) -> bool:
 
 ## Hit a target
 func _hit_target(target_node: Node3D) -> void:
-	# Apply damage using DamageSystem
-	if target_node.has_method("take_damage"):
+	# Apply damage using DamageSystem (check validity - target may have been freed)
+	if is_instance_valid(target_node) and is_instance_valid(source) and target_node.has_method("take_damage"):
 		DamageSystem.apply_damage(source, target_node, damage, damage_type)
 
 	# Emit signal
@@ -389,7 +414,7 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 			# var alive_str = "alive" if unit_enemy.is_alive else "DEAD"
 			# print("    %s: distance=%.1f, %s, team=%d" % [unit_enemy.name, distance, alive_str, unit_enemy.team])
 
-			if unit_enemy.is_alive and distance <= radius:
+			if unit_enemy.is_alive and distance <= radius and is_instance_valid(source):
 				# print("      -> APPLYING DAMAGE: %.1f" % damage)
 				DamageSystem.apply_damage(source, unit_enemy, damage, damage_type)
 				_hit_count += 1
@@ -492,6 +517,35 @@ func _expire_immediate() -> void:
 		# print("EXPIRE_IMMEDIATE: Not pooled, calling queue_free()")
 		queue_free()
 
+## Apply fade-in effect to visual
+func _apply_fade_in() -> void:
+	if not visual_instance:
+		return
+
+	# Create tween for fade-in animation
+	var fade_in_tween: Tween = create_tween()
+	fade_in_tween.set_parallel(true)
+
+	# Fade all materials on visual children
+	for child_node: Node in visual_instance.get_children():
+		if child_node is MeshInstance3D:
+			var mesh_child: MeshInstance3D = child_node
+			var material: Material = mesh_child.get_surface_override_material(0)
+			if material:
+				if material is StandardMaterial3D:
+					# Standard material - tween albedo alpha
+					var std_mat: StandardMaterial3D = material
+					std_mat.albedo_color.a = 0.0
+					fade_in_tween.tween_property(std_mat, "albedo_color:a", 1.0, fade_in_duration)
+				elif material is ShaderMaterial:
+					# Shader material - tween alpha parameter if it exists
+					var shader_mat: ShaderMaterial = material
+					shader_mat.set_shader_parameter("alpha", 0.0)
+					fade_in_tween.tween_method(
+						func(value: float) -> void: shader_mat.set_shader_parameter("alpha", value),
+						0.0, 1.0, fade_in_duration
+					)
+
 ## Reset for pooling
 func reset() -> void:
 	source = null
@@ -522,14 +576,19 @@ func reset() -> void:
 				var mesh_child: MeshInstance3D = child_node
 				mesh_child.visible = true
 				var material: Material = mesh_child.get_surface_override_material(0)
-				if material and material is StandardMaterial3D:
-					# Type narrow to StandardMaterial3D for safe property access
-					var std_material: StandardMaterial3D = material
-					# Reset transparency mode
-					std_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-					var color: Color = std_material.albedo_color
-					color.a = 1.0
-					std_material.albedo_color = color
+				if material:
+					if material is StandardMaterial3D:
+						# Type narrow to StandardMaterial3D for safe property access
+						var std_material: StandardMaterial3D = material
+						# Reset transparency mode
+						std_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+						var color: Color = std_material.albedo_color
+						color.a = 1.0
+						std_material.albedo_color = color
+					elif material is ShaderMaterial:
+						# Reset shader alpha parameter
+						var shader_mat: ShaderMaterial = material
+						shader_mat.set_shader_parameter("alpha", 1.0)
 
 	# Only reset transform if node is in tree
 	if is_inside_tree():
@@ -541,6 +600,9 @@ func load_from_data(data: ProjectileData) -> void:
 	projectile_id = data.projectile_id
 	movement_type = _string_to_movement_type(data.movement_type)
 	speed = data.speed
+	acceleration = data.acceleration
+	min_speed = data.min_speed
+	current_speed = speed  # Start at initial speed
 	lifetime = data.lifetime
 	arc_height = data.arc_height
 	homing_strength = data.homing_strength
@@ -548,6 +610,29 @@ func load_from_data(data: ProjectileData) -> void:
 	visual_scene = data.visual_scene
 	hit_vfx = data.hit_vfx
 	trail_vfx = data.trail_vfx
+	fade_in_duration = data.fade_in_duration
+
+	# Instantiate visual if not already done (pooled projectiles miss _ready() instantiation)
+	if visual_scene and not visual_instance:
+		visual_instance = visual_scene.instantiate()
+		add_child(visual_instance)
+		_duplicate_materials()
+		# Ensure particles start emitting
+		_reset_particle_emitters()
+	elif visual_scene and visual_instance:
+		# Reset GPUParticles3D emitting state for reused projectiles
+		_reset_particle_emitters()
+
+## Reset particle emitters for reused pooled projectiles
+func _reset_particle_emitters() -> void:
+	if not visual_instance:
+		return
+	for child: Node in visual_instance.get_children():
+		if child is GPUParticles3D:
+			var particles: GPUParticles3D = child
+			particles.visible = true
+			particles.emitting = true
+			particles.restart()
 
 ## Convert string to MovementType enum
 func _string_to_movement_type(type_str: String) -> MovementType:
