@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cm3aqj7l1cddw"
-path="res://.godot/imported/Streak 13 - 128x128.png-157b4159f5d7467ea3ffe62088665219.ctex"
+path="res://.godot/imported/Streak 13 - 128x128.png-7b4b0d1e62a4017b2c08f5c12e0231fc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Streak/Streak 13 - 128x128.png"
-dest_files=["res://.godot/imported/Streak 13 - 128x128.png-157b4159f5d7467ea3ffe62088665219.ctex"]
+source_file="res://assets/textures/noise/Streak/Streak 13 - 128x128.png"
+dest_files=["res://.godot/imported/Streak 13 - 128x128.png-7b4b0d1e62a4017b2c08f5c12e0231fc.ctex"]
 
 [params]
 

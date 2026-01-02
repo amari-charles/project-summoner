@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuotb0vlvtbwb"
-path="res://.godot/imported/Milky 13 - 128x128.png-9e97c8cee7e939648a632f018aa3db96.ctex"
+path="res://.godot/imported/Milky 13 - 128x128.png-d88a4ea906fcb6341e76d6e8cfe36ee5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Milky/Milky 13 - 128x128.png"
-dest_files=["res://.godot/imported/Milky 13 - 128x128.png-9e97c8cee7e939648a632f018aa3db96.ctex"]
+source_file="res://assets/textures/noise/Milky/Milky 13 - 128x128.png"
+dest_files=["res://.godot/imported/Milky 13 - 128x128.png-d88a4ea906fcb6341e76d6e8cfe36ee5.ctex"]
 
 [params]
 

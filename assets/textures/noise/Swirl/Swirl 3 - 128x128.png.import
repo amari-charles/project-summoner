@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://r3xghlf6hnq"
-path="res://.godot/imported/Swirl 3 - 128x128.png-85c738ac127de95cefb11a90cf7c874a.ctex"
+path="res://.godot/imported/Swirl 3 - 128x128.png-e152630cef7561eac8870fe7136df021.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Swirl/Swirl 3 - 128x128.png"
-dest_files=["res://.godot/imported/Swirl 3 - 128x128.png-85c738ac127de95cefb11a90cf7c874a.ctex"]
+source_file="res://assets/textures/noise/Swirl/Swirl 3 - 128x128.png"
+dest_files=["res://.godot/imported/Swirl 3 - 128x128.png-e152630cef7561eac8870fe7136df021.ctex"]
 
 [params]
 

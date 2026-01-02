@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://kblhruc37ir4"
-path="res://.godot/imported/Marble 11 - 128x128.png-b5d3dec2070def6b8689c62b10f07de7.ctex"
+path="res://.godot/imported/Marble 11 - 128x128.png-f48ea1c2cec8e56ce79c4bcc59828d27.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Marble/Marble 11 - 128x128.png"
-dest_files=["res://.godot/imported/Marble 11 - 128x128.png-b5d3dec2070def6b8689c62b10f07de7.ctex"]
+source_file="res://assets/textures/noise/Marble/Marble 11 - 128x128.png"
+dest_files=["res://.godot/imported/Marble 11 - 128x128.png-f48ea1c2cec8e56ce79c4bcc59828d27.ctex"]
 
 [params]
 

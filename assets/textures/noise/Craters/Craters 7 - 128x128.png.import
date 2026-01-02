@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do0htpnqghu5h"
-path="res://.godot/imported/Craters 7 - 128x128.png-0583a41cf8e7881c0fcc0b00814ebd22.ctex"
+path="res://.godot/imported/Craters 7 - 128x128.png-cae54808aa29e544635c3daab46d62d0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Craters/Craters 7 - 128x128.png"
-dest_files=["res://.godot/imported/Craters 7 - 128x128.png-0583a41cf8e7881c0fcc0b00814ebd22.ctex"]
+source_file="res://assets/textures/noise/Craters/Craters 7 - 128x128.png"
+dest_files=["res://.godot/imported/Craters 7 - 128x128.png-cae54808aa29e544635c3daab46d62d0.ctex"]
 
 [params]
 

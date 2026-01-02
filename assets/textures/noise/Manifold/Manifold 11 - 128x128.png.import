@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://2e4pp40vk4nd"
-path.s3tc="res://.godot/imported/Manifold 11 - 128x128.png-3ebf5c91427de1e3414373c794a294b4.s3tc.ctex"
+path.s3tc="res://.godot/imported/Manifold 11 - 128x128.png-b0605b4af38bc9b0e182d4771b5f2319.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Manifold/Manifold 11 - 128x128.png"
-dest_files=["res://.godot/imported/Manifold 11 - 128x128.png-3ebf5c91427de1e3414373c794a294b4.s3tc.ctex"]
+source_file="res://assets/textures/noise/Manifold/Manifold 11 - 128x128.png"
+dest_files=["res://.godot/imported/Manifold 11 - 128x128.png-b0605b4af38bc9b0e182d4771b5f2319.s3tc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d2kspactvq5em"
-path="res://.godot/imported/Spokes 12 - 128x128.png-e41e5886289b51366050218d7beb2b90.ctex"
+path="res://.godot/imported/Spokes 12 - 128x128.png-42d30c3958e6077a5098d5fe6fb09f07.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Spokes/Spokes 12 - 128x128.png"
-dest_files=["res://.godot/imported/Spokes 12 - 128x128.png-e41e5886289b51366050218d7beb2b90.ctex"]
+source_file="res://assets/textures/noise/Spokes/Spokes 12 - 128x128.png"
+dest_files=["res://.godot/imported/Spokes 12 - 128x128.png-42d30c3958e6077a5098d5fe6fb09f07.ctex"]
 
 [params]
 

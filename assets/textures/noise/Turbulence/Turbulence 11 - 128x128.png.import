@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvqf61c1yd0ri"
-path="res://.godot/imported/Turbulence 11 - 128x128.png-9731651e74a2d9bfc8d946ad44d9de3d.ctex"
+path="res://.godot/imported/Turbulence 11 - 128x128.png-0504c472ca1e6636cc49d267d1bb72fa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Turbulence/Turbulence 11 - 128x128.png"
-dest_files=["res://.godot/imported/Turbulence 11 - 128x128.png-9731651e74a2d9bfc8d946ad44d9de3d.ctex"]
+source_file="res://assets/textures/noise/Turbulence/Turbulence 11 - 128x128.png"
+dest_files=["res://.godot/imported/Turbulence 11 - 128x128.png-0504c472ca1e6636cc49d267d1bb72fa.ctex"]
 
 [params]
 

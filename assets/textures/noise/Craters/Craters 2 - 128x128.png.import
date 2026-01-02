@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://btalmaavf0nkd"
-path.s3tc="res://.godot/imported/Craters 2 - 128x128.png-b635130029ce3e3bdff70b4ad096b8a4.s3tc.ctex"
+path.s3tc="res://.godot/imported/Craters 2 - 128x128.png-e399cb2fd647aa5d8db77c84e94512ae.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Craters/Craters 2 - 128x128.png"
-dest_files=["res://.godot/imported/Craters 2 - 128x128.png-b635130029ce3e3bdff70b4ad096b8a4.s3tc.ctex"]
+source_file="res://assets/textures/noise/Craters/Craters 2 - 128x128.png"
+dest_files=["res://.godot/imported/Craters 2 - 128x128.png-e399cb2fd647aa5d8db77c84e94512ae.s3tc.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1wvq022buegh"
-path="res://.godot/imported/Cracks 1 - 128x128.png-c9d60f1c72a19e4b91591ffe87c1a1f7.ctex"
+path="res://.godot/imported/Cracks 1 - 128x128.png-e71eb5ee8b82b9a0abe0fd3100b02ec8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Cracks/Cracks 1 - 128x128.png"
-dest_files=["res://.godot/imported/Cracks 1 - 128x128.png-c9d60f1c72a19e4b91591ffe87c1a1f7.ctex"]
+source_file="res://assets/textures/noise/Cracks/Cracks 1 - 128x128.png"
+dest_files=["res://.godot/imported/Cracks 1 - 128x128.png-e71eb5ee8b82b9a0abe0fd3100b02ec8.ctex"]
 
 [params]
 

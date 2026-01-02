@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bh5dio2xxtbcq"
-path="res://.godot/imported/Melt 11 - 128x128.png-8393fffe97884495a925c38e52a6ef42.ctex"
+path="res://.godot/imported/Melt 11 - 128x128.png-8accee809b3739940c75eb44114b57cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Melt/Melt 11 - 128x128.png"
-dest_files=["res://.godot/imported/Melt 11 - 128x128.png-8393fffe97884495a925c38e52a6ef42.ctex"]
+source_file="res://assets/textures/noise/Melt/Melt 11 - 128x128.png"
+dest_files=["res://.godot/imported/Melt 11 - 128x128.png-8accee809b3739940c75eb44114b57cd.ctex"]
 
 [params]
 

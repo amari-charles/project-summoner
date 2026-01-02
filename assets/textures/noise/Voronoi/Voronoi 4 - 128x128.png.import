@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cv0w5b88uvyov"
-path="res://.godot/imported/Voronoi 4 - 128x128.png-9fca1e60acd256382603faa3140075f1.ctex"
+path="res://.godot/imported/Voronoi 4 - 128x128.png-3bdc077ca072a441b634abe1ad9b4343.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Voronoi/Voronoi 4 - 128x128.png"
-dest_files=["res://.godot/imported/Voronoi 4 - 128x128.png-9fca1e60acd256382603faa3140075f1.ctex"]
+source_file="res://assets/textures/noise/Voronoi/Voronoi 4 - 128x128.png"
+dest_files=["res://.godot/imported/Voronoi 4 - 128x128.png-3bdc077ca072a441b634abe1ad9b4343.ctex"]
 
 [params]
 

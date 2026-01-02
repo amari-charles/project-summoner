@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6s5phjcf7gvc"
-path="res://.godot/imported/Gabor 11 - 128x128.png-f8f3c5bc98d634ed88a2f630ad9b8fc9.ctex"
+path="res://.godot/imported/Gabor 11 - 128x128.png-e719653eacb5cee23e7189de798566f7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Gabor/Gabor 11 - 128x128.png"
-dest_files=["res://.godot/imported/Gabor 11 - 128x128.png-f8f3c5bc98d634ed88a2f630ad9b8fc9.ctex"]
+source_file="res://assets/textures/noise/Gabor/Gabor 11 - 128x128.png"
+dest_files=["res://.godot/imported/Gabor 11 - 128x128.png-e719653eacb5cee23e7189de798566f7.ctex"]
 
 [params]
 

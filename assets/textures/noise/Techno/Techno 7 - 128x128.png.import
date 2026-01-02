@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://3xnm1485gc4a"
-path="res://.godot/imported/Techno 7 - 128x128.png-89b52b9f82bf9f026cb5f2b6aadb06c9.ctex"
+path="res://.godot/imported/Techno 7 - 128x128.png-86df215b833f18b7ec0176baf770148c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Techno/Techno 7 - 128x128.png"
-dest_files=["res://.godot/imported/Techno 7 - 128x128.png-89b52b9f82bf9f026cb5f2b6aadb06c9.ctex"]
+source_file="res://assets/textures/noise/Techno/Techno 7 - 128x128.png"
+dest_files=["res://.godot/imported/Techno 7 - 128x128.png-86df215b833f18b7ec0176baf770148c.ctex"]
 
 [params]
 

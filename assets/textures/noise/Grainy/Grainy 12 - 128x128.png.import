@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cp5jl5miquaox"
-path="res://.godot/imported/Grainy 12 - 128x128.png-4e71a781ba5d0db3901a4f40ab91aed7.ctex"
+path="res://.godot/imported/Grainy 12 - 128x128.png-c08eb7f3a6b803b525eb20f4c60f660a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Grainy/Grainy 12 - 128x128.png"
-dest_files=["res://.godot/imported/Grainy 12 - 128x128.png-4e71a781ba5d0db3901a4f40ab91aed7.ctex"]
+source_file="res://assets/textures/noise/Grainy/Grainy 12 - 128x128.png"
+dest_files=["res://.godot/imported/Grainy 12 - 128x128.png-c08eb7f3a6b803b525eb20f4c60f660a.ctex"]
 
 [params]
 

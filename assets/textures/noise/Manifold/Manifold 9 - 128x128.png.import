@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://gfn18e0bofy3"
-path="res://.godot/imported/Manifold 9 - 128x128.png-fceb046171b4efea673504ab224891a9.ctex"
+path="res://.godot/imported/Manifold 9 - 128x128.png-dc1518c257c40de3bcb0335cb9f74d67.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Manifold/Manifold 9 - 128x128.png"
-dest_files=["res://.godot/imported/Manifold 9 - 128x128.png-fceb046171b4efea673504ab224891a9.ctex"]
+source_file="res://assets/textures/noise/Manifold/Manifold 9 - 128x128.png"
+dest_files=["res://.godot/imported/Manifold 9 - 128x128.png-dc1518c257c40de3bcb0335cb9f74d67.ctex"]
 
 [params]
 

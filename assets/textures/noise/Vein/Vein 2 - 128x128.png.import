@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bd3pv8cfugi6t"
-path="res://.godot/imported/Vein 2 - 128x128.png-8432dafc3866026d215ed5cbc6c9652a.ctex"
+path="res://.godot/imported/Vein 2 - 128x128.png-8aa3e6747475d70c910db7860b225a14.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Vein/Vein 2 - 128x128.png"
-dest_files=["res://.godot/imported/Vein 2 - 128x128.png-8432dafc3866026d215ed5cbc6c9652a.ctex"]
+source_file="res://assets/textures/noise/Vein/Vein 2 - 128x128.png"
+dest_files=["res://.godot/imported/Vein 2 - 128x128.png-8aa3e6747475d70c910db7860b225a14.ctex"]
 
 [params]
 

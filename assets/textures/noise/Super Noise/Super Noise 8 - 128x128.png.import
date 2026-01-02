@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2by7hdlsnrq8"
-path="res://.godot/imported/Super Noise 8 - 128x128.png-8cc83f339c1e11a607b9e0163156cd3c.ctex"
+path="res://.godot/imported/Super Noise 8 - 128x128.png-d4ff6905b0d77f31cfc24ec5fbcdcdf5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Super Noise/Super Noise 8 - 128x128.png"
-dest_files=["res://.godot/imported/Super Noise 8 - 128x128.png-8cc83f339c1e11a607b9e0163156cd3c.ctex"]
+source_file="res://assets/textures/noise/Super Noise/Super Noise 8 - 128x128.png"
+dest_files=["res://.godot/imported/Super Noise 8 - 128x128.png-d4ff6905b0d77f31cfc24ec5fbcdcdf5.ctex"]
 
 [params]
 

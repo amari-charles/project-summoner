@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bv4flqg8vvala"
-path.s3tc="res://.godot/imported/Perlin 9 - 128x128.png-9371470845020f3c519ef9d32e4460c5.s3tc.ctex"
+path.s3tc="res://.godot/imported/Perlin 9 - 128x128.png-44640e31be5df1ded4811d8c45c7f814.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Perlin/Perlin 9 - 128x128.png"
-dest_files=["res://.godot/imported/Perlin 9 - 128x128.png-9371470845020f3c519ef9d32e4460c5.s3tc.ctex"]
+source_file="res://assets/textures/noise/Perlin/Perlin 9 - 128x128.png"
+dest_files=["res://.godot/imported/Perlin 9 - 128x128.png-44640e31be5df1ded4811d8c45c7f814.s3tc.ctex"]
 
 [params]
 

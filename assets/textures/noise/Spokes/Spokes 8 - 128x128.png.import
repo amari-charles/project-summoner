@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwr4bhm8502dr"
-path.s3tc="res://.godot/imported/Spokes 8 - 128x128.png-8f2476fc0ef0388c708ecfa2bd358429.s3tc.ctex"
+path.s3tc="res://.godot/imported/Spokes 8 - 128x128.png-a5ddd8592afbc23e0c1ee8864c6edb8b.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Spokes/Spokes 8 - 128x128.png"
-dest_files=["res://.godot/imported/Spokes 8 - 128x128.png-8f2476fc0ef0388c708ecfa2bd358429.s3tc.ctex"]
+source_file="res://assets/textures/noise/Spokes/Spokes 8 - 128x128.png"
+dest_files=["res://.godot/imported/Spokes 8 - 128x128.png-a5ddd8592afbc23e0c1ee8864c6edb8b.s3tc.ctex"]
 
 [params]
 

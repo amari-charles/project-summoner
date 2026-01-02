@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8wgamhuwhqqj"
-path="res://.godot/imported/Super Perlin 3 - 128x128.png-8f75601ae66b063fac7be4f657aa11b4.ctex"
+path="res://.godot/imported/Super Perlin 3 - 128x128.png-eb9e47290dc2c018ab5ef1c6d1507317.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TEMP FOR PUFF SHADER STUFF/128x128/Super Perlin/Super Perlin 3 - 128x128.png"
-dest_files=["res://.godot/imported/Super Perlin 3 - 128x128.png-8f75601ae66b063fac7be4f657aa11b4.ctex"]
+source_file="res://assets/textures/noise/Super Perlin/Super Perlin 3 - 128x128.png"
+dest_files=["res://.godot/imported/Super Perlin 3 - 128x128.png-eb9e47290dc2c018ab5ef1c6d1507317.ctex"]
 
 [params]
 
