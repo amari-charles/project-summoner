@@ -1,35 +1,17 @@
-[gd_scene load_steps=9 format=3 uid="uid://criet0rtpna1h"]
+[gd_scene load_steps=4 format=3 uid="uid://criet0rtpna1h"]
 
 [ext_resource type="Shader" uid="uid://upsvu1d5ffad" path="res://shaders/units/puff_shader.tres" id="1_sl1mj"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7x23e"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_puff"]
 render_priority = 0
 shader = ExtResource("1_sl1mj")
 
-[sub_resource type="Curve" id="Curve_sl1mj"]
-_data = [Vector2(0.50322586, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.48707485), 0.0, 0.0, 0, 0]
-point_count = 2
+[sub_resource type="SphereMesh" id="SphereMesh_puff"]
+radius = 0.4
+height = 0.8
 
-[sub_resource type="CurveTexture" id="CurveTexture_7x23e"]
-curve = SubResource("Curve_sl1mj")
+[node name="WindPuff" type="Node3D"]
 
-[sub_resource type="Curve" id="Curve_el726"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="CurveTexture" id="CurveTexture_qf2te"]
-curve = SubResource("Curve_el726")
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_el726"]
-gravity = Vector3(0, 0, 0)
-scale_curve = SubResource("CurveTexture_qf2te")
-alpha_curve = SubResource("CurveTexture_7x23e")
-
-[sub_resource type="SphereMesh" id="SphereMesh_qf2te"]
-
-[node name="Puff" type="Node3D"]
-
-[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
-material_override = SubResource("ShaderMaterial_7x23e")
-process_material = SubResource("ParticleProcessMaterial_el726")
-draw_pass_1 = SubResource("SphereMesh_qf2te")
+[node name="PuffMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_puff")
+surface_material_override/0 = SubResource("ShaderMaterial_puff")

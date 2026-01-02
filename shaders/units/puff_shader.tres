@@ -57,6 +57,7 @@ code = "shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, depth_test_default, cull_back, diffuse_lambert, specular_schlick_ggx;
 
 uniform sampler2D tex_vtx_7;
+uniform float alpha : hint_range(0.0, 1.0) = 1.0;
 
 
 
@@ -129,7 +130,7 @@ void fragment() {
 
 // Output:0
 	ALBEDO = vec3(n_out2p0.xyz);
-	ALPHA = n_out2p4;
+	ALPHA = n_out2p4 * alpha;
 
 
 }

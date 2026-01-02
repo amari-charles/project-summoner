@@ -97,6 +97,10 @@ var active_modifiers: Dictionary = {}
 		projectile_id = value
 		cached_projectile_speed = -1.0  # Invalidate cache when projectile changes
 @export var attack_vfx_id: String = ""  ## If set, uses VFX instead of projectile (for lightning, etc.)
+@export var delayed_projectile: bool = false  ## If true, spawn projectile after delay (for charge-up attacks like Puff)
+## Delay in seconds before spawning projectile (for delayed_projectile units).
+## Calculate as: target_frame / animation_fps (e.g., frame 14 at 12fps = 1.17s)
+@export var projectile_delay: float = 0.5
 
 ## Below targeting (for flying units like storm cloud)
 @export var prefer_targets_below: bool = false  ## Prefer targets directly below (for flying units)
@@ -989,8 +993,13 @@ func _perform_attack() -> void:
 	attack_cooldown = attack_duration
 
 	if unit_type == UnitType.RANGED or is_ranged:
-		# Ranged attacks spawn projectile immediately (projectile has travel time)
-		_spawn_projectile()
+		if delayed_projectile:
+			# Delayed ranged attacks wait for animation event (charge-up attacks like Puff)
+			pending_attack_target = current_target
+			_start_projectile_fallback()
+		else:
+			# Normal ranged attacks spawn projectile immediately (projectile has travel time)
+			_spawn_projectile()
 	else:
 		# Melee attacks store target for animation-driven damage
 		pending_attack_target = current_target
@@ -1010,6 +1019,12 @@ func _start_attack_damage_fallback() -> void:
 	if pending_attack_target:
 		_on_attack_impact()  # Deal damage as fallback
 
+func _start_projectile_fallback() -> void:
+	await get_tree().create_timer(projectile_delay).timeout
+	# If pending_attack_target still exists, animation event didn't fire
+	if pending_attack_target:
+		_on_attack_impact()  # Spawn projectile after delay
+
 func _clear_attacking_state(duration: float) -> void:
 	await get_tree().create_timer(duration).timeout
 	is_attacking = false
@@ -1026,7 +1041,11 @@ func _spawn_projectile() -> void:
 	if not projectile_id.is_empty():
 		# Use attachment points for proper spawn/target positions
 		var spawn_pos: Vector3 = get_projectile_spawn_position()
-		var target_pos: Vector3 = current_target.call("get_projectile_target_position") if current_target.has_method("get_projectile_target_position") else current_target.global_position
+		var target_pos: Vector3
+		if current_target.has_method("get_projectile_target_position"):
+			target_pos = current_target.call("get_projectile_target_position")
+		else:
+			target_pos = current_target.global_position
 
 		# Apply predictive targeting for moving targets
 		target_pos = _calculate_intercept_point(spawn_pos, target_pos, current_target)
@@ -1151,8 +1170,21 @@ func _deal_damage_to(target: Node3D) -> void:
 ## Called by animation event when attack impact occurs
 func _on_attack_impact() -> void:
 	if pending_attack_target and is_instance_valid(pending_attack_target):
-		_deal_damage_to(pending_attack_target)
-	pending_attack_target = null
+		if delayed_projectile and (unit_type == UnitType.RANGED or is_ranged):
+			# Delayed ranged attack: spawn projectile at animation event
+			var saved_target: Node3D = pending_attack_target
+			pending_attack_target = null  # Clear before spawning to avoid re-triggering
+			# Temporarily set current_target for _spawn_projectile()
+			var original_target: Node3D = current_target
+			current_target = saved_target
+			_spawn_projectile()
+			current_target = original_target
+		else:
+			# Melee attack: deal damage directly
+			_deal_damage_to(pending_attack_target)
+			pending_attack_target = null
+	else:
+		pending_attack_target = null
 
 func take_damage(amount: float) -> void:
 	if not is_alive or is_dying:
@@ -1634,7 +1666,22 @@ static func calculate_formation_positions(units: Array[Unit3D], center: Vector3)
 ## Get the world position where projectiles should spawn from
 func get_projectile_spawn_position() -> Vector3:
 	if projectile_spawn_point:
-		return projectile_spawn_point.global_position
+		# Get the marker's local position and flip X based on facing direction
+		# (markers don't flip with sprite, so we manually account for facing)
+		var local_pos: Vector3 = projectile_spawn_point.position
+		if is_facing_left:
+			local_pos.x = -local_pos.x  # Flip X when facing left
+
+		# Check if target is too close - reduce forward offset to avoid spawning past target
+		if current_target and is_instance_valid(current_target):
+			var to_target: Vector3 = current_target.global_position - global_position
+			var horizontal_dist: float = Vector2(to_target.x, to_target.z).length()
+			var forward_offset: float = abs(local_pos.x)
+			if horizontal_dist < forward_offset * 2:
+				# Target is close - reduce or eliminate forward offset
+				local_pos.x = 0.0
+
+		return global_position + local_pos
 	# Dynamic: query visual component for sprite height
 	if visual_component and visual_component.has_method("get_sprite_height"):
 		var sprite_height: float = visual_component.get_sprite_height()
