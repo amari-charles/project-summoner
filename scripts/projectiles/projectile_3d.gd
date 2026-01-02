@@ -549,6 +549,12 @@ func load_from_data(data: ProjectileData) -> void:
 	hit_vfx = data.hit_vfx
 	trail_vfx = data.trail_vfx
 
+	# Instantiate visual if not already done (pooled projectiles miss _ready() instantiation)
+	if visual_scene and not visual_instance:
+		visual_instance = visual_scene.instantiate()
+		add_child(visual_instance)
+		_duplicate_materials()
+
 ## Convert string to MovementType enum
 func _string_to_movement_type(type_str: String) -> MovementType:
 	match type_str.to_lower():

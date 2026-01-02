@@ -358,6 +358,34 @@ Enhance the visual design of card display including layout, typography, and effe
 
 ---
 
+### 🟢 LOW PRIORITY
+
+#### Clean Up Non-Production VFX
+**Status:** ⬜ Not Started
+**Category:** Visual Polish / VFX
+**Effort:** Medium
+
+**Description:**
+Audit existing VFX and replace or remove effects that don't meet production quality standards. Some VFX were created as quick placeholders and need polish or replacement.
+
+**VFX to Review:**
+- Fireball effects (explosion, trail, spell) - check if quality matches new wind_puff style
+- Lightning strike - verify visual consistency
+- Any placeholder effects still in use
+
+**Quality Criteria:**
+- Consistent color palettes per element (fire=orange/red, wind=cyan/white, etc.)
+- Appropriate particle counts (not too sparse or too heavy)
+- Smooth fade-in/fade-out curves
+- Proper additive blending where appropriate
+- Pooling configured correctly for performance
+
+**Notes:**
+- Wind puff impact (wind_puff_impact) can serve as reference for quality bar
+- Consider creating a VFX style guide document
+
+---
+
 ## Audio
 
 ### 🟡 MEDIUM PRIORITY

@@ -129,8 +129,8 @@ func spawn_projectile(
 	if options.has("target_position"):
 		init_data["target_position"] = options.target_position
 
-	# Add to scene first (required for global_transform access in initialize)
-	projectiles_container.add_child(projectile)
+	# Add to actual scene root (not autoload container) so it renders with 3D camera
+	Engine.get_main_loop().root.add_child(projectile)
 
 	# Initialize after being added to tree
 	projectile.initialize(init_data)

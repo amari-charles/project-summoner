@@ -277,10 +277,10 @@ func _init_catalog() -> void:
 		# Unit stats - balanced ranged wind unit
 		"max_hp": 80.0,
 		"attack_damage": 12.0,
-		"attack_range": 8.0,
+		"attack_range": 24.0,
 		"attack_speed": 0.4,
 		"move_speed": 2.5,
-		"aggro_radius": 18.0,
+		"aggro_radius": 24.0,
 		"is_ranged": true,
 		"projectile_scene_path": "",
 

@@ -988,7 +988,7 @@ func _perform_attack() -> void:
 
 	attack_cooldown = attack_duration
 
-	if is_ranged:
+	if unit_type == UnitType.RANGED or is_ranged:
 		# Ranged attacks spawn projectile immediately (projectile has travel time)
 		_spawn_projectile()
 	else:
