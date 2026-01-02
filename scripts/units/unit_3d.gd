@@ -99,7 +99,8 @@ var active_modifiers: Dictionary = {}
 @export var attack_vfx_id: String = ""  ## If set, uses VFX instead of projectile (for lightning, etc.)
 @export var delayed_projectile: bool = false  ## If true, spawn projectile after delay (for charge-up attacks like Puff)
 ## Delay in seconds before spawning projectile (for delayed_projectile units).
-## Calculate as: target_frame / animation_fps (e.g., frame 14 at 12fps = 1.17s)
+## Calculate as: target_frame / animation_fps
+## Example: Puff attack animation fires at frame 14, running at 12fps → 14/12 = 1.17s
 @export var projectile_delay: float = 0.5
 
 ## Below targeting (for flying units like storm cloud)
