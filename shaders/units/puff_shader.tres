@@ -1,6 +1,6 @@
 [gd_resource type="VisualShader" load_steps=19 format=3 uid="uid://upsvu1d5ffad"]
 
-[ext_resource type="Texture2D" uid="uid://dmn252nx15whs" path="res://TEMP FOR PUFF SHADER STUFF/128x128/Manifold/Manifold 13 - 128x128.png" id="1_t3p8e"]
+[ext_resource type="Texture2D" uid="uid://dmn252nx15whs" path="res://assets/textures/noise/Manifold/Manifold 13 - 128x128.png" id="1_t3p8e"]
 
 [sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_jreic"]
 expanded_output_ports = [0]

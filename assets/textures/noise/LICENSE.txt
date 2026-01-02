@@ -1,0 +1,7 @@
+700 Noise Textures
+Source: https://opengameart.org/content/700-noise-textures
+License: CC0 (Public Domain)
+
+These noise textures are released under Creative Commons Zero (CC0),
+meaning they are in the public domain and can be used for any purpose
+without attribution required.
