@@ -18,7 +18,10 @@ const MIN_ARC_DISTANCE: float = 0.1  ## Minimum distance to prevent division by 
 const FULL_ARC_DISTANCE: float = 5.0  ## Distance at which full arc height is used
 
 ## Ground collision constants
-const GROUND_COLLISION_GRACE_PERIOD: float = 0.1  ## Seconds before ground collision check activates (prevents false positives for low-spawn projectiles)
+## Grace period before ground collision activates. Prevents false positives when projectiles
+## spawn near ground level (e.g., from short units like Puff at y=1.5). At typical projectile
+## speeds (15-25 units/s), 0.1s allows the projectile to travel 1.5-2.5 units away from spawn.
+const GROUND_COLLISION_GRACE_PERIOD: float = 0.1
 
 ## Configuration (set by ProjectileData)
 var projectile_id: String = ""
