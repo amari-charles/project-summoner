@@ -750,5 +750,16 @@
       "name": "Victory",
       "description": "Celebrate your impending triumph."
     }
+  },
+  "debug": {
+    "spawner": {
+      "title": "Spawn Units",
+      "spawn_as_enemy": "Spawn as Enemy",
+      "clear_all": "Clear All Units"
+    },
+    "arena": {
+      "name": "Debug Arena",
+      "description": "Testing sandbox with infinite mana/HP. Drag units from the panel to spawn them."
+    }
   }
 }
