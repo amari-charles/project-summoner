@@ -175,6 +175,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public bool IsAlive { get; protected set; } = true;
     public bool IsDying { get; protected set; } = false;
 
+    // GDScript interop - snake_case aliases for duck typing in battlefield_constants.gd
+    public bool is_alive => IsAlive;
+    public float collision_radius => CollisionRadius;
+
     // =========================================================================
     // RUNTIME STATE - Targeting & Combat
     // =========================================================================
