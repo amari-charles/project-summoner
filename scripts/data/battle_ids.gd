@@ -65,6 +65,9 @@ const ARENA_MIXED_TACTICS: StringName = &"arena_mixed_tactics"
 ## Arena Battle: Full Combat - All unit types
 const ARENA_FULL_COMBAT: StringName = &"arena_full_combat"
 
+## Debug Arena: Testing sandbox with infinite mana/HP and manual spawning
+const DEBUG_ARENA: StringName = &"debug_arena"
+
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
@@ -91,6 +94,7 @@ const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
 	ARENA_RANGED_INTRO,
 	ARENA_MIXED_TACTICS,
 	ARENA_FULL_COMBAT,
+	DEBUG_ARENA,
 ]
 
 ## All battle IDs (events + tutorials + campaign)
