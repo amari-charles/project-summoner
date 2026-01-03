@@ -1,0 +1,37 @@
+using Godot;
+using ProjectSummoner.Units;
+
+namespace ProjectSummoner.Targeting.Constraints;
+
+/// <summary>
+/// Abstract base class for attack constraints.
+/// Constraints determine when an attack is valid and can resolve violations.
+/// </summary>
+[GlobalClass]
+public abstract partial class BaseAttackConstraint : Resource
+{
+    /// <summary>
+    /// Check if the unit can attack the target right now.
+    /// </summary>
+    public abstract bool IsAttackValid(Unit3D unit, Node3D target);
+
+    /// <summary>
+    /// Attempt to resolve a constraint violation (e.g., turn to face target).
+    /// Returns true if resolved immediately, false if need to wait (e.g., turning).
+    /// Default implementation just returns whether attack is now valid.
+    /// </summary>
+    public virtual bool TryResolve(Unit3D unit, Node3D target)
+    {
+        return IsAttackValid(unit, target);
+    }
+
+    /// <summary>
+    /// Check if the target is ever reachable given this constraint.
+    /// Used during target acquisition to filter out impossible targets.
+    /// Default returns true (always potentially reachable).
+    /// </summary>
+    public virtual bool CanEverReach(Unit3D unit, Node3D target)
+    {
+        return true;
+    }
+}

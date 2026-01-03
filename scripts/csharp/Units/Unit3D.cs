@@ -4,6 +4,7 @@ using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Systems;
+using ProjectSummoner.Targeting;
 using ProjectSummoner.Visual;
 
 namespace ProjectSummoner.Units;
@@ -80,32 +81,15 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public float AttackRange { get; set; } = 2f;
 
     [Export]
-    public float AggroRadius { get; set; } = 20f;
-
-    [Export]
     public float CollisionRadius { get; set; } = 0.5f;
 
     // =========================================================================
-    // EXPORTED PROPERTIES - Attack Angle Constraints
+    // EXPORTED PROPERTIES - Targeting
     // =========================================================================
 
-    [ExportGroup("Attack Angle Constraints")]
+    [ExportGroup("Targeting")]
     [Export]
-    public bool HasAttackAngleConstraint { get; set; } = false;
-
-    [Export]
-    public float MinAttackAngle { get; set; } = -90f;
-
-    [Export]
-    public float MaxAttackAngle { get; set; } = 90f;
-
-    // =========================================================================
-    // EXPORTED PROPERTIES - Horizontal Cone Constraint
-    // =========================================================================
-
-    [ExportGroup("Horizontal Cone Constraint")]
-    [Export]
-    public bool HasHorizontalConeConstraint { get; set; } = false;
+    public TargetingConfig? TargetingConfig { get; set; }
 
     // =========================================================================
     // EXPORTED PROPERTIES - Classification
@@ -120,9 +104,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     [Export]
     public int MovementLayer { get; set; } = (int)Units.MovementLayer.Ground;
-
-    [Export]
-    public int CanTarget { get; set; } = (int)Units.TargetLayer.Both;
 
     // =========================================================================
     // EXPORTED PROPERTIES - Flying Configuration
@@ -143,20 +124,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     [Export]
     public FlyingDeathStyle FlyingDeathStyle { get; set; } = FlyingDeathStyle.Fall;
-
-    // =========================================================================
-    // EXPORTED PROPERTIES - Below Target Preference
-    // =========================================================================
-
-    [ExportGroup("Below Target Preference")]
-    [Export]
-    public bool PreferTargetsBelow { get; set; } = false;
-
-    [Export]
-    public float BelowTargetRadius { get; set; } = 6.0f;
-
-    [Export]
-    public float BelowTargetScoreBonus { get; set; } = 5.0f;
 
     // =========================================================================
     // EXPORTED PROPERTIES - Visual Configuration
@@ -222,6 +189,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     protected bool _isFacingRight;
 
+    /// <summary>
+    /// Public accessor for facing direction.
+    /// </summary>
+    public bool IsFacingRight => _isFacingRight;
+
+    /// <summary>
+    /// Set the unit's facing direction and update visuals.
+    /// </summary>
+    public void SetFacing(bool facingRight)
+    {
+        _isFacingRight = facingRight;
+        VisualComponent?.SetFlipH(_isFacingRight);
+    }
+
     // Base stats for modifier calculations
     protected float _baseMaxHp;
     protected float _baseAttackDamage;
@@ -233,6 +214,15 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     protected IVisualComponent? VisualComponent { get; set; }
+
+    // =========================================================================
+    // TARGETING HELPER
+    // =========================================================================
+
+    /// <summary>
+    /// Get the targeting config for this unit, falling back to default if none assigned.
+    /// </summary>
+    protected TargetingConfig GetTargetingConfig() => TargetingConfig ?? DefaultTargetingConfig.Get();
 
     // =========================================================================
     // ABSTRACT METHODS - Subclasses MUST implement
@@ -334,30 +324,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// <summary>
     /// Check if this unit can ever reach the target (reachability check).
     /// Prevents targeting enemies that are impossible to attack.
+    /// Note: This is now mostly handled by constraint's CanEverReach in TargetingConfig.
     /// </summary>
     protected virtual bool CanEverReachTarget(Node3D target)
     {
-        float targetAltitude = GetTargetAltitude(target);
-        float myAltitude = MovementLayer == (int)Units.MovementLayer.Air ? FlightAltitude : 0f;
-        float altitudeDiff = Mathf.Abs(targetAltitude - myAltitude);
-
-        // Can we ever get close enough? (minimum possible 3D distance = altitude diff)
-        if (altitudeDiff > GetEffectiveAttackRange())
-        {
-            return false;
-        }
-
-        // Check attack angle constraint if applicable
-        if (HasAttackAngleConstraint)
-        {
-            float angle = Mathf.RadToDeg(Mathf.Atan2(targetAltitude - myAltitude, 0.001f));
-            if (angle < MinAttackAngle || angle > MaxAttackAngle)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        // Delegate to the targeting config's constraint
+        return GetTargetingConfig().AttackConstraint?.CanEverReach(this, target) ?? true;
     }
 
     /// <summary>
@@ -764,10 +736,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         if (IsInAttackRange(CurrentTarget))
         {
-            // Check horizontal cone constraint - turn if needed
-            if (HasHorizontalConeConstraint && !IsTargetInHorizontalCone(CurrentTarget))
+            // Check attack constraints (cone, etc.) - try to resolve if needed
+            var config = GetTargetingConfig();
+            if (!config.CanAttack(this, CurrentTarget))
             {
-                TurnToFaceTarget(CurrentTarget);
+                config.TryResolveConstraint(this, CurrentTarget);
                 if (_attackAnimationTimer <= 0)
                 {
                     UpdateAnimation("idle");
@@ -775,7 +748,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 return;  // Wait until next frame to attack
             }
 
-            // In range and facing correct direction - attack if cooldown ready
+            // In range and constraints satisfied - attack if cooldown ready
             if (_attackCooldown <= 0)
             {
                 PerformAttackAction();
@@ -858,38 +831,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
     }
 
-    /// <summary>
-    /// Check if target is within the unit's horizontal attack cone.
-    /// In 2.5D, this primarily means: is the target on the side we're facing?
-    /// </summary>
-    protected bool IsTargetInHorizontalCone(Node3D target)
-    {
-        // Skip check if constraint disabled
-        if (!HasHorizontalConeConstraint)
-            return true;
-
-        Vector3 toTarget = target.GlobalPosition - GlobalPosition;
-
-        // If target directly above/below (no X displacement), allow attack
-        if (Mathf.Abs(toTarget.X) < MinHorizontalDisplacement)
-            return true;
-
-        // In 2.5D, the constraint is: target must be on the side we're facing
-        // Z offset doesn't matter - projectiles handle aiming, sprite just needs to face right direction
-        bool targetIsRight = toTarget.X > 0;
-        return targetIsRight == _isFacingRight;
-    }
-
-    /// <summary>
-    /// Instantly turn to face a target.
-    /// </summary>
-    protected void TurnToFaceTarget(Node3D target)
-    {
-        Vector3 toTarget = target.GlobalPosition - GlobalPosition;
-        _isFacingRight = toTarget.X > 0;
-        VisualComponent?.SetFlipH(_isFacingRight);
-    }
-
     protected void UpdateAnimation(string animName)
     {
         if (VisualComponent != null && VisualComponent.GetCurrentAnimation() != animName)
@@ -904,35 +845,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (SpatialGrid.Instance == null)
             return null;
 
+        var config = GetTargetingConfig();
         var enemies = SpatialGrid.Instance.GetUnitsInRadius(
-            GlobalPosition, AggroRadius, GetEnemyTeam());
+            GlobalPosition, config.AggroRadius, GetEnemyTeam());
 
-        Node3D? bestTarget = null;
-        float bestScore = float.MinValue;
-
-        foreach (var enemy in enemies)
-        {
-            if (!IsValidTarget(enemy))
-                continue;
-
-            if (!CanEverReachTarget(enemy))
-                continue;
-
-            float score = CalculateTargetScore(enemy);
-            if (score > bestScore)
-            {
-                bestScore = score;
-                bestTarget = enemy;
-            }
-        }
+        var bestTarget = config.AcquireTarget(this, enemies);
 
         // If no units found, target the enemy summoner
-        if (bestTarget == null)
-        {
-            bestTarget = GetEnemySummoner();
-        }
-
-        return bestTarget;
+        return bestTarget ?? GetEnemySummoner();
     }
 
     /// <summary>
@@ -961,34 +881,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         return null;
     }
 
-    protected float CalculateTargetScore(Node3D target)
-    {
-        float distance = GlobalPosition.DistanceTo(target.GlobalPosition);
-        float distanceScore = AggroRadius - distance; // Closer = higher score
-
-        float hpScore = 0f;
-        if (target is IDamageable damageable)
-        {
-            // Lower HP = higher score
-            hpScore = (1.0f - (damageable.CurrentHp / damageable.MaxHp)) * 10f;
-        }
-
-        float belowBonus = 0f;
-        if (PreferTargetsBelow && MovementLayer == (int)Units.MovementLayer.Air)
-        {
-            Vector3 delta = GlobalPosition - target.GlobalPosition;
-            float xzDist = new Vector2(delta.X, delta.Z).Length();
-            float yDiff = delta.Y;
-
-            if (xzDist <= BelowTargetRadius && yDiff > 0)
-            {
-                belowBonus = BelowTargetScoreBonus * (1f - xzDist / BelowTargetRadius);
-            }
-        }
-
-        return distanceScore + hpScore + belowBonus;
-    }
-
     protected bool IsValidTarget(Node3D target)
     {
         if (target == null || !IsInstanceValid(target))
@@ -1004,24 +896,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (isAliveVar.VariantType != Variant.Type.Nil && !isAliveVar.AsBool())
             return false;
 
-        // Check layer targeting
-        if (!CanTargetLayer(target))
-            return false;
-
         return true;
-    }
-
-    protected bool CanTargetLayer(Node3D target)
-    {
-        int targetLayer = GetTargetMovementLayer(target);
-
-        return CanTarget switch
-        {
-            (int)Units.TargetLayer.GroundOnly => targetLayer == (int)Units.MovementLayer.Ground,
-            (int)Units.TargetLayer.AirOnly => targetLayer == (int)Units.MovementLayer.Air,
-            (int)Units.TargetLayer.Both => true,
-            _ => true
-        };
     }
 
     protected int GetTargetMovementLayer(Node3D target)

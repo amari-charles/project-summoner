@@ -163,6 +163,14 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
         // Check if target is still valid
         if (target != null && IsInstanceValid(target))
         {
+            // Verify attack constraints still allow attacking
+            // (target may have moved out of cone during the charge-up)
+            if (!GetTargetingConfig().CanAttack(this, target))
+            {
+                _delayedProjectileTarget = null;
+                return;
+            }
+
             SpawnProjectile(target);
         }
 
