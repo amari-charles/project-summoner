@@ -44,6 +44,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // Below this threshold, target is considered directly above/below and attack is allowed regardless of facing.
     private const float MinHorizontalDisplacement = 0.01f;
 
+    // Half-plane angle threshold for facing direction during strafe.
+    // If target angle is within ±90° of forward (+X), face right; otherwise face left.
+    private const float StrafeFacingHalfAngle = 90f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -885,16 +889,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
         Vector3 horizontalToTarget = new Vector3(toTarget.X, 0, toTarget.Z);
 
-        if (horizontalToTarget.LengthSquared() < 0.01f)
+        if (horizontalToTarget.LengthSquared() < MinHorizontalDisplacement * MinHorizontalDisplacement)
             return; // Target directly on top of us
 
         // Calculate angle to target (0° = +X, 90° = +Z)
         float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(horizontalToTarget.Z, horizontalToTarget.X));
 
         // Determine optimal facing: face toward the half-plane where target is
-        // If target angle is between -90° and 90°, face right (0°)
+        // If target angle is within ±StrafeFacingHalfAngle of forward, face right (0°)
         // If target angle is outside that range, face left (180°)
-        bool shouldFaceRight = Mathf.Abs(angleToTarget) <= 90f;
+        bool shouldFaceRight = Mathf.Abs(angleToTarget) <= StrafeFacingHalfAngle;
 
         // Update facing (bypassing the threshold check since we calculated it properly)
         if (_isFacingRight != shouldFaceRight)

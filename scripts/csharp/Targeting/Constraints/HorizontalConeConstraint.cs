@@ -6,6 +6,10 @@ namespace ProjectSummoner.Targeting.Constraints;
 /// <summary>
 /// Constrains attacks to a horizontal cone on the XZ plane.
 /// Unit must be facing the target within the cone angle.
+///
+/// Resolution is deferred to FallbackMovement (typically Strafe) rather than
+/// forcing facing here. This prevents rapid oscillation when targets are near
+/// the X=0 axis (directly above/below the unit).
 /// </summary>
 [GlobalClass]
 public partial class HorizontalConeConstraint : BaseAttackConstraint

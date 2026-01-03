@@ -73,6 +73,16 @@ Validate whether an attack is allowed given unit/target positions.
 - **HorizontalConeConstraint**: Target must be within a horizontal cone (unit must face target)
 - **CompositeConstraint**: All constraints must pass
 
+#### Constraint Resolution Strategies
+
+Constraints implement `TryResolve()` which can use different strategies:
+
+1. **Immediate resolution**: Modify unit state directly (e.g., `SetFacing()`) and return `true`
+2. **Deferred resolution**: Return `false` to let `FallbackMovement` handle it
+3. **Passive check**: Just return `IsAttackValid()` (default behavior)
+
+`HorizontalConeConstraint` uses deferred resolution - it returns `false` when the target isn't in the cone, allowing `Strafe` movement to naturally bring the target into view. This prevents rapid facing oscillation when targets are directly above/below the unit.
+
 ## FallbackMovementStyle
 
 When a unit has a target in range but attack constraints aren't satisfied (e.g., not facing the target), the `FallbackMovement` setting determines behavior:
