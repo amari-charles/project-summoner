@@ -642,8 +642,17 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _spawnRevealMaterial?.Dispose();
         _spawnRevealMaterial = null;
 
-        // Don't activate here - game controller handles phase transition
-        // Unit stays Inactive until battle phase starts (card.gd line 303-305 checks phase)
+        // Activate if game is in battle phase (unit was spawned during battle)
+        // BattlePhase enum: PREPARATION = 0, BATTLE = 1
+        var gameController = GetTree().CurrentScene;
+        if (gameController != null)
+        {
+            var currentPhase = gameController.Get("current_phase");
+            if (currentPhase.VariantType != Variant.Type.Nil && currentPhase.AsInt32() == 1)
+            {
+                Activate();
+            }
+        }
     }
 
     /// <summary>

@@ -295,14 +295,16 @@ func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: 
 				unit.global_position.y = flight_alt
 
 			# Start spawn reveal effect if duration specified (ghost materialize animation)
-			if spawn_duration > 0.0 and unit.has_method("start_spawn_reveal"):
+			var has_spawn_animation: bool = spawn_duration > 0.0 and unit.has_method("start_spawn_reveal")
+			if has_spawn_animation:
 				unit.start_spawn_reveal(spawn_duration)
 
-			# Activate unit if already in battle phase (units spawn Inactive by default)
-			# The battle scene root (Battle3D) has the game_controller_3d.gd script attached
-			var game_controller: Node = gameplay_layer.get_tree().current_scene
-			if game_controller and "current_phase" in game_controller and game_controller.current_phase == GameController3D.BattlePhase.BATTLE:
-				unit.Activate()
+			# Activate unit if already in battle phase and no spawn animation
+			# If spawn animation is playing, Unit3D.CompleteSpawnReveal() will activate when done
+			if not has_spawn_animation:
+				var game_controller: Node = gameplay_layer.get_tree().current_scene
+				if game_controller and "current_phase" in game_controller and game_controller.current_phase == GameController3D.BattlePhase.BATTLE:
+					unit.Activate()
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")
