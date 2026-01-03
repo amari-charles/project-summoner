@@ -68,7 +68,9 @@ func _init_summoners() -> void:
 func _connect_spawner_panel() -> void:
 	var spawner_panel: UnitSpawnerPanel = _find_spawner_panel()
 	if spawner_panel:
-		spawner_panel.clear_requested.connect(clear_all_units)
+		# Only connect if not already connected (scene might have connection)
+		if not spawner_panel.clear_requested.is_connected(clear_all_units):
+			spawner_panel.clear_requested.connect(clear_all_units)
 		print("DebugArenaController: Connected to UnitSpawnerPanel")
 
 

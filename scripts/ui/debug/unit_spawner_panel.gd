@@ -81,16 +81,16 @@ func _build_ui() -> void:
 
 func _populate_unit_list(container: VBoxContainer) -> void:
 	# Get all cards from catalog
-	var all_cards: Array = CardCatalog.get_all_cards()
+	var all_cards: Array[Dictionary] = CardCatalog.list_all_cards()
 
 	for card_def: Dictionary in all_cards:
-		# Only include summon cards
-		if card_def.get("card_type") != Card.CardType.SUMMON:
+		# Only include summon cards (type == "summon")
+		if card_def.get("type") != "summon":
 			continue
 
 		var btn: SpawnableUnitButton = SpawnableUnitButton.new()
 		btn.catalog_id = card_def.get("catalog_id", "")
-		btn.unit_name = card_def.get("card_name", "Unknown")
+		btn.unit_name = card_def.get("name", "Unknown")
 		btn.panel = self
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		container.add_child(btn)
