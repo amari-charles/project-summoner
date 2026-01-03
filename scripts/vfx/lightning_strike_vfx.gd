@@ -121,9 +121,9 @@ func _apply_damage() -> void:
 	if spell_damage <= 0:
 		return
 
-	# Apply damage via DamageSystem if available, otherwise direct
-	if target_unit.has_method("take_damage"):
-		target_unit.take_damage(spell_damage)
+	# Apply damage to C# unit
+	if target_unit.has_method("TakeDamage"):
+		target_unit.TakeDamage(spell_damage)
 
 ## Update shader alpha (called by tween)
 func _set_alpha(value: float) -> void:

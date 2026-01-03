@@ -314,8 +314,9 @@ func _is_valid_target(body: Node3D) -> bool:
 ## Hit a target
 func _hit_target(target_node: Node3D) -> void:
 	# Apply damage using DamageSystem (check validity - target may have been freed)
-	if is_instance_valid(target_node) and is_instance_valid(source) and target_node.has_method("take_damage"):
-		DamageSystem.apply_damage(source, target_node, damage, damage_type)
+	if is_instance_valid(target_node) and is_instance_valid(source):
+		var damage_system: Node = get_node("/root/DamageSystem")
+		damage_system.apply_damage(source, target_node, damage, damage_type)
 
 	# Emit signal
 	projectile_hit.emit(target_node, self)
@@ -407,21 +408,15 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 
 	var _hit_count: int = 0
 	for enemy: Node in enemies:
-		if enemy is Unit3D:
-			# Type narrow to Unit3D for safe property access
-			var unit_enemy: Unit3D = enemy
+		# C# units use PascalCase properties
+		if "IsAlive" in enemy and "Team" in enemy:
+			var unit_enemy: Node3D = enemy
 			var distance: float = unit_enemy.global_position.distance_to(center)
-			# var alive_str = "alive" if unit_enemy.is_alive else "DEAD"
-			# print("    %s: distance=%.1f, %s, team=%d" % [unit_enemy.name, distance, alive_str, unit_enemy.team])
 
-			if unit_enemy.is_alive and distance <= radius and is_instance_valid(source):
-				# print("      -> APPLYING DAMAGE: %.1f" % damage)
-				DamageSystem.apply_damage(source, unit_enemy, damage, damage_type)
+			if unit_enemy.get("IsAlive") and distance <= radius and is_instance_valid(source):
+				var damage_system: Node = get_node("/root/DamageSystem")
+				damage_system.apply_damage(source, unit_enemy, damage, damage_type)
 				_hit_count += 1
-			# elif not unit_enemy.is_alive:
-				# print("      -> Skipped (dead)")
-			# elif distance > radius:
-				# print("      -> Skipped (too far)")
 
 	# print("  RESULT: Hit %d enemies with %.1f damage each" % [_hit_count, damage])
 	# print("--- END AOE CALCULATION ---\n")

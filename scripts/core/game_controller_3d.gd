@@ -38,7 +38,7 @@ var win_condition_kill_target: int = 0
 var _enemy_kill_count: int = 0
 
 signal game_started()
-signal game_ended(winner: Unit3D.Team)
+signal game_ended(winner: UnitConstants.Team)
 signal time_updated(remaining: float)
 signal state_changed(new_state: GameState)
 signal initialization_complete()  ## Emitted when all battle systems are ready
@@ -296,7 +296,7 @@ func restart_game() -> void:
 	BattleContext.battle_state = BattleContext.BattleState.CONFIGURED
 	get_tree().reload_current_scene()
 
-func end_game(winner: Unit3D.Team) -> void:
+func end_game(winner: UnitConstants.Team) -> void:
 	if current_state == GameState.GAME_OVER:
 		return
 
@@ -309,7 +309,7 @@ func end_game(winner: Unit3D.Team) -> void:
 	AudioManager.stop_music()
 
 	# Update BattleContext state based on winner
-	if winner == Unit3D.Team.PLAYER:
+	if winner == UnitConstants.Team.PLAYER:
 		BattleContext.end_battle_victory()
 	else:
 		BattleContext.end_battle_defeat()
@@ -327,10 +327,10 @@ func end_game(winner: Unit3D.Team) -> void:
 
 func _check_timeout_victory() -> void:
 	# Simplified: player wins on timeout for now
-	end_game(Unit3D.Team.PLAYER)
+	end_game(UnitConstants.Team.PLAYER)
 
 func _check_overtime_victory() -> void:
-	end_game(Unit3D.Team.PLAYER)
+	end_game(UnitConstants.Team.PLAYER)
 
 ## =============================================================================
 ## TWO-PHASE BATTLE SYSTEM
@@ -354,10 +354,12 @@ func _start_battle_phase() -> void:
 	var activated_count: int = 0
 
 	for node: Node in units:
-		if node is Unit3D:
-			var unit: Unit3D = node
-			if unit.activation_state == Unit3D.ActivationState.INACTIVE:
-				unit.activate()
+		# C# units use PascalCase properties
+		if "IsAlive" in node and "Team" in node:
+			var unit: Node3D = node
+			# ActivationState enum: 0 = Inactive, 1 = Active
+			if unit.get("ActivationState") == 0:
+				unit.Activate()
 				activated_count += 1
 
 	print("BattleCoordinator: Battle phase started - activated %d units" % activated_count)
@@ -381,11 +383,11 @@ func get_time_string() -> String:
 	var seconds: int = int(remaining) % 60
 	return "%02d:%02d" % [minutes, seconds]
 
-func _on_game_ended(winner: Unit3D.Team) -> void:
+func _on_game_ended(winner: UnitConstants.Team) -> void:
 	# Show game over label
 	var game_over_label: Node = get_node_or_null("UI/GameOverLabel")
 	if game_over_label:
-		if winner == Unit3D.Team.PLAYER:
+		if winner == UnitConstants.Team.PLAYER:
 			game_over_label.set("text", "VICTORY!")
 			if game_over_label.has_method("add_theme_color_override"):
 				game_over_label.call("add_theme_color_override", "font_color", Color(0.3, 1.0, 0.3))
@@ -397,9 +399,9 @@ func _on_game_ended(winner: Unit3D.Team) -> void:
 
 func _on_summoner_destroyed(summoner: Summoner) -> void:
 	if summoner == player_summoner:
-		end_game(Unit3D.Team.ENEMY)
+		end_game(UnitConstants.Team.ENEMY)
 	elif summoner == enemy_summoner:
-		end_game(Unit3D.Team.PLAYER)
+		end_game(UnitConstants.Team.PLAYER)
 
 func _load_ai_for_enemy() -> void:
 	if not enemy_summoner:
@@ -475,7 +477,7 @@ func _register_summoner_provider() -> void:
 ## State for redirect drag operation
 var _redirect_drag_active: bool = false
 var _redirect_start_point: Vector3 = Vector3.ZERO
-var _redirect_selected_units: Array[Unit3D] = []
+var _redirect_selected_units: Array[Node3D] = []
 
 ## Store original modulate values for tinting
 var _unit_original_modulates: Dictionary = {}
@@ -620,29 +622,27 @@ func _on_redirect_release(release_point: Vector3) -> void:
 func _apply_unit_tint(tint_color: Color) -> void:
 	_unit_original_modulates.clear()
 
-	for unit: Unit3D in _redirect_selected_units:
-		if is_instance_valid(unit) and unit.visual_component:
-			# Access sprite via Variant to avoid type system issues
+	for unit: Node3D in _redirect_selected_units:
+		if is_instance_valid(unit) and "visual_component" in unit and unit.visual_component:
+			# Access sprite via duck typing (works with both GDScript and C# visual components)
 			var visual: Variant = unit.visual_component
-			if visual is SpriteCharacter2D5Component:
+			if "character_sprite" in visual and visual.character_sprite != null:
 				var sprite: Variant = visual.character_sprite
-				if sprite != null:
-					# Store original modulate
-					_unit_original_modulates[unit] = sprite.modulate
+				# Store original modulate
+				_unit_original_modulates[unit] = sprite.modulate
 
-					# Apply tinted color (lighter version of the redirect color)
-					sprite.modulate = tint_color.lightened(0.3)
+				# Apply tinted color (lighter version of the redirect color)
+				sprite.modulate = tint_color.lightened(0.3)
 
 ## Restore original colors to selected units
 func _restore_unit_tint() -> void:
-	for unit: Unit3D in _unit_original_modulates.keys():
-		if is_instance_valid(unit) and unit.visual_component:
-			# Access sprite via Variant to avoid type system issues
+	for unit: Node3D in _unit_original_modulates.keys():
+		if is_instance_valid(unit) and "visual_component" in unit and unit.visual_component:
+			# Access sprite via duck typing (works with both GDScript and C# visual components)
 			var visual: Variant = unit.visual_component
-			if visual is SpriteCharacter2D5Component:
+			if "character_sprite" in visual and visual.character_sprite != null:
 				var sprite: Variant = visual.character_sprite
-				if sprite != null:
-					sprite.modulate = _unit_original_modulates[unit]
+				sprite.modulate = _unit_original_modulates[unit]
 
 	_unit_original_modulates.clear()
 
@@ -702,10 +702,10 @@ func _init_win_conditions() -> void:
 func _handle_win_condition_timeout() -> void:
 	if WinConditionIDs.timeout_is_win(win_condition):
 		# Player wins by surviving the time limit (SURVIVE_TIME)
-		end_game(Unit3D.Team.PLAYER)
+		end_game(UnitConstants.Team.PLAYER)
 	elif WinConditionIDs.timeout_is_loss(win_condition):
 		# Player loses if they didn't complete objective in time (TIMED_DESTROY)
-		end_game(Unit3D.Team.ENEMY)
+		end_game(UnitConstants.Team.ENEMY)
 	else:
 		# Default: player wins on timeout
 		_check_timeout_victory()
@@ -715,8 +715,8 @@ func _connect_unit_death_tracking() -> void:
 	# Connect to any existing units
 	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in units:
-		if node is Unit3D:
-			var unit: Unit3D = node
+		if "is_alive" in node and "team" in node:
+			var unit: Node3D = node
 			if not unit.unit_died.is_connected(_on_unit_died_for_kill_count):
 				unit.unit_died.connect(_on_unit_died_for_kill_count)
 
@@ -728,24 +728,24 @@ func _on_node_added_for_kill_tracking(node: Node) -> void:
 	if win_condition != WinConditionIDs.KILL_COUNT:
 		return
 
-	if node is Unit3D:
-		var unit: Unit3D = node
+	if "is_alive" in node and "team" in node:
+		var unit: Node3D = node
 		if not unit.unit_died.is_connected(_on_unit_died_for_kill_count):
 			unit.unit_died.connect(_on_unit_died_for_kill_count)
 
 ## Handle unit death for kill count objective
-func _on_unit_died_for_kill_count(unit: Unit3D) -> void:
+func _on_unit_died_for_kill_count(unit: Node3D) -> void:
 	if win_condition != WinConditionIDs.KILL_COUNT:
 		return
 
 	# Only count enemy kills
-	if unit.team == Unit3D.Team.ENEMY:
+	if unit.team == UnitConstants.Team.ENEMY:
 		_enemy_kill_count += 1
 		objective_progress.emit(_enemy_kill_count, win_condition_kill_target)
 
 		# Check if objective met
 		if _enemy_kill_count >= win_condition_kill_target:
-			end_game(Unit3D.Team.PLAYER)
+			end_game(UnitConstants.Team.PLAYER)
 
 ## =============================================================================
 ## INITIALIZATION HELPERS

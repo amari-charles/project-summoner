@@ -4,6 +4,11 @@ extends GutTest
 ##
 ## Tests the spatial partitioning system used for efficient proximity queries.
 ## Uses mock Node3D objects to simulate units.
+##
+## NOTE: These tests require C# to be loaded. In headless mode without .NET,
+## the tests will be skipped gracefully.
+
+const SKIP_MSG: String = "Skipped: C# SpatialGrid not available in headless mode"
 
 
 ## =============================================================================
@@ -25,17 +30,26 @@ class MockUnit extends Node3D:
 
 
 ## =============================================================================
+## C# AVAILABILITY CHECK
+## =============================================================================
+
+## Returns true if SpatialGrid C# methods are available
+func _is_csharp_available() -> bool:
+	return SpatialGrid.has_method("register_unit")
+
+
+## =============================================================================
 ## TEST LIFECYCLE
 ## =============================================================================
 
 func before_each() -> void:
-	# Clear the grid before each test
-	SpatialGrid.clear()
+	if _is_csharp_available():
+		SpatialGrid.clear()
 
 
 func after_each() -> void:
-	# Clean up after each test
-	SpatialGrid.clear()
+	if _is_csharp_available():
+		SpatialGrid.clear()
 
 
 ## =============================================================================
@@ -43,6 +57,9 @@ func after_each() -> void:
 ## =============================================================================
 
 func test_center_position_maps_to_middle_cell() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Grid is 10x8, center should be around cell (5, 4)
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
@@ -54,6 +71,9 @@ func test_center_position_maps_to_middle_cell() -> void:
 
 
 func test_bottom_left_corner_maps_to_cell_zero() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Position (-50, 0, -40) should map to cell index 0
 	var unit: MockUnit = MockUnit.new(Vector3(-50.0, 0.0, -40.0))
 	add_child_autofree(unit)
@@ -66,6 +86,9 @@ func test_bottom_left_corner_maps_to_cell_zero() -> void:
 
 
 func test_top_right_corner_maps_to_last_cell() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Position (50, 0, 40) should map to last cell (clamped to grid)
 	var unit: MockUnit = MockUnit.new(Vector3(49.0, 0.0, 39.0))
 	add_child_autofree(unit)
@@ -78,6 +101,9 @@ func test_top_right_corner_maps_to_last_cell() -> void:
 
 
 func test_positions_outside_grid_are_clamped() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Position way outside grid should still register (clamped to edge)
 	var unit: MockUnit = MockUnit.new(Vector3(-100.0, 0.0, -100.0))
 	add_child_autofree(unit)
@@ -93,6 +119,9 @@ func test_positions_outside_grid_are_clamped() -> void:
 ## =============================================================================
 
 func test_register_unit_adds_to_grid() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 
@@ -104,6 +133,9 @@ func test_register_unit_adds_to_grid() -> void:
 
 
 func test_unregister_unit_removes_from_grid() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 
@@ -116,6 +148,9 @@ func test_unregister_unit_removes_from_grid() -> void:
 
 
 func test_double_register_is_idempotent() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 
@@ -127,6 +162,9 @@ func test_double_register_is_idempotent() -> void:
 
 
 func test_unregister_nonexistent_unit_is_safe() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 
@@ -138,6 +176,9 @@ func test_unregister_nonexistent_unit_is_safe() -> void:
 
 
 func test_multiple_units_in_same_cell() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit1: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	var unit2: MockUnit = MockUnit.new(Vector3(1.0, 0.0, 1.0))  # Same cell (within 10x10)
 	add_child_autofree(unit1)
@@ -153,6 +194,9 @@ func test_multiple_units_in_same_cell() -> void:
 
 
 func test_units_in_different_cells() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit1: MockUnit = MockUnit.new(Vector3(-40.0, 0.0, 0.0))
 	var unit2: MockUnit = MockUnit.new(Vector3(40.0, 0.0, 0.0))  # Different cell
 	add_child_autofree(unit1)
@@ -171,6 +215,9 @@ func test_units_in_different_cells() -> void:
 ## =============================================================================
 
 func test_query_finds_unit_within_radius() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(5.0, 0.0, 5.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -187,6 +234,9 @@ func test_query_finds_unit_within_radius() -> void:
 
 
 func test_query_excludes_unit_outside_radius() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(20.0, 0.0, 20.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -202,6 +252,9 @@ func test_query_excludes_unit_outside_radius() -> void:
 
 
 func test_query_excludes_self() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -217,6 +270,9 @@ func test_query_excludes_self() -> void:
 
 
 func test_query_filters_by_team() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var player_unit: MockUnit = MockUnit.new(Vector3(5.0, 0.0, 0.0), 0)
 	var enemy_unit: MockUnit = MockUnit.new(Vector3(-5.0, 0.0, 0.0), 1)
 	add_child_autofree(player_unit)
@@ -237,6 +293,9 @@ func test_query_filters_by_team() -> void:
 
 
 func test_query_filters_by_enemy_team() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var player_unit: MockUnit = MockUnit.new(Vector3(5.0, 0.0, 0.0), 0)
 	var enemy_unit: MockUnit = MockUnit.new(Vector3(-5.0, 0.0, 0.0), 1)
 	add_child_autofree(player_unit)
@@ -257,6 +316,9 @@ func test_query_filters_by_enemy_team() -> void:
 
 
 func test_query_returns_all_teams_when_filter_is_negative() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var player_unit: MockUnit = MockUnit.new(Vector3(5.0, 0.0, 0.0), 0)
 	var enemy_unit: MockUnit = MockUnit.new(Vector3(-5.0, 0.0, 0.0), 1)
 	add_child_autofree(player_unit)
@@ -275,6 +337,9 @@ func test_query_returns_all_teams_when_filter_is_negative() -> void:
 
 
 func test_query_excludes_dead_units() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var alive_unit: MockUnit = MockUnit.new(Vector3(5.0, 0.0, 0.0))
 	alive_unit.is_alive = true
 	var dead_unit: MockUnit = MockUnit.new(Vector3(-5.0, 0.0, 0.0))
@@ -296,6 +361,9 @@ func test_query_excludes_dead_units() -> void:
 
 
 func test_query_spans_multiple_cells() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Place units in different cells, query should find units across cells
 	var unit1: MockUnit = MockUnit.new(Vector3(-15.0, 0.0, 0.0))
 	var unit2: MockUnit = MockUnit.new(Vector3(15.0, 0.0, 0.0))
@@ -316,6 +384,9 @@ func test_query_spans_multiple_cells() -> void:
 
 
 func test_query_uses_2d_distance_ignoring_y() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Unit at same XZ but different Y should still be found
 	var unit: MockUnit = MockUnit.new(Vector3(5.0, 100.0, 5.0))  # High Y
 	add_child_autofree(unit)
@@ -336,6 +407,9 @@ func test_query_uses_2d_distance_ignoring_y() -> void:
 ## =============================================================================
 
 func test_small_movement_does_not_change_cell() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -348,6 +422,9 @@ func test_small_movement_does_not_change_cell() -> void:
 
 
 func test_large_movement_within_cell_returns_false() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -361,6 +438,9 @@ func test_large_movement_within_cell_returns_false() -> void:
 
 
 func test_movement_to_different_cell_returns_true() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -373,6 +453,9 @@ func test_movement_to_different_cell_returns_true() -> void:
 
 
 func test_cell_change_updates_grid_correctly() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(-40.0, 0.0, 0.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -410,6 +493,9 @@ func test_cell_change_updates_grid_correctly() -> void:
 
 
 func test_update_unregistered_unit_registers_it() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 
@@ -426,6 +512,9 @@ func test_update_unregistered_unit_registers_it() -> void:
 ## =============================================================================
 
 func test_clear_removes_all_units() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit1: MockUnit = MockUnit.new(Vector3(-20.0, 0.0, 0.0))
 	var unit2: MockUnit = MockUnit.new(Vector3(20.0, 0.0, 0.0))
 	add_child_autofree(unit1)
@@ -446,6 +535,9 @@ func test_clear_removes_all_units() -> void:
 ## =============================================================================
 
 func test_query_empty_grid_returns_empty() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var results: Array[Node3D] = SpatialGrid.get_units_in_radius(
 		Vector3(0.0, 0.0, 0.0),
 		100.0,
@@ -457,6 +549,9 @@ func test_query_empty_grid_returns_empty() -> void:
 
 
 func test_query_zero_radius_returns_empty() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(0.0, 0.0, 0.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -474,6 +569,9 @@ func test_query_zero_radius_returns_empty() -> void:
 
 
 func test_query_at_grid_boundary() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	var unit: MockUnit = MockUnit.new(Vector3(-49.0, 0.0, -39.0))
 	add_child_autofree(unit)
 	SpatialGrid.register_unit(unit)
@@ -489,6 +587,9 @@ func test_query_at_grid_boundary() -> void:
 
 
 func test_many_units_performance() -> void:
+	if not _is_csharp_available():
+		pending(SKIP_MSG)
+		return
 	# Add many units and verify grid handles them
 	var units: Array[MockUnit] = []
 	for i: int in range(100):

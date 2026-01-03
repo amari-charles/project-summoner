@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Fateforged"
 run/main_scene="res://scenes/ui/screens/title_screen.tscn"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -27,7 +27,7 @@ ContentCatalog="*res://scripts/data/content_catalog.gd"
 CosmeticsCatalog="*res://scripts/data/cosmetics_catalog.gd"
 EmotesCatalog="*res://scripts/data/emotes_catalog.gd"
 VFXManager="*res://scripts/vfx/vfx_manager.gd"
-DamageSystem="*res://scripts/combat/damage_system.gd"
+DamageSystem="*res://scripts/csharp/Combat/DamageSystem.tscn"
 HPBarManager="*res://scripts/ui/battle/hp_bar_manager.gd"
 ProjectileManager="*res://scripts/projectiles/projectile_manager.gd"
 ProfileRepo="*res://scripts/data/json_profile_repository.gd"
@@ -59,7 +59,7 @@ RedirectManager="*res://scripts/managers/redirect_manager.gd"
 PhysicsLayers="*res://scripts/core/physics_layers.gd"
 SpellTargetingManager="*res://scripts/ui/battle/spell_targeting_manager.gd"
 FPSTestTool="*res://scripts/debug/fps_test_tool.gd"
-SpatialGrid="*res://scripts/spatial/spatial_grid.gd"
+SpatialGrid="*res://scripts/csharp/Systems/SpatialGrid.tscn"
 
 [debug]
 
@@ -76,6 +76,10 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/mode=3
 window/stretch/mode="canvas_items"
+
+[dotnet]
+
+project/assembly_name="Fateforged"
 
 [editor_plugins]
 

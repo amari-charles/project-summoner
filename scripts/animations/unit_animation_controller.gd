@@ -21,7 +21,7 @@ var is_transitioning: bool = false
 
 ## References
 var sprite: AnimatedSprite2D = null
-var visual_component: Character2D5Component = null
+var visual_component: Node3D = null  # Works with both GDScript and C# visual components
 var unit: Node3D = null
 
 ## Frame tracking for events
@@ -50,28 +50,20 @@ func _process(delta: float) -> void:
 		_on_animation_finished()
 
 func _find_references() -> void:
-	# Find the Character2D5Component
-	visual_component = _find_child_of_type(get_parent(), Character2D5Component)
+	# Get unit reference
+	unit = get_parent()
+
+	# Find visual component using duck typing (works with both GDScript and C# components)
+	# Look for a child named "Visual" which is the standard visual component name
+	visual_component = unit.get_node_or_null("Visual") as Node3D
 
 	# Get sprite from visual component
 	if visual_component:
 		# Access the AnimatedSprite2D inside the component
 		sprite = visual_component.get_node_or_null("Sprite3D/SubViewport/Model2D/CharacterSprite")
 
-	# Get unit reference
-	unit = get_parent()
-
 	if not sprite:
-		push_error("UnitAnimationController: No AnimatedSprite2D found in Character2D5Component")
-
-func _find_child_of_type(node: Node, type: Variant) -> Node:
-	for child: Node in node.get_children():
-		if is_instance_of(child, type):
-			return child
-		var result: Node = _find_child_of_type(child, type)
-		if result:
-			return result
-	return null
+		push_error("UnitAnimationController: No AnimatedSprite2D found in visual component")
 
 ## Play a new animation state
 func play_state(state_name: String, force: bool = false) -> bool:

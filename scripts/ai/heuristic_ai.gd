@@ -347,7 +347,7 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 	var right_edge: float = bounds.end.x  # Positive X (enemy side)
 	var left_edge: float = bounds.position.x  # Negative X (player side)
 
-	if summoner_team == Unit3D.Team.ENEMY:
+	if summoner_team == UnitConstants.Team.ENEMY:
 		# Enemy spawns on positive X side (right half of battlefield)
 		match zone:
 			"defensive":

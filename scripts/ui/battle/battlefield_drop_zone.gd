@@ -9,8 +9,8 @@ var camera_3d: Camera3D = null
 var is_3d: bool = false
 var _initialized: bool = false  # Track initialization state
 
-## Spawn preview for summon cards
-var _spawn_preview: SpawnPreview = null
+## Spawn preview for summon cards (C# class: ProjectSummoner.SpawnPreview.SpawnPreview)
+var _spawn_preview: Node3D = null  # Typed as Node3D for GDScript/C# interop
 var _preview_card: Card = null  # Track which card we're previewing
 
 ## Spell preview for spell cards
@@ -160,9 +160,9 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 			# Clean up spell preview if switching card types
 			_cleanup_spell_preview()
 			# Check if cursor is in valid territory (for visual feedback)
-			var is_valid_zone: bool = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+			var is_valid_zone: bool = BattlefieldConstants.is_valid_spawn_position_for_team(world_pos, UnitConstants.Team.PLAYER)
 			# Clamp position to valid zone for actual spawn location
-			var clamped_pos: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(world_pos, Unit3D.Team.PLAYER)
+			var clamped_pos: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(world_pos, UnitConstants.Team.PLAYER)
 			# Show preview at clamped position with color based on cursor validity
 			# Red = cursor over invalid zone (unit will snap), Blue = cursor over valid zone
 			_update_spawn_preview(clamped_pos, card, is_valid_zone)
@@ -209,7 +209,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		var world_pos_3d: Vector3 = _screen_to_world_3d(at_position)
 		# Clamp spawn position for summon cards only (spells can target anywhere)
 		if card.card_type == Card.CardType.SUMMON:
-			world_pos_3d = BattlefieldConstants.clamp_spawn_position_for_team(world_pos_3d, Unit3D.Team.PLAYER)
+			world_pos_3d = BattlefieldConstants.clamp_spawn_position_for_team(world_pos_3d, UnitConstants.Team.PLAYER)
 		if summoner.has_method("play_card_3d"):
 			summoner.call("play_card_3d", card_index, world_pos_3d)
 	else:
@@ -265,15 +265,17 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 
 	# Calculate safe spawn position (same logic as actual spawning)
 	var safe_pos: Vector3 = _calculate_safe_spawn_position(world_pos, card)
-	_spawn_preview.update_position(safe_pos)
-	_spawn_preview.set_valid(is_valid_zone)
+	_spawn_preview.UpdatePosition(safe_pos)  # C# uses PascalCase
+	_spawn_preview.SetValid(is_valid_zone)  # C# uses PascalCase
 
 ## Create a new spawn preview for the card
 func _create_spawn_preview(card: Card) -> void:
 	if not card.unit_scene:
 		return
 
-	_spawn_preview = SpawnPreview.new()
+	# Load C# SpawnPreview class via script path for GDScript/C# interop
+	var spawn_preview_script: Script = load("res://scripts/csharp/SpawnPreview/SpawnPreview.cs")
+	_spawn_preview = spawn_preview_script.new()
 	_preview_card = card
 
 	# Add to 3D scene (find a suitable parent)
@@ -282,7 +284,7 @@ func _create_spawn_preview(card: Card) -> void:
 		var root_3d: Node = _find_3d_root(viewport)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
-			_spawn_preview.setup(card.unit_scene, card.spawn_count)
+			_spawn_preview.Setup(card.unit_scene, card.spawn_count)  # C# uses PascalCase
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:
@@ -330,7 +332,7 @@ func _calculate_safe_spawn_position(desired_pos: Vector3, card: Card) -> Vector3
 ## Clean up the spawn preview
 func _cleanup_spawn_preview() -> void:
 	if _spawn_preview and is_instance_valid(_spawn_preview):
-		_spawn_preview.cleanup()
+		_spawn_preview.Cleanup()  # C# uses PascalCase
 	_spawn_preview = null
 	_preview_card = null
 

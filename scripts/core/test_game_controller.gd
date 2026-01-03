@@ -160,7 +160,7 @@ func _spawn_test_enemy(catalog_id: String) -> void:
 		print("TestGameController: Failed to spawn %s (not enough mana?)" % catalog_id)
 
 ## Override game end to prevent auto-transition
-func end_game(winner: Unit3D.Team) -> void:
+func end_game(winner: UnitConstants.Team) -> void:
 	if current_state == GameState.GAME_OVER:
 		return
 
@@ -169,5 +169,5 @@ func end_game(winner: Unit3D.Team) -> void:
 	game_ended.emit(winner)
 	get_tree().paused = true
 
-	print("TestGameController: Game ended - Winner: %s" % ("Player" if winner == Unit3D.Team.PLAYER else "Enemy"))
+	print("TestGameController: Game ended - Winner: %s" % ("Player" if winner == UnitConstants.Team.PLAYER else "Enemy"))
 	print("TestGameController: Restart scene (F5) to test again")

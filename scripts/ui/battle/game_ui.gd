@@ -41,7 +41,7 @@ var player_summoner: Summoner = null
 var enemy_summoner: Summoner = null
 var _initialized: bool = false  # Track initialization state
 
-## Player team value that works for both Unit.Team.PLAYER (2D) and Unit3D.Team.PLAYER (3D)
+## Player team value that works for both Unit.Team.PLAYER (2D) and UnitConstants.Team.PLAYER (3D)
 const PLAYER_TEAM_VALUE: int = 0
 
 func _ready() -> void:
