@@ -301,22 +301,12 @@ func _is_valid_target(body: Node3D) -> bool:
 	if body == source:
 		return false
 
-	# Check team (both GDScript lowercase and C# PascalCase)
-	var body_team: int = -1
-	if "Team" in body:
-		body_team = body.get("Team")
-	elif "team" in body:
-		body_team = body.get("team")
-	if body_team == team:
+	# Check team (C# units use PascalCase)
+	if "Team" in body and body.get("Team") == team:
 		return false
 
-	# Check if alive (both GDScript lowercase and C# PascalCase)
-	var is_alive: bool = true
-	if "IsAlive" in body:
-		is_alive = body.get("IsAlive")
-	elif "is_alive" in body:
-		is_alive = body.get("is_alive")
-	if not is_alive:
+	# Check if alive (C# units use PascalCase)
+	if "IsAlive" in body and not body.get("IsAlive"):
 		return false
 
 	return true
@@ -410,28 +400,6 @@ func _apply_aoe_damage(center: Vector3, radius: float) -> void:
 		if distance <= radius:
 			var damage_system: Node = get_node("/root/DamageSystem")
 			damage_system.apply_damage(source, target_3d, damage, damage_type)
-
-## Spawn a debug visualization sphere to show AOE radius
-func _spawn_debug_aoe_sphere(center: Vector3, radius: float) -> void:
-	var sphere: MeshInstance3D = MeshInstance3D.new()
-	var mesh: SphereMesh = SphereMesh.new()
-	mesh.radius = radius
-	mesh.height = radius * 2
-	sphere.mesh = mesh
-
-	# Semi-transparent red material
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(1, 0, 0, 0.2)
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	sphere.material_override = material
-
-	sphere.global_position = center
-	get_tree().root.add_child(sphere)
-
-	# Auto-remove after 1 second
-	await get_tree().create_timer(1.0).timeout
-	sphere.queue_free()
 
 ## Get projectile data from ContentCatalog
 func _get_projectile_data() -> ProjectileData:

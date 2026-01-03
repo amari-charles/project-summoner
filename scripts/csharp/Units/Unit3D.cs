@@ -35,9 +35,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private const float DeathCleanupDelay = 1.0f;
     private const float TargetLockDuration = 0.5f;
 
-    // Spawn reveal colors
+    // Spawn reveal glow colors - blue for player team, red for enemy team (matches team color scheme)
     private static readonly Color SpawnGlowColorPlayer = new(0.4f, 0.7f, 1.0f, 1.0f);
     private static readonly Color SpawnGlowColorEnemy = new(1.0f, 0.4f, 0.4f, 1.0f);
+
+    // Minimum horizontal displacement to determine facing direction.
+    // Below this threshold, target is considered directly above/below and attack is allowed regardless of facing.
+    private const float MinHorizontalDisplacement = 0.01f;
 
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
@@ -867,7 +871,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         Vector3 toTarget = target.GlobalPosition - GlobalPosition;
 
         // If target directly above/below (no X displacement), allow attack
-        if (Mathf.Abs(toTarget.X) < 0.01f)
+        if (Mathf.Abs(toTarget.X) < MinHorizontalDisplacement)
             return true;
 
         // In 2.5D, the constraint is: target must be on the side we're facing
