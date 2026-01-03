@@ -38,6 +38,7 @@ const FIRE_ELEMENTAL_SWARM: StringName = &"fire_elemental_swarm"
 # ============================================================================
 
 const EARTH_SPRITE: StringName = &"earth_sprite"
+const ROCK: StringName = &"rock"  # Stationary test dummy
 
 # ============================================================================
 # WIND ELEMENT UNITS

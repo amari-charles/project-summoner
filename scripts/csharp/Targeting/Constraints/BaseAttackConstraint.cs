@@ -17,8 +17,16 @@ public abstract partial class BaseAttackConstraint : Resource
 
     /// <summary>
     /// Attempt to resolve a constraint violation (e.g., turn to face target).
-    /// Returns true if resolved immediately, false if need to wait (e.g., turning).
-    /// Default implementation just returns whether attack is now valid.
+    /// Returns true if resolved immediately, false if need to wait.
+    ///
+    /// Resolution strategies:
+    /// 1. Immediate resolution: Modify unit state (e.g., SetFacing) and return true
+    /// 2. Deferred resolution: Return false to let FallbackMovement handle it
+    ///    (e.g., Strafe movement naturally brings target into cone)
+    /// 3. Passive check: Just return IsAttackValid (default behavior)
+    ///
+    /// When false is returned, Unit3D.UpdateBehavior uses FallbackMovementStyle
+    /// to determine how to move (MoveToward, Strafe, or Idle).
     /// </summary>
     public virtual bool TryResolve(Unit3D unit, Node3D target)
     {

@@ -779,9 +779,16 @@ func _on_start_event_pressed() -> void:
 	print("CampaignMap: Configuring BattleContext with battle_id='%s'" % selected_event_id)
 	BattleContext.configure_campaign_battle(selected_event_id)
 
-	# Launch battle scene
+	# Launch battle scene - use custom scene_path if specified in battle config
+	var battle_scene: String = SceneManager.SCENE_BATTLE_3D
+	if BattleContext.battle_config.has("scene_path"):
+		var custom_scene: String = BattleContext.battle_config.get("scene_path", "")
+		if not custom_scene.is_empty():
+			battle_scene = custom_scene
+			print("CampaignMap: Using custom battle scene: %s" % battle_scene)
+
 	print("CampaignMap: Launching battle scene...")
-	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+	SceneManager.transition_to(battle_scene)
 
 ## =============================================================================
 ## NAVIGATION

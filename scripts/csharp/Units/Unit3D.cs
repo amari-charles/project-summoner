@@ -44,6 +44,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // Below this threshold, target is considered directly above/below and attack is allowed regardless of facing.
     private const float MinHorizontalDisplacement = 0.01f;
 
+    // Half-plane angle threshold for facing direction during strafe.
+    // If target angle is within ±90° of forward (+X), face right; otherwise face left.
+    private const float StrafeFacingHalfAngle = 90f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -96,6 +100,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     [ExportGroup("Classification")]
+
+    /// <summary>
+    /// Unique identifier for this unit type (e.g., "puff", "slime").
+    /// Used to look up targeting config from registry.
+    /// </summary>
+    [Export]
+    public string UnitId { get; set; } = "";
+
     [Export]
     public int Team { get; set; } = (int)Units.Team.Player;
 
@@ -220,9 +232,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     /// <summary>
-    /// Get the targeting config for this unit, falling back to default if none assigned.
+    /// Get the targeting config for this unit.
+    /// Priority: 1) Registry by UnitId, 2) Exported TargetingConfig, 3) Default config.
     /// </summary>
-    protected TargetingConfig GetTargetingConfig() => TargetingConfig ?? DefaultTargetingConfig.Get();
+    protected TargetingConfig GetTargetingConfig()
+    {
+        // First try registry lookup by UnitId (bypasses .tres loading issues)
+        if (!string.IsNullOrEmpty(UnitId))
+        {
+            return TargetingConfigRegistry.GetConfig(UnitId);
+        }
+
+        // Fall back to exported config or default
+        return TargetingConfig ?? DefaultTargetingConfig.Get();
+    }
 
     // =========================================================================
     // ABSTRACT METHODS - Subclasses MUST implement
@@ -740,16 +763,42 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             var config = GetTargetingConfig();
             if (!config.CanAttack(this, CurrentTarget))
             {
-                config.TryResolveConstraint(this, CurrentTarget);
-                if (_attackAnimationTimer <= 0)
+                bool resolved = config.TryResolveConstraint(this, CurrentTarget);
+
+                if (!resolved)
                 {
-                    UpdateAnimation("idle");
+                    // Constraint not resolved - use configured fallback movement
+                    switch (config.FallbackMovement)
+                    {
+                        case Targeting.FallbackMovementStyle.Strafe:
+                            StrafeAroundTarget(delta);
+                            break;
+                        case Targeting.FallbackMovementStyle.Idle:
+                            break;
+                        case Targeting.FallbackMovementStyle.MoveToward:
+                        default:
+                            MoveTowardTarget(delta);
+                            break;
+                    }
+
+                    if (_attackAnimationTimer <= 0)
+                    {
+                        UpdateAnimation(config.FallbackMovement == Targeting.FallbackMovementStyle.Idle ? "idle" : "walk");
+                    }
+                }
+                else
+                {
+                    if (_attackAnimationTimer <= 0)
+                    {
+                        UpdateAnimation("idle");
+                    }
                 }
                 return;  // Wait until next frame to attack
             }
 
             // In range and constraints satisfied - attack if cooldown ready
-            if (_attackCooldown <= 0)
+            // Units with 0 attack speed cannot attack (e.g., target dummies)
+            if (_attackCooldown <= 0 && AttackSpeed > 0)
             {
                 PerformAttackAction();
                 _attackCooldown = 1.0f / AttackSpeed;
@@ -780,7 +829,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         // Move toward enemy base direction
         float direction = Team == (int)Units.Team.Player ? 1.0f : -1.0f;
-        Vector3 velocity = new Vector3(direction * MoveSpeed, 0, 0);
+        Vector3 moveDir = new Vector3(direction, 0, 0);
+        Vector3 velocity = moveDir * MoveSpeed;
 
         // Maintain altitude for flying units
         if (MovementLayer == (int)Units.MovementLayer.Air)
@@ -790,6 +840,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         Velocity = velocity;
         MoveAndSlide();
+
+        // Update facing direction
+        UpdateFacing(moveDir);
     }
 
     protected void MoveTowardTarget(float delta)
@@ -819,6 +872,66 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Update facing direction
         UpdateFacing(direction);
+    }
+
+    /// <summary>
+    /// Move perpendicular to target to circle around while maintaining distance.
+    /// Used by ranged units when they can't get target in attack cone.
+    /// </summary>
+    protected void StrafeAroundTarget(float delta)
+    {
+        if (CurrentTarget == null)
+            return;
+
+        // Extend target lock while strafing - prevents mid-strafe target switches
+        _targetLockTimer = TargetLockDuration;
+
+        Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
+        Vector3 horizontalToTarget = new Vector3(toTarget.X, 0, toTarget.Z);
+
+        if (horizontalToTarget.LengthSquared() < MinHorizontalDisplacement * MinHorizontalDisplacement)
+            return; // Target directly on top of us
+
+        // Calculate angle to target (0° = +X, 90° = +Z)
+        float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(horizontalToTarget.Z, horizontalToTarget.X));
+
+        // Determine optimal facing: face toward the half-plane where target is
+        // If target angle is within ±StrafeFacingHalfAngle of forward, face right (0°)
+        // If target angle is outside that range, face left (180°)
+        bool shouldFaceRight = Mathf.Abs(angleToTarget) <= StrafeFacingHalfAngle;
+
+        // Update facing (bypassing the threshold check since we calculated it properly)
+        if (_isFacingRight != shouldFaceRight)
+        {
+            _isFacingRight = shouldFaceRight;
+            VisualComponent?.SetFlipH(_isFacingRight);
+        }
+
+        // Calculate angle difference from our facing
+        float facingAngle = _isFacingRight ? 0f : 180f;
+        float angleDiff = angleToTarget - facingAngle;
+        while (angleDiff > 180f) angleDiff -= 360f;
+        while (angleDiff < -180f) angleDiff += 360f;
+
+        // Get perpendicular strafe direction (90° counterclockwise from toTarget)
+        Vector3 strafeDir = new Vector3(-horizontalToTarget.Z, 0, horizontalToTarget.X).Normalized();
+
+        // Choose strafe direction that reduces |angleDiff|
+        // If angleDiff > 0, target is counterclockwise from facing, keep base direction
+        // If angleDiff < 0, target is clockwise from facing, flip direction
+        if (angleDiff < 0)
+            strafeDir = -strafeDir;
+
+        Vector3 velocity = strafeDir * MoveSpeed;
+
+        // Maintain altitude for flying units
+        if (MovementLayer == (int)Units.MovementLayer.Air)
+        {
+            velocity.Y = 0;
+        }
+
+        Velocity = velocity;
+        MoveAndSlide();
     }
 
     protected void UpdateFacing(Vector3 direction)

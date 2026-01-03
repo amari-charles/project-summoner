@@ -52,12 +52,13 @@ func _check_battle_mode() -> void:
 		return
 
 	var current_mode: Variant = battle_context.get("current_mode")
-	var is_campaign_mode: bool = current_mode in [
+	var is_speed_enabled: bool = current_mode in [
 		BattleContext.BattleMode.CAMPAIGN,
-		BattleContext.BattleMode.TUTORIAL
+		BattleContext.BattleMode.TUTORIAL,
+		BattleContext.BattleMode.PRACTICE  # Enable for debug arena
 	]
 
-	disabled = not is_campaign_mode
+	disabled = not is_speed_enabled
 
 	if disabled:
 		text = "▶ 1x"

@@ -6,6 +6,10 @@ namespace ProjectSummoner.Targeting.Constraints;
 /// <summary>
 /// Constrains attacks to a horizontal cone on the XZ plane.
 /// Unit must be facing the target within the cone angle.
+///
+/// Resolution is deferred to FallbackMovement (typically Strafe) rather than
+/// forcing facing here. This prevents rapid oscillation when targets are near
+/// the X=0 axis (directly above/below the unit).
 /// </summary>
 [GlobalClass]
 public partial class HorizontalConeConstraint : BaseAttackConstraint
@@ -49,13 +53,9 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
 
     public override bool TryResolve(Unit3D unit, Node3D target)
     {
-        if (IsAttackValid(unit, target))
-            return true;
-
-        // Turn to face target
-        Vector3 toTarget = target.GlobalPosition - unit.GlobalPosition;
-        unit.SetFacing(toTarget.X > 0);
-
-        return false;  // Will be valid next frame after turning
+        // Don't force facing here - let strafe movement naturally bring
+        // the target into the cone. This prevents rapid oscillation when
+        // the target is near the X=0 axis (directly above/below).
+        return IsAttackValid(unit, target);
     }
 }

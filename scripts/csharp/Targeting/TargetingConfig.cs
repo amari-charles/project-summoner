@@ -9,6 +9,19 @@ using ProjectSummoner.Units;
 namespace ProjectSummoner.Targeting;
 
 /// <summary>
+/// Movement style when attack constraint can't be resolved.
+/// </summary>
+public enum FallbackMovementStyle
+{
+    /// <summary>Move directly toward the target (default for melee).</summary>
+    MoveToward,
+    /// <summary>Strafe/circle around target to maintain distance (default for ranged).</summary>
+    Strafe,
+    /// <summary>Stay in place and wait.</summary>
+    Idle
+}
+
+/// <summary>
 /// Container resource that holds all targeting configuration for a unit.
 /// Assigned via a single [Export] on Unit3D.
 /// </summary>
@@ -42,6 +55,14 @@ public partial class TargetingConfig : Resource
     /// </summary>
     [Export]
     public float AggroRadius { get; set; } = 20f;
+
+    [ExportGroup("Movement")]
+
+    /// <summary>
+    /// How the unit moves when attack constraint can't be immediately resolved.
+    /// </summary>
+    [Export]
+    public FallbackMovementStyle FallbackMovement { get; set; } = FallbackMovementStyle.MoveToward;
 
     /// <summary>
     /// Acquire the best target from a list of candidates.

@@ -217,4 +217,33 @@ static func _get_battles() -> Array[Dictionary]:
 			"unlock_requirements": [BattleIDs.ARENA_MIXED_TACTICS],
 			"ai_type": "heuristic",
 		},
+		# Debug Arena - Testing sandbox
+		{
+			"id": BattleIDs.DEBUG_ARENA,
+			"biome_id": BiomeIDs.SUMMER_PLAINS,
+			"name_key": "debug.arena.name",
+			"description_key": "debug.arena.description",
+			"difficulty": 0,
+			"event_type": EventTypeIDs.BATTLE,
+			"requires_deck": false,
+			"repeatable": true,
+			"reward_type": RewardTypeIDs.NONE,
+			"reward_cards": [],
+			"gold_reward": 0,
+			"card_xp_reward": 0,
+			"summoner_xp_reward": 0,
+			"dev_player_deck": [
+				{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 5},
+				{"catalog_id": CardIDs.PUFF, "count": 5},
+				{"catalog_id": CardIDs.EARTH_SPRITE, "count": 5},
+				{"catalog_id": CardIDs.FIRE_TITAN, "count": 5},
+				{"catalog_id": CardIDs.FIREBALL, "count": 5},
+				{"catalog_id": CardIDs.ROCK, "count": 5},
+			],
+			"enemy_deck": [],  # No AI spawning
+			"enemy_hp": 999999.0,
+			"unlock_requirements": [],
+			"ai_type": "passive",
+			"scene_path": "res://scenes/battlefield/dev/debug_arena.tscn",
+		},
 	]

@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3 uid="uid://rock_3d"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Units/MeleeUnit3D.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/units/skeletal_character_2d5_component.tscn" id="2_skeletal_component"]
+[ext_resource type="PackedScene" path="res://scenes/units/earth_sprite_rig.tscn" id="3_rig"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.5
+height = 1.6
+
+[node name="Rock3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+MaxHp = 500.0
+AttackDamage = 0.0
+AttackRange = 2.0
+AttackSpeed = 0.0
+MoveSpeed = 0.0
+UnitId = "rock"
+Team = 0
+UnitType = 0
+CollisionRadius = 0.5
+ShadowEnabled = true
+ShadowSize = 1.0
+ShadowOpacity = 0.6
+
+[node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
+SkeletalScene = ExtResource("3_rig")
+ScaleFactor = Vector2(0.54, 0.54)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="ProjectileTargetPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
