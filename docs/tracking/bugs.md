@@ -10,36 +10,6 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 ## Active Bugs
 
-#### Aggro Manipulation Exploit - Units Can Be Permanently Occupied
-**Status:** Open
-**Reported:** 2025-12-12
-**Component:** AI / Combat / Targeting
-
-**Description:**
-Players can permanently keep enemy units occupied by spawning new units, as all available enemies change aggro to target the newly spawned unit.
-
-**Expected Behavior:**
-Enemy units should maintain focus on existing threats or use intelligent target prioritization that prevents trivial aggro manipulation.
-
-**Current Behavior:**
-When a player spawns a new unit, all nearby enemy units immediately switch aggro to target it, abandoning their current targets. This allows players to repeatedly spawn cheap units to keep expensive enemy units permanently distracted.
-
-**Impact:**
-Significant balance issue. Players can exploit this to neutralize high-value enemy units with a stream of cheap fodder units.
-
-**Proposed Solution:**
-Consider one or more of:
-1. Add aggro stickiness - units don't immediately switch targets
-2. Implement threat priority based on unit value/danger
-3. Add a cooldown before units can switch targets
-4. Only allow target switching when current target dies or moves out of range
-
-**Related Files:**
-- scripts/units/unit_3d.gd (targeting logic)
-- scripts/combat/ (combat system)
-
----
-
 #### RID/Resource Leaks at Exit in Headless Mode
 **Status:** Open
 **Reported:** 2025-01-28
@@ -69,41 +39,6 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 - scripts/systems/vfx_manager.gd
 - scripts/systems/hp_bar_manager.gd
 - scripts/systems/projectile_manager.gd
-
----
-
-#### Large Units Render In Front of Smaller Units Despite Z-Position
-**Status:** Open
-**Reported:** 2025-12-13
-**Component:** Rendering / Sprite3D / Depth Sorting
-
-**Description:**
-Large units (e.g., Fire Titan with 4x viewport scale) render in front of smaller units even when they are positioned behind them on the Z-axis (further from camera).
-
-**Expected Behavior:**
-Units should be sorted by their ground position (feet/base) on the Z-axis. A unit standing further back should render behind units standing in front, regardless of sprite size.
-
-**Current Behavior:**
-Large sprites appear to "pop" in front of smaller units, breaking depth perception. The sorting seems to be based on sprite center or some other point rather than the unit's ground position.
-
-**Impact:**
-Breaks visual coherence and depth perception on the battlefield. Large units look wrong when mixed with normal-sized units.
-
-**Possible Causes:**
-1. Sprite3D sorting uses sprite center rather than base/feet position
-2. Larger viewport size affects the render order calculation
-3. Billboard rendering interferes with depth sorting
-4. Sprite not anchored to bottom of bounding box
-
-**Related Files:**
-- scripts/units/sprite_character_2d5_component.gd (sprite positioning, `_setup_sprite_alignment()`)
-- scripts/units/unit_3d.gd (unit positioning)
-- scenes/units/fire_titan_3d.tscn (large unit example)
-
-**Notes:**
-- First observed with Fire Titan (viewport_scale = 4.0)
-- May need to adjust Sprite3D render priority or sorting offset
-- Godot's Sprite3D has `render_priority` and sorting properties that may help
 
 ---
 
