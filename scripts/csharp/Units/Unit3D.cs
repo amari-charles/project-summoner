@@ -642,8 +642,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _spawnRevealMaterial?.Dispose();
         _spawnRevealMaterial = null;
 
-        // Activate the unit
-        Activate();
+        // Don't activate here - game controller handles phase transition
+        // Unit stays Inactive until battle phase starts (card.gd line 303-305 checks phase)
     }
 
     /// <summary>

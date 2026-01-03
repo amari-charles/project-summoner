@@ -263,9 +263,9 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 	if not _spawn_preview:
 		return
 
-	# Calculate safe spawn position (same logic as actual spawning)
-	var safe_pos: Vector3 = _calculate_safe_spawn_position(world_pos, card)
-	_spawn_preview.UpdatePosition(safe_pos)  # C# uses PascalCase
+	# Calculate safe spawn positions per-unit (same logic as actual spawning in card.gd)
+	var positions: Array[Vector3] = _calculate_safe_spawn_positions(world_pos, card)
+	_spawn_preview.UpdatePositions(positions)  # C# uses PascalCase
 	_spawn_preview.SetValid(is_valid_zone)  # C# uses PascalCase
 
 ## Create a new spawn preview for the card
@@ -312,11 +312,16 @@ func _find_3d_root(viewport: Viewport) -> Node:
 
 	return null
 
-## Calculate safe spawn position for preview
-func _calculate_safe_spawn_position(desired_pos: Vector3, card: Card) -> Vector3:
+## Calculate safe spawn positions for preview (matches card.gd spawn logic)
+func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[Vector3]:
+	var positions: Array[Vector3] = []
 	var scene_tree: SceneTree = get_tree()
+
 	if not scene_tree:
-		return desired_pos
+		# Fallback: just return center position for each unit
+		for i: int in card.spawn_count:
+			positions.append(center_pos + Card.generate_formation_offset(i, card.spawn_count))
+		return positions
 
 	# Get collision_radius from the unit scene (instantiate temporarily to check)
 	var collision_radius: float = 0.5
@@ -324,10 +329,20 @@ func _calculate_safe_spawn_position(desired_pos: Vector3, card: Card) -> Vector3
 		var temp_unit: Node = card.unit_scene.instantiate()
 		if temp_unit and "collision_radius" in temp_unit:
 			collision_radius = temp_unit.get("collision_radius")
+		# Also try C# property name
+		if temp_unit and "CollisionRadius" in temp_unit:
+			collision_radius = temp_unit.get("CollisionRadius")
 		if temp_unit:
 			temp_unit.queue_free()
 
-	return BattlefieldConstants.find_safe_spawn_position(desired_pos, scene_tree, collision_radius)
+	# Calculate position for each unit (same logic as card.gd lines 281-288)
+	for i: int in card.spawn_count:
+		var offset: Vector3 = Card.generate_formation_offset(i, card.spawn_count)
+		var desired_pos: Vector3 = center_pos + offset
+		var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(desired_pos, scene_tree, collision_radius)
+		positions.append(safe_pos)
+
+	return positions
 
 ## Clean up the spawn preview
 func _cleanup_spawn_preview() -> void:
