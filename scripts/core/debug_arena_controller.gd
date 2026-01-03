@@ -14,6 +14,18 @@ signal units_cleared(count: int)
 func _ready() -> void:
 	print("DebugArenaController: Initializing debug arena...")
 
+	# IMPORTANT: Set summoner deck strategies to DEFERRED before parent initialization
+	# This prevents the summoners from asserting on empty decks during init()
+	# Summoners are child nodes so they're already in the tree but init() hasn't been called yet
+	var player_sum: Node = get_node_or_null("PlayerSummoner")
+	var enemy_sum: Node = get_node_or_null("EnemySummoner")
+	if player_sum and "deck_load_strategy" in player_sum:
+		player_sum.deck_load_strategy = Summoner.DeckLoadStrategy.DEFERRED
+		print("DebugArenaController: Set player summoner to DEFERRED")
+	if enemy_sum and "deck_load_strategy" in enemy_sum:
+		enemy_sum.deck_load_strategy = Summoner.DeckLoadStrategy.DEFERRED
+		print("DebugArenaController: Set enemy summoner to DEFERRED")
+
 	# Configure BattleContext for debug mode
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context and battle_context.has_method("configure_practice_battle"):
