@@ -14,18 +14,6 @@ signal units_cleared(count: int)
 func _ready() -> void:
 	print("DebugArenaController: Initializing debug arena...")
 
-	# IMPORTANT: Set summoner deck strategies to DEFERRED before parent initialization
-	# This prevents the summoners from asserting on empty decks during init()
-	# Summoners are child nodes so they're already in the tree but init() hasn't been called yet
-	var player_sum: Node = get_node_or_null("PlayerSummoner")
-	var enemy_sum: Node = get_node_or_null("EnemySummoner")
-	if player_sum and "deck_load_strategy" in player_sum:
-		player_sum.deck_load_strategy = Summoner.DeckLoadStrategy.DEFERRED
-		print("DebugArenaController: Set player summoner to DEFERRED")
-	if enemy_sum and "deck_load_strategy" in enemy_sum:
-		enemy_sum.deck_load_strategy = Summoner.DeckLoadStrategy.DEFERRED
-		print("DebugArenaController: Set enemy summoner to DEFERRED")
-
 	# Configure BattleContext for debug mode
 	var battle_context: Node = get_node_or_null("/root/BattleContext")
 	if battle_context and battle_context.has_method("configure_practice_battle"):
@@ -47,6 +35,34 @@ func _ready() -> void:
 	print("  - Infinite HP for both sides")
 	print("  - No AI unit spawning")
 	print("  - Drag units from panel to spawn")
+
+
+## Override _init_summoners to set DEFERRED strategy before init() is called
+## This prevents summoners from asserting on empty decks during initialization
+func _init_summoners() -> void:
+	# Discover summoners first (same as parent)
+	if player_summoner == null:
+		player_summoner = get_tree().get_first_node_in_group(GroupIDs.PLAYER_SUMMONERS)
+	if enemy_summoner == null:
+		enemy_summoner = get_tree().get_first_node_in_group(GroupIDs.ENEMY_SUMMONERS)
+
+	# IMPORTANT: Set DEFERRED strategy BEFORE calling init()
+	# This allows empty decks without triggering the production mode assertion
+	if player_summoner:
+		player_summoner.deck_load_strategy = Summoner.DeckLoadStrategy.DEFERRED
+		print("DebugArenaController: Set player summoner to DEFERRED strategy")
+	if enemy_summoner:
+		enemy_summoner.deck_load_strategy = Summoner.DeckLoadStrategy.DEFERRED
+		print("DebugArenaController: Set enemy summoner to DEFERRED strategy")
+
+	# Now call init() on summoners (they'll use DEFERRED and accept empty decks)
+	if player_summoner and player_summoner.has_method("init"):
+		player_summoner.init()
+		print("DebugArenaController: Player summoner initialized")
+
+	if enemy_summoner and enemy_summoner.has_method("init"):
+		enemy_summoner.init()
+		print("DebugArenaController: Enemy summoner initialized")
 
 
 func _connect_spawner_panel() -> void:
