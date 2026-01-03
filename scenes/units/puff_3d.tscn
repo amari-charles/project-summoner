@@ -1,9 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://puff_3d"]
+[gd_scene load_steps=6 format=3 uid="uid://puff_3d"]
 
 [ext_resource type="Script" path="res://scripts/csharp/Units/RangedUnit3D.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/units/sprite_character_2d5_component.tscn" id="2_sprite_component"]
 [ext_resource type="SpriteFrames" path="res://resources/animations/puff_sprite_frames.tres" id="3_frames"]
-[ext_resource type="Resource" path="res://resources/targeting/puff_targeting.tres" id="4_targeting"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -52,7 +51,7 @@ AttackDamage = 12.0
 AttackRange = 24.0
 AttackSpeed = 0.4
 MoveSpeed = 2.5
-TargetingConfig = ExtResource("4_targeting")
+UnitId = "puff"
 Team = 0
 UnitType = 1
 CollisionRadius = 0.4

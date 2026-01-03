@@ -96,6 +96,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     [ExportGroup("Classification")]
+
+    /// <summary>
+    /// Unique identifier for this unit type (e.g., "puff", "slime").
+    /// Used to look up targeting config from registry.
+    /// </summary>
+    [Export]
+    public string UnitId { get; set; } = "";
+
     [Export]
     public int Team { get; set; } = (int)Units.Team.Player;
 
@@ -220,9 +228,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     /// <summary>
-    /// Get the targeting config for this unit, falling back to default if none assigned.
+    /// Get the targeting config for this unit.
+    /// Priority: 1) Registry by UnitId, 2) Exported TargetingConfig, 3) Default config.
     /// </summary>
-    protected TargetingConfig GetTargetingConfig() => TargetingConfig ?? DefaultTargetingConfig.Get();
+    protected TargetingConfig GetTargetingConfig()
+    {
+        // First try registry lookup by UnitId (bypasses .tres loading issues)
+        if (!string.IsNullOrEmpty(UnitId))
+        {
+            return TargetingConfigRegistry.GetConfig(UnitId);
+        }
+
+        // Fall back to exported config or default
+        return TargetingConfig ?? DefaultTargetingConfig.Get();
+    }
 
     // =========================================================================
     // ABSTRACT METHODS - Subclasses MUST implement
@@ -740,8 +759,31 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             var config = GetTargetingConfig();
             if (!config.CanAttack(this, CurrentTarget))
             {
-                config.TryResolveConstraint(this, CurrentTarget);
-                if (_attackAnimationTimer <= 0)
+                bool resolved = config.TryResolveConstraint(this, CurrentTarget);
+
+                if (!resolved)
+                {
+                    // Constraint not resolved - use configured fallback movement
+                    switch (config.FallbackMovement)
+                    {
+                        case Targeting.FallbackMovementStyle.Strafe:
+                            StrafeAroundTarget(delta);
+                            break;
+                        case Targeting.FallbackMovementStyle.Idle:
+                            // Do nothing, just wait
+                            break;
+                        case Targeting.FallbackMovementStyle.MoveToward:
+                        default:
+                            MoveTowardTarget(delta);
+                            break;
+                    }
+
+                    if (_attackAnimationTimer <= 0)
+                    {
+                        UpdateAnimation(config.FallbackMovement == Targeting.FallbackMovementStyle.Idle ? "idle" : "walk");
+                    }
+                }
+                else if (_attackAnimationTimer <= 0)
                 {
                     UpdateAnimation("idle");
                 }
@@ -819,6 +861,45 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Update facing direction
         UpdateFacing(direction);
+    }
+
+    /// <summary>
+    /// Move perpendicular to target to circle around while maintaining distance.
+    /// Used by ranged units when they can't get target in attack cone.
+    /// </summary>
+    protected void StrafeAroundTarget(float delta)
+    {
+        if (CurrentTarget == null)
+            return;
+
+        Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
+
+        // Get perpendicular direction on XZ plane (90° rotation)
+        // This creates circular movement around the target
+        Vector3 strafeDir = new Vector3(-toTarget.Z, 0, toTarget.X).Normalized();
+
+        // Choose strafe direction that brings target more into cone
+        // If target is to the left of cone center, strafe one way; otherwise, the other
+        float facingAngle = IsFacingRight ? 0f : 180f;
+        float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(toTarget.Z, toTarget.X));
+        float angleDiff = angleToTarget - facingAngle;
+        while (angleDiff > 180f) angleDiff -= 360f;
+        while (angleDiff < -180f) angleDiff += 360f;
+
+        // If target is "above" the cone (positive angle diff), strafe one way
+        if (angleDiff > 0)
+            strafeDir = -strafeDir;
+
+        Vector3 velocity = strafeDir * MoveSpeed;
+
+        // Maintain altitude for flying units
+        if (MovementLayer == (int)Units.MovementLayer.Air)
+        {
+            velocity.Y = 0;
+        }
+
+        Velocity = velocity;
+        MoveAndSlide();
     }
 
     protected void UpdateFacing(Vector3 direction)

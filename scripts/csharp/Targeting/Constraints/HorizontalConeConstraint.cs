@@ -56,6 +56,8 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
         Vector3 toTarget = target.GlobalPosition - unit.GlobalPosition;
         unit.SetFacing(toTarget.X > 0);
 
-        return false;  // Will be valid next frame after turning
+        // Re-check if turning resolved the constraint
+        // SetFacing is instant, so this should now pass
+        return IsAttackValid(unit, target);
     }
 }
