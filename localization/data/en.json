@@ -755,6 +755,7 @@
     "spawner": {
       "title": "Spawn Units",
       "spawn_as_enemy": "Spawn as Enemy",
+      "skip_prep_phase": "Skip Prep Phase",
       "clear_all": "Clear All Units"
     },
     "arena": {

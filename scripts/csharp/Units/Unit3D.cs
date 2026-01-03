@@ -793,7 +793,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             }
 
             // In range and constraints satisfied - attack if cooldown ready
-            if (_attackCooldown <= 0)
+            // Units with 0 attack speed cannot attack (e.g., target dummies)
+            if (_attackCooldown <= 0 && AttackSpeed > 0)
             {
                 PerformAttackAction();
                 _attackCooldown = 1.0f / AttackSpeed;

@@ -50,7 +50,7 @@ func _build_ui() -> void:
 
 	# Skip Prep Phase Toggle
 	var skip_prep_toggle: CheckButton = CheckButton.new()
-	skip_prep_toggle.text = "Skip Prep Phase"
+	skip_prep_toggle.text = Loc.t("debug.spawner.skip_prep_phase")
 	skip_prep_toggle.button_pressed = _skip_prep_phase
 	skip_prep_toggle.toggled.connect(_on_skip_prep_toggled)
 	skip_prep_toggle.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
