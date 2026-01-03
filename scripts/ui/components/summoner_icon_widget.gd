@@ -17,6 +17,7 @@ signal icon_clicked()
 ## Node references
 @onready var icon_button: Button = %IconButton
 @onready var portrait_rect: ColorRect = %PortraitRect
+@onready var portrait_texture: TextureRect = %PortraitTexture
 @onready var element_label: Label = %ElementLabel
 @onready var level_badge: Label = %LevelBadge
 
@@ -81,9 +82,18 @@ func _update_display(summoner_id: String) -> void:
 	# Get element
 	var element: ElementTypes.Element = config.get_element()
 
-	# Update portrait using centralized ElementTypes constants
-	portrait_rect.color = ElementTypes.get_color(element)
-	element_label.text = ElementTypes.get_symbol(element)
+	# Check if summoner has a portrait image
+	if config.summoner_icon_path and not config.summoner_icon_path.is_empty():
+		var texture: Texture2D = load(config.summoner_icon_path)
+		if texture:
+			portrait_texture.texture = texture
+			portrait_texture.visible = true
+			portrait_rect.visible = false
+			element_label.visible = false
+		else:
+			_show_placeholder(element)
+	else:
+		_show_placeholder(element)
 
 	# Update level badge
 	level_badge.text = "Lv.%d" % level
@@ -92,7 +102,18 @@ func _update_display(summoner_id: String) -> void:
 	# Tooltip
 	icon_button.tooltip_text = config.summoner_name
 
+
+func _show_placeholder(element: ElementTypes.Element) -> void:
+	portrait_texture.visible = false
+	portrait_rect.visible = true
+	element_label.visible = true
+	portrait_rect.color = ElementTypes.get_color(element)
+	element_label.text = ElementTypes.get_symbol(element)
+
 func _show_no_summoner() -> void:
+	portrait_texture.visible = false
+	portrait_rect.visible = true
+	element_label.visible = true
 	portrait_rect.color = ElementTypes.get_color("neutral")
 	element_label.text = ElementTypes.get_symbol("neutral")
 	level_badge.text = ""
