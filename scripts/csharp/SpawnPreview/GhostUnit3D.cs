@@ -159,6 +159,7 @@ public partial class GhostUnit3D : Node3D
         CopyPropertyIfExists(source, dest, "SkeletalScene");
         CopyPropertyIfExists(source, dest, "ScaleFactor");
         CopyPropertyIfExists(source, dest, "SpriteScale");
+        CopyPropertyIfExists(source, dest, "SpriteFramesResource");
         CopyPropertyIfExists(source, dest, "ViewportScale");
         CopyPropertyIfExists(source, dest, "FeetOffsetPixels");
         CopyPropertyIfExists(source, dest, "HeadOffsetPixels");

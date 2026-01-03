@@ -96,13 +96,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public bool HasHorizontalConeConstraint { get; set; } = false;
 
-    /// <summary>
-    /// Half-angle of attack cone in degrees.
-    /// 30 = targets must be within ±30° of forward direction.
-    /// </summary>
-    [Export]
-    public float HorizontalConeAngle { get; set; } = 90f;
-
     // =========================================================================
     // EXPORTED PROPERTIES - Classification
     // =========================================================================
@@ -707,6 +700,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Check if target is within the unit's horizontal attack cone.
+    /// In 2.5D, this primarily means: is the target on the side we're facing?
     /// </summary>
     protected bool IsTargetInHorizontalCone(Node3D target)
     {
@@ -716,27 +710,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         Vector3 toTarget = target.GlobalPosition - GlobalPosition;
 
-        // If target directly above/below (no X displacement), allow
+        // If target directly above/below (no X displacement), allow attack
         if (Mathf.Abs(toTarget.X) < 0.01f)
             return true;
 
-        // Is target on the side we're facing?
+        // In 2.5D, the constraint is: target must be on the side we're facing
+        // Z offset doesn't matter - projectiles handle aiming, sprite just needs to face right direction
         bool targetIsRight = toTarget.X > 0;
-
-        // For narrow cones, also check angle from forward
-        if (HorizontalConeAngle < 90f)
-        {
-            // Calculate angle: how far off-axis (Z) vs forward (X)
-            // atan2(|Z|, |X|) gives angle from forward direction
-            float angleFromForward = Mathf.RadToDeg(
-                Mathf.Atan2(Mathf.Abs(toTarget.Z), Mathf.Abs(toTarget.X))
-            );
-
-            if (angleFromForward > HorizontalConeAngle)
-                return false;
-        }
-
-        // Final check: target must be on same side as facing
         return targetIsRight == _isFacingRight;
     }
 
