@@ -100,6 +100,10 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 
 	var data_dict: Dictionary = data
 
+	# Handle debug spawn from UnitSpawnerPanel
+	if data_dict.get("type") == "debug_spawn":
+		return _can_drop_debug_spawn(at_position, data_dict)
+
 	if not data_dict.has("card_index") or not data_dict.has("card") or not data_dict.has("source"):
 		_cleanup_spawn_preview()
 		return false
@@ -186,6 +190,11 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if not data is Dictionary:
 		return
 	var data_dict: Dictionary = data
+
+	# Handle debug spawn from UnitSpawnerPanel
+	if data_dict.get("type") == "debug_spawn":
+		_drop_debug_spawn(at_position, data_dict)
+		return
 
 	var card_index_variant: Variant = data_dict.get("card_index")
 	if not card_index_variant is int:
@@ -412,3 +421,47 @@ func _cleanup_spell_preview() -> void:
 	if _spell_preview and is_instance_valid(_spell_preview):
 		_spell_preview.cleanup()
 	_spell_preview = null
+
+
+# =============================================================================
+# DEBUG SPAWN HANDLING
+# =============================================================================
+
+## Check if we can accept a debug spawn drop
+func _can_drop_debug_spawn(_at_position: Vector2, _data: Dictionary) -> bool:
+	# Always allow debug spawns if we're in a debug arena
+	var arena: DebugArenaController = _find_debug_arena_controller()
+	return arena != null
+
+
+## Handle a debug spawn drop
+func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
+	var arena: DebugArenaController = _find_debug_arena_controller()
+	if not arena:
+		push_error("BattlefieldDropZone: No DebugArenaController found for debug spawn")
+		return
+
+	var catalog_id: String = data.get("catalog_id", "")
+	var team: int = data.get("team", 1)  # Default to enemy team
+
+	if catalog_id.is_empty():
+		push_error("BattlefieldDropZone: No catalog_id in debug spawn data")
+		return
+
+	# Convert screen position to world position
+	var world_pos: Vector3 = _screen_to_world_3d(at_position)
+	if world_pos == Vector3.ZERO:
+		push_error("BattlefieldDropZone: Failed to convert screen position to world")
+		return
+
+	# Spawn the unit via the arena controller
+	arena.spawn_debug_unit(catalog_id, world_pos, team)
+
+
+## Find the DebugArenaController in the scene
+func _find_debug_arena_controller() -> DebugArenaController:
+	var controllers: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.GAME_CONTROLLER)
+	for controller: Node in controllers:
+		if controller is DebugArenaController:
+			return controller
+	return null
