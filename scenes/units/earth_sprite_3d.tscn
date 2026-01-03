@@ -17,7 +17,6 @@ AttackDamage = 18.0
 AttackRange = 2.0
 AttackSpeed = 0.9
 MoveSpeed = 1.8
-AggroRadius = 20.0
 Team = 0
 UnitType = 0
 CollisionRadius = 0.5
