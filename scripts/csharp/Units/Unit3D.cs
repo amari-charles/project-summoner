@@ -884,14 +884,38 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
         Vector3 horizontalToTarget = new Vector3(toTarget.X, 0, toTarget.Z);
 
-        // Get perpendicular direction on XZ plane (90° rotation)
-        // This creates circular movement around the target
-        Vector3 strafeDir = new Vector3(-toTarget.Z, 0, toTarget.X).Normalized();
+        if (horizontalToTarget.LengthSquared() < 0.01f)
+            return; // Target directly on top of us
 
-        // Choose strafe direction based on horizontal position relative to target
-        // Strafe to maintain roughly the same side of target
-        if (horizontalToTarget.X > 0)
-            strafeDir = -strafeDir; // Target is to our right, circle counterclockwise
+        // Calculate angle to target (0° = +X, 90° = +Z)
+        float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(horizontalToTarget.Z, horizontalToTarget.X));
+
+        // Determine optimal facing: face toward the half-plane where target is
+        // If target angle is between -90° and 90°, face right (0°)
+        // If target angle is outside that range, face left (180°)
+        bool shouldFaceRight = Mathf.Abs(angleToTarget) <= 90f;
+
+        // Update facing (bypassing the threshold check since we calculated it properly)
+        if (_isFacingRight != shouldFaceRight)
+        {
+            _isFacingRight = shouldFaceRight;
+            VisualComponent?.SetFlipH(_isFacingRight);
+        }
+
+        // Calculate angle difference from our facing
+        float facingAngle = _isFacingRight ? 0f : 180f;
+        float angleDiff = angleToTarget - facingAngle;
+        while (angleDiff > 180f) angleDiff -= 360f;
+        while (angleDiff < -180f) angleDiff += 360f;
+
+        // Get perpendicular strafe direction (90° counterclockwise from toTarget)
+        Vector3 strafeDir = new Vector3(-horizontalToTarget.Z, 0, horizontalToTarget.X).Normalized();
+
+        // Choose strafe direction that reduces |angleDiff|
+        // If angleDiff > 0, target is counterclockwise from facing, keep base direction
+        // If angleDiff < 0, target is clockwise from facing, flip direction
+        if (angleDiff < 0)
+            strafeDir = -strafeDir;
 
         Vector3 velocity = strafeDir * MoveSpeed;
 
@@ -903,9 +927,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         Velocity = velocity;
         MoveAndSlide();
-
-        // Face toward target - this rotates the attack cone to include the target
-        UpdateFacing(horizontalToTarget);
     }
 
     protected void UpdateFacing(Vector3 direction)
