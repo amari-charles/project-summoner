@@ -34,7 +34,7 @@ public static class TargetingConfigRegistry
         _initialized = true;
 
         RegisterPuffConfig();
-        // Add more unit configs here as needed
+        RegisterRockConfig();
     }
 
     /// <summary>
@@ -74,5 +74,29 @@ public static class TargetingConfigRegistry
         };
 
         _configs["puff"] = config;
+    }
+
+    /// <summary>
+    /// Rock: Stationary target dummy that doesn't move or attack.
+    /// Uses Idle fallback since it can't move.
+    /// </summary>
+    private static void RegisterRockConfig()
+    {
+        var validFilter = new ValidTargetFilter();
+        var distanceScorer = new DistanceScorer { MaxDistance = 0f, Weight = 1f };  // No aggro
+        var compositeScorer = new CompositeScorer();
+        compositeScorer.Scorers.Add(distanceScorer);
+        var rangeConstraint = new RangeConstraint();
+
+        var config = new TargetingConfig
+        {
+            Filter = validFilter,
+            Scorer = compositeScorer,
+            AttackConstraint = rangeConstraint,
+            AggroRadius = 0f,  // No aggro - stationary dummy
+            FallbackMovement = FallbackMovementStyle.Idle  // Can't move
+        };
+
+        _configs["rock"] = config;
     }
 }

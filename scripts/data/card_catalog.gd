@@ -254,6 +254,49 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Rock - Stationary target dummy for testing
+	# Visual: Uses earth sprite visual as placeholder
+	_catalog["rock"] = {
+		# Identity
+		"catalog_id": "rock",
+		"card_name": "Rock",
+		"description": "A stationary target dummy for testing. Does not move or attack.",
+		"rarity": RarityIDs.COMMON,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 0,  # Free for testing
+		"cooldown": 0.5,
+		"summon_time": 0.0,  # Instant spawn
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/rock_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats - stationary target dummy
+		"max_hp": 500.0,
+		"attack_damage": 0.0,
+		"attack_range": 2.0,
+		"attack_speed": 0.0,  # No attacks
+		"move_speed": 0.0,  # STATIONARY
+		"aggro_radius": 0.0,  # Don't acquire targets
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "earth", "test", "dummy", "stationary"],
+		"unlock_condition": "dev_only",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.EARTH
+		}
+	}
+
 	# Puff - Wind cloud that blows puffs of air
 	# Visual: Sprite sheet animation with idle, walk, attack animations
 	_catalog["puff"] = {
