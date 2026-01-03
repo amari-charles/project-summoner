@@ -186,10 +186,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
 
-    // Strafe stabilization
-    private int _strafeDirection = 0;  // -1, 0, or 1 - remembers last strafe direction
-    private const float StrafeHysteresis = 15f;  // degrees - prevents rapid direction flipping
-
     // Spawn reveal state
     private bool _isSpawning;
     private ShaderMaterial? _spawnRevealMaterial;
@@ -748,7 +744,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (CurrentTarget == null)
         {
             // No target - move forward
-            _strafeDirection = 0;  // Reset strafe state when not strafing
             MoveForward(delta);
             // Only update animation if not in attack animation
             if (_attackAnimationTimer <= 0)
@@ -775,11 +770,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                             StrafeAroundTarget(delta);
                             break;
                         case Targeting.FallbackMovementStyle.Idle:
-                            _strafeDirection = 0;  // Reset strafe state when idle
                             break;
                         case Targeting.FallbackMovementStyle.MoveToward:
                         default:
-                            _strafeDirection = 0;  // Reset strafe state when moving toward
                             MoveTowardTarget(delta);
                             break;
                     }
@@ -791,7 +784,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 }
                 else
                 {
-                    _strafeDirection = 0;  // Reset strafe state when constraint resolved
                     if (_attackAnimationTimer <= 0)
                     {
                         UpdateAnimation("idle");
@@ -801,7 +793,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             }
 
             // In range and constraints satisfied - attack if cooldown ready
-            _strafeDirection = 0;  // Reset strafe state when attacking
             if (_attackCooldown <= 0)
             {
                 PerformAttackAction();
@@ -820,7 +811,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         else
         {
             // Move toward target
-            _strafeDirection = 0;  // Reset strafe state when not strafing
             MoveTowardTarget(delta);
             // Only update animation if not in attack animation
             if (_attackAnimationTimer <= 0)
@@ -834,7 +824,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         // Move toward enemy base direction
         float direction = Team == (int)Units.Team.Player ? 1.0f : -1.0f;
-        Vector3 velocity = new Vector3(direction * MoveSpeed, 0, 0);
+        Vector3 moveDir = new Vector3(direction, 0, 0);
+        Vector3 velocity = moveDir * MoveSpeed;
 
         // Maintain altitude for flying units
         if (MovementLayer == (int)Units.MovementLayer.Air)
@@ -844,6 +835,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         Velocity = velocity;
         MoveAndSlide();
+
+        // Update facing direction
+        UpdateFacing(moveDir);
     }
 
     protected void MoveTowardTarget(float delta)
@@ -888,30 +882,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _targetLockTimer = TargetLockDuration;
 
         Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
+        Vector3 horizontalToTarget = new Vector3(toTarget.X, 0, toTarget.Z);
 
         // Get perpendicular direction on XZ plane (90° rotation)
         // This creates circular movement around the target
         Vector3 strafeDir = new Vector3(-toTarget.Z, 0, toTarget.X).Normalized();
 
-        // Choose strafe direction that brings target more into cone
-        // If target is to the left of cone center, strafe one way; otherwise, the other
-        float facingAngle = IsFacingRight ? 0f : 180f;
-        float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(toTarget.Z, toTarget.X));
-        float angleDiff = angleToTarget - facingAngle;
-        while (angleDiff > 180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
-
-        // Apply hysteresis to prevent rapid direction flipping
-        // Only change direction if angle difference crosses threshold
-        int desiredDirection = angleDiff > 0 ? -1 : 1;
-        if (_strafeDirection == 0 || Mathf.Abs(angleDiff) > StrafeHysteresis)
-        {
-            _strafeDirection = desiredDirection;
-        }
-
-        // Apply the stabilized strafe direction
-        if (_strafeDirection < 0)
-            strafeDir = -strafeDir;
+        // Choose strafe direction based on horizontal position relative to target
+        // Strafe to maintain roughly the same side of target
+        if (horizontalToTarget.X > 0)
+            strafeDir = -strafeDir; // Target is to our right, circle counterclockwise
 
         Vector3 velocity = strafeDir * MoveSpeed;
 
@@ -923,6 +903,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         Velocity = velocity;
         MoveAndSlide();
+
+        // Face toward target - this rotates the attack cone to include the target
+        UpdateFacing(horizontalToTarget);
     }
 
     protected void UpdateFacing(Vector3 direction)
