@@ -82,7 +82,7 @@ func _init_catalog() -> void:
 	summoner_earth.element_id = ElementRegistry.ElementId.EARTH
 	summoner_earth.base_health = 1500.0
 	summoner_earth.max_mana = 100.0
-	summoner_earth.summoner_icon_path = ""
+	summoner_earth.summoner_icon_path = "res://assets/characters/summoners/terravorn_portrait.jpg"
 	summoner_earth.card_frame_style = "legendary"
 	summoner_earth.unlock_condition = "starting_choice"
 	summoner_earth.innate_trait_ids = ["trait_earth_affinity", "trait_stone_fortitude"]

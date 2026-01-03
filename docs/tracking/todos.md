@@ -685,6 +685,35 @@ Use empty strings `""` in all `.tscn` files since GDScript sets localized text a
 
 ### 🟢 LOW PRIORITY
 
+#### Per-Summoner Portrait Cropping Configuration
+**Status:** ⬜ Not Started
+**Category:** Summoners / UI
+**Effort:** Small
+
+**Description:**
+The summoner icon widget uses a circular clip shader with UV offset/scale params to crop and zoom portraits. Currently these params are hardcoded in the scene file and tuned for Terravorn's portrait.
+
+**Current State:**
+- `circular_clip.gdshader` has `uv_offset` and `uv_scale` uniforms
+- Values are set in `summoner_icon_widget.tscn` shader material
+- Works for Terravorn but other portraits may need different cropping
+
+**Future Enhancement:**
+- Add `portrait_uv_offset` and `portrait_uv_scale` fields to `SummonerConfig`
+- Have `summoner_icon_widget.gd` read these values and apply to shader
+- Or create pre-cropped square portrait assets per summoner
+
+**Related Files:**
+- `shaders/ui/circular_clip.gdshader`
+- `scenes/ui/components/summoner_icon_widget.tscn`
+- `scripts/core/summoner_config.gd`
+
+**Notes:**
+- Low priority until more summoner portraits are added
+- Pre-cropped assets may be simpler than per-summoner shader config
+
+---
+
 #### Implement Summoner Special Abilities
 **Status:** ⬜ Not Started (Phase 3/4)
 **Category:** Summoners
