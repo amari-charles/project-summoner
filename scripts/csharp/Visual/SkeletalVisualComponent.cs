@@ -24,9 +24,15 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public float ViewportPadding { get; set; } = 200.0f;
 
+    /// <summary>
+    /// Offset in pixels from viewport bottom to where the feet are positioned.
+    /// Used for correct depth sorting. Set to -1 to auto-calculate from ViewportPadding.
+    /// </summary>
+    [ExportGroup("Sprite Configuration")]
     [Export]
-    public float FeetOffsetPixels { get; set; } = -1.0f;  // -1 = auto-calculate from ViewportPadding
+    public float FeetOffsetPixels { get; set; } = -1.0f;
 
+    [ExportGroup("")]
     [Export]
     public float HpBarOffsetX { get; set; } = 0.0f;
 
