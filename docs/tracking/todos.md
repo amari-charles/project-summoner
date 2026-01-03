@@ -80,8 +80,8 @@ Use composition pattern - create separate animation behavior components:
 Units attach only the components they need.
 
 **Related Files:**
-- `scripts/units/sprite_character_2d5_component.gd`
-- `scripts/units/unit_3d.gd`
+- `scripts/csharp/Visual/SpriteVisualComponent.cs`
+- `scripts/csharp/Units/Unit3D.cs`
 - `scenes/units/puff_3d.tscn`
 
 ---
@@ -97,7 +97,7 @@ Units attach only the components they need.
 Audit the current pathfinding and targeting systems for robustness and efficiency. Identify potential issues with edge cases, performance bottlenecks, and areas for improvement.
 
 **Areas to Investigate:**
-- Target acquisition logic (`_acquire_target()` in unit_3d.gd)
+- Target acquisition logic (`AcquireTarget()` in Unit3D.cs)
 - Target lock timer and re-acquisition behavior
 - Flanking/pathfinding when blocked
 - Performance with large unit counts (N² targeting checks?)

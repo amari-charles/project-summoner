@@ -203,8 +203,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     protected IVisualComponent? VisualComponent { get; set; }
-    // Note: ShadowComponent will be added in Phase 5
-    // Note: Abilities list will be added in Phase 7
 
     // =========================================================================
     // ABSTRACT METHODS - Subclasses MUST implement
@@ -871,10 +869,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         SpatialGrid.Instance?.UpdateUnitPosition(this);
     }
 
-    private void UpdateShadowForAltitude()
+    private static void UpdateShadowForAltitude()
     {
-        // Shadow component will be implemented in Phase 5
-        // For now, this is a placeholder for the dynamic altitude scaling
+        // TODO: Update shadow scale/opacity based on flight altitude
     }
 
     private void HandleFlyingDeath()

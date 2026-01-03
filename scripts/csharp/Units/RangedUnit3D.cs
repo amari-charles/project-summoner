@@ -11,6 +11,22 @@ namespace ProjectSummoner.Units;
 public partial class RangedUnit3D : Unit3D, IRangedAttacker
 {
     // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+
+    /// <summary>
+    /// Default height offset for targeting center mass of units.
+    /// Most units have their origin at feet level, so we aim slightly above.
+    /// </summary>
+    private const float DefaultTargetHeightOffset = 0.5f;
+
+    /// <summary>
+    /// Fraction of sprite height used for chest-level projectile spawning.
+    /// 0.6 = 60% up from feet, roughly chest height for humanoid units.
+    /// </summary>
+    private const float ChestHeightFraction = 0.6f;
+
+    // =========================================================================
     // EXPORTED PROPERTIES - Ranged Configuration
     // =========================================================================
 
@@ -23,6 +39,13 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
     [Export]
     public bool IsDelayedProjectile { get; set; } = false;
+
+    /// <summary>
+    /// Speed used for intercept calculations when predicting target movement.
+    /// Should roughly match the actual projectile speed from ProjectileManager.
+    /// </summary>
+    [Export]
+    public float ProjectileSpeedEstimate { get; set; } = 15f;
 
     // =========================================================================
     // STATE
@@ -123,7 +146,7 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
         // Fallback: spawn from chest height
         float height = VisualComponent?.GetSpriteHeight() ?? 1f;
-        return GlobalPosition + new Vector3(0, height * 0.6f, 0);
+        return GlobalPosition + new Vector3(0, height * ChestHeightFraction, 0);
     }
 
     // =========================================================================
@@ -155,28 +178,30 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
         }
 
         // Default: target center mass
-        return target.GlobalPosition + new Vector3(0, 0.5f, 0);
+        return target.GlobalPosition + new Vector3(0, DefaultTargetHeightOffset, 0);
     }
 
     private Vector3 CalculateInterceptPoint(Vector3 spawnPos, Vector3 targetPos, Node3D target)
     {
-        // Default projectile speed for intercept calculation
-        float projectileSpeed = 15f;
-
         // Get target velocity if available
         Vector3 targetVelocity = Vector3.Zero;
         if (target is CharacterBody3D charBody)
         {
             targetVelocity = charBody.Velocity;
         }
-        else if (target.HasMethod("get") && target.Get("velocity").VariantType != Variant.Type.Nil)
+        else
         {
-            targetVelocity = target.Get("velocity").AsVector3();
+            // Check for velocity property on GDScript nodes
+            var velocityVar = target.Get("velocity");
+            if (velocityVar.VariantType != Variant.Type.Nil)
+            {
+                targetVelocity = velocityVar.AsVector3();
+            }
         }
 
         // Simple linear prediction
         float distance = spawnPos.DistanceTo(targetPos);
-        float timeToTarget = distance / projectileSpeed;
+        float timeToTarget = distance / ProjectileSpeedEstimate;
 
         return targetPos + (targetVelocity * timeToTarget);
     }

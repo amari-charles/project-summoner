@@ -438,13 +438,21 @@ func _cast_command_spell(target_pos: Vector3, team: UnitConstants.Team, battlefi
 	var selected_units: Array[Node3D] = []
 
 	for node: Node in all_units:
-		if not ("is_alive" in node and "team" in node):
+		if not node is Node3D:
 			continue
 
 		var unit: Node3D = node as Node3D
 
+		# Get properties using get() for C#/GDScript interop (C# uses PascalCase)
+		var unit_team: Variant = unit.get("Team")
+		var unit_alive: Variant = unit.get("IsAlive")
+
+		# Skip if missing required properties
+		if unit_team == null or unit_alive == null:
+			continue
+
 		# Only select friendly units that are alive
-		if unit.team != team or not unit.is_alive:
+		if int(unit_team) != int(team) or not unit_alive:
 			continue
 
 		# Check if unit is within selection radius
