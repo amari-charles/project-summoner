@@ -186,6 +186,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
 
+    // Strafe stabilization
+    private int _strafeDirection = 0;  // -1, 0, or 1 - remembers last strafe direction
+    private const float StrafeHysteresis = 15f;  // degrees - prevents rapid direction flipping
+
     // Spawn reveal state
     private bool _isSpawning;
     private ShaderMaterial? _spawnRevealMaterial;
@@ -744,6 +748,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (CurrentTarget == null)
         {
             // No target - move forward
+            _strafeDirection = 0;  // Reset strafe state when not strafing
             MoveForward(delta);
             // Only update animation if not in attack animation
             if (_attackAnimationTimer <= 0)
@@ -770,10 +775,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                             StrafeAroundTarget(delta);
                             break;
                         case Targeting.FallbackMovementStyle.Idle:
-                            // Do nothing, just wait
+                            _strafeDirection = 0;  // Reset strafe state when idle
                             break;
                         case Targeting.FallbackMovementStyle.MoveToward:
                         default:
+                            _strafeDirection = 0;  // Reset strafe state when moving toward
                             MoveTowardTarget(delta);
                             break;
                     }
@@ -783,14 +789,19 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                         UpdateAnimation(config.FallbackMovement == Targeting.FallbackMovementStyle.Idle ? "idle" : "walk");
                     }
                 }
-                else if (_attackAnimationTimer <= 0)
+                else
                 {
-                    UpdateAnimation("idle");
+                    _strafeDirection = 0;  // Reset strafe state when constraint resolved
+                    if (_attackAnimationTimer <= 0)
+                    {
+                        UpdateAnimation("idle");
+                    }
                 }
                 return;  // Wait until next frame to attack
             }
 
             // In range and constraints satisfied - attack if cooldown ready
+            _strafeDirection = 0;  // Reset strafe state when attacking
             if (_attackCooldown <= 0)
             {
                 PerformAttackAction();
@@ -809,6 +820,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         else
         {
             // Move toward target
+            _strafeDirection = 0;  // Reset strafe state when not strafing
             MoveTowardTarget(delta);
             // Only update animation if not in attack animation
             if (_attackAnimationTimer <= 0)
@@ -872,6 +884,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (CurrentTarget == null)
             return;
 
+        // Extend target lock while strafing - prevents mid-strafe target switches
+        _targetLockTimer = TargetLockDuration;
+
         Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
 
         // Get perpendicular direction on XZ plane (90° rotation)
@@ -886,8 +901,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         while (angleDiff > 180f) angleDiff -= 360f;
         while (angleDiff < -180f) angleDiff += 360f;
 
-        // If target is "above" the cone (positive angle diff), strafe one way
-        if (angleDiff > 0)
+        // Apply hysteresis to prevent rapid direction flipping
+        // Only change direction if angle difference crosses threshold
+        int desiredDirection = angleDiff > 0 ? -1 : 1;
+        if (_strafeDirection == 0 || Mathf.Abs(angleDiff) > StrafeHysteresis)
+        {
+            _strafeDirection = desiredDirection;
+        }
+
+        // Apply the stabilized strafe direction
+        if (_strafeDirection < 0)
             strafeDir = -strafeDir;
 
         Vector3 velocity = strafeDir * MoveSpeed;

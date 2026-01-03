@@ -49,15 +49,9 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
 
     public override bool TryResolve(Unit3D unit, Node3D target)
     {
-        if (IsAttackValid(unit, target))
-            return true;
-
-        // Turn to face target
-        Vector3 toTarget = target.GlobalPosition - unit.GlobalPosition;
-        unit.SetFacing(toTarget.X > 0);
-
-        // Re-check if turning resolved the constraint
-        // SetFacing is instant, so this should now pass
+        // Don't force facing here - let strafe movement naturally bring
+        // the target into the cone. This prevents rapid oscillation when
+        // the target is near the X=0 axis (directly above/below).
         return IsAttackValid(unit, target);
     }
 }
