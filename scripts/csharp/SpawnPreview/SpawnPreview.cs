@@ -68,11 +68,30 @@ public partial class SpawnPreview : Node3D
     }
 
     /// <summary>
-    /// Update the preview position.
+    /// Update the preview position (legacy - single position for center).
     /// </summary>
     public void UpdatePosition(Vector3 pos)
     {
         GlobalPosition = pos;
+    }
+
+    /// <summary>
+    /// Update positions for each ghost unit (matches actual spawn positions).
+    /// </summary>
+    public void UpdatePositions(Godot.Collections.Array<Vector3> positions)
+    {
+        // Set SpawnPreview to origin since ghost units will use global positions
+        GlobalPosition = Vector3.Zero;
+
+        for (int i = 0; i < _ghostUnits.Count && i < positions.Count; i++)
+        {
+            if (IsInstanceValid(_ghostUnits[i]))
+            {
+                // Preserve Y (includes flight altitude) while updating X/Z from positions
+                var ghost = _ghostUnits[i];
+                ghost.GlobalPosition = new Vector3(positions[i].X, ghost.GlobalPosition.Y, positions[i].Z);
+            }
+        }
     }
 
     /// <summary>

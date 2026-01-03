@@ -301,12 +301,12 @@ func _is_valid_target(body: Node3D) -> bool:
 	if body == source:
 		return false
 
-	# Check team
-	if "team" in body and body.get("team") == team:
+	# Check team (C# units use PascalCase)
+	if "Team" in body and body.get("Team") == team:
 		return false
 
-	# Check if alive
-	if "is_alive" in body and not body.get("is_alive"):
+	# Check if alive (C# units use PascalCase)
+	if "IsAlive" in body and not body.get("IsAlive"):
 		return false
 
 	return true
@@ -371,77 +371,35 @@ func _trigger_impact_effects(impact_position: Vector3) -> void:
 
 ## Apply AOE damage to all enemies in radius
 func _apply_aoe_damage(center: Vector3, radius: float) -> void:
-	# print("\n--- AOE DAMAGE CALCULATION ---")
-	# print("  Center: %v, Radius: %.1f" % [center, radius])
-	# print("  Projectile damage: %.1f, type: %s" % [damage, damage_type])
-
 	if not is_instance_valid(source):
-		# print("  ERROR: Source not valid!")
 		return
-
-	# print("  Source: %s (team %d)" % [source.name, team])
 
 	var scene_tree: SceneTree = get_tree()
 	if not scene_tree:
-		# print("  ERROR: No scene tree!")
 		return
 
-	# Debug visualization sphere removed - use orange AOE indicator from VFX instead
-	# _spawn_debug_aoe_sphere(center, radius)
+	# Collect all potential targets: enemy units AND enemy bases (summoners)
+	var target_unit_group: StringName = GroupIDs.enemy_units_for(team)
+	var target_base_group: StringName = GroupIDs.enemy_bases_for(team)
 
-	# Determine target group based on team
-	var target_group: StringName = GroupIDs.enemy_units_for(team)
-	# print("  Target group: '%s'" % target_group)
+	var targets: Array[Node] = []
+	targets.append_array(scene_tree.get_nodes_in_group(target_unit_group))
+	targets.append_array(scene_tree.get_nodes_in_group(target_base_group))
 
-	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
-	# print("  Found %d potential targets in group" % enemies.size())
+	for target: Node in targets:
+		if not target is Node3D:
+			continue
 
-	# Also check all units to see if grouping is the issue
-	var _all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
-	# print("  Total units in scene: %d" % _all_units.size())
+		var target_3d: Node3D = target as Node3D
 
-	# if enemies.size() == 0 and _all_units.size() > 0:
-		# print("  WARNING: No enemies in target group but units exist - group assignment issue?")
-		# for unit in _all_units:
-			# if unit is Unit3D:
-				# print("    Unit '%s': team=%d, alive=%s, pos=%v" % [unit.name, unit.team, unit.is_alive, unit.global_position])
+		# Check if valid target using unified validation
+		if not _is_valid_target(target_3d):
+			continue
 
-	var _hit_count: int = 0
-	for enemy: Node in enemies:
-		# C# units use PascalCase properties
-		if "IsAlive" in enemy and "Team" in enemy:
-			var unit_enemy: Node3D = enemy
-			var distance: float = unit_enemy.global_position.distance_to(center)
-
-			if unit_enemy.get("IsAlive") and distance <= radius and is_instance_valid(source):
-				var damage_system: Node = get_node("/root/DamageSystem")
-				damage_system.apply_damage(source, unit_enemy, damage, damage_type)
-				_hit_count += 1
-
-	# print("  RESULT: Hit %d enemies with %.1f damage each" % [_hit_count, damage])
-	# print("--- END AOE CALCULATION ---\n")
-
-## Spawn a debug visualization sphere to show AOE radius
-func _spawn_debug_aoe_sphere(center: Vector3, radius: float) -> void:
-	var sphere: MeshInstance3D = MeshInstance3D.new()
-	var mesh: SphereMesh = SphereMesh.new()
-	mesh.radius = radius
-	mesh.height = radius * 2
-	sphere.mesh = mesh
-
-	# Semi-transparent red material
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(1, 0, 0, 0.2)
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	sphere.material_override = material
-
-	sphere.global_position = center
-	get_tree().root.add_child(sphere)
-
-	# Auto-remove after 1 second
-	await get_tree().create_timer(1.0).timeout
-	sphere.queue_free()
+		var distance: float = target_3d.global_position.distance_to(center)
+		if distance <= radius:
+			var damage_system: Node = get_node("/root/DamageSystem")
+			damage_system.apply_damage(source, target_3d, damage, damage_type)
 
 ## Get projectile data from ContentCatalog
 func _get_projectile_data() -> ProjectileData:

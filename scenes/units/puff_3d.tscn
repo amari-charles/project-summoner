@@ -27,6 +27,7 @@ IsDelayedProjectile = true
 ShadowEnabled = true
 ShadowSize = 0.8
 ShadowOpacity = 0.5
+HasHorizontalConeConstraint = true
 
 [node name="Visual" parent="." instance=ExtResource("2_sprite_component")]
 SpriteFramesResource = ExtResource("3_frames")

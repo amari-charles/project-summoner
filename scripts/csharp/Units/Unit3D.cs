@@ -35,6 +35,17 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private const float DeathCleanupDelay = 1.0f;
     private const float TargetLockDuration = 0.5f;
 
+    // Spawn reveal glow colors - blue for player team, red for enemy team (matches team color scheme)
+    private static readonly Color SpawnGlowColorPlayer = new(0.4f, 0.7f, 1.0f, 1.0f);
+    private static readonly Color SpawnGlowColorEnemy = new(1.0f, 0.4f, 0.4f, 1.0f);
+
+    // Minimum horizontal displacement to determine facing direction.
+    // Below this threshold, target is considered directly above/below and attack is allowed regardless of facing.
+    private const float MinHorizontalDisplacement = 0.01f;
+
+    // Cached shader (shared across all instances)
+    private static Shader? _spawnRevealShader;
+
     // =========================================================================
     // GODOT SIGNALS (accessible from GDScript)
     // =========================================================================
@@ -87,6 +98,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     [Export]
     public float MaxAttackAngle { get; set; } = 90f;
+
+    // =========================================================================
+    // EXPORTED PROPERTIES - Horizontal Cone Constraint
+    // =========================================================================
+
+    [ExportGroup("Horizontal Cone Constraint")]
+    [Export]
+    public bool HasHorizontalConeConstraint { get; set; } = false;
 
     // =========================================================================
     // EXPORTED PROPERTIES - Classification
@@ -192,6 +211,17 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
 
+    // Spawn reveal state
+    private bool _isSpawning;
+    private ShaderMaterial? _spawnRevealMaterial;
+    private Tween? _spawnRevealTween;
+    private readonly Dictionary<CanvasItem, Material?> _originalMaterials = new();
+
+    /// <summary>
+    /// True if unit is facing right (positive X). Player team starts right, enemy left.
+    /// </summary>
+    protected bool _isFacingRight;
+
     // Base stats for modifier calculations
     protected float _baseMaxHp;
     protected float _baseAttackDamage;
@@ -251,8 +281,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         // Set initial facing based on team (sprites are drawn facing left, flip for player)
-        bool faceRight = Team == (int)Units.Team.Player;
-        VisualComponent?.SetFlipH(faceRight);
+        _isFacingRight = Team == (int)Units.Team.Player;
+        VisualComponent?.SetFlipH(_isFacingRight);
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
@@ -486,6 +516,149 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         ActivationState = ActivationState.Inactive;
     }
 
+    // =========================================================================
+    // SPAWN REVEAL ANIMATION
+    // =========================================================================
+
+    /// <summary>
+    /// Start the spawn reveal animation (ghost materialize effect).
+    /// Unit will be inactive until the animation completes.
+    /// </summary>
+    public void start_spawn_reveal(float duration)
+    {
+        if (_isSpawning)
+            return;
+
+        _isSpawning = true;
+        ActivationState = ActivationState.Inactive;
+
+        // Start shadow at scale 0 (will grow during reveal)
+        var shadow = GetNodeOrNull<Node3D>("Shadow");
+        if (shadow != null)
+        {
+            shadow.Scale = Vector3.Zero;
+        }
+
+        // Load shader if not cached
+        _spawnRevealShader ??= GD.Load<Shader>("res://shaders/vfx/spawn_reveal.gdshader");
+
+        if (_spawnRevealShader == null)
+        {
+            GD.PushError("Unit3D: Failed to load spawn_reveal shader!");
+            CompleteSpawnReveal();
+            return;
+        }
+
+        // Create shader material
+        _spawnRevealMaterial = new ShaderMaterial();
+        _spawnRevealMaterial.Shader = _spawnRevealShader;
+        _spawnRevealMaterial.SetShaderParameter("progress", 0.0f);
+
+        // Set glow color based on team
+        var glowColor = Team == (int)Units.Team.Player ? SpawnGlowColorPlayer : SpawnGlowColorEnemy;
+        _spawnRevealMaterial.SetShaderParameter("glow_color", glowColor);
+
+        // Apply shader and start animation (deferred to allow visual component initialization)
+        CallDeferred(MethodName.ApplySpawnRevealDeferred, duration);
+    }
+
+    private void ApplySpawnRevealDeferred(float duration)
+    {
+        if (!IsInstanceValid(this) || !_isSpawning)
+            return;
+
+        ApplySpawnShaderToVisual();
+
+        // Animate progress from 0 to 1
+        _spawnRevealTween = CreateTween();
+        _spawnRevealTween.TweenMethod(Callable.From<float>(UpdateSpawnProgress), 0.0f, 1.0f, duration);
+
+        // Animate shadow growing alongside
+        var shadow = GetNodeOrNull<Node3D>("Shadow");
+        if (shadow != null)
+        {
+            _spawnRevealTween.Parallel().TweenProperty(shadow, "scale", Vector3.One, duration);
+        }
+
+        // Complete when done
+        _spawnRevealTween.TweenCallback(Callable.From(CompleteSpawnReveal));
+    }
+
+    private void ApplySpawnShaderToVisual()
+    {
+        if (VisualComponent == null || _spawnRevealMaterial == null)
+            return;
+
+        _originalMaterials.Clear();
+
+        // Find all CanvasItems in the visual component and apply shader
+        if (VisualComponent is Node visualNode)
+        {
+            var sprites = FindAllCanvasItems(visualNode);
+            foreach (var sprite in sprites)
+            {
+                _originalMaterials[sprite] = sprite.Material;
+                sprite.Material = _spawnRevealMaterial;
+            }
+        }
+    }
+
+    private List<CanvasItem> FindAllCanvasItems(Node root)
+    {
+        var result = new List<CanvasItem>();
+        FindCanvasItemsRecursive(root, result);
+        return result;
+    }
+
+    private void FindCanvasItemsRecursive(Node node, List<CanvasItem> result)
+    {
+        if (node is CanvasItem canvasItem)
+        {
+            result.Add(canvasItem);
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            FindCanvasItemsRecursive(child, result);
+        }
+    }
+
+    private void UpdateSpawnProgress(float progress)
+    {
+        _spawnRevealMaterial?.SetShaderParameter("progress", progress);
+    }
+
+    private void CompleteSpawnReveal()
+    {
+        _isSpawning = false;
+
+        // Restore original materials
+        foreach (var (sprite, originalMaterial) in _originalMaterials)
+        {
+            if (IsInstanceValid(sprite))
+            {
+                sprite.Material = originalMaterial;
+            }
+        }
+        _originalMaterials.Clear();
+
+        // Clean up shader material
+        _spawnRevealMaterial?.Dispose();
+        _spawnRevealMaterial = null;
+
+        // Activate if game is in battle phase (unit was spawned during battle)
+        // BattlePhase enum: PREPARATION = 0, BATTLE = 1
+        var gameController = GetTree().CurrentScene;
+        if (gameController != null)
+        {
+            var currentPhase = gameController.Get("current_phase");
+            if (currentPhase.VariantType != Variant.Type.Nil && currentPhase.AsInt32() == 1)
+            {
+                Activate();
+            }
+        }
+    }
+
     /// <summary>
     /// Force this unit to target a specific enemy.
     /// </summary>
@@ -591,7 +764,18 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         if (IsInAttackRange(CurrentTarget))
         {
-            // In range - attack if cooldown ready
+            // Check horizontal cone constraint - turn if needed
+            if (HasHorizontalConeConstraint && !IsTargetInHorizontalCone(CurrentTarget))
+            {
+                TurnToFaceTarget(CurrentTarget);
+                if (_attackAnimationTimer <= 0)
+                {
+                    UpdateAnimation("idle");
+                }
+                return;  // Wait until next frame to attack
+            }
+
+            // In range and facing correct direction - attack if cooldown ready
             if (_attackCooldown <= 0)
             {
                 PerformAttackAction();
@@ -669,8 +853,41 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Sprites are drawn facing left, flip when moving right
         if (Mathf.Abs(direction.X) > 0.1f)
         {
-            VisualComponent?.SetFlipH(direction.X > 0);
+            _isFacingRight = direction.X > 0;
+            VisualComponent?.SetFlipH(_isFacingRight);
         }
+    }
+
+    /// <summary>
+    /// Check if target is within the unit's horizontal attack cone.
+    /// In 2.5D, this primarily means: is the target on the side we're facing?
+    /// </summary>
+    protected bool IsTargetInHorizontalCone(Node3D target)
+    {
+        // Skip check if constraint disabled
+        if (!HasHorizontalConeConstraint)
+            return true;
+
+        Vector3 toTarget = target.GlobalPosition - GlobalPosition;
+
+        // If target directly above/below (no X displacement), allow attack
+        if (Mathf.Abs(toTarget.X) < MinHorizontalDisplacement)
+            return true;
+
+        // In 2.5D, the constraint is: target must be on the side we're facing
+        // Z offset doesn't matter - projectiles handle aiming, sprite just needs to face right direction
+        bool targetIsRight = toTarget.X > 0;
+        return targetIsRight == _isFacingRight;
+    }
+
+    /// <summary>
+    /// Instantly turn to face a target.
+    /// </summary>
+    protected void TurnToFaceTarget(Node3D target)
+    {
+        Vector3 toTarget = target.GlobalPosition - GlobalPosition;
+        _isFacingRight = toTarget.X > 0;
+        VisualComponent?.SetFlipH(_isFacingRight);
     }
 
     protected void UpdateAnimation(string animName)
