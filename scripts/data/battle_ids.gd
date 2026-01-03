@@ -53,18 +53,6 @@ const ARENA_PUFF: StringName = &"arena_puff"
 ## Arena Battle: Fire Elemental Test - Fire elemental variants
 const ARENA_FIRE_ELEMENTAL: StringName = &"arena_fire_elemental"
 
-## Arena Battle: Melee Basics - Earth melee combat
-const ARENA_MELEE_BASICS: StringName = &"arena_melee_basics"
-
-## Arena Battle: Ranged Intro - Ranged unit tactics
-const ARENA_RANGED_INTRO: StringName = &"arena_ranged_intro"
-
-## Arena Battle: Mixed Tactics - Combined melee and ranged
-const ARENA_MIXED_TACTICS: StringName = &"arena_mixed_tactics"
-
-## Arena Battle: Full Combat - All unit types
-const ARENA_FULL_COMBAT: StringName = &"arena_full_combat"
-
 ## Debug Arena: Testing sandbox with infinite mana/HP and manual spawning
 const DEBUG_ARENA: StringName = &"debug_arena"
 
@@ -90,10 +78,6 @@ const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
 	ARENA_EARTH_SPRITE,
 	ARENA_PUFF,
 	ARENA_FIRE_ELEMENTAL,
-	ARENA_MELEE_BASICS,
-	ARENA_RANGED_INTRO,
-	ARENA_MIXED_TACTICS,
-	ARENA_FULL_COMBAT,
 	DEBUG_ARENA,
 ]
 
