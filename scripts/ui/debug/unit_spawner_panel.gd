@@ -108,7 +108,7 @@ func _on_clear_pressed() -> void:
 func _create_panel_style() -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.15, 0.95)
-	style.border_color = GameColorPalette.BORDER_PRIMARY
+	style.border_color = GameColorPalette.BUTTON_SECONDARY_BORDER
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
 	return style
