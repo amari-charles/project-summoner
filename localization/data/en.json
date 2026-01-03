@@ -51,22 +51,6 @@
       "arena_fire_elemental": {
         "name": "Fire Elemental Test",
         "description": "Test the new Fire Elemental unit. Watch it bob and float across the battlefield."
-      },
-      "arena_melee_basics": {
-        "name": "Melee Basics",
-        "description": "Test basic melee combat and unit movement."
-      },
-      "arena_ranged_intro": {
-        "name": "Ranged Introduction",
-        "description": "Mixed melee and ranged units. Test ranged combat mechanics."
-      },
-      "arena_mixed_tactics": {
-        "name": "Mixed Tactics",
-        "description": "Combined melee and ranged units. Test combined arms tactics."
-      },
-      "arena_full_combat": {
-        "name": "Full Combat",
-        "description": "All unit types including structures. Comprehensive combat test."
       }
     },
     "starter_deck_name": "Starter Deck",
