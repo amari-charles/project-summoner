@@ -35,6 +35,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private const float DeathCleanupDelay = 1.0f;
     private const float TargetLockDuration = 0.5f;
 
+    // Spawn reveal colors
+    private static readonly Color SpawnGlowColorPlayer = new(0.4f, 0.7f, 1.0f, 1.0f);
+    private static readonly Color SpawnGlowColorEnemy = new(1.0f, 0.4f, 0.4f, 1.0f);
+
+    // Cached shader (shared across all instances)
+    private static Shader? _spawnRevealShader;
+
     // =========================================================================
     // GODOT SIGNALS (accessible from GDScript)
     // =========================================================================
@@ -199,6 +206,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _targetLockTimer;
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
+
+    // Spawn reveal state
+    private bool _isSpawning;
+    private ShaderMaterial? _spawnRevealMaterial;
+    private Tween? _spawnRevealTween;
+    private readonly Dictionary<CanvasItem, Material?> _originalMaterials = new();
 
     /// <summary>
     /// True if unit is facing right (positive X). Player team starts right, enemy left.
@@ -497,6 +510,140 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public void Deactivate()
     {
         ActivationState = ActivationState.Inactive;
+    }
+
+    // =========================================================================
+    // SPAWN REVEAL ANIMATION
+    // =========================================================================
+
+    /// <summary>
+    /// Start the spawn reveal animation (ghost materialize effect).
+    /// Unit will be inactive until the animation completes.
+    /// </summary>
+    public void start_spawn_reveal(float duration)
+    {
+        if (_isSpawning)
+            return;
+
+        _isSpawning = true;
+        ActivationState = ActivationState.Inactive;
+
+        // Start shadow at scale 0 (will grow during reveal)
+        var shadow = GetNodeOrNull<Node3D>("Shadow");
+        if (shadow != null)
+        {
+            shadow.Scale = Vector3.Zero;
+        }
+
+        // Load shader if not cached
+        _spawnRevealShader ??= GD.Load<Shader>("res://shaders/vfx/spawn_reveal.gdshader");
+
+        if (_spawnRevealShader == null)
+        {
+            GD.PushError("Unit3D: Failed to load spawn_reveal shader!");
+            CompleteSpawnReveal();
+            return;
+        }
+
+        // Create shader material
+        _spawnRevealMaterial = new ShaderMaterial();
+        _spawnRevealMaterial.Shader = _spawnRevealShader;
+        _spawnRevealMaterial.SetShaderParameter("progress", 0.0f);
+
+        // Set glow color based on team
+        var glowColor = Team == (int)Units.Team.Player ? SpawnGlowColorPlayer : SpawnGlowColorEnemy;
+        _spawnRevealMaterial.SetShaderParameter("glow_color", glowColor);
+
+        // Apply shader and start animation (deferred to allow visual component initialization)
+        CallDeferred(MethodName.ApplySpawnRevealDeferred, duration);
+    }
+
+    private void ApplySpawnRevealDeferred(float duration)
+    {
+        if (!IsInstanceValid(this) || !_isSpawning)
+            return;
+
+        ApplySpawnShaderToVisual();
+
+        // Animate progress from 0 to 1
+        _spawnRevealTween = CreateTween();
+        _spawnRevealTween.TweenMethod(Callable.From<float>(UpdateSpawnProgress), 0.0f, 1.0f, duration);
+
+        // Animate shadow growing alongside
+        var shadow = GetNodeOrNull<Node3D>("Shadow");
+        if (shadow != null)
+        {
+            _spawnRevealTween.Parallel().TweenProperty(shadow, "scale", Vector3.One, duration);
+        }
+
+        // Complete when done
+        _spawnRevealTween.TweenCallback(Callable.From(CompleteSpawnReveal));
+    }
+
+    private void ApplySpawnShaderToVisual()
+    {
+        if (VisualComponent == null || _spawnRevealMaterial == null)
+            return;
+
+        _originalMaterials.Clear();
+
+        // Find all CanvasItems in the visual component and apply shader
+        if (VisualComponent is Node visualNode)
+        {
+            var sprites = FindAllCanvasItems(visualNode);
+            foreach (var sprite in sprites)
+            {
+                _originalMaterials[sprite] = sprite.Material;
+                sprite.Material = _spawnRevealMaterial;
+            }
+        }
+    }
+
+    private List<CanvasItem> FindAllCanvasItems(Node root)
+    {
+        var result = new List<CanvasItem>();
+        FindCanvasItemsRecursive(root, result);
+        return result;
+    }
+
+    private void FindCanvasItemsRecursive(Node node, List<CanvasItem> result)
+    {
+        if (node is CanvasItem canvasItem)
+        {
+            result.Add(canvasItem);
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            FindCanvasItemsRecursive(child, result);
+        }
+    }
+
+    private void UpdateSpawnProgress(float progress)
+    {
+        _spawnRevealMaterial?.SetShaderParameter("progress", progress);
+    }
+
+    private void CompleteSpawnReveal()
+    {
+        _isSpawning = false;
+
+        // Restore original materials
+        foreach (var (sprite, originalMaterial) in _originalMaterials)
+        {
+            if (IsInstanceValid(sprite))
+            {
+                sprite.Material = originalMaterial;
+            }
+        }
+        _originalMaterials.Clear();
+
+        // Clean up shader material
+        _spawnRevealMaterial?.Dispose();
+        _spawnRevealMaterial = null;
+
+        // Activate the unit
+        Activate();
     }
 
     /// <summary>
