@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://debug_arena"]
+[gd_scene load_steps=11 format=3 uid="uid://debug_arena"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" path="res://scripts/core/debug_arena_controller.gd" id="2_debug_controller"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/ui/battle/stat_bar.tscn" id="9_stat_bar"]
 [ext_resource type="Script" path="res://scripts/ui/debug/unit_spawner_panel.gd" id="10_spawner_panel"]
 [ext_resource type="Script" path="res://scripts/ui/debug/debug_pause_button.gd" id="11_debug_pause"]
+[ext_resource type="Script" uid="uid://c5j735p3yll2r" path="res://scripts/ui/battle/speed_button.gd" id="12_speed_button"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_summoner"]
 size = Vector3(2, 4, 2)
@@ -108,6 +109,21 @@ theme_override_font_sizes/font_size = 72
 text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SpeedButton" type="Button" parent="UI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -60.0
+offset_right = -130.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "▶ 1x"
+script = ExtResource("12_speed_button")
 
 [node name="PauseButton" type="Button" parent="UI"]
 anchors_preset = 3
