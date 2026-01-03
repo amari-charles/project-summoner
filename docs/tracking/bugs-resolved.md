@@ -4,6 +4,63 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Aggro Manipulation Exploit - Units Can Be Permanently Occupied
+**Resolved:** 2026-01-03
+**Component:** AI / Combat / Targeting
+
+**Description:**
+Players could permanently keep enemy units occupied by spawning new units, as all enemies would immediately switch aggro to the newly spawned unit.
+
+**Solution Implemented:**
+Multi-layered defensive system in `scripts/csharp/Units/Unit3D.cs`:
+
+1. **Target Lock Mechanism** (Line 38): `TargetLockDuration = 0.5f`
+   - Units lock onto their current target for 0.5 seconds
+   - Cannot switch targets during this window even if new units spawn
+
+2. **Health-Weighted Scoring** (`scripts/csharp/Targeting/HealthScorer.cs`):
+   - Weight = 10.0 (high priority)
+   - Prioritizes damaged targets over fresh spawns
+   - Cheap fodder units score lower than engaged targets
+
+3. **UpdateTargeting Logic** (Lines 728-752):
+   - Respects target lock timer before re-evaluating
+   - Only switches when current target is invalid or lock expires
+
+**Related Files:**
+- `scripts/csharp/Units/Unit3D.cs` - Target lock implementation
+- `scripts/csharp/Targeting/HealthScorer.cs` - Health-weighted scoring
+- `scripts/csharp/Targeting/DistanceScorer.cs` - Distance scoring (weight 1.0)
+
+---
+
+### Large Units Render In Front of Smaller Units Despite Z-Position
+**Resolved:** 2026-01-03
+**Component:** Rendering / Sprite3D / Depth Sorting
+
+**Description:**
+Large units (e.g., Fire Titan with 800px ViewportPadding) rendered in front of smaller units even when positioned behind them on the Z-axis.
+
+**Root Cause:**
+`SetupSpriteAlignment()` in `SkeletalVisualComponent` positioned the Sprite3D assuming feet were at the viewport bottom. However, `ViewportPadding` creates empty space below the feet. This caused the Sprite3D origin (used for depth sorting) to be below the visual feet position, making large units sort as "in front" of where they appeared.
+
+**Solution Implemented:**
+Added `FeetOffsetPixels` property and updated `SetupSpriteAlignment()` to account for viewport padding:
+
+```csharp
+// Calculate feet offset from viewport bottom
+float feetOffsetPx = FeetOffsetPixels >= 0 ? FeetOffsetPixels : ViewportPadding;
+float feetOffsetWorld = feetOffsetPx * ScaleFactor.Y * _sprite3D.PixelSize;
+
+// Position Sprite3D so feet (not viewport bottom) are at Y=0
+pos.Y = (worldHeight / 2.0f) - feetOffsetWorld;
+```
+
+**Related Files:**
+- `scripts/csharp/Visual/SkeletalVisualComponent.cs` - Added FeetOffsetPixels, fixed SetupSpriteAlignment()
+
+---
+
 ### Hand UI Area Blocks Unit Spawning
 **Resolved:** 2025-12-17
 **Component:** UI / Battlefield Drop Zone

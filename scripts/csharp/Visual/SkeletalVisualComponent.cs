@@ -24,6 +24,15 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public float ViewportPadding { get; set; } = 200.0f;
 
+    /// <summary>
+    /// Offset in pixels from viewport bottom to where the feet are positioned.
+    /// Used for correct depth sorting. Set to -1 to auto-calculate from ViewportPadding.
+    /// </summary>
+    [ExportGroup("Sprite Configuration")]
+    [Export]
+    public float FeetOffsetPixels { get; set; } = -1.0f;
+
+    [ExportGroup("")]
     [Export]
     public float HpBarOffsetX { get; set; } = 0.0f;
 
@@ -321,9 +330,14 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         // Calculate world height
         float worldHeight = _viewport.Size.Y * ScaleFactor.Y * _sprite3D.PixelSize;
 
-        // Position Sprite3D so viewport bottom is at Y=0
+        // Calculate feet offset from viewport bottom
+        // If FeetOffsetPixels is set (>= 0), use it; otherwise auto-calculate from ViewportPadding
+        float feetOffsetPx = FeetOffsetPixels >= 0 ? FeetOffsetPixels : ViewportPadding;
+        float feetOffsetWorld = feetOffsetPx * ScaleFactor.Y * _sprite3D.PixelSize;
+
+        // Position Sprite3D so feet (not viewport bottom) are at Y=0
         var pos = _sprite3D.Position;
-        pos.Y = worldHeight / 2.0f;
+        pos.Y = (worldHeight / 2.0f) - feetOffsetWorld;
         _sprite3D.Position = pos;
 
         // Apply scale
