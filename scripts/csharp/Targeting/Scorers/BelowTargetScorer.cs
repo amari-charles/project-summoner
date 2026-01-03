@@ -14,7 +14,7 @@ public partial class BelowTargetScorer : BaseTargetScorer
     public float Radius { get; set; } = 6f;
 
     [Export]
-    public float BonusScore { get; set; } = 5f;
+    public float Weight { get; set; } = 5f;
 
     public override float CalculateScore(Unit3D unit, Node3D target)
     {
@@ -29,7 +29,7 @@ public partial class BelowTargetScorer : BaseTargetScorer
         // Target must be below us and within radius
         if (xzDist <= Radius && yDiff > 0)
         {
-            return BonusScore * (1f - xzDist / Radius);
+            return Weight * (1f - xzDist / Radius);
         }
 
         return 0f;
