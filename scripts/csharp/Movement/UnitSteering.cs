@@ -31,6 +31,7 @@ public class UnitSteering
     private const float FlankAngleStep = 15.0f;
     private const float FlankProgressInterval = 0.5f;
     private const float FlankScoreThreshold = 0.2f;
+    private const float FlankConeThreshold = 0.3f; // dot > 0.3 means within ~70° of direction
 
     // =========================================================================
     // STATE
@@ -275,6 +276,13 @@ public class UnitSteering
         var lastPos = _lastPosition;
         lastPos.Y = 0;
 
+        // Guard against division by zero on first frame
+        if (delta < 0.0001f)
+        {
+            _lastPosition = unit.GlobalPosition;
+            return;
+        }
+
         float movementThisFrame = currentPos.DistanceTo(lastPos);
         float movementPerSecond = movementThisFrame / delta;
 
@@ -353,10 +361,10 @@ public class UnitSteering
             var toOtherNorm = toOther / dist;
             float weight = 1.0f - (dist / checkDistance);
 
-            // 70° cone check (dot > 0.3 means within ~70° of direction)
-            if (toOtherNorm.Dot(leftDir) > 0.3f)
+            // Check if unit is within cone of each flank direction
+            if (toOtherNorm.Dot(leftDir) > FlankConeThreshold)
                 leftScore += weight;
-            if (toOtherNorm.Dot(rightDir) > 0.3f)
+            if (toOtherNorm.Dot(rightDir) > FlankConeThreshold)
                 rightScore += weight;
         }
 
