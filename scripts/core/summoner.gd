@@ -12,7 +12,7 @@ enum DeckLoadStrategy {
 	DEFERRED         ## Don't load deck in _ready(), wait for manual override (test controllers)
 }
 
-@export var team: Unit3D.Team = Unit3D.Team.PLAYER
+@export var team: UnitConstants.Team = UnitConstants.Team.PLAYER
 
 ## HP (summoner is the attack target)
 ## Default 300 HP provides ~60 seconds of survivability against typical early-game damage
@@ -90,7 +90,7 @@ func _ready() -> void:
 	# Full initialization happens in init() called by BattleCoordinator
 	add_to_group(GroupIDs.SUMMONERS)
 	add_to_group(GroupIDs.BASES)  # Summoner is the attack target
-	if team == Unit3D.Team.PLAYER:
+	if team == UnitConstants.Team.PLAYER:
 		add_to_group(GroupIDs.PLAYER_SUMMONERS)
 		add_to_group(GroupIDs.PLAYER_BASES)
 	else:
@@ -120,18 +120,18 @@ func init() -> void:
 		return
 	_initialized = true
 
-	print("Summoner: Initializing (team: %s)..." % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
+	print("Summoner: Initializing (team: %s)..." % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY"))
 
 	# Auto-correct deck loading strategy based on team if using wrong default
-	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+	if team == UnitConstants.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
 		deck_load_strategy = DeckLoadStrategy.PROFILE
-	elif team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
+	elif team == UnitConstants.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		deck_load_strategy = DeckLoadStrategy.BATTLE_CONTEXT
 
 	# For enemy: Auto-detect event_sequence battles (enemies spawned via dialogue/events)
 	# Pattern: battle_config has "event_sequence" AND "enemy_deck" is empty array
 	# This is intentional - enemies are spawned manually via BattleDialogueController/EventSequencer
-	if team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+	if team == UnitConstants.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
 		if BattleContext.battle_config.has("event_sequence") and BattleContext.battle_config.has("enemy_deck"):
 			var enemy_deck_variant: Variant = BattleContext.battle_config.get("enemy_deck")
 			if enemy_deck_variant is Array:
@@ -144,7 +144,7 @@ func init() -> void:
 	deck = _load_deck_by_strategy()
 
 	# Apply summoner bonuses for player using PROFILE strategy
-	if team == Unit3D.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
+	if team == UnitConstants.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
 		if _loaded_summoner_instance != null:
 			_apply_summoner_bonuses(_loaded_summoner_instance)
 		else:
@@ -170,7 +170,7 @@ func init() -> void:
 		else:
 			# Production mode: HARD FAIL - configuration is broken
 			var error_msg: String = "Summoner: CRITICAL - No deck loaded in production mode!\n"
-			error_msg += "Team: %s\n" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY")
+			error_msg += "Team: %s\n" % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY")
 			error_msg += "Strategy: %s\n" % DeckLoadStrategy.keys()[deck_load_strategy]
 			error_msg += "This indicates a configuration bug - check BattleContext and player profile."
 			push_error(error_msg)
@@ -313,7 +313,7 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, s
 			draw_card()
 
 	# Register card for XP tracking (player only)
-	if team == Unit3D.Team.PLAYER and not card.instance_id.is_empty():
+	if team == UnitConstants.Team.PLAYER and not card.instance_id.is_empty():
 		BattleContext.register_card_played(card.instance_id)
 
 	card_played.emit(card)
@@ -393,7 +393,7 @@ func _load_static_deck() -> Array[Card]:
 
 ## Strategy: Load from BattleContext (normal enemy behavior)
 func _load_battle_context_deck() -> Array[Card]:
-	if team == Unit3D.Team.PLAYER:
+	if team == UnitConstants.Team.PLAYER:
 		push_warning("Summoner: BATTLE_CONTEXT strategy used for player team, using static deck instead")
 		return _load_static_deck()
 
@@ -408,7 +408,7 @@ func _load_battle_context_deck() -> Array[Card]:
 
 ## Strategy: Load from player profile (normal player behavior)
 func _load_profile_deck() -> Array[Card]:
-	if team == Unit3D.Team.ENEMY:
+	if team == UnitConstants.Team.ENEMY:
 		push_warning("Summoner: PROFILE strategy used for enemy team, using static deck instead")
 		return _load_static_deck()
 
@@ -624,7 +624,7 @@ func _destroy() -> void:
 	HPBarManager.remove_bar_from_unit(self)
 
 	summoner_destroyed.emit(self)
-	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == Unit3D.Team.PLAYER else "ENEMY"))
+	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY"))
 
 ## Play hit feedback animation (flash + shake)
 func _play_hit_feedback() -> void:

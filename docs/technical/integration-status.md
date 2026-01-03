@@ -1,15 +1,54 @@
 # Foundational Systems Integration Status
 
+## ✅ C# Migration (Completed)
+
+The core combat systems have been migrated from GDScript to C# for better type safety and performance.
+
+### Migrated Systems
+
+| System | GDScript (Old) | C# (New) |
+|--------|----------------|----------|
+| Unit3D | `scripts/units/unit_3d.gd` | `scripts/csharp/Units/Unit3D.cs` |
+| DamageSystem | `scripts/combat/damage_system.gd` | `scripts/csharp/Combat/DamageSystem.cs` |
+| SpatialGrid | `scripts/spatial/spatial_grid.gd` | `scripts/csharp/Systems/SpatialGrid.cs` |
+| CombatEvent | `scripts/combat/combat_event.gd` | `scripts/csharp/Combat/CombatEvent.cs` |
+
+### GDScript → C# Interop Patterns
+
+When calling C# methods from GDScript:
+
+```gdscript
+# For autoloads, use get_node() to access the instance
+var damage_system: Node = get_node("/root/DamageSystem")
+damage_system.apply_damage(source, target, damage, damage_type)
+
+# C# provides both snake_case (for GDScript) and PascalCase (for C#) methods
+```
+
+**Key Learnings:**
+1. C# methods with default parameters don't work from GDScript (Godot bug #59025) - use explicit overloads
+2. GDScript expects snake_case, C# uses PascalCase - provide both versions
+3. Access autoloads via `get_node("/root/Name")` for instance methods
+
+### C# Project Files
+
+- `Fateforged.csproj` - C# project file
+- `Fateforged.sln` - Solution file
+- `scripts/csharp/` - All C# source code
+
+---
+
 ## ✅ Completed Integrations
 
 ### 1. DamageSystem
-- **Status:** ✅ Fully Integrated
+- **Status:** ✅ Migrated to C#
 - **Changes:**
-  - Unit3D uses `DamageSystem.apply_damage()` for all damage
-  - Added `hp_changed` signal to Unit3D
-  - All damage flows through centralized system
-- **Files Modified:**
-  - `scripts/units/unit_3d.gd`
+  - Unit3D uses `DamageSystem.Instance.ApplyDamage()` (C#) or `damage_system.apply_damage()` (GDScript)
+  - Combat events emitted via signals
+  - Summoner trait bonuses applied automatically
+- **Files:**
+  - `scripts/csharp/Combat/DamageSystem.cs`
+  - `scripts/csharp/Combat/CombatEvent.cs`
 
 ### 2. HPBarManager
 - **Status:** ✅ Fully Integrated
@@ -69,45 +108,61 @@ data/
     └── warrior.json
 ```
 
-## 🎮 How Units Work Now
+## 🎮 How Units Work Now (C#)
 
 ### Unit Spawning
-```gdscript
-# Unit spawns
-func _ready():
-    current_hp = max_hp
-    _setup_visuals()
-    HPBarManager.create_bar_for_unit(self)  # ← HP bar auto-created
+```csharp
+// Unit3D._Ready()
+public override void _Ready()
+{
+    CurrentHp = MaxHp;
+    SetupGroups();
+    SpatialGrid.Instance?.RegisterUnit(this);  // ← Spatial partitioning
+    hpBarManager?.Call("create_bar_for_unit", this);  // ← HP bar (still GDScript)
+}
 ```
 
 ### Unit Attacking
-```gdscript
-# Melee attack
-func _deal_damage_to(target):
-    DamageSystem.apply_damage(self, target, attack_damage, "physical")  # ← Centralized
+```csharp
+// Melee attack
+protected void DealDamageTo(Node3D target)
+{
+    DamageSystem.Instance?.ApplyDamage(this, target, AttackDamage, "physical");  // ← C# direct call
+}
 
-# Ranged attack
-func _spawn_projectile():
-    if not projectile_id.is_empty():
-        ProjectileManager.spawn_projectile(projectile_id, self, target, damage, "physical")  # ← Data-driven
+// Ranged attack (via ProjectileManager, still GDScript)
+protected void SpawnProjectile()
+{
+    ProjectileManager.Call("spawn_projectile", projectileId, this, target, damage, "physical");
+}
 ```
 
 ### Unit Taking Damage
-```gdscript
-func take_damage(amount):
-    current_hp -= amount
-    hp_changed.emit(current_hp, max_hp)  # ← HP bar updates automatically
-    if current_hp <= 0:
-        _die()
+```csharp
+public void TakeDamage(float amount, string damageType)
+{
+    if (!IsAlive || IsDying) return;
+    OnTakeDamage(amount, damageType);
+}
+
+protected virtual void OnTakeDamage(float amount, string damageType)
+{
+    CurrentHp = Mathf.Max(CurrentHp - amount, 0);
+    EmitSignal(SignalName.HpChanged, CurrentHp, MaxHp);  // ← HP bar updates
+    if (CurrentHp <= 0) Die();
+}
 ```
 
 ### Unit Death
-```gdscript
-func _die():
-    is_alive = false
-    HPBarManager.remove_bar_from_unit(self)  # ← HP bar cleaned up
-    await get_tree().create_timer(1.0).timeout
-    queue_free()
+```csharp
+protected void Die()
+{
+    IsDying = true;
+    IsAlive = false;
+    SpatialGrid.Instance?.UnregisterUnit(this);  // ← Cleanup from spatial grid
+    hpBarManager?.Call("remove_bar_from_unit", this);  // ← HP bar cleanup
+    OnDeath();  // ← Virtual hook for subclasses
+}
 ```
 
 ## ⏳ Pending Integrations (Optional)

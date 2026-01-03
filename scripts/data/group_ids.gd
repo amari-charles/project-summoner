@@ -83,13 +83,13 @@ const GAME_CONTROLLER: StringName = &"game_controller"
 # ============================================================================
 
 ## Get the enemy units group for a given team
-## Usage: GroupIDs.enemy_units_for(Unit3D.Team.PLAYER) -> &"enemy_units"
+## Usage: GroupIDs.enemy_units_for(UnitConstants.Team.PLAYER) -> &"enemy_units"
 static func enemy_units_for(team: int) -> StringName:
 	# Team.PLAYER = 0, Team.ENEMY = 1
 	return ENEMY_UNITS if team == 0 else PLAYER_UNITS
 
 ## Get the ally units group for a given team
-## Usage: GroupIDs.ally_units_for(Unit3D.Team.PLAYER) -> &"player_units"
+## Usage: GroupIDs.ally_units_for(UnitConstants.Team.PLAYER) -> &"player_units"
 static func ally_units_for(team: int) -> StringName:
 	# Team.PLAYER = 0, Team.ENEMY = 1
 	return PLAYER_UNITS if team == 0 else ENEMY_UNITS

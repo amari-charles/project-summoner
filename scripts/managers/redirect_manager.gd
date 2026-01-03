@@ -78,7 +78,7 @@ var attack_cooldown: float = 0.0
 var defend_cooldown: float = 0.0
 
 ## Units currently selected for redirect
-var selected_units: Array[Unit3D] = []
+var selected_units: Array[Node3D] = []
 
 ## Point where redirect drag started
 var redirect_start_point: Vector3 = Vector3.ZERO
@@ -148,15 +148,15 @@ func cancel_redirect() -> void:
 
 ## Select all friendly units in radius around a point
 ## Returns array of selected units
-func select_units_in_radius(point: Vector3, radius: float, team: int) -> Array[Unit3D]:
+func select_units_in_radius(point: Vector3, radius: float, team: int) -> Array[Node3D]:
 	selected_units.clear()
 
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
-		if not node is Unit3D:
+		if not ("is_alive" in node and "team" in node):
 			continue
 
-		var unit: Unit3D = node as Unit3D
+		var unit: Node3D = node as Node3D
 
 		# Only select friendly units that are alive
 		if unit.team != team or not unit.is_alive:
@@ -180,10 +180,10 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 	# Search for enemy units
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
-		if not node is Unit3D:
+		if not ("is_alive" in node and "team" in node):
 			continue
 
-		var unit: Unit3D = node as Unit3D
+		var unit: Node3D = node as Node3D
 
 		# Only consider enemy units that are alive
 		if unit.team == team or not unit.is_alive:
@@ -253,10 +253,10 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 	# Search for enemy units (excluding the dead one)
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
-		if not node is Unit3D:
+		if not ("is_alive" in node and "team" in node):
 			continue
 
-		var unit: Unit3D = node as Unit3D
+		var unit: Node3D = node as Node3D
 
 		# Skip excluded unit, friendly units, and dead units
 		if unit == exclude or unit.team == team or not unit.is_alive:
@@ -325,7 +325,7 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 
 ## Apply forced targets to selected units
 ## Units will commit to the target for FORCED_TARGET_DURATION seconds
-func apply_forced_targets(units: Array[Unit3D], target: Node3D, duration: float, original_point: Vector3) -> void:
+func apply_forced_targets(units: Array[Node3D], target: Node3D, duration: float, original_point: Vector3) -> void:
 	if not target:
 		push_warning("RedirectManager: Cannot apply forced targets - no valid target")
 		return
@@ -335,7 +335,7 @@ func apply_forced_targets(units: Array[Unit3D], target: Node3D, duration: float,
 	print("RedirectManager: Applying to ", units.size(), " units, target=", target.name, " duration=", duration)
 
 	var applied_count: int = 0
-	for unit: Unit3D in units:
+	for unit: Node3D in units:
 		if not is_instance_valid(unit) or not unit.is_alive:
 			print("RedirectManager: Skipping invalid/dead unit")
 			continue

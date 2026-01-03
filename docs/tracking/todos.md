@@ -19,6 +19,37 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ## Units & Combat
 
+### 🟡 MEDIUM PRIORITY
+
+#### Add Boundary System to Prevent Units Walking Off Screen
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Architecture
+**Effort:** Medium
+
+**Description:**
+Units can walk off the screen edge when there are no valid targets. While summoner targeting was added as a fallback, a structural solution is needed to prevent units from ever leaving the playable area.
+
+**Current Behavior:**
+- Units move toward enemy base direction when no target is found
+- If summoner is dead or unreachable, units continue walking indefinitely
+- No boundary enforcement at screen/battlefield edges
+
+**Proposed Solutions:**
+1. **Invisible boundary walls**: Add collision walls at battlefield edges
+2. **Behavior-based clamping**: Clamp unit positions within battlefield bounds in UpdateBehavior()
+3. **Target fallback chain**: Improve target acquisition to always find something (enemy units → summoner → battlefield edge waypoint)
+4. **Despawn off-screen**: Automatically remove units that go too far off-screen
+
+**Related Files:**
+- `scripts/csharp/Units/Unit3D.cs` - UpdateBehavior(), MoveForward()
+- `scripts/constants/battlefield_constants.gd` - Battlefield bounds
+
+**Notes:**
+- Should work for both player and enemy units
+- Consider edge cases: what happens when both summoners are dead?
+
+---
+
 ### 🟢 LOW PRIORITY
 
 #### Refactor Character-Specific Animation Logic to Composition

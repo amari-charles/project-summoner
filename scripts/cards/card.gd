@@ -147,7 +147,7 @@ func play(position: Vector2, team: Unit.Team, battlefield: Node) -> void:
 ## Execute the card effect at the given 3D position
 ## modifier_system: Optional ModifierSystem reference for more efficient access
 ## spawn_duration: If > 0, applies spawn reveal effect over this duration (for summon cards)
-func play_3d(play_position: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
+func play_3d(play_position: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
 	match card_type:
 		CardType.SUMMON:
 			_summon_unit_3d(play_position, team, battlefield, modifier_system, spawn_duration)
@@ -201,7 +201,7 @@ func _apply_aoe_damage(position: Vector2, team: Unit.Team, battlefield: Node) ->
 
 ## Spawn unit(s) at the 3D position
 ## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
-func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
+func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
 		assert(false, "Summon card must have unit_scene!")
@@ -236,9 +236,9 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 	}
 
 	for i: int in spawn_count:
-		var unit: Unit3D = unit_scene.instantiate() as Unit3D
+		var unit: Node3D = unit_scene.instantiate() as Node3D
 		if unit:
-			unit.team = team
+			unit.set("Team", int(team))  # Use set() for C# property
 
 			# Apply stats from card catalog WITH upgrade modifiers applied
 			# get_effective_stats() returns catalog data with upgrade bonuses
@@ -257,49 +257,58 @@ func _summon_unit_3d(spawn_pos: Vector3, team: Unit3D.Team, battlefield: Node, m
 			assert(catalog_data.has("attack_speed"), "Card '%s' missing attack_speed in catalog!" % catalog_id)
 			assert(catalog_data.has("move_speed"), "Card '%s' missing move_speed in catalog!" % catalog_id)
 
-			unit.max_hp = catalog_data.max_hp
-			unit.attack_damage = catalog_data.attack_damage
-			unit.attack_speed = catalog_data.attack_speed
-			unit.move_speed = catalog_data.move_speed
+			unit.set("MaxHp", catalog_data.max_hp)
+			unit.set("AttackDamage", catalog_data.attack_damage)
+			unit.set("AttackSpeed", catalog_data.attack_speed)
+			unit.set("MoveSpeed", catalog_data.move_speed)
 
 			# Attack range is optional (different defaults for melee vs ranged)
 			if catalog_data.has("attack_range"):
-				unit.attack_range = catalog_data.attack_range
+				unit.set("AttackRange", catalog_data.attack_range)
 
 			# Apply scale_multiplier override if present (not a catalog stat)
 			if custom_stat_overrides.has("scale_multiplier"):
 				var multiplier: float = custom_stat_overrides["scale_multiplier"]
 				unit.scale = Vector3.ONE * multiplier
 
-			# Initialize with modifiers AFTER catalog stats applied
-			unit.initialize_with_modifiers(modifiers, card_data)
-
-			# Add to tree first, then set position
+			# Add to tree FIRST so _Ready() runs and sets _base* values
 			gameplay_layer.add_child(unit)
+
+			# Initialize with modifiers AFTER add_child (requires _Ready to have run)
+			unit.InitializeWithModifiers(modifiers, card_data)  # C# uses PascalCase
 
 			# Calculate spawn offset - staggered row formation for multiple units
 			var offset: Vector3 = generate_formation_offset(i, spawn_count)
 
 			# Find a safe spawn position that doesn't overlap with existing units
 			var desired_pos: Vector3 = spawn_pos + offset
+			var collision_rad: float = unit.get("CollisionRadius") if unit.get("CollisionRadius") != null else 0.5
 			var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(
-				desired_pos, gameplay_layer.get_tree(), unit.collision_radius
+				desired_pos, gameplay_layer.get_tree(), collision_rad
 			)
 			unit.global_position = safe_pos
 
 			# Preserve flight altitude for flying units (spawn position is ground-level)
-			if unit.movement_layer == Unit3D.MovementLayer.AIR:
-				unit.global_position.y = unit.flight_altitude
+			var movement_layer: int = unit.get("MovementLayer") if unit.get("MovementLayer") != null else 0
+			if movement_layer == UnitConstants.MovementLayer.AIR:
+				var flight_alt: float = unit.get("FlightAltitude") if unit.get("FlightAltitude") != null else 2.5
+				unit.global_position.y = flight_alt
 
 			# Start spawn reveal effect if duration specified (ghost materialize animation)
-			if spawn_duration > 0.0:
+			if spawn_duration > 0.0 and unit.has_method("start_spawn_reveal"):
 				unit.start_spawn_reveal(spawn_duration)
+
+			# Activate unit if already in battle phase (units spawn Inactive by default)
+			# The battle scene root (Battle3D) has the game_controller_3d.gd script attached
+			var game_controller: Node = gameplay_layer.get_tree().current_scene
+			if game_controller and "current_phase" in game_controller and game_controller.current_phase == GameController3D.BattlePhase.BATTLE:
+				unit.Activate()
 		else:
 			push_error("Card._summon_unit_3d: Failed to instantiate unit from scene for card '%s'! Check unit_scene validity." % card_name)
 			assert(false, "Unit must instantiate successfully!")
 
 ## Execute spell effect at the 3D position
-func _cast_spell_3d(cast_pos: Vector3, team: Unit3D.Team, battlefield: Node, modifier_system: Node = null) -> void:
+func _cast_spell_3d(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	# Get card definition WITH upgrade modifiers applied
 	var card_def: Dictionary = get_effective_stats()
 
@@ -385,7 +394,7 @@ func _apply_spell_modifiers(base_damage: float, modifiers: Array) -> float:
 	return damage
 
 ## Spawn a spell projectile
-func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
+func _spawn_spell_projectile(target_position: Vector3, team: UnitConstants.Team, battlefield: Node, damage: float = 0.0) -> void:
 	# Use provided damage or fall back to spell_damage
 	var final_damage: float = damage if damage > 0 else spell_damage
 
@@ -415,7 +424,7 @@ func _spawn_spell_projectile(target_position: Vector3, team: Unit3D.Team, battle
 		assert(false, "Spell projectile must spawn successfully!")
 
 ## Cast tactical command spell (Rally/Guard)
-func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: Node, card_def: Dictionary) -> void:
+func _cast_command_spell(target_pos: Vector3, team: UnitConstants.Team, battlefield: Node, card_def: Dictionary) -> void:
 	var command_type: String = card_def.get("command_type", "")
 	var selection_radius: float = card_def.get("selection_radius", 8.0)
 	print("Card: _cast_command_spell - card_name='%s', command_type='%s', catalog_id='%s'" % [card_name, command_type, catalog_id])
@@ -426,13 +435,13 @@ func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: No
 		return
 
 	var all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
-	var selected_units: Array[Unit3D] = []
+	var selected_units: Array[Node3D] = []
 
 	for node: Node in all_units:
-		if not node is Unit3D:
+		if not ("is_alive" in node and "team" in node):
 			continue
 
-		var unit: Unit3D = node as Unit3D
+		var unit: Node3D = node as Node3D
 
 		# Only select friendly units that are alive
 		if unit.team != team or not unit.is_alive:
@@ -497,20 +506,67 @@ func _cast_command_spell(target_pos: Vector3, team: Unit3D.Team, battlefield: No
 	print("Card: Applied %s command to %d units" % [command_type, selected_units.size()])
 
 ## Apply Rally command to selected units
-func _apply_rally_command(units: Array[Unit3D], rally_point: Vector3, _card_def: Dictionary) -> void:
-	for unit: Unit3D in units:
+func _apply_rally_command(units: Array[Node3D], rally_point: Vector3, _card_def: Dictionary) -> void:
+	for unit: Node3D in units:
 		unit.rally_point = rally_point
 		unit.rally_mode = true
 		print("Card: Unit %s rallied to %s" % [unit.name, rally_point])
 
 ## Apply Guard command to selected units
-func _apply_guard_command(units: Array[Unit3D], center: Vector3, _card_def: Dictionary) -> void:
-	# Use Unit3D's static formation calculator
-	Unit3D.calculate_formation_positions(units, center)
+func _apply_guard_command(units: Array[Node3D], center: Vector3, _card_def: Dictionary) -> void:
+	# Calculate formation positions for guard mode
+	_calculate_formation_positions(units, center)
 	print("Card: Formed guard formation with %d units at %s" % [units.size(), center])
 
+## Calculate formation positions for guard command (ported from Unit3D)
+func _calculate_formation_positions(units: Array[Node3D], center: Vector3) -> void:
+	if units.is_empty():
+		return
+
+	# Separate melee and ranged units
+	var melee_units: Array[Node3D] = []
+	var ranged_units: Array[Node3D] = []
+	for unit: Node3D in units:
+		if "unit_type" in unit and unit.unit_type == UnitConstants.UnitType.RANGED:
+			ranged_units.append(unit)
+		else:
+			melee_units.append(unit)
+
+	# Formation constants
+	const BASE_RADIUS: float = 2.0
+	const UNIT_SPACING: float = 1.5
+	const GUARD_DURATION: float = 25.0
+
+	# Calculate front arc (melee) and back arc (ranged)
+	var front_radius: float = BASE_RADIUS + (melee_units.size() * UNIT_SPACING / PI)
+	var back_radius: float = front_radius + 2.0
+
+	# Position melee in front arc (180 degrees facing forward)
+	for i: int in melee_units.size():
+		var angle: float = PI + (float(i) / max(melee_units.size() - 1, 1)) * PI - PI / 2
+		var pos: Vector3 = center + Vector3(cos(angle) * front_radius, 0, sin(angle) * front_radius)
+		var unit: Node3D = melee_units[i]
+		if "formation_position" in unit:
+			unit.formation_position = pos
+		if "guard_mode" in unit:
+			unit.guard_mode = true
+		if "guard_timer" in unit:
+			unit.guard_timer = GUARD_DURATION
+
+	# Position ranged in back arc
+	for i: int in ranged_units.size():
+		var angle: float = PI + (float(i) / max(ranged_units.size() - 1, 1)) * PI - PI / 2
+		var pos: Vector3 = center + Vector3(cos(angle) * back_radius, 0, sin(angle) * back_radius)
+		var unit: Node3D = ranged_units[i]
+		if "formation_position" in unit:
+			unit.formation_position = pos
+		if "guard_mode" in unit:
+			unit.guard_mode = true
+		if "guard_timer" in unit:
+			unit.guard_timer = GUARD_DURATION
+
 ## Apply Charge command to selected units (focus-fire on closest enemy)
-func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_team: Unit3D.Team, _card_def: Dictionary) -> void:
+func _apply_charge_command(units: Array[Node3D], charge_dest: Vector3, caster_team: UnitConstants.Team, _card_def: Dictionary) -> void:
 	if units.is_empty():
 		return
 
@@ -528,14 +584,14 @@ func _apply_charge_command(units: Array[Unit3D], charge_dest: Vector3, caster_te
 
 	# Set forced target for all selected units
 	var charge_duration: float = 30.0  # Focus on this target for 30 seconds
-	for unit: Unit3D in units:
+	for unit: Node3D in units:
 		unit.forced_target = closest_enemy
 		unit.forced_target_timer = charge_duration
 		# Also store original point for fallback targeting
 		unit.original_redirect_point = charge_dest
 
 ## Find the base for the given team
-func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
+func _find_base_by_team(team: UnitConstants.Team, battlefield: Node) -> Node3D:
 	var scene_tree: SceneTree = battlefield.get_tree()
 	if not scene_tree:
 		return null
@@ -552,7 +608,7 @@ func _find_base_by_team(team: Unit3D.Team, battlefield: Node) -> Node3D:
 	return battlefield as Node3D
 
 ## Apply AOE damage to enemies in 3D range
-func _apply_aoe_damage_3d(aoe_center: Vector3, team: Unit3D.Team, battlefield: Node, damage: float = 0.0) -> void:
+func _apply_aoe_damage_3d(aoe_center: Vector3, team: UnitConstants.Team, battlefield: Node, damage: float = 0.0) -> void:
 	# Use provided damage or fall back to spell_damage
 	var final_damage: float = damage if damage > 0 else spell_damage
 
@@ -564,12 +620,12 @@ func _apply_aoe_damage_3d(aoe_center: Vector3, team: Unit3D.Team, battlefield: N
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
 	for enemy: Node in enemies:
-		if enemy is Unit3D:
-			var enemy_unit: Unit3D = enemy
-			if enemy_unit.is_alive:
+		if "IsAlive" in enemy and "Team" in enemy:
+			var enemy_unit: Node3D = enemy
+			if enemy_unit.get("IsAlive"):
 				var distance: float = enemy_unit.global_position.distance_to(aoe_center)
 				if distance <= spell_radius:
-					enemy_unit.take_damage(final_damage)
+					enemy_unit.TakeDamage(final_damage)
 
 ## Helper to safely access ModifierSystem
 ## Prefers passed reference, falls back to autoload lookup if not provided
@@ -647,15 +703,15 @@ func _spawn_rally_vfx(rally_point: Vector3) -> void:
 	_spawn_placeholder_circle(rally_point, visual_radius, Color(0.2, 0.5, 1.0, 0.6))
 
 ## Spawn Guard VFX (formation position markers)
-func _spawn_guard_vfx(units: Array[Unit3D]) -> void:
+func _spawn_guard_vfx(units: Array[Node3D]) -> void:
 	# Try to use VFXManager if available
 	if VFXManager and VFXManager.has_effect(VFXIDs.GUARD_MARKER):
-		for unit: Unit3D in units:
+		for unit: Node3D in units:
 			VFXManager.play_effect(VFXIDs.GUARD_MARKER, unit.formation_position)
 		return
 
 	# Fallback: Simple procedural markers
-	for unit: Unit3D in units:
+	for unit: Node3D in units:
 		_spawn_placeholder_marker(unit.formation_position, Color(0.8, 0.3, 0.2, 0.6))
 
 ## Spawn Charge VFX (attack target marker)

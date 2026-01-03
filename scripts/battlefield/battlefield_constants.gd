@@ -86,19 +86,20 @@ static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, sp
 	var all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
 
 	for node: Node in all_units:
-		if not node is Unit3D:
+		# Duck typing: check for unit properties
+		if not "is_alive" in node or not "collision_radius" in node:
 			continue
 
-		var unit: Unit3D = node as Unit3D
-		if not unit.is_alive:
+		if not node.is_alive:
 			continue
 
 		# Minimum spacing is sum of both collision radii
-		var min_spacing: float = spawning_collision_radius + unit.collision_radius
+		var min_spacing: float = spawning_collision_radius + node.collision_radius
 		var spacing_sq: float = min_spacing * min_spacing
 
 		# Check 2D distance (ignore Y-axis)
-		var delta: Vector3 = unit.global_position - check_pos
+		var unit_node: Node3D = node as Node3D
+		var delta: Vector3 = unit_node.global_position - check_pos
 		var distance_sq: float = delta.x * delta.x + delta.z * delta.z
 
 		if distance_sq < spacing_sq:
@@ -109,17 +110,17 @@ static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, sp
 ## Check if spawn position is valid for the given team
 ## Player (team 0) can spawn at X <= 0, Enemy (team 1) can spawn at X > 0
 static func is_valid_spawn_position_for_team(pos: Vector3, team: int) -> bool:
-	if team == Unit3D.Team.PLAYER:
+	if team == UnitConstants.Team.PLAYER:
 		return pos.x <= SPAWN_BOUNDARY_X
-	else:  # Unit3D.Team.ENEMY
+	else:  # UnitConstants.Team.ENEMY
 		return pos.x > SPAWN_BOUNDARY_X
 
 ## Clamp spawn position to valid zone for the given team
 ## Snaps X coordinate to boundary if in invalid territory
 static func clamp_spawn_position_for_team(pos: Vector3, team: int) -> Vector3:
 	var clamped: Vector3 = pos
-	if team == Unit3D.Team.PLAYER and pos.x > SPAWN_BOUNDARY_X:
+	if team == UnitConstants.Team.PLAYER and pos.x > SPAWN_BOUNDARY_X:
 		clamped.x = SPAWN_BOUNDARY_X
-	elif team == Unit3D.Team.ENEMY and pos.x <= SPAWN_BOUNDARY_X:
+	elif team == UnitConstants.Team.ENEMY and pos.x <= SPAWN_BOUNDARY_X:
 		clamped.x = SPAWN_BOUNDARY_X + SPAWN_BOUNDARY_EPSILON
 	return clamped

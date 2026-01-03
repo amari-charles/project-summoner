@@ -21,7 +21,7 @@ var fade_tween: Tween = null  # Track fade tween for proper cleanup
 
 # Damage parameters (received from Card via receive_data)
 var spell_damage: float = 0.0
-var spell_team: int = 0  # Unit3D.Team enum value
+var spell_team: int = 0  # UnitConstants.Team enum value
 var spell_battlefield: Node = null
 
 func _ready() -> void:
@@ -192,14 +192,14 @@ func _apply_aoe_damage() -> void:
 	var target_group: StringName = GroupIDs.enemy_units_for(spell_team)  # 0 = PLAYER
 	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
 
-	# Apply damage to all enemies in radius
+	# Apply damage to all enemies in radius (C# uses PascalCase properties)
 	for enemy: Node in enemies:
-		if enemy is Unit3D:
-			var enemy_unit: Unit3D = enemy as Unit3D
-			if enemy_unit.is_alive:
+		if "IsAlive" in enemy and "Team" in enemy:
+			var enemy_unit: Node3D = enemy as Node3D
+			if enemy_unit.get("IsAlive"):
 				var distance: float = enemy_unit.global_position.distance_to(target_position)
 				if distance <= damage_radius:
-					enemy_unit.take_damage(spell_damage)
+					enemy_unit.TakeDamage(spell_damage)
 
 ## Override _on_reset for pooling
 func _on_reset() -> void:
