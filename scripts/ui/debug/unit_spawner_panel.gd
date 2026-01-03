@@ -4,18 +4,28 @@ class_name UnitSpawnerPanel
 ## UnitSpawnerPanel - Debug panel for spawning units via drag-and-drop
 ##
 ## Shows a list of all available units that can be dragged onto the
-## battlefield. Includes a team toggle and clear all button.
+## battlefield. Includes a team toggle, pause button, and clear all button.
+
+const SETTINGS_PATH: String = "user://debug_arena_settings.cfg"
 
 ## Spawn as enemy by default
 @export var spawn_as_enemy: bool = true
 
 ## Signal emitted when clear button is pressed
 signal clear_requested()
+## Signal emitted when pause is toggled
+signal pause_toggled(is_paused: bool)
+## Signal emitted when skip prep phase is toggled
+signal skip_prep_toggled(skip: bool)
 
 var _unit_buttons: Array[Control] = []
+var _pause_btn: StyledButton
+var _is_paused: bool = false
+var _skip_prep_phase: bool = false
 
 
 func _ready() -> void:
+	_load_settings()
 	_build_ui()
 
 
@@ -42,6 +52,24 @@ func _build_ui() -> void:
 	title.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	vbox.add_child(title)
 
+	# Pause Button
+	_pause_btn = StyledButton.new()
+	_pause_btn.text = "Pause"
+	_pause_btn.variant = StyledButton.Variant.SECONDARY
+	_pause_btn.pressed.connect(_on_pause_pressed)
+	vbox.add_child(_pause_btn)
+
+	# Skip Prep Phase Toggle
+	var skip_prep_toggle: CheckButton = CheckButton.new()
+	skip_prep_toggle.text = "Skip Prep Phase"
+	skip_prep_toggle.button_pressed = _skip_prep_phase
+	skip_prep_toggle.toggled.connect(_on_skip_prep_toggled)
+	skip_prep_toggle.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	vbox.add_child(skip_prep_toggle)
+
+	# Separator
+	vbox.add_child(HSeparator.new())
+
 	# Team toggle
 	var team_toggle: CheckButton = CheckButton.new()
 	team_toggle.text = Loc.t("debug.spawner.spawn_as_enemy")
@@ -55,7 +83,7 @@ func _build_ui() -> void:
 
 	# Scroll container for unit list
 	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(160, 300)
+	scroll.custom_minimum_size = Vector2(160, 200)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox.add_child(scroll)
@@ -101,8 +129,37 @@ func get_spawn_team() -> int:
 	return 1 if spawn_as_enemy else 0  # 1 = Enemy, 0 = Player
 
 
+func get_skip_prep_phase() -> bool:
+	return _skip_prep_phase
+
+
+func _on_pause_pressed() -> void:
+	_is_paused = not _is_paused
+	_pause_btn.text = "Resume" if _is_paused else "Pause"
+	pause_toggled.emit(_is_paused)
+
+
+func _on_skip_prep_toggled(pressed: bool) -> void:
+	_skip_prep_phase = pressed
+	_save_settings()
+	skip_prep_toggled.emit(pressed)
+
+
 func _on_clear_pressed() -> void:
 	clear_requested.emit()
+
+
+func _load_settings() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	var err: Error = config.load(SETTINGS_PATH)
+	if err == OK:
+		_skip_prep_phase = config.get_value("debug_arena", "skip_prep_phase", false)
+
+
+func _save_settings() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	config.set_value("debug_arena", "skip_prep_phase", _skip_prep_phase)
+	config.save(SETTINGS_PATH)
 
 
 func _create_panel_style() -> StyleBoxFlat:
