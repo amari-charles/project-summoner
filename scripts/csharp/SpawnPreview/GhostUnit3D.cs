@@ -240,8 +240,6 @@ public partial class GhostUnit3D : Node3D
         if (node is IVisualComponent visualComponent)
         {
             visualComponent.ApplyGhostTint(tint);
-            // Also try to find internal sprites
-            ApplyTintToInternalSprites(node, tint);
             return;
         }
 
