@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Movement;
 using ProjectSummoner.Systems;
 using ProjectSummoner.Targeting;
 using ProjectSummoner.Visual;
@@ -174,6 +175,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public bool IsAlive { get; protected set; } = true;
     public bool IsDying { get; protected set; } = false;
 
+    // GDScript interop - snake_case aliases for duck typing in battlefield_constants.gd
+    public bool is_alive => IsAlive;
+    public float collision_radius => CollisionRadius;
+
     // =========================================================================
     // RUNTIME STATE - Targeting & Combat
     // =========================================================================
@@ -195,6 +200,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private ShaderMaterial? _spawnRevealMaterial;
     private Tween? _spawnRevealTween;
     private readonly Dictionary<CanvasItem, Material?> _originalMaterials = new();
+
+    // Steering behavior for separation and flanking
+    private readonly UnitSteering _steering = new();
 
     /// <summary>
     /// True if unit is facing right (positive X). Player team starts right, enemy left.
@@ -829,8 +837,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         // Move toward enemy base direction
         float direction = Team == (int)Units.Team.Player ? 1.0f : -1.0f;
-        Vector3 moveDir = new Vector3(direction, 0, 0);
-        Vector3 velocity = moveDir * MoveSpeed;
+        Vector3 moveDir = new(direction, 0, 0);
+
+        // Apply separation steering to avoid stacking with nearby units
+        Vector3 separation = _steering.CalculateSeparationForce(this, null);
+        Vector3 finalDir = (moveDir + separation).Normalized();
+        Vector3 velocity = finalDir * MoveSpeed;
 
         // Maintain altitude for flying units
         if (MovementLayer == (int)Units.MovementLayer.Air)
@@ -841,7 +853,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         Velocity = velocity;
         MoveAndSlide();
 
-        // Update facing direction
+        // Correct any severe overlaps after movement
+        _steering.CorrectOverlaps(this);
+
+        // Update facing direction (use base direction, not separation-adjusted)
         UpdateFacing(moveDir);
     }
 
@@ -859,7 +874,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         Vector3 direction = (targetPos - GlobalPosition).Normalized();
-        Vector3 velocity = direction * MoveSpeed;
+
+        // Apply separation steering to avoid stacking with nearby units
+        Vector3 separation = _steering.CalculateSeparationForce(this, CurrentTarget);
+        Vector3 flank = _steering.CalculateFlankForce(this, CurrentTarget, delta);
+        Vector3 finalDir = (direction * MoveSpeed + separation + flank).Normalized();
+        Vector3 velocity = finalDir * MoveSpeed;
 
         // Maintain altitude for flying units
         if (MovementLayer == (int)Units.MovementLayer.Air)
@@ -870,7 +890,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         Velocity = velocity;
         MoveAndSlide();
 
-        // Update facing direction
+        // Correct any severe overlaps after movement
+        _steering.CorrectOverlaps(this);
+
+        // Track blocked state for flanking behavior
+        _steering.UpdateBlockedState(this, delta);
+
+        // Update facing direction (use base direction, not separation-adjusted)
         UpdateFacing(direction);
     }
 
@@ -887,7 +913,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _targetLockTimer = TargetLockDuration;
 
         Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
-        Vector3 horizontalToTarget = new Vector3(toTarget.X, 0, toTarget.Z);
+        Vector3 horizontalToTarget = new(toTarget.X, 0, toTarget.Z);
 
         if (horizontalToTarget.LengthSquared() < MinHorizontalDisplacement * MinHorizontalDisplacement)
             return; // Target directly on top of us
@@ -922,7 +948,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (angleDiff < 0)
             strafeDir = -strafeDir;
 
-        Vector3 velocity = strafeDir * MoveSpeed;
+        // Apply separation steering to avoid stacking with nearby units
+        Vector3 separation = _steering.CalculateSeparationForce(this, CurrentTarget);
+        Vector3 finalDir = (strafeDir + separation).Normalized();
+        Vector3 velocity = finalDir * MoveSpeed;
 
         // Maintain altitude for flying units
         if (MovementLayer == (int)Units.MovementLayer.Air)
@@ -932,6 +961,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         Velocity = velocity;
         MoveAndSlide();
+
+        // Correct any severe overlaps after movement
+        _steering.CorrectOverlaps(this);
     }
 
     protected void UpdateFacing(Vector3 direction)

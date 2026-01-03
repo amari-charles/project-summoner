@@ -1,8 +1,10 @@
 # Unit Collision & Separation System
 
-**Status:** IMPLEMENTED
-**Last Updated:** 2025-01-25
-**File:** `scripts/units/unit_3d.gd`
+**Status:** IMPLEMENTED (C#)
+**Last Updated:** 2026-01-03
+**Files:**
+- `scripts/csharp/Movement/UnitSteering.cs` - Steering logic
+- `scripts/csharp/Units/Unit3D.cs` - Integration
 
 ---
 
@@ -19,14 +21,14 @@ Prevents units from stacking on top of each other during movement. Uses a steeri
 Soft repulsion from nearby units. Runs every physics frame during movement.
 
 **Constants:**
-```gdscript
-const SEPARATION_MULTIPLIER: float = 1.5   # Trigger distance = collision_radius * this
-const SEPARATION_STRENGTH: float = 2.0     # Base push strength
-const LATERAL_SEPARATION_BOOST: float = 3.0  # Extra sideways spread
+```csharp
+private const float SeparationMultiplier = 1.5f;   // Trigger distance = collision_radius * this
+private const float SeparationStrength = 2.0f;     // Base push strength
+private const float LateralSeparationBoost = 3.0f; // Extra sideways spread
 ```
 
 **How it works:**
-- Each unit checks distance to all other units (O(n²) - acceptable for 20-30 units)
+- Uses SpatialGrid for O(k) proximity queries (k = local density)
 - If within `collision_radius * SEPARATION_MULTIPLIER`, apply push force
 - Push strength inversely proportional to distance (closer = stronger)
 - **Does NOT separate from current attack target** (so units can approach enemies)
@@ -41,25 +43,16 @@ Prevents units from bunching up when chasing the same target.
 
 **Algorithm:**
 1. Calculate movement direction (toward target)
-2. Calculate lateral direction (perpendicular: `Vector3(-move_dir.z, 0, move_dir.x)`)
+2. Calculate lateral direction (perpendicular: `new Vector3(-moveDir.Z, 0, moveDir.X)`)
 3. For each nearby unit, check how "aligned" it is (directly ahead/behind vs to the side)
 4. Add extra lateral push based on alignment (more push when units are in front/behind)
 5. Use instance ID to decide push direction (half go left, half go right) to prevent oscillation
-
-```gdscript
-# In _calculate_separation_force():
-if move_dir.length_squared() > 0.01:
-    var lateral_dir: Vector3 = Vector3(-move_dir.z, 0, move_dir.x)
-    var forward_alignment: float = abs(push_dir.dot(move_dir))
-    var lateral_sign: float = 1.0 if (get_instance_id() % 2 == 0) else -1.0
-    separation += lateral_dir * lateral_sign * forward_alignment * strength * LATERAL_SEPARATION_BOOST
-```
 
 ### 3. Overlap Correction
 
 Hard correction after movement for severe overlaps.
 
-**When:** After `move_and_slide()` in `_move_towards_target()`
+**When:** After `MoveAndSlide()` in all movement methods
 
 **How:** If two units overlap (distance < sum of collision radii), push both apart by half the overlap amount.
 
@@ -68,32 +61,54 @@ Hard correction after movement for severe overlaps.
 When units can't make progress, they try to go around.
 
 **Constants:**
-```gdscript
-const BLOCKED_THRESHOLD: float = 0.3       # Seconds before flanking kicks in
-const BLOCKED_MOVE_THRESHOLD: float = 0.1  # Min movement/sec to not be "blocked"
-const FLANK_STRENGTH: float = 1.2          # Lateral force when blocked
+```csharp
+private const float BlockedThreshold = 0.3f;       // Seconds before flanking kicks in
+private const float BlockedMoveThreshold = 0.1f;   // Min movement/sec to not be "blocked"
+private const float FlankStrength = 1.2f;          // Lateral force when blocked
 ```
 
 **Flanking behavior:**
-1. Track `_blocked_time` - how long unit hasn't moved
+1. Track `_blockedTime` - how long unit hasn't moved
 2. After 0.3s blocked, calculate which side (left/right) has fewer nearby units
 3. Apply lateral force toward the clearer side
 4. Progressive angle increase: if still stuck, widen the angle (90° → 105° → 120° → 135°)
 5. Reset all state when movement resumes
 
-**State variables:**
-```gdscript
-var _blocked_time: float = 0.0
-var _flank_angle: float = 90.0      # Current flanking angle
-var _flank_direction: int = 0       # -1 = left, 1 = right, 0 = not chosen
-var _flank_progress_timer: float = 0.0
+---
+
+## Architecture
+
+The steering logic is encapsulated in `UnitSteering` class:
+
+```csharp
+public class UnitSteering
+{
+    public Vector3 CalculateSeparationForce(Unit3D unit, Node3D? currentTarget);
+    public Vector3 CalculateFlankForce(Unit3D unit, Node3D? currentTarget, float delta);
+    public void CorrectOverlaps(Unit3D unit);
+    public void UpdateBlockedState(Unit3D unit, float delta);
+    public void Reset();
+}
+```
+
+Each `Unit3D` has a `_steering` instance and calls it from movement methods:
+
+```csharp
+// In MoveTowardTarget():
+Vector3 separation = _steering.CalculateSeparationForce(this, CurrentTarget);
+Vector3 flank = _steering.CalculateFlankForce(this, CurrentTarget, delta);
+Vector3 finalDir = (direction * MoveSpeed + separation + flank).Normalized();
+Velocity = finalDir * MoveSpeed;
+MoveAndSlide();
+_steering.CorrectOverlaps(this);
+_steering.UpdateBlockedState(this, delta);
 ```
 
 ---
 
 ## Per-Unit Configuration
 
-Each unit has a `collision_radius` property (exported):
+Each unit has a `CollisionRadius` property (exported):
 
 | Unit Type | Typical Radius | Notes |
 |-----------|---------------|-------|
@@ -105,24 +120,12 @@ Each unit has a `collision_radius` property (exported):
 
 ## Performance
 
-- **Complexity:** O(n²) where n = number of units
-- **Acceptable for:** ~20-30 units (typical card game)
+- **Complexity:** O(k) per unit where k = local unit density (via SpatialGrid)
+- **Acceptable for:** ~50+ units (SpatialGrid uses 10x8 grid cells)
 - **Optimizations:**
-  - Early exit when few units
+  - Spatial partitioning via SpatialGrid
   - Squared distance check before sqrt()
   - Skip dead units and self
-
----
-
-## Testing
-
-Test scene: `scenes/battlefield/dev/test_collision.tscn`
-
-**Features:**
-- Spawn player units (green slimes) and enemy units (pink slimes)
-- Cluster spawn buttons (5 units at same position)
-- Clear all units button
-- Infinite mana for easy testing
 
 ---
 
@@ -130,25 +133,17 @@ Test scene: `scenes/battlefield/dev/test_collision.tscn`
 
 | Problem | Adjust |
 |---------|--------|
-| Units stack on top of each other | Increase `SEPARATION_STRENGTH` |
-| Units spread too far apart | Decrease `SEPARATION_STRENGTH` or `SEPARATION_MULTIPLIER` |
-| Units bunch up when chasing | Increase `LATERAL_SEPARATION_BOOST` |
-| Units oscillate side-to-side | Decrease `LATERAL_SEPARATION_BOOST` |
-| Units get stuck in clumps | Increase `FLANK_STRENGTH` or decrease `BLOCKED_THRESHOLD` |
-| Flanking looks jittery | Increase `FLANK_PROGRESS_INTERVAL` |
+| Units stack on top of each other | Increase `SeparationStrength` |
+| Units spread too far apart | Decrease `SeparationStrength` or `SeparationMultiplier` |
+| Units bunch up when chasing | Increase `LateralSeparationBoost` |
+| Units oscillate side-to-side | Decrease `LateralSeparationBoost` |
+| Units get stuck in clumps | Increase `FlankStrength` or decrease `BlockedThreshold` |
+| Flanking looks jittery | Increase `FlankProgressInterval` |
 
 ---
 
 ## Related Files
 
-- `scripts/units/unit_3d.gd` - Main implementation
-- `scripts/battlefield/battlefield_constants.gd` - Spawn position utilities
-- `scripts/ui/spawn_preview.gd` - Visual preview during card drag
-
----
-
-## Future Improvements
-
-- Consider spatial partitioning if unit count exceeds ~50
-- Add terrain/obstacle awareness (currently only avoids other units)
-- Per-unit separation preferences (some units might want to clump)
+- `scripts/csharp/Movement/UnitSteering.cs` - Steering implementation
+- `scripts/csharp/Units/Unit3D.cs` - Integration in movement methods
+- `scripts/csharp/Systems/SpatialGrid.cs` - Spatial queries for nearby units
