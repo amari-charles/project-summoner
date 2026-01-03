@@ -13,7 +13,6 @@ signal unit_spawned(unit: Node3D, team: int)
 signal units_cleared(count: int)
 
 var _spawner_panel: UnitSpawnerPanel
-var _debug_paused: bool = false
 
 
 func _ready() -> void:
@@ -79,8 +78,6 @@ func _connect_spawner_panel() -> void:
 	if _spawner_panel:
 		if not _spawner_panel.clear_requested.is_connected(clear_all_units):
 			_spawner_panel.clear_requested.connect(clear_all_units)
-		if not _spawner_panel.pause_toggled.is_connected(_on_pause_toggled):
-			_spawner_panel.pause_toggled.connect(_on_pause_toggled)
 		if not _spawner_panel.skip_prep_toggled.is_connected(_on_skip_prep_toggled):
 			_spawner_panel.skip_prep_toggled.connect(_on_skip_prep_toggled)
 
@@ -112,13 +109,6 @@ func _find_child_of_type(node: Node) -> UnitSpawnerPanel:
 			return result
 
 	return null
-
-
-## Handle pause toggle from spawner panel
-func _on_pause_toggled(is_paused: bool) -> void:
-	_debug_paused = is_paused
-	# Use Engine.time_scale instead of tree.paused so UI stays responsive
-	Engine.time_scale = 0.0 if is_paused else 1.0
 
 
 ## Handle skip prep phase toggle

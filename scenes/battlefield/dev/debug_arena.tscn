@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://debug_arena"]
+[gd_scene load_steps=10 format=3 uid="uid://debug_arena"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" path="res://scripts/core/debug_arena_controller.gd" id="2_debug_controller"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/tilesets/summer_tileset/PNG/top_down_simple_summer_prop_castle_square.png" id="8_castle_sprite"]
 [ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/ui/battle/stat_bar.tscn" id="9_stat_bar"]
 [ext_resource type="Script" path="res://scripts/ui/debug/unit_spawner_panel.gd" id="10_spawner_panel"]
+[ext_resource type="Script" path="res://scripts/ui/debug/debug_pause_button.gd" id="11_debug_pause"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_summoner"]
 size = Vector3(2, 4, 2)
@@ -107,6 +108,21 @@ theme_override_font_sizes/font_size = 72
 text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PauseButton" type="Button" parent="UI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -60.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "⏸ Pause"
+script = ExtResource("11_debug_pause")
 
 [node name="UnitSpawnerPanel" type="PanelContainer" parent="UI" groups=["ui_layer"]]
 anchors_preset = 1

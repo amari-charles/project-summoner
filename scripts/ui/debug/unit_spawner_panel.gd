@@ -13,14 +13,10 @@ const SETTINGS_PATH: String = "user://debug_arena_settings.cfg"
 
 ## Signal emitted when clear button is pressed
 signal clear_requested()
-## Signal emitted when pause is toggled
-signal pause_toggled(is_paused: bool)
 ## Signal emitted when skip prep phase is toggled
 signal skip_prep_toggled(skip: bool)
 
 var _unit_buttons: Array[Control] = []
-var _pause_btn: StyledButton
-var _is_paused: bool = false
 var _skip_prep_phase: bool = false
 
 
@@ -51,13 +47,6 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	vbox.add_child(title)
-
-	# Pause Button
-	_pause_btn = StyledButton.new()
-	_pause_btn.text = "Pause"
-	_pause_btn.variant = StyledButton.Variant.SECONDARY
-	_pause_btn.pressed.connect(_on_pause_pressed)
-	vbox.add_child(_pause_btn)
 
 	# Skip Prep Phase Toggle
 	var skip_prep_toggle: CheckButton = CheckButton.new()
@@ -131,12 +120,6 @@ func get_spawn_team() -> int:
 
 func get_skip_prep_phase() -> bool:
 	return _skip_prep_phase
-
-
-func _on_pause_pressed() -> void:
-	_is_paused = not _is_paused
-	_pause_btn.text = "Resume" if _is_paused else "Pause"
-	pause_toggled.emit(_is_paused)
 
 
 func _on_skip_prep_toggled(pressed: bool) -> void:
