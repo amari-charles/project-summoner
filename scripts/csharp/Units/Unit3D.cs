@@ -89,6 +89,21 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public float MaxAttackAngle { get; set; } = 90f;
 
     // =========================================================================
+    // EXPORTED PROPERTIES - Horizontal Cone Constraint
+    // =========================================================================
+
+    [ExportGroup("Horizontal Cone Constraint")]
+    [Export]
+    public bool HasHorizontalConeConstraint { get; set; } = false;
+
+    /// <summary>
+    /// Half-angle of attack cone in degrees.
+    /// 30 = targets must be within ±30° of forward direction.
+    /// </summary>
+    [Export]
+    public float HorizontalConeAngle { get; set; } = 90f;
+
+    // =========================================================================
     // EXPORTED PROPERTIES - Classification
     // =========================================================================
 
@@ -192,6 +207,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
 
+    /// <summary>
+    /// True if unit is facing right (positive X). Player team starts right, enemy left.
+    /// </summary>
+    protected bool _isFacingRight;
+
     // Base stats for modifier calculations
     protected float _baseMaxHp;
     protected float _baseAttackDamage;
@@ -251,8 +271,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         // Set initial facing based on team (sprites are drawn facing left, flip for player)
-        bool faceRight = Team == (int)Units.Team.Player;
-        VisualComponent?.SetFlipH(faceRight);
+        _isFacingRight = Team == (int)Units.Team.Player;
+        VisualComponent?.SetFlipH(_isFacingRight);
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
@@ -591,7 +611,18 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         if (IsInAttackRange(CurrentTarget))
         {
-            // In range - attack if cooldown ready
+            // Check horizontal cone constraint - turn if needed
+            if (HasHorizontalConeConstraint && !IsTargetInHorizontalCone(CurrentTarget))
+            {
+                TurnToFaceTarget(CurrentTarget);
+                if (_attackAnimationTimer <= 0)
+                {
+                    UpdateAnimation("idle");
+                }
+                return;  // Wait until next frame to attack
+            }
+
+            // In range and facing correct direction - attack if cooldown ready
             if (_attackCooldown <= 0)
             {
                 PerformAttackAction();
@@ -669,8 +700,54 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Sprites are drawn facing left, flip when moving right
         if (Mathf.Abs(direction.X) > 0.1f)
         {
-            VisualComponent?.SetFlipH(direction.X > 0);
+            _isFacingRight = direction.X > 0;
+            VisualComponent?.SetFlipH(_isFacingRight);
         }
+    }
+
+    /// <summary>
+    /// Check if target is within the unit's horizontal attack cone.
+    /// </summary>
+    protected bool IsTargetInHorizontalCone(Node3D target)
+    {
+        // Skip check if constraint disabled
+        if (!HasHorizontalConeConstraint)
+            return true;
+
+        Vector3 toTarget = target.GlobalPosition - GlobalPosition;
+
+        // If target directly above/below (no X displacement), allow
+        if (Mathf.Abs(toTarget.X) < 0.01f)
+            return true;
+
+        // Is target on the side we're facing?
+        bool targetIsRight = toTarget.X > 0;
+
+        // For narrow cones, also check angle from forward
+        if (HorizontalConeAngle < 90f)
+        {
+            // Calculate angle: how far off-axis (Z) vs forward (X)
+            // atan2(|Z|, |X|) gives angle from forward direction
+            float angleFromForward = Mathf.RadToDeg(
+                Mathf.Atan2(Mathf.Abs(toTarget.Z), Mathf.Abs(toTarget.X))
+            );
+
+            if (angleFromForward > HorizontalConeAngle)
+                return false;
+        }
+
+        // Final check: target must be on same side as facing
+        return targetIsRight == _isFacingRight;
+    }
+
+    /// <summary>
+    /// Instantly turn to face a target.
+    /// </summary>
+    protected void TurnToFaceTarget(Node3D target)
+    {
+        Vector3 toTarget = target.GlobalPosition - GlobalPosition;
+        _isFacingRight = toTarget.X > 0;
+        VisualComponent?.SetFlipH(_isFacingRight);
     }
 
     protected void UpdateAnimation(string animName)
