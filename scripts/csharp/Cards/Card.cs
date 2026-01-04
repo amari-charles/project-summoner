@@ -7,8 +7,8 @@ namespace ProjectSummoner.Cards;
 /// <summary>
 /// Abstract base class for all cards.
 /// Cards are playable items that have effects on the battlefield.
+/// Note: Not marked [GlobalClass] to avoid conflict with GDScript Card class.
 /// </summary>
-[GlobalClass]
 public abstract partial class Card : Resource
 {
     // =========================================================================

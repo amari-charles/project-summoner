@@ -6,7 +6,6 @@ namespace ProjectSummoner.Cards.Configs;
 /// Configuration for spell cards.
 /// Contains spell-specific properties like radius, damage, duration.
 /// </summary>
-[GlobalClass]
 public partial class SpellCardConfig : CardConfig
 {
     // =========================================================================

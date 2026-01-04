@@ -8,8 +8,8 @@ namespace ProjectSummoner.Cards;
 /// <summary>
 /// Card that casts a spell effect when played.
 /// The spell behavior is determined by the attached ISpellEffect.
+/// Note: Not marked [GlobalClass] to avoid conflict with GDScript Card class.
 /// </summary>
-[GlobalClass]
 public partial class SpellCard : Card
 {
     // =========================================================================

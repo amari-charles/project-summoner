@@ -5,8 +5,8 @@ namespace ProjectSummoner.Cards.Configs;
 /// <summary>
 /// Base configuration for all card types.
 /// Contains identity and gameplay properties shared by all cards.
+/// Note: Not marked [GlobalClass] to avoid conflict with GDScript CardConfig class.
 /// </summary>
-[GlobalClass]
 public partial class CardConfig : Resource
 {
     // =========================================================================
