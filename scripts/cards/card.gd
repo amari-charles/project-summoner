@@ -281,12 +281,20 @@ func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: 
 			var offset: Vector3 = generate_formation_offset(i, spawn_count)
 
 			# Find a safe spawn position that doesn't overlap with existing units
+			# Pass the current unit to exclude it from collision checks (it was just added to UNITS group
+			# at position 0,0,0 and hasn't been moved yet)
 			var desired_pos: Vector3 = spawn_pos + offset
 			var collision_rad: float = unit.get("CollisionRadius") if unit.get("CollisionRadius") != null else 0.5
 			var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(
-				desired_pos, gameplay_layer.get_tree(), collision_rad
+				desired_pos, gameplay_layer.get_tree(), collision_rad, unit
 			)
 			unit.global_position = safe_pos
+
+			# Update SpatialGrid immediately with correct position
+			# Without this, unit stays registered at (0,0,0) until it activates and runs _PhysicsProcess
+			# This is critical for swarm spawns where units need accurate positions for steering/targeting
+			if SpatialGrid:
+				SpatialGrid.update_unit_position(unit)
 
 			# Preserve flight altitude for flying units (spawn position is ground-level)
 			var movement_layer: int = unit.get("MovementLayer") if unit.get("MovementLayer") != null else 0
