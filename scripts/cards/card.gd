@@ -27,6 +27,10 @@ var config: Resource = null  # CardConfig instance (uses Resource to avoid load 
 ## Instance tracking (for progression system - unique per card in collection)
 var instance_id: String = ""
 
+## C# spell effect delegation - if set, spell execution delegates to SpellCardFactory
+## This is set by CardCatalog when creating spell cards with C# effects available
+var _csharp_spell_id: String = ""
+
 ## Event sequence stat overrides (set by EventSequencer before spawning)
 var custom_stat_overrides: Dictionary = {}
 
@@ -393,6 +397,11 @@ func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: 
 
 ## Execute spell effect at the 3D position
 func _cast_spell_3d(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
+	# Delegate to C# spell effect if available
+	if not _csharp_spell_id.is_empty():
+		_execute_csharp_spell(cast_pos, team, battlefield, modifier_system)
+		return
+
 	# Get card definition WITH upgrade modifiers applied
 	var card_def: Dictionary = get_effective_stats()
 
@@ -440,6 +449,37 @@ func _cast_spell_3d(cast_pos: Vector3, team: UnitConstants.Team, battlefield: No
 	elif modified_spell_damage > 0:
 		# Fallback to instant AOE damage (legacy behavior)
 		_apply_aoe_damage_3d(cast_pos, team, battlefield, modified_spell_damage)
+
+
+## Execute spell via C# SpellCardFactory
+## Called when _csharp_spell_id is set (C# effect available)
+func _execute_csharp_spell(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
+	var factory: Node = _get_spell_card_factory()
+	if not factory:
+		push_error("Card: SpellCardFactory not available for C# spell '%s', falling back to GDScript" % _csharp_spell_id)
+		# Clear the ID so we don't try C# again and fall through to GDScript
+		var saved_id: String = _csharp_spell_id
+		_csharp_spell_id = ""
+		_cast_spell_3d(cast_pos, team, battlefield, modifier_system)
+		_csharp_spell_id = saved_id
+		return
+
+	# Delegate execution to C# SpellCardFactory
+	factory.execute_spell(_csharp_spell_id, cast_pos, int(team), battlefield, modifier_system, instance_id)
+
+
+## Get SpellCardFactory autoload safely
+func _get_spell_card_factory() -> Node:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop or not main_loop is SceneTree:
+		return null
+
+	var tree: SceneTree = main_loop
+	if not tree.root:
+		return null
+
+	return tree.root.get_node_or_null("/root/SpellCardFactory")
+
 
 ## Apply modifiers to spell damage
 ##
