@@ -17,6 +17,7 @@ var _catalog: Dictionary = {}
 
 ## Cached Card script for efficient resource creation
 const CardScript = preload("res://scripts/cards/card.gd")
+const CardConfigScript = preload("res://scripts/cards/card_config.gd")
 
 ## Preload ID constant classes for use in catalog definitions
 const ProjectileIDsScript = preload("res://scripts/data/projectile_ids.gd")
@@ -187,6 +188,10 @@ func _init_catalog() -> void:
 		# Summon properties - uses same scene but spawns 12
 		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
 		"spawn_count": 12,
+
+		# Formation - tighter spacing for swarm
+		"formation_spacing": 1.5,
+		"formation_row_offset": 0.5,
 
 		# Unit stats - slightly weaker than base fire elemental
 		"max_hp": 45.0,
@@ -553,41 +558,18 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 		assert(false, "Card must exist in catalog! Fix card registration or typo in catalog_id.")
 		return null  # Unreachable in debug builds
 
-	# Create Card instance from preloaded script
-	# Type narrow to Card for safe property access
+	# Create CardConfig from catalog dictionary
+	var config: Resource = CardConfigScript.from_dict(card_def)
+
+	# Validate config was created successfully
+	if not config:
+		push_error("CardCatalog: Failed to create CardConfig for '%s'" % catalog_id)
+		assert(false, "CardConfig must be created successfully!")
+		return null  # Unreachable in debug builds
+
+	# Create Card and attach config
 	var card: Card = CardScript.new()
-
-	# Set basic properties
-	card.catalog_id = catalog_id
-	card.card_name = card_def.get("card_name", "Unknown")
-	card.card_type = card_def.get("card_type", 0)
-	card.description = card_def.get("description", "")
-	card.mana_cost = card_def.get("mana_cost", 0)
-	card.cooldown = card_def.get("cooldown", 2.0)
-	card.summon_time = card_def.get("summon_time", 1.0)
-
-	# Set type-specific properties
-	if card.card_type == Card.CardType.SUMMON:
-		var unit_scene_path: String = card_def.get("unit_scene_path", "")
-		if unit_scene_path != "":
-			var scene: PackedScene = load(unit_scene_path)
-			if not scene:
-				push_error("CardCatalog: Failed to load unit scene '%s' for card '%s'. Check if scene file exists and is valid." % [unit_scene_path, catalog_id])
-				assert(false, "Unit scene must load successfully! Fix scene file or path.")
-				return null  # Unreachable in debug builds
-			card.unit_scene = scene
-		card.spawn_count = card_def.get("spawn_count", 1)
-	elif card.card_type == Card.CardType.SPELL:
-		card.spell_damage = card_def.get("spell_damage", 0.0)
-		card.spell_radius = card_def.get("spell_radius", 0.0)
-		card.spell_duration = card_def.get("spell_duration", 0.0)
-		card.projectile_id = card_def.get("projectile_id", "")
-		card.spell_vfx = card_def.get("spell_vfx", "")
-
-	# Set icon if available
-	var icon_path: String = card_def.get("card_icon_path", "")
-	if icon_path != "":
-		card.card_icon = load(icon_path)
+	card.config = config
 
 	return card
 

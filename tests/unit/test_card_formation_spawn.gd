@@ -99,8 +99,8 @@ func test_alternating_rows_have_stagger() -> void:
 	var row0_first_z: float = Card.generate_formation_offset(0, 12).z
 	var row1_first_z: float = Card.generate_formation_offset(6, 12).z
 
-	# Row 1 should be offset by FORMATION_ROW_OFFSET * FORMATION_SPACING
-	var expected_stagger: float = Card.FORMATION_ROW_OFFSET * Card.FORMATION_SPACING
+	# Row 1 should be offset by DEFAULT_FORMATION_ROW_OFFSET * DEFAULT_FORMATION_SPACING
+	var expected_stagger: float = Card.DEFAULT_FORMATION_ROW_OFFSET * Card.DEFAULT_FORMATION_SPACING
 
 	# The difference in starting Z position should equal the stagger
 	var z_diff: float = row1_first_z - row0_first_z
@@ -112,22 +112,22 @@ func test_alternating_rows_have_stagger() -> void:
 ## =============================================================================
 
 func test_units_spaced_by_formation_spacing() -> void:
-	# Adjacent units in same row should be FORMATION_SPACING apart
+	# Adjacent units in same row should be DEFAULT_FORMATION_SPACING apart
 	var offset_0: Vector3 = Card.generate_formation_offset(0, 12)
 	var offset_1: Vector3 = Card.generate_formation_offset(1, 12)
 
 	var z_distance: float = absf(offset_1.z - offset_0.z)
-	assert_almost_eq(z_distance, Card.FORMATION_SPACING, 0.01, "Adjacent units should be FORMATION_SPACING apart")
+	assert_almost_eq(z_distance, Card.DEFAULT_FORMATION_SPACING, 0.01, "Adjacent units should be DEFAULT_FORMATION_SPACING apart")
 
 
 func test_rows_spaced_by_formation_spacing() -> void:
-	# Units in different rows should have X positions FORMATION_SPACING apart
+	# Units in different rows should have X positions DEFAULT_FORMATION_SPACING apart
 	# Index 0 is row 0, index 6 is row 1 (for 12 units)
 	var offset_row0: Vector3 = Card.generate_formation_offset(0, 12)
 	var offset_row1: Vector3 = Card.generate_formation_offset(6, 12)
 
 	var x_distance: float = absf(offset_row1.x - offset_row0.x)
-	assert_almost_eq(x_distance, Card.FORMATION_SPACING, 0.01, "Rows should be FORMATION_SPACING apart")
+	assert_almost_eq(x_distance, Card.DEFAULT_FORMATION_SPACING, 0.01, "Rows should be DEFAULT_FORMATION_SPACING apart")
 
 
 ## =============================================================================
