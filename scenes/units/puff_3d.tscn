@@ -59,7 +59,6 @@ ProjectileId = "wind_puff"
 ProjectileDelay = 1.17
 IsDelayedProjectile = true
 ShadowEnabled = true
-ShadowSize = 0.8
 ShadowOpacity = 0.5
 
 [node name="Visual" parent="." instance=ExtResource("2_sprite_component")]

@@ -55,6 +55,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // Minimum horizontal movement threshold to update facing direction
     private const float MinFacingDirectionThreshold = 0.1f;
 
+    // Shadow auto-sizing: multiply sprite height by this to get shadow diameter
+    private const float ShadowAutoSizeMultiplier = 0.8f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -167,8 +170,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public bool ShadowEnabled { get; set; } = true;
 
+    /// <summary>
+    /// Shadow size in world units. Set to 0 to auto-calculate from visual dimensions.
+    /// </summary>
     [Export]
-    public float ShadowSize { get; set; } = 1.0f;
+    public float ShadowSize { get; set; } = 0f;
 
     [Export]
     public float ShadowOpacity { get; set; } = 0.6f;
@@ -309,9 +315,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Create shadow if enabled
         if (ShadowEnabled)
         {
-            _shadowComponent = new ShadowComponent();
-            AddChild(_shadowComponent);
-            _shadowComponent.Initialize(ShadowSize, ShadowOpacity);
+            // Calculate shadow size: use explicit value if set, otherwise auto-calculate
+            float effectiveShadowSize = ShadowSize;
+            if (ShadowSize <= 0 && VisualComponent != null)
+            {
+                float spriteHeight = VisualComponent.GetSpriteHeight();
+                effectiveShadowSize = spriteHeight * ShadowAutoSizeMultiplier;
+            }
+
+            if (effectiveShadowSize > 0)
+            {
+                _shadowComponent = new ShadowComponent();
+                AddChild(_shadowComponent);
+                _shadowComponent.Initialize(effectiveShadowSize, ShadowOpacity);
+            }
         }
 
         // Setup groups for targeting

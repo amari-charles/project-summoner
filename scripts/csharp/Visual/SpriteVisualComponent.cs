@@ -48,6 +48,13 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     [Export]
     public float HeadOffsetPixels { get; set; } = 0.0f;
 
+    /// <summary>
+    /// Pixel offset to shift the sprite rendering position.
+    /// Use for sprites where the character isn't centered (e.g., particles extending to one side).
+    /// </summary>
+    [Export]
+    public Vector2 SpriteOffsetPixels { get; set; } = Vector2.Zero;
+
     [Export]
     public float SpriteScale { get; set; } = DefaultSpriteScale;
 
@@ -395,6 +402,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         {
             spritePos.Y = _viewport.Size.Y * 0.8f;
         }
+
+        // Apply user-defined offset (for off-center sprite sheets)
+        spritePos.X += SpriteOffsetPixels.X * _characterSprite.Scale.X;
+        spritePos.Y += SpriteOffsetPixels.Y * _characterSprite.Scale.Y;
 
         _characterSprite.Position = spritePos;
     }
