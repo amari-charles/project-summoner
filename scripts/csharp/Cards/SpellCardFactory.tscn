@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://drf7hnsq5c0gt"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Cards/SpellCardFactory.cs" id="1"]
-
-[node name="SpellCardFactory" type="Node"]
-script = ExtResource("1")

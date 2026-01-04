@@ -27,9 +27,13 @@ var config: Resource = null  # CardConfig instance (uses Resource to avoid load 
 ## Instance tracking (for progression system - unique per card in collection)
 var instance_id: String = ""
 
-## C# spell effect delegation - if set, spell execution delegates to SpellCardFactory
+## C# spell effect delegation - if set, spell execution delegates to CardFactory
 ## This is set by CardCatalog when creating spell cards with C# effects available
 var _csharp_spell_id: String = ""
+
+## C# summon execution delegation - if set, summon execution delegates to CardFactory
+## This is set by CardCatalog when creating summon cards
+var _csharp_summon_id: String = ""
 
 ## Event sequence stat overrides (set by EventSequencer before spawning)
 var custom_stat_overrides: Dictionary = {}
@@ -225,6 +229,11 @@ func play_3d(play_position: Vector3, team: UnitConstants.Team, battlefield: Node
 ## Spawn unit(s) at the 3D position
 ## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
 func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
+	# Delegate to C# CardFactory if summon ID is set
+	if not _csharp_summon_id.is_empty():
+		_execute_csharp_summon(spawn_pos, team, battlefield, modifier_system, spawn_duration)
+		return
+
 	if unit_scene == null:
 		push_error("Card '%s' has no unit_scene assigned! Fix card resource or catalog definition." % card_name)
 		assert(false, "Summon card must have unit_scene!")
@@ -342,27 +351,58 @@ func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: 
 			assert(false, "Unit must instantiate successfully!")
 
 ## Execute spell effect at the 3D position
-## All spells delegate to C# SpellCardFactory for execution
+## All spells delegate to C# CardFactory for execution
 func _cast_spell_3d(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
 	if _csharp_spell_id.is_empty():
-		push_error("Card: Spell '%s' has no C# effect attached! All spells must use C# SpellCardFactory." % card_name)
+		push_error("Card: Spell '%s' has no C# effect attached! All spells must use C# CardFactory." % card_name)
 		return
 
 	_execute_csharp_spell(cast_pos, team, battlefield, modifier_system)
 
 
-## Execute spell via C# SpellCardFactory
+## Execute spell via C# CardFactory
 func _execute_csharp_spell(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
-	var factory: Node = _get_spell_card_factory()
+	var factory: Node = _get_card_factory()
 	if not factory:
-		push_error("Card: SpellCardFactory not available! C# may not be loaded. Spell '%s' cannot be cast." % _csharp_spell_id)
+		push_error("Card: CardFactory not available! C# may not be loaded. Spell '%s' cannot be cast." % _csharp_spell_id)
 		return
 
 	factory.execute_spell(_csharp_spell_id, cast_pos, int(team), battlefield, modifier_system, instance_id)
 
 
-## Get SpellCardFactory autoload safely
-func _get_spell_card_factory() -> Node:
+## Execute summon via C# CardFactory
+func _execute_csharp_summon(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
+	var factory: Node = _get_card_factory()
+	if not factory:
+		push_error("Card: CardFactory not available! C# may not be loaded. Summon '%s' cannot spawn." % _csharp_summon_id)
+		return
+
+	# Get card definition from catalog
+	var card_def: Dictionary = CardCatalog.get_card(catalog_id)
+	if card_def.is_empty():
+		push_error("Card: Cannot get card definition for '%s'" % catalog_id)
+		return
+
+	# Get effective stats (with upgrades applied)
+	var effective_stats: Dictionary = get_effective_stats()
+
+	# Execute summon via factory
+	factory.execute_summon(
+		_csharp_summon_id,
+		spawn_pos,
+		int(team),
+		battlefield,
+		card_def,
+		effective_stats,
+		custom_stat_overrides,
+		modifier_system,
+		instance_id,
+		spawn_duration
+	)
+
+
+## Get CardFactory autoload safely
+func _get_card_factory() -> Node:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if not main_loop or not main_loop is SceneTree:
 		return null
@@ -371,7 +411,7 @@ func _get_spell_card_factory() -> Node:
 	if not tree.root:
 		return null
 
-	return tree.root.get_node_or_null("/root/SpellCardFactory")
+	return tree.root.get_node_or_null("/root/CardFactory")
 
 
 ## Helper to safely access ModifierSystem (used by summons)

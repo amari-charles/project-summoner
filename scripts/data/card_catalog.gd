@@ -573,11 +573,13 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 	var card: Card = CardScript.new()
 	card.config = config
 
-	# For spells, try to attach C# effect for execution delegation
+	# Try to attach C# execution delegation based on card type
 	var card_type: int = card_def.get("card_type", Card.CardType.SUMMON)
 	if card_type == Card.CardType.SPELL:
 		_try_attach_csharp_spell_effect(catalog_id, card)
-		# Card will use C# effect if available, GDScript fallback otherwise
+	elif card_type == Card.CardType.SUMMON:
+		_try_attach_csharp_summon(catalog_id, card)
+	# Card will use C# execution if available, GDScript fallback otherwise
 
 	return card
 
@@ -586,8 +588,8 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 ## Sets card._csharp_spell_id if C# effect is available
 ## Returns true if C# effect will be used, false to use GDScript fallback
 func _try_attach_csharp_spell_effect(catalog_id: StringName, card: Card) -> bool:
-	# Get SpellCardFactory autoload
-	var factory: Node = _get_spell_card_factory()
+	# Get CardFactory autoload
+	var factory: Node = _get_card_factory()
 	if not factory:
 		return false
 
@@ -601,9 +603,28 @@ func _try_attach_csharp_spell_effect(catalog_id: StringName, card: Card) -> bool
 	return true
 
 
-## Get SpellCardFactory autoload safely
+## Check if C# summon execution is available for this summon
+## Sets card._csharp_summon_id if C# summon is supported
+## Returns true if C# summon will be used, false to use GDScript fallback
+func _try_attach_csharp_summon(catalog_id: StringName, card: Card) -> bool:
+	# Get CardFactory autoload
+	var factory: Node = _get_card_factory()
+	if not factory:
+		return false
+
+	# Check if factory supports summon execution
+	if not factory.has_summon(catalog_id):
+		return false
+
+	# Set the C# summon ID on the card for delegation
+	card._csharp_summon_id = catalog_id
+	print("CardCatalog: Attached C# summon for '%s'" % catalog_id)
+	return true
+
+
+## Get CardFactory autoload safely
 ## Returns null if C# is not available or factory not loaded
-func _get_spell_card_factory() -> Node:
+func _get_card_factory() -> Node:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if not main_loop or not main_loop is SceneTree:
 		return null
@@ -612,7 +633,7 @@ func _get_spell_card_factory() -> Node:
 	if not tree.root:
 		return null
 
-	return tree.root.get_node_or_null("/root/SpellCardFactory")
+	return tree.root.get_node_or_null("/root/CardFactory")
 
 ## =============================================================================
 ## UTILITY METHODS
