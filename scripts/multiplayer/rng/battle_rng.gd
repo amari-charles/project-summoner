@@ -194,14 +194,13 @@ func enable_debug_logging(enabled: bool = true) -> void:
 	_debug_logging = enabled
 	print("BattleRNG: Debug logging %s" % ("enabled" if enabled else "disabled"))
 
-## Get the current state hash for a domain (useful for desync detection)
-func get_domain_state_hash(domain: RNGDomain.Domain) -> int:
-	var rng: RandomNumberGenerator = _get_rng(domain)
-	# Use the RNG's current state as a simple hash
-	# Note: This consumes one random value, so use sparingly
-	return rng.randi()
-
-## Reset the battle RNG (for testing or new battle)
+## Reset the battle RNG for a new battle.
+## Call this when:
+## - Starting a new battle (before set_battle_seed)
+## - Returning to menu from a battle
+## - In tests between test cases
+## Note: In multiplayer, the host should call reset() then set_battle_seed() with
+## the new shared seed before the battle starts.
 func reset() -> void:
 	_is_initialized = false
 	_domain_rngs.clear()
