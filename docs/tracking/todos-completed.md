@@ -6,13 +6,49 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## Card & Spell System
 
+### C# SummonCard Infrastructure
+**Completed:** 2026-01-04
+**Category:** Cards / Architecture
+**Effort:** Medium
+
+**Description:**
+Ported summon card logic from GDScript to C# with pluggable formation strategies. All summons now execute via C# `CardFactory`. GDScript `Card.gd` reduced from ~463 to 265 lines.
+
+**Architecture:**
+```
+SummonCard
+├── SpawnConfig (scene path, count, summon time)
+└── IFormationStrategy (pluggable: Grid, Ring, Line)
+```
+
+**Solution Implemented:**
+- `SpawnConfig.cs` - Unit scene path, spawn count, summon time
+- `IFormationStrategy.cs` - Interface for formation positioning
+- `GridFormation.cs` - Default 2-row staggered formation (ported from GDScript)
+- `RingFormation.cs` - Circular formation around spawn point
+- `LineFormation.cs` - Horizontal line formation
+- `SummonBuilder.cs` - Maps catalog IDs to formation strategies
+- `SummonCard.cs` - Card type composing SpawnConfig + IFormationStrategy
+- Renamed `SpellCardFactory.cs` → `CardFactory.cs` with unified spell/summon API
+- `CardCatalog` sets `_csharp_summon_id` on summon cards
+- `Card._summon_unit_3d()` delegates to C# `CardFactory.execute_summon()`
+- Removed all GDScript summon logic (unit spawning, modifier integration, safe positioning)
+
+**Related Files:**
+- `scripts/csharp/Cards/CardFactory.cs` - Bridge autoload (spells + summons)
+- `scripts/csharp/Cards/Formations/` - Formation strategies
+- `scripts/csharp/Cards/SummonCard.cs` - Summon card type
+- `scripts/cards/card.gd` - Delegation only (265 lines)
+
+---
+
 ### C# Spell Effect System - Integration
 **Completed:** 2026-01-04
 **Category:** Cards / Architecture
 **Effort:** Medium
 
 **Description:**
-Implemented a C# spell effect system with composition pattern. All spells now execute via C# `SpellCardFactory`. GDScript `Card.gd` reduced from ~966 to 422 lines.
+Implemented a C# spell effect system with composition pattern. All spells now execute via C# `CardFactory`. GDScript `Card.gd` reduced from ~966 to 422 lines.
 
 **Solution Implemented (Phase A - C# Foundation):**
 - Core interfaces: `ISpellEffect`, `ITargetingStrategy`, `ISpellCondition`, `ITargetFilter`
@@ -24,16 +60,16 @@ Implemented a C# spell effect system with composition pattern. All spells now ex
 - Factory: `SpellBuilder` with Fireball, Rally, Guard, Charge
 
 **Solution Implemented (Phase B - GDScript→C# Bridge):**
-- Created `SpellCardFactory.cs` autoload with `has_effect()` and `execute_spell()`
+- Created `CardFactory.cs` autoload with `has_effect()` and `execute_spell()`
 - `CardCatalog` sets `_csharp_spell_id` on spell cards
-- `Card._cast_spell_3d()` delegates to C# `SpellCardFactory`
+- `Card._cast_spell_3d()` delegates to C# `CardFactory`
 - Removed all GDScript spell logic (VFX helpers, command spells, AOE damage, projectiles)
 - Verified working in editor with all 4 spells (Fireball, Rally, Guard, Charge)
 
 **Related Files:**
-- `scripts/csharp/Cards/SpellCardFactory.cs` - Bridge autoload
+- `scripts/csharp/Cards/CardFactory.cs` - Bridge autoload
 - `scripts/csharp/Cards/SpellBuilder.cs` - Effect factory
-- `scripts/cards/card.gd` - Summon logic only, spells delegate to C#
+- `scripts/cards/card.gd` - Delegation only, all execution in C#
 - `scripts/data/card_catalog.gd` - Sets `_csharp_spell_id` for spell cards
 
 ---

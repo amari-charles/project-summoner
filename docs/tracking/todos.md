@@ -788,25 +788,6 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ## Card & Spell System
 
-### 🟡 MEDIUM PRIORITY
-
-#### Port SummonCard to C#
-**Status:** 📋 Planned
-**Category:** Cards / Architecture
-**Effort:** Medium
-
-**Description:**
-Port the summon card logic from GDScript to C#, following the pattern established by SpellCard.
-
-**Scope:**
-- Create C# `SummonCard` class extending `Card`
-- Port formation offset calculation
-- Port unit spawning with stat application
-- Port modifier system integration
-- Wire CardCatalog to create C# SummonCard for summon cards
-
-**Related Files:**
-- `scripts/cards/card.gd` - Current GDScript summon logic (422 lines)
-- `scripts/csharp/Cards/SpellCard.cs` - Reference for C# card pattern
+*(No active tasks - see todos-completed.md for completed C# card infrastructure)*
 
 ---
