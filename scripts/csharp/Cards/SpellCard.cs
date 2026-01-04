@@ -24,7 +24,7 @@ public partial class SpellCard : Card
     /// <summary>
     /// Get the spell-specific config (typed convenience accessor).
     /// </summary>
-    public SpellCardConfig SpellConfig => Config as SpellCardConfig;
+    public SpellCardConfig? SpellConfig => Config as SpellCardConfig;
 
     // =========================================================================
     // GDSCRIPT-COMPATIBLE ACCESSORS
@@ -45,7 +45,7 @@ public partial class SpellCard : Card
         Vector3 position,
         Team team,
         Node battlefield,
-        Node modifierSystem = null,
+        Node? modifierSystem = null,
         float spawnDuration = 0.0f)
     {
         if (Effect == null)

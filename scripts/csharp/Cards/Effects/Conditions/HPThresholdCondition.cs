@@ -21,7 +21,7 @@ public class HPThresholdCondition : ISpellCondition
     /// </summary>
     public bool Below { get; set; } = true;
 
-    public bool Evaluate(SpellContext context, Node3D target = null)
+    public bool Evaluate(SpellContext context, Node3D? target = null)
     {
         if (target == null) return false;
 

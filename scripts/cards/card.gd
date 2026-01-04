@@ -128,12 +128,10 @@ func get_formation_offset(unit_index: int, unit_count: int) -> Vector3:
 
 
 ## Static helper for tests and preview (uses default config values)
+## Uses class-level constants DEFAULT_FORMATION_SPACING and DEFAULT_FORMATION_ROW_OFFSET
 static func generate_formation_offset(unit_index: int, unit_count: int) -> Vector3:
 	if unit_count <= 1:
 		return Vector3.ZERO
-
-	const DEFAULT_SPACING: float = 1.8
-	const DEFAULT_ROW_OFFSET: float = 0.5
 
 	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
 	var cols: int = ceili(float(unit_count) / float(rows))
@@ -142,13 +140,13 @@ static func generate_formation_offset(unit_index: int, unit_count: int) -> Vecto
 	var col: int = unit_index % cols
 	var units_in_row: int = mini(cols, unit_count - row * cols)
 
-	var stagger: float = DEFAULT_ROW_OFFSET * DEFAULT_SPACING if row % 2 == 1 else 0.0
+	var stagger: float = DEFAULT_FORMATION_ROW_OFFSET * DEFAULT_FORMATION_SPACING if row % 2 == 1 else 0.0
 
-	var formation_depth: float = (rows - 1) * DEFAULT_SPACING
-	var x_offset: float = row * DEFAULT_SPACING - formation_depth / 2.0
+	var formation_depth: float = (rows - 1) * DEFAULT_FORMATION_SPACING
+	var x_offset: float = row * DEFAULT_FORMATION_SPACING - formation_depth / 2.0
 
-	var row_width: float = (units_in_row - 1) * DEFAULT_SPACING
-	var z_offset: float = col * DEFAULT_SPACING - row_width / 2.0 + stagger
+	var row_width: float = (units_in_row - 1) * DEFAULT_FORMATION_SPACING
+	var z_offset: float = col * DEFAULT_FORMATION_SPACING - row_width / 2.0 + stagger
 
 	return Vector3(x_offset, 0, z_offset)
 

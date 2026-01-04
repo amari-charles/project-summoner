@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Godot;
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Cards.Effects.Targeting;
@@ -16,8 +18,24 @@ public static class SpellBuilder
     // =========================================================================
 
     /// <summary>
-    /// Get the spell effect for a given card ID.
+    /// Check if a spell effect exists for the given catalog ID.
+    /// Use this before calling GetEffect to avoid exceptions.
     /// </summary>
+    public static bool HasEffect(string catalogId)
+    {
+        return catalogId switch
+        {
+            "fireball" or "rally" or "guard" or "charge" => true,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Get the spell effect for a given card ID.
+    /// Throws ArgumentException if catalogId is not a known spell.
+    /// Use HasEffect() to check before calling if unknown IDs are possible.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when catalogId is not a registered spell.</exception>
     public static ISpellEffect GetEffect(string catalogId)
     {
         return catalogId switch
@@ -26,7 +44,10 @@ public static class SpellBuilder
             "rally" => Rally(),
             "guard" => Guard(),
             "charge" => Charge(),
-            _ => null
+            _ => throw new ArgumentException(
+                $"[SpellBuilder] Unknown spell catalog ID: '{catalogId}'. " +
+                $"Add spell definition to SpellBuilder or check spelling.",
+                nameof(catalogId))
         };
     }
 

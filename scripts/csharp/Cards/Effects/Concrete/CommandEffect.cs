@@ -23,6 +23,7 @@ public class CommandEffect : SpellEffect
 
     /// <summary>
     /// Duration for Guard/Charge commands (seconds).
+    /// Default matches catalog's guard formation_duration value.
     /// </summary>
     public float CommandDuration { get; set; } = 25f;
 
@@ -60,8 +61,22 @@ public class CommandEffect : SpellEffect
     // CONSTANTS (Formation)
     // =========================================================================
 
+    /// <summary>
+    /// Base radius for guard formation before adding unit spacing.
+    /// Creates minimum distance from center for first unit ring.
+    /// </summary>
     private const float FormationBaseRadius = 2.0f;
+
+    /// <summary>
+    /// Spacing between units in guard formation arc.
+    /// Determines how spread out units are along the defensive line.
+    /// </summary>
     private const float FormationUnitSpacing = 1.5f;
+
+    /// <summary>
+    /// Distance between front (melee) and back (ranged) formation arcs.
+    /// </summary>
+    private const float FormationBackRowOffset = 2.0f;
 
     // =========================================================================
     // EXECUTION
@@ -149,7 +164,7 @@ public class CommandEffect : SpellEffect
 
         // Calculate formation radii
         float frontRadius = FormationBaseRadius + (meleeUnits.Count * FormationUnitSpacing / Mathf.Pi);
-        float backRadius = frontRadius + 2.0f;
+        float backRadius = frontRadius + FormationBackRowOffset;
 
         // Position melee in front arc (180 degrees facing forward)
         for (int i = 0; i < meleeUnits.Count; i++)
@@ -259,8 +274,9 @@ public class CommandEffect : SpellEffect
 
     /// <summary>
     /// Find nearest enemy to a position using RedirectManager.
+    /// Returns null if RedirectManager not found or no enemies exist.
     /// </summary>
-    private static Node3D FindNearestEnemy(Vector3 position, SpellContext context)
+    private static Node3D? FindNearestEnemy(Vector3 position, SpellContext context)
     {
         var redirectManager = context.SceneTree?.Root?.GetNodeOrNull("/root/RedirectManager");
         if (redirectManager == null)
@@ -327,7 +343,7 @@ public class CommandEffect : SpellEffect
         }
     }
 
-    private static Node GetVFXManager(SpellContext context)
+    private static Node? GetVFXManager(SpellContext context)
     {
         return context.SceneTree?.Root?.GetNodeOrNull("/root/VFXManager");
     }

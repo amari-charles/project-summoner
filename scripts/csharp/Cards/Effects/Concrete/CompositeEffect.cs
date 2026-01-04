@@ -16,7 +16,7 @@ public class CompositeEffect : SpellEffect
     /// </summary>
     public List<ISpellEffect> Effects { get; set; } = new();
 
-    public override async void Execute(SpellContext context)
+    public override void Execute(SpellContext context)
     {
         if (Effects == null || Effects.Count == 0)
         {
@@ -24,6 +24,16 @@ public class CompositeEffect : SpellEffect
             return;
         }
 
+        // Execute effects with delays using coroutine-style pattern
+        ExecuteEffectsSequentially(context);
+    }
+
+    /// <summary>
+    /// Execute effects in sequence, respecting delay between each.
+    /// Uses fire-and-forget async for timing but caller doesn't need to await.
+    /// </summary>
+    private async void ExecuteEffectsSequentially(SpellContext context)
+    {
         foreach (var effect in Effects)
         {
             // Handle delay if specified

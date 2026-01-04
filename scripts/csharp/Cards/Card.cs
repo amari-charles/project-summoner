@@ -53,7 +53,7 @@ public abstract partial class Card : Resource
     public string description => Description;
     public int mana_cost => ManaCost;
     public float cooldown => Cooldown;
-    public Texture2D card_icon => CardIcon;
+    public Texture2D? card_icon => CardIcon;
     public string instance_id
     {
         get => InstanceId;
@@ -88,7 +88,7 @@ public abstract partial class Card : Resource
         Vector3 position,
         Team team,
         Node battlefield,
-        Node modifierSystem = null,
+        Node? modifierSystem = null,
         float spawnDuration = 0.0f
     );
 
@@ -97,7 +97,7 @@ public abstract partial class Card : Resource
         Vector3 position,
         int team,
         Node battlefield,
-        Node modifierSystem = null,
+        Node? modifierSystem = null,
         float spawnDuration = 0.0f)
     {
         Play3D(position, (Team)team, battlefield, modifierSystem, spawnDuration);

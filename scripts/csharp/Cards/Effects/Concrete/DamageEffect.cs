@@ -182,11 +182,15 @@ public class DamageEffect : SpellEffect
         // Find source base for projectile origin
         var source = FindBaseByTeam(context);
 
+        // ProjectileId is guaranteed non-null here since we check before calling SpawnProjectile
+        var projectileIdValue = ProjectileId ?? "";
+
         // Spawn projectile via GDScript interop
+        // Pass Variant.From<GodotObject?>(null) to avoid nullable warning
         projectileManager.Call("spawn_projectile",
-            ProjectileId,
-            source,
-            (GodotObject)null, // No target unit, targeting position
+            projectileIdValue,
+            source ?? (GodotObject)context.Battlefield!,
+            Variant.From<GodotObject?>(null), // No target unit, targeting position
             Damage,
             "spell",
             new Godot.Collections.Dictionary
@@ -213,19 +217,30 @@ public class DamageEffect : SpellEffect
         }
 
         // Get radius from targeting if it's a CircleTargeting
-        float radius = 10f;
+        // Default fallback used when targeting isn't CircleTargeting (shouldn't happen for AOE spells)
+        const float DefaultVFXRadius = 10f;
+        float radius = DefaultVFXRadius;
         if (Targeting is Targeting.CircleTargeting circleTargeting)
         {
             radius = circleTargeting.Radius;
         }
 
-        vfxManager.Call("play_effect", VFXId, context.Position, new Godot.Collections.Dictionary
+        // VFXId is guaranteed non-null here since we check before calling PlayVFX
+        var vfxIdValue = VFXId ?? "";
+
+        // Build VFX parameters dictionary, handling potential null battlefield
+        var vfxParams = new Godot.Collections.Dictionary
         {
             { "radius", radius },
             { "damage", Damage },
-            { "team", (int)context.Team },
-            { "battlefield", context.Battlefield }
-        });
+            { "team", (int)context.Team }
+        };
+        if (context.Battlefield != null)
+        {
+            vfxParams["battlefield"] = context.Battlefield;
+        }
+
+        vfxManager.Call("play_effect", vfxIdValue, context.Position, vfxParams);
     }
 
     // =========================================================================
@@ -235,7 +250,7 @@ public class DamageEffect : SpellEffect
     /// <summary>
     /// Get VFXManager autoload.
     /// </summary>
-    private static Node GetVFXManager(SpellContext context)
+    private static Node? GetVFXManager(SpellContext context)
     {
         return context.SceneTree?.Root?.GetNodeOrNull("/root/VFXManager");
     }
@@ -243,15 +258,16 @@ public class DamageEffect : SpellEffect
     /// <summary>
     /// Get ProjectileManager autoload.
     /// </summary>
-    private static Node GetProjectileManager(SpellContext context)
+    private static Node? GetProjectileManager(SpellContext context)
     {
         return context.SceneTree?.Root?.GetNodeOrNull("/root/ProjectileManager");
     }
 
     /// <summary>
     /// Find the base node for the caster's team (for projectile origin).
+    /// Returns null if no base found (caller should handle fallback).
     /// </summary>
-    private static Node3D FindBaseByTeam(SpellContext context)
+    private static Node3D? FindBaseByTeam(SpellContext context)
     {
         if (context.SceneTree == null) return null;
 
@@ -270,7 +286,7 @@ public class DamageEffect : SpellEffect
             }
         }
 
-        // Fallback to battlefield node
+        // Fallback to battlefield node (may be null)
         return context.Battlefield as Node3D;
     }
 }

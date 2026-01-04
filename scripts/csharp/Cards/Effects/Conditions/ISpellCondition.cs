@@ -16,5 +16,5 @@ public interface ISpellCondition
     /// <param name="context">Spell context with position, team, etc.</param>
     /// <param name="target">Optional specific target for per-target conditions.</param>
     /// <returns>True if condition is met.</returns>
-    bool Evaluate(SpellContext context, Node3D target = null);
+    bool Evaluate(SpellContext context, Node3D? target = null);
 }
