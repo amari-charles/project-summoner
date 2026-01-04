@@ -73,7 +73,6 @@ func connect_to_host(ip: String, port: int, player_name: String, summoner_id: St
 	get_tree().create_timer(CONNECTION_TIMEOUT).timeout.connect(
 		func() -> void:
 			if NetworkState.state == NetworkState.ConnectionState.CONNECTING:
-				print("P2PClient: Connection timeout")
 				disconnect_from_host()
 				connection_failed.emit("Connection timed out")
 	)
@@ -116,8 +115,6 @@ func set_ready(ready: bool) -> void:
 
 ## Called when connected to server
 func _on_connected_to_server() -> void:
-	print("P2PClient: Connected to server")
-
 	# Update local peer ID
 	client_info.peer_id = multiplayer.get_unique_id()
 	var connected_state: int = PeerInfoScript.ConnectionState.CONNECTED
@@ -132,14 +129,12 @@ func _on_connected_to_server() -> void:
 
 ## Called when connection fails
 func _on_connection_failed() -> void:
-	print("P2PClient: Connection failed")
 	NetworkState.set_state(NetworkState.ConnectionState.DISCONNECTED)
 	connection_failed.emit("Failed to connect to host")
 
 
 ## Called when disconnected from server
 func _on_server_disconnected() -> void:
-	print("P2PClient: Disconnected from server")
 	NetworkState.set_state(NetworkState.ConnectionState.DISCONNECTED)
 	disconnected_from_host.emit()
 
@@ -148,30 +143,28 @@ func _on_server_disconnected() -> void:
 @rpc("authority", "call_remote", "reliable")
 func _send_host_info() -> void:
 	# We received host info request - send our info back
-	print("P2PClient: Received host info request, sending client info")
-
 	var data: Dictionary = client_info.serialize()
 	data["deck_hash"] = _compute_deck_hash()
 	_receive_client_info.rpc_id(1, data)
 
 
-## Send client info to host (this is the actual RPC target on host)
+## Send client info to host.
+## Note: This RPC is received on the host side (P2PHost._receive_client_info)
 @rpc("any_peer", "call_remote", "reliable")
 func _receive_client_info(_data: Dictionary) -> void:
-	# This is called ON the host (sent from client)
-	pass  # Implementation is on host side
+	pass
 
 
 ## Receive match config from host
 @rpc("authority", "call_remote", "reliable")
 func _send_match_config(config_data: Dictionary) -> void:
-	print("P2PClient: Received match config")
 	match_config = MatchConfigScript.deserialize(config_data)
 	NetworkState.set_match_config(match_config)
 	match_config_received.emit(match_config)
 
 
-## Receive client ready state (RPC stub - actual implementation is on P2PHost)
+## Send ready state to host.
+## Note: This RPC is received on the host side (P2PHost._client_set_ready)
 @rpc("any_peer", "call_remote", "reliable")
 func _client_set_ready(_ready: bool) -> void:
 	pass
@@ -180,7 +173,6 @@ func _client_set_ready(_ready: bool) -> void:
 ## Receive match starting notification from host
 @rpc("authority", "call_remote", "reliable")
 func _match_starting(config_data: Dictionary) -> void:
-	print("P2PClient: Match is starting!")
 	match_config = MatchConfigScript.deserialize(config_data)
 	match_starting.emit(match_config)
 

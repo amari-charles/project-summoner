@@ -50,7 +50,8 @@ func test_generate_code_is_unique() -> void:
 ## =============================================================================
 
 func test_is_valid_code_accepts_valid_code() -> void:
-	assert_true(RoomCodeServiceScript.is_valid_code("ABC123"))
+	# Note: CODE_CHARS excludes 0, 1, I, L, O (ambiguous characters)
+	assert_true(RoomCodeServiceScript.is_valid_code("ABC234"))
 	assert_true(RoomCodeServiceScript.is_valid_code("XYZW98"))
 	assert_true(RoomCodeServiceScript.is_valid_code("ABCDEF"))
 	assert_true(RoomCodeServiceScript.is_valid_code("234567"))
@@ -78,8 +79,9 @@ func test_is_valid_code_rejects_ambiguous_characters() -> void:
 
 func test_is_valid_code_accepts_lowercase() -> void:
 	# The validation converts to uppercase internally
-	assert_true(RoomCodeServiceScript.is_valid_code("abc123"))
-	assert_true(RoomCodeServiceScript.is_valid_code("AbC123"))
+	# Note: CODE_CHARS excludes 0, 1, I, L, O (ambiguous characters)
+	assert_true(RoomCodeServiceScript.is_valid_code("abc234"))
+	assert_true(RoomCodeServiceScript.is_valid_code("AbC234"))
 
 
 func test_is_valid_code_rejects_special_characters() -> void:

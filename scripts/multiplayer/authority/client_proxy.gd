@@ -97,7 +97,7 @@ func request_action(action: RefCounted) -> void:
 	if _action_replicator:
 		_action_replicator.send_action_to_host(action)
 	else:
-		push_error("ClientProxy: No action replicator set, cannot send action to host")
+		# No replicator means we can't send - reject gracefully via signal
 		_pending_actions.erase(action.action_id)
 		action_rejected.emit(action, "No network connection")
 

@@ -8,10 +8,6 @@ class_name ActionReplicator
 
 const GameActionScript: GDScript = preload("res://scripts/multiplayer/actions/game_action.gd")
 
-## Pending action callbacks (for clients awaiting host confirmation)
-## Maps action_id -> Callable
-var _pending_callbacks: Dictionary = {}
-
 
 ## Emitted when an action is received from a remote peer
 signal action_received(action: RefCounted, sender_peer_id: int)
@@ -68,7 +64,6 @@ func send_action_to_host(action: RefCounted) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func _receive_action_request(action_data: Dictionary) -> void:
 	var sender_id: int = multiplayer.get_remote_sender_id()
-	print("ActionReplicator: Received action request from peer %d" % sender_id)
 
 	var action: RefCounted = GameActionScript.deserialize(action_data)
 	if action == null:
@@ -94,5 +89,4 @@ func _receive_confirmed_action(action_data: Dictionary) -> void:
 ## Host -> Client: Action rejection
 @rpc("authority", "call_remote", "reliable")
 func _receive_rejection(action_id: int, reason: String) -> void:
-	print("ActionReplicator: Action %d rejected: %s" % [action_id, reason])
 	action_rejected.emit(action_id, reason)

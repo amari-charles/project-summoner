@@ -292,8 +292,6 @@ func _start_match(config: RefCounted) -> void:
 	NetworkState.set_match_config(config)
 	NetworkState.start_match()
 
-	print("MultiplayerLobby: Match starting with seed %d" % config.battle_seed)
-
 	# Brief delay for UI feedback before transitioning
 	await get_tree().create_timer(MATCH_START_DELAY).timeout
 

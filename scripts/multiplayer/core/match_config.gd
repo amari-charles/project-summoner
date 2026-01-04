@@ -97,19 +97,19 @@ static func deserialize(data: Dictionary) -> RefCounted:
 	config.battle_seed = data.get("battle_seed", 0)
 	config.host_peer_id = data.get("host_peer_id", 1)
 
-	# Handle typed array conversion
+	# Handle typed array conversion - clear and append to preserve typed arrays
 	var peer_ids: Array = data.get("player_peer_ids", [])
-	config.player_peer_ids = []
+	config.player_peer_ids.clear()
 	for id: Variant in peer_ids:
 		config.player_peer_ids.append(int(id))
 
 	var summoner_ids: Array = data.get("player_summoner_ids", [])
-	config.player_summoner_ids = []
+	config.player_summoner_ids.clear()
 	for id: Variant in summoner_ids:
 		config.player_summoner_ids.append(str(id))
 
 	var deck_hashes: Array = data.get("player_deck_hashes", [])
-	config.player_deck_hashes = []
+	config.player_deck_hashes.clear()
 	for hash_val: Variant in deck_hashes:
 		config.player_deck_hashes.append(int(hash_val))
 

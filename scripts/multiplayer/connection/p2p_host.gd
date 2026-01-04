@@ -123,8 +123,6 @@ func set_host_ready(ready: bool) -> void:
 
 ## Called when a peer connects
 func _on_peer_connected(id: int) -> void:
-	print("P2PHost: Peer %d connected" % id)
-
 	# Create placeholder info
 	client_info = PeerInfoScript.new(id, "Connecting...")
 	var connecting_state: int = PeerInfoScript.ConnectionState.CONNECTING
@@ -140,15 +138,12 @@ func _on_peer_connected(id: int) -> void:
 	get_tree().create_timer(HANDSHAKE_TIMEOUT).timeout.connect(
 		func() -> void:
 			if client_info and client_info.connection_state == timeout_connecting_state:
-				print("P2PHost: Client %d handshake timeout" % id)
 				peer.disconnect_peer(id)
 	)
 
 
 ## Called when a peer disconnects
 func _on_peer_disconnected(id: int) -> void:
-	print("P2PHost: Peer %d disconnected" % id)
-
 	if client_info and client_info.peer_id == id:
 		NetworkState.unregister_peer(id)
 		client_disconnected.emit(id)
@@ -162,18 +157,17 @@ func _on_peer_disconnected(id: int) -> void:
 			match_config.player_deck_hashes.resize(1)
 
 
-## Send host info to newly connected client
+## Send host info to newly connected client.
+## Note: This RPC is received on the client side (P2PClient._send_host_info)
 @rpc("authority", "call_remote", "reliable")
 func _send_host_info() -> void:
-	# This is called ON the client (sent from host)
-	pass  # Implementation is on client side
+	pass
 
 
 ## Receive client info during handshake
 @rpc("any_peer", "call_remote", "reliable")
 func _receive_client_info(data: Dictionary) -> void:
 	var sender_id: int = multiplayer.get_remote_sender_id()
-	print("P2PHost: Received client info from peer %d" % sender_id)
 
 	if client_info and client_info.peer_id == sender_id:
 		client_info = PeerInfoScript.deserialize(data)
@@ -197,11 +191,11 @@ func _receive_client_info(data: Dictionary) -> void:
 		client_info_received.emit(client_info)
 
 
-## Send match config to client
+## Send match config to client.
+## Note: This RPC is received on the client side (P2PClient._send_match_config)
 @rpc("authority", "call_remote", "reliable")
 func _send_match_config(_config_data: Dictionary) -> void:
-	# This is called ON the client (sent from host)
-	pass  # Implementation is on client side
+	pass
 
 
 ## Receive client ready signal
@@ -210,24 +204,22 @@ func _client_set_ready(ready: bool) -> void:
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	if client_info and client_info.peer_id == sender_id:
 		client_ready = ready
-		print("P2PHost: Client %d ready = %s" % [sender_id, ready])
 		_check_match_ready()
 
 
 ## Check if both players are ready and emit match_ready
 func _check_match_ready() -> void:
 	if host_ready and client_ready and match_config:
-		print("P2PHost: Both players ready, starting match")
 		# Notify client that match is starting
 		_match_starting.rpc(match_config.serialize())
 		match_ready.emit(match_config)
 
 
-## Broadcast match starting to all clients
+## Broadcast match starting to all clients.
+## Note: This RPC is received on the client side (P2PClient._match_starting)
 @rpc("authority", "call_remote", "reliable")
 func _match_starting(_config_data: Dictionary) -> void:
-	# This is called ON the client (sent from host)
-	pass  # Implementation is on client side
+	pass
 
 
 ## Compute deck hash for the local player (for validation)

@@ -110,6 +110,5 @@ func cleanup() -> void:
 
 ## Handle action request received from a client via ActionReplicator
 func _on_client_action_received(action: RefCounted, sender_peer_id: int) -> void:
-	print("HostAuthority: Received action from peer %d" % sender_peer_id)
 	action.player_id = sender_peer_id
 	execute_action(action)
