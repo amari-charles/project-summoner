@@ -10,23 +10,15 @@ public static class SummonBuilder
 {
     /// <summary>
     /// Get the formation strategy for a summon card.
-    /// Future: Read formation_type from catalog to determine which formation to use.
     /// Currently defaults to GridFormation for all cards.
+    /// When catalog supports formation_type field, this can switch on it to return
+    /// RingFormation, LineFormation, etc.
     /// </summary>
-    /// <param name="catalogId">The summon card's catalog ID.</param>
+    /// <param name="catalogId">The summon card's catalog ID (reserved for future use).</param>
     /// <returns>Formation strategy for positioning units.</returns>
     public static IFormationStrategy GetFormation(string catalogId)
     {
-        // TODO: When catalog supports formation_type, switch on it:
-        // var formationType = CardCatalog.GetFormationType(catalogId);
-        // return formationType switch
-        // {
-        //     "ring" => new RingFormation(),
-        //     "line" => new LineFormation(),
-        //     _ => new GridFormation()
-        // };
-
-        // Default: All summons use GridFormation (current behavior)
+        // All summons currently use GridFormation
         return new GridFormation();
     }
 

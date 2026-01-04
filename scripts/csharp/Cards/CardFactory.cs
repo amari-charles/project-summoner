@@ -12,6 +12,13 @@ namespace ProjectSummoner.Cards;
 public partial class CardFactory : Node
 {
     // =========================================================================
+    // CONSTANTS (match GDScript enums)
+    // =========================================================================
+
+    /// <summary>GameController3D.BattlePhase.BATTLE value.</summary>
+    private const int BattlePhaseBattle = 1;
+
+    // =========================================================================
     // SINGLETON
     // =========================================================================
 
@@ -254,7 +261,8 @@ public partial class CardFactory : Node
 
             // Preserve flight altitude for flying units
             var movementLayer = unit.Get("MovementLayer");
-            if (movementLayer.VariantType == Variant.Type.Int && movementLayer.AsInt32() == 1) // AIR = 1
+            if (movementLayer.VariantType == Variant.Type.Int &&
+                movementLayer.AsInt32() == (int)MovementLayer.Air)
             {
                 var flightAlt = unit.Get("FlightAltitude");
                 if (flightAlt.VariantType == Variant.Type.Float || flightAlt.VariantType == Variant.Type.Int)
@@ -277,7 +285,8 @@ public partial class CardFactory : Node
                 if (gameController != null)
                 {
                     var currentPhase = gameController.Get("current_phase");
-                    if (currentPhase.VariantType == Variant.Type.Int && currentPhase.AsInt32() == 1) // BATTLE = 1
+                    if (currentPhase.VariantType == Variant.Type.Int &&
+                        currentPhase.AsInt32() == BattlePhaseBattle)
                     {
                         unit.Call("Activate");
                     }
