@@ -8,8 +8,8 @@ class_name HostAuthority
 ## - Validates all actions from clients
 ## - Executes actions and broadcasts results to clients
 ## - Generates and shares the battle seed
-##
-## STUB: Full implementation in Phase 1.4 (P2P Connection)
+
+const ActionReplicatorScript: GDScript = preload("res://scripts/multiplayer/sync/action_replicator.gd")
 
 ## Reference to the battle context
 var _battle_context: Node = null
@@ -19,6 +19,9 @@ var _local_peer_id: int = 1
 
 ## Action sequence counter
 var _next_action_id: int = 1
+
+## Reference to the action replicator node (for RPCs)
+var _action_replicator: Node = null
 
 
 func _init(battle_context: Node = null) -> void:
@@ -45,9 +48,16 @@ func get_local_peer_id() -> int:
 	return _local_peer_id
 
 
+## Set the action replicator node (must be in scene tree for RPCs)
+func set_action_replicator(replicator: Node) -> void:
+	_action_replicator = replicator
+
+	# Connect to action received signal to handle client requests
+	if _action_replicator and not _action_replicator.action_received.is_connected(_on_client_action_received):
+		_action_replicator.action_received.connect(_on_client_action_received)
+
+
 ## Execute action with validation and broadcast.
-## STUB: Currently just executes locally like LocalAuthority.
-## TODO (Phase 1.4): Add RPC broadcast to clients.
 ## action should be a GameAction instance (RefCounted).
 func execute_action(action: RefCounted) -> void:
 	# Assign action ID if not set
@@ -58,7 +68,9 @@ func execute_action(action: RefCounted) -> void:
 	# Validate action
 	if not action.validate(_battle_context):
 		action_rejected.emit(action, "Action validation failed")
-		# TODO (Phase 1.4): Notify originating client of rejection
+		# Notify originating client of rejection if from network
+		if _action_replicator and action.player_id != _local_peer_id:
+			_action_replicator.send_rejection(action.player_id, action.action_id, "Validation failed")
 		return
 
 	# Execute action locally
@@ -67,8 +79,9 @@ func execute_action(action: RefCounted) -> void:
 	# Confirm action
 	action_confirmed.emit(action)
 
-	# TODO (Phase 1.4): Broadcast action to all clients via RPC
-	# _broadcast_action_to_clients(action)
+	# Broadcast action to all clients via RPC
+	if _action_replicator:
+		_action_replicator.broadcast_action(action)
 
 
 ## Request action (for host, same as execute since we have authority).
@@ -81,28 +94,22 @@ func request_action(action: RefCounted) -> void:
 ## Initialize the authority provider.
 func initialize() -> void:
 	_next_action_id = 1
-	# TODO (Phase 1.4): Set up RPC handlers
 
 
 ## Cleanup the authority provider.
 func cleanup() -> void:
+	if _action_replicator and _action_replicator.action_received.is_connected(_on_client_action_received):
+		_action_replicator.action_received.disconnect(_on_client_action_received)
+	_action_replicator = null
 	_battle_context = null
-	# TODO (Phase 1.4): Clean up network connections
 
 
 ## =============================================================================
-## NETWORK METHODS (STUBS - Implement in Phase 1.4)
+## NETWORK HANDLERS
 ## =============================================================================
 
-## Handle action request from a client via RPC.
-## Called when client sends an action for validation.
-func _on_client_action_request(_action_data: Dictionary, _sender_peer_id: int) -> void:
-	# TODO (Phase 1.4): Deserialize action, validate, execute, broadcast
-	push_warning("HostAuthority._on_client_action_request() not yet implemented")
-
-
-## Broadcast an executed action to all clients via RPC.
-## action should be a GameAction instance (RefCounted).
-func _broadcast_action_to_clients(_action: RefCounted) -> void:
-	# TODO (Phase 1.4): Serialize action and send via RPC
-	push_warning("HostAuthority._broadcast_action_to_clients() not yet implemented")
+## Handle action request received from a client via ActionReplicator
+func _on_client_action_received(action: RefCounted, sender_peer_id: int) -> void:
+	print("HostAuthority: Received action from peer %d" % sender_peer_id)
+	action.player_id = sender_peer_id
+	execute_action(action)
