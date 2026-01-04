@@ -232,8 +232,8 @@ func _match_starting(_config_data: Dictionary) -> void:
 
 ## Compute deck hash for the local player (for validation)
 func _compute_deck_hash() -> int:
-	# Simple hash of deck card IDs
-	# TODO: Get actual deck from Decks service when integrating
+	# Placeholder: Returns fixed hash for Phase 1 testing
+	# Phase 2.1 (Action System): Connect to Decks service to get actual deck card IDs
 	return hash("placeholder_deck")
 
 

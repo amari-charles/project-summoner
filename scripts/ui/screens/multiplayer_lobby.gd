@@ -56,7 +56,7 @@ var _p2p_host: P2PHost = null
 var _p2p_client: P2PClient = null
 
 ## Placeholder player info
-## TODO: Replace with actual player profile data from profile service
+## Phase 2: Connect to PlayerProfile service for actual player name and selected summoner
 var _player_name: String = "Player"
 var _summoner_id: String = "ignis"
 
@@ -292,12 +292,12 @@ func _start_match(config: RefCounted) -> void:
 	NetworkState.set_match_config(config)
 	NetworkState.start_match()
 
-	# TODO: Transition to battle scene
-	# For now, just print and wait
 	print("MultiplayerLobby: Match starting with seed %d" % config.battle_seed)
 
-	# Transition to battle after brief delay
+	# Brief delay for UI feedback before transitioning
 	await get_tree().create_timer(MATCH_START_DELAY).timeout
+
+	# Phase 2: Uncomment when multiplayer battle scene integration is complete
 	# SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 

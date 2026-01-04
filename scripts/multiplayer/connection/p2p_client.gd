@@ -111,7 +111,7 @@ func disconnect_from_host() -> void:
 func set_ready(ready: bool) -> void:
 	client_ready = ready
 	if NetworkState.is_online():
-		_send_ready_to_host.rpc_id(1, ready)
+		_client_set_ready.rpc_id(1, ready)
 
 
 ## Called when connected to server
@@ -171,11 +171,10 @@ func _send_match_config(config_data: Dictionary) -> void:
 	match_config_received.emit(match_config)
 
 
-## Send ready state to host
+## Receive client ready state (RPC stub - actual implementation is on P2PHost)
 @rpc("any_peer", "call_remote", "reliable")
-func _send_ready_to_host(ready: bool) -> void:
-	# This is called ON the host (sent from client)
-	pass  # The actual implementation uses _client_set_ready on host
+func _client_set_ready(_ready: bool) -> void:
+	pass
 
 
 ## Receive match starting notification from host
@@ -188,8 +187,8 @@ func _match_starting(config_data: Dictionary) -> void:
 
 ## Compute deck hash for validation
 func _compute_deck_hash() -> int:
-	# Simple hash of deck card IDs
-	# TODO: Get actual deck from Decks service when integrating
+	# Placeholder: Returns fixed hash for Phase 1 testing
+	# Phase 2.1 (Action System): Connect to Decks service to get actual deck card IDs
 	return hash("placeholder_deck")
 
 
