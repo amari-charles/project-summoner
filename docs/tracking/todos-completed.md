@@ -4,6 +4,40 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## Card & Spell System
+
+### C# Spell Effect System - Integration
+**Completed:** 2026-01-04
+**Category:** Cards / Architecture
+**Effort:** Medium
+
+**Description:**
+Implemented a C# spell effect system with composition pattern. All spells now execute via C# `SpellCardFactory`. GDScript `Card.gd` reduced from ~966 to 422 lines.
+
+**Solution Implemented (Phase A - C# Foundation):**
+- Core interfaces: `ISpellEffect`, `ITargetingStrategy`, `ISpellCondition`, `ITargetFilter`
+- Base classes: `SpellEffect`, `SpellContext`, `Affinity` enum
+- Concrete effects: `DamageEffect`, `CommandEffect` (Rally/Guard/Charge), `CompositeEffect`, `ConditionalEffect`
+- Targeting: `CircleTargeting`
+- Conditions: `HPThresholdCondition`
+- Card classes: `Card` (abstract), `SpellCard`, `CardConfig`, `SpellCardConfig`
+- Factory: `SpellBuilder` with Fireball, Rally, Guard, Charge
+
+**Solution Implemented (Phase B - GDScript→C# Bridge):**
+- Created `SpellCardFactory.cs` autoload with `has_effect()` and `execute_spell()`
+- `CardCatalog` sets `_csharp_spell_id` on spell cards
+- `Card._cast_spell_3d()` delegates to C# `SpellCardFactory`
+- Removed all GDScript spell logic (VFX helpers, command spells, AOE damage, projectiles)
+- Verified working in editor with all 4 spells (Fireball, Rally, Guard, Charge)
+
+**Related Files:**
+- `scripts/csharp/Cards/SpellCardFactory.cs` - Bridge autoload
+- `scripts/csharp/Cards/SpellBuilder.cs` - Effect factory
+- `scripts/cards/card.gd` - Summon logic only, spells delegate to C#
+- `scripts/data/card_catalog.gd` - Sets `_csharp_spell_id` for spell cards
+
+---
+
 ## Summoner System
 
 ### Implement Summoner Unlock System

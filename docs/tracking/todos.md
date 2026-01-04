@@ -790,51 +790,23 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ### 🟡 MEDIUM PRIORITY
 
-#### C# Spell Effect System - Integration
-**Status:** 🔄 In Progress (Phase B Complete, Awaiting Verification)
+#### Port SummonCard to C#
+**Status:** 📋 Planned
 **Category:** Cards / Architecture
 **Effort:** Medium
 
 **Description:**
-A new C# spell effect system with composition pattern has been built. The GDScript→C# bridge is now implemented. Spell execution delegates to C# effects when available, with GDScript fallback.
+Port the summon card logic from GDScript to C#, following the pattern established by SpellCard.
 
-**Completed (Phase A - C# Foundation):**
-- Core interfaces: `ISpellEffect`, `ITargetingStrategy`, `ISpellCondition`, `ITargetFilter`
-- Base classes: `SpellEffect`, `SpellContext`, `Affinity` enum
-- Concrete effects: `DamageEffect`, `CommandEffect` (Rally/Guard/Charge), `CompositeEffect`, `ConditionalEffect`
-- Targeting: `CircleTargeting`
-- Conditions: `HPThresholdCondition`
-- Card classes: `Card` (abstract), `SpellCard`, `CardConfig`, `SpellCardConfig`
-- Factory: `SpellBuilder` with Fireball, Rally, Guard, Charge (throws for unknown IDs)
-- All nullable warnings fixed, magic numbers documented
-
-**Completed (Phase B - GDScript→C# Bridge):**
-- ✅ Created `SpellCardFactory.cs` autoload wrapper exposing `has_effect()` and `execute_spell()`
-- ✅ Created `SpellCardFactory.tscn` and registered as autoload
-- ✅ Updated `CardCatalog.create_card_resource()` to set `_csharp_spell_id` on spell cards
-- ✅ Updated `Card._cast_spell_3d()` to delegate to C# via `SpellCardFactory.execute_spell()`
-- ✅ GDScript fallback works when C# not available (headless mode)
-- ✅ Build passes (0 warnings/errors), GUT tests pass (290/290)
-
-**Awaiting Manual Verification:**
-- Test Fireball, Rally, Guard, Charge in editor with C# enabled
-- Once verified working, remove GDScript spell logic from `Card.gd`
-
-**Future Work (Phase C - Expansion):**
-- Port `SummonCard` to C# (formation logic, spawn system)
-- Add more targeting strategies: `ConeTargeting`, `LineTargeting`, `UnitTargeting`
-- Add more effects: `HealEffect`, `BuffEffect`, `DebuffEffect`, `SpawnEffect`
-- Add more conditions: `BuffCondition`, `RandomCondition`, `AndCondition`, `OrCondition`
+**Scope:**
+- Create C# `SummonCard` class extending `Card`
+- Port formation offset calculation
+- Port unit spawning with stat application
+- Port modifier system integration
+- Wire CardCatalog to create C# SummonCard for summon cards
 
 **Related Files:**
-- `scripts/csharp/Cards/SpellCardFactory.cs` - Bridge autoload (new)
-- `scripts/csharp/Cards/SpellBuilder.cs` - Effect factory
-- `scripts/cards/card.gd` - GDScript Card (delegates to C# when available)
-- `scripts/data/card_catalog.gd` - Sets `_csharp_spell_id` for spell cards
-
-**Architecture Reference:**
-- Plan file: `.claude/plans/sleepy-stargazing-gadget.md`
+- `scripts/cards/card.gd` - Current GDScript summon logic (422 lines)
+- `scripts/csharp/Cards/SpellCard.cs` - Reference for C# card pattern
 
 ---
-
-*Last Updated: 2026-01-04 - Phase B complete, awaiting manual verification before removing GDScript spell logic.*
