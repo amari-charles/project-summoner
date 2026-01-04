@@ -236,23 +236,6 @@ public class CommandEffect : SpellEffect
     // =========================================================================
 
     /// <summary>
-    /// Check if unit is alive.
-    /// </summary>
-    private static bool IsAlive(Node3D unit)
-    {
-        var aliveVar = unit.Get("IsAlive");
-        if (aliveVar.VariantType == Variant.Type.Nil)
-            aliveVar = unit.Get("is_alive");
-
-        if (aliveVar.VariantType != Variant.Type.Nil)
-        {
-            return aliveVar.AsBool();
-        }
-
-        return true;
-    }
-
-    /// <summary>
     /// Check SpellTargetingManager for two-stage targeting destination.
     /// </summary>
     private static Vector3? CheckSpellTargetingManager(SpellContext context)

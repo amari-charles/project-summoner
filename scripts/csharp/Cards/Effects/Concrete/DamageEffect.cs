@@ -143,29 +143,6 @@ public class DamageEffect : SpellEffect
     }
 
     /// <summary>
-    /// Check if a unit is alive.
-    /// </summary>
-    private static bool IsAlive(Node3D target)
-    {
-        if (target is IDamageable damageable)
-        {
-            return damageable.IsAlive;
-        }
-
-        // GDScript fallback
-        var aliveVar = target.Get("IsAlive");
-        if (aliveVar.VariantType == Variant.Type.Nil)
-            aliveVar = target.Get("is_alive");
-
-        if (aliveVar.VariantType != Variant.Type.Nil)
-        {
-            return aliveVar.AsBool();
-        }
-
-        return true; // Assume alive if no property
-    }
-
-    /// <summary>
     /// Spawn a projectile using ProjectileManager.
     /// </summary>
     private void SpawnProjectile(SpellContext context)

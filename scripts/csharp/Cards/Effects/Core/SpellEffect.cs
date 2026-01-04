@@ -141,4 +141,28 @@ public abstract class SpellEffect : ISpellEffect
     {
         OnComplete?.Execute(context);
     }
+
+    /// <summary>
+    /// Check if a unit is alive.
+    /// Handles both C# IDamageable and GDScript units.
+    /// </summary>
+    protected static bool IsAlive(Node3D target)
+    {
+        if (target is Capabilities.IDamageable damageable)
+        {
+            return damageable.IsAlive;
+        }
+
+        // GDScript fallback
+        var aliveVar = target.Get("IsAlive");
+        if (aliveVar.VariantType == Variant.Type.Nil)
+            aliveVar = target.Get("is_alive");
+
+        if (aliveVar.VariantType != Variant.Type.Nil)
+        {
+            return aliveVar.AsBool();
+        }
+
+        return true; // Assume alive if no property
+    }
 }

@@ -20,6 +20,8 @@ public static class SpellBuilder
     /// <summary>
     /// Check if a spell effect exists for the given catalog ID.
     /// Use this before calling GetEffect to avoid exceptions.
+    /// Note: Example spells (FrostNova, Execute, SoulHarvest) are not included here
+    /// as they are for documentation/demonstration purposes only.
     /// </summary>
     public static bool HasEffect(string catalogId)
     {
