@@ -673,6 +673,10 @@ public partial class DamageSystem : Node
     // SEEDED RNG INTEGRATION
     // =========================================================================
 
+    // RNG Domain constants - must match RNGDomain.Domain enum in rng_domain.gd
+    // If the enum order changes, update these values!
+    private const int RNG_DOMAIN_COMBAT_CRITS = 2;
+
     /// <summary>
     /// Get a seeded random value for crit rolls via BattleRNG autoload.
     /// This ensures deterministic crit results across network peers.
@@ -687,9 +691,7 @@ public partial class DamageSystem : Node
             return GD.Randf();
         }
 
-        // Call BattleRNG.randf(RNGDomain.Domain.COMBAT_CRITS)
-        // RNGDomain.Domain.COMBAT_CRITS = 2
-        var result = battleRng.Call("randf", 2);
+        var result = battleRng.Call("randf", RNG_DOMAIN_COMBAT_CRITS);
         return result.AsSingle();
     }
 }
