@@ -207,7 +207,7 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 
 	# Difficulty affects randomness (higher difficulty = more optimal play)
 	var randomness: float = DIFFICULTY_RANDOMNESS_MULTIPLIER * (DIFFICULTY_MAX - difficulty)
-	score += randf_range(-randomness, randomness)
+	score += BattleRNG.randf_range(-randomness, randomness, RNGDomain.Domain.AI_DECISIONS)
 
 	return score
 
@@ -351,24 +351,24 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 		# Enemy spawns on positive X side (right half of battlefield)
 		match zone:
 			"defensive":
-				x = randf_range(right_edge * SPAWN_ZONE_DEFENSIVE_MIN, right_edge * SPAWN_ZONE_DEFENSIVE_MAX)
+				x = BattleRNG.randf_range(right_edge * SPAWN_ZONE_DEFENSIVE_MIN, right_edge * SPAWN_ZONE_DEFENSIVE_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 			"neutral":
-				x = randf_range(right_edge * SPAWN_ZONE_NEUTRAL_MIN, right_edge * SPAWN_ZONE_NEUTRAL_MAX)
+				x = BattleRNG.randf_range(right_edge * SPAWN_ZONE_NEUTRAL_MIN, right_edge * SPAWN_ZONE_NEUTRAL_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 			"aggressive":
-				x = randf_range(right_edge * SPAWN_ZONE_AGGRESSIVE_MIN, right_edge * SPAWN_ZONE_AGGRESSIVE_MAX)
+				x = BattleRNG.randf_range(right_edge * SPAWN_ZONE_AGGRESSIVE_MIN, right_edge * SPAWN_ZONE_AGGRESSIVE_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 			_:
-				x = randf_range(right_edge * SPAWN_ZONE_DEFAULT_MIN, right_edge * SPAWN_ZONE_DEFAULT_MAX)
+				x = BattleRNG.randf_range(right_edge * SPAWN_ZONE_DEFAULT_MIN, right_edge * SPAWN_ZONE_DEFAULT_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 	else:
 		# Player AI spawns on negative X side (left half of battlefield)
 		match zone:
 			"defensive":
-				x = randf_range(left_edge * SPAWN_ZONE_DEFENSIVE_MIN, left_edge * SPAWN_ZONE_DEFENSIVE_MAX)
+				x = BattleRNG.randf_range(left_edge * SPAWN_ZONE_DEFENSIVE_MIN, left_edge * SPAWN_ZONE_DEFENSIVE_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 			"neutral":
-				x = randf_range(left_edge * SPAWN_ZONE_NEUTRAL_MIN, left_edge * SPAWN_ZONE_NEUTRAL_MAX)
+				x = BattleRNG.randf_range(left_edge * SPAWN_ZONE_NEUTRAL_MIN, left_edge * SPAWN_ZONE_NEUTRAL_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 			"aggressive":
-				x = randf_range(left_edge * SPAWN_ZONE_AGGRESSIVE_MIN, left_edge * SPAWN_ZONE_AGGRESSIVE_MAX)
+				x = BattleRNG.randf_range(left_edge * SPAWN_ZONE_AGGRESSIVE_MIN, left_edge * SPAWN_ZONE_AGGRESSIVE_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 			_:
-				x = randf_range(left_edge * SPAWN_ZONE_DEFAULT_MIN, left_edge * SPAWN_ZONE_DEFAULT_MAX)
+				x = BattleRNG.randf_range(left_edge * SPAWN_ZONE_DEFAULT_MIN, left_edge * SPAWN_ZONE_DEFAULT_MAX, RNGDomain.Domain.SPAWN_POSITIONS)
 
 	# Z position - spawn in the battle lane (derived from camera bounds)
 	# Battle lane is narrower than camera view and slightly offset toward negative Z
@@ -376,7 +376,7 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 	var z_half_height: float = bounds.size.y * 0.5
 	var lane_center: float = z_center + (z_half_height * SPAWN_LANE_CENTER_OFFSET_RATIO)
 	var lane_spread: float = bounds.size.y * SPAWN_LANE_WIDTH_RATIO * 0.5  # Half-width for randf_range
-	z = randf_range(lane_center - lane_spread, lane_center + lane_spread)
+	z = BattleRNG.randf_range(lane_center - lane_spread, lane_center + lane_spread, RNGDomain.Domain.SPAWN_POSITIONS)
 
 	return Vector2(x, z)  # Return as Vector2 representing XZ world coordinates
 
@@ -406,4 +406,4 @@ func _set_next_play_time() -> void:
 	base_min *= difficulty_factor
 	base_max *= difficulty_factor
 
-	next_play_time = randf_range(base_min, base_max)
+	next_play_time = BattleRNG.randf_range(base_min, base_max, RNGDomain.Domain.AI_DECISIONS)

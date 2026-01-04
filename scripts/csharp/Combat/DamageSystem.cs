@@ -110,7 +110,7 @@ public partial class DamageSystem : Node
         }
         else if (!flags.ContainsKey("cannot_crit") || !flags["cannot_crit"].AsBool())
         {
-            isCrit = GD.Randf() < CritChance;
+            isCrit = GetSeededCritRoll() < CritChance;
         }
 
         // Apply crit multiplier
@@ -667,5 +667,29 @@ public partial class DamageSystem : Node
         }
 
         return damage;
+    }
+
+    // =========================================================================
+    // SEEDED RNG INTEGRATION
+    // =========================================================================
+
+    /// <summary>
+    /// Get a seeded random value for crit rolls via BattleRNG autoload.
+    /// This ensures deterministic crit results across network peers.
+    /// </summary>
+    private float GetSeededCritRoll()
+    {
+        var battleRng = GetNodeOrNull("/root/BattleRNG");
+        if (battleRng == null)
+        {
+            // Fallback to unseeded RNG if BattleRNG not available
+            GD.PushWarning("DamageSystem: BattleRNG not found, using unseeded RNG for crit roll");
+            return GD.Randf();
+        }
+
+        // Call BattleRNG.randf(RNGDomain.Domain.COMBAT_CRITS)
+        // RNGDomain.Domain.COMBAT_CRITS = 2
+        var result = battleRng.Call("randf", 2);
+        return result.AsSingle();
     }
 }
