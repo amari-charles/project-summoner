@@ -115,6 +115,21 @@ When asked to review a PR, follow the guidelines in `docs/workflows/pr-review-gu
 - Use the structured output format from the guidelines doc
 - **Keep bug/todo additions**: If a PR adds new items to `docs/bugs.md` or `docs/todos.md`, keep them even if unrelated to the PR's main feature. These are valuable captures of future work.
 
+### PR Polish Policy
+**Complete ALL major and minor fixes before merging a PR.** Do not defer polish work to future PRs.
+
+When a PR review identifies issues:
+- **Major issues**: Must be fixed before merge (blocking)
+- **Minor issues**: Must also be fixed before merge (not blocking, but required)
+- **Do NOT** leave TODOs, unclear comments, naming inconsistencies, or other polish items for "later"
+- **Do NOT** create follow-up PRs for polish that should have been done in the original PR
+
+The goal is that every merged PR represents complete, polished work. This prevents technical debt accumulation and ensures the codebase maintains a high quality bar at all times.
+
+Exceptions:
+- Intentional phased implementations where functionality is explicitly deferred (e.g., "Phase 2: Connect to service X")
+- These should be clearly documented with the specific phase/task where they'll be addressed
+
 ### Design Context Documentation
 **Document decisions and context in every PR - not just code, but product and lore too.**
 

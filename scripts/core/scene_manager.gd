@@ -38,6 +38,9 @@ const SCENE_SETTINGS: String = "res://scenes/ui/screens/settings_screen.tscn"
 const SCENE_BATTLE_3D: String = "res://scenes/battlefield/battle_3d.tscn"
 const SCENE_REWARD_SCREEN: String = "res://scenes/ui/screens/reward_screen.tscn"
 
+## Multiplayer Scenes
+const SCENE_MULTIPLAYER_LOBBY: String = "res://scenes/ui/screens/multiplayer_lobby.tscn"
+
 ## =============================================================================
 ## SCENE TRANSITION API
 ## =============================================================================

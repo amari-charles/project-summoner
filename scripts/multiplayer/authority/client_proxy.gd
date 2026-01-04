@@ -8,11 +8,9 @@ class_name ClientProxy
 ## - Sends action requests to host for validation
 ## - Waits for host confirmation before applying actions
 ## - Receives state updates from host
-##
-## STUB: Full implementation in Phase 1.4 (P2P Connection)
 
-## Preload GameAction for type hints
 const GameActionScript: GDScript = preload("res://scripts/multiplayer/actions/game_action.gd")
+const ActionReplicatorScript: GDScript = preload("res://scripts/multiplayer/sync/action_replicator.gd")
 
 ## Reference to the battle context
 var _battle_context: Node = null
@@ -23,6 +21,12 @@ var _local_peer_id: int = 0
 ## Pending actions waiting for host confirmation
 ## Maps action_id -> GameAction
 var _pending_actions: Dictionary = {}
+
+## Local action ID counter
+var _next_local_id: int = 1
+
+## Reference to the action replicator node (for RPCs)
+var _action_replicator: Node = null
 
 
 func _init(battle_context: Node = null, peer_id: int = 0) -> void:
@@ -55,6 +59,18 @@ func set_peer_id(peer_id: int) -> void:
 	_local_peer_id = peer_id
 
 
+## Set the action replicator node (must be in scene tree for RPCs)
+func set_action_replicator(replicator: Node) -> void:
+	_action_replicator = replicator
+
+	# Connect to signals
+	if _action_replicator:
+		if not _action_replicator.action_confirmed.is_connected(_on_action_confirmed):
+			_action_replicator.action_confirmed.connect(_on_action_confirmed)
+		if not _action_replicator.action_rejected.is_connected(_on_action_rejected):
+			_action_replicator.action_rejected.connect(_on_action_rejected)
+
+
 ## Clients cannot execute actions directly.
 ## This should only be called when host broadcasts confirmed actions.
 ## action should be a GameAction instance (RefCounted).
@@ -66,56 +82,50 @@ func execute_action(action: RefCounted) -> void:
 
 
 ## Request action from host.
-## STUB: Currently does nothing.
-## TODO (Phase 1.4): Send action to host via RPC.
 ## action should be a GameAction instance (RefCounted).
 func request_action(action: RefCounted) -> void:
 	action.player_id = _local_peer_id
 
 	# Generate local action ID for tracking
-	var local_id: int = _pending_actions.size() + 1
-	action.action_id = local_id
+	action.action_id = _next_local_id
+	_next_local_id += 1
 
 	# Store as pending
-	_pending_actions[local_id] = action
+	_pending_actions[action.action_id] = action
 
-	# TODO (Phase 1.4): Send action request to host via RPC
-	# _send_action_to_host(action)
-	push_warning("ClientProxy.request_action() not yet implemented - action not sent to host")
+	# Send action request to host via RPC
+	if _action_replicator:
+		_action_replicator.send_action_to_host(action)
+	else:
+		# No replicator means we can't send - reject gracefully via signal
+		_pending_actions.erase(action.action_id)
+		action_rejected.emit(action, "No network connection")
 
 
 ## Initialize the authority provider.
 func initialize() -> void:
 	_pending_actions.clear()
-	# TODO (Phase 1.4): Set up RPC handlers
+	_next_local_id = 1
 
 
 ## Cleanup the authority provider.
 func cleanup() -> void:
+	if _action_replicator:
+		if _action_replicator.action_confirmed.is_connected(_on_action_confirmed):
+			_action_replicator.action_confirmed.disconnect(_on_action_confirmed)
+		if _action_replicator.action_rejected.is_connected(_on_action_rejected):
+			_action_replicator.action_rejected.disconnect(_on_action_rejected)
+	_action_replicator = null
 	_battle_context = null
 	_pending_actions.clear()
-	# TODO (Phase 1.4): Clean up network connections
 
 
 ## =============================================================================
-## NETWORK METHODS (STUBS - Implement in Phase 1.4)
+## NETWORK HANDLERS
 ## =============================================================================
 
-## Send action request to host via RPC.
-## action should be a GameAction instance (RefCounted).
-func _send_action_to_host(_action: RefCounted) -> void:
-	# TODO (Phase 1.4): Serialize action and send via RPC to host
-	push_warning("ClientProxy._send_action_to_host() not yet implemented")
-
-
-## Handle action confirmation from host via RPC.
-## Called when host broadcasts a confirmed action.
-func _on_action_confirmed_from_host(action_data: Dictionary) -> void:
-	var action: RefCounted = GameActionScript.deserialize(action_data)
-	if action == null:
-		push_error("ClientProxy: Failed to deserialize confirmed action")
-		return
-
+## Handle action confirmation from host via ActionReplicator
+func _on_action_confirmed(action: RefCounted) -> void:
 	# Remove from pending if it was our action
 	if action.player_id == _local_peer_id:
 		_pending_actions.erase(action.action_id)
@@ -124,16 +134,11 @@ func _on_action_confirmed_from_host(action_data: Dictionary) -> void:
 	execute_action(action)
 
 
-## Handle action rejection from host via RPC.
-func _on_action_rejected_from_host(action_id: int, reason: String) -> void:
+## Handle action rejection from host via ActionReplicator
+func _on_action_rejected(action_id: int, reason: String) -> void:
 	var action: RefCounted = _pending_actions.get(action_id)
 	if action:
 		_pending_actions.erase(action_id)
 		action_rejected.emit(action, reason)
 	else:
 		push_warning("ClientProxy: Received rejection for unknown action %d" % action_id)
-
-
-## Handle state update from host (for resync).
-func _on_state_update_from_host(state_data: Dictionary) -> void:
-	state_update_received.emit(state_data)
