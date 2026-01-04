@@ -61,6 +61,11 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
     /// </summary>
     private Node3D? _delayedProjectileTarget;
 
+    /// <summary>
+    /// Timer for delayed projectile spawning (replaces async void pattern).
+    /// </summary>
+    private float _projectileDelayTimer;
+
     // =========================================================================
     // LIFECYCLE
     // =========================================================================
@@ -72,6 +77,21 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
         // Find projectile spawn point if it exists
         _projectileSpawnPoint = GetNodeOrNull<Marker3D>("ProjectileSpawnPoint");
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        base._PhysicsProcess(delta);
+
+        // Handle delayed projectile timer
+        if (_projectileDelayTimer > 0)
+        {
+            _projectileDelayTimer -= (float)delta;
+            if (_projectileDelayTimer <= 0)
+            {
+                SpawnDelayedProjectileIfValid();
+            }
+        }
     }
 
     // =========================================================================
@@ -93,9 +113,9 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
         if (IsDelayedProjectile && ProjectileDelay > 0)
         {
-            // Charge-up attack: spawn projectile after delay
+            // Charge-up attack: spawn projectile after delay (timer-based)
             _delayedProjectileTarget = CurrentTarget;
-            SpawnProjectileDelayed();
+            _projectileDelayTimer = ProjectileDelay;
         }
         else
         {
@@ -120,7 +140,12 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
         targetPos = CalculateInterceptPoint(spawnPos, targetPos, target);
 
         // Spawn via ProjectileManager (GDScript autoload)
-        var projectileManager = GetNode("/root/ProjectileManager");
+        var projectileManager = GetNodeOrNull("/root/ProjectileManager");
+        if (projectileManager == null)
+        {
+            GD.PushError("RangedUnit3D: ProjectileManager not found!");
+            return;
+        }
 
         var options = new Godot.Collections.Dictionary
         {
@@ -153,28 +178,25 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
     // HELPERS
     // =========================================================================
 
-    private async void SpawnProjectileDelayed()
+    /// <summary>
+    /// Spawn the delayed projectile if target is still valid.
+    /// Called by _PhysicsProcess when timer expires.
+    /// </summary>
+    private void SpawnDelayedProjectileIfValid()
     {
         Node3D? target = _delayedProjectileTarget;
-
-        // Wait for delay
-        await ToSignal(GetTree().CreateTimer(ProjectileDelay), SceneTreeTimer.SignalName.Timeout);
+        _delayedProjectileTarget = null;
 
         // Check if target is still valid
-        if (target != null && IsInstanceValid(target))
-        {
-            // Verify attack constraints still allow attacking
-            // (target may have moved out of cone during the charge-up)
-            if (!GetTargetingConfig().CanAttack(this, target))
-            {
-                _delayedProjectileTarget = null;
-                return;
-            }
+        if (target == null || !IsInstanceValid(target))
+            return;
 
-            SpawnProjectile(target);
-        }
+        // Verify attack constraints still allow attacking
+        // (target may have moved out of cone during the charge-up)
+        if (!GetTargetingConfig().CanAttack(this, target))
+            return;
 
-        _delayedProjectileTarget = null;
+        SpawnProjectile(target);
     }
 
     private Vector3 GetTargetPosition(Node3D target)

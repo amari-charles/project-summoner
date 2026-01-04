@@ -49,6 +49,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // If target angle is within ±90° of forward (+X), face right; otherwise face left.
     private const float StrafeFacingHalfAngle = 90f;
 
+    // Projectile target fallback: center mass at 50% of unit height
+    private const float CenterMassHeightFraction = 0.5f;
+
+    // Minimum horizontal movement threshold to update facing direction
+    private const float MinFacingDirectionThreshold = 0.1f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -553,10 +559,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         ActivationState = ActivationState.Inactive;
 
         // Start shadow at scale 0 (will grow during reveal)
-        var shadow = GetNodeOrNull<Node3D>("Shadow");
-        if (shadow != null)
+        if (_shadowComponent != null)
         {
-            shadow.Scale = Vector3.Zero;
+            _shadowComponent.Scale = Vector3.Zero;
         }
 
         // Load shader if not cached
@@ -594,10 +599,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _spawnRevealTween.TweenMethod(Callable.From<float>(UpdateSpawnProgress), 0.0f, 1.0f, duration);
 
         // Animate shadow growing alongside
-        var shadow = GetNodeOrNull<Node3D>("Shadow");
-        if (shadow != null)
+        if (_shadowComponent != null)
         {
-            _spawnRevealTween.Parallel().TweenProperty(shadow, "scale", Vector3.One, duration);
+            _spawnRevealTween.Parallel().TweenProperty(_shadowComponent, "scale", Vector3.One, duration);
         }
 
         // Complete when done
@@ -711,7 +715,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Fallback: center mass based on visual height
         float height = VisualComponent?.GetSpriteHeight() ?? 1.0f;
-        return GlobalPosition + new Vector3(0, height * 0.5f, 0);
+        return GlobalPosition + new Vector3(0, height * CenterMassHeightFraction, 0);
     }
 
     // =========================================================================
@@ -1003,7 +1007,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected void UpdateFacing(Vector3 direction)
     {
         // Sprites are drawn facing left, flip when moving right
-        if (Mathf.Abs(direction.X) > 0.1f)
+        if (Mathf.Abs(direction.X) > MinFacingDirectionThreshold)
         {
             _isFacingRight = direction.X > 0;
             VisualComponent?.SetFlipH(_isFacingRight);
