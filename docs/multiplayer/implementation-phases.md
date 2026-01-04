@@ -39,7 +39,7 @@ These decisions were made during planning and should be referenced when implemen
 
 ### 1.1 Authority Abstraction Layer
 
-- [x] **COMPLETED** (PR #XXX, merged YYYY-MM-DD)
+- [x] **COMPLETED** (PR #149, merged 2026-01-04)
 
 Create an abstraction that allows the same game code to work under different authority models (local, P2P host, P2P client, dedicated server).
 
@@ -972,7 +972,7 @@ Phase 1.4 (P2P) ───────┘                                    v
 - Created docs/multiplayer/ documentation
 
 ### Session 2 (2026-01-04)
-- Completed Phase 1.1 (Authority Abstraction Layer) - PR #TBD
+- Completed Phase 1.1 (Authority Abstraction Layer) - PR #149
 - Created authority provider pattern (AuthorityProvider, LocalAuthority, HostAuthority, ClientProxy)
 - Created GameAction base class for future action system
 - Added authority checks to GameController3D (end_game, win conditions)

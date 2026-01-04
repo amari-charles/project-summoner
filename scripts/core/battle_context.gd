@@ -299,20 +299,17 @@ func has_authority() -> bool:
 		return true  # Default to local authority if not initialized
 	return authority_provider.has_authority()
 
-
 ## Check if this is a multiplayer battle.
 func is_multiplayer_battle() -> bool:
 	if authority_provider == null:
 		return false
 	return authority_provider.is_multiplayer()
 
-
 ## Get the local player's peer ID.
 func get_local_peer_id() -> int:
 	if authority_provider == null:
 		return 0
 	return authority_provider.get_local_peer_id()
-
 
 ## Set a custom authority provider (for multiplayer).
 ## Call this before start_battle() to use a non-default authority.

@@ -11,9 +11,6 @@ class_name HostAuthority
 ##
 ## STUB: Full implementation in Phase 1.4 (P2P Connection)
 
-## Preload GameAction for type hints
-const GameActionScript: GDScript = preload("res://scripts/multiplayer/actions/game_action.gd")
-
 ## Reference to the battle context
 var _battle_context: Node = null
 

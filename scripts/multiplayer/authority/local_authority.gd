@@ -9,9 +9,6 @@ class_name LocalAuthority
 ## - No network validation or replication needed
 ## - This is the current behavior wrapped in the authority abstraction
 
-## Preload GameAction for type hints
-const GameActionScript: GDScript = preload("res://scripts/multiplayer/actions/game_action.gd")
-
 ## Constants for single-player
 const LOCAL_PLAYER_ID: int = 0
 
