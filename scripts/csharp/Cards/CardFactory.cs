@@ -379,7 +379,6 @@ public partial class CardFactory : Node
         // Check for overlaps and find safe position
         const float minSeparation = 0.1f;
         const int maxAttempts = 8;
-        float checkRadius = collisionRadius * 2;
 
         var testPos = desiredPos;
 
