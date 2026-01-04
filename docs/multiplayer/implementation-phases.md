@@ -8,7 +8,7 @@ Detailed breakdown of the multiplayer implementation roadmap. This is a living d
 
 | Phase | Status | Progress |
 |-------|--------|----------|
-| Phase 1: Network Foundation | 🟡 In Progress | 1/4 complete |
+| Phase 1: Network Foundation | 🟡 In Progress | 2/4 complete |
 | Phase 2: Game Synchronization | ⚪ Not Started | 0/5 complete |
 | Phase 3: Nakama Integration | ⚪ Not Started | 0/6 complete |
 | Phase 4: Polish | ⚪ Not Started | 0/5 complete |
@@ -33,13 +33,13 @@ These decisions were made during planning and should be referenced when implemen
 
 **Goal:** Build core networking infrastructure for local testing with room codes.
 
-**Status:** 🟡 In Progress (1/4 complete)
+**Status:** 🟡 In Progress (2/4 complete)
 
 ---
 
 ### 1.1 Authority Abstraction Layer
 
-- [ ] **Not Started**
+- [x] **COMPLETED** (PR #149, merged 2026-01-04)
 
 Create an abstraction that allows the same game code to work under different authority models (local, P2P host, P2P client, dedicated server).
 
@@ -91,13 +91,38 @@ signal action_rejected(action: GameAction, reason: String)
 ```
 
 **Implementation Steps:**
-1. [ ] Create `authority_provider.gd` with base interface
-2. [ ] Create `local_authority.gd` that executes immediately (current behavior)
-3. [ ] Update `battle_context.gd` to hold authority reference
-4. [ ] Update `game_controller_3d.gd` to use authority checks
-5. [ ] Test that single-player still works with LocalAuthority
-6. [ ] Create `host_authority.gd` stub (full implementation in Phase 1.4)
-7. [ ] Create `client_proxy.gd` stub (full implementation in Phase 1.4)
+1. [x] Create `authority_provider.gd` with base interface
+2. [x] Create `local_authority.gd` that executes immediately (current behavior)
+3. [x] Update `battle_context.gd` to hold authority reference
+4. [x] Update `game_controller_3d.gd` to use authority checks
+5. [x] Test that single-player still works with LocalAuthority
+6. [x] Create `host_authority.gd` stub (full implementation in Phase 1.4)
+7. [x] Create `client_proxy.gd` stub (full implementation in Phase 1.4)
+
+**What Was Implemented:**
+
+| File | Status | Description |
+|------|--------|-------------|
+| `scripts/multiplayer/authority/authority_provider.gd` | ✅ Created | Base class with `has_authority()`, `execute_action()`, `request_action()` |
+| `scripts/multiplayer/authority/local_authority.gd` | ✅ Created | Single-player implementation (executes immediately) |
+| `scripts/multiplayer/authority/host_authority.gd` | ✅ Created | P2P host stub (full RPC in Phase 1.4) |
+| `scripts/multiplayer/authority/client_proxy.gd` | ✅ Created | P2P client stub (full RPC in Phase 1.4) |
+| `scripts/multiplayer/actions/game_action.gd` | ✅ Created | Base action class for serialization |
+| `scripts/core/battle_context.gd` | ✅ Modified | Added `authority_provider`, `has_authority()`, `set_authority_provider()` |
+| `scripts/core/game_controller_3d.gd` | ✅ Modified | Added authority checks to `end_game()`, win conditions |
+
+**How It Works:**
+```gdscript
+# BattleContext auto-initializes LocalAuthority for single-player
+BattleContext.start_battle()  # Creates LocalAuthority internally
+
+# Check authority before state changes
+if BattleContext.has_authority():
+    end_game(winner)
+
+# For multiplayer (Phase 1.4+), set a different provider
+BattleContext.set_authority_provider(HostAuthority.new(self))
+```
 
 ---
 
@@ -946,11 +971,19 @@ Phase 1.4 (P2P) ───────┘                                    v
 - Completed Phase 1.2 (Seeded RNG System) - PR #147
 - Created docs/multiplayer/ documentation
 
+### Session 2 (2026-01-04)
+- Completed Phase 1.1 (Authority Abstraction Layer) - PR #149
+- Created authority provider pattern (AuthorityProvider, LocalAuthority, HostAuthority, ClientProxy)
+- Created GameAction base class for future action system
+- Added authority checks to GameController3D (end_game, win conditions)
+- Added 28 unit tests for LocalAuthority and GameAction
+- All 211 tests passing (37 pending C# tests)
+
 ### Next Session
-- Start Phase 1.1 (Authority Abstraction Layer) OR
-- Start Phase 1.3 (Network State Management)
-- Both can be done in parallel with Phase 1.4
+- Start Phase 1.3 (Network State Management) OR
+- Start Phase 1.4 (P2P Connection with Room Codes)
+- Both can be worked in parallel
 
 ---
 
-*Last Updated: 2026-01-03*
+*Last Updated: 2026-01-04*

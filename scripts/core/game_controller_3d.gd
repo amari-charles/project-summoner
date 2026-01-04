@@ -300,6 +300,12 @@ func end_game(winner: UnitConstants.Team) -> void:
 	if current_state == GameState.GAME_OVER:
 		return
 
+	# In multiplayer, only authority can end the game
+	# (Clients will receive game_ended event from host)
+	if not BattleContext.has_authority():
+		print("GameController3D: end_game() called but we don't have authority, ignoring")
+		return
+
 	current_state = GameState.GAME_OVER
 	state_changed.emit(current_state)
 	game_ended.emit(winner)
@@ -398,6 +404,10 @@ func _on_game_ended(winner: UnitConstants.Team) -> void:
 		game_over_label.set("visible", true)
 
 func _on_summoner_destroyed(summoner: Summoner) -> void:
+	# Only authority evaluates win conditions
+	if not BattleContext.has_authority():
+		return
+
 	if summoner == player_summoner:
 		end_game(UnitConstants.Team.ENEMY)
 	elif summoner == enemy_summoner:
@@ -736,6 +746,10 @@ func _on_node_added_for_kill_tracking(node: Node) -> void:
 ## Handle unit death for kill count objective
 func _on_unit_died_for_kill_count(unit: Node3D) -> void:
 	if win_condition != WinConditionIDs.KILL_COUNT:
+		return
+
+	# Only authority tracks kill counts and evaluates win conditions
+	if not BattleContext.has_authority():
 		return
 
 	# Only count enemy kills

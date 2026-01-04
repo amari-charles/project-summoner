@@ -8,6 +8,9 @@ extends Node
 ##   2. Battle scene reads configuration from here
 ##   3. After battle, this calls the appropriate completion handler
 
+## Authority abstraction for multiplayer support
+const LocalAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/local_authority.gd")
+
 enum BattleMode {
 	CAMPAIGN,   ## Story progression battles
 	ARENA,      ## Random battles for rewards
@@ -48,6 +51,12 @@ var origin_scene: String = ""
 ## Callback to execute when battle ends
 ## Signature: func(winner: int) where 0 = player, 1 = enemy
 var completion_callback: Callable
+
+## Authority provider for multiplayer abstraction
+## Determines who has authority over game state changes
+## Default: LocalAuthority (single-player, all actions immediate)
+## Type is RefCounted (base of AuthorityProvider) for GDScript compatibility
+var authority_provider: RefCounted = null
 
 ## Cards played during this battle (for XP rewards)
 ## Array of card instance IDs
@@ -179,6 +188,12 @@ func clear() -> void:
 	origin_scene = ""
 	_cards_played.clear()
 	_player_summoner_stats.clear()
+
+	# Cleanup authority provider
+	if authority_provider != null:
+		authority_provider.cleanup()
+		authority_provider = null
+
 	print("BattleContext: Cleared")
 
 ## Get the scene to return to after battle
@@ -192,6 +207,13 @@ func start_battle() -> void:
 	if battle_state != BattleState.CONFIGURED:
 		push_warning("BattleContext: start_battle() called in invalid state: %d" % battle_state)
 		return
+
+	# Initialize authority provider if not set (default to single-player)
+	if authority_provider == null:
+		authority_provider = LocalAuthorityScript.new(self)
+		authority_provider.initialize()
+		print("BattleContext: Initialized LocalAuthority (single-player mode)")
+
 	battle_state = BattleState.IN_PROGRESS
 	print("BattleContext: Battle started")
 
@@ -263,6 +285,41 @@ func get_player_summoner_stat(stat_name: String, default_value: float = 0.0) -> 
 ## Reset battle context (alias for clear, called between battles)
 func reset() -> void:
 	clear()
+
+## =============================================================================
+## AUTHORITY PROVIDER ACCESS
+## =============================================================================
+
+## Check if local peer has authority over game state.
+## In single-player, always returns true.
+## In multiplayer, only the host/server has authority.
+func has_authority() -> bool:
+	if authority_provider == null:
+		return true  # Default to local authority if not initialized
+	return authority_provider.has_authority()
+
+## Check if this is a multiplayer battle.
+func is_multiplayer_battle() -> bool:
+	if authority_provider == null:
+		return false
+	return authority_provider.is_multiplayer()
+
+## Get the local player's peer ID.
+func get_local_peer_id() -> int:
+	if authority_provider == null:
+		return 0
+	return authority_provider.get_local_peer_id()
+
+## Set a custom authority provider (for multiplayer).
+## Call this before start_battle() to use a non-default authority.
+## Provider should extend AuthorityProvider (RefCounted).
+func set_authority_provider(provider: RefCounted) -> void:
+	if authority_provider != null:
+		authority_provider.cleanup()
+	authority_provider = provider
+	if authority_provider != null:
+		authority_provider.initialize()
+	print("BattleContext: Authority provider set to %s" % (provider.get_class() if provider else "null"))
 
 ## =============================================================================
 ## CARD XP TRACKING
