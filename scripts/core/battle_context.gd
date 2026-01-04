@@ -9,7 +9,6 @@ extends Node
 ##   3. After battle, this calls the appropriate completion handler
 
 ## Authority abstraction for multiplayer support
-const AuthorityProviderScript: GDScript = preload("res://scripts/multiplayer/authority/authority_provider.gd")
 const LocalAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/local_authority.gd")
 
 enum BattleMode {
