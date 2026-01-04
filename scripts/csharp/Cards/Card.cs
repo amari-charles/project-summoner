@@ -36,11 +36,11 @@ public abstract partial class Card : Resource
 
     public string CatalogId => Config?.CatalogId ?? "";
     public string CardName => Config?.CardName ?? "Unknown Card";
-    public CardType CardType => Config?.CardType ?? CardType.Summon;
+    public CardType Type => Config?.CardType ?? CardType.Summon;
     public string Description => Config?.Description ?? "";
     public int ManaCost => Config?.ManaCost ?? 1;
     public float Cooldown => Config?.Cooldown ?? 2.0f;
-    public Texture2D CardIcon => Config?.CardIcon;
+    public Texture2D? CardIcon => Config?.CardIcon;
 
     // =========================================================================
     // GDSCRIPT-COMPATIBLE API (snake_case accessors)
@@ -49,7 +49,7 @@ public abstract partial class Card : Resource
     // These properties allow GDScript to access using snake_case naming
     public string catalog_id => CatalogId;
     public string card_name => CardName;
-    public int card_type => (int)CardType;
+    public int card_type => (int)Type;
     public string description => Description;
     public int mana_cost => ManaCost;
     public float cooldown => Cooldown;
