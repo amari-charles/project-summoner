@@ -78,6 +78,11 @@ public class CommandEffect : SpellEffect
     /// </summary>
     private const float FormationBackRowOffset = 2.0f;
 
+    /// <summary>
+    /// Radius for command VFX indicators (rally circle, charge marker).
+    /// </summary>
+    private const float CommandVFXRadius = 2.0f;
+
     // =========================================================================
     // EXECUTION
     // =========================================================================
@@ -287,7 +292,7 @@ public class CommandEffect : SpellEffect
         if (vfxManager != null && HasEffect(vfxManager, RallyVFXId))
         {
             vfxManager.Call("play_effect", RallyVFXId, position,
-                new Godot.Collections.Dictionary { { "radius", 2.0f } });
+                new Godot.Collections.Dictionary { { "radius", CommandVFXRadius } });
         }
     }
 
@@ -313,7 +318,7 @@ public class CommandEffect : SpellEffect
         if (vfxManager != null && HasEffect(vfxManager, ChargeVFXId))
         {
             vfxManager.Call("play_effect", ChargeVFXId, position,
-                new Godot.Collections.Dictionary { { "radius", 2.0f } });
+                new Godot.Collections.Dictionary { { "radius", CommandVFXRadius } });
         }
     }
 
