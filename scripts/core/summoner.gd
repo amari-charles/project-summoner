@@ -180,7 +180,7 @@ func init() -> void:
 	else:
 		print("Summoner: Loaded %d cards using %s strategy" % [deck.size(), DeckLoadStrategy.keys()[deck_load_strategy]])
 
-	deck.shuffle()
+	BattleRNG.shuffle_array(deck, RNGDomain.Domain.DECK_SHUFFLE)
 
 	# Draw starting hand
 	for i: int in max_hand_size:
@@ -240,7 +240,7 @@ func _recycle_discard_pile() -> void:
 	var card_count: int = discard_pile.size()
 	deck = discard_pile.duplicate()
 	discard_pile.clear()
-	deck.shuffle()
+	BattleRNG.shuffle_array(deck, RNGDomain.Domain.DECK_SHUFFLE)
 
 	deck_recycled.emit(card_count)
 
