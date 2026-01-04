@@ -49,15 +49,15 @@ This directory contains all worldbuilding, narrative, and character documentatio
 - **[Summons Index](summons/README.md)** - All summoned creatures organized by element
 
 #### Implemented
-- **[Fire Sprite](summons/fire/fire-sprite.md)** - Basic fire elemental
+- **[Wisp](summons/fire/wisp.md)** - Basic fire elemental
 - **[Puff](summons/wind/puff.md)** - Wind cloud creature
-- **[Earth Sprite](summons/earth/earth-sprite.md)** - Sapling-carrying elemental
+- **[Pebbloom](summons/earth/pebbloom.md)** - Sapling-carrying elemental
 
 #### Planned
 - **[Fire Fox](summons/fire/fire-fox.md)** - Fire fox creature
-- **[Wind Sprite](summons/wind/wind-sprite.md)** - Basic wind elemental
-- **[Water Sprite](summons/water/water-sprite.md)** - Basic water elemental
-- **[Earth Wisp](summons/earth/earth-wisp.md)** - Basic earth elemental
+- **[Wisp](summons/wind/wisp.md)** - Basic wind elemental
+- **[Wisp](summons/water/wisp.md)** - Basic water elemental
+- **[Wisp](summons/earth/wisp.md)** - Basic earth elemental
 - **[Thunder Cloud](summons/lightning/thunder-cloud.md)** - Lightning cloud creature
 - **[Miasma Cloud](summons/poison/miasma-cloud.md)** - Poison cloud creature
 

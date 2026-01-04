@@ -1,19 +1,18 @@
-# Earth Wisp
+# Wisp
 
 **Element:** Earth
 **Status:** Planned
 
 ## Overview
 
-A common creature native to the elemental plane of earth. Earth Wisps share the same basic form as other elemental sprites but are composed of packed soil and stone. Unlike the more distinctive Earth Sprite, wisps are simple elemental manifestations.
+A common creature native to the elemental plane of earth. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
 
 ## Visual Description
 
 - Floating humanoid silhouette made of compacted earth
-- Rocky, textite form with occasional cracks showing inner glow
+- Rocky form with occasional cracks showing inner glow
 - Hovers above the ground despite earthy composition
 - Brown/tan coloration with darker stone accents
-- Uses the same silhouette design as Fire Sprite (recolored)
 
 ## Gameplay Role
 

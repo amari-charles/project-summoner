@@ -1,11 +1,11 @@
-# Earth Sprite
+# Pebbloom
 
 **Element:** Earth
 **Status:** Implemented
 
 ## Overview
 
-A sturdy creature native to the elemental plane of earth. Earth Sprites are patient beings that tend to the growth of magical plants in their home plane. They carry saplings that they nurture with elemental energy.
+A sturdy creature native to the elemental plane of earth. Pebblooms are patient beings that tend to the growth of magical plants in their home plane. They carry saplings that they nurture with elemental energy.
 
 ## Visual Description
 
