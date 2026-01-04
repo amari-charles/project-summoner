@@ -257,10 +257,16 @@ func _refresh_deck_list() -> void:
 		if item.has_signal("delete_clicked"):
 			item.delete_clicked.connect(_on_deck_delete_clicked.bind(deck_id))
 
-	# Create default deck if none exist
+	# Create default deck if none exist (only if summoner is unlocked)
 	if deck_list_result.size() == 0 and decks.has_method("create_deck"):
-		decks.call("create_deck", "My Deck", [])
-		_refresh_deck_list()
+		# Check if any summoners are unlocked - can't create deck without one
+		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+		if profile_repo and profile_repo.has_method("get_unlocked_summoners"):
+			var unlocked: Variant = profile_repo.call("get_unlocked_summoners")
+			if unlocked is Array and unlocked.size() > 0:
+				var new_deck_id: Variant = decks.call("create_deck", "My Deck", [])
+				if new_deck_id is String and not new_deck_id.is_empty():
+					_refresh_deck_list()
 		return
 
 	# Auto-select first deck if none selected

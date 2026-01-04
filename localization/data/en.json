@@ -343,6 +343,7 @@
     "nav": {
       "menu": "MENU",
       "collection": "COLLECTION",
+      "collection_locked": "Select a summoner first",
       "events": "EVENTS",
       "shop": "STORE",
       "settings": "SETTINGS",
