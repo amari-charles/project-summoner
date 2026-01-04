@@ -655,3 +655,8 @@ func _play_hit_feedback() -> void:
 	var shake_offset: Vector3 = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
 	active_feedback_tween.tween_property(visual, "position", original_visual_position + shake_offset, shake_out)
 	active_feedback_tween.chain().tween_property(visual, "position", original_visual_position, shake_return)
+
+## Get the position where projectiles should aim at this summoner.
+## Returns center mass (roughly chest height for visual feedback).
+func get_projectile_target_position() -> Vector3:
+	return global_position + Vector3(0, 1.5, 0)  # Chest height

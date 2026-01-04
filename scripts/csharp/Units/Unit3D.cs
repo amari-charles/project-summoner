@@ -234,6 +234,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     protected IVisualComponent? VisualComponent { get; set; }
+    private Marker3D? _projectileTargetPoint;
+    private ShadowComponent? _shadowComponent;
 
     // =========================================================================
     // TARGETING HELPER
@@ -289,6 +291,21 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (visualNode is IVisualComponent vc)
         {
             VisualComponent = vc;
+        }
+
+        // Find projectile target point (required for proper projectile aiming)
+        _projectileTargetPoint = GetNodeOrNull<Marker3D>("ProjectileTargetPoint");
+        if (_projectileTargetPoint == null)
+        {
+            GD.PushError($"Unit {Name} missing required ProjectileTargetPoint Marker3D node");
+        }
+
+        // Create shadow if enabled
+        if (ShadowEnabled)
+        {
+            _shadowComponent = new ShadowComponent();
+            AddChild(_shadowComponent);
+            _shadowComponent.Initialize(ShadowSize, ShadowOpacity);
         }
 
         // Setup groups for targeting
@@ -678,6 +695,23 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         ForcedTarget = null;
         ForcedTargetTimer = 0;
+    }
+
+    /// <summary>
+    /// Get the position where projectiles should aim at this unit.
+    /// Returns ProjectileTargetPoint position if available, otherwise center mass.
+    /// Method name uses snake_case for cross-language duck typing compatibility.
+    /// </summary>
+    public Vector3 get_projectile_target_position()
+    {
+        if (_projectileTargetPoint != null)
+        {
+            return _projectileTargetPoint.GlobalPosition;
+        }
+
+        // Fallback: center mass based on visual height
+        float height = VisualComponent?.GetSpriteHeight() ?? 1.0f;
+        return GlobalPosition + new Vector3(0, height * 0.5f, 0);
     }
 
     // =========================================================================
@@ -1106,9 +1140,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         SpatialGrid.Instance?.UpdateUnitPosition(this);
     }
 
-    private static void UpdateShadowForAltitude()
+    private void UpdateShadowForAltitude()
     {
-        // TODO: Update shadow scale/opacity based on flight altitude
+        _shadowComponent?.UpdateForAltitude(Position.Y);
     }
 
     private void HandleFlyingDeath()

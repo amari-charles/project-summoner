@@ -26,6 +26,8 @@ public partial class ShadowComponent : MeshInstance3D
 
     private ImageTexture? _shadowTexture;
     private StandardMaterial3D? _material;
+    private float _baseShadowRadius;
+    private float _baseShadowOpacity;
 
     // =========================================================================
     // PUBLIC API
@@ -39,6 +41,8 @@ public partial class ShadowComponent : MeshInstance3D
     {
         ShadowRadius = radius;
         ShadowOpacity = opacity;
+        _baseShadowRadius = radius;
+        _baseShadowOpacity = opacity;
 
         // Create quad mesh
         var quad = new QuadMesh();
@@ -104,16 +108,16 @@ public partial class ShadowComponent : MeshInstance3D
     /// </summary>
     public void UpdateForAltitude(float altitude, float maxAltitude = 10.0f)
     {
-        float altitudeFactor = altitude / maxAltitude;
+        float altitudeFactor = Mathf.Clamp(altitude / maxAltitude, 0.0f, 1.0f);
 
-        // Shadow shrinks and fades with altitude
+        // Shadow shrinks and fades with altitude (using base values to avoid cumulative shrinking)
         float sizeScale = 1.0f - (altitudeFactor * 0.4f);      // 60% size at max altitude
         float opacityScale = 1.0f - (altitudeFactor * 0.6f);   // 40% opacity at max altitude
 
-        SetShadowRadius(ShadowRadius * sizeScale);
-        SetShadowOpacity(ShadowOpacity * opacityScale);
+        SetShadowRadius(_baseShadowRadius * sizeScale);
+        SetShadowOpacity(_baseShadowOpacity * opacityScale);
 
-        // Keep shadow on ground
+        // Keep shadow on ground (relative to parent unit position)
         Position = new Vector3(0, -altitude + 0.01f, 0);
     }
 
