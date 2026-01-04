@@ -569,50 +569,71 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 		assert(false, "CardConfig must be created successfully!")
 		return null  # Unreachable in debug builds
 
-	# Check if this is a spell with C# SpellBuilder support
-	var card_type: int = card_def.get("card_type", Card.CardType.SUMMON)
-	if card_type == Card.CardType.SPELL:
-		var spell_card: Resource = _try_create_csharp_spell_card(catalog_id, config)
-		if spell_card:
-			return spell_card
-		# Fall through to GDScript Card if C# not available
-
-	# Create GDScript Card and attach config (summons or spells without C# support)
+	# Create GDScript Card and attach config
 	var card: Card = CardScript.new()
 	card.config = config
+
+	# Try to attach C# execution delegation based on card type
+	var card_type: int = card_def.get("card_type", Card.CardType.SUMMON)
+	if card_type == Card.CardType.SPELL:
+		_try_attach_csharp_spell_effect(catalog_id, card)
+	elif card_type == Card.CardType.SUMMON:
+		_try_attach_csharp_summon(catalog_id, card)
+	# Card will use C# execution if available, GDScript fallback otherwise
 
 	return card
 
 
-## Try to create a C# SpellCard with effect from SpellBuilder
-## Returns null if C# is not available or spell is not in SpellBuilder
-func _try_create_csharp_spell_card(catalog_id: StringName, config: Resource) -> Resource:
-	# Check if SpellBuilder has this spell defined
-	var spell_builder_class: Variant = ClassDB.instantiate(&"ProjectSummoner.Cards.SpellBuilder")
-	if spell_builder_class == null:
-		# C# not available (headless mode or not built)
+## Check if C# spell effect is available for this spell
+## Sets card._csharp_spell_id if C# effect is available
+## Returns true if C# effect will be used, false to use GDScript fallback
+func _try_attach_csharp_spell_effect(catalog_id: StringName, card: Card) -> bool:
+	# Get CardFactory autoload
+	var factory: Node = _get_card_factory()
+	if not factory:
+		return false
+
+	# Check if factory has an effect for this spell
+	if not factory.has_effect(catalog_id):
+		return false
+
+	# Set the C# spell ID on the card for delegation
+	card._csharp_spell_id = catalog_id
+	print("CardCatalog: Attached C# spell effect for '%s'" % catalog_id)
+	return true
+
+
+## Check if C# summon execution is available for this summon
+## Sets card._csharp_summon_id if C# summon is supported
+## Returns true if C# summon will be used, false to use GDScript fallback
+func _try_attach_csharp_summon(catalog_id: StringName, card: Card) -> bool:
+	# Get CardFactory autoload
+	var factory: Node = _get_card_factory()
+	if not factory:
+		return false
+
+	# Check if factory supports summon execution
+	if not factory.has_summon(catalog_id):
+		return false
+
+	# Set the C# summon ID on the card for delegation
+	card._csharp_summon_id = catalog_id
+	print("CardCatalog: Attached C# summon for '%s'" % catalog_id)
+	return true
+
+
+## Get CardFactory autoload safely
+## Returns null if C# is not available or factory not loaded
+func _get_card_factory() -> Node:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop or not main_loop is SceneTree:
 		return null
 
-	# SpellBuilder is a static class, use ClassDB to call static methods
-	# Since GDScript can't call C# static methods directly, we need to check differently
-	# We'll try to instantiate SpellCard and set the effect
+	var tree: SceneTree = main_loop
+	if not tree.root:
+		return null
 
-	# Try to create SpellCard class
-	var spell_card_script: GDScript = null
-	if ClassDB.class_exists(&"ProjectSummoner.Cards.SpellCard"):
-		# C# classes registered - but we can't instantiate via ClassDB for non-Node types
-		# Use a different approach: check if the C# assembly is loaded
-		pass
-
-	# For now, since GDScript can't easily call C# static methods on non-Node classes,
-	# we'll use a hybrid approach: create GDScript Card but it will delegate to C#
-	# when the full integration is complete in Phase B.
-	#
-	# The C# SpellCard/SpellBuilder is ready and tested, but the GDScript->C# bridge
-	# for Resource types requires more infrastructure (custom autoload wrapper).
-	#
-	# This is intentionally deferred to Phase B as documented in todos.md.
-	return null
+	return tree.root.get_node_or_null("/root/CardFactory")
 
 ## =============================================================================
 ## UTILITY METHODS
