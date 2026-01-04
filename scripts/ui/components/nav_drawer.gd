@@ -76,6 +76,9 @@ func open() -> void:
 	_is_open = true
 	visible = true
 
+	# Disable collection if no summoner is unlocked
+	_update_collection_button_state()
+
 	# Position panel off-screen to the right
 	var viewport_width: float = get_viewport_rect().size.x
 	panel.position.x = viewport_width
@@ -128,6 +131,22 @@ func _on_settings_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	settings_pressed.emit()
 	_close()
+
+
+func _update_collection_button_state() -> void:
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	var has_summoner: bool = false
+
+	if profile_repo and profile_repo.has_method("get_unlocked_summoners"):
+		var unlocked: Variant = profile_repo.call("get_unlocked_summoners")
+		has_summoner = unlocked is Array and unlocked.size() > 0
+
+	collection_button.disabled = not has_summoner
+	if not has_summoner:
+		collection_button.tooltip_text = Loc.t("ui.nav.collection_locked")
+	else:
+		collection_button.tooltip_text = ""
+
 
 func _setup_debug_buttons() -> void:
 	# Hide debug buttons in release builds
