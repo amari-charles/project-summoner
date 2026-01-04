@@ -1,11 +1,11 @@
-# Fire Sprite
+# Wisp
 
 **Element:** Fire
 **Status:** Implemented
 
 ## Overview
 
-A common creature native to the elemental plane of fire. Fire Sprites are among the most frequently summoned fire creatures due to their reliability and ease of bonding with novice summoners.
+A common creature native to the elemental plane of fire. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
 
 ## Visual Description
 

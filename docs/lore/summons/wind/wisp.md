@@ -1,11 +1,11 @@
-# Wind Sprite
+# Wisp
 
 **Element:** Wind
 **Status:** Planned
 
 ## Overview
 
-A common creature native to the elemental plane of wind. Wind Sprites share the same basic form as other elemental sprites but are composed of swirling air currents and gentle breezes.
+A common creature native to the elemental plane of wind. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
 
 ## Visual Description
 
@@ -13,7 +13,6 @@ A common creature native to the elemental plane of wind. Wind Sprites share the 
 - Translucent, barely visible form with flowing edges
 - Hovers above the ground, constantly shifting and moving
 - Light blue/white coloration with occasional sparkles
-- Uses the same silhouette design as Fire Sprite (recolored)
 
 ## Gameplay Role
 

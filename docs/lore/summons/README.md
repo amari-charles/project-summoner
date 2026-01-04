@@ -5,19 +5,19 @@ This directory contains lore documentation for all summoned creatures in Fatefor
 ## Core Elements
 
 ### Fire
-- **[Fire Sprite](fire/fire-sprite.md)** - Basic floating elemental
+- **[Wisp](fire/wisp.md)** - Basic floating elemental
 - **[Fire Fox](fire/fire-fox.md)** - Fox creature *(planned)*
 
 ### Wind
 - **[Puff](wind/puff.md)** - Ranged cloud creature
-- **[Wind Sprite](wind/wind-sprite.md)** - Basic floating elemental *(planned)*
+- **[Wisp](wind/wisp.md)** - Basic floating elemental *(planned)*
 
 ### Water
-- **[Water Sprite](water/water-sprite.md)** - Basic floating elemental *(planned)*
+- **[Wisp](water/wisp.md)** - Basic floating elemental *(planned)*
 
 ### Earth
-- **[Earth Sprite](earth/earth-sprite.md)** - Sapling-carrying elemental
-- **[Earth Wisp](earth/earth-wisp.md)** - Basic floating elemental *(planned)*
+- **[Pebbloom](earth/pebbloom.md)** - Sapling-carrying elemental
+- **[Wisp](earth/wisp.md)** - Basic floating elemental *(planned)*
 
 ## Elevated Elements
 
