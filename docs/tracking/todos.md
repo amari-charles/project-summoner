@@ -786,4 +786,49 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ---
 
-*Last Updated: 2025-12-23 - Full audit completed. Moved to archive: Flying units, Summoner Unlock System, Card Hand Display. Updated status: Settings Screen (partial), Victory/Defeat Music (partial), Death Animations (partial). Removed: Card Returns to Pool (not needed).*
+## Card & Spell System
+
+### 🟡 MEDIUM PRIORITY
+
+#### C# Spell Effect System - Integration
+**Status:** 🔄 In Progress (PR #153)
+**Category:** Cards / Architecture
+**Effort:** Medium
+
+**Description:**
+A new C# spell effect system with composition pattern has been built. The system is fully functional with clean code (0 build warnings).
+
+**Completed:**
+- Core interfaces: `ISpellEffect`, `ITargetingStrategy`, `ISpellCondition`, `ITargetFilter`
+- Base classes: `SpellEffect`, `SpellContext`, `Affinity` enum
+- Concrete effects: `DamageEffect`, `CommandEffect` (Rally/Guard/Charge), `CompositeEffect`, `ConditionalEffect`
+- Targeting: `CircleTargeting`
+- Conditions: `HPThresholdCondition`
+- Card classes: `Card` (abstract), `SpellCard`, `CardConfig`, `SpellCardConfig`
+- Factory: `SpellBuilder` with Fireball, Rally, Guard, Charge (throws for unknown IDs)
+- All nullable warnings fixed, magic numbers documented
+- CardCatalog prepared for C# spell integration (infrastructure ready)
+
+**Remaining Work (Phase B - GDScript→C# Bridge):**
+- Create C# autoload wrapper to expose SpellBuilder to GDScript
+- Wire `CardCatalog.create_card_resource()` to create C# `SpellCard` via wrapper
+- Test existing spells (Fireball, Rally, Guard, Charge) work with new C# system
+- Delete old spell logic from GDScript `Card.gd` once verified
+
+**Future Work (Phase C - Expansion):**
+- Port `SummonCard` to C# (formation logic, spawn system)
+- Add more targeting strategies: `ConeTargeting`, `LineTargeting`, `UnitTargeting`
+- Add more effects: `HealEffect`, `BuffEffect`, `DebuffEffect`, `SpawnEffect`
+- Add more conditions: `BuffCondition`, `RandomCondition`, `AndCondition`, `OrCondition`
+
+**Related Files:**
+- `scripts/csharp/Cards/` - All new C# card classes
+- `scripts/cards/card.gd` - GDScript Card (still handles summons and spells until bridge complete)
+- `scripts/data/card_catalog.gd` - Card factory (infrastructure for C# integration ready)
+
+**Architecture Reference:**
+- Plan file: `.claude/plans/sleepy-stargazing-gadget.md`
+
+---
+
+*Last Updated: 2026-01-04 - PR review fixes applied, 0 build warnings, tests passing.*

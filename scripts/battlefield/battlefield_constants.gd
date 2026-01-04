@@ -59,12 +59,13 @@ const SPAWN_SEARCH_RINGS: int = 3  ## Number of expanding rings to search
 
 ## Find a safe spawn position that doesn't overlap with existing units
 ## Uses spiral search pattern: checks desired position first, then expands outward
-static func find_safe_spawn_position(desired_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5) -> Vector3:
+## exclude_unit: Optional unit to exclude from collision checks (the unit being spawned)
+static func find_safe_spawn_position(desired_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5, exclude_unit: Node3D = null) -> Vector3:
 	if not scene_tree:
 		return desired_pos
 
 	# Check if desired position is safe
-	if is_spawn_position_safe(desired_pos, scene_tree, spawning_collision_radius):
+	if is_spawn_position_safe(desired_pos, scene_tree, spawning_collision_radius, exclude_unit):
 		return desired_pos
 
 	# Search in expanding rings around desired position
@@ -75,17 +76,22 @@ static func find_safe_spawn_position(desired_pos: Vector3, scene_tree: SceneTree
 			var offset: Vector3 = Vector3(cos(angle) * radius, 0, sin(angle) * radius)
 			var test_pos: Vector3 = desired_pos + offset
 
-			if is_spawn_position_safe(test_pos, scene_tree, spawning_collision_radius):
+			if is_spawn_position_safe(test_pos, scene_tree, spawning_collision_radius, exclude_unit):
 				return test_pos
 
 	# Fallback: no safe position found, use desired (units will overlap but game continues)
 	return desired_pos
 
 ## Check if a spawn position is safe (no existing units too close)
-static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5) -> bool:
+## exclude_unit: Optional unit to exclude from checks (the unit being spawned)
+static func is_spawn_position_safe(check_pos: Vector3, scene_tree: SceneTree, spawning_collision_radius: float = 0.5, exclude_unit: Node3D = null) -> bool:
 	var all_units: Array[Node] = scene_tree.get_nodes_in_group(GroupIDs.UNITS)
 
 	for node: Node in all_units:
+		# Skip the unit being spawned (it's in the group but at wrong position)
+		if exclude_unit != null and node == exclude_unit:
+			continue
+
 		# Duck typing: check for unit properties
 		if not "is_alive" in node or not "collision_radius" in node:
 			continue

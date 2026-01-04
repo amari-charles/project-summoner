@@ -1,81 +1,154 @@
 extends Resource
 class_name Card
 
-## Represents a single-use card (unit summon or spell)
-## Cards are drawn from the player's deck and used once per match
+## Card executor - handles playing cards (summons, spells)
+## Data is stored in CardConfig; this class handles execution only
+##
+## Architecture:
+## - CardConfig: Pure data (catalog_id, mana_cost, formation_spacing, etc.)
+## - Card: Executor with config reference and runtime state
+
+## Preload CardConfig to avoid class loading order issues
+const CardConfigClass = preload("res://scripts/cards/card_config.gd")
 
 enum CardType { SUMMON, SPELL }
 
-## Multi-unit spawn formation constants
-## When spawning multiple units, they form a staggered row formation around the target position
-const FORMATION_SPACING: float = 1.8  ## Distance between units in formation (world units)
-const FORMATION_ROW_OFFSET: float = 0.5  ## Fraction of spacing to offset alternating rows (brick pattern)
-const FORMATION_TWO_ROW_MAX: int = 20  ## Max units for 2-row formation; larger swarms use more rows
-const FORMATION_LARGE_ROW_DENSITY: float = 3.0  ## Target units per row for large swarms (20+)
+## =============================================================================
+## CONFIGURATION
+## =============================================================================
 
+## Card configuration data (stats, costs, formation, etc.)
+var config: Resource = null  # CardConfig instance (uses Resource to avoid load order issues)
 
-## Generate formation offset for staggered row spawning
-## Returns position offset for unit at given index in a staggered grid formation
-## Formation is centered on spawn point with alternating rows offset (brick pattern)
-static func generate_formation_offset(unit_index: int, unit_count: int) -> Vector3:
-	if unit_count <= 1:
-		return Vector3.ZERO
+## =============================================================================
+## INSTANCE STATE (runtime, not config)
+## =============================================================================
 
-	# Calculate grid dimensions - prefer 2 rows for army-like formations
-	# Only use more rows if we have a very large swarm
-	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
-	var cols: int = ceili(float(unit_count) / float(rows))
-
-	# Get row and column for this unit
-	var row: int = unit_index / cols
-	var col: int = unit_index % cols
-
-	# Calculate how many units are in this row (last row may be partial)
-	var units_in_row: int = mini(cols, unit_count - row * cols)
-
-	# Calculate position with stagger offset for alternating rows
-	var stagger: float = FORMATION_ROW_OFFSET * FORMATION_SPACING if row % 2 == 1 else 0.0
-
-	# X axis = row depth (front row closer to enemy, back row behind)
-	var formation_depth: float = (rows - 1) * FORMATION_SPACING
-	var x_offset: float = row * FORMATION_SPACING - formation_depth / 2.0
-
-	# Z axis = column spread (units spread out perpendicular to enemy direction)
-	var row_width: float = (units_in_row - 1) * FORMATION_SPACING
-	var z_offset: float = col * FORMATION_SPACING - row_width / 2.0 + stagger
-
-	return Vector3(x_offset, 0, z_offset)
-
-## Card identity
-@export var catalog_id: String = ""  # ID in CardCatalog for looking up full data
-@export var card_name: String = "Unknown Card"
-@export var card_type: CardType = CardType.SUMMON
-@export var description: String = ""
-
-## Instance tracking (for progression system)
-var instance_id: String = ""  # Collection instance ID (for XP tracking)
-
-## Cost and gameplay
-@export var mana_cost: int = 1
-@export var cooldown: float = 2.0  # Seconds before another card can be played
-@export var summon_time: float = 1.0  ## Seconds to cast this card (player locked during cast)
-
-## Summon-specific data
-@export var unit_scene: PackedScene = null  # The unit to spawn (if CardType.SUMMON)
-@export var spawn_count: int = 1  # How many units to spawn
-
-## Spell-specific data
-@export var spell_damage: float = 0.0
-@export var spell_radius: float = 0.0
-@export var spell_duration: float = 0.0
-@export var projectile_id: String = ""  # If set, spell spawns a projectile instead of instant cast
-@export var spell_vfx: String = ""  # VFX ID to spawn when spell hits (for instant AOE spells)
+## Instance tracking (for progression system - unique per card in collection)
+var instance_id: String = ""
 
 ## Event sequence stat overrides (set by EventSequencer before spawning)
 var custom_stat_overrides: Dictionary = {}
 
-## Visual
-@export var card_icon: Texture2D = null
+## =============================================================================
+## PROPERTY ACCESSORS (delegate to config for backward compatibility)
+## =============================================================================
+
+var catalog_id: String:
+	get: return config.catalog_id if config else ""
+
+var card_name: String:
+	get: return config.card_name if config else "Unknown Card"
+
+var card_type: int:
+	get: return config.card_type if config else CardType.SUMMON
+
+var description: String:
+	get: return config.description if config else ""
+
+var mana_cost: int:
+	get: return config.mana_cost if config else 1
+
+var cooldown: float:
+	get: return config.cooldown if config else 2.0
+
+var summon_time: float:
+	get: return config.summon_time if config else 1.0
+
+var unit_scene: PackedScene:
+	get: return config.unit_scene if config else null
+
+var spawn_count: int:
+	get: return config.spawn_count if config else 1
+
+var spell_damage: float:
+	get: return config.spell_damage if config else 0.0
+
+var spell_radius: float:
+	get: return config.spell_radius if config else 0.0
+
+var spell_duration: float:
+	get: return config.spell_duration if config else 0.0
+
+var projectile_id: String:
+	get: return config.projectile_id if config else ""
+
+var spell_vfx: String:
+	get: return config.spell_vfx if config else ""
+
+var card_icon: Texture2D:
+	get: return config.card_icon if config else null
+
+## Formation config (per-card customizable)
+var formation_spacing: float:
+	get: return config.formation_spacing if config else 1.8
+
+var formation_row_offset: float:
+	get: return config.formation_row_offset if config else 0.5
+
+## =============================================================================
+## FORMATION CONSTANTS (defaults for static method and tests)
+## =============================================================================
+
+const FORMATION_TWO_ROW_MAX: int = 20  ## Max units for 2-row formation
+const FORMATION_LARGE_ROW_DENSITY: float = 3.0  ## Target units per row for 20+ swarms
+const DEFAULT_FORMATION_SPACING: float = 1.8  ## Default spacing for static method
+const DEFAULT_FORMATION_ROW_OFFSET: float = 0.5  ## Default row offset for static method
+
+
+## Generate formation offset for staggered row spawning
+## Uses per-card formation_spacing and formation_row_offset from config
+func get_formation_offset(unit_index: int, unit_count: int) -> Vector3:
+	if unit_count <= 1:
+		return Vector3.ZERO
+
+	var spacing: float = formation_spacing
+	var row_offset: float = formation_row_offset
+
+	# Calculate grid dimensions - prefer 2 rows for army-like formations
+	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
+	var cols: int = ceili(float(unit_count) / float(rows))
+
+	var row: int = unit_index / cols
+	var col: int = unit_index % cols
+	var units_in_row: int = mini(cols, unit_count - row * cols)
+
+	# Stagger offset for alternating rows (brick pattern)
+	var stagger: float = row_offset * spacing if row % 2 == 1 else 0.0
+
+	# X axis = row depth
+	var formation_depth: float = (rows - 1) * spacing
+	var x_offset: float = row * spacing - formation_depth / 2.0
+
+	# Z axis = column spread
+	var row_width: float = (units_in_row - 1) * spacing
+	var z_offset: float = col * spacing - row_width / 2.0 + stagger
+
+	return Vector3(x_offset, 0, z_offset)
+
+
+## Static helper for tests and preview (uses default config values)
+## Uses class-level constants DEFAULT_FORMATION_SPACING and DEFAULT_FORMATION_ROW_OFFSET
+static func generate_formation_offset(unit_index: int, unit_count: int) -> Vector3:
+	if unit_count <= 1:
+		return Vector3.ZERO
+
+	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
+	var cols: int = ceili(float(unit_count) / float(rows))
+
+	var row: int = unit_index / cols
+	var col: int = unit_index % cols
+	var units_in_row: int = mini(cols, unit_count - row * cols)
+
+	var stagger: float = DEFAULT_FORMATION_ROW_OFFSET * DEFAULT_FORMATION_SPACING if row % 2 == 1 else 0.0
+
+	var formation_depth: float = (rows - 1) * DEFAULT_FORMATION_SPACING
+	var x_offset: float = row * DEFAULT_FORMATION_SPACING - formation_depth / 2.0
+
+	var row_width: float = (units_in_row - 1) * DEFAULT_FORMATION_SPACING
+	var z_offset: float = col * DEFAULT_FORMATION_SPACING - row_width / 2.0 + stagger
+
+	return Vector3(x_offset, 0, z_offset)
 
 ## Validate if this card can be played
 func can_play(current_mana: int) -> bool:
@@ -278,15 +351,24 @@ func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: 
 			unit.InitializeWithModifiers(modifiers, card_data)  # C# uses PascalCase
 
 			# Calculate spawn offset - staggered row formation for multiple units
-			var offset: Vector3 = generate_formation_offset(i, spawn_count)
+			# Uses per-card formation_spacing and formation_row_offset from config
+			var offset: Vector3 = get_formation_offset(i, spawn_count)
 
 			# Find a safe spawn position that doesn't overlap with existing units
+			# Pass the current unit to exclude it from collision checks (it was just added to UNITS group
+			# at position 0,0,0 and hasn't been moved yet)
 			var desired_pos: Vector3 = spawn_pos + offset
 			var collision_rad: float = unit.get("CollisionRadius") if unit.get("CollisionRadius") != null else 0.5
 			var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(
-				desired_pos, gameplay_layer.get_tree(), collision_rad
+				desired_pos, gameplay_layer.get_tree(), collision_rad, unit
 			)
 			unit.global_position = safe_pos
+
+			# Update SpatialGrid immediately with correct position
+			# Without this, unit stays registered at (0,0,0) until it activates and runs _PhysicsProcess
+			# This is critical for swarm spawns where units need accurate positions for steering/targeting
+			if SpatialGrid:
+				SpatialGrid.update_unit_position(unit)
 
 			# Preserve flight altitude for flying units (spawn position is ground-level)
 			var movement_layer: int = unit.get("MovementLayer") if unit.get("MovementLayer") != null else 0

@@ -4,6 +4,38 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Fire Swarm Units Get Stuck on Spawn
+**Resolved:** 2026-01-04
+**Component:** Spawning / SpatialGrid / Multi-Unit Spawn
+
+**Description:**
+When playing the Fire Swarm card (spawns 12 fire elementals), units would get stuck and not behave correctly after the spawn reveal animation completed.
+
+**Root Cause:**
+Two related issues in the multi-unit spawn flow:
+
+1. **SpatialGrid stale cell data during spawn reveal:**
+   - Units register with SpatialGrid at (0,0,0) during `_Ready()` before position is set
+   - After position is set, SpatialGrid cell is not updated
+   - During spawn reveal (2.5s), units are inactive so `_PhysicsProcess` returns early
+   - `UpdateSpatialGridPosition()` never runs until unit activates
+   - First frame after activation uses stale cell data for steering/targeting
+
+2. **Safe spawn position checking against self:**
+   - Each newly spawned unit joins UNITS group at (0,0,0) before position is set
+   - `is_spawn_position_safe()` checks ALL units including the one being spawned
+   - The unit could be checking against itself at the wrong position
+
+**Solution Implemented:**
+1. In `scripts/cards/card.gd`: Call `SpatialGrid.update_unit_position(unit)` immediately after setting `unit.global_position`
+2. In `scripts/battlefield/battlefield_constants.gd`: Added `exclude_unit` parameter to `find_safe_spawn_position()` and `is_spawn_position_safe()` to skip the unit being spawned
+
+**Related Files:**
+- `scripts/cards/card.gd:293-297` - SpatialGrid update after position set
+- `scripts/battlefield/battlefield_constants.gd:63,87` - exclude_unit parameter
+
+---
+
 ### Aggro Manipulation Exploit - Units Can Be Permanently Occupied
 **Resolved:** 2026-01-03
 **Component:** AI / Combat / Targeting
