@@ -262,11 +262,19 @@ public partial class CardFactory : Node
             // Set position BEFORE adding to tree (prevents jitter)
             unit.Position = safePos;
 
-            // NOW add to tree - _Ready() runs with correct position
+            // Hide unit during initialization to prevent visual jitter
+            // (visual component _Ready runs before unit _Ready sets correct facing)
+            unit.Visible = false;
+
+            // Add to tree - _Ready() chain runs with unit hidden
             gameplayLayer.AddChild(unit);
 
-            // Initialize with modifiers AFTER add_child
+            // Initialize with modifiers
             unit.Call("InitializeWithModifiers", modifiers, cardData);
+
+            // Show unit after deferred initialization completes (end of frame)
+            // This ensures skeletal components finish their async positioning first
+            unit.SetDeferred("visible", true);
 
             // Update SpatialGrid after unit is in tree
             if (spatialGrid != null && spatialGrid.HasMethod("update_unit_position"))
