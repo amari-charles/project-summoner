@@ -345,6 +345,55 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Cloud Swarm - 6 Puffs in groups of 2
+	# Spawns 6 Puff units in a grouped line formation (3 groups of 2)
+	_catalog["cloud_swarm"] = {
+		# Identity
+		"catalog_id": "cloud_swarm",
+		"card_name": "Cloud Swarm",
+		"description": "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might.",
+		"rarity": RarityIDs.RARE,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.RANGED,
+		"mana_cost": 5,
+		"cooldown": 3.0,
+		"summon_time": 1.5,  # Medium-high unit (5 mana)
+
+		# Summon properties - spawns 6 Puffs
+		"unit_scene_path": "res://scenes/units/puff_3d.tscn",
+		"spawn_count": 6,
+
+		# Formation - grouped line (3 groups of 2)
+		"formation_type": "grouped_line",
+		"formation_spacing": 1.5,
+		"group_spacing": 8.0,
+		"units_per_group": 2,
+
+		# Unit stats - same as base puff
+		"max_hp": 80.0,
+		"attack_damage": 12.0,
+		"attack_range": 24.0,
+		"attack_speed": 0.4,
+		"move_speed": 2.5,
+		"aggro_radius": 24.0,
+		"is_ranged": true,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["ranged", "wind", "elemental", "air", "swarm"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.WIND
+		}
+	}
+
 	# =========================================================================
 	# TACTICAL COMMAND SPELLS
 	# =========================================================================

@@ -87,6 +87,21 @@ var spell_vfx: String:
 var card_icon: Texture2D:
 	get: return config.card_icon if config else null
 
+var formation_type: String:
+	get: return config.formation_type if config else "grid"
+
+var formation_spacing: float:
+	get: return config.formation_spacing if config else DEFAULT_FORMATION_SPACING
+
+var formation_row_offset: float:
+	get: return config.formation_row_offset if config else DEFAULT_FORMATION_ROW_OFFSET
+
+var group_spacing: float:
+	get: return config.group_spacing if config else 4.0
+
+var units_per_group: int:
+	get: return config.units_per_group if config else 2
+
 ## =============================================================================
 ## FORMATION PREVIEW (for UI spawn position indicators)
 ## =============================================================================
@@ -97,8 +112,9 @@ const FORMATION_LARGE_ROW_DENSITY: float = 3.0
 const DEFAULT_FORMATION_SPACING: float = 1.8
 const DEFAULT_FORMATION_ROW_OFFSET: float = 0.5
 
-## Static helper for UI spawn preview (uses default config values)
-## Note: Actual spawning uses C# GridFormation via CardFactory
+## Static helper for UI spawn preview (uses default grid config values)
+## Note: Actual spawning uses C# formations via CardFactory
+## For cards with custom formations, use get_formation_offset() instance method
 static func generate_formation_offset(unit_index: int, unit_count: int) -> Vector3:
 	if unit_count <= 1:
 		return Vector3.ZERO
@@ -119,6 +135,73 @@ static func generate_formation_offset(unit_index: int, unit_count: int) -> Vecto
 	var z_offset: float = col * DEFAULT_FORMATION_SPACING - row_width / 2.0 + stagger
 
 	return Vector3(x_offset, 0, z_offset)
+
+
+## Instance method that respects card's formation config
+## Use this instead of static generate_formation_offset() for cards with custom formations
+func get_formation_offset(unit_index: int) -> Vector3:
+	if spawn_count <= 1:
+		return Vector3.ZERO
+
+	match formation_type:
+		"grouped_line":
+			return _get_grouped_line_offset(unit_index, spawn_count)
+		_:
+			return _get_grid_offset(unit_index, spawn_count)
+
+
+## Grid formation offset (uses card's formation_spacing and formation_row_offset)
+func _get_grid_offset(unit_index: int, unit_count: int) -> Vector3:
+	var spacing: float = formation_spacing
+	var row_off: float = formation_row_offset
+
+	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
+	var cols: int = ceili(float(unit_count) / float(rows))
+
+	var row: int = unit_index / cols
+	var col: int = unit_index % cols
+	var units_in_row: int = mini(cols, unit_count - row * cols)
+
+	var stagger: float = row_off * spacing if row % 2 == 1 else 0.0
+
+	var formation_depth: float = (rows - 1) * spacing
+	var x_offset: float = row * spacing - formation_depth / 2.0
+
+	var row_width: float = (units_in_row - 1) * spacing
+	var z_offset: float = col * spacing - row_width / 2.0 + stagger
+
+	return Vector3(x_offset, 0, z_offset)
+
+
+## Grouped line formation offset (units in groups with larger gaps between groups)
+func _get_grouped_line_offset(unit_index: int, unit_count: int) -> Vector3:
+	var unit_spacing: float = formation_spacing
+	var grp_spacing: float = group_spacing
+	var per_group: int = units_per_group
+
+	# Calculate which group this unit belongs to and position within group
+	var group_index: int = unit_index / per_group
+	var index_in_group: int = unit_index % per_group
+
+	# Total number of groups
+	var total_groups: int = ceili(float(unit_count) / float(per_group))
+
+	# Width of a single group
+	var group_width: float = (per_group - 1) * unit_spacing
+
+	# Total width of all groups with gaps between them
+	var total_width: float = (total_groups - 1) * grp_spacing + total_groups * group_width
+
+	# Starting Z position for this group (centered around origin)
+	var group_start_z: float = group_index * (grp_spacing + group_width) - total_width / 2.0
+
+	# Position within the group
+	var in_group_offset: float = index_in_group * unit_spacing
+
+	# Final Z position
+	var z_offset: float = group_start_z + in_group_offset
+
+	return Vector3(0, 0, z_offset)
 
 ## =============================================================================
 ## GAMEPLAY

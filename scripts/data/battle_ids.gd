@@ -53,6 +53,9 @@ const ARENA_PUFF: StringName = &"arena_puff"
 ## Arena Battle: Fire Elemental Test - Fire elemental variants
 const ARENA_FIRE_ELEMENTAL: StringName = &"arena_fire_elemental"
 
+## Arena Battle: Cloud Swarm Test
+const ARENA_CLOUD_SWARM: StringName = &"arena_cloud_swarm"
+
 ## Debug Arena: Testing sandbox with infinite mana/HP and manual spawning
 const DEBUG_ARENA: StringName = &"debug_arena"
 
@@ -78,6 +81,7 @@ const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
 	ARENA_EARTH_SPRITE,
 	ARENA_PUFF,
 	ARENA_FIRE_ELEMENTAL,
+	ARENA_CLOUD_SWARM,
 	DEBUG_ARENA,
 ]
 

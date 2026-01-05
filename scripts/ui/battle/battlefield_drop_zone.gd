@@ -329,7 +329,7 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[V
 	if not scene_tree:
 		# Fallback: just return center position for each unit
 		for i: int in card.spawn_count:
-			positions.append(center_pos + Card.generate_formation_offset(i, card.spawn_count))
+			positions.append(center_pos + card.get_formation_offset(i))
 		return positions
 
 	# Get collision_radius from the unit scene (instantiate temporarily to check)
@@ -344,9 +344,9 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[V
 		if temp_unit:
 			temp_unit.queue_free()
 
-	# Calculate position for each unit (same logic as card.gd lines 281-288)
+	# Calculate position for each unit using card's formation config
 	for i: int in card.spawn_count:
-		var offset: Vector3 = Card.generate_formation_offset(i, card.spawn_count)
+		var offset: Vector3 = card.get_formation_offset(i)
 		var desired_pos: Vector3 = center_pos + offset
 		var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(desired_pos, scene_tree, collision_radius)
 		positions.append(safe_pos)
