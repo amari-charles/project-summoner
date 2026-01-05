@@ -228,6 +228,14 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         ApplyFlipPosition(flip);
     }
 
+    public void SetRenderPriority(int priority)
+    {
+        if (_sprite3D != null)
+        {
+            _sprite3D.RenderPriority = priority;
+        }
+    }
+
     public bool IsFullyInitialized()
     {
         return _initializationComplete;
