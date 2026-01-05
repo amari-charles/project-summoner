@@ -345,8 +345,8 @@ public partial class CardFactory : Node
             "grouped_line" => new GroupedLineFormationConfig
             {
                 Spacing = spacing,
-                GroupSpacing = GetFloat(cardDef, "group_spacing", 4.0f),
-                UnitsPerGroup = GetInt(cardDef, "units_per_group", 2)
+                GroupSpacing = GetFloat(cardDef, "group_spacing", GroupedLineFormation.DefaultGroupSpacing),
+                UnitsPerGroup = GetInt(cardDef, "units_per_group", GroupedLineFormation.DefaultUnitsPerGroup)
             },
             _ => new FormationConfig
             {

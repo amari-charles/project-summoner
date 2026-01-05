@@ -6,6 +6,11 @@ namespace ProjectSummoner.Cards.Configs;
 /// Configuration for summon cards.
 /// Contains spawn count, unit scene, and formation configuration.
 /// </summary>
+/// <remarks>
+/// TODO: Wire up to CardFactory to replace dictionary-based config creation.
+/// Currently CardFactory.CreateFormationConfig() creates configs directly from dictionary.
+/// This class is prepared for future use when we unify the config creation pattern.
+/// </remarks>
 public partial class SummonCardConfig : CardConfig
 {
     // =========================================================================

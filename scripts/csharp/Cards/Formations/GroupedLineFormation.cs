@@ -8,20 +8,32 @@ namespace ProjectSummoner.Cards.Formations;
 /// </summary>
 public class GroupedLineFormation : IFormationStrategy
 {
+    // =========================================================================
+    // DEFAULTS
+    // =========================================================================
+
+    public const float DefaultUnitSpacing = 1.5f;
+    public const float DefaultGroupSpacing = 4.0f;
+    public const int DefaultUnitsPerGroup = 2;
+
+    // =========================================================================
+    // PROPERTIES
+    // =========================================================================
+
     /// <summary>
     /// Spacing between units within a group.
     /// </summary>
-    public float UnitSpacing { get; set; } = 1.5f;
+    public float UnitSpacing { get; set; } = DefaultUnitSpacing;
 
     /// <summary>
     /// Spacing between groups (larger gap).
     /// </summary>
-    public float GroupSpacing { get; set; } = 4.0f;
+    public float GroupSpacing { get; set; } = DefaultGroupSpacing;
 
     /// <summary>
     /// Number of units per group.
     /// </summary>
-    public int UnitsPerGroup { get; set; } = 2;
+    public int UnitsPerGroup { get; set; } = DefaultUnitsPerGroup;
 
     public Vector3 GetOffset(int unitIndex, int totalUnits)
     {
