@@ -366,6 +366,14 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         }
     }
 
+    public void SetRenderPriority(int priority)
+    {
+        if (_sprite3D != null)
+        {
+            _sprite3D.RenderPriority = priority;
+        }
+    }
+
     public bool IsFullyInitialized()
     {
         return true; // Sprite components are immediately ready

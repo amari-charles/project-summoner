@@ -93,6 +93,14 @@ public interface IVisualComponent
     void SetFlipH(bool flip);
 
     /// <summary>
+    /// Set the render priority for depth ordering.
+    /// Higher values render in front, lower values render behind.
+    /// Range: -128 to 127.
+    /// </summary>
+    /// <param name="priority">Render priority value.</param>
+    void SetRenderPriority(int priority);
+
+    /// <summary>
     /// Check if the visual component is fully initialized.
     /// Important for spawn reveal timing.
     /// </summary>

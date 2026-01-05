@@ -402,6 +402,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Update position in spatial grid
         UpdateSpatialGridPosition();
+
+        // Update render priority based on world position
+        // Higher priority = renders in front. Camera at Z=-42.85, so more negative Z = closer = higher priority
+        // Formula: -Z + Y (closer Z and higher Y both increase priority)
+        int priority = Mathf.Clamp((int)((-GlobalPosition.Z + GlobalPosition.Y) * 3f), -128, 127);
+        VisualComponent?.SetRenderPriority(priority);
     }
 
     // =========================================================================

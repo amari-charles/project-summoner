@@ -42,6 +42,34 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 
 ---
 
+#### Unit Spawns at Cursor Position Instead of Preview Position
+**Status:** Open
+**Reported:** 2026-01-04
+**Component:** Spawn System / Card Playing
+
+**Description:**
+When spawning a unit in an occupied location, the spawn preview correctly snaps to the nearest available position. However, the actual unit spawns at the original cursor position instead of the preview position, causing existing units to be displaced.
+
+**Expected Behavior:**
+Unit should spawn at the same position shown by the spawn preview (the snapped/adjusted position).
+
+**Current Behavior:**
+- Spawn preview shows correct snapped position when cursor is on an occupied spot
+- Actual unit spawns at the raw cursor position
+- Existing units get pushed around to make room
+
+**Impact:**
+Confusing UX - players expect the unit to appear where the preview showed.
+
+**Proposed Solution:**
+Ensure the spawn logic uses the same position calculation as the spawn preview, not the raw cursor position.
+
+**Related Files:**
+- scripts/battlefield/spawn_preview.gd (preview position calculation)
+- scripts/battlefield/base_battlefield_3d.gd (actual spawn logic)
+
+---
+
 #### Fire Titans Cannot Attack Each Other
 **Status:** Open
 **Reported:** 2026-01-04
