@@ -65,6 +65,7 @@ ShadowOpacity = 0.5
 SpriteFramesResource = ExtResource("3_frames")
 FeetOffsetPixels = 50.0
 HeadOffsetPixels = 450.0
+SpriteOffsetPixels = Vector2(-45, 0)
 SpriteScale = 1.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
