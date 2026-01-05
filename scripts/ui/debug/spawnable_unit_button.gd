@@ -6,8 +6,8 @@ class_name SpawnableUnitButton
 ## Can be dragged onto the battlefield to spawn a unit at that position.
 ## Returns drag data compatible with BattlefieldDropZone.
 
-## The catalog ID of the unit to spawn
-var catalog_id: String = ""
+## The Card resource to spawn (created from catalog)
+var card: Card = null
 
 ## The display name of the unit
 var unit_name: String = ""
@@ -40,6 +40,6 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 	return {
 		"type": "debug_spawn",
-		"catalog_id": catalog_id,
+		"card": card,
 		"team": team
 	}
