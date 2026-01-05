@@ -58,6 +58,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // Shadow auto-sizing: multiply sprite height by this to get shadow diameter
     private const float ShadowAutoSizeMultiplier = 0.8f;
 
+    // Shadow Y offset above ground to prevent z-fighting
+    private const float ShadowGroundOffset = 0.01f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -245,7 +248,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             return;
 
         var offset = VisualComponent.GetShadowOffset();
-        _shadowComponent.Position = new Vector3(offset.X, 0.01f, 0);
+        _shadowComponent.Position = new Vector3(offset.X, ShadowGroundOffset, 0);
     }
 
     /// <summary>
@@ -329,12 +332,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             VisualComponent = vc;
         }
 
-        // Find projectile target point (required for proper projectile aiming)
+        // Find projectile target point (optional - fallback uses center mass)
         _projectileTargetPoint = GetNodeOrNull<Marker3D>("ProjectileTargetPoint");
-        if (_projectileTargetPoint == null)
-        {
-            GD.PushError($"Unit {Name} missing required ProjectileTargetPoint Marker3D node");
-        }
 
         // Create shadow if enabled
         if (ShadowEnabled)

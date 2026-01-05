@@ -11,6 +11,13 @@ namespace ProjectSummoner.Visual;
 public partial class ShadowComponent : MeshInstance3D
 {
     // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+
+    // Y offset above ground to prevent z-fighting
+    private const float GroundOffset = 0.01f;
+
+    // =========================================================================
     // EXPORTED PROPERTIES
     // =========================================================================
 
@@ -53,7 +60,7 @@ public partial class ShadowComponent : MeshInstance3D
         RotationDegrees = new Vector3(-90, 0, 0);
 
         // Position just above ground (prevent z-fighting)
-        Position = new Vector3(0, 0.01f, 0);
+        Position = new Vector3(0, GroundOffset, 0);
 
         // Create radial gradient texture with opacity baked in
         _shadowTexture = CreateRadialGradientTexture(ShadowOpacity);
@@ -122,7 +129,7 @@ public partial class ShadowComponent : MeshInstance3D
         SetShadowOpacity(_baseShadowOpacity * opacityScale);
 
         // Keep shadow on ground (relative to parent unit position)
-        Position = new Vector3(0, -altitude + 0.01f, 0);
+        Position = new Vector3(0, -altitude + GroundOffset, 0);
     }
 
     // =========================================================================
