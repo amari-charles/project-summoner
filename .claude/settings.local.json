@@ -38,7 +38,8 @@
       "WebFetch(domain:godotshaders.com)",
       "WebFetch(domain:gameidea.org)",
       "Bash(python3:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(gh pr edit:*)"
     ],
     "deny": [],
     "ask": []
