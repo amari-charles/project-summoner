@@ -58,7 +58,7 @@ public partial class ShadowComponent : MeshInstance3D
         // Create radial gradient texture
         _shadowTexture = CreateRadialGradientTexture();
 
-        // Create material with proper transparent gradient shadow
+        // Create material with multiply blend for non-stacking shadows
         _material = new StandardMaterial3D();
         _material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
         _material.BlendMode = BaseMaterial3D.BlendModeEnum.Mul;  // Multiply: overlapping shadows don't compound
@@ -67,7 +67,10 @@ public partial class ShadowComponent : MeshInstance3D
         _material.NoDepthTest = true;       // Don't depth-test against other objects
         _material.RenderPriority = -100;    // Render shadows first (before units)
         _material.AlbedoTexture = _shadowTexture;
-        _material.AlbedoColor = new Color(0, 0, 0, ShadowOpacity);
+        // For multiply blend: white = no effect, darker = more shadow
+        // Opacity controls how dark the center is (0.6 opacity = 0.4 gray center)
+        float grayValue = 1.0f - (ShadowOpacity * 0.7f);  // Scale opacity effect
+        _material.AlbedoColor = new Color(grayValue, grayValue, grayValue, 1.0f);
 
         SetSurfaceOverrideMaterial(0, _material);
 
@@ -92,15 +95,16 @@ public partial class ShadowComponent : MeshInstance3D
 
     /// <summary>
     /// Update shadow opacity at runtime.
+    /// For multiply blend, opacity is controlled by gray value (darker = more shadow).
     /// </summary>
     public void SetShadowOpacity(float opacity)
     {
         ShadowOpacity = opacity;
         if (_material != null)
         {
-            var color = _material.AlbedoColor;
-            color.A = opacity;
-            _material.AlbedoColor = color;
+            // For multiply blend: white = no effect, darker = more shadow
+            float grayValue = 1.0f - (opacity * 0.7f);
+            _material.AlbedoColor = new Color(grayValue, grayValue, grayValue, 1.0f);
         }
     }
 
@@ -128,7 +132,8 @@ public partial class ShadowComponent : MeshInstance3D
     // =========================================================================
 
     /// <summary>
-    /// Create a radial gradient texture for the shadow.
+    /// Create a radial gradient texture for multiply-blend shadows.
+    /// For multiply: black center (darkens), white edge (no effect).
     /// </summary>
     private static ImageTexture CreateRadialGradientTexture()
     {
@@ -149,10 +154,15 @@ public partial class ShadowComponent : MeshInstance3D
                 float normalizedDist = dist / maxRadius;
 
                 // Create soft falloff with smoothstep
-                float alpha = 1.0f - Smoothstep(0.0f, 1.0f, normalizedDist);
+                // For multiply blend: 0 (black) at center, 1 (white) at edge
+                float brightness = Smoothstep(0.0f, 1.0f, normalizedDist);
 
-                // Set pixel (white with varying alpha - color comes from albedo_color)
-                image.SetPixel(x, y, new Color(1, 1, 1, alpha));
+                // Outside the circle should be fully white (no effect)
+                if (normalizedDist > 1.0f)
+                    brightness = 1.0f;
+
+                // Set pixel with gradient in RGB, full alpha for multiply blend
+                image.SetPixel(x, y, new Color(brightness, brightness, brightness, 1.0f));
             }
         }
 
