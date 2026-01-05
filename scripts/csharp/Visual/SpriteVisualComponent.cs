@@ -295,6 +295,30 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         return _viewport.Size.Y * _sprite3D.PixelSize;
     }
 
+    public float GetSpriteWidth()
+    {
+        if (_viewport == null || _sprite3D == null || _characterSprite == null)
+            return 1.0f;
+
+        var textureSize = GetCurrentFrameSize();
+        if (textureSize.X > 0)
+        {
+            return textureSize.X * _characterSprite.Scale.X * _sprite3D.PixelSize;
+        }
+
+        return _viewport.Size.X * _sprite3D.PixelSize;
+    }
+
+    public Vector3 GetShadowOffset()
+    {
+        if (_sprite3D == null)
+            return Vector3.Zero;
+
+        // Convert pixel offset to world offset
+        float worldOffsetX = SpriteOffsetPixels.X * _sprite3D.PixelSize;
+        return new Vector3(worldOffsetX, 0, 0);
+    }
+
     public void FlashWhite()
     {
         if (_characterSprite == null)

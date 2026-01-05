@@ -176,6 +176,25 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         return _viewport.Size.Y * _sprite3D.PixelSize;
     }
 
+    public float GetSpriteWidth()
+    {
+        if (_viewport == null || _sprite3D == null)
+            return 1.0f;
+
+        if (_cachedBounds.Size.X > 0)
+        {
+            return _cachedBounds.Size.X * ScaleFactor.X * _sprite3D.PixelSize;
+        }
+
+        return _viewport.Size.X * ScaleFactor.X * _sprite3D.PixelSize;
+    }
+
+    public Vector3 GetShadowOffset()
+    {
+        // Skeletal units are centered - no offset needed
+        return Vector3.Zero;
+    }
+
     public void FlashWhite()
     {
         if (_skeletalInstance == null)

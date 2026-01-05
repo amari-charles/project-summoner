@@ -68,6 +68,20 @@ public interface IVisualComponent
     float GetSpriteHeight();
 
     /// <summary>
+    /// Get the width of the sprite in world units.
+    /// Used for shadow auto-sizing.
+    /// </summary>
+    /// <returns>Sprite width.</returns>
+    float GetSpriteWidth();
+
+    /// <summary>
+    /// Get the shadow offset in world coordinates.
+    /// Used to align shadows with off-center sprites.
+    /// </summary>
+    /// <returns>Shadow offset (X, Y offset from unit origin).</returns>
+    Vector3 GetShadowOffset();
+
+    /// <summary>
     /// Flash the sprite white (damage feedback).
     /// </summary>
     void FlashWhite();

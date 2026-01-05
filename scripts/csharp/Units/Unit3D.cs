@@ -315,12 +315,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Create shadow if enabled
         if (ShadowEnabled)
         {
-            // Calculate shadow size: use explicit value if set, otherwise auto-calculate
+            // Calculate shadow size: use explicit value if set, otherwise auto-calculate from sprite width
             float effectiveShadowSize = ShadowSize;
             if (ShadowSize <= 0 && VisualComponent != null)
             {
-                float spriteHeight = VisualComponent.GetSpriteHeight();
-                effectiveShadowSize = spriteHeight * ShadowAutoSizeMultiplier;
+                float spriteWidth = VisualComponent.GetSpriteWidth();
+                effectiveShadowSize = spriteWidth * ShadowAutoSizeMultiplier;
             }
 
             if (effectiveShadowSize > 0)
@@ -328,6 +328,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 _shadowComponent = new ShadowComponent();
                 AddChild(_shadowComponent);
                 _shadowComponent.Initialize(effectiveShadowSize, ShadowOpacity);
+
+                // Apply shadow offset to align with off-center sprites
+                if (VisualComponent != null)
+                {
+                    var offset = VisualComponent.GetShadowOffset();
+                    _shadowComponent.Position += offset;
+                }
             }
         }
 

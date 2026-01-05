@@ -61,9 +61,11 @@ public partial class ShadowComponent : MeshInstance3D
         // Create material with proper transparent gradient shadow
         _material = new StandardMaterial3D();
         _material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
-        _material.BlendMode = BaseMaterial3D.BlendModeEnum.Mix;
+        _material.BlendMode = BaseMaterial3D.BlendModeEnum.Mul;  // Multiply: overlapping shadows don't compound
         _material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
         _material.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
+        _material.NoDepthTest = true;       // Don't depth-test against other objects
+        _material.RenderPriority = -100;    // Render shadows first (before units)
         _material.AlbedoTexture = _shadowTexture;
         _material.AlbedoColor = new Color(0, 0, 0, ShadowOpacity);
 
