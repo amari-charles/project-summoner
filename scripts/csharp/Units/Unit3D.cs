@@ -61,6 +61,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // Shadow Y offset above ground to prevent z-fighting
     private const float ShadowGroundOffset = 0.01f;
 
+    // Render priority bounds (Sprite3D.RenderPriority range)
+    private const int MinRenderPriority = -128;
+    private const int MaxRenderPriority = 127;
+
+    // Scale factor for converting world position to render priority
+    // With battlefield Z range ~-40 to +40 and priority range of 256, 3x gives good granularity
+    private const float RenderPriorityScale = 3f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -405,9 +413,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Update render priority based on world position
         // Higher priority = renders in front. Camera at Z=-42.85, so more negative Z = closer = higher priority
-        // Formula: -Z + Y (closer Z and higher Y both increase priority)
-        int priority = Mathf.Clamp((int)((-GlobalPosition.Z + GlobalPosition.Y) * 3f), -128, 127);
-        VisualComponent?.SetRenderPriority(priority);
+        int priority = (int)((-GlobalPosition.Z + GlobalPosition.Y) * RenderPriorityScale);
+        VisualComponent?.SetRenderPriority(Mathf.Clamp(priority, MinRenderPriority, MaxRenderPriority));
     }
 
     // =========================================================================
