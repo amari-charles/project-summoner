@@ -259,7 +259,7 @@ func _card_needs_click_targeting(card: Card) -> bool:
 	return card.needs_click_targeting()
 
 ## Update spawn preview position and visibility
-func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true) -> void:
+func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true, team: int = 0) -> void:
 	if world_pos == Vector3.ZERO:
 		_cleanup_spawn_preview()
 		return
@@ -267,7 +267,7 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 	# Create preview if needed or if card changed
 	if not _spawn_preview or _preview_card != card:
 		_cleanup_spawn_preview()
-		_create_spawn_preview(card)
+		_create_spawn_preview(card, team)
 
 	if not _spawn_preview:
 		return
@@ -278,7 +278,7 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 	_spawn_preview.SetValid(is_valid_zone)  # C# uses PascalCase
 
 ## Create a new spawn preview for the card
-func _create_spawn_preview(card: Card) -> void:
+func _create_spawn_preview(card: Card, team: int = 0) -> void:
 	if not card.unit_scene:
 		return
 
@@ -293,7 +293,7 @@ func _create_spawn_preview(card: Card) -> void:
 		var root_3d: Node = _find_3d_root(viewport)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
-			_spawn_preview.Setup(card.unit_scene, card.spawn_count)  # C# uses PascalCase
+			_spawn_preview.Setup(card.unit_scene, card.spawn_count, team)  # C# uses PascalCase
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:
@@ -428,25 +428,40 @@ func _cleanup_spell_preview() -> void:
 # =============================================================================
 
 ## Check if we can accept a debug spawn drop
-func _can_drop_debug_spawn(_at_position: Vector2, _data: Dictionary) -> bool:
+func _can_drop_debug_spawn(at_position: Vector2, data: Dictionary) -> bool:
 	# Always allow debug spawns if we're in a debug arena
 	var arena: DebugArenaController = _find_debug_arena_controller()
-	return arena != null
+	if not arena:
+		return false
+
+	# Get card from drag data (created by UnitSpawnerPanel)
+	var card: Card = data.get("card")
+	if not card:
+		return false
+
+	# Show spawn preview for debug spawns
+	if is_3d:
+		var world_pos: Vector3 = _screen_to_world_3d(at_position)
+		if world_pos != Vector3.ZERO:
+			# Debug spawns are always valid (no team restrictions)
+			var team: int = data.get("team", 1)  # Get team from drag data
+			_update_spawn_preview(world_pos, card, true, team)
+
+	return true
 
 
 ## Handle a debug spawn drop
 func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
-	var arena: DebugArenaController = _find_debug_arena_controller()
-	if not arena:
-		push_error("BattlefieldDropZone: No DebugArenaController found for debug spawn")
+	# Clean up preview before spawning
+	_cleanup_spawn_preview()
+
+	# Get card from drag data
+	var card: Card = data.get("card")
+	if not card:
+		push_error("BattlefieldDropZone: No card in debug spawn data")
 		return
 
-	var catalog_id: String = data.get("catalog_id", "")
 	var team: int = data.get("team", 1)  # Default to enemy team
-
-	if catalog_id.is_empty():
-		push_error("BattlefieldDropZone: No catalog_id in debug spawn data")
-		return
 
 	# Convert screen position to world position
 	var world_pos: Vector3 = _screen_to_world_3d(at_position)
@@ -454,8 +469,26 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 		push_error("BattlefieldDropZone: Failed to convert screen position to world")
 		return
 
-	# Spawn the unit via the arena controller
-	arena.spawn_debug_unit(catalog_id, world_pos, team)
+	# Get battlefield for spawning
+	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
+	if not battlefield:
+		push_error("BattlefieldDropZone: No battlefield found for debug spawn")
+		return
+
+	# Get modifier system (optional)
+	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
+
+	# Convert team int to UnitConstants.Team enum
+	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
+
+	# Spawn with no animation - debug spawns should appear immediately
+	# (spawn reveal tweens don't run when game is paused)
+	const DEBUG_SPAWN_DURATION: float = 0.0
+	card.play_3d(world_pos, unit_team, battlefield, modifier_system, DEBUG_SPAWN_DURATION)
+
+	# Activate newly spawned units immediately (debug mode bypasses prep phase)
+	await get_tree().process_frame
+	_activate_recent_spawns()
 
 
 ## Find the DebugArenaController in the scene
@@ -465,3 +498,13 @@ func _find_debug_arena_controller() -> DebugArenaController:
 		if controller is DebugArenaController:
 			return controller
 	return null
+
+
+## Activate recently spawned units (for debug mode)
+func _activate_recent_spawns() -> void:
+	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
+	for unit: Node in units:
+		# Activate if the unit has the method and isn't already active
+		if unit.has_method("Activate") and unit.has_method("IsActive"):
+			if not unit.IsActive():
+				unit.Activate()

@@ -48,6 +48,13 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     [Export]
     public float HeadOffsetPixels { get; set; } = 0.0f;
 
+    /// <summary>
+    /// Pixel offset to shift the sprite rendering position.
+    /// Use for sprites where the character isn't centered (e.g., particles extending to one side).
+    /// </summary>
+    [Export]
+    public Vector2 SpriteOffsetPixels { get; set; } = Vector2.Zero;
+
     [Export]
     public float SpriteScale { get; set; } = DefaultSpriteScale;
 
@@ -97,6 +104,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private Vector2 _baseSpriteScale = Vector2.One;
     private Tween? _attackTween;
     private bool _isAttacking;
+    private bool _isFlipped;
 
     // =========================================================================
     // LIFECYCLE
@@ -108,6 +116,13 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _sprite3D = GetNodeOrNull<Sprite3D>("Sprite3D");
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+
+        // Hide during initialization to prevent jitter
+        // (Unit3D._Ready runs after this and sets correct facing)
+        if (_sprite3D != null)
+        {
+            _sprite3D.Visible = false;
+        }
 
         if (_viewport != null)
         {
@@ -160,6 +175,20 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
         // Randomize animation frame
         RandomizeAnimationPhase();
+
+        // Show sprite after all initialization (deferred to run after Unit3D._Ready sets facing)
+        CallDeferred(MethodName.ShowSpriteDeferred);
+    }
+
+    /// <summary>
+    /// Show sprite after deferred initialization completes.
+    /// </summary>
+    private void ShowSpriteDeferred()
+    {
+        if (_sprite3D != null)
+        {
+            _sprite3D.Visible = true;
+        }
     }
 
     public override void _Process(double delta)
@@ -288,6 +317,31 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         return _viewport.Size.Y * _sprite3D.PixelSize;
     }
 
+    public float GetSpriteWidth()
+    {
+        if (_viewport == null || _sprite3D == null || _characterSprite == null)
+            return 1.0f;
+
+        var textureSize = GetCurrentFrameSize();
+        if (textureSize.X > 0)
+        {
+            return textureSize.X * _characterSprite.Scale.X * _sprite3D.PixelSize;
+        }
+
+        return _viewport.Size.X * _sprite3D.PixelSize;
+    }
+
+    public Vector3 GetShadowOffset()
+    {
+        if (_sprite3D == null)
+            return Vector3.Zero;
+
+        // Convert pixel offset to world offset (flip X when sprite is flipped)
+        float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
+        float worldOffsetX = offsetX * _sprite3D.PixelSize;
+        return new Vector3(worldOffsetX, 0, 0);
+    }
+
     public void FlashWhite()
     {
         if (_characterSprite == null)
@@ -303,9 +357,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     public void SetFlipH(bool flip)
     {
+        _isFlipped = flip;
         if (_characterSprite != null)
         {
             _characterSprite.FlipH = flip;
+            // Re-apply alignment with correct offset direction
+            SetupSpriteAlignment();
         }
     }
 
@@ -395,6 +452,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         {
             spritePos.Y = _viewport.Size.Y * 0.8f;
         }
+
+        // Apply user-defined offset (flip X when sprite is flipped)
+        float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
+        spritePos.X += offsetX * _characterSprite.Scale.X;
+        spritePos.Y += SpriteOffsetPixels.Y * _characterSprite.Scale.Y;
 
         _characterSprite.Position = spritePos;
     }

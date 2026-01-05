@@ -34,6 +34,9 @@ const HP_BAR_WIDTH: float = 1.5  # Wider than unit bars for visibility
 const HP_BAR_OFFSET_Y: float = 2.5  # Height above summoner position
 const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 
+## Projectile targeting configuration
+const PROJECTILE_TARGET_HEIGHT: float = 1.5  # Chest height for projectile targeting
+
 ## Current state
 var mana: float = 0.0
 var max_mana: float = SummonerConfig.DEFAULT_MAX_MANA  ## Fixed pool for entire battle (no regeneration)
@@ -655,3 +658,8 @@ func _play_hit_feedback() -> void:
 	var shake_offset: Vector3 = Vector3(randf_range(-0.15, 0.15), randf_range(-0.15, 0.15), 0)
 	active_feedback_tween.tween_property(visual, "position", original_visual_position + shake_offset, shake_out)
 	active_feedback_tween.chain().tween_property(visual, "position", original_visual_position, shake_return)
+
+## Get the position where projectiles should aim at this summoner.
+## Returns center mass (roughly chest height for visual feedback).
+func get_projectile_target_position() -> Vector3:
+	return global_position + Vector3(0, PROJECTILE_TARGET_HEIGHT, 0)

@@ -59,13 +59,13 @@ ProjectileId = "wind_puff"
 ProjectileDelay = 1.17
 IsDelayedProjectile = true
 ShadowEnabled = true
-ShadowSize = 0.8
 ShadowOpacity = 0.5
 
 [node name="Visual" parent="." instance=ExtResource("2_sprite_component")]
 SpriteFramesResource = ExtResource("3_frames")
 FeetOffsetPixels = 50.0
 HeadOffsetPixels = 450.0
+SpriteOffsetPixels = Vector2(-45, 0)
 SpriteScale = 1.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

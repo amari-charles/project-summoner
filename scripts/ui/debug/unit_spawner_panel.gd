@@ -7,6 +7,7 @@ class_name UnitSpawnerPanel
 ## battlefield. Includes a team toggle, pause button, and clear all button.
 
 const SETTINGS_PATH: String = "user://debug_arena_settings.cfg"
+const DEBUG_DECK_PATH: String = "res://data/debug/debug_deck.json"
 
 ## Spawn as enemy by default
 @export var spawn_as_enemy: bool = true
@@ -97,21 +98,51 @@ func _build_ui() -> void:
 
 
 func _populate_unit_list(container: VBoxContainer) -> void:
-	# Get all cards from catalog
-	var all_cards: Array[Dictionary] = CardCatalog.list_all_cards()
+	# Load debug deck from file
+	var deck_entries: Array = _load_debug_deck()
 
-	for card_def: Dictionary in all_cards:
-		# Only include summon cards
-		if card_def.get("card_type") != Card.CardType.SUMMON:
+	for entry: Dictionary in deck_entries:
+		var catalog_id: String = entry.get("catalog_id", "")
+		if catalog_id.is_empty():
 			continue
 
+		# Create Card from catalog
+		var card: Card = CardCatalog.create_card_resource(catalog_id)
+		if not card:
+			push_warning("UnitSpawnerPanel: Failed to create card for '%s'" % catalog_id)
+			continue
+
+		# Apply stat overrides if present (for testing upgraded cards)
+		if entry.has("stat_overrides"):
+			card.custom_stat_overrides = entry.get("stat_overrides")
+
 		var btn: SpawnableUnitButton = SpawnableUnitButton.new()
-		btn.catalog_id = card_def.get("catalog_id", "")
-		btn.unit_name = card_def.get("card_name", "Unknown")
+		btn.card = card
+		btn.unit_name = card.card_name
 		btn.panel = self
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		container.add_child(btn)
 		_unit_buttons.append(btn)
+
+
+func _load_debug_deck() -> Array:
+	# Try to load from deck file
+	var file: FileAccess = FileAccess.open(DEBUG_DECK_PATH, FileAccess.READ)
+	if file:
+		var json_text: String = file.get_as_text()
+		file.close()
+		var parsed: Variant = JSON.parse_string(json_text)
+		if parsed is Array:
+			return parsed
+
+	# Fallback: create entries for all catalog summons
+	push_warning("UnitSpawnerPanel: Debug deck not found, using all catalog summons")
+	var entries: Array = []
+	var all_cards: Array[Dictionary] = CardCatalog.list_all_cards()
+	for card_def: Dictionary in all_cards:
+		if card_def.get("card_type") == Card.CardType.SUMMON:
+			entries.append({"catalog_id": card_def.get("catalog_id", ""), "count": 1})
+	return entries
 
 
 func get_spawn_team() -> int:

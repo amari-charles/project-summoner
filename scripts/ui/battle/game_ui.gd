@@ -41,7 +41,7 @@ var player_summoner: Summoner = null
 var enemy_summoner: Summoner = null
 var _initialized: bool = false  # Track initialization state
 
-## Player team value that works for both Unit.Team.PLAYER (2D) and UnitConstants.Team.PLAYER (3D)
+## Player team value (matches UnitConstants.Team.PLAYER)
 const PLAYER_TEAM_VALUE: int = 0
 
 func _ready() -> void:
@@ -208,9 +208,9 @@ func _on_mana_changed(current: float, maximum: float) -> void:
 	if player_mana_bar:
 		player_mana_bar.update_value(current, maximum)
 
-func _on_game_ended(winner: Unit.Team) -> void:
+func _on_game_ended(winner: UnitConstants.Team) -> void:
 	if game_over_label:
-		var winner_text: String = Loc.t("ui.battle.player_wins") if winner == Unit.Team.PLAYER else Loc.t("ui.battle.enemy_wins")
+		var winner_text: String = Loc.t("ui.battle.player_wins") if winner == UnitConstants.Team.PLAYER else Loc.t("ui.battle.enemy_wins")
 		game_over_label.text = winner_text
 		game_over_label.visible = true
 

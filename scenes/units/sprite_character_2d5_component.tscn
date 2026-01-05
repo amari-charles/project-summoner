@@ -16,6 +16,7 @@ shaded = false
 alpha_cut = 0
 texture_filter = 1
 texture = SubResource("ViewportTexture_1")
+cast_shadow = 0
 
 [node name="SubViewport" type="SubViewport" parent="Sprite3D"]
 transparent_bg = true

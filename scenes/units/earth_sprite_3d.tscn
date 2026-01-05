@@ -21,7 +21,6 @@ Team = 0
 UnitType = 0
 CollisionRadius = 0.5
 ShadowEnabled = true
-ShadowSize = 1.0
 ShadowOpacity = 0.6
 
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]

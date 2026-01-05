@@ -49,6 +49,18 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // If target angle is within ±90° of forward (+X), face right; otherwise face left.
     private const float StrafeFacingHalfAngle = 90f;
 
+    // Projectile target fallback: center mass at 50% of unit height
+    private const float CenterMassHeightFraction = 0.5f;
+
+    // Minimum horizontal movement threshold to update facing direction
+    private const float MinFacingDirectionThreshold = 0.1f;
+
+    // Shadow auto-sizing: multiply sprite height by this to get shadow diameter
+    private const float ShadowAutoSizeMultiplier = 0.8f;
+
+    // Shadow Y offset above ground to prevent z-fighting
+    private const float ShadowGroundOffset = 0.01f;
+
     // Cached shader (shared across all instances)
     private static Shader? _spawnRevealShader;
 
@@ -161,8 +173,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public bool ShadowEnabled { get; set; } = true;
 
+    /// <summary>
+    /// Shadow size in world units. Set to 0 to auto-calculate from visual dimensions.
+    /// </summary>
     [Export]
-    public float ShadowSize { get; set; } = 1.0f;
+    public float ShadowSize { get; set; } = 0f;
 
     [Export]
     public float ShadowOpacity { get; set; } = 0.6f;
@@ -221,6 +236,30 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         _isFacingRight = facingRight;
         VisualComponent?.SetFlipH(_isFacingRight);
+        UpdateShadowOffset();
+    }
+
+    /// <summary>
+    /// Update shadow position to match sprite offset (accounts for flip).
+    /// </summary>
+    private void UpdateShadowOffset()
+    {
+        if (_shadowComponent == null || VisualComponent == null)
+            return;
+
+        var offset = VisualComponent.GetShadowOffset();
+        _shadowComponent.Position = new Vector3(offset.X, ShadowGroundOffset, 0);
+    }
+
+    /// <summary>
+    /// Show shadow after deferred initialization completes.
+    /// </summary>
+    private void ShowShadowDeferred()
+    {
+        if (_shadowComponent != null)
+        {
+            _shadowComponent.Visible = true;
+        }
     }
 
     // Base stats for modifier calculations
@@ -234,6 +273,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     protected IVisualComponent? VisualComponent { get; set; }
+    private Marker3D? _projectileTargetPoint;
+    private ShadowComponent? _shadowComponent;
 
     // =========================================================================
     // TARGETING HELPER
@@ -291,6 +332,32 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             VisualComponent = vc;
         }
 
+        // Find projectile target point (optional - fallback uses center mass)
+        _projectileTargetPoint = GetNodeOrNull<Marker3D>("ProjectileTargetPoint");
+
+        // Create shadow if enabled
+        if (ShadowEnabled)
+        {
+            // Calculate shadow size: use explicit value if set, otherwise auto-calculate from sprite width
+            float effectiveShadowSize = ShadowSize;
+            if (ShadowSize <= 0 && VisualComponent != null)
+            {
+                float spriteWidth = VisualComponent.GetSpriteWidth();
+                effectiveShadowSize = spriteWidth * ShadowAutoSizeMultiplier;
+            }
+
+            if (effectiveShadowSize > 0)
+            {
+                _shadowComponent = new ShadowComponent();
+                AddChild(_shadowComponent);
+                _shadowComponent.Initialize(effectiveShadowSize, ShadowOpacity);
+
+                // Hide shadow during initialization to prevent jitter
+                // (offset depends on facing which is set later in _Ready)
+                _shadowComponent.Visible = false;
+            }
+        }
+
         // Setup groups for targeting
         SetupGroups();
 
@@ -304,6 +371,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Set initial facing based on team (sprites are drawn facing left, flip for player)
         _isFacingRight = Team == (int)Units.Team.Player;
         VisualComponent?.SetFlipH(_isFacingRight);
+        UpdateShadowOffset();
+
+        // Show shadow after initialization (deferred to run after visual components show)
+        if (_shadowComponent != null)
+        {
+            CallDeferred(MethodName.ShowShadowDeferred);
+        }
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
@@ -519,6 +593,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         ActivationState = ActivationState.Inactive;
     }
 
+    /// <summary>
+    /// Check if this unit is currently active.
+    /// </summary>
+    public bool IsActive()
+    {
+        return ActivationState == ActivationState.Active;
+    }
+
     // =========================================================================
     // SPAWN REVEAL ANIMATION
     // =========================================================================
@@ -536,10 +618,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         ActivationState = ActivationState.Inactive;
 
         // Start shadow at scale 0 (will grow during reveal)
-        var shadow = GetNodeOrNull<Node3D>("Shadow");
-        if (shadow != null)
+        if (_shadowComponent != null)
         {
-            shadow.Scale = Vector3.Zero;
+            _shadowComponent.Scale = Vector3.Zero;
         }
 
         // Load shader if not cached
@@ -577,10 +658,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _spawnRevealTween.TweenMethod(Callable.From<float>(UpdateSpawnProgress), 0.0f, 1.0f, duration);
 
         // Animate shadow growing alongside
-        var shadow = GetNodeOrNull<Node3D>("Shadow");
-        if (shadow != null)
+        if (_shadowComponent != null)
         {
-            _spawnRevealTween.Parallel().TweenProperty(shadow, "scale", Vector3.One, duration);
+            _spawnRevealTween.Parallel().TweenProperty(_shadowComponent, "scale", Vector3.One, duration);
         }
 
         // Complete when done
@@ -678,6 +758,23 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         ForcedTarget = null;
         ForcedTargetTimer = 0;
+    }
+
+    /// <summary>
+    /// Get the position where projectiles should aim at this unit.
+    /// Returns ProjectileTargetPoint position if available, otherwise center mass.
+    /// Method name uses snake_case for cross-language duck typing compatibility.
+    /// </summary>
+    public Vector3 get_projectile_target_position()
+    {
+        if (_projectileTargetPoint != null)
+        {
+            return _projectileTargetPoint.GlobalPosition;
+        }
+
+        // Fallback: center mass based on visual height
+        float height = VisualComponent?.GetSpriteHeight() ?? 1.0f;
+        return GlobalPosition + new Vector3(0, height * CenterMassHeightFraction, 0);
     }
 
     // =========================================================================
@@ -931,6 +1028,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         {
             _isFacingRight = shouldFaceRight;
             VisualComponent?.SetFlipH(_isFacingRight);
+            UpdateShadowOffset();
         }
 
         // Calculate angle difference from our facing
@@ -969,10 +1067,15 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected void UpdateFacing(Vector3 direction)
     {
         // Sprites are drawn facing left, flip when moving right
-        if (Mathf.Abs(direction.X) > 0.1f)
+        if (Mathf.Abs(direction.X) > MinFacingDirectionThreshold)
         {
-            _isFacingRight = direction.X > 0;
-            VisualComponent?.SetFlipH(_isFacingRight);
+            bool shouldFaceRight = direction.X > 0;
+            if (_isFacingRight != shouldFaceRight)
+            {
+                _isFacingRight = shouldFaceRight;
+                VisualComponent?.SetFlipH(_isFacingRight);
+                UpdateShadowOffset();
+            }
         }
     }
 
@@ -1106,9 +1209,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         SpatialGrid.Instance?.UpdateUnitPosition(this);
     }
 
-    private static void UpdateShadowForAltitude()
+    private void UpdateShadowForAltitude()
     {
-        // TODO: Update shadow scale/opacity based on flight altitude
+        _shadowComponent?.UpdateForAltitude(Position.Y);
     }
 
     private void HandleFlyingDeath()

@@ -6,8 +6,8 @@ class_name SpawnableUnitButton
 ## Can be dragged onto the battlefield to spawn a unit at that position.
 ## Returns drag data compatible with BattlefieldDropZone.
 
-## The catalog ID of the unit to spawn
-var catalog_id: String = ""
+## The Card resource to spawn (created from catalog)
+var card: Card = null
 
 ## The display name of the unit
 var unit_name: String = ""
@@ -26,12 +26,7 @@ func _ready() -> void:
 
 ## Override to provide drag data
 func _get_drag_data(_at_position: Vector2) -> Variant:
-	# Create drag preview
-	var preview: Label = Label.new()
-	preview.text = unit_name
-	preview.add_theme_color_override("font_color", Color.YELLOW)
-	preview.add_theme_font_size_override("font_size", 14)
-	set_drag_preview(preview)
+	# No drag preview text - ghost units on battlefield are the preview
 
 	# Return drag data that BattlefieldDropZone can use
 	var team: int = 1  # Default to enemy team
@@ -40,6 +35,6 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 	return {
 		"type": "debug_spawn",
-		"catalog_id": catalog_id,
+		"card": card,
 		"team": team
 	}

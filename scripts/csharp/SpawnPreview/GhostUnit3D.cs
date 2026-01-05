@@ -25,7 +25,7 @@ public partial class GhostUnit3D : Node3D
     private Node? _visualRoot;
     private bool _isValid = true;
     private float _flightAltitude;
-    private ShadowComponent? _groundShadow;
+    private bool _facingRight = true;  // Default to player (facing right)
 
     // =========================================================================
     // PUBLIC API
@@ -39,10 +39,15 @@ public partial class GhostUnit3D : Node3D
     /// <summary>
     /// Initialize ghost with unit scene data.
     /// </summary>
-    public void Setup(PackedScene unitScene)
+    /// <param name="unitScene">The unit scene to preview</param>
+    /// <param name="team">Team (0=player faces right, 1=enemy faces left)</param>
+    public void Setup(PackedScene unitScene, int team = 0)
     {
         if (unitScene == null)
             return;
+
+        // Player team faces right (flip=true), enemy faces left (flip=false)
+        _facingRight = team == 0;
 
         // Instantiate unit to find its Visual child and flight altitude
         var tempUnit = unitScene.Instantiate();
@@ -106,7 +111,6 @@ public partial class GhostUnit3D : Node3D
         if (_flightAltitude > 0)
         {
             Position = new Vector3(0, _flightAltitude, 0);
-            CreateGroundShadow();
         }
 
         // Apply ghost transparency AFTER the component fully initializes
@@ -136,12 +140,6 @@ public partial class GhostUnit3D : Node3D
             _visualRoot.QueueFree();
         }
         _visualRoot = null;
-
-        if (_groundShadow != null && IsInstanceValid(_groundShadow))
-        {
-            _groundShadow.QueueFree();
-        }
-        _groundShadow = null;
 
         QueueFree();
     }
@@ -182,17 +180,6 @@ public partial class GhostUnit3D : Node3D
     }
 
     /// <summary>
-    /// Create a shadow on the ground for flying units.
-    /// </summary>
-    private void CreateGroundShadow()
-    {
-        _groundShadow = new ShadowComponent();
-        GetParent()?.AddChild(_groundShadow);
-        _groundShadow.Initialize(1.0f, 0.4f);
-        _groundShadow.UpdateForAltitude(_flightAltitude);
-    }
-
-    /// <summary>
     /// Apply ghost transparency after waiting for component to initialize.
     /// Visual components may use await in _Ready(), so children don't exist immediately.
     /// </summary>
@@ -205,14 +192,14 @@ public partial class GhostUnit3D : Node3D
         if (_visualRoot == null || !IsInstanceValid(_visualRoot))
             return;
 
-        // Ensure ghost faces correct direction (player units face left in this game layout)
+        // Set facing direction based on team
         if (_visualRoot.HasMethod("set_flip_h"))
         {
-            _visualRoot.Call("set_flip_h", true);
+            _visualRoot.Call("set_flip_h", _facingRight);
         }
         else if (_visualRoot.HasMethod("SetFlipH"))
         {
-            _visualRoot.Call("SetFlipH", true);
+            _visualRoot.Call("SetFlipH", _facingRight);
         }
 
         ApplyGhostAppearance();

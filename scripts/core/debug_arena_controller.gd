@@ -118,42 +118,6 @@ func _on_skip_prep_toggled(skip: bool) -> void:
 		skip_prep_phase()
 
 
-## Spawn a unit at the given position with the given team
-func spawn_debug_unit(catalog_id: String, world_position: Vector3, team: int) -> Node3D:
-	var card: Card = CardCatalog.create_card_resource(catalog_id)
-	if not card:
-		push_error("DebugArenaController: Failed to create card: %s" % catalog_id)
-		return null
-
-	# Get battlefield
-	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
-	if not battlefield:
-		push_error("DebugArenaController: No battlefield found")
-		return null
-
-	# Get team enum
-	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
-
-	# Spawn directly using card.play_3d
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
-	card.play_3d(world_position, unit_team, battlefield, modifier_system)
-
-	# Wait a frame for unit to spawn
-	await get_tree().process_frame
-
-	# Find and activate the spawned unit
-	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
-	if units.size() > 0:
-		var unit: Node3D = units[-1] as Node3D
-		# Activate unit immediately so it's not frozen
-		if unit.has_method("Activate"):
-			unit.Activate()
-		unit_spawned.emit(unit, team)
-		return unit
-
-	return null
-
-
 ## Clear all units from the battlefield
 func clear_all_units() -> void:
 	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)

@@ -236,30 +236,18 @@ public partial class CardFactory : Node
                 GD.Print($"[CardFactory] Applied scale_multiplier {multiplier} to '{catalogId}'");
             }
 
-            // Add to tree FIRST so _Ready() runs
-            gameplayLayer.AddChild(unit);
-
-            // Initialize with modifiers AFTER add_child
-            unit.Call("InitializeWithModifiers", modifiers, cardData);
-
             // Calculate formation offset
             var offset = formation.GetOffset(i, spawnCount);
-
-            // Find safe spawn position
             var desiredPos = position + offset;
+
+            // Get collision radius for safe spawn calculation
             var collisionRadius = unit.Get("CollisionRadius").AsSingle();
             if (collisionRadius <= 0) collisionRadius = 0.5f;
 
-            var safePos = FindSafeSpawnPosition(desiredPos, gameplayLayer.GetTree(), collisionRadius, unit);
-            unit.GlobalPosition = safePos;
+            // Find safe spawn position BEFORE adding to tree
+            var safePos = FindSafeSpawnPosition(desiredPos, battlefield.GetTree(), collisionRadius, unit);
 
-            // Update SpatialGrid immediately
-            if (spatialGrid != null && spatialGrid.HasMethod("update_unit_position"))
-            {
-                spatialGrid.Call("update_unit_position", unit);
-            }
-
-            // Preserve flight altitude for flying units
+            // Handle flight altitude for flying units
             var movementLayer = unit.Get("MovementLayer");
             if (movementLayer.VariantType == Variant.Type.Int &&
                 movementLayer.AsInt32() == (int)MovementLayer.Air)
@@ -267,8 +255,23 @@ public partial class CardFactory : Node
                 var flightAlt = unit.Get("FlightAltitude");
                 if (flightAlt.VariantType == Variant.Type.Float || flightAlt.VariantType == Variant.Type.Int)
                 {
-                    unit.GlobalPosition = new Vector3(safePos.X, flightAlt.AsSingle(), safePos.Z);
+                    safePos = new Vector3(safePos.X, flightAlt.AsSingle(), safePos.Z);
                 }
+            }
+
+            // Set position BEFORE adding to tree (prevents jitter)
+            unit.Position = safePos;
+
+            // Add to tree - visual components handle their own visibility during init
+            gameplayLayer.AddChild(unit);
+
+            // Initialize with modifiers
+            unit.Call("InitializeWithModifiers", modifiers, cardData);
+
+            // Update SpatialGrid after unit is in tree
+            if (spatialGrid != null && spatialGrid.HasMethod("update_unit_position"))
+            {
+                spatialGrid.Call("update_unit_position", unit);
             }
 
             // Start spawn reveal animation if duration specified
