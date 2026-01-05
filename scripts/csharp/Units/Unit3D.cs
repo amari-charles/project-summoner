@@ -594,6 +594,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         ActivationState = ActivationState.Inactive;
     }
 
+    /// <summary>
+    /// Check if this unit is currently active.
+    /// </summary>
+    public bool IsActive()
+    {
+        return ActivationState == ActivationState.Active;
+    }
+
     // =========================================================================
     // SPAWN REVEAL ANIMATION
     // =========================================================================
