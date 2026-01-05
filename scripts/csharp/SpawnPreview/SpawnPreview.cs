@@ -29,6 +29,7 @@ public partial class SpawnPreview : Node3D
     private bool _isValid = true;
     private int _spawnCount = 1;
     private PackedScene? _unitScene;
+    private int _team = 0;  // 0=player, 1=enemy
 
     // =========================================================================
     // PUBLIC API
@@ -37,10 +38,14 @@ public partial class SpawnPreview : Node3D
     /// <summary>
     /// Initialize preview with unit scene and spawn count.
     /// </summary>
-    public void Setup(PackedScene unitScene, int spawnCount = 1)
+    /// <param name="unitScene">The unit scene to preview</param>
+    /// <param name="spawnCount">Number of units to spawn</param>
+    /// <param name="team">Team (0=player, 1=enemy) for facing direction</param>
+    public void Setup(PackedScene unitScene, int spawnCount = 1, int team = 0)
     {
         _unitScene = unitScene;
         _spawnCount = spawnCount;
+        _team = team;
 
         if (unitScene != null)
         {
@@ -172,7 +177,7 @@ public partial class SpawnPreview : Node3D
         {
             var ghost = new GhostUnit3D();
             AddChild(ghost);
-            ghost.Setup(_unitScene);
+            ghost.Setup(_unitScene, _team);
             ghost.SetValid(_isValid);
             _ghostUnits.Add(ghost);
 

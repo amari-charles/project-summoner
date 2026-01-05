@@ -117,6 +117,13 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
 
+        // Hide during initialization to prevent jitter
+        // (Unit3D._Ready runs after this and sets correct facing)
+        if (_sprite3D != null)
+        {
+            _sprite3D.Visible = false;
+        }
+
         if (_viewport != null)
         {
             // Force viewport to render every frame
@@ -168,6 +175,20 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
         // Randomize animation frame
         RandomizeAnimationPhase();
+
+        // Show sprite after all initialization (deferred to run after Unit3D._Ready sets facing)
+        CallDeferred(MethodName.ShowSpriteDeferred);
+    }
+
+    /// <summary>
+    /// Show sprite after deferred initialization completes.
+    /// </summary>
+    private void ShowSpriteDeferred()
+    {
+        if (_sprite3D != null)
+        {
+            _sprite3D.Visible = true;
+        }
     }
 
     public override void _Process(double delta)

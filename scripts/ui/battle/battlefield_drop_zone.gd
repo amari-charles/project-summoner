@@ -259,7 +259,7 @@ func _card_needs_click_targeting(card: Card) -> bool:
 	return card.needs_click_targeting()
 
 ## Update spawn preview position and visibility
-func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true) -> void:
+func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true, team: int = 0) -> void:
 	if world_pos == Vector3.ZERO:
 		_cleanup_spawn_preview()
 		return
@@ -267,7 +267,7 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 	# Create preview if needed or if card changed
 	if not _spawn_preview or _preview_card != card:
 		_cleanup_spawn_preview()
-		_create_spawn_preview(card)
+		_create_spawn_preview(card, team)
 
 	if not _spawn_preview:
 		return
@@ -278,7 +278,7 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 	_spawn_preview.SetValid(is_valid_zone)  # C# uses PascalCase
 
 ## Create a new spawn preview for the card
-func _create_spawn_preview(card: Card) -> void:
+func _create_spawn_preview(card: Card, team: int = 0) -> void:
 	if not card.unit_scene:
 		return
 
@@ -293,7 +293,7 @@ func _create_spawn_preview(card: Card) -> void:
 		var root_3d: Node = _find_3d_root(viewport)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
-			_spawn_preview.Setup(card.unit_scene, card.spawn_count)  # C# uses PascalCase
+			_spawn_preview.Setup(card.unit_scene, card.spawn_count, team)  # C# uses PascalCase
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:
@@ -444,7 +444,8 @@ func _can_drop_debug_spawn(at_position: Vector2, data: Dictionary) -> bool:
 		var world_pos: Vector3 = _screen_to_world_3d(at_position)
 		if world_pos != Vector3.ZERO:
 			# Debug spawns are always valid (no team restrictions)
-			_update_spawn_preview(world_pos, card, true)
+			var team: int = data.get("team", 1)  # Get team from drag data
+			_update_spawn_preview(world_pos, card, true, team)
 
 	return true
 

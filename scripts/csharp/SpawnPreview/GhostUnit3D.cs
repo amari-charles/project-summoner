@@ -25,6 +25,7 @@ public partial class GhostUnit3D : Node3D
     private Node? _visualRoot;
     private bool _isValid = true;
     private float _flightAltitude;
+    private bool _facingRight = true;  // Default to player (facing right)
 
     // =========================================================================
     // PUBLIC API
@@ -38,10 +39,15 @@ public partial class GhostUnit3D : Node3D
     /// <summary>
     /// Initialize ghost with unit scene data.
     /// </summary>
-    public void Setup(PackedScene unitScene)
+    /// <param name="unitScene">The unit scene to preview</param>
+    /// <param name="team">Team (0=player faces right, 1=enemy faces left)</param>
+    public void Setup(PackedScene unitScene, int team = 0)
     {
         if (unitScene == null)
             return;
+
+        // Player team faces right (flip=true), enemy faces left (flip=false)
+        _facingRight = team == 0;
 
         // Instantiate unit to find its Visual child and flight altitude
         var tempUnit = unitScene.Instantiate();
@@ -186,14 +192,14 @@ public partial class GhostUnit3D : Node3D
         if (_visualRoot == null || !IsInstanceValid(_visualRoot))
             return;
 
-        // Ensure ghost faces correct direction (player units face left in this game layout)
+        // Set facing direction based on team
         if (_visualRoot.HasMethod("set_flip_h"))
         {
-            _visualRoot.Call("set_flip_h", true);
+            _visualRoot.Call("set_flip_h", _facingRight);
         }
         else if (_visualRoot.HasMethod("SetFlipH"))
         {
-            _visualRoot.Call("SetFlipH", true);
+            _visualRoot.Call("SetFlipH", _facingRight);
         }
 
         ApplyGhostAppearance();
