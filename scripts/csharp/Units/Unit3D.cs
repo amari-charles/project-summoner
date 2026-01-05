@@ -248,6 +248,17 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _shadowComponent.Position = new Vector3(offset.X, 0.01f, 0);
     }
 
+    /// <summary>
+    /// Show shadow after deferred initialization completes.
+    /// </summary>
+    private void ShowShadowDeferred()
+    {
+        if (_shadowComponent != null)
+        {
+            _shadowComponent.Visible = true;
+        }
+    }
+
     // Base stats for modifier calculations
     protected float _baseMaxHp;
     protected float _baseAttackDamage;
@@ -342,12 +353,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 AddChild(_shadowComponent);
                 _shadowComponent.Initialize(effectiveShadowSize, ShadowOpacity);
 
-                // Apply shadow offset to align with off-center sprites
-                if (VisualComponent != null)
-                {
-                    var offset = VisualComponent.GetShadowOffset();
-                    _shadowComponent.Position += offset;
-                }
+                // Hide shadow during initialization to prevent jitter
+                // (offset depends on facing which is set later in _Ready)
+                _shadowComponent.Visible = false;
             }
         }
 
@@ -365,6 +373,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _isFacingRight = Team == (int)Units.Team.Player;
         VisualComponent?.SetFlipH(_isFacingRight);
         UpdateShadowOffset();
+
+        // Show shadow after initialization (deferred to run after visual components show)
+        if (_shadowComponent != null)
+        {
+            CallDeferred(MethodName.ShowShadowDeferred);
+        }
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
