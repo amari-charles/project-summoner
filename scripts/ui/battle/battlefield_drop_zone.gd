@@ -481,9 +481,9 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 	# Convert team int to UnitConstants.Team enum
 	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
 
-	# Spawn using Card.play_3d() with minimal spawn animation to prevent jitter
-	# The spawn reveal system hides initialization artifacts
-	const DEBUG_SPAWN_DURATION: float = 0.05
+	# Spawn with no animation - debug spawns should appear immediately
+	# (spawn reveal tweens don't run when game is paused)
+	const DEBUG_SPAWN_DURATION: float = 0.0
 	card.play_3d(world_pos, unit_team, battlefield, modifier_system, DEBUG_SPAWN_DURATION)
 
 	# Activate newly spawned units immediately (debug mode bypasses prep phase)
