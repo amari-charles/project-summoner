@@ -104,6 +104,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private Vector2 _baseSpriteScale = Vector2.One;
     private Tween? _attackTween;
     private bool _isAttacking;
+    private bool _isFlipped;
 
     // =========================================================================
     // LIFECYCLE
@@ -314,8 +315,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (_sprite3D == null)
             return Vector3.Zero;
 
-        // Convert pixel offset to world offset
-        float worldOffsetX = SpriteOffsetPixels.X * _sprite3D.PixelSize;
+        // Convert pixel offset to world offset (flip X when sprite is flipped)
+        float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
+        float worldOffsetX = offsetX * _sprite3D.PixelSize;
         return new Vector3(worldOffsetX, 0, 0);
     }
 
@@ -334,9 +336,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     public void SetFlipH(bool flip)
     {
+        _isFlipped = flip;
         if (_characterSprite != null)
         {
             _characterSprite.FlipH = flip;
+            // Re-apply alignment with correct offset direction
+            SetupSpriteAlignment();
         }
     }
 
@@ -427,8 +432,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             spritePos.Y = _viewport.Size.Y * 0.8f;
         }
 
-        // Apply user-defined offset (for off-center sprite sheets)
-        spritePos.X += SpriteOffsetPixels.X * _characterSprite.Scale.X;
+        // Apply user-defined offset (flip X when sprite is flipped)
+        float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
+        spritePos.X += offsetX * _characterSprite.Scale.X;
         spritePos.Y += SpriteOffsetPixels.Y * _characterSprite.Scale.Y;
 
         _characterSprite.Position = spritePos;

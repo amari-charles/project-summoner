@@ -25,7 +25,6 @@ public partial class GhostUnit3D : Node3D
     private Node? _visualRoot;
     private bool _isValid = true;
     private float _flightAltitude;
-    private ShadowComponent? _groundShadow;
 
     // =========================================================================
     // PUBLIC API
@@ -106,7 +105,6 @@ public partial class GhostUnit3D : Node3D
         if (_flightAltitude > 0)
         {
             Position = new Vector3(0, _flightAltitude, 0);
-            CreateGroundShadow();
         }
 
         // Apply ghost transparency AFTER the component fully initializes
@@ -136,12 +134,6 @@ public partial class GhostUnit3D : Node3D
             _visualRoot.QueueFree();
         }
         _visualRoot = null;
-
-        if (_groundShadow != null && IsInstanceValid(_groundShadow))
-        {
-            _groundShadow.QueueFree();
-        }
-        _groundShadow = null;
 
         QueueFree();
     }
@@ -179,17 +171,6 @@ public partial class GhostUnit3D : Node3D
         {
             dest.Set(property, value);
         }
-    }
-
-    /// <summary>
-    /// Create a shadow on the ground for flying units.
-    /// </summary>
-    private void CreateGroundShadow()
-    {
-        _groundShadow = new ShadowComponent();
-        GetParent()?.AddChild(_groundShadow);
-        _groundShadow.Initialize(1.0f, 0.4f);
-        _groundShadow.UpdateForAltitude(_flightAltitude);
     }
 
     /// <summary>

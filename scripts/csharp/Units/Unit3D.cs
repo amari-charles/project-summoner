@@ -233,6 +233,19 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         _isFacingRight = facingRight;
         VisualComponent?.SetFlipH(_isFacingRight);
+        UpdateShadowOffset();
+    }
+
+    /// <summary>
+    /// Update shadow position to match sprite offset (accounts for flip).
+    /// </summary>
+    private void UpdateShadowOffset()
+    {
+        if (_shadowComponent == null || VisualComponent == null)
+            return;
+
+        var offset = VisualComponent.GetShadowOffset();
+        _shadowComponent.Position = new Vector3(offset.X, 0.01f, 0);
     }
 
     // Base stats for modifier calculations
@@ -351,6 +364,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Set initial facing based on team (sprites are drawn facing left, flip for player)
         _isFacingRight = Team == (int)Units.Team.Player;
         VisualComponent?.SetFlipH(_isFacingRight);
+        UpdateShadowOffset();
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
@@ -993,6 +1007,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         {
             _isFacingRight = shouldFaceRight;
             VisualComponent?.SetFlipH(_isFacingRight);
+            UpdateShadowOffset();
         }
 
         // Calculate angle difference from our facing
@@ -1033,8 +1048,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Sprites are drawn facing left, flip when moving right
         if (Mathf.Abs(direction.X) > MinFacingDirectionThreshold)
         {
-            _isFacingRight = direction.X > 0;
-            VisualComponent?.SetFlipH(_isFacingRight);
+            bool shouldFaceRight = direction.X > 0;
+            if (_isFacingRight != shouldFaceRight)
+            {
+                _isFacingRight = shouldFaceRight;
+                VisualComponent?.SetFlipH(_isFacingRight);
+                UpdateShadowOffset();
+            }
         }
     }
 
