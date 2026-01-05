@@ -55,8 +55,8 @@ public partial class ShadowComponent : MeshInstance3D
         // Position just above ground (prevent z-fighting)
         Position = new Vector3(0, 0.01f, 0);
 
-        // Create radial gradient texture
-        _shadowTexture = CreateRadialGradientTexture();
+        // Create radial gradient texture with opacity baked in
+        _shadowTexture = CreateRadialGradientTexture(ShadowOpacity);
 
         // Create material with multiply blend for non-stacking shadows
         _material = new StandardMaterial3D();
@@ -67,10 +67,8 @@ public partial class ShadowComponent : MeshInstance3D
         _material.NoDepthTest = true;       // Don't depth-test against other objects
         _material.RenderPriority = -100;    // Render shadows first (before units)
         _material.AlbedoTexture = _shadowTexture;
-        // For multiply blend: white = no effect, darker = more shadow
-        // Opacity controls how dark the center is (0.6 opacity = 0.4 gray center)
-        float grayValue = 1.0f - (ShadowOpacity * 0.7f);  // Scale opacity effect
-        _material.AlbedoColor = new Color(grayValue, grayValue, grayValue, 1.0f);
+        // Don't tint with AlbedoColor - opacity is baked into texture to keep corners white
+        _material.AlbedoColor = Colors.White;
 
         SetSurfaceOverrideMaterial(0, _material);
 
@@ -95,16 +93,16 @@ public partial class ShadowComponent : MeshInstance3D
 
     /// <summary>
     /// Update shadow opacity at runtime.
-    /// For multiply blend, opacity is controlled by gray value (darker = more shadow).
+    /// Regenerates the texture to bake new opacity value, keeping corners white.
     /// </summary>
     public void SetShadowOpacity(float opacity)
     {
         ShadowOpacity = opacity;
         if (_material != null)
         {
-            // For multiply blend: white = no effect, darker = more shadow
-            float grayValue = 1.0f - (opacity * 0.7f);
-            _material.AlbedoColor = new Color(grayValue, grayValue, grayValue, 1.0f);
+            // Regenerate texture with new opacity baked in
+            _shadowTexture = CreateRadialGradientTexture(opacity);
+            _material.AlbedoTexture = _shadowTexture;
         }
     }
 
@@ -133,15 +131,19 @@ public partial class ShadowComponent : MeshInstance3D
 
     /// <summary>
     /// Create a radial gradient texture for multiply-blend shadows.
-    /// For multiply: black center (darkens), white edge (no effect).
+    /// Opacity is baked directly into the texture to avoid square artifacts from AlbedoColor tinting.
+    /// For multiply: darker center (darkens background), white edge (no effect).
     /// </summary>
-    private static ImageTexture CreateRadialGradientTexture()
+    private static ImageTexture CreateRadialGradientTexture(float opacity)
     {
         const int sizePx = 128;
         var image = Image.CreateEmpty(sizePx, sizePx, false, Image.Format.Rgba8);
 
         var center = new Vector2(sizePx / 2.0f, sizePx / 2.0f);
         float maxRadius = sizePx / 2.0f;
+
+        // Calculate center darkness based on opacity (0 = white/no shadow, 1 = black/full shadow)
+        float centerDarkness = opacity * 0.7f;  // Scale factor for visual appearance
 
         for (int y = 0; y < sizePx; y++)
         {
@@ -153,13 +155,20 @@ public partial class ShadowComponent : MeshInstance3D
                 // Normalize distance (0 at center, 1 at edge)
                 float normalizedDist = dist / maxRadius;
 
-                // Create soft falloff with smoothstep
-                // For multiply blend: 0 (black) at center, 1 (white) at edge
-                float brightness = Smoothstep(0.0f, 1.0f, normalizedDist);
-
-                // Outside the circle should be fully white (no effect)
+                // Outside the circle should be fully white (no effect in multiply blend)
                 if (normalizedDist > 1.0f)
-                    brightness = 1.0f;
+                {
+                    image.SetPixel(x, y, new Color(1.0f, 1.0f, 1.0f, 1.0f));
+                    continue;
+                }
+
+                // Create soft falloff with smoothstep (0 at center, 1 at edge)
+                float falloff = Smoothstep(0.0f, 1.0f, normalizedDist);
+
+                // Interpolate from dark center to white edge
+                // Center: 1.0 - centerDarkness (e.g., 0.58 for 0.6 opacity)
+                // Edge: 1.0 (white, no effect)
+                float brightness = Mathf.Lerp(1.0f - centerDarkness, 1.0f, falloff);
 
                 // Set pixel with gradient in RGB, full alpha for multiply blend
                 image.SetPixel(x, y, new Color(brightness, brightness, brightness, 1.0f));
