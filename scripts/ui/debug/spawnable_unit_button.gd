@@ -26,12 +26,7 @@ func _ready() -> void:
 
 ## Override to provide drag data
 func _get_drag_data(_at_position: Vector2) -> Variant:
-	# Create drag preview
-	var preview: Label = Label.new()
-	preview.text = unit_name
-	preview.add_theme_color_override("font_color", Color.YELLOW)
-	preview.add_theme_font_size_override("font_size", 14)
-	set_drag_preview(preview)
+	# No drag preview text - ghost units on battlefield are the preview
 
 	# Return drag data that BattlefieldDropZone can use
 	var team: int = 1  # Default to enemy team
