@@ -10,7 +10,7 @@ height = 1.6
 
 [node name="Rock3D" type="CharacterBody3D" groups=["units"]]
 collision_layer = 2
-collision_mask = 1
+collision_mask = 3
 script = ExtResource("1_script")
 MaxHp = 500.0
 AttackDamage = 0.0
