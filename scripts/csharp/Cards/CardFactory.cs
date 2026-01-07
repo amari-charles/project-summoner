@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Cards.Configs;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Constants;
 using ProjectSummoner.Services.Interfaces;
 using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Units;
@@ -497,8 +498,8 @@ public partial class CardFactory : Node, ICardFactory
         const int searchAttemptsPerRing = 8;
         const int searchRings = 3;
 
-        // Get all existing units (group name is lowercase "units")
-        var units = tree?.GetNodesInGroup("units");
+        // Get all existing units
+        var units = tree?.GetNodesInGroup(GroupIDs.Units);
 
         // Check if desired position is safe first
         if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions))
