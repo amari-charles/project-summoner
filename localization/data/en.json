@@ -51,6 +51,10 @@
       "arena_fire_elemental": {
         "name": "Fire Elemental Test",
         "description": "Test the new Fire Elemental unit. Watch it bob and float across the battlefield."
+      },
+      "arena_cloud_swarm": {
+        "name": "Cloud Swarm Test",
+        "description": "Test the Cloud Swarm unit. Six clouds drift together in pairs across the battlefield."
       }
     },
     "starter_deck_name": "Starter Deck",
@@ -94,6 +98,10 @@
     "puff": {
       "name": "Puff",
       "description": "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield."
+    },
+    "cloud_swarm": {
+      "name": "Cloud Swarm",
+      "description": "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might."
     }
   },
   "menu": {

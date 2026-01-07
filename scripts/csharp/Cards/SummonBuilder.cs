@@ -1,3 +1,4 @@
+using ProjectSummoner.Cards.Configs;
 using ProjectSummoner.Cards.Formations;
 
 namespace ProjectSummoner.Cards;
@@ -9,27 +10,18 @@ namespace ProjectSummoner.Cards;
 public static class SummonBuilder
 {
     /// <summary>
-    /// Get the formation strategy for a summon card.
-    /// Currently defaults to GridFormation for all cards.
-    /// When catalog supports formation_type field, this can switch on it to return
-    /// RingFormation, LineFormation, etc.
+    /// Get the formation strategy from a FormationConfig.
+    /// Uses polymorphism - each config subclass knows how to create its formation.
     /// </summary>
-    /// <param name="catalogId">The summon card's catalog ID (reserved for future use).</param>
-    /// <returns>Formation strategy for positioning units.</returns>
-    public static IFormationStrategy GetFormation(string catalogId)
+    public static IFormationStrategy GetFormation(FormationConfig config)
     {
-        // All summons currently use GridFormation
-        return new GridFormation();
+        return config.CreateFormation();
     }
 
     /// <summary>
-    /// Get the formation strategy for a summon card with custom spacing.
+    /// Get a default GridFormation with custom spacing (backwards compat).
     /// </summary>
-    /// <param name="catalogId">The summon card's catalog ID.</param>
-    /// <param name="spacing">Custom spacing between units.</param>
-    /// <param name="rowOffset">Custom row offset for stagger pattern.</param>
-    /// <returns>Formation strategy for positioning units.</returns>
-    public static IFormationStrategy GetFormation(string catalogId, float spacing, float rowOffset)
+    public static IFormationStrategy GetFormation(float spacing, float rowOffset)
     {
         return new GridFormation
         {

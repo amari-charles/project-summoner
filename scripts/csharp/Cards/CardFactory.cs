@@ -152,13 +152,12 @@ public partial class CardFactory : Node
             return;
         }
 
-        // Get spawn count and formation config
+        // Get spawn count
         int spawnCount = GetInt(cardDef, "spawn_count", 1);
-        float formationSpacing = GetFloat(cardDef, "formation_spacing", GridFormation.DefaultSpacing);
-        float formationRowOffset = GetFloat(cardDef, "formation_row_offset", GridFormation.DefaultRowOffset);
 
-        // Get formation strategy
-        var formation = SummonBuilder.GetFormation(catalogId, formationSpacing, formationRowOffset);
+        // Create formation config and get strategy
+        var formationConfig = CreateFormationConfig(cardDef);
+        var formation = formationConfig.CreateFormation();
 
         // Get gameplay layer
         Node gameplayLayer = battlefield;
@@ -330,6 +329,31 @@ public partial class CardFactory : Node
         }
 
         return config;
+    }
+
+    /// <summary>
+    /// Create the appropriate FormationConfig from card definition.
+    /// Uses formation_type field to determine which subclass to create.
+    /// </summary>
+    private static FormationConfig CreateFormationConfig(Godot.Collections.Dictionary cardDef)
+    {
+        var formationType = GetString(cardDef, "formation_type", "grid");
+        float spacing = GetFloat(cardDef, "formation_spacing", GridFormation.DefaultSpacing);
+
+        return formationType switch
+        {
+            "grouped_line" => new GroupedLineFormationConfig
+            {
+                Spacing = spacing,
+                GroupSpacing = GetFloat(cardDef, "group_spacing", GroupedLineFormation.DefaultGroupSpacing),
+                UnitsPerGroup = GetInt(cardDef, "units_per_group", GroupedLineFormation.DefaultUnitsPerGroup)
+            },
+            _ => new FormationConfig
+            {
+                Spacing = spacing,
+                RowOffset = GetFloat(cardDef, "formation_row_offset", GridFormation.DefaultRowOffset)
+            }
+        };
     }
 
     // =========================================================================

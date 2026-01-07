@@ -33,8 +33,11 @@ class_name CardConfig
 ## FORMATION (for multi-unit spawns)
 ## =============================================================================
 
+@export var formation_type: String = "grid"  ## Formation type: "grid" or "grouped_line"
 @export var formation_spacing: float = 1.8  ## Distance between units
 @export var formation_row_offset: float = 0.5  ## Stagger for alternating rows (0-1)
+@export var group_spacing: float = 4.0  ## Distance between groups (grouped_line only)
+@export var units_per_group: int = 2  ## Units per group (grouped_line only)
 
 ## =============================================================================
 ## SPELL-SPECIFIC
@@ -81,8 +84,11 @@ static func from_dict(data: Dictionary) -> Resource:
 	config.spawn_count = data.get("spawn_count", 1)
 
 	# Formation
+	config.formation_type = data.get("formation_type", "grid")
 	config.formation_spacing = data.get("formation_spacing", 1.8)
 	config.formation_row_offset = data.get("formation_row_offset", 0.5)
+	config.group_spacing = data.get("group_spacing", 4.0)
+	config.units_per_group = data.get("units_per_group", 2)
 
 	# Spell-specific
 	config.spell_damage = data.get("spell_damage", 0.0)

@@ -42,6 +42,35 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 
 ---
 
+#### HP Bar Management Issues
+**Status:** Open
+**Reported:** 2026-01-04
+**Component:** UI / HP Bar Manager
+
+**Description:**
+HP bars have multiple issues related to their lifecycle and positioning.
+
+**Issues:**
+1. **Swarm cleanup crash/bug:** When clicking "Clear Units" in debug mode, HP bars for swarm units don't clean up properly. May cause errors or orphaned UI elements.
+2. **Positioning relative to units:** HP bars are not positioned correctly relative to their units. The offset or anchor point appears to be wrong.
+
+**Expected Behavior:**
+- HP bars should be removed cleanly when their units are removed
+- HP bars should appear at a consistent, correct position above each unit's head
+
+**Current Behavior:**
+- Swarm unit HP bars misbehave on debug clear
+- HP bar positions don't match unit visual positions
+
+**Impact:**
+Visual bugs and potential errors during development/testing.
+
+**Related Files:**
+- scripts/systems/hp_bar_manager.gd
+- scripts/ui/battle/hp_bar.gd (if exists)
+
+---
+
 #### Unit Spawns at Cursor Position Instead of Preview Position
 **Status:** Open
 **Reported:** 2026-01-04
@@ -97,6 +126,131 @@ Attack range is measured from unit center, but large units like Fire Titan have 
 **Related Files:**
 - scenes/units/fire_titan_3d.tscn (AttackRange and CollisionRadius values)
 - scripts/csharp/Units/MeleeUnit3D.cs (attack range check logic)
+
+---
+
+#### Units Can Move/Fly Out of Bounds
+**Status:** Open
+**Reported:** 2026-01-05
+**Component:** Unit Movement / Boundaries
+
+**Description:**
+Units can move or fly outside the battlefield boundaries. There appears to be no boundary enforcement for unit movement.
+
+**Expected Behavior:**
+Units should be constrained to the playable battlefield area and cannot move beyond its boundaries.
+
+**Current Behavior:**
+Units can freely move or fly outside the battlefield, potentially going off-screen or beyond intended play areas.
+
+**Impact:**
+Gameplay-breaking - units can escape combat or become unreachable.
+
+**Proposed Solution:**
+- Add boundary enforcement to unit movement logic
+- Clamp unit positions within battlefield bounds each frame
+- Consider using collision shapes or a boundary check in the movement system
+
+**Related Files:**
+- scripts/csharp/Units/Unit3D.cs (movement logic)
+- scripts/csharp/Systems/SpatialGrid.cs (if used for position tracking)
+- BattlefieldConstants (may need boundary definitions)
+
+---
+
+#### Puff Units Get Stuck in Idle When Blocked by Other Units
+**Status:** Open
+**Reported:** 2026-01-05
+**Component:** Units / Pathfinding / Movement
+
+![Units stuck in idle when blocked](images/bug-units-stuck-idle-blocked.png)
+
+**Description:**
+Puff units get stuck in idle state when other characters are blocking their path. They don't attempt to move forward or find an alternate route to get into attack range. Affects units at both top and bottom of formations - possibly stuck in pathfinding mode.
+
+**Expected Behavior:**
+Units should navigate around obstacles or push forward to find a valid attack position.
+
+**Current Behavior:**
+- Units remain stuck in idle animation
+- They don't attempt to path around blocking units
+- Affects both top and bottom units in formation (not just back units)
+- Units may be stuck in pathfinding state rather than truly idle
+- Units have valid targets but can't reach them
+
+**Impact:**
+Reduces effective army size as blocked units don't contribute to combat.
+
+**Possible Causes:**
+- Pathfinding giving up too early when blocked
+- No "push through" or flanking behavior when stuck
+- Collision detection preventing movement entirely
+- Target acquisition succeeding but movement failing
+
+**Related Files:**
+- scripts/csharp/Units/Unit3D.cs (movement/pathfinding logic)
+- scripts/csharp/Units/RangedUnit3D.cs (Puff-specific behavior)
+- Blocked detection / flanking logic
+
+---
+
+#### Projectiles Cannot Hit Summoner Properly
+**Status:** Open
+**Reported:** 2026-01-05
+**Component:** Combat / Projectiles
+
+**Description:**
+Projectiles are unable to properly hit or damage the summoner (player character).
+
+**Expected Behavior:**
+Ranged units should be able to target and hit the summoner with projectiles, dealing damage.
+
+**Current Behavior:**
+Projectiles miss, pass through, or otherwise fail to register hits on the summoner.
+
+**Impact:**
+Ranged units cannot effectively attack the summoner, breaking intended combat balance.
+
+**Related Files:**
+- scripts/csharp/Combat/DamageSystem.cs
+- scripts/projectiles/projectile_3d.gd
+- Summoner collision/hitbox configuration
+
+---
+
+#### Spawn Preview and Actual Spawning Use Separate Formation Systems
+**Status:** Open
+**Reported:** 2026-01-05
+**Component:** Architecture / Formation System
+
+**Description:**
+Formation logic is duplicated across multiple files. Adding a new formation type requires updating 4+ separate implementations that must stay in sync.
+
+**Current Implementation (Bad):**
+- **C# CardFactory** - Uses `FormationConfig.CreateFormation()` → IFormationStrategy for actual spawning
+- **GDScript Card** - Has `get_formation_offset()` / `_get_grouped_line_offset()` for preview
+- **C# FormationHelper** - Has `GenerateFormationOffset()` / `GenerateGroupedLineOffset()` for preview
+- **GDScript battlefield_drop_zone** - Calls Card's instance method
+
+**Expected Behavior:**
+Define formation config ONCE, and both preview and spawning should automatically use it. Single source of truth.
+
+**Impact:**
+- Violates DRY principle
+- Error-prone when adding new formation types
+- Easy to have preview and actual spawning diverge
+
+**Proposed Solution:**
+- Unify formation logic into a single system (likely C# IFormationStrategy)
+- Have SpawnPreview call into the same formation logic that CardFactory uses
+- Remove duplicate GDScript formation calculations
+
+**Related Files:**
+- scripts/csharp/Cards/Configs/FormationConfig.cs
+- scripts/csharp/Cards/Formations/*.cs
+- scripts/csharp/SpawnPreview/FormationHelper.cs
+- scripts/cards/card.gd (get_formation_offset methods)
+- scripts/ui/battle/battlefield_drop_zone.gd
 
 ---
 

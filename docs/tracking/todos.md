@@ -17,9 +17,77 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
+## Architecture
+
+### 🟡 MEDIUM PRIORITY
+
+#### Comprehensive DRY Principle Audit
+**Status:** ⬜ Not Started
+**Category:** Architecture / Code Quality
+**Effort:** Medium
+
+**Description:**
+Perform a comprehensive audit of the codebase to identify and fix violations of the DRY (Don't Repeat Yourself) principle. Multiple systems have duplicated logic that should be unified.
+
+**Known Violations:**
+- Formation logic (C# CardFactory, GDScript Card, C# FormationHelper, battlefield_drop_zone)
+- Possibly others TBD
+
+**Goals:**
+- Identify all areas with duplicated logic
+- Propose unified solutions (single source of truth)
+- Prioritize fixes based on maintenance burden
+
+**Related Bug:** See bugs.md "Spawn Preview and Actual Spawning Use Separate Formation Systems"
+
+---
+
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY
+
+#### Investigate Units Getting Stuck in Idle When Blocked
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Pathfinding
+**Effort:** Medium
+**Priority:** 🔴 High
+
+**Description:**
+Puff units (and possibly other units) get stuck in idle when blocked by other characters. They don't move forward or find alternate positions. Affects both top and bottom units in formations - they may be stuck in pathfinding mode rather than truly idle.
+
+**Investigation Areas:**
+- Why do blocked units stop trying to move?
+- Are units stuck in a pathfinding state? (not truly idle)
+- Is the flanking/pathfinding logic triggering correctly?
+- Is collision preventing all movement attempts?
+- Do units have a target but fail to path to attack range?
+- Is there a timeout or failure state in pathfinding that leaves units frozen?
+
+**Related Bug:** See bugs.md "Puff Units Get Stuck in Idle When Blocked by Other Units"
+
+**Related Files:**
+- scripts/csharp/Units/Unit3D.cs (UpdateBehavior, movement logic)
+- scripts/csharp/Units/RangedUnit3D.cs
+- Blocked detection / flanking systems
+
+---
+
+#### Shift Puff Attack Angle Downward
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Ranged
+**Effort:** Small
+
+**Description:**
+Rotate Puff's projectile firing angle cone downward. Keep the same angular spread, but offset the center of the cone so it aims lower.
+
+**Example:**
+If current range is -30° to +30° (60° spread centered at 0°), shift to something like -50° to +10° (still 60° spread, but centered at -20°).
+
+**Related Files:**
+- Puff unit scene or ranged attack logic
+- Projectile spawn angle calculations
+
+---
 
 #### Add Boundary System to Prevent Units Walking Off Screen
 **Status:** ⬜ Not Started

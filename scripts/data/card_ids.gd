@@ -45,3 +45,4 @@ const ROCK: StringName = &"rock"  # Stationary test dummy
 # ============================================================================
 
 const PUFF: StringName = &"puff"
+const CLOUD_SWARM: StringName = &"cloud_swarm"
