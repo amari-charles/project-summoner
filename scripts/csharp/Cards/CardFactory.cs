@@ -254,15 +254,8 @@ public partial class CardFactory : Node, ICardFactory
             { "card_instance_id", instanceId }
         };
 
-        // Get modifiers from modifier system
-        var modifiers = GetModifiersFromSystem("unit", categories, modifierContext, modifierSystem);
-
-        // Card data for modifiers
-        var cardData = new Godot.Collections.Dictionary
-        {
-            { "card_name", GetString(cardDef, "card_name", "Unknown") },
-            { "mana_cost", GetInt(cardDef, "mana_cost", 1) }
-        };
+        // Get modifiers from ModifierService
+        var modifiers = GetModifiersFromService("unit", categories, modifierContext);
 
         // Get SpatialGrid autoload
         var spatialGrid = GetAutoloadNode("/root/SpatialGrid");
@@ -345,7 +338,10 @@ public partial class CardFactory : Node, ICardFactory
             gameplayLayer.AddChild(unit);
 
             // Initialize with modifiers
-            unit.Call("InitializeWithModifiers", modifiers, cardData);
+            if (unit is Unit3D unit3d)
+            {
+                unit3d.InitializeWithModifiers(modifiers);
+            }
 
             // Update SpatialGrid after unit is in tree
             if (spatialGrid != null && spatialGrid.HasMethod("update_unit_position"))
@@ -463,41 +459,21 @@ public partial class CardFactory : Node, ICardFactory
     // =========================================================================
 
     /// <summary>
-    /// Get modifiers from the modifier system.
-    /// Uses C# ModifierService first, falls back to GDScript for backwards compatibility.
+    /// Get modifiers from the ModifierService.
     /// </summary>
-    private static Godot.Collections.Array GetModifiersFromSystem(
+    private static List<StatModifier> GetModifiersFromService(
         string targetType,
         Godot.Collections.Dictionary categories,
-        Godot.Collections.Dictionary context,
-        Node? modifierSystem)
+        Godot.Collections.Dictionary context)
     {
-        // Try C# ModifierService first
-        var csharpService = ModifierService.Instance;
-        if (csharpService != null)
-        {
-            return csharpService.get_modifiers_for(targetType, categories, context);
-        }
+        var service = ModifierService.Instance;
+        if (service == null)
+            return new List<StatModifier>();
 
-        // Fall back to GDScript modifier system
-        var modifiers = new Godot.Collections.Array();
+        var modContext = ModifierContext.FromDictionaries(categories, context);
+        modContext.TargetType = targetType;
 
-        if (modifierSystem == null)
-            return modifiers;
-
-        if (!modifierSystem.HasMethod("get_modifiers_for"))
-        {
-            GD.PrintErr("[CardFactory] ModifierService missing get_modifiers_for method");
-            return modifiers;
-        }
-
-        var result = modifierSystem.Call("get_modifiers_for", targetType, categories, context);
-        if (result.VariantType == Variant.Type.Array)
-        {
-            modifiers = result.AsGodotArray();
-        }
-
-        return modifiers;
+        return service.GetModifiers(modContext);
     }
 
     /// <summary>

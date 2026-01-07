@@ -6,7 +6,7 @@ namespace ProjectSummoner.SpawnPreview;
 /// <summary>
 /// Transparent preview of a unit during card drag.
 /// Shows what the spawned unit will look like with ghostly transparency.
-/// Supports both C# visual components and GDScript fallbacks.
+/// Supports both C# visual components and GDScript interops.
 /// </summary>
 [GlobalClass]
 public partial class GhostUnit3D : Node3D

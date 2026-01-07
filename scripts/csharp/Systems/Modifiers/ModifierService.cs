@@ -6,8 +6,6 @@ namespace ProjectSummoner.Systems.Modifiers;
 
 /// <summary>
 /// Central service for managing and applying modifiers.
-/// Replaces the GDScript modifier_system.gd.
-///
 /// Collects modifiers from registered providers, filters by conditions,
 /// applies amplification, and provides them to targets for application.
 /// </summary>
@@ -30,7 +28,7 @@ public partial class ModifierService : Node, IModifierService
     }
 
     // =========================================================================
-    // PROVIDER REGISTRATION
+    // PROVIDER REGISTRATION (C# API)
     // =========================================================================
 
     /// <summary>
@@ -109,64 +107,12 @@ public partial class ModifierService : Node, IModifierService
     }
 
     // =========================================================================
-    // GDSCRIPT INTEROP (snake_case methods)
-    // =========================================================================
-
-    /// <summary>
-    /// Get modifiers for GDScript callers.
-    /// Matches the signature of modifier_system.gd.get_modifiers_for()
-    /// </summary>
-    public Godot.Collections.Array get_modifiers_for(
-        string targetType,
-        Godot.Collections.Dictionary categories,
-        Godot.Collections.Dictionary context)
-    {
-        var modContext = ModifierContext.FromDictionaries(categories, context);
-        modContext.TargetType = targetType;
-
-        var modifiers = GetModifiers(modContext);
-
-        // Convert to Godot Array of Dictionaries
-        var result = new Godot.Collections.Array();
-        foreach (var mod in modifiers)
-        {
-            result.Add(mod.ToDictionary());
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Register a GDScript provider (duck-typed).
-    /// </summary>
-    public void register_provider(string providerId, GodotObject provider)
-    {
-        var wrapper = new GDScriptProviderWrapper(providerId, provider);
-        RegisterProvider(providerId, wrapper);
-    }
-
-    /// <summary>
-    /// Unregister a provider by ID.
-    /// </summary>
-    public void unregister_provider(string providerId)
-    {
-        UnregisterProvider(providerId);
-    }
-
-    /// <summary>
-    /// Clear all providers.
-    /// </summary>
-    public void clear_providers()
-    {
-        ClearProviders();
-    }
-
-    // =========================================================================
-    // PROVIDER FACTORIES (for GDScript)
+    // GDSCRIPT INTEROP (snake_case methods for GDScript callers)
     // =========================================================================
 
     /// <summary>
     /// Register a summoner modifier provider (factory method for GDScript).
-    /// Creates a SummonerModifierProvider internally since GDScript can't instantiate C# classes.
+    /// Called from game_controller_3d.gd
     /// </summary>
     public void register_summoner_provider(GodotObject summonerInstance, string summonerId)
     {
@@ -175,8 +121,16 @@ public partial class ModifierService : Node, IModifierService
     }
 
     /// <summary>
+    /// Unregister a provider by ID (for GDScript).
+    /// Called from game_controller_3d.gd
+    /// </summary>
+    public void unregister_provider(string providerId)
+    {
+        UnregisterProvider(providerId);
+    }
+
+    /// <summary>
     /// Register a card modifier provider (factory method for GDScript).
-    /// Creates a CardModifierProvider internally since GDScript can't instantiate C# classes.
     /// </summary>
     public void register_card_provider(string cardInstanceId)
     {
@@ -190,7 +144,6 @@ public partial class ModifierService : Node, IModifierService
 
     /// <summary>
     /// Apply modifiers to base stats and return modified stats.
-    /// Consolidates the logic from Unit3D.InitializeWithModifiers.
     /// </summary>
     public static ModifiedStats ApplyModifiers(BaseStats baseStats, List<StatModifier> modifiers)
     {
@@ -233,22 +186,6 @@ public partial class ModifierService : Node, IModifierService
             MoveSpeed = (baseStats.MoveSpeed + moveSpeedAdd) * moveSpeedMult,
             Flags = flags
         };
-    }
-
-    /// <summary>
-    /// Apply modifiers from a Godot Array (for GDScript interop).
-    /// </summary>
-    public static ModifiedStats ApplyModifiersFromArray(BaseStats baseStats, Godot.Collections.Array modifiers)
-    {
-        var typedModifiers = new List<StatModifier>();
-        foreach (var mod in modifiers)
-        {
-            if (mod.VariantType == Variant.Type.Dictionary)
-            {
-                typedModifiers.Add(StatModifier.FromDictionary(mod.AsGodotDictionary()));
-            }
-        }
-        return ApplyModifiers(baseStats, typedModifiers);
     }
 
     // =========================================================================
@@ -346,7 +283,7 @@ public partial class ModifierService : Node, IModifierService
             return actualObj.Call("matches_affinity", requiredVar).AsBool();
         }
 
-        // String comparison fallback
+        // String comparison
         return actual.ToString() == required.ToString();
     }
 
@@ -419,7 +356,7 @@ public partial class ModifierService : Node, IModifierService
     // DEBUGGING
     // =========================================================================
 
-    public void debug_print_providers()
+    public void DebugPrintProviders()
     {
         GD.Print("=== ModifierService Debug ===");
         GD.Print($"Registered providers: {_providers.Count}");
@@ -429,16 +366,10 @@ public partial class ModifierService : Node, IModifierService
         }
     }
 
-    public void debug_print_modifiers(Godot.Collections.Dictionary categories)
+    public void DebugPrintModifiers(ModifierContext context)
     {
-        var context = new ModifierContext();
-        foreach (var key in categories.Keys)
-        {
-            context.Categories[key.AsString()] = categories[key].Obj!;
-        }
-
         var modifiers = GetModifiers(context);
-        GD.Print($"=== Modifiers for categories: {categories} ===");
+        GD.Print($"=== Modifiers for context ===");
         GD.Print($"Total modifiers: {modifiers.Count}");
         foreach (var mod in modifiers)
         {
@@ -447,47 +378,5 @@ public partial class ModifierService : Node, IModifierService
             GD.Print($"    Stat mults: {string.Join(", ", mod.StatMults)}");
             GD.Print($"    Stat adds: {string.Join(", ", mod.StatAdds)}");
         }
-    }
-}
-
-/// <summary>
-/// Wrapper for GDScript providers to implement IModifierProvider.
-/// </summary>
-internal class GDScriptProviderWrapper : IModifierProvider
-{
-    private readonly string _providerId;
-    private readonly GodotObject _provider;
-
-    public string ProviderId => _providerId;
-
-    public GDScriptProviderWrapper(string providerId, GodotObject provider)
-    {
-        _providerId = providerId;
-        _provider = provider;
-    }
-
-    public List<StatModifier> GetModifiers()
-    {
-        var result = new List<StatModifier>();
-
-        if (_provider == null || !GodotObject.IsInstanceValid(_provider))
-            return result;
-
-        if (!_provider.HasMethod("get_modifiers"))
-            return result;
-
-        var mods = _provider.Call("get_modifiers");
-        if (mods.VariantType != Variant.Type.Array)
-            return result;
-
-        foreach (var mod in mods.AsGodotArray())
-        {
-            if (mod.VariantType == Variant.Type.Dictionary)
-            {
-                result.Add(StatModifier.FromDictionary(mod.AsGodotDictionary()));
-            }
-        }
-
-        return result;
     }
 }

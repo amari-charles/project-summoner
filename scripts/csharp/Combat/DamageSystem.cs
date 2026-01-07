@@ -479,7 +479,7 @@ public partial class DamageSystem : Node, IDamageSystem
             return unit.Heal(amount);
         }
 
-        // GDScript fallback - manually calculate and set HP
+        // GDScript entities (Summoner, Base) - manually calculate and set HP
         float currentHp = GetCurrentHp(target);
         float maxHp = GetMaxHp(target);
 

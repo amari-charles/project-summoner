@@ -121,7 +121,7 @@ public abstract class SpellEffect : ISpellEffect
             return (Team)unit3D.Team;
         }
 
-        // GDScript fallback
+        // GDScript interop
         var teamVar = unit.Get("Team");
         if (teamVar.VariantType == Variant.Type.Nil)
             teamVar = unit.Get("team");
@@ -153,7 +153,7 @@ public abstract class SpellEffect : ISpellEffect
             return damageable.IsAlive;
         }
 
-        // GDScript fallback
+        // GDScript interop
         var aliveVar = target.Get("IsAlive");
         if (aliveVar.VariantType == Variant.Type.Nil)
             aliveVar = target.Get("is_alive");

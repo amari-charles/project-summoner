@@ -1,4 +1,3 @@
-using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Systems.Modifiers;
 
@@ -47,31 +46,4 @@ public interface IModifierService
     /// Get all modifiers that apply to a target.
     /// </summary>
     List<StatModifier> GetModifiers(ModifierContext context);
-
-    // =========================================================================
-    // GDSCRIPT INTEROP
-    // =========================================================================
-
-    /// <summary>
-    /// Get modifiers for GDScript callers.
-    /// </summary>
-    Godot.Collections.Array get_modifiers_for(
-        string targetType,
-        Godot.Collections.Dictionary categories,
-        Godot.Collections.Dictionary context);
-
-    /// <summary>
-    /// Register a GDScript provider.
-    /// </summary>
-    void register_provider(string providerId, GodotObject provider);
-
-    /// <summary>
-    /// Unregister a provider by ID.
-    /// </summary>
-    void unregister_provider(string providerId);
-
-    /// <summary>
-    /// Clear all providers.
-    /// </summary>
-    void clear_providers();
 }

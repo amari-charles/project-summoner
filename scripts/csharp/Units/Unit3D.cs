@@ -4,6 +4,7 @@ using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Systems;
+using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Targeting;
 using ProjectSummoner.Units.Components;
 using ProjectSummoner.Visual;
@@ -511,9 +512,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     }
 
     /// <summary>
-    /// Initialize unit with stat modifiers from cards/abilities.
+    /// Initialize unit with typed stat modifiers.
     /// </summary>
-    public void InitializeWithModifiers(Godot.Collections.Array modifiers, Godot.Collections.Dictionary? cardData = null)
+    public void InitializeWithModifiers(List<StatModifier> modifiers)
     {
         // Phase 1: Additive bonuses
         float hpAdd = 0f, damageAdd = 0f, speedAdd = 0f, moveSpeedAdd = 0f;
@@ -523,37 +524,22 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         foreach (var mod in modifiers)
         {
-            if (mod.Obj is not Godot.Collections.Dictionary modDict)
-                continue;
-
             // Process stat_adds
-            if (modDict.TryGetValue("stat_adds", out var statAddsVar) &&
-                statAddsVar.Obj is Godot.Collections.Dictionary statAdds)
-            {
-                if (statAdds.TryGetValue("max_hp", out var hp)) hpAdd += hp.AsSingle();
-                if (statAdds.TryGetValue("attack_damage", out var dmg)) damageAdd += dmg.AsSingle();
-                if (statAdds.TryGetValue("attack_speed", out var spd)) speedAdd += spd.AsSingle();
-                if (statAdds.TryGetValue("move_speed", out var mvSpd)) moveSpeedAdd += mvSpd.AsSingle();
-            }
+            if (mod.StatAdds.TryGetValue("max_hp", out var hp)) hpAdd += hp;
+            if (mod.StatAdds.TryGetValue("attack_damage", out var dmg)) damageAdd += dmg;
+            if (mod.StatAdds.TryGetValue("attack_speed", out var spd)) speedAdd += spd;
+            if (mod.StatAdds.TryGetValue("move_speed", out var mvSpd)) moveSpeedAdd += mvSpd;
 
             // Process stat_mults
-            if (modDict.TryGetValue("stat_mults", out var statMultsVar) &&
-                statMultsVar.Obj is Godot.Collections.Dictionary statMults)
-            {
-                if (statMults.TryGetValue("max_hp", out var hp)) hpMult *= hp.AsSingle();
-                if (statMults.TryGetValue("attack_damage", out var dmg)) damageMult *= dmg.AsSingle();
-                if (statMults.TryGetValue("attack_speed", out var spd)) speedMult *= spd.AsSingle();
-                if (statMults.TryGetValue("move_speed", out var mvSpd)) moveSpeedMult *= mvSpd.AsSingle();
-            }
+            if (mod.StatMults.TryGetValue("max_hp", out var hpM)) hpMult *= hpM;
+            if (mod.StatMults.TryGetValue("attack_damage", out var dmgM)) damageMult *= dmgM;
+            if (mod.StatMults.TryGetValue("attack_speed", out var spdM)) speedMult *= spdM;
+            if (mod.StatMults.TryGetValue("move_speed", out var mvSpdM)) moveSpeedMult *= mvSpdM;
 
             // Process flags
-            if (modDict.TryGetValue("flags", out var flagsVar) &&
-                flagsVar.Obj is Godot.Collections.Dictionary flags)
+            foreach (var kvp in mod.Flags)
             {
-                foreach (var key in flags.Keys)
-                {
-                    _activeModifierFlags[key.AsString()] = flags[key].AsBool();
-                }
+                _activeModifierFlags[kvp.Key] = kvp.Value;
             }
         }
 

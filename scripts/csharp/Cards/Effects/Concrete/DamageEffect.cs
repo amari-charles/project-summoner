@@ -131,7 +131,7 @@ public class DamageEffect : SpellEffect
             return;
         }
 
-        // GDScript fallback (Unit3D.TakeDamage or take_damage)
+        // GDScript interop (Unit3D.TakeDamage or take_damage)
         if (target.HasMethod("TakeDamage"))
         {
             target.Call("TakeDamage", damage);
