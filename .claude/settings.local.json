@@ -43,7 +43,8 @@
       "WebFetch(domain:docs.godotengine.org)",
       "WebFetch(domain:forum.godotengine.org)",
       "Bash(timeout:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(Don 't keep fallback mechanisms or dual implementations.\"\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

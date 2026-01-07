@@ -108,10 +108,10 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     /// <summary>
-    /// Get a typed card instance (C# API).
+    /// Get a typed card instance (internal use).
     /// Uses cache for performance, fetches from ProfileRepo if not cached.
     /// </summary>
-    public PlayerCardInstance? GetCard(string instanceId)
+    private PlayerCardInstance? GetCard(string instanceId)
     {
         if (string.IsNullOrEmpty(instanceId))
             return null;
@@ -132,9 +132,9 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     /// <summary>
-    /// Get all cards as typed instances (C# API).
+    /// Get all cards as typed instances (internal use).
     /// </summary>
-    public List<PlayerCardInstance> GetAllCards()
+    private List<PlayerCardInstance> GetAllCards()
     {
         var cards = new List<PlayerCardInstance>();
         var cardDicts = ListCards();
@@ -183,7 +183,7 @@ public partial class PlayerCardService : Node, IPlayerCardService
     /// <summary>
     /// Invalidate cache for a specific card (forces re-fetch on next access)
     /// </summary>
-    public void InvalidateCache(string instanceId)
+    private void InvalidateCache(string instanceId)
     {
         _cardCache.Remove(instanceId);
     }
@@ -191,7 +191,7 @@ public partial class PlayerCardService : Node, IPlayerCardService
     /// <summary>
     /// Clear all cached cards
     /// </summary>
-    public void ClearCache()
+    private void ClearCache()
     {
         _cardCache.Clear();
     }
@@ -727,7 +727,7 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     /// <summary>
-    /// Get all cards that can level up (GDScript compatible)
+    /// Get all cards that can level up
     /// </summary>
     public Godot.Collections.Array<string> get_cards_ready_to_level_up()
     {
@@ -737,22 +737,6 @@ public partial class PlayerCardService : Node, IPlayerCardService
         {
             if (can_level_up(card.Id))
                 ready.Add(card.Id);
-        }
-
-        return ready;
-    }
-
-    /// <summary>
-    /// Get all cards that can level up (C# typed API)
-    /// </summary>
-    public List<PlayerCardInstance> GetCardsReadyToLevelUp()
-    {
-        var ready = new List<PlayerCardInstance>();
-
-        foreach (var card in GetAllCards())
-        {
-            if (can_level_up(card.Id))
-                ready.Add(card);
         }
 
         return ready;
