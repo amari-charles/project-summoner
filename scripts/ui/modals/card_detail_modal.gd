@@ -183,25 +183,12 @@ func _get_effective_stats() -> Dictionary:
 	if card_instance_id.is_empty():
 		return base_stats
 
-	# Get upgrade modifiers and apply them
-	var progression: Node = get_node_or_null("/root/CardProgression")
-	if not progression or not progression.has_method("get_upgrade_stat_modifiers"):
-		return base_stats
-
-	var modifiers_result: Variant = progression.call("get_upgrade_stat_modifiers", card_instance_id)
-	if not modifiers_result is Dictionary:
-		return base_stats
-	var modifiers: Dictionary = modifiers_result
-
-	# Apply modifiers multiplicatively
-	for stat_key: Variant in modifiers:
-		if stat_key is String and base_stats.has(stat_key):
-			var base_val: Variant = base_stats[stat_key]
-			var multiplier: float = modifiers[stat_key]
-			if base_val is float:
-				base_stats[stat_key] = base_val * multiplier
-			elif base_val is int:
-				base_stats[stat_key] = int(float(base_val) * multiplier)
+	# Try PlayerCardService first (C# service)
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if card_service and card_service.has_method("get_effective_stats"):
+		var effective: Variant = card_service.call("get_effective_stats", card_instance_id)
+		if effective is Dictionary and not effective.is_empty():
+			return effective
 
 	return base_stats
 
@@ -235,13 +222,16 @@ func _update_progression_display() -> void:
 		_hide_progression()
 		return
 
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-	if not progression_node:
-		push_warning("CardDetailModal: CardProgression service not found")
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if not card_service or not card_service.has_method("get_card_progression_info"):
+		push_warning("CardDetailModal: PlayerCardService not found")
 		_hide_progression()
 		return
 
-	var info: Dictionary = progression_node.call("get_card_progression_info", card_instance_id)
+	var info: Dictionary = {}
+	var result: Variant = card_service.call("get_card_progression_info", card_instance_id)
+	if result is Dictionary:
+		info = result
 	if info.is_empty():
 		_hide_progression()
 		return
@@ -302,12 +292,12 @@ func _update_upgrades_display() -> void:
 		upgrades_section.visible = false
 		return
 
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-	if not progression_node or not progression_node.has_method("get_applied_upgrades"):
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if not card_service or not card_service.has_method("get_applied_upgrades"):
 		upgrades_section.visible = false
 		return
 
-	var upgrade_ids: Array = progression_node.call("get_applied_upgrades", card_instance_id)
+	var upgrade_ids: Array = card_service.call("get_applied_upgrades", card_instance_id)
 	if upgrade_ids.is_empty():
 		upgrades_section.visible = false
 		return

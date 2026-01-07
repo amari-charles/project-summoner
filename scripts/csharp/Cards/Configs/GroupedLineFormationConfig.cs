@@ -6,21 +6,10 @@ namespace ProjectSummoner.Cards.Configs;
 /// <summary>
 /// Configuration for grouped line formations.
 /// Units are arranged in a horizontal line with larger gaps between groups.
+/// Uses GroupSpacing and UnitsPerGroup from base FormationConfig.
 /// </summary>
 public partial class GroupedLineFormationConfig : FormationConfig
 {
-    /// <summary>
-    /// Spacing between groups (larger gap than unit spacing).
-    /// </summary>
-    [Export]
-    public float GroupSpacing { get; set; } = 4.0f;
-
-    /// <summary>
-    /// Number of units per group.
-    /// </summary>
-    [Export]
-    public int UnitsPerGroup { get; set; } = 2;
-
     /// <summary>
     /// Create a GroupedLineFormation with this config's parameters.
     /// </summary>

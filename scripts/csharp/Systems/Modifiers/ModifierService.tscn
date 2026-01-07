@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dpymqvhkp2xer"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Systems/Modifiers/ModifierService.cs" id="1_modifier"]
+
+[node name="ModifierService" type="Node"]
+script = ExtResource("1_modifier")

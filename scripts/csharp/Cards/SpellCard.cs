@@ -60,7 +60,7 @@ public partial class SpellCard : Card
             Position = position,
             Team = team,
             Battlefield = battlefield,
-            ModifierSystem = modifierSystem,
+            ModifierService = modifierSystem,
             CardInstanceId = InstanceId,
             SceneTree = battlefield?.GetTree()
         };

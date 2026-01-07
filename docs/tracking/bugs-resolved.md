@@ -4,6 +4,50 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+### Unit Spawns at Cursor Position Instead of Preview Position
+**Resolved:** 2026-01-06
+**Component:** Spawn System / Card Playing
+
+**Description:**
+When spawning a unit in an occupied location, the spawn preview correctly snapped to the nearest available position. However, the actual unit spawned at the original cursor position instead of the preview position, causing existing units to be displaced.
+
+**Root Cause:**
+DRY violation - safe spawn position calculation had two separate implementations:
+1. `BattlefieldConstants.find_safe_spawn_position()` (GDScript) - used by preview
+2. `CardFactory.FindSafeSpawnPosition()` (C#) - used by actual spawn
+
+Additionally, preview calculated all positions at once, but actual spawn calculated sequentially (each spawned unit affected the next position).
+
+**Solution Implemented:**
+- Added `CardFactory.get_safe_spawn_positions()` as single source of truth
+- Updated `BattlefieldDropZone` to call C# method for preview
+- Updated `execute_summon()` to pre-calculate all positions before spawning
+- Deleted `BattlefieldConstants.find_safe_spawn_position()` (GDScript duplicate)
+
+**Related Files:**
+- `scripts/csharp/Cards/CardFactory.cs` - Added get_safe_spawn_positions(), refactored execute_summon()
+- `scripts/ui/battle/battlefield_drop_zone.gd` - Now calls C# method
+- `scripts/battlefield/battlefield_constants.gd` - Removed duplicate functions
+
+---
+
+### Spawn Preview and Actual Spawning Use Separate Formation Systems
+**Resolved:** 2026-01-06
+**Component:** Architecture / Formation System
+
+**Description:**
+Formation logic was duplicated across multiple files (Card.gd, CardFactory.cs, FormationHelper.cs). Adding a new formation type required updating 4+ separate implementations.
+
+**Solution Implemented:**
+- CardFactory.get_formation_offset() is now the single source of truth
+- Card.gd now delegates to CardFactory instead of having duplicate methods
+- Deleted FormationHelper.cs (redundant)
+- SpawnPreview.cs uses simple inline default for initial positioning
+
+**Architecture Document:** See `docs/architecture/transformation-roadmap.md` for full details.
+
+---
+
 ### Fire Swarm Units Get Stuck on Spawn
 **Resolved:** 2026-01-04
 **Component:** Spawning / SpatialGrid / Multi-Unit Spawn

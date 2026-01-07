@@ -19,7 +19,7 @@ public partial class ValidTargetFilter : BaseTargetFilter
         if (target is IDamageable damageable && !damageable.IsAlive)
             return false;
 
-        // GDScript fallback (Summoner, etc.)
+        // GDScript interop (Summoner, etc.)
         var isAliveVar = target.Get("is_alive");
         if (isAliveVar.VariantType != Variant.Type.Nil && !isAliveVar.AsBool())
             return false;

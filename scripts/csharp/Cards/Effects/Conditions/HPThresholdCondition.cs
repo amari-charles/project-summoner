@@ -45,7 +45,7 @@ public class HPThresholdCondition : ISpellCondition
             return damageable.CurrentHp / damageable.MaxHp;
         }
 
-        // GDScript fallback
+        // GDScript interop
         float currentHp = 0;
         float maxHp = 0;
 

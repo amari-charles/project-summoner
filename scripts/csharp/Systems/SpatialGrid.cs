@@ -293,7 +293,7 @@ public partial class SpatialGrid : Node
                 }
                 else
                 {
-                    // GDScript fallback: check IsAlive (PascalCase) or is_alive (snake_case)
+                    // GDScript interop: check IsAlive (PascalCase) or is_alive (snake_case)
                     var aliveVar = unit.Get("IsAlive");
                     if (aliveVar.VariantType == Variant.Type.Nil)
                         aliveVar = unit.Get("is_alive");
@@ -311,7 +311,7 @@ public partial class SpatialGrid : Node
                     }
                     else
                     {
-                        // GDScript fallback: check Team (PascalCase) or team (snake_case)
+                        // GDScript interop: check Team (PascalCase) or team (snake_case)
                         var teamVar = unit.Get("Team");
                         if (teamVar.VariantType == Variant.Type.Nil)
                             teamVar = unit.Get("team");

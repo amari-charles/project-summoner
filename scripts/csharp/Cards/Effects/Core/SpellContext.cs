@@ -25,9 +25,9 @@ public class SpellContext
     public Node? Battlefield { get; set; }
 
     /// <summary>
-    /// Reference to the modifier system for buff/debuff application.
+    /// Reference to the modifier service for buff/debuff application.
     /// </summary>
-    public Node? ModifierSystem { get; set; }
+    public Node? ModifierService { get; set; }
 
     /// <summary>
     /// Unique ID of the card instance that cast this spell.
@@ -61,7 +61,7 @@ public class SpellContext
             Position = newPosition,
             Team = Team,
             Battlefield = Battlefield,
-            ModifierSystem = ModifierSystem,
+            ModifierService = ModifierService,
             CardInstanceId = CardInstanceId,
             SceneTree = SceneTree,
             Caster = Caster

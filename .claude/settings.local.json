@@ -39,7 +39,13 @@
       "WebFetch(domain:gameidea.org)",
       "Bash(python3:*)",
       "Bash(dotnet build:*)",
-      "Bash(gh pr edit:*)"
+      "Bash(gh pr edit:*)",
+      "WebFetch(domain:docs.godotengine.org)",
+      "WebFetch(domain:forum.godotengine.org)",
+      "Bash(timeout:*)",
+      "Bash(git stash:*)",
+      "Bash(sort:*)",
+      "Bash(rg:*)"
     ],
     "deny": [],
     "ask": []

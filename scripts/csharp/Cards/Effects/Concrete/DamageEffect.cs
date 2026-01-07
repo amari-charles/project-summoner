@@ -1,6 +1,7 @@
 using Godot;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Constants;
 using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Cards.Effects.Concrete;
@@ -131,7 +132,7 @@ public class DamageEffect : SpellEffect
             return;
         }
 
-        // GDScript fallback (Unit3D.TakeDamage or take_damage)
+        // GDScript interop (Unit3D.TakeDamage or take_damage)
         if (target.HasMethod("TakeDamage"))
         {
             target.Call("TakeDamage", damage);
@@ -248,7 +249,7 @@ public class DamageEffect : SpellEffect
     {
         if (context.SceneTree == null) return null;
 
-        var bases = context.SceneTree.GetNodesInGroup("BASES");
+        var bases = context.SceneTree.GetNodesInGroup(GroupIDs.Bases);
         foreach (var baseNode in bases)
         {
             if (baseNode is not Node3D node3D) continue;
