@@ -497,8 +497,8 @@ public partial class CardFactory : Node, ICardFactory
         const int searchAttemptsPerRing = 8;
         const int searchRings = 3;
 
-        // Get all existing units
-        var units = tree?.GetNodesInGroup("UNITS");
+        // Get all existing units (group name is lowercase "units")
+        var units = tree?.GetNodesInGroup("units");
 
         // Check if desired position is safe first
         if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions))
