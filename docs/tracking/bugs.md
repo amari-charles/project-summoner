@@ -71,34 +71,6 @@ Visual bugs and potential errors during development/testing.
 
 ---
 
-#### Unit Spawns at Cursor Position Instead of Preview Position
-**Status:** Open
-**Reported:** 2026-01-04
-**Component:** Spawn System / Card Playing
-
-**Description:**
-When spawning a unit in an occupied location, the spawn preview correctly snaps to the nearest available position. However, the actual unit spawns at the original cursor position instead of the preview position, causing existing units to be displaced.
-
-**Expected Behavior:**
-Unit should spawn at the same position shown by the spawn preview (the snapped/adjusted position).
-
-**Current Behavior:**
-- Spawn preview shows correct snapped position when cursor is on an occupied spot
-- Actual unit spawns at the raw cursor position
-- Existing units get pushed around to make room
-
-**Impact:**
-Confusing UX - players expect the unit to appear where the preview showed.
-
-**Proposed Solution:**
-Ensure the spawn logic uses the same position calculation as the spawn preview, not the raw cursor position.
-
-**Related Files:**
-- scripts/battlefield/spawn_preview.gd (preview position calculation)
-- scripts/battlefield/base_battlefield_3d.gd (actual spawn logic)
-
----
-
 #### Fire Titans Cannot Attack Each Other
 **Status:** Open
 **Reported:** 2026-01-04
@@ -218,42 +190,6 @@ Ranged units cannot effectively attack the summoner, breaking intended combat ba
 
 ---
 
-#### Spawn Preview and Actual Spawning Use Separate Formation Systems
-**Status:** Open
-**Reported:** 2026-01-05
-**Component:** Architecture / Formation System
-
-**Description:**
-Formation logic is duplicated across multiple files. Adding a new formation type requires updating 4+ separate implementations that must stay in sync.
-
-**Current Implementation (Bad):**
-- **C# CardFactory** - Uses `FormationConfig.CreateFormation()` → IFormationStrategy for actual spawning
-- **GDScript Card** - Has `get_formation_offset()` / `_get_grouped_line_offset()` for preview
-- **C# FormationHelper** - Has `GenerateFormationOffset()` / `GenerateGroupedLineOffset()` for preview
-- **GDScript battlefield_drop_zone** - Calls Card's instance method
-
-**Expected Behavior:**
-Define formation config ONCE, and both preview and spawning should automatically use it. Single source of truth.
-
-**Impact:**
-- Violates DRY principle
-- Error-prone when adding new formation types
-- Easy to have preview and actual spawning diverge
-
-**Proposed Solution:**
-- Unify formation logic into a single system (likely C# IFormationStrategy)
-- Have SpawnPreview call into the same formation logic that CardFactory uses
-- Remove duplicate GDScript formation calculations
-
-**Related Files:**
-- scripts/csharp/Cards/Configs/FormationConfig.cs
-- scripts/csharp/Cards/Formations/*.cs
-- scripts/csharp/SpawnPreview/FormationHelper.cs
-- scripts/cards/card.gd (get_formation_offset methods)
-- scripts/ui/battle/battlefield_drop_zone.gd
-
----
-
 ## Bug Report Template
 
 ```markdown
@@ -292,4 +228,4 @@ Additional context
 
 ---
 
-*Last Updated: 2025-12-17 - Moved Hand UI blocking bug to resolved*
+*Last Updated: 2026-01-06 - Fixed spawn preview position mismatch bug*

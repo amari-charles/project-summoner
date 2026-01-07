@@ -64,12 +64,15 @@ func open_for_card(p_card_instance_id: String) -> void:
 ## =============================================================================
 
 func _load_card_data() -> void:
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-	if not progression_node:
-		push_error("CardLevelUpPanel: CardProgression service not found")
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if not card_service or not card_service.has_method("get_card_progression_info"):
+		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
 
-	var info: Dictionary = progression_node.call("get_card_progression_info", card_instance_id)
+	var info: Dictionary = {}
+	var result: Variant = card_service.call("get_card_progression_info", card_instance_id)
+	if result is Dictionary:
+		info = result
 	if info.is_empty():
 		push_error("CardLevelUpPanel: Failed to get progression info for %s" % card_instance_id)
 		return
@@ -106,12 +109,12 @@ func _populate_upgrade_choices() -> void:
 		button.queue_free()
 	upgrade_buttons.clear()
 
-	# Get available upgrades
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-	if not progression_node:
+	# Get available upgrades from PlayerCardService
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if not card_service or not card_service.has_method("get_available_upgrades"):
 		return
 
-	var upgrades_result: Variant = progression_node.call("get_available_upgrades", card_instance_id)
+	var upgrades_result: Variant = card_service.call("get_available_upgrades", card_instance_id)
 	if not upgrades_result is Array:
 		return
 	var upgrades: Array = upgrades_result
@@ -212,13 +215,12 @@ func _on_confirm_pressed() -> void:
 	if selected_upgrade_id.is_empty():
 		return
 
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-	if not progression_node:
-		push_error("CardLevelUpPanel: CardProgression service not found")
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if not card_service or not card_service.has_method("level_up_card"):
+		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
 
-	# Attempt level-up
-	var success_result: Variant = progression_node.call("level_up_card", card_instance_id, selected_upgrade_id)
+	var success_result: Variant = card_service.call("level_up_card", card_instance_id, selected_upgrade_id)
 	var success: bool = success_result is bool and success_result
 
 	if success:

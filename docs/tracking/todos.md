@@ -19,26 +19,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ## Architecture
 
-### 🟡 MEDIUM PRIORITY
-
-#### Comprehensive DRY Principle Audit
-**Status:** ⬜ Not Started
-**Category:** Architecture / Code Quality
-**Effort:** Medium
-
-**Description:**
-Perform a comprehensive audit of the codebase to identify and fix violations of the DRY (Don't Repeat Yourself) principle. Multiple systems have duplicated logic that should be unified.
-
-**Known Violations:**
-- Formation logic (C# CardFactory, GDScript Card, C# FormationHelper, battlefield_drop_zone)
-- Possibly others TBD
-
-**Goals:**
-- Identify all areas with duplicated logic
-- Propose unified solutions (single source of truth)
-- Prioritize fixes based on maintenance burden
-
-**Related Bug:** See bugs.md "Spawn Preview and Actual Spawning Use Separate Formation Systems"
+*(No active architecture tasks - see todos-completed.md for completed architecture work)*
 
 ---
 
@@ -394,7 +375,7 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 
 **Current Behavior:**
 - All level-ups cost gold only (amount scales with level)
-- Cost is calculated in `CardProgressionService.get_card_progression_info()`
+- Cost is calculated in `PlayerCardService.get_card_progression_info()`
 
 **Future Enhancement:**
 - Individual upgrades can specify resource costs (essence, fragments, etc.)
@@ -402,7 +383,7 @@ Currently all card upgrades cost a flat gold amount. Add support for upgrade-spe
 - Would allow rare/powerful upgrades to require special resources
 
 **Related Code:**
-- `scripts/services/card_progression_service.gd:247` - TODO comment marking this location
+- `scripts/csharp/Services/PlayerCardService.cs` - C# card service
 - `scripts/data/card_upgrade_catalog.gd` - upgrade definitions
 
 **Notes:**

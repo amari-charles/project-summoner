@@ -64,7 +64,7 @@ public partial class SpawnPreview : Node3D
                 {
                     _collisionRadius = radiusVar.AsSingle();
                 }
-                tempUnit.QueueFree();
+                tempUnit.Free();  // Not in tree, use Free() not QueueFree()
             }
         }
 
@@ -206,14 +206,46 @@ public partial class SpawnPreview : Node3D
 
     /// <summary>
     /// Update formation positions based on spawn count.
+    /// Uses default grid formation for initial placement.
+    /// Actual positions are set by GDScript calling UpdatePositions().
     /// </summary>
     private void UpdateFormationPositions()
     {
         for (int i = 0; i < _ghostUnits.Count; i++)
         {
-            var offset = FormationHelper.GenerateFormationOffset(i, _spawnCount);
+            var offset = GetDefaultGridOffset(i, _spawnCount);
             _ghostUnits[i].Position = offset;
         }
+    }
+
+    /// <summary>
+    /// Default grid formation offset for initial ghost positioning.
+    /// This is a simplified calculation - actual positions come from Card.get_formation_offset().
+    /// </summary>
+    private static Vector3 GetDefaultGridOffset(int unitIndex, int unitCount)
+    {
+        if (unitCount <= 1)
+            return Vector3.Zero;
+
+        const float spacing = 1.8f;
+        const float rowOffset = 0.5f;
+        const int twoRowMax = 20;
+        const float largeRowDensity = 3.0f;
+
+        int rows = unitCount <= twoRowMax ? 2 : Mathf.CeilToInt(Mathf.Sqrt(unitCount / largeRowDensity));
+        int cols = Mathf.CeilToInt((float)unitCount / rows);
+
+        int row = unitIndex / cols;
+        int col = unitIndex % cols;
+        int unitsInRow = Mathf.Min(cols, unitCount - row * cols);
+
+        float stagger = row % 2 == 1 ? rowOffset * spacing : 0.0f;
+        float formationDepth = (rows - 1) * spacing;
+        float xOff = row * spacing - formationDepth / 2.0f;
+        float rowWidth = (unitsInRow - 1) * spacing;
+        float zOff = col * spacing - rowWidth / 2.0f + stagger;
+
+        return new Vector3(xOff, 0, zOff);
     }
 
     /// <summary>

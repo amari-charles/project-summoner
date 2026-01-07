@@ -329,8 +329,8 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 		push_error("EventSequencer: Battlefield not found")
 		return
 
-	# Get ModifierSystem
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
+	# Get ModifierService
+	var modifier_service: Node = get_node_or_null("/root/ModifierService")
 
 	# Apply stat overrides to Card BEFORE spawning
 	var stat_overrides_val: Variant = step.get("stat_overrides")
@@ -344,7 +344,7 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 
 	# Spawn unit (Card will apply custom_stat_overrides during spawning)
 	if card.has_method("play_3d"):
-		card.call("play_3d", spawn_position, team, battlefield, modifier_system)
+		card.call("play_3d", spawn_position, team, battlefield, modifier_service)
 		if debug_mode:
 			print("EventSequencer: Unit spawned successfully")
 	else:

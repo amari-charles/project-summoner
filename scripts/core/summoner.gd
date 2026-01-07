@@ -296,11 +296,11 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, s
 		push_error("No battlefield found in scene!")
 		return false
 
-	# Get ModifierSystem for efficient access (avoid fragile scene tree lookups)
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
+	# Get ModifierService for efficient access (avoid fragile scene tree lookups)
+	var modifier_service: Node = get_node_or_null("/root/ModifierService")
 
 	# Play the card in 3D (with optional spawn reveal effect)
-	card.play_3d(spawn_position, team, battlefield, modifier_system, spawn_duration)
+	card.play_3d(spawn_position, team, battlefield, modifier_service, spawn_duration)
 
 	# Remove from hand and add to discard pile
 	hand.remove_at(card_index)

@@ -121,8 +121,8 @@ func _apply_damage() -> void:
 	if spell_damage <= 0:
 		return
 
-	# Apply damage to C# unit
-	if target_unit.has_method("TakeDamage"):
+	# Apply damage to C# Unit3D
+	if target_unit is Unit3D:
 		target_unit.TakeDamage(spell_damage)
 
 ## Update shader alpha (called by tween)

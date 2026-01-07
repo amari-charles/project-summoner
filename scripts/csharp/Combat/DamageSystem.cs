@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Services.Interfaces;
 using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Combat;
@@ -9,7 +10,7 @@ namespace ProjectSummoner.Combat;
 /// Centralized damage calculation and combat event system.
 /// Usage: DamageSystem.Instance.ApplyDamage(attacker, target, baseDamage)
 /// </summary>
-public partial class DamageSystem : Node
+public partial class DamageSystem : Node, IDamageSystem
 {
     // =========================================================================
     // SINGLETON

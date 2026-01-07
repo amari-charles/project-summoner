@@ -261,15 +261,15 @@ func _spawn_tutorial_enemy() -> void:
 
 	print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
 
-	# Get ModifierSystem
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
-	print("BattleDialogueController: ModifierSystem: %s" % ("found" if modifier_system else "null"))
+	# Get ModifierService
+	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	print("BattleDialogueController: ModifierService: %s" % ("found" if modifier_service else "null"))
 
 	# Spawn the unit directly (team 1 = enemy)
 	print("BattleDialogueController: Checking if card has play_3d method...")
 	if card.has_method("play_3d"):
 		print("BattleDialogueController: Calling card.play_3d()...")
-		card.call("play_3d", spawn_pos_3d, 1, battlefield, modifier_system)
+		card.call("play_3d", spawn_pos_3d, 1, battlefield, modifier_service)
 		print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
 	else:
 		push_error("BattleDialogueController: Card doesn't have play_3d method - card type is %s" % card.get_class())

@@ -37,6 +37,9 @@ var win_condition_kill_target: int = 0
 ## Current kill count for KILL_COUNT tracking
 var _enemy_kill_count: int = 0
 
+## Registered summoner provider ID for cleanup
+var _registered_summoner_provider_id: String = ""
+
 signal game_started()
 signal game_ended(winner: UnitConstants.Team)
 signal time_updated(remaining: float)
@@ -174,9 +177,10 @@ func _connect_summoner_combat_signals() -> void:
 
 func _exit_tree() -> void:
 	# Cleanup: unregister summoner provider to prevent memory leak
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
-	if modifier_system and modifier_system.has_method("unregister_provider"):
-		modifier_system.call("unregister_provider", "summoner")
+	if not _registered_summoner_provider_id.is_empty():
+		var modifier_service: Node = get_node_or_null("/root/ModifierService")
+		if modifier_service and modifier_service.has_method("unregister_provider"):
+			modifier_service.call("unregister_provider", _registered_summoner_provider_id)
 
 	# Cleanup: disconnect kill tracking signal to prevent memory leak
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
@@ -469,16 +473,11 @@ func _register_summoner_provider() -> void:
 		push_warning("GameController3D: Failed to load SummonerInstance for '%s', no summoner bonuses will apply" % summoner_id)
 		return
 
-	# Register summoner modifier provider
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
-	if not modifier_system:
-		push_error("GameController3D: ModifierSystem not found!")
-		return
-
-	# Create and register summoner provider with SummonerInstance
-	var summoner_provider: SummonerModifierProvider = SummonerModifierProvider.new(summoner_instance)
-	if modifier_system.has_method("register_provider"):
-		modifier_system.call("register_provider", "summoner", summoner_provider)
+	# Register summoner modifier provider with C# ModifierService
+	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	if modifier_service and modifier_service.has_method("register_summoner_provider"):
+		modifier_service.call("register_summoner_provider", summoner_instance, summoner_id)
+		_registered_summoner_provider_id = "summoner_" + summoner_id
 
 ## =============================================================================
 ## REDIRECT INPUT HANDLING

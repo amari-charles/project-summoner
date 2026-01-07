@@ -4,6 +4,102 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## Architecture
+
+### DRY Principle Audit - Formation Logic Unified
+**Completed:** 2026-01-06
+**Category:** Architecture / Code Quality
+**Effort:** Medium
+
+**Description:**
+Performed comprehensive audit of formation logic duplication and unified into a single source of truth.
+
+**Problem Identified:**
+Formation logic was duplicated across 4+ files:
+- C# CardFactory.cs
+- GDScript Card.gd
+- C# FormationHelper.cs (redundant)
+- battlefield_drop_zone.gd
+
+**Solution Implemented:**
+- Created `SpawnOrchestrator.cs` as the single source of truth for formation positioning
+- Deleted redundant `FormationHelper.cs`
+- Updated `Card.gd` to delegate to SpawnOrchestrator
+- Unified spawn preview and actual spawning to use same formation logic
+
+**Related Bug Fixed:** "Spawn Preview and Actual Spawning Use Separate Formation Systems" (see bugs-resolved.md)
+
+**Architecture Document:** See `docs/architecture/system-architecture.md` for current architecture
+
+---
+
+### CardProgressionService Removal
+**Completed:** 2026-01-06
+**Category:** Architecture / Services
+**Effort:** Small
+
+**Description:**
+Removed the deprecated GDScript CardProgressionService, completing the migration to the C# PlayerCardService.
+
+**Solution Implemented:**
+- Updated all callers to use only PlayerCardService (no fallback)
+- Removed CardProgression autoload from project.godot
+- Deleted `scripts/services/card_progression_service.gd`
+
+**Files Updated:**
+- `scripts/cards/card.gd` - Removed fallback
+- `scripts/core/battle_context.gd` - Removed fallback
+- `scripts/ui/screens/collection_screen.gd` - Removed fallback
+- `scripts/ui/modals/card_level_up_panel.gd` - Removed fallback (3 places)
+- `scripts/ui/modals/card_detail_modal.gd` - Removed fallback (3 places)
+- `project.godot` - Removed CardProgression autoload
+
+---
+
+### C# Modifier System Migration
+**Completed:** 2026-01-06
+**Category:** Architecture / Systems
+**Effort:** Medium
+
+**Description:**
+Migrated the modifier system from GDScript to C# following the "C# = Systems & Mechanics" principle.
+
+**Solution Implemented:**
+- Created `ModifierService.cs` as central C# service (autoload)
+- Created `StatModifier.cs` with typed modifier class
+- Created `IModifierProvider.cs` interface
+- Created `CardModifierProvider.cs` and `SummonerModifierProvider.cs` in C#
+- Added factory methods for GDScript interop (`register_summoner_provider`, `register_card_provider`)
+- Deleted deprecated GDScript files: `modifier_system.gd`, `card_modifier_provider.gd`, `summoner_modifier_provider.gd`
+
+**Related Files:**
+- `scripts/csharp/Systems/Modifiers/ModifierService.cs`
+- `scripts/csharp/Systems/Modifiers/StatModifier.cs`
+- `scripts/csharp/Systems/Modifiers/IModifierProvider.cs`
+
+---
+
+### Service Interfaces for Dependency Injection
+**Completed:** 2026-01-06
+**Category:** Architecture / Testing
+**Effort:** Medium
+
+**Description:**
+Created service interfaces to enable future dependency injection and unit testing.
+
+**Solution Implemented:**
+- Created `ICardFactory.cs` interface
+- Created `IModifierService.cs` interface
+- Created `IPlayerCardService.cs` interface
+- Created `IDamageSystem.cs` interface
+- Updated all services to implement their respective interfaces
+- All interfaces use snake_case for GDScript-compatible method names
+
+**Related Files:**
+- `scripts/csharp/Services/Interfaces/`
+
+---
+
 ## Card & Spell System
 
 ### C# SummonCard Infrastructure
@@ -1272,4 +1368,4 @@ Improved the visual presentation of cards in the player's hand.
 
 ---
 
-*Last Updated: 2025-12-23 - Added Summoner Unlock System, Card Hand Display, Flying units*
+*Last Updated: 2026-01-06 - Added Architecture section (DRY Audit, Modifier Migration, Service Interfaces)*

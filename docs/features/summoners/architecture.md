@@ -256,10 +256,12 @@ var damage_bonus: float = summoner_stats.get("damage_bonus", 0.0)
 4. **Modifiers are applied** to matching units (by element, tags, etc.)
 
 ```gdscript
-# In GameController._setup_modifier_system():
+# In GameController._register_summoner_provider():
 var summoner_instance: SummonerInstance = _load_summoner_instance()
-var provider: SummonerModifierProvider = SummonerModifierProvider.new(summoner_instance)
-ModifierSystem.register_provider("summoner", provider)
+# Use factory method - GDScript can't instantiate C# classes directly
+var modifier_service: Node = get_node_or_null("/root/ModifierService")
+if modifier_service and modifier_service.has_method("register_summoner_provider"):
+    modifier_service.call("register_summoner_provider", summoner_instance, summoner_id)
 ```
 
 ---
@@ -351,9 +353,9 @@ Special boon granted only to summoners created via Random selection:
 - `scripts/core/summoner_instance.gd` - SummonerInstance runtime class
 - `scripts/data/summoner_catalog.gd` - SummonerCatalog autoload (static configs)
 
-### Modifier Integration
-- `scripts/systems/summoner_modifier_provider.gd` - Provides unit modifiers from traits
-- `scripts/systems/modifier_system.gd` - Central modifier registry
+### Modifier Integration (C#)
+- `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Provides unit modifiers from traits
+- `scripts/csharp/Systems/Modifiers/ModifierService.cs` - Central modifier service (autoload)
 
 ### UI
 - `scripts/ui/summoner_management_panel.gd` - Main summoner panel

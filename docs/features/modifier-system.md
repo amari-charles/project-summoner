@@ -450,86 +450,113 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary):
         active_modifiers.merge(mod.get("flags", {}), true)
 ```
 
-### 3. ModifierSystem (Autoload)
+### 3. ModifierService (Autoload)
 
-Central service that collects and filters modifiers:
+Central C# service that collects and filters modifiers:
 
-```gdscript
-# modifier_system.gd (autoload)
-extends Node
+```csharp
+// ModifierService.cs (autoload at /root/ModifierService)
+[GlobalClass]
+public partial class ModifierService : Node, IModifierService
+{
+    private readonly Dictionary<string, IModifierProvider> _providers = new();
 
-var _providers: Dictionary = {}  # provider_id -> ModifierProvider
+    public void RegisterProvider(IModifierProvider provider)
+    {
+        _providers[provider.ProviderId] = provider;
+    }
 
-func register_provider(id: String, provider: ModifierProvider):
-    _providers[id] = provider
+    public List<StatModifier> GetModifiers(ModifierContext context)
+    {
+        var allModifiers = new List<StatModifier>();
 
-func get_modifiers_for(target_type: String, categories: Dictionary, context: Dictionary) -> Array:
-    var all_mods = []
+        // Collect from all providers
+        foreach (var provider in _providers.Values)
+            allModifiers.AddRange(provider.GetModifiers());
 
-    # Collect from all providers
-    for provider in _providers.values():
-        all_mods.append_array(provider.get_modifiers())
+        // Filter by conditions and instance scope
+        var filtered = FilterModifiers(allModifiers, context);
 
-    # Filter by target type and conditions
-    var filtered = []
-    for mod in all_mods:
-        if _matches_conditions(mod, categories, context):
-            filtered.append(mod)
+        // Apply amplification
+        ApplyAmplification(filtered);
 
-    return filtered
+        return filtered;
+    }
 
-func _matches_conditions(mod: Dictionary, categories: Dictionary, context: Dictionary) -> bool:
-    var conditions = mod.get("conditions", {})
-    for key in conditions.keys():
-        if categories.get(key) != conditions[key]:
-            return false
-    return true
+    // GDScript interop (snake_case)
+    public Godot.Collections.Array get_modifiers_for(
+        string targetType,
+        Godot.Collections.Dictionary categories,
+        Godot.Collections.Dictionary context)
+    {
+        var modContext = ModifierContext.FromDictionaries(categories, context);
+        var modifiers = GetModifiers(modContext);
+
+        var result = new Godot.Collections.Array();
+        foreach (var mod in modifiers)
+            result.Add(mod.ToDictionary());
+        return result;
+    }
+}
 ```
 
-### 4. Hero Provider (hero_modifier_provider.gd)
+### 4. Summoner Provider (SummonerModifierProvider.cs)
 
-```gdscript
-class_name HeroModifierProvider extends RefCounted
+```csharp
+// SummonerModifierProvider.cs
+public class SummonerModifierProvider : RefCounted, IModifierProvider
+{
+    private readonly SummonerInstance _summonerInstance;
+    public string ProviderId => "summoner";
 
-var hero_id: String
+    public SummonerModifierProvider(SummonerInstance summonerInstance)
+    {
+        _summonerInstance = summonerInstance;
+    }
 
-func _init(id: String):
-    hero_id = id
+    public List<StatModifier> GetModifiers()
+    {
+        var modifiers = new List<StatModifier>();
 
-func get_modifiers() -> Array:
-    var mods = []
+        foreach (var traitId in _summonerInstance.ActiveTraitIds)
+        {
+            var trait = TraitCatalog.GetTrait(traitId);
+            if (trait == null) continue;
 
-    match hero_id:
-        "fire_hero":
-            mods.append({
-                "source": "fire_hero",
-                "tags": ["sun_blessed"],
-                "conditions": {"elemental_affinity": "fire"},
-                "stat_mults": {"max_hp": 1.3, "attack_damage": 1.3}
-            })
-        "earth_hero":
-            mods.append({
-                "source": "earth_hero",
-                "tags": ["stone_guardian"],
-                "conditions": {"elemental_affinity": "earth"},
-                "stat_mults": {"max_hp": 1.5},
-                "stat_adds": {"armor": 5}
-            })
+            var modifier = new StatModifier
+            {
+                Source = $"trait_{traitId}",
+                Tags = new List<string>(trait.Tags)
+            };
 
-    return mods
+            // Add conditions (e.g., elemental affinity)
+            if (!string.IsNullOrEmpty(trait.ElementalAffinity))
+                modifier.Conditions["elemental_affinity"] = trait.ElementalAffinity;
+
+            // Add stat bonuses
+            foreach (var kvp in trait.StatMults)
+                modifier.StatMults[kvp.Key] = kvp.Value;
+
+            modifiers.Add(modifier);
+        }
+
+        return modifiers;
+    }
+}
 ```
 
 ### 5. Battle Initialization (game_controller_3d.gd)
 
 ```gdscript
-func _ready():
-    # Register hero provider from active deck
-    var active_deck = Decks.get_active_deck()
-    var hero_id = active_deck.get("hero_id", "") if active_deck else ""
+func _register_summoner_provider() -> void:
+    # Load summoner instance from profile
+    var summoner_instance = SummonerInstance.from_dict(summoner_data)
 
-    if hero_id:
-        var hero_provider = HeroModifierProvider.new(hero_id)
-        ModifierSystem.register_provider("hero", hero_provider)
+    # Register summoner modifier provider with C# ModifierService
+    # Uses factory method since GDScript can't instantiate C# classes directly
+    var modifier_service: Node = get_node_or_null("/root/ModifierService")
+    if modifier_service and modifier_service.has_method("register_summoner_provider"):
+        modifier_service.call("register_summoner_provider", summoner_instance, summoner_id)
 ```
 
 ---
@@ -648,5 +675,14 @@ var fire_mods = ModifierSystem.query() \
 
 ---
 
-*Last Updated: 2025-01-11*
-*Status: Design Complete - Ready for Implementation*
+*Last Updated: 2026-01-06*
+*Status: Implemented in C# - ModifierService autoload at /root/ModifierService*
+
+## Current Implementation Files
+
+- `scripts/csharp/Systems/Modifiers/ModifierService.cs` - Central service (autoload)
+- `scripts/csharp/Systems/Modifiers/StatModifier.cs` - Typed modifier class
+- `scripts/csharp/Systems/Modifiers/ModifierContext.cs` - Query context
+- `scripts/csharp/Systems/Modifiers/IModifierProvider.cs` - Provider interface
+- `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs` - Card upgrade modifiers
+- `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Summoner trait modifiers

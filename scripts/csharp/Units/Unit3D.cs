@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Constants;
-using ProjectSummoner.Movement;
 using ProjectSummoner.Systems;
 using ProjectSummoner.Targeting;
+using ProjectSummoner.Units.Components;
 using ProjectSummoner.Visual;
 
 namespace ProjectSummoner.Units;
@@ -37,18 +37,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private const float DeathCleanupDelay = 1.0f;
     private const float TargetLockDuration = 0.5f;
 
-    // Spawn reveal glow colors - blue for player team, red for enemy team (matches team color scheme)
-    private static readonly Color SpawnGlowColorPlayer = new(0.4f, 0.7f, 1.0f, 1.0f);
-    private static readonly Color SpawnGlowColorEnemy = new(1.0f, 0.4f, 0.4f, 1.0f);
-
-    // Minimum horizontal displacement to determine facing direction.
-    // Below this threshold, target is considered directly above/below and attack is allowed regardless of facing.
-    private const float MinHorizontalDisplacement = 0.01f;
-
-    // Half-plane angle threshold for facing direction during strafe.
-    // If target angle is within ±90° of forward (+X), face right; otherwise face left.
-    private const float StrafeFacingHalfAngle = 90f;
-
     // Projectile target fallback: center mass at 50% of unit height
     private const float CenterMassHeightFraction = 0.5f;
 
@@ -68,9 +56,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // Scale factor for converting world position to render priority
     // With battlefield Z range ~-40 to +40 and priority range of 256, 3x gives good granularity
     private const float RenderPriorityScale = 3f;
-
-    // Cached shader (shared across all instances)
-    private static Shader? _spawnRevealShader;
 
     // =========================================================================
     // GODOT SIGNALS (accessible from GDScript)
@@ -191,12 +176,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public float ShadowOpacity { get; set; } = 0.6f;
 
     // =========================================================================
-    // RUNTIME STATE (IDamageable implementation)
+    // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
 
-    public float CurrentHp { get; protected set; }
-    public bool IsAlive { get; protected set; } = true;
-    public bool IsDying { get; protected set; } = false;
+    private readonly UnitHealth _health = new();
+
+    public float CurrentHp => _health.CurrentHp;
+    public bool IsAlive => _health.IsAlive;
+    public bool IsDying => _health.IsDying;
 
     // GDScript interop - snake_case aliases for duck typing in battlefield_constants.gd
     public bool is_alive => IsAlive;
@@ -218,14 +205,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
 
-    // Spawn reveal state
-    private bool _isSpawning;
-    private ShaderMaterial? _spawnRevealMaterial;
-    private Tween? _spawnRevealTween;
-    private readonly Dictionary<CanvasItem, Material?> _originalMaterials = new();
+    // Spawn reveal animation component
+    private SpawnRevealComponent? _spawnRevealComponent;
 
-    // Steering behavior for separation and flanking
-    private readonly UnitSteering _steering = new();
+    // Movement component for steering, separation, and velocity calculation
+    private readonly UnitMovement _movement = new();
 
     /// <summary>
     /// True if unit is facing right (positive X). Player team starts right, enemy left.
@@ -331,7 +315,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _baseAttackSpeed = AttackSpeed;
         _baseMoveSpeed = MoveSpeed;
 
-        CurrentHp = MaxHp;
+        // Initialize health component
+        _health.Initialize(MaxHp);
+        _health.OnHpChanged += (hp, max) => EmitSignal(SignalName.HpChanged, hp, max);
+        _health.OnDeath += OnHealthDeath;
 
         // Find visual component (child node named "Visual")
         var visualNode = GetNodeOrNull<Node3D>("Visual");
@@ -386,6 +373,15 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         {
             CallDeferred(MethodName.ShowShadowDeferred);
         }
+
+        // Initialize spawn reveal component
+        _spawnRevealComponent = new SpawnRevealComponent(
+            owner: this,
+            getVisual: () => VisualComponent,
+            getShadow: () => _shadowComponent,
+            getTeam: () => (Team)Team
+        );
+        _spawnRevealComponent.OnRevealComplete += OnSpawnRevealComplete;
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
@@ -474,16 +470,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     protected virtual void OnTakeDamage(float amount, string damageType)
     {
-        CurrentHp = Mathf.Max(CurrentHp - amount, 0);
-        EmitSignal(SignalName.HpChanged, CurrentHp, MaxHp);
+        // Delegate HP management to health component (fires OnHpChanged -> signal, OnDeath -> Die)
+        _health.TakeDamage(amount);
 
         // Visual feedback
         VisualComponent?.FlashWhite();
-
-        if (CurrentHp <= 0)
-        {
-            Die();
-        }
     }
 
     // =========================================================================
@@ -516,19 +507,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     public float Heal(float amount)
     {
-        if (!IsAlive || IsDying)
-            return 0f;
-
-        float previousHp = CurrentHp;
-        CurrentHp = Mathf.Min(CurrentHp + amount, MaxHp);
-        float actualHeal = CurrentHp - previousHp;
-
-        if (actualHeal > 0)
-        {
-            EmitSignal(SignalName.HpChanged, CurrentHp, MaxHp);
-        }
-
-        return actualHeal;
+        return _health.Heal(amount);
     }
 
     /// <summary>
@@ -584,7 +563,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         AttackSpeed = (_baseAttackSpeed + speedAdd) * speedMult;
         MoveSpeed = (_baseMoveSpeed + moveSpeedAdd) * moveSpeedMult;
 
-        CurrentHp = MaxHp;
+        _health.SetMaxHp(MaxHp, healToMax: true);
     }
 
     /// <summary>
@@ -624,124 +603,18 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     public void start_spawn_reveal(float duration)
     {
-        if (_isSpawning)
+        if (_spawnRevealComponent == null || _spawnRevealComponent.IsRevealing)
             return;
 
-        _isSpawning = true;
         ActivationState = ActivationState.Inactive;
-
-        // Start shadow at scale 0 (will grow during reveal)
-        if (_shadowComponent != null)
-        {
-            _shadowComponent.Scale = Vector3.Zero;
-        }
-
-        // Load shader if not cached
-        _spawnRevealShader ??= GD.Load<Shader>("res://shaders/vfx/spawn_reveal.gdshader");
-
-        if (_spawnRevealShader == null)
-        {
-            GD.PushError("Unit3D: Failed to load spawn_reveal shader!");
-            CompleteSpawnReveal();
-            return;
-        }
-
-        // Create shader material
-        _spawnRevealMaterial = new ShaderMaterial();
-        _spawnRevealMaterial.Shader = _spawnRevealShader;
-        _spawnRevealMaterial.SetShaderParameter("progress", 0.0f);
-
-        // Set glow color based on team
-        var glowColor = Team == (int)Units.Team.Player ? SpawnGlowColorPlayer : SpawnGlowColorEnemy;
-        _spawnRevealMaterial.SetShaderParameter("glow_color", glowColor);
-
-        // Apply shader and start animation (deferred to allow visual component initialization)
-        CallDeferred(MethodName.ApplySpawnRevealDeferred, duration);
+        _spawnRevealComponent.StartReveal(duration);
     }
 
-    private void ApplySpawnRevealDeferred(float duration)
+    /// <summary>
+    /// Called when spawn reveal animation completes.
+    /// </summary>
+    private void OnSpawnRevealComplete()
     {
-        if (!IsInstanceValid(this) || !_isSpawning)
-            return;
-
-        ApplySpawnShaderToVisual();
-
-        // Animate progress from 0 to 1
-        _spawnRevealTween = CreateTween();
-        _spawnRevealTween.TweenMethod(Callable.From<float>(UpdateSpawnProgress), 0.0f, 1.0f, duration);
-
-        // Animate shadow growing alongside
-        if (_shadowComponent != null)
-        {
-            _spawnRevealTween.Parallel().TweenProperty(_shadowComponent, "scale", Vector3.One, duration);
-        }
-
-        // Complete when done
-        _spawnRevealTween.TweenCallback(Callable.From(CompleteSpawnReveal));
-    }
-
-    private void ApplySpawnShaderToVisual()
-    {
-        if (VisualComponent == null || _spawnRevealMaterial == null)
-            return;
-
-        _originalMaterials.Clear();
-
-        // Find all CanvasItems in the visual component and apply shader
-        if (VisualComponent is Node visualNode)
-        {
-            var sprites = FindAllCanvasItems(visualNode);
-            foreach (var sprite in sprites)
-            {
-                _originalMaterials[sprite] = sprite.Material;
-                sprite.Material = _spawnRevealMaterial;
-            }
-        }
-    }
-
-    private List<CanvasItem> FindAllCanvasItems(Node root)
-    {
-        var result = new List<CanvasItem>();
-        FindCanvasItemsRecursive(root, result);
-        return result;
-    }
-
-    private void FindCanvasItemsRecursive(Node node, List<CanvasItem> result)
-    {
-        if (node is CanvasItem canvasItem)
-        {
-            result.Add(canvasItem);
-        }
-
-        foreach (var child in node.GetChildren())
-        {
-            FindCanvasItemsRecursive(child, result);
-        }
-    }
-
-    private void UpdateSpawnProgress(float progress)
-    {
-        _spawnRevealMaterial?.SetShaderParameter("progress", progress);
-    }
-
-    private void CompleteSpawnReveal()
-    {
-        _isSpawning = false;
-
-        // Restore original materials
-        foreach (var (sprite, originalMaterial) in _originalMaterials)
-        {
-            if (IsInstanceValid(sprite))
-            {
-                sprite.Material = originalMaterial;
-            }
-        }
-        _originalMaterials.Clear();
-
-        // Clean up shader material
-        _spawnRevealMaterial?.Dispose();
-        _spawnRevealMaterial = null;
-
         // Activate if game is in battle phase (unit was spawned during battle)
         // BattlePhase enum: PREPARATION = 0, BATTLE = 1
         var gameController = GetTree().CurrentScene;
@@ -794,14 +667,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // PROTECTED HELPERS
     // =========================================================================
 
-    protected void Die()
+    /// <summary>
+    /// Called when health component triggers death.
+    /// </summary>
+    private void OnHealthDeath()
     {
-        if (IsDying)
-            return;
-
-        IsDying = true;
-        IsAlive = false;
-
         // Unregister from external systems
         UnregisterFromExternalSystems();
 
@@ -945,29 +815,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     protected void MoveForward(float delta)
     {
-        // Move toward enemy base direction
-        float direction = Team == (int)Units.Team.Player ? 1.0f : -1.0f;
-        Vector3 moveDir = new(direction, 0, 0);
-
-        // Apply separation steering to avoid stacking with nearby units
-        Vector3 separation = _steering.CalculateSeparationForce(this, null);
-        Vector3 finalDir = (moveDir + separation).Normalized();
-        Vector3 velocity = finalDir * MoveSpeed;
-
-        // Maintain altitude for flying units
-        if (MovementLayer == (int)Units.MovementLayer.Air)
-        {
-            velocity.Y = 0;
-        }
-
-        Velocity = velocity;
-        MoveAndSlide();
-
-        // Correct any severe overlaps after movement
-        _steering.CorrectOverlaps(this);
-
-        // Update facing direction (use base direction, not separation-adjusted)
-        UpdateFacing(moveDir);
+        var result = _movement.CalculateForwardMovement(this, delta);
+        ApplyMovementResult(result);
     }
 
     protected void MoveTowardTarget(float delta)
@@ -975,39 +824,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (CurrentTarget == null)
             return;
 
-        Vector3 targetPos = CurrentTarget.GlobalPosition;
-
-        // For ground units, ignore Y difference when moving
-        if (MovementLayer == (int)Units.MovementLayer.Ground)
-        {
-            targetPos.Y = GlobalPosition.Y;
-        }
-
-        Vector3 direction = (targetPos - GlobalPosition).Normalized();
-
-        // Apply separation steering to avoid stacking with nearby units
-        Vector3 separation = _steering.CalculateSeparationForce(this, CurrentTarget);
-        Vector3 flank = _steering.CalculateFlankForce(this, CurrentTarget, delta);
-        Vector3 finalDir = (direction * MoveSpeed + separation + flank).Normalized();
-        Vector3 velocity = finalDir * MoveSpeed;
-
-        // Maintain altitude for flying units
-        if (MovementLayer == (int)Units.MovementLayer.Air)
-        {
-            velocity.Y = 0;
-        }
-
-        Velocity = velocity;
-        MoveAndSlide();
-
-        // Correct any severe overlaps after movement
-        _steering.CorrectOverlaps(this);
-
-        // Track blocked state for flanking behavior
-        _steering.UpdateBlockedState(this, delta);
-
-        // Update facing direction (use base direction, not separation-adjusted)
-        UpdateFacing(direction);
+        var result = _movement.CalculateTowardTargetMovement(this, CurrentTarget, delta);
+        ApplyMovementResult(result);
+        _movement.UpdateBlockedState(this, delta);
     }
 
     /// <summary>
@@ -1019,62 +838,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (CurrentTarget == null)
             return;
 
-        // Extend target lock while strafing - prevents mid-strafe target switches
-        _targetLockTimer = TargetLockDuration;
+        var result = _movement.CalculateStrafeMovement(this, CurrentTarget, _isFacingRight, delta);
 
-        Vector3 toTarget = CurrentTarget.GlobalPosition - GlobalPosition;
-        Vector3 horizontalToTarget = new(toTarget.X, 0, toTarget.Z);
-
-        if (horizontalToTarget.LengthSquared() < MinHorizontalDisplacement * MinHorizontalDisplacement)
-            return; // Target directly on top of us
-
-        // Calculate angle to target (0° = +X, 90° = +Z)
-        float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(horizontalToTarget.Z, horizontalToTarget.X));
-
-        // Determine optimal facing: face toward the half-plane where target is
-        // If target angle is within ±StrafeFacingHalfAngle of forward, face right (0°)
-        // If target angle is outside that range, face left (180°)
-        bool shouldFaceRight = Mathf.Abs(angleToTarget) <= StrafeFacingHalfAngle;
-
-        // Update facing (bypassing the threshold check since we calculated it properly)
-        if (_isFacingRight != shouldFaceRight)
+        if (result.ExtendTargetLock)
         {
-            _isFacingRight = shouldFaceRight;
-            VisualComponent?.SetFlipH(_isFacingRight);
-            UpdateShadowOffset();
+            _targetLockTimer = TargetLockDuration;
         }
 
-        // Calculate angle difference from our facing
-        float facingAngle = _isFacingRight ? 0f : 180f;
-        float angleDiff = angleToTarget - facingAngle;
-        while (angleDiff > 180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
-
-        // Get perpendicular strafe direction (90° counterclockwise from toTarget)
-        Vector3 strafeDir = new Vector3(-horizontalToTarget.Z, 0, horizontalToTarget.X).Normalized();
-
-        // Choose strafe direction that reduces |angleDiff|
-        // If angleDiff > 0, target is counterclockwise from facing, keep base direction
-        // If angleDiff < 0, target is clockwise from facing, flip direction
-        if (angleDiff < 0)
-            strafeDir = -strafeDir;
-
-        // Apply separation steering to avoid stacking with nearby units
-        Vector3 separation = _steering.CalculateSeparationForce(this, CurrentTarget);
-        Vector3 finalDir = (strafeDir + separation).Normalized();
-        Vector3 velocity = finalDir * MoveSpeed;
-
-        // Maintain altitude for flying units
-        if (MovementLayer == (int)Units.MovementLayer.Air)
-        {
-            velocity.Y = 0;
-        }
-
-        Velocity = velocity;
-        MoveAndSlide();
-
-        // Correct any severe overlaps after movement
-        _steering.CorrectOverlaps(this);
+        ApplyMovementResult(result);
     }
 
     protected void UpdateFacing(Vector3 direction)
@@ -1089,6 +860,31 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 VisualComponent?.SetFlipH(_isFacingRight);
                 UpdateShadowOffset();
             }
+        }
+    }
+
+    /// <summary>
+    /// Apply a movement result: set velocity, call MoveAndSlide, correct overlaps, update facing.
+    /// </summary>
+    private void ApplyMovementResult(MovementResult result)
+    {
+        Velocity = result.Velocity;
+        MoveAndSlide();
+        _movement.CorrectOverlaps(this);
+
+        // Update facing
+        if (result.FacingExplicitlySet)
+        {
+            if (_isFacingRight != result.ShouldFaceRight)
+            {
+                _isFacingRight = result.ShouldFaceRight;
+                VisualComponent?.SetFlipH(_isFacingRight);
+                UpdateShadowOffset();
+            }
+        }
+        else if (result.FacingDirection.LengthSquared() > 0)
+        {
+            UpdateFacing(result.FacingDirection);
         }
     }
 

@@ -68,4 +68,69 @@ public partial class SpellCardConfig : CardConfig
     /// </summary>
     [Export]
     public float SelectionRadius { get; set; } = 8.0f;
+
+    // =========================================================================
+    // CONVERSION
+    // =========================================================================
+
+    /// <summary>
+    /// Create a SpellCardConfig from a GDScript dictionary.
+    /// </summary>
+    public new static SpellCardConfig FromDictionary(Godot.Collections.Dictionary dict)
+    {
+        var config = new SpellCardConfig();
+        PopulateFromDictionary(config, dict);
+        PopulateSpellFromDictionary(config, dict);
+        return config;
+    }
+
+    /// <summary>
+    /// Populate spell-specific fields from dictionary.
+    /// </summary>
+    protected static void PopulateSpellFromDictionary(SpellCardConfig config, Godot.Collections.Dictionary dict)
+    {
+        if (dict.TryGetValue("summon_time", out var castTime))
+            config.CastTime = castTime.AsSingle();
+
+        if (dict.TryGetValue("spell_radius", out var spellRadius))
+            config.SpellRadius = spellRadius.AsSingle();
+
+        if (dict.TryGetValue("spell_damage", out var spellDamage))
+            config.SpellDamage = spellDamage.AsSingle();
+
+        if (dict.TryGetValue("spell_duration", out var spellDuration))
+            config.SpellDuration = spellDuration.AsSingle();
+
+        if (dict.TryGetValue("spell_vfx", out var spellVfx))
+            config.SpellVFX = spellVfx.AsString();
+
+        if (dict.TryGetValue("projectile_id", out var projectileId))
+            config.ProjectileId = projectileId.AsString();
+
+        if (dict.TryGetValue("command_type", out var commandType))
+            config.CommandType = commandType.AsString();
+
+        if (dict.TryGetValue("selection_radius", out var selectionRadius))
+            config.SelectionRadius = selectionRadius.AsSingle();
+    }
+
+    /// <summary>
+    /// Convert to GDScript-compatible dictionary.
+    /// </summary>
+    public override Godot.Collections.Dictionary ToDictionary()
+    {
+        var dict = base.ToDictionary();
+
+        // Spell properties
+        dict["summon_time"] = CastTime;
+        dict["spell_radius"] = SpellRadius;
+        dict["spell_damage"] = SpellDamage;
+        dict["spell_duration"] = SpellDuration;
+        dict["spell_vfx"] = SpellVFX;
+        dict["projectile_id"] = ProjectileId;
+        dict["command_type"] = CommandType;
+        dict["selection_radius"] = SelectionRadius;
+
+        return dict;
+    }
 }

@@ -64,7 +64,7 @@ public partial class GhostUnit3D : Node3D
         var visualNode = tempUnit.GetNodeOrNull("Visual");
         if (visualNode == null)
         {
-            tempUnit.QueueFree();
+            tempUnit.Free();  // Not in tree, use Free() not QueueFree()
             return;
         }
 
@@ -96,7 +96,7 @@ public partial class GhostUnit3D : Node3D
 
         if (newVisual == null)
         {
-            tempUnit.QueueFree();
+            tempUnit.Free();  // Not in tree, use Free() not QueueFree()
             return;
         }
 
@@ -105,7 +105,7 @@ public partial class GhostUnit3D : Node3D
         _visualRoot = newVisual;
 
         // Clean up temp unit
-        tempUnit.QueueFree();
+        tempUnit.Free();  // Not in tree, use Free() not QueueFree()
 
         // Position at flight altitude if flying
         if (_flightAltitude > 0)

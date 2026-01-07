@@ -321,36 +321,46 @@ func _find_3d_root(viewport: Viewport) -> Node:
 
 	return null
 
-## Calculate safe spawn positions for preview (matches card.gd spawn logic)
+## Calculate safe spawn positions for preview
+## Single source of truth: delegates to C# CardFactory.get_safe_spawn_positions()
 func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[Vector3]:
 	var positions: Array[Vector3] = []
-	var scene_tree: SceneTree = get_tree()
 
-	if not scene_tree:
-		# Fallback: just return center position for each unit
+	# Get CardFactory (C# service - single source of truth for spawn positions)
+	var factory: Node = get_node_or_null("/root/CardFactory")
+	if not factory or not factory.has_method("get_safe_spawn_positions"):
+		# Fallback: just return formation offsets without safe spawn adjustment
 		for i: int in card.spawn_count:
 			positions.append(center_pos + card.get_formation_offset(i))
 		return positions
 
-	# Get collision_radius from the unit scene (instantiate temporarily to check)
+	# Get collision_radius from the unit scene
 	var collision_radius: float = 0.5
 	if card.unit_scene:
 		var temp_unit: Node = card.unit_scene.instantiate()
-		if temp_unit and "collision_radius" in temp_unit:
-			collision_radius = temp_unit.get("collision_radius")
-		# Also try C# property name
 		if temp_unit and "CollisionRadius" in temp_unit:
 			collision_radius = temp_unit.get("CollisionRadius")
 		if temp_unit:
-			temp_unit.queue_free()
+			temp_unit.free()  # Not in tree, use free() not queue_free()
 
-	# Calculate position for each unit using card's formation config
+	# Get battlefield reference
+	var battlefield: Node = get_node_or_null("/root/Main/Battlefield")
+	if not battlefield:
+		battlefield = get_tree().current_scene
+
+	# Call C# CardFactory for safe spawn positions (single source of truth)
+	var result: Variant = factory.call("get_safe_spawn_positions",
+		card.catalog_id, center_pos, battlefield, collision_radius)
+
+	if result is Array:
+		for pos: Variant in result:
+			if pos is Vector3:
+				positions.append(pos)
+		return positions
+
+	# Fallback if C# call failed
 	for i: int in card.spawn_count:
-		var offset: Vector3 = card.get_formation_offset(i)
-		var desired_pos: Vector3 = center_pos + offset
-		var safe_pos: Vector3 = BattlefieldConstants.find_safe_spawn_position(desired_pos, scene_tree, collision_radius)
-		positions.append(safe_pos)
-
+		positions.append(center_pos + card.get_formation_offset(i))
 	return positions
 
 ## Clean up the spawn preview
@@ -475,8 +485,8 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 		push_error("BattlefieldDropZone: No battlefield found for debug spawn")
 		return
 
-	# Get modifier system (optional)
-	var modifier_system: Node = get_node_or_null("/root/ModifierSystem")
+	# Get modifier service (optional)
+	var modifier_service: Node = get_node_or_null("/root/ModifierService")
 
 	# Convert team int to UnitConstants.Team enum
 	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
@@ -484,7 +494,7 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 	# Spawn with no animation - debug spawns should appear immediately
 	# (spawn reveal tweens don't run when game is paused)
 	const DEBUG_SPAWN_DURATION: float = 0.0
-	card.play_3d(world_pos, unit_team, battlefield, modifier_system, DEBUG_SPAWN_DURATION)
+	card.play_3d(world_pos, unit_team, battlefield, modifier_service, DEBUG_SPAWN_DURATION)
 
 	# Activate newly spawned units immediately (debug mode bypasses prep phase)
 	await get_tree().process_frame
@@ -504,7 +514,7 @@ func _find_debug_arena_controller() -> DebugArenaController:
 func _activate_recent_spawns() -> void:
 	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for unit: Node in units:
-		# Activate if the unit has the method and isn't already active
-		if unit.has_method("Activate") and unit.has_method("IsActive"):
+		# Type-safe check for C# Unit3D
+		if unit is Unit3D:
 			if not unit.IsActive():
 				unit.Activate()

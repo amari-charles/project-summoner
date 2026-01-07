@@ -352,11 +352,12 @@ func grant_xp_to_played_cards() -> void:
 		return
 
 	print("BattleContext: Granting %d XP to %d played cards" % [card_xp, _cards_played.size()])
-	var progression_node: Node = get_node_or_null("/root/CardProgression")
-	if progression_node:
-		progression_node.call("grant_xp_to_cards", _cards_played, card_xp)
+
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	if card_service and card_service.has_method("grant_xp_to_cards"):
+		card_service.call("grant_xp_to_cards", _cards_played, card_xp)
 	else:
-		push_warning("BattleContext: CardProgression autoload not found")
+		push_warning("BattleContext: PlayerCardService not found")
 
 ## Grant XP to the active summoner
 ## Called on battle victory

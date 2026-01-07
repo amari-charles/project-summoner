@@ -138,70 +138,19 @@ static func generate_formation_offset(unit_index: int, unit_count: int) -> Vecto
 
 
 ## Instance method that respects card's formation config
-## Use this instead of static generate_formation_offset() for cards with custom formations
+## Delegates to C# CardFactory for formation calculation (single source of truth)
 func get_formation_offset(unit_index: int) -> Vector3:
 	if spawn_count <= 1:
 		return Vector3.ZERO
 
-	match formation_type:
-		"grouped_line":
-			return _get_grouped_line_offset(unit_index, spawn_count)
-		_:
-			return _get_grid_offset(unit_index, spawn_count)
+	# Delegate to C# CardFactory for formation calculation
+	var factory: Node = _get_card_factory()
+	if not factory:
+		push_error("Card: CardFactory not available! C# autoload may not be loaded.")
+		return Vector3.ZERO
 
-
-## Grid formation offset (uses card's formation_spacing and formation_row_offset)
-func _get_grid_offset(unit_index: int, unit_count: int) -> Vector3:
-	var spacing: float = formation_spacing
-	var row_off: float = formation_row_offset
-
-	var rows: int = 2 if unit_count <= FORMATION_TWO_ROW_MAX else ceili(sqrt(float(unit_count) / FORMATION_LARGE_ROW_DENSITY))
-	var cols: int = ceili(float(unit_count) / float(rows))
-
-	var row: int = unit_index / cols
-	var col: int = unit_index % cols
-	var units_in_row: int = mini(cols, unit_count - row * cols)
-
-	var stagger: float = row_off * spacing if row % 2 == 1 else 0.0
-
-	var formation_depth: float = (rows - 1) * spacing
-	var x_offset: float = row * spacing - formation_depth / 2.0
-
-	var row_width: float = (units_in_row - 1) * spacing
-	var z_offset: float = col * spacing - row_width / 2.0 + stagger
-
-	return Vector3(x_offset, 0, z_offset)
-
-
-## Grouped line formation offset (units in groups with larger gaps between groups)
-func _get_grouped_line_offset(unit_index: int, unit_count: int) -> Vector3:
-	var unit_spacing: float = formation_spacing
-	var grp_spacing: float = group_spacing
-	var per_group: int = units_per_group
-
-	# Calculate which group this unit belongs to and position within group
-	var group_index: int = unit_index / per_group
-	var index_in_group: int = unit_index % per_group
-
-	# Total number of groups
-	var total_groups: int = ceili(float(unit_count) / float(per_group))
-
-	# Width of a single group
-	var group_width: float = (per_group - 1) * unit_spacing
-
-	# Total width of all groups with gaps between them
-	var total_width: float = (total_groups - 1) * grp_spacing + total_groups * group_width
-
-	# Starting Z position for this group (centered around origin)
-	var group_start_z: float = group_index * (grp_spacing + group_width) - total_width / 2.0
-
-	# Position within the group
-	var in_group_offset: float = index_in_group * unit_spacing
-
-	# Final Z position
-	var z_offset: float = group_start_z + in_group_offset
-
-	return Vector3(0, 0, z_offset)
+	var card_def: Dictionary = CardCatalog.get_card(catalog_id)
+	return factory.get_formation_offset(card_def, unit_index, spawn_count)
 
 ## =============================================================================
 ## GAMEPLAY
@@ -213,7 +162,7 @@ func can_play(current_mana: int) -> bool:
 
 ## Get effective stats with card upgrades applied
 ## Returns a Dictionary with the same structure as CardCatalog.get_card() but with
-## upgrade modifiers (from CardProgressionService) applied multiplicatively.
+## upgrade modifiers (from PlayerCardService) applied multiplicatively.
 func get_effective_stats() -> Dictionary:
 	# Get base stats from catalog
 	var base_stats: Dictionary = CardCatalog.get_card(catalog_id).duplicate(true)
@@ -222,29 +171,12 @@ func get_effective_stats() -> Dictionary:
 	if instance_id.is_empty():
 		return base_stats
 
-	# Get upgrade stat modifiers from CardProgressionService
-	var progression_node: Node = _get_autoload_node("/root/CardProgression")
-	if not progression_node:
-		return base_stats
-
-	var modifiers_result: Variant = progression_node.call("get_upgrade_stat_modifiers", instance_id)
-	if not modifiers_result is Dictionary:
-		return base_stats
-
-	var modifiers: Dictionary = modifiers_result
-	if modifiers.is_empty():
-		return base_stats
-
-	# Apply modifiers multiplicatively
-	for stat_key: Variant in modifiers:
-		if stat_key is String:
-			var multiplier: float = modifiers[stat_key]
-			if base_stats.has(stat_key):
-				var base_val: Variant = base_stats[stat_key]
-				if base_val is float:
-					base_stats[stat_key] = base_val * multiplier
-				elif base_val is int:
-					base_stats[stat_key] = int(base_val * multiplier)
+	# Delegate to PlayerCardService for full stat pipeline
+	var card_service: Node = _get_autoload_node("/root/PlayerCardService")
+	if card_service:
+		var effective: Variant = card_service.call("get_effective_stats", instance_id)
+		if effective is Dictionary and not effective.is_empty():
+			return effective
 
 	return base_stats
 

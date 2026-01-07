@@ -1,6 +1,9 @@
 using Godot;
+using System.Collections.Generic;
 using ProjectSummoner.Cards.Configs;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Services.Interfaces;
+using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Cards;
@@ -9,7 +12,7 @@ namespace ProjectSummoner.Cards;
 /// Factory autoload for creating and executing C# cards from GDScript.
 /// This bridges the GDScript CardCatalog with the C# card systems.
 /// </summary>
-public partial class CardFactory : Node
+public partial class CardFactory : Node, ICardFactory
 {
     // =========================================================================
     // CONSTANTS (match GDScript enums)
@@ -87,7 +90,7 @@ public partial class CardFactory : Node
             Position = position,
             Team = (Team)team,
             Battlefield = battlefield,
-            ModifierSystem = modifierSystem,
+            ModifierService = modifierSystem,
             CardInstanceId = instanceId,
             SceneTree = battlefield?.GetTree()
         };
@@ -108,6 +111,68 @@ public partial class CardFactory : Node
     {
         // All summons are supported - they use GridFormation by default
         return true;
+    }
+
+    /// <summary>
+    /// Calculate safe spawn positions for all units in a formation.
+    /// Single source of truth - used by both preview and actual spawn.
+    /// Calculates all positions at once against the current state to ensure
+    /// preview matches actual spawn positions.
+    /// </summary>
+    /// <param name="catalogId">The summon card's catalog ID</param>
+    /// <param name="centerPosition">Center position for the formation</param>
+    /// <param name="battlefield">Reference to the battlefield node</param>
+    /// <param name="collisionRadius">Collision radius of units being spawned</param>
+    /// <returns>Array of safe spawn positions for each unit</returns>
+    public Godot.Collections.Array<Vector3> get_safe_spawn_positions(
+        string catalogId,
+        Vector3 centerPosition,
+        Node? battlefield,
+        float collisionRadius)
+    {
+        var result = new Godot.Collections.Array<Vector3>();
+
+        // Validate battlefield
+        if (battlefield == null)
+        {
+            GD.PushWarning("[CardFactory] Battlefield is null for safe spawn calculation");
+            return result;
+        }
+
+        // Get card definition for formation info
+        var cardCatalog = GetAutoloadNode("/root/CardCatalog");
+        if (cardCatalog == null)
+        {
+            GD.PushWarning("[CardFactory] CardCatalog not found for safe spawn calculation");
+            return result;
+        }
+
+        var cardDefResult = cardCatalog.Call("get_card", catalogId);
+        if (cardDefResult.VariantType != Variant.Type.Dictionary)
+        {
+            GD.PushWarning($"[CardFactory] Card not found in catalog: {catalogId}");
+            return result;
+        }
+        var cardDef = cardDefResult.AsGodotDictionary();
+
+        // Get spawn count and formation
+        int spawnCount = GetInt(cardDef, "spawn_count", 1);
+        var formationConfig = CreateFormationConfig(cardDef);
+        var formation = formationConfig.CreateFormation();
+
+        // Ensure collision radius is valid
+        if (collisionRadius <= 0) collisionRadius = 0.5f;
+
+        // Calculate all positions at once against current state
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var offset = formation.GetOffset(i, spawnCount);
+            var desiredPos = centerPosition + offset;
+            var safePos = FindSafeSpawnPosition(desiredPos, battlefield.GetTree(), collisionRadius, null);
+            result.Add(safePos);
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -202,7 +267,30 @@ public partial class CardFactory : Node
         // Get SpatialGrid autoload
         var spatialGrid = GetAutoloadNode("/root/SpatialGrid");
 
-        // Spawn units
+        // Get collision radius from a temp unit instance (all units from same scene have same radius)
+        float collisionRadius = 0.5f;
+        var tempUnit = unitScene.Instantiate() as Node3D;
+        if (tempUnit != null)
+        {
+            var radiusVal = tempUnit.Get("CollisionRadius");
+            if (radiusVal.VariantType != Variant.Type.Nil)
+                collisionRadius = radiusVal.AsSingle();
+            tempUnit.Free();  // Not in tree, use Free() not QueueFree()
+        }
+        if (collisionRadius <= 0) collisionRadius = 0.5f;
+
+        // Pre-calculate all safe spawn positions BEFORE spawning any units
+        // This ensures preview and actual spawn match exactly
+        var safePositions = new List<Vector3>();
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var offset = formation.GetOffset(i, spawnCount);
+            var desiredPos = position + offset;
+            var safePos = FindSafeSpawnPosition(desiredPos, battlefield.GetTree(), collisionRadius, null);
+            safePositions.Add(safePos);
+        }
+
+        // Spawn units at pre-calculated positions
         for (int i = 0; i < spawnCount; i++)
         {
             var unit = unitScene.Instantiate() as Node3D;
@@ -235,16 +323,8 @@ public partial class CardFactory : Node
                 GD.Print($"[CardFactory] Applied scale_multiplier {multiplier} to '{catalogId}'");
             }
 
-            // Calculate formation offset
-            var offset = formation.GetOffset(i, spawnCount);
-            var desiredPos = position + offset;
-
-            // Get collision radius for safe spawn calculation
-            var collisionRadius = unit.Get("CollisionRadius").AsSingle();
-            if (collisionRadius <= 0) collisionRadius = 0.5f;
-
-            // Find safe spawn position BEFORE adding to tree
-            var safePos = FindSafeSpawnPosition(desiredPos, battlefield.GetTree(), collisionRadius, unit);
+            // Use pre-calculated safe position
+            var safePos = safePositions[i];
 
             // Handle flight altitude for flying units
             var movementLayer = unit.Get("MovementLayer");
@@ -357,11 +437,34 @@ public partial class CardFactory : Node
     }
 
     // =========================================================================
+    // FORMATION API (for GDScript preview)
+    // =========================================================================
+
+    /// <summary>
+    /// Get formation offset for a unit. Called by GDScript Card class for spawn preview.
+    /// This ensures preview and actual spawning use the same formation logic.
+    /// </summary>
+    /// <param name="cardDef">Card definition dictionary from CardCatalog.</param>
+    /// <param name="unitIndex">Index of the unit in the formation (0-based).</param>
+    /// <param name="totalUnits">Total number of units being spawned.</param>
+    /// <returns>Position offset from spawn center for this unit.</returns>
+    public Vector3 get_formation_offset(Godot.Collections.Dictionary cardDef, int unitIndex, int totalUnits)
+    {
+        if (totalUnits <= 1)
+            return Vector3.Zero;
+
+        var formationConfig = CreateFormationConfig(cardDef);
+        var formation = formationConfig.CreateFormation();
+        return formation.GetOffset(unitIndex, totalUnits);
+    }
+
+    // =========================================================================
     // SUMMON HELPERS
     // =========================================================================
 
     /// <summary>
     /// Get modifiers from the modifier system.
+    /// Uses C# ModifierService first, falls back to GDScript for backwards compatibility.
     /// </summary>
     private static Godot.Collections.Array GetModifiersFromSystem(
         string targetType,
@@ -369,6 +472,14 @@ public partial class CardFactory : Node
         Godot.Collections.Dictionary context,
         Node? modifierSystem)
     {
+        // Try C# ModifierService first
+        var csharpService = ModifierService.Instance;
+        if (csharpService != null)
+        {
+            return csharpService.get_modifiers_for(targetType, categories, context);
+        }
+
+        // Fall back to GDScript modifier system
         var modifiers = new Godot.Collections.Array();
 
         if (modifierSystem == null)
@@ -376,7 +487,7 @@ public partial class CardFactory : Node
 
         if (!modifierSystem.HasMethod("get_modifiers_for"))
         {
-            GD.PrintErr("[CardFactory] ModifierSystem missing get_modifiers_for method");
+            GD.PrintErr("[CardFactory] ModifierService missing get_modifiers_for method");
             return modifiers;
         }
 
@@ -393,7 +504,7 @@ public partial class CardFactory : Node
     /// Find a safe spawn position that doesn't overlap with existing units.
     /// Port of BattlefieldConstants.find_safe_spawn_position.
     /// </summary>
-    private static Vector3 FindSafeSpawnPosition(Vector3 desiredPos, SceneTree? tree, float collisionRadius, Node3D excludeUnit)
+    private static Vector3 FindSafeSpawnPosition(Vector3 desiredPos, SceneTree? tree, float collisionRadius, Node3D? excludeUnit)
     {
         if (tree == null)
             return desiredPos;

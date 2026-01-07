@@ -581,7 +581,7 @@ func _get_selected_deck_card_ids() -> Array[String]:
 
 func _get_filtered_sorted_cards() -> Array:
 	var catalog: Node = get_node("/root/CardCatalog")
-	var progression: Node = get_node_or_null("/root/CardProgression")
+	var card_service: Node = get_node_or_null("/root/PlayerCardService")
 	var result: Array = []
 
 	for entry: Variant in collection_summary:
@@ -625,9 +625,10 @@ func _get_filtered_sorted_cards() -> Array:
 
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
-			if progression and not instance_id.is_empty():
-				var info: Dictionary = progression.call("get_card_progression_info", instance_id)
-				level = info.get("level", 1)
+			if not instance_id.is_empty() and card_service and card_service.has_method("get_card_progression_info"):
+				var result_info: Variant = card_service.call("get_card_progression_info", instance_id)
+				if result_info is Dictionary:
+					level = result_info.get("level", 1)
 
 			result.append({
 				"instance_id": instance_id,
