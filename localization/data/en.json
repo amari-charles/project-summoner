@@ -98,6 +98,10 @@
     "puff": {
       "name": "Puff",
       "description": "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield."
+    },
+    "cloud_swarm": {
+      "name": "Cloud Swarm",
+      "description": "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might."
     }
   },
   "menu": {
