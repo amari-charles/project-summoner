@@ -1,7 +1,17 @@
-using Godot;
 using System.Collections.Generic;
 
 namespace ProjectSummoner.Data;
+
+/// <summary>
+/// Card upgrade definition.
+/// </summary>
+public class CardUpgrade
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    public Dictionary<string, float> StatMods { get; set; } = new();
+}
 
 /// <summary>
 /// Card Upgrade Catalog - Defines upgrade choices for each card at each level.
@@ -10,64 +20,36 @@ namespace ProjectSummoner.Data;
 /// </summary>
 public static class CardUpgradeCatalog
 {
-    /// <summary>
-    /// Represents a single upgrade option
-    /// </summary>
-    public class UpgradeDefinition
-    {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Description { get; set; } = "";
-        public Dictionary<string, float> StatMods { get; set; } = new();
-
-        public Godot.Collections.Dictionary ToGodotDictionary()
-        {
-            var statModsDict = new Godot.Collections.Dictionary();
-            foreach (var kvp in StatMods)
-            {
-                statModsDict[kvp.Key] = kvp.Value;
-            }
-
-            return new Godot.Collections.Dictionary
-            {
-                { "id", Id },
-                { "name", Name },
-                { "description", Description },
-                { "stat_mods", statModsDict }
-            };
-        }
-    }
-
     // Card ID -> Level -> List of upgrades
-    private static readonly Dictionary<string, Dictionary<int, List<UpgradeDefinition>>> Upgrades = new()
+    private static readonly Dictionary<string, Dictionary<int, List<CardUpgrade>>> Upgrades = new()
     {
         // ==========================================================================
         // FIREBALL - AOE damage spell, focus on damage or radius
         // ==========================================================================
-        ["fireball"] = new Dictionary<int, List<UpgradeDefinition>>
+        ["fireball"] = new Dictionary<int, List<CardUpgrade>>
         {
-            [2] = new List<UpgradeDefinition>
+            [2] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_intense_2", Name = "Intense Flames", Description = "+12% Damage",
                     StatMods = new() { ["spell_damage"] = 1.12f } },
                 new() { Id = "fireball_spread_2", Name = "Wider Spread", Description = "+10% Radius",
                     StatMods = new() { ["spell_radius"] = 1.10f } }
             },
-            [3] = new List<UpgradeDefinition>
+            [3] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_scorching_3", Name = "Scorching Heat", Description = "+15% Damage",
                     StatMods = new() { ["spell_damage"] = 1.15f } },
                 new() { Id = "fireball_expanded_3", Name = "Expanded Blast", Description = "+12% Radius",
                     StatMods = new() { ["spell_radius"] = 1.12f } }
             },
-            [4] = new List<UpgradeDefinition>
+            [4] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_inferno_4", Name = "Inferno", Description = "+18% Damage",
                     StatMods = new() { ["spell_damage"] = 1.18f } },
                 new() { Id = "fireball_conflagration_4", Name = "Conflagration", Description = "+15% Radius",
                     StatMods = new() { ["spell_radius"] = 1.15f } }
             },
-            [5] = new List<UpgradeDefinition>
+            [5] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_meteor_5", Name = "Meteor Strike", Description = "+22% Damage",
                     StatMods = new() { ["spell_damage"] = 1.22f } },
@@ -76,14 +58,14 @@ public static class CardUpgradeCatalog
                 new() { Id = "fireball_balanced_5", Name = "Refined Casting", Description = "+10% Damage, +10% Radius",
                     StatMods = new() { ["spell_damage"] = 1.10f, ["spell_radius"] = 1.10f } }
             },
-            [6] = new List<UpgradeDefinition>
+            [6] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_volcanic_6", Name = "Volcanic Fury", Description = "+25% Damage",
                     StatMods = new() { ["spell_damage"] = 1.25f } },
                 new() { Id = "fireball_wildfire_6", Name = "Wildfire", Description = "+20% Radius",
                     StatMods = new() { ["spell_radius"] = 1.20f } }
             },
-            [7] = new List<UpgradeDefinition>
+            [7] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_cataclysm_7", Name = "Cataclysm", Description = "+28% Damage",
                     StatMods = new() { ["spell_damage"] = 1.28f } },
@@ -92,14 +74,14 @@ public static class CardUpgradeCatalog
                 new() { Id = "fireball_efficient_7", Name = "Efficient Casting", Description = "+15% Damage, +12% Radius",
                     StatMods = new() { ["spell_damage"] = 1.15f, ["spell_radius"] = 1.12f } }
             },
-            [8] = new List<UpgradeDefinition>
+            [8] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_hellfire_8", Name = "Hellfire", Description = "+32% Damage",
                     StatMods = new() { ["spell_damage"] = 1.32f } },
                 new() { Id = "fireball_apocalypse_8", Name = "Apocalyptic Blast", Description = "+25% Radius",
                     StatMods = new() { ["spell_radius"] = 1.25f } }
             },
-            [9] = new List<UpgradeDefinition>
+            [9] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_solar_9", Name = "Solar Flare", Description = "+35% Damage",
                     StatMods = new() { ["spell_damage"] = 1.35f } },
@@ -108,7 +90,7 @@ public static class CardUpgradeCatalog
                 new() { Id = "fireball_mastery_9", Name = "Fire Mastery", Description = "+20% Damage, +18% Radius",
                     StatMods = new() { ["spell_damage"] = 1.20f, ["spell_radius"] = 1.18f } }
             },
-            [10] = new List<UpgradeDefinition>
+            [10] = new List<CardUpgrade>
             {
                 new() { Id = "fireball_apex_power_10", Name = "Apex Destruction", Description = "+40% Damage",
                     StatMods = new() { ["spell_damage"] = 1.40f } },
@@ -122,30 +104,30 @@ public static class CardUpgradeCatalog
         // ==========================================================================
         // CHARGE - Tactical spell (focus-fire command)
         // ==========================================================================
-        ["charge"] = new Dictionary<int, List<UpgradeDefinition>>
+        ["charge"] = new Dictionary<int, List<CardUpgrade>>
         {
-            [2] = new List<UpgradeDefinition>
+            [2] = new List<CardUpgrade>
             {
                 new() { Id = "charge_inspiring_2", Name = "Inspiring Charge", Description = "+10% Damage",
                     StatMods = new() { ["spell_damage"] = 1.10f } },
                 new() { Id = "charge_swift_2", Name = "Swift Charge", Description = "+12% Effect Speed",
                     StatMods = new() { ["move_speed"] = 1.12f } }
             },
-            [3] = new List<UpgradeDefinition>
+            [3] = new List<CardUpgrade>
             {
                 new() { Id = "charge_ferocious_3", Name = "Ferocious Assault", Description = "+15% Damage",
                     StatMods = new() { ["spell_damage"] = 1.15f } },
                 new() { Id = "charge_coordinated_3", Name = "Coordinated Strike", Description = "+10% Damage, +8% Speed",
                     StatMods = new() { ["spell_damage"] = 1.10f, ["move_speed"] = 1.08f } }
             },
-            [4] = new List<UpgradeDefinition>
+            [4] = new List<CardUpgrade>
             {
                 new() { Id = "charge_devastating_4", Name = "Devastating Charge", Description = "+18% Damage",
                     StatMods = new() { ["spell_damage"] = 1.18f } },
                 new() { Id = "charge_lightning_4", Name = "Lightning Charge", Description = "+18% Effect Speed",
                     StatMods = new() { ["move_speed"] = 1.18f } }
             },
-            [5] = new List<UpgradeDefinition>
+            [5] = new List<CardUpgrade>
             {
                 new() { Id = "charge_crushing_5", Name = "Crushing Assault", Description = "+22% Damage",
                     StatMods = new() { ["spell_damage"] = 1.22f } },
@@ -154,14 +136,14 @@ public static class CardUpgradeCatalog
                 new() { Id = "charge_tactical_5", Name = "Tactical Excellence", Description = "+12% Damage, +12% Speed",
                     StatMods = new() { ["spell_damage"] = 1.12f, ["move_speed"] = 1.12f } }
             },
-            [6] = new List<UpgradeDefinition>
+            [6] = new List<CardUpgrade>
             {
                 new() { Id = "charge_overwhelming_6", Name = "Overwhelming Force", Description = "+25% Damage",
                     StatMods = new() { ["spell_damage"] = 1.25f } },
                 new() { Id = "charge_rapid_6", Name = "Rapid Assault", Description = "+25% Effect Speed",
                     StatMods = new() { ["move_speed"] = 1.25f } }
             },
-            [7] = new List<UpgradeDefinition>
+            [7] = new List<CardUpgrade>
             {
                 new() { Id = "charge_annihilating_7", Name = "Annihilating Charge", Description = "+28% Damage",
                     StatMods = new() { ["spell_damage"] = 1.28f } },
@@ -170,14 +152,14 @@ public static class CardUpgradeCatalog
                 new() { Id = "charge_supreme_7", Name = "Supreme Command", Description = "+15% Damage, +15% Speed",
                     StatMods = new() { ["spell_damage"] = 1.15f, ["move_speed"] = 1.15f } }
             },
-            [8] = new List<UpgradeDefinition>
+            [8] = new List<CardUpgrade>
             {
                 new() { Id = "charge_decimating_8", Name = "Decimating Assault", Description = "+32% Damage",
                     StatMods = new() { ["spell_damage"] = 1.32f } },
                 new() { Id = "charge_sonic_8", Name = "Sonic Charge", Description = "+32% Effect Speed",
                     StatMods = new() { ["move_speed"] = 1.32f } }
             },
-            [9] = new List<UpgradeDefinition>
+            [9] = new List<CardUpgrade>
             {
                 new() { Id = "charge_legendary_dmg_9", Name = "Legendary Assault", Description = "+35% Damage",
                     StatMods = new() { ["spell_damage"] = 1.35f } },
@@ -186,7 +168,7 @@ public static class CardUpgradeCatalog
                 new() { Id = "charge_legendary_bal_9", Name = "Perfect Charge", Description = "+20% Damage, +20% Speed",
                     StatMods = new() { ["spell_damage"] = 1.20f, ["move_speed"] = 1.20f } }
             },
-            [10] = new List<UpgradeDefinition>
+            [10] = new List<CardUpgrade>
             {
                 new() { Id = "charge_apex_power_10", Name = "Apex Devastation", Description = "+40% Damage",
                     StatMods = new() { ["spell_damage"] = 1.40f } },
@@ -203,12 +185,10 @@ public static class CardUpgradeCatalog
     // =============================================================================
 
     /// <summary>
-    /// Get upgrades available for a card at a specific level
+    /// Get upgrades available for a card at a specific level.
     /// </summary>
-    public static Godot.Collections.Array get_upgrades_for_level(string catalogId, int level)
+    public static List<CardUpgrade> GetUpgradesForLevel(string catalogId, int level)
     {
-        var result = new Godot.Collections.Array();
-
         if (!Upgrades.TryGetValue(catalogId, out var cardUpgrades))
         {
             // Card doesn't have specific upgrades defined - return generic upgrades
@@ -217,21 +197,16 @@ public static class CardUpgradeCatalog
 
         if (!cardUpgrades.TryGetValue(level, out var levelUpgrades))
         {
-            return result;
+            return new List<CardUpgrade>();
         }
 
-        foreach (var upgrade in levelUpgrades)
-        {
-            result.Add(upgrade.ToGodotDictionary());
-        }
-
-        return result;
+        return new List<CardUpgrade>(levelUpgrades);
     }
 
     /// <summary>
-    /// Get a specific upgrade by ID
+    /// Get a specific upgrade by ID.
     /// </summary>
-    public static Godot.Collections.Dictionary get_upgrade(string catalogId, string upgradeId)
+    public static CardUpgrade? GetUpgrade(string catalogId, string upgradeId)
     {
         if (!Upgrades.TryGetValue(catalogId, out var cardUpgrades))
         {
@@ -245,28 +220,28 @@ public static class CardUpgradeCatalog
             {
                 if (upgrade.Id == upgradeId)
                 {
-                    return upgrade.ToGodotDictionary();
+                    return upgrade;
                 }
             }
         }
 
-        return new Godot.Collections.Dictionary();
+        return null;
     }
 
     /// <summary>
-    /// Check if a card has specific upgrades defined
+    /// Check if a card has specific upgrades defined.
     /// </summary>
-    public static bool has_upgrades(string catalogId)
+    public static bool HasUpgrades(string catalogId)
     {
         return Upgrades.ContainsKey(catalogId);
     }
 
     /// <summary>
-    /// Get all upgrade IDs for a card (for validation)
+    /// Get all upgrade IDs for a card (for validation).
     /// </summary>
-    public static Godot.Collections.Array<string> get_all_upgrade_ids(string catalogId)
+    public static List<string> GetAllUpgradeIds(string catalogId)
     {
-        var ids = new Godot.Collections.Array<string>();
+        var ids = new List<string>();
 
         if (!Upgrades.TryGetValue(catalogId, out var cardUpgrades))
         {
@@ -292,11 +267,11 @@ public static class CardUpgradeCatalog
     // =============================================================================
 
     /// <summary>
-    /// Generate generic upgrades for cards without specific definitions
+    /// Generate generic upgrades for cards without specific definitions.
     /// </summary>
-    private static Godot.Collections.Array GetGenericUpgrades(string catalogId, int level)
+    private static List<CardUpgrade> GetGenericUpgrades(string catalogId, int level)
     {
-        var result = new Godot.Collections.Array();
+        var result = new List<CardUpgrade>();
 
         if (level < 2 || level > 10)
         {
@@ -312,41 +287,41 @@ public static class CardUpgradeCatalog
         int dmgPercent = (int)((dmgBonus - 1.0f) * 100);
         int spdPercent = (int)((spdBonus - 1.0f) * 100);
 
-        result.Add(new UpgradeDefinition
+        result.Add(new CardUpgrade
         {
             Id = $"{catalogId}_hp_l{level}",
             Name = "Fortitude",
             Description = $"+{hpPercent}% HP",
             StatMods = new() { ["max_hp"] = hpBonus }
-        }.ToGodotDictionary());
+        });
 
-        result.Add(new UpgradeDefinition
+        result.Add(new CardUpgrade
         {
             Id = $"{catalogId}_dmg_l{level}",
             Name = "Power",
             Description = $"+{dmgPercent}% Damage",
             StatMods = new() { ["attack_damage"] = dmgBonus }
-        }.ToGodotDictionary());
+        });
 
         // Add third option at higher levels
         if (level >= 4)
         {
-            result.Add(new UpgradeDefinition
+            result.Add(new CardUpgrade
             {
                 Id = $"{catalogId}_spd_l{level}",
                 Name = "Swiftness",
                 Description = $"+{spdPercent}% Attack Speed",
                 StatMods = new() { ["attack_speed"] = spdBonus }
-            }.ToGodotDictionary());
+            });
         }
 
         return result;
     }
 
     /// <summary>
-    /// Find a generic upgrade by ID
+    /// Find a generic upgrade by ID.
     /// </summary>
-    private static Godot.Collections.Dictionary FindGenericUpgrade(string catalogId, string upgradeId)
+    private static CardUpgrade? FindGenericUpgrade(string catalogId, string upgradeId)
     {
         // Parse the upgrade ID to get level
         for (int level = 2; level <= 10; level++)
@@ -354,17 +329,13 @@ public static class CardUpgradeCatalog
             var upgrades = GetGenericUpgrades(catalogId, level);
             foreach (var upgrade in upgrades)
             {
-                if (upgrade.VariantType == Variant.Type.Dictionary)
+                if (upgrade.Id == upgradeId)
                 {
-                    var dict = upgrade.AsGodotDictionary();
-                    if (dict.TryGetValue("id", out var id) && id.AsString() == upgradeId)
-                    {
-                        return dict;
-                    }
+                    return upgrade;
                 }
             }
         }
 
-        return new Godot.Collections.Dictionary();
+        return null;
     }
 }

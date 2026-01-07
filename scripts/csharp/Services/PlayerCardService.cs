@@ -8,18 +8,11 @@ namespace ProjectSummoner.Services;
 
 /// <summary>
 /// Player Card Service - Manages card progression, XP, levels, and upgrades.
-/// This C# service abstracts storage (ProfileRepo now, DB later) and provides
-/// the stat calculation pipeline for cards.
-///
-/// Uses PlayerCardInstance for type-safe internal operations while maintaining
-/// GDScript compatibility via dictionary-based methods.
-///
-/// Replaces GDScript card_progression_service.gd
+/// Pure C# implementation with typed PlayerCardInstance throughout.
 /// </summary>
 [GlobalClass]
 public partial class PlayerCardService : Node, IPlayerCardService
 {
-    // Singleton instance for easy access
     public static PlayerCardService? Instance { get; private set; }
 
     // =============================================================================
@@ -28,20 +21,9 @@ public partial class PlayerCardService : Node, IPlayerCardService
 
     public const int MaxLevel = 10;
 
-    /// <summary>
-    /// XP thresholds for each level (cumulative XP needed)
-    /// Index 0 = Level 1 (no XP needed), Index 1 = Level 2, etc.
-    /// </summary>
     private static readonly int[] XpThresholds = { 0, 30, 75, 150, 300, 500, 800, 1200, 1800, 2500 };
-
-    /// <summary>
-    /// Gold cost per level-up (index = target level - 1)
-    /// </summary>
     private static readonly int[] LevelUpGoldCost = { 0, 25, 50, 100, 200, 350, 500, 750, 1000, 1500 };
 
-    /// <summary>
-    /// Rarity multipliers for XP thresholds and gold costs
-    /// </summary>
     private static readonly Dictionary<string, float> RarityMultipliers = new()
     {
         ["common"] = 1.0f,
@@ -51,17 +33,13 @@ public partial class PlayerCardService : Node, IPlayerCardService
     };
 
     // =============================================================================
-    // TYPED CARD CACHE
+    // CARD CACHE
     // =============================================================================
 
-    /// <summary>
-    /// Internal cache of typed card instances.
-    /// Populated lazily from ProfileRepo, invalidated on updates.
-    /// </summary>
     private readonly Dictionary<string, PlayerCardInstance> _cardCache = new();
 
     // =============================================================================
-    // SIGNALS (for reactive UI)
+    // SIGNALS
     // =============================================================================
 
     [Signal]
@@ -89,57 +67,56 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     // =============================================================================
-    // STORAGE ABSTRACTION (currently uses ProfileRepo, later can use DB)
+    // STORAGE ABSTRACTION
     // =============================================================================
 
-    private Node? GetProfileRepo()
-    {
-        return GetTree()?.Root?.GetNodeOrNull("/root/ProfileRepo");
-    }
+    private Node? GetProfileRepo() => GetTree()?.Root?.GetNodeOrNull("/root/ProfileRepo");
+    private Node? GetEconomy() => GetTree()?.Root?.GetNodeOrNull("/root/Economy");
+    private Node? GetCardCatalog() => GetTree()?.Root?.GetNodeOrNull("/root/CardCatalog");
 
-    private Node? GetEconomy()
-    {
-        return GetTree()?.Root?.GetNodeOrNull("/root/Economy");
-    }
-
-    private Node? GetCardCatalog()
-    {
-        return GetTree()?.Root?.GetNodeOrNull("/root/CardCatalog");
-    }
+    // =============================================================================
+    // CARD ACCESS
+    // =============================================================================
 
     /// <summary>
-    /// Get a typed card instance (internal use).
-    /// Uses cache for performance, fetches from ProfileRepo if not cached.
+    /// Get a card by instance ID.
     /// </summary>
-    private PlayerCardInstance? GetCard(string instanceId)
+    public PlayerCardInstance? GetCard(string instanceId)
     {
         if (string.IsNullOrEmpty(instanceId))
             return null;
 
-        // Check cache first
         if (_cardCache.TryGetValue(instanceId, out var cached))
             return cached;
 
-        // Fetch from ProfileRepo
-        var dict = GetCardInstanceDict(instanceId);
-        if (dict.Count == 0)
+        var repo = GetProfileRepo();
+        if (repo == null)
             return null;
 
-        // Create typed instance and cache it
-        var card = PlayerCardInstance.FromDictionary(dict);
+        var result = repo.Call("get_card", instanceId);
+        if (result.VariantType != Variant.Type.Dictionary)
+            return null;
+
+        var card = PlayerCardInstance.FromDictionary(result.AsGodotDictionary());
         _cardCache[instanceId] = card;
         return card;
     }
 
     /// <summary>
-    /// Get all cards as typed instances (internal use).
+    /// Get all player cards.
     /// </summary>
-    private List<PlayerCardInstance> GetAllCards()
+    public List<PlayerCardInstance> GetAllCards()
     {
         var cards = new List<PlayerCardInstance>();
-        var cardDicts = ListCards();
+        var repo = GetProfileRepo();
+        if (repo == null)
+            return cards;
 
-        foreach (var cardVar in cardDicts)
+        var result = repo.Call("list_cards");
+        if (result.VariantType != Variant.Type.Array)
+            return cards;
+
+        foreach (var cardVar in result.AsGodotArray())
         {
             if (cardVar.VariantType != Variant.Type.Dictionary)
                 continue;
@@ -148,8 +125,7 @@ public partial class PlayerCardService : Node, IPlayerCardService
             if (!dict.TryGetValue("id", out var idVar))
                 continue;
 
-            string cardId = idVar.AsString();
-            var card = GetCard(cardId);
+            var card = GetCard(idVar.AsString());
             if (card != null)
                 cards.Add(card);
         }
@@ -158,149 +134,59 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     /// <summary>
-    /// Update a card instance and sync to storage.
-    /// Invalidates cache entry to ensure fresh data on next read.
+    /// Save card changes to storage.
     /// </summary>
-    private void UpdateCard(PlayerCardInstance card)
+    private void SaveCard(PlayerCardInstance card)
     {
         if (string.IsNullOrEmpty(card.Id))
             return;
 
-        // Update cache
         _cardCache[card.Id] = card;
 
-        // Sync to ProfileRepo
         var repo = GetProfileRepo();
-        if (repo == null)
-        {
-            GD.PushWarning("PlayerCardService: ProfileRepo not available");
-            return;
-        }
-
-        repo.Call("update_card", card.Id, card.ToDictionary());
-    }
-
-    /// <summary>
-    /// Invalidate cache for a specific card (forces re-fetch on next access)
-    /// </summary>
-    private void InvalidateCache(string instanceId)
-    {
-        _cardCache.Remove(instanceId);
-    }
-
-    /// <summary>
-    /// Clear all cached cards
-    /// </summary>
-    private void ClearCache()
-    {
-        _cardCache.Clear();
-    }
-
-    /// <summary>
-    /// Get a card instance from storage as dictionary (internal use)
-    /// </summary>
-    private Godot.Collections.Dictionary GetCardInstanceDict(string instanceId)
-    {
-        var repo = GetProfileRepo();
-        if (repo == null)
-        {
-            GD.PushWarning("PlayerCardService: ProfileRepo not available");
-            return new Godot.Collections.Dictionary();
-        }
-
-        var result = repo.Call("get_card", instanceId);
-        if (result.VariantType == Variant.Type.Dictionary)
-            return result.AsGodotDictionary();
-
-        return new Godot.Collections.Dictionary();
-    }
-
-    /// <summary>
-    /// List all cards in storage (returns array of dictionaries)
-    /// </summary>
-    private Godot.Collections.Array ListCards()
-    {
-        var repo = GetProfileRepo();
-        if (repo == null)
-            return new Godot.Collections.Array();
-
-        var result = repo.Call("list_cards");
-        if (result.VariantType == Variant.Type.Array)
-            return result.AsGodotArray();
-
-        return new Godot.Collections.Array();
-    }
-
-    /// <summary>
-    /// Get base stats from CardCatalog
-    /// </summary>
-    private Godot.Collections.Dictionary GetBaseStats(string catalogId)
-    {
-        var catalog = GetCardCatalog();
-        if (catalog == null)
-        {
-            GD.PushWarning("PlayerCardService: CardCatalog not available");
-            return new Godot.Collections.Dictionary();
-        }
-
-        var result = catalog.Call("get_card", catalogId);
-        if (result.VariantType == Variant.Type.Dictionary)
-            return result.AsGodotDictionary();
-
-        return new Godot.Collections.Dictionary();
+        repo?.Call("update_card", card.Id, card.ToDictionary());
     }
 
     // =============================================================================
-    // XP OPERATIONS (snake_case for GDScript compatibility)
+    // XP OPERATIONS
     // =============================================================================
 
     /// <summary>
-    /// Grant XP to a card instance. Returns the new total XP.
+    /// Grant XP to a card.
     /// </summary>
-    public int grant_card_xp(string cardInstanceId, int amount)
+    public int GrantXp(string cardInstanceId, int amount)
     {
         if (amount <= 0)
             return 0;
 
         var card = GetCard(cardInstanceId);
         if (card == null)
-        {
-            GD.PushWarning($"PlayerCardService: Card instance not found: {cardInstanceId}");
             return 0;
-        }
 
         card.Xp += amount;
-        UpdateCard(card);
+        SaveCard(card);
 
         EmitSignal(SignalName.CardXpChanged, cardInstanceId, card.Xp, card.Level);
-
         return card.Xp;
     }
 
     /// <summary>
-    /// Grant XP to multiple cards at once. Returns Dictionary of {card_instance_id: new_xp}
+    /// Grant XP to multiple cards.
     /// </summary>
-    public Godot.Collections.Dictionary grant_xp_to_cards(Godot.Collections.Array cardInstanceIds, int amount)
+    public Dictionary<string, int> GrantXpToCards(IEnumerable<string> cardInstanceIds, int amount)
     {
-        var results = new Godot.Collections.Dictionary();
-
-        foreach (var cardIdVar in cardInstanceIds)
+        var results = new Dictionary<string, int>();
+        foreach (var cardId in cardInstanceIds)
         {
-            if (cardIdVar.VariantType == Variant.Type.String)
-            {
-                string cardId = cardIdVar.AsString();
-                int newXp = grant_card_xp(cardId, amount);
-                results[cardId] = newXp;
-            }
+            results[cardId] = GrantXp(cardId, amount);
         }
-
         return results;
     }
 
     /// <summary>
-    /// Get XP required to reach a specific level (base, no rarity scaling)
+    /// Get XP required for a level (base, no rarity scaling).
     /// </summary>
-    public int get_xp_for_level(int level)
+    public int GetXpForLevel(int level)
     {
         if (level < 1 || level > MaxLevel)
             return 0;
@@ -308,72 +194,64 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     /// <summary>
-    /// Get XP required to reach a specific level with rarity scaling
+    /// Get XP required for a level with rarity scaling.
     /// </summary>
-    public int get_xp_for_level_with_rarity(int level, string rarity)
+    public int GetXpForLevelWithRarity(int level, string rarity)
     {
-        int baseXp = get_xp_for_level(level);
-        float multiplier = get_rarity_multiplier(rarity);
-        return (int)(baseXp * multiplier);
+        return (int)(GetXpForLevel(level) * GetRarityMultiplier(rarity));
     }
 
     /// <summary>
-    /// Get gold cost for leveling up with rarity scaling
+    /// Get gold cost for level-up with rarity scaling.
     /// </summary>
-    public int get_gold_cost_for_level_with_rarity(int level, string rarity)
+    public int GetGoldCostForLevelWithRarity(int level, string rarity)
     {
         if (level < 1 || level > MaxLevel)
             return 0;
-        int baseCost = LevelUpGoldCost[level - 1];
-        float multiplier = get_rarity_multiplier(rarity);
-        return (int)(baseCost * multiplier);
+        return (int)(LevelUpGoldCost[level - 1] * GetRarityMultiplier(rarity));
     }
 
     /// <summary>
-    /// Get rarity multiplier for a given rarity
+    /// Get rarity multiplier.
     /// </summary>
-    public float get_rarity_multiplier(string rarity)
+    public float GetRarityMultiplier(string rarity)
     {
         return RarityMultipliers.GetValueOrDefault(rarity.ToLower(), 1.0f);
     }
 
     /// <summary>
-    /// Get XP needed for the next level from current XP (with rarity scaling)
+    /// Get XP needed for next level.
     /// </summary>
-    public int get_xp_to_next_level(string cardInstanceId)
+    public int GetXpToNextLevel(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
-        if (card == null)
+        if (card == null || card.Level >= MaxLevel)
             return 0;
 
-        if (card.Level >= MaxLevel)
-            return 0;
-
-        int nextLevelXp = get_xp_for_level_with_rarity(card.Level + 1, card.Rarity);
+        int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
         return Mathf.Max(0, nextLevelXp - card.Xp);
     }
 
     /// <summary>
-    /// Get progress towards next level as a percentage (0.0 - 1.0) with rarity scaling
+    /// Get progress toward next level (0.0 - 1.0).
     /// </summary>
-    public float get_level_progress(string cardInstanceId)
+    public float GetLevelProgress(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
         if (card == null)
-            return 0.0f;
+            return 0f;
 
         if (card.Level >= MaxLevel)
-            return 1.0f;
+            return 1f;
 
-        int currentLevelXp = get_xp_for_level_with_rarity(card.Level, card.Rarity);
-        int nextLevelXp = get_xp_for_level_with_rarity(card.Level + 1, card.Rarity);
+        int currentLevelXp = GetXpForLevelWithRarity(card.Level, card.Rarity);
+        int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
         int levelRange = nextLevelXp - currentLevelXp;
 
         if (levelRange <= 0)
-            return 1.0f;
+            return 1f;
 
-        int progressInLevel = card.Xp - currentLevelXp;
-        return Mathf.Clamp((float)progressInLevel / levelRange, 0.0f, 1.0f);
+        return Mathf.Clamp((float)(card.Xp - currentLevelXp) / levelRange, 0f, 1f);
     }
 
     // =============================================================================
@@ -381,46 +259,39 @@ public partial class PlayerCardService : Node, IPlayerCardService
     // =============================================================================
 
     /// <summary>
-    /// Check if a card has enough XP to level up (with rarity scaling)
+    /// Check if card has enough XP to level up.
     /// </summary>
-    public bool can_level_up(string cardInstanceId)
+    public bool CanLevelUp(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
-        if (card == null)
+        if (card == null || card.Level >= MaxLevel)
             return false;
 
-        if (card.Level >= MaxLevel)
-            return false;
-
-        int nextLevelXp = get_xp_for_level_with_rarity(card.Level + 1, card.Rarity);
+        int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
         return card.Xp >= nextLevelXp;
     }
 
     /// <summary>
-    /// Get the gold cost to level up a card (with rarity scaling)
+    /// Get gold cost to level up a card.
     /// </summary>
-    public int get_level_up_gold_cost(string cardInstanceId)
+    public int GetLevelUpGoldCost(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
-        if (card == null)
+        if (card == null || card.Level >= MaxLevel)
             return 0;
 
-        if (card.Level >= MaxLevel)
-            return 0;
-
-        return get_gold_cost_for_level_with_rarity(card.Level + 1, card.Rarity);
+        return GetGoldCostForLevelWithRarity(card.Level + 1, card.Rarity);
     }
 
     /// <summary>
-    /// Check if player can afford to level up (XP + gold)
+    /// Check if player can afford level-up (XP + gold).
     /// </summary>
-    public bool can_afford_level_up(string cardInstanceId)
+    public bool CanAffordLevelUp(string cardInstanceId)
     {
-        if (!can_level_up(cardInstanceId))
+        if (!CanLevelUp(cardInstanceId))
             return false;
 
-        int goldCost = get_level_up_gold_cost(cardInstanceId);
-
+        int goldCost = GetLevelUpGoldCost(cardInstanceId);
         var economy = GetEconomy();
         if (economy == null)
             return false;
@@ -432,71 +303,38 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     /// <summary>
-    /// Level up a card (requires XP threshold met + gold + upgrade choice)
-    /// Returns true if successful
+    /// Level up a card with chosen upgrade.
     /// </summary>
-    public bool level_up_card(string cardInstanceId, string upgradeId)
+    public bool LevelUpCard(string cardInstanceId, string upgradeId)
     {
         var card = GetCard(cardInstanceId);
         if (card == null)
-        {
-            GD.PushWarning($"PlayerCardService: Card not found: {cardInstanceId}");
             return false;
-        }
 
-        // Check XP requirement
-        if (!can_level_up(cardInstanceId))
-        {
-            GD.PushWarning("PlayerCardService: Card does not have enough XP to level up");
+        if (!CanLevelUp(cardInstanceId))
             return false;
-        }
 
-        // Check gold cost
-        int goldCost = get_level_up_gold_cost(cardInstanceId);
+        int goldCost = GetLevelUpGoldCost(cardInstanceId);
         var economy = GetEconomy();
         if (economy == null)
-        {
-            GD.PushWarning("PlayerCardService: Economy not available");
             return false;
-        }
 
         var canAffordResult = economy.Call("can_afford", new Godot.Collections.Dictionary { ["gold"] = goldCost });
-        bool canAfford = canAffordResult.VariantType == Variant.Type.Bool && canAffordResult.AsBool();
-        if (!canAfford)
-        {
-            GD.PushWarning($"PlayerCardService: Cannot afford level-up cost ({goldCost} gold)");
+        if (canAffordResult.VariantType != Variant.Type.Bool || !canAffordResult.AsBool())
             return false;
-        }
 
         // Validate upgrade choice
-        var availableUpgrades = get_available_upgrades(cardInstanceId);
-        bool validUpgrade = false;
-        foreach (var upgradeVar in availableUpgrades)
-        {
-            if (upgradeVar.VariantType == Variant.Type.Dictionary)
-            {
-                var upgrade = upgradeVar.AsGodotDictionary();
-                if (upgrade.TryGetValue("id", out var idVar) && idVar.AsString() == upgradeId)
-                {
-                    validUpgrade = true;
-                    break;
-                }
-            }
-        }
-
-        if (!validUpgrade)
-        {
-            GD.PushWarning($"PlayerCardService: Invalid upgrade choice: {upgradeId}");
+        var availableUpgrades = GetAvailableUpgrades(cardInstanceId);
+        if (!availableUpgrades.Exists(u => u.Id == upgradeId))
             return false;
-        }
 
         // Spend gold
         economy.Call("spend", new Godot.Collections.Dictionary { ["gold"] = goldCost });
 
-        // Apply level up using typed instance
+        // Apply level up
         card.Level += 1;
         card.Upgrades.Add(upgradeId);
-        UpdateCard(card);
+        SaveCard(card);
 
         EmitSignal(SignalName.CardLeveledUp, cardInstanceId, card.Level);
         EmitSignal(SignalName.UpgradeApplied, cardInstanceId, upgradeId);
@@ -509,82 +347,52 @@ public partial class PlayerCardService : Node, IPlayerCardService
     // =============================================================================
 
     /// <summary>
-    /// Get available upgrades for a card's next level
+    /// Get available upgrades for card's next level.
     /// </summary>
-    public Godot.Collections.Array get_available_upgrades(string cardInstanceId)
+    public List<CardUpgrade> GetAvailableUpgrades(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
-        if (card == null)
-            return new Godot.Collections.Array();
+        if (card == null || card.Level >= MaxLevel)
+            return new List<CardUpgrade>();
 
-        int nextLevel = card.Level + 1;
-
-        if (nextLevel > MaxLevel)
-            return new Godot.Collections.Array();
-
-        return CardUpgradeCatalog.get_upgrades_for_level(card.CatalogId, nextLevel);
+        return CardUpgradeCatalog.GetUpgradesForLevel(card.CatalogId, card.Level + 1);
     }
 
     /// <summary>
-    /// Get all upgrades currently applied to a card
+    /// Get all upgrades applied to a card.
     /// </summary>
-    public Godot.Collections.Array get_applied_upgrades(string cardInstanceId)
+    public List<string> GetAppliedUpgrades(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
         if (card == null)
-            return new Godot.Collections.Array();
+            return new List<string>();
 
-        // Convert typed array to Godot array
-        var result = new Godot.Collections.Array();
-        foreach (var upgrade in card.Upgrades)
-        {
-            result.Add(upgrade);
-        }
-        return result;
+        return new List<string>(card.Upgrades);
     }
 
     /// <summary>
-    /// Get the stat modifiers from a card's upgrades
-    /// Returns Dictionary of stat multipliers (e.g., {"max_hp": 1.1, "attack_damage": 1.05})
+    /// Get stat modifiers from card's upgrades.
     /// </summary>
-    public Godot.Collections.Dictionary get_upgrade_stat_modifiers(string cardInstanceId)
+    public Dictionary<string, float> GetUpgradeStatModifiers(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
         if (card == null)
-            return new Godot.Collections.Dictionary();
+            return new Dictionary<string, float>();
 
-        var modifiers = new Godot.Collections.Dictionary();
+        var modifiers = new Dictionary<string, float>();
 
-        // Combine all stat modifiers from applied upgrades (multiplicative)
         foreach (var upgradeId in card.Upgrades)
         {
-            var upgrade = CardUpgradeCatalog.get_upgrade(card.CatalogId, upgradeId);
-            if (!upgrade.TryGetValue("stat_mods", out var statModsVar))
-                continue;
-            if (statModsVar.VariantType != Variant.Type.Dictionary)
+            var upgrade = CardUpgradeCatalog.GetUpgrade(card.CatalogId, upgradeId);
+            if (upgrade == null)
                 continue;
 
-            var statMods = statModsVar.AsGodotDictionary();
-            foreach (var key in statMods.Keys)
+            foreach (var (stat, mult) in upgrade.StatMods)
             {
-                if (key.VariantType != Variant.Type.String)
-                    continue;
-
-                string statKey = key.AsString();
-                var modValue = statMods[key];
-                float modFloat = modValue.VariantType == Variant.Type.Float
-                    ? modValue.AsSingle()
-                    : modValue.AsInt32();
-
-                if (modifiers.ContainsKey(statKey))
-                {
-                    float existing = modifiers[statKey].AsSingle();
-                    modifiers[statKey] = existing * modFloat;
-                }
+                if (modifiers.ContainsKey(stat))
+                    modifiers[stat] *= mult;
                 else
-                {
-                    modifiers[statKey] = modFloat;
-                }
+                    modifiers[stat] = mult;
             }
         }
 
@@ -592,101 +400,50 @@ public partial class PlayerCardService : Node, IPlayerCardService
     }
 
     // =============================================================================
-    // EFFECTIVE STATS (the main stat pipeline)
+    // EFFECTIVE STATS
     // =============================================================================
 
     /// <summary>
-    /// Get effective stats for a card instance, combining:
-    /// 1. Base catalog stats
-    /// 2. Level-based growth (TODO: not yet implemented)
-    /// 3. Upgrade modifiers (multiplicative)
-    /// 4. Summoner boons (TODO: from SummonerInstance)
+    /// Get effective stats for a card (base + upgrades).
     /// </summary>
-    public Godot.Collections.Dictionary get_effective_stats(string cardInstanceId)
+    public Dictionary<string, float> GetEffectiveStats(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
         if (card == null)
-            return new Godot.Collections.Dictionary();
+            return new Dictionary<string, float>();
 
-        // Get base stats from catalog (deep copy)
-        var baseStats = GetBaseStats(card.CatalogId);
-        if (baseStats.Count == 0)
-            return new Godot.Collections.Dictionary();
+        var catalog = GetCardCatalog();
+        if (catalog == null)
+            return new Dictionary<string, float>();
 
-        // Create a deep copy to avoid modifying the catalog
-        var effectiveStats = DeepCopyDictionary(baseStats);
+        var baseResult = catalog.Call("get_card", card.CatalogId);
+        if (baseResult.VariantType != Variant.Type.Dictionary)
+            return new Dictionary<string, float>();
 
-        // Apply upgrade modifiers (multiplicative)
-        var modifiers = get_upgrade_stat_modifiers(cardInstanceId);
-        foreach (var key in modifiers.Keys)
+        var baseStats = baseResult.AsGodotDictionary();
+        var effectiveStats = new Dictionary<string, float>();
+
+        // Extract numeric stats
+        string[] statKeys = { "max_hp", "attack_damage", "attack_range", "attack_speed", "move_speed", "aggro_radius" };
+        foreach (var key in statKeys)
         {
-            if (key.VariantType != Variant.Type.String)
-                continue;
-
-            string statKey = key.AsString();
-            if (!effectiveStats.ContainsKey(statKey))
-                continue;
-
-            float multiplier = modifiers[key].AsSingle();
-            var baseVal = effectiveStats[statKey];
-
-            if (baseVal.VariantType == Variant.Type.Float)
+            if (baseStats.TryGetValue(key, out var val))
             {
-                effectiveStats[statKey] = baseVal.AsSingle() * multiplier;
-            }
-            else if (baseVal.VariantType == Variant.Type.Int)
-            {
-                effectiveStats[statKey] = (int)(baseVal.AsInt32() * multiplier);
+                effectiveStats[key] = val.VariantType == Variant.Type.Float
+                    ? val.AsSingle()
+                    : val.AsInt32();
             }
         }
 
-        // TODO: Apply level-based growth
-        // TODO: Apply summoner boons
+        // Apply upgrade modifiers
+        var modifiers = GetUpgradeStatModifiers(cardInstanceId);
+        foreach (var (stat, mult) in modifiers)
+        {
+            if (effectiveStats.ContainsKey(stat))
+                effectiveStats[stat] *= mult;
+        }
 
         return effectiveStats;
-    }
-
-    private Godot.Collections.Dictionary DeepCopyDictionary(Godot.Collections.Dictionary original)
-    {
-        var copy = new Godot.Collections.Dictionary();
-        foreach (var key in original.Keys)
-        {
-            var value = original[key];
-            if (value.VariantType == Variant.Type.Dictionary)
-            {
-                copy[key] = DeepCopyDictionary(value.AsGodotDictionary());
-            }
-            else if (value.VariantType == Variant.Type.Array)
-            {
-                copy[key] = DeepCopyArray(value.AsGodotArray());
-            }
-            else
-            {
-                copy[key] = value;
-            }
-        }
-        return copy;
-    }
-
-    private Godot.Collections.Array DeepCopyArray(Godot.Collections.Array original)
-    {
-        var copy = new Godot.Collections.Array();
-        foreach (var item in original)
-        {
-            if (item.VariantType == Variant.Type.Dictionary)
-            {
-                copy.Add(DeepCopyDictionary(item.AsGodotDictionary()));
-            }
-            else if (item.VariantType == Variant.Type.Array)
-            {
-                copy.Add(DeepCopyArray(item.AsGodotArray()));
-            }
-            else
-            {
-                copy.Add(item);
-            }
-        }
-        return copy;
     }
 
     // =============================================================================
@@ -694,51 +451,66 @@ public partial class PlayerCardService : Node, IPlayerCardService
     // =============================================================================
 
     /// <summary>
-    /// Get card progression info (for UI display)
+    /// Get card progression info.
     /// </summary>
-    public Godot.Collections.Dictionary get_card_progression_info(string cardInstanceId)
+    public CardProgressionInfo? GetCardProgressionInfo(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
         if (card == null)
-            return new Godot.Collections.Dictionary();
+            return null;
 
-        // Convert upgrades to Godot array
-        var upgrades = new Godot.Collections.Array();
-        foreach (var u in card.Upgrades)
-            upgrades.Add(u);
-
-        return new Godot.Collections.Dictionary
+        return new CardProgressionInfo
         {
-            ["card_instance_id"] = cardInstanceId,
-            ["catalog_id"] = card.CatalogId,
-            ["rarity"] = card.Rarity,
-            ["rarity_multiplier"] = get_rarity_multiplier(card.Rarity),
-            ["level"] = card.Level,
-            ["max_level"] = MaxLevel,
-            ["xp"] = card.Xp,
-            ["xp_for_next_level"] = card.Level < MaxLevel ? get_xp_for_level_with_rarity(card.Level + 1, card.Rarity) : 0,
-            ["xp_progress"] = get_level_progress(cardInstanceId),
-            ["can_level_up"] = can_level_up(cardInstanceId),
-            ["can_afford_level_up"] = can_afford_level_up(cardInstanceId),
-            ["level_up_gold_cost"] = get_level_up_gold_cost(cardInstanceId),
-            ["upgrades"] = upgrades,
-            ["is_max_level"] = card.Level >= MaxLevel
+            CardInstanceId = cardInstanceId,
+            CatalogId = card.CatalogId,
+            Rarity = card.Rarity,
+            RarityMultiplier = GetRarityMultiplier(card.Rarity),
+            Level = card.Level,
+            MaxLevel = MaxLevel,
+            Xp = card.Xp,
+            XpForNextLevel = card.Level < MaxLevel ? GetXpForLevelWithRarity(card.Level + 1, card.Rarity) : 0,
+            XpProgress = GetLevelProgress(cardInstanceId),
+            CanLevelUp = CanLevelUp(cardInstanceId),
+            CanAffordLevelUp = CanAffordLevelUp(cardInstanceId),
+            LevelUpGoldCost = GetLevelUpGoldCost(cardInstanceId),
+            Upgrades = new List<string>(card.Upgrades),
+            IsMaxLevel = card.Level >= MaxLevel
         };
     }
 
     /// <summary>
-    /// Get all cards that can level up
+    /// Get all cards that can level up.
     /// </summary>
-    public Godot.Collections.Array<string> get_cards_ready_to_level_up()
+    public List<PlayerCardInstance> GetCardsReadyToLevelUp()
     {
-        var ready = new Godot.Collections.Array<string>();
-
+        var ready = new List<PlayerCardInstance>();
         foreach (var card in GetAllCards())
         {
-            if (can_level_up(card.Id))
-                ready.Add(card.Id);
+            if (CanLevelUp(card.Id))
+                ready.Add(card);
         }
-
         return ready;
     }
 }
+
+/// <summary>
+/// Card progression info for UI display.
+/// </summary>
+public class CardProgressionInfo
+{
+    public string CardInstanceId { get; set; } = "";
+    public string CatalogId { get; set; } = "";
+    public string Rarity { get; set; } = "common";
+    public float RarityMultiplier { get; set; } = 1f;
+    public int Level { get; set; } = 1;
+    public int MaxLevel { get; set; } = 10;
+    public int Xp { get; set; } = 0;
+    public int XpForNextLevel { get; set; } = 0;
+    public float XpProgress { get; set; } = 0f;
+    public bool CanLevelUp { get; set; } = false;
+    public bool CanAffordLevelUp { get; set; } = false;
+    public int LevelUpGoldCost { get; set; } = 0;
+    public List<string> Upgrades { get; set; } = new();
+    public bool IsMaxLevel { get; set; } = false;
+}
+

@@ -34,8 +34,8 @@ public class CardModifierProvider : IModifierProvider
         if (cardService == null)
             return modifiers;
 
-        var statMods = cardService.get_upgrade_stat_modifiers(_cardInstanceId);
-        if (statMods == null || statMods.Count == 0)
+        var statMods = cardService.GetUpgradeStatModifiers(_cardInstanceId);
+        if (statMods.Count == 0)
             return modifiers;
 
         // Create a modifier with instance scope
@@ -46,9 +46,9 @@ public class CardModifierProvider : IModifierProvider
         };
 
         // Convert stat mods to StatMults
-        foreach (var key in statMods.Keys)
+        foreach (var (stat, mult) in statMods)
         {
-            modifier.StatMults[key.AsString()] = statMods[key].AsSingle();
+            modifier.StatMults[stat] = mult;
         }
 
         modifiers.Add(modifier);
