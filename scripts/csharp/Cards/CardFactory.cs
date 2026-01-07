@@ -483,12 +483,8 @@ public partial class CardFactory : Node, ICardFactory
     /// <summary>
     /// Find a safe spawn position that doesn't overlap with existing units
     /// or other positions in the same spawn batch.
+    /// Uses ring search algorithm: checks outward in expanding circles.
     /// </summary>
-    /// <param name="desiredPos">The desired spawn position</param>
-    /// <param name="tree">Scene tree for querying existing units</param>
-    /// <param name="collisionRadius">Collision radius of the unit being spawned</param>
-    /// <param name="excludeUnit">Optional unit to exclude from collision checks</param>
-    /// <param name="batchPositions">Positions already calculated in this spawn batch</param>
     private static Vector3 FindSafeSpawnPosition(
         Vector3 desiredPos,
         SceneTree? tree,
@@ -496,88 +492,97 @@ public partial class CardFactory : Node, ICardFactory
         Node3D? excludeUnit,
         List<Vector3>? batchPositions = null)
     {
-        // Check for overlaps and find safe position
-        const float minSeparation = 0.1f;
-        const int maxAttempts = 12;
+        // Ring search constants (matching original GDScript implementation)
+        const float minUnitSpacing = 1.5f;
+        const int searchAttemptsPerRing = 8;
+        const int searchRings = 3;
 
-        var testPos = desiredPos;
+        // Get all existing units
+        var units = tree?.GetNodesInGroup("UNITS");
 
-        // Get all existing units (may be null/empty for first spawn)
-        Godot.Collections.Array<Node>? units = tree?.GetNodesInGroup("UNITS");
+        // Check if desired position is safe first
+        if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions))
+            return desiredPos;
 
-        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        // Search in expanding rings around desired position
+        for (int ring = 1; ring <= searchRings; ring++)
         {
-            bool hasOverlap = false;
+            float radius = minUnitSpacing * ring;
 
-            // Check against existing units in scene
-            if (units != null)
+            for (int attempt = 0; attempt < searchAttemptsPerRing; attempt++)
             {
-                foreach (var node in units)
-                {
-                    if (node == excludeUnit)
-                        continue;
+                float angle = (float)attempt / searchAttemptsPerRing * Mathf.Tau;
+                var offset = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
+                var testPos = desiredPos + offset;
 
-                    if (node is Node3D otherUnit)
-                    {
-                        var otherRadius = otherUnit.Get("CollisionRadius");
-                        float otherRad = otherRadius.VariantType != Variant.Type.Nil ? otherRadius.AsSingle() : 0.5f;
-
-                        var diff = new Vector3(testPos.X - otherUnit.GlobalPosition.X, 0, testPos.Z - otherUnit.GlobalPosition.Z);
-                        float dist = diff.Length();
-                        float minDist = collisionRadius + otherRad + minSeparation;
-
-                        if (dist < minDist)
-                        {
-                            hasOverlap = true;
-                            // Push away from overlapping unit
-                            if (dist > 0.001f)
-                            {
-                                testPos += diff.Normalized() * (minDist - dist + 0.1f);
-                            }
-                            else
-                            {
-                                // Units at same position, push in random direction
-                                testPos += new Vector3(0.5f, 0, 0.5f);
-                            }
-                            break;
-                        }
-                    }
-                }
+                if (IsSpawnPositionSafe(testPos, units, collisionRadius, excludeUnit, batchPositions))
+                    return testPos;
             }
-
-            // Check against other positions in the same spawn batch
-            if (!hasOverlap && batchPositions != null)
-            {
-                foreach (var otherPos in batchPositions)
-                {
-                    var diff = new Vector3(testPos.X - otherPos.X, 0, testPos.Z - otherPos.Z);
-                    float dist = diff.Length();
-                    // Same collision radius for units in same batch
-                    float minDist = collisionRadius * 2 + minSeparation;
-
-                    if (dist < minDist)
-                    {
-                        hasOverlap = true;
-                        // Push away from batch position
-                        if (dist > 0.001f)
-                        {
-                            testPos += diff.Normalized() * (minDist - dist + 0.1f);
-                        }
-                        else
-                        {
-                            // Positions at same spot, push in random direction
-                            testPos += new Vector3(0.5f, 0, 0.5f);
-                        }
-                        break;
-                    }
-                }
-            }
-
-            if (!hasOverlap)
-                break;
         }
 
-        return testPos;
+        // Fallback: no safe position found, use desired (units will overlap but game continues)
+        return desiredPos;
+    }
+
+    /// <summary>
+    /// Check if a spawn position is safe (no overlap with existing units or batch positions).
+    /// </summary>
+    private static bool IsSpawnPositionSafe(
+        Vector3 checkPos,
+        Godot.Collections.Array<Node>? units,
+        float collisionRadius,
+        Node3D? excludeUnit,
+        List<Vector3>? batchPositions)
+    {
+        // Check against existing units in scene
+        if (units != null)
+        {
+            foreach (var node in units)
+            {
+                if (node == excludeUnit)
+                    continue;
+
+                if (node is not Node3D otherUnit)
+                    continue;
+
+                // Check if unit is alive (duck typing)
+                var isAliveVar = otherUnit.Get("is_alive");
+                if (isAliveVar.VariantType == Variant.Type.Bool && !isAliveVar.AsBool())
+                    continue;
+
+                // Get collision radius
+                var otherRadiusVar = otherUnit.Get("collision_radius");
+                float otherRadius = otherRadiusVar.VariantType != Variant.Type.Nil ? otherRadiusVar.AsSingle() : 0.5f;
+
+                // Calculate 2D distance (ignore Y)
+                float dx = checkPos.X - otherUnit.GlobalPosition.X;
+                float dz = checkPos.Z - otherUnit.GlobalPosition.Z;
+                float distSq = dx * dx + dz * dz;
+
+                // Minimum spacing is sum of both collision radii
+                float minSpacing = collisionRadius + otherRadius;
+                if (distSq < minSpacing * minSpacing)
+                    return false;
+            }
+        }
+
+        // Check against other positions in the same spawn batch
+        if (batchPositions != null)
+        {
+            foreach (var otherPos in batchPositions)
+            {
+                float dx = checkPos.X - otherPos.X;
+                float dz = checkPos.Z - otherPos.Z;
+                float distSq = dx * dx + dz * dz;
+
+                // Same collision radius for units in same batch
+                float minSpacing = collisionRadius * 2;
+                if (distSq < minSpacing * minSpacing)
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
