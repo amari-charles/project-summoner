@@ -1,0 +1,308 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/units/fire_ant_rig.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/body.png" id="2_body"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/eye.png" id="3_eye"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/antenna_left.png" id="4_antenna_left"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/antenna_right.png" id="5_antenna_right"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/leg_1.png" id="6_leg_1"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/leg_2.png" id="7_leg_2"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/leg_3.png" id="8_leg_3"]
+[ext_resource type="Texture2D" path="res://assets/characters/fire_units/fire_ant/leg_4.png" id="9_leg_4"]
+
+[sub_resource type="Animation" id="Animation_attack"]
+resource_name = "attack"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.4, 0.8),
+"transitions": PackedFloat32Array(1, 0.3, 1, 1),
+"update": 0,
+"values": [Vector2(1050, 750), Vector2(1100, 730), Vector2(1200, 750), Vector2(1050, 750)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot:rotation")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.4, 0.8),
+"transitions": PackedFloat32Array(1, 0.3, 1, 1),
+"update": 0,
+"values": [0.0, -0.05, 0.1, 0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Leg1Pivot:rotation")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Leg2Pivot:rotation")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Leg3Pivot:rotation")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Leg4Pivot:rotation")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+tracks/6/type = "method"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath(".")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0.4),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"_on_attack_impact"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_idle"]
+resource_name = "idle"
+length = 1.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.8, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1050, 750), Vector2(1050, 758), Vector2(1050, 750)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AntennaLeftPivot:rotation")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.8, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.0, 0.05, 0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("BodyPivot/AntennaRightPivot:rotation")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.4, 1.2, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -0.04, 0.03, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_walk"]
+resource_name = "walk"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Leg1Pivot:rotation")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.15, -0.15, 0.15]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Leg2Pivot:rotation")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.15, 0.15, -0.15]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Leg3Pivot:rotation")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.15, -0.15, 0.15]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Leg4Pivot:rotation")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.15, 0.15, -0.15]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("BodyPivot:position")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.3, 0.45, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(1050, 750), Vector2(1050, 745), Vector2(1050, 750), Vector2(1050, 745), Vector2(1050, 750)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("BodyPivot/AntennaLeftPivot:rotation")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.03, 0.03, -0.03]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("BodyPivot/AntennaRightPivot:rotation")
+tracks/6/interp = 2
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.03, -0.03, 0.03]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
+_data = {
+&"attack": SubResource("Animation_attack"),
+&"idle": SubResource("Animation_idle"),
+&"walk": SubResource("Animation_walk")
+}
+
+[node name="FireAntRig" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_main")
+}
+
+[node name="Leg1Pivot" type="Node2D" parent="."]
+position = Vector2(400, 900)
+
+[node name="Leg1Sprite" type="Sprite2D" parent="Leg1Pivot"]
+z_index = -1
+texture = ExtResource("6_leg_1")
+offset = Vector2(650, -150)
+
+[node name="Leg2Pivot" type="Node2D" parent="."]
+position = Vector2(700, 900)
+
+[node name="Leg2Sprite" type="Sprite2D" parent="Leg2Pivot"]
+z_index = -1
+texture = ExtResource("7_leg_2")
+offset = Vector2(350, -150)
+
+[node name="Leg3Pivot" type="Node2D" parent="."]
+position = Vector2(1100, 900)
+
+[node name="Leg3Sprite" type="Sprite2D" parent="Leg3Pivot"]
+z_index = -1
+texture = ExtResource("8_leg_3")
+offset = Vector2(-50, -150)
+
+[node name="Leg4Pivot" type="Node2D" parent="."]
+position = Vector2(1400, 900)
+
+[node name="Leg4Sprite" type="Sprite2D" parent="Leg4Pivot"]
+z_index = -1
+texture = ExtResource("9_leg_4")
+offset = Vector2(-350, -150)
+
+[node name="BodyPivot" type="Node2D" parent="."]
+position = Vector2(1050, 750)
+
+[node name="BodySprite" type="Sprite2D" parent="BodyPivot"]
+texture = ExtResource("2_body")
+
+[node name="EyePivot" type="Node2D" parent="BodyPivot"]
+position = Vector2(350, -100)
+
+[node name="EyeSprite" type="Sprite2D" parent="BodyPivot/EyePivot"]
+z_index = 1
+texture = ExtResource("3_eye")
+offset = Vector2(-350, 100)
+
+[node name="AntennaLeftPivot" type="Node2D" parent="BodyPivot"]
+position = Vector2(400, -200)
+
+[node name="AntennaLeftSprite" type="Sprite2D" parent="BodyPivot/AntennaLeftPivot"]
+z_index = 2
+texture = ExtResource("4_antenna_left")
+offset = Vector2(-400, 200)
+
+[node name="AntennaRightPivot" type="Node2D" parent="BodyPivot"]
+position = Vector2(400, -150)
+
+[node name="AntennaRightSprite" type="Sprite2D" parent="BodyPivot/AntennaRightPivot"]
+z_index = 2
+texture = ExtResource("5_antenna_right")
+offset = Vector2(-400, 150)

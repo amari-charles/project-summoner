@@ -102,6 +102,14 @@
     "cloud_swarm": {
       "name": "Cloud Swarm",
       "description": "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might."
+    },
+    "fire_ant": {
+      "name": "Fire Ant",
+      "description": "A swift and fierce fire ant. Scurries across the battlefield with blazing speed, overwhelming foes with relentless attacks."
+    },
+    "fire_ant_swarm": {
+      "name": "Fire Ant Swarm",
+      "description": "Release a colony of fire ants! Twenty tiny terrors surge forth in formation, overwhelming enemies with sheer numbers."
     }
   },
   "menu": {

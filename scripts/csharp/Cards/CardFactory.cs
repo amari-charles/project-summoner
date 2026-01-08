@@ -429,10 +429,11 @@ public partial class CardFactory : Node, ICardFactory
                 GroupSpacing = GetFloat(cardDef, "group_spacing", GroupedLineFormation.DefaultGroupSpacing),
                 UnitsPerGroup = GetInt(cardDef, "units_per_group", GroupedLineFormation.DefaultUnitsPerGroup)
             },
-            _ => new FormationConfig
+            _ => new GridFormationConfig
             {
                 Spacing = spacing,
-                RowOffset = GetFloat(cardDef, "formation_row_offset", GridFormation.DefaultRowOffset)
+                RowOffset = GetFloat(cardDef, "formation_row_offset", GridFormation.DefaultRowOffset),
+                Columns = GetInt(cardDef, "formation_columns", 0)
             }
         };
     }

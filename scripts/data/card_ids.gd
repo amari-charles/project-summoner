@@ -32,6 +32,8 @@ const CHARGE: StringName = &"charge"
 const FIRE_ELEMENTAL: StringName = &"fire_elemental"
 const FIRE_TITAN: StringName = &"fire_titan"
 const FIRE_ELEMENTAL_SWARM: StringName = &"fire_elemental_swarm"
+const FIRE_ANT: StringName = &"fire_ant"
+const FIRE_ANT_SWARM: StringName = &"fire_ant_swarm"
 
 # ============================================================================
 # EARTH ELEMENT UNITS

@@ -38,6 +38,12 @@ public class GridFormation : IFormationStrategy
     /// </summary>
     public float RowOffset { get; set; } = DefaultRowOffset;
 
+    /// <summary>
+    /// Override columns per row (0 = auto-calculate).
+    /// When set, forces specific grid dimensions instead of auto-calculating.
+    /// </summary>
+    public int Columns { get; set; } = 0;
+
     // =========================================================================
     // IMPLEMENTATION
     // =========================================================================
@@ -51,12 +57,22 @@ public class GridFormation : IFormationStrategy
         if (totalUnits <= 1)
             return Vector3.Zero;
 
-        // Calculate grid dimensions - prefer 2 rows for army-like formations
-        int rows = totalUnits <= TwoRowMax
-            ? 2
-            : Mathf.CeilToInt(Mathf.Sqrt(totalUnits / LargeRowDensity));
+        int rows, cols;
 
-        int cols = Mathf.CeilToInt((float)totalUnits / rows);
+        // Use custom columns if specified, otherwise auto-calculate
+        if (Columns > 0)
+        {
+            cols = Columns;
+            rows = Mathf.CeilToInt((float)totalUnits / cols);
+        }
+        else
+        {
+            // Calculate grid dimensions - prefer 2 rows for army-like formations
+            rows = totalUnits <= TwoRowMax
+                ? 2
+                : Mathf.CeilToInt(Mathf.Sqrt(totalUnits / LargeRowDensity));
+            cols = Mathf.CeilToInt((float)totalUnits / rows);
+        }
 
         int row = unitIndex / cols;
         int col = unitIndex % cols;

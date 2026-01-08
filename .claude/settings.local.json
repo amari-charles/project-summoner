@@ -45,7 +45,9 @@
       "Bash(timeout:*)",
       "Bash(git stash:*)",
       "Bash(sort:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(git clone:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
