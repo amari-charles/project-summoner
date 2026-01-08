@@ -216,6 +216,99 @@ func _init_catalog() -> void:
 		}
 	}
 
+	# Fire Ant - Fast swarmer melee unit
+	# Visual: Skeletal rig with body, eye, antennae, and 4 legs
+	# Role: Fast, aggressive attacker - quick but fragile
+	_catalog["fire_ant"] = {
+		# Identity
+		"catalog_id": "fire_ant",
+		"card_name": "Fire Ant",
+		"description": "A swift and fierce fire ant. Scurries across the battlefield with blazing speed, overwhelming foes with relentless attacks.",
+		"rarity": RarityIDs.COMMON,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 2,
+		"cooldown": 1.5,
+		"summon_time": 0.8,  # Quick summon (2 mana)
+
+		# Summon properties
+		"unit_scene_path": "res://scenes/units/fire_ant_3d.tscn",
+		"spawn_count": 1,
+
+		# Unit stats - fast but fragile
+		"max_hp": 40.0,
+		"attack_damage": 8.0,
+		"attack_range": 1.8,
+		"attack_speed": 1.5,
+		"move_speed": 4.5,
+		"aggro_radius": 20.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "insect", "fast"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
+	# Fire Ant Swarm - 20 fire ants in 4 rows of 5
+	# Role: Overwhelming swarm tactics with tiny fast units
+	_catalog["fire_ant_swarm"] = {
+		# Identity
+		"catalog_id": "fire_ant_swarm",
+		"card_name": "Fire Ant Swarm",
+		"description": "Release a colony of fire ants! Twenty tiny terrors surge forth in formation, overwhelming enemies with sheer numbers.",
+		"rarity": RarityIDs.EPIC,
+
+		# Card properties
+		"card_type": Card.CardType.SUMMON,
+		"unit_type": UnitTypeIDs.MELEE,
+		"mana_cost": 6,
+		"cooldown": 4.0,
+		"summon_time": 2.0,  # Swarm card (extra time for many units)
+
+		# Summon properties - 20 ants in 4 rows of 5
+		"unit_scene_path": "res://scenes/units/fire_ant_3d.tscn",
+		"spawn_count": 20,
+
+		# Formation - grid 4 rows x 5 columns with tight spacing
+		"formation_type": "grid",
+		"formation_columns": 5,
+		"formation_spacing": 1.0,
+		"formation_row_offset": 1.2,
+
+		# Unit stats - same as base fire ant
+		"max_hp": 40.0,
+		"attack_damage": 8.0,
+		"attack_range": 1.8,
+		"attack_speed": 1.5,
+		"move_speed": 4.5,
+		"aggro_radius": 20.0,
+		"is_ranged": false,
+		"projectile_scene_path": "",
+
+		# Visual
+		"card_icon_path": "",
+
+		# Metadata
+		"tags": ["melee", "fire", "insect", "fast", "swarm"],
+		"unlock_condition": "default",
+
+		# Elemental affinity
+		"categories": {
+			"elemental_affinity": ElementTypes.FIRE
+		}
+	}
+
 	# Earth Sprite - Rocky elemental with a sapling
 	# Visual: Skeletal rig with body, arms, legs, eye, and sapling (stem + leaves)
 	_catalog["earth_sprite"] = {
