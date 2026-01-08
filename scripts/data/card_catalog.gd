@@ -215,6 +215,7 @@ func _init_catalog() -> void:
 			"elemental_affinity": ElementTypes.FIRE
 		}
 	}
+
 	# Fire Ant - Fast swarmer melee unit
 	# Visual: Skeletal rig with body, eye, antennae, and 4 legs
 	# Role: Fast, aggressive attacker - quick but fragile

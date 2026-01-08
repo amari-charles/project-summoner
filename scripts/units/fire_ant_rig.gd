@@ -10,6 +10,10 @@ extends Node2D
 ## - Idle animation: gentle breathing/bobbing
 ## - Walk animation: diagonal leg pairs alternate (1+3 vs 2+4)
 ## - Attack animation: lunge forward with mandible motion
+##
+## Visual Component Notes:
+## - FeetOffsetPixels = 530 (ViewportPadding 200 + ~330px whitespace below feet in PNGs)
+## - Leg content ends at Y~1167 in 1500px canvas, leaving ~333px whitespace below
 
 signal attack_impact
 
