@@ -6,6 +6,36 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## Architecture
 
+### HP Bar Lifecycle Fix - GDScript to C# Migration
+**Completed:** 2026-01-08
+**Category:** Architecture / UI
+**Effort:** Medium
+
+**Problem:**
+HP bars were not properly cleaned up when units died, particularly for multi-unit cards (Fire Ant Swarm). The cleanup relied on `UnregisterFromExternalSystems()` being called before the unit was freed, which failed in rapid-death or scene-unload scenarios.
+
+**Solution Implemented:**
+- Migrated HP bar system from GDScript to C#
+- Created `HPBarService.cs` (pooling, lifecycle management)
+- Created `FloatingHPBar.cs` (bar logic, rendering)
+- Connected to unit's `TreeExiting` signal for guaranteed auto-cleanup
+- Direct C# integration (no cross-language `Call()` needed)
+
+**Key Fix:**
+```csharp
+unit.TreeExiting += OnUnitExiting;  // Fires BEFORE unit is freed
+```
+
+**Files Changed:**
+- Created: `scripts/csharp/Services/HPBarService.cs`, `HPBarService.tscn`
+- Created: `scripts/csharp/UI/FloatingHPBar.cs`
+- Modified: `Unit3D.cs`, `summoner.gd`, `game_controller_3d.gd`, `project.godot`
+- Deleted: `hp_bar_manager.gd`, `floating_hp_bar.gd`
+
+**Architecture Document:** See `docs/architecture/issues/resolved/hp-bar-lifecycle.md`
+
+---
+
 ### DRY Principle Audit - Formation Logic Unified
 **Completed:** 2026-01-06
 **Category:** Architecture / Code Quality

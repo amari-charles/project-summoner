@@ -60,6 +60,7 @@ ProjectileDelay = 1.17
 IsDelayedProjectile = true
 ShadowEnabled = true
 ShadowOpacity = 0.5
+HpBarOffsetY = 4.0
 
 [node name="Visual" parent="." instance=ExtResource("2_sprite_component")]
 SpriteFramesResource = ExtResource("3_frames")

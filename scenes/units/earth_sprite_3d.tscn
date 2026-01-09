@@ -22,6 +22,7 @@ UnitType = 0
 CollisionRadius = 0.5
 ShadowEnabled = true
 ShadowOpacity = 0.6
+HpBarOffsetY = 6.5
 
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
 SkeletalScene = ExtResource("3_rig")

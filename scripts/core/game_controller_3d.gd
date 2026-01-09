@@ -195,8 +195,8 @@ func reset_battle_state() -> void:
 		ProjectileManager.clear_all_projectiles()
 
 	# Clear all HP bars
-	if HPBarManager:
-		HPBarManager.clear_all_bars()
+	if HPBarService:
+		HPBarService.clear_all_bars()
 
 	# Clear all units from the battlefield
 	_clear_all_units()

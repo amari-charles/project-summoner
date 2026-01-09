@@ -110,7 +110,7 @@ func _ready() -> void:
 		original_visual_position = visual.position
 
 	# Create HP bar for summoner
-	HPBarManager.create_bar_for_unit(self, {
+	HPBarService.create_bar_for_unit(self, {
 		"bar_width": HP_BAR_WIDTH,
 		"offset_y": HP_BAR_OFFSET_Y,
 		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
@@ -215,7 +215,7 @@ func _exit_tree() -> void:
 	if active_feedback_tween and active_feedback_tween.is_valid():
 		active_feedback_tween.kill()
 	# Remove HP bar
-	HPBarManager.remove_bar_from_unit(self)
+	HPBarService.remove_bar_from_unit(self)
 
 ## Draw a card from deck into hand
 ## If target_index is provided, insert at that position (for in-place replacement)
@@ -624,7 +624,7 @@ func _destroy() -> void:
 		visual.position = original_visual_position
 
 	# Remove HP bar
-	HPBarManager.remove_bar_from_unit(self)
+	HPBarService.remove_bar_from_unit(self)
 
 	summoner_destroyed.emit(self)
 	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY"))
