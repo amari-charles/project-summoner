@@ -3,6 +3,9 @@ extends Node
 ## Centralized HP bar management with object pooling
 ## Usage: HPBarManager.create_bar_for_unit(unit)
 ## Autoload as: /root/HPBarManager
+##
+## Uses lazy initialization - resources are loaded on first use, not at startup.
+## This allows tests to run without requiring C# to be available.
 
 ## Pool settings
 const INITIAL_POOL_SIZE: int = 20
@@ -19,8 +22,28 @@ var pool_container: Node3D = null  ## Parent for pooled HP bars (keeps them in s
 ## HP bar scene
 var hp_bar_scene: PackedScene = null
 
+var _initialized: bool = false
+
+
 func _ready() -> void:
-	print("HPBarManager: Initializing...")
+	# Lazy initialization - don't load anything here
+	# Resources will be loaded on first use via _ensure_initialized()
+	pass
+
+
+## =============================================================================
+## LAZY INITIALIZATION
+## =============================================================================
+
+## Ensure HPBarManager is initialized. Returns true if ready to use.
+func _ensure_initialized() -> bool:
+	if _initialized:
+		return true
+
+	if not _can_initialize():
+		return false
+
+	print("HPBarManager: Initializing (lazy)...")
 
 	# Create container for active bars
 	bars_container = Node3D.new()
@@ -38,7 +61,24 @@ func _ready() -> void:
 	# Pre-instantiate pool
 	_init_pool()
 
+	_initialized = true
 	print("HPBarManager: Initialized with pool of %d bars" % INITIAL_POOL_SIZE)
+	return true
+
+
+## Check if we can initialize (C# runtime must be available)
+func _can_initialize() -> bool:
+	# Check if a known C# autoload is available and functional
+	var spatial_grid: Node = get_node_or_null("/root/SpatialGrid")
+	if spatial_grid == null:
+		return false
+	# Verify C# methods are accessible (not just the node existing)
+	return spatial_grid.has_method("register_unit")
+
+
+## =============================================================================
+## RESOURCE LOADING
+## =============================================================================
 
 func _load_hp_bar_scene() -> void:
 	# Try to load scene
@@ -47,6 +87,7 @@ func _load_hp_bar_scene() -> void:
 		hp_bar_scene = load(scene_path)
 	else:
 		push_warning("HPBarManager: HP bar scene not found, will instantiate script directly")
+
 
 func _init_pool() -> void:
 	for i: int in range(INITIAL_POOL_SIZE):
@@ -59,6 +100,7 @@ func _init_pool() -> void:
 			pool_container.add_child(bar)
 			bar_pool.append(bar)
 
+
 func _instantiate_bar() -> FloatingHPBar:
 	var bar: FloatingHPBar
 	if hp_bar_scene:
@@ -68,8 +110,17 @@ func _instantiate_bar() -> FloatingHPBar:
 		bar = FloatingHPBar.new()
 	return bar
 
+
+## =============================================================================
+## PUBLIC API
+## =============================================================================
+
 ## Create HP bar for a unit
 func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPBar:
+	if not _ensure_initialized():
+		push_warning("HPBarManager: Cannot create bar, not initialized (C# unavailable)")
+		return null
+
 	# Check if unit already has a bar
 	if active_bars.has(unit):
 		push_warning("HPBarManager: Unit already has an HP bar")
@@ -148,6 +199,7 @@ func create_bar_for_unit(unit: Node3D, settings: Dictionary = {}) -> FloatingHPB
 
 	return bar
 
+
 ## Remove bar from a unit
 func remove_bar_from_unit(unit: Node3D) -> void:
 	if not active_bars.has(unit):
@@ -172,6 +224,7 @@ func remove_bar_from_unit(unit: Node3D) -> void:
 	# Return to pool
 	_return_to_pool(bar)
 
+
 ## Update HP bar for a unit (if it exists)
 func update_unit_hp(unit: Node3D, current_hp: float, max_hp: float) -> void:
 	if active_bars.has(unit):
@@ -180,26 +233,12 @@ func update_unit_hp(unit: Node3D, current_hp: float, max_hp: float) -> void:
 			var bar: FloatingHPBar = bar_variant
 			bar.update_hp(current_hp, max_hp)
 
-## Return bar to pool
-func _return_to_pool(bar: FloatingHPBar) -> void:
-	if bar_pool.size() < MAX_POOL_SIZE:
-		bar.reset()
-		bar_pool.append(bar)
-		# Add to pool container (keeps in scene tree)
-		pool_container.add_child(bar)
-	else:
-		# Pool full, destroy bar
-		bar.queue_free()
-
-## Handler for bar hidden signal
-func _on_bar_hidden(_unit: Node3D, _bar: FloatingHPBar) -> void:
-	# Bar faded out, optionally remove it
-	# For now, keep it in active_bars but hidden
-	# It will be removed when unit dies
-	pass
 
 ## Remove all bars (useful for scene transitions)
 func clear_all_bars() -> void:
+	if not _initialized:
+		return
+
 	# Get all bars from values (don't iterate over unit keys which may be freed)
 	var bars_to_clear: Array[FloatingHPBar] = []
 	for bar_variant: Variant in active_bars.values():
@@ -216,9 +255,38 @@ func clear_all_bars() -> void:
 
 	active_bars.clear()
 
+
 ## Debug: Print pool statistics
 func print_pool_stats() -> void:
+	if not _initialized:
+		print("HPBarManager: Not initialized")
+		return
+
 	print("=== HPBarManager Pool Statistics ===")
 	print("  Bars in pool: %d" % bar_pool.size())
 	print("  Active bars: %d" % active_bars.size())
 	print("  Total bars: %d" % (bar_pool.size() + active_bars.size()))
+
+
+## =============================================================================
+## INTERNAL HELPERS
+## =============================================================================
+
+## Return bar to pool
+func _return_to_pool(bar: FloatingHPBar) -> void:
+	if bar_pool.size() < MAX_POOL_SIZE:
+		bar.reset()
+		bar_pool.append(bar)
+		# Add to pool container (keeps in scene tree)
+		pool_container.add_child(bar)
+	else:
+		# Pool full, destroy bar
+		bar.queue_free()
+
+
+## Handler for bar hidden signal
+func _on_bar_hidden(_unit: Node3D, _bar: FloatingHPBar) -> void:
+	# Bar faded out, optionally remove it
+	# For now, keep it in active_bars but hidden
+	# It will be removed when unit dies
+	pass

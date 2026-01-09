@@ -32,7 +32,12 @@ func _ready() -> void:
 	print("CardCatalog: Initializing...")
 	_csharp_bridge = get_node_or_null("/root/CardCatalogCS")
 	if not _csharp_bridge:
-		push_error("CardCatalog: C# CardCatalogBridge not found! Card lookups will fail.")
+		push_warning("CardCatalog: C# CardCatalogBridge not found (C# unavailable). Card lookups will return empty.")
+		return
+	# Verify C# methods are accessible
+	if not _csharp_bridge.has_method("GetCardCount"):
+		push_warning("CardCatalog: C# bridge exists but methods not available. Card lookups will return empty.")
+		_csharp_bridge = null
 		return
 	var count: int = _csharp_bridge.GetCardCount()
 	print("CardCatalog: Connected to C# bridge with %d cards" % count)
