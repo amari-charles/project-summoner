@@ -60,7 +60,7 @@ public partial class GhostUnit3D : Node3D
             _flightAltitude = unit.FlightAltitude;
         }
 
-        // Find the Visual child node
+        // Find the Visual child node - it already has all property overrides from the unit scene
         var visualNode = tempUnit.GetNodeOrNull("Visual");
         if (visualNode == null)
         {
@@ -68,43 +68,14 @@ public partial class GhostUnit3D : Node3D
             return;
         }
 
-        // Get the scene file path to instantiate fresh (avoids ViewportTexture reference issues)
-        string scenePath = visualNode.SceneFilePath;
-        Node? newVisual = null;
+        // Reparent the Visual from the unit to the ghost (truly DRY - no property copying needed)
+        // This preserves all property overrides set in the unit scene file
+        visualNode.Owner = null;  // Unset owner to avoid "inconsistent owner" warning
+        tempUnit.RemoveChild(visualNode);
+        AddChild(visualNode);
+        _visualRoot = visualNode;
 
-        if (!string.IsNullOrEmpty(scenePath))
-        {
-            // Instantiate fresh from scene file
-            var visualScene = GD.Load<PackedScene>(scenePath);
-            if (visualScene != null)
-            {
-                newVisual = visualScene.Instantiate();
-
-                // Copy relevant properties BEFORE adding to tree (so _Ready() sees them)
-                CopyVisualProperties(visualNode, newVisual);
-            }
-        }
-
-        // Fallback to duplicate if scene instantiation failed
-        if (newVisual == null)
-        {
-            newVisual = visualNode.Duplicate((int)(
-                Node.DuplicateFlags.UseInstantiation |
-                Node.DuplicateFlags.Scripts |
-                Node.DuplicateFlags.Signals));
-        }
-
-        if (newVisual == null)
-        {
-            tempUnit.Free();  // Not in tree, use Free() not QueueFree()
-            return;
-        }
-
-        // Add to ghost (this triggers _Ready() which needs properties to be set)
-        AddChild(newVisual);
-        _visualRoot = newVisual;
-
-        // Clean up temp unit
+        // Clean up the unit shell (Visual has been moved out)
         tempUnit.Free();  // Not in tree, use Free() not QueueFree()
 
         // Position at flight altitude if flying
@@ -147,37 +118,6 @@ public partial class GhostUnit3D : Node3D
     // =========================================================================
     // PRIVATE HELPERS
     // =========================================================================
-
-    /// <summary>
-    /// Copy visual properties from source to destination node.
-    /// </summary>
-    private static void CopyVisualProperties(Node source, Node dest)
-    {
-        // C# visual component properties
-        CopyPropertyIfExists(source, dest, "SkeletalScene");
-        CopyPropertyIfExists(source, dest, "ScaleFactor");
-        CopyPropertyIfExists(source, dest, "SpriteScale");
-        CopyPropertyIfExists(source, dest, "SpriteFramesResource");
-        CopyPropertyIfExists(source, dest, "ViewportScale");
-        CopyPropertyIfExists(source, dest, "FeetOffsetPixels");
-        CopyPropertyIfExists(source, dest, "HeadOffsetPixels");
-
-        // GDScript visual component properties (snake_case)
-        CopyPropertyIfExists(source, dest, "skeletal_scene");
-        CopyPropertyIfExists(source, dest, "scale_factor");
-        CopyPropertyIfExists(source, dest, "sprite_frames");
-        CopyPropertyIfExists(source, dest, "sprite_scale");
-        CopyPropertyIfExists(source, dest, "viewport_scale");
-    }
-
-    private static void CopyPropertyIfExists(Node source, Node dest, string property)
-    {
-        var value = source.Get(property);
-        if (value.VariantType != Variant.Type.Nil)
-        {
-            dest.Set(property, value);
-        }
-    }
 
     /// <summary>
     /// Apply ghost transparency after waiting for component to initialize.
@@ -297,33 +237,4 @@ public partial class GhostUnit3D : Node3D
         }
     }
 
-    /// <summary>
-    /// Try to find and tint internal sprites in visual components.
-    /// </summary>
-    private static void ApplyTintToInternalSprites(Node node, Color tint)
-    {
-        // Look for SubViewport with sprites inside
-        var viewport = node.GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
-        if (viewport == null)
-            return;
-
-        // Find all CanvasItems and modulate them
-        ApplyTintToCanvasItems(viewport, tint);
-    }
-
-    /// <summary>
-    /// Recursively apply tint to all CanvasItem nodes.
-    /// </summary>
-    private static void ApplyTintToCanvasItems(Node node, Color tint)
-    {
-        if (node is CanvasItem canvasItem)
-        {
-            canvasItem.Modulate = tint;
-        }
-
-        foreach (var child in node.GetChildren())
-        {
-            ApplyTintToCanvasItems(child, tint);
-        }
-    }
 }

@@ -23,6 +23,7 @@ extends Node
 var _panel: PanelContainer
 var _fps_label: Label
 var _target_label: Label
+var _perf_label: Label  # Performance counters display
 var _buttons: Dictionary = {}  # fps -> Button
 var _grid_button: Button
 var _skip_prep_button: Button
@@ -49,6 +50,10 @@ func _process(_delta: float) -> void:
 	if _fps_label:
 		var current_fps: float = Engine.get_frames_per_second()
 		_fps_label.text = "FPS: %.1f" % current_fps
+
+	# Update performance counters (only if visible to avoid overhead)
+	if _perf_label and _panel and _panel.visible:
+		_update_perf_counters()
 
 
 func _input(event: InputEvent) -> void:
@@ -169,6 +174,24 @@ func _create_ui() -> void:
 	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
 	vbox.add_child(_skip_prep_button)
 
+	# Performance counters separator
+	var perf_separator: HSeparator = HSeparator.new()
+	vbox.add_child(perf_separator)
+
+	# Performance counters title
+	var perf_title: Label = Label.new()
+	perf_title.text = "Performance Counters"
+	perf_title.add_theme_font_size_override("font_size", 14)
+	perf_title.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3))
+	vbox.add_child(perf_title)
+
+	# Performance counters label
+	_perf_label = Label.new()
+	_perf_label.text = "Units: --\nSummoner Lookups: --\nGrid Queries: --\nTarget Acquisitions: --\nPhysics Time: --"
+	_perf_label.add_theme_font_size_override("font_size", 12)
+	_perf_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	vbox.add_child(_perf_label)
+
 	# Start hidden by default (press ` or F12 to show)
 	_panel.visible = false
 
@@ -223,3 +246,27 @@ func _on_skip_prep_pressed() -> void:
 		print("[FPS Test] Skipped prep phase")
 	else:
 		print("[FPS Test] No game controller found - not in battle?")
+
+
+func _update_perf_counters() -> void:
+	var counters: Dictionary = SpatialGrid.get_perf_counters()
+	if counters.is_empty():
+		return
+
+	var units: int = counters.get("active_units", 0)
+	var summoner_lookups: int = counters.get("summoner_lookups", 0)
+	var grid_queries: int = counters.get("spatial_grid_queries", 0)
+	var target_acq: int = counters.get("target_acquisitions", 0)
+	var physics_usec: int = counters.get("physics_time_usec", 0)
+	var queries_per_unit: float = counters.get("queries_per_unit", 0.0)
+	var usec_per_unit: float = counters.get("avg_usec_per_unit", 0.0)
+
+	_perf_label.text = "Units: %d\nSummoner Lookups: %d\nGrid Queries: %d (%.1f/unit)\nTarget Acquisitions: %d\nPhysics: %dus (%.1fus/unit)" % [
+		units,
+		summoner_lookups,
+		grid_queries,
+		queries_per_unit,
+		target_acq,
+		physics_usec,
+		usec_per_unit
+	]

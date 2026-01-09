@@ -27,7 +27,7 @@ ShadowOpacity = 0.6
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
 SkeletalScene = ExtResource("3_rig")
 ScaleFactor = Vector2(0.2, 0.2)
-FeetOffsetPixels = 530.0
+FeetOffsetPixels = 100.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
