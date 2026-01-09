@@ -303,26 +303,35 @@ flowchart TB
 
 ---
 
-### Phase 5: C# Config Completeness
-**Status:** [✓] COMPLETED (2026-01-06)
+### Phase 5: C# Config Completeness & CardCatalog Migration
+**Status:** [✓] COMPLETED (2026-01-08)
 
 **Problem:** GDScript Dictionary is source of truth, C# CardConfig incomplete
-**Solution:** CardConfig captures ALL card data with conversion methods
+**Solution:** Created `CardCatalog.cs` as single source of truth with `CardDefinition` class
 
 **Implementation Notes:**
-- CardConfig now has: Rarity, Tags, UnlockCondition, ElementalAffinity, CardIconPath
-- SummonCardConfig now has: UnitType, MaxHp, AttackDamage, AttackRange, AttackSpeed, MoveSpeed, AggroRadius, IsRanged, ProjectileScenePath, ProjectileId
-- SpellCardConfig already had spell properties (SpellDamage, SpellRadius, etc.)
-- Added FromDictionary/ToDictionary conversion methods to all configs
-- FormationConfig now has FormationType string property
-- CardCatalog delegation to C# deferred (configs are complete for when needed)
+- Created `CardCatalog.cs` - static class with all card definitions as `CardDefinition` objects
+- Created `CardDefinition.cs` - data class with type-safe properties for all card data
+- Created type-safe enums: `Element`, `Rarity`, `UnitType`, `UnlockCondition`
+- Created `FormationPresets.cs` - named formation instances referenced directly by cards
+- Deleted `FormationConfig.cs`, `GridFormationConfig.cs`, `GroupedLineFormationConfig.cs` - replaced by direct `IFormationStrategy` references
+- `CardCatalogBridge.cs` exposes C# catalog to GDScript as autoload
+- `card_catalog.gd` is now a thin wrapper delegating to C# bridge
 
 **Files:**
-- [x] MODIFY: `scripts/csharp/Cards/Configs/CardConfig.cs` - Added rarity, tags, elemental affinity, conversion methods
-- [x] MODIFY: `scripts/csharp/Cards/Configs/SummonCardConfig.cs` - Added all unit stats, conversion methods
-- [x] MODIFY: `scripts/csharp/Cards/Configs/SpellCardConfig.cs` - Added conversion methods
-- [x] MODIFY: `scripts/csharp/Cards/Configs/FormationConfig.cs` - Added FormationType property
-- [N/A] MODIFY: `scripts/data/card_catalog.gd` - Deferred (configs complete for usage when needed)
+- [x] CREATE: `scripts/csharp/Cards/CardCatalog.cs` - Single source of truth for card definitions
+- [x] CREATE: `scripts/csharp/Cards/CardDefinition.cs` - Type-safe card data class
+- [x] CREATE: `scripts/csharp/Cards/CardCatalogBridge.cs` - GDScript bridge
+- [x] CREATE: `scripts/csharp/Cards/Element.cs` - Elemental affinity enum
+- [x] CREATE: `scripts/csharp/Cards/Rarity.cs` - Card rarity enum
+- [x] CREATE: `scripts/csharp/Cards/UnitType.cs` - Unit type enum
+- [x] CREATE: `scripts/csharp/Cards/UnlockCondition.cs` - Unlock condition enum
+- [x] CREATE: `scripts/csharp/Cards/Formations/FormationPresets.cs` - Named formation instances
+- [x] DELETE: `scripts/csharp/Cards/Configs/FormationConfig.cs` - Replaced by FormationPresets
+- [x] DELETE: `scripts/csharp/Cards/Configs/GridFormationConfig.cs` - Replaced by FormationPresets
+- [x] DELETE: `scripts/csharp/Cards/Configs/GroupedLineFormationConfig.cs` - Replaced by FormationPresets
+- [x] MODIFY: `scripts/data/card_catalog.gd` - Now delegates to C# CardCatalogBridge
+- [x] MODIFY: `scripts/csharp/Cards/Configs/SummonCardConfig.cs` - Uses IFormationStrategy from CardCatalog
 
 ---
 
@@ -412,6 +421,17 @@ flowchart TB
   - Different modifier contexts have legitimate different patterns
   - Lower priority than decomposition
 
+### 2026-01-08
+- **Completed Phase 5:** C# CardCatalog Migration
+  - Created CardCatalog.cs as single source of truth for all card definitions
+  - Created CardDefinition.cs with type-safe properties
+  - Created type-safe enums: Element, Rarity, UnitType, UnlockCondition
+  - Created FormationPresets.cs for direct formation references
+  - Deleted FormationConfig.cs and subclasses (replaced by FormationPresets)
+  - CardCatalogBridge.cs exposes C# catalog to GDScript
+  - card_catalog.gd is now a thin wrapper delegating to C# bridge
+  - Removed deprecated get_formation_offset() method (use get_formation_offset_by_id)
+
 ---
 
-*Last Updated: 2026-01-06*
+*Last Updated: 2026-01-08*

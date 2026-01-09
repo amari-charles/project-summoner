@@ -62,9 +62,9 @@ public interface ICardFactory
     // =========================================================================
 
     /// <summary>
-    /// Get the formation offset for a unit at the given index.
+    /// Get formation offset for a unit by catalog ID.
     /// </summary>
-    Vector3 get_formation_offset(Godot.Collections.Dictionary cardDef, int unitIndex, int totalUnits);
+    Vector3 get_formation_offset_by_id(string catalogId, int unitIndex, int totalUnits);
 
     /// <summary>
     /// Calculate safe spawn positions for all units in a formation.

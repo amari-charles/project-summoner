@@ -435,34 +435,6 @@ public partial class CardFactory : Node, ICardFactory
         return card.Formation.GetOffset(unitIndex, totalUnits);
     }
 
-    /// <summary>
-    /// Get formation offset for a unit. Called by GDScript Card class for spawn preview.
-    /// This ensures preview and actual spawning use the same formation logic.
-    /// DEPRECATED: Use get_formation_offset_by_id instead.
-    /// </summary>
-    /// <param name="cardDef">Card definition dictionary from CardCatalog.</param>
-    /// <param name="unitIndex">Index of the unit in the formation (0-based).</param>
-    /// <param name="totalUnits">Total number of units being spawned.</param>
-    /// <returns>Position offset from spawn center for this unit.</returns>
-    public Vector3 get_formation_offset(Godot.Collections.Dictionary cardDef, int unitIndex, int totalUnits)
-    {
-        if (totalUnits <= 1)
-            return Vector3.Zero;
-
-        // Try to get catalog_id from dict and use C# CardCatalog
-        var catalogId = GetString(cardDef, "catalog_id", "");
-        if (!string.IsNullOrEmpty(catalogId))
-        {
-            var card = CardCatalog.GetCard(catalogId);
-            if (card != null)
-            {
-                return card.Formation.GetOffset(unitIndex, totalUnits);
-            }
-        }
-
-        // Fallback: use default grid formation
-        return FormationPresets.StandardGrid.GetOffset(unitIndex, totalUnits);
-    }
 
     // =========================================================================
     // SUMMON HELPERS
