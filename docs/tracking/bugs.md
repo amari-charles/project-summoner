@@ -166,6 +166,41 @@ Reduces effective army size as blocked units don't contribute to combat.
 
 ---
 
+#### Small Units Can Push Large Units Off Screen
+**Status:** Open
+**Reported:** 2026-01-09
+**Component:** Unit Movement / Collision
+
+**Description:**
+Spawning many small units (Ants) around a large unit (Fire Titan) causes the large unit to be pushed off screen. The pushed unit then gets stuck perpetually trying to move back into attack range.
+
+**Expected Behavior:**
+- Large units should not be easily pushed by swarms of small units
+- Units should not be able to be pushed outside battlefield boundaries
+- Units pushed out of position should be able to recover and re-engage
+
+**Current Behavior:**
+- Swarm of Ants physically pushes Fire Titan off the visible battlefield
+- Fire Titan gets stuck in a movement loop, unable to reach valid attack range
+- Unit never recovers or re-engages in combat
+
+**Impact:**
+Gameplay-breaking - large expensive units can be trivialized by cheap swarm tactics through physics pushing rather than damage.
+
+**Proposed Solutions:**
+1. **Mass-based push resistance:** Large units should have higher mass/push resistance based on their size
+2. **Boundary enforcement:** Combine with "Units Can Move/Fly Out of Bounds" fix to prevent any unit from leaving battlefield
+3. **Stuck detection:** Add logic to detect when a unit is stuck trying to reach a target and find alternate pathing
+
+**Related Bugs:**
+- "Units Can Move/Fly Out of Bounds" - related boundary issue
+
+**Related Files:**
+- scripts/csharp/Units/Unit3D.cs (collision/push physics)
+- BattlefieldConstants (boundary definitions)
+
+---
+
 #### Projectiles Cannot Hit Summoner Properly
 **Status:** Open
 **Reported:** 2026-01-05
@@ -228,4 +263,4 @@ Additional context
 
 ---
 
-*Last Updated: 2026-01-06 - Fixed spawn preview position mismatch bug*
+*Last Updated: 2026-01-09 - Added small units pushing large units off screen bug*
