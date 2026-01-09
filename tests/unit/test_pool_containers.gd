@@ -63,34 +63,36 @@ func test_vfx_manager_pooled_effects_in_scene_tree() -> void:
 
 
 ## =============================================================================
-## HPBARMANAGER POOL CONTAINER TESTS
+## HPBARSERVICE POOL CONTAINER TESTS (C#)
 ## =============================================================================
 
-func test_hp_bar_manager_has_pool_container() -> void:
+func test_hp_bar_service_has_pool_container() -> void:
 	if not _is_csharp_available():
-		pending("Skipped: C# not available, HPBarManager won't initialize")
+		pending("Skipped: C# not available, HPBarService won't initialize")
 		return
 
 	# Trigger lazy initialization
-	HPBarManager._ensure_initialized()
+	HPBarService.ForceInitialize()
 
-	assert_not_null(HPBarManager.pool_container, "HPBarManager should have pool_container")
+	var pool_container: Node3D = HPBarService.GetPoolContainer()
+	assert_not_null(pool_container, "HPBarService should have pool_container")
 	assert_true(
-		HPBarManager.pool_container.get_parent() == HPBarManager,
-		"pool_container should be child of HPBarManager"
+		pool_container.get_parent() == HPBarService,
+		"pool_container should be child of HPBarService"
 	)
 
 
-func test_hp_bar_manager_pooled_bars_in_scene_tree() -> void:
+func test_hp_bar_service_pooled_bars_in_scene_tree() -> void:
 	if not _is_csharp_available():
-		pending("Skipped: C# not available, HPBarManager won't initialize")
+		pending("Skipped: C# not available, HPBarService won't initialize")
 		return
 
 	# Trigger lazy initialization
-	HPBarManager._ensure_initialized()
+	HPBarService.ForceInitialize()
 
-	var pool_child_count: int = HPBarManager.pool_container.get_child_count()
-	var pooled_count: int = HPBarManager.bar_pool.size()
+	var pool_container: Node3D = HPBarService.GetPoolContainer()
+	var pool_child_count: int = pool_container.get_child_count()
+	var pooled_count: int = HPBarService.GetPooledBarCount()
 
 	assert_eq(
 		pool_child_count,

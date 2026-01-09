@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Services;
 using ProjectSummoner.Systems;
 using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Targeting;
@@ -984,9 +985,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Register with SpatialGrid
         SpatialGrid.Instance?.RegisterUnit(this);
 
-        // Register with HPBarManager (still GDScript)
-        var hpBarManager = GetNodeOrNull("/root/HPBarManager");
-        hpBarManager?.Call("create_bar_for_unit", this);
+        // Register with HPBarService (C#)
+        HPBarService.Instance?.CreateBarForUnit(this);
     }
 
     private void UnregisterFromExternalSystems()
@@ -994,9 +994,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Unregister from SpatialGrid
         SpatialGrid.Instance?.UnregisterUnit(this);
 
-        // Remove HP bar (still GDScript)
-        var hpBarManager = GetNodeOrNull("/root/HPBarManager");
-        hpBarManager?.Call("remove_bar_from_unit", this);
+        // HP bar auto-cleans via TreeExiting signal, but we can explicitly remove
+        // for immediate cleanup when the unit is properly dying (not just being freed)
+        HPBarService.Instance?.RemoveBar(this);
     }
 
     private void UpdateSpatialGridPosition()
