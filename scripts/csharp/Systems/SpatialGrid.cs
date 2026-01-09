@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Debug;
 using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Systems;
@@ -59,6 +60,13 @@ public partial class SpatialGrid : Node
     private int _statsCellUpdatesThisFrame;
 
     // =========================================================================
+    // SUMMONER CACHE (avoids expensive GetNodesInGroup calls)
+    // =========================================================================
+
+    private Node3D? _playerSummoner;
+    private Node3D? _enemySummoner;
+
+    // =========================================================================
     // LIFECYCLE
     // =========================================================================
 
@@ -78,9 +86,16 @@ public partial class SpatialGrid : Node
 
     public override void _Process(double delta)
     {
-        // Reset frame stats
+        // Reset frame stats (these are per-display-frame)
         _statsQueriesThisFrame = 0;
         _statsCellUpdatesThisFrame = 0;
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        // Reset performance counters at start of each physics frame
+        // Must be in _PhysicsProcess because Unit3D increments counters in _PhysicsProcess
+        PerformanceCounters.ResetFrame();
     }
 
     // =========================================================================
@@ -99,6 +114,7 @@ public partial class SpatialGrid : Node
         => GetUnitsInRadius(position, radius, teamFilter, excludeUnit);
     public void clear() => Clear();
     public Godot.Collections.Dictionary get_stats() => GetStats();
+    public Godot.Collections.Dictionary get_perf_counters() => GetPerfCounters();
 
     // =========================================================================
     // REGISTRATION API
@@ -263,6 +279,7 @@ public partial class SpatialGrid : Node
         Node3D? excludeUnit)
     {
         _statsQueriesThisFrame++;
+        PerformanceCounters.SpatialGridQueries++;
         var result = new Godot.Collections.Array<Node3D>();
         float radiusSq = radius * radius;
 
@@ -429,6 +446,23 @@ public partial class SpatialGrid : Node
             { "max_cell_population", maxCellPopulation },
             { "queries_this_frame", _statsQueriesThisFrame },
             { "cell_updates_this_frame", _statsCellUpdatesThisFrame }
+        };
+    }
+
+    /// <summary>
+    /// Get performance counters for profiling display (rolling averages).
+    /// </summary>
+    public Godot.Collections.Dictionary GetPerfCounters()
+    {
+        return new Godot.Collections.Dictionary
+        {
+            { "active_units", PerformanceCounters.AvgActiveUnits },
+            { "summoner_lookups", PerformanceCounters.AvgSummonerLookups },
+            { "spatial_grid_queries", PerformanceCounters.AvgSpatialGridQueries },
+            { "target_acquisitions", PerformanceCounters.AvgTargetAcquisitions },
+            { "physics_time_usec", PerformanceCounters.AvgPhysicsTimeUsec },
+            { "avg_usec_per_unit", PerformanceCounters.AvgUsecPerUnit },
+            { "queries_per_unit", PerformanceCounters.QueriesPerUnit }
         };
     }
 

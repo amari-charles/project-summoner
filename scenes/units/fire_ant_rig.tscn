@@ -251,7 +251,8 @@ position = Vector2(400, 900)
 [node name="Leg1Sprite" type="Sprite2D" parent="Leg1Pivot"]
 z_index = -1
 texture = ExtResource("6_leg_1")
-offset = Vector2(650, -150)
+centered = false
+offset = Vector2(315, 190)
 
 [node name="Leg2Pivot" type="Node2D" parent="."]
 position = Vector2(700, 900)
@@ -259,7 +260,8 @@ position = Vector2(700, 900)
 [node name="Leg2Sprite" type="Sprite2D" parent="Leg2Pivot"]
 z_index = -1
 texture = ExtResource("7_leg_2")
-offset = Vector2(350, -150)
+centered = false
+offset = Vector2(84, 201)
 
 [node name="Leg3Pivot" type="Node2D" parent="."]
 position = Vector2(1100, 900)
@@ -267,7 +269,8 @@ position = Vector2(1100, 900)
 [node name="Leg3Sprite" type="Sprite2D" parent="Leg3Pivot"]
 z_index = -1
 texture = ExtResource("8_leg_3")
-offset = Vector2(-50, -150)
+centered = false
+offset = Vector2(-46, 187)
 
 [node name="Leg4Pivot" type="Node2D" parent="."]
 position = Vector2(1400, 900)
@@ -275,13 +278,16 @@ position = Vector2(1400, 900)
 [node name="Leg4Sprite" type="Sprite2D" parent="Leg4Pivot"]
 z_index = -1
 texture = ExtResource("9_leg_4")
-offset = Vector2(-350, -150)
+centered = false
+offset = Vector2(-413, 189)
 
 [node name="BodyPivot" type="Node2D" parent="."]
 position = Vector2(1050, 750)
 
 [node name="BodySprite" type="Sprite2D" parent="BodyPivot"]
 texture = ExtResource("2_body")
+centered = false
+offset = Vector2(-387, -6)
 
 [node name="EyePivot" type="Node2D" parent="BodyPivot"]
 position = Vector2(350, -100)
@@ -289,7 +295,8 @@ position = Vector2(350, -100)
 [node name="EyeSprite" type="Sprite2D" parent="BodyPivot/EyePivot"]
 z_index = 1
 texture = ExtResource("3_eye")
-offset = Vector2(-350, 100)
+centered = false
+offset = Vector2(-256, 137)
 
 [node name="AntennaLeftPivot" type="Node2D" parent="BodyPivot"]
 position = Vector2(400, -200)
@@ -297,7 +304,8 @@ position = Vector2(400, -200)
 [node name="AntennaLeftSprite" type="Sprite2D" parent="BodyPivot/AntennaLeftPivot"]
 z_index = 2
 texture = ExtResource("4_antenna_left")
-offset = Vector2(-400, 200)
+centered = false
+offset = Vector2(-394, 124)
 
 [node name="AntennaRightPivot" type="Node2D" parent="BodyPivot"]
 position = Vector2(400, -150)
@@ -305,4 +313,5 @@ position = Vector2(400, -150)
 [node name="AntennaRightSprite" type="Sprite2D" parent="BodyPivot/AntennaRightPivot"]
 z_index = 2
 texture = ExtResource("5_antenna_right")
-offset = Vector2(-400, 150)
+centered = false
+offset = Vector2(-289, 72)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Debug;
 using ProjectSummoner.Services;
 using ProjectSummoner.Systems;
 using ProjectSummoner.Systems.Modifiers;
@@ -404,6 +405,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (!IsAlive || ActivationState == ActivationState.Inactive)
             return;
 
+        // Performance instrumentation
+        ulong startTime = Time.GetTicksUsec();
+        PerformanceCounters.ActiveUnits++;
+
         float deltaF = (float)delta;
 
         UpdateCooldowns(deltaF);
@@ -423,6 +428,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Higher priority = renders in front. Camera at Z=-42.85, so more negative Z = closer = higher priority
         int priority = (int)((-GlobalPosition.Z + GlobalPosition.Y) * RenderPriorityScale);
         VisualComponent?.SetRenderPriority(Mathf.Clamp(priority, MinRenderPriority, MaxRenderPriority));
+
+        // Record physics process time
+        PerformanceCounters.PhysicsProcessTimeUsec += Time.GetTicksUsec() - startTime;
     }
 
     // =========================================================================
@@ -895,6 +903,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     protected Node3D? DefaultTargetAcquisition()
     {
+        // Track target acquisitions for performance profiling
+        PerformanceCounters.TargetAcquisitions++;
+
         // Get enemies from spatial grid
         if (SpatialGrid.Instance == null)
             return null;
@@ -914,6 +925,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     protected Node3D? GetEnemySummoner()
     {
+        // Track summoner lookups for performance profiling
+        PerformanceCounters.SummonerLookups++;
+
         // Determine which summoner group to target based on our team
         string summonerGroup = GroupIDs.EnemySummonersFor(Team);
 

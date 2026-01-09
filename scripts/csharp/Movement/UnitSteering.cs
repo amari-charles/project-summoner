@@ -19,6 +19,7 @@ public class UnitSteering
     private const float SeparationMultiplier = 1.5f;
     private const float SeparationStrength = 2.0f;
     private const float LateralSeparationBoost = 3.0f;
+    private const int MaxNeighborsToProcess = 8;  // Cap iterations for dense formations
 
     // Blocked detection constants
     private const float BlockedThreshold = 0.3f;
@@ -79,8 +80,13 @@ public class UnitSteering
             moveDir.Y = 0;
         }
 
+        int neighborsProcessed = 0;
         foreach (var node in nearbyUnits)
         {
+            // Cap iterations for dense formations (performance optimization)
+            if (neighborsProcessed >= MaxNeighborsToProcess)
+                break;
+
             // Don't separate from current attack target - we need to approach it!
             if (node == currentTarget)
                 continue;
@@ -121,6 +127,8 @@ public class UnitSteering
                 float lateralSign = (unit.GetInstanceId() % 2 == 0) ? 1.0f : -1.0f;
                 separation += lateralDir * lateralSign * forwardAlignment * strength * LateralSeparationBoost;
             }
+
+            neighborsProcessed++;
         }
 
         return separation;
@@ -238,8 +246,13 @@ public class UnitSteering
             unit
         );
 
+        int neighborsProcessed = 0;
         foreach (var node in nearbyUnits)
         {
+            // Cap iterations for dense formations (performance optimization)
+            if (neighborsProcessed >= MaxNeighborsToProcess)
+                break;
+
             if (node is not Unit3D other)
                 continue;
 
@@ -262,6 +275,8 @@ public class UnitSteering
 
             // Push self by half the overlap (other unit will push itself too)
             unit.GlobalPosition += pushDir * overlap * 0.5f;
+
+            neighborsProcessed++;
         }
     }
 
@@ -344,8 +359,13 @@ public class UnitSteering
             unit
         );
 
+        int neighborsProcessed = 0;
         foreach (var node in nearbyUnits)
         {
+            // Cap iterations for dense formations (performance optimization)
+            if (neighborsProcessed >= MaxNeighborsToProcess)
+                break;
+
             if (node == currentTarget)
                 continue;
             if (node is not Unit3D)
@@ -366,6 +386,8 @@ public class UnitSteering
                 leftScore += weight;
             if (toOtherNorm.Dot(rightDir) > FlankConeThreshold)
                 rightScore += weight;
+
+            neighborsProcessed++;
         }
 
         return (leftScore, rightScore);
