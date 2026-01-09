@@ -431,6 +431,13 @@ flowchart TB
   - CardCatalogBridge.cs exposes C# catalog to GDScript
   - card_catalog.gd is now a thin wrapper delegating to C# bridge
   - Removed deprecated get_formation_offset() method (use get_formation_offset_by_id)
+- **Infrastructure:** Lazy loading for managers & test improvements
+  - VFXManager, ProjectileManager, HPBarManager use lazy initialization (resources load on first use)
+  - Managers skip initialization when C# runtime unavailable (headless mode)
+  - Added GdUnit4Net C# testing framework (19 tests for CardCatalog, FormationPresets)
+  - Created TargetingConfigRegistryCS bridge for GDScript test access to static C# class
+  - Updated docs/workflows/running-tests.md with Godot .NET instructions
+  - All 327 GUT tests pass with Godot .NET version
 
 ---
 
