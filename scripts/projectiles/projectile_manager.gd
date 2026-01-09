@@ -315,22 +315,33 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 		var active: Array = active_projectiles[projectile_id]
 		active.erase(projectile)
 
-	# Remove from scene (deferred to avoid physics callback issues)
-	if projectile.get_parent():
-		projectile.get_parent().remove_child.call_deferred(projectile)
-
 	# Return to pool if not full
 	var pool: Array = projectile_pools[projectile_id]
 	if pool.size() < MAX_POOL_SIZE:
 		projectile.reset()
 		projectile.visible = false  # Hide while pooled
 		pool.append(projectile)
-		# Add to pool container (deferred because projectiles expire during physics
-		# callbacks, so removal above is deferred - add must match to avoid errors)
-		pool_container.add_child.call_deferred(projectile)
+		# Use single deferred call to avoid race conditions with pool reuse.
+		# If spawn_projectile pops this projectile before deferred calls execute,
+		# the deferred add will detect it was reused and skip reparenting.
+		_deferred_add_to_pool.call_deferred(projectile)
 	else:
 		# Pool full, destroy
 		projectile.queue_free()
+
+
+## Deferred helper to atomically reparent projectile to pool container.
+## Validates the projectile wasn't already reused before reparenting.
+func _deferred_add_to_pool(projectile: Projectile3D) -> void:
+	if not is_instance_valid(projectile):
+		return
+	# Check if projectile was already reused (visible = active, hidden = pooled)
+	if projectile.visible:
+		return  # Already reused, don't reparent
+	# Reparent atomically
+	if projectile.get_parent():
+		projectile.get_parent().remove_child(projectile)
+	pool_container.add_child(projectile)
 
 
 ## Signal handler for projectile expiration
