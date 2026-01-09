@@ -60,13 +60,6 @@ public partial class SpatialGrid : Node
     private int _statsCellUpdatesThisFrame;
 
     // =========================================================================
-    // SUMMONER CACHE (avoids expensive GetNodesInGroup calls)
-    // =========================================================================
-
-    private Node3D? _playerSummoner;
-    private Node3D? _enemySummoner;
-
-    // =========================================================================
     // LIFECYCLE
     // =========================================================================
 
