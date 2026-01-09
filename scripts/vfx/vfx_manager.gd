@@ -12,6 +12,11 @@ var effects_container: Node3D = null  ## Parent for active effects
 var pool_container: Node3D = null  ## Parent for pooled effects (keeps them in scene tree)
 
 func _ready() -> void:
+	# Skip initialization in headless mode (C# scripts can't load)
+	if DisplayServer.get_name() == "headless":
+		print("VFXManager: Skipping initialization in headless mode")
+		return
+
 	print("VFXManager: Initializing...")
 
 	# Create container for active effects
