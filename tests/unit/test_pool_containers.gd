@@ -11,6 +11,9 @@ extends GutTest
 ## =============================================================================
 
 func test_vfx_manager_has_pool_container() -> void:
+	if DisplayServer.get_name() == "headless":
+		pending("Skipped: VFXManager skips initialization in headless mode")
+		return
 	assert_not_null(VFXManager.pool_container, "VFXManager should have pool_container")
 	assert_true(
 		VFXManager.pool_container.get_parent() == VFXManager,
@@ -19,6 +22,9 @@ func test_vfx_manager_has_pool_container() -> void:
 
 
 func test_vfx_manager_pooled_effects_in_scene_tree() -> void:
+	if DisplayServer.get_name() == "headless":
+		pending("Skipped: VFXManager skips initialization in headless mode")
+		return
 	# Check that pooled effects are children of pool_container
 	var pool_child_count: int = VFXManager.pool_container.get_child_count()
 	var total_pooled: int = 0
