@@ -139,14 +139,16 @@ func test_deserialize_base_action() -> void:
 
 
 func test_deserialize_unknown_type_returns_null() -> void:
-	# GUT has issues matching push_error from static methods (shows line -1)
-	# Skip this test but document the expected behavior
-	pending("Skipped: GUT cannot match push_error from static methods")
+	var data: Dictionary = {
+		"action_type": "unknown_action_type",
+		"action_id": 1
+	}
 
-	# Expected behavior (verified manually):
-	# var data := {"action_type": "unknown_action_type", "action_id": 1}
-	# var result := GameActionScript.deserialize(data)
-	# result should be null, push_error is called with "Unknown action type"
+	var result: RefCounted = GameActionScript.deserialize(data)
+
+	assert_null(result, "Unknown action type should return null")
+	# Expect the push_error that was called for unknown action type
+	assert_push_error("Unknown action type")
 
 
 func test_deserialize_missing_fields_uses_defaults() -> void:

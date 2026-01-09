@@ -74,28 +74,89 @@ AssertThat(floatValue).IsEqualApprox(expected, tolerance);
 
 ## GDScript Tests with GUT
 
-GUT tests require running through the Godot editor due to .NET compatibility issues with headless mode.
+GUT tests can run in two modes depending on whether you need C#-dependent tests.
 
-### Running GUT Tests
+### Running GUT Tests (Headless Mode - Fast)
 
-1. Open the project in Godot Editor
+For quick test runs during development (C#-dependent tests will be skipped):
+
+```bash
+godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+```
+
+**Results:** ~284 passing, ~43 pending (C#-dependent tests gracefully skip)
+
+### Running GUT Tests (Full - With C# Support)
+
+To run ALL tests including those that depend on C# classes (SpatialGrid, TargetingConfigRegistry, pool containers, etc.), use the Godot .NET version:
+
+```bash
+# Using Godot .NET (Mono) version
+"/path/to/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+
+# Example on macOS with typical download location:
+"/Users/$USER/Downloads/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+```
+
+**Results:** ~326 passing, ~1 pending (full coverage)
+
+### Why Two Modes?
+
+The standard Godot binary doesn't include .NET support. Tests that interact with C# classes (like `SpatialGrid`, `TargetingConfigRegistry`, or managers with C# dependencies) require the Godot .NET version to run.
+
+| Test Category | Headless (Standard) | With .NET |
+|--------------|---------------------|-----------|
+| Pure GDScript tests | Pass | Pass |
+| C#-dependent tests | Skip (pending) | Pass |
+
+### Setting Up Godot .NET Alias (Recommended)
+
+To make running full tests easier, add an alias to your shell config:
+
+```bash
+# In ~/.zshrc or ~/.bashrc
+alias godot-mono="/path/to/Godot_mono.app/Contents/MacOS/Godot"
+```
+
+Then run tests with:
+```bash
+godot-mono -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+```
+
+### Running from Godot Editor
+
+For interactive test runs with full C# support:
+
+1. Open the project in Godot Editor (.NET version)
 2. Go to **Project > Tools > GUT** (or press the GUT panel)
 3. Click **Run All**
 
 ### Test Location
 
-GDScript tests live in `tests/` with `test_` prefix:
+GDScript tests live in `tests/unit/` with `test_` prefix:
 ```
-tests/
-  test_example.gd
+tests/unit/
+  test_battle_context.gd
+  test_spatial_grid.gd
+  test_targeting_config_registry.gd
+  ...
 ```
 
 ## CI/CD
 
-For CI pipelines, use `dotnet test` for C# tests. GUT tests in headless mode are currently unstable with Godot .NET.
+For CI pipelines:
 
 ```yaml
 # Example GitHub Actions
 - name: Run C# Tests
   run: dotnet test --configuration Release
+
+- name: Run GDScript Tests (Headless)
+  run: godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+
+# For full test coverage, use Godot .NET in CI
+- name: Run GDScript Tests (Full)
+  run: |
+    # Download and extract Godot .NET
+    # Run: godot-mono -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
