@@ -149,8 +149,7 @@ func get_formation_offset(unit_index: int) -> Vector3:
 		push_error("Card: CardFactory not available! C# autoload may not be loaded.")
 		return Vector3.ZERO
 
-	var card_def: Dictionary = CardCatalog.get_card(catalog_id)
-	return factory.get_formation_offset(card_def, unit_index, spawn_count)
+	return factory.get_formation_offset_by_id(catalog_id, unit_index, spawn_count)
 
 ## =============================================================================
 ## GAMEPLAY

@@ -8,42 +8,32 @@ extends GutTest
 ## NOTE: These tests require C# to be loaded. In headless mode without .NET,
 ## the tests will be skipped gracefully.
 
-const SKIP_MSG: String = "Skipped: C# TargetingConfigRegistry not available in headless mode"
+const SKIP_MSG: String = "Skipped: C# TargetingConfigRegistry not available"
 
-## Cached registry reference (loaded at runtime to avoid headless parse errors)
-var _registry: Object = null
+## Cached registry reference
+var _registry: Node = null
 
 
 ## =============================================================================
 ## C# AVAILABILITY CHECK
 ## =============================================================================
 
-## Returns true if TargetingConfigRegistry C# methods are available
+## Returns true if TargetingConfigRegistry C# bridge is available
 func _is_csharp_available() -> bool:
 	if _registry != null:
 		return true
 
-	# Check if .cs files can be loaded by checking ResourceLoader capabilities
-	# This avoids generating errors in headless mode without C# support
-	if not ResourceLoader.exists("res://scripts/csharp/Targeting/TargetingConfigRegistry.cs"):
+	# Check if the bridge autoload exists and has the GetConfig method
+	var registry: Node = get_node_or_null("/root/TargetingConfigRegistryCS")
+	if registry == null:
 		return false
 
-	# Verify the resource type is recognized (C# scripts return "Script" when available)
-	var recognized_types: PackedStringArray = ResourceLoader.get_recognized_extensions_for_type("Script")
-	if not "cs" in recognized_types:
+	# Verify the C# method is accessible
+	if not registry.has_method("GetConfig"):
 		return false
 
-	# Try to load at runtime
-	var script: Resource = load("res://scripts/csharp/Targeting/TargetingConfigRegistry.cs")
-	if script == null:
-		return false
-
-	# Static class - check if we can call the static method
-	if script.has_method("GetConfig"):
-		_registry = script
-		return true
-
-	return false
+	_registry = registry
+	return true
 
 
 func _get_config(unit_id: String) -> Resource:
@@ -63,7 +53,8 @@ func test_get_config_returns_config_for_registered_unit() -> void:
 
 	var config: Resource = _get_config("puff")
 
-	assert_not_null(config, "Puff config should be registered")
+	# Use boolean check to avoid GUT introspection errors with C# objects
+	assert_true(config != null, "Puff config should be registered")
 
 
 func test_get_config_returns_default_for_unknown_unit() -> void:
@@ -74,7 +65,8 @@ func test_get_config_returns_default_for_unknown_unit() -> void:
 	var config: Resource = _get_config("nonexistent_unit_xyz")
 
 	# Should return default config, not null
-	assert_not_null(config, "Unknown unit should get default config")
+	# Use boolean check to avoid GUT introspection errors with C# objects
+	assert_true(config != null, "Unknown unit should get default config")
 
 
 func test_puff_config_has_strafe_fallback() -> void:
@@ -120,15 +112,13 @@ func test_puff_config_has_cone_constraint() -> void:
 	var config: Resource = _get_config("puff")
 
 	var constraint: Resource = config.get("AttackConstraint")
-	assert_not_null(constraint, "Puff should have an attack constraint")
+	# Use boolean check to avoid GUT introspection errors with C# objects
+	assert_true(constraint != null, "Puff should have an attack constraint")
 
-	# CompositeConstraint should contain a HorizontalConeConstraint
-	if constraint.has_method("get_class"):
-		var class_name_str: String = constraint.get_class()
-		assert_true(
-			class_name_str.contains("Composite") or class_name_str.contains("Cone"),
-			"Puff constraint should include cone constraint"
-		)
+	# CompositeConstraint has a Constraints property containing child constraints
+	# Check that this property exists (indicates it's a composite constraint)
+	var has_constraints_prop: bool = "Constraints" in constraint
+	assert_true(has_constraints_prop, "Puff constraint should be a CompositeConstraint with nested constraints")
 
 
 ## =============================================================================

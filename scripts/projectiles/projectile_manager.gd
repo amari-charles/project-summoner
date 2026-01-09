@@ -3,6 +3,9 @@ extends Node
 ## Centralized projectile spawning and pooling system
 ## Usage: ProjectileManager.spawn_projectile("arrow", attacker, target, damage)
 ## Autoload as: /root/ProjectileManager
+##
+## Uses lazy initialization - resources are loaded on first use, not at startup.
+## This allows tests to run without requiring C# to be available.
 
 ## Pool settings
 const INITIAL_POOL_SIZE: int = 15
@@ -19,8 +22,28 @@ var pool_container: Node3D = null  ## Parent for pooled projectiles (keeps them 
 ## Base projectile scene
 var base_projectile_scene: PackedScene = null
 
+var _initialized: bool = false
+
+
 func _ready() -> void:
-	print("ProjectileManager: Initializing...")
+	# Lazy initialization - don't load anything here
+	# Resources will be loaded on first use via _ensure_initialized()
+	pass
+
+
+## =============================================================================
+## LAZY INITIALIZATION
+## =============================================================================
+
+## Ensure ProjectileManager is initialized. Returns true if ready to use.
+func _ensure_initialized() -> bool:
+	if _initialized:
+		return true
+
+	if not _can_initialize():
+		return false
+
+	print("ProjectileManager: Initializing (lazy)...")
 
 	# Create container for active projectiles
 	projectiles_container = Node3D.new()
@@ -38,7 +61,24 @@ func _ready() -> void:
 	# Pre-instantiate pools for common projectiles
 	_init_pools()
 
+	_initialized = true
 	print("ProjectileManager: Initialized")
+	return true
+
+
+## Check if we can initialize (C# runtime must be available)
+func _can_initialize() -> bool:
+	# Check if a known C# autoload is available and functional
+	var spatial_grid: Node = get_node_or_null("/root/SpatialGrid")
+	if spatial_grid == null:
+		return false
+	# Verify C# methods are accessible (not just the node existing)
+	return spatial_grid.has_method("register_unit")
+
+
+## =============================================================================
+## RESOURCE LOADING
+## =============================================================================
 
 func _load_projectile_scene() -> void:
 	var scene_path: String = "res://scenes/projectiles/base_projectile_3d.tscn"
@@ -46,6 +86,7 @@ func _load_projectile_scene() -> void:
 		base_projectile_scene = load(scene_path)
 	else:
 		push_warning("ProjectileManager: Base projectile scene not found at '%s', will instantiate from script" % scene_path)
+
 
 func _init_pools() -> void:
 	# Pre-instantiate pools for projectiles defined in ContentCatalog
@@ -58,6 +99,7 @@ func _init_pools() -> void:
 		if proj_data is ProjectileData and projectile_id is String:
 			var projectile_id_str: String = projectile_id
 			_create_pool_for(projectile_id_str, 5)  # Smaller initial pool per type
+
 
 ## Create pool for a specific projectile type
 func _create_pool_for(projectile_id: String, pool_size: int) -> void:
@@ -80,12 +122,18 @@ func _create_pool_for(projectile_id: String, pool_size: int) -> void:
 
 	print("ProjectileManager: Created pool of %d for '%s'" % [pool_size, projectile_id])
 
+
 func _instantiate_projectile() -> Projectile3D:
 	if base_projectile_scene:
 		return base_projectile_scene.instantiate() as Projectile3D
 	else:
 		# Fallback: create from script
 		return Projectile3D.new()
+
+
+## =============================================================================
+## PUBLIC API
+## =============================================================================
 
 ## Spawn a projectile
 func spawn_projectile(
@@ -96,6 +144,10 @@ func spawn_projectile(
 	damage_type: String = "physical",
 	options: Dictionary = {}
 ) -> Projectile3D:
+	if not _ensure_initialized():
+		push_warning("ProjectileManager: Cannot spawn projectile '%s', not initialized (C# unavailable)" % projectile_id)
+		return null
+
 	# Get projectile data
 	if not ContentCatalog.has_projectile(projectile_id):
 		push_error("ProjectileManager: Projectile '%s' not found in ContentCatalog" % projectile_id)
@@ -150,6 +202,90 @@ func spawn_projectile(
 
 	return projectile
 
+
+## Clear all active projectiles (for scene transitions)
+func clear_all_projectiles() -> void:
+	if not _initialized:
+		return
+
+	var active_keys: Array = active_projectiles.keys()
+	for projectile_id: Variant in active_keys:
+		if not projectile_id is String:
+			continue
+		var projectile_id_str: String = projectile_id
+		var active_list: Array = active_projectiles[projectile_id_str]
+		for projectile: Variant in active_list:
+			if not projectile is Node:
+				continue
+			var projectile_node: Node = projectile
+			if projectile_node.get_parent():
+				projectile_node.get_parent().remove_child(projectile_node)
+			if projectile is Projectile3D:
+				var projectile_3d: Projectile3D = projectile
+				_return_to_pool(projectile_id_str, projectile_3d)
+
+	active_projectiles.clear()
+
+
+## Clear all pools (forces reload of visuals on next init)
+func clear_all_pools() -> void:
+	if not _initialized:
+		return
+
+	# Free all pooled projectiles
+	var pool_keys: Array = projectile_pools.keys()
+	for projectile_id: Variant in pool_keys:
+		var pool_list: Array = projectile_pools[projectile_id]
+		for projectile: Variant in pool_list:
+			if is_instance_valid(projectile) and projectile is Node:
+				var proj_node: Node = projectile
+				proj_node.queue_free()
+
+	# Clear all active projectiles
+	var active_keys_2: Array = active_projectiles.keys()
+	for projectile_id: Variant in active_keys_2:
+		var active_list_2: Array = active_projectiles[projectile_id]
+		for projectile: Variant in active_list_2:
+			if is_instance_valid(projectile) and projectile is Node:
+				var proj_node: Node = projectile
+				proj_node.queue_free()
+
+	projectile_pools.clear()
+	active_projectiles.clear()
+	print("ProjectileManager: Cleared all pools")
+
+
+## Refresh pools (clear and recreate with fresh visuals)
+func refresh_pools() -> void:
+	if not _ensure_initialized():
+		return
+	clear_all_pools()
+	_init_pools()
+	print("ProjectileManager: Pools refreshed with new visuals")
+
+
+## Debug: Print pool statistics
+func print_pool_stats() -> void:
+	if not _initialized:
+		print("ProjectileManager: Not initialized")
+		return
+
+	print("=== ProjectileManager Pool Statistics ===")
+	var pool_keys_debug: Array = projectile_pools.keys()
+	for projectile_id: Variant in pool_keys_debug:
+		var pool: Array = projectile_pools[projectile_id]
+		var pool_size: int = pool.size()
+		var active_size: int = 0
+		if active_projectiles.has(projectile_id):
+			var active: Array = active_projectiles[projectile_id]
+			active_size = active.size()
+		print("  %s: %d in pool, %d active" % [projectile_id, pool_size, active_size])
+
+
+## =============================================================================
+## INTERNAL HELPERS
+## =============================================================================
+
 ## Get projectile from pool
 func _get_from_pool(projectile_id: String) -> Projectile3D:
 	# Create pool if it doesn't exist
@@ -170,6 +306,7 @@ func _get_from_pool(projectile_id: String) -> Projectile3D:
 	var new_projectile: Projectile3D = _instantiate_projectile()
 	new_projectile.is_pooled = true
 	return new_projectile
+
 
 ## Return projectile to pool
 func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
@@ -195,6 +332,7 @@ func _return_to_pool(projectile_id: String, projectile: Projectile3D) -> void:
 		# Pool full, destroy
 		projectile.queue_free()
 
+
 ## Signal handler for projectile expiration
 func _on_projectile_expired(projectile: Projectile3D) -> void:
 	if projectile.projectile_id.is_empty():
@@ -202,66 +340,3 @@ func _on_projectile_expired(projectile: Projectile3D) -> void:
 		projectile.queue_free()
 		return
 	_return_to_pool(projectile.projectile_id, projectile)
-
-## Clear all active projectiles (for scene transitions)
-func clear_all_projectiles() -> void:
-	var active_keys: Array = active_projectiles.keys()
-	for projectile_id: Variant in active_keys:
-		if not projectile_id is String:
-			continue
-		var projectile_id_str: String = projectile_id
-		var active_list: Array = active_projectiles[projectile_id_str]
-		for projectile: Variant in active_list:
-			if not projectile is Node:
-				continue
-			var projectile_node: Node = projectile
-			if projectile_node.get_parent():
-				projectile_node.get_parent().remove_child(projectile_node)
-			if projectile is Projectile3D:
-				var projectile_3d: Projectile3D = projectile
-				_return_to_pool(projectile_id_str, projectile_3d)
-
-	active_projectiles.clear()
-
-## Clear all pools (forces reload of visuals on next init)
-func clear_all_pools() -> void:
-	# Free all pooled projectiles
-	var pool_keys: Array = projectile_pools.keys()
-	for projectile_id: Variant in pool_keys:
-		var pool_list: Array = projectile_pools[projectile_id]
-		for projectile: Variant in pool_list:
-			if is_instance_valid(projectile) and projectile is Node:
-				var proj_node: Node = projectile
-				proj_node.queue_free()
-
-	# Clear all active projectiles
-	var active_keys_2: Array = active_projectiles.keys()
-	for projectile_id: Variant in active_keys_2:
-		var active_list_2: Array = active_projectiles[projectile_id]
-		for projectile: Variant in active_list_2:
-			if is_instance_valid(projectile) and projectile is Node:
-				var proj_node: Node = projectile
-				proj_node.queue_free()
-
-	projectile_pools.clear()
-	active_projectiles.clear()
-	print("ProjectileManager: Cleared all pools")
-
-## Refresh pools (clear and recreate with fresh visuals)
-func refresh_pools() -> void:
-	clear_all_pools()
-	_init_pools()
-	print("ProjectileManager: Pools refreshed with new visuals")
-
-## Debug: Print pool statistics
-func print_pool_stats() -> void:
-	print("=== ProjectileManager Pool Statistics ===")
-	var pool_keys_debug: Array = projectile_pools.keys()
-	for projectile_id: Variant in pool_keys_debug:
-		var pool: Array = projectile_pools[projectile_id]
-		var pool_size: int = pool.size()
-		var active_size: int = 0
-		if active_projectiles.has(projectile_id):
-			var active: Array = active_projectiles[projectile_id]
-			active_size = active.size()
-		print("  %s: %d in pool, %d active" % [projectile_id, pool_size, active_size])

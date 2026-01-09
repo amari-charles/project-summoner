@@ -140,26 +140,17 @@ public partial class CardFactory : Node, ICardFactory
             return result;
         }
 
-        // Get card definition for formation info
-        var cardCatalog = GetAutoloadNode("/root/CardCatalog");
-        if (cardCatalog == null)
-        {
-            GD.PushWarning("[CardFactory] CardCatalog not found for safe spawn calculation");
-            return result;
-        }
-
-        var cardDefResult = cardCatalog.Call("get_card", catalogId);
-        if (cardDefResult.VariantType != Variant.Type.Dictionary)
+        // Get card from C# CardCatalog
+        var card = CardCatalog.GetCard(catalogId);
+        if (card == null)
         {
             GD.PushWarning($"[CardFactory] Card not found in catalog: {catalogId}");
             return result;
         }
-        var cardDef = cardDefResult.AsGodotDictionary();
 
-        // Get spawn count and formation
-        int spawnCount = GetInt(cardDef, "spawn_count", 1);
-        var formationConfig = CreateFormationConfig(cardDef);
-        var formation = formationConfig.CreateFormation();
+        // Get spawn count and formation directly from CardDefinition
+        int spawnCount = card.SpawnCount;
+        var formation = card.Formation;
 
         // Ensure collision radius is valid
         if (collisionRadius <= 0) collisionRadius = 0.5f;
@@ -187,7 +178,7 @@ public partial class CardFactory : Node, ICardFactory
     /// <param name="position">World position to spawn units</param>
     /// <param name="team">Team of the summoner (int for GDScript compatibility)</param>
     /// <param name="battlefield">Reference to the battlefield node</param>
-    /// <param name="cardDef">Card definition dictionary from CardCatalog</param>
+    /// <param name="cardDef">Card definition dictionary from CardCatalog (used for categories)</param>
     /// <param name="effectiveStats">Stats with upgrades applied (from Card.get_effective_stats())</param>
     /// <param name="customOverrides">Custom stat overrides (from Card.custom_stat_overrides)</param>
     /// <param name="modifierSystem">Optional modifier system reference</param>
@@ -205,8 +196,16 @@ public partial class CardFactory : Node, ICardFactory
         string instanceId = "",
         float spawnDuration = 0.0f)
     {
-        // Get unit scene path
-        var unitScenePath = GetString(cardDef, "unit_scene_path", "");
+        // Get card from C# CardCatalog for formation and static data
+        var card = CardCatalog.GetCard(catalogId);
+        if (card == null)
+        {
+            GD.PrintErr($"[CardFactory] Summon '{catalogId}' not found in C# CardCatalog!");
+            return;
+        }
+
+        // Get unit scene path from CardDefinition
+        var unitScenePath = card.UnitScenePath;
         if (string.IsNullOrEmpty(unitScenePath))
         {
             GD.PrintErr($"[CardFactory] Summon '{catalogId}' has no unit_scene_path!");
@@ -221,12 +220,9 @@ public partial class CardFactory : Node, ICardFactory
             return;
         }
 
-        // Get spawn count
-        int spawnCount = GetInt(cardDef, "spawn_count", 1);
-
-        // Create formation config and get strategy
-        var formationConfig = CreateFormationConfig(cardDef);
-        var formation = formationConfig.CreateFormation();
+        // Get spawn count and formation directly from CardDefinition
+        int spawnCount = card.SpawnCount;
+        var formation = card.Formation;
 
         // Get gameplay layer
         Node gameplayLayer = battlefield;
@@ -412,53 +408,33 @@ public partial class CardFactory : Node, ICardFactory
         return config;
     }
 
-    /// <summary>
-    /// Create the appropriate FormationConfig from card definition.
-    /// Uses formation_type field to determine which subclass to create.
-    /// </summary>
-    private static FormationConfig CreateFormationConfig(Godot.Collections.Dictionary cardDef)
-    {
-        var formationType = GetString(cardDef, "formation_type", "grid");
-        float spacing = GetFloat(cardDef, "formation_spacing", GridFormation.DefaultSpacing);
-
-        return formationType switch
-        {
-            "grouped_line" => new GroupedLineFormationConfig
-            {
-                Spacing = spacing,
-                GroupSpacing = GetFloat(cardDef, "group_spacing", GroupedLineFormation.DefaultGroupSpacing),
-                UnitsPerGroup = GetInt(cardDef, "units_per_group", GroupedLineFormation.DefaultUnitsPerGroup)
-            },
-            _ => new GridFormationConfig
-            {
-                Spacing = spacing,
-                RowOffset = GetFloat(cardDef, "formation_row_offset", GridFormation.DefaultRowOffset),
-                Columns = GetInt(cardDef, "formation_columns", 0)
-            }
-        };
-    }
-
     // =========================================================================
     // FORMATION API (for GDScript preview)
     // =========================================================================
 
     /// <summary>
-    /// Get formation offset for a unit. Called by GDScript Card class for spawn preview.
-    /// This ensures preview and actual spawning use the same formation logic.
+    /// Get formation offset for a unit by catalog ID.
+    /// Called by GDScript Card class for spawn preview.
     /// </summary>
-    /// <param name="cardDef">Card definition dictionary from CardCatalog.</param>
+    /// <param name="catalogId">The card's catalog ID.</param>
     /// <param name="unitIndex">Index of the unit in the formation (0-based).</param>
     /// <param name="totalUnits">Total number of units being spawned.</param>
     /// <returns>Position offset from spawn center for this unit.</returns>
-    public Vector3 get_formation_offset(Godot.Collections.Dictionary cardDef, int unitIndex, int totalUnits)
+    public Vector3 get_formation_offset_by_id(string catalogId, int unitIndex, int totalUnits)
     {
         if (totalUnits <= 1)
             return Vector3.Zero;
 
-        var formationConfig = CreateFormationConfig(cardDef);
-        var formation = formationConfig.CreateFormation();
-        return formation.GetOffset(unitIndex, totalUnits);
+        var card = CardCatalog.GetCard(catalogId);
+        if (card == null)
+        {
+            GD.PushWarning($"[CardFactory] Card not found for formation offset: {catalogId}");
+            return Vector3.Zero;
+        }
+
+        return card.Formation.GetOffset(unitIndex, totalUnits);
     }
+
 
     // =========================================================================
     // SUMMON HELPERS

@@ -837,6 +837,44 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ## Card & Spell System
 
-*(No active tasks - see todos-completed.md for completed C# card infrastructure)*
+### 🟡 MEDIUM PRIORITY
+
+#### Make Projectiles Disappear on Hit
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Visual Polish
+**Effort:** Small
+
+**Description:**
+Projectiles should disappear when they hit their target rather than continuing through or lingering.
+
+**Requirements:**
+- Detect projectile collision with target
+- Trigger projectile destruction/cleanup on hit
+- Optionally spawn impact VFX at collision point
+
+**Related Files:**
+- Projectile scene(s) and scripts
+- Hit detection logic in ranged units
+
+---
+
+#### Prevent Spawning Outside Battlefield Bounds
+**Status:** ⬜ Not Started
+**Category:** Cards / Spawning
+**Effort:** Medium
+
+**Description:**
+Add logic to prevent units from being spawned outside the battlefield boundaries. Currently, if a player clicks near the edge of the battlefield, units in the formation may spawn outside the playable area.
+
+**Requirements:**
+- Detect when calculated spawn positions fall outside battlefield bounds
+- Clamp or adjust positions to stay within valid spawn area
+- Consider formation shape when validating (entire formation should fit)
+- Handle edge cases where formation cannot fit at desired location
+
+**Related Files:**
+- `scripts/csharp/Cards/CardFactory.cs` - `FindSafeSpawnPosition()` and `execute_summon()`
+- `scripts/csharp/Cards/CardCatalog.cs` - Formation definitions
+- Battlefield bounds detection (TBD)
 
 ---

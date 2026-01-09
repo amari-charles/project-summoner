@@ -3,6 +3,9 @@ extends Node
 ## Centralized VFX spawning and pooling system
 ## Usage: VFXManager.play_effect(VFXIDs.FIREBALL_EXPLOSION, position)
 ## Autoload as: /root/VFXManager
+##
+## Uses lazy initialization - resources are loaded on first use, not at startup.
+## This allows tests to run without requiring C# to be available.
 
 var effect_library: Dictionary = {}  ## effect_id -> VFXDefinition
 var effect_pools: Dictionary = {}  ## effect_id -> Array[VFXInstance]
@@ -11,8 +14,27 @@ var active_effects: Dictionary = {}  ## effect_id -> Array[VFXInstance]
 var effects_container: Node3D = null  ## Parent for active effects
 var pool_container: Node3D = null  ## Parent for pooled effects (keeps them in scene tree)
 
+var _initialized: bool = false
+
 func _ready() -> void:
-	print("VFXManager: Initializing...")
+	# Lazy initialization - don't load anything here
+	# Resources will be loaded on first use via _ensure_initialized()
+	pass
+
+
+## =============================================================================
+## LAZY INITIALIZATION
+## =============================================================================
+
+## Ensure VFXManager is initialized. Returns true if ready to use.
+func _ensure_initialized() -> bool:
+	if _initialized:
+		return true
+
+	if not _can_initialize():
+		return false
+
+	print("VFXManager: Initializing (lazy)...")
 
 	# Create container for active effects
 	effects_container = Node3D.new()
@@ -28,7 +50,24 @@ func _ready() -> void:
 	_init_pools()
 	_validate_vfx_ids_sync()
 
+	_initialized = true
 	print("VFXManager: Loaded %d effects" % effect_library.size())
+	return true
+
+
+## Check if we can initialize (C# runtime must be available)
+func _can_initialize() -> bool:
+	# Check if a known C# autoload is available and functional
+	var spatial_grid: Node = get_node_or_null("/root/SpatialGrid")
+	if spatial_grid == null:
+		return false
+	# Verify C# methods are accessible (not just the node existing)
+	return spatial_grid.has_method("register_unit")
+
+
+## =============================================================================
+## RESOURCE LOADING
+## =============================================================================
 
 ## Load all VFXDefinition resources from res://resources/vfx/
 func _load_effect_library() -> void:
@@ -56,6 +95,7 @@ func _load_effect_library() -> void:
 		file_name = dir.get_next()
 
 	dir.list_dir_end()
+
 
 ## Pre-instantiate pooled effects
 func _init_pools() -> void:
@@ -93,8 +133,17 @@ func _init_pools() -> void:
 				effect_id
 			])
 
+
+## =============================================================================
+## PUBLIC API
+## =============================================================================
+
 ## Play an effect at a 3D position
 func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = {}) -> VFXInstance:
+	if not _ensure_initialized():
+		push_warning("VFXManager: Cannot play effect '%s', not initialized (C# unavailable)" % effect_id)
+		return null
+
 	if not effect_library.has(effect_id):
 		push_error("VFXManager: Effect '%s' not found in library" % effect_id)
 		return null
@@ -164,11 +213,49 @@ func play_effect(effect_id: String, spawn_position: Vector3, data: Dictionary = 
 
 	return instance
 
+
 ## Play effect in 2D screen space (for UI effects, future)
 func play_effect_2d(effect_id: String, spawn_position: Vector2, data: Dictionary = {}) -> VFXInstance:
 	# Convert 2D position to 3D
 	var pos_3d: Vector3 = Vector3(spawn_position.x, spawn_position.y, 0)
 	return play_effect(effect_id, pos_3d, data)
+
+
+## Check if effect exists in library
+func has_effect(effect_id: String) -> bool:
+	if not _ensure_initialized():
+		return false
+	return effect_library.has(effect_id)
+
+
+## Get effect definition
+func get_effect_definition(effect_id: String) -> VFXDefinition:
+	if not _ensure_initialized():
+		return null
+	return effect_library.get(effect_id)
+
+
+## Debug: Print pool statistics
+func print_pool_stats() -> void:
+	if not _ensure_initialized():
+		print("VFXManager: Not initialized")
+		return
+
+	print("=== VFXManager Pool Statistics ===")
+	var pool_keys: Array = effect_pools.keys()
+	for effect_id: Variant in pool_keys:
+		var pool: Array = effect_pools[effect_id]
+		var pool_size: int = pool.size()
+		var active_size: int = 0
+		if active_effects.has(effect_id):
+			var active: Array = active_effects[effect_id]
+			active_size = active.size()
+		print("  %s: %d in pool, %d active" % [effect_id, pool_size, active_size])
+
+
+## =============================================================================
+## INTERNAL HELPERS
+## =============================================================================
 
 ## Get effect from pool or create new
 func _get_from_pool(effect_id: String) -> VFXInstance:
@@ -203,6 +290,7 @@ func _get_from_pool(effect_id: String) -> VFXInstance:
 
 	return null
 
+
 ## Return effect to pool
 func _on_effect_finished(effect_id: String, instance: VFXInstance) -> void:
 	# Remove from active
@@ -220,6 +308,7 @@ func _on_effect_finished(effect_id: String, instance: VFXInstance) -> void:
 		pool.append(instance)
 		instance.visible = false  # Hide while pooled
 		pool_container.add_child(instance)
+
 
 ## Play sound at position
 func _play_sound(sound: AudioStream, spawn_position: Vector3, volume_db: float) -> void:
@@ -239,32 +328,13 @@ func _play_sound(sound: AudioStream, spawn_position: Vector3, volume_db: float) 
 			cleanup_player.queue_free()
 	)
 
+
 ## Apply camera shake (stub for now, will implement with camera system)
 func _apply_camera_shake(_intensity: float, _duration: float) -> void:
 	# TODO: Implement camera shake
 	# Will need reference to main camera
 	pass
 
-## Check if effect exists in library
-func has_effect(effect_id: String) -> bool:
-	return effect_library.has(effect_id)
-
-## Get effect definition
-func get_effect_definition(effect_id: String) -> VFXDefinition:
-	return effect_library.get(effect_id)
-
-## Debug: Print pool statistics
-func print_pool_stats() -> void:
-	print("=== VFXManager Pool Statistics ===")
-	var pool_keys: Array = effect_pools.keys()
-	for effect_id: Variant in pool_keys:
-		var pool: Array = effect_pools[effect_id]
-		var pool_size: int = pool.size()
-		var active_size: int = 0
-		if active_effects.has(effect_id):
-			var active: Array = active_effects[effect_id]
-			active_size = active.size()
-		print("  %s: %d in pool, %d active" % [effect_id, pool_size, active_size])
 
 ## Validate VFXIDs constants match loaded effect library
 func _validate_vfx_ids_sync() -> void:
