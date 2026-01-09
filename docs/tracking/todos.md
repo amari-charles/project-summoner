@@ -837,6 +837,23 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ## Card & Spell System
 
-*(No active tasks - see todos-completed.md for completed C# card infrastructure)*
+### 🟡 MEDIUM PRIORITY
+
+#### Make Projectiles Disappear on Hit
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Visual Polish
+**Effort:** Small
+
+**Description:**
+Projectiles should disappear when they hit their target rather than continuing through or lingering.
+
+**Requirements:**
+- Detect projectile collision with target
+- Trigger projectile destruction/cleanup on hit
+- Optionally spawn impact VFX at collision point
+
+**Related Files:**
+- Projectile scene(s) and scripts
+- Hit detection logic in ranged units
 
 ---

@@ -1,25 +1,24 @@
-using ProjectSummoner.Cards.Configs;
 using ProjectSummoner.Cards.Formations;
 
 namespace ProjectSummoner.Cards;
 
 /// <summary>
-/// Builder for creating SummonCard formations based on catalog configuration.
-/// Similar to SpellBuilder for spell effects.
+/// Builder for creating SummonCard formations.
+/// Provides helper methods for formation lookup and creation.
 /// </summary>
 public static class SummonBuilder
 {
     /// <summary>
-    /// Get the formation strategy from a FormationConfig.
-    /// Uses polymorphism - each config subclass knows how to create its formation.
+    /// Get the formation for a card by catalog ID.
     /// </summary>
-    public static IFormationStrategy GetFormation(FormationConfig config)
+    public static IFormationStrategy GetFormation(string catalogId)
     {
-        return config.CreateFormation();
+        var card = CardCatalog.GetCard(catalogId);
+        return card?.Formation ?? FormationPresets.StandardGrid;
     }
 
     /// <summary>
-    /// Get a default GridFormation with custom spacing (backwards compat).
+    /// Get a GridFormation with custom spacing.
     /// </summary>
     public static IFormationStrategy GetFormation(float spacing, float rowOffset)
     {

@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Cards.Formations;
 
 namespace ProjectSummoner.Cards.Configs;
 
@@ -41,10 +42,10 @@ public partial class SummonCardConfig : CardConfig
     // =========================================================================
 
     /// <summary>
-    /// Formation configuration for positioning spawned units.
+    /// Formation strategy for positioning spawned units.
+    /// References FormationPresets directly for type-safe configuration.
     /// </summary>
-    [Export]
-    public FormationConfig Formation { get; set; } = new FormationConfig();
+    public IFormationStrategy Formation { get; set; } = FormationPresets.StandardGrid;
 
     // =========================================================================
     // UNIT STATS
@@ -136,22 +137,15 @@ public partial class SummonCardConfig : CardConfig
         if (dict.TryGetValue("unit_type", out var unitType))
             config.UnitType = unitType.AsString();
 
-        // Formation - check for inline values first, then nested FormationConfig
-        if (dict.TryGetValue("formation_spacing", out var spacing))
-            config.Formation.Spacing = spacing.AsSingle();
-
-        if (dict.TryGetValue("formation_row_offset", out var rowOffset))
-            config.Formation.RowOffset = rowOffset.AsSingle();
-
-        if (dict.TryGetValue("formation_type", out var formationType))
-            config.Formation.FormationType = formationType.AsString();
-
-        // Grouped formation properties
-        if (dict.TryGetValue("group_spacing", out var groupSpacing))
-            config.Formation.GroupSpacing = groupSpacing.AsSingle();
-
-        if (dict.TryGetValue("units_per_group", out var unitsPerGroup))
-            config.Formation.UnitsPerGroup = unitsPerGroup.AsInt32();
+        // Formation - look up from C# CardCatalog by catalog_id
+        if (dict.TryGetValue("catalog_id", out var catalogId))
+        {
+            var card = CardCatalog.GetCard(catalogId.AsString());
+            if (card != null)
+            {
+                config.Formation = card.Formation;
+            }
+        }
 
         // Unit stats
         if (dict.TryGetValue("max_hp", out var maxHp))
@@ -195,12 +189,7 @@ public partial class SummonCardConfig : CardConfig
         dict["summon_time"] = SummonTime;
         dict["unit_type"] = UnitType;
 
-        // Formation
-        dict["formation_type"] = Formation.FormationType;
-        dict["formation_spacing"] = Formation.Spacing;
-        dict["formation_row_offset"] = Formation.RowOffset;
-        dict["group_spacing"] = Formation.GroupSpacing;
-        dict["units_per_group"] = Formation.UnitsPerGroup;
+        // Formation is now IFormationStrategy - lookup happens via catalog_id
 
         // Unit stats
         dict["max_hp"] = MaxHp;

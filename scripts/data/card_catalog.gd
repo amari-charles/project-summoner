@@ -1,26 +1,28 @@
 extends Node
 # CardCatalog is registered as autoload, no class_name needed
 
-## Card Catalog - Central Database of All Card Definitions
+## Card Catalog - Thin Wrapper Over C# CardCatalog
 ##
-## Single source of truth for all card data in the game.
-## Provides methods to look up cards by ID, type, rarity, etc.
+## This GDScript autoload delegates card data lookups to the C# CardCatalog
+## via the CardCatalogCS bridge. The C# catalog is the single source of truth
+## for all card definitions.
+##
+## This wrapper handles:
+## - GDScript-friendly API (StringName support, typed arrays)
+## - ElementTypes conversion (C# string → GDScript Element object)
+## - Card resource creation (create_card_resource creates GDScript Card objects)
 ##
 ## Usage:
 ##   var card_def = CardCatalog.get_card("warrior")
 ##   var card = CardCatalog.create_card_resource("fireball")
 ##   var all_commons = CardCatalog.get_cards_by_rarity("common")
 
-## Card data structure
-## Each card is defined as a Dictionary with all its properties
-var _catalog: Dictionary = {}
+## Reference to C# CardCatalogBridge
+var _csharp_bridge: Node = null
 
 ## Cached Card script for efficient resource creation
 const CardScript = preload("res://scripts/cards/card.gd")
 const CardConfigScript = preload("res://scripts/cards/card_config.gd")
-
-## Preload ID constant classes for use in catalog definitions
-const ProjectileIDsScript = preload("res://scripts/data/projectile_ids.gd")
 
 ## =============================================================================
 ## LIFECYCLE
@@ -28,663 +30,112 @@ const ProjectileIDsScript = preload("res://scripts/data/projectile_ids.gd")
 
 func _ready() -> void:
 	print("CardCatalog: Initializing...")
-	_init_catalog()
-	print("CardCatalog: Loaded %d cards" % _catalog.size())
+	_csharp_bridge = get_node_or_null("/root/CardCatalogCS")
+	if not _csharp_bridge:
+		push_error("CardCatalog: C# CardCatalogBridge not found! Card lookups will fail.")
+		return
+	var count: int = _csharp_bridge.GetCardCount()
+	print("CardCatalog: Connected to C# bridge with %d cards" % count)
 	_validate_card_ids_sync()
 
 ## =============================================================================
-## CATALOG INITIALIZATION
-## =============================================================================
-
-func _init_catalog() -> void:
-	# Fireball - AOE damage spell
-	_catalog["fireball"] = {
-		"catalog_id": "fireball",
-		"card_name": "Fireball",
-		"description": "Unleash a devastating explosion of flame. Deals area damage to all enemies caught in the blast.",
-		"rarity": RarityIDs.RARE,
-
-		"card_type": Card.CardType.SPELL,
-		"mana_cost": 5,
-		"cooldown": 2.0,
-		"summon_time": 0.0,  # Instant cast spell
-
-		"unit_scene_path": "",
-		"spawn_count": 0,
-
-		# Spell properties
-		"spell_damage": 100.0,
-		"spell_radius": 10.0,  # Passed to VFX for accurate indicator sizing
-		"spell_duration": 0.5,
-		"projectile_id": ProjectileIDsScript.FIREBALL,  # Use projectile system for proper impact timing
-		"spell_vfx": VFXIDs.FIREBALL_SPELL,
-
-		"card_icon_path": "",
-		"tags": ["spell", "aoe", "damage"],
-		"unlock_condition": "default",
-
-		# Modifier system categories
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# =========================================================================
-	# FIRE ELEMENT UNITS
-	# =========================================================================
-
-	# Fire Elemental - Floating fire spirit
-	# Visual: Uses bobbing animation (enable_bobbing=true), Lunge attack style
-	# Sprite scale 0.26 calculated for ~960px sprite (BASE_VIEWPORT_SIZE 250 / 960 ≈ 0.26)
-	_catalog["fire_elemental"] = {
-		# Identity
-		"catalog_id": "fire_elemental",
-		"card_name": "Fire Elemental",
-		"description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 3,
-		"cooldown": 2.0,
-		"summon_time": 1.0,  # Medium unit (3-4 mana)
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
-		"spawn_count": 1,
-
-		# Unit stats (centralized here)
-		"max_hp": 60.0,
-		"attack_damage": 12.0,
-		"attack_range": 2.0,
-		"attack_speed": 1.2,
-		"move_speed": 3.5,
-		"aggro_radius": 20.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "fire", "floating", "spirit"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# Fire Titan - Giant tank version of Fire Elemental
-	# Visual: 4x scaled fire elemental using viewport_scale system
-	# Role: Heavy tank with high HP, moderate damage, slow movement
-	#
-	# Scene values derived from fire_elemental_3d.tscn × 4 (viewport_scale):
-	#   - collision radius: 0.5 × 4 = 2.0
-	#   - collision height: 1.6 × 4 = 6.4
-	#   - collision Y pos:  0.8 × 4 = 3.2 (half of height)
-	#   - projectile Y:     1.2 × 4 = 4.8
-	#   - sprite_scale:     0.26 × 4 = 1.04
-	#   - sprite_feet_offset_pixels: 40.0 (unchanged - pixel offset within texture)
-	_catalog["fire_titan"] = {
-		# Identity
-		"catalog_id": "fire_titan",
-		"card_name": "Fire Titan",
-		"description": "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach.",
-		"rarity": RarityIDs.EPIC,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 7,
-		"cooldown": 3.0,
-		"summon_time": 2.0,  # Expensive unit (5+ mana)
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/fire_titan_3d.tscn",
-		"spawn_count": 1,
-
-		# Unit stats - Tank: high HP, moderate damage, slow
-		"max_hp": 300.0,
-		"attack_damage": 20.0,
-		"attack_range": 3.0,
-		"attack_speed": 0.8,
-		"move_speed": 2.0,
-		"aggro_radius": 20.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "fire", "floating", "spirit", "tank", "giant"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# Fire Elemental Swarm - Spawns 12 weaker fire elementals in 2 rows
-	# Role: Swarm tactics - overwhelm with numbers
-	_catalog["fire_elemental_swarm"] = {
-		# Identity
-		"catalog_id": "fire_elemental_swarm",
-		"card_name": "Fire Swarm",
-		"description": "Unleash a horde of flame spirits. Twelve smaller fire elementals surge forth to overwhelm the enemy.",
-		"rarity": RarityIDs.RARE,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 7,
-		"cooldown": 4.0,
-		"summon_time": 2.5,  # Swarm card (extra time for multiple units)
-
-		# Summon properties - uses same scene but spawns 12
-		"unit_scene_path": "res://scenes/units/fire_elemental_3d.tscn",
-		"spawn_count": 12,
-
-		# Formation - tighter spacing for swarm
-		"formation_spacing": 1.5,
-		"formation_row_offset": 0.5,
-
-		# Unit stats - slightly weaker than base fire elemental
-		"max_hp": 45.0,
-		"attack_damage": 9.0,
-		"attack_range": 2.0,
-		"attack_speed": 1.2,
-		"move_speed": 3.5,
-		"aggro_radius": 20.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "fire", "floating", "spirit", "swarm"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# Fire Ant - Fast swarmer melee unit
-	# Visual: Skeletal rig with body, eye, antennae, and 4 legs
-	# Role: Fast, aggressive attacker - quick but fragile
-	_catalog["fire_ant"] = {
-		# Identity
-		"catalog_id": "fire_ant",
-		"card_name": "Fire Ant",
-		"description": "A swift and fierce fire ant. Scurries across the battlefield with blazing speed, overwhelming foes with relentless attacks.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 2,
-		"cooldown": 1.5,
-		"summon_time": 0.8,  # Quick summon (2 mana)
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/fire_ant_3d.tscn",
-		"spawn_count": 1,
-
-		# Unit stats - fast but fragile
-		"max_hp": 40.0,
-		"attack_damage": 8.0,
-		"attack_range": 1.8,
-		"attack_speed": 1.5,
-		"move_speed": 4.5,
-		"aggro_radius": 20.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "fire", "insect", "fast"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# Fire Ant Swarm - 20 fire ants in 4 rows of 5
-	# Role: Overwhelming swarm tactics with tiny fast units
-	_catalog["fire_ant_swarm"] = {
-		# Identity
-		"catalog_id": "fire_ant_swarm",
-		"card_name": "Fire Ant Swarm",
-		"description": "Release a colony of fire ants! Twenty tiny terrors surge forth in formation, overwhelming enemies with sheer numbers.",
-		"rarity": RarityIDs.EPIC,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 6,
-		"cooldown": 4.0,
-		"summon_time": 2.0,  # Swarm card (extra time for many units)
-
-		# Summon properties - 20 ants in 4 rows of 5
-		"unit_scene_path": "res://scenes/units/fire_ant_3d.tscn",
-		"spawn_count": 20,
-
-		# Formation - grid 4 rows x 5 columns with tight spacing
-		"formation_type": "grid",
-		"formation_columns": 5,
-		"formation_spacing": 1.0,
-		"formation_row_offset": 1.2,
-
-		# Unit stats - same as base fire ant
-		"max_hp": 40.0,
-		"attack_damage": 8.0,
-		"attack_range": 1.8,
-		"attack_speed": 1.5,
-		"move_speed": 4.5,
-		"aggro_radius": 20.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "fire", "insect", "fast", "swarm"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.FIRE
-		}
-	}
-
-	# Earth Sprite - Rocky elemental with a sapling
-	# Visual: Skeletal rig with body, arms, legs, eye, and sapling (stem + leaves)
-	_catalog["earth_sprite"] = {
-		# Identity
-		"catalog_id": "earth_sprite",
-		"card_name": "Earth Sprite",
-		"description": "A gentle rock spirit with a sapling growing from its head. Sturdy and dependable, it protects nature with rocky determination.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 3,
-		"cooldown": 2.0,
-		"summon_time": 1.0,  # Medium unit (3 mana)
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/earth_sprite_3d.tscn",
-		"spawn_count": 1,
-
-		# Unit stats - sturdy but slow earth elemental
-		"max_hp": 150.0,
-		"attack_damage": 18.0,
-		"attack_range": 2.0,
-		"attack_speed": 0.9,
-		"move_speed": 1.8,  # Slow and heavy earth elemental
-		"aggro_radius": 20.0,
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "earth", "elemental", "nature"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.EARTH
-		}
-	}
-
-	# Rock - Stationary target dummy for testing
-	# Visual: Uses earth sprite visual as placeholder
-	_catalog["rock"] = {
-		# Identity
-		"catalog_id": "rock",
-		"card_name": "Rock",
-		"description": "A stationary target dummy for testing. Does not move or attack.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.MELEE,
-		"mana_cost": 0,  # Free for testing
-		"cooldown": 0.5,
-		"summon_time": 0.0,  # Instant spawn
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/rock_3d.tscn",
-		"spawn_count": 1,
-
-		# Unit stats - stationary target dummy
-		"max_hp": 500.0,
-		"attack_damage": 0.0,
-		"attack_range": 2.0,
-		"attack_speed": 0.0,  # No attacks
-		"move_speed": 0.0,  # STATIONARY
-		"aggro_radius": 0.0,  # Don't acquire targets
-		"is_ranged": false,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["melee", "earth", "test", "dummy", "stationary"],
-		"unlock_condition": "dev_only",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.EARTH
-		}
-	}
-
-	# Puff - Wind cloud that blows puffs of air
-	# Visual: Sprite sheet animation with idle, walk, attack animations
-	_catalog["puff"] = {
-		# Identity
-		"catalog_id": "puff",
-		"card_name": "Puff",
-		"description": "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.RANGED,
-		"mana_cost": 3,
-		"cooldown": 2.0,
-		"summon_time": 1.0,  # Medium unit (3 mana)
-
-		# Summon properties
-		"unit_scene_path": "res://scenes/units/puff_3d.tscn",
-		"spawn_count": 1,
-
-		# Unit stats - balanced ranged wind unit
-		"max_hp": 80.0,
-		"attack_damage": 12.0,
-		"attack_range": 24.0,
-		"attack_speed": 0.4,
-		"move_speed": 2.5,
-		"aggro_radius": 24.0,
-		"is_ranged": true,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["ranged", "wind", "elemental", "air"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.WIND
-		}
-	}
-
-	# Cloud Swarm - 6 Puffs in groups of 2
-	# Spawns 6 Puff units in a grouped line formation (3 groups of 2)
-	_catalog["cloud_swarm"] = {
-		# Identity
-		"catalog_id": "cloud_swarm",
-		"card_name": "Cloud Swarm",
-		"description": "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might.",
-		"rarity": RarityIDs.RARE,
-
-		# Card properties
-		"card_type": Card.CardType.SUMMON,
-		"unit_type": UnitTypeIDs.RANGED,
-		"mana_cost": 5,
-		"cooldown": 3.0,
-		"summon_time": 1.5,  # Medium-high unit (5 mana)
-
-		# Summon properties - spawns 6 Puffs
-		"unit_scene_path": "res://scenes/units/puff_3d.tscn",
-		"spawn_count": 6,
-
-		# Formation - grouped line (3 groups of 2)
-		"formation_type": "grouped_line",
-		"formation_spacing": 1.5,
-		"group_spacing": 8.0,
-		"units_per_group": 2,
-
-		# Unit stats - same as base puff
-		"max_hp": 80.0,
-		"attack_damage": 12.0,
-		"attack_range": 24.0,
-		"attack_speed": 0.4,
-		"move_speed": 2.5,
-		"aggro_radius": 24.0,
-		"is_ranged": true,
-		"projectile_scene_path": "",
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["ranged", "wind", "elemental", "air", "swarm"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.WIND
-		}
-	}
-
-	# =========================================================================
-	# TACTICAL COMMAND SPELLS
-	# =========================================================================
-
-	# Rally - Simple movement command
-	_catalog["rally"] = {
-		# Identity
-		"catalog_id": "rally",
-		"card_name": "Rally",
-		"description": "Command nearby units to move to a target location and defend that zone until enemies are cleared.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SPELL,
-		"mana_cost": 0,
-		"cooldown": 1.0,
-		"summon_time": 0.0,  # Instant cast spell
-
-		# Spell properties (not a traditional damage spell)
-		"unit_scene_path": "",
-		"spawn_count": 0,
-		"spell_damage": 0.0,
-		"spell_radius": 0.0,
-		"spell_duration": 0.0,
-		"projectile_id": "",
-		"spell_vfx": "",
-
-		# Tactical command properties (custom handling)
-		"command_type": "rally",
-		"selection_radius": 8.0,  # Radius to select units
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["spell", "command", "tactical", "movement"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.NEUTRAL
-		}
-	}
-
-	# Guard - Formation command
-	_catalog["guard"] = {
-		# Identity
-		"catalog_id": "guard",
-		"card_name": "Guard",
-		"description": "Command nearby units to form a defensive formation for 25 seconds. Melee units protect ranged units in the back line.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SPELL,
-		"mana_cost": 0,
-		"cooldown": 1.0,
-		"summon_time": 0.0,  # Instant cast spell
-
-		# Spell properties (not a traditional damage spell)
-		"unit_scene_path": "",
-		"spawn_count": 0,
-		"spell_damage": 0.0,
-		"spell_radius": 0.0,
-		"spell_duration": 0.0,
-		"projectile_id": "",
-		"spell_vfx": "",
-
-		# Tactical command properties (custom handling)
-		"command_type": "guard",
-		"selection_radius": 8.0,  # Radius to select units
-		"formation_duration": 25.0,  # Duration of guard mode
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["spell", "command", "tactical", "formation"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.NEUTRAL
-		}
-	}
-
-	# Charge - Focus-fire command
-	_catalog["charge"] = {
-		# Identity
-		"catalog_id": "charge",
-		"card_name": "Charge",
-		"description": "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or base) to the target location for 30 seconds.",
-		"rarity": RarityIDs.COMMON,
-
-		# Card properties
-		"card_type": Card.CardType.SPELL,
-		"mana_cost": 0,
-		"cooldown": 1.0,
-		"summon_time": 0.0,  # Instant cast spell
-
-		# Spell properties (not a traditional damage spell)
-		"unit_scene_path": "",
-		"spawn_count": 0,
-		"spell_damage": 0.0,
-		"spell_radius": 0.0,
-		"spell_duration": 0.0,
-		"projectile_id": "",
-		"spell_vfx": "",
-
-		# Tactical command properties (custom handling)
-		"command_type": "charge",
-		"selection_radius": 8.0,  # Radius to select units
-
-		# Visual
-		"card_icon_path": "",
-
-		# Metadata
-		"tags": ["spell", "command", "tactical", "focus_fire"],
-		"unlock_condition": "default",
-
-		# Elemental affinity
-		"categories": {
-			"elemental_affinity": ElementTypes.NEUTRAL
-		}
-	}
-
-## =============================================================================
-## LOOKUP METHODS
+## LOOKUP METHODS (delegate to C#)
 ## =============================================================================
 
 ## Get card definition by catalog_id
 ## Returns Dictionary or empty {} if not found
-## Returns a shallow duplicate to protect catalog data from external modifications
+## Converts elemental_affinity from string to Element object
 ## Accepts StringName (preferred) or String for backward compatibility
 func get_card(catalog_id: StringName) -> Dictionary:
-	if not _catalog.has(catalog_id):
-		push_error("CardCatalog: Card '%s' not found in catalog. Fix typo or register card." % catalog_id)
-		assert(false, "Card must exist in catalog!")
-		var empty: Dictionary = {}
-		return empty  # Unreachable in debug builds
-	# Return shallow duplicate - preserves Element object references while preventing corruption
-	var card_dict_variant: Variant = _catalog[catalog_id]
-	if not card_dict_variant is Dictionary:
-		push_error("CardCatalog: _catalog[%s] is not a Dictionary - catalog corrupted!" % catalog_id)
-		assert(false, "Catalog data corruption detected!")
-		var empty: Dictionary = {}
-		return empty  # Unreachable in debug builds
-	var card_dict: Dictionary = card_dict_variant
-	return card_dict.duplicate(false)
+	if not _csharp_bridge:
+		push_error("CardCatalog: C# bridge not available")
+		return {}
+
+	var dict: Dictionary = _csharp_bridge.GetCardAsDict(str(catalog_id))
+	if dict.is_empty():
+		push_error("CardCatalog: Card '%s' not found in catalog" % catalog_id)
+		return {}
+
+	# Convert elemental_affinity from string to Element object
+	_convert_element_types(dict)
+	return dict
 
 ## Check if a card exists in the catalog
 ## Accepts StringName (preferred) or String for backward compatibility
 func has_card(catalog_id: StringName) -> bool:
-	return _catalog.has(catalog_id)
+	if not _csharp_bridge:
+		return false
+	return _csharp_bridge.HasCard(str(catalog_id))
 
 ## Get all card IDs
 func get_all_card_ids() -> Array[String]:
+	if not _csharp_bridge:
+		return []
 	var result: Array[String] = []
-	result.assign(_catalog.keys())
+	result.assign(_csharp_bridge.GetAllCardIds())
 	return result
 
 ## Get all card definitions
 func list_all_cards() -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	result.assign(_catalog.values())
-	return result
+	if not _csharp_bridge:
+		return []
+	var results: Array[Dictionary] = []
+	for dict: Dictionary in _csharp_bridge.GetAllCardsAsDict():
+		_convert_element_types(dict)
+		results.append(dict)
+	return results
 
 ## Get cards filtered by rarity
 func get_cards_by_rarity(rarity: String) -> Array[Dictionary]:
+	if not _csharp_bridge:
+		return []
 	var results: Array[Dictionary] = []
-	for card: Dictionary in _catalog.values():
-		if card.get("rarity") == rarity:
-			results.append(card)
+	for dict: Dictionary in _csharp_bridge.GetCardsByRarityAsDict(rarity):
+		_convert_element_types(dict)
+		results.append(dict)
 	return results
 
 ## Get cards filtered by type (Card.CardType.SUMMON or Card.CardType.SPELL)
 func get_cards_by_type(card_type: int) -> Array[Dictionary]:
+	if not _csharp_bridge:
+		return []
 	var results: Array[Dictionary] = []
-	for card: Dictionary in _catalog.values():
-		if card.get("card_type") == card_type:
-			results.append(card)
+	for dict: Dictionary in _csharp_bridge.GetCardsByTypeAsDict(card_type):
+		_convert_element_types(dict)
+		results.append(dict)
 	return results
 
 ## Get cards filtered by tag
 func get_cards_by_tag(tag: String) -> Array[Dictionary]:
+	if not _csharp_bridge:
+		return []
 	var results: Array[Dictionary] = []
-	for card: Dictionary in _catalog.values():
-		var tags: Array = card.get("tags", [])
-		if tag in tags:
-			results.append(card)
+	for dict: Dictionary in _csharp_bridge.GetCardsByTagAsDict(tag):
+		_convert_element_types(dict)
+		results.append(dict)
 	return results
 
 ## Get starter/default cards (unlock_condition = "default")
 func get_starter_cards() -> Array[Dictionary]:
+	if not _csharp_bridge:
+		return []
 	var results: Array[Dictionary] = []
-	for card: Dictionary in _catalog.values():
-		if card.get("unlock_condition") == "default":
-			results.append(card)
+	for dict: Dictionary in _csharp_bridge.GetStarterCardsAsDict():
+		_convert_element_types(dict)
+		results.append(dict)
 	return results
+
+## =============================================================================
+## ELEMENT TYPE CONVERSION
+## =============================================================================
+
+## Convert elemental_affinity from C# string to GDScript Element object
+func _convert_element_types(dict: Dictionary) -> void:
+	if dict.has("categories"):
+		var cats: Dictionary = dict["categories"]
+		if cats.has("elemental_affinity"):
+			var affinity_str: String = str(cats["elemental_affinity"])
+			cats["elemental_affinity"] = ElementTypes.from_string(affinity_str)
 
 ## =============================================================================
 ## RUNTIME CARD GENERATION
@@ -699,8 +150,7 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 	var card_def: Dictionary = get_card(catalog_id)
 	if card_def.is_empty():
 		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
-		assert(false, "Card must exist in catalog! Fix card registration or typo in catalog_id.")
-		return null  # Unreachable in debug builds
+		return null
 
 	# Create CardConfig from catalog dictionary
 	var config: Resource = CardConfigScript.from_dict(card_def)
@@ -708,8 +158,7 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 	# Validate config was created successfully
 	if not config:
 		push_error("CardCatalog: Failed to create CardConfig for '%s'" % catalog_id)
-		assert(false, "CardConfig must be created successfully!")
-		return null  # Unreachable in debug builds
+		return null
 
 	# Create GDScript Card and attach config
 	var card: Card = CardScript.new()
@@ -799,12 +248,13 @@ func get_card_cost(catalog_id: String) -> int:
 ## Print catalog summary (debug)
 func print_catalog_summary() -> void:
 	print("\n=== CARD CATALOG SUMMARY ===")
-	print("Total Cards: %d" % _catalog.size())
+	var all_cards: Array[Dictionary] = list_all_cards()
+	print("Total Cards: %d" % all_cards.size())
 
 	var by_rarity: Dictionary = {}
 	var by_type: Dictionary = {"summon": 0, "spell": 0}
 
-	for card: Dictionary in _catalog.values():
+	for card: Dictionary in all_cards:
 		# Count by rarity
 		var rarity: StringName = card.get("rarity", RarityIDs.COMMON)
 		if not by_rarity.has(rarity):
@@ -837,6 +287,10 @@ func print_catalog_summary() -> void:
 ## Validate that CardIDs constants match catalog entries
 ## Called in _ready() to catch desync issues at startup
 func _validate_card_ids_sync() -> void:
+	if not _csharp_bridge:
+		push_warning("CardCatalog: Cannot validate - C# bridge not available")
+		return
+
 	# Get all constant names from CardIDs
 	var card_ids_script: GDScript = load("res://scripts/data/card_ids.gd")
 	var constants: Dictionary = card_ids_script.get_script_constant_map()
@@ -849,11 +303,11 @@ func _validate_card_ids_sync() -> void:
 		var id_value: Variant = constants[const_name]
 		if id_value is StringName or id_value is String:
 			var id_string: String = str(id_value)
-			if not _catalog.has(id_string):
+			if not has_card(id_string):
 				missing_in_catalog.append("%s = '%s'" % [const_name, id_string])
 
 	# Check: All catalog cards have corresponding CardIDs constant
-	for catalog_id: String in _catalog.keys():
+	for catalog_id: String in get_all_card_ids():
 		var found: bool = false
 		for const_value: Variant in constants.values():
 			if str(const_value) == catalog_id:
@@ -867,7 +321,6 @@ func _validate_card_ids_sync() -> void:
 		push_error("CardCatalog: CardIDs constants reference non-existent cards:")
 		for missing: String in missing_in_catalog:
 			push_error("  - CardIDs.%s" % missing)
-		assert(false, "Fix CardIDs constants or add missing cards to catalog!")
 
 	if missing_in_card_ids.size() > 0:
 		push_warning("CardCatalog: Catalog has cards without CardIDs constants (test/mod cards?):")
