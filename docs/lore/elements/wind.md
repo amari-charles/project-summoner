@@ -2,9 +2,14 @@
 
 ## Gameplay Identity
 
-**Fast, elusive, flowy**
+**Elusive, fast, mobility-focused**
 
-Wind summons are hard to pin down. Their strength is in speed and evasion—striking before opponents can react and slipping away before they can retaliate.
+Wind summons are impossible to pin down. They avoid direct confrontation and win through superior positioning.
+
+- **High speed** — Fastest element, first to strike
+- **Elusiveness** — Hard to target, hard to catch
+- **Mobility-focused** — Repositioning and hit-and-run tactics
+- **Avoids direct confrontation** — Wins by not being where enemies expect
 
 ## Philosophy
 

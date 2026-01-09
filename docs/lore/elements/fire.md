@@ -2,9 +2,14 @@
 
 ## Gameplay Identity
 
-**Erratic, burst damage, powerful up front**
+**Aggressive, strong early, tapers off**
 
-Fire summons hit hard and fast. Their strength is in explosive opening plays and unpredictable bursts of power. They overwhelm opponents before they can mount a defense.
+Fire summons hit hard and fast. They want to win quickly before opponents can stabilize.
+
+- **Front-loaded power** — Strongest in the early game, weaker as battles drag on
+- **Burning effects** — Lingering damage that punishes enemies over time
+- **Aggressive tempo** — Rewards attacking, punishes passive play
+- **Win fast or struggle** — Must close out games before fire burns itself out
 
 ## Philosophy
 

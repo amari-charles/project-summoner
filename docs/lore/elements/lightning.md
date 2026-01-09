@@ -10,7 +10,14 @@ Lightning strikes in an instant and leaves nothing unchanged. It is the element 
 
 ## Gameplay Identity
 
-*To be developed*
+**Speed, stuns, burst windows**
+
+Lightning summons strike with sharp, fast impact. High tempo with powerful burst windows.
+
+- **Speed** — Fast attacks, quick execution
+- **Stuns** — Interrupts and disables enemies briefly
+- **Burst windows** — Short periods of intense damage output
+- **High tempo, less sustain** — Powerful spikes but runs out of steam
 
 ## Philosophy
 

@@ -10,7 +10,14 @@ Shadow exists only in relation to light—it is the absence that defines presenc
 
 ## Gameplay Identity
 
-*To be developed*
+**Stealth, illusions, assassination**
+
+Shadow summons strike from the unseen. They deceive and eliminate key targets.
+
+- **Stealth and ambush** — Hidden until attacking, surprise strikes
+- **Clones and illusions** — Decoys that confuse enemy targeting
+- **Assassination** — High single-target burst, eliminates priority threats
+- **Misdirection** — Enemies never know what's real
 
 ## Philosophy
 

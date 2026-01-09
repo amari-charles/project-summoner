@@ -10,7 +10,14 @@ Poison works slowly but surely. It does not confront strength directly—it unde
 
 ## Gameplay Identity
 
-*To be developed*
+**Attrition, damage over time, weakening**
+
+Poison summons wear enemies down over time. They apply lingering effects that slowly destroy.
+
+- **Damage over time** — Continuous health drain
+- **Attrition** — Wins through accumulated damage, not burst
+- **Weakening effects** — Debuffs that reduce enemy power
+- **Lingering presence** — Effects persist long after application
 
 ## Philosophy
 

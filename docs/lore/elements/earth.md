@@ -2,9 +2,14 @@
 
 ## Gameplay Identity
 
-**Strong, slow, enduring**
+**Strong, slow, crushing**
 
-Earth summons are immovable. Their strength is in outlasting opponents—absorbing punishment and wearing enemies down through sheer endurance.
+Earth summons are immovable forces. They absorb punishment and crush enemies through raw power.
+
+- **Strength-focused** — Heavy hitters with high damage
+- **Defense-oriented** — Tanky, hard to take down
+- **Slow but reliable** — Deliberate pace, consistent results
+- **Wins by outlasting** — Absorbs damage then crushes weakened foes
 
 ## Philosophy
 

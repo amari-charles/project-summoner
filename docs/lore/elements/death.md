@@ -10,7 +10,14 @@ Death is not destruction—it is completion. All things that begin must end, and
 
 ## Gameplay Identity
 
-*To be developed*
+**Undead, persistence, inevitability**
+
+Death summons refuse to stay dead. They win through sheer persistence and recursion.
+
+- **Undead themes** — Skeletons, spirits, risen creatures
+- **Persistence after death** — Units return or leave effects when killed
+- **Revivals and recursion** — Bring back fallen units, reuse resources
+- **Quantity and inevitability** — Wins by never truly losing forces
 
 ## Philosophy
 

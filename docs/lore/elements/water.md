@@ -2,9 +2,14 @@
 
 ## Gameplay Identity
 
-**Nurturing, healing, flowy**
+**Sustain, flexibility, smooth power**
 
-Water summons sustain and support. Their strength is in keeping allies alive and flowing around obstacles. They outlast opponents through persistence and care.
+Water summons flow with the battle, adapting to circumstances rather than forcing outcomes.
+
+- **Minor healing** — Steady sustain rather than burst recovery
+- **"Go with the flow"** — Flexible and adaptive to situations
+- **Non-spiky power** — Consistent performance without dramatic highs or lows
+- **Sustain-oriented** — Wins through outlasting, not bursting
 
 ## Philosophy
 

@@ -10,7 +10,14 @@ Holy is not merely purified fire—it is fire that has transcended physical exis
 
 ## Gameplay Identity
 
-*To be developed*
+**Healing, empowerment, protective**
+
+Holy summons make others stronger. They support and stabilize rather than deal damage directly.
+
+- **Healing** — Restores health to allies
+- **Buffs and empowerment** — Makes other units more effective
+- **Protective** — Shields and damage prevention
+- **Stabilizing presence** — Keeps the team healthy and fighting
 
 ## Philosophy
 

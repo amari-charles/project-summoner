@@ -10,7 +10,14 @@ Ice is water that has chosen permanence over adaptability. Where water flows aro
 
 ## Gameplay Identity
 
-*To be developed*
+**Control, slows, punishment**
+
+Ice summons reduce enemy effectiveness. They punish speed and mobility with freezing control.
+
+- **Slows** — Reduces enemy movement and attack speed
+- **Control-focused** — Locks down threats, prevents escapes
+- **Punishes movement** — Enemies that rely on speed suffer most
+- **Reduces effectiveness** — Makes enemies weaker, not just damaged
 
 ## Philosophy
 

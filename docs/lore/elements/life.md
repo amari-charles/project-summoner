@@ -10,7 +10,15 @@ Life is the force that pushes toward existence. It heals, grows, and connects al
 
 ## Gameplay Identity
 
-*To be developed*
+**Replication, growth, board presence**
+
+Life summons multiply and grow over time. They snowball if left unanswered. Plant-themed.
+
+- **Replication** — Creates copies or spawns new units
+- **Growth** — Units get stronger over time
+- **Board presence** — Wins by having more units than enemy can handle
+- **Snowballs if unanswered** — Small advantages compound into overwhelming force
+- **Plant aesthetic** — Vines, flowers, seeds, sprouts
 
 ## Philosophy
 

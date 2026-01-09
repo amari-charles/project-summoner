@@ -10,7 +10,14 @@ Occultist is not an element in the natural sense. It is the force that disrupts 
 
 ## Gameplay Identity
 
-*To be developed*
+**Rule-breaking, forbidden power**
+
+Occultist forces break the normal rules of the game. They cheat the system itself.
+
+- **Rule-breaking** — Ignores normal mechanics and restrictions
+- **Forbidden power** — Does things other elements cannot
+- **Antagonist element** — Primarily used by enemies, not player summons
+- **System corruption** — Disrupts the elemental order itself
 
 ## Philosophy
 
