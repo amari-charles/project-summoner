@@ -4,6 +4,8 @@ using ProjectSummoner.Cards.Configs;
 using ProjectSummoner.Cards.Formations;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Services.Interfaces;
+using ProjectSummoner.Stats;
+using ProjectSummoner.Summons;
 using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Units;
 
@@ -133,14 +135,12 @@ public partial class CardFactory : Node, ICardFactory
     {
         var result = new Godot.Collections.Array<Vector3>();
 
-        // Validate battlefield
         if (battlefield == null)
         {
             GD.PushWarning("[CardFactory] Battlefield is null for safe spawn calculation");
             return result;
         }
 
-        // Get card from C# CardCatalog
         var card = CardCatalog.GetCard(catalogId);
         if (card == null)
         {
@@ -148,24 +148,16 @@ public partial class CardFactory : Node, ICardFactory
             return result;
         }
 
-        // Get spawn count and formation directly from CardDefinition
-        int spawnCount = card.SpawnCount;
-        var formation = card.Formation;
+        // Use SpawnPositionCalculator
+        var positions = SpawnPositionCalculator.CalculateFormationPositions(
+            card.Formation,
+            centerPosition,
+            card.SpawnCount,
+            battlefield.GetTree(),
+            collisionRadius > 0 ? collisionRadius : 0.5f);
 
-        // Ensure collision radius is valid
-        if (collisionRadius <= 0) collisionRadius = 0.5f;
-
-        // Calculate all positions at once against current state
-        // Pass already-calculated positions to avoid units in same batch overlapping
-        var batchPositions = new List<Vector3>();
-        for (int i = 0; i < spawnCount; i++)
-        {
-            var offset = formation.GetOffset(i, spawnCount);
-            var desiredPos = centerPosition + offset;
-            var safePos = FindSafeSpawnPosition(desiredPos, battlefield.GetTree(), collisionRadius, null, batchPositions);
-            batchPositions.Add(safePos);
-            result.Add(safePos);
-        }
+        foreach (var pos in positions)
+            result.Add(pos);
 
         return result;
     }
@@ -184,7 +176,8 @@ public partial class CardFactory : Node, ICardFactory
     /// <param name="modifierSystem">Optional modifier system reference</param>
     /// <param name="instanceId">Card instance ID for modifier filtering</param>
     /// <param name="spawnDuration">Duration for spawn reveal animation</param>
-    public void execute_summon(
+    /// <returns>SummonResult containing the UnitSummon tracker or error</returns>
+    public SummonResult execute_summon(
         string catalogId,
         Vector3 position,
         int team,
@@ -196,57 +189,97 @@ public partial class CardFactory : Node, ICardFactory
         string instanceId = "",
         float spawnDuration = 0.0f)
     {
-        // Get card from C# CardCatalog for formation and static data
+        // 1. Validate and load card data
         var card = CardCatalog.GetCard(catalogId);
         if (card == null)
-        {
-            GD.PrintErr($"[CardFactory] Summon '{catalogId}' not found in C# CardCatalog!");
-            return;
-        }
+            return SummonResult.Fail($"Summon '{catalogId}' not found in C# CardCatalog");
 
-        // Get unit scene path from CardDefinition
-        var unitScenePath = card.UnitScenePath;
-        if (string.IsNullOrEmpty(unitScenePath))
-        {
-            GD.PrintErr($"[CardFactory] Summon '{catalogId}' has no unit_scene_path!");
-            return;
-        }
+        if (string.IsNullOrEmpty(card.UnitScenePath))
+            return SummonResult.Fail($"Summon '{catalogId}' has no unit_scene_path");
 
-        // Load unit scene
-        var unitScene = GD.Load<PackedScene>(unitScenePath);
+        var unitScene = GD.Load<PackedScene>(card.UnitScenePath);
         if (unitScene == null)
+            return SummonResult.Fail($"Failed to load unit scene: {card.UnitScenePath}");
+
+        // 2. Create summon tracker
+        var summon = new UnitSummon(catalogId, instanceId, team);
+
+        // 3. Get gameplay layer
+        Node gameplayLayer = GetGameplayLayer(battlefield);
+
+        // 4. Get modifiers
+        var modifiers = GetModifiersForCard(cardDef, team, instanceId);
+
+        // 5. Calculate stats
+        var unitStats = UnitStatCalculator.CalculateFromGodotDictionary(effectiveStats, modifiers, customOverrides);
+
+        // 6. Calculate spawn positions
+        float collisionRadius = UnitSpawner.GetCollisionRadius(unitScene);
+        var safePositions = SpawnPositionCalculator.CalculateFormationPositions(
+            card.Formation, position, card.SpawnCount, battlefield.GetTree(), collisionRadius);
+
+        // 7. Determine if in battle phase
+        bool inBattlePhase = IsInBattlePhase(gameplayLayer);
+
+        // 8. Get SpatialGrid for position updates
+        var spatialGrid = GetAutoloadNode("/root/SpatialGrid");
+
+        // 9. Spawn units
+        for (int i = 0; i < card.SpawnCount; i++)
         {
-            GD.PrintErr($"[CardFactory] Failed to load unit scene: {unitScenePath}");
-            return;
+            var context = new UnitSpawnContext
+            {
+                Position = safePositions[i],
+                Team = team,
+                Stats = unitStats,
+                Modifiers = modifiers,
+                CustomOverrides = customOverrides,
+                GameplayLayer = gameplayLayer,
+                SpatialGrid = spatialGrid,
+                SpawnDuration = spawnDuration,
+                InBattlePhase = inBattlePhase
+            };
+
+            var unit3d = UnitSpawner.SpawnUnit(unitScene, context);
+            if (unit3d != null)
+            {
+                summon.AddUnit(unit3d);
+            }
+            else
+            {
+                GD.PrintErr($"[CardFactory] Failed to spawn unit {i} for '{catalogId}'");
+            }
         }
 
-        // Get spawn count and formation directly from CardDefinition
-        int spawnCount = card.SpawnCount;
-        var formation = card.Formation;
+        GD.Print($"[CardFactory] Spawned {card.SpawnCount} units for '{catalogId}'");
+        return SummonResult.Ok(summon);
+    }
 
-        // Get gameplay layer
-        Node gameplayLayer = battlefield;
+    /// <summary>Get the gameplay layer from battlefield.</summary>
+    private static Node GetGameplayLayer(Node battlefield)
+    {
         if (battlefield.HasMethod("get_gameplay_layer"))
         {
             var result = battlefield.Call("get_gameplay_layer");
             if (result.VariantType != Variant.Type.Nil)
             {
-                gameplayLayer = result.AsGodotObject() as Node ?? battlefield;
+                return result.AsGodotObject() as Node ?? battlefield;
             }
         }
+        return battlefield;
+    }
 
-        // Get card categories for modifier system
+    /// <summary>Get modifiers for a card spawn.</summary>
+    private static List<StatModifier> GetModifiersForCard(Godot.Collections.Dictionary cardDef, int team, string instanceId)
+    {
         var categories = new Godot.Collections.Dictionary();
         if (cardDef.ContainsKey("categories"))
         {
             var catVal = cardDef["categories"];
             if (catVal.VariantType == Variant.Type.Dictionary)
-            {
                 categories = catVal.AsGodotDictionary();
-            }
         }
 
-        // Build modifier context
         var modifierContext = new Godot.Collections.Dictionary
         {
             { "card_name", GetString(cardDef, "card_name", "Unknown") },
@@ -254,126 +287,20 @@ public partial class CardFactory : Node, ICardFactory
             { "card_instance_id", instanceId }
         };
 
-        // Get modifiers from ModifierService
-        var modifiers = GetModifiersFromService("unit", categories, modifierContext);
+        return GetModifiersFromService("unit", categories, modifierContext);
+    }
 
-        // Get SpatialGrid autoload
-        var spatialGrid = GetAutoloadNode("/root/SpatialGrid");
-
-        // Get collision radius from a temp unit instance (all units from same scene have same radius)
-        float collisionRadius = 0.5f;
-        var tempUnit = unitScene.Instantiate() as Node3D;
-        if (tempUnit != null)
+    /// <summary>Check if game is in battle phase.</summary>
+    private static bool IsInBattlePhase(Node gameplayLayer)
+    {
+        var gameController = gameplayLayer.GetTree()?.CurrentScene;
+        if (gameController != null)
         {
-            var radiusVal = tempUnit.Get("CollisionRadius");
-            if (radiusVal.VariantType != Variant.Type.Nil)
-                collisionRadius = radiusVal.AsSingle();
-            tempUnit.Free();  // Not in tree, use Free() not QueueFree()
+            var currentPhase = gameController.Get("current_phase");
+            if (currentPhase.VariantType == Variant.Type.Int)
+                return currentPhase.AsInt32() == BattlePhaseBattle;
         }
-        if (collisionRadius <= 0) collisionRadius = 0.5f;
-
-        // Pre-calculate all safe spawn positions BEFORE spawning any units
-        // This ensures preview and actual spawn match exactly
-        // Pass already-calculated positions to avoid units in same batch overlapping
-        var safePositions = new List<Vector3>();
-        for (int i = 0; i < spawnCount; i++)
-        {
-            var offset = formation.GetOffset(i, spawnCount);
-            var desiredPos = position + offset;
-            var safePos = FindSafeSpawnPosition(desiredPos, battlefield.GetTree(), collisionRadius, null, safePositions);
-            safePositions.Add(safePos);
-        }
-
-        // Spawn units at pre-calculated positions
-        for (int i = 0; i < spawnCount; i++)
-        {
-            var unit = unitScene.Instantiate() as Node3D;
-            if (unit == null)
-            {
-                GD.PrintErr($"[CardFactory] Failed to instantiate unit for '{catalogId}'");
-                continue;
-            }
-
-            // Set team
-            unit.Set("Team", team);
-
-            // Apply stats from effective stats (includes upgrades)
-            unit.Set("MaxHp", GetFloat(effectiveStats, "max_hp", 100f));
-            unit.Set("AttackDamage", GetFloat(effectiveStats, "attack_damage", 10f));
-            unit.Set("AttackSpeed", GetFloat(effectiveStats, "attack_speed", 1f));
-            unit.Set("MoveSpeed", GetFloat(effectiveStats, "move_speed", 3f));
-
-            // Attack range is optional
-            if (effectiveStats.ContainsKey("attack_range"))
-            {
-                unit.Set("AttackRange", GetFloat(effectiveStats, "attack_range", 1.5f));
-            }
-
-            // Apply custom stat overrides
-            if (customOverrides.ContainsKey("scale_multiplier"))
-            {
-                var multiplier = GetFloat(customOverrides, "scale_multiplier", 1f);
-                unit.Scale = Vector3.One * multiplier;
-                GD.Print($"[CardFactory] Applied scale_multiplier {multiplier} to '{catalogId}'");
-            }
-
-            // Use pre-calculated safe position
-            var safePos = safePositions[i];
-
-            // Handle flight altitude for flying units
-            var movementLayer = unit.Get("MovementLayer");
-            if (movementLayer.VariantType == Variant.Type.Int &&
-                movementLayer.AsInt32() == (int)MovementLayer.Air)
-            {
-                var flightAlt = unit.Get("FlightAltitude");
-                if (flightAlt.VariantType == Variant.Type.Float || flightAlt.VariantType == Variant.Type.Int)
-                {
-                    safePos = new Vector3(safePos.X, flightAlt.AsSingle(), safePos.Z);
-                }
-            }
-
-            // Set position BEFORE adding to tree (prevents jitter)
-            unit.Position = safePos;
-
-            // Add to tree - visual components handle their own visibility during init
-            gameplayLayer.AddChild(unit);
-
-            // Initialize with modifiers
-            if (unit is Unit3D unit3d)
-            {
-                unit3d.InitializeWithModifiers(modifiers);
-            }
-
-            // Update SpatialGrid after unit is in tree
-            if (spatialGrid != null && spatialGrid.HasMethod("update_unit_position"))
-            {
-                spatialGrid.Call("update_unit_position", unit);
-            }
-
-            // Start spawn reveal animation if duration specified
-            bool hasSpawnAnimation = spawnDuration > 0.0f && unit.HasMethod("start_spawn_reveal");
-            if (hasSpawnAnimation)
-            {
-                unit.Call("start_spawn_reveal", spawnDuration);
-            }
-
-            // Activate unit if in battle phase and no spawn animation
-            if (!hasSpawnAnimation)
-            {
-                var gameController = gameplayLayer.GetTree().CurrentScene;
-                if (gameController != null)
-                {
-                    var currentPhase = gameController.Get("current_phase");
-                    if (currentPhase.VariantType == Variant.Type.Int &&
-                        currentPhase.AsInt32() == BattlePhaseBattle)
-                    {
-                        unit.Call("Activate");
-                    }
-                }
-            }
-        }
-
-        GD.Print($"[CardFactory] Spawned {spawnCount} units for '{catalogId}'");
+        return false;
     }
 
     // =========================================================================
@@ -456,111 +383,6 @@ public partial class CardFactory : Node, ICardFactory
         modContext.TargetType = targetType;
 
         return service.GetModifiers(modContext);
-    }
-
-    /// <summary>
-    /// Find a safe spawn position that doesn't overlap with existing units
-    /// or other positions in the same spawn batch.
-    /// Uses ring search algorithm: checks outward in expanding circles.
-    /// </summary>
-    private static Vector3 FindSafeSpawnPosition(
-        Vector3 desiredPos,
-        SceneTree? tree,
-        float collisionRadius,
-        Node3D? excludeUnit,
-        List<Vector3>? batchPositions = null)
-    {
-        // Ring search constants (matching original GDScript implementation)
-        const float minUnitSpacing = 1.5f;
-        const int searchAttemptsPerRing = 8;
-        const int searchRings = 3;
-
-        // Get all existing units
-        var units = tree?.GetNodesInGroup(GroupIDs.Units);
-
-        // Check if desired position is safe first
-        if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions))
-            return desiredPos;
-
-        // Search in expanding rings around desired position
-        for (int ring = 1; ring <= searchRings; ring++)
-        {
-            float radius = minUnitSpacing * ring;
-
-            for (int attempt = 0; attempt < searchAttemptsPerRing; attempt++)
-            {
-                float angle = (float)attempt / searchAttemptsPerRing * Mathf.Tau;
-                var offset = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
-                var testPos = desiredPos + offset;
-
-                if (IsSpawnPositionSafe(testPos, units, collisionRadius, excludeUnit, batchPositions))
-                    return testPos;
-            }
-        }
-
-        // Fallback: no safe position found, use desired (units will overlap but game continues)
-        return desiredPos;
-    }
-
-    /// <summary>
-    /// Check if a spawn position is safe (no overlap with existing units or batch positions).
-    /// </summary>
-    private static bool IsSpawnPositionSafe(
-        Vector3 checkPos,
-        Godot.Collections.Array<Node>? units,
-        float collisionRadius,
-        Node3D? excludeUnit,
-        List<Vector3>? batchPositions)
-    {
-        // Check against existing units in scene
-        if (units != null)
-        {
-            foreach (var node in units)
-            {
-                if (node == excludeUnit)
-                    continue;
-
-                if (node is not Node3D otherUnit)
-                    continue;
-
-                // Check if unit is alive (duck typing)
-                var isAliveVar = otherUnit.Get("is_alive");
-                if (isAliveVar.VariantType == Variant.Type.Bool && !isAliveVar.AsBool())
-                    continue;
-
-                // Get collision radius
-                var otherRadiusVar = otherUnit.Get("collision_radius");
-                float otherRadius = otherRadiusVar.VariantType != Variant.Type.Nil ? otherRadiusVar.AsSingle() : 0.5f;
-
-                // Calculate 2D distance (ignore Y)
-                float dx = checkPos.X - otherUnit.GlobalPosition.X;
-                float dz = checkPos.Z - otherUnit.GlobalPosition.Z;
-                float distSq = dx * dx + dz * dz;
-
-                // Minimum spacing is sum of both collision radii
-                float minSpacing = collisionRadius + otherRadius;
-                if (distSq < minSpacing * minSpacing)
-                    return false;
-            }
-        }
-
-        // Check against other positions in the same spawn batch
-        if (batchPositions != null)
-        {
-            foreach (var otherPos in batchPositions)
-            {
-                float dx = checkPos.X - otherPos.X;
-                float dz = checkPos.Z - otherPos.Z;
-                float distSq = dx * dx + dz * dz;
-
-                // Same collision radius for units in same batch
-                float minSpacing = collisionRadius * 2;
-                if (distSq < minSpacing * minSpacing)
-                    return false;
-            }
-        }
-
-        return true;
     }
 
     /// <summary>

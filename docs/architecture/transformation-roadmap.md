@@ -421,6 +421,18 @@ flowchart TB
   - Different modifier contexts have legitimate different patterns
   - Lower priority than decomposition
 
+### 2026-01-09
+- **Completed Summon Abstraction + Stat Pipeline Unification**
+  - Combined two architecture issues into a single cohesive refactor
+  - Created type-safe stat infrastructure: `StatKey` enum, `UnitStats` record, `UnitStatCalculator`
+  - Created summon tracking: `UnitSummon`, `SummonResult`
+  - Extracted from CardFactory: `SpawnPositionCalculator`, `UnitSpawner`
+  - CardFactory reduced from 631 to 431 lines
+  - `execute_summon()` now returns `SummonResult` with unit references
+  - `card.gd` stores summon references, exposes `get_spawned_units()`
+  - All 6 stats now applied (including previously ignored `AggroRadius`)
+  - Architecture issue docs marked RESOLVED
+
 ### 2026-01-08
 - **Completed Phase 5:** C# CardCatalog Migration
   - Created CardCatalog.cs as single source of truth for all card definitions
@@ -441,4 +453,4 @@ flowchart TB
 
 ---
 
-*Last Updated: 2026-01-08*
+*Last Updated: 2026-01-09*

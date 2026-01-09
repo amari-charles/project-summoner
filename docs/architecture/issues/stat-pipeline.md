@@ -1,8 +1,33 @@
 # Stat Pipeline Issue
 
 **Severity:** MEDIUM
-**Status:** Active
+**Status:** RESOLVED
 **Created:** 2026-01-08
+**Resolved:** 2026-01-09
+
+## Resolution Summary
+
+Implemented as part of "Summon Abstraction + Stat Pipeline Unification" plan:
+
+**Files Created:**
+- `scripts/csharp/Stats/StatKey.cs` - Type-safe enum for all unit stats with string conversion
+- `scripts/csharp/Stats/UnitStats.cs` - Immutable record for stat storage with modifier support
+- `scripts/csharp/Stats/UnitStatCalculator.cs` - Centralized calculation with documented order
+
+**Order of Operations (documented in UnitStatCalculator):**
+1. Base stats from CardDefinition
+2. Card upgrade multipliers (multiplicative)
+3. Modifier adds (additive from ModifierService)
+4. Modifier mults (multiplicative from ModifierService)
+5. Custom overrides (replacement for event battles)
+
+**Key Changes:**
+- All 6 stats now applied (including AggroRadius which was previously ignored)
+- Type-safe `StatKey` enum prevents silent failures from unknown stat keys
+- `UnitStats` record provides compile-time safety and immutable stat containers
+- CardFactory uses `UnitStatCalculator.CalculateFromDictionary()` for all stat calculations
+
+---
 
 ## Problem Summary
 

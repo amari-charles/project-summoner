@@ -1,8 +1,27 @@
 # Summon Abstraction Issue
 
 **Severity:** MEDIUM-HIGH
-**Status:** Active
+**Status:** RESOLVED
 **Created:** 2026-01-08
+**Resolved:** 2026-01-09
+
+## Resolution Summary
+
+Implemented as part of "Summon Abstraction + Stat Pipeline Unification" plan:
+
+**Files Created:**
+- `scripts/csharp/Summons/UnitSummon.cs` - Tracks spawned units with death events
+- `scripts/csharp/Summons/SummonResult.cs` - Result wrapper for summon operations
+- `scripts/csharp/Summons/SpawnPositionCalculator.cs` - Safe position calculation
+- `scripts/csharp/Summons/UnitSpawner.cs` - Unit instantiation logic
+
+**Key Changes:**
+- `CardFactory.execute_summon()` now returns `SummonResult` containing `UnitSummon`
+- `card.gd` stores `_active_summon` reference and exposes `get_spawned_units()`
+- CardFactory reduced from 631 to 431 lines via component extraction
+- Cards can now track their spawned units and receive death notifications
+
+---
 
 ## Problem Summary
 

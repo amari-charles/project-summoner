@@ -95,6 +95,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float CollisionRadius { get; set; } = 0.5f;
 
+    [Export]
+    public float AggroRadius { get; set; } = 20f;
+
     // =========================================================================
     // EXPORTED PROPERTIES - Targeting
     // =========================================================================

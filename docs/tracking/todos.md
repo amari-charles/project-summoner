@@ -17,36 +17,6 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
-## Architecture
-
-### 🟡 MEDIUM PRIORITY
-
-#### Introduce Summon Abstraction Layer
-**Status:** ⬜ Not Started
-**Category:** Architecture / Cards
-**Effort:** Large
-**Detailed Doc:** [docs/architecture/issues/summon-abstraction.md](../architecture/issues/summon-abstraction.md)
-
-**Summary:**
-Cards directly call `CardFactory.execute_summon()` without tracking spawned units or emitting events. This prevents on-summon effects, unit tracking, and makes CardFactory a god object (360+ lines).
-
-**Solution:** Create `UnitSummon` class to represent summoning, return unit references to cards, emit summon events.
-
----
-
-#### Unify Stat Pipeline with Validation
-**Status:** ⬜ Not Started
-**Category:** Architecture / Stats
-**Effort:** Large
-**Detailed Doc:** [docs/architecture/issues/stat-pipeline.md](../architecture/issues/stat-pipeline.md)
-
-**Summary:**
-Three separate stat sources (CardCatalog, upgrades, overrides) with no validation. Only 5 stats are actually applied to units - other upgrade stats fail silently. Summoner bonuses defined but never applied to units.
-
-**Solution:** Create `UnitStatCalculator` with documented order of operations, `StatKey` enum for validation, connect summoner bonuses.
-
----
-
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY

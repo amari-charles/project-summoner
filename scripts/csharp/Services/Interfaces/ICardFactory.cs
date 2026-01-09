@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Summons;
 
 namespace ProjectSummoner.Services.Interfaces;
 
@@ -44,8 +45,9 @@ public interface ICardFactory
 
     /// <summary>
     /// Execute a summon at the given position.
+    /// Returns a SummonResult containing the UnitSummon tracker or error.
     /// </summary>
-    void execute_summon(
+    SummonResult execute_summon(
         string catalogId,
         Vector3 position,
         int team,
