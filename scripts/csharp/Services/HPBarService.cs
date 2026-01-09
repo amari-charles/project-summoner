@@ -256,15 +256,15 @@ public partial class HPBarService : Node
         var settings = HPBarSettings.Default;
 
         if (dict.TryGetValue("bar_width", out var bw) || dict.TryGetValue("BarWidth", out bw))
-            settings.BarWidth = (float)bw;
+            settings.BarWidth = System.Convert.ToSingle(bw);
         if (dict.TryGetValue("bar_height", out var bh) || dict.TryGetValue("BarHeight", out bh))
-            settings.BarHeight = (float)bh;
+            settings.BarHeight = System.Convert.ToSingle(bh);
         if (dict.TryGetValue("offset_y", out var oy) || dict.TryGetValue("OffsetY", out oy))
-            settings.OffsetY = (float)oy;
+            settings.OffsetY = System.Convert.ToSingle(oy);
         if (dict.TryGetValue("show_on_damage_only", out var sod) || dict.TryGetValue("ShowOnDamageOnly", out sod))
-            settings.ShowOnDamageOnly = (bool)sod;
+            settings.ShowOnDamageOnly = System.Convert.ToBoolean(sod);
         if (dict.TryGetValue("fade_delay", out var fd) || dict.TryGetValue("FadeDelay", out fd))
-            settings.FadeDelay = (float)fd;
+            settings.FadeDelay = System.Convert.ToSingle(fd);
 
         return settings;
     }
@@ -388,6 +388,17 @@ public partial class HPBarService : Node
 /// </summary>
 public struct HPBarSettings
 {
+    // Default dimensions in world units (sized for typical unit sprites)
+    public const float DefaultBarWidth = 0.8f;
+    public const float DefaultBarHeight = 0.08f;
+
+    // Vertical offset above unit origin (accounts for average unit sprite height + padding)
+    public const float DefaultOffsetY = 3.2f;
+
+    // Timing for fade behavior (in seconds)
+    public const float DefaultFadeDelay = 3.0f;
+    public const float DefaultFadeDuration = 0.5f;
+
     public float BarWidth;
     public float BarHeight;
     public float OffsetY;
@@ -397,21 +408,21 @@ public struct HPBarSettings
 
     public static HPBarSettings Default => new()
     {
-        BarWidth = 0.8f,
-        BarHeight = 0.08f,
-        OffsetY = 3.2f,
+        BarWidth = DefaultBarWidth,
+        BarHeight = DefaultBarHeight,
+        OffsetY = DefaultOffsetY,
         ShowOnDamageOnly = true,
-        FadeDelay = 3.0f,
-        FadeDuration = 0.5f
+        FadeDelay = DefaultFadeDelay,
+        FadeDuration = DefaultFadeDuration
     };
 
     public static HPBarSettings AlwaysVisible => new()
     {
-        BarWidth = 0.8f,
-        BarHeight = 0.08f,
-        OffsetY = 3.2f,
+        BarWidth = DefaultBarWidth,
+        BarHeight = DefaultBarHeight,
+        OffsetY = DefaultOffsetY,
         ShowOnDamageOnly = false,
-        FadeDelay = 3.0f,
-        FadeDuration = 0.5f
+        FadeDelay = DefaultFadeDelay,
+        FadeDuration = DefaultFadeDuration
     };
 }

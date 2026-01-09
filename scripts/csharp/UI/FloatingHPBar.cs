@@ -10,18 +10,21 @@ namespace ProjectSummoner.UI;
 /// </summary>
 public partial class FloatingHPBar : Node3D
 {
-    private const float BaseHpBarHeight = 3.2f;
+    // Texture dimensions for the bar image (in pixels)
     private const int TextureWidth = 100;
     private const int TextureHeight = 12;
 
+    // Padding above sprite when calculating dynamic offset (in world units)
+    private const float OffsetPadding = 0.8f;
+
     #region Configuration
 
-    public float BarWidth { get; set; } = 0.8f;
-    public float BarHeight { get; set; } = 0.08f;
-    public float OffsetY { get; set; } = 3.2f;
+    public float BarWidth { get; set; } = HPBarSettings.DefaultBarWidth;
+    public float BarHeight { get; set; } = HPBarSettings.DefaultBarHeight;
+    public float OffsetY { get; set; } = HPBarSettings.DefaultOffsetY;
     public bool ShowOnDamageOnly { get; set; } = true;
-    public float FadeDelay { get; set; } = 3.0f;
-    public float FadeDuration { get; set; } = 0.5f;
+    public float FadeDelay { get; set; } = HPBarSettings.DefaultFadeDelay;
+    public float FadeDuration { get; set; } = HPBarSettings.DefaultFadeDuration;
 
     // Colors
     public Color ColorFull { get; set; } = Colors.Green;
@@ -231,12 +234,12 @@ public partial class FloatingHPBar : Node3D
         _cachedOffsetX = 0f;
 
         // Reset configuration to defaults
-        BarWidth = 0.8f;
-        BarHeight = 0.08f;
-        OffsetY = 3.2f;
+        BarWidth = HPBarSettings.DefaultBarWidth;
+        BarHeight = HPBarSettings.DefaultBarHeight;
+        OffsetY = HPBarSettings.DefaultOffsetY;
         ShowOnDamageOnly = true;
-        FadeDelay = 3.0f;
-        FadeDuration = 0.5f;
+        FadeDelay = HPBarSettings.DefaultFadeDelay;
+        FadeDuration = HPBarSettings.DefaultFadeDuration;
 
         // Reset sprite properties
         if (_sprite != null)
@@ -425,13 +428,13 @@ public partial class FloatingHPBar : Node3D
     private float CalculateBarOffset()
     {
         if (_trackedNode == null)
-            return BaseHpBarHeight;
+            return HPBarSettings.DefaultOffsetY;
 
         var visual = _trackedNode.GetNodeOrNull("Visual");
         if (visual == null)
         {
             // Bases don't have Visual components
-            return BaseHpBarHeight;
+            return HPBarSettings.DefaultOffsetY;
         }
 
         // Query sprite height from visual component
@@ -442,12 +445,11 @@ public partial class FloatingHPBar : Node3D
             // Scale factor from parent
             var scaleFactor = _trackedNode.Scale.Y;
             var scaledSpriteHeight = spriteHeight * scaleFactor;
-            var padding = 0.8f;
 
-            return scaledSpriteHeight + padding;
+            return scaledSpriteHeight + OffsetPadding;
         }
 
-        return BaseHpBarHeight;
+        return HPBarSettings.DefaultOffsetY;
     }
 
     #endregion
