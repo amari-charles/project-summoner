@@ -6,6 +6,53 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## Architecture
 
+### Summon Abstraction + Stat Pipeline Unification
+**Completed:** 2026-01-09
+**Category:** Architecture / Cards / Stats
+**Effort:** Large
+
+**Problem:**
+1. Cards lost references to spawned units after summoning
+2. CardFactory was a 630+ line god object handling too many concerns
+3. Stats were passed as string-keyed dictionaries with silent failures
+4. Only 5 of 6 stats were actually applied to units (AggroRadius was ignored)
+
+**Solution Implemented:**
+- Created `StatKey` enum with type-safe stat identifiers and string conversion
+- Created `UnitStats` immutable record for stat storage
+- Created `UnitStatCalculator` with documented order of operations (base → upgrades → adds → mults → overrides)
+- Created `UnitSummon` class to track spawned units with death events
+- Created `SummonResult` wrapper for summon operation results
+- Extracted `SpawnPositionCalculator` from CardFactory (safe position logic)
+- Extracted `UnitSpawner` from CardFactory (unit instantiation)
+- `CardFactory.execute_summon()` now returns `SummonResult` with unit references
+- `card.gd` stores `_active_summon` and exposes `get_spawned_units()`
+- CardFactory reduced from 631 to 431 lines
+
+**Files Created:**
+- `scripts/csharp/Stats/StatKey.cs`
+- `scripts/csharp/Stats/UnitStats.cs`
+- `scripts/csharp/Stats/UnitStatCalculator.cs`
+- `scripts/csharp/Summons/UnitSummon.cs`
+- `scripts/csharp/Summons/SummonResult.cs`
+- `scripts/csharp/Summons/SpawnPositionCalculator.cs`
+- `scripts/csharp/Summons/UnitSpawner.cs`
+- `tests/csharp/Stats/StatKeyTest.cs`
+- `tests/csharp/Stats/UnitStatsTest.cs`
+- `tests/csharp/Stats/UnitStatCalculatorTest.cs`
+
+**Files Modified:**
+- `scripts/csharp/Cards/CardFactory.cs` - Uses extracted components
+- `scripts/csharp/Services/Interfaces/ICardFactory.cs` - Returns `SummonResult`
+- `scripts/csharp/Units/Unit3D.cs` - Added `AggroRadius` property
+- `scripts/cards/card.gd` - Stores `UnitSummon`, exposes `get_spawned_units()`
+
+**Architecture Documents:**
+- `docs/architecture/issues/summon-abstraction.md` - Marked RESOLVED
+- `docs/architecture/issues/stat-pipeline.md` - Marked RESOLVED
+
+---
+
 ### HP Bar Lifecycle Fix - GDScript to C# Migration
 **Completed:** 2026-01-08
 **Category:** Architecture / UI
@@ -1398,4 +1445,4 @@ Improved the visual presentation of cards in the player's hand.
 
 ---
 
-*Last Updated: 2026-01-06 - Added Architecture section (DRY Audit, Modifier Migration, Service Interfaces)*
+*Last Updated: 2026-01-09 - Added Summon Abstraction + Stat Pipeline Unification*

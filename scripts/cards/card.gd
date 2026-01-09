@@ -38,6 +38,10 @@ var _csharp_summon_id: String = ""
 ## Event sequence stat overrides (set by EventSequencer before spawning)
 var custom_stat_overrides: Dictionary = {}
 
+## Active summon tracker - stores reference to UnitSummon from C# CardFactory
+## Used to track spawned units and receive death notifications
+var _active_summon: RefCounted = null
+
 ## =============================================================================
 ## PROPERTY ACCESSORS (delegate to config for backward compatibility)
 ## =============================================================================
@@ -251,8 +255,8 @@ func _execute_csharp_summon(spawn_pos: Vector3, team: UnitConstants.Team, battle
 	# Get effective stats (with upgrades applied)
 	var effective_stats: Dictionary = get_effective_stats()
 
-	# Execute summon via factory
-	factory.execute_summon(
+	# Execute summon via factory - now returns SummonResult
+	var result: RefCounted = factory.execute_summon(
 		_csharp_summon_id,
 		spawn_pos,
 		int(team),
@@ -264,6 +268,12 @@ func _execute_csharp_summon(spawn_pos: Vector3, team: UnitConstants.Team, battle
 		instance_id,
 		spawn_duration
 	)
+
+	# Store summon tracker if successful
+	if result and result.Success:
+		_active_summon = result.Summon
+	elif result:
+		push_error("Card: Summon failed for '%s': %s" % [_csharp_summon_id, result.Error])
 
 
 ## Get CardFactory autoload safely
@@ -277,3 +287,35 @@ func _get_card_factory() -> Node:
 		return null
 
 	return tree.root.get_node_or_null("/root/CardFactory")
+
+
+## =============================================================================
+## SUMMON TRACKING
+## =============================================================================
+
+## Get all alive units spawned by this card
+## Returns empty array if no summon active or all units dead
+## Note: C# returns Array<Unit3D>, implicitly cast to Array[Node3D] since Unit3D extends Node3D
+func get_spawned_units() -> Array[Node3D]:
+	if _active_summon and _active_summon.has_method("GetAliveUnitsArray"):
+		return _active_summon.GetAliveUnitsArray()
+	return []
+
+## Get the active summon tracker (UnitSummon) if one exists
+## Returns null if no summon has been executed or summon failed
+func get_active_summon() -> RefCounted:
+	return _active_summon
+
+## Check if this card has any alive units from its summon
+func has_alive_units() -> bool:
+	return _active_summon != null and _active_summon.HasAliveUnits
+
+## Get count of alive units from this card's summon
+func get_alive_unit_count() -> int:
+	if _active_summon:
+		return _active_summon.AliveCount
+	return 0
+
+## Clear the active summon reference (for cleanup/resetting)
+func clear_summon() -> void:
+	_active_summon = null

@@ -9,20 +9,22 @@ This project uses two testing frameworks:
 ### Running All C# Tests
 
 ```bash
-dotnet test
+dotnet test --settings test.runsettings
 ```
+
+The `test.runsettings` file configures the GODOT_BIN path for the test adapter. Tests themselves don't require Godot runtime - they use pure C# types internally.
 
 ### Running Specific Tests
 
 ```bash
 # Run tests by class name
-dotnet test --filter "FullyQualifiedName~CardCatalogTest"
+dotnet test --settings test.runsettings --filter "FullyQualifiedName~CardCatalogTest"
 
 # Run a single test
-dotnet test --filter "FullyQualifiedName~GetCard_ReturnsCardDefinition"
+dotnet test --settings test.runsettings --filter "FullyQualifiedName~GetCard_ReturnsCardDefinition"
 
 # Run tests with verbose output
-dotnet test --logger "console;verbosity=detailed"
+dotnet test --settings test.runsettings --logger "console;verbosity=detailed"
 ```
 
 ### Test Location
@@ -57,8 +59,8 @@ public class MyTest
 
 ### Key Features
 
-- **Runs without Godot runtime** by default (fast, ~60ms for 19 tests)
-- Use `[RequireGodotRuntime]` attribute for tests that need Godot features
+- **Runs without Godot runtime** - tests use pure C# types internally (~90ms for 74 tests)
+- Uses `test.runsettings` to configure the test adapter's GODOT_BIN path
 - Works with `dotnet test` command (CI/CD friendly)
 - IDE integration with VS Code, Rider, Visual Studio
 
@@ -149,7 +151,7 @@ For CI pipelines:
 ```yaml
 # Example GitHub Actions
 - name: Run C# Tests
-  run: dotnet test --configuration Release
+  run: dotnet test --settings test.runsettings --configuration Release
 
 - name: Run GDScript Tests (Headless)
   run: godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
@@ -160,3 +162,5 @@ For CI pipelines:
     # Download and extract Godot .NET
     # Run: godot-mono -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
+
+Note: The `test.runsettings` file contains the GODOT_BIN path. For CI, you may need to update this path or set the `GODOT_BIN` environment variable to match your CI environment's Godot installation.
