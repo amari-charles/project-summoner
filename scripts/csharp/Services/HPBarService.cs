@@ -253,20 +253,60 @@ public partial class HPBarService : Node
         if (dict == null)
             return HPBarSettings.Default;
 
-        var settings = HPBarSettings.Default;
+        var defaults = HPBarSettings.Default;
 
-        if (dict.TryGetValue("bar_width", out var bw) || dict.TryGetValue("BarWidth", out bw))
-            settings.BarWidth = System.Convert.ToSingle(bw);
-        if (dict.TryGetValue("bar_height", out var bh) || dict.TryGetValue("BarHeight", out bh))
-            settings.BarHeight = System.Convert.ToSingle(bh);
-        if (dict.TryGetValue("offset_y", out var oy) || dict.TryGetValue("OffsetY", out oy))
-            settings.OffsetY = System.Convert.ToSingle(oy);
-        if (dict.TryGetValue("show_on_damage_only", out var sod) || dict.TryGetValue("ShowOnDamageOnly", out sod))
-            settings.ShowOnDamageOnly = System.Convert.ToBoolean(sod);
-        if (dict.TryGetValue("fade_delay", out var fd) || dict.TryGetValue("FadeDelay", out fd))
-            settings.FadeDelay = System.Convert.ToSingle(fd);
+        return new HPBarSettings
+        {
+            BarWidth = GetFloat(dict, "bar_width", "BarWidth", defaults.BarWidth),
+            BarHeight = GetFloat(dict, "bar_height", "BarHeight", defaults.BarHeight),
+            OffsetY = GetFloat(dict, "offset_y", "OffsetY", defaults.OffsetY),
+            OffsetZ = GetFloat(dict, "offset_z", "OffsetZ", defaults.OffsetZ),
+            ShowOnDamageOnly = GetBool(dict, "show_on_damage_only", "ShowOnDamageOnly", defaults.ShowOnDamageOnly),
+            FadeDelay = GetFloat(dict, "fade_delay", "FadeDelay", defaults.FadeDelay),
+            FadeDuration = GetFloat(dict, "fade_duration", "FadeDuration", defaults.FadeDuration),
+            ThresholdMid = GetFloat(dict, "threshold_mid", "ThresholdMid", defaults.ThresholdMid),
+            ThresholdLow = GetFloat(dict, "threshold_low", "ThresholdLow", defaults.ThresholdLow),
+            AnimationSpeed = GetFloat(dict, "animation_speed", "AnimationSpeed", defaults.AnimationSpeed),
+            ColorFull = GetColor(dict, "color_full", "ColorFull"),
+            ColorMid = GetColor(dict, "color_mid", "ColorMid"),
+            ColorLow = GetColor(dict, "color_low", "ColorLow"),
+            ColorBackground = GetColor(dict, "color_background", "ColorBackground")
+        };
+    }
 
-        return settings;
+    private static float GetFloat(Godot.Collections.Dictionary dict, string snakeKey, string pascalKey, float defaultValue)
+    {
+        if (dict.TryGetValue(snakeKey, out var val) || dict.TryGetValue(pascalKey, out val))
+        {
+            // Handle Godot Variant types properly
+            return val.VariantType switch
+            {
+                Variant.Type.Float => (float)val.AsDouble(),
+                Variant.Type.Int => val.AsInt32(),
+                _ => defaultValue
+            };
+        }
+        return defaultValue;
+    }
+
+    private static bool GetBool(Godot.Collections.Dictionary dict, string snakeKey, string pascalKey, bool defaultValue)
+    {
+        if (dict.TryGetValue(snakeKey, out var val) || dict.TryGetValue(pascalKey, out val))
+        {
+            if (val.VariantType == Variant.Type.Bool)
+                return val.AsBool();
+        }
+        return defaultValue;
+    }
+
+    private static Color? GetColor(Godot.Collections.Dictionary dict, string snakeKey, string pascalKey)
+    {
+        if (dict.TryGetValue(snakeKey, out var val) || dict.TryGetValue(pascalKey, out val))
+        {
+            if (val.VariantType == Variant.Type.Color)
+                return val.AsColor();
+        }
+        return null;
     }
 
     #endregion
@@ -385,8 +425,9 @@ public partial class HPBarService : Node
 
 /// <summary>
 /// Settings for HP bar appearance and behavior.
+/// Immutable struct - create new instances via With* methods or factory methods.
 /// </summary>
-public struct HPBarSettings
+public readonly struct HPBarSettings
 {
     // Default dimensions in world units (sized for typical unit sprites)
     public const float DefaultBarWidth = 0.8f;
@@ -395,25 +436,60 @@ public struct HPBarSettings
     // Vertical offset above unit origin (accounts for average unit sprite height + padding)
     public const float DefaultOffsetY = 3.2f;
 
+    // Z offset toward camera (negative Z = closer to camera)
+    public const float DefaultOffsetZ = -0.5f;
+
     // Timing for fade behavior (in seconds)
     public const float DefaultFadeDelay = 3.0f;
     public const float DefaultFadeDuration = 0.5f;
 
-    public float BarWidth;
-    public float BarHeight;
-    public float OffsetY;
-    public bool ShowOnDamageOnly;
-    public float FadeDelay;
-    public float FadeDuration;
+    // Default color thresholds
+    public const float DefaultThresholdMid = 0.5f;
+    public const float DefaultThresholdLow = 0.25f;
+
+    // HP drain animation speed (percent per second)
+    public const float DefaultAnimationSpeed = 2.0f;
+
+    // Dimensions
+    public float BarWidth { get; init; }
+    public float BarHeight { get; init; }
+    public float OffsetY { get; init; }
+    public float OffsetZ { get; init; }
+
+    // Behavior
+    public bool ShowOnDamageOnly { get; init; }
+    public float FadeDelay { get; init; }
+    public float FadeDuration { get; init; }
+
+    // Color thresholds (configurable per bar type)
+    public float ThresholdMid { get; init; }
+    public float ThresholdLow { get; init; }
+
+    // Animation
+    public float AnimationSpeed { get; init; }
+
+    // Colors (optional overrides - null uses shader defaults)
+    public Color? ColorFull { get; init; }
+    public Color? ColorMid { get; init; }
+    public Color? ColorLow { get; init; }
+    public Color? ColorBackground { get; init; }
 
     public static HPBarSettings Default => new()
     {
         BarWidth = DefaultBarWidth,
         BarHeight = DefaultBarHeight,
         OffsetY = DefaultOffsetY,
+        OffsetZ = DefaultOffsetZ,
         ShowOnDamageOnly = true,
         FadeDelay = DefaultFadeDelay,
-        FadeDuration = DefaultFadeDuration
+        FadeDuration = DefaultFadeDuration,
+        ThresholdMid = DefaultThresholdMid,
+        ThresholdLow = DefaultThresholdLow,
+        AnimationSpeed = DefaultAnimationSpeed,
+        ColorFull = null,
+        ColorMid = null,
+        ColorLow = null,
+        ColorBackground = null
     };
 
     public static HPBarSettings AlwaysVisible => new()
@@ -421,8 +497,65 @@ public struct HPBarSettings
         BarWidth = DefaultBarWidth,
         BarHeight = DefaultBarHeight,
         OffsetY = DefaultOffsetY,
+        OffsetZ = DefaultOffsetZ,
         ShowOnDamageOnly = false,
         FadeDelay = DefaultFadeDelay,
-        FadeDuration = DefaultFadeDuration
+        FadeDuration = DefaultFadeDuration,
+        ThresholdMid = DefaultThresholdMid,
+        ThresholdLow = DefaultThresholdLow,
+        AnimationSpeed = DefaultAnimationSpeed,
+        ColorFull = null,
+        ColorMid = null,
+        ColorLow = null,
+        ColorBackground = null
+    };
+
+    /// <summary>
+    /// Create boss-style settings with lower thresholds (yellow at 25%, red at 10%).
+    /// </summary>
+    public static HPBarSettings Boss => new()
+    {
+        BarWidth = 1.2f,
+        BarHeight = 0.12f,
+        OffsetY = DefaultOffsetY,
+        OffsetZ = DefaultOffsetZ,
+        ShowOnDamageOnly = false,
+        FadeDelay = DefaultFadeDelay,
+        FadeDuration = DefaultFadeDuration,
+        ThresholdMid = 0.25f,
+        ThresholdLow = 0.1f,
+        AnimationSpeed = DefaultAnimationSpeed,
+        ColorFull = null,
+        ColorMid = null,
+        ColorLow = null,
+        ColorBackground = null
+    };
+
+    /// <summary>
+    /// Create settings with custom color thresholds.
+    /// </summary>
+    public HPBarSettings WithThresholds(float mid, float low) => this with
+    {
+        ThresholdMid = mid,
+        ThresholdLow = low
+    };
+
+    /// <summary>
+    /// Create settings with custom colors.
+    /// </summary>
+    public HPBarSettings WithColors(Color full, Color mid, Color low) => this with
+    {
+        ColorFull = full,
+        ColorMid = mid,
+        ColorLow = low
+    };
+
+    /// <summary>
+    /// Create settings with custom size.
+    /// </summary>
+    public HPBarSettings WithSize(float width, float height) => this with
+    {
+        BarWidth = width,
+        BarHeight = height
     };
 }

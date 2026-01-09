@@ -177,6 +177,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float ShadowOpacity { get; set; } = 0.6f;
 
+    /// <summary>
+    /// HP bar Y offset override. Set to 0 to auto-calculate from sprite height.
+    /// Use this for units where auto-calculation doesn't work well.
+    /// </summary>
+    [Export]
+    public float HpBarOffsetY { get; set; } = 0f;
+
     // =========================================================================
     // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
@@ -986,7 +993,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         SpatialGrid.Instance?.RegisterUnit(this);
 
         // Register with HPBarService (C#)
-        HPBarService.Instance?.CreateBarForUnit(this);
+        // Use custom offset if specified, otherwise use defaults (auto-calculates from sprite)
+        if (HpBarOffsetY > 0)
+        {
+            var settings = HPBarSettings.Default with { OffsetY = HpBarOffsetY };
+            HPBarService.Instance?.CreateBarForUnit(this, settings);
+        }
+        else
+        {
+            HPBarService.Instance?.CreateBarForUnit(this);
+        }
     }
 
     private void UnregisterFromExternalSystems()

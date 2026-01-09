@@ -6,31 +6,31 @@ namespace ProjectSummoner.UI;
 
 /// <summary>
 /// 3D floating health bar that follows a unit.
+/// Uses GPU shader for efficient rendering.
 /// Managed by HPBarService for pooling.
 /// </summary>
 public partial class FloatingHPBar : Node3D
 {
-    // Texture dimensions for the bar image (in pixels)
-    private const int TextureWidth = 100;
-    private const int TextureHeight = 12;
+    private const string ShaderPath = "res://shaders/ui/hp_bar.gdshader";
 
     // Padding above sprite when calculating dynamic offset (in world units)
     private const float OffsetPadding = 0.8f;
 
-    #region Configuration
+    // Damage flash duration
+    private const float DamageFlashDuration = 0.15f;
 
-    public float BarWidth { get; set; } = HPBarSettings.DefaultBarWidth;
-    public float BarHeight { get; set; } = HPBarSettings.DefaultBarHeight;
-    public float OffsetY { get; set; } = HPBarSettings.DefaultOffsetY;
-    public bool ShowOnDamageOnly { get; set; } = true;
-    public float FadeDelay { get; set; } = HPBarSettings.DefaultFadeDelay;
-    public float FadeDuration { get; set; } = HPBarSettings.DefaultFadeDuration;
+    #region Configuration (from HPBarSettings)
 
-    // Colors
-    public Color ColorFull { get; set; } = Colors.Green;
-    public Color ColorMid { get; set; } = Colors.Yellow;
-    public Color ColorLow { get; set; } = Colors.Red;
-    public Color BackgroundColor { get; set; } = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+    private float _barWidth = HPBarSettings.DefaultBarWidth;
+    private float _barHeight = HPBarSettings.DefaultBarHeight;
+    private float _offsetY = HPBarSettings.DefaultOffsetY;
+    private float _offsetZ = HPBarSettings.DefaultOffsetZ;
+    private bool _showOnDamageOnly = true;
+    private float _fadeDelay = HPBarSettings.DefaultFadeDelay;
+    private float _fadeDuration = HPBarSettings.DefaultFadeDuration;
+    private float _thresholdMid = HPBarSettings.DefaultThresholdMid;
+    private float _thresholdLow = HPBarSettings.DefaultThresholdLow;
+    private float _animationSpeed = HPBarSettings.DefaultAnimationSpeed;
 
     #endregion
 
@@ -38,19 +38,22 @@ public partial class FloatingHPBar : Node3D
 
     private Node3D? _trackedNode;
     private Unit3D? _trackedUnit;
-    private float _currentHp = 100f;
+    private float _targetHpPercent = 1f;
+    private float _displayHpPercent = 1f;
+    private float _shieldPercent;
     private float _maxHp = 100f;
     private float _fadeTimer;
     private bool _barIsVisible = true;
     private float _cachedOffsetX;
+    private float _damageFlashTimer;
 
     #endregion
 
     #region Visuals
 
-    private Sprite3D? _sprite;
-    private Image? _barImage;
-    private ImageTexture? _barTexture;
+    private MeshInstance3D? _meshInstance;
+    private ShaderMaterial? _shaderMaterial;
+    private static Shader? _cachedShader;
     private Tween? _fadeTween;
 
     #endregion
@@ -60,7 +63,7 @@ public partial class FloatingHPBar : Node3D
 
     public override void _Ready()
     {
-        CreateSpriteVisuals();
+        CreateShaderVisuals();
     }
 
     public override void _ExitTree()
@@ -71,21 +74,37 @@ public partial class FloatingHPBar : Node3D
 
     public override void _Process(double delta)
     {
+        float deltaF = (float)delta;
+
+        // Animate display percent toward target (smooth HP drain)
+        if (!Mathf.IsEqualApprox(_displayHpPercent, _targetHpPercent))
+        {
+            _displayHpPercent = Mathf.MoveToward(_displayHpPercent, _targetHpPercent, _animationSpeed * deltaF);
+            UpdateShaderDisplayPercent();
+        }
+
+        // Update damage flash
+        if (_damageFlashTimer > 0)
+        {
+            _damageFlashTimer -= deltaF;
+            float flashIntensity = Mathf.Clamp(_damageFlashTimer / DamageFlashDuration, 0f, 1f);
+            _shaderMaterial?.SetShaderParameter("damage_flash", flashIntensity);
+        }
+
+        // Follow tracked node
         if (_trackedNode == null || !IsInstanceValid(_trackedNode))
             return;
 
-        // Safety check: ensure both we and the target are in the scene tree
         if (!IsInsideTree() || !_trackedNode.IsInsideTree())
             return;
 
-        // Follow target with cached offsets
-        var targetPos = _trackedNode.GlobalPosition + new Vector3(_cachedOffsetX, OffsetY, 0);
+        var targetPos = _trackedNode.GlobalPosition + new Vector3(_cachedOffsetX, _offsetY, _offsetZ);
         GlobalPosition = targetPos;
 
         // Handle fade timer
-        if (ShowOnDamageOnly && _fadeTimer > 0)
+        if (_showOnDamageOnly && _fadeTimer > 0)
         {
-            _fadeTimer -= (float)delta;
+            _fadeTimer -= deltaF;
             if (_fadeTimer <= 0)
             {
                 FadeOut();
@@ -100,24 +119,36 @@ public partial class FloatingHPBar : Node3D
     /// </summary>
     public void Configure(HPBarSettings settings)
     {
-        BarWidth = settings.BarWidth;
-        BarHeight = settings.BarHeight;
-        OffsetY = settings.OffsetY;
-        ShowOnDamageOnly = settings.ShowOnDamageOnly;
-        FadeDelay = settings.FadeDelay;
-        FadeDuration = settings.FadeDuration;
+        _barWidth = settings.BarWidth;
+        _barHeight = settings.BarHeight;
+        _offsetY = settings.OffsetY;
+        _offsetZ = settings.OffsetZ;
+        _showOnDamageOnly = settings.ShowOnDamageOnly;
+        _fadeDelay = settings.FadeDelay;
+        _fadeDuration = settings.FadeDuration;
+        _thresholdMid = settings.ThresholdMid;
+        _thresholdLow = settings.ThresholdLow;
+        _animationSpeed = settings.AnimationSpeed;
+
+        // Apply size to mesh
+        UpdateMeshSize();
+
+        // Apply shader parameters
+        ApplyShaderColors(settings);
+        _shaderMaterial?.SetShaderParameter("threshold_mid", _thresholdMid);
+        _shaderMaterial?.SetShaderParameter("threshold_low", _thresholdLow);
     }
 
     /// <summary>
     /// Track a Unit3D. Connects to HpChanged and TreeExiting signals.
-    /// THE FIX: TreeExiting ensures cleanup even if unit is freed unexpectedly.
+    /// TreeExiting ensures cleanup even if unit is freed unexpectedly.
     /// </summary>
     public void TrackUnit(Unit3D unit)
     {
         _trackedUnit = unit;
         _trackedNode = unit;
 
-        // THE FIX: Connect to TreeExiting for guaranteed cleanup
+        // Connect to TreeExiting for guaranteed cleanup
         unit.TreeExiting += OnTrackedNodeExiting;
 
         // Connect to HP changes
@@ -194,27 +225,47 @@ public partial class FloatingHPBar : Node3D
     /// </summary>
     public void UpdateHp(float current, float max)
     {
-        _currentHp = current;
+        bool wasDamaged = current < (_targetHpPercent * _maxHp);
         _maxHp = max;
+        _targetHpPercent = max > 0 ? Mathf.Clamp(current / max, 0f, 1f) : 0f;
 
-        var hpPercent = _maxHp > 0 ? Mathf.Clamp(_currentHp / _maxHp, 0f, 1f) : 0f;
+        // Update the actual HP percent in shader (color calculation uses this)
+        _shaderMaterial?.SetShaderParameter("hp_percent", _targetHpPercent);
 
-        // Redraw the bar texture
-        RedrawBarTexture(hpPercent);
-
-        // Handle show_on_damage_only behavior
-        if (ShowOnDamageOnly)
+        // Trigger damage flash on HP decrease
+        if (wasDamaged && _damageFlashTimer <= 0)
         {
-            if (hpPercent < 1f)
+            _damageFlashTimer = DamageFlashDuration;
+        }
+
+        // Handle visibility based on settings
+        if (_showOnDamageOnly)
+        {
+            // Only show when damaged
+            if (_targetHpPercent < 1f)
             {
-                Show();
-                _fadeTimer = FadeDelay;
+                ShowBar();
+                _fadeTimer = _fadeDelay;
             }
             else
             {
                 HideImmediate();
             }
         }
+        else
+        {
+            // Always visible mode - ensure bar is shown
+            ShowBar();
+        }
+    }
+
+    /// <summary>
+    /// Update shield display (0-1 percentage, renders as overlay).
+    /// </summary>
+    public void UpdateShield(float shieldPercent)
+    {
+        _shieldPercent = Mathf.Clamp(shieldPercent, 0f, 1f);
+        _shaderMaterial?.SetShaderParameter("shield_percent", _shieldPercent);
     }
 
     /// <summary>
@@ -226,29 +277,47 @@ public partial class FloatingHPBar : Node3D
         Detach();
 
         // Reset state
-        _currentHp = 100f;
+        _targetHpPercent = 1f;
+        _displayHpPercent = 1f;
+        _shieldPercent = 0f;
         _maxHp = 100f;
         _fadeTimer = 0f;
         _barIsVisible = false;
         Visible = false;
         _cachedOffsetX = 0f;
+        _damageFlashTimer = 0f;
 
         // Reset configuration to defaults
-        BarWidth = HPBarSettings.DefaultBarWidth;
-        BarHeight = HPBarSettings.DefaultBarHeight;
-        OffsetY = HPBarSettings.DefaultOffsetY;
-        ShowOnDamageOnly = true;
-        FadeDelay = HPBarSettings.DefaultFadeDelay;
-        FadeDuration = HPBarSettings.DefaultFadeDuration;
+        _barWidth = HPBarSettings.DefaultBarWidth;
+        _barHeight = HPBarSettings.DefaultBarHeight;
+        _offsetY = HPBarSettings.DefaultOffsetY;
+        _offsetZ = HPBarSettings.DefaultOffsetZ;
+        _showOnDamageOnly = true;
+        _fadeDelay = HPBarSettings.DefaultFadeDelay;
+        _fadeDuration = HPBarSettings.DefaultFadeDuration;
+        _thresholdMid = HPBarSettings.DefaultThresholdMid;
+        _thresholdLow = HPBarSettings.DefaultThresholdLow;
+        _animationSpeed = HPBarSettings.DefaultAnimationSpeed;
 
-        // Reset sprite properties
-        if (_sprite != null)
+        // Reset mesh size
+        UpdateMeshSize();
+
+        // Reset shader parameters
+        if (_shaderMaterial != null)
         {
-            _sprite.Modulate = Colors.White;
+            _shaderMaterial.SetShaderParameter("hp_percent", 1f);
+            _shaderMaterial.SetShaderParameter("display_percent", 1f);
+            _shaderMaterial.SetShaderParameter("shield_percent", 0f);
+            _shaderMaterial.SetShaderParameter("damage_flash", 0f);
+            _shaderMaterial.SetShaderParameter("threshold_mid", _thresholdMid);
+            _shaderMaterial.SetShaderParameter("threshold_low", _thresholdLow);
         }
 
-        // Redraw at full HP
-        RedrawBarTexture(1f);
+        // Reset mesh opacity
+        if (_meshInstance != null)
+        {
+            _meshInstance.Transparency = 0f;
+        }
     }
 
     #endregion
@@ -256,12 +325,11 @@ public partial class FloatingHPBar : Node3D
     #region Signal Handlers
 
     /// <summary>
-    /// THE FIX: Called when tracked node is about to exit the tree.
+    /// Called when tracked node is about to exit the tree.
     /// This fires BEFORE the node is freed, guaranteeing cleanup.
     /// </summary>
     private void OnTrackedNodeExiting()
     {
-        // Remove ourselves from the service
         if (_trackedNode != null)
         {
             HPBarService.Instance?.RemoveBar(_trackedNode);
@@ -277,93 +345,94 @@ public partial class FloatingHPBar : Node3D
 
     #region Visual Rendering
 
-    private void CreateSpriteVisuals()
+    private void CreateShaderVisuals()
     {
-        // Create image for drawing
-        _barImage = Image.CreateEmpty(TextureWidth, TextureHeight, false, Image.Format.Rgba8);
-
-        // Draw initial full HP bar
-        RedrawBarTexture(1f);
-
-        // Calculate pixel size to achieve desired world size
-        var pixelsPerUnit = TextureWidth / BarWidth;
-        var pixelSize = 1f / pixelsPerUnit;
-
-        // Create sprite
-        _sprite = new Sprite3D
+        // Load shader (cached across instances)
+        if (_cachedShader == null && ResourceLoader.Exists(ShaderPath))
         {
-            Texture = _barTexture,
-            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
-            NoDepthTest = true,
-            PixelSize = pixelSize,
-            Centered = true
+            _cachedShader = GD.Load<Shader>(ShaderPath);
+        }
+
+        // Create quad mesh
+        var quadMesh = new QuadMesh();
+        quadMesh.Size = new Vector2(_barWidth, _barHeight);
+
+        // Create mesh instance
+        _meshInstance = new MeshInstance3D
+        {
+            Mesh = quadMesh,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
         };
-        AddChild(_sprite);
+
+        // Try to use shader material, fallback to standard material
+        if (_cachedShader != null)
+        {
+            _shaderMaterial = new ShaderMaterial { Shader = _cachedShader };
+            _meshInstance.MaterialOverride = _shaderMaterial;
+
+            // Set initial shader parameters
+            _shaderMaterial.SetShaderParameter("hp_percent", 1f);
+            _shaderMaterial.SetShaderParameter("display_percent", 1f);
+            _shaderMaterial.SetShaderParameter("shield_percent", 0f);
+            _shaderMaterial.SetShaderParameter("damage_flash", 0f);
+            _shaderMaterial.SetShaderParameter("threshold_mid", _thresholdMid);
+            _shaderMaterial.SetShaderParameter("threshold_low", _thresholdLow);
+        }
+        else
+        {
+            // Fallback: use obvious error color so missing shader is visible
+            GD.PushWarning("FloatingHPBar: Shader not found at " + ShaderPath + ", using fallback material");
+            var fallbackMaterial = new StandardMaterial3D
+            {
+                AlbedoColor = Colors.Magenta,
+                ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+                CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+                DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+                NoDepthTest = true,
+                BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled
+            };
+            _meshInstance.MaterialOverride = fallbackMaterial;
+        }
+
+        AddChild(_meshInstance);
     }
 
-    private void RedrawBarTexture(float hpPercent)
+    private void UpdateMeshSize()
     {
-        if (_barImage == null)
+        if (_meshInstance?.Mesh is QuadMesh quadMesh)
+        {
+            quadMesh.Size = new Vector2(_barWidth, _barHeight);
+        }
+    }
+
+    private void UpdateShaderDisplayPercent()
+    {
+        _shaderMaterial?.SetShaderParameter("display_percent", _displayHpPercent);
+    }
+
+    private void ApplyShaderColors(HPBarSettings settings)
+    {
+        if (_shaderMaterial == null)
             return;
 
-        var width = _barImage.GetWidth();
-        var height = _barImage.GetHeight();
-
-        // Calculate bar width in pixels
-        var barPixelWidth = (int)(width * hpPercent);
-
-        // Fill background
-        _barImage.Fill(BackgroundColor);
-
-        // Draw foreground bar
-        if (barPixelWidth > 0)
-        {
-            var barColor = GetHpColor(hpPercent);
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < barPixelWidth; x++)
-                {
-                    _barImage.SetPixel(x, y, barColor);
-                }
-            }
-        }
-
-        // Update texture
-        if (_barTexture != null)
-        {
-            _barTexture.Update(_barImage);
-        }
-        else
-        {
-            _barTexture = ImageTexture.CreateFromImage(_barImage);
-            if (_sprite != null)
-            {
-                _sprite.Texture = _barTexture;
-            }
-        }
-    }
-
-    private Color GetHpColor(float hpPercent)
-    {
-        if (hpPercent > 0.5f)
-        {
-            // Interpolate between mid and full
-            var t = (hpPercent - 0.5f) / 0.5f;
-            return ColorMid.Lerp(ColorFull, t);
-        }
-        else
-        {
-            // Interpolate between low and mid
-            var t = hpPercent / 0.5f;
-            return ColorLow.Lerp(ColorMid, t);
-        }
+        if (settings.ColorFull.HasValue)
+            _shaderMaterial.SetShaderParameter("color_full", settings.ColorFull.Value);
+        if (settings.ColorMid.HasValue)
+            _shaderMaterial.SetShaderParameter("color_mid", settings.ColorMid.Value);
+        if (settings.ColorLow.HasValue)
+            _shaderMaterial.SetShaderParameter("color_low", settings.ColorLow.Value);
+        if (settings.ColorBackground.HasValue)
+            _shaderMaterial.SetShaderParameter("color_background", settings.ColorBackground.Value);
     }
 
     #endregion
 
     #region Visibility
 
-    private new void Show()
+    /// <summary>
+    /// Show the HP bar (renamed from Show to avoid hiding Node.Show).
+    /// </summary>
+    private void ShowBar()
     {
         if (_barIsVisible)
             return;
@@ -371,9 +440,12 @@ public partial class FloatingHPBar : Node3D
         _barIsVisible = true;
         Visible = true;
 
-        if (_sprite != null)
+        // Cancel any fade animation
+        _fadeTween?.Kill();
+
+        if (_meshInstance != null)
         {
-            _sprite.Modulate = new Color(_sprite.Modulate, 1f);
+            _meshInstance.Transparency = 0f;
         }
     }
 
@@ -391,10 +463,10 @@ public partial class FloatingHPBar : Node3D
         _fadeTween?.Kill();
         _fadeTween = CreateTween();
 
-        if (_sprite != null)
+        if (_meshInstance != null)
         {
-            _fadeTween.TweenProperty(_sprite, "modulate:a", 0f, FadeDuration)
-                .From(_sprite.Modulate.A);
+            _fadeTween.TweenProperty(_meshInstance, "transparency", 1f, _fadeDuration)
+                .From(_meshInstance.Transparency);
         }
 
         _fadeTween.Finished += () =>
@@ -413,8 +485,13 @@ public partial class FloatingHPBar : Node3D
         if (_trackedNode == null || !IsInstanceValid(_trackedNode))
             return;
 
-        // Calculate vertical offset
-        OffsetY = CalculateBarOffset();
+        // Try to calculate vertical offset from visual, keep configured value as fallback
+        var calculatedOffset = TryCalculateBarOffset();
+        if (calculatedOffset.HasValue)
+        {
+            _offsetY = calculatedOffset.Value;
+        }
+        // If no visual calculation possible, keep the configured _offsetY
 
         // Cache horizontal offset
         _cachedOffsetX = 0f;
@@ -425,16 +502,20 @@ public partial class FloatingHPBar : Node3D
         }
     }
 
-    private float CalculateBarOffset()
+    /// <summary>
+    /// Try to calculate bar offset from visual component.
+    /// Returns null if no visual or no sprite height method (uses configured offset as fallback).
+    /// </summary>
+    private float? TryCalculateBarOffset()
     {
         if (_trackedNode == null)
-            return HPBarSettings.DefaultOffsetY;
+            return null;
 
         var visual = _trackedNode.GetNodeOrNull("Visual");
         if (visual == null)
         {
-            // Bases don't have Visual components
-            return HPBarSettings.DefaultOffsetY;
+            // Bases/summoners don't have Visual components - use configured offset
+            return null;
         }
 
         // Query sprite height from visual component
@@ -449,7 +530,7 @@ public partial class FloatingHPBar : Node3D
             return scaledSpriteHeight + OffsetPadding;
         }
 
-        return HPBarSettings.DefaultOffsetY;
+        return null;
     }
 
     #endregion

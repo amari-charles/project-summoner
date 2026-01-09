@@ -80,3 +80,75 @@ Manual testing recommended:
 4. AoE kill all ants, verify all bars removed
 5. Exit battle mid-fight, verify no orphaned bars
 6. Check pool stats: `HPBarService.Instance.PrintPoolStats()`
+
+---
+
+## Follow-up Improvements (2026-01-08)
+
+After the initial migration, additional improvements were made to address performance and feature concerns:
+
+### 1. GPU Shader-Based Rendering
+
+**Problem**: The original implementation used CPU-bound pixel-by-pixel texture rendering (`Image.SetPixel` in nested loops), which could cause performance issues with many units.
+
+**Solution**: Created `shaders/ui/hp_bar.gdshader` - a GPU shader that handles:
+- HP bar fill rendering
+- Color interpolation based on HP percentage
+- Shield overlay visualization
+- Damage flash effect
+- Billboard mode (always faces camera)
+
+### 2. Smooth HP Animation
+
+**Problem**: HP changes were instant, lacking visual polish.
+
+**Solution**: Added `display_percent` that lerps toward `target_percent` using configurable `AnimationSpeed`. Creates a smooth "drain" effect when HP decreases.
+
+### 3. Immutable Settings Struct
+
+**Problem**: `HPBarSettings` was a mutable struct, allowing accidental modification.
+
+**Solution**: Made `HPBarSettings` a `readonly struct` with `init` properties. Added fluent `With*` methods for creating modified copies:
+```csharp
+var bossSettings = HPBarSettings.Default
+    .WithThresholds(0.25f, 0.1f)  // Yellow at 25%, red at 10%
+    .WithSize(1.2f, 0.12f);       // Larger bar
+```
+
+### 4. Configurable Color Thresholds
+
+**Problem**: Color thresholds (50% for yellow, below for red) were hardcoded.
+
+**Solution**: Added `ThresholdMid` and `ThresholdLow` to settings, passed to shader as uniforms. Presets include:
+- `HPBarSettings.Default` - Standard thresholds (50%/25%)
+- `HPBarSettings.Boss` - Lower thresholds (25%/10%)
+
+### 5. Shield/Armor Bar Support
+
+**Problem**: No way to visualize shields or temporary HP.
+
+**Solution**: Added `UpdateShield(float percent)` method and shader support for shield overlay (cyan tint over HP bar).
+
+### 6. Code Quality Fixes
+
+- Renamed `Show()` to `ShowBar()` to avoid hiding `Node.Show()` base method
+- Added damage flash effect for visual feedback
+- Switched from `Sprite3D` to `MeshInstance3D` with `QuadMesh` for shader support
+
+### Files Changed (Follow-up)
+
+| Action | File |
+|--------|------|
+| Created | `shaders/ui/hp_bar.gdshader` |
+| Created | `tests/integration/test_hp_bar_lifecycle.gd` |
+| Modified | `scripts/csharp/Services/HPBarService.cs` - Readonly settings, helper methods |
+| Modified | `scripts/csharp/UI/FloatingHPBar.cs` - Shader-based rendering |
+
+### Integration Tests Added
+
+New test file `tests/integration/test_hp_bar_lifecycle.gd` covers:
+- Single unit HP bar creation/cleanup
+- Multi-unit mass death cleanup (Fire Ant Swarm scenario)
+- ClearAllBars for scene transitions
+- Pool reuse verification
+- HP update propagation
