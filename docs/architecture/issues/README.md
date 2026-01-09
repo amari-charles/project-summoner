@@ -20,15 +20,14 @@ These documents provide:
 
 ## Current Issues
 
-| Issue | Severity | Status | Document |
-|-------|----------|--------|----------|
-| Card-Unit Tight Coupling | MEDIUM-HIGH | Active | [summon-abstraction.md](summon-abstraction.md) |
-| Stats/Upgrades Pipeline | MEDIUM | Active | [stat-pipeline.md](stat-pipeline.md) |
+None.
 
 ## Resolved Issues
 
-| Issue | Severity | Resolved | Document |
-|-------|----------|----------|----------|
+| Issue | Severity | Resolved | Notes |
+|-------|----------|----------|-------|
+| Card-Unit Tight Coupling | MEDIUM-HIGH | 2026-01-09 | Created UnitSummon, SummonResult abstractions |
+| Stats/Upgrades Pipeline | MEDIUM | 2026-01-09 | Created StatKey, UnitStats, UnitStatCalculator |
 | HP Bar Cleanup (Multi-Unit Spawns) | HIGH | 2026-01-08 | [resolved/hp-bar-lifecycle.md](resolved/hp-bar-lifecycle.md) |
 
 ## When to Create an Issue Doc

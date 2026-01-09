@@ -336,51 +336,56 @@ flowchart TB
 ---
 
 ### Phase 6: Modifier System Consolidation
-**Status:** [DEFERRED]
+**Status:** [x] CANCELLED - Not Needed
 
-**Problem:** Modifiers applied from 3 different places
-**Solution:** Single ModifierService in C#
+**Original Problem:** Modifiers applied from 3 different places
+**Original Solution:** Single ModifierService in C#
 
-**Deferral Notes:**
-- Current GDScript ModifierSystem + provider pattern is functional
-- Scattering is architectural concern, not functional bug
-- Different contexts legitimately need different application patterns:
-  - Card upgrades = multiplicative progression bonuses
+**Why Cancelled:**
+- Current GDScript ModifierSystem + provider pattern works well
+- "Scattering" is actually appropriate - different contexts need different patterns:
+  - Card upgrades = multiplicative progression bonuses (calculation time)
   - Unit stats = applied at spawn time
-  - Auras = temporary runtime buffs
-- Full consolidation is lower priority than Unit3D decomposition
-
-**Files:**
-- [ ] CREATE: `scripts/csharp/Systems/ModifierService.cs`
-- [ ] MODIFY: `scripts/csharp/Cards/CardFactory.cs` - Use ModifierService
-- [ ] MODIFY: `scripts/csharp/Units/Unit3D.cs` - Use ModifierService
+  - Auras = temporary runtime buffs (dynamic add/remove)
+- Forcing consolidation would create a one-size-fits-all pattern that doesn't fit all use cases
+- No bugs or maintenance pain from current approach
 
 ---
 
 ### Phase 7: Service Contracts
-**Status:** [ ] Not Started
+**Status:** [x] COMPLETED (2026-01-09)
 
 **Problem:** Autoloads assumed, no contracts, hard to test
-**Solution:** Define interfaces, dependency injection
+**Solution:** Define interfaces, services implement them
+
+**Implementation Notes:**
+- All 4 main services already implement their interfaces
+- Interfaces located in `scripts/csharp/Services/Interfaces/`
+- HPBarService interface skipped (only 3 callers, Godot-heavy, low testing benefit)
 
 **Files:**
-- [ ] CREATE: `scripts/csharp/Services/ICardFactory.cs`
-- [ ] CREATE: `scripts/csharp/Services/IModifierSystem.cs`
-- [ ] MODIFY: Services to implement interfaces
+- [x] `scripts/csharp/Services/Interfaces/ICardFactory.cs` - 7 methods
+- [x] `scripts/csharp/Services/Interfaces/IDamageSystem.cs` - 16 methods
+- [x] `scripts/csharp/Services/Interfaces/IPlayerCardService.cs` - 20 methods
+- [x] `scripts/csharp/Services/Interfaces/IModifierService.cs` - 6 methods
+- [x] CardFactory implements ICardFactory
+- [x] DamageSystem implements IDamageSystem
+- [x] PlayerCardService implements IPlayerCardService
+- [x] ModifierService implements IModifierService
 
 ---
 
-## Implementation Order
+## Implementation Order (Historical)
 
-| Order | Phase | Depends On | Reason |
-|-------|-------|------------|--------|
-| 1 | SpawnOrchestrator (Phase 1) | Nothing | Smallest, immediate DRY fix |
-| 2 | Duck-typing removal (Phase 3) | Nothing | Prevents fragile code |
-| 3 | Stats flow (Phase 2) | 1 | Uses patterns from spawn work |
-| 4 | CardConfig complete (Phase 5) | 3 | Foundation for further C# work |
-| 5 | Modifier consolidation (Phase 6) | 4 | Needs CardConfig |
-| 6 | Unit3D decomposition (Phase 4) | 5 | Largest refactor, do last |
-| 7 | Service contracts (Phase 7) | 6 | Polish, testing focus |
+| Order | Phase | Status |
+|-------|-------|--------|
+| 1 | SpawnOrchestrator (Phase 1) | ✅ Done |
+| 2 | Duck-typing removal (Phase 3) | ✅ Done |
+| 3 | Stats flow (Phase 2) | ✅ Done |
+| 4 | CardConfig complete (Phase 5) | ✅ Done |
+| 5 | Modifier consolidation (Phase 6) | ❌ Cancelled |
+| 6 | Unit3D decomposition (Phase 4) | ✅ Done |
+| 7 | Service contracts (Phase 7) | ✅ Done |
 
 ---
 
@@ -454,3 +459,19 @@ flowchart TB
 ---
 
 *Last Updated: 2026-01-09*
+
+---
+
+## Summary
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Spawn & Formation System | ✅ COMPLETED |
+| 2 | Card Stats Flow & PlayerCardService | ✅ COMPLETED |
+| 3 | Remove Duck-Typing | ✅ COMPLETED |
+| 4 | Unit3D Decomposition | ✅ COMPLETED |
+| 5 | C# CardCatalog Migration | ✅ COMPLETED |
+| 6 | Modifier System Consolidation | ❌ CANCELLED |
+| 7 | Service Contracts | ✅ COMPLETED |
+
+**Architecture transformation complete.** Phase 6 was cancelled (current modifier system works well, "scattering" is appropriate for different contexts).
