@@ -1,34 +1,11 @@
 # Fateforged Lore
 
-This directory contains all worldbuilding, narrative, and character documentation for Fateforged.
+This directory contains worldbuilding, narrative, and character documentation for Fateforged.
 
 ## Contents
 
 ### World & Setting
 - **[world.md](world.md)** - The Academy of Summoning Arts, magic system, regions, threats
-
-### Elements
-
-#### Core (4)
-- **[fire.md](elements/fire.md)** - Erratic, burst damage, powerful up front
-- **[water.md](elements/water.md)** - Nurturing, healing, flowy
-- **[wind.md](elements/wind.md)** - Fast, elusive, flowy
-- **[earth.md](elements/earth.md)** - Strong, slow, enduring
-
-#### Elevated (3)
-- **[holy.md](elements/holy.md)** - Fire elevated; divine purpose, cleansing light
-- **[ice.md](elements/ice.md)** - Water elevated; control, stillness, preservation
-- **[metal.md](elements/metal.md)** - Earth elevated; craft, civilization, forged strength
-
-#### Outer (5)
-- **[lightning.md](elements/lightning.md)** - Pure energy, speed, precision
-- **[shadow.md](elements/shadow.md)** - Secrecy, illusion, the unseen
-- **[poison.md](elements/poison.md)** - Corruption, persistence, decay
-- **[life.md](elements/life.md)** - Growth, restoration, connection
-- **[death.md](elements/death.md)** - Endings, transition, inevitability
-
-#### Antagonist (1)
-- **[occultist.md](elements/occultist.md)** - Corruption, forbidden knowledge, elemental inversion
 
 ### Story
 - **[narrative-arc.md](narrative-arc.md)** - Campaign story progression and themes
@@ -45,29 +22,14 @@ This directory contains all worldbuilding, narrative, and character documentatio
 #### NPCs
 - **[Merlin](characters/npcs/merlin.md)** - Headmaster of the Academy
 
-### Summons
-- **[Summons Index](summons/README.md)** - All summoned creatures organized by element
-
-#### Implemented
-- **[Wisp](summons/fire/wisp.md)** - Basic fire elemental
-- **[Puff](summons/wind/puff.md)** - Wind cloud creature
-- **[Pebbloom](summons/earth/pebbloom.md)** - Sapling-carrying elemental
-
-#### Planned
-- **[Fire Fox](summons/fire/fire-fox.md)** - Fire fox creature
-- **[Wisp](summons/wind/wisp.md)** - Basic wind elemental
-- **[Wisp](summons/water/wisp.md)** - Basic water elemental
-- **[Wisp](summons/earth/wisp.md)** - Basic earth elemental
-- **[Thunder Cloud](summons/lightning/thunder-cloud.md)** - Lightning cloud creature
-- **[Miasma Cloud](summons/poison/miasma-cloud.md)** - Poison cloud creature
-
 ---
 
 ## Related Documentation
 
+- **[Elements](../elements/)** - All element-specific content (philosophy, summons, spells)
 - **[Campaign Narrative Guide](../features/campaign/narrative.md)** - Writing guidelines for campaign content
 - **[Elemental System](../features/elemental-system.md)** - Technical implementation of elements
 
 ---
 
-*For gameplay mechanics, see `docs/features/`. For technical implementation, see `docs/technical/`.*
+*For gameplay mechanics, see `docs/features/`. For element-specific content (summons, spells), see `docs/elements/`.*
