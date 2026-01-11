@@ -16,10 +16,10 @@ Fire a bolt of arcane energy at the nearest enemy unit. The spell automatically 
 
 ## Visual
 
-- Purple glowing capsule projectile
-- Trails purple particles as it flies
+- Purple glowing capsule projectile with emissive materials
+- Trails purple particles as it flies (built into projectile mesh)
 - Homing arc trajectory - tracks target while curving through the air
-- Purple/violet color palette with emissive glow
+- Purple/violet color palette enhanced by battlefield glow post-processing
 
 ## Tactical Use
 
@@ -30,4 +30,4 @@ Fire a bolt of arcane energy at the nearest enemy unit. The spell automatically 
 
 ---
 
-*See also: [Neutral spells](./)*
+*Part of the Neutral element spell collection.*

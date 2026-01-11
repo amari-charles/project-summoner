@@ -19,7 +19,9 @@ public class DamageEffect : SpellEffect
 
     /// <summary>
     /// Height above ground for projectile flight path.
-    /// Prevents ground collision during travel and ensures consistent arc behavior.
+    /// Set to 1.5f to match typical unit center height (most units are ~2-3 units tall).
+    /// Prevents ground collision during travel and ensures projectiles originate from
+    /// a visually appropriate height near the caster's "hands" level.
     /// </summary>
     private const float ProjectileFlightHeight = 1.5f;
 
