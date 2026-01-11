@@ -194,7 +194,10 @@ Suggest specific refactors that would improve extensibility without over-enginee
 
 5. Testing & correctness
 
-**All tests must pass.** Run `godot --headless -s addons/gut/gut_cmdln.gd` and verify all tests pass before approving a PR. If tests fail, flag this as a blocking issue.
+**All tests must pass.** Run both test suites and verify all tests pass before approving a PR. If tests fail, flag this as a blocking issue.
+
+- **GDScript tests (GUT):** `godot --headless -s addons/gut/gut_cmdln.gd`
+- **C# tests (GdUnit4):** `dotnet test --settings test.runsettings`
 
 Are there tests that cover the new behavior and important edge cases?
 
