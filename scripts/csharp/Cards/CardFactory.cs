@@ -49,6 +49,15 @@ public partial class CardFactory : Node, ICardFactory
     }
 
     /// <summary>
+    /// Check if a spell needs click-targeting (command spells like Rally/Guard/Charge).
+    /// </summary>
+    public bool needs_click_targeting(string catalogId)
+    {
+        var card = CardCatalog.GetCard(catalogId);
+        return card?.CommandType != null;
+    }
+
+    /// <summary>
     /// Create a SpellCard with the appropriate effect attached.
     /// </summary>
     public Resource? create_spell_card(string catalogId, Godot.Collections.Dictionary cardDef)

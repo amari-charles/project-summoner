@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Capabilities;
@@ -12,6 +13,16 @@ namespace ProjectSummoner.Cards.Effects.Concrete;
 /// </summary>
 public class DamageEffect : SpellEffect
 {
+    // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+
+    /// <summary>
+    /// Height above ground for projectile flight path.
+    /// Prevents ground collision during travel and ensures consistent arc behavior.
+    /// </summary>
+    private const float ProjectileFlightHeight = 1.5f;
+
     // =========================================================================
     // DAMAGE CONFIG
     // =========================================================================
@@ -159,22 +170,42 @@ public class DamageEffect : SpellEffect
 
         // Find source base for projectile origin
         var source = FindBaseByTeam(context);
+        var startPos = source?.GlobalPosition ?? context.Position;
+        // Raise start position above ground to avoid ground collision
+        startPos.Y = ProjectileFlightHeight;
+
+        // Find target position - use first targeted unit if available, else click position
+        var targets = GetTargets(context);
+        var targetUnit = targets.FirstOrDefault();
+        Vector3 targetPos;
+
+        if (targetUnit != null)
+        {
+            // Target the unit's position
+            targetPos = targetUnit.GlobalPosition;
+        }
+        else
+        {
+            // Fallback to click position
+            targetPos = context.Position;
+        }
+        // Target at same height for straight-line travel
+        targetPos.Y = ProjectileFlightHeight;
 
         // ProjectileId is guaranteed non-null here since we check before calling SpawnProjectile
         var projectileIdValue = ProjectileId ?? "";
 
         // Spawn projectile via GDScript interop
-        // Pass Variant.From<GodotObject?>(null) to avoid nullable warning
         projectileManager.Call("spawn_projectile",
             projectileIdValue,
             source ?? (GodotObject)context.Battlefield!,
-            Variant.From<GodotObject?>(null), // No target unit, targeting position
+            targetUnit != null ? (Variant)targetUnit : Variant.From<GodotObject?>(null),
             Damage,
             "spell",
             new Godot.Collections.Dictionary
             {
-                { "start_position", source?.GlobalPosition ?? context.Position },
-                { "target_position", context.Position }
+                { "start_position", startPos },
+                { "target_position", targetPos }
             }
         );
 

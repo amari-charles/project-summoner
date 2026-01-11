@@ -55,6 +55,10 @@
       "arena_cloud_swarm": {
         "name": "Cloud Swarm Test",
         "description": "Test the Cloud Swarm unit. Six clouds drift together in pairs across the battlefield."
+      },
+      "arena_mana_bolt": {
+        "name": "Mana Bolt Test",
+        "description": "Test the Mana Bolt spell. A purple energy bolt that strikes the nearest enemy."
       }
     },
     "starter_deck_name": "Starter Deck",

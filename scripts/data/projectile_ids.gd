@@ -14,3 +14,4 @@ class_name ProjectileIDs
 const FIREBALL: StringName = &"fireball"
 const ARROW: StringName = &"arrow"
 const EMBER: StringName = &"ember"
+const MANA_BOLT: StringName = &"mana_bolt"

@@ -225,6 +225,64 @@ Ranged units cannot effectively attack the summoner, breaking intended combat ba
 
 ---
 
+#### Unit Spawn Boundary Can Be Bypassed When Blocked
+**Status:** Open
+**Reported:** 2026-01-11
+**Component:** Unit Spawning / Boundaries
+
+**Description:**
+When spawning a unit on your half of the battlefield, if there are already units blocking the intended spawn location, the system finds the "closest available point." However, this closest point can end up past the player's half boundary (on the enemy's side), effectively bypassing the spawn restriction.
+
+**Expected Behavior:**
+Units should only ever spawn within the player's designated half of the battlefield, even when finding alternate spawn points due to blocking units.
+
+**Current Behavior:**
+- Player tries to spawn unit on their half
+- Existing units block the spawn location
+- System finds "closest point" which may be on the enemy's half
+- Unit spawns past the boundary restriction
+
+**Impact:**
+Exploitable gameplay issue - players could potentially spawn units further forward than intended by filling their spawn area with blockers.
+
+**Proposed Solution:**
+Implement robust boundary enforcement for spawn point selection:
+1. When finding alternate spawn points, clamp results to player's half boundary
+2. Add explicit boundary check before finalizing spawn position
+3. Consider a more sophisticated spawn point finder that respects boundaries as hard constraints
+
+**Related Files:**
+- Unit spawning/placement logic (CardFactory or similar)
+- Boundary/battlefield constants
+
+---
+
+#### Mana Bolt Bounces on Ground Impact
+**Status:** Open
+**Reported:** 2026-01-11
+**Component:** Projectiles / Spells
+
+**Description:**
+When mana bolt is cast with no enemies in range, it targets a position and arcs toward it. Upon hitting the ground, the projectile bounces instead of disappearing on impact.
+
+**Expected Behavior:**
+Mana bolt should disappear immediately upon hitting the ground, with appropriate impact effects.
+
+**Current Behavior:**
+The projectile bounces off the ground and continues moving, which looks unnatural.
+
+**Impact:**
+Visual bug - breaks immersion and looks unprofessional.
+
+**Proposed Solution:**
+Ensure ground collision detection properly triggers projectile expiration. May need to check the ground collision logic in `projectile_3d.gd` to ensure it triggers `_expire_with_fade()` or `_expire_immediate()` correctly for homing projectiles with arc.
+
+**Related Files:**
+- scripts/projectiles/projectile_3d.gd (ground collision and expiration logic)
+- data/projectiles/mana_bolt.json (projectile configuration)
+
+---
+
 ## Bug Report Template
 
 ```markdown

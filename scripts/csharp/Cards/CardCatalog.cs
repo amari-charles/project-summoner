@@ -96,6 +96,23 @@ public static class CardCatalog
             ElementalAffinity = Element.Neutral
         },
 
+        ["mana_bolt"] = new CardDefinition
+        {
+            Id = "mana_bolt",
+            Name = "Mana Bolt",
+            Description = "Fire a bolt of arcane energy at the nearest enemy.",
+            Rarity = Rarity.Common,
+            Type = CardType.Spell,
+            ManaCost = 3,
+            Cooldown = 1.5f,
+            SummonTime = 0.0f,
+            SpellDamage = 60.0f,
+            ProjectileId = "mana_bolt",
+            Tags = ["spell", "single_target", "damage"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Neutral
+        },
+
         // =====================================================================
         // FIRE ELEMENT UNITS
         // =====================================================================
