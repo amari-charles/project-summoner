@@ -12,6 +12,12 @@ background_color = Color(0.1, 0.1, 0.1, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.5
+glow_enabled = true
+glow_intensity = 0.5
+glow_strength = 0.8
+glow_bloom = 0.0
+glow_hdr_threshold = 1.2
+glow_blend_mode = 1
 
 [node name="BaseBattlefield3D" type="Node3D" groups=["battlefield"]]
 script = ExtResource("1_script")

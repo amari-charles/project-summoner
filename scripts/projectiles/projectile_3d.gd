@@ -17,6 +17,11 @@ enum MovementType {
 const MIN_ARC_DISTANCE: float = 0.1  ## Minimum distance to prevent division by zero
 const FULL_ARC_DISTANCE: float = 5.0  ## Distance at which full arc height is used
 
+## Homing movement constants
+## Dot product threshold for disabling homing - when projectile is nearly perpendicular
+## or moving away from target (dot < threshold), stop tracking to prevent wrap-around
+const HOMING_DISABLE_DOT_THRESHOLD: float = 0.2
+
 ## Ground collision constants
 ## Grace period before ground collision activates. Prevents false positives when projectiles
 ## spawn near ground level (e.g., from short units like Puff at y=1.5). At typical projectile
@@ -152,14 +157,42 @@ func _physics_process(delta: float) -> void:
 func _move_straight(delta: float) -> void:
 	global_position += direction * current_speed * delta
 
-## Homing movement - tracks target
-func _move_homing(delta: float) -> void:
-	if is_instance_valid(target):
-		# Update direction toward target
-		var target_dir: Vector3 = (target.global_position - global_position).normalized()
-		direction = direction.lerp(target_dir, homing_strength * delta).normalized()
+## Homing movement - tracks target with optional arc
+## Stops tracking if projectile passes the target (no wrap-around)
+var _homing_disabled: bool = false
 
+func _move_homing(delta: float) -> void:
+	# Check if we've passed the target (dot product with direction to target)
+	if is_instance_valid(target) and not _homing_disabled:
+		target_position = target.global_position
+		var to_target: Vector3 = target_position - global_position
+		var distance_to_target: float = to_target.length()
+
+		# Guard against near-zero vector normalization (prevents NaN when target is very close)
+		if distance_to_target < MIN_ARC_DISTANCE:
+			# Target is essentially reached - disable homing to prevent NaN
+			_homing_disabled = true
+		else:
+			var target_dir: Vector3 = to_target / distance_to_target  # Manual normalize
+			var dot: float = direction.dot(target_dir)
+
+			# If we're moving away from target, disable homing
+			if dot < HOMING_DISABLE_DOT_THRESHOLD:
+				_homing_disabled = true
+			else:
+				# Still tracking - update direction toward target
+				direction = direction.lerp(target_dir, homing_strength * delta).normalized()
+
+	# Move in current direction
 	global_position += direction * current_speed * delta
+
+	# Apply arc offset if configured (adds vertical curve on top of homing)
+	if arc_height > 0.0:
+		var total_distance: float = max(start_position.distance_to(target_position), MIN_ARC_DISTANCE)
+		var traveled: float = start_position.distance_to(global_position)
+		var progress: float = clamp(traveled / total_distance, 0.0, 1.0)
+		var arc_offset: float = arc_height * sin(progress * PI)
+		global_position.y = start_position.y + arc_offset + (target_position.y - start_position.y) * progress
 
 ## Arc movement - follows arc to target position
 func _move_arc(_delta: float) -> void:
@@ -297,8 +330,12 @@ func _on_area_entered(area: Area3D) -> void:
 
 ## Check if body is a valid target
 func _is_valid_target(body: Node3D) -> bool:
-	# Don't hit the source
+	# Don't hit the source or any of its children (e.g., summoner's CollisionBody)
 	if body == source:
+		return false
+	if source and body.is_ancestor_of(source):
+		return false
+	if source and source.is_ancestor_of(body):
 		return false
 
 	# Check team (C# units use PascalCase)
@@ -457,7 +494,6 @@ func _expire_with_fade() -> void:
 
 ## Expire projectile immediately (no animation)
 func _expire_immediate() -> void:
-	# print("EXPIRE_IMMEDIATE: is_pooled=%s, is_active=%s" % [is_pooled, is_active])
 	is_active = false
 	is_fading = false
 	projectile_expired.emit(self)
@@ -513,6 +549,7 @@ func reset() -> void:
 	is_active = false
 	is_fading = false
 	impact_triggered = false  ## Reset impact guard for next use
+	_homing_disabled = false  ## Reset homing for next use
 
 	# Cancel this projectile's fade tween if running
 	if fade_tween and fade_tween.is_valid():
@@ -575,6 +612,8 @@ func load_from_data(data: ProjectileData) -> void:
 	elif visual_scene and visual_instance:
 		# Reset GPUParticles3D emitting state for reused projectiles
 		_reset_particle_emitters()
+	else:
+		push_warning("Projectile3D: No visual_scene for '%s'" % projectile_id)
 
 ## Reset particle emitters for reused pooled projectiles
 func _reset_particle_emitters() -> void:

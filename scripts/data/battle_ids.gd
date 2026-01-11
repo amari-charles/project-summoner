@@ -59,6 +59,9 @@ const ARENA_CLOUD_SWARM: StringName = &"arena_cloud_swarm"
 ## Debug Arena: Testing sandbox with infinite mana/HP and manual spawning
 const DEBUG_ARENA: StringName = &"debug_arena"
 
+## Arena Battle: Mana Bolt Spell Test
+const ARENA_MANA_BOLT: StringName = &"arena_mana_bolt"
+
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
@@ -83,6 +86,7 @@ const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
 	ARENA_FIRE_ELEMENTAL,
 	ARENA_CLOUD_SWARM,
 	DEBUG_ARENA,
+	ARENA_MANA_BOLT,
 ]
 
 ## All battle IDs (events + tutorials + campaign)

@@ -130,6 +130,33 @@ static func _get_battles() -> Array[Dictionary]:
 			"unlock_requirements": [],
 			"ai_type": "heuristic",
 		},
+		# Arena: Mana Bolt Spell Test
+		{
+			"id": BattleIDs.ARENA_MANA_BOLT,
+			"biome_id": BiomeIDs.SUMMER_PLAINS,
+			"name_key": "campaign.battle.arena_mana_bolt.name",
+			"description_key": "campaign.battle.arena_mana_bolt.description",
+			"difficulty": 1,
+			"event_type": EventTypeIDs.BATTLE,
+			"requires_deck": false,
+			"repeatable": true,
+			"reward_type": RewardTypeIDs.NONE,
+			"reward_cards": [],
+			"gold_reward": 0,
+			"card_xp_reward": 0,
+			"summoner_xp_reward": 0,
+			"dev_player_deck": [
+				{"catalog_id": CardIDs.MANA_BOLT, "count": 5},
+				{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 3},
+			],
+			"enemy_deck": [
+				{"catalog_id": CardIDs.EARTH_SPRITE, "count": 3},
+				{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 2},
+			],
+			"enemy_hp": 100.0,
+			"unlock_requirements": [],
+			"ai_type": "heuristic",
+		},
 		# Debug Arena - Testing sandbox
 		{
 			"id": BattleIDs.DEBUG_ARENA,

@@ -197,8 +197,10 @@ func needs_click_targeting() -> bool:
 	if card_type != CardType.SPELL:
 		return false
 
-	var card_def: Dictionary = CardCatalog.get_card(catalog_id)
-	return card_def.has("command_type")
+	var factory: Node = _get_card_factory()
+	if factory and factory.has_method("needs_click_targeting"):
+		return factory.needs_click_targeting(catalog_id)
+	return false
 
 ## Execute the card effect at the given 3D position
 ## modifier_system: Optional ModifierSystem reference for more efficient access

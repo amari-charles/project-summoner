@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Godot;
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Cards.Effects.Targeting;
@@ -27,7 +26,7 @@ public static class SpellBuilder
     {
         return catalogId switch
         {
-            "fireball" or "rally" or "guard" or "charge" => true,
+            "fireball" or "rally" or "guard" or "charge" or "mana_bolt" => true,
             _ => false
         };
     }
@@ -46,6 +45,7 @@ public static class SpellBuilder
             "rally" => Rally(),
             "guard" => Guard(),
             "charge" => Charge(),
+            "mana_bolt" => ManaBolt(),
             _ => throw new ArgumentException(
                 $"[SpellBuilder] Unknown spell catalog ID: '{catalogId}'. " +
                 $"Add spell definition to SpellBuilder or check spelling.",
@@ -126,6 +126,22 @@ public static class SpellBuilder
             Affinity = Affinity.Allies,
             Command = CommandType.Charge,
             CommandDuration = duration
+        };
+    }
+
+    /// <summary>
+    /// Create a Mana Bolt spell effect.
+    /// Fires a projectile at the nearest enemy unit.
+    /// </summary>
+    public static ISpellEffect ManaBolt(float damage = 60f)
+    {
+        return new DamageEffect
+        {
+            Targeting = new NearestEnemyTargeting(),
+            Affinity = Affinity.Enemies,
+            Damage = damage,
+            DamageType = "arcane",
+            ProjectileId = "mana_bolt"
         };
     }
 
