@@ -190,25 +190,25 @@ public class BattlefieldBoundsTest
     }
 
     // =========================================================================
-    // ClampSpawnPositionForTeam Tests
+    // ClampToValidSpawnZone Tests
     // =========================================================================
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Player_ValidPosition_Unchanged()
+    public void ClampToValidSpawnZone_Player_ValidPosition_Unchanged()
     {
         var position = new Vector3(-20, 5, 10);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 0);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 0);
 
         AssertThat(clamped).IsEqual(position);
     }
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Player_InvalidPosition_ClampsToBoundary()
+    public void ClampToValidSpawnZone_Player_InvalidPosition_ClampsToBoundary()
     {
         var position = new Vector3(20, 5, 10);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 0);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 0);
 
         AssertThat(clamped.X).IsEqual(BattlefieldBounds.SpawnBoundaryX);
         AssertThat(clamped.Y).IsEqual(5); // Preserved
@@ -216,21 +216,21 @@ public class BattlefieldBoundsTest
     }
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Enemy_ValidPosition_Unchanged()
+    public void ClampToValidSpawnZone_Enemy_ValidPosition_Unchanged()
     {
         var position = new Vector3(20, 5, 10);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 1);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 1);
 
         AssertThat(clamped).IsEqual(position);
     }
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Enemy_InvalidPosition_ClampsToBoundary()
+    public void ClampToValidSpawnZone_Enemy_InvalidPosition_ClampsToBoundary()
     {
         var position = new Vector3(-20, 5, 10);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 1);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 1);
 
         AssertThat(clamped.X).IsEqual(BattlefieldBounds.SpawnBoundaryX + BattlefieldBounds.SpawnBoundaryEpsilon);
         AssertThat(clamped.Y).IsEqual(5); // Preserved
@@ -238,22 +238,22 @@ public class BattlefieldBoundsTest
     }
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Enemy_AtExactBoundary_SnapsToEpsilon()
+    public void ClampToValidSpawnZone_Enemy_AtExactBoundary_SnapsToEpsilon()
     {
         var position = new Vector3(0, 0, 0);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 1);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 1);
 
         AssertThat(clamped.X).IsEqual(BattlefieldBounds.SpawnBoundaryEpsilon);
     }
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Player_OutsideBounds_ClampsToOuterBounds()
+    public void ClampToValidSpawnZone_Player_OutsideBounds_ClampsToOuterBounds()
     {
         // Position is on player side (X < 0) but outside battlefield bounds
         var position = new Vector3(-100, 5, 100);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 0);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 0);
 
         // Should be clamped to outer bounds
         AssertThat(clamped.X).IsEqual(BattlefieldBounds.MinX);
@@ -262,12 +262,12 @@ public class BattlefieldBoundsTest
     }
 
     [TestCase]
-    public void ClampSpawnPositionForTeam_Enemy_OutsideBounds_ClampsToOuterBounds()
+    public void ClampToValidSpawnZone_Enemy_OutsideBounds_ClampsToOuterBounds()
     {
         // Position is on enemy side (X > 0) but outside battlefield bounds
         var position = new Vector3(100, 5, -100);
 
-        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 1);
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 1);
 
         // Should be clamped to outer bounds
         AssertThat(clamped.X).IsEqual(BattlefieldBounds.MaxX);

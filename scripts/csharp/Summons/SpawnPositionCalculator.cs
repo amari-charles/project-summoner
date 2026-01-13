@@ -110,8 +110,8 @@ public static class SpawnPositionCalculator
         }
 
         // Fallback: no safe position found in valid zone
-        // Clamp to team's spawn zone rather than returning invalid position
-        return BattlefieldBounds.ClampSpawnPositionForTeam(desiredPos, team);
+        // Clamp to valid spawn zone (outer bounds + team boundary)
+        return BattlefieldBounds.ClampToValidSpawnZone(desiredPos, team);
     }
 
     /// <summary>

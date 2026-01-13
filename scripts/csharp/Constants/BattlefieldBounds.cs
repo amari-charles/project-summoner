@@ -94,13 +94,14 @@ public static class BattlefieldBounds
     }
 
     /// <summary>
-    /// Clamp a spawn position to the valid zone for the given team.
-    /// If position is on wrong side of boundary, snaps to boundary.
+    /// Clamp a position to a fully valid spawn zone for the given team.
+    /// Applies both outer battlefield bounds AND team spawn boundary.
+    /// Use this when you need a guaranteed valid spawn position.
     /// </summary>
     /// <param name="position">Position to clamp</param>
     /// <param name="team">0 = Player, 1 = Enemy</param>
-    /// <returns>Position clamped to team's spawn zone</returns>
-    public static Vector3 ClampSpawnPositionForTeam(Vector3 position, int team)
+    /// <returns>Position clamped to valid spawn zone (within bounds and on correct team side)</returns>
+    public static Vector3 ClampToValidSpawnZone(Vector3 position, int team)
     {
         // Apply outer battlefield bounds first
         var clamped = ClampToBounds(position);
