@@ -12,6 +12,10 @@ func _ready() -> void:
 	_update_text()
 
 
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		var key_event: InputEventKey = event

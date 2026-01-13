@@ -2,7 +2,6 @@ extends Button
 class_name DebugMenuButton
 
 ## Opens pause menu in debug arena
-## Handles ESC key for menu access
 
 var game_controller: GameController3D = null
 
