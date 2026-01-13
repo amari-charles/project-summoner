@@ -4,6 +4,55 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## 2026-01 Completions
+
+### Add Boundary System to Prevent Units Walking Off Screen
+**Completed:** 2026-01-13
+**Category:** Units & Combat / Architecture
+**Effort:** Medium
+
+**Problem:**
+Units could walk off the screen edge when there were no valid targets. No boundary enforcement existed for unit movement.
+
+**Solution Implemented:**
+- Created `BattlefieldBounds.cs` - Central C# boundary constants (X: -50 to +50, Z: -40 to +40)
+- Added `EnforceBattlefieldBounds()` in `Unit3D.ApplyMovementResult()` - Clamps position after all physics
+- Added boundary clamping in `UnitSteering.CorrectOverlaps()` - Prevents pushing units out of bounds
+- Added mass-based push resistance (mass = radius³) - Large units resist being pushed by small units
+
+**Files Changed:**
+- Created: `scripts/csharp/Constants/BattlefieldBounds.cs`
+- Modified: `scripts/csharp/Units/Unit3D.cs`, `scripts/csharp/Movement/UnitSteering.cs`
+- Tests: `tests/csharp/Constants/BattlefieldBoundsTest.cs`
+
+**Related Bugs Fixed:** See bugs-resolved.md - "Units Can Move/Fly Out of Bounds", "Small Units Can Push Large Units Off Screen"
+
+---
+
+### Prevent Spawning Outside Battlefield Bounds
+**Completed:** 2026-01-13
+**Category:** Cards / Spawning
+**Effort:** Medium
+
+**Problem:**
+When spawning units near crowded areas, the ring search algorithm could place units outside battlefield bounds or on the wrong team's side.
+
+**Solution Implemented:**
+- Added `team` parameter to `SpawnPositionCalculator` methods
+- `IsSpawnPositionSafe()` now checks team spawn boundary (player: X <= 0, enemy: X > 0) and overall bounds
+- Added `ClampToValidSpawnZone()` - Guarantees valid spawn position (outer bounds + team boundary)
+- Fallback now clamps to team's valid zone instead of returning invalid position
+
+**Files Changed:**
+- Modified: `scripts/csharp/Summons/SpawnPositionCalculator.cs`
+- Modified: `scripts/csharp/Cards/CardFactory.cs`, `scripts/csharp/Services/Interfaces/ICardFactory.cs`
+- Modified: `scripts/ui/battle/battlefield_drop_zone.gd` (pass team parameter)
+- Tests: Extended `tests/csharp/Summons/SpawnPositionCalculatorTest.cs`
+
+**Related Bug Fixed:** See bugs-resolved.md - "Unit Spawn Boundary Can Be Bypassed When Blocked"
+
+---
+
 ## Architecture
 
 ### Summon Abstraction + Stat Pipeline Unification
