@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GdUnit4;
 using Godot;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Constants;
 using ProjectSummoner.Summons;
 using static GdUnit4.Assertions;
 
@@ -18,7 +19,7 @@ public class SpawnPositionCalculatorTest
     {
         // LineFormation with 1 unit returns center position
         var formation = FormationPresets.StandardLine;
-        var center = new Vector3(5, 0, 10);
+        var center = new Vector3(-5, 0, 10); // Player side (X <= 0)
 
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
             formation, center, 1, null, 0.5f);
@@ -67,7 +68,7 @@ public class SpawnPositionCalculatorTest
     [TestCase]
     public void FindSafeSpawnPosition_NoObstacles_ReturnsDesiredPosition()
     {
-        var desired = new Vector3(10, 0, 20);
+        var desired = new Vector3(-10, 0, 20); // Player side (X <= 0)
 
         var safe = SpawnPositionCalculator.FindSafeSpawnPosition(
             desired, null, 0.5f);
@@ -116,7 +117,7 @@ public class SpawnPositionCalculatorTest
     [TestCase]
     public void IsSpawnPositionSafe_EmptyScene_ReturnsTrue()
     {
-        var position = new Vector3(5, 0, 5);
+        var position = new Vector3(-5, 0, 5); // Player side (X <= 0)
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
             position, null, 0.5f);
@@ -127,10 +128,10 @@ public class SpawnPositionCalculatorTest
     [TestCase]
     public void IsSpawnPositionSafe_NoBatchConflict_ReturnsTrue()
     {
-        var position = new Vector3(10, 0, 10);
+        var position = new Vector3(-10, 0, 10); // Player side (X <= 0)
         var batchPositions = new List<Vector3>
         {
-            new Vector3(0, 0, 0) // Far away
+            new Vector3(-30, 0, 0) // Far away, also on player side
         };
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
@@ -168,5 +169,102 @@ public class SpawnPositionCalculatorTest
             position, null, 0.5f, null, batchPositions);
 
         AssertThat(isSafe).IsFalse(); // Same X/Z means collision
+    }
+
+    // =========================================================================
+    // Team Boundary Tests
+    // =========================================================================
+
+    [TestCase]
+    public void IsSpawnPositionSafe_PlayerTeam_PositionOnEnemySide_ReturnsFalse()
+    {
+        var position = new Vector3(10, 0, 0); // Enemy side (X > 0)
+
+        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
+            position, null, 0.5f, null, null, team: 0);
+
+        AssertThat(isSafe).IsFalse();
+    }
+
+    [TestCase]
+    public void IsSpawnPositionSafe_PlayerTeam_PositionOnPlayerSide_ReturnsTrue()
+    {
+        var position = new Vector3(-10, 0, 0); // Player side (X <= 0)
+
+        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
+            position, null, 0.5f, null, null, team: 0);
+
+        AssertThat(isSafe).IsTrue();
+    }
+
+    [TestCase]
+    public void IsSpawnPositionSafe_EnemyTeam_PositionOnPlayerSide_ReturnsFalse()
+    {
+        var position = new Vector3(-10, 0, 0); // Player side (X <= 0)
+
+        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
+            position, null, 0.5f, null, null, team: 1);
+
+        AssertThat(isSafe).IsFalse();
+    }
+
+    [TestCase]
+    public void IsSpawnPositionSafe_EnemyTeam_PositionOnEnemySide_ReturnsTrue()
+    {
+        var position = new Vector3(10, 0, 0); // Enemy side (X > 0)
+
+        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
+            position, null, 0.5f, null, null, team: 1);
+
+        AssertThat(isSafe).IsTrue();
+    }
+
+    [TestCase]
+    public void IsSpawnPositionSafe_OutsideBattlefieldBounds_ReturnsFalse()
+    {
+        var position = new Vector3(-100, 0, 0); // Way outside bounds
+
+        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
+            position, null, 0.5f, null, null, team: 0);
+
+        AssertThat(isSafe).IsFalse();
+    }
+
+    [TestCase]
+    public void FindSafeSpawnPosition_FallbackClampsToTeamZone_Player()
+    {
+        // Position on enemy side with no safe alternatives
+        var desired = new Vector3(10, 0, 0);
+        var batchPositions = new List<Vector3>();
+
+        // Fill batch positions to block all ring search positions
+        // This forces fallback behavior
+        for (int i = 0; i < 100; i++)
+        {
+            batchPositions.Add(new Vector3(-i * 0.5f, 0, 0));
+        }
+
+        var safe = SpawnPositionCalculator.FindSafeSpawnPosition(
+            desired, null, 0.5f, null, batchPositions, team: 0);
+
+        // Should be clamped to player side (X <= 0)
+        AssertThat(safe.X).IsLessEqual(BattlefieldBounds.SpawnBoundaryX);
+    }
+
+    [TestCase]
+    public void CalculateFormationPositions_WithTeam_PassesTeamThroughCorrectly()
+    {
+        var formation = FormationPresets.StandardLine;
+        // Position on player side
+        var center = new Vector3(-20, 0, 0);
+
+        var positions = SpawnPositionCalculator.CalculateFormationPositions(
+            formation, center, 3, null, 0.5f, team: 0);
+
+        // All positions should be on player side
+        foreach (var pos in positions)
+        {
+            AssertThat(pos.X).IsLessEqual(BattlefieldBounds.SpawnBoundaryX);
+        }
     }
 }

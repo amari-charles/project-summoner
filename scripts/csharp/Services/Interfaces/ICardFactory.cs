@@ -71,10 +71,12 @@ public interface ICardFactory
     /// <summary>
     /// Calculate safe spawn positions for all units in a formation.
     /// Single source of truth - used by both preview and actual spawn.
+    /// Respects team spawn boundaries.
     /// </summary>
     Godot.Collections.Array<Vector3> get_safe_spawn_positions(
         string catalogId,
         Vector3 centerPosition,
         Node? battlefield,
-        float collisionRadius);
+        float collisionRadius,
+        int team = 0);
 }

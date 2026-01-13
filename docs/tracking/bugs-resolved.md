@@ -4,6 +4,70 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+## 2026-01 Fixes
+
+### Units Can Move/Fly Out of Bounds
+**Resolved:** 2026-01-13
+**Component:** Unit Movement / Boundaries
+
+**Description:**
+Units could move or fly outside the battlefield boundaries. There was no boundary enforcement for unit movement.
+
+**Solution Implemented:**
+Added unified boundary enforcement system:
+1. Created `BattlefieldBounds.cs` - C# boundary constants and utilities (X: -50 to +50, Z: -40 to +40)
+2. Added `EnforceBattlefieldBounds()` in `Unit3D.ApplyMovementResult()` - clamps position after all physics
+3. Added boundary clamping in `UnitSteering.CorrectOverlaps()` - prevents pushing units out of bounds
+
+**Related Files:**
+- `scripts/csharp/Constants/BattlefieldBounds.cs` - New boundary constants and utilities
+- `scripts/csharp/Units/Unit3D.cs` - Added EnforceBattlefieldBounds() call
+- `scripts/csharp/Movement/UnitSteering.cs` - Added boundary clamping in push logic
+
+---
+
+### Small Units Can Push Large Units Off Screen
+**Resolved:** 2026-01-13
+**Component:** Unit Movement / Collision
+
+**Description:**
+Spawning many small units (Ants) around a large unit (Fire Titan) caused the large unit to be pushed off screen. The pushed unit then got stuck perpetually trying to move back into attack range.
+
+**Solution Implemented:**
+Added mass-based push resistance to `UnitSteering.CorrectOverlaps()`:
+1. Mass derived from CollisionRadius^3 (2x radius = 8x mass)
+2. Push ratio calculated as `otherMass / totalMass` - lighter units pushed more
+3. Example: Fire Titan (r=1.5, mass=3.375) vs Fire Ant (r=0.3, mass=0.027) = 125:1 ratio
+4. Combined with boundary enforcement to prevent any unit from leaving battlefield
+
+**Related Files:**
+- `scripts/csharp/Movement/UnitSteering.cs` - Mass-based push resistance + boundary clamping
+- `scripts/csharp/Constants/BattlefieldBounds.cs` - Boundary utilities
+
+---
+
+### Unit Spawn Boundary Can Be Bypassed When Blocked
+**Resolved:** 2026-01-13
+**Component:** Unit Spawning / Boundaries
+
+**Description:**
+When spawning a unit on your half of the battlefield, if there were already units blocking the intended spawn location, the system found the "closest available point." However, this closest point could end up past the player's half boundary (on the enemy's side), effectively bypassing the spawn restriction.
+
+**Solution Implemented:**
+Added team boundary enforcement to `SpawnPositionCalculator`:
+1. Added `team` parameter to `CalculateFormationPositions()`, `FindSafeSpawnPosition()`, and `IsSpawnPositionSafe()`
+2. `IsSpawnPositionSafe()` now checks team spawn boundary (player: X <= 0, enemy: X > 0) and battlefield bounds
+3. Fallback now clamps to team's valid zone instead of returning invalid position
+4. Updated `CardFactory.get_safe_spawn_positions()` and `execute_summon()` to pass team
+
+**Related Files:**
+- `scripts/csharp/Summons/SpawnPositionCalculator.cs` - Added team boundary enforcement
+- `scripts/csharp/Cards/CardFactory.cs` - Updated to pass team parameter
+- `scripts/csharp/Services/Interfaces/ICardFactory.cs` - Updated interface
+- `scripts/csharp/Constants/BattlefieldBounds.cs` - Team spawn validation utilities
+
+---
+
 ### Unit Spawns at Cursor Position Instead of Preview Position
 **Resolved:** 2026-01-06
 **Component:** Spawn System / Card Playing

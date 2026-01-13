@@ -7,6 +7,7 @@ namespace ProjectSummoner.Summons;
 /// <summary>
 /// Calculates safe spawn positions for units.
 /// Uses ring search algorithm to find positions that don't overlap with existing units.
+/// Respects team spawn boundaries (player: X &lt;= 0, enemy: X &gt; 0).
 /// </summary>
 public static class SpawnPositionCalculator
 {
@@ -31,19 +32,22 @@ public static class SpawnPositionCalculator
     /// Calculate safe spawn positions for all units in a formation.
     /// Positions are calculated against current scene state and each other
     /// to ensure preview matches actual spawn positions.
+    /// Respects team spawn boundaries.
     /// </summary>
     /// <param name="formation">Formation to use for offsets</param>
     /// <param name="centerPosition">Center position for the formation</param>
     /// <param name="spawnCount">Number of units to spawn</param>
     /// <param name="tree">Scene tree for finding existing units</param>
     /// <param name="collisionRadius">Collision radius of units being spawned</param>
+    /// <param name="team">Team for spawn boundary validation (0 = Player, 1 = Enemy)</param>
     /// <returns>List of safe spawn positions for each unit</returns>
     public static List<Vector3> CalculateFormationPositions(
         Cards.Formations.IFormationStrategy formation,
         Vector3 centerPosition,
         int spawnCount,
         SceneTree? tree,
-        float collisionRadius)
+        float collisionRadius,
+        int team = 0)
     {
         var positions = new List<Vector3>();
 
@@ -54,7 +58,7 @@ public static class SpawnPositionCalculator
         {
             var offset = formation.GetOffset(i, spawnCount);
             var desiredPos = centerPosition + offset;
-            var safePos = FindSafeSpawnPosition(desiredPos, tree, collisionRadius, null, positions);
+            var safePos = FindSafeSpawnPosition(desiredPos, tree, collisionRadius, null, positions, team);
             positions.Add(safePos);
         }
 
@@ -65,25 +69,28 @@ public static class SpawnPositionCalculator
     /// Find a safe spawn position that doesn't overlap with existing units
     /// or other positions in the same spawn batch.
     /// Uses ring search algorithm: checks outward in expanding circles.
+    /// Respects team spawn boundaries.
     /// </summary>
     /// <param name="desiredPos">The desired position to spawn at</param>
     /// <param name="tree">Scene tree for finding existing units</param>
     /// <param name="collisionRadius">Collision radius of unit being spawned</param>
     /// <param name="excludeUnit">Unit to exclude from collision checks (for repositioning)</param>
     /// <param name="batchPositions">Other positions already calculated in this batch</param>
+    /// <param name="team">Team for spawn boundary validation (0 = Player, 1 = Enemy)</param>
     /// <returns>A safe spawn position (may be the original if no conflicts)</returns>
     public static Vector3 FindSafeSpawnPosition(
         Vector3 desiredPos,
         SceneTree? tree,
         float collisionRadius,
         Node3D? excludeUnit = null,
-        List<Vector3>? batchPositions = null)
+        List<Vector3>? batchPositions = null,
+        int team = 0)
     {
         // Get all existing units
         var units = tree?.GetNodesInGroup(GroupIDs.Units);
 
         // Check if desired position is safe first
-        if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions))
+        if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions, team))
             return desiredPos;
 
         // Search in expanding rings around desired position
@@ -97,31 +104,43 @@ public static class SpawnPositionCalculator
                 var offset = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
                 var testPos = desiredPos + offset;
 
-                if (IsSpawnPositionSafe(testPos, units, collisionRadius, excludeUnit, batchPositions))
+                if (IsSpawnPositionSafe(testPos, units, collisionRadius, excludeUnit, batchPositions, team))
                     return testPos;
             }
         }
 
-        // Fallback: no safe position found, use desired (units will overlap but game continues)
-        return desiredPos;
+        // Fallback: no safe position found in valid zone
+        // Clamp to team's spawn zone rather than returning invalid position
+        return BattlefieldBounds.ClampSpawnPositionForTeam(desiredPos, team);
     }
 
     /// <summary>
-    /// Check if a spawn position is safe (no overlap with existing units or batch positions).
+    /// Check if a spawn position is safe (no overlap with existing units or batch positions,
+    /// and within valid team spawn zone and battlefield bounds).
     /// </summary>
     /// <param name="checkPos">Position to check</param>
     /// <param name="units">Existing units in the scene</param>
     /// <param name="collisionRadius">Collision radius of unit being spawned</param>
     /// <param name="excludeUnit">Unit to exclude from collision checks</param>
     /// <param name="batchPositions">Other positions already calculated in this batch</param>
-    /// <returns>True if position is safe, false if it overlaps</returns>
+    /// <param name="team">Team for spawn boundary validation (0 = Player, 1 = Enemy)</param>
+    /// <returns>True if position is safe, false if it overlaps or is out of bounds</returns>
     public static bool IsSpawnPositionSafe(
         Vector3 checkPos,
         Godot.Collections.Array<Node>? units,
         float collisionRadius,
         Node3D? excludeUnit = null,
-        List<Vector3>? batchPositions = null)
+        List<Vector3>? batchPositions = null,
+        int team = 0)
     {
+        // Check team spawn boundary first
+        if (!BattlefieldBounds.IsValidSpawnPositionForTeam(checkPos, team))
+            return false;
+
+        // Check battlefield boundaries
+        if (!BattlefieldBounds.IsInBounds(checkPos))
+            return false;
+
         // Check against existing units in scene
         if (units != null)
         {

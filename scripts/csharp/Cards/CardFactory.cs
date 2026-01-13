@@ -130,17 +130,20 @@ public partial class CardFactory : Node, ICardFactory
     /// Single source of truth - used by both preview and actual spawn.
     /// Calculates all positions at once against the current state to ensure
     /// preview matches actual spawn positions.
+    /// Respects team spawn boundaries.
     /// </summary>
     /// <param name="catalogId">The summon card's catalog ID</param>
     /// <param name="centerPosition">Center position for the formation</param>
     /// <param name="battlefield">Reference to the battlefield node</param>
     /// <param name="collisionRadius">Collision radius of units being spawned</param>
+    /// <param name="team">Team for spawn boundary validation (0 = Player, 1 = Enemy)</param>
     /// <returns>Array of safe spawn positions for each unit</returns>
     public Godot.Collections.Array<Vector3> get_safe_spawn_positions(
         string catalogId,
         Vector3 centerPosition,
         Node? battlefield,
-        float collisionRadius)
+        float collisionRadius,
+        int team = 0)
     {
         var result = new Godot.Collections.Array<Vector3>();
 
@@ -157,13 +160,14 @@ public partial class CardFactory : Node, ICardFactory
             return result;
         }
 
-        // Use SpawnPositionCalculator
+        // Use SpawnPositionCalculator with team boundary enforcement
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
             card.Formation,
             centerPosition,
             card.SpawnCount,
             battlefield.GetTree(),
-            collisionRadius > 0 ? collisionRadius : 0.5f);
+            collisionRadius > 0 ? collisionRadius : 0.5f,
+            team);
 
         foreach (var pos in positions)
             result.Add(pos);
@@ -222,10 +226,10 @@ public partial class CardFactory : Node, ICardFactory
         // 5. Calculate stats
         var unitStats = UnitStatCalculator.CalculateFromGodotDictionary(effectiveStats, modifiers, customOverrides);
 
-        // 6. Calculate spawn positions
+        // 6. Calculate spawn positions with team boundary enforcement
         float collisionRadius = UnitSpawner.GetCollisionRadius(unitScene);
         var safePositions = SpawnPositionCalculator.CalculateFormationPositions(
-            card.Formation, position, card.SpawnCount, battlefield.GetTree(), collisionRadius);
+            card.Formation, position, card.SpawnCount, battlefield.GetTree(), collisionRadius, team);
 
         // 7. Determine if in battle phase
         bool inBattlePhase = IsInBattlePhase(gameplayLayer);

@@ -877,6 +877,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         MoveAndSlide();
         _movement.CorrectOverlaps(this);
 
+        // Enforce battlefield boundaries after all movement/physics
+        EnforceBattlefieldBounds();
+
         // Update facing
         if (result.FacingExplicitlySet)
         {
@@ -890,6 +893,22 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         else if (result.FacingDirection.LengthSquared() > 0)
         {
             UpdateFacing(result.FacingDirection);
+        }
+    }
+
+    /// <summary>
+    /// Clamp unit position to battlefield boundaries.
+    /// For flying units, only clamps X/Z (Y altitude is already managed separately).
+    /// </summary>
+    private void EnforceBattlefieldBounds()
+    {
+        var pos = GlobalPosition;
+        var clamped = BattlefieldBounds.ClampToBounds(pos);
+
+        // Only update if actually out of bounds (avoid unnecessary position sets)
+        if (pos.X != clamped.X || pos.Z != clamped.Z)
+        {
+            GlobalPosition = new Vector3(clamped.X, pos.Y, clamped.Z);
         }
     }
 
