@@ -92,35 +92,6 @@ If current range is -30° to +30° (60° spread centered at 0°), shift to somet
 
 ---
 
-#### Add Boundary System to Prevent Units Walking Off Screen
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Architecture
-**Effort:** Medium
-
-**Description:**
-Units can walk off the screen edge when there are no valid targets. While summoner targeting was added as a fallback, a structural solution is needed to prevent units from ever leaving the playable area.
-
-**Current Behavior:**
-- Units move toward enemy base direction when no target is found
-- If summoner is dead or unreachable, units continue walking indefinitely
-- No boundary enforcement at screen/battlefield edges
-
-**Proposed Solutions:**
-1. **Invisible boundary walls**: Add collision walls at battlefield edges
-2. **Behavior-based clamping**: Clamp unit positions within battlefield bounds in UpdateBehavior()
-3. **Target fallback chain**: Improve target acquisition to always find something (enemy units → summoner → battlefield edge waypoint)
-4. **Despawn off-screen**: Automatically remove units that go too far off-screen
-
-**Related Files:**
-- `scripts/csharp/Units/Unit3D.cs` - UpdateBehavior(), MoveForward()
-- `scripts/constants/battlefield_constants.gd` - Battlefield bounds
-
-**Notes:**
-- Should work for both player and enemy units
-- Consider edge cases: what happens when both summoners are dead?
-
----
-
 ### 🟢 LOW PRIORITY
 
 #### Refactor Character-Specific Animation Logic to Composition
@@ -877,26 +848,5 @@ Projectiles should disappear when they hit their target rather than continuing t
 **Related Files:**
 - Projectile scene(s) and scripts
 - Hit detection logic in ranged units
-
----
-
-#### Prevent Spawning Outside Battlefield Bounds
-**Status:** ⬜ Not Started
-**Category:** Cards / Spawning
-**Effort:** Medium
-
-**Description:**
-Add logic to prevent units from being spawned outside the battlefield boundaries. Currently, if a player clicks near the edge of the battlefield, units in the formation may spawn outside the playable area.
-
-**Requirements:**
-- Detect when calculated spawn positions fall outside battlefield bounds
-- Clamp or adjust positions to stay within valid spawn area
-- Consider formation shape when validating (entire formation should fit)
-- Handle edge cases where formation cannot fit at desired location
-
-**Related Files:**
-- `scripts/csharp/Cards/CardFactory.cs` - `FindSafeSpawnPosition()` and `execute_summon()`
-- `scripts/csharp/Cards/CardCatalog.cs` - Formation definitions
-- Battlefield bounds detection (TBD)
 
 ---
