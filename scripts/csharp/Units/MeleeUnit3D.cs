@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Combat.Hitbox;
 
 namespace ProjectSummoner.Units;
 
@@ -101,8 +102,41 @@ public partial class MeleeUnit3D : Unit3D
             return;
         }
 
-        // Deal damage
-        DealDamageTo(_pendingAttackTarget);
+        // Create a temporary hitbox for the melee attack
+        SpawnMeleeHitbox(_pendingAttackTarget);
         _pendingAttackTarget = null;
+    }
+
+    /// <summary>
+    /// Spawn a temporary hitbox for the melee attack.
+    /// The hitbox exists briefly and damages any enemy hurtboxes it overlaps.
+    /// </summary>
+    private void SpawnMeleeHitbox(Node3D target)
+    {
+        var hitbox = new HitboxComponent
+        {
+            Damage = AttackDamage,
+            DamageType = "physical",
+            SourceTeam = Team,
+            Source = this,
+            Lifetime = HitboxLifetime.Timed,
+            Duration = 0.1f,  // Brief window for hit detection
+            SingleHitPerTarget = true,
+            TargetCategories = HurtboxCategory.Unit | HurtboxCategory.Summoner
+        };
+
+        // Position hitbox between attacker and target
+        var attackDirection = (target.GlobalPosition - GlobalPosition).Normalized();
+        var hitboxPosition = GlobalPosition + attackDirection * (AttackRange * 0.5f);
+        hitboxPosition.Y = GlobalPosition.Y + 1.0f;  // Chest height
+
+        // Add to scene first so _Ready() runs and configures collision
+        GetTree().Root.AddChild(hitbox);
+
+        // Set position after adding to tree
+        hitbox.GlobalPosition = hitboxPosition;
+
+        // Create attack hitbox shape
+        hitbox.CreateSphereShape(AttackRange * 0.6f);
     }
 }

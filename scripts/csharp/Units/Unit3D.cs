@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
+using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Debug;
 using ProjectSummoner.Services;
@@ -280,6 +281,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected IVisualComponent? VisualComponent { get; set; }
     private Marker3D? _projectileTargetPoint;
     private ShadowComponent? _shadowComponent;
+    private HurtboxComponent? _hurtbox;
 
     // =========================================================================
     // TARGETING HELPER
@@ -365,6 +367,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 _shadowComponent.Visible = false;
             }
         }
+
+        // Setup hurtbox for collision-based hit detection
+        SetupHurtbox();
 
         // Setup groups for targeting
         SetupGroups();
@@ -1077,5 +1082,110 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 vfxManager?.Call("play_effect", "death_explosion", GlobalPosition);
                 break;
         }
+    }
+
+    // =========================================================================
+    // HURTBOX SETUP
+    // =========================================================================
+
+    /// <summary>
+    /// Create and configure the hurtbox for collision-based hit detection.
+    /// </summary>
+    private void SetupHurtbox()
+    {
+        float height = VisualComponent?.GetSpriteHeight() ?? 2.0f;
+
+        _hurtbox = new HurtboxComponent();
+        _hurtbox.Configure(
+            team: Team,
+            category: HurtboxCategory.Unit,
+            radius: CollisionRadius,
+            height: height
+        );
+        AddChild(_hurtbox);
+    }
+
+    /// <summary>
+    /// Get the unit's hurtbox component (for debug visualization).
+    /// </summary>
+    public HurtboxComponent? GetHurtbox() => _hurtbox;
+
+    // =========================================================================
+    // DEBUG VISUALIZATION
+    // =========================================================================
+
+    private static bool _debugHurtboxEnabled;
+    private MeshInstance3D? _debugHurtboxMarker;
+
+    /// <summary>
+    /// Toggle debug hurtbox visualization for all units.
+    /// </summary>
+    public static void ToggleDebugHurtbox()
+    {
+        _debugHurtboxEnabled = !_debugHurtboxEnabled;
+        GD.Print($"[Unit3D] Debug Hurtbox: {(_debugHurtboxEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
+    /// Check if debug hurtbox visualization is enabled.
+    /// </summary>
+    public static bool IsDebugHurtboxEnabled() => _debugHurtboxEnabled;
+
+    // Snake_case aliases for GDScript compatibility
+    public static void toggle_debug_hurtbox() => ToggleDebugHurtbox();
+    public static bool is_debug_hurtbox_enabled() => IsDebugHurtboxEnabled();
+
+    public override void _Process(double delta)
+    {
+        // Debug visualization update
+        if (_debugHurtboxEnabled)
+        {
+            UpdateDebugHurtboxMarker();
+        }
+        else if (_debugHurtboxMarker != null)
+        {
+            _debugHurtboxMarker.QueueFree();
+            _debugHurtboxMarker = null;
+        }
+    }
+
+    private void UpdateDebugHurtboxMarker()
+    {
+        if (_hurtbox == null)
+            return;
+
+        if (_debugHurtboxMarker == null)
+        {
+            _debugHurtboxMarker = CreateDebugHurtboxCapsule();
+            AddChild(_debugHurtboxMarker);
+        }
+
+        // Position at hurtbox center
+        _debugHurtboxMarker.Position = new Vector3(0, _hurtbox.Height / 2, 0);
+    }
+
+    private MeshInstance3D CreateDebugHurtboxCapsule()
+    {
+        var mesh = new MeshInstance3D();
+        var capsule = new CapsuleMesh
+        {
+            Radius = _hurtbox?.Radius ?? CollisionRadius,
+            Height = _hurtbox?.Height ?? 2.0f
+        };
+        mesh.Mesh = capsule;
+
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.2f, 1.0f, 0.2f, 0.3f),  // Green
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 100  // Render in front
+        };
+        mesh.MaterialOverride = material;
+
+        return mesh;
     }
 }

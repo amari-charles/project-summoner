@@ -1,23 +1,17 @@
 extends Node
-# FPSTestTool is registered as an autoload, no class_name needed
+# DebugMenu is registered as an autoload, no class_name needed
 
-## FPS Test Tool - Debug utility for testing framerate independence
+## Debug Menu - Development utility panel for testing and debugging
 ##
-## Provides an on-screen UI panel with FPS controls for manual testing.
+## Provides on-screen controls for debugging and testing.
 ## Only active in debug builds - automatically disabled in release.
 ##
 ## Toggle UI: ` (backtick) or F12
-## Hotkeys (work even when UI hidden):
+## FPS Hotkeys (work even when UI hidden):
 ##   F5 - Set to 30 FPS (low-end mobile simulation)
 ##   F6 - Set to 60 FPS (standard)
 ##   F7 - Set to 120 FPS (high refresh rate)
 ##   F8 - Uncapped FPS
-##
-## Usage:
-##   Run any scene - FPS panel shows by default.
-##   Press ` (backtick) or F12 to hide/show.
-##   Use buttons or hotkeys to switch FPS caps.
-##   Verify that gameplay speed remains consistent across all settings.
 
 ## UI references
 var _panel: PanelContainer
@@ -27,6 +21,7 @@ var _perf_label: Label  # Performance counters display
 var _buttons: Dictionary = {}  # fps -> Button
 var _grid_button: Button
 var _skip_prep_button: Button
+var _hurtbox_button: Button
 
 
 ## =============================================================================
@@ -43,7 +38,7 @@ func _ready() -> void:
 
 	# Create UI after a frame to ensure tree is ready
 	call_deferred("_create_ui")
-	print("[FPS Test] Ready - Press ` or F12 to toggle panel, F5-F8 for quick FPS change")
+	print("[Debug] Ready - Press ` or F12 to toggle panel, F5-F8 for quick FPS change")
 
 
 func _process(_delta: float) -> void:
@@ -112,7 +107,7 @@ func _create_ui() -> void:
 
 	# Title
 	var title: Label = Label.new()
-	title.text = "FPS Test Tool"
+	title.text = "Debug Menu"
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
 	vbox.add_child(title)
@@ -174,6 +169,13 @@ func _create_ui() -> void:
 	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
 	vbox.add_child(_skip_prep_button)
 
+	# Hurtbox toggle button
+	_hurtbox_button = Button.new()
+	_hurtbox_button.text = "Hurtboxes: Off"
+	_hurtbox_button.custom_minimum_size = Vector2(200, 32)
+	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
+	vbox.add_child(_hurtbox_button)
+
 	# Performance counters separator
 	var perf_separator: HSeparator = HSeparator.new()
 	vbox.add_child(perf_separator)
@@ -226,7 +228,7 @@ func _set_fps(target: int) -> void:
 		var button: Button = _buttons[fps]
 		button.disabled = (fps == target)
 
-	print("[FPS Test] Set to %s" % label)
+	print("[Debug] Set to %s" % label)
 
 
 func _on_fps_button_pressed(fps: int) -> void:
@@ -243,9 +245,15 @@ func _on_skip_prep_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
 	if game_controller and game_controller.has_method("skip_prep_phase"):
 		game_controller.skip_prep_phase()
-		print("[FPS Test] Skipped prep phase")
+		print("[Debug] Skipped prep phase")
 	else:
-		print("[FPS Test] No game controller found - not in battle?")
+		print("[Debug] No game controller found - not in battle?")
+
+
+func _on_hurtbox_toggle_pressed() -> void:
+	Unit3D.toggle_debug_hurtbox()
+	var state: String = "On" if Unit3D.is_debug_hurtbox_enabled() else "Off"
+	_hurtbox_button.text = "Hurtboxes: %s" % state
 
 
 func _update_perf_counters() -> void:

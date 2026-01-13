@@ -28,6 +28,10 @@ const HOMING_DISABLE_DOT_THRESHOLD: float = 0.2
 ## speeds (15-25 units/s), 0.1s allows the projectile to travel 1.5-2.5 units away from spawn.
 const GROUND_COLLISION_GRACE_PERIOD: float = 0.1
 
+## Collision layers for hit detection
+const HITBOX_LAYER: int = 1 << 5  # Layer 6 (hitboxes)
+const HURTBOX_MASK: int = 1 << 4  # Layer 5 (hurtboxes)
+
 ## Configuration (set by ProjectileData)
 var projectile_id: String = ""
 var movement_type: MovementType = MovementType.STRAIGHT
@@ -72,6 +76,12 @@ signal projectile_hit(target: Node3D, projectile: Projectile3D)
 signal projectile_expired(projectile: Projectile3D)
 
 func _ready() -> void:
+	# Configure as hitbox for new collision-based hit detection
+	collision_layer = HITBOX_LAYER
+	collision_mask = HURTBOX_MASK
+	monitoring = true
+	monitorable = false
+
 	# Connect area signals
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
@@ -318,12 +328,19 @@ func _on_body_entered(body: Node3D) -> void:
 
 	_hit_target(body)
 
-## Handle area collision
+## Handle area collision (includes HurtboxComponent detection)
 func _on_area_entered(area: Area3D) -> void:
 	if not is_active:
 		return
 
-	# Check if area belongs to a unit
+	# Check if this is a HurtboxComponent (new collision-based hit detection)
+	if area.get_class() == "HurtboxComponent" or area.has_method("get_class") and area.get("OwnerEntity") != null:
+		var hurtbox_owner: Node3D = area.get("OwnerEntity")
+		if hurtbox_owner and _is_valid_target(hurtbox_owner):
+			_hit_target_via_hurtbox(hurtbox_owner, area)
+			return
+
+	# Legacy fallback: Check if area belongs to a unit
 	var body: Node = area.get_parent()
 	if body and _is_valid_target(body as Node3D):
 		_hit_target(body as Node3D)
@@ -348,7 +365,7 @@ func _is_valid_target(body: Node3D) -> bool:
 
 	return true
 
-## Hit a target
+## Hit a target (legacy path - direct damage application)
 func _hit_target(target_node: Node3D) -> void:
 	# Apply damage using DamageSystem (check validity - target may have been freed)
 	if is_instance_valid(target_node) and is_instance_valid(source):
@@ -362,6 +379,38 @@ func _hit_target(target_node: Node3D) -> void:
 	_trigger_impact_effects(global_position)
 
 	# Handle pierce
+	_handle_pierce()
+
+
+## Hit a target via hurtbox collision (new collision-based hit detection)
+func _hit_target_via_hurtbox(target_node: Node3D, hurtbox: Area3D) -> void:
+	# Use HitResolver for damage application if available
+	var hit_resolver: Node = get_node_or_null("/root/HitResolver")
+	if hit_resolver and is_instance_valid(target_node) and is_instance_valid(source):
+		# Create a temporary hitbox-like dict for the resolver
+		# HitResolver.resolve_hit expects HitboxComponent and HurtboxComponent
+		# Since we're GDScript, we use the DamageSystem directly but could use HitResolver
+		var damage_system: Node = get_node("/root/DamageSystem")
+		var flags: Dictionary = { "from_projectile": true }
+		damage_system.apply_damage(source, target_node, damage, damage_type, flags)
+	else:
+		# Fallback to direct damage
+		if is_instance_valid(target_node) and is_instance_valid(source):
+			var damage_system: Node = get_node("/root/DamageSystem")
+			damage_system.apply_damage(source, target_node, damage, damage_type)
+
+	# Emit signal
+	projectile_hit.emit(target_node, self)
+
+	# Spawn hit VFX and apply AOE damage if applicable
+	_trigger_impact_effects(global_position)
+
+	# Handle pierce
+	_handle_pierce()
+
+
+## Handle pierce logic after hitting a target
+func _handle_pierce() -> void:
 	if pierce_count == -1:
 		# Infinite pierce, keep going
 		return
