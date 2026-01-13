@@ -12,6 +12,14 @@ func _ready() -> void:
 	_update_text()
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		var key_event: InputEventKey = event
+		if key_event.pressed and key_event.keycode == KEY_ESCAPE:
+			_toggle_pause()
+			get_viewport().set_input_as_handled()
+
+
 func _on_pressed() -> void:
 	_toggle_pause()
 
