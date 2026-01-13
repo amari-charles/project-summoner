@@ -47,7 +47,8 @@
       "Bash(sort:*)",
       "Bash(rg:*)",
       "Bash(git clone:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(dotnet test:*)"
     ],
     "deny": [],
     "ask": []

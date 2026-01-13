@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Constants;
 using ProjectSummoner.Systems;
 using ProjectSummoner.Units;
 
@@ -228,7 +229,8 @@ public class UnitSteering
 
     /// <summary>
     /// Correct severe overlaps by pushing units apart after movement.
-    /// This is a "hard" correction for when soft separation wasn't enough.
+    /// Uses mass-based resistance: larger units are harder to push.
+    /// Also enforces battlefield boundaries during push.
     /// </summary>
     public void CorrectOverlaps(Unit3D unit)
     {
@@ -236,6 +238,7 @@ public class UnitSteering
             return;
 
         float collisionRadius = unit.CollisionRadius;
+        float unitMass = CalculateMass(unit);
 
         // Query radius: self + largest possible other unit
         float checkRadius = collisionRadius + MaxCollisionRadius;
@@ -273,11 +276,33 @@ public class UnitSteering
             float overlap = minDist - distance;
             var pushDir = delta.Normalized();
 
-            // Push self by half the overlap (other unit will push itself too)
-            unit.GlobalPosition += pushDir * overlap * 0.5f;
+            // Mass-based push: larger units resist being pushed
+            float otherMass = CalculateMass(other);
+            float totalMass = unitMass + otherMass;
+            float pushRatio = otherMass / totalMass; // Light units pushed more
+
+            // Calculate intended new position
+            var newPos = unit.GlobalPosition + pushDir * overlap * pushRatio;
+
+            // Clamp to battlefield bounds (don't push out of bounds)
+            newPos = BattlefieldBounds.ClampToBounds(newPos);
+
+            // Apply (preserve Y for flying units)
+            unit.GlobalPosition = new Vector3(newPos.X, unit.GlobalPosition.Y, newPos.Z);
 
             neighborsProcessed++;
         }
+    }
+
+    /// <summary>
+    /// Calculate effective mass from collision radius.
+    /// Mass scales with volume (radius cubed) for intuitive physical behavior.
+    /// A unit with 2x radius has 8x mass.
+    /// </summary>
+    private static float CalculateMass(Unit3D unit)
+    {
+        float radius = unit.CollisionRadius;
+        return radius * radius * radius;
     }
 
     /// <summary>

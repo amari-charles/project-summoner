@@ -349,8 +349,9 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[V
 		battlefield = get_tree().current_scene
 
 	# Call C# CardFactory for safe spawn positions (single source of truth)
+	# Team 0 = player (this is the player's drop zone)
 	var result: Variant = factory.call("get_safe_spawn_positions",
-		card.catalog_id, center_pos, battlefield, collision_radius)
+		card.catalog_id, center_pos, battlefield, collision_radius, 0)
 
 	if result is Array:
 		for pos: Variant in result:

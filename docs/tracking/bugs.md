@@ -101,35 +101,6 @@ Attack range is measured from unit center, but large units like Fire Titan have 
 
 ---
 
-#### Units Can Move/Fly Out of Bounds
-**Status:** Open
-**Reported:** 2026-01-05
-**Component:** Unit Movement / Boundaries
-
-**Description:**
-Units can move or fly outside the battlefield boundaries. There appears to be no boundary enforcement for unit movement.
-
-**Expected Behavior:**
-Units should be constrained to the playable battlefield area and cannot move beyond its boundaries.
-
-**Current Behavior:**
-Units can freely move or fly outside the battlefield, potentially going off-screen or beyond intended play areas.
-
-**Impact:**
-Gameplay-breaking - units can escape combat or become unreachable.
-
-**Proposed Solution:**
-- Add boundary enforcement to unit movement logic
-- Clamp unit positions within battlefield bounds each frame
-- Consider using collision shapes or a boundary check in the movement system
-
-**Related Files:**
-- scripts/csharp/Units/Unit3D.cs (movement logic)
-- scripts/csharp/Systems/SpatialGrid.cs (if used for position tracking)
-- BattlefieldConstants (may need boundary definitions)
-
----
-
 #### Puff Units Get Stuck in Idle When Blocked by Other Units
 **Status:** Open
 **Reported:** 2026-01-05
@@ -166,41 +137,6 @@ Reduces effective army size as blocked units don't contribute to combat.
 
 ---
 
-#### Small Units Can Push Large Units Off Screen
-**Status:** Open
-**Reported:** 2026-01-09
-**Component:** Unit Movement / Collision
-
-**Description:**
-Spawning many small units (Ants) around a large unit (Fire Titan) causes the large unit to be pushed off screen. The pushed unit then gets stuck perpetually trying to move back into attack range.
-
-**Expected Behavior:**
-- Large units should not be easily pushed by swarms of small units
-- Units should not be able to be pushed outside battlefield boundaries
-- Units pushed out of position should be able to recover and re-engage
-
-**Current Behavior:**
-- Swarm of Ants physically pushes Fire Titan off the visible battlefield
-- Fire Titan gets stuck in a movement loop, unable to reach valid attack range
-- Unit never recovers or re-engages in combat
-
-**Impact:**
-Gameplay-breaking - large expensive units can be trivialized by cheap swarm tactics through physics pushing rather than damage.
-
-**Proposed Solutions:**
-1. **Mass-based push resistance:** Large units should have higher mass/push resistance based on their size
-2. **Boundary enforcement:** Combine with "Units Can Move/Fly Out of Bounds" fix to prevent any unit from leaving battlefield
-3. **Stuck detection:** Add logic to detect when a unit is stuck trying to reach a target and find alternate pathing
-
-**Related Bugs:**
-- "Units Can Move/Fly Out of Bounds" - related boundary issue
-
-**Related Files:**
-- scripts/csharp/Units/Unit3D.cs (collision/push physics)
-- BattlefieldConstants (boundary definitions)
-
----
-
 #### Projectiles Cannot Hit Summoner Properly
 **Status:** Open
 **Reported:** 2026-01-05
@@ -222,38 +158,6 @@ Ranged units cannot effectively attack the summoner, breaking intended combat ba
 - scripts/csharp/Combat/DamageSystem.cs
 - scripts/projectiles/projectile_3d.gd
 - Summoner collision/hitbox configuration
-
----
-
-#### Unit Spawn Boundary Can Be Bypassed When Blocked
-**Status:** Open
-**Reported:** 2026-01-11
-**Component:** Unit Spawning / Boundaries
-
-**Description:**
-When spawning a unit on your half of the battlefield, if there are already units blocking the intended spawn location, the system finds the "closest available point." However, this closest point can end up past the player's half boundary (on the enemy's side), effectively bypassing the spawn restriction.
-
-**Expected Behavior:**
-Units should only ever spawn within the player's designated half of the battlefield, even when finding alternate spawn points due to blocking units.
-
-**Current Behavior:**
-- Player tries to spawn unit on their half
-- Existing units block the spawn location
-- System finds "closest point" which may be on the enemy's half
-- Unit spawns past the boundary restriction
-
-**Impact:**
-Exploitable gameplay issue - players could potentially spawn units further forward than intended by filling their spawn area with blockers.
-
-**Proposed Solution:**
-Implement robust boundary enforcement for spawn point selection:
-1. When finding alternate spawn points, clamp results to player's half boundary
-2. Add explicit boundary check before finalizing spawn position
-3. Consider a more sophisticated spawn point finder that respects boundaries as hard constraints
-
-**Related Files:**
-- Unit spawning/placement logic (CardFactory or similar)
-- Boundary/battlefield constants
 
 ---
 
@@ -321,4 +225,4 @@ Additional context
 
 ---
 
-*Last Updated: 2026-01-09 - Added small units pushing large units off screen bug*
+*Last Updated: 2026-01-13 - Moved 3 boundary-related bugs to resolved (Units out of bounds, Push off screen, Spawn bypass)*
