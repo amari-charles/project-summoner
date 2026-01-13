@@ -247,6 +247,34 @@ public class BattlefieldBoundsTest
         AssertThat(clamped.X).IsEqual(BattlefieldBounds.SpawnBoundaryEpsilon);
     }
 
+    [TestCase]
+    public void ClampSpawnPositionForTeam_Player_OutsideBounds_ClampsToOuterBounds()
+    {
+        // Position is on player side (X < 0) but outside battlefield bounds
+        var position = new Vector3(-100, 5, 100);
+
+        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 0);
+
+        // Should be clamped to outer bounds
+        AssertThat(clamped.X).IsEqual(BattlefieldBounds.MinX);
+        AssertThat(clamped.Y).IsEqual(5); // Preserved
+        AssertThat(clamped.Z).IsEqual(BattlefieldBounds.MaxZ);
+    }
+
+    [TestCase]
+    public void ClampSpawnPositionForTeam_Enemy_OutsideBounds_ClampsToOuterBounds()
+    {
+        // Position is on enemy side (X > 0) but outside battlefield bounds
+        var position = new Vector3(100, 5, -100);
+
+        var clamped = BattlefieldBounds.ClampSpawnPositionForTeam(position, 1);
+
+        // Should be clamped to outer bounds
+        AssertThat(clamped.X).IsEqual(BattlefieldBounds.MaxX);
+        AssertThat(clamped.Y).IsEqual(5); // Preserved
+        AssertThat(clamped.Z).IsEqual(BattlefieldBounds.MinZ);
+    }
+
     // =========================================================================
     // Constants Verification Tests
     // =========================================================================

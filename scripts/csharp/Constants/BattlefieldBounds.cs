@@ -102,13 +102,15 @@ public static class BattlefieldBounds
     /// <returns>Position clamped to team's spawn zone</returns>
     public static Vector3 ClampSpawnPositionForTeam(Vector3 position, int team)
     {
-        var clamped = position;
+        // Apply outer battlefield bounds first
+        var clamped = ClampToBounds(position);
 
-        if (team == 0 && position.X > SpawnBoundaryX) // Player on wrong side
+        // Then apply team spawn boundary
+        if (team == 0 && clamped.X > SpawnBoundaryX) // Player on wrong side
         {
             clamped.X = SpawnBoundaryX;
         }
-        else if (team != 0 && position.X <= SpawnBoundaryX) // Enemy on wrong side
+        else if (team != 0 && clamped.X <= SpawnBoundaryX) // Enemy on wrong side
         {
             clamped.X = SpawnBoundaryX + SpawnBoundaryEpsilon;
         }
