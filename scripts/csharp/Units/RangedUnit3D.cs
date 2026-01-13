@@ -16,9 +16,10 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
     /// <summary>
     /// Default height offset for targeting center mass of units.
-    /// Most units have their origin at feet level, so we aim slightly above.
+    /// Most units have their origin at feet level, so we aim at chest height.
+    /// Value aligned with DamageEffect.ProjectileFlightHeight for consistency.
     /// </summary>
-    private const float DefaultTargetHeightOffset = 0.5f;
+    private const float DefaultTargetHeightOffset = 1.5f;
 
     /// <summary>
     /// Fraction of sprite height used for chest-level projectile spawning.

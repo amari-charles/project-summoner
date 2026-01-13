@@ -58,6 +58,8 @@ public static class SpawnPositionCalculator
         {
             var offset = formation.GetOffset(i, spawnCount);
             var desiredPos = centerPosition + offset;
+            // Clamp to battlefield Z-boundaries before finding safe position
+            desiredPos = ClampToZBoundaries(desiredPos);
             var safePos = FindSafeSpawnPosition(desiredPos, tree, collisionRadius, null, positions, team);
             positions.Add(safePos);
         }
@@ -190,5 +192,15 @@ public static class SpawnPositionCalculator
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Clamp position to valid Z-axis boundaries.
+    /// Prevents formations from requesting positions outside the battlefield.
+    /// </summary>
+    private static Vector3 ClampToZBoundaries(Vector3 position)
+    {
+        position.Z = Mathf.Clamp(position.Z, BattlefieldBounds.MinZ, BattlefieldBounds.MaxZ);
+        return position;
     }
 }

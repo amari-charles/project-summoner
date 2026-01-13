@@ -25,6 +25,12 @@ public class DamageEffect : SpellEffect
     /// </summary>
     private const float ProjectileFlightHeight = 1.5f;
 
+    /// <summary>
+    /// Radius for random target position spread (in world units).
+    /// Provides visual variety without affecting gameplay accuracy.
+    /// </summary>
+    private const float TargetSpreadRadius = 0.3f;
+
     // =========================================================================
     // DAMAGE CONFIG
     // =========================================================================
@@ -342,11 +348,11 @@ public class DamageEffect : SpellEffect
     /// Add small random offset to target position for visual variety.
     /// Uses unseeded RNG since this is purely cosmetic and doesn't affect gameplay.
     /// </summary>
-    private static Vector3 ApplyTargetSpread(Vector3 targetPos, float spreadRadius = 0.3f)
+    private static Vector3 ApplyTargetSpread(Vector3 targetPos)
     {
-        float offsetX = (float)(GD.Randf() * 2 - 1) * spreadRadius;
-        float offsetY = (float)(GD.Randf() * 2 - 1) * spreadRadius * 0.5f; // Less vertical spread
-        float offsetZ = (float)(GD.Randf() * 2 - 1) * spreadRadius;
+        float offsetX = (float)(GD.Randf() * 2 - 1) * TargetSpreadRadius;
+        float offsetY = (float)(GD.Randf() * 2 - 1) * TargetSpreadRadius * 0.5f; // Less vertical spread
+        float offsetZ = (float)(GD.Randf() * 2 - 1) * TargetSpreadRadius;
         return targetPos + new Vector3(offsetX, offsetY, offsetZ);
     }
 }
