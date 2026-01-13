@@ -280,6 +280,17 @@ func initialize(data: Dictionary) -> void:
 	elif target and is_instance_valid(target):
 		target_position = target.global_position
 
+	# For arc projectiles targeting ground with no unit target, ensure proper arc trajectory.
+	# DamageEffect elevates target Y for straight-line travel, but arc projectiles need
+	# the actual ground position to arc properly. If target Y equals start Y (no vertical
+	# difference) and we have arc_height, the projectile won't descend properly.
+	# Fix: when no target unit and arc_height > 0, set target Y to ground level.
+	if arc_height > 0.0 and (target == null or not is_instance_valid(target)):
+		# Only adjust if target position was artificially elevated (within 0.5 of start Y)
+		var y_diff: float = abs(target_position.y - start_position.y)
+		if y_diff < 0.5:
+			target_position.y = BattlefieldConstants.GROUND_Y
+
 	# Set direction
 	if data.has("direction") and data.direction is Vector3:
 		var dir_val: Vector3 = data.direction
@@ -312,21 +323,64 @@ func _on_body_entered(body: Node3D) -> void:
 	if not is_active:
 		return
 
-	# Check if it's a valid target
-	if not _is_valid_target(body):
+	# Resolve actual damageable target (handles CollisionBody -> Summoner indirection)
+	var actual_target: Node3D = _resolve_damageable_target(body)
+	if actual_target == null:
 		return
 
-	_hit_target(body)
+	# Check if it's a valid target
+	if not _is_valid_target(actual_target):
+		return
+
+	_hit_target(actual_target)
 
 ## Handle area collision
 func _on_area_entered(area: Area3D) -> void:
 	if not is_active:
 		return
 
-	# Check if area belongs to a unit
+	# Check if area belongs to a unit - resolve through parent hierarchy
 	var body: Node = area.get_parent()
-	if body and _is_valid_target(body as Node3D):
-		_hit_target(body as Node3D)
+	if not body or not body is Node3D:
+		return
+
+	# Resolve actual damageable target
+	var actual_target: Node3D = _resolve_damageable_target(body as Node3D)
+	if actual_target == null:
+		return
+
+	if _is_valid_target(actual_target):
+		_hit_target(actual_target)
+
+## Resolve the actual damageable target from a collision body.
+## Handles the pattern where collision shapes are on child nodes (e.g., Summoner/CollisionBody).
+## Returns the damageable node, or null if no valid target found.
+func _resolve_damageable_target(body: Node3D) -> Node3D:
+	if body == null:
+		return null
+
+	# Check if body itself is damageable (has take_damage method)
+	if body.has_method("take_damage") or body.has_method("TakeDamage"):
+		return body
+
+	# Check for C# IDamageable interface via property check
+	# C# units have IsAlive and CurrentHp properties
+	if "IsAlive" in body or "CurrentHp" in body:
+		return body
+
+	# Body is not directly damageable - check if parent is (CollisionBody -> Summoner pattern)
+	var parent: Node = body.get_parent()
+	if parent and parent is Node3D:
+		var parent_3d: Node3D = parent as Node3D
+		# Check if parent is damageable
+		if parent_3d.has_method("take_damage") or parent_3d.has_method("TakeDamage"):
+			return parent_3d
+		# Check for C# IDamageable interface on parent
+		if "IsAlive" in parent_3d or "CurrentHp" in parent_3d:
+			return parent_3d
+
+	# No damageable found - this collision body is not a valid target
+	return null
 
 ## Check if body is a valid target
 func _is_valid_target(body: Node3D) -> bool:

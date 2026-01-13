@@ -137,56 +137,6 @@ Reduces effective army size as blocked units don't contribute to combat.
 
 ---
 
-#### Projectiles Cannot Hit Summoner Properly
-**Status:** Open
-**Reported:** 2026-01-05
-**Component:** Combat / Projectiles
-
-**Description:**
-Projectiles are unable to properly hit or damage the summoner (player character).
-
-**Expected Behavior:**
-Ranged units should be able to target and hit the summoner with projectiles, dealing damage.
-
-**Current Behavior:**
-Projectiles miss, pass through, or otherwise fail to register hits on the summoner.
-
-**Impact:**
-Ranged units cannot effectively attack the summoner, breaking intended combat balance.
-
-**Related Files:**
-- scripts/csharp/Combat/DamageSystem.cs
-- scripts/projectiles/projectile_3d.gd
-- Summoner collision/hitbox configuration
-
----
-
-#### Mana Bolt Bounces on Ground Impact
-**Status:** Open
-**Reported:** 2026-01-11
-**Component:** Projectiles / Spells
-
-**Description:**
-When mana bolt is cast with no enemies in range, it targets a position and arcs toward it. Upon hitting the ground, the projectile bounces instead of disappearing on impact.
-
-**Expected Behavior:**
-Mana bolt should disappear immediately upon hitting the ground, with appropriate impact effects.
-
-**Current Behavior:**
-The projectile bounces off the ground and continues moving, which looks unnatural.
-
-**Impact:**
-Visual bug - breaks immersion and looks unprofessional.
-
-**Proposed Solution:**
-Ensure ground collision detection properly triggers projectile expiration. May need to check the ground collision logic in `projectile_3d.gd` to ensure it triggers `_expire_with_fade()` or `_expire_immediate()` correctly for homing projectiles with arc.
-
-**Related Files:**
-- scripts/projectiles/projectile_3d.gd (ground collision and expiration logic)
-- data/projectiles/mana_bolt.json (projectile configuration)
-
----
-
 ## Bug Report Template
 
 ```markdown
@@ -225,4 +175,4 @@ Additional context
 
 ---
 
-*Last Updated: 2026-01-13 - Moved 3 boundary-related bugs to resolved (Units out of bounds, Push off screen, Spawn bypass)*
+*Last Updated: 2026-01-13 - Moved 2 projectile bugs to resolved (Projectiles cannot hit Summoner, Mana Bolt bounces on ground)*

@@ -6,6 +6,50 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Projectiles Cannot Hit Summoner Properly
+**Resolved:** 2026-01-13
+**Component:** Combat / Projectiles
+
+**Description:**
+Projectiles were unable to properly hit or damage the summoner (player character). Ranged units could not effectively attack the summoner, breaking intended combat balance.
+
+**Root Cause:**
+The Summoner node has its collision shape on a child node (`CollisionBody` - StaticBody3D), not on the Summoner itself. When projectiles detected collision with `CollisionBody`, they tried to apply damage to it. However, `CollisionBody` doesn't have a `take_damage` method - only the parent Summoner does.
+
+**Solution Implemented:**
+Added `_resolve_damageable_target()` function in `projectile_3d.gd` that traverses up the node hierarchy to find the actual damageable entity:
+1. Check if the collided body itself has `take_damage`/`TakeDamage` method or IDamageable properties
+2. If not, check the parent node for the same
+3. Return the damageable node or null if none found
+4. Updated both `_on_body_entered()` and `_on_area_entered()` to use this resolution
+
+**Related Files:**
+- `scripts/projectiles/projectile_3d.gd` - Added _resolve_damageable_target(), updated collision handlers
+
+---
+
+### Mana Bolt Bounces on Ground Impact
+**Resolved:** 2026-01-13
+**Component:** Projectiles / Spells
+
+**Description:**
+When mana bolt was cast with no enemies in range, it targeted a position but upon hitting the ground, the projectile bounced instead of disappearing on impact.
+
+**Root Cause:**
+`DamageEffect.cs` sets `targetPos.Y = ProjectileFlightHeight` (1.5) for all projectiles to enable straight-line travel. However, for homing projectiles with arc (like mana bolt), this prevented proper descent to ground level. When start_position.Y equals target_position.Y, the arc formula creates an up-and-down arc that returns to the same height (1.5), never reaching ground level (0).
+
+**Solution Implemented:**
+Added logic in `projectile_3d.gd` `initialize()` function:
+- For arc projectiles (arc_height > 0) with no target unit
+- If target Y was artificially elevated (within 0.5 of start Y)
+- Set target Y to ground level (BattlefieldConstants.GROUND_Y)
+This ensures arc projectiles properly arc down to ground where ground collision triggers expiration.
+
+**Related Files:**
+- `scripts/projectiles/projectile_3d.gd` - Added arc target Y adjustment in initialize()
+
+---
+
 ### Units Can Move/Fly Out of Bounds
 **Resolved:** 2026-01-13
 **Component:** Unit Movement / Boundaries
