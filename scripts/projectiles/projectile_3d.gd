@@ -280,17 +280,6 @@ func initialize(data: Dictionary) -> void:
 	elif target and is_instance_valid(target):
 		target_position = target.global_position
 
-	# For arc projectiles targeting ground with no unit target, ensure proper arc trajectory.
-	# DamageEffect elevates target Y for straight-line travel, but arc projectiles need
-	# the actual ground position to arc properly. If target Y equals start Y (no vertical
-	# difference) and we have arc_height, the projectile won't descend properly.
-	# Fix: when no target unit and arc_height > 0, set target Y to ground level.
-	if arc_height > 0.0 and (target == null or not is_instance_valid(target)):
-		# Only adjust if target position was artificially elevated (within 0.5 of start Y)
-		var y_diff: float = abs(target_position.y - start_position.y)
-		if y_diff < 0.5:
-			target_position.y = BattlefieldConstants.GROUND_Y
-
 	# Set direction
 	if data.has("direction") and data.direction is Vector3:
 		var dir_val: Vector3 = data.direction

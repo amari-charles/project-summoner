@@ -172,9 +172,7 @@ public class DamageEffect : SpellEffect
 
         // Find source base for projectile origin
         var source = FindBaseByTeam(context);
-        var startPos = source?.GlobalPosition ?? context.Position;
-        // Raise start position above ground to avoid ground collision
-        startPos.Y = ProjectileFlightHeight;
+        var startPos = GetSpawnPosition(source, context.Position);
 
         // Find target position - use first targeted unit if available, else click position
         var targets = GetTargets(context);
@@ -183,16 +181,16 @@ public class DamageEffect : SpellEffect
 
         if (targetUnit != null)
         {
-            // Target the unit's position
-            targetPos = targetUnit.GlobalPosition;
+            // Get target's designated target point (center mass)
+            targetPos = GetTargetPosition(targetUnit);
+            // Add visual spread for variety
+            targetPos = ApplyTargetSpread(targetPos);
         }
         else
         {
-            // Fallback to click position
+            // Fallback to click position (ground level for spells without target)
             targetPos = context.Position;
         }
-        // Target at same height for straight-line travel
-        targetPos.Y = ProjectileFlightHeight;
 
         // ProjectileId is guaranteed non-null here since we check before calling SpawnProjectile
         var projectileIdValue = ProjectileId ?? "";
@@ -299,5 +297,56 @@ public class DamageEffect : SpellEffect
 
         // Fallback to battlefield node (may be null)
         return context.Battlefield as Node3D;
+    }
+
+    // =========================================================================
+    // TARGETING HELPERS
+    // =========================================================================
+
+    /// <summary>
+    /// Get the spawn position for a projectile from a source node.
+    /// Calls the source's spawn point method if available, otherwise uses fallback.
+    /// </summary>
+    private static Vector3 GetSpawnPosition(Node3D? source, Vector3 fallbackPos)
+    {
+        if (source == null)
+            return fallbackPos + new Vector3(0, ProjectileFlightHeight, 0);
+
+        // Try C# method (PascalCase)
+        if (source.HasMethod("GetProjectileSpawnPosition"))
+            return source.Call("GetProjectileSpawnPosition").AsVector3();
+
+        // Try GDScript method (snake_case)
+        if (source.HasMethod("get_projectile_spawn_position"))
+            return source.Call("get_projectile_spawn_position").AsVector3();
+
+        // Fallback: elevate to flight height
+        return source.GlobalPosition + new Vector3(0, ProjectileFlightHeight, 0);
+    }
+
+    /// <summary>
+    /// Get the target position on a unit (center mass).
+    /// Calls the target's target point method if available, otherwise uses fallback.
+    /// </summary>
+    private static Vector3 GetTargetPosition(Node3D target)
+    {
+        // Try the standard method (works for both C# Unit3D and GDScript Summoner)
+        if (target.HasMethod("get_projectile_target_position"))
+            return target.Call("get_projectile_target_position").AsVector3();
+
+        // Fallback: elevate to flight height above ground position
+        return target.GlobalPosition + new Vector3(0, ProjectileFlightHeight, 0);
+    }
+
+    /// <summary>
+    /// Add small random offset to target position for visual variety.
+    /// Uses unseeded RNG since this is purely cosmetic and doesn't affect gameplay.
+    /// </summary>
+    private static Vector3 ApplyTargetSpread(Vector3 targetPos, float spreadRadius = 0.3f)
+    {
+        float offsetX = (float)(GD.Randf() * 2 - 1) * spreadRadius;
+        float offsetY = (float)(GD.Randf() * 2 - 1) * spreadRadius * 0.5f; // Less vertical spread
+        float offsetZ = (float)(GD.Randf() * 2 - 1) * spreadRadius;
+        return targetPos + new Vector3(offsetX, offsetY, offsetZ);
     }
 }
