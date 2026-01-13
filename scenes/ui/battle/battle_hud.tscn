@@ -1,0 +1,120 @@
+[gd_scene load_steps=8 format=3 uid="uid://battle_hud"]
+
+[ext_resource type="Script" path="res://scripts/ui/battle/game_ui.gd" id="1_game_ui"]
+[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battle/battlefield_drop_zone.gd" id="2_drop_zone"]
+[ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/ui/battle/stat_bar.tscn" id="3_stat_bar"]
+[ext_resource type="Script" path="res://scripts/ui/battle/speed_button.gd" id="4_speed_button"]
+[ext_resource type="Script" path="res://scripts/ui/battle/pause_button.gd" id="5_pause_button"]
+[ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/ui/modals/pause_menu.tscn" id="6_pause_menu"]
+
+[node name="BattleHUD" type="CanvasLayer"]
+script = ExtResource("1_game_ui")
+player_hp_bar = NodePath("HUDContainer/PlayerHPBar")
+player_mana_bar = NodePath("HUDContainer/PlayerManaBar")
+enemy_hp_bar = NodePath("HUDContainer/EnemyHPBar")
+enemy_mana_bar = NodePath("HUDContainer/EnemyManaBar")
+
+[node name="BattlefieldDropZone" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_drop_zone")
+
+[node name="HUDContainer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayerHPBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 520.0
+offset_bottom = 52.0
+
+[node name="PlayerManaBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 420.0
+offset_bottom = 92.0
+
+[node name="EnemyHPBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+layout_mode = 1
+offset_left = -520.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 52.0
+grow_horizontal = 0
+
+[node name="EnemyManaBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+layout_mode = 1
+offset_left = -420.0
+offset_top = 60.0
+offset_right = -20.0
+offset_bottom = 92.0
+grow_horizontal = 0
+
+[node name="SpeedButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -60.0
+offset_right = -130.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "▶ 1x"
+script = ExtResource("4_speed_button")
+
+[node name="PauseButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -60.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "⏸ Pause"
+script = ExtResource("5_pause_button")
+
+[node name="GameOverLabel" type="Label" parent="."]
+process_mode = 3
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 72
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
