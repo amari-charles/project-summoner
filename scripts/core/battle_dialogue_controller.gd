@@ -328,5 +328,4 @@ func _action_enable_hand() -> void:
 
 ## Find the HandUI node in the scene tree
 func _find_hand_ui() -> Node:
-	# HandUI should be a child of the Battle3D scene or accessible via get_node
-	return get_node_or_null("/root/Battle3D/HandUI")
+	return get_tree().get_first_node_in_group(GroupIDs.HAND_UI)

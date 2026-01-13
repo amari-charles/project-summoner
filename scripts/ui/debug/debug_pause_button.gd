@@ -1,7 +1,7 @@
 extends Button
 class_name DebugPauseButton
 
-## Debug pause button - freezes gameplay but allows camera panning
+## Debug pause button - freezes gameplay but allows unit placement
 ## Uses Engine.time_scale instead of tree.paused
 
 var _is_paused: bool = false
@@ -10,6 +10,10 @@ func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	pressed.connect(_on_pressed)
 	_update_text()
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 func _unhandled_input(event: InputEvent) -> void:
