@@ -33,7 +33,7 @@ func _ready() -> void:
 	print("TestGameController: Reloaded projectile data from disk")
 
 	# Force projectile pool refresh to reload visuals (fixes color not updating)
-	ProjectileManager.refresh_pools()
+	ProjectileService.refresh_pools()
 
 	# Call parent ready
 	super._ready()

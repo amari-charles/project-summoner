@@ -25,7 +25,4 @@ public struct HitResult
 
     /// <summary>Whether the target was killed by this hit.</summary>
     public bool TargetKilled;
-
-    /// <summary>Whether the hit was blocked by a shield/barrier.</summary>
-    public bool WasBlocked;
 }

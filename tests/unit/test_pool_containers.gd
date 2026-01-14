@@ -102,44 +102,17 @@ func test_hp_bar_service_pooled_bars_in_scene_tree() -> void:
 
 
 ## =============================================================================
-## PROJECTILEMANAGER POOL CONTAINER TESTS
+## PROJECTILESERVICE POOL CONTAINER TESTS (C#)
 ## =============================================================================
+## Note: ProjectileService is now implemented in C#. Pool container testing
+## requires C# unit tests or public API additions to ProjectileService.
 
-func test_projectile_manager_has_pool_container() -> void:
+func test_projectile_service_exists() -> void:
 	if not _is_csharp_available():
-		pending("Skipped: C# not available, ProjectileManager won't initialize")
+		pending("Skipped: C# not available, ProjectileService won't initialize")
 		return
-
-	# Trigger lazy initialization
-	ProjectileManager._ensure_initialized()
 
 	assert_not_null(
-		ProjectileManager.pool_container,
-		"ProjectileManager should have pool_container"
-	)
-	assert_true(
-		ProjectileManager.pool_container.get_parent() == ProjectileManager,
-		"pool_container should be child of ProjectileManager"
-	)
-
-
-func test_projectile_manager_pooled_projectiles_in_scene_tree() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available, ProjectileManager won't initialize")
-		return
-
-	# Trigger lazy initialization
-	ProjectileManager._ensure_initialized()
-
-	var pool_child_count: int = ProjectileManager.pool_container.get_child_count()
-	var total_pooled: int = 0
-
-	for projectile_id: Variant in ProjectileManager.projectile_pools.keys():
-		var pool: Array = ProjectileManager.projectile_pools[projectile_id]
-		total_pooled += pool.size()
-
-	assert_eq(
-		pool_child_count,
-		total_pooled,
-		"Pool container child count should match total pooled projectiles"
+		ProjectileService,
+		"ProjectileService autoload should exist"
 	)

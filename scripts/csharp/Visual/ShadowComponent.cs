@@ -91,6 +91,11 @@ public partial class ShadowComponent : MeshInstance3D
     /// </summary>
     public void SetShadowRadius(float radius)
     {
+        // Early out if radius hasn't changed significantly
+        const float RadiusTolerance = 0.01f;
+        if (Mathf.Abs(ShadowRadius - radius) < RadiusTolerance)
+            return;
+
         ShadowRadius = radius;
         if (Mesh is QuadMesh quadMesh)
         {
@@ -101,9 +106,15 @@ public partial class ShadowComponent : MeshInstance3D
     /// <summary>
     /// Update shadow opacity at runtime.
     /// Regenerates the texture to bake new opacity value, keeping corners white.
+    /// Only regenerates if opacity changed significantly (avoids expensive texture generation).
     /// </summary>
     public void SetShadowOpacity(float opacity)
     {
+        // Early out if opacity hasn't changed significantly (avoid regenerating 128x128 texture every frame)
+        const float OpacityTolerance = 0.01f;
+        if (Mathf.Abs(ShadowOpacity - opacity) < OpacityTolerance)
+            return;
+
         ShadowOpacity = opacity;
         if (_material != null)
         {
@@ -117,7 +128,7 @@ public partial class ShadowComponent : MeshInstance3D
     /// Update shadow for flying unit altitude.
     /// Call this in _PhysicsProcess for dynamic altitude changes.
     /// </summary>
-    public void UpdateForAltitude(float altitude, float maxAltitude = 10.0f)
+    public void UpdateForAltitude(float altitude, float xOffset = 0f, float zOffset = 0f, float maxAltitude = 10.0f)
     {
         float altitudeFactor = Mathf.Clamp(altitude / maxAltitude, 0.0f, 1.0f);
 
@@ -128,8 +139,8 @@ public partial class ShadowComponent : MeshInstance3D
         SetShadowRadius(_baseShadowRadius * sizeScale);
         SetShadowOpacity(_baseShadowOpacity * opacityScale);
 
-        // Keep shadow on ground (relative to parent unit position)
-        Position = new Vector3(0, -altitude + GroundOffset, 0);
+        // Keep shadow on ground with XZ offset preserved
+        Position = new Vector3(xOffset, -altitude + GroundOffset, zOffset);
     }
 
     // =========================================================================

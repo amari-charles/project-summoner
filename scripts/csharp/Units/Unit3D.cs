@@ -282,15 +282,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     }
 
     /// <summary>
-    /// Update shadow position to match sprite offset (accounts for flip).
+    /// Update shadow position to match hurtbox offset (where the character visually appears).
     /// </summary>
     private void UpdateShadowOffset()
     {
-        if (_shadowComponent == null || VisualComponent == null)
+        if (_shadowComponent == null)
             return;
 
-        var offset = VisualComponent.GetShadowOffset();
-        _shadowComponent.Position = new Vector3(offset.X, ShadowGroundOffset, 0);
+        // Shadow should be under the hurtbox (where the character body is)
+        float shadowX = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        _shadowComponent.Position = new Vector3(shadowX, ShadowGroundOffset, HurtboxOffset.Z);
     }
 
     /// <summary>
@@ -422,6 +423,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         VisualComponent?.SetFlipH(_isFacingRight);
         UpdateShadowOffset();
         UpdateHurtboxOffset();  // Update hurtbox now that facing is set
+
+        // For flying units, position shadow at ground level (normally done in _PhysicsProcess
+        // but that doesn't run during prep phase when unit is Inactive)
+        if (MovementLayer == (int)Units.MovementLayer.Air)
+        {
+            UpdateShadowForAltitude();
+        }
 
         // Show shadow after initialization (deferred to run after visual components show)
         if (_shadowComponent != null)
@@ -1109,7 +1117,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     private void UpdateShadowForAltitude()
     {
-        _shadowComponent?.UpdateForAltitude(Position.Y);
+        // Shadow should be under the hurtbox (where the character body is)
+        float shadowX = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        _shadowComponent?.UpdateForAltitude(Position.Y, shadowX, HurtboxOffset.Z);
     }
 
     private void HandleFlyingDeath()
@@ -1271,6 +1281,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     public override void _Process(double delta)
     {
+        // Early out if no debug mode is active and no cleanup needed
+        bool anyDebugEnabled = _debugHurtboxEnabled || _debugTargetPointEnabled || _debugAttackRangeEnabled;
+        bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null || _debugAttackRangeMarker != null;
+
+        if (!anyDebugEnabled && !anyMarkerExists)
+            return;
+
         // Hurtbox debug visualization
         if (_debugHurtboxEnabled)
         {

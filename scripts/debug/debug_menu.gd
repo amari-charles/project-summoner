@@ -13,6 +13,8 @@ extends Node
 ##   F7 - Set to 120 FPS (high refresh rate)
 ##   F8 - Uncapped FPS
 
+const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
+
 ## UI references
 var _panel: PanelContainer
 var _fps_label: Label
@@ -22,6 +24,9 @@ var _buttons: Dictionary = {}  # fps -> Button
 var _grid_button: Button
 var _skip_prep_button: Button
 var _hurtbox_button: Button
+var _target_point_button: Button
+var _attack_range_button: Button
+var _spawn_boundary_button: Button
 
 
 ## =============================================================================
@@ -35,6 +40,9 @@ func _ready() -> void:
 
 	# Always process, even when paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
+
+	# Load saved settings before creating UI
+	_load_settings()
 
 	# Create UI after a frame to ensure tree is ready
 	call_deferred("_create_ui")
@@ -176,6 +184,27 @@ func _create_ui() -> void:
 	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
 	vbox.add_child(_hurtbox_button)
 
+	# Target Point toggle button
+	_target_point_button = Button.new()
+	_target_point_button.text = "Target Points: Off"
+	_target_point_button.custom_minimum_size = Vector2(200, 32)
+	_target_point_button.pressed.connect(_on_target_point_toggle_pressed)
+	vbox.add_child(_target_point_button)
+
+	# Attack Range toggle button
+	_attack_range_button = Button.new()
+	_attack_range_button.text = "Attack Ranges: Off"
+	_attack_range_button.custom_minimum_size = Vector2(200, 32)
+	_attack_range_button.pressed.connect(_on_attack_range_toggle_pressed)
+	vbox.add_child(_attack_range_button)
+
+	# Spawn Boundary Bypass toggle button
+	_spawn_boundary_button = Button.new()
+	_spawn_boundary_button.text = "Spawn Boundary: On"
+	_spawn_boundary_button.custom_minimum_size = Vector2(200, 32)
+	_spawn_boundary_button.pressed.connect(_on_spawn_boundary_toggle_pressed)
+	vbox.add_child(_spawn_boundary_button)
+
 	# Performance counters separator
 	var perf_separator: HSeparator = HSeparator.new()
 	vbox.add_child(perf_separator)
@@ -196,6 +225,33 @@ func _create_ui() -> void:
 
 	# Start hidden by default (press ` or F12 to show)
 	_panel.visible = false
+
+	# Update button text to reflect loaded settings
+	_update_button_states()
+
+
+func _update_button_states() -> void:
+	# Update all toggle button text to match current state
+	if _grid_button:
+		var state: String = "On" if SpatialGrid.is_debug_enabled() else "Off"
+		_grid_button.text = "Grid Lines: %s" % state
+
+	if _hurtbox_button:
+		var state: String = "On" if Unit3D.is_debug_hurtbox_enabled() else "Off"
+		_hurtbox_button.text = "Hurtboxes: %s" % state
+
+	if _target_point_button:
+		var state: String = "On" if Unit3D.is_debug_target_point_enabled() else "Off"
+		_target_point_button.text = "Target Points: %s" % state
+
+	if _attack_range_button:
+		var state: String = "On" if Unit3D.is_debug_attack_range_enabled() else "Off"
+		_attack_range_button.text = "Attack Ranges: %s" % state
+
+	if _spawn_boundary_button:
+		var bypass_enabled: bool = SpatialGrid.is_debug_bypass_spawn_boundary_enabled()
+		var state: String = "Off" if bypass_enabled else "On"
+		_spawn_boundary_button.text = "Spawn Boundary: %s" % state
 
 
 func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) -> void:
@@ -239,6 +295,7 @@ func _on_grid_toggle_pressed() -> void:
 	SpatialGrid.toggle_debug()
 	var state: String = "On" if SpatialGrid.is_debug_enabled() else "Off"
 	_grid_button.text = "Grid Lines: %s" % state
+	_save_settings()
 
 
 func _on_skip_prep_pressed() -> void:
@@ -254,6 +311,63 @@ func _on_hurtbox_toggle_pressed() -> void:
 	Unit3D.toggle_debug_hurtbox()
 	var state: String = "On" if Unit3D.is_debug_hurtbox_enabled() else "Off"
 	_hurtbox_button.text = "Hurtboxes: %s" % state
+	_save_settings()
+
+
+func _on_target_point_toggle_pressed() -> void:
+	Unit3D.toggle_debug_target_point()
+	var state: String = "On" if Unit3D.is_debug_target_point_enabled() else "Off"
+	_target_point_button.text = "Target Points: %s" % state
+	_save_settings()
+
+
+func _on_attack_range_toggle_pressed() -> void:
+	Unit3D.toggle_debug_attack_range()
+	var state: String = "On" if Unit3D.is_debug_attack_range_enabled() else "Off"
+	_attack_range_button.text = "Attack Ranges: %s" % state
+	_save_settings()
+
+
+func _on_spawn_boundary_toggle_pressed() -> void:
+	SpatialGrid.toggle_debug_bypass_spawn_boundary()
+	# "On" means boundary is enforced, "Off" means bypass is enabled (no boundary)
+	var bypass_enabled: bool = SpatialGrid.is_debug_bypass_spawn_boundary_enabled()
+	var state: String = "Off" if bypass_enabled else "On"
+	_spawn_boundary_button.text = "Spawn Boundary: %s" % state
+	_save_settings()
+
+
+## =============================================================================
+## SETTINGS PERSISTENCE
+## =============================================================================
+
+func _load_settings() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	var err: Error = config.load(SETTINGS_PATH)
+	if err != OK:
+		return  # No saved settings, use defaults
+
+	# Load visualization toggles using set methods (not toggle, to avoid sync issues)
+	SpatialGrid.set_debug_enabled(config.get_value("debug_menu", "grid_lines", false))
+	Unit3D.set_debug_hurtbox_enabled(config.get_value("debug_menu", "hurtboxes", false))
+	Unit3D.set_debug_target_point_enabled(config.get_value("debug_menu", "target_points", false))
+	Unit3D.set_debug_attack_range_enabled(config.get_value("debug_menu", "attack_ranges", false))
+	SpatialGrid.set_debug_bypass_spawn_boundary(config.get_value("debug_menu", "bypass_spawn_boundary", false))
+
+	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
+
+
+func _save_settings() -> void:
+	var config: ConfigFile = ConfigFile.new()
+
+	# Save visualization toggles
+	config.set_value("debug_menu", "grid_lines", SpatialGrid.is_debug_enabled())
+	config.set_value("debug_menu", "hurtboxes", Unit3D.is_debug_hurtbox_enabled())
+	config.set_value("debug_menu", "target_points", Unit3D.is_debug_target_point_enabled())
+	config.set_value("debug_menu", "attack_ranges", Unit3D.is_debug_attack_range_enabled())
+	config.set_value("debug_menu", "bypass_spawn_boundary", SpatialGrid.is_debug_bypass_spawn_boundary_enabled())
+
+	config.save(SETTINGS_PATH)
 
 
 func _update_perf_counters() -> void:
