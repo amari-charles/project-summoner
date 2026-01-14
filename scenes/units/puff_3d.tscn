@@ -70,10 +70,11 @@ FlightAltitude = 2.5
 
 [node name="Visual" parent="." instance=ExtResource("2_sprite_component")]
 SpriteFramesResource = ExtResource("3_frames")
-FeetOffsetPixels = 80.0
+FeetOffsetPixels = 180.0
 HeadOffsetPixels = 250.0
 SpriteOffsetPixels = Vector2(-20, 0)
 SpriteScale = 1.0
+ViewportScale = 1.5
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 autoplay = "float"

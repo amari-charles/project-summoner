@@ -82,14 +82,13 @@ public static class UnitSpawner
             unit.Scale = Vector3.One * multiplier;
         }
 
-        // Calculate final position (handle flight altitude for flying units)
-        var finalPos = CalculateFinalPosition(unit, context.Position);
-
-        // Set position BEFORE adding to tree (prevents jitter)
-        unit.Position = finalPos;
-
-        // Add to tree
+        // Add to tree first - C# exported properties (MovementLayer, FlightAltitude)
+        // are only accessible after the node enters the scene tree
         context.GameplayLayer.AddChild(unit);
+
+        // Calculate final position AFTER tree entry (now MovementLayer is accessible)
+        var finalPos = CalculateFinalPosition(unit, context.Position);
+        unit.Position = finalPos;
 
         // Initialize with modifiers if it's a Unit3D
         Unit3D? unit3d = null;
