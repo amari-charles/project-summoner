@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ProjectSummoner.Targeting.Filters;
 using ProjectSummoner.Targeting.Scorers;
 using ProjectSummoner.Targeting.Constraints;
+using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Targeting;
 
@@ -33,17 +34,27 @@ public static class TargetingConfigRegistry
         if (_initialized) return;
         _initialized = true;
 
+        // Ranged units
         RegisterPuffConfig();
+
+        // Melee units (can only target ground units)
+        RegisterMeleeConfig("fire_elemental");
+        RegisterMeleeConfig("fire_titan");
+        RegisterMeleeConfig("fire_ant");
+        RegisterMeleeConfig("earth_sprite");
+
+        // Special units
         RegisterRockConfig();
     }
 
     /// <summary>
-    /// Puff: Ranged unit with horizontal cone constraint.
-    /// Must face target within ±30° to attack.
+    /// Puff: Flying ranged unit with 3D cone constraint.
+    /// Must face target within ±30° in 3D space to attack.
+    /// Cannot shoot at steep angles (e.g., straight down).
     /// </summary>
     private static void RegisterPuffConfig()
     {
-        // Filter: Valid targets only
+        // Filter: Valid targets only (can target both ground and air)
         var validFilter = new ValidTargetFilter();
 
         // Scorer: Prefer close targets, bonus for targets below
@@ -53,9 +64,10 @@ public static class TargetingConfigRegistry
         compositeScorer.Scorers.Add(distanceScorer);
         compositeScorer.Scorers.Add(belowScorer);
 
-        // Constraints: Range + Horizontal cone (must face target)
+        // Constraints: Range + 3D cone (must face target in 3D space)
+        // Using 3D cone means targets directly below are outside the cone
         var rangeConstraint = new RangeConstraint();
-        var coneConstraint = new HorizontalConeConstraint
+        var coneConstraint = new ConeConstraint3D
         {
             ConeHalfAngle = 30f,
             CloseRangeThreshold = 0.5f
@@ -74,6 +86,41 @@ public static class TargetingConfigRegistry
         };
 
         _configs["puff"] = config;
+    }
+
+    /// <summary>
+    /// Standard melee unit config: can only target ground units.
+    /// Uses default distance + health scoring.
+    /// </summary>
+    private static void RegisterMeleeConfig(string unitId)
+    {
+        // Filter: Valid targets + Ground only (cannot target flying units)
+        var validFilter = new ValidTargetFilter();
+        var layerFilter = new LayerTargetFilter { CanTarget = TargetLayer.GroundOnly };
+        var compositeFilter = new CompositeTargetFilter();
+        compositeFilter.Filters.Add(validFilter);
+        compositeFilter.Filters.Add(layerFilter);
+
+        // Scorer: Prefer close targets, slightly prefer low health
+        var distanceScorer = new DistanceScorer { MaxDistance = 20f, Weight = 1f };
+        var healthScorer = new HealthScorer { Weight = 10f };
+        var compositeScorer = new CompositeScorer();
+        compositeScorer.Scorers.Add(distanceScorer);
+        compositeScorer.Scorers.Add(healthScorer);
+
+        // Constraints: Range only
+        var rangeConstraint = new RangeConstraint();
+
+        var config = new TargetingConfig
+        {
+            Filter = compositeFilter,
+            Scorer = compositeScorer,
+            AttackConstraint = rangeConstraint,
+            AggroRadius = 20f,
+            FallbackMovement = FallbackMovementStyle.MoveToward  // Melee: move toward target
+        };
+
+        _configs[unitId] = config;
     }
 
     /// <summary>

@@ -1115,7 +1115,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     private static bool _debugHurtboxEnabled;
+    private static bool _debugTargetPointEnabled;
+    private static bool _debugAttackRangeEnabled;
+
     private MeshInstance3D? _debugHurtboxMarker;
+    private MeshInstance3D? _debugTargetPointMarker;
+    private MeshInstance3D? _debugAttackRangeMarker;
 
     /// <summary>
     /// Toggle debug hurtbox visualization for all units.
@@ -1127,17 +1132,57 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     }
 
     /// <summary>
+    /// Toggle debug target point visualization for all units.
+    /// </summary>
+    public static void ToggleDebugTargetPoint()
+    {
+        _debugTargetPointEnabled = !_debugTargetPointEnabled;
+        GD.Print($"[Unit3D] Debug Target Point: {(_debugTargetPointEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
+    /// Toggle debug attack range visualization for all units.
+    /// </summary>
+    public static void ToggleDebugAttackRange()
+    {
+        _debugAttackRangeEnabled = !_debugAttackRangeEnabled;
+        GD.Print($"[Unit3D] Debug Attack Range: {(_debugAttackRangeEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
     /// Check if debug hurtbox visualization is enabled.
     /// </summary>
     public static bool IsDebugHurtboxEnabled() => _debugHurtboxEnabled;
 
+    /// <summary>
+    /// Check if debug target point visualization is enabled.
+    /// </summary>
+    public static bool IsDebugTargetPointEnabled() => _debugTargetPointEnabled;
+
+    /// <summary>
+    /// Check if debug attack range visualization is enabled.
+    /// </summary>
+    public static bool IsDebugAttackRangeEnabled() => _debugAttackRangeEnabled;
+
+    // Set methods for loading saved settings
+    public static void SetDebugHurtboxEnabled(bool enabled) => _debugHurtboxEnabled = enabled;
+    public static void SetDebugTargetPointEnabled(bool enabled) => _debugTargetPointEnabled = enabled;
+    public static void SetDebugAttackRangeEnabled(bool enabled) => _debugAttackRangeEnabled = enabled;
+
     // Snake_case aliases for GDScript compatibility
     public static void toggle_debug_hurtbox() => ToggleDebugHurtbox();
     public static bool is_debug_hurtbox_enabled() => IsDebugHurtboxEnabled();
+    public static void set_debug_hurtbox_enabled(bool enabled) => SetDebugHurtboxEnabled(enabled);
+    public static void toggle_debug_target_point() => ToggleDebugTargetPoint();
+    public static bool is_debug_target_point_enabled() => IsDebugTargetPointEnabled();
+    public static void set_debug_target_point_enabled(bool enabled) => SetDebugTargetPointEnabled(enabled);
+    public static void toggle_debug_attack_range() => ToggleDebugAttackRange();
+    public static bool is_debug_attack_range_enabled() => IsDebugAttackRangeEnabled();
+    public static void set_debug_attack_range_enabled(bool enabled) => SetDebugAttackRangeEnabled(enabled);
 
     public override void _Process(double delta)
     {
-        // Debug visualization update
+        // Hurtbox debug visualization
         if (_debugHurtboxEnabled)
         {
             UpdateDebugHurtboxMarker();
@@ -1146,6 +1191,28 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         {
             _debugHurtboxMarker.QueueFree();
             _debugHurtboxMarker = null;
+        }
+
+        // Target point debug visualization
+        if (_debugTargetPointEnabled)
+        {
+            UpdateDebugTargetPointMarker();
+        }
+        else if (_debugTargetPointMarker != null)
+        {
+            _debugTargetPointMarker.QueueFree();
+            _debugTargetPointMarker = null;
+        }
+
+        // Attack range debug visualization
+        if (_debugAttackRangeEnabled)
+        {
+            UpdateDebugAttackRangeMarker();
+        }
+        else if (_debugAttackRangeMarker != null)
+        {
+            _debugAttackRangeMarker.QueueFree();
+            _debugAttackRangeMarker = null;
         }
     }
 
@@ -1187,5 +1254,198 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         mesh.MaterialOverride = material;
 
         return mesh;
+    }
+
+    private void UpdateDebugTargetPointMarker()
+    {
+        if (_debugTargetPointMarker == null)
+        {
+            _debugTargetPointMarker = CreateDebugTargetPointSphere();
+            AddChild(_debugTargetPointMarker);
+        }
+
+        // Position at the projectile target point (global space converted to local)
+        var targetPos = get_projectile_target_position();
+        _debugTargetPointMarker.GlobalPosition = targetPos;
+    }
+
+    private MeshInstance3D CreateDebugTargetPointSphere()
+    {
+        var mesh = new MeshInstance3D();
+        var sphere = new SphereMesh
+        {
+            Radius = 0.3f,
+            Height = 0.6f
+        };
+        mesh.Mesh = sphere;
+
+        // Green if explicit marker exists, orange if using fallback center-mass
+        bool hasExplicitMarker = _projectileTargetPoint != null;
+        var color = hasExplicitMarker
+            ? new Color(0.2f, 1.0f, 0.2f, 0.7f)   // Green - explicit marker
+            : new Color(1.0f, 0.6f, 0.2f, 0.7f);  // Orange - fallback center-mass
+
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = color,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 100
+        };
+        mesh.MaterialOverride = material;
+
+        return mesh;
+    }
+
+    private void UpdateDebugAttackRangeMarker()
+    {
+        float range = GetEffectiveAttackRange();
+
+        // Check if we have a cone constraint
+        var config = GetTargetingConfig();
+        float? coneHalfAngle = GetConeHalfAngle(config);
+
+        if (_debugAttackRangeMarker == null)
+        {
+            _debugAttackRangeMarker = coneHalfAngle.HasValue
+                ? CreateDebugAttackCone(range, coneHalfAngle.Value)
+                : CreateDebugAttackRangeCircle(range);
+            AddChild(_debugAttackRangeMarker);
+        }
+
+        // Position at ground level (Y = 0) centered on unit
+        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+
+        // Rotate cone based on facing direction
+        if (coneHalfAngle.HasValue)
+        {
+            // Face right = 0°, face left = 180° (on Y axis)
+            float yRotation = _isFacingRight ? 0f : Mathf.Pi;
+            _debugAttackRangeMarker.Rotation = new Vector3(0, yRotation, 0);
+        }
+    }
+
+    /// <summary>
+    /// Get cone half-angle if unit has a cone constraint, null otherwise.
+    /// Checks both direct constraints and nested constraints inside CompositeConstraint.
+    /// Supports both HorizontalConeConstraint and ConeConstraint3D.
+    /// </summary>
+    private float? GetConeHalfAngle(TargetingConfig config)
+    {
+        // Direct cone constraint (2D or 3D)
+        if (config.AttackConstraint is Targeting.Constraints.HorizontalConeConstraint coneConstraint)
+        {
+            return coneConstraint.ConeHalfAngle;
+        }
+        if (config.AttackConstraint is Targeting.Constraints.ConeConstraint3D cone3D)
+        {
+            return cone3D.ConeHalfAngle;
+        }
+
+        // Nested inside CompositeConstraint (e.g., Puff uses Range + Cone)
+        if (config.AttackConstraint is Targeting.Constraints.CompositeConstraint composite)
+        {
+            foreach (var constraint in composite.Constraints)
+            {
+                if (constraint is Targeting.Constraints.HorizontalConeConstraint nestedCone)
+                {
+                    return nestedCone.ConeHalfAngle;
+                }
+                if (constraint is Targeting.Constraints.ConeConstraint3D nestedCone3D)
+                {
+                    return nestedCone3D.ConeHalfAngle;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private MeshInstance3D CreateDebugAttackRangeCircle(float radius)
+    {
+        var mesh = new MeshInstance3D();
+        var cylinder = new CylinderMesh
+        {
+            TopRadius = radius,
+            BottomRadius = radius,
+            Height = 0.05f  // Very thin disc
+        };
+        mesh.Mesh = cylinder;
+
+        mesh.MaterialOverride = CreateAttackRangeMaterial();
+        return mesh;
+    }
+
+    private MeshInstance3D CreateDebugAttackCone(float radius, float halfAngleDegrees)
+    {
+        var mesh = new MeshInstance3D();
+        mesh.Mesh = CreateConeMesh(radius, halfAngleDegrees);
+        mesh.MaterialOverride = CreateAttackRangeMaterial();
+        return mesh;
+    }
+
+    private StandardMaterial3D CreateAttackRangeMaterial()
+    {
+        return new StandardMaterial3D
+        {
+            AlbedoColor = new Color(1.0f, 0.8f, 0.2f, 0.3f),  // Yellow-orange
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 99  // Slightly below target point
+        };
+    }
+
+    /// <summary>
+    /// Create a wedge/cone mesh for attack range visualization.
+    /// The cone points in the +X direction (right).
+    /// </summary>
+    private ArrayMesh CreateConeMesh(float radius, float halfAngleDegrees)
+    {
+        var surfaceTool = new SurfaceTool();
+        surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
+
+        const float height = 0.05f;
+        const int segments = 16;  // Segments for the arc
+
+        float halfAngleRad = Mathf.DegToRad(halfAngleDegrees);
+        float startAngle = -halfAngleRad;
+        float endAngle = halfAngleRad;
+        float angleStep = (endAngle - startAngle) / segments;
+
+        var center = new Vector3(0, height / 2, 0);
+
+        // Create triangles from center to arc
+        for (int i = 0; i < segments; i++)
+        {
+            float angle1 = startAngle + i * angleStep;
+            float angle2 = startAngle + (i + 1) * angleStep;
+
+            // Points on the arc (X is forward, Z is sideways)
+            var p1 = new Vector3(Mathf.Cos(angle1) * radius, height / 2, Mathf.Sin(angle1) * radius);
+            var p2 = new Vector3(Mathf.Cos(angle2) * radius, height / 2, Mathf.Sin(angle2) * radius);
+
+            // Top face triangle
+            surfaceTool.AddVertex(center);
+            surfaceTool.AddVertex(p1);
+            surfaceTool.AddVertex(p2);
+
+            // Bottom face triangle (reversed winding)
+            var centerBottom = new Vector3(0, -height / 2, 0);
+            var p1Bottom = new Vector3(p1.X, -height / 2, p1.Z);
+            var p2Bottom = new Vector3(p2.X, -height / 2, p2.Z);
+
+            surfaceTool.AddVertex(centerBottom);
+            surfaceTool.AddVertex(p2Bottom);
+            surfaceTool.AddVertex(p1Bottom);
+        }
+
+        surfaceTool.GenerateNormals();
+        return surfaceTool.Commit();
     }
 }
