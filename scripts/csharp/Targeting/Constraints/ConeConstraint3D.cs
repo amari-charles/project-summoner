@@ -53,7 +53,18 @@ public partial class ConeConstraint3D : BaseAttackConstraint
         float angleRad = Mathf.Acos(dot);
         float angleDeg = Mathf.RadToDeg(angleRad);
 
-        return angleDeg <= ConeHalfAngle;
+        bool isValid = angleDeg <= ConeHalfAngle;
+
+        // Debug: Log when constraint fails
+        if (!isValid)
+        {
+            GD.Print($"[ConeConstraint3D] REJECTED: {unit.Name} -> {target.Name}");
+            GD.Print($"  Unit pos: {unit.GlobalPosition}, Target pos: {target.GlobalPosition}");
+            GD.Print($"  toTarget: {toTarget}, facing: {facing}");
+            GD.Print($"  Angle: {angleDeg:F1}° > ConeHalfAngle: {ConeHalfAngle}°");
+        }
+
+        return isValid;
     }
 
     public override bool TryResolve(Unit3D unit, Node3D target)

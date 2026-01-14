@@ -1,5 +1,6 @@
 using Godot;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Projectiles;
 
 namespace ProjectSummoner.Units;
 
@@ -139,11 +140,10 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
         // Apply predictive targeting for moving targets
         targetPos = CalculateInterceptPoint(spawnPos, targetPos, target);
 
-        // Spawn via ProjectileManager (GDScript autoload)
-        var projectileManager = GetNodeOrNull("/root/ProjectileManager");
-        if (projectileManager == null)
+        // Spawn via ProjectileService (C# singleton)
+        if (ProjectileService.Instance == null)
         {
-            GD.PushError("RangedUnit3D: ProjectileManager not found!");
+            GD.PushError("RangedUnit3D: ProjectileService not found!");
             return;
         }
 
@@ -153,7 +153,7 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
             ["target_position"] = targetPos
         };
 
-        projectileManager.Call("spawn_projectile",
+        ProjectileService.Instance.SpawnProjectile(
             ProjectileId,
             this,
             target,
@@ -189,13 +189,20 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
         // Check if target is still valid
         if (target == null || !IsInstanceValid(target))
+        {
+            GD.Print($"[RangedUnit3D] {Name}: Delayed projectile cancelled - target invalid");
             return;
+        }
 
         // Verify attack constraints still allow attacking
         // (target may have moved out of cone during the charge-up)
         if (!GetTargetingConfig().CanAttack(this, target))
+        {
+            GD.Print($"[RangedUnit3D] {Name}: Delayed projectile cancelled - CanAttack returned false");
             return;
+        }
 
+        GD.Print($"[RangedUnit3D] {Name}: Spawning delayed projectile at {target.Name}");
         SpawnProjectile(target);
     }
 
