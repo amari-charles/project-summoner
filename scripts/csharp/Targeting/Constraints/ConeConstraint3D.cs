@@ -73,4 +73,12 @@ public partial class ConeConstraint3D : BaseAttackConstraint
         // the target into the cone.
         return IsAttackValid(unit, target);
     }
+
+    public override AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    {
+        Vector3 facing = unit.IsFacingRight
+            ? new Vector3(1, 0, 0)
+            : new Vector3(-1, 0, 0);
+        return new AttackVisualizationData(true, ConeHalfAngle, facing);
+    }
 }

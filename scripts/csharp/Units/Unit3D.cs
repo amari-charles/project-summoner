@@ -1153,9 +1153,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
         else
         {
-            // Use overrides if set, otherwise calculate/use defaults
-            float height = HurtboxHeight > 0 ? HurtboxHeight : (VisualComponent?.GetSpriteHeight() ?? 2.0f);
-            float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+            // Use shared config (single source of truth)
+            var (radius, height, _) = GetHurtboxConfig();
             _hurtbox.Configure(
                 team: Team,
                 category: HurtboxCategory.Unit,
@@ -1178,9 +1177,21 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (_hurtbox == null || HurtboxOffset == Vector3.Zero)
             return;
 
-        // Flip X offset based on facing direction
+        var (_, _, offset) = GetHurtboxConfig();
+        _hurtbox.Position = offset;
+    }
+
+    /// <summary>
+    /// Get hurtbox configuration values. Single source of truth for both
+    /// actual hurtbox setup and debug visualization.
+    /// </summary>
+    private (float radius, float height, Vector3 offset) GetHurtboxConfig()
+    {
+        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+        float height = HurtboxHeight > 0 ? HurtboxHeight : (VisualComponent?.GetSpriteHeight() ?? 2.0f);
         float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
-        _hurtbox.Position = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
+        var offset = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
+        return (radius, height, offset);
     }
 
     /// <summary>
@@ -1305,12 +1316,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             AddChild(_debugHurtboxMarker);
         }
 
-        // Get actual radius used
-        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
-
-        // Flip X offset based on facing direction
-        float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
-        var offset = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
+        // Use shared config (single source of truth)
+        var (radius, height, offset) = GetHurtboxConfig();
 
         // Position at hurtbox center, accounting for offset
         if (HurtboxHorizontal)
@@ -1320,7 +1327,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
         else
         {
-            _debugHurtboxMarker.Position = offset + new Vector3(0, _hurtbox.Height / 2, 0);
+            _debugHurtboxMarker.Position = offset + new Vector3(0, height / 2, 0);
             _debugHurtboxMarker.Rotation = Vector3.Zero;
         }
     }
@@ -1411,68 +1418,35 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         float range = GetEffectiveAttackRange();
 
-        // Check if we have a cone constraint
+        // Get visualization data from constraint (single source of truth)
         var config = GetTargetingConfig();
-        float? coneHalfAngle = GetConeHalfAngle(config);
+        var vizData = config.AttackConstraint?.GetVisualizationData(this);
 
         if (_debugAttackRangeMarker == null)
         {
-            _debugAttackRangeMarker = coneHalfAngle.HasValue
-                ? CreateDebugAttackCone(range, coneHalfAngle.Value)
+            _debugAttackRangeMarker = vizData?.IsCone == true && vizData.ConeHalfAngle.HasValue
+                ? CreateDebugAttackCone(range, vizData.ConeHalfAngle.Value)
                 : CreateDebugAttackRangeCircle(range);
             AddChild(_debugAttackRangeMarker);
         }
 
         // Position at hurtbox center height, accounting for offset
-        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
-        float yOffset = HurtboxHorizontal ? radius : (HurtboxHeight > 0 ? HurtboxHeight / 2 : 1.0f);
-        float markerY = GlobalPosition.Y + yOffset + HurtboxOffset.Y;
-        float xOffset = HurtboxOffset != Vector3.Zero ? (_isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X) : 0f;
-        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X + xOffset, markerY, GlobalPosition.Z + HurtboxOffset.Z);
+        var (hurtboxRadius, hurtboxHeight, hurtboxOffset) = GetHurtboxConfig();
+        float yOffset = HurtboxHorizontal ? hurtboxRadius : (hurtboxHeight / 2);
+        float markerY = GlobalPosition.Y + yOffset + hurtboxOffset.Y;
+        _debugAttackRangeMarker.GlobalPosition = new Vector3(
+            GlobalPosition.X + hurtboxOffset.X,
+            markerY,
+            GlobalPosition.Z + hurtboxOffset.Z
+        );
 
         // Rotate cone based on facing direction
-        if (coneHalfAngle.HasValue)
+        if (vizData?.IsCone == true)
         {
             // Face right = 0°, face left = 180° (on Y axis)
             float yRotation = _isFacingRight ? 0f : Mathf.Pi;
             _debugAttackRangeMarker.Rotation = new Vector3(0, yRotation, 0);
         }
-    }
-
-    /// <summary>
-    /// Get cone half-angle if unit has a cone constraint, null otherwise.
-    /// Checks both direct constraints and nested constraints inside CompositeConstraint.
-    /// Supports both HorizontalConeConstraint and ConeConstraint3D.
-    /// </summary>
-    private float? GetConeHalfAngle(TargetingConfig config)
-    {
-        // Direct cone constraint (2D or 3D)
-        if (config.AttackConstraint is Targeting.Constraints.HorizontalConeConstraint coneConstraint)
-        {
-            return coneConstraint.ConeHalfAngle;
-        }
-        if (config.AttackConstraint is Targeting.Constraints.ConeConstraint3D cone3D)
-        {
-            return cone3D.ConeHalfAngle;
-        }
-
-        // Nested inside CompositeConstraint (e.g., Puff uses Range + Cone)
-        if (config.AttackConstraint is Targeting.Constraints.CompositeConstraint composite)
-        {
-            foreach (var constraint in composite.Constraints)
-            {
-                if (constraint is Targeting.Constraints.HorizontalConeConstraint nestedCone)
-                {
-                    return nestedCone.ConeHalfAngle;
-                }
-                if (constraint is Targeting.Constraints.ConeConstraint3D nestedCone3D)
-                {
-                    return nestedCone3D.ConeHalfAngle;
-                }
-            }
-        }
-
-        return null;
     }
 
     private MeshInstance3D CreateDebugAttackRangeCircle(float radius)

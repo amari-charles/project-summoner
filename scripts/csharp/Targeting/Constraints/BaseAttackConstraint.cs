@@ -4,6 +4,16 @@ using ProjectSummoner.Units;
 namespace ProjectSummoner.Targeting.Constraints;
 
 /// <summary>
+/// Data for debug visualization of an attack constraint.
+/// Constraints return this to ensure visualization matches actual validation.
+/// </summary>
+public record AttackVisualizationData(
+    bool IsCone,
+    float? ConeHalfAngle,
+    Vector3 FacingDirection
+);
+
+/// <summary>
 /// Abstract base class for attack constraints.
 /// Constraints determine when an attack is valid and can resolve violations.
 /// </summary>
@@ -41,5 +51,14 @@ public abstract partial class BaseAttackConstraint : Resource
     public virtual bool CanEverReach(Unit3D unit, Node3D target)
     {
         return true;
+    }
+
+    /// <summary>
+    /// Get visualization data for debug rendering.
+    /// Ensures debug visuals match actual constraint parameters.
+    /// </summary>
+    public virtual AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    {
+        return null;
     }
 }
