@@ -321,15 +321,6 @@ public partial class Projectile3D : Area3D
         var ownerEntityVar = area.Get("OwnerEntity");
         if (ownerEntityVar.VariantType != Variant.Type.Nil)
         {
-            // Skip SummonerMelee hurtbox - projectiles only hit SummonerProjectile
-            var categoryVar = area.Get("Category");
-            if (categoryVar.VariantType != Variant.Type.Nil)
-            {
-                var category = (HurtboxCategory)categoryVar.AsInt32();
-                if ((category & HurtboxCategory.SummonerMelee) != 0)
-                    return; // Skip melee-only hurtbox
-            }
-
             var hurtboxOwner = ownerEntityVar.As<Node3D>();
             if (hurtboxOwner != null && IsValidTarget(hurtboxOwner))
             {

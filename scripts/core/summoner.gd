@@ -37,14 +37,10 @@ const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 ## Projectile targeting configuration
 const PROJECTILE_TARGET_HEIGHT: float = 1.5  # Chest height for projectile targeting
 
-## Dual hurtbox configuration (for combat hit detection)
-## Melee attacks hit the large circle, projectiles must hit the sprite area
-const MELEE_HURTBOX_RADIUS: float = 4.0       # Large circle for melee attacks
-const MELEE_HURTBOX_HEIGHT: float = 0.5       # Low cylinder/disk shape
-const PROJECTILE_HURTBOX_RADIUS: float = 0.8  # Smaller capsule for projectiles
-const PROJECTILE_HURTBOX_HEIGHT: float = 2.5  # Character sprite height
-const HURTBOX_CATEGORY_MELEE: int = 16        # HurtboxCategory.SummonerMelee (1 << 4)
-const HURTBOX_CATEGORY_PROJECTILE: int = 32   # HurtboxCategory.SummonerProjectile (1 << 5)
+## Hurtbox configuration (for combat hit detection)
+const HURTBOX_RADIUS: float = 2.0    # Capsule radius around summoner
+const HURTBOX_HEIGHT: float = 6.25   # Character sprite height
+const HURTBOX_CATEGORY: int = 2      # HurtboxCategory.Summoner (1 << 1)
 
 ## Current state
 var mana: float = 0.0
@@ -79,9 +75,11 @@ var _loaded_summoner_instance: SummonerInstance = null
 ## Track initialization state
 var _initialized: bool = false
 
-## Hurtbox components (for combat hit detection)
-var _melee_hurtbox: Node = null      # Large circle for melee attacks
-var _projectile_hurtbox: Node = null # Smaller area for projectiles
+## Hurtbox component (for combat hit detection)
+var _hurtbox: Node = null
+
+## Debug visualization marker
+var _debug_hurtbox_marker: MeshInstance3D = null
 
 ## Signals
 signal card_played(card: Card)
@@ -129,8 +127,11 @@ func _ready() -> void:
 		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
 	})
 
-	# Setup dual hurtboxes for combat hit detection (melee + projectile)
-	_setup_hurtboxes()
+	# Setup hurtbox for combat hit detection
+	_setup_hurtbox()
+
+	# Configure collision shape to match hurtbox radius (single source of truth)
+	_configure_collision_shape()
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
@@ -226,41 +227,46 @@ func _process(delta: float) -> void:
 		if casting_time_remaining <= 0.0:
 			_complete_casting()
 
+	# Update debug visualization (follows Unit3D's debug toggle)
+	_update_debug_visualization()
+
 func _exit_tree() -> void:
 	# Kill any active tweens to prevent lambda capture errors
 	if active_feedback_tween and active_feedback_tween.is_valid():
 		active_feedback_tween.kill()
+	# Clean up debug marker
+	if _debug_hurtbox_marker != null:
+		_debug_hurtbox_marker.queue_free()
+		_debug_hurtbox_marker = null
 	# Remove HP bar
 	HPBarService.remove_bar_from_unit(self)
 
-## Setup dual hurtbox components for combat hit detection
-## - Melee hurtbox: Large circle (~4 unit radius) for melee attacks
-## - Projectile hurtbox: Smaller capsule matching sprite for projectile hits
-func _setup_hurtboxes() -> void:
+## Setup hurtbox component for combat hit detection
+func _setup_hurtbox() -> void:
 	var hurtbox_script: Script = load("res://scripts/csharp/Combat/Hitbox/HurtboxComponent.cs")
 	if hurtbox_script == null:
 		push_error("Summoner: Failed to load HurtboxComponent class")
 		return
 
-	# Large circle for melee attacks (low disk shape)
-	_melee_hurtbox = hurtbox_script.new()
-	add_child(_melee_hurtbox)
-	_melee_hurtbox.configure(
+	_hurtbox = hurtbox_script.new()
+	add_child(_hurtbox)
+	_hurtbox.configure(
 		int(team),
-		HURTBOX_CATEGORY_MELEE,
-		MELEE_HURTBOX_RADIUS,
-		MELEE_HURTBOX_HEIGHT
+		HURTBOX_CATEGORY,
+		HURTBOX_RADIUS,
+		HURTBOX_HEIGHT
 	)
 
-	# Smaller capsule for projectile hits (matches sprite bounds)
-	_projectile_hurtbox = hurtbox_script.new()
-	add_child(_projectile_hurtbox)
-	_projectile_hurtbox.configure(
-		int(team),
-		HURTBOX_CATEGORY_PROJECTILE,
-		PROJECTILE_HURTBOX_RADIUS,
-		PROJECTILE_HURTBOX_HEIGHT
-	)
+
+## Configure collision shape radius from code (single source of truth with hurtbox)
+func _configure_collision_shape() -> void:
+	if not has_node("CollisionBody/CollisionShape3D"):
+		return
+
+	var collision_shape: CollisionShape3D = $CollisionBody/CollisionShape3D
+	if collision_shape.shape is CylinderShape3D:
+		collision_shape.shape.radius = HURTBOX_RADIUS
+
 
 ## Draw a card from deck into hand
 ## If target_index is provided, insert at that position (for in-place replacement)
@@ -708,3 +714,59 @@ func _play_hit_feedback() -> void:
 ## Returns center mass (roughly chest height for visual feedback).
 func get_projectile_target_position() -> Vector3:
 	return global_position + Vector3(0, PROJECTILE_TARGET_HEIGHT, 0)
+
+
+## =============================================================================
+## DEBUG VISUALIZATION
+## =============================================================================
+
+## Update debug visualization marker based on Unit3D's debug toggle state
+func _update_debug_visualization() -> void:
+	var debug_enabled: bool = Unit3D.is_debug_hurtbox_enabled()
+
+	if debug_enabled:
+		_update_debug_hurtbox_marker()
+	else:
+		# Clean up marker when debug is disabled
+		if _debug_hurtbox_marker != null:
+			_debug_hurtbox_marker.queue_free()
+			_debug_hurtbox_marker = null
+
+
+## Create/update the hurtbox debug marker (capsule)
+func _update_debug_hurtbox_marker() -> void:
+	if _hurtbox == null:
+		return
+
+	if _debug_hurtbox_marker == null:
+		_debug_hurtbox_marker = _create_debug_capsule_mesh(
+			HURTBOX_RADIUS,
+			HURTBOX_HEIGHT,
+			Color(0.2, 1.0, 0.2, 0.3)  # Green (matches unit hurtbox color)
+		)
+		add_child(_debug_hurtbox_marker)
+
+	# Position at center height
+	_debug_hurtbox_marker.position = Vector3(0, HURTBOX_HEIGHT / 2, 0)
+
+
+## Create a debug capsule mesh for visualization
+func _create_debug_capsule_mesh(radius: float, height: float, color: Color) -> MeshInstance3D:
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+
+	var capsule: CapsuleMesh = CapsuleMesh.new()
+	capsule.radius = radius
+	capsule.height = height
+	mesh_instance.mesh = capsule
+
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = color
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	material.no_depth_test = true
+	material.render_priority = 100
+	mesh_instance.material_override = material
+
+	return mesh_instance

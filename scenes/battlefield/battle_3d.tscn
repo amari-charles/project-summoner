@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://battle_3d"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Texture2D" path="res://assets/summoners/knight/Knight 2D Pixel Art/Sprites/with_outline/IDLE.png" id="17_knight_sprite"]
+[ext_resource type="Texture2D" uid="uid://e2b28osgxgy4" path="res://assets/summoners/knight/Knight 2D Pixel Art/Sprites/with_outline/IDLE.png" id="17_knight_sprite"]
 [ext_resource type="Script" uid="uid://b0pmsqluoj531" path="res://scripts/core/game_controller_3d.gd" id="2_game_controller"]
 [ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner.gd" id="3_summoner"]
 [ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/ui/battle/hand_ui.tscn" id="6_hand_ui"]
@@ -10,7 +10,6 @@
 [ext_resource type="Script" path="res://scripts/core/battle_dialogue_controller.gd" id="16_battle_dialogue_controller"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_summoner"]
-radius = 4.0
 height = 0.5
 
 [node name="Battle3D" type="Node3D"]
@@ -28,10 +27,9 @@ script = ExtResource("3_summoner")
 team = 0
 
 [node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
-pixel_size = 0.036
-offset = Vector2(0, 42)
+pixel_size = 0.15
+offset = Vector2(-5, 28)
 texture_filter = 0
-flip_h = true
 hframes = 8
 texture = ExtResource("17_knight_sprite")
 
@@ -46,9 +44,10 @@ script = ExtResource("3_summoner")
 team = 1
 
 [node name="Visual" type="Sprite3D" parent="EnemySummoner"]
-pixel_size = 0.036
-offset = Vector2(0, 42)
+pixel_size = 0.15
+offset = Vector2(5, 28)
 texture_filter = 0
+flip_h = true
 hframes = 8
 texture = ExtResource("17_knight_sprite")
 
