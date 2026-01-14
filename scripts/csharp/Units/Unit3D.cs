@@ -694,11 +694,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Get the position where projectiles should aim at this unit.
-    /// Returns ProjectileTargetPoint position if available, otherwise center mass.
+    /// Uses hurtbox center if offset is set, otherwise ProjectileTargetPoint or center mass.
     /// Method name uses snake_case for cross-language duck typing compatibility.
     /// </summary>
     public Vector3 get_projectile_target_position()
     {
+        // If hurtbox has custom offset, use hurtbox center as target
+        if (HurtboxOffset != Vector3.Zero)
+        {
+            float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+            float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+            float yOffset = HurtboxHorizontal ? radius : (HurtboxHeight > 0 ? HurtboxHeight / 2 : 1.0f);
+            return GlobalPosition + new Vector3(xOffset, yOffset + HurtboxOffset.Y, HurtboxOffset.Z);
+        }
+
         if (_projectileTargetPoint != null)
         {
             return _projectileTargetPoint.GlobalPosition;
