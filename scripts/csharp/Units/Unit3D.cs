@@ -1424,8 +1424,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         // Position at unit's altitude (ground units at Y=0.05, flying units at their altitude)
+        // Also account for hurtbox offset to align with hurtbox center
         float markerY = MovementLayer == (int)Units.MovementLayer.Air ? GlobalPosition.Y + 0.05f : 0.05f;
-        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, markerY, GlobalPosition.Z);
+        float xOffset = HurtboxOffset != Vector3.Zero ? (_isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X) : 0f;
+        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X + xOffset, markerY, GlobalPosition.Z + HurtboxOffset.Z);
 
         // Rotate cone based on facing direction
         if (coneHalfAngle.HasValue)
