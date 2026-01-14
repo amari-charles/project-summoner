@@ -6,6 +6,34 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Summoner Combat Interactions Broken
+**Resolved:** 2026-01-14
+**Component:** Combat / Summoner / Projectiles
+
+**Description:**
+Multiple issues with how the summoner interacts with combat systems:
+1. Projectiles cannot hit summoner
+2. Units cannot hit summoner
+3. Summoner blocks friendly projectiles
+
+**Root Cause:**
+The summoner was missing a HurtboxComponent. Units create a HurtboxComponent in `_Ready()` via `SetupHurtbox()` that places a collision shape on Layer 5 (hurtbox layer), allowing hitboxes (melee attacks) and projectiles (on Layer 6) to detect hits. The summoner had none of this - only a StaticBody3D for physical collision which is on the wrong layer for combat detection.
+
+**Solution Implemented:**
+Added `_setup_hurtbox()` method to `summoner.gd` that:
+1. Loads and instantiates the C# HurtboxComponent
+2. Configures it with team, `HurtboxCategory.Summoner`, and appropriate size (radius 1.0, height 4.0)
+3. Called from `_ready()` after HP bar setup
+
+The existing `take_damage()` method and damage system were already working - the issue was purely collision detection.
+
+**Related Files:**
+- `scripts/core/summoner.gd` - Added `_setup_hurtbox()` method and hurtbox configuration constants
+- `scripts/csharp/Combat/Hitbox/HurtboxComponent.cs` - Existing component, no changes needed
+- `scripts/csharp/Combat/DamageSystem.cs` - Already supported GDScript `take_damage()` method
+
+---
+
 ### Units Can Move/Fly Out of Bounds
 **Resolved:** 2026-01-13
 **Component:** Unit Movement / Boundaries

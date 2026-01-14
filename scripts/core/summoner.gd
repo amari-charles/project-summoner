@@ -37,6 +37,11 @@ const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 ## Projectile targeting configuration
 const PROJECTILE_TARGET_HEIGHT: float = 1.5  # Chest height for projectile targeting
 
+## Hurtbox configuration (for combat hit detection)
+const HURTBOX_RADIUS: float = 1.0  # Larger than units
+const HURTBOX_HEIGHT: float = 4.0  # Matches collision body height
+const HURTBOX_CATEGORY_SUMMONER: int = 2  # HurtboxCategory.Summoner (1 << 1)
+
 ## Current state
 var mana: float = 0.0
 var max_mana: float = SummonerConfig.DEFAULT_MAX_MANA  ## Fixed pool for entire battle (no regeneration)
@@ -69,6 +74,9 @@ var _loaded_summoner_instance: SummonerInstance = null
 
 ## Track initialization state
 var _initialized: bool = false
+
+## Hurtbox component (for combat hit detection)
+var _hurtbox: Node = null
 
 ## Signals
 signal card_played(card: Card)
@@ -115,6 +123,9 @@ func _ready() -> void:
 		"offset_y": HP_BAR_OFFSET_Y,
 		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
 	})
+
+	# Setup hurtbox for combat hit detection
+	_setup_hurtbox()
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
@@ -216,6 +227,26 @@ func _exit_tree() -> void:
 		active_feedback_tween.kill()
 	# Remove HP bar
 	HPBarService.remove_bar_from_unit(self)
+
+## Setup hurtbox component for combat hit detection
+## This allows projectiles and melee attacks to hit the summoner
+func _setup_hurtbox() -> void:
+	var hurtbox_script: Script = load("res://scripts/csharp/Combat/Hitbox/HurtboxComponent.cs")
+	if hurtbox_script == null:
+		push_error("Summoner: Failed to load HurtboxComponent class")
+		return
+
+	_hurtbox = hurtbox_script.new()
+	add_child(_hurtbox)
+
+	# Configure hurtbox with team, category, and size
+	# Must be called after add_child so the component is in the tree
+	_hurtbox.configure(
+		int(team),
+		HURTBOX_CATEGORY_SUMMONER,
+		HURTBOX_RADIUS,
+		HURTBOX_HEIGHT
+	)
 
 ## Draw a card from deck into hand
 ## If target_index is provided, insert at that position (for in-place replacement)
