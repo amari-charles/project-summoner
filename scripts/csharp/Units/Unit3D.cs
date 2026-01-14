@@ -278,6 +278,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _isFacingRight = facingRight;
         VisualComponent?.SetFlipH(_isFacingRight);
         UpdateShadowOffset();
+        UpdateHurtboxOffset();
     }
 
     /// <summary>
@@ -1154,11 +1155,22 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             );
         }
 
-        // Apply offset if set
-        if (HurtboxOffset != Vector3.Zero)
-        {
-            _hurtbox.Position = HurtboxOffset;
-        }
+        // Apply offset (accounts for facing direction)
+        UpdateHurtboxOffset();
+    }
+
+    /// <summary>
+    /// Update hurtbox position based on facing direction.
+    /// X offset flips when unit faces left.
+    /// </summary>
+    private void UpdateHurtboxOffset()
+    {
+        if (_hurtbox == null || HurtboxOffset == Vector3.Zero)
+            return;
+
+        // Flip X offset based on facing direction
+        float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        _hurtbox.Position = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
     }
 
     /// <summary>
@@ -1286,15 +1298,19 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Get actual radius used
         float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
 
+        // Flip X offset based on facing direction
+        float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        var offset = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
+
         // Position at hurtbox center, accounting for offset
         if (HurtboxHorizontal)
         {
-            _debugHurtboxMarker.Position = HurtboxOffset + new Vector3(0, radius, 0);
+            _debugHurtboxMarker.Position = offset + new Vector3(0, radius, 0);
             _debugHurtboxMarker.Rotation = new Vector3(0, 0, Mathf.DegToRad(90));
         }
         else
         {
-            _debugHurtboxMarker.Position = HurtboxOffset + new Vector3(0, _hurtbox.Height / 2, 0);
+            _debugHurtboxMarker.Position = offset + new Vector3(0, _hurtbox.Height / 2, 0);
             _debugHurtboxMarker.Rotation = Vector3.Zero;
         }
     }
