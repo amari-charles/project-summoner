@@ -13,6 +13,8 @@
 	"lifetime": 2.0,
 	"rotate_to_direction": false,
 	"fade_in_duration": 0.15,
+	"fade_on_hit": true,
+	"fade_duration": 0.1,
 
 	"arc_height": 0.0,
 	"gravity": 0.0,

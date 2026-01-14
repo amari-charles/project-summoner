@@ -62,6 +62,12 @@ public class ProjectileData
     /// <summary>Time to fade in (0 = instant).</summary>
     public float FadeInDuration { get; set; } = 0f;
 
+    /// <summary>Whether to fade out on hit (true) or despawn immediately (false).</summary>
+    public bool FadeOnHit { get; set; } = true;
+
+    /// <summary>Duration of fade out on hit.</summary>
+    public float FadeDuration { get; set; } = 0.5f;
+
     // =========================================================================
     // ARC/BALLISTIC PROPERTIES
     // =========================================================================
@@ -121,6 +127,8 @@ public class ProjectileData
             Lifetime = GetFloat(dict, "lifetime", 5f),
             RotateToDirection = GetBool(dict, "rotate_to_direction", true),
             FadeInDuration = GetFloat(dict, "fade_in_duration", 0f),
+            FadeOnHit = GetBool(dict, "fade_on_hit", true),
+            FadeDuration = GetFloat(dict, "fade_duration", 0.5f),
             ArcHeight = GetFloat(dict, "arc_height", 2f),
             Gravity = GetFloat(dict, "gravity", -9.8f),
             HomingStrength = GetFloat(dict, "homing_strength", 5f),
@@ -179,6 +187,8 @@ public class ProjectileData
             Lifetime = resource.Get("lifetime").AsSingle(),
             RotateToDirection = resource.Get("rotate_to_direction").AsBool(),
             FadeInDuration = resource.Get("fade_in_duration").AsSingle(),
+            FadeOnHit = GetResourceBool(resource, "fade_on_hit", true),
+            FadeDuration = GetResourceFloat(resource, "fade_duration", 0.5f),
             ArcHeight = resource.Get("arc_height").AsSingle(),
             Gravity = resource.Get("gravity").AsSingle(),
             HomingStrength = resource.Get("homing_strength").AsSingle(),
@@ -271,6 +281,26 @@ public class ProjectileData
         if (value.VariantType == Variant.Type.String)
         {
             return value.AsString();
+        }
+        return defaultValue;
+    }
+
+    private static bool GetResourceBool(GodotObject resource, string property, bool defaultValue = false)
+    {
+        var value = resource.Get(property);
+        if (value.VariantType == Variant.Type.Bool)
+        {
+            return value.AsBool();
+        }
+        return defaultValue;
+    }
+
+    private static float GetResourceFloat(GodotObject resource, string property, float defaultValue = 0f)
+    {
+        var value = resource.Get(property);
+        if (value.VariantType == Variant.Type.Float || value.VariantType == Variant.Type.Int)
+        {
+            return value.AsSingle();
         }
         return defaultValue;
     }
