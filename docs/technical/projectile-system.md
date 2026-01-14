@@ -25,6 +25,8 @@ Projectiles are managed by `ProjectileManager` (autoload) and use pooling for pe
 |----------|------|---------|-------------|
 | `model_scene_path` | string | "" | Path to visual scene (.tscn) |
 | `fade_in_duration` | float | 0.0 | Time in seconds to fade from invisible to visible |
+| `fade_on_hit` | bool | true | Whether to fade out on hit (true) or despawn immediately (false) |
+| `fade_duration` | float | 0.5 | Duration of fade-out animation in seconds |
 | `trail_effect_id` | string | "" | VFX ID for trail particles |
 | `impact_effect_id` | string | "" | VFX ID for hit effect |
 
@@ -79,6 +81,26 @@ void fragment() {
     ALPHA = base_alpha * alpha;
 }
 ```
+
+## Fade-Out Effect
+
+When a projectile hits a target or expires, it can fade out smoothly using the `fade_on_hit` and `fade_duration` properties.
+
+- `fade_on_hit = true` (default): Projectile fades out over `fade_duration` seconds before despawning
+- `fade_on_hit = false`: Projectile despawns immediately on hit
+
+The fade-out works with both `StandardMaterial3D` (tweens `albedo_color.a`) and `ShaderMaterial` (tweens `alpha` uniform). Custom shaders must include the same `alpha` uniform as described in [Shader Requirements](#shader-requirements) above.
+
+### Example: Quick Fade
+
+```json
+{
+  "fade_on_hit": true,
+  "fade_duration": 0.1
+}
+```
+
+This creates a quick 0.1 second fade-out, useful for fast projectiles like wind puffs that shouldn't linger visually.
 
 ## Delayed Projectile Spawning
 
