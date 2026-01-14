@@ -203,6 +203,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public bool HurtboxHorizontal { get; set; } = false;
 
+    /// <summary>
+    /// Override for hurtbox height (or width when horizontal).
+    /// Set to 0 to auto-calculate from sprite height.
+    /// </summary>
+    [Export]
+    public float HurtboxHeight { get; set; } = 0f;
+
     // =========================================================================
     // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
@@ -1120,7 +1127,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
         else
         {
-            float height = VisualComponent?.GetSpriteHeight() ?? 2.0f;
+            // Use override if set, otherwise calculate from sprite
+            float height = HurtboxHeight > 0 ? HurtboxHeight : (VisualComponent?.GetSpriteHeight() ?? 2.0f);
             _hurtbox.Configure(
                 team: Team,
                 category: HurtboxCategory.Unit,
