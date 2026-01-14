@@ -137,47 +137,6 @@ Reduces effective army size as blocked units don't contribute to combat.
 
 ---
 
-#### Summoner Combat Interactions Broken
-**Status:** Open
-**Reported:** 2026-01-05
-**Updated:** 2026-01-13
-**Component:** Combat / Summoner / Projectiles
-
-**Description:**
-Multiple issues with how the summoner interacts with combat systems:
-
-1. **Projectiles cannot hit summoner:** Ranged units are unable to properly hit or damage the summoner with projectiles.
-
-2. **Units cannot hit summoner:** Melee units also appear unable to attack/damage the summoner.
-
-3. **Summoner blocks friendly projectiles:** The summoner's collision/hurtbox is blocking projectiles from friendly units (same team), preventing them from reaching enemy targets.
-
-**Expected Behavior:**
-- Enemy ranged units should be able to target and hit the summoner with projectiles
-- Enemy melee units should be able to attack the summoner
-- Friendly projectiles should pass through the summoner without collision
-
-**Current Behavior:**
-- Projectiles miss, pass through, or fail to register hits on the summoner
-- Melee units cannot attack the summoner
-- Friendly team projectiles are blocked by the summoner
-
-**Impact:**
-- Summoner is effectively invincible to unit attacks
-- Friendly ranged units behind the summoner cannot hit enemies
-- Breaks core combat balance
-
-**Root Cause (Suspected):**
-Summoner hurtbox/collision configuration may have incorrect team assignment, collision layers, or missing components needed for the damage system to recognize it as a valid target.
-
-**Related Files:**
-- scripts/csharp/Combat/DamageSystem.cs
-- scripts/csharp/Projectiles/Projectile3D.cs
-- scripts/csharp/Combat/Hitbox/HurtboxComponent.cs
-- Summoner scene and collision/hurtbox configuration
-
----
-
 #### Mana Bolt Bounces on Ground Impact
 **Status:** Open
 **Reported:** 2026-01-11
@@ -311,4 +270,4 @@ Debug tool doesn't work correctly for testing enemy units.
 
 ---
 
-*Last Updated: 2026-01-13 - Added camera boundary bugs and enemy spawn debug issue*
+*Last Updated: 2026-01-14 - Moved "Summoner Combat Interactions Broken" to resolved*
