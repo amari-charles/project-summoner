@@ -64,7 +64,7 @@ HpBarOffsetY = 2.2
 HurtboxHorizontal = true
 HurtboxHeight = 3.0
 HurtboxRadius = 0.75
-HurtboxOffset = Vector3(0.5, 0, 0)
+HurtboxOffset = Vector3(0.7, 0, 0)
 MovementLayer = 1
 FlightAltitude = 2.5
 
