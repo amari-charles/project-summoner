@@ -1423,9 +1423,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             AddChild(_debugAttackRangeMarker);
         }
 
-        // Position at unit's altitude (ground units at Y=0.05, flying units at their altitude)
-        // Also account for hurtbox offset to align with hurtbox center
-        float markerY = MovementLayer == (int)Units.MovementLayer.Air ? GlobalPosition.Y + 0.05f : 0.05f;
+        // Position at hurtbox center height, accounting for offset
+        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+        float yOffset = HurtboxHorizontal ? radius : (HurtboxHeight > 0 ? HurtboxHeight / 2 : 1.0f);
+        float markerY = GlobalPosition.Y + yOffset + HurtboxOffset.Y;
         float xOffset = HurtboxOffset != Vector3.Zero ? (_isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X) : 0f;
         _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X + xOffset, markerY, GlobalPosition.Z + HurtboxOffset.Z);
 
