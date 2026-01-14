@@ -55,7 +55,8 @@ public partial class HurtboxComponent : Area3D
     {
         OwnerEntity = GetParent<Node3D>();
         ConfigureCollision();
-        CreateShape();
+        // Don't create shape here - let Configure/ConfigureBox create it
+        // This ensures properties are set before shape is created
     }
 
     // =========================================================================
@@ -64,7 +65,7 @@ public partial class HurtboxComponent : Area3D
 
     /// <summary>
     /// Configure the hurtbox with the given parameters (capsule shape).
-    /// Call after adding to scene tree if not using exports.
+    /// Must be called after adding to scene tree.
     /// </summary>
     public void Configure(int team, HurtboxCategory category, float radius, float height, bool horizontal = false)
     {
@@ -75,14 +76,18 @@ public partial class HurtboxComponent : Area3D
         Horizontal = horizontal;
         _useBoxShape = false;
 
-        if (IsInsideTree())
+        // Create or update the shape
+        if (_collisionShape != null)
         {
-            UpdateShape();
+            _collisionShape.QueueFree();
+            _collisionShape = null;
         }
+        CreateCapsuleShape();
     }
 
     /// <summary>
     /// Configure the hurtbox with a box shape (for wide/flat units like Puff).
+    /// Must be called after adding to scene tree.
     /// </summary>
     public void ConfigureBox(int team, HurtboxCategory category, Vector3 boxSize)
     {
@@ -92,10 +97,13 @@ public partial class HurtboxComponent : Area3D
         Height = boxSize.Y;  // Keep Height for compatibility
         _useBoxShape = true;
 
-        if (IsInsideTree())
+        // Create or update the shape
+        if (_collisionShape != null)
         {
-            UpdateBoxShape();
+            _collisionShape.QueueFree();
+            _collisionShape = null;
         }
+        CreateBoxShape();
     }
 
     private void ConfigureCollision()

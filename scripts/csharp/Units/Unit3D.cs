@@ -1115,6 +1115,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private void SetupHurtbox()
     {
         _hurtbox = new HurtboxComponent();
+        AddChild(_hurtbox);  // Add first so Configure can create child nodes
 
         // Use box shape if HurtboxBoxSize is set, otherwise use capsule
         if (HurtboxBoxSize != Vector3.Zero)
@@ -1137,8 +1138,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 horizontal: HurtboxHorizontal
             );
         }
-
-        AddChild(_hurtbox);
     }
 
     /// <summary>
