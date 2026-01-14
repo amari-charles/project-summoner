@@ -217,6 +217,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float HurtboxRadius { get; set; } = 0f;
 
+    /// <summary>
+    /// Offset for hurtbox position (X, Y, Z).
+    /// Use to align hurtbox with off-center sprites.
+    /// </summary>
+    [Export]
+    public Vector3 HurtboxOffset { get; set; } = Vector3.Zero;
+
     // =========================================================================
     // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
@@ -1145,6 +1152,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 height: height,
                 horizontal: HurtboxHorizontal
             );
+        }
+
+        // Apply offset if set
+        if (HurtboxOffset != Vector3.Zero)
+        {
+            _hurtbox.Position = HurtboxOffset;
         }
     }
 
