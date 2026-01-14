@@ -189,6 +189,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float HpBarOffsetY { get; set; } = 0f;
 
+    /// <summary>
+    /// Custom hurtbox size using a box shape. If non-zero, uses BoxShape3D instead of CapsuleShape3D.
+    /// Format: (Width, Height, Depth). Leave at (0,0,0) to use default capsule based on CollisionRadius.
+    /// </summary>
+    [Export]
+    public Vector3 HurtboxBoxSize { get; set; } = Vector3.Zero;
+
+    /// <summary>
+    /// Whether the hurtbox capsule should be horizontal (rotated 90 degrees).
+    /// Used for wide, flat units like flying clouds.
+    /// </summary>
+    [Export]
+    public bool HurtboxHorizontal { get; set; } = false;
+
     // =========================================================================
     // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
@@ -1093,15 +1107,29 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     private void SetupHurtbox()
     {
-        float height = VisualComponent?.GetSpriteHeight() ?? 2.0f;
-
         _hurtbox = new HurtboxComponent();
-        _hurtbox.Configure(
-            team: Team,
-            category: HurtboxCategory.Unit,
-            radius: CollisionRadius,
-            height: height
-        );
+
+        // Use box shape if HurtboxBoxSize is set, otherwise use capsule
+        if (HurtboxBoxSize != Vector3.Zero)
+        {
+            _hurtbox.ConfigureBox(
+                team: Team,
+                category: HurtboxCategory.Unit,
+                boxSize: HurtboxBoxSize
+            );
+        }
+        else
+        {
+            float height = VisualComponent?.GetSpriteHeight() ?? 2.0f;
+            _hurtbox.Configure(
+                team: Team,
+                category: HurtboxCategory.Unit,
+                radius: CollisionRadius,
+                height: height,
+                horizontal: HurtboxHorizontal
+            );
+        }
+
         AddChild(_hurtbox);
     }
 
@@ -1223,23 +1251,45 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         if (_debugHurtboxMarker == null)
         {
-            _debugHurtboxMarker = CreateDebugHurtboxCapsule();
+            _debugHurtboxMarker = CreateDebugHurtboxMesh();
             AddChild(_debugHurtboxMarker);
         }
 
         // Position at hurtbox center
-        _debugHurtboxMarker.Position = new Vector3(0, _hurtbox.Height / 2, 0);
+        if (HurtboxHorizontal)
+        {
+            _debugHurtboxMarker.Position = new Vector3(0, CollisionRadius, 0);
+            _debugHurtboxMarker.Rotation = new Vector3(0, 0, Mathf.DegToRad(90));
+        }
+        else
+        {
+            _debugHurtboxMarker.Position = new Vector3(0, _hurtbox.Height / 2, 0);
+            _debugHurtboxMarker.Rotation = Vector3.Zero;
+        }
     }
 
-    private MeshInstance3D CreateDebugHurtboxCapsule()
+    private MeshInstance3D CreateDebugHurtboxMesh()
     {
         var mesh = new MeshInstance3D();
-        var capsule = new CapsuleMesh
+
+        // Use box or capsule based on hurtbox type
+        if (HurtboxBoxSize != Vector3.Zero)
         {
-            Radius = _hurtbox?.Radius ?? CollisionRadius,
-            Height = _hurtbox?.Height ?? 2.0f
-        };
-        mesh.Mesh = capsule;
+            var boxMesh = new BoxMesh
+            {
+                Size = HurtboxBoxSize
+            };
+            mesh.Mesh = boxMesh;
+        }
+        else
+        {
+            var capsule = new CapsuleMesh
+            {
+                Radius = _hurtbox?.Radius ?? CollisionRadius,
+                Height = _hurtbox?.Height ?? 2.0f
+            };
+            mesh.Mesh = capsule;
+        }
 
         var material = new StandardMaterial3D
         {

@@ -31,6 +31,12 @@ public partial class HurtboxComponent : Area3D
     /// <summary>Height of the hurtbox capsule.</summary>
     [Export] public float Height { get; set; } = 2.0f;
 
+    /// <summary>Size for box-shaped hurtbox (Width, Height, Depth).</summary>
+    [Export] public Vector3 BoxSize { get; set; } = Vector3.Zero;
+
+    /// <summary>Whether the capsule should be horizontal (rotated 90 degrees).</summary>
+    [Export] public bool Horizontal { get; set; } = false;
+
     /// <summary>The entity this hurtbox belongs to.</summary>
     public Node3D? OwnerEntity { get; private set; }
 
@@ -39,6 +45,7 @@ public partial class HurtboxComponent : Area3D
     // =========================================================================
 
     private CollisionShape3D? _collisionShape;
+    private bool _useBoxShape = false;
 
     // =========================================================================
     // LIFECYCLE
@@ -56,19 +63,38 @@ public partial class HurtboxComponent : Area3D
     // =========================================================================
 
     /// <summary>
-    /// Configure the hurtbox with the given parameters.
+    /// Configure the hurtbox with the given parameters (capsule shape).
     /// Call after adding to scene tree if not using exports.
     /// </summary>
-    public void Configure(int team, HurtboxCategory category, float radius, float height)
+    public void Configure(int team, HurtboxCategory category, float radius, float height, bool horizontal = false)
     {
         Team = team;
         Category = category;
         Radius = radius;
         Height = height;
+        Horizontal = horizontal;
+        _useBoxShape = false;
 
         if (IsInsideTree())
         {
             UpdateShape();
+        }
+    }
+
+    /// <summary>
+    /// Configure the hurtbox with a box shape (for wide/flat units like Puff).
+    /// </summary>
+    public void ConfigureBox(int team, HurtboxCategory category, Vector3 boxSize)
+    {
+        Team = team;
+        Category = category;
+        BoxSize = boxSize;
+        Height = boxSize.Y;  // Keep Height for compatibility
+        _useBoxShape = true;
+
+        if (IsInsideTree())
+        {
+            UpdateBoxShape();
         }
     }
 
@@ -82,6 +108,18 @@ public partial class HurtboxComponent : Area3D
 
     private void CreateShape()
     {
+        if (_useBoxShape && BoxSize != Vector3.Zero)
+        {
+            CreateBoxShape();
+        }
+        else
+        {
+            CreateCapsuleShape();
+        }
+    }
+
+    private void CreateCapsuleShape()
+    {
         var capsule = new CapsuleShape3D
         {
             Radius = Radius,
@@ -90,9 +128,37 @@ public partial class HurtboxComponent : Area3D
 
         _collisionShape = new CollisionShape3D
         {
-            Shape = capsule,
+            Shape = capsule
+        };
+
+        if (Horizontal)
+        {
+            // Rotate 90 degrees around Z axis to make capsule horizontal (lying along X)
+            _collisionShape.Rotation = new Vector3(0, 0, Mathf.DegToRad(90));
+            // Position so the center is at the unit's center height
+            _collisionShape.Position = new Vector3(0, Radius, 0);
+        }
+        else
+        {
             // Position capsule so base is at Y=0
-            Position = new Vector3(0, Height / 2, 0)
+            _collisionShape.Position = new Vector3(0, Height / 2, 0);
+        }
+
+        AddChild(_collisionShape);
+    }
+
+    private void CreateBoxShape()
+    {
+        var box = new BoxShape3D
+        {
+            Size = BoxSize
+        };
+
+        _collisionShape = new CollisionShape3D
+        {
+            Shape = box,
+            // Position box so base is at Y=0
+            Position = new Vector3(0, BoxSize.Y / 2, 0)
         };
 
         AddChild(_collisionShape);
@@ -105,6 +171,21 @@ public partial class HurtboxComponent : Area3D
             capsule.Radius = Radius;
             capsule.Height = Height;
             _collisionShape.Position = new Vector3(0, Height / 2, 0);
+        }
+    }
+
+    private void UpdateBoxShape()
+    {
+        if (_collisionShape?.Shape is BoxShape3D box)
+        {
+            box.Size = BoxSize;
+            _collisionShape.Position = new Vector3(0, BoxSize.Y / 2, 0);
+        }
+        else
+        {
+            // Need to recreate the shape
+            _collisionShape?.QueueFree();
+            CreateBoxShape();
         }
     }
 
