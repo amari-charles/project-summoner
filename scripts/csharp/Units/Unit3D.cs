@@ -1283,15 +1283,18 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             AddChild(_debugHurtboxMarker);
         }
 
-        // Position at hurtbox center
+        // Get actual radius used
+        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+
+        // Position at hurtbox center, accounting for offset
         if (HurtboxHorizontal)
         {
-            _debugHurtboxMarker.Position = new Vector3(0, CollisionRadius, 0);
+            _debugHurtboxMarker.Position = HurtboxOffset + new Vector3(0, radius, 0);
             _debugHurtboxMarker.Rotation = new Vector3(0, 0, Mathf.DegToRad(90));
         }
         else
         {
-            _debugHurtboxMarker.Position = new Vector3(0, _hurtbox.Height / 2, 0);
+            _debugHurtboxMarker.Position = HurtboxOffset + new Vector3(0, _hurtbox.Height / 2, 0);
             _debugHurtboxMarker.Rotation = Vector3.Zero;
         }
     }
