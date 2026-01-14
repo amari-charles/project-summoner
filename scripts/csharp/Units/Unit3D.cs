@@ -210,6 +210,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float HurtboxHeight { get; set; } = 0f;
 
+    /// <summary>
+    /// Override for hurtbox radius (or height when horizontal).
+    /// Set to 0 to use CollisionRadius.
+    /// </summary>
+    [Export]
+    public float HurtboxRadius { get; set; } = 0f;
+
     // =========================================================================
     // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
@@ -1128,12 +1135,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
         else
         {
-            // Use override if set, otherwise calculate from sprite
+            // Use overrides if set, otherwise calculate/use defaults
             float height = HurtboxHeight > 0 ? HurtboxHeight : (VisualComponent?.GetSpriteHeight() ?? 2.0f);
+            float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
             _hurtbox.Configure(
                 team: Team,
                 category: HurtboxCategory.Unit,
-                radius: CollisionRadius,
+                radius: radius,
                 height: height,
                 horizontal: HurtboxHorizontal
             );
