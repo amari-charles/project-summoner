@@ -76,6 +76,20 @@ Do NOT just revert to a previous working state when encountering errors. Fix the
   - Add corresponding entries to `localization/data/en.json`
   - Never hardcode user-facing strings in GDScript files
 
+### GDScript/C# Enum Interop
+
+When GDScript needs C# enum values, use the **Mirror Enum Pattern**:
+
+1. Define a matching enum in `scripts/data/unit_constants.gd`
+2. Add a comment noting the C# source file it must match
+3. Cast to `int()` when passing to C# methods
+
+**Examples:**
+- `UnitConstants.Team` mirrors `scripts/csharp/Units/Enums.cs`
+- `UnitConstants.HurtboxCategory` mirrors `scripts/csharp/Combat/Hitbox/HurtboxCategory.cs`
+
+**Never hardcode C# enum int values directly** (e.g., `const CATEGORY: int = 2`). Always use the mirror enum for type safety and maintainability.
+
 ### Git Workflow
 **ALWAYS use feature branches and PRs for non-trivial changes.**
 

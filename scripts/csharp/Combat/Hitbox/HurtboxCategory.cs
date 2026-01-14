@@ -13,6 +13,6 @@ public enum HurtboxCategory
     Unit = 1 << 0,
     Summoner = 1 << 1,
     Structure = 1 << 2,
-    Projectile = 1 << 3,  // For interceptable projectiles
+    Projectile = 1 << 3,            // For interceptable projectiles
     All = Unit | Summoner | Structure | Projectile
 }
