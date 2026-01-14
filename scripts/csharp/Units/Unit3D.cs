@@ -1316,8 +1316,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             AddChild(_debugAttackRangeMarker);
         }
 
-        // Position at ground level (Y = 0) centered on unit
-        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+        // Position at unit's altitude (ground units at Y=0.05, flying units at their altitude)
+        float markerY = MovementLayer == (int)Units.MovementLayer.Air ? GlobalPosition.Y + 0.05f : 0.05f;
+        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, markerY, GlobalPosition.Z);
 
         // Rotate cone based on facing direction
         if (coneHalfAngle.HasValue)
