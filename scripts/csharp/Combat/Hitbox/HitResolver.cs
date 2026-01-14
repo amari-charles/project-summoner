@@ -65,7 +65,6 @@ public partial class HitResolver : Node
             Attacker = hitbox.Source!,
             Target = hurtbox.OwnerEntity!,
             HitPosition = hurtbox.GlobalPosition,
-            WasBlocked = false,
             DamageDealt = 0,
             WasCrit = false,
             TargetKilled = false
@@ -76,13 +75,6 @@ public partial class HitResolver : Node
             GD.PushWarning("HitResolver: Hurtbox has no owner, hit ignored");
             return result;
         }
-
-        // Check for shields/barriers (future extensibility point)
-        // if (CheckForBlock(hitbox, hurtbox, out var blocker))
-        // {
-        //     result.WasBlocked = true;
-        //     return result;
-        // }
 
         // Apply damage through DamageSystem
         if (DamageSystem.Instance != null)

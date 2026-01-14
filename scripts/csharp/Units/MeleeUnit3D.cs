@@ -11,6 +11,22 @@ namespace ProjectSummoner.Units;
 public partial class MeleeUnit3D : Unit3D
 {
     // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+
+    /// <summary>Duration of melee hitbox in seconds (brief window for hit detection).</summary>
+    private const float MeleeHitboxDuration = 0.1f;
+
+    /// <summary>Hitbox spawns at this fraction of attack range from attacker toward target.</summary>
+    private const float HitboxPositionFraction = 0.5f;
+
+    /// <summary>Height offset for hitbox position (roughly chest height).</summary>
+    private const float HitboxHeightOffset = 1.0f;
+
+    /// <summary>Hitbox radius as fraction of attack range.</summary>
+    private const float HitboxRadiusFraction = 0.6f;
+
+    // =========================================================================
     // STATE
     // =========================================================================
 
@@ -120,15 +136,15 @@ public partial class MeleeUnit3D : Unit3D
             SourceTeam = Team,
             Source = this,
             Lifetime = HitboxLifetime.Timed,
-            Duration = 0.1f,  // Brief window for hit detection
+            Duration = MeleeHitboxDuration,
             SingleHitPerTarget = true,
             TargetCategories = HurtboxCategory.Unit | HurtboxCategory.Summoner
         };
 
         // Position hitbox between attacker and target
         var attackDirection = (target.GlobalPosition - GlobalPosition).Normalized();
-        var hitboxPosition = GlobalPosition + attackDirection * (AttackRange * 0.5f);
-        hitboxPosition.Y = GlobalPosition.Y + 1.0f;  // Chest height
+        var hitboxPosition = GlobalPosition + attackDirection * (AttackRange * HitboxPositionFraction);
+        hitboxPosition.Y = GlobalPosition.Y + HitboxHeightOffset;
 
         // Add to scene first so _Ready() runs and configures collision
         GetTree().Root.AddChild(hitbox);
@@ -137,6 +153,6 @@ public partial class MeleeUnit3D : Unit3D
         hitbox.GlobalPosition = hitboxPosition;
 
         // Create attack hitbox shape
-        hitbox.CreateSphereShape(AttackRange * 0.6f);
+        hitbox.CreateSphereShape(AttackRange * HitboxRadiusFraction);
     }
 }

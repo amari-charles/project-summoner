@@ -53,18 +53,7 @@ public partial class ConeConstraint3D : BaseAttackConstraint
         float angleRad = Mathf.Acos(dot);
         float angleDeg = Mathf.RadToDeg(angleRad);
 
-        bool isValid = angleDeg <= ConeHalfAngle;
-
-        // Debug: Log when constraint fails
-        if (!isValid)
-        {
-            GD.Print($"[ConeConstraint3D] REJECTED: {unit.Name} -> {target.Name}");
-            GD.Print($"  Unit pos: {unit.GlobalPosition}, Target pos: {target.GlobalPosition}");
-            GD.Print($"  toTarget: {toTarget}, facing: {facing}");
-            GD.Print($"  Angle: {angleDeg:F1}° > ConeHalfAngle: {ConeHalfAngle}°");
-        }
-
-        return isValid;
+        return angleDeg <= ConeHalfAngle;
     }
 
     public override bool TryResolve(Unit3D unit, Node3D target)
@@ -72,6 +61,27 @@ public partial class ConeConstraint3D : BaseAttackConstraint
         // Don't force facing here - let strafe movement naturally bring
         // the target into the cone.
         return IsAttackValid(unit, target);
+    }
+
+    public override bool CanEverReach(Unit3D unit, Node3D target)
+    {
+        // Targets at extreme vertical angles can never be in the cone.
+        // A target directly above/below would require a 90° angle from horizontal,
+        // which exceeds any reasonable cone half-angle.
+        Vector3 toTarget = target.GlobalPosition - unit.GlobalPosition;
+        float horizontalDist = new Vector2(toTarget.X, toTarget.Z).Length();
+        float verticalDist = Mathf.Abs(toTarget.Y);
+
+        // If horizontal distance is near zero, the angle approaches 90°
+        if (horizontalDist < CloseRangeThreshold)
+        {
+            // Very close targets are always reachable (same as IsAttackValid)
+            return toTarget.Length() < CloseRangeThreshold;
+        }
+
+        // Calculate vertical angle from horizontal plane
+        float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(verticalDist, horizontalDist));
+        return angleToTarget <= ConeHalfAngle;
     }
 
     public override AttackVisualizationData? GetVisualizationData(Unit3D unit)

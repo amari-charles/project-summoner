@@ -26,21 +26,30 @@ Visualizes the SpatialGrid cells used for unit proximity queries.
 #### Skip Prep Phase
 Immediately transitions from prep phase to battle phase. Useful for testing combat without waiting.
 
+#### Hurtboxes
+Shows each unit's collision/hit detection volume as a green capsule.
+
+- Capsule radius = unit's `CollisionRadius` property
+- Capsule height = sprite height (calculated from visual component)
+- Used for: projectile collision detection, attack hit detection
+
 #### Target Points
 Shows where projectiles aim on each unit:
-- **Green sphere**: Unit has explicit `ProjectileTargetPoint` marker
+- **Green sphere**: Unit has explicit `ProjectileTargetPoint` marker node
 - **Orange sphere**: Fallback calculation (50% of sprite height)
 
-Sphere size is fixed (0.5 units) for visibility - not related to hitbox size.
+Sphere radius is 0.3 units for visibility. Useful for debugging projectile targeting accuracy.
 
-#### Hitboxes
-Shows each unit's `CollisionRadius` as a blue sphere centered on the unit's body.
+#### Attack Ranges
+Shows each unit's attack range as a yellow shape on the ground.
 
-- Sphere size = unit's `CollisionRadius` property (varies per unit)
-- Position = 50% of sprite height (body center)
-- Used for: spawn spacing, unit separation, targeting
+- **Full circle**: Units without attack constraints (melee units, etc.)
+- **Cone/wedge**: Units with cone constraints (e.g., Puff) - shows the actual attackable arc
+- Radius = `GetEffectiveAttackRange()` (varies by unit type)
+- Cone rotates with unit facing direction
+- Position = ground level (Y = 0.05) centered on unit
 
-**Note**: Collision is **2D** (X/Z plane only). The sphere visualization is approximate - actual collision ignores Y height.
+Useful for debugging range issues (e.g., Fire Titans unable to attack each other) and understanding cone constraints.
 
 ### Performance Counters
 
