@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Combat;
+using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Debug;
 using ProjectSummoner.Services;
@@ -188,6 +189,41 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float HpBarOffsetY { get; set; } = 0f;
 
+    /// <summary>
+    /// Custom hurtbox size using a box shape. If non-zero, uses BoxShape3D instead of CapsuleShape3D.
+    /// Format: (Width, Height, Depth). Leave at (0,0,0) to use default capsule based on CollisionRadius.
+    /// </summary>
+    [Export]
+    public Vector3 HurtboxBoxSize { get; set; } = Vector3.Zero;
+
+    /// <summary>
+    /// Whether the hurtbox capsule should be horizontal (rotated 90 degrees).
+    /// Used for wide, flat units like flying clouds.
+    /// </summary>
+    [Export]
+    public bool HurtboxHorizontal { get; set; } = false;
+
+    /// <summary>
+    /// Override for hurtbox height (or width when horizontal).
+    /// Set to 0 to auto-calculate from sprite height.
+    /// </summary>
+    [Export]
+    public float HurtboxHeight { get; set; } = 0f;
+
+    /// <summary>
+    /// Override for hurtbox radius (or height when horizontal).
+    /// Set to 0 to use CollisionRadius.
+    /// </summary>
+    [Export]
+    public float HurtboxRadius { get; set; } = 0f;
+
+    /// <summary>
+    /// Offset for hurtbox position (X, Y, Z).
+    /// Use to align hurtbox with off-center sprites.
+    /// </summary>
+    [Export]
+    public Vector3 HurtboxOffset { get; set; } = Vector3.Zero;
+
     // =========================================================================
     // RUNTIME STATE (IDamageable implementation - delegates to UnitHealth)
     // =========================================================================
@@ -242,18 +278,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _isFacingRight = facingRight;
         VisualComponent?.SetFlipH(_isFacingRight);
         UpdateShadowOffset();
+        UpdateHurtboxOffset();
     }
 
     /// <summary>
-    /// Update shadow position to match sprite offset (accounts for flip).
+    /// Update shadow position to match hurtbox offset (where the character visually appears).
     /// </summary>
     private void UpdateShadowOffset()
     {
-        if (_shadowComponent == null || VisualComponent == null)
+        if (_shadowComponent == null)
             return;
 
-        var offset = VisualComponent.GetShadowOffset();
-        _shadowComponent.Position = new Vector3(offset.X, ShadowGroundOffset, 0);
+        // Shadow should be under the hurtbox (where the character body is)
+        float shadowX = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        _shadowComponent.Position = new Vector3(shadowX, ShadowGroundOffset, HurtboxOffset.Z);
     }
 
     /// <summary>
@@ -280,6 +318,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected IVisualComponent? VisualComponent { get; set; }
     private Marker3D? _projectileTargetPoint;
     private ShadowComponent? _shadowComponent;
+    private HurtboxComponent? _hurtbox;
 
     // =========================================================================
     // TARGETING HELPER
@@ -366,6 +405,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             }
         }
 
+        // Setup hurtbox for collision-based hit detection
+        SetupHurtbox();
+
         // Setup groups for targeting
         SetupGroups();
 
@@ -380,6 +422,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _isFacingRight = Team == (int)Units.Team.Player;
         VisualComponent?.SetFlipH(_isFacingRight);
         UpdateShadowOffset();
+        UpdateHurtboxOffset();  // Update hurtbox now that facing is set
+
+        // For flying units, position shadow at ground level (normally done in _PhysicsProcess
+        // but that doesn't run during prep phase when unit is Inactive)
+        if (MovementLayer == (int)Units.MovementLayer.Air)
+        {
+            UpdateShadowForAltitude();
+        }
 
         // Show shadow after initialization (deferred to run after visual components show)
         if (_shadowComponent != null)
@@ -653,11 +703,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Get the position where projectiles should aim at this unit.
-    /// Returns ProjectileTargetPoint position if available, otherwise center mass.
+    /// Uses hurtbox center if offset is set, otherwise ProjectileTargetPoint or center mass.
     /// Method name uses snake_case for cross-language duck typing compatibility.
     /// </summary>
     public Vector3 get_projectile_target_position()
     {
+        // If hurtbox has custom offset, use hurtbox center as target
+        if (HurtboxOffset != Vector3.Zero)
+        {
+            float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+            float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+            float yOffset = HurtboxHorizontal ? radius : (HurtboxHeight > 0 ? HurtboxHeight / 2 : 1.0f);
+            return GlobalPosition + new Vector3(xOffset, yOffset + HurtboxOffset.Y, HurtboxOffset.Z);
+        }
+
         if (_projectileTargetPoint != null)
         {
             return _projectileTargetPoint.GlobalPosition;
@@ -1058,7 +1117,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     private void UpdateShadowForAltitude()
     {
-        _shadowComponent?.UpdateForAltitude(Position.Y);
+        // Shadow should be under the hurtbox (where the character body is)
+        float shadowX = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        _shadowComponent?.UpdateForAltitude(Position.Y, shadowX, HurtboxOffset.Z);
     }
 
     private void HandleFlyingDeath()
@@ -1077,5 +1138,416 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 vfxManager?.Call("play_effect", "death_explosion", GlobalPosition);
                 break;
         }
+    }
+
+    // =========================================================================
+    // HURTBOX SETUP
+    // =========================================================================
+
+    /// <summary>
+    /// Create and configure the hurtbox for collision-based hit detection.
+    /// </summary>
+    private void SetupHurtbox()
+    {
+        _hurtbox = new HurtboxComponent();
+        AddChild(_hurtbox);  // Add first so Configure can create child nodes
+
+        // Use box shape if HurtboxBoxSize is set, otherwise use capsule
+        if (HurtboxBoxSize != Vector3.Zero)
+        {
+            _hurtbox.ConfigureBox(
+                team: Team,
+                category: HurtboxCategory.Unit,
+                boxSize: HurtboxBoxSize
+            );
+        }
+        else
+        {
+            // Use shared config (single source of truth)
+            var (radius, height, _) = GetHurtboxConfig();
+            _hurtbox.Configure(
+                team: Team,
+                category: HurtboxCategory.Unit,
+                radius: radius,
+                height: height,
+                horizontal: HurtboxHorizontal
+            );
+        }
+
+        // Apply offset (accounts for facing direction)
+        UpdateHurtboxOffset();
+    }
+
+    /// <summary>
+    /// Update hurtbox position based on facing direction.
+    /// X offset flips when unit faces left.
+    /// </summary>
+    private void UpdateHurtboxOffset()
+    {
+        if (_hurtbox == null || HurtboxOffset == Vector3.Zero)
+            return;
+
+        var (_, _, offset) = GetHurtboxConfig();
+        _hurtbox.Position = offset;
+    }
+
+    /// <summary>
+    /// Get hurtbox configuration values. Single source of truth for both
+    /// actual hurtbox setup and debug visualization.
+    /// </summary>
+    private (float radius, float height, Vector3 offset) GetHurtboxConfig()
+    {
+        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+        float height = HurtboxHeight > 0 ? HurtboxHeight : (VisualComponent?.GetSpriteHeight() ?? 2.0f);
+        float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
+        var offset = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
+        return (radius, height, offset);
+    }
+
+    /// <summary>
+    /// Get the unit's hurtbox component (for debug visualization).
+    /// </summary>
+    public HurtboxComponent? GetHurtbox() => _hurtbox;
+
+    // =========================================================================
+    // DEBUG VISUALIZATION
+    // =========================================================================
+
+    private static bool _debugHurtboxEnabled;
+    private static bool _debugTargetPointEnabled;
+    private static bool _debugAttackRangeEnabled;
+
+    private MeshInstance3D? _debugHurtboxMarker;
+    private MeshInstance3D? _debugTargetPointMarker;
+    private MeshInstance3D? _debugAttackRangeMarker;
+
+    /// <summary>
+    /// Toggle debug hurtbox visualization for all units.
+    /// </summary>
+    public static void ToggleDebugHurtbox()
+    {
+        _debugHurtboxEnabled = !_debugHurtboxEnabled;
+        GD.Print($"[Unit3D] Debug Hurtbox: {(_debugHurtboxEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
+    /// Toggle debug target point visualization for all units.
+    /// </summary>
+    public static void ToggleDebugTargetPoint()
+    {
+        _debugTargetPointEnabled = !_debugTargetPointEnabled;
+        GD.Print($"[Unit3D] Debug Target Point: {(_debugTargetPointEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
+    /// Toggle debug attack range visualization for all units.
+    /// </summary>
+    public static void ToggleDebugAttackRange()
+    {
+        _debugAttackRangeEnabled = !_debugAttackRangeEnabled;
+        GD.Print($"[Unit3D] Debug Attack Range: {(_debugAttackRangeEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
+    /// Check if debug hurtbox visualization is enabled.
+    /// </summary>
+    public static bool IsDebugHurtboxEnabled() => _debugHurtboxEnabled;
+
+    /// <summary>
+    /// Check if debug target point visualization is enabled.
+    /// </summary>
+    public static bool IsDebugTargetPointEnabled() => _debugTargetPointEnabled;
+
+    /// <summary>
+    /// Check if debug attack range visualization is enabled.
+    /// </summary>
+    public static bool IsDebugAttackRangeEnabled() => _debugAttackRangeEnabled;
+
+    // Set methods for loading saved settings
+    public static void SetDebugHurtboxEnabled(bool enabled) => _debugHurtboxEnabled = enabled;
+    public static void SetDebugTargetPointEnabled(bool enabled) => _debugTargetPointEnabled = enabled;
+    public static void SetDebugAttackRangeEnabled(bool enabled) => _debugAttackRangeEnabled = enabled;
+
+    // Snake_case aliases for GDScript compatibility
+    public static void toggle_debug_hurtbox() => ToggleDebugHurtbox();
+    public static bool is_debug_hurtbox_enabled() => IsDebugHurtboxEnabled();
+    public static void set_debug_hurtbox_enabled(bool enabled) => SetDebugHurtboxEnabled(enabled);
+    public static void toggle_debug_target_point() => ToggleDebugTargetPoint();
+    public static bool is_debug_target_point_enabled() => IsDebugTargetPointEnabled();
+    public static void set_debug_target_point_enabled(bool enabled) => SetDebugTargetPointEnabled(enabled);
+    public static void toggle_debug_attack_range() => ToggleDebugAttackRange();
+    public static bool is_debug_attack_range_enabled() => IsDebugAttackRangeEnabled();
+    public static void set_debug_attack_range_enabled(bool enabled) => SetDebugAttackRangeEnabled(enabled);
+
+    public override void _Process(double delta)
+    {
+        // Early out if no debug mode is active and no cleanup needed
+        bool anyDebugEnabled = _debugHurtboxEnabled || _debugTargetPointEnabled || _debugAttackRangeEnabled;
+        bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null || _debugAttackRangeMarker != null;
+
+        if (!anyDebugEnabled && !anyMarkerExists)
+            return;
+
+        // Hurtbox debug visualization
+        if (_debugHurtboxEnabled)
+        {
+            UpdateDebugHurtboxMarker();
+        }
+        else if (_debugHurtboxMarker != null)
+        {
+            _debugHurtboxMarker.QueueFree();
+            _debugHurtboxMarker = null;
+        }
+
+        // Target point debug visualization
+        if (_debugTargetPointEnabled)
+        {
+            UpdateDebugTargetPointMarker();
+        }
+        else if (_debugTargetPointMarker != null)
+        {
+            _debugTargetPointMarker.QueueFree();
+            _debugTargetPointMarker = null;
+        }
+
+        // Attack range debug visualization
+        if (_debugAttackRangeEnabled)
+        {
+            UpdateDebugAttackRangeMarker();
+        }
+        else if (_debugAttackRangeMarker != null)
+        {
+            _debugAttackRangeMarker.QueueFree();
+            _debugAttackRangeMarker = null;
+        }
+    }
+
+    private void UpdateDebugHurtboxMarker()
+    {
+        if (_hurtbox == null)
+            return;
+
+        if (_debugHurtboxMarker == null)
+        {
+            _debugHurtboxMarker = CreateDebugHurtboxMesh();
+            AddChild(_debugHurtboxMarker);
+        }
+
+        // Use shared config (single source of truth)
+        var (radius, height, offset) = GetHurtboxConfig();
+
+        // Position at hurtbox center, accounting for offset
+        if (HurtboxHorizontal)
+        {
+            _debugHurtboxMarker.Position = offset + new Vector3(0, radius, 0);
+            _debugHurtboxMarker.Rotation = new Vector3(0, 0, Mathf.DegToRad(90));
+        }
+        else
+        {
+            _debugHurtboxMarker.Position = offset + new Vector3(0, height / 2, 0);
+            _debugHurtboxMarker.Rotation = Vector3.Zero;
+        }
+    }
+
+    private MeshInstance3D CreateDebugHurtboxMesh()
+    {
+        var mesh = new MeshInstance3D();
+
+        // Use box or capsule based on hurtbox type
+        if (HurtboxBoxSize != Vector3.Zero)
+        {
+            var boxMesh = new BoxMesh
+            {
+                Size = HurtboxBoxSize
+            };
+            mesh.Mesh = boxMesh;
+        }
+        else
+        {
+            var capsule = new CapsuleMesh
+            {
+                Radius = _hurtbox?.Radius ?? CollisionRadius,
+                Height = _hurtbox?.Height ?? 2.0f
+            };
+            mesh.Mesh = capsule;
+        }
+
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.2f, 1.0f, 0.2f, 0.3f),  // Green
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 100  // Render in front
+        };
+        mesh.MaterialOverride = material;
+
+        return mesh;
+    }
+
+    private void UpdateDebugTargetPointMarker()
+    {
+        if (_debugTargetPointMarker == null)
+        {
+            _debugTargetPointMarker = CreateDebugTargetPointSphere();
+            AddChild(_debugTargetPointMarker);
+        }
+
+        // Position at the projectile target point (global space converted to local)
+        var targetPos = get_projectile_target_position();
+        _debugTargetPointMarker.GlobalPosition = targetPos;
+    }
+
+    private MeshInstance3D CreateDebugTargetPointSphere()
+    {
+        var mesh = new MeshInstance3D();
+        var sphere = new SphereMesh
+        {
+            Radius = 0.3f,
+            Height = 0.6f
+        };
+        mesh.Mesh = sphere;
+
+        // Green if explicit marker exists, orange if using fallback center-mass
+        bool hasExplicitMarker = _projectileTargetPoint != null;
+        var color = hasExplicitMarker
+            ? new Color(0.2f, 1.0f, 0.2f, 0.7f)   // Green - explicit marker
+            : new Color(1.0f, 0.6f, 0.2f, 0.7f);  // Orange - fallback center-mass
+
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = color,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 100
+        };
+        mesh.MaterialOverride = material;
+
+        return mesh;
+    }
+
+    private void UpdateDebugAttackRangeMarker()
+    {
+        float range = GetEffectiveAttackRange();
+
+        // Get visualization data from constraint (single source of truth)
+        var config = GetTargetingConfig();
+        var vizData = config.AttackConstraint?.GetVisualizationData(this);
+
+        if (_debugAttackRangeMarker == null)
+        {
+            _debugAttackRangeMarker = vizData?.IsCone == true && vizData.ConeHalfAngle.HasValue
+                ? CreateDebugAttackCone(range, vizData.ConeHalfAngle.Value)
+                : CreateDebugAttackRangeCircle(range);
+            AddChild(_debugAttackRangeMarker);
+        }
+
+        // Position at hurtbox center height, accounting for offset
+        var (hurtboxRadius, hurtboxHeight, hurtboxOffset) = GetHurtboxConfig();
+        float yOffset = HurtboxHorizontal ? hurtboxRadius : (hurtboxHeight / 2);
+        float markerY = GlobalPosition.Y + yOffset + hurtboxOffset.Y;
+        _debugAttackRangeMarker.GlobalPosition = new Vector3(
+            GlobalPosition.X + hurtboxOffset.X,
+            markerY,
+            GlobalPosition.Z + hurtboxOffset.Z
+        );
+
+        // Rotate cone based on facing direction
+        if (vizData?.IsCone == true)
+        {
+            // Face right = 0°, face left = 180° (on Y axis)
+            float yRotation = _isFacingRight ? 0f : Mathf.Pi;
+            _debugAttackRangeMarker.Rotation = new Vector3(0, yRotation, 0);
+        }
+    }
+
+    private MeshInstance3D CreateDebugAttackRangeCircle(float radius)
+    {
+        var mesh = new MeshInstance3D();
+        var cylinder = new CylinderMesh
+        {
+            TopRadius = radius,
+            BottomRadius = radius,
+            Height = 0.05f  // Very thin disc
+        };
+        mesh.Mesh = cylinder;
+
+        mesh.MaterialOverride = CreateAttackRangeMaterial();
+        return mesh;
+    }
+
+    private MeshInstance3D CreateDebugAttackCone(float radius, float halfAngleDegrees)
+    {
+        var mesh = new MeshInstance3D();
+        mesh.Mesh = CreateConeMesh(radius, halfAngleDegrees);
+        mesh.MaterialOverride = CreateAttackRangeMaterial();
+        return mesh;
+    }
+
+    private StandardMaterial3D CreateAttackRangeMaterial()
+    {
+        return new StandardMaterial3D
+        {
+            AlbedoColor = new Color(1.0f, 0.8f, 0.2f, 0.3f),  // Yellow-orange
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 99  // Slightly below target point
+        };
+    }
+
+    /// <summary>
+    /// Create a wedge/cone mesh for attack range visualization.
+    /// The cone points in the +X direction (right).
+    /// </summary>
+    private ArrayMesh CreateConeMesh(float radius, float halfAngleDegrees)
+    {
+        var surfaceTool = new SurfaceTool();
+        surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
+
+        const float height = 0.05f;
+        const int segments = 16;  // Segments for the arc
+
+        float halfAngleRad = Mathf.DegToRad(halfAngleDegrees);
+        float startAngle = -halfAngleRad;
+        float endAngle = halfAngleRad;
+        float angleStep = (endAngle - startAngle) / segments;
+
+        var center = new Vector3(0, height / 2, 0);
+
+        // Create triangles from center to arc
+        for (int i = 0; i < segments; i++)
+        {
+            float angle1 = startAngle + i * angleStep;
+            float angle2 = startAngle + (i + 1) * angleStep;
+
+            // Points on the arc (X is forward, Z is sideways)
+            var p1 = new Vector3(Mathf.Cos(angle1) * radius, height / 2, Mathf.Sin(angle1) * radius);
+            var p2 = new Vector3(Mathf.Cos(angle2) * radius, height / 2, Mathf.Sin(angle2) * radius);
+
+            // Top face triangle
+            surfaceTool.AddVertex(center);
+            surfaceTool.AddVertex(p1);
+            surfaceTool.AddVertex(p2);
+
+            // Bottom face triangle (reversed winding)
+            var centerBottom = new Vector3(0, -height / 2, 0);
+            var p1Bottom = new Vector3(p1.X, -height / 2, p1.Z);
+            var p2Bottom = new Vector3(p2.X, -height / 2, p2.Z);
+
+            surfaceTool.AddVertex(centerBottom);
+            surfaceTool.AddVertex(p2Bottom);
+            surfaceTool.AddVertex(p1Bottom);
+        }
+
+        surfaceTool.GenerateNormals();
+        return surfaceTool.Commit();
     }
 }

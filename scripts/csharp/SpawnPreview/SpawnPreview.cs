@@ -214,7 +214,9 @@ public partial class SpawnPreview : Node3D
         for (int i = 0; i < _ghostUnits.Count; i++)
         {
             var offset = GetDefaultGridOffset(i, _spawnCount);
-            _ghostUnits[i].Position = offset;
+            var ghost = _ghostUnits[i];
+            // Preserve Y (flight altitude) while updating X/Z for formation
+            ghost.Position = new Vector3(offset.X, ghost.Position.Y, offset.Z);
         }
     }
 

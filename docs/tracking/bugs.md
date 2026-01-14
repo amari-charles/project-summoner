@@ -36,9 +36,9 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 - May be unfixable Godot behavior in headless mode
 
 **Related Files:**
-- scripts/systems/vfx_manager.gd
-- scripts/systems/hp_bar_manager.gd
-- scripts/systems/projectile_manager.gd
+- scripts/vfx/vfx_manager.gd
+- scripts/csharp/Services/HPBarService.cs
+- scripts/csharp/Projectiles/ProjectileService.cs
 
 ---
 
@@ -179,10 +179,10 @@ The projectile bounces off the ground and continues moving, which looks unnatura
 Visual bug - breaks immersion and looks unprofessional.
 
 **Proposed Solution:**
-Ensure ground collision detection properly triggers projectile expiration. May need to check the ground collision logic in `projectile_3d.gd` to ensure it triggers `_expire_with_fade()` or `_expire_immediate()` correctly for homing projectiles with arc.
+Ensure ground collision detection properly triggers projectile expiration. May need to check the ground collision logic in `Projectile3D.cs` to ensure it triggers `ExpireWithFade()` or `ExpireImmediate()` correctly for homing projectiles with arc.
 
 **Related Files:**
-- scripts/projectiles/projectile_3d.gd (ground collision and expiration logic)
+- scripts/csharp/Projectiles/Projectile3D.cs (ground collision and expiration logic)
 - data/projectiles/mana_bolt.json (projectile configuration)
 
 ---
@@ -225,4 +225,73 @@ Additional context
 
 ---
 
-*Last Updated: 2026-01-13 - Moved 3 boundary-related bugs to resolved (Units out of bounds, Push off screen, Spawn bypass)*
+#### Camera Scroll Wheel Boundary Issues
+**Status:** Open
+**Reported:** 2026-01-13
+**Component:** Camera / Input
+
+**Description:**
+When scrolling with the scroll wheel to zoom the camera, the camera can go past the boundary limits.
+
+**Expected Behavior:**
+Camera should respect battlefield boundaries at all zoom levels.
+
+**Current Behavior:**
+Scroll wheel zoom allows the camera view to extend past the intended battlefield boundaries.
+
+**Impact:**
+Players can see outside the play area, breaking immersion.
+
+**Related Files:**
+- Camera controller scripts
+- Battlefield boundary system
+
+---
+
+#### Camera Right-Click Drag Boundary Issues
+**Status:** Open
+**Reported:** 2026-01-13
+**Component:** Camera / Input
+
+**Description:**
+When panning the camera with right-click and drag, the camera can go past the boundary limits and behaves erratically.
+
+**Expected Behavior:**
+Camera panning should respect battlefield boundaries smoothly.
+
+**Current Behavior:**
+Right-click drag panning allows the camera to go past boundaries and may exhibit buggy behavior.
+
+**Impact:**
+Players can see outside the play area and experience jarring camera movement.
+
+**Related Files:**
+- Camera controller scripts
+- Battlefield boundary system
+
+---
+
+#### Enemy Spawn Debug Mode Issues
+**Status:** Open
+**Reported:** 2026-01-13
+**Component:** Debug Tools / Spawning
+
+**Description:**
+When using the debug unit spawner panel with "Spawn as Enemy" toggled on, units spawn incorrectly.
+
+**Expected Behavior:**
+Units should spawn on the enemy side of the battlefield when "Spawn as Enemy" is enabled.
+
+**Current Behavior:**
+Spawning is "messed up" when spawning as enemy in debug mode.
+
+**Impact:**
+Debug tool doesn't work correctly for testing enemy units.
+
+**Related Files:**
+- scripts/ui/debug/unit_spawner_panel.gd
+- Battlefield spawn logic
+
+---
+
+*Last Updated: 2026-01-13 - Added camera boundary bugs and enemy spawn debug issue*

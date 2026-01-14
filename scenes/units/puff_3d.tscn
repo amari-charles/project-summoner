@@ -5,8 +5,8 @@
 [ext_resource type="SpriteFrames" path="res://resources/animations/puff_sprite_frames.tres" id="3_frames"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
-radius = 0.4
-height = 1.2
+radius = 0.5
+height = 3.5
 
 [sub_resource type="Animation" id="Animation_float"]
 resource_name = "float"
@@ -54,20 +54,27 @@ MoveSpeed = 2.5
 UnitId = "puff"
 Team = 0
 UnitType = 1
-CollisionRadius = 0.4
+CollisionRadius = 0.5
 ProjectileId = "wind_puff"
 ProjectileDelay = 1.17
 IsDelayedProjectile = true
 ShadowEnabled = true
 ShadowOpacity = 0.5
-HpBarOffsetY = 4.0
+HpBarOffsetY = 2.2
+HurtboxHorizontal = true
+HurtboxHeight = 3.0
+HurtboxRadius = 0.75
+HurtboxOffset = Vector3(0.7, 0, 0)
+MovementLayer = 1
+FlightAltitude = 2.5
 
 [node name="Visual" parent="." instance=ExtResource("2_sprite_component")]
 SpriteFramesResource = ExtResource("3_frames")
-FeetOffsetPixels = 50.0
-HeadOffsetPixels = 450.0
-SpriteOffsetPixels = Vector2(-45, 0)
+FeetOffsetPixels = 180.0
+HeadOffsetPixels = 250.0
+SpriteOffsetPixels = Vector2(-20, 0)
 SpriteScale = 1.0
+ViewportScale = 1.5
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 autoplay = "float"
@@ -76,11 +83,11 @@ libraries = {
 }
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.6, 0)
 shape = SubResource("CapsuleShape3D_1")
 
 [node name="ProjectileSpawnPoint" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.8, 0)
 
 [node name="ProjectileTargetPoint" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)

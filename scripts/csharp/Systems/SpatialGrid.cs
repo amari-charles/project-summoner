@@ -463,14 +463,101 @@ public partial class SpatialGrid : Node
     // DEBUG API (for FPS Test Tool)
     // =========================================================================
 
-    private bool _debugEnabled;
+    private static bool _debugEnabled;
+    private static bool _debugBypassSpawnBoundary;
+    private MeshInstance3D? _debugGridMesh;
 
-    public bool IsDebugEnabled() => _debugEnabled;
+    public static bool IsDebugEnabled() => _debugEnabled;
+    public static bool IsDebugBypassSpawnBoundaryEnabled() => _debugBypassSpawnBoundary;
 
-    public void ToggleDebug()
+    public static void ToggleDebug()
     {
         _debugEnabled = !_debugEnabled;
         GD.Print($"[SpatialGrid] Debug visualization {(_debugEnabled ? "enabled" : "disabled")}");
-        // Note: Full debug visualization can be added later if needed
+
+        // Update visualization via instance
+        Instance?.UpdateDebugVisualization();
+    }
+
+    public static void ToggleDebugBypassSpawnBoundary()
+    {
+        _debugBypassSpawnBoundary = !_debugBypassSpawnBoundary;
+        GD.Print($"[SpatialGrid] Debug Bypass Spawn Boundary: {(_debugBypassSpawnBoundary ? "ON" : "OFF")}");
+    }
+
+    public static void SetDebugEnabled(bool enabled)
+    {
+        _debugEnabled = enabled;
+        Instance?.UpdateDebugVisualization();
+    }
+
+    public static void SetDebugBypassSpawnBoundary(bool enabled)
+    {
+        _debugBypassSpawnBoundary = enabled;
+    }
+
+    // GDScript snake_case aliases
+    public static void toggle_debug() => ToggleDebug();
+    public static bool is_debug_enabled() => IsDebugEnabled();
+    public static void set_debug_enabled(bool enabled) => SetDebugEnabled(enabled);
+    public static void toggle_debug_bypass_spawn_boundary() => ToggleDebugBypassSpawnBoundary();
+    public static bool is_debug_bypass_spawn_boundary_enabled() => IsDebugBypassSpawnBoundaryEnabled();
+    public static void set_debug_bypass_spawn_boundary(bool enabled) => SetDebugBypassSpawnBoundary(enabled);
+
+    private void UpdateDebugVisualization()
+    {
+        if (_debugEnabled)
+        {
+            if (_debugGridMesh == null)
+            {
+                _debugGridMesh = CreateDebugGridMesh();
+                AddChild(_debugGridMesh);
+            }
+            _debugGridMesh.Visible = true;
+        }
+        else if (_debugGridMesh != null)
+        {
+            _debugGridMesh.Visible = false;
+        }
+    }
+
+    private MeshInstance3D CreateDebugGridMesh()
+    {
+        var meshInstance = new MeshInstance3D();
+        var immediateMesh = new ImmediateMesh();
+
+        // Create grid lines material
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.3f, 0.8f, 0.3f, 0.5f),
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled
+        };
+
+        immediateMesh.SurfaceBegin(Mesh.PrimitiveType.Lines, material);
+
+        const float gridY = 0.1f;  // Slightly above ground
+
+        // Draw vertical lines (X direction)
+        for (int x = 0; x <= GridWidth; x++)
+        {
+            float worldX = GridMinX + x * CellSize;
+            immediateMesh.SurfaceAddVertex(new Vector3(worldX, gridY, GridMinZ));
+            immediateMesh.SurfaceAddVertex(new Vector3(worldX, gridY, GridMaxZ));
+        }
+
+        // Draw horizontal lines (Z direction)
+        for (int z = 0; z <= GridHeight; z++)
+        {
+            float worldZ = GridMinZ + z * CellSize;
+            immediateMesh.SurfaceAddVertex(new Vector3(GridMinX, gridY, worldZ));
+            immediateMesh.SurfaceAddVertex(new Vector3(GridMaxX, gridY, worldZ));
+        }
+
+        immediateMesh.SurfaceEnd();
+        meshInstance.Mesh = immediateMesh;
+
+        return meshInstance;
     }
 }

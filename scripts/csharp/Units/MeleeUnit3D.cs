@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Combat.Hitbox;
 
 namespace ProjectSummoner.Units;
 
@@ -9,6 +10,22 @@ namespace ProjectSummoner.Units;
 [GlobalClass]
 public partial class MeleeUnit3D : Unit3D
 {
+    // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+
+    /// <summary>Duration of melee hitbox in seconds (brief window for hit detection).</summary>
+    private const float MeleeHitboxDuration = 0.1f;
+
+    /// <summary>Hitbox spawns at this fraction of attack range from attacker toward target.</summary>
+    private const float HitboxPositionFraction = 0.5f;
+
+    /// <summary>Height offset for hitbox position (roughly chest height).</summary>
+    private const float HitboxHeightOffset = 1.0f;
+
+    /// <summary>Hitbox radius as fraction of attack range.</summary>
+    private const float HitboxRadiusFraction = 0.6f;
+
     // =========================================================================
     // STATE
     // =========================================================================
@@ -101,8 +118,41 @@ public partial class MeleeUnit3D : Unit3D
             return;
         }
 
-        // Deal damage
-        DealDamageTo(_pendingAttackTarget);
+        // Create a temporary hitbox for the melee attack
+        SpawnMeleeHitbox(_pendingAttackTarget);
         _pendingAttackTarget = null;
+    }
+
+    /// <summary>
+    /// Spawn a temporary hitbox for the melee attack.
+    /// The hitbox exists briefly and damages any enemy hurtboxes it overlaps.
+    /// </summary>
+    private void SpawnMeleeHitbox(Node3D target)
+    {
+        var hitbox = new HitboxComponent
+        {
+            Damage = AttackDamage,
+            DamageType = "physical",
+            SourceTeam = Team,
+            Source = this,
+            Lifetime = HitboxLifetime.Timed,
+            Duration = MeleeHitboxDuration,
+            SingleHitPerTarget = true,
+            TargetCategories = HurtboxCategory.Unit | HurtboxCategory.Summoner
+        };
+
+        // Position hitbox between attacker and target
+        var attackDirection = (target.GlobalPosition - GlobalPosition).Normalized();
+        var hitboxPosition = GlobalPosition + attackDirection * (AttackRange * HitboxPositionFraction);
+        hitboxPosition.Y = GlobalPosition.Y + HitboxHeightOffset;
+
+        // Add to scene first so _Ready() runs and configures collision
+        GetTree().Root.AddChild(hitbox);
+
+        // Set position after adding to tree
+        hitbox.GlobalPosition = hitboxPosition;
+
+        // Create attack hitbox shape
+        hitbox.CreateSphereShape(AttackRange * HitboxRadiusFraction);
     }
 }

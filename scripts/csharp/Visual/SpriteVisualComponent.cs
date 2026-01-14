@@ -50,7 +50,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     /// <summary>
     /// Pixel offset to shift the sprite rendering position.
-    /// Use for sprites where the character isn't centered (e.g., particles extending to one side).
+    /// Use for sprites where the character isn't centered in the texture.
+    /// Example: If particles extend 20px to the right, set X = -10 to center the character body.
+    /// Note: This only affects visual rendering. Shadow and collision remain at unit position.
     /// </summary>
     [Export]
     public Vector2 SpriteOffsetPixels { get; set; } = Vector2.Zero;
@@ -106,6 +108,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private bool _isAttacking;
     private bool _isFlipped;
 
+    // Frame size cache (avoid expensive texture lookups on every facing change)
+    private Vector2 _cachedFrameSize = Vector2.Zero;
+    private string _cachedFrameSizeAnimation = "";
+
     // =========================================================================
     // LIFECYCLE
     // =========================================================================
@@ -117,9 +123,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
 
-        // Hide during initialization to prevent jitter
-        // (Unit3D._Ready runs after this and sets correct facing)
-        if (_sprite3D != null)
+        // Only hide during initialization if under a Unit3D (CharacterBody3D)
+        // This prevents jitter when Unit3D._Ready sets facing after us
+        // Ghost previews (under Node3D) need immediate visibility
+        bool underUnit3D = GetParent() is CharacterBody3D;
+
+        if (underUnit3D && _sprite3D != null)
         {
             _sprite3D.Visible = false;
         }
@@ -176,8 +185,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         // Randomize animation frame
         RandomizeAnimationPhase();
 
-        // Show sprite after all initialization (deferred to run after Unit3D._Ready sets facing)
-        CallDeferred(MethodName.ShowSpriteDeferred);
+        // Show sprite after all initialization (only needed if we hid it above)
+        // Ghost previews under Node3D don't need this since we didn't hide the sprite
+        if (underUnit3D)
+        {
+            CallDeferred(MethodName.ShowSpriteDeferred);
+        }
     }
 
     /// <summary>
@@ -333,13 +346,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     public Vector3 GetShadowOffset()
     {
-        if (_sprite3D == null)
-            return Vector3.Zero;
-
-        // Convert pixel offset to world offset (flip X when sprite is flipped)
-        float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
-        float worldOffsetX = offsetX * _sprite3D.PixelSize;
-        return new Vector3(worldOffsetX, 0, 0);
+        // SpriteOffsetPixels compensates for off-center characters in the texture.
+        // After compensation, the character body appears at unit center.
+        // Shadow should be at unit center (under the character body).
+        return Vector3.Zero;
     }
 
     public void FlashWhite()
@@ -440,26 +450,36 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         // Calculate world height
         float worldHeight = _viewport.Size.Y * _sprite3D.PixelSize;
 
-        // Position Sprite3D so viewport bottom is at Y=0
-        var pos = _sprite3D.Position;
-        pos.Y = worldHeight / 2.0f;
-        _sprite3D.Position = pos;
+        // Get texture size for positioning calculations
+        var textureSize = GetCurrentFrameSize();
 
         // Center sprite horizontally in viewport
         var spritePos = _characterSprite.Position;
         spritePos.X = _viewport.Size.X / 2.0f;
 
-        // Get texture size for precise feet positioning
-        var textureSize = GetCurrentFrameSize();
+        // Position Sprite3D and CharacterSprite so:
+        // 1. Entire sprite fits in viewport (no clipping)
+        // 2. Feet are at world Y=0
+
+        var pos = _sprite3D.Position;
 
         if (textureSize.Y > 0)
         {
-            spritePos.Y = _viewport.Size.Y - ((textureSize.Y / 2.0f) - FeetOffsetPixels) * _characterSprite.Scale.Y;
+            // Position sprite so its BOTTOM is at viewport bottom (prevents clipping)
+            spritePos.Y = _viewport.Size.Y - (textureSize.Y / 2.0f) * _characterSprite.Scale.Y;
+
+            // Feet are FeetOffsetPixels above sprite bottom
+            // Shift Sprite3D down so feet align with world Y=0
+            float feetWorldOffset = FeetOffsetPixels * _characterSprite.Scale.Y * _sprite3D.PixelSize;
+            pos.Y = worldHeight / 2.0f - feetWorldOffset;
         }
         else
         {
             spritePos.Y = _viewport.Size.Y * 0.8f;
+            pos.Y = worldHeight / 2.0f;
         }
+
+        _sprite3D.Position = pos;
 
         // Apply user-defined offset (flip X when sprite is flipped)
         float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
@@ -478,6 +498,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (string.IsNullOrEmpty(anim))
             anim = "idle";
 
+        // Return cached size if animation hasn't changed
+        if (anim == _cachedFrameSizeAnimation && _cachedFrameSize != Vector2.Zero)
+            return _cachedFrameSize;
+
         if (!_characterSprite.SpriteFrames.HasAnimation(anim))
             return Vector2.Zero;
 
@@ -489,7 +513,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (frameTexture == null)
             return Vector2.Zero;
 
-        return frameTexture.GetSize();
+        // Cache the result
+        _cachedFrameSize = frameTexture.GetSize();
+        _cachedFrameSizeAnimation = anim;
+        return _cachedFrameSize;
     }
 
     private void RandomizeAnimationPhase()

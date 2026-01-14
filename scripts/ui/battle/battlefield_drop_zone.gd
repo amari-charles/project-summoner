@@ -12,6 +12,7 @@ var _initialized: bool = false  # Track initialization state
 ## Spawn preview for summon cards (C# class: ProjectSummoner.SpawnPreview.SpawnPreview)
 var _spawn_preview: Node3D = null  # Typed as Node3D for GDScript/C# interop
 var _preview_card: Card = null  # Track which card we're previewing
+var _preview_team: int = 0  # Track which team we're previewing for
 
 ## Spell preview for spell cards
 var _spell_preview: SpellPreview = null
@@ -264,16 +265,17 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 		_cleanup_spawn_preview()
 		return
 
-	# Create preview if needed or if card changed
-	if not _spawn_preview or _preview_card != card:
+	# Create preview if needed or if card/team changed
+	if not _spawn_preview or _preview_card != card or _preview_team != team:
 		_cleanup_spawn_preview()
 		_create_spawn_preview(card, team)
+		_preview_team = team
 
 	if not _spawn_preview:
 		return
 
 	# Calculate safe spawn positions per-unit (same logic as actual spawning in card.gd)
-	var positions: Array[Vector3] = _calculate_safe_spawn_positions(world_pos, card)
+	var positions: Array[Vector3] = _calculate_safe_spawn_positions(world_pos, card, team)
 	_spawn_preview.UpdatePositions(positions)  # C# uses PascalCase
 	_spawn_preview.SetValid(is_valid_zone)  # C# uses PascalCase
 
@@ -323,7 +325,7 @@ func _find_3d_root(viewport: Viewport) -> Node:
 
 ## Calculate safe spawn positions for preview
 ## Single source of truth: delegates to C# CardFactory.get_safe_spawn_positions()
-func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[Vector3]:
+func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int = 0) -> Array[Vector3]:
 	var positions: Array[Vector3] = []
 
 	# Get CardFactory (C# service - single source of truth for spawn positions)
@@ -349,9 +351,8 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card) -> Array[V
 		battlefield = get_tree().current_scene
 
 	# Call C# CardFactory for safe spawn positions (single source of truth)
-	# Team 0 = player (this is the player's drop zone)
 	var result: Variant = factory.call("get_safe_spawn_positions",
-		card.catalog_id, center_pos, battlefield, collision_radius, 0)
+		card.catalog_id, center_pos, battlefield, collision_radius, team)
 
 	if result is Array:
 		for pos: Variant in result:
@@ -370,6 +371,7 @@ func _cleanup_spawn_preview() -> void:
 		_spawn_preview.Cleanup()  # C# uses PascalCase
 	_spawn_preview = null
 	_preview_card = null
+	_preview_team = 0
 
 ## Show spawn zone overlay (valid/invalid zones on the ground)
 func _show_spawn_zone_overlay() -> void:

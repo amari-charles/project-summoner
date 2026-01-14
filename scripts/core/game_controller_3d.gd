@@ -191,8 +191,8 @@ func _exit_tree() -> void:
 ## Note: Autoload resets (EventSequencer, DialogueManager, etc.) are handled by SceneCoordinator
 func reset_battle_state() -> void:
 	# Clear all active projectiles
-	if ProjectileManager:
-		ProjectileManager.clear_all_projectiles()
+	if ProjectileService:
+		ProjectileService.clear_all_projectiles()
 
 	# Clear all HP bars
 	if HPBarService:

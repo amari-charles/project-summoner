@@ -17,6 +17,29 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
+## Camera & Controls
+
+### 🟡 MEDIUM PRIORITY
+
+#### Allow Camera Panning Up to Boundary When Zoomed In
+**Status:** ⬜ Not Started
+**Category:** Camera / Controls
+**Effort:** Small
+
+**Description:**
+When the camera is zoomed in, players should be able to pan closer to the battlefield boundaries than when zoomed out. Currently the panning limits may be too restrictive when zoomed in, preventing players from seeing units near the edges.
+
+**Requirements:**
+- Calculate dynamic pan limits based on current zoom level
+- Allow panning to show content up to the battlefield boundary
+- Ensure boundary enforcement is consistent across zoom levels
+
+**Notes:**
+- Related to camera boundary bugs (scroll wheel, right-click drag)
+- Should feel natural and not restrict visibility unnecessarily
+
+---
+
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY
@@ -776,19 +799,18 @@ Implement the system for summoner active and passive abilities.
 
 ### 🟢 LOW PRIORITY
 
-#### Hide/Remove FPS Test Tool Before Release
+#### Hide/Remove Debug Menu Before Release
 **Status:** ⬜ Not Started
 **Category:** Developer Tools / Release Prep
 **Effort:** Trivial
 
 **Description:**
-The FPS Test Tool (`scripts/debug/fps_test_tool.gd`) currently shows by default in debug builds. Before release, either:
+The Debug Menu (`scripts/debug/debug_menu.gd`) is hidden by default but can be shown with ` or F12 in debug builds. Before release, either:
 - Remove the autoload entirely, or
 - Ensure it only activates with a specific dev flag/command
 
 **Current Behavior:**
-- Panel shows automatically on game start (debug builds only)
-- Toggle with ` or F12
+- Panel hidden by default, toggle with ` or F12
 - Already disabled in release builds via `OS.is_debug_build()` check
 
 **Notes:**

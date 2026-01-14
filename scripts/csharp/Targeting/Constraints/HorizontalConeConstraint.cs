@@ -58,4 +58,12 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
         // the target is near the X=0 axis (directly above/below).
         return IsAttackValid(unit, target);
     }
+
+    public override AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    {
+        Vector3 facing = unit.IsFacingRight
+            ? new Vector3(1, 0, 0)
+            : new Vector3(-1, 0, 0);
+        return new AttackVisualizationData(true, ConeHalfAngle, facing);
+    }
 }

@@ -47,4 +47,16 @@ public partial class CompositeConstraint : BaseAttackConstraint
         }
         return true;
     }
+
+    public override AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    {
+        // Return first constraint with visualization data
+        foreach (var constraint in Constraints)
+        {
+            if (constraint == null) continue;
+            var data = constraint.GetVisualizationData(unit);
+            if (data != null) return data;
+        }
+        return null;
+    }
 }

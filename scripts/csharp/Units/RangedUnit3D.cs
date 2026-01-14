@@ -1,5 +1,6 @@
 using Godot;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Projectiles;
 
 namespace ProjectSummoner.Units;
 
@@ -139,11 +140,10 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
         // Apply predictive targeting for moving targets
         targetPos = CalculateInterceptPoint(spawnPos, targetPos, target);
 
-        // Spawn via ProjectileManager (GDScript autoload)
-        var projectileManager = GetNodeOrNull("/root/ProjectileManager");
-        if (projectileManager == null)
+        // Spawn via ProjectileService (C# singleton)
+        if (ProjectileService.Instance == null)
         {
-            GD.PushError("RangedUnit3D: ProjectileManager not found!");
+            GD.PushError("RangedUnit3D: ProjectileService not found!");
             return;
         }
 
@@ -153,7 +153,7 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
             ["target_position"] = targetPos
         };
 
-        projectileManager.Call("spawn_projectile",
+        ProjectileService.Instance.SpawnProjectile(
             ProjectileId,
             this,
             target,

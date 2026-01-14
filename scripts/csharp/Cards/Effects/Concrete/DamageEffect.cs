@@ -3,6 +3,7 @@ using Godot;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Projectiles;
 using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Cards.Effects.Concrete;
@@ -51,7 +52,7 @@ public class DamageEffect : SpellEffect
 
     /// <summary>
     /// Projectile ID to spawn (if spell uses a projectile instead of instant damage).
-    /// Uses ProjectileManager.spawn_projectile() via GDScript interop.
+    /// Uses ProjectileService.SpawnProjectile() for projectile spawning.
     /// </summary>
     public string? ProjectileId { get; set; }
 
@@ -157,14 +158,13 @@ public class DamageEffect : SpellEffect
     }
 
     /// <summary>
-    /// Spawn a projectile using ProjectileManager.
+    /// Spawn a projectile using ProjectileService.
     /// </summary>
     private void SpawnProjectile(SpellContext context)
     {
-        var projectileManager = GetProjectileManager(context);
-        if (projectileManager == null)
+        if (ProjectileService.Instance == null)
         {
-            GD.PrintErr("[DamageEffect] ProjectileManager not found");
+            GD.PrintErr("[DamageEffect] ProjectileService not found");
             // Fallback to instant damage
             ApplyDamage(context);
             return;
@@ -197,18 +197,20 @@ public class DamageEffect : SpellEffect
         // ProjectileId is guaranteed non-null here since we check before calling SpawnProjectile
         var projectileIdValue = ProjectileId ?? "";
 
-        // Spawn projectile via GDScript interop
-        projectileManager.Call("spawn_projectile",
+        // Spawn projectile via ProjectileService
+        var options = new Godot.Collections.Dictionary
+        {
+            { "start_position", startPos },
+            { "target_position", targetPos }
+        };
+
+        ProjectileService.Instance.SpawnProjectile(
             projectileIdValue,
-            source ?? (GodotObject)context.Battlefield!,
-            targetUnit != null ? (Variant)targetUnit : Variant.From<GodotObject?>(null),
+            source ?? (context.Battlefield as Node3D)!,
+            targetUnit,
             Damage,
             "spell",
-            new Godot.Collections.Dictionary
-            {
-                { "start_position", startPos },
-                { "target_position", targetPos }
-            }
+            options
         );
 
         // Note: OnHit/OnKill hooks would need to be wired into projectile system
@@ -264,14 +266,6 @@ public class DamageEffect : SpellEffect
     private static Node? GetVFXManager(SpellContext context)
     {
         return context.SceneTree?.Root?.GetNodeOrNull("/root/VFXManager");
-    }
-
-    /// <summary>
-    /// Get ProjectileManager autoload.
-    /// </summary>
-    private static Node? GetProjectileManager(SpellContext context)
-    {
-        return context.SceneTree?.Root?.GetNodeOrNull("/root/ProjectileManager");
     }
 
     /// <summary>

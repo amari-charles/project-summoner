@@ -1,6 +1,7 @@
 namespace ProjectSummoner.Constants;
 
 using Godot;
+using ProjectSummoner.Systems;
 
 /// <summary>
 /// Battlefield boundary constants and utility methods.
@@ -81,12 +82,17 @@ public static class BattlefieldBounds
     /// <summary>
     /// Check if a position is valid for spawning for the given team.
     /// Player (team 0): X &lt;= 0, Enemy (team 1): X &gt; 0
+    /// Respects debug bypass flag from SpatialGrid.
     /// </summary>
     /// <param name="position">Position to check</param>
     /// <param name="team">0 = Player, 1 = Enemy</param>
     /// <returns>True if position is in valid spawn zone for team</returns>
     public static bool IsValidSpawnPositionForTeam(Vector3 position, int team)
     {
+        // Debug bypass - all positions are valid (flag stored in SpatialGrid for GDScript access)
+        if (SpatialGrid.IsDebugBypassSpawnBoundaryEnabled())
+            return true;
+
         if (team == 0) // Player
             return position.X <= SpawnBoundaryX;
         else // Enemy
@@ -97,6 +103,7 @@ public static class BattlefieldBounds
     /// Clamp a position to a fully valid spawn zone for the given team.
     /// Applies both outer battlefield bounds AND team spawn boundary.
     /// Use this when you need a guaranteed valid spawn position.
+    /// Respects debug bypass flag (only applies outer bounds when bypassed).
     /// </summary>
     /// <param name="position">Position to clamp</param>
     /// <param name="team">0 = Player, 1 = Enemy</param>
@@ -105,6 +112,10 @@ public static class BattlefieldBounds
     {
         // Apply outer battlefield bounds first
         var clamped = ClampToBounds(position);
+
+        // Debug bypass - skip team boundary enforcement (flag stored in SpatialGrid for GDScript access)
+        if (SpatialGrid.IsDebugBypassSpawnBoundaryEnabled())
+            return clamped;
 
         // Then apply team spawn boundary
         if (team == 0 && clamped.X > SpawnBoundaryX) // Player on wrong side
