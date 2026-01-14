@@ -440,26 +440,36 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         // Calculate world height
         float worldHeight = _viewport.Size.Y * _sprite3D.PixelSize;
 
-        // Position Sprite3D so viewport bottom is at Y=0
-        var pos = _sprite3D.Position;
-        pos.Y = worldHeight / 2.0f;
-        _sprite3D.Position = pos;
+        // Get texture size for positioning calculations
+        var textureSize = GetCurrentFrameSize();
 
         // Center sprite horizontally in viewport
         var spritePos = _characterSprite.Position;
         spritePos.X = _viewport.Size.X / 2.0f;
 
-        // Get texture size for precise feet positioning
-        var textureSize = GetCurrentFrameSize();
+        // Position Sprite3D and CharacterSprite so:
+        // 1. Entire sprite fits in viewport (no clipping)
+        // 2. Feet are at world Y=0
+
+        var pos = _sprite3D.Position;
 
         if (textureSize.Y > 0)
         {
-            spritePos.Y = _viewport.Size.Y - ((textureSize.Y / 2.0f) - FeetOffsetPixels) * _characterSprite.Scale.Y;
+            // Position sprite so its BOTTOM is at viewport bottom (prevents clipping)
+            spritePos.Y = _viewport.Size.Y - (textureSize.Y / 2.0f) * _characterSprite.Scale.Y;
+
+            // Feet are FeetOffsetPixels above sprite bottom
+            // Shift Sprite3D down so feet align with world Y=0
+            float feetWorldOffset = FeetOffsetPixels * _characterSprite.Scale.Y * _sprite3D.PixelSize;
+            pos.Y = worldHeight / 2.0f - feetWorldOffset;
         }
         else
         {
             spritePos.Y = _viewport.Size.Y * 0.8f;
+            pos.Y = worldHeight / 2.0f;
         }
+
+        _sprite3D.Position = pos;
 
         // Apply user-defined offset (flip X when sprite is flipped)
         float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
