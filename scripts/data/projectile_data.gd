@@ -35,6 +35,8 @@ class_name ProjectileData
 @export var lifetime: float = 5.0  ## Max time before despawn
 @export var rotate_to_direction: bool = true
 @export var fade_in_duration: float = 0.0  ## Time to fade in (0 = instant)
+@export var fade_on_hit: bool = true  ## Whether to fade out on hit (true) or despawn immediately (false)
+@export var fade_duration: float = 0.5  ## Duration of fade out on hit
 
 ## Arc/Ballistic Specific
 @export_group("Arc Properties")
@@ -96,6 +98,10 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	proj.rotate_to_direction = data.get("rotate_to_direction", default_rotate)
 	var default_fade_in: float = 0.0
 	proj.fade_in_duration = data.get("fade_in_duration", default_fade_in)
+	var default_fade_on_hit: bool = true
+	proj.fade_on_hit = data.get("fade_on_hit", default_fade_on_hit)
+	var default_fade_duration: float = 0.5
+	proj.fade_duration = data.get("fade_duration", default_fade_duration)
 
 	var default_arc_height: float = 2.0
 	proj.arc_height = data.get("arc_height", default_arc_height)
@@ -132,6 +138,8 @@ func to_dict() -> Dictionary:
 		"lifetime": lifetime,
 		"rotate_to_direction": rotate_to_direction,
 		"fade_in_duration": fade_in_duration,
+		"fade_on_hit": fade_on_hit,
+		"fade_duration": fade_duration,
 		"arc_height": arc_height,
 		"gravity": gravity,
 		"homing_strength": homing_strength,

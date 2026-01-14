@@ -511,6 +511,13 @@ public partial class Projectile3D : Area3D
                     _fadeTween.TweenProperty(stdMat, "albedo_color:a", 0f, FadeDuration);
                     hasTweeners = true;
                 }
+                else if (material is ShaderMaterial shaderMat)
+                {
+                    _fadeTween.TweenMethod(
+                        Callable.From<float>(v => shaderMat.SetShaderParameter("alpha", v)),
+                        1f, 0f, FadeDuration);
+                    hasTweeners = true;
+                }
             }
             else if (child is GpuParticles3D particles)
             {
@@ -639,6 +646,8 @@ public partial class Projectile3D : Area3D
         HitVfx = data.HitVfx;
         TrailVfx = data.TrailVfx;
         FadeInDuration = data.FadeInDuration;
+        FadeOnHit = data.FadeOnHit;
+        FadeDuration = data.FadeDuration;
 
         // Instantiate visual if not already done
         if (VisualScene != null && _visualInstance == null)
