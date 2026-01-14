@@ -49,3 +49,13 @@ enum FlyingDeathStyle {
 	FADE = 1,
 	EXPLODE = 2
 }
+
+## HurtboxCategory enum - matches scripts/csharp/Combat/Hitbox/HurtboxCategory.cs
+## Used for combat hit detection filtering
+enum HurtboxCategory {
+	NONE = 0,
+	UNIT = 1 << 0,        # 1
+	SUMMONER = 1 << 1,    # 2
+	STRUCTURE = 1 << 2,   # 4
+	PROJECTILE = 1 << 3,  # 8
+}

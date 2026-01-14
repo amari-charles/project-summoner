@@ -40,7 +40,6 @@ const PROJECTILE_TARGET_HEIGHT: float = 1.5  # Chest height for projectile targe
 ## Hurtbox configuration (for combat hit detection)
 const HURTBOX_RADIUS: float = 2.0    # Capsule radius around summoner
 const HURTBOX_HEIGHT: float = 6.25   # Character sprite height
-const HURTBOX_CATEGORY: int = 2      # HurtboxCategory.Summoner (1 << 1)
 
 ## Current state
 var mana: float = 0.0
@@ -252,13 +251,13 @@ func _setup_hurtbox() -> void:
 	add_child(_hurtbox)
 	_hurtbox.configure(
 		int(team),
-		HURTBOX_CATEGORY,
+		UnitConstants.HurtboxCategory.SUMMONER,
 		HURTBOX_RADIUS,
 		HURTBOX_HEIGHT
 	)
 
 
-## Configure collision shape radius from code (single source of truth with hurtbox)
+## Configure collision shape from code (single source of truth with hurtbox)
 func _configure_collision_shape() -> void:
 	if not has_node("CollisionBody/CollisionShape3D"):
 		return
@@ -266,6 +265,7 @@ func _configure_collision_shape() -> void:
 	var collision_shape: CollisionShape3D = $CollisionBody/CollisionShape3D
 	if collision_shape.shape is CylinderShape3D:
 		collision_shape.shape.radius = HURTBOX_RADIUS
+		collision_shape.shape.height = HURTBOX_HEIGHT
 
 
 ## Draw a card from deck into hand
