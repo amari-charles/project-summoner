@@ -11,8 +11,10 @@ public enum HurtboxCategory
 {
     None = 0,
     Unit = 1 << 0,
-    Summoner = 1 << 1,
+    Summoner = 1 << 1,              // Legacy - kept for backwards compat
     Structure = 1 << 2,
-    Projectile = 1 << 3,  // For interceptable projectiles
-    All = Unit | Summoner | Structure | Projectile
+    Projectile = 1 << 3,            // For interceptable projectiles
+    SummonerMelee = 1 << 4,         // Large circle around summoner for melee attacks
+    SummonerProjectile = 1 << 5,    // Sprite-sized area for projectile hits
+    All = Unit | Summoner | Structure | Projectile | SummonerMelee | SummonerProjectile
 }

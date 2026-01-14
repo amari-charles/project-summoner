@@ -37,6 +37,15 @@ const HP_BAR_ALWAYS_VISIBLE: bool = true  # Always show, not just on damage
 ## Projectile targeting configuration
 const PROJECTILE_TARGET_HEIGHT: float = 1.5  # Chest height for projectile targeting
 
+## Dual hurtbox configuration (for combat hit detection)
+## Melee attacks hit the large circle, projectiles must hit the sprite area
+const MELEE_HURTBOX_RADIUS: float = 4.0       # Large circle for melee attacks
+const MELEE_HURTBOX_HEIGHT: float = 0.5       # Low cylinder/disk shape
+const PROJECTILE_HURTBOX_RADIUS: float = 0.8  # Smaller capsule for projectiles
+const PROJECTILE_HURTBOX_HEIGHT: float = 2.5  # Character sprite height
+const HURTBOX_CATEGORY_MELEE: int = 16        # HurtboxCategory.SummonerMelee (1 << 4)
+const HURTBOX_CATEGORY_PROJECTILE: int = 32   # HurtboxCategory.SummonerProjectile (1 << 5)
+
 ## Current state
 var mana: float = 0.0
 var max_mana: float = SummonerConfig.DEFAULT_MAX_MANA  ## Fixed pool for entire battle (no regeneration)
@@ -69,6 +78,10 @@ var _loaded_summoner_instance: SummonerInstance = null
 
 ## Track initialization state
 var _initialized: bool = false
+
+## Hurtbox components (for combat hit detection)
+var _melee_hurtbox: Node = null      # Large circle for melee attacks
+var _projectile_hurtbox: Node = null # Smaller area for projectiles
 
 ## Signals
 signal card_played(card: Card)
@@ -115,6 +128,9 @@ func _ready() -> void:
 		"offset_y": HP_BAR_OFFSET_Y,
 		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
 	})
+
+	# Setup dual hurtboxes for combat hit detection (melee + projectile)
+	_setup_hurtboxes()
 
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
@@ -216,6 +232,35 @@ func _exit_tree() -> void:
 		active_feedback_tween.kill()
 	# Remove HP bar
 	HPBarService.remove_bar_from_unit(self)
+
+## Setup dual hurtbox components for combat hit detection
+## - Melee hurtbox: Large circle (~4 unit radius) for melee attacks
+## - Projectile hurtbox: Smaller capsule matching sprite for projectile hits
+func _setup_hurtboxes() -> void:
+	var hurtbox_script: Script = load("res://scripts/csharp/Combat/Hitbox/HurtboxComponent.cs")
+	if hurtbox_script == null:
+		push_error("Summoner: Failed to load HurtboxComponent class")
+		return
+
+	# Large circle for melee attacks (low disk shape)
+	_melee_hurtbox = hurtbox_script.new()
+	add_child(_melee_hurtbox)
+	_melee_hurtbox.configure(
+		int(team),
+		HURTBOX_CATEGORY_MELEE,
+		MELEE_HURTBOX_RADIUS,
+		MELEE_HURTBOX_HEIGHT
+	)
+
+	# Smaller capsule for projectile hits (matches sprite bounds)
+	_projectile_hurtbox = hurtbox_script.new()
+	add_child(_projectile_hurtbox)
+	_projectile_hurtbox.configure(
+		int(team),
+		HURTBOX_CATEGORY_PROJECTILE,
+		PROJECTILE_HURTBOX_RADIUS,
+		PROJECTILE_HURTBOX_HEIGHT
+	)
 
 ## Draw a card from deck into hand
 ## If target_index is provided, insert at that position (for in-place replacement)

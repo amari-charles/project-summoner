@@ -138,7 +138,7 @@ public partial class MeleeUnit3D : Unit3D
             Lifetime = HitboxLifetime.Timed,
             Duration = MeleeHitboxDuration,
             SingleHitPerTarget = true,
-            TargetCategories = HurtboxCategory.Unit | HurtboxCategory.Summoner
+            TargetCategories = HurtboxCategory.Unit | HurtboxCategory.SummonerMelee
         };
 
         // Position hitbox between attacker and target
