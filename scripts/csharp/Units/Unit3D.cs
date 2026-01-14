@@ -421,6 +421,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         _isFacingRight = Team == (int)Units.Team.Player;
         VisualComponent?.SetFlipH(_isFacingRight);
         UpdateShadowOffset();
+        UpdateHurtboxOffset();  // Update hurtbox now that facing is set
 
         // Show shadow after initialization (deferred to run after visual components show)
         if (_shadowComponent != null)
