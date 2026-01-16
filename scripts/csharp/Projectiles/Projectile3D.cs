@@ -30,6 +30,9 @@ public partial class Projectile3D : Area3D
     /// <summary>Ground Y level.</summary>
     private const float GroundY = 0f;
 
+    /// <summary>Default height offset for center mass estimate when target lacks get_projectile_target_position.</summary>
+    private const float DefaultTargetHeightOffset = 0.5f;
+
     /// <summary>Collision layer for hitboxes (Layer 6 = bit 5).</summary>
     private const uint HitboxLayer = 1u << 5;
 
@@ -203,7 +206,8 @@ public partial class Projectile3D : Area3D
     {
         if (IsInstanceValid(Target) && !_homingDisabled)
         {
-            _targetPosition = Target.GlobalPosition;
+            // Use proper target position (hurtbox center) if available
+            _targetPosition = GetTargetPosition(Target);
             var toTarget = _targetPosition - GlobalPosition;
             float distanceToTarget = toTarget.Length();
 
@@ -586,7 +590,7 @@ public partial class Projectile3D : Area3D
         }
         else if (Target != null && IsInstanceValid(Target))
         {
-            _targetPosition = Target.GlobalPosition;
+            _targetPosition = GetTargetPosition(Target);
         }
 
         // Set direction
@@ -727,6 +731,21 @@ public partial class Projectile3D : Area3D
     // =========================================================================
     // HELPERS
     // =========================================================================
+
+    /// <summary>
+    /// Get the proper target position for a unit.
+    /// Uses the unit's get_projectile_target_position() if available, otherwise estimates center mass.
+    /// Matches RangedUnit3D.GetTargetPosition() pattern.
+    /// </summary>
+    private static Vector3 GetTargetPosition(Node3D target)
+    {
+        if (target.HasMethod("get_projectile_target_position"))
+        {
+            return target.Call("get_projectile_target_position").AsVector3();
+        }
+        // Fallback: center mass estimate
+        return target.GlobalPosition + new Vector3(0, DefaultTargetHeightOffset, 0);
+    }
 
     private void DuplicateMaterials()
     {
