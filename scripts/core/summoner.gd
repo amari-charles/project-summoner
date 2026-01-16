@@ -722,7 +722,7 @@ func get_projectile_target_position() -> Vector3:
 
 ## Update debug visualization marker based on Unit3D's debug toggle state
 func _update_debug_visualization() -> void:
-	var debug_enabled: bool = Unit3D.is_debug_hurtbox_enabled()
+	var debug_enabled: bool = Unit3D.IsDebugHurtboxEnabled()
 
 	if debug_enabled:
 		_update_debug_hurtbox_marker()

@@ -6,6 +6,39 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Fire Titans Cannot Attack Each Other
+**Resolved:** 2026-01-15
+**Component:** Combat / Unit Configuration
+
+**Description:**
+Fire Titans were unable to attack each other in combat. The issue was that their attack range did not extend outside their collision bodies, so when two Fire Titans stood next to each other, neither could reach the other.
+
+**Root Cause:**
+Attack range is measured from unit center, but large units like Fire Titan have large separation radii. If `AttackRange <= SeparationRadius * 2`, the unit cannot reach outside its own body to hit adjacent units.
+
+**Solution Implemented:**
+Increased attack ranges for all melee units to account for body sizes:
+- Fire Titan: 3.0 → 5.0
+- Fire Ant: 1.8 → 3.0
+- Fire Elemental: 2.0 → 3.0
+- Earth Sprite: 2.0 → 3.0
+- Rock: 2.0 → 3.0
+
+Updated both scene files (.tscn) and CardCatalog.cs (which overrides scene values when cards are played).
+
+Rule: `AttackRange > SeparationRadius + TargetBodySize`
+
+**Related Files:**
+- `scenes/units/fire_titan_3d.tscn` - AttackRange and SeparationRadius values
+- `scenes/units/fire_ant_3d.tscn` - AttackRange values
+- `scenes/units/fire_elemental_3d.tscn` - AttackRange values
+- `scenes/units/earth_sprite_3d.tscn` - AttackRange values
+- `scenes/units/rock_3d.tscn` - AttackRange values
+- `scripts/csharp/Cards/CardCatalog.cs` - AttackRange values for all card definitions
+- `scripts/csharp/Units/MeleeUnit3D.cs` - Attack range check logic
+
+---
+
 ### Summoner Combat Interactions Broken
 **Resolved:** 2026-01-14
 **Component:** Combat / Summoner / Projectiles

@@ -71,36 +71,6 @@ Visual bugs and potential errors during development/testing.
 
 ---
 
-#### Fire Titans Cannot Attack Each Other
-**Status:** Open
-**Reported:** 2026-01-04
-**Component:** Combat / Unit Configuration
-
-**Description:**
-Fire Titans are unable to attack each other in combat. The issue appears to be that their attack range does not extend outside their collision bodies, so when two Fire Titans stand next to each other, neither can reach the other.
-
-**Expected Behavior:**
-Fire Titans should be able to attack enemies within their attack range, including other Fire Titans.
-
-**Current Behavior:**
-Two Fire Titans adjacent to each other cannot attack one another - they appear to be perpetually out of range.
-
-**Impact:**
-Gameplay breaking for Fire Titan vs Fire Titan matchups.
-
-**Root Cause (Suspected):**
-Attack range is measured from unit center, but large units like Fire Titan have large collision radii. If `AttackRange <= CollisionRadius * 2`, the unit cannot reach outside its own body to hit adjacent units.
-
-**Proposed Solutions:**
-1. **Quick fix:** Ensure every unit's attack range exceeds its collision radius (e.g., `AttackRange > CollisionRadius + 1.0`)
-2. **Structural fix:** Redefine attack range to measure from collision edge rather than center, so range represents "reach beyond body"
-
-**Related Files:**
-- scenes/units/fire_titan_3d.tscn (AttackRange and CollisionRadius values)
-- scripts/csharp/Units/MeleeUnit3D.cs (attack range check logic)
-
----
-
 #### Puff Units Get Stuck in Idle When Blocked by Other Units
 **Status:** Open
 **Reported:** 2026-01-05
@@ -270,4 +240,4 @@ Debug tool doesn't work correctly for testing enemy units.
 
 ---
 
-*Last Updated: 2026-01-14 - Moved "Summoner Combat Interactions Broken" to resolved*
+*Last Updated: 2026-01-15 - Moved "Fire Titans Cannot Attack Each Other" to resolved*

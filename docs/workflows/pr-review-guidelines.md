@@ -196,7 +196,8 @@ Suggest specific refactors that would improve extensibility without over-enginee
 
 **All tests must pass.** Run both test suites and verify all tests pass before approving a PR. If tests fail, flag this as a blocking issue.
 
-- **GDScript tests (GUT):** `godot --headless -s addons/gut/gut_cmdln.gd`
+- **GDScript tests (GUT):** `"/Applications/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`
+  - Requires Godot .NET due to C#/GDScript integration (see `docs/workflows/running-tests.md`)
 - **C# tests (GdUnit4):** `dotnet test --settings test.runsettings`
 
 Are there tests that cover the new behavior and important edge cases?

@@ -27,11 +27,18 @@ Visualizes the SpatialGrid cells used for unit proximity queries.
 Immediately transitions from prep phase to battle phase. Useful for testing combat without waiting.
 
 #### Hurtboxes
-Shows each unit's collision/hit detection volume as a green capsule.
+Shows each unit's combat hit detection volume as a green capsule.
 
-- Capsule radius = unit's `CollisionRadius` property
+- Capsule radius = unit's `HurtboxRadius` property (defaults to 0.5 if not set)
 - Capsule height = sprite height (calculated from visual component)
 - Used for: projectile collision detection, attack hit detection
+
+#### Separation Radius
+Shows each unit's movement separation radius as a purple circle on the ground.
+
+- Circle radius = unit's `SeparationRadius` property
+- Used for: unit-to-unit spacing during movement, preventing overlap
+- This is separate from HurtboxRadius - units can have different values for combat hit detection vs movement spacing
 
 #### Target Points
 Shows where projectiles aim on each unit:

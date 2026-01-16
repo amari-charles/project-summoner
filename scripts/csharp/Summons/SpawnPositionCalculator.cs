@@ -157,8 +157,8 @@ public static class SpawnPositionCalculator
                 if (isAliveVar.VariantType == Variant.Type.Bool && !isAliveVar.AsBool())
                     continue;
 
-                // Get collision radius
-                var otherRadiusVar = otherUnit.Get("collision_radius");
+                // Get separation radius
+                var otherRadiusVar = otherUnit.Get("separation_radius");
                 float otherRadius = otherRadiusVar.VariantType != Variant.Type.Nil ? otherRadiusVar.AsSingle() : DefaultCollisionRadius;
 
                 // Calculate 2D distance (ignore Y)

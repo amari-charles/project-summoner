@@ -724,7 +724,7 @@ func _connect_unit_death_tracking() -> void:
 	# Connect to any existing units
 	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in units:
-		if "is_alive" in node and "team" in node:
+		if _has_combat_properties(node):
 			var unit: Node3D = node
 			if not unit.unit_died.is_connected(_on_unit_died_for_kill_count):
 				unit.unit_died.connect(_on_unit_died_for_kill_count)
@@ -737,10 +737,16 @@ func _on_node_added_for_kill_tracking(node: Node) -> void:
 	if win_condition != WinConditionIDs.KILL_COUNT:
 		return
 
-	if "is_alive" in node and "team" in node:
+	if _has_combat_properties(node):
 		var unit: Node3D = node
 		if not unit.unit_died.is_connected(_on_unit_died_for_kill_count):
 			unit.unit_died.connect(_on_unit_died_for_kill_count)
+
+## Helper for duck typing (C# uses PascalCase, GDScript uses snake_case)
+func _has_combat_properties(node: Node) -> bool:
+	var has_alive: bool = "is_alive" in node or "IsAlive" in node
+	var has_team: bool = "team" in node or "Team" in node
+	return has_alive and has_team
 
 ## Handle unit death for kill count objective
 func _on_unit_died_for_kill_count(unit: Node3D) -> void:

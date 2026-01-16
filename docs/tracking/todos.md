@@ -872,3 +872,62 @@ Projectiles should disappear when they hit their target rather than continuing t
 - Hit detection logic in ranged units
 
 ---
+
+## Architecture & Code Quality
+
+### 🟢 LOW PRIORITY
+
+#### Create Property Interop Helper for GDScript/C# Duck Typing
+**Status:** ⬜ Not Started
+**Category:** Architecture / Interop
+**Effort:** Medium
+
+**Description:**
+The same PascalCase/snake_case property fallback pattern is duplicated in 5+ files when accessing properties on nodes that could be either C# or GDScript. Create a centralized helper to eliminate this duplication.
+
+**Current Pattern (Duplicated):**
+```csharp
+// Check PascalCase (C#)
+var val = node.Get("IsAlive");
+if (val.VariantType == Variant.Type.Nil)
+{
+    // Fallback to snake_case (GDScript)
+    val = node.Get("is_alive");
+}
+```
+
+**Proposed Solution:**
+Create `scripts/csharp/Interop/NodePropertyHelper.cs`:
+
+```csharp
+public static class NodePropertyHelper
+{
+    public static bool IsAlive(Node3D target)
+    {
+        if (target is IDamageable d) return d.IsAlive;
+        return GetBool(target, "IsAlive", "is_alive", true);
+    }
+
+    public static int? GetTeam(Node3D target)
+    {
+        if (target is Unit3D u) return u.Team;
+        return GetInt(target, "Team", "team");
+    }
+
+    public static T Get<T>(Node3D node, string pascal, string snake, T fallback) { ... }
+}
+```
+
+**Files with Duplicated Pattern:**
+- `scripts/csharp/Combat/DamageSystem.cs` - IsAlive, Team checks
+- `scripts/csharp/Targeting/Filters/ValidTargetFilter.cs` - IsAlive, Team checks
+- `scripts/csharp/Spells/Effects/SpellEffect.cs` - IsAlive check
+- `scripts/csharp/Units/Unit3D.cs` - Target property access
+- `scripts/gdscript/systems/spatial_grid.gd` - Team access
+
+**Notes:**
+- Lower priority since current code works, just duplicated
+- Consider when touching these files for other reasons
+- Type-safe accessors prevent typo bugs
+
+---

@@ -22,14 +22,14 @@ Soft repulsion from nearby units. Runs every physics frame during movement.
 
 **Constants:**
 ```csharp
-private const float SeparationMultiplier = 1.5f;   // Trigger distance = collision_radius * this
+private const float SeparationMultiplier = 1.5f;   // Trigger distance = separation_radius * this
 private const float SeparationStrength = 2.0f;     // Base push strength
 private const float LateralSeparationBoost = 3.0f; // Extra sideways spread
 ```
 
 **How it works:**
 - Uses SpatialGrid for O(k) proximity queries (k = local density)
-- If within `collision_radius * SEPARATION_MULTIPLIER`, apply push force
+- If within `separation_radius * SEPARATION_MULTIPLIER`, apply push force
 - Push strength inversely proportional to distance (closer = stronger)
 - **Does NOT separate from current attack target** (so units can approach enemies)
 
@@ -108,13 +108,15 @@ _steering.UpdateBlockedState(this, delta);
 
 ## Per-Unit Configuration
 
-Each unit has a `CollisionRadius` property (exported):
+Each unit has a `SeparationRadius` property (exported) that controls movement spacing:
 
 | Unit Type | Typical Radius | Notes |
 |-----------|---------------|-------|
 | Small (slimes) | 0.3 | Swarm units |
 | Medium (recruits) | 0.4-0.5 | Standard units |
 | Large (tanks) | 0.5-0.6 | Tanky units |
+
+**Note:** `SeparationRadius` is distinct from `HurtboxRadius` (combat hit detection). A unit can have a small separation radius (units can get close) but a larger hurtbox (easy to hit).
 
 ---
 

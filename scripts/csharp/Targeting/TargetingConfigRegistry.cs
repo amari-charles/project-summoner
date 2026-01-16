@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Constants;
 using ProjectSummoner.Targeting.Filters;
 using ProjectSummoner.Targeting.Scorers;
 using ProjectSummoner.Targeting.Constraints;
@@ -12,14 +13,14 @@ namespace ProjectSummoner.Targeting;
 /// </summary>
 public static class TargetingConfigRegistry
 {
-    private static readonly Dictionary<string, TargetingConfig> _configs = new();
+    private static readonly Dictionary<UnitId, TargetingConfig> _configs = new();
     private static bool _initialized = false;
 
     /// <summary>
-    /// Get targeting config for a specific unit type.
+    /// Get targeting config for a specific unit type (type-safe).
     /// Returns default config if no specific config is registered.
     /// </summary>
-    public static TargetingConfig GetConfig(string unitId)
+    public static TargetingConfig GetConfig(UnitId unitId)
     {
         EnsureInitialized();
 
@@ -27,6 +28,15 @@ public static class TargetingConfigRegistry
             return config;
 
         return DefaultTargetingConfig.Get();
+    }
+
+    /// <summary>
+    /// Get targeting config for a specific unit type (string overload for backwards compatibility).
+    /// Returns default config if no specific config is registered.
+    /// </summary>
+    public static TargetingConfig GetConfig(string unitId)
+    {
+        return GetConfig(new UnitId(unitId));
     }
 
     private static void EnsureInitialized()
@@ -38,10 +48,10 @@ public static class TargetingConfigRegistry
         RegisterPuffConfig();
 
         // Melee units (can only target ground units)
-        RegisterMeleeConfig("fire_elemental");
-        RegisterMeleeConfig("fire_titan");
-        RegisterMeleeConfig("fire_ant");
-        RegisterMeleeConfig("earth_sprite");
+        RegisterMeleeConfig(UnitIds.FireElemental);
+        RegisterMeleeConfig(UnitIds.FireTitan);
+        RegisterMeleeConfig(UnitIds.FireAnt);
+        RegisterMeleeConfig(UnitIds.EarthSprite);
 
         // Special units
         RegisterRockConfig();
@@ -85,14 +95,14 @@ public static class TargetingConfigRegistry
             FallbackMovement = FallbackMovementStyle.Strafe  // Ranged: circle around target
         };
 
-        _configs["puff"] = config;
+        _configs[UnitIds.Puff] = config;
     }
 
     /// <summary>
     /// Standard melee unit config: can only target ground units.
     /// Uses default distance + health scoring.
     /// </summary>
-    private static void RegisterMeleeConfig(string unitId)
+    private static void RegisterMeleeConfig(UnitId unitId)
     {
         // Filter: Valid targets + Ground only (cannot target flying units)
         var validFilter = new ValidTargetFilter();
@@ -144,6 +154,6 @@ public static class TargetingConfigRegistry
             FallbackMovement = FallbackMovementStyle.Idle  // Can't move
         };
 
-        _configs["rock"] = config;
+        _configs[UnitIds.Rock] = config;
     }
 }

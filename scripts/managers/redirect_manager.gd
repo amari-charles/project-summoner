@@ -109,6 +109,32 @@ func _process(delta: float) -> void:
 	cooldown_updated.emit(attack_cooldown, defend_cooldown)
 
 ## =============================================================================
+## DUCK TYPING HELPERS (C# uses PascalCase, GDScript uses snake_case)
+## =============================================================================
+
+## Check if node has both alive status and team properties (either casing)
+func _has_combat_properties(node: Node) -> bool:
+	var has_alive: bool = "is_alive" in node or "IsAlive" in node
+	var has_team: bool = "team" in node or "Team" in node
+	return has_alive and has_team
+
+## Get alive status from node (supports both casings)
+func _is_unit_alive(node: Node) -> bool:
+	if "is_alive" in node:
+		return node.is_alive
+	if "IsAlive" in node:
+		return node.IsAlive
+	return false
+
+## Get team from node (supports both casings)
+func _get_team(node: Node) -> int:
+	if "team" in node:
+		return node.team
+	if "Team" in node:
+		return node.Team
+	return -1
+
+## =============================================================================
 ## PUBLIC API
 ## =============================================================================
 
@@ -153,13 +179,13 @@ func select_units_in_radius(point: Vector3, radius: float, team: int) -> Array[N
 
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
-		if not ("is_alive" in node and "team" in node):
+		if not _has_combat_properties(node):
 			continue
 
 		var unit: Node3D = node as Node3D
 
 		# Only select friendly units that are alive
-		if unit.team != team or not unit.is_alive:
+		if _get_team(unit) != team or not _is_unit_alive(unit):
 			continue
 
 		# Check if unit is within radius
@@ -180,13 +206,13 @@ func find_nearest_enemy(point: Vector3, team: int, search_radius: float) -> Node
 	# Search for enemy units
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
-		if not ("is_alive" in node and "team" in node):
+		if not _has_combat_properties(node):
 			continue
 
 		var unit: Node3D = node as Node3D
 
 		# Only consider enemy units that are alive
-		if unit.team == team or not unit.is_alive:
+		if _get_team(unit) == team or not _is_unit_alive(unit):
 			continue
 
 		var dist: float = point.distance_to(unit.global_position)
@@ -253,13 +279,13 @@ func find_fallback_target(original_point: Vector3, team: int, search_radius: flo
 	# Search for enemy units (excluding the dead one)
 	var all_units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for node: Node in all_units:
-		if not ("is_alive" in node and "team" in node):
+		if not _has_combat_properties(node):
 			continue
 
 		var unit: Node3D = node as Node3D
 
 		# Skip excluded unit, friendly units, and dead units
-		if unit == exclude or unit.team == team or not unit.is_alive:
+		if unit == exclude or _get_team(unit) == team or not _is_unit_alive(unit):
 			continue
 
 		var dist: float = original_point.distance_to(unit.global_position)
@@ -336,7 +362,7 @@ func apply_forced_targets(units: Array[Node3D], target: Node3D, duration: float,
 
 	var applied_count: int = 0
 	for unit: Node3D in units:
-		if not is_instance_valid(unit) or not unit.is_alive:
+		if not is_instance_valid(unit) or not _is_unit_alive(unit):
 			print("RedirectManager: Skipping invalid/dead unit")
 			continue
 

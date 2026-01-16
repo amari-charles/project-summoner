@@ -109,7 +109,7 @@ static func from_dict(data: Dictionary) -> Resource:
 		"attack_range": data.get("attack_range", 0.0),
 		"attack_speed": data.get("attack_speed", 0.0),
 		"move_speed": data.get("move_speed", 0.0),
-		"collision_radius": data.get("collision_radius", 0.5),
+		"separation_radius": data.get("separation_radius", 0.5),
 	}
 
 	return config

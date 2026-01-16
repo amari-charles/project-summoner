@@ -96,8 +96,8 @@ To run ALL tests including those that depend on C# classes (SpatialGrid, Targeti
 # Using Godot .NET (Mono) version
 "/path/to/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 
-# Example on macOS with typical download location:
-"/Users/$USER/Downloads/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+# Example on macOS:
+"/Applications/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
 **Results:** ~326 passing, ~1 pending (full coverage)
@@ -117,7 +117,7 @@ To make running full tests easier, add an alias to your shell config:
 
 ```bash
 # In ~/.zshrc or ~/.bashrc
-alias godot-mono="/path/to/Godot_mono.app/Contents/MacOS/Godot"
+alias godot-mono="/Applications/Godot_mono.app/Contents/MacOS/Godot"
 ```
 
 Then run tests with:

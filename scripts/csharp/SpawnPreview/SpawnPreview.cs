@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using ProjectSummoner.Summons;
 
 namespace ProjectSummoner.SpawnPreview;
 
@@ -25,7 +26,7 @@ public partial class SpawnPreview : Node3D
 
     private List<GhostUnit3D> _ghostUnits = new();
     private MeshInstance3D? _circleMarker;  // Fallback if ghost creation fails
-    private float _collisionRadius = 0.5f;
+    private float _separationRadius = 0.5f;
     private bool _isValid = true;
     private int _spawnCount = 1;
     private PackedScene? _unitScene;
@@ -49,23 +50,8 @@ public partial class SpawnPreview : Node3D
 
         if (unitScene != null)
         {
-            // Extract collision_radius for spacing/fallback
-            var tempUnit = unitScene.Instantiate();
-            if (tempUnit != null)
-            {
-                var radiusVar = tempUnit.Get("collision_radius");
-                if (radiusVar.VariantType != Variant.Type.Nil)
-                {
-                    _collisionRadius = radiusVar.AsSingle();
-                }
-                // Also try C# property name
-                radiusVar = tempUnit.Get("CollisionRadius");
-                if (radiusVar.VariantType != Variant.Type.Nil)
-                {
-                    _collisionRadius = radiusVar.AsSingle();
-                }
-                tempUnit.Free();  // Not in tree, use Free() not QueueFree()
-            }
+            // Get separation radius from UnitSpawner (single source of truth)
+            _separationRadius = UnitSpawner.GetSeparationRadius(unitScene);
         }
 
         // Create ghost units for preview
@@ -275,14 +261,14 @@ public partial class SpawnPreview : Node3D
     }
 
     /// <summary>
-    /// Update circle mesh size based on collision_radius.
+    /// Update circle mesh size based on separation_radius.
     /// </summary>
     private void UpdateCircleSize()
     {
         if (_circleMarker == null)
             return;
 
-        float radius = _collisionRadius;
+        float radius = _separationRadius;
 
         // Create a flat cylinder for the circle
         var cylinder = new CylinderMesh();

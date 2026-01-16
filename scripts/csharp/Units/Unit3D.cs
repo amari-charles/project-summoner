@@ -95,7 +95,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public float AttackRange { get; set; } = 2f;
 
     [Export]
-    public float CollisionRadius { get; set; } = 0.5f;
+    public float SeparationRadius { get; set; } = 0.5f;
 
     [Export]
     public float AggroRadius { get; set; } = 20f;
@@ -150,6 +150,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public FlyingDeathStyle FlyingDeathStyle { get; set; } = FlyingDeathStyle.Fall;
 
+    /// <summary>
+    /// Get the Y position where this unit should spawn.
+    /// Flying units spawn at FlightAltitude; ground units at Y=0.
+    /// Single source of truth for spawn altitude calculation.
+    /// </summary>
+    public float GetSpawnAltitude()
+    {
+        if (MovementLayer == (int)Units.MovementLayer.Air)
+        {
+            return FlightAltitude;
+        }
+        return 0f;
+    }
+
     // =========================================================================
     // EXPORTED PROPERTIES - Visual Configuration
     // =========================================================================
@@ -191,7 +205,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Custom hurtbox size using a box shape. If non-zero, uses BoxShape3D instead of CapsuleShape3D.
-    /// Format: (Width, Height, Depth). Leave at (0,0,0) to use default capsule based on CollisionRadius.
+    /// Format: (Width, Height, Depth). Leave at (0,0,0) to use default capsule based on HurtboxRadius.
     /// </summary>
     [Export]
     public Vector3 HurtboxBoxSize { get; set; } = Vector3.Zero;
@@ -212,7 +226,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Override for hurtbox radius (or height when horizontal).
-    /// Set to 0 to use CollisionRadius.
+    /// Set to 0 to use default (0.5).
     /// </summary>
     [Export]
     public float HurtboxRadius { get; set; } = 0f;
@@ -233,10 +247,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     public float CurrentHp => _health.CurrentHp;
     public bool IsAlive => _health.IsAlive;
     public bool IsDying => _health.IsDying;
-
-    // GDScript interop - snake_case aliases for duck typing in battlefield_constants.gd
-    public bool is_alive => IsAlive;
-    public float collision_radius => CollisionRadius;
 
     // =========================================================================
     // RUNTIME STATE - Targeting & Combat
@@ -711,8 +721,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // If hurtbox has custom offset, use hurtbox center as target
         if (HurtboxOffset != Vector3.Zero)
         {
+            const float DefaultHurtboxRadius = 0.5f;
             float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
-            float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+            float radius = HurtboxRadius > 0 ? HurtboxRadius : DefaultHurtboxRadius;
             float yOffset = HurtboxHorizontal ? radius : (HurtboxHeight > 0 ? HurtboxHeight / 2 : 1.0f);
             return GlobalPosition + new Vector3(xOffset, yOffset + HurtboxOffset.Y, HurtboxOffset.Z);
         }
@@ -1197,7 +1208,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     private (float radius, float height, Vector3 offset) GetHurtboxConfig()
     {
-        float radius = HurtboxRadius > 0 ? HurtboxRadius : CollisionRadius;
+        // Default hurtbox radius - units should explicitly set HurtboxRadius for non-standard sizes
+        const float DefaultHurtboxRadius = 0.5f;
+        float radius = HurtboxRadius > 0 ? HurtboxRadius : DefaultHurtboxRadius;
         float height = HurtboxHeight > 0 ? HurtboxHeight : (VisualComponent?.GetSpriteHeight() ?? 2.0f);
         float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
         var offset = new Vector3(xOffset, HurtboxOffset.Y, HurtboxOffset.Z);
@@ -1216,10 +1229,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     private static bool _debugHurtboxEnabled;
     private static bool _debugTargetPointEnabled;
     private static bool _debugAttackRangeEnabled;
+    private static bool _debugSeparationRadiusEnabled;
 
     private MeshInstance3D? _debugHurtboxMarker;
     private MeshInstance3D? _debugTargetPointMarker;
     private MeshInstance3D? _debugAttackRangeMarker;
+    private MeshInstance3D? _debugSeparationRadiusMarker;
 
     /// <summary>
     /// Toggle debug hurtbox visualization for all units.
@@ -1263,27 +1278,31 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     public static bool IsDebugAttackRangeEnabled() => _debugAttackRangeEnabled;
 
+    /// <summary>
+    /// Toggle debug separation radius visualization for all units.
+    /// </summary>
+    public static void ToggleDebugSeparationRadius()
+    {
+        _debugSeparationRadiusEnabled = !_debugSeparationRadiusEnabled;
+        GD.Print($"[Unit3D] Debug Separation Radius: {(_debugSeparationRadiusEnabled ? "ON" : "OFF")}");
+    }
+
+    /// <summary>
+    /// Check if debug separation radius visualization is enabled.
+    /// </summary>
+    public static bool IsDebugSeparationRadiusEnabled() => _debugSeparationRadiusEnabled;
+
     // Set methods for loading saved settings
     public static void SetDebugHurtboxEnabled(bool enabled) => _debugHurtboxEnabled = enabled;
     public static void SetDebugTargetPointEnabled(bool enabled) => _debugTargetPointEnabled = enabled;
     public static void SetDebugAttackRangeEnabled(bool enabled) => _debugAttackRangeEnabled = enabled;
-
-    // Snake_case aliases for GDScript compatibility
-    public static void toggle_debug_hurtbox() => ToggleDebugHurtbox();
-    public static bool is_debug_hurtbox_enabled() => IsDebugHurtboxEnabled();
-    public static void set_debug_hurtbox_enabled(bool enabled) => SetDebugHurtboxEnabled(enabled);
-    public static void toggle_debug_target_point() => ToggleDebugTargetPoint();
-    public static bool is_debug_target_point_enabled() => IsDebugTargetPointEnabled();
-    public static void set_debug_target_point_enabled(bool enabled) => SetDebugTargetPointEnabled(enabled);
-    public static void toggle_debug_attack_range() => ToggleDebugAttackRange();
-    public static bool is_debug_attack_range_enabled() => IsDebugAttackRangeEnabled();
-    public static void set_debug_attack_range_enabled(bool enabled) => SetDebugAttackRangeEnabled(enabled);
+    public static void SetDebugSeparationRadiusEnabled(bool enabled) => _debugSeparationRadiusEnabled = enabled;
 
     public override void _Process(double delta)
     {
         // Early out if no debug mode is active and no cleanup needed
-        bool anyDebugEnabled = _debugHurtboxEnabled || _debugTargetPointEnabled || _debugAttackRangeEnabled;
-        bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null || _debugAttackRangeMarker != null;
+        bool anyDebugEnabled = _debugHurtboxEnabled || _debugTargetPointEnabled || _debugAttackRangeEnabled || _debugSeparationRadiusEnabled;
+        bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null || _debugAttackRangeMarker != null || _debugSeparationRadiusMarker != null;
 
         if (!anyDebugEnabled && !anyMarkerExists)
             return;
@@ -1319,6 +1338,17 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         {
             _debugAttackRangeMarker.QueueFree();
             _debugAttackRangeMarker = null;
+        }
+
+        // Separation radius debug visualization
+        if (_debugSeparationRadiusEnabled)
+        {
+            UpdateDebugSeparationRadiusMarker();
+        }
+        else if (_debugSeparationRadiusMarker != null)
+        {
+            _debugSeparationRadiusMarker.QueueFree();
+            _debugSeparationRadiusMarker = null;
         }
     }
 
@@ -1364,9 +1394,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
         else
         {
+            const float DefaultHurtboxRadius = 0.5f;
             var capsule = new CapsuleMesh
             {
-                Radius = _hurtbox?.Radius ?? CollisionRadius,
+                Radius = _hurtbox?.Radius ?? DefaultHurtboxRadius,
                 Height = _hurtbox?.Height ?? 2.0f
             };
             mesh.Mesh = capsule;
@@ -1549,5 +1580,47 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         surfaceTool.GenerateNormals();
         return surfaceTool.Commit();
+    }
+
+    private void UpdateDebugSeparationRadiusMarker()
+    {
+        if (_debugSeparationRadiusMarker == null)
+        {
+            _debugSeparationRadiusMarker = CreateDebugSeparationRadiusCircle();
+            AddChild(_debugSeparationRadiusMarker);
+        }
+
+        // Position at ground level (slight offset to prevent z-fighting)
+        _debugSeparationRadiusMarker.GlobalPosition = new Vector3(
+            GlobalPosition.X,
+            0.03f,
+            GlobalPosition.Z
+        );
+    }
+
+    private MeshInstance3D CreateDebugSeparationRadiusCircle()
+    {
+        var mesh = new MeshInstance3D();
+        var cylinder = new CylinderMesh
+        {
+            TopRadius = SeparationRadius,
+            BottomRadius = SeparationRadius,
+            Height = 0.05f  // Very thin disc
+        };
+        mesh.Mesh = cylinder;
+
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.8f, 0.4f, 1.0f, 0.4f),  // Purple
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = 98  // Below attack range and hurtbox
+        };
+        mesh.MaterialOverride = material;
+
+        return mesh;
     }
 }

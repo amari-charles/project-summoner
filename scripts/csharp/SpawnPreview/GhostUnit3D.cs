@@ -54,10 +54,10 @@ public partial class GhostUnit3D : Node3D
         if (tempUnit == null)
             return;
 
-        // Check for flight altitude (C# units use PascalCase)
+        // Get spawn altitude from Unit3D (single source of truth)
         if (tempUnit is ProjectSummoner.Units.Unit3D unit)
         {
-            _flightAltitude = unit.FlightAltitude;
+            _flightAltitude = unit.GetSpawnAltitude();
         }
 
         // Find the Visual child node - it already has all property overrides from the unit scene
