@@ -183,16 +183,24 @@ public class DamageEffect : SpellEffect
 
         if (targetUnit != null)
         {
-            // Target the unit's position
-            targetPos = targetUnit.GlobalPosition;
+            // Use proper target position (hurtbox center, ProjectileTargetPoint, or center mass)
+            // This matches RangedUnit3D.GetTargetPosition() pattern
+            if (targetUnit.HasMethod("get_projectile_target_position"))
+            {
+                targetPos = targetUnit.Call("get_projectile_target_position").AsVector3();
+            }
+            else
+            {
+                // Fallback: center mass estimate
+                targetPos = targetUnit.GlobalPosition + new Vector3(0, 0.5f, 0);
+            }
         }
         else
         {
-            // Fallback to click position
+            // No target unit - use click position at flight height
             targetPos = context.Position;
+            targetPos.Y = ProjectileFlightHeight;
         }
-        // Target at same height for straight-line travel
-        targetPos.Y = ProjectileFlightHeight;
 
         // ProjectileId is guaranteed non-null here since we check before calling SpawnProjectile
         var projectileIdValue = ProjectileId ?? "";

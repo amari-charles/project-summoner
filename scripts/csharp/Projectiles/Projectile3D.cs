@@ -203,7 +203,8 @@ public partial class Projectile3D : Area3D
     {
         if (IsInstanceValid(Target) && !_homingDisabled)
         {
-            _targetPosition = Target.GlobalPosition;
+            // Use proper target position (hurtbox center) if available
+            _targetPosition = GetTargetPosition(Target);
             var toTarget = _targetPosition - GlobalPosition;
             float distanceToTarget = toTarget.Length();
 
@@ -586,7 +587,7 @@ public partial class Projectile3D : Area3D
         }
         else if (Target != null && IsInstanceValid(Target))
         {
-            _targetPosition = Target.GlobalPosition;
+            _targetPosition = GetTargetPosition(Target);
         }
 
         // Set direction
@@ -727,6 +728,20 @@ public partial class Projectile3D : Area3D
     // =========================================================================
     // HELPERS
     // =========================================================================
+
+    /// <summary>
+    /// Get the proper target position for a unit (hurtbox center, ProjectileTargetPoint, or center mass).
+    /// Matches RangedUnit3D.GetTargetPosition() pattern.
+    /// </summary>
+    private static Vector3 GetTargetPosition(Node3D target)
+    {
+        if (target.HasMethod("get_projectile_target_position"))
+        {
+            return target.Call("get_projectile_target_position").AsVector3();
+        }
+        // Fallback: center mass estimate
+        return target.GlobalPosition + new Vector3(0, 0.5f, 0);
+    }
 
     private void DuplicateMaterials()
     {
