@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dv8m4r3qy5p2k"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Data/Traits/TraitCatalogBridge.cs" id="1_bridge"]
+
+[node name="TraitCatalogBridge" type="Node"]
+script = ExtResource("1_bridge")
