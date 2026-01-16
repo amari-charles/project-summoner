@@ -1,13 +1,12 @@
 using Godot;
 using System.Collections.Generic;
+using ProjectSummoner.Data.Traits;
 
 namespace ProjectSummoner.Systems.Modifiers;
 
 /// <summary>
 /// Provides unit modifiers from summoner traits.
-/// Reads unit modifiers from TraitCatalog based on the summoner's traits.
-///
-/// Replaces GDScript summoner_modifier_provider.gd
+/// Reads unit modifiers directly from C# TraitCatalog based on the summoner's traits.
 /// </summary>
 public class SummonerModifierProvider : IModifierProvider
 {
@@ -32,25 +31,7 @@ public class SummonerModifierProvider : IModifierProvider
         if (_summonerInstance == null || !GodotObject.IsInstanceValid(_summonerInstance))
             return modifiers;
 
-        // Get TraitCatalog autoload
-        var mainLoop = Engine.GetMainLoop();
-        if (mainLoop is not SceneTree sceneTree)
-            return modifiers;
-
-        var traitCatalog = sceneTree.Root.GetNodeOrNull("/root/TraitCatalog");
-        if (traitCatalog == null)
-        {
-            GD.PushWarning("SummonerModifierProvider: TraitCatalog not found");
-            return modifiers;
-        }
-
-        if (!traitCatalog.HasMethod("get_unit_modifiers_for_trait"))
-        {
-            GD.PushWarning("SummonerModifierProvider: TraitCatalog.get_unit_modifiers_for_trait() not available");
-            return modifiers;
-        }
-
-        // Get all trait IDs from the summoner instance
+        // Get all trait IDs from the summoner instance (still in GDScript)
         if (!_summonerInstance.HasMethod("get_all_trait_ids"))
             return modifiers;
 
@@ -60,24 +41,13 @@ public class SummonerModifierProvider : IModifierProvider
 
         var traitIds = traitIdsVar.AsGodotArray();
 
-        // Collect unit modifiers from all summoner traits
+        // Collect unit modifiers from all summoner traits using C# TraitCatalog directly
         foreach (var traitIdVar in traitIds)
         {
             string traitId = traitIdVar.AsString();
-            var traitMods = traitCatalog.Call("get_unit_modifiers_for_trait", traitId);
 
-            if (traitMods.VariantType != Variant.Type.Array)
-                continue;
-
-            // Convert each trait modifier dictionary to StatModifier
-            foreach (var modVar in traitMods.AsGodotArray())
-            {
-                if (modVar.VariantType != Variant.Type.Dictionary)
-                    continue;
-
-                var modifier = StatModifier.FromDictionary(modVar.AsGodotDictionary());
-                modifiers.Add(modifier);
-            }
+            var traitModifiers = TraitCatalog.GetUnitModifiersForTrait(traitId);
+            modifiers.AddRange(traitModifiers);
         }
 
         return modifiers;
