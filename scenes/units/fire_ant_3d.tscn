@@ -14,13 +14,13 @@ collision_mask = 1
 script = ExtResource("1_script")
 MaxHp = 40.0
 AttackDamage = 8.0
-AttackRange = 1.8
+AttackRange = 3.0
 AttackSpeed = 1.5
 MoveSpeed = 4.5
 UnitId = "fire_ant"
 Team = 0
 UnitType = 0
-CollisionRadius = 0.3
+SeparationRadius = 0.3
 ShadowEnabled = true
 ShadowOpacity = 0.6
 

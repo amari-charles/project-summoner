@@ -4,6 +4,10 @@ using System.Linq;
 using Godot;
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Constants;
+using ProjectSummoner.Stats;
+using ProjectSummoner.Systems.Modifiers;
+using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Cards;
 
@@ -127,16 +131,10 @@ public static class CardCatalog
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitScenePath = "res://scenes/units/fire_elemental_3d.tscn",
+            UnitId = UnitIds.FireElemental,  // Stats from UnitCatalog
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
-            MaxHp = 60.0f,
-            AttackDamage = 12.0f,
-            AttackRange = 2.0f,
-            AttackSpeed = 1.2f,
-            MoveSpeed = 3.5f,
-            AggroRadius = 20.0f,
             IsRanged = false,
             Tags = ["melee", "fire", "floating", "spirit"],
             UnlockCondition = UnlockCondition.Default,
@@ -153,16 +151,10 @@ public static class CardCatalog
             ManaCost = 7,
             Cooldown = 3.0f,
             SummonTime = 2.0f,
-            UnitScenePath = "res://scenes/units/fire_titan_3d.tscn",
+            UnitId = UnitIds.FireTitan,  // Stats from UnitCatalog
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
-            MaxHp = 300.0f,
-            AttackDamage = 20.0f,
-            AttackRange = 3.0f,
-            AttackSpeed = 0.8f,
-            MoveSpeed = 2.0f,
-            AggroRadius = 20.0f,
             IsRanged = false,
             Tags = ["melee", "fire", "floating", "spirit", "tank", "giant"],
             UnlockCondition = UnlockCondition.Default,
@@ -179,16 +171,19 @@ public static class CardCatalog
             ManaCost = 7,
             Cooldown = 4.0f,
             SummonTime = 2.5f,
-            UnitScenePath = "res://scenes/units/fire_elemental_3d.tscn",
+            UnitId = UnitIds.FireElemental,  // Stats from UnitCatalog, modified below
+            UnitModifier = new StatModifier
+            {
+                Source = "card_swarm_variant",
+                StatMults = new Dictionary<string, float>
+                {
+                    ["max_hp"] = 0.75f,       // 60 × 0.75 = 45
+                    ["attack_damage"] = 0.75f  // 12 × 0.75 = 9
+                }
+            },
             SpawnCount = 12,
             Formation = FormationPresets.TightSwarmGrid,
             UnitType = UnitType.Melee,
-            MaxHp = 45.0f,
-            AttackDamage = 9.0f,
-            AttackRange = 2.0f,
-            AttackSpeed = 1.2f,
-            MoveSpeed = 3.5f,
-            AggroRadius = 20.0f,
             IsRanged = false,
             Tags = ["melee", "fire", "floating", "spirit", "swarm"],
             UnlockCondition = UnlockCondition.Default,
@@ -205,16 +200,10 @@ public static class CardCatalog
             ManaCost = 2,
             Cooldown = 1.5f,
             SummonTime = 0.8f,
-            UnitScenePath = "res://scenes/units/fire_ant_3d.tscn",
+            UnitId = UnitIds.FireAnt,  // Stats from UnitCatalog
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
-            MaxHp = 40.0f,
-            AttackDamage = 8.0f,
-            AttackRange = 1.8f,
-            AttackSpeed = 1.5f,
-            MoveSpeed = 4.5f,
-            AggroRadius = 20.0f,
             IsRanged = false,
             Tags = ["melee", "fire", "insect", "fast"],
             UnlockCondition = UnlockCondition.Default,
@@ -231,16 +220,10 @@ public static class CardCatalog
             ManaCost = 6,
             Cooldown = 4.0f,
             SummonTime = 2.0f,
-            UnitScenePath = "res://scenes/units/fire_ant_3d.tscn",
+            UnitId = UnitIds.FireAnt,  // Stats from UnitCatalog (same as base fire_ant)
             SpawnCount = 20,
             Formation = FormationPresets.FireAntSwarm,
             UnitType = UnitType.Melee,
-            MaxHp = 40.0f,
-            AttackDamage = 8.0f,
-            AttackRange = 1.8f,
-            AttackSpeed = 1.5f,
-            MoveSpeed = 4.5f,
-            AggroRadius = 20.0f,
             IsRanged = false,
             Tags = ["melee", "fire", "insect", "fast", "swarm"],
             UnlockCondition = UnlockCondition.Default,
@@ -261,16 +244,10 @@ public static class CardCatalog
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitScenePath = "res://scenes/units/earth_sprite_3d.tscn",
+            UnitId = UnitIds.EarthSprite,  // Stats from UnitCatalog
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
-            MaxHp = 150.0f,
-            AttackDamage = 18.0f,
-            AttackRange = 2.0f,
-            AttackSpeed = 0.9f,
-            MoveSpeed = 1.8f,
-            AggroRadius = 20.0f,
             IsRanged = false,
             Tags = ["melee", "earth", "elemental", "nature"],
             UnlockCondition = UnlockCondition.Default,
@@ -287,16 +264,10 @@ public static class CardCatalog
             ManaCost = 0,
             Cooldown = 0.5f,
             SummonTime = 0.0f,
-            UnitScenePath = "res://scenes/units/rock_3d.tscn",
+            UnitId = UnitIds.Rock,  // Stats from UnitCatalog
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
-            MaxHp = 500.0f,
-            AttackDamage = 0.0f,
-            AttackRange = 2.0f,
-            AttackSpeed = 0.0f,
-            MoveSpeed = 0.0f,
-            AggroRadius = 0.0f,
             IsRanged = false,
             Tags = ["melee", "earth", "test", "dummy", "stationary"],
             UnlockCondition = UnlockCondition.DevOnly,
@@ -317,16 +288,10 @@ public static class CardCatalog
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitScenePath = "res://scenes/units/puff_3d.tscn",
+            UnitId = UnitIds.Puff,  // Stats from UnitCatalog
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Ranged,
-            MaxHp = 80.0f,
-            AttackDamage = 12.0f,
-            AttackRange = 24.0f,
-            AttackSpeed = 0.4f,
-            MoveSpeed = 2.5f,
-            AggroRadius = 24.0f,
             IsRanged = true,
             Tags = ["ranged", "wind", "elemental", "air"],
             UnlockCondition = UnlockCondition.Default,
@@ -343,16 +308,10 @@ public static class CardCatalog
             ManaCost = 5,
             Cooldown = 3.0f,
             SummonTime = 1.5f,
-            UnitScenePath = "res://scenes/units/puff_3d.tscn",
+            UnitId = UnitIds.Puff,  // Stats from UnitCatalog (same as base puff)
             SpawnCount = 6,
             Formation = FormationPresets.CloudSwarm,
             UnitType = UnitType.Ranged,
-            MaxHp = 80.0f,
-            AttackDamage = 12.0f,
-            AttackRange = 24.0f,
-            AttackSpeed = 0.4f,
-            MoveSpeed = 2.5f,
-            AggroRadius = 24.0f,
             IsRanged = true,
             Tags = ["ranged", "wind", "elemental", "air", "swarm"],
             UnlockCondition = UnlockCondition.Default,
@@ -436,6 +395,27 @@ public static class CardCatalog
     /// </summary>
     public static Godot.Collections.Dictionary ToDictionary(CardDefinition card)
     {
+        // Resolve scene path and stats from UnitCatalog when UnitId is set
+        string scenePath = card.UnitId.HasValue
+            ? UnitCatalog.GetScenePath(card.UnitId)
+            : card.UnitScenePath;
+
+        // Get base stats from UnitCatalog (with card modifier applied) or from card directly
+        UnitStats stats;
+        if (card.UnitId.HasValue)
+        {
+            stats = UnitCatalog.GetBaseStats(card.UnitId);
+            if (card.UnitModifier != null)
+            {
+                stats = stats.WithModifiers([card.UnitModifier]);
+            }
+        }
+        else
+        {
+            // Legacy: use card's direct stat properties
+            stats = UnitStatCalculator.FromCardDefinition(card);
+        }
+
         var dict = new Godot.Collections.Dictionary
         {
             ["catalog_id"] = card.Id,
@@ -446,15 +426,16 @@ public static class CardCatalog
             ["mana_cost"] = card.ManaCost,
             ["cooldown"] = card.Cooldown,
             ["summon_time"] = card.SummonTime,
-            ["unit_scene_path"] = card.UnitScenePath,
+            ["unit_id"] = (string)card.UnitId,  // Convert to string for GDScript
+            ["unit_scene_path"] = scenePath,
             ["spawn_count"] = card.SpawnCount,
             ["unit_type"] = card.UnitType.ToString().ToLowerInvariant(),
-            ["max_hp"] = card.MaxHp,
-            ["attack_damage"] = card.AttackDamage,
-            ["attack_range"] = card.AttackRange,
-            ["attack_speed"] = card.AttackSpeed,
-            ["move_speed"] = card.MoveSpeed,
-            ["aggro_radius"] = card.AggroRadius,
+            ["max_hp"] = stats.MaxHp,
+            ["attack_damage"] = stats.AttackDamage,
+            ["attack_range"] = stats.AttackRange,
+            ["attack_speed"] = stats.AttackSpeed,
+            ["move_speed"] = stats.MoveSpeed,
+            ["aggro_radius"] = stats.AggroRadius,
             ["is_ranged"] = card.IsRanged,
             ["projectile_scene_path"] = card.ProjectileScenePath,
             ["spell_damage"] = card.SpellDamage,

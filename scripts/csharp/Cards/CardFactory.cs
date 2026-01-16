@@ -207,12 +207,17 @@ public partial class CardFactory : Node, ICardFactory
         if (card == null)
             return SummonResult.Fail($"Summon '{catalogId}' not found in C# CardCatalog");
 
-        if (string.IsNullOrEmpty(card.UnitScenePath))
-            return SummonResult.Fail($"Summon '{catalogId}' has no unit_scene_path");
+        // Get scene path: prefer UnitCatalog (via UnitId), fall back to UnitScenePath (legacy)
+        string scenePath = card.UnitId.HasValue
+            ? UnitCatalog.GetScenePath(card.UnitId)
+            : card.UnitScenePath;
 
-        var unitScene = GD.Load<PackedScene>(card.UnitScenePath);
+        if (string.IsNullOrEmpty(scenePath))
+            return SummonResult.Fail($"Summon '{catalogId}' has no unit scene path (UnitId='{card.UnitId}', UnitScenePath='{card.UnitScenePath}')");
+
+        var unitScene = GD.Load<PackedScene>(scenePath);
         if (unitScene == null)
-            return SummonResult.Fail($"Failed to load unit scene: {card.UnitScenePath}");
+            return SummonResult.Fail($"Failed to load unit scene: {scenePath}");
 
         // 2. Create summon tracker
         var summon = new UnitSummon(catalogId, instanceId, team);
@@ -227,9 +232,9 @@ public partial class CardFactory : Node, ICardFactory
         var unitStats = UnitStatCalculator.CalculateFromGodotDictionary(effectiveStats, modifiers, customOverrides);
 
         // 6. Calculate spawn positions with team boundary enforcement
-        float collisionRadius = UnitSpawner.GetCollisionRadius(unitScene);
+        float separationRadius = UnitSpawner.GetSeparationRadius(unitScene);
         var safePositions = SpawnPositionCalculator.CalculateFormationPositions(
-            card.Formation, position, card.SpawnCount, battlefield.GetTree(), collisionRadius, team);
+            card.Formation, position, card.SpawnCount, battlefield.GetTree(), separationRadius, team);
 
         // 7. Determine if in battle phase
         bool inBattlePhase = IsInBattlePhase(gameplayLayer);

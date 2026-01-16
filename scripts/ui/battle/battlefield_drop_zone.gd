@@ -336,12 +336,12 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 			positions.append(center_pos + card.get_formation_offset(i))
 		return positions
 
-	# Get collision_radius from the unit scene
-	var collision_radius: float = 0.5
+	# Get separation_radius from the unit scene
+	var separation_radius: float = 0.5
 	if card.unit_scene:
 		var temp_unit: Node = card.unit_scene.instantiate()
-		if temp_unit and "CollisionRadius" in temp_unit:
-			collision_radius = temp_unit.get("CollisionRadius")
+		if temp_unit and "SeparationRadius" in temp_unit:
+			separation_radius = temp_unit.get("SeparationRadius")
 		if temp_unit:
 			temp_unit.free()  # Not in tree, use free() not queue_free()
 
@@ -352,7 +352,7 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 
 	# Call C# CardFactory for safe spawn positions (single source of truth)
 	var result: Variant = factory.call("get_safe_spawn_positions",
-		card.catalog_id, center_pos, battlefield, collision_radius, team)
+		card.catalog_id, center_pos, battlefield, separation_radius, team)
 
 	if result is Array:
 		for pos: Variant in result:

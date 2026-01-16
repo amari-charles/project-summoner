@@ -2,32 +2,36 @@ using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Systems.Modifiers;
+using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Stats;
 
 /// <summary>
 /// Centralized unit stat calculation with documented order of operations.
+/// See docs/technical/unit-stat-pipeline.md for full architecture details.
 ///
-/// ORDER OF OPERATIONS:
-/// 1. Base stats from CardDefinition
-/// 2. Card upgrade multipliers (multiplicative) - from PlayerCardService
-/// 3. Modifier adds (additive) - from ModifierService providers
-/// 4. Modifier mults (multiplicative) - from ModifierService providers
-/// 5. Custom overrides (replacement) - from event battles, boss fights
+/// ORDER OF OPERATIONS (Unit Stat Pipeline):
+/// 1. Base stats from UnitCatalog (via card.UnitId) or CardDefinition (legacy)
+/// 2. Card variant modifier (optional) - for swarms, etc.
+/// 3. Card upgrade multipliers (multiplicative) - from PlayerCardService
+/// 4. Modifier adds (additive) - from ModifierService providers (traits, buffs)
+/// 5. Modifier mults (multiplicative) - from ModifierService providers
+/// 6. Custom overrides (replacement) - from event battles, boss fights
 ///
-/// Example MaxHp calculation:
-/// - Base: 100
-/// - Upgrade ×1.2 (level 5): 100 × 1.2 = 120
-/// - Modifier +10 (trait): 120 + 10 = 130
-/// - Modifier ×1.1 (buff): 130 × 1.1 = 143
-/// - Override (none): 143 (final)
+/// Example MaxHp calculation for Fire Swarm:
+/// - Base (UnitCatalog fire_elemental): 60
+/// - Card modifier ×0.75 (swarm variant): 60 × 0.75 = 45
+/// - Upgrade ×1.2 (level 5): 45 × 1.2 = 54
+/// - Trait +10 (Fire Affinity): 54 + 10 = 64
+/// - Buff ×1.1: 64 × 1.1 = 70.4
+/// - Override (none): 70.4 (final)
 /// </summary>
 public static class UnitStatCalculator
 {
     /// <summary>
-    /// Calculates final unit stats from all sources.
+    /// Calculates final unit stats from all sources using the Unit Stat Pipeline.
     /// </summary>
-    /// <param name="card">Card definition with base stats</param>
+    /// <param name="card">Card definition (may reference UnitCatalog via UnitId)</param>
     /// <param name="upgradeMultipliers">Multiplicative bonuses from card upgrades (null = no upgrades)</param>
     /// <param name="modifiers">Stat modifiers from ModifierService (null = no modifiers)</param>
     /// <param name="overrides">Override values for specific stats (null = no overrides)</param>
@@ -38,28 +42,56 @@ public static class UnitStatCalculator
         List<StatModifier>? modifiers = null,
         Dictionary<string, float>? overrides = null)
     {
-        // Step 1: Base stats from CardDefinition
-        var stats = FromCardDefinition(card);
+        // Step 1: Base stats from UnitCatalog (new) or CardDefinition (legacy)
+        var stats = GetBaseStats(card);
 
-        // Step 2: Card upgrade multipliers (multiplicative)
+        // Step 2: Card variant modifier (for swarms, etc.)
+        if (card.UnitModifier != null)
+        {
+            stats = stats.WithModifiers([card.UnitModifier]);
+        }
+
+        // Step 3: Card upgrade multipliers (multiplicative)
         if (upgradeMultipliers != null && upgradeMultipliers.Count > 0)
         {
             stats = stats.WithUpgradeMultipliers(upgradeMultipliers);
         }
 
-        // Steps 3-4: Modifier adds then mults (handled together in WithModifiers)
+        // Steps 4-5: Modifier adds then mults (handled together in WithModifiers)
         if (modifiers != null && modifiers.Count > 0)
         {
             stats = stats.WithModifiers(modifiers);
         }
 
-        // Step 5: Custom overrides (replacement)
+        // Step 6: Custom overrides (replacement)
         if (overrides != null && overrides.Count > 0)
         {
             stats = stats.WithOverrides(overrides);
         }
 
         return stats;
+    }
+
+    /// <summary>
+    /// Gets base stats for a card, using UnitCatalog if UnitId is set,
+    /// otherwise falling back to CardDefinition stats (legacy).
+    /// </summary>
+    private static UnitStats GetBaseStats(CardDefinition card)
+    {
+        // New pattern: Use UnitCatalog when UnitId is set
+        if (card.UnitId.HasValue)
+        {
+            var catalogStats = UnitCatalog.GetBaseStats(card.UnitId);
+            if (catalogStats != UnitStats.Default)
+            {
+                return catalogStats;
+            }
+            // UnitId set but not found in catalog - log warning and fall back
+            GD.PushWarning($"[UnitStatCalculator] UnitId '{card.UnitId}' not found in UnitCatalog, falling back to CardDefinition stats");
+        }
+
+        // Legacy pattern: Use CardDefinition stats directly
+        return FromCardDefinition(card);
     }
 
     /// <summary>
@@ -121,6 +153,7 @@ public static class UnitStatCalculator
 
     /// <summary>
     /// Creates UnitStats from a CardDefinition's stat properties.
+    /// LEGACY: Prefer using UnitId to reference UnitCatalog instead.
     /// </summary>
     public static UnitStats FromCardDefinition(CardDefinition card)
     {
@@ -211,7 +244,7 @@ public static class UnitStatCalculator
             "mana_cost" or "cooldown" or "summon_time" => true,
             "spawn_count" or "unit_type" or "is_ranged" => true,
             "card_type" or "elemental_affinity" or "tags" => true,
-            "unit_scene_path" or "projectile_scene_path" => true,
+            "unit_scene_path" or "projectile_scene_path" or "unit_id" => true,
             "card_icon_path" or "unlock_condition" => true,
             // Command spell properties
             "command_type" or "selection_radius" or "formation_duration" => true,

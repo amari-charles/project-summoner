@@ -1,5 +1,7 @@
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Constants;
+using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Cards;
 
@@ -45,7 +47,21 @@ public class CardDefinition
     // SUMMON PROPERTIES
     // =========================================================================
 
-    /// <summary>Path to unit scene (for summon cards).</summary>
+    /// <summary>
+    /// References a unit type in UnitCatalog. When set, base stats come from UnitCatalog
+    /// instead of the stat properties on this card. Use UnitModifier to apply variants.
+    /// See docs/technical/unit-stat-pipeline.md for the full stat pipeline.
+    /// </summary>
+    public UnitId UnitId { get; init; } = UnitId.None;
+
+    /// <summary>
+    /// Optional modifier to apply to base stats from UnitCatalog.
+    /// Used for variant cards like swarms that spawn weaker versions of a unit.
+    /// Example: Fire Swarm applies {max_hp: 0.75, attack_damage: 0.75} to fire_elemental.
+    /// </summary>
+    public StatModifier? UnitModifier { get; init; } = null;
+
+    /// <summary>Path to unit scene (for summon cards). Deprecated: Use UnitId instead.</summary>
     public string UnitScenePath { get; init; } = "";
 
     /// <summary>Number of units to spawn.</summary>

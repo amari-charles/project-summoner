@@ -48,7 +48,10 @@
       "Bash(rg:*)",
       "Bash(git clone:*)",
       "Bash(python:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(\"/Applications/Godot_mono.app/Contents/MacOS/Godot\" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit)",
+      "Bash(file:*)",
+      "Bash(./run_tests.sh:*)"
     ],
     "deny": [],
     "ask": []

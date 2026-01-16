@@ -59,7 +59,7 @@ public class UnitSteering
             return Vector3.Zero;
 
         var separation = Vector3.Zero;
-        float collisionRadius = unit.CollisionRadius;
+        float collisionRadius = unit.SeparationRadius;
 
         // Query radius: max separation distance (self + largest possible other unit)
         float separationRadius = (collisionRadius + MaxCollisionRadius) * SeparationMultiplier;
@@ -96,7 +96,7 @@ public class UnitSteering
                 continue;
 
             // Calculate separation distance based on combined collision radii
-            float combinedCollision = collisionRadius + other.CollisionRadius;
+            float combinedCollision = collisionRadius + other.SeparationRadius;
             float separationDist = combinedCollision * SeparationMultiplier;
 
             // Calculate 2D distance (ignore Y-axis)
@@ -237,7 +237,7 @@ public class UnitSteering
         if (SpatialGrid.Instance == null)
             return;
 
-        float collisionRadius = unit.CollisionRadius;
+        float collisionRadius = unit.SeparationRadius;
         float unitMass = CalculateMass(unit);
 
         // Query radius: self + largest possible other unit
@@ -260,7 +260,7 @@ public class UnitSteering
                 continue;
 
             // Minimum distance is the sum of both collision radii
-            float minDist = collisionRadius + other.CollisionRadius;
+            float minDist = collisionRadius + other.SeparationRadius;
 
             // Calculate 2D distance squared first (avoid sqrt if not overlapping)
             var delta = unit.GlobalPosition - other.GlobalPosition;
@@ -301,7 +301,7 @@ public class UnitSteering
     /// </summary>
     private static float CalculateMass(Unit3D unit)
     {
-        float radius = unit.CollisionRadius;
+        float radius = unit.SeparationRadius;
         return radius * radius * radius;
     }
 
@@ -375,7 +375,7 @@ public class UnitSteering
 
         float leftScore = 0.0f;
         float rightScore = 0.0f;
-        float checkDistance = (unit.CollisionRadius + MaxCollisionRadius) * 1.5f;
+        float checkDistance = (unit.SeparationRadius + MaxCollisionRadius) * 1.5f;
 
         var nearbyUnits = SpatialGrid.Instance.GetUnitsInRadius(
             unit.GlobalPosition,

@@ -105,14 +105,5 @@ func test_hp_bar_service_pooled_bars_in_scene_tree() -> void:
 ## PROJECTILESERVICE POOL CONTAINER TESTS (C#)
 ## =============================================================================
 ## Note: ProjectileService is now implemented in C#. Pool container testing
-## requires C# unit tests or public API additions to ProjectileService.
-
-func test_projectile_service_exists() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available, ProjectileService won't initialize")
-		return
-
-	assert_not_null(
-		ProjectileService,
-		"ProjectileService autoload should exist"
-	)
+## requires C# unit tests. The service is tested via C# tests in
+## tests/csharp/Projectiles/ProjectileServiceTest.cs

@@ -128,19 +128,19 @@ public static class UnitSpawner
     /// Gets the collision radius from a unit scene by instantiating a temp instance.
     /// </summary>
     /// <param name="unitScene">Scene to check</param>
-    /// <returns>Collision radius, defaults to DefaultCollisionRadius</returns>
-    public static float GetCollisionRadius(PackedScene unitScene)
+    /// <returns>Separation radius, defaults to DefaultCollisionRadius</returns>
+    public static float GetSeparationRadius(PackedScene unitScene)
     {
-        float collisionRadius = DefaultCollisionRadius;
+        float separationRadius = DefaultCollisionRadius;
         var tempUnit = unitScene.Instantiate() as Node3D;
         if (tempUnit != null)
         {
-            var radiusVal = tempUnit.Get("CollisionRadius");
+            var radiusVal = tempUnit.Get("SeparationRadius");
             if (radiusVal.VariantType != Variant.Type.Nil)
-                collisionRadius = radiusVal.AsSingle();
+                separationRadius = radiusVal.AsSingle();
             tempUnit.Free(); // Not in tree, use Free() not QueueFree()
         }
-        return collisionRadius <= 0 ? DefaultCollisionRadius : collisionRadius;
+        return separationRadius <= 0 ? DefaultCollisionRadius : separationRadius;
     }
 
     /// <summary>
@@ -163,18 +163,14 @@ public static class UnitSpawner
 
     /// <summary>
     /// Calculates final spawn position, adjusting for flight altitude if needed.
+    /// Uses Unit3D.GetSpawnAltitude() as single source of truth.
     /// </summary>
     private static Vector3 CalculateFinalPosition(Node3D unit, Vector3 basePosition)
     {
-        var movementLayer = unit.Get("MovementLayer");
-        if (movementLayer.VariantType == Variant.Type.Int &&
-            movementLayer.AsInt32() == (int)MovementLayer.Air)
+        if (unit is Unit3D unit3d)
         {
-            var flightAlt = unit.Get("FlightAltitude");
-            if (flightAlt.VariantType == Variant.Type.Float || flightAlt.VariantType == Variant.Type.Int)
-            {
-                return new Vector3(basePosition.X, flightAlt.AsSingle(), basePosition.Z);
-            }
+            float spawnY = unit3d.GetSpawnAltitude();
+            return new Vector3(basePosition.X, spawnY, basePosition.Z);
         }
         return basePosition;
     }
