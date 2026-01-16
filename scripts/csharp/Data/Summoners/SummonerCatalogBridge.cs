@@ -114,20 +114,4 @@ public partial class SummonerCatalogBridge : Node
         var summoner = SummonerCatalog.GetSummoner(summonerId);
         return summoner?.InnateTraitIds ?? [];
     }
-
-    // =========================================================================
-    // GDSCRIPT SNAKE_CASE ALIASES
-    // =========================================================================
-
-    public int get_summoner_count() => GetSummonerCount();
-    public Godot.Collections.Dictionary get_summoner(string id) => GetSummoner(id);
-    public bool has_summoner(string id) => HasSummoner(id);
-    public string[] get_all_summoner_ids() => GetAllSummonerIds();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> list_all_summoners() => ListAllSummoners();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_starting_summoners() => GetStartingSummoners();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_random_pool_summoners() => GetRandomPoolSummoners();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_purchasable_summoners() => GetPurchasableSummoners();
-    public string get_summoner_name(string id) => GetSummonerName(id);
-    public int get_summoner_element_id(string id) => GetSummonerElementId(id);
-    public string[] get_innate_trait_ids(string id) => GetInnateTraitIds(id);
 }

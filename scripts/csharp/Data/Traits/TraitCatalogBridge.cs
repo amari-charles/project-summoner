@@ -175,21 +175,4 @@ public partial class TraitCatalogBridge : Node
         }
         return string.Join(" ", words);
     }
-
-    // =========================================================================
-    // GDSCRIPT SNAKE_CASE ALIASES
-    // =========================================================================
-
-    public Godot.Collections.Dictionary get_trait(string id) => GetTrait(id);
-    public bool has_trait(string id) => HasTrait(id);
-    public string[] get_all_trait_ids() => GetAllTraitIds();
-    public int get_trait_count() => GetTraitCount();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_all_traits() => GetAllTraits();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_traits_by_category(string cat) => GetTraitsByCategory(cat);
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_innate_traits() => GetInnateTraits();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_acquirable_boons() => GetAcquirableBoons();
-    public Godot.Collections.Array<Godot.Collections.Dictionary> get_unit_modifiers_for_trait(string id) => GetUnitModifiersForTrait(id);
-    public string get_trait_name(string id) => GetTraitName(id);
-    public string get_trait_description(string id) => GetTraitDescription(id);
-    public string get_trait_modifier_text(string id) => GetTraitModifierText(id);
 }
