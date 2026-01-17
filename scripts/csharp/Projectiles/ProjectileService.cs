@@ -29,6 +29,7 @@ public partial class ProjectileService : Node
 
     private readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Projectile3D>> _pools = new();
     private readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Projectile3D>> _activeProjectiles = new();
+    private readonly System.Collections.Generic.HashSet<ulong> _connectedProjectiles = new();
 
     private Node3D? _projectilesContainer;
     private Node3D? _poolContainer;
@@ -254,10 +255,12 @@ public partial class ProjectileService : Node
         }
         _activeProjectiles[projectileId].Add(projectile);
 
-        // Connect expiration signal
-        if (!projectile.IsConnected(Projectile3D.SignalName.ProjectileExpired, Callable.From<Projectile3D>(OnProjectileExpired)))
+        // Connect expiration signal (track by instance ID to avoid duplicate connections)
+        var instanceId = projectile.GetInstanceId();
+        if (!_connectedProjectiles.Contains(instanceId))
         {
             projectile.ProjectileExpired += OnProjectileExpired;
+            _connectedProjectiles.Add(instanceId);
         }
 
         return projectile;
@@ -321,6 +324,7 @@ public partial class ProjectileService : Node
 
         _pools.Clear();
         _activeProjectiles.Clear();
+        _connectedProjectiles.Clear();
         GD.Print("ProjectileService: Cleared all pools");
     }
 
@@ -403,16 +407,23 @@ public partial class ProjectileService : Node
 
     private void ReturnToPool(string projectileId, Projectile3D projectile)
     {
-        // Remove from active
-        if (_activeProjectiles.ContainsKey(projectileId))
-        {
-            _activeProjectiles[projectileId].Remove(projectile);
-        }
-
         // Don't pool disposed projectiles
         if (!IsInstanceValid(projectile))
         {
             return;
+        }
+
+        // Guard: Check if projectile is already inactive (prevents double-return)
+        if (!projectile.IsActive)
+        {
+            GD.PushWarning($"[ProjectileService] ReturnToPool called on already-inactive projectile {projectile.GetInstanceId()}");
+            return;
+        }
+
+        // Remove from active
+        if (_activeProjectiles.ContainsKey(projectileId))
+        {
+            _activeProjectiles[projectileId].Remove(projectile);
         }
 
         // Return to pool if not full

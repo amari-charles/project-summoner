@@ -29,7 +29,7 @@ func _ready() -> void:
 func _connect_to_cs_catalog() -> void:
 	_cs_catalog = get_node_or_null("/root/SummonerCatalogCS")
 	if _cs_catalog:
-		print("SummonerCatalog: Connected to C# catalog with %d summoners" % _cs_catalog.get_summoner_count())
+		print("SummonerCatalog: Connected to C# catalog with %d summoners" % _cs_catalog.GetSummonerCount())
 		# Validate trait IDs after connection
 		call_deferred("_validate_trait_ids")
 	else:
@@ -54,7 +54,7 @@ func get_summoner_config(summoner_id: String) -> SummonerConfig:
 		push_warning("SummonerCatalog.get_summoner_config: C# catalog not available")
 		return null
 
-	var summoner_dict: Dictionary = _cs_catalog.get_summoner(summoner_id)
+	var summoner_dict: Dictionary = _cs_catalog.GetSummoner(summoner_id)
 	if summoner_dict.is_empty():
 		push_warning("SummonerCatalog.get_summoner_config: Summoner not found: %s" % summoner_id)
 		return null
@@ -74,7 +74,7 @@ func get_summoner(summoner_id: String) -> Dictionary:
 ## Check if a summoner exists in the catalog
 func has_summoner(summoner_id: String) -> bool:
 	if _cs_catalog:
-		return _cs_catalog.has_summoner(summoner_id)
+		return _cs_catalog.HasSummoner(summoner_id)
 	return false
 
 ## Validate if a summoner ID is valid (exists in catalog)
@@ -85,7 +85,7 @@ func is_valid_summoner(summoner_id: String) -> bool:
 func get_all_summoner_ids() -> Array[String]:
 	if _cs_catalog:
 		var ids: Array[String] = []
-		ids.assign(_cs_catalog.get_all_summoner_ids())
+		ids.assign(_cs_catalog.GetAllSummonerIds())
 		return ids
 	return []
 
@@ -102,7 +102,7 @@ func get_all_summoner_configs() -> Array[SummonerConfig]:
 func list_all_summoners() -> Array[Dictionary]:
 	if _cs_catalog:
 		var summoners: Array[Dictionary] = []
-		summoners.assign(_cs_catalog.list_all_summoners())
+		summoners.assign(_cs_catalog.ListAllSummoners())
 		return summoners
 	return []
 
@@ -110,7 +110,7 @@ func list_all_summoners() -> Array[Dictionary]:
 func get_starting_summoners() -> Array[Dictionary]:
 	if _cs_catalog:
 		var summoners: Array[Dictionary] = []
-		summoners.assign(_cs_catalog.get_starting_summoners())
+		summoners.assign(_cs_catalog.GetStartingSummoners())
 		return summoners
 	return []
 
@@ -118,7 +118,7 @@ func get_starting_summoners() -> Array[Dictionary]:
 func get_random_pool_summoners() -> Array[Dictionary]:
 	if _cs_catalog:
 		var summoners: Array[Dictionary] = []
-		summoners.assign(_cs_catalog.get_random_pool_summoners())
+		summoners.assign(_cs_catalog.GetRandomPoolSummoners())
 		return summoners
 	return []
 
@@ -127,7 +127,7 @@ func get_purchasable_summoners() -> Array[SummonerConfig]:
 	if _cs_catalog:
 		var purchasable: Array[SummonerConfig] = []
 		var dicts: Array = []
-		dicts.assign(_cs_catalog.get_purchasable_summoners())
+		dicts.assign(_cs_catalog.GetPurchasableSummoners())
 		for dict: Dictionary in dicts:
 			var summoner_id: String = dict.get("summoner_id", "")
 			var config: SummonerConfig = get_summoner_config(summoner_id)
