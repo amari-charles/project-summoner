@@ -931,3 +931,142 @@ public static class NodePropertyHelper
 - Type-safe accessors prevent typo bugs
 
 ---
+
+## Performance
+
+### 🔴 HIGH PRIORITY
+
+#### Throttle Hot-Path Work in _PhysicsProcess
+**Status:** 🔄 In Progress
+**Category:** Performance / Units
+**Effort:** Medium
+
+**Description:**
+Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame. This becomes the primary performance bottleneck at scale (40-100 units).
+
+**Current Behavior:**
+- `Unit3D._PhysicsProcess()` runs every frame for every active unit
+- `UnitSteering.CalculateSeparationForce()` queries spatial grid every frame
+- `UnitSteering.CalculateFlankForce()` queries spatial grid when blocked
+- `UnitMovement.CorrectOverlaps()` triggers additional steering queries
+- Render priority recalculates every frame even when position unchanged
+
+**Proposed Fix:**
+- Throttle steering queries to run every 2-3 frames instead of every frame
+- Cache steering results between updates
+- Consolidate multiple `GetUnitsInRadius` calls into single query where possible
+- Skip render priority calculation when position unchanged
+
+**Related Files:**
+- `scripts/csharp/Units/Unit3D.cs:463-494`
+- `scripts/csharp/Movement/UnitSteering.cs:56-136`
+- `scripts/csharp/Movement/UnitMovement.cs`
+
+---
+
+#### Replace Synchronous Unit Preloading with Async Loading
+**Status:** ⬜ Not Started
+**Category:** Performance / Loading
+**Effort:** Medium
+
+**Description:**
+Synchronous `load()` calls block the entire game during battle startup, causing visible stutter.
+
+**Current Behavior:**
+- `_preload_unit_scenes()` loops through all card definitions
+- Calls `load()` + `instantiate()` + `queue_free()` synchronously in `_ready()`
+- Comment acknowledges: "NOTE: This is a synchronous stopgap that may cause brief stutter"
+
+**Proposed Fix:**
+- Use `ResourceLoader.load_threaded_request()` for unit scenes
+- Add loading screen scene with progress bar
+- Show loading screen during battle transitions
+- Remove synchronous `_preload_unit_scenes()` stopgap
+
+**Related Files:**
+- `scripts/core/game_controller_3d.gd:125-141`
+- New: `scenes/ui/loading_screen.tscn`
+- New: `scripts/ui/screens/loading_screen.gd`
+
+---
+
+### 🟡 MEDIUM PRIORITY
+
+#### Fix async void Pattern in CompositeEffect
+**Status:** ⬜ Not Started
+**Category:** Performance / Reliability
+**Effort:** Small
+
+**Description:**
+`async void` methods hide exceptions and can run after nodes are freed, causing nondeterministic errors. CompositeEffect is gameplay-critical (spell effect execution).
+
+**Current Behavior:**
+- `ExecuteEffectsSequentially()` is `async void` with no guards after await
+- Uses string-based signal `"timeout"` instead of typed `SceneTreeTimer.SignalName.Timeout`
+- No `IsInstanceValid` check after timer await before executing effects
+
+**Proposed Fix:**
+- Add `IsInstanceValid` guard after await in `ExecuteEffectsSequentially`
+- Change `"timeout"` to `SceneTreeTimer.SignalName.Timeout`
+- Optionally return `Task` instead of `async void` if caller needs completion notification
+- Apply similar fix to `DeathExplosionAbility.OnOwnerDied()`
+
+**Related Files:**
+- `scripts/csharp/Cards/Effects/Concrete/CompositeEffect.cs:35-50`
+- `scripts/csharp/Abilities/DeathExplosionAbility.cs:94-105`
+
+---
+
+### 🟢 LOW PRIORITY
+
+#### Refactor Hard-coded /root/ Paths to Service Locator
+**Status:** ⬜ Not Started
+**Category:** Architecture / Maintainability
+**Effort:** Large
+
+**Description:**
+88+ files use hard-coded `/root/...` lookups for autoload services. This is fragile and creates hidden dependencies.
+
+**Current Behavior:**
+- `get_node("/root/Campaign")`, `get_node("/root/ProfileRepo")`, etc.
+- Dynamic path construction: `get_node_or_null("/root/" + signal_source)`
+- If autoloads are renamed, lookups fail silently
+
+**Proposed Fix:**
+- Create `Services` autoload with typed accessors
+- Migrate one service at a time (Campaign, ProfileRepo, etc.)
+- Update callers to use `Services.Campaign` instead of `get_node("/root/Campaign")`
+
+**Notes:**
+- Large refactor touching 88+ files
+- Defer until natural refactoring or dedicated cleanup sprint
+- Consider incremental migration during other work
+
+---
+
+#### Add Timeouts to UI Async Waits
+**Status:** ⬜ Not Started
+**Category:** Performance / Reliability
+**Effort:** Small
+
+**Description:**
+UI flow often depends on timers/awaits. If a signal never fires, the UI can hang or block progression.
+
+**Current Behavior:**
+- Title screen waits 0.5s then animation_finished
+- Event screen uses sync `load()` for sequences
+- No timeout or fallback if awaited signal fails
+
+**Proposed Fix:**
+- Add timeout paths or fallback for awaited signals
+- Use explicit state machines that can be interrupted
+- Ensure process_mode is set correctly for async sequences
+
+**Related Files:**
+- `scripts/ui/screens/title_screen.gd`
+- `scripts/ui/screens/event_screen.gd`
+
+**Notes:**
+- Lower priority - not causing observed issues currently
+
+---

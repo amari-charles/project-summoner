@@ -61,6 +61,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // With battlefield Z range ~-40 to +40 and priority range of 256, 3x gives good granularity
     private const float RenderPriorityScale = 3f;
 
+    // Minimum position change (squared) to trigger render priority update
+    // Prevents recalculating every frame when unit is stationary or barely moving
+    private const float RenderPriorityPositionThresholdSq = 0.25f; // 0.5 units squared
+
     // =========================================================================
     // GODOT SIGNALS (accessible from GDScript)
     // =========================================================================
@@ -269,6 +273,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     // Movement component for steering, separation, and velocity calculation
     private readonly UnitMovement _movement = new();
+
+    // Last position used for render priority calculation (throttling)
+    private Vector3 _lastRenderPriorityPosition = Vector3.Zero;
 
     /// <summary>
     /// True if unit is facing right (positive X). Player team starts right, enemy left.
@@ -484,10 +491,15 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Update position in spatial grid
         UpdateSpatialGridPosition();
 
-        // Update render priority based on world position
+        // Update render priority based on world position (throttled by position change)
         // Higher priority = renders in front. Camera at Z=-42.85, so more negative Z = closer = higher priority
-        int priority = (int)((-GlobalPosition.Z + GlobalPosition.Y) * RenderPriorityScale);
-        VisualComponent?.SetRenderPriority(Mathf.Clamp(priority, MinRenderPriority, MaxRenderPriority));
+        float positionDeltaSq = GlobalPosition.DistanceSquaredTo(_lastRenderPriorityPosition);
+        if (positionDeltaSq >= RenderPriorityPositionThresholdSq)
+        {
+            int priority = (int)((-GlobalPosition.Z + GlobalPosition.Y) * RenderPriorityScale);
+            VisualComponent?.SetRenderPriority(Mathf.Clamp(priority, MinRenderPriority, MaxRenderPriority));
+            _lastRenderPriorityPosition = GlobalPosition;
+        }
 
         // Record physics process time
         PerformanceCounters.PhysicsProcessTimeUsec += Time.GetTicksUsec() - startTime;

@@ -35,6 +35,9 @@ public class UnitSteering
     private const float FlankScoreThreshold = 0.2f;
     private const float FlankConeThreshold = 0.3f; // dot > 0.3 means within ~70° of direction
 
+    // Throttling constants - update steering every N frames instead of every frame
+    private const int SteeringUpdateInterval = 3;
+
     // =========================================================================
     // STATE
     // =========================================================================
@@ -45,6 +48,12 @@ public class UnitSteering
     private int _flankDirection; // -1 = left, 1 = right, 0 = not chosen
     private float _flankProgressTimer;
 
+    // Cached steering results for throttling
+    private Vector3 _cachedSeparation = Vector3.Zero;
+    private Vector3 _cachedFlank = Vector3.Zero;
+    private int _frameCounter;
+    private ulong _lastTargetId;  // Track target changes to invalidate cache
+
     // =========================================================================
     // PUBLIC API
     // =========================================================================
@@ -52,11 +61,26 @@ public class UnitSteering
     /// <summary>
     /// Calculate separation steering force to avoid overlapping with nearby units.
     /// Separates from ALL units (both teams) EXCEPT the current attack target.
+    /// Results are cached and only recalculated every SteeringUpdateInterval frames.
     /// </summary>
     public Vector3 CalculateSeparationForce(Unit3D unit, Node3D? currentTarget)
     {
+        // Increment frame counter for throttling (per-unit)
+        _frameCounter++;
+
         if (SpatialGrid.Instance == null)
             return Vector3.Zero;
+
+        // Check if target changed (invalidates cache)
+        ulong targetId = currentTarget?.GetInstanceId() ?? 0;
+        bool targetChanged = targetId != _lastTargetId;
+        _lastTargetId = targetId;
+
+        // Throttle: return cached value unless it's time to update or target changed
+        if (!targetChanged && _frameCounter % SteeringUpdateInterval != 0)
+        {
+            return _cachedSeparation;
+        }
 
         var separation = Vector3.Zero;
         float collisionRadius = unit.SeparationRadius;
@@ -132,12 +156,15 @@ public class UnitSteering
             neighborsProcessed++;
         }
 
+        // Cache the result for throttling
+        _cachedSeparation = separation;
         return separation;
     }
 
     /// <summary>
     /// Calculate lateral flanking force when blocked by allies.
     /// Uses smart direction choice + progressive angle rotation for wrap-around behavior.
+    /// Results are cached and only recalculated every SteeringUpdateInterval frames.
     /// </summary>
     public Vector3 CalculateFlankForce(Unit3D unit, Node3D? currentTarget, float delta)
     {
@@ -352,6 +379,12 @@ public class UnitSteering
         _flankAngle = FlankAngleMin;
         _flankDirection = 0;
         _flankProgressTimer = 0.0f;
+
+        // Reset throttling cache
+        _cachedSeparation = Vector3.Zero;
+        _cachedFlank = Vector3.Zero;
+        _frameCounter = 0;
+        _lastTargetId = 0;
     }
 
     // =========================================================================
