@@ -50,7 +50,6 @@ public class UnitSteering
 
     // Cached steering results for throttling
     private Vector3 _cachedSeparation = Vector3.Zero;
-    private Vector3 _cachedFlank = Vector3.Zero;
     private int _frameCounter;
     private ulong _lastTargetId;  // Track target changes to invalidate cache
 
@@ -164,7 +163,6 @@ public class UnitSteering
     /// <summary>
     /// Calculate lateral flanking force when blocked by allies.
     /// Uses smart direction choice + progressive angle rotation for wrap-around behavior.
-    /// Results are cached and only recalculated every SteeringUpdateInterval frames.
     /// </summary>
     public Vector3 CalculateFlankForce(Unit3D unit, Node3D? currentTarget, float delta)
     {
@@ -382,7 +380,6 @@ public class UnitSteering
 
         // Reset throttling cache
         _cachedSeparation = Vector3.Zero;
-        _cachedFlank = Vector3.Zero;
         _frameCounter = 0;
         _lastTargetId = 0;
     }
