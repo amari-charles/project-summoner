@@ -81,9 +81,9 @@ func _ready() -> void:
 		battlefield = get_node_or_null("Battlefield3D")
 	print("BattleCoordinator: Phase 1 complete - Battlefield ready")
 
-	# Phase 1.5: Preload unit scenes to prevent first-spawn delays
-	print("BattleCoordinator: Phase 1.5 - Preloading unit scenes...")
-	_preload_unit_scenes()
+	# Phase 1.5: Preload unit scenes asynchronously to prevent first-spawn delays
+	print("BattleCoordinator: Phase 1.5 - Preloading unit scenes (async)...")
+	await _preload_unit_scenes()
 	print("BattleCoordinator: Phase 1.5 complete - Unit scenes cached")
 
 	# Phase 2: Initialize summoners (summoners are now the attack targets)
@@ -122,23 +122,46 @@ func _ready() -> void:
 	# Start the game
 	start_game()
 
-## Preload all unit scenes to prevent first-spawn initialization delays
-## Instantiates and immediately frees each unit scene to force Godot to cache resources
-## NOTE: This is a synchronous stopgap that may cause brief stutter during battle load.
-## See docs/todos.md "Add Loading Screen with Asset Preloading" for the async solution.
+## Preload all unit scenes asynchronously to prevent first-spawn initialization delays.
+## Uses ResourceLoader.load_threaded_request() to load in background without blocking.
+## Instantiates and immediately frees each scene to force Godot to cache resources.
 func _preload_unit_scenes() -> void:
-	var preloaded_count: int = 0
+	# Gather all unique unit scene paths
+	var scene_paths: Array[String] = []
 	for card_id: String in CardCatalog.get_all_card_ids():
 		var card_def: Dictionary = CardCatalog.get_card(card_id)
 		if card_def.get("type") == "summon":
 			var unit_scene_path: String = card_def.get("unit_scene", "")
-			if unit_scene_path != "":
-				var scene: PackedScene = load(unit_scene_path)
-				if scene:
-					var instance: Node = scene.instantiate()
-					instance.queue_free()
-					preloaded_count += 1
-	print("BattleCoordinator: Preloaded %d unit scenes" % preloaded_count)
+			if unit_scene_path != "" and not scene_paths.has(unit_scene_path):
+				scene_paths.append(unit_scene_path)
+
+	if scene_paths.is_empty():
+		print("BattleCoordinator: No unit scenes to preload")
+		return
+
+	# Start async loading for all scenes
+	for path in scene_paths:
+		ResourceLoader.load_threaded_request(path, "PackedScene")
+
+	# Wait for all scenes to finish loading
+	var preloaded_count: int = 0
+	for path in scene_paths:
+		# Wait for this scene to finish loading
+		while ResourceLoader.load_threaded_get_status(path) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			await get_tree().process_frame
+
+		var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			var scene: PackedScene = ResourceLoader.load_threaded_get(path)
+			if scene:
+				# Instantiate and free to cache resources (sub-resources, scripts, etc.)
+				var instance: Node = scene.instantiate()
+				instance.queue_free()
+				preloaded_count += 1
+		elif status == ResourceLoader.THREAD_LOAD_FAILED:
+			push_warning("BattleCoordinator: Failed to load unit scene: %s" % path)
+
+	print("BattleCoordinator: Preloaded %d unit scenes (async)" % preloaded_count)
 
 ## Initialize summoners and connect their signals
 func _init_summoners() -> void:
