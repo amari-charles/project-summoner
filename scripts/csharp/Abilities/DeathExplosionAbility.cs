@@ -99,6 +99,10 @@ public partial class DeathExplosionAbility : BaseAbility
         if (ExplosionDelay > 0)
         {
             await ToSignal(GetTree().CreateTimer(ExplosionDelay), SceneTreeTimer.SignalName.Timeout);
+
+            // Guard: ability may be inactive or already exploded after await
+            if (!IsActive || _hasExploded || !IsInstanceValid(this) || !IsInsideTree())
+                return;
         }
 
         TriggerExplosion();

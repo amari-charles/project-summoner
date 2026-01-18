@@ -102,6 +102,13 @@ public partial class HitboxComponent : Area3D
         if (area is not HurtboxComponent hurtbox)
             return;
 
+        // Guard: entities may be disposed but physics callbacks still fire
+        if (!IsInstanceValid(hurtbox) || !IsInstanceValid(hurtbox.OwnerEntity))
+            return;
+
+        if (Source != null && !IsInstanceValid(Source))
+            return;
+
         // Already hit this target?
         if (SingleHitPerTarget && hurtbox.OwnerEntity != null &&
             _hitTargets.Contains(hurtbox.OwnerEntity.GetInstanceId()))

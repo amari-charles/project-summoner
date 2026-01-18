@@ -40,7 +40,11 @@ public class CompositeEffect : SpellEffect
             if (effect.Delay > 0 && context.SceneTree != null)
             {
                 var timer = context.SceneTree.CreateTimer(effect.Delay);
-                await context.SceneTree.ToSignal(timer, "timeout");
+                await context.SceneTree.ToSignal(timer, SceneTreeTimer.SignalName.Timeout);
+
+                // Guard: context may be invalid after await
+                if (context.SceneTree == null || !GodotObject.IsInstanceValid(context.SceneTree))
+                    return;
             }
 
             effect.Execute(context);
