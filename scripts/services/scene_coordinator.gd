@@ -26,6 +26,9 @@ var _current_scene_path: String = ""
 ## Debug mode for verbose logging
 var debug_mode: bool = true
 
+## Timeout for waiting on scene coordinator initialization
+const INIT_TIMEOUT_SECONDS: float = 10.0
+
 func _ready() -> void:
 	if debug_mode:
 		print("SceneCoordinator: Initialized")
@@ -148,16 +151,35 @@ func _wait_for_scene_coordinator(scene_path: String) -> void:
 		if debug_mode:
 			print("SceneCoordinator: Found battle coordinator, waiting for initialization...")
 
-		# Wait for the coordinator to signal completion
+		# Wait for the coordinator to signal completion (with timeout protection)
 		if coordinator.has_signal("initialization_complete"):
-			await coordinator.get("initialization_complete")
-			if debug_mode:
-				print("SceneCoordinator: Battle coordinator initialization complete")
+			var completed: bool = await _await_signal_with_timeout(
+				coordinator.get("initialization_complete"),
+				INIT_TIMEOUT_SECONDS
+			)
+			if completed:
+				if debug_mode:
+					print("SceneCoordinator: Battle coordinator initialization complete")
+			else:
+				push_error("SceneCoordinator: Battle coordinator timed out after %.1fs" % INIT_TIMEOUT_SECONDS)
 	else:
 		if debug_mode:
 			print("SceneCoordinator: No battle coordinator found (simple scene)")
 
-	# Scene is fully ready
+	# Scene is fully ready (even if timeout occurred, we proceed to avoid permanent hang)
 	scene_ready.emit(scene_path)
 	if debug_mode:
 		print("SceneCoordinator: Scene '%s' is ready" % scene_path)
+
+## Await a signal with timeout protection to prevent hangs
+## Returns true if signal was received, false if timed out
+func _await_signal_with_timeout(sig: Signal, timeout_seconds: float) -> bool:
+	var received: bool = false
+	sig.connect(func() -> void: received = true, CONNECT_ONE_SHOT)
+
+	var elapsed: float = 0.0
+	while not received and elapsed < timeout_seconds:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+
+	return received

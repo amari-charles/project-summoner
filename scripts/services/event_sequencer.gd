@@ -32,6 +32,10 @@ var _resume_signal: Signal
 ## Debug mode
 var debug_mode: bool = false
 
+## Timeout constants for signal awaits (prevents hangs if signals never fire)
+const DEFAULT_SIGNAL_TIMEOUT_SECONDS: float = 30.0
+const CARAVAN_TIMEOUT_SECONDS: float = 300.0  # 5 minutes for shop visits
+
 func _ready() -> void:
 	# CRITICAL: EventSequencer must continue running even when game is paused
 	# This allows it to control dialogue sequences and other scripted events
@@ -290,11 +294,18 @@ func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
 	if debug_mode:
 		print("EventSequencer: Waiting for signal '%s' from '%s'..." % [signal_name, signal_source])
 
-	# Wait for signal
-	await source.get(signal_name)
+	# Get timeout from step or use default
+	var timeout_val: Variant = step.get("timeout")
+	var timeout: float = timeout_val if timeout_val is float else DEFAULT_SIGNAL_TIMEOUT_SECONDS
 
-	if debug_mode:
-		print("EventSequencer: Signal '%s' received!" % signal_name)
+	# Wait for signal with timeout protection
+	var received: bool = await _await_signal_with_timeout(source.get(signal_name), timeout)
+
+	if received:
+		if debug_mode:
+			print("EventSequencer: Signal '%s' received!" % signal_name)
+	else:
+		push_warning("EventSequencer: Signal '%s' from '%s' timed out after %.1fs" % [signal_name, signal_source, timeout])
 
 func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	var card_id_val: Variant = step.get("card_id")
@@ -572,8 +583,25 @@ func _execute_open_caravan(step: Resource) -> void:
 	if debug_mode:
 		print("EventSequencer: Sequence paused for shop visit, awaiting resume...")
 
-	# Wait for resume signal
-	await sequence_resumed
+	# Wait for resume signal with timeout protection
+	var resumed: bool = await _await_signal_with_timeout(sequence_resumed, CARAVAN_TIMEOUT_SECONDS)
 
-	if debug_mode:
-		print("EventSequencer: Sequence resumed after shop visit")
+	if resumed:
+		if debug_mode:
+			print("EventSequencer: Sequence resumed after shop visit")
+	else:
+		push_warning("EventSequencer: Caravan visit timed out after %.0fs, forcing resume" % CARAVAN_TIMEOUT_SECONDS)
+		is_paused = false
+
+## Await a signal with timeout protection to prevent hangs
+## Returns true if signal was received, false if timed out
+func _await_signal_with_timeout(sig: Signal, timeout_seconds: float) -> bool:
+	var received: bool = false
+	sig.connect(func() -> void: received = true, CONNECT_ONE_SHOT)
+
+	var elapsed: float = 0.0
+	while not received and elapsed < timeout_seconds:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+
+	return received

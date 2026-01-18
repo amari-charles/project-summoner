@@ -8,6 +8,9 @@ class_name TitleScreen
 ## Allows UI elements to fully render and any intro animations to settle
 const INITIAL_DELAY_SECONDS: float = 0.5
 
+## Max time to wait for fade_out animation before proceeding anyway
+const FADE_OUT_TIMEOUT_SECONDS: float = 2.0
+
 @onready var title_label: Label = $CenterContainer/VBoxContainer/Title
 @onready var tap_prompt: Label = $CenterContainer/VBoxContainer/TapPrompt
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
@@ -54,8 +57,21 @@ func _proceed_to_campaign() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_can_proceed = false
 	animation_player.play("fade_out")
-	await animation_player.animation_finished
+	await _await_animation_with_timeout(animation_player, FADE_OUT_TIMEOUT_SECONDS)
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+
+## Await animation_finished with timeout protection to prevent hangs
+func _await_animation_with_timeout(anim_player: AnimationPlayer, timeout: float) -> void:
+	var completed: bool = false
+	anim_player.animation_finished.connect(func(_name: StringName) -> void: completed = true, CONNECT_ONE_SHOT)
+
+	var elapsed: float = 0.0
+	while not completed and elapsed < timeout:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+
+	if not completed:
+		push_warning("TitleScreen: Animation timed out after %.1fs" % timeout)
 
 func _debug_reset_profile() -> void:
 	print("TitleScreen: F11 pressed - resetting profile...")
