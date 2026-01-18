@@ -144,6 +144,17 @@ Exceptions:
 - Intentional phased implementations where functionality is explicitly deferred (e.g., "Phase 2: Connect to service X")
 - These should be clearly documented with the specific phase/task where they'll be addressed
 
+### Completing Beneficial Review Items
+**Complete ALL beneficial items identified in PR reviews**, including those marked as "optional" or "nice to have."
+
+If an item would improve code quality, test coverage, or maintainability, it should be done as part of the PR - not deferred. The "optional" label means it's not blocking merge, not that it should be skipped.
+
+Examples of items that should always be completed:
+- Adding tests for new behavior (even if marked optional)
+- Removing dead code or unused variables
+- Fixing misleading comments or docstrings
+- Small refactors that improve clarity
+
 ### Design Context Documentation
 **Document decisions and context in every PR - not just code, but product and lore too.**
 
