@@ -15,6 +15,9 @@ enum BattlePhase { PREPARATION, BATTLE }  ## Two-phase battle system
 @export var player_summoner: Summoner
 @export var enemy_summoner: Summoner
 
+## Max frames to wait for a single scene to load (~5 seconds at 60fps)
+const SCENE_LOAD_TIMEOUT_FRAMES: int = 300
+
 var current_state: GameState = GameState.SETUP
 var current_phase: BattlePhase = BattlePhase.PREPARATION
 var match_time: float = 0.0
@@ -146,9 +149,14 @@ func _preload_unit_scenes() -> void:
 	# Wait for all scenes to finish loading
 	var preloaded_count: int = 0
 	for path in scene_paths:
-		# Wait for this scene to finish loading
+		# Wait for this scene to finish loading (with timeout protection)
+		var frames_waited: int = 0
 		while ResourceLoader.load_threaded_get_status(path) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 			await get_tree().process_frame
+			frames_waited += 1
+			if frames_waited >= SCENE_LOAD_TIMEOUT_FRAMES:
+				push_warning("BattleCoordinator: Timeout loading unit scene: %s" % path)
+				break
 
 		var status: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(path)
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
