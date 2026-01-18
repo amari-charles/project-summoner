@@ -60,17 +60,15 @@ func _proceed_to_campaign() -> void:
 	await _await_animation_with_timeout(animation_player, FADE_OUT_TIMEOUT_SECONDS)
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
-## Await animation_finished with timeout protection to prevent hangs
+## Await animation completion with timeout protection to prevent hangs
+## Uses is_playing() check to avoid race conditions with signal connection
 func _await_animation_with_timeout(anim_player: AnimationPlayer, timeout: float) -> void:
-	var completed: bool = false
-	anim_player.animation_finished.connect(func(_name: StringName) -> void: completed = true, CONNECT_ONE_SHOT)
-
 	var elapsed: float = 0.0
-	while not completed and elapsed < timeout:
+	while anim_player.is_playing() and elapsed < timeout:
 		await get_tree().process_frame
 		elapsed += get_process_delta_time()
 
-	if not completed:
+	if elapsed >= timeout:
 		push_warning("TitleScreen: Animation timed out after %.1fs" % timeout)
 
 func _debug_reset_profile() -> void:
