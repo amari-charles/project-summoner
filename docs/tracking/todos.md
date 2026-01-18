@@ -684,8 +684,8 @@ Create a loading screen that displays during battle transitions and preloads all
 - Optionally show tips, lore, or artwork during loading
 
 **Technical Notes:**
-- Currently using silent preload as stopgap (instantiate/free each unit scene)
-- Full solution should use async loading with accurate progress reporting
+- Async unit preloading is now implemented (uses `ResourceLoader.load_threaded_request()`)
+- Remaining work: Add visual loading screen with progress bar
 - Consider caching loaded resources for session duration
 
 **Notes:**
