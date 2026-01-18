@@ -118,6 +118,10 @@ public class UnitSteering
             if (node is not Unit3D other)
                 continue;
 
+            // Flying and ground units don't block each other
+            if (other.MovementLayer != unit.MovementLayer)
+                continue;
+
             // Calculate separation distance based on combined collision radii
             float combinedCollision = collisionRadius + other.SeparationRadius;
             float separationDist = combinedCollision * SeparationMultiplier;
@@ -284,6 +288,10 @@ public class UnitSteering
             if (node is not Unit3D other)
                 continue;
 
+            // Flying and ground units don't collide
+            if (other.MovementLayer != unit.MovementLayer)
+                continue;
+
             // Minimum distance is the sum of both collision radii
             float minDist = collisionRadius + other.SeparationRadius;
 
@@ -423,7 +431,11 @@ public class UnitSteering
 
             if (node == currentTarget)
                 continue;
-            if (node is not Unit3D)
+            if (node is not Unit3D other)
+                continue;
+
+            // Only consider same-layer units as blockers
+            if (other.MovementLayer != unit.MovementLayer)
                 continue;
 
             var toOther = node.GlobalPosition - unit.GlobalPosition;
