@@ -143,12 +143,12 @@ func _preload_unit_scenes() -> void:
 		return
 
 	# Start async loading for all scenes
-	for path in scene_paths:
+	for path: String in scene_paths:
 		ResourceLoader.load_threaded_request(path, "PackedScene")
 
 	# Wait for all scenes to finish loading
 	var preloaded_count: int = 0
-	for path in scene_paths:
+	for path: String in scene_paths:
 		# Wait for this scene to finish loading (with timeout protection)
 		var frames_waited: int = 0
 		while ResourceLoader.load_threaded_get_status(path) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
