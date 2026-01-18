@@ -60,21 +60,31 @@ public partial class HitResolver : Node
     /// </summary>
     public HitResult ResolveHit(HitboxComponent hitbox, HurtboxComponent hurtbox)
     {
+        // Guard: entities may be disposed between physics callback and resolution
+        if (!IsInstanceValid(hitbox) || !IsInstanceValid(hurtbox))
+        {
+            return new HitResult();
+        }
+
+        if (hitbox.Source != null && !IsInstanceValid(hitbox.Source))
+        {
+            return new HitResult();
+        }
+
+        if (hurtbox.OwnerEntity == null || !IsInstanceValid(hurtbox.OwnerEntity))
+        {
+            return new HitResult();
+        }
+
         var result = new HitResult
         {
             Attacker = hitbox.Source!,
-            Target = hurtbox.OwnerEntity!,
+            Target = hurtbox.OwnerEntity,
             HitPosition = hurtbox.GlobalPosition,
             DamageDealt = 0,
             WasCrit = false,
             TargetKilled = false
         };
-
-        if (hurtbox.OwnerEntity == null)
-        {
-            GD.PushWarning("HitResolver: Hurtbox has no owner, hit ignored");
-            return result;
-        }
 
         // Apply damage through DamageSystem
         if (DamageSystem.Instance != null)

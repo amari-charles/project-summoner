@@ -94,6 +94,11 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     private async void InstanceSkeletalSceneDeferred()
     {
         await InstanceSkeletalScene();
+
+        // Guard: component may be freed or removed from tree after await
+        if (!IsInstanceValid(this) || !IsInsideTree())
+            return;
+
         SetupSpriteAlignment();
         RandomizeAnimationPhase();
     }
@@ -322,6 +327,10 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
         // Wait for tree update to calculate bounds
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+        // Guard: component or skeletal instance may be freed after await
+        if (!IsInstanceValid(this) || !IsInsideTree() || _skeletalInstance == null || !IsInstanceValid(_skeletalInstance))
+            return;
 
         // Calculate bounds at full resolution (before scaling)
         _cachedBounds = GetSkeletalBounds();
