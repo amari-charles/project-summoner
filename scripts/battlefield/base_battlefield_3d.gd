@@ -39,12 +39,7 @@ func _ready() -> void:
 
 ## Load and apply biome from BattleContext
 func _apply_biome_from_context() -> void:
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if not battle_context:
-		push_warning("BaseBattlefield3D: BattleContext not found, using default visuals")
-		return
-
-	var biome_id_variant: Variant = battle_context.get("biome_id")
+	var biome_id_variant: Variant = BattleContext.biome_id
 	var biome_id: String = ""
 	if biome_id_variant is StringName:
 		biome_id = String(biome_id_variant)

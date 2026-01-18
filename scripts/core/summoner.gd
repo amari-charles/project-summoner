@@ -119,12 +119,14 @@ func _ready() -> void:
 		original_color = visual.modulate
 		original_visual_position = visual.position
 
-	# Create HP bar for summoner
-	HPBarService.create_bar_for_unit(self, {
-		"bar_width": HP_BAR_WIDTH,
-		"offset_y": HP_BAR_OFFSET_Y,
-		"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
-	})
+	# Create HP bar for summoner (HPBarService is C# autoload)
+	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
+	if hp_bar_service:
+		hp_bar_service.create_bar_for_unit(self, {
+			"bar_width": HP_BAR_WIDTH,
+			"offset_y": HP_BAR_OFFSET_Y,
+			"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
+		})
 
 	# Setup hurtbox for combat hit detection
 	_setup_hurtbox()
@@ -237,8 +239,10 @@ func _exit_tree() -> void:
 	if _debug_hurtbox_marker != null:
 		_debug_hurtbox_marker.queue_free()
 		_debug_hurtbox_marker = null
-	# Remove HP bar
-	HPBarService.remove_bar_from_unit(self)
+	# Remove HP bar (HPBarService is C# autoload)
+	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
+	if hp_bar_service:
+		hp_bar_service.remove_bar_from_unit(self)
 
 ## Setup hurtbox component for combat hit detection
 func _setup_hurtbox() -> void:
@@ -347,8 +351,8 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, s
 		push_error("No battlefield found in scene!")
 		return false
 
-	# Get ModifierService for efficient access (avoid fragile scene tree lookups)
-	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	# Get ModifierService (C# autoload - must use get_node_or_null)
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
 
 	# Play the card in 3D (with optional spawn reveal effect)
 	card.play_3d(spawn_position, team, battlefield, modifier_service, spawn_duration)
@@ -409,14 +413,9 @@ func _is_test_mode() -> bool:
 		return true
 
 	# Check if BattleContext is in practice mode
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if battle_context:
-		var mode_variant: Variant = battle_context.get("current_mode")
-		if mode_variant is int:
-			var mode: int = mode_variant
-			# PRACTICE = 1 in BattleContext enum
-			if mode == 1:
-				return true
+	# PRACTICE = 1 in BattleContext enum
+	if BattleContext.current_mode == 1:
+		return true
 
 	return false
 
@@ -470,14 +469,10 @@ func _load_profile_deck() -> Array[Card]:
 	_load_summoner_from_profile()
 
 	# Check for dev test deck override in BattleContext
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if battle_context:
-		var config: Variant = battle_context.get("battle_config")
-		if config is Dictionary:
-			var battle_config: Dictionary = config
-			if battle_config.has("dev_player_deck"):
-				print("Summoner: Loading DEV TEST deck (summoner stats still apply)...")
-				return _load_dev_deck_from_config(battle_config["dev_player_deck"])
+	var battle_config: Dictionary = BattleContext.battle_config
+	if battle_config.has("dev_player_deck"):
+		print("Summoner: Loading DEV TEST deck (summoner stats still apply)...")
+		return _load_dev_deck_from_config(battle_config["dev_player_deck"])
 
 	# Normal path: use profile deck via DeckLoader
 	print("Summoner: Loading deck from player profile...")
@@ -500,14 +495,7 @@ func _load_summoner_from_profile() -> void:
 	print("Summoner: Loading summoner from player profile...")
 
 	# Get active summoner ID via SummonerSelection service
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if not summoner_selection:
-		push_error("Summoner: SummonerSelection service not found!")
-		return
-
-	var summoner_id: String = ""
-	if summoner_selection.has_method("get_active_summoner_id"):
-		summoner_id = summoner_selection.call("get_active_summoner_id")
+	var summoner_id: String = SummonerSelection.get_active_summoner_id()
 
 	if summoner_id.is_empty():
 		push_error("Summoner: No active summoner selected in profile!")
@@ -516,31 +504,18 @@ func _load_summoner_from_profile() -> void:
 	print("Summoner: Active summoner ID: '%s'" % summoner_id)
 
 	# Load summoner instance data from ProfileRepo
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if not profile_repo:
-		push_error("Summoner: ProfileRepo not found!")
-		return
-
-	var instance_data: Dictionary = {}
-	if profile_repo.has_method("get_summoner_instance"):
-		var instance_data_variant: Variant = profile_repo.call("get_summoner_instance", summoner_id)
-		instance_data = instance_data_variant if instance_data_variant is Dictionary else {}
+	var instance_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
 
 	if instance_data.is_empty():
 		# No saved instance - create from catalog config
 		print("Summoner: No saved instance, creating from catalog...")
-		var summoner_catalog: Node = get_node_or_null("/root/SummonerCatalog")
-		if summoner_catalog and summoner_catalog.has_method("get_summoner_config"):
-			var config_variant: Variant = summoner_catalog.call("get_summoner_config", summoner_id)
-			if config_variant is SummonerConfig:
-				var summoner_config: SummonerConfig = config_variant
-				_loaded_summoner_instance = SummonerInstance.new()
-				_loaded_summoner_instance.init_from_config(summoner_config)
-				print("Summoner: Created new instance from config '%s'" % summoner_config.summoner_name)
-			else:
-				push_error("Summoner: Could not load summoner config for '%s'" % summoner_id)
+		var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+		if summoner_config:
+			_loaded_summoner_instance = SummonerInstance.new()
+			_loaded_summoner_instance.init_from_config(summoner_config)
+			print("Summoner: Created new instance from config '%s'" % summoner_config.summoner_name)
 		else:
-			push_error("Summoner: SummonerCatalog not available!")
+			push_error("Summoner: Could not load summoner config for '%s'" % summoner_id)
 	else:
 		# Load from saved instance data
 		_loaded_summoner_instance = SummonerInstance.from_dict(instance_data)
@@ -674,8 +649,10 @@ func _destroy() -> void:
 		visual.modulate = original_color
 		visual.position = original_visual_position
 
-	# Remove HP bar
-	HPBarService.remove_bar_from_unit(self)
+	# Remove HP bar (HPBarService is C# autoload)
+	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
+	if hp_bar_service:
+		hp_bar_service.remove_bar_from_unit(self)
 
 	summoner_destroyed.emit(self)
 	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY"))

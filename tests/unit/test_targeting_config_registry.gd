@@ -24,7 +24,7 @@ func _is_csharp_available() -> bool:
 		return true
 
 	# Check if the bridge autoload exists and has the GetConfig method
-	var registry: Node = get_node_or_null("/root/TargetingConfigRegistryCS")
+	var registry: Node = get_node_or_null(CSharpAutoloads.TARGETING_CONFIG_REGISTRY)
 	if registry == null:
 		return false
 

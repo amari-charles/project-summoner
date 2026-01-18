@@ -31,14 +31,9 @@ var _dev_console: Node = null  # DevConsole autoload
 ## =============================================================================
 
 func _ready() -> void:
-	# Get service references
-	_snapshots = get_node_or_null("/root/DebugSnapshots")
-	_dev_console = get_node_or_null("/root/DevConsole")
-
-	if not _snapshots:
-		push_error("SnapshotManager: DebugSnapshots not found!")
-	if not _dev_console:
-		push_error("SnapshotManager: DevConsole not found!")
+	# Get autoload references
+	_snapshots = DebugSnapshots
+	_dev_console = DevConsole
 
 	# Connect signals
 	save_button.pressed.connect(_on_save_pressed)

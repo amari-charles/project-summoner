@@ -80,13 +80,11 @@ func _ready() -> void:
 	manage_boons_button.pressed.connect(_on_manage_boons_pressed)
 
 	# Connect to service signals
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
-		summoner_selection.summoner_changed.connect(_on_summoner_changed)
+	if SummonerSelection.has_signal("summoner_changed"):
+		SummonerSelection.summoner_changed.connect(_on_summoner_changed)
 
-	var economy: Node = get_node_or_null("/root/Economy")
-	if economy and economy.has_signal("gold_changed"):
-		economy.gold_changed.connect(_on_gold_changed)
+	if Economy.has_signal("gold_changed"):
+		Economy.gold_changed.connect(_on_gold_changed)
 
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
@@ -95,11 +93,10 @@ func _ready() -> void:
 	_refresh_gold_display()
 
 	# Load active summoner
-	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
-		var result: Variant = summoner_selection.call("get_active_summoner_id")
-		if result is String and not result.is_empty():
-			_current_summoner_id = result
-			_refresh_all()
+	var active_id: String = SummonerSelection.get_active_summoner_id()
+	if not active_id.is_empty():
+		_current_summoner_id = active_id
+		_refresh_all()
 
 
 ## =============================================================================
@@ -107,12 +104,8 @@ func _ready() -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	var economy: Node = get_node_or_null("/root/Economy")
-	if economy and economy.has_method("get_gold"):
-		var gold: int = economy.call("get_gold")
-		gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
-	else:
-		gold_label.text = ""
+	var gold: int = Economy.get_gold()
+	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
 
 ## =============================================================================
@@ -130,10 +123,7 @@ func _refresh_all() -> void:
 		return
 
 	# Get progression info
-	var summoner_progression: Node = get_node_or_null("/root/SummonerProgression")
-	var info: Dictionary = {}
-	if summoner_progression and summoner_progression.has_method("get_summoner_progression_info"):
-		info = summoner_progression.call("get_summoner_progression_info", _current_summoner_id)
+	var info: Dictionary = SummonerProgression.get_summoner_progression_info(_current_summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)
@@ -410,13 +400,9 @@ func _refresh_traits(config: SummonerConfig) -> void:
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
-	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
-	if not trait_catalog:
-		return
-
 	# Show innate traits
 	for trait_id: String in config.innate_trait_ids:
-		var trait_card: PanelContainer = _create_trait_card(trait_catalog, trait_id, true)
+		var trait_card: PanelContainer = _create_trait_card(trait_id, true)
 		if trait_card:
 			traits_container.add_child(trait_card)
 
@@ -448,14 +434,11 @@ func _refresh_boons() -> void:
 				if boon_id is String:
 					acquired_boon_ids.append(boon_id)
 
-	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
-
 	# Show acquired boons
 	for boon_id: String in acquired_boon_ids:
-		if trait_catalog:
-			var boon_card: PanelContainer = _create_trait_card(trait_catalog, boon_id, false)
-			if boon_card:
-				boons_container.add_child(boon_card)
+		var boon_card: PanelContainer = _create_trait_card(boon_id, false)
+		if boon_card:
+			boons_container.add_child(boon_card)
 
 	# Show message if no boons
 	if acquired_boon_ids.is_empty():
@@ -466,14 +449,9 @@ func _refresh_boons() -> void:
 		boons_container.add_child(no_boons_label)
 
 
-func _create_trait_card(trait_catalog: Node, trait_id: String, is_innate: bool) -> PanelContainer:
-	var trait_name: String = ""
-	var trait_desc: String = ""
-
-	if trait_catalog.has_method("get_trait_name"):
-		trait_name = trait_catalog.call("get_trait_name", trait_id)
-	if trait_catalog.has_method("get_trait_description"):
-		trait_desc = trait_catalog.call("get_trait_description", trait_id)
+func _create_trait_card(trait_id: String, is_innate: bool) -> PanelContainer:
+	var trait_name: String = TraitCatalog.get_trait_name(trait_id)
+	var trait_desc: String = TraitCatalog.get_trait_description(trait_id)
 
 	if trait_name.is_empty():
 		trait_name = trait_id
@@ -571,12 +549,10 @@ func _on_level_up_pressed() -> void:
 	if _current_summoner_id.is_empty():
 		return
 
-	var summoner_progression: Node = get_node_or_null("/root/SummonerProgression")
-	if summoner_progression and summoner_progression.has_method("level_up_summoner"):
-		var success: Variant = summoner_progression.call("level_up_summoner", _current_summoner_id)
-		if success is bool and success:
-			_refresh_all()
-			_refresh_gold_display()
+	var success: bool = SummonerProgression.level_up_summoner(_current_summoner_id)
+	if success:
+		_refresh_all()
+		_refresh_gold_display()
 
 
 func _on_switch_summoner_pressed() -> void:

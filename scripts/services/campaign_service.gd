@@ -67,9 +67,7 @@ func _ready() -> void:
 	profile_repo.data_changed.connect(_on_profile_data_changed)
 
 	# Reload progress when active summoner changes
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
-		summoner_selection.summoner_changed.connect(_on_summoner_changed)
+	SummonerSelection.summoner_changed.connect(_on_summoner_changed)
 
 
 ## Initialize for unit testing with mock dependencies
@@ -209,11 +207,6 @@ func _convert_deck_entries(battle: Dictionary, key: String) -> void:
 
 ## Validate that all reward cards in battle configs exist in the card catalog
 func _validate_battle_rewards() -> void:
-	var catalog: Node = get_node_or_null("/root/CardCatalog")
-	if not catalog:
-		push_warning("CampaignService: CardCatalog not found - skipping reward validation")
-		return
-
 	var invalid_count: int = 0
 	for battle_id: String in _battles.keys():
 		var battle: Dictionary = _battles[battle_id]
@@ -228,7 +221,7 @@ func _validate_battle_rewards() -> void:
 			if catalog_id.is_empty():
 				continue
 
-			if not catalog.call("has_card", catalog_id):
+			if not CardCatalog.has_card(catalog_id):
 				push_error("CampaignService: INVALID REWARD - Battle '%s' has reward card '%s' which doesn't exist in CardCatalog!" % [battle_id, catalog_id])
 				invalid_count += 1
 

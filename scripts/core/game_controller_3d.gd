@@ -207,11 +207,11 @@ func _connect_summoner_combat_signals() -> void:
 		push_warning("BattleCoordinator: Could not find enemy_summoner")
 
 func _exit_tree() -> void:
-	# Cleanup: unregister summoner provider to prevent memory leak
-	if not _registered_summoner_provider_id.is_empty():
-		var modifier_service: Node = get_node_or_null("/root/ModifierService")
-		if modifier_service and modifier_service.has_method("unregister_provider"):
-			modifier_service.call("unregister_provider", _registered_summoner_provider_id)
+	# Cleanup: unregister summoner provider to prevent memory leak (ModifierService is C# autoload)
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
+	if not _registered_summoner_provider_id.is_empty() and modifier_service:
+		if modifier_service.has_method("unregister_provider"):
+			modifier_service.unregister_provider(_registered_summoner_provider_id)
 
 	# Cleanup: disconnect kill tracking signal to prevent memory leak
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
@@ -221,13 +221,15 @@ func _exit_tree() -> void:
 ## Clears all units, projectiles, HP bars from the scene
 ## Note: Autoload resets (EventSequencer, DialogueManager, etc.) are handled by SceneCoordinator
 func reset_battle_state() -> void:
-	# Clear all active projectiles
-	if ProjectileService:
-		ProjectileService.clear_all_projectiles()
+	# Clear all active projectiles (C# autoloads)
+	var projectile_service: Node = get_node_or_null(CSharpAutoloads.PROJECTILE_SERVICE)
+	if projectile_service:
+		projectile_service.clear_all_projectiles()
 
 	# Clear all HP bars
-	if HPBarService:
-		HPBarService.clear_all_bars()
+	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
+	if hp_bar_service:
+		hp_bar_service.clear_all_bars()
 
 	# Clear all units from the battlefield
 	_clear_all_units()
@@ -356,15 +358,13 @@ func end_game(winner: UnitConstants.Team) -> void:
 		BattleContext.end_battle_defeat()
 
 	# Delegate to BattleContext for mode-specific completion handling
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if battle_context:
-		var callback_variant: Variant = battle_context.get("completion_callback")
-		if callback_variant is Callable:
-			var callback: Callable = callback_variant
-			if callback.is_valid():
-				await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
-				get_tree().paused = false
-				callback.call(winner as int)
+	var callback_variant: Variant = BattleContext.completion_callback
+	if callback_variant is Callable:
+		var callback: Callable = callback_variant
+		if callback.is_valid():
+			await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
+			get_tree().paused = false
+			callback.call(winner as int)
 
 func _check_timeout_victory() -> void:
 	# Simplified: player wins on timeout for now
@@ -453,13 +453,7 @@ func _load_ai_for_enemy() -> void:
 		return
 
 	# Get battle config from BattleContext
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if not battle_context:
-		push_error("GameController3D: BattleContext not found")
-		return
-
-	var battle_config_variant: Variant = battle_context.get("battle_config")
-	var battle_config: Dictionary = battle_config_variant if battle_config_variant is Dictionary else {}
+	var battle_config: Dictionary = BattleContext.battle_config
 	if battle_config.is_empty():
 		push_error("GameController3D: Battle config is empty")
 		return
@@ -479,35 +473,26 @@ func _load_ai_for_enemy() -> void:
 
 func _register_summoner_provider() -> void:
 	# Get active summoner using SummonerSelection service (handles fallbacks)
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if not summoner_selection:
-		push_warning("GameController3D: SummonerSelection not found, no summoner bonuses will apply")
-		return
-
-	var summoner_id: String = ""
-	if summoner_selection.has_method("get_active_summoner_id"):
-		summoner_id = summoner_selection.call("get_active_summoner_id")
+	var summoner_id: String = SummonerSelection.get_active_summoner_id()
 
 	if summoner_id.is_empty():
 		push_warning("GameController3D: No summoner selected, no summoner bonuses will apply")
 		return
 
 	# Get summoner instance data and create SummonerInstance
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
 	var summoner_instance: SummonerInstance = null
-	if profile_repo and profile_repo.has_method("get_summoner_instance"):
-		var summoner_data: Variant = profile_repo.call("get_summoner_instance", summoner_id)
-		if summoner_data is Dictionary and not summoner_data.is_empty():
-			summoner_instance = SummonerInstance.from_dict(summoner_data)
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	if not summoner_data.is_empty():
+		summoner_instance = SummonerInstance.from_dict(summoner_data)
 
 	if not summoner_instance:
 		push_warning("GameController3D: Failed to load SummonerInstance for '%s', no summoner bonuses will apply" % summoner_id)
 		return
 
 	# Register summoner modifier provider with C# ModifierService
-	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
 	if modifier_service and modifier_service.has_method("register_summoner_provider"):
-		modifier_service.call("register_summoner_provider", summoner_instance, summoner_id)
+		modifier_service.register_summoner_provider(summoner_instance, summoner_id)
 		_registered_summoner_provider_id = "summoner_" + summoner_id
 
 ## =============================================================================
@@ -699,13 +684,7 @@ func _init_win_conditions() -> void:
 	_enemy_kill_count = 0
 
 	# Get win condition from battle config
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if not battle_context:
-		print("BattleCoordinator: No BattleContext, using default win condition")
-		return
-
-	var config_variant: Variant = battle_context.get("battle_config")
-	var config: Dictionary = config_variant if config_variant is Dictionary else {}
+	var config: Dictionary = BattleContext.battle_config
 	if config.is_empty():
 		print("BattleCoordinator: Empty battle config, using default win condition")
 		return

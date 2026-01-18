@@ -65,9 +65,7 @@ func _ready() -> void:
 	confirm_button.disabled = true
 
 	# Get active summoner
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
-		_active_summoner_id = summoner_selection.call("get_active_summoner_id")
+	_active_summoner_id = SummonerSelection.get_active_summoner_id()
 
 	# Load unlocked summoners
 	_load_summoner_cards()
@@ -91,13 +89,7 @@ func _load_summoner_cards() -> void:
 	_summoner_ids.clear()
 
 	# Get unlocked summoners
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if not summoner_selection or not summoner_selection.has_method("get_unlocked_summoner_ids"):
-		return
-
-	var unlocked_ids: Variant = summoner_selection.call("get_unlocked_summoner_ids")
-	if not unlocked_ids is Array:
-		return
+	var unlocked_ids: Array = SummonerSelection.get_unlocked_summoner_ids()
 
 	# Store IDs and find active summoner index
 	for summoner_id: Variant in unlocked_ids:
@@ -303,9 +295,7 @@ func _on_confirm_pressed() -> void:
 		return
 
 	# Switch summoner
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_method("set_active_summoner"):
-		summoner_selection.call("set_active_summoner", _selected_summoner_id)
+	SummonerSelection.set_active_summoner(_selected_summoner_id)
 
 	_close()
 

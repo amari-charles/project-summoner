@@ -26,23 +26,12 @@ var event_config: Dictionary = {}
 var return_scene: String = ""
 var is_event_complete: bool = false
 
-## Dependencies
-var _campaign: Node = null
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
 	print("EventContext: Initializing...")
-
-	# Wait for Campaign service to be ready
-	await get_tree().process_frame
-	_campaign = get_node_or_null("/root/Campaign")
-
-	if not _campaign:
-		push_error("EventContext: Campaign service not found!")
-
 	print("EventContext: Ready")
 
 ## =============================================================================
@@ -51,16 +40,8 @@ func _ready() -> void:
 
 ## Configure event context (called before navigating to event screen)
 func configure_event(event_id: String, return_to_scene: String = "") -> void:
-	if not _campaign:
-		push_error("EventContext: Cannot configure event - Campaign service not found")
-		return
-
 	# Get event config from Campaign
-	var config: Dictionary = {}
-	if _campaign.has_method("get_battle"):
-		var result: Variant = _campaign.call("get_battle", event_id)
-		if result is Dictionary:
-			config = result
+	var config: Dictionary = Campaign.get_battle(event_id)
 
 	if config.is_empty():
 		push_error("EventContext: Event not found: %s" % event_id)
@@ -102,9 +83,8 @@ func complete_event() -> void:
 
 	# Mark complete in Campaign service (only if not repeatable)
 	if not repeatable:
-		if _campaign and _campaign.has_method("complete_battle"):
-			_campaign.call("complete_battle", current_event_id)
-			print("EventContext: Marked event '%s' as complete" % current_event_id)
+		Campaign.complete_battle(current_event_id)
+		print("EventContext: Marked event '%s' as complete" % current_event_id)
 	else:
 		print("EventContext: Event '%s' is repeatable - not marking as complete" % current_event_id)
 

@@ -353,11 +353,12 @@ func grant_xp_to_played_cards() -> void:
 
 	print("BattleContext: Granting %d XP to %d played cards" % [card_xp, _cards_played.size()])
 
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
+	# PlayerCardService is a C# autoload - access via get_node
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 	if card_service and card_service.has_method("grant_xp_to_cards"):
-		card_service.call("grant_xp_to_cards", _cards_played, card_xp)
+		card_service.grant_xp_to_cards(_cards_played, card_xp)
 	else:
-		push_warning("BattleContext: PlayerCardService not found")
+		push_warning("BattleContext: PlayerCardService.grant_xp_to_cards not found")
 
 ## Grant XP to the active summoner
 ## Called on battle victory
@@ -368,12 +369,8 @@ func grant_xp_to_active_summoner() -> void:
 		return
 
 	print("BattleContext: Granting %d XP to active summoner" % summoner_xp)
-	var summoner_progression: Node = get_node_or_null("/root/SummonerProgression")
-	if summoner_progression:
-		var new_xp: int = summoner_progression.call("grant_active_summoner_xp", summoner_xp)
-		print("BattleContext: Summoner now has %d XP" % new_xp)
-	else:
-		push_warning("BattleContext: SummonerProgression autoload not found")
+	var new_xp: int = SummonerProgression.grant_active_summoner_xp(summoner_xp)
+	print("BattleContext: Summoner now has %d XP" % new_xp)
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:

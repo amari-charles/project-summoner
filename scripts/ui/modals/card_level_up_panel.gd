@@ -64,29 +64,23 @@ func open_for_card(p_card_instance_id: String) -> void:
 ## =============================================================================
 
 func _load_card_data() -> void:
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
-	if not card_service or not card_service.has_method("get_card_progression_info"):
+	# PlayerCardService is a C# autoload - access via get_node
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
-
-	var info: Dictionary = {}
-	var result: Variant = card_service.call("get_card_progression_info", card_instance_id)
-	if result is Dictionary:
-		info = result
+	var info: Dictionary = card_service.get_card_progression_info(card_instance_id)
 	if info.is_empty():
 		push_error("CardLevelUpPanel: Failed to get progression info for %s" % card_instance_id)
 		return
 
 	# Get card catalog data for name
 	var catalog_id: String = info.get("catalog_id", "")
-	var catalog: Node = get_node_or_null("/root/CardCatalog")
 	var card_name: String = "Unknown Card"
-	if catalog and catalog.has_method("get_card"):
-		var catalog_data_result: Variant = catalog.call("get_card", catalog_id)
-		if catalog_data_result is Dictionary:
-			var catalog_data: Dictionary = catalog_data_result
-			var name_val: Variant = catalog_data.get("card_name", "Unknown Card")
-			card_name = name_val if name_val is String else "Unknown Card"
+	var catalog_data: Dictionary = CardCatalog.get_card(catalog_id)
+	if not catalog_data.is_empty():
+		var name_val: Variant = catalog_data.get("card_name", "Unknown Card")
+		card_name = name_val if name_val is String else "Unknown Card"
 
 	# Update UI
 	card_name_label.text = card_name
@@ -109,15 +103,11 @@ func _populate_upgrade_choices() -> void:
 		button.queue_free()
 	upgrade_buttons.clear()
 
-	# Get available upgrades from PlayerCardService
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
-	if not card_service or not card_service.has_method("get_available_upgrades"):
+	# Get available upgrades from PlayerCardService (C# autoload)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
 		return
-
-	var upgrades_result: Variant = card_service.call("get_available_upgrades", card_instance_id)
-	if not upgrades_result is Array:
-		return
-	var upgrades: Array = upgrades_result
+	var upgrades: Array = card_service.get_available_upgrades(card_instance_id)
 
 	# Create upgrade buttons
 	for upgrade_var: Variant in upgrades:
@@ -152,12 +142,7 @@ func _create_upgrade_button(upgrade: Dictionary) -> Button:
 func _update_cost_display() -> void:
 	cost_label.text = Loc.t("ui.level_up.cost_label", {"cost": gold_cost})
 
-	var economy_node: Node = get_node_or_null("/root/Economy")
-	var current_gold: int = 0
-	if economy_node and economy_node.has_method("get_gold"):
-		var gold_result: Variant = economy_node.call("get_gold")
-		if gold_result is int:
-			current_gold = gold_result
+	var current_gold: int = Economy.get_gold()
 
 	gold_label.text = Loc.t("ui.level_up.your_gold", {"gold": current_gold})
 
@@ -172,11 +157,7 @@ func _update_confirm_button() -> void:
 	var can_confirm: bool = not selected_upgrade_id.is_empty()
 
 	if can_confirm:
-		var economy_node: Node = get_node_or_null("/root/Economy")
-		if economy_node and economy_node.has_method("get_gold"):
-			var gold_result: Variant = economy_node.call("get_gold")
-			if gold_result is int:
-				can_confirm = gold_result >= gold_cost
+		can_confirm = Economy.get_gold() >= gold_cost
 
 	confirm_button.disabled = not can_confirm
 
@@ -215,13 +196,12 @@ func _on_confirm_pressed() -> void:
 	if selected_upgrade_id.is_empty():
 		return
 
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
-	if not card_service or not card_service.has_method("level_up_card"):
+	# PlayerCardService is a C# autoload
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
-
-	var success_result: Variant = card_service.call("level_up_card", card_instance_id, selected_upgrade_id)
-	var success: bool = success_result is bool and success_result
+	var success: bool = card_service.level_up_card(card_instance_id, selected_upgrade_id)
 
 	if success:
 		level_up_completed.emit(card_instance_id)

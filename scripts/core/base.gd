@@ -34,14 +34,7 @@ func _ready() -> void:
 
 ## Load HP from campaign battle config
 func _load_campaign_hp() -> void:
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if not profile_repo:
-		return
-
-	if not profile_repo.has_method("get_active_profile"):
-		return
-	var profile_variant: Variant = profile_repo.call("get_active_profile")
-	var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
+	var profile: Dictionary = ProfileRepo.get_active_profile()
 	if profile.is_empty():
 		return
 
@@ -51,14 +44,7 @@ func _load_campaign_hp() -> void:
 	if current_battle_id == "":
 		return  # Not a campaign battle
 
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		return
-
-	if not campaign.has_method("get_battle"):
-		return
-	var battle_variant: Variant = campaign.call("get_battle", current_battle_id)
-	var battle: Dictionary = battle_variant if battle_variant is Dictionary else {}
+	var battle: Dictionary = Campaign.get_battle(current_battle_id)
 	if battle.has("enemy_hp"):
 		max_hp = battle.get("enemy_hp")
 		print("Base: Set enemy base HP from campaign: %d" % max_hp)

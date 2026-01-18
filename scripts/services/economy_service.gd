@@ -47,10 +47,7 @@ func init_for_testing(repo: Object) -> void:
 
 
 func _connect_to_cs() -> void:
-	_cs_service = get_node_or_null("/root/EconomyServiceCS")
-	if _cs_service == null:
-		push_error("EconomyService: EconomyServiceCS autoload not found - C# service unavailable")
-		return
+	_cs_service = EconomyServiceCS
 
 	# Forward C# signals to GDScript signals
 	_cs_service.ResourcesChanged.connect(_on_cs_resources_changed)

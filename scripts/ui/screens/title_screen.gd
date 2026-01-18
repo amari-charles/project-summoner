@@ -73,7 +73,6 @@ func _await_animation_with_timeout(anim_player: AnimationPlayer, timeout: float)
 
 func _debug_reset_profile() -> void:
 	print("TitleScreen: F11 pressed - resetting profile...")
-	var dev_console: Node = get_node_or_null("/root/DevConsole")
-	if dev_console:
-		dev_console.call("execute_command", "/save_wipe")
+	if DevConsole:
+		DevConsole.execute_command("/save_wipe")
 		get_tree().reload_current_scene()

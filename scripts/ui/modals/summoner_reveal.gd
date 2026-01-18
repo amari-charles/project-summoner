@@ -23,11 +23,9 @@ func _ready() -> void:
 		continue_button.pressed.connect(_on_continue_pressed)
 
 	# Read summoner data from ProfileRepo (just saved by summoner_selection)
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_unlocked_summoners"):
-		var unlocked: Array = profile_repo.call("get_unlocked_summoners")
-		if not unlocked.is_empty():
-			summoner_id = unlocked[0]  # Starting summoner is first unlocked
+	var unlocked: Array = ProfileRepo.get_unlocked_summoners()
+	if not unlocked.is_empty():
+		summoner_id = unlocked[0]  # Starting summoner is first unlocked
 
 	# Check WAL for whether random was chosen (for title text)
 	# For now, just use default title

@@ -18,9 +18,9 @@ static func load_deck_for_battle(deck_id: String) -> Dictionary:
 	var cards: Array[Card] = []
 
 	# Get services
-	var decks: Variant = _get_service("/root/Decks")
-	var collection: Variant = _get_service("/root/Collection")
-	var summoner_catalog: Variant = _get_service("/root/SummonerCatalog")
+	var decks: Variant = _get_autoload("Decks")
+	var collection: Variant = _get_autoload("Collection")
+	var summoner_catalog: Variant = _get_autoload("SummonerCatalog")
 
 	if not decks or not collection:
 		push_error("DeckLoader: Required services not found!")
@@ -68,7 +68,7 @@ static func load_deck_for_battle(deck_id: String) -> Dictionary:
 	result["summoner_id"] = summoner_id
 
 	# Try to load existing SummonerInstance from ProfileRepo
-	var profile_repo: Variant = _get_service("/root/ProfileRepo")
+	var profile_repo: Variant = _get_autoload("ProfileRepo")
 	var summoner_instance: SummonerInstance = null
 
 	if profile_repo and profile_repo is Object:
@@ -118,7 +118,7 @@ static func load_player_deck() -> Dictionary:
 		"summoner_instance": null
 	}
 
-	var profile_repo: Variant = _get_service("/root/ProfileRepo")
+	var profile_repo: Variant = _get_autoload("ProfileRepo")
 	if not profile_repo:
 		push_error("DeckLoader: ProfileRepo not found!")
 		return empty_result
@@ -146,7 +146,7 @@ static func load_player_deck() -> Dictionary:
 
 	# If no deck selected, use first available deck
 	if deck_id == "":
-		var decks: Variant = _get_service("/root/Decks")
+		var decks: Variant = _get_autoload("Decks")
 		if not decks:
 			push_error("DeckLoader: Decks service not found!")
 			return empty_result
@@ -210,11 +210,11 @@ static func _create_card_from_instance(instance_id: String, collection: Variant)
 
 	return card
 
-## Helper to get autoload service safely
-static func _get_service(path: String) -> Variant:
+## Helper to get autoload service by name (static context can't access autoloads directly)
+static func _get_autoload(name: String) -> Variant:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if main_loop is SceneTree:
 		var tree: SceneTree = main_loop
 		if tree and tree.root:
-			return tree.root.get_node_or_null(path)
+			return tree.root.get_node_or_null(name)
 	return null

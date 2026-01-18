@@ -43,11 +43,10 @@ func add_boon(boon_id: String) -> bool:
 		push_warning("SummonerInstance.add_boon: Boon already acquired: %s" % boon_id)
 		return false
 
-	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("/root/TraitCatalog")
-	if trait_catalog and trait_catalog.has_method("has_trait"):
-		if not trait_catalog.call("has_trait", boon_id):
-			push_error("SummonerInstance.add_boon: Unknown boon ID: %s" % boon_id)
-			return false
+	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("TraitCatalog")
+	if trait_catalog and not trait_catalog.has_trait(boon_id):
+		push_error("SummonerInstance.add_boon: Unknown boon ID: %s" % boon_id)
+		return false
 
 	acquired_boon_ids.append(boon_id)
 	_mark_stats_dirty()
@@ -189,17 +188,14 @@ func _recompute_stats() -> void:
 
 ## Apply all trait modifiers from TraitCatalog
 func _apply_trait_modifiers(stats: Dictionary) -> void:
-	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("/root/TraitCatalog")
+	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("TraitCatalog")
 	if not trait_catalog:
 		push_warning("SummonerInstance: TraitCatalog not found, traits will not be applied")
 		return
 
 	var all_trait_ids: Array[String] = get_all_trait_ids()
 	for trait_id: String in all_trait_ids:
-		if not trait_catalog.has_method("get_trait"):
-			continue
-
-		var trait_data: Dictionary = trait_catalog.call("get_trait", trait_id)
+		var trait_data: Dictionary = trait_catalog.get_trait(trait_id)
 		if trait_data.is_empty():
 			push_warning("SummonerInstance: Unknown trait '%s' - skipping" % trait_id)
 			continue

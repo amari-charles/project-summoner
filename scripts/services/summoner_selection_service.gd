@@ -28,12 +28,9 @@ var _is_in_battle: bool = false
 ## =============================================================================
 
 func _ready() -> void:
-	# Connect to battle state signals if available
-	var game_state: Node = get_node_or_null("/root/GameStateEvents")
-	if game_state and game_state.has_signal("battle_started"):
-		game_state.battle_started.connect(_on_battle_started)
-	if game_state and game_state.has_signal("battle_ended"):
-		game_state.battle_ended.connect(_on_battle_ended)
+	# Connect to battle state signals
+	GameStateEvents.battle_started.connect(_on_battle_started)
+	GameStateEvents.battle_ended.connect(_on_battle_ended)
 
 ## =============================================================================
 ## ACTIVE SUMMONER QUERIES

@@ -150,9 +150,31 @@ Check that:
 - Keys follow naming convention: `category.subcategory.item` (e.g., `campaign.event.event_id.name`)
 - No hardcoded user-facing strings in GDScript files
 
+Hard-coded node paths / root lookups
+
+Direct `/root/...` lookups and string node paths are fragile and create hidden dependencies. If the tree changes, lookups fail silently.
+
+Examples of violations:
+- `var campaign: Node = get_node("/root/Campaign")` instead of just `Campaign`
+- `get_node_or_null("/root/DevConsole")` instead of just `DevConsole`
+- Passing `/root/X` to helper functions when just `X` works
+
+For Node-based scripts:
+- Use autoload globals directly: `Campaign`, `ProfileRepo`, `CardCatalog`, etc.
+- These are registered in `project.godot` under `[autoload]` and available globally
+
+For non-Node classes (RefCounted, Resource, static functions):
+- If you must lookup via `Engine.get_main_loop().root`, use just the name: `get_node_or_null("TraitCatalog")`
+- Better: inject the dependency as a parameter instead of looking it up
+
+Check that:
+- No `get_node("/root/X")` or `get_node_or_null("/root/X")` in Node subclasses
+- Helper functions for non-Node types take just the autoload name, not full paths
+- Dependencies are injected where possible for better testability
+
 Unnecessary abstraction or bloat
 
-Over-abstracted helpers, useless wrapper functions, or layers that don’t add real value.
+Over-abstracted helpers, useless wrapper functions, or layers that don't add real value.
 
 Large “God functions” or classes that should be split.
 
@@ -255,6 +277,8 @@ Ignoring repo naming/structure conventions
 Over-accommodating legacy instead of simplifying (pre-launch)
 
 Incomplete updates (tests, types, docs)
+
+Hard-coded node paths / root lookups
 
 Check off each item and list any problems found.
 

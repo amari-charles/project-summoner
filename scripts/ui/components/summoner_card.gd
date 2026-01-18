@@ -45,13 +45,8 @@ func set_summoner(summoner_id_param: String) -> void:
 	self.summoner_id = summoner_id_param
 
 	# Get summoner config from catalog
-	var catalog: Node = get_node_or_null("/root/SummonerCatalog")
-	if not catalog or not catalog.has_method("get_summoner_config"):
-		push_error("SummonerCard: SummonerCatalog not available")
-		return
-
-	var config: Variant = catalog.call("get_summoner_config", summoner_id)
-	if not config is SummonerConfig:
+	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	if not config:
 		push_error("SummonerCard: Invalid summoner_id: %s" % summoner_id)
 		return
 

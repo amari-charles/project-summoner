@@ -26,11 +26,8 @@ func _ready() -> void:
 	call_deferred("_connect_to_cs_catalog")
 
 func _connect_to_cs_catalog() -> void:
-	_cs_catalog = get_node_or_null("/root/TraitCatalogCS")
-	if _cs_catalog:
-		print("TraitCatalog: Connected to C# catalog with %d traits" % _cs_catalog.GetTraitCount())
-	else:
-		push_error("TraitCatalog: Failed to connect to TraitCatalogCS - C# autoload not found")
+	_cs_catalog = TraitCatalogCS
+	print("TraitCatalog: Connected to C# catalog with %d traits" % _cs_catalog.GetTraitCount())
 
 ## =============================================================================
 ## QUERIES (delegates to C#)
