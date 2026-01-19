@@ -30,10 +30,7 @@ const CardConfigScript = preload("res://scripts/cards/card_config.gd")
 
 func _ready() -> void:
 	print("CardCatalog: Initializing...")
-	_csharp_bridge = get_node_or_null("/root/CardCatalogCS")
-	if not _csharp_bridge:
-		push_warning("CardCatalog: C# CardCatalogBridge not found (C# unavailable). Card lookups will return empty.")
-		return
+	_csharp_bridge = CardCatalogCS
 	# Verify C# methods are accessible
 	if not _csharp_bridge.has_method("GetCardCount"):
 		push_warning("CardCatalog: C# bridge exists but methods not available. Card lookups will return empty.")
@@ -221,15 +218,7 @@ func _try_attach_csharp_summon(catalog_id: StringName, card: Card) -> bool:
 ## Get CardFactory autoload safely
 ## Returns null if C# is not available or factory not loaded
 func _get_card_factory() -> Node:
-	var main_loop: MainLoop = Engine.get_main_loop()
-	if not main_loop or not main_loop is SceneTree:
-		return null
-
-	var tree: SceneTree = main_loop
-	if not tree.root:
-		return null
-
-	return tree.root.get_node_or_null("/root/CardFactory")
+	return CardFactory
 
 ## =============================================================================
 ## UTILITY METHODS

@@ -21,19 +21,20 @@ func _ready() -> void:
 	print("TestGameController: Initializing VFX test mode...")
 
 	# Configure BattleContext for practice mode
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if battle_context and battle_context.has_method("configure_practice_battle"):
-		battle_context.call("configure_practice_battle", {
-			"enemy_deck": [{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 30}],
-			"enemy_hp": 999999.0
-		})
+	BattleContext.configure_practice_battle({
+		"enemy_deck": [{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 30}],
+		"enemy_hp": 999999.0
+	})
 
 	# Force reload ContentCatalog projectiles to bypass resource cache
 	ContentCatalog._load_projectiles()
 	print("TestGameController: Reloaded projectile data from disk")
 
 	# Force projectile pool refresh to reload visuals (fixes color not updating)
-	ProjectileService.refresh_pools()
+	# ProjectileService is a C# autoload
+	var projectile_service: Node = get_node_or_null(CSharpAutoloads.PROJECTILE_SERVICE)
+	if projectile_service:
+		projectile_service.refresh_pools()
 
 	# Call parent ready
 	super._ready()

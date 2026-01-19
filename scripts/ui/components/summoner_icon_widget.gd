@@ -31,9 +31,7 @@ func _ready() -> void:
 	icon_button.pressed.connect(_on_icon_pressed)
 
 	# Connect to summoner selection changes
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
-		summoner_selection.summoner_changed.connect(_on_summoner_changed)
+	SummonerSelection.summoner_changed.connect(_on_summoner_changed)
 
 	# Initial refresh
 	refresh()
@@ -44,17 +42,7 @@ func _ready() -> void:
 
 ## Refresh the display from current active summoner
 func refresh() -> void:
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if not summoner_selection or not summoner_selection.has_method("get_active_summoner_id"):
-		_show_no_summoner()
-		return
-
-	var result: Variant = summoner_selection.call("get_active_summoner_id")
-	if not result is String:
-		_show_no_summoner()
-		return
-
-	var summoner_id: String = result
+	var summoner_id: String = SummonerSelection.get_active_summoner_id()
 	if summoner_id.is_empty():
 		_show_no_summoner()
 		return
@@ -73,11 +61,8 @@ func _update_display(summoner_id: String) -> void:
 		return
 
 	# Get summoner instance for level
-	var summoner_progression: Node = get_node_or_null("/root/SummonerProgression")
-	var level: int = 1
-	if summoner_progression:
-		var info: Dictionary = summoner_progression.call("get_summoner_progression_info", summoner_id)
-		level = info.get("level", 1)
+	var info: Dictionary = SummonerProgression.get_summoner_progression_info(summoner_id)
+	var level: int = info.get("level", 1)
 
 	# Get element
 	var element: ElementTypes.Element = config.get_element()

@@ -48,14 +48,11 @@ func _ready() -> void:
 	# Wait for services to be ready
 	await get_tree().process_frame
 
-	_repo = get_node_or_null("/root/ProfileRepo")
-	_economy = get_node_or_null("/root/Economy")
-	_collection = get_node_or_null("/root/Collection")
-	_decks = get_node_or_null("/root/Decks")
-	_snapshots = get_node_or_null("/root/DebugSnapshots")
-
-	if _repo == null:
-		push_error("DevConsole: ProfileRepo not found!")
+	_repo = ProfileRepo
+	_economy = Economy
+	_collection = Collection
+	_decks = Decks
+	_snapshots = DebugSnapshots
 
 	print("DevConsole: Ready (F12 to open console - future)")
 

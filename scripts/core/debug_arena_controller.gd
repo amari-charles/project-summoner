@@ -17,13 +17,11 @@ var _spawner_panel: UnitSpawnerPanel
 
 func _ready() -> void:
 	# Configure BattleContext for debug mode
-	var battle_context: Node = get_node_or_null("/root/BattleContext")
-	if battle_context and battle_context.has_method("configure_practice_battle"):
-		battle_context.call("configure_practice_battle", {
-			"enemy_deck": [],  # Empty = no AI spawning
-			"enemy_hp": 999999.0,
-			"ai_type": "passive"  # AI does nothing
-		})
+	BattleContext.configure_practice_battle({
+		"enemy_deck": [],  # Empty = no AI spawning
+		"enemy_hp": 999999.0,
+		"ai_type": "passive"  # AI does nothing
+	})
 
 	# Call parent ready
 	super._ready()

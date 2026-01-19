@@ -24,9 +24,6 @@ var typing_timer: float = 0.0
 var target_visible_ratio: float = 1.0
 var char_increment: float = 0.0
 
-## DialogueManager reference (will be set via autoload)
-var dialogue_manager: Node = null
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -40,33 +37,17 @@ func _ready() -> void:
 	continue_indicator.visible = false
 
 	# Connect to DialogueManager signals
-	# Wait for autoload to be available
-	await get_tree().process_frame
-	dialogue_manager = get_node_or_null("/root/DialogueManager")
+	DialogueManager.dialogue_started.connect(_on_dialogue_started)
+	DialogueManager.dialogue_line_displayed.connect(_on_dialogue_line_displayed)
+	DialogueManager.dialogue_choices_presented.connect(_on_dialogue_choices_presented)
+	DialogueManager.dialogue_ended.connect(_on_dialogue_ended)
 
-	if dialogue_manager:
-		if dialogue_manager.has_signal("dialogue_started"):
-			var dialogue_started_signal: Signal = dialogue_manager.get("dialogue_started")
-			dialogue_started_signal.connect(_on_dialogue_started)
-		if dialogue_manager.has_signal("dialogue_line_displayed"):
-			var dialogue_line_displayed_signal: Signal = dialogue_manager.get("dialogue_line_displayed")
-			dialogue_line_displayed_signal.connect(_on_dialogue_line_displayed)
-		if dialogue_manager.has_signal("dialogue_choices_presented"):
-			var dialogue_choices_presented_signal: Signal = dialogue_manager.get("dialogue_choices_presented")
-			dialogue_choices_presented_signal.connect(_on_dialogue_choices_presented)
-		if dialogue_manager.has_signal("dialogue_ended"):
-			var dialogue_ended_signal: Signal = dialogue_manager.get("dialogue_ended")
-			dialogue_ended_signal.connect(_on_dialogue_ended)
-		# Register with DialogueManager using instance ID for proper lifecycle tracking
-		if dialogue_manager.has_method("register_ui"):
-			dialogue_manager.call("register_ui", get_instance_id())
-	else:
-		push_warning("DialogueBox: DialogueManager not found in autoloads")
+	# Register with DialogueManager using instance ID for proper lifecycle tracking
+	DialogueManager.register_ui(get_instance_id())
 
 func _exit_tree() -> void:
 	# Unregister from DialogueManager when being freed (scene change, etc.)
-	if dialogue_manager and dialogue_manager.has_method("unregister_ui"):
-		dialogue_manager.call("unregister_ui", get_instance_id())
+	DialogueManager.unregister_ui(get_instance_id())
 
 func _process(delta: float) -> void:
 	if is_typing:
@@ -86,8 +67,7 @@ func _input(event: InputEvent) -> void:
 
 		# DEBUG: Ctrl+D to instantly skip dialogue (for testing)
 		if key_event.pressed and key_event.ctrl_pressed and key_event.keycode == KEY_D:
-			if dialogue_manager and dialogue_manager.has_method("advance_dialogue"):
-				dialogue_manager.call("advance_dialogue")
+			DialogueManager.advance_dialogue()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -198,12 +178,10 @@ func _on_click() -> void:
 		_skip_typewriter()
 	elif choice_container.get_child_count() == 0:
 		# No choices - advance dialogue
-		if dialogue_manager and dialogue_manager.has_method("advance_dialogue"):
-			dialogue_manager.call("advance_dialogue")
+		DialogueManager.advance_dialogue()
 
 func _on_choice_selected(choice: DialogueChoice) -> void:
-	if dialogue_manager and dialogue_manager.has_method("select_choice"):
-		dialogue_manager.call("select_choice", choice)
+	DialogueManager.select_choice(choice)
 
 ## =============================================================================
 ## HELPERS

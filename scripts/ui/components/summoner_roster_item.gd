@@ -58,10 +58,7 @@ func refresh() -> void:
 		return
 
 	# Get progression info
-	var progression_node: Node = get_node_or_null("/root/SummonerProgression")
-	var info: Dictionary = {}
-	if progression_node:
-		info = progression_node.call("get_summoner_progression_info", _summoner_id)
+	var info: Dictionary = SummonerProgression.get_summoner_progression_info(_summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)

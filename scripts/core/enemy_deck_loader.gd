@@ -14,7 +14,7 @@ static func load_enemy_deck_for_battle() -> Array[Card]:
 	print("EnemyDeckLoader: Starting deck load...")
 
 	# Get battle context
-	var battle_context: Variant = _get_service("/root/BattleContext")
+	var battle_context: Variant = _get_autoload("BattleContext")
 	if not battle_context:
 		push_error("EnemyDeckLoader: BattleContext not found!")
 		return cards
@@ -78,7 +78,7 @@ static func load_deck_for_battle(battle_id: String) -> Array[Card]:
 	var cards: Array[Card] = []
 
 	# Get campaign service
-	var campaign: Variant = _get_service("/root/Campaign")
+	var campaign: Variant = _get_autoload("Campaign")
 	if not campaign:
 		push_error("EnemyDeckLoader: Campaign service not found!")
 		return cards
@@ -128,7 +128,7 @@ static func load_deck_for_battle(battle_id: String) -> Array[Card]:
 ## Create a Card resource from a catalog ID
 static func _create_card_from_catalog(catalog_id: String) -> Card:
 	# Get card catalog
-	var catalog: Variant = _get_service("/root/CardCatalog")
+	var catalog: Variant = _get_autoload("CardCatalog")
 	if not catalog:
 		push_error("EnemyDeckLoader: CardCatalog not found!")
 		return null
@@ -147,11 +147,11 @@ static func _create_card_from_catalog(catalog_id: String) -> Card:
 	push_error("EnemyDeckLoader: CardCatalog is not a valid Object!")
 	return null
 
-## Helper to get autoload service safely
-static func _get_service(path: String) -> Variant:
+## Helper to get autoload service by name (static context can't access autoloads directly)
+static func _get_autoload(name: String) -> Variant:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if main_loop is SceneTree:
 		var tree: SceneTree = main_loop
 		if tree and tree.root:
-			return tree.root.get_node_or_null(path)
+			return tree.root.get_node_or_null(name)
 	return null

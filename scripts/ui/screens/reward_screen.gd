@@ -41,17 +41,12 @@ func _ready() -> void:
 ## =============================================================================
 
 func _load_battle_results() -> void:
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		push_error("RewardScreen: Campaign service not found!")
-		return
-
 	# Validate we're in a valid state to show rewards
 	# This guards against navigating here without actually winning a battle
 	if BattleContext.battle_state != BattleContext.BattleState.VICTORY:
 		# Check for pending reward - player may have won, exited, and returned
 		var has_pending: bool = false
-		var pending: Variant = campaign.call("get_pending_reward")
+		var pending: Variant = Campaign.get_pending_reward()
 		has_pending = pending != null and pending is Dictionary
 
 		if not has_pending:
@@ -60,7 +55,7 @@ func _load_battle_results() -> void:
 			return
 
 	# Check for pending reward first (resuming after exit/crash)
-	var pending_reward: Variant = campaign.call("get_pending_reward")
+	var pending_reward: Variant = Campaign.get_pending_reward()
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
 		current_battle_id = pending_dict.get("battle_id", "")
@@ -70,12 +65,7 @@ func _load_battle_results() -> void:
 		print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
 	else:
 		# No pending reward - load from current battle
-		var profile_repo: Node = get_node("/root/ProfileRepo")
-		if not profile_repo:
-			push_error("RewardScreen: ProfileRepository not found!")
-			return
-
-		var profile: Dictionary = profile_repo.call("get_active_profile")
+		var profile: Dictionary = ProfileRepo.get_active_profile()
 		if profile.is_empty():
 			return
 
@@ -87,7 +77,7 @@ func _load_battle_results() -> void:
 		push_error("RewardScreen: No current battle set!")
 		return
 
-	var battle: Dictionary = campaign.call("get_battle", current_battle_id)
+	var battle: Dictionary = Campaign.get_battle(current_battle_id)
 	if battle.is_empty():
 		push_error("RewardScreen: Battle not found: %s" % current_battle_id)
 		return
@@ -98,7 +88,7 @@ func _load_battle_results() -> void:
 		reward_type = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
 
 	# Check if battle was already completed (replay scenario)
-	var is_replay: bool = campaign.call("is_battle_completed", current_battle_id)
+	var is_replay: bool = Campaign.is_battle_completed(current_battle_id)
 
 	if is_replay:
 		# Battle already completed - show replay message
@@ -108,7 +98,7 @@ func _load_battle_results() -> void:
 		_resume_pending_reward(battle)
 	else:
 		# First time victory - set pending reward (don't complete yet!)
-		campaign.call("set_pending_reward", current_battle_id, reward_type, -1)
+		Campaign.set_pending_reward(current_battle_id, reward_type, -1)
 		_show_rewards(battle, false)
 
 ## =============================================================================
@@ -116,7 +106,7 @@ func _load_battle_results() -> void:
 ## =============================================================================
 
 func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
-	var catalog: Node = get_node("/root/CardCatalog")
+	var catalog: Node = CardCatalog
 
 	# Validate rewards before displaying
 	_validate_rewards(battle, catalog)
@@ -215,15 +205,11 @@ func _display_summoner_xp_reward(xp: int) -> void:
 		summoner_xp_label.text = ""
 
 func _display_card_reward(reward: Dictionary) -> void:
-	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog:
-		return
-
 	var catalog_id: String = reward.get("catalog_id", "")
 	var rarity: StringName = reward.get("rarity", RarityIDs.COMMON)
 	var count: int = reward.get("count", 1)
 
-	var card_data: Dictionary = catalog.call("get_card", catalog_id)
+	var card_data: Dictionary = CardCatalog.get_card(catalog_id)
 	if card_data.is_empty():
 		reward_card_label.text = Loc.t("ui.reward.unknown_card")
 		reward_detail_label.text = ""
@@ -254,10 +240,6 @@ func _show_choice_ui(reward_options: Array) -> void:
 	reward_container.visible = false
 	choice_container.visible = true
 
-	var catalog: Node = get_node("/root/CardCatalog")
-	if not catalog:
-		return
-
 	# Create choice buttons
 	for i: int in range(reward_options.size()):
 		var reward_variant: Variant = reward_options[i]
@@ -266,7 +248,7 @@ func _show_choice_ui(reward_options: Array) -> void:
 			continue
 		var reward: Dictionary = reward_variant
 		var catalog_id: String = reward.get("catalog_id", "")
-		var card_data: Dictionary = catalog.call("get_card", catalog_id)
+		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
 
 		if card_data.is_empty():
 			continue
@@ -287,12 +269,10 @@ func _on_choice_selected(index: int) -> void:
 	chosen_reward_index = index
 
 	# Save choice to pending reward state (persists if player exits)
-	var campaign: Node = get_node("/root/Campaign")
-	if campaign:
-		campaign.call("update_pending_choice", index)
+	Campaign.update_pending_choice(index)
 
 	# Get the chosen reward to display
-	var battle: Dictionary = campaign.call("get_battle", current_battle_id)
+	var battle: Dictionary = Campaign.get_battle(current_battle_id)
 	var reward_cards: Array = battle.get("reward_cards", [])
 
 	if index >= 0 and index < reward_cards.size() and reward_cards[index] is Dictionary:
@@ -313,16 +293,10 @@ func _on_continue_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	print("RewardScreen: Continue pressed")
 
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		push_error("RewardScreen: Campaign service not found!")
-		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
-		return
-
 	# Check if we have a reward to claim
 	if reward_ready_to_claim:
 		# Claim the pending reward (grants cards + marks battle complete)
-		var granted_card: Dictionary = campaign.call("claim_pending_reward")
+		var granted_card: Dictionary = Campaign.claim_pending_reward()
 
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():
@@ -330,7 +304,7 @@ func _on_continue_pressed() -> void:
 			print("RewardScreen: Claimed reward for battle '%s'" % current_battle_id)
 	else:
 		# No reward to claim (replay or no rewards) - just clear any stale pending state
-		campaign.call("clear_pending_reward")
+		Campaign.clear_pending_reward()
 
 	print("RewardScreen: Transitioning to campaign map")
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
@@ -342,8 +316,7 @@ func _on_continue_pressed() -> void:
 ## Automatically add granted cards to deck if this is a tutorial battle
 func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 	# Check if this is a tutorial battle
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign or not campaign.call("is_battle_tutorial", current_battle_id):
+	if not Campaign.is_battle_tutorial(current_battle_id):
 		return  # Not a tutorial battle, don't auto-add
 
 	# Get card instance IDs that were granted
@@ -353,12 +326,7 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		return
 
 	# Get active deck ID from profile
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if not profile_repo:
-		push_error("RewardScreen: ProfileRepo not found!")
-		return
-
-	var profile: Dictionary = profile_repo.call("get_active_profile")
+	var profile: Dictionary = ProfileRepo.get_active_profile()
 	if profile.is_empty():
 		push_error("RewardScreen: No active profile!")
 		return
@@ -371,14 +339,9 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		return
 
 	# Add cards to deck
-	var decks: Node = get_node("/root/Decks")
-	if not decks:
-		push_error("RewardScreen: Decks service not found!")
-		return
-
 	var added_count: int = 0
 	for card_instance_id: String in instance_ids:
-		if decks.call("add_card_to_deck", deck_id, card_instance_id):
+		if Decks.add_card_to_deck(deck_id, card_instance_id):
 			added_count += 1
 		else:
 			push_warning("RewardScreen: Failed to add card %s to deck" % card_instance_id)
@@ -417,7 +380,7 @@ func _validate_rewards(battle: Dictionary, catalog: Node) -> void:
 			push_warning("RewardScreen: Empty catalog_id in battle '%s' rewards" % battle_id)
 			continue
 
-		if not catalog.call("has_card", catalog_id):
+		if not CardCatalog.has_card(catalog_id):
 			invalid_cards.append(catalog_id)
 
 	if not invalid_cards.is_empty():

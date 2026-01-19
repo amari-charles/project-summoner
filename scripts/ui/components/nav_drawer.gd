@@ -134,12 +134,8 @@ func _on_settings_pressed() -> void:
 
 
 func _update_collection_button_state() -> void:
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	var has_summoner: bool = false
-
-	if profile_repo and profile_repo.has_method("get_unlocked_summoners"):
-		var unlocked: Variant = profile_repo.call("get_unlocked_summoners")
-		has_summoner = unlocked is Array and unlocked.size() > 0
+	var unlocked: Array = ProfileRepo.get_unlocked_summoners()
+	var has_summoner: bool = unlocked.size() > 0
 
 	collection_button.disabled = not has_summoner
 	if not has_summoner:

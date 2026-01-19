@@ -302,7 +302,4 @@ func get_summoners_ready_to_level_up() -> Array[String]:
 
 ## Get the active summoner ID from SummonerSelection service
 func _get_active_summoner_id() -> String:
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
-		return summoner_selection.get_active_summoner_id()
-	return ""
+	return SummonerSelection.get_active_summoner_id()

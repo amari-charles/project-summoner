@@ -188,10 +188,8 @@ func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 	# DialogueManager now owns capability blocking/unblocking during dialogue
 	# See DialogueManager.start_dialogue() and dialogue_ended signal handlers
 
-	# Try to find DialogueManager (could be autoload or scene node)
-	var dialogue_manager: Node = get_node_or_null("/root/DialogueManager")
-	if not dialogue_manager:
-		dialogue_manager = get_tree().get_first_node_in_group("dialogue_manager")
+	# DialogueManager is an autoload
+	var dialogue_manager: Node = DialogueManager
 
 	if debug_mode:
 		print("EventSequencer: Found DialogueManager: %s" % (dialogue_manager != null))
@@ -340,8 +338,8 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 		push_error("EventSequencer: Battlefield not found")
 		return
 
-	# Get ModifierService
-	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	# Get ModifierService (C# autoload - access via get_node)
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
 
 	# Apply stat overrides to Card BEFORE spawning
 	var stat_overrides_val: Variant = step.get("stat_overrides")

@@ -14,8 +14,6 @@ class_name SummonerSelectionScreen
 @onready var select_button4: Button = %SelectButton4
 @onready var select_button5: Button = %SelectButton5
 
-var dialogue_manager: Node = null
-
 # Special constant for random selection (not a real summoner)
 const SUMMONER_RANDOM: String = "random"
 
@@ -38,14 +36,8 @@ func _ready() -> void:
 
 	# Start Merlin's introduction dialogue
 	await get_tree().process_frame
-	dialogue_manager = get_node_or_null("/root/DialogueManager")
-	if dialogue_manager and dialogue_manager.has_signal("dialogue_ended") and dialogue_manager.has_method("start_dialogue"):
-		dialogue_manager.connect("dialogue_ended", _on_merlin_dialogue_ended)
-		dialogue_manager.call("start_dialogue", "merlin_summoner_intro")
-	else:
-		# Fallback if dialogue system unavailable
-		print("SummonerSelection: DialogueManager not found, showing summoner selection immediately")
-		_show_summoner_selection()
+	DialogueManager.dialogue_ended.connect(_on_merlin_dialogue_ended)
+	DialogueManager.start_dialogue("merlin_summoner_intro")
 
 func _on_merlin_dialogue_ended() -> void:
 	print("SummonerSelection: Merlin dialogue complete, showing summoner selection")
@@ -72,28 +64,22 @@ func _on_summoner_selected(summoner_id: String) -> void:
 		final_summoner_id = random_pool[randi() % random_pool.size()]
 		print("SummonerSelection: Random selection chose: %s" % final_summoner_id)
 
-	# Save summoner choice to profile using new ProfileRepo method
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("set_starting_summoner"):
-		var success: bool = profile_repo.call("set_starting_summoner", final_summoner_id, chosen_random)
-		if success:
-			print("SummonerSelection: Successfully set starting summoner: %s (random: %s)" % [final_summoner_id, chosen_random])
-		else:
-			push_error("SummonerSelection: Failed to set starting summoner!")
+	# Save summoner choice to profile
+	var success: bool = ProfileRepo.set_starting_summoner(final_summoner_id, chosen_random)
+	if success:
+		print("SummonerSelection: Successfully set starting summoner: %s (random: %s)" % [final_summoner_id, chosen_random])
 	else:
-		push_error("SummonerSelection: ProfileRepo.set_starting_summoner() not available!")
+		push_error("SummonerSelection: Failed to set starting summoner!")
 
 	# Create and save SummonerInstance with proper modifiers
-	_create_summoner_instance(final_summoner_id, chosen_random, profile_repo)
+	_create_summoner_instance(final_summoner_id, chosen_random)
 
 	# Update starter deck with selected summoner
 	_assign_summoner_to_starter_deck(final_summoner_id)
 
 	# Mark affinity selection event as completed
-	var campaign: Node = get_node("/root/Campaign")
-	if campaign and campaign.has_method("complete_battle"):
-		campaign.call("complete_battle", BattleIDs.EVENT_AFFINITY)
-		print("SummonerSelection: Marked affinity selection as completed!")
+	Campaign.complete_battle(BattleIDs.EVENT_AFFINITY)
+	print("SummonerSelection: Marked affinity selection as completed!")
 
 	# Transition to reveal scene (summoner data already saved in ProfileRepo)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_REVEAL)
@@ -101,14 +87,10 @@ func _on_summoner_selected(summoner_id: String) -> void:
 ## Assign the selected summoner to the starter deck
 func _assign_summoner_to_starter_deck(summoner_id: String) -> void:
 	print("SummonerSelection: Attempting to assign summoner '%s' to Starter Deck" % summoner_id)
-	var decks: Node = get_node_or_null("/root/Decks")
-	if not decks:
-		push_error("SummonerSelection: Decks service not found!")
-		return
 
 	# Find the "Starter Deck"
 	const STARTER_DECK_NAME: String = "Starter Deck"
-	var deck_list: Array = decks.call("list_decks")
+	var deck_list: Array = Decks.list_decks()
 	print("SummonerSelection: Found %d decks" % deck_list.size())
 	var starter_deck_id: String = ""
 
@@ -125,33 +107,20 @@ func _assign_summoner_to_starter_deck(summoner_id: String) -> void:
 		return
 
 	# Update the deck with the summoner_id
-	if decks.has_method("set_deck_summoner"):
-		print("SummonerSelection: Calling set_deck_summoner('%s', '%s')" % [starter_deck_id, summoner_id])
-		var success: bool = decks.call("set_deck_summoner", starter_deck_id, summoner_id)
-		if success:
-			print("SummonerSelection: Successfully assigned summoner '%s' to Starter Deck" % summoner_id)
-		else:
-			push_error("SummonerSelection: Failed to assign summoner to Starter Deck")
+	print("SummonerSelection: Calling set_deck_summoner('%s', '%s')" % [starter_deck_id, summoner_id])
+	var deck_success: bool = Decks.set_deck_summoner(starter_deck_id, summoner_id)
+	if deck_success:
+		print("SummonerSelection: Successfully assigned summoner '%s' to Starter Deck" % summoner_id)
 	else:
-		push_error("SummonerSelection: set_deck_summoner method not available!")
+		push_error("SummonerSelection: Failed to assign summoner to Starter Deck")
 
 ## Create and save SummonerInstance for the selected summoner
-func _create_summoner_instance(summoner_id: String, chosen_random: bool, profile_repo: Node) -> void:
-	var summoner_catalog: Node = get_node_or_null("/root/SummonerCatalog")
-	if not summoner_catalog:
-		push_error("SummonerSelection: SummonerCatalog not found!")
-		return
-
+func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void:
 	# Get summoner config
-	var summoner_config_variant: Variant = null
-	if summoner_catalog.has_method("get_summoner_config"):
-		summoner_config_variant = summoner_catalog.call("get_summoner_config", summoner_id)
-
-	if not summoner_config_variant is SummonerConfig:
+	var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	if not summoner_config:
 		push_error("SummonerSelection: Failed to get SummonerConfig for '%s'" % summoner_id)
 		return
-
-	var summoner_config: SummonerConfig = summoner_config_variant
 
 	# Create SummonerInstance from config
 	var summoner_instance: SummonerInstance = SummonerInstance.new()
@@ -165,13 +134,10 @@ func _create_summoner_instance(summoner_id: String, chosen_random: bool, profile
 			push_warning("SummonerSelection: Failed to add fortune_favors_bold trait")
 
 	# Save SummonerInstance to profile
-	if profile_repo and profile_repo.has_method("save_summoner_instance"):
-		var success: bool = profile_repo.call("save_summoner_instance", summoner_instance)
-		if success:
-			print("SummonerSelection: Saved SummonerInstance for '%s' (level %d, %d boons)" % [
-				summoner_id, summoner_instance.level, summoner_instance.acquired_boon_ids.size()
-			])
-		else:
-			push_error("SummonerSelection: Failed to save SummonerInstance!")
+	var save_success: bool = ProfileRepo.save_summoner_instance(summoner_instance)
+	if save_success:
+		print("SummonerSelection: Saved SummonerInstance for '%s' (level %d, %d boons)" % [
+			summoner_id, summoner_instance.level, summoner_instance.acquired_boon_ids.size()
+		])
 	else:
-		push_error("SummonerSelection: ProfileRepo.save_summoner_instance() not available!")
+		push_error("SummonerSelection: Failed to save SummonerInstance!")

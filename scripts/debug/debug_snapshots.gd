@@ -32,10 +32,7 @@ func _ready() -> void:
 	# Wait for services to be ready
 	await get_tree().process_frame
 
-	_repo = get_node_or_null("/root/ProfileRepo")
-	if not _repo:
-		push_error("DebugSnapshots: ProfileRepo not found!")
-		return
+	_repo = ProfileRepo
 
 	# Load snapshot list
 	refresh_snapshot_list()

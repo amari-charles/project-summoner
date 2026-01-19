@@ -49,20 +49,11 @@ func _refresh_campaign_list() -> void:
 	for child: Node in campaign_list.get_children():
 		child.queue_free()
 
-	var campaign_service: Node = get_node_or_null("/root/Campaign")
-	if not campaign_service or not campaign_service.has_method("get_all_campaigns"):
-		push_error("CampaignSelectorModal: Campaign service not found")
-		return
-
-	var campaigns: Array = campaign_service.call("get_all_campaigns")
-	var current_id: String = ""
-	if campaign_service.has_method("get_current_campaign_id"):
-		current_id = campaign_service.call("get_current_campaign_id")
+	var campaigns: Array = Campaign.get_all_campaigns()
+	var current_id: String = Campaign.get_current_campaign_id()
 
 	# Check if onboarding is complete
-	var onboarding_complete: bool = false
-	if campaign_service.has_method("is_onboarding_complete"):
-		onboarding_complete = campaign_service.call("is_onboarding_complete")
+	var onboarding_complete: bool = Campaign.is_onboarding_complete()
 
 	for campaign_variant: Variant in campaigns:
 		if not campaign_variant is Dictionary:

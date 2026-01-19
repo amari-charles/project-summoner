@@ -82,18 +82,9 @@ func set_deck_context(deck_id: String, card_in_deck: bool) -> void:
 ## =============================================================================
 
 func _load_card_data() -> void:
-	var catalog: Node = get_node_or_null("/root/CardCatalog")
-	if not catalog or not catalog.has_method("get_card"):
-		push_error("CardDetailModal: CardCatalog not found")
-		return
-
-	var catalog_data_result: Variant = catalog.call("get_card", card_catalog_id)
-	if not catalog_data_result is Dictionary:
-		push_error("CardDetailModal: Failed to get catalog data for %s" % card_catalog_id)
-		return
-	var catalog_data: Dictionary = catalog_data_result
-
+	var catalog_data: Dictionary = CardCatalog.get_card(card_catalog_id)
 	if catalog_data.is_empty():
+		push_error("CardDetailModal: Failed to get catalog data for %s" % card_catalog_id)
 		return
 
 	# Update card visual
@@ -167,14 +158,7 @@ func _update_stats_display() -> void:
 
 
 func _get_effective_stats() -> Dictionary:
-	var catalog: Node = get_node_or_null("/root/CardCatalog")
-	if not catalog or not catalog.has_method("get_card"):
-		return {}
-
-	var base_stats_result: Variant = catalog.call("get_card", card_catalog_id)
-	if not base_stats_result is Dictionary:
-		return {}
-	var base_stats: Dictionary = (base_stats_result as Dictionary).duplicate(true)
+	var base_stats: Dictionary = CardCatalog.get_card(card_catalog_id).duplicate(true)
 
 	if base_stats.is_empty():
 		return {}
@@ -183,11 +167,11 @@ func _get_effective_stats() -> Dictionary:
 	if card_instance_id.is_empty():
 		return base_stats
 
-	# Try PlayerCardService first (C# service)
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
-	if card_service and card_service.has_method("get_effective_stats"):
-		var effective: Variant = card_service.call("get_effective_stats", card_instance_id)
-		if effective is Dictionary and not effective.is_empty():
+	# Try PlayerCardService for effective stats with upgrades applied (C# autoload)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if card_service:
+		var effective: Dictionary = card_service.get_effective_stats(card_instance_id)
+		if not effective.is_empty():
 			return effective
 
 	return base_stats
@@ -222,16 +206,12 @@ func _update_progression_display() -> void:
 		_hide_progression()
 		return
 
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
-	if not card_service or not card_service.has_method("get_card_progression_info"):
-		push_warning("CardDetailModal: PlayerCardService not found")
+	# PlayerCardService is a C# autoload
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
 		_hide_progression()
 		return
-
-	var info: Dictionary = {}
-	var result: Variant = card_service.call("get_card_progression_info", card_instance_id)
-	if result is Dictionary:
-		info = result
+	var info: Dictionary = card_service.get_card_progression_info(card_instance_id)
 	if info.is_empty():
 		_hide_progression()
 		return
@@ -292,12 +272,12 @@ func _update_upgrades_display() -> void:
 		upgrades_section.visible = false
 		return
 
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
-	if not card_service or not card_service.has_method("get_applied_upgrades"):
+	# PlayerCardService is a C# autoload
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
 		upgrades_section.visible = false
 		return
-
-	var upgrade_ids: Array = card_service.call("get_applied_upgrades", card_instance_id)
+	var upgrade_ids: Array = card_service.get_applied_upgrades(card_instance_id)
 	if upgrade_ids.is_empty():
 		upgrades_section.visible = false
 		return

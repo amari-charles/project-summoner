@@ -27,13 +27,10 @@ func _ready() -> void:
 	call_deferred("_connect_to_cs_catalog")
 
 func _connect_to_cs_catalog() -> void:
-	_cs_catalog = get_node_or_null("/root/SummonerCatalogCS")
-	if _cs_catalog:
-		print("SummonerCatalog: Connected to C# catalog with %d summoners" % _cs_catalog.GetSummonerCount())
-		# Validate trait IDs after connection
-		call_deferred("_validate_trait_ids")
-	else:
-		push_error("SummonerCatalog: Failed to connect to SummonerCatalogCS - C# autoload not found")
+	_cs_catalog = SummonerCatalogCS
+	print("SummonerCatalog: Connected to C# catalog with %d summoners" % _cs_catalog.GetSummonerCount())
+	# Validate trait IDs after connection
+	call_deferred("_validate_trait_ids")
 
 ## =============================================================================
 ## LOOKUP METHODS
@@ -211,22 +208,13 @@ func _create_config_from_dict(dict: Dictionary) -> SummonerConfig:
 ## Validate all trait IDs in summoner configs against TraitCatalog
 ## Called after autoloads are initialized to ensure TraitCatalog is available
 func _validate_trait_ids() -> void:
-	var trait_catalog: Node = get_node_or_null("/root/TraitCatalog")
-	if not trait_catalog:
-		push_warning("SummonerCatalog: Cannot validate trait IDs - TraitCatalog not found")
-		return
-
-	if not trait_catalog.has_method("has_trait"):
-		push_warning("SummonerCatalog: Cannot validate trait IDs - TraitCatalog.has_trait() not available")
-		return
-
 	var invalid_count: int = 0
 	for summoner_id: String in get_all_summoner_ids():
 		var config: SummonerConfig = get_summoner_config(summoner_id)
 		if not config:
 			continue
 		for trait_id: String in config.innate_trait_ids:
-			if not trait_catalog.call("has_trait", trait_id):
+			if not TraitCatalog.has_trait(trait_id):
 				push_error("SummonerCatalog: Summoner '%s' has unknown trait ID: '%s'" % [summoner_id, trait_id])
 				invalid_count += 1
 

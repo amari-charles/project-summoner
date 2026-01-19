@@ -169,24 +169,20 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
-	var decks: Node = get_node("/root/Decks")
-	if decks:
-		if decks.has_signal("deck_changed"):
-			decks.deck_changed.connect(_on_deck_changed)
-		if decks.has_signal("deck_created"):
-			decks.deck_created.connect(_on_deck_created)
-		if decks.has_signal("deck_deleted"):
-			decks.deck_deleted.connect(_on_deck_deleted)
+	if Decks.has_signal("deck_changed"):
+		Decks.deck_changed.connect(_on_deck_changed)
+	if Decks.has_signal("deck_created"):
+		Decks.deck_created.connect(_on_deck_created)
+	if Decks.has_signal("deck_deleted"):
+		Decks.deck_deleted.connect(_on_deck_deleted)
 
-	var collection: Node = get_node("/root/Collection")
-	if collection and collection.has_signal("collection_changed"):
-		collection.collection_changed.connect(_on_collection_changed)
+	if Collection.has_signal("collection_changed"):
+		Collection.collection_changed.connect(_on_collection_changed)
 
 
 func _check_tutorial_lock() -> void:
-	var campaign: Node = get_node("/root/Campaign")
-	if campaign and campaign.has_method("is_tutorial_complete"):
-		var is_complete: Variant = campaign.call("is_tutorial_complete")
+	if Campaign.has_method("is_tutorial_complete"):
+		var is_complete: Variant = Campaign.call("is_tutorial_complete")
 		if is_complete is bool:
 			deck_editing_locked = not is_complete
 
@@ -196,11 +192,10 @@ func _check_tutorial_lock() -> void:
 ## =============================================================================
 
 func _refresh_deck_list() -> void:
-	var decks: Node = get_node("/root/Decks")
-	if not decks or not decks.has_method("list_decks"):
+	if not Decks.has_method("list_decks"):
 		return
 
-	var deck_list_result: Variant = decks.call("list_decks")
+	var deck_list_result: Variant = Decks.call("list_decks")
 	if not deck_list_result is Array:
 		return
 
@@ -210,8 +205,8 @@ func _refresh_deck_list() -> void:
 
 	# Get active deck ID
 	var active_deck_id: String = ""
-	if decks.has_method("get_active_deck_id"):
-		var active_id: Variant = decks.call("get_active_deck_id")
+	if Decks.has_method("get_active_deck_id"):
+		var active_id: Variant = Decks.call("get_active_deck_id")
 		if active_id is String:
 			active_deck_id = active_id
 
@@ -231,8 +226,8 @@ func _refresh_deck_list() -> void:
 		if item.has_method("setup"):
 			var card_count: int = deck.get("card_instance_ids", []).size()
 			var is_valid: bool = true
-			if decks.has_method("get_validation_errors"):
-				var errors: Variant = decks.call("get_validation_errors", deck_id)
+			if Decks.has_method("get_validation_errors"):
+				var errors: Variant = Decks.call("get_validation_errors", deck_id)
 				is_valid = errors is Array and errors.size() == 0
 
 			item.call("setup", {
@@ -258,13 +253,12 @@ func _refresh_deck_list() -> void:
 			item.delete_clicked.connect(_on_deck_delete_clicked.bind(deck_id))
 
 	# Create default deck if none exist (only if summoner is unlocked)
-	if deck_list_result.size() == 0 and decks.has_method("create_deck"):
+	if deck_list_result.size() == 0 and Decks.has_method("create_deck"):
 		# Check if any summoners are unlocked - can't create deck without one
-		var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-		if profile_repo and profile_repo.has_method("get_unlocked_summoners"):
-			var unlocked: Variant = profile_repo.call("get_unlocked_summoners")
+		if ProfileRepo.has_method("get_unlocked_summoners"):
+			var unlocked: Variant = ProfileRepo.call("get_unlocked_summoners")
 			if unlocked is Array and unlocked.size() > 0:
-				var new_deck_id: Variant = decks.call("create_deck", "My Deck", [])
+				var new_deck_id: Variant = Decks.call("create_deck", "My Deck", [])
 				if new_deck_id is String and not new_deck_id.is_empty():
 					_refresh_deck_list()
 		return
@@ -293,9 +287,8 @@ func _on_deck_item_double_clicked(_deck_id: String) -> void:
 
 func _on_deck_star_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("set_active_deck"):
-		decks.call("set_active_deck", deck_id)
+	if Decks.has_method("set_active_deck"):
+		Decks.call("set_active_deck", deck_id)
 		_refresh_deck_list()
 
 
@@ -303,9 +296,8 @@ func _on_deck_rename_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	deck_id_for_action = deck_id
 	# Get current deck name
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("get_deck"):
-		var deck: Variant = decks.call("get_deck", deck_id)
+	if Decks.has_method("get_deck"):
+		var deck: Variant = Decks.call("get_deck", deck_id)
 		if deck is Dictionary:
 			rename_input.text = deck.get("name", "")
 	rename_dialog.popup_centered()
@@ -332,11 +324,10 @@ func _refresh_deck_panel() -> void:
 		selected_deck_count.text = ""
 		return
 
-	var decks: Node = get_node("/root/Decks")
-	if not decks or not decks.has_method("get_deck"):
+	if not Decks.has_method("get_deck"):
 		return
 
-	var deck_result: Variant = decks.call("get_deck", selected_deck_id)
+	var deck_result: Variant = Decks.call("get_deck", selected_deck_id)
 	if not deck_result is Dictionary or deck_result.is_empty():
 		return
 
@@ -346,21 +337,16 @@ func _refresh_deck_panel() -> void:
 	selected_deck_count.text = "%d/%d" % [card_ids.size(), MAX_DECK_SIZE]
 
 	# Populate deck cards
-	var collection: Node = get_node("/root/Collection")
-	var catalog: Node = get_node("/root/CardCatalog")
-	if not collection or not catalog:
-		return
-
 	for card_id: Variant in card_ids:
 		if not card_id is String:
 			continue
 
-		var card_data: Variant = collection.call("get_card", card_id)
+		var card_data: Variant = Collection.call("get_card", card_id)
 		if not card_data is Dictionary or card_data.is_empty():
 			continue
 
 		var catalog_id: String = card_data.get("catalog_id", "")
-		var catalog_data: Variant = catalog.call("get_card", catalog_id)
+		var catalog_data: Variant = CardCatalog.call("get_card", catalog_id)
 		if not catalog_data is Dictionary or catalog_data.is_empty():
 			continue
 
@@ -449,18 +435,16 @@ func _on_new_deck_confirmed() -> void:
 	if deck_name == "":
 		deck_name = Loc.t("ui.collection.new_deck_default")
 
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("create_deck"):
-		decks.call("create_deck", deck_name, [])
+	if Decks.has_method("create_deck"):
+		Decks.call("create_deck", deck_name, [])
 
 
 func _on_delete_confirmed() -> void:
 	if deck_id_for_action == "":
 		return
 
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("delete_deck"):
-		var success: Variant = decks.call("delete_deck", deck_id_for_action)
+	if Decks.has_method("delete_deck"):
+		var success: Variant = Decks.call("delete_deck", deck_id_for_action)
 		if success is bool and success:
 			if selected_deck_id == deck_id_for_action:
 				selected_deck_id = ""
@@ -476,9 +460,8 @@ func _on_rename_confirmed() -> void:
 	if new_name == "":
 		return
 
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("rename_deck"):
-		decks.call("rename_deck", deck_id_for_action, new_name)
+	if Decks.has_method("rename_deck"):
+		Decks.call("rename_deck", deck_id_for_action, new_name)
 		deck_id_for_action = ""
 		_refresh_deck_list()
 		_refresh_deck_panel()
@@ -489,12 +472,7 @@ func _on_rename_confirmed() -> void:
 ## =============================================================================
 
 func _refresh_collection() -> void:
-	var collection: Node = get_node("/root/Collection")
-	var catalog: Node = get_node("/root/CardCatalog")
-	if not collection or not catalog:
-		return
-
-	var summary_result: Variant = collection.call("get_collection_summary")
+	var summary_result: Variant = Collection.call("get_collection_summary")
 	if not summary_result is Array:
 		return
 	collection_summary = summary_result
@@ -563,11 +541,10 @@ func _get_selected_deck_card_ids() -> Array[String]:
 	if selected_deck_id == "":
 		return result
 
-	var decks: Node = get_node("/root/Decks")
-	if not decks or not decks.has_method("get_deck"):
+	if not Decks.has_method("get_deck"):
 		return result
 
-	var deck_result: Variant = decks.call("get_deck", selected_deck_id)
+	var deck_result: Variant = Decks.call("get_deck", selected_deck_id)
 	if not deck_result is Dictionary:
 		return result
 
@@ -580,8 +557,6 @@ func _get_selected_deck_card_ids() -> Array[String]:
 
 
 func _get_filtered_sorted_cards() -> Array:
-	var catalog: Node = get_node("/root/CardCatalog")
-	var card_service: Node = get_node_or_null("/root/PlayerCardService")
 	var result: Array = []
 
 	for entry: Variant in collection_summary:
@@ -589,7 +564,7 @@ func _get_filtered_sorted_cards() -> Array:
 			continue
 
 		var catalog_id: String = entry.get("catalog_id", "")
-		var catalog_data: Variant = catalog.call("get_card", catalog_id)
+		var catalog_data: Variant = CardCatalog.call("get_card", catalog_id)
 		if not catalog_data is Dictionary or catalog_data.is_empty():
 			continue
 
@@ -625,8 +600,10 @@ func _get_filtered_sorted_cards() -> Array:
 
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
+			# PlayerCardService is a C# autoload
+			var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 			if not instance_id.is_empty() and card_service and card_service.has_method("get_card_progression_info"):
-				var result_info: Variant = card_service.call("get_card_progression_info", instance_id)
+				var result_info: Variant = card_service.get_card_progression_info(instance_id)
 				if result_info is Dictionary:
 					level = result_info.get("level", 1)
 
@@ -893,9 +870,8 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 	if deck_card_ids.size() >= MAX_DECK_SIZE:
 		return
 
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("add_card_to_deck"):
-		var success: Variant = decks.call("add_card_to_deck", selected_deck_id, card_instance_id)
+	if Decks.has_method("add_card_to_deck"):
+		var success: Variant = Decks.call("add_card_to_deck", selected_deck_id, card_instance_id)
 		if success is bool and success:
 			_refresh_deck_list()
 			_refresh_deck_panel()
@@ -968,9 +944,8 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 	if selected_deck_id == "":
 		return
 
-	var decks: Node = get_node("/root/Decks")
-	if decks and decks.has_method("remove_card_from_deck"):
-		var success: Variant = decks.call("remove_card_from_deck", selected_deck_id, card_instance_id)
+	if Decks.has_method("remove_card_from_deck"):
+		var success: Variant = Decks.call("remove_card_from_deck", selected_deck_id, card_instance_id)
 		if success is bool and success:
 			_refresh_deck_list()
 			_refresh_deck_panel()
@@ -987,9 +962,8 @@ func _on_modal_closed(modal: Node) -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_gold"):
-		var gold: Variant = profile_repo.call("get_gold")
+	if ProfileRepo.has_method("get_gold"):
+		var gold: Variant = ProfileRepo.call("get_gold")
 		if gold is int:
 			gold_label.text = str(gold)
 

@@ -261,8 +261,8 @@ func _spawn_tutorial_enemy() -> void:
 
 	print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
 
-	# Get ModifierService
-	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	# Get ModifierService (C# autoload - must use get_node_or_null)
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
 	print("BattleDialogueController: ModifierService: %s" % ("found" if modifier_service else "null"))
 
 	# Spawn the unit directly (team 1 = enemy)

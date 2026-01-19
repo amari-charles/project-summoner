@@ -328,9 +328,9 @@ func _find_3d_root(viewport: Viewport) -> Node:
 func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int = 0) -> Array[Vector3]:
 	var positions: Array[Vector3] = []
 
-	# Get CardFactory (C# service - single source of truth for spawn positions)
-	var factory: Node = get_node_or_null("/root/CardFactory")
-	if not factory or not factory.has_method("get_safe_spawn_positions"):
+	# CardFactory is a C# autoload - single source of truth for spawn positions
+	var card_factory: Node = get_node_or_null(CSharpAutoloads.CARD_FACTORY)
+	if not card_factory or not card_factory.has_method("get_safe_spawn_positions"):
 		# Fallback: just return formation offsets without safe spawn adjustment
 		for i: int in card.spawn_count:
 			positions.append(center_pos + card.get_formation_offset(i))
@@ -351,7 +351,7 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 		battlefield = get_tree().current_scene
 
 	# Call C# CardFactory for safe spawn positions (single source of truth)
-	var result: Variant = factory.call("get_safe_spawn_positions",
+	var result: Variant = card_factory.get_safe_spawn_positions(
 		card.catalog_id, center_pos, battlefield, separation_radius, team)
 
 	if result is Array:
@@ -488,8 +488,8 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 		push_error("BattlefieldDropZone: No battlefield found for debug spawn")
 		return
 
-	# Get modifier service (optional)
-	var modifier_service: Node = get_node_or_null("/root/ModifierService")
+	# ModifierService autoload for unit modifiers (C# autoload - must use get_node_or_null)
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
 
 	# Convert team int to UnitConstants.Team enum
 	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY

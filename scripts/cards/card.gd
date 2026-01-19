@@ -175,21 +175,22 @@ func get_effective_stats() -> Dictionary:
 		return base_stats
 
 	# Delegate to PlayerCardService for full stat pipeline
-	var card_service: Node = _get_autoload_node("/root/PlayerCardService")
+	var card_service: Node = _get_autoload(CSharpAutoloads.PLAYER_CARD_SERVICE)
 	if card_service:
-		var effective: Variant = card_service.call("get_effective_stats", instance_id)
+		var effective: Variant = card_service.get_effective_stats(instance_id)
 		if effective is Dictionary and not effective.is_empty():
 			return effective
 
 	return base_stats
 
 ## Helper to get autoload nodes (Card is a Resource, not a Node)
-func _get_autoload_node(path: String) -> Node:
+## Accepts either just the name ("X") or full path ("/root/X") - absolute paths work from any node
+func _get_autoload(autoload_path: String) -> Node:
 	var main_loop: MainLoop = Engine.get_main_loop()
 	if main_loop is SceneTree:
 		var tree: SceneTree = main_loop
 		if tree and tree.root:
-			return tree.root.get_node_or_null(path)
+			return tree.root.get_node_or_null(autoload_name)
 	return null
 
 ## Check if this card needs click-targeting (Rally/Guard with command_type)
@@ -288,7 +289,7 @@ func _get_card_factory() -> Node:
 	if not tree.root:
 		return null
 
-	return tree.root.get_node_or_null("/root/CardFactory")
+	return tree.root.get_node_or_null("CardFactory")
 
 
 ## =============================================================================

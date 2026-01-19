@@ -133,19 +133,14 @@ func _ready() -> void:
 	_setup_detail_panel_border()
 
 	# Connect to campaign service
-	var campaign: Node = get_node("/root/Campaign")
-	if campaign:
-		if campaign.has_signal("battle_completed"):
-			var battle_completed_signal: Signal = campaign.get("battle_completed")
-			battle_completed_signal.connect(_on_event_completed)
-		if campaign.has_signal("campaign_progress_changed"):
-			var campaign_progress_signal: Signal = campaign.get("campaign_progress_changed")
-			campaign_progress_signal.connect(_on_progress_changed)
+	if Campaign.has_signal("battle_completed"):
+		Campaign.battle_completed.connect(_on_event_completed)
+	if Campaign.has_signal("campaign_progress_changed"):
+		Campaign.campaign_progress_changed.connect(_on_progress_changed)
 
 	# Connect to summoner selection changes
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
-	if summoner_selection and summoner_selection.has_signal("summoner_changed"):
-		summoner_selection.summoner_changed.connect(_on_summoner_selection_changed)
+	if SummonerSelection.has_signal("summoner_changed"):
+		SummonerSelection.summoner_changed.connect(_on_summoner_selection_changed)
 
 	# Setup navigation (hamburger menu + nav drawer)
 	_setup_navigation()
@@ -189,27 +184,18 @@ func _draw() -> void:
 ## =============================================================================
 
 func _check_auto_redirect_from_onboarding() -> void:
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if not campaign:
-		return
-
 	# Check if currently on onboarding campaign
-	var current_campaign_id: String = ""
-	if campaign.has_method("get_current_campaign_id"):
-		current_campaign_id = campaign.call("get_current_campaign_id")
+	var current_campaign_id: String = Campaign.get_current_campaign_id()
 
 	if current_campaign_id != String(CampaignIDs.ONBOARDING):
 		return  # Not on onboarding, no redirect needed
 
 	# Check if onboarding is complete
-	if campaign.has_method("is_onboarding_complete"):
-		var is_complete: bool = campaign.call("is_onboarding_complete")
-		if is_complete:
-			# Switch to academy trials (main campaign)
-			print("CampaignMap: Onboarding complete, auto-switching to Academy Trials")
-			if campaign.has_method("set_current_campaign"):
-				campaign.call("set_current_campaign", String(CampaignIDs.ACADEMY_TRIALS))
-				_update_campaign_banner_text()
+	if Campaign.is_onboarding_complete():
+		# Switch to academy trials (main campaign)
+		print("CampaignMap: Onboarding complete, auto-switching to Academy Trials")
+		Campaign.set_current_campaign(String(CampaignIDs.ACADEMY_TRIALS))
+		_update_campaign_banner_text()
 
 ## =============================================================================
 ## MAP DISPLAY
@@ -222,12 +208,7 @@ func _refresh_map() -> void:
 	event_nodes.clear()
 	event_render_order.clear()
 
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		push_error("CampaignMap: Campaign service not found!")
-		return
-
-	var events_variant: Variant = campaign.call("get_all_battles")
+	var events_variant: Variant = Campaign.get_all_battles()
 	var events_array: Array = _safe_array(events_variant)
 	all_events.assign(events_array)
 
@@ -235,8 +216,8 @@ func _refresh_map() -> void:
 	for event: Dictionary in all_events:
 		print("  - %s (unlocked: %s, completed: %s)" % [
 			event.get("id", "unknown"),
-			campaign.call("is_battle_unlocked", event.get("id", "")),
-			campaign.call("is_battle_completed", event.get("id", ""))
+			Campaign.is_battle_unlocked(event.get("id", "")),
+			Campaign.is_battle_completed(event.get("id", ""))
 		])
 
 	# Calculate centered starting position
@@ -253,8 +234,8 @@ func _refresh_map() -> void:
 			push_warning("CampaignMap: Event missing 'id', skipping")
 			continue
 
-		var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", event_id))
-		var is_unlocked: bool = _safe_bool(campaign.call("is_battle_unlocked", event_id))
+		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
+		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(event_id))
 
 		var event_node: Control = _create_event_node(event, node_index, start_x, is_unlocked, is_completed)
 		map_container.add_child(event_node)
@@ -474,11 +455,7 @@ func _update_detail_panel() -> void:
 		return
 
 	# Get event data
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		return
-
-	var event: Dictionary = _safe_dict(campaign.call("get_battle", selected_event_id))
+	var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
 	if event.is_empty():
 		return
 
@@ -508,8 +485,8 @@ func _update_detail_panel() -> void:
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
 	var reward_text: String = ""
 
-	# Get CardCatalog for proper card names
-	var catalog: Node = get_node_or_null("/root/CardCatalog")
+	# Get CardCatalog for proper card names (used in helper function)
+	var catalog: Node = CardCatalog
 
 	if reward_cards.size() > 0 and reward_type == RewardTypeIDs.FIXED:
 		var card_names: Array[String] = []
@@ -527,7 +504,7 @@ func _update_detail_panel() -> void:
 	reward_label.text = reward_text
 
 	# Enable/disable start button based on completion and repeatability
-	var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", selected_event_id))
+	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(selected_event_id))
 	var is_repeatable: bool = _safe_bool(event.get("repeatable", true))
 
 	if is_completed:
@@ -554,28 +531,19 @@ func _load_decks() -> void:
 	deck_selector.clear()
 	available_decks.clear()
 
-	# Get decks service
-	var decks: Node = get_node("/root/Decks")
-	if not decks:
-		push_error("CampaignMap: Decks service not found!")
-		deck_info_label.text = Loc.t("campaign.map.error_decks_unavailable")
-		return
-
 	# Get active summoner ID to filter decks
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
 	var active_summoner_id: String = ""
-	if summoner_selection and summoner_selection.has_method("get_active_summoner_id"):
-		var result: Variant = summoner_selection.call("get_active_summoner_id")
-		if result is String:
-			active_summoner_id = result
+	var result: Variant = SummonerSelection.get_active_summoner_id()
+	if result is String:
+		active_summoner_id = result
 
 	# Get decks filtered by active summoner
 	var decks_array: Array
-	if not active_summoner_id.is_empty() and decks.has_method("list_decks_for_summoner"):
-		var decks_variant: Variant = decks.call("list_decks_for_summoner", active_summoner_id)
+	if not active_summoner_id.is_empty():
+		var decks_variant: Variant = Decks.list_decks_for_summoner(active_summoner_id)
 		decks_array = _safe_array(decks_variant)
 	else:
-		var decks_variant: Variant = decks.call("list_decks")
+		var decks_variant: Variant = Decks.list_decks()
 		decks_array = _safe_array(decks_variant)
 	available_decks.assign(decks_array)
 
@@ -591,22 +559,20 @@ func _load_decks() -> void:
 		deck_selector.add_item(deck_name)
 
 	# Get currently selected deck from profile
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo:
-		var profile_variant: Variant = profile_repo.call("get_active_profile")
-		var profile: Dictionary = _safe_dict(profile_variant)
-		if not profile.is_empty() and profile.has("meta"):
-			var meta: Dictionary = _safe_dict(profile.get("meta"))
-			var active_deck: String = _safe_string(meta.get("selected_deck", ""))
+	var profile_variant: Variant = ProfileRepo.get_active_profile()
+	var profile: Dictionary = _safe_dict(profile_variant)
+	if not profile.is_empty() and profile.has("meta"):
+		var meta: Dictionary = _safe_dict(profile.get("meta"))
+		var active_deck: String = _safe_string(meta.get("selected_deck", ""))
 
-			# Find the deck in available_decks and select it
-			for i: int in range(available_decks.size()):
-				var deck: Dictionary = available_decks[i]
-				var deck_id: String = _safe_string(deck.get("id", ""))
-				if deck_id == active_deck:
-					deck_selector.select(i)
-					selected_deck_id = deck_id
-					break
+		# Find the deck in available_decks and select it
+		for i: int in range(available_decks.size()):
+			var deck: Dictionary = available_decks[i]
+			var deck_id: String = _safe_string(deck.get("id", ""))
+			if deck_id == active_deck:
+				deck_selector.select(i)
+				selected_deck_id = deck_id
+				break
 
 	# Update deck info display
 	_update_deck_info()
@@ -622,16 +588,14 @@ func _on_deck_selected(index: int) -> void:
 	_update_deck_info()
 
 	# Save selection to profile
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	if profile_repo:
-		var profile_variant: Variant = profile_repo.call("get_active_profile")
-		var profile: Dictionary = _safe_dict(profile_variant)
-		if not profile.is_empty():
-			if not profile.has("meta"):
-				profile["meta"] = {}
-			var meta: Dictionary = _safe_dict(profile.get("meta"))
-			meta["selected_deck"] = selected_deck_id
-			profile_repo.call("save_profile", true)  # Immediate save
+	var profile_variant: Variant = ProfileRepo.get_active_profile()
+	var profile: Dictionary = _safe_dict(profile_variant)
+	if not profile.is_empty():
+		if not profile.has("meta"):
+			profile["meta"] = {}
+		var meta: Dictionary = _safe_dict(profile.get("meta"))
+		meta["selected_deck"] = selected_deck_id
+		ProfileRepo.save_profile(true)  # Immediate save
 
 	print("CampaignMap: Selected deck: %s" % selected_deck_id)
 
@@ -671,11 +635,7 @@ func _validate_selected_deck() -> bool:
 	if selected_deck_id.is_empty():
 		return false
 
-	var decks: Node = get_node("/root/Decks")
-	if not decks:
-		return false
-
-	var is_valid_variant: Variant = decks.call("validate_deck", selected_deck_id)
+	var is_valid_variant: Variant = Decks.validate_deck(selected_deck_id)
 	return _safe_bool(is_valid_variant, false)
 
 ## =============================================================================
@@ -688,11 +648,7 @@ func _on_start_event_pressed() -> void:
 		return
 
 	# Get event data to check event_type
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		return
-
-	var event: Dictionary = _safe_dict(campaign.call("get_battle", selected_event_id))
+	var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
 	if event.is_empty():
 		return
 
@@ -733,7 +689,7 @@ func _on_start_event_pressed() -> void:
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
 		# Check if event is already completed and not repeatable
-		var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", selected_event_id), false)
+		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(selected_event_id), false)
 		var is_repeatable: bool = _safe_bool(event.get("repeatable", false), false)
 
 		if is_completed and not is_repeatable:
@@ -766,14 +722,13 @@ func _on_start_event_pressed() -> void:
 			return
 
 	# Store selected event in campaign service
-	var profile_repo: Node = get_node("/root/ProfileRepo")
-	var profile: Dictionary = _safe_dict(profile_repo.call("get_active_profile"))
+	var profile: Dictionary = _safe_dict(ProfileRepo.get_active_profile())
 	if not profile.is_empty():
 		if not profile.has("campaign_progress"):
 			profile["campaign_progress"] = {}
 		var campaign_progress: Dictionary = _safe_dict(profile["campaign_progress"])
 		campaign_progress["current_battle"] = selected_event_id
-		profile_repo.call("save_profile", true)
+		ProfileRepo.save_profile(true)
 
 	# Configure battle context
 	print("CampaignMap: Configuring BattleContext with battle_id='%s'" % selected_event_id)
@@ -806,14 +761,10 @@ func _on_center_latest_pressed() -> void:
 func _find_latest_unlocked_mission() -> String:
 	# Iterate through event_render_order in reverse
 	# Return first event that is unlocked but not completed
-	var campaign: Node = get_node("/root/Campaign")
-	if not campaign:
-		return ""
-
 	for i: int in range(event_render_order.size() - 1, -1, -1):
 		var event_id: String = event_render_order[i]
-		var is_completed: bool = _safe_bool(campaign.call("is_battle_completed", event_id))
-		var is_unlocked: bool = _safe_bool(campaign.call("is_battle_unlocked", event_id))
+		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
+		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(event_id))
 
 		if is_unlocked and not is_completed:
 			return event_id
@@ -959,20 +910,13 @@ func _update_campaign_banner_text() -> void:
 	if not campaign_banner:
 		return
 
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if campaign and campaign.has_method("get_current_campaign_id"):
-		var campaign_id: String = campaign.call("get_current_campaign_id")
-		if campaign.has_method("get_campaign"):
-			var campaign_data: Dictionary = campaign.call("get_campaign", campaign_id)
-			var name_key: String = campaign_data.get("name_key", "")
-			if not name_key.is_empty():
-				campaign_banner.text = Loc.t(name_key)
-			else:
-				campaign_banner.text = campaign_id
-		else:
-			campaign_banner.text = campaign_id
+	var campaign_id: String = Campaign.get_current_campaign_id()
+	var campaign_data: Dictionary = Campaign.get_campaign(campaign_id)
+	var name_key: String = campaign_data.get("name_key", "")
+	if not name_key.is_empty():
+		campaign_banner.text = Loc.t(name_key)
 	else:
-		campaign_banner.text = Loc.t("campaign.selector.title")
+		campaign_banner.text = campaign_id
 
 func _on_campaign_banner_pressed() -> void:
 	if campaign_selector_modal == null:
@@ -984,12 +928,10 @@ func _on_campaign_banner_pressed() -> void:
 	campaign_selector_modal.open()
 
 func _on_campaign_selected(campaign_id: String) -> void:
-	var campaign: Node = get_node_or_null("/root/Campaign")
-	if campaign and campaign.has_method("set_current_campaign"):
-		var success: bool = campaign.call("set_current_campaign", campaign_id)
-		if success:
-			_update_campaign_banner_text()
-			_refresh_map()
+	var success: bool = Campaign.set_current_campaign(campaign_id)
+	if success:
+		_update_campaign_banner_text()
+		_refresh_map()
 
 	if campaign_selector_modal:
 		campaign_selector_modal.hide()
@@ -1004,12 +946,10 @@ func _on_campaign_modal_closed() -> void:
 func _setup_summoner_icon() -> void:
 	# Only show summoner icon after affinity event is completed
 	# Check shared progress since affinity is part of onboarding (account-wide)
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_shared_campaign_progress"):
-		var shared_progress: Dictionary = profile_repo.call("get_shared_campaign_progress")
-		var completed_battles: Array = shared_progress.get("completed_battles", [])
-		if String(BattleIDs.EVENT_AFFINITY) not in completed_battles:
-			return
+	var shared_progress: Dictionary = ProfileRepo.get_shared_campaign_progress()
+	var completed_battles: Array = shared_progress.get("completed_battles", [])
+	if String(BattleIDs.EVENT_AFFINITY) not in completed_battles:
+		return
 
 	summoner_icon = SummonerIconWidgetScene.instantiate()
 	add_child(summoner_icon)
