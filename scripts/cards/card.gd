@@ -190,7 +190,7 @@ func _get_autoload(autoload_path: String) -> Node:
 	if main_loop is SceneTree:
 		var tree: SceneTree = main_loop
 		if tree and tree.root:
-			return tree.root.get_node_or_null(autoload_name)
+			return tree.root.get_node_or_null(autoload_path)
 	return null
 
 ## Check if this card needs click-targeting (Rally/Guard with command_type)
