@@ -182,6 +182,38 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 ---
 
 
+#### Implement Directional/Cone Attack System
+**Status:** ⬜ Not Started
+**Category:** Units & Combat
+**Effort:** Medium
+
+**Description:**
+Add support for melee attacks that only hit in a forward cone/arc instead of a full circle. Useful for units with lunge attacks, tongue attacks, or other forward-facing abilities.
+
+**Current Behavior:**
+- `IsInAttackRange()` checks distance only (circular range)
+- `SpawnMeleeHitbox()` creates a sphere hitbox positioned forward
+- Any enemy within AttackRange distance can be targeted, regardless of direction
+
+**Requirements:**
+- Add `AttackConeAngle` property to Unit3D/MeleeUnit3D (0 = full circle, 90 = forward half, etc.)
+- Modify `IsInAttackRange()` to check if target is within the cone angle
+- Add `AttackHitboxShape` enum (Sphere, Box, Capsule) to MeleeUnit3D
+- Add `AttackHitboxSize` vector for non-sphere shapes
+- Modify `SpawnMeleeHitbox()` to use configured shape (box for narrow forward attacks)
+
+**Example Use Cases:**
+- Frog tongue: narrow forward box hitbox, ~45° targeting cone
+- Dragon bite: wide forward arc, large box hitbox
+- Standard melee: full circle (current behavior, AttackConeAngle = 0)
+
+**Related Files:**
+- `scripts/csharp/Units/Unit3D.cs` - IsInAttackRange, base properties
+- `scripts/csharp/Units/MeleeUnit3D.cs` - SpawnMeleeHitbox, PerformAttackAction
+- `scripts/csharp/Combat/Hitbox/HitboxComponent.cs` - CreateBoxShape already exists
+
+---
+
 #### Implement Single Target vs Multi Target Attack System
 **Status:** ⬜ Not Started
 **Category:** Units & Combat

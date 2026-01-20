@@ -6,5 +6,6 @@
 	{ "catalog_id": "fire_ant_swarm", "count": 1 },
 	{ "catalog_id": "earth_sprite", "count": 1 },
 	{ "catalog_id": "rock", "count": 1 },
-	{ "catalog_id": "puff", "count": 1 }
+	{ "catalog_id": "puff", "count": 1 },
+	{ "catalog_id": "water_frog", "count": 1 }
 ]

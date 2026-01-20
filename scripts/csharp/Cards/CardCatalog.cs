@@ -316,6 +316,30 @@ public static class CardCatalog
             Tags = ["ranged", "wind", "elemental", "air", "swarm"],
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
+        },
+
+        // =====================================================================
+        // WATER ELEMENT UNITS
+        // =====================================================================
+
+        ["water_frog"] = new CardDefinition
+        {
+            Id = "water_frog",
+            Name = "Water Frog",
+            Description = "A pudgy amphibian with a lightning-fast tongue. Strikes from a distance with surprising reach, snatching enemies before they can react.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.WaterFrog,  // Stats from UnitCatalog
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "water", "amphibian", "tongue"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Water
         }
     };
 

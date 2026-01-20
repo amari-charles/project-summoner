@@ -134,6 +134,25 @@ public static class UnitCatalog
                 MoveSpeed = 2.5f,
                 AggroRadius = 24f
             }
+        },
+
+        // =====================================================================
+        // WATER ELEMENT UNITS
+        // =====================================================================
+
+        [UnitIds.WaterFrog] = new UnitDefinition
+        {
+            Id = UnitIds.WaterFrog,
+            ScenePath = "res://scenes/units/water_frog_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 70f,
+                AttackDamage = 15f,
+                AttackRange = 5.0f,  // Extended range for tongue attack
+                AttackSpeed = 1.0f,
+                MoveSpeed = 2.5f,
+                AggroRadius = 20f
+            }
         }
     };
 

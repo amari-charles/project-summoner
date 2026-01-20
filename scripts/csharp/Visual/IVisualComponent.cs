@@ -75,6 +75,13 @@ public interface IVisualComponent
     float GetSpriteWidth();
 
     /// <summary>
+    /// Get the horizontal offset for HP bar positioning.
+    /// Used when the visual content is offset from the unit's origin.
+    /// </summary>
+    /// <returns>HP bar X offset in world units.</returns>
+    float GetHpBarOffsetX();
+
+    /// <summary>
     /// Get the shadow offset in world coordinates.
     /// Used to align shadows with off-center sprites.
     /// </summary>

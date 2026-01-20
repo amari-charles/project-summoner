@@ -28,6 +28,8 @@ HpBarOffsetY = 6.5
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
 SkeletalScene = ExtResource("3_rig")
 ScaleFactor = Vector2(0.54, 0.54)
+ContentSize = Vector2(500, 700)
+FeetLocalPosition = Vector2(300, 1000)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)

@@ -13,9 +13,6 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     // CONSTANTS
     // =========================================================================
 
-    private const int BaseViewportSize = 512;
-    private const float DefaultSpriteScale = 5.12f;
-
     // Attack animation constants
     private const float LungeDistancePx = 20.0f;
     private const float LungeForwardDuration = 0.1f;
@@ -51,17 +48,29 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     /// <summary>
     /// Pixel offset to shift the sprite rendering position.
     /// Use for sprites where the character isn't centered in the texture.
-    /// Example: If particles extend 20px to the right, set X = -10 to center the character body.
+    /// Negative X shifts visual RIGHT (use when body is on LEFT side of texture).
+    /// Positive X shifts visual LEFT (use when body is on RIGHT side of texture).
     /// Note: This only affects visual rendering. Shadow and collision remain at unit position.
     /// </summary>
     [Export]
     public Vector2 SpriteOffsetPixels { get; set; } = Vector2.Zero;
 
+    /// <summary>
+    /// Viewport size in pixels. Controls the rendering area.
+    /// Increase for larger sprites to prevent clipping.
+    /// </summary>
     [Export]
-    public float SpriteScale { get; set; } = DefaultSpriteScale;
+    public Vector2I ViewportSize { get; set; } = new Vector2I(512, 512);
+
+    /// <summary>
+    /// Scale factor applied to the sprite inside the viewport.
+    /// Controls how large the unit appears in world space.
+    /// </summary>
+    [Export]
+    public Vector2 ScaleFactor { get; set; } = new Vector2(5.12f, 5.12f);
 
     [Export]
-    public float ViewportScale { get; set; } = 1.0f;
+    public float HpBarOffsetX { get; set; } = 0.0f;
 
     [ExportGroup("Animation Effects")]
     [Export]
@@ -138,12 +147,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             // Force viewport to render every frame
             _viewport.RenderTargetUpdateMode = SubViewport.UpdateMode.Always;
 
-            // Apply viewport scaling for large units
-            if (ViewportScale != 1.0f)
-            {
-                int scaledSize = (int)(BaseViewportSize * ViewportScale);
-                _viewport.Size = new Vector2I(scaledSize, scaledSize);
-            }
+            // Apply viewport size
+            _viewport.Size = ViewportSize;
         }
 
         if (_characterSprite != null)
@@ -160,13 +165,13 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             }
 
             // Apply sprite scale
-            _characterSprite.Scale = new Vector2(SpriteScale, SpriteScale);
+            _characterSprite.Scale = ScaleFactor;
 
             // Setup alignment
             SetupSpriteAlignment();
 
             // Store base values for animations
-            _baseSpriteScale = _characterSprite.Scale;
+            _baseSpriteScale = ScaleFactor;
             _baseSpriteY = _characterSprite.Position.Y;
         }
 
@@ -352,6 +357,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         return Vector3.Zero;
     }
 
+    public float GetHpBarOffsetX()
+    {
+        return HpBarOffsetX;
+    }
+
     public void FlashWhite()
     {
         if (_characterSprite == null)
@@ -479,11 +489,14 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             pos.Y = worldHeight / 2.0f;
         }
 
+        // Apply X offset to Sprite3D position in world space (moves visual relative to shadow)
+        // Negative offset = body is left of texture center, shift Sprite3D to center it
+        // Convert texture pixels -> viewport pixels (via scale) -> world units (via PixelSize)
+        float worldOffsetX = SpriteOffsetPixels.X * _characterSprite.Scale.X * _sprite3D.PixelSize;
+        pos.X = _isFlipped ? -worldOffsetX : worldOffsetX;
         _sprite3D.Position = pos;
 
-        // Apply user-defined offset (flip X when sprite is flipped)
-        float offsetX = _isFlipped ? -SpriteOffsetPixels.X : SpriteOffsetPixels.X;
-        spritePos.X += offsetX * _characterSprite.Scale.X;
+        // Apply Y offset within viewport (Y offset doesn't need world-space movement)
         spritePos.Y += SpriteOffsetPixels.Y * _characterSprite.Scale.Y;
 
         _characterSprite.Position = spritePos;

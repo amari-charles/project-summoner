@@ -51,7 +51,9 @@
       "Bash(dotnet test:*)",
       "Bash(\"/Applications/Godot_mono.app/Contents/MacOS/Godot\" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit)",
       "Bash(file:*)",
-      "Bash(./run_tests.sh:*)"
+      "Bash(./run_tests.sh:*)",
+      "Bash(/Applications/Godot_mono.app/Contents/MacOS/Godot:*)",
+      "Bash(xargs file:*)"
     ],
     "deny": [],
     "ask": []
