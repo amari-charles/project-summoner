@@ -45,4 +45,10 @@ public static class UnitIds
     // =========================================================================
 
     public static readonly UnitId Puff = new("puff");
+
+    // =========================================================================
+    // WATER ELEMENT UNITS
+    // =========================================================================
+
+    public static readonly UnitId WaterFrog = new("water_frog");
 }

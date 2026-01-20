@@ -1,16 +1,22 @@
 using Godot;
-using System.Collections.Generic;
 
 namespace ProjectSummoner.Visual;
 
 /// <summary>
 /// Skeletal-based 2.5D Character Rendering Component.
 /// Renders skeletal 2D animations in 3D space using Node2D pivots/AnimationPlayer + SubViewport.
-/// Viewport is automatically sized to fit the character content.
+/// Viewport size is manually specified per-unit for explicit control.
 /// </summary>
 [GlobalClass]
 public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 {
+    // =========================================================================
+    // CONSTANTS
+    // =========================================================================
+
+    /// <summary>World units per viewport pixel for Sprite3D rendering.</summary>
+    private const float SpritePixelSize = 0.01f;
+
     // =========================================================================
     // EXPORTED PROPERTIES
     // =========================================================================
@@ -18,26 +24,45 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public PackedScene? SkeletalScene { get; set; }
 
+    /// <summary>
+    /// Scale factor applied to the rig inside the viewport.
+    /// Controls how large the unit appears in world space.
+    /// </summary>
     [Export]
     public Vector2 ScaleFactor { get; set; } = new Vector2(0.1f, 0.1f);
 
-    [Export]
-    public float ViewportPadding { get; set; } = 200.0f;
-
     /// <summary>
-    /// Maximum viewport size in pixels. Set to 0 for no cap (default).
-    /// Use this to limit viewport size for performance on units with large rigs.
+    /// Viewport size in pixels. Set this to fit your unit's content.
+    /// If zero, uses the default size from the component scene (1200x1200).
     /// </summary>
     [Export]
-    public int MaxViewportSize { get; set; } = 0;
+    public Vector2I ViewportSize { get; set; } = Vector2I.Zero;
 
     /// <summary>
-    /// Offset in pixels from viewport bottom to where the feet are positioned.
-    /// Used for correct depth sorting. Set to -1 to auto-calculate from ViewportPadding.
+    /// Approximate size of the rig content in pixels (before scaling).
+    /// Used for shadow auto-sizing and other dimension calculations.
+    /// If zero, falls back to viewport size (less accurate).
+    /// </summary>
+    [Export]
+    public Vector2 ContentSize { get; set; } = Vector2.Zero;
+
+    /// <summary>
+    /// Position of the feet in rig local space (before scaling).
+    /// This defines where the unit's ground contact point is relative to the rig's origin.
+    ///
+    /// The X component determines horizontal centering - the system positions the rig so that
+    /// FeetLocalPosition.X is at the viewport center. This ensures the visual content is
+    /// centered and flipping works correctly in both directions.
+    ///
+    /// The Y component determines vertical grounding - the system calculates sprite positioning
+    /// to place feet at world Y=0.
+    ///
+    /// Example: If your rig has its origin at top-left and feet are at (300, 800),
+    /// set FeetLocalPosition = (300, 800).
     /// </summary>
     [ExportGroup("Sprite Configuration")]
     [Export]
-    public float FeetOffsetPixels { get; set; } = -1.0f;
+    public Vector2 FeetLocalPosition { get; set; } = Vector2.Zero;
 
     [ExportGroup("")]
     [Export]
@@ -57,10 +82,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     // STATE
     // =========================================================================
 
-    private Rect2 _cachedBounds;
     private bool _isFlipped;
     private bool _initializationComplete;
-    private float _capScale = 1.0f;  // Tracks viewport cap scaling for SetupSpriteAlignment
 
     // =========================================================================
     // LIFECYCLE
@@ -75,14 +98,19 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_viewport != null)
         {
             // WhenVisible: only render when viewport is visible AND content changed
-            // Reduces overhead vs Always (which renders every frame unconditionally)
             _viewport.RenderTargetUpdateMode = SubViewport.UpdateMode.WhenVisible;
+
+            // Apply custom viewport size if specified
+            if (ViewportSize != Vector2I.Zero)
+            {
+                _viewport.Size = ViewportSize;
+            }
         }
 
         // Instance skeletal scene if provided
         if (SkeletalScene != null)
         {
-            // Hide during async initialization to prevent jitter
+            // Hide during initialization to prevent jitter
             if (_sprite3D != null)
             {
                 _sprite3D.Visible = false;
@@ -188,16 +216,9 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_viewport == null || _sprite3D == null)
             return 1.0f;
 
-        // Cached bounds are at full resolution, viewport is at display resolution
-        // Scale bounds by ScaleFactor to get display size in world units
-        if (_cachedBounds.Size.Y > 0)
-        {
-            return _cachedBounds.Size.Y * ScaleFactor.Y * _sprite3D.PixelSize;
-        }
-
-        // Fallback: viewport might be at default size before bounds are calculated
-        // Include ScaleFactor.Y to match old behavior where PixelSize included it
-        return _viewport.Size.Y * ScaleFactor.Y * _sprite3D.PixelSize;
+        // Use ContentSize if specified, otherwise viewport size
+        float contentHeight = ContentSize.Y > 0 ? ContentSize.Y : _viewport.Size.Y;
+        return contentHeight * ScaleFactor.Y * _sprite3D.PixelSize;
     }
 
     public float GetSpriteWidth()
@@ -205,22 +226,21 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_viewport == null || _sprite3D == null)
             return 1.0f;
 
-        // Cached bounds are at full resolution, viewport is at display resolution
-        // Scale by both ScaleFactor components to match old behavior where PixelSize included ScaleFactor.Y
-        if (_cachedBounds.Size.X > 0)
-        {
-            return _cachedBounds.Size.X * ScaleFactor.X * ScaleFactor.Y * _sprite3D.PixelSize;
-        }
-
-        // Fallback: viewport might be at default size before bounds are calculated
-        // Include both ScaleFactors to match old behavior
-        return _viewport.Size.X * ScaleFactor.X * ScaleFactor.Y * _sprite3D.PixelSize;
+        // Use ContentSize if specified, otherwise viewport size
+        float contentWidth = ContentSize.X > 0 ? ContentSize.X : _viewport.Size.X;
+        return contentWidth * ScaleFactor.X * _sprite3D.PixelSize;
     }
 
     public Vector3 GetShadowOffset()
     {
-        // Skeletal units are centered - no offset needed
+        // Content is centered at viewport center (FeetLocalPosition.X determines horizontal center)
+        // Shadow offset is zero since the visual content is already centered
         return Vector3.Zero;
+    }
+
+    public float GetHpBarOffsetX()
+    {
+        return HpBarOffsetX;
     }
 
     public void FlashWhite()
@@ -240,7 +260,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     {
         _isFlipped = flip;
 
-        if (_skeletalInstance == null || !_initializationComplete)
+        if (_skeletalInstance == null || !_initializationComplete || _viewport == null)
             return;
 
         // Apply scale flip while preserving the display scale
@@ -249,7 +269,23 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         scale.X = displayScale * (flip ? -1 : 1);
         _skeletalInstance.Scale = scale;
 
-        ApplyFlipPosition(flip);
+        // Adjust position to keep content centered after flip
+        // When flipped, content that was at +contentCenterX from rig origin
+        // is now at -contentCenterX, so we need to adjust rig position
+        float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
+        var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
+        var pos = _skeletalInstance.Position;
+        if (flip)
+        {
+            // When flipped, content is at -contentCenterX from rig, so move rig right
+            pos.X = viewportCenter.X + contentCenterX;
+        }
+        else
+        {
+            // When not flipped, content is at +contentCenterX from rig, so move rig left
+            pos.X = viewportCenter.X - contentCenterX;
+        }
+        _skeletalInstance.Position = pos;
     }
 
     public void SetRenderPriority(int priority)
@@ -297,7 +333,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
     private async System.Threading.Tasks.Task InstanceSkeletalScene()
     {
-        if (SkeletalScene == null || _modelContainer == null)
+        if (SkeletalScene == null || _modelContainer == null || _viewport == null)
             return;
 
         _skeletalInstance = SkeletalScene.Instantiate<Node2D>();
@@ -307,9 +343,6 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             return;
         }
 
-        // Add at origin with no scale to calculate bounds
-        _skeletalInstance.Position = Vector2.Zero;
-        _skeletalInstance.Scale = Vector2.One;
         _modelContainer.AddChild(_skeletalInstance);
 
         // Find AnimationPlayer
@@ -325,53 +358,21 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             _skeletalInstance.Connect("attack_impact", Callable.From(OnAttackImpact));
         }
 
-        // Wait for tree update to calculate bounds
+        // Wait for tree update
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
         // Guard: component or skeletal instance may be freed after await
         if (!IsInstanceValid(this) || !IsInsideTree() || _skeletalInstance == null || !IsInstanceValid(_skeletalInstance))
             return;
 
-        // Calculate bounds at full resolution (before scaling)
-        _cachedBounds = GetSkeletalBounds();
+        // Apply scale factor to the rig
+        _skeletalInstance.Scale = ScaleFactor;
 
-        if (_viewport != null && _cachedBounds.Size.X > 0 && _cachedBounds.Size.Y > 0)
-        {
-            // PERFORMANCE FIX: Scale the rig INSIDE the viewport instead of scaling Sprite3D
-            // This renders at display resolution (small) instead of authoring resolution (huge)
-            float displayScale = ScaleFactor.X;
-
-            // Calculate target viewport size
-            int targetWidth = (int)((_cachedBounds.Size.X + ViewportPadding * 2) * displayScale);
-            int targetHeight = (int)((_cachedBounds.Size.Y + ViewportPadding * 2) * displayScale);
-
-            // Apply viewport cap only if MaxViewportSize is set (> 0)
-            float capScale = 1.0f;
-            if (MaxViewportSize > 0)
-            {
-                float widthScale = targetWidth > MaxViewportSize ? (float)MaxViewportSize / targetWidth : 1.0f;
-                float heightScale = targetHeight > MaxViewportSize ? (float)MaxViewportSize / targetHeight : 1.0f;
-                capScale = Mathf.Min(widthScale, heightScale);
-            }
-
-            int newWidth = (int)(targetWidth * capScale);
-            int newHeight = (int)(targetHeight * capScale);
-            float finalScale = displayScale * capScale;
-
-            // Store capScale for SetupSpriteAlignment to use
-            _capScale = capScale;
-
-            _viewport.Size = new Vector2I(newWidth, newHeight);
-
-            // Scale the rig down inside the viewport (using capped scale if applicable)
-            _skeletalInstance.Scale = new Vector2(finalScale, finalScale);
-
-            // Position content: center horizontally, bottom-align vertically (all values scaled)
-            var pos = _skeletalInstance.Position;
-            pos.X = (newWidth / 2.0f) - (_cachedBounds.GetCenter().X * finalScale);
-            pos.Y = newHeight - (_cachedBounds.End.Y * finalScale) - (ViewportPadding * finalScale);
-            _skeletalInstance.Position = pos;
-        }
+        // Position the rig so content center (at FeetLocalPosition.X) is at viewport center
+        // This automatically handles centering without needing a separate ContentOffset parameter
+        float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
+        var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
+        _skeletalInstance.Position = new Vector2(viewportCenter.X - contentCenterX, viewportCenter.Y);
 
         // Mark initialization complete and show sprite
         _initializationComplete = true;
@@ -380,13 +381,17 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             _sprite3D.Visible = true;
         }
 
-        // Apply deferred flip state
+        // Apply deferred flip state (if SetFlipH was called before initialization)
         if (_isFlipped)
         {
             var scale = _skeletalInstance.Scale;
-            scale.X = -Mathf.Abs(scale.X); // Preserve the display scale, just flip X
+            scale.X = -Mathf.Abs(scale.X);
             _skeletalInstance.Scale = scale;
-            ApplyFlipPosition(true);
+
+            // Also adjust position to keep content centered when flipped
+            var pos = _skeletalInstance.Position;
+            pos.X = viewportCenter.X + contentCenterX;  // Flip reverses the offset
+            _skeletalInstance.Position = pos;
         }
 
         // Start idle animation
@@ -416,23 +421,31 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_sprite3D == null || _viewport == null)
             return;
 
-        // Viewport is now at display resolution (already scaled), so no ScaleFactor needed here
-        float worldHeight = _viewport.Size.Y * _sprite3D.PixelSize;
+        // Set consistent pixel size FIRST (fixes bug where calculations used old value)
+        _sprite3D.PixelSize = SpritePixelSize;
 
-        // Calculate feet offset from viewport bottom (scaled by both ScaleFactor and capScale)
-        // If FeetOffsetPixels is set (>= 0), scale and use it; otherwise use scaled padding
-        float feetOffsetPx = FeetOffsetPixels >= 0
-            ? FeetOffsetPixels * ScaleFactor.Y * _capScale
-            : ViewportPadding * ScaleFactor.Y * _capScale;
-        float feetOffsetWorld = feetOffsetPx * _sprite3D.PixelSize;
+        // Calculate where the feet are in viewport space
+        // Rig is positioned so that content center (FeetLocalPosition.X) is at viewport center X
+        // Rig Y is at viewport center Y
+        float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
+        var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
+        var rigPosition = new Vector2(viewportCenter.X - contentCenterX, viewportCenter.Y);
 
-        // Position Sprite3D so feet (not viewport bottom) are at Y=0
+        // Feet are at rig position + FeetLocalPosition * ScaleFactor
+        var feetViewportPosition = rigPosition + FeetLocalPosition * ScaleFactor;
+
+        // Calculate feet offset from viewport bottom
+        float feetOffsetPixels = _viewport.Size.Y - feetViewportPosition.Y;
+
+        // Convert to world units
+        float worldHeight = _viewport.Size.Y * SpritePixelSize;
+        float feetOffsetWorld = feetOffsetPixels * SpritePixelSize;
+
+        // Position Sprite3D so feet are at world Y=0
+        // Sprite3D is centered on its texture, so we offset it vertically
         var pos = _sprite3D.Position;
         pos.Y = (worldHeight / 2.0f) - feetOffsetWorld;
         _sprite3D.Position = pos;
-
-        // PixelSize stays at default (no extra scaling needed - rig is already scaled in viewport)
-        _sprite3D.PixelSize = 0.01f;
     }
 
     private void RandomizeAnimationPhase()
@@ -450,93 +463,6 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
         float randomOffset = GD.Randf() * (float)anim.Length;
         _animationPlayer.Seek(randomOffset, true);
-    }
-
-    private void ApplyFlipPosition(bool flip)
-    {
-        if (_skeletalInstance == null || _viewport == null || _cachedBounds.Size.X <= 0)
-            return;
-
-        float displayScale = ScaleFactor.X;
-        float centerX = _viewport.Size.X / 2.0f;
-        var pos = _skeletalInstance.Position;
-
-        // Bounds center is at full resolution, scale it for the display-resolution viewport
-        if (flip)
-        {
-            pos.X = centerX + (_cachedBounds.GetCenter().X * displayScale);
-        }
-        else
-        {
-            pos.X = centerX - (_cachedBounds.GetCenter().X * displayScale);
-        }
-
-        _skeletalInstance.Position = pos;
-    }
-
-    private Rect2 GetSkeletalBounds()
-    {
-        if (_skeletalInstance == null || !_skeletalInstance.IsInsideTree())
-            return new Rect2();
-
-        float minX = float.MaxValue, maxX = float.MinValue;
-        float minY = float.MaxValue, maxY = float.MinValue;
-        bool foundSprites = false;
-
-        var sprites = FindAllSprites(_skeletalInstance);
-
-        foreach (var sprite in sprites)
-        {
-            var texture = sprite.Texture;
-            if (texture == null)
-                continue;
-
-            var texSize = texture.GetSize();
-            var spriteCenter = sprite.GlobalPosition - _skeletalInstance.GlobalPosition;
-
-            Vector2 spriteMin, spriteMax;
-            if (sprite.Centered)
-            {
-                var halfSize = texSize / 2.0f;
-                spriteMin = spriteCenter - halfSize;
-                spriteMax = spriteCenter + halfSize;
-            }
-            else
-            {
-                spriteMin = spriteCenter;
-                spriteMax = spriteCenter + texSize;
-            }
-
-            minX = Mathf.Min(minX, spriteMin.X);
-            maxX = Mathf.Max(maxX, spriteMax.X);
-            minY = Mathf.Min(minY, spriteMin.Y);
-            maxY = Mathf.Max(maxY, spriteMax.Y);
-            foundSprites = true;
-        }
-
-        if (foundSprites)
-        {
-            return new Rect2(new Vector2(minX, minY), new Vector2(maxX - minX, maxY - minY));
-        }
-
-        return new Rect2();
-    }
-
-    private List<Sprite2D> FindAllSprites(Node node)
-    {
-        var sprites = new List<Sprite2D>();
-
-        if (node is Sprite2D sprite)
-        {
-            sprites.Add(sprite);
-        }
-
-        foreach (var child in node.GetChildren())
-        {
-            sprites.AddRange(FindAllSprites(child));
-        }
-
-        return sprites;
     }
 
     private void OnAttackImpact()
