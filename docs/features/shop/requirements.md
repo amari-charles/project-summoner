@@ -83,12 +83,19 @@ Affinity-Specific Caravan:
 
 ### Gold (Primary Currency)
 
-**Sources** (To Be Determined):
-- [ ] Battle victory rewards
-- [ ] Starting allowance (currently 100g in profile)
-- [ ] Daily login bonuses
-- [ ] Selling duplicate cards
-- [ ] Campaign event rewards
+**Scope**: Gold is **campaign-scoped** — it has no value outside the specific campaign it was earned in. When a campaign ends (victory or defeat), unspent gold is lost. This forces real economic decisions.
+
+See [Campaign Structure - Gold Economy](../campaign/structure.md#gold-economy) for full design philosophy.
+
+**Sources**:
+- Battle victory rewards (first clear only, not replays)
+- Campaign event rewards
+- Starting allowance per campaign
+
+**Economic Tension**:
+- Caravans are visible nodes on the campaign graph (players can plan ahead)
+- Spend now for immediate power, or save for expensive items at later caravans
+- Final spending opportunity at campaign end
 
 **Management**:
 - Stored in ProfileRepository: `resources.gold`

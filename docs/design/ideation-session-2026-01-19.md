@@ -11,13 +11,14 @@
 2. [Path System (Elite vs Standard)](#path-system-elite-vs-standard)
 3. [Level Cap System](#level-cap-system)
 4. [Grinding and XP](#grinding-and-xp)
-5. [Summoner System](#summoner-system)
-6. [Item System (Replaces Boons)](#item-system-replaces-boons)
-7. [Traits](#traits)
-8. [Card System Clarifications](#card-system-clarifications)
-9. [Shared Content](#shared-content)
-10. [Expansion Model](#expansion-model)
-11. [For Later](#for-later)
+5. [Gold Economy](#gold-economy)
+6. [Summoner System](#summoner-system)
+7. [Item System (Replaces Boons)](#item-system-replaces-boons)
+8. [Traits](#traits)
+9. [Card System Clarifications](#card-system-clarifications)
+10. [Shared Content](#shared-content)
+11. [Expansion Model](#expansion-model)
+12. [For Later](#for-later)
 
 ---
 
@@ -132,6 +133,45 @@ This means:
 ### ✅ DECIDED: Standard Becoming Trivial is OK
 
 If players overlevel standard content, that's fine. It's the escape valve. Elite content stays challenging (capped).
+
+---
+
+## Gold Economy
+
+### ✅ DECIDED: Gold is Campaign-Scoped
+
+Gold has **no value outside the specific campaign** it was earned in. When a campaign ends (victory or defeat), unspent gold is lost.
+
+**Key implications:**
+- No hoarding gold across campaigns
+- No transferring gold between summoners
+- Must spend it or lose it
+- Forces real economic decisions
+
+### ✅ DECIDED: Caravan Visibility
+
+The Caravan (in-campaign shop) appears as **visible nodes on the campaign graph**. Players can see upcoming caravan stops and plan spending accordingly.
+
+This creates informed economic choices, not blind gambles.
+
+### ✅ DECIDED: Economic Tension Philosophy
+
+The skill of gold management lies in balancing immediate power vs. future purchases:
+
+| Strategy | Advantage | Risk |
+|----------|-----------|------|
+| **Spend early** | Immediate power boost | Miss expensive items later |
+| **Save up** | Access to powerful late-game items | May die before spending |
+
+Since gold dies with the campaign, there's no "optimal" hoarding strategy. Players must commit.
+
+### ✅ DECIDED: Gold Penalties as Levers
+
+Gold loss can be used as a penalty for various events (failing elite paths, story events, risk/reward choices). This is a **tunable lever**, not a hard rule — specific penalties designed per-event.
+
+### ✅ DECIDED: Final Spending Opportunity
+
+The campaign ends with a **final chance to spend remaining gold**. Prevents "died with full pockets" frustration.
 
 ---
 
@@ -275,6 +315,9 @@ These concepts were discussed and deemed interesting but deferred:
 - [x] How to handle stuck players? → Standard path has no level cap (grind escape valve)
 - [x] How to prevent trivializing elite content? → Level caps
 - [x] XP distribution? → Only deck cards gain XP
+- [x] Gold persistence? → Campaign-scoped only, lost when campaign ends
+- [x] Caravan visibility? → Visible nodes on campaign graph
+- [x] Gold loss mechanics? → Tunable lever, not hard rule
 
 ---
 
