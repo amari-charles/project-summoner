@@ -1,6 +1,11 @@
-# Summoner Architecture
+# Summoner Architecture (Legacy)
 
-**Last Updated:** 2025-12-17
+> **ARCHIVED**: This document is outdated. For current summoner documentation, see:
+> - [Summoner System README](../features/summoners/README.md) - Overview and index
+> - [Summoner Architecture](../features/summoners/architecture.md) - Current implementation
+> - [Summoner Progression](../features/summoners/progression-system.md) - Full progression design
+
+**Last Updated:** 2025-12-17 (Archived 2026-01-19)
 
 This document describes the architecture for the Summoner system, which serves as both the player character and the attack target (win condition).
 

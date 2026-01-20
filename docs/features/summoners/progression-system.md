@@ -1,8 +1,8 @@
 # SUMMONER PROGRESSION SYSTEM — FINAL DESIGN SPEC
-Summoner Leveling (1-10), Traits (Story + Level + Ultimate), Boons, and Global Event Cards
+Summoner Leveling (1-10), Traits (Story + Level + Ultimate), Items, and Global Event Cards
 
-**Version:** 2.0
-**Date:** 2025-01-24
+**Version:** 3.0
+**Date:** 2026-01-19
 **Status:** DESIGN SPEC (Phase 2 Foundation Implemented)
 
 ---
@@ -12,7 +12,7 @@ Summoner Leveling (1-10), Traits (Story + Level + Ultimate), Boons, and Global E
 ### ✅ Phase 2: Foundation (Implemented)
 - XP and level tracking (1-10)
 - Level-up mechanics with gold cost
-- TraitCatalog with innate traits and acquirable boons
+- TraitCatalog with innate traits
 - SummonerProgressionService and SummonerSelectionService
 - Per-summoner campaign progress
 - Summoner management UI (panel, roster, icon widget)
@@ -39,7 +39,7 @@ This document defines the persistent progression system for summoners in Fatefor
 - **Level Traits** (9 traits chosen at levels 1-9, following Trait Lines)
 - **Ultimate Traits** (Powerful active abilities unlocked at level 10)
 - **Story Traits** (Permanent narrative consequences from campaign events)
-- **Boons** (Slotted mechanical bonuses with 3 default slots)
+- **Items** (Equippable gear with 4 slots — see [Item System](../items/system.md))
 - **Global Event Cards** (Account-wide rewards)
 - **Summoner-bound decks** (Each summoner maintains their own deck)
 - **Summoner unlock rules** (Progressive unlocking through gameplay)
@@ -53,7 +53,7 @@ Summoners should feel like long-term "files" the player invests in, not disposab
 - Has an elemental affinity (Fire, Water, Wind, Earth, etc.)
 - Has their own deck (decks are summoner-bound)
 - Accumulates **Traits** (permanent identity)
-- Equips **Boons** (swappable power choices)
+- Equips **Items** (swappable tactical choices)
 - Becomes harder to obtain as you unlock more
 
 This system balances:
@@ -87,8 +87,8 @@ Summoners can gain permanent positive or negative traits based on story decision
 ### 2.5 Reward replaying the campaign with different summoners
 Every summoner carves a unique story and build path through different trait combinations.
 
-### 2.6 Prevent power creep (Slot-Limited Boons)
-Boons (the power-granting layer) are slot-limited to 3-5 slots maximum.
+### 2.6 Provide tactical flexibility (Items)
+Items are equippable gear that can be swapped between battles, allowing tactical adaptation.
 
 ### 2.7 Avoid punishing players for trying new summoners
 New summoners start fresh at level 1 but benefit from global event cards.
@@ -97,7 +97,7 @@ New summoners start fresh at level 1 but benefit from global event cards.
 Event Cards are global, not summoner-bound, avoiding repetition fatigue.
 
 ### 2.9 Keep the system scalable long-term
-Level cap (10), boon slots (3-5), and trait separation prevent runaway growth.
+Level cap (10), item slots (4), and trait separation prevent runaway growth.
 
 ---
 
@@ -106,24 +106,25 @@ Level cap (10), boon slots (3-5), and trait separation prevent runaway growth.
 This system splits persistent summoner progression into **three layers**:
 
 ⭐ **A. TRAITS** (Permanent Identity)
-⭐ **B. BOONS** (Slotted Power)
+⭐ **B. ITEMS** (Tactical Flexibility)
 ⭐ **C. SUMMONER LEVELS** (Progression Framework)
 
 Event cards are handled separately (global).
 
 ### The Critical Distinction
 
-**Traits = Story Expression** (identity, consequences, access)
-**Boons = Power Expression** (build tuning, mechanical choices)
+**Traits = Identity Expression** (permanent, uncapped)
+**Items = Tactical Flexibility** (swappable, slot-limited)
 **Levels = Growth Framework** (structured progression, trait unlocks)
 
-- **Builders** tune their Boons
-- **Storytellers** earn their Traits
+- **Builders** plan their Level Traits
+- **Storytellers** earn their Story Traits
 - **Progressors** level their Summoners
+- **Tacticians** swap their Items
 
 This creates a clean separation between:
-- **Who a summoner is** (Traits) — unlimited accumulation
-- **What a summoner can do** (Boons) — slot-limited choices
+- **Who a summoner is** (Traits) — permanent accumulation
+- **How a summoner adapts** (Items) — swappable gear
 - **How a summoner grows** (Levels) — structured advancement
 - **What the player account has earned globally** (Event Cards) — profile-level rewards
 
@@ -232,7 +233,7 @@ Exact XP curves TBD during implementation.
 
 **Traits = Permanent, summoner-bound identity markers.**
 
-Traits represent permanent additions to a summoner's identity. They come in two forms:
+Traits represent permanent additions to a summoner's identity. They come in three forms:
 
 **Level Traits** (Section 3.5.3)
 - Earned through XP progression (levels 1-9)
@@ -251,7 +252,7 @@ Traits represent permanent additions to a summoner's identity. They come in two 
 - Powerful active abilities
 - Summoner's signature ultimate
 
-All trait types are **permanent, unlimited, and contribute to summoner identity**.
+All trait types are **permanent and contribute to summoner identity**.
 
 ### 4.2 Story Trait Characteristics
 
@@ -280,7 +281,6 @@ Story Traits are acquired through:
 **Expected accumulation:** 1 ultimate trait (at level 10).
 
 ### 4.4 All Traits (Story + Level + Ultimate) NEVER:
-- ❌ Count toward Boon slot limits
 - ❌ Get removed (unless specific story events allow)
 - ❌ Rotate or expire
 - ❌ Get balanced around swapping
@@ -296,26 +296,12 @@ Story Traits are acquired through:
 ### 4.5 All Traits (Story + Level + Ultimate) DO:
 - ✅ Stack over time (within their respective limits)
 - ✅ Create long-term identity through synergy
-- ✅ Unlock/block certain Boons (e.g., "Occult Initiate" unlocks occult boons)
 - ✅ Unlock card pools and affinity access
 - ✅ Alter campaign events and story branches (mostly Story Traits)
 - ✅ Permanently modify story outcomes (mostly Story Traits)
 - ✅ Give percentage modifiers and mechanical effects
-- ✅ Sometimes modify maximum Boon slot count (+1 or +2 from very rare traits)
 
-### 4.6 Trait Interactions with Boons
-
-Traits can unlock or block Boon families:
-
-**Examples:**
-- **Purified Soul** → Blocks occult boons
-- **Occult Initiate** → Unlocks occult boons
-- **Naturebound** → Unlocks growth boons, blocks mechanical boons
-- **Cold Soul** → Blocks fire boons, unlocks frost boons
-
-This ensures tradeoffs and asymmetry between summoners.
-
-### 4.7 Trait Synergy and Identity
+### 4.6 Trait Synergy and Identity
 
 **Trait stacking is intended, not avoided.**
 
@@ -327,7 +313,7 @@ Summoners will accumulate many traits over time (5 story + 9 level + 1 ultimate 
 
 This synergy is the core long-term fantasy of summoner progression.
 
-### 4.8 Trait Lines (Level Traits)
+### 4.7 Trait Lines (Level Traits)
 
 **Trait Lines = Prerequisite chains for level traits.**
 
@@ -343,7 +329,7 @@ Trait Lines guide level-up choices and create long-term build planning. Each tra
 
 Players can hybridize by splitting points between multiple trait lines, or specialize by committing to one line for maximum power.
 
-### 4.9 Ultimate Traits (Level 10)
+### 4.8 Ultimate Traits (Level 10)
 
 **Ultimate Traits = Powerful active abilities unlocked at level 10.**
 
@@ -366,7 +352,7 @@ Unlike other traits (which are passive), Ultimate Traits are **active abilities*
 
 Ultimate Traits define the summoner's "final form" and provide a capstone fantasy for the progression journey.
 
-### 4.10 Example Story Traits
+### 4.9 Example Story Traits
 
 **Tainted Blood**
 Permanent HP reduction, unlocks occult path.
@@ -381,15 +367,15 @@ Alters dialogue, unlocks Phoenix events.
 Adds new confrontation events, restricts some sanctified paths.
 
 **Occult Initiate**
-Unlocks occult boon family and occult cards. May have negative reputation effects.
+Unlocks occult cards. May have negative reputation effects.
 
 **Purified Soul**
-Blocks all occult content, unlocks sanctified boons.
+Blocks all occult content, unlocks sanctified paths.
 
 **Naturebound**
-+10% unit regeneration, unlocks growth boons, blocks mechanical boons.
++10% unit regeneration, unlocks growth paths.
 
-### 4.11 Example Level Traits
+### 4.10 Example Level Traits
 
 **Pyromancy I** (Level 1)
 +5% fire damage. Prerequisite for Pyromancy II.
@@ -411,87 +397,43 @@ Units regenerate 1% HP per second. Prerequisite for Regenerative Field II.
 
 ---
 
-## 5. BOONS
+## 5. ITEMS
 
-### 5.1 What Boons Are
+### 5.1 Items Replace the Former Boon System
 
-**Boons = Slotted, mechanical, build-defining power bonuses.**
+Items are the tactical customization layer for summoners. They provide the flexibility that the old "boon" system provided, but as equippable gear rather than abstract bonuses.
 
-Boons are not identity — they are loadout choices.
+**For full item system details, see [Item System](../items/system.md).**
 
-They provide:
-- Numerical buffs
-- Temporary enhancements
-- Synergy power
-- Combat properties
-- Stat tuning
-- Build archetypes
+### 5.2 Item Slots
 
-### 5.2 Boon Slot System
+Summoners have **4 item slots**:
 
-Summoners have:
-- **Default: 3 active Boon slots**
-- Very rare traits can grant +1 or +2 additional slots (max ~5 slots total)
+| Slot | Name | Focus |
+|------|------|-------|
+| 1 | Grimoire | Spell/magic focused |
+| 2 | Weapon/Staff | Offense focused |
+| 3 | Ring | Utility focused |
+| 4 | Vestments | Defense focused |
 
-**Only boons in active slots apply their effects.**
+### 5.3 Item vs Trait Distinction
 
-All other boons remain inactive but available for swapping.
+| Aspect | Traits | Items |
+|--------|--------|-------|
+| **Permanence** | Permanent, cannot be changed | Swappable between battles |
+| **Accumulation** | Uncapped (~15 total over time) | Fixed 4 slots |
+| **Identity** | "Who the summoner is" | "How they approach this battle" |
+| **Acquisition** | Leveling, story events | Campaign rewards, events, shop |
 
-Boons can be swapped **outside combat** (e.g., in menu, before battle).
+### 5.4 Item Binding
 
-### 5.3 Why Boons Are Slotted
+| Source | Binding | Campaign Usable |
+|--------|---------|-----------------|
+| Campaign reward | Summoner-bound | Yes |
+| Event reward | Account-wide `[Shared]` | No |
+| Shop purchase | Account-wide `[Shared]` | No |
 
-Slotting ensures:
-- ✅ No infinite stacking
-- ✅ No runaway power creep
-- ✅ Old summoners do not become unbeatable
-- ✅ New summoners can catch up with a few key boons
-- ✅ Balance stays manageable
-- ✅ Build depth stays high
-
-### 5.4 Boon Acquisition
-
-Boons are unlocked through:
-- Progression milestones
-- Campaign events
-- Affinity routes
-- Trait conditions (some traits unlock boon families)
-- Achievements and challenges
-
-### 5.5 Boons ARE:
-- ✅ Removable and swappable (outside combat)
-- ✅ Earned through gameplay
-- ✅ Primarily mechanical effects
-- ✅ The main balancing surface
-- ✅ Can give percentage modifiers and strong effects
-- ✅ Constrained by slot count
-
-### 5.6 Boons ARE NOT:
-- ❌ Tied to story identity (that's traits)
-- ❌ Tied to alignment or narrative
-- ❌ Permanent narrative consequences
-- ❌ Negative (usually — they're power choices)
-- ❌ Unlimited (slot-capped)
-
-### 5.7 Example Boons
-
-**Phoenix Pact**
-Units revive once with 20% HP. (Requires Fire affinity or Phoenix trait)
-
-**Arcane Rush**
-+20% mana regeneration rate.
-
-**Gale Acceleration**
-+15% summon speed, units spawn faster. (Requires Wind affinity)
-
-**Stoneform**
-Units gain +10 armor on spawn. (Requires Earth affinity)
-
-**Occult Sacrifice**
-When a unit dies, gain +1 mana. (Requires Occult Initiate trait)
-
-**Nature's Bounty**
-Units regenerate 2% HP per second. (Requires Life affinity or Naturebound trait)
+See [Item System](../items/system.md) for complete details.
 
 ---
 
@@ -552,6 +494,16 @@ Your profile's world has moved forward; all summoners benefit.
 ✔ **Keeps event cards exciting**
 They don't feel like mundane, repeatable tasks.
 
+### 7.3 Shared Content is a Lever, Not a Rule
+
+Making event cards account-wide `[Shared]` is an **option** we can use, not a blanket policy. Not all event content needs to be shared.
+
+**When we use it:**
+- Prevents forcing players to grind events X times for X summoners
+- Use for content where multi-summoner grind would feel bad
+
+**Shared cards are locked for campaign use** — they appear in the summoner's view but cannot be used in campaign battles. Available for PvP and events only.
+
 ---
 
 ## 8. CAMPAIGN STRUCTURE AND REPLAY
@@ -565,7 +517,7 @@ It is **one world** with regions, routes, and branching paths.
 Players can:
 - Bring any summoner into any region
 - Gain traits based on their choices
-- Unlock boons and affinity bonuses
+- Unlock items and affinity bonuses
 - Accumulate identity over time
 - Make different choices with different summoners
 
@@ -613,17 +565,17 @@ This section captures the design reasoning explicitly — critical for future co
 - Choosing between 2-3 ultimates creates meaningful final decision
 - Provides satisfying "final form" moment
 
-### 9.4 Prevents Power Creep (Slot-Limited Boons + Level Cap)
-- Slot-limited Boons prevent summoners from stacking unlimited buffs
+### 9.4 Prevents Power Creep (Item Slots + Level Cap)
+- 4 item slots prevent summoners from stacking unlimited gear
 - Level cap (10) prevents endless trait accumulation
-- Traits are unlimited but balanced (most are % modifiers, not flat)
+- Traits are permanent but balanced (most are % modifiers, not flat)
 
 ### 9.5 Prevents New-Summoner Punishment
-- Traits are summoner-specific, but Event Cards are global — new summoners aren't 30 cards behind
+- Traits are summoner-specific, but Event Cards are global — new summoners aren't cards behind
 - New summoners start at level 1, but leveling is fast early on
-- Boon slots are capped (3-5), so old summoners don't become unstoppable
+- Item slots are fixed (4), so old summoners don't become unstoppable
 - New summoners start clean (no bad traits from previous summoners)
-- New summoners always start with 0 Level Traits and no Story Traits, but can gain Story Traits and Level Traits over time just like the first summoner
+- New summoners always start with 0 Level Traits and no Story Traits, but can gain them over time
 
 ### 9.6 Enables Meaningful Story Decisions (Story Traits)
 - Story Traits being permanent and immutable make choices matter
@@ -645,16 +597,15 @@ Global Event Cards remove the need to grind same content for multiple summoners.
 
 ### 9.9 Supports Narrative Consequences Without Mechanical Punishment
 - Negative Story Traits don't prevent Level Trait choices
-- Negative traits don't enter Boon slot limits
 - Negative traits don't ruin new summoners (summoner-bound)
 - Many traits are identity/story, not pure power
 
-### 9.10 Supports Build Crafting (Swappable Boons)
-Boons can be swapped freely outside combat, giving players control over power expression.
+### 9.10 Supports Tactical Adaptation (Items)
+Items can be swapped freely between battles, giving players control over tactical approach.
 
 ### 9.11 Supports Long-Term Scalability
 - Can add new trait lines without affecting existing summoners
-- Can add new boons, story traits, or summoners without breaking ecosystem
+- Can add new items, story traits, or summoners without breaking ecosystem
 - Level cap (10) prevents infinite scaling
 - Trait Lines are modular and expandable
 
@@ -700,7 +651,7 @@ This ensures each summoner feels like a genuine build.
   - Simpler model: one instance per summoner template
   - Profile tracks which summoner templates are unlocked
 - **Post-MVP (Future)**: May use instance IDs (`"summoner_fire_001"`, `"summoner_fire_002"`) if supporting multiple instances per template
-  - Allows players to have multiple Fire summoneres with different builds
+  - Allows players to have multiple Fire summoners with different builds
   - More complex, but enables greater customization
   - This is an expected evolution of the data model
 
@@ -731,10 +682,11 @@ For now, **use template IDs** as shown above to match `architecture.md`.
 
   "ultimate_trait": null,  // Unlocked at level 10
 
-  "boons": {
-    "active_slots": 3,
-    "active": ["phoenix_pact", "arcane_rush"],
-    "available": ["phoenix_pact", "arcane_rush", "gale_acceleration"]
+  "items": {
+    "grimoire": "item_fire_tome",
+    "weapon": "item_flame_staff",
+    "ring": null,
+    "vestments": "item_ember_cloak"
   },
 
   "deck": ["card_flamewall", "card_firebolt", "card_pyroblast"],
@@ -748,6 +700,11 @@ For now, **use template IDs** as shown above to match `architecture.md`.
 - `story_traits`: Array of story trait IDs (earned from campaign events)
 - `level_traits`: Array of level trait IDs (earned from leveling, follows trait lines)
 - `ultimate_trait`: String (single ultimate trait ID, or null if not level 10)
+
+**Items Structure:**
+- `items`: Object with 4 slots (grimoire, weapon, ring, vestments)
+- Each slot contains an item ID or null if empty
+- Items are summoner-bound or account-wide based on acquisition source
 
 **Level and XP:**
 - `level`: Current level (1-10)
@@ -775,7 +732,7 @@ This progression system builds on top of the **base summoner system** defined in
 
 ### Progression System (Post-MVP)
 - **Traits** (permanent narrative consequences)
-- **Boons** (slotted mechanical bonuses)
+- **Items** (equippable gear for tactical flexibility)
 - **Global Event Cards** (account-wide rewards)
 - Summoner unlocking through progression
 - Campaign replay with different summoners
@@ -816,17 +773,16 @@ This progression system builds on top of the **base summoner system** defined in
 ### Phase 5: Story Traits Foundation
 - Story trait data structure and catalog
 - Story trait acquisition from campaign events
-- Trait unlock/block logic for boons and affinities
+- Trait unlock/block logic for affinities
 - Story flag integration
 - Trait effect application
 
-### Phase 6: Boon System
-- Boon data structure and catalog
-- Boon catalog with affinity requirements
-- Slot management UI
-- Boon swapping (outside combat)
-- Boon effect application
-- Trait-based boon family unlocking
+### Phase 6: Item System
+- Item data structure and catalog (see [Item System](../items/system.md))
+- Item slot management UI
+- Item swapping (between battles)
+- Item effect application
+- Item binding (summoner vs account-wide)
 
 ### Phase 7: Global Event Cards
 - Event card catalog
@@ -842,7 +798,7 @@ This progression system builds on top of the **base summoner system** defined in
 
 ### Phase 9: Polish and Balance
 - Trait balance tuning
-- Boon balance tuning
+- Item balance tuning
 - XP curve adjustments
 - Trait Line refinement
 - Ultimate ability balancing
@@ -856,11 +812,11 @@ This hybrid summoner progression system strikes a balance between:
 - Narrative integrity (Story Traits)
 - Build depth (Level Traits + Trait Lines)
 - Capstone fantasy (Ultimate Traits)
-- Long-term summoner growth (Unlimited trait accumulation)
+- Tactical flexibility (Items)
 - Fairness to new summoners (Level cap, global event cards)
 - Content replayability (Different builds each time)
-- Mechanical depth (Swappable boons, trait synergies)
-- Sustainable balance (Slot limits, level cap)
+- Mechanical depth (Swappable items, trait synergies)
+- Sustainable balance (Item slots, level cap)
 
 ### It accomplishes ALL of the following:
 - ✔ Summoners feel like RPG characters with clear progression
@@ -868,13 +824,13 @@ This hybrid summoner progression system strikes a balance between:
 - ✔ Level Traits create meaningful build choices (9 decisions)
 - ✔ Ultimate Traits deliver capstone fantasy (active abilities at level 10)
 - ✔ Story Traits make narrative choices matter (permanent consequences)
-- ✔ Boons enable flexible power tuning (swappable slots)
+- ✔ Items enable tactical adaptation (swappable gear)
 - ✔ Trait stacking creates emergent identity (~15 total traits)
 - ✔ Replay matters (different trait combinations each summoner)
 - ✔ Players are not punished for experimentation (new summoners start fresh)
 - ✔ The world progresses globally (event cards are account-wide)
-- ✔ Balance does not explode over time (level cap, boon slots)
-- ✔ The system scales indefinitely (can add new trait lines and boons)
+- ✔ Balance does not explode over time (level cap, item slots)
+- ✔ The system scales indefinitely (can add new trait lines and items)
 
 **This is the most stable, flexible, and expressive progression structure for Fateforged.**
 
@@ -889,18 +845,17 @@ This hybrid summoner progression system strikes a balance between:
 - Story Traits: Narrative consequences (unpredictable)
 - Level Traits: Build choices (predictable, planned)
 - Ultimate Traits: Capstone ability (level 10 only)
-- All permanent, all unlimited, all contribute to identity
+- All permanent, all contribute to identity
 
-**Layer 3: Boons (Slotted Power)**
-- Swappable mechanical bonuses
-- 3-5 slots maximum
-- Main balancing surface
-- Does not interfere with trait identity
+**Layer 3: Items (Tactical Flexibility)**
+- Equippable gear with 4 slots
+- Swappable between battles
+- Provides tactical customization
 
 This separation ensures:
 - **Structure** comes from leveling
 - **Identity** comes from traits
-- **Flexibility** comes from boons
+- **Flexibility** comes from items
 
 ---
 
@@ -913,7 +868,7 @@ The following companion documents should be created:
 2. **Trait Line Catalog** - All trait lines organized by affinity (Fire, Water, Wind, Earth, Universal, Occult, etc.)
 3. **Ultimate Trait Catalog** - All ultimate traits organized by affinity with detailed ability mechanics
 4. **Story Trait Catalog** - All story traits with acquisition conditions and narrative effects
-5. **Boon Catalog** - All boons with effects, slot costs, and affinity/trait requirements
+5. **Item Catalog** - All items organized by slot type
 6. **Summoner Catalog** - All summoners with stats, starting affinities, and unlock conditions
 
 ### Flow and UX Documents
@@ -925,12 +880,14 @@ The following companion documents should be created:
 ### Balance and Tuning Documents
 11. **XP Curve and Pacing** - Recommended XP values for levels 1-10 with pacing guidelines
 12. **Trait Balancing Guide** - Guidelines for creating balanced level traits, story traits, and ultimates
-13. **Boon Balancing Guide** - Guidelines for boon power levels and slot costs
+13. **Item Balancing Guide** - Guidelines for item power levels
 14. **Trait Line Design Guide** - How to design cohesive trait lines with good progression curves
 
 ---
 
 *Related Documents:*
 - [Summoner System Architecture](architecture.md) - Base summoner system (MVP)
+- [Item System](../items/system.md) - Item slots and mechanics
 - [Campaign Narrative](../campaign/narrative.md) - Story integration points
+- [Campaign Structure](../campaign/structure.md) - Path system and level caps
 - [Card System](../cards/system.md) - Card acquisition and deck building

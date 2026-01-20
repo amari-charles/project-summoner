@@ -1,13 +1,29 @@
 # Fateforged — Vision Document
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-16
+**Last Updated:** 2026-01-19
 
 ## Game Premise
 
-Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter finite, non-replayable events that offer small sets of cards. Choosing one card permanently closes off the others for that run, and because the campaign has only a limited number of these junctions, every player's deck naturally diverges in composition and strategy.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter choice nodes that offer small sets of cards. Choosing one card **permanently closes off the others forever** for that summoner. Because the campaign has only a limited number of these junctions, every summoner's deck naturally diverges in composition and strategy.
 
 This asymmetry — and the player's responsibility for shaping it — is the core of the game's identity and the reason it's called **Fateforged**: your fate is literally forged by the choices you make at each branching point.
+
+## Campaign Structure
+
+### One Campaign, All Summoners
+
+There is **one campaign** that all summoners play through. The campaign structure (battles, events, story beats) is identical regardless of which summoner you're playing. What differs is what choices are offered at each node based on the summoner's elemental theme.
+
+### No Runs, No Restarts
+
+The campaign is a **one-time permanent journey** per summoner. There are no "runs" in the roguelike sense. You play through once, your choices permanently shape your collection, and that's your forged fate.
+
+**Replayability comes from purchasing new summoners**, each of which starts their own fresh journey through the campaign with different elemental themes and therefore different card offers.
+
+### Exclusivity is Core
+
+You can NEVER collect all cards on a single summoner. Every choice excludes alternatives permanently. This is non-negotiable — it's the core identity of the game.
 
 ## Core Fantasy: Army Warfare
 
@@ -112,6 +128,9 @@ Every match is different. Every army is unique. Every victory is personal.
 ---
 
 *Related Documents:*
-- [Roadmap](roadmap.md)
-- [Current State](../current-state.md)
-- [Visual Style References](visual-style-references.md)
+- [Todos](../tracking/todos.md)
+- [Current State](current-state.md)
+- [Visual Style References](../art/visual-style-references.md)
+- [Item System](../features/items/system.md)
+- [Summoner System](../features/summoners/README.md)
+- [Card System](../features/cards/system.md)

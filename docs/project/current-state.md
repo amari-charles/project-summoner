@@ -1,11 +1,30 @@
 # Fateforged - Current State
 
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-19
 **Version:** Pre-Alpha (Phase 2 - Core Loop Build)
 
 ## Project Overview
 
 Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Built in Godot 4.5 with a 2.5D perspective, players use cards to spawn units, cast spells, and deploy structures on a 3D battlefield.
+
+---
+
+## Recent Design Updates (2026-01-19)
+
+See **[Ideation Session](../design/ideation-session-2026-01-19.md)** for all finalized design decisions.
+
+**Key Changes:**
+- **Campaign Structure**: One campaign for all summoners, elite vs standard paths, level caps
+- **Items Replace Boons**: 4 item slots (Grimoire, Weapon/Staff, Ring, Vestments)
+- **Level Cap System**: Cards floored to cap, prevents grinding from trivializing elite content
+- **XP Distribution**: Only cards in deck gain XP; replay battles for XP only
+
+**New Documentation:**
+- [Campaign Structure](../features/campaign/structure.md) - Paths, level caps, grinding
+- [Item System](../features/items/system.md) - Equippable gear
+- [Features Index](../features/README.md) - All game systems
+
+---
 
 ## Architecture
 
@@ -38,7 +57,7 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 
 #### Summoner System (`scripts/core/summoner.gd`)
 - **Unified entity** — both commander and attack target
-- **Fixed mana pool** (50 mana by default, no regeneration)
+- **Fixed mana pool** (100 mana by default, no regeneration)
 - **HP system** (300 HP by default, destruction triggers game end)
 - Card hand management with summon time delay
 - Hit feedback animation (flash + shake on damage)
@@ -374,7 +393,7 @@ Implementation (JsonProfileRepo → future: DbProfileRepo, SupabaseRepo)
 
 ## Development Phases
 
-See [roadmap.md](project/roadmap.md) for current development priorities.
+See [todos.md](../tracking/todos.md) for current development priorities.
 
 ### Completed
 - ✅ Save system with repository pattern

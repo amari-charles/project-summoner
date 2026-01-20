@@ -1,7 +1,7 @@
 # Card System API
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-22
+**Last Updated:** 2026-01-19
 
 ## Overview
 
@@ -76,6 +76,93 @@ If you own:
 - Fire Elemental #3 (Level 2)
 
 You can put all 3 in the same deck. You cannot put Fire Elemental #1 in the deck twice.
+
+---
+
+## Card Binding & Shared Cards
+
+### Binding Rules
+
+Cards have different binding rules based on how they're acquired:
+
+| Source | Binding | UI Indicator | Campaign Usable |
+|--------|---------|--------------|-----------------|
+| Campaign choices | Summoner-bound | (none) | Yes |
+| Event rewards | Account-wide | `[Shared]` tag | No |
+| Shop purchase | Account-wide | `[Shared]` tag | No |
+
+### Summoner-Bound Cards
+
+Cards acquired through campaign progression are **summoner-bound**:
+- Part of that summoner's forged fate
+- Cannot be used by other summoners
+- Represent permanent choices made during the campaign
+
+### Account-Wide (Shared) Cards
+
+Cards acquired from events, shop, or other non-campaign sources are **account-wide**:
+- Any summoner on the account can use them
+- Tagged with `[Shared]` in the UI for visual distinction
+- Prevents forcing players to grind events X times for X summoners
+
+### Campaign Lock for Shared Cards
+
+**Important:** Shared cards are **locked during campaign play**. They appear in the summoner's deck view but cannot be used in campaign battles.
+
+Shared cards are available for:
+- PvP matches
+- Event battles
+- Post-campaign content
+
+This prevents trivializing campaign difficulty with farmed cards while still rewarding event participation.
+
+### Shared Content is a Lever, Not a Rule
+
+Making event cards account-wide `[Shared]` is an **option** we can use, not a blanket policy. Not all event content needs to be shared.
+
+**When we use it:**
+- Prevents forcing players to grind events X times for X summoners
+- Use for content where multi-summoner grind would feel bad
+
+---
+
+## Battle Level Caps
+
+### How Level Caps Work
+
+All battles have a **level cap** that normalizes card power. This is transparent — players can assess difficulty before committing.
+
+### Cards Floored to Cap
+
+Cards are brought UP or DOWN to the cap level:
+
+```
+BATTLE: "Stone Golem" (Level Cap: 5)
+
+Your cards:
+- Level 8 card → treated as Level 5 (capped down)
+- Level 5 card → stays Level 5
+- Level 3 card → treated as Level 5 (floored up)
+```
+
+### Upgrades Capped Too
+
+Only upgrades from levels 1 through the cap apply. If your card is level 8 but cap is 5, only upgrades from levels 1-5 are active for that battle.
+
+### Standard Path Exception
+
+Standard path battles have **NO level cap**. Players can grind infinitely to overlevel and trivialize standard content. This is intentional — it's the escape valve for struggling players. Elite content stays challenging due to level caps.
+
+### XP Distribution
+
+**Only cards IN YOUR DECK gain XP from battles.** Cards not in your active deck receive no XP.
+
+This means:
+- Commitment to deck choices matters
+- Want to level a new card? Put it in your deck and grind
+- Since standard path has no cap, grinding is always possible
+
+See [Campaign Structure](../campaign/structure.md) for full path system details.
 
 ---
 
@@ -250,4 +337,6 @@ Row 0:    O   O   O   O   O   O   (6 units, staggered)
 *Related Documents:*
 - [Combat System](../combat/system.md)
 - [Summoner System](../summoners/README.md)
-- [Current State](../current-state.md)
+- [Item System](../items/system.md)
+- [Card Progression & Economy](../../design/card-progression-economy.md)
+- [Current State](../../project/current-state.md)

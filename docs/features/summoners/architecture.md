@@ -41,7 +41,7 @@ Summoners are deck leaders that provide passive bonuses and define core battle p
 │                                                              │
 │  SummonerCatalog        ProfileRepo           SummonerInstance│
 │  - Summoner configs     - summoner_instances[]- level, xp    │
-│  - innate_trait_ids     - campaign_progress   - boon_ids     │
+│  - innate_trait_ids     - campaign_progress   - items        │
 │  - base stats           - meta.selected_summoner- computed stats│
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -142,8 +142,8 @@ var config: SummonerConfig       # Reference to static config
 var level: int = 1               # Current level (1-10)
 var xp: int = 0                  # Current XP
 
-# Acquired Boons (from gameplay, stored as trait IDs)
-var acquired_boon_ids: Array[String] = []
+# Equipped Items (from gameplay, stored as item IDs per slot)
+var equipped_items: Dictionary = {}  # {"grimoire": "item_id", "weapon": "item_id", ...}
 
 # Get all trait IDs (innate + acquired)
 func get_all_trait_ids() -> Array[String]
@@ -183,7 +183,7 @@ Stored in TraitCatalog.
 
 ### Trait Categories
 - **Innate Traits**: Come with the summoner (defined in SummonerConfig.innate_trait_ids)
-- **Acquired Boons**: Earned through gameplay (stored in SummonerInstance.acquired_boon_ids)
+- **Equipped Items**: Provide tactical bonuses (stored in SummonerInstance.equipped_items, see [Item System](../items/system.md))
 
 ### Modifier Types
 
@@ -308,7 +308,7 @@ Full-screen summoner management interface:
 - Enhanced portrait with element-themed gradients and glow
 - Stats display (HP, Mana with trait bonuses)
 - XP progress and level-up with gold cost
-- Traits section showing innate traits and acquired boons
+- Traits section showing innate traits and story traits
 
 ### SummonerIconWidget
 Persistent summoner portrait button:
@@ -331,11 +331,11 @@ Individual summoner row in roster:
 - **Water** (Aquira) - trait_water_affinity, trait_tidal_resilience
 - **Wind** (Zephyrion) - trait_wind_affinity, trait_swift_casting
 - **Earth** (Terravorn) - trait_earth_affinity, trait_stone_fortitude
-- **Random** - Picks from above + grants "Fortune Favors the Bold" boon
+- **Random** - Picks from above + grants "Fortune Favors the Bold" story trait
 
 ### Fortune Favors the Bold
-Special boon granted only to summoners created via Random selection:
-- Stored in `SummonerInstance.acquired_boon_ids`
+Special story trait granted only to summoners created via Random selection:
+- Stored in `SummonerInstance.story_trait_ids`
 - Provides +50 max health
 - Trait ID: `trait_fortune_favors_bold`
 

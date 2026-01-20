@@ -59,7 +59,7 @@ It is intentionally simple for the first playable build—flat terrain, one base
 | **Precision** | Tap or click exact point → unit spawns at nearest open space if blocked. |
 | **Card Usage** | Cards are single-use per match. |
 | **Cooldowns** | None; mana is the sole gating resource. |
-| **Mana System** | Fixed mana pool (50 by default); no regeneration during battle. |
+| **Mana System** | Fixed mana pool (100 by default); no regeneration during battle. |
 | **Vision Requirement** | Both **summons** and **spells** require vision at target location. |
 | **Spawn Feedback** | Units appear with brief materialization FX for clarity. |
 
