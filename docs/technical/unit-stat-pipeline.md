@@ -13,7 +13,7 @@ flowchart TD
     UC[UnitCatalog<br/>Base stats per unit TYPE]
     UC --> CD[CardDefinition<br/>Optional StatModifier]
     CD --> CU[Card Upgrades<br/>Player progression multipliers]
-    CU --> ST[Summoner Traits<br/>Element bonuses, boons]
+    CU --> ST[Summoner Traits<br/>Element bonuses, items]
     ST --> BM[Battle Modifiers<br/>Boss fights, events]
     BM --> RB[Runtime Buffs<br/>Spell effects during battle]
     RB --> FS[Final Stats<br/>Applied to spawned unit]
@@ -66,7 +66,7 @@ HP = 45 * 1.2 = 54
 
 ### 4. Summoner Traits
 
-Summoner-specific bonuses from traits and boons.
+Summoner-specific bonuses from traits and items.
 
 **Source:** `ModifierService` via `SummonerModifierProvider`
 

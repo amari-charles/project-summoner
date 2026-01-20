@@ -177,12 +177,12 @@ flowchart TB
     end
 
     subgraph PlayerData["Player Card Instances (Per-Player)"]
-        PlayerCard["PlayerCardInstance.cs<br/>- Level (1-10)<br/>- Traits unlocked<br/>- Boons applied<br/>- Star rating<br/>- XP progress"]
+        PlayerCard["PlayerCardInstance.cs<br/>- Level (1-10)<br/>- Traits unlocked<br/>- Star rating<br/>- XP progress"]
     end
 
     subgraph Runtime["Runtime Resolution"]
         Resolver["CardResolver.cs<br/>Combines template + instance"]
-        FinalStats["Effective Stats<br/>Base + Level scaling + Traits + Boons"]
+        FinalStats["Effective Stats<br/>Base + Level scaling + Traits + Items"]
     end
 
     CardConfig3 -->|"template"| Resolver
@@ -194,7 +194,7 @@ flowchart TB
 
 **Key Pattern:**
 - `CardConfig` = immutable template (same for all players)
-- `PlayerCardInstance` = mutable player data (levels, traits, boons)
+- `PlayerCardInstance` = mutable player data (levels, traits)
 - `CardResolver` = combines both at play time to get effective stats
 
 ---
@@ -231,7 +231,7 @@ flowchart TB
 - Created `PlayerCardInstance.cs` - typed data class for player card instances
 - Created `CardUpgradeCatalog.cs` - C# port of upgrade definitions
 - Created `PlayerCardService.cs` - full domain service handling:
-  - Stats calculation pipeline (base → level → upgrades → boons)
+  - Stats calculation pipeline (base → level → upgrades → items)
   - XP/level progression logic
   - Storage abstraction (ProfileRepo now, DB later)
 - Deleted `card_progression_service.gd` - fully replaced by C# PlayerCardService

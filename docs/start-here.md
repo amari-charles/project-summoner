@@ -1,7 +1,7 @@
 # Getting Started with Fateforged
 
 **Status:** CURRENT
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-19
 **Purpose:** New developer onboarding and documentation guide
 
 Welcome to Fateforged! This document will help you get oriented with the project structure, key systems, and where to find information.
@@ -10,14 +10,17 @@ Welcome to Fateforged! This document will help you get oriented with the project
 
 | What do you want to do? | Where to go |
 |-------------------------|-------------|
+| See all documentation | [Documentation Index](README.md) |
 | Understand the project vision | [Design Vision](project/vision.md) |
 | See what's currently implemented | [Current State](project/current-state.md) |
-| Learn the 3D architecture | [Current State - Architecture](project/current-state.md#architecture) |
+| Learn the core game systems | [Features Index](features/README.md) |
+| Understand campaign structure | [Campaign Structure](features/campaign/structure.md) |
+| Learn the summoner system | [Summoner README](features/summoners/README.md) |
 | Create a new card | [Card System](features/cards/system.md) |
 | Add a new unit type | [Combat System](features/combat/system.md) |
-| Understand the coordinate system | [Coordinate System](features/coordinates/system.md) |
 | Find art asset specs | [Asset Specifications](art/asset-specifications.md) |
 | Check known bugs | [Bug Tracker](tracking/bugs.md) |
+| See latest design decisions | [Ideation Session](design/ideation-session-2026-01-19.md) |
 
 ## Project Overview
 
@@ -31,7 +34,7 @@ Welcome to Fateforged! This document will help you get oriented with the project
 Fateforged uses a two-phase battle system designed to create the fantasy of two armies clashing:
 
 **Phase 1: PREPARATION (30 seconds)**
-1. Both players start with a fixed mana pool (50 mana)
+1. Both players start with a fixed mana pool (100 mana)
 2. Summon units to build your army formation
 3. Units spawn but remain **inactive** (they wait, don't fight yet)
 4. Plan your strategy before the clash
@@ -47,53 +50,46 @@ Fateforged uses a two-phase battle system designed to create the fantasy of two 
 
 ```
 docs/
-├── start-here.md              ← You are here
+├── README.md                  ← Central documentation index
+├── start-here.md              ← You are here (onboarding)
 ├── project/                   Vision & planning
-│   ├── vision.md
-│   ├── roadmap.md
+│   ├── vision.md              Core game vision
 │   ├── brief.md               Studio-ready pitch doc
-│   ├── current-state.md       Main project reference
-│   ├── development-history.md Internal progress tracking
+│   ├── current-state.md       Implementation reference
 │   └── changelog.md           Public release notes
-├── tracking/                  Task & bug tracking
-│   ├── bugs.md                Known bugs and issues
-│   ├── bugs-resolved.md       Resolved bugs archive
-│   ├── todos.md               Planned features and tasks
-│   └── todos-completed.md     Completed tasks archive
 ├── features/                  Feature specifications
-│   ├── cards/system.md
-│   ├── combat/system.md
-│   ├── battlefield/system.md
-│   ├── coordinates/system.md
-│   ├── summoners/             Summoner system docs
-│   ├── spells/                Spell mechanics
-│   ├── campaign/              Campaign & narrative
-│   ├── events/                Event system
-│   ├── shop/                  Shop system
-│   ├── elemental-system.md
-│   └── modifier-system.md
+│   ├── README.md              ← Features index
+│   ├── cards/system.md        Card mechanics, level caps
+│   ├── combat/system.md       Unit AI, damage
+│   ├── campaign/
+│   │   ├── structure.md       Paths, level caps, grinding
+│   │   └── narrative.md       Story, writing guidelines
+│   ├── summoners/
+│   │   ├── README.md          Summoner overview
+│   │   ├── architecture.md    Base system (MVP)
+│   │   └── progression-system.md  Full progression (Post-MVP)
+│   ├── items/system.md        Item slots (replaces boons)
+│   ├── elemental-system.md    Elements and affinities
+│   └── modifier-system.md     Stat modifications
+├── design/                    Design decisions
+│   ├── ideation-session-2026-01-19.md  Latest decisions
+│   └── card-progression-economy.md     XP, resources
 ├── technical/                 Technical references
+│   ├── unit-stat-pipeline.md
 │   ├── integration-status.md
-│   ├── dialogue-system.md
-│   ├── battle-enemy-spawning.md
-│   └── vfx/                   VFX documentation
+│   └── vfx/
+├── architecture/              Code architecture
+│   ├── system-architecture.md
+│   └── transformation-roadmap.md
 ├── workflows/                 Development workflows
-│   ├── creating-dialogue.md
 │   └── pr-review-guidelines.md
 ├── art/                       Art specifications
-│   ├── asset-specifications.md
-│   ├── visual-style-references.md
-│   └── ui-assets.md
-├── lore/                      Worldbuilding & narrative
-│   ├── world.md               The Academy, setting
-│   ├── elements.md            Elemental mythology
-│   ├── narrative-arc.md       Story progression
-│   └── characters/
-│       ├── fateforgers/       Playable character bios
-│       └── npcs/              NPC bios (Merlin, etc.)
-└── design/                    Design decisions
-    ├── summoner-and-nexus.md
-    └── card-progression-economy.md
+├── lore/                      Worldbuilding
+│   ├── world.md               The Academy setting
+│   └── characters/            Fateforgers and NPCs
+├── tracking/                  Bugs and todos
+├── elements/                  Elemental content
+└── archive/                   Outdated docs (historical only)
 ```
 
 ## Project Structure
@@ -131,10 +127,17 @@ docs/
 
 ### For New Developers
 
-1. **[Current State](project/current-state.md)** - Read this first! Complete overview and architecture
-2. **[Card System](features/cards/system.md)** - How cards and units work
-3. **[Combat System](features/combat/system.md)** - Unit AI and battle mechanics
-4. **[Coordinate System](features/coordinates/system.md)** - Understanding 3D positioning
+1. **[Documentation Index](README.md)** - Central navigation for all docs
+2. **[Features Index](features/README.md)** - Overview of all game systems
+3. **[Card System](features/cards/system.md)** - How cards and units work
+4. **[Combat System](features/combat/system.md)** - Unit AI and battle mechanics
+5. **[Campaign Structure](features/campaign/structure.md)** - Paths, level caps, grinding
+
+### For Understanding Recent Design
+
+1. **[Ideation Session](design/ideation-session-2026-01-19.md)** - All finalized design decisions
+2. **[Vision](project/vision.md)** - Core game identity and pillars
+3. **[Summoner README](features/summoners/README.md)** - Summoner system overview
 
 ### For Artists
 
@@ -145,8 +148,8 @@ docs/
 ### For Designers
 
 1. **[Design Vision](project/vision.md)** - Project goals and philosophy
-2. **[Roadmap](project/roadmap.md)** - Planned features and milestones
-3. **[Combat System](features/combat/system.md)** - Battle mechanics and AI behavior
+2. **[Campaign Structure](features/campaign/structure.md)** - Path system, level caps
+3. **[Item System](features/items/system.md)** - Equippable gear
 
 ### For Writers
 
@@ -211,7 +214,7 @@ See [`.claude/CLAUDE.md`](../.claude/CLAUDE.md) for detailed git workflow.
 
 ### What's Next
 
-See [Roadmap](project/roadmap.md) for detailed plans.
+See [Todos](tracking/todos.md) for planned features and tasks.
 
 **Current priorities:**
 1. Polish existing VFX and animations
@@ -250,7 +253,7 @@ See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavil
 1. Read [Current State](project/current-state.md) for a complete overview
 2. Run the VFX test scene to see the game in action
 3. Explore the codebase - scripts are heavily commented
-4. Check [Roadmap](project/roadmap.md) to see what's planned
+4. Check [Todos](tracking/todos.md) to see what's planned
 5. Pick a task and create a feature branch!
 
 ---

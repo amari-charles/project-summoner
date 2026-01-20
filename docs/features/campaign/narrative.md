@@ -6,6 +6,52 @@ This document preserves the narrative context and story arc for Fateforged's cam
 
 ---
 
+## Campaign Structure
+
+### One Campaign, All Summoners
+
+There is **one campaign** that all summoners play through. The campaign structure (battles, events, story beats) is identical regardless of which summoner you're playing. This is critical for development scope — we build one campaign, not one per summoner.
+
+### What Differs: Choice Node Offers
+
+At choice nodes where players select cards, **at least one option is guaranteed to match the summoner's elemental theme**. This ensures:
+- Fire-themed summoner naturally builds toward fire without separate content
+- Player still has agency (can choose to diversify into other elements)
+- Different summoners experience different decks from the same campaign
+
+**Important:** Summoners are NOT restricted to their element. A Fire-themed summoner can pick Earth cards, Water cards, etc. The theme just influences what's guaranteed to be offered, not what's allowed.
+
+### No Runs, No Restarts
+
+The campaign is a **one-time permanent journey** per summoner. There are no "runs" in the roguelike sense. Replayability comes from purchasing new summoners, each starting their own fresh journey.
+
+### Exclusivity is Core
+
+You can NEVER collect all cards on a single summoner. Every choice permanently excludes alternatives. This is the core identity of "Fateforged."
+
+---
+
+## Path System
+
+For detailed path mechanics (elite vs standard, level caps, grinding), see [Campaign Structure](structure.md).
+
+### Path Types at a Glance
+
+| Path Type | Rewards | Level Cap | Purpose |
+|-----------|---------|-----------|---------|
+| **Elite** | Better rewards (better cards, traits) | Has cap (skill check) | For confident/skilled players |
+| **Standard** | Lesser rewards | No cap (can grind) | Escape valve for struggling players |
+
+### Decision Types
+
+| Type | Frequency | Description |
+|------|-----------|-------------|
+| **Major decisions** | Rare | Elite vs standard path branch points |
+| **Minor decisions** | Regular | Standard battles with card choices (pick 1 of 3) |
+| **Filler battles** | Common | Just for XP/minor rewards, no real decision |
+
+---
+
 ## Setting
 
 **The Academy of Summoning Arts**
@@ -164,4 +210,5 @@ When adding new content, always add corresponding entries to `localization/data/
 
 ## Revision History
 
+- **2026-01-19**: Added Campaign Structure section (one campaign, choice nodes, exclusivity)
 - **2025-11-20**: Initial documentation created alongside battle_00 redesign

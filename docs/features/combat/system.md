@@ -13,7 +13,7 @@ Battles use a two-phase system designed to create the fantasy of two armies clas
 
 ### Phase 1: PREPARATION (30 seconds)
 
-- Both players start with their full mana pool (50 mana by default)
+- Both players start with their full mana pool (100 mana by default)
 - Summon units to build your army formation
 - Units spawn but remain **INACTIVE** — they idle and don't fight
 - Countdown timer visible at top of screen
@@ -68,7 +68,7 @@ Battles can define different win conditions via `WinConditionIDs`:
 
 ### Fixed Mana Pool (No Regeneration)
 
-- Players start with full mana (50 by default, modified by summoner stats)
+- Players start with full mana (100 by default, modified by summoner stats)
 - **No mana regeneration during battle**
 - All resources available upfront for strategic planning
 - Forces commitment — you can't wait and react indefinitely

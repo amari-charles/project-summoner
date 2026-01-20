@@ -30,11 +30,28 @@ Cards do not gain power automatically. All power comes from player-selected upgr
 ### 2.2 XP-Based Unlocking
 
 - Cards gain XP from battles and events
+- **Only cards IN YOUR DECK gain XP** — cards not in your active deck receive no XP
 - XP progression unlocks the ability to choose an upgrade at the next level
 - XP cannot be purchased directly for power; it must be primarily earned through gameplay
 - Optional: XP boosters or pass progress can exist, but they only accelerate access to choice tiers, not grant upgrades directly
 
-### 2.3 Resource Gating
+### 2.3 Battle Level Caps
+
+All battles have a **level cap** that normalizes card power:
+
+- **Cards are floored to the cap**: If your card is above the cap, it's treated as the cap level. If below, it's treated as the cap level (floored up).
+- **Upgrades are capped too**: Only upgrades from levels 1 through the cap apply. A level 8 card in a cap-5 battle only has upgrades 1-5 active.
+- **Standard path exception**: Standard path battles have NO level cap — players can grind infinitely to overlevel and trivialize standard content. This is the escape valve for stuck players.
+- **Elite path maintains caps**: Elite battles keep their level caps as skill checks.
+
+This ensures:
+- Elite content stays challenging regardless of grinding
+- Standard content serves as an accessible fallback
+- Player skill matters more than raw card levels for elite content
+
+See [Campaign Structure](../features/campaign/structure.md) for full path system details.
+
+### 2.4 Resource Gating
 
 - Unlocking the chosen upgrade at a level also requires resources
 - Resources act as an additional gating mechanism, shaping which upgrade directions are available
@@ -195,13 +212,29 @@ Fateforged uses a choice-driven progression system where cards gain levels cappe
 ### Battle Rewards (Per-Event Configuration)
 Each battle/event defines its own rewards in `campaign_service.gd`:
 - `gold_reward`: Gold granted on victory (e.g., 30-50 for tutorials)
-- `card_xp_reward`: XP granted to each card played in battle (e.g., 15-25)
+- `card_xp_reward`: XP granted to each card in the player's deck (e.g., 15-25)
 
 Example values:
 - Tutorial battles: gold=30-40, xp=15
 - Standard battles: gold=50-100, xp=20-30 (scale with difficulty)
 - Boss battles: gold=150+, xp=40+
 - Non-combat events (shops): gold=0, xp=0
+
+### Replay/Grinding Rules
+
+Players can **replay completed battles** with the following rules:
+
+| Reward | First Clear | Replay |
+|--------|-------------|--------|
+| Gold | Yes | No |
+| Card rewards | Yes | No |
+| XP | Yes | Yes |
+
+**Why XP-only on replay:**
+- Prevents infinite gold farming
+- Maintains card scarcity and choice weight
+- Still allows leveling up cards through dedicated play
+- Standard path (uncapped) + XP replays = escape valve for stuck players
 
 ### Upgrade Choices
 - 2-3 upgrade options per level
@@ -210,4 +243,4 @@ Example values:
 
 ---
 
-*Last Updated: 2025-11-26*
+*Last Updated: 2026-01-19*

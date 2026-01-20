@@ -48,13 +48,9 @@ Defines the complete summoner progression system (all features below are Post-MV
 - **Story Traits** - Permanent narrative consequences (summoner-bound)
   - Earned from campaign events and story decisions
   - Can be positive, negative, or mixed
-  - Unlock/block boon families and affinity paths
+  - Unlock/block affinity paths
   - **Story Traits have no explicit limit; they are practically limited by campaign content**
   - ~5 story traits expected per campaign run
-- **Boons** - Slotted mechanical bonuses (summoner-bound, 3 default slots, swappable outside combat)
-  - Can give % modifiers and strong effects
-  - Removable and configurable
-  - Main power tuning surface
 - **Global Event Cards** - Account-wide rewards (the only cross-summoner power; prevents repetition fatigue)
 - **Campaign Structure** - One world with branching paths (not 4 separate campaigns)
 - Summoner unlocking through gameplay
@@ -84,14 +80,41 @@ Follow `progression-system.md`:
 2. Implement Level Traits system (trait lines, prerequisites, selection UI)
 3. Implement Ultimate Traits (level 10 active abilities)
 4. Implement Story Traits system (campaign event acquisition)
-5. Implement Boon system with slotting
-6. Implement Global Event Cards
-7. Add summoner unlocking mechanics
-8. Support campaign replay
+5. Implement Global Event Cards
+6. Add summoner unlocking mechanics
+7. Support campaign replay
 
 ---
 
 ## 🎯 Key Design Decisions
+
+### Summoner Element Theming (Not Restriction)
+
+**Important:** Summoners are THEMED around an element but NOT restricted to it.
+
+A Fire-themed summoner can use Earth cards, Water cards, or any other element. The theme influences:
+- What cards are guaranteed to be offered at campaign choice nodes
+- The summoner's visual identity and lore
+- Starting card(s)
+
+But it does NOT restrict what cards can be equipped or played.
+
+### Item System
+
+Summoners have **4 item slots** for equippable gear:
+
+| Slot | Name |
+|------|------|
+| 1 | Grimoire |
+| 2 | Weapon/Staff |
+| 3 | Ring |
+| 4 | Vestments |
+
+Items provide tactical flexibility (swappable between battles) in contrast to:
+- **Traits** - Permanent identity ("who they are")
+- **Cards** - Permanent fate-forged choices
+
+See [Item System](../items/system.md) for full details.
 
 ### Why Profile + Deck Model?
 **Profile = Ownership** ("Which summoners do I have?")
@@ -155,29 +178,30 @@ This separation ensures:
 - Progression feels fair (level traits are guaranteed)
 - Builds have both planned elements (level) and emergent elements (story)
 
-### Why Traits vs Boons?
-**Traits** (Story + Level + Ultimate) = Identity Expression
-- Unlimited accumulation (~15 total per summoner)
+### Why Traits vs Items?
+**Traits** = Identity Expression (permanent, uncapped)
+- Simple stat bonuses (+damage, +HP, +fire damage, etc.)
 - Permanent and immutable
-- Can give % modifiers and effects
-- Create synergy through stacking
-- Unlock/block boon families
+- Never compete directly with card rewards
+- Come from leveling, achievements, and story events
 
-**Boons** = Power Expression (build tuning, mechanical choices)
-- Slot-limited (3 default, max ~5 with rare traits)
-- Swappable outside combat
-- Can give % modifiers and strong effects
+**Items** = Tactical Flexibility (swappable, slot-limited)
+- 4 slots: Grimoire, Weapon/Staff, Ring, Vestments
+- Swappable between battles (not during combat)
+- Provide tactical customization layer
+- See [Item System](../items/system.md) for details
 
-This separation prevents:
-- Power creep (boons slot-capped, level cap at 10)
-- New summoner punishment (traits are summoner-bound, event cards are global)
-- Choice regret (story traits are narrative, boons are flexible)
-- Balance explosions (boons are the main tuning surface)
+This separation provides:
+- Identity through traits (who the summoner is)
+- Flexibility through items (how they approach each battle)
+- No choice regret (items can be changed, traits are permanent growth)
+- Clear power boundaries (items are slot-limited)
 
 ---
 
 ## 🔗 Related Documentation
 
+- [Item System](../items/system.md)
 - [Card System](../cards/system.md)
 - [Campaign Narrative](../campaign/narrative.md)
 - [Elemental System](../elemental-system.md)
@@ -195,7 +219,7 @@ These companion documents should be created as the system is implemented:
 2. **trait-line-catalog.md** - All trait lines organized by affinity
 3. **ultimate-trait-catalog.md** - All ultimate traits with detailed ability mechanics
 4. **story-trait-catalog.md** - All story traits with acquisition conditions
-5. **boon-catalog.md** - All boons with effects, slot costs, and requirements
+5. **item-catalog.md** - All items organized by slot type
 6. **summoner-catalog.md** - All summoners with stats and unlock conditions
 
 ### Flow and UX Documents
@@ -207,9 +231,9 @@ These companion documents should be created as the system is implemented:
 ### Balance and Tuning Documents
 11. **xp-curve-pacing.md** - XP values and pacing for levels 1-10
 12. **trait-balancing-guide.md** - Guidelines for balanced traits (story/level/ultimate)
-13. **boon-balancing-guide.md** - Guidelines for boon power levels
+13. **item-balancing-guide.md** - Guidelines for item power levels
 14. **trait-line-design-guide.md** - How to design cohesive trait lines
 
 ---
 
-*Last Updated: 2025-01-24*
+*Last Updated: 2026-01-19*
