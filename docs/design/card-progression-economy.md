@@ -92,12 +92,14 @@ To keep complexity manageable and monetization clean, the game uses two shops wi
 **Purpose:** Supports the story/campaign run
 
 **Characteristics:**
-- Appears during campaign progression in a fixed order
-- Cannot be revisited
+- Appears as **visible nodes on the campaign graph** (players can plan ahead)
+- Uses **campaign-scoped gold** (no value outside this campaign)
 - Offers campaign-bound or run-specific items
 - May offer resource clusters relevant to the campaign's theme
 - Does not sell permanent progression items
 - All decisions here affect only this specific run
+
+**Economic tension:** Spend now for immediate power, or save for expensive items at later caravans. Since gold dies with the campaign, players must commit.
 
 This keeps the base campaign simple and prevents new players from being overwhelmed.
 
@@ -155,7 +157,7 @@ This mirrors proven fair monetization patterns used by Pokemon Go raids, TFT lab
 Progression toward advanced upgrade tiers is gated by:
 
 1. **XP** — earned primarily from battles/events
-2. **Gold** — required to finalize the upgrade
+2. **Gold** — required to finalize the upgrade (campaign-scoped, see below)
 3. **Resources** — required to unlock specific upgrade choices
 
 This triple-gate ensures:
@@ -163,6 +165,19 @@ This triple-gate ensures:
 - Upgrades remain meaningful
 - Paid shortcuts cannot directly purchase power
 - Build direction emerges from XP + resources + player choices
+
+### 6.1 Gold is Campaign-Scoped
+
+Gold has **no value outside the specific campaign** it was earned in. When a campaign ends (victory or defeat), unspent gold is lost.
+
+**Design intent:**
+- Forces real economic decisions (spend now vs. save for later)
+- No hoarding across campaigns or summoners
+- Creates strategic tension: immediate power vs. expensive items at later caravans
+
+Players can see upcoming Caravan stops on the campaign graph, allowing informed spending decisions. The campaign ends with a **final spending opportunity** to prevent "died with full pockets" frustration.
+
+See [Campaign Structure](../features/campaign/structure.md#gold-economy) for full gold economy details.
 
 ---
 

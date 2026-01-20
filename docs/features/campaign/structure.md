@@ -145,6 +145,52 @@ If players overlevel standard content, that's fine. Standard path is the escape 
 
 ---
 
+## Gold Economy
+
+### Gold is Campaign-Scoped
+
+Gold has **no value outside the specific campaign** it was earned in. When a campaign ends (victory or defeat), unspent gold is lost. This is intentional — it forces real economic decisions.
+
+**Key implications:**
+- No hoarding gold across campaigns
+- No transferring gold between summoners
+- Must spend it or lose it
+
+### The Caravan
+
+The Caravan is the in-campaign shop where players spend gold. Caravans appear as **visible nodes on the campaign graph**, allowing players to:
+
+- See upcoming caravan stops before reaching them
+- Plan spending decisions with full information
+- Make informed economic choices, not blind gambles
+
+### Economic Tension (Core Philosophy)
+
+The skill of gold management lies in balancing immediate power vs. future purchases:
+
+| Strategy | Advantage | Risk |
+|----------|-----------|------|
+| **Spend early** | Immediate power boost | Miss expensive items later |
+| **Save up** | Access to powerful late-game items | May die before spending |
+
+Since gold dies with the campaign, there's no "optimal" hoarding strategy. Players must commit.
+
+### Gold Penalties as Levers
+
+Gold loss can be used as a penalty for various events:
+
+- Failing elite paths
+- Certain story events
+- Optional risk/reward choices
+
+This is a **tunable lever**, not a hard rule. The specific penalties will be designed per-event based on desired difficulty and pacing.
+
+### Final Spending Opportunity
+
+The campaign ends with a **final chance to spend remaining gold**. This prevents the frustration of "died with full pockets" and ensures players can always use their earnings.
+
+---
+
 ## Campaign Flow Example
 
 ```
@@ -238,6 +284,7 @@ After battle completion:
 - [Campaign Narrative](narrative.md) — Story and writing guidelines
 - [Card System](../cards/system.md) — Card mechanics
 - [Card Progression & Economy](../../design/card-progression-economy.md) — XP and leveling
+- [Shop System](../shop/requirements.md) — Caravan and shop mechanics
 - [Summoner System](../summoners/README.md) — Summoner mechanics
 - [Vision Document](../../project/vision.md) — Game vision and pillars
 
