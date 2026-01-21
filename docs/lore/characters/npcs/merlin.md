@@ -10,8 +10,34 @@
 - Wise
 - Patient
 - Formal but caring
+- Embodies the Academy's "warm surface, hard truths" philosophy
 
 *To be expanded in Phase 4*
+
+---
+
+## Appearance
+
+**Classic wizard archetype** — the traditional Gandalf/Dumbledore mold.
+
+**Key Features:**
+- Long, flowing beard (white or silver)
+- Ornate robes befitting the Headmaster position
+- Staff or wand as symbol of office
+- Aged but vital appearance
+- Eyes that hold ancient knowledge
+
+**Style Notes:**
+- Should feel timeless and authoritative
+- Warm colors to match the Academy's welcoming facade
+- Details that hint at deep magical knowledge
+- Neither frail nor imposing—balanced presence
+
+---
+
+## Portrait Art Direction
+
+Dignified, knowing expression. Eyes that have seen much and judge wisely. Should radiate both warmth and expectation—welcoming but assessing. A mentor who believes in you, but whose standards you sense you must meet.
 
 ---
 

@@ -27,14 +27,14 @@ It is intentionally simple for the first playable build—flat terrain, one base
 
 ---
 
-## 3 Incarnation & Summoner
+## 3 Summoner on the Battlefield
 
 | Aspect | Rule |
 | ----- | ----- |
-| **Incarnation** | The summoner's magical presence projected onto the battlefield. Possesses HP only. |
-| **Victory Condition** | Destroying an opponent's Incarnation immediately ends the match. |
-| **Summoner Concept** | The summoner commands from elsewhere; the Incarnation is their projection of power. |
-| **Visual Representation** | Glowing elemental orb/presence matching summoner's affinity. |
+| **Summoner** | The summoner is physically present on the battlefield, fighting alongside their army. Possesses HP. |
+| **Victory Condition** | Defeating an opponent's summoner immediately ends the match. |
+| **Stakes** | The summoner IS on the field — not commanding from afar, but personally invested in the battle. |
+| **Visual Representation** | The summoner character, styled by their elemental affinity. |
 | **Future Hooks** | Elemental variations, visual upgrades, or summoner ultimates can be layered later. |
 
 ---
@@ -134,7 +134,7 @@ Battles use a two-phase system:
 * Continuous horizontal arena implemented with fog-of-war masking.
 * Two-phase battle system (PREPARATION → BATTLE) functional.
 * Summon, spell, and vision systems respect placement rules.
-* Incarnation HP determines win/loss.
+* Summoner HP determines win/loss.
 * 3–5 minute loop playable end-to-end with clear camera framing.
 
 ---

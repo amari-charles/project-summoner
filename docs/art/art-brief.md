@@ -1,405 +1,178 @@
 # Art Commission Brief
 
-Non-summon art assets needed for Fateforged. This document is organized by asset category for studio reference.
-
 **Game:** Fateforged
 **Genre:** Card-based strategy with real-time battles
-**Art Style:** Painterly/hand-drawn with clear silhouettes (Cult of the Lamb-inspired)
-**Resolution:** 1920x1080 target
+
+_Note: I'm open to any suggestions to make the style more cohesive or improve the art direction._
 
 ---
 
-## 1. UI Elements
+## Art Style Direction
 
-### Buttons
+### Vision
 
-3 variants × 4 states each = 12 images
+**Stylized characters** — more detailed than cartoon, less detailed than full anime.
 
-| Variant | Description | States Needed |
-|---------|-------------|---------------|
-| Primary Button | Main action buttons (Start, Confirm, Play) | Normal, Hover, Pressed, Disabled |
-| Secondary Button | Smaller actions (Back, Cancel, Close) | Normal, Hover, Pressed, Disabled |
-| Icon Button | Circular/square for icons (Settings, Pause) | Normal, Hover, Pressed, Disabled |
+- Clear, readable silhouettes
+- Expressive character designs
+- Enough detail to convey personality and texture
+- Not so much detail that it becomes visually busy
 
-**Used in:** 20+ screens including Title, Pause Menu, Shop, Deck Builder, all modals
+We're looking for a stylized art style with characters in dynamic poses and designs that express their personality clearly. Characters shouldn't be overly busy or cluttered — we want clean, readable designs that aren't hyper-detailed anime but also aren't too flat or simplistic.
 
----
+### Reference Images
 
-### Panels & Frames
+**Primary reference:**
 
-NinePatch textures for flexible scaling
+<img src="references/ref_hlw_sword_girl.webp" width="300">
 
-| Asset | Size | Description |
-|-------|------|-------------|
-| Modal Panel | Variable (min 400x300) | Overlay dialogs, confirmations, detail views |
-| Content Panel | Variable | Main content containers, list backgrounds |
-| Card Frame | 160x240px | Decorative frame for cards (includes art window, mana cost area, name plate) |
-| Summoner Frame | 150x150px | Portrait frame for summoner displays |
-| Tooltip Panel | Variable (min 200x100) | Hover info, stat displays |
+**Additional references:**
 
-**Used in:** Card Detail, Deck Builder, Collection, Shop, all modals
+<img src="references/ref_fantasy_duo_stylized.jpeg" width="300"> <img src="references/ref_witch_elegant_stylized.jpeg" width="300"> <img src="references/ref_rpg_classes_stylized.jpeg" width="300">
+
+<img src="references/ref_martial_artist_stylized.jpeg" width="300"> <img src="references/ref_adventurer_cartoon_style.jpeg" width="300"> <img src="references/ref_character_companion.jpeg" width="300">
+
+<img src="references/ref_dynamic_poses_sketch.jpeg" width="300"> <img src="references/ref_scifi_dynamic_pose.jpeg" width="300">
 
 ---
 
-### Progress Bars
+## 1. UI Components
 
-3 types, each needs frame + fill texture
+We need artist input on UI style direction. Below are the generic elements and screens requiring UI work.
 
-| Bar Type | Dimensions | Colors |
-|----------|------------|--------|
-| HP Bar | ~100x12px | Red/green fill, dark frame |
-| Mana Bar | ~200x16px | Blue fill, dark frame |
-| XP Bar | ~150x8px | Gold/yellow fill, dark frame |
+### Generic Elements
 
-**Used in:** Battle HUD, Summoner stats, Card progression
+| Element                      | Description                                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Hero Portrait Widget**     | Circular portrait with HP bar attached + mana bar below (unified widget for battle HUD)               |
+| **Panel Backgrounds**        | Content containers for various screens                                                                |
+| **Modal Overlays**           | Popup/dialog backgrounds                                                                              |
+| **Buttons**                  | Primary, secondary, and icon buttons with states (normal, hover, pressed)                             |
+| **Dialogue Box**             | NPC conversation UI (for Merlin, Merriweathers, events)                                               |
+| **Summon/Hero Info Display** | Way to show unit information — form TBD (card-like or box-like, open to suggestions)                  |
+| **Icons (~10 to start)**     | Unsure of full icon needs yet — budgeting ~10 icons initially (e.g., gold coin), can expand as needed |
 
----
+### Screens Needing UI
 
-## 2. Icons
+| Screen                 | Purpose                   | Key Elements                                     |
+| ---------------------- | ------------------------- | ------------------------------------------------ |
+| **Title Screen**       | Main menu                 | Play button, settings, branding                  |
+| **Summoner Selection** | Pick your summoner        | Summoner portraits, selection UI                 |
+| **Campaign Map**       | Navigate campaign nodes   | Map nodes, path connections, current position    |
+| **Battle HUD**         | In-battle interface       | Hero portrait widget, hand area, phase indicator |
+| **Shop/Caravan**       | Buy stuff during campaign | Item display, gold counter, purchase UI          |
+| **Collection**         | View/manage collection    | Grid, filters, details                           |
+| **Event Screen**       | Campaign events/dialogue  | Dialogue box, choice buttons, NPC portrait area  |
+| **Reward Screen**      | Post-battle rewards       | Reward display, continue button                  |
+| **Settings**           | Options/preferences       | Sliders, toggles, navigation                     |
 
-### Element Icons
+### Campaign Map
 
-5 icons representing game elements
+The campaign is a node-based map with branching paths.
 
-| Element | Color Reference |
-|---------|-----------------|
-| Fire | #e64d1a (orange-red) |
-| Water | #3380e6 (blue) |
-| Earth | #996633 (brown) |
-| Air | #99ccff (light blue) |
-| Neutral | #b3b3b3 (gray) |
-
-**Size:** 32x32px and 64x64px variants
-**Used in:** Cards, Summoner displays, Collection filters, element badges
-
----
-
-### Action Icons
-
-~10 icons for UI navigation and actions
-
-| Icon | Description |
-|------|-------------|
-| Back Arrow | Navigation back |
-| Close X | Modal/panel close |
-| Settings Gear | Settings access |
-| Gold Coin | Currency display |
-| Mana Crystal | Card cost display |
-| Plus/Add | Create new, add item |
-| Trash/Delete | Remove/delete |
-| Checkmark | Confirm, active state |
-| Lock | Locked content |
-| Hamburger Menu | Menu toggle |
-
-**Size:** 24x24px and 48x48px variants
-**Used in:** All screens with navigation, resource displays, list actions
+| Asset                | Description                                 |
+| -------------------- | ------------------------------------------- |
+| **Node types**       | Battle node, special battle node, shop node |
+| **Connecting lines** | Lines/roads connecting nodes                |
+| **Node states**      | Completed, uncompleted                      |
+| **Current position** | Marker showing where the player is          |
 
 ---
 
-### Card Type Icons
+## 2. Character Art
 
-4 icons (placeholders exist, may need polish)
+_Note: May commission additional characters in the future._
 
-| Icon | Represents |
-|------|------------|
-| Sword | Warrior/Melee summons |
-| Bow | Archer/Ranged summons |
-| Tower | Wall/Defender summons |
-| Wizard Hat | Spells |
+### Summoners
 
-**Size:** 24x24px
-**Status:** Basic versions exist at `assets/icons/card_types/`
+4 summoner characters for initial commission. All summoners are meant to appear in their early twenties. For each summoner we need:
 
----
+- **Portrait art** — for menus and selection screens
+- **In-game unit** — the summoner appears on the battlefield and can be attacked
 
-## 3. Card Assets
+| Summoner | Element | Gender/Ethnicity | Personality                     | Portrait Art Direction                                     |
+| -------- | ------- | ---------------- | ------------------------------- | ---------------------------------------------------------- |
+| Cole     | Fire    | White man        | Arrogant, competitive, abrasive | Looking down at viewer with cocky smile                    |
+| Mei      | Wind    | Asian woman      | Elusive, self-interested, loner | Looking away, elsewhere - viewer not interesting enough    |
+| Selene   | Water   | Black woman      | Gentle, caring, relaxed         | Braids with silver cuffs/beads; peaceful, calm, unbothered |
+| Teo      | Earth   | Hispanic man     | Direct, reliable, gym rat       | Bulky but not overly so                                    |
 
-### Card Frame
+**Element Colors:**
 
-| Spec | Value |
-|------|-------|
-| Dimensions | 160x240px (2x display size) |
-| Art Window | ~100x100px centered area |
-| Mana Cost Area | Top corner |
-| Name Plate | Bottom area |
+- Fire (Cole): red
+- Wind (Mei): white
+- Water (Selene): blue
+- Earth (Teo): brown/green
 
-**Rarity Variants Needed:**
-
-| Rarity | Frame Treatment |
-|--------|-----------------|
-| Common | Simple, muted |
-| Uncommon | Subtle accent |
-| Rare | Visible glow/decoration |
-| Epic | Prominent styling |
-| Legendary | Most ornate, golden accents |
+**Total:** 4 characters × (1 portrait + 1 in-game unit) = 8 images
 
 ---
 
-### Card Illustrations
+### NPCs
 
-Portrait-style art for card display
+Characters that appear in campaign events, dialogue, and shops. For NPCs we just need portrait art.
 
-| Spec | Value |
-|------|-------|
-| Dimensions | 100x100px |
-| Style | Painterly, character/effect focus |
-| Background | Transparent or element-themed |
+#### Merlin — Headmaster
 
-**Priority Cards:**
-1. Warrior (melee summon)
-2. Archer (ranged summon)
-3. Wall/Defender
-4. Fireball spell
-5. Training Dummy (tutorial)
+Academy Headmaster, mentor figure. Generic old archmage look — blue robes, mage hat, wooden staff, etc.
 
----
+#### Mr. & Mrs. Merriweather — Caravan Merchants
 
-## 4. Summoner Portraits
+A husband-and-wife merchant duo who run the traveling caravan shop.
 
-5 summoner characters, each needs 3 size variants
+**Mr. Merriweather** — Face of the caravan. Relentlessly cheerful, theatrical warmth. Traveling merchant look, approachable, well-maintained.
 
-### Characters
+**Mrs. Merriweather** — Handles business operations. Calm, grounded warmth. Practical traveling clothes, organized, observant.
 
-| Summoner | Element | Brief Description |
-|----------|---------|-------------------|
-| Cole | Fire | Passionate, bold |
-| Kai-Ise | Water | Calm, flowing |
-| Mei | Earth | Grounded, steady |
-| Selene | Air | Free-spirited, light |
-| Teo | Neutral | Balanced, wise |
+**Portrait Art Direction:** Over-the-top friendly looking. Almost suspiciously so.
 
-### Size Variants
-
-| Size | Dimensions | Usage |
-|------|------------|-------|
-| Full Portrait | 150x150px | Summoner cards, management panel |
-| Icon | 50x50px | In-game HUD, quick selection |
-| List | 60x60px | Roster lists, small displays |
-
-**Total:** 5 characters × 3 sizes = 15 portrait images
+**Total:** 3 NPCs × portrait
 
 ---
 
-## 5. Battlefield & Environment
+## 3. Battlefield & Environment
 
-### Sky Background
+The battlefield is a **continuous 2D horizontal arena**. Starting with one biome — additional biomes can be commissioned later.
 
-| Spec | Value |
-|------|-------|
-| Dimensions | 1920x540px |
-| Purpose | Atmospheric backdrop (upper screen half) |
-| Colors | Deep purple-blue (#1a1528) to warm horizon (#4a3838) |
-| Style | Muted, gradient, optional stars/distant elements |
+### Grass/Plains Biome
 
----
+| Spec       | Value                                              |
+| ---------- | -------------------------------------------------- |
+| Dimensions | ~3000-4000px wide × 1080-1200px tall (exact TBD)   |
+| Format     | Single wide image (battlefield is wider than tall) |
+| Style      | Grass/plains terrain                               |
+| Colors     | Muted greens and earth tones                       |
+| Note       | Subtle texture variation to avoid flatness         |
 
-### Ground Surface
+### Reference Images
 
-| Option | Dimensions |
-|--------|------------|
-| Single Image | 1920x540px |
-| Tileable | 256x256px |
+<img src="references/ref_monster_chef_terrain.jpg" width="300"> <img src="references/ref_mini_warriors_battlefield.webp" width="300">
 
-| Spec | Value |
-|------|-------|
-| Purpose | Main battlefield floor |
-| Colors | Earth tones (#4a3828 to #8b7355) |
-| Style | Subtle texture (grass, dirt, mystical elements) |
-| Note | Must not compete with unit visibility |
+_Note: May need additional biomes in the future._
 
 ---
 
-### Base Structures
+## 4. VFX & Effects
 
-| Base | Theme | Colors |
-|------|-------|--------|
-| Player Base | Warm, magical tower/academy | Gold/bronze (#d4a574) |
-| Enemy Base | Cool, ominous fortress | Steel blue (#5a7b8c) |
+Visual effects for use in Godot. Scope is variable based on price. Examples below are not a fixed list.
 
-| Spec | Value |
-|------|-------|
-| Dimensions | 120x320px each |
-| Elements | Main structure, distinct roof, HP bar area, team symbol area |
+**Spell effects:**
 
----
+- Fireball
+- Icebolt
+- Mana missile
+- Healing AOE
 
-### Environmental Props (Optional)
+**Screen effects:**
 
-Decorative elements for battlefield edges
+- Victory splash
+- Defeat splash
 
-| Prop Types | Notes |
-|------------|-------|
-| Ancient stones/pillars | Background placement |
-| Glowing crystals | Accent pieces |
-| Mystical trees | Edge decoration |
-| Ruined structures | Atmospheric |
+**UI effects:**
 
-**Placement:** Edges only, must not obstruct gameplay
+- Button hover/press
+- Screen transitions
 
 ---
 
-## 6. VFX & Effects
-
-### Spell Effect Sprites
-
-Per-element spell animations (sprite sheets or individual frames)
-
-| Element | Effect Style |
-|---------|--------------|
-| Fire | Flames, explosions, embers |
-| Water | Splashes, waves, droplets |
-| Earth | Rocks, dust, cracks |
-| Air/Wind | Swirls, gusts, feathers |
-| Lightning | Bolts, sparks, arcs |
-| Ice | Crystals, frost, shards |
-| Life/Nature | Leaves, vines, blooms |
-| Holy | Light rays, halos, sparkles |
-| Death/Dark | Shadows, skulls, decay |
-
-**Note:** Fireball animation exists (6 frames) at `assets/textures/vfx/fireball/`
-
----
-
-### Projectiles
-
-| Projectile | Size | Notes |
-|------------|------|-------|
-| Arrow | 32x32px | Exists at `assets/textures/projectiles/` |
-| Magic bolt | 32x32px | Per-element variants |
-| Spell orb | 48x48px | Glowing effect |
-
----
-
-### Status Indicators
-
-Visual markers for buffs/debuffs
-
-| Type | Examples |
-|------|----------|
-| Buff indicators | Shield, speed boost, damage up |
-| Debuff indicators | Slow, poison, weakness |
-| Area markers | Target zones, spell ranges |
-
----
-
-## 7. Campaign & Events
-
-### Map Elements
-
-| Asset | Description |
-|-------|-------------|
-| Location markers | Node graphics for map navigation |
-| Path indicators | Lines/roads connecting locations |
-| Difficulty icons | Easy/Medium/Hard indicators |
-| Event type icons | Battle, shop, treasure, mystery |
-
----
-
-### Event Illustrations (If Needed)
-
-| Type | Size | Notes |
-|------|------|-------|
-| Event backgrounds | Variable | Scene-setting imagery |
-| NPC portraits | 100x100px | For dialogue/events |
-| Reward displays | Variable | Treasure, card reveals |
-
----
-
-## 8. Decorative Elements
-
-### UI Decoration
-
-| Asset | Usage |
-|-------|-------|
-| Horizontal separator | Section dividers in panels |
-| Corner ornaments | Panel decoration, card frames |
-| Glow/highlight effect | Selection states, hover feedback |
-| Border trim | Screen edge decoration |
-
----
-
-### Fonts
-
-3 font families needed
-
-| Font Type | Sizes | Usage |
-|-----------|-------|-------|
-| Title/Display | 48-56px | Screen titles, Victory/Defeat, modal headers |
-| Body/UI | 14-32px | Buttons, labels, descriptions, stats |
-| Accent/Numbers | Various | Mana costs, damage numbers, gold amounts |
-
-**Style:** Should match painterly aesthetic, readable at small sizes
-
----
-
-## Technical Specifications
-
-### General Requirements
-
-| Spec | Value |
-|------|-------|
-| Format | PNG with transparency |
-| DPI | 150-300 DPI |
-| Color Mode | RGB, 8-bit per channel |
-| Naming | lowercase_with_underscores.png |
-
-### Style Guidelines
-
-- Painterly/hand-drawn with clear silhouettes
-- Muted environments, vibrant character/effect accents
-- Create at 2x target size, scale down for quality
-
----
-
-## Color Palette Reference
-
-### UI Colors
-- Dark primary: `#1a1a26`
-- Dark secondary: `#262633`
-- Gold/Currency: `#ffd933`
-- Active/Success: `#66e666`
-- Error: `#ff4d4d`
-
-### Element Colors
-- Fire: `#e64d1a`
-- Water: `#3380e6`
-- Earth: `#996633`
-- Air: `#99ccff`
-- Neutral: `#b3b3b3`
-
-### Environment Colors
-- Sky (dark): `#1a1528`
-- Horizon: `#4a3838`
-- Ground (dark): `#4a3828`
-- Ground (light): `#8b7355`
-
-### Team Colors
-- Player: `#d4a574` (warm gold)
-- Enemy: `#5a7b8c` (steel blue)
-
----
-
-## Asset Summary
-
-| Category | Estimated Count |
-|----------|-----------------|
-| Buttons | 12 images |
-| Panels/Frames | ~10 images |
-| Progress Bars | 6 images |
-| Element Icons | 10 images (2 sizes) |
-| Action Icons | 20 images (2 sizes) |
-| Card Type Icons | 4 images |
-| Card Frames | 5 images (rarities) |
-| Card Illustrations | 5+ images |
-| Summoner Portraits | 15 images |
-| Battlefield Assets | 4-6 images |
-| VFX/Effects | Variable (sprite sheets) |
-| Campaign Assets | Variable |
-| Decorative | ~10 images |
-| Fonts | 3 families |
-
-**Estimated Total:** 100-150 individual assets (excluding VFX animation frames)
-
----
-
-*Document Version: 1.0*
+_Document Version: 1.0_
