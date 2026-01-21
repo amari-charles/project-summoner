@@ -83,39 +83,40 @@ This document specifies the technical requirements for hand-drawn/painted art as
 
 ---
 
-## Priority 2: Base Structures (Future Phase)
+## Priority 2: Summoners on the Battlefield
 
-### Player Base
-**Purpose:** Replace current geometric base with hand-drawn structure
+The summoner is physically present on the battlefield — not a projection, base, or structure. They stand with their army and can be defeated to end the match.
 
-**Current Placeholder:** Polygon-based structure at 60x200px
-**Recommended Size:** 120x320px (2x for detail)
-**Theme:** Warm, welcoming, magical academy/tower aesthetic
-**Colors:** Gold/bronze from `ColorPalette.PLAYER_ZONE_*`
-
-**Elements to Include:**
-- Main tower/structure body
-- Distinct "roof" or top section
-- Visible HP bar integration area
-- Player team symbol area (◆)
-- Magical/mystical details
-
----
-
-### Enemy Base
-**Purpose:** Replace current geometric base with hand-drawn structure
+### Summoner Battlefield Sprites
+**Purpose:** Replace current geometric placeholder with full summoner characters
 
 **Current Placeholder:** Polygon-based structure at 60x200px
 **Recommended Size:** 120x320px (2x for detail)
-**Theme:** Cool, ominous, dark fortress aesthetic
-**Colors:** Steel blue from `ColorPalette.ENEMY_ZONE_*`
+
+**5 Summoners Required:**
+
+| Summoner | Element | Visual Theme | Colors |
+|----------|---------|--------------|--------|
+| Cole | Fire | Arrogant, competitive; cocky smile | Fire orange (#e64d1a) |
+| Kai-Ise | Space | Confident facade, anxiety underneath; casual clothes, Space Spirit on shoulder | Purple (#9966ff) |
+| Mei | Wind | Elusive, self-interested; looking elsewhere | Light blue (#99ccff) |
+| Selene | Water | Gentle, caring; braids with silver cuffs | Water blue (#3380e6) |
+| Teo | Earth | Direct, reliable gym rat; athletic build | Earth brown (#996633) |
+
+**Team Color Accents:**
+- Player side: Warm gold (#d4a574)
+- Enemy side: Steel blue (#5a7b8c)
 
 **Elements to Include:**
-- Main tower/fortress body
-- Distinct "roof" or top section
+- Full character body (standing pose)
+- Elemental effects/aura
 - Visible HP bar integration area
-- Enemy team symbol area (▲)
-- Dark/ominous details
+- Team color accents (gold for player, steel blue for enemy)
+
+**Animations Needed:**
+- Idle (breathing, subtle movement)
+- Hurt/Hit reaction
+- Defeat
 
 ---
 
@@ -204,9 +205,12 @@ assets/
 │   │   ├── crystal_01.png
 │   │   ├── pillar_01.png
 │   │   └── ...
-│   └── bases/
-│       ├── player_base.png
-│       └── enemy_base.png
+│   └── summoners/
+│       ├── cole_battlefield.png
+│       ├── kai_ise_battlefield.png
+│       ├── mei_battlefield.png
+│       ├── selene_battlefield.png
+│       └── teo_battlefield.png
 ├── units/
 │   ├── warrior/
 │   │   ├── warrior_fire_idle.png
@@ -262,9 +266,9 @@ Alpha: Premultiply Alpha: true
 3. Add 2-3 environmental props if desired
 4. Test in-game to ensure colors/contrast work
 
-### Phase 2: Base Replacements
-1. Player base illustration
-2. Enemy base illustration
+### Phase 2: Summoner Battlefield Sprites
+1. Create summoner character sprites (5 summoners)
+2. Add elemental effects and team color accents
 3. Integrate with existing HP bar system
 
 ### Phase 3: Units

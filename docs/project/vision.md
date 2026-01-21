@@ -37,11 +37,11 @@ Each match follows a two-phase structure that reinforces the army fantasy:
 
 2. **BATTLE (until victory):** All units activate and charge. The armies collide. Commanders can still summon reinforcements, but the initial formation often decides the outcome.
 
-### The Incarnation
+### The Summoner on the Battlefield
 
-Victory requires destroying the enemy's **Incarnation** — the summoner's magical presence on the battlefield. It's not the summoner themselves (they command from elsewhere), but a projection of their power. Breaking it severs their connection to this battle.
+Victory requires defeating the enemy **summoner** directly. The summoner is physically present on the battlefield — not commanding from afar, but standing with their army. This creates real stakes: when you lose, YOU lost, not some projection of you.
 
-This works for any battle context: duels, sparring matches, or all-out war.
+This personal presence makes every battle feel meaningful, whether it's a duel, sparring match, or all-out war.
 
 ### Why This Design?
 
@@ -50,7 +50,7 @@ This works for any battle context: duels, sparring matches, or all-out war.
 | Mana regenerates over time | Felt like a trickle, reactive gameplay | Fixed mana pool — all resources available upfront for strategic planning |
 | Units spawn and fight immediately | No army-building fantasy, just constant skirmishing | Preparation phase lets you build formations before battle |
 | Instant card plays | No weight to summoning powerful units | Summon times add anticipation and counterplay |
-| Base/Nexus as target | Arbitrary structure with no narrative meaning | Incarnation — the summoner's magical presence on the field |
+| Base/Nexus as target | Arbitrary structure with no narrative meaning | Summoner on the battlefield — defeat the enemy directly |
 
 You win not by outspending, but by **out-summoning**: using timing, positioning, and courage to turn your finite resources into victory. Every choice you've made to build that army matters.
 
@@ -100,7 +100,7 @@ Card rarity creates natural army composition that *feels* like real warfare thro
 
 - **Single-use deck system** — Deep tactical decisions unlike any other mobile battler
 - **Two-phase battle system** — Preparation + Battle creates real army warfare feel
-- **Summoners as commanders** — Magical presence projected onto the battlefield
+- **Summoners on the battlefield** — Fight alongside your army, real stakes
 - **Optional wagers** — Emotional stakes without gambling
 - **Player-chosen starting hero** — Choose your path or embrace randomness for bonus rewards
 - **Fast, pannable RTS feel** — Real-time readability built for mobile and desktop

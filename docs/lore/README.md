@@ -21,6 +21,8 @@ This directory contains worldbuilding, narrative, and character documentation fo
 
 #### NPCs
 - **[Merlin](characters/npcs/merlin.md)** - Headmaster of the Academy
+- **[Mr. Merriweather](characters/npcs/mr-merriweather.md)** - Caravan merchant (husband)
+- **[Mrs. Merriweather](characters/npcs/mrs-merriweather.md)** - Caravan merchant (wife)
 
 ---
 
