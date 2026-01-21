@@ -11,7 +11,7 @@ Impossibly friendly. Warm, welcoming, and genuinely delighted to meet every cust
 
 And yet.
 
-The Merriweathers run a profitable operation. They sell to both sides of any conflict. They always seem to show up exactly when you need them most—and their prices reflect it. But you'd never suspect any of this from talking to Mr. Merriweather. He's just too... nice.
+Not all of the Merriweathers' business is kosher. They'll sell to anyone, and if you know how to ask, they can get you things that aren't exactly on the official inventory. Nothing too dangerous, but... let's say they're flexible about regulations. But you'd never suspect any of this from talking to Mr. Merriweather. He's just too... nice.
 
 **Key Traits:**
 - Relentlessly cheerful
