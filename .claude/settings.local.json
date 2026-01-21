@@ -53,7 +53,9 @@
       "Bash(file:*)",
       "Bash(./run_tests.sh:*)",
       "Bash(/Applications/Godot_mono.app/Contents/MacOS/Godot:*)",
-      "Bash(xargs file:*)"
+      "Bash(xargs file:*)",
+      "Bash(pandoc:*)",
+      "Bash(git status:*)"
     ],
     "deny": [],
     "ask": []
