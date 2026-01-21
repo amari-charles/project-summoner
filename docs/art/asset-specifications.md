@@ -93,12 +93,11 @@ The summoner is physically present on the battlefield — not a projection, base
 **Current Placeholder:** Polygon-based structure at 60x200px
 **Recommended Size:** 120x320px (2x for detail)
 
-**5 Summoners Required:**
+**4 Summoners Required:**
 
 | Summoner | Element | Visual Theme | Colors |
 |----------|---------|--------------|--------|
 | Cole | Fire | Arrogant, competitive; cocky smile | Fire orange (#e64d1a) |
-| Kai-Ise | Space | Confident facade, anxiety underneath; casual clothes, Space Spirit on shoulder | Purple (#9966ff) |
 | Mei | Wind | Elusive, self-interested; looking elsewhere | Light blue (#99ccff) |
 | Selene | Water | Gentle, caring; braids with silver cuffs | Water blue (#3380e6) |
 | Teo | Earth | Direct, reliable gym rat; athletic build | Earth brown (#996633) |
