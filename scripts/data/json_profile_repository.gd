@@ -20,7 +20,7 @@ extends IProfileRepo
 const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 
 ## Current save version for migrations
-const CURRENT_VERSION: int = 4
+const CURRENT_VERSION: int = 5
 
 ## Signals inherited from IProfileRepo (do not redeclare)
 
@@ -1312,6 +1312,9 @@ func _migrate(from_version: int) -> void:
 		3:
 			# Version 3 → 4 migration: Add cosmetics and emotes
 			_migrate_v3_to_v4()
+		4:
+			# Version 4 → 5 migration: Campaign-scoped gold
+			_migrate_v4_to_v5()
 		_:
 			push_warning("JsonProfileRepo: No migration defined for version " + str(from_version))
 
@@ -1426,6 +1429,62 @@ func _migrate_v3_to_v4() -> void:
 		}
 
 	print("JsonProfileRepo: Cosmetics and emotes migration complete")
+
+## Migration: Move account gold to campaign progress (campaign-scoped gold)
+func _migrate_v4_to_v5() -> void:
+	print("JsonProfileRepo: Migrating to campaign-scoped gold...")
+
+	# Get current account-wide gold
+	var resources: Variant = _data.get("resources", {})
+	if not resources is Dictionary:
+		resources = {}
+	var resources_dict: Dictionary = resources
+	var account_gold: int = resources_dict.get("gold", 0)
+
+	if account_gold <= 0:
+		print("JsonProfileRepo: No account gold to migrate")
+		return
+
+	# Find active summoner with an in-progress campaign
+	var campaign_progress: Variant = _data.get("campaign_progress", {})
+	if not campaign_progress is Dictionary:
+		print("JsonProfileRepo: No campaign progress to migrate gold into - gold will be lost")
+		resources_dict["gold"] = 0
+		_data["resources"] = resources_dict
+		return
+
+	var progress_dict: Dictionary = campaign_progress
+
+	# Migrate gold to the first summoner with campaign progress
+	# (In practice, there's usually only one active campaign at a time)
+	var migrated: bool = false
+	for summoner_id: String in progress_dict.keys():
+		var summoner_progress: Variant = progress_dict.get(summoner_id)
+		if not summoner_progress is Dictionary:
+			continue
+
+		var summoner_dict: Dictionary = summoner_progress
+		# Only migrate if summoner has some campaign activity (completed battles or pending reward)
+		var completed: Array = summoner_dict.get("completed_battles", [])
+		var pending: Variant = summoner_dict.get("pending_reward")
+
+		if completed.size() > 0 or pending != null:
+			# Add gold to this summoner's campaign progress
+			summoner_dict["gold"] = account_gold
+			progress_dict[summoner_id] = summoner_dict
+			migrated = true
+			print("JsonProfileRepo: Migrated %d gold to summoner '%s' campaign" % [account_gold, summoner_id])
+			break
+
+	if not migrated:
+		print("JsonProfileRepo: No active campaign found - account gold (%d) will be lost" % account_gold)
+
+	# Clear account-wide gold (it's now campaign-scoped)
+	resources_dict["gold"] = 0
+	_data["resources"] = resources_dict
+	_data["campaign_progress"] = progress_dict
+
+	print("JsonProfileRepo: Campaign-scoped gold migration complete")
 
 ## =============================================================================
 ## INTERNAL - WRITE-AHEAD LOG

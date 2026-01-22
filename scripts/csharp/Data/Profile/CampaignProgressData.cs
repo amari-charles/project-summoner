@@ -18,6 +18,12 @@ public class CampaignProgressData
 
     /// <summary>Per-story-arc progress tracking.</summary>
     public Dictionary<string, StoryArcProgress> StoryArcs { get; set; } = [];
+
+    /// <summary>
+    /// Campaign-scoped gold. This gold is only valid within the current campaign
+    /// and is lost when the campaign ends (win or lose).
+    /// </summary>
+    public int Gold { get; set; } = 0;
 }
 
 /// <summary>

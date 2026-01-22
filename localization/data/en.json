@@ -157,7 +157,13 @@
       "unknown_card": "Unknown Card",
       "rarity": "Rarity: {rarity}",
       "gold": "+ {amount} Gold",
+      "campaign_gold": "+ {amount} Campaign Gold",
       "summoner_xp": "+ {amount} Summoner XP"
+    },
+    "economy": {
+      "campaign_gold": "Campaign Gold",
+      "campaign_gold_tooltip": "Gold earned during this campaign. Lost when the campaign ends.",
+      "gold_lost_on_end": "Unspent gold will be lost when the campaign ends"
     },
     "battle": {
       "player_wins": "PLAYER WINS!",
