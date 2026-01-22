@@ -687,7 +687,8 @@ func end_campaign(summoner_id: String = "", victory: bool = false) -> void:
 	if economy_service != null:
 		economy_service.clear_campaign_gold(target_id)
 
-	# TODO: Future - offer final spending opportunity before clearing
+	# Note: Final spending opportunity will be added in Phase 3 (Flexible Reward System)
+	# See docs/design/campaign-economy-implementation.md
 
 	if victory:
 		print("CampaignService: Campaign completed victoriously for '%s' (lost %d unspent gold)" % [target_id, final_gold])
