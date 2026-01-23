@@ -5,11 +5,16 @@ class_name RewardTypeIDs
 ## Use these constants instead of string literals when referencing reward types in code.
 ## This provides compile-time validation and autocomplete support.
 ##
+## Three reward types:
+## - FIXED: Grant specific predetermined cards (tutorials, scripted rewards)
+## - FLEXIBLE: Dynamic generation with player selection (main gameplay)
+## - NONE: No card reward (shop events, etc.)
+##
 ## Usage:
 ##   battle.reward_type = RewardTypeIDs.FIXED
 ##   match reward_type:
 ##       RewardTypeIDs.FIXED: _grant_fixed_reward()
-##       RewardTypeIDs.CHOICE: _show_choice_ui()
+##       RewardTypeIDs.FLEXIBLE: _show_flexible_ui()
 ##
 ## Note: StringName (&"text") is faster than String ("text") for dictionary lookups
 
@@ -17,24 +22,30 @@ class_name RewardTypeIDs
 # REWARD TYPES
 # ============================================================================
 
-## Fixed reward - player receives a specific predetermined card
+## Fixed reward - player receives specific predetermined cards
+## Used for tutorials and scripted rewards where exact cards are required
 const FIXED: StringName = &"fixed"
-
-## Random reward - player receives a randomly selected card
-const RANDOM: StringName = &"random"
-
-## Choice reward - player picks one card from multiple options
-const CHOICE: StringName = &"choice"
 
 ## No reward - battle has no card reward (e.g., shop events)
 const NONE: StringName = &"none"
+
+## Flexible reward - dynamic generation with player selection
+##
+## Config options:
+## - guaranteed_count: int - Summoner-element cards to offer
+## - pool_count: int - Cards from pool to offer
+## - pool_id: String - Which pool to draw from (default: "standard_cards")
+## - collection_filter: String - "none", "exclude_owned", "exclude_duplicates"
+## - specific_options: Array[Dictionary] - Specific cards instead of pool (legacy CHOICE)
+## - player_selects: bool - If false, auto-grant (legacy RANDOM behavior)
+const FLEXIBLE: StringName = &"flexible"
 
 # ============================================================================
 # UTILITY
 # ============================================================================
 
 ## All reward types
-const ALL_TYPES: Array[StringName] = [FIXED, RANDOM, CHOICE, NONE]
+const ALL_TYPES: Array[StringName] = [FIXED, NONE, FLEXIBLE]
 
 ## Default reward type used as fallback
 const DEFAULT: StringName = FIXED
@@ -45,9 +56,14 @@ static func is_valid(reward_type: String) -> bool:
 	return StringName(reward_type) in ALL_TYPES
 
 ## Check if the reward type requires player selection
+## FLEXIBLE requires selection by default (unless player_selects: false in config)
 static func requires_selection(reward_type: StringName) -> bool:
-	return reward_type == CHOICE
+	return reward_type == FLEXIBLE
 
 ## Check if the reward type provides a card
 static func has_card_reward(reward_type: StringName) -> bool:
 	return reward_type != NONE
+
+## Check if the reward type uses flexible reward generation
+static func is_flexible(reward_type: StringName) -> bool:
+	return reward_type == FLEXIBLE

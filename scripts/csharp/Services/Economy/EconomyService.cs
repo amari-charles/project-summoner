@@ -237,6 +237,139 @@ public partial class EconomyService : Node
     }
 
     // =========================================================================
+    // CAMPAIGN-SCOPED GOLD
+    // =========================================================================
+    // Campaign gold is tied to a specific summoner's campaign progress.
+    // It is lost when the campaign ends (win or lose).
+    // Use these methods for in-campaign purchases (caravan) and battle rewards.
+
+    [Signal]
+    public delegate void CampaignGoldChangedEventHandler(string summonerId, int gold);
+
+    /// <summary>
+    /// Get campaign gold for a summoner (or active summoner if empty string)
+    /// </summary>
+    public int GetCampaignGold(string summonerId = "")
+    {
+        if (_profileRepo == null) return 0;
+
+        var targetId = GetEffectiveSummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(targetId);
+        return progress.Gold;
+    }
+
+    /// <summary>
+    /// Add campaign gold (positive amount only)
+    /// </summary>
+    public void AddCampaignGold(int amount, string summonerId = "")
+    {
+        if (amount <= 0)
+        {
+            GD.PushWarning($"EconomyService: AddCampaignGold called with non-positive amount: {amount}");
+            return;
+        }
+
+        if (_profileRepo == null)
+        {
+            GD.PushWarning("EconomyService.AddCampaignGold: ProfileRepo not available");
+            return;
+        }
+
+        var targetId = GetEffectiveSummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(targetId);
+        progress.Gold += amount;
+        _profileRepo.UpdateCampaignProgress(targetId, progress);
+
+        EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
+        GD.Print($"EconomyService: Added {amount} campaign gold (total: {progress.Gold}) for summoner '{targetId}'");
+    }
+
+    /// <summary>
+    /// Spend campaign gold
+    /// Returns true if successful, false if can't afford
+    /// </summary>
+    public bool SpendCampaignGold(int amount, string summonerId = "")
+    {
+        if (amount <= 0)
+        {
+            GD.PushWarning($"EconomyService: SpendCampaignGold called with non-positive amount: {amount}");
+            return false;
+        }
+
+        var currentGold = GetCampaignGold(summonerId);
+        if (currentGold < amount)
+        {
+            var reason = $"Cannot afford {amount} campaign gold (have {currentGold})";
+            GD.PushWarning($"EconomyService: {reason}");
+            EmitSignal(SignalName.TransactionFailed, reason);
+            return false;
+        }
+
+        if (_profileRepo == null)
+        {
+            GD.PushWarning("EconomyService.SpendCampaignGold: ProfileRepo not available");
+            return false;
+        }
+
+        var targetId = GetEffectiveSummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(targetId);
+        progress.Gold -= amount;
+        _profileRepo.UpdateCampaignProgress(targetId, progress);
+
+        EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
+        GD.Print($"EconomyService: Spent {amount} campaign gold (remaining: {progress.Gold}) for summoner '{targetId}'");
+        return true;
+    }
+
+    /// <summary>
+    /// Check if player can afford a campaign gold cost
+    /// </summary>
+    public bool CanAffordCampaignGold(int amount, string summonerId = "")
+    {
+        return GetCampaignGold(summonerId) >= amount;
+    }
+
+    /// <summary>
+    /// Clear all campaign gold (called when campaign ends)
+    /// </summary>
+    public void ClearCampaignGold(string summonerId = "")
+    {
+        if (_profileRepo == null)
+        {
+            GD.PushWarning("EconomyService.ClearCampaignGold: ProfileRepo not available");
+            return;
+        }
+
+        var targetId = GetEffectiveSummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(targetId);
+        progress.Gold = 0;
+        _profileRepo.UpdateCampaignProgress(targetId, progress);
+
+        EmitSignal(SignalName.CampaignGoldChanged, targetId, 0);
+        GD.Print($"EconomyService: Cleared campaign gold for summoner '{targetId}'");
+    }
+
+    /// <summary>
+    /// Get active summoner ID (empty string -> resolve to actual ID)
+    /// </summary>
+    private string GetEffectiveSummonerId(string summonerId)
+    {
+        if (!string.IsNullOrEmpty(summonerId))
+            return summonerId;
+
+        // Get from SummonerSelection autoload
+        var summonerSelection = GetTree()?.Root?.GetNodeOrNull("/root/SummonerSelection");
+        if (summonerSelection != null)
+        {
+            var result = summonerSelection.Call("get_active_summoner_id");
+            if (result.VariantType == Variant.Type.String)
+                return result.AsString();
+        }
+
+        return "";
+    }
+
+    // =========================================================================
     // GDSCRIPT INTEROP
     // =========================================================================
 

@@ -62,6 +62,10 @@ var authority_provider: RefCounted = null
 ## Array of card instance IDs
 var _cards_played: Array[String] = []
 
+## Level cap for this battle (0 = uncapped)
+## When set, player cards are normalized to this level maximum
+var _level_cap: int = 0
+
 ## Player summoner's computed stats (cached at battle start for damage calculations)
 ## Set by Summoner._apply_summoner_bonuses(), read by DamageSystem
 var _player_summoner_stats: Dictionary = {}
@@ -115,6 +119,11 @@ func configure_campaign_battle(battle_id: String) -> void:
 
 	biome_id = battle_config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
 	completion_callback = _handle_campaign_completion
+
+	# Set level cap if configured
+	_level_cap = _get_level_cap_from_config(battle_config)
+	if _level_cap > 0:
+		print("BattleContext: Level cap set to %d" % _level_cap)
 
 	# Get enemy deck size safely
 	var enemy_deck_variant: Variant = battle_config.get("enemy_deck", [])
@@ -188,6 +197,7 @@ func clear() -> void:
 	origin_scene = ""
 	_cards_played.clear()
 	_player_summoner_stats.clear()
+	_level_cap = 0
 
 	# Cleanup authority provider
 	if authority_provider != null:
@@ -320,6 +330,56 @@ func set_authority_provider(provider: RefCounted) -> void:
 	if authority_provider != null:
 		authority_provider.initialize()
 	print("BattleContext: Authority provider set to %s" % (provider.get_class() if provider else "null"))
+
+## =============================================================================
+## LEVEL CAP
+## =============================================================================
+
+## Get the level cap for this battle (0 = uncapped)
+func get_level_cap() -> int:
+	return _level_cap
+
+
+## Check if this battle has a level cap
+func has_level_cap() -> bool:
+	return _level_cap > 0
+
+
+## Get effective level for a card in this battle
+func get_effective_card_level(card_level: int) -> int:
+	var level_cap_service: Node = get_node_or_null(CSharpAutoloads.LEVEL_CAP_SERVICE)
+	if level_cap_service:
+		return level_cap_service.GetEffectiveLevel(card_level, _level_cap)
+	# Fallback if service not available
+	if _level_cap <= 0:
+		return card_level
+	return mini(card_level, _level_cap)
+
+
+## Get effective upgrades for a card in this battle
+func get_effective_card_upgrades(upgrades: Array) -> Array:
+	var level_cap_service: Node = get_node_or_null(CSharpAutoloads.LEVEL_CAP_SERVICE)
+	if level_cap_service:
+		return level_cap_service.GetEffectiveUpgradesArray(upgrades, _level_cap)
+	# Fallback if service not available
+	if _level_cap <= 0:
+		return upgrades.duplicate()
+	var max_upgrades: int = _level_cap - 1
+	if max_upgrades <= 0:
+		return []
+	if upgrades.size() <= max_upgrades:
+		return upgrades.duplicate()
+	return upgrades.slice(0, max_upgrades)
+
+
+## Get level cap from battle config (helper for configure methods)
+func _get_level_cap_from_config(config: Dictionary) -> int:
+	var level_cap_service: Node = get_node_or_null(CSharpAutoloads.LEVEL_CAP_SERVICE)
+	if level_cap_service:
+		return level_cap_service.GetLevelCap(config)
+	# Fallback if service not available
+	return config.get("level_cap", 0)
+
 
 ## =============================================================================
 ## CARD XP TRACKING

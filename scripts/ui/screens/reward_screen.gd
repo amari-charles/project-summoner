@@ -16,12 +16,26 @@ class_name RewardScreen
 @onready var choice_container: HBoxContainer = %ChoiceContainer
 @onready var continue_button: Button = %ContinueButton
 
+## Constants
+const CHOICE_BUTTON_SIZE: Vector2 = Vector2(150, 100)
+const CHOICE_BUTTON_FONT_SIZE: int = 24
+
+## Rarity colors for reward display
+const RARITY_COLORS: Dictionary = {
+	&"common": Color(0.7, 0.7, 0.7),
+	&"rare": Color(0.4, 0.6, 1.0),
+	&"epic": Color(0.8, 0.4, 1.0),
+	&"legendary": Color(1.0, 0.9, 0.3),
+}
+
 ## State
 var current_battle_id: String = ""
 var reward_type: StringName = &""
 var chosen_reward_index: int = -1  ## Index of chosen reward (-1 = not chosen)
 var is_pending_reward: bool = false  ## True if resuming a pending reward
 var reward_ready_to_claim: bool = false  ## True when reward is ready to be claimed
+var flexible_options: Array[Dictionary] = []  ## Generated options for FLEXIBLE rewards
+var is_flexible_reward: bool = false  ## True if using FLEXIBLE reward system
 
 ## =============================================================================
 ## LIFECYCLE
@@ -69,9 +83,9 @@ func _load_battle_results() -> void:
 		if profile.is_empty():
 			return
 
-		var empty_dict: Dictionary = {}
-		var campaign_progress: Dictionary = profile.get("campaign_progress", empty_dict) if profile.get("campaign_progress", empty_dict) is Dictionary else {}
-		current_battle_id = campaign_progress.get("current_battle", "")
+		var campaign_progress: Variant = profile.get("campaign_progress", {})
+		if campaign_progress is Dictionary:
+			current_battle_id = campaign_progress.get("current_battle", "")
 
 	if current_battle_id == "":
 		push_error("RewardScreen: No current battle set!")
@@ -129,7 +143,7 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	_display_summoner_xp_reward(summoner_xp)
 
 	match reward_type:
-		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
+		RewardTypeIDs.FIXED:
 			# Display the reward preview (don't grant yet - grant on Continue)
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
@@ -140,11 +154,36 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 				reward_detail_label.text = ""
 			reward_ready_to_claim = true
 
-		RewardTypeIDs.CHOICE:
-			# Show choice UI - player must pick before continuing
-			var reward_cards: Array = battle.get("reward_cards", [])
-			_show_choice_ui(reward_cards)
-			reward_ready_to_claim = false  # Must choose first
+		RewardTypeIDs.FLEXIBLE:
+			# Flexible reward - may have specific_options or generate dynamically
+			is_flexible_reward = true
+			var player_selects: bool = battle.get("player_selects", true)
+
+			if battle.has("specific_options"):
+				# Legacy CHOICE behavior: use predefined options
+				var specific_options: Array = battle.get("specific_options", [])
+				flexible_options = []
+				for opt: Variant in specific_options:
+					if opt is Dictionary:
+						flexible_options.append(opt)
+
+				if not player_selects and flexible_options.size() > 0:
+					# Legacy RANDOM behavior: auto-grant random option
+					var random_idx: int = randi() % flexible_options.size()
+					chosen_reward_index = random_idx
+					_display_card_reward(flexible_options[random_idx])
+					reward_ready_to_claim = true
+				elif flexible_options.size() > 0:
+					# Show choice UI for specific options
+					_show_flexible_choice_ui(flexible_options)
+					reward_ready_to_claim = false
+				else:
+					reward_card_label.text = Loc.t("ui.reward.victory")
+					reward_detail_label.text = ""
+					reward_ready_to_claim = true
+			else:
+				# Dynamic generation via RewardService
+				_generate_flexible_options(battle)
 
 		RewardTypeIDs.NONE:
 			# No card rewards for this battle (may still have gold)
@@ -163,8 +202,8 @@ func _resume_pending_reward(battle: Dictionary) -> void:
 	_display_summoner_xp_reward(summoner_xp)
 
 	match reward_type:
-		RewardTypeIDs.FIXED, RewardTypeIDs.RANDOM:
-			# Fixed/random rewards just need to show the preview
+		RewardTypeIDs.FIXED:
+			# Fixed rewards just need to show the preview
 			var reward_cards: Array = battle.get("reward_cards", [])
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				_display_card_reward(reward_cards[0])
@@ -173,17 +212,27 @@ func _resume_pending_reward(battle: Dictionary) -> void:
 				reward_detail_label.text = ""
 			reward_ready_to_claim = true
 
-		RewardTypeIDs.CHOICE:
-			var reward_cards: Array = battle.get("reward_cards", [])
-			if chosen_reward_index >= 0 and chosen_reward_index < reward_cards.size():
-				# Player already made a choice - show it
-				var chosen_reward: Dictionary = reward_cards[chosen_reward_index]
-				_display_card_reward(chosen_reward)
-				reward_ready_to_claim = true
+		RewardTypeIDs.FLEXIBLE:
+			is_flexible_reward = true
+			if battle.has("specific_options"):
+				# Legacy specific options
+				var specific_options: Array = battle.get("specific_options", [])
+				flexible_options = []
+				for opt: Variant in specific_options:
+					if opt is Dictionary:
+						flexible_options.append(opt)
+
+				if chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
+					# Player already made a choice - show it
+					_display_card_reward(flexible_options[chosen_reward_index])
+					reward_ready_to_claim = true
+				else:
+					# Player hasn't chosen yet - show choice UI
+					_show_flexible_choice_ui(flexible_options)
+					reward_ready_to_claim = false
 			else:
-				# Player hasn't chosen yet - show choice UI
-				_show_choice_ui(reward_cards)
-				reward_ready_to_claim = false
+				# Dynamic generation - regenerate options
+				_generate_flexible_options(battle)
 
 		RewardTypeIDs.NONE:
 			reward_card_label.text = Loc.t("ui.reward.victory")
@@ -204,10 +253,12 @@ func _display_summoner_xp_reward(xp: int) -> void:
 	else:
 		summoner_xp_label.text = ""
 
+## Display a card reward (handles both legacy {catalog_id} and flexible {id} formats)
 func _display_card_reward(reward: Dictionary) -> void:
-	var catalog_id: String = reward.get("catalog_id", "")
-	var rarity: StringName = reward.get("rarity", RarityIDs.COMMON)
-	var count: int = reward.get("count", 1)
+	# Handle both formats: {catalog_id, rarity, count} and {id, type, rarity, amount}
+	var catalog_id: String = reward.get("id", reward.get("catalog_id", ""))
+	var rarity: StringName = StringName(reward.get("rarity", RarityIDs.COMMON))
+	var count: int = reward.get("amount", reward.get("count", 1))
 
 	var card_data: Dictionary = CardCatalog.get_card(catalog_id)
 	if card_data.is_empty():
@@ -222,64 +273,112 @@ func _display_card_reward(reward: Dictionary) -> void:
 	else:
 		reward_card_label.text = card_name
 
-	reward_detail_label.text = Loc.t("ui.reward.rarity", {"rarity": rarity.capitalize()})
+	reward_detail_label.text = Loc.t("ui.reward.rarity", {"rarity": String(rarity).capitalize()})
+	reward_card_label.add_theme_color_override("font_color", _get_rarity_color(rarity))
 
-	# Color based on rarity
-	match rarity:
-		RarityIDs.COMMON:
-			reward_card_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-		RarityIDs.RARE:
-			reward_card_label.add_theme_color_override("font_color", Color(0.4, 0.6, 1.0))
-		RarityIDs.EPIC:
-			reward_card_label.add_theme_color_override("font_color", Color(0.8, 0.4, 1.0))
-		RarityIDs.LEGENDARY:
-			reward_card_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
 
-func _show_choice_ui(reward_options: Array) -> void:
+## Get color for a card rarity
+func _get_rarity_color(rarity: StringName) -> Color:
+	return RARITY_COLORS.get(rarity, Color.WHITE)
+
+## =============================================================================
+## FLEXIBLE REWARD SYSTEM
+## =============================================================================
+
+## Generate flexible reward options via RewardService
+func _generate_flexible_options(battle: Dictionary) -> void:
+	# Build config from battle data
+	var config: Dictionary = {
+		"guaranteed_count": battle.get("guaranteed_count", 1),
+		"pool_count": battle.get("pool_count", 2),
+		"pool_id": battle.get("pool_id", "standard_cards"),
+		"collection_filter": battle.get("collection_filter", "none")
+	}
+
+	# Get active summoner for element theming
+	var summoner_id: String = _get_active_summoner_id()
+
+	# Generate options via RewardService
+	flexible_options = RewardService.generate_reward_options(config, summoner_id)
+
+	var player_selects: bool = battle.get("player_selects", true)
+
+	if flexible_options.size() == 0:
+		# No options generated (pool exhausted, etc.)
+		reward_card_label.text = Loc.t("ui.reward.victory")
+		reward_detail_label.text = ""
+		reward_ready_to_claim = true
+	elif not player_selects:
+		# Auto-grant first option (legacy RANDOM behavior)
+		chosen_reward_index = 0
+		_display_card_reward(flexible_options[0])
+		reward_ready_to_claim = true
+	else:
+		# Show choice UI
+		_show_flexible_choice_ui(flexible_options)
+		reward_ready_to_claim = false
+
+## Get active summoner ID for reward theming
+func _get_active_summoner_id() -> String:
+	var profile: Dictionary = ProfileRepo.get_active_profile()
+	if profile.is_empty():
+		return ""
+	var meta: Variant = profile.get("meta", {})
+	if not meta is Dictionary:
+		return ""
+	return meta.get("active_summoner", "")
+
+## Show choice UI for flexible reward options
+func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 	# Hide default reward display
 	reward_container.visible = false
 	choice_container.visible = true
 
+	# Clear existing choice buttons
+	for child: Node in choice_container.get_children():
+		child.queue_free()
+
 	# Create choice buttons
-	for i: int in range(reward_options.size()):
-		var reward_variant: Variant = reward_options[i]
-		if not reward_variant is Dictionary:
-			push_error("RewardScreen: reward_options[%d] is not a Dictionary" % i)
-			continue
-		var reward: Dictionary = reward_variant
-		var catalog_id: String = reward.get("catalog_id", "")
+	for i: int in range(options.size()):
+		var option: Dictionary = options[i]
+		var catalog_id: String = option.get("id", option.get("catalog_id", ""))
 		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
 
 		if card_data.is_empty():
 			continue
 
 		var button: Button = Button.new()
-		button.text = card_data.get("card_name", "Unknown")
-		button.custom_minimum_size = Vector2(150, 100)
-		button.add_theme_font_size_override("font_size", 24)
-		button.pressed.connect(_on_choice_selected.bind(i))
+		var card_name: String = card_data.get("card_name", "Unknown")
+		var is_guaranteed: bool = option.get("is_guaranteed", false)
+
+		# Add badge for guaranteed vs pool options
+		if is_guaranteed:
+			button.text = "[%s] %s" % [Loc.t("ui.rewards.guaranteed"), card_name]
+		else:
+			button.text = card_name
+
+		button.custom_minimum_size = CHOICE_BUTTON_SIZE
+		button.add_theme_font_size_override("font_size", CHOICE_BUTTON_FONT_SIZE)
+		button.pressed.connect(_on_flexible_choice_selected.bind(i))
 		choice_container.add_child(button)
 
 	# Disable continue until choice made
 	continue_button.disabled = true
 
-func _on_choice_selected(index: int) -> void:
+## Handle flexible reward selection
+func _on_flexible_choice_selected(index: int) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	print("RewardScreen: Player chose option %d" % index)
+	print("RewardScreen: Player chose flexible option %d" % index)
 	chosen_reward_index = index
 
 	# Save choice to pending reward state (persists if player exits)
 	Campaign.update_pending_choice(index)
 
-	# Get the chosen reward to display
-	var battle: Dictionary = Campaign.get_battle(current_battle_id)
-	var reward_cards: Array = battle.get("reward_cards", [])
-
-	if index >= 0 and index < reward_cards.size() and reward_cards[index] is Dictionary:
+	if index >= 0 and index < flexible_options.size():
 		# Hide choice UI and show selected card preview
 		choice_container.visible = false
 		reward_container.visible = true
-		_display_card_reward(reward_cards[index])
+		_display_card_reward(flexible_options[index])
 
 	# Mark ready to claim and enable continue
 	reward_ready_to_claim = true
@@ -295,8 +394,28 @@ func _on_continue_pressed() -> void:
 
 	# Check if we have a reward to claim
 	if reward_ready_to_claim:
-		# Claim the pending reward (grants cards + marks battle complete)
-		var granted_card: Dictionary = Campaign.claim_pending_reward()
+		var granted_card: Dictionary = {}
+
+		if is_flexible_reward and flexible_options.size() > 0 and chosen_reward_index >= 0:
+			# FLEXIBLE reward with dynamically generated options - grant via RewardService
+			var battle: Dictionary = Campaign.get_battle(current_battle_id)
+			if not battle.has("specific_options"):
+				# Only use RewardService for dynamically generated options
+				var chosen_option: Dictionary = flexible_options[chosen_reward_index]
+				if RewardService.grant_reward(chosen_option):
+					granted_card = chosen_option
+					print("RewardScreen: Granted flexible reward via RewardService")
+				else:
+					push_error("RewardScreen: Failed to grant flexible reward")
+
+				# Mark battle complete via Campaign (without granting - already done)
+				Campaign.complete_battle_without_reward(current_battle_id)
+			else:
+				# FLEXIBLE with specific_options - use Campaign.claim_pending_reward()
+				granted_card = Campaign.claim_pending_reward()
+		else:
+			# FIXED or other rewards - use Campaign.claim_pending_reward()
+			granted_card = Campaign.claim_pending_reward()
 
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():
@@ -331,8 +450,10 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		push_error("RewardScreen: No active profile!")
 		return
 
-	var empty_meta: Dictionary = {}
-	var meta: Dictionary = profile.get("meta", empty_meta) if profile.get("meta", empty_meta) is Dictionary else {}
+	var meta: Variant = profile.get("meta", {})
+	if not meta is Dictionary:
+		push_warning("RewardScreen: Invalid meta in profile!")
+		return
 	var deck_id: String = meta.get("selected_deck", "")
 	if deck_id == "":
 		push_warning("RewardScreen: No active deck selected!")

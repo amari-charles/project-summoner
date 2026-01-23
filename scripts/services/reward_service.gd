@@ -1,106 +1,131 @@
 extends Node
+# RewardService is registered as autoload "RewardService", no class_name needed
+# This GDScript wrapper delegates to C# RewardServiceCS for implementation.
 
-## Centralized reward granting service
+## Reward Service - Centralized Reward Handling
 ##
+## Handles all reward operations (granting, flexible reward generation).
 ## Used by: ShopService, CampaignService, future achievement/daily quest systems
 ## Prevents logic duplication and ensures consistent reward handling
+##
+## Usage:
+##   RewardService.grant_rewards({"gold": 100, "cards": [...]})
+##   var options = RewardService.generate_reward_options(config, summoner_id)
+##   RewardService.grant_reward(selected_option)
 ##
 ## Atomicity Note:
 ## grant_rewards() is best-effort and does not roll back partial success internally.
 ## If granting 3 cards and the second fails, the first card remains in collection.
 ## Callers requiring atomic behavior must handle their own rollback (e.g., refunding gold).
 
+## Signals
+signal rewards_granted(rewards: Dictionary)
+signal reward_grant_failed(reason: String)
+
+## =============================================================================
+## C# BRIDGE
+## =============================================================================
+
+var _cs_service: Node = null
+
+func _ready() -> void:
+	print("RewardService (GD): Initializing as thin wrapper...")
+	call_deferred("_connect_to_cs")
+
+
+func _connect_to_cs() -> void:
+	_cs_service = RewardServiceCS
+	if not _cs_service:
+		push_warning("RewardService (GD): C# service not available")
+		return
+
+	# Forward C# signals to GDScript signals
+	if _cs_service.has_signal("RewardsGranted"):
+		_cs_service.RewardsGranted.connect(_on_cs_rewards_granted)
+	if _cs_service.has_signal("RewardGrantFailed"):
+		_cs_service.RewardGrantFailed.connect(_on_cs_reward_grant_failed)
+
+	print("RewardService (GD): Connected to C# RewardServiceCS")
+
+
+func _on_cs_rewards_granted(rewards_dict: Dictionary) -> void:
+	rewards_granted.emit(rewards_dict)
+
+
+func _on_cs_reward_grant_failed(reason: String) -> void:
+	reward_grant_failed.emit(reason)
+
+## =============================================================================
+## REWARD GRANTING (Legacy API)
+## =============================================================================
+
 ## Grant rewards to the player
 ##
 ## @param rewards Dictionary with keys:
 ##   - "cards": Array[Dictionary] with {catalog_id: String, count: int, rarity: String}
 ##   - "gold": int (can be negative for costs)
-##   - "cosmetics": Array[String] (future)
+##   - "campaign_gold": int (campaign-scoped gold)
+##   - "summoner": String (summoner_id to unlock)
+##   - "cosmetic": String (cosmetic_id)
+##   - "emote": String (emote_id)
+##   - "cosmetics": Array[String] (legacy array format)
 ## @return bool True if all rewards granted successfully, false if any failed
 func grant_rewards(rewards: Dictionary) -> bool:
-	var success: bool = true
+	if _cs_service:
+		return _cs_service.GrantRewards(rewards)
+	push_warning("RewardService.grant_rewards: C# service not available")
+	return false
 
-	# Grant gold
-	if rewards.has("gold"):
-		var gold_variant: Variant = rewards["gold"]
-		var gold: int = gold_variant
-		ProfileRepo.update_resources({"gold": gold})
-		# update_resources doesn't return bool, assume success
+## =============================================================================
+## FLEXIBLE REWARD GENERATION
+## =============================================================================
 
-	# Grant cards
-	if rewards.has("cards"):
-		var cards_variant: Variant = rewards["cards"]
-		if cards_variant is Array:
-			var cards: Array = cards_variant
-			for card_grant: Variant in cards:
-				if not card_grant is Dictionary:
-					continue
-				var card_dict: Dictionary = card_grant
-				var catalog_id: String = card_dict.get("catalog_id", "")
-				var count_variant: Variant = card_dict.get("count", 1)
-				var count: int = count_variant
-				var rarity: StringName = card_dict.get("rarity", RarityIDs.COMMON)
+## Generate reward options for a battle reward screen.
+## Returns guaranteed (summoner-themed) options plus pool-drawn options.
+##
+## @param config Dictionary with:
+##   - "guaranteed_count": int - Number of summoner-themed options
+##   - "pool_count": int - Number of pool-drawn options
+##   - "pool_id": String - Pool ID for non-guaranteed options (default: "standard_cards")
+##   - "collection_filter": String - "none", "exclude_owned", or "exclude_duplicates"
+## @param summoner_id String - Active summoner ID for element theming
+## @return Array[Dictionary] - List of reward options
+func generate_reward_options(config: Dictionary, summoner_id: String) -> Array[Dictionary]:
+	if _cs_service:
+		var result: Array = _cs_service.GenerateRewardOptionsDict(config, summoner_id)
+		var typed_result: Array[Dictionary] = []
+		for item: Variant in result:
+			if item is Dictionary:
+				typed_result.append(item)
+		return typed_result
+	push_warning("RewardService.generate_reward_options: C# service not available")
+	return []
 
-				# Prepare cards array for grant_cards() call
-				var cards_to_grant: Array[Dictionary] = []
-				for i: int in range(count):
-					cards_to_grant.append({"catalog_id": catalog_id, "rarity": rarity})
 
-				# Use Collection.grant_cards() (correct API)
-				var instance_ids: Array[String] = Collection.grant_cards(cards_to_grant)
-				if instance_ids.size() != count:
-					push_error("RewardService: Failed to grant all %s cards (granted %d/%d)" % [catalog_id, instance_ids.size(), count])
-					success = false
+## Grant a single reward option (from flexible reward selection)
+##
+## @param option Dictionary with:
+##   - "type": String - "card", "campaign_gold", "gold", etc.
+##   - "id": String - catalog_id for cards, item_id for items
+##   - "amount": int - Quantity
+##   - "rarity": String - For card rewards
+## @return bool True if granted successfully
+func grant_reward(option: Dictionary) -> bool:
+	if _cs_service:
+		return _cs_service.GrantRewardDict(option)
+	push_warning("RewardService.grant_reward: C# service not available")
+	return false
 
-	# Grant summoner unlock
-	if rewards.has("summoner"):
-		var summoner_id: String = rewards["summoner"]
-		if not summoner_id.is_empty():
-			if not ProfileRepo.is_summoner_unlocked(summoner_id):
-				if not ProfileRepo.unlock_summoner(summoner_id):
-					push_error("RewardService: Failed to unlock summoner %s" % summoner_id)
-					success = false
-				else:
-					# Create SummonerInstance for the new summoner
-					var summoner_instance: SummonerInstance = SummonerInstance.new()
-					summoner_instance.summoner_id = summoner_id
-					summoner_instance.level = 1
-					summoner_instance.xp = 0
-					if not ProfileRepo.save_summoner_instance(summoner_instance):
-						push_error("RewardService: Failed to save summoner instance for %s" % summoner_id)
-						# Don't fail the whole grant - summoner is unlocked, just instance save failed
-					print("RewardService: Unlocked summoner '%s'" % summoner_id)
 
-	# Grant cosmetic
-	if rewards.has("cosmetic"):
-		var cosmetic_id: String = rewards["cosmetic"]
-		if not cosmetic_id.is_empty():
-			if not ProfileRepo.grant_cosmetic(cosmetic_id):
-				push_error("RewardService: Failed to grant cosmetic %s" % cosmetic_id)
-				success = false
-			else:
-				print("RewardService: Granted cosmetic '%s'" % cosmetic_id)
-
-	# Grant emote
-	if rewards.has("emote"):
-		var emote_id: String = rewards["emote"]
-		if not emote_id.is_empty():
-			if not ProfileRepo.grant_emote(emote_id):
-				push_error("RewardService: Failed to grant emote %s" % emote_id)
-				success = false
-			else:
-				print("RewardService: Granted emote '%s'" % emote_id)
-
-	# Grant cosmetics array (legacy - kept for backwards compatibility)
-	if rewards.has("cosmetics"):
-		var cosmetics_variant: Variant = rewards["cosmetics"]
-		if cosmetics_variant is Array:
-			var cosmetics_array: Array = cosmetics_variant
-			for cosmetic_item: Variant in cosmetics_array:
-				if cosmetic_item is String:
-					var cosmetic_id: String = cosmetic_item
-					if not ProfileRepo.grant_cosmetic(cosmetic_id):
-						push_error("RewardService: Failed to grant cosmetic %s" % cosmetic_id)
-						success = false
-
-	return success
+## Get IDs of all cards the player currently owns.
+## Useful for excluding owned cards from reward pools.
+func get_owned_catalog_ids() -> Array[String]:
+	if _cs_service:
+		var result: Array = _cs_service.GetOwnedCatalogIds()
+		var typed_result: Array[String] = []
+		for item: Variant in result:
+			if item is String:
+				typed_result.append(item)
+		return typed_result
+	push_warning("RewardService.get_owned_catalog_ids: C# service not available")
+	return []
