@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Data.Items;
 
 namespace ProjectSummoner.Data.Profile;
 
@@ -9,7 +10,7 @@ namespace ProjectSummoner.Data.Profile;
 public class ProfileData
 {
     /// <summary>Current save version for migrations.</summary>
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 6;
 
     /// <summary>Save data version.</summary>
     public int Version { get; set; } = CurrentVersion;
@@ -32,8 +33,11 @@ public class ProfileData
     /// <summary>Array of unlocked summoner IDs.</summary>
     public List<string> UnlockedSummoners { get; set; } = [];
 
-    /// <summary>Summoner instance data (level, XP, boons).</summary>
+    /// <summary>Summoner instance data (level, XP, equipped items).</summary>
     public List<SummonerInstanceData> SummonerInstances { get; set; } = [];
+
+    /// <summary>Player's item inventory.</summary>
+    public List<ItemInstanceData> Items { get; set; } = [];
 
     /// <summary>Player's decks.</summary>
     public List<DeckData> Decks { get; set; } = [];

@@ -8,9 +8,7 @@ var game_controller: GameController3D = null
 
 @onready var resume_button: Button = %ResumeButton
 @onready var settings_button: Button = %SettingsButton
-@onready var manage_snapshots_button: Button = %ManageSnapshotsButton
 @onready var quit_button: Button = %QuitButton
-@onready var snapshot_manager: SnapshotManager = $SnapshotManager
 @onready var settings_panel: PauseSettingsPanel = $SettingsPanel
 
 func _ready() -> void:
@@ -31,13 +29,11 @@ func _ready() -> void:
 	# Set localized text
 	resume_button.text = Loc.t("ui.pause_menu.resume")
 	settings_button.text = Loc.t("ui.pause_menu.settings")
-	manage_snapshots_button.text = Loc.t("ui.pause_menu.manage_snapshots")
 	quit_button.text = Loc.t("ui.pause_menu.quit")
 
 	# Connect button signals first
 	resume_button.pressed.connect(_on_resume_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
-	manage_snapshots_button.pressed.connect(_on_manage_snapshots_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 
 	# Find game controller (deferred to ensure it's ready)
@@ -77,11 +73,6 @@ func _on_resume_pressed() -> void:
 func _on_settings_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	settings_panel.show_panel()
-
-## Manage Snapshots button - show snapshot manager
-func _on_manage_snapshots_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	snapshot_manager.show_manager()
 
 ## Set up the panel border texture and margins from ButtonStyleFactory
 func _setup_panel_border() -> void:

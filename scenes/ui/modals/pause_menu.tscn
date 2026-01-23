@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://pause_menu"]
+[gd_scene load_steps=4 format=3 uid="uid://pause_menu"]
 
 [ext_resource type="Script" path="res://scripts/ui/modals/pause_menu.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://snapshot_manager" path="res://scenes/ui/screens/snapshot_manager.tscn" id="2_snapshot_manager"]
 [ext_resource type="PackedScene" uid="uid://pause_settings_panel" path="res://scenes/ui/modals/pause_settings_panel.tscn" id="3_settings_panel"]
 [ext_resource type="Script" path="res://scripts/ui/components/styled_button.gd" id="4_styled_button"]
 [ext_resource type="Texture2D" path="res://assets/ui/kenny/fantasy-ui-borders/PNG/Double/Border/panel-border-031.png" id="5_panel_texture"]
@@ -96,22 +95,12 @@ text = "Settings"
 script = ExtResource("4_styled_button")
 variant = 1
 
-[node name="ManageSnapshotsButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Manage Snapshots"
-script = ExtResource("4_styled_button")
-variant = 1
-
 [node name="QuitButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quit to Menu"
 script = ExtResource("4_styled_button")
 variant = 2
-
-[node name="SnapshotManager" parent="." instance=ExtResource("2_snapshot_manager")]
-visible = false
 
 [node name="SettingsPanel" parent="." instance=ExtResource("3_settings_panel")]
 visible = false

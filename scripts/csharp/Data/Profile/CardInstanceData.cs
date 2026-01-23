@@ -33,4 +33,16 @@ public class CardInstanceData
 
     /// <summary>Creation timestamp.</summary>
     public long CreatedAt { get; set; }
+
+    /// <summary>
+    /// Ownership binding type.
+    /// AccountWide = any summoner can use, SummonerBound = only bound summoner.
+    /// </summary>
+    public ContentBinding Binding { get; set; } = ContentBinding.AccountWide;
+
+    /// <summary>
+    /// For SummonerBound cards, the summoner ID that owns this card.
+    /// Null for AccountWide cards.
+    /// </summary>
+    public string? BoundToSummonerId { get; set; }
 }

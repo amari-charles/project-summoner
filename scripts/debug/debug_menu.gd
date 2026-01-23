@@ -28,6 +28,8 @@ var _target_point_button: Button
 var _attack_range_button: Button
 var _separation_radius_button: Button
 var _spawn_boundary_button: Button
+var _command_input: LineEdit  # Console command input
+var _command_output: Label  # Console command output
 
 
 ## =============================================================================
@@ -231,6 +233,44 @@ func _create_ui() -> void:
 	_perf_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	vbox.add_child(_perf_label)
 
+	# Console command separator
+	var console_separator: HSeparator = HSeparator.new()
+	vbox.add_child(console_separator)
+
+	# Console command title
+	var console_title: Label = Label.new()
+	console_title.text = "Console Commands"
+	console_title.add_theme_font_size_override("font_size", 14)
+	console_title.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
+	vbox.add_child(console_title)
+
+	# Command input
+	_command_input = LineEdit.new()
+	_command_input.placeholder_text = "/items_grant_all"
+	_command_input.custom_minimum_size = Vector2(200, 32)
+	_command_input.text_submitted.connect(_on_command_submitted)
+	vbox.add_child(_command_input)
+
+	# Command output
+	_command_output = Label.new()
+	_command_output.text = ""
+	_command_output.add_theme_font_size_override("font_size", 11)
+	_command_output.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
+	_command_output.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_command_output.custom_minimum_size = Vector2(200, 0)
+	vbox.add_child(_command_output)
+
+	# Snapshots separator
+	var snapshot_separator: HSeparator = HSeparator.new()
+	vbox.add_child(snapshot_separator)
+
+	# Manage Snapshots button
+	var snapshots_button: Button = Button.new()
+	snapshots_button.text = "Manage Snapshots"
+	snapshots_button.custom_minimum_size = Vector2(200, 32)
+	snapshots_button.pressed.connect(_on_snapshots_pressed)
+	vbox.add_child(snapshots_button)
+
 	# Start hidden by default (press ` or F12 to show)
 	_panel.visible = false
 
@@ -354,6 +394,37 @@ func _on_spawn_boundary_toggle_pressed() -> void:
 	var state: String = "Off" if bypass_enabled else "On"
 	_spawn_boundary_button.text = "Spawn Boundary: %s" % state
 	_save_settings()
+
+
+func _on_command_submitted(command: String) -> void:
+	if command.is_empty():
+		return
+
+	# Execute via DevConsole
+	var success: bool = DevConsole.execute_command(command)
+
+	# Show result
+	if _command_output:
+		if success:
+			_command_output.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
+			_command_output.text = "OK: %s" % command
+		else:
+			_command_output.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
+			_command_output.text = "Failed: %s" % command
+
+	# Clear input
+	if _command_input:
+		_command_input.clear()
+
+
+func _on_snapshots_pressed() -> void:
+	# Load and show the snapshot manager scene
+	var snapshot_scene: PackedScene = load("res://scenes/ui/screens/snapshot_manager.tscn")
+	if snapshot_scene:
+		var snapshot_manager: Control = snapshot_scene.instantiate()
+		get_tree().root.add_child(snapshot_manager)
+		if snapshot_manager.has_method("show_manager"):
+			snapshot_manager.show_manager()
 
 
 ## =============================================================================

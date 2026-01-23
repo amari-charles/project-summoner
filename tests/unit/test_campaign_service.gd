@@ -5,7 +5,9 @@ extends GutTest
 ## Tests campaign progression: battle completion, unlocking, rewards.
 ## Uses MockProfileRepo for isolation from disk I/O.
 
-var campaign: CampaignService
+const CampaignServiceScript: GDScript = preload("res://scripts/services/campaign_service.gd")
+
+var campaign: Node
 var mock_repo: MockProfileRepo
 var mock_economy: MockEconomyService
 var mock_collection: MockCollectionService
@@ -30,7 +32,7 @@ func before_each() -> void:
 	mock_collection = MockCollectionService.new()
 
 	# Create campaign service and inject dependencies
-	campaign = CampaignService.new()
+	campaign = CampaignServiceScript.new()
 	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
 
 

@@ -338,44 +338,36 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="BoonsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf"]
+[node name="EquipmentPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="BoonsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel"]
+[node name="EquipmentMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/EquipmentPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 12
 
-[node name="BoonsVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin"]
+[node name="EquipmentVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/EquipmentPanel/EquipmentMargin"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="BoonsHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox"]
+[node name="EquipmentHeader" type="Label" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 16
-text = "BOONS"
+text = "EQUIPMENT"
 
-[node name="BoonsScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox"]
+[node name="EquipmentScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="BoonsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox/BoonsScroll"]
+[node name="EquipmentContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/EquipmentPanel/EquipmentMargin/EquipmentVBox/EquipmentScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
-
-[node name="ManageBoonsButton" type="Button" parent="MarginContainer/VBoxContainer/MainContent/RightHalf/BoonsPanel/BoonsMargin/BoonsVBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 14
-text = "Manage Boons"

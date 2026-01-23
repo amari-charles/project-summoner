@@ -1,52 +1,79 @@
 extends Node
 # ShopService is registered as autoload "Shop", no class_name needed
 
-## ShopService - Manages shop offerings and purchases
+## ShopService - Manages shop offerings and purchases (GDScript wrapper for C#)
 ##
 ## Handles both Caravan (campaign event) shops and General UI shop.
 ## Data layer: ProfileRepo owns all persistent state
 ## Service layer: ShopService orchestrates purchases and validates
-##
-## Architecture:
-## - ProfileRepo: Single source of truth for gold, purchase history, refresh state
-## - ShopService: Catalog, validation, transaction orchestration
-## - RewardService: Centralized reward granting
-## - ShopOffering: Pure configuration/template (no runtime state)
+## Delegates to C# ShopServiceCS for core operations.
 ##
 ## Usage:
 ##   var offerings = Shop.get_shop_offerings("caravan_tutorial")
 ##   var success = Shop.purchase_offering(offering_id, "caravan_tutorial")
 
-## Signals
+## Signals (forwarded from C#)
 signal purchase_completed(offering_id: String, shop_id: String)
 signal purchase_failed(offering_id: String, reason: String)
 signal shop_refreshed(shop_id: String)
 
+## C# service reference
+var _cs_service: Node
+
 ## Shop catalog (_init_shops pattern like CampaignService._init_battles)
 var _shops: Dictionary = {}  # shop_id -> shop_definition
 
-## Purchase history cache (for read performance during validation)
-## Source of truth is ProfileRepo, cache is loaded on _ready()
-var _purchase_cache: Dictionary = {}  # "shop_id::offering_id::refresh_epoch" -> count
+## Pending real-money purchases (product_id -> offering_id, shop_id)
+var _pending_billing_purchases: Dictionary = {}
 
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
-## Pending real-money purchases (product_id -> offering_id, shop_id)
-var _pending_billing_purchases: Dictionary = {}
-
 func _ready() -> void:
 	print("ShopService: Initializing...")
+
+	# Get C# service reference
+	_cs_service = get_node_or_null("/root/ShopServiceCS")
+	if _cs_service == null:
+		push_error("ShopService: ShopServiceCS autoload not found")
+		return
 
 	# Wait for dependencies
 	await get_tree().process_frame
 
+	# Connect to C# service signals
+	_cs_service.PurchaseCompleted.connect(_on_cs_purchase_completed)
+	_cs_service.PurchaseFailed.connect(_on_cs_purchase_failed)
+	_cs_service.ShopRefreshed.connect(_on_cs_shop_refreshed)
+
+	# Inject ProfileRepo callbacks
+	_cs_service.SetProfileCallbacks(
+		_get_resources,
+		_update_resources,
+		_is_summoner_unlocked,
+		_is_cosmetic_owned,
+		_is_emote_owned,
+		_get_purchase_count,
+		_increment_purchase_count,
+		_get_shop_refresh_state
+	)
+
+	# Inject RewardService callback
+	_cs_service.SetRewardCallbacks(_grant_rewards)
+
+	# Inject PlatformBilling callbacks
+	_cs_service.SetBillingCallbacks(_initiate_billing_purchase, _add_gems)
+
 	# Load purchase history into cache
-	_purchase_cache = ProfileRepo.get_shop_purchases()
+	var purchase_cache: Dictionary = ProfileRepo.get_shop_purchases()
+	_cs_service.LoadPurchaseCache(purchase_cache)
 
 	# Initialize shop catalog
 	_init_shops()
+
+	# Pass shops to C# service
+	_cs_service.LoadShopsFromGDScript(_shops)
 
 	# Connect to PlatformBilling signals for real-money purchases
 	PlatformBilling.purchase_completed.connect(_on_billing_purchase_completed)
@@ -56,7 +83,57 @@ func _ready() -> void:
 	print("ShopService: Ready (%d shops loaded)" % _shops.size())
 
 ## =============================================================================
-## SHOP CATALOG
+## CALLBACK INJECTORS
+## =============================================================================
+
+func _get_resources() -> Dictionary:
+	return ProfileRepo.get_resources()
+
+func _update_resources(delta: Dictionary) -> void:
+	ProfileRepo.update_resources(delta)
+
+func _is_summoner_unlocked(summoner_id: String) -> bool:
+	return ProfileRepo.is_summoner_unlocked(summoner_id)
+
+func _is_cosmetic_owned(cosmetic_id: String) -> bool:
+	return ProfileRepo.is_cosmetic_owned(cosmetic_id)
+
+func _is_emote_owned(emote_id: String) -> bool:
+	return ProfileRepo.is_emote_owned(emote_id)
+
+func _get_purchase_count(key: String) -> int:
+	return ProfileRepo.get_purchase_count(key)
+
+func _increment_purchase_count(key: String) -> bool:
+	return ProfileRepo.increment_purchase_count(key)
+
+func _get_shop_refresh_state(shop_id: String) -> Dictionary:
+	return ProfileRepo.get_shop_refresh_state(shop_id)
+
+func _grant_rewards(rewards: Dictionary) -> bool:
+	return RewardService.grant_rewards(rewards)
+
+func _initiate_billing_purchase(product_id: String) -> void:
+	PlatformBilling.purchase(product_id)
+
+func _add_gems() -> int:
+	return Economy.get_gems()
+
+## =============================================================================
+## INTERNAL - Signal forwarding from C#
+## =============================================================================
+
+func _on_cs_purchase_completed(offering_id: String, shop_id: String) -> void:
+	purchase_completed.emit(offering_id, shop_id)
+
+func _on_cs_purchase_failed(offering_id: String, reason: String) -> void:
+	purchase_failed.emit(offering_id, reason)
+
+func _on_cs_shop_refreshed(shop_id: String) -> void:
+	shop_refreshed.emit(shop_id)
+
+## =============================================================================
+## SHOP CATALOG (GDScript-specific for localization)
 ## =============================================================================
 
 func _init_shops() -> void:
@@ -329,6 +406,10 @@ func _init_shops() -> void:
 
 	print("ShopService: Initialized %d shops" % _shops.size())
 
+## =============================================================================
+## SHOP QUERIES (delegated to C#)
+## =============================================================================
+
 ## Get all offerings for a shop
 func get_shop_offerings(shop_id: String) -> Array[ShopOffering]:
 	var shop_variant: Variant = _shops.get(shop_id)
@@ -354,130 +435,67 @@ func get_shop_offerings(shop_id: String) -> Array[ShopOffering]:
 	return result
 
 ## =============================================================================
-## PURCHASE LOGIC
+## PURCHASE LOGIC (delegated to C#)
 ## =============================================================================
 
 ## Purchase an offering
 func purchase_offering(offering_id: String, shop_id: String = "general") -> bool:
-	var offering: ShopOffering = _find_offering(offering_id, shop_id)
-	if not offering:
+	if _cs_service == null:
+		_emit_purchase_failed(offering_id, "Service not available")
+		return false
+
+	var offering_dict: Dictionary = _cs_service.FindOffering(offering_id, shop_id)
+	if offering_dict.is_empty():
 		_emit_purchase_failed(offering_id, "Offering not found")
 		return false
 
-	# Check if already owned (for one-time purchases like summoners/cosmetics/emotes)
-	var already_owned_reason: String = _check_already_owned(offering)
+	# Check if already owned
+	var already_owned_reason: String = _cs_service.CheckAlreadyOwned(offering_dict)
 	if not already_owned_reason.is_empty():
 		_emit_purchase_failed(offering_id, already_owned_reason)
 		return false
 
 	# Get shop refresh state
-	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
-	var epoch_variant: Variant = shop_refresh_state.get("refresh_epoch", 0)
-	var refresh_epoch: int = epoch_variant if epoch_variant is int else 0
+	var refresh_epoch: int = _cs_service.GetRefreshEpoch(shop_id)
+	var purchase_key: String = _cs_service.BuildPurchaseKey(shop_id, offering_id, refresh_epoch)
+	var purchase_count: int = _cs_service.GetPurchaseCount(purchase_key)
 
-	# Build namespaced key with refresh epoch
-	var purchase_key: String = _build_purchase_key(shop_id, offering_id, refresh_epoch)
+	# Get current resources
+	var player_gold: int = _cs_service.GetPlayerGold()
+	var player_gems: int = _cs_service.GetPlayerGems()
 
-	# Get state from ProfileRepo (typed calls, no .call())
-	var resources: Dictionary = ProfileRepo.get_resources()
-	var gold: int = resources.get("gold", 0)
-	var gems: int = resources.get("gems", 0)
-	var purchase_count: int = _purchase_cache.get(purchase_key, 0)
-
-	# Build context for validation
-	var context: ShopPurchaseContext = ShopPurchaseContext.new()
-	context.player_gold = gold
-	context.player_gems = gems
-	context.purchase_count = purchase_count
-	context.summoner_affinity = ""  # TODO: ProfileRepo.get_summoner_affinity() when implemented
-	context.refresh_epoch = refresh_epoch
-
-	# Validate
-	if not offering.can_purchase(context):
-		var reason: String = _get_failure_reason(offering, context)
-		_emit_purchase_failed(offering_id, reason)
+	# Validate purchase
+	var failure_reason: String = _cs_service.ValidatePurchase(offering_dict, player_gold, player_gems, purchase_count)
+	if not failure_reason.is_empty():
+		_emit_purchase_failed(offering_id, failure_reason)
 		return false
 
-	# Transaction atomicity: All-or-nothing guarantee
-	var price: int = offering.get_price(context)
-	var currency: String = offering.currency_type
+	# Execute purchase based on currency type
+	var price: int = offering_dict.get("base_price", 0)
+	var currency: String = offering_dict.get("currency_type", "gold")
 
-	# Handle different currency types
 	match currency:
-		"gold":
-			return _complete_currency_purchase(offering, offering_id, shop_id, purchase_key, price, "gold")
-		"gems":
-			return _complete_currency_purchase(offering, offering_id, shop_id, purchase_key, price, "gems")
+		"gold", "gems":
+			return _cs_service.CompleteCurrencyPurchase(offering_dict, offering_id, shop_id, purchase_key, price, currency)
 		"real_money":
 			# Delegate to PlatformBilling (async)
-			var product_id: String = offering.product_id if offering.product_id else offering_id
+			var product_id: String = offering_dict.get("product_id", offering_id)
 			_pending_billing_purchases[product_id] = {
 				"offering_id": offering_id,
 				"shop_id": shop_id,
 				"purchase_key": purchase_key,
-				"offering": offering
+				"offering_dict": offering_dict
 			}
-			PlatformBilling.purchase(product_id)
+			_cs_service.InitiateBillingPurchase(product_id)
 			print("ShopService: Initiated real-money purchase for '%s'" % offering_id)
 			return true  # Async - result comes via billing signals
 		_:
 			_emit_purchase_failed(offering_id, "Unknown currency type: %s" % currency)
 			return false
 
-
-## Complete a purchase using in-game currency (gold or gems)
-func _complete_currency_purchase(offering: ShopOffering, offering_id: String, shop_id: String, purchase_key: String, price: int, currency: String) -> bool:
-	# Step 1: Deduct currency
-	ProfileRepo.update_resources({currency: -price})
-
-	# Step 2: Grant rewards via RewardService
-	var rewards: Dictionary = _build_reward_dict(offering)
-	if not RewardService.grant_rewards(rewards):
-		# Rollback: Refund currency
-		ProfileRepo.update_resources({currency: price})
-		_emit_purchase_failed(offering_id, "Failed to grant rewards")
-		return false
-
-	# Step 3: Track purchase (namespaced key)
-	if not ProfileRepo.increment_purchase_count(purchase_key):
-		push_warning("ShopService: Failed to track purchase count")
-	else:
-		_purchase_cache[purchase_key] = _purchase_cache.get(purchase_key, 0) + 1
-
-	purchase_completed.emit(offering_id, shop_id)
-	print("ShopService: Purchased '%s' for %d %s" % [offering_id, price, currency])
-	return true
-
 ## =============================================================================
 ## INTERNAL HELPERS
 ## =============================================================================
-
-## Build purchase key with refresh epoch
-func _build_purchase_key(shop_id: String, offering_id: String, refresh_epoch: int) -> String:
-	# Per-refresh and account-limited offerings both include the epoch
-	# Account-limited offerings can ignore epoch changes or pass 0
-	return "%s::%s::%d" % [shop_id, offering_id, refresh_epoch]
-
-## Find offering by ID in shop catalog
-func _find_offering(offering_id: String, shop_id: String) -> ShopOffering:
-	var shop_variant: Variant = _shops.get(shop_id)
-	if shop_variant == null:
-		return null
-
-	var shop: Dictionary = shop_variant
-	var offerings_variant: Variant = shop.get("offerings", [])
-	if not offerings_variant is Array:
-		return null
-
-	var offerings_array: Array = offerings_variant
-	for offering_def: Variant in offerings_array:
-		if not offering_def is Dictionary:
-			continue
-		var def_dict: Dictionary = offering_def
-		if def_dict.get("offering_id") == offering_id:
-			return _build_offering_from_dict(def_dict)
-
-	return null
 
 ## Build ShopOffering instance from dictionary definition
 func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
@@ -516,89 +534,23 @@ func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
 
 	return offering
 
-## Build reward dictionary for RewardService
-func _build_reward_dict(offering: ShopOffering) -> Dictionary:
-	var rewards: Dictionary = {}
-
-	match offering.offering_type:
-		ShopOffering.OfferingType.CARD:
-			rewards["cards"] = [{"catalog_id": offering.card_catalog_id, "count": offering.card_count, "rarity": RarityIDs.COMMON}]
-
-		ShopOffering.OfferingType.CARD_PACK:
-			var cards: Array[Dictionary] = []
-			for card_data: Dictionary in offering.pack_cards:
-				cards.append({
-					"catalog_id": card_data.get("catalog_id", ""),
-					"count": card_data.get("count", 1),
-					"rarity": RarityIDs.COMMON
-				})
-			rewards["cards"] = cards
-
-		ShopOffering.OfferingType.CURRENCY:
-			# TODO: Implement currency rewards
-			pass
-
-		ShopOffering.OfferingType.SPECIAL:
-			# Legacy - use COSMETIC/EMOTE instead
-			pass
-
-		ShopOffering.OfferingType.SUMMONER:
-			rewards["summoner"] = offering.summoner_id
-
-		ShopOffering.OfferingType.COSMETIC:
-			rewards["cosmetic"] = offering.cosmetic_id
-
-		ShopOffering.OfferingType.EMOTE:
-			rewards["emote"] = offering.emote_id
-
-	return rewards
-
-## Get human-readable failure reason
-func _get_failure_reason(offering: ShopOffering, context: ShopPurchaseContext) -> String:
-	var price: int = offering.get_price(context)
-
-	# Check currency
-	match offering.currency_type:
-		"gold":
-			if context.player_gold < price:
-				return "Not enough gold (need %d, have %d)" % [price, context.player_gold]
-		"gems":
-			if context.player_gems < price:
-				return "Not enough gems (need %d, have %d)" % [price, context.player_gems]
-
-	if offering.purchase_limit_type != "none" and offering.purchase_limit > 0:
-		if context.purchase_count >= offering.purchase_limit:
-			return "Purchase limit reached"
-
-	return "Unknown error"
-
 ## Emit purchase failed signal
 func _emit_purchase_failed(offering_id: String, reason: String) -> void:
 	push_warning("ShopService: Purchase failed for '%s': %s" % [offering_id, reason])
 	purchase_failed.emit(offering_id, reason)
 
-## Check if an offering is already owned (for one-time purchases)
-## Returns empty string if not owned, or failure reason if already owned
-func _check_already_owned(offering: ShopOffering) -> String:
-	match offering.offering_type:
-		ShopOffering.OfferingType.SUMMONER:
-			if ProfileRepo.is_summoner_unlocked(offering.summoner_id):
-				return Loc.t("shop.error.already_owned")
-
-		ShopOffering.OfferingType.COSMETIC:
-			if ProfileRepo.is_cosmetic_owned(offering.cosmetic_id):
-				return Loc.t("shop.error.already_owned")
-
-		ShopOffering.OfferingType.EMOTE:
-			if ProfileRepo.is_emote_owned(offering.emote_id):
-				return Loc.t("shop.error.already_owned")
-
-	return ""  # Not owned, can purchase
-
 ## Check if an offering is already owned (public API for UI)
 func is_offering_owned(offering: ShopOffering) -> bool:
-	return not _check_already_owned(offering).is_empty()
-
+	if _cs_service == null:
+		return false
+	# Build dict from offering for C# service
+	var offering_dict: Dictionary = {
+		"offering_type": offering.offering_type,
+		"summoner_id": offering.summoner_id,
+		"cosmetic_id": offering.cosmetic_id,
+		"emote_id": offering.emote_id
+	}
+	return _cs_service.IsOfferingOwned(offering_dict)
 
 ## =============================================================================
 ## PLATFORM BILLING HANDLERS
@@ -612,23 +564,13 @@ func _on_billing_purchase_completed(product_id: String, transaction_id: String) 
 		var pending: Dictionary = _pending_billing_purchases[product_id]
 		_pending_billing_purchases.erase(product_id)
 
-		var offering: ShopOffering = pending.offering
+		var offering_dict: Dictionary = pending.offering_dict
 		var offering_id: String = pending.offering_id
 		var shop_id: String = pending.shop_id
 		var purchase_key: String = pending.purchase_key
 
-		# Grant the offering rewards
-		var rewards: Dictionary = _build_reward_dict(offering)
-		if RewardService.grant_rewards(rewards):
-			# Track purchase
-			if ProfileRepo.increment_purchase_count(purchase_key):
-				_purchase_cache[purchase_key] = _purchase_cache.get(purchase_key, 0) + 1
-			purchase_completed.emit(offering_id, shop_id)
-			print("ShopService: Real-money purchase completed for '%s'" % offering_id)
-		else:
-			# Failed to grant rewards - this is a problem (payment went through)
-			push_error("ShopService: CRITICAL - Payment completed but failed to grant rewards for '%s'" % offering_id)
-			_emit_purchase_failed(offering_id, "Failed to grant rewards after payment")
+		# Delegate to C# service
+		_cs_service.OnBillingPurchaseCompleted(offering_dict, offering_id, shop_id, purchase_key)
 	else:
 		# Direct billing product (gem pack, not a shop offering)
 		var product: BillingProduct = BillingCatalog.get_product(product_id)

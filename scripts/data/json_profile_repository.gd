@@ -1,6 +1,9 @@
 extends IProfileRepo
 # JsonProfileRepo is registered as autoload "ProfileRepo", no class_name needed
 
+## Preload ContentBinding for use in this file (autoloads load before class_names are resolved)
+const ContentBinding = preload("res://scripts/data/content_binding.gd")
+
 ## JSON Profile Repository Implementation
 ##
 ## Stores profile data in JSON files with:
@@ -20,7 +23,7 @@ extends IProfileRepo
 const AUTOSAVE_DELAY: float = 0.5  # Seconds of inactivity before autosave
 
 ## Current save version for migrations
-const CURRENT_VERSION: int = 5
+const CURRENT_VERSION: int = 6
 
 ## Signals inherited from IProfileRepo (do not redeclare)
 
@@ -559,6 +562,13 @@ func grant_cards(cards: Array) -> Array:
 		var catalog_id: String = catalog_id_variant
 		var rarity_variant: Variant = card_dict.get("rarity", "common")
 		var rarity: String = rarity_variant
+
+		# Parse binding (defaults to AccountWide = 0)
+		var binding_variant: Variant = card_dict.get("binding", 0)
+		var binding: int = binding_variant
+		var bound_to_variant: Variant = card_dict.get("bound_to", "")
+		var bound_to: String = bound_to_variant
+
 		var instance: Dictionary = {
 			"id": _generate_uuid(),
 			"profile_id": _current_profile_id,
@@ -568,7 +578,9 @@ func grant_cards(cards: Array) -> Array:
 			"xp": 0,            # XP towards next level
 			"upgrades": [],     # Array of chosen upgrade IDs
 			"roll_json": null,  # Future: stat rolls
-			"created_at": Time.get_unix_time_from_system()
+			"created_at": Time.get_unix_time_from_system(),
+			"binding": binding,
+			"bound_to": bound_to if binding == ContentBinding.SUMMONER_BOUND else ""
 		}
 		collection.append(instance)
 		var inst_id_variant: Variant = instance.get("id")
@@ -1092,6 +1104,20 @@ func update_last_match(match_info: Dictionary) -> void:
 	data_changed.emit()
 
 ## =============================================================================
+## ITEM OPERATIONS
+## =============================================================================
+
+## Get all items in the player's inventory
+func list_items() -> Array:
+	return _data.get("items", [])
+
+## Save all items to the profile
+func save_items(items: Array) -> void:
+	_data["items"] = items
+	save_profile()  # Debounced
+	data_changed.emit()
+
+## =============================================================================
 ## INTERNAL - FILE OPERATIONS
 ## =============================================================================
 
@@ -1315,6 +1341,9 @@ func _migrate(from_version: int) -> void:
 		4:
 			# Version 4 → 5 migration: Campaign-scoped gold
 			_migrate_v4_to_v5()
+		5:
+			# Version 5 → 6 migration: Boons → Items
+			_migrate_v5_to_v6()
 		_:
 			push_warning("JsonProfileRepo: No migration defined for version " + str(from_version))
 
@@ -1485,6 +1514,118 @@ func _migrate_v4_to_v5() -> void:
 	_data["campaign_progress"] = progress_dict
 
 	print("JsonProfileRepo: Campaign-scoped gold migration complete")
+
+## Migration: Convert boons to equippable items
+func _migrate_v5_to_v6() -> void:
+	print("JsonProfileRepo: Migrating boons to items...")
+
+	# Boon ID → Item ID mapping
+	var boon_to_item: Dictionary = {
+		"boon_veteran": "item_veterans_medal",
+		"boon_mana_well": "item_mana_well_orb",
+		"boon_battle_hardened": "item_battle_hardened_badge",
+		"boon_fortune_favors": "item_fortunes_charm",
+		"trait_fortune_favors_bold": "item_bold_fortune_amulet"
+	}
+
+	# Item ID → Slot mapping
+	var item_to_slot: Dictionary = {
+		"item_veterans_medal": "vestments",
+		"item_battle_hardened_badge": "weapon",
+		"item_fortunes_charm": "ring1",
+		"item_bold_fortune_amulet": "vestments"
+	}
+
+	# Ensure items array exists
+	if not _data.has("items"):
+		_data["items"] = []
+
+	var items_variant: Variant = _data.get("items", [])
+	if not items_variant is Array:
+		items_variant = []
+	var items_array: Array = items_variant
+
+	# Get summoner instances
+	var summoners_variant: Variant = _data.get("summoner_instances", [])
+	if not summoners_variant is Array:
+		print("JsonProfileRepo: No summoner instances to migrate")
+		return
+	var summoners_array: Array = summoners_variant
+
+	var total_items_created: int = 0
+
+	for i: int in range(summoners_array.size()):
+		var summoner_variant: Variant = summoners_array[i]
+		if not summoner_variant is Dictionary:
+			continue
+
+		var summoner: Dictionary = summoner_variant
+		var summoner_id: String = summoner.get("summoner_id", "")
+		if summoner_id.is_empty():
+			continue
+
+		# Get acquired boons
+		var boons_variant: Variant = summoner.get("acquired_boon_ids", [])
+		if not boons_variant is Array:
+			continue
+		var boons_array: Array = boons_variant
+
+		if boons_array.is_empty():
+			continue
+
+		# Ensure equipped_items exists with default slots
+		if not summoner.has("equipped_items"):
+			summoner["equipped_items"] = {
+				"weapon": null,
+				"ring1": null,
+				"ring2": null,
+				"vestments": null
+			}
+
+		var equipped: Dictionary = summoner.get("equipped_items", {})
+
+		# Convert each boon to an item
+		for boon_id: Variant in boons_array:
+			if not boon_id is String:
+				continue
+			var boon_str: String = boon_id
+
+			var item_id: String = boon_to_item.get(boon_str, "")
+			if item_id.is_empty():
+				print("JsonProfileRepo: Unknown boon '%s', skipping" % boon_str)
+				continue
+
+			# Create item instance
+			var instance_id: String = _generate_uuid()
+			var item_instance: Dictionary = {
+				"id": instance_id,
+				"catalog_id": item_id,
+				"bound_to_summoner_id": null,  # AccountWide items
+				"equipped_by_summoner_id": null,
+				"equipped_slot": null
+			}
+
+			# Determine slot and auto-equip if slot is empty
+			var slot: String = item_to_slot.get(item_id, "")
+			if not slot.is_empty() and (equipped.get(slot) == null or equipped.get(slot) == ""):
+				# Equip the item
+				item_instance["equipped_by_summoner_id"] = summoner_id
+				item_instance["equipped_slot"] = slot
+				equipped[slot] = instance_id
+				print("JsonProfileRepo: Auto-equipped '%s' to %s's %s slot" % [item_id, summoner_id, slot])
+
+			items_array.append(item_instance)
+			total_items_created += 1
+			print("JsonProfileRepo: Converted boon '%s' to item '%s'" % [boon_str, item_id])
+
+		# Update summoner's equipped_items
+		summoner["equipped_items"] = equipped
+		summoners_array[i] = summoner
+
+	_data["items"] = items_array
+	_data["summoner_instances"] = summoners_array
+
+	print("JsonProfileRepo: Boons→Items migration complete (created %d items)" % total_items_created)
 
 ## =============================================================================
 ## INTERNAL - WRITE-AHEAD LOG

@@ -38,20 +38,24 @@ Reward screens offer X guaranteed summoner-themed options + Y pool-drawn options
 ---
 
 #### Phase 4: Boons → Items Refactor
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (2026-01-23)
 **Category:** Core Game Systems / Items
 **Effort:** Large
 **Dependencies:** Phase 3
 
 **Description:**
-Replace abstract boons with 4-slot equippable items (Grimoire, Weapon, Ring, Vestments).
+Replace abstract boons with 4-slot equippable items (Weapon, Ring1, Ring2, Vestments).
 
-**Requirements:**
-- Create `ItemDefinition.cs`, `ItemInstanceData.cs`, `ItemCatalog.cs`
-- Create `ItemService.cs` for item management
-- Add `EquippedItems` to `SummonerInstanceData.cs`
-- Migration v5→v6: Convert boons to items
-- Update summoner screen with equipment panel
+**Completed Work:**
+- Created `ItemCatalog.cs`, `ItemSlot.cs`, `ItemService.cs` in C#
+- Created `item_service.gd` GDScript wrapper (autoloaded as `Items`)
+- Created `ContentBinding` enum for AccountWide vs SummonerBound ownership
+- Added equipment UI to summoner screen with `EquipmentSlotModal`
+- Migration v5→v6: Converts legacy boons to items
+- Added console commands for testing (`/items_grant`, `/items_list`, etc.)
+- Documentation: `docs/features/equipment-system.md`
+
+**Note:** Move to todos-completed.md
 
 ---
 
@@ -1008,6 +1012,35 @@ Projectiles should disappear when they hit their target rather than continuing t
 ---
 
 ## Architecture & Code Quality
+
+### 🟡 MEDIUM PRIORITY
+
+#### Refactor Service Unit Tests for C# Hybrid Architecture
+**Status:** ⬜ Not Started
+**Category:** Testing / Architecture
+**Effort:** Medium
+
+**Description:**
+Unit tests for CampaignService and ShopService fail because they were written before services migrated to hybrid GDScript/C# architecture. Tests create standalone instances that can't find C# autoloads.
+
+**Failing Test Files:**
+- `tests/unit/test_campaign_service.gd` - 28 failures
+- `tests/unit/test_shop_ownership.gd` - 3 failures, 7 skipped
+
+**Fix Options:**
+1. **Use real autoloads**: Refactor tests to use the actual `Campaign`/`Shop` autoloads with test profiles
+2. **Add C# service injection**: Extend `init_for_testing()` to accept mock C# service
+3. **Scene tree integration**: Add test instances to scene tree so they can find autoloads
+
+**Related Bugs:**
+- See bugs.md: "CampaignService Unit Tests Fail Due to C# Architecture Mismatch"
+- See bugs.md: "ShopService Ownership Tests Fail - Offerings Not Returned"
+
+**Notes:**
+- Production code works correctly; only tests are affected
+- Consider which approach aligns best with existing test patterns
+
+---
 
 ### 🟢 LOW PRIORITY
 
