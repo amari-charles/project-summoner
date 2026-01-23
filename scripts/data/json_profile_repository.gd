@@ -1,6 +1,9 @@
 extends IProfileRepo
 # JsonProfileRepo is registered as autoload "ProfileRepo", no class_name needed
 
+## Preload ContentBinding for use in this file (autoloads load before class_names are resolved)
+const ContentBinding = preload("res://scripts/data/content_binding.gd")
+
 ## JSON Profile Repository Implementation
 ##
 ## Stores profile data in JSON files with:
@@ -559,6 +562,13 @@ func grant_cards(cards: Array) -> Array:
 		var catalog_id: String = catalog_id_variant
 		var rarity_variant: Variant = card_dict.get("rarity", "common")
 		var rarity: String = rarity_variant
+
+		# Parse binding (defaults to AccountWide = 0)
+		var binding_variant: Variant = card_dict.get("binding", 0)
+		var binding: int = binding_variant
+		var bound_to_variant: Variant = card_dict.get("bound_to", "")
+		var bound_to: String = bound_to_variant
+
 		var instance: Dictionary = {
 			"id": _generate_uuid(),
 			"profile_id": _current_profile_id,
@@ -568,7 +578,9 @@ func grant_cards(cards: Array) -> Array:
 			"xp": 0,            # XP towards next level
 			"upgrades": [],     # Array of chosen upgrade IDs
 			"roll_json": null,  # Future: stat rolls
-			"created_at": Time.get_unix_time_from_system()
+			"created_at": Time.get_unix_time_from_system(),
+			"binding": binding,
+			"bound_to": bound_to if binding == ContentBinding.SUMMONER_BOUND else ""
 		}
 		collection.append(instance)
 		var inst_id_variant: Variant = instance.get("id")
@@ -1519,9 +1531,8 @@ func _migrate_v5_to_v6() -> void:
 	# Item ID → Slot mapping
 	var item_to_slot: Dictionary = {
 		"item_veterans_medal": "vestments",
-		"item_mana_well_orb": "grimoire",
 		"item_battle_hardened_badge": "weapon",
-		"item_fortunes_charm": "ring",
+		"item_fortunes_charm": "ring1",
 		"item_bold_fortune_amulet": "vestments"
 	}
 
@@ -1565,9 +1576,9 @@ func _migrate_v5_to_v6() -> void:
 		# Ensure equipped_items exists with default slots
 		if not summoner.has("equipped_items"):
 			summoner["equipped_items"] = {
-				"grimoire": null,
 				"weapon": null,
-				"ring": null,
+				"ring1": null,
+				"ring2": null,
 				"vestments": null
 			}
 

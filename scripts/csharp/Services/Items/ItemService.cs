@@ -88,8 +88,17 @@ public partial class ItemService : Node
             return null;
         }
 
-        // Create new item instance
-        var instanceId = Guid.NewGuid().ToString();
+        // Check if player already owns this item type
+        var existingItems = _profileRepo.ListItems();
+        var existingItem = existingItems.FirstOrDefault(i => i.CatalogId == catalogId);
+        if (existingItem != null)
+        {
+            GD.Print($"ItemService: Player already owns '{catalogId}' (instance: {existingItem.Id}), skipping grant");
+            return existingItem.Id;
+        }
+
+        // Create new item instance with simple sequential ID
+        var instanceId = $"item_{existingItems.Count + 1:D3}";
         var instance = new ItemInstanceData
         {
             Id = instanceId,
@@ -99,10 +108,9 @@ public partial class ItemService : Node
             EquippedSlot = null
         };
 
-        // Add to profile
-        var items = _profileRepo.ListItems();
-        items.Add(instance);
-        _profileRepo.SaveItems(items);
+        // Add to profile (reuse existingItems from duplicate check)
+        existingItems.Add(instance);
+        _profileRepo.SaveItems(existingItems);
 
         GD.Print($"ItemService: Granted item '{catalogId}' (instance: {instanceId})");
         EmitSignal(SignalName.ItemGranted, instanceId, catalogId);
@@ -254,7 +262,47 @@ public partial class ItemService : Node
     }
 
     // =========================================================================
-    // QUERIES
+    // QUERIES - OWNERSHIP
+    // =========================================================================
+
+    /// <summary>
+    /// Get all AccountWide items (accessible by any summoner).
+    /// </summary>
+    public List<ItemInstanceData> GetAccountWideItems()
+    {
+        if (_profileRepo == null) return [];
+
+        return _profileRepo.ListItems()
+            .Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.AccountWide)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get SummonerBound items for a specific summoner.
+    /// </summary>
+    public List<ItemInstanceData> GetSummonerBoundItems(string summonerId)
+    {
+        if (_profileRepo == null) return [];
+
+        return _profileRepo.ListItems()
+            .Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.SummonerBound
+                && item.BoundToSummonerId == summonerId)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get all items owned by a summoner based on binding rules.
+    /// Returns AccountWide items + SummonerBound items bound to this summoner.
+    /// </summary>
+    public List<ItemInstanceData> GetOwnedItems(string summonerId)
+    {
+        return GetAccountWideItems()
+            .Concat(GetSummonerBoundItems(summonerId))
+            .ToList();
+    }
+
+    // =========================================================================
+    // QUERIES - EQUIPMENT
     // =========================================================================
 
     /// <summary>
@@ -265,9 +313,9 @@ public partial class ItemService : Node
     {
         var result = new Dictionary<ItemSlot, string?>
         {
-            [ItemSlot.Grimoire] = null,
             [ItemSlot.Weapon] = null,
-            [ItemSlot.Ring] = null,
+            [ItemSlot.Ring1] = null,
+            [ItemSlot.Ring2] = null,
             [ItemSlot.Vestments] = null
         };
 
@@ -289,29 +337,22 @@ public partial class ItemService : Node
 
     /// <summary>
     /// Get all items available for a specific slot.
-    /// For AccountWide items, returns all unequipped items of that slot.
-    /// For SummonerBound items, filters by bound summoner.
+    /// Uses GetOwnedItems for ownership filtering, then filters by slot and equip status.
     /// </summary>
     public List<ItemInstanceData> ListItemsForSlot(ItemSlot slot, string summonerId)
     {
-        if (_profileRepo == null) return [];
-
-        var items = _profileRepo.ListItems();
         var result = new List<ItemInstanceData>();
 
-        foreach (var item in items)
+        foreach (var item in GetOwnedItems(summonerId))
         {
             var definition = ItemCatalog.GetItem(item.CatalogId);
-            if (definition == null || definition.Slot != slot) continue;
+            if (definition == null) continue;
 
-            // Check binding
-            if (definition.Binding == ItemBinding.SummonerBound)
-            {
-                if (item.BoundToSummonerId != summonerId) continue;
-            }
+            // Filter by slot
+            if (definition.Slot != slot) continue;
 
-            // Check if already equipped by another summoner
-            if (item.EquippedBySummonerId != null && item.EquippedBySummonerId != summonerId) continue;
+            // Filter out items equipped by another summoner
+            if (!string.IsNullOrEmpty(item.EquippedBySummonerId) && item.EquippedBySummonerId != summonerId) continue;
 
             result.Add(item);
         }
@@ -326,6 +367,16 @@ public partial class ItemService : Node
     {
         if (_profileRepo == null) return [];
         return _profileRepo.ListItems();
+    }
+
+    /// <summary>
+    /// Clear all items from inventory (for testing/debugging).
+    /// </summary>
+    public void ClearAllItems()
+    {
+        if (_profileRepo == null) return;
+        _profileRepo.SaveItems([]);
+        GD.Print("ItemService: Cleared all items from inventory");
     }
 
     /// <summary>
@@ -382,6 +433,26 @@ public partial class ItemService : Node
         foreach (var (slot, instanceId) in equipped)
         {
             result[slot.ToString().ToLowerInvariant()] = instanceId ?? "";
+        }
+
+        return result;
+    }
+
+    /// <summary>Get owned items as array of dictionaries for GDScript.</summary>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetOwnedItemsDict(string summonerId)
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+        foreach (var item in GetOwnedItems(summonerId))
+        {
+            var definition = ItemCatalog.GetItem(item.CatalogId);
+            if (definition == null) continue;
+
+            var dict = ItemCatalog.ToDictionary(definition);
+            dict["instance_id"] = item.Id;
+            dict["equipped_by"] = item.EquippedBySummonerId ?? "";
+            dict["bound_to"] = item.BoundToSummonerId ?? "";
+            result.Add(dict);
         }
 
         return result;

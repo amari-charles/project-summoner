@@ -332,7 +332,22 @@
       "stats_hp": "HP",
       "stats_mana": "Mana",
       "stats_damage": "Damage",
-      "stats_defense": "Defense"
+      "stats_defense": "Defense",
+      "equipment_slot_weapon": "Weapon",
+      "equipment_slot_ring1": "Ring",
+      "equipment_slot_ring2": "Ring",
+      "equipment_slot_vestments": "Vestments",
+      "equipment_empty": "Empty",
+      "equipment_unknown": "Unknown Item"
+    },
+    "equipment_modal": {
+      "equipped": "EQUIPPED",
+      "available_items": "AVAILABLE ITEMS",
+      "unequip": "Unequip",
+      "no_item_equipped": "No item equipped",
+      "no_items_available": "No other items available",
+      "close": "Close",
+      "slot_title": "{slot} SLOT"
     },
     "summoner_switch": {
       "title": "CHOOSE SUMMONER",
@@ -830,10 +845,6 @@
       "name": "Veteran's Medal",
       "description": "A medal awarded to seasoned warriors. Grants +100 Max Health."
     },
-    "mana_well_orb": {
-      "name": "Mana Well Orb",
-      "description": "An orb that channels ambient magic. Grants +2 Max Mana."
-    },
     "battle_hardened_badge": {
       "name": "Battle-Hardened Badge",
       "description": "A badge earned through countless victories. Grants +5% Damage."
@@ -846,10 +857,6 @@
       "name": "Bold Fortune Amulet",
       "description": "An amulet for those who risk it all. Grants +50 Max Health."
     },
-    "apprentice_grimoire": {
-      "name": "Apprentice Grimoire",
-      "description": "A basic tome for novice summoners. Grants +0.1 Mana Regen."
-    },
     "training_blade": {
       "name": "Training Blade",
       "description": "A simple blade for practice combat. Grants +2% Damage."
@@ -857,6 +864,10 @@
     "simple_ring": {
       "name": "Simple Ring",
       "description": "An unassuming ring with subtle power. Grants +5% Gold."
+    },
+    "lucky_band": {
+      "name": "Lucky Band",
+      "description": "A band that brings good fortune. Grants +5% XP."
     },
     "travelers_cloak": {
       "name": "Traveler's Cloak",

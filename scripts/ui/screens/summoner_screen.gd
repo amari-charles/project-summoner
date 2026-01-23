@@ -55,10 +55,9 @@ signal closed()
 @onready var traits_header: Label = %TraitsHeader
 @onready var traits_container: VBoxContainer = %TraitsContainer
 
-@onready var boons_panel: PanelContainer = %BoonsPanel
-@onready var boons_header: Label = %BoonsHeader
-@onready var boons_container: VBoxContainer = %BoonsContainer
-@onready var manage_boons_button: Button = %ManageBoonsButton
+@onready var equipment_panel: PanelContainer = %EquipmentPanel
+@onready var equipment_header: Label = %EquipmentHeader
+@onready var equipment_container: VBoxContainer = %EquipmentContainer
 
 ## =============================================================================
 ## STATE
@@ -66,6 +65,7 @@ signal closed()
 
 var _current_summoner_id: String = ""
 var _portrait_tween: Tween = null
+var _equipment_modal: EquipmentSlotModal = null
 
 
 ## =============================================================================
@@ -77,7 +77,6 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	level_up_button.pressed.connect(_on_level_up_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
-	manage_boons_button.pressed.connect(_on_manage_boons_pressed)
 
 	# Connect to service signals
 	if SummonerSelection.has_signal("summoner_changed"):
@@ -85,6 +84,12 @@ func _ready() -> void:
 
 	if Economy.has_signal("gold_changed"):
 		Economy.gold_changed.connect(_on_gold_changed)
+
+	# Setup equipment modal
+	_equipment_modal = EquipmentSlotModal.new()
+	_equipment_modal.item_equipped.connect(_on_equipment_changed)
+	_equipment_modal.item_unequipped.connect(_on_equipment_slot_cleared)
+	add_child(_equipment_modal)
 
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
@@ -171,9 +176,9 @@ func _refresh_all() -> void:
 	# Update stats
 	_refresh_stats(config)
 
-	# Update traits and boons (separate sections)
+	# Update traits and equipment
 	_refresh_traits(config)
-	_refresh_boons()
+	_refresh_equipment()
 
 
 ## =============================================================================
@@ -211,7 +216,7 @@ func _style_panels(element_color: Color) -> void:
 	_style_single_panel(description_panel, description_header, element_color)
 	_style_single_panel(stats_panel, stats_header, element_color)
 	_style_single_panel(traits_panel, traits_header, element_color)
-	_style_single_panel(boons_panel, boons_header, element_color)
+	_style_single_panel(equipment_panel, equipment_header, element_color)
 
 	# Update text colors to warm tones
 	description_label.add_theme_color_override("font_color", TEXT_COLOR_WARM)
@@ -416,37 +421,109 @@ func _refresh_traits(config: SummonerConfig) -> void:
 
 
 ## =============================================================================
-## BOONS
+## EQUIPMENT
 ## =============================================================================
 
-func _refresh_boons() -> void:
+const EQUIPMENT_BOX_SIZE: Vector2 = Vector2(100, 100)
+
+func _refresh_equipment() -> void:
 	# Clear existing
-	for child: Node in boons_container.get_children():
+	for child: Node in equipment_container.get_children():
 		child.queue_free()
 
-	# Get acquired boons from summoner instance
-	var acquired_boon_ids: Array[String] = []
-	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_current_summoner_id)
-	if not summoner_instance_data.is_empty():
-		var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
-		if summoner_instance:
-			for boon_id: Variant in summoner_instance.acquired_boon_ids:
-				if boon_id is String:
-					acquired_boon_ids.append(boon_id)
+	# Get equipped items from Items service
+	var equipped: Dictionary = Items.get_equipped_items(_current_summoner_id)
 
-	# Show acquired boons
-	for boon_id: String in acquired_boon_ids:
-		var boon_card: PanelContainer = _create_trait_card(boon_id, false)
-		if boon_card:
-			boons_container.add_child(boon_card)
+	# Create horizontal box for 4 slots
+	var hbox: HBoxContainer = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	equipment_container.add_child(hbox)
 
-	# Show message if no boons
-	if acquired_boon_ids.is_empty():
-		var no_boons_label: Label = Label.new()
-		no_boons_label.text = Loc.t("ui.summoner_screen.no_boons")
-		no_boons_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.3))
-		no_boons_label.add_theme_font_size_override("font_size", 14)
-		boons_container.add_child(no_boons_label)
+	# Show all 4 equipment slots as boxes
+	for slot: String in Items.ALL_SLOTS:
+		var item_instance_id: String = equipped.get(slot, "")
+		var slot_box: PanelContainer = _create_equipment_slot_box(slot, item_instance_id)
+		hbox.add_child(slot_box)
+
+
+func _create_equipment_slot_box(slot: String, item_instance_id: String) -> PanelContainer:
+	var slot_display_name: String = Loc.t("ui.summoner_screen.equipment_slot_" + slot)
+	if slot_display_name.begins_with("ui.summoner_screen.equipment_slot_"):
+		slot_display_name = Items.SLOT_DISPLAY_NAMES.get(slot, slot.capitalize())
+
+	var is_empty: bool = item_instance_id.is_empty()
+
+	# Create panel (the box)
+	var panel: PanelContainer = PanelContainer.new()
+	panel.custom_minimum_size = EQUIPMENT_BOX_SIZE
+
+	# Make clickable
+	panel.gui_input.connect(_on_equipment_slot_clicked.bind(slot))
+	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	# Style the box
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.06, 0.05, 0.95) if is_empty else Color(0.12, 0.10, 0.08, 0.95)
+	var accent_color: Color = Color(0.4, 0.45, 0.5) if is_empty else Color(0.7, 0.55, 0.3)
+	style.border_color = accent_color
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(2, 2)
+	panel.add_theme_stylebox_override("panel", style)
+
+	# VBox for icon + label
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	panel.add_child(vbox)
+
+	# Icon/symbol at top
+	var icon_label: Label = Label.new()
+	icon_label.text = Items.SLOT_ICONS.get(slot, "?")
+	icon_label.add_theme_font_size_override("font_size", 28)
+	icon_label.add_theme_color_override("font_color", accent_color.lightened(0.2) if is_empty else accent_color.lightened(0.3))
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(icon_label)
+
+	# Slot name
+	var name_label: Label = Label.new()
+	name_label.text = slot_display_name
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.1))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_label)
+
+	# Item name or "Empty"
+	var item_label: Label = Label.new()
+	if is_empty:
+		item_label.text = Loc.t("ui.summoner_screen.equipment_empty")
+		item_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.4))
+	else:
+		var items_for_slot: Array[Dictionary] = Items.list_items_for_slot(slot, _current_summoner_id)
+		var item_name: String = ""
+		for item: Dictionary in items_for_slot:
+			if item.get("instance_id", "") == item_instance_id:
+				var name_key: String = item.get("name_key", "")
+				item_name = Loc.t(name_key) if not name_key.is_empty() else item.get("id", "Unknown")
+				break
+		if item_name.is_empty():
+			item_name = Loc.t("ui.summoner_screen.equipment_unknown")
+		item_label.text = item_name
+		item_label.add_theme_color_override("font_color", accent_color.lightened(0.1))
+	item_label.add_theme_font_size_override("font_size", 10)
+	item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	item_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	item_label.custom_minimum_size.x = EQUIPMENT_BOX_SIZE.x - 16
+	vbox.add_child(item_label)
+
+	# Tooltip with full item info
+	if not is_empty:
+		panel.tooltip_text = item_label.text
+
+	return panel
 
 
 func _create_trait_card(trait_id: String, is_innate: bool) -> PanelContainer:
@@ -533,7 +610,7 @@ func _show_no_summoner() -> void:
 		child.queue_free()
 	for child: Node in traits_container.get_children():
 		child.queue_free()
-	for child: Node in boons_container.get_children():
+	for child: Node in equipment_container.get_children():
 		child.queue_free()
 
 
@@ -560,11 +637,6 @@ func _on_switch_summoner_pressed() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SWITCH)
 
 
-func _on_manage_boons_pressed() -> void:
-	# Boon management not yet implemented - button hidden until ready
-	pass
-
-
 func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> void:
 	_current_summoner_id = new_summoner_id
 	_refresh_all()
@@ -573,6 +645,22 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 func _on_gold_changed(_new_gold: int) -> void:
 	_refresh_gold_display()
 	_refresh_all()
+
+
+func _on_equipment_slot_clicked(event: InputEvent, slot: String) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			if _equipment_modal and not _current_summoner_id.is_empty():
+				_equipment_modal.open(slot, _current_summoner_id)
+
+
+func _on_equipment_changed(_slot: String, _item_instance_id: String) -> void:
+	_refresh_equipment()
+
+
+func _on_equipment_slot_cleared(_slot: String) -> void:
+	_refresh_equipment()
 
 
 ## =============================================================================

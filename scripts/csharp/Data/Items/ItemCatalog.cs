@@ -12,15 +12,14 @@ public static class ItemId
 {
     // Legacy boon conversions
     public const string VeteransMedal = "item_veterans_medal";
-    public const string ManaWellOrb = "item_mana_well_orb";
     public const string BattleHardenedBadge = "item_battle_hardened_badge";
     public const string FortunesCharm = "item_fortunes_charm";
     public const string BoldFortuneAmulet = "item_bold_fortune_amulet";
 
-    // Additional starter items (one per slot)
-    public const string ApprenticeGrimoire = "item_apprentice_grimoire";
+    // Starter items (one per slot: Weapon, Ring1, Ring2, Vestments)
     public const string TrainingBlade = "item_training_blade";
     public const string SimpleRing = "item_simple_ring";
+    public const string LuckyBand = "item_lucky_band";
     public const string TravelersCloak = "item_travelers_cloak";
 }
 
@@ -56,21 +55,6 @@ public static class ItemCatalog
             ]
         },
 
-        [ItemId.ManaWellOrb] = new ItemDefinition
-        {
-            Id = ItemId.ManaWellOrb,
-            NameKey = "item.mana_well_orb.name",
-            DescriptionKey = "item.mana_well_orb.description",
-            Slot = ItemSlot.Grimoire,
-            Binding = ItemBinding.AccountWide,
-            Rarity = "rare",
-            LegacyBoonId = TraitId.BoonManaWell,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_mana", Type = "flat", Value = 2.0f }
-            ]
-        },
-
         [ItemId.BattleHardenedBadge] = new ItemDefinition
         {
             Id = ItemId.BattleHardenedBadge,
@@ -91,7 +75,7 @@ public static class ItemCatalog
             Id = ItemId.FortunesCharm,
             NameKey = "item.fortunes_charm.name",
             DescriptionKey = "item.fortunes_charm.description",
-            Slot = ItemSlot.Ring,
+            Slot = ItemSlot.Ring1,
             Binding = ItemBinding.AccountWide,
             Rarity = "uncommon",
             LegacyBoonId = TraitId.BoonFortuneFavors,
@@ -119,21 +103,8 @@ public static class ItemCatalog
         // =====================================================================
         // STARTER ITEMS
         // Basic items available from the start, one for each slot.
+        // Slots: Weapon, Ring1, Ring2, Vestments
         // =====================================================================
-
-        [ItemId.ApprenticeGrimoire] = new ItemDefinition
-        {
-            Id = ItemId.ApprenticeGrimoire,
-            NameKey = "item.apprentice_grimoire.name",
-            DescriptionKey = "item.apprentice_grimoire.description",
-            Slot = ItemSlot.Grimoire,
-            Binding = ItemBinding.AccountWide,
-            Rarity = "common",
-            Modifiers =
-            [
-                new TraitModifier { Stat = "mana_regen", Type = "flat", Value = 0.1f }
-            ]
-        },
 
         [ItemId.TrainingBlade] = new ItemDefinition
         {
@@ -154,12 +125,26 @@ public static class ItemCatalog
             Id = ItemId.SimpleRing,
             NameKey = "item.simple_ring.name",
             DescriptionKey = "item.simple_ring.description",
-            Slot = ItemSlot.Ring,
+            Slot = ItemSlot.Ring1,
             Binding = ItemBinding.AccountWide,
             Rarity = "common",
             Modifiers =
             [
                 new TraitModifier { Stat = "gold_bonus", Type = "percent", Value = 5.0f }
+            ]
+        },
+
+        [ItemId.LuckyBand] = new ItemDefinition
+        {
+            Id = ItemId.LuckyBand,
+            NameKey = "item.lucky_band.name",
+            DescriptionKey = "item.lucky_band.description",
+            Slot = ItemSlot.Ring2,
+            Binding = ItemBinding.AccountWide,
+            Rarity = "common",
+            Modifiers =
+            [
+                new TraitModifier { Stat = "xp_bonus", Type = "percent", Value = 5.0f }
             ]
         },
 
@@ -182,7 +167,6 @@ public static class ItemCatalog
     private static readonly Dictionary<string, string> _boonToItemMapping = new()
     {
         [TraitId.BoonVeteran] = ItemId.VeteransMedal,
-        [TraitId.BoonManaWell] = ItemId.ManaWellOrb,
         [TraitId.BoonBattleHardened] = ItemId.BattleHardenedBadge,
         [TraitId.BoonFortuneFavors] = ItemId.FortunesCharm,
         [TraitId.FortuneFavorsBold] = ItemId.BoldFortuneAmulet

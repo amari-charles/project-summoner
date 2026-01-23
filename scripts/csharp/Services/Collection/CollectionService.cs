@@ -76,7 +76,40 @@ public partial class CollectionService : Node
     }
 
     // =========================================================================
-    // CARD QUERIES
+    // CARD QUERIES - OWNERSHIP
+    // =========================================================================
+
+    /// <summary>Get all AccountWide cards (accessible by any summoner).</summary>
+    public CardInstanceData[] GetAccountWideCards()
+    {
+        if (_profileRepo == null) return [];
+        return _profileRepo.ListCards()
+            .Where(c => c.Binding == ContentBinding.AccountWide)
+            .ToArray();
+    }
+
+    /// <summary>Get SummonerBound cards for a specific summoner.</summary>
+    public CardInstanceData[] GetSummonerBoundCards(string summonerId)
+    {
+        if (_profileRepo == null) return [];
+        return _profileRepo.ListCards()
+            .Where(c => c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == summonerId)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Get all cards owned by a summoner based on binding rules.
+    /// Returns AccountWide cards + SummonerBound cards bound to this summoner.
+    /// </summary>
+    public CardInstanceData[] GetOwnedCards(string summonerId)
+    {
+        return GetAccountWideCards()
+            .Concat(GetSummonerBoundCards(summonerId))
+            .ToArray();
+    }
+
+    // =========================================================================
+    // CARD QUERIES - GENERAL
     // =========================================================================
 
     /// <summary>Get all card instances in the collection.</summary>
@@ -256,6 +289,17 @@ public partial class CollectionService : Node
         return result;
     }
 
+    /// <summary>Get owned cards for summoner as array of dictionaries for GDScript.</summary>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetOwnedCardsDict(string summonerId)
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var card in GetOwnedCards(summonerId))
+        {
+            result.Add(CardInstanceToDict(card));
+        }
+        return result;
+    }
+
     /// <summary>Get card as dictionary for GDScript.</summary>
     public Godot.Collections.Dictionary GetCardDict(string cardInstanceId)
     {
@@ -367,7 +411,9 @@ public partial class CollectionService : Node
             ["rarity"] = card.Rarity,
             ["level"] = card.Level,
             ["xp"] = card.Xp,
-            ["upgrades"] = upgradesArray
+            ["upgrades"] = upgradesArray,
+            ["binding"] = card.Binding.ToString(),
+            ["bound_to"] = card.BoundToSummonerId ?? ""
         };
     }
 }

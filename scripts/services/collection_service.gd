@@ -58,6 +58,17 @@ func list_cards() -> Array[Dictionary]:
 	typed_result.assign(result)
 	return typed_result
 
+
+## Get all cards owned by a summoner (AccountWide + SummonerBound cards bound to them)
+func get_owned_cards(summoner_id: String) -> Array[Dictionary]:
+	if _cs_service == null:
+		return []
+	var result: Array = _cs_service.GetOwnedCardsDict(summoner_id)
+	var typed_result: Array[Dictionary] = []
+	typed_result.assign(result)
+	return typed_result
+
+
 ## Get a specific card instance by ID
 func get_card(card_instance_id: String) -> Dictionary:
 	if _cs_service == null:

@@ -38,8 +38,8 @@ public partial class DeckService : Node
 
     private IProfileRepository? _profileRepo;
 
-    // Func delegate for checking if a card exists (injected from GDScript)
-    private Func<string, bool>? _cardExistsChecker;
+    // Func delegate for checking if a card is owned by a summoner (injected from GDScript)
+    private Func<string, string, bool>? _cardOwnershipChecker;
 
     // Func delegate for checking if a summoner is valid (injected from GDScript)
     private Func<string, bool>? _summonerValidator;
@@ -83,20 +83,20 @@ public partial class DeckService : Node
     }
 
     /// <summary>Initialize for testing with mock dependencies.</summary>
-    public void InitForTesting(IProfileRepository repo, Func<string, bool>? cardChecker = null, Func<string, bool>? summonerValidator = null)
+    public void InitForTesting(IProfileRepository repo, Func<string, string, bool>? cardOwnershipChecker = null, Func<string, bool>? summonerValidator = null)
     {
         ArgumentNullException.ThrowIfNull(repo);
         _profileRepo = repo;
-        _cardExistsChecker = cardChecker;
+        _cardOwnershipChecker = cardOwnershipChecker;
         _summonerValidator = summonerValidator;
     }
 
-    /// <summary>Set the card existence checker (called from GDScript wrapper).</summary>
-    public void SetCardExistsChecker(Callable checker)
+    /// <summary>Set the card ownership checker (called from GDScript wrapper).</summary>
+    public void SetCardOwnershipChecker(Callable checker)
     {
-        _cardExistsChecker = (cardInstanceId) =>
+        _cardOwnershipChecker = (cardInstanceId, summonerId) =>
         {
-            var result = checker.Call(cardInstanceId);
+            var result = checker.Call(cardInstanceId, summonerId);
             return result.AsBool();
         };
     }
@@ -310,10 +310,10 @@ public partial class DeckService : Node
             return false;
         }
 
-        // Check if card exists (if checker is available)
-        if (_cardExistsChecker != null && !_cardExistsChecker(cardInstanceId))
+        // Check if card is owned by the deck's summoner (if checker is available)
+        if (_cardOwnershipChecker != null && !_cardOwnershipChecker(cardInstanceId, deck.SummonerId))
         {
-            GD.PushWarning($"DeckService: Card instance not found in collection: {cardInstanceId}");
+            GD.PushWarning($"DeckService: Card instance not owned by summoner '{deck.SummonerId}': {cardInstanceId}");
             return false;
         }
 
@@ -435,14 +435,14 @@ public partial class DeckService : Node
             return false;
         }
 
-        // Validate all cards exist (if checker is available)
-        if (_cardExistsChecker != null)
+        // Validate all cards are owned by the deck's summoner (if checker is available)
+        if (_cardOwnershipChecker != null)
         {
             foreach (var cardId in deck.CardInstanceIds)
             {
-                if (!_cardExistsChecker(cardId))
+                if (!_cardOwnershipChecker(cardId, deck.SummonerId))
                 {
-                    EmitValidationFailed(deckId, $"Card instance not found in collection: {cardId}");
+                    EmitValidationFailed(deckId, $"Card instance not owned by summoner '{deck.SummonerId}': {cardId}");
                     return false;
                 }
             }
@@ -487,13 +487,13 @@ public partial class DeckService : Node
             errors.Add($"Deck has {deck.CardInstanceIds.Count - MaxDeckSize} too many cards (maximum: {MaxDeckSize})");
         }
 
-        // Check missing cards (if checker is available)
-        if (_cardExistsChecker != null)
+        // Check cards not owned by summoner (if checker is available)
+        if (_cardOwnershipChecker != null)
         {
-            var missingCount = deck.CardInstanceIds.Count(id => !_cardExistsChecker(id));
-            if (missingCount > 0)
+            var notOwnedCount = deck.CardInstanceIds.Count(id => !_cardOwnershipChecker(id, deck.SummonerId));
+            if (notOwnedCount > 0)
             {
-                errors.Add($"{missingCount} cards no longer exist in collection");
+                errors.Add($"{notOwnedCount} cards not owned by summoner");
             }
         }
 
@@ -501,7 +501,7 @@ public partial class DeckService : Node
     }
 
     /// <summary>
-    /// Clean a deck by removing missing cards.
+    /// Clean a deck by removing cards not owned by the deck's summoner.
     /// Returns number of cards removed.
     /// </summary>
     public int CleanDeck(string deckId)
@@ -509,19 +509,19 @@ public partial class DeckService : Node
         var deck = GetDeck(deckId);
         if (deck == null) return 0;
 
-        if (_cardExistsChecker == null)
+        if (_cardOwnershipChecker == null)
         {
-            // Can't clean without card checker
+            // Can't clean without ownership checker
             return 0;
         }
 
-        var validCards = deck.CardInstanceIds.Where(id => _cardExistsChecker(id)).ToList();
+        var validCards = deck.CardInstanceIds.Where(id => _cardOwnershipChecker(id, deck.SummonerId)).ToList();
         var removedCount = deck.CardInstanceIds.Count - validCards.Count;
 
         if (removedCount > 0)
         {
             UpdateDeck(deckId, cardInstanceIds: [.. validCards]);
-            GD.Print($"DeckService: Cleaned deck '{deckId}', removed {removedCount} missing cards");
+            GD.Print($"DeckService: Cleaned deck '{deckId}', removed {removedCount} cards not owned by summoner");
         }
 
         return removedCount;

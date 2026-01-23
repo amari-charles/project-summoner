@@ -6,14 +6,14 @@ namespace ProjectSummoner.Data.Items;
 /// </summary>
 public enum ItemSlot
 {
-    /// <summary>Grimoire slot - typically magic/spell enhancement items.</summary>
-    Grimoire,
-
     /// <summary>Weapon slot - typically attack/damage items.</summary>
     Weapon,
 
-    /// <summary>Ring slot - typically utility/miscellaneous items.</summary>
-    Ring,
+    /// <summary>First ring slot - typically utility/miscellaneous items.</summary>
+    Ring1,
+
+    /// <summary>Second ring slot - typically utility/miscellaneous items.</summary>
+    Ring2,
 
     /// <summary>Vestments slot - typically defense/survivability items.</summary>
     Vestments

@@ -47,18 +47,21 @@ func _ready() -> void:
 	_cs_service.DeckDeleted.connect(_on_cs_deck_deleted)
 	_cs_service.ValidationFailed.connect(_on_cs_validation_failed)
 
-	# Inject card existence checker (uses GDScript Collection service)
-	_cs_service.SetCardExistsChecker(_card_exists_in_collection)
+	# Inject card ownership checker (uses GDScript Collection service)
+	_cs_service.SetCardOwnershipChecker(_card_owned_by_summoner)
 
 	# Inject summoner validator (uses GDScript SummonerCatalog)
 	_cs_service.SetSummonerValidator(_is_valid_summoner)
 
 	print("DeckService: Ready")
 
-## Card existence checker for C# service
-func _card_exists_in_collection(card_instance_id: String) -> bool:
-	var card: Dictionary = Collection.get_card(card_instance_id)
-	return not card.is_empty()
+## Card ownership checker for C# service - checks if card is owned by summoner
+func _card_owned_by_summoner(card_instance_id: String, summoner_id: String) -> bool:
+	var owned_cards: Array[Dictionary] = Collection.get_owned_cards(summoner_id)
+	for card: Dictionary in owned_cards:
+		if card.get("id", "") == card_instance_id:
+			return true
+	return false
 
 ## Summoner validator for C# service
 func _is_valid_summoner(summoner_id: String) -> bool:

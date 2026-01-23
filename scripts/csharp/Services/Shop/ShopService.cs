@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Profile;
 using ProjectSummoner.Services.Profile;
+using ProjectSummoner.Services.Summoner;
 
 namespace ProjectSummoner.Services.Shop;
 
@@ -316,7 +318,7 @@ public partial class ShopService : Node
         _updateResourcesFunc?.Invoke(deduction);
 
         // Step 2: Build and grant rewards
-        var rewards = BuildRewardDict(offering);
+        var rewards = BuildRewardDict(offering, shopId);
         if (_grantRewardsFunc?.Invoke(rewards) != true)
         {
             // Rollback: Refund currency
@@ -342,10 +344,14 @@ public partial class ShopService : Node
     }
 
     /// <summary>Build reward dictionary for RewardService.</summary>
-    public Godot.Collections.Dictionary BuildRewardDict(Godot.Collections.Dictionary offering)
+    public Godot.Collections.Dictionary BuildRewardDict(Godot.Collections.Dictionary offering, string shopId)
     {
         var rewards = new Godot.Collections.Dictionary();
         var offeringType = offering.GetValueOrDefault("offering_type", 0).AsInt32();
+
+        // Determine if this is a caravan shop (cards should be summoner-bound)
+        var isCaravanShop = IsCaravanShop(shopId);
+        var activeSummonerId = isCaravanShop ? GetActiveSummonerId() : null;
 
         // OfferingType enum values:
         // CARD = 0, CARD_PACK = 1, CURRENCY = 2, SPECIAL = 3, SUMMONER = 4, COSMETIC = 5, EMOTE = 6
@@ -360,16 +366,14 @@ public partial class ShopService : Node
             case CARD:
                 var cardCatalogId = offering.GetValueOrDefault("card_catalog_id", "").AsString();
                 var cardCount = offering.GetValueOrDefault("card_count", 1).AsInt32();
-                var cardArray = new Godot.Collections.Array
+                var cardDict = new Godot.Collections.Dictionary
                 {
-                    new Godot.Collections.Dictionary
-                    {
-                        ["catalog_id"] = cardCatalogId,
-                        ["count"] = cardCount,
-                        ["rarity"] = "common"
-                    }
+                    ["catalog_id"] = cardCatalogId,
+                    ["count"] = cardCount,
+                    ["rarity"] = "common"
                 };
-                rewards["cards"] = cardArray;
+                AddBindingToCardDict(cardDict, isCaravanShop, activeSummonerId);
+                rewards["cards"] = new Godot.Collections.Array { cardDict };
                 break;
 
             case CARD_PACK:
@@ -381,12 +385,14 @@ public partial class ShopService : Node
                     {
                         if (cardVariant.Obj is Godot.Collections.Dictionary cardData)
                         {
-                            cardsArray.Add(new Godot.Collections.Dictionary
+                            var packCardDict = new Godot.Collections.Dictionary
                             {
                                 ["catalog_id"] = cardData.GetValueOrDefault("catalog_id", "").AsString(),
                                 ["count"] = cardData.GetValueOrDefault("count", 1).AsInt32(),
                                 ["rarity"] = "common"
-                            });
+                            };
+                            AddBindingToCardDict(packCardDict, isCaravanShop, activeSummonerId);
+                            cardsArray.Add(packCardDict);
                         }
                     }
                     rewards["cards"] = cardsArray;
@@ -407,6 +413,36 @@ public partial class ShopService : Node
         }
 
         return rewards;
+    }
+
+    /// <summary>Check if a shop is a caravan shop (cards should be summoner-bound).</summary>
+    private bool IsCaravanShop(string shopId)
+    {
+        if (!_shops.TryGetValue(shopId, out var shop))
+            return false;
+
+        var shopType = shop.GetValueOrDefault("shop_type", "").AsString();
+        return shopType == "caravan";
+    }
+
+    /// <summary>Add binding info to a card dictionary.</summary>
+    private static void AddBindingToCardDict(Godot.Collections.Dictionary cardDict, bool isCaravanShop, string? summonerId)
+    {
+        if (isCaravanShop && !string.IsNullOrEmpty(summonerId))
+        {
+            cardDict["binding"] = (int)ContentBinding.SummonerBound;
+            cardDict["bound_to"] = summonerId;
+        }
+        else
+        {
+            cardDict["binding"] = (int)ContentBinding.AccountWide;
+        }
+    }
+
+    /// <summary>Get active summoner ID from C# SummonerSelectionService.</summary>
+    private static string GetActiveSummonerId()
+    {
+        return SummonerSelectionService.Instance?.GetActiveSummonerId() ?? "";
     }
 
     /// <summary>Get purchase count from cache or profile.</summary>
@@ -454,7 +490,7 @@ public partial class ShopService : Node
         string shopId,
         string purchaseKey)
     {
-        var rewards = BuildRewardDict(offering);
+        var rewards = BuildRewardDict(offering, shopId);
 
         if (_grantRewardsFunc?.Invoke(rewards) == true)
         {

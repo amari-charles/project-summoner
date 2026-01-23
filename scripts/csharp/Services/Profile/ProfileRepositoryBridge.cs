@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Profile;
@@ -214,15 +215,27 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
 
     public string[] GrantCards(IEnumerable<(string catalogId, string rarity)> cards)
     {
+        // Delegate to the full overload with default AccountWide binding
+        return GrantCards(cards.Select(c => (c.catalogId, c.rarity, ContentBinding.AccountWide, (string?)null)));
+    }
+
+    public string[] GrantCards(IEnumerable<(string catalogId, string rarity, ContentBinding binding, string? boundTo)> cards)
+    {
         if (!EnsureConnected(nameof(GrantCards))) return [];
         var gdCards = new Godot.Collections.Array();
-        foreach (var (catalogId, rarity) in cards)
+        foreach (var (catalogId, rarity, binding, boundTo) in cards)
         {
-            gdCards.Add(new Godot.Collections.Dictionary
+            var cardDict = new Godot.Collections.Dictionary
             {
                 ["catalog_id"] = catalogId,
-                ["rarity"] = rarity
-            });
+                ["rarity"] = rarity,
+                ["binding"] = (int)binding
+            };
+            if (binding == ContentBinding.SummonerBound && !string.IsNullOrEmpty(boundTo))
+            {
+                cardDict["bound_to"] = boundTo;
+            }
+            gdCards.Add(cardDict);
         }
 
         var result = _gdProfileRepo!.Call("grant_cards", gdCards).AsGodotArray();
@@ -685,6 +698,13 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             }
         }
 
+        // Parse binding (defaults to AccountWide)
+        var binding = ContentBinding.AccountWide;
+        if (dict.TryGetValue("binding", out var bindingVar))
+        {
+            binding = (ContentBinding)bindingVar.AsInt32();
+        }
+
         return new CardInstanceData
         {
             Id = id,
@@ -694,7 +714,9 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             Level = dict.TryGetValue("level", out var lvl) ? (int)lvl : 1,
             Xp = dict.TryGetValue("xp", out var xp) ? (int)xp : 0,
             Upgrades = upgrades,
-            CreatedAt = dict.TryGetValue("created_at", out var created) ? ConvertToLong(created) : 0
+            CreatedAt = dict.TryGetValue("created_at", out var created) ? ConvertToLong(created) : 0,
+            Binding = binding,
+            BoundToSummonerId = dict.TryGetValue("bound_to", out var boundTo) && boundTo.VariantType != Variant.Type.Nil ? boundTo.AsString() : null
         };
     }
 

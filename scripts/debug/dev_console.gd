@@ -22,6 +22,11 @@ extends Node
 ##   /snapshot_delete <name> - Delete a snapshot
 ##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_fire, summoner_water)
 ##   /unlock_all_summoners - Unlock all starting summoners
+##   /items_grant <item_id> - Grant an item to inventory
+##   /items_grant_all - Grant all starter items
+##   /items_list - List player's items and equipment
+##   /items_equip <slot> <instance_id> - Equip an item to a summoner
+##   /items_clear - Clear all items from inventory
 ##
 ## Usage in game:
 ##   Press F12 to toggle console (future implementation)
@@ -108,6 +113,16 @@ func execute_command(command: String) -> bool:
 			return _cmd_unlock_summoner(args)
 		"/unlock_all_summoners":
 			return _cmd_unlock_all_summoners()
+		"/items_grant":
+			return _cmd_items_grant(args)
+		"/items_grant_all":
+			return _cmd_items_grant_all()
+		"/items_list":
+			return _cmd_items_list()
+		"/items_equip":
+			return _cmd_items_equip(args)
+		"/items_clear":
+			return _cmd_items_clear()
 		_:
 			print("DevConsole: Unknown command: %s" % cmd)
 			return false
@@ -471,4 +486,124 @@ func _cmd_unlock_all_summoners() -> bool:
 		print("DevConsole: Unlocked %s" % summoner_id)
 
 	print("DevConsole: Unlocked %d summoners!" % unlocked_count)
+	return true
+
+
+## =============================================================================
+## ITEM COMMANDS
+## =============================================================================
+
+## Item IDs for testing
+const TEST_ITEMS: Array[String] = [
+	"item_training_blade",
+	"item_simple_ring",
+	"item_lucky_band",
+	"item_travelers_cloak",
+	"item_veterans_medal",
+	"item_battle_hardened_badge",
+	"item_fortunes_charm",
+	"item_bold_fortune_amulet"
+]
+
+
+func _cmd_items_grant(args: PackedStringArray) -> bool:
+	if args.size() == 0:
+		print("DevConsole: Usage: /items_grant <item_id>")
+		print("DevConsole: Available items:")
+		for item_id: String in TEST_ITEMS:
+			print("  - %s" % item_id)
+		return false
+
+	var item_id: String = args[0]
+	print("DevConsole: Granting item '%s'..." % item_id)
+
+	var instance_id: String = Items.grant_item(item_id)
+	if instance_id.is_empty():
+		print("DevConsole: Failed to grant item (invalid item_id?)")
+		return false
+
+	print("DevConsole: Granted item! Instance ID: %s" % instance_id)
+	return true
+
+
+func _cmd_items_grant_all() -> bool:
+	print("DevConsole: Granting all starter items...")
+
+	var granted_count: int = 0
+	for item_id: String in TEST_ITEMS:
+		var instance_id: String = Items.grant_item(item_id)
+		if not instance_id.is_empty():
+			print("  Granted: %s -> %s" % [item_id, instance_id])
+			granted_count += 1
+		else:
+			print("  FAILED: %s" % item_id)
+
+	print("DevConsole: Granted %d items!" % granted_count)
+	return true
+
+
+func _cmd_items_list() -> bool:
+	print("=== PLAYER ITEMS ===")
+
+	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	if summoner_id.is_empty():
+		print("No active summoner - select a summoner first")
+		print("====================")
+		return true
+
+	# Get equipped items
+	var equipped: Dictionary = Items.get_equipped_items(summoner_id)
+	print("Equipped on %s:" % summoner_id)
+	for slot: String in Items.ALL_SLOTS:
+		var instance_id: String = equipped.get(slot, "")
+		if instance_id.is_empty():
+			print("  [%s]: (empty)" % slot)
+		else:
+			print("  [%s]: %s" % [slot, instance_id])
+
+	# Get all items for each slot
+	print("\nAvailable items:")
+	for slot: String in Items.ALL_SLOTS:
+		var items: Array[Dictionary] = Items.list_items_for_slot(slot, summoner_id)
+		print("  %s slot: %d items" % [slot, items.size()])
+		for item: Dictionary in items:
+			var name_key: String = item.get("name_key", "")
+			var item_name: String = Loc.t(name_key) if not name_key.is_empty() else item.get("id", "?")
+			var is_equipped: String = " [EQUIPPED]" if item.get("equipped_by", "") == summoner_id else ""
+			print("    - %s (%s)%s" % [item_name, item.get("instance_id", "?"), is_equipped])
+
+	print("====================")
+	return true
+
+
+func _cmd_items_equip(args: PackedStringArray) -> bool:
+	if args.size() < 2:
+		print("DevConsole: Usage: /items_equip <slot> <instance_id>")
+		print("DevConsole: Slots: weapon, ring1, ring2, vestments")
+		print("DevConsole: Use /items_list to see available instance IDs")
+		return false
+
+	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	if summoner_id.is_empty():
+		print("DevConsole: No active summoner - select a summoner first")
+		return false
+
+	var slot: String = args[0].to_lower()
+	var instance_id: String = args[1]
+
+	print("DevConsole: Equipping item '%s' to %s's %s slot..." % [instance_id, summoner_id, slot])
+
+	var success: bool = Items.equip_item(summoner_id, instance_id, slot)
+	if success:
+		print("DevConsole: Item equipped successfully!")
+	else:
+		print("DevConsole: Failed to equip item (check slot/instance_id)")
+
+	return success
+
+
+func _cmd_items_clear() -> bool:
+	print("DevConsole: Clearing all items...")
+	Items.clear_all_items()
+	print("DevConsole: All items cleared!")
 	return true

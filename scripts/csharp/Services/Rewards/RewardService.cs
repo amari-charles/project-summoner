@@ -264,12 +264,20 @@ public partial class RewardService : Node
                 var count = cardDict.TryGetValue("count", out var countVar) ? (int)countVar : 1;
                 var rarity = cardDict.TryGetValue("rarity", out var rarityVar) ? rarityVar.AsString() : "common";
 
+                // Parse binding (defaults to AccountWide)
+                var binding = cardDict.TryGetValue("binding", out var bindingVar)
+                    ? (ContentBinding)bindingVar.AsInt32()
+                    : ContentBinding.AccountWide;
+                var boundTo = cardDict.TryGetValue("bound_to", out var boundToVar)
+                    ? boundToVar.AsString()
+                    : null;
+
                 if (string.IsNullOrEmpty(catalogId))
                     continue;
 
-                // Grant multiple copies
+                // Grant multiple copies with binding
                 var cardsToGrant = Enumerable.Range(0, count)
-                    .Select(_ => (catalogId, rarity))
+                    .Select(_ => (catalogId, rarity, binding, boundTo))
                     .ToList();
 
                 var instanceIds = _profileRepo.GrantCards(cardsToGrant);

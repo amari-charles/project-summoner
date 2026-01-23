@@ -56,6 +56,7 @@ public interface IProfileRepository
     // =========================================================================
 
     string[] GrantCards(IEnumerable<(string catalogId, string rarity)> cards);
+    string[] GrantCards(IEnumerable<(string catalogId, string rarity, ContentBinding binding, string? boundTo)> cards);
     bool RemoveCard(string cardInstanceId);
     CardInstanceData[] ListCards();
     int GetCardCount(string catalogId);
