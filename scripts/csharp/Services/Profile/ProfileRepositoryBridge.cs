@@ -689,10 +689,18 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             }
         }
 
+        // Parse campaign-scoped gold (defaults to 0 if not present)
+        int gold = 0;
+        if (dict.TryGetValue("gold", out var goldVar))
+        {
+            gold = goldVar.AsInt32();
+        }
+
         return new CampaignProgressData
         {
             CompletedBattles = completed,
-            CurrentBattle = dict.TryGetValue("current_battle", out var cb) ? cb.AsString() : null
+            CurrentBattle = dict.TryGetValue("current_battle", out var cb) ? cb.AsString() : null,
+            Gold = gold
         };
     }
 
@@ -701,7 +709,8 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         return new Godot.Collections.Dictionary
         {
             ["completed_battles"] = ToGodotArray(progress.CompletedBattles),
-            ["current_battle"] = progress.CurrentBattle ?? ""
+            ["current_battle"] = progress.CurrentBattle ?? "",
+            ["gold"] = progress.Gold
         };
     }
 }

@@ -554,11 +554,11 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 	var reward_type: StringName = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = battle.get("reward_cards", [])
 
-	# Grant gold reward
+	# Grant campaign-scoped gold reward
 	var gold_reward: int = battle.get("gold_reward", 0)
 	if gold_reward > 0 and economy_service != null:
-		economy_service.add_gold(gold_reward)
-		print("CampaignService: Granted %d gold for battle '%s'" % [gold_reward, battle_id])
+		economy_service.add_campaign_gold(gold_reward)
+		print("CampaignService: Granted %d campaign gold for battle '%s'" % [gold_reward, battle_id])
 
 	# Handle case where there are no card rewards but there is gold
 	if reward_cards.is_empty():
@@ -663,3 +663,34 @@ func get_tutorial_battles() -> Array[String]:
 			var battle_id: String = battle.get("id", "")
 			tutorial_battles.append(battle_id)
 	return tutorial_battles
+
+## =============================================================================
+## CAMPAIGN ECONOMY
+## =============================================================================
+
+## Get current campaign gold for a summoner
+func get_campaign_gold(summoner_id: String = "") -> int:
+	if economy_service == null:
+		return 0
+	return economy_service.get_campaign_gold(summoner_id)
+
+## End a campaign (victory or defeat)
+## This clears all campaign-scoped resources (gold)
+func end_campaign(summoner_id: String = "", victory: bool = false) -> void:
+	var target_id: String = summoner_id
+	if target_id.is_empty():
+		target_id = SummonerSelection.get_active_summoner_id()
+
+	var final_gold: int = get_campaign_gold(target_id)
+
+	# Clear campaign gold
+	if economy_service != null:
+		economy_service.clear_campaign_gold(target_id)
+
+	# Note: Final spending opportunity will be added in Phase 3 (Flexible Reward System)
+	# See docs/design/campaign-economy-implementation.md
+
+	if victory:
+		print("CampaignService: Campaign completed victoriously for '%s' (lost %d unspent gold)" % [target_id, final_gold])
+	else:
+		print("CampaignService: Campaign ended in defeat for '%s' (lost %d gold)" % [target_id, final_gold])

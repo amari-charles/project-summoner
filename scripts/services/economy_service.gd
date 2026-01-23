@@ -210,6 +210,99 @@ func grant_rewards(rewards: Dictionary) -> void:
 		push_warning("EconomyService.grant_rewards: C# service not available")
 
 ## =============================================================================
+## CAMPAIGN-SCOPED GOLD
+## =============================================================================
+## Campaign gold is tied to a specific summoner's campaign progress.
+## It is lost when the campaign ends (win or lose).
+## Use these methods for in-campaign purchases (caravan) and battle rewards.
+
+signal campaign_gold_changed(summoner_id: String, gold: int)
+
+## Get campaign gold for a summoner (or active summoner if not specified)
+func get_campaign_gold(summoner_id: String = "") -> int:
+	var repo: Node = _get_profile_repo()
+	if repo == null:
+		return 0
+
+	var progress: Dictionary = repo.get_campaign_progress(summoner_id)
+	return progress.get("gold", 0)
+
+## Add campaign gold (positive amount only)
+func add_campaign_gold(amount: int, summoner_id: String = "") -> void:
+	if amount <= 0:
+		push_warning("EconomyService: add_campaign_gold called with non-positive amount: %d" % amount)
+		return
+
+	var repo: Node = _get_profile_repo()
+	if repo == null:
+		push_warning("EconomyService.add_campaign_gold: ProfileRepo not available")
+		return
+
+	var progress: Dictionary = repo.get_campaign_progress(summoner_id)
+	var current_gold: int = progress.get("gold", 0)
+	var new_gold: int = current_gold + amount
+
+	repo.update_campaign_progress({"gold": new_gold}, summoner_id)
+
+	var target_id: String = summoner_id if not summoner_id.is_empty() else _get_active_summoner_id()
+	campaign_gold_changed.emit(target_id, new_gold)
+	print("EconomyService: Added %d campaign gold (total: %d) for summoner '%s'" % [amount, new_gold, target_id])
+
+## Spend campaign gold
+## Returns true if successful, false if can't afford
+func spend_campaign_gold(amount: int, summoner_id: String = "") -> bool:
+	if amount <= 0:
+		push_warning("EconomyService: spend_campaign_gold called with non-positive amount: %d" % amount)
+		return false
+
+	var current_gold: int = get_campaign_gold(summoner_id)
+	if current_gold < amount:
+		var reason: String = "Cannot afford %d campaign gold (have %d)" % [amount, current_gold]
+		push_warning("EconomyService: " + reason)
+		transaction_failed.emit(reason)
+		return false
+
+	var repo: Node = _get_profile_repo()
+	if repo == null:
+		push_warning("EconomyService.spend_campaign_gold: ProfileRepo not available")
+		return false
+
+	var new_gold: int = current_gold - amount
+	repo.update_campaign_progress({"gold": new_gold}, summoner_id)
+
+	var target_id: String = summoner_id if not summoner_id.is_empty() else _get_active_summoner_id()
+	campaign_gold_changed.emit(target_id, new_gold)
+	print("EconomyService: Spent %d campaign gold (remaining: %d) for summoner '%s'" % [amount, new_gold, target_id])
+	return true
+
+## Check if player can afford a campaign gold cost
+func can_afford_campaign_gold(amount: int, summoner_id: String = "") -> bool:
+	return get_campaign_gold(summoner_id) >= amount
+
+## Clear all campaign gold (called when campaign ends)
+func clear_campaign_gold(summoner_id: String = "") -> void:
+	var repo: Node = _get_profile_repo()
+	if repo == null:
+		push_warning("EconomyService.clear_campaign_gold: ProfileRepo not available")
+		return
+
+	repo.update_campaign_progress({"gold": 0}, summoner_id)
+
+	var target_id: String = summoner_id if not summoner_id.is_empty() else _get_active_summoner_id()
+	campaign_gold_changed.emit(target_id, 0)
+	print("EconomyService: Cleared campaign gold for summoner '%s'" % target_id)
+
+## Get the profile repo (handles test mode)
+func _get_profile_repo() -> Node:
+	if _test_mode and _test_repo:
+		return _test_repo
+	return ProfileRepo
+
+## Get active summoner ID
+func _get_active_summoner_id() -> String:
+	return SummonerSelection.get_active_summoner_id()
+
+## =============================================================================
 ## INTERNAL (TEST MODE)
 ## =============================================================================
 

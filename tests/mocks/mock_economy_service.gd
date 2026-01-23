@@ -27,6 +27,7 @@ func reset() -> void:
 	_gold = 0
 	_essence = 0
 	_fragments = 0
+	_campaign_gold = 0
 	_calls = {}
 
 
@@ -128,3 +129,44 @@ func grant_rewards(rewards: Dictionary) -> void:
 		_essence += rewards["essence"]
 	if rewards.has("fragments"):
 		_fragments += rewards["fragments"]
+
+
+## =============================================================================
+## CAMPAIGN-SCOPED GOLD (for campaign gold tests)
+## =============================================================================
+
+signal campaign_gold_changed(summoner_id: String, gold: int)
+
+var _campaign_gold: int = 0
+
+
+func get_campaign_gold(_summoner_id: String = "") -> int:
+	_record_call("get_campaign_gold", [_summoner_id])
+	return _campaign_gold
+
+
+func add_campaign_gold(amount: int, _summoner_id: String = "") -> void:
+	_record_call("add_campaign_gold", [amount, _summoner_id])
+	if amount > 0:
+		_campaign_gold += amount
+		campaign_gold_changed.emit(_summoner_id, _campaign_gold)
+
+
+func spend_campaign_gold(amount: int, _summoner_id: String = "") -> bool:
+	_record_call("spend_campaign_gold", [amount, _summoner_id])
+	if _campaign_gold < amount:
+		transaction_failed.emit("Cannot afford campaign gold")
+		return false
+	_campaign_gold -= amount
+	campaign_gold_changed.emit(_summoner_id, _campaign_gold)
+	return true
+
+
+func can_afford_campaign_gold(amount: int, _summoner_id: String = "") -> bool:
+	return _campaign_gold >= amount
+
+
+func clear_campaign_gold(_summoner_id: String = "") -> void:
+	_record_call("clear_campaign_gold", [_summoner_id])
+	_campaign_gold = 0
+	campaign_gold_changed.emit(_summoner_id, 0)

@@ -223,11 +223,11 @@ func test_update_pending_choice_updates_index() -> void:
 ## =============================================================================
 
 func test_grant_battle_reward_adds_gold() -> void:
-	# FIRST_TRIAL has gold_reward: 30
+	# FIRST_TRIAL has gold_reward: 30 (now uses campaign-scoped gold)
 	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
 
-	assert_eq(mock_economy.get_call_count("add_gold"), 1)
-	var args: Array = mock_economy.get_call_args("add_gold")
+	assert_eq(mock_economy.get_call_count("add_campaign_gold"), 1)
+	var args: Array = mock_economy.get_call_args("add_campaign_gold")
 	assert_eq(args[0][0], 30)
 
 
