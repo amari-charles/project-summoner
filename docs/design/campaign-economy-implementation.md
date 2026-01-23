@@ -114,5 +114,5 @@ Implementing four interconnected systems to align the codebase with the January 
 ## Related Documentation
 
 - [Ideation Session 2026-01-19](ideation-session-2026-01-19.md)
-- [Gold Economy Design](../features/campaign/gold-economy.md)
-- [Item System](../features/items/system.md)
+- [Card Progression Economy](card-progression-economy.md)
+- [Campaign Structure](../features/campaign/structure.md)

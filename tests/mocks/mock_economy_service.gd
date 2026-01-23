@@ -27,6 +27,7 @@ func reset() -> void:
 	_gold = 0
 	_essence = 0
 	_fragments = 0
+	_campaign_gold = 0
 	_calls = {}
 
 
