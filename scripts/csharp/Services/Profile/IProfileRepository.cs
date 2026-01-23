@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Profile;
 
 namespace ProjectSummoner.Services.Profile;
@@ -116,4 +117,11 @@ public interface IProfileRepository
 
     SettingsData GetSettings();
     void UpdateSettings(SettingsData settings);
+
+    // =========================================================================
+    // ITEM OPERATIONS
+    // =========================================================================
+
+    List<ItemInstanceData> ListItems();
+    void SaveItems(List<ItemInstanceData> items);
 }

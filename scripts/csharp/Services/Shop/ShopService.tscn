@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8k3m4j9p5shop"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Services/Shop/ShopService.cs" id="1_main"]
+
+[node name="ShopService" type="Node"]
+script = ExtResource("1_main")
