@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d7k9m3j5p2yws"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Services/Summoner/SummonerSelectionService.cs" id="1_main"]
+
+[node name="SummonerSelectionService" type="Node"]
+script = ExtResource("1_main")

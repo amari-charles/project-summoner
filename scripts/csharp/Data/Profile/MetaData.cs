@@ -10,6 +10,9 @@ public class MetaData
     /// <summary>Currently selected deck ID.</summary>
     public string SelectedDeck { get; set; } = "";
 
+    /// <summary>Currently selected summoner ID.</summary>
+    public string SelectedSummoner { get; set; } = "";
+
     /// <summary>Tutorial completion flags.</summary>
     public Dictionary<string, bool> TutorialFlags { get; set; } = [];
 

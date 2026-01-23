@@ -1,10 +1,11 @@
 extends Node
 # SummonerSelectionService is registered as autoload "SummonerSelection", no class_name needed
 
-## Summoner Selection Service - Active Summoner Management
+## Summoner Selection Service - Active Summoner Management (GDScript wrapper for C#)
 ##
 ## Manages which summoner is currently active across the game.
 ## Emits signals when summoner changes so UI can react.
+## Delegates to C# SummonerSelectionServiceCS for core operations.
 ##
 ## Usage:
 ##   SummonerSelection.get_active_summoner_id()
@@ -20,43 +21,43 @@ extends Node
 signal summoner_changed(old_summoner_id: String, new_summoner_id: String)
 signal summoner_selection_blocked(reason: String)
 
-## State tracking
-var _is_in_battle: bool = false
+## C# service reference
+var _cs_service: Node
 
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
-	# Connect to battle state signals
+	print("SummonerSelectionService: Initializing...")
+
+	# Get C# service reference
+	_cs_service = get_node_or_null("/root/SummonerSelectionCS")
+	if _cs_service == null:
+		push_error("SummonerSelectionService: SummonerSelectionCS autoload not found")
+		return
+
+	# Connect to C# service signals
+	_cs_service.SummonerChanged.connect(_on_cs_summoner_changed)
+	_cs_service.SummonerSelectionBlocked.connect(_on_cs_selection_blocked)
+
+	# Connect to battle state signals (GDScript-specific)
 	GameStateEvents.battle_started.connect(_on_battle_started)
 	GameStateEvents.battle_ended.connect(_on_battle_ended)
 
+	print("SummonerSelectionService: Ready")
+
 ## =============================================================================
-## ACTIVE SUMMONER QUERIES
+## ACTIVE SUMMONER QUERIES (delegated to C#)
 ## =============================================================================
 
 ## Get the currently active summoner ID
 func get_active_summoner_id() -> String:
-	var profile: Dictionary = ProfileRepo.get_active_profile()
-	if profile.is_empty():
+	if _cs_service == null:
 		return ""
+	return _cs_service.GetActiveSummonerId()
 
-	# Check for selected_summoner in meta
-	var meta: Dictionary = profile.get("meta", {})
-	var selected_summoner: String = meta.get("selected_summoner", "")
-	if not selected_summoner.is_empty():
-		return selected_summoner
-
-	# Fallback: return first summoner instance
-	var summoner_instances: Array = ProfileRepo.get_summoner_instances()
-	if summoner_instances.size() > 0:
-		var first_summoner: Dictionary = summoner_instances[0]
-		return first_summoner.get("summoner_id", "")
-
-	return ""
-
-## Get the active summoner's config (from SummonerCatalog)
+## Get the active summoner's config (from SummonerCatalog - GDScript only)
 func get_active_summoner_config() -> SummonerConfig:
 	var summoner_id: String = get_active_summoner_id()
 	if summoner_id.is_empty():
@@ -65,85 +66,62 @@ func get_active_summoner_config() -> SummonerConfig:
 
 ## Get the active summoner's instance data (level, xp, modifiers)
 func get_active_summoner_instance() -> Dictionary:
-	var summoner_id: String = get_active_summoner_id()
-	if summoner_id.is_empty():
+	if _cs_service == null:
 		return {}
-	return ProfileRepo.get_summoner_instance(summoner_id)
+	return _cs_service.GetActiveSummonerInstanceDict()
 
 ## Get list of all unlocked summoner IDs
 func get_unlocked_summoner_ids() -> Array[String]:
-	var summoner_instances: Array = ProfileRepo.get_summoner_instances()
-	var ids: Array[String] = []
-	for summoner_data: Variant in summoner_instances:
-		if summoner_data is Dictionary:
-			var summoner_dict: Dictionary = summoner_data
-			var summoner_id: String = summoner_dict.get("summoner_id", "")
-			if not summoner_id.is_empty():
-				ids.append(summoner_id)
-	return ids
+	if _cs_service == null:
+		return []
+	var result: Array = _cs_service.GetUnlockedSummonerIdsArray()
+	var typed_result: Array[String] = []
+	typed_result.assign(result)
+	return typed_result
 
 ## =============================================================================
-## SUMMONER SWITCHING
+## SUMMONER SWITCHING (delegated to C#)
 ## =============================================================================
 
 ## Check if summoner switching is currently allowed
 func can_switch_summoner() -> bool:
-	if _is_in_battle:
+	if _cs_service == null:
 		return false
-	return true
+	return _cs_service.CanSwitchSummoner()
 
 ## Set the active summoner
 ## Returns true if successful, false if blocked or invalid
 func set_active_summoner(summoner_id: String) -> bool:
-	# Validate summoner ID
-	if summoner_id.is_empty():
-		push_warning("SummonerSelectionService: Cannot set empty summoner ID")
+	if _cs_service == null:
 		return false
 
-	# Check if summoner is unlocked
-	if not ProfileRepo.is_summoner_unlocked(summoner_id):
-		push_warning("SummonerSelectionService: Summoner not unlocked: %s" % summoner_id)
-		return false
-
-	# Check if switching is allowed
-	if not can_switch_summoner():
-		summoner_selection_blocked.emit(Loc.t("ui.summoner_panel.switch_blocked_battle"))
-		return false
-
-	# Get old summoner ID for signal
-	var old_summoner_id: String = get_active_summoner_id()
-
-	# No change needed
-	if old_summoner_id == summoner_id:
-		return true
-
-	# Update profile meta
-	var profile: Dictionary = ProfileRepo.get_active_profile()
-	if profile.is_empty():
-		push_error("SummonerSelectionService: No active profile")
-		return false
-
-	if not profile.has("meta"):
-		profile["meta"] = {}
-	var meta: Dictionary = profile.get("meta", {})
-	meta["selected_summoner"] = summoner_id
-	ProfileRepo.save_profile(true)  # Immediate save
-
-	# Emit signal for UI updates
-	summoner_changed.emit(old_summoner_id, summoner_id)
-
-	return true
+	# Pass localized blocked message to C# service
+	var blocked_reason: String = Loc.t("ui.summoner_panel.switch_blocked_battle")
+	return _cs_service.SetActiveSummoner(summoner_id, blocked_reason)
 
 ## =============================================================================
-## BATTLE STATE TRACKING
+## BATTLE STATE TRACKING (GDScript-specific, forwards to C#)
 ## =============================================================================
 
 func _on_battle_started() -> void:
-	_is_in_battle = true
+	if _cs_service:
+		_cs_service.SetInBattle(true)
 
 func _on_battle_ended(_winner: int = 0) -> void:
-	_is_in_battle = false
+	if _cs_service:
+		_cs_service.SetInBattle(false)
 
 ## Force set battle state (for testing or edge cases)
 func set_in_battle(in_battle: bool) -> void:
-	_is_in_battle = in_battle
+	if _cs_service:
+		_cs_service.SetInBattle(in_battle)
+
+## =============================================================================
+## INTERNAL - Signal forwarding from C#
+## =============================================================================
+
+func _on_cs_summoner_changed(old_summoner_id: String, new_summoner_id: String) -> void:
+	summoner_changed.emit(old_summoner_id, new_summoner_id)
+
+func _on_cs_selection_blocked(reason: String) -> void:
+	summoner_selection_blocked.emit(reason)

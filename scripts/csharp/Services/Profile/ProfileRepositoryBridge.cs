@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Profile;
 
 namespace ProjectSummoner.Services.Profile;
@@ -522,6 +523,54 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             ["lang"] = settings.Lang
         };
         _gdProfileRepo!.Call("update_settings", gdSettings);
+    }
+
+    // =========================================================================
+    // ITEM OPERATIONS
+    // =========================================================================
+
+    public List<ItemInstanceData> ListItems()
+    {
+        if (!EnsureConnected(nameof(ListItems))) return [];
+
+        var arr = _gdProfileRepo!.Call("list_items").AsGodotArray();
+        var result = new List<ItemInstanceData>();
+
+        foreach (var item in arr)
+        {
+            var dict = item.AsGodotDictionary();
+            result.Add(new ItemInstanceData
+            {
+                Id = dict.TryGetValue("id", out var id) ? id.AsString() : "",
+                CatalogId = dict.TryGetValue("catalog_id", out var catId) ? catId.AsString() : "",
+                EquippedBySummonerId = dict.TryGetValue("equipped_by", out var eq) && eq.VariantType != Variant.Type.Nil ? eq.AsString() : null,
+                BoundToSummonerId = dict.TryGetValue("bound_to", out var bound) && bound.VariantType != Variant.Type.Nil ? bound.AsString() : null,
+                EquippedSlot = dict.TryGetValue("slot", out var slot) && slot.VariantType != Variant.Type.Nil ? slot.AsString() : null
+            });
+        }
+
+        return result;
+    }
+
+    public void SaveItems(List<ItemInstanceData> items)
+    {
+        if (!EnsureConnected(nameof(SaveItems))) return;
+
+        var gdItems = new Godot.Collections.Array();
+        foreach (var item in items)
+        {
+            var dict = new Godot.Collections.Dictionary
+            {
+                ["id"] = item.Id,
+                ["catalog_id"] = item.CatalogId,
+                ["equipped_by"] = item.EquippedBySummonerId ?? "",
+                ["bound_to"] = item.BoundToSummonerId ?? "",
+                ["slot"] = item.EquippedSlot ?? ""
+            };
+            gdItems.Add(dict);
+        }
+
+        _gdProfileRepo!.Call("save_items", gdItems);
     }
 
     // =========================================================================

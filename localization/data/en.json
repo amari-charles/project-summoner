@@ -811,5 +811,56 @@
       "name": "Debug Arena",
       "description": "Testing sandbox with infinite mana/HP. Drag units from the panel to spawn them."
     }
+  },
+  "equipment": {
+    "title": "Equipment",
+    "slot": {
+      "grimoire": "Grimoire",
+      "weapon": "Weapon",
+      "ring": "Ring",
+      "vestments": "Vestments"
+    },
+    "empty_slot": "Empty",
+    "manage": "Manage Equipment",
+    "equip": "Equip",
+    "unequip": "Unequip"
+  },
+  "item": {
+    "veterans_medal": {
+      "name": "Veteran's Medal",
+      "description": "A medal awarded to seasoned warriors. Grants +100 Max Health."
+    },
+    "mana_well_orb": {
+      "name": "Mana Well Orb",
+      "description": "An orb that channels ambient magic. Grants +2 Max Mana."
+    },
+    "battle_hardened_badge": {
+      "name": "Battle-Hardened Badge",
+      "description": "A badge earned through countless victories. Grants +5% Damage."
+    },
+    "fortunes_charm": {
+      "name": "Fortune's Charm",
+      "description": "A lucky charm that attracts wealth. Grants +10% Gold."
+    },
+    "bold_fortune_amulet": {
+      "name": "Bold Fortune Amulet",
+      "description": "An amulet for those who risk it all. Grants +50 Max Health."
+    },
+    "apprentice_grimoire": {
+      "name": "Apprentice Grimoire",
+      "description": "A basic tome for novice summoners. Grants +0.1 Mana Regen."
+    },
+    "training_blade": {
+      "name": "Training Blade",
+      "description": "A simple blade for practice combat. Grants +2% Damage."
+    },
+    "simple_ring": {
+      "name": "Simple Ring",
+      "description": "An unassuming ring with subtle power. Grants +5% Gold."
+    },
+    "travelers_cloak": {
+      "name": "Traveler's Cloak",
+      "description": "A weathered cloak for long journeys. Grants +25 Max Health."
+    }
   }
 }

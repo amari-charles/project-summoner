@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Data.Items;
 
 namespace ProjectSummoner.Data.Profile;
 
@@ -16,6 +17,22 @@ public class SummonerInstanceData
     /// <summary>XP towards next level.</summary>
     public int Xp { get; set; }
 
-    /// <summary>IDs of acquired boons from TraitCatalog.</summary>
+    /// <summary>
+    /// [DEPRECATED] IDs of acquired boons from TraitCatalog.
+    /// Kept for migration from v4 to v5. New profiles use EquippedItems instead.
+    /// </summary>
     public List<string> AcquiredBoonIds { get; set; } = [];
+
+    /// <summary>
+    /// Equipped item instance IDs by slot.
+    /// Keys: "grimoire", "weapon", "ring", "vestments"
+    /// Values: Item instance ID or null if slot is empty.
+    /// </summary>
+    public Dictionary<string, string?> EquippedItems { get; set; } = new()
+    {
+        ["grimoire"] = null,
+        ["weapon"] = null,
+        ["ring"] = null,
+        ["vestments"] = null
+    };
 }
