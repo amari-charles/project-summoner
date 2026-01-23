@@ -502,10 +502,14 @@ func claim_pending_reward() -> Dictionary:
 		push_error("CampaignService: Invalid pending reward - no battle_id")
 		return {}
 
-	# For choice rewards, ensure a choice was made
-	if reward_type == RewardTypeIDs.CHOICE and choice_index < 0:
-		push_error("CampaignService: Cannot claim choice reward without making a choice")
-		return {}
+	# For flexible rewards with player selection, ensure a choice was made
+	if reward_type == RewardTypeIDs.FLEXIBLE and choice_index < 0:
+		# Note: This is only for FLEXIBLE with specific_options where player must choose
+		# Dynamic FLEXIBLE rewards are granted via RewardService in reward_screen.gd
+		var battle: Dictionary = get_battle(battle_id)
+		if battle.has("specific_options") and battle.get("player_selects", true):
+			push_error("CampaignService: Cannot claim flexible reward without making a choice")
+			return {}
 
 	# Grant the reward
 	var granted_card: Dictionary = grant_battle_reward(battle_id, choice_index)
@@ -518,6 +522,21 @@ func claim_pending_reward() -> Dictionary:
 
 	print("CampaignService: Claimed reward for battle '%s'" % battle_id)
 	return granted_card
+
+
+## Complete a battle without granting rewards (used when rewards are granted externally, e.g., via RewardService)
+func complete_battle_without_reward(battle_id: String) -> void:
+	if battle_id.is_empty():
+		push_error("CampaignService: Invalid battle_id for complete_battle_without_reward")
+		return
+
+	# Mark battle as completed
+	complete_battle(battle_id)
+
+	# Clear the pending reward
+	clear_pending_reward()
+
+	print("CampaignService: Completed battle '%s' (reward granted externally)" % battle_id)
 
 ## =============================================================================
 ## BATTLE COMPLETION & REWARDS
@@ -582,30 +601,28 @@ func grant_battle_reward(battle_id: String, chosen_index: int = 0) -> Dictionary
 			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
 				granted_card = reward_cards[0]  # Return first for display
 
-		RewardTypeIDs.CHOICE:
-			# Player chooses one from the list
-			if chosen_index >= 0 and chosen_index < reward_cards.size():
-				var chosen_reward_variant: Variant = reward_cards[chosen_index]
-				if not chosen_reward_variant is Dictionary:
-					push_error("CampaignService: reward_cards[%d] is not a Dictionary" % chosen_index)
-					return {}
-				var chosen_reward: Dictionary = chosen_reward_variant
-				var ids: Array[String] = _grant_reward_card(chosen_reward)
-				granted_instance_ids.append_array(ids)
-				granted_card = chosen_reward
-			else:
-				push_error("CampaignService: Invalid choice index %d" % chosen_index)
-
-		RewardTypeIDs.RANDOM:
-			# Pick random card from pool
-			var random_reward_variant: Variant = reward_cards[randi() % reward_cards.size()]
-			if not random_reward_variant is Dictionary:
-				push_error("CampaignService: random reward_cards entry is not a Dictionary")
-				return {}
-			var random_reward: Dictionary = random_reward_variant
-			var ids: Array[String] = _grant_reward_card(random_reward)
-			granted_instance_ids.append_array(ids)
-			granted_card = random_reward
+		RewardTypeIDs.FLEXIBLE:
+			# FLEXIBLE rewards are granted via RewardService in reward_screen.gd
+			# This case handles when specific_options are used (legacy CHOICE behavior)
+			# or when player_selects: false (legacy RANDOM behavior)
+			if battle.has("specific_options"):
+				# Legacy CHOICE: use specific_options array
+				var specific_options: Array = battle.get("specific_options", [])
+				if chosen_index >= 0 and chosen_index < specific_options.size():
+					var chosen_reward: Variant = specific_options[chosen_index]
+					if chosen_reward is Dictionary:
+						var ids: Array[String] = _grant_reward_card(chosen_reward)
+						granted_instance_ids.append_array(ids)
+						granted_card = chosen_reward
+				elif not battle.get("player_selects", true) and specific_options.size() > 0:
+					# Legacy RANDOM: auto-grant random option
+					var random_reward: Variant = specific_options[randi() % specific_options.size()]
+					if random_reward is Dictionary:
+						var ids: Array[String] = _grant_reward_card(random_reward)
+						granted_instance_ids.append_array(ids)
+						granted_card = random_reward
+			# Dynamic pool-based FLEXIBLE rewards are granted directly by reward_screen
+			# via RewardService.grant_reward() - nothing to do here
 
 	# Add instance IDs and gold to return value
 	granted_card["instance_ids"] = granted_instance_ids

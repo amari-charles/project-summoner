@@ -158,7 +158,15 @@
       "rarity": "Rarity: {rarity}",
       "gold": "+ {amount} Gold",
       "campaign_gold": "+ {amount} Campaign Gold",
-      "summoner_xp": "+ {amount} Summoner XP"
+      "summoner_xp": "+ {amount} Summoner XP",
+      "guaranteed": "Guaranteed",
+      "guaranteed_tooltip": "Reward matching your summoner's element",
+      "from_pool": "Bonus Option",
+      "from_pool_tooltip": "Additional reward option",
+      "select_reward": "Select a Reward",
+      "select_one": "Choose one of the following rewards:",
+      "card_reward": "{name} ({rarity})",
+      "gold_reward": "{amount} Gold"
     },
     "economy": {
       "campaign_gold": "Campaign Gold",
@@ -169,7 +177,12 @@
       "player_wins": "PLAYER WINS!",
       "enemy_wins": "ENEMY WINS!",
       "phase_preparation": "PREPARATION",
-      "phase_battle": "BATTLE!"
+      "phase_battle": "BATTLE!",
+      "level_cap": "Level Cap: {level}",
+      "recommended_level": "Recommended: Lv.{level}",
+      "path_type_standard": "Standard Path",
+      "path_type_elite": "Elite Path",
+      "level_capped_tooltip": "Cards above level {level} will be normalized to level {level}"
     },
     "collection": {
       "empty_decks": "No decks yet. Click 'NEW DECK' to create one!",

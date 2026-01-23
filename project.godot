@@ -47,6 +47,7 @@ PlayerCardService="*res://scripts/csharp/Services/PlayerCardService.tscn"
 SummonerProgression="*res://scripts/services/summoner_progression_service.gd"
 SummonerSelection="*res://scripts/services/summoner_selection_service.gd"
 Decks="*res://scripts/services/deck_service.gd"
+RewardServiceCS="*res://scripts/csharp/Services/Rewards/RewardService.tscn"
 RewardService="*res://scripts/services/reward_service.gd"
 Shop="*res://scripts/services/shop_service.gd"
 BillingCatalog="*res://scripts/billing/billing_catalog.gd"
@@ -70,6 +71,7 @@ SpellTargetingManager="*res://scripts/ui/battle/spell_targeting_manager.gd"
 DebugMenu="*res://scripts/debug/debug_menu.gd"
 SpatialGrid="*res://scripts/csharp/Systems/SpatialGrid.tscn"
 TargetingConfigRegistryCS="*res://scripts/csharp/Targeting/TargetingConfigRegistryCS.tscn"
+LevelCapService="*res://scripts/csharp/Services/LevelCapService.tscn"
 
 [debug]
 

@@ -208,7 +208,7 @@ func test_clear_pending_reward_removes_reward() -> void:
 
 
 func test_update_pending_choice_updates_index() -> void:
-	campaign.set_pending_reward(String(BattleIDs.FIRST_TRIAL), String(RewardTypeIDs.CHOICE), -1)
+	campaign.set_pending_reward(String(BattleIDs.FIRST_TRIAL), String(RewardTypeIDs.FLEXIBLE), -1)
 
 	campaign.update_pending_choice(2)
 

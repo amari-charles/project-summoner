@@ -12,6 +12,8 @@ const DAMAGE_SYSTEM: String = "/root/DamageSystem"
 const HIT_RESOLVER: String = "/root/HitResolver"
 const SPATIAL_GRID: String = "/root/SpatialGrid"
 const TARGETING_CONFIG_REGISTRY: String = "/root/TargetingConfigRegistryCS"
+const LEVEL_CAP_SERVICE: String = "/root/LevelCapService"
+const REWARD_SERVICE_CS: String = "/root/RewardServiceCS"
 
 # Bridge autoloads (GDScript wrappers around C# implementations)
 const CARD_CATALOG_CS: String = "/root/CardCatalogCS"

@@ -17,6 +17,108 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
+## Campaign Economy & Systems
+
+### 🔴 HIGH PRIORITY
+
+#### Phase 3: Flexible Reward System
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Rewards
+**Effort:** Medium
+
+**Description:**
+Reward screens offer X guaranteed summoner-themed options + Y pool-drawn options. Pool can exclude owned cards.
+
+**Requirements:**
+- Create `RewardService.cs` with flexible reward generation
+- Create `RewardPoolCatalog.cs` for reward pool definitions
+- Add battle config fields: `guaranteed_count`, `pool_count`, `collection_filter`
+- Update RewardScreen UI for variable option counts
+
+---
+
+#### Phase 4: Boons → Items Refactor
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Items
+**Effort:** Large
+**Dependencies:** Phase 3
+
+**Description:**
+Replace abstract boons with 4-slot equippable items (Grimoire, Weapon, Ring, Vestments).
+
+**Requirements:**
+- Create `ItemDefinition.cs`, `ItemInstanceData.cs`, `ItemCatalog.cs`
+- Create `ItemService.cs` for item management
+- Add `EquippedItems` to `SummonerInstanceData.cs`
+- Migration v5→v6: Convert boons to items
+- Update summoner screen with equipment panel
+
+---
+
+### 🟡 MEDIUM PRIORITY
+
+#### Migrate collection_service.gd → CollectionService.cs
+**Status:** ⬜ Not Started
+**Category:** Architecture / C# Migration
+**Effort:** Small
+
+**Description:**
+Migrate card collection service from GDScript to C#.
+
+---
+
+#### Migrate deck_service.gd → DeckService.cs
+**Status:** ⬜ Not Started
+**Category:** Architecture / C# Migration
+**Effort:** Medium
+
+**Description:**
+Migrate deck management service from GDScript to C#.
+
+---
+
+#### Migrate summoner_selection_service.gd → SummonerSelectionService.cs
+**Status:** ⬜ Not Started
+**Category:** Architecture / C# Migration
+**Effort:** Small
+
+**Description:**
+Migrate summoner selection service from GDScript to C#.
+
+---
+
+#### Migrate summoner_progression_service.gd → SummonerProgressionService.cs
+**Status:** ⬜ Not Started
+**Category:** Architecture / C# Migration
+**Effort:** Medium
+
+**Description:**
+Migrate summoner progression/leveling service from GDScript to C#.
+
+---
+
+### 🟢 LOW PRIORITY
+
+#### Migrate campaign_service.gd → CampaignService.cs
+**Status:** ⬜ Not Started
+**Category:** Architecture / C# Migration
+**Effort:** Large
+
+**Description:**
+Migrate campaign management service from GDScript to C#.
+
+---
+
+#### Migrate shop_service.gd → ShopService.cs
+**Status:** ⬜ Not Started
+**Category:** Architecture / C# Migration
+**Effort:** Large
+
+**Description:**
+Migrate shop/caravan service from GDScript to C#.
+
+---
+
 ## Camera & Controls
 
 ### 🟡 MEDIUM PRIORITY

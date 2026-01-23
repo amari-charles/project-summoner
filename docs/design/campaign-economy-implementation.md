@@ -11,8 +11,8 @@ Implementing four interconnected systems to align the codebase with the January 
 
 | Phase | System | Status | PR |
 |-------|--------|--------|-----|
-| 1 | Campaign-Scoped Gold | ✅ Complete | Pending |
-| 2 | Level Cap System | ⬜ Not Started | - |
+| 1 | Campaign-Scoped Gold | ✅ Complete | #198 |
+| 2 | Level Cap System | ✅ Complete | Pending |
 | 3 | Flexible Reward System | ⬜ Not Started | - |
 | 4 | Boons → Items Refactor | ⬜ Not Started | - |
 
@@ -52,19 +52,37 @@ Implementing four interconnected systems to align the codebase with the January 
 
 ---
 
-## Phase 2: Level Cap System
+## Phase 2: Level Cap System ✅
 
 **Goal:** Battles can have level caps. Cards normalized to cap.
 
-### Planned Changes
+### Changes Made
 
-- Add `level_cap` and `path_type` to battle definitions
-- Create `level_cap_service.gd` with:
-  - `get_effective_level(card, cap)`
-  - `get_effective_upgrades(card, cap)`
-  - `apply_cap_to_deck(deck, cap)`
-- Update `battle_context.gd` to apply caps
-- UI: Show level cap badges on campaign map
+**C# Service:**
+- `LevelCapService.cs` - New service with:
+  - `GetEffectiveLevel(cardLevel, cap)` - Returns min(level, cap)
+  - `GetEffectiveUpgrades(upgrades, cap)` - Returns upgrades for levels 1..cap
+  - `GetCappedUpgradeModifiers(instanceId, cap)` - Computes stat mods with cap
+  - `HasLevelCap(config)` / `GetLevelCap(config)` - Battle config helpers
+  - `GetPathType(config)` / `GetRecommendedLevel(config)` - Path helpers
+
+**Battle Context:**
+- `battle_context.gd` - Added level cap support:
+  - `_level_cap` field set from battle config
+  - `get_level_cap()` / `has_level_cap()` - Accessors
+  - `get_effective_card_level(level)` - Apply cap to card level
+  - `get_effective_card_upgrades(upgrades)` - Apply cap to upgrades
+
+**Battle Config Fields:**
+- `level_cap` - Max card level (0 = uncapped)
+- `path_type` - "standard" or "elite"
+- `recommended_level` - Suggested card level
+
+**Tests:**
+- `LevelCapServiceTest.cs` - Comprehensive unit tests
+
+**Localization:**
+- Added keys: `ui.battle.level_cap`, `ui.battle.recommended_level`, etc.
 
 ---
 
@@ -74,10 +92,10 @@ Implementing four interconnected systems to align the codebase with the January 
 
 ### Planned Changes
 
-- Create `reward_pool.gd` resource type
-- Create `reward_pool_catalog.gd`
-- Extend `reward_service.gd` with:
-  - `generate_reward_options(battle_config, summoner, owned_cards)`
+- Create `RewardPool.cs` resource type
+- Create `RewardPoolCatalog.cs`
+- Create `RewardService.cs` with:
+  - `GenerateRewardOptions(battleConfig, summoner, ownedCards)`
   - Pool filtering by element, rarity, collection
 - Update battle configs with flexible reward settings:
   - `guaranteed_count` - summoner-themed options
@@ -98,9 +116,9 @@ Implementing four interconnected systems to align the codebase with the January 
 - `ItemSlot` enum - Grimoire, Weapon, Ring, Vestments
 - `ItemBinding` enum - SummonerBound, AccountWide
 
-**Services:**
-- `item_service.gd` - Item management
-- `item_catalog.gd` - Item definitions
+**C# Services:**
+- `ItemService.cs` - Item management
+- `ItemCatalog.cs` - Item definitions
 
 **Data Migration:**
 - Version 5→6: Convert `acquired_boon_ids` to items
