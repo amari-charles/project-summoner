@@ -6,6 +6,53 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Phase 4: Boons → Items Refactor
+**Completed:** 2026-01-23
+**Category:** Core Game Systems / Items
+**Effort:** Large
+
+**Description:**
+Replace abstract boons with 4-slot equippable items (Weapon, Ring1, Ring2, Vestments).
+
+**Solution Implemented:**
+- Created `ItemCatalog.cs`, `ItemSlot.cs`, `ItemService.cs` in C#
+- Created `item_service.gd` GDScript wrapper (autoloaded as `Items`)
+- Created `ContentBinding` enum for AccountWide vs SummonerBound ownership
+- Added equipment UI to summoner screen with `EquipmentSlotModal`
+- Migration v5→v6: Converts legacy boons to items
+- Added console commands for testing (`/items_grant`, `/items_list`, etc.)
+- Documentation: `docs/features/equipment-system.md`
+
+---
+
+### Refactor Service Unit Tests for C# Hybrid Architecture
+**Completed:** 2026-01-23
+**Category:** Testing / Architecture
+**Effort:** Medium
+
+**Description:**
+Unit tests for CampaignService failed because they were written before services migrated to hybrid GDScript/C# architecture. Tests created standalone instances that couldn't find C# autoloads.
+
+**Solution Implemented:**
+- Created `tests/mocks/mock_campaign_service_cs.gd` - Full GDScript mock of C# CampaignServiceCS
+- Updated `campaign_service.gd` `init_for_testing()` to accept optional `cs_service_mock: Node` parameter
+- Updated `test_campaign_service.gd` to create and inject mock
+- Fixed `IsBattleTutorial()` to check `is_tutorial` field instead of `type == "tutorial"`
+- Fixed double signal emission in mock's `SaveProgress()` method
+
+**Test Results:**
+- CampaignService: 28 failures → 0 failures (43/43 passing)
+- ShopService: Was reported as failing but already passing (11/11)
+
+**Files Created:**
+- `tests/mocks/mock_campaign_service_cs.gd`
+
+**Files Modified:**
+- `scripts/services/campaign_service.gd`
+- `tests/unit/test_campaign_service.gd`
+
+---
+
 ### Add Boundary System to Prevent Units Walking Off Screen
 **Completed:** 2026-01-13
 **Category:** Units & Combat / Architecture

@@ -90,15 +90,43 @@ func _ready() -> void:
 
 ## Initialize for unit testing with mock dependencies
 ## Call this instead of relying on _ready() in tests
-func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null) -> void:
+## Pass a MockCampaignServiceCS instance to enable full testing without C# autoload
+func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null, cs_service_mock: Node = null) -> void:
 	profile_repo = repo
 	economy_service = economy
 	collection_service = collection
+
+	# Use provided mock or try to find real autoload
+	if cs_service_mock != null:
+		_cs_service = cs_service_mock
+		# Set up the mock with profile repo reference
+		if _cs_service.has_method("set_profile_repo"):
+			_cs_service.set_profile_repo(repo)
+	elif _cs_service == null:
+		_cs_service = get_node_or_null("/root/CampaignServiceCS")
 
 	# Disconnect previous connections if any
 	if profile_repo.data_changed.is_connected(_on_profile_data_changed):
 		profile_repo.data_changed.disconnect(_on_profile_data_changed)
 	profile_repo.data_changed.connect(_on_profile_data_changed)
+
+	# Set up callbacks if we have a C# service
+	if _cs_service != null:
+		# Connect signals (check if not already connected)
+		if _cs_service.has_signal("BattleCompleted") and not _cs_service.BattleCompleted.is_connected(_on_cs_battle_completed):
+			_cs_service.BattleCompleted.connect(_on_cs_battle_completed)
+		if _cs_service.has_signal("BattleUnlocked") and not _cs_service.BattleUnlocked.is_connected(_on_cs_battle_unlocked):
+			_cs_service.BattleUnlocked.connect(_on_cs_battle_unlocked)
+		if _cs_service.has_signal("CampaignProgressChanged") and not _cs_service.CampaignProgressChanged.is_connected(_on_cs_progress_changed):
+			_cs_service.CampaignProgressChanged.connect(_on_cs_progress_changed)
+		if _cs_service.has_signal("CampaignChanged") and not _cs_service.CampaignChanged.is_connected(_on_cs_campaign_changed):
+			_cs_service.CampaignChanged.connect(_on_cs_campaign_changed)
+
+		# Inject callbacks
+		_cs_service.SetEconomyCallbacks(_get_campaign_gold, _add_campaign_gold, _clear_campaign_gold)
+		_cs_service.SetCollectionCallbacks(_grant_card)
+		if _cs_service.has_method("SetActiveSummonerGetter"):
+			_cs_service.SetActiveSummonerGetter(_get_active_summoner)
 
 	_load_campaigns(true)  # Skip validation in tests (no scene tree access)
 	if _cs_service != null:

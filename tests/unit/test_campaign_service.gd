@@ -3,14 +3,16 @@ extends GutTest
 ## Unit Tests for CampaignService
 ##
 ## Tests campaign progression: battle completion, unlocking, rewards.
-## Uses MockProfileRepo for isolation from disk I/O.
+## Uses MockProfileRepo and MockCampaignServiceCS for isolation.
 
 const CampaignServiceScript: GDScript = preload("res://scripts/services/campaign_service.gd")
+const MockCampaignServiceCSScript: GDScript = preload("res://tests/mocks/mock_campaign_service_cs.gd")
 
 var campaign: Node
 var mock_repo: MockProfileRepo
 var mock_economy: MockEconomyService
 var mock_collection: MockCollectionService
+var mock_cs_service: Node  # MockCampaignServiceCS
 
 # Signal capture variables
 var _signal_received: bool = false
@@ -30,10 +32,11 @@ func before_each() -> void:
 	mock_repo = MockProfileRepo.new()
 	mock_economy = MockEconomyService.new()
 	mock_collection = MockCollectionService.new()
+	mock_cs_service = MockCampaignServiceCSScript.new()
 
-	# Create campaign service and inject dependencies
+	# Create campaign service and inject dependencies (including mock C# service)
 	campaign = CampaignServiceScript.new()
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service)
 
 
 func after_each() -> void:
@@ -45,6 +48,8 @@ func after_each() -> void:
 		mock_economy.free()
 	if mock_collection:
 		mock_collection.free()
+	if mock_cs_service:
+		mock_cs_service.free()
 
 
 ## =============================================================================

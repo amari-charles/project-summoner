@@ -8,6 +8,9 @@ extends GutTest
 ##
 ## These tests verify the TreeExiting signal pattern works correctly for
 ## guaranteed cleanup even when units are freed unexpectedly.
+##
+## NOTE: C# nullable default parameters aren't exposed to GDScript, so we must
+## pass null explicitly for optional parameters like 'settings'.
 
 
 ## =============================================================================
@@ -15,10 +18,12 @@ extends GutTest
 ## =============================================================================
 
 var _test_units: Array[Node3D] = []
+var _hp_service: Node = null
 
 
 func before_each() -> void:
 	_test_units.clear()
+	_hp_service = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
 
 
 func after_each() -> void:
@@ -51,20 +56,20 @@ func test_hp_bar_created_for_unit() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
-	var initial_active: int = HPBarService.GetActiveBarCount()
+	_hp_service.ForceInitialize()
+	var initial_active: int = _hp_service.GetActiveBarCount()
 
 	# Create a mock unit
 	var unit: Node3D = _create_mock_unit()
 	_test_units.append(unit)
-	get_tree().current_scene.add_child(unit)
+	add_child(unit)
 
-	# Create HP bar
-	HPBarService.create_bar_for_unit(unit)
+	# Create HP bar (must pass null for optional settings parameter)
+	_hp_service.create_bar_for_unit(unit, null)
 
 	# Verify bar was created
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		initial_active + 1,
 		"Active bar count should increase by 1"
 	)
@@ -75,18 +80,18 @@ func test_hp_bar_removed_on_unit_queue_free() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
-	var initial_active: int = HPBarService.GetActiveBarCount()
-	var initial_pooled: int = HPBarService.GetPooledBarCount()
+	_hp_service.ForceInitialize()
+	var initial_active: int = _hp_service.GetActiveBarCount()
+	var initial_pooled: int = _hp_service.GetPooledBarCount()
 
 	# Create a mock unit with HP bar
 	var unit: Node3D = _create_mock_unit()
-	get_tree().current_scene.add_child(unit)
-	HPBarService.create_bar_for_unit(unit)
+	add_child(unit)
+	_hp_service.create_bar_for_unit(unit, null)
 
 	# Verify bar exists
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		initial_active + 1,
 		"Bar should be active"
 	)
@@ -100,14 +105,14 @@ func test_hp_bar_removed_on_unit_queue_free() -> void:
 
 	# Verify bar was returned to pool
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		initial_active,
 		"Active bar count should return to initial"
 	)
 	assert_eq(
-		HPBarService.GetPooledBarCount(),
-		initial_pooled + 1,
-		"Pooled bar count should increase by 1"
+		_hp_service.GetPooledBarCount(),
+		initial_pooled,
+		"Pooled bar count should return to initial (bar taken from pool, then returned)"
 	)
 
 
@@ -120,20 +125,20 @@ func test_multi_unit_hp_bars_created() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
-	var initial_active: int = HPBarService.GetActiveBarCount()
+	_hp_service.ForceInitialize()
+	var initial_active: int = _hp_service.GetActiveBarCount()
 	var unit_count: int = 10  # Simulate a swarm
 
 	# Create multiple units
 	for i: int in unit_count:
 		var unit: Node3D = _create_mock_unit()
 		_test_units.append(unit)
-		get_tree().current_scene.add_child(unit)
-		HPBarService.create_bar_for_unit(unit)
+		add_child(unit)
+		_hp_service.create_bar_for_unit(unit, null)
 
 	# Verify all bars created
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		initial_active + unit_count,
 		"All %d bars should be active" % unit_count
 	)
@@ -144,8 +149,8 @@ func test_multi_unit_hp_bars_cleanup_on_mass_death() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
-	var initial_active: int = HPBarService.GetActiveBarCount()
+	_hp_service.ForceInitialize()
+	var initial_active: int = _hp_service.GetActiveBarCount()
 	var unit_count: int = 10
 
 	# Create multiple units
@@ -153,12 +158,12 @@ func test_multi_unit_hp_bars_cleanup_on_mass_death() -> void:
 	for i: int in unit_count:
 		var unit: Node3D = _create_mock_unit()
 		units.append(unit)
-		get_tree().current_scene.add_child(unit)
-		HPBarService.create_bar_for_unit(unit)
+		add_child(unit)
+		_hp_service.create_bar_for_unit(unit, null)
 
 	# Verify all bars created
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		initial_active + unit_count,
 		"All %d bars should be active before cleanup" % unit_count
 	)
@@ -173,7 +178,7 @@ func test_multi_unit_hp_bars_cleanup_on_mass_death() -> void:
 
 	# Verify all bars cleaned up
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		initial_active,
 		"All bars should be cleaned up after mass death"
 	)
@@ -184,29 +189,29 @@ func test_hp_bars_cleanup_on_clear_all() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
+	_hp_service.ForceInitialize()
 	var unit_count: int = 5
 
 	# Create multiple units
 	for i: int in unit_count:
 		var unit: Node3D = _create_mock_unit()
 		_test_units.append(unit)
-		get_tree().current_scene.add_child(unit)
-		HPBarService.create_bar_for_unit(unit)
+		add_child(unit)
+		_hp_service.create_bar_for_unit(unit, null)
 
 	# Verify bars exist
 	assert_gt(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		0,
 		"Should have active bars"
 	)
 
 	# Clear all bars (simulates scene transition)
-	HPBarService.clear_all_bars()
+	_hp_service.clear_all_bars()
 
 	# Verify all cleared
 	assert_eq(
-		HPBarService.GetActiveBarCount(),
+		_hp_service.GetActiveBarCount(),
 		0,
 		"All bars should be cleared"
 	)
@@ -221,8 +226,8 @@ func test_hp_bars_reused_from_pool() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
-	var initial_pooled: int = HPBarService.GetPooledBarCount()
+	_hp_service.ForceInitialize()
+	var initial_pooled: int = _hp_service.GetPooledBarCount()
 
 	# Skip if pool is empty (unlikely but possible)
 	if initial_pooled == 0:
@@ -232,12 +237,12 @@ func test_hp_bars_reused_from_pool() -> void:
 	# Create a unit - should take bar from pool
 	var unit: Node3D = _create_mock_unit()
 	_test_units.append(unit)
-	get_tree().current_scene.add_child(unit)
-	HPBarService.create_bar_for_unit(unit)
+	add_child(unit)
+	_hp_service.create_bar_for_unit(unit, null)
 
 	# Verify pool count decreased
 	assert_eq(
-		HPBarService.GetPooledBarCount(),
+		_hp_service.GetPooledBarCount(),
 		initial_pooled - 1,
 		"Pool should have one less bar"
 	)
@@ -251,7 +256,7 @@ func test_hp_bars_reused_from_pool() -> void:
 
 	# Verify bar returned to pool
 	assert_eq(
-		HPBarService.GetPooledBarCount(),
+		_hp_service.GetPooledBarCount(),
 		initial_pooled,
 		"Bar should be returned to pool"
 	)
@@ -266,16 +271,16 @@ func test_hp_update_propagates_to_bar() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	HPBarService.ForceInitialize()
+	_hp_service.ForceInitialize()
 
 	# Create a mock unit with HP bar
 	var unit: Node3D = _create_mock_unit()
 	_test_units.append(unit)
-	get_tree().current_scene.add_child(unit)
-	HPBarService.create_bar_for_unit(unit)
+	add_child(unit)
+	_hp_service.create_bar_for_unit(unit, null)
 
 	# Update HP via service
-	HPBarService.update_unit_hp(unit, 50.0, 100.0)
+	_hp_service.update_unit_hp(unit, 50.0, 100.0)
 
 	# If we got here without errors, the update worked
 	# (Would need to expose bar state for deeper verification)

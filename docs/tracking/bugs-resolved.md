@@ -6,6 +6,73 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### CampaignService Unit Tests Fail Due to C# Architecture Mismatch
+**Resolved:** 2026-01-23
+**Component:** Test Infrastructure
+
+**Description:**
+28 tests in `test_campaign_service.gd` failed because the CampaignService was migrated to a hybrid GDScript/C# architecture. Tests created standalone instances with `CampaignServiceScript.new()`, but `_cs_service` (CampaignServiceCS autoload) was null.
+
+**Root Cause:**
+1. Test creates instance not added to scene tree
+2. `_ready()` calls `get_node_or_null("/root/CampaignServiceCS")` which returns null
+3. `init_for_testing()` didn't inject a mock C# service
+4. All methods checked `if _cs_service == null: return []`
+
+**Solution Implemented:**
+Created `MockCampaignServiceCS` GDScript mock and updated `init_for_testing()` to accept it:
+- Created `tests/mocks/mock_campaign_service_cs.gd` - Full mock with signals, methods, and call tracking
+- Updated `campaign_service.gd` `init_for_testing()` to accept `cs_service_mock: Node` parameter
+- Mock properly handles campaign loading, battle completion, pending rewards, and progress tracking
+
+**Related Files:**
+- `tests/mocks/mock_campaign_service_cs.gd` (created)
+- `scripts/services/campaign_service.gd` (modified)
+- `tests/unit/test_campaign_service.gd` (modified)
+
+---
+
+### ShopService Ownership Tests Fail - Offerings Not Returned
+**Resolved:** 2026-01-23
+**Component:** Test Infrastructure
+
+**Description:**
+Bug report claimed 3 tests failed and 7 were skipped in `test_shop_ownership.gd`. Investigation revealed the tests were actually passing (11/11).
+
+**Root Cause:**
+The bug report was outdated. Tests were passing when verified on 2026-01-23.
+
+**Solution:**
+No code changes needed - removed outdated bug report.
+
+---
+
+### HP Bar Lifecycle Integration Tests Fail in CLI Mode
+**Resolved:** 2026-01-23
+**Component:** Test Infrastructure
+
+**Description:**
+7 HP bar lifecycle integration tests in `test_hp_bar_lifecycle.gd` failed when running with Godot .NET (Mono) via CLI.
+
+**Issues Found:**
+1. Tests used `get_tree().current_scene.add_child(unit)` which fails in CLI mode (`current_scene` is null)
+2. Tests called `HPBarService.create_bar_for_unit(unit)` without the required `settings` parameter
+3. C# nullable default parameters (`Dictionary? settings = null`) aren't exposed to GDScript - GDScript sees them as required
+
+**Root Cause:**
+GDScript/C# interop limitation: C# methods with nullable default parameters (e.g., `= null`) don't have their default values exposed to GDScript's method binding. The `default_args` array is empty, making the parameter appear required.
+
+**Solution Implemented:**
+1. Changed `get_tree().current_scene.add_child(unit)` to `add_child(unit)` (adds to test node)
+2. Used explicit node reference: `_hp_service = get_node_or_null("/root/HPBarService")` instead of autoload global
+3. Passed `null` explicitly: `_hp_service.create_bar_for_unit(unit, null)`
+4. Fixed incorrect assertion in `test_hp_bar_removed_on_unit_queue_free` (expected `initial_pooled`, not `initial_pooled + 1`)
+
+**Related Files:**
+- `tests/integration/test_hp_bar_lifecycle.gd` (modified)
+
+---
+
 ### Fire Titans Cannot Attack Each Other
 **Resolved:** 2026-01-15
 **Component:** Combat / Unit Configuration
