@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Services.Deck;
 using ProjectSummoner.Services.Profile;
 
 namespace ProjectSummoner.Services.Collection;
@@ -236,7 +237,7 @@ public partial class CollectionService : Node
 
     /// <summary>
     /// Remove a card instance from the collection.
-    /// Note: Does NOT perform cascade delete from decks - caller is responsible.
+    /// Note: Does NOT perform cascade delete from decks - use RemoveCardWithCascade for that.
     /// Returns true if successful.
     /// </summary>
     public bool RemoveCard(string cardInstanceId)
@@ -257,6 +258,70 @@ public partial class CollectionService : Node
         }
 
         return success;
+    }
+
+    /// <summary>
+    /// Remove a card instance and clean it from all decks (cascade delete).
+    /// Returns true if the card was successfully removed.
+    /// </summary>
+    public bool RemoveCardWithCascade(string cardInstanceId)
+    {
+        var success = RemoveCard(cardInstanceId);
+
+        if (success)
+        {
+            // Cascade delete: remove from all decks
+            var deckService = DeckService.Instance;
+            if (deckService != null)
+            {
+                var decks = deckService.ListDecks();
+                foreach (var deck in decks)
+                {
+                    var removedCount = deckService.CleanDeck(deck.Id);
+                    if (removedCount > 0)
+                    {
+                        GD.Print($"CollectionService: Cascade delete removed {removedCount} cards from deck '{deck.Name}'");
+                    }
+                }
+            }
+        }
+
+        return success;
+    }
+
+    /// <summary>
+    /// Dismantle a card for resources (remove + grant essence).
+    /// Returns true if successful.
+    /// </summary>
+    public bool DismantleCard(string cardInstanceId)
+    {
+        var card = GetCard(cardInstanceId);
+        if (card == null)
+        {
+            GD.PushWarning($"CollectionService: Card instance not found: {cardInstanceId}");
+            return false;
+        }
+
+        // Calculate essence value based on rarity
+        var essenceValue = GetDismantleValue(card.Rarity);
+
+        // Remove card from collection (with cascade)
+        if (!RemoveCardWithCascade(cardInstanceId))
+        {
+            return false;
+        }
+
+        // Grant essence via Economy service
+        var economy = GetTree()?.Root?.GetNodeOrNull("Economy");
+        if (economy == null)
+        {
+            GD.PushWarning("CollectionService: Economy service not available, essence not granted");
+            return false;
+        }
+
+        economy.Call("add_essence", essenceValue);
+        GD.Print($"CollectionService: Dismantled card {cardInstanceId} for {essenceValue} essence");
+        return true;
     }
 
     /// <summary>

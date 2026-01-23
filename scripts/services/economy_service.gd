@@ -244,7 +244,7 @@ func add_campaign_gold(amount: int, summoner_id: String = "") -> void:
 		var progress: Dictionary = _test_repo.get_campaign_progress(summoner_id)
 		var new_gold: int = progress.get("gold", 0) + amount
 		_test_repo.update_campaign_progress({"gold": new_gold}, summoner_id)
-		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.get_active_summoner_id()
+		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.GetActiveSummonerId()
 		campaign_gold_changed.emit(target_id, new_gold)
 		return
 	if _cs_service:
@@ -262,7 +262,7 @@ func spend_campaign_gold(amount: int, summoner_id: String = "") -> bool:
 			return false
 		var new_gold: int = current_gold - amount
 		_test_repo.update_campaign_progress({"gold": new_gold}, summoner_id)
-		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.get_active_summoner_id()
+		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.GetActiveSummonerId()
 		campaign_gold_changed.emit(target_id, new_gold)
 		return true
 	if _cs_service:
@@ -282,7 +282,7 @@ func can_afford_campaign_gold(amount: int, summoner_id: String = "") -> bool:
 func clear_campaign_gold(summoner_id: String = "") -> void:
 	if _test_mode and _test_repo:
 		_test_repo.update_campaign_progress({"gold": 0}, summoner_id)
-		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.get_active_summoner_id()
+		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.GetActiveSummonerId()
 		campaign_gold_changed.emit(target_id, 0)
 		return
 	if _cs_service:

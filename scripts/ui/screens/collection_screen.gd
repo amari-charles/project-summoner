@@ -176,8 +176,7 @@ func _connect_services() -> void:
 	if Decks.has_signal("deck_deleted"):
 		Decks.deck_deleted.connect(_on_deck_deleted)
 
-	if Collection.has_signal("collection_changed"):
-		Collection.collection_changed.connect(_on_collection_changed)
+	Collection.CollectionChanged.connect(_on_collection_changed)
 
 
 func _check_tutorial_lock() -> void:
@@ -341,7 +340,7 @@ func _refresh_deck_panel() -> void:
 		if not card_id is String:
 			continue
 
-		var card_data: Variant = Collection.call("get_card", card_id)
+		var card_data: Variant = Collection.GetCardDict(card_id)
 		if not card_data is Dictionary or card_data.is_empty():
 			continue
 
@@ -472,7 +471,7 @@ func _on_rename_confirmed() -> void:
 ## =============================================================================
 
 func _refresh_collection() -> void:
-	var summary_result: Variant = Collection.call("get_collection_summary")
+	var summary_result: Variant = Collection.GetCollectionSummaryDict()
 	if not summary_result is Array:
 		return
 	collection_summary = summary_result

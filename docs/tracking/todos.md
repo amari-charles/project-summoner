@@ -39,16 +39,6 @@ Reward screens offer X guaranteed summoner-themed options + Y pool-drawn options
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Migrate collection_service.gd → CollectionService.cs
-**Status:** ⬜ Not Started
-**Category:** Architecture / C# Migration
-**Effort:** Small
-
-**Description:**
-Migrate card collection service from GDScript to C#.
-
----
-
 #### Migrate deck_service.gd → DeckService.cs
 **Status:** ⬜ Not Started
 **Category:** Architecture / C# Migration
@@ -56,16 +46,6 @@ Migrate card collection service from GDScript to C#.
 
 **Description:**
 Migrate deck management service from GDScript to C#.
-
----
-
-#### Migrate summoner_selection_service.gd → SummonerSelectionService.cs
-**Status:** ⬜ Not Started
-**Category:** Architecture / C# Migration
-**Effort:** Small
-
-**Description:**
-Migrate summoner selection service from GDScript to C#.
 
 ---
 

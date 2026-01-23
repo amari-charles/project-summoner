@@ -473,7 +473,7 @@ func _load_ai_for_enemy() -> void:
 
 func _register_summoner_provider() -> void:
 	# Get active summoner using SummonerSelection service (handles fallbacks)
-	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
 
 	if summoner_id.is_empty():
 		push_warning("GameController3D: No summoner selected, no summoner bonuses will apply")

@@ -49,7 +49,38 @@ public partial class SummonerSelectionService : Node
             return;
         }
 
+        // Connect to GameStateEvents for battle state tracking
+        ConnectToGameStateEvents();
+
         GD.Print("SummonerSelectionService: Ready");
+    }
+
+    private void ConnectToGameStateEvents()
+    {
+        var gameStateEvents = GetTree()?.Root?.GetNodeOrNull("GameStateEvents");
+        if (gameStateEvents == null)
+        {
+            GD.PushWarning("SummonerSelectionService: GameStateEvents autoload not found");
+            return;
+        }
+
+        // Connect to battle_started signal
+        gameStateEvents.Connect("battle_started", Callable.From(OnBattleStarted));
+
+        // Connect to battle_ended signal (has a bool parameter)
+        gameStateEvents.Connect("battle_ended", Callable.From<bool>(OnBattleEnded));
+
+        GD.Print("SummonerSelectionService: Connected to GameStateEvents");
+    }
+
+    private void OnBattleStarted()
+    {
+        SetInBattle(true);
+    }
+
+    private void OnBattleEnded(bool _)
+    {
+        SetInBattle(false);
     }
 
     public override void _ExitTree()

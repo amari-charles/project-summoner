@@ -41,11 +41,8 @@ func _on_card_selected(catalog_id: StringName) -> void:
 		return
 
 	# Grant the chosen card to collection
-	var card_instance_id: String = ""
-	if Collection.has_method("grant_card"):
-		var result: Variant = Collection.call("grant_card", catalog_id, RarityIDs.COMMON)
-		card_instance_id = result if result is String else ""
-		print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
+	var card_instance_id: String = Collection.GrantCard(catalog_id, RarityIDs.COMMON)
+	print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
 
 	# Find or create STARTER_DECK_NAME
 	var deck_id: String = ""

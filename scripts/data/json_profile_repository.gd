@@ -970,7 +970,7 @@ func _migrate_campaign_progress_to_per_summoner(old_progress: Dictionary) -> voi
 	print("ProfileRepo: Migrated campaign progress to summoner '%s'" % active_summoner_id)
 
 func _get_active_summoner_id() -> String:
-	var result: String = SummonerSelection.get_active_summoner_id()
+	var result: String = SummonerSelection.GetActiveSummonerId()
 	return result
 
 ## Update campaign progress for a specific summoner (or active summoner if not specified)

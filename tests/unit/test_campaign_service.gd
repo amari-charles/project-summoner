@@ -242,8 +242,8 @@ func test_grant_battle_reward_grants_cards() -> void:
 	# FIRST_TRIAL has reward_cards with charge card
 	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
 
-	assert_eq(mock_collection.get_call_count("grant_card"), 1)
-	var args: Array = mock_collection.get_call_args("grant_card")
+	assert_eq(mock_collection.get_call_count("GrantCard"), 1)
+	var args: Array = mock_collection.get_call_args("GrantCard")
 	assert_eq(args[0][0], "charge")  # catalog_id
 
 
