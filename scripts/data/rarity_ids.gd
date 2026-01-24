@@ -7,7 +7,7 @@ class_name RarityIDs
 ##
 ## Usage:
 ##   var rarity = RarityIDs.COMMON
-##   Collection.grant_card("fireball", RarityIDs.RARE)
+##   Collection.GrantCard("fireball", RarityIDs.RARE)
 ##   match card.get("rarity"):
 ##       RarityIDs.COMMON: return 5
 ##       RarityIDs.LEGENDARY: return 500

@@ -495,7 +495,7 @@ func _load_summoner_from_profile() -> void:
 	print("Summoner: Loading summoner from player profile...")
 
 	# Get active summoner ID via SummonerSelection service
-	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
 
 	if summoner_id.is_empty():
 		push_error("Summoner: No active summoner selected in profile!")

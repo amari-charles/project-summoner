@@ -545,7 +545,7 @@ func _cmd_items_grant_all() -> bool:
 func _cmd_items_list() -> bool:
 	print("=== PLAYER ITEMS ===")
 
-	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
 	if summoner_id.is_empty():
 		print("No active summoner - select a summoner first")
 		print("====================")
@@ -583,7 +583,7 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 		print("DevConsole: Use /items_list to see available instance IDs")
 		return false
 
-	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
 	if summoner_id.is_empty():
 		print("DevConsole: No active summoner - select a summoner first")
 		return false

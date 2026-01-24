@@ -79,8 +79,8 @@ func _ready() -> void:
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
 
 	# Connect to service signals
-	if SummonerSelection.has_signal("summoner_changed"):
-		SummonerSelection.summoner_changed.connect(_on_summoner_changed)
+	if SummonerSelection.has_signal("SummonerChanged"):
+		SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
 
 	if Economy.has_signal("gold_changed"):
 		Economy.gold_changed.connect(_on_gold_changed)
@@ -98,7 +98,7 @@ func _ready() -> void:
 	_refresh_gold_display()
 
 	# Load active summoner
-	var active_id: String = SummonerSelection.get_active_summoner_id()
+	var active_id: String = SummonerSelection.GetActiveSummonerId()
 	if not active_id.is_empty():
 		_current_summoner_id = active_id
 		_refresh_all()

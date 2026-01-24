@@ -42,8 +42,8 @@ func _record_call(method_name: String, args: Array = []) -> void:
 ## COLLECTION SERVICE API
 ## =============================================================================
 
-func grant_card(catalog_id: String, rarity: String = "common") -> String:
-	_record_call("grant_card", [catalog_id, rarity])
+func GrantCard(catalog_id: String, rarity: String = "common") -> String:
+	_record_call("GrantCard", [catalog_id, rarity])
 
 	var instance_id: String = "mock_card_%d" % _next_instance_id
 	_next_instance_id += 1

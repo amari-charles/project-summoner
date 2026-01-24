@@ -6,6 +6,40 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Migrate collection_service.gd & summoner_selection_service.gd to C#
+**Completed:** 2026-01-23
+**Category:** Architecture / C# Migration
+**Effort:** Small
+
+**Description:**
+Removed GDScript wrapper services that were duplicating functionality already implemented in C#. Updated all callers to use the C# services directly.
+
+**Key Changes:**
+- Removed `scripts/services/collection_service.gd` (GDScript wrapper)
+- Removed `scripts/services/summoner_selection_service.gd` (GDScript wrapper)
+- Updated `project.godot` autoloads to point directly to C# services (`Collection`, `SummonerSelection`)
+- Added `RemoveCardWithCascade()` and `DismantleCard()` methods to `CollectionService.cs`
+- Added GameStateEvents connection to `SummonerSelectionService.cs` for battle state tracking
+- Updated 14+ GDScript files to use PascalCase method names (e.g., `GetActiveSummonerId()` instead of `get_active_summoner_id()`)
+- Updated `MockCollectionService` to use `GrantCard` (PascalCase)
+
+**Architecture Notes:**
+- GDScript now calls C# services directly with PascalCase methods
+- Signals use PascalCase in C# (e.g., `SummonerChanged`, `CollectionChanged`)
+- Eliminated dual autoload pattern (CS + GDScript wrapper)
+
+**Files Deleted:**
+- `scripts/services/collection_service.gd`
+- `scripts/services/summoner_selection_service.gd`
+
+**Files Modified:**
+- `project.godot` - Updated autoload config
+- `scripts/csharp/Services/Collection/CollectionService.cs` - Added cascade delete methods
+- `scripts/csharp/Services/Summoner/SummonerSelectionService.cs` - Added GameStateEvents connection
+- 14+ GDScript callers updated to use PascalCase method names
+
+---
+
 ### Phase 4: Boons → Items Refactor
 **Completed:** 2026-01-23
 **Category:** Core Game Systems / Items

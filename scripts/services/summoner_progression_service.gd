@@ -76,7 +76,7 @@ func _grant_gold(amount: int) -> void:
 
 ## Active summoner getter for C# service
 func _get_active_summoner() -> String:
-	return SummonerSelection.get_active_summoner_id()
+	return SummonerSelection.GetActiveSummonerId()
 
 ## =============================================================================
 ## XP OPERATIONS (delegated to C#)

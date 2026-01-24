@@ -31,7 +31,7 @@ func _ready() -> void:
 	icon_button.pressed.connect(_on_icon_pressed)
 
 	# Connect to summoner selection changes
-	SummonerSelection.summoner_changed.connect(_on_summoner_changed)
+	SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
 
 	# Initial refresh
 	refresh()
@@ -42,7 +42,7 @@ func _ready() -> void:
 
 ## Refresh the display from current active summoner
 func refresh() -> void:
-	var summoner_id: String = SummonerSelection.get_active_summoner_id()
+	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
 	if summoner_id.is_empty():
 		_show_no_summoner()
 		return

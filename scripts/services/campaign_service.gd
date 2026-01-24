@@ -83,7 +83,7 @@ func _ready() -> void:
 	profile_repo.data_changed.connect(_on_profile_data_changed)
 
 	# Reload progress when active summoner changes
-	SummonerSelection.summoner_changed.connect(_on_summoner_changed)
+	SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
 
 	print("CampaignService: Ready")
 
@@ -153,10 +153,10 @@ func _clear_campaign_gold(summoner_id: String) -> void:
 func _grant_card(catalog_id: String, rarity: String) -> String:
 	if collection_service == null:
 		return ""
-	return collection_service.grant_card(catalog_id, rarity)
+	return collection_service.GrantCard(catalog_id, rarity)
 
 func _get_active_summoner() -> String:
-	return SummonerSelection.get_active_summoner_id()
+	return SummonerSelection.GetActiveSummonerId()
 
 ## =============================================================================
 ## INTERNAL - Signal forwarding from C#

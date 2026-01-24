@@ -57,7 +57,9 @@ func _ready() -> void:
 
 ## Card ownership checker for C# service - checks if card is owned by summoner
 func _card_owned_by_summoner(card_instance_id: String, summoner_id: String) -> bool:
-	var owned_cards: Array[Dictionary] = Collection.get_owned_cards(summoner_id)
+	var result: Array = Collection.GetOwnedCardsDict(summoner_id)
+	var owned_cards: Array[Dictionary] = []
+	owned_cards.assign(result)
 	for card: Dictionary in owned_cards:
 		if card.get("id", "") == card_instance_id:
 			return true

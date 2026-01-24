@@ -65,7 +65,7 @@ func _ready() -> void:
 	confirm_button.disabled = true
 
 	# Get active summoner
-	_active_summoner_id = SummonerSelection.get_active_summoner_id()
+	_active_summoner_id = SummonerSelection.GetActiveSummonerId()
 
 	# Load unlocked summoners
 	_load_summoner_cards()

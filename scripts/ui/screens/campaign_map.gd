@@ -139,8 +139,8 @@ func _ready() -> void:
 		Campaign.campaign_progress_changed.connect(_on_progress_changed)
 
 	# Connect to summoner selection changes
-	if SummonerSelection.has_signal("summoner_changed"):
-		SummonerSelection.summoner_changed.connect(_on_summoner_selection_changed)
+	if SummonerSelection.has_signal("SummonerChanged"):
+		SummonerSelection.SummonerChanged.connect(_on_summoner_selection_changed)
 
 	# Setup navigation (hamburger menu + nav drawer)
 	_setup_navigation()
@@ -533,7 +533,7 @@ func _load_decks() -> void:
 
 	# Get active summoner ID to filter decks
 	var active_summoner_id: String = ""
-	var result: Variant = SummonerSelection.get_active_summoner_id()
+	var result: Variant = SummonerSelection.GetActiveSummonerId()
 	if result is String:
 		active_summoner_id = result
 
