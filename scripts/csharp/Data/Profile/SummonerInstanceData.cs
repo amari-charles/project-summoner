@@ -25,14 +25,13 @@ public class SummonerInstanceData
 
     /// <summary>
     /// Equipped item instance IDs by slot.
-    /// Keys: "grimoire", "weapon", "ring", "vestments"
     /// Values: Item instance ID or null if slot is empty.
     /// </summary>
-    public Dictionary<string, string?> EquippedItems { get; set; } = new()
+    public Dictionary<ItemSlot, string?> EquippedItems { get; set; } = new()
     {
-        ["grimoire"] = null,
-        ["weapon"] = null,
-        ["ring"] = null,
-        ["vestments"] = null
+        [ItemSlot.Weapon] = null,
+        [ItemSlot.Ring1] = null,
+        [ItemSlot.Ring2] = null,
+        [ItemSlot.Vestments] = null
     };
 }

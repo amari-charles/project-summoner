@@ -268,7 +268,7 @@ public partial class SummonerSelectionService : Node
         var equippedDict = new Godot.Collections.Dictionary();
         foreach (var (slot, itemId) in instance.EquippedItems)
         {
-            equippedDict[slot] = itemId ?? "";
+            equippedDict[slot.ToString().ToLowerInvariant()] = itemId ?? "";
         }
 
         return new Godot.Collections.Dictionary

@@ -190,10 +190,8 @@ public partial class ItemService : Node
             return false;
         }
 
-        var slotKey = slot.ToString().ToLowerInvariant();
-
         // Unequip current item in slot (if any)
-        if (summoner.EquippedItems.TryGetValue(slotKey, out var currentItemId) && currentItemId != null)
+        if (summoner.EquippedItems.TryGetValue(slot, out var currentItemId) && currentItemId != null)
         {
             var currentItem = items.FirstOrDefault(i => i.Id == currentItemId);
             if (currentItem != null)
@@ -204,16 +202,17 @@ public partial class ItemService : Node
         }
 
         // Equip the new item
+        var slotStr = SlotToString(slot);
         item.EquippedBySummonerId = summonerId;
-        item.EquippedSlot = slotKey;
-        summoner.EquippedItems[slotKey] = itemInstanceId;
+        item.EquippedSlot = slotStr;
+        summoner.EquippedItems[slot] = itemInstanceId;
 
         // Save changes
         _profileRepo.SaveItems(items);
         _profileRepo.SaveSummonerInstance(summoner);
 
         GD.Print($"ItemService: Equipped item '{item.CatalogId}' to {summonerId}'s {slot} slot");
-        EmitSignal(SignalName.ItemEquipped, summonerId, slotKey, itemInstanceId);
+        EmitSignal(SignalName.ItemEquipped, summonerId, slotStr, itemInstanceId);
 
         return true;
     }
@@ -233,9 +232,7 @@ public partial class ItemService : Node
             return false;
         }
 
-        var slotKey = slot.ToString().ToLowerInvariant();
-
-        if (!summoner.EquippedItems.TryGetValue(slotKey, out var itemInstanceId) || itemInstanceId == null)
+        if (!summoner.EquippedItems.TryGetValue(slot, out var itemInstanceId) || itemInstanceId == null)
         {
             // Slot is already empty
             return true;
@@ -252,11 +249,12 @@ public partial class ItemService : Node
         }
 
         // Update summoner
-        summoner.EquippedItems[slotKey] = null;
+        summoner.EquippedItems[slot] = null;
         _profileRepo.SaveSummonerInstance(summoner);
 
+        var slotStr = SlotToString(slot);
         GD.Print($"ItemService: Unequipped item from {summonerId}'s {slot} slot");
-        EmitSignal(SignalName.ItemUnequipped, summonerId, slotKey);
+        EmitSignal(SignalName.ItemUnequipped, summonerId, slotStr);
 
         return true;
     }
@@ -324,12 +322,9 @@ public partial class ItemService : Node
         var summoner = _profileRepo.GetSummonerInstance(summonerId);
         if (summoner == null) return result;
 
-        foreach (var (slotKey, instanceId) in summoner.EquippedItems)
+        foreach (var (slot, instanceId) in summoner.EquippedItems)
         {
-            if (Enum.TryParse<ItemSlot>(slotKey, ignoreCase: true, out var slot))
-            {
-                result[slot] = instanceId;
-            }
+            result[slot] = instanceId;
         }
 
         return result;
@@ -500,5 +495,20 @@ public partial class ItemService : Node
             return false;
         }
         return UnequipItem(summonerId, slot);
+    }
+
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
+
+    /// <summary>Convert slot enum to lowercase string for serialization.</summary>
+    private static string SlotToString(ItemSlot slot) => slot.ToString().ToLowerInvariant();
+
+    /// <summary>Convert string to slot enum, returns null if invalid.</summary>
+    public static ItemSlot? StringToSlot(string slotName)
+    {
+        if (Enum.TryParse<ItemSlot>(slotName, ignoreCase: true, out var slot))
+            return slot;
+        return null;
     }
 }

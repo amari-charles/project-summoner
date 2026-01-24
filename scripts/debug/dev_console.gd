@@ -32,6 +32,48 @@ extends Node
 ##   Press F12 to toggle console (future implementation)
 ##   Or call commands directly: DevConsole.execute_command("/save_info")
 
+## Command registry for autocomplete
+const COMMANDS: Array[Dictionary] = [
+	# Save Management
+	{"cmd": "/save_wipe", "desc": "Reset profile to fresh state"},
+	{"cmd": "/save_grant_cards", "args": "<count>", "desc": "Grant N random cards (default: 5)"},
+	{"cmd": "/save_add_gold", "args": "<amount>", "desc": "Add gold (default: 100)"},
+	{"cmd": "/save_add_essence", "args": "<amount>", "desc": "Add essence (default: 50)"},
+	{"cmd": "/save_add_fragments", "args": "<amount>", "desc": "Add fragments (default: 10)"},
+	{"cmd": "/save_corrupt", "desc": "Corrupt save file for recovery test"},
+	{"cmd": "/save_info", "desc": "Print current save state"},
+	{"cmd": "/save_reload", "desc": "Force reload save from disk"},
+	{"cmd": "/save_create_deck", "args": "<name>", "desc": "Create a test deck"},
+	# Snapshots
+	{"cmd": "/snapshot_save", "args": "<name>", "desc": "Save profile snapshot"},
+	{"cmd": "/snapshot_load", "args": "<name>", "desc": "Load profile snapshot"},
+	{"cmd": "/snapshot_list", "desc": "List all snapshots"},
+	{"cmd": "/snapshot_delete", "args": "<name>", "desc": "Delete a snapshot"},
+	# Summoners
+	{"cmd": "/unlock_summoner", "args": "<id>", "desc": "Unlock a summoner"},
+	{"cmd": "/unlock_all_summoners", "desc": "Unlock all starting summoners"},
+	# Items
+	{"cmd": "/items_grant", "args": "<item_id>", "desc": "Grant an item"},
+	{"cmd": "/items_grant_all", "desc": "Grant all starter items"},
+	{"cmd": "/items_list", "desc": "List player's items"},
+	{"cmd": "/items_equip", "args": "<slot> <id>", "desc": "Equip an item"},
+	{"cmd": "/items_clear", "desc": "Clear all items"},
+]
+
+## Get commands matching a prefix (for autocomplete)
+func get_matching_commands(prefix: String) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	var lower_prefix: String = prefix.to_lower()
+	for cmd_info: Dictionary in COMMANDS:
+		var cmd: String = cmd_info.get("cmd", "")
+		if cmd.to_lower().begins_with(lower_prefix):
+			results.append(cmd_info)
+	return results
+
+## Get all commands (for showing full list)
+func get_all_commands() -> Array[Dictionary]:
+	return COMMANDS
+
 ## Available card catalog IDs for testing
 const TEST_CARDS: Array = ["fire_elemental", "earth_sprite", "puff", "fireball"]
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
