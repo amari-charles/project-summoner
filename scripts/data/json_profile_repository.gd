@@ -350,6 +350,68 @@ func save_summoner_instance(summoner_instance: SummonerInstance) -> bool:
 	data_changed.emit()
 	return true
 
+
+## Save summoner instance from a dictionary (for C# interop)
+## Dict should have: summoner_id, level, xp, acquired_boon_ids, equipped_items
+func save_summoner_instance_dict(summoner_data: Dictionary) -> bool:
+	var summoner_id: String = summoner_data.get("summoner_id", "")
+	if summoner_id.is_empty():
+		push_error("ProfileRepo: save_summoner_instance_dict called with empty summoner_id")
+		return false
+
+	var instances_variant: Variant = _data.get("summoner_instances", [])
+	if not instances_variant is Array:
+		instances_variant = []
+	var instances_array: Array = instances_variant
+
+	# Find existing instance or create new one
+	var found_index: int = -1
+	for i: int in range(instances_array.size()):
+		var instance: Variant = instances_array[i]
+		if instance is Dictionary:
+			var instance_dict: Dictionary = instance
+			if instance_dict.get("summoner_id", "") == summoner_id:
+				found_index = i
+				break
+
+	if found_index >= 0:
+		# Update existing - preserve equipped_items if not provided in update
+		var existing: Dictionary = instances_array[found_index]
+		existing["level"] = summoner_data.get("level", existing.get("level", 1))
+		existing["xp"] = summoner_data.get("xp", existing.get("xp", 0))
+		if summoner_data.has("acquired_boon_ids"):
+			existing["acquired_boon_ids"] = summoner_data["acquired_boon_ids"]
+		if summoner_data.has("equipped_items"):
+			existing["equipped_items"] = summoner_data["equipped_items"]
+		instances_array[found_index] = existing
+	else:
+		# Create new instance with default equipped_items
+		var new_instance: Dictionary = {
+			"summoner_id": summoner_id,
+			"level": summoner_data.get("level", 1),
+			"xp": summoner_data.get("xp", 0),
+			"acquired_boon_ids": summoner_data.get("acquired_boon_ids", []),
+			"equipped_items": summoner_data.get("equipped_items", {
+				"weapon": null,
+				"ring1": null,
+				"ring2": null,
+				"vestments": null
+			})
+		}
+		instances_array.append(new_instance)
+
+	_data["summoner_instances"] = instances_array
+
+	_append_to_wal({
+		"action": "save_summoner_instance_dict",
+		"params": {"summoner_id": summoner_id}
+	})
+
+	save_profile()
+	data_changed.emit()
+	return true
+
+
 ## =============================================================================
 ## SHOP OPERATIONS
 ## =============================================================================

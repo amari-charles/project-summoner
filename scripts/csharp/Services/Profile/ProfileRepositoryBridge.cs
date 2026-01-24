@@ -188,14 +188,21 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     public bool SaveSummonerInstance(SummonerInstanceData instance)
     {
         if (!EnsureConnected(nameof(SaveSummonerInstance))) return false;
-        // This requires passing a SummonerInstance GDScript object
-        // For now, we'll call save_summoner_instance_data which accepts a Dictionary
+
+        // Serialize equipped_items (ItemSlot enum keys → string keys for GDScript)
+        var equippedDict = new Godot.Collections.Dictionary();
+        foreach (var (slot, itemId) in instance.EquippedItems)
+        {
+            equippedDict[slot.ToString().ToLowerInvariant()] = itemId ?? "";
+        }
+
         var dict = new Godot.Collections.Dictionary
         {
             ["summoner_id"] = instance.SummonerId,
             ["level"] = instance.Level,
             ["xp"] = instance.Xp,
-            ["acquired_boon_ids"] = ToGodotArray(instance.AcquiredBoonIds)
+            ["acquired_boon_ids"] = ToGodotArray(instance.AcquiredBoonIds),
+            ["equipped_items"] = equippedDict
         };
 
         // Use the internal method if available, or create through SummonerInstance
@@ -556,9 +563,9 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             {
                 Id = dict.TryGetValue("id", out var id) ? id.AsString() : "",
                 CatalogId = dict.TryGetValue("catalog_id", out var catId) ? catId.AsString() : "",
-                EquippedBySummonerId = dict.TryGetValue("equipped_by", out var eq) && eq.VariantType != Variant.Type.Nil ? eq.AsString() : null,
-                BoundToSummonerId = dict.TryGetValue("bound_to", out var bound) && bound.VariantType != Variant.Type.Nil ? bound.AsString() : null,
-                EquippedSlot = dict.TryGetValue("slot", out var slot) && slot.VariantType != Variant.Type.Nil ? slot.AsString() : null
+                EquippedBySummonerId = GetNullableString(dict, "equipped_by"),
+                BoundToSummonerId = GetNullableString(dict, "bound_to"),
+                EquippedSlot = GetNullableString(dict, "slot")
             });
         }
 
@@ -654,6 +661,15 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         };
     }
 
+    /// <summary>Get a nullable string from dictionary, treating empty strings as null.</summary>
+    private static string? GetNullableString(Godot.Collections.Dictionary dict, string key)
+    {
+        if (!dict.TryGetValue(key, out var value)) return null;
+        if (value.VariantType == Variant.Type.Nil) return null;
+        var str = value.AsString();
+        return string.IsNullOrEmpty(str) ? null : str;
+    }
+
     private static SummonerInstanceData? DictToSummonerInstance(Godot.Collections.Dictionary dict)
     {
         if (dict == null || dict.Count == 0) return null;
@@ -671,12 +687,38 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             }
         }
 
+        // Deserialize equipped_items (string keys from GDScript → ItemSlot enum keys)
+        var equippedItems = new Dictionary<ItemSlot, string?>
+        {
+            [ItemSlot.Weapon] = null,
+            [ItemSlot.Ring1] = null,
+            [ItemSlot.Ring2] = null,
+            [ItemSlot.Vestments] = null
+        };
+        if (dict.TryGetValue("equipped_items", out var equippedVar) && equippedVar.VariantType == Variant.Type.Dictionary)
+        {
+            var equippedDict = equippedVar.AsGodotDictionary();
+            foreach (var key in equippedDict.Keys)
+            {
+                var slotStr = key.AsString();
+                var itemId = equippedDict[key].VariantType != Variant.Type.Nil ? equippedDict[key].AsString() : null;
+                if (string.IsNullOrEmpty(itemId)) itemId = null;
+
+                // Convert string key to ItemSlot enum
+                if (Enum.TryParse<ItemSlot>(slotStr, ignoreCase: true, out var slot))
+                {
+                    equippedItems[slot] = itemId;
+                }
+            }
+        }
+
         return new SummonerInstanceData
         {
             SummonerId = summonerId,
             Level = dict.TryGetValue("level", out var lvl) ? (int)lvl : 1,
             Xp = dict.TryGetValue("xp", out var xp) ? (int)xp : 0,
-            AcquiredBoonIds = boons
+            AcquiredBoonIds = boons,
+            EquippedItems = equippedItems
         };
     }
 

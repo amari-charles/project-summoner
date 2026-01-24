@@ -90,6 +90,26 @@ When GDScript needs C# enum values, use the **Mirror Enum Pattern**:
 
 **Never hardcode C# enum int values directly** (e.g., `const CATEGORY: int = 2`). Always use the mirror enum for type safety and maintainability.
 
+### GDScript/C# Method Interop
+
+**Nullable default parameters aren't exposed to GDScript.** C# methods with nullable defaults like:
+
+```csharp
+public FloatingHPBar? create_bar_for_unit(Node3D unit, Dictionary? settings = null)
+```
+
+Appear to GDScript as requiring both parameters (the `default_args` array is empty in the method binding). **Always pass `null` explicitly** when calling such methods from GDScript:
+
+```gdscript
+# Wrong - will fail with "Nonexistent function"
+hp_service.create_bar_for_unit(unit)
+
+# Correct - pass null explicitly
+hp_service.create_bar_for_unit(unit, null)
+```
+
+This is a Godot limitation with C# nullable reference types.
+
 ### Git Workflow
 **ALWAYS use feature branches and PRs for non-trivial changes.**
 

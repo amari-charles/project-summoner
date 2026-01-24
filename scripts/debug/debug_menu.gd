@@ -30,6 +30,8 @@ var _separation_radius_button: Button
 var _spawn_boundary_button: Button
 var _command_input: LineEdit  # Console command input
 var _command_output: Label  # Console command output
+var _autocomplete_list: ItemList  # Autocomplete suggestions
+var _autocomplete_visible: bool = false
 
 
 ## =============================================================================
@@ -246,10 +248,20 @@ func _create_ui() -> void:
 
 	# Command input
 	_command_input = LineEdit.new()
-	_command_input.placeholder_text = "/items_grant_all"
+	_command_input.placeholder_text = "Type / for commands"
 	_command_input.custom_minimum_size = Vector2(200, 32)
 	_command_input.text_submitted.connect(_on_command_submitted)
+	_command_input.text_changed.connect(_on_command_text_changed)
+	_command_input.gui_input.connect(_on_command_input_gui_input)
 	vbox.add_child(_command_input)
+
+	# Autocomplete list
+	_autocomplete_list = ItemList.new()
+	_autocomplete_list.custom_minimum_size = Vector2(200, 150)
+	_autocomplete_list.select_mode = ItemList.SELECT_SINGLE
+	_autocomplete_list.item_selected.connect(_on_autocomplete_item_selected)
+	_autocomplete_list.visible = false
+	vbox.add_child(_autocomplete_list)
 
 	# Command output
 	_command_output = Label.new()
@@ -400,6 +412,9 @@ func _on_command_submitted(command: String) -> void:
 	if command.is_empty():
 		return
 
+	# Hide autocomplete
+	_hide_autocomplete()
+
 	# Execute via DevConsole
 	var success: bool = DevConsole.execute_command(command)
 
@@ -415,6 +430,136 @@ func _on_command_submitted(command: String) -> void:
 	# Clear input
 	if _command_input:
 		_command_input.clear()
+
+
+func _on_command_text_changed(new_text: String) -> void:
+	_update_autocomplete(new_text)
+
+
+func _on_command_input_gui_input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+
+	var key_event: InputEventKey = event
+	if not key_event.pressed:
+		return
+
+	match key_event.keycode:
+		KEY_TAB:
+			# Accept current selection or first suggestion
+			_accept_autocomplete()
+			get_viewport().set_input_as_handled()
+		KEY_UP:
+			if _autocomplete_visible:
+				_navigate_autocomplete(-1)
+				get_viewport().set_input_as_handled()
+		KEY_DOWN:
+			if _autocomplete_visible:
+				_navigate_autocomplete(1)
+				get_viewport().set_input_as_handled()
+		KEY_ESCAPE:
+			if _autocomplete_visible:
+				_hide_autocomplete()
+				get_viewport().set_input_as_handled()
+
+
+func _on_autocomplete_item_selected(index: int) -> void:
+	_select_autocomplete_item(index)
+
+
+## =============================================================================
+## AUTOCOMPLETE
+## =============================================================================
+
+func _update_autocomplete(text: String) -> void:
+	if not _autocomplete_list:
+		return
+
+	# Clear previous items
+	_autocomplete_list.clear()
+
+	# Get matching commands
+	var matches: Array[Dictionary]
+	if text.is_empty() or text == "/":
+		matches = DevConsole.get_all_commands()
+	else:
+		matches = DevConsole.get_matching_commands(text)
+
+	# No matches - hide
+	if matches.is_empty():
+		_hide_autocomplete()
+		return
+
+	# Add items
+	for cmd_info: Dictionary in matches:
+		var cmd: String = cmd_info.get("cmd", "")
+		var args: String = cmd_info.get("args", "")
+		var desc: String = cmd_info.get("desc", "")
+
+		var display: String = cmd
+		if not args.is_empty():
+			display += " " + args
+
+		_autocomplete_list.add_item(display)
+		_autocomplete_list.set_item_tooltip(_autocomplete_list.item_count - 1, desc)
+
+	# Show and select first
+	_autocomplete_list.visible = true
+	_autocomplete_visible = true
+	if _autocomplete_list.item_count > 0:
+		_autocomplete_list.select(0)
+
+
+func _hide_autocomplete() -> void:
+	if _autocomplete_list:
+		_autocomplete_list.visible = false
+		_autocomplete_list.clear()
+	_autocomplete_visible = false
+
+
+func _navigate_autocomplete(direction: int) -> void:
+	if not _autocomplete_list or _autocomplete_list.item_count == 0:
+		return
+
+	var selected: PackedInt32Array = _autocomplete_list.get_selected_items()
+	var current_idx: int = selected[0] if selected.size() > 0 else -1
+	var new_idx: int = current_idx + direction
+
+	# Wrap around
+	if new_idx < 0:
+		new_idx = _autocomplete_list.item_count - 1
+	elif new_idx >= _autocomplete_list.item_count:
+		new_idx = 0
+
+	_autocomplete_list.select(new_idx)
+	_autocomplete_list.ensure_current_is_visible()
+
+
+func _accept_autocomplete() -> void:
+	if not _autocomplete_list or _autocomplete_list.item_count == 0:
+		# Show all commands if nothing shown
+		_update_autocomplete("/")
+		return
+
+	var selected: PackedInt32Array = _autocomplete_list.get_selected_items()
+	var idx: int = selected[0] if selected.size() > 0 else 0
+	_select_autocomplete_item(idx)
+
+
+func _select_autocomplete_item(index: int) -> void:
+	if not _autocomplete_list or index < 0 or index >= _autocomplete_list.item_count:
+		return
+
+	var item_text: String = _autocomplete_list.get_item_text(index)
+	# Extract just the command (before any space for args)
+	var cmd: String = item_text.split(" ")[0]
+
+	if _command_input:
+		_command_input.text = cmd
+		_command_input.caret_column = cmd.length()
+		_command_input.grab_focus()
+
+	_hide_autocomplete()
 
 
 func _on_snapshots_pressed() -> void:
