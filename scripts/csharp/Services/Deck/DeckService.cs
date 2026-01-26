@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Data.Serialization;
 using ProjectSummoner.Services.Profile;
 
 namespace ProjectSummoner.Services.Deck;
@@ -537,7 +538,7 @@ public partial class DeckService : Node
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var deck in ListDecks())
         {
-            result.Add(DeckToDict(deck));
+            result.Add(DtoConverters.ToDict(deck));
         }
         return result;
     }
@@ -546,7 +547,7 @@ public partial class DeckService : Node
     public Godot.Collections.Dictionary GetDeckDict(string deckId)
     {
         var deck = GetDeck(deckId);
-        return deck != null ? DeckToDict(deck) : [];
+        return deck != null ? DtoConverters.ToDict(deck) : [];
     }
 
     /// <summary>List decks for summoner as array for GDScript.</summary>
@@ -555,7 +556,7 @@ public partial class DeckService : Node
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var deck in ListDecksForSummoner(summonerId))
         {
-            result.Add(DeckToDict(deck));
+            result.Add(DtoConverters.ToDict(deck));
         }
         return result;
     }
@@ -601,20 +602,4 @@ public partial class DeckService : Node
         // Could emit a generic signal here if needed
     }
 
-    private static Godot.Collections.Dictionary DeckToDict(DeckData deck)
-    {
-        var cardIds = new Godot.Collections.Array<string>();
-        foreach (var id in deck.CardInstanceIds)
-        {
-            cardIds.Add(id);
-        }
-
-        return new Godot.Collections.Dictionary
-        {
-            ["id"] = deck.Id,
-            ["name"] = deck.Name,
-            ["card_instance_ids"] = cardIds,
-            ["summoner_id"] = deck.SummonerId
-        };
-    }
 }

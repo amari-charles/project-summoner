@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ProjectSummoner.Data.Profile;
 
 /// <summary>
@@ -6,11 +8,14 @@ namespace ProjectSummoner.Data.Profile;
 public class SettingsData
 {
     /// <summary>Sound effects volume (0.0 - 1.0).</summary>
+    [JsonPropertyName("sfx_volume")]
     public float SfxVolume { get; set; } = 1.0f;
 
     /// <summary>Music volume (0.0 - 1.0).</summary>
+    [JsonPropertyName("music_volume")]
     public float MusicVolume { get; set; } = 1.0f;
 
     /// <summary>Language code (e.g., "en", "es", "fr").</summary>
+    [JsonPropertyName("lang")]
     public string Lang { get; set; } = "en";
 }

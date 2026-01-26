@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Data.Serialization;
 using ProjectSummoner.Services.Profile;
 
 namespace ProjectSummoner.Services.Summoner;
@@ -239,7 +240,7 @@ public partial class SummonerSelectionService : Node
         var instance = GetActiveSummonerInstance();
         if (instance == null) return [];
 
-        return SummonerInstanceToDict(instance);
+        return DtoConverters.ToDict(instance);
     }
 
     /// <summary>Get unlocked summoner IDs as array for GDScript.</summary>
@@ -253,31 +254,4 @@ public partial class SummonerSelectionService : Node
         return result;
     }
 
-    // =========================================================================
-    // INTERNAL
-    // =========================================================================
-
-    private static Godot.Collections.Dictionary SummonerInstanceToDict(SummonerInstanceData instance)
-    {
-        var boonsArray = new Godot.Collections.Array<string>();
-        foreach (var boon in instance.AcquiredBoonIds)
-        {
-            boonsArray.Add(boon);
-        }
-
-        var equippedDict = new Godot.Collections.Dictionary();
-        foreach (var (slot, itemId) in instance.EquippedItems)
-        {
-            equippedDict[slot.ToString().ToLowerInvariant()] = itemId ?? "";
-        }
-
-        return new Godot.Collections.Dictionary
-        {
-            ["summoner_id"] = instance.SummonerId,
-            ["level"] = instance.Level,
-            ["xp"] = instance.Xp,
-            ["acquired_boon_ids"] = boonsArray,
-            ["equipped_items"] = equippedDict
-        };
-    }
 }
