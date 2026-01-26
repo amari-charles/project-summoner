@@ -26,6 +26,9 @@ const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/compone
 @onready var description_label: Label = %DescriptionLabel
 @onready var reward_label: Label = %RewardLabel
 @onready var deck_column: VBoxContainer = $DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn
+@onready var deck_header_label: Label = $DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn/DeckHeaderLabel
+@onready var active_deck_label: Label = %ActiveDeckLabel
+@onready var change_deck_button: Button = %ChangeDeckButton
 @onready var deck_selector: ItemList = %DeckSelector
 @onready var deck_info_label: Label = %DeckInfoLabel
 @onready var active_deck_indicator: Label = %ActiveDeckIndicator
@@ -82,6 +85,7 @@ const PAN_THRESHOLD: float = 5.0  # Pixels to move before panning starts
 ## Deck selection state
 var available_decks: Array[Dictionary] = []
 var selected_deck_id: String = ""
+var _deck_selector_visible: bool = false
 
 ## Summoner icon widget reference
 var summoner_icon: SummonerIconWidget = null
@@ -139,6 +143,10 @@ func _ready() -> void:
 	locator_button.pressed.connect(_on_center_latest_pressed)
 	start_event_button.pressed.connect(_on_start_event_pressed)
 	deck_selector.item_selected.connect(_on_deck_selected)
+	change_deck_button.pressed.connect(_on_change_deck_pressed)
+
+	# Set localized text for static labels
+	deck_header_label.text = Loc.t("campaign.map.deck_header")
 
 	# Background texture is set directly in the scene file
 
@@ -154,6 +162,12 @@ func _ready() -> void:
 	# Connect to summoner selection changes
 	if SummonerSelection.has_signal("SummonerChanged"):
 		SummonerSelection.SummonerChanged.connect(_on_summoner_selection_changed)
+
+	# Check for summoner selection requirement
+	# Handles first-game-start and post-wipe scenarios
+	if SummonerSelection.GetActiveSummonerId().is_empty():
+		call_deferred("_redirect_to_summoner_selection")
+		return  # Skip rest of setup
 
 	# Setup navigation (hamburger menu + nav drawer)
 	_setup_navigation()
@@ -642,10 +656,13 @@ func _load_decks() -> void:
 	available_decks.assign(decks_array)
 
 	if available_decks.is_empty():
-		deck_selector.add_item(Loc.t("campaign.map.error_create_deck_first"))
-		deck_info_label.text = Loc.t("campaign.map.error_create_deck_first")
+		active_deck_label.text = Loc.t("campaign.map.error_create_deck_first")
+		deck_info_label.text = ""
 		active_deck_indicator.text = ""
+		change_deck_button.visible = false
 		return
+
+	change_deck_button.visible = true
 
 	# Populate ItemList with deck names
 	for deck: Dictionary in available_decks:
@@ -655,6 +672,7 @@ func _load_decks() -> void:
 	# Get currently selected deck from profile
 	var profile_variant: Variant = ProfileRepo.get_active_profile()
 	var profile: Dictionary = _safe_dict(profile_variant)
+	var found_deck: bool = false
 	if not profile.is_empty() and profile.has("meta"):
 		var meta: Dictionary = _safe_dict(profile.get("meta"))
 		var active_deck: String = _safe_string(meta.get("selected_deck", ""))
@@ -666,7 +684,16 @@ func _load_decks() -> void:
 			if deck_id == active_deck:
 				deck_selector.select(i)
 				selected_deck_id = deck_id
+				found_deck = true
 				break
+
+	# Auto-select first deck if none selected
+	if not found_deck and available_decks.size() > 0:
+		var first_deck: Dictionary = available_decks[0]
+		selected_deck_id = _safe_string(first_deck.get("id", ""))
+		deck_selector.select(0)
+		# Save auto-selection to profile
+		_save_deck_selection()
 
 	# Update deck info display
 	_update_deck_info()
@@ -678,10 +705,26 @@ func _on_deck_selected(index: int) -> void:
 	var deck: Dictionary = available_decks[index]
 	selected_deck_id = _safe_string(deck.get("id", ""))
 
+	# Save selection to profile
+	_save_deck_selection()
+
 	# Update deck info display
 	_update_deck_info()
 
-	# Save selection to profile
+	# Hide selector after selection
+	_deck_selector_visible = false
+	deck_selector.visible = false
+	change_deck_button.text = Loc.t("campaign.map.change_deck")
+
+func _on_change_deck_pressed() -> void:
+	_deck_selector_visible = not _deck_selector_visible
+	deck_selector.visible = _deck_selector_visible
+	if _deck_selector_visible:
+		change_deck_button.text = Loc.t("campaign.map.done")
+	else:
+		change_deck_button.text = Loc.t("campaign.map.change_deck")
+
+func _save_deck_selection() -> void:
 	var profile_variant: Variant = ProfileRepo.get_active_profile()
 	var profile: Dictionary = _safe_dict(profile_variant)
 	if not profile.is_empty():
@@ -691,10 +734,9 @@ func _on_deck_selected(index: int) -> void:
 		meta["selected_deck"] = selected_deck_id
 		ProfileRepo.save_profile(true)  # Immediate save
 
-	print("CampaignMap: Selected deck: %s" % selected_deck_id)
-
 func _update_deck_info() -> void:
 	if selected_deck_id.is_empty():
+		active_deck_label.text = Loc.t("campaign.map.no_deck_selected")
 		deck_info_label.text = ""
 		active_deck_indicator.text = ""
 		return
@@ -707,13 +749,18 @@ func _update_deck_info() -> void:
 			break
 
 	if selected_deck.is_empty():
+		active_deck_label.text = Loc.t("campaign.map.no_deck_selected")
 		deck_info_label.text = ""
 		active_deck_indicator.text = ""
 		return
 
+	# Show deck name
+	var deck_name: String = _safe_string(selected_deck.get("name", "Unnamed Deck"), "Unnamed Deck")
+	active_deck_label.text = deck_name
+
 	# Show card count
-	var card_ids: Array = _safe_array(selected_deck.get("card_ids", []))
-	var card_count: int = card_ids.size()
+	var card_instance_ids: Array = _safe_array(selected_deck.get("card_instance_ids", []))
+	var card_count: int = card_instance_ids.size()
 	deck_info_label.text = Loc.t("campaign.map.deck_card_count", {"count": card_count})
 
 	# Validate deck and show status
@@ -978,6 +1025,10 @@ func _on_nav_snapshots_pressed() -> void:
 		add_child(snapshot_manager)
 	if snapshot_manager.has_method("show_manager"):
 		snapshot_manager.show_manager()
+
+## Redirect to summoner selection when no summoner is active
+func _redirect_to_summoner_selection() -> void:
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)
 
 ## =============================================================================
 ## CAMPAIGN BANNER

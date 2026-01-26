@@ -45,7 +45,7 @@ static func _get_nodes() -> Array[Dictionary]:
 				"player_selects": true,
 				"gold_reward": 30,
 				"enemy_deck": [
-					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 1},
+					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 1},
 				],
 				"enemy_hp": 30.0,
 			},

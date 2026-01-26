@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Serialization;
 using ProjectSummoner.Domain.Profile;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -280,7 +279,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         var gdUpdates = new Godot.Collections.Dictionary();
         foreach (var kvp in updates)
         {
-            gdUpdates[kvp.Key] = Variant.From(kvp.Value);
+            gdUpdates[kvp.Key] = DtoConverters.ObjectToVariant(kvp.Value);
         }
         return (bool)_gdProfileRepo!.Call("update_card", cardInstanceId, gdUpdates);
     }
@@ -330,7 +329,7 @@ public partial class ProfileRepository : Node, IProfileRepository
     public CampaignProgress GetCampaignProgress(string summonerId)
     {
         if (!EnsureConnected(nameof(GetCampaignProgress))) return new CampaignProgress();
-        var dict = _gdProfileRepo!.Call("get_campaign_progress_for_summoner", summonerId).AsGodotDictionary();
+        var dict = _gdProfileRepo!.Call("get_campaign_progress", summonerId).AsGodotDictionary();
         return DtoConverters.FromCampaignDict(dict) ?? new CampaignProgress();
     }
 
@@ -338,7 +337,7 @@ public partial class ProfileRepository : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(UpdateCampaignProgress))) return;
         var gdProgress = DtoConverters.ToDict(progress);
-        _gdProfileRepo!.Call("update_campaign_progress_for_summoner", summonerId, gdProgress);
+        _gdProfileRepo!.Call("update_campaign_progress", gdProgress, summonerId);
     }
 
     public CampaignProgress GetSharedCampaignProgress()

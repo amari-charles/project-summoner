@@ -88,8 +88,8 @@ func _load_summoner_cards() -> void:
 	_summoner_cards.clear()
 	_summoner_ids.clear()
 
-	# Get unlocked summoners
-	var unlocked_ids: Array = SummonerSelection.get_unlocked_summoner_ids()
+	# Get unlocked summoners (use Godot array variant for GDScript interop)
+	var unlocked_ids: Array = SummonerSelection.GetUnlockedSummonerIdsArray()
 
 	# Store IDs and find active summoner index
 	for summoner_id: Variant in unlocked_ids:
@@ -295,7 +295,7 @@ func _on_confirm_pressed() -> void:
 		return
 
 	# Switch summoner
-	SummonerSelection.set_active_summoner(_selected_summoner_id)
+	SummonerSelection.SetActiveSummoner(_selected_summoner_id)
 
 	_close()
 

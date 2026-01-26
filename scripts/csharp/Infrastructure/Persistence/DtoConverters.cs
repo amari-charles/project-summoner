@@ -280,13 +280,24 @@ public static class DtoConverters
             ["gold"] = progress.Gold
         };
 
+        // Add choices if present
+        if (progress.Choices.Count > 0)
+        {
+            var choicesDict = new Godot.Collections.Dictionary();
+            foreach (var (nodeId, choiceId) in progress.Choices)
+            {
+                choicesDict[nodeId] = choiceId;
+            }
+            dict["choices"] = choicesDict;
+        }
+
         // Add pending_reward if present
         if (progress.PendingReward != null)
         {
             var rewardDict = new Godot.Collections.Dictionary();
             foreach (var (key, value) in progress.PendingReward)
             {
-                rewardDict[key] = Variant.From(value);
+                rewardDict[key] = ObjectToVariant(value);
             }
             dict["pending_reward"] = rewardDict;
         }
@@ -311,7 +322,7 @@ public static class DtoConverters
         var flagsDict = new Godot.Collections.Dictionary();
         foreach (var (key, value) in arcProgress.Flags)
         {
-            flagsDict[key] = Variant.From(value);
+            flagsDict[key] = ObjectToVariant(value);
         }
 
         return new Godot.Collections.Dictionary
@@ -369,13 +380,29 @@ public static class DtoConverters
             }
         }
 
+        // Parse choices if present
+        var choices = new Dictionary<string, string>();
+        if (dict.TryGetValue("choices", out var choicesVar) && choicesVar.VariantType == Variant.Type.Dictionary)
+        {
+            var choicesDict = choicesVar.AsGodotDictionary();
+            foreach (var key in choicesDict.Keys)
+            {
+                var choiceValue = choicesDict[key];
+                if (choiceValue.VariantType != Variant.Type.Nil)
+                {
+                    choices[key.AsString()] = choiceValue.AsString();
+                }
+            }
+        }
+
         return new CampaignProgress
         {
             CompletedBattles = completed,
             CurrentBattle = GetNullableString(dict, "current_battle"),
             Gold = GetInt(dict, "gold", 0),
             PendingReward = pendingReward,
-            StoryArcs = storyArcs
+            StoryArcs = storyArcs,
+            Choices = choices
         };
     }
 
@@ -648,5 +675,20 @@ public static class DtoConverters
         if (!dict.TryGetValue(key, out var value)) return defaultValue;
         if (value.VariantType == Variant.Type.Bool) return value.AsBool();
         return defaultValue;
+    }
+
+    /// <summary>Convert object to Variant-compatible type for Godot Dictionary.</summary>
+    public static Variant ObjectToVariant(object? value)
+    {
+        return value switch
+        {
+            string s => s,
+            int i => i,
+            float f => f,
+            double d => (float)d,
+            bool b => b,
+            long l => (int)l,
+            _ => value?.ToString() ?? ""
+        };
     }
 }

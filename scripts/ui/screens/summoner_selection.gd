@@ -74,41 +74,49 @@ func _on_summoner_selected(summoner_id: String) -> void:
 	# Create and save SummonerInstance with proper modifiers
 	_create_summoner_instance(final_summoner_id, chosen_random)
 
-	# Update starter deck with selected summoner
-	_assign_summoner_to_starter_deck(final_summoner_id)
+	# Create starter deck with summoner's starter card
+	_create_starter_deck(final_summoner_id)
 
 	# Transition to reveal scene (summoner data already saved in ProfileRepo)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_REVEAL)
 
-## Assign the selected summoner to the starter deck
-func _assign_summoner_to_starter_deck(summoner_id: String) -> void:
-	print("SummonerSelection: Attempting to assign summoner '%s' to Starter Deck" % summoner_id)
-
-	# Find the "Starter Deck"
-	const STARTER_DECK_NAME: String = "Starter Deck"
-	var deck_list: Array = Decks.list_decks()
-	print("SummonerSelection: Found %d decks" % deck_list.size())
-	var starter_deck_id: String = ""
-
-	for deck: Variant in deck_list:
-		if deck is Dictionary:
-			print("SummonerSelection: Checking deck '%s'" % deck.get("name", ""))
-			if deck.get("name", "") == STARTER_DECK_NAME:
-				starter_deck_id = deck.get("id", "")
-				print("SummonerSelection: Found Starter Deck with ID: %s" % starter_deck_id)
-				break
-
-	if starter_deck_id.is_empty():
-		push_warning("SummonerSelection: Starter Deck not found, summoner will be assigned when deck is created")
+## Create starter deck with summoner's starter card
+func _create_starter_deck(summoner_id: String) -> void:
+	# Get summoner config to find starter card
+	var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	if not summoner_config:
+		push_error("SummonerSelection: Failed to get config for summoner '%s'" % summoner_id)
 		return
 
-	# Update the deck with the summoner_id
-	print("SummonerSelection: Calling set_deck_summoner('%s', '%s')" % [starter_deck_id, summoner_id])
-	var deck_success: bool = Decks.set_deck_summoner(starter_deck_id, summoner_id)
-	if deck_success:
-		print("SummonerSelection: Successfully assigned summoner '%s' to Starter Deck" % summoner_id)
-	else:
-		push_error("SummonerSelection: Failed to assign summoner to Starter Deck")
+	var starter_card_id: String = summoner_config.starter_card_id
+
+	# Validate starter card ID
+	if starter_card_id.is_empty():
+		push_error("SummonerSelection: Summoner config has empty starter_card_id!")
+		return
+
+	# Grant the starter card to player's collection
+	# Pass rarity as String since CardServiceCS expects string, not StringName
+	var card_instance_id: String = CardServiceCS.GrantCard(starter_card_id, String(RarityIDs.COMMON))
+	if card_instance_id.is_empty():
+		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
+		return
+
+	# Create "Starter Deck" with the card
+	const STARTER_DECK_NAME: String = "Starter Deck"
+	var card_ids: Array[String] = [card_instance_id]
+	var deck_id: String = Decks.create_deck(STARTER_DECK_NAME, card_ids, summoner_id)
+	if deck_id.is_empty():
+		push_error("SummonerSelection: Failed to create Starter Deck")
+		return
+
+	# Set as active deck in profile meta
+	var profile: Dictionary = ProfileRepo.get_active_profile()
+	if not profile.is_empty():
+		if not profile.has("meta"):
+			profile["meta"] = {}
+		profile["meta"]["selected_deck"] = deck_id
+		ProfileRepo.save_profile(true)
 
 ## Create and save SummonerInstance for the selected summoner
 func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void:
