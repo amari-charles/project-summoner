@@ -30,7 +30,8 @@ func _on_card_selected(catalog_id: StringName) -> void:
 	print("FirstCardSelection: Player selected card: %s" % catalog_id)
 
 	# Grant the chosen card to collection
-	var card_instance_id: String = CardServiceCS.GrantCard(catalog_id, RarityIDs.COMMON)
+	# Pass rarity as String since CardServiceCS expects string, not StringName
+	var card_instance_id: String = CardServiceCS.GrantCard(catalog_id, String(RarityIDs.COMMON))
 	print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
 
 	# Find or create STARTER_DECK_NAME

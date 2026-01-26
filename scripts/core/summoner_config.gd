@@ -32,6 +32,9 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 ## Trait System - trait IDs from TraitCatalog
 @export var innate_trait_ids: Array[String] = []
 
+## Starter card - catalog ID granted when this summoner is first selected
+@export var starter_card_id: String = "fire_elemental"
+
 ## Get the Element object for this summoner (runtime)
 func get_element() -> ElementTypes.Element:
 	return ElementRegistry.get_element_from_id(element_id)
@@ -86,6 +89,9 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 			if trait_id_var is String:
 				config.innate_trait_ids.append(trait_id_var)
 
+	# Starter card
+	config.starter_card_id = data.get("starter_card_id", "fire_elemental")
+
 	return config
 
 ## Convert to dictionary (for saving/debugging)
@@ -100,7 +106,8 @@ func to_dict() -> Dictionary:
 		"summoner_icon_path": summoner_icon_path,
 		"card_frame_style": card_frame_style,
 		"unlock_condition": unlock_condition,
-		"innate_trait_ids": innate_trait_ids
+		"innate_trait_ids": innate_trait_ids,
+		"starter_card_id": starter_card_id
 	}
 
 ## Validation

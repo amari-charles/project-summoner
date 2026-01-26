@@ -142,10 +142,24 @@ theme_override_constants/separation = 15
 [node name="DeckHeaderLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "SELECT DECK"
+text = "DECK"
 horizontal_alignment = 1
 
+[node name="ActiveDeckLabel" type="Label" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "No deck selected"
+horizontal_alignment = 1
+
+[node name="ChangeDeckButton" type="Button" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Change"
+
 [node name="DeckSelector" type="ItemList" parent="DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn"]
+visible = false
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2

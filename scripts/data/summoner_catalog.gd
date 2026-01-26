@@ -199,6 +199,9 @@ func _create_config_from_dict(dict: Dictionary) -> SummonerConfig:
 			if trait_id is String:
 				config.innate_trait_ids.append(trait_id)
 
+	# Starter card
+	config.starter_card_id = dict.get("starter_card_id", "fire_elemental")
+
 	return config
 
 ## =============================================================================

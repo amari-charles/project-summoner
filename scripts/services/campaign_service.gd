@@ -324,6 +324,9 @@ func _node_type_to_event_type(node_type: String) -> String:
 ## Convert deck entry arrays to use String catalog_ids (from StringName constants)
 ## Handles both dictionary entries (with catalog_id) and raw StringName IDs
 func _convert_deck_entries(battle: Dictionary, key: String) -> void:
+	if not battle.has(key):
+		return  # Don't create empty arrays for missing keys
+
 	var raw_deck: Variant = battle.get(key, [])
 	if not raw_deck is Array:
 		return

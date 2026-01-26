@@ -99,6 +99,10 @@
       "deck_status_ready": "✓ Ready",
       "deck_status_invalid": "⚠ Invalid deck",
       "deck_status_select_first": "⚠ Select a deck first!",
+      "no_deck_selected": "No deck selected",
+      "change_deck": "Change",
+      "done": "Done",
+      "deck_header": "DECK",
       "progress": "{completed} / {total} Complete"
     }
   },
@@ -733,20 +737,20 @@
   },
   "summoner": {
     "summoner_fire": {
-      "name": "Pyralis",
-      "description": "Master of flame and passion"
+      "name": "Cole",
+      "description": "Arrogant and competitive. First to volunteer for any challenge."
     },
     "summoner_water": {
-      "name": "Aquira",
-      "description": "Embodiment of adaptability and flow"
+      "name": "Selene",
+      "description": "Gentle and caring. Reads people and situations with ease."
     },
     "summoner_wind": {
-      "name": "Zephyrion",
-      "description": "Spirit of freedom and motion"
+      "name": "Mei",
+      "description": "Elusive and self-interested. Only the exceptional catch her attention."
     },
     "summoner_earth": {
-      "name": "Terravorn",
-      "description": "Guardian of stability and endurance"
+      "name": "Teo",
+      "description": "Confident and direct. If he says he'll do something, it's done."
     },
     "summoner_shadow_initiate": {
       "name": "Shadow Initiate",

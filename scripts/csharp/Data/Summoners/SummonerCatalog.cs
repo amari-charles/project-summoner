@@ -254,7 +254,8 @@ public static class SummonerCatalog
             ["summoner_icon_path"] = summoner.IconPath,
             ["card_frame_style"] = summoner.CardFrameStyle,
             ["unlock_condition"] = summoner.UnlockCondition.ToGdString(),
-            ["innate_trait_ids"] = traitsArray
+            ["innate_trait_ids"] = traitsArray,
+            ["starter_card_id"] = summoner.StarterCardId
         };
     }
 

@@ -418,7 +418,16 @@ public static class TraitCatalog
                 var conditionsDict = new Godot.Collections.Dictionary();
                 foreach (var kvp in mod.Conditions)
                 {
-                    conditionsDict[kvp.Key] = Variant.From(kvp.Value);
+                    // Convert object to appropriate Variant type
+                    conditionsDict[kvp.Key] = kvp.Value switch
+                    {
+                        string s => s,
+                        int i => i,
+                        float f => f,
+                        double d => (float)d,
+                        bool b => b,
+                        _ => kvp.Value?.ToString() ?? ""
+                    };
                 }
                 modDict["conditions"] = conditionsDict;
             }

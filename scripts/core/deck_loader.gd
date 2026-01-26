@@ -172,13 +172,14 @@ static func load_player_deck() -> Dictionary:
 
 ## Create a Card resource from a card instance ID
 static func _create_card_from_instance(instance_id: String, collection: Variant) -> Card:
-	# Get card instance data
+	# Get card instance data - use GetCardDict for Dictionary result
 	var card_data_variant: Variant = {}
 	if collection is Object:
 		var collection_obj: Object = collection
-		card_data_variant = collection_obj.call("get_card", instance_id)
+		card_data_variant = collection_obj.call("GetCardDict", instance_id)
 	var card_data: Dictionary = card_data_variant if card_data_variant is Dictionary else {}
 	if card_data.is_empty():
+		push_warning("DeckLoader: Card instance not found: %s" % instance_id)
 		return null
 
 	var catalog_id_variant: Variant = card_data.get("catalog_id", "")
@@ -186,25 +187,18 @@ static func _create_card_from_instance(instance_id: String, collection: Variant)
 	if catalog_id == "":
 		return null
 
-	# Load the Card resource for this catalog_id
-	# Card resources are stored at res://resources/cards/[catalog_id]_card.tres
-	var card_path: String = "res://resources/cards/%s_card.tres" % catalog_id
-	var loaded_card: Resource = load(card_path)
-
-	if not loaded_card or not loaded_card is Card:
-		push_error("DeckLoader: Failed to load card resource: %s" % card_path)
+	# Create card via CardCatalog (generates from catalog definition)
+	var card_catalog: Variant = _get_autoload("CardCatalog")
+	if not card_catalog:
+		push_error("DeckLoader: CardCatalog not available")
 		return null
 
-	# Type narrow to Card for safe property access
-	var card_template: Card = loaded_card
-
-	# Duplicate to avoid mutating shared resource
-	var duplicated_card: Resource = card_template.duplicate()
-	if not duplicated_card is Card:
-		push_error("DeckLoader: Card duplicate failed for: %s" % catalog_id)
+	var created_card: Variant = card_catalog.create_card_resource(catalog_id)
+	if not created_card or not created_card is Card:
+		push_error("DeckLoader: Failed to create card from catalog: %s" % catalog_id)
 		return null
 
-	var card: Card = duplicated_card
+	var card: Card = created_card
 	card.catalog_id = catalog_id
 	card.instance_id = instance_id  # Track for XP rewards
 

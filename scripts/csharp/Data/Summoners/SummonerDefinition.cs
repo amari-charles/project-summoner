@@ -37,4 +37,7 @@ public class SummonerDefinition
 
     /// <summary>Trait IDs that this summoner has innately.</summary>
     public string[] InnateTraitIds { get; init; } = [];
+
+    /// <summary>Card catalog ID granted when this summoner is first selected.</summary>
+    public string StarterCardId { get; init; } = CardId.FireElemental;
 }

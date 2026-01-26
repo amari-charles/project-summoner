@@ -202,7 +202,8 @@ func _cmd_grant_cards(args: PackedStringArray) -> bool:
 		var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": rarity}
 		cards_to_grant.append(card_grant)
 
-	var instance_ids: Array = _collection.call("grant_cards", cards_to_grant)
+	# Use PascalCase for C# method and correct method name for array input
+	var instance_ids: Array = _collection.call("GrantCardsFromArray", cards_to_grant)
 	print("DevConsole: Granted %d cards (instance IDs: %s)" % [instance_ids.size(), str(instance_ids)])
 
 	return true
@@ -299,10 +300,10 @@ func _cmd_save_info() -> bool:
 		print("Fragments: %d" % fragments)
 
 	if _collection:
-		var collection: Array = _collection.call("list_cards")
+		var collection: Array = _collection.ListCardsDict()
 		print("Collection Size: %d cards" % collection.size())
 
-		var summary: Array = _collection.call("get_collection_summary")
+		var summary: Array = _collection.GetCollectionSummaryDict()
 		for entry: Dictionary in summary:
 			print("  - %s: %d cards (%s)" % [entry.catalog_id, entry.count, entry.rarity])
 
@@ -355,7 +356,7 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 	print("DevConsole: Creating test deck '%s'..." % deck_name)
 
 	# Get 30 random cards from collection
-	var collection: Array = _collection.call("list_cards")
+	var collection: Array = _collection.ListCardsDict()
 	if collection.size() < 30:
 		print("DevConsole: Not enough cards in collection (need 30, have %d)" % collection.size())
 		print("DevConsole: Granting 30 cards first...")
@@ -364,12 +365,12 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 		var cards_to_grant: Array = []
 		for i: int in range(30):
 			var catalog_id: String = TEST_CARDS[randi() % TEST_CARDS.size()]
-			var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": RarityIDs.COMMON}
+			var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": String(RarityIDs.COMMON)}
 			cards_to_grant.append(card_grant)
-		_collection.call("grant_cards", cards_to_grant)
+		_collection.GrantCardsFromArray(cards_to_grant)
 
 		# Refresh collection
-		collection = _collection.call("list_cards")
+		collection = _collection.ListCardsDict()
 
 	# Take first 30 cards
 	var card_instance_ids: Array[String] = []

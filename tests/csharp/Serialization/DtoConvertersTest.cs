@@ -3,7 +3,7 @@ namespace ProjectSummoner.Tests.Serialization;
 using System.Collections.Generic;
 using GdUnit4;
 using Godot;
-using ProjectSummoner.Data.Serialization;
+using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Domain.Profile.Campaign;
 using ProjectSummoner.Domain.Profile.Collection;
 using ProjectSummoner.Domain.Profile.Decks;
@@ -301,6 +301,47 @@ public class DtoConvertersTest
     {
         var result = DtoConverters.FromCampaignDict(null);
         AssertThat(result).IsNull();
+    }
+
+    [TestCase]
+    public void CampaignProgress_RoundTrip_PreservesChoices()
+    {
+        var original = new CampaignProgress
+        {
+            CompletedBattles = ["battle_1"],
+            CurrentBattle = "battle_2",
+            Gold = 100,
+            Choices = new Dictionary<string, string>
+            {
+                ["node_choice_1"] = "option_a",
+                ["node_choice_2"] = "option_b"
+            }
+        };
+
+        var dict = DtoConverters.ToDict(original);
+        var result = DtoConverters.FromCampaignDict(dict);
+
+        AssertThat(result).IsNotNull();
+        AssertThat(result!.Choices).HasSize(2);
+        AssertThat(result.Choices["node_choice_1"]).IsEqual("option_a");
+        AssertThat(result.Choices["node_choice_2"]).IsEqual("option_b");
+    }
+
+    [TestCase]
+    public void CampaignProgress_RoundTrip_HandlesEmptyChoices()
+    {
+        var original = new CampaignProgress
+        {
+            CompletedBattles = ["battle_1"],
+            Gold = 50,
+            Choices = []
+        };
+
+        var dict = DtoConverters.ToDict(original);
+        var result = DtoConverters.FromCampaignDict(dict);
+
+        AssertThat(result).IsNotNull();
+        AssertThat(result!.Choices).IsEmpty();
     }
 
     // =========================================================================

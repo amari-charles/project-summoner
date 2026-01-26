@@ -83,7 +83,7 @@ public class CampaignRewardHandler
         var result = new Godot.Collections.Dictionary();
         foreach (var kvp in campaignProgress.PendingReward)
         {
-            result[kvp.Key] = Variant.From(kvp.Value);
+            result[kvp.Key] = DtoConverters.ObjectToVariant(kvp.Value);
         }
         return result;
     }

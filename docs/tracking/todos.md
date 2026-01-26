@@ -39,6 +39,21 @@ Reward screens offer X guaranteed summoner-themed options + Y pool-drawn options
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Type-safe domain objects for Dictionary<string, object>
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Small
+
+**Description:**
+Replace loose `Dictionary<string, object>` patterns with proper typed domain objects where the schema is fixed:
+- `CampaignProgress.PendingReward` → `PendingRewardData` class (battle_id, reward_type, choice_index)
+- `ProfileRepository.UpdateCard()` param → `CardUpdateDto` class (xp, level, upgrades)
+- Keep `StoryArcProgress.Flags` as dictionary (legitimately dynamic)
+
+This eliminates `ObjectToVariant` conversion complexity and improves type safety.
+
+---
+
 #### Migrate deck_service.gd → DeckService.cs
 **Status:** ⬜ Not Started
 **Category:** Architecture / C# Migration
