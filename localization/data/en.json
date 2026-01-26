@@ -1,15 +1,11 @@
 {
   "campaign": {
-    "onboarding": {
-      "name": "New Summoner Training",
-      "description": "Welcome to the Academy! Complete your initial training to begin your journey."
+    "summoners_path": {
+      "name": "Summoner's Path",
+      "description": "Begin your journey at the Academy of Summoning Arts. Master the fundamentals of summoning and forge your fate."
     },
-    "academy_trials": {
-      "name": "Academy Trials",
-      "description": "Begin your journey at the Summoning Academy. Master the fundamentals of summoning and prove your worth."
-    },
-    "combat_arena": {
-      "name": "Combat Arena",
+    "test_arena": {
+      "name": "Test Arena",
       "description": "Test battles for core combat mechanics. Uses fixed decks - no collection required."
     },
     "selector": {
@@ -18,27 +14,51 @@
       "current": "CURRENT"
     },
     "event": {
-      "affinity": {
-        "name": "Trial of Affinities",
-        "description": "Welcome to the Academy of Summoning Arts. Headmaster Merlin awaits in the crystal chamber—the ancient stones will measure your connection to the elemental forces. This trial will reveal your path, initiate. Choose wisely, for in the art of summoning, all choices endure."
+      "caravan_01": {
+        "name": "Traveling Merchant",
+        "description": "A cheerful merchant has set up camp along the path. Browse wares and spend your hard-earned gold on new cards and supplies."
+      }
+    },
+    "choice": {
+      "path_fork": {
+        "name": "Choose Your Path",
+        "description": "The road ahead splits into two distinct paths. Choose the challenge that suits your style."
+      }
+    },
+    "path": {
+      "elite": {
+        "label": "Elite Path",
+        "description": "Harder battles with level caps. Better rewards but greater risk. Cards above the cap are normalized."
       },
-      "first_summon": {
-        "name": "First Summon",
-        "description": "With your affinity revealed, the time has come to bind your first companion. Headmaster Merlin presents two candidates, each eager to join your journey. Remember, initiate: what you bind, stays bound. Choose your partner carefully."
-      },
-      "caravan_tutorial": {
-        "name": "A Fortuitous Encounter",
-        "description": "A cheerful merchant has set up camp along the path. Mr. Merriweather offers supplies for your journey ahead."
+      "standard": {
+        "label": "Standard Path",
+        "description": "Normal difficulty battles. Consistent rewards with no level restrictions."
       }
     },
     "battle": {
       "first_trial": {
         "name": "The First Trial",
-        "description": "Your affinity chosen, your companion bound—Headmaster Merlin now calls you to the training grounds. This first trial will test whether theory translates to practice. Prove your worth, initiate, and earn your place among the Academy's summoners."
+        "description": "Your journey begins here. Face a simple opponent and learn the basics of summoning combat. Victory earns you your first card choice."
       },
-      "charge_tutorial": {
-        "name": "The Ironhide Slime",
-        "description": "A peculiar slime blocks the path ahead. Merlin senses something unusual about its defenses. Learn to use tactical commands wisely."
+      "second_challenge": {
+        "name": "Second Challenge",
+        "description": "With two cards at your disposal, test new combinations against a stronger foe. Another card choice awaits the victor."
+      },
+      "third_trial": {
+        "name": "Third Trial",
+        "description": "Your deck grows. Face a worthy opponent and prove your developing skills. Choose wisely from the rewards offered."
+      },
+      "elite_01": {
+        "name": "Elite Trial",
+        "description": "A difficult battle with level caps. Your cards will be normalized to level 3. Success brings rare rewards."
+      },
+      "standard_01": {
+        "name": "Path of Growth",
+        "description": "A standard battle along the reliable path. Build your strength steadily with common rewards."
+      },
+      "act1_boss": {
+        "name": "The Guardian",
+        "description": "The first major challenge of your journey. A powerful foe guards the path forward. Defeat them to complete Act 1."
       },
       "arena_earth_sprite": {
         "name": "Earth Sprite Test",

@@ -131,14 +131,7 @@ func LoadProgress() -> void:
 	if _profile_repo == null:
 		return
 
-	var campaign: Dictionary = _campaigns.get(_current_campaign_id, {})
-	var is_shared: bool = campaign.get("is_shared", false)
-
-	var progress: Dictionary
-	if is_shared:
-		progress = _profile_repo.get_shared_campaign_progress()
-	else:
-		progress = _profile_repo.get_campaign_progress()
+	var progress: Dictionary = _profile_repo.get_campaign_progress()
 
 	_completed_battles = progress.get("completed_battles", []).duplicate()
 	_pending_reward = progress.get("pending_reward", {}).duplicate()
@@ -153,20 +146,12 @@ func SaveProgress() -> void:
 	if _profile_repo == null:
 		return
 
-	var campaign: Dictionary = _campaigns.get(_current_campaign_id, {})
-	var is_shared: bool = campaign.get("is_shared", false)
-
 	var progress: Dictionary = {
 		"completed_battles": _completed_battles.duplicate(),
 		"pending_reward": _pending_reward.duplicate() if not _pending_reward.is_empty() else {}
 	}
 
-	# Save to profile (this will trigger data_changed which calls NotifyProgressChanged)
-	# So we don't emit CampaignProgressChanged here to avoid double emission
-	if is_shared:
-		_profile_repo.update_shared_campaign_progress(progress)
-	else:
-		_profile_repo.update_campaign_progress(progress)
+	_profile_repo.update_campaign_progress(progress)
 
 	# Note: Signal is emitted via data_changed -> _on_profile_data_changed -> NotifyProgressChanged
 	# Don't emit here to avoid double emission
@@ -221,10 +206,6 @@ func _is_campaign_completed(campaign_id: String) -> bool:
 			return false
 
 	return battles.size() > 0
-
-
-func IsOnboardingComplete() -> bool:
-	return _is_campaign_completed(String(CampaignIDs.ONBOARDING))
 
 
 ## =============================================================================

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Domain.Profile.Campaign;
 using ProjectSummoner.Infrastructure.Persistence;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign progress: load, save, battle completion.
+/// All progress is per-summoner (no shared/account-wide campaigns).
 /// </summary>
 public class CampaignProgressHandler
 {
@@ -32,43 +32,28 @@ public class CampaignProgressHandler
     /// <summary>Load progress from profile repository.</summary>
     public void LoadProgress()
     {
-        CampaignProgress campaignProgress;
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
-        {
-            campaignProgress = _profileRepo.GetSharedCampaignProgress();
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
-        }
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        var campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
 
         _store.CompletedBattles.Clear();
         _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles);
 
-        GD.Print($"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' (shared={_store.IsSharedCampaign(_store.CurrentCampaignId)}) - {_store.CompletedBattles.Count} battles completed");
+        GD.Print($"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} battles completed");
     }
 
     /// <summary>Save progress to profile repository.</summary>
     public void SaveProgress()
     {
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
-        {
-            var progress = _profileRepo.GetSharedCampaignProgress();
-            progress.CompletedBattles = [.. _store.CompletedBattles];
-            _profileRepo.UpdateSharedCampaignProgress(progress);
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            var progress = _profileRepo.GetCampaignProgress(summonerId);
-            progress.CompletedBattles = [.. _store.CompletedBattles];
-            _profileRepo.UpdateCampaignProgress(summonerId, progress);
-        }
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
 
-        GD.Print($"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' (shared={_store.IsSharedCampaign(_store.CurrentCampaignId)}) - {_store.CompletedBattles.Count} battles completed");
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        progress.CompletedBattles = [.. _store.CompletedBattles];
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+
+        GD.Print($"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} battles completed");
     }
 
     /// <summary>Set the current campaign ID.</summary>
@@ -120,19 +105,11 @@ public class CampaignProgressHandler
             return false;
 
         // Get completed battles for this campaign
-        List<string> completed;
-        if (_store.IsSharedCampaign(campaignId))
-        {
-            var sharedProgress = _profileRepo.GetSharedCampaignProgress();
-            completed = sharedProgress.CompletedBattles;
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return false;
-            var summonerProgress = _profileRepo.GetCampaignProgress(summonerId);
-            completed = summonerProgress.CompletedBattles;
-        }
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return false;
+
+        var summonerProgress = _profileRepo.GetCampaignProgress(summonerId);
+        var completed = summonerProgress.CompletedBattles;
 
         // Check if all battles in campaign are completed
         foreach (var battleVariant in battles)
@@ -146,11 +123,5 @@ public class CampaignProgressHandler
         }
 
         return true;
-    }
-
-    /// <summary>Check if onboarding is complete.</summary>
-    public bool IsOnboardingComplete()
-    {
-        return IsCampaignComplete("onboarding");
     }
 }

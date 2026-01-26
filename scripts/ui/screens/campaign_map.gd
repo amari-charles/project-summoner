@@ -3,8 +3,7 @@ class_name CampaignMap
 
 ## Campaign Map - Visual node-based event progression
 ##
-## Shows campaign events as nodes on a linear path.
-## First event is onboarding if not yet complete.
+## Shows campaign events as nodes in a graph structure with branching paths.
 
 ## Preloads
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/components/summoner_icon_widget.tscn")
@@ -59,11 +58,21 @@ const EVENT_NODE_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/butto
 const EVENT_NODE_CHECKMARK: String = "res://assets/ui/kenny/PNG/Green/Default/icon_checkmark.png"
 const CHECKMARK_SIZE: int = 32  # Size of checkmark overlay
 
+## Graph rendering constants
+const POSITION_SCALE: float = 1.5  # Scale factor for node positions from data
+const EDGE_ACTIVE_COLOR: Color = Color(0.3, 0.8, 0.3)  # Green for completed paths
+const EDGE_AVAILABLE_COLOR: Color = Color(0.8, 0.8, 0.3)  # Yellow for available paths
+const EDGE_LOCKED_COLOR: Color = Color(0.4, 0.4, 0.5, 0.5)  # Grey for locked paths
+const DASH_LENGTH: float = 12.0  # Length of each dash
+const GAP_LENGTH: float = 8.0  # Length of gap between dashes
+
 ## State
 var selected_event_id: String = ""
 var all_events: Array[Dictionary] = []
 var event_nodes: Dictionary = {}  # event_id -> Control (fast lookup)
-var event_render_order: Array[String] = []  # Explicit draw order
+var edge_lines: Array[Node2D] = []  # Dashed line containers for edges
+var graph_edges: Array[Dictionary] = []  # Edges from campaign data
+var graph_nodes: Array[Dictionary] = []  # Nodes from campaign data
 
 ## Panning state
 var is_panning: bool = false
@@ -86,6 +95,11 @@ var snapshot_manager: Node = null
 ## Campaign selector components
 var campaign_banner: Button = null
 var campaign_selector_modal: CampaignSelectorModal = null
+
+## Choice modal for path decisions
+var choice_modal: Panel = null
+var choice_options_container: VBoxContainer = null
+var pending_choice_node_id: String = ""
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -148,9 +162,6 @@ func _ready() -> void:
 	# Setup campaign banner (top-left)
 	_setup_campaign_banner()
 
-	# Auto-redirect: If on onboarding but it's complete, switch to main campaign
-	_check_auto_redirect_from_onboarding()
-
 	# Setup summoner icon
 	_setup_summoner_icon()
 
@@ -161,41 +172,58 @@ func _ready() -> void:
 	call_deferred("_on_center_latest_pressed")
 
 func _draw() -> void:
-	# Draw paths connecting events using explicit render order
-	for i: int in range(event_render_order.size() - 1):
-		var current_id: String = event_render_order[i]
-		var next_id: String = event_render_order[i + 1]
+	# Edge drawing is now handled by Line2D nodes in map_container
+	pass
 
-		if not event_nodes.has(current_id):
-			push_warning("CampaignMap: Missing node for event '%s'" % current_id)
-			continue
-		if not event_nodes.has(next_id):
-			push_warning("CampaignMap: Missing node for event '%s'" % next_id)
-			continue
 
-		var start_node: Control = event_nodes[current_id]
-		var end_node: Control = event_nodes[next_id]
-		var start_pos: Vector2 = start_node.position + start_node.size / 2
-		var end_pos: Vector2 = end_node.position + end_node.size / 2
-		draw_line(start_pos, end_pos, PATH_COLOR, PATH_WIDTH)
+## Get the color for an edge based on completion state
+func _get_edge_color(from_id: String, to_id: String, edge: Dictionary) -> Color:
+	var from_completed: bool = _safe_bool(Campaign.is_battle_completed(from_id))
+	var to_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(to_id))
 
-## =============================================================================
-## AUTO-REDIRECT FROM COMPLETED ONBOARDING
-## =============================================================================
+	# Check if edge has a condition (choice edges)
+	var condition: Variant = edge.get("condition")
+	if condition is Dictionary:
+		# Choice edge - only show as active if the choice was made
+		# For now, show as locked until we implement choice tracking
+		if not from_completed:
+			return EDGE_LOCKED_COLOR
+		# TODO: Check if choice matches condition
+		return EDGE_AVAILABLE_COLOR
 
-func _check_auto_redirect_from_onboarding() -> void:
-	# Check if currently on onboarding campaign
-	var current_campaign_id: String = Campaign.get_current_campaign_id()
+	if from_completed:
+		if to_unlocked:
+			return EDGE_ACTIVE_COLOR
+		else:
+			return EDGE_AVAILABLE_COLOR
+	else:
+		return EDGE_LOCKED_COLOR
 
-	if current_campaign_id != String(CampaignIDs.ONBOARDING):
-		return  # Not on onboarding, no redirect needed
 
-	# Check if onboarding is complete
-	if Campaign.is_onboarding_complete():
-		# Switch to academy trials (main campaign)
-		print("CampaignMap: Onboarding complete, auto-switching to Academy Trials")
-		Campaign.set_current_campaign(String(CampaignIDs.ACADEMY_TRIALS))
-		_update_campaign_banner_text()
+## Create a dashed line between two points (returns container with line segments)
+func _create_dashed_line(start: Vector2, end: Vector2, color: Color) -> Node2D:
+	var container: Node2D = Node2D.new()
+
+	var direction: Vector2 = (end - start).normalized()
+	var total_length: float = start.distance_to(end)
+	var current_pos: float = 0.0
+
+	while current_pos < total_length:
+		var dash_start: Vector2 = start + direction * current_pos
+		var dash_end_pos: float = min(current_pos + DASH_LENGTH, total_length)
+		var dash_end: Vector2 = start + direction * dash_end_pos
+
+		var segment: Line2D = Line2D.new()
+		segment.width = PATH_WIDTH
+		segment.default_color = color
+		segment.antialiased = true
+		segment.add_point(dash_start)
+		segment.add_point(dash_end)
+		container.add_child(segment)
+
+		current_pos += DASH_LENGTH + GAP_LENGTH
+
+	return container
 
 ## =============================================================================
 ## MAP DISPLAY
@@ -206,69 +234,101 @@ func _refresh_map() -> void:
 	for child: Node in map_container.get_children():
 		child.queue_free()
 	event_nodes.clear()
-	event_render_order.clear()
+	edge_lines.clear()
+	graph_nodes.clear()
+	graph_edges.clear()
 
+	# Load graph data from campaign service
+	var nodes_variant: Variant = Campaign.get_current_campaign_nodes()
+	var nodes_array: Array = _safe_array(nodes_variant)
+	graph_nodes.assign(nodes_array)
+
+	var edges_variant: Variant = Campaign.get_current_campaign_edges()
+	var edges_array: Array = _safe_array(edges_variant)
+	graph_edges.assign(edges_array)
+
+	# Also load flattened battles for detail panel (backwards compatibility)
 	var events_variant: Variant = Campaign.get_all_battles()
 	var events_array: Array = _safe_array(events_variant)
 	all_events.assign(events_array)
 
-	print("CampaignMap: Loaded %d total battles from Campaign service" % all_events.size())
-	for event: Dictionary in all_events:
-		print("  - %s (unlocked: %s, completed: %s)" % [
-			event.get("id", "unknown"),
-			Campaign.is_battle_unlocked(event.get("id", "")),
-			Campaign.is_battle_completed(event.get("id", ""))
-		])
+	print("CampaignMap: Loaded %d nodes, %d edges from graph data" % [graph_nodes.size(), graph_edges.size()])
 
-	# Calculate centered starting position
-	var event_count: int = all_events.size()
-	var total_width: float = (event_count - 1) * NODE_SPACING if event_count > 0 else 0.0
-	var map_width: float = map_container.custom_minimum_size.x
-	var start_x: float = (map_width - total_width) / 2.0
+	# Build a lookup for node positions (needed for edge drawing)
+	var node_positions: Dictionary = {}  # node_id -> Vector2
+	for node: Dictionary in graph_nodes:
+		var node_id: String = _safe_string(node.get("id", ""))
+		if node_id.is_empty():
+			continue
+		var raw_position: Variant = node.get("position", Vector2.ZERO)
+		var node_position: Vector2
+		if raw_position is Vector2:
+			node_position = raw_position * POSITION_SCALE + Vector2(100, 200)
+		else:
+			node_position = Vector2(100, 300) * POSITION_SCALE + Vector2(100, 200)
+		# Add half node size to get center
+		node_positions[node_id] = node_position + NODE_SIZE / 2
 
-	# Create nodes for all events and build render order
-	var node_index: int = 0
-	for event: Dictionary in all_events:
-		var event_id: String = _safe_string(event.get("id", ""))
-		if event_id.is_empty():
-			push_warning("CampaignMap: Event missing 'id', skipping")
+	# Create edge lines FIRST (so they appear behind nodes)
+	for edge: Dictionary in graph_edges:
+		var from_id: String = edge.get("from", "")
+		var to_id: String = edge.get("to", "")
+
+		if not node_positions.has(from_id) or not node_positions.has(to_id):
 			continue
 
-		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
-		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(event_id))
+		var start_pos: Vector2 = node_positions[from_id]
+		var end_pos: Vector2 = node_positions[to_id]
+		var edge_color: Color = _get_edge_color(from_id, to_id, edge)
 
-		var event_node: Control = _create_event_node(event, node_index, start_x, is_unlocked, is_completed)
+		# Create dashed line
+		var line: Node2D = _create_dashed_line(start_pos, end_pos, edge_color)
+		map_container.add_child(line)
+		edge_lines.append(line)
+
+	# Create nodes from graph data (using positions from data)
+	for node: Dictionary in graph_nodes:
+		var node_id: String = _safe_string(node.get("id", ""))
+		if node_id.is_empty():
+			push_warning("CampaignMap: Node missing 'id', skipping")
+			continue
+
+		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(node_id))
+		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(node_id))
+
+		var event_node: Control = _create_graph_node(node, is_unlocked, is_completed)
 		map_container.add_child(event_node)
-		event_nodes[event_id] = event_node
-		event_render_order.append(event_id)
-		node_index += 1
+		event_nodes[node_id] = event_node
 
-	# Trigger redraw for paths
-	queue_redraw()
+		print("  - %s at %s (unlocked: %s, completed: %s)" % [
+			node_id,
+			node.get("position", Vector2.ZERO),
+			is_unlocked,
+			is_completed
+		])
 
-	print("CampaignMap: Created %d event nodes" % event_nodes.size())
+	print("CampaignMap: Created %d event nodes, %d edge lines" % [event_nodes.size(), edge_lines.size()])
 
-func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_unlocked: bool, is_completed: bool) -> Control:
+## Create a node from graph data (uses position from node data)
+func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: bool) -> Control:
 	var node_container: Control = Control.new()
 	node_container.custom_minimum_size = NODE_SIZE
 
-	# Use map_position if available, otherwise calculate position
+	# Get position from node data and scale it
+	var raw_position: Variant = node_data.get("position", Vector2.ZERO)
 	var node_position: Vector2
-	if event_data.has("map_position") and event_data.get("map_position") is Vector2:
-		# Use fixed position from event data
-		node_position = event_data.get("map_position")
+	if raw_position is Vector2:
+		node_position = raw_position * POSITION_SCALE
 	else:
-		# Calculate position: winding path using sine wave
-		var y_offset: float = sin(float(index) * 0.5) * MAP_WAVE_AMPLITUDE
-		node_position = Vector2(start_x + index * NODE_SPACING, MAP_CENTER_Y + y_offset)
-		if event_data.has("map_position"):
-			push_warning("CampaignMap: Invalid map_position format for event, using calculated position")
+		node_position = Vector2(100, 300) * POSITION_SCALE  # Default fallback
+
+	# Add offset to center the map content
+	node_position += Vector2(100, 200)  # Margin from top-left
 
 	node_container.position = node_position
 
-	var event_id: String = _safe_string(event_data.get("id", ""))
-	var event_type: StringName = StringName(event_data.get("event_type", EventTypeIDs.BATTLE))
-	var is_onboarding_event: bool = (event_type == EventTypeIDs.ONBOARDING)
+	var node_id: String = _safe_string(node_data.get("id", ""))
+	var node_type: String = _safe_string(node_data.get("type", ""))
 
 	# Load the round button texture
 	var node_texture: Texture2D = load(EVENT_NODE_TEXTURE)
@@ -281,14 +341,15 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 	button.ignore_texture_size = true
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 
-	# Set opacity based on state (grey buttons, differentiate by opacity)
+	# Set visual style based on node type and state
+	var base_color: Color = _get_node_type_color(node_type)
 	if not is_unlocked:
-		button.modulate = Color(1, 1, 1, 0.5)  # Locked: 50% opacity
+		button.modulate = Color(base_color.r, base_color.g, base_color.b, 0.5)  # Locked: 50% opacity
 		button.disabled = true
 	else:
-		button.modulate = Color(1, 1, 1, 1.0)  # Unlocked: full opacity
+		button.modulate = base_color
 
-	# Add overlay icon for completed events
+	# Add overlay icon for completed nodes
 	if is_completed:
 		var checkmark: TextureRect = TextureRect.new()
 		checkmark.texture = load(EVENT_NODE_CHECKMARK)
@@ -306,30 +367,33 @@ func _create_event_node(event_data: Dictionary, index: int, start_x: float, is_u
 		checkmark.offset_bottom = CHECKMARK_SIZE / 2.0
 		button.add_child(checkmark)
 
-	# Add star icon for onboarding events
-	if is_onboarding_event:
-		var star: TextureRect = TextureRect.new()
-		star.texture = load(STAR_FILLED_TEXTURE)
-		star.custom_minimum_size = Vector2(CHECKMARK_SIZE, CHECKMARK_SIZE)
-		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		# Center the star on the button
-		star.anchor_left = 0.5
-		star.anchor_right = 0.5
-		star.anchor_top = 0.5
-		star.anchor_bottom = 0.5
-		star.offset_left = -CHECKMARK_SIZE / 2.0
-		star.offset_right = CHECKMARK_SIZE / 2.0
-		star.offset_top = -CHECKMARK_SIZE / 2.0
-		star.offset_bottom = CHECKMARK_SIZE / 2.0
-		button.add_child(star)
-
 	# Connect click handler
 	if is_unlocked:
-		button.pressed.connect(_on_event_node_clicked.bind(event_id))
+		button.pressed.connect(_on_event_node_clicked.bind(node_id))
 
 	node_container.add_child(button)
 	return node_container
+
+
+## Get color tint for node based on type
+func _get_node_type_color(node_type: String) -> Color:
+	match node_type:
+		"battle":
+			return Color(1.0, 1.0, 1.0)  # White/grey
+		"elite":
+			return Color(1.0, 0.8, 0.3)  # Gold
+		"boss":
+			return Color(1.0, 0.4, 0.4)  # Red
+		"choice":
+			return Color(0.6, 0.8, 1.0)  # Light blue
+		"caravan":
+			return Color(0.8, 1.0, 0.6)  # Light green
+		"rest":
+			return Color(0.7, 0.9, 1.0)  # Cyan
+		"story":
+			return Color(1.0, 0.7, 1.0)  # Pink
+		_:
+			return Color(1.0, 1.0, 1.0)  # Default white
 
 func _on_event_node_clicked(event_id: String) -> void:
 	selected_event_id = event_id
@@ -516,10 +580,7 @@ func _update_detail_panel() -> void:
 			start_event_button.text = Loc.t("campaign.map.button_completed")
 			start_event_button.disabled = true
 	else:
-		if event_type == EventTypeIDs.ONBOARDING:
-			start_event_button.text = Loc.t("campaign.map.button_start")
-		else:
-			start_event_button.text = Loc.t("campaign.map.button_start_event")
+		start_event_button.text = Loc.t("campaign.map.button_start_event")
 		start_event_button.disabled = false
 
 ## =============================================================================
@@ -704,6 +765,12 @@ func _on_start_event_pressed() -> void:
 		SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
 		return
 
+	# Handle choice events - show choice modal
+	if event_type == EventTypeIDs.CHOICE:
+		print("CampaignMap: Opening choice modal for: %s" % selected_event_id)
+		_show_choice_modal(event)
+		return
+
 	# Handle battle events
 	print("CampaignMap: Starting battle event: %s" % selected_event_id)
 
@@ -759,21 +826,36 @@ func _on_center_latest_pressed() -> void:
 	print("CampaignMap: Centered on latest mission: %s" % latest_unlocked_id)
 
 func _find_latest_unlocked_mission() -> String:
-	# Iterate through event_render_order in reverse
-	# Return first event that is unlocked but not completed
-	for i: int in range(event_render_order.size() - 1, -1, -1):
-		var event_id: String = event_render_order[i]
-		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
-		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(event_id))
+	# Find the first unlocked but not completed node
+	# For graph structures, prioritize nodes further to the right (higher X position)
+	var best_node_id: String = ""
+	var best_x: float = -1.0
+
+	for node: Dictionary in graph_nodes:
+		var node_id: String = _safe_string(node.get("id", ""))
+		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(node_id))
+		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(node_id))
 
 		if is_unlocked and not is_completed:
-			return event_id
+			var pos: Variant = node.get("position", Vector2.ZERO)
+			var x_pos: float = pos.x if pos is Vector2 else 0.0
+			if x_pos > best_x:
+				best_x = x_pos
+				best_node_id = node_id
 
-	# If all completed, return last event
-	if event_render_order.size() > 0:
-		return event_render_order[event_render_order.size() - 1]
+	# If found an unlocked incomplete node, return it
+	if not best_node_id.is_empty():
+		return best_node_id
 
-	return ""
+	# If all completed, return the rightmost node
+	for node: Dictionary in graph_nodes:
+		var pos: Variant = node.get("position", Vector2.ZERO)
+		var x_pos: float = pos.x if pos is Vector2 else 0.0
+		if x_pos > best_x:
+			best_x = x_pos
+			best_node_id = _safe_string(node.get("id", ""))
+
+	return best_node_id
 
 func _scroll_to_event(event_id: String) -> void:
 	if not event_nodes.has(event_id):
@@ -944,11 +1026,8 @@ func _on_campaign_modal_closed() -> void:
 ## =============================================================================
 
 func _setup_summoner_icon() -> void:
-	# Only show summoner icon after affinity event is completed
-	# Check shared progress since affinity is part of onboarding (account-wide)
-	var shared_progress: Dictionary = ProfileRepo.get_shared_campaign_progress()
-	var completed_battles: Array = shared_progress.get("completed_battles", [])
-	if String(BattleIDs.EVENT_AFFINITY) not in completed_battles:
+	# Only show summoner icon if a summoner has been selected
+	if SummonerSelection.GetActiveSummonerId().is_empty():
 		return
 
 	summoner_icon = SummonerIconWidgetScene.instantiate()
@@ -971,6 +1050,131 @@ func _on_summoner_icon_clicked() -> void:
 	# Push current scene for return navigation
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SCREEN)
+
+## =============================================================================
+## CHOICE MODAL
+## =============================================================================
+
+## Show the choice modal for a path decision
+func _show_choice_modal(event: Dictionary) -> void:
+	pending_choice_node_id = selected_event_id
+
+	# Get options from event data
+	var options: Array = _safe_array(event.get("options", []))
+	if options.is_empty():
+		push_warning("CampaignMap: Choice event '%s' has no options" % selected_event_id)
+		return
+
+	# Create modal if it doesn't exist
+	if choice_modal == null:
+		_create_choice_modal()
+
+	# Clear previous options
+	for child: Node in choice_options_container.get_children():
+		child.queue_free()
+
+	# Get the choice name from event
+	var choice_name: String = _safe_string(event.get("name", "Choose Your Path"))
+
+	# Add title
+	var title: Label = Label.new()
+	title.text = choice_name
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	choice_options_container.add_child(title)
+
+	# Add spacing
+	var spacer: Control = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 20)
+	choice_options_container.add_child(spacer)
+
+	# Add option buttons
+	for option_variant: Variant in options:
+		if not option_variant is Dictionary:
+			continue
+		var option: Dictionary = option_variant
+		var option_id: String = _safe_string(option.get("id", ""))
+		var label_key: String = _safe_string(option.get("label_key", ""))
+		var desc_key: String = _safe_string(option.get("description_key", ""))
+
+		var label_text: String = Loc.t(label_key) if not label_key.is_empty() else option_id
+		var desc_text: String = Loc.t(desc_key) if not desc_key.is_empty() else ""
+
+		var option_button: Button = Button.new()
+		option_button.text = label_text
+		option_button.custom_minimum_size = Vector2(300, 50)
+		option_button.pressed.connect(_on_choice_option_selected.bind(option_id))
+		choice_options_container.add_child(option_button)
+
+		# Add description below button if available
+		if not desc_text.is_empty():
+			var desc_label: Label = Label.new()
+			desc_label.text = desc_text
+			desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			desc_label.add_theme_font_size_override("font_size", 14)
+			desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+			choice_options_container.add_child(desc_label)
+
+			var option_spacer: Control = Control.new()
+			option_spacer.custom_minimum_size = Vector2(0, 15)
+			choice_options_container.add_child(option_spacer)
+
+	# Show the modal centered
+	var viewport_size: Vector2 = get_viewport_rect().size
+	choice_modal.size = Vector2(400, 350)
+	choice_modal.position = (viewport_size - choice_modal.size) / 2
+	choice_modal.visible = true
+
+	# Hide detail panel while choice modal is open
+	detail_panel.visible = false
+
+
+## Create the choice modal UI
+func _create_choice_modal() -> void:
+	choice_modal = Panel.new()
+	choice_modal.visible = false
+	add_child(choice_modal)
+
+	# Dark background style
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.12, 0.18, 0.98)
+	style.border_color = Color(0.4, 0.35, 0.5)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	choice_modal.add_theme_stylebox_override("panel", style)
+
+	# Container for content
+	var margin: MarginContainer = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	choice_modal.add_child(margin)
+
+	choice_options_container = VBoxContainer.new()
+	choice_options_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	margin.add_child(choice_options_container)
+
+
+## Handle choice option selection
+func _on_choice_option_selected(option_id: String) -> void:
+	print("CampaignMap: Player chose option '%s' for node '%s'" % [option_id, pending_choice_node_id])
+
+	# Hide modal
+	choice_modal.visible = false
+
+	# Record the choice (this affects which edges are traversable)
+	Campaign.record_choice(pending_choice_node_id, option_id)
+
+	# Mark the choice node as completed
+	Campaign.complete_battle(pending_choice_node_id)
+
+	# Refresh map to show newly unlocked paths
+	_refresh_map()
+
+	pending_choice_node_id = ""
+
 
 ## =============================================================================
 ## SIGNALS

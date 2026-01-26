@@ -197,9 +197,8 @@ func _load_campaigns(skip_validation: bool = false) -> void:
 
 	# Load campaigns from GDScript data files (compile-time validated CardIDs)
 	var campaign_data_sources: Array[Callable] = [
-		OnboardingData.get_campaign,
-		CombatArenaData.get_campaign,
-		AcademyTrialsData.get_campaign,
+		SummonersPathData.get_campaign,
+		TestArenaData.get_campaign,
 	]
 
 	var campaigns_for_cs: Array[Dictionary] = []
@@ -219,8 +218,8 @@ func _load_campaigns(skip_validation: bool = false) -> void:
 					string_reqs.append(String(req))
 				campaign_data["unlock_requirements"] = string_reqs
 
-			# Process battles
-			_load_battles_from_campaign(campaign_data)
+			# Process nodes (graph format)
+			_load_nodes_from_campaign(campaign_data)
 
 			_campaigns[campaign_id] = campaign_data
 			campaigns_for_cs.append(campaign_data)
@@ -235,42 +234,92 @@ func _load_campaigns(skip_validation: bool = false) -> void:
 	if not skip_validation:
 		_validate_battle_rewards()
 
-## Load battles from a campaign data dictionary
-func _load_battles_from_campaign(campaign_data: Dictionary) -> void:
-	var battles_array: Variant = campaign_data.get("battles", [])
-	if not battles_array is Array:
+## Load nodes from a campaign data dictionary (graph format)
+## Also maintains backwards compatibility by creating a flattened 'battles' array
+func _load_nodes_from_campaign(campaign_data: Dictionary) -> void:
+	var nodes_array: Variant = campaign_data.get("nodes", [])
+	if not nodes_array is Array:
 		return
 
-	for battle_variant: Variant in battles_array:
-		if not battle_variant is Dictionary:
+	# Create a flattened battles array for backwards compatibility
+	var battles: Array[Dictionary] = []
+
+	for node_variant: Variant in nodes_array:
+		if not node_variant is Dictionary:
 			continue
-		var battle: Dictionary = battle_variant
-		var battle_id: String = String(battle.get("id", ""))
-		if battle_id.is_empty():
-			push_warning("CampaignService: Battle missing 'id' field, skipping")
+		var node: Dictionary = node_variant
+		var node_id: String = String(node.get("id", ""))
+		if node_id.is_empty():
+			push_warning("CampaignService: Node missing 'id' field, skipping")
 			continue
 
 		# Convert StringName id to String for compatibility with UI code
-		battle["id"] = battle_id
+		node["id"] = node_id
 
-		# Convert unlock_requirements from StringName to String
-		var raw_reqs: Variant = battle.get("unlock_requirements", [])
-		if raw_reqs is Array:
-			var string_reqs: Array[String] = []
-			for req: Variant in raw_reqs:
-				string_reqs.append(String(req))
-			battle["unlock_requirements"] = string_reqs
+		# Convert type from StringName to String
+		if node.has("type"):
+			node["type"] = String(node.get("type", ""))
 
-		# Convert deck entries (enemy_deck, dev_player_deck, reward_cards) - catalog_id from StringName to String
-		_convert_deck_entries(battle, "enemy_deck")
-		_convert_deck_entries(battle, "dev_player_deck")
-		_convert_deck_entries(battle, "reward_cards")
+		# Get the nested data dictionary and process it
+		var node_data: Variant = node.get("data", {})
+		if node_data is Dictionary:
+			var data: Dictionary = node_data
 
-		# Convert localization keys to localized strings
-		var name_key: String = battle.get("name_key", "")
-		var desc_key: String = battle.get("description_key", "")
-		battle["name"] = Loc.t(name_key) if not name_key.is_empty() else ""
-		battle["description"] = Loc.t(desc_key) if not desc_key.is_empty() else ""
+			# Convert deck entries within data
+			_convert_deck_entries(data, "enemy_deck")
+			_convert_deck_entries(data, "dev_player_deck")
+			_convert_deck_entries(data, "reward_cards")
+			_convert_deck_entries(data, "reward_options")
+
+			# Convert localization keys to localized strings
+			var name_key: String = data.get("name_key", "")
+			var desc_key: String = data.get("description_key", "")
+			data["name"] = Loc.t(name_key) if not name_key.is_empty() else ""
+			data["description"] = Loc.t(desc_key) if not desc_key.is_empty() else ""
+
+			node["data"] = data
+
+			# Create a flattened battle entry for backwards compatibility
+			var battle: Dictionary = data.duplicate()
+			battle["id"] = node_id
+			battle["type"] = node.get("type", "")
+			battle["position"] = node.get("position", Vector2.ZERO)
+			# Map node type to event_type for backwards compatibility
+			battle["event_type"] = _node_type_to_event_type(String(node.get("type", "")))
+			battles.append(battle)
+
+	# Process edges (convert StringName to String)
+	var edges_array: Variant = campaign_data.get("edges", [])
+	if edges_array is Array:
+		var processed_edges: Array[Dictionary] = []
+		for edge_variant: Variant in edges_array:
+			if not edge_variant is Dictionary:
+				continue
+			var edge: Dictionary = edge_variant
+			edge["from"] = String(edge.get("from", ""))
+			edge["to"] = String(edge.get("to", ""))
+			processed_edges.append(edge)
+		campaign_data["edges"] = processed_edges
+
+	# Store flattened battles for backwards compatibility
+	campaign_data["battles"] = battles
+
+
+## Map node type to legacy event type for backwards compatibility
+func _node_type_to_event_type(node_type: String) -> String:
+	match node_type:
+		"battle", "elite", "boss":
+			return "battle"
+		"caravan":
+			return "caravan"
+		"choice":
+			return "choice"
+		"rest":
+			return "rest"
+		"story":
+			return "story"
+		_:
+			return "battle"
 
 ## Convert deck entry arrays to use String catalog_ids (from StringName constants)
 func _convert_deck_entries(battle: Dictionary, key: String) -> void:
@@ -379,11 +428,6 @@ func is_campaign_unlocked(campaign_id: String) -> bool:
 		return false
 	return _cs_service.IsCampaignUnlocked(campaign_id)
 
-## Check if onboarding is complete (convenience method)
-func is_onboarding_complete() -> bool:
-	if _cs_service == null:
-		return false
-	return _cs_service.IsOnboardingComplete()
 
 ## =============================================================================
 ## PROGRESS MANAGEMENT (delegated to C#)
@@ -515,6 +559,44 @@ func get_tutorial_battles() -> Array[String]:
 	return typed_result
 
 ## =============================================================================
+## GRAPH DATA ACCESS
+## =============================================================================
+
+## Get nodes for the current campaign (graph format)
+func get_current_campaign_nodes() -> Array[Dictionary]:
+	var campaign_id: String = get_current_campaign_id()
+	if not _campaigns.has(campaign_id):
+		return []
+	var campaign: Dictionary = _campaigns[campaign_id]
+	var nodes: Variant = campaign.get("nodes", [])
+	if not nodes is Array:
+		return []
+	var typed_result: Array[Dictionary] = []
+	typed_result.assign(nodes)
+	return typed_result
+
+## Get edges for the current campaign (graph format)
+func get_current_campaign_edges() -> Array[Dictionary]:
+	var campaign_id: String = get_current_campaign_id()
+	if not _campaigns.has(campaign_id):
+		return []
+	var campaign: Dictionary = _campaigns[campaign_id]
+	var edges: Variant = campaign.get("edges", [])
+	if not edges is Array:
+		return []
+	var typed_result: Array[Dictionary] = []
+	typed_result.assign(edges)
+	return typed_result
+
+## Get the start node ID for the current campaign
+func get_current_campaign_start_node() -> String:
+	var campaign_id: String = get_current_campaign_id()
+	if not _campaigns.has(campaign_id):
+		return ""
+	var campaign: Dictionary = _campaigns[campaign_id]
+	return String(campaign.get("start_node", ""))
+
+## =============================================================================
 ## CAMPAIGN ECONOMY (delegated to C#)
 ## =============================================================================
 
@@ -529,3 +611,30 @@ func get_campaign_gold(summoner_id: String = "") -> int:
 func end_campaign(summoner_id: String = "", victory: bool = false) -> void:
 	if _cs_service != null:
 		_cs_service.EndCampaign(summoner_id, victory)
+
+## =============================================================================
+## CHOICE RECORDING (for branching paths)
+## =============================================================================
+
+## Record a choice made at a choice node
+func record_choice(node_id: String, choice_id: String) -> void:
+	if _cs_service != null:
+		_cs_service.RecordChoice(node_id, choice_id)
+
+## Get the choice made at a specific node (empty string if none)
+func get_choice(node_id: String) -> String:
+	if _cs_service == null:
+		return ""
+	return _cs_service.GetChoice(node_id)
+
+## Check if a choice has been made at a specific node
+func has_choice(node_id: String) -> bool:
+	if _cs_service == null:
+		return false
+	return _cs_service.HasChoice(node_id)
+
+## Get all choices as a dictionary (node_id -> choice_id)
+func get_all_choices() -> Dictionary:
+	if _cs_service == null:
+		return {}
+	return _cs_service.GetAllChoices()

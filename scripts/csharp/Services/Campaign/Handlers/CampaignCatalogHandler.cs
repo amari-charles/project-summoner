@@ -27,7 +27,6 @@ public class CampaignCatalogHandler
     {
         _store.Campaigns.Clear();
         _store.Battles.Clear();
-        _store.SharedCampaigns.Clear();
 
         foreach (var campaign in campaigns)
         {
@@ -36,12 +35,6 @@ public class CampaignCatalogHandler
                 continue;
 
             _store.Campaigns[campaignId] = campaign;
-
-            // Track shared campaigns
-            if (campaign.GetValueOrDefault("is_shared", false).AsBool())
-            {
-                _store.SharedCampaigns.Add(campaignId);
-            }
 
             // Load battles from campaign
             var battlesArray = campaign.GetValueOrDefault("battles", new Godot.Collections.Array());

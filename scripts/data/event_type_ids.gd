@@ -29,6 +29,9 @@ const FIRST_SUMMON: StringName = &"first_summon"
 ## Traveling merchant shop event
 const CARAVAN: StringName = &"caravan"
 
+## Path choice/branching event
+const CHOICE: StringName = &"choice"
+
 ## Generic onboarding event type
 const ONBOARDING: StringName = &"onboarding"
 
@@ -37,7 +40,7 @@ const ONBOARDING: StringName = &"onboarding"
 # ============================================================================
 
 ## All event types
-const ALL_TYPES: Array[StringName] = [BATTLE, AFFINITY, FIRST_SUMMON, CARAVAN, ONBOARDING]
+const ALL_TYPES: Array[StringName] = [BATTLE, AFFINITY, FIRST_SUMMON, CARAVAN, CHOICE, ONBOARDING]
 
 ## Default event type used as fallback
 const DEFAULT: StringName = BATTLE
