@@ -1,28 +1,34 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Domain.Profile.Campaign;
 using ProjectSummoner.Infrastructure.Persistence;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign progress: load, save, battle completion.
+/// All progress is per-summoner (no shared/account-wide campaigns).
 /// </summary>
 public class CampaignProgressHandler
 {
     private readonly IProfileRepository _profileRepo;
     private readonly CampaignDataStore _store;
     private readonly Func<string> _getActiveSummonerFunc;
+    private readonly ChoiceTracker? _choiceTracker;
+    private readonly CampaignGraphStore? _graphStore;
 
     public CampaignProgressHandler(
         IProfileRepository profileRepo,
         CampaignDataStore store,
-        Func<string> getActiveSummonerFunc)
+        Func<string> getActiveSummonerFunc,
+        ChoiceTracker? choiceTracker = null,
+        CampaignGraphStore? graphStore = null)
     {
         _profileRepo = profileRepo;
         _store = store;
         _getActiveSummonerFunc = getActiveSummonerFunc;
+        _choiceTracker = choiceTracker;
+        _graphStore = graphStore;
     }
 
     // =========================================================================
@@ -32,43 +38,41 @@ public class CampaignProgressHandler
     /// <summary>Load progress from profile repository.</summary>
     public void LoadProgress()
     {
-        CampaignProgress campaignProgress;
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
-        {
-            campaignProgress = _profileRepo.GetSharedCampaignProgress();
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
-        }
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        var campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
 
         _store.CompletedBattles.Clear();
         _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles);
 
-        GD.Print($"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' (shared={_store.IsSharedCampaign(_store.CurrentCampaignId)}) - {_store.CompletedBattles.Count} battles completed");
+        // Load choices into ChoiceTracker
+        if (_choiceTracker != null && campaignProgress.Choices.Count > 0)
+        {
+            _choiceTracker.LoadChoices(campaignProgress.Choices);
+        }
+
+        GD.Print($"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {campaignProgress.Choices.Count} choices");
     }
 
     /// <summary>Save progress to profile repository.</summary>
     public void SaveProgress()
     {
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        progress.CompletedBattles = [.. _store.CompletedBattles];
+
+        // Save choices from ChoiceTracker
+        if (_choiceTracker != null)
         {
-            var progress = _profileRepo.GetSharedCampaignProgress();
-            progress.CompletedBattles = [.. _store.CompletedBattles];
-            _profileRepo.UpdateSharedCampaignProgress(progress);
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            var progress = _profileRepo.GetCampaignProgress(summonerId);
-            progress.CompletedBattles = [.. _store.CompletedBattles];
-            _profileRepo.UpdateCampaignProgress(summonerId, progress);
+            progress.Choices = _choiceTracker.GetAllChoices();
         }
 
-        GD.Print($"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' (shared={_store.IsSharedCampaign(_store.CurrentCampaignId)}) - {_store.CompletedBattles.Count} battles completed");
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+
+        GD.Print($"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {progress.Choices.Count} choices");
     }
 
     /// <summary>Set the current campaign ID.</summary>
@@ -109,48 +113,55 @@ public class CampaignProgressHandler
         GD.Print($"CampaignProgressHandler: Battle '{battleId}' completed");
     }
 
-    /// <summary>Check if a campaign is complete (all battles finished).</summary>
+    /// <summary>
+    /// Check if a campaign is complete.
+    /// A campaign is complete if ANY end node (node with no outgoing edges) is completed.
+    /// This correctly handles branching graphs where you only complete one path.
+    /// </summary>
     public bool IsCampaignComplete(string campaignId)
     {
-        if (!_store.Campaigns.TryGetValue(campaignId, out var campaign))
-            return false;
-
-        var battlesVariant = campaign.GetValueOrDefault("battles", new Godot.Collections.Array());
-        if (battlesVariant.Obj is not Godot.Collections.Array battles || battles.Count == 0)
-            return false;
-
-        // Get completed battles for this campaign
-        List<string> completed;
-        if (_store.IsSharedCampaign(campaignId))
+        // Use graph-based end node detection
+        if (_graphStore != null)
         {
-            var sharedProgress = _profileRepo.GetSharedCampaignProgress();
-            completed = sharedProgress.CompletedBattles;
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return false;
-            var summonerProgress = _profileRepo.GetCampaignProgress(summonerId);
-            completed = summonerProgress.CompletedBattles;
-        }
-
-        // Check if all battles in campaign are completed
-        foreach (var battleVariant in battles)
-        {
-            if (battleVariant.Obj is Godot.Collections.Dictionary battle)
+            var graph = _graphStore.GetGraph(campaignId);
+            if (graph != null)
             {
-                var battleId = battle.GetValueOrDefault("id", "").AsString();
-                if (!string.IsNullOrEmpty(battleId) && !completed.Contains(battleId))
+                var endNodes = graph.GetEndNodes();
+                if (endNodes.Count > 0)
+                {
+                    // Campaign is complete if ANY end node is completed
+                    foreach (var endNode in endNodes)
+                    {
+                        if (_store.CompletedBattles.Contains(endNode.Id))
+                        {
+                            return true;
+                        }
+                    }
                     return false;
+                }
             }
         }
 
-        return true;
+        // No graph or no end nodes found - campaign cannot be completed
+        return false;
     }
 
-    /// <summary>Check if onboarding is complete.</summary>
-    public bool IsOnboardingComplete()
+    /// <summary>Clear all progress data for the current summoner.</summary>
+    public void ResetProgress()
     {
-        return IsCampaignComplete("onboarding");
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        _store.CompletedBattles.Clear();
+        _choiceTracker?.ClearAll();
+
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        progress.CompletedBattles = [];
+        progress.Choices = [];
+        progress.CurrentBattle = null;
+        progress.PendingReward = null;
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+
+        GD.Print($"CampaignProgressHandler: Reset progress for summoner '{summonerId}'");
     }
 }

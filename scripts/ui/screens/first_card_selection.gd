@@ -29,17 +29,6 @@ func _ready() -> void:
 func _on_card_selected(catalog_id: StringName) -> void:
 	print("FirstCardSelection: Player selected card: %s" % catalog_id)
 
-	# Check if event already completed (idempotent - safe to run multiple times)
-	var already_completed: bool = false
-	if Campaign.has_method("is_battle_completed"):
-		var result: Variant = Campaign.call("is_battle_completed", BattleIDs.EVENT_FIRST_SUMMON)
-		already_completed = result if result is bool else false
-
-	if already_completed:
-		print("FirstCardSelection: First summon event already completed, skipping")
-		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
-		return
-
 	# Grant the chosen card to collection
 	var card_instance_id: String = CardServiceCS.GrantCard(catalog_id, RarityIDs.COMMON)
 	print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
@@ -80,11 +69,6 @@ func _on_card_selected(catalog_id: StringName) -> void:
 					if ProfileRepo.has_method("save_profile"):
 						ProfileRepo.call("save_profile", true)  # Force immediate save
 					print("FirstCardSelection: Set Starter Deck as active!")
-
-	# Mark event as completed
-	if Campaign.has_method("complete_battle"):
-		Campaign.call("complete_battle", BattleIDs.EVENT_FIRST_SUMMON)
-		print("FirstCardSelection: Marked first summon event as completed!")
 
 	# Return to campaign map
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)

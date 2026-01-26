@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Domain.Profile.Campaign;
 using ProjectSummoner.Infrastructure.Persistence;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign rewards: pending rewards, reward granting, claiming.
+/// All rewards are per-summoner (no shared/account-wide campaigns).
 /// </summary>
 public class CampaignRewardHandler
 {
@@ -51,6 +51,9 @@ public class CampaignRewardHandler
     /// <summary>Set a pending reward for a battle.</summary>
     public void SetPendingReward(string battleId, string rewardType, int choiceIndex = -1)
     {
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
         var pending = new System.Collections.Generic.Dictionary<string, object>
         {
             ["battle_id"] = battleId,
@@ -58,20 +61,9 @@ public class CampaignRewardHandler
             ["choice_index"] = choiceIndex
         };
 
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
-        {
-            var progress = _profileRepo.GetSharedCampaignProgress();
-            progress.PendingReward = pending;
-            _profileRepo.UpdateSharedCampaignProgress(progress);
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            var progress = _profileRepo.GetCampaignProgress(summonerId);
-            progress.PendingReward = pending;
-            _profileRepo.UpdateCampaignProgress(summonerId, progress);
-        }
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        progress.PendingReward = pending;
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
         GD.Print($"CampaignRewardHandler: Set pending reward for battle '{battleId}' (type: {rewardType})");
     }
@@ -79,17 +71,10 @@ public class CampaignRewardHandler
     /// <summary>Get the current pending reward.</summary>
     public Godot.Collections.Dictionary GetPendingReward()
     {
-        CampaignProgress campaignProgress;
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
-        {
-            campaignProgress = _profileRepo.GetSharedCampaignProgress();
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return new Godot.Collections.Dictionary();
-            campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
-        }
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return new Godot.Collections.Dictionary();
+
+        var campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
 
         if (campaignProgress.PendingReward == null || campaignProgress.PendingReward.Count == 0)
             return new Godot.Collections.Dictionary();
@@ -106,30 +91,17 @@ public class CampaignRewardHandler
     /// <summary>Update choice index for a pending choice reward.</summary>
     public void UpdatePendingChoice(int choiceIndex)
     {
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        if (progress.PendingReward == null || progress.PendingReward.Count == 0)
         {
-            var progress = _profileRepo.GetSharedCampaignProgress();
-            if (progress.PendingReward == null || progress.PendingReward.Count == 0)
-            {
-                GD.PushWarning("CampaignRewardHandler: No pending reward to update choice for");
-                return;
-            }
-            progress.PendingReward["choice_index"] = choiceIndex;
-            _profileRepo.UpdateSharedCampaignProgress(progress);
+            GD.PushWarning("CampaignRewardHandler: No pending reward to update choice for");
+            return;
         }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            var progress = _profileRepo.GetCampaignProgress(summonerId);
-            if (progress.PendingReward == null || progress.PendingReward.Count == 0)
-            {
-                GD.PushWarning("CampaignRewardHandler: No pending reward to update choice for");
-                return;
-            }
-            progress.PendingReward["choice_index"] = choiceIndex;
-            _profileRepo.UpdateCampaignProgress(summonerId, progress);
-        }
+        progress.PendingReward["choice_index"] = choiceIndex;
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
         GD.Print($"CampaignRewardHandler: Updated pending choice to index {choiceIndex}");
     }
@@ -137,20 +109,12 @@ public class CampaignRewardHandler
     /// <summary>Clear the pending reward.</summary>
     public void ClearPendingReward()
     {
-        if (_store.IsSharedCampaign(_store.CurrentCampaignId))
-        {
-            var progress = _profileRepo.GetSharedCampaignProgress();
-            progress.PendingReward = null;
-            _profileRepo.UpdateSharedCampaignProgress(progress);
-        }
-        else
-        {
-            var summonerId = _getActiveSummonerFunc();
-            if (string.IsNullOrEmpty(summonerId)) return;
-            var progress = _profileRepo.GetCampaignProgress(summonerId);
-            progress.PendingReward = null;
-            _profileRepo.UpdateCampaignProgress(summonerId, progress);
-        }
+        var summonerId = _getActiveSummonerFunc();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        progress.PendingReward = null;
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
         GD.Print("CampaignRewardHandler: Cleared pending reward");
     }

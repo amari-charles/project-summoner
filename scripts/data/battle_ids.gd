@@ -1,86 +1,96 @@
 class_name BattleIDs
 
-## Battle ID Constants - Type-Safe Battle/Event References
+## Battle/Node ID Constants - Type-Safe Campaign Node References
 ##
-## Use these constants instead of string literals when referencing battles in code.
+## Use these constants instead of string literals when referencing nodes in code.
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
 ##   Campaign.start_battle(BattleIDs.FIRST_TRIAL)
-##   if current_battle == BattleIDs.EVENT_AFFINITY:
-##       # Show summoner selection
+##   if current_node == BattleIDs.PATH_FORK:
+##       # Show path choice
 ##
-## When adding new battles:
-##   1. Add battle definition to CampaignService._init_battles()
-##   2. Add constant here matching the battle's "id" field
-##   3. Add to appropriate category array (EVENTS, TUTORIALS, CAMPAIGN_BATTLES)
+## When adding new nodes:
+##   1. Add node definition to campaign data file in scripts/data/campaigns/
+##   2. Add constant here matching the node's "id" field
+##   3. Add to appropriate category array (ACT1_NODES, TEST_ARENA_NODES, etc.)
 ##
 ## Note: StringName (&"text") is faster than String ("text") for dictionary lookups
 
 # ============================================================================
-# ONBOARDING EVENTS (Non-combat story/selection events)
+# ACT 1: THE INITIATE'S PATH
 # ============================================================================
 
-## Onboarding Event 1: Summoner affinity selection
-const EVENT_AFFINITY: StringName = &"event_affinity"
-
-## Onboarding Event 2: First summon card selection
-const EVENT_FIRST_SUMMON: StringName = &"event_first_summon"
-
-## Caravan Event: Mr. Merriweather's Trading Post
-const EVENT_CARAVAN_TUTORIAL: StringName = &"event_caravan_tutorial"
-
-# ============================================================================
-# TUTORIAL BATTLES (Combat with guidance)
-# ============================================================================
-
-## Tutorial Battle 0: The First Trial - Basic combat introduction
+## Battle: First Trial - Learn basics with 1 card
 const FIRST_TRIAL: StringName = &"first_trial"
 
-## Tutorial: Charge Card Introduction
-const CHARGE_TUTORIAL: StringName = &"charge_tutorial"
+## Battle: Second Challenge - Test 2-card combos
+const SECOND_CHALLENGE: StringName = &"second_challenge"
+
+## Event: Caravan - First shop visit
+const CARAVAN_01: StringName = &"caravan_01"
+
+## Battle: Third Trial - Medium difficulty
+const THIRD_TRIAL: StringName = &"third_trial"
+
+## Choice: Elite vs Standard Path Fork
+const PATH_FORK: StringName = &"path_fork"
+
+## Battle: Elite Path Battle 1 - Higher difficulty with level cap
+const ELITE_BATTLE_01: StringName = &"elite_battle_01"
+
+## Battle: Standard Path Battle 1 - Normal difficulty
+const STANDARD_BATTLE_01: StringName = &"standard_battle_01"
+
+## Boss: Act 1 Boss - First major boss
+const ACT1_BOSS: StringName = &"act1_boss"
 
 # ============================================================================
-# COMBAT ARENA (Debug/test battles with fixed decks)
+# TEST ARENA (Debug/test battles with fixed decks)
 # ============================================================================
 
-## Arena Battle: Earth Sprite Test
+## Test Arena: Earth Sprite Test
 const ARENA_EARTH_SPRITE: StringName = &"arena_earth_sprite"
 
-## Arena Battle: Puff Test
+## Test Arena: Puff Test
 const ARENA_PUFF: StringName = &"arena_puff"
 
-## Arena Battle: Fire Elemental Test - Fire elemental variants
+## Test Arena: Fire Elemental Test
 const ARENA_FIRE_ELEMENTAL: StringName = &"arena_fire_elemental"
 
-## Arena Battle: Cloud Swarm Test
+## Test Arena: Cloud Swarm Test
 const ARENA_CLOUD_SWARM: StringName = &"arena_cloud_swarm"
 
-## Debug Arena: Testing sandbox with infinite mana/HP and manual spawning
+## Test Arena: Debug Arena - Testing sandbox with infinite mana/HP
 const DEBUG_ARENA: StringName = &"debug_arena"
 
-## Arena Battle: Mana Bolt Spell Test
+## Test Arena: Mana Bolt Spell Test
 const ARENA_MANA_BOLT: StringName = &"arena_mana_bolt"
 
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
 
-## All event (non-combat) IDs
-const ALL_EVENTS: Array[StringName] = [
-	EVENT_AFFINITY,
-	EVENT_FIRST_SUMMON,
-	EVENT_CARAVAN_TUTORIAL,
+## All Act 1 node IDs (Summoner's Path)
+const ALL_ACT1_NODES: Array[StringName] = [
+	FIRST_TRIAL,
+	SECOND_CHALLENGE,
+	CARAVAN_01,
+	THIRD_TRIAL,
+	PATH_FORK,
+	ELITE_BATTLE_01,
+	STANDARD_BATTLE_01,
+	ACT1_BOSS,
 ]
 
-## All tutorial battle IDs
+## All tutorial battle IDs (battles with is_tutorial: true)
 const ALL_TUTORIALS: Array[StringName] = [
 	FIRST_TRIAL,
-	CHARGE_TUTORIAL,
+	SECOND_CHALLENGE,
 ]
 
-## All campaign battle IDs
-const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
+## All test arena battle IDs
+const ALL_TEST_ARENA_NODES: Array[StringName] = [
 	ARENA_EARTH_SPRITE,
 	ARENA_PUFF,
 	ARENA_FIRE_ELEMENTAL,
@@ -89,12 +99,11 @@ const ALL_CAMPAIGN_BATTLES: Array[StringName] = [
 	ARENA_MANA_BOLT,
 ]
 
-## All battle IDs (events + tutorials + campaign)
+## All battle IDs (campaign + test arena)
 static func all_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
-	result.append_array(ALL_EVENTS)
-	result.append_array(ALL_TUTORIALS)
-	result.append_array(ALL_CAMPAIGN_BATTLES)
+	result.append_array(ALL_ACT1_NODES)
+	result.append_array(ALL_TEST_ARENA_NODES)
 	return result
 
 ## Check if a battle ID is valid
@@ -102,12 +111,12 @@ static func all_ids() -> Array[StringName]:
 static func is_valid(battle_id: String) -> bool:
 	return StringName(battle_id) in all_ids()
 
-## Check if a battle ID is an event (non-combat)
-## Accepts String or StringName
-static func is_event(battle_id: String) -> bool:
-	return StringName(battle_id) in ALL_EVENTS
-
 ## Check if a battle ID is a tutorial battle
 ## Accepts String or StringName
 static func is_tutorial(battle_id: String) -> bool:
 	return StringName(battle_id) in ALL_TUTORIALS
+
+## Check if a battle ID is a test arena battle
+## Accepts String or StringName
+static func is_test_arena(battle_id: String) -> bool:
+	return StringName(battle_id) in ALL_TEST_ARENA_NODES

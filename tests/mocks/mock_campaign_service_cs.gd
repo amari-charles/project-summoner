@@ -15,6 +15,7 @@ signal CampaignChanged(old_campaign_id: String, new_campaign_id: String)
 ## Internal state
 var _campaigns: Dictionary = {}  # campaign_id -> campaign data
 var _battles: Dictionary = {}    # battle_id -> battle data with campaign_id
+var _edges: Array = []           # edges for current campaign (graph-based unlock)
 var _completed_battles: Array = []
 var _current_campaign_id: String = ""
 var _pending_reward: Dictionary = {}
@@ -40,6 +41,7 @@ var _calls: Dictionary = {}
 func reset() -> void:
 	_campaigns.clear()
 	_battles.clear()
+	_edges.clear()
 	_completed_battles.clear()
 	_current_campaign_id = ""
 	_pending_reward = {}
@@ -121,6 +123,14 @@ func SetCurrentCampaign(campaign_id: String) -> void:
 	_record_call("SetCurrentCampaign", [campaign_id])
 	var old_id: String = _current_campaign_id
 	_current_campaign_id = campaign_id
+
+	# Load edges for current campaign (graph-based unlock logic)
+	_edges.clear()
+	var campaign: Dictionary = _campaigns.get(campaign_id, {})
+	var edges_array: Variant = campaign.get("edges", [])
+	if edges_array is Array:
+		_edges = edges_array.duplicate()
+
 	LoadProgress()
 	if old_id != campaign_id:
 		CampaignChanged.emit(old_id, campaign_id)
@@ -131,14 +141,7 @@ func LoadProgress() -> void:
 	if _profile_repo == null:
 		return
 
-	var campaign: Dictionary = _campaigns.get(_current_campaign_id, {})
-	var is_shared: bool = campaign.get("is_shared", false)
-
-	var progress: Dictionary
-	if is_shared:
-		progress = _profile_repo.get_shared_campaign_progress()
-	else:
-		progress = _profile_repo.get_campaign_progress()
+	var progress: Dictionary = _profile_repo.get_campaign_progress()
 
 	_completed_battles = progress.get("completed_battles", []).duplicate()
 	_pending_reward = progress.get("pending_reward", {}).duplicate()
@@ -153,20 +156,12 @@ func SaveProgress() -> void:
 	if _profile_repo == null:
 		return
 
-	var campaign: Dictionary = _campaigns.get(_current_campaign_id, {})
-	var is_shared: bool = campaign.get("is_shared", false)
-
 	var progress: Dictionary = {
 		"completed_battles": _completed_battles.duplicate(),
 		"pending_reward": _pending_reward.duplicate() if not _pending_reward.is_empty() else {}
 	}
 
-	# Save to profile (this will trigger data_changed which calls NotifyProgressChanged)
-	# So we don't emit CampaignProgressChanged here to avoid double emission
-	if is_shared:
-		_profile_repo.update_shared_campaign_progress(progress)
-	else:
-		_profile_repo.update_campaign_progress(progress)
+	_profile_repo.update_campaign_progress(progress)
 
 	# Note: Signal is emitted via data_changed -> _on_profile_data_changed -> NotifyProgressChanged
 	# Don't emit here to avoid double emission
@@ -223,10 +218,6 @@ func _is_campaign_completed(campaign_id: String) -> bool:
 	return battles.size() > 0
 
 
-func IsOnboardingComplete() -> bool:
-	return _is_campaign_completed(String(CampaignIDs.ONBOARDING))
-
-
 ## =============================================================================
 ## BATTLE QUERIES
 ## =============================================================================
@@ -252,17 +243,81 @@ func IsBattleCompleted(battle_id: String) -> bool:
 
 
 func IsBattleUnlocked(battle_id: String) -> bool:
-	var battle: Dictionary = _battles.get(battle_id, {})
-	var unlock_requirements: Array = battle.get("unlock_requirements", [])
+	# Graph-based unlock logic (matches NodeUnlockHandler in C#)
+	# A node is unlocked if ANY incoming edge is satisfied (OR logic)
+	# Start nodes (no incoming edges) are always unlocked
 
-	if unlock_requirements.is_empty():
+	# Get incoming edges for this node
+	var incoming_edges: Array = _get_incoming_edges(battle_id)
+
+	# No incoming edges = start node, always unlocked
+	if incoming_edges.is_empty():
 		return true
 
-	for req_id: Variant in unlock_requirements:
-		if String(req_id) not in _completed_battles:
-			return false
+	# Check if ANY incoming edge is satisfied
+	for edge: Variant in incoming_edges:
+		if edge is Dictionary and _is_edge_satisfied(edge):
+			return true
 
+	return false
+
+
+func _get_incoming_edges(node_id: String) -> Array:
+	var result: Array = []
+	for edge: Variant in _edges:
+		if edge is Dictionary:
+			var to_id: String = edge.get("to", "")
+			if to_id == node_id:
+				result.append(edge)
+	return result
+
+
+func _get_outgoing_edges(node_id: String) -> Array:
+	var result: Array = []
+	for edge: Variant in _edges:
+		if edge is Dictionary:
+			var from_id: String = edge.get("from", "")
+			if from_id == node_id:
+				result.append(edge)
+	return result
+
+
+func _is_edge_satisfied(edge: Dictionary) -> bool:
+	# Source node must be completed
+	var from_id: String = edge.get("from", "")
+	if from_id not in _completed_battles:
+		return false
+
+	# Check edge condition (if any)
+	var condition: Variant = edge.get("condition")
+	if condition is Dictionary:
+		return _evaluate_condition(condition, from_id)
+
+	# No condition, just requires source completion
 	return true
+
+
+func _evaluate_condition(condition: Dictionary, source_node_id: String) -> bool:
+	# Handle shorthand format: {"choice": "elite"}
+	if condition.has("choice"):
+		var required_value: String = condition.get("choice", "")
+		var choice_made: String = _choices.get(source_node_id, "")
+		return choice_made == required_value
+
+	# Handle full format: {"type": "choice", "value": "elite", "node_id": "optional"}
+	var condition_type: String = condition.get("type", "")
+	var required_value: String = condition.get("value", "")
+	var choice_node_id: String = condition.get("node_id", source_node_id)
+
+	match condition_type:
+		"choice":
+			var choice_made: String = _choices.get(choice_node_id, "")
+			return choice_made == required_value
+		"completed":
+			return choice_node_id in _completed_battles
+		_:
+			# Unknown condition type = pass
+			return true
 
 
 func GetAvailableBattles() -> Array:
@@ -324,26 +379,25 @@ func CompleteBattleWithoutReward(battle_id: String) -> void:
 
 
 func _check_unlocked_battles() -> void:
-	var campaign: Dictionary = _campaigns.get(_current_campaign_id, {})
-	var battles: Array = campaign.get("battles", [])
+	# Graph-based unlock checking (matches NodeUnlockHandler.GetNewlyUnlockedNodes)
+	# Find nodes that were just unlocked by the last completion
+	var last_completed: String = ""
+	if _completed_battles.size() > 0:
+		last_completed = _completed_battles[_completed_battles.size() - 1]
 
-	for battle_variant: Variant in battles:
-		if not battle_variant is Dictionary:
+	if last_completed.is_empty():
+		return
+
+	# Get all nodes that have edges from the completed node
+	var outgoing_edges: Array = _get_outgoing_edges(last_completed)
+	for edge: Variant in outgoing_edges:
+		if not edge is Dictionary:
 			continue
-		var battle: Dictionary = battle_variant
-		var battle_id: String = battle.get("id", "")
+		var to_id: String = edge.get("to", "")
 
-		if not IsBattleCompleted(battle_id) and IsBattleUnlocked(battle_id):
-			# Check if it was just unlocked (all requirements now met)
-			var unlock_reqs: Array = battle.get("unlock_requirements", [])
-			if unlock_reqs.size() > 0:
-				var all_just_completed: bool = true
-				for req_id: Variant in unlock_reqs:
-					if String(req_id) not in _completed_battles:
-						all_just_completed = false
-						break
-				if all_just_completed:
-					BattleUnlocked.emit(battle_id)
+		# Check if this node is now unlocked and not completed
+		if IsBattleUnlocked(to_id) and not IsBattleCompleted(to_id):
+			BattleUnlocked.emit(to_id)
 
 
 ## =============================================================================
@@ -409,14 +463,40 @@ func GrantBattleReward(battle_id: String, chosen_index: int = 0) -> Dictionary:
 		_add_campaign_gold.call(gold_reward)
 		result["gold"] = gold_reward
 
-	# Grant cards
+	# Grant cards - handle both fixed (reward_cards) and flexible (reward_options)
 	var reward_cards: Array = battle.get("reward_cards", [])
-	for card_variant: Variant in reward_cards:
-		if not card_variant is Dictionary:
-			continue
-		var card: Dictionary = card_variant
-		var catalog_id: String = card.get("catalog_id", "")
-		var rarity: String = card.get("rarity", "common")
+	var reward_options: Array = battle.get("reward_options", [])
+
+	if reward_cards.size() > 0:
+		# Fixed reward - grant all cards
+		for card_variant: Variant in reward_cards:
+			if not card_variant is Dictionary:
+				continue
+			var card: Dictionary = card_variant
+			var catalog_id: String = card.get("catalog_id", "")
+			var rarity: String = card.get("rarity", "common")
+
+			if not catalog_id.is_empty() and _grant_card.is_valid():
+				var instance_id: String = _grant_card.call(catalog_id, rarity)
+				result["cards"].append({
+					"catalog_id": catalog_id,
+					"instance_id": instance_id,
+					"rarity": rarity
+				})
+	elif reward_options.size() > 0:
+		# Flexible reward - grant the chosen option
+		var safe_index: int = clampi(chosen_index, 0, reward_options.size() - 1)
+		var chosen_option: Variant = reward_options[safe_index]
+
+		# reward_options can be array of card IDs (String or StringName) or dictionaries
+		var catalog_id: String = ""
+		var rarity: String = "common"
+
+		if chosen_option is String or chosen_option is StringName:
+			catalog_id = String(chosen_option)
+		elif chosen_option is Dictionary:
+			catalog_id = String(chosen_option.get("catalog_id", ""))
+			rarity = String(chosen_option.get("rarity", "common"))
 
 		if not catalog_id.is_empty() and _grant_card.is_valid():
 			var instance_id: String = _grant_card.call(catalog_id, rarity)
@@ -462,3 +542,39 @@ func EndCampaign(summoner_id: String, _victory: bool) -> void:
 	_record_call("EndCampaign", [summoner_id, _victory])
 	if _clear_campaign_gold.is_valid():
 		_clear_campaign_gold.call(summoner_id)
+
+
+## =============================================================================
+## CHOICE TRACKING
+## =============================================================================
+
+var _choices: Dictionary = {}  # node_id -> choice_id
+
+func RecordChoice(node_id: String, choice_id: String) -> void:
+	_record_call("RecordChoice", [node_id, choice_id])
+	_choices[node_id] = choice_id
+	SaveProgress()
+
+
+func GetChoice(node_id: String) -> String:
+	return _choices.get(node_id, "")
+
+
+func HasChoice(node_id: String) -> bool:
+	return _choices.has(node_id)
+
+
+func GetAllChoices() -> Dictionary:
+	return _choices.duplicate()
+
+
+## =============================================================================
+## PROGRESS RESET
+## =============================================================================
+
+func ResetProgress() -> void:
+	_record_call("ResetProgress", [])
+	_completed_battles.clear()
+	_choices.clear()
+	_pending_reward = {}
+	CampaignProgressChanged.emit()

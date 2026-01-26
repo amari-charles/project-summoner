@@ -27,7 +27,6 @@ public class CampaignCatalogHandler
     {
         _store.Campaigns.Clear();
         _store.Battles.Clear();
-        _store.SharedCampaigns.Clear();
 
         foreach (var campaign in campaigns)
         {
@@ -36,12 +35,6 @@ public class CampaignCatalogHandler
                 continue;
 
             _store.Campaigns[campaignId] = campaign;
-
-            // Track shared campaigns
-            if (campaign.GetValueOrDefault("is_shared", false).AsBool())
-            {
-                _store.SharedCampaigns.Add(campaignId);
-            }
 
             // Load battles from campaign
             var battlesArray = campaign.GetValueOrDefault("battles", new Godot.Collections.Array());
@@ -156,43 +149,6 @@ public class CampaignCatalogHandler
         if (_store.Battles.TryGetValue(battleId, out var battle))
             return battle;
         return new Godot.Collections.Dictionary();
-    }
-
-    /// <summary>Check if a battle is unlocked.</summary>
-    public bool IsBattleUnlocked(string battleId)
-    {
-        if (!_store.Battles.TryGetValue(battleId, out var battle))
-            return false;
-
-        var requirements = battle.GetValueOrDefault("unlock_requirements", new Godot.Collections.Array());
-        if (requirements.Obj is not Godot.Collections.Array reqArray || reqArray.Count == 0)
-            return true;
-
-        foreach (var req in reqArray)
-        {
-            var reqStr = req.AsString();
-            if (!_progress.IsBattleCompleted(reqStr))
-                return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>Get all available (unlocked but not completed) battles.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableBattles()
-    {
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-
-        foreach (var battle in GetAllBattles())
-        {
-            var battleId = battle.GetValueOrDefault("id", "").AsString();
-            if (IsBattleUnlocked(battleId) && !_progress.IsBattleCompleted(battleId))
-            {
-                result.Add(battle);
-            }
-        }
-
-        return result;
     }
 
     /// <summary>Get all completed battles.</summary>

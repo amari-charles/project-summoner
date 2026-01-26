@@ -77,10 +77,6 @@ func _on_summoner_selected(summoner_id: String) -> void:
 	# Update starter deck with selected summoner
 	_assign_summoner_to_starter_deck(final_summoner_id)
 
-	# Mark affinity selection event as completed
-	Campaign.complete_battle(BattleIDs.EVENT_AFFINITY)
-	print("SummonerSelection: Marked affinity selection as completed!")
-
 	# Transition to reveal scene (summoner data already saved in ProfileRepo)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_REVEAL)
 

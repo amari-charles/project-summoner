@@ -39,6 +39,11 @@ public partial class CampaignService : Node
 	private CampaignRewardHandler? _rewards;
 	private TutorialHandler? _tutorial;
 
+	// Graph handlers (for node-based campaigns)
+	private CampaignGraphStore? _graphStore;
+	private NodeUnlockHandler? _nodeUnlockHandler;
+	private ChoiceTracker? _choiceTracker;
+
 	// Callbacks for GDScript dependencies
 	private Func<int>? _getCampaignGoldFunc;
 	private Action<int>? _addCampaignGoldFunc;
@@ -80,8 +85,13 @@ public partial class CampaignService : Node
 		// Create shared data store
 		_store = new CampaignDataStore();
 
+		// Create graph handlers first (progress handler depends on them)
+		_graphStore = new CampaignGraphStore();
+		_choiceTracker = new ChoiceTracker();
+		_nodeUnlockHandler = new NodeUnlockHandler(_graphStore, _choiceTracker);
+
 		// Create handlers (order matters - some depend on others)
-		_progress = new CampaignProgressHandler(_profileRepo, _store, GetActiveSummonerId);
+		_progress = new CampaignProgressHandler(_profileRepo, _store, GetActiveSummonerId, _choiceTracker, _graphStore);
 		_catalog = new CampaignCatalogHandler(_store, _progress);
 		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
 		_tutorial = new TutorialHandler(_store, _catalog, _progress);
@@ -145,6 +155,9 @@ public partial class CampaignService : Node
 	public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
 	{
 		_catalog?.LoadCampaignsFromGDScript(campaigns);
+
+		// Also load graphs for node-based unlock logic
+		_graphStore?.LoadGraphsFromGDScript(campaigns);
 	}
 
 	/// <summary>Set the current campaign ID.</summary>
@@ -152,6 +165,7 @@ public partial class CampaignService : Node
 	{
 		var oldId = _store?.CurrentCampaignId ?? "";
 		_progress?.SetCurrentCampaign(campaignId);
+		_graphStore?.SetCurrentCampaign(campaignId);
 
 		if (oldId != campaignId)
 		{
@@ -170,6 +184,12 @@ public partial class CampaignService : Node
 	public void LoadProgress()
 	{
 		_progress?.LoadProgress();
+
+		// Sync completed nodes to graph store for unlock evaluation
+		if (_graphStore != null && _store != null)
+		{
+			_graphStore.LoadCompletedNodes(_store.CompletedBattles);
+		}
 	}
 
 	/// <summary>Save progress to profile repository.</summary>
@@ -178,8 +198,6 @@ public partial class CampaignService : Node
 		_progress?.SaveProgress();
 	}
 
-	/// <summary>Check if a campaign uses shared (account-wide) progress.</summary>
-	public bool IsSharedCampaign(string campaignId) => _store?.IsSharedCampaign(campaignId) ?? false;
 
 	// =========================================================================
 	// CAMPAIGN QUERIES (delegates to CampaignCatalogHandler)
@@ -231,16 +249,30 @@ public partial class CampaignService : Node
 		return _progress?.IsBattleCompleted(battleId) ?? false;
 	}
 
-	/// <summary>Check if a battle is unlocked.</summary>
+	/// <summary>Check if a node is unlocked using graph-based unlock logic.</summary>
 	public bool IsBattleUnlocked(string battleId)
 	{
-		return _catalog?.IsBattleUnlocked(battleId) ?? false;
+		return _nodeUnlockHandler?.IsNodeUnlocked(battleId) ?? false;
 	}
 
-	/// <summary>Get all available (unlocked but not completed) battles.</summary>
+	/// <summary>Get all available (unlocked but not completed) nodes.</summary>
 	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableBattles()
 	{
-		return _catalog?.GetAvailableBattles() ?? [];
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+		foreach (Godot.Collections.Dictionary battle in GetAllBattles())
+		{
+			if (battle.TryGetValue("id", out var idValue))
+			{
+				var battleId = idValue.AsString();
+				if (IsBattleUnlocked(battleId) && !IsBattleCompleted(battleId))
+				{
+					result.Add(battle);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	/// <summary>Get all completed battles.</summary>
@@ -285,6 +317,10 @@ public partial class CampaignService : Node
 	public void CompleteBattle(string battleId)
 	{
 		_progress?.CompleteBattle(battleId);
+
+		// Also mark as completed in graph store for unlock evaluation
+		_graphStore?.CompleteNode(battleId);
+
 		EmitSignal(SignalName.BattleCompleted, battleId);
 
 		// Check for newly unlocked battles
@@ -397,20 +433,58 @@ public partial class CampaignService : Node
 		}
 	}
 
-	// =========================================================================
-	// ONBOARDING
-	// =========================================================================
-
-	/// <summary>Check if onboarding is complete.</summary>
-	public bool IsOnboardingComplete()
-	{
-		return _progress?.IsOnboardingComplete() ?? false;
-	}
-
 	/// <summary>Notify that progress changed.</summary>
 	public void NotifyProgressChanged()
 	{
 		EmitSignal(SignalName.CampaignProgressChanged);
+	}
+
+	// =========================================================================
+	// CHOICE RECORDING (for branching paths)
+	// =========================================================================
+
+	/// <summary>Record a choice made at a choice node.</summary>
+	public void RecordChoice(string nodeId, string choiceId)
+	{
+		_choiceTracker?.RecordChoice(nodeId, choiceId);
+
+		// Save progress to persist the choice
+		SaveProgress();
+
+		GD.Print($"CampaignService: Recorded choice '{choiceId}' at node '{nodeId}'");
+	}
+
+	/// <summary>Get the choice made at a specific node.</summary>
+	public string GetChoice(string nodeId)
+	{
+		return _choiceTracker?.GetChoice(nodeId) ?? "";
+	}
+
+	/// <summary>Check if a choice has been made at a specific node.</summary>
+	public bool HasChoice(string nodeId)
+	{
+		return _choiceTracker?.HasChoice(nodeId) ?? false;
+	}
+
+	/// <summary>Get all choices as a dictionary (for serialization).</summary>
+	public Godot.Collections.Dictionary GetAllChoices()
+	{
+		return _choiceTracker?.ToGodotDictionary() ?? [];
+	}
+
+	// =========================================================================
+	// PROGRESS RESET
+	// =========================================================================
+
+	/// <summary>Reset all campaign progress for the current summoner.</summary>
+	public void ResetProgress()
+	{
+		_progress?.ResetProgress();
+		_graphStore?.ClearProgress();
+
+		EmitSignal(SignalName.CampaignProgressChanged);
+
+		GD.Print("CampaignService: Progress reset for current summoner");
 	}
 
 	// =========================================================================

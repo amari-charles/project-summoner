@@ -27,6 +27,10 @@ public class CampaignProgress
     /// <summary>Campaign gold (currency during campaign runs).</summary>
     [JsonPropertyName("gold")]
     public int Gold { get; set; }
+
+    /// <summary>Choices made at choice nodes (node_id -> choice_id).</summary>
+    [JsonPropertyName("choices")]
+    public Dictionary<string, string> Choices { get; set; } = [];
 }
 
 /// <summary>

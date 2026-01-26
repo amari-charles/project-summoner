@@ -52,18 +52,10 @@ func _refresh_campaign_list() -> void:
 	var campaigns: Array = Campaign.get_all_campaigns()
 	var current_id: String = Campaign.get_current_campaign_id()
 
-	# Check if onboarding is complete
-	var onboarding_complete: bool = Campaign.is_onboarding_complete()
-
 	for campaign_variant: Variant in campaigns:
 		if not campaign_variant is Dictionary:
 			continue
 		var campaign: Dictionary = campaign_variant
-		var campaign_id: String = campaign.get("campaign_id", "")
-
-		# Hide onboarding campaign once complete
-		if campaign_id == String(CampaignIDs.ONBOARDING) and onboarding_complete:
-			continue
 
 		var item: Control = _create_campaign_item(campaign, current_id)
 		campaign_list.add_child(item)

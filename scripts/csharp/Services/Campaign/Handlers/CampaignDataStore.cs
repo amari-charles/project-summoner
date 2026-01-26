@@ -14,9 +14,6 @@ public class CampaignDataStore
     /// <summary>Battle data indexed by battle_id (across all campaigns).</summary>
     public Dictionary<string, Godot.Collections.Dictionary> Battles { get; } = [];
 
-    /// <summary>Set of campaign IDs that use shared (account-wide) progress.</summary>
-    public HashSet<string> SharedCampaigns { get; } = [];
-
     /// <summary>Current campaign ID.</summary>
     public string CurrentCampaignId { get; set; } = "";
 
@@ -28,11 +25,7 @@ public class CampaignDataStore
     {
         Campaigns.Clear();
         Battles.Clear();
-        SharedCampaigns.Clear();
         CompletedBattles.Clear();
         CurrentCampaignId = "";
     }
-
-    /// <summary>Check if a campaign uses shared (account-wide) progress.</summary>
-    public bool IsSharedCampaign(string campaignId) => SharedCampaigns.Contains(campaignId);
 }
