@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://c5xqd8m2pw3kp"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Services/PlayerCardService.cs" id="1_service"]
-
-[node name="PlayerCardService" type="Node"]
-script = ExtResource("1_service")

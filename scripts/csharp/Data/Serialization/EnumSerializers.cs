@@ -1,7 +1,7 @@
 using System;
 using Godot;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Domain.Profile.Enums;
+using ProjectSummoner.Domain.Profile.Inventory;
 
 namespace ProjectSummoner.Data.Serialization;
 

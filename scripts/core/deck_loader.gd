@@ -19,7 +19,7 @@ static func load_deck_for_battle(deck_id: String) -> Dictionary:
 
 	# Get services
 	var decks: Variant = _get_autoload("Decks")
-	var collection: Variant = _get_autoload("Collection")
+	var collection: Variant = _get_autoload("CardServiceCS")
 	var summoner_catalog: Variant = _get_autoload("SummonerCatalog")
 
 	if not decks or not collection:

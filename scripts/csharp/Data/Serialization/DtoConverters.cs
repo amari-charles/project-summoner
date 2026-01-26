@@ -1,22 +1,28 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Domain.Profile;
+using ProjectSummoner.Domain.Profile.Account;
+using ProjectSummoner.Domain.Profile.Campaign;
+using ProjectSummoner.Domain.Profile.Collection;
+using ProjectSummoner.Domain.Profile.Decks;
+using ProjectSummoner.Domain.Profile.Enums;
+using ProjectSummoner.Domain.Profile.Inventory;
+using ProjectSummoner.Domain.Profile.Summoners;
 
 namespace ProjectSummoner.Data.Serialization;
 
 /// <summary>
 /// Centralized converters for Godot.Collections.Dictionary ↔ Domain model conversions.
-/// All ProfileRepositoryBridge conversion logic is consolidated here for consistency and testability.
+/// All ProfileRepository conversion logic is consolidated here for consistency and testability.
 /// </summary>
 public static class DtoConverters
 {
     // =========================================================================
-    // SummonerInstanceData
+    // SummonerInstance
     // =========================================================================
 
-    /// <summary>Convert SummonerInstanceData to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(SummonerInstanceData instance)
+    /// <summary>Convert SummonerInstance to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(SummonerInstance instance)
     {
         var equippedDict = new Godot.Collections.Dictionary();
         foreach (var (slot, itemId) in instance.EquippedItems)
@@ -35,10 +41,10 @@ public static class DtoConverters
     }
 
     /// <summary>
-    /// Convert Godot Dictionary to SummonerInstanceData.
+    /// Convert Godot Dictionary to SummonerInstance.
     /// Returns null if dict is empty or missing required fields.
     /// </summary>
-    public static SummonerInstanceData? FromSummonerDict(Godot.Collections.Dictionary? dict)
+    public static SummonerInstance? FromSummonerDict(Godot.Collections.Dictionary? dict)
     {
         if (dict == null || dict.Count == 0) return null;
 
@@ -81,7 +87,7 @@ public static class DtoConverters
             }
         }
 
-        return new SummonerInstanceData
+        return new SummonerInstance
         {
             SummonerId = summonerId,
             Level = GetInt(dict, "level", 1),
@@ -92,11 +98,11 @@ public static class DtoConverters
     }
 
     // =========================================================================
-    // CardInstanceData
+    // CardInstance
     // =========================================================================
 
-    /// <summary>Convert CardInstanceData to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(CardInstanceData card)
+    /// <summary>Convert CardInstance to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(CardInstance card)
     {
         var dict = new Godot.Collections.Dictionary
         {
@@ -121,10 +127,10 @@ public static class DtoConverters
     }
 
     /// <summary>
-    /// Convert Godot Dictionary to CardInstanceData.
+    /// Convert Godot Dictionary to CardInstance.
     /// Returns null if dict is empty or missing required fields.
     /// </summary>
-    public static CardInstanceData? FromCardDict(Godot.Collections.Dictionary? dict)
+    public static CardInstance? FromCardDict(Godot.Collections.Dictionary? dict)
     {
         if (dict == null || dict.Count == 0) return null;
 
@@ -149,7 +155,7 @@ public static class DtoConverters
             binding = EnumSerializers.DeserializeBinding(bindingVar.AsInt32());
         }
 
-        return new CardInstanceData
+        return new CardInstance
         {
             Id = id,
             CatalogId = catalogId,
@@ -166,11 +172,11 @@ public static class DtoConverters
     }
 
     // =========================================================================
-    // ItemInstanceData
+    // ItemInstance
     // =========================================================================
 
-    /// <summary>Convert ItemInstanceData to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(ItemInstanceData item)
+    /// <summary>Convert ItemInstance to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(ItemInstance item)
     {
         return new Godot.Collections.Dictionary
         {
@@ -183,10 +189,10 @@ public static class DtoConverters
     }
 
     /// <summary>
-    /// Convert Godot Dictionary to ItemInstanceData.
+    /// Convert Godot Dictionary to ItemInstance.
     /// Returns null if dict is empty or missing required fields.
     /// </summary>
-    public static ItemInstanceData? FromItemDict(Godot.Collections.Dictionary? dict)
+    public static ItemInstance? FromItemDict(Godot.Collections.Dictionary? dict)
     {
         if (dict == null || dict.Count == 0) return null;
 
@@ -194,7 +200,7 @@ public static class DtoConverters
         var catalogId = GetRequiredString(dict, "catalog_id");
         if (id == null || catalogId == null) return null;
 
-        return new ItemInstanceData
+        return new ItemInstance
         {
             Id = id,
             CatalogId = catalogId,
@@ -205,11 +211,11 @@ public static class DtoConverters
     }
 
     // =========================================================================
-    // DeckData
+    // Deck
     // =========================================================================
 
-    /// <summary>Convert DeckData to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(DeckData deck)
+    /// <summary>Convert Deck to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(Deck deck)
     {
         return new Godot.Collections.Dictionary
         {
@@ -225,10 +231,10 @@ public static class DtoConverters
     }
 
     /// <summary>
-    /// Convert Godot Dictionary to DeckData.
+    /// Convert Godot Dictionary to Deck.
     /// Returns null if dict is empty or missing required fields.
     /// </summary>
-    public static DeckData? FromDeckDict(Godot.Collections.Dictionary? dict)
+    public static Deck? FromDeckDict(Godot.Collections.Dictionary? dict)
     {
         if (dict == null || dict.Count == 0) return null;
 
@@ -246,7 +252,7 @@ public static class DtoConverters
             }
         }
 
-        return new DeckData
+        return new Deck
         {
             Id = id,
             ProfileId = GetString(dict, "profile_id", ""),
@@ -260,11 +266,11 @@ public static class DtoConverters
     }
 
     // =========================================================================
-    // CampaignProgressData
+    // CampaignProgress
     // =========================================================================
 
-    /// <summary>Convert CampaignProgressData to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(CampaignProgressData progress)
+    /// <summary>Convert CampaignProgress to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(CampaignProgress progress)
     {
         return new Godot.Collections.Dictionary
         {
@@ -275,13 +281,13 @@ public static class DtoConverters
     }
 
     /// <summary>
-    /// Convert Godot Dictionary to CampaignProgressData.
+    /// Convert Godot Dictionary to CampaignProgress.
     /// Returns null if dict is null (but empty dict returns default data).
     /// </summary>
-    public static CampaignProgressData? FromCampaignDict(Godot.Collections.Dictionary? dict)
+    public static CampaignProgress? FromCampaignDict(Godot.Collections.Dictionary? dict)
     {
         if (dict == null) return null;
-        if (dict.Count == 0) return new CampaignProgressData();
+        if (dict.Count == 0) return new CampaignProgress();
 
         var completed = new List<string>();
         if (dict.TryGetValue("completed_battles", out var completedVar))
@@ -293,7 +299,7 @@ public static class DtoConverters
             }
         }
 
-        return new CampaignProgressData
+        return new CampaignProgress
         {
             CompletedBattles = completed,
             CurrentBattle = GetNullableString(dict, "current_battle"),
@@ -326,7 +332,7 @@ public static class DtoConverters
         if (dict.TryGetValue("resources", out var resourcesVar) && resourcesVar.VariantType == Variant.Type.Dictionary)
         {
             var resourcesDict = resourcesVar.AsGodotDictionary();
-            profileData.Resources = new ResourceData
+            profileData.Resources = new Resources
             {
                 Gold = GetInt(resourcesDict, "gold", 0),
                 Gems = GetInt(resourcesDict, "gems", 0),

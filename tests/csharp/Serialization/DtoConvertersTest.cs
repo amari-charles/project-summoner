@@ -3,9 +3,13 @@ namespace ProjectSummoner.Tests.Serialization;
 using System.Collections.Generic;
 using GdUnit4;
 using Godot;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Profile;
 using ProjectSummoner.Data.Serialization;
+using ProjectSummoner.Domain.Profile.Campaign;
+using ProjectSummoner.Domain.Profile.Collection;
+using ProjectSummoner.Domain.Profile.Decks;
+using ProjectSummoner.Domain.Profile.Enums;
+using ProjectSummoner.Domain.Profile.Inventory;
+using ProjectSummoner.Domain.Profile.Summoners;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -15,13 +19,13 @@ using static GdUnit4.Assertions;
 public class DtoConvertersTest
 {
     // =========================================================================
-    // SummonerInstanceData Tests
+    // SummonerInstance Tests
     // =========================================================================
 
     [TestCase]
     public void SummonerInstance_RoundTrip_PreservesAllFields()
     {
-        var original = new SummonerInstanceData
+        var original = new SummonerInstance
         {
             SummonerId = "summoner_fire",
             Level = 5,
@@ -78,13 +82,13 @@ public class DtoConvertersTest
     }
 
     // =========================================================================
-    // CardInstanceData Tests
+    // CardInstance Tests
     // =========================================================================
 
     [TestCase]
     public void CardInstance_RoundTrip_PreservesAllFields()
     {
-        var original = new CardInstanceData
+        var original = new CardInstance
         {
             Id = "card_001",
             CatalogId = "fire_elemental",
@@ -137,7 +141,7 @@ public class DtoConvertersTest
     [TestCase]
     public void CardInstance_ToDict_SerializesBindingAsInt()
     {
-        var card = new CardInstanceData
+        var card = new CardInstance
         {
             Id = "card_001",
             CatalogId = "test",
@@ -149,13 +153,13 @@ public class DtoConvertersTest
     }
 
     // =========================================================================
-    // ItemInstanceData Tests
+    // ItemInstance Tests
     // =========================================================================
 
     [TestCase]
     public void ItemInstance_RoundTrip_PreservesAllFields()
     {
-        var original = new ItemInstanceData
+        var original = new ItemInstance
         {
             Id = "item_001",
             CatalogId = "sword_of_fire",
@@ -178,7 +182,7 @@ public class DtoConvertersTest
     [TestCase]
     public void ItemInstance_RoundTrip_HandlesNullSlot()
     {
-        var original = new ItemInstanceData
+        var original = new ItemInstance
         {
             Id = "item_001",
             CatalogId = "ring_of_power",
@@ -195,7 +199,7 @@ public class DtoConvertersTest
     [TestCase]
     public void ItemInstance_ToDict_SerializesSlotAsString()
     {
-        var item = new ItemInstanceData
+        var item = new ItemInstance
         {
             Id = "item_001",
             CatalogId = "test",
@@ -207,13 +211,13 @@ public class DtoConvertersTest
     }
 
     // =========================================================================
-    // DeckData Tests
+    // Deck Tests
     // =========================================================================
 
     [TestCase]
     public void Deck_RoundTrip_PreservesAllFields()
     {
-        var original = new DeckData
+        var original = new Deck
         {
             Id = "deck_001",
             ProfileId = "profile_123",
@@ -260,13 +264,13 @@ public class DtoConvertersTest
     }
 
     // =========================================================================
-    // CampaignProgressData Tests
+    // CampaignProgress Tests
     // =========================================================================
 
     [TestCase]
     public void CampaignProgress_RoundTrip_PreservesAllFields()
     {
-        var original = new CampaignProgressData
+        var original = new CampaignProgress
         {
             CompletedBattles = ["battle_1", "battle_2"],
             CurrentBattle = "battle_3",

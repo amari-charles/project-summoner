@@ -4,9 +4,10 @@ using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Constants;
-using ProjectSummoner.Data.Profile;
 using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Services.Profile;
+using ProjectSummoner.Domain.Profile.Enums;
+using ProjectSummoner.Domain.Profile.Summoners;
+using ProjectSummoner.Infrastructure.Persistence;
 
 namespace ProjectSummoner.Services.Rewards;
 
@@ -45,18 +46,18 @@ public partial class RewardService : Node
     public override void _Ready()
     {
         Instance = this;
-        CallDeferred(nameof(Initialize));
+        Initialize();
     }
 
     private void Initialize()
     {
         GD.Print("RewardService: Initializing...");
 
-        _profileRepo = ProfileRepositoryBridge.Instance;
+        _profileRepo = ProfileRepository.Instance;
 
         if (_profileRepo == null)
         {
-            GD.PushError("RewardService: ProfileRepositoryBridge.Instance not available");
+            GD.PushError("RewardService: ProfileRepository.Instance not available");
             return;
         }
 
@@ -305,7 +306,7 @@ public partial class RewardService : Node
                     else
                     {
                         // Create SummonerInstance for the new summoner
-                        var instance = new SummonerInstanceData
+                        var instance = new SummonerInstance
                         {
                             SummonerId = summonerIdToGrant,
                             Level = 1,
@@ -506,7 +507,7 @@ public partial class RewardService : Node
         }
 
         // Create instance
-        var instance = new SummonerInstanceData
+        var instance = new SummonerInstance
         {
             SummonerId = summonerId,
             Level = 1,

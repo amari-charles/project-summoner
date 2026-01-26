@@ -49,7 +49,7 @@ func _ready() -> void:
 	if economy_service == null:
 		economy_service = Economy
 	if collection_service == null:
-		collection_service = Collection
+		collection_service = CardServiceCS
 
 	# Connect to C# service signals
 	_cs_service.BattleCompleted.connect(_on_cs_battle_completed)

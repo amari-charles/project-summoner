@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Profile;
-using ProjectSummoner.Data.Serialization;
-using ProjectSummoner.Services.Profile;
+using ProjectSummoner.Infrastructure.Persistence;
+using ProjectSummoner.Services.Deck.Handlers;
+using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
 
 namespace ProjectSummoner.Services.Deck;
 
@@ -13,6 +11,8 @@ namespace ProjectSummoner.Services.Deck;
 ///
 /// Provides methods for creating, updating, deleting, and validating decks.
 /// UI and gameplay code should call this, never the repository directly.
+///
+/// Uses Facade + Handlers pattern for clean separation of concerns.
 /// </summary>
 [GlobalClass]
 public partial class DeckService : Node
@@ -38,6 +38,9 @@ public partial class DeckService : Node
     public delegate void ValidationFailedEventHandler(string deckId, string reason);
 
     private IProfileRepository? _profileRepo;
+    private DeckCrudHandler? _crud;
+    private DeckCardHandler? _cards;
+    private DeckValidationHandler? _validation;
 
     // Func delegate for checking if a card is owned by a summoner (injected from GDScript)
     private Func<string, string, bool>? _cardOwnershipChecker;
@@ -52,20 +55,24 @@ public partial class DeckService : Node
     public override void _Ready()
     {
         Instance = this;
-        CallDeferred(nameof(Initialize));
+        Initialize();
     }
 
     private void Initialize()
     {
         GD.Print("DeckService: Initializing...");
 
-        _profileRepo = ProfileRepositoryBridge.Instance;
+        _profileRepo = ProfileRepository.Instance;
 
         if (_profileRepo == null)
         {
-            GD.PushError("DeckService: ProfileRepositoryBridge.Instance not available");
+            GD.PushError("DeckService: ProfileRepository.Instance not available");
             return;
         }
+
+        _crud = new DeckCrudHandler(_profileRepo);
+        _cards = new DeckCardHandler(_crud, MaxDeckSize);
+        _validation = new DeckValidationHandler(_profileRepo, _crud, MinDeckSize, MaxDeckSize);
 
         _profileRepo.DataChanged += OnRepoDataChanged;
 
@@ -90,6 +97,10 @@ public partial class DeckService : Node
         _profileRepo = repo;
         _cardOwnershipChecker = cardOwnershipChecker;
         _summonerValidator = summonerValidator;
+
+        _crud = new DeckCrudHandler(repo);
+        _cards = new DeckCardHandler(_crud, MaxDeckSize);
+        _validation = new DeckValidationHandler(repo, _crud, MinDeckSize, MaxDeckSize);
     }
 
     /// <summary>Set the card ownership checker (called from GDScript wrapper).</summary>
@@ -113,67 +124,53 @@ public partial class DeckService : Node
     }
 
     // =========================================================================
-    // DECK QUERIES
+    // DECK QUERIES (delegates to DeckCrudHandler)
     // =========================================================================
 
     /// <summary>Get all decks for the current profile.</summary>
-    public DeckData[] ListDecks()
+    public DeckModel[] ListDecks()
     {
-        if (_profileRepo == null) return [];
-        return _profileRepo.ListDecks();
+        return _crud?.ListDecks() ?? [];
     }
 
     /// <summary>Get a specific deck by ID.</summary>
-    public DeckData? GetDeck(string deckId)
+    public DeckModel? GetDeck(string deckId)
     {
-        if (_profileRepo == null) return null;
-        return _profileRepo.GetDeck(deckId);
+        return _crud?.GetDeck(deckId);
     }
 
     /// <summary>Check if a deck exists.</summary>
     public bool HasDeck(string deckId)
     {
-        return GetDeck(deckId) != null;
+        return _crud?.HasDeck(deckId) ?? false;
     }
 
     /// <summary>Get deck count.</summary>
     public int GetDeckCount()
     {
-        return ListDecks().Length;
+        return _crud?.GetDeckCount() ?? 0;
     }
 
     /// <summary>Get the active deck ID (the deck used for battles).</summary>
     public string GetActiveDeckId()
     {
-        if (_profileRepo == null) return "";
-        var profile = _profileRepo.GetProfileSnapshot();
-        return profile?.Meta.SelectedDeck ?? "";
+        return _crud?.GetActiveDeckId() ?? "";
     }
 
     /// <summary>Set the active deck. Returns true if successful.</summary>
     public bool SetActiveDeck(string deckId)
     {
-        if (_profileRepo == null) return false;
-
-        if (!string.IsNullOrEmpty(deckId) && !HasDeck(deckId))
-            return false;
-
-        var profile = _profileRepo.GetProfileSnapshot();
-        if (profile == null) return false;
-
-        profile.Meta.SelectedDeck = deckId;
-        _profileRepo.SaveProfile(immediate: false);
-        return true;
+        return _crud?.SetActiveDeck(deckId) ?? false;
     }
 
     /// <summary>Get all decks for a specific summoner.</summary>
-    public DeckData[] ListDecksForSummoner(string summonerId)
+    public DeckModel[] ListDecksForSummoner(string summonerId)
     {
-        return ListDecks().Where(d => d.SummonerId == summonerId).ToArray();
+        return _crud?.ListDecksForSummoner(summonerId) ?? [];
     }
 
     // =========================================================================
-    // DECK OPERATIONS
+    // DECK OPERATIONS (delegates to DeckCrudHandler)
     // =========================================================================
 
     /// <summary>
@@ -182,44 +179,13 @@ public partial class DeckService : Node
     /// </summary>
     public string CreateDeck(string deckName, string[] cardInstanceIds, string summonerId = "")
     {
-        if (_profileRepo == null) return "";
+        var deckId = _crud?.CreateDeck(deckName, cardInstanceIds, summonerId) ?? "";
 
-        // Determine summoner_id
-        var finalSummonerId = summonerId;
-        if (string.IsNullOrEmpty(finalSummonerId))
+        if (!string.IsNullOrEmpty(deckId))
         {
-            // Default to first unlocked summoner
-            var unlocked = _profileRepo.GetUnlockedSummoners();
-            if (unlocked.Length == 0)
-            {
-                GD.PushError("DeckService: Cannot create deck - no summoners unlocked");
-                return "";
-            }
-            finalSummonerId = unlocked[0];
+            EmitSignal(SignalName.DeckCreated, deckId);
+            EmitSignal(SignalName.DeckChanged, deckId);
         }
-        else
-        {
-            // Validate summoner is unlocked
-            if (!_profileRepo.IsSummonerUnlocked(finalSummonerId))
-            {
-                GD.PushError($"DeckService: Cannot create deck - summoner not unlocked: {finalSummonerId}");
-                return "";
-            }
-        }
-
-        var deck = new DeckData
-        {
-            Id = "", // Will be assigned by repository
-            Name = deckName,
-            CardInstanceIds = [.. cardInstanceIds],
-            SummonerId = finalSummonerId
-        };
-
-        var deckId = _profileRepo.UpsertDeck(deck);
-
-        GD.Print($"DeckService: Created deck '{deckName}' with summoner '{finalSummonerId}' (id: {deckId})");
-        EmitSignal(SignalName.DeckCreated, deckId);
-        EmitSignal(SignalName.DeckChanged, deckId);
 
         return deckId;
     }
@@ -231,97 +197,69 @@ public partial class DeckService : Node
     /// </summary>
     public bool UpdateDeck(string deckId, string? deckName = null, string[]? cardInstanceIds = null, string? summonerId = null)
     {
-        if (_profileRepo == null) return false;
-
-        var existing = GetDeck(deckId);
-        if (existing == null)
-        {
-            GD.PushWarning($"DeckService: Deck not found: {deckId}");
-            return false;
-        }
-
-        var updated = new DeckData
-        {
-            Id = deckId,
-            Name = !string.IsNullOrEmpty(deckName) ? deckName : existing.Name,
-            CardInstanceIds = cardInstanceIds != null && cardInstanceIds.Length > 0
-                ? [.. cardInstanceIds]
-                : existing.CardInstanceIds,
-            SummonerId = !string.IsNullOrEmpty(summonerId) ? summonerId : existing.SummonerId
-        };
-
-        var resultId = _profileRepo.UpsertDeck(updated);
-
-        if (!string.IsNullOrEmpty(resultId))
-        {
-            GD.Print($"DeckService: Updated deck '{deckId}'");
-            EmitSignal(SignalName.DeckChanged, deckId);
-            return true;
-        }
-
-        GD.PushError($"DeckService: Failed to update deck '{deckId}'");
-        return false;
-    }
-
-    /// <summary>Delete a deck. Returns true if successful.</summary>
-    public bool DeleteDeck(string deckId)
-    {
-        if (_profileRepo == null) return false;
-
-        var success = _profileRepo.DeleteDeck(deckId);
+        var success = _crud?.UpdateDeck(deckId, deckName, cardInstanceIds, summonerId) ?? false;
 
         if (success)
         {
-            GD.Print($"DeckService: Deleted deck '{deckId}'");
-            EmitSignal(SignalName.DeckDeleted, deckId);
-        }
-        else
-        {
-            GD.PushWarning($"DeckService: Failed to delete deck '{deckId}'");
+            EmitSignal(SignalName.DeckChanged, deckId);
         }
 
         return success;
     }
 
+    /// <summary>Delete a deck. Returns true if successful.</summary>
+    public bool DeleteDeck(string deckId)
+    {
+        var success = _crud?.DeleteDeck(deckId) ?? false;
+
+        if (success)
+        {
+            EmitSignal(SignalName.DeckDeleted, deckId);
+        }
+
+        return success;
+    }
+
+    /// <summary>Get the summoner ID for a deck.</summary>
+    public string GetDeckSummoner(string deckId)
+    {
+        return _crud?.GetDeckSummoner(deckId) ?? "";
+    }
+
+    /// <summary>
+    /// Set the summoner for a deck.
+    /// Returns true if successful.
+    /// </summary>
+    public bool SetDeckSummoner(string deckId, string summonerId)
+    {
+        var success = _crud?.SetDeckSummoner(deckId, summonerId, _summonerValidator) ?? false;
+
+        if (success)
+        {
+            EmitSignal(SignalName.DeckChanged, deckId);
+        }
+
+        return success;
+    }
+
+    // =========================================================================
+    // CARD OPERATIONS (delegates to DeckCardHandler)
+    // =========================================================================
+
     /// <summary>
     /// Add a card to a deck.
     /// Returns true if successful.
-    /// Note: Card existence validation must be done by GDScript wrapper.
     /// </summary>
     public bool AddCardToDeck(string deckId, string cardInstanceId)
     {
-        var deck = GetDeck(deckId);
-        if (deck == null)
+        var success = _cards?.AddCardToDeck(deckId, cardInstanceId, _cardOwnershipChecker) ?? false;
+
+        if (success)
         {
-            GD.PushWarning($"DeckService: Deck not found: {deckId}");
-            return false;
+            EmitSignal(SignalName.DeckChanged, deckId);
         }
 
-        // Check max size
-        if (deck.CardInstanceIds.Count >= MaxDeckSize)
-        {
-            GD.PushWarning($"DeckService: Deck is at maximum size ({MaxDeckSize})");
-            return false;
-        }
-
-        // Check if already in deck
-        if (deck.CardInstanceIds.Contains(cardInstanceId))
-        {
-            GD.PushWarning($"DeckService: Card instance already in deck: {cardInstanceId}");
-            return false;
-        }
-
-        // Check if card is owned by the deck's summoner (if checker is available)
-        if (_cardOwnershipChecker != null && !_cardOwnershipChecker(cardInstanceId, deck.SummonerId))
-        {
-            GD.PushWarning($"DeckService: Card instance not owned by summoner '{deck.SummonerId}': {cardInstanceId}");
-            return false;
-        }
-
-        var newCards = deck.CardInstanceIds.ToList();
-        newCards.Add(cardInstanceId);
-
-        return UpdateDeck(deckId, cardInstanceIds: [.. newCards]);
+        return success;
     }
 
     /// <summary>
@@ -330,175 +268,14 @@ public partial class DeckService : Node
     /// </summary>
     public bool RemoveCardFromDeck(string deckId, string cardInstanceId)
     {
-        var deck = GetDeck(deckId);
-        if (deck == null)
+        var success = _cards?.RemoveCardFromDeck(deckId, cardInstanceId) ?? false;
+
+        if (success)
         {
-            GD.PushWarning($"DeckService: Deck not found: {deckId}");
-            return false;
+            EmitSignal(SignalName.DeckChanged, deckId);
         }
 
-        var index = deck.CardInstanceIds.IndexOf(cardInstanceId);
-        if (index == -1)
-        {
-            GD.PushWarning($"DeckService: Card not found in deck: {cardInstanceId}");
-            return false;
-        }
-
-        var newCards = deck.CardInstanceIds.ToList();
-        newCards.RemoveAt(index);
-
-        return UpdateDeck(deckId, cardInstanceIds: [.. newCards]);
-    }
-
-    /// <summary>
-    /// Set the summoner for a deck.
-    /// Returns true if successful.
-    /// Note: Summoner catalog validation must be done by GDScript wrapper.
-    /// </summary>
-    public bool SetDeckSummoner(string deckId, string summonerId)
-    {
-        if (_profileRepo == null) return false;
-
-        var deck = GetDeck(deckId);
-        if (deck == null)
-        {
-            GD.PushWarning($"DeckService: Deck not found: {deckId}");
-            return false;
-        }
-
-        // Validate summoner is valid (if validator is available)
-        if (_summonerValidator != null && !_summonerValidator(summonerId))
-        {
-            GD.PushError($"DeckService: Invalid summoner_id: {summonerId}");
-            return false;
-        }
-
-        // Validate summoner is unlocked
-        if (!_profileRepo.IsSummonerUnlocked(summonerId))
-        {
-            GD.PushError($"DeckService: Summoner not unlocked for this profile: {summonerId}");
-            return false;
-        }
-
-        return UpdateDeck(deckId, summonerId: summonerId);
-    }
-
-    /// <summary>Get the summoner ID for a deck.</summary>
-    public string GetDeckSummoner(string deckId)
-    {
-        var deck = GetDeck(deckId);
-        return deck?.SummonerId ?? "";
-    }
-
-    // =========================================================================
-    // DECK VALIDATION
-    // =========================================================================
-
-    /// <summary>
-    /// Validate a deck.
-    /// Returns true if deck is valid and playable.
-    /// </summary>
-    public bool ValidateDeck(string deckId)
-    {
-        if (_profileRepo == null) return false;
-
-        var deck = GetDeck(deckId);
-        if (deck == null)
-        {
-            EmitValidationFailed(deckId, "Deck not found");
-            return false;
-        }
-
-        // Check summoner is set and unlocked
-        if (string.IsNullOrEmpty(deck.SummonerId))
-        {
-            EmitValidationFailed(deckId, "Deck has no summoner assigned");
-            return false;
-        }
-
-        if (!_profileRepo.IsSummonerUnlocked(deck.SummonerId))
-        {
-            EmitValidationFailed(deckId, $"Summoner not unlocked: {deck.SummonerId}");
-            return false;
-        }
-
-        // Check minimum size
-        if (deck.CardInstanceIds.Count < MinDeckSize)
-        {
-            EmitValidationFailed(deckId, $"Deck has {deck.CardInstanceIds.Count} cards, minimum is {MinDeckSize}");
-            return false;
-        }
-
-        // Check maximum size
-        if (deck.CardInstanceIds.Count > MaxDeckSize)
-        {
-            EmitValidationFailed(deckId, $"Deck has {deck.CardInstanceIds.Count} cards, maximum is {MaxDeckSize}");
-            return false;
-        }
-
-        // Validate all cards are owned by the deck's summoner (if checker is available)
-        if (_cardOwnershipChecker != null)
-        {
-            foreach (var cardId in deck.CardInstanceIds)
-            {
-                if (!_cardOwnershipChecker(cardId, deck.SummonerId))
-                {
-                    EmitValidationFailed(deckId, $"Card instance not owned by summoner '{deck.SummonerId}': {cardId}");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Get validation errors for a deck (for UI display).
-    /// </summary>
-    public string[] GetValidationErrors(string deckId)
-    {
-        var errors = new List<string>();
-
-        if (_profileRepo == null) return ["Repository not available"];
-
-        var deck = GetDeck(deckId);
-        if (deck == null)
-        {
-            return ["Deck not found"];
-        }
-
-        // Check summoner
-        if (string.IsNullOrEmpty(deck.SummonerId))
-        {
-            errors.Add("No summoner assigned");
-        }
-        else if (!_profileRepo.IsSummonerUnlocked(deck.SummonerId))
-        {
-            errors.Add($"Summoner not unlocked: {deck.SummonerId}");
-        }
-
-        // Check size constraints
-        if (deck.CardInstanceIds.Count < MinDeckSize)
-        {
-            errors.Add($"Deck needs {MinDeckSize - deck.CardInstanceIds.Count} more cards (minimum: {MinDeckSize})");
-        }
-
-        if (deck.CardInstanceIds.Count > MaxDeckSize)
-        {
-            errors.Add($"Deck has {deck.CardInstanceIds.Count - MaxDeckSize} too many cards (maximum: {MaxDeckSize})");
-        }
-
-        // Check cards not owned by summoner (if checker is available)
-        if (_cardOwnershipChecker != null)
-        {
-            var notOwnedCount = deck.CardInstanceIds.Count(id => !_cardOwnershipChecker(id, deck.SummonerId));
-            if (notOwnedCount > 0)
-            {
-                errors.Add($"{notOwnedCount} cards not owned by summoner");
-            }
-        }
-
-        return [.. errors];
+        return success;
     }
 
     /// <summary>
@@ -507,25 +284,35 @@ public partial class DeckService : Node
     /// </summary>
     public int CleanDeck(string deckId)
     {
-        var deck = GetDeck(deckId);
-        if (deck == null) return 0;
-
-        if (_cardOwnershipChecker == null)
-        {
-            // Can't clean without ownership checker
-            return 0;
-        }
-
-        var validCards = deck.CardInstanceIds.Where(id => _cardOwnershipChecker(id, deck.SummonerId)).ToList();
-        var removedCount = deck.CardInstanceIds.Count - validCards.Count;
+        var removedCount = _cards?.CleanDeck(deckId, _cardOwnershipChecker) ?? 0;
 
         if (removedCount > 0)
         {
-            UpdateDeck(deckId, cardInstanceIds: [.. validCards]);
-            GD.Print($"DeckService: Cleaned deck '{deckId}', removed {removedCount} cards not owned by summoner");
+            EmitSignal(SignalName.DeckChanged, deckId);
         }
 
         return removedCount;
+    }
+
+    // =========================================================================
+    // DECK VALIDATION (delegates to DeckValidationHandler)
+    // =========================================================================
+
+    /// <summary>
+    /// Validate a deck.
+    /// Returns true if deck is valid and playable.
+    /// </summary>
+    public bool ValidateDeck(string deckId)
+    {
+        return _validation?.ValidateDeck(deckId, _cardOwnershipChecker, EmitValidationFailed) ?? false;
+    }
+
+    /// <summary>
+    /// Get validation errors for a deck (for UI display).
+    /// </summary>
+    public string[] GetValidationErrors(string deckId)
+    {
+        return _validation?.GetValidationErrors(deckId, _cardOwnershipChecker) ?? ["Repository not available"];
     }
 
     // =========================================================================
@@ -601,5 +388,4 @@ public partial class DeckService : Node
     {
         // Could emit a generic signal here if needed
     }
-
 }

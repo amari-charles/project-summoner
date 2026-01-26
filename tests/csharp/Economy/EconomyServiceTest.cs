@@ -2,11 +2,12 @@ namespace ProjectSummoner.Tests.Economy;
 
 using System.Collections.Generic;
 using GdUnit4;
-using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Domain.Profile.Account;
+using ProjectSummoner.Domain.Profile.Enums;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Tests for ResourceType and ResourceData classes.
+/// Tests for ResourceType and Resources classes.
 /// EconomyService itself extends Node and requires Godot runtime.
 /// These tests verify the data types and extensions used by EconomyService.
 /// </summary>
@@ -14,9 +15,9 @@ using static GdUnit4.Assertions;
 public class EconomyServiceTest
 {
     [TestCase]
-    public void ResourceData_DefaultsToZero()
+    public void Resources_DefaultsToZero()
     {
-        var resources = new ResourceData();
+        var resources = new Resources();
 
         AssertThat(resources.Gold).IsEqual(0);
         AssertThat(resources.Gems).IsEqual(0);
@@ -25,9 +26,9 @@ public class EconomyServiceTest
     }
 
     [TestCase]
-    public void ResourceData_CanSetValues()
+    public void Resources_CanSetValues()
     {
-        var resources = new ResourceData
+        var resources = new Resources
         {
             Gold = 100,
             Gems = 50,
@@ -104,7 +105,7 @@ public class EconomyServiceTest
     [TestCase]
     public void CanAfford_Logic_WorksCorrectly()
     {
-        var resources = new ResourceData { Gold = 100, Gems = 50 };
+        var resources = new Resources { Gold = 100, Gems = 50 };
         var cost = new Dictionary<ResourceType, int>
         {
             { ResourceType.Gold, 50 },
@@ -136,7 +137,7 @@ public class EconomyServiceTest
     [TestCase]
     public void CanAfford_Logic_ReturnsFalse_WhenInsufficient()
     {
-        var resources = new ResourceData { Gold = 30, Gems = 50 };
+        var resources = new Resources { Gold = 30, Gems = 50 };
         var cost = new Dictionary<ResourceType, int>
         {
             { ResourceType.Gold, 50 },  // Not enough
@@ -169,11 +170,11 @@ public class EconomyServiceTest
     /// </summary>
     private class TestableResourceTracker
     {
-        private ResourceData _resources = new();
+        private Resources _resources = new();
 
         public void SetResources(int gold = 0, int gems = 0, int essence = 0, int fragments = 0)
         {
-            _resources = new ResourceData
+            _resources = new Resources
             {
                 Gold = gold,
                 Gems = gems,
@@ -182,7 +183,7 @@ public class EconomyServiceTest
             };
         }
 
-        public ResourceData GetResources() => _resources;
+        public Resources GetResources() => _resources;
 
         public void UpdateResources(Dictionary<ResourceType, int> delta)
         {
