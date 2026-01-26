@@ -245,4 +245,10 @@ public class CampaignGraph
     {
         return !HasOutgoingEdges(nodeId);
     }
+
+    /// <summary>Get all end nodes (nodes with no outgoing edges).</summary>
+    public List<CampaignNode> GetEndNodes()
+    {
+        return Nodes.Values.Where(n => IsEndNode(n.Id)).ToList();
+    }
 }

@@ -68,7 +68,6 @@ const GAP_LENGTH: float = 8.0  # Length of gap between dashes
 
 ## State
 var selected_event_id: String = ""
-var all_events: Array[Dictionary] = []
 var event_nodes: Dictionary = {}  # event_id -> Control (fast lookup)
 var edge_lines: Array[Node2D] = []  # Dashed line containers for edges
 var graph_edges: Array[Dictionary] = []  # Edges from campaign data
@@ -184,13 +183,21 @@ func _get_edge_color(from_id: String, to_id: String, edge: Dictionary) -> Color:
 	# Check if edge has a condition (choice edges)
 	var condition: Variant = edge.get("condition")
 	if condition is Dictionary:
-		# Choice edge - only show as active if the choice was made
-		# For now, show as locked until we implement choice tracking
+		# Source must be completed for any conditional edge to be visible
 		if not from_completed:
 			return EDGE_LOCKED_COLOR
-		# TODO: Check if choice matches condition
-		return EDGE_AVAILABLE_COLOR
 
+		# Check if the choice matches the condition
+		var choice_matches: bool = _does_choice_match_condition(from_id, condition)
+		if choice_matches and to_unlocked:
+			return EDGE_ACTIVE_COLOR
+		elif choice_matches:
+			return EDGE_AVAILABLE_COLOR
+		else:
+			# Wrong choice was made - this path is locked
+			return EDGE_LOCKED_COLOR
+
+	# Non-conditional edges
 	if from_completed:
 		if to_unlocked:
 			return EDGE_ACTIVE_COLOR
@@ -198,6 +205,37 @@ func _get_edge_color(from_id: String, to_id: String, edge: Dictionary) -> Color:
 			return EDGE_AVAILABLE_COLOR
 	else:
 		return EDGE_LOCKED_COLOR
+
+
+## Check if a recorded choice matches an edge condition
+func _does_choice_match_condition(source_node_id: String, condition: Dictionary) -> bool:
+	# Parse condition format:
+	# Shorthand: {"choice": "elite"}
+	# Full: {"type": "choice", "value": "elite", "node_id": "optional"}
+	var condition_type: String = ""
+	var required_value: String = ""
+	var choice_node_id: String = source_node_id
+
+	if condition.has("choice"):
+		# Shorthand format
+		condition_type = "choice"
+		required_value = _safe_string(condition.get("choice"))
+	elif condition.has("type"):
+		# Full format
+		condition_type = _safe_string(condition.get("type"))
+		required_value = _safe_string(condition.get("value"))
+		var explicit_node: String = _safe_string(condition.get("node_id"))
+		if not explicit_node.is_empty():
+			choice_node_id = explicit_node
+
+	# Only evaluate choice conditions here (other types handled by unlock handler)
+	if condition_type != "choice":
+		# For non-choice conditions, defer to unlock handler
+		return true
+
+	# Get the choice that was made at the choice node
+	var made_choice: String = Campaign.get_choice(choice_node_id)
+	return made_choice == required_value
 
 
 ## Create a dashed line between two points (returns container with line segments)
@@ -246,11 +284,6 @@ func _refresh_map() -> void:
 	var edges_variant: Variant = Campaign.get_current_campaign_edges()
 	var edges_array: Array = _safe_array(edges_variant)
 	graph_edges.assign(edges_array)
-
-	# Also load flattened battles for detail panel (backwards compatibility)
-	var events_variant: Variant = Campaign.get_all_battles()
-	var events_array: Array = _safe_array(events_variant)
-	all_events.assign(events_array)
 
 	print("CampaignMap: Loaded %d nodes, %d edges from graph data" % [graph_nodes.size(), graph_edges.size()])
 

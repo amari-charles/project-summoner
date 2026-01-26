@@ -235,7 +235,8 @@ func _load_campaigns(skip_validation: bool = false) -> void:
 		_validate_battle_rewards()
 
 ## Load nodes from a campaign data dictionary (graph format)
-## Also maintains backwards compatibility by creating a flattened 'battles' array
+## Creates a flattened 'battles' array that merges node metadata (id, type, position)
+## with node.data for convenient access via get_battle() API
 func _load_nodes_from_campaign(campaign_data: Dictionary) -> void:
 	var nodes_array: Variant = campaign_data.get("nodes", [])
 	if not nodes_array is Array:
@@ -279,12 +280,11 @@ func _load_nodes_from_campaign(campaign_data: Dictionary) -> void:
 
 			node["data"] = data
 
-			# Create a flattened battle entry for backwards compatibility
+			# Create a merged entry combining node metadata with node.data
 			var battle: Dictionary = data.duplicate()
 			battle["id"] = node_id
 			battle["type"] = node.get("type", "")
 			battle["position"] = node.get("position", Vector2.ZERO)
-			# Map node type to event_type for backwards compatibility
 			battle["event_type"] = _node_type_to_event_type(String(node.get("type", "")))
 			battles.append(battle)
 
@@ -301,11 +301,11 @@ func _load_nodes_from_campaign(campaign_data: Dictionary) -> void:
 			processed_edges.append(edge)
 		campaign_data["edges"] = processed_edges
 
-	# Store flattened battles for backwards compatibility
+	# Store merged battles for get_battle() API access
 	campaign_data["battles"] = battles
 
 
-## Map node type to legacy event type for backwards compatibility
+## Map node type to event type for UI type checking
 func _node_type_to_event_type(node_type: String) -> String:
 	match node_type:
 		"battle", "elite", "boss":
@@ -322,23 +322,26 @@ func _node_type_to_event_type(node_type: String) -> String:
 			return "battle"
 
 ## Convert deck entry arrays to use String catalog_ids (from StringName constants)
+## Handles both dictionary entries (with catalog_id) and raw StringName IDs
 func _convert_deck_entries(battle: Dictionary, key: String) -> void:
 	var raw_deck: Variant = battle.get(key, [])
 	if not raw_deck is Array:
 		return
 
-	var converted: Array[Dictionary] = []
+	var converted: Array = []
 	for entry_variant: Variant in raw_deck:
-		if not entry_variant is Dictionary:
-			continue
-		var entry: Dictionary = entry_variant.duplicate()
-		# Convert catalog_id from StringName to String
-		var catalog_id: Variant = entry.get("catalog_id", "")
-		entry["catalog_id"] = String(catalog_id)
-		# Convert rarity if present (for reward_cards)
-		if entry.has("rarity"):
-			entry["rarity"] = String(entry.get("rarity", ""))
-		converted.append(entry)
+		if entry_variant is Dictionary:
+			var entry: Dictionary = entry_variant.duplicate()
+			# Convert catalog_id from StringName to String
+			var catalog_id: Variant = entry.get("catalog_id", "")
+			entry["catalog_id"] = String(catalog_id)
+			# Convert rarity if present (for reward_cards)
+			if entry.has("rarity"):
+				entry["rarity"] = String(entry.get("rarity", ""))
+			converted.append(entry)
+		elif entry_variant is StringName or entry_variant is String:
+			# Handle raw card IDs (e.g., reward_options: [CardIDs.CHARGE, ...])
+			converted.append(String(entry_variant))
 
 	battle[key] = converted
 
@@ -638,3 +641,12 @@ func get_all_choices() -> Dictionary:
 	if _cs_service == null:
 		return {}
 	return _cs_service.GetAllChoices()
+
+## =============================================================================
+## PROGRESS RESET
+## =============================================================================
+
+## Reset all campaign progress for the current summoner
+func reset_progress() -> void:
+	if _cs_service != null:
+		_cs_service.ResetProgress()

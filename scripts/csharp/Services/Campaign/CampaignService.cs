@@ -85,16 +85,16 @@ public partial class CampaignService : Node
 		// Create shared data store
 		_store = new CampaignDataStore();
 
-		// Create handlers (order matters - some depend on others)
-		_progress = new CampaignProgressHandler(_profileRepo, _store, GetActiveSummonerId);
-		_catalog = new CampaignCatalogHandler(_store, _progress);
-		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
-		_tutorial = new TutorialHandler(_store, _catalog, _progress);
-
-		// Create graph handlers
+		// Create graph handlers first (progress handler depends on them)
 		_graphStore = new CampaignGraphStore();
 		_choiceTracker = new ChoiceTracker();
 		_nodeUnlockHandler = new NodeUnlockHandler(_graphStore, _choiceTracker);
+
+		// Create handlers (order matters - some depend on others)
+		_progress = new CampaignProgressHandler(_profileRepo, _store, GetActiveSummonerId, _choiceTracker, _graphStore);
+		_catalog = new CampaignCatalogHandler(_store, _progress);
+		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
+		_tutorial = new TutorialHandler(_store, _catalog, _progress);
 	}
 
 	public override void _ExitTree()
@@ -249,23 +249,30 @@ public partial class CampaignService : Node
 		return _progress?.IsBattleCompleted(battleId) ?? false;
 	}
 
-	/// <summary>Check if a battle is unlocked.</summary>
+	/// <summary>Check if a node is unlocked using graph-based unlock logic.</summary>
 	public bool IsBattleUnlocked(string battleId)
 	{
-		// Use graph-based unlock logic if available
-		if (_nodeUnlockHandler != null && _graphStore?.CurrentGraph != null)
-		{
-			return _nodeUnlockHandler.IsNodeUnlocked(battleId);
-		}
-
-		// Fallback to legacy catalog-based unlock
-		return _catalog?.IsBattleUnlocked(battleId) ?? false;
+		return _nodeUnlockHandler?.IsNodeUnlocked(battleId) ?? false;
 	}
 
-	/// <summary>Get all available (unlocked but not completed) battles.</summary>
+	/// <summary>Get all available (unlocked but not completed) nodes.</summary>
 	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableBattles()
 	{
-		return _catalog?.GetAvailableBattles() ?? [];
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+		foreach (Godot.Collections.Dictionary battle in GetAllBattles())
+		{
+			if (battle.TryGetValue("id", out var idValue))
+			{
+				var battleId = idValue.AsString();
+				if (IsBattleUnlocked(battleId) && !IsBattleCompleted(battleId))
+				{
+					result.Add(battle);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	/// <summary>Get all completed battles.</summary>
@@ -463,6 +470,21 @@ public partial class CampaignService : Node
 	public Godot.Collections.Dictionary GetAllChoices()
 	{
 		return _choiceTracker?.ToGodotDictionary() ?? [];
+	}
+
+	// =========================================================================
+	// PROGRESS RESET
+	// =========================================================================
+
+	/// <summary>Reset all campaign progress for the current summoner.</summary>
+	public void ResetProgress()
+	{
+		_progress?.ResetProgress();
+		_graphStore?.ClearProgress();
+
+		EmitSignal(SignalName.CampaignProgressChanged);
+
+		GD.Print("CampaignService: Progress reset for current summoner");
 	}
 
 	// =========================================================================
