@@ -234,11 +234,18 @@ public partial class Projectile3D : Area3D
         GlobalPosition += _direction * CurrentSpeed * delta;
 
         // Apply arc offset if configured
+        // Use horizontal distance only to avoid Y feedback loop that causes bouncing
         if (ArcHeight > 0f)
         {
-            float totalDistance = Mathf.Max(_startPosition.DistanceTo(_targetPosition), MinArcDistance);
-            float traveled = _startPosition.DistanceTo(GlobalPosition);
-            float progress = Mathf.Clamp(traveled / totalDistance, 0f, 1f);
+            float horizontalTotalDist = new Vector2(
+                _targetPosition.X - _startPosition.X,
+                _targetPosition.Z - _startPosition.Z
+            ).Length();
+            float horizontalTraveled = new Vector2(
+                GlobalPosition.X - _startPosition.X,
+                GlobalPosition.Z - _startPosition.Z
+            ).Length();
+            float progress = Mathf.Clamp(horizontalTraveled / Mathf.Max(horizontalTotalDist, MinArcDistance), 0f, 1f);
             float arcOffset = ArcHeight * Mathf.Sin(progress * Mathf.Pi);
             GlobalPosition = new Vector3(
                 GlobalPosition.X,

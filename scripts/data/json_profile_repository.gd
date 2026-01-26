@@ -639,7 +639,6 @@ func grant_cards(cards: Array) -> Array:
 			"level": 1,         # Card progression level (1-10)
 			"xp": 0,            # XP towards next level
 			"upgrades": [],     # Array of chosen upgrade IDs
-			"roll_json": null,  # Future: stat rolls
 			"created_at": Time.get_unix_time_from_system(),
 			"binding": binding,
 			"bound_to": bound_to if binding == ContentBinding.SUMMONER_BOUND else ""
@@ -1312,7 +1311,6 @@ func _create_fresh_profile() -> void:
 		"updated_at": Time.get_unix_time_from_system(),
 		"catalog_version": "1.0.0",
 		"resources": {
-			"profile_id": _current_profile_id,
 			"gold": 100,
 			"gems": 0,  # Premium currency (purchased with real money)
 			"essence": 0,
@@ -1372,7 +1370,6 @@ func _create_card_instance(catalog_id: String, rarity: String) -> Dictionary:
 		"level": 1,         # Card progression level (1-10)
 		"xp": 0,            # XP towards next level
 		"upgrades": [],     # Array of chosen upgrade IDs
-		"roll_json": null,
 		"created_at": Time.get_unix_time_from_system()
 	}
 	return result

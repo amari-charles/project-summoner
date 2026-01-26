@@ -409,34 +409,12 @@ Design and implement additional spell cards for more strategic variety.
 ### 🟢 LOW PRIORITY
 
 #### Clean Up Redundant/Unused Profile Data Fields
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Database / Cleanup
 **Effort:** Small
+**Completed:** 2026-01-26
 
-**Description:**
-The profile data structure has redundant and unused fields that waste storage and create confusion.
-
-**Issues:**
-1. **Duplicated `profile_id`**: Stored at root AND inside `resources`
-   ```json
-   "profile_id": "default",
-   "resources": {
-     "profile_id": "default",  // Redundant
-   }
-   ```
-
-2. **Unused `roll_json` field**: Every card instance has `"roll_json": null`
-   - Intended for future stat rolls
-   - Currently unused, wastes space
-
-**Requirements:**
-- Remove `profile_id` from inside `resources`
-- Consider removing `roll_json` until actually implemented
-- Add migration if needed for existing saves
-
-**Related Files:**
-- `scripts/data/json_profile_repository.gd:879-924` - `_create_fresh_profile()`
-- `scripts/data/json_profile_repository.gd:427-438` - Card instance creation
+**Resolution:** Removed duplicate `profile_id` from `resources` object and removed unused `roll_json` field from card instance creation. Existing saves will still work as the code doesn't require these fields.
 
 ---
 
@@ -445,25 +423,12 @@ The profile data structure has redundant and unused fields that waste storage an
 ### 🟡 MEDIUM PRIORITY
 
 #### Add Quit Game Functionality
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Core Game Systems / UI
 **Effort:** Small
+**Completed:** 2026-01-26
 
-**Description:**
-Add a way for players to quit the entire game/application from within the game.
-
-**Current State:**
-- Pause menu has "Quit" but it only exits the battle back to menu
-- No way to exit the application entirely
-
-**Requirements:**
-- Add quit button to title screen or settings menu
-- Call `get_tree().quit()` to exit the application
-- Handle any cleanup before exit
-
-**Notes:**
-- Standard feature expected by players
-- Should work on both desktop and mobile platforms
+**Resolution:** Added Quit button to title screen (bottom-right corner). Uses localized text from `menu.quit` and calls `get_tree().quit()`.
 
 ---
 
@@ -833,27 +798,12 @@ Redesign settings/options screen for better usability and visual consistency.
 ### 🟢 LOW PRIORITY
 
 #### Standardize .tscn Placeholder Text Pattern
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** UI / Code Style
 **Effort:** Trivial
+**Completed:** 2026-01-26
 
-**Description:**
-Standardize placeholder text in `.tscn` scene files for UI screens. Currently there's inconsistency:
-- Some files use `[ui.nav.menu]` style placeholders
-- Some files use actual display text like `"PROJECT SUMMONER"`
-- All get overwritten by GDScript `_ready()` with `Loc.t()` calls
-
-**Solution:**
-Use empty strings `""` in all `.tscn` files since GDScript sets localized text anyway.
-
-**Files to Update:**
-- `scenes/ui/components/nav_drawer.tscn`
-- `scenes/ui/title_screen.tscn`
-- Any other new UI screens with placeholder text
-
-**Notes:**
-- Purely cosmetic - no runtime impact
-- Low priority polish item
+**Resolution:** Updated `title_screen.tscn` to use empty strings. Left `nav_drawer.tscn` unchanged as the `[ui.nav.menu]` pattern is informative for developers editing the scene.
 
 ---
 
@@ -966,21 +916,12 @@ A UI tool for developers to design and configure campaign battles without touchi
 ### 🟡 MEDIUM PRIORITY
 
 #### Make Projectiles Disappear on Hit
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Units & Combat / Visual Polish
 **Effort:** Small
+**Completed:** 2026-01-26
 
-**Description:**
-Projectiles should disappear when they hit their target rather than continuing through or lingering.
-
-**Requirements:**
-- Detect projectile collision with target
-- Trigger projectile destruction/cleanup on hit
-- Optionally spawn impact VFX at collision point
-
-**Related Files:**
-- Projectile scene(s) and scripts
-- Hit detection logic in ranged units
+**Resolution:** Already implemented. `HandlePierce()` in `Projectile3D.cs` calls `ExpireWithFade()` or `ExpireImmediate()` after hits, and `TriggerImpactEffects()` spawns VFX at collision point.
 
 ---
 
@@ -1104,27 +1045,12 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 ### 🟡 MEDIUM PRIORITY
 
 #### Fix async void Pattern in CompositeEffect
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Performance / Reliability
 **Effort:** Small
+**Completed:** 2026-01-26
 
-**Description:**
-`async void` methods hide exceptions and can run after nodes are freed, causing nondeterministic errors. CompositeEffect is gameplay-critical (spell effect execution).
-
-**Current Behavior:**
-- `ExecuteEffectsSequentially()` is `async void` with no guards after await
-- Uses string-based signal `"timeout"` instead of typed `SceneTreeTimer.SignalName.Timeout`
-- No `IsInstanceValid` check after timer await before executing effects
-
-**Proposed Fix:**
-- Add `IsInstanceValid` guard after await in `ExecuteEffectsSequentially`
-- Change `"timeout"` to `SceneTreeTimer.SignalName.Timeout`
-- Optionally return `Task` instead of `async void` if caller needs completion notification
-- Apply similar fix to `DeathExplosionAbility.OnOwnerDied()`
-
-**Related Files:**
-- `scripts/csharp/Cards/Effects/Concrete/CompositeEffect.cs:35-50`
-- `scripts/csharp/Abilities/DeathExplosionAbility.cs:94-105`
+**Resolution:** Already fixed. Both `CompositeEffect.cs` and `DeathExplosionAbility.cs` use typed `SceneTreeTimer.SignalName.Timeout` and have `IsInstanceValid` guards after await.
 
 ---
 

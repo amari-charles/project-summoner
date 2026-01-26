@@ -78,14 +78,14 @@ theme_override_constants/separation = 60
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 72
-text = "PROJECT SUMMONER"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TapPrompt" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "TAP TO START"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -93,3 +93,19 @@ vertical_alignment = 1
 libraries = {
 &"": SubResource("AnimationLibrary_main")
 }
+
+[node name="QuitButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -60.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = ""

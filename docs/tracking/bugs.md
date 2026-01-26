@@ -108,28 +108,19 @@ Reduces effective army size as blocked units don't contribute to combat.
 ---
 
 #### Mana Bolt Bounces on Ground Impact
-**Status:** Open
+**Status:** ✅ Fixed
 **Reported:** 2026-01-11
+**Fixed:** 2026-01-26
 **Component:** Projectiles / Spells
 
-**Description:**
-When mana bolt is cast with no enemies in range, it targets a position and arcs toward it. Upon hitting the ground, the projectile bounces instead of disappearing on impact.
+**Root Cause:**
+The homing arc calculation in `MoveHoming()` used 3D distance to calculate progress, which created a Y feedback loop. When Y was low (near ground), the 3D traveled distance was smaller than expected, resulting in a lower progress value. The arc formula then calculated a HIGHER Y value, causing the projectile to "bounce" back up.
 
-**Expected Behavior:**
-Mana bolt should disappear immediately upon hitting the ground, with appropriate impact effects.
-
-**Current Behavior:**
-The projectile bounces off the ground and continues moving, which looks unnatural.
-
-**Impact:**
-Visual bug - breaks immersion and looks unprofessional.
-
-**Proposed Solution:**
-Ensure ground collision detection properly triggers projectile expiration. May need to check the ground collision logic in `Projectile3D.cs` to ensure it triggers `ExpireWithFade()` or `ExpireImmediate()` correctly for homing projectiles with arc.
+**Fix Applied:**
+Changed `MoveHoming()` arc calculation to use horizontal distance only (X/Z) for progress, eliminating the Y feedback loop.
 
 **Related Files:**
-- scripts/csharp/Projectiles/Projectile3D.cs (ground collision and expiration logic)
-- data/projectiles/mana_bolt.json (projectile configuration)
+- scripts/csharp/Projectiles/Projectile3D.cs:240-255 (horizontal distance calculation)
 
 ---
 
