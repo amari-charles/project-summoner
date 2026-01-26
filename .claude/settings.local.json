@@ -55,7 +55,12 @@
       "Bash(/Applications/Godot_mono.app/Contents/MacOS/Godot:*)",
       "Bash(xargs file:*)",
       "Bash(pandoc:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(git -C /Users/amaricharles/Code/project-summoner log --oneline -1 c82bc5bb)",
+      "Bash(git -C /Users/amaricharles/Code/project-summoner show --stat c82bc5bb)",
+      "Bash(git -C /Users/amaricharles/Code/project-summoner show c82bc5bb:scripts/csharp/Services/Campaign/CampaignService.cs)",
+      "Bash(git -C /Users/amaricharles/Code/project-summoner show c82bc5bb -- scripts/csharp/Services/Campaign/CampaignService.cs)",
+      "Bash(git -C /Users/amaricharles/Code/project-summoner show c82bc5bb)"
     ],
     "deny": [],
     "ask": []
