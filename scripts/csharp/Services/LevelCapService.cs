@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Data;
+using ProjectSummoner.Services.Cards;
 
 namespace ProjectSummoner.Services;
 
@@ -132,13 +133,13 @@ public partial class LevelCapService : Node
     /// </summary>
     public Dictionary<string, float> GetCappedUpgradeModifiers(string cardInstanceId, int levelCap)
     {
-        var cardService = PlayerCardService.Instance;
+        var cardService = CardService.Instance;
         if (cardService == null)
             return new Dictionary<string, float>();
 
         // Get full modifiers if uncapped
         if (levelCap <= NoCap)
-            return cardService.GetUpgradeStatModifiers(cardInstanceId);
+            return cardService.GetUpgradeStatModifiersTyped(cardInstanceId);
 
         // Get card data to check level and upgrades
         var card = cardService.GetCard(cardInstanceId);
@@ -147,7 +148,7 @@ public partial class LevelCapService : Node
 
         // If card is at or below cap, use all upgrades
         if (card.Level <= levelCap)
-            return cardService.GetUpgradeStatModifiers(cardInstanceId);
+            return cardService.GetUpgradeStatModifiersTyped(cardInstanceId);
 
         // Calculate capped upgrades
         var effectiveUpgrades = GetEffectiveUpgrades(card.Upgrades, levelCap);
@@ -218,7 +219,7 @@ public partial class LevelCapService : Node
 
     /// <summary>
     /// Compute upgrade modifiers from a specific set of upgrade IDs.
-    /// This replicates PlayerCardService.GetUpgradeStatModifiers logic for capped upgrades.
+    /// This replicates CardService.GetUpgradeStatModifiers logic for capped upgrades.
     /// </summary>
     private Dictionary<string, float> ComputeUpgradeModifiers(string catalogId, List<string> upgradeIds)
     {

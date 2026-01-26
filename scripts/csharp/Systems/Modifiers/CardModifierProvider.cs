@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using ProjectSummoner.Services;
+using ProjectSummoner.Services.Cards;
 
 namespace ProjectSummoner.Systems.Modifiers;
 
@@ -29,12 +29,12 @@ public class CardModifierProvider : IModifierProvider
         if (string.IsNullOrEmpty(_cardInstanceId))
             return modifiers;
 
-        // Get combined stat modifiers from PlayerCardService
-        var cardService = PlayerCardService.Instance;
+        // Get combined stat modifiers from CardService
+        var cardService = CardService.Instance;
         if (cardService == null)
             return modifiers;
 
-        var statMods = cardService.GetUpgradeStatModifiers(_cardInstanceId);
+        var statMods = cardService.GetUpgradeStatModifiersTyped(_cardInstanceId);
         if (statMods.Count == 0)
             return modifiers;
 

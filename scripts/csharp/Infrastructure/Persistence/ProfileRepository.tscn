@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqkxl8nf4c5r3"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs" id="1_profile_repo"]
+
+[node name="ProfileRepository" type="Node"]
+script = ExtResource("1_profile_repo")

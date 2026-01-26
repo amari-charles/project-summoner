@@ -81,7 +81,7 @@ const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMM
 ## Service references (injected by autoload order)
 var _repo: Node = null  # ProfileRepo autoload
 var _economy: Node = null  # Economy autoload
-var _collection: Node = null  # Collection autoload
+var _collection: Node = null  # CardServiceCS autoload
 var _decks: Node = null  # Decks autoload
 var _snapshots: Node = null  # DebugSnapshots autoload
 
@@ -97,7 +97,7 @@ func _ready() -> void:
 
 	_repo = ProfileRepo
 	_economy = Economy
-	_collection = Collection
+	_collection = CardServiceCS
 	_decks = Decks
 	_snapshots = DebugSnapshots
 

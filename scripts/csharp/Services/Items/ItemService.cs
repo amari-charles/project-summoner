@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Profile;
-using ProjectSummoner.Data.Serialization;
 using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Services.Profile;
+using ProjectSummoner.Infrastructure.Persistence;
+using ProjectSummoner.Services.Items.Handlers;
+using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
+using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
 
 namespace ProjectSummoner.Services.Items;
 
@@ -14,12 +14,22 @@ namespace ProjectSummoner.Services.Items;
 /// Item Service - Handles item granting, equipping, and inventory management.
 ///
 /// Items are stored in ProfileData.Items as instances.
-/// Equipped items are tracked per-summoner in SummonerInstanceData.EquippedItems.
+/// Equipped items are tracked per-summoner in SummonerInstance.EquippedItems.
+///
+/// Uses Facade + Handlers pattern for clean separation of concerns.
 /// </summary>
 [GlobalClass]
 public partial class ItemService : Node
 {
 	public static ItemService? Instance { get; private set; }
+
+	private IProfileRepository? _profileRepo;
+	private ItemOwnershipHandler? _ownership;
+	private ItemEquipmentHandler? _equipment;
+
+	// =========================================================================
+	// SIGNALS
+	// =========================================================================
 
 	[Signal]
 	public delegate void ItemGrantedEventHandler(string instanceId, string catalogId);
@@ -30,8 +40,6 @@ public partial class ItemService : Node
 	[Signal]
 	public delegate void ItemUnequippedEventHandler(string summonerId, string slot);
 
-	private IProfileRepository? _profileRepo;
-
 	// =========================================================================
 	// LIFECYCLE
 	// =========================================================================
@@ -39,20 +47,23 @@ public partial class ItemService : Node
 	public override void _Ready()
 	{
 		Instance = this;
-		CallDeferred(nameof(Initialize));
+		Initialize();
 	}
 
 	private void Initialize()
 	{
 		GD.Print("ItemService: Initializing...");
 
-		_profileRepo = ProfileRepositoryBridge.Instance;
+		_profileRepo = ProfileRepository.Instance;
 
 		if (_profileRepo == null)
 		{
-			GD.PushError("ItemService: ProfileRepositoryBridge.Instance not available");
+			GD.PushError("ItemService: ProfileRepository.Instance not available");
 			return;
 		}
+
+		_ownership = new ItemOwnershipHandler(_profileRepo);
+		_equipment = new ItemEquipmentHandler(_profileRepo, _ownership);
 
 		GD.Print("ItemService: Ready");
 	}
@@ -68,350 +79,123 @@ public partial class ItemService : Node
 	{
 		ArgumentNullException.ThrowIfNull(repo);
 		_profileRepo = repo;
+		_ownership = new ItemOwnershipHandler(repo);
+		_equipment = new ItemEquipmentHandler(repo, _ownership);
 	}
 
 	// =========================================================================
-	// ITEM GRANTING
+	// ITEM GRANTING (delegates to ItemOwnershipHandler)
 	// =========================================================================
 
-	/// <summary>
-	/// Grant an item to the player's inventory.
-	/// Returns the new item instance ID, or null if failed.
-	/// </summary>
+	/// <summary>Grant an item to the player's inventory.</summary>
 	public string? GrantItem(string catalogId, string? boundToSummonerId = null)
 	{
-		if (_profileRepo == null) return null;
-
-		var definition = ItemCatalog.GetItem(catalogId);
-		if (definition == null)
+		var instanceId = _ownership?.GrantItem(catalogId, boundToSummonerId);
+		if (instanceId != null)
 		{
-			GD.PushError($"ItemService: Unknown item catalog ID: {catalogId}");
-			return null;
+			EmitSignal(SignalName.ItemGranted, instanceId, catalogId);
 		}
-
-		// Check if player already owns this item type
-		var existingItems = _profileRepo.ListItems();
-		var existingItem = existingItems.FirstOrDefault(i => i.CatalogId == catalogId);
-		if (existingItem != null)
-		{
-			GD.Print($"ItemService: Player already owns '{catalogId}' (instance: {existingItem.Id}), skipping grant");
-			return existingItem.Id;
-		}
-
-		// Create new item instance with simple sequential ID
-		var instanceId = $"item_{existingItems.Count + 1:D3}";
-		var instance = new ItemInstanceData
-		{
-			Id = instanceId,
-			CatalogId = catalogId,
-			BoundToSummonerId = definition.Binding == ItemBinding.SummonerBound ? boundToSummonerId : null,
-			EquippedBySummonerId = null,
-			EquippedSlot = null
-		};
-
-		// Add to profile (reuse existingItems from duplicate check)
-		existingItems.Add(instance);
-		_profileRepo.SaveItems(existingItems);
-
-		GD.Print($"ItemService: Granted item '{catalogId}' (instance: {instanceId})");
-		EmitSignal(SignalName.ItemGranted, instanceId, catalogId);
-
 		return instanceId;
 	}
 
-	/// <summary>
-	/// Grant an item from a legacy boon ID (used during migration).
-	/// </summary>
+	/// <summary>Grant an item from a legacy boon ID (used during migration).</summary>
 	public string? GrantItemFromBoon(string boonId, string summonerId)
 	{
-		var itemId = ItemCatalog.GetItemIdForBoon(boonId);
-		if (itemId == null)
-		{
-			GD.PushWarning($"ItemService: No item mapping for boon '{boonId}'");
-			return null;
-		}
-
-		return GrantItem(itemId, summonerId);
+		return _ownership?.GrantItemFromBoon(boonId, summonerId);
 	}
 
 	// =========================================================================
-	// EQUIPPING
+	// EQUIPPING (delegates to ItemEquipmentHandler)
 	// =========================================================================
 
-	/// <summary>
-	/// Equip an item to a summoner's slot.
-	/// Returns true if successful.
-	/// </summary>
+	/// <summary>Equip an item to a summoner's slot.</summary>
 	public bool EquipItem(string summonerId, string itemInstanceId, ItemSlot slot)
 	{
-		if (_profileRepo == null) return false;
-
-		// Get item instance
-		var items = _profileRepo.ListItems();
-		var item = items.FirstOrDefault(i => i.Id == itemInstanceId);
-		if (item == null)
+		var success = _equipment?.EquipItem(summonerId, itemInstanceId, slot) ?? false;
+		if (success)
 		{
-			GD.PushError($"ItemService: Item instance not found: {itemInstanceId}");
-			return false;
+			EmitSignal(SignalName.ItemEquipped, summonerId, EnumSerializers.Serialize(slot), itemInstanceId);
 		}
-
-		// Verify item definition exists and matches slot
-		var definition = ItemCatalog.GetItem(item.CatalogId);
-		if (definition == null)
-		{
-			GD.PushError($"ItemService: Item definition not found: {item.CatalogId}");
-			return false;
-		}
-
-		if (definition.Slot != slot)
-		{
-			GD.PushError($"ItemService: Item '{item.CatalogId}' cannot be equipped to slot '{slot}' (requires '{definition.Slot}')");
-			return false;
-		}
-
-		// Check binding restrictions
-		if (definition.Binding == ItemBinding.SummonerBound && item.BoundToSummonerId != summonerId)
-		{
-			GD.PushError($"ItemService: Item '{itemInstanceId}' is bound to summoner '{item.BoundToSummonerId}', cannot equip to '{summonerId}'");
-			return false;
-		}
-
-		// Check if item is already equipped by another summoner
-		if (item.EquippedBySummonerId != null && item.EquippedBySummonerId != summonerId)
-		{
-			GD.PushError($"ItemService: Item '{itemInstanceId}' is already equipped by '{item.EquippedBySummonerId}'");
-			return false;
-		}
-
-		// Get summoner instance
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null)
-		{
-			GD.PushError($"ItemService: Summoner not found: {summonerId}");
-			return false;
-		}
-
-		// Unequip current item in slot (if any)
-		if (summoner.EquippedItems.TryGetValue(slot, out var currentItemId) && currentItemId != null)
-		{
-			var currentItem = items.FirstOrDefault(i => i.Id == currentItemId);
-			if (currentItem != null)
-			{
-				currentItem.EquippedBySummonerId = null;
-				currentItem.EquippedSlot = null;
-			}
-		}
-
-		// Equip the new item
-		item.EquippedBySummonerId = summonerId;
-		item.EquippedSlot = slot;
-		summoner.EquippedItems[slot] = itemInstanceId;
-
-		// Save changes
-		_profileRepo.SaveItems(items);
-		_profileRepo.SaveSummonerInstance(summoner);
-
-		GD.Print($"ItemService: Equipped item '{item.CatalogId}' to {summonerId}'s {slot} slot");
-		EmitSignal(SignalName.ItemEquipped, summonerId, EnumSerializers.Serialize(slot), itemInstanceId);
-
-		return true;
+		return success;
 	}
 
-	/// <summary>
-	/// Unequip an item from a summoner's slot.
-	/// Returns true if successful.
-	/// </summary>
+	/// <summary>Unequip an item from a summoner's slot.</summary>
 	public bool UnequipItem(string summonerId, ItemSlot slot)
 	{
-		if (_profileRepo == null) return false;
-
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null)
+		var success = _equipment?.UnequipItem(summonerId, slot) ?? false;
+		if (success)
 		{
-			GD.PushError($"ItemService: Summoner not found: {summonerId}");
-			return false;
+			EmitSignal(SignalName.ItemUnequipped, summonerId, EnumSerializers.Serialize(slot));
 		}
-
-		if (!summoner.EquippedItems.TryGetValue(slot, out var itemInstanceId) || itemInstanceId == null)
-		{
-			// Slot is already empty
-			return true;
-		}
-
-		// Update item instance
-		var items = _profileRepo.ListItems();
-		var item = items.FirstOrDefault(i => i.Id == itemInstanceId);
-		if (item != null)
-		{
-			item.EquippedBySummonerId = null;
-			item.EquippedSlot = null;
-			_profileRepo.SaveItems(items);
-		}
-
-		// Update summoner
-		summoner.EquippedItems[slot] = null;
-		_profileRepo.SaveSummonerInstance(summoner);
-
-		GD.Print($"ItemService: Unequipped item from {summonerId}'s {slot} slot");
-		EmitSignal(SignalName.ItemUnequipped, summonerId, EnumSerializers.Serialize(slot));
-
-		return true;
+		return success;
 	}
 
 	// =========================================================================
-	// QUERIES - OWNERSHIP
+	// QUERIES - OWNERSHIP (delegates to ItemOwnershipHandler)
 	// =========================================================================
 
-	/// <summary>
-	/// Get all AccountWide items (accessible by any summoner).
-	/// </summary>
-	public List<ItemInstanceData> GetAccountWideItems()
+	/// <summary>Get all AccountWide items (accessible by any summoner).</summary>
+	public List<ItemInstance> GetAccountWideItems()
 	{
-		if (_profileRepo == null) return [];
-
-		return _profileRepo.ListItems()
-			.Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.AccountWide)
-			.ToList();
+		return _ownership?.GetAccountWideItems() ?? [];
 	}
 
-	/// <summary>
-	/// Get SummonerBound items for a specific summoner.
-	/// </summary>
-	public List<ItemInstanceData> GetSummonerBoundItems(string summonerId)
+	/// <summary>Get SummonerBound items for a specific summoner.</summary>
+	public List<ItemInstance> GetSummonerBoundItems(string summonerId)
 	{
-		if (_profileRepo == null) return [];
-
-		return _profileRepo.ListItems()
-			.Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.SummonerBound
-				&& item.BoundToSummonerId == summonerId)
-			.ToList();
+		return _ownership?.GetSummonerBoundItems(summonerId) ?? [];
 	}
 
-	/// <summary>
-	/// Get all items owned by a summoner based on binding rules.
-	/// Returns AccountWide items + SummonerBound items bound to this summoner.
-	/// </summary>
-	public List<ItemInstanceData> GetOwnedItems(string summonerId)
+	/// <summary>Get all items owned by a summoner based on binding rules.</summary>
+	public List<ItemInstance> GetOwnedItems(string summonerId)
 	{
-		return GetAccountWideItems()
-			.Concat(GetSummonerBoundItems(summonerId))
-			.ToList();
+		return _ownership?.GetOwnedItems(summonerId) ?? [];
+	}
+
+	/// <summary>Get all items in the player's inventory.</summary>
+	public List<ItemInstance> ListAllItems()
+	{
+		return _ownership?.ListAllItems() ?? [];
+	}
+
+	/// <summary>Get item instance by ID.</summary>
+	public ItemInstance? GetItem(string instanceId)
+	{
+		return _ownership?.GetItem(instanceId);
+	}
+
+	/// <summary>Clear all items from inventory (for testing/debugging).</summary>
+	public void ClearAllItems()
+	{
+		_ownership?.ClearAllItems();
 	}
 
 	// =========================================================================
-	// QUERIES - EQUIPMENT
+	// QUERIES - EQUIPMENT (delegates to ItemEquipmentHandler)
 	// =========================================================================
 
-	/// <summary>
-	/// Get equipped items for a summoner.
-	/// Returns a dictionary of slot -> item instance ID (or null if empty).
-	/// </summary>
+	/// <summary>Get equipped items for a summoner.</summary>
 	public Dictionary<ItemSlot, string?> GetEquippedItems(string summonerId)
 	{
-		var result = new Dictionary<ItemSlot, string?>
+		return _equipment?.GetEquippedItems(summonerId) ?? new Dictionary<ItemSlot, string?>
 		{
 			[ItemSlot.Weapon] = null,
 			[ItemSlot.Ring1] = null,
 			[ItemSlot.Ring2] = null,
 			[ItemSlot.Vestments] = null
 		};
-
-		if (_profileRepo == null) return result;
-
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null) return result;
-
-		foreach (var (slot, instanceId) in summoner.EquippedItems)
-		{
-			result[slot] = instanceId;
-		}
-
-		return result;
 	}
 
-	/// <summary>
-	/// Get all items available for a specific slot.
-	/// Uses GetOwnedItems for ownership filtering, then filters by slot and equip status.
-	/// </summary>
-	public List<ItemInstanceData> ListItemsForSlot(ItemSlot slot, string summonerId)
+	/// <summary>Get all items available for a specific slot.</summary>
+	public List<ItemInstance> ListItemsForSlot(ItemSlot slot, string summonerId)
 	{
-		var result = new List<ItemInstanceData>();
-
-		foreach (var item in GetOwnedItems(summonerId))
-		{
-			var definition = ItemCatalog.GetItem(item.CatalogId);
-			if (definition == null) continue;
-
-			// Filter by slot
-			if (definition.Slot != slot) continue;
-
-			// Filter out items equipped by another summoner
-			if (!string.IsNullOrEmpty(item.EquippedBySummonerId) && item.EquippedBySummonerId != summonerId) continue;
-
-			result.Add(item);
-		}
-
-		return result;
+		return _equipment?.ListItemsForSlot(slot, summonerId) ?? [];
 	}
 
-	/// <summary>
-	/// Get all items in the player's inventory.
-	/// </summary>
-	public List<ItemInstanceData> ListAllItems()
-	{
-		if (_profileRepo == null) return [];
-		return _profileRepo.ListItems();
-	}
-
-	/// <summary>
-	/// Clear all items from inventory (for testing/debugging).
-	/// </summary>
-	public void ClearAllItems()
-	{
-		if (_profileRepo == null) return;
-		_profileRepo.SaveItems([]);
-		GD.Print("ItemService: Cleared all items from inventory");
-	}
-
-	/// <summary>
-	/// Get item instance by ID.
-	/// </summary>
-	public ItemInstanceData? GetItem(string instanceId)
-	{
-		if (_profileRepo == null) return null;
-		return _profileRepo.ListItems().FirstOrDefault(i => i.Id == instanceId);
-	}
-
-	// =========================================================================
-	// MODIFIERS (for stat computation)
-	// =========================================================================
-
-	/// <summary>
-	/// Get all modifiers from equipped items for a summoner.
-	/// </summary>
+	/// <summary>Get all modifiers from equipped items for a summoner.</summary>
 	public List<TraitModifier> GetEquippedItemModifiers(string summonerId)
 	{
-		var modifiers = new List<TraitModifier>();
-
-		if (_profileRepo == null) return modifiers;
-
-		var equipped = GetEquippedItems(summonerId);
-		var items = _profileRepo.ListItems();
-
-		foreach (var (slot, instanceId) in equipped)
-		{
-			if (instanceId == null) continue;
-
-			var instance = items.FirstOrDefault(i => i.Id == instanceId);
-			if (instance == null) continue;
-
-			var definition = ItemCatalog.GetItem(instance.CatalogId);
-			if (definition == null) continue;
-
-			modifiers.AddRange(definition.Modifiers);
-		}
-
-		return modifiers;
+		return _equipment?.GetEquippedItemModifiers(summonerId) ?? [];
 	}
 
 	// =========================================================================

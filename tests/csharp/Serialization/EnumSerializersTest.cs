@@ -1,9 +1,9 @@
 namespace ProjectSummoner.Tests.Serialization;
 
 using GdUnit4;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Profile;
 using ProjectSummoner.Data.Serialization;
+using ProjectSummoner.Domain.Profile.Enums;
+using ProjectSummoner.Domain.Profile.Inventory;
 using static GdUnit4.Assertions;
 
 /// <summary>

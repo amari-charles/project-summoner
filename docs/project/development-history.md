@@ -8,6 +8,7 @@
 
 ## Table of Contents
 
+- [Profile Persistence DDD Refactor (2026-01)](#profile-persistence-ddd-refactor-2026-01)
 - [Documentation Reorganization (2025-12)](#documentation-reorganization-2025-12)
 - [New Units & VFX (2025-12)](#new-units--vfx-2025-12)
 - [UI Polish & Features (2025-12)](#ui-polish--features-2025-12)
@@ -21,6 +22,70 @@
 - [Core Card System Expansion (2025-11-04)](#core-card-system-expansion-2025-11-04)
 - [Foundation: Core Gameplay (2025-11-04)](#foundation-core-gameplay-2025-11-04)
 - [Initial Project Setup (2025-11-03)](#initial-project-setup-2025-11-03)
+
+---
+
+## Profile Persistence DDD Refactor (2026-01)
+
+### What We Built
+- Domain-Driven Design architecture for profile persistence
+- Merged `CollectionService` + `PlayerCardService` → unified `CardService`
+- Facade + Handlers pattern for large services (CardService, CampaignService)
+- Single path to persistence through `ProfileRepository`
+- Consolidated domain models in `Domain/Profile/` with clear aggregates
+
+### Technical Decisions
+
+**Unified CardService:**
+- **Decision:** Merge CollectionService (ownership) and PlayerCardService (progression) into single CardService
+- **Why:** Eliminates duplicate data classes (CardInstanceData vs PlayerCardInstance), provides single source of truth
+- **Approach:** Facade delegates to CardOwnershipHandler and CardProgressionHandler
+- **Impact:** Cleaner API, no more confusion about which service to use for card operations
+
+**Facade + Handlers Pattern:**
+- **Decision:** Split large services into facade (public API) + handlers (focused logic)
+- **Why:** CampaignService was 857 lines, hard to navigate
+- **Approach:**
+  - CardService → CardOwnershipHandler, CardProgressionHandler
+  - CampaignService → CatalogHandler, ProgressHandler, RewardHandler, TutorialHandler
+- **Impact:** Single responsibility per handler, easier testing and maintenance
+
+**Domain Model Organization:**
+- **Decision:** Move all profile-related data to `Domain/Profile/` with aggregate subfolders
+- **Why:** Scattered data classes (Data/Profile/, Data/Items/, Cards/) caused confusion
+- **Structure:** Collection/, Summoners/, Inventory/, Decks/, Account/, Campaign/, Shop/, Enums/
+- **Impact:** Clear boundaries, easy to find related types
+
+**Synchronous Service Initialization:**
+- **Decision:** Remove `CallDeferred` from C# service `_Ready()` methods
+- **Why:** Race condition - GDScript wrappers called C# methods before deferred Initialize() ran
+- **Problem:** Campaign map showed 0 battles because CampaignServiceCS._catalog was null
+- **Fix:** Initialize synchronously so services are ready when GDScript callers access them
+
+**Autoload Naming Convention:**
+- **Decision:** Use `CS` suffix for C# autoloads (CardServiceCS, EconomyServiceCS)
+- **Why:** Prevents class name conflicts in GDScript (Collection vs Collection class)
+- **Pattern:** GDScript sees autoload name, not class name
+
+### Files Added
+- `Domain/Profile/Collection/CardInstance.cs` - Unified card instance model
+- `Domain/Profile/Account/{Resources,Settings,Meta}.cs` - Account aggregate
+- `Services/Cards/CardService.cs` - Unified card service facade
+- `Services/Cards/Handlers/CardOwnershipHandler.cs` - Card grant/remove/query
+- `Services/Cards/Handlers/CardProgressionHandler.cs` - XP/leveling/upgrades
+- `Infrastructure/Persistence/ProfileRepository.cs` - Single persistence entry point
+
+### Files Removed
+- `Cards/PlayerCardInstance.cs` - Merged into CardInstance
+- `Services/Collection/CollectionService.cs` - Merged into CardService
+- `Services/PlayerCardService.cs` - Merged into CardService
+- `Data/Profile/{CardInstanceData,DeckData,etc}.cs` - Moved to Domain/Profile/
+
+### Lessons Learned
+- Deferred initialization creates race conditions with GDScript callers
+- Autoload names should differ from class names to avoid GDScript confusion
+- Facade + Handlers scales well for complex services
+- Single source of truth for domain models eliminates "which class do I use?" confusion
 
 ---
 
@@ -489,4 +554,4 @@ Throughout development, we've maintained these core principles:
 
 *This document is living - updated as we build and learn.*
 
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-25

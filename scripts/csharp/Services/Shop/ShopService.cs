@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Profile;
-using ProjectSummoner.Services.Profile;
+using ProjectSummoner.Domain.Profile.Enums;
+using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Summoner;
 
 namespace ProjectSummoner.Services.Shop;
@@ -56,18 +56,18 @@ public partial class ShopService : Node
     public override void _Ready()
     {
         Instance = this;
-        CallDeferred(nameof(Initialize));
+        Initialize();
     }
 
     private void Initialize()
     {
         GD.Print("ShopService: Initializing...");
 
-        _profileRepo = ProfileRepositoryBridge.Instance;
+        _profileRepo = ProfileRepository.Instance;
 
         if (_profileRepo == null)
         {
-            GD.PushError("ShopService: ProfileRepositoryBridge.Instance not available");
+            GD.PushError("ShopService: ProfileRepository.Instance not available");
             return;
         }
 
