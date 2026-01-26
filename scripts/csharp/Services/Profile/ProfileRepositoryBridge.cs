@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Data.Serialization;
 
 namespace ProjectSummoner.Services.Profile;
 
@@ -98,7 +99,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (_gdProfileRepo == null) return null;
         var dict = _gdProfileRepo.Call("snapshot").AsGodotDictionary();
-        return DictToProfileData(dict);
+        return DtoConverters.FromProfileDict(dict);
     }
 
     // =========================================================================
@@ -124,7 +125,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         var gdDelta = new Godot.Collections.Dictionary();
         foreach (var kvp in delta)
         {
-            gdDelta[kvp.Key.ToKey()] = kvp.Value;
+            gdDelta[EnumSerializers.Serialize(kvp.Key)] = kvp.Value;
         }
         _gdProfileRepo!.Call("update_resources", gdDelta);
     }
@@ -167,8 +168,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(GetSummonerInstance))) return null;
         var dict = _gdProfileRepo!.Call("get_summoner_instance", summonerId).AsGodotDictionary();
-        if (dict == null || dict.Count == 0) return null;
-        return DictToSummonerInstance(dict);
+        return DtoConverters.FromSummonerDict(dict);
     }
 
     public SummonerInstanceData[] GetAllSummonerInstances()
@@ -179,7 +179,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         foreach (var item in arr)
         {
             var dict = item.AsGodotDictionary();
-            var instance = DictToSummonerInstance(dict);
+            var instance = DtoConverters.FromSummonerDict(dict);
             if (instance != null) result.Add(instance);
         }
         return [.. result];
@@ -189,21 +189,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(SaveSummonerInstance))) return false;
 
-        // Serialize equipped_items (ItemSlot enum keys → string keys for GDScript)
-        var equippedDict = new Godot.Collections.Dictionary();
-        foreach (var (slot, itemId) in instance.EquippedItems)
-        {
-            equippedDict[slot.ToString().ToLowerInvariant()] = itemId ?? "";
-        }
-
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["summoner_id"] = instance.SummonerId,
-            ["level"] = instance.Level,
-            ["xp"] = instance.Xp,
-            ["acquired_boon_ids"] = ToGodotArray(instance.AcquiredBoonIds),
-            ["equipped_items"] = equippedDict
-        };
+        var dict = DtoConverters.ToDict(instance);
 
         // Use the internal method if available, or create through SummonerInstance
         if (_gdProfileRepo!.HasMethod("save_summoner_instance_dict"))
@@ -236,7 +222,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
             {
                 ["catalog_id"] = catalogId,
                 ["rarity"] = rarity,
-                ["binding"] = (int)binding
+                ["binding"] = EnumSerializers.Serialize(binding)
             };
             if (binding == ContentBinding.SummonerBound && !string.IsNullOrEmpty(boundTo))
             {
@@ -268,7 +254,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         foreach (var item in arr)
         {
             var dict = item.AsGodotDictionary();
-            var card = DictToCardInstance(dict);
+            var card = DtoConverters.FromCardDict(dict);
             if (card != null) result.Add(card);
         }
         return [.. result];
@@ -284,8 +270,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(GetCard))) return null;
         var dict = _gdProfileRepo!.Call("get_card", cardInstanceId).AsGodotDictionary();
-        if (dict == null || dict.Count == 0) return null;
-        return DictToCardInstance(dict);
+        return DtoConverters.FromCardDict(dict);
     }
 
     public bool UpdateCard(string cardInstanceId, Dictionary<string, object> updates)
@@ -306,13 +291,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     public string UpsertDeck(DeckData deck)
     {
         if (!EnsureConnected(nameof(UpsertDeck))) return "";
-        var gdDeck = new Godot.Collections.Dictionary
-        {
-            ["id"] = deck.Id,
-            ["name"] = deck.Name,
-            ["summoner_id"] = deck.SummonerId,
-            ["card_instance_ids"] = ToGodotArray(deck.CardInstanceIds)
-        };
+        var gdDeck = DtoConverters.ToDict(deck);
         return (string)_gdProfileRepo!.Call("upsert_deck", gdDeck);
     }
 
@@ -330,7 +309,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         foreach (var item in arr)
         {
             var dict = item.AsGodotDictionary();
-            var deck = DictToDeckData(dict);
+            var deck = DtoConverters.FromDeckDict(dict);
             if (deck != null) result.Add(deck);
         }
         return [.. result];
@@ -340,8 +319,7 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(GetDeck))) return null;
         var dict = _gdProfileRepo!.Call("get_deck", deckId).AsGodotDictionary();
-        if (dict == null || dict.Count == 0) return null;
-        return DictToDeckData(dict);
+        return DtoConverters.FromDeckDict(dict);
     }
 
     // =========================================================================
@@ -352,13 +330,13 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(GetCampaignProgress))) return new CampaignProgressData();
         var dict = _gdProfileRepo!.Call("get_campaign_progress_for_summoner", summonerId).AsGodotDictionary();
-        return DictToCampaignProgress(dict) ?? new CampaignProgressData();
+        return DtoConverters.FromCampaignDict(dict) ?? new CampaignProgressData();
     }
 
     public void UpdateCampaignProgress(string summonerId, CampaignProgressData progress)
     {
         if (!EnsureConnected(nameof(UpdateCampaignProgress))) return;
-        var gdProgress = CampaignProgressToDict(progress);
+        var gdProgress = DtoConverters.ToDict(progress);
         _gdProfileRepo!.Call("update_campaign_progress_for_summoner", summonerId, gdProgress);
     }
 
@@ -366,13 +344,13 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
     {
         if (!EnsureConnected(nameof(GetSharedCampaignProgress))) return new CampaignProgressData();
         var dict = _gdProfileRepo!.Call("get_shared_campaign_progress").AsGodotDictionary();
-        return DictToCampaignProgress(dict) ?? new CampaignProgressData();
+        return DtoConverters.FromCampaignDict(dict) ?? new CampaignProgressData();
     }
 
     public void UpdateSharedCampaignProgress(CampaignProgressData progress)
     {
         if (!EnsureConnected(nameof(UpdateSharedCampaignProgress))) return;
-        var gdProgress = CampaignProgressToDict(progress);
+        var gdProgress = DtoConverters.ToDict(progress);
         _gdProfileRepo!.Call("update_shared_campaign_progress", gdProgress);
     }
 
@@ -559,14 +537,8 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         foreach (var item in arr)
         {
             var dict = item.AsGodotDictionary();
-            result.Add(new ItemInstanceData
-            {
-                Id = dict.TryGetValue("id", out var id) ? id.AsString() : "",
-                CatalogId = dict.TryGetValue("catalog_id", out var catId) ? catId.AsString() : "",
-                EquippedBySummonerId = GetNullableString(dict, "equipped_by"),
-                BoundToSummonerId = GetNullableString(dict, "bound_to"),
-                EquippedSlot = GetNullableString(dict, "slot")
-            });
+            var itemData = DtoConverters.FromItemDict(dict);
+            if (itemData != null) result.Add(itemData);
         }
 
         return result;
@@ -579,251 +551,10 @@ public partial class ProfileRepositoryBridge : Node, IProfileRepository
         var gdItems = new Godot.Collections.Array();
         foreach (var item in items)
         {
-            var dict = new Godot.Collections.Dictionary
-            {
-                ["id"] = item.Id,
-                ["catalog_id"] = item.CatalogId,
-                ["equipped_by"] = item.EquippedBySummonerId ?? "",
-                ["bound_to"] = item.BoundToSummonerId ?? "",
-                ["slot"] = item.EquippedSlot ?? ""
-            };
-            gdItems.Add(dict);
+            gdItems.Add(DtoConverters.ToDict(item));
         }
 
         _gdProfileRepo!.Call("save_items", gdItems);
     }
 
-    // =========================================================================
-    // CONVERSION HELPERS
-    // =========================================================================
-
-    private static Godot.Collections.Array ToGodotArray(IEnumerable<string> items)
-    {
-        var arr = new Godot.Collections.Array();
-        foreach (var item in items)
-        {
-            arr.Add(item);
-        }
-        return arr;
-    }
-
-    /// <summary>
-    /// Converts GDScript profile dictionary to ProfileData.
-    /// NOTE: This is a partial conversion. For complete data, use individual accessor methods.
-    /// Populated fields: Version, ProfileId, UpdatedAt, CatalogVersion, Resources, UnlockedSummoners.
-    /// </summary>
-    private static ProfileData? DictToProfileData(Godot.Collections.Dictionary dict)
-    {
-        if (dict == null || dict.Count == 0) return null;
-
-        var profileData = new ProfileData
-        {
-            Version = dict.TryGetValue("version", out var v) ? (int)v : ProfileData.CurrentVersion,
-            ProfileId = dict.TryGetValue("profile_id", out var pid) ? pid.AsString() : "",
-            UpdatedAt = dict.TryGetValue("updated_at", out var updated) ? ConvertToLong(updated) : 0,
-            CatalogVersion = dict.TryGetValue("catalog_version", out var cv) ? cv.AsString() : "1.0.0"
-        };
-
-        // Convert resources if present
-        if (dict.TryGetValue("resources", out var resourcesVar) && resourcesVar.VariantType == Variant.Type.Dictionary)
-        {
-            var resourcesDict = resourcesVar.AsGodotDictionary();
-            profileData.Resources = new ResourceData
-            {
-                Gold = resourcesDict.TryGetValue("gold", out var gold) ? (int)gold : 0,
-                Gems = resourcesDict.TryGetValue("gems", out var gems) ? (int)gems : 0,
-                Essence = resourcesDict.TryGetValue("essence", out var essence) ? (int)essence : 0,
-                Fragments = resourcesDict.TryGetValue("fragments", out var fragments) ? (int)fragments : 0
-            };
-        }
-
-        // Convert unlocked summoners if present
-        if (dict.TryGetValue("unlocked_summoners", out var summonersVar) && summonersVar.VariantType == Variant.Type.Array)
-        {
-            var summonersArr = summonersVar.AsGodotArray();
-            foreach (var s in summonersArr)
-            {
-                profileData.UnlockedSummoners.Add(s.AsString());
-            }
-        }
-
-        return profileData;
-    }
-
-    /// <summary>Safely converts a Variant to long, handling both int and float types.</summary>
-    private static long ConvertToLong(Variant value)
-    {
-        return value.VariantType switch
-        {
-            Variant.Type.Int => (long)(int)value,
-            Variant.Type.Float => (long)(double)value,
-            _ => 0
-        };
-    }
-
-    /// <summary>Get a nullable string from dictionary, treating empty strings as null.</summary>
-    private static string? GetNullableString(Godot.Collections.Dictionary dict, string key)
-    {
-        if (!dict.TryGetValue(key, out var value)) return null;
-        if (value.VariantType == Variant.Type.Nil) return null;
-        var str = value.AsString();
-        return string.IsNullOrEmpty(str) ? null : str;
-    }
-
-    private static SummonerInstanceData? DictToSummonerInstance(Godot.Collections.Dictionary dict)
-    {
-        if (dict == null || dict.Count == 0) return null;
-
-        var summonerId = dict.TryGetValue("summoner_id", out var sid) ? sid.AsString() : "";
-        if (string.IsNullOrEmpty(summonerId)) return null;
-
-        var boons = new List<string>();
-        if (dict.TryGetValue("acquired_boon_ids", out var boonsVar))
-        {
-            var boonsArr = boonsVar.AsGodotArray();
-            foreach (var b in boonsArr)
-            {
-                boons.Add(b.AsString());
-            }
-        }
-
-        // Deserialize equipped_items (string keys from GDScript → ItemSlot enum keys)
-        var equippedItems = new Dictionary<ItemSlot, string?>
-        {
-            [ItemSlot.Weapon] = null,
-            [ItemSlot.Ring1] = null,
-            [ItemSlot.Ring2] = null,
-            [ItemSlot.Vestments] = null
-        };
-        if (dict.TryGetValue("equipped_items", out var equippedVar) && equippedVar.VariantType == Variant.Type.Dictionary)
-        {
-            var equippedDict = equippedVar.AsGodotDictionary();
-            foreach (var key in equippedDict.Keys)
-            {
-                var slotStr = key.AsString();
-                var itemId = equippedDict[key].VariantType != Variant.Type.Nil ? equippedDict[key].AsString() : null;
-                if (string.IsNullOrEmpty(itemId)) itemId = null;
-
-                // Convert string key to ItemSlot enum
-                if (Enum.TryParse<ItemSlot>(slotStr, ignoreCase: true, out var slot))
-                {
-                    equippedItems[slot] = itemId;
-                }
-            }
-        }
-
-        return new SummonerInstanceData
-        {
-            SummonerId = summonerId,
-            Level = dict.TryGetValue("level", out var lvl) ? (int)lvl : 1,
-            Xp = dict.TryGetValue("xp", out var xp) ? (int)xp : 0,
-            AcquiredBoonIds = boons,
-            EquippedItems = equippedItems
-        };
-    }
-
-    private static CardInstanceData? DictToCardInstance(Godot.Collections.Dictionary dict)
-    {
-        if (dict == null || dict.Count == 0) return null;
-
-        var id = dict.TryGetValue("id", out var idVar) ? idVar.AsString() : "";
-        var catalogId = dict.TryGetValue("catalog_id", out var cid) ? cid.AsString() : "";
-        if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(catalogId)) return null;
-
-        var upgrades = new List<string>();
-        if (dict.TryGetValue("upgrades", out var upgradesVar))
-        {
-            var upgradesArr = upgradesVar.AsGodotArray();
-            foreach (var u in upgradesArr)
-            {
-                upgrades.Add(u.AsString());
-            }
-        }
-
-        // Parse binding (defaults to AccountWide)
-        var binding = ContentBinding.AccountWide;
-        if (dict.TryGetValue("binding", out var bindingVar))
-        {
-            binding = (ContentBinding)bindingVar.AsInt32();
-        }
-
-        return new CardInstanceData
-        {
-            Id = id,
-            CatalogId = catalogId,
-            ProfileId = dict.TryGetValue("profile_id", out var pid) ? pid.AsString() : "",
-            Rarity = dict.TryGetValue("rarity", out var rarity) ? rarity.AsString() : "common",
-            Level = dict.TryGetValue("level", out var lvl) ? (int)lvl : 1,
-            Xp = dict.TryGetValue("xp", out var xp) ? (int)xp : 0,
-            Upgrades = upgrades,
-            CreatedAt = dict.TryGetValue("created_at", out var created) ? ConvertToLong(created) : 0,
-            Binding = binding,
-            BoundToSummonerId = dict.TryGetValue("bound_to", out var boundTo) && boundTo.VariantType != Variant.Type.Nil ? boundTo.AsString() : null
-        };
-    }
-
-    private static DeckData? DictToDeckData(Godot.Collections.Dictionary dict)
-    {
-        if (dict == null || dict.Count == 0) return null;
-
-        var id = dict.TryGetValue("id", out var idVar) ? idVar.AsString() : "";
-        if (string.IsNullOrEmpty(id)) return null;
-
-        var cardIds = new List<string>();
-        if (dict.TryGetValue("card_instance_ids", out var cardsVar))
-        {
-            var cardsArr = cardsVar.AsGodotArray();
-            foreach (var c in cardsArr)
-            {
-                cardIds.Add(c.AsString());
-            }
-        }
-
-        return new DeckData
-        {
-            Id = id,
-            SummonerId = dict.TryGetValue("summoner_id", out var sid) ? sid.AsString() : "",
-            Name = dict.TryGetValue("name", out var name) ? name.AsString() : "Deck",
-            CardInstanceIds = cardIds
-        };
-    }
-
-    private static CampaignProgressData? DictToCampaignProgress(Godot.Collections.Dictionary? dict)
-    {
-        if (dict == null || dict.Count == 0) return null;
-
-        var completed = new List<string>();
-        if (dict.TryGetValue("completed_battles", out var completedVar))
-        {
-            var completedArr = completedVar.AsGodotArray();
-            foreach (var c in completedArr)
-            {
-                completed.Add(c.AsString());
-            }
-        }
-
-        // Parse campaign-scoped gold (defaults to 0 if not present)
-        int gold = 0;
-        if (dict.TryGetValue("gold", out var goldVar))
-        {
-            gold = goldVar.AsInt32();
-        }
-
-        return new CampaignProgressData
-        {
-            CompletedBattles = completed,
-            CurrentBattle = dict.TryGetValue("current_battle", out var cb) ? cb.AsString() : null,
-            Gold = gold
-        };
-    }
-
-    private static Godot.Collections.Dictionary CampaignProgressToDict(CampaignProgressData progress)
-    {
-        return new Godot.Collections.Dictionary
-        {
-            ["completed_battles"] = ToGodotArray(progress.CompletedBattles),
-            ["current_battle"] = progress.CurrentBattle ?? "",
-            ["gold"] = progress.Gold
-        };
-    }
 }

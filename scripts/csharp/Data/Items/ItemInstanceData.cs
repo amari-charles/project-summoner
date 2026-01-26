@@ -32,7 +32,7 @@ public class ItemInstanceData
 
     /// <summary>
     /// Equipment slot this item is currently in, or null if not equipped.
+    /// Note: JsonPropertyName removed - serialization handled by DtoConverters.
     /// </summary>
-    [JsonPropertyName("slot")]
-    public string? EquippedSlot { get; set; }
+    public ItemSlot? EquippedSlot { get; set; }
 }

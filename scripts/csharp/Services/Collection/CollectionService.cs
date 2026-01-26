@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Data.Profile;
+using ProjectSummoner.Data.Serialization;
 using ProjectSummoner.Services.Deck;
 using ProjectSummoner.Services.Profile;
 
@@ -349,7 +350,7 @@ public partial class CollectionService : Node
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var card in ListCards())
         {
-            result.Add(CardInstanceToDict(card));
+            result.Add(DtoConverters.ToDict(card));
         }
         return result;
     }
@@ -360,7 +361,7 @@ public partial class CollectionService : Node
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var card in GetOwnedCards(summonerId))
         {
-            result.Add(CardInstanceToDict(card));
+            result.Add(DtoConverters.ToDict(card));
         }
         return result;
     }
@@ -369,7 +370,7 @@ public partial class CollectionService : Node
     public Godot.Collections.Dictionary GetCardDict(string cardInstanceId)
     {
         var card = GetCard(cardInstanceId);
-        return card != null ? CardInstanceToDict(card) : [];
+        return card != null ? DtoConverters.ToDict(card) : [];
     }
 
     /// <summary>Get cards by catalog ID as array for GDScript.</summary>
@@ -378,7 +379,7 @@ public partial class CollectionService : Node
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var card in GetCardsByCatalogId(catalogId))
         {
-            result.Add(CardInstanceToDict(card));
+            result.Add(DtoConverters.ToDict(card));
         }
         return result;
     }
@@ -394,7 +395,7 @@ public partial class CollectionService : Node
             var instanceArray = new Godot.Collections.Array<Godot.Collections.Dictionary>();
             foreach (var instance in instances)
             {
-                instanceArray.Add(CardInstanceToDict(instance));
+                instanceArray.Add(DtoConverters.ToDict(instance));
             }
             result[catalogId] = instanceArray;
         }
@@ -412,7 +413,7 @@ public partial class CollectionService : Node
             var instanceArray = new Godot.Collections.Array<Godot.Collections.Dictionary>();
             foreach (var instance in entry.Instances)
             {
-                instanceArray.Add(CardInstanceToDict(instance));
+                instanceArray.Add(DtoConverters.ToDict(instance));
             }
 
             result.Add(new Godot.Collections.Dictionary
@@ -461,26 +462,6 @@ public partial class CollectionService : Node
         EmitSignal(SignalName.CollectionChanged);
     }
 
-    private static Godot.Collections.Dictionary CardInstanceToDict(CardInstanceData card)
-    {
-        var upgradesArray = new Godot.Collections.Array<string>();
-        foreach (var upgrade in card.Upgrades)
-        {
-            upgradesArray.Add(upgrade);
-        }
-
-        return new Godot.Collections.Dictionary
-        {
-            ["id"] = card.Id,
-            ["catalog_id"] = card.CatalogId,
-            ["rarity"] = card.Rarity,
-            ["level"] = card.Level,
-            ["xp"] = card.Xp,
-            ["upgrades"] = upgradesArray,
-            ["binding"] = card.Binding.ToString(),
-            ["bound_to"] = card.BoundToSummonerId ?? ""
-        };
-    }
 }
 
 /// <summary>
