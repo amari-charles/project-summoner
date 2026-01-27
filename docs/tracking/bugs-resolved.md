@@ -6,6 +6,35 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Mana Bolt Bounces on Ground Impact
+**Resolved:** 2026-01-26
+**Component:** Projectiles / Spells
+
+**Description:**
+Homing arc projectiles (like Mana Bolt) would bounce repeatedly when approaching ground level instead of smoothly arcing to their target.
+
+**Root Cause:**
+The homing arc calculation in `MoveHoming()` used 3D distance to calculate progress, which created a Y feedback loop. When Y was low (near ground), the 3D traveled distance was smaller than expected, resulting in a lower progress value. The arc formula then calculated a HIGHER Y value, causing the projectile to "bounce" back up.
+
+**Solution Implemented:**
+Refactored to a path-based movement architecture using the Strategy pattern. Instead of calculating arc height dynamically with direction vectors, projectiles now follow parameterized Bézier curves (IProjectilePath interface) from start to end. This eliminates the Y feedback loop entirely since progress is time/distance-based rather than position-based.
+
+New path classes:
+- `StraightPath` - Linear interpolation for straight projectiles
+- `ArcPath` - Quadratic Bézier curve for arc/homing projectiles
+- `BallisticPath` - Pre-computed parabolic trajectory for ballistic projectiles
+
+**Related Files:**
+- `scripts/csharp/Projectiles/Projectile3D.cs` - Refactored to use IProjectilePath
+- `scripts/csharp/Projectiles/Paths/IProjectilePath.cs` - Strategy interface
+- `scripts/csharp/Projectiles/Paths/StraightPath.cs` - Linear path implementation
+- `scripts/csharp/Projectiles/Paths/ArcPath.cs` - Bézier arc implementation
+- `scripts/csharp/Projectiles/Paths/BallisticPath.cs` - Parabolic path implementation
+- `tests/csharp/Projectiles/Paths/PathTests.cs` - Unit tests for path classes
+- `docs/technical/projectile-system.md` - Updated documentation
+
+---
+
 ### CampaignService Unit Tests Fail Due to C# Architecture Mismatch
 **Resolved:** 2026-01-23
 **Component:** Test Infrastructure

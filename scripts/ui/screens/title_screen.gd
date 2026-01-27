@@ -14,6 +14,7 @@ const FADE_OUT_TIMEOUT_SECONDS: float = 2.0
 @onready var title_label: Label = $CenterContainer/VBoxContainer/Title
 @onready var tap_prompt: Label = $CenterContainer/VBoxContainer/TapPrompt
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
+@onready var quit_button: Button = $QuitButton
 
 var _can_proceed: bool = false
 
@@ -21,6 +22,8 @@ func _ready() -> void:
 	# Set localized text
 	title_label.text = Loc.t("ui.title.game_name")
 	tap_prompt.text = Loc.t("ui.title.tap_prompt")
+	quit_button.text = Loc.t("menu.quit")
+	quit_button.pressed.connect(_on_quit_pressed)
 
 	# Start fade-in and prompt animation after brief delay
 	await get_tree().create_timer(INITIAL_DELAY_SECONDS).timeout
@@ -76,3 +79,7 @@ func _debug_reset_profile() -> void:
 	if DevConsole:
 		DevConsole.execute_command("/save_wipe")
 		get_tree().reload_current_scene()
+
+func _on_quit_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	get_tree().quit()
