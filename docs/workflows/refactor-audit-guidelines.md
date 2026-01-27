@@ -192,6 +192,58 @@ List all files that were examined or would need changes.
 - **P3** - Fix when convenient
 - **P4** - Optional/cosmetic
 
+## Codebase Policy: No Backwards Compatibility
+
+**CRITICAL:** Per CLAUDE.md, this codebase has a strict "no backwards compatibility" policy.
+
+> **NEVER worry about backwards compatibility.** When implementing new features or changes, prioritize the new approach and remove old code paths. Don't keep fallback mechanisms or dual implementations.
+
+### What to Flag During Audits
+
+When auditing, actively search for and flag these patterns:
+
+1. **HasMethod() checks for required methods** - If a method should always exist, don't check for it
+   ```csharp
+   // BAD - unnecessary check
+   if (repo.HasMethod("save_data"))
+       repo.Call("save_data", data);
+
+   // GOOD - just call it
+   repo.Call("save_data", data);
+   ```
+
+2. **Dual implementations** - Two ways to do the same thing "just in case"
+   ```gdscript
+   # BAD - keeping both approaches
+   if use_new_system:
+       new_handler.process()
+   else:
+       legacy_handler.process()  # Remove this
+   ```
+
+3. **Fallback values from old systems** - Checking for old data formats
+   ```csharp
+   // BAD - fallback to old field
+   var value = data.NewField ?? data.OldField;
+
+   // GOOD - just use new field (migrate data if needed)
+   var value = data.NewField;
+   ```
+
+4. **Comments mentioning "backwards compatibility"** - Usually indicates code to remove
+
+5. **Try-catch around method calls** - If catching "method not found" errors
+
+### Exceptions
+
+The only valid reasons to keep legacy code paths:
+
+1. **Active data migration** - Old field retained during version transition with documented removal plan
+2. **External API contracts** - Interfaces consumed by code outside this repo
+3. **Phased rollout** - Explicitly documented multi-PR migration plan
+
+When in doubt, remove the old code. It's easier to add back if needed than to accumulate technical debt.
+
 ## Example Audit
 
 See `docs/architecture/refactor-audit-2026-01-25-campaign-graph.md` for a complete example.

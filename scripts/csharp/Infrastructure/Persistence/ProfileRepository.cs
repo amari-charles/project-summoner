@@ -188,18 +188,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     public bool SaveSummonerInstance(SummonerInstance instance)
     {
         if (!EnsureConnected(nameof(SaveSummonerInstance))) return false;
-
         var dict = DtoConverters.ToDict(instance);
-
-        // Use the internal method if available, or create through SummonerInstance
-        if (_gdProfileRepo!.HasMethod("save_summoner_instance_dict"))
-        {
-            return (bool)_gdProfileRepo.Call("save_summoner_instance_dict", dict);
-        }
-
-        // Fallback - this won't work without a SummonerInstance object
-        GD.PushWarning("ProfileRepository: save_summoner_instance_dict not available");
-        return false;
+        return (bool)_gdProfileRepo!.Call("save_summoner_instance_dict", dict);
     }
 
     // =========================================================================
