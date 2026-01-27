@@ -11,7 +11,7 @@ Summoner Leveling (1-10), Traits (Story + Level + Ultimate), Items, and Global E
 
 ### ✅ Phase 2: Foundation (Implemented)
 - XP and level tracking (1-10)
-- Level-up mechanics with gold cost
+- Level-up mechanics (XP-based, no gold cost)
 - TraitCatalog with innate traits
 - SummonerProgressionService and SummonerSelectionService
 - Per-summoner campaign progress

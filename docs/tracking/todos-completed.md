@@ -1037,16 +1037,17 @@ Implemented leveling system for cards and heroes that allows them to grow strong
 
 **Card Progression (PR #85):**
 - CardProgressionService autoload with XP and level management
-- XP thresholds and gold costs with rarity scaling
+- XP thresholds with rarity scaling
 - CardUpgradeCatalog with upgrade choices per level
 - UI display for card levels and progress
 - Level-up with upgrade selection modal
+- *Note: Gold costs removed per design update - leveling requires only XP*
 
 **Hero Progression (Phase 2 Foundation):**
 - HeroProgressionService autoload (`scripts/services/hero_progression_service.gd`)
 - XP thresholds: 0, 100, 250, 500, 850, 1300, 1900, 2700, 3800, 5200
-- Gold costs: 0, 50, 100, 200, 400, 700, 1000, 1500, 2000, 3000
 - Max level: 10
+- *Note: Gold costs removed per design update - leveling requires only XP*
 - Signals: `hero_xp_changed`, `hero_leveled_up`, `hero_ready_to_level_up`
 - Battle completion grants hero XP via `hero_xp_reward` in battle config
 - Helper methods: `grant_hero_xp()`, `can_level_up()`, `level_up_hero()`, `get_hero_progression_info()`
@@ -1153,7 +1154,7 @@ Implemented the foundational hero system with traits, progression services, per-
 
 **Services:**
 - `HeroSelectionService` - Manages active hero selection, hero switching
-- `HeroProgressionService` - XP and level management (1-10), gold costs
+- `HeroProgressionService` - XP and level management (1-10)
 - `TraitCatalog` - Central trait/boon registry with hero and unit modifiers
 
 **Data Structures:**

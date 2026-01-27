@@ -307,7 +307,7 @@ Full-screen summoner management interface:
 - Summoner list panel (left) for switching between summoners
 - Enhanced portrait with element-themed gradients and glow
 - Stats display (HP, Mana with trait bonuses)
-- XP progress and level-up with gold cost
+- XP progress and level-up (XP-based only, no gold cost)
 - Traits section showing innate traits and story traits
 
 ### SummonerIconWidget
@@ -380,7 +380,7 @@ All summoner UI uses the localization system:
       "title": "SUMMONER ROSTER",
       "level_display": "Lv.{level}",
       "xp_progress": "XP: {current} / {required}",
-      "level_up_button": "LEVEL UP ({cost}g)",
+      "level_up_button": "LEVEL UP",
       "stats_summary": "HP: {hp} | Mana: {mana}"
     }
   },

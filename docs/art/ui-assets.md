@@ -94,7 +94,7 @@ NinePatch textures for scaling
 | **Back Arrow** | All screens with back navigation (15+ screens) |
 | **Close X** | All modals (6+ modals) |
 | **Settings Gear** | Pause Menu, Nav Drawer |
-| **Gold/Currency** | Shop, Reward Screen, Card Level Up, resource displays |
+| **Gold/Currency** | Shop, Reward Screen, Caravan, resource displays |
 | **Mana Crystal** | CardWidget cost, ManaBar |
 | **Plus/Add** | New Deck button, Add card buttons |
 | **Trash/Delete** | Delete Deck, remove card |
