@@ -107,23 +107,6 @@ Reduces effective army size as blocked units don't contribute to combat.
 
 ---
 
-#### Mana Bolt Bounces on Ground Impact
-**Status:** ✅ Fixed
-**Reported:** 2026-01-11
-**Fixed:** 2026-01-26
-**Component:** Projectiles / Spells
-
-**Root Cause:**
-The homing arc calculation in `MoveHoming()` used 3D distance to calculate progress, which created a Y feedback loop. When Y was low (near ground), the 3D traveled distance was smaller than expected, resulting in a lower progress value. The arc formula then calculated a HIGHER Y value, causing the projectile to "bounce" back up.
-
-**Fix Applied:**
-Changed `MoveHoming()` arc calculation to use horizontal distance only (X/Z) for progress, eliminating the Y feedback loop.
-
-**Related Files:**
-- scripts/csharp/Projectiles/Projectile3D.cs:240-255 (horizontal distance calculation)
-
----
-
 ## Bug Report Template
 
 ```markdown

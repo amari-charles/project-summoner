@@ -1,11 +1,15 @@
 using Godot;
 using ProjectSummoner.Combat.Hitbox;
+using ProjectSummoner.Projectiles.Paths;
 
 namespace ProjectSummoner.Projectiles;
 
 /// <summary>
-/// Data-driven 3D projectile system.
-/// Supports multiple movement types: straight, homing, arc, ballistic.
+/// Data-driven 3D projectile system with path-based movement.
+/// Supports multiple movement types via IProjectilePath implementations:
+/// - Straight: Linear path (StraightPath)
+/// - Arc/Homing: Quadratic Bézier curve with optional target tracking (ArcPath)
+/// - Ballistic: Pre-computed parabolic trajectory (BallisticPath)
 /// Uses collision-based hit detection via HitboxComponent/HurtboxComponent.
 /// </summary>
 [GlobalClass]
@@ -14,15 +18,6 @@ public partial class Projectile3D : Area3D
     // =========================================================================
     // CONSTANTS
     // =========================================================================
-
-    /// <summary>Minimum distance to prevent division by zero in arc calculations.</summary>
-    private const float MinArcDistance = 0.1f;
-
-    /// <summary>Distance at which full arc height is used.</summary>
-    private const float FullArcDistance = 5.0f;
-
-    /// <summary>Dot product threshold for disabling homing.</summary>
-    private const float HomingDisableDotThreshold = 0.2f;
 
     /// <summary>Grace period before ground collision activates (seconds).</summary>
     private const float GroundCollisionGracePeriod = 0.1f;
@@ -38,6 +33,18 @@ public partial class Projectile3D : Area3D
 
     /// <summary>Collision mask for hurtboxes (Layer 5 = bit 4).</summary>
     private const uint HurtboxMask = 1u << 4;
+
+    /// <summary>Interval for updating target position in homing mode (seconds).</summary>
+    private const float TargetUpdateInterval = 0.1f;
+
+    /// <summary>Distance threshold below which prediction is disabled to prevent oscillation.</summary>
+    private const float PredictionDisableDistance = 2.0f;
+
+    /// <summary>
+    /// Distance threshold for direct hit when path completes.
+    /// Accounts for typical hurtbox radius (~0.5-1.0) plus margin for frame timing.
+    /// </summary>
+    private const float DirectHitDistanceThreshold = 1.5f;
 
     // =========================================================================
     // CONFIGURATION (set by ProjectileData)
@@ -71,13 +78,15 @@ public partial class Projectile3D : Area3D
     public float Damage { get; set; } = 10f;
     public string DamageType { get; set; } = "physical";
 
-    private Vector3 _direction = Vector3.Forward;
+    // Path-based movement state
+    private IProjectilePath? _path;
+    private float _progress = 0f;
+    private float _timeSinceTargetUpdate = 0f;
     private Vector3 _startPosition = Vector3.Zero;
     private Vector3 _targetPosition = Vector3.Zero;
-    private float _travelTime = 0f;
+    private Vector3 _direction = Vector3.Forward;
     private float _timeAlive = 0f;
     private int _hitsRemaining = 0;
-    private bool _homingDisabled = false;
     private bool _impactTriggered = false;
     private bool _isFading = false;
     private Tween? _fadeTween;
@@ -139,7 +148,6 @@ public partial class Projectile3D : Area3D
 
         float dt = (float)delta;
         _timeAlive += dt;
-        _travelTime += dt;
 
         // Check lifetime expiration
         if (_timeAlive >= Lifetime)
@@ -169,21 +177,10 @@ public partial class Projectile3D : Area3D
             }
         }
 
-        // Update movement based on type
-        switch (MovementType)
+        // Path-based movement
+        if (_path != null)
         {
-            case ProjectileMovementType.Straight:
-                MoveStraight(dt);
-                break;
-            case ProjectileMovementType.Homing:
-                MoveHoming(dt);
-                break;
-            case ProjectileMovementType.Arc:
-                MoveArc(dt);
-                break;
-            case ProjectileMovementType.Ballistic:
-                MoveBallistic(dt);
-                break;
+            MoveAlongPath(dt);
         }
 
         // Rotate to face movement direction
@@ -194,85 +191,59 @@ public partial class Projectile3D : Area3D
     }
 
     // =========================================================================
-    // MOVEMENT STRATEGIES
+    // PATH-BASED MOVEMENT
     // =========================================================================
 
-    private void MoveStraight(float delta)
+    /// <summary>
+    /// Move along the computed path.
+    /// Updates endpoint for moving targets (homing).
+    /// </summary>
+    private void MoveAlongPath(float delta)
     {
-        GlobalPosition += _direction * CurrentSpeed * delta;
-    }
+        if (_path == null)
+            return;
 
-    private void MoveHoming(float delta)
-    {
-        if (IsInstanceValid(Target) && !_homingDisabled)
+        // For homing projectiles, periodically update target position
+        if (MovementType == ProjectileMovementType.Homing && IsInstanceValid(Target))
         {
-            // Use proper target position (hurtbox center) if available
-            _targetPosition = GetTargetPosition(Target);
-            var toTarget = _targetPosition - GlobalPosition;
-            float distanceToTarget = toTarget.Length();
-
-            if (distanceToTarget < MinArcDistance)
+            _timeSinceTargetUpdate += delta;
+            if (_timeSinceTargetUpdate >= TargetUpdateInterval)
             {
-                _homingDisabled = true;
-            }
-            else
-            {
-                var targetDir = toTarget / distanceToTarget;
-                float dot = _direction.Dot(targetDir);
-
-                if (dot < HomingDisableDotThreshold)
-                {
-                    _homingDisabled = true;
-                }
-                else
-                {
-                    _direction = _direction.Lerp(targetDir, HomingStrength * delta).Normalized();
-                }
+                _timeSinceTargetUpdate = 0f;
+                UpdatePathTarget();
             }
         }
 
-        GlobalPosition += _direction * CurrentSpeed * delta;
-
-        // Apply arc offset if configured
-        // Use horizontal distance only to avoid Y feedback loop that causes bouncing
-        if (ArcHeight > 0f)
+        // Advance progress based on speed and path length
+        float pathLength = _path.GetLength();
+        if (pathLength > 0.01f)
         {
-            float horizontalTotalDist = new Vector2(
-                _targetPosition.X - _startPosition.X,
-                _targetPosition.Z - _startPosition.Z
-            ).Length();
-            float horizontalTraveled = new Vector2(
-                GlobalPosition.X - _startPosition.X,
-                GlobalPosition.Z - _startPosition.Z
-            ).Length();
-            float progress = Mathf.Clamp(horizontalTraveled / Mathf.Max(horizontalTotalDist, MinArcDistance), 0f, 1f);
-            float arcOffset = ArcHeight * Mathf.Sin(progress * Mathf.Pi);
-            GlobalPosition = new Vector3(
-                GlobalPosition.X,
-                _startPosition.Y + arcOffset + (_targetPosition.Y - _startPosition.Y) * progress,
-                GlobalPosition.Z
-            );
+            _progress += (CurrentSpeed * delta) / pathLength;
         }
-    }
 
-    private void MoveArc(float delta)
-    {
-        float distance = Mathf.Max(_startPosition.DistanceTo(_targetPosition), MinArcDistance);
-        float arcScale = Mathf.Clamp(distance / FullArcDistance, 0f, 1f);
-        float effectiveArcHeight = ArcHeight * arcScale;
+        // Clamp progress
+        _progress = Mathf.Clamp(_progress, 0f, 1f);
 
-        float progress = _travelTime * Speed / distance;
-        progress = Mathf.Clamp(progress, 0f, 1f);
+        // Update position from path
+        GlobalPosition = _path.GetPosition(_progress);
+        _direction = _path.GetDirection(_progress);
 
-        var horizontalPos = _startPosition.Lerp(_targetPosition, progress);
-        float arcOffset = effectiveArcHeight * Mathf.Sin(progress * Mathf.Pi);
-        horizontalPos.Y += arcOffset;
-
-        _direction = (horizontalPos - GlobalPosition).Normalized();
-        GlobalPosition = horizontalPos;
-
-        if (progress >= 1f)
+        // Check if path is complete
+        if (_progress >= 1f)
         {
+            // If we have a valid target and reach path end, deal damage directly
+            // This handles cases where collision detection has a frame delay
+            if (IsInstanceValid(Target) && IsValidTarget(Target))
+            {
+                float distToTarget = GlobalPosition.DistanceTo(GetTargetPosition(Target));
+                if (distToTarget < DirectHitDistanceThreshold)
+                {
+                    HitTarget(Target);
+                    return;
+                }
+            }
+
+            // No valid target or missed - just expire
             TriggerImpactEffects(GlobalPosition);
             if (FadeOnHit)
                 ExpireWithFade();
@@ -281,30 +252,48 @@ public partial class Projectile3D : Area3D
         }
     }
 
-    private void MoveBallistic(float delta)
+    /// <summary>
+    /// Update path endpoint for tracking moving targets.
+    /// Uses predictive targeting for better interception.
+    /// </summary>
+    private void UpdatePathTarget()
     {
-        var displacement = _targetPosition - _startPosition;
-        float horizontalDist = new Vector2(displacement.X, displacement.Z).Length();
-        float verticalDist = displacement.Y;
+        if (Target == null || _path == null)
+            return;
 
-        float gravityForce = 9.8f;
-        float timeToTarget = horizontalDist / Speed;
-        float initialVelocityY = (verticalDist + 0.5f * gravityForce * timeToTarget * timeToTarget) / timeToTarget;
+        Vector3 currentTargetPos = GetTargetPosition(Target);
+        Vector3 predictedPos = CalculateInterceptPoint(currentTargetPos, Target);
 
-        var horizontalDir = new Vector3(displacement.X, 0, displacement.Z).Normalized();
-        var velocity = horizontalDir * Speed;
-        velocity.Y = initialVelocityY - gravityForce * _travelTime;
+        _targetPosition = predictedPos;
+        _path.UpdateTarget(predictedPos);
+    }
 
-        _direction = velocity.Normalized();
-        GlobalPosition += velocity * delta;
-
-        if (GlobalPosition.DistanceTo(_targetPosition) < 0.5f)
+    /// <summary>
+    /// Create the appropriate path based on movement type.
+    /// Called during initialization.
+    /// </summary>
+    private void CreatePath()
+    {
+        switch (MovementType)
         {
-            TriggerImpactEffects(GlobalPosition);
-            if (FadeOnHit)
-                ExpireWithFade();
-            else
-                ExpireImmediate();
+            case ProjectileMovementType.Straight:
+                _path = new StraightPath(_startPosition, _targetPosition);
+                break;
+
+            case ProjectileMovementType.Arc:
+            case ProjectileMovementType.Homing:
+                // Both arc and homing use arc paths
+                // Homing just updates the endpoint periodically
+                _path = new ArcPath(_startPosition, _targetPosition, ArcHeight);
+                break;
+
+            case ProjectileMovementType.Ballistic:
+                _path = new BallisticPath(_startPosition, _targetPosition, Speed);
+                break;
+
+            default:
+                _path = new StraightPath(_startPosition, _targetPosition);
+                break;
         }
     }
 
@@ -600,7 +589,7 @@ public partial class Projectile3D : Area3D
             _targetPosition = GetTargetPosition(Target);
         }
 
-        // Set direction
+        // Set direction (used for initial rotation)
         if (data.TryGetValue("direction", out var dirVal) && dirVal.VariantType == Variant.Type.Vector3)
         {
             _direction = dirVal.AsVector3().Normalized();
@@ -610,8 +599,12 @@ public partial class Projectile3D : Area3D
             _direction = (_targetPosition - _startPosition).Normalized();
         }
 
+        // Create path based on movement type
+        CreatePath();
+
         // Reset state
-        _travelTime = 0f;
+        _progress = 0f;
+        _timeSinceTargetUpdate = 0f;
         _timeAlive = 0f;
         _hitsRemaining = PierceCount;
         IsActive = true;
@@ -689,13 +682,14 @@ public partial class Projectile3D : Area3D
         _direction = Vector3.Forward;
         _startPosition = Vector3.Zero;
         _targetPosition = Vector3.Zero;
-        _travelTime = 0f;
+        _path = null;
+        _progress = 0f;
+        _timeSinceTargetUpdate = 0f;
         _timeAlive = 0f;
         _hitsRemaining = 0;
         IsActive = false;
         _isFading = false;
         _impactTriggered = false;
-        _homingDisabled = false;
 
         if (_fadeTween != null && _fadeTween.IsValid())
         {
@@ -752,6 +746,48 @@ public partial class Projectile3D : Area3D
         }
         // Fallback: center mass estimate
         return target.GlobalPosition + new Vector3(0, DefaultTargetHeightOffset, 0);
+    }
+
+    /// <summary>
+    /// Calculate intercept point for a moving target.
+    /// Uses simple linear prediction based on target velocity and time-to-target.
+    /// Prediction is scaled down when close to prevent oscillation.
+    /// </summary>
+    private Vector3 CalculateInterceptPoint(Vector3 targetPos, Node3D target)
+    {
+        Vector3 targetVelocity = GetTargetVelocity(target);
+
+        // Stationary target - no prediction needed
+        if (targetVelocity.LengthSquared() < 0.01f)
+            return targetPos;
+
+        float distance = GlobalPosition.DistanceTo(targetPos);
+
+        // Disable prediction when very close to prevent oscillation
+        if (distance < PredictionDisableDistance)
+            return targetPos;
+
+        float timeToTarget = distance / Mathf.Max(CurrentSpeed, MinSpeed);
+
+        return targetPos + (targetVelocity * timeToTarget);
+    }
+
+    /// <summary>
+    /// Get target's current velocity for intercept prediction.
+    /// Supports both C# CharacterBody3D and GDScript nodes with velocity property.
+    /// </summary>
+    private static Vector3 GetTargetVelocity(Node3D target)
+    {
+        // C# CharacterBody3D
+        if (target is CharacterBody3D charBody)
+            return charBody.Velocity;
+
+        // GDScript velocity property
+        var velocityVar = target.Get("velocity");
+        if (velocityVar.VariantType != Variant.Type.Nil)
+            return velocityVar.AsVector3();
+
+        return Vector3.Zero;
     }
 
     private void DuplicateMaterials()

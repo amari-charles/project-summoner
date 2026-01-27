@@ -128,6 +128,57 @@ Example: Puff's attack animation fires at frame 14, running at 12fps:
 
 Projectiles check for ground collision and explode when hitting the ground. A grace period (`GROUND_COLLISION_GRACE_PERIOD = 0.1s`) prevents false positives for projectiles that spawn near ground level.
 
+## Path-Based Movement Architecture
+
+Projectiles use a **path-based movement system** with the Strategy pattern. Instead of updating position via direction vectors, projectiles follow parameterized curves from start (progress=0) to end (progress=1).
+
+### IProjectilePath Interface
+
+All paths implement `IProjectilePath`:
+
+```csharp
+public interface IProjectilePath
+{
+    Vector3 GetPosition(float progress);  // 0 = start, 1 = end
+    void UpdateTarget(Vector3 newTarget); // Track moving targets
+    float GetLength();                     // For speed calculation
+    Vector3 GetDirection(float progress);  // For rotation
+}
+```
+
+### Path Implementations
+
+| Movement Type | Path Class | Description |
+|--------------|------------|-------------|
+| `straight` | `StraightPath` | Linear interpolation from start to end |
+| `arc` | `ArcPath` | Quadratic Bézier curve with configurable arc height |
+| `homing` | `ArcPath` | Same as arc, but periodically updates endpoint to track target |
+| `ballistic` | `BallisticPath` | Pre-computed parabolic trajectory with gravity |
+
+### How It Works
+
+1. **Initialization**: `CreatePath()` creates the appropriate path based on `movement_type`
+2. **Each frame**: `_progress` advances based on `speed / path_length`
+3. **Position update**: `GlobalPosition = _path.GetPosition(_progress)`
+4. **Homing**: Every 0.1s, `UpdatePathTarget()` recalculates the path endpoint using predictive targeting
+
+### Homing with Arc
+
+Homing projectiles use `ArcPath` with endpoint tracking:
+- The path endpoint updates to the target's predicted position
+- The Bézier control point recalculates to maintain arc shape
+- This avoids oscillation that occurs with direction-based homing + arc overlay
+
+### Predictive Targeting
+
+For moving targets, the system predicts where the target will be:
+
+```csharp
+intercept = targetPos + (targetVelocity * timeToTarget)
+```
+
+Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
+
 ## Pooling
 
 Projectiles are pooled by `ProjectileManager` for performance. Key reset behaviors:
