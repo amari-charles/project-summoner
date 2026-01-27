@@ -78,6 +78,8 @@ var _player_summoner_stats: Dictionary = {}
 ## For testing: set these before calling abandon_battle() or use init_for_testing()
 var _profile_repo: Node = null
 var _campaign_service: Node = null
+var _player_card_service: Node = null
+var _summoner_progression: Node = null
 
 ## Get profile repo (lazy lookup from scene tree if not injected)
 func _get_profile_repo() -> Node:
@@ -95,11 +97,34 @@ func _get_campaign_service() -> Node:
 		return get_node_or_null("/root/Campaign")
 	return null
 
+## Get player card service (lazy lookup from scene tree if not injected)
+func _get_player_card_service() -> Node:
+	if _player_card_service != null:
+		return _player_card_service
+	if is_inside_tree():
+		return get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	return null
+
+## Get summoner progression (lazy lookup from scene tree if not injected)
+func _get_summoner_progression() -> Node:
+	if _summoner_progression != null:
+		return _summoner_progression
+	if is_inside_tree():
+		return get_node_or_null("/root/SummonerProgression")
+	return null
+
 ## Initialize for unit testing with mock dependencies
 ## Call this to inject mocks and avoid scene tree access
-func init_for_testing(profile_repo: Node = null, campaign_service: Node = null) -> void:
+func init_for_testing(
+	profile_repo: Node = null,
+	campaign_service: Node = null,
+	player_card_service: Node = null,
+	summoner_progression: Node = null
+) -> void:
 	_profile_repo = profile_repo
 	_campaign_service = campaign_service
+	_player_card_service = player_card_service
+	_summoner_progression = summoner_progression
 
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
@@ -413,8 +438,8 @@ func grant_xp_to_played_cards() -> void:
 
 	print("BattleContext: Granting %d XP to %d played cards" % [card_xp, _cards_played.size()])
 
-	# PlayerCardService is a C# autoload - access via get_node
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	# Use injectable dependency or fall back to autoload lookup
+	var card_service: Node = _get_player_card_service()
 	if card_service and card_service.has_method("grant_xp_to_cards"):
 		card_service.grant_xp_to_cards(_cards_played, card_xp)
 	else:
@@ -429,8 +454,16 @@ func grant_xp_to_active_summoner() -> void:
 		return
 
 	print("BattleContext: Granting %d XP to active summoner" % summoner_xp)
-	var new_xp: int = SummonerProgression.grant_active_summoner_xp(summoner_xp)
-	print("BattleContext: Summoner now has %d XP" % new_xp)
+
+	# Use injectable dependency or fall back to autoload
+	var summoner_prog: Node = _get_summoner_progression()
+	if summoner_prog and summoner_prog.has_method("grant_active_summoner_xp"):
+		var new_xp: int = summoner_prog.grant_active_summoner_xp(summoner_xp)
+		print("BattleContext: Summoner now has %d XP" % new_xp)
+	else:
+		# Fall back to direct autoload access (for production)
+		var new_xp: int = SummonerProgression.grant_active_summoner_xp(summoner_xp)
+		print("BattleContext: Summoner now has %d XP" % new_xp)
 
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:

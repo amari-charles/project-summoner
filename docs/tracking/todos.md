@@ -21,6 +21,31 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ### 🔴 HIGH PRIORITY
 
+#### Remove Gold Costs from Card/Summoner Leveling
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Progression
+**Effort:** Small
+
+**Description:**
+Card and summoner leveling should require only XP, not gold. Gold is campaign-scoped and should only be used for Caravan shop purchases, not permanent progression.
+
+**Changes Required:**
+- `CardProgressionHandler.cs`: Remove `LevelUpGoldCost` array and gold checks from `LevelUpCard()`
+- `SummonerProgressionService.cs`: Remove gold cost checks from level-up methods
+- `CardLevelUpPanel.gd`: Remove gold cost display from UI
+- `SummonerPanel.gd`: Remove gold cost from level-up button
+
+**Design Rationale:**
+- Cards are permanent (persist across campaigns)
+- Gold is campaign-scoped (lost when campaign ends)
+- Players must be able to max out cards over time regardless of campaign outcomes
+- Gold should create tension for in-campaign purchases, not gate permanent progression
+
+**Related Docs:**
+- `docs/design/card-progression-economy.md` - Updated to reflect XP-only leveling
+
+---
+
 #### Phase 3: Flexible Reward System
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Rewards
@@ -456,31 +481,31 @@ Review the current game setup to ensure compatibility with both mobile and deskt
 
 ### 🟢 LOW PRIORITY
 
-#### Support Upgrade-Specific Resource Costs
+#### Support Upgrade-Specific Resource Costs (Future)
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Progression
 **Effort:** Small
 **Dependencies:** Card Level System (implemented)
 
 **Description:**
-Currently all card upgrades cost a flat gold amount. Add support for upgrade-specific resource costs defined in CardUpgradeCatalog.
+Add optional support for upgrade-specific resource costs (essence, fragments, etc.) defined in CardUpgradeCatalog.
 
 **Current Behavior:**
-- All level-ups cost gold only (amount scales with level)
-- Cost is calculated in `PlayerCardService.get_card_progression_info()`
+- Card/summoner level-ups require only XP (no gold cost)
+- Gold is campaign-scoped and used only for Caravan shop purchases
 
 **Future Enhancement:**
-- Individual upgrades can specify resource costs (essence, fragments, etc.)
+- Individual upgrades can optionally specify resource costs (essence, fragments, etc.)
 - CardUpgradeCatalog already has structure to support this
-- Would allow rare/powerful upgrades to require special resources
+- Would allow rare/powerful upgrades to require special resources from events
 
 **Related Code:**
-- `scripts/csharp/Services/PlayerCardService.cs` - C# card service
+- `scripts/csharp/Services/Cards/Handlers/CardProgressionHandler.cs` - card progression
 - `scripts/data/card_upgrade_catalog.gd` - upgrade definitions
 
 **Notes:**
-- Low priority - current gold-only system works fine
-- Implement when adding resource variety to progression
+- Low priority - XP-only system is the core design
+- Resources add optional depth for specific powerful upgrades
 
 ---
 

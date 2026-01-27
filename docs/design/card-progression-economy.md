@@ -157,23 +157,29 @@ This mirrors proven fair monetization patterns used by Pokemon Go raids, TFT lab
 Progression toward advanced upgrade tiers is gated by:
 
 1. **XP** — earned primarily from battles/events
-2. **Gold** — required to finalize the upgrade (campaign-scoped, see below)
-3. **Resources** — required to unlock specific upgrade choices
+2. **Resources** — required to unlock specific upgrade choices (future feature)
 
-This triple-gate ensures:
+This ensures:
 - Players must play to progress
 - Upgrades remain meaningful
 - Paid shortcuts cannot directly purchase power
 - Build direction emerges from XP + resources + player choices
 
+**Note:** Card and summoner leveling requires **only XP**, not gold. This allows players to max out their cards over time regardless of campaign outcomes. Gold is used exclusively for in-campaign purchases (see below).
+
 ### 6.1 Gold is Campaign-Scoped
 
 Gold has **no value outside the specific campaign** it was earned in. When a campaign ends (victory or defeat), unspent gold is lost.
 
+**Gold is used for:**
+- Caravan shop purchases (items, consumables)
+- In-campaign event purchases
+- NOT for card or summoner leveling (use XP only)
+
 **Design intent:**
-- Forces real economic decisions (spend now vs. save for later)
+- Forces real economic decisions during the campaign
 - No hoarding across campaigns or summoners
-- Creates strategic tension: immediate power vs. expensive items at later caravans
+- Creates strategic tension: spend now vs. save for later caravans
 
 Players can see upcoming Caravan stops on the campaign graph, allowing informed spending decisions. The campaign ends with a **final spending opportunity** to prevent "died with full pockets" frustration.
 
@@ -207,7 +213,7 @@ What you collect determines which stat upgrades you can afford — giving identi
 
 ## One-Paragraph Summary
 
-Fateforged uses a choice-driven progression system where cards gain levels capped at 10, and each level unlocks a meaningful upgrade chosen by the player. Upgrades require XP, gold, and themed resources, which tie your build direction to the activities you engage in. Resources come primarily from events, trials, and gauntlets—optional modes outside the main campaign—while the campaign itself stays simple. A two-shop system separates run-bound decisions (Caravan) from long-term monetization (Meta Shop). Monetization revolves around selling extra attempts at events that yield XP, resources, and scoped upgrade-choice opportunities, ensuring paying players never buy power directly and all progression remains earned. This preserves deck uniqueness, fairness, and long-term engagement while keeping development scope low.
+Fateforged uses a choice-driven progression system where cards gain levels capped at 10, and each level unlocks a meaningful upgrade chosen by the player. Upgrades require only XP (earned through gameplay) and optionally themed resources for specific upgrade choices. Resources come primarily from events, trials, and gauntlets—optional modes outside the main campaign—while the campaign itself stays simple. Campaign-scoped gold is used for Caravan shop purchases, not for leveling. A two-shop system separates run-bound decisions (Caravan) from long-term monetization (Meta Shop). Monetization revolves around selling extra attempts at events that yield XP, resources, and scoped upgrade-choice opportunities, ensuring paying players never buy power directly and all progression remains earned. This preserves deck uniqueness, fairness, and long-term engagement while keeping development scope low.
 
 ---
 
