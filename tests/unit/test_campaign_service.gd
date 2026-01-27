@@ -270,6 +270,86 @@ func test_claim_pending_reward_returns_empty_when_none() -> void:
 	assert_engine_error("No pending reward")
 
 
+func test_flexible_reward_uses_chosen_index() -> void:
+	# Set up a battle with reward_options (flexible choice)
+	var test_battle: Dictionary = {
+		"id": "test_flexible",
+		"type": NodeTypeIDs.BATTLE,
+		"reward_type": RewardTypeIDs.FLEXIBLE,
+		"reward_options": ["card_a", "card_b", "card_c"],
+		"gold_reward": 0
+	}
+	# Add test battle to mock
+	mock_cs_service._battles["test_flexible"] = test_battle
+
+	# Set pending reward with choice index 1 (card_b)
+	campaign.set_pending_reward("test_flexible", String(RewardTypeIDs.FLEXIBLE), 1)
+	campaign.update_pending_choice(1)
+
+	# Claim the reward
+	campaign.claim_pending_reward()
+
+	# Verify the chosen card (index 1 = card_b) was granted
+	assert_eq(mock_collection.get_call_count("GrantCard"), 1)
+	var args: Array = mock_collection.get_call_args("GrantCard")
+	assert_eq(args[0][0], "card_b", "Should grant the card at chosen index (1)")
+
+
+func test_fixed_reward_grants_all_cards() -> void:
+	# Set up a battle with multiple fixed reward cards
+	var test_battle: Dictionary = {
+		"id": "test_fixed_multi",
+		"type": NodeTypeIDs.BATTLE,
+		"reward_type": RewardTypeIDs.FIXED,
+		"reward_cards": [
+			{"catalog_id": "card_1", "rarity": "common", "count": 1},
+			{"catalog_id": "card_2", "rarity": "rare", "count": 1}
+		],
+		"gold_reward": 50
+	}
+	# Add test battle to mock
+	mock_cs_service._battles["test_fixed_multi"] = test_battle
+
+	# Grant the reward
+	campaign.grant_battle_reward("test_fixed_multi")
+
+	# Verify ALL cards were granted (not just the one at chosen index)
+	assert_eq(mock_collection.get_call_count("GrantCard"), 2, "Should grant all reward cards")
+
+	var args: Array = mock_collection.get_call_args("GrantCard")
+	assert_eq(args[0][0], "card_1", "First card should be card_1")
+	assert_eq(args[1][0], "card_2", "Second card should be card_2")
+
+
+func test_claim_pending_reward_uses_stored_choice_index() -> void:
+	# Set up a battle with reward_options
+	var test_battle: Dictionary = {
+		"id": "test_choice_persist",
+		"type": NodeTypeIDs.BATTLE,
+		"reward_type": RewardTypeIDs.FLEXIBLE,
+		"reward_options": ["option_a", "option_b"],
+		"gold_reward": 0
+	}
+	mock_cs_service._battles["test_choice_persist"] = test_battle
+
+	# Set pending reward, then update choice
+	campaign.set_pending_reward("test_choice_persist", String(RewardTypeIDs.FLEXIBLE), -1)
+	campaign.update_pending_choice(1)
+
+	# Verify choice is stored
+	var pending: Variant = campaign.get_pending_reward()
+	assert_true(pending is Dictionary)
+	var pending_dict: Dictionary = pending
+	assert_eq(pending_dict.get("choice_index"), 1, "Choice index should be persisted")
+
+	# Claim - should use the stored choice index
+	campaign.claim_pending_reward()
+
+	assert_eq(mock_collection.get_call_count("GrantCard"), 1)
+	var args: Array = mock_collection.get_call_args("GrantCard")
+	assert_eq(args[0][0], "option_b", "Should grant option at stored index (1)")
+
+
 ## =============================================================================
 ## TUTORIAL HELPER TESTS
 ## =============================================================================
