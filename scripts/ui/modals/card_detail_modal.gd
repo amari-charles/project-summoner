@@ -222,8 +222,6 @@ func _update_progression_display() -> void:
 	var xp_for_next: int = info.get("xp_for_next_level", 0)
 	var xp_progress: float = info.get("xp_progress", 0.0)
 	var can_level_up_val: bool = info.get("can_level_up", false)
-	var can_afford_val: bool = info.get("can_afford_level_up", false)
-	var gold_cost: int = info.get("level_up_gold_cost", 0)
 	var is_max_level: bool = info.get("is_max_level", false)
 
 	# Update level label
@@ -237,17 +235,13 @@ func _update_progression_display() -> void:
 		xp_label.text = Loc.t("ui.collection.xp_label", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
-	# Update level-up button
+	# Update level-up button (XP-only, no gold cost)
 	if is_max_level:
 		level_up_button.visible = false
 	elif can_level_up_val:
 		level_up_button.visible = true
-		if can_afford_val:
-			level_up_button.text = Loc.t("ui.collection.level_up_button", {"cost": gold_cost})
-			level_up_button.disabled = false
-		else:
-			level_up_button.text = Loc.t("ui.collection.level_up_button_unaffordable", {"cost": gold_cost})
-			level_up_button.disabled = true
+		level_up_button.text = Loc.t("ui.collection.level_up_button_simple")
+		level_up_button.disabled = false
 	else:
 		level_up_button.visible = true
 		level_up_button.text = Loc.t("ui.collection.level_up_button_locked")

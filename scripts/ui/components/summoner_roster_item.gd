@@ -65,8 +65,6 @@ func refresh() -> void:
 	var xp_for_next: int = info.get("xp_for_next_level", 0)
 	var xp_progress: float = info.get("xp_progress", 0.0)
 	var can_level_up: bool = info.get("can_level_up", false)
-	var can_afford: bool = info.get("can_afford_level_up", false)
-	var gold_cost: int = info.get("level_up_gold_cost", 0)
 	var is_max_level: bool = info.get("is_max_level", false)
 
 	# Get element
@@ -94,19 +92,15 @@ func refresh() -> void:
 		xp_label.text = Loc.t("ui.summoner_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
-	# Level up button state
+	# Level up button state (XP-only, no gold cost)
 	if is_max_level:
 		level_up_button.text = Loc.t("ui.summoner_panel.level_up_max")
 		level_up_button.disabled = true
 	elif not can_level_up:
 		level_up_button.text = Loc.t("ui.summoner_panel.level_up_locked")
 		level_up_button.disabled = true
-	elif not can_afford:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": gold_cost})
-		level_up_button.disabled = true
-		level_up_button.add_theme_color_override("font_color", Color(0.7, 0.3, 0.3))
 	else:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": gold_cost})
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button_simple")
 		level_up_button.disabled = false
 		level_up_button.remove_theme_color_override("font_color")
 

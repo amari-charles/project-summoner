@@ -13,11 +13,6 @@ public class CardProgressionHandler
 {
     private readonly IProfileRepository _profileRepo;
 
-    // Economy callbacks (set from CardService)
-    private System.Func<int>? _getGoldFunc;
-    private System.Func<int, bool>? _canAffordGoldFunc;
-    private System.Action<int>? _spendGoldFunc;
-
     // =========================================================================
     // CONSTANTS
     // =========================================================================
@@ -25,7 +20,6 @@ public class CardProgressionHandler
     public const int MaxLevel = 10;
 
     private static readonly int[] XpThresholds = [0, 30, 75, 150, 300, 500, 800, 1200, 1800, 2500];
-    private static readonly int[] LevelUpGoldCost = [0, 25, 50, 100, 200, 350, 500, 750, 1000, 1500];
 
     private static readonly Dictionary<string, float> RarityMultipliers = new()
     {
@@ -38,17 +32,6 @@ public class CardProgressionHandler
     public CardProgressionHandler(IProfileRepository profileRepo)
     {
         _profileRepo = profileRepo;
-    }
-
-    /// <summary>Set economy callbacks for gold operations.</summary>
-    public void SetEconomyCallbacks(
-        System.Func<int> getGold,
-        System.Func<int, bool> canAffordGold,
-        System.Action<int> spendGold)
-    {
-        _getGoldFunc = getGold;
-        _canAffordGoldFunc = canAffordGold;
-        _spendGoldFunc = spendGold;
     }
 
     // =========================================================================
@@ -153,42 +136,9 @@ public class CardProgressionHandler
         return card.Xp >= nextLevelXp;
     }
 
-    /// <summary>Get gold cost for level-up with rarity scaling.</summary>
-    public int GetGoldCostForLevelWithRarity(int level, string rarity)
-    {
-        if (level < 1 || level > MaxLevel)
-            return 0;
-        return (int)(LevelUpGoldCost[level - 1] * GetRarityMultiplier(rarity));
-    }
-
-    /// <summary>Get gold cost to level up a specific card.</summary>
-    public int GetLevelUpGoldCost(string cardInstanceId)
-    {
-        var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null || card.Level >= MaxLevel)
-            return 0;
-
-        return GetGoldCostForLevelWithRarity(card.Level + 1, card.Rarity);
-    }
-
-    /// <summary>Check if player can afford level-up (XP + gold).</summary>
-    public bool CanAffordLevelUp(string cardInstanceId)
-    {
-        if (!CanLevelUp(cardInstanceId))
-            return false;
-
-        int goldCost = GetLevelUpGoldCost(cardInstanceId);
-        if (_canAffordGoldFunc == null)
-        {
-            GD.PushWarning("CardProgressionHandler: Economy callbacks not set");
-            return false;
-        }
-
-        return _canAffordGoldFunc(goldCost);
-    }
-
     /// <summary>
     /// Level up a card with chosen upgrade.
+    /// Requires only XP - no gold cost.
     /// Returns true if successful.
     /// </summary>
     public bool LevelUpCard(string cardInstanceId, string upgradeId)
@@ -206,20 +156,6 @@ public class CardProgressionHandler
             return false;
         }
 
-        int goldCost = GetLevelUpGoldCost(cardInstanceId);
-
-        if (_canAffordGoldFunc == null || _spendGoldFunc == null)
-        {
-            GD.PushError("CardProgressionHandler: Economy callbacks not set");
-            return false;
-        }
-
-        if (!_canAffordGoldFunc(goldCost))
-        {
-            GD.PushWarning($"CardProgressionHandler: Cannot afford level-up cost: {goldCost}");
-            return false;
-        }
-
         // Validate upgrade choice
         var availableUpgrades = GetAvailableUpgrades(cardInstanceId);
         if (!availableUpgrades.Exists(u => u.Id == upgradeId))
@@ -228,10 +164,7 @@ public class CardProgressionHandler
             return false;
         }
 
-        // Spend gold
-        _spendGoldFunc(goldCost);
-
-        // Apply level up
+        // Apply level up (XP-only, no gold cost)
         var newLevel = card.Level + 1;
         var newUpgrades = new List<string>(card.Upgrades) { upgradeId };
 
@@ -320,8 +253,6 @@ public class CardProgressionHandler
             XpForNextLevel = card.Level < MaxLevel ? GetXpForLevelWithRarity(card.Level + 1, card.Rarity) : 0,
             XpProgress = GetLevelProgress(cardInstanceId),
             CanLevelUp = CanLevelUp(cardInstanceId),
-            CanAffordLevelUp = CanAffordLevelUp(cardInstanceId),
-            LevelUpGoldCost = GetLevelUpGoldCost(cardInstanceId),
             Upgrades = new List<string>(card.Upgrades),
             IsMaxLevel = card.Level >= MaxLevel
         };
@@ -349,6 +280,7 @@ public class CardProgressionHandler
 
 /// <summary>
 /// Card progression info for UI display.
+/// Note: Card leveling requires only XP, not gold.
 /// </summary>
 public class CardProgressionInfo
 {
@@ -362,8 +294,6 @@ public class CardProgressionInfo
     public int XpForNextLevel { get; set; } = 0;
     public float XpProgress { get; set; } = 0f;
     public bool CanLevelUp { get; set; } = false;
-    public bool CanAffordLevelUp { get; set; } = false;
-    public int LevelUpGoldCost { get; set; } = 0;
     public List<string> Upgrades { get; set; } = [];
     public bool IsMaxLevel { get; set; } = false;
 }
