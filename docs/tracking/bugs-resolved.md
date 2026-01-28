@@ -6,6 +6,82 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Units Stuck in FlashWhite Visual State After Being Attacked
+**Resolved:** 2026-01-27
+**Component:** Units / Visual / Combat Feedback
+
+**Description:**
+Units were getting stuck in the white flash visual state after being attacked. The FlashWhite effect that triggers on damage was not properly resetting.
+
+**Root Cause:**
+Race condition when `FlashWhite()` was called multiple times in rapid succession (unit taking damage from multiple sources). Each call captured the current modulate as `originalColor`. If a second call occurred during an active flash tween, it would capture the bright white color (2.0, 2.0, 2.0, 1.0) as "original" instead of the true original color. When tweens completed, units would reset to the wrong color.
+
+**Solution Implemented:**
+1. Added `_originalModulate` field to store the true original color once (initialized to `Colors.White`)
+2. Added `_flashTween` field to track the active tween
+3. Modified `FlashWhite()` to:
+   - Kill any existing flash tween before starting a new one
+   - Reset modulate to stored original before starting new flash
+   - Always tween back to the stored original color
+
+Applied fix to both visual components:
+- `SkeletalVisualComponent.cs` (skeletal rigs like Fire Wisp)
+- `SpriteVisualComponent.cs` (sprite-based units like Puff)
+
+**Related Files:**
+- scripts/csharp/Visual/SkeletalVisualComponent.cs
+- scripts/csharp/Visual/SpriteVisualComponent.cs
+
+---
+
+### Battle Victory Rewards UI Missing Localization
+**Resolved:** 2026-01-27
+**Component:** UI / Rewards / Localization
+
+**Description:**
+After completing battles, the victory rewards screen showed `[[MISSING:ui.rewards.guaranteed]]` for guaranteed reward badges.
+
+**Root Cause:**
+Localization key mismatch. `reward_screen.gd` used plural `ui.rewards.guaranteed` but `en.json` defined the key at singular `ui.reward.guaranteed`.
+
+**Solution Implemented:**
+Fixed the key in `reward_screen.gd:356` to use `ui.reward.guaranteed` matching the localization file.
+
+**Related Files:**
+- scripts/ui/screens/reward_screen.gd
+- localization/data/en.json
+
+---
+
+### Fire Wisp Missing Right Leg
+**Resolved:** 2026-01-27
+**Component:** Units / Art / Visual
+
+**Description:**
+The Fire Wisp unit was missing its right leg in the visual representation.
+
+**Root Cause:**
+Commit c8b7f1e4 refactored `SkeletalVisualComponent.cs` from dynamic bounds-based viewport sizing to explicit `FeetLocalPosition` parameters. The wisp units were not updated with proper `ViewportSize` values, leaving them at the default 1200x1200. This oversized viewport caused rendering issues with the scaled-down content (0.15 scale factor), resulting in the right leg not being visible.
+
+**Solution Implemented:**
+Added explicit `ViewportSize = Vector2i(300, 350)` to all wisp unit scenes to match their scaled content size. This provides a viewport properly sized for the `ContentSize = Vector2(500, 800)` at `ScaleFactor = Vector2(0.15, 0.15)`.
+
+Applied fix to all 8 wisp variants:
+- fire_wisp_3d.tscn
+- water_wisp_3d.tscn
+- earth_wisp_3d.tscn
+- wind_wisp_3d.tscn
+- lightning_wisp_3d.tscn
+- life_wisp_3d.tscn
+- death_wisp_3d.tscn
+- shadow_wisp_3d.tscn
+
+**Related Files:**
+- scenes/units/*_wisp_3d.tscn
+- scripts/csharp/Visual/SkeletalVisualComponent.cs
+
+---
+
 ### Campaign State Not Persisting on Restart
 **Resolved:** 2026-01-27
 **Component:** Campaign / Save System / Persistence

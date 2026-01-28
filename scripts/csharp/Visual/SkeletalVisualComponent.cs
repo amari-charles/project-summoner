@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 namespace ProjectSummoner.Visual;
 
@@ -84,6 +85,9 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
     private bool _isFlipped;
     private bool _initializationComplete;
+    private Color _originalModulate = Colors.White;
+    private Tween? _flashTween;
+    private List<CanvasItem>? _cachedSprites;
 
     // =========================================================================
     // LIFECYCLE
@@ -248,12 +252,45 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_skeletalInstance == null)
             return;
 
-        var originalColor = _skeletalInstance.Modulate;
+        var sprites = GetAllSprites();
+        if (sprites.Count == 0)
+            return;
 
-        var flashTween = CreateTween();
-        flashTween.TweenProperty(_skeletalInstance, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.05f);
-        flashTween.TweenProperty(_skeletalInstance, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.1f);
-        flashTween.TweenProperty(_skeletalInstance, "modulate", originalColor, 0.15f);
+        // Kill any existing flash tween to prevent overlapping flashes
+        if (_flashTween != null && _flashTween.IsValid())
+        {
+            _flashTween.Kill();
+            // Reset all sprites to original color
+            foreach (var sprite in sprites)
+            {
+                sprite.Modulate = _originalModulate;
+            }
+        }
+
+        // Apply flash to each sprite individually to avoid SubViewport z_index rendering bug
+        var flashColor = new Color(2.0f, 2.0f, 2.0f, 1.0f);
+        _flashTween = CreateTween();
+        _flashTween.SetParallel(true);
+
+        // Phase 1: Flash to white (all sprites in parallel)
+        foreach (var sprite in sprites)
+        {
+            _flashTween.TweenProperty(sprite, "modulate", flashColor, 0.05f);
+        }
+
+        // Phase 2: Hold white
+        _flashTween.Chain().SetParallel(true);
+        foreach (var sprite in sprites)
+        {
+            _flashTween.TweenProperty(sprite, "modulate", flashColor, 0.1f);
+        }
+
+        // Phase 3: Fade back to original
+        _flashTween.Chain().SetParallel(true);
+        foreach (var sprite in sprites)
+        {
+            _flashTween.TweenProperty(sprite, "modulate", _originalModulate, 0.15f);
+        }
     }
 
     public void SetFlipH(bool flip)
@@ -320,16 +357,50 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
     public void ApplyGhostTint(Color tint)
     {
-        // Apply tint to the internal skeletal instance for ghost transparency
-        if (_skeletalInstance != null)
+        // Store the tint as original so FlashWhite returns to it
+        _originalModulate = tint;
+
+        // Apply tint to each sprite individually to avoid SubViewport z_index rendering bug
+        foreach (var sprite in GetAllSprites())
         {
-            _skeletalInstance.Modulate = tint;
+            sprite.Modulate = tint;
         }
     }
 
     // =========================================================================
     // PRIVATE HELPERS
     // =========================================================================
+
+    /// <summary>
+    /// Get all CanvasItem children (Sprite2D, etc.) from the skeletal instance.
+    /// Results are cached after first call for performance.
+    /// </summary>
+    private List<CanvasItem> GetAllSprites()
+    {
+        if (_cachedSprites != null)
+            return _cachedSprites;
+
+        _cachedSprites = new List<CanvasItem>();
+        if (_skeletalInstance != null)
+        {
+            CollectCanvasItems(_skeletalInstance, _cachedSprites);
+        }
+        return _cachedSprites;
+    }
+
+    private void CollectCanvasItems(Node node, List<CanvasItem> items)
+    {
+        // Collect Sprite2D and other CanvasItem types that can be modulated
+        if (node is Sprite2D sprite)
+        {
+            items.Add(sprite);
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            CollectCanvasItems(child, items);
+        }
+    }
 
     private async System.Threading.Tasks.Task InstanceSkeletalScene()
     {

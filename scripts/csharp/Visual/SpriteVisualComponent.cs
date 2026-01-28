@@ -116,6 +116,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private Tween? _attackTween;
     private bool _isAttacking;
     private bool _isFlipped;
+    private Color _originalModulate = Colors.White;
+    private Tween? _flashTween;
 
     // Frame size cache (avoid expensive texture lookups on every facing change)
     private Vector2 _cachedFrameSize = Vector2.Zero;
@@ -367,12 +369,18 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (_characterSprite == null)
             return;
 
-        var originalColor = _characterSprite.Modulate;
+        // Kill any existing flash tween to prevent overlapping flashes
+        if (_flashTween != null && _flashTween.IsValid())
+        {
+            _flashTween.Kill();
+            // Reset to original color before starting new flash
+            _characterSprite.Modulate = _originalModulate;
+        }
 
-        var flashTween = CreateTween();
-        flashTween.TweenProperty(_characterSprite, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.05f);
-        flashTween.TweenProperty(_characterSprite, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.1f);
-        flashTween.TweenProperty(_characterSprite, "modulate", originalColor, 0.15f);
+        _flashTween = CreateTween();
+        _flashTween.TweenProperty(_characterSprite, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.05f);
+        _flashTween.TweenProperty(_characterSprite, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.1f);
+        _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, 0.15f);
     }
 
     public void SetFlipH(bool flip)
