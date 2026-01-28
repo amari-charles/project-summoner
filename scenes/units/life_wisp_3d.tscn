@@ -27,6 +27,7 @@ ShadowOpacity = 0.6
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
 SkeletalScene = ExtResource("3_rig")
 ScaleFactor = Vector2(0.15, 0.15)
+ViewportSize = Vector2i(300, 350)
 ContentSize = Vector2(500, 800)
 FeetLocalPosition = Vector2(300, 1150)
 

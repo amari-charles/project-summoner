@@ -353,7 +353,7 @@ func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 
 		# Add badge for guaranteed vs pool options
 		if is_guaranteed:
-			button.text = "[%s] %s" % [Loc.t("ui.rewards.guaranteed"), card_name]
+			button.text = "[%s] %s" % [Loc.t("ui.reward.guaranteed"), card_name]
 		else:
 			button.text = card_name
 
