@@ -23,9 +23,14 @@ signal campaign_changed(old_campaign_id: String, new_campaign_id: String)
 var profile_repo: IProfileRepo = null
 var economy_service: Node = null  # EconomyService
 var collection_service: Node = null  # CollectionService
+var deck_service: Node = null  # DeckService (for starter deck auto-add)
 
 ## C# service reference
 var _cs_service: Node
+
+## Deck constants (preloaded for class_name compatibility in headless mode)
+const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
+
 
 ## Campaign metadata cache (for data that stays in GDScript)
 var _campaigns: Dictionary = {}
@@ -50,6 +55,8 @@ func _ready() -> void:
 		economy_service = Economy
 	if collection_service == null:
 		collection_service = CardServiceCS
+	if deck_service == null:
+		deck_service = Decks
 
 	# Connect to C# service signals
 	_cs_service.BattleCompleted.connect(_on_cs_battle_completed)
@@ -91,10 +98,12 @@ func _ready() -> void:
 ## Initialize for unit testing with mock dependencies
 ## Call this instead of relying on _ready() in tests
 ## Pass a MockCampaignServiceCS instance to enable full testing without C# autoload
-func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null, cs_service_mock: Node = null) -> void:
+## Pass deck = null to disable starter deck auto-add in tests
+func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
 	profile_repo = repo
 	economy_service = economy
 	collection_service = collection
+	deck_service = deck  # null in tests disables auto-add to starter deck
 
 	# Use provided mock or try to find real autoload
 	if cs_service_mock != null:
@@ -153,7 +162,34 @@ func _clear_campaign_gold(summoner_id: String) -> void:
 func _grant_card(catalog_id: String, rarity: String) -> String:
 	if collection_service == null:
 		return ""
-	return collection_service.GrantCard(catalog_id, rarity)
+	var instance_id: String = collection_service.GrantCard(catalog_id, rarity)
+
+	# Auto-add to Starter Deck if under threshold
+	if not instance_id.is_empty():
+		_try_auto_add_to_starter_deck(instance_id)
+
+	return instance_id
+
+
+func _try_auto_add_to_starter_deck(card_instance_id: String) -> void:
+	# Skip if no deck service (e.g., in tests)
+	if deck_service == null:
+		return
+
+	# Find the Starter Deck by name
+	var decks: Array = deck_service.list_decks()
+	for deck: Variant in decks:
+		if not deck is Dictionary:
+			continue
+		var deck_dict: Dictionary = deck
+		if deck_dict.get("name", "") == _DeckConstants.STARTER_DECK_NAME:
+			var card_ids: Array = deck_dict.get("card_instance_ids", [])
+			if card_ids.size() < _DeckConstants.STARTER_DECK_AUTO_ADD_THRESHOLD:
+				var deck_id: String = deck_dict.get("id", "")
+				if not deck_id.is_empty():
+					deck_service.add_card_to_deck(deck_id, card_instance_id)
+			return  # Only one Starter Deck expected
+
 
 func _get_active_summoner() -> String:
 	return SummonerSelection.GetActiveSummonerId()

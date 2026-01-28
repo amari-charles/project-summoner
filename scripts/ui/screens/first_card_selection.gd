@@ -6,8 +6,7 @@ class_name FirstCardSelection
 ## Part of onboarding flow. Player picks Fire Wisp or Earth Sprite as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
-# Deck name constant
-const STARTER_DECK_NAME: String = "Starter Deck"
+const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
 
 @onready var select_fire_wisp_button: Button = %SelectFireWispButton
 @onready var select_earth_sprite_button: Button = %SelectEarthSpriteButton
@@ -34,15 +33,15 @@ func _on_card_selected(catalog_id: StringName) -> void:
 	var card_instance_id: String = CardServiceCS.GrantCard(catalog_id, String(RarityIDs.COMMON))
 	print("FirstCardSelection: Granted %s to collection (instance: %s)" % [catalog_id, card_instance_id])
 
-	# Find or create STARTER_DECK_NAME
+	# Find or create Starter Deck
 	var deck_id: String = ""
 
 	if card_instance_id != "":
-		# Search for existing STARTER_DECK_NAME
+		# Search for existing Starter Deck
 		if Decks.has_method("list_decks"):
 			var all_decks: Array[Dictionary] = Decks.call("list_decks")
 			for deck_dict: Dictionary in all_decks:
-				if deck_dict.get("name", "") == STARTER_DECK_NAME:
+				if deck_dict.get("name", "") == _DeckConstants.STARTER_DECK_NAME:
 					deck_id = deck_dict.get("id", "")
 					print("FirstCardSelection: Found existing Starter Deck (id: %s)" % deck_id)
 					break
@@ -56,7 +55,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 			# Get the player's unlocked summoner to assign to the deck
 			var summoner_id: String = _get_first_unlocked_summoner()
 			if Decks.has_method("create_deck"):
-				var result: Variant = Decks.call("create_deck", STARTER_DECK_NAME, [card_instance_id], summoner_id)
+				var result: Variant = Decks.call("create_deck", _DeckConstants.STARTER_DECK_NAME, [card_instance_id], summoner_id)
 				deck_id = result if result is String else ""
 				print("FirstCardSelection: Created new Starter Deck (id: %s) with summoner '%s'" % [deck_id, summoner_id])
 

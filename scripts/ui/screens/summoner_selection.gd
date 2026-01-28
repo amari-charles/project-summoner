@@ -8,6 +8,8 @@ class_name SummonerSelectionScreen
 ## Summoner choice is saved to profile via ProfileRepo.set_starting_summoner()
 ## If random is chosen, grants "Fortune Favors the Bold" trait.
 
+const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
+
 @onready var select_button1: Button = %SelectButton1
 @onready var select_button2: Button = %SelectButton2
 @onready var select_button3: Button = %SelectButton3
@@ -102,10 +104,9 @@ func _create_starter_deck(summoner_id: String) -> void:
 		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
 		return
 
-	# Create "Starter Deck" with the card
-	const STARTER_DECK_NAME: String = "Starter Deck"
+	# Create Starter Deck with the card
 	var card_ids: Array[String] = [card_instance_id]
-	var deck_id: String = Decks.create_deck(STARTER_DECK_NAME, card_ids, summoner_id)
+	var deck_id: String = Decks.create_deck(_DeckConstants.STARTER_DECK_NAME, card_ids, summoner_id)
 	if deck_id.is_empty():
 		push_error("SummonerSelection: Failed to create Starter Deck")
 		return
