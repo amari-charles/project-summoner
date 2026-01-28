@@ -167,6 +167,12 @@ public partial class CampaignService : Node
 		_progress?.SetCurrentCampaign(campaignId);
 		_graphStore?.SetCurrentCampaign(campaignId);
 
+		// Sync completed nodes to graph store for unlock evaluation
+		if (_graphStore != null && _store != null)
+		{
+			_graphStore.LoadCompletedNodes(_store.CompletedBattles);
+		}
+
 		if (oldId != campaignId)
 		{
 			EmitSignal(SignalName.CampaignChanged, oldId, campaignId);
