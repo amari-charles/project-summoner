@@ -627,26 +627,8 @@ func _update_detail_panel() -> void:
 				reward_lines.append(Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)}))
 
 		RewardTypeIDs.FLEXIBLE:
-			if reward_options.size() > 0:
-				# Show predefined options
-				var card_names: Array[String] = []
-				for option: Variant in reward_options:
-					var option_id: String = ""
-					if option is String or option is StringName:
-						option_id = String(option)
-					elif option is Dictionary:
-						option_id = _safe_string(option.get("catalog_id", option.get("id", "")))
-					if not option_id.is_empty():
-						card_names.append(_get_card_display_name(catalog, option_id))
-				if card_names.size() > 0:
-					reward_lines.append(Loc.t("campaign.rewards.card_choice", {"count": card_names.size()}))
-					reward_lines.append(Loc.t("campaign.rewards.card_choice_options", {"cards": ", ".join(card_names)}))
-			else:
-				# Dynamic generation - show generic message
-				var guaranteed_count: int = _safe_int(event.get("guaranteed_count", 1), 1)
-				var pool_count: int = _safe_int(event.get("pool_count", 2), 2)
-				var total_options: int = guaranteed_count + pool_count
-				reward_lines.append(Loc.t("campaign.rewards.card_choice", {"count": total_options}))
+			# Simple "1 Card" display - don't spoil the options
+			reward_lines.append(Loc.t("campaign.rewards.card_choice"))
 
 		RewardTypeIDs.NONE:
 			pass  # No card reward line needed
