@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Combat;
 using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Projectiles.Paths;
 
@@ -372,11 +373,8 @@ public partial class Projectile3D : Area3D
         // Apply damage via DamageSystem
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull("/root/DamageSystem");
-            if (damageSystem != null)
-            {
-                damageSystem.Call("apply_damage", Source, target, Damage, DamageType);
-            }
+            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
+            damageSystem?.ApplyDamage(Source, target, Damage, DamageType);
         }
 
         EmitSignal(SignalName.ProjectileHit, target, this);
@@ -389,11 +387,11 @@ public partial class Projectile3D : Area3D
         // Use DamageSystem with projectile flag
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull("/root/DamageSystem");
+            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
             if (damageSystem != null)
             {
                 var flags = new Godot.Collections.Dictionary { { "from_projectile", true } };
-                damageSystem.Call("apply_damage", Source, target, Damage, DamageType, flags);
+                damageSystem.ApplyDamage(Source, target, Damage, DamageType, flags);
             }
         }
 
@@ -467,7 +465,7 @@ public partial class Projectile3D : Area3D
         targets.AddRange(sceneTree.GetNodesInGroup(enemyUnitsGroup));
         targets.AddRange(sceneTree.GetNodesInGroup(enemyBasesGroup));
 
-        var damageSystem = GetNodeOrNull("/root/DamageSystem");
+        var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
 
         foreach (var targetNode in targets)
         {
@@ -478,9 +476,9 @@ public partial class Projectile3D : Area3D
                 continue;
 
             float distance = target3D.GlobalPosition.DistanceTo(center);
-            if (distance <= radius && damageSystem != null)
+            if (distance <= radius)
             {
-                damageSystem.Call("apply_damage", Source, target3D, Damage, DamageType);
+                damageSystem?.ApplyDamage(Source, target3D, Damage, DamageType);
             }
         }
     }

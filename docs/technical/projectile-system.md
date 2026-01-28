@@ -89,7 +89,7 @@ Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
 ### Tracking vs Homing
 
 | Property | Tracking (straight) | Homing |
-|----------|--------------------|---------
+|----------|---------------------|--------|
 | Path shape | Linear | Arc (Bézier) |
 | Updates target | Yes | Yes |
 | Visual feel | Direct, straight line | Curved, seeking |
