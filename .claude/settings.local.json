@@ -64,7 +64,8 @@
       "Bash(gh pr close:*)",
       "Bash(gdlint:*)",
       "Bash(git fetch:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
