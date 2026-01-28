@@ -19,7 +19,16 @@ Target position is calculated via `Unit3D.get_projectile_target_position()`:
 public Vector3 get_projectile_target_position()
 {
     float height = VisualComponent?.GetSpriteHeight() ?? 1.0f;
-    return GlobalPosition + new Vector3(0, height * CenterMassHeightFraction, 0);
+    Vector3 baseTarget = GlobalPosition + new Vector3(0, height * CenterMassHeightFraction, 0);
+
+    // Apply configurable offset (X flips with facing direction)
+    if (TargetPointOffset != Vector3.Zero)
+    {
+        float xOffset = _isFacingRight ? TargetPointOffset.X : -TargetPointOffset.X;
+        return baseTarget + new Vector3(xOffset, TargetPointOffset.Y, TargetPointOffset.Z);
+    }
+
+    return baseTarget;
 }
 ```
 
@@ -29,15 +38,22 @@ This uses `VisualComponent.GetSpriteHeight()` which correctly accounts for:
 - `ScaleFactor` - sprite scale in viewport
 - `PixelSize` - world units per pixel (0.0122)
 
-### Why Manual Markers Don't Work
+### TargetPointOffset Property
 
-Previously, units had `ProjectileTargetPoint` markers placed manually in scenes. This caused targeting bugs because:
+For units with off-center bodies, use the `TargetPointOffset` exported property:
 
-1. **Complex sprite positioning**: The 2.5D sprite system positions visuals based on FeetOffset, HeadOffset, viewport size, and pixel size
-2. **Markers don't auto-update**: When sprite configuration changes, markers become stale
-3. **Flying units compound the issue**: Flight altitude adds to GlobalPosition.Y, making marker math error-prone
+```csharp
+[Export]
+public Vector3 TargetPointOffset { get; set; } = Vector3.Zero;
+```
 
-**Do NOT use manual ProjectileTargetPoint markers for targeting.** The automatic calculation from VisualComponent is always correct.
+- **X offset**: Flips with facing direction (positive = forward from unit's perspective)
+- **Y offset**: Vertical adjustment (positive = up)
+- **Z offset**: Depth adjustment (rarely needed)
+
+Example: Puff has `TargetPointOffset = Vector3(0.7, 0, 0)` because its body is offset horizontally from its ground position.
+
+Use the debug menu "Target Points" option to visualize target positions while configuring.
 
 ### Flying Units
 
