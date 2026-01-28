@@ -142,7 +142,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -163,7 +163,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Water
         },
@@ -184,7 +184,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
         },
@@ -205,7 +205,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Earth
         },
@@ -226,7 +226,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Lightning
         },
@@ -247,7 +247,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Life
         },
@@ -268,7 +268,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing | VisualTrait.Ethereal,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Death
         },
@@ -289,7 +289,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Ethereal,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Shadow
         },
@@ -320,7 +320,7 @@ public static class CardCatalog
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental,
             Roles = SummonRole.Swarm,
-            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
+            VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -346,7 +346,6 @@ public static class CardCatalog
             IsRanged = false,
             CreatureTypes = CreatureType.Elemental | CreatureType.Spirit,
             Roles = SummonRole.Tank | SummonRole.Giant,
-            VisualTraits = VisualTrait.Floating | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -458,7 +457,6 @@ public static class CardCatalog
             UnitType = UnitType.Ranged,
             IsRanged = true,
             CreatureTypes = CreatureType.Aerial,
-            VisualTraits = VisualTrait.Floating,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
         },
@@ -480,7 +478,6 @@ public static class CardCatalog
             IsRanged = true,
             CreatureTypes = CreatureType.Aerial,
             Roles = SummonRole.Swarm,
-            VisualTraits = VisualTrait.Floating,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
         },
@@ -586,14 +583,6 @@ public static class CardCatalog
     {
         return _cards.Values
             .Where(c => c.Type == CardType.Spell && c.SpellTargeting == targeting)
-            .ToArray();
-    }
-
-    /// <summary>Get cards with specific visual traits.</summary>
-    public static CardDefinition[] GetCardsByVisualTrait(VisualTrait trait)
-    {
-        return _cards.Values
-            .Where(c => (c.VisualTraits & trait) != 0)
             .ToArray();
     }
 

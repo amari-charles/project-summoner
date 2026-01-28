@@ -16,14 +16,16 @@ This document defines how cards work in Fateforged, from data model to variance 
 - **Structure** — Stationary summon with HP, aura, or attack
 - **Tactic** *(optional future)* — Modifies deck or hero for that match
 
-### Tags (Multi-Select)
+### Typed Card Properties
 
-Tags drive synergy and affinity bias:
+Cards use strongly-typed enums for classification instead of string tags:
 
-- **Element:** `fire | water | nature | storm | earth | neutral`
-- **Role:** `tank | assault | support | ranged | air | structure | spell`
-- **Family:** e.g., `pyre`, `thorn`, `wisp`
-- **Mechanics:** `burn | freeze | heal | shield | root | silence | dash | stealth | summon_on_death | lifesteal | taunt`
+- **CreatureType** (flags): `Elemental | Spirit | Insect | Amphibian | Nature | Aerial`
+- **SummonRole** (flags): `Swarm | Fast | Tank | Giant | Stationary`
+- **SpellCategory**: `Damage | Command`
+- **SpellTargeting**: `SingleTarget | AreaOfEffect | SelectionRadius`
+- **CardFlags**: `DevOnly | Dummy`
+- **VisualTraits**: `UsesWispVisuals` (for wisp element tinting)
 
 ## Army Rarity System
 
@@ -175,7 +177,7 @@ Each card has a baseline before variance and modifiers.
 - `mana_cost` (1-10 typical)
 - `summon_time` (seconds) — delay before unit appears after playing card
 - `rarity` (`common | uncommon | epic | legendary`)
-- `element`, `tags`, and derived `power_rating`
+- `element` and derived `power_rating`
 
 ### Per Type
 
