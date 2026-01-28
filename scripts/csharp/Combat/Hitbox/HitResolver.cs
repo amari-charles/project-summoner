@@ -94,7 +94,7 @@ public partial class HitResolver : Node
                 { "from_hitbox", true }
             };
 
-            float damageDealt = DamageSystem.Instance.apply_damage(
+            float damageDealt = DamageSystem.Instance.ApplyDamage(
                 hitbox.Source!,
                 hurtbox.OwnerEntity,
                 hitbox.Damage,

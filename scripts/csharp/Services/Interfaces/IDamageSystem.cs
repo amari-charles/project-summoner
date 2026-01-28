@@ -23,19 +23,9 @@ public interface IDamageSystem
     float ApplyDamage(Node3D attacker, Node3D target, float baseDamage, string damageType);
 
     /// <summary>
-    /// Apply damage (snake_case for GDScript).
-    /// </summary>
-    float apply_damage(Node3D attacker, Node3D target, float baseDamage);
-
-    /// <summary>
-    /// Apply damage with type (snake_case for GDScript).
-    /// </summary>
-    float apply_damage(Node3D attacker, Node3D target, float baseDamage, string damageType);
-
-    /// <summary>
     /// Apply damage with full parameters.
     /// </summary>
-    float apply_damage(
+    float ApplyDamage(
         Node3D attacker,
         Node3D target,
         float baseDamage,

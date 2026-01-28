@@ -270,4 +270,28 @@ Players don't understand what rewards they earned. Poor UX and broken localizati
 
 ---
 
-*Last Updated: 2026-01-27 - Added wisp multi-attack and rewards UI bugs*
+#### Fire Wisp Missing Right Leg
+**Status:** Open
+**Reported:** 2026-01-27
+**Component:** Units / Art / Fire Wisp
+
+**Description:**
+The Fire Wisp unit is missing its right leg in the visual representation.
+
+**Expected Behavior:**
+Fire Wisp should have both legs visible.
+
+**Current Behavior:**
+Right leg is not rendering or is missing from the sprite/model.
+
+**Impact:**
+Visual bug affecting Fire Wisp appearance.
+
+**Related Files:**
+- scenes/units/fire_wisp_3d.tscn
+- scenes/units/fire_wisp_rig.tscn
+- assets/characters/fire_units/fire_wisp/
+
+---
+
+*Last Updated: 2026-01-27 - Added Fire Wisp missing leg bug*
