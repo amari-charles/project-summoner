@@ -639,7 +639,7 @@ This ensures each summoner feels like a genuine build.
 ### Profile
 ```json
 {
-  "unlocked_summoners": ["summoner_fire", "summoner_water"],
+  "unlocked_summoners": ["summoner_cole", "summoner_selene"],
   "global_event_cards": ["card_occult_ascension", "card_phoenix_blessing"],
   "cosmetics": [],
   "unlocked_summoner_slots": 2
@@ -647,10 +647,10 @@ This ensures each summoner feels like a genuine build.
 ```
 
 **Note on Summoner IDs:**
-- **MVP Phase**: Uses template IDs (`"summoner_fire"`, `"summoner_water"`) in `unlocked_summoners` array
+- **MVP Phase**: Uses template IDs (`"summoner_cole"`, `"summoner_selene"`) in `unlocked_summoners` array
   - Simpler model: one instance per summoner template
   - Profile tracks which summoner templates are unlocked
-- **Post-MVP (Future)**: May use instance IDs (`"summoner_fire_001"`, `"summoner_fire_002"`) if supporting multiple instances per template
+- **Post-MVP (Future)**: May use instance IDs (`"summoner_cole_001"`, `"summoner_cole_002"`) if supporting multiple instances per template
   - Allows players to have multiple Fire summoners with different builds
   - More complex, but enables greater customization
   - This is an expected evolution of the data model
@@ -660,7 +660,7 @@ For now, **use template IDs** as shown above to match `architecture.md`.
 ### Summoner
 ```json
 {
-  "id": "summoner_fire",
+  "id": "summoner_cole",
   "affinity": "fire",
 
   "level": 5,

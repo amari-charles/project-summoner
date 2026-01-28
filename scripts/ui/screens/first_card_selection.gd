@@ -3,7 +3,7 @@ class_name FirstCardSelection
 
 ## FirstCardSelection - Choose your first card
 ##
-## Part of onboarding flow. Player picks Fire Elemental or Earth Sprite as their starter.
+## Part of onboarding flow. Player picks Fire Wisp or Earth Sprite as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
 # Deck name constant

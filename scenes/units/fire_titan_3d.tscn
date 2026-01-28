@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/csharp/Units/MeleeUnit3D.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/units/skeletal_character_2d5_component.tscn" id="2_skeletal_component"]
-[ext_resource type="PackedScene" path="res://scenes/units/fire_elemental_rig.tscn" id="3_rig"]
+[ext_resource type="PackedScene" path="res://scenes/units/fire_wisp_rig.tscn" id="3_rig"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 2.0

@@ -119,7 +119,7 @@ ShadowDiameter = ContentSize.X * ScaleFactor.X * 0.01 * 0.8
 
 ### Example Calculations
 
-**Fire Elemental:**
+**Fire Wisp:**
 - Body width in rig: ~500 pixels
 - Body height in rig: ~800 pixels
 - `ContentSize = (500, 800)`
@@ -153,13 +153,13 @@ ShadowDiameter = ContentSize.X * ScaleFactor.X * 0.01 * 0.8
 **Cause:** Shadow uses `HurtboxOffset` for positioning, which may not match visual
 **Fix:** Adjust `HurtboxOffset` in the unit scene to match visual center
 
-## Complete Example: Fire Elemental
+## Complete Example: Fire Wisp
 
 ```
-# In fire_elemental_3d.tscn
+# In fire_wisp_3d.tscn
 
 [node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
-SkeletalScene = ExtResource("3_rig")          # fire_elemental_rig.tscn
+SkeletalScene = ExtResource("3_rig")          # fire_wisp_rig.tscn
 ScaleFactor = Vector2(0.15, 0.15)             # Small scale for this unit
 ContentSize = Vector2(500, 800)               # Body is ~500x800 pixels
 FeetLocalPosition = Vector2(300, 1150)        # Body center X, feet Y with buffer

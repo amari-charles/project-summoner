@@ -71,7 +71,7 @@ node.add_to_group(GroupIDs.UNITS)
 public readonly record struct UnitId(string Value);
 public static class UnitIds
 {
-    public static readonly UnitId FireElemental = new("fire_elemental");
+    public static readonly UnitId FireWisp = new("fire_wisp");
 }
 ```
 
@@ -236,7 +236,7 @@ public class GameManager
 // CardCatalog.cs - single source of truth for card stats
 public static class CardCatalog
 {
-    public static readonly CardDefinition FireElemental = new()
+    public static readonly CardDefinition FireWisp = new()
     {
         MaxHp = 60f,
         AttackDamage = 12f,

@@ -57,7 +57,7 @@ var summoner_id: String = SummonerSelection.get_active_summoner_id()
 var config: SummonerConfig = SummonerSelection.get_active_summoner_config()
 
 # Switch summoners
-SummonerSelection.switch_summoner("summoner_water")
+SummonerSelection.switch_summoner("summoner_selene")
 
 # List unlocked summoners
 var ids: Array[String] = SummonerSelection.get_unlocked_summoner_ids()
@@ -71,15 +71,15 @@ Manages XP and level-up mechanics.
 
 ```gdscript
 # Grant XP
-SummonerProgression.grant_summoner_xp("summoner_fire", 50)
+SummonerProgression.grant_summoner_xp("summoner_cole", 50)
 SummonerProgression.grant_active_summoner_xp(100)
 
 # Level up
-if SummonerProgression.can_level_up("summoner_fire"):
-    SummonerProgression.level_up_summoner("summoner_fire")
+if SummonerProgression.can_level_up("summoner_cole"):
+    SummonerProgression.level_up_summoner("summoner_cole")
 
 # Query progression
-var info: Dictionary = SummonerProgression.get_summoner_progression_info("summoner_fire")
+var info: Dictionary = SummonerProgression.get_summoner_progression_info("summoner_cole")
 # Returns: {level, xp, xp_for_next_level, xp_progress, can_level_up, ...}
 ```
 
@@ -112,7 +112,7 @@ Static summoner configuration from SummonerCatalog.
 ```gdscript
 class_name SummonerConfig extends Resource
 
-var summoner_id: String          # "summoner_fire"
+var summoner_id: String          # "summoner_cole"
 var summoner_name: String        # "Pyralis"
 var description: String          # Flavor text
 var element_id: int              # ElementRegistry.ElementId.FIRE
@@ -272,12 +272,12 @@ Campaign progress is stored per-summoner in ProfileRepo:
 
 ```gdscript
 "campaign_progress": {
-    "summoner_fire": {
+    "summoner_cole": {
         "completed_battles": ["battle_tutorial", "battle_first_slime"],
         "current_battle": null,
         "pending_reward": null
     },
-    "summoner_water": {
+    "summoner_selene": {
         "completed_battles": ["battle_tutorial"],
         "current_battle": "battle_first_slime",
         "pending_reward": null
@@ -292,7 +292,7 @@ Campaign progress is stored per-summoner in ProfileRepo:
 var progress: Dictionary = ProfileRepo.get_campaign_progress()
 
 # Get progress for specific summoner
-var progress: Dictionary = ProfileRepo.get_campaign_progress("summoner_fire")
+var progress: Dictionary = ProfileRepo.get_campaign_progress("summoner_cole")
 
 # Update progress (uses active summoner by default)
 ProfileRepo.update_campaign_progress({"current_battle": "battle_02"})

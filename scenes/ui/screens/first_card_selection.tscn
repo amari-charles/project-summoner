@@ -55,12 +55,12 @@ layout_mode = 2
 theme_override_constants/separation = 50
 alignment = 1
 
-[node name="SelectFireElementalButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer"]
+[node name="SelectFireWispButton" type="Button" parent="CenterContainer/VBoxContainer/CardContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 450)
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton"]
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -69,7 +69,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
@@ -77,31 +77,31 @@ theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 alignment = 1
 mouse_filter = 2
 
-[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="CardName" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "FIRE ELEMENTAL"
+text = "FIRE WISP"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="CardType" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Summon • Common"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="StatsLabel" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Cost: 3 Mana
@@ -110,18 +110,18 @@ Attack: 15"
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Description" type="Label" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "A blazing spirit of pure fire. Burns with fierce intensity in melee combat."
+text = "A teardrop of living flame. Burns with fierce intensity in melee combat."
 autowrap_mode = 3
 horizontal_alignment = 1
 mouse_filter = 2
 
-[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireElementalButton/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/CardContainer/SelectFireWispButton/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
