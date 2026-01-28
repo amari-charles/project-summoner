@@ -294,4 +294,55 @@ Visual bug affecting Fire Wisp appearance.
 
 ---
 
-*Last Updated: 2026-01-27 - Added Fire Wisp missing leg bug*
+#### Campaign State Not Persisting on Restart
+**Status:** Open
+**Reported:** 2026-01-27
+**Component:** Campaign / Save System
+
+**Description:**
+Campaign state is either not being saved or not being loaded properly when the game restarts.
+
+**Expected Behavior:**
+Campaign progress should persist across game sessions - player should be able to close the game and resume their campaign where they left off.
+
+**Current Behavior:**
+Campaign state is lost when the game restarts. Either save is not occurring, or load is not functioning correctly.
+
+**Impact:**
+Players cannot resume campaigns, making extended play sessions required to complete a campaign.
+
+**Related Files:**
+- Campaign save/load system
+- Campaign state management
+
+---
+
+#### Units Stuck in FlashWhite Visual State After Being Attacked
+**Status:** Open
+**Reported:** 2026-01-27
+**Component:** Units / Visual / Combat Feedback
+
+**Description:**
+Units are getting stuck in the white flash visual state after being attacked. The FlashWhite effect that triggers on damage is not properly resetting.
+
+**Expected Behavior:**
+Units should flash white briefly when taking damage, then return to their normal color modulate.
+
+**Current Behavior:**
+Units remain in the white/bright visual state and don't return to normal appearance.
+
+**Impact:**
+Visual bug that makes affected units look incorrect for the remainder of the battle.
+
+**Possible Causes:**
+- Tween not completing or being interrupted
+- Modulate not resetting to original color
+- Multiple FlashWhite calls overlapping and breaking state
+
+**Related Files:**
+- scripts/csharp/Units/Visuals/SkeletalVisualComponent.cs (FlashWhite method, lines 246-257)
+- scripts/csharp/Units/Unit3D.cs (damage handling)
+
+---
+
+*Last Updated: 2026-01-27 - Added campaign persistence and FlashWhite stuck bugs*
