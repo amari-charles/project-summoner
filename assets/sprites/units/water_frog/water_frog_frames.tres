@@ -118,5 +118,5 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack",
-"speed": 15.0
+"speed": 30.0
 }]
