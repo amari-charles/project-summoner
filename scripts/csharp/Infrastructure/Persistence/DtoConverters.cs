@@ -603,7 +603,16 @@ public static class DtoConverters
             foreach (var key in achievementsDict.Keys)
             {
                 var value = achievementsDict[key];
-                meta.Achievements[key.AsString()] = value.Obj ?? value.AsString();
+                // Properly handle different value types to preserve type information
+                object achievementValue = value.VariantType switch
+                {
+                    Variant.Type.Int => value.AsInt64(),
+                    Variant.Type.Float => value.AsDouble(),
+                    Variant.Type.Bool => value.AsBool(),
+                    Variant.Type.String => value.AsString(),
+                    _ => value.AsString() // Fallback for unexpected types
+                };
+                meta.Achievements[key.AsString()] = achievementValue;
             }
         }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GdUnit4;
 using Godot;
 using ProjectSummoner.Infrastructure.Persistence;
+using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
 using ProjectSummoner.Domain.Profile.Collection;
 using ProjectSummoner.Domain.Profile.Decks;
@@ -365,5 +366,201 @@ public class DtoConvertersTest
     {
         var arr = DtoConverters.ToGodotArray(new List<string>());
         AssertThat(arr.Count).IsEqual(0);
+    }
+
+    // =========================================================================
+    // Meta Tests
+    // =========================================================================
+
+    [TestCase]
+    public void Meta_RoundTrip_PreservesAllFields()
+    {
+        var original = new Meta
+        {
+            SelectedDeck = "deck_001",
+            SelectedSummoner = "summoner_cole",
+            AnalyticsOptIn = true,
+            TutorialFlags = new Dictionary<string, bool>
+            {
+                ["intro_completed"] = true,
+                ["combat_tutorial"] = false
+            },
+            Achievements = new Dictionary<string, object>
+            {
+                ["kills"] = 42L,
+                ["win_rate"] = 0.75,
+                ["has_trophy"] = true,
+                ["title"] = "Champion"
+            }
+        };
+
+        var dict = DtoConverters.ToDict(original);
+        var result = DtoConverters.FromMetaDict(dict);
+
+        AssertThat(result).IsNotNull();
+        AssertThat(result.SelectedDeck).IsEqual("deck_001");
+        AssertThat(result.SelectedSummoner).IsEqual("summoner_cole");
+        AssertThat(result.AnalyticsOptIn).IsTrue();
+        AssertThat(result.TutorialFlags["intro_completed"]).IsTrue();
+        AssertThat(result.TutorialFlags["combat_tutorial"]).IsFalse();
+        // Achievement values preserve their types
+        AssertThat(result.Achievements["kills"]).IsEqual(42L);
+        AssertThat(result.Achievements["win_rate"]).IsEqual(0.75);
+        AssertThat(result.Achievements["has_trophy"]).IsEqual(true);
+        AssertThat(result.Achievements["title"]).IsEqual("Champion");
+    }
+
+    [TestCase]
+    public void Meta_FromDict_ReturnsDefaultForNullDict()
+    {
+        var result = DtoConverters.FromMetaDict(null);
+        AssertThat(result).IsNotNull();
+        AssertThat(result.SelectedDeck).IsEqual("");
+        AssertThat(result.SelectedSummoner).IsEqual("");
+        AssertThat(result.AnalyticsOptIn).IsFalse();
+        AssertThat(result.TutorialFlags).IsEmpty();
+        AssertThat(result.Achievements).IsEmpty();
+    }
+
+    [TestCase]
+    public void Meta_FromDict_ReturnsDefaultForEmptyDict()
+    {
+        var result = DtoConverters.FromMetaDict(new Godot.Collections.Dictionary());
+        AssertThat(result).IsNotNull();
+        AssertThat(result.SelectedDeck).IsEqual("");
+        AssertThat(result.SelectedSummoner).IsEqual("");
+    }
+
+    [TestCase]
+    public void Meta_FromDict_PreservesAchievementTypes()
+    {
+        // Create dict with typed achievement values
+        var achievementsDict = new Godot.Collections.Dictionary
+        {
+            ["int_value"] = 100,
+            ["float_value"] = 3.14,
+            ["bool_value"] = true,
+            ["string_value"] = "test"
+        };
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["selected_deck"] = "",
+            ["selected_summoner"] = "",
+            ["analytics_opt_in"] = false,
+            ["achievements"] = achievementsDict
+        };
+
+        var result = DtoConverters.FromMetaDict(dict);
+
+        // Verify types are preserved (int becomes long in C#)
+        AssertThat(result.Achievements["int_value"]).IsInstanceOf<long>();
+        AssertThat(result.Achievements["float_value"]).IsInstanceOf<double>();
+        AssertThat(result.Achievements["bool_value"]).IsInstanceOf<bool>();
+        AssertThat(result.Achievements["string_value"]).IsInstanceOf<string>();
+    }
+
+    // =========================================================================
+    // MetaUpdate Tests
+    // =========================================================================
+
+    [TestCase]
+    public void MetaUpdate_ToDict_OnlyIncludesNonNullFields()
+    {
+        var update = new MetaUpdate
+        {
+            SelectedSummoner = "summoner_selene"
+            // Other fields are null/not set
+        };
+
+        var dict = DtoConverters.ToDict(update);
+
+        AssertThat(dict.ContainsKey("selected_summoner")).IsTrue();
+        AssertThat(dict["selected_summoner"].AsString()).IsEqual("summoner_selene");
+        AssertThat(dict.ContainsKey("selected_deck")).IsFalse();
+        AssertThat(dict.ContainsKey("analytics_opt_in")).IsFalse();
+        AssertThat(dict.ContainsKey("tutorial_flags")).IsFalse();
+        AssertThat(dict.ContainsKey("achievements")).IsFalse();
+    }
+
+    [TestCase]
+    public void MetaUpdate_ToDict_IncludesAllSetFields()
+    {
+        var update = new MetaUpdate
+        {
+            SelectedDeck = "deck_002",
+            SelectedSummoner = "summoner_cole",
+            AnalyticsOptIn = true,
+            TutorialFlags = new Dictionary<string, bool> { ["flag1"] = true },
+            Achievements = new Dictionary<string, object> { ["score"] = 100 }
+        };
+
+        var dict = DtoConverters.ToDict(update);
+
+        AssertThat(dict.ContainsKey("selected_deck")).IsTrue();
+        AssertThat(dict.ContainsKey("selected_summoner")).IsTrue();
+        AssertThat(dict.ContainsKey("analytics_opt_in")).IsTrue();
+        AssertThat(dict.ContainsKey("tutorial_flags")).IsTrue();
+        AssertThat(dict.ContainsKey("achievements")).IsTrue();
+        AssertThat(dict["selected_deck"].AsString()).IsEqual("deck_002");
+        AssertThat(dict["analytics_opt_in"].AsBool()).IsTrue();
+    }
+
+    [TestCase]
+    public void MetaUpdate_ToDict_EmptyUpdateReturnsEmptyDict()
+    {
+        var update = new MetaUpdate();
+        var dict = DtoConverters.ToDict(update);
+        AssertThat(dict.Count).IsEqual(0);
+    }
+
+    // =========================================================================
+    // CardUpdate Tests
+    // =========================================================================
+
+    [TestCase]
+    public void CardUpdate_ToDict_OnlyIncludesNonNullFields()
+    {
+        var update = new CardUpdate
+        {
+            Xp = 500
+            // Level and Upgrades are null
+        };
+
+        var dict = DtoConverters.ToDict(update);
+
+        AssertThat(dict.ContainsKey("xp")).IsTrue();
+        AssertThat(dict["xp"].AsInt32()).IsEqual(500);
+        AssertThat(dict.ContainsKey("level")).IsFalse();
+        AssertThat(dict.ContainsKey("upgrades")).IsFalse();
+    }
+
+    [TestCase]
+    public void CardUpdate_ToDict_IncludesAllSetFields()
+    {
+        var update = new CardUpdate
+        {
+            Xp = 1000,
+            Level = 5,
+            Upgrades = ["upgrade_1", "upgrade_2"]
+        };
+
+        var dict = DtoConverters.ToDict(update);
+
+        AssertThat(dict.ContainsKey("xp")).IsTrue();
+        AssertThat(dict.ContainsKey("level")).IsTrue();
+        AssertThat(dict.ContainsKey("upgrades")).IsTrue();
+        AssertThat(dict["xp"].AsInt32()).IsEqual(1000);
+        AssertThat(dict["level"].AsInt32()).IsEqual(5);
+        var upgrades = dict["upgrades"].AsGodotArray();
+        AssertThat(upgrades.Count).IsEqual(2);
+        AssertThat(upgrades[0].AsString()).IsEqual("upgrade_1");
+    }
+
+    [TestCase]
+    public void CardUpdate_ToDict_EmptyUpdateReturnsEmptyDict()
+    {
+        var update = new CardUpdate();
+        var dict = DtoConverters.ToDict(update);
+        AssertThat(dict.Count).IsEqual(0);
     }
 }
