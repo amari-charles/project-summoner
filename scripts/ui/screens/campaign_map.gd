@@ -594,7 +594,6 @@ func _update_detail_panel() -> void:
 	# Reward summary - build multi-line reward text
 	var reward_type: StringName = StringName(event.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
-	var reward_options: Array = _safe_array(event.get("reward_options", []))
 	var gold_reward: int = _safe_int(event.get("gold_reward", 0), 0)
 	var summoner_xp_reward: int = _safe_int(event.get("summoner_xp_reward", 0), 0)
 
