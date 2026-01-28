@@ -428,6 +428,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     public void ApplyGhostTint(Color tint)
     {
+        // Store the tint as original so FlashWhite returns to it
+        _originalModulate = tint;
+
         // Apply tint to the internal sprite for ghost transparency
         if (_characterSprite != null)
         {
