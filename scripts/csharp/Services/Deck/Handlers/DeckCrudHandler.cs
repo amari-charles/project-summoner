@@ -1,5 +1,6 @@
 using System.Linq;
 using Godot;
+using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Infrastructure.Persistence;
 using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
 
@@ -58,7 +59,7 @@ public class DeckCrudHandler
     /// <summary>Get the active deck ID (the deck used for battles).</summary>
     public string GetActiveDeckId()
     {
-        var profile = _profileRepo.GetProfileSnapshot();
+        var profile = _profileRepo.GetProfileMetadata();
         return profile?.Meta.SelectedDeck ?? "";
     }
 
@@ -68,11 +69,8 @@ public class DeckCrudHandler
         if (!string.IsNullOrEmpty(deckId) && !HasDeck(deckId))
             return false;
 
-        var profile = _profileRepo.GetProfileSnapshot();
-        if (profile == null) return false;
-
-        profile.Meta.SelectedDeck = deckId;
-        _profileRepo.SaveProfile(immediate: false);
+        // Update selected_deck in profile meta
+        _profileRepo.UpdateProfileMeta(new MetaUpdate { SelectedDeck = deckId });
         return true;
     }
 

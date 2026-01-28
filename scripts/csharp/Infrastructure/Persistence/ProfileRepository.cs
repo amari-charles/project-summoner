@@ -97,11 +97,10 @@ public partial class ProfileRepository : Node, IProfileRepository
     }
 
     /// <summary>
-    /// Get a partial snapshot of the profile.
-    /// NOTE: This returns a partial ProfileData with only basic fields populated.
-    /// For full data, use the individual accessor methods (GetResources, ListCards, etc.).
+    /// Get partial profile metadata (Version, ProfileId, UpdatedAt, Resources, UnlockedSummoners, Meta).
+    /// NOTE: This is READ-ONLY metadata. To update fields, use specific update methods like UpdateProfileMeta().
     /// </summary>
-    public ProfileData? GetProfileSnapshot()
+    public ProfileData? GetProfileMetadata()
     {
         if (_gdProfileRepo == null) return null;
         var dict = _gdProfileRepo.Call("snapshot").AsGodotDictionary();
@@ -263,14 +262,10 @@ public partial class ProfileRepository : Node, IProfileRepository
         return DtoConverters.FromCardDict(dict);
     }
 
-    public bool UpdateCard(string cardInstanceId, Dictionary<string, object> updates)
+    public bool UpdateCard(string cardInstanceId, CardUpdate updates)
     {
         if (!EnsureConnected(nameof(UpdateCard))) return false;
-        var gdUpdates = new Godot.Collections.Dictionary();
-        foreach (var kvp in updates)
-        {
-            gdUpdates[kvp.Key] = DtoConverters.ObjectToVariant(kvp.Value);
-        }
+        var gdUpdates = DtoConverters.ToDict(updates);
         return (bool)_gdProfileRepo!.Call("update_card", cardInstanceId, gdUpdates);
     }
 
@@ -487,14 +482,10 @@ public partial class ProfileRepository : Node, IProfileRepository
     // META OPERATIONS
     // =========================================================================
 
-    public void UpdateProfileMeta(Dictionary<string, object> updates)
+    public void UpdateProfileMeta(MetaUpdate updates)
     {
         if (!EnsureConnected(nameof(UpdateProfileMeta))) return;
-        var gdDict = new Godot.Collections.Dictionary();
-        foreach (var kvp in updates)
-        {
-            gdDict[kvp.Key] = Variant.From(kvp.Value);
-        }
+        var gdDict = DtoConverters.ToDict(updates);
         _gdProfileRepo!.Call("update_profile_meta", gdDict);
     }
 

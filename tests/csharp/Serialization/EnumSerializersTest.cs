@@ -1,5 +1,6 @@
 namespace ProjectSummoner.Tests.Serialization;
 
+using System;
 using GdUnit4;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Domain.Profile.Enums;
@@ -60,6 +61,33 @@ public class EnumSerializersTest
         }
     }
 
+    [TestCase]
+    public void ItemSlot_DeserializeStrict_ParsesValidValues()
+    {
+        AssertThat(EnumSerializers.DeserializeSlotStrict("weapon")).IsEqual(ItemSlot.Weapon);
+        AssertThat(EnumSerializers.DeserializeSlotStrict("ring1")).IsEqual(ItemSlot.Ring1);
+        AssertThat(EnumSerializers.DeserializeSlotStrict("ring2")).IsEqual(ItemSlot.Ring2);
+        AssertThat(EnumSerializers.DeserializeSlotStrict("vestments")).IsEqual(ItemSlot.Vestments);
+    }
+
+    [TestCase]
+    public void ItemSlot_DeserializeStrict_ThrowsForNullOrEmpty()
+    {
+        AssertThrown(() => EnumSerializers.DeserializeSlotStrict(null))
+            .IsInstanceOf<ArgumentException>();
+        AssertThrown(() => EnumSerializers.DeserializeSlotStrict(""))
+            .IsInstanceOf<ArgumentException>();
+    }
+
+    [TestCase]
+    public void ItemSlot_DeserializeStrict_ThrowsForInvalidValue()
+    {
+        AssertThrown(() => EnumSerializers.DeserializeSlotStrict("invalid"))
+            .IsInstanceOf<ArgumentException>();
+        AssertThrown(() => EnumSerializers.DeserializeSlotStrict("WEAPON"))
+            .IsInstanceOf<ArgumentException>();
+    }
+
     // =========================================================================
     // ContentBinding Tests
     // =========================================================================
@@ -95,6 +123,22 @@ public class EnumSerializersTest
             var deserialized = EnumSerializers.DeserializeBinding(serialized);
             AssertThat(deserialized).IsEqual(binding);
         }
+    }
+
+    [TestCase]
+    public void ContentBinding_DeserializeStrict_ParsesValidValues()
+    {
+        AssertThat(EnumSerializers.DeserializeBindingStrict(0)).IsEqual(ContentBinding.AccountWide);
+        AssertThat(EnumSerializers.DeserializeBindingStrict(1)).IsEqual(ContentBinding.SummonerBound);
+    }
+
+    [TestCase]
+    public void ContentBinding_DeserializeStrict_ThrowsForInvalidValue()
+    {
+        AssertThrown(() => EnumSerializers.DeserializeBindingStrict(-1))
+            .IsInstanceOf<ArgumentException>();
+        AssertThrown(() => EnumSerializers.DeserializeBindingStrict(99))
+            .IsInstanceOf<ArgumentException>();
     }
 
     // =========================================================================
@@ -143,6 +187,33 @@ public class EnumSerializersTest
             var deserialized = EnumSerializers.DeserializeResourceType(serialized);
             AssertThat(deserialized).IsEqual(type);
         }
+    }
+
+    [TestCase]
+    public void ResourceType_DeserializeStrict_ParsesValidValues()
+    {
+        AssertThat(EnumSerializers.DeserializeResourceTypeStrict("gold")).IsEqual(ResourceType.Gold);
+        AssertThat(EnumSerializers.DeserializeResourceTypeStrict("gems")).IsEqual(ResourceType.Gems);
+        AssertThat(EnumSerializers.DeserializeResourceTypeStrict("essence")).IsEqual(ResourceType.Essence);
+        AssertThat(EnumSerializers.DeserializeResourceTypeStrict("fragments")).IsEqual(ResourceType.Fragments);
+    }
+
+    [TestCase]
+    public void ResourceType_DeserializeStrict_ThrowsForNullOrEmpty()
+    {
+        AssertThrown(() => EnumSerializers.DeserializeResourceTypeStrict(null))
+            .IsInstanceOf<ArgumentException>();
+        AssertThrown(() => EnumSerializers.DeserializeResourceTypeStrict(""))
+            .IsInstanceOf<ArgumentException>();
+    }
+
+    [TestCase]
+    public void ResourceType_DeserializeStrict_ThrowsForInvalidValue()
+    {
+        AssertThrown(() => EnumSerializers.DeserializeResourceTypeStrict("invalid"))
+            .IsInstanceOf<ArgumentException>();
+        AssertThrown(() => EnumSerializers.DeserializeResourceTypeStrict("GOLD"))
+            .IsInstanceOf<ArgumentException>();
     }
 
     // =========================================================================

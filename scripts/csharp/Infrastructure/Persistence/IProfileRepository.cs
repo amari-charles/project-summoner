@@ -35,7 +35,11 @@ public interface IProfileRepository
     void SaveProfile(bool immediate = false);
     string GetCurrentProfileId();
     void ResetProfile();
-    ProfileData? GetProfileSnapshot();
+    /// <summary>
+    /// Get partial profile metadata (Version, ProfileId, UpdatedAt, Resources, UnlockedSummoners, Meta).
+    /// NOTE: This is READ-ONLY metadata. To update fields, use specific update methods like UpdateProfileMeta().
+    /// </summary>
+    ProfileData? GetProfileMetadata();
 
     // =========================================================================
     // RESOURCE OPERATIONS
@@ -67,7 +71,7 @@ public interface IProfileRepository
     CardInstance[] ListCards();
     int GetCardCount(string catalogId);
     CardInstance? GetCard(string cardInstanceId);
-    bool UpdateCard(string cardInstanceId, Dictionary<string, object> updates);
+    bool UpdateCard(string cardInstanceId, CardUpdate updates);
 
     // =========================================================================
     // DECK OPERATIONS
@@ -123,7 +127,7 @@ public interface IProfileRepository
     // =========================================================================
 
     /// <summary>Update profile meta fields (merges with existing).</summary>
-    void UpdateProfileMeta(Dictionary<string, object> updates);
+    void UpdateProfileMeta(MetaUpdate updates);
 
     // =========================================================================
     // SETTINGS OPERATIONS

@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
 
@@ -106,7 +106,7 @@ public partial class SummonerSelectionService : Node
 	{
 		if (_profileRepo == null) return "";
 
-		var profile = _profileRepo.GetProfileSnapshot();
+		var profile = _profileRepo.GetProfileMetadata();
 		if (profile == null) return "";
 
 		// Check for selected_summoner in meta
@@ -192,10 +192,7 @@ public partial class SummonerSelectionService : Node
 			return true;
 
 		// Update selected_summoner in profile meta
-		_profileRepo.UpdateProfileMeta(new Dictionary<string, object>
-		{
-			["selected_summoner"] = summonerId
-		});
+		_profileRepo.UpdateProfileMeta(new MetaUpdate { SelectedSummoner = summonerId });
 
 		// Emit signal for UI updates
 		EmitSignal(SignalName.SummonerChanged, oldSummonerId, summonerId);

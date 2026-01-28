@@ -453,7 +453,9 @@ public static class DtoConverters
             ["gold"] = resources.Gold,
             ["gems"] = resources.Gems,
             ["essence"] = resources.Essence,
-            ["fragments"] = resources.Fragments
+            ["fragments"] = resources.Fragments,
+            ["profile_id"] = resources.ProfileId,
+            ["updated_at"] = resources.UpdatedAt
         };
     }
 
@@ -470,7 +472,9 @@ public static class DtoConverters
             Gold = GetInt(dict, "gold", 0),
             Gems = GetInt(dict, "gems", 0),
             Essence = GetInt(dict, "essence", 0),
-            Fragments = GetInt(dict, "fragments", 0)
+            Fragments = GetInt(dict, "fragments", 0),
+            ProfileId = GetString(dict, "profile_id", ""),
+            UpdatedAt = GetLong(dict, "updated_at", 0)
         };
     }
 
@@ -538,6 +542,31 @@ public static class DtoConverters
     // Meta
     // =========================================================================
 
+    /// <summary>Convert Meta to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(Meta meta)
+    {
+        var tutorialDict = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in meta.TutorialFlags)
+        {
+            tutorialDict[key] = value;
+        }
+
+        var achievementsDict = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in meta.Achievements)
+        {
+            achievementsDict[key] = ObjectToVariant(value);
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["selected_deck"] = meta.SelectedDeck,
+            ["selected_summoner"] = meta.SelectedSummoner,
+            ["analytics_opt_in"] = meta.AnalyticsOptIn,
+            ["tutorial_flags"] = tutorialDict,
+            ["achievements"] = achievementsDict
+        };
+    }
+
     /// <summary>
     /// Convert Godot Dictionary to Meta.
     /// Returns default Meta if dict is null or empty.
@@ -546,12 +575,83 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return new Meta();
 
-        return new Meta
+        var meta = new Meta
         {
             SelectedDeck = GetString(dict, "selected_deck", ""),
             SelectedSummoner = GetString(dict, "selected_summoner", ""),
             AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false)
         };
+
+        // Convert tutorial_flags if present
+        if (dict.TryGetValue("tutorial_flags", out var tutorialVar) && tutorialVar.VariantType == Variant.Type.Dictionary)
+        {
+            var tutorialDict = tutorialVar.AsGodotDictionary();
+            foreach (var key in tutorialDict.Keys)
+            {
+                var value = tutorialDict[key];
+                if (value.VariantType == Variant.Type.Bool)
+                {
+                    meta.TutorialFlags[key.AsString()] = value.AsBool();
+                }
+            }
+        }
+
+        // Convert achievements if present
+        if (dict.TryGetValue("achievements", out var achievementsVar) && achievementsVar.VariantType == Variant.Type.Dictionary)
+        {
+            var achievementsDict = achievementsVar.AsGodotDictionary();
+            foreach (var key in achievementsDict.Keys)
+            {
+                var value = achievementsDict[key];
+                meta.Achievements[key.AsString()] = value.Obj ?? value.AsString();
+            }
+        }
+
+        return meta;
+    }
+
+    /// <summary>
+    /// Convert MetaUpdate to Godot Dictionary for GDScript.
+    /// Only includes non-null fields.
+    /// </summary>
+    public static Godot.Collections.Dictionary ToDict(MetaUpdate update)
+    {
+        var dict = new Godot.Collections.Dictionary();
+
+        if (update.SelectedDeck != null)
+            dict["selected_deck"] = update.SelectedDeck;
+
+        if (update.SelectedSummoner != null)
+            dict["selected_summoner"] = update.SelectedSummoner;
+
+        if (update.AnalyticsOptIn.HasValue)
+            dict["analytics_opt_in"] = update.AnalyticsOptIn.Value;
+
+        return dict;
+    }
+
+    // =========================================================================
+    // CardUpdate
+    // =========================================================================
+
+    /// <summary>
+    /// Convert CardUpdate to Godot Dictionary for GDScript.
+    /// Only includes non-null fields.
+    /// </summary>
+    public static Godot.Collections.Dictionary ToDict(CardUpdate update)
+    {
+        var dict = new Godot.Collections.Dictionary();
+
+        if (update.Xp.HasValue)
+            dict["xp"] = update.Xp.Value;
+
+        if (update.Level.HasValue)
+            dict["level"] = update.Level.Value;
+
+        if (update.Upgrades != null)
+            dict["upgrades"] = ToGodotArray(update.Upgrades);
+
+        return dict;
     }
 
     // =========================================================================

@@ -28,6 +28,7 @@ public static class EnumSerializers
     /// <summary>
     /// Deserialize string to ItemSlot.
     /// Returns null if the value is empty/null or invalid (with warning logged).
+    /// Use DeserializeSlotStrict for critical paths where invalid values should throw.
     /// </summary>
     public static ItemSlot? DeserializeSlot(string? value)
     {
@@ -43,6 +44,26 @@ public static class EnumSerializers
         };
     }
 
+    /// <summary>
+    /// Deserialize string to ItemSlot (strict mode).
+    /// Throws ArgumentException if the value is empty/null or invalid.
+    /// Use this in critical paths where data integrity is paramount.
+    /// </summary>
+    public static ItemSlot DeserializeSlotStrict(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            throw new ArgumentException("ItemSlot value cannot be null or empty", nameof(value));
+
+        return value switch
+        {
+            "weapon" => ItemSlot.Weapon,
+            "ring1" => ItemSlot.Ring1,
+            "ring2" => ItemSlot.Ring2,
+            "vestments" => ItemSlot.Vestments,
+            _ => throw new ArgumentException($"Unknown ItemSlot value: '{value}'", nameof(value))
+        };
+    }
+
     // =========================================================================
     // ContentBinding
     // =========================================================================
@@ -53,6 +74,7 @@ public static class EnumSerializers
     /// <summary>
     /// Deserialize int to ContentBinding.
     /// Returns AccountWide if the value is invalid (with warning logged).
+    /// Use DeserializeBindingStrict for critical paths where invalid values should throw.
     /// </summary>
     public static ContentBinding DeserializeBinding(int value)
     {
@@ -61,6 +83,19 @@ public static class EnumSerializers
 
         GD.PushWarning($"EnumSerializers: Unknown ContentBinding value: {value}, defaulting to AccountWide");
         return ContentBinding.AccountWide;
+    }
+
+    /// <summary>
+    /// Deserialize int to ContentBinding (strict mode).
+    /// Throws ArgumentException if the value is invalid.
+    /// Use this in critical paths where data integrity is paramount.
+    /// </summary>
+    public static ContentBinding DeserializeBindingStrict(int value)
+    {
+        if (Enum.IsDefined(typeof(ContentBinding), value))
+            return (ContentBinding)value;
+
+        throw new ArgumentException($"Unknown ContentBinding value: {value}", nameof(value));
     }
 
     // =========================================================================
@@ -80,6 +115,7 @@ public static class EnumSerializers
     /// <summary>
     /// Deserialize string to ResourceType.
     /// Returns null if the value is empty/null or invalid (with warning logged).
+    /// Use DeserializeResourceTypeStrict for critical paths where invalid values should throw.
     /// </summary>
     public static ResourceType? DeserializeResourceType(string? value)
     {
@@ -92,6 +128,26 @@ public static class EnumSerializers
             "essence" => ResourceType.Essence,
             "fragments" => ResourceType.Fragments,
             _ => LogAndReturnNull<ResourceType>($"Unknown ResourceType value: '{value}'")
+        };
+    }
+
+    /// <summary>
+    /// Deserialize string to ResourceType (strict mode).
+    /// Throws ArgumentException if the value is empty/null or invalid.
+    /// Use this in critical paths where data integrity is paramount (e.g., currency transactions).
+    /// </summary>
+    public static ResourceType DeserializeResourceTypeStrict(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            throw new ArgumentException("ResourceType value cannot be null or empty", nameof(value));
+
+        return value switch
+        {
+            "gold" => ResourceType.Gold,
+            "gems" => ResourceType.Gems,
+            "essence" => ResourceType.Essence,
+            "fragments" => ResourceType.Fragments,
+            _ => throw new ArgumentException($"Unknown ResourceType value: '{value}'", nameof(value))
         };
     }
 
