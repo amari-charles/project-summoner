@@ -52,8 +52,7 @@ public class CardProgressionHandler
         }
 
         var newXp = card.Xp + amount;
-        var updates = new Dictionary<string, object> { ["xp"] = newXp };
-        _profileRepo.UpdateCard(cardInstanceId, updates);
+        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate { Xp = newXp });
 
         GD.Print($"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' (now: {newXp})");
         return newXp;
@@ -168,12 +167,11 @@ public class CardProgressionHandler
         var newLevel = card.Level + 1;
         var newUpgrades = new List<string>(card.Upgrades) { upgradeId };
 
-        var updates = new Dictionary<string, object>
+        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
-            ["level"] = newLevel,
-            ["upgrades"] = newUpgrades
-        };
-        _profileRepo.UpdateCard(cardInstanceId, updates);
+            Level = newLevel,
+            Upgrades = newUpgrades
+        });
 
         GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel} with upgrade '{upgradeId}'");
         return true;

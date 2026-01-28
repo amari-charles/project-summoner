@@ -6,6 +6,35 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Campaign State Not Persisting on Restart
+**Resolved:** 2026-01-27
+**Component:** Campaign / Save System / Persistence
+
+**Description:**
+Campaign progress was lost when the game restarted. Players could not resume campaigns where they left off.
+
+**Root Cause:**
+Two bugs in the GDScript/C# interop layer:
+
+1. **Reading issue**: `DtoConverters.FromProfileDict()` was not converting the `meta` dictionary from GDScript to C#. This meant `ProfileData.Meta.SelectedSummoner` was always empty when loaded. When `SummonerSelectionService.GetActiveSummonerId()` returned empty string, `CampaignProgressHandler.LoadProgress()` silently returned without loading any progress.
+
+2. **Writing issue**: `SummonerSelectionService.SetActiveSummoner()` was modifying a *snapshot copy* of the profile (from `GetProfileSnapshot()`) instead of calling the GDScript `update_profile_meta()` function. The subsequent `SaveProfile()` call saved the unchanged GDScript `_data`, so the `selected_summoner` change was never persisted.
+
+**Solution Implemented:**
+1. Added `FromMetaDict()` helper method in `DtoConverters.cs` to convert the `meta` dictionary including `selected_summoner`
+2. Added meta conversion in `FromProfileDict()` to populate `ProfileData.Meta`
+3. Added `UpdateProfileMeta()` method to `IProfileRepository` interface
+4. Implemented `UpdateProfileMeta()` in `ProfileRepository.cs` to call the GDScript `update_profile_meta()`
+5. Updated `SummonerSelectionService.SetActiveSummoner()` to use `UpdateProfileMeta()` instead of modifying a snapshot
+
+**Related Files:**
+- `scripts/csharp/Infrastructure/Persistence/DtoConverters.cs` - Added FromMetaDict, updated FromProfileDict
+- `scripts/csharp/Infrastructure/Persistence/IProfileRepository.cs` - Added UpdateProfileMeta
+- `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` - Implemented UpdateProfileMeta
+- `scripts/csharp/Services/Summoner/SummonerSelectionService.cs` - Fixed SetActiveSummoner to use UpdateProfileMeta
+
+---
+
 ### Mana Bolt Bounces on Ground Impact
 **Resolved:** 2026-01-26
 **Component:** Projectiles / Spells
