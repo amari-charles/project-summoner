@@ -27,7 +27,7 @@ public class DtoConvertersTest
     {
         var original = new SummonerInstance
         {
-            SummonerId = "summoner_fire",
+            SummonerId = "summoner_cole",
             Level = 5,
             Xp = 1500,
             AcquiredBoonIds = ["boon_1", "boon_2"],
@@ -44,7 +44,7 @@ public class DtoConvertersTest
         var result = DtoConverters.FromSummonerDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.SummonerId).IsEqual("summoner_fire");
+        AssertThat(result!.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Level).IsEqual(5);
         AssertThat(result.Xp).IsEqual(1500);
         AssertThat(result.AcquiredBoonIds).Contains("boon_1");
@@ -91,7 +91,7 @@ public class DtoConvertersTest
         var original = new CardInstance
         {
             Id = "card_001",
-            CatalogId = "fire_elemental",
+            CatalogId = "fire_wisp",
             ProfileId = "profile_123",
             Rarity = "epic",
             Level = 3,
@@ -100,7 +100,7 @@ public class DtoConvertersTest
             RollJson = "{\"variant\":1}",
             CreatedAt = 1700000000,
             Binding = ContentBinding.SummonerBound,
-            BoundToSummonerId = "summoner_fire"
+            BoundToSummonerId = "summoner_cole"
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -108,7 +108,7 @@ public class DtoConvertersTest
 
         AssertThat(result).IsNotNull();
         AssertThat(result!.Id).IsEqual("card_001");
-        AssertThat(result.CatalogId).IsEqual("fire_elemental");
+        AssertThat(result.CatalogId).IsEqual("fire_wisp");
         AssertThat(result.ProfileId).IsEqual("profile_123");
         AssertThat(result.Rarity).IsEqual("epic");
         AssertThat(result.Level).IsEqual(3);
@@ -117,7 +117,7 @@ public class DtoConvertersTest
         AssertThat(result.RollJson).IsEqual("{\"variant\":1}");
         AssertThat(result.CreatedAt).IsEqual(1700000000);
         AssertThat(result.Binding).IsEqual(ContentBinding.SummonerBound);
-        AssertThat(result.BoundToSummonerId).IsEqual("summoner_fire");
+        AssertThat(result.BoundToSummonerId).IsEqual("summoner_cole");
     }
 
     [TestCase]
@@ -133,7 +133,7 @@ public class DtoConvertersTest
         // Missing id
         dict = new Godot.Collections.Dictionary
         {
-            ["catalog_id"] = "fire_elemental"
+            ["catalog_id"] = "fire_wisp"
         };
         AssertThat(DtoConverters.FromCardDict(dict)).IsNull();
     }
@@ -163,8 +163,8 @@ public class DtoConvertersTest
         {
             Id = "item_001",
             CatalogId = "sword_of_fire",
-            EquippedBySummonerId = "summoner_fire",
-            BoundToSummonerId = "summoner_fire",
+            EquippedBySummonerId = "summoner_cole",
+            BoundToSummonerId = "summoner_cole",
             EquippedSlot = ItemSlot.Weapon
         };
 
@@ -174,8 +174,8 @@ public class DtoConvertersTest
         AssertThat(result).IsNotNull();
         AssertThat(result!.Id).IsEqual("item_001");
         AssertThat(result.CatalogId).IsEqual("sword_of_fire");
-        AssertThat(result.EquippedBySummonerId).IsEqual("summoner_fire");
-        AssertThat(result.BoundToSummonerId).IsEqual("summoner_fire");
+        AssertThat(result.EquippedBySummonerId).IsEqual("summoner_cole");
+        AssertThat(result.BoundToSummonerId).IsEqual("summoner_cole");
         AssertThat(result.EquippedSlot).IsEqual(ItemSlot.Weapon);
     }
 
@@ -221,7 +221,7 @@ public class DtoConvertersTest
         {
             Id = "deck_001",
             ProfileId = "profile_123",
-            SummonerId = "summoner_fire",
+            SummonerId = "summoner_cole",
             Name = "My Fire Deck",
             Slot = 2,
             IsActive = true,
@@ -235,7 +235,7 @@ public class DtoConvertersTest
         AssertThat(result).IsNotNull();
         AssertThat(result!.Id).IsEqual("deck_001");
         AssertThat(result.ProfileId).IsEqual("profile_123");
-        AssertThat(result.SummonerId).IsEqual("summoner_fire");
+        AssertThat(result.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Name).IsEqual("My Fire Deck");
         AssertThat(result.Slot).IsEqual(2);
         AssertThat(result.IsActive).IsTrue();
@@ -251,7 +251,7 @@ public class DtoConvertersTest
         // Missing id
         var dict = new Godot.Collections.Dictionary
         {
-            ["summoner_id"] = "summoner_fire"
+            ["summoner_id"] = "summoner_cole"
         };
         AssertThat(DtoConverters.FromDeckDict(dict)).IsNull();
 

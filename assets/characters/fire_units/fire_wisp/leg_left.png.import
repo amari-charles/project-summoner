@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cvshrv6gn2rwh"
-path="res://.godot/imported/body.png-3397b5995738ccf0eb42cb8b44374c6d.ctex"
+uid="uid://cb47kala4u1xy"
+path="res://.godot/imported/leg_left.png-64401f993b71a2b6ea733367134b6ed4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/fire_units/fire_elemental/body.png"
-dest_files=["res://.godot/imported/body.png-3397b5995738ccf0eb42cb8b44374c6d.ctex"]
+source_file="res://assets/characters/fire_units/fire_wisp/leg_left.png"
+dest_files=["res://.godot/imported/leg_left.png-64401f993b71a2b6ea733367134b6ed4.ctex"]
 
 [params]
 

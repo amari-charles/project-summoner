@@ -26,12 +26,12 @@ flowchart TD
 
 ### 1. UnitCatalog (Base Stats)
 
-Defines intrinsic stats for each unit TYPE. This is the single source of truth for "what is a Fire Elemental?"
+Defines intrinsic stats for each unit TYPE. This is the single source of truth for "what is a Fire Wisp?"
 
 **Location:** `scripts/csharp/Units/UnitCatalog.cs`
 
 ```csharp
-UnitCatalog["fire_elemental"] = {
+UnitCatalog["fire_wisp"] = {
     MaxHp = 60,
     AttackDamage = 12,
     AttackRange = 3.0,
@@ -45,7 +45,7 @@ UnitCatalog["fire_elemental"] = {
 
 Cards can apply a `StatModifier` to create variants. Only specified when the card intentionally differs from base stats.
 
-**Example:** Fire Swarm spawns weaker Fire Elementals:
+**Example:** Fire Swarm spawns weaker Fire Wisps:
 ```csharp
 UnitModifier = new StatModifier {
     StatMults = { ["max_hp"] = 0.75f, ["attack_damage"] = 0.75f }
@@ -98,8 +98,8 @@ Temporary effects applied during battle from spells, abilities, or environmental
 
 | System | Responsibility | Example |
 |--------|---------------|---------|
-| **UnitCatalog** | What units ARE (base stats) | Fire Elemental: HP=60, ATK=12, Range=3.0 |
-| **CardCatalog** | What cards DO (spawn + modify) | Fire Swarm: spawn 12 fire_elementals at 75% stats |
+| **UnitCatalog** | What units ARE (base stats) | Fire Wisp: HP=60, ATK=12, Range=3.0 |
+| **CardCatalog** | What cards DO (spawn + modify) | Fire Swarm: spawn 12 fire_wisps at 75% stats |
 | **Scene files** | How units LOOK (structure/visuals) | Node hierarchy, collision shape, visual component |
 
 ## Key Principles

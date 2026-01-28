@@ -8,7 +8,7 @@ namespace ProjectSummoner.Data.Summoners;
 /// </summary>
 public class SummonerDefinition
 {
-    /// <summary>Unique identifier (e.g., "summoner_fire").</summary>
+    /// <summary>Unique identifier (e.g., "summoner_cole").</summary>
     public required string Id { get; init; }
 
     /// <summary>Localization key for display name.</summary>
@@ -39,5 +39,5 @@ public class SummonerDefinition
     public string[] InnateTraitIds { get; init; } = [];
 
     /// <summary>Card catalog ID granted when this summoner is first selected.</summary>
-    public string StarterCardId { get; init; } = CardId.FireElemental;
+    public string StarterCardId { get; init; } = CardId.FireWisp;
 }

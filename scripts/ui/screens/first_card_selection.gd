@@ -3,20 +3,20 @@ class_name FirstCardSelection
 
 ## FirstCardSelection - Choose your first card
 ##
-## Part of onboarding flow. Player picks Fire Elemental or Earth Sprite as their starter.
+## Part of onboarding flow. Player picks Fire Wisp or Earth Sprite as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
 # Deck name constant
 const STARTER_DECK_NAME: String = "Starter Deck"
 
-@onready var select_fire_elemental_button: Button = %SelectFireElementalButton
+@onready var select_fire_wisp_button: Button = %SelectFireWispButton
 @onready var select_earth_sprite_button: Button = %SelectEarthSpriteButton
 
 func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect button handlers
-	select_fire_elemental_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_ELEMENTAL))
+	select_fire_wisp_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_WISP))
 	select_earth_sprite_button.pressed.connect(_on_card_selected.bind(CardIDs.EARTH_SPRITE))
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)

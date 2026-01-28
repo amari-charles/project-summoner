@@ -17,12 +17,24 @@ public static class CardId
     public const string ManaBolt = "mana_bolt";
 
     // =========================================================================
+    // WISPS (Basic starter units for each element)
+    // =========================================================================
+
+    public const string FireWisp = "fire_wisp";
+    public const string WaterWisp = "water_wisp";
+    public const string WindWisp = "wind_wisp";
+    public const string EarthWisp = "earth_wisp";
+    public const string LightningWisp = "lightning_wisp";
+    public const string LifeWisp = "life_wisp";
+    public const string DeathWisp = "death_wisp";
+    public const string ShadowWisp = "shadow_wisp";
+    public const string FireWispSwarm = "fire_wisp_swarm";
+
+    // =========================================================================
     // FIRE ELEMENT UNITS
     // =========================================================================
 
-    public const string FireElemental = "fire_elemental";
     public const string FireTitan = "fire_titan";
-    public const string FireElementalSwarm = "fire_elemental_swarm";
     public const string FireAnt = "fire_ant";
     public const string FireAntSwarm = "fire_ant_swarm";
 

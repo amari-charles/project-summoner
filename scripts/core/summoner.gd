@@ -555,9 +555,9 @@ func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
 	return loaded_deck
 
 ## Emergency fallback: Create minimal deck when all strategies fail
-## Uses basic fire_elemental cards as last resort to prevent game breaking
+## Uses basic fire_wisp cards as last resort to prevent game breaking
 func _create_emergency_deck() -> Array[Card]:
-	print("Summoner: Creating emergency fallback deck (3x fire_elemental)")
+	print("Summoner: Creating emergency fallback deck (3x fire_wisp)")
 
 	var emergency_deck: Array[Card] = []
 
@@ -566,13 +566,13 @@ func _create_emergency_deck() -> Array[Card]:
 		push_error("Summoner: CardCatalog autoload not available - cannot create emergency deck")
 		return emergency_deck
 
-	# Try to create 3 fire_elemental cards (basic unit)
+	# Try to create 3 fire_wisp cards (basic unit)
 	for i: int in 3:
-		var card: Card = CardCatalog.create_card_resource("fire_elemental")
+		var card: Card = CardCatalog.create_card_resource("fire_wisp")
 		if card:
 			emergency_deck.append(card)
 		else:
-			push_error("Summoner: Failed to create emergency fire_elemental card %d" % i)
+			push_error("Summoner: Failed to create emergency fire_wisp card %d" % i)
 
 	if emergency_deck.is_empty():
 		push_error("Summoner: Emergency deck creation failed - CardCatalog may be broken")

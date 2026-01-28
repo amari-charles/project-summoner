@@ -214,4 +214,60 @@ Debug tool doesn't work correctly for testing enemy units.
 
 ---
 
-*Last Updated: 2026-01-23 - Test infrastructure bugs resolved (see bugs-resolved.md)*
+#### Wisps Attack Multiple Enemies Simultaneously
+**Status:** Open
+**Reported:** 2026-01-27
+**Component:** Units / Combat / Targeting
+
+**Description:**
+Wisp units (Fire Wisp, Water Wisp, etc.) are attacking multiple enemies at once instead of targeting a single enemy.
+
+**Expected Behavior:**
+Wisps should target and attack one enemy at a time.
+
+**Current Behavior:**
+Wisps attack multiple enemies simultaneously, which may be unintended AOE behavior or a targeting issue.
+
+**Impact:**
+Affects combat balance - wisps are more effective than designed if they can hit multiple targets.
+
+**Related Files:**
+- scripts/csharp/Units/Unit3D.cs
+- scripts/csharp/Combat/ (targeting logic)
+- Card definitions for wisps
+
+---
+
+#### Battle Victory Rewards UI Missing Localization and Wrong Content
+**Status:** Open
+**Reported:** 2026-01-27
+**Component:** UI / Rewards / Localization
+
+**Description:**
+After completing the first battle, the victory rewards screen shows missing localization and incorrect/confusing content.
+
+**Expected Behavior:**
+Rewards screen should display properly localized text and show actual earned rewards clearly.
+
+**Current Behavior:**
+Victory screen displays:
+- `[[MISSING:ui.rewards.guaranteed]]` - missing localization key
+- "Mana Bolt Cloud Swarm" - unclear what this represents
+- "Fire Ant" - appears disconnected from the reward context
+
+**Impact:**
+Players don't understand what rewards they earned. Poor UX and broken localization.
+
+**Reproduction Steps:**
+1. Start a new campaign
+2. Complete the first battle
+3. Observe the victory/rewards screen
+
+**Related Files:**
+- localization/data/en.json (missing key: `ui.rewards.guaranteed`)
+- scripts/ui/battle/victory_screen.gd (or similar)
+- Battle rewards display logic
+
+---
+
+*Last Updated: 2026-01-27 - Added wisp multi-attack and rewards UI bugs*

@@ -18,8 +18,8 @@ namespace ProjectSummoner.Stats;
 /// 5. Modifier mults (multiplicative) - from ModifierService providers
 /// 6. Custom overrides (replacement) - from event battles, boss fights
 ///
-/// Example MaxHp calculation for Fire Swarm:
-/// - Base (UnitCatalog fire_elemental): 60
+/// Example MaxHp calculation for Fire Wisp Swarm:
+/// - Base (UnitCatalog fire_wisp): 60
 /// - Card modifier ×0.75 (swarm variant): 60 × 0.75 = 45
 /// - Upgrade ×1.2 (level 5): 45 × 1.2 = 54
 /// - Trait +10 (Fire Affinity): 54 + 10 = 64

@@ -38,7 +38,7 @@ static func _get_battles() -> Array[Dictionary]:
             "id": BattleIDs.FIRST_TRIAL,
             "event_type": EventTypeIDs.BATTLE,
             "dev_player_deck": [
-                {"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 2},
+                {"catalog_id": CardIDs.FIRE_WISP, "count": 2},
             ],
             "enemy_deck": [
                 {"catalog_id": CardIDs.EARTH_SPRITE, "count": 1},
@@ -50,7 +50,7 @@ static func _get_battles() -> Array[Dictionary]:
 
 ## Why GDScript Instead of JSON?
 
-**Compile-time validation**: Using `CardIDs.FIRE_ELEMENTAL` instead of `"fire_elemental"` means:
+**Compile-time validation**: Using `CardIDs.FIRE_WISP` instead of `"fire_wisp"` means:
 - Typos are caught at load time (Godot fails to parse if constant doesn't exist)
 - IDE autocomplete works for card names
 - Refactoring card IDs updates all references automatically
@@ -64,7 +64,7 @@ static func _get_battles() -> Array[Dictionary]:
 |---------------|---------|---------|
 | `CampaignIDs` | Campaign identifiers | `CampaignIDs.ONBOARDING` |
 | `BattleIDs` | Battle/event identifiers | `BattleIDs.FIRST_TRIAL` |
-| `CardIDs` | Card catalog references | `CardIDs.FIRE_ELEMENTAL` |
+| `CardIDs` | Card catalog references | `CardIDs.FIRE_WISP` |
 | `EventTypeIDs` | Event type enum | `EventTypeIDs.BATTLE` |
 | `RewardTypeIDs` | Reward type enum | `RewardTypeIDs.FIXED` |
 | `BiomeIDs` | Battlefield biome | `BiomeIDs.SUMMER_PLAINS` |

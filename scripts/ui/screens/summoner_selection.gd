@@ -28,11 +28,11 @@ func _ready() -> void:
 	select_button5.visible = false
 
 	# Connect all summoner selection buttons
-	select_button1.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.EARTH))
-	select_button2.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.FIRE))
+	select_button1.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.TEO))
+	select_button2.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.COLE))
 	select_button3.pressed.connect(func() -> void: _on_summoner_selected(SUMMONER_RANDOM))
-	select_button4.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.WIND))
-	select_button5.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.WATER))
+	select_button4.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.MEI))
+	select_button5.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.SELENE))
 
 	# Start Merlin's introduction dialogue
 	await get_tree().process_frame

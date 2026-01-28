@@ -20,127 +20,67 @@ public static class SummonerCatalog
     private static readonly Dictionary<string, SummonerDefinition> _summoners = new()
     {
         // =====================================================================
-        // STARTING SUMMONERS (Core 4 - Always available at start)
+        // FATEFORGERS (Core starting summoners)
         // =====================================================================
 
-        [SummonerId.Fire] = new SummonerDefinition
+        [SummonerId.Cole] = new SummonerDefinition
         {
-            Id = SummonerId.Fire,
-            NameKey = "summoner.summoner_fire.name",
-            DescriptionKey = "summoner.summoner_fire.description",
+            Id = SummonerId.Cole,
+            NameKey = "summoner.cole.name",
+            DescriptionKey = "summoner.cole.description",
             ElementalAffinity = Element.Fire,
             BaseHealth = 1000.0f,
             MaxMana = 100.0f,
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.FireAffinity, TraitId.BurningSpirit]
+            InnateTraitIds = [TraitId.FireAffinity, TraitId.BurningSpirit],
+            StarterCardId = CardId.FireWisp
         },
 
-        [SummonerId.Water] = new SummonerDefinition
+        [SummonerId.Selene] = new SummonerDefinition
         {
-            Id = SummonerId.Water,
-            NameKey = "summoner.summoner_water.name",
-            DescriptionKey = "summoner.summoner_water.description",
+            Id = SummonerId.Selene,
+            NameKey = "summoner.selene.name",
+            DescriptionKey = "summoner.selene.description",
             ElementalAffinity = Element.Water,
             BaseHealth = 1200.0f,
             MaxMana = 100.0f,
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.WaterAffinity, TraitId.TidalResilience]
+            InnateTraitIds = [TraitId.WaterAffinity, TraitId.TidalResilience],
+            StarterCardId = CardId.WaterWisp
         },
 
-        [SummonerId.Wind] = new SummonerDefinition
+        [SummonerId.Mei] = new SummonerDefinition
         {
-            Id = SummonerId.Wind,
-            NameKey = "summoner.summoner_wind.name",
-            DescriptionKey = "summoner.summoner_wind.description",
+            Id = SummonerId.Mei,
+            NameKey = "summoner.mei.name",
+            DescriptionKey = "summoner.mei.description",
             ElementalAffinity = Element.Wind,
             BaseHealth = 900.0f,
             MaxMana = 100.0f,
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.WindAffinity, TraitId.SwiftCasting]
+            InnateTraitIds = [TraitId.WindAffinity, TraitId.SwiftCasting],
+            StarterCardId = CardId.WindWisp
         },
 
-        [SummonerId.Earth] = new SummonerDefinition
+        [SummonerId.Teo] = new SummonerDefinition
         {
-            Id = SummonerId.Earth,
-            NameKey = "summoner.summoner_earth.name",
-            DescriptionKey = "summoner.summoner_earth.description",
+            Id = SummonerId.Teo,
+            NameKey = "summoner.teo.name",
+            DescriptionKey = "summoner.teo.description",
             ElementalAffinity = Element.Earth,
             BaseHealth = 1500.0f,
             MaxMana = 100.0f,
-            IconPath = "res://assets/characters/summoners/terravorn_portrait.jpg",
+            IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.EarthAffinity, TraitId.StoneFortitude]
-        },
-
-        // =====================================================================
-        // RANDOM POOL SUMMONERS (Starter-only)
-        // =====================================================================
-
-        [SummonerId.ShadowInitiate] = new SummonerDefinition
-        {
-            Id = SummonerId.ShadowInitiate,
-            NameKey = "summoner.summoner_shadow_initiate.name",
-            DescriptionKey = "summoner.summoner_shadow_initiate.description",
-            ElementalAffinity = Element.Shadow,
-            BaseHealth = 950.0f,
-            MaxMana = 100.0f,
-            IconPath = "",
-            CardFrameStyle = "rare",
-            UnlockCondition = SummonerUnlockCondition.RandomStarterOnly,
-            InnateTraitIds = []
-        },
-
-        // =====================================================================
-        // PURCHASABLE SUMMONERS (Premium Store)
-        // =====================================================================
-
-        [SummonerId.LightningAdept] = new SummonerDefinition
-        {
-            Id = SummonerId.LightningAdept,
-            NameKey = "summoner.summoner_lightning_adept.name",
-            DescriptionKey = "summoner.summoner_lightning_adept.description",
-            ElementalAffinity = Element.Lightning,
-            BaseHealth = 800.0f,
-            MaxMana = 100.0f,
-            IconPath = "",
-            CardFrameStyle = "epic",
-            UnlockCondition = SummonerUnlockCondition.PremiumPurchase,
-            InnateTraitIds = [TraitId.LightningAffinity]
-        },
-
-        [SummonerId.VerdantSage] = new SummonerDefinition
-        {
-            Id = SummonerId.VerdantSage,
-            NameKey = "summoner.summoner_verdant_sage.name",
-            DescriptionKey = "summoner.summoner_verdant_sage.description",
-            ElementalAffinity = Element.Life,
-            BaseHealth = 1100.0f,
-            MaxMana = 100.0f,
-            IconPath = "",
-            CardFrameStyle = "epic",
-            UnlockCondition = SummonerUnlockCondition.PremiumPurchase,
-            InnateTraitIds = [TraitId.LifeAffinity]
-        },
-
-        [SummonerId.VoidWalker] = new SummonerDefinition
-        {
-            Id = SummonerId.VoidWalker,
-            NameKey = "summoner.summoner_void_walker.name",
-            DescriptionKey = "summoner.summoner_void_walker.description",
-            ElementalAffinity = Element.Death,
-            BaseHealth = 950.0f,
-            MaxMana = 100.0f,
-            IconPath = "",
-            CardFrameStyle = "epic",
-            UnlockCondition = SummonerUnlockCondition.PremiumPurchase,
-            InnateTraitIds = [TraitId.DeathAffinity]
+            InnateTraitIds = [TraitId.EarthAffinity, TraitId.StoneFortitude],
+            StarterCardId = CardId.EarthWisp
         },
 
         // =====================================================================

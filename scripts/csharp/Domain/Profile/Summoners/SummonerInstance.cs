@@ -9,7 +9,7 @@ namespace ProjectSummoner.Domain.Profile.Summoners;
 /// </summary>
 public class SummonerInstance
 {
-    /// <summary>Summoner catalog ID (e.g., "summoner_fire").</summary>
+    /// <summary>Summoner catalog ID (e.g., "summoner_cole").</summary>
     [JsonPropertyName("summoner_id")]
     public required string SummonerId { get; set; }
 

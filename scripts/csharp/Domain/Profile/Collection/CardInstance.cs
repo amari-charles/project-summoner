@@ -15,7 +15,7 @@ public class CardInstance
     [JsonPropertyName("id")]
     public required string Id { get; set; }
 
-    /// <summary>Card catalog ID (e.g., "fire_elemental").</summary>
+    /// <summary>Card catalog ID (e.g., "fire_wisp").</summary>
     [JsonPropertyName("catalog_id")]
     public required string CatalogId { get; set; }
 

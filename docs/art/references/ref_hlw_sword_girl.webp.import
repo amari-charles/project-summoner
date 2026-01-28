@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dgxghnvvpmv0e"
-path="res://.godot/imported/eye.png-bcff0441e026780253ee20d1b0c4c038.ctex"
+uid="uid://po61ensy4fuw"
+path="res://.godot/imported/ref_hlw_sword_girl.webp-a17d941a85cba272df39a088bbed8be5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/fire_units/fire_elemental/eye.png"
-dest_files=["res://.godot/imported/eye.png-bcff0441e026780253ee20d1b0c4c038.ctex"]
+source_file="res://docs/art/references/ref_hlw_sword_girl.webp"
+dest_files=["res://.godot/imported/ref_hlw_sword_girl.webp-a17d941a85cba272df39a088bbed8be5.ctex"]
 
 [params]
 

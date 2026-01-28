@@ -16,8 +16,8 @@ extends Node
 
 ## Test deck composition
 var test_deck_ids: Array[String] = [
-	CardIDs.FIRE_ELEMENTAL,  # Test units first
-	CardIDs.FIRE_ELEMENTAL,
+	CardIDs.FIRE_WISP,  # Test units first
+	CardIDs.FIRE_WISP,
 	CardIDs.CHARGE,          # Charge spell
 	CardIDs.RALLY,           # Rally spell
 	CardIDs.GUARD,           # Guard spell
@@ -108,8 +108,8 @@ func _spawn_test_enemies() -> void:
 
 	# Spawn a few enemy units
 	var enemy_unit_ids: Array[String] = [
-		CardIDs.FIRE_ELEMENTAL,
-		CardIDs.FIRE_ELEMENTAL,
+		CardIDs.FIRE_WISP,
+		CardIDs.FIRE_WISP,
 		CardIDs.EARTH_SPRITE,
 	]
 

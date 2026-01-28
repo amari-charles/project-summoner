@@ -1,18 +1,19 @@
 # Wisp
 
 **Element:** Water
-**Status:** Planned
+**Status:** Implemented
 
 ## Overview
 
-A common creature native to the elemental plane of water. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
+A common creature native to the elemental plane of water. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all elemental planes in variant forms, each shaped by their element's nature.
 
 ## Visual Description
 
-- Floating humanoid silhouette made of living water
-- Translucent blue form with rippling surface
-- Hovers above the ground, body flowing and shifting
-- Blue coloration with lighter highlights
+- Teardrop-shaped body made of living water
+- Fluid and flowing - surface ripples constantly
+- Hovers above the ground, body undulating gently
+- Translucent blue with lighter aqua highlights
+- No distinct features - pure elemental energy
 
 ## Gameplay Role
 
@@ -23,4 +24,4 @@ A common creature native to the elemental plane of water. Wisps are among the mo
 
 ---
 
-*See also: [Water Element](../../elements/water.md)*
+*See also: [Water Element Overview](../overview.md)*

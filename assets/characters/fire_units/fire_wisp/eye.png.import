@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cb47kala4u1xy"
-path="res://.godot/imported/leg_left.png-64401f993b71a2b6ea733367134b6ed4.ctex"
+uid="uid://dgxghnvvpmv0e"
+path="res://.godot/imported/eye.png-bcff0441e026780253ee20d1b0c4c038.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/fire_units/fire_elemental/leg_left.png"
-dest_files=["res://.godot/imported/leg_left.png-64401f993b71a2b6ea733367134b6ed4.ctex"]
+source_file="res://assets/characters/fire_units/fire_wisp/eye.png"
+dest_files=["res://.godot/imported/eye.png-bcff0441e026780253ee20d1b0c4c038.ctex"]
 
 [params]
 

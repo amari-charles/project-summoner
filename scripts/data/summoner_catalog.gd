@@ -7,8 +7,8 @@ extends Node
 ## This GDScript wrapper provides backwards-compatible API and creates SummonerConfig instances.
 ##
 ## Usage:
-##   var summoner_config = SummonerCatalog.get_summoner_config(SummonerIDs.FIRE)
-##   var summoner_def = SummonerCatalog.get_summoner(SummonerIDs.FIRE)  # Legacy Dictionary access
+##   var summoner_config = SummonerCatalog.get_summoner_config(SummonerIDs.COLE)
+##   var summoner_def = SummonerCatalog.get_summoner(SummonerIDs.COLE)  # Legacy Dictionary access
 ##   var all_summoners = SummonerCatalog.list_all_summoners()
 ##   var starting_summoners = SummonerCatalog.get_starting_summoners()
 
@@ -200,7 +200,7 @@ func _create_config_from_dict(dict: Dictionary) -> SummonerConfig:
 				config.innate_trait_ids.append(trait_id)
 
 	# Starter card
-	config.starter_card_id = dict.get("starter_card_id", "fire_elemental")
+	config.starter_card_id = dict.get("starter_card_id", "fire_wisp")
 
 	return config
 

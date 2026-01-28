@@ -118,28 +118,201 @@ public static class CardCatalog
         },
 
         // =====================================================================
-        // FIRE ELEMENT UNITS
+        // WISPS (Basic starter units for each element)
         // =====================================================================
 
-        ["fire_elemental"] = new CardDefinition
+        ["fire_wisp"] = new CardDefinition
         {
-            Id = "fire_elemental",
-            Name = "Fire Elemental",
-            Description = "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path.",
+            Id = "fire_wisp",
+            Name = "Fire Wisp",
+            Description = "A teardrop of living flame. Drifts across the battlefield, burning all in its path.",
             Rarity = Rarity.Common,
             Type = CardType.Summon,
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitId = UnitIds.FireElemental,  // Stats from UnitCatalog
+            UnitId = UnitIds.FireWisp,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "fire", "floating", "spirit"],
+            Tags = ["melee", "fire", "wisp", "elemental"],
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
+
+        ["water_wisp"] = new CardDefinition
+        {
+            Id = "water_wisp",
+            Name = "Water Wisp",
+            Description = "A teardrop of living water. Flows across the battlefield with fluid grace.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.WaterWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "water", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Water
+        },
+
+        ["wind_wisp"] = new CardDefinition
+        {
+            Id = "wind_wisp",
+            Name = "Wind Wisp",
+            Description = "A teardrop of swirling wind. Darts across the battlefield with elusive speed.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.WindWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "wind", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Wind
+        },
+
+        ["earth_wisp"] = new CardDefinition
+        {
+            Id = "earth_wisp",
+            Name = "Earth Wisp",
+            Description = "A teardrop of compacted stone. Moves with sturdy determination across the battlefield.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.EarthWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "earth", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Earth
+        },
+
+        ["lightning_wisp"] = new CardDefinition
+        {
+            Id = "lightning_wisp",
+            Name = "Lightning Wisp",
+            Description = "A teardrop of crackling energy. Strikes across the battlefield with shocking speed.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.LightningWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "lightning", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Lightning
+        },
+
+        ["life_wisp"] = new CardDefinition
+        {
+            Id = "life_wisp",
+            Name = "Life Wisp",
+            Description = "A teardrop of living essence. Glows warmly as it drifts across the battlefield.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.LifeWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "life", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Life
+        },
+
+        ["death_wisp"] = new CardDefinition
+        {
+            Id = "death_wisp",
+            Name = "Death Wisp",
+            Description = "A teardrop of spectral essence. Flickers between visible and ethereal as it haunts the battlefield.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.DeathWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "death", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Death
+        },
+
+        ["shadow_wisp"] = new CardDefinition
+        {
+            Id = "shadow_wisp",
+            Name = "Shadow Wisp",
+            Description = "A teardrop of living shadow. Shifts and fades as it stalks across the battlefield.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 3,
+            Cooldown = 2.0f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.ShadowWisp,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "shadow", "wisp", "elemental"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Shadow
+        },
+
+        ["fire_wisp_swarm"] = new CardDefinition
+        {
+            Id = "fire_wisp_swarm",
+            Name = "Fire Wisp Swarm",
+            Description = "Unleash a horde of flame wisps. Twelve smaller fire wisps surge forth to overwhelm the enemy.",
+            Rarity = Rarity.Rare,
+            Type = CardType.Summon,
+            ManaCost = 7,
+            Cooldown = 4.0f,
+            SummonTime = 2.5f,
+            UnitId = UnitIds.FireWisp,
+            UnitModifier = new StatModifier
+            {
+                Source = "card_swarm_variant",
+                StatMults = new Dictionary<string, float>
+                {
+                    ["max_hp"] = 0.75f,
+                    ["attack_damage"] = 0.75f
+                }
+            },
+            SpawnCount = 12,
+            Formation = FormationPresets.TightSwarmGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            Tags = ["melee", "fire", "wisp", "elemental", "swarm"],
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Fire
+        },
+
+        // =====================================================================
+        // FIRE ELEMENT UNITS
+        // =====================================================================
 
         ["fire_titan"] = new CardDefinition
         {
@@ -151,41 +324,12 @@ public static class CardCatalog
             ManaCost = 7,
             Cooldown = 3.0f,
             SummonTime = 2.0f,
-            UnitId = UnitIds.FireTitan,  // Stats from UnitCatalog
+            UnitId = UnitIds.FireTitan,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
             Tags = ["melee", "fire", "floating", "spirit", "tank", "giant"],
-            UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Fire
-        },
-
-        ["fire_elemental_swarm"] = new CardDefinition
-        {
-            Id = "fire_elemental_swarm",
-            Name = "Fire Swarm",
-            Description = "Unleash a horde of flame spirits. Twelve smaller fire elementals surge forth to overwhelm the enemy.",
-            Rarity = Rarity.Rare,
-            Type = CardType.Summon,
-            ManaCost = 7,
-            Cooldown = 4.0f,
-            SummonTime = 2.5f,
-            UnitId = UnitIds.FireElemental,  // Stats from UnitCatalog, modified below
-            UnitModifier = new StatModifier
-            {
-                Source = "card_swarm_variant",
-                StatMults = new Dictionary<string, float>
-                {
-                    ["max_hp"] = 0.75f,       // 60 × 0.75 = 45
-                    ["attack_damage"] = 0.75f  // 12 × 0.75 = 9
-                }
-            },
-            SpawnCount = 12,
-            Formation = FormationPresets.TightSwarmGrid,
-            UnitType = UnitType.Melee,
-            IsRanged = false,
-            Tags = ["melee", "fire", "floating", "spirit", "swarm"],
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },

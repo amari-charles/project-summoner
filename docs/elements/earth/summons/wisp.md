@@ -1,18 +1,19 @@
 # Wisp
 
 **Element:** Earth
-**Status:** Planned
+**Status:** Implemented
 
 ## Overview
 
-A common creature native to the elemental plane of earth. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
+A common creature native to the elemental plane of earth. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all elemental planes in variant forms, each shaped by their element's nature.
 
 ## Visual Description
 
-- Floating humanoid silhouette made of compacted earth
-- Rocky form with occasional cracks showing inner glow
+- Teardrop-shaped body made of compacted earth
+- More angular than other wisps - edges somewhat sharp and crystalline
 - Hovers above the ground despite earthy composition
-- Brown/tan coloration with darker stone accents
+- Brown/tan core with darker stone accents and occasional mineral glints
+- No distinct features - pure elemental energy
 
 ## Gameplay Role
 
@@ -23,4 +24,4 @@ A common creature native to the elemental plane of earth. Wisps are among the mo
 
 ---
 
-*See also: [Earth Element](../../elements/earth.md)*
+*See also: [Earth Element Overview](../overview.md)*

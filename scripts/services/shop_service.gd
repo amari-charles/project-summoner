@@ -144,11 +144,11 @@ func _init_shops() -> void:
 		"name": Loc.t("shop.general.name"),
 		"offerings": [
 			{
-				"offering_id": "general_fire_elemental",
+				"offering_id": "general_fire_wisp",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.fire_elemental.name"),
-				"description": Loc.t("shop.offering.fire_elemental.description"),
-				"card_catalog_id": "fire_elemental",
+				"display_name": Loc.t("shop.offering.fire_wisp.name"),
+				"description": Loc.t("shop.offering.fire_wisp.description"),
+				"card_catalog_id": "fire_wisp",
 				"card_count": 1,
 				"base_price": 30,
 				"purchase_limit_type": "none",
@@ -196,7 +196,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.summon_pack.description"),
 				"pack_cards": [
 					{"catalog_id": "earth_sprite", "count": 2},
-					{"catalog_id": "fire_elemental", "count": 1}
+					{"catalog_id": "fire_wisp", "count": 1}
 				],
 				"base_price": 70,
 				"purchase_limit_type": "none",
@@ -212,11 +212,11 @@ func _init_shops() -> void:
 		"name": Loc.t("shop.caravan.merriweather.name"),
 		"offerings": [
 			{
-				"offering_id": "tutorial_fire_elemental",
+				"offering_id": "tutorial_fire_wisp",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.fire_elemental.name"),
-				"description": Loc.t("shop.offering.fire_elemental.description"),
-				"card_catalog_id": "fire_elemental",
+				"display_name": Loc.t("shop.offering.fire_wisp.name"),
+				"description": Loc.t("shop.offering.fire_wisp.description"),
+				"card_catalog_id": "fire_wisp",
 				"card_count": 1,
 				"base_price": 25,
 				"purchase_limit_type": "account",

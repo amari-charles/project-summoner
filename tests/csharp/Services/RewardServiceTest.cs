@@ -100,7 +100,7 @@ public class RewardServiceTest
     [TestCase]
     public void GetCardsForPool_WithExclusions_ExcludesCards()
     {
-        var excludeIds = new HashSet<string> { "fire_elemental", "fireball" };
+        var excludeIds = new HashSet<string> { "fire_wisp", "fireball" };
         var cards = RewardPoolCatalog.GetCardsForPool("standard_cards", excludeIds);
 
         foreach (var card in cards)
@@ -195,11 +195,11 @@ public class RewardServiceTest
         var option = new RewardOption
         {
             Type = RewardType.Card,
-            Id = "fire_elemental"
+            Id = "fire_wisp"
         };
 
         AssertThat(option.Type).IsEqual(RewardType.Card);
-        AssertThat(option.Id).IsEqual("fire_elemental");
+        AssertThat(option.Id).IsEqual("fire_wisp");
         AssertThat(option.Amount).IsEqual(1);
         AssertThat(option.Rarity).IsEqual("common");
         AssertThat(option.IsGuaranteed).IsFalse();

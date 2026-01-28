@@ -6,52 +6,32 @@ class_name SummonerIDs
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
-##   SummonerSelection.set_active_summoner(SummonerIDs.FIRE)
-##   if current_summoner == SummonerIDs.WATER:
+##   SummonerSelection.set_active_summoner(SummonerIDs.COLE)
+##   if current_summoner == SummonerIDs.SELENE:
 ##       # Water-specific logic
 ##
 ## When adding new summoners:
 ##   1. Add summoner definition to SummonerCatalog._init_catalog()
 ##   2. Add constant here matching the summoner's "summoner_id" field
-##   3. Add to appropriate category array (STARTING, RANDOM_POOL, etc.)
+##   3. Add to appropriate category array (STARTING, etc.)
 ##
 ## Note: StringName (&"text") is faster than String ("text") for dictionary lookups
 
 # ============================================================================
-# STARTING SUMMONERS (Core 4 - Always available at start)
+# STARTING SUMMONERS (Core 4 Fateforgers - Always available at start)
 # ============================================================================
 
-## Fire Summoner - Pyralis
-const FIRE: StringName = &"summoner_fire"
+## Cole - Fire Fateforger. Arrogant, competitive, cocky.
+const COLE: StringName = &"summoner_cole"
 
-## Water Summoner - Aquira
-const WATER: StringName = &"summoner_water"
+## Selene - Water Fateforger. Gentle, caring, emotionally intelligent.
+const SELENE: StringName = &"summoner_selene"
 
-## Wind Summoner - Zephyrion
-const WIND: StringName = &"summoner_wind"
+## Mei - Wind Fateforger. Elusive, self-interested, loner.
+const MEI: StringName = &"summoner_mei"
 
-## Earth Summoner - Terravorn
-const EARTH: StringName = &"summoner_earth"
-
-# ============================================================================
-# RANDOM POOL SUMMONERS (Starter-only, available via Random option)
-# ============================================================================
-
-## Shadow Initiate (starter-only)
-const SHADOW_INITIATE: StringName = &"summoner_shadow_initiate"
-
-# ============================================================================
-# PURCHASABLE SUMMONERS (Available via Premium Store)
-# ============================================================================
-
-## Lightning Adept - Fast, high-risk/reward glass cannon
-const LIGHTNING_ADEPT: StringName = &"summoner_lightning_adept"
-
-## Verdant Sage - Life element healer/support summoner
-const VERDANT_SAGE: StringName = &"summoner_verdant_sage"
-
-## Void Walker - Death element with draining abilities
-const VOID_WALKER: StringName = &"summoner_void_walker"
+## Teo - Earth Fateforger. Gym rat, straightforward, reliable.
+const TEO: StringName = &"summoner_teo"
 
 # ============================================================================
 # DEV/TEST SUMMONERS
@@ -66,22 +46,10 @@ const MANA_TEST: StringName = &"summoner_mana_test"
 
 ## Core starting summoners (always available in selection)
 const ALL_STARTING: Array[StringName] = [
-	FIRE,
-	WATER,
-	WIND,
-	EARTH,
-]
-
-## Random pool summoners (starter-only, included in random selection)
-const ALL_RANDOM_POOL: Array[StringName] = [
-	SHADOW_INITIATE,
-]
-
-## Purchasable summoners (available via Premium Store)
-const ALL_PURCHASABLE: Array[StringName] = [
-	LIGHTNING_ADEPT,
-	VERDANT_SAGE,
-	VOID_WALKER,
+	COLE,
+	SELENE,
+	MEI,
+	TEO,
 ]
 
 ## Dev/test summoners (not available to players)
@@ -93,8 +61,6 @@ const ALL_DEV: Array[StringName] = [
 static func all_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
 	result.append_array(ALL_STARTING)
-	result.append_array(ALL_RANDOM_POOL)
-	result.append_array(ALL_PURCHASABLE)
 	result.append_array(ALL_DEV)
 	return result
 
@@ -108,20 +74,10 @@ static func is_valid(summoner_id: String) -> bool:
 static func is_starting(summoner_id: String) -> bool:
 	return StringName(summoner_id) in ALL_STARTING
 
-## Check if a summoner ID is in the random pool
-## Accepts String or StringName
-static func is_random_pool(summoner_id: String) -> bool:
-	return StringName(summoner_id) in ALL_STARTING or StringName(summoner_id) in ALL_RANDOM_POOL
-
 ## Check if a summoner ID is a dev/test summoner
 ## Accepts String or StringName
 static func is_dev(summoner_id: String) -> bool:
 	return StringName(summoner_id) in ALL_DEV
 
-## Check if a summoner ID is purchasable via Premium Store
-## Accepts String or StringName
-static func is_purchasable(summoner_id: String) -> bool:
-	return StringName(summoner_id) in ALL_PURCHASABLE
-
 ## Default summoner ID (used for fallbacks)
-const DEFAULT: StringName = FIRE
+const DEFAULT: StringName = COLE

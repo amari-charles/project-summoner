@@ -129,7 +129,7 @@ func _get_card_display_name(catalog: Node, catalog_id: String) -> String:
 		var card_data: Dictionary = _safe_dict(catalog.call("get_card", catalog_id))
 		if not card_data.is_empty():
 			return _safe_string(card_data.get("card_name", catalog_id), catalog_id)
-	# Fallback: convert catalog_id to title case (fire_elemental → Fire Elemental)
+	# Fallback: convert catalog_id to title case (fire_wisp → Fire Wisp)
 	return catalog_id.replace("_", " ").capitalize()
 
 ## =============================================================================

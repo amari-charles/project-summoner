@@ -454,10 +454,10 @@ func test_test_arena_progress_is_per_summoner() -> void:
 
 	# Set up per-summoner progress for test arena
 	mock_repo.set_campaign_progress({
-		"completed_battles": [String(BattleIDs.ARENA_FIRE_ELEMENTAL)]
+		"completed_battles": [String(BattleIDs.ARENA_FIRE_WISP)]
 	})
 	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
 	campaign.set_current_campaign(String(CampaignIDs.TEST_ARENA))
 
 	# Should have per-summoner battles
-	assert_true(campaign.is_battle_completed(String(BattleIDs.ARENA_FIRE_ELEMENTAL)))
+	assert_true(campaign.is_battle_completed(String(BattleIDs.ARENA_FIRE_WISP)))

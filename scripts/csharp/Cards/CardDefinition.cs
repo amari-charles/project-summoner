@@ -57,7 +57,7 @@ public class CardDefinition
     /// <summary>
     /// Optional modifier to apply to base stats from UnitCatalog.
     /// Used for variant cards like swarms that spawn weaker versions of a unit.
-    /// Example: Fire Swarm applies {max_hp: 0.75, attack_damage: 0.75} to fire_elemental.
+    /// Example: Fire Wisp Swarm applies {max_hp: 0.75, attack_damage: 0.75} to fire_wisp.
     /// </summary>
     public StatModifier? UnitModifier { get; init; } = null;
 

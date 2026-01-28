@@ -139,18 +139,18 @@ visual_component.set_animation_speed(2.0)
 var speed = visual_component.get_animation_speed()
 ```
 
-## Example: Fire Elemental (Skeletal)
+## Example: Fire Wisp (Skeletal)
 
-The Fire Elemental (`fire_elemental_3d.tscn`) uses skeletal rigging for expressive bouncy hop animation:
+The Fire Wisp (`fire_wisp_3d.tscn`) uses skeletal rigging for expressive bouncy hop animation:
 
-- **Rig**: `fire_elemental_rig.tscn` with body, eye, and leg pivots
+- **Rig**: `fire_wisp_rig.tscn` with body, eye, and leg pivots
 - **Idle**: 0.8s bouncy hop with squash/stretch and alternating legs
 - **Attack**: Forward lunge with eye scale pulse, impact at 0.4s
 
 ```
-# In fire_elemental_3d.tscn:
+# In fire_wisp_3d.tscn:
 [node name="Visual" parent="." instance=ExtResource("skeletal_component")]
-skeletal_scene = ExtResource("fire_elemental_rig.tscn")
+skeletal_scene = ExtResource("fire_wisp_rig.tscn")
 scale_factor = Vector2(0.15, 0.15)
 ```
 

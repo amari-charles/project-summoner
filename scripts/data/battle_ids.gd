@@ -56,7 +56,7 @@ const ARENA_EARTH_SPRITE: StringName = &"arena_earth_sprite"
 const ARENA_PUFF: StringName = &"arena_puff"
 
 ## Test Arena: Fire Elemental Test
-const ARENA_FIRE_ELEMENTAL: StringName = &"arena_fire_elemental"
+const ARENA_FIRE_WISP: StringName = &"arena_fire_wisp"
 
 ## Test Arena: Cloud Swarm Test
 const ARENA_CLOUD_SWARM: StringName = &"arena_cloud_swarm"
@@ -93,7 +93,7 @@ const ALL_TUTORIALS: Array[StringName] = [
 const ALL_TEST_ARENA_NODES: Array[StringName] = [
 	ARENA_EARTH_SPRITE,
 	ARENA_PUFF,
-	ARENA_FIRE_ELEMENTAL,
+	ARENA_FIRE_WISP,
 	ARENA_CLOUD_SWARM,
 	DEBUG_ARENA,
 	ARENA_MANA_BOLT,

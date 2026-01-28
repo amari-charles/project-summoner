@@ -11,29 +11,26 @@ extends RefCounted
 
 ## Summoner ID enum - use this in code
 enum SummonerId {
-	PYRALIS,        # Fire
-	AQUIRA,         # Water
-	ZEPHYRION,      # Wind
-	TERRAVORN,      # Earth
-	SHADOW_INITIATE # Shadow (starter-only)
+	COLE,    # Fire Fateforger
+	SELENE,  # Water Fateforger
+	MEI,     # Wind Fateforger
+	TEO      # Earth Fateforger
 }
 
 ## Enum → StringName mapping (for serialization)
 const ID_TO_KEY: Dictionary = {
-	SummonerId.PYRALIS:         SummonerIDs.FIRE,
-	SummonerId.AQUIRA:          SummonerIDs.WATER,
-	SummonerId.ZEPHYRION:       SummonerIDs.WIND,
-	SummonerId.TERRAVORN:       SummonerIDs.EARTH,
-	SummonerId.SHADOW_INITIATE: SummonerIDs.SHADOW_INITIATE
+	SummonerId.COLE:   SummonerIDs.COLE,
+	SummonerId.SELENE: SummonerIDs.SELENE,
+	SummonerId.MEI:    SummonerIDs.MEI,
+	SummonerId.TEO:    SummonerIDs.TEO
 }
 
 ## StringName → Enum mapping (for deserialization)
 const KEY_TO_ID: Dictionary = {
-	SummonerIDs.FIRE:            SummonerId.PYRALIS,
-	SummonerIDs.WATER:           SummonerId.AQUIRA,
-	SummonerIDs.WIND:            SummonerId.ZEPHYRION,
-	SummonerIDs.EARTH:           SummonerId.TERRAVORN,
-	SummonerIDs.SHADOW_INITIATE: SummonerId.SHADOW_INITIATE
+	SummonerIDs.COLE:   SummonerId.COLE,
+	SummonerIDs.SELENE: SummonerId.SELENE,
+	SummonerIDs.MEI:    SummonerId.MEI,
+	SummonerIDs.TEO:    SummonerId.TEO
 }
 
 ## Convert enum ID to StringName key (for saves/JSON)
