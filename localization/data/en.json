@@ -68,9 +68,9 @@
         "name": "Puff Test",
         "description": "Test the Puff unit. A mischievous wind cloud that blows gusts at enemies."
       },
-      "arena_fire_elemental": {
-        "name": "Fire Elemental Test",
-        "description": "Test the new Fire Elemental unit. Watch it bob and float across the battlefield."
+      "arena_fire_wisp": {
+        "name": "Fire Wisp Test",
+        "description": "Test the Fire Wisp unit. Watch it bob and float across the battlefield."
       },
       "arena_cloud_swarm": {
         "name": "Cloud Swarm Test",
@@ -110,17 +110,45 @@
     }
   },
   "card": {
-    "fire_elemental": {
-      "name": "Fire Elemental",
-      "description": "A floating spirit of pure flame. Hovers across the battlefield, burning all in its path."
+    "fire_wisp": {
+      "name": "Fire Wisp",
+      "description": "A teardrop of living flame. Drifts across the battlefield, burning all in its path."
+    },
+    "water_wisp": {
+      "name": "Water Wisp",
+      "description": "A teardrop of living water. Flows across the battlefield with fluid grace."
+    },
+    "wind_wisp": {
+      "name": "Wind Wisp",
+      "description": "A teardrop of swirling wind. Darts across the battlefield with elusive speed."
+    },
+    "earth_wisp": {
+      "name": "Earth Wisp",
+      "description": "A teardrop of compacted stone. Moves with sturdy determination across the battlefield."
+    },
+    "lightning_wisp": {
+      "name": "Lightning Wisp",
+      "description": "A teardrop of crackling energy. Strikes across the battlefield with shocking speed."
+    },
+    "life_wisp": {
+      "name": "Life Wisp",
+      "description": "A teardrop of living essence. Glows warmly as it drifts across the battlefield."
+    },
+    "death_wisp": {
+      "name": "Death Wisp",
+      "description": "A teardrop of spectral essence. Flickers between visible and ethereal as it haunts the battlefield."
+    },
+    "shadow_wisp": {
+      "name": "Shadow Wisp",
+      "description": "A teardrop of living shadow. Shifts and fades as it stalks across the battlefield."
+    },
+    "fire_wisp_swarm": {
+      "name": "Fire Wisp Swarm",
+      "description": "Unleash a horde of flame wisps. Twelve smaller fire wisps surge forth to overwhelm the enemy."
     },
     "fire_titan": {
       "name": "Fire Titan",
       "description": "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach."
-    },
-    "fire_elemental_swarm": {
-      "name": "Fire Swarm",
-      "description": "Unleash a horde of flame spirits. Ten smaller fire elementals surge forth to overwhelm the enemy."
     },
     "earth_sprite": {
       "name": "Earth Sprite",
@@ -650,9 +678,9 @@
       "stay_button": "Stay"
     },
     "offering": {
-      "fire_elemental": {
-        "name": "Fire Elemental",
-        "description": "A blazing spirit of pure fire. Burns with fierce intensity in melee combat."
+      "fire_wisp": {
+        "name": "Fire Wisp",
+        "description": "A teardrop of living flame. Burns with fierce intensity in melee combat."
       },
       "earth_sprite": {
         "name": "Earth Sprite",
@@ -736,41 +764,25 @@
     "not_enough_gold": "Not enough gold"
   },
   "summoner": {
-    "summoner_fire": {
+    "cole": {
       "name": "Cole",
       "description": "Arrogant and competitive. First to volunteer for any challenge."
     },
-    "summoner_water": {
+    "selene": {
       "name": "Selene",
       "description": "Gentle and caring. Reads people and situations with ease."
     },
-    "summoner_wind": {
+    "mei": {
       "name": "Mei",
       "description": "Elusive and self-interested. Only the exceptional catch her attention."
     },
-    "summoner_earth": {
+    "teo": {
       "name": "Teo",
       "description": "Confident and direct. If he says he'll do something, it's done."
-    },
-    "summoner_shadow_initiate": {
-      "name": "Shadow Initiate",
-      "description": "A mysterious figure cloaked in darkness"
     },
     "summoner_mana_test": {
       "name": "Mana Tester",
       "description": "Dev summoner for testing tiered mana bar UI"
-    },
-    "summoner_lightning_adept": {
-      "name": "Voltara",
-      "description": "A swift and deadly lightning wielder who sacrifices durability for overwhelming burst damage"
-    },
-    "summoner_verdant_sage": {
-      "name": "Thalindra",
-      "description": "An ancient healer whose connection to life energy sustains allies through the darkest battles"
-    },
-    "summoner_void_walker": {
-      "name": "Morthos",
-      "description": "A mysterious figure who drains the life force of enemies to fuel dark and terrible powers"
     },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",

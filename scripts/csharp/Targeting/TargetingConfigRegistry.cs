@@ -48,7 +48,14 @@ public static class TargetingConfigRegistry
         RegisterPuffConfig();
 
         // Melee units (can only target ground units)
-        RegisterMeleeConfig(UnitIds.FireElemental);
+        RegisterMeleeConfig(UnitIds.FireWisp);
+        RegisterMeleeConfig(UnitIds.WaterWisp);
+        RegisterMeleeConfig(UnitIds.WindWisp);
+        RegisterMeleeConfig(UnitIds.EarthWisp);
+        RegisterMeleeConfig(UnitIds.LightningWisp);
+        RegisterMeleeConfig(UnitIds.LifeWisp);
+        RegisterMeleeConfig(UnitIds.DeathWisp);
+        RegisterMeleeConfig(UnitIds.ShadowWisp);
         RegisterMeleeConfig(UnitIds.FireTitan);
         RegisterMeleeConfig(UnitIds.FireAnt);
         RegisterMeleeConfig(UnitIds.EarthSprite);

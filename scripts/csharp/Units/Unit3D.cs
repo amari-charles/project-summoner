@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Cards;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Constants;
@@ -322,6 +323,36 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
     }
 
+    /// <summary>
+    /// Apply element tint to placeholder visuals after visual component initializes.
+    /// Uses the unit's card definition to determine element color.
+    /// Fire units are not tinted since the fire wisp art is the original.
+    /// </summary>
+    private void ApplyElementTintDeferred()
+    {
+        if (VisualComponent == null || string.IsNullOrEmpty(UnitId))
+            return;
+
+        // Look up card definition to get element
+        // Unit IDs often match card IDs for simple units (fire_wisp unit uses fire_wisp card)
+        var card = CardCatalog.GetCard(UnitId);
+        if (card == null)
+            return;
+
+        var element = card.ElementalAffinity;
+
+        // Skip fire element - the fire wisp art is the original, no tint needed
+        if (element == Element.Fire || element == Element.Neutral)
+            return;
+
+        // Get element color and apply as tint
+        var tintColor = ElementColors.GetColor(element);
+
+        // Apply tint via the visual component's ghost tint method
+        // This sets Modulate which persists and FlashWhite will return to it
+        VisualComponent.ApplyGhostTint(tintColor);
+    }
+
     // Base stats for modifier calculations
     protected float _baseMaxHp;
     protected float _baseAttackDamage;
@@ -465,6 +496,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Register with external systems (GDScript autoloads)
         RegisterWithExternalSystems();
+
+        // Apply element tint for placeholder visuals (deferred to wait for visual initialization)
+        CallDeferred(MethodName.ApplyElementTintDeferred);
     }
 
     public override void _PhysicsProcess(double delta)

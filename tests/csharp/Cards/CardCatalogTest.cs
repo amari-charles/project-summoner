@@ -14,11 +14,11 @@ public class CardCatalogTest
     [TestCase]
     public void GetCard_ReturnsCardDefinition_WhenCardExists()
     {
-        var card = CardCatalog.GetCard("fire_elemental");
+        var card = CardCatalog.GetCard("fire_wisp");
 
         AssertThat(card).IsNotNull();
-        AssertThat(card!.Id).IsEqual("fire_elemental");
-        AssertThat(card.Name).IsEqual("Fire Elemental");
+        AssertThat(card!.Id).IsEqual("fire_wisp");
+        AssertThat(card.Name).IsEqual("Fire Wisp");
         AssertThat(card.Type).IsEqual(CardType.Summon);
     }
 
@@ -128,7 +128,7 @@ public class CardCatalogTest
     [TestCase]
     public void CardDefinition_HasValidFormation()
     {
-        var card = CardCatalog.GetCard("fire_elemental_swarm");
+        var card = CardCatalog.GetCard("fire_wisp_swarm");
 
         AssertThat(card).IsNotNull();
         AssertThat(card!.Formation).IsNotNull();

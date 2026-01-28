@@ -1,7 +1,7 @@
 [
-	{ "catalog_id": "fire_elemental", "count": 1 },
+	{ "catalog_id": "fire_wisp", "count": 1 },
 	{ "catalog_id": "fire_titan", "count": 1 },
-	{ "catalog_id": "fire_elemental_swarm", "count": 1 },
+	{ "catalog_id": "fire_wisp_swarm", "count": 1 },
 	{ "catalog_id": "fire_ant", "count": 1 },
 	{ "catalog_id": "fire_ant_swarm", "count": 1 },
 	{ "catalog_id": "earth_sprite", "count": 1 },

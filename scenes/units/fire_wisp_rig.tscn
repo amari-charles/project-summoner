@@ -209,7 +209,7 @@ _data = {
 &"walk": SubResource("Animation_walk")
 }
 
-[node name="FireElementalRig" type="Node2D"]
+[node name="FireWispRig" type="Node2D"]
 script = ExtResource("1_script")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

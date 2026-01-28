@@ -41,7 +41,7 @@ static func _get_nodes() -> Array[Dictionary]:
 					{"catalog_id": CardIDs.PUFF, "count": 2},
 				],
 				"enemy_deck": [
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 3},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 3},
 					{"catalog_id": CardIDs.PUFF, "count": 2},
 				],
 				"enemy_hp": 100.0,
@@ -67,7 +67,7 @@ static func _get_nodes() -> Array[Dictionary]:
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
 				],
 				"enemy_deck": [
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 3},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 3},
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
 				],
 				"enemy_hp": 100.0,
@@ -77,21 +77,21 @@ static func _get_nodes() -> Array[Dictionary]:
 
 		# Arena: Fire Elemental
 		{
-			"id": BattleIDs.ARENA_FIRE_ELEMENTAL,
+			"id": BattleIDs.ARENA_FIRE_WISP,
 			"type": NodeTypeIDs.BATTLE,
 			"position": Vector2(400, 100),
 			"data": {
 				"biome_id": BiomeIDs.SUMMER_PLAINS,
-				"name_key": "campaign.battle.arena_fire_elemental.name",
-				"description_key": "campaign.battle.arena_fire_elemental.description",
+				"name_key": "campaign.battle.arena_fire_wisp.name",
+				"description_key": "campaign.battle.arena_fire_wisp.description",
 				"difficulty": 1,
 				"requires_deck": false,
 				"repeatable": true,
 				"reward_type": RewardTypeIDs.NONE,
 				"dev_player_deck": [
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 2},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 2},
 					{"catalog_id": CardIDs.FIRE_TITAN, "count": 2},
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL_SWARM, "count": 2},
+					{"catalog_id": CardIDs.FIRE_WISP_SWARM, "count": 2},
 				],
 				"enemy_deck": [
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 3},
@@ -120,7 +120,7 @@ static func _get_nodes() -> Array[Dictionary]:
 					{"catalog_id": CardIDs.PUFF, "count": 2},
 				],
 				"enemy_deck": [
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 3},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 3},
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
 				],
 				"enemy_hp": 100.0,
@@ -143,11 +143,11 @@ static func _get_nodes() -> Array[Dictionary]:
 				"reward_type": RewardTypeIDs.NONE,
 				"dev_player_deck": [
 					{"catalog_id": CardIDs.MANA_BOLT, "count": 5},
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 3},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 3},
 				],
 				"enemy_deck": [
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 3},
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 2},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 2},
 				],
 				"enemy_hp": 100.0,
 				"ai_type": "heuristic",
@@ -168,7 +168,7 @@ static func _get_nodes() -> Array[Dictionary]:
 				"repeatable": true,
 				"reward_type": RewardTypeIDs.NONE,
 				"dev_player_deck": [
-					{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 5},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 5},
 					{"catalog_id": CardIDs.PUFF, "count": 5},
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 5},
 					{"catalog_id": CardIDs.FIRE_TITAN, "count": 5},

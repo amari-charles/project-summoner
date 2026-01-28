@@ -7,40 +7,20 @@ namespace ProjectSummoner.Data.Summoners;
 public static class SummonerId
 {
     // =========================================================================
-    // STARTING SUMMONERS (Core 4 - Always available at start)
+    // FATEFORGERS (Core starting summoners)
     // =========================================================================
 
-    /// <summary>Fire Summoner - Pyralis</summary>
-    public const string Fire = "summoner_fire";
+    /// <summary>Cole - Fire Fateforger. Arrogant, competitive, cocky.</summary>
+    public const string Cole = "summoner_cole";
 
-    /// <summary>Water Summoner - Aquira</summary>
-    public const string Water = "summoner_water";
+    /// <summary>Selene - Water Fateforger. Gentle, caring, emotionally intelligent.</summary>
+    public const string Selene = "summoner_selene";
 
-    /// <summary>Wind Summoner - Zephyrion</summary>
-    public const string Wind = "summoner_wind";
+    /// <summary>Mei - Wind Fateforger. Elusive, self-interested, loner.</summary>
+    public const string Mei = "summoner_mei";
 
-    /// <summary>Earth Summoner - Terravorn</summary>
-    public const string Earth = "summoner_earth";
-
-    // =========================================================================
-    // RANDOM POOL SUMMONERS (Starter-only, available via Random option)
-    // =========================================================================
-
-    /// <summary>Shadow Initiate (starter-only)</summary>
-    public const string ShadowInitiate = "summoner_shadow_initiate";
-
-    // =========================================================================
-    // PURCHASABLE SUMMONERS (Available via Premium Store)
-    // =========================================================================
-
-    /// <summary>Lightning Adept - Fast, high-risk/reward glass cannon</summary>
-    public const string LightningAdept = "summoner_lightning_adept";
-
-    /// <summary>Verdant Sage - Life element healer/support summoner</summary>
-    public const string VerdantSage = "summoner_verdant_sage";
-
-    /// <summary>Void Walker - Death element with draining abilities</summary>
-    public const string VoidWalker = "summoner_void_walker";
+    /// <summary>Teo - Earth Fateforger. Gym rat, straightforward, reliable.</summary>
+    public const string Teo = "summoner_teo";
 
     // =========================================================================
     // DEV/TEST SUMMONERS
@@ -54,17 +34,11 @@ public static class SummonerId
     // =========================================================================
 
     /// <summary>Core starting summoners (always available in selection).</summary>
-    public static readonly string[] AllStarting = [Fire, Water, Wind, Earth];
-
-    /// <summary>Random pool summoners (starter-only, included in random selection).</summary>
-    public static readonly string[] AllRandomPool = [ShadowInitiate];
-
-    /// <summary>Purchasable summoners (available via Premium Store).</summary>
-    public static readonly string[] AllPurchasable = [LightningAdept, VerdantSage, VoidWalker];
+    public static readonly string[] AllStarting = [Cole, Selene, Mei, Teo];
 
     /// <summary>Dev/test summoners (not available to players).</summary>
     public static readonly string[] AllDev = [ManaTest];
 
     /// <summary>Default summoner ID (used for fallbacks).</summary>
-    public const string Default = Fire;
+    public const string Default = Cole;
 }

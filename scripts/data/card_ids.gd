@@ -7,7 +7,7 @@ class_name CardIDs
 ##
 ## Usage:
 ##   var card = CardCatalog.create_card_resource(CardIDs.FIREBALL)
-##   var test_deck = [CardIDs.FIRE_ELEMENTAL, CardIDs.EARTH_SPRITE, CardIDs.PUFF]
+##   var test_deck = [CardIDs.FIRE_WISP, CardIDs.EARTH_SPRITE, CardIDs.PUFF]
 ##
 ## When adding new cards:
 ##   1. Add card to CardCatalog._init_catalog()
@@ -27,12 +27,24 @@ const CHARGE: StringName = &"charge"
 const MANA_BOLT: StringName = &"mana_bolt"
 
 # ============================================================================
+# WISPS (Basic starter units for each element)
+# ============================================================================
+
+const FIRE_WISP: StringName = &"fire_wisp"
+const WATER_WISP: StringName = &"water_wisp"
+const WIND_WISP: StringName = &"wind_wisp"
+const EARTH_WISP: StringName = &"earth_wisp"
+const LIGHTNING_WISP: StringName = &"lightning_wisp"
+const LIFE_WISP: StringName = &"life_wisp"
+const DEATH_WISP: StringName = &"death_wisp"
+const SHADOW_WISP: StringName = &"shadow_wisp"
+const FIRE_WISP_SWARM: StringName = &"fire_wisp_swarm"
+
+# ============================================================================
 # FIRE ELEMENT UNITS
 # ============================================================================
 
-const FIRE_ELEMENTAL: StringName = &"fire_elemental"
 const FIRE_TITAN: StringName = &"fire_titan"
-const FIRE_ELEMENTAL_SWARM: StringName = &"fire_elemental_swarm"
 const FIRE_ANT: StringName = &"fire_ant"
 const FIRE_ANT_SWARM: StringName = &"fire_ant_swarm"
 

@@ -1,23 +1,23 @@
-[gd_scene load_steps=5 format=3 uid="uid://fire_elemental_3d"]
+[gd_scene load_steps=5 format=3 uid="uid://wind_wisp_3d"]
 
 [ext_resource type="Script" path="res://scripts/csharp/Units/MeleeUnit3D.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/units/skeletal_character_2d5_component.tscn" id="2_skeletal_component"]
-[ext_resource type="PackedScene" path="res://scenes/units/fire_elemental_rig.tscn" id="3_rig"]
+[ext_resource type="PackedScene" path="res://scenes/units/fire_wisp_rig.tscn" id="3_rig"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.5
 height = 1.6
 
-[node name="FireElemental3D" type="CharacterBody3D" groups=["units"]]
+[node name="WindWisp3D" type="CharacterBody3D" groups=["units"]]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_script")
-MaxHp = 60.0
-AttackDamage = 12.0
+MaxHp = 50.0
+AttackDamage = 10.0
 AttackRange = 3.0
-AttackSpeed = 1.2
-MoveSpeed = 3.5
-UnitId = "fire_elemental"
+AttackSpeed = 1.4
+MoveSpeed = 4.0
+UnitId = "wind_wisp"
 Team = 0
 UnitType = 0
 SeparationRadius = 0.5

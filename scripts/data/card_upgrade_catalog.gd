@@ -8,8 +8,8 @@ class_name CardUpgradeCatalog
 ## not just raw stat increases.
 ##
 ## Usage:
-##   var upgrades = CardUpgradeCatalog.get_upgrades_for_level("fire_elemental", 2)
-##   var upgrade = CardUpgradeCatalog.get_upgrade("fire_elemental", "fire_elemental_hardy_2")
+##   var upgrades = CardUpgradeCatalog.get_upgrades_for_level("fire_wisp", 2)
+##   var upgrade = CardUpgradeCatalog.get_upgrade("fire_wisp", "fire_wisp_hardy_2")
 
 ## =============================================================================
 ## UPGRADE DEFINITIONS

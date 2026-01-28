@@ -1,18 +1,19 @@
 # Wisp
 
 **Element:** Wind
-**Status:** Planned
+**Status:** Implemented
 
 ## Overview
 
-A common creature native to the elemental plane of wind. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
+A common creature native to the elemental plane of wind. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all elemental planes in variant forms, each shaped by their element's nature.
 
 ## Visual Description
 
-- Floating humanoid silhouette made of swirling wind
-- Translucent, barely visible form with flowing edges
+- Teardrop-shaped body made of swirling wind
+- Spiral patterns visible within - air currents turning inward
 - Hovers above the ground, constantly shifting and moving
-- Light blue/white coloration with occasional sparkles
+- Translucent with light blue/white wisps and occasional sparkles
+- No distinct features - pure elemental energy
 
 ## Gameplay Role
 
@@ -23,4 +24,4 @@ A common creature native to the elemental plane of wind. Wisps are among the mos
 
 ---
 
-*See also: [Wind Element](../../elements/wind.md)*
+*See also: [Wind Element Overview](../overview.md)*

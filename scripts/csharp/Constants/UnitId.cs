@@ -21,15 +21,27 @@ public readonly record struct UnitId(string Value)
 
 /// <summary>
 /// All known unit type IDs. Use these instead of raw strings.
-/// Example: UnitIds.FireElemental instead of "fire_elemental"
+/// Example: UnitIds.FireWisp instead of "fire_wisp"
 /// </summary>
 public static class UnitIds
 {
     // =========================================================================
+    // WISPS (Basic starter units for each element)
+    // =========================================================================
+
+    public static readonly UnitId FireWisp = new("fire_wisp");
+    public static readonly UnitId WaterWisp = new("water_wisp");
+    public static readonly UnitId WindWisp = new("wind_wisp");
+    public static readonly UnitId EarthWisp = new("earth_wisp");
+    public static readonly UnitId LightningWisp = new("lightning_wisp");
+    public static readonly UnitId LifeWisp = new("life_wisp");
+    public static readonly UnitId DeathWisp = new("death_wisp");
+    public static readonly UnitId ShadowWisp = new("shadow_wisp");
+
+    // =========================================================================
     // FIRE ELEMENT UNITS
     // =========================================================================
 
-    public static readonly UnitId FireElemental = new("fire_elemental");
     public static readonly UnitId FireTitan = new("fire_titan");
     public static readonly UnitId FireAnt = new("fire_ant");
 

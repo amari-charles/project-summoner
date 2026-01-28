@@ -5,14 +5,15 @@
 
 ## Overview
 
-A common creature native to the elemental plane of fire. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all four core elemental planes in variant forms.
+A common creature native to the elemental plane of fire. Wisps are among the most frequently summoned creatures due to their reliability and ease of bonding with novice summoners. They exist across all elemental planes in variant forms, each shaped by their element's nature.
 
 ## Visual Description
 
-- Floating humanoid silhouette made of living flame
-- No distinct features - pure elemental energy in a basic bipedal form
-- Hovers above the ground, body flickering and shifting
-- Orange/red coloration with occasional yellow highlights
+- Teardrop-shaped body made of living flame
+- More flame than teardrop - edges lick and curl like fire
+- Hovers above the ground, body flickering and pulsing
+- Orange/red core with yellow/white hot edges
+- No distinct features - pure elemental energy
 
 ## Gameplay Role
 
@@ -23,4 +24,4 @@ A common creature native to the elemental plane of fire. Wisps are among the mos
 
 ---
 
-*See also: [Fire Element](../../elements/fire.md)*
+*See also: [Fire Element Overview](../overview.md)*

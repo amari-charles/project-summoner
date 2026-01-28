@@ -20,7 +20,7 @@ extends Node
 ##   /snapshot_load <name> - Load a profile snapshot
 ##   /snapshot_list - List all available snapshots
 ##   /snapshot_delete <name> - Delete a snapshot
-##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_fire, summoner_water)
+##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_cole, summoner_selene)
 ##   /unlock_all_summoners - Unlock all starting summoners
 ##   /items_grant <item_id> - Grant an item to inventory
 ##   /items_grant_all - Grant all starter items
@@ -75,7 +75,7 @@ func get_all_commands() -> Array[Dictionary]:
 	return COMMANDS
 
 ## Available card catalog IDs for testing
-const TEST_CARDS: Array = ["fire_elemental", "earth_sprite", "puff", "fireball"]
+const TEST_CARDS: Array = ["fire_wisp", "earth_sprite", "puff", "fireball"]
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
 ## Service references (injected by autoload order)
@@ -475,7 +475,7 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 
 	if args.size() == 0:
 		print("DevConsole: Usage: /unlock_summoner <summoner_id>")
-		print("DevConsole: Valid IDs: summoner_fire, summoner_water, summoner_wind, summoner_earth, summoner_shadow_initiate")
+		print("DevConsole: Valid IDs: summoner_cole, summoner_selene, summoner_mei, summoner_teo")
 		return false
 
 	var summoner_id: String = args[0]
@@ -484,7 +484,7 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 	# Check if valid summoner
 	if not SummonerIDs.is_valid(summoner_id):
 		print("DevConsole: Invalid summoner ID: %s" % summoner_id)
-		print("DevConsole: Valid IDs: summoner_fire, summoner_water, summoner_wind, summoner_earth, summoner_shadow_initiate")
+		print("DevConsole: Valid IDs: summoner_cole, summoner_selene, summoner_mei, summoner_teo")
 		return false
 
 	# Create summoner instance data
@@ -509,7 +509,6 @@ func _cmd_unlock_all_summoners() -> bool:
 	print("DevConsole: Unlocking all starting summoners...")
 
 	var summoners_to_unlock: Array[StringName] = SummonerIDs.ALL_STARTING.duplicate()
-	summoners_to_unlock.append(SummonerIDs.SHADOW_INITIATE)
 
 	var unlocked_count: int = 0
 	for summoner_id: StringName in summoners_to_unlock:

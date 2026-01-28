@@ -9,7 +9,7 @@ class_name TestGameController
 
 ## Test deck configuration - edit this to test different cards
 var test_deck_cards: Array[StringName] = [
-	CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL, CardIDs.FIRE_ELEMENTAL,
+	CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP,
 	CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE,
 	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
 	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
@@ -22,7 +22,7 @@ func _ready() -> void:
 
 	# Configure BattleContext for practice mode
 	BattleContext.configure_practice_battle({
-		"enemy_deck": [{"catalog_id": CardIDs.FIRE_ELEMENTAL, "count": 30}],
+		"enemy_deck": [{"catalog_id": CardIDs.FIRE_WISP, "count": 30}],
 		"enemy_hp": 999999.0
 	})
 
@@ -103,7 +103,7 @@ func _load_enemy_test_deck(summoner: Summoner) -> void:
 
 	# Enemy gets 30 fire elementals (easy target practice)
 	for i: int in range(30):
-		var card: Card = _load_card_resource(CardIDs.FIRE_ELEMENTAL)
+		var card: Card = _load_card_resource(CardIDs.FIRE_WISP)
 		if card:
 			cards.append(card)
 

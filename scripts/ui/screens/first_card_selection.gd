@@ -9,14 +9,14 @@ class_name FirstCardSelection
 # Deck name constant
 const STARTER_DECK_NAME: String = "Starter Deck"
 
-@onready var select_fire_elemental_button: Button = %SelectFireElementalButton
+@onready var select_fire_wisp_button: Button = %SelectFireWispButton
 @onready var select_earth_sprite_button: Button = %SelectEarthSpriteButton
 
 func _ready() -> void:
 	print("FirstCardSelection: Initializing...")
 
 	# Connect button handlers
-	select_fire_elemental_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_ELEMENTAL))
+	select_fire_wisp_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_WISP))
 	select_earth_sprite_button.pressed.connect(_on_card_selected.bind(CardIDs.EARTH_SPRITE))
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)

@@ -35,13 +35,13 @@ public static class UnitCatalog
     private static readonly Dictionary<UnitId, UnitDefinition> _units = new()
     {
         // =====================================================================
-        // FIRE ELEMENT UNITS
+        // WISPS (Basic starter units for each element)
         // =====================================================================
 
-        [UnitIds.FireElemental] = new UnitDefinition
+        [UnitIds.FireWisp] = new UnitDefinition
         {
-            Id = UnitIds.FireElemental,
-            ScenePath = "res://scenes/units/fire_elemental_3d.tscn",
+            Id = UnitIds.FireWisp,
+            ScenePath = "res://scenes/units/fire_wisp_3d.tscn",
             BaseStats = new UnitStats
             {
                 MaxHp = 60f,
@@ -52,6 +52,115 @@ public static class UnitCatalog
                 AggroRadius = 20f
             }
         },
+
+        [UnitIds.WaterWisp] = new UnitDefinition
+        {
+            Id = UnitIds.WaterWisp,
+            ScenePath = "res://scenes/units/water_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 65f,
+                AttackDamage = 10f,
+                AttackRange = 3.0f,
+                AttackSpeed = 1.1f,
+                MoveSpeed = 3.2f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.WindWisp] = new UnitDefinition
+        {
+            Id = UnitIds.WindWisp,
+            ScenePath = "res://scenes/units/wind_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 50f,
+                AttackDamage = 10f,
+                AttackRange = 3.0f,
+                AttackSpeed = 1.4f,
+                MoveSpeed = 4.0f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.EarthWisp] = new UnitDefinition
+        {
+            Id = UnitIds.EarthWisp,
+            ScenePath = "res://scenes/units/earth_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 80f,
+                AttackDamage = 14f,
+                AttackRange = 3.0f,
+                AttackSpeed = 0.9f,
+                MoveSpeed = 2.8f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.LightningWisp] = new UnitDefinition
+        {
+            Id = UnitIds.LightningWisp,
+            ScenePath = "res://scenes/units/lightning_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 45f,
+                AttackDamage = 15f,
+                AttackRange = 3.0f,
+                AttackSpeed = 1.5f,
+                MoveSpeed = 4.2f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.LifeWisp] = new UnitDefinition
+        {
+            Id = UnitIds.LifeWisp,
+            ScenePath = "res://scenes/units/life_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 70f,
+                AttackDamage = 8f,
+                AttackRange = 3.0f,
+                AttackSpeed = 1.0f,
+                MoveSpeed = 3.0f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.DeathWisp] = new UnitDefinition
+        {
+            Id = UnitIds.DeathWisp,
+            ScenePath = "res://scenes/units/death_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 55f,
+                AttackDamage = 14f,
+                AttackRange = 3.0f,
+                AttackSpeed = 1.1f,
+                MoveSpeed = 3.0f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.ShadowWisp] = new UnitDefinition
+        {
+            Id = UnitIds.ShadowWisp,
+            ScenePath = "res://scenes/units/shadow_wisp_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 50f,
+                AttackDamage = 12f,
+                AttackRange = 3.0f,
+                AttackSpeed = 1.3f,
+                MoveSpeed = 3.8f,
+                AggroRadius = 20f
+            }
+        },
+
+        // =====================================================================
+        // FIRE ELEMENT UNITS
+        // =====================================================================
 
         [UnitIds.FireTitan] = new UnitDefinition
         {

@@ -16,10 +16,10 @@ public class SummonerCatalogTest
     [TestCase]
     public void GetSummoner_ReturnsSummonerDefinition_WhenSummonerExists()
     {
-        var summoner = SummonerCatalog.GetSummoner(SummonerId.Fire);
+        var summoner = SummonerCatalog.GetSummoner(SummonerId.Cole);
 
         AssertThat(summoner).IsNotNull();
-        AssertThat(summoner!.Id).IsEqual(SummonerId.Fire);
+        AssertThat(summoner!.Id).IsEqual(SummonerId.Cole);
         AssertThat(summoner.ElementalAffinity).IsEqual(Element.Fire);
     }
 
@@ -34,7 +34,7 @@ public class SummonerCatalogTest
     [TestCase]
     public void HasSummoner_ReturnsTrue_WhenSummonerExists()
     {
-        var exists = SummonerCatalog.HasSummoner(SummonerId.Water);
+        var exists = SummonerCatalog.HasSummoner(SummonerId.Selene);
 
         AssertThat(exists).IsTrue();
     }
@@ -91,32 +91,19 @@ public class SummonerCatalogTest
     }
 
     [TestCase]
-    public void GetRandomPoolSummoners_IncludesStartingAndRandomStarterOnly()
+    public void GetRandomPoolSummoners_IncludesStartingSummoners()
     {
         var randomPool = SummonerCatalog.GetRandomPoolSummoners();
 
         AssertThat(randomPool).IsNotNull();
-        AssertThat(randomPool.Length).IsGreater(4); // At least more than just the 4 starters
+        // Random pool should include at least the 4 starting summoners
+        AssertThat(randomPool.Length).IsGreaterEqual(4);
 
         foreach (var summoner in randomPool)
         {
             var validCondition = summoner.UnlockCondition == SummonerUnlockCondition.StartingChoice
                               || summoner.UnlockCondition == SummonerUnlockCondition.RandomStarterOnly;
             AssertThat(validCondition).IsTrue();
-        }
-    }
-
-    [TestCase]
-    public void GetPurchasableSummoners_ReturnsOnlyPremiumPurchaseSummoners()
-    {
-        var purchasable = SummonerCatalog.GetPurchasableSummoners();
-
-        AssertThat(purchasable).IsNotNull();
-        AssertThat(purchasable.Length).IsGreater(0);
-
-        foreach (var summoner in purchasable)
-        {
-            AssertThat(summoner.UnlockCondition).IsEqual(SummonerUnlockCondition.PremiumPurchase);
         }
     }
 
@@ -137,11 +124,11 @@ public class SummonerCatalogTest
     [TestCase]
     public void SummonerDefinition_HasValidInnateTraits()
     {
-        var fire = SummonerCatalog.GetSummoner(SummonerId.Fire);
+        var cole = SummonerCatalog.GetSummoner(SummonerId.Cole);
 
-        AssertThat(fire).IsNotNull();
-        AssertThat(fire!.InnateTraitIds).IsNotNull();
-        AssertThat(fire.InnateTraitIds.Length).IsGreater(0);
+        AssertThat(cole).IsNotNull();
+        AssertThat(cole!.InnateTraitIds).IsNotNull();
+        AssertThat(cole.InnateTraitIds.Length).IsGreater(0);
     }
 
     [TestCase]
