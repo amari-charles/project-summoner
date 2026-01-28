@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://assets/characters/fire_units/fire_elemental/body.png"
+source_file="res://assets/characters/fire_units/fire_wisp/body.png"
 dest_files=["res://.godot/imported/body.png-3397b5995738ccf0eb42cb8b44374c6d.ctex"]
 
 [params]

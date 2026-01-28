@@ -1,10 +1,10 @@
 [gd_scene load_steps=10 format=3 uid="uid://broq83qx2t0d1"]
 
 [ext_resource type="Script" path="res://scripts/units/fire_wisp_rig.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://cvshrv6gn2rwh" path="res://assets/characters/fire_units/fire_elemental/body.png" id="2_body"]
-[ext_resource type="Texture2D" uid="uid://dgxghnvvpmv0e" path="res://assets/characters/fire_units/fire_elemental/eye.png" id="3_eye"]
-[ext_resource type="Texture2D" uid="uid://cb47kala4u1xy" path="res://assets/characters/fire_units/fire_elemental/leg_left.png" id="4_leg_left"]
-[ext_resource type="Texture2D" uid="uid://8o8n03fnrs7n" path="res://assets/characters/fire_units/fire_elemental/leg_right.png" id="5_leg_right"]
+[ext_resource type="Texture2D" uid="uid://cvshrv6gn2rwh" path="res://assets/characters/fire_units/fire_wisp/body.png" id="2_body"]
+[ext_resource type="Texture2D" uid="uid://dgxghnvvpmv0e" path="res://assets/characters/fire_units/fire_wisp/eye.png" id="3_eye"]
+[ext_resource type="Texture2D" uid="uid://cb47kala4u1xy" path="res://assets/characters/fire_units/fire_wisp/leg_left.png" id="4_leg_left"]
+[ext_resource type="Texture2D" uid="uid://8o8n03fnrs7n" path="res://assets/characters/fire_units/fire_wisp/leg_right.png" id="5_leg_right"]
 
 [sub_resource type="Animation" id="Animation_attack"]
 resource_name = "attack"

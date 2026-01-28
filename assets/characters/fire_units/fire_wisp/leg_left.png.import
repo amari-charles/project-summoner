@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://assets/characters/fire_units/fire_elemental/leg_left.png"
+source_file="res://assets/characters/fire_units/fire_wisp/leg_left.png"
 dest_files=["res://.godot/imported/leg_left.png-64401f993b71a2b6ea733367134b6ed4.ctex"]
 
 [params]
