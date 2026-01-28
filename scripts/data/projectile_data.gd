@@ -43,9 +43,10 @@ class_name ProjectileData
 @export var arc_height: float = 2.0
 @export var gravity: float = -9.8
 
-## Homing Specific
-@export_group("Homing Properties")
-@export var homing_strength: float = 5.0  ## Turn rate
+## Tracking Properties
+@export_group("Tracking Properties")
+@export var tracking: bool = false  ## Whether projectile continuously tracks target
+@export var homing_strength: float = 5.0  ## Turn rate for homing projectiles
 @export var homing_delay: float = 0.0  ## Time before homing starts
 
 ## Impact
@@ -108,6 +109,8 @@ static func from_dict(data: Dictionary) -> ProjectileData:
 	var default_gravity: float = -9.8
 	proj.gravity = data.get("gravity", default_gravity)
 
+	var default_tracking: bool = false
+	proj.tracking = data.get("tracking", default_tracking)
 	var default_homing_strength: float = 5.0
 	proj.homing_strength = data.get("homing_strength", default_homing_strength)
 	var default_homing_delay: float = 0.0
@@ -142,6 +145,7 @@ func to_dict() -> Dictionary:
 		"fade_duration": fade_duration,
 		"arc_height": arc_height,
 		"gravity": gravity,
+		"tracking": tracking,
 		"homing_strength": homing_strength,
 		"homing_delay": homing_delay,
 		"pierce_count": pierce_count,

@@ -280,6 +280,11 @@ public class ProjectileData
             {
                 return value.AsBool();
             }
+            // Also handle string "true"/"false"
+            if (value.VariantType == Variant.Type.String)
+            {
+                return value.AsString().ToLower() == "true";
+            }
         }
         return defaultValue;
     }
