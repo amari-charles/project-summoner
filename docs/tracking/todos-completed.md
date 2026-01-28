@@ -6,6 +6,36 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Remove Gold Costs from Card/Summoner Leveling
+**Completed:** 2026-01-27
+**Category:** Core Game Systems / Progression
+**Effort:** Small
+
+**Description:**
+Card and summoner leveling now requires only XP, not gold. Gold is campaign-scoped and should only be used for Caravan shop purchases, not permanent progression.
+
+**Changes Made:**
+- `CardProgressionHandler.cs`: Removed `LevelUpGoldCost` array and gold checks
+- `CardService.cs`: Removed `SetEconomyCallbacks`, `GetLevelUpGoldCost`, `CanAffordLevelUp` methods
+- `SummonerProgressionService.cs`: Removed gold cost checks from level-up methods
+- `summoner_progression_service.gd`: Removed gold callbacks and related methods
+- `card_level_up_panel.gd`: Removed gold cost display from UI
+- `summoner_screen.gd`: Removed gold cost from level-up button
+- `summoner_roster_item.gd`: Removed gold cost from level-up button
+- `card_detail_modal.gd`: Removed gold cost from level-up button
+- `en.json`: Updated localization strings for XP-only leveling
+
+**Design Rationale:**
+- Cards are permanent (persist across campaigns)
+- Gold is campaign-scoped (lost when campaign ends)
+- Players must be able to max out cards over time regardless of campaign outcomes
+- Gold should create tension for in-campaign purchases, not gate permanent progression
+
+**Related Docs:**
+- `docs/design/card-progression-economy.md` - Updated to reflect XP-only leveling
+
+---
+
 ### Migrate collection_service.gd & summoner_selection_service.gd to C#
 **Completed:** 2026-01-23
 **Category:** Architecture / C# Migration

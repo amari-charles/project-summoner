@@ -13,15 +13,12 @@ class_name CardLevelUpPanel
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var upgrade_container: HBoxContainer = %UpgradeContainer
-@onready var cost_label: Label = %CostLabel
-@onready var gold_label: Label = %GoldLabel
 @onready var confirm_button: Button = %ConfirmButton
 @onready var cancel_button: Button = %CancelButton
 
 ## State
 var card_instance_id: String = ""
 var selected_upgrade_id: String = ""
-var gold_cost: int = 0
 var upgrade_buttons: Array[Button] = []
 
 ## Signals
@@ -54,7 +51,6 @@ func open_for_card(p_card_instance_id: String) -> void:
 
 	_load_card_data()
 	_populate_upgrade_choices()
-	_update_cost_display()
 	_update_confirm_button()
 
 	show()
@@ -94,8 +90,6 @@ func _load_card_data() -> void:
 	var xp_progress: float = info.get("xp_progress", 0.0)
 	xp_label.text = Loc.t("ui.collection.xp_label", {"current": current_xp, "required": xp_for_next})
 	xp_progress_bar.value = xp_progress * 100.0
-
-	gold_cost = info.get("level_up_gold_cost", 0)
 
 func _populate_upgrade_choices() -> void:
 	# Clear existing upgrade buttons
@@ -139,26 +133,9 @@ func _create_upgrade_button(upgrade: Dictionary) -> Button:
 
 	return button
 
-func _update_cost_display() -> void:
-	cost_label.text = Loc.t("ui.level_up.cost_label", {"cost": gold_cost})
-
-	var current_gold: int = Economy.get_gold()
-
-	gold_label.text = Loc.t("ui.level_up.your_gold", {"gold": current_gold})
-
-	# Update gold label color based on affordability
-	if current_gold >= gold_cost:
-		gold_label.add_theme_color_override("font_color", GameColorPalette.SUCCESS)
-	else:
-		gold_label.add_theme_color_override("font_color", GameColorPalette.ERROR)
-
 func _update_confirm_button() -> void:
-	# Check if upgrade selected and can afford
+	# Check if upgrade selected (no gold cost - XP only)
 	var can_confirm: bool = not selected_upgrade_id.is_empty()
-
-	if can_confirm:
-		can_confirm = Economy.get_gold() >= gold_cost
-
 	confirm_button.disabled = not can_confirm
 
 func _update_selection_visual() -> void:
@@ -214,7 +191,6 @@ func _on_confirm_pressed() -> void:
 		await get_tree().create_timer(1.5).timeout
 		confirm_button.text = Loc.t("ui.level_up.confirm")
 		confirm_button.remove_theme_color_override("font_color")
-		_update_cost_display()
 
 func _on_cancel_pressed() -> void:
 	cancelled.emit()

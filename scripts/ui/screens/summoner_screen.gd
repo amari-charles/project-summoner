@@ -135,8 +135,6 @@ func _refresh_all() -> void:
 	var xp_for_next: int = info.get("xp_for_next_level", 100)
 	var xp_progress: float = info.get("xp_progress", 0.0)
 	var can_level_up: bool = info.get("can_level_up", false)
-	var can_afford: bool = info.get("can_afford_level_up", false)
-	var gold_cost: int = info.get("level_up_gold_cost", 0)
 	var is_max_level: bool = info.get("is_max_level", false)
 
 	# Get element
@@ -171,7 +169,7 @@ func _refresh_all() -> void:
 		xp_progress_bar.value = xp_progress * 100.0
 
 	# Update level up button
-	_update_level_up_display(is_max_level, can_level_up, can_afford, gold_cost, config)
+	_update_level_up_display(is_max_level, can_level_up, config)
 
 	# Update stats
 	_refresh_stats(config)
@@ -306,7 +304,7 @@ func _exit_tree() -> void:
 ## LEVEL UP
 ## =============================================================================
 
-func _update_level_up_display(is_max: bool, can_level: bool, can_afford: bool, cost: int, config: SummonerConfig) -> void:
+func _update_level_up_display(is_max: bool, can_level: bool, config: SummonerConfig) -> void:
 	if is_max:
 		level_up_button.text = Loc.t("ui.summoner_panel.level_up_max")
 		level_up_button.disabled = true
@@ -315,13 +313,9 @@ func _update_level_up_display(is_max: bool, can_level: bool, can_afford: bool, c
 		level_up_button.text = Loc.t("ui.summoner_panel.level_up_locked")
 		level_up_button.disabled = true
 		level_up_preview.text = ""
-	elif not can_afford:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": cost})
-		level_up_button.disabled = true
-		level_up_button.add_theme_color_override("font_color", Color(0.7, 0.3, 0.3))
-		level_up_preview.text = _get_level_up_preview(config)
 	else:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button", {"cost": cost})
+		# XP-only leveling - no gold cost check needed
+		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button_simple")
 		level_up_button.disabled = false
 		level_up_button.remove_theme_color_override("font_color")
 		level_up_preview.text = _get_level_up_preview(config)

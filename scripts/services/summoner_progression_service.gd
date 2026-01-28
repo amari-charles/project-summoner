@@ -18,13 +18,9 @@ extends Node
 const MAX_LEVEL: int = 10
 
 ## XP thresholds for each level (cumulative XP needed)
+## Note: Summoner leveling requires only XP, not gold.
 const XP_THRESHOLDS: Array[int] = [
 	0, 100, 250, 500, 850, 1300, 1900, 2700, 3800, 5200
-]
-
-## Gold cost per level-up
-const LEVEL_UP_GOLD_COST: Array[int] = [
-	0, 50, 100, 200, 400, 700, 1000, 1500, 2000, 3000
 ]
 
 ## Signals
@@ -53,26 +49,10 @@ func _ready() -> void:
 	_cs_service.SummonerLeveledUp.connect(_on_cs_leveled_up)
 	_cs_service.SummonerReadyToLevelUp.connect(_on_cs_ready_to_level_up)
 
-	# Inject Economy callbacks (GDScript-specific)
-	_cs_service.SetEconomyCallbacks(_get_gold, _can_afford_gold, _spend_gold, _grant_gold)
-
 	# Inject active summoner getter
 	_cs_service.SetActiveSummonerGetter(_get_active_summoner)
 
 	print("SummonerProgressionService: Ready")
-
-## Economy callbacks for C# service
-func _get_gold() -> int:
-	return Economy.get_gold()
-
-func _can_afford_gold(amount: int) -> bool:
-	return Economy.can_afford({"gold": amount})
-
-func _spend_gold(amount: int) -> void:
-	Economy.spend({"gold": amount})
-
-func _grant_gold(amount: int) -> void:
-	Economy.grant({"gold": amount})
 
 ## Active summoner getter for C# service
 func _get_active_summoner() -> String:
@@ -124,19 +104,7 @@ func can_level_up(summoner_id: String) -> bool:
 		return false
 	return _cs_service.CanLevelUp(summoner_id)
 
-## Get the gold cost to level up a summoner
-func get_level_up_gold_cost(summoner_id: String) -> int:
-	if _cs_service == null:
-		return 0
-	return _cs_service.GetLevelUpGoldCost(summoner_id)
-
-## Check if player can afford to level up (XP + gold)
-func can_afford_level_up(summoner_id: String) -> bool:
-	if _cs_service == null:
-		return false
-	return _cs_service.CanAffordLevelUp(summoner_id)
-
-## Level up a summoner (requires XP threshold met + gold)
+## Level up a summoner (requires only XP threshold met - no gold cost)
 ## Returns true if successful
 func level_up_summoner(summoner_id: String) -> bool:
 	if _cs_service == null:

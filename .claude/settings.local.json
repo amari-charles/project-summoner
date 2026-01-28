@@ -61,7 +61,10 @@
       "Bash(git -C /Users/amaricharles/Code/project-summoner show c82bc5bb:scripts/csharp/Services/Campaign/CampaignService.cs)",
       "Bash(git -C /Users/amaricharles/Code/project-summoner show c82bc5bb -- scripts/csharp/Services/Campaign/CampaignService.cs)",
       "Bash(git -C /Users/amaricharles/Code/project-summoner show c82bc5bb)",
-      "Bash(gh pr close:*)"
+      "Bash(gh pr close:*)",
+      "Bash(gdlint:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

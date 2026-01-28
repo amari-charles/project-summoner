@@ -21,31 +21,6 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ### 🔴 HIGH PRIORITY
 
-#### Remove Gold Costs from Card/Summoner Leveling
-**Status:** ⬜ Not Started
-**Category:** Core Game Systems / Progression
-**Effort:** Small
-
-**Description:**
-Card and summoner leveling should require only XP, not gold. Gold is campaign-scoped and should only be used for Caravan shop purchases, not permanent progression.
-
-**Changes Required:**
-- `CardProgressionHandler.cs`: Remove `LevelUpGoldCost` array and gold checks from `LevelUpCard()`
-- `SummonerProgressionService.cs`: Remove gold cost checks from level-up methods
-- `CardLevelUpPanel.gd`: Remove gold cost display from UI
-- `SummonerPanel.gd`: Remove gold cost from level-up button
-
-**Design Rationale:**
-- Cards are permanent (persist across campaigns)
-- Gold is campaign-scoped (lost when campaign ends)
-- Players must be able to max out cards over time regardless of campaign outcomes
-- Gold should create tension for in-campaign purchases, not gate permanent progression
-
-**Related Docs:**
-- `docs/design/card-progression-economy.md` - Updated to reflect XP-only leveling
-
----
-
 #### Phase 3: Flexible Reward System
 **Status:** ⬜ Not Started
 **Category:** Core Game Systems / Rewards
@@ -767,6 +742,25 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 **Notes:**
 - Must not obstruct battlefield
 - Critical information should be immediately readable
+
+---
+
+#### Display Battle Rewards in Campaign Node UI
+**Status:** ⬜ Not Started
+**Category:** UI/UX / Campaign
+**Effort:** Small
+
+**Description:**
+When clicking on a battle node in the campaign map, the UI should show what rewards the player will receive for completing it. Currently there's no indication of what the reward is before entering a battle.
+
+**Requirements:**
+- Show reward preview when battle node is selected/clicked
+- Display reward type (card choice, gold, XP, etc.)
+- Show specific cards if rewards are fixed/known
+
+**Notes:**
+- Important for player decision-making in campaigns
+- Helps players prioritize which battles to tackle
 
 ---
 

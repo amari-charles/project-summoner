@@ -95,16 +95,6 @@ public partial class CardService : Node
         _progression = new CardProgressionHandler(repo);
     }
 
-    /// <summary>Set economy callbacks for progression operations.</summary>
-    public void SetEconomyCallbacks(Callable getGold, Callable canAfford, Callable spend)
-    {
-        _progression?.SetEconomyCallbacks(
-            () => getGold.Call().AsInt32(),
-            (amount) => canAfford.Call(amount).AsBool(),
-            (amount) => spend.Call(amount)
-        );
-    }
-
     private void OnRepoDataChanged()
     {
         EmitSignal(SignalName.CollectionChanged);
@@ -273,25 +263,13 @@ public partial class CardService : Node
     // PROGRESSION - LEVEL-UP
     // =========================================================================
 
-    /// <summary>Check if card can level up.</summary>
+    /// <summary>Check if card can level up (has enough XP).</summary>
     public bool CanLevelUp(string cardInstanceId)
     {
         return _progression?.CanLevelUp(cardInstanceId) ?? false;
     }
 
-    /// <summary>Get gold cost for level-up.</summary>
-    public int GetLevelUpGoldCost(string cardInstanceId)
-    {
-        return _progression?.GetLevelUpGoldCost(cardInstanceId) ?? 0;
-    }
-
-    /// <summary>Check if player can afford level-up.</summary>
-    public bool CanAffordLevelUp(string cardInstanceId)
-    {
-        return _progression?.CanAffordLevelUp(cardInstanceId) ?? false;
-    }
-
-    /// <summary>Level up a card with chosen upgrade.</summary>
+    /// <summary>Level up a card with chosen upgrade (XP-only, no gold cost).</summary>
     public bool LevelUpCard(string cardInstanceId, string upgradeId)
     {
         var success = _progression?.LevelUpCard(cardInstanceId, upgradeId) ?? false;
@@ -378,8 +356,6 @@ public partial class CardService : Node
             ["xp_for_next_level"] = info.XpForNextLevel,
             ["xp_progress"] = info.XpProgress,
             ["can_level_up"] = info.CanLevelUp,
-            ["can_afford_level_up"] = info.CanAffordLevelUp,
-            ["level_up_gold_cost"] = info.LevelUpGoldCost,
             ["upgrades"] = upgradesArray,
             ["is_max_level"] = info.IsMaxLevel
         };
