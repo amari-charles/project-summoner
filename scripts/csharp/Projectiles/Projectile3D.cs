@@ -59,6 +59,7 @@ public partial class Projectile3D : Area3D
     public float Lifetime { get; set; } = 5f;
     public float ArcHeight { get; set; } = 2f;
     public float HomingStrength { get; set; } = 5f;
+    public bool Tracking { get; set; } = false;
     public int PierceCount { get; set; } = 0;
     public float AoeRadius { get; set; } = 0f;
     public PackedScene? VisualScene { get; set; }
@@ -203,8 +204,9 @@ public partial class Projectile3D : Area3D
         if (_path == null)
             return;
 
-        // For homing projectiles, periodically update target position
-        if (MovementType == ProjectileMovementType.Homing && IsInstanceValid(Target))
+        // For homing or tracking projectiles, periodically update target position
+        bool shouldTrack = MovementType == ProjectileMovementType.Homing || Tracking;
+        if (shouldTrack && IsInstanceValid(Target))
         {
             _timeSinceTargetUpdate += delta;
             if (_timeSinceTargetUpdate >= TargetUpdateInterval)
@@ -253,7 +255,8 @@ public partial class Projectile3D : Area3D
     }
 
     /// <summary>
-    /// Update path endpoint for tracking moving targets.
+    /// Update path for tracking moving targets.
+    /// Recreates the path from the current position to maintain correct geometry.
     /// Uses predictive targeting for better interception.
     /// </summary>
     private void UpdatePathTarget()
@@ -264,8 +267,12 @@ public partial class Projectile3D : Area3D
         Vector3 currentTargetPos = GetTargetPosition(Target);
         Vector3 predictedPos = CalculateInterceptPoint(currentTargetPos, Target);
 
+        // Recreate path from current position to new target
+        // This prevents progress overshooting when path length changes
+        _startPosition = GlobalPosition;
         _targetPosition = predictedPos;
-        _path.UpdateTarget(predictedPos);
+        _progress = 0f;
+        CreatePath();
     }
 
     /// <summary>
@@ -644,6 +651,7 @@ public partial class Projectile3D : Area3D
         Lifetime = data.Lifetime;
         ArcHeight = data.ArcHeight;
         HomingStrength = data.HomingStrength;
+        Tracking = data.Tracking;
         PierceCount = data.PierceCount;
         AoeRadius = data.AoeRadius;
         VisualScene = data.VisualScene;

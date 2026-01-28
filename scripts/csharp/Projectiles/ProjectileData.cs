@@ -79,8 +79,15 @@ public class ProjectileData
     public float Gravity { get; set; } = -9.8f;
 
     // =========================================================================
-    // HOMING PROPERTIES
+    // TRACKING PROPERTIES
     // =========================================================================
+
+    /// <summary>
+    /// Whether the projectile continuously tracks its target.
+    /// For straight projectiles, this updates the endpoint to follow moving targets.
+    /// Homing projectiles always track regardless of this setting.
+    /// </summary>
+    public bool Tracking { get; set; } = false;
 
     /// <summary>Turn rate for homing projectiles.</summary>
     public float HomingStrength { get; set; } = 5f;
@@ -131,6 +138,7 @@ public class ProjectileData
             FadeDuration = GetFloat(dict, "fade_duration", 0.5f),
             ArcHeight = GetFloat(dict, "arc_height", 2f),
             Gravity = GetFloat(dict, "gravity", -9.8f),
+            Tracking = GetBool(dict, "tracking", false),
             HomingStrength = GetFloat(dict, "homing_strength", 5f),
             HomingDelay = GetFloat(dict, "homing_delay", 0f),
             PierceCount = GetInt(dict, "pierce_count", 0),
@@ -191,6 +199,7 @@ public class ProjectileData
             FadeDuration = GetResourceFloat(resource, "fade_duration", 0.5f),
             ArcHeight = resource.Get("arc_height").AsSingle(),
             Gravity = resource.Get("gravity").AsSingle(),
+            Tracking = GetResourceBool(resource, "tracking", false),
             HomingStrength = resource.Get("homing_strength").AsSingle(),
             HomingDelay = resource.Get("homing_delay").AsSingle(),
             PierceCount = resource.Get("pierce_count").AsInt32(),

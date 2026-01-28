@@ -13,6 +13,7 @@ Projectiles are managed by `ProjectileManager` (autoload) and use pooling for pe
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `movement_type` | string | "straight" | Movement pattern: "straight", "homing", "arc", "ballistic" |
+| `tracking` | bool | false | Whether to continuously update target position (for moving targets) |
 | `speed` | float | 15.0 | Initial velocity in units/second |
 | `acceleration` | float | 0.0 | Speed change per second (negative = decelerate) |
 | `min_speed` | float | 1.0 | Floor for deceleration - prevents projectiles from stopping |
@@ -61,6 +62,52 @@ The acceleration system allows projectiles to speed up or slow down over time.
 
 This starts at 25 units/s and decelerates to 5 units/s over ~1.67 seconds:
 - Time to reach min_speed = (25 - 5) / 12 = 1.67 seconds
+
+## Target Tracking
+
+The `tracking` property enables continuous target updates for any movement type. This is essential for hitting moving targets.
+
+### When to Use Tracking
+
+| Scenario | Use Tracking? |
+|----------|---------------|
+| Fast projectile, stationary targets | No |
+| Slow projectile, moving targets | Yes |
+| Decelerating projectile | Yes (flight time is longer than predicted) |
+| Fire-and-forget AOE | No |
+
+### How It Works
+
+When `tracking: true`, the projectile updates its path endpoint every 0.1 seconds to follow the target:
+
+1. Get target's current position
+2. Apply predictive targeting (intercept calculation)
+3. Update path endpoint via `IProjectilePath.UpdateTarget()`
+
+Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
+
+### Tracking vs Homing
+
+| Property | Tracking (straight) | Homing |
+|----------|--------------------|---------
+| Path shape | Linear | Arc (Bézier) |
+| Updates target | Yes | Yes |
+| Visual feel | Direct, straight line | Curved, seeking |
+| Use case | Bullets, wind puffs | Magic missiles, seeking orbs |
+
+### Example: Tracking Straight Projectile
+
+```json
+{
+  "movement_type": "straight",
+  "tracking": true,
+  "speed": 25.0,
+  "acceleration": -12.0,
+  "min_speed": 5.0
+}
+```
+
+This creates a straight projectile that continuously adjusts its trajectory to hit moving targets.
 
 ## Fade-In Effect
 
@@ -155,12 +202,14 @@ public interface IProjectilePath
 | `homing` | `ArcPath` | Same as arc, but periodically updates endpoint to track target |
 | `ballistic` | `BallisticPath` | Pre-computed parabolic trajectory with gravity |
 
+Note: Any movement type can have `tracking: true` to enable target following. Homing always tracks regardless of the tracking flag.
+
 ### How It Works
 
 1. **Initialization**: `CreatePath()` creates the appropriate path based on `movement_type`
 2. **Each frame**: `_progress` advances based on `speed / path_length`
 3. **Position update**: `GlobalPosition = _path.GetPosition(_progress)`
-4. **Homing**: Every 0.1s, `UpdatePathTarget()` recalculates the path endpoint using predictive targeting
+4. **Tracking**: If `tracking: true` or `movement_type: homing`, every 0.1s `UpdatePathTarget()` recalculates the path endpoint using predictive targeting
 
 ### Homing with Arc
 

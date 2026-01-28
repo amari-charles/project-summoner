@@ -763,27 +763,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Get the position where projectiles should aim at this unit.
-    /// Uses hurtbox center if offset is set, otherwise ProjectileTargetPoint or center mass.
+    /// Uses visual component to calculate center mass - this automatically handles
+    /// the complex sprite positioning with FeetOffset, HeadOffset, etc.
     /// Method name uses snake_case for cross-language duck typing compatibility.
     /// </summary>
     public Vector3 get_projectile_target_position()
     {
-        // If hurtbox has custom offset, use hurtbox center as target
-        if (HurtboxOffset != Vector3.Zero)
-        {
-            const float DefaultHurtboxRadius = 0.5f;
-            float xOffset = _isFacingRight ? HurtboxOffset.X : -HurtboxOffset.X;
-            float radius = HurtboxRadius > 0 ? HurtboxRadius : DefaultHurtboxRadius;
-            float yOffset = HurtboxHorizontal ? radius : (HurtboxHeight > 0 ? HurtboxHeight / 2 : 1.0f);
-            return GlobalPosition + new Vector3(xOffset, yOffset + HurtboxOffset.Y, HurtboxOffset.Z);
-        }
-
-        if (_projectileTargetPoint != null)
-        {
-            return _projectileTargetPoint.GlobalPosition;
-        }
-
-        // Fallback: center mass based on visual height
+        // Calculate from visual component (handles sprite alignment automatically)
         float height = VisualComponent?.GetSpriteHeight() ?? 1.0f;
         return GlobalPosition + new Vector3(0, height * CenterMassHeightFraction, 0);
     }

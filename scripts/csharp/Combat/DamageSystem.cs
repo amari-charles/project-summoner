@@ -732,4 +732,23 @@ public partial class DamageSystem : Node, IDamageSystem
 		var result = battleRng.Call("randf", RNG_DOMAIN_COMBAT_CRITS);
 		return result.AsSingle();
 	}
+
+	// =========================================================================
+	// GDSCRIPT COMPATIBILITY (snake_case aliases)
+	// =========================================================================
+
+	public float apply_damage(Node3D attacker, Node3D target, float baseDamage)
+		=> ApplyDamage(attacker, target, baseDamage);
+
+	public float apply_damage(Node3D attacker, Node3D target, float baseDamage, string damageType)
+		=> ApplyDamage(attacker, target, baseDamage, damageType);
+
+	public float apply_damage(Node3D attacker, Node3D target, float baseDamage, string damageType, Godot.Collections.Dictionary? flags)
+		=> ApplyDamage(attacker, target, baseDamage, damageType, flags);
+
+	public float apply_healing(Node3D healer, Node3D target, float healAmount)
+		=> ApplyHealing(healer, target, healAmount);
+
+	public float apply_healing(Node3D healer, Node3D target, float healAmount, Godot.Collections.Dictionary? flags)
+		=> ApplyHealing(healer, target, healAmount, flags);
 }
