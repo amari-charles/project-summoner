@@ -7,6 +7,8 @@ extends GutTest
 
 const CampaignServiceScript: GDScript = preload("res://scripts/services/campaign_service.gd")
 const MockCampaignServiceCSScript: GDScript = preload("res://tests/mocks/mock_campaign_service_cs.gd")
+const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
+const MockDeckServiceScript: GDScript = preload("res://tests/mocks/mock_deck_service.gd")
 
 var campaign: Node
 var mock_repo: MockProfileRepo
@@ -461,3 +463,87 @@ func test_test_arena_progress_is_per_summoner() -> void:
 
 	# Should have per-summoner battles
 	assert_true(campaign.is_battle_completed(String(BattleIDs.ARENA_FIRE_WISP)))
+
+
+## =============================================================================
+## STARTER DECK AUTO-ADD TESTS
+## =============================================================================
+
+func test_grant_card_auto_adds_to_starter_deck_when_under_threshold() -> void:
+	# Create mock deck service with a Starter Deck
+	var mock_deck: Node = MockDeckServiceScript.new()
+	mock_deck.add_mock_deck({
+		"id": "starter-deck-123",
+		"name": _DeckConstants.STARTER_DECK_NAME,
+		"card_instance_ids": ["card1", "card2"]  # 2 cards, under threshold of 15
+	})
+
+	# Reinitialize campaign with mock deck service
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, mock_deck)
+
+	# Grant a card (simulates battle reward)
+	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
+
+	# Verify card was auto-added to starter deck
+	assert_eq(mock_deck.get_call_count("add_card_to_deck"), 1, "Should auto-add card to starter deck")
+	var call_args: Array = mock_deck.get_call_args("add_card_to_deck")
+	assert_eq(call_args[0][0], "starter-deck-123", "Should add to correct deck")
+
+	mock_deck.free()
+
+
+func test_grant_card_does_not_auto_add_when_at_threshold() -> void:
+	# Create mock deck service with a Starter Deck at threshold
+	var mock_deck: Node = MockDeckServiceScript.new()
+	var full_card_ids: Array = []
+	for i: int in range(_DeckConstants.STARTER_DECK_AUTO_ADD_THRESHOLD):
+		full_card_ids.append("card%d" % i)
+
+	mock_deck.add_mock_deck({
+		"id": "starter-deck-123",
+		"name": _DeckConstants.STARTER_DECK_NAME,
+		"card_instance_ids": full_card_ids  # At threshold
+	})
+
+	# Reinitialize campaign with mock deck service
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, mock_deck)
+
+	# Grant a card
+	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
+
+	# Verify card was NOT auto-added (deck is at capacity)
+	assert_eq(mock_deck.get_call_count("add_card_to_deck"), 0, "Should not auto-add when at threshold")
+
+	mock_deck.free()
+
+
+func test_grant_card_does_not_auto_add_when_no_starter_deck() -> void:
+	# Create mock deck service with a different deck (not named "Starter Deck")
+	var mock_deck: Node = MockDeckServiceScript.new()
+	mock_deck.add_mock_deck({
+		"id": "other-deck-123",
+		"name": "My Custom Deck",
+		"card_instance_ids": ["card1"]
+	})
+
+	# Reinitialize campaign with mock deck service
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, mock_deck)
+
+	# Grant a card
+	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
+
+	# Verify card was NOT auto-added (no Starter Deck exists)
+	assert_eq(mock_deck.get_call_count("add_card_to_deck"), 0, "Should not auto-add when no Starter Deck")
+
+	mock_deck.free()
+
+
+func test_grant_card_skips_auto_add_when_deck_service_null() -> void:
+	# Reinitialize campaign with null deck service (default for tests)
+	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, null)
+
+	# Grant a card - should not crash
+	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
+
+	# Verify card was still granted to collection
+	assert_eq(mock_collection.get_call_count("GrantCard"), 1, "Card should still be granted to collection")

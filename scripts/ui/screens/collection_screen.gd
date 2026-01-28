@@ -58,9 +58,6 @@ var deck_id_for_action: String = ""
 ## Collection data
 var collection_summary: Array = []
 
-## Tutorial lock
-var deck_editing_locked: bool = false
-
 ## Filter state
 var show_summons: bool = true
 var show_spells: bool = true
@@ -158,9 +155,6 @@ func _ready() -> void:
 	# Connect to services
 	_connect_services()
 
-	# Check tutorial lock
-	_check_tutorial_lock()
-
 	# Initial load
 	_refresh_deck_list()
 	_refresh_deck_panel()
@@ -177,13 +171,6 @@ func _connect_services() -> void:
 		Decks.deck_deleted.connect(_on_deck_deleted)
 
 	CardServiceCS.CollectionChanged.connect(_on_collection_changed)
-
-
-func _check_tutorial_lock() -> void:
-	if Campaign.has_method("is_tutorial_complete"):
-		var is_complete: Variant = Campaign.call("is_tutorial_complete")
-		if is_complete is bool:
-			deck_editing_locked = not is_complete
 
 
 ## =============================================================================
@@ -382,8 +369,8 @@ func _on_deck_card_clicked(_card_data: Dictionary, card_id: String) -> void:
 ## =============================================================================
 
 func _can_drop_card_to_deck(instance_id: String) -> bool:
-	# Don't allow if no deck selected or editing locked
-	if selected_deck_id == "" or deck_editing_locked:
+	# Don't allow if no deck selected
+	if selected_deck_id == "":
 		return false
 
 	# Don't allow if deck is full
@@ -405,8 +392,6 @@ func _on_card_dropped_to_deck(instance_id: String) -> void:
 
 func _can_remove_card_from_deck(instance_id: String) -> bool:
 	# Check if this card is in the current deck
-	if deck_editing_locked:
-		return false
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
 	return instance_id in deck_card_ids
 
@@ -422,8 +407,6 @@ func _on_card_dropped_to_remove(instance_id: String) -> void:
 
 func _on_new_deck_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if deck_editing_locked:
-		return
 	deck_name_input.text = ""
 	new_deck_dialog.popup_centered()
 
@@ -859,9 +842,6 @@ func _on_popup_dismissed() -> void:
 ## =============================================================================
 
 func _add_card_to_selected_deck(card_instance_id: String) -> void:
-	if deck_editing_locked:
-		return
-
 	if selected_deck_id == "":
 		return
 
@@ -937,9 +917,6 @@ func _on_deck_action_from_modal(instance_id: String, action: String) -> void:
 
 
 func _remove_card_from_deck(card_instance_id: String) -> void:
-	if deck_editing_locked:
-		return
-
 	if selected_deck_id == "":
 		return
 
