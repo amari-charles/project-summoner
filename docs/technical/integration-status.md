@@ -20,14 +20,15 @@ When calling C# methods from GDScript:
 ```gdscript
 # For autoloads, use get_node() to access the instance
 var damage_system: Node = get_node("/root/DamageSystem")
-damage_system.apply_damage(source, target, damage, damage_type)
+damage_system.ApplyDamage(source, target, damage, damage_type)
 
-# C# provides both snake_case (for GDScript) and PascalCase (for C#) methods
+# Godot 4 auto-converts between snake_case and PascalCase, so both work:
+# damage_system.ApplyDamage() and damage_system.apply_damage() are equivalent
 ```
 
 **Key Learnings:**
 1. C# methods with default parameters don't work from GDScript (Godot bug #59025) - use explicit overloads
-2. GDScript expects snake_case, C# uses PascalCase - provide both versions
+2. Godot 4 auto-converts PascalCase to snake_case for GDScript - no aliases needed
 3. Access autoloads via `get_node("/root/Name")` for instance methods
 
 ### C# Project Files
@@ -43,7 +44,7 @@ damage_system.apply_damage(source, target, damage, damage_type)
 ### 1. DamageSystem
 - **Status:** ✅ Migrated to C#
 - **Changes:**
-  - Unit3D uses `DamageSystem.Instance.ApplyDamage()` (C#) or `damage_system.apply_damage()` (GDScript)
+  - All code uses `DamageSystem.Instance.ApplyDamage()` (Godot 4 auto-converts for GDScript callers)
   - Combat events emitted via signals
   - Summoner trait bonuses applied automatically
 - **Files:**

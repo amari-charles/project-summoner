@@ -65,29 +65,21 @@ public partial class DamageSystem : Node, IDamageSystem
 	// PUBLIC API
 	// =========================================================================
 
-	// C# PascalCase wrappers
 	public float ApplyDamage(Node3D attacker, Node3D target, float baseDamage)
-		=> apply_damage(attacker, target, baseDamage, "physical", null);
-
-	public float ApplyDamage(Node3D attacker, Node3D target, float baseDamage, string damageType)
-		=> apply_damage(attacker, target, baseDamage, damageType, null);
-
-	// GDScript snake_case methods (primary implementation)
-	public float apply_damage(Node3D attacker, Node3D target, float baseDamage)
 	{
-		return apply_damage(attacker, target, baseDamage, "physical", null);
+		return ApplyDamage(attacker, target, baseDamage, "physical", null);
 	}
 
-	public float apply_damage(Node3D attacker, Node3D target, float baseDamage, string damageType)
+	public float ApplyDamage(Node3D attacker, Node3D target, float baseDamage, string damageType)
 	{
-		return apply_damage(attacker, target, baseDamage, damageType, null);
+		return ApplyDamage(attacker, target, baseDamage, damageType, null);
 	}
 
 	/// <summary>
 	/// Apply damage from attacker to target.
 	/// Returns the actual damage dealt (after modifiers).
 	/// </summary>
-	public float apply_damage(
+	public float ApplyDamage(
 		Node3D attacker,
 		Node3D target,
 		float baseDamage,

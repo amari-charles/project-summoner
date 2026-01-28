@@ -65,12 +65,23 @@ public static class ElementMatchups
         },
         [Element.Death] = new()
         {
-            [Element.Life] = DisadvantageMultiplier, // Life resists death
+            [Element.Life] = AdvantageMultiplier, // Death claims the living
         },
         [Element.Shadow] = new()
         {
             [Element.Life] = AdvantageMultiplier,   // Shadows drain vitality
         },
+
+        // =====================================================================
+        // ELEMENTS WITH NO MATCHUPS DEFINED (TBD - future design work)
+        // =====================================================================
+        // The following elements intentionally have no matchups yet:
+        // - Poison: Corruption/decay element, matchups TBD
+        // - Occultist: Forbidden magic, matchups TBD
+        // - Holy: Elevated Fire, matchups TBD
+        // - Ice: Elevated Water, matchups TBD
+        // - Metal: Elevated Earth, matchups TBD
+        // - Spirit: Elevated Life, matchups TBD
     };
 
     /// <summary>

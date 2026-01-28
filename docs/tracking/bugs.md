@@ -289,7 +289,8 @@ Visual bug affecting Fire Wisp appearance.
 
 **Related Files:**
 - scenes/units/fire_wisp_3d.tscn
-- assets/units/fire_wisp/
+- scenes/units/fire_wisp_rig.tscn
+- assets/characters/fire_units/fire_wisp/
 
 ---
 

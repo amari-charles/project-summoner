@@ -253,6 +253,7 @@ When units deal damage, a multiplier is applied based on the attacker's element 
 | Lightning | Earth | 0.8x | Grounding |
 | Life | Death | 1.25x | Life overwhelms entropy |
 | Life | Shadow | 0.8x | Shadows drain vitality |
+| Death | Life | 1.25x | Death claims the living |
 | Shadow | Life | 1.25x | Shadows drain vitality |
 
 **Usage in Code:**
