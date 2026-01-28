@@ -27,17 +27,5 @@ public enum CreatureType
     Nature = 1 << 4,
 
     /// <summary>Aerial creatures (clouds, birds).</summary>
-    Aerial = 1 << 5,
-
-    /// <summary>Beast creatures (wolves, bears).</summary>
-    Beast = 1 << 6,
-
-    /// <summary>Undead creatures (skeletons, zombies).</summary>
-    Undead = 1 << 7,
-
-    /// <summary>Construct creatures (golems, machines).</summary>
-    Construct = 1 << 8,
-
-    /// <summary>Humanoid creatures (soldiers, mages).</summary>
-    Humanoid = 1 << 9
+    Aerial = 1 << 5
 }

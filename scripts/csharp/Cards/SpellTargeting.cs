@@ -16,14 +16,5 @@ public enum SpellTargeting
     AreaOfEffect,
 
     /// <summary>Affects units in a selection radius.</summary>
-    SelectionRadius,
-
-    /// <summary>Affects all friendly units.</summary>
-    AllAllies,
-
-    /// <summary>Affects all enemy units.</summary>
-    AllEnemies,
-
-    /// <summary>Affects self/summoner only.</summary>
-    Self
+    SelectionRadius
 }

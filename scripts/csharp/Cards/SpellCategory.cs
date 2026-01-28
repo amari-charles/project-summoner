@@ -13,14 +13,5 @@ public enum SpellCategory
     Damage,
 
     /// <summary>Tactical command spell (Rally, Guard, Charge).</summary>
-    Command,
-
-    /// <summary>Healing or buff spell.</summary>
-    Support,
-
-    /// <summary>Debuff or crowd control spell.</summary>
-    Control,
-
-    /// <summary>Utility spell (vision, teleport, etc.).</summary>
-    Utility
+    Command
 }

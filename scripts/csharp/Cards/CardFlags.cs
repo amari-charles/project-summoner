@@ -14,8 +14,5 @@ public enum CardFlags
     DevOnly = 1 << 0,
 
     /// <summary>Dummy unit for testing - no AI or attacks.</summary>
-    Dummy = 1 << 1,
-
-    /// <summary>Starter deck card.</summary>
-    Starter = 1 << 2
+    Dummy = 1 << 1
 }

@@ -24,14 +24,5 @@ public enum SummonRole
     Giant = 1 << 3,
 
     /// <summary>Cannot move, holds position.</summary>
-    Stationary = 1 << 4,
-
-    /// <summary>Deals high burst damage.</summary>
-    DamageDealer = 1 << 5,
-
-    /// <summary>Provides healing or support.</summary>
-    Support = 1 << 6,
-
-    /// <summary>Controls areas or disrupts enemies.</summary>
-    Control = 1 << 7
+    Stationary = 1 << 4
 }
