@@ -627,6 +627,22 @@ public static class DtoConverters
         if (update.AnalyticsOptIn.HasValue)
             dict["analytics_opt_in"] = update.AnalyticsOptIn.Value;
 
+        if (update.TutorialFlags != null)
+        {
+            var tutorialDict = new Godot.Collections.Dictionary();
+            foreach (var (key, value) in update.TutorialFlags)
+                tutorialDict[key] = value;
+            dict["tutorial_flags"] = tutorialDict;
+        }
+
+        if (update.Achievements != null)
+        {
+            var achievementsDict = new Godot.Collections.Dictionary();
+            foreach (var (key, value) in update.Achievements)
+                achievementsDict[key] = ObjectToVariant(value);
+            dict["achievements"] = achievementsDict;
+        }
+
         return dict;
     }
 

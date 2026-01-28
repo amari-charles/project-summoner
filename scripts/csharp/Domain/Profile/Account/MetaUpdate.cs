@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ProjectSummoner.Domain.Profile.Account;
 
 /// <summary>
@@ -14,4 +16,10 @@ public class MetaUpdate
 
     /// <summary>Update the analytics opt-in flag.</summary>
     public bool? AnalyticsOptIn { get; set; }
+
+    /// <summary>Merge tutorial flags (only specified keys are updated).</summary>
+    public Dictionary<string, bool>? TutorialFlags { get; set; }
+
+    /// <summary>Merge achievement progress (only specified keys are updated).</summary>
+    public Dictionary<string, object>? Achievements { get; set; }
 }
