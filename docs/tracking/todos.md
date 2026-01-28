@@ -745,25 +745,6 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 
 ---
 
-#### Display Battle Rewards in Campaign Node UI
-**Status:** ⬜ Not Started
-**Category:** UI/UX / Campaign
-**Effort:** Small
-
-**Description:**
-When clicking on a battle node in the campaign map, the UI should show what rewards the player will receive for completing it. Currently there's no indication of what the reward is before entering a battle.
-
-**Requirements:**
-- Show reward preview when battle node is selected/clicked
-- Display reward type (card choice, gold, XP, etc.)
-- Show specific cards if rewards are fixed/known
-
-**Notes:**
-- Important for player decision-making in campaigns
-- Helps players prioritize which battles to tackle
-
----
-
 #### Add Loading Screen with Asset Preloading
 **Status:** ⬜ Not Started
 **Category:** UI/UX / Performance

@@ -6,6 +6,28 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Display Battle Rewards in Campaign Node UI
+**Completed:** 2026-01-27
+**Category:** UI/UX / Campaign
+**Effort:** Small
+
+**Description:**
+When clicking on a battle node in the campaign map, the detail panel now shows comprehensive reward preview including gold, summoner XP, and card rewards.
+
+**Changes Made:**
+- `campaign_map.gd`: Updated `_update_detail_panel()` to show gold, XP, and card rewards
+- `en.json`: Added localization keys for reward display (gold, summoner_xp, card_choice, card_choice_options)
+
+**Reward Display:**
+- Gold reward amount (if > 0)
+- Summoner XP reward (if > 0)
+- Card rewards:
+  - FIXED: Shows specific card names
+  - FLEXIBLE: Shows "Choose 1 of X cards" with options list if available
+  - NONE: No card reward line
+
+---
+
 ### Remove Gold Costs from Card/Summoner Leveling
 **Completed:** 2026-01-27
 **Category:** Core Game Systems / Progression

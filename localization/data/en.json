@@ -83,7 +83,11 @@
     },
     "starter_deck_name": "Starter Deck",
     "rewards": {
-      "fixed": "Reward: {cards}"
+      "fixed": "Card Reward: {cards}",
+      "gold": "{amount} Gold",
+      "summoner_xp": "{amount} Summoner XP",
+      "card_choice": "Choose 1 of {count} cards",
+      "card_choice_options": "Options: {cards}"
     },
     "map": {
       "select_event": "Select an Event",
