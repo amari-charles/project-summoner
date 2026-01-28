@@ -203,8 +203,26 @@ public static class RewardPoolCatalog
             if (filters.CardTypes.Count > 0 && !filters.CardTypes.Contains(card.Type))
                 return false;
 
-            // Filter by tags (any match)
-            if (filters.Tags.Count > 0 && !filters.Tags.Any(tag => card.Tags.Contains(tag)))
+            // Filter by creature types (any match)
+            if (filters.CreatureTypes.Count > 0)
+            {
+                bool hasMatch = filters.CreatureTypes.Any(ct => (card.CreatureTypes & ct) != 0);
+                if (!hasMatch) return false;
+            }
+
+            // Filter by roles (any match)
+            if (filters.Roles.Count > 0)
+            {
+                bool hasMatch = filters.Roles.Any(r => (card.Roles & r) != 0);
+                if (!hasMatch) return false;
+            }
+
+            // Filter by spell categories
+            if (filters.SpellCategories.Count > 0 && !filters.SpellCategories.Contains(card.SpellCategory))
+                return false;
+
+            // Exclude cards with DevOnly flag
+            if ((card.Flags & CardFlags.DevOnly) != 0)
                 return false;
 
             // Exclude by unlock conditions
@@ -248,7 +266,7 @@ public class RewardPoolDefinition
 }
 
 /// <summary>
-/// Configuration for filtering cards.
+/// Configuration for filtering cards using typed properties.
 /// </summary>
 public class CardFilterConfig
 {
@@ -261,8 +279,14 @@ public class CardFilterConfig
     /// <summary>Filter to specific card types (empty = all types).</summary>
     public List<CardType> CardTypes { get; init; } = [];
 
-    /// <summary>Filter to cards with any of these tags (empty = no tag filter).</summary>
-    public List<string> Tags { get; init; } = [];
+    /// <summary>Filter to cards with any of these creature types (empty = no filter).</summary>
+    public List<CreatureType> CreatureTypes { get; init; } = [];
+
+    /// <summary>Filter to cards with any of these roles (empty = no filter).</summary>
+    public List<SummonRole> Roles { get; init; } = [];
+
+    /// <summary>Filter to spells with these categories (empty = no filter).</summary>
+    public List<SpellCategory> SpellCategories { get; init; } = [];
 
     /// <summary>Exclude cards with these unlock conditions.</summary>
     public List<UnlockCondition> ExcludeUnlockConditions { get; init; } = [];

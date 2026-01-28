@@ -67,12 +67,6 @@ public partial class CardCatalogBridge : Node
         return CardCatalog.GetCardsByTypeAsDict(type);
     }
 
-    /// <summary>Get cards by tag as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByTagAsDict(string tag)
-    {
-        return CardCatalog.GetCardsByTagAsDict(tag);
-    }
-
     /// <summary>Get starter cards as dictionaries.</summary>
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetStarterCardsAsDict()
     {

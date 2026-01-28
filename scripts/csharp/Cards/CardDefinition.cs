@@ -137,8 +137,23 @@ public class CardDefinition
     // METADATA
     // =========================================================================
 
-    /// <summary>Tags for filtering and categorization.</summary>
-    public string[] Tags { get; init; } = [];
+    /// <summary>Creature type classification for summons (flags, supports multiple).</summary>
+    public CreatureType CreatureTypes { get; init; } = CreatureType.None;
+
+    /// <summary>Combat role for summons (flags, supports multiple).</summary>
+    public SummonRole Roles { get; init; } = SummonRole.None;
+
+    /// <summary>Spell category (single value).</summary>
+    public SpellCategory SpellCategory { get; init; } = SpellCategory.None;
+
+    /// <summary>Spell targeting mode (single value).</summary>
+    public SpellTargeting SpellTargeting { get; init; } = SpellTargeting.None;
+
+    /// <summary>Visual traits (flags, supports multiple).</summary>
+    public VisualTrait VisualTraits { get; init; } = VisualTrait.None;
+
+    /// <summary>Special card flags.</summary>
+    public CardFlags Flags { get; init; } = CardFlags.None;
 
     /// <summary>Unlock condition for this card.</summary>
     public UnlockCondition UnlockCondition { get; init; } = UnlockCondition.Default;

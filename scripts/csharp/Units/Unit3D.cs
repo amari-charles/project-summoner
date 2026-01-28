@@ -333,10 +333,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (VisualComponent == null || string.IsNullOrEmpty(UnitId))
             return;
 
-        // Look up card definition to get element
-        // Unit IDs often match card IDs for simple units (fire_wisp unit uses fire_wisp card)
+        // Look up card definition to get element and visual traits
         var card = CardCatalog.GetCard(UnitId);
         if (card == null)
+            return;
+
+        // Only tint units with UsesWispVisuals trait
+        // Other units like puff, earth_sprite have their own distinct art
+        if ((card.VisualTraits & VisualTrait.UsesWispVisuals) == 0)
             return;
 
         var element = card.ElementalAffinity;

@@ -107,16 +107,6 @@ func get_cards_by_type(card_type: int) -> Array[Dictionary]:
 		results.append(dict)
 	return results
 
-## Get cards filtered by tag
-func get_cards_by_tag(tag: String) -> Array[Dictionary]:
-	if not _csharp_bridge:
-		return []
-	var results: Array[Dictionary] = []
-	for dict: Dictionary in _csharp_bridge.GetCardsByTagAsDict(tag):
-		_convert_element_types(dict)
-		results.append(dict)
-	return results
-
 ## Get starter/default cards (unlock_condition = "default")
 func get_starter_cards() -> Array[Dictionary]:
 	if not _csharp_bridge:

@@ -43,7 +43,8 @@ public static class CardCatalog
             SpellDuration = 0.5f,
             ProjectileId = "fireball",
             SpellVfx = "fireball_spell",
-            Tags = ["spell", "aoe", "damage"],
+            SpellCategory = SpellCategory.Damage,
+            SpellTargeting = SpellTargeting.AreaOfEffect,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -60,7 +61,8 @@ public static class CardCatalog
             SummonTime = 0.0f,
             CommandType = CommandType.Rally,
             SelectionRadius = 8.0f,
-            Tags = ["spell", "command", "tactical", "movement"],
+            SpellCategory = SpellCategory.Command,
+            SpellTargeting = SpellTargeting.SelectionRadius,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Neutral
         },
@@ -78,7 +80,8 @@ public static class CardCatalog
             CommandType = CommandType.Guard,
             SelectionRadius = 8.0f,
             FormationDuration = 25.0f,
-            Tags = ["spell", "command", "tactical", "formation"],
+            SpellCategory = SpellCategory.Command,
+            SpellTargeting = SpellTargeting.SelectionRadius,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Neutral
         },
@@ -95,7 +98,8 @@ public static class CardCatalog
             SummonTime = 0.0f,
             CommandType = CommandType.Charge,
             SelectionRadius = 8.0f,
-            Tags = ["spell", "command", "tactical", "focus_fire"],
+            SpellCategory = SpellCategory.Command,
+            SpellTargeting = SpellTargeting.SelectionRadius,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Neutral
         },
@@ -112,7 +116,8 @@ public static class CardCatalog
             SummonTime = 0.0f,
             SpellDamage = 60.0f,
             ProjectileId = "mana_bolt",
-            Tags = ["spell", "single_target", "damage"],
+            SpellCategory = SpellCategory.Damage,
+            SpellTargeting = SpellTargeting.SingleTarget,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Neutral
         },
@@ -136,7 +141,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "fire", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -156,7 +162,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "water", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Water
         },
@@ -176,7 +183,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "wind", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
         },
@@ -196,7 +204,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "earth", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Earth
         },
@@ -216,7 +225,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "lightning", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Lightning
         },
@@ -236,7 +246,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "life", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Life
         },
@@ -256,7 +267,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "death", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing | VisualTrait.Ethereal,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Death
         },
@@ -276,7 +288,8 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "shadow", "wisp", "elemental"],
+            CreatureTypes = CreatureType.Elemental,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Ethereal,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Shadow
         },
@@ -305,7 +318,9 @@ public static class CardCatalog
             Formation = FormationPresets.TightSwarmGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "fire", "wisp", "elemental", "swarm"],
+            CreatureTypes = CreatureType.Elemental,
+            Roles = SummonRole.Swarm,
+            VisualTraits = VisualTrait.Floating | VisualTrait.UsesWispVisuals | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -329,7 +344,9 @@ public static class CardCatalog
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "fire", "floating", "spirit", "tank", "giant"],
+            CreatureTypes = CreatureType.Elemental | CreatureType.Spirit,
+            Roles = SummonRole.Tank | SummonRole.Giant,
+            VisualTraits = VisualTrait.Floating | VisualTrait.Glowing,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -344,12 +361,13 @@ public static class CardCatalog
             ManaCost = 2,
             Cooldown = 1.5f,
             SummonTime = 0.8f,
-            UnitId = UnitIds.FireAnt,  // Stats from UnitCatalog
+            UnitId = UnitIds.FireAnt,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "fire", "insect", "fast"],
+            CreatureTypes = CreatureType.Insect,
+            Roles = SummonRole.Fast,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -364,12 +382,13 @@ public static class CardCatalog
             ManaCost = 6,
             Cooldown = 4.0f,
             SummonTime = 2.0f,
-            UnitId = UnitIds.FireAnt,  // Stats from UnitCatalog (same as base fire_ant)
+            UnitId = UnitIds.FireAnt,
             SpawnCount = 20,
             Formation = FormationPresets.FireAntSwarm,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "fire", "insect", "fast", "swarm"],
+            CreatureTypes = CreatureType.Insect,
+            Roles = SummonRole.Fast | SummonRole.Swarm,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Fire
         },
@@ -388,12 +407,12 @@ public static class CardCatalog
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitId = UnitIds.EarthSprite,  // Stats from UnitCatalog
+            UnitId = UnitIds.EarthSprite,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "earth", "elemental", "nature"],
+            CreatureTypes = CreatureType.Elemental | CreatureType.Nature,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Earth
         },
@@ -408,12 +427,13 @@ public static class CardCatalog
             ManaCost = 0,
             Cooldown = 0.5f,
             SummonTime = 0.0f,
-            UnitId = UnitIds.Rock,  // Stats from UnitCatalog
+            UnitId = UnitIds.Rock,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "earth", "test", "dummy", "stationary"],
+            Roles = SummonRole.Stationary,
+            Flags = CardFlags.DevOnly | CardFlags.Dummy,
             UnlockCondition = UnlockCondition.DevOnly,
             ElementalAffinity = Element.Earth
         },
@@ -432,12 +452,13 @@ public static class CardCatalog
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitId = UnitIds.Puff,  // Stats from UnitCatalog
+            UnitId = UnitIds.Puff,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Ranged,
             IsRanged = true,
-            Tags = ["ranged", "wind", "elemental", "air"],
+            CreatureTypes = CreatureType.Aerial,
+            VisualTraits = VisualTrait.Floating,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
         },
@@ -452,12 +473,14 @@ public static class CardCatalog
             ManaCost = 5,
             Cooldown = 3.0f,
             SummonTime = 1.5f,
-            UnitId = UnitIds.Puff,  // Stats from UnitCatalog (same as base puff)
+            UnitId = UnitIds.Puff,
             SpawnCount = 6,
             Formation = FormationPresets.CloudSwarm,
             UnitType = UnitType.Ranged,
             IsRanged = true,
-            Tags = ["ranged", "wind", "elemental", "air", "swarm"],
+            CreatureTypes = CreatureType.Aerial,
+            Roles = SummonRole.Swarm,
+            VisualTraits = VisualTrait.Floating,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Wind
         },
@@ -476,12 +499,12 @@ public static class CardCatalog
             ManaCost = 3,
             Cooldown = 2.0f,
             SummonTime = 1.0f,
-            UnitId = UnitIds.WaterFrog,  // Stats from UnitCatalog
+            UnitId = UnitIds.WaterFrog,
             SpawnCount = 1,
             Formation = FormationPresets.StandardGrid,
             UnitType = UnitType.Melee,
             IsRanged = false,
-            Tags = ["melee", "water", "amphibian", "tongue"],
+            CreatureTypes = CreatureType.Amphibian,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Water
         }
@@ -534,10 +557,52 @@ public static class CardCatalog
         return _cards.Values.Where(c => c.Type == type).ToArray();
     }
 
-    /// <summary>Get cards by tag.</summary>
-    public static CardDefinition[] GetCardsByTag(string tag)
+    /// <summary>Get summon cards by creature type (any match).</summary>
+    public static CardDefinition[] GetCardsByCreatureType(CreatureType creatureType)
     {
-        return _cards.Values.Where(c => c.Tags.Contains(tag)).ToArray();
+        return _cards.Values
+            .Where(c => c.Type == CardType.Summon && (c.CreatureTypes & creatureType) != 0)
+            .ToArray();
+    }
+
+    /// <summary>Get summon cards by role (any match).</summary>
+    public static CardDefinition[] GetCardsByRole(SummonRole role)
+    {
+        return _cards.Values
+            .Where(c => c.Type == CardType.Summon && (c.Roles & role) != 0)
+            .ToArray();
+    }
+
+    /// <summary>Get spell cards by category.</summary>
+    public static CardDefinition[] GetSpellsByCategory(SpellCategory category)
+    {
+        return _cards.Values
+            .Where(c => c.Type == CardType.Spell && c.SpellCategory == category)
+            .ToArray();
+    }
+
+    /// <summary>Get spell cards by targeting mode.</summary>
+    public static CardDefinition[] GetSpellsByTargeting(SpellTargeting targeting)
+    {
+        return _cards.Values
+            .Where(c => c.Type == CardType.Spell && c.SpellTargeting == targeting)
+            .ToArray();
+    }
+
+    /// <summary>Get cards with specific visual traits.</summary>
+    public static CardDefinition[] GetCardsByVisualTrait(VisualTrait trait)
+    {
+        return _cards.Values
+            .Where(c => (c.VisualTraits & trait) != 0)
+            .ToArray();
+    }
+
+    /// <summary>Get cards with specific flags.</summary>
+    public static CardDefinition[] GetCardsWithFlags(CardFlags flags)
+    {
+        return _cards.Values
+            .Where(c => (c.Flags & flags) == flags)
+            .ToArray();
     }
 
     /// <summary>Get starter/default cards.</summary>
@@ -618,13 +683,13 @@ public static class CardCatalog
             ["card_icon_path"] = card.CardIconPath
         };
 
-        // Convert tags array
-        var tagsArray = new Godot.Collections.Array();
-        foreach (var tag in card.Tags)
-        {
-            tagsArray.Add(tag);
-        }
-        dict["tags"] = tagsArray;
+        // Typed card properties (replaces old Tags system)
+        dict["creature_types"] = (int)card.CreatureTypes;
+        dict["roles"] = (int)card.Roles;
+        dict["spell_category"] = card.SpellCategory.ToString().ToLowerInvariant();
+        dict["spell_targeting"] = card.SpellTargeting.ToString().ToLowerInvariant();
+        dict["visual_traits"] = (int)card.VisualTraits;
+        dict["card_flags"] = (int)card.Flags;
 
         // Categories dict for elemental affinity (matches GDScript structure)
         var categories = new Godot.Collections.Dictionary
@@ -681,17 +746,6 @@ public static class CardCatalog
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var card in GetCardsByType((CardType)type))
-        {
-            result.Add(ToDictionary(card));
-        }
-        return result;
-    }
-
-    /// <summary>Get cards by tag as dictionaries for GDScript.</summary>
-    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByTagAsDict(string tag)
-    {
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var card in GetCardsByTag(tag))
         {
             result.Add(ToDictionary(card));
         }
