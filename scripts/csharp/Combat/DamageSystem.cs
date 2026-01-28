@@ -1,6 +1,9 @@
 using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
+using ProjectSummoner.Cards;
+using ProjectSummoner.Constants;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Services.Interfaces;
 using ProjectSummoner.Units;
 
@@ -124,6 +127,18 @@ public partial class DamageSystem : Node, IDamageSystem
 		if (DamageTypes.TryGetValue(damageType, out float typeMultiplier))
 		{
 			finalDamage *= typeMultiplier;
+		}
+
+		// Apply elemental matchup multiplier (attacker element vs target element)
+		Element attackerElement = GetEntityElement(attacker);
+		Element targetElement = GetEntityElement(target);
+		float elementalMultiplier = ElementMatchups.GetMultiplier(attackerElement, targetElement);
+		if (elementalMultiplier != 1.0f)
+		{
+			finalDamage *= elementalMultiplier;
+			flags["elemental_multiplier"] = elementalMultiplier;
+			flags["attacker_element"] = (int)attackerElement;
+			flags["target_element"] = (int)targetElement;
 		}
 
 		// Apply custom multiplier from flags
@@ -423,6 +438,36 @@ public partial class DamageSystem : Node, IDamageSystem
 	// =========================================================================
 	// HELPER METHODS (replaces DamageableInterop)
 	// =========================================================================
+
+	/// <summary>
+	/// Get the element of a combat entity (unit or summoner).
+	/// Returns Neutral if element cannot be determined.
+	/// </summary>
+	private static Element GetEntityElement(Node3D entity)
+	{
+		if (entity == null)
+			return Element.Neutral;
+
+		// C# Unit3D - look up via UnitId -> CardCatalog
+		if (entity is Unit3D unit && !string.IsNullOrEmpty(unit.UnitId))
+		{
+			var card = CardCatalog.GetCard(unit.UnitId);
+			if (card != null)
+				return card.ElementalAffinity;
+		}
+
+		// GDScript Summoner - check for summoner_id property -> SummonerCatalog
+		var summonerIdVar = entity.Get("summoner_id");
+		if (summonerIdVar.VariantType != Variant.Type.Nil)
+		{
+			string summonerId = summonerIdVar.AsString();
+			var summoner = SummonerCatalog.GetSummoner(summonerId);
+			if (summoner != null)
+				return summoner.ElementalAffinity;
+		}
+
+		return Element.Neutral;
+	}
 
 	private static bool CanTakeDamage(Node3D target)
 	{

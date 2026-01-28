@@ -233,6 +233,43 @@ var modifiers = ModifierSystem.get_modifiers_for("unit", categories, {})
 # Returns modifiers that match Fire affinity
 ```
 
+### Element Interactions (Combat Matchups)
+
+When units deal damage, a multiplier is applied based on the attacker's element vs the defender's element. This is handled by `ElementMatchups` in `scripts/csharp/Constants/ElementMatchups.cs`.
+
+**Current Matchups (Core Cycle):**
+
+| Attacker | Defender | Multiplier | Notes |
+|----------|----------|------------|-------|
+| Fire | Wind | 1.25x | Fire burns through Wind |
+| Fire | Water | 0.8x | Water extinguishes Fire |
+| Wind | Earth | 1.25x | Wind erodes Earth |
+| Wind | Fire | 0.8x | Fire consumes Wind |
+| Earth | Water | 1.25x | Earth absorbs Water |
+| Earth | Wind | 0.8x | Wind erodes Earth |
+| Water | Fire | 1.25x | Water extinguishes Fire |
+| Water | Earth | 0.8x | Earth absorbs Water |
+| Lightning | Water | 1.25x | Conductivity |
+| Lightning | Earth | 0.8x | Grounding |
+| Life | Death | 1.25x | Life overwhelms entropy |
+| Life | Shadow | 0.8x | Shadows drain vitality |
+| Shadow | Life | 1.25x | Shadows drain vitality |
+
+**Usage in Code:**
+```csharp
+// Get damage multiplier
+float multiplier = ElementMatchups.GetMultiplier(attackerElement, defenderElement);
+
+// Check advantage/disadvantage
+bool hasAdvantage = ElementMatchups.HasAdvantage(attackerElement, defenderElement);
+```
+
+**Important Notes:**
+- Neutral elements have no advantages or disadvantages
+- Same-element matchups return 1.0x (neutral)
+- Multipliers are tunable via constants in `ElementMatchups.cs`
+- This system is **separate from unit traits** - a unit can have both element matchup modifiers AND trait-based resistances that stack multiplicatively
+
 ---
 
 ## Design Guidelines
