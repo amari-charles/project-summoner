@@ -484,6 +484,21 @@ public partial class ProfileRepository : Node, IProfileRepository
     }
 
     // =========================================================================
+    // META OPERATIONS
+    // =========================================================================
+
+    public void UpdateProfileMeta(Dictionary<string, object> updates)
+    {
+        if (!EnsureConnected(nameof(UpdateProfileMeta))) return;
+        var gdDict = new Godot.Collections.Dictionary();
+        foreach (var kvp in updates)
+        {
+            gdDict[kvp.Key] = Variant.From(kvp.Value);
+        }
+        _gdProfileRepo!.Call("update_profile_meta", gdDict);
+    }
+
+    // =========================================================================
     // SETTINGS OPERATIONS
     // =========================================================================
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Domain.Profile.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -190,20 +191,11 @@ public partial class SummonerSelectionService : Node
 		if (oldSummonerId == summonerId)
 			return true;
 
-		// Update profile meta - need to go through GDScript for this
-		// We'll emit a signal that the GDScript wrapper can handle
-		// Or we can add a method to IProfileRepository
-
-		// For now, get the profile and update meta
-		var profile = _profileRepo.GetProfileSnapshot();
-		if (profile == null)
+		// Update selected_summoner in profile meta
+		_profileRepo.UpdateProfileMeta(new Dictionary<string, object>
 		{
-			GD.PushError("SummonerSelectionService: No active profile");
-			return false;
-		}
-
-		profile.Meta.SelectedSummoner = summonerId;
-		_profileRepo.SaveProfile(immediate: true);
+			["selected_summoner"] = summonerId
+		});
 
 		// Emit signal for UI updates
 		EmitSignal(SignalName.SummonerChanged, oldSummonerId, summonerId);

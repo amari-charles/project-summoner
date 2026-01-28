@@ -119,6 +119,13 @@ public interface IProfileRepository
     bool IncrementShopRefreshEpoch(string shopId);
 
     // =========================================================================
+    // META OPERATIONS
+    // =========================================================================
+
+    /// <summary>Update profile meta fields (merges with existing).</summary>
+    void UpdateProfileMeta(Dictionary<string, object> updates);
+
+    // =========================================================================
     // SETTINGS OPERATIONS
     // =========================================================================
 

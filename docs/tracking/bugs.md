@@ -294,29 +294,6 @@ Visual bug affecting Fire Wisp appearance.
 
 ---
 
-#### Campaign State Not Persisting on Restart
-**Status:** Open
-**Reported:** 2026-01-27
-**Component:** Campaign / Save System
-
-**Description:**
-Campaign state is either not being saved or not being loaded properly when the game restarts.
-
-**Expected Behavior:**
-Campaign progress should persist across game sessions - player should be able to close the game and resume their campaign where they left off.
-
-**Current Behavior:**
-Campaign state is lost when the game restarts. Either save is not occurring, or load is not functioning correctly.
-
-**Impact:**
-Players cannot resume campaigns, making extended play sessions required to complete a campaign.
-
-**Related Files:**
-- Campaign save/load system
-- Campaign state management
-
----
-
 #### Units Stuck in FlashWhite Visual State After Being Attacked
 **Status:** Open
 **Reported:** 2026-01-27
@@ -345,4 +322,4 @@ Visual bug that makes affected units look incorrect for the remainder of the bat
 
 ---
 
-*Last Updated: 2026-01-27 - Added campaign persistence and FlashWhite stuck bugs*
+*Last Updated: 2026-01-27 - Resolved campaign persistence bug (moved to bugs-resolved.md)*

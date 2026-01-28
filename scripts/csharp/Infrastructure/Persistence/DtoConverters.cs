@@ -535,13 +535,33 @@ public static class DtoConverters
     }
 
     // =========================================================================
+    // Meta
+    // =========================================================================
+
+    /// <summary>
+    /// Convert Godot Dictionary to Meta.
+    /// Returns default Meta if dict is null or empty.
+    /// </summary>
+    public static Meta FromMetaDict(Godot.Collections.Dictionary? dict)
+    {
+        if (dict == null || dict.Count == 0) return new Meta();
+
+        return new Meta
+        {
+            SelectedDeck = GetString(dict, "selected_deck", ""),
+            SelectedSummoner = GetString(dict, "selected_summoner", ""),
+            AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false)
+        };
+    }
+
+    // =========================================================================
     // ProfileData (partial - for snapshot)
     // =========================================================================
 
     /// <summary>
     /// Convert Godot Dictionary to partial ProfileData (for snapshot).
     /// NOTE: This is a partial conversion. For complete data, use individual accessor methods.
-    /// Populated fields: Version, ProfileId, UpdatedAt, CatalogVersion, Resources, UnlockedSummoners.
+    /// Populated fields: Version, ProfileId, UpdatedAt, CatalogVersion, Resources, UnlockedSummoners, Meta.
     /// </summary>
     public static ProfileData? FromProfileDict(Godot.Collections.Dictionary? dict)
     {
@@ -570,6 +590,13 @@ public static class DtoConverters
             {
                 profileData.UnlockedSummoners.Add(s.AsString());
             }
+        }
+
+        // Convert meta if present (contains selected_summoner)
+        if (dict.TryGetValue("meta", out var metaVar) && metaVar.VariantType == Variant.Type.Dictionary)
+        {
+            var metaDict = metaVar.AsGodotDictionary();
+            profileData.Meta = FromMetaDict(metaDict);
         }
 
         return profileData;
