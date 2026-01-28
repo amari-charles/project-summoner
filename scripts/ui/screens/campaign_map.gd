@@ -591,28 +591,48 @@ func _update_detail_panel() -> void:
 
 	description_label.text = _safe_string(event.get("description", "No description."), "No description.")
 
-	# Reward summary
+	# Reward summary - build multi-line reward text
 	var reward_type: StringName = StringName(event.get("reward_type", RewardTypeIDs.FIXED))
 	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
-	var reward_text: String = ""
+	var gold_reward: int = _safe_int(event.get("gold_reward", 0), 0)
+	var summoner_xp_reward: int = _safe_int(event.get("summoner_xp_reward", 0), 0)
 
-	# Get CardCatalog for proper card names (used in helper function)
+	# Get CardCatalog for proper card names
 	var catalog: Node = CardCatalog
+	var reward_lines: Array[String] = []
 
-	if reward_cards.size() > 0 and reward_type == RewardTypeIDs.FIXED:
-		var card_names: Array[String] = []
-		for reward_item: Variant in reward_cards:
-			var reward: Dictionary = _safe_dict(reward_item)
-			var count: int = _safe_int(reward.get("count", 1), 1)
-			var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
-			var card_name: String = _get_card_display_name(catalog, catalog_id)
-			if count > 1:
-				card_names.append("%dx %s" % [count, card_name])
-			else:
-				card_names.append(card_name)
-		reward_text = Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)})
+	# Gold reward (if > 0)
+	if gold_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": gold_reward}))
 
-	reward_label.text = reward_text
+	# Summoner XP reward (if > 0)
+	if summoner_xp_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": summoner_xp_reward}))
+
+	# Card reward based on type
+	match reward_type:
+		RewardTypeIDs.FIXED:
+			if reward_cards.size() > 0:
+				var card_names: Array[String] = []
+				for reward_item: Variant in reward_cards:
+					var reward: Dictionary = _safe_dict(reward_item)
+					var count: int = _safe_int(reward.get("count", 1), 1)
+					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
+					var card_name: String = _get_card_display_name(catalog, catalog_id)
+					if count > 1:
+						card_names.append("%dx %s" % [count, card_name])
+					else:
+						card_names.append(card_name)
+				reward_lines.append(Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)}))
+
+		RewardTypeIDs.FLEXIBLE:
+			# Simple "1 Card" display - don't spoil the options
+			reward_lines.append(Loc.t("campaign.rewards.card_choice"))
+
+		RewardTypeIDs.NONE:
+			pass  # No card reward line needed
+
+	reward_label.text = "\n".join(reward_lines)
 
 	# Enable/disable start button based on completion and repeatability
 	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(selected_event_id))
