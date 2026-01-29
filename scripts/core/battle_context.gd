@@ -58,9 +58,9 @@ var completion_callback: Callable
 ## Type is RefCounted (base of AuthorityProvider) for GDScript compatibility
 var authority_provider: RefCounted = null
 
-## Cards played during this battle (for XP rewards)
-## Array of card instance IDs
-var _cards_played: Array[String] = []
+## All deck card instance IDs (for XP rewards on victory)
+## Populated when battle starts via store_deck_card_ids()
+var _deck_card_instance_ids: Array[String] = []
 
 ## Level cap for this battle (0 = uncapped)
 ## When set, player cards are normalized to this level maximum
@@ -220,7 +220,7 @@ func clear() -> void:
 	was_configured = false
 	battle_state = BattleState.NONE
 	origin_scene = ""
-	_cards_played.clear()
+	_deck_card_instance_ids.clear()
 	_player_summoner_stats.clear()
 	_level_cap = 0
 
@@ -294,8 +294,8 @@ func abandon_battle() -> void:
 	if campaign and campaign.has_method("clear_pending_reward"):
 		campaign.call("clear_pending_reward")
 
-	# Clear cards played tracking
-	_cards_played.clear()
+	# Clear deck card IDs tracking
+	_deck_card_instance_ids.clear()
 
 ## =============================================================================
 ## PLAYER SUMMONER STATS (for DamageSystem)
@@ -407,43 +407,43 @@ func _get_level_cap_from_config(config: Dictionary) -> int:
 
 
 ## =============================================================================
-## CARD XP TRACKING
+## DECK CARD XP
 ## =============================================================================
 
-## Register a card as played during this battle (for XP rewards)
-## Called by card hand manager when a card is successfully played
-func register_card_played(card_instance_id: String) -> void:
-	if card_instance_id.is_empty():
-		return
-	# Only track unique plays (don't double-count if same card played twice)
-	if card_instance_id not in _cards_played:
-		_cards_played.append(card_instance_id)
-		print("BattleContext: Registered card played: %s (total: %d)" % [card_instance_id, _cards_played.size()])
+## Store all deck card instance IDs for XP rewards
+## Called when battle starts (from Summoner initialization)
+func store_deck_card_ids(deck: Array) -> void:
+	_deck_card_instance_ids.clear()
+	for card: Variant in deck:
+		if card and card.instance_id and not card.instance_id.is_empty():
+			_deck_card_instance_ids.append(card.instance_id)
+	print("BattleContext: Stored %d deck card IDs for XP rewards" % _deck_card_instance_ids.size())
 
-## Get list of cards played this battle
-func get_cards_played() -> Array[String]:
-	return _cards_played.duplicate()
+## Get list of all deck card instance IDs
+func get_deck_card_ids() -> Array[String]:
+	return _deck_card_instance_ids.duplicate()
 
-## Grant XP to all cards played in this battle
+## Grant XP to all cards in the player's deck
 ## Called on battle victory
-func grant_xp_to_played_cards() -> void:
+func grant_xp_to_deck_cards() -> void:
 	var card_xp: int = battle_config.get("card_xp_reward", 0)
 	if card_xp <= 0:
 		print("BattleContext: No card XP reward configured for this battle")
 		return
 
-	if _cards_played.is_empty():
-		print("BattleContext: No cards were played this battle")
+	if _deck_card_instance_ids.is_empty():
+		print("BattleContext: No deck cards stored for XP rewards")
 		return
 
-	print("BattleContext: Granting %d XP to %d played cards" % [card_xp, _cards_played.size()])
+	print("BattleContext: Granting %d XP to %d deck cards: %s" % [card_xp, _deck_card_instance_ids.size(), _deck_card_instance_ids])
 
 	# Use injectable dependency or fall back to autoload lookup
 	var card_service: Node = _get_player_card_service()
-	if card_service and card_service.has_method("grant_xp_to_cards"):
-		card_service.grant_xp_to_cards(_cards_played, card_xp)
+	if card_service and card_service.has_method("GrantXpToCardsArray"):
+		var results: Dictionary = card_service.GrantXpToCardsArray(_deck_card_instance_ids, card_xp)
+		print("BattleContext: Card XP grant results: %s" % results)
 	else:
-		push_warning("BattleContext: PlayerCardService.grant_xp_to_cards not found")
+		push_warning("BattleContext: PlayerCardService.GrantXpToCardsArray not found")
 
 ## Grant XP to the active summoner
 ## Called on battle victory
@@ -468,8 +468,8 @@ func grant_xp_to_active_summoner() -> void:
 ## Handle campaign battle completion
 func _handle_campaign_completion(winner: int) -> void:
 	if winner == 0:  # Player won
-		# Grant XP to cards played during battle
-		grant_xp_to_played_cards()
+		# Grant XP to all cards in the deck
+		grant_xp_to_deck_cards()
 		# Grant XP to the active summoner
 		grant_xp_to_active_summoner()
 		# Transition to reward screen (it will handle completion and rewards)

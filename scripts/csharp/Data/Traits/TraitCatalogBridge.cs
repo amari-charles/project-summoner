@@ -97,6 +97,30 @@ public partial class TraitCatalogBridge : Node
         return result;
     }
 
+    /// <summary>
+    /// Get a pool of traits for level-up selection.
+    /// Returns random acquirable traits excluding those already acquired.
+    /// </summary>
+    /// <param name="excludedIds">Trait IDs to exclude (already acquired)</param>
+    /// <param name="count">Number of traits to return (default 3)</param>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetLevelUpTraitPool(
+        Godot.Collections.Array<string> excludedIds,
+        int count = 3)
+    {
+        var excluded = new System.Collections.Generic.List<string>();
+        foreach (var id in excludedIds)
+        {
+            excluded.Add(id);
+        }
+
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var trait in TraitCatalog.GetLevelUpTraitPool(excluded, count))
+        {
+            result.Add(TraitCatalog.ToDictionary(trait));
+        }
+        return result;
+    }
+
     // =========================================================================
     // UNIT MODIFIER METHODS (for SummonerModifierProvider)
     // =========================================================================

@@ -49,6 +49,8 @@ const CAMPAIGN_BANNER_WIDTH: float = 220.0  # Fits campaign name
 const CAMPAIGN_BANNER_HEIGHT: float = 40.0
 const SUMMONER_ICON_SIZE: float = 50.0
 const SUMMONER_ICON_MARGIN: float = 20.0
+const GOLD_LABEL_MARGIN: float = 20.0
+const GOLD_LABEL_HEIGHT: float = 32.0
 
 ## Kenny UI Pack star textures for difficulty display
 const STAR_FILLED_TEXTURE: String = "res://assets/ui/kenny/PNG/Yellow/Default/star.png"
@@ -88,6 +90,9 @@ var _deck_selector_visible: bool = false
 
 ## Summoner icon widget reference
 var summoner_icon: SummonerIconWidget = null
+
+## Gold display
+var gold_label: Label = null
 
 ## Navigation components
 var hamburger_button: HamburgerButton = null
@@ -175,6 +180,9 @@ func _ready() -> void:
 
 	# Setup summoner icon
 	_setup_summoner_icon()
+
+	# Setup gold display
+	_setup_gold_display()
 
 	# Load and display map
 	_refresh_map()
@@ -1145,6 +1153,45 @@ func _on_summoner_icon_clicked() -> void:
 	# Push current scene for return navigation
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SCREEN)
+
+## =============================================================================
+## GOLD DISPLAY
+## =============================================================================
+
+func _setup_gold_display() -> void:
+	# Create gold label
+	gold_label = Label.new()
+	add_child(gold_label)
+
+	# Style the label
+	gold_label.add_theme_font_size_override("font_size", 20)
+	gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))  # Gold color
+	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+	# Position to the right of summoner icon
+	gold_label.anchor_left = 0.0
+	gold_label.anchor_right = 0.0
+	gold_label.anchor_top = 0.0
+	gold_label.anchor_bottom = 0.0
+	gold_label.offset_left = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE + 10  # Right of summoner icon
+	gold_label.offset_right = gold_label.offset_left + 100  # Width for gold display
+	gold_label.offset_top = SUMMONER_ICON_MARGIN + (SUMMONER_ICON_SIZE - GOLD_LABEL_HEIGHT) / 2  # Vertically centered with icon
+	gold_label.offset_bottom = gold_label.offset_top + GOLD_LABEL_HEIGHT
+
+	# Connect to gold changes
+	Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)
+
+	# Initial update
+	_update_gold_display()
+
+func _update_gold_display() -> void:
+	if gold_label == null:
+		return
+	var gold: int = Economy.get_campaign_gold()
+	gold_label.text = Loc.t("campaign.map.gold", {"amount": gold})
+
+func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
+	_update_gold_display()
 
 ## =============================================================================
 ## CHOICE MODAL

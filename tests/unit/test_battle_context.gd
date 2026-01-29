@@ -158,15 +158,14 @@ func test_abandon_battle_sets_abandoned_state() -> void:
 	assert_eq(context.battle_state, context.BattleState.ABANDONED)
 
 
-func test_abandon_battle_clears_cards_played() -> void:
+func test_abandon_battle_clears_deck_cards() -> void:
 	context.configure_practice_battle()
 	context.start_battle()
-	context.register_card_played("card_1")
-	context.register_card_played("card_2")
+	context.store_deck_card_ids(_make_mock_deck(["card_1", "card_2"]))
 
 	context.abandon_battle()
 
-	assert_eq(context.get_cards_played().size(), 0)
+	assert_eq(context.get_deck_card_ids().size(), 0)
 
 
 func test_abandon_battle_does_nothing_when_none() -> void:
@@ -183,7 +182,7 @@ func test_abandon_battle_does_nothing_when_none() -> void:
 func test_clear_resets_all_state() -> void:
 	context.configure_practice_battle()
 	context.start_battle()
-	context.register_card_played("card_1")
+	context.store_deck_card_ids(_make_mock_deck(["card_1"]))
 	context.set_player_summoner_stats({"damage_bonus": 10.0})
 
 	context.clear()
@@ -191,7 +190,7 @@ func test_clear_resets_all_state() -> void:
 	assert_eq(context.battle_state, context.BattleState.NONE)
 	assert_false(context.was_configured)
 	assert_true(context.battle_config.is_empty())
-	assert_eq(context.get_cards_played().size(), 0)
+	assert_eq(context.get_deck_card_ids().size(), 0)
 	assert_true(context.get_player_summoner_stats().is_empty())
 
 
@@ -205,50 +204,68 @@ func test_reset_is_alias_for_clear() -> void:
 
 
 ## =============================================================================
-## CARD TRACKING TESTS
+## DECK CARD TRACKING TESTS
 ## =============================================================================
 
-func test_register_card_played_tracks_card() -> void:
-	context.register_card_played("card_123")
+func test_store_deck_card_ids_stores_cards() -> void:
+	context.store_deck_card_ids(_make_mock_deck(["card_123"]))
 
-	var cards: Array = context.get_cards_played()
+	var cards: Array = context.get_deck_card_ids()
 	assert_eq(cards.size(), 1)
 	assert_true("card_123" in cards)
 
 
-func test_register_card_played_ignores_duplicates() -> void:
-	context.register_card_played("card_123")
-	context.register_card_played("card_123")
-	context.register_card_played("card_123")
+func test_store_deck_card_ids_stores_multiple_cards() -> void:
+	context.store_deck_card_ids(_make_mock_deck(["card_1", "card_2", "card_3"]))
 
-	var cards: Array = context.get_cards_played()
-	assert_eq(cards.size(), 1)
-
-
-func test_register_card_played_tracks_multiple_cards() -> void:
-	context.register_card_played("card_1")
-	context.register_card_played("card_2")
-	context.register_card_played("card_3")
-
-	var cards: Array = context.get_cards_played()
+	var cards: Array = context.get_deck_card_ids()
 	assert_eq(cards.size(), 3)
 
 
-func test_register_card_played_ignores_empty_id() -> void:
-	context.register_card_played("")
+func test_store_deck_card_ids_ignores_empty_ids() -> void:
+	var deck: Array = _make_mock_deck(["card_1", "", "card_2"])
+	context.store_deck_card_ids(deck)
 
-	var cards: Array = context.get_cards_played()
-	assert_eq(cards.size(), 0)
+	var cards: Array = context.get_deck_card_ids()
+	assert_eq(cards.size(), 2)
 
 
-func test_get_cards_played_returns_copy() -> void:
-	context.register_card_played("card_1")
+func test_store_deck_card_ids_clears_previous() -> void:
+	context.store_deck_card_ids(_make_mock_deck(["old_card"]))
+	context.store_deck_card_ids(_make_mock_deck(["new_card"]))
 
-	var cards: Array = context.get_cards_played()
+	var cards: Array = context.get_deck_card_ids()
+	assert_eq(cards.size(), 1)
+	assert_true("new_card" in cards)
+	assert_false("old_card" in cards)
+
+
+func test_get_deck_card_ids_returns_copy() -> void:
+	context.store_deck_card_ids(_make_mock_deck(["card_1"]))
+
+	var cards: Array = context.get_deck_card_ids()
 	cards.append("card_2")  # Modify returned array
 
 	# Original should be unchanged
-	assert_eq(context.get_cards_played().size(), 1)
+	assert_eq(context.get_deck_card_ids().size(), 1)
+
+
+## Helper to create mock card objects with instance_id
+func _make_mock_deck(instance_ids: Array) -> Array:
+	var deck: Array = []
+	for id: String in instance_ids:
+		var mock_card: RefCounted = RefCounted.new()
+		mock_card.set_meta("instance_id", id)
+		# Add instance_id property via script extension
+		var mock_with_id: MockCard = MockCard.new()
+		mock_with_id.instance_id = id
+		deck.append(mock_with_id)
+	return deck
+
+
+## Simple mock card class for testing
+class MockCard extends RefCounted:
+	var instance_id: String = ""
 
 
 ## =============================================================================

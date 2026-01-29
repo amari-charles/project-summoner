@@ -87,6 +87,18 @@ func get_acquirable_boons() -> Array[Dictionary]:
 		return traits
 	return []
 
+## Get a pool of traits for level-up selection
+## Returns random acquirable traits excluding those already acquired
+func get_level_up_trait_pool(excluded_ids: Array[String], count: int = 3) -> Array[Dictionary]:
+	if _cs_catalog:
+		var traits: Array[Dictionary] = []
+		# Convert to Godot.Collections.Array<string> for C# interop
+		var gd_excluded: Array = []
+		gd_excluded.assign(excluded_ids)
+		traits.assign(_cs_catalog.GetLevelUpTraitPool(gd_excluded, count))
+		return traits
+	return []
+
 ## =============================================================================
 ## DISPLAY HELPERS (delegates to C#)
 ## =============================================================================

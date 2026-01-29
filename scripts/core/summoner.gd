@@ -370,10 +370,6 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, s
 		for i: int in mini(max_hand_size, deck.size()):
 			draw_card()
 
-	# Register card for XP tracking (player only)
-	if team == UnitConstants.Team.PLAYER and not card.instance_id.is_empty():
-		BattleContext.register_card_played(card.instance_id)
-
 	card_played.emit(card)
 	hand_changed.emit(hand)
 
@@ -472,7 +468,9 @@ func _load_profile_deck() -> Array[Card]:
 	var battle_config: Dictionary = BattleContext.battle_config
 	if battle_config.has("dev_player_deck"):
 		print("Summoner: Loading DEV TEST deck (summoner stats still apply)...")
-		return _load_dev_deck_from_config(battle_config["dev_player_deck"])
+		var dev_deck: Array[Card] = _load_dev_deck_from_config(battle_config["dev_player_deck"])
+		BattleContext.store_deck_card_ids(dev_deck)
+		return dev_deck
 
 	# Normal path: use profile deck via DeckLoader
 	print("Summoner: Loading deck from player profile...")
@@ -486,6 +484,9 @@ func _load_profile_deck() -> Array[Card]:
 	if loaded_deck.is_empty():
 		push_warning("Summoner: Failed to load from profile, falling back to static deck")
 		return _load_static_deck()
+
+	# Store deck card IDs in BattleContext for XP rewards
+	BattleContext.store_deck_card_ids(loaded_deck)
 
 	return loaded_deck
 
@@ -598,16 +599,16 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	# Cache summoner stats in BattleContext for DamageSystem to use
 	BattleContext.set_player_summoner_stats(stats)
 
-	# Apply max_hp from summoner stats if available
-	var summoner_max_hp: float = stats.get("max_hp", 300.0)
+	# Apply max_hp from summoner stats (SummonerInstance uses "health" key)
+	var summoner_max_hp: float = stats.get("health", 300.0)
 	max_hp = summoner_max_hp
 	current_hp = max_hp
 	hp_changed.emit(current_hp, max_hp)
 
 	var summoner_name: String = summoner_instance.config.summoner_name
 	var trait_count: int = summoner_instance.get_all_trait_ids().size()
-	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max Mana: %.0f" % [
-		summoner_name, summoner_instance.level, trait_count, max_mana
+	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max HP: %.0f, Max Mana: %.0f" % [
+		summoner_name, summoner_instance.level, trait_count, max_hp, max_mana
 	])
 
 ## =============================================================================

@@ -211,7 +211,7 @@ func _update_progression_display() -> void:
 	if not card_service:
 		_hide_progression()
 		return
-	var info: Dictionary = card_service.get_card_progression_info(card_instance_id)
+	var info: Dictionary = card_service.GetCardProgressionInfoDict(card_instance_id)
 	if info.is_empty():
 		_hide_progression()
 		return
@@ -271,7 +271,7 @@ func _update_upgrades_display() -> void:
 	if not card_service:
 		upgrades_section.visible = false
 		return
-	var upgrade_ids: Array = card_service.get_applied_upgrades(card_instance_id)
+	var upgrade_ids: Array = card_service.GetAppliedUpgrades(card_instance_id)
 	if upgrade_ids.is_empty():
 		upgrades_section.visible = false
 		return

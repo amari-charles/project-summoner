@@ -34,74 +34,60 @@ func after_each() -> void:
 
 
 ## =============================================================================
-## CARDS PLAYED TRACKING TESTS
+## DECK CARD TRACKING TESTS
 ## =============================================================================
 
-func test_register_card_played_adds_to_list() -> void:
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_002")
+func test_store_deck_card_ids_adds_to_list() -> void:
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001", "card_002"]))
 
-	var cards_played: Array = battle_context.get_cards_played()
+	var deck_cards: Array = battle_context.get_deck_card_ids()
 
-	assert_eq(cards_played.size(), 2)
-	assert_true("card_001" in cards_played)
-	assert_true("card_002" in cards_played)
-
-
-func test_register_card_played_ignores_duplicates() -> void:
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_001")
-
-	var cards_played: Array = battle_context.get_cards_played()
-
-	assert_eq(cards_played.size(), 1, "Should only track unique card IDs")
+	assert_eq(deck_cards.size(), 2)
+	assert_true("card_001" in deck_cards)
+	assert_true("card_002" in deck_cards)
 
 
-func test_register_card_played_ignores_empty_string() -> void:
-	battle_context.register_card_played("")
+func test_store_deck_card_ids_ignores_empty_string() -> void:
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001", "", "card_002"]))
 
-	var cards_played: Array = battle_context.get_cards_played()
+	var deck_cards: Array = battle_context.get_deck_card_ids()
 
-	assert_eq(cards_played.size(), 0, "Should not track empty card IDs")
+	assert_eq(deck_cards.size(), 2, "Should not track empty card IDs")
 
 
-func test_cards_played_cleared_on_clear() -> void:
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_002")
-	assert_eq(battle_context.get_cards_played().size(), 2)
+func test_deck_cards_cleared_on_clear() -> void:
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001", "card_002"]))
+	assert_eq(battle_context.get_deck_card_ids().size(), 2)
 
 	battle_context.clear()
 
-	assert_eq(battle_context.get_cards_played().size(), 0, "Cards played should be cleared")
+	assert_eq(battle_context.get_deck_card_ids().size(), 0, "Deck cards should be cleared")
 
 
-func test_cards_played_cleared_on_abandon() -> void:
+func test_deck_cards_cleared_on_abandon() -> void:
 	# Set up battle state so abandon_battle can run
 	battle_context.battle_state = battle_context.BattleState.IN_PROGRESS
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_002")
-	assert_eq(battle_context.get_cards_played().size(), 2)
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001", "card_002"]))
+	assert_eq(battle_context.get_deck_card_ids().size(), 2)
 
 	battle_context.abandon_battle()
 
-	assert_eq(battle_context.get_cards_played().size(), 0, "Cards played should be cleared on abandon")
+	assert_eq(battle_context.get_deck_card_ids().size(), 0, "Deck cards should be cleared on abandon")
 
 
 ## =============================================================================
 ## CARD XP GRANTING TESTS
 ## =============================================================================
 
-func test_grant_xp_to_played_cards_calls_card_service() -> void:
+func test_grant_xp_to_deck_cards_calls_card_service() -> void:
 	# Set up battle config with XP reward
 	battle_context.battle_config = {"card_xp_reward": 25}
 
-	# Register some cards as played
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_002")
+	# Store deck cards
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001", "card_002"]))
 
 	# Grant XP
-	battle_context.grant_xp_to_played_cards()
+	battle_context.grant_xp_to_deck_cards()
 
 	# Verify card service was called
 	assert_eq(mock_card_service.get_call_count("grant_xp_to_cards"), 1)
@@ -114,34 +100,34 @@ func test_grant_xp_to_played_cards_calls_card_service() -> void:
 	assert_eq(first_call[1], 25, "Should pass XP amount of 25")
 
 
-func test_grant_xp_to_played_cards_no_xp_when_zero_configured() -> void:
+func test_grant_xp_to_deck_cards_no_xp_when_zero_configured() -> void:
 	# Set up battle config without XP reward (or 0)
 	battle_context.battle_config = {"card_xp_reward": 0}
 
-	battle_context.register_card_played("card_001")
-	battle_context.grant_xp_to_played_cards()
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001"]))
+	battle_context.grant_xp_to_deck_cards()
 
 	# Card service should not be called
 	assert_eq(mock_card_service.get_call_count("grant_xp_to_cards"), 0)
 
 
-func test_grant_xp_to_played_cards_no_xp_when_not_configured() -> void:
+func test_grant_xp_to_deck_cards_no_xp_when_not_configured() -> void:
 	# Set up battle config without card_xp_reward key
 	battle_context.battle_config = {}
 
-	battle_context.register_card_played("card_001")
-	battle_context.grant_xp_to_played_cards()
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001"]))
+	battle_context.grant_xp_to_deck_cards()
 
 	# Card service should not be called
 	assert_eq(mock_card_service.get_call_count("grant_xp_to_cards"), 0)
 
 
-func test_grant_xp_to_played_cards_no_xp_when_no_cards_played() -> void:
-	# Set up battle config with XP reward but no cards played
+func test_grant_xp_to_deck_cards_no_xp_when_no_deck_cards() -> void:
+	# Set up battle config with XP reward but no deck cards stored
 	battle_context.battle_config = {"card_xp_reward": 25}
 
-	# Don't register any cards
-	battle_context.grant_xp_to_played_cards()
+	# Don't store any deck cards
+	battle_context.grant_xp_to_deck_cards()
 
 	# Card service should not be called
 	assert_eq(mock_card_service.get_call_count("grant_xp_to_cards"), 0)
@@ -210,13 +196,11 @@ func test_both_card_and_summoner_xp_granted_with_full_config() -> void:
 		"summoner_xp_reward": 40
 	}
 
-	# Register cards played
-	battle_context.register_card_played("card_001")
-	battle_context.register_card_played("card_002")
-	battle_context.register_card_played("card_003")
+	# Store deck cards
+	battle_context.store_deck_card_ids(_make_mock_deck(["card_001", "card_002", "card_003"]))
 
 	# Grant both XP types
-	battle_context.grant_xp_to_played_cards()
+	battle_context.grant_xp_to_deck_cards()
 	battle_context.grant_xp_to_active_summoner()
 
 	# Verify card service called
@@ -229,3 +213,22 @@ func test_both_card_and_summoner_xp_granted_with_full_config() -> void:
 	assert_eq(mock_summoner_prog.get_call_count("grant_active_summoner_xp"), 1)
 	var summoner_args: Array = mock_summoner_prog.get_call_args("grant_active_summoner_xp")[0]
 	assert_eq(summoner_args[0], 40, "Summoner XP should be 40")
+
+
+## =============================================================================
+## HELPERS
+## =============================================================================
+
+## Helper to create mock card objects with instance_id
+func _make_mock_deck(instance_ids: Array) -> Array:
+	var deck: Array = []
+	for id: String in instance_ids:
+		var mock_card: MockCard = MockCard.new()
+		mock_card.instance_id = id
+		deck.append(mock_card)
+	return deck
+
+
+## Simple mock card class for testing
+class MockCard extends RefCounted:
+	var instance_id: String = ""

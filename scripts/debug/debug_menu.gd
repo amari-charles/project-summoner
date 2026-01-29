@@ -272,6 +272,37 @@ func _create_ui() -> void:
 	_command_output.custom_minimum_size = Vector2(200, 0)
 	vbox.add_child(_command_output)
 
+	# Battle Control separator
+	var battle_separator: HSeparator = HSeparator.new()
+	vbox.add_child(battle_separator)
+
+	# Battle Control title
+	var battle_title: Label = Label.new()
+	battle_title.text = "Battle Control"
+	battle_title.add_theme_font_size_override("font_size", 14)
+	battle_title.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
+	vbox.add_child(battle_title)
+
+	# Win/Lose button container
+	var battle_grid: GridContainer = GridContainer.new()
+	battle_grid.columns = 2
+	battle_grid.add_theme_constant_override("h_separation", 8)
+	vbox.add_child(battle_grid)
+
+	# Win button
+	var win_button: Button = Button.new()
+	win_button.text = "Win"
+	win_button.custom_minimum_size = Vector2(96, 32)
+	win_button.pressed.connect(_on_win_pressed)
+	battle_grid.add_child(win_button)
+
+	# Lose button
+	var lose_button: Button = Button.new()
+	lose_button.text = "Lose"
+	lose_button.custom_minimum_size = Vector2(96, 32)
+	lose_button.pressed.connect(_on_lose_pressed)
+	battle_grid.add_child(lose_button)
+
 	# Snapshots separator
 	var snapshot_separator: HSeparator = HSeparator.new()
 	vbox.add_child(snapshot_separator)
@@ -560,6 +591,24 @@ func _select_autocomplete_item(index: int) -> void:
 		_command_input.grab_focus()
 
 	_hide_autocomplete()
+
+
+func _on_win_pressed() -> void:
+	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	if game_controller and game_controller.has_method("end_game"):
+		game_controller.end_game(UnitConstants.Team.PLAYER)
+		print("[Debug] Triggered instant WIN")
+	else:
+		print("[Debug] No game controller found - not in battle?")
+
+
+func _on_lose_pressed() -> void:
+	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	if game_controller and game_controller.has_method("end_game"):
+		game_controller.end_game(UnitConstants.Team.ENEMY)
+		print("[Debug] Triggered instant LOSE")
+	else:
+		print("[Debug] No game controller found - not in battle?")
 
 
 func _on_snapshots_pressed() -> void:

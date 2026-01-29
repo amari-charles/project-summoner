@@ -25,6 +25,9 @@ var acquired_boon_ids: Array[String] = []
 var _cached_stats: Dictionary = {}
 var _stats_dirty: bool = true
 
+## Level progression constants
+const LEVEL_STAT_BONUS_PERCENT: float = 0.05  ## 5% stat bonus per level above 1
+
 ## Initialize from a SummonerConfig (called when starting a new run)
 func init_from_config(summoner_config: SummonerConfig) -> void:
 	config = summoner_config
@@ -179,6 +182,11 @@ func _recompute_stats() -> void:
 		"damage_bonus": 0.0,
 		"damage_reduction": 0.0
 	}
+
+	# Apply level bonuses
+	var level_multiplier: float = 1.0 + (level - 1) * LEVEL_STAT_BONUS_PERCENT
+	stats["health"] *= level_multiplier
+	stats["max_mana"] *= level_multiplier
 
 	# Apply all trait modifiers from TraitCatalog
 	_apply_trait_modifiers(stats)

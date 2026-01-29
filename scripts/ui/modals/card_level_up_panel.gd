@@ -65,7 +65,7 @@ func _load_card_data() -> void:
 	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
-	var info: Dictionary = card_service.get_card_progression_info(card_instance_id)
+	var info: Dictionary = card_service.GetCardProgressionInfoDict(card_instance_id)
 	if info.is_empty():
 		push_error("CardLevelUpPanel: Failed to get progression info for %s" % card_instance_id)
 		return
@@ -101,7 +101,7 @@ func _populate_upgrade_choices() -> void:
 	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 	if not card_service:
 		return
-	var upgrades: Array = card_service.get_available_upgrades(card_instance_id)
+	var upgrades: Array = card_service.GetAvailableUpgrades(card_instance_id)
 
 	# Create upgrade buttons
 	for upgrade_var: Variant in upgrades:
@@ -178,7 +178,7 @@ func _on_confirm_pressed() -> void:
 	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
-	var success: bool = card_service.level_up_card(card_instance_id, selected_upgrade_id)
+	var success: bool = card_service.LevelUpCard(card_instance_id, selected_upgrade_id)
 
 	if success:
 		level_up_completed.emit(card_instance_id)

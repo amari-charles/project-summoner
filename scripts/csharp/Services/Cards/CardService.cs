@@ -229,6 +229,18 @@ public partial class CardService : Node
         return _progression?.GrantXpToCards(cardInstanceIds, amount) ?? [];
     }
 
+    /// <summary>Grant XP to multiple cards (GDScript-friendly).</summary>
+    public Godot.Collections.Dictionary GrantXpToCardsArray(Godot.Collections.Array<string> cardInstanceIds, int amount)
+    {
+        var results = GrantXpToCards(cardInstanceIds, amount);
+        var gdResult = new Godot.Collections.Dictionary();
+        foreach (var kvp in results)
+        {
+            gdResult[kvp.Key] = kvp.Value;
+        }
+        return gdResult;
+    }
+
     /// <summary>Get XP required for a level (base).</summary>
     public int GetXpForLevel(int level)
     {

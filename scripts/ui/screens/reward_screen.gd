@@ -24,6 +24,7 @@ class_name RewardScreen
 const CardXPItemScene: PackedScene = preload("res://scenes/ui/components/card_xp_item.tscn")
 const CardDetailModalScene: PackedScene = preload("res://scenes/ui/modals/card_detail_modal.tscn")
 const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/modals/card_level_up_panel.tscn")
+const SummonerLevelUpPanelScene: PackedScene = preload("res://scenes/ui/modals/summoner_level_up_panel.tscn")
 
 ## Constants
 const CHOICE_BUTTON_SIZE: Vector2 = Vector2(150, 100)
@@ -77,24 +78,35 @@ func _load_battle_results() -> void:
 			SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 			return
 
-	# Check for pending reward first (resuming after exit/crash)
+	# First get the current battle from profile (the battle we just won)
+	var profile_battle_id: String = ""
+	var profile: Dictionary = ProfileRepo.get_active_profile()
+	if not profile.is_empty():
+		var campaign_progress: Variant = profile.get("campaign_progress", {})
+		if campaign_progress is Dictionary:
+			profile_battle_id = campaign_progress.get("current_battle", "")
+
+	# Check for pending reward - only resume if it matches the current battle
 	var pending_reward: Variant = Campaign.get_pending_reward()
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
-		current_battle_id = pending_dict.get("battle_id", "")
-		reward_type = StringName(pending_dict.get("reward_type", RewardTypeIDs.FIXED))
-		chosen_reward_index = pending_dict.get("choice_index", -1)
-		is_pending_reward = true
-		print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
-	else:
-		# No pending reward - load from current battle
-		var profile: Dictionary = ProfileRepo.get_active_profile()
-		if profile.is_empty():
-			return
+		var pending_battle_id: String = pending_dict.get("battle_id", "")
 
-		var campaign_progress: Variant = profile.get("campaign_progress", {})
-		if campaign_progress is Dictionary:
-			current_battle_id = campaign_progress.get("current_battle", "")
+		if pending_battle_id == profile_battle_id:
+			# Pending reward matches current battle - resume it
+			current_battle_id = pending_battle_id
+			reward_type = StringName(pending_dict.get("reward_type", RewardTypeIDs.FIXED))
+			chosen_reward_index = pending_dict.get("choice_index", -1)
+			is_pending_reward = true
+			print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
+		else:
+			# Stale pending reward from different battle - clear it and use current battle
+			print("RewardScreen: Clearing stale pending reward (was '%s', current is '%s')" % [pending_battle_id, profile_battle_id])
+			Campaign.clear_pending_reward()
+			current_battle_id = profile_battle_id
+	else:
+		# No pending reward - use current battle from profile
+		current_battle_id = profile_battle_id
 
 	if current_battle_id == "":
 		push_error("RewardScreen: No current battle set!")
@@ -114,10 +126,8 @@ func _load_battle_results() -> void:
 	var is_replay: bool = Campaign.is_battle_completed(current_battle_id)
 
 	if is_replay:
-		# Battle already completed - show replay message
 		_show_rewards(battle, true)
 	elif is_pending_reward:
-		# Resuming pending reward - show appropriate UI
 		_resume_pending_reward(battle)
 	else:
 		# First time victory - set pending reward (don't complete yet!)
@@ -134,24 +144,23 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 	# Validate rewards before displaying
 	_validate_rewards(battle, catalog)
 
-	# Get gold reward for display
-	var gold_reward: int = battle.get("gold_reward", 0)
-
-	if is_replay:
-		# Show message for replayed battles
-		reward_card_label.text = Loc.t("ui.reward.already_completed")
-		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
-		gold_reward_label.text = ""
-		summoner_xp_label.text = ""
-		reward_ready_to_claim = false
-		return
-
-	# Display gold, summoner XP, and card XP rewards
-	_display_gold_reward(gold_reward)
+	# XP rewards are always granted (even for replays)
 	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
 	_display_summoner_xp_reward(summoner_xp)
 	var card_xp: int = battle.get("card_xp_reward", 0)
 	_display_card_xp_rewards(card_xp)
+
+	if is_replay:
+		# Show message for replayed battles - no gold/card rewards, but XP still granted
+		reward_card_label.text = Loc.t("ui.reward.already_completed")
+		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
+		gold_reward_label.text = ""
+		reward_ready_to_claim = true  # Allow continuing (XP already granted via BattleContext)
+		return
+
+	# Display gold reward (not for replays)
+	var gold_reward: int = battle.get("gold_reward", 0)
+	_display_gold_reward(gold_reward)
 
 	match reward_type:
 		RewardTypeIDs.FIXED:
@@ -276,9 +285,9 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 		card_xp_section.visible = false
 		return
 
-	# Get cards that were played this battle
-	var cards_played: Array[String] = BattleContext.get_cards_played()
-	if cards_played.is_empty():
+	# Get all deck cards for XP rewards
+	var deck_cards: Array[String] = BattleContext.get_deck_card_ids()
+	if deck_cards.is_empty():
 		card_xp_section.visible = false
 		return
 
@@ -293,8 +302,8 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 		card_xp_section.visible = false
 		return
 
-	# Create card items for each played card
-	for instance_id: String in cards_played:
+	# Create card items for each deck card
+	for instance_id: String in deck_cards:
 		var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
 		if info.is_empty():
 			continue
@@ -542,7 +551,6 @@ func _on_flexible_choice_selected(index: int) -> void:
 
 func _on_continue_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	print("RewardScreen: Continue pressed")
 
 	# Check if we have a reward to claim
 	if reward_ready_to_claim:
@@ -556,11 +564,15 @@ func _on_continue_pressed() -> void:
 				var chosen_option: Dictionary = flexible_options[chosen_reward_index]
 				if RewardService.grant_reward(chosen_option):
 					granted_card = chosen_option
-					print("RewardScreen: Granted flexible reward via RewardService")
 				else:
 					push_error("RewardScreen: Failed to grant flexible reward")
 
-				# Mark battle complete via Campaign (without granting - already done)
+				# Grant gold separately (since complete_battle_without_reward skips rewards)
+				var gold_reward: int = battle.get("gold_reward", 0)
+				if gold_reward > 0:
+					Economy.add_campaign_gold(gold_reward)
+
+				# Mark battle complete via Campaign (without granting cards - already done)
 				Campaign.complete_battle_without_reward(current_battle_id)
 			else:
 				# FLEXIBLE with specific_options - use Campaign.claim_pending_reward()
@@ -572,12 +584,54 @@ func _on_continue_pressed() -> void:
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():
 			_auto_add_cards_to_deck(granted_card)
-			print("RewardScreen: Claimed reward for battle '%s'" % current_battle_id)
 	else:
 		# No reward to claim (replay or no rewards) - just clear any stale pending state
 		Campaign.clear_pending_reward()
 
-	print("RewardScreen: Transitioning to campaign map")
+	# Check if summoner can level up before transitioning
+	_check_summoner_level_up()
+
+## Check if summoner can level up and show modal if so
+func _check_summoner_level_up() -> void:
+	var summoner_id: String = _get_active_summoner_id()
+	if summoner_id.is_empty():
+		_transition_to_map()
+		return
+
+	if SummonerProgression.can_level_up(summoner_id):
+		_show_summoner_level_up_modal(summoner_id)
+	else:
+		_transition_to_map()
+
+## Show summoner level-up modal
+func _show_summoner_level_up_modal(summoner_id: String) -> void:
+	var modal: SummonerLevelUpPanel = SummonerLevelUpPanelScene.instantiate() as SummonerLevelUpPanel
+	if not modal:
+		push_error("RewardScreen: Failed to instantiate SummonerLevelUpPanel")
+		_transition_to_map()
+		return
+
+	add_child(modal)
+	modal.open_for_summoner(summoner_id)
+
+	# Connect signals
+	modal.level_up_completed.connect(_on_summoner_level_up_completed)
+	modal.cancelled.connect(_on_summoner_level_up_cancelled)
+
+## Handle summoner level-up completion - check for more level-ups (multi-level jumps)
+func _on_summoner_level_up_completed(summoner_id: String, _trait_id: String) -> void:
+	# Check if summoner can level up again (multi-level jumps)
+	if SummonerProgression.can_level_up(summoner_id):
+		_show_summoner_level_up_modal(summoner_id)
+	else:
+		_transition_to_map()
+
+## Handle summoner level-up cancellation - still transition (can level up later)
+func _on_summoner_level_up_cancelled() -> void:
+	_transition_to_map()
+
+## Transition to campaign map
+func _transition_to_map() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 ## =============================================================================
