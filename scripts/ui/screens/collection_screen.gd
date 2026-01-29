@@ -516,16 +516,8 @@ func _refresh_collection() -> void:
 
 		# Set progression info for level badge and XP bar
 		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
-		print("DEBUG: card_service=%s, instance_id=%s" % [card_service, instance_id])
 		if card_service:
-			var methods: Array = ["get_card_progression_info", "get_card_progression_info_dict", "GetCardProgressionInfoDict"]
-			for m: String in methods:
-				print("DEBUG: has_method('%s') = %s" % [m, card_service.has_method(m)])
-
-			# Try calling the method
-			var prog_info: Variant = card_service.call("get_card_progression_info", instance_id)
-			print("DEBUG: prog_info = %s" % [prog_info])
-
+			var prog_info: Variant = card_service.get_card_progression_info(instance_id)
 			if prog_info is Dictionary:
 				widget.set_progression(prog_info)
 
