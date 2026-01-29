@@ -24,6 +24,19 @@ func _ready() -> void:
 	use_button.pressed.connect(_on_use_pressed)
 	info_button.pressed.connect(_on_info_pressed)
 
+	# Style the popup panel with opaque background for clarity
+	var panel: PanelContainer = popup_container.get_node("PanelContainer")
+	if panel:
+		var style: StyleBoxFlat = StyleBoxFlat.new()
+		style.bg_color = Color(0.12, 0.12, 0.15, 1.0)  # Solid dark background
+		style.set_corner_radius_all(6)
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+		style.border_color = Color(0.3, 0.3, 0.35, 1.0)  # Subtle border
+		panel.add_theme_stylebox_override("panel", style)
+
 	# Dismiss when clicking outside
 	set_process_input(true)
 
