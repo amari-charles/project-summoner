@@ -293,6 +293,7 @@
       "set_active_deck_tooltip": "Set as active deck for battles",
       "no_deck_selected": "Select a deck first",
       "card_action_use": "Use",
+      "card_action_remove": "Remove",
       "card_action_info": "Info",
       "filter_all_elements": "All Elements",
       "element_count": "{count} Elements",

@@ -343,12 +343,21 @@ func _refresh_deck_panel() -> void:
 		widget.custom_minimum_size = DECK_PANEL_CARD_SIZE
 		widget.tooltip_text = Loc.t("ui.collection.deck_card_remove_tooltip")
 
-		# Double-click to remove from deck
-		widget.card_clicked.connect(_on_deck_card_clicked.bind(card_id))
+		# Set progression info for level badge and XP bar
+		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+		if card_service:
+			var prog_info: Variant = card_service.GetCardProgressionInfoDict(card_id)
+			if prog_info is Dictionary:
+				widget.set_progression(prog_info)
+
+		# Click to show popup, double-click to remove from deck
+		widget.card_clicked.connect(_on_deck_card_clicked.bind(widget, card_id, catalog_id))
+		widget.card_held.connect(_on_card_held.bind(card_id, catalog_id))
 
 
-func _on_deck_card_clicked(_card_data: Dictionary, card_id: String) -> void:
+func _on_deck_card_clicked(_card_data: Dictionary, widget: CardWidget, card_id: String, catalog_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	_dismiss_active_popup()
 
 	# Check for double-click
 	var current_time: int = Time.get_ticks_msec()
@@ -359,9 +368,10 @@ func _on_deck_card_clicked(_card_data: Dictionary, card_id: String) -> void:
 		_remove_card_from_deck(card_id)
 		return
 
-	# Single click: just track for potential double-click
+	# Single click: show popup with Remove option
 	last_deck_card_id = card_id
 	last_deck_click_time = current_time
+	_show_card_action_popup(widget, card_id, catalog_id)
 
 
 ## =============================================================================
@@ -818,6 +828,8 @@ func _show_card_action_popup(widget: CardWidget, instance_id: String, catalog_id
 
 	if popup.has_signal("use_pressed"):
 		popup.use_pressed.connect(_on_popup_use_pressed)
+	if popup.has_signal("remove_pressed"):
+		popup.remove_pressed.connect(_on_popup_remove_pressed)
 	if popup.has_signal("info_pressed"):
 		popup.info_pressed.connect(_on_popup_info_pressed)
 	if popup.has_signal("dismissed"):
@@ -833,6 +845,11 @@ func _dismiss_active_popup() -> void:
 func _on_popup_use_pressed(instance_id: String, _catalog_id: String) -> void:
 	_dismiss_active_popup()
 	_add_card_to_selected_deck(instance_id)
+
+
+func _on_popup_remove_pressed(instance_id: String, _catalog_id: String) -> void:
+	_dismiss_active_popup()
+	_remove_card_from_deck(instance_id)
 
 
 func _on_popup_info_pressed(instance_id: String, catalog_id: String) -> void:
