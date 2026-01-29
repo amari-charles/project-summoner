@@ -22,6 +22,7 @@ class_name RewardScreen
 
 ## Preloads
 const CardXPItemScene: PackedScene = preload("res://scenes/ui/components/card_xp_item.tscn")
+const CardDetailModalScene: PackedScene = preload("res://scenes/ui/modals/card_detail_modal.tscn")
 const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/modals/card_level_up_panel.tscn")
 
 ## Constants
@@ -318,9 +319,8 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 
 	card_xp_section.visible = true
 
-## Handle click on a card XP item - open level-up panel if can level up
+## Handle click on a card XP item - open card detail modal to view stats
 func _on_card_xp_item_clicked(instance_id: String) -> void:
-	# Check if card can level up
 	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 	if not card_service:
 		return
@@ -329,13 +329,25 @@ func _on_card_xp_item_clicked(instance_id: String) -> void:
 	if info.is_empty():
 		return
 
-	var can_level_up: bool = info.get("can_level_up", false)
-	if not can_level_up:
-		# Card can't level up yet - just show feedback
-		print("RewardScreen: Card %s cannot level up yet" % instance_id)
+	var catalog_id: String = info.get("catalog_id", "")
+	if catalog_id.is_empty():
 		return
 
-	# Open level-up panel
+	# Open card detail modal to show full stats, progression, and upgrades
+	var modal: CardDetailModal = CardDetailModalScene.instantiate() as CardDetailModal
+	if not modal:
+		return
+
+	add_child(modal)
+	modal.open_for_card(instance_id, catalog_id)
+
+	# Connect to level-up signal - modal will request level-up, we open the panel
+	modal.level_up_requested.connect(_on_card_detail_level_up_requested)
+	modal.closed.connect(_on_card_detail_closed.bind(instance_id))
+
+## Handle level-up request from card detail modal
+func _on_card_detail_level_up_requested(instance_id: String) -> void:
+	# Open level-up panel for upgrade selection
 	var panel: Node = LevelUpPanelScene.instantiate()
 	if not panel:
 		return
@@ -350,6 +362,10 @@ func _on_card_xp_item_clicked(instance_id: String) -> void:
 
 	if panel.has_signal("cancelled"):
 		panel.cancelled.connect(_on_level_up_cancelled.bind(panel))
+
+## Handle card detail modal closed - refresh card display
+func _on_card_detail_closed(instance_id: String) -> void:
+	_refresh_card_xp_item(instance_id)
 
 ## Handle level-up completion - refresh the card item display
 func _on_level_up_completed(instance_id: String) -> void:

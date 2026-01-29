@@ -225,7 +225,8 @@
       "card_xp_header": "Cards Earned XP:",
       "card_xp_each": "+{amount} XP each",
       "card_level_up_ready": "LEVEL UP!",
-      "card_level": "Lv.{level}"
+      "card_level": "Lv.{level}",
+      "card_xp_tooltip": "Click to view card details"
     },
     "economy": {
       "campaign_gold": "Campaign Gold",

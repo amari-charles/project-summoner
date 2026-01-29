@@ -4,7 +4,7 @@ class_name CardXPItem
 ## CardXPItem - Displays card XP info on the reward screen
 ##
 ## Shows card name, current level, and "LEVEL UP!" indicator if ready.
-## Clickable to trigger level-up flow.
+## Clickable to view card details (stats, progression, upgrades).
 
 ## Signals
 signal clicked(instance_id: String)
@@ -46,6 +46,9 @@ func setup(p_instance_id: String, p_catalog_id: String, card_name: String, level
 	# Update display
 	card_name_label.text = _truncate_name(card_name, 12)
 	level_label.text = Loc.t("ui.reward.card_level", {"level": level})
+
+	# Set tooltip to indicate clickability
+	tooltip_text = Loc.t("ui.reward.card_xp_tooltip")
 
 	# Show/hide level up indicator
 	if can_level_up:
