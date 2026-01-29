@@ -169,8 +169,8 @@ func _get_effective_stats() -> Dictionary:
 
 	# Try PlayerCardService for effective stats with upgrades applied (C# autoload)
 	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
-	if card_service:
-		var effective: Dictionary = card_service.get_effective_stats(card_instance_id)
+	if card_service and card_service.has_method("GetEffectiveStatsDict"):
+		var effective: Dictionary = card_service.GetEffectiveStatsDict(card_instance_id)
 		if not effective.is_empty():
 			return effective
 
