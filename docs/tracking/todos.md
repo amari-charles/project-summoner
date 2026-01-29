@@ -915,6 +915,22 @@ A UI tool for developers to design and configure campaign battles without touchi
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Deprecate Command Spells
+**Status:** ⬜ Not Started
+**Category:** Card & Spell System / Design
+**Effort:** Medium
+
+**Description:**
+Command spells (spells that give commands/orders to units) should be deprecated and removed from the game design. Evaluate which command spells exist and plan their removal or replacement.
+
+**Requirements:**
+- Audit existing command spell implementations
+- Identify any command spells in card catalog
+- Remove or replace with non-command alternatives
+- Update any documentation referencing command spells
+
+---
+
 #### Make Projectiles Disappear on Hit
 **Status:** ✅ Completed
 **Category:** Units & Combat / Visual Polish
