@@ -59,16 +59,20 @@ var progression_info: Dictionary = {}
 ## =============================================================================
 
 func _ready() -> void:
-	# Allow drop events to pass through to parent drop zones
-	mouse_filter = Control.MOUSE_FILTER_PASS
-
 	# Create hold timer
 	hold_timer = Timer.new()
 	hold_timer.one_shot = true
 	hold_timer.timeout.connect(_on_hold_timeout)
 	add_child(hold_timer)
 
-	# Connect mouse signals
+	# Make CardPanel pass mouse events to parent (us) for drag handling
+	# but we still connect to its signals for hover effects
+	if card_panel:
+		card_panel.mouse_filter = Control.MOUSE_FILTER_PASS
+		card_panel.mouse_entered.connect(_on_mouse_entered)
+		card_panel.mouse_exited.connect(_on_mouse_exited)
+
+	# Connect our own mouse signals
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
