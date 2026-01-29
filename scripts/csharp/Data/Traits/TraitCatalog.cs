@@ -301,6 +301,96 @@ public static class TraitCatalog
             [
                 new TraitModifier { Stat = "max_health", Type = "flat", Value = 50.0f }
             ]
+        },
+
+        // =====================================================================
+        // LEVEL-UP BOONS (selected when leveling up)
+        // =====================================================================
+
+        [TraitId.BoonIronWill] = new TraitDefinition
+        {
+            Id = TraitId.BoonIronWill,
+            NameKey = "trait.iron_will.name",
+            DescriptionKey = "trait.iron_will.description",
+            Category = "defense",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier { Stat = "damage_reduction", Type = "flat", Value = 5.0f }
+            ]
+        },
+
+        [TraitId.BoonQuickRecovery] = new TraitDefinition
+        {
+            Id = TraitId.BoonQuickRecovery,
+            NameKey = "trait.quick_recovery.name",
+            DescriptionKey = "trait.quick_recovery.description",
+            Category = "utility",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier { Stat = "mana_regen", Type = "percent", Value = 10.0f }
+            ]
+        },
+
+        [TraitId.BoonVitalityBoost] = new TraitDefinition
+        {
+            Id = TraitId.BoonVitalityBoost,
+            NameKey = "trait.vitality_boost.name",
+            DescriptionKey = "trait.vitality_boost.description",
+            Category = "defense",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
+            ]
+        },
+
+        [TraitId.BoonElementalMastery] = new TraitDefinition
+        {
+            Id = TraitId.BoonElementalMastery,
+            NameKey = "trait.elemental_mastery.name",
+            DescriptionKey = "trait.elemental_mastery.description",
+            Category = "combat",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 5.0f },
+                new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 5.0f },
+                new TraitModifier { Stat = "wind_damage_bonus", Type = "percent", Value = 5.0f },
+                new TraitModifier { Stat = "earth_damage_bonus", Type = "percent", Value = 5.0f }
+            ]
+        },
+
+        [TraitId.BoonSwiftStrike] = new TraitDefinition
+        {
+            Id = TraitId.BoonSwiftStrike,
+            NameKey = "trait.swift_strike.name",
+            DescriptionKey = "trait.swift_strike.description",
+            Category = "combat",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.BoonSwiftStrike,
+                    StatMults = new() { ["attack_speed"] = 1.10f }
+                }
+            ]
+        },
+
+        [TraitId.BoonTacticalMind] = new TraitDefinition
+        {
+            Id = TraitId.BoonTacticalMind,
+            NameKey = "trait.tactical_mind.name",
+            DescriptionKey = "trait.tactical_mind.description",
+            Category = "utility",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier { Stat = "starting_hand_bonus", Type = "flat", Value = 1.0f }
+            ]
         }
     };
 
@@ -355,6 +445,21 @@ public static class TraitCatalog
     public static TraitDefinition[] GetAcquirableBoons()
     {
         return _traits.Values.Where(t => !t.IsInnate).ToArray();
+    }
+
+    /// <summary>
+    /// Get a pool of traits for level-up selection.
+    /// Returns random acquirable traits excluding those already acquired.
+    /// </summary>
+    /// <param name="excludedIds">Trait IDs to exclude (already acquired)</param>
+    /// <param name="count">Number of traits to return (default 3)</param>
+    public static TraitDefinition[] GetLevelUpTraitPool(List<string> excludedIds, int count = 3)
+    {
+        return GetAcquirableBoons()
+            .Where(t => !excludedIds.Contains(t.Id))
+            .OrderBy(_ => System.Random.Shared.Next())
+            .Take(count)
+            .ToArray();
     }
 
     // =========================================================================

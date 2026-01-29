@@ -46,4 +46,12 @@ public static class TraitId
 
     // Special boons
     public const string FortuneFavorsBold = "trait_fortune_favors_bold";
+
+    // Level-up boons (selected when leveling up)
+    public const string BoonIronWill = "boon_iron_will";
+    public const string BoonQuickRecovery = "boon_quick_recovery";
+    public const string BoonVitalityBoost = "boon_vitality_boost";
+    public const string BoonElementalMastery = "boon_elemental_mastery";
+    public const string BoonSwiftStrike = "boon_swift_strike";
+    public const string BoonTacticalMind = "boon_tactical_mind";
 }

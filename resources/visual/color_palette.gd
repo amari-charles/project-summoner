@@ -133,6 +133,9 @@ const WARNING: Color = Color("#f5c75c")    # Yellow
 const ERROR: Color = Color("#e84a3f")      # Red
 const INFO: Color = Color("#4a9eff")       # Blue
 
+## Currency colors
+const GOLD: Color = Color(1.0, 0.85, 0.2)  # Bright gold for currency displays
+
 ## Semi-transparent overlays
 const OVERLAY_DARK: Color = Color(0.1, 0.1, 0.15, 0.7)
 const OVERLAY_LIGHT: Color = Color(0.9, 0.9, 0.95, 0.3)

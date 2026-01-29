@@ -238,6 +238,145 @@ public partial class EconomyService : Node
 	}
 
 	// =========================================================================
+	// CAMPAIGN GOLD (stored in CampaignProgress, not account resources)
+	// =========================================================================
+
+	[Signal]
+	public delegate void CampaignGoldChangedEventHandler(string summonerId, int gold);
+
+	/// <summary>
+	/// Get campaign gold for a summoner (or active summoner if empty)
+	/// </summary>
+	public int GetCampaignGold(string summonerId = "")
+	{
+		if (_profileRepo == null) return 0;
+
+		var targetId = string.IsNullOrEmpty(summonerId)
+			? GetActiveSummonerId()
+			: summonerId;
+
+		if (string.IsNullOrEmpty(targetId)) return 0;
+
+		var progress = _profileRepo.GetCampaignProgress(targetId);
+		return progress?.Gold ?? 0;
+	}
+
+	/// <summary>
+	/// Add campaign gold (positive amount only)
+	/// </summary>
+	public void AddCampaignGold(int amount, string summonerId = "")
+	{
+		if (amount <= 0)
+		{
+			GD.PushWarning($"EconomyService: AddCampaignGold called with non-positive amount: {amount}");
+			return;
+		}
+
+		if (_profileRepo == null)
+		{
+			GD.PushError("EconomyService.AddCampaignGold: Repository not available");
+			return;
+		}
+
+		var targetId = string.IsNullOrEmpty(summonerId)
+			? GetActiveSummonerId()
+			: summonerId;
+
+		if (string.IsNullOrEmpty(targetId))
+		{
+			GD.PushWarning("EconomyService.AddCampaignGold: No summoner specified and no active summoner");
+			return;
+		}
+
+		var progress = _profileRepo.GetCampaignProgress(targetId);
+		if (progress == null)
+		{
+			GD.PushWarning($"EconomyService.AddCampaignGold: No campaign progress for summoner '{targetId}'");
+			return;
+		}
+
+		progress.Gold += amount;
+		_profileRepo.UpdateCampaignProgress(targetId, progress);
+
+		GD.Print($"EconomyService: Added {amount} campaign gold to '{targetId}' (now: {progress.Gold})");
+		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
+	}
+
+	/// <summary>
+	/// Spend campaign gold. Returns true if successful.
+	/// </summary>
+	public bool SpendCampaignGold(int amount, string summonerId = "")
+	{
+		if (!CanAffordCampaignGold(amount, summonerId))
+		{
+			GD.PushWarning($"EconomyService: Cannot afford {amount} campaign gold");
+			EmitSignal(SignalName.TransactionFailed, $"Cannot afford {amount} campaign gold");
+			return false;
+		}
+
+		if (_profileRepo == null) return false;
+
+		var targetId = string.IsNullOrEmpty(summonerId)
+			? GetActiveSummonerId()
+			: summonerId;
+
+		if (string.IsNullOrEmpty(targetId)) return false;
+
+		var progress = _profileRepo.GetCampaignProgress(targetId);
+		if (progress == null) return false;
+
+		progress.Gold -= amount;
+		_profileRepo.UpdateCampaignProgress(targetId, progress);
+
+		GD.Print($"EconomyService: Spent {amount} campaign gold from '{targetId}' (now: {progress.Gold})");
+		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
+		return true;
+	}
+
+	/// <summary>
+	/// Check if player can afford campaign gold cost
+	/// </summary>
+	public bool CanAffordCampaignGold(int amount, string summonerId = "")
+	{
+		return GetCampaignGold(summonerId) >= amount;
+	}
+
+	/// <summary>
+	/// Clear all campaign gold (called when campaign ends)
+	/// </summary>
+	public void ClearCampaignGold(string summonerId = "")
+	{
+		if (_profileRepo == null) return;
+
+		var targetId = string.IsNullOrEmpty(summonerId)
+			? GetActiveSummonerId()
+			: summonerId;
+
+		if (string.IsNullOrEmpty(targetId)) return;
+
+		var progress = _profileRepo.GetCampaignProgress(targetId);
+		if (progress == null) return;
+
+		var previousGold = progress.Gold;
+		progress.Gold = 0;
+		_profileRepo.UpdateCampaignProgress(targetId, progress);
+
+		GD.Print($"EconomyService: Cleared {previousGold} campaign gold from '{targetId}'");
+		EmitSignal(SignalName.CampaignGoldChanged, targetId, 0);
+	}
+
+	private string GetActiveSummonerId()
+	{
+		// Get active summoner from SummonerSelectionService (autoload)
+		var selectionService = GetNodeOrNull<Node>("SummonerSelection");
+		if (selectionService != null && selectionService.HasMethod("GetActiveSummonerId"))
+		{
+			return selectionService.Call("GetActiveSummonerId").AsString();
+		}
+		return "";
+	}
+
+	// =========================================================================
 	// GDSCRIPT INTEROP
 	// =========================================================================
 

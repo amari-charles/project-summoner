@@ -491,8 +491,11 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 	var purchase_key: String = _cs_service.BuildPurchaseKey(shop_id, offering_id, refresh_epoch)
 	var purchase_count: int = _cs_service.GetPurchaseCount(purchase_key)
 
-	# Get current resources
-	var player_gold: int = _cs_service.GetPlayerGold()
+	# Determine if this is a caravan (campaign) shop - uses campaign gold
+	var is_caravan: bool = shop_id.begins_with("caravan")
+
+	# Get current resources - use campaign gold for caravan shops
+	var player_gold: int = Economy.get_campaign_gold() if is_caravan else _cs_service.GetPlayerGold()
 	var player_gems: int = _cs_service.GetPlayerGems()
 
 	# Validate purchase
@@ -506,7 +509,13 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 	var currency: String = offering_dict.get("currency_type", "gold")
 
 	match currency:
-		"gold", "gems":
+		"gold":
+			if is_caravan:
+				# Use campaign gold for caravan purchases
+				return _complete_caravan_purchase(offering_dict, offering_id, shop_id, purchase_key, price)
+			else:
+				return _cs_service.CompleteCurrencyPurchase(offering_dict, offering_id, shop_id, purchase_key, price, currency)
+		"gems":
 			return _cs_service.CompleteCurrencyPurchase(offering_dict, offering_id, shop_id, purchase_key, price, currency)
 		"real_money":
 			# Delegate to PlatformBilling (async)
@@ -523,6 +532,29 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 		_:
 			_emit_purchase_failed(offering_id, "Unknown currency type: %s" % currency)
 			return false
+
+## Complete a caravan purchase using campaign gold
+func _complete_caravan_purchase(offering_dict: Dictionary, offering_id: String, shop_id: String, purchase_key: String, price: int) -> bool:
+	# Spend campaign gold
+	if not Economy.spend_campaign_gold(price):
+		_emit_purchase_failed(offering_id, "Cannot afford %d campaign gold" % price)
+		return false
+
+	# Grant rewards via RewardService
+	var rewards: Dictionary = _cs_service.BuildRewardDict(offering_dict, shop_id)
+	if not RewardService.grant_rewards(rewards):
+		# Rollback: Refund campaign gold
+		Economy.add_campaign_gold(price)
+		_emit_purchase_failed(offering_id, "Failed to grant rewards")
+		return false
+
+	# Record purchase via profile
+	ProfileRepo.increment_purchase_count(purchase_key)
+
+	# Emit success
+	purchase_completed.emit(offering_id, shop_id)
+	print("ShopService: Completed caravan purchase '%s' for %d campaign gold" % [offering_id, price])
+	return true
 
 ## =============================================================================
 ## INTERNAL HELPERS

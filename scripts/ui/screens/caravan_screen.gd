@@ -41,8 +41,8 @@ func _ready() -> void:
 	Shop.purchase_completed.connect(_on_purchase_completed)
 	Shop.purchase_failed.connect(_on_purchase_failed)
 
-	# Connect profile signals for gold updates
-	ProfileRepo.data_changed.connect(_on_data_changed)
+	# Connect economy signals for campaign gold updates
+	Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)
 
 	# Get shop_id from EventContext
 	var event_id: String = EventContext.get_current_event_id()
@@ -63,8 +63,8 @@ func _exit_tree() -> void:
 		Shop.purchase_completed.disconnect(_on_purchase_completed)
 	if Shop.purchase_failed.is_connected(_on_purchase_failed):
 		Shop.purchase_failed.disconnect(_on_purchase_failed)
-	if ProfileRepo.data_changed.is_connected(_on_data_changed):
-		ProfileRepo.data_changed.disconnect(_on_data_changed)
+	if Economy.campaign_gold_changed.is_connected(_on_campaign_gold_changed):
+		Economy.campaign_gold_changed.disconnect(_on_campaign_gold_changed)
 
 ## =============================================================================
 ## INITIALIZATION
@@ -86,8 +86,7 @@ func _load_offerings() -> void:
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
 func _update_gold_display() -> void:
-	var resources: Dictionary = ProfileRepo.get_resources()
-	var gold: int = resources.get("gold", 0)
+	var gold: int = Economy.get_campaign_gold()
 	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
 
 ## =============================================================================
@@ -122,8 +121,7 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 
 func _build_purchase_context(offering: ShopOffering) -> ShopPurchaseContext:
 	var context: ShopPurchaseContext = ShopPurchaseContext.new()
-	var resources: Dictionary = ProfileRepo.get_resources()
-	context.player_gold = resources.get("gold", 0)
+	context.player_gold = Economy.get_campaign_gold()
 
 	# Get refresh state
 	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
@@ -168,7 +166,7 @@ func _on_purchase_failed(_offering_id: String, reason: String) -> void:
 	error_popup.dialog_text = reason
 	error_popup.popup_centered()
 
-func _on_data_changed() -> void:
+func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
 	_update_gold_display()
 	if selected_offering:
 		_update_detail_panel(selected_offering)
