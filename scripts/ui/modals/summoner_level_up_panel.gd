@@ -27,6 +27,9 @@ var current_level: int = 1
 signal level_up_completed(summoner_id: String, trait_id: String)
 signal cancelled()
 
+## Constants
+const ERROR_FEEDBACK_DURATION: float = 1.5  ## Duration to show error message before reset
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -230,7 +233,7 @@ func _on_confirm_pressed() -> void:
 		confirm_button.text = Loc.t("ui.summoner_level_up.failed")
 		confirm_button.add_theme_color_override("font_color", GameColorPalette.ERROR)
 		# Re-enable after brief delay so user can try again
-		await get_tree().create_timer(1.5).timeout
+		await get_tree().create_timer(ERROR_FEEDBACK_DURATION).timeout
 		confirm_button.text = Loc.t("ui.summoner_level_up.confirm")
 		confirm_button.remove_theme_color_override("font_color")
 
