@@ -28,6 +28,7 @@ const SCENE_COLLECTION_SCREEN: String = "res://scenes/ui/screens/collection_scre
 
 ## Shop Scenes
 const SCENE_SHOP_SCREEN: String = "res://scenes/ui/screens/shop_screen.tscn"
+const SCENE_CARAVAN_SCREEN: String = "res://scenes/ui/screens/caravan_screen.tscn"
 const SCENE_PREMIUM_STORE: String = "res://scenes/ui/screens/premium_store_screen.tscn"
 
 ## Special Events & Settings

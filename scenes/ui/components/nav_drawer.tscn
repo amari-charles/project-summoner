@@ -125,8 +125,8 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "[ui.nav.settings]"
 
-[node name="SnapshotsButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
+[node name="QuitButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/NavButtons"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "[ui.nav.snapshots]"
+text = "[ui.nav.quit]"

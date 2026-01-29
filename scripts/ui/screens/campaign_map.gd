@@ -9,7 +9,6 @@ class_name CampaignMap
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/ui/components/summoner_icon_widget.tscn")
 const HamburgerButtonScene: PackedScene = preload("res://scenes/ui/components/hamburger_button.tscn")
 const NavDrawerScene: PackedScene = preload("res://scenes/ui/components/nav_drawer.tscn")
-const SnapshotManagerScene: PackedScene = preload("res://scenes/ui/screens/snapshot_manager.tscn")
 const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/components/campaign_selector_modal.tscn")
 
 ## Node references
@@ -93,7 +92,6 @@ var summoner_icon: SummonerIconWidget = null
 ## Navigation components
 var hamburger_button: HamburgerButton = null
 var nav_drawer: NavDrawer = null
-var snapshot_manager: Node = null
 
 ## Campaign selector components
 var campaign_banner: Button = null
@@ -857,12 +855,12 @@ func _on_start_event_pressed() -> void:
 			push_warning("CampaignMap: Cannot start event '%s' - already completed and not repeatable" % selected_event_id)
 			return
 
-		# Configure EventContext with this event (ShopScreen will detect this)
+		# Configure EventContext with this event (CaravanScreen will detect this)
 		EventContext.configure_event(selected_event_id, SceneManager.SCENE_CAMPAIGN_MAP)
 
-		# Navigate to shop (ShopScreen will play event sequence on top of UI)
+		# Navigate to caravan screen
 		NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-		SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
+		SceneManager.transition_to(SceneManager.SCENE_CARAVAN_SCREEN)
 		return
 
 	# Handle choice events - show choice modal
@@ -1009,10 +1007,7 @@ func _setup_navigation() -> void:
 	nav_drawer.events_pressed.connect(_on_nav_events_pressed)
 	nav_drawer.shop_pressed.connect(_on_nav_shop_pressed)
 	nav_drawer.settings_pressed.connect(_on_nav_settings_pressed)
-
-	# Connect debug-only signals
-	if OS.is_debug_build():
-		nav_drawer.snapshots_pressed.connect(_on_nav_snapshots_pressed)
+	nav_drawer.quit_pressed.connect(_on_nav_quit_pressed)
 
 func _on_hamburger_pressed() -> void:
 	if nav_drawer:
@@ -1038,13 +1033,9 @@ func _on_nav_settings_pressed() -> void:
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
 
-func _on_nav_snapshots_pressed() -> void:
-	print("CampaignMap: Opening Snapshot Manager...")
-	if snapshot_manager == null:
-		snapshot_manager = SnapshotManagerScene.instantiate()
-		add_child(snapshot_manager)
-	if snapshot_manager.has_method("show_manager"):
-		snapshot_manager.show_manager()
+func _on_nav_quit_pressed() -> void:
+	print("CampaignMap: Quitting game...")
+	get_tree().quit()
 
 ## Redirect to summoner selection when no summoner is active
 func _redirect_to_summoner_selection() -> void:

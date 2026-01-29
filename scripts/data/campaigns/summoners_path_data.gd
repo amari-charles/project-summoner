@@ -83,7 +83,7 @@ static func _get_nodes() -> Array[Dictionary]:
 			"data": {
 				"name_key": "campaign.event.caravan_01.name",
 				"description_key": "campaign.event.caravan_01.description",
-				"shop_id": "caravan_act1",
+				"shop_id": "caravan_tutorial",
 			},
 		},
 
