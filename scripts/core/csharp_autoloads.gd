@@ -6,6 +6,7 @@ class_name CSharpAutoloads
 const MODIFIER_SERVICE: String = "/root/ModifierService"
 const PLAYER_CARD_SERVICE: String = "/root/PlayerCardService"
 const HP_BAR_SERVICE: String = "/root/HPBarService"
+const PROJECTILE_CATALOG: String = "/root/ProjectileCatalog"
 const PROJECTILE_SERVICE: String = "/root/ProjectileService"
 const CARD_FACTORY: String = "/root/CardFactory"
 const DAMAGE_SYSTEM: String = "/root/DamageSystem"

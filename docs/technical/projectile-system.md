@@ -4,7 +4,7 @@ Technical documentation for the projectile system including movement, accelerati
 
 ## Overview
 
-Projectiles are managed by `ProjectileManager` (autoload) and use pooling for performance. Each projectile type is defined in JSON files under `data/projectiles/`.
+Projectiles are managed by `ProjectileService` (C# autoload) and use pooling for performance. Each projectile type is defined in JSON files under `data/projectiles/` and loaded by `ProjectileCatalog` (C# autoload).
 
 ## Projectile Data Properties
 
@@ -230,7 +230,7 @@ Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
 
 ## Pooling
 
-Projectiles are pooled by `ProjectileManager` for performance. Key reset behaviors:
+Projectiles are pooled by `ProjectileService` for performance. Key reset behaviors:
 - `current_speed` resets to initial `speed`
 - Material alpha resets to 1.0
 - Particle emitters restart

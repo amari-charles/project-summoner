@@ -26,9 +26,11 @@ func _ready() -> void:
 		"enemy_hp": 999999.0
 	})
 
-	# Force reload ContentCatalog projectiles to bypass resource cache
-	ContentCatalog._load_projectiles()
-	print("TestGameController: Reloaded projectile data from disk")
+	# Force reload ProjectileCatalog to bypass resource cache
+	var projectile_catalog: Node = get_node_or_null(CSharpAutoloads.PROJECTILE_CATALOG)
+	if projectile_catalog:
+		projectile_catalog.reload_projectiles()
+		print("TestGameController: Reloaded projectile data from disk")
 
 	# Force projectile pool refresh to reload visuals (fixes color not updating)
 	# ProjectileService is a C# autoload
