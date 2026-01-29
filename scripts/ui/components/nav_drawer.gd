@@ -8,7 +8,7 @@ signal collection_pressed
 signal events_pressed
 signal shop_pressed
 signal settings_pressed
-signal snapshots_pressed
+signal quit_pressed
 signal closed
 
 @onready var overlay: ColorRect = $Overlay
@@ -20,7 +20,7 @@ signal closed
 @onready var events_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/EventsButton
 @onready var shop_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/ShopButton
 @onready var settings_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/SettingsButton
-@onready var snapshots_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/SnapshotsButton
+@onready var quit_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/QuitButton
 
 ## Animation timing for drawer slide in/out - fast enough to feel responsive
 const SLIDE_DURATION: float = 0.25
@@ -40,6 +40,7 @@ func _ready() -> void:
 	events_button.text = Loc.t("ui.nav.events")
 	shop_button.text = Loc.t("ui.nav.shop")
 	settings_button.text = Loc.t("ui.nav.settings")
+	quit_button.text = Loc.t("ui.nav.quit")
 
 	# Start hidden
 	visible = false
@@ -52,9 +53,7 @@ func _ready() -> void:
 	events_button.pressed.connect(_on_events_pressed)
 	shop_button.pressed.connect(_on_shop_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
-
-	# Setup debug-only buttons
-	_setup_debug_buttons()
+	quit_button.pressed.connect(_on_quit_pressed)
 
 	# Close when clicking overlay
 	overlay.gui_input.connect(_on_overlay_input)
@@ -132,6 +131,11 @@ func _on_settings_pressed() -> void:
 	settings_pressed.emit()
 	_close()
 
+func _on_quit_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	quit_pressed.emit()
+	_close()
+
 
 func _update_collection_button_state() -> void:
 	var unlocked: Array = ProfileRepo.get_unlocked_summoners()
@@ -142,22 +146,6 @@ func _update_collection_button_state() -> void:
 		collection_button.tooltip_text = Loc.t("ui.nav.collection_locked")
 	else:
 		collection_button.tooltip_text = ""
-
-
-func _setup_debug_buttons() -> void:
-	# Hide debug buttons in release builds
-	if not OS.is_debug_build():
-		snapshots_button.visible = false
-		return
-
-	# Set localized text and connect
-	snapshots_button.text = Loc.t("ui.nav.snapshots")
-	snapshots_button.pressed.connect(_on_snapshots_pressed)
-
-func _on_snapshots_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	snapshots_pressed.emit()
-	_close()
 
 func _input(event: InputEvent) -> void:
 	if not _is_open:

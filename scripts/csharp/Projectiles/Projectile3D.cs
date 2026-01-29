@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Combat;
 using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Projectiles.Paths;
 
@@ -59,6 +60,7 @@ public partial class Projectile3D : Area3D
     public float Lifetime { get; set; } = 5f;
     public float ArcHeight { get; set; } = 2f;
     public float HomingStrength { get; set; } = 5f;
+    public bool Tracking { get; set; } = false;
     public int PierceCount { get; set; } = 0;
     public float AoeRadius { get; set; } = 0f;
     public PackedScene? VisualScene { get; set; }
@@ -203,8 +205,9 @@ public partial class Projectile3D : Area3D
         if (_path == null)
             return;
 
-        // For homing projectiles, periodically update target position
-        if (MovementType == ProjectileMovementType.Homing && IsInstanceValid(Target))
+        // For homing or tracking projectiles, periodically update target position
+        bool shouldTrack = MovementType == ProjectileMovementType.Homing || Tracking;
+        if (shouldTrack && IsInstanceValid(Target))
         {
             _timeSinceTargetUpdate += delta;
             if (_timeSinceTargetUpdate >= TargetUpdateInterval)
@@ -253,7 +256,8 @@ public partial class Projectile3D : Area3D
     }
 
     /// <summary>
-    /// Update path endpoint for tracking moving targets.
+    /// Update path for tracking moving targets.
+    /// Recreates the path from the current position to maintain correct geometry.
     /// Uses predictive targeting for better interception.
     /// </summary>
     private void UpdatePathTarget()
@@ -264,8 +268,12 @@ public partial class Projectile3D : Area3D
         Vector3 currentTargetPos = GetTargetPosition(Target);
         Vector3 predictedPos = CalculateInterceptPoint(currentTargetPos, Target);
 
+        // Recreate path from current position to new target
+        // This prevents progress overshooting when path length changes
+        _startPosition = GlobalPosition;
         _targetPosition = predictedPos;
-        _path.UpdateTarget(predictedPos);
+        _progress = 0f;
+        CreatePath();
     }
 
     /// <summary>
@@ -365,11 +373,8 @@ public partial class Projectile3D : Area3D
         // Apply damage via DamageSystem
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull("/root/DamageSystem");
-            if (damageSystem != null)
-            {
-                damageSystem.Call("apply_damage", Source, target, Damage, DamageType);
-            }
+            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
+            damageSystem?.ApplyDamage(Source, target, Damage, DamageType);
         }
 
         EmitSignal(SignalName.ProjectileHit, target, this);
@@ -382,11 +387,11 @@ public partial class Projectile3D : Area3D
         // Use DamageSystem with projectile flag
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull("/root/DamageSystem");
+            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
             if (damageSystem != null)
             {
                 var flags = new Godot.Collections.Dictionary { { "from_projectile", true } };
-                damageSystem.Call("apply_damage", Source, target, Damage, DamageType, flags);
+                damageSystem.ApplyDamage(Source, target, Damage, DamageType, flags);
             }
         }
 
@@ -460,7 +465,7 @@ public partial class Projectile3D : Area3D
         targets.AddRange(sceneTree.GetNodesInGroup(enemyUnitsGroup));
         targets.AddRange(sceneTree.GetNodesInGroup(enemyBasesGroup));
 
-        var damageSystem = GetNodeOrNull("/root/DamageSystem");
+        var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
 
         foreach (var targetNode in targets)
         {
@@ -471,9 +476,9 @@ public partial class Projectile3D : Area3D
                 continue;
 
             float distance = target3D.GlobalPosition.DistanceTo(center);
-            if (distance <= radius && damageSystem != null)
+            if (distance <= radius)
             {
-                damageSystem.Call("apply_damage", Source, target3D, Damage, DamageType);
+                damageSystem?.ApplyDamage(Source, target3D, Damage, DamageType);
             }
         }
     }
@@ -644,6 +649,7 @@ public partial class Projectile3D : Area3D
         Lifetime = data.Lifetime;
         ArcHeight = data.ArcHeight;
         HomingStrength = data.HomingStrength;
+        Tracking = data.Tracking;
         PierceCount = data.PierceCount;
         AoeRadius = data.AoeRadius;
         VisualScene = data.VisualScene;

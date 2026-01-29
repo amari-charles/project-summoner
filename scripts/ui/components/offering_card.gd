@@ -47,8 +47,10 @@ func set_offering(new_offering: ShopOffering) -> void:
 			type_label.text = Loc.t("ui.offering.type_currency")
 		ShopOffering.OfferingType.SPECIAL:
 			type_label.text = Loc.t("ui.offering.type_special")
+		_:
+			type_label.text = Loc.t("ui.offering.type_card")
 
-	# Price (base price, context-dependent pricing handled by detail panel)
+	# Price
 	price_label.text = Loc.t("ui.offering.price_format", {"price": offering.base_price})
 
 ## =============================================================================

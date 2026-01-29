@@ -212,7 +212,7 @@ func _init_shops() -> void:
 		"name": Loc.t("shop.caravan.merriweather.name"),
 		"offerings": [
 			{
-				"offering_id": "tutorial_fire_wisp",
+				"offering_id": "caravan_fire_wisp",
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.fire_wisp.name"),
 				"description": Loc.t("shop.offering.fire_wisp.description"),
@@ -220,18 +220,49 @@ func _init_shops() -> void:
 				"card_count": 1,
 				"base_price": 25,
 				"purchase_limit_type": "account",
-				"purchase_limit": 3
+				"purchase_limit": 1
 			},
 			{
-				"offering_id": "tutorial_spell_pack",
-				"offering_type": ShopOffering.OfferingType.CARD_PACK,
-				"display_name": Loc.t("shop.offering.tutorial_spell_pack.name"),
-				"description": Loc.t("shop.offering.tutorial_spell_pack.description"),
-				"pack_cards": [
-					{"catalog_id": "charge", "count": 1},
-					{"catalog_id": "rally", "count": 1}
-				],
-				"base_price": 50,
+				"offering_id": "caravan_earth_sprite",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.earth_sprite.name"),
+				"description": Loc.t("shop.offering.earth_sprite.description"),
+				"card_catalog_id": "earth_sprite",
+				"card_count": 1,
+				"base_price": 20,
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "caravan_puff",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.puff.name"),
+				"description": Loc.t("shop.offering.puff.description"),
+				"card_catalog_id": "puff",
+				"card_count": 1,
+				"base_price": 30,
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "caravan_cloud_swarm",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.cloud_swarm.name"),
+				"description": Loc.t("shop.offering.cloud_swarm.description"),
+				"card_catalog_id": "cloud_swarm",
+				"card_count": 1,
+				"base_price": 45,
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "caravan_mana_bolt",
+				"offering_type": ShopOffering.OfferingType.CARD,
+				"display_name": Loc.t("shop.offering.mana_bolt.name"),
+				"description": Loc.t("shop.offering.mana_bolt.description"),
+				"card_catalog_id": "mana_bolt",
+				"card_count": 1,
+				"base_price": 35,
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			}

@@ -183,7 +183,7 @@ public class DamageEffect : SpellEffect
 
         if (targetUnit != null)
         {
-            // Use proper target position (hurtbox center, ProjectileTargetPoint, or center mass)
+            // Use proper target position (calculated from visual component)
             // This matches RangedUnit3D.GetTargetPosition() pattern
             if (targetUnit.HasMethod("get_projectile_target_position"))
             {

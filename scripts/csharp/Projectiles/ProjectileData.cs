@@ -5,7 +5,7 @@ namespace ProjectSummoner.Projectiles;
 
 /// <summary>
 /// Data definition for projectile behavior.
-/// Loaded from JSON via ContentCatalog.
+/// Loaded from JSON via ProjectileCatalog.
 ///
 /// Tuning Guide:
 /// - Speed: Initial velocity in units/second (typical range: 10-30)
@@ -79,8 +79,15 @@ public class ProjectileData
     public float Gravity { get; set; } = -9.8f;
 
     // =========================================================================
-    // HOMING PROPERTIES
+    // TRACKING PROPERTIES
     // =========================================================================
+
+    /// <summary>
+    /// Whether the projectile continuously tracks its target.
+    /// For straight projectiles, this updates the endpoint to follow moving targets.
+    /// Homing projectiles always track regardless of this setting.
+    /// </summary>
+    public bool Tracking { get; set; } = false;
 
     /// <summary>Turn rate for homing projectiles.</summary>
     public float HomingStrength { get; set; } = 5f;
@@ -131,6 +138,7 @@ public class ProjectileData
             FadeDuration = GetFloat(dict, "fade_duration", 0.5f),
             ArcHeight = GetFloat(dict, "arc_height", 2f),
             Gravity = GetFloat(dict, "gravity", -9.8f),
+            Tracking = GetBool(dict, "tracking", false),
             HomingStrength = GetFloat(dict, "homing_strength", 5f),
             HomingDelay = GetFloat(dict, "homing_delay", 0f),
             PierceCount = GetInt(dict, "pierce_count", 0),
@@ -164,56 +172,6 @@ public class ProjectileData
             {
                 GD.PushError($"ProjectileData: Visual scene path does not exist: '{data.ModelScenePath}'");
             }
-        }
-
-        return data;
-    }
-
-    /// <summary>
-    /// Create ProjectileData from a GDScript ProjectileData resource.
-    /// </summary>
-    public static ProjectileData FromGodotResource(GodotObject resource)
-    {
-        var data = new ProjectileData
-        {
-            ProjectileId = resource.Get("projectile_id").AsString(),
-            ProjectileName = resource.Get("projectile_name").AsString(),
-            ModelScenePath = resource.Get("model_scene_path").AsString(),
-            TrailVfx = GetResourceString(resource, "trail_vfx", GetResourceString(resource, "trail_effect_id")),
-            HitVfx = GetResourceString(resource, "hit_vfx", GetResourceString(resource, "impact_effect_id")),
-            Speed = resource.Get("speed").AsSingle(),
-            Acceleration = resource.Get("acceleration").AsSingle(),
-            MinSpeed = resource.Get("min_speed").AsSingle(),
-            Lifetime = resource.Get("lifetime").AsSingle(),
-            RotateToDirection = resource.Get("rotate_to_direction").AsBool(),
-            FadeInDuration = resource.Get("fade_in_duration").AsSingle(),
-            FadeOnHit = GetResourceBool(resource, "fade_on_hit", true),
-            FadeDuration = GetResourceFloat(resource, "fade_duration", 0.5f),
-            ArcHeight = resource.Get("arc_height").AsSingle(),
-            Gravity = resource.Get("gravity").AsSingle(),
-            HomingStrength = resource.Get("homing_strength").AsSingle(),
-            HomingDelay = resource.Get("homing_delay").AsSingle(),
-            PierceCount = resource.Get("pierce_count").AsInt32(),
-            AoeRadius = resource.Get("aoe_radius").AsSingle(),
-            LaunchSound = resource.Get("launch_sound").AsString(),
-            ImpactSound = resource.Get("impact_sound").AsString()
-        };
-
-        // Parse movement type
-        var movementStr = resource.Get("movement_type").AsString().ToLower();
-        data.MovementType = movementStr switch
-        {
-            "homing" => ProjectileMovementType.Homing,
-            "arc" => ProjectileMovementType.Arc,
-            "ballistic" => ProjectileMovementType.Ballistic,
-            _ => ProjectileMovementType.Straight
-        };
-
-        // Get visual scene
-        var visualSceneVar = resource.Get("visual_scene");
-        if (visualSceneVar.VariantType != Variant.Type.Nil)
-        {
-            data.VisualScene = visualSceneVar.As<PackedScene>();
         }
 
         return data;
@@ -271,37 +229,13 @@ public class ProjectileData
             {
                 return value.AsBool();
             }
+            // Also handle string "true"/"false"
+            if (value.VariantType == Variant.Type.String)
+            {
+                return value.AsString().ToLower() == "true";
+            }
         }
         return defaultValue;
     }
 
-    private static string GetResourceString(GodotObject resource, string property, string defaultValue = "")
-    {
-        var value = resource.Get(property);
-        if (value.VariantType == Variant.Type.String)
-        {
-            return value.AsString();
-        }
-        return defaultValue;
-    }
-
-    private static bool GetResourceBool(GodotObject resource, string property, bool defaultValue = false)
-    {
-        var value = resource.Get(property);
-        if (value.VariantType == Variant.Type.Bool)
-        {
-            return value.AsBool();
-        }
-        return defaultValue;
-    }
-
-    private static float GetResourceFloat(GodotObject resource, string property, float defaultValue = 0f)
-    {
-        var value = resource.Get(property);
-        if (value.VariantType == Variant.Type.Float || value.VariantType == Variant.Type.Int)
-        {
-            return value.AsSingle();
-        }
-        return defaultValue;
-    }
 }

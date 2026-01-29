@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using ProjectSummoner.Data.Projectiles;
 
 namespace ProjectSummoner.Projectiles;
 
@@ -94,7 +95,14 @@ public partial class ProjectileService : Node
         if (spatialGrid == null)
             return false;
 
-        return spatialGrid.HasMethod("register_unit");
+        if (!spatialGrid.HasMethod("register_unit"))
+            return false;
+
+        // Check if ProjectileCatalog is available
+        if (ProjectileCatalog.Instance == null)
+            return false;
+
+        return true;
     }
 
     // =========================================================================
@@ -116,18 +124,11 @@ public partial class ProjectileService : Node
 
     private void InitPools()
     {
-        var contentCatalog = GetNodeOrNull("/root/ContentCatalog");
-        if (contentCatalog == null)
+        if (ProjectileCatalog.Instance == null)
             return;
 
-        var projectilesVar = contentCatalog.Get("projectiles");
-        if (projectilesVar.VariantType != Variant.Type.Dictionary)
-            return;
-
-        var projectiles = projectilesVar.AsGodotDictionary();
-        foreach (var key in projectiles.Keys)
+        foreach (var projectileId in ProjectileCatalog.Instance.GetAllProjectileIds())
         {
-            string projectileId = key.AsString();
             CreatePoolFor(projectileId, InitialPoolSize);
         }
     }
@@ -190,11 +191,11 @@ public partial class ProjectileService : Node
             return null;
         }
 
-        // Get projectile data from ContentCatalog
+        // Get projectile data from ProjectileCatalog
         var data = GetProjectileData(projectileId);
         if (data == null)
         {
-            GD.PushError($"ProjectileService: Projectile '{projectileId}' not found in ContentCatalog");
+            GD.PushError($"ProjectileService: Projectile '{projectileId}' not found in ProjectileCatalog");
             return null;
         }
 
@@ -482,18 +483,7 @@ public partial class ProjectileService : Node
 
     private ProjectileData? GetProjectileData(string projectileId)
     {
-        var contentCatalog = GetNodeOrNull("/root/ContentCatalog");
-        if (contentCatalog == null)
-            return null;
-
-        if (!contentCatalog.Call("has_projectile", projectileId).AsBool())
-            return null;
-
-        var gdProjectileData = contentCatalog.Call("get_projectile", projectileId).AsGodotObject();
-        if (gdProjectileData == null)
-            return null;
-
-        return ProjectileData.FromGodotResource(gdProjectileData);
+        return ProjectileCatalog.Instance?.GetProjectile(projectileId);
     }
 
     // =========================================================================

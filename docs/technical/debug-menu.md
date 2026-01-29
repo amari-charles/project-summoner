@@ -42,8 +42,7 @@ Shows each unit's movement separation radius as a purple circle on the ground.
 
 #### Target Points
 Shows where projectiles aim on each unit:
-- **Green sphere**: Unit has explicit `ProjectileTargetPoint` marker node
-- **Orange sphere**: Fallback calculation (50% of sprite height)
+- **Orange sphere**: Calculated center-mass position (50% of sprite height)
 
 Sphere radius is 0.3 units for visibility. Useful for debugging projectile targeting accuracy.
 

@@ -10,12 +10,11 @@ class_name ShopScreen
 @onready var leave_incomplete_button: Button = %LeaveIncompleteButton
 @onready var leave_complete_button: Button = %LeaveCompleteButton
 @onready var gold_label: Label = %GoldLabel
-@onready var offering_grid: GridContainer = %OfferingGrid
+@onready var offering_list: VBoxContainer = %OfferingList
 @onready var detail_panel: PanelContainer = %DetailPanel
 @onready var offering_name_label: Label = %OfferingNameLabel
 @onready var price_label: Label = %PriceLabel
 @onready var description_label: Label = %DescriptionLabel
-@onready var contents_label: Label = %ContentsLabel
 @onready var purchase_button: Button = %PurchaseButton
 @onready var purchase_popup: AcceptDialog = %PurchasePopup
 @onready var error_popup: AcceptDialog = %ErrorPopup
@@ -63,7 +62,7 @@ func _ready() -> void:
 			# Set up caravan-specific UI
 			_setup_caravan_ui()
 
-			# Play event sequence on top of shop UI
+			# Play event sequence on top of shop UI (if configured)
 			var sequence_path: String = event_config.get("event_sequence", "")
 			if not sequence_path.is_empty():
 				var sequence: Resource = load(sequence_path)
@@ -75,6 +74,12 @@ func _ready() -> void:
 					# Play sequence (dialogue will appear on top of shop)
 					await get_tree().process_frame  # Wait for shop UI to be ready
 					EventSequencer.play_sequence(sequence)
+				else:
+					# Sequence failed to load - show leave buttons immediately
+					_on_caravan_sequence_complete(null)
+			else:
+				# No sequence configured - show leave buttons immediately
+				_on_caravan_sequence_complete(null)
 
 	# Initialize display
 	_update_gold_display()
@@ -134,7 +139,7 @@ func set_shop_id(new_shop_id: String) -> void:
 
 func _load_offerings() -> void:
 	# Clear existing offering cards
-	for child: Node in offering_grid.get_children():
+	for child: Node in offering_list.get_children():
 		child.queue_free()
 
 	# Load offerings from ShopService
@@ -143,7 +148,7 @@ func _load_offerings() -> void:
 	# Create offering cards
 	for offering: ShopOffering in current_offerings:
 		var offering_card: OfferingCard = OFFERING_CARD_SCENE.instantiate()
-		offering_grid.add_child(offering_card)
+		offering_list.add_child(offering_card)
 		offering_card.set_offering(offering)
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
@@ -161,7 +166,6 @@ func _clear_detail_panel() -> void:
 	offering_name_label.text = Loc.t("ui.shop.select_offering")
 	price_label.text = Loc.t("ui.shop.price_placeholder")
 	description_label.text = Loc.t("ui.shop.description_placeholder")
-	contents_label.text = Loc.t("ui.shop.contents_label")
 	purchase_button.disabled = true
 
 func _update_detail_panel(offering: ShopOffering) -> void:
@@ -174,26 +178,6 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 	price_label.text = Loc.t("ui.shop.price_format", {"price": price})
 
 	description_label.text = offering.description
-
-	# Build contents text
-	var contents_text: String = Loc.t("ui.shop.contents_label") + "\n"
-	match offering.offering_type:
-		ShopOffering.OfferingType.CARD:
-			contents_text += Loc.t("ui.shop.contents_card", {"count": offering.card_count, "name": offering.display_name})
-		ShopOffering.OfferingType.CARD_PACK:
-			for card_data: Dictionary in offering.pack_cards:
-				var catalog_id: String = card_data.get("catalog_id", "")
-				var count: int = card_data.get("count", 1)
-				# Look up card display name from catalog
-				var card_dict: Dictionary = CardCatalog.get_card(catalog_id)
-				var display_name: String = card_dict.get("name", catalog_id) if card_dict else catalog_id
-				contents_text += Loc.t("ui.shop.contents_card", {"count": count, "name": display_name}) + "\n"
-		ShopOffering.OfferingType.CURRENCY:
-			contents_text += Loc.t("ui.shop.contents_currency")
-		ShopOffering.OfferingType.SPECIAL:
-			contents_text += Loc.t("ui.shop.contents_special")
-
-	contents_label.text = contents_text
 
 	# Enable/disable purchase button based on affordability
 	var can_afford: bool = offering.can_purchase(context)
