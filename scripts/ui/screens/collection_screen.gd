@@ -516,13 +516,16 @@ func _refresh_collection() -> void:
 
 		# Set progression info for level badge and XP bar
 		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
-		if card_service and card_service.has_method("get_card_progression_info"):
-			var prog_info: Variant = card_service.get_card_progression_info(instance_id)
-			print("CollectionScreen: Got prog_info for %s: %s (type: %s)" % [instance_id, prog_info, typeof(prog_info)])
-			if prog_info is Dictionary:
+		if card_service:
+			# Try both method names (Godot auto-converts PascalCase to snake_case)
+			var prog_info: Variant = null
+			if card_service.has_method("get_card_progression_info"):
+				prog_info = card_service.get_card_progression_info(instance_id)
+			elif card_service.has_method("get_card_progression_info_dict"):
+				prog_info = card_service.get_card_progression_info_dict(instance_id)
+
+			if prog_info is Dictionary and not prog_info.is_empty():
 				widget.set_progression(prog_info)
-		else:
-			print("CollectionScreen: card_service=%s, has_method=%s" % [card_service, card_service.has_method("get_card_progression_info") if card_service else "N/A"])
 
 		# Ensure correct order by moving to end (builds order as we iterate)
 		card_grid.move_child(widget, -1)

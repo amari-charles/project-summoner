@@ -185,7 +185,6 @@ func _update_in_deck_visual() -> void:
 ## =============================================================================
 
 func _update_progression_display() -> void:
-	print("CardWidget: _update_progression_display called, info=%s, container=%s" % [progression_info, progression_container])
 	if progression_info.is_empty():
 		# Hide progression container if no data
 		if progression_container:
@@ -195,12 +194,10 @@ func _update_progression_display() -> void:
 	var level: int = progression_info.get("level", 1)
 	var xp_progress: float = progression_info.get("xp_progress", 0.0)
 	var can_level_up: bool = progression_info.get("can_level_up", false)
-	print("CardWidget: level=%d, xp_progress=%f, can_level_up=%s" % [level, xp_progress, can_level_up])
 
 	# Show progression container
 	if progression_container:
 		progression_container.visible = true
-		print("CardWidget: Set progression_container visible=true")
 
 	# Update level label
 	if level_label:
