@@ -83,11 +83,11 @@ damage_system.ApplyDamage(source, target, damage, damage_type)
 ## 📊 Systems Overview
 
 ### Active Autoloads
-- `ContentCatalog` - Data loading from JSON
+- `ProjectileCatalog` - Projectile data loading from JSON (C#)
 - `VFXManager` - Visual effects with pooling
 - `DamageSystem` - Centralized damage/healing
 - `HPBarManager` - 3D health bars
-- `ProjectileManager` - Data-driven projectiles
+- `ProjectileService` - Data-driven projectiles (C#)
 
 ### Current Data Files
 ```
@@ -181,12 +181,13 @@ protected void Die()
   2. Create animation configs for soldier, archer, wall
   3. Replace `_update_animation()` calls with controller
 
-### ContentCatalog (Projectiles Only)
+### ProjectileCatalog (C#)
 - **Status:** ✅ Integrated
 - **What it Does:**
   - Loads projectile definitions from JSON (`data/projectiles/*.json`)
-  - Used by ProjectileManager and Unit3D for projectile spawning
-- **Note:** Card and unit data are managed by CardCatalog (hardcoded GDScript), not ContentCatalog. The dual catalog system was consolidated in PR #77.
+  - Used by ProjectileService and Unit3D for projectile spawning
+  - Single source of truth for projectile data (no GDScript/C# duplication)
+- **Note:** Card and unit data are managed by CardCatalog (C#). The dual catalog system was consolidated in PR #77, and ProjectileCatalog was migrated from GDScript to C# to eliminate property desync bugs.
 
 ## 🧪 Testing Checklist
 
@@ -245,6 +246,5 @@ To test the integrated systems:
 
 ### Long-term
 1. Integrate UnitAnimationController for advanced animations
-2. Migrate all content to ContentCatalog
-3. Create more projectile types (homing, arc, ballistic)
-4. Add more units via JSON files
+2. Create more projectile types (homing, arc, ballistic)
+3. Add more units via JSON files

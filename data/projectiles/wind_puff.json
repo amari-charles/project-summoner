@@ -7,9 +7,10 @@
 	"impact_effect_id": "",
 
 	"movement_type": "straight",
-	"speed": 25.0,
-	"acceleration": -12.0,
-	"min_speed": 5.0,
+	"tracking": true,
+	"speed": 18.0,
+	"acceleration": 0.0,
+	"min_speed": 18.0,
 	"lifetime": 2.0,
 	"rotate_to_direction": false,
 	"fade_in_duration": 0.15,

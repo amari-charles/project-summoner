@@ -732,4 +732,5 @@ public partial class DamageSystem : Node, IDamageSystem
 		var result = battleRng.Call("randf", RNG_DOMAIN_COMBAT_CRITS);
 		return result.AsSingle();
 	}
+
 }
