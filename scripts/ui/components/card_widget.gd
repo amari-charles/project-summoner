@@ -1,11 +1,11 @@
-extends PanelContainer
+extends VBoxContainer
 class_name CardWidget
 
 ## CardWidget - Reusable Card Display Component
 ##
 ## Displays a card thumbnail with name, cost, type, and rarity.
 ## Supports drag-and-drop for deck building.
-## Can show count badge for collection view.
+## Progression info (level, XP bar) shown below the card.
 
 ## Signals
 signal card_clicked(card_data: Dictionary)
@@ -34,14 +34,17 @@ var hover_tween: Tween = null
 ## Drag state
 var _hidden_for_drag: bool = false
 
-## Node references
+## Node references - Card visual
+@onready var card_panel: PanelContainer = %CardPanel
 @onready var type_icon: TextureRect = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
 @onready var card_name: Label = %CardName
-@onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
-@onready var element_badge: Panel = $ContentContainer/ElementBadge
-@onready var in_deck_badge: PanelContainer = $ContentContainer/InDeckBadge
-@onready var level_badge: PanelContainer = %LevelBadge
+@onready var art_placeholder: ColorRect = $CardPanel/ContentContainer/ArtContainer/ArtPlaceholder
+@onready var element_badge: Panel = $CardPanel/ContentContainer/ElementBadge
+@onready var in_deck_badge: PanelContainer = $CardPanel/ContentContainer/InDeckBadge
+
+## Node references - Progression (below card)
+@onready var progression_container: HBoxContainer = %ProgressionContainer
 @onready var level_label: Label = %LevelLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 
@@ -136,19 +139,19 @@ func _update_theme() -> void:
 	# Get element-based color
 	element_color = CardVisualHelper.get_card_element_color(catalog_data)
 
-	# Create theme with element-colored border
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
-	style.border_width_left = border_width
-	style.border_width_top = border_width
-	style.border_width_right = border_width
-	style.border_width_bottom = border_width
-	style.border_color = element_color
-	style.set_corner_radius_all(corner_radius)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 1
-
-	add_theme_stylebox_override("panel", style)
+	# Create theme with element-colored border for the card panel
+	if card_panel:
+		var style: StyleBoxFlat = StyleBoxFlat.new()
+		style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
+		style.border_width_left = border_width
+		style.border_width_top = border_width
+		style.border_width_right = border_width
+		style.border_width_bottom = border_width
+		style.border_color = element_color
+		style.set_corner_radius_all(corner_radius)
+		style.anti_aliasing = true
+		style.anti_aliasing_size = 1
+		card_panel.add_theme_stylebox_override("panel", style)
 
 	# Color the art placeholder with darkened element color
 	if art_placeholder:
@@ -179,47 +182,32 @@ func _update_in_deck_visual() -> void:
 
 func _update_progression_display() -> void:
 	if progression_info.is_empty():
-		# Hide progression UI if no data
-		if level_badge:
-			level_badge.visible = false
-		if xp_progress_bar:
-			xp_progress_bar.visible = false
+		# Hide progression container if no data
+		if progression_container:
+			progression_container.visible = false
 		return
 
 	var level: int = progression_info.get("level", 1)
 	var xp_progress: float = progression_info.get("xp_progress", 0.0)
 	var can_level_up: bool = progression_info.get("can_level_up", false)
 
-	# Update level badge
-	if level_badge and level_label:
+	# Show progression container
+	if progression_container:
+		progression_container.visible = true
+
+	# Update level label
+	if level_label:
 		level_label.text = "Lv.%d" % level
-		level_badge.visible = true
-		_apply_level_badge_style()
 
 	# Update XP bar
 	if xp_progress_bar:
 		xp_progress_bar.value = xp_progress * 100.0
-		xp_progress_bar.visible = true
 
 		# Apply appropriate bar style
 		if can_level_up:
 			_apply_level_up_bar_style()
 		else:
 			_apply_normal_bar_style()
-
-func _apply_level_badge_style() -> void:
-	if not level_badge:
-		return
-
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.1, 0.12, 0.9)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = element_color.darkened(0.2)
-	style.set_corner_radius_all(4)
-	level_badge.add_theme_stylebox_override("panel", style)
 
 func _apply_normal_bar_style() -> void:
 	if not xp_progress_bar:
