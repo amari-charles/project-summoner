@@ -103,6 +103,34 @@ theme_override_colors/font_color = Color(0.7, 0.5, 1.0, 1)
 text = ""
 horizontal_alignment = 1
 
+[node name="CardXPSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/RewardContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="CardXPHeaderLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/RewardContainer/CardXPSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Cards Earned XP:"
+horizontal_alignment = 1
+
+[node name="CardXPAmountLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/RewardContainer/CardXPSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.25, 0.88, 0.82, 1)
+text = "+20 XP each"
+horizontal_alignment = 1
+
+[node name="CardXPGrid" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/RewardContainer/CardXPSection"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
 [node name="ChoiceContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 visible = false

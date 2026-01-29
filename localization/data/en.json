@@ -221,7 +221,11 @@
       "select_reward": "Select a Reward",
       "select_one": "Choose one of the following rewards:",
       "card_reward": "{name} ({rarity})",
-      "gold_reward": "{amount} Gold"
+      "gold_reward": "{amount} Gold",
+      "card_xp_header": "Cards Earned XP:",
+      "card_xp_each": "+{amount} XP each",
+      "card_level_up_ready": "LEVEL UP!",
+      "card_level": "Lv.{level}"
     },
     "economy": {
       "campaign_gold": "Campaign Gold",

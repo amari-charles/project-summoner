@@ -13,8 +13,16 @@ class_name RewardScreen
 @onready var reward_detail_label: Label = %RewardDetailLabel
 @onready var gold_reward_label: Label = %GoldRewardLabel
 @onready var summoner_xp_label: Label = %SummonerXPLabel
+@onready var card_xp_section: VBoxContainer = %CardXPSection
+@onready var card_xp_header_label: Label = %CardXPHeaderLabel
+@onready var card_xp_amount_label: Label = %CardXPAmountLabel
+@onready var card_xp_grid: HBoxContainer = %CardXPGrid
 @onready var choice_container: HBoxContainer = %ChoiceContainer
 @onready var continue_button: Button = %ContinueButton
+
+## Preloads
+const CardXPItemScene: PackedScene = preload("res://scenes/ui/components/card_xp_item.tscn")
+const LevelUpPanelScene: PackedScene = preload("res://scenes/ui/modals/card_level_up_panel.tscn")
 
 ## Constants
 const CHOICE_BUTTON_SIZE: Vector2 = Vector2(150, 100)
@@ -137,10 +145,12 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 		reward_ready_to_claim = false
 		return
 
-	# Display gold and summoner XP rewards
+	# Display gold, summoner XP, and card XP rewards
 	_display_gold_reward(gold_reward)
 	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
 	_display_summoner_xp_reward(summoner_xp)
+	var card_xp: int = battle.get("card_xp_reward", 0)
+	_display_card_xp_rewards(card_xp)
 
 	match reward_type:
 		RewardTypeIDs.FIXED:
@@ -195,11 +205,13 @@ func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
 func _resume_pending_reward(battle: Dictionary) -> void:
 	print("RewardScreen: Resuming pending reward (type: %s, choice_index: %d)" % [reward_type, chosen_reward_index])
 
-	# Display gold and summoner XP rewards
+	# Display gold, summoner XP, and card XP rewards
 	var gold_reward: int = battle.get("gold_reward", 0)
 	_display_gold_reward(gold_reward)
 	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
 	_display_summoner_xp_reward(summoner_xp)
+	var card_xp: int = battle.get("card_xp_reward", 0)
+	_display_card_xp_rewards(card_xp)
 
 	match reward_type:
 		RewardTypeIDs.FIXED:
@@ -252,6 +264,128 @@ func _display_summoner_xp_reward(xp: int) -> void:
 		summoner_xp_label.text = Loc.t("ui.reward.summoner_xp", {"amount": xp})
 	else:
 		summoner_xp_label.text = ""
+
+## Display card XP rewards for cards played in battle
+func _display_card_xp_rewards(card_xp: int) -> void:
+	# Clear any existing items
+	for child: Node in card_xp_grid.get_children():
+		child.queue_free()
+
+	if card_xp <= 0:
+		card_xp_section.visible = false
+		return
+
+	# Get cards that were played this battle
+	var cards_played: Array[String] = BattleContext.get_cards_played()
+	if cards_played.is_empty():
+		card_xp_section.visible = false
+		return
+
+	# Show XP amount header
+	card_xp_header_label.text = Loc.t("ui.reward.card_xp_header")
+	card_xp_amount_label.text = Loc.t("ui.reward.card_xp_each", {"amount": card_xp})
+
+	# Get card service for progression info
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
+		push_warning("RewardScreen: PlayerCardService not available for card XP display")
+		card_xp_section.visible = false
+		return
+
+	# Create card items for each played card
+	for instance_id: String in cards_played:
+		var info: Dictionary = card_service.get_card_progression_info(instance_id)
+		if info.is_empty():
+			continue
+
+		var catalog_id: String = info.get("catalog_id", "")
+		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+		if card_data.is_empty():
+			continue
+
+		var card_name: String = card_data.get("card_name", "Unknown")
+		var level: int = info.get("level", 1)
+		var can_level_up: bool = info.get("can_level_up", false)
+
+		var item: Control = CardXPItemScene.instantiate()
+		card_xp_grid.add_child(item)
+
+		if item.has_method("setup"):
+			item.call("setup", instance_id, catalog_id, card_name, level, can_level_up)
+
+		if item.has_signal("clicked"):
+			item.clicked.connect(_on_card_xp_item_clicked)
+
+	card_xp_section.visible = true
+
+## Handle click on a card XP item - open level-up panel if can level up
+func _on_card_xp_item_clicked(instance_id: String) -> void:
+	# Check if card can level up
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
+		return
+
+	var info: Dictionary = card_service.get_card_progression_info(instance_id)
+	if info.is_empty():
+		return
+
+	var can_level_up: bool = info.get("can_level_up", false)
+	if not can_level_up:
+		# Card can't level up yet - just show feedback
+		print("RewardScreen: Card %s cannot level up yet" % instance_id)
+		return
+
+	# Open level-up panel
+	var panel: Node = LevelUpPanelScene.instantiate()
+	if not panel:
+		return
+
+	add_child(panel)
+
+	if panel.has_method("open_for_card"):
+		panel.call("open_for_card", instance_id)
+
+	if panel.has_signal("level_up_completed"):
+		panel.level_up_completed.connect(_on_level_up_completed.bind(instance_id))
+
+	if panel.has_signal("cancelled"):
+		panel.cancelled.connect(_on_level_up_cancelled.bind(panel))
+
+## Handle level-up completion - refresh the card item display
+func _on_level_up_completed(instance_id: String) -> void:
+	print("RewardScreen: Card %s leveled up, refreshing display" % instance_id)
+	_refresh_card_xp_item(instance_id)
+
+## Handle level-up cancellation - clean up panel
+func _on_level_up_cancelled(panel: Node) -> void:
+	if is_instance_valid(panel):
+		panel.queue_free()
+
+## Refresh a specific card item after level-up
+func _refresh_card_xp_item(instance_id: String) -> void:
+	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	if not card_service:
+		return
+
+	# Find the card item and update it
+	for child: Node in card_xp_grid.get_children():
+		if child is CardXPItem and child.instance_id == instance_id:
+			var info: Dictionary = card_service.get_card_progression_info(instance_id)
+			if info.is_empty():
+				continue
+
+			var catalog_id: String = info.get("catalog_id", "")
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			if card_data.is_empty():
+				continue
+
+			var card_name: String = card_data.get("card_name", "Unknown")
+			var level: int = info.get("level", 1)
+			var can_level_up: bool = info.get("can_level_up", false)
+
+			if child.has_method("setup"):
+				child.call("setup", instance_id, catalog_id, card_name, level, can_level_up)
+			break
 
 ## Display a card reward (handles both legacy {catalog_id} and flexible {id} formats)
 func _display_card_reward(reward: Dictionary) -> void:
