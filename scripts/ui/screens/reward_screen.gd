@@ -307,12 +307,13 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 		var card_name: String = card_data.get("card_name", "Unknown")
 		var level: int = info.get("level", 1)
 		var can_level_up: bool = info.get("can_level_up", false)
+		var xp_progress: float = info.get("xp_progress", 0.0)
 
 		var item: Control = CardXPItemScene.instantiate()
 		card_xp_grid.add_child(item)
 
 		if item.has_method("setup"):
-			item.call("setup", instance_id, catalog_id, card_name, level, can_level_up)
+			item.call("setup", instance_id, catalog_id, card_name, level, can_level_up, xp_progress)
 
 		if item.has_signal("clicked"):
 			item.clicked.connect(_on_card_xp_item_clicked)
@@ -398,9 +399,10 @@ func _refresh_card_xp_item(instance_id: String) -> void:
 			var card_name: String = card_data.get("card_name", "Unknown")
 			var level: int = info.get("level", 1)
 			var can_level_up: bool = info.get("can_level_up", false)
+			var xp_progress: float = info.get("xp_progress", 0.0)
 
 			if child.has_method("setup"):
-				child.call("setup", instance_id, catalog_id, card_name, level, can_level_up)
+				child.call("setup", instance_id, catalog_id, card_name, level, can_level_up, xp_progress)
 			break
 
 ## Display a card reward (handles both legacy {catalog_id} and flexible {id} formats)

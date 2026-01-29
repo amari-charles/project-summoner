@@ -17,6 +17,7 @@ var can_level_up: bool = false
 ## Node references
 @onready var card_name_label: Label = %CardNameLabel
 @onready var level_label: Label = %LevelLabel
+@onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var level_up_indicator: Label = %LevelUpIndicator
 
 ## Colors
@@ -38,7 +39,7 @@ func _ready() -> void:
 ## =============================================================================
 
 ## Set up the item with card data
-func setup(p_instance_id: String, p_catalog_id: String, card_name: String, level: int, p_can_level_up: bool) -> void:
+func setup(p_instance_id: String, p_catalog_id: String, card_name: String, level: int, p_can_level_up: bool, xp_progress: float = 0.0) -> void:
 	instance_id = p_instance_id
 	catalog_id = p_catalog_id
 	can_level_up = p_can_level_up
@@ -46,6 +47,11 @@ func setup(p_instance_id: String, p_catalog_id: String, card_name: String, level
 	# Update display
 	card_name_label.text = _truncate_name(card_name, 12)
 	level_label.text = Loc.t("ui.reward.card_level", {"level": level})
+
+	# Update XP progress bar
+	if xp_progress_bar:
+		xp_progress_bar.value = xp_progress * 100.0
+		_apply_xp_bar_style()
 
 	# Set tooltip to indicate clickability
 	tooltip_text = Loc.t("ui.reward.card_xp_tooltip")
@@ -105,6 +111,25 @@ func _apply_hover_style() -> void:
 	style.border_width_bottom = 2
 	style.set_corner_radius_all(6)
 	add_theme_stylebox_override("panel", style)
+
+func _apply_xp_bar_style() -> void:
+	if not xp_progress_bar:
+		return
+
+	# Background/track style
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.set_corner_radius_all(2)
+	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
+
+	# Fill style - green if can level up, cyan otherwise
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+	if can_level_up:
+		fill_style.bg_color = LEVEL_UP_COLOR
+	else:
+		fill_style.bg_color = Color(0.25, 0.88, 0.82)  # Cyan
+	fill_style.set_corner_radius_all(2)
+	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
 
 ## =============================================================================
 ## INPUT HANDLING

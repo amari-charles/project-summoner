@@ -514,6 +514,13 @@ func _refresh_collection() -> void:
 			widget.card_held.connect(_on_card_held.bind(instance_id, catalog_id))
 			_widget_cache[instance_id] = widget
 
+		# Set progression info for level badge and XP bar
+		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+		if card_service and card_service.has_method("get_card_progression_info"):
+			var prog_info: Variant = card_service.get_card_progression_info(instance_id)
+			if prog_info is Dictionary:
+				widget.set_progression(prog_info)
+
 		# Ensure correct order by moving to end (builds order as we iterate)
 		card_grid.move_child(widget, -1)
 

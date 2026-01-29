@@ -33,6 +33,14 @@ theme_override_font_sizes/font_size = 12
 text = "Lv.1"
 horizontal_alignment = 1
 
+[node name="XPProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+max_value = 100.0
+value = 50.0
+show_percentage = false
+
 [node name="LevelUpIndicator" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 visible = false

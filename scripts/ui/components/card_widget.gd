@@ -41,9 +41,15 @@ var _hidden_for_drag: bool = false
 @onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
 @onready var element_badge: Panel = $ContentContainer/ElementBadge
 @onready var in_deck_badge: PanelContainer = $ContentContainer/InDeckBadge
+@onready var level_badge: PanelContainer = %LevelBadge
+@onready var level_label: Label = %LevelLabel
+@onready var xp_progress_bar: ProgressBar = %XPProgressBar
 
 ## Current element color
 var element_color: Color = Color.GRAY
+
+## Progression state
+var progression_info: Dictionary = {}
 
 ## =============================================================================
 ## LIFECYCLE
@@ -89,6 +95,11 @@ func set_draggable(p_draggable: bool) -> void:
 func set_in_deck(in_deck: bool) -> void:
 	is_in_deck = in_deck
 	_update_in_deck_visual()
+
+## Set card progression data (level, XP, etc.)
+func set_progression(info: Dictionary) -> void:
+	progression_info = info
+	_update_progression_display()
 
 ## =============================================================================
 ## DISPLAY UPDATE
@@ -161,6 +172,86 @@ func _update_in_deck_visual() -> void:
 		modulate.a = 0.5
 	else:
 		modulate.a = 1.0
+
+## =============================================================================
+## PROGRESSION DISPLAY
+## =============================================================================
+
+func _update_progression_display() -> void:
+	if progression_info.is_empty():
+		# Hide progression UI if no data
+		if level_badge:
+			level_badge.visible = false
+		if xp_progress_bar:
+			xp_progress_bar.visible = false
+		return
+
+	var level: int = progression_info.get("level", 1)
+	var xp_progress: float = progression_info.get("xp_progress", 0.0)
+	var can_level_up: bool = progression_info.get("can_level_up", false)
+
+	# Update level badge
+	if level_badge and level_label:
+		level_label.text = "Lv.%d" % level
+		level_badge.visible = true
+		_apply_level_badge_style()
+
+	# Update XP bar
+	if xp_progress_bar:
+		xp_progress_bar.value = xp_progress * 100.0
+		xp_progress_bar.visible = true
+
+		# Apply appropriate bar style
+		if can_level_up:
+			_apply_level_up_bar_style()
+		else:
+			_apply_normal_bar_style()
+
+func _apply_level_badge_style() -> void:
+	if not level_badge:
+		return
+
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.12, 0.9)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = element_color.darkened(0.2)
+	style.set_corner_radius_all(4)
+	level_badge.add_theme_stylebox_override("panel", style)
+
+func _apply_normal_bar_style() -> void:
+	if not xp_progress_bar:
+		return
+
+	# Background/track style
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
+
+	# Fill style - use element color
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+	fill_style.bg_color = element_color.darkened(0.1)
+	fill_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
+
+func _apply_level_up_bar_style() -> void:
+	if not xp_progress_bar:
+		return
+
+	# Background/track style
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
+
+	# Fill style - bright green/gold for level-up ready
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+	fill_style.bg_color = Color(0.2, 0.9, 0.3)  # Bright green
+	fill_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
 
 ## =============================================================================
 ## MOUSE INTERACTION
