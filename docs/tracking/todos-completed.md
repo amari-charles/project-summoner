@@ -6,6 +6,15 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Make Projectiles Disappear on Hit
+**Completed:** 2026-01-26
+**Category:** Units & Combat / Visual Polish
+**Effort:** Small
+
+**Resolution:** Already implemented. `HandlePierce()` in `Projectile3D.cs` calls `ExpireWithFade()` or `ExpireImmediate()` after hits, and `TriggerImpactEffects()` spawns VFX at collision point.
+
+---
+
 ### Display Battle Rewards in Campaign Node UI
 **Completed:** 2026-01-27
 **Category:** UI/UX / Campaign

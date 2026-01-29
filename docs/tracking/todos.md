@@ -931,16 +931,6 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 
 ---
 
-#### Make Projectiles Disappear on Hit
-**Status:** ✅ Completed
-**Category:** Units & Combat / Visual Polish
-**Effort:** Small
-**Completed:** 2026-01-26
-
-**Resolution:** Already implemented. `HandlePierce()` in `Projectile3D.cs` calls `ExpireWithFade()` or `ExpireImmediate()` after hits, and `TriggerImpactEffects()` spawns VFX at collision point.
-
----
-
 ## Architecture & Code Quality
 
 ### 🟢 LOW PRIORITY

@@ -295,7 +295,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 
 	# Create card items for each played card
 	for instance_id: String in cards_played:
-		var info: Dictionary = card_service.get_card_progression_info(instance_id)
+		var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
 		if info.is_empty():
 			continue
 
@@ -326,7 +326,7 @@ func _on_card_xp_item_clicked(instance_id: String) -> void:
 	if not card_service:
 		return
 
-	var info: Dictionary = card_service.get_card_progression_info(instance_id)
+	var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
 	if info.is_empty():
 		return
 
@@ -387,7 +387,7 @@ func _refresh_card_xp_item(instance_id: String) -> void:
 	# Find the card item and update it
 	for child: Node in card_xp_grid.get_children():
 		if child is CardXPItem and child.instance_id == instance_id:
-			var info: Dictionary = card_service.get_card_progression_info(instance_id)
+			var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
 			if info.is_empty():
 				continue
 
