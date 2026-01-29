@@ -517,7 +517,7 @@ func _refresh_collection() -> void:
 		# Set progression info for level badge and XP bar
 		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 		if card_service:
-			var prog_info: Variant = card_service.get_card_progression_info(instance_id)
+			var prog_info: Variant = card_service.GetCardProgressionInfoDict(instance_id)
 			if prog_info is Dictionary:
 				widget.set_progression(prog_info)
 
