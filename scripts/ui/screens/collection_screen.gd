@@ -518,8 +518,11 @@ func _refresh_collection() -> void:
 		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 		if card_service and card_service.has_method("get_card_progression_info"):
 			var prog_info: Variant = card_service.get_card_progression_info(instance_id)
+			print("CollectionScreen: Got prog_info for %s: %s (type: %s)" % [instance_id, prog_info, typeof(prog_info)])
 			if prog_info is Dictionary:
 				widget.set_progression(prog_info)
+		else:
+			print("CollectionScreen: card_service=%s, has_method=%s" % [card_service, card_service.has_method("get_card_progression_info") if card_service else "N/A"])
 
 		# Ensure correct order by moving to end (builds order as we iterate)
 		card_grid.move_child(widget, -1)
