@@ -254,12 +254,9 @@ func test_get_deck_card_ids_returns_copy() -> void:
 func _make_mock_deck(instance_ids: Array) -> Array:
 	var deck: Array = []
 	for id: String in instance_ids:
-		var mock_card: RefCounted = RefCounted.new()
-		mock_card.set_meta("instance_id", id)
-		# Add instance_id property via script extension
-		var mock_with_id: MockCard = MockCard.new()
-		mock_with_id.instance_id = id
-		deck.append(mock_with_id)
+		var mock_card: MockCard = MockCard.new()
+		mock_card.instance_id = id
+		deck.append(mock_card)
 	return deck
 
 
