@@ -44,6 +44,8 @@ static func _get_nodes() -> Array[Dictionary]:
 				"reward_options": [CardIDs.CHARGE, CardIDs.FIRE_WISP, CardIDs.PUFF],
 				"player_selects": true,
 				"gold_reward": 30,
+				"card_xp_reward": 15,
+				"summoner_xp_reward": 20,
 				"enemy_deck": [
 					{"catalog_id": CardIDs.FIRE_WISP, "count": 1},
 				],
@@ -67,6 +69,8 @@ static func _get_nodes() -> Array[Dictionary]:
 				"reward_options": [CardIDs.EARTH_SPRITE, CardIDs.CLOUD_SWARM, CardIDs.PUFF],
 				"player_selects": true,
 				"gold_reward": 40,
+				"card_xp_reward": 18,
+				"summoner_xp_reward": 25,
 				"enemy_deck": [
 					{"catalog_id": CardIDs.PUFF, "count": 2},
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 1},
@@ -102,6 +106,8 @@ static func _get_nodes() -> Array[Dictionary]:
 				"reward_options": [CardIDs.FIRE_WISP, CardIDs.CHARGE, CardIDs.CLOUD_SWARM],
 				"player_selects": true,
 				"gold_reward": 50,
+				"card_xp_reward": 20,
+				"summoner_xp_reward": 30,
 				"enemy_deck": [
 					{"catalog_id": CardIDs.PUFF, "count": 2},
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
@@ -152,6 +158,8 @@ static func _get_nodes() -> Array[Dictionary]:
 				"reward_options": [CardIDs.FIRE_WISP, CardIDs.CHARGE, CardIDs.MANA_BOLT],
 				"player_selects": true,
 				"gold_reward": 80,
+				"card_xp_reward": 30,
+				"summoner_xp_reward": 45,
 				"enemy_deck": [
 					{"catalog_id": CardIDs.FIRE_WISP, "count": 2},
 					{"catalog_id": CardIDs.PUFF, "count": 2},
@@ -178,6 +186,8 @@ static func _get_nodes() -> Array[Dictionary]:
 				"reward_options": [CardIDs.PUFF, CardIDs.EARTH_SPRITE, CardIDs.CLOUD_SWARM],
 				"player_selects": true,
 				"gold_reward": 50,
+				"card_xp_reward": 22,
+				"summoner_xp_reward": 35,
 				"enemy_deck": [
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 3},
 				],
@@ -204,6 +214,8 @@ static func _get_nodes() -> Array[Dictionary]:
 					{"catalog_id": CardIDs.MANA_BOLT, "rarity": RarityIDs.RARE, "count": 1},
 				],
 				"gold_reward": 100,
+				"card_xp_reward": 40,
+				"summoner_xp_reward": 60,
 				"enemy_deck": [
 					{"catalog_id": CardIDs.FIRE_WISP, "count": 2},
 					{"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},

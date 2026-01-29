@@ -176,8 +176,8 @@ func get_effective_stats() -> Dictionary:
 
 	# Delegate to PlayerCardService for full stat pipeline
 	var card_service: Node = _get_autoload(CSharpAutoloads.PLAYER_CARD_SERVICE)
-	if card_service:
-		var effective: Variant = card_service.get_effective_stats(instance_id)
+	if card_service and card_service.has_method("GetEffectiveStatsDict"):
+		var effective: Variant = card_service.GetEffectiveStatsDict(instance_id)
 		if effective is Dictionary and not effective.is_empty():
 			return effective
 

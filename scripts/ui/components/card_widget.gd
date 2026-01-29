@@ -1,11 +1,11 @@
-extends PanelContainer
+extends VBoxContainer
 class_name CardWidget
 
 ## CardWidget - Reusable Card Display Component
 ##
 ## Displays a card thumbnail with name, cost, type, and rarity.
 ## Supports drag-and-drop for deck building.
-## Can show count badge for collection view.
+## Progression info (level, XP bar) shown below the card.
 
 ## Signals
 signal card_clicked(card_data: Dictionary)
@@ -34,32 +34,45 @@ var hover_tween: Tween = null
 ## Drag state
 var _hidden_for_drag: bool = false
 
-## Node references
+## Node references - Card visual
+@onready var card_panel: PanelContainer = %CardPanel
 @onready var type_icon: TextureRect = %TypeIcon
 @onready var mana_cost: Label = %ManaCost
 @onready var card_name: Label = %CardName
-@onready var art_placeholder: ColorRect = $ContentContainer/ArtContainer/ArtPlaceholder
-@onready var element_badge: Panel = $ContentContainer/ElementBadge
-@onready var in_deck_badge: PanelContainer = $ContentContainer/InDeckBadge
+@onready var art_placeholder: ColorRect = $CardPanel/ContentContainer/ArtContainer/ArtPlaceholder
+@onready var element_badge: Panel = $CardPanel/ContentContainer/ElementBadge
+@onready var in_deck_badge: PanelContainer = $CardPanel/ContentContainer/InDeckBadge
+
+## Node references - Progression (below card)
+@onready var progression_container: HBoxContainer = %ProgressionContainer
+@onready var level_label: Label = %LevelLabel
+@onready var xp_progress_bar: ProgressBar = %XPProgressBar
 
 ## Current element color
 var element_color: Color = Color.GRAY
+
+## Progression state
+var progression_info: Dictionary = {}
 
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
-	# Allow drop events to pass through to parent drop zones
-	mouse_filter = Control.MOUSE_FILTER_PASS
-
 	# Create hold timer
 	hold_timer = Timer.new()
 	hold_timer.one_shot = true
 	hold_timer.timeout.connect(_on_hold_timeout)
 	add_child(hold_timer)
 
-	# Connect mouse signals
+	# Make CardPanel pass mouse events to parent (us) for drag handling
+	# but we still connect to its signals for hover effects
+	if card_panel:
+		card_panel.mouse_filter = Control.MOUSE_FILTER_PASS
+		card_panel.mouse_entered.connect(_on_mouse_entered)
+		card_panel.mouse_exited.connect(_on_mouse_exited)
+
+	# Connect our own mouse signals
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
@@ -89,6 +102,11 @@ func set_draggable(p_draggable: bool) -> void:
 func set_in_deck(in_deck: bool) -> void:
 	is_in_deck = in_deck
 	_update_in_deck_visual()
+
+## Set card progression data (level, XP, etc.)
+func set_progression(info: Dictionary) -> void:
+	progression_info = info
+	_update_progression_display()
 
 ## =============================================================================
 ## DISPLAY UPDATE
@@ -125,19 +143,19 @@ func _update_theme() -> void:
 	# Get element-based color
 	element_color = CardVisualHelper.get_card_element_color(catalog_data)
 
-	# Create theme with element-colored border
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
-	style.border_width_left = border_width
-	style.border_width_top = border_width
-	style.border_width_right = border_width
-	style.border_width_bottom = border_width
-	style.border_color = element_color
-	style.set_corner_radius_all(corner_radius)
-	style.anti_aliasing = true
-	style.anti_aliasing_size = 1
-
-	add_theme_stylebox_override("panel", style)
+	# Create theme with element-colored border for the card panel
+	if card_panel:
+		var style: StyleBoxFlat = StyleBoxFlat.new()
+		style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
+		style.border_width_left = border_width
+		style.border_width_top = border_width
+		style.border_width_right = border_width
+		style.border_width_bottom = border_width
+		style.border_color = element_color
+		style.set_corner_radius_all(corner_radius)
+		style.anti_aliasing = true
+		style.anti_aliasing_size = 1
+		card_panel.add_theme_stylebox_override("panel", style)
 
 	# Color the art placeholder with darkened element color
 	if art_placeholder:
@@ -161,6 +179,71 @@ func _update_in_deck_visual() -> void:
 		modulate.a = 0.5
 	else:
 		modulate.a = 1.0
+
+## =============================================================================
+## PROGRESSION DISPLAY
+## =============================================================================
+
+func _update_progression_display() -> void:
+	if progression_info.is_empty():
+		# Hide progression container if no data
+		if progression_container:
+			progression_container.visible = false
+		return
+
+	var level: int = progression_info.get("level", 1)
+	var xp_progress: float = progression_info.get("xp_progress", 0.0)
+	var can_level_up: bool = progression_info.get("can_level_up", false)
+
+	# Show progression container
+	if progression_container:
+		progression_container.visible = true
+
+	# Update level label
+	if level_label:
+		level_label.text = "Lv.%d" % level
+
+	# Update XP bar
+	if xp_progress_bar:
+		xp_progress_bar.value = xp_progress * 100.0
+
+		# Apply appropriate bar style
+		if can_level_up:
+			_apply_level_up_bar_style()
+		else:
+			_apply_normal_bar_style()
+
+func _apply_normal_bar_style() -> void:
+	if not xp_progress_bar:
+		return
+
+	# Background/track style
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
+
+	# Fill style - use element color
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+	fill_style.bg_color = element_color.darkened(0.1)
+	fill_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
+
+func _apply_level_up_bar_style() -> void:
+	if not xp_progress_bar:
+		return
+
+	# Background/track style
+	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
+
+	# Fill style - bright green/gold for level-up ready
+	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
+	fill_style.bg_color = Color(0.2, 0.9, 0.3)  # Bright green
+	fill_style.set_corner_radius_all(3)
+	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
 
 ## =============================================================================
 ## MOUSE INTERACTION

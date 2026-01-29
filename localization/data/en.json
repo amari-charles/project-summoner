@@ -221,7 +221,12 @@
       "select_reward": "Select a Reward",
       "select_one": "Choose one of the following rewards:",
       "card_reward": "{name} ({rarity})",
-      "gold_reward": "{amount} Gold"
+      "gold_reward": "{amount} Gold",
+      "card_xp_header": "Cards Earned XP:",
+      "card_xp_each": "+{amount} XP each",
+      "card_level_up_ready": "LEVEL UP!",
+      "card_level": "Lv.{level}",
+      "card_xp_tooltip": "Click to view card details"
     },
     "economy": {
       "campaign_gold": "Campaign Gold",
@@ -288,6 +293,7 @@
       "set_active_deck_tooltip": "Set as active deck for battles",
       "no_deck_selected": "Select a deck first",
       "card_action_use": "Use",
+      "card_action_remove": "Remove",
       "card_action_info": "Info",
       "filter_all_elements": "All Elements",
       "element_count": "{count} Elements",

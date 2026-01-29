@@ -2,15 +2,21 @@
 
 [ext_resource type="Script" uid="uid://wbnau75lnwbi" path="res://scripts/ui/components/card_widget.gd" id="1_card_widget"]
 
-[node name="CardWidget" type="PanelContainer"]
-custom_minimum_size = Vector2(160, 240)
+[node name="CardWidget" type="VBoxContainer"]
 script = ExtResource("1_card_widget")
+theme_override_constants/separation = 2
 
-[node name="ContentContainer" type="Control" parent="."]
+[node name="CardPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 240)
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ContentContainer" type="Control" parent="CardPanel"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="ManaCost" type="Label" parent="ContentContainer"]
+[node name="ManaCost" type="Label" parent="CardPanel/ContentContainer"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 0
@@ -32,7 +38,7 @@ vertical_alignment = 1
 autowrap_mode = 3
 clip_text = true
 
-[node name="TypeIcon" type="TextureRect" parent="ContentContainer"]
+[node name="TypeIcon" type="TextureRect" parent="CardPanel/ContentContainer"]
 unique_name_in_owner = true
 mouse_filter = 2
 layout_mode = 1
@@ -49,7 +55,7 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CardName" type="Label" parent="ContentContainer"]
+[node name="CardName" type="Label" parent="CardPanel/ContentContainer"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
@@ -69,7 +75,7 @@ vertical_alignment = 1
 autowrap_mode = 2
 clip_text = true
 
-[node name="ArtContainer" type="Control" parent="ContentContainer"]
+[node name="ArtContainer" type="Control" parent="CardPanel/ContentContainer"]
 layout_mode = 1
 mouse_filter = 2
 anchors_preset = -1
@@ -80,7 +86,7 @@ anchor_bottom = 0.78
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ArtPlaceholder" type="ColorRect" parent="ContentContainer/ArtContainer"]
+[node name="ArtPlaceholder" type="ColorRect" parent="CardPanel/ContentContainer/ArtContainer"]
 layout_mode = 1
 mouse_filter = 2
 anchors_preset = 15
@@ -90,7 +96,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.3, 0.3, 0.4, 1)
 
-[node name="ElementBadge" type="Panel" parent="ContentContainer"]
+[node name="ElementBadge" type="Panel" parent="CardPanel/ContentContainer"]
 mouse_filter = 2
 layout_mode = 1
 anchors_preset = -1
@@ -101,7 +107,7 @@ anchor_bottom = 0.95
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="InDeckBadge" type="PanelContainer" parent="ContentContainer"]
+[node name="InDeckBadge" type="PanelContainer" parent="CardPanel/ContentContainer"]
 visible = false
 mouse_filter = 2
 layout_mode = 1
@@ -115,10 +121,38 @@ offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="Label" type="Label" parent="ContentContainer/InDeckBadge"]
+[node name="Label" type="Label" parent="CardPanel/ContentContainer/InDeckBadge"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "IN DECK"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ProgressionContainer" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="ProgressionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 14
+text = "Lv.1"
+vertical_alignment = 1
+
+[node name="XPProgressBar" type="ProgressBar" parent="ProgressionContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+max_value = 100.0
+value = 50.0
+show_percentage = false
