@@ -370,11 +370,17 @@ public partial class Projectile3D : Area3D
 
     private void HitTarget(Node3D target)
     {
-        // Apply damage via DamageSystem
+        // Apply damage via DamageSystem singleton
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
-            damageSystem?.ApplyDamage(Source, target, Damage, DamageType);
+            if (DamageSystem.Instance != null)
+            {
+                DamageSystem.Instance.ApplyDamage(Source, target, Damage, DamageType);
+            }
+            else
+            {
+                GD.PushWarning($"Projectile3D: DamageSystem.Instance is null, cannot apply damage for '{ProjectileId}'");
+            }
         }
 
         EmitSignal(SignalName.ProjectileHit, target, this);
@@ -384,14 +390,17 @@ public partial class Projectile3D : Area3D
 
     private void HitTargetViaHurtbox(Node3D target, Area3D hurtbox)
     {
-        // Use DamageSystem with projectile flag
+        // Apply damage via DamageSystem singleton with projectile flag
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
-            if (damageSystem != null)
+            if (DamageSystem.Instance != null)
             {
                 var flags = new Godot.Collections.Dictionary { { "from_projectile", true } };
-                damageSystem.ApplyDamage(Source, target, Damage, DamageType, flags);
+                DamageSystem.Instance.ApplyDamage(Source, target, Damage, DamageType, flags);
+            }
+            else
+            {
+                GD.PushWarning($"Projectile3D: DamageSystem.Instance is null, cannot apply damage for '{ProjectileId}'");
             }
         }
 
