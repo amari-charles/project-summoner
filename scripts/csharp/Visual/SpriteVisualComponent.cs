@@ -97,6 +97,19 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     [Export]
     public AttackStyle AttackStyleSetting { get; set; } = AttackStyle.None;
 
+    /// <summary>
+    /// Color to flash when taking damage. Default is bright HDR white (3, 3, 3, 1).
+    ///
+    /// Most units should use the default white flash, which provides good contrast
+    /// against darker sprites. Override this for light-colored or white units where
+    /// a white flash wouldn't be visible.
+    ///
+    /// Example: Puff is a white cloud, so it uses a soft pink flash (1.3, 0.85, 0.85, 1)
+    /// to ensure hit feedback is visible against its light-colored sprite.
+    /// </summary>
+    [Export]
+    public Color FlashColor { get; set; } = new Color(3.0f, 3.0f, 3.0f, 1.0f);
+
     // =========================================================================
     // NODE REFERENCES
     // =========================================================================
@@ -373,14 +386,24 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (_flashTween != null && _flashTween.IsValid())
         {
             _flashTween.Kill();
-            // Reset to original color before starting new flash
             _characterSprite.Modulate = _originalModulate;
         }
 
-        _flashTween = CreateTween();
-        _flashTween.TweenProperty(_characterSprite, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.05f);
-        _flashTween.TweenProperty(_characterSprite, "modulate", new Color(2.0f, 2.0f, 2.0f, 1.0f), 0.1f);
-        _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, 0.15f);
+        // Flash using direct set (tweens had issues with initial flash)
+        // Uses configurable FlashColor (default: HDR white, override for light units)
+        _characterSprite.Modulate = FlashColor;
+
+        // Hold for a moment, then fade back
+        var holdTimer = GetTree().CreateTimer(0.1);
+        holdTimer.Timeout += () =>
+        {
+            if (!IsInstanceValid(this) || _characterSprite == null)
+                return;
+
+            // Create fade-back tween
+            _flashTween = CreateTween();
+            _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, 0.15);
+        };
     }
 
     public void SetFlipH(bool flip)

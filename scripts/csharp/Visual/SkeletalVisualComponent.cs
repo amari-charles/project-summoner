@@ -267,30 +267,32 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             }
         }
 
-        // Apply flash to each sprite individually to avoid SubViewport z_index rendering bug
-        var flashColor = new Color(2.0f, 2.0f, 2.0f, 1.0f);
-        _flashTween = CreateTween();
-        _flashTween.SetParallel(true);
-
-        // Phase 1: Flash to white (all sprites in parallel)
+        // Flash to bright white then fade back
+        // Using direct set + SceneTreeTimer since tweens had issues
+        var flashColor = new Color(3.0f, 3.0f, 3.0f, 1.0f);  // Bright HDR white
         foreach (var sprite in sprites)
         {
-            _flashTween.TweenProperty(sprite, "modulate", flashColor, 0.05f);
+            sprite.Modulate = flashColor;
         }
 
-        // Phase 2: Hold white
-        _flashTween.Chain().SetParallel(true);
-        foreach (var sprite in sprites)
+        // Hold for a moment, then fade back
+        var holdTimer = GetTree().CreateTimer(0.1);
+        holdTimer.Timeout += () =>
         {
-            _flashTween.TweenProperty(sprite, "modulate", flashColor, 0.1f);
-        }
+            if (!IsInstanceValid(this))
+                return;
 
-        // Phase 3: Fade back to original
-        _flashTween.Chain().SetParallel(true);
-        foreach (var sprite in sprites)
-        {
-            _flashTween.TweenProperty(sprite, "modulate", _originalModulate, 0.15f);
-        }
+            // Create fade-back tween
+            _flashTween = CreateTween();
+            _flashTween.SetParallel(true);
+            foreach (var sprite in sprites)
+            {
+                if (IsInstanceValid(sprite))
+                {
+                    _flashTween.TweenProperty(sprite, "modulate", _originalModulate, 0.15);
+                }
+            }
+        };
     }
 
     public void SetFlipH(bool flip)
