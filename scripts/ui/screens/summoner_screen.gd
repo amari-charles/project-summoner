@@ -82,8 +82,8 @@ func _ready() -> void:
 	if SummonerSelection.has_signal("SummonerChanged"):
 		SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
 
-	if Economy.has_signal("gold_changed"):
-		Economy.gold_changed.connect(_on_gold_changed)
+	if Economy.has_signal("campaign_gold_changed"):
+		Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)
 
 	# Setup equipment modal
 	_equipment_modal = EquipmentSlotModal.new()
@@ -109,7 +109,7 @@ func _ready() -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	var gold: int = Economy.get_gold()
+	var gold: int = Economy.get_campaign_gold()
 	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
 
@@ -636,9 +636,8 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 	_refresh_all()
 
 
-func _on_gold_changed(_new_gold: int) -> void:
+func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
 	_refresh_gold_display()
-	_refresh_all()
 
 
 func _on_equipment_slot_clicked(event: InputEvent, slot: String) -> void:
