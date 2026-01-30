@@ -337,7 +337,7 @@ public partial class Projectile3D : Area3D
             }
         }
 
-        // Legacy fallback: check if area belongs to a unit
+        // Fallback for non-HurtboxComponent areas (e.g., custom trigger zones)
         var body = area.GetParent() as Node3D;
         if (body != null && IsValidTarget(body))
         {
