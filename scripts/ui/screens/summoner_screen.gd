@@ -22,7 +22,9 @@ signal closed()
 @onready var element_label: Label = %ElementLabel
 @onready var level_label: Label = %LevelLabel
 @onready var switch_summoner_button: Button = %SwitchSummonerButton
-@onready var gold_label: Label = %GoldLabel
+
+## Gold label (created dynamically for proper positioning)
+var gold_label: Label = null
 
 ## =============================================================================
 ## NODE REFERENCES - Portrait Section (Left Column)
@@ -94,6 +96,9 @@ func _ready() -> void:
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
 
+	# Create gold label with absolute positioning (top-right corner)
+	_setup_gold_display()
+
 	# Initial data load
 	_refresh_gold_display()
 
@@ -108,7 +113,37 @@ func _ready() -> void:
 ## GOLD DISPLAY
 ## =============================================================================
 
+const GOLD_LABEL_WIDTH: float = 120.0
+const GOLD_LABEL_HEIGHT: float = 30.0
+const GOLD_LABEL_MARGIN: float = 30.0
+const GOLD_LABEL_TOP: float = 25.0
+
+
+func _setup_gold_display() -> void:
+	# Create gold label dynamically for reliable anchor positioning
+	# (Godot 4 has issues with .tscn anchor settings - see GitHub #86004)
+	gold_label = Label.new()
+	add_child(gold_label)
+
+	# Style
+	gold_label.add_theme_font_size_override("font_size", 18)
+	gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1.0))
+	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+	# Position in top-right corner using anchors
+	gold_label.anchor_left = 1.0
+	gold_label.anchor_right = 1.0
+	gold_label.anchor_top = 0.0
+	gold_label.anchor_bottom = 0.0
+	gold_label.offset_left = -(GOLD_LABEL_MARGIN + GOLD_LABEL_WIDTH)
+	gold_label.offset_right = -GOLD_LABEL_MARGIN
+	gold_label.offset_top = GOLD_LABEL_TOP
+	gold_label.offset_bottom = GOLD_LABEL_TOP + GOLD_LABEL_HEIGHT
+
+
 func _refresh_gold_display() -> void:
+	if gold_label == null:
+		return
 	var gold: int = Economy.get_campaign_gold()
 	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
