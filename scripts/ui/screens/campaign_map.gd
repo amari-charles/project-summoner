@@ -1167,16 +1167,14 @@ func _setup_gold_display() -> void:
 	gold_label.add_theme_font_size_override("font_size", 20)
 	gold_label.add_theme_color_override("font_color", GameColorPalette.GOLD)
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	gold_label.size = Vector2(100, GOLD_LABEL_HEIGHT)
 
-	# Position to the right of summoner icon
-	gold_label.anchor_left = 0.0
-	gold_label.anchor_right = 0.0
-	gold_label.anchor_top = 0.0
-	gold_label.anchor_bottom = 0.0
-	gold_label.offset_left = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE + 10  # Right of summoner icon
-	gold_label.offset_right = gold_label.offset_left + 100  # Width for gold display
-	gold_label.offset_top = SUMMONER_ICON_MARGIN + (SUMMONER_ICON_SIZE - GOLD_LABEL_HEIGHT) / 2  # Vertically centered with icon
-	gold_label.offset_bottom = gold_label.offset_top + GOLD_LABEL_HEIGHT
+	# Position to the right of summoner icon using actual size
+	var icon_size: float = summoner_icon.size.x if summoner_icon else SUMMONER_ICON_SIZE
+	gold_label.position = Vector2(
+		SUMMONER_ICON_MARGIN + icon_size + 10,
+		SUMMONER_ICON_MARGIN + (icon_size - GOLD_LABEL_HEIGHT) / 2
+	)
 
 	# Connect to gold changes
 	Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)

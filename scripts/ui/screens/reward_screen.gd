@@ -556,9 +556,11 @@ func _on_continue_pressed() -> void:
 	if reward_ready_to_claim:
 		var granted_card: Dictionary = {}
 
+		# Get battle data for gold reward
+		var battle: Dictionary = Campaign.get_battle(current_battle_id)
+
 		if is_flexible_reward and flexible_options.size() > 0 and chosen_reward_index >= 0:
 			# FLEXIBLE reward with dynamically generated options - grant via RewardService
-			var battle: Dictionary = Campaign.get_battle(current_battle_id)
 			if not battle.has("specific_options"):
 				# Only use RewardService for dynamically generated options
 				var chosen_option: Dictionary = flexible_options[chosen_reward_index]
@@ -566,11 +568,6 @@ func _on_continue_pressed() -> void:
 					granted_card = chosen_option
 				else:
 					push_error("RewardScreen: Failed to grant flexible reward")
-
-				# Grant gold separately (since complete_battle_without_reward skips rewards)
-				var gold_reward: int = battle.get("gold_reward", 0)
-				if gold_reward > 0:
-					Economy.add_campaign_gold(gold_reward)
 
 				# Mark battle complete via Campaign (without granting cards - already done)
 				Campaign.complete_battle_without_reward(current_battle_id)
@@ -580,6 +577,8 @@ func _on_continue_pressed() -> void:
 		else:
 			# FIXED or other rewards - use Campaign.claim_pending_reward()
 			granted_card = Campaign.claim_pending_reward()
+
+		# Note: Gold is granted during GrantBattleReward() in C# CampaignRewardHandler via EconomyService
 
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():

@@ -33,6 +33,7 @@ public partial class EconomyService : Node
 	public delegate void TransactionFailedEventHandler(string reason);
 
 	private IProfileRepository? _profileRepo;
+	private Node? _summonerSelection;
 
 	public override void _Ready()
 	{
@@ -52,6 +53,9 @@ public partial class EconomyService : Node
 			GD.PushError("EconomyService: ProfileRepository.Instance not available");
 			return;
 		}
+
+		// Cache SummonerSelection autoload reference
+		_summonerSelection = GetTree().Root.GetNodeOrNull<Node>("SummonerSelection");
 
 		// Connect to repo signals for reactive updates
 		_profileRepo.DataChanged += OnRepoDataChanged;
@@ -367,11 +371,10 @@ public partial class EconomyService : Node
 
 	private string GetActiveSummonerId()
 	{
-		// Get active summoner from SummonerSelectionService (autoload)
-		var selectionService = GetNodeOrNull<Node>("SummonerSelection");
-		if (selectionService != null && selectionService.HasMethod("GetActiveSummonerId"))
+		// Use cached SummonerSelection autoload reference
+		if (_summonerSelection != null && _summonerSelection.HasMethod("GetActiveSummonerId"))
 		{
-			return selectionService.Call("GetActiveSummonerId").AsString();
+			return _summonerSelection.Call("GetActiveSummonerId").AsString();
 		}
 		return "";
 	}

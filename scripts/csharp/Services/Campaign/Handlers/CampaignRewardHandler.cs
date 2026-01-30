@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Infrastructure.Persistence;
+using ProjectSummoner.Services.Economy;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
@@ -15,33 +16,27 @@ public class CampaignRewardHandler
     private readonly CampaignDataStore _store;
     private readonly Func<string> _getActiveSummonerFunc;
     private readonly Func<string, string, string>? _grantCardFunc;
-    private readonly Action<int>? _addCampaignGoldFunc;
 
     public CampaignRewardHandler(
         IProfileRepository profileRepo,
         CampaignDataStore store,
         Func<string> getActiveSummonerFunc,
-        Func<string, string, string>? grantCardFunc = null,
-        Action<int>? addCampaignGoldFunc = null)
+        Func<string, string, string>? grantCardFunc = null)
     {
         _profileRepo = profileRepo;
         _store = store;
         _getActiveSummonerFunc = getActiveSummonerFunc;
         _grantCardFunc = grantCardFunc;
-        _addCampaignGoldFunc = addCampaignGoldFunc;
     }
 
     /// <summary>Create a new handler with updated callbacks.</summary>
-    public CampaignRewardHandler WithCallbacks(
-        Func<string, string, string>? grantCardFunc,
-        Action<int>? addCampaignGoldFunc)
+    public CampaignRewardHandler WithCallbacks(Func<string, string, string>? grantCardFunc)
     {
         return new CampaignRewardHandler(
             _profileRepo,
             _store,
             _getActiveSummonerFunc,
-            grantCardFunc ?? _grantCardFunc,
-            addCampaignGoldFunc ?? _addCampaignGoldFunc);
+            grantCardFunc ?? _grantCardFunc);
     }
 
     // =========================================================================
@@ -135,11 +130,11 @@ public class CampaignRewardHandler
         var rewardType = battle.GetValueOrDefault("reward_type", "fixed").AsString();
         var rewardCardsVariant = battle.GetValueOrDefault("reward_cards", new Godot.Collections.Array());
 
-        // Grant campaign-scoped gold reward
+        // Grant campaign gold directly via EconomyService
         var goldReward = battle.GetValueOrDefault("gold_reward", 0).AsInt32();
         if (goldReward > 0)
         {
-            _addCampaignGoldFunc?.Invoke(goldReward);
+            EconomyService.Instance?.AddCampaignGold(goldReward);
             GD.Print($"CampaignRewardHandler: Granted {goldReward} campaign gold for battle '{battleId}'");
         }
 
@@ -151,7 +146,7 @@ public class CampaignRewardHandler
             {
                 return new Godot.Collections.Dictionary
                 {
-                    ["gold_reward"] = goldReward,
+                    ["gold"] = goldReward,
                     ["instance_ids"] = new Godot.Collections.Array<string>()
                 };
             }
@@ -214,7 +209,7 @@ public class CampaignRewardHandler
 
         // Add instance IDs and gold to return value
         grantedCard["instance_ids"] = grantedInstanceIds;
-        grantedCard["gold_reward"] = goldReward;
+        grantedCard["gold"] = goldReward;
 
         return grantedCard;
     }
