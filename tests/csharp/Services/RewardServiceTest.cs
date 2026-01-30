@@ -174,6 +174,17 @@ public class RewardServiceTest
     // =============================================================================
 
     [TestCase]
+    public void GetCardsForPool_InvalidPoolId_ReturnsEmpty()
+    {
+        // Cast an invalid int to RewardPoolId to simulate invalid input
+        var invalidPoolId = (RewardPoolId)999;
+        var cards = RewardPoolCatalog.GetCardsForPool(invalidPoolId);
+
+        // Should return empty array (and log warning internally)
+        AssertThat(cards.Length).IsEqual(0);
+    }
+
+    [TestCase]
     public void GetPoolIdForElement_ReturnsCorrectPool()
     {
         AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual(RewardPoolId.FireCommonUnits);

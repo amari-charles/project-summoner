@@ -3,6 +3,13 @@ extends Node
 # This GDScript wrapper delegates to C# RewardServiceCS for implementation.
 
 ## Reward Service - Centralized Reward Handling
+
+## =============================================================================
+## CONSTANTS
+## =============================================================================
+
+## Default number of cards to draw for flexible rewards
+const DEFAULT_DRAW_COUNT: int = 3
 ##
 ## Handles all reward operations:
 ## - get_reward_spec() - Get unified reward specification for a battle
@@ -121,7 +128,7 @@ func get_reward_spec(battle_id: String) -> Dictionary:
 	elif reward_type == RewardTypeIDs.FLEXIBLE:
 		# Flexible rewards: player picks from options
 		var player_selects: bool = battle.get("player_selects", true)
-		var draw_count: int = battle.get("draw_count", 3)
+		var draw_count: int = battle.get("draw_count", DEFAULT_DRAW_COUNT)
 		var exclude_owned: bool = battle.get("exclude_owned", false)
 		var unique_options: bool = battle.get("unique_options", true)
 
