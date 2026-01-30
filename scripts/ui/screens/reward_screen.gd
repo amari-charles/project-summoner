@@ -573,11 +573,9 @@ func _on_continue_pressed() -> void:
 				Campaign.complete_battle_without_reward(current_battle_id)
 			else:
 				# FLEXIBLE with specific_options - use Campaign.claim_pending_reward()
-				print("RewardScreen: Claiming pending reward for FLEXIBLE with specific_options")
 				granted_card = Campaign.claim_pending_reward()
 		else:
 			# FIXED or other rewards - use Campaign.claim_pending_reward()
-			print("RewardScreen: Claiming pending reward for FIXED/other")
 			granted_card = Campaign.claim_pending_reward()
 
 		# Always grant gold explicitly in GDScript (don't rely on C# callback)
@@ -585,7 +583,6 @@ func _on_continue_pressed() -> void:
 		var gold_reward: int = battle.get("gold_reward", 0)
 		if gold_reward > 0:
 			Economy.add_campaign_gold(gold_reward)
-			print("RewardScreen: Granted %d campaign gold for battle '%s'" % [gold_reward, current_battle_id])
 
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():

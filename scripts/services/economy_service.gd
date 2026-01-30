@@ -240,17 +240,14 @@ func get_campaign_gold(summoner_id: String = "") -> int:
 
 ## Add campaign gold (positive amount only)
 func add_campaign_gold(amount: int, summoner_id: String = "") -> void:
-	print("EconomyService: add_campaign_gold called with amount=%d, summoner_id='%s'" % [amount, summoner_id])
 	if _test_mode and _test_repo:
 		var progress: Dictionary = _test_repo.get_campaign_progress(summoner_id)
 		var new_gold: int = progress.get("gold", 0) + amount
 		_test_repo.update_campaign_progress({"gold": new_gold}, summoner_id)
 		var target_id: String = summoner_id if not summoner_id.is_empty() else SummonerSelection.GetActiveSummonerId()
 		campaign_gold_changed.emit(target_id, new_gold)
-		print("EconomyService: Test mode - updated campaign gold to %d" % new_gold)
 		return
 	if _cs_service:
-		print("EconomyService: Calling C# AddCampaignGold(%d, '%s')" % [amount, summoner_id])
 		_cs_service.AddCampaignGold(amount, summoner_id)
 	else:
 		push_warning("EconomyService.add_campaign_gold: C# service not available")
