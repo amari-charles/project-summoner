@@ -22,9 +22,7 @@ signal closed()
 @onready var element_label: Label = %ElementLabel
 @onready var level_label: Label = %LevelLabel
 @onready var switch_summoner_button: Button = %SwitchSummonerButton
-
-## Gold label (created dynamically for proper positioning)
-var gold_label: Label = null
+@onready var gold_label: Label = %GoldLabel
 
 ## =============================================================================
 ## NODE REFERENCES - Portrait Section (Left Column)
@@ -84,8 +82,8 @@ func _ready() -> void:
 	if SummonerSelection.has_signal("SummonerChanged"):
 		SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
 
-	if Economy.has_signal("campaign_gold_changed"):
-		Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)
+	if Economy.has_signal("gold_changed"):
+		Economy.gold_changed.connect(_on_gold_changed)
 
 	# Setup equipment modal
 	_equipment_modal = EquipmentSlotModal.new()
@@ -95,9 +93,6 @@ func _ready() -> void:
 
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
-
-	# Create gold label with absolute positioning (top-right corner)
-	_setup_gold_display()
 
 	# Initial data load
 	_refresh_gold_display()
@@ -113,44 +108,8 @@ func _ready() -> void:
 ## GOLD DISPLAY
 ## =============================================================================
 
-const GOLD_LABEL_WIDTH: float = 120.0
-const GOLD_LABEL_HEIGHT: float = 30.0
-const GOLD_LABEL_MARGIN: float = 30.0
-const GOLD_LABEL_TOP: float = 25.0
-
-
-func _setup_gold_display() -> void:
-	# Create gold label dynamically
-	gold_label = Label.new()
-	add_child(gold_label)
-
-	# Style
-	gold_label.add_theme_font_size_override("font_size", 18)
-	gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1.0))
-	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-
-	# Set size
-	gold_label.size = Vector2(GOLD_LABEL_WIDTH, GOLD_LABEL_HEIGHT)
-
-	# Position in top-right using absolute position
-	var viewport_width: float = get_viewport_rect().size.x
-	gold_label.position = Vector2(viewport_width - GOLD_LABEL_WIDTH - GOLD_LABEL_MARGIN, GOLD_LABEL_TOP)
-
-	# Update position on resize
-	get_tree().root.size_changed.connect(_on_viewport_resized)
-
-
-func _on_viewport_resized() -> void:
-	if gold_label == null:
-		return
-	var viewport_width: float = get_viewport_rect().size.x
-	gold_label.position = Vector2(viewport_width - GOLD_LABEL_WIDTH - GOLD_LABEL_MARGIN, GOLD_LABEL_TOP)
-
-
 func _refresh_gold_display() -> void:
-	if gold_label == null:
-		return
-	var gold: int = Economy.get_campaign_gold()
+	var gold: int = Economy.get_gold()
 	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
 
@@ -677,8 +636,9 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 	_refresh_all()
 
 
-func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
+func _on_gold_changed(_new_gold: int) -> void:
 	_refresh_gold_display()
+	_refresh_all()
 
 
 func _on_equipment_slot_clicked(event: InputEvent, slot: String) -> void:
