@@ -257,16 +257,15 @@ Reduces combat feedback and makes it harder to see when attacks land.
 
 **Investigation Notes (2026-01-29):**
 - Traced damage path: Projectile3D → DamageSystem → Unit3D.TakeDamage → OnTakeDamage → FlashWhite
-- Found inconsistency: Projectiles used `GetNodeOrNull` path lookup while melee uses `DamageSystem.Instance`
-- Fix: Changed to use `DamageSystem.Instance` for consistency with melee path
-- Added warning logging if DamageSystem is unavailable
-- If issue persists after PR merge, need to add debug logging to trace exact flow
+- Found architecture inconsistency: Melee hits went through HitResolver (which emits HitConfirmed signal), but projectiles called DamageSystem directly
+- Fix: Unified architecture - all projectile hits now route through HitResolver.ResolveProjectileHit()
+- Added ResolveProjectileHit() method to HitResolver for consistent hit handling
+- HitConfirmed signal now emits for all damage sources (melee + projectile + AOE)
 
 **Related Files:**
-- scripts/csharp/Projectiles/Projectile3D.cs (hit handling)
-- scripts/csharp/Combat/DamageSystem.cs (damage application)
+- scripts/csharp/Combat/Hitbox/HitResolver.cs (added ResolveProjectileHit)
+- scripts/csharp/Projectiles/Projectile3D.cs (HitTarget, HitTargetViaHurtbox, ApplyAoeDamage)
 - scripts/csharp/Units/Unit3D.cs (TakeDamage → FlashWhite)
-- scripts/csharp/Visual/SpriteVisualComponent.cs (FlashWhite implementation)
 
 ---
 
