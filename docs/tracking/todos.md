@@ -28,23 +28,32 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Completed:** 2026-01-30
 
 **Description:**
-Reward screens offer configurable card pools with rules like exclude owned, no duplicates, draw N options.
+Type-safe, composable reward pool system in C# with combinable filters.
 
 **Implementation:**
-- `RewardPoolCatalog.gd` - Defines named pools (element-based, rarity-based, type-based, custom)
-- `RewardPoolIDs.gd` - Type-safe pool ID constants
-- Pool-based battle config: `reward_pool`, `draw_count`, `exclude_owned`, `unique_options`
-- Pools auto-populate from CardCatalog by element, rarity, and type
-- Custom pools for tutorial rewards, boss loot, etc.
+- `RewardPoolCatalog.cs` - Pool definitions with filters, explicit cards, and composition
+- `RewardPoolId.cs` - Type-safe pool enum
+- `RewardConstants.gd` - GDScript mirror enums for type safety
+- Inline filter support: `reward_filters` with element, rarity, card_type
 
-**Battle Config Example:**
+**Battle Config Examples:**
 ```gdscript
+# Use predefined pool (enum-based)
 {
-    "reward_type": RewardTypeIDs.FLEXIBLE,
-    "reward_pool": RewardPoolIDs.FIRE_CARDS,
+    "reward_pool": RewardConstants.PoolId.FIRE_COMMON_UNITS,
     "draw_count": 3,
     "exclude_owned": true,
-    "unique_options": true,
+}
+
+# Use inline filters (combinable)
+{
+    "reward_filters": {
+        "element": RewardConstants.Element.FIRE,
+        "rarity": RewardConstants.Rarity.COMMON,
+        "card_type": RewardConstants.CardType.SUMMON,
+    },
+    "draw_count": 3,
+    "exclude_owned": true,
 }
 ```
 

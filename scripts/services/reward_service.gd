@@ -119,16 +119,23 @@ func get_reward_spec(battle_id: String) -> Dictionary:
 	elif reward_type == RewardTypeIDs.FLEXIBLE:
 		# Flexible rewards: player picks from options
 		var player_selects: bool = battle.get("player_selects", true)
+		var draw_count: int = battle.get("draw_count", 3)
+		var exclude_owned: bool = battle.get("exclude_owned", false)
+		var unique_options: bool = battle.get("unique_options", true)
 
 		if battle.has("reward_pool"):
-			# Pool-based generation (preferred)
-			var pool_id: StringName = StringName(battle.get("reward_pool", ""))
-			var draw_count: int = battle.get("draw_count", 3)
-			var exclude_owned: bool = battle.get("exclude_owned", false)
-			var unique_options: bool = battle.get("unique_options", true)
+			# Enum-based pool (type-safe, via C#)
+			var pool_id_int: int = battle.get("reward_pool", 0)
+			var drawn_ids: Array = _cs_service.DrawFromPoolEnum(
+				pool_id_int, draw_count, exclude_owned, unique_options
+			)
+			spec["card_options"] = _normalize_card_options(drawn_ids)
 
-			var drawn_ids: Array[StringName] = RewardPools.draw_from_pool(
-				pool_id, draw_count, exclude_owned, unique_options
+		elif battle.has("reward_filters"):
+			# Inline filter config (type-safe, via C#)
+			var filter_dict: Dictionary = battle.get("reward_filters", {})
+			var drawn_ids: Array = _cs_service.DrawWithFilterDict(
+				filter_dict, draw_count, exclude_owned, unique_options
 			)
 			spec["card_options"] = _normalize_card_options(drawn_ids)
 

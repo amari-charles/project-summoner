@@ -589,7 +589,124 @@ public partial class RewardService : Node
     }
 
     // =========================================================================
-    // GDSCRIPT INTEROP
+    // POOL-BASED REWARD DRAWING (Type-Safe)
+    // =========================================================================
+
+    /// <summary>
+    /// Draw cards from a predefined pool (enum-based, type-safe).
+    /// </summary>
+    /// <param name="poolId">Pool enum ID.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    /// <param name="excludeOwned">Whether to exclude owned cards.</param>
+    /// <param name="uniqueOnly">Whether to ensure no duplicates in result.</param>
+    /// <returns>List of card IDs.</returns>
+    public List<string> DrawFromPool(
+        RewardPoolId poolId,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
+        var cards = RewardPoolCatalog.GetCardsForPool(poolId, excludeIds);
+
+        return DrawRandomCards(cards, count, uniqueOnly);
+    }
+
+    /// <summary>
+    /// Draw cards using inline filter config.
+    /// </summary>
+    /// <param name="filterConfig">Filter configuration.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    /// <param name="excludeOwned">Whether to exclude owned cards.</param>
+    /// <param name="uniqueOnly">Whether to ensure no duplicates in result.</param>
+    /// <returns>List of card IDs.</returns>
+    public List<string> DrawWithFilters(
+        CardFilterConfig filterConfig,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
+        var cards = RewardPoolCatalog.FilterCards(filterConfig, excludeIds);
+
+        return DrawRandomCards(cards, count, uniqueOnly);
+    }
+
+    /// <summary>
+    /// Draw random cards from a candidate set.
+    /// </summary>
+    private List<string> DrawRandomCards(CardDefinition[] cards, int count, bool uniqueOnly)
+    {
+        var result = new List<string>();
+        var remaining = cards.ToList();
+
+        for (int i = 0; i < count && remaining.Count > 0; i++)
+        {
+            int idx = _random.Next(remaining.Count);
+            result.Add(remaining[idx].Id);
+
+            if (uniqueOnly)
+                remaining.RemoveAt(idx);
+        }
+
+        return result;
+    }
+
+    // =========================================================================
+    // GDSCRIPT INTEROP - POOL SYSTEM
+    // =========================================================================
+
+    /// <summary>
+    /// Draw cards from a predefined pool (GDScript-friendly).
+    /// </summary>
+    /// <param name="poolIdInt">Pool enum value as int.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    /// <param name="excludeOwned">Whether to exclude owned cards.</param>
+    /// <param name="uniqueOnly">Whether to ensure no duplicates.</param>
+    /// <returns>Array of card IDs.</returns>
+    public Godot.Collections.Array<string> DrawFromPoolEnum(
+        int poolIdInt,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        if (!Enum.IsDefined(typeof(RewardPoolId), poolIdInt))
+        {
+            GD.PushWarning($"RewardService: Invalid pool ID: {poolIdInt}");
+            return [];
+        }
+
+        var poolId = (RewardPoolId)poolIdInt;
+        var cards = DrawFromPool(poolId, count, excludeOwned, uniqueOnly);
+
+        var result = new Godot.Collections.Array<string>();
+        foreach (var cardId in cards)
+            result.Add(cardId);
+        return result;
+    }
+
+    /// <summary>
+    /// Draw cards using inline filter dictionary (GDScript-friendly).
+    /// Filter dict can have: element (int), rarity (int), card_type (int)
+    /// </summary>
+    public Godot.Collections.Array<string> DrawWithFilterDict(
+        Godot.Collections.Dictionary filterDict,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
+        var cards = RewardPoolCatalog.DrawWithFilters(filterDict, excludeIds);
+        var drawn = DrawRandomCards(cards, count, uniqueOnly);
+
+        var result = new Godot.Collections.Array<string>();
+        foreach (var cardId in drawn)
+            result.Add(cardId);
+        return result;
+    }
+
+    // =========================================================================
+    // GDSCRIPT INTEROP - LEGACY
     // =========================================================================
 
     /// <summary>GDScript-friendly version of GenerateRewardOptions.</summary>

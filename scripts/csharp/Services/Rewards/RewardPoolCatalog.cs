@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Constants;
 
@@ -8,178 +9,356 @@ namespace ProjectSummoner.Services.Rewards;
 /// <summary>
 /// Defines reward pools used for flexible reward generation.
 /// Pools filter cards by element, rarity, type, and tags.
+/// Supports both enum-based pools (type-safe) and inline filter configs.
 /// </summary>
 public static class RewardPoolCatalog
 {
     // =========================================================================
-    // POOL DEFINITIONS
+    // ENUM-BASED POOLS (Type-Safe)
     // =========================================================================
 
-    private static readonly Dictionary<string, RewardPoolDefinition> _pools = new()
+    private static readonly Dictionary<RewardPoolId, RewardPoolDefinition> _enumPools = new()
+    {
+        // =====================================================================
+        // CURATED POOLS (explicit card lists)
+        // =====================================================================
+
+        [RewardPoolId.TutorialRewards] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.TutorialRewards,
+            ExplicitCardIds = ["charge", "guard", "rally", "fire_wisp", "earth_sprite", "puff"]
+        },
+
+        [RewardPoolId.StarterRewards] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.StarterRewards,
+            ExplicitCardIds = ["fireball", "mana_bolt", "fire_ant", "water_frog", "cloud_swarm"]
+        },
+
+        [RewardPoolId.BossLoot] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.BossLoot,
+            ExplicitCardIds = ["fire_titan", "fire_ant_swarm", "fire_wisp_swarm"]
+        },
+
+        // =====================================================================
+        // COMBINED FILTER POOLS (element + rarity + type)
+        // =====================================================================
+
+        [RewardPoolId.FireCommonUnits] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.FireCommonUnits,
+            CardFilters = new CardFilterConfig
+            {
+                Elements = [Element.Fire],
+                Rarities = [Rarity.Common],
+                CardTypes = [CardType.Summon],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        [RewardPoolId.WaterCommonUnits] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.WaterCommonUnits,
+            CardFilters = new CardFilterConfig
+            {
+                Elements = [Element.Water],
+                Rarities = [Rarity.Common],
+                CardTypes = [CardType.Summon],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        [RewardPoolId.WindCommonUnits] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.WindCommonUnits,
+            CardFilters = new CardFilterConfig
+            {
+                Elements = [Element.Wind],
+                Rarities = [Rarity.Common],
+                CardTypes = [CardType.Summon],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        [RewardPoolId.EarthCommonUnits] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.EarthCommonUnits,
+            CardFilters = new CardFilterConfig
+            {
+                Elements = [Element.Earth],
+                Rarities = [Rarity.Common],
+                CardTypes = [CardType.Summon],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        [RewardPoolId.AllSpells] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.AllSpells,
+            CardFilters = new CardFilterConfig
+            {
+                CardTypes = [CardType.Spell],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        [RewardPoolId.AllCommon] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.AllCommon,
+            CardFilters = new CardFilterConfig
+            {
+                Rarities = [Rarity.Common],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        [RewardPoolId.AllRare] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.AllRare,
+            CardFilters = new CardFilterConfig
+            {
+                Rarities = [Rarity.Rare],
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
+            }
+        },
+
+        // =====================================================================
+        // COMPOSITE POOLS (union of other pools)
+        // =====================================================================
+
+        [RewardPoolId.ElementalStarters] = new RewardPoolDefinition
+        {
+            PoolId = RewardPoolId.ElementalStarters,
+            CombinePools = [
+                RewardPoolId.FireCommonUnits,
+                RewardPoolId.WaterCommonUnits,
+                RewardPoolId.WindCommonUnits,
+                RewardPoolId.EarthCommonUnits
+            ]
+        },
+    };
+
+    // =========================================================================
+    // LEGACY STRING-BASED POOLS (for backward compatibility)
+    // =========================================================================
+
+    private static readonly Dictionary<string, RewardPoolDefinition> _stringPools = new()
     {
         // Standard pool: All unlockable cards (no dev-only cards)
         ["standard_cards"] = new RewardPoolDefinition
         {
-            PoolId = "standard_cards",
+            LegacyPoolId = "standard_cards",
             CardFilters = new CardFilterConfig
             {
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Common cards only
         ["common_cards"] = new RewardPoolDefinition
         {
-            PoolId = "common_cards",
+            LegacyPoolId = "common_cards",
             CardFilters = new CardFilterConfig
             {
                 Rarities = [Rarity.Common],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
-        },
-
-        // Rare+ cards
-        ["rare_plus_cards"] = new RewardPoolDefinition
-        {
-            PoolId = "rare_plus_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Rarities = [Rarity.Rare, Rarity.Epic, Rarity.Legendary],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Fire element cards
         ["fire_cards"] = new RewardPoolDefinition
         {
-            PoolId = "fire_cards",
+            LegacyPoolId = "fire_cards",
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Fire],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Water element cards
         ["water_cards"] = new RewardPoolDefinition
         {
-            PoolId = "water_cards",
+            LegacyPoolId = "water_cards",
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Water],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Wind element cards
         ["wind_cards"] = new RewardPoolDefinition
         {
-            PoolId = "wind_cards",
+            LegacyPoolId = "wind_cards",
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Wind],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Earth element cards
         ["earth_cards"] = new RewardPoolDefinition
         {
-            PoolId = "earth_cards",
+            LegacyPoolId = "earth_cards",
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Earth],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
-        },
-
-        // Neutral element cards
-        ["neutral_cards"] = new RewardPoolDefinition
-        {
-            PoolId = "neutral_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Elements = [Element.Neutral],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Summon cards only
         ["summon_cards"] = new RewardPoolDefinition
         {
-            PoolId = "summon_cards",
+            LegacyPoolId = "summon_cards",
             CardFilters = new CardFilterConfig
             {
                 CardTypes = [CardType.Summon],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         },
 
         // Spell cards only
         ["spell_cards"] = new RewardPoolDefinition
         {
-            PoolId = "spell_cards",
+            LegacyPoolId = "spell_cards",
             CardFilters = new CardFilterConfig
             {
                 CardTypes = [CardType.Spell],
                 ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            },
-            IncludeItems = false
+            }
         }
     };
 
     // =========================================================================
-    // LOOKUP METHODS
+    // LOOKUP METHODS (Enum-based - Type-Safe)
     // =========================================================================
 
-    /// <summary>Get a pool definition by ID. Returns null if not found.</summary>
+    /// <summary>Get a pool definition by enum ID. Returns null if not found.</summary>
+    public static RewardPoolDefinition? GetPool(RewardPoolId poolId)
+    {
+        return _enumPools.GetValueOrDefault(poolId);
+    }
+
+    /// <summary>Check if a pool exists (enum-based).</summary>
+    public static bool HasPool(RewardPoolId poolId)
+    {
+        return _enumPools.ContainsKey(poolId);
+    }
+
+    /// <summary>Get all enum pool IDs.</summary>
+    public static RewardPoolId[] GetAllPoolIds()
+    {
+        return [.. _enumPools.Keys];
+    }
+
+    // =========================================================================
+    // LOOKUP METHODS (String-based - Legacy)
+    // =========================================================================
+
+    /// <summary>Get a pool definition by string ID. Returns null if not found.</summary>
     public static RewardPoolDefinition? GetPool(string poolId)
     {
-        return _pools.GetValueOrDefault(poolId);
+        return _stringPools.GetValueOrDefault(poolId);
     }
 
-    /// <summary>Check if a pool exists.</summary>
+    /// <summary>Check if a pool exists (string-based).</summary>
     public static bool HasPool(string poolId)
     {
-        return _pools.ContainsKey(poolId);
-    }
-
-    /// <summary>Get all pool IDs.</summary>
-    public static string[] GetAllPoolIds()
-    {
-        return [.. _pools.Keys];
+        return _stringPools.ContainsKey(poolId);
     }
 
     // =========================================================================
-    // CARD FILTERING
+    // CARD RESOLUTION
     // =========================================================================
 
     /// <summary>
-    /// Get cards matching a pool's filters.
+    /// Get cards matching a pool's filters (enum-based).
+    /// Handles explicit card lists, filters, and pool composition.
     /// </summary>
-    /// <param name="poolId">Pool ID to filter by.</param>
-    /// <param name="excludeCatalogIds">Optional: catalog IDs to exclude (e.g., owned cards).</param>
-    /// <returns>Matching card definitions.</returns>
+    public static CardDefinition[] GetCardsForPool(RewardPoolId poolId, HashSet<string>? excludeCatalogIds = null)
+    {
+        var pool = GetPool(poolId);
+        if (pool == null)
+        {
+            GD.PushWarning($"RewardPoolCatalog: Pool '{poolId}' not found");
+            return [];
+        }
+
+        return ResolvePoolDefinition(pool, excludeCatalogIds);
+    }
+
+    /// <summary>
+    /// Get cards matching a pool's filters (string-based, legacy).
+    /// </summary>
     public static CardDefinition[] GetCardsForPool(string poolId, HashSet<string>? excludeCatalogIds = null)
     {
         var pool = GetPool(poolId);
         if (pool == null)
+        {
+            GD.PushWarning($"RewardPoolCatalog: Pool '{poolId}' not found");
             return [];
+        }
 
-        return FilterCards(pool.CardFilters, excludeCatalogIds);
+        return ResolvePoolDefinition(pool, excludeCatalogIds);
     }
 
     /// <summary>
-    /// Get cards matching specific filter criteria.
+    /// Resolve a pool definition to card definitions.
+    /// Handles explicit cards, filters, and pool composition.
+    /// </summary>
+    private static CardDefinition[] ResolvePoolDefinition(RewardPoolDefinition pool, HashSet<string>? excludeCatalogIds = null)
+    {
+        HashSet<CardDefinition> candidates = [];
+
+        // Step 1: Handle composite pools (union)
+        if (pool.CombinePools is { Count: > 0 })
+        {
+            foreach (var subPoolId in pool.CombinePools)
+            {
+                var subCards = GetCardsForPool(subPoolId, excludeCatalogIds: null); // Don't double-filter
+                foreach (var card in subCards)
+                    candidates.Add(card);
+            }
+        }
+        // Step 2: Handle explicit card lists
+        else if (pool.ExplicitCardIds is { Count: > 0 })
+        {
+            foreach (var cardId in pool.ExplicitCardIds)
+            {
+                var card = CardCatalog.GetCard(cardId);
+                if (card != null)
+                    candidates.Add(card);
+            }
+        }
+        // Step 3: Handle filter-based pools
+        else
+        {
+            var allCards = CardCatalog.GetAllCards();
+            foreach (var card in allCards)
+                candidates.Add(card);
+        }
+
+        // Step 4: Apply filters (if any)
+        if (pool.CardFilters != null)
+        {
+            candidates = candidates.Where(card => MatchesFilters(card, pool.CardFilters)).ToHashSet();
+        }
+
+        // Step 5: Apply exclusions
+        if (excludeCatalogIds != null)
+        {
+            candidates = candidates.Where(c => !excludeCatalogIds.Contains(c.Id)).ToHashSet();
+        }
+
+        return [.. candidates];
+    }
+
+    /// <summary>
+    /// Get cards matching specific filter criteria (inline config).
     /// </summary>
     public static CardDefinition[] FilterCards(CardFilterConfig filters, HashSet<string>? excludeCatalogIds = null)
     {
@@ -191,78 +370,157 @@ public static class RewardPoolCatalog
             if (excludeCatalogIds != null && excludeCatalogIds.Contains(card.Id))
                 return false;
 
-            // Filter by elements
-            if (filters.Elements.Count > 0 && !filters.Elements.Contains(card.ElementalAffinity))
-                return false;
-
-            // Filter by rarities
-            if (filters.Rarities.Count > 0 && !filters.Rarities.Contains(card.Rarity))
-                return false;
-
-            // Filter by card types
-            if (filters.CardTypes.Count > 0 && !filters.CardTypes.Contains(card.Type))
-                return false;
-
-            // Filter by creature types (any match)
-            if (filters.CreatureTypes.Count > 0)
-            {
-                bool hasMatch = filters.CreatureTypes.Any(ct => (card.CreatureTypes & ct) != 0);
-                if (!hasMatch) return false;
-            }
-
-            // Filter by roles (any match)
-            if (filters.Roles.Count > 0)
-            {
-                bool hasMatch = filters.Roles.Any(r => (card.Roles & r) != 0);
-                if (!hasMatch) return false;
-            }
-
-            // Filter by spell categories
-            if (filters.SpellCategories.Count > 0 && !filters.SpellCategories.Contains(card.SpellCategory))
-                return false;
-
-            // Exclude cards with DevOnly flag
-            if ((card.Flags & CardFlags.DevOnly) != 0)
-                return false;
-
-            // Exclude by unlock conditions
-            if (filters.ExcludeUnlockConditions.Contains(card.UnlockCondition))
-                return false;
-
-            return true;
+            return MatchesFilters(card, filters);
         }).ToArray();
     }
 
     /// <summary>
-    /// Get pool ID for a specific element.
+    /// Check if a card matches filter criteria.
     /// </summary>
-    public static string GetPoolIdForElement(Element element)
+    private static bool MatchesFilters(CardDefinition card, CardFilterConfig filters)
+    {
+        // Filter by elements
+        if (filters.Elements.Count > 0 && !filters.Elements.Contains(card.ElementalAffinity))
+            return false;
+
+        // Filter by rarities
+        if (filters.Rarities.Count > 0 && !filters.Rarities.Contains(card.Rarity))
+            return false;
+
+        // Filter by card types
+        if (filters.CardTypes.Count > 0 && !filters.CardTypes.Contains(card.Type))
+            return false;
+
+        // Filter by creature types (any match)
+        if (filters.CreatureTypes.Count > 0)
+        {
+            bool hasMatch = filters.CreatureTypes.Any(ct => (card.CreatureTypes & ct) != 0);
+            if (!hasMatch) return false;
+        }
+
+        // Filter by roles (any match)
+        if (filters.Roles.Count > 0)
+        {
+            bool hasMatch = filters.Roles.Any(r => (card.Roles & r) != 0);
+            if (!hasMatch) return false;
+        }
+
+        // Filter by spell categories
+        if (filters.SpellCategories.Count > 0 && !filters.SpellCategories.Contains(card.SpellCategory))
+            return false;
+
+        // Exclude cards with DevOnly flag
+        if ((card.Flags & CardFlags.DevOnly) != 0)
+            return false;
+
+        // Exclude by unlock conditions
+        if (filters.ExcludeUnlockConditions.Contains(card.UnlockCondition))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Get enum pool ID for a specific element.
+    /// </summary>
+    public static RewardPoolId? GetPoolIdForElement(Element element)
     {
         return element switch
         {
-            Element.Fire => "fire_cards",
-            Element.Water => "water_cards",
-            Element.Wind => "wind_cards",
-            Element.Earth => "earth_cards",
-            Element.Neutral => "neutral_cards",
-            _ => "standard_cards"
+            Element.Fire => RewardPoolId.FireCommonUnits,
+            Element.Water => RewardPoolId.WaterCommonUnits,
+            Element.Wind => RewardPoolId.WindCommonUnits,
+            Element.Earth => RewardPoolId.EarthCommonUnits,
+            _ => null
         };
+    }
+
+    // =========================================================================
+    // INLINE FILTER CONFIG FROM GDSCRIPT
+    // =========================================================================
+
+    /// <summary>
+    /// Create a CardFilterConfig from a GDScript dictionary.
+    /// Allows battle configs to specify inline filters.
+    /// </summary>
+    public static CardFilterConfig? FilterConfigFromDict(Godot.Collections.Dictionary dict)
+    {
+        if (dict == null || dict.Count == 0)
+            return null;
+
+        var config = new CardFilterConfig();
+
+        // Element filter (int enum value)
+        if (dict.TryGetValue("element", out var elemVar))
+        {
+            var elemInt = elemVar.AsInt32();
+            if (Enum.IsDefined(typeof(Element), elemInt))
+                config.Elements.Add((Element)elemInt);
+        }
+
+        // Rarity filter (int enum value)
+        if (dict.TryGetValue("rarity", out var rarVar))
+        {
+            var rarInt = rarVar.AsInt32();
+            if (Enum.IsDefined(typeof(Rarity), rarInt))
+                config.Rarities.Add((Rarity)rarInt);
+        }
+
+        // Card type filter (int enum value)
+        if (dict.TryGetValue("card_type", out var typeVar))
+        {
+            var typeInt = typeVar.AsInt32();
+            if (Enum.IsDefined(typeof(CardType), typeInt))
+                config.CardTypes.Add((CardType)typeInt);
+        }
+
+        // Always exclude DevOnly cards
+        config.ExcludeUnlockConditions.Add(UnlockCondition.DevOnly);
+
+        return config;
+    }
+
+    /// <summary>
+    /// Draw cards using inline filter config from GDScript.
+    /// </summary>
+    public static CardDefinition[] DrawWithFilters(
+        Godot.Collections.Dictionary filterDict,
+        HashSet<string>? excludeCatalogIds = null)
+    {
+        var filters = FilterConfigFromDict(filterDict);
+        if (filters == null)
+            return CardCatalog.GetAllCards()
+                .Where(c => c.UnlockCondition != UnlockCondition.DevOnly)
+                .Where(c => excludeCatalogIds == null || !excludeCatalogIds.Contains(c.Id))
+                .ToArray();
+
+        return FilterCards(filters, excludeCatalogIds);
     }
 }
 
 /// <summary>
 /// Definition of a reward pool.
+/// Supports three modes:
+/// 1. Explicit card list (ExplicitCardIds)
+/// 2. Filter-based (CardFilters)
+/// 3. Composite (CombinePools - union of other pools)
 /// </summary>
 public class RewardPoolDefinition
 {
-    /// <summary>Unique pool identifier.</summary>
-    public required string PoolId { get; init; }
+    /// <summary>Enum pool identifier (type-safe).</summary>
+    public RewardPoolId? PoolId { get; init; }
 
-    /// <summary>Card filter configuration.</summary>
-    public CardFilterConfig CardFilters { get; init; } = new();
+    /// <summary>String pool identifier (legacy).</summary>
+    public string? LegacyPoolId { get; init; }
 
-    /// <summary>Whether this pool can include items (Phase 4).</summary>
-    public bool IncludeItems { get; init; }
+    /// <summary>Explicit card IDs (for curated pools).</summary>
+    public List<string>? ExplicitCardIds { get; init; }
+
+    /// <summary>Card filter configuration (for filter-based pools).</summary>
+    public CardFilterConfig? CardFilters { get; init; }
+
+    /// <summary>Other pools to combine (union, for composite pools).</summary>
+    public List<RewardPoolId>? CombinePools { get; init; }
 }
 
 /// <summary>
