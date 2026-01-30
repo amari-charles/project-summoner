@@ -18,20 +18,7 @@ const CampaignSelectorModalScene: PackedScene = preload("res://scenes/ui/compone
 @onready var screen_background: ColorRect = %ScreenBackground
 @onready var map_background: ColorRect = %MapBackground
 @onready var detail_panel: Panel = %DetailPanel
-@onready var event_name_label: Label = %EventNameLabel
-@onready var difficulty_container: HBoxContainer = %DifficultyContainer
-@onready var difficulty_label: Label = %DifficultyLabel
-@onready var stars_container: HBoxContainer = %StarsContainer
-@onready var description_label: Label = %DescriptionLabel
-@onready var reward_label: Label = %RewardLabel
-@onready var deck_column: VBoxContainer = $DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn
-@onready var deck_header_label: Label = $DetailPanel/MarginContainer/VBoxContainer/ContentColumns/RightColumn/DeckHeaderLabel
-@onready var active_deck_label: Label = %ActiveDeckLabel
-@onready var change_deck_button: Button = %ChangeDeckButton
-@onready var deck_selector: ItemList = %DeckSelector
-@onready var deck_info_label: Label = %DeckInfoLabel
-@onready var active_deck_indicator: Label = %ActiveDeckIndicator
-@onready var start_event_button: Button = %StartEventButton
+@onready var panel_container: Control = %PanelContainer
 
 ## Map layout constants
 const NODE_SPACING: float = 150.0  # Horizontal spacing between nodes
@@ -51,11 +38,6 @@ const SUMMONER_ICON_SIZE: float = 50.0
 const SUMMONER_ICON_MARGIN: float = 20.0
 const GOLD_LABEL_MARGIN: float = 20.0
 const GOLD_LABEL_HEIGHT: float = 32.0
-
-## Kenny UI Pack star textures for difficulty display
-const STAR_FILLED_TEXTURE: String = "res://assets/ui/kenny/PNG/Yellow/Default/star.png"
-const STAR_EMPTY_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/star_outline.png"
-const STAR_SIZE: int = 24  # Size of each star icon
 
 ## Kenny UI Pack textures for event nodes
 const EVENT_NODE_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/button_round_depth_flat.png"
@@ -83,10 +65,8 @@ var pan_start_position: Vector2 = Vector2.ZERO
 var last_mouse_position: Vector2 = Vector2.ZERO
 const PAN_THRESHOLD: float = 5.0  # Pixels to move before panning starts
 
-## Deck selection state
-var available_decks: Array[Dictionary] = []
-var selected_deck_id: String = ""
-var _deck_selector_visible: bool = false
+## Active panel for detail display
+var active_panel: NodeDetailPanelBase = null
 
 ## Summoner icon widget reference
 var summoner_icon: SummonerIconWidget = null
@@ -101,11 +81,6 @@ var nav_drawer: NavDrawer = null
 ## Campaign selector components
 var campaign_banner: Button = null
 var campaign_selector_modal: CampaignSelectorModal = null
-
-## Choice modal for path decisions
-var choice_modal: Panel = null
-var choice_options_container: VBoxContainer = null
-var pending_choice_node_id: String = ""
 
 ## =============================================================================
 ## TYPE HELPERS
@@ -126,15 +101,6 @@ func _safe_array(variant: Variant) -> Array:
 func _safe_bool(variant: Variant, default: bool = false) -> bool:
 	return variant if variant is bool else default
 
-## Get display name for a card from CardCatalog, with fallback
-func _get_card_display_name(catalog: Node, catalog_id: String) -> String:
-	if catalog and catalog.has_method("get_card"):
-		var card_data: Dictionary = _safe_dict(catalog.call("get_card", catalog_id))
-		if not card_data.is_empty():
-			return _safe_string(card_data.get("card_name", catalog_id), catalog_id)
-	# Fallback: convert catalog_id to title case (fire_wisp → Fire Wisp)
-	return catalog_id.replace("_", " ").capitalize()
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -144,14 +110,6 @@ func _ready() -> void:
 
 	# Connect buttons
 	locator_button.pressed.connect(_on_center_latest_pressed)
-	start_event_button.pressed.connect(_on_start_event_pressed)
-	deck_selector.item_selected.connect(_on_deck_selected)
-	change_deck_button.pressed.connect(_on_change_deck_pressed)
-
-	# Set localized text for static labels
-	deck_header_label.text = Loc.t("campaign.map.deck_header")
-
-	# Background texture is set directly in the scene file
 
 	# Setup detail panel with fantasy border
 	_setup_detail_panel_border()
@@ -450,8 +408,7 @@ func _get_node_type_color(node_type: String) -> Color:
 
 func _on_event_node_clicked(event_id: String) -> void:
 	selected_event_id = event_id
-	_update_detail_panel()
-	_show_popup()
+	_show_detail_panel_for_event(event_id)
 	print("CampaignMap: Selected event: %s" % event_id)
 
 func _show_popup() -> void:
@@ -530,297 +487,58 @@ func _setup_detail_panel_border() -> void:
 	detail_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 
-## Update difficulty display with Kenny star icons
-func _update_difficulty_stars(difficulty: int) -> void:
-	# Clear existing stars
-	for child: Node in stars_container.get_children():
-		child.queue_free()
-
-	# Hide entire container if no difficulty
-	if difficulty <= 0:
-		difficulty_container.visible = false
+## Show the appropriate detail panel for an event
+func _show_detail_panel_for_event(event_id: String) -> void:
+	var event: Dictionary = _safe_dict(Campaign.get_battle(event_id))
+	if event.is_empty():
 		return
 
-	difficulty_container.visible = true
-	difficulty_label.text = Loc.t("campaign.map.difficulty_label")
+	var event_type: StringName = NodePanelFactory.get_event_type(event)
 
-	# Load star textures
-	var filled_tex: Texture2D = load(STAR_FILLED_TEXTURE)
-	var empty_tex: Texture2D = load(STAR_EMPTY_TEXTURE)
+	# Check if we need to swap panel types
+	if active_panel and active_panel.get_event_type() != event_type:
+		active_panel.queue_free()
+		active_panel = null
 
-	# Create 5 stars (filled for difficulty level, empty for rest)
-	for i: int in range(5):
-		var star: TextureRect = TextureRect.new()
-		star.texture = filled_tex if i < difficulty else empty_tex
-		star.custom_minimum_size = Vector2(STAR_SIZE, STAR_SIZE)
-		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stars_container.add_child(star)
+	# Create panel if needed
+	if not active_panel:
+		active_panel = NodePanelFactory.create_panel(event_type)
+		panel_container.add_child(active_panel)
+		_connect_panel_signals(active_panel)
+
+	# Configure the panel with event data
+	active_panel.configure(event, event_id)
+
+	# Show the popup
+	_show_popup()
 
 
-func _update_detail_panel() -> void:
+## Connect signals from a panel based on its type
+func _connect_panel_signals(panel: NodeDetailPanelBase) -> void:
+	# All panels have start_requested
+	if not panel.start_requested.is_connected(_on_panel_start_requested):
+		panel.start_requested.connect(_on_panel_start_requested)
+
+	# Choice panels have choice_made
+	if panel is ChoiceNodePanel:
+		var choice_panel: ChoiceNodePanel = panel as ChoiceNodePanel
+		if not choice_panel.choice_made.is_connected(_on_choice_made):
+			choice_panel.choice_made.connect(_on_choice_made)
+
+## =============================================================================
+## PANEL EVENT HANDLERS
+## =============================================================================
+
+## Handle start button pressed from any panel type
+func _on_panel_start_requested() -> void:
 	if selected_event_id == "":
-		event_name_label.text = Loc.t("campaign.map.select_event")
-		_update_difficulty_stars(0)  # Hide stars
-		description_label.text = Loc.t("campaign.map.click_to_see_details")
-		reward_label.text = ""
-		start_event_button.disabled = true
-		# Clear deck selection UI
-		deck_selector.clear()
-		deck_info_label.text = ""
-		active_deck_indicator.text = ""
 		return
 
-	# Get event data
 	var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
 	if event.is_empty():
 		return
 
-	# Check if this event requires deck selection
-	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
-	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
-
-	# Show/hide deck selection based on event configuration
-	if deck_column:
-		deck_column.visible = requires_deck
-
-	# Load available decks only if required
-	if requires_deck:
-		_load_decks()
-
-	# Update labels
-	event_name_label.text = _safe_string(event.get("name", "Unknown"), "Unknown")
-
-	# Show difficulty for battles, hide for other event types
-	var difficulty: int = _safe_int(event.get("difficulty", 0), 0)
-	_update_difficulty_stars(difficulty)
-
-	description_label.text = _safe_string(event.get("description", "No description."), "No description.")
-
-	# Reward summary - build multi-line reward text
-	var reward_type: StringName = StringName(event.get("reward_type", RewardTypeIDs.FIXED))
-	var reward_cards: Array = _safe_array(event.get("reward_cards", []))
-	var gold_reward: int = _safe_int(event.get("gold_reward", 0), 0)
-	var summoner_xp_reward: int = _safe_int(event.get("summoner_xp_reward", 0), 0)
-
-	# Get CardCatalog for proper card names
-	var catalog: Node = CardCatalog
-	var reward_lines: Array[String] = []
-
-	# Gold reward (if > 0)
-	if gold_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": gold_reward}))
-
-	# Summoner XP reward (if > 0)
-	if summoner_xp_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": summoner_xp_reward}))
-
-	# Card reward based on type
-	match reward_type:
-		RewardTypeIDs.FIXED:
-			if reward_cards.size() > 0:
-				var card_names: Array[String] = []
-				for reward_item: Variant in reward_cards:
-					var reward: Dictionary = _safe_dict(reward_item)
-					var count: int = _safe_int(reward.get("count", 1), 1)
-					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
-					var card_name: String = _get_card_display_name(catalog, catalog_id)
-					if count > 1:
-						card_names.append("%dx %s" % [count, card_name])
-					else:
-						card_names.append(card_name)
-				reward_lines.append(Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)}))
-
-		RewardTypeIDs.FLEXIBLE:
-			# Simple "1 Card" display - don't spoil the options
-			reward_lines.append(Loc.t("campaign.rewards.card_choice"))
-
-		RewardTypeIDs.NONE:
-			pass  # No card reward line needed
-
-	reward_label.text = "\n".join(reward_lines)
-
-	# Enable/disable start button based on completion and repeatability
-	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(selected_event_id))
-	var is_repeatable: bool = _safe_bool(event.get("repeatable", true))
-
-	if is_completed:
-		if is_repeatable:
-			start_event_button.text = Loc.t("campaign.map.button_replay")
-			start_event_button.disabled = false
-		else:
-			# Non-repeatable events cannot be replayed
-			start_event_button.text = Loc.t("campaign.map.button_completed")
-			start_event_button.disabled = true
-	else:
-		start_event_button.text = Loc.t("campaign.map.button_start_event")
-		start_event_button.disabled = false
-
-## =============================================================================
-## DECK SELECTION
-## =============================================================================
-
-func _load_decks() -> void:
-	# Clear existing items
-	deck_selector.clear()
-	available_decks.clear()
-
-	# Get active summoner ID to filter decks
-	var active_summoner_id: String = ""
-	var result: Variant = SummonerSelection.GetActiveSummonerId()
-	if result is String:
-		active_summoner_id = result
-
-	# Get decks filtered by active summoner
-	var decks_array: Array
-	if not active_summoner_id.is_empty():
-		var decks_variant: Variant = Decks.list_decks_for_summoner(active_summoner_id)
-		decks_array = _safe_array(decks_variant)
-	else:
-		var decks_variant: Variant = Decks.list_decks()
-		decks_array = _safe_array(decks_variant)
-	available_decks.assign(decks_array)
-
-	if available_decks.is_empty():
-		active_deck_label.text = Loc.t("campaign.map.error_create_deck_first")
-		deck_info_label.text = ""
-		active_deck_indicator.text = ""
-		change_deck_button.visible = false
-		return
-
-	change_deck_button.visible = true
-
-	# Populate ItemList with deck names
-	for deck: Dictionary in available_decks:
-		var deck_name: String = _safe_string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
-		deck_selector.add_item(deck_name)
-
-	# Get currently selected deck from profile
-	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = _safe_dict(profile_variant)
-	var found_deck: bool = false
-	if not profile.is_empty() and profile.has("meta"):
-		var meta: Dictionary = _safe_dict(profile.get("meta"))
-		var active_deck: String = _safe_string(meta.get("selected_deck", ""))
-
-		# Find the deck in available_decks and select it
-		for i: int in range(available_decks.size()):
-			var deck: Dictionary = available_decks[i]
-			var deck_id: String = _safe_string(deck.get("id", ""))
-			if deck_id == active_deck:
-				deck_selector.select(i)
-				selected_deck_id = deck_id
-				found_deck = true
-				break
-
-	# Auto-select first deck if none selected
-	if not found_deck and available_decks.size() > 0:
-		var first_deck: Dictionary = available_decks[0]
-		selected_deck_id = _safe_string(first_deck.get("id", ""))
-		deck_selector.select(0)
-		# Save auto-selection to profile
-		_save_deck_selection()
-
-	# Update deck info display
-	_update_deck_info()
-
-func _on_deck_selected(index: int) -> void:
-	if index < 0 or index >= available_decks.size():
-		return
-
-	var deck: Dictionary = available_decks[index]
-	selected_deck_id = _safe_string(deck.get("id", ""))
-
-	# Save selection to profile
-	_save_deck_selection()
-
-	# Update deck info display
-	_update_deck_info()
-
-	# Hide selector after selection
-	_deck_selector_visible = false
-	deck_selector.visible = false
-	change_deck_button.text = Loc.t("campaign.map.change_deck")
-
-func _on_change_deck_pressed() -> void:
-	_deck_selector_visible = not _deck_selector_visible
-	deck_selector.visible = _deck_selector_visible
-	if _deck_selector_visible:
-		change_deck_button.text = Loc.t("campaign.map.done")
-	else:
-		change_deck_button.text = Loc.t("campaign.map.change_deck")
-
-func _save_deck_selection() -> void:
-	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = _safe_dict(profile_variant)
-	if not profile.is_empty():
-		if not profile.has("meta"):
-			profile["meta"] = {}
-		var meta: Dictionary = _safe_dict(profile.get("meta"))
-		meta["selected_deck"] = selected_deck_id
-		ProfileRepo.save_profile(true)  # Immediate save
-
-func _update_deck_info() -> void:
-	if selected_deck_id.is_empty():
-		active_deck_label.text = Loc.t("campaign.map.no_deck_selected")
-		deck_info_label.text = ""
-		active_deck_indicator.text = ""
-		return
-
-	# Find the selected deck
-	var selected_deck: Dictionary = {}
-	for deck: Dictionary in available_decks:
-		if _safe_string(deck.get("id", "")) == selected_deck_id:
-			selected_deck = deck
-			break
-
-	if selected_deck.is_empty():
-		active_deck_label.text = Loc.t("campaign.map.no_deck_selected")
-		deck_info_label.text = ""
-		active_deck_indicator.text = ""
-		return
-
-	# Show deck name
-	var deck_name: String = _safe_string(selected_deck.get("name", "Unnamed Deck"), "Unnamed Deck")
-	active_deck_label.text = deck_name
-
-	# Show card count
-	var card_instance_ids: Array = _safe_array(selected_deck.get("card_instance_ids", []))
-	var card_count: int = card_instance_ids.size()
-	deck_info_label.text = Loc.t("campaign.map.deck_card_count", {"count": card_count})
-
-	# Validate deck and show status
-	var is_valid: bool = _validate_selected_deck()
-	if is_valid:
-		active_deck_indicator.text = Loc.t("campaign.map.deck_status_ready")
-		active_deck_indicator.modulate = Color(0.3, 1.0, 0.3)
-	else:
-		active_deck_indicator.text = Loc.t("campaign.map.deck_status_invalid")
-		active_deck_indicator.modulate = Color(1.0, 0.5, 0.0)
-
-func _validate_selected_deck() -> bool:
-	if selected_deck_id.is_empty():
-		return false
-
-	var is_valid_variant: Variant = Decks.validate_deck(selected_deck_id)
-	return _safe_bool(is_valid_variant, false)
-
-## =============================================================================
-## EVENT START
-## =============================================================================
-
-func _on_start_event_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if selected_event_id == "":
-		return
-
-	# Get event data to check event_type
-	var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
-	if event.is_empty():
-		return
-
-	var event_type: StringName = StringName(event.get("event_type", EventTypeIDs.BATTLE))
-	var requires_deck: bool = _safe_bool(event.get("requires_deck", true), true)
+	var event_type: StringName = NodePanelFactory.get_event_type(event)
 
 	# Handle affinity selection event - route to summoner selection
 	if event_type == EventTypeIDs.AFFINITY:
@@ -835,23 +553,6 @@ func _on_start_event_pressed() -> void:
 		return
 
 	# Handle caravan events - navigate directly to shop with event context
-	#
-	# CARAVAN EVENT FLOW:
-	# 1. CampaignMap configures EventContext with event data
-	# 2. Navigate directly to ShopScreen (not EventScreen)
-	# 3. ShopScreen detects EventContext.current_event_id is set
-	# 4. ShopScreen switches to caravan mode:
-	#    - Hides back button, shows "Leave Caravan" button
-	#    - Loads event sequence from event_config
-	#    - Plays dialogue on top of shop UI (seamless browsing during dialogue)
-	# 5. After dialogue completes, "Leave Caravan" button becomes visible
-	# 6. User can browse/purchase, then click "Leave Caravan"
-	# 7. Confirmation modal appears (repeatable check)
-	# 8. On confirm: EventContext.complete_event() marks event done
-	# 9. NavigationContext returns to SCENE_CAMPAIGN_MAP
-	#
-	# This approach allows dialogue to play while shop is visible, avoiding
-	# the jarring dialogue → black screen → shop transition.
 	if event_type == EventTypeIDs.CARAVAN:
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
@@ -871,28 +572,8 @@ func _on_start_event_pressed() -> void:
 		SceneManager.transition_to(SceneManager.SCENE_CARAVAN_SCREEN)
 		return
 
-	# Handle choice events - show choice modal
-	if event_type == EventTypeIDs.CHOICE:
-		print("CampaignMap: Opening choice modal for: %s" % selected_event_id)
-		_show_choice_modal(event)
-		return
-
 	# Handle battle events
 	print("CampaignMap: Starting battle event: %s" % selected_event_id)
-
-	# Validate deck selection only if this event requires a deck
-	if requires_deck:
-		if selected_deck_id.is_empty():
-			push_error("CampaignMap: No deck selected!")
-			# Update UI to show error
-			active_deck_indicator.text = Loc.t("campaign.map.deck_status_select_first")
-			active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)
-			return
-
-		if not _validate_selected_deck():
-			push_error("CampaignMap: Selected deck is invalid!")
-			# Error already shown in UI by _update_deck_info
-			return
 
 	# Store selected event in campaign service
 	var profile: Dictionary = _safe_dict(ProfileRepo.get_active_profile())
@@ -917,6 +598,23 @@ func _on_start_event_pressed() -> void:
 
 	print("CampaignMap: Launching battle scene...")
 	SceneManager.transition_to(battle_scene)
+
+
+## Handle choice made from choice panel
+func _on_choice_made(option_id: String) -> void:
+	print("CampaignMap: Player chose option '%s' for node '%s'" % [option_id, selected_event_id])
+
+	# Hide the detail panel
+	detail_panel.visible = false
+
+	# Record the choice (this affects which edges are traversable)
+	Campaign.record_choice(selected_event_id, option_id)
+
+	# Mark the choice node as completed
+	Campaign.complete_battle(selected_event_id)
+
+	# Refresh map to show newly unlocked paths
+	_refresh_map()
 
 ## =============================================================================
 ## NAVIGATION
@@ -1192,149 +890,36 @@ func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
 	_update_gold_display()
 
 ## =============================================================================
-## CHOICE MODAL
-## =============================================================================
-
-## Show the choice modal for a path decision
-func _show_choice_modal(event: Dictionary) -> void:
-	pending_choice_node_id = selected_event_id
-
-	# Get options from event data
-	var options: Array = _safe_array(event.get("options", []))
-	if options.is_empty():
-		push_warning("CampaignMap: Choice event '%s' has no options" % selected_event_id)
-		return
-
-	# Create modal if it doesn't exist
-	if choice_modal == null:
-		_create_choice_modal()
-
-	# Clear previous options
-	for child: Node in choice_options_container.get_children():
-		child.queue_free()
-
-	# Get the choice name from event
-	var choice_name: String = _safe_string(event.get("name", "Choose Your Path"))
-
-	# Add title
-	var title: Label = Label.new()
-	title.text = choice_name
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
-	choice_options_container.add_child(title)
-
-	# Add spacing
-	var spacer: Control = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 20)
-	choice_options_container.add_child(spacer)
-
-	# Add option buttons
-	for option_variant: Variant in options:
-		if not option_variant is Dictionary:
-			continue
-		var option: Dictionary = option_variant
-		var option_id: String = _safe_string(option.get("id", ""))
-		var label_key: String = _safe_string(option.get("label_key", ""))
-		var desc_key: String = _safe_string(option.get("description_key", ""))
-
-		var label_text: String = Loc.t(label_key) if not label_key.is_empty() else option_id
-		var desc_text: String = Loc.t(desc_key) if not desc_key.is_empty() else ""
-
-		var option_button: Button = Button.new()
-		option_button.text = label_text
-		option_button.custom_minimum_size = Vector2(300, 50)
-		option_button.pressed.connect(_on_choice_option_selected.bind(option_id))
-		choice_options_container.add_child(option_button)
-
-		# Add description below button if available
-		if not desc_text.is_empty():
-			var desc_label: Label = Label.new()
-			desc_label.text = desc_text
-			desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			desc_label.add_theme_font_size_override("font_size", 14)
-			desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-			choice_options_container.add_child(desc_label)
-
-			var option_spacer: Control = Control.new()
-			option_spacer.custom_minimum_size = Vector2(0, 15)
-			choice_options_container.add_child(option_spacer)
-
-	# Show the modal centered
-	var viewport_size: Vector2 = get_viewport_rect().size
-	choice_modal.size = Vector2(400, 350)
-	choice_modal.position = (viewport_size - choice_modal.size) / 2
-	choice_modal.visible = true
-
-	# Hide detail panel while choice modal is open
-	detail_panel.visible = false
-
-
-## Create the choice modal UI
-func _create_choice_modal() -> void:
-	choice_modal = Panel.new()
-	choice_modal.visible = false
-	add_child(choice_modal)
-
-	# Dark background style
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.12, 0.18, 0.98)
-	style.border_color = Color(0.4, 0.35, 0.5)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	choice_modal.add_theme_stylebox_override("panel", style)
-
-	# Container for content
-	var margin: MarginContainer = MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
-	choice_modal.add_child(margin)
-
-	choice_options_container = VBoxContainer.new()
-	choice_options_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	margin.add_child(choice_options_container)
-
-
-## Handle choice option selection
-func _on_choice_option_selected(option_id: String) -> void:
-	print("CampaignMap: Player chose option '%s' for node '%s'" % [option_id, pending_choice_node_id])
-
-	# Hide modal
-	choice_modal.visible = false
-
-	# Record the choice (this affects which edges are traversable)
-	Campaign.record_choice(pending_choice_node_id, option_id)
-
-	# Mark the choice node as completed
-	Campaign.complete_battle(pending_choice_node_id)
-
-	# Refresh map to show newly unlocked paths
-	_refresh_map()
-
-	pending_choice_node_id = ""
-
-
-## =============================================================================
 ## SIGNALS
 ## =============================================================================
 
 func _on_event_completed(_event_id: String) -> void:
 	_refresh_map()
-	_update_detail_panel()
+	# Refresh the active panel if visible
+	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
+		var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+		if not event.is_empty():
+			active_panel.configure(event, selected_event_id)
 
 func _on_progress_changed() -> void:
 	# Full refresh when progress changes (e.g., snapshot loaded)
 	_refresh_map()
-	_update_detail_panel()
 	_update_campaign_banner_text()
 	if summoner_icon:
 		summoner_icon.refresh()
+	# Refresh the active panel if visible
+	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
+		var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+		if not event.is_empty():
+			active_panel.configure(event, selected_event_id)
 
 func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: String) -> void:
-	# Refresh summoner icon, map, and deck list when summoner changes
+	# Refresh summoner icon, map, and panel when summoner changes
 	if summoner_icon:
 		summoner_icon.refresh()
 	_refresh_map()
-	_update_detail_panel()
+	# Refresh the active panel if visible
+	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
+		var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+		if not event.is_empty():
+			active_panel.configure(event, selected_event_id)

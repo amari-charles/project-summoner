@@ -10,6 +10,13 @@
 - **ALLOWED**: Simple placeholder content (basic shapes, test units) needed to build and test core systems
 - **NOT ALLOWED**: Polished artwork, detailed sprites, extensive level/battle content
 
+**Placeholder Naming Convention:**
+When creating placeholder content (items, cards, UI elements, etc.), **always name them to be obviously temporary**:
+- **DO**: "PLACEHOLDER EMOTE 1", "TEST CARD - Fire", "TEMP THEME - Debug"
+- **DON'T**: "Laugh", "Crimson Theme", "Golden Card Back" (sounds like real content)
+
+This prevents confusion on future reviews about what is intentional vs temporary. Plausible-sounding placeholder names risk being shipped as final content or causing wasted effort reviewing "content" that was never meant to be real.
+
 The current priority is building an exceptional foundation:
 
 1. **Core Game Mechanics** - Ensure all fundamental systems work flawlessly
@@ -66,6 +73,65 @@ Do NOT just revert to a previous working state when encountering errors. Fix the
 - Prefer clean, single-path implementations
 - Remove deprecated code immediately
 - Don't hedge with "we can keep the old way too"
+- **Prefer interfaces over flags**: When different types need different behavior, create an interface with type-specific implementations rather than adding boolean flags to a shared object.
+
+### Configurability Over Flags
+
+**AVOID:** Adding boolean flags to differentiate behavior between types.
+
+```gdscript
+# BAD: Accumulates flags, creates complex conditionals
+var event_data = {
+    "requires_deck": true,
+    "show_rewards": true,
+    "has_preview": false,
+    "enable_deck_edit": false,
+    # ...flags multiply as features grow
+}
+
+# Then scattered throughout the code:
+if event_data.requires_deck:
+    deck_column.visible = true
+if event_data.show_rewards:
+    rewards_panel.visible = true
+```
+
+This pattern leads to:
+- Flag proliferation as features grow
+- Complex conditional logic scattered throughout code
+- Difficulty understanding what combination of flags each type uses
+- Bugs when flags interact unexpectedly
+
+**PREFER:** Interfaces with type-specific implementations.
+
+```gdscript
+# GOOD: Each type defines its own behavior
+class_name NodeDetailModal extends Control
+
+func _get_sections() -> Array[Control]:
+    push_error("Subclass must implement _get_sections()")
+    return []
+
+# ---
+
+class_name BattleNodeModal extends NodeDetailModal
+
+func _get_sections() -> Array[Control]:
+    return [_create_info_section(), _create_deck_section(), _create_rewards_section()]
+
+# ---
+
+class_name CaravanNodeModal extends NodeDetailModal
+
+func _get_sections() -> Array[Control]:
+    return [_create_info_section(), _create_shop_preview_section()]
+```
+
+This pattern provides:
+- Clear, explicit behavior per type
+- No flag combinations to reason about
+- Easy to add new types without touching existing code
+- Each implementation is self-contained and testable
 - **Avoid bandaid fixes**: Don't suppress warnings with `@warning_ignore` or similar. Fix the root cause instead:
   - Use `has_method()` checks for duck typing
   - Properly type variables when possible

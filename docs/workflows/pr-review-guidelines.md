@@ -176,9 +176,41 @@ Unnecessary abstraction or bloat
 
 Over-abstracted helpers, useless wrapper functions, or layers that don't add real value.
 
-Large “God functions” or classes that should be split.
+Large "God functions" or classes that should be split.
 
 Suggest simpler, clearer structures that still allow future extension.
+
+Flag proliferation instead of interfaces
+
+Adding boolean flags to shared objects to differentiate behavior between types instead of creating type-specific implementations.
+
+Examples of violations:
+- A generic modal with `requires_deck`, `show_rewards`, `has_preview` flags
+- Event data with `is_battle`, `is_shop`, `is_story` booleans that control conditionals
+- Configuration objects that grow new flags every time a type needs different behavior
+
+Flag anti-pattern:
+```gdscript
+# BAD: Flags multiply, conditionals scatter
+if event.requires_deck:
+    deck_column.visible = true
+if event.show_rewards:
+    rewards_panel.visible = true
+```
+
+Preferred pattern:
+```gdscript
+# GOOD: Each type defines its own sections/behavior
+class BattleNodeModal extends NodeDetailModal:
+    func _get_sections() -> Array[Control]:
+        return [info_section, deck_section, rewards_section]
+
+class CaravanNodeModal extends NodeDetailModal:
+    func _get_sections() -> Array[Control]:
+        return [info_section, shop_preview_section]
+```
+
+Flag that the code should use interfaces with type-specific implementations, not accumulated flags on a shared structure.
 
 Security, safety, and performance blind spots
 
@@ -279,6 +311,8 @@ Over-accommodating legacy instead of simplifying (pre-launch)
 Incomplete updates (tests, types, docs)
 
 Hard-coded node paths / root lookups
+
+Flag proliferation instead of interfaces (adding booleans to differentiate types)
 
 Check off each item and list any problems found.
 
