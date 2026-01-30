@@ -120,8 +120,7 @@ const GOLD_LABEL_TOP: float = 25.0
 
 
 func _setup_gold_display() -> void:
-	# Create gold label dynamically for reliable anchor positioning
-	# (Godot 4 has issues with .tscn anchor settings - see GitHub #86004)
+	# Create gold label dynamically for reliable positioning
 	gold_label = Label.new()
 	add_child(gold_label)
 
@@ -130,14 +129,14 @@ func _setup_gold_display() -> void:
 	gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1.0))
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
-	# Position in top-right corner using anchors
-	gold_label.anchor_left = 1.0
-	gold_label.anchor_right = 1.0
-	gold_label.anchor_top = 0.0
-	gold_label.anchor_bottom = 0.0
+	# Set size
+	gold_label.custom_minimum_size = Vector2(GOLD_LABEL_WIDTH, GOLD_LABEL_HEIGHT)
+
+	# Position in top-right using preset, then adjust offsets
+	gold_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	gold_label.offset_left = -(GOLD_LABEL_MARGIN + GOLD_LABEL_WIDTH)
-	gold_label.offset_right = -GOLD_LABEL_MARGIN
 	gold_label.offset_top = GOLD_LABEL_TOP
+	gold_label.offset_right = -GOLD_LABEL_MARGIN
 	gold_label.offset_bottom = GOLD_LABEL_TOP + GOLD_LABEL_HEIGHT
 
 
