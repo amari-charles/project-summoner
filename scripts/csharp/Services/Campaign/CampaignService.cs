@@ -2,6 +2,7 @@ using System;
 using Godot;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Campaign.Handlers;
+using ProjectSummoner.Services.Economy;
 
 namespace ProjectSummoner.Services.Campaign;
 
@@ -45,10 +46,8 @@ public partial class CampaignService : Node
 	private ChoiceTracker? _choiceTracker;
 
 	// Callbacks for GDScript dependencies
-	private Func<int>? _getCampaignGoldFunc;
 	private Func<string, string, string>? _grantCardFunc;
 	private Func<string>? _getActiveSummonerFunc;
-	private Action<string>? _clearCampaignGoldFunc;
 
 	// =========================================================================
 	// LIFECYCLE
@@ -113,18 +112,6 @@ public partial class CampaignService : Node
 	// =========================================================================
 	// CALLBACK INJECTION (from GDScript wrapper)
 	// =========================================================================
-
-	/// <summary>Set Economy service callbacks.</summary>
-	/// <remarks>
-	/// Note: addCampaignGold parameter is kept for API compatibility but not used.
-	/// Gold is granted directly via EconomyService.Instance in CampaignRewardHandler.
-	/// </remarks>
-	public void SetEconomyCallbacks(Callable getCampaignGold, Callable addCampaignGold, Callable clearCampaignGold)
-	{
-		_getCampaignGoldFunc = () => getCampaignGold.Call().AsInt32();
-		// addCampaignGold not used - gold granted directly via EconomyService.Instance
-		_clearCampaignGoldFunc = (summonerId) => clearCampaignGold.Call(summonerId);
-	}
 
 	/// <summary>Set Collection service callbacks.</summary>
 	public void SetCollectionCallbacks(Callable grantCard)
@@ -409,7 +396,7 @@ public partial class CampaignService : Node
 	/// <summary>Get current campaign gold.</summary>
 	public int GetCampaignGold()
 	{
-		return _getCampaignGoldFunc?.Invoke() ?? 0;
+		return EconomyService.Instance?.GetCampaignGold() ?? 0;
 	}
 
 	/// <summary>End a campaign (victory or defeat). Clears all campaign-scoped resources.</summary>
@@ -423,8 +410,8 @@ public partial class CampaignService : Node
 
 		var finalGold = GetCampaignGold();
 
-		// Clear campaign gold
-		_clearCampaignGoldFunc?.Invoke(targetId);
+		// Clear campaign gold via EconomyService
+		EconomyService.Instance?.ClearCampaignGold(targetId);
 
 		if (victory)
 		{

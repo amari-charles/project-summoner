@@ -146,7 +146,7 @@ public class CampaignRewardHandler
             {
                 return new Godot.Collections.Dictionary
                 {
-                    ["gold_reward"] = goldReward,
+                    ["gold"] = goldReward,
                     ["instance_ids"] = new Godot.Collections.Array<string>()
                 };
             }
@@ -209,7 +209,7 @@ public class CampaignRewardHandler
 
         // Add instance IDs and gold to return value
         grantedCard["instance_ids"] = grantedInstanceIds;
-        grantedCard["gold_reward"] = goldReward;
+        grantedCard["gold"] = goldReward;
 
         return grantedCard;
     }
