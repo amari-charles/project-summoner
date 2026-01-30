@@ -228,6 +228,39 @@ intercept = targetPos + (targetVelocity * timeToTarget)
 
 Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
 
+## Damage Routing
+
+All projectile damage is routed through `HitResolver` for consistent hit handling. This ensures the `HitConfirmed` signal is emitted for all damage sources, enabling VFX, audio, and UI systems to react uniformly.
+
+### Architecture
+
+```
+Projectile3D ──► HitResolver.ResolveProjectileHit() ──► DamageSystem.ApplyDamage()
+                         │
+                         ▼
+                  HitConfirmed signal ──► VFX/Audio systems
+```
+
+### Methods
+
+| Projectile Method | Description |
+|-------------------|-------------|
+| `HitTarget()` | Direct projectile hit (path completion or body collision) |
+| `HitTargetViaHurtbox()` | Hit detected via HurtboxComponent collision |
+| `ApplyAoeDamage()` | Area-of-effect damage to all enemies in radius |
+
+All three methods call `HitResolver.ResolveProjectileHit(source, target, damage, damageType, hitPosition)`.
+
+### Why Not Call DamageSystem Directly?
+
+Previously, projectiles called `DamageSystem.ApplyDamage()` directly. This worked for damage dealing, but:
+
+1. **No VFX feedback**: `HitConfirmed` signal wasn't emitted, so hit flashes didn't trigger
+2. **Inconsistent with melee**: Melee attacks used HitResolver, projectiles didn't
+3. **Missing kill detection**: `TargetKilled` flag wasn't computed for projectile kills
+
+Routing through HitResolver unifies the damage pipeline and ensures consistent behavior.
+
 ## Pooling
 
 Projectiles are pooled by `ProjectileService` for performance. Key reset behaviors:

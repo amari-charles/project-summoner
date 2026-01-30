@@ -238,29 +238,5 @@ Affects combat balance - wisps are more effective than designed if they can hit 
 
 ---
 
-#### Puff Projectiles Not Triggering Hit Flashes
-**Status:** Open
-**Reported:** 2026-01-28
-**Component:** Combat / VFX / Projectiles
 
-**Description:**
-Puff unit projectiles are not triggering hit flash effects when they hit enemies.
-
-**Expected Behavior:**
-When a Puff projectile hits an enemy, the enemy should flash white briefly.
-
-**Current Behavior:**
-No hit flash appears when Puff projectiles connect.
-
-**Impact:**
-Reduces combat feedback and makes it harder to see when attacks land.
-
-**Related Files:**
-- scripts/csharp/Projectiles/ (projectile hit handling)
-- scripts/csharp/Combat/Hitbox/ (hit detection)
-- VFX flash system
-
----
-
-
-*Last Updated: 2026-01-27 - Fixed FlashWhite stuck state, rewards localization key, and Fire Wisp missing leg (moved to bugs-resolved.md)*
+*Last Updated: 2026-01-29 - Moved Puff projectile hit flash bug to bugs-resolved.md*

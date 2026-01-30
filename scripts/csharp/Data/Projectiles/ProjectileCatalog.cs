@@ -198,4 +198,5 @@ public partial class ProjectileCatalog : Node
         GD.Print($"ProjectileCatalog: Reloaded {_projectiles.Count} projectiles");
         EmitSignal(SignalName.ContentLoaded);
     }
+
 }

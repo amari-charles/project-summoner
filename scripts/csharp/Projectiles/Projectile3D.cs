@@ -337,7 +337,7 @@ public partial class Projectile3D : Area3D
             }
         }
 
-        // Legacy fallback: check if area belongs to a unit
+        // Fallback for non-HurtboxComponent areas (e.g., custom trigger zones)
         var body = area.GetParent() as Node3D;
         if (body != null && IsValidTarget(body))
         {
@@ -370,11 +370,18 @@ public partial class Projectile3D : Area3D
 
     private void HitTarget(Node3D target)
     {
-        // Apply damage via DamageSystem
+        // Apply damage via HitResolver for consistent hit handling
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
-            damageSystem?.ApplyDamage(Source, target, Damage, DamageType);
+            if (HitResolver.Instance != null)
+            {
+                HitResolver.Instance.ResolveProjectileHit(
+                    Source, target, Damage, DamageType, GlobalPosition);
+            }
+            else
+            {
+                GD.PushWarning($"Projectile3D: HitResolver.Instance is null, cannot apply damage for '{ProjectileId}'");
+            }
         }
 
         EmitSignal(SignalName.ProjectileHit, target, this);
@@ -384,14 +391,20 @@ public partial class Projectile3D : Area3D
 
     private void HitTargetViaHurtbox(Node3D target, Area3D hurtbox)
     {
-        // Use DamageSystem with projectile flag
+        // Use hurtbox position for more accurate hit location
+        Vector3 hitPosition = hurtbox?.GlobalPosition ?? GlobalPosition;
+
+        // Apply damage via HitResolver for consistent hit handling
         if (IsInstanceValid(target) && IsInstanceValid(Source))
         {
-            var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
-            if (damageSystem != null)
+            if (HitResolver.Instance != null)
             {
-                var flags = new Godot.Collections.Dictionary { { "from_projectile", true } };
-                damageSystem.ApplyDamage(Source, target, Damage, DamageType, flags);
+                HitResolver.Instance.ResolveProjectileHit(
+                    Source, target, Damage, DamageType, hitPosition);
+            }
+            else
+            {
+                GD.PushWarning($"Projectile3D: HitResolver.Instance is null, cannot apply damage for '{ProjectileId}'");
             }
         }
 
@@ -465,8 +478,6 @@ public partial class Projectile3D : Area3D
         targets.AddRange(sceneTree.GetNodesInGroup(enemyUnitsGroup));
         targets.AddRange(sceneTree.GetNodesInGroup(enemyBasesGroup));
 
-        var damageSystem = GetNodeOrNull<DamageSystem>("/root/DamageSystem");
-
         foreach (var targetNode in targets)
         {
             if (targetNode is not Node3D target3D)
@@ -478,7 +489,16 @@ public partial class Projectile3D : Area3D
             float distance = target3D.GlobalPosition.DistanceTo(center);
             if (distance <= radius)
             {
-                damageSystem?.ApplyDamage(Source, target3D, Damage, DamageType);
+                // Apply damage via HitResolver for consistent hit handling
+                if (HitResolver.Instance != null)
+                {
+                    HitResolver.Instance.ResolveProjectileHit(
+                        Source, target3D, Damage, DamageType, center);
+                }
+                else
+                {
+                    GD.PushWarning($"Projectile3D: HitResolver.Instance is null, cannot apply AOE damage for '{ProjectileId}'");
+                }
             }
         }
     }
