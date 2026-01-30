@@ -135,13 +135,9 @@ public class CampaignRewardHandler
         var rewardType = battle.GetValueOrDefault("reward_type", "fixed").AsString();
         var rewardCardsVariant = battle.GetValueOrDefault("reward_cards", new Godot.Collections.Array());
 
-        // Grant campaign-scoped gold reward
+        // NOTE: Gold is granted explicitly in reward_screen.gd, not here.
+        // This avoids reliance on the callback chain which can silently fail.
         var goldReward = battle.GetValueOrDefault("gold_reward", 0).AsInt32();
-        if (goldReward > 0)
-        {
-            _addCampaignGoldFunc?.Invoke(goldReward);
-            GD.Print($"CampaignRewardHandler: Granted {goldReward} campaign gold for battle '{battleId}'");
-        }
 
         // Handle case where there are no card rewards but there is gold
         var rewardCards = rewardCardsVariant.Obj is Godot.Collections.Array arr ? arr : new Godot.Collections.Array();
