@@ -578,7 +578,7 @@ func _on_continue_pressed() -> void:
 			# FIXED or other rewards - use Campaign.claim_pending_reward()
 			granted_card = Campaign.claim_pending_reward()
 
-		# Note: Gold is granted in C# CampaignRewardHandler via EconomyService
+		# Note: Gold is granted during GrantBattleReward() in C# CampaignRewardHandler via EconomyService
 
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():

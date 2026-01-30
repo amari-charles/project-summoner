@@ -93,9 +93,8 @@ func _ready() -> void:
 ## Call this instead of relying on _ready() in tests
 ## Pass a MockCampaignServiceCS instance to enable full testing without C# autoload
 ## Pass deck = null to disable starter deck auto-add in tests
-func init_for_testing(repo: IProfileRepo, _economy: Node = null, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
+func init_for_testing(repo: IProfileRepo, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
 	profile_repo = repo
-	# _economy parameter kept for API compatibility but not used (C# uses EconomyService.Instance directly)
 	collection_service = collection
 	deck_service = deck  # null in tests disables auto-add to starter deck
 

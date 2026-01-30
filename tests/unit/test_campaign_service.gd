@@ -12,7 +12,6 @@ const MockDeckServiceScript: GDScript = preload("res://tests/mocks/mock_deck_ser
 
 var campaign: Node
 var mock_repo: MockProfileRepo
-var mock_economy: MockEconomyService
 var mock_collection: MockCollectionService
 var mock_cs_service: Node  # MockCampaignServiceCS
 
@@ -32,13 +31,12 @@ func before_each() -> void:
 
 	# Create fresh mocks for each test
 	mock_repo = MockProfileRepo.new()
-	mock_economy = MockEconomyService.new()
 	mock_collection = MockCollectionService.new()
 	mock_cs_service = MockCampaignServiceCSScript.new()
 
 	# Create campaign service and inject dependencies (including mock C# service)
 	campaign = CampaignServiceScript.new()
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service)
+	campaign.init_for_testing(mock_repo, mock_collection, mock_cs_service)
 
 
 func after_each() -> void:
@@ -46,8 +44,6 @@ func after_each() -> void:
 		campaign.free()
 	if mock_repo:
 		mock_repo.free()
-	if mock_economy:
-		mock_economy.free()
 	if mock_collection:
 		mock_collection.free()
 	if mock_cs_service:
@@ -133,7 +129,7 @@ func test_loads_progress_from_profile() -> void:
 	})
 
 	# Re-init to load progress
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+	campaign.init_for_testing(mock_repo, mock_collection)
 
 	assert_true(campaign.is_battle_completed(String(BattleIDs.FIRST_TRIAL)))
 	assert_true(campaign.is_battle_completed(String(BattleIDs.SECOND_CHALLENGE)))
@@ -457,7 +453,7 @@ func test_test_arena_progress_is_per_summoner() -> void:
 	mock_repo.set_campaign_progress({
 		"completed_battles": [String(BattleIDs.ARENA_FIRE_WISP)]
 	})
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection)
+	campaign.init_for_testing(mock_repo, mock_collection)
 	campaign.set_current_campaign(String(CampaignIDs.TEST_ARENA))
 
 	# Should have per-summoner battles
@@ -478,7 +474,7 @@ func test_grant_card_auto_adds_to_starter_deck_when_under_threshold() -> void:
 	})
 
 	# Reinitialize campaign with mock deck service
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, mock_deck)
+	campaign.init_for_testing(mock_repo, mock_collection, mock_cs_service, mock_deck)
 
 	# Grant a card (simulates battle reward)
 	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
@@ -505,7 +501,7 @@ func test_grant_card_does_not_auto_add_when_at_threshold() -> void:
 	})
 
 	# Reinitialize campaign with mock deck service
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, mock_deck)
+	campaign.init_for_testing(mock_repo, mock_collection, mock_cs_service, mock_deck)
 
 	# Grant a card
 	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
@@ -526,7 +522,7 @@ func test_grant_card_does_not_auto_add_when_no_starter_deck() -> void:
 	})
 
 	# Reinitialize campaign with mock deck service
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, mock_deck)
+	campaign.init_for_testing(mock_repo, mock_collection, mock_cs_service, mock_deck)
 
 	# Grant a card
 	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
@@ -539,7 +535,7 @@ func test_grant_card_does_not_auto_add_when_no_starter_deck() -> void:
 
 func test_grant_card_skips_auto_add_when_deck_service_null() -> void:
 	# Reinitialize campaign with null deck service (default for tests)
-	campaign.init_for_testing(mock_repo, mock_economy, mock_collection, mock_cs_service, null)
+	campaign.init_for_testing(mock_repo, mock_collection, mock_cs_service, null)
 
 	# Grant a card - should not crash
 	campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))

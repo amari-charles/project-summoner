@@ -448,7 +448,7 @@ func GrantBattleReward(battle_id: String, chosen_index: int = 0) -> Dictionary:
 
 	var result: Dictionary = {"cards": [], "gold": 0}
 
-	# Record gold reward (C# grants via EconomyService.Instance directly)
+	# Record gold reward in result (in production, C# grants via EconomyService.Instance directly)
 	var gold_reward: int = battle.get("gold_reward", 0)
 	result["gold"] = gold_reward
 
