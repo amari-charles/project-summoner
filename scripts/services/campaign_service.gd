@@ -93,9 +93,9 @@ func _ready() -> void:
 ## Call this instead of relying on _ready() in tests
 ## Pass a MockCampaignServiceCS instance to enable full testing without C# autoload
 ## Pass deck = null to disable starter deck auto-add in tests
-func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
+func init_for_testing(repo: IProfileRepo, _economy: Node = null, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
 	profile_repo = repo
-	# economy parameter kept for test compatibility but not used (C# uses EconomyService.Instance)
+	# _economy parameter kept for API compatibility but not used (C# uses EconomyService.Instance directly)
 	collection_service = collection
 	deck_service = deck  # null in tests disables auto-add to starter deck
 
@@ -105,13 +105,6 @@ func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node
 		# Set up the mock with profile repo reference
 		if _cs_service.has_method("set_profile_repo"):
 			_cs_service.set_profile_repo(repo)
-		# Set up economy callbacks on mock (mock still uses callbacks for test verification)
-		if _cs_service.has_method("SetEconomyCallbacks") and economy != null:
-			_cs_service.SetEconomyCallbacks(
-				economy.get_campaign_gold,
-				economy.add_campaign_gold,
-				economy.clear_campaign_gold
-			)
 	elif _cs_service == null:
 		_cs_service = get_node_or_null("/root/CampaignServiceCS")
 
