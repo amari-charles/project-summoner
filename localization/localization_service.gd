@@ -58,7 +58,13 @@ func t(key: String, params: Dictionary = {}) -> String:
 
 	# Return missing key marker if still not found
 	if text == "":
-		push_warning("LocalizationService: Missing translation key: %s" % key)
+		var error_msg: String = "LocalizationService: Missing translation key: %s" % key
+		push_warning(error_msg)
+
+		# In debug builds, fail loudly to catch issues early
+		if OS.is_debug_build():
+			assert(false, error_msg)
+
 		return "[MISSING:%s]" % key
 
 	# Substitute parameters

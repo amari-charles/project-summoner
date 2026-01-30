@@ -106,9 +106,7 @@
       "change_deck": "Change",
       "done": "Done",
       "deck_header": "DECK",
-      "progress": "{completed} / {total} Complete"
-    },
-    "map": {
+      "progress": "{completed} / {total} Complete",
       "gold": "💰 {amount}"
     }
   },
