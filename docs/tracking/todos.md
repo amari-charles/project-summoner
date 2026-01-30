@@ -19,6 +19,79 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ## Campaign Economy & Systems
 
+### 🔴 HIGH PRIORITY
+
+#### Fix Card Level-Up UI Incorrectly Mentioning Gold Cost
+**Status:** ⬜ Not Started
+**Category:** UI / Economy
+**Effort:** Small
+
+**Description:**
+The card level-up UI incorrectly states that level-ups cost gold. Card level-ups should only require XP - there is no gold cost for leveling cards.
+
+**Current Behavior:**
+- UI may show or imply gold is needed for card level-ups
+- This is incorrect per design: XP is the only requirement
+
+**Correct Design:**
+- Card level-ups require accumulated XP only
+- Gold is campaign-scoped and used only for Caravan shop purchases
+- No gold cost for card or summoner progression
+
+**Related Files:**
+- Level-up UI components
+- Card progression display
+
+---
+
+#### Premium Store Currency Should Not Use Gold
+**Status:** ⬜ Not Started
+**Category:** Economy / Design
+**Effort:** Medium
+
+**Description:**
+The Premium Store currently uses Gold as its currency. This is incorrect - Gold should only be used for in-campaign Caravan purchases. The Premium Store needs a separate meta-progression currency (gems, crystals, etc.).
+
+**Currency Design:**
+- **Gold**: Campaign-scoped currency for Caravan purchases during gameplay
+- **Gems/Crystals (TBD)**: Meta-progression currency for Premium Store (summoners, cosmetics, emotes)
+
+**Requirements:**
+- Decide on premium currency name and visual design
+- Update Premium Store to use new currency
+- Add currency display/acquisition systems
+- Keep Gold separate for campaign economy
+
+**Related Files:**
+- `scripts/ui/screens/premium_store_screen.gd`
+- Economy service
+
+---
+
+#### Rename Premium Store Placeholder Items to Clearly Indicate Placeholders
+**Status:** ⬜ Not Started
+**Category:** Content / Clarity
+**Effort:** Small
+
+**Description:**
+The Premium Store contains placeholder items with plausible-sounding names (e.g., "Laugh", "Shocked", "Crimson Theme"). These should be renamed to clearly indicate they are placeholders (e.g., "PLACEHOLDER EMOTE 1", "PLACEHOLDER THEME 1") to avoid confusion about what is real content vs temporary.
+
+**Current Problem:**
+- Items like "Laugh", "Shocked", "Golden Card Back" sound like real content
+- On future review, it's unclear which items are intentional vs placeholder
+- Risk of shipping placeholder content thinking it was finalized
+
+**Requirements:**
+- Rename all placeholder store items to include "PLACEHOLDER" prefix
+- Update localization entries accordingly
+- Apply same pattern to any other placeholder content
+
+**Related Files:**
+- `localization/data/en.json` - shop.offering entries
+- Premium store data/configuration
+
+---
+
 ### 🟡 MEDIUM PRIORITY
 
 #### Type-safe domain objects for Dictionary<string, object>
