@@ -463,6 +463,11 @@ func get_shop_offerings(shop_id: String) -> Array[ShopOffering]:
 		if offering:
 			result.append(offering)
 
+	# Filter for caravan shops - hide purchased offerings
+	if shop_id.begins_with("caravan"):
+		var purchased_ids: Array = ProfileRepo.get_caravan_purchases()
+		result = result.filter(func(o: ShopOffering) -> bool: return o.offering_id not in purchased_ids)
+
 	return result
 
 ## =============================================================================
@@ -548,8 +553,11 @@ func _complete_caravan_purchase(offering_dict: Dictionary, offering_id: String, 
 		_emit_purchase_failed(offering_id, "Failed to grant rewards")
 		return false
 
-	# Record purchase via profile
+	# Record purchase via profile (account-wide tracking)
 	ProfileRepo.increment_purchase_count(purchase_key)
+
+	# Record as caravan purchase (campaign-scoped for UI filtering)
+	ProfileRepo.add_caravan_purchase(offering_id)
 
 	# Emit success
 	purchase_completed.emit(offering_id, shop_id)

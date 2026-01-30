@@ -1071,6 +1071,28 @@ func update_campaign_progress(progress: Dictionary, summoner_id: String = "") ->
 	data_changed.emit()
 
 ## =============================================================================
+## CARAVAN PURCHASE TRACKING (Campaign-scoped)
+## =============================================================================
+
+## Get caravan purchases for current campaign
+func get_caravan_purchases(summoner_id: String = "") -> Array:
+	var progress: Dictionary = get_campaign_progress(summoner_id)
+	return progress.get("caravan_purchases", [])
+
+## Record a caravan purchase (campaign-scoped)
+func add_caravan_purchase(offering_id: String, summoner_id: String = "") -> void:
+	var progress: Dictionary = get_campaign_progress(summoner_id)
+	var purchases: Array = progress.get("caravan_purchases", [])
+
+	if offering_id not in purchases:
+		purchases.append(offering_id)
+		update_campaign_progress({"caravan_purchases": purchases}, summoner_id)
+
+## Clear caravan purchases (called when campaign ends)
+func clear_caravan_purchases(summoner_id: String = "") -> void:
+	update_campaign_progress({"caravan_purchases": []}, summoner_id)
+
+## =============================================================================
 ## SHARED CAMPAIGN PROGRESS OPERATIONS (Account-wide)
 ## =============================================================================
 
