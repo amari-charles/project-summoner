@@ -107,7 +107,11 @@
       "done": "Done",
       "deck_header": "DECK",
       "progress": "{completed} / {total} Complete",
-      "gold": "💰 {amount}"
+      "gold": "💰 {amount}",
+      "button_enter_shop": "ENTER SHOP",
+      "button_enter_shop_again": "VISIT AGAIN",
+      "button_continue": "CONTINUE",
+      "button_continue_again": "CONTINUE"
     }
   },
   "card": {
