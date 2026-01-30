@@ -367,8 +367,8 @@ public partial class EconomyService : Node
 
 	private string GetActiveSummonerId()
 	{
-		// Get active summoner from SummonerSelectionService (autoload)
-		var selectionService = GetNodeOrNull<Node>("SummonerSelection");
+		// Get active summoner from SummonerSelectionService (autoload at /root/SummonerSelection)
+		var selectionService = GetNodeOrNull<Node>("/root/SummonerSelection");
 		if (selectionService != null && selectionService.HasMethod("GetActiveSummonerId"))
 		{
 			return selectionService.Call("GetActiveSummonerId").AsString();
