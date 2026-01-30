@@ -495,6 +495,10 @@ public partial class Projectile3D : Area3D
                     HitResolver.Instance.ResolveProjectileHit(
                         Source, target3D, Damage, DamageType, center);
                 }
+                else
+                {
+                    GD.PushWarning($"Projectile3D: HitResolver.Instance is null, cannot apply AOE damage for '{ProjectileId}'");
+                }
             }
         }
     }

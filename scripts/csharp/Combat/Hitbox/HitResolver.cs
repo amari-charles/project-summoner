@@ -234,18 +234,4 @@ public partial class HitResolver : Node
         }
     }
 
-    // =========================================================================
-    // GDScript COMPATIBILITY (snake_case aliases)
-    // =========================================================================
-
-    public HitResult resolve_hit(HitboxComponent hitbox, HurtboxComponent hurtbox)
-        => ResolveHit(hitbox, hurtbox);
-
-    public HitResult resolve_projectile_hit(
-        Node3D source,
-        Node3D target,
-        float damage,
-        string damageType,
-        Vector3 hitPosition)
-        => ResolveProjectileHit(source, target, damage, damageType, hitPosition);
 }

@@ -18,6 +18,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private const float LungeForwardDuration = 0.1f;
     private const float LungeReturnDuration = 0.15f;
 
+    // Flash effect timing
+    private const float FlashHoldDuration = 0.1f;
+    private const float FlashFadeDuration = 0.15f;
+
     // =========================================================================
     // ENUMS
     // =========================================================================
@@ -394,7 +398,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _characterSprite.Modulate = FlashColor;
 
         // Hold for a moment, then fade back
-        var holdTimer = GetTree().CreateTimer(0.1);
+        var holdTimer = GetTree().CreateTimer(FlashHoldDuration);
         holdTimer.Timeout += () =>
         {
             if (!IsInstanceValid(this) || _characterSprite == null)
@@ -402,7 +406,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
             // Create fade-back tween
             _flashTween = CreateTween();
-            _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, 0.15);
+            _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, FlashFadeDuration);
         };
     }
 

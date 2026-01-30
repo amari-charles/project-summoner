@@ -18,6 +18,10 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     /// <summary>World units per viewport pixel for Sprite3D rendering.</summary>
     private const float SpritePixelSize = 0.01f;
 
+    // Flash effect timing
+    private const float FlashHoldDuration = 0.1f;
+    private const float FlashFadeDuration = 0.15f;
+
     // =========================================================================
     // EXPORTED PROPERTIES
     // =========================================================================
@@ -68,6 +72,16 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [ExportGroup("")]
     [Export]
     public float HpBarOffsetX { get; set; } = 0.0f;
+
+    /// <summary>
+    /// Color to flash when taking damage. Default is bright HDR white (3, 3, 3, 1).
+    ///
+    /// Most units should use the default white flash, which provides good contrast
+    /// against darker sprites. Override this for light-colored or white units where
+    /// a white flash wouldn't be visible.
+    /// </summary>
+    [Export]
+    public Color FlashColor { get; set; } = new Color(3.0f, 3.0f, 3.0f, 1.0f);
 
     // =========================================================================
     // NODE REFERENCES
@@ -267,29 +281,31 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             }
         }
 
-        // Flash to bright white then fade back
+        // Flash to configured color then fade back
         // Using direct set + SceneTreeTimer since tweens had issues
-        var flashColor = new Color(3.0f, 3.0f, 3.0f, 1.0f);  // Bright HDR white
         foreach (var sprite in sprites)
         {
-            sprite.Modulate = flashColor;
+            sprite.Modulate = FlashColor;
         }
 
         // Hold for a moment, then fade back
-        var holdTimer = GetTree().CreateTimer(0.1);
+        var holdTimer = GetTree().CreateTimer(FlashHoldDuration);
         holdTimer.Timeout += () =>
         {
             if (!IsInstanceValid(this))
                 return;
 
+            // Re-fetch sprites in case any were freed during hold
+            var currentSprites = GetAllSprites();
+
             // Create fade-back tween
             _flashTween = CreateTween();
             _flashTween.SetParallel(true);
-            foreach (var sprite in sprites)
+            foreach (var sprite in currentSprites)
             {
                 if (IsInstanceValid(sprite))
                 {
-                    _flashTween.TweenProperty(sprite, "modulate", _originalModulate, 0.15);
+                    _flashTween.TweenProperty(sprite, "modulate", _originalModulate, FlashFadeDuration);
                 }
             }
         };

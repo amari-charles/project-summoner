@@ -238,36 +238,5 @@ Affects combat balance - wisps are more effective than designed if they can hit 
 
 ---
 
-#### Puff Projectiles Not Triggering Hit Flashes
-**Status:** Fix Pending (PR #227)
-**Reported:** 2026-01-28
-**Component:** Combat / VFX / Projectiles
 
-**Description:**
-Puff unit projectiles are not triggering hit flash effects when they hit enemies.
-
-**Expected Behavior:**
-When a Puff projectile hits an enemy, the enemy should flash white briefly.
-
-**Current Behavior:**
-No hit flash appears when Puff projectiles connect.
-
-**Impact:**
-Reduces combat feedback and makes it harder to see when attacks land.
-
-**Investigation Notes (2026-01-29):**
-- Traced damage path: Projectile3D → DamageSystem → Unit3D.TakeDamage → OnTakeDamage → FlashWhite
-- Found architecture inconsistency: Melee hits went through HitResolver (which emits HitConfirmed signal), but projectiles called DamageSystem directly
-- Fix: Unified architecture - all projectile hits now route through HitResolver.ResolveProjectileHit()
-- Added ResolveProjectileHit() method to HitResolver for consistent hit handling
-- HitConfirmed signal now emits for all damage sources (melee + projectile + AOE)
-
-**Related Files:**
-- scripts/csharp/Combat/Hitbox/HitResolver.cs (added ResolveProjectileHit)
-- scripts/csharp/Projectiles/Projectile3D.cs (HitTarget, HitTargetViaHurtbox, ApplyAoeDamage)
-- scripts/csharp/Units/Unit3D.cs (TakeDamage → FlashWhite)
-
----
-
-
-*Last Updated: 2026-01-29 - Investigation and fix attempt for Puff projectile hit flash bug (PR #227)*
+*Last Updated: 2026-01-29 - Moved Puff projectile hit flash bug to bugs-resolved.md*

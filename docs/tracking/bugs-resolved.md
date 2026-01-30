@@ -6,6 +6,35 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-01 Fixes
 
+### Puff Projectiles Not Triggering Hit Flashes
+**Resolved:** 2026-01-29
+**Component:** Combat / VFX / Projectiles
+
+**Description:**
+Puff unit projectiles were not triggering hit flash effects when they hit enemies.
+
+**Root Cause:**
+Architecture inconsistency: Melee hits went through HitResolver (which emits `HitConfirmed` signal that VFX systems listen to), but projectiles called DamageSystem directly, bypassing the signal emission.
+
+**Solution Implemented:**
+1. Added `ResolveProjectileHit()` method to HitResolver that takes raw parameters (source, target, damage, damageType, hitPosition) instead of requiring HitboxComponent
+2. Refactored HitResolver to share core logic via `ResolveHitCore()` between melee and projectile hits
+3. Updated Projectile3D to route all damage through HitResolver:
+   - `HitTarget()` - direct projectile hits
+   - `HitTargetViaHurtbox()` - hits detected via hurtbox collision
+   - `ApplyAoeDamage()` - area-of-effect damage
+4. Added configurable `FlashColor` export to SpriteVisualComponent for light-colored units (Puff uses pink flash instead of white)
+5. Added matching `FlashColor` export to SkeletalVisualComponent for consistency
+
+**Related Files:**
+- `scripts/csharp/Combat/Hitbox/HitResolver.cs` - Added ResolveProjectileHit, ResolveHitCore
+- `scripts/csharp/Projectiles/Projectile3D.cs` - Route all damage through HitResolver
+- `scripts/csharp/Visual/SpriteVisualComponent.cs` - Added FlashColor export
+- `scripts/csharp/Visual/SkeletalVisualComponent.cs` - Added FlashColor export
+- `scenes/units/puff_3d.tscn` - Set FlashColor to pink (1.3, 0.85, 0.85, 1)
+
+---
+
 ### Units Stuck in FlashWhite Visual State After Being Attacked
 **Resolved:** 2026-01-27
 **Component:** Units / Visual / Combat Feedback
