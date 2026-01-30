@@ -161,14 +161,9 @@ func _grant_card_reward(card_reward: Dictionary) -> Array:
 		push_warning("RewardService: Card reward missing catalog_id/id")
 		return instance_ids
 
-	var card_service: Node = get_node_or_null("/root/CardServiceCS")
-	if card_service == null:
-		push_warning("RewardService: CardServiceCS not available")
-		return instance_ids
-
 	# Grant each copy and collect instance IDs
 	for i: int in range(count):
-		var instance_id: String = card_service.GrantCard(catalog_id, rarity)
+		var instance_id: String = CardServiceCS.GrantCard(catalog_id, rarity)
 		if not instance_id.is_empty():
 			instance_ids.append(instance_id)
 		else:

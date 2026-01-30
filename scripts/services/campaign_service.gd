@@ -545,7 +545,7 @@ func claim_pending_reward() -> Dictionary:
 ## claim_pending_reward() and complete_battle_without_reward() patterns.
 ## @param battle_id: The battle to claim rewards for
 ## @param card_reward: The card reward to grant (from flexible selection or fixed battle config)
-## @return Dictionary with granted rewards {gold: int, cards: Array}
+## @return Dictionary with granted rewards {gold: int, cards: Array, instance_ids: Array}
 func claim_battle_rewards(battle_id: String, card_reward: Dictionary = {}) -> Dictionary:
 	var battle: Dictionary = get_battle(battle_id)
 	if battle.is_empty():

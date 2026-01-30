@@ -542,3 +542,35 @@ func test_grant_card_skips_auto_add_when_deck_service_null() -> void:
 
 	# Verify card was still granted to collection
 	assert_eq(mock_collection.get_call_count("GrantCard"), 1, "Card should still be granted to collection")
+
+
+## =============================================================================
+## UNIFIED CLAIM_BATTLE_REWARDS TESTS
+## =============================================================================
+
+func test_claim_battle_rewards_completes_battle() -> void:
+	# Use a battle with no card reward to isolate completion logic
+	var result: Dictionary = campaign.claim_battle_rewards(String(BattleIDs.FIRST_TRIAL), {})
+
+	assert_true(campaign.is_battle_completed(String(BattleIDs.FIRST_TRIAL)))
+
+
+func test_claim_battle_rewards_clears_pending_reward() -> void:
+	# Set a pending reward first
+	campaign.set_pending_reward(String(BattleIDs.FIRST_TRIAL), String(RewardTypeIDs.FIXED))
+	assert_not_null(campaign.get_pending_reward())
+
+	# Claim rewards
+	campaign.claim_battle_rewards(String(BattleIDs.FIRST_TRIAL), {})
+
+	# Pending should be cleared
+	assert_null(campaign.get_pending_reward())
+
+
+func test_claim_battle_rewards_returns_result_dictionary() -> void:
+	var result: Dictionary = campaign.claim_battle_rewards(String(BattleIDs.FIRST_TRIAL), {})
+
+	# Result should have the expected keys
+	assert_true(result.has("gold"))
+	assert_true(result.has("cards"))
+	assert_true(result.has("instance_ids"))
