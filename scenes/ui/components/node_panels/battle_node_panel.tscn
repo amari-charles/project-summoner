@@ -33,7 +33,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 32
-text = "Battle Event"
+text = ""
 horizontal_alignment = 1
 
 [node name="TitleSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
@@ -73,7 +73,7 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Battle description goes here."
+text = ""
 autowrap_mode = 3
 
 [node name="DetailSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentColumns/LeftColumn"]

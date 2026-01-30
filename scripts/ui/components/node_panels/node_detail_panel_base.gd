@@ -113,20 +113,3 @@ func _get_card_display_name(catalog: Node, catalog_id: String) -> String:
 			return _safe_string(card_data.get("card_name", catalog_id), catalog_id)
 	# Fallback: convert catalog_id to title case (fire_wisp → Fire Wisp)
 	return catalog_id.replace("_", " ").capitalize()
-
-
-## Create the common panel background with fantasy border
-func _create_panel_background() -> void:
-	# Dark fill
-	var fill: ColorRect = ColorRect.new()
-	fill.name = "PanelFill"
-	fill.color = Color(0, 0, 0, 0.7)
-	fill.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(fill)
-
-	# Fantasy border
-	var border: NinePatchRect = NinePatchRect.new()
-	border.name = "Background"
-	border.set_anchors_preset(Control.PRESET_FULL_RECT)
-	ButtonStyleFactory.apply_panel_border(border)
-	add_child(border)

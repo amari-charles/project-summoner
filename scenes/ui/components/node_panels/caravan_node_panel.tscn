@@ -33,7 +33,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 32
-text = "Traveling Merchant"
+text = ""
 horizontal_alignment = 1
 
 [node name="TitleSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
@@ -44,7 +44,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 18
-text = "A merchant caravan has arrived. Browse their wares and purchase cards to strengthen your collection."
+text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
 
