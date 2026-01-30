@@ -76,11 +76,52 @@ public partial class HitResolver : Node
             return new HitResult();
         }
 
+        return ResolveHitCore(
+            hitbox.Source!,
+            hurtbox.OwnerEntity,
+            hitbox.Damage,
+            hitbox.DamageType,
+            hurtbox.GlobalPosition,
+            fromProjectile: false
+        );
+    }
+
+    /// <summary>
+    /// Resolve a projectile hit. Takes raw parameters instead of requiring HitboxComponent.
+    /// This allows projectiles to use the same hit resolution path as melee attacks.
+    /// </summary>
+    public HitResult ResolveProjectileHit(
+        Node3D source,
+        Node3D target,
+        float damage,
+        string damageType,
+        Vector3 hitPosition)
+    {
+        // Guard: entities may be disposed
+        if (!IsInstanceValid(source) || !IsInstanceValid(target))
+        {
+            return new HitResult();
+        }
+
+        return ResolveHitCore(source, target, damage, damageType, hitPosition, fromProjectile: true);
+    }
+
+    /// <summary>
+    /// Core hit resolution logic shared by both hitbox and projectile hits.
+    /// </summary>
+    private HitResult ResolveHitCore(
+        Node3D attacker,
+        Node3D target,
+        float baseDamage,
+        string damageType,
+        Vector3 hitPosition,
+        bool fromProjectile)
+    {
         var result = new HitResult
         {
-            Attacker = hitbox.Source!,
-            Target = hurtbox.OwnerEntity,
-            HitPosition = hurtbox.GlobalPosition,
+            Attacker = attacker,
+            Target = target,
+            HitPosition = hitPosition,
             DamageDealt = 0,
             WasCrit = false,
             TargetKilled = false
@@ -91,14 +132,14 @@ public partial class HitResolver : Node
         {
             var flags = new Godot.Collections.Dictionary
             {
-                { "from_hitbox", true }
+                { fromProjectile ? "from_projectile" : "from_hitbox", true }
             };
 
             float damageDealt = DamageSystem.Instance.ApplyDamage(
-                hitbox.Source!,
-                hurtbox.OwnerEntity,
-                hitbox.Damage,
-                hitbox.DamageType,
+                attacker,
+                target,
+                baseDamage,
+                damageType,
                 flags
             );
 
@@ -106,17 +147,17 @@ public partial class HitResolver : Node
 
             // Check if it was a crit by comparing to base damage
             // DamageSystem applies crit multiplier internally
-            result.WasCrit = damageDealt > hitbox.Damage * 1.5f;
+            result.WasCrit = damageDealt > baseDamage * 1.5f;
 
             // Check if target was killed
-            result.TargetKilled = IsTargetDead(hurtbox.OwnerEntity);
+            result.TargetKilled = IsTargetDead(target);
         }
         else
         {
             GD.PushWarning("HitResolver: DamageSystem not found, applying damage directly");
-            ApplyDamageDirectly(hurtbox.OwnerEntity, hitbox.Damage);
-            result.DamageDealt = hitbox.Damage;
-            result.TargetKilled = IsTargetDead(hurtbox.OwnerEntity);
+            ApplyDamageDirectly(target, baseDamage);
+            result.DamageDealt = baseDamage;
+            result.TargetKilled = IsTargetDead(target);
         }
 
         // Emit signal for VFX/audio systems
@@ -199,4 +240,12 @@ public partial class HitResolver : Node
 
     public HitResult resolve_hit(HitboxComponent hitbox, HurtboxComponent hurtbox)
         => ResolveHit(hitbox, hurtbox);
+
+    public HitResult resolve_projectile_hit(
+        Node3D source,
+        Node3D target,
+        float damage,
+        string damageType,
+        Vector3 hitPosition)
+        => ResolveProjectileHit(source, target, damage, damageType, hitPosition);
 }
