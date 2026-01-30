@@ -46,7 +46,6 @@ public partial class CampaignService : Node
 
 	// Callbacks for GDScript dependencies
 	private Func<int>? _getCampaignGoldFunc;
-	private Action<int>? _addCampaignGoldFunc;
 	private Func<string, string, string>? _grantCardFunc;
 	private Func<string>? _getActiveSummonerFunc;
 	private Action<string>? _clearCampaignGoldFunc;
@@ -93,7 +92,7 @@ public partial class CampaignService : Node
 		// Create handlers (order matters - some depend on others)
 		_progress = new CampaignProgressHandler(_profileRepo, _store, GetActiveSummonerId, _choiceTracker, _graphStore);
 		_catalog = new CampaignCatalogHandler(_store, _progress);
-		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
+		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc);
 		_tutorial = new TutorialHandler(_store, _catalog, _progress);
 	}
 
@@ -116,17 +115,15 @@ public partial class CampaignService : Node
 	// =========================================================================
 
 	/// <summary>Set Economy service callbacks.</summary>
+	/// <remarks>
+	/// Note: addCampaignGold parameter is kept for API compatibility but not used.
+	/// Gold is granted directly via EconomyService.Instance in CampaignRewardHandler.
+	/// </remarks>
 	public void SetEconomyCallbacks(Callable getCampaignGold, Callable addCampaignGold, Callable clearCampaignGold)
 	{
 		_getCampaignGoldFunc = () => getCampaignGold.Call().AsInt32();
-		_addCampaignGoldFunc = (amount) => addCampaignGold.Call(amount);
+		// addCampaignGold not used - gold granted directly via EconomyService.Instance
 		_clearCampaignGoldFunc = (summonerId) => clearCampaignGold.Call(summonerId);
-
-		// Rebuild rewards handler with new callbacks
-		if (_profileRepo != null && _store != null)
-		{
-			_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
-		}
 	}
 
 	/// <summary>Set Collection service callbacks.</summary>
@@ -137,7 +134,7 @@ public partial class CampaignService : Node
 		// Rebuild rewards handler with new callbacks
 		if (_profileRepo != null && _store != null)
 		{
-			_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
+			_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc);
 		}
 	}
 

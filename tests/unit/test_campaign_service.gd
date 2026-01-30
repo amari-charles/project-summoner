@@ -230,12 +230,16 @@ func test_update_pending_choice_updates_index() -> void:
 ## REWARD GRANTING TESTS
 ## =============================================================================
 
-func test_grant_battle_reward_returns_gold_in_result() -> void:
-	# Gold is now granted explicitly by reward_screen.gd, not by grant_battle_reward.
-	# This test verifies that the result includes gold_reward for display purposes.
+func test_grant_battle_reward_grants_gold() -> void:
+	# FIRST_TRIAL has gold_reward: 30 (campaign-scoped gold)
 	var result: Dictionary = campaign.grant_battle_reward(String(BattleIDs.FIRST_TRIAL))
 
-	# The result should include gold_reward for the UI to know how much to grant
+	# Verify gold was granted via Economy service
+	assert_eq(mock_economy.get_call_count("add_campaign_gold"), 1)
+	var args: Array = mock_economy.get_call_args("add_campaign_gold")
+	assert_eq(args[0][0], 30)
+
+	# Result should also include gold for UI display
 	assert_eq(result.get("gold", 0), 30)
 
 

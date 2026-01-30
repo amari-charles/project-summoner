@@ -578,11 +578,7 @@ func _on_continue_pressed() -> void:
 			# FIXED or other rewards - use Campaign.claim_pending_reward()
 			granted_card = Campaign.claim_pending_reward()
 
-		# Always grant gold explicitly in GDScript (don't rely on C# callback)
-		# This ensures gold is granted even if the callback chain has issues
-		var gold_reward: int = battle.get("gold_reward", 0)
-		if gold_reward > 0:
-			Economy.add_campaign_gold(gold_reward)
+		# Note: Gold is granted in C# CampaignRewardHandler via EconomyService
 
 		# Auto-add to deck if tutorial battle
 		if not granted_card.is_empty():

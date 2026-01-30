@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Infrastructure.Persistence;
+using ProjectSummoner.Services.Economy;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
@@ -15,33 +16,27 @@ public class CampaignRewardHandler
     private readonly CampaignDataStore _store;
     private readonly Func<string> _getActiveSummonerFunc;
     private readonly Func<string, string, string>? _grantCardFunc;
-    private readonly Action<int>? _addCampaignGoldFunc;
 
     public CampaignRewardHandler(
         IProfileRepository profileRepo,
         CampaignDataStore store,
         Func<string> getActiveSummonerFunc,
-        Func<string, string, string>? grantCardFunc = null,
-        Action<int>? addCampaignGoldFunc = null)
+        Func<string, string, string>? grantCardFunc = null)
     {
         _profileRepo = profileRepo;
         _store = store;
         _getActiveSummonerFunc = getActiveSummonerFunc;
         _grantCardFunc = grantCardFunc;
-        _addCampaignGoldFunc = addCampaignGoldFunc;
     }
 
     /// <summary>Create a new handler with updated callbacks.</summary>
-    public CampaignRewardHandler WithCallbacks(
-        Func<string, string, string>? grantCardFunc,
-        Action<int>? addCampaignGoldFunc)
+    public CampaignRewardHandler WithCallbacks(Func<string, string, string>? grantCardFunc)
     {
         return new CampaignRewardHandler(
             _profileRepo,
             _store,
             _getActiveSummonerFunc,
-            grantCardFunc ?? _grantCardFunc,
-            addCampaignGoldFunc ?? _addCampaignGoldFunc);
+            grantCardFunc ?? _grantCardFunc);
     }
 
     // =========================================================================
@@ -135,9 +130,13 @@ public class CampaignRewardHandler
         var rewardType = battle.GetValueOrDefault("reward_type", "fixed").AsString();
         var rewardCardsVariant = battle.GetValueOrDefault("reward_cards", new Godot.Collections.Array());
 
-        // NOTE: Gold is granted explicitly in reward_screen.gd, not here.
-        // This avoids reliance on the callback chain which can silently fail.
+        // Grant campaign gold directly via EconomyService
         var goldReward = battle.GetValueOrDefault("gold_reward", 0).AsInt32();
+        if (goldReward > 0)
+        {
+            EconomyService.Instance?.AddCampaignGold(goldReward);
+            GD.Print($"CampaignRewardHandler: Granted {goldReward} campaign gold for battle '{battleId}'");
+        }
 
         // Handle case where there are no card rewards but there is gold
         var rewardCards = rewardCardsVariant.Obj is Godot.Collections.Array arr ? arr : new Godot.Collections.Array();

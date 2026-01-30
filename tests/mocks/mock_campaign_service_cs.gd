@@ -457,10 +457,11 @@ func GrantBattleReward(battle_id: String, chosen_index: int = 0) -> Dictionary:
 
 	var result: Dictionary = {"cards": [], "gold": 0}
 
-	# NOTE: Gold is granted explicitly in reward_screen.gd, not here.
-	# This matches the C# CampaignRewardHandler behavior.
+	# Grant campaign gold via callback (mirrors C# EconomyService.Instance call)
 	var gold_reward: int = battle.get("gold_reward", 0)
-	result["gold"] = gold_reward  # Include in result but don't grant via callback
+	if gold_reward > 0 and _add_campaign_gold.is_valid():
+		_add_campaign_gold.call(gold_reward)
+	result["gold"] = gold_reward
 
 	# Grant cards - handle both fixed (reward_cards) and flexible (reward_options)
 	var reward_cards: Array = battle.get("reward_cards", [])
