@@ -1062,6 +1062,28 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 
 ### 🟢 LOW PRIORITY
 
+#### Replace /root/VFXManager Lookup in Projectile3D
+**Status:** ⬜ Not Started
+**Category:** Architecture / Maintainability
+**Effort:** Trivial
+
+**Description:**
+`Projectile3D.cs` uses `GetNodeOrNull("/root/VFXManager")` to access the VFX manager autoload. Per code structure guidelines, Node-based scripts should use autoload globals directly.
+
+**Current Behavior:**
+```csharp
+var vfxManager = GetNodeOrNull("/root/VFXManager");
+vfxManager?.Call("play_effect", HitVfx, impactPosition);
+```
+
+**Proposed Fix:**
+Access `VFXManager` autoload directly without the `/root/` path prefix.
+
+**Related Files:**
+- `scripts/csharp/Projectiles/Projectile3D.cs:453-454`
+
+---
+
 #### Refactor Hard-coded /root/ Paths to Service Locator
 **Status:** ⬜ Not Started
 **Category:** Architecture / Maintainability
