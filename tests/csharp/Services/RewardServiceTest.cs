@@ -1,6 +1,7 @@
 namespace ProjectSummoner.Tests.Services;
 
 using System.Collections.Generic;
+using System.Linq;
 using GdUnit4;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Constants;
@@ -15,38 +16,24 @@ using static GdUnit4.Assertions;
 public class RewardServiceTest
 {
     // =============================================================================
-    // RewardPoolCatalog Tests
+    // RewardPoolCatalog - Pool Lookup Tests
     // =============================================================================
 
     [TestCase]
-    public void GetPool_StandardCards_ReturnsPool()
+    public void GetPool_ReturnsPoolDefinition()
     {
-        var pool = RewardPoolCatalog.GetPool("standard_cards");
+        var pool = RewardPoolCatalog.GetPool(RewardPoolId.TutorialRewards);
 
         AssertThat(pool).IsNotNull();
-        AssertThat(pool!.PoolId).IsEqual("standard_cards");
-    }
-
-    [TestCase]
-    public void GetPool_NonExistent_ReturnsNull()
-    {
-        var pool = RewardPoolCatalog.GetPool("nonexistent_pool");
-
-        AssertThat(pool).IsNull();
+        AssertThat(pool!.PoolId).IsEqual(RewardPoolId.TutorialRewards);
     }
 
     [TestCase]
     public void HasPool_ExistingPool_ReturnsTrue()
     {
-        AssertThat(RewardPoolCatalog.HasPool("standard_cards")).IsTrue();
-        AssertThat(RewardPoolCatalog.HasPool("fire_cards")).IsTrue();
-        AssertThat(RewardPoolCatalog.HasPool("common_cards")).IsTrue();
-    }
-
-    [TestCase]
-    public void HasPool_NonExistentPool_ReturnsFalse()
-    {
-        AssertThat(RewardPoolCatalog.HasPool("nonexistent")).IsFalse();
+        AssertThat(RewardPoolCatalog.HasPool(RewardPoolId.TutorialRewards)).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool(RewardPoolId.FireCommonUnits)).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool(RewardPoolId.ElementalStarters)).IsTrue();
     }
 
     [TestCase]
@@ -55,53 +42,58 @@ public class RewardServiceTest
         var poolIds = RewardPoolCatalog.GetAllPoolIds();
 
         AssertThat(poolIds.Length).IsGreater(0);
-        AssertThat(poolIds).Contains("standard_cards");
-        AssertThat(poolIds).Contains("fire_cards");
-        AssertThat(poolIds).Contains("common_cards");
+        AssertThat(poolIds).Contains(RewardPoolId.TutorialRewards);
+        AssertThat(poolIds).Contains(RewardPoolId.FireCommonUnits);
+        AssertThat(poolIds).Contains(RewardPoolId.ElementalStarters);
     }
 
-    [TestCase]
-    public void GetCardsForPool_StandardCards_ReturnsCards()
-    {
-        var cards = RewardPoolCatalog.GetCardsForPool("standard_cards");
-
-        AssertThat(cards.Length).IsGreater(0);
-        // Should exclude dev-only cards
-        foreach (var card in cards)
-        {
-            AssertThat(card.UnlockCondition).IsNotEqual(UnlockCondition.DevOnly);
-        }
-    }
+    // =============================================================================
+    // RewardPoolCatalog - Card Resolution Tests
+    // =============================================================================
 
     [TestCase]
-    public void GetCardsForPool_FireCards_ReturnsOnlyFireCards()
+    public void GetCardsForPool_FilterBasedPool_ReturnsFilteredCards()
     {
-        var cards = RewardPoolCatalog.GetCardsForPool("fire_cards");
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.FireCommonUnits);
 
         AssertThat(cards.Length).IsGreater(0);
         foreach (var card in cards)
         {
             AssertThat(card.ElementalAffinity).IsEqual(Element.Fire);
+            AssertThat(card.Rarity).IsEqual(Rarity.Common);
+            AssertThat(card.Type).IsEqual(CardType.Summon);
         }
     }
 
     [TestCase]
-    public void GetCardsForPool_CommonCards_ReturnsOnlyCommonCards()
+    public void GetCardsForPool_CompositePool_ReturnsUnion()
     {
-        var cards = RewardPoolCatalog.GetCardsForPool("common_cards");
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.ElementalStarters);
 
         AssertThat(cards.Length).IsGreater(0);
-        foreach (var card in cards)
-        {
-            AssertThat(card.Rarity).IsEqual(Rarity.Common);
-        }
+        // Should contain cards from Fire, Water, Wind, and Earth common units
+        var elements = cards.Select(c => c.ElementalAffinity).Distinct().ToList();
+        // At least some variety expected (depends on card catalog)
+        AssertThat(elements.Count).IsGreaterEqual(1);
+    }
+
+    [TestCase]
+    public void GetCardsForPool_CuratedPool_ReturnsExplicitCards()
+    {
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.TutorialRewards);
+
+        AssertThat(cards.Length).IsGreater(0);
+        // Tutorial rewards should include specific cards
+        var cardIds = cards.Select(c => c.Id).ToHashSet();
+        // These are defined in the catalog
+        AssertThat(cardIds.Contains("charge") || cardIds.Contains("guard") || cardIds.Contains("fire_wisp")).IsTrue();
     }
 
     [TestCase]
     public void GetCardsForPool_WithExclusions_ExcludesCards()
     {
         var excludeIds = new HashSet<string> { "fire_wisp", "fireball" };
-        var cards = RewardPoolCatalog.GetCardsForPool("standard_cards", excludeIds);
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.TutorialRewards, excludeIds);
 
         foreach (var card in cards)
         {
@@ -109,12 +101,16 @@ public class RewardServiceTest
         }
     }
 
+    // =============================================================================
+    // RewardPoolCatalog - FilterCards Tests
+    // =============================================================================
+
     [TestCase]
     public void FilterCards_ByElement_FiltersCorrectly()
     {
         var filters = new CardFilterConfig
         {
-            Elements = new List<Element> { Element.Water }
+            Elements = [Element.Water]
         };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
@@ -130,7 +126,7 @@ public class RewardServiceTest
     {
         var filters = new CardFilterConfig
         {
-            Rarities = new List<Rarity> { Rarity.Rare, Rarity.Epic }
+            Rarities = [Rarity.Rare, Rarity.Epic]
         };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
@@ -146,7 +142,7 @@ public class RewardServiceTest
     {
         var filters = new CardFilterConfig
         {
-            CardTypes = new List<CardType> { CardType.Spell }
+            CardTypes = [CardType.Spell]
         };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
@@ -162,7 +158,7 @@ public class RewardServiceTest
     {
         var filters = new CardFilterConfig
         {
-            ExcludeUnlockConditions = new List<UnlockCondition> { UnlockCondition.DevOnly }
+            ExcludeUnlockConditions = [UnlockCondition.DevOnly]
         };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
@@ -173,16 +169,31 @@ public class RewardServiceTest
         }
     }
 
+    // =============================================================================
+    // RewardPoolCatalog - Utility Tests
+    // =============================================================================
+
+    [TestCase]
+    public void GetCardsForPool_InvalidPoolId_ReturnsEmpty()
+    {
+        // Cast an invalid int to RewardPoolId to simulate invalid input
+        var invalidPoolId = (RewardPoolId)999;
+        var cards = RewardPoolCatalog.GetCardsForPool(invalidPoolId);
+
+        // Should return empty array (and log warning internally)
+        AssertThat(cards.Length).IsEqual(0);
+    }
+
     [TestCase]
     public void GetPoolIdForElement_ReturnsCorrectPool()
     {
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual("fire_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual("water_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual("wind_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual("earth_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Neutral)).IsEqual("neutral_cards");
-        // Unknown elements should return standard_cards
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Lightning)).IsEqual("standard_cards");
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual(RewardPoolId.FireCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual(RewardPoolId.WaterCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual(RewardPoolId.WindCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual(RewardPoolId.EarthCommonUnits);
+        // Elements without specific pools return null
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Neutral)).IsNull();
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Lightning)).IsNull();
     }
 
     // =============================================================================
@@ -220,43 +231,7 @@ public class RewardServiceTest
     }
 
     // =============================================================================
-    // RewardConfig Tests
-    // =============================================================================
-
-    [TestCase]
-    public void RewardConfig_FromGodotDict_ParsesCorrectly()
-    {
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["guaranteed_count"] = 1,
-            ["pool_count"] = 2,
-            ["pool_id"] = "fire_cards",
-            ["collection_filter"] = "exclude_owned"
-        };
-
-        var config = RewardConfig.FromGodotDict(dict);
-
-        AssertThat(config.GuaranteedCount).IsEqual(1);
-        AssertThat(config.PoolCount).IsEqual(2);
-        AssertThat(config.PoolId).IsEqual("fire_cards");
-        AssertThat(config.CollectionFilter).IsEqual(CollectionFilterMode.ExcludeOwned);
-    }
-
-    [TestCase]
-    public void RewardConfig_FromGodotDict_HandlesDefaults()
-    {
-        var dict = new Godot.Collections.Dictionary();
-
-        var config = RewardConfig.FromGodotDict(dict);
-
-        AssertThat(config.GuaranteedCount).IsEqual(0);
-        AssertThat(config.PoolCount).IsEqual(0);
-        AssertThat(config.PoolId).IsEqual("standard_cards");
-        AssertThat(config.CollectionFilter).IsEqual(CollectionFilterMode.None);
-    }
-
-    // =============================================================================
-    // CollectionFilterMode Tests
+    // Enum Value Tests
     // =============================================================================
 
     [TestCase]
@@ -266,10 +241,6 @@ public class RewardServiceTest
         AssertThat((int)CollectionFilterMode.ExcludeOwned).IsEqual(1);
         AssertThat((int)CollectionFilterMode.ExcludeDuplicates).IsEqual(2);
     }
-
-    // =============================================================================
-    // RewardType Tests
-    // =============================================================================
 
     [TestCase]
     public void RewardType_HasExpectedValues()

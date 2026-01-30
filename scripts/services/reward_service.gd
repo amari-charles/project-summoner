@@ -3,15 +3,24 @@ extends Node
 # This GDScript wrapper delegates to C# RewardServiceCS for implementation.
 
 ## Reward Service - Centralized Reward Handling
+
+## =============================================================================
+## CONSTANTS
+## =============================================================================
+
+## Default number of cards to draw for flexible rewards
+const DEFAULT_DRAW_COUNT: int = 3
 ##
-## Handles all reward operations (granting, flexible reward generation).
-## Used by: ShopService, CampaignService, future achievement/daily quest systems
-## Prevents logic duplication and ensures consistent reward handling
+## Handles all reward operations:
+## - get_reward_spec() - Get unified reward specification for a battle
+## - grant_rewards() - Grant rewards dictionary (gold, cards, etc.)
+## - grant_battle_rewards() - Grant battle completion rewards
+##
+## Used by: RewardScreen, CampaignService, future achievement/daily quest systems
 ##
 ## Usage:
-##   RewardService.grant_rewards({"gold": 100, "cards": [...]})
-##   var options = RewardService.generate_reward_options(config, summoner_id)
-##   RewardService.grant_reward(selected_option)
+##   var spec = RewardService.get_reward_spec(battle_id)
+##   RewardService.grant_battle_rewards(battle, card_reward)
 ##
 ## Atomicity Note:
 ## grant_rewards() is best-effort and does not roll back partial success internally.
@@ -56,6 +65,163 @@ func _on_cs_reward_grant_failed(reason: String) -> void:
 	reward_grant_failed.emit(reason)
 
 ## =============================================================================
+## REWARD SPECIFICATION
+## =============================================================================
+
+## Get complete reward specification for a battle.
+## Returns unified structure regardless of reward_type.
+## This is the primary API for UI to understand what rewards are available.
+##
+## @param battle_id: The battle ID to get reward spec for
+## @return Dictionary with:
+##   - is_replay: bool - True if battle already completed
+##   - reward_type: StringName - FIXED | FLEXIBLE | NONE
+##   - gold_reward: int - Gold amount
+##   - summoner_xp: int - Summoner XP reward
+##   - card_xp: int - Card XP reward
+##   - card_options: Array[Dictionary] - Unified card option format
+##   - requires_choice: bool - True if player must select from options
+##   - chosen_index: int - Index of choice from pending reward (-1 if not chosen)
+func get_reward_spec(battle_id: String) -> Dictionary:
+	var spec: Dictionary = {
+		"is_replay": false,
+		"reward_type": RewardTypeIDs.FIXED,
+		"gold_reward": 0,
+		"summoner_xp": 0,
+		"card_xp": 0,
+		"card_options": [],
+		"requires_choice": false,
+		"chosen_index": -1,
+	}
+
+	# Get battle data
+	var battle: Dictionary = Campaign.get_battle(battle_id)
+	if battle.is_empty():
+		push_warning("RewardService: Battle not found: %s" % battle_id)
+		return spec
+
+	# Check if replay
+	spec["is_replay"] = Campaign.is_battle_completed(battle_id)
+
+	# Basic rewards (always show)
+	spec["reward_type"] = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
+	spec["gold_reward"] = battle.get("gold_reward", 0)
+	spec["summoner_xp"] = battle.get("summoner_xp_reward", 0)
+	spec["card_xp"] = battle.get("card_xp_reward", 0)
+
+	# Check for pending reward (resuming after exit)
+	var pending: Variant = Campaign.get_pending_reward()
+	if pending != null and pending is Dictionary:
+		var pending_dict: Dictionary = pending
+		if pending_dict.get("battle_id", "") == battle_id:
+			spec["chosen_index"] = pending_dict.get("choice_index", -1)
+
+	# Process card options based on reward type
+	var reward_type: StringName = spec["reward_type"]
+
+	if reward_type == RewardTypeIDs.FIXED:
+		# Fixed rewards: single predetermined card
+		var reward_cards: Array = battle.get("reward_cards", [])
+		spec["card_options"] = _normalize_card_options(reward_cards)
+		spec["requires_choice"] = false
+
+	elif reward_type == RewardTypeIDs.FLEXIBLE:
+		# Flexible rewards: player picks from options
+		var player_selects: bool = battle.get("player_selects", true)
+		var draw_count: int = battle.get("draw_count", DEFAULT_DRAW_COUNT)
+		var exclude_owned: bool = battle.get("exclude_owned", false)
+		var unique_options: bool = battle.get("unique_options", true)
+
+		if battle.has("reward_pool"):
+			# Enum-based pool (type-safe, via C#)
+			var pool_id_int: int = battle.get("reward_pool", 0)
+			var drawn_ids: Array = _cs_service.DrawFromPoolEnum(
+				pool_id_int, draw_count, exclude_owned, unique_options
+			)
+			spec["card_options"] = _normalize_card_options(drawn_ids)
+
+		elif battle.has("reward_filters"):
+			# Inline filter config (type-safe, via C#)
+			var filter_dict: Dictionary = battle.get("reward_filters", {})
+			var drawn_ids: Array = _cs_service.DrawWithFilterDict(
+				filter_dict, draw_count, exclude_owned, unique_options
+			)
+			spec["card_options"] = _normalize_card_options(drawn_ids)
+
+		elif battle.has("reward_options"):
+			# Explicit options defined in battle config
+			var reward_options: Array = battle.get("reward_options", [])
+			spec["card_options"] = _normalize_card_options(reward_options)
+
+		else:
+			# No card options configured - log warning
+			push_warning("RewardService: FLEXIBLE battle '%s' has no reward_pool, reward_filters, or reward_options" % battle.get("id", "unknown"))
+			spec["card_options"] = []
+
+		spec["requires_choice"] = player_selects and spec["card_options"].size() > 1
+
+	elif reward_type == RewardTypeIDs.NONE:
+		# No card rewards
+		spec["card_options"] = []
+		spec["requires_choice"] = false
+
+	return spec
+
+
+## Normalize card options to unified format
+## Handles raw string/StringName IDs and dictionary entries
+## Fetches display name and rarity from CardCatalog when not provided
+func _normalize_card_options(options: Variant) -> Array[Dictionary]:
+	var normalized: Array[Dictionary] = []
+
+	# Handle both Array and Array[StringName]
+	var options_array: Array = options if options is Array else []
+
+	for opt: Variant in options_array:
+		if opt is Dictionary:
+			var entry: Dictionary = opt
+			var catalog_id: String = entry.get("id", entry.get("catalog_id", ""))
+			if catalog_id.is_empty():
+				continue
+
+			# Get card data from catalog
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			var display_name: String = card_data.get("card_name", catalog_id)
+
+			# Use provided rarity or fetch from catalog
+			var rarity: String = String(entry.get("rarity", ""))
+			if rarity.is_empty():
+				rarity = card_data.get("rarity", "common")
+
+			normalized.append({
+				"catalog_id": catalog_id,
+				"rarity": rarity,
+				"count": entry.get("amount", entry.get("count", 1)),
+				"display_name": display_name,
+			})
+		elif opt is String or opt is StringName:
+			# Raw card ID - fetch all info from catalog
+			var catalog_id: String = String(opt)
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+
+			if card_data.is_empty():
+				push_warning("RewardService: Card '%s' not found in catalog" % catalog_id)
+				continue
+
+			var display_name: String = card_data.get("card_name", catalog_id)
+			var rarity: String = card_data.get("rarity", "common")
+
+			normalized.append({
+				"catalog_id": catalog_id,
+				"rarity": rarity,
+				"count": 1,
+				"display_name": display_name,
+			})
+
+	return normalized
+
+
+## =============================================================================
 ## REWARD GRANTING (Legacy API)
 ## =============================================================================
 
@@ -75,32 +241,6 @@ func grant_rewards(rewards: Dictionary) -> bool:
 		return _cs_service.GrantRewards(rewards)
 	push_warning("RewardService.grant_rewards: C# service not available")
 	return false
-
-## =============================================================================
-## FLEXIBLE REWARD GENERATION
-## =============================================================================
-
-## Generate reward options for a battle reward screen.
-## Returns guaranteed (summoner-themed) options plus pool-drawn options.
-##
-## @param config Dictionary with:
-##   - "guaranteed_count": int - Number of summoner-themed options
-##   - "pool_count": int - Number of pool-drawn options
-##   - "pool_id": String - Pool ID for non-guaranteed options (default: "standard_cards")
-##   - "collection_filter": String - "none", "exclude_owned", or "exclude_duplicates"
-## @param summoner_id String - Active summoner ID for element theming
-## @return Array[Dictionary] - List of reward options
-func generate_reward_options(config: Dictionary, summoner_id: String) -> Array[Dictionary]:
-	if _cs_service:
-		var result: Array = _cs_service.GenerateRewardOptionsDict(config, summoner_id)
-		var typed_result: Array[Dictionary] = []
-		for item: Variant in result:
-			if item is Dictionary:
-				typed_result.append(item)
-		return typed_result
-	push_warning("RewardService.generate_reward_options: C# service not available")
-	return []
-
 
 ## Grant a single reward option (from flexible reward selection)
 ##

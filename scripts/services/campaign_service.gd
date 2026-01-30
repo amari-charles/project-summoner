@@ -374,8 +374,9 @@ func _validate_battle_rewards() -> void:
 				continue
 			var battle: Dictionary = battle_variant
 			var battle_id: String = battle.get("id", "")
-			var reward_cards: Array = battle.get("reward_cards", [])
 
+			# Validate reward_cards (FIXED reward type)
+			var reward_cards: Array = battle.get("reward_cards", [])
 			for reward_variant: Variant in reward_cards:
 				if not reward_variant is Dictionary:
 					continue
@@ -387,6 +388,22 @@ func _validate_battle_rewards() -> void:
 
 				if not CardCatalog.has_card(catalog_id):
 					push_error("CampaignService: INVALID REWARD - Battle '%s' has reward card '%s' which doesn't exist in CardCatalog!" % [battle_id, catalog_id])
+					invalid_count += 1
+
+			# Validate reward_options (FLEXIBLE reward type)
+			var reward_options: Array = battle.get("reward_options", [])
+			for option_variant: Variant in reward_options:
+				var catalog_id: String = ""
+				if option_variant is String or option_variant is StringName:
+					catalog_id = String(option_variant)
+				elif option_variant is Dictionary:
+					catalog_id = option_variant.get("catalog_id", option_variant.get("id", ""))
+
+				if catalog_id.is_empty():
+					continue
+
+				if not CardCatalog.has_card(catalog_id):
+					push_error("CampaignService: INVALID REWARD_OPTION - Battle '%s' has reward option '%s' which doesn't exist in CardCatalog!" % [battle_id, catalog_id])
 					invalid_count += 1
 
 	if invalid_count > 0:
@@ -547,6 +564,11 @@ func claim_pending_reward() -> Dictionary:
 ## @param card_reward: The card reward to grant (from flexible selection or fixed battle config)
 ## @return Dictionary with granted rewards {gold: int, cards: Array, instance_ids: Array}
 func claim_battle_rewards(battle_id: String, card_reward: Dictionary = {}) -> Dictionary:
+	# Guard against replay - don't grant rewards for completed battles
+	if is_battle_completed(battle_id):
+		print("CampaignService: Battle '%s' already completed, skipping rewards" % battle_id)
+		return {}
+
 	var battle: Dictionary = get_battle(battle_id)
 	if battle.is_empty():
 		push_error("CampaignService: Battle not found: %s" % battle_id)

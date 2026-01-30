@@ -69,197 +69,133 @@ func _load_battle_results() -> void:
 	# This guards against navigating here without actually winning a battle
 	if BattleContext.battle_state != BattleContext.BattleState.VICTORY:
 		# Check for pending reward - player may have won, exited, and returned
-		var has_pending: bool = false
 		var pending: Variant = Campaign.get_pending_reward()
-		has_pending = pending != null and pending is Dictionary
-
-		if not has_pending:
+		if pending == null or not pending is Dictionary:
 			push_error("RewardScreen: Invalid battle state (%s) - not a victory!" % BattleContext.BattleState.keys()[BattleContext.battle_state])
 			SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 			return
 
-	# First get the current battle from profile (the battle we just won)
-	var profile_battle_id: String = ""
+	# Get the current battle from profile (the battle we just won)
 	var profile: Dictionary = ProfileRepo.get_active_profile()
 	if not profile.is_empty():
 		var campaign_progress: Variant = profile.get("campaign_progress", {})
 		if campaign_progress is Dictionary:
-			profile_battle_id = campaign_progress.get("current_battle", "")
+			current_battle_id = campaign_progress.get("current_battle", "")
 
-	# Check for pending reward - only resume if it matches the current battle
+	# Handle pending reward state
 	var pending_reward: Variant = Campaign.get_pending_reward()
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
 		var pending_battle_id: String = pending_dict.get("battle_id", "")
 
-		if pending_battle_id == profile_battle_id:
-			# Pending reward matches current battle - resume it
-			current_battle_id = pending_battle_id
-			reward_type = StringName(pending_dict.get("reward_type", RewardTypeIDs.FIXED))
-			chosen_reward_index = pending_dict.get("choice_index", -1)
+		if pending_battle_id == current_battle_id:
+			# Resume pending reward
 			is_pending_reward = true
 			print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
-		else:
-			# Stale pending reward from different battle - clear it and use current battle
-			print("RewardScreen: Clearing stale pending reward (was '%s', current is '%s')" % [pending_battle_id, profile_battle_id])
+		elif not pending_battle_id.is_empty():
+			# Stale pending reward - clear it
+			print("RewardScreen: Clearing stale pending reward (was '%s', current is '%s')" % [pending_battle_id, current_battle_id])
 			Campaign.clear_pending_reward()
-			current_battle_id = profile_battle_id
-	else:
-		# No pending reward - use current battle from profile
-		current_battle_id = profile_battle_id
 
-	if current_battle_id == "":
+	if current_battle_id.is_empty():
 		push_error("RewardScreen: No current battle set!")
 		return
 
+	# Get reward specification from service
+	var spec: Dictionary = RewardService.get_reward_spec(current_battle_id)
+
+	# Get battle for display info
 	var battle: Dictionary = Campaign.get_battle(current_battle_id)
-	if battle.is_empty():
-		push_error("RewardScreen: Battle not found: %s" % current_battle_id)
-		return
-
-	# Update UI
 	battle_name_label.text = battle.get("name", "Unknown Battle")
-	if not is_pending_reward:
-		reward_type = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
 
-	# Check if battle was already completed (replay scenario)
-	var is_replay: bool = Campaign.is_battle_completed(current_battle_id)
+	# Update state from spec
+	reward_type = spec.get("reward_type", RewardTypeIDs.FIXED)
+	chosen_reward_index = spec.get("chosen_index", -1)
 
-	if is_replay:
-		_show_rewards(battle, true)
-	elif is_pending_reward:
-		_resume_pending_reward(battle)
-	else:
-		# First time victory - set pending reward (don't complete yet!)
-		Campaign.set_pending_reward(current_battle_id, reward_type, -1)
-		_show_rewards(battle, false)
+	# Display rewards using spec
+	_display_reward_spec(spec)
 
 ## =============================================================================
 ## REWARD DISPLAY
 ## =============================================================================
 
-func _show_rewards(battle: Dictionary, is_replay: bool = false) -> void:
-	var catalog: Node = CardCatalog
+## Display rewards using the unified spec from RewardService
+func _display_reward_spec(spec: Dictionary) -> void:
+	var is_replay: bool = spec.get("is_replay", false)
 
-	# Validate rewards before displaying
-	_validate_rewards(battle, catalog)
-
-	# XP rewards are always granted (even for replays)
-	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
-	_display_summoner_xp_reward(summoner_xp)
-	var card_xp: int = battle.get("card_xp_reward", 0)
-	_display_card_xp_rewards(card_xp)
+	# XP rewards always display (even for replays)
+	_display_summoner_xp_reward(spec.get("summoner_xp", 0))
+	_display_card_xp_rewards(spec.get("card_xp", 0))
 
 	if is_replay:
-		# Show message for replayed battles - no gold/card rewards, but XP still granted
+		# Replay - no gold/card rewards, but XP still granted
 		reward_card_label.text = Loc.t("ui.reward.already_completed")
 		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
 		gold_reward_label.text = ""
-		reward_ready_to_claim = true  # Allow continuing (XP already granted via BattleContext)
+		reward_ready_to_claim = true
 		return
 
-	# Display gold reward (not for replays)
-	var gold_reward: int = battle.get("gold_reward", 0)
-	_display_gold_reward(gold_reward)
+	# Set pending reward if not already set (first time victory)
+	if not is_pending_reward:
+		Campaign.set_pending_reward(current_battle_id, reward_type, -1)
 
-	match reward_type:
-		RewardTypeIDs.FIXED:
-			# Display the reward preview (don't grant yet - grant on Continue)
-			var reward_cards: Array = battle.get("reward_cards", [])
-			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
-				_display_card_reward(reward_cards[0])
-			elif reward_cards.is_empty() and gold_reward > 0:
-				# Gold only reward
-				reward_card_label.text = Loc.t("ui.reward.victory")
-				reward_detail_label.text = ""
+	# Display gold
+	_display_gold_reward(spec.get("gold_reward", 0))
+
+	# Get card options from spec
+	var card_options: Array = spec.get("card_options", [])
+	var requires_choice: bool = spec.get("requires_choice", false)
+
+	# Convert to typed array for internal use
+	flexible_options = []
+	for opt: Variant in card_options:
+		if opt is Dictionary:
+			flexible_options.append(opt)
+
+	# Determine reward display based on spec
+	if reward_type == RewardTypeIDs.FLEXIBLE:
+		is_flexible_reward = true
+
+	if requires_choice:
+		# Check if player already made a choice (resuming)
+		if chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
+			_display_card_reward_from_spec(flexible_options[chosen_reward_index])
 			reward_ready_to_claim = true
+		else:
+			_show_flexible_choice_ui(flexible_options)
+			reward_ready_to_claim = false
+	elif flexible_options.size() > 0:
+		# Fixed or auto-selected reward
+		if reward_type == RewardTypeIDs.FLEXIBLE and is_flexible_reward:
+			# Auto-select first option for FLEXIBLE without player_selects
+			chosen_reward_index = 0
+		_display_card_reward_from_spec(flexible_options[0])
+		reward_ready_to_claim = true
+	else:
+		# No card rewards (gold-only or NONE type)
+		reward_card_label.text = Loc.t("ui.reward.victory")
+		reward_detail_label.text = ""
+		reward_ready_to_claim = true
 
-		RewardTypeIDs.FLEXIBLE:
-			# Flexible reward - may have specific_options or generate dynamically
-			is_flexible_reward = true
-			var player_selects: bool = battle.get("player_selects", true)
 
-			if battle.has("specific_options"):
-				# Legacy CHOICE behavior: use predefined options
-				var specific_options: Array = battle.get("specific_options", [])
-				flexible_options = []
-				for opt: Variant in specific_options:
-					if opt is Dictionary:
-						flexible_options.append(opt)
+## Display a card reward from normalized spec format
+func _display_card_reward_from_spec(card_spec: Dictionary) -> void:
+	var catalog_id: String = card_spec.get("catalog_id", "")
+	var rarity: StringName = StringName(card_spec.get("rarity", "common"))
+	var count: int = card_spec.get("count", 1)
+	var display_name: String = card_spec.get("display_name", "")
 
-				if not player_selects and flexible_options.size() > 0:
-					# Legacy RANDOM behavior: auto-grant random option
-					var random_idx: int = randi() % flexible_options.size()
-					chosen_reward_index = random_idx
-					_display_card_reward(flexible_options[random_idx])
-					reward_ready_to_claim = true
-				elif flexible_options.size() > 0:
-					# Show choice UI for specific options
-					_show_flexible_choice_ui(flexible_options)
-					reward_ready_to_claim = false
-				else:
-					reward_card_label.text = Loc.t("ui.reward.victory")
-					reward_detail_label.text = ""
-					reward_ready_to_claim = true
-			else:
-				# Dynamic generation via RewardService
-				_generate_flexible_options(battle)
+	if display_name.is_empty():
+		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+		display_name = card_data.get("card_name", "Unknown")
 
-		RewardTypeIDs.NONE:
-			# No card rewards for this battle (may still have gold)
-			reward_card_label.text = Loc.t("ui.reward.victory")
-			reward_detail_label.text = ""
-			reward_ready_to_claim = true
+	if count > 1:
+		reward_card_label.text = "%dx %s" % [count, display_name]
+	else:
+		reward_card_label.text = display_name
 
-## Resume a pending reward (called when returning to screen after exit)
-func _resume_pending_reward(battle: Dictionary) -> void:
-	print("RewardScreen: Resuming pending reward (type: %s, choice_index: %d)" % [reward_type, chosen_reward_index])
-
-	# Display gold, summoner XP, and card XP rewards
-	var gold_reward: int = battle.get("gold_reward", 0)
-	_display_gold_reward(gold_reward)
-	var summoner_xp: int = battle.get("summoner_xp_reward", 0)
-	_display_summoner_xp_reward(summoner_xp)
-	var card_xp: int = battle.get("card_xp_reward", 0)
-	_display_card_xp_rewards(card_xp)
-
-	match reward_type:
-		RewardTypeIDs.FIXED:
-			# Fixed rewards just need to show the preview
-			var reward_cards: Array = battle.get("reward_cards", [])
-			if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
-				_display_card_reward(reward_cards[0])
-			elif reward_cards.is_empty() and gold_reward > 0:
-				reward_card_label.text = Loc.t("ui.reward.victory")
-				reward_detail_label.text = ""
-			reward_ready_to_claim = true
-
-		RewardTypeIDs.FLEXIBLE:
-			is_flexible_reward = true
-			if battle.has("specific_options"):
-				# Legacy specific options
-				var specific_options: Array = battle.get("specific_options", [])
-				flexible_options = []
-				for opt: Variant in specific_options:
-					if opt is Dictionary:
-						flexible_options.append(opt)
-
-				if chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
-					# Player already made a choice - show it
-					_display_card_reward(flexible_options[chosen_reward_index])
-					reward_ready_to_claim = true
-				else:
-					# Player hasn't chosen yet - show choice UI
-					_show_flexible_choice_ui(flexible_options)
-					reward_ready_to_claim = false
-			else:
-				# Dynamic generation - regenerate options
-				_generate_flexible_options(battle)
-
-		RewardTypeIDs.NONE:
-			reward_card_label.text = Loc.t("ui.reward.victory")
-			reward_detail_label.text = ""
-			reward_ready_to_claim = true
+	reward_detail_label.text = Loc.t("ui.reward.rarity", {"rarity": String(rarity).capitalize()})
+	reward_card_label.add_theme_color_override("font_color", _get_rarity_color(rarity))
 
 ## Display gold reward amount
 func _display_gold_reward(gold: int) -> void:
@@ -414,30 +350,6 @@ func _refresh_card_xp_item(instance_id: String) -> void:
 				child.call("setup", instance_id, catalog_id, card_name, level, can_level_up, xp_progress)
 			break
 
-## Display a card reward (handles both legacy {catalog_id} and flexible {id} formats)
-func _display_card_reward(reward: Dictionary) -> void:
-	# Handle both formats: {catalog_id, rarity, count} and {id, type, rarity, amount}
-	var catalog_id: String = reward.get("id", reward.get("catalog_id", ""))
-	var rarity: StringName = StringName(reward.get("rarity", RarityIDs.COMMON))
-	var count: int = reward.get("amount", reward.get("count", 1))
-
-	var card_data: Dictionary = CardCatalog.get_card(catalog_id)
-	if card_data.is_empty():
-		reward_card_label.text = Loc.t("ui.reward.unknown_card")
-		reward_detail_label.text = ""
-		return
-
-	var card_name: String = card_data.get("card_name", "Unknown")
-
-	if count > 1:
-		reward_card_label.text = "%dx %s" % [count, card_name]
-	else:
-		reward_card_label.text = card_name
-
-	reward_detail_label.text = Loc.t("ui.reward.rarity", {"rarity": String(rarity).capitalize()})
-	reward_card_label.add_theme_color_override("font_color", _get_rarity_color(rarity))
-
-
 ## Get color for a card rarity
 func _get_rarity_color(rarity: StringName) -> Color:
 	return RARITY_COLORS.get(rarity, Color.WHITE)
@@ -445,39 +357,6 @@ func _get_rarity_color(rarity: StringName) -> Color:
 ## =============================================================================
 ## FLEXIBLE REWARD SYSTEM
 ## =============================================================================
-
-## Generate flexible reward options via RewardService
-func _generate_flexible_options(battle: Dictionary) -> void:
-	# Build config from battle data
-	var config: Dictionary = {
-		"guaranteed_count": battle.get("guaranteed_count", 1),
-		"pool_count": battle.get("pool_count", 2),
-		"pool_id": battle.get("pool_id", "standard_cards"),
-		"collection_filter": battle.get("collection_filter", "none")
-	}
-
-	# Get active summoner for element theming
-	var summoner_id: String = _get_active_summoner_id()
-
-	# Generate options via RewardService
-	flexible_options = RewardService.generate_reward_options(config, summoner_id)
-
-	var player_selects: bool = battle.get("player_selects", true)
-
-	if flexible_options.size() == 0:
-		# No options generated (pool exhausted, etc.)
-		reward_card_label.text = Loc.t("ui.reward.victory")
-		reward_detail_label.text = ""
-		reward_ready_to_claim = true
-	elif not player_selects:
-		# Auto-grant first option (legacy RANDOM behavior)
-		chosen_reward_index = 0
-		_display_card_reward(flexible_options[0])
-		reward_ready_to_claim = true
-	else:
-		# Show choice UI
-		_show_flexible_choice_ui(flexible_options)
-		reward_ready_to_claim = false
 
 ## Get active summoner ID for reward theming
 func _get_active_summoner_id() -> String:
@@ -502,21 +381,23 @@ func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 	# Create choice buttons
 	for i: int in range(options.size()):
 		var option: Dictionary = options[i]
-		var catalog_id: String = option.get("id", option.get("catalog_id", ""))
-		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+		# Use normalized spec format (catalog_id)
+		var display_name: String = option.get("display_name", "")
 
-		if card_data.is_empty():
-			continue
+		if display_name.is_empty():
+			# Fallback to catalog lookup
+			var catalog_id: String = option.get("catalog_id", "")
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			display_name = card_data.get("card_name", "Unknown")
 
 		var button: Button = Button.new()
-		var card_name: String = card_data.get("card_name", "Unknown")
 		var is_guaranteed: bool = option.get("is_guaranteed", false)
 
 		# Add badge for guaranteed vs pool options
 		if is_guaranteed:
-			button.text = "[%s] %s" % [Loc.t("ui.reward.guaranteed"), card_name]
+			button.text = "[%s] %s" % [Loc.t("ui.reward.guaranteed"), display_name]
 		else:
-			button.text = card_name
+			button.text = display_name
 
 		button.custom_minimum_size = CHOICE_BUTTON_SIZE
 		button.add_theme_font_size_override("font_size", CHOICE_BUTTON_FONT_SIZE)
@@ -539,7 +420,7 @@ func _on_flexible_choice_selected(index: int) -> void:
 		# Hide choice UI and show selected card preview
 		choice_container.visible = false
 		reward_container.visible = true
-		_display_card_reward(flexible_options[index])
+		_display_card_reward_from_spec(flexible_options[index])
 
 	# Mark ready to claim and enable continue
 	reward_ready_to_claim = true
@@ -558,16 +439,14 @@ func _on_continue_pressed() -> void:
 		_check_summoner_level_up()
 		return
 
-	# Determine the card reward to grant
+	# Determine the card reward to grant from flexible_options (already normalized by spec)
 	var card_reward: Dictionary = {}
-	if is_flexible_reward and chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
+	if chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
+		# Use the chosen option (FLEXIBLE with choice made)
 		card_reward = flexible_options[chosen_reward_index]
-	else:
-		# Fixed reward - get from battle config
-		var battle: Dictionary = Campaign.get_battle(current_battle_id)
-		var reward_cards: Array = battle.get("reward_cards", [])
-		if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
-			card_reward = reward_cards[0]
+	elif flexible_options.size() > 0:
+		# Use first option (FIXED or auto-selected FLEXIBLE)
+		card_reward = flexible_options[0]
 
 	# Single unified call to claim all rewards (gold + cards)
 	var granted: Dictionary = Campaign.claim_battle_rewards(current_battle_id, card_reward)
@@ -662,43 +541,3 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 
 	if added_count > 0:
 		print("RewardScreen: Auto-added %d card(s) to deck (tutorial mode)" % added_count)
-
-## =============================================================================
-## REWARD VALIDATION
-## =============================================================================
-
-## Validate that reward cards in battle config exist in catalog
-## This is a runtime check to catch configuration errors
-func _validate_rewards(battle: Dictionary, catalog: Node) -> void:
-	if not catalog:
-		push_warning("RewardScreen: CardCatalog not available for validation")
-		return
-
-	var battle_id: String = battle.get("id", "unknown")
-	var reward_cards: Array = battle.get("reward_cards", [])
-
-	if reward_cards.is_empty():
-		return  # No rewards is valid (some battles have no rewards)
-
-	var invalid_cards: Array[String] = []
-
-	for reward_variant: Variant in reward_cards:
-		if not reward_variant is Dictionary:
-			push_warning("RewardScreen: Invalid reward format in battle '%s'" % battle_id)
-			continue
-
-		var reward: Dictionary = reward_variant
-		var catalog_id: String = reward.get("catalog_id", "")
-
-		if catalog_id.is_empty():
-			push_warning("RewardScreen: Empty catalog_id in battle '%s' rewards" % battle_id)
-			continue
-
-		if not CardCatalog.has_card(catalog_id):
-			invalid_cards.append(catalog_id)
-
-	if not invalid_cards.is_empty():
-		push_error("RewardScreen: VALIDATION FAILED - Battle '%s' has invalid reward cards: %s" % [battle_id, invalid_cards])
-		push_error("RewardScreen: These cards don't exist in CardCatalog! Player may not receive promised rewards.")
-	else:
-		print("RewardScreen: Rewards validated for battle '%s'" % battle_id)

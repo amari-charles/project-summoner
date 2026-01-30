@@ -78,89 +78,8 @@ public partial class RewardService : Node
     }
 
     // =========================================================================
-    // FLEXIBLE REWARD GENERATION
+    // COLLECTION QUERIES
     // =========================================================================
-
-    /// <summary>
-    /// Generate reward options for a battle reward screen.
-    /// Returns guaranteed (summoner-themed) options plus pool-drawn options.
-    /// </summary>
-    /// <param name="config">Battle reward configuration.</param>
-    /// <param name="summonerId">Active summoner ID for guaranteed options.</param>
-    /// <param name="ownedCatalogIds">Set of catalog IDs the player already owns.</param>
-    /// <returns>List of reward options to present to the player.</returns>
-    public List<RewardOption> GenerateRewardOptions(
-        RewardConfig config,
-        string summonerId,
-        HashSet<string>? ownedCatalogIds = null)
-    {
-        var options = new List<RewardOption>();
-
-        // Get summoner element for guaranteed options
-        var summoner = SummonerCatalog.GetSummoner(summonerId);
-        var element = summoner?.ElementalAffinity ?? Element.Neutral;
-
-        // Generate guaranteed options (summoner element cards)
-        if (config.GuaranteedCount > 0)
-        {
-            var guaranteed = GetGuaranteedOptions(element, config.GuaranteedCount, config.CollectionFilter, ownedCatalogIds);
-            options.AddRange(guaranteed);
-        }
-
-        // Generate pool options
-        if (config.PoolCount > 0 && !string.IsNullOrEmpty(config.PoolId))
-        {
-            var poolOptions = DrawFromPool(config.PoolId, config.PoolCount, config.CollectionFilter, ownedCatalogIds);
-            options.AddRange(poolOptions);
-        }
-
-        return options;
-    }
-
-    /// <summary>
-    /// Get guaranteed reward options matching the summoner's element.
-    /// These are marked as "guaranteed" in the UI.
-    /// </summary>
-    public List<RewardOption> GetGuaranteedOptions(
-        Element element,
-        int count,
-        CollectionFilterMode filterMode = CollectionFilterMode.None,
-        HashSet<string>? ownedCatalogIds = null)
-    {
-        // Get cards matching the summoner's element
-        var elementCards = CardCatalog.GetCardsByElement(element)
-            .Where(c => c.UnlockCondition != UnlockCondition.DevOnly)
-            .ToList();
-
-        // Apply collection filter
-        var filteredCards = ApplyCollectionFilter(elementCards, filterMode, ownedCatalogIds);
-
-        // Shuffle and take requested count
-        var shuffled = filteredCards.OrderBy(_ => _random.Next()).ToList();
-        var selected = shuffled.Take(count);
-
-        return selected.Select(card => CreateCardRewardOption(card, isGuaranteed: true)).ToList();
-    }
-
-    /// <summary>
-    /// Draw reward options from a named pool.
-    /// </summary>
-    public List<RewardOption> DrawFromPool(
-        string poolId,
-        int count,
-        CollectionFilterMode filterMode = CollectionFilterMode.None,
-        HashSet<string>? ownedCatalogIds = null)
-    {
-        // Get pool cards
-        var excludeIds = GetExcludeIds(filterMode, ownedCatalogIds);
-        var poolCards = RewardPoolCatalog.GetCardsForPool(poolId, excludeIds).ToList();
-
-        // Shuffle and take requested count
-        var shuffled = poolCards.OrderBy(_ => _random.Next()).ToList();
-        var selected = shuffled.Take(count);
-
-        return selected.Select(card => CreateCardRewardOption(card, isGuaranteed: false)).ToList();
-    }
 
     /// <summary>
     /// Get current player's owned catalog IDs for filtering.
@@ -547,67 +466,126 @@ public partial class RewardService : Node
         return true;
     }
 
-    private List<CardDefinition> ApplyCollectionFilter(
-        List<CardDefinition> cards,
-        CollectionFilterMode filterMode,
-        HashSet<string>? ownedCatalogIds)
-    {
-        if (filterMode == CollectionFilterMode.None || ownedCatalogIds == null)
-            return cards;
-
-        return filterMode switch
-        {
-            CollectionFilterMode.ExcludeOwned => cards.Where(c => !ownedCatalogIds.Contains(c.Id)).ToList(),
-            CollectionFilterMode.ExcludeDuplicates => cards, // TODO: More nuanced duplicate handling
-            _ => cards
-        };
-    }
-
-    private HashSet<string>? GetExcludeIds(CollectionFilterMode filterMode, HashSet<string>? ownedCatalogIds)
-    {
-        return filterMode switch
-        {
-            CollectionFilterMode.ExcludeOwned => ownedCatalogIds,
-            _ => null
-        };
-    }
-
-    private static RewardOption CreateCardRewardOption(CardDefinition card, bool isGuaranteed)
-    {
-        return new RewardOption
-        {
-            Type = RewardType.Card,
-            Id = card.Id,
-            Amount = 1,
-            Rarity = card.Rarity.ToString().ToLowerInvariant(),
-            IsGuaranteed = isGuaranteed,
-            DisplayName = card.Name,
-            Description = card.Description,
-            IconPath = card.CardIconPath,
-            Element = card.ElementalAffinity.ToString().ToLowerInvariant()
-        };
-    }
-
     // =========================================================================
-    // GDSCRIPT INTEROP
+    // POOL-BASED REWARD DRAWING
     // =========================================================================
 
-    /// <summary>GDScript-friendly version of GenerateRewardOptions.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GenerateRewardOptionsDict(
-        Godot.Collections.Dictionary config,
-        string summonerId)
+    /// <summary>
+    /// Draw cards from a predefined pool (enum-based, type-safe).
+    /// </summary>
+    /// <param name="poolId">Pool enum ID.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    /// <param name="excludeOwned">Whether to exclude owned cards.</param>
+    /// <param name="uniqueOnly">Whether to ensure no duplicates in result.</param>
+    /// <returns>List of card IDs.</returns>
+    public List<string> DrawFromPool(
+        RewardPoolId poolId,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
     {
-        var rewardConfig = RewardConfig.FromGodotDict(config);
-        var ownedIds = GetOwnedCatalogIds();
-        var options = GenerateRewardOptions(rewardConfig, summonerId, ownedIds);
+        var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
+        var cards = RewardPoolCatalog.GetCardsForPool(poolId, excludeIds);
 
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var option in options)
+        return DrawRandomCards(cards, count, uniqueOnly);
+    }
+
+    /// <summary>
+    /// Draw cards using inline filter config.
+    /// </summary>
+    /// <param name="filterConfig">Filter configuration.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    /// <param name="excludeOwned">Whether to exclude owned cards.</param>
+    /// <param name="uniqueOnly">Whether to ensure no duplicates in result.</param>
+    /// <returns>List of card IDs.</returns>
+    public List<string> DrawWithFilters(
+        CardFilterConfig filterConfig,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
+        var cards = RewardPoolCatalog.FilterCards(filterConfig, excludeIds);
+
+        return DrawRandomCards(cards, count, uniqueOnly);
+    }
+
+    /// <summary>
+    /// Draw random cards from a candidate set.
+    /// </summary>
+    private List<string> DrawRandomCards(CardDefinition[] cards, int count, bool uniqueOnly)
+    {
+        var result = new List<string>();
+        var remaining = cards.ToList();
+
+        for (int i = 0; i < count && remaining.Count > 0; i++)
         {
-            result.Add(RewardOptionToDict(option));
+            int idx = _random.Next(remaining.Count);
+            result.Add(remaining[idx].Id);
+
+            if (uniqueOnly)
+                remaining.RemoveAt(idx);
         }
+
         return result;
     }
+
+    // =========================================================================
+    // GDSCRIPT INTEROP - POOL SYSTEM
+    // =========================================================================
+
+    /// <summary>
+    /// Draw cards from a predefined pool (GDScript-friendly).
+    /// </summary>
+    /// <param name="poolIdInt">Pool enum value as int.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    /// <param name="excludeOwned">Whether to exclude owned cards.</param>
+    /// <param name="uniqueOnly">Whether to ensure no duplicates.</param>
+    /// <returns>Array of card IDs.</returns>
+    public Godot.Collections.Array<string> DrawFromPoolEnum(
+        int poolIdInt,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        if (!Enum.IsDefined(typeof(RewardPoolId), poolIdInt))
+        {
+            GD.PushWarning($"RewardService: Invalid pool ID: {poolIdInt}");
+            return [];
+        }
+
+        var poolId = (RewardPoolId)poolIdInt;
+        var cards = DrawFromPool(poolId, count, excludeOwned, uniqueOnly);
+
+        var result = new Godot.Collections.Array<string>();
+        foreach (var cardId in cards)
+            result.Add(cardId);
+        return result;
+    }
+
+    /// <summary>
+    /// Draw cards using inline filter dictionary (GDScript-friendly).
+    /// Filter dict can have: element (int), rarity (int), card_type (int)
+    /// </summary>
+    public Godot.Collections.Array<string> DrawWithFilterDict(
+        Godot.Collections.Dictionary filterDict,
+        int count,
+        bool excludeOwned = false,
+        bool uniqueOnly = true)
+    {
+        var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
+        var cards = RewardPoolCatalog.DrawWithFilters(filterDict, excludeIds);
+        var drawn = DrawRandomCards(cards, count, uniqueOnly);
+
+        var result = new Godot.Collections.Array<string>();
+        foreach (var cardId in drawn)
+            result.Add(cardId);
+        return result;
+    }
+
+    // =========================================================================
+    // GDSCRIPT INTEROP - REWARD GRANTING
+    // =========================================================================
 
     /// <summary>GDScript-friendly version of GrantReward.</summary>
     public bool GrantRewardDict(Godot.Collections.Dictionary optionDict)
@@ -648,39 +626,6 @@ public partial class RewardService : Node
             Description = dict.TryGetValue("description", out var descVar) ? descVar.AsString() : "",
             IconPath = dict.TryGetValue("icon_path", out var iconVar) ? iconVar.AsString() : "",
             Element = dict.TryGetValue("element", out var elemVar) ? elemVar.AsString() : ""
-        };
-    }
-}
-
-/// <summary>
-/// Configuration for flexible reward generation.
-/// </summary>
-public class RewardConfig
-{
-    /// <summary>Number of guaranteed (summoner-themed) options.</summary>
-    public int GuaranteedCount { get; init; }
-
-    /// <summary>Number of options drawn from the pool.</summary>
-    public int PoolCount { get; init; }
-
-    /// <summary>Pool ID for non-guaranteed options.</summary>
-    public string PoolId { get; init; } = "standard_cards";
-
-    /// <summary>How to filter based on player's collection.</summary>
-    public CollectionFilterMode CollectionFilter { get; init; } = CollectionFilterMode.None;
-
-    /// <summary>Create from Godot Dictionary (for GDScript interop).</summary>
-    public static RewardConfig FromGodotDict(Godot.Collections.Dictionary dict)
-    {
-        var filterStr = dict.TryGetValue("collection_filter", out var filterVar) ? filterVar.AsString() : "none";
-        Enum.TryParse<CollectionFilterMode>(filterStr.Replace("_", ""), ignoreCase: true, out var filterMode);
-
-        return new RewardConfig
-        {
-            GuaranteedCount = dict.TryGetValue("guaranteed_count", out var guarVar) ? (int)guarVar : 0,
-            PoolCount = dict.TryGetValue("pool_count", out var poolVar) ? (int)poolVar : 0,
-            PoolId = dict.TryGetValue("pool_id", out var poolIdVar) ? poolIdVar.AsString() : "standard_cards",
-            CollectionFilter = filterMode
         };
     }
 }

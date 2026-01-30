@@ -29,15 +29,18 @@ const FIXED: StringName = &"fixed"
 ## No reward - battle has no card reward (e.g., shop events)
 const NONE: StringName = &"none"
 
-## Flexible reward - dynamic generation with player selection
+## Flexible reward - player picks from options
 ##
-## Config options:
-## - guaranteed_count: int - Summoner-element cards to offer
-## - pool_count: int - Cards from pool to offer
-## - pool_id: String - Which pool to draw from (default: "standard_cards")
-## - collection_filter: String - "none", "exclude_owned", "exclude_duplicates"
-## - specific_options: Array[Dictionary] - Specific cards instead of pool (legacy CHOICE)
-## - player_selects: bool - If false, auto-grant (legacy RANDOM behavior)
+## Config options (use ONE of these):
+## - reward_pool: RewardConstants.PoolId - Enum-based pool to draw from
+## - reward_filters: Dictionary - Inline filters {element, rarity, card_type}
+## - reward_options: Array[CardIDs] - Explicit card choices
+##
+## Additional options:
+## - draw_count: int - Number of cards to draw from pool (default: 3)
+## - exclude_owned: bool - Exclude cards player already owns
+## - unique_options: bool - Ensure no duplicate cards in options
+## - player_selects: bool - If false, auto-grant first option
 const FLEXIBLE: StringName = &"flexible"
 
 # ============================================================================
