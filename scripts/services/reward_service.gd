@@ -56,6 +56,138 @@ func _on_cs_reward_grant_failed(reason: String) -> void:
 	reward_grant_failed.emit(reason)
 
 ## =============================================================================
+## REWARD SPECIFICATION
+## =============================================================================
+
+## Get complete reward specification for a battle.
+## Returns unified structure regardless of reward_type.
+## This is the primary API for UI to understand what rewards are available.
+##
+## @param battle_id: The battle ID to get reward spec for
+## @return Dictionary with:
+##   - is_replay: bool - True if battle already completed
+##   - reward_type: StringName - FIXED | FLEXIBLE | NONE
+##   - gold_reward: int - Gold amount
+##   - summoner_xp: int - Summoner XP reward
+##   - card_xp: int - Card XP reward
+##   - card_options: Array[Dictionary] - Unified card option format
+##   - requires_choice: bool - True if player must select from options
+##   - chosen_index: int - Index of choice from pending reward (-1 if not chosen)
+func get_reward_spec(battle_id: String) -> Dictionary:
+	var spec: Dictionary = {
+		"is_replay": false,
+		"reward_type": RewardTypeIDs.FIXED,
+		"gold_reward": 0,
+		"summoner_xp": 0,
+		"card_xp": 0,
+		"card_options": [],
+		"requires_choice": false,
+		"chosen_index": -1,
+	}
+
+	# Get battle data
+	var battle: Dictionary = Campaign.get_battle(battle_id)
+	if battle.is_empty():
+		push_warning("RewardService: Battle not found: %s" % battle_id)
+		return spec
+
+	# Check if replay
+	spec["is_replay"] = Campaign.is_battle_completed(battle_id)
+
+	# Basic rewards (always show)
+	spec["reward_type"] = StringName(battle.get("reward_type", RewardTypeIDs.FIXED))
+	spec["gold_reward"] = battle.get("gold_reward", 0)
+	spec["summoner_xp"] = battle.get("summoner_xp_reward", 0)
+	spec["card_xp"] = battle.get("card_xp_reward", 0)
+
+	# Check for pending reward (resuming after exit)
+	var pending: Variant = Campaign.get_pending_reward()
+	if pending != null and pending is Dictionary:
+		var pending_dict: Dictionary = pending
+		if pending_dict.get("battle_id", "") == battle_id:
+			spec["chosen_index"] = pending_dict.get("choice_index", -1)
+
+	# Process card options based on reward type
+	var reward_type: StringName = spec["reward_type"]
+
+	if reward_type == RewardTypeIDs.FIXED:
+		# Fixed rewards: single predetermined card
+		var reward_cards: Array = battle.get("reward_cards", [])
+		spec["card_options"] = _normalize_card_options(reward_cards)
+		spec["requires_choice"] = false
+
+	elif reward_type == RewardTypeIDs.FLEXIBLE:
+		# Flexible rewards: player picks from options
+		var player_selects: bool = battle.get("player_selects", true)
+
+		if battle.has("reward_options"):
+			# Specific options defined in battle config
+			var reward_options: Array = battle.get("reward_options", [])
+			spec["card_options"] = _normalize_card_options(reward_options)
+		elif battle.has("specific_options"):
+			# Legacy specific_options field
+			var specific_options: Array = battle.get("specific_options", [])
+			spec["card_options"] = _normalize_card_options(specific_options)
+		else:
+			# Dynamic generation (not currently used but supported)
+			var config: Dictionary = {
+				"guaranteed_count": battle.get("guaranteed_count", 1),
+				"pool_count": battle.get("pool_count", 2),
+				"pool_id": battle.get("pool_id", "standard_cards"),
+				"collection_filter": battle.get("collection_filter", "none")
+			}
+			var summoner_id: String = SummonerSelection.GetActiveSummonerId()
+			spec["card_options"] = generate_reward_options(config, summoner_id)
+
+		spec["requires_choice"] = player_selects and spec["card_options"].size() > 1
+
+	elif reward_type == RewardTypeIDs.NONE:
+		# No card rewards
+		spec["card_options"] = []
+		spec["requires_choice"] = false
+
+	return spec
+
+
+## Normalize card options to unified format
+## Handles both raw string IDs and dictionary entries
+func _normalize_card_options(options: Array) -> Array[Dictionary]:
+	var normalized: Array[Dictionary] = []
+
+	for opt: Variant in options:
+		if opt is Dictionary:
+			var entry: Dictionary = opt
+			var catalog_id: String = entry.get("id", entry.get("catalog_id", ""))
+			if catalog_id.is_empty():
+				continue
+
+			# Get display name from catalog
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			var display_name: String = card_data.get("card_name", catalog_id)
+
+			normalized.append({
+				"catalog_id": catalog_id,
+				"rarity": String(entry.get("rarity", "common")),
+				"count": entry.get("amount", entry.get("count", 1)),
+				"display_name": display_name,
+			})
+		elif opt is String or opt is StringName:
+			# Raw card ID
+			var catalog_id: String = String(opt)
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			var display_name: String = card_data.get("card_name", catalog_id)
+
+			normalized.append({
+				"catalog_id": catalog_id,
+				"rarity": "common",  # Default rarity for raw IDs
+				"count": 1,
+				"display_name": display_name,
+			})
+
+	return normalized
+
+
+## =============================================================================
 ## REWARD GRANTING (Legacy API)
 ## =============================================================================
 

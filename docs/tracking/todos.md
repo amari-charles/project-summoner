@@ -22,18 +22,24 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ### 🔴 HIGH PRIORITY
 
 #### Phase 3: Flexible Reward System
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress (Foundation Complete)
 **Category:** Core Game Systems / Rewards
 **Effort:** Medium
 
 **Description:**
 Reward screens offer X guaranteed summoner-themed options + Y pool-drawn options. Pool can exclude owned cards.
 
-**Requirements:**
-- Create `RewardService.cs` with flexible reward generation
-- Create `RewardPoolCatalog.cs` for reward pool definitions
-- Add battle config fields: `guaranteed_count`, `pool_count`, `collection_filter`
-- Update RewardScreen UI for variable option counts
+**Completed:**
+- RewardService.gd now has `get_reward_spec()` for unified reward data
+- RewardScreen refactored to thin display layer using spec pattern
+- Battle completion guard prevents duplicate gold on replay
+- Summoner screen gold display fixed (uses campaign_gold_changed signal)
+- `reward_options` validation added to CampaignService
+
+**Remaining:**
+- Create `RewardPoolCatalog.cs` for reward pool definitions (when needed)
+- Add battle config fields: `guaranteed_count`, `pool_count`, `collection_filter` (when dynamic generation is needed)
+- Currently all battles use explicit `reward_options` or `reward_cards`, not dynamic generation
 
 ---
 
@@ -408,27 +414,11 @@ Design and implement additional spell cards for more strategic variety.
 
 ### 🟢 LOW PRIORITY
 
-#### Clean Up Redundant/Unused Profile Data Fields
-**Status:** ✅ Completed
-**Category:** Database / Cleanup
-**Effort:** Small
-**Completed:** 2026-01-26
-
-**Resolution:** Removed duplicate `profile_id` from `resources` object and removed unused `roll_json` field from card instance creation. Existing saves will still work as the code doesn't require these fields.
-
 ---
 
 ## Core Game Systems
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Add Quit Game Functionality
-**Status:** ✅ Completed
-**Category:** Core Game Systems / UI
-**Effort:** Small
-**Completed:** 2026-01-26
-
-**Resolution:** Added Quit button to title screen (bottom-right corner). Uses localized text from `menu.quit` and calls `get_tree().quit()`.
 
 ---
 
@@ -797,14 +787,6 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ### 🟢 LOW PRIORITY
 
-#### Standardize .tscn Placeholder Text Pattern
-**Status:** ✅ Completed
-**Category:** UI / Code Style
-**Effort:** Trivial
-**Completed:** 2026-01-26
-
-**Resolution:** Updated `title_screen.tscn` to use empty strings. Left `nav_drawer.tscn` unchanged as the `[ui.nav.menu]` pattern is informative for developers editing the scene.
-
 ---
 
 ## Summoner System
@@ -1049,14 +1031,6 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 ---
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Fix async void Pattern in CompositeEffect
-**Status:** ✅ Completed
-**Category:** Performance / Reliability
-**Effort:** Small
-**Completed:** 2026-01-26
-
-**Resolution:** Already fixed. Both `CompositeEffect.cs` and `DeathExplosionAbility.cs` use typed `SceneTreeTimer.SignalName.Timeout` and have `IsInstanceValid` guards after await.
 
 ---
 

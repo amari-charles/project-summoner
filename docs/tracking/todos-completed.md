@@ -6,6 +6,68 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Battle Reward System Refactor (Phase 1 & 2)
+**Completed:** 2026-01-30
+**Category:** Core Game Systems / Rewards
+**Effort:** Medium
+
+**Description:**
+Refactored the battle reward system to fix bugs and create a cleaner architecture.
+
+**Bug Fixes:**
+- Added completion guard in `claim_battle_rewards()` to prevent duplicate gold on replay
+- Fixed summoner screen gold display to use `campaign_gold_changed` signal and `get_campaign_gold()`
+
+**Architecture Changes:**
+- Added `get_reward_spec()` to RewardService for unified reward data
+- Refactored RewardScreen to be a thin display layer that uses the spec pattern
+- Added `reward_options` validation in CampaignService's `_validate_battle_rewards()`
+- Removed duplicated business logic from RewardScreen (moved to RewardService)
+
+**Files Changed:**
+- `scripts/services/campaign_service.gd` - completion guard, reward_options validation
+- `scripts/services/reward_service.gd` - get_reward_spec(), _normalize_card_options()
+- `scripts/ui/screens/reward_screen.gd` - simplified to display-only
+- `scripts/ui/screens/summoner_screen.gd` - fixed gold display signal
+
+---
+
+### Clean Up Redundant/Unused Profile Data Fields
+**Completed:** 2026-01-26
+**Category:** Database / Cleanup
+**Effort:** Small
+
+**Resolution:** Removed duplicate `profile_id` from `resources` object and removed unused `roll_json` field from card instance creation. Existing saves will still work as the code doesn't require these fields.
+
+---
+
+### Add Quit Game Functionality
+**Completed:** 2026-01-26
+**Category:** Core Game Systems / UI
+**Effort:** Small
+
+**Resolution:** Added Quit button to title screen (bottom-right corner). Uses localized text from `menu.quit` and calls `get_tree().quit()`.
+
+---
+
+### Standardize .tscn Placeholder Text Pattern
+**Completed:** 2026-01-26
+**Category:** UI / Code Style
+**Effort:** Trivial
+
+**Resolution:** Updated `title_screen.tscn` to use empty strings. Left `nav_drawer.tscn` unchanged as the `[ui.nav.menu]` pattern is informative for developers editing the scene.
+
+---
+
+### Fix async void Pattern in CompositeEffect
+**Completed:** 2026-01-26
+**Category:** Performance / Reliability
+**Effort:** Small
+
+**Resolution:** Already fixed. Both `CompositeEffect.cs` and `DeathExplosionAbility.cs` use typed `SceneTreeTimer.SignalName.Timeout` and have `IsInstanceValid` guards after await.
+
+---
+
 ### Make Projectiles Disappear on Hit
 **Completed:** 2026-01-26
 **Category:** Units & Combat / Visual Polish
