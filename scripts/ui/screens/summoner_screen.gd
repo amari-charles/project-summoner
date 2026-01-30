@@ -120,7 +120,7 @@ const GOLD_LABEL_TOP: float = 25.0
 
 
 func _setup_gold_display() -> void:
-	# Create gold label dynamically for reliable positioning
+	# Create gold label dynamically
 	gold_label = Label.new()
 	add_child(gold_label)
 
@@ -130,14 +130,21 @@ func _setup_gold_display() -> void:
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 	# Set size
-	gold_label.custom_minimum_size = Vector2(GOLD_LABEL_WIDTH, GOLD_LABEL_HEIGHT)
+	gold_label.size = Vector2(GOLD_LABEL_WIDTH, GOLD_LABEL_HEIGHT)
 
-	# Position in top-right using preset, then adjust offsets
-	gold_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	gold_label.offset_left = -(GOLD_LABEL_MARGIN + GOLD_LABEL_WIDTH)
-	gold_label.offset_top = GOLD_LABEL_TOP
-	gold_label.offset_right = -GOLD_LABEL_MARGIN
-	gold_label.offset_bottom = GOLD_LABEL_TOP + GOLD_LABEL_HEIGHT
+	# Position in top-right using absolute position
+	var viewport_width: float = get_viewport_rect().size.x
+	gold_label.position = Vector2(viewport_width - GOLD_LABEL_WIDTH - GOLD_LABEL_MARGIN, GOLD_LABEL_TOP)
+
+	# Update position on resize
+	get_tree().root.size_changed.connect(_on_viewport_resized)
+
+
+func _on_viewport_resized() -> void:
+	if gold_label == null:
+		return
+	var viewport_width: float = get_viewport_rect().size.x
+	gold_label.position = Vector2(viewport_width - GOLD_LABEL_WIDTH - GOLD_LABEL_MARGIN, GOLD_LABEL_TOP)
 
 
 func _refresh_gold_display() -> void:
