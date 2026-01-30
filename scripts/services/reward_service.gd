@@ -4,14 +4,16 @@ extends Node
 
 ## Reward Service - Centralized Reward Handling
 ##
-## Handles all reward operations (granting, flexible reward generation).
-## Used by: ShopService, CampaignService, future achievement/daily quest systems
-## Prevents logic duplication and ensures consistent reward handling
+## Handles all reward operations:
+## - get_reward_spec() - Get unified reward specification for a battle
+## - grant_rewards() - Grant rewards dictionary (gold, cards, etc.)
+## - grant_battle_rewards() - Grant battle completion rewards
+##
+## Used by: RewardScreen, CampaignService, future achievement/daily quest systems
 ##
 ## Usage:
-##   RewardService.grant_rewards({"gold": 100, "cards": [...]})
-##   var options = RewardService.generate_reward_options(config, summoner_id)
-##   RewardService.grant_reward(selected_option)
+##   var spec = RewardService.get_reward_spec(battle_id)
+##   RewardService.grant_battle_rewards(battle, card_reward)
 ##
 ## Atomicity Note:
 ## grant_rewards() is best-effort and does not roll back partial success internally.
@@ -144,21 +146,10 @@ func get_reward_spec(battle_id: String) -> Dictionary:
 			var reward_options: Array = battle.get("reward_options", [])
 			spec["card_options"] = _normalize_card_options(reward_options)
 
-		elif battle.has("specific_options"):
-			# Legacy specific_options field
-			var specific_options: Array = battle.get("specific_options", [])
-			spec["card_options"] = _normalize_card_options(specific_options)
-
 		else:
-			# Legacy dynamic generation via C# (fallback)
-			var config: Dictionary = {
-				"guaranteed_count": battle.get("guaranteed_count", 1),
-				"pool_count": battle.get("pool_count", 2),
-				"pool_id": battle.get("pool_id", "standard_cards"),
-				"collection_filter": battle.get("collection_filter", "none")
-			}
-			var summoner_id: String = SummonerSelection.GetActiveSummonerId()
-			spec["card_options"] = generate_reward_options(config, summoner_id)
+			# No card options configured - log warning
+			push_warning("RewardService: FLEXIBLE battle '%s' has no reward_pool, reward_filters, or reward_options" % battle.get("id", "unknown"))
+			spec["card_options"] = []
 
 		spec["requires_choice"] = player_selects and spec["card_options"].size() > 1
 
@@ -243,32 +234,6 @@ func grant_rewards(rewards: Dictionary) -> bool:
 		return _cs_service.GrantRewards(rewards)
 	push_warning("RewardService.grant_rewards: C# service not available")
 	return false
-
-## =============================================================================
-## FLEXIBLE REWARD GENERATION
-## =============================================================================
-
-## Generate reward options for a battle reward screen.
-## Returns guaranteed (summoner-themed) options plus pool-drawn options.
-##
-## @param config Dictionary with:
-##   - "guaranteed_count": int - Number of summoner-themed options
-##   - "pool_count": int - Number of pool-drawn options
-##   - "pool_id": String - Pool ID for non-guaranteed options (default: "standard_cards")
-##   - "collection_filter": String - "none", "exclude_owned", or "exclude_duplicates"
-## @param summoner_id String - Active summoner ID for element theming
-## @return Array[Dictionary] - List of reward options
-func generate_reward_options(config: Dictionary, summoner_id: String) -> Array[Dictionary]:
-	if _cs_service:
-		var result: Array = _cs_service.GenerateRewardOptionsDict(config, summoner_id)
-		var typed_result: Array[Dictionary] = []
-		for item: Variant in result:
-			if item is Dictionary:
-				typed_result.append(item)
-		return typed_result
-	push_warning("RewardService.generate_reward_options: C# service not available")
-	return []
-
 
 ## Grant a single reward option (from flexible reward selection)
 ##

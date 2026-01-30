@@ -19,46 +19,6 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ## Campaign Economy & Systems
 
-### 🔴 HIGH PRIORITY
-
-#### Phase 3: Flexible Reward System
-**Status:** ✅ Completed
-**Category:** Core Game Systems / Rewards
-**Effort:** Medium
-**Completed:** 2026-01-30
-
-**Description:**
-Type-safe, composable reward pool system in C# with combinable filters.
-
-**Implementation:**
-- `RewardPoolCatalog.cs` - Pool definitions with filters, explicit cards, and composition
-- `RewardPoolId.cs` - Type-safe pool enum
-- `RewardConstants.gd` - GDScript mirror enums for type safety
-- Inline filter support: `reward_filters` with element, rarity, card_type
-
-**Battle Config Examples:**
-```gdscript
-# Use predefined pool (enum-based)
-{
-    "reward_pool": RewardConstants.PoolId.FIRE_COMMON_UNITS,
-    "draw_count": 3,
-    "exclude_owned": true,
-}
-
-# Use inline filters (combinable)
-{
-    "reward_filters": {
-        "element": RewardConstants.Element.FIRE,
-        "rarity": RewardConstants.Rarity.COMMON,
-        "card_type": RewardConstants.CardType.SUMMON,
-    },
-    "draw_count": 3,
-    "exclude_owned": true,
-}
-```
-
----
-
 ### 🟡 MEDIUM PRIORITY
 
 #### Type-safe domain objects for Dictionary<string, object>

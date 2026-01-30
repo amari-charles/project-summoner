@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -139,102 +140,9 @@ public static class RewardPoolCatalog
         },
     };
 
-    // =========================================================================
-    // LEGACY STRING-BASED POOLS (for backward compatibility)
-    // =========================================================================
-
-    private static readonly Dictionary<string, RewardPoolDefinition> _stringPools = new()
-    {
-        // Standard pool: All unlockable cards (no dev-only cards)
-        ["standard_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "standard_cards",
-            CardFilters = new CardFilterConfig
-            {
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Common cards only
-        ["common_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "common_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Rarities = [Rarity.Common],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Fire element cards
-        ["fire_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "fire_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Elements = [Element.Fire],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Water element cards
-        ["water_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "water_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Elements = [Element.Water],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Wind element cards
-        ["wind_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "wind_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Elements = [Element.Wind],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Earth element cards
-        ["earth_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "earth_cards",
-            CardFilters = new CardFilterConfig
-            {
-                Elements = [Element.Earth],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Summon cards only
-        ["summon_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "summon_cards",
-            CardFilters = new CardFilterConfig
-            {
-                CardTypes = [CardType.Summon],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        },
-
-        // Spell cards only
-        ["spell_cards"] = new RewardPoolDefinition
-        {
-            LegacyPoolId = "spell_cards",
-            CardFilters = new CardFilterConfig
-            {
-                CardTypes = [CardType.Spell],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
-        }
-    };
 
     // =========================================================================
-    // LOOKUP METHODS (Enum-based - Type-Safe)
+    // LOOKUP METHODS
     // =========================================================================
 
     /// <summary>Get a pool definition by enum ID. Returns null if not found.</summary>
@@ -243,32 +151,16 @@ public static class RewardPoolCatalog
         return _enumPools.GetValueOrDefault(poolId);
     }
 
-    /// <summary>Check if a pool exists (enum-based).</summary>
+    /// <summary>Check if a pool exists.</summary>
     public static bool HasPool(RewardPoolId poolId)
     {
         return _enumPools.ContainsKey(poolId);
     }
 
-    /// <summary>Get all enum pool IDs.</summary>
+    /// <summary>Get all pool IDs.</summary>
     public static RewardPoolId[] GetAllPoolIds()
     {
         return [.. _enumPools.Keys];
-    }
-
-    // =========================================================================
-    // LOOKUP METHODS (String-based - Legacy)
-    // =========================================================================
-
-    /// <summary>Get a pool definition by string ID. Returns null if not found.</summary>
-    public static RewardPoolDefinition? GetPool(string poolId)
-    {
-        return _stringPools.GetValueOrDefault(poolId);
-    }
-
-    /// <summary>Check if a pool exists (string-based).</summary>
-    public static bool HasPool(string poolId)
-    {
-        return _stringPools.ContainsKey(poolId);
     }
 
     // =========================================================================
@@ -276,25 +168,10 @@ public static class RewardPoolCatalog
     // =========================================================================
 
     /// <summary>
-    /// Get cards matching a pool's filters (enum-based).
+    /// Get cards matching a pool's filters.
     /// Handles explicit card lists, filters, and pool composition.
     /// </summary>
     public static CardDefinition[] GetCardsForPool(RewardPoolId poolId, HashSet<string>? excludeCatalogIds = null)
-    {
-        var pool = GetPool(poolId);
-        if (pool == null)
-        {
-            GD.PushWarning($"RewardPoolCatalog: Pool '{poolId}' not found");
-            return [];
-        }
-
-        return ResolvePoolDefinition(pool, excludeCatalogIds);
-    }
-
-    /// <summary>
-    /// Get cards matching a pool's filters (string-based, legacy).
-    /// </summary>
-    public static CardDefinition[] GetCardsForPool(string poolId, HashSet<string>? excludeCatalogIds = null)
     {
         var pool = GetPool(poolId);
         if (pool == null)
@@ -507,11 +384,8 @@ public static class RewardPoolCatalog
 /// </summary>
 public class RewardPoolDefinition
 {
-    /// <summary>Enum pool identifier (type-safe).</summary>
-    public RewardPoolId? PoolId { get; init; }
-
-    /// <summary>String pool identifier (legacy).</summary>
-    public string? LegacyPoolId { get; init; }
+    /// <summary>Pool identifier.</summary>
+    public RewardPoolId PoolId { get; init; }
 
     /// <summary>Explicit card IDs (for curated pools).</summary>
     public List<string>? ExplicitCardIds { get; init; }

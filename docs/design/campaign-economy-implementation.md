@@ -86,21 +86,35 @@ Implementing four interconnected systems to align the codebase with the January 
 
 ---
 
-## Phase 3: Flexible Reward System
+## Phase 3: Flexible Reward System ✅
 
-**Goal:** Configurable reward generation with guaranteed + pool options.
+**Goal:** Configurable reward generation with type-safe pool system.
 
-### Planned Changes
+### Implementation (Completed 2026-01-30)
 
-- Create `RewardPool.cs` resource type
-- Create `RewardPoolCatalog.cs`
-- Create `RewardService.cs` with:
-  - `GenerateRewardOptions(battleConfig, summoner, ownedCards)`
-  - Pool filtering by element, rarity, collection
-- Update battle configs with flexible reward settings:
-  - `guaranteed_count` - summoner-themed options
-  - `pool_count` - drawn from pool
-  - `collection_filter` - exclude_owned/exclude_duplicates/none
+**C# Types:**
+- `RewardPoolId.cs` - Type-safe enum for predefined pools
+- `RewardPoolCatalog.cs` - Pool definitions with:
+  - Curated pools (explicit card lists): TutorialRewards, StarterRewards, BossLoot
+  - Filter pools (element + rarity + type): FireCommonUnits, WaterCommonUnits, etc.
+  - Composite pools (unions): ElementalStarters
+- `RewardService.cs` - Pool drawing with exclusions
+
+**GDScript:**
+- `RewardConstants.gd` - Mirror enums for GDScript type safety
+- `reward_service.gd` - `get_reward_spec()` for unified reward data
+
+**Battle Config Options:**
+```gdscript
+# Option 1: Predefined pool (enum-based)
+{ "reward_pool": RewardConstants.PoolId.FIRE_COMMON_UNITS, "draw_count": 3 }
+
+# Option 2: Inline filters (combinable)
+{ "reward_filters": { "element": RewardConstants.Element.FIRE, "rarity": RewardConstants.Rarity.COMMON } }
+
+# Option 3: Explicit options
+{ "reward_options": [CardIDs.CHARGE, CardIDs.FIRE_WISP] }
+```
 
 ---
 

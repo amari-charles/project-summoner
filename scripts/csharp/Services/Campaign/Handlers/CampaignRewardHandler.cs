@@ -120,8 +120,8 @@ public class CampaignRewardHandler
 
     /// <summary>Grant battle reward and return granted card info.</summary>
     /// <remarks>
-    /// Note: Gold is now granted via RewardService.grant_battle_rewards() in GDScript.
-    /// This method only handles card granting for legacy specific_options support.
+    /// Note: Gold and flexible rewards are now granted via RewardService.grant_battle_rewards() in GDScript.
+    /// This method handles FIXED reward card granting only.
     /// </remarks>
     public Godot.Collections.Dictionary GrantBattleReward(string battleId, int chosenIndex = 0)
     {
@@ -132,10 +132,16 @@ public class CampaignRewardHandler
         }
 
         var rewardType = battle.GetValueOrDefault("reward_type", "fixed").AsString();
-        var rewardCardsVariant = battle.GetValueOrDefault("reward_cards", new Godot.Collections.Array());
 
-        // Handle case where there are no card rewards
+        // Only handle FIXED rewards - FLEXIBLE rewards are granted via RewardService
+        if (rewardType != "fixed")
+        {
+            return new Godot.Collections.Dictionary();
+        }
+
+        var rewardCardsVariant = battle.GetValueOrDefault("reward_cards", new Godot.Collections.Array());
         var rewardCards = rewardCardsVariant.Obj is Godot.Collections.Array arr ? arr : new Godot.Collections.Array();
+
         if (rewardCards.Count == 0)
         {
             GD.PushWarning($"CampaignRewardHandler: No card rewards defined for battle '{battleId}'");
@@ -145,54 +151,22 @@ public class CampaignRewardHandler
         var grantedCard = new Godot.Collections.Dictionary();
         var grantedInstanceIds = new Godot.Collections.Array<string>();
 
-        if (rewardType == "fixed")
+        // Grant all reward cards
+        foreach (var rewardVariant in rewardCards)
         {
-            // Grant all reward cards
-            foreach (var rewardVariant in rewardCards)
+            if (rewardVariant.Obj is Godot.Collections.Dictionary reward)
             {
-                if (rewardVariant.Obj is Godot.Collections.Dictionary reward)
+                var ids = GrantRewardCard(reward);
+                foreach (var id in ids)
                 {
-                    var ids = GrantRewardCard(reward);
-                    foreach (var id in ids)
-                    {
-                        grantedInstanceIds.Add(id);
-                    }
+                    grantedInstanceIds.Add(id);
                 }
-            }
-
-            if (rewardCards.Count > 0 && rewardCards[0].Obj is Godot.Collections.Dictionary firstCard)
-            {
-                grantedCard = firstCard;
             }
         }
-        else if (rewardType == "flexible")
-        {
-            // FLEXIBLE rewards with specific_options (legacy CHOICE/RANDOM behavior)
-            var specificOptionsVariant = battle.GetValueOrDefault("specific_options", new Godot.Collections.Array());
-            if (specificOptionsVariant.Obj is Godot.Collections.Array specificOptions && specificOptions.Count > 0)
-            {
-                var playerSelects = battle.GetValueOrDefault("player_selects", true).AsBool();
 
-                if (chosenIndex >= 0 && chosenIndex < specificOptions.Count &&
-                    specificOptions[chosenIndex].Obj is Godot.Collections.Dictionary chosenReward)
-                {
-                    var ids = GrantRewardCard(chosenReward);
-                    foreach (var id in ids) grantedInstanceIds.Add(id);
-                    grantedCard = chosenReward;
-                }
-                else if (!playerSelects && specificOptions.Count > 0)
-                {
-                    // Legacy RANDOM: auto-grant random option
-                    var randomIndex = new Random().Next(specificOptions.Count);
-                    if (specificOptions[randomIndex].Obj is Godot.Collections.Dictionary randomReward)
-                    {
-                        var ids = GrantRewardCard(randomReward);
-                        foreach (var id in ids) grantedInstanceIds.Add(id);
-                        grantedCard = randomReward;
-                    }
-                }
-            }
-            // Dynamic pool-based FLEXIBLE rewards are granted directly by reward_screen via RewardService
+        if (rewardCards.Count > 0 && rewardCards[0].Obj is Godot.Collections.Dictionary firstCard)
+        {
+            grantedCard = firstCard;
         }
 
         // Add instance IDs to return value
@@ -236,7 +210,6 @@ public class CampaignRewardHandler
         }
 
         var battleId = pending.GetValueOrDefault("battle_id", "").AsString();
-        var rewardType = pending.GetValueOrDefault("reward_type", "").AsString();
         var choiceIndex = pending.GetValueOrDefault("choice_index", 0).AsInt32();
 
         if (string.IsNullOrEmpty(battleId))
@@ -245,23 +218,7 @@ public class CampaignRewardHandler
             return (new Godot.Collections.Dictionary(), "");
         }
 
-        // For flexible rewards with player selection, ensure a choice was made
-        if (rewardType == "flexible" && choiceIndex < 0)
-        {
-            if (_store.Battles.TryGetValue(battleId, out var battle))
-            {
-                var hasSpecificOptions = battle.GetValueOrDefault("specific_options", new Godot.Collections.Array()).Obj is Godot.Collections.Array arr && arr.Count > 0;
-                var playerSelects = battle.GetValueOrDefault("player_selects", true).AsBool();
-
-                if (hasSpecificOptions && playerSelects)
-                {
-                    GD.PushError("CampaignRewardHandler: Cannot claim flexible reward without making a choice");
-                    return (new Godot.Collections.Dictionary(), "");
-                }
-            }
-        }
-
-        // Grant the reward
+        // Grant the reward (only FIXED rewards - FLEXIBLE handled by RewardService)
         var grantedCard = GrantBattleReward(battleId, choiceIndex);
 
         GD.Print($"CampaignRewardHandler: Claimed reward for battle '{battleId}'");
