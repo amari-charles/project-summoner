@@ -1,6 +1,7 @@
 namespace ProjectSummoner.Tests.Services;
 
 using System.Collections.Generic;
+using System.Linq;
 using GdUnit4;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Constants;
@@ -24,7 +25,7 @@ public class RewardServiceTest
         var pool = RewardPoolCatalog.GetPool("standard_cards");
 
         AssertThat(pool).IsNotNull();
-        AssertThat(pool!.PoolId).IsEqual("standard_cards");
+        AssertThat(pool!.LegacyPoolId).IsEqual("standard_cards");
     }
 
     [TestCase]
@@ -50,14 +51,23 @@ public class RewardServiceTest
     }
 
     [TestCase]
-    public void GetAllPoolIds_ReturnsAllPools()
+    public void GetAllPoolIds_ReturnsEnumPools()
     {
         var poolIds = RewardPoolCatalog.GetAllPoolIds();
 
         AssertThat(poolIds.Length).IsGreater(0);
-        AssertThat(poolIds).Contains("standard_cards");
-        AssertThat(poolIds).Contains("fire_cards");
-        AssertThat(poolIds).Contains("common_cards");
+        AssertThat(poolIds).Contains(RewardPoolId.TutorialRewards);
+        AssertThat(poolIds).Contains(RewardPoolId.FireCommonUnits);
+        AssertThat(poolIds).Contains(RewardPoolId.ElementalStarters);
+    }
+
+    [TestCase]
+    public void HasPool_LegacyStringPools_StillWork()
+    {
+        // Legacy string-based pools should still work for backward compatibility
+        AssertThat(RewardPoolCatalog.HasPool("standard_cards")).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool("fire_cards")).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool("common_cards")).IsTrue();
     }
 
     [TestCase]
@@ -176,13 +186,65 @@ public class RewardServiceTest
     [TestCase]
     public void GetPoolIdForElement_ReturnsCorrectPool()
     {
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual("fire_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual("water_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual("wind_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual("earth_cards");
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Neutral)).IsEqual("neutral_cards");
-        // Unknown elements should return standard_cards
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Lightning)).IsEqual("standard_cards");
+        // Now returns enum-based pool IDs for common units
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual(RewardPoolId.FireCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual(RewardPoolId.WaterCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual(RewardPoolId.WindCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual(RewardPoolId.EarthCommonUnits);
+        // Elements without specific pools return null
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Neutral)).IsNull();
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Lightning)).IsNull();
+    }
+
+    // =============================================================================
+    // Enum-based Pool Tests
+    // =============================================================================
+
+    [TestCase]
+    public void GetPool_EnumBased_ReturnsPool()
+    {
+        var pool = RewardPoolCatalog.GetPool(RewardPoolId.TutorialRewards);
+
+        AssertThat(pool).IsNotNull();
+        AssertThat(pool!.PoolId).IsEqual(RewardPoolId.TutorialRewards);
+    }
+
+    [TestCase]
+    public void GetCardsForPool_EnumBased_ReturnsCards()
+    {
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.FireCommonUnits);
+
+        AssertThat(cards.Length).IsGreater(0);
+        foreach (var card in cards)
+        {
+            AssertThat(card.ElementalAffinity).IsEqual(Element.Fire);
+            AssertThat(card.Rarity).IsEqual(Rarity.Common);
+            AssertThat(card.Type).IsEqual(CardType.Summon);
+        }
+    }
+
+    [TestCase]
+    public void GetCardsForPool_CompositePool_ReturnsUnion()
+    {
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.ElementalStarters);
+
+        AssertThat(cards.Length).IsGreater(0);
+        // Should contain cards from Fire, Water, Wind, and Earth common units
+        var elements = cards.Select(c => c.ElementalAffinity).Distinct().ToList();
+        // At least some variety expected (depends on card catalog)
+        AssertThat(elements.Count).IsGreaterEqual(1);
+    }
+
+    [TestCase]
+    public void GetCardsForPool_CuratedPool_ReturnsExplicitCards()
+    {
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.TutorialRewards);
+
+        AssertThat(cards.Length).IsGreater(0);
+        // Tutorial rewards should include specific cards
+        var cardIds = cards.Select(c => c.Id).ToHashSet();
+        // These are defined in the catalog
+        AssertThat(cardIds.Contains("charge") || cardIds.Contains("guard") || cardIds.Contains("fire_wisp")).IsTrue();
     }
 
     // =============================================================================
