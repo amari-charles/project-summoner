@@ -128,6 +128,8 @@ Exceptions (can commit directly to main):
 
 **Never merge PRs without user approval.**
 
+**PRs can fix multiple issues.** Don't artificially separate changes into multiple PRs. If there are uncommitted changes in the working directory, include them in the PR - don't leave work uncommitted just because it seems like a "different issue." A single PR with multiple fixes is better than leaving work uncommitted.
+
 ### Documentation Updates
 **ALWAYS update relevant documentation before merging a PR.**
 

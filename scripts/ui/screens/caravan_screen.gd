@@ -152,14 +152,17 @@ func _on_offering_card_clicked(offering: ShopOffering) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_update_detail_panel(offering)
 
-func _on_purchase_completed(offering_id: String, _shop_id: String) -> void:
+func _on_purchase_completed(_offering_id: String, _shop_id: String) -> void:
 	has_purchased = true
+
+	# Refresh the grid to remove purchased card
+	_load_offerings()
+	_clear_detail_panel()
+
+	# Show success popup
 	purchase_popup.title = Loc.t("shop.caravan.purchase_success_title")
 	purchase_popup.dialog_text = Loc.t("shop.caravan.purchase_success_message")
 	purchase_popup.popup_centered()
-
-	if selected_offering and selected_offering.offering_id == offering_id:
-		_update_detail_panel(selected_offering)
 
 func _on_purchase_failed(_offering_id: String, reason: String) -> void:
 	error_popup.title = Loc.t("shop.caravan.purchase_failed_title")
