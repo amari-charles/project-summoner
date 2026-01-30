@@ -541,4 +541,3 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 
 	if added_count > 0:
 		print("RewardScreen: Auto-added %d card(s) to deck (tutorial mode)" % added_count)
-
