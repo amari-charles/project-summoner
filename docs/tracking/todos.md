@@ -22,24 +22,31 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ### 🔴 HIGH PRIORITY
 
 #### Phase 3: Flexible Reward System
-**Status:** 🔄 In Progress (Foundation Complete)
+**Status:** ✅ Completed
 **Category:** Core Game Systems / Rewards
 **Effort:** Medium
+**Completed:** 2026-01-30
 
 **Description:**
-Reward screens offer X guaranteed summoner-themed options + Y pool-drawn options. Pool can exclude owned cards.
+Reward screens offer configurable card pools with rules like exclude owned, no duplicates, draw N options.
 
-**Completed:**
-- RewardService.gd now has `get_reward_spec()` for unified reward data
-- RewardScreen refactored to thin display layer using spec pattern
-- Battle completion guard prevents duplicate gold on replay
-- Summoner screen gold display fixed (uses campaign_gold_changed signal)
-- `reward_options` validation added to CampaignService
+**Implementation:**
+- `RewardPoolCatalog.gd` - Defines named pools (element-based, rarity-based, type-based, custom)
+- `RewardPoolIDs.gd` - Type-safe pool ID constants
+- Pool-based battle config: `reward_pool`, `draw_count`, `exclude_owned`, `unique_options`
+- Pools auto-populate from CardCatalog by element, rarity, and type
+- Custom pools for tutorial rewards, boss loot, etc.
 
-**Remaining:**
-- Create `RewardPoolCatalog.cs` for reward pool definitions (when needed)
-- Add battle config fields: `guaranteed_count`, `pool_count`, `collection_filter` (when dynamic generation is needed)
-- Currently all battles use explicit `reward_options` or `reward_cards`, not dynamic generation
+**Battle Config Example:**
+```gdscript
+{
+    "reward_type": RewardTypeIDs.FLEXIBLE,
+    "reward_pool": RewardPoolIDs.FIRE_CARDS,
+    "draw_count": 3,
+    "exclude_owned": true,
+    "unique_options": true,
+}
+```
 
 ---
 

@@ -120,16 +120,30 @@ func get_reward_spec(battle_id: String) -> Dictionary:
 		# Flexible rewards: player picks from options
 		var player_selects: bool = battle.get("player_selects", true)
 
-		if battle.has("reward_options"):
-			# Specific options defined in battle config
+		if battle.has("reward_pool"):
+			# Pool-based generation (preferred)
+			var pool_id: StringName = StringName(battle.get("reward_pool", ""))
+			var draw_count: int = battle.get("draw_count", 3)
+			var exclude_owned: bool = battle.get("exclude_owned", false)
+			var unique_options: bool = battle.get("unique_options", true)
+
+			var drawn_ids: Array[StringName] = RewardPools.draw_from_pool(
+				pool_id, draw_count, exclude_owned, unique_options
+			)
+			spec["card_options"] = _normalize_card_options(drawn_ids)
+
+		elif battle.has("reward_options"):
+			# Explicit options defined in battle config
 			var reward_options: Array = battle.get("reward_options", [])
 			spec["card_options"] = _normalize_card_options(reward_options)
+
 		elif battle.has("specific_options"):
 			# Legacy specific_options field
 			var specific_options: Array = battle.get("specific_options", [])
 			spec["card_options"] = _normalize_card_options(specific_options)
+
 		else:
-			# Dynamic generation (not currently used but supported)
+			# Legacy dynamic generation via C# (fallback)
 			var config: Dictionary = {
 				"guaranteed_count": battle.get("guaranteed_count", 1),
 				"pool_count": battle.get("pool_count", 2),
@@ -150,36 +164,51 @@ func get_reward_spec(battle_id: String) -> Dictionary:
 
 
 ## Normalize card options to unified format
-## Handles both raw string IDs and dictionary entries
-func _normalize_card_options(options: Array) -> Array[Dictionary]:
+## Handles raw string/StringName IDs and dictionary entries
+## Fetches display name and rarity from CardCatalog when not provided
+func _normalize_card_options(options: Variant) -> Array[Dictionary]:
 	var normalized: Array[Dictionary] = []
 
-	for opt: Variant in options:
+	# Handle both Array and Array[StringName]
+	var options_array: Array = options if options is Array else []
+
+	for opt: Variant in options_array:
 		if opt is Dictionary:
 			var entry: Dictionary = opt
 			var catalog_id: String = entry.get("id", entry.get("catalog_id", ""))
 			if catalog_id.is_empty():
 				continue
 
-			# Get display name from catalog
+			# Get card data from catalog
 			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
 			var display_name: String = card_data.get("card_name", catalog_id)
 
+			# Use provided rarity or fetch from catalog
+			var rarity: String = String(entry.get("rarity", ""))
+			if rarity.is_empty():
+				rarity = card_data.get("rarity", "common")
+
 			normalized.append({
 				"catalog_id": catalog_id,
-				"rarity": String(entry.get("rarity", "common")),
+				"rarity": rarity,
 				"count": entry.get("amount", entry.get("count", 1)),
 				"display_name": display_name,
 			})
 		elif opt is String or opt is StringName:
-			# Raw card ID
+			# Raw card ID - fetch all info from catalog
 			var catalog_id: String = String(opt)
 			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+
+			if card_data.is_empty():
+				push_warning("RewardService: Card '%s' not found in catalog" % catalog_id)
+				continue
+
 			var display_name: String = card_data.get("card_name", catalog_id)
+			var rarity: String = card_data.get("rarity", "common")
 
 			normalized.append({
 				"catalog_id": catalog_id,
-				"rarity": "common",  # Default rarity for raw IDs
+				"rarity": rarity,
 				"count": 1,
 				"display_name": display_name,
 			})
