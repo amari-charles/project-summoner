@@ -2,6 +2,7 @@ using System;
 using Godot;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Campaign.Handlers;
+using ProjectSummoner.Services.Economy;
 
 namespace ProjectSummoner.Services.Campaign;
 
@@ -45,11 +46,8 @@ public partial class CampaignService : Node
 	private ChoiceTracker? _choiceTracker;
 
 	// Callbacks for GDScript dependencies
-	private Func<int>? _getCampaignGoldFunc;
-	private Action<int>? _addCampaignGoldFunc;
 	private Func<string, string, string>? _grantCardFunc;
 	private Func<string>? _getActiveSummonerFunc;
-	private Action<string>? _clearCampaignGoldFunc;
 
 	// =========================================================================
 	// LIFECYCLE
@@ -93,7 +91,7 @@ public partial class CampaignService : Node
 		// Create handlers (order matters - some depend on others)
 		_progress = new CampaignProgressHandler(_profileRepo, _store, GetActiveSummonerId, _choiceTracker, _graphStore);
 		_catalog = new CampaignCatalogHandler(_store, _progress);
-		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
+		_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc);
 		_tutorial = new TutorialHandler(_store, _catalog, _progress);
 	}
 
@@ -115,20 +113,6 @@ public partial class CampaignService : Node
 	// CALLBACK INJECTION (from GDScript wrapper)
 	// =========================================================================
 
-	/// <summary>Set Economy service callbacks.</summary>
-	public void SetEconomyCallbacks(Callable getCampaignGold, Callable addCampaignGold, Callable clearCampaignGold)
-	{
-		_getCampaignGoldFunc = () => getCampaignGold.Call().AsInt32();
-		_addCampaignGoldFunc = (amount) => addCampaignGold.Call(amount);
-		_clearCampaignGoldFunc = (summonerId) => clearCampaignGold.Call(summonerId);
-
-		// Rebuild rewards handler with new callbacks
-		if (_profileRepo != null && _store != null)
-		{
-			_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
-		}
-	}
-
 	/// <summary>Set Collection service callbacks.</summary>
 	public void SetCollectionCallbacks(Callable grantCard)
 	{
@@ -137,7 +121,7 @@ public partial class CampaignService : Node
 		// Rebuild rewards handler with new callbacks
 		if (_profileRepo != null && _store != null)
 		{
-			_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc, _addCampaignGoldFunc);
+			_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc);
 		}
 	}
 
@@ -412,7 +396,7 @@ public partial class CampaignService : Node
 	/// <summary>Get current campaign gold.</summary>
 	public int GetCampaignGold()
 	{
-		return _getCampaignGoldFunc?.Invoke() ?? 0;
+		return EconomyService.Instance?.GetCampaignGold() ?? 0;
 	}
 
 	/// <summary>End a campaign (victory or defeat). Clears all campaign-scoped resources.</summary>
@@ -426,8 +410,8 @@ public partial class CampaignService : Node
 
 		var finalGold = GetCampaignGold();
 
-		// Clear campaign gold
-		_clearCampaignGoldFunc?.Invoke(targetId);
+		// Clear campaign gold via EconomyService
+		EconomyService.Instance?.ClearCampaignGold(targetId);
 
 		if (victory)
 		{

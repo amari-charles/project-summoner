@@ -117,6 +117,64 @@ func grant_reward(option: Dictionary) -> bool:
 	return false
 
 
+## =============================================================================
+## BATTLE REWARD GRANTING
+## =============================================================================
+
+## Grant all rewards for a completed battle
+## This is the unified entry point for granting battle rewards (gold + cards).
+## @param battle: Battle config dictionary (from Campaign.get_battle())
+## @param card_reward: The card reward option to grant (from flexible selection or fixed battle config)
+## @return Dictionary with granted rewards {gold: int, cards: Array, instance_ids: Array}
+func grant_battle_rewards(battle: Dictionary, card_reward: Dictionary) -> Dictionary:
+	var result: Dictionary = {"gold": 0, "cards": [], "instance_ids": []}
+
+	# Grant campaign gold
+	var gold_reward: int = battle.get("gold_reward", 0)
+	if gold_reward > 0:
+		Economy.add_campaign_gold(gold_reward)
+		result["gold"] = gold_reward
+		print("RewardService: Granted %d campaign gold" % gold_reward)
+
+	# Grant card reward via CardServiceCS for instance ID tracking
+	if not card_reward.is_empty():
+		var instance_ids: Array = _grant_card_reward(card_reward)
+		if not instance_ids.is_empty():
+			result["cards"].append(card_reward)
+			result["instance_ids"] = instance_ids
+			print("RewardService: Granted card reward with %d instance(s)" % instance_ids.size())
+
+	return result
+
+
+## Grant a card reward and return instance IDs
+## Uses CardServiceCS.GrantCard to get instance IDs for deck auto-add
+func _grant_card_reward(card_reward: Dictionary) -> Array:
+	var instance_ids: Array = []
+
+	# Handle both formats: {catalog_id, rarity, count} and {id, type, rarity, amount}
+	var catalog_id: String = card_reward.get("id", card_reward.get("catalog_id", ""))
+	var rarity: String = String(card_reward.get("rarity", "common"))
+	var count: int = card_reward.get("amount", card_reward.get("count", 1))
+
+	if catalog_id.is_empty():
+		push_warning("RewardService: Card reward missing catalog_id/id")
+		return instance_ids
+
+	# Grant each copy and collect instance IDs
+	for i: int in range(count):
+		var instance_id: String = CardServiceCS.GrantCard(catalog_id, rarity)
+		if not instance_id.is_empty():
+			instance_ids.append(instance_id)
+		else:
+			push_warning("RewardService: Failed to grant card %s" % catalog_id)
+
+	return instance_ids
+
+## =============================================================================
+## UTILITY
+## =============================================================================
+
 ## Get IDs of all cards the player currently owns.
 ## Useful for excluding owned cards from reward pools.
 func get_owned_catalog_ids() -> Array[String]:

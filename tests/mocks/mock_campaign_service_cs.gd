@@ -21,9 +21,6 @@ var _current_campaign_id: String = ""
 var _pending_reward: Dictionary = {}
 
 ## Callback references (injected by GDScript wrapper)
-var _get_campaign_gold: Callable
-var _add_campaign_gold: Callable
-var _clear_campaign_gold: Callable
 var _grant_card: Callable
 var _get_active_summoner: Callable
 
@@ -70,12 +67,6 @@ func set_profile_repo(repo: IProfileRepo) -> void:
 ## =============================================================================
 ## CALLBACK INJECTION (called by GDScript wrapper)
 ## =============================================================================
-
-func SetEconomyCallbacks(get_gold: Callable, add_gold: Callable, clear_gold: Callable) -> void:
-	_get_campaign_gold = get_gold
-	_add_campaign_gold = add_gold
-	_clear_campaign_gold = clear_gold
-
 
 func SetCollectionCallbacks(grant_card: Callable) -> void:
 	_grant_card = grant_card
@@ -457,11 +448,9 @@ func GrantBattleReward(battle_id: String, chosen_index: int = 0) -> Dictionary:
 
 	var result: Dictionary = {"cards": [], "gold": 0}
 
-	# Grant gold
+	# Record gold reward in result (in production, C# grants via EconomyService.Instance directly)
 	var gold_reward: int = battle.get("gold_reward", 0)
-	if gold_reward > 0 and _add_campaign_gold.is_valid():
-		_add_campaign_gold.call(gold_reward)
-		result["gold"] = gold_reward
+	result["gold"] = gold_reward
 
 	# Grant cards - handle both fixed (reward_cards) and flexible (reward_options)
 	var reward_cards: Array = battle.get("reward_cards", [])
@@ -540,8 +529,7 @@ func GetTutorialBattles() -> Array:
 
 func EndCampaign(summoner_id: String, _victory: bool) -> void:
 	_record_call("EndCampaign", [summoner_id, _victory])
-	if _clear_campaign_gold.is_valid():
-		_clear_campaign_gold.call(summoner_id)
+	# C# clears gold via EconomyService.Instance.ClearCampaignGold() directly
 
 
 ## =============================================================================

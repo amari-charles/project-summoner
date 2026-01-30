@@ -21,7 +21,6 @@ signal campaign_changed(old_campaign_id: String, new_campaign_id: String)
 ## Injectable dependencies - defaults to global autoloads
 ## For testing: set these before calling _ready() or use init_for_testing()
 var profile_repo: IProfileRepo = null
-var economy_service: Node = null  # EconomyService
 var collection_service: Node = null  # CollectionService
 var deck_service: Node = null  # DeckService (for starter deck auto-add)
 
@@ -51,8 +50,6 @@ func _ready() -> void:
 	# Use injected dependencies or fall back to autoloads
 	if profile_repo == null:
 		profile_repo = ProfileRepo
-	if economy_service == null:
-		economy_service = Economy
 	if collection_service == null:
 		collection_service = CardServiceCS
 	if deck_service == null:
@@ -64,10 +61,7 @@ func _ready() -> void:
 	_cs_service.CampaignProgressChanged.connect(_on_cs_progress_changed)
 	_cs_service.CampaignChanged.connect(_on_cs_campaign_changed)
 
-	# Inject Economy callbacks
-	_cs_service.SetEconomyCallbacks(_get_campaign_gold, _add_campaign_gold, _clear_campaign_gold)
-
-	# Inject Collection callbacks
+	# Inject Collection callbacks (economy uses EconomyService.Instance directly in C#)
 	_cs_service.SetCollectionCallbacks(_grant_card)
 
 	# Inject active summoner getter
@@ -99,9 +93,8 @@ func _ready() -> void:
 ## Call this instead of relying on _ready() in tests
 ## Pass a MockCampaignServiceCS instance to enable full testing without C# autoload
 ## Pass deck = null to disable starter deck auto-add in tests
-func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
+func init_for_testing(repo: IProfileRepo, collection: Node = null, cs_service_mock: Node = null, deck: Node = null) -> void:
 	profile_repo = repo
-	economy_service = economy
 	collection_service = collection
 	deck_service = deck  # null in tests disables auto-add to starter deck
 
@@ -131,8 +124,7 @@ func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node
 		if _cs_service.has_signal("CampaignChanged") and not _cs_service.CampaignChanged.is_connected(_on_cs_campaign_changed):
 			_cs_service.CampaignChanged.connect(_on_cs_campaign_changed)
 
-		# Inject callbacks
-		_cs_service.SetEconomyCallbacks(_get_campaign_gold, _add_campaign_gold, _clear_campaign_gold)
+		# Inject callbacks (economy uses EconomyService.Instance directly in C#)
 		_cs_service.SetCollectionCallbacks(_grant_card)
 		if _cs_service.has_method("SetActiveSummonerGetter"):
 			_cs_service.SetActiveSummonerGetter(_get_active_summoner)
@@ -145,19 +137,6 @@ func init_for_testing(repo: IProfileRepo, economy: Node = null, collection: Node
 ## =============================================================================
 ## CALLBACK INJECTORS
 ## =============================================================================
-
-func _get_campaign_gold() -> int:
-	if economy_service == null:
-		return 0
-	return economy_service.get_campaign_gold()
-
-func _add_campaign_gold(amount: int) -> void:
-	if economy_service != null:
-		economy_service.add_campaign_gold(amount)
-
-func _clear_campaign_gold(summoner_id: String) -> void:
-	if economy_service != null:
-		economy_service.clear_campaign_gold(summoner_id)
 
 func _grant_card(catalog_id: String, rarity: String) -> String:
 	if collection_service == null:
@@ -561,6 +540,29 @@ func claim_pending_reward() -> Dictionary:
 ## BATTLE COMPLETION & REWARDS (delegated to C#)
 ## =============================================================================
 
+## Claim all rewards for a battle and mark it complete.
+## This is the single entry point for reward claiming - replaces both
+## claim_pending_reward() and complete_battle_without_reward() patterns.
+## @param battle_id: The battle to claim rewards for
+## @param card_reward: The card reward to grant (from flexible selection or fixed battle config)
+## @return Dictionary with granted rewards {gold: int, cards: Array, instance_ids: Array}
+func claim_battle_rewards(battle_id: String, card_reward: Dictionary = {}) -> Dictionary:
+	var battle: Dictionary = get_battle(battle_id)
+	if battle.is_empty():
+		push_error("CampaignService: Battle not found: %s" % battle_id)
+		return {}
+
+	# Grant all rewards via RewardService
+	var granted: Dictionary = RewardService.grant_battle_rewards(battle, card_reward)
+
+	# Mark battle complete and clear pending
+	if _cs_service != null:
+		_cs_service.CompleteBattle(battle_id)
+		_cs_service.ClearPendingReward()
+
+	print("CampaignService: Claimed rewards for battle '%s': %s" % [battle_id, granted])
+	return granted
+
 func complete_battle(battle_id: String) -> void:
 	if _cs_service != null:
 		_cs_service.CompleteBattle(battle_id)
@@ -644,15 +646,16 @@ func get_current_campaign_start_node() -> String:
 
 ## Get current campaign gold for a summoner
 func get_campaign_gold(summoner_id: String = "") -> int:
-	if economy_service == null:
-		return 0
-	return economy_service.get_campaign_gold(summoner_id)
+	return Economy.get_campaign_gold(summoner_id)
 
 ## End a campaign (victory or defeat)
-## This clears all campaign-scoped resources (gold)
+## This clears all campaign-scoped resources (gold, caravan purchases)
 func end_campaign(summoner_id: String = "", victory: bool = false) -> void:
 	if _cs_service != null:
 		_cs_service.EndCampaign(summoner_id, victory)
+
+	# Clear campaign-scoped shop state
+	ProfileRepo.clear_caravan_purchases(summoner_id)
 
 ## =============================================================================
 ## CHOICE RECORDING (for branching paths)

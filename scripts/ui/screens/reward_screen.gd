@@ -552,43 +552,30 @@ func _on_flexible_choice_selected(index: int) -> void:
 func _on_continue_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 
-	# Check if we have a reward to claim
-	if reward_ready_to_claim:
-		var granted_card: Dictionary = {}
-
-		if is_flexible_reward and flexible_options.size() > 0 and chosen_reward_index >= 0:
-			# FLEXIBLE reward with dynamically generated options - grant via RewardService
-			var battle: Dictionary = Campaign.get_battle(current_battle_id)
-			if not battle.has("specific_options"):
-				# Only use RewardService for dynamically generated options
-				var chosen_option: Dictionary = flexible_options[chosen_reward_index]
-				if RewardService.grant_reward(chosen_option):
-					granted_card = chosen_option
-				else:
-					push_error("RewardScreen: Failed to grant flexible reward")
-
-				# Grant gold separately (since complete_battle_without_reward skips rewards)
-				var gold_reward: int = battle.get("gold_reward", 0)
-				if gold_reward > 0:
-					Economy.add_campaign_gold(gold_reward)
-
-				# Mark battle complete via Campaign (without granting cards - already done)
-				Campaign.complete_battle_without_reward(current_battle_id)
-			else:
-				# FLEXIBLE with specific_options - use Campaign.claim_pending_reward()
-				granted_card = Campaign.claim_pending_reward()
-		else:
-			# FIXED or other rewards - use Campaign.claim_pending_reward()
-			granted_card = Campaign.claim_pending_reward()
-
-		# Auto-add to deck if tutorial battle
-		if not granted_card.is_empty():
-			_auto_add_cards_to_deck(granted_card)
-	else:
+	if not reward_ready_to_claim:
 		# No reward to claim (replay or no rewards) - just clear any stale pending state
 		Campaign.clear_pending_reward()
+		_check_summoner_level_up()
+		return
 
-	# Check if summoner can level up before transitioning
+	# Determine the card reward to grant
+	var card_reward: Dictionary = {}
+	if is_flexible_reward and chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
+		card_reward = flexible_options[chosen_reward_index]
+	else:
+		# Fixed reward - get from battle config
+		var battle: Dictionary = Campaign.get_battle(current_battle_id)
+		var reward_cards: Array = battle.get("reward_cards", [])
+		if reward_cards.size() > 0 and reward_cards[0] is Dictionary:
+			card_reward = reward_cards[0]
+
+	# Single unified call to claim all rewards (gold + cards)
+	var granted: Dictionary = Campaign.claim_battle_rewards(current_battle_id, card_reward)
+
+	# Auto-add cards to deck if tutorial battle
+	if not granted.get("cards", []).is_empty():
+		_auto_add_cards_to_deck(granted)
+
 	_check_summoner_level_up()
 
 ## Check if summoner can level up and show modal if so
