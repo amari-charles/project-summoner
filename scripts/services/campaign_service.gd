@@ -152,8 +152,12 @@ func _get_campaign_gold() -> int:
 	return economy_service.get_campaign_gold()
 
 func _add_campaign_gold(amount: int) -> void:
+	print("CampaignService: _add_campaign_gold callback invoked with amount=%d" % amount)
 	if economy_service != null:
 		economy_service.add_campaign_gold(amount)
+		print("CampaignService: Called economy_service.add_campaign_gold(%d)" % amount)
+	else:
+		push_error("CampaignService: economy_service is null in _add_campaign_gold!")
 
 func _clear_campaign_gold(summoner_id: String) -> void:
 	if economy_service != null:

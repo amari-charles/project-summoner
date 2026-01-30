@@ -571,14 +571,19 @@ func _on_continue_pressed() -> void:
 				var gold_reward: int = battle.get("gold_reward", 0)
 				if gold_reward > 0:
 					Economy.add_campaign_gold(gold_reward)
+					print("RewardScreen: Granted %d campaign gold for battle '%s'" % [gold_reward, current_battle_id])
 
 				# Mark battle complete via Campaign (without granting cards - already done)
 				Campaign.complete_battle_without_reward(current_battle_id)
 			else:
 				# FLEXIBLE with specific_options - use Campaign.claim_pending_reward()
+				# Gold is granted via C# GrantBattleReward callback
+				print("RewardScreen: Claiming pending reward for FLEXIBLE with specific_options")
 				granted_card = Campaign.claim_pending_reward()
 		else:
 			# FIXED or other rewards - use Campaign.claim_pending_reward()
+			# Gold is granted via C# GrantBattleReward callback
+			print("RewardScreen: Claiming pending reward for FIXED/other")
 			granted_card = Campaign.claim_pending_reward()
 
 		# Auto-add to deck if tutorial battle
