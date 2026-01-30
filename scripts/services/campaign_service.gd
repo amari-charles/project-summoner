@@ -540,6 +540,29 @@ func claim_pending_reward() -> Dictionary:
 ## BATTLE COMPLETION & REWARDS (delegated to C#)
 ## =============================================================================
 
+## Claim all rewards for a battle and mark it complete.
+## This is the single entry point for reward claiming - replaces both
+## claim_pending_reward() and complete_battle_without_reward() patterns.
+## @param battle_id: The battle to claim rewards for
+## @param card_reward: The card reward to grant (from flexible selection or fixed battle config)
+## @return Dictionary with granted rewards {gold: int, cards: Array}
+func claim_battle_rewards(battle_id: String, card_reward: Dictionary = {}) -> Dictionary:
+	var battle: Dictionary = get_battle(battle_id)
+	if battle.is_empty():
+		push_error("CampaignService: Battle not found: %s" % battle_id)
+		return {}
+
+	# Grant all rewards via RewardService
+	var granted: Dictionary = RewardService.grant_battle_rewards(battle, card_reward)
+
+	# Mark battle complete and clear pending
+	if _cs_service != null:
+		_cs_service.CompleteBattle(battle_id)
+		_cs_service.ClearPendingReward()
+
+	print("CampaignService: Claimed rewards for battle '%s': %s" % [battle_id, granted])
+	return granted
+
 func complete_battle(battle_id: String) -> void:
 	if _cs_service != null:
 		_cs_service.CompleteBattle(battle_id)
@@ -626,10 +649,13 @@ func get_campaign_gold(summoner_id: String = "") -> int:
 	return Economy.get_campaign_gold(summoner_id)
 
 ## End a campaign (victory or defeat)
-## This clears all campaign-scoped resources (gold)
+## This clears all campaign-scoped resources (gold, caravan purchases)
 func end_campaign(summoner_id: String = "", victory: bool = false) -> void:
 	if _cs_service != null:
 		_cs_service.EndCampaign(summoner_id, victory)
+
+	# Clear campaign-scoped shop state
+	ProfileRepo.clear_caravan_purchases(summoner_id)
 
 ## =============================================================================
 ## CHOICE RECORDING (for branching paths)

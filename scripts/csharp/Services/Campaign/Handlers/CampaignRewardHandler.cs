@@ -119,6 +119,10 @@ public class CampaignRewardHandler
     // =========================================================================
 
     /// <summary>Grant battle reward and return granted card info.</summary>
+    /// <remarks>
+    /// Note: Gold is now granted via RewardService.grant_battle_rewards() in GDScript.
+    /// This method only handles card granting for legacy specific_options support.
+    /// </remarks>
     public Godot.Collections.Dictionary GrantBattleReward(string battleId, int chosenIndex = 0)
     {
         if (!_store.Battles.TryGetValue(battleId, out var battle))
@@ -130,27 +134,11 @@ public class CampaignRewardHandler
         var rewardType = battle.GetValueOrDefault("reward_type", "fixed").AsString();
         var rewardCardsVariant = battle.GetValueOrDefault("reward_cards", new Godot.Collections.Array());
 
-        // Grant campaign gold directly via EconomyService
-        var goldReward = battle.GetValueOrDefault("gold_reward", 0).AsInt32();
-        if (goldReward > 0)
-        {
-            EconomyService.Instance?.AddCampaignGold(goldReward);
-            GD.Print($"CampaignRewardHandler: Granted {goldReward} campaign gold for battle '{battleId}'");
-        }
-
-        // Handle case where there are no card rewards but there is gold
+        // Handle case where there are no card rewards
         var rewardCards = rewardCardsVariant.Obj is Godot.Collections.Array arr ? arr : new Godot.Collections.Array();
         if (rewardCards.Count == 0)
         {
-            if (goldReward > 0)
-            {
-                return new Godot.Collections.Dictionary
-                {
-                    ["gold"] = goldReward,
-                    ["instance_ids"] = new Godot.Collections.Array<string>()
-                };
-            }
-            GD.PushWarning($"CampaignRewardHandler: No rewards defined for battle '{battleId}'");
+            GD.PushWarning($"CampaignRewardHandler: No card rewards defined for battle '{battleId}'");
             return new Godot.Collections.Dictionary();
         }
 
@@ -207,9 +195,8 @@ public class CampaignRewardHandler
             // Dynamic pool-based FLEXIBLE rewards are granted directly by reward_screen via RewardService
         }
 
-        // Add instance IDs and gold to return value
+        // Add instance IDs to return value
         grantedCard["instance_ids"] = grantedInstanceIds;
-        grantedCard["gold"] = goldReward;
 
         return grantedCard;
     }
