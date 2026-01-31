@@ -242,14 +242,7 @@ func _on_change_deck_pressed() -> void:
 
 
 func _save_deck_selection() -> void:
-	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = SafeTypeUtils.dict(profile_variant)
-	if not profile.is_empty():
-		if not profile.has("meta"):
-			profile["meta"] = {}
-		var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
-		meta["selected_deck"] = selected_deck_id
-		ProfileRepo.save_profile(true)
+	ProfileRepo.update_profile_meta({"selected_deck": selected_deck_id})
 
 
 func _update_deck_info() -> void:

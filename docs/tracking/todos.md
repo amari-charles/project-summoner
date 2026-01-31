@@ -17,6 +17,38 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
+## Ranked Gameplay
+
+### 🟡 MEDIUM PRIORITY
+
+#### Implement Ranked Gameplay Mode
+**Status:** ⬜ Not Started
+**Category:** Core Game Systems / Multiplayer
+**Effort:** Large
+
+**Description:**
+Add a ranked competitive mode where players battle against others (or AI) with matchmaking, rankings, and seasonal progression.
+
+**Requirements:**
+- Matchmaking system (skill-based or random)
+- Ranking/ELO system with tiers (Bronze, Silver, Gold, etc.)
+- Seasonal resets and rewards
+- Ranked-specific UI (rank display, leaderboards)
+- Match history and statistics
+- Anti-cheat considerations
+
+**Technical Considerations:**
+- May require server-side components for fair matchmaking
+- Consider starting with ranked vs AI for offline-first approach
+- Need to balance decks/cards for competitive play
+
+**Related Systems:**
+- Deck building/validation
+- Battle system
+- Profile progression
+
+---
+
 ## Campaign Economy & Systems
 
 ### 🔴 HIGH PRIORITY

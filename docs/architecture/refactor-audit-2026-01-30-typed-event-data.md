@@ -133,10 +133,10 @@
 
 ## Best-Practice Concerns
 
-1. **BattleNodePanel mixes UI and persistence** (P3)
-   - Lines ~244-252 persist deck selection to profile
-   - Recommendation: Extract to `DeckSelectionController` when convenient
-   - Impact: Low - works correctly, minor separation of concerns issue
+**None** - All concerns have been addressed.
+
+~~1. **BattleNodePanel mixes UI and persistence** (P3)~~
+   - ✅ **Fixed** - Now calls `ProfileRepo.update_profile_meta()` instead of direct mutation
 
 ---
 
