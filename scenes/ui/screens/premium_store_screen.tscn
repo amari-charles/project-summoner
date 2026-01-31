@@ -57,12 +57,12 @@ theme_override_font_sizes/font_size = 48
 text = "STORE"
 horizontal_alignment = 1
 
-[node name="GoldLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+[node name="CurrencyLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 24
-text = "Gold: 500"
+text = "Mana Stones: 0"
 horizontal_alignment = 2
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]

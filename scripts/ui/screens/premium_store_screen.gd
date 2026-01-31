@@ -14,7 +14,7 @@ class_name PremiumStoreScreen
 ## Node references
 @onready var close_button: Button = %CloseButton
 @onready var title_label: Label = %TitleLabel
-@onready var currency_label: Label = %GoldLabel  # Displays Mana Stones (gems) for premium store
+@onready var currency_label: Label = %CurrencyLabel
 
 @onready var sections_scroll: ScrollContainer = %SectionsScroll
 @onready var featured_items: HFlowContainer = %FeaturedItems
@@ -140,7 +140,7 @@ func _show_popup(offering: ShopOffering) -> void:
 	else:
 		# Show price and purchase button (premium store uses mana stones/gems)
 		var price: int = offering.base_price
-		popup_price_label.text = "💎 %d" % price
+		popup_price_label.text = Loc.t("ui.shop.mana_stones_price", {"amount": price})
 		popup_price_label.visible = true
 		popup_purchase_button.visible = true
 		popup_owned_label.visible = false
