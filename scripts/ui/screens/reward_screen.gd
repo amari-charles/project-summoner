@@ -9,14 +9,22 @@ class_name RewardScreen
 ## Node references
 @onready var battle_name_label: Label = %BattleNameLabel
 @onready var reward_container: VBoxContainer = %RewardContainer
+# First Clear section
+@onready var first_clear_section: VBoxContainer = %FirstClearSection
+@onready var first_clear_header: Label = %FirstClearHeader
 @onready var reward_card_label: Label = %RewardCardLabel
 @onready var reward_detail_label: Label = %RewardDetailLabel
 @onready var gold_reward_label: Label = %GoldRewardLabel
+@onready var first_clear_status: Label = %FirstClearStatus
+# Every Battle section
+@onready var every_battle_section: VBoxContainer = %EveryBattleSection
+@onready var every_battle_header: Label = %EveryBattleHeader
 @onready var summoner_xp_label: Label = %SummonerXPLabel
 @onready var card_xp_section: VBoxContainer = %CardXPSection
 @onready var card_xp_header_label: Label = %CardXPHeaderLabel
 @onready var card_xp_amount_label: Label = %CardXPAmountLabel
 @onready var card_xp_grid: HBoxContainer = %CardXPGrid
+# Other UI
 @onready var choice_container: HBoxContainer = %ChoiceContainer
 @onready var continue_button: Button = %ContinueButton
 
@@ -123,21 +131,28 @@ func _load_battle_results() -> void:
 func _display_reward_spec(spec: Dictionary) -> void:
 	var is_replay: bool = spec.get("is_replay", false)
 
-	# XP rewards always display (even for replays)
+	# Set section headers
+	first_clear_header.text = Loc.t("ui.reward.first_clear_header")
+	every_battle_header.text = Loc.t("ui.reward.every_battle_header")
+
+	# XP rewards always display (even for replays) - goes in Every Battle section
 	_display_summoner_xp_reward(spec.get("summoner_xp", 0))
 	_display_card_xp_rewards(spec.get("card_xp", 0))
 
 	if is_replay:
-		# Replay - no gold/card rewards, but XP still granted
-		reward_card_label.text = Loc.t("ui.reward.already_completed")
-		reward_detail_label.text = Loc.t("ui.reward.no_replay_rewards")
-		gold_reward_label.text = ""
+		# Replay - show First Clear as claimed, Every Battle XP earned
+		_display_first_clear_claimed(spec)
 		reward_ready_to_claim = true
 		return
 
 	# Set pending reward if not already set (first time victory)
 	if not is_pending_reward:
 		Campaign.set_pending_reward(current_battle_id, reward_type, -1)
+
+	# First time victory - show all rewards normally
+	first_clear_status.text = ""
+	first_clear_status.visible = false
+	first_clear_section.modulate = Color(1, 1, 1, 1)
 
 	# Display gold
 	_display_gold_reward(spec.get("gold_reward", 0))
@@ -176,6 +191,36 @@ func _display_reward_spec(spec: Dictionary) -> void:
 		reward_card_label.text = Loc.t("ui.reward.victory")
 		reward_detail_label.text = ""
 		reward_ready_to_claim = true
+
+
+## Display First Clear section as already claimed (for replays)
+func _display_first_clear_claimed(spec: Dictionary) -> void:
+	# Show what was originally earned (dimmed)
+	var gold_reward: int = spec.get("original_gold_reward", spec.get("gold_reward", 0))
+	if gold_reward > 0:
+		gold_reward_label.text = Loc.t("ui.reward.gold", {"amount": gold_reward})
+	else:
+		gold_reward_label.text = ""
+
+	# Show card reward if there was one
+	var card_options: Array = spec.get("card_options", [])
+	if card_options.size() > 0:
+		var card_spec: Dictionary = card_options[0]
+		var display_name: String = card_spec.get("display_name", "")
+		if display_name.is_empty():
+			var catalog_id: String = card_spec.get("catalog_id", "")
+			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			display_name = card_data.get("card_name", "Card")
+		reward_card_label.text = display_name
+		reward_detail_label.text = ""
+	else:
+		reward_card_label.text = ""
+		reward_detail_label.text = ""
+
+	# Show claimed status and dim the section
+	first_clear_status.text = Loc.t("ui.reward.first_clear_claimed")
+	first_clear_status.visible = true
+	first_clear_section.modulate = Color(0.6, 0.6, 0.6, 1)
 
 
 ## Display a card reward from normalized spec format

@@ -6,6 +6,48 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Configure Campaign Battles to Be Replayable (XP Only)
+**Completed:** 2026-01-31
+**Category:** Campaign / Economy
+**Effort:** Small
+
+**Description:**
+Allow players to replay completed campaign battles for XP grinding, but without regaining gold or card rewards.
+
+**Implementation:**
+- Updated `node_detail_panel_base.gd` to allow combat events (battle/elite/boss) to be replayed
+- `is_start_disabled()` now checks `event.is_combat()` - combat events are always replayable
+- `get_start_button_text()` shows "Replay" button for completed combat events
+- XP was already granted correctly at battle end (before reward screen)
+- Gold/cards were already blocked for replays via `claim_battle_rewards()` guard
+
+**Files Changed:**
+- `scripts/ui/components/node_panels/node_detail_panel_base.gd` - Allow combat event replays
+
+---
+
+### Configure Card Pools to Exclude Already-Owned Cards
+**Completed:** 2026-01-31
+**Category:** Campaign / Economy
+**Effort:** Small
+
+**Description:**
+Card reward pools now exclude cards the player already owns, preventing duplicate rewards.
+
+**Implementation:**
+- Updated `BattleRewardSpec.FromBattleId()` to accept `ownedCatalogIds` parameter
+- Flexible reward options are filtered to exclude owned cards when `ExcludeOwned = true`
+- Edge case handled: if all cards are owned, shows all options anyway (no empty rewards)
+- Updated `RewardService.GetBattleRewardSpec()` to pass owned IDs to spec builder
+- Set `ExcludeOwned = true` on all flexible reward configs in EventCatalog
+
+**Files Changed:**
+- `scripts/csharp/Services/Rewards/BattleRewardSpec.cs` - Added filtering logic
+- `scripts/csharp/Services/Rewards/RewardService.cs` - Pass owned IDs to spec builder
+- `scripts/csharp/Data/Events/EventCatalog.cs` - Set ExcludeOwned on all flexible rewards
+
+---
+
 ### Battle Reward System Refactor (Full Implementation)
 **Completed:** 2026-01-30
 **Category:** Core Game Systems / Rewards

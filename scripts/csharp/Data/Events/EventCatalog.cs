@@ -41,6 +41,7 @@ public static class EventCatalog
                 Type = RewardType.Flexible,
                 CardOptions = new List<string> { CardId.Charge, CardId.FireWisp, CardId.Puff },
                 PlayerSelects = true,
+                ExcludeOwned = true,
                 GoldReward = 30,
                 CardXpReward = 15,
                 SummonerXpReward = 20
@@ -68,6 +69,7 @@ public static class EventCatalog
                 Type = RewardType.Flexible,
                 CardOptions = new List<string> { CardId.EarthSprite, CardId.CloudSwarm, CardId.Puff },
                 PlayerSelects = true,
+                ExcludeOwned = true,
                 GoldReward = 40,
                 CardXpReward = 18,
                 SummonerXpReward = 25
@@ -103,6 +105,7 @@ public static class EventCatalog
                 Type = RewardType.Flexible,
                 CardOptions = new List<string> { CardId.FireWisp, CardId.Charge, CardId.CloudSwarm },
                 PlayerSelects = true,
+                ExcludeOwned = true,
                 GoldReward = 50,
                 CardXpReward = 20,
                 SummonerXpReward = 30
@@ -143,6 +146,7 @@ public static class EventCatalog
                 Type = RewardType.Flexible,
                 CardOptions = new List<string> { CardId.FireWisp, CardId.Charge, CardId.ManaBolt },
                 PlayerSelects = true,
+                ExcludeOwned = true,
                 GoldReward = 80,
                 CardXpReward = 30,
                 SummonerXpReward = 45
@@ -168,6 +172,7 @@ public static class EventCatalog
                 Type = RewardType.Flexible,
                 CardOptions = new List<string> { CardId.Puff, CardId.EarthSprite, CardId.CloudSwarm },
                 PlayerSelects = true,
+                ExcludeOwned = true,
                 GoldReward = 50,
                 CardXpReward = 22,
                 SummonerXpReward = 35

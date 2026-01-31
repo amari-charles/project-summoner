@@ -472,6 +472,7 @@ public partial class RewardService : Node
 
     /// <summary>
     /// Get typed reward specification for a battle.
+    /// Filters out owned cards from flexible reward options.
     /// </summary>
     /// <param name="battleId">Battle ID to get spec for.</param>
     /// <param name="isCompleted">Whether the battle is already completed.</param>
@@ -479,7 +480,8 @@ public partial class RewardService : Node
     /// <returns>Typed BattleRewardSpec.</returns>
     public BattleRewardSpec GetBattleRewardSpec(string battleId, bool isCompleted = false, int chosenIndex = -1)
     {
-        return BattleRewardSpec.FromBattleId(battleId, isCompleted, chosenIndex);
+        var ownedIds = GetOwnedCatalogIds();
+        return BattleRewardSpec.FromBattleId(battleId, isCompleted, chosenIndex, ownedIds);
     }
 
     /// <summary>

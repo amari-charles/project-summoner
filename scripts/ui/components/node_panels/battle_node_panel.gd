@@ -17,7 +17,15 @@ const STAR_SIZE: int = 24
 @onready var difficulty_label: Label = %DifficultyLabel
 @onready var stars_container: HBoxContainer = %StarsContainer
 @onready var description_label: Label = %DescriptionLabel
-@onready var reward_label: Label = %RewardLabel
+@onready var reward_label: Label = %RewardLabel  # Legacy, kept for compatibility
+@onready var rewards_container: VBoxContainer = %RewardsContainer
+@onready var first_clear_section: VBoxContainer = %FirstClearSection
+@onready var first_clear_header: Label = %FirstClearHeader
+@onready var first_clear_rewards: Label = %FirstClearRewards
+@onready var first_clear_status: Label = %FirstClearStatus
+@onready var every_battle_section: VBoxContainer = %EveryBattleSection
+@onready var every_battle_header: Label = %EveryBattleHeader
+@onready var every_battle_rewards: Label = %EveryBattleRewards
 @onready var deck_column: VBoxContainer = %DeckColumn
 @onready var deck_header_label: Label = %DeckHeaderLabel
 @onready var active_deck_label: Label = %ActiveDeckLabel
@@ -110,16 +118,26 @@ func _update_difficulty_stars(difficulty: int) -> void:
 ## =============================================================================
 
 func _update_reward_display() -> void:
+	var is_completed: bool = Campaign.is_battle_completed(event.id)
+
+	# Set headers
+	first_clear_header.text = Loc.t("campaign.rewards.first_clear_header")
+	every_battle_header.text = Loc.t("campaign.rewards.every_battle_header")
+
+	# Build first clear rewards (gold + card)
+	_update_first_clear_section(is_completed)
+
+	# Build every battle rewards (XP)
+	_update_every_battle_section()
+
+
+func _update_first_clear_section(is_completed: bool) -> void:
 	var catalog: Node = CardCatalog
 	var reward_lines: Array[String] = []
 
 	# Gold reward
 	if event.gold_reward > 0:
 		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": event.gold_reward}))
-
-	# Summoner XP reward
-	if event.summoner_xp_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": event.summoner_xp_reward}))
 
 	# Card reward based on type
 	match event.reward_type:
@@ -144,7 +162,37 @@ func _update_reward_display() -> void:
 		RewardTypeIDs.NONE:
 			pass  # No card reward line
 
-	reward_label.text = "\n".join(reward_lines)
+	first_clear_rewards.text = "\n".join(reward_lines)
+
+	# Show claimed status if completed
+	if is_completed:
+		first_clear_status.text = Loc.t("campaign.rewards.claimed")
+		first_clear_status.visible = true
+		# Dim the rewards text
+		first_clear_rewards.modulate = Color(0.6, 0.6, 0.6, 1)
+	else:
+		first_clear_status.text = ""
+		first_clear_status.visible = false
+		first_clear_rewards.modulate = Color(1, 1, 1, 1)
+
+	# Hide section if no first-clear rewards
+	first_clear_section.visible = reward_lines.size() > 0
+
+
+func _update_every_battle_section() -> void:
+	var reward_lines: Array[String] = []
+
+	# Summoner XP reward
+	if event.summoner_xp_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": event.summoner_xp_reward}))
+
+	# Card XP is always earned but we don't have a fixed amount in event data
+	# For now, just show summoner XP. Card XP is displayed on reward screen.
+
+	every_battle_rewards.text = "\n".join(reward_lines)
+
+	# Hide section if no every-battle rewards
+	every_battle_section.visible = reward_lines.size() > 0
 
 
 ## =============================================================================

@@ -86,13 +86,17 @@
       "fixed": "🃏 {cards}",
       "gold": "{amount} Gold",
       "summoner_xp": "{amount} Summoner XP",
-      "card_choice": "🃏 1 Card"
+      "card_xp": "{amount} Card XP",
+      "card_choice": "🃏 1 Card",
+      "first_clear_header": "First Clear",
+      "every_battle_header": "Every Battle",
+      "claimed": "✓ Claimed"
     },
     "map": {
       "select_event": "Select an Event",
       "click_to_see_details": "Click an event node to see details.",
       "difficulty_label": "Difficulty:",
-      "button_replay": "REPLAY (no reward)",
+      "button_replay": "Replay",
       "button_completed": "COMPLETED",
       "button_start": "START",
       "button_start_event": "START EVENT",
@@ -211,8 +215,9 @@
     "deck_size": "Deck: {count}",
     "hand_size": "Hand: {count}",
     "reward": {
-      "already_completed": "Battle Already Completed",
-      "no_replay_rewards": "XP earned, but no additional rewards for replays",
+      "first_clear_header": "First Clear",
+      "every_battle_header": "Every Battle",
+      "first_clear_claimed": "✓ Claimed",
       "victory": "Victory!",
       "unknown_card": "Unknown Card",
       "rarity": "Rarity: {rarity}",

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Data.Events;
@@ -46,7 +47,11 @@ public class BattleRewardSpec
     /// <summary>
     /// Create a reward spec from a battle ID using EventCatalog.
     /// </summary>
-    public static BattleRewardSpec FromBattleId(string battleId, bool isCompleted = false, int chosenIndex = -1)
+    /// <param name="battleId">Battle ID to get spec for.</param>
+    /// <param name="isCompleted">Whether the battle has been completed (replay).</param>
+    /// <param name="chosenIndex">Previously chosen option index (-1 if not chosen).</param>
+    /// <param name="ownedCatalogIds">Set of card catalog IDs the player already owns (for filtering).</param>
+    public static BattleRewardSpec FromBattleId(string battleId, bool isCompleted = false, int chosenIndex = -1, HashSet<string>? ownedCatalogIds = null)
     {
         var spec = new BattleRewardSpec
         {
@@ -76,7 +81,18 @@ public class BattleRewardSpec
                 break;
 
             case Data.Events.RewardType.Flexible:
-                spec.CardOptions = BuildFlexibleOptions(rewards.CardOptions);
+                // Filter out owned cards if ExcludeOwned is set
+                var cardOptions = rewards.CardOptions;
+                if (rewards.ExcludeOwned && ownedCatalogIds != null && ownedCatalogIds.Count > 0)
+                {
+                    var filtered = cardOptions.Where(id => !ownedCatalogIds.Contains(id)).ToList();
+                    // Only use filtered list if it still has options; otherwise show all (player owns everything)
+                    if (filtered.Count > 0)
+                    {
+                        cardOptions = filtered;
+                    }
+                }
+                spec.CardOptions = BuildFlexibleOptions(cardOptions);
                 spec.RequiresChoice = rewards.PlayerSelects && spec.CardOptions.Count > 1;
                 break;
 

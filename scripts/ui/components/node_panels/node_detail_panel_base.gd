@@ -64,7 +64,8 @@ func get_start_button_text() -> String:
 	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(event.id))
 
 	if is_completed:
-		if event.repeatable:
+		# Combat events are always replayable (for XP grinding)
+		if event.repeatable or event.is_combat():
 			return Loc.t("campaign.map.button_replay")
 		else:
 			return Loc.t("campaign.map.button_completed")
@@ -78,7 +79,8 @@ func is_start_disabled() -> bool:
 	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(event.id))
 
 	# Completed non-repeatable events can't be started
-	if is_completed and not event.repeatable:
+	# Exception: Combat events are always replayable (for XP grinding, no gold/card rewards)
+	if is_completed and not event.repeatable and not event.is_combat():
 		return true
 
 	# Also check subclass validation
