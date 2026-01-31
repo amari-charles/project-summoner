@@ -602,6 +602,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         EmitSignal(SignalName.UnitDied, this);
 
+        // Clear trigger state to prevent further processing
+        _triggeredModifiers.Clear();
+        _activeTriggers.Clear();
+
         // Handle flying death style
         if (MovementLayer == (int)Units.MovementLayer.Air)
         {
