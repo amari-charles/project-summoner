@@ -95,7 +95,29 @@ public static class UnitSpawner
         if (unit is Unit3D u3d)
         {
             unit3d = u3d;
-            u3d.InitializeWithModifiers(context.Modifiers ?? new List<StatModifier>());
+
+            // Partition modifiers into static (always active) and triggered (conditional)
+            var modifiers = context.Modifiers ?? new List<StatModifier>();
+            var staticMods = new List<StatModifier>();
+            var triggeredMods = new List<StatModifier>();
+
+            foreach (var mod in modifiers)
+            {
+                if (mod.IsTriggered)
+                    triggeredMods.Add(mod);
+                else
+                    staticMods.Add(mod);
+            }
+
+            // Use partitioned initialization if there are triggered modifiers
+            if (triggeredMods.Count > 0)
+            {
+                u3d.InitializeWithPartitionedModifiers(staticMods, triggeredMods);
+            }
+            else
+            {
+                u3d.InitializeWithModifiers(staticMods);
+            }
         }
         else
         {

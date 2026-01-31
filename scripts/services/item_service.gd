@@ -101,15 +101,6 @@ func grant_item(catalog_id: String, bound_to_summoner_id: String = "") -> String
 	return result if result != null else ""
 
 
-## Grant an item from a legacy boon ID (used during migration)
-## Returns: item instance ID, or empty string if no mapping exists
-func grant_item_from_boon(boon_id: String, summoner_id: String) -> String:
-	if _cs_service == null:
-		return ""
-	var result: Variant = _cs_service.GrantItemFromBoon(boon_id, summoner_id)
-	return result if result != null else ""
-
-
 ## =============================================================================
 ## EQUIPPING (delegated to C#)
 ## =============================================================================
@@ -199,14 +190,16 @@ func get_item_definition(catalog_id: String) -> Dictionary:
 ## MODIFIER QUERIES (for stat computation)
 ## =============================================================================
 
-## Get all modifiers from equipped items for a summoner
-## Returns array of modifier dictionaries
+## Get all modifiers from equipped items for a summoner as StatModifiers
+## Returns array of StatModifier dictionaries that can be applied to units
 func get_equipped_item_modifiers(summoner_id: String) -> Array[Dictionary]:
 	if _cs_service == null:
 		return []
-	# C# returns List<TraitModifier>, need to convert
-	# This would need additional interop support
-	return []
+	# Get StatModifiers as dictionaries from C#
+	var result: Array = _cs_service.GetEquippedItemStatModifiersDict(summoner_id)
+	var typed_result: Array[Dictionary] = []
+	typed_result.assign(result)
+	return typed_result
 
 
 ## =============================================================================

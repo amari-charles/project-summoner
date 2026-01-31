@@ -1,6 +1,7 @@
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Formations;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Cards;
@@ -163,4 +164,20 @@ public class CardDefinition
 
     /// <summary>Path to card icon image.</summary>
     public string CardIconPath { get; init; } = "";
+
+    // =========================================================================
+    // TRAIT ELIGIBILITY TAGS
+    // =========================================================================
+
+    /// <summary>
+    /// Tags for trait eligibility matching (NOT modifier tags for amplification).
+    /// These determine which traits/upgrades can be acquired by this card.
+    /// Use TraitTags constants for type safety.
+    /// - Summon cards: [Summon, Global, element, creature_type, summon_id]
+    /// - Spell cards: [Spell, Global, element]
+    ///
+    /// Note: This is different from StatModifier.Tags which are used for
+    /// amplification targeting. See docs/features/modifier-system.md for details.
+    /// </summary>
+    public string[] TraitEligibilityTags { get; init; } = [Data.Traits.TraitTags.Summon, Data.Traits.TraitTags.Global];
 }

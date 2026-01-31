@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Summoners;
+using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Domain.Profile.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
 
@@ -257,73 +259,6 @@ public partial class SummonerProgressionService : Node
 		return true;
 	}
 
-	/// <summary>
-	/// Level up a summoner and add a selected trait.
-	/// This is the primary level-up method when trait selection is required.
-	/// Returns true if successful.
-	/// </summary>
-	public bool LevelUpSummonerWithTrait(string summonerId, string traitId)
-	{
-		if (_profileRepo == null) return false;
-
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null)
-		{
-			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
-			return false;
-		}
-
-		// Check XP requirement
-		if (!CanLevelUp(summonerId))
-		{
-			GD.PushWarning("SummonerProgressionService: Summoner does not have enough XP to level up");
-			return false;
-		}
-
-		// Validate new level
-		var newLevel = summoner.Level + 1;
-		if (newLevel > MaxLevel)
-		{
-			GD.PushError("SummonerProgressionService: Cannot level beyond MaxLevel");
-			return false;
-		}
-
-		// Validate trait exists and is acquirable
-		var trait = ProjectSummoner.Data.Traits.TraitCatalog.GetTrait(traitId);
-		if (trait == null)
-		{
-			GD.PushError($"SummonerProgressionService: Unknown trait: {traitId}");
-			return false;
-		}
-		if (trait.IsInnate)
-		{
-			GD.PushError($"SummonerProgressionService: Cannot acquire innate trait: {traitId}");
-			return false;
-		}
-
-		// Check if summoner already has this trait
-		if (summoner.AcquiredBoonIds.Contains(traitId))
-		{
-			GD.PushWarning($"SummonerProgressionService: Summoner already has trait: {traitId}");
-			return false;
-		}
-
-		// Apply level up, add trait, and save
-		summoner.Level = newLevel;
-		summoner.AcquiredBoonIds.Add(traitId);
-		var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
-
-		if (!saveSuccess)
-		{
-			GD.PushError("SummonerProgressionService: Failed to save summoner instance");
-			return false;
-		}
-
-		GD.Print($"SummonerProgressionService: {summonerId} leveled up to {newLevel} with trait {traitId}");
-		EmitSignal(SignalName.SummonerLeveledUp, summonerId, newLevel);
-		return true;
-	}
-
 	// =========================================================================
 	// QUERY HELPERS
 	// =========================================================================
@@ -372,6 +307,111 @@ public partial class SummonerProgressionService : Node
 			{
 				result.Add(summoner.SummonerId);
 			}
+		}
+
+		return result;
+	}
+
+	// =========================================================================
+	// TRAIT SELECTION (for level-up)
+	// =========================================================================
+
+	/// <summary>
+	/// Get traits available for a summoner to select at level-up.
+	/// Uses the unified tag-based eligibility system.
+	/// </summary>
+	/// <param name="summonerId">Summoner ID</param>
+	/// <param name="count">Number of traits to return (0 = all eligible)</param>
+	/// <returns>Array of trait dictionaries for UI display</returns>
+	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
+		string summonerId, int count = 3)
+	{
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+		if (_profileRepo == null) return result;
+
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		if (summoner == null) return result;
+
+		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
+		if (summonerDef == null) return result;
+
+		var traits = TraitCatalog.GetAvailableTraitsForLevelUp(
+			summonerDef,
+			summoner.Level,
+			summoner.AcquiredTraitIds,
+			count
+		);
+
+		foreach (var trait in traits)
+		{
+			result.Add(TraitCatalog.ToDictionary(trait));
+		}
+
+		return result;
+	}
+
+	/// <summary>
+	/// Acquire a trait for a summoner.
+	/// </summary>
+	/// <param name="summonerId">Summoner ID</param>
+	/// <param name="traitId">Trait ID to acquire</param>
+	/// <returns>True if successful</returns>
+	public bool AcquireTrait(string summonerId, string traitId)
+	{
+		if (_profileRepo == null) return false;
+
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		if (summoner == null)
+		{
+			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
+			return false;
+		}
+
+		// Check if already acquired
+		if (summoner.AcquiredTraitIds.Contains(traitId))
+		{
+			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitId}");
+			return false;
+		}
+
+		// Verify trait exists
+		var trait = TraitCatalog.GetTrait(traitId);
+		if (trait == null)
+		{
+			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitId}");
+			return false;
+		}
+
+		// Add trait and save
+		summoner.AcquiredTraitIds.Add(traitId);
+		var success = _profileRepo.SaveSummonerInstance(summoner);
+
+		if (!success)
+		{
+			GD.PushError("SummonerProgressionService: Failed to save summoner instance");
+			summoner.AcquiredTraitIds.Remove(traitId); // Rollback
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Get all traits a summoner has acquired.
+	/// </summary>
+	public Godot.Collections.Array<string> GetAcquiredTraits(string summonerId)
+	{
+		var result = new Godot.Collections.Array<string>();
+
+		if (_profileRepo == null) return result;
+
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		if (summoner == null) return result;
+
+		foreach (var traitId in summoner.AcquiredTraitIds)
+		{
+			result.Add(traitId);
 		}
 
 		return result;

@@ -7,9 +7,8 @@ class_name SummonerInstance
 ## Computes final stats by applying trait modifiers to base config stats.
 ## Serializes to JSON (saves only IDs + state, reconstructs from config).
 ##
-## All traits come from TraitCatalog:
-## - Innate traits: Defined in SummonerConfig.innate_trait_ids
-## - Acquired boons: Earned through gameplay, stored in acquired_boon_ids
+## Traits come from TraitCatalog (innate traits defined in SummonerConfig).
+## Bonuses come from equipped items via ItemService.
 
 ## Reference to the summoner's configuration (template)
 var config: SummonerConfig = null
@@ -17,9 +16,6 @@ var config: SummonerConfig = null
 ## Progression
 var level: int = 1
 var xp: int = 0
-
-## Acquired Boons (from TraitCatalog, earned through gameplay)
-var acquired_boon_ids: Array[String] = []
 
 ## Cached computed stats (updated when traits change)
 var _cached_stats: Dictionary = {}
@@ -33,43 +29,9 @@ func init_from_config(summoner_config: SummonerConfig) -> void:
 	config = summoner_config
 	level = 1
 	xp = 0
-	acquired_boon_ids.clear()
 	_mark_stats_dirty()
 
-## =============================================================================
-## BOON MANAGEMENT (from TraitCatalog)
-## =============================================================================
-
-## Add an acquired boon
-func add_boon(boon_id: String) -> bool:
-	if boon_id in acquired_boon_ids:
-		push_warning("SummonerInstance.add_boon: Boon already acquired: %s" % boon_id)
-		return false
-
-	var trait_catalog: Node = Engine.get_main_loop().root.get_node_or_null("TraitCatalog")
-	if trait_catalog and not trait_catalog.has_trait(boon_id):
-		push_error("SummonerInstance.add_boon: Unknown boon ID: %s" % boon_id)
-		return false
-
-	acquired_boon_ids.append(boon_id)
-	_mark_stats_dirty()
-	return true
-
-## Remove an acquired boon
-func remove_boon(boon_id: String) -> bool:
-	var index: int = acquired_boon_ids.find(boon_id)
-	if index == -1:
-		return false
-
-	acquired_boon_ids.remove_at(index)
-	_mark_stats_dirty()
-	return true
-
-## Check if summoner has a specific boon
-func has_boon(boon_id: String) -> bool:
-	return boon_id in acquired_boon_ids
-
-## Get all trait IDs (innate from config + acquired boons)
+## Get all trait IDs (innate from config)
 func get_all_trait_ids() -> Array[String]:
 	var all_traits: Array[String] = []
 
@@ -77,11 +39,6 @@ func get_all_trait_ids() -> Array[String]:
 	if config:
 		for trait_id: String in config.innate_trait_ids:
 			all_traits.append(trait_id)
-
-	# Add acquired boons
-	for boon_id: String in acquired_boon_ids:
-		if not boon_id in all_traits:
-			all_traits.append(boon_id)
 
 	return all_traits
 
@@ -106,16 +63,10 @@ func get_stat(stat_name: String) -> float:
 
 ## Serialize to dictionary (for saving)
 func to_dict() -> Dictionary:
-	# Convert acquired_boon_ids to regular Array for JSON
-	var boons_array: Array = []
-	for boon_id: String in acquired_boon_ids:
-		boons_array.append(boon_id)
-
 	return {
 		"summoner_id": config.summoner_id,
 		"level": level,
-		"xp": xp,
-		"acquired_boon_ids": boons_array
+		"xp": xp
 	}
 
 ## Create from dictionary (when loading from save)
@@ -136,14 +87,6 @@ static func from_dict(data: Dictionary) -> SummonerInstance:
 	instance.config = summoner_config
 	instance.level = data.get("level", 1)
 	instance.xp = data.get("xp", 0)
-
-	# Load acquired boons
-	var boons_data: Variant = data.get("acquired_boon_ids", [])
-	if boons_data is Array:
-		var boons_array: Array = boons_data
-		for boon_id_var: Variant in boons_array:
-			if boon_id_var is String:
-				instance.acquired_boon_ids.append(boon_id_var)
 
 	instance._mark_stats_dirty()
 	return instance

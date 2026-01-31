@@ -86,41 +86,6 @@ public partial class TraitCatalogBridge : Node
         return result;
     }
 
-    /// <summary>Get only acquirable boons as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAcquirableBoons()
-    {
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var trait in TraitCatalog.GetAcquirableBoons())
-        {
-            result.Add(TraitCatalog.ToDictionary(trait));
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Get a pool of traits for level-up selection.
-    /// Returns random acquirable traits excluding those already acquired.
-    /// </summary>
-    /// <param name="excludedIds">Trait IDs to exclude (already acquired)</param>
-    /// <param name="count">Number of traits to return (default 3)</param>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetLevelUpTraitPool(
-        Godot.Collections.Array<string> excludedIds,
-        int count = 3)
-    {
-        var excluded = new System.Collections.Generic.List<string>();
-        foreach (var id in excludedIds)
-        {
-            excluded.Add(id);
-        }
-
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var trait in TraitCatalog.GetLevelUpTraitPool(excluded, count))
-        {
-            result.Add(TraitCatalog.ToDictionary(trait));
-        }
-        return result;
-    }
-
     // =========================================================================
     // UNIT MODIFIER METHODS (for SummonerModifierProvider)
     // =========================================================================
@@ -129,6 +94,69 @@ public partial class TraitCatalogBridge : Node
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetUnitModifiersForTrait(string traitId)
     {
         return TraitCatalog.GetUnitModifiersForTraitAsDict(traitId);
+    }
+
+    // =========================================================================
+    // TRAIT OFFERING SYSTEM (for level-up selection)
+    // =========================================================================
+
+    /// <summary>
+    /// Get traits available for level-up using tag-based eligibility.
+    /// Works for summoners, summons, and spells.
+    /// </summary>
+    /// <param name="entityTags">Tags from the entity (summoner, summon, or spell)</param>
+    /// <param name="currentLevel">Entity's current level</param>
+    /// <param name="acquiredTraitIds">Trait IDs already acquired</param>
+    /// <param name="count">Maximum number of traits to return (0 = all eligible)</param>
+    /// <returns>Array of eligible trait dictionaries</returns>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForLevelUp(
+        Godot.Collections.Array<string> entityTags,
+        int currentLevel,
+        Godot.Collections.Array<string> acquiredTraitIds,
+        int count = 3)
+    {
+        var tags = new string[entityTags.Count];
+        for (int i = 0; i < entityTags.Count; i++)
+            tags[i] = entityTags[i];
+
+        var acquired = new string[acquiredTraitIds.Count];
+        for (int i = 0; i < acquiredTraitIds.Count; i++)
+            acquired[i] = acquiredTraitIds[i];
+
+        var traits = TraitCatalog.GetAvailableTraitsForLevelUp(tags, currentLevel, acquired, count);
+
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var trait in traits)
+        {
+            result.Add(TraitCatalog.ToDictionary(trait));
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Get traits in the global pool for a specific entity type.
+    /// </summary>
+    /// <param name="entityType">Entity type tag (e.g., "summoner", "summon", or "spell")</param>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetGlobalPoolTraits(string entityType = TraitTags.Summoner)
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var trait in TraitCatalog.GetGlobalPoolTraits(entityType))
+        {
+            result.Add(TraitCatalog.ToDictionary(trait));
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Check if an entity meets the prerequisites for a specific trait.
+    /// </summary>
+    public bool MeetsPrerequisites(string traitId, Godot.Collections.Array<string> acquiredTraitIds)
+    {
+        var acquired = new string[acquiredTraitIds.Count];
+        for (int i = 0; i < acquiredTraitIds.Count; i++)
+            acquired[i] = acquiredTraitIds[i];
+
+        return TraitCatalog.MeetsPrerequisites(traitId, acquired);
     }
 
     // =========================================================================

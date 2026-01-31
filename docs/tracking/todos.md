@@ -163,6 +163,47 @@ When the camera is zoomed in, players should be able to pan closer to the battle
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Implement OnDeath Trigger for Modifier System
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Modifiers
+**Effort:** Small
+
+**Description:**
+The `TriggerCondition.OnDeath` enum value is defined but not wired to combat events. Units die without triggering OnDeath modifiers.
+
+**Requirements:**
+- Wire up OnDeath trigger checking in Unit3D.OnDeath() method
+- Handle death-time effects like "deal damage to nearby enemies on death"
+- Ensure cleanup still happens after trigger processing
+
+**Related Files:**
+- `scripts/csharp/Units/Unit3D.cs` - OnDeath method
+- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - enum definition
+- `docs/features/modifier-system.md` - documentation
+
+---
+
+#### Implement Periodic Trigger for Modifier System
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Modifiers
+**Effort:** Small
+
+**Description:**
+The `TriggerCondition.Periodic` enum value is defined but not wired. Periodic triggers should activate at intervals (using TriggerCooldown as interval).
+
+**Requirements:**
+- Add interval tracking to ActiveTrigger class (time since last activation)
+- Check periodic triggers in UpdateTriggers() method
+- Use TriggerCooldown as the activation interval
+- Example use case: "Heal 5 HP every 3 seconds"
+
+**Related Files:**
+- `scripts/csharp/Units/Unit3D.cs` - UpdateTriggers method, ActiveTrigger class
+- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - enum definition
+- `docs/features/modifier-system.md` - documentation
+
+---
+
 #### Improve Projectile Collision Detection for 2.5D Sprites
 **Status:** ⬜ Not Started
 **Category:** Units & Combat / Projectiles

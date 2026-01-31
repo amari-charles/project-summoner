@@ -31,7 +31,6 @@ public class DtoConvertersTest
             SummonerId = "summoner_cole",
             Level = 5,
             Xp = 1500,
-            AcquiredBoonIds = ["boon_1", "boon_2"],
             EquippedItems = new Dictionary<ItemSlot, string?>
             {
                 [ItemSlot.Weapon] = "item_001",
@@ -48,8 +47,6 @@ public class DtoConvertersTest
         AssertThat(result!.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Level).IsEqual(5);
         AssertThat(result.Xp).IsEqual(1500);
-        AssertThat(result.AcquiredBoonIds).Contains("boon_1");
-        AssertThat(result.AcquiredBoonIds).Contains("boon_2");
         AssertThat(result.EquippedItems[ItemSlot.Weapon]).IsEqual("item_001");
         AssertThat(result.EquippedItems[ItemSlot.Ring1]).IsNull();
         AssertThat(result.EquippedItems[ItemSlot.Ring2]).IsEqual("item_002");

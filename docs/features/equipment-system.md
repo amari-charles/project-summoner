@@ -121,3 +121,59 @@ The v5 to v6 profile migration converts legacy boons to items:
 Removed items (no longer in catalog):
 - `mana_well_orb` (Grimoire slot removed)
 - `apprentice_grimoire` (Grimoire slot removed)
+
+## Item Modifiers and Unit Stats (Phase 4 - ✅ Complete)
+
+Items now affect unit stats during battle via the modifier system:
+
+### How It Works
+
+1. **ItemModifierProvider** is registered at battle start (alongside SummonerModifierProvider)
+2. Items with stat modifiers (e.g., +2% damage) are converted to `StatModifier` objects
+3. When units spawn, they receive modifiers from all registered providers
+4. Item bonuses are applied using the same two-phase (adds then mults) calculation
+
+### Supported Item Stats
+
+| Item Stat | Unit Stat | Effect |
+|-----------|-----------|--------|
+| `max_health` | `max_hp` | Increases unit HP |
+| `damage_bonus` | `attack_damage` | Increases attack damage |
+| `attack_speed` | `attack_speed` | Increases attack speed |
+| `move_speed` | `move_speed` | Increases movement speed |
+| `gold_bonus` | - | Summoner-only (no unit effect) |
+| `xp_bonus` | - | Summoner-only (no unit effect) |
+
+### Example Flow
+
+```
+Player equips Training Blade (+2% damage)
+    ↓
+Battle starts → ItemModifierProvider registered
+    ↓
+Player plays Fire Wisp card
+    ↓
+ModifierService collects from all providers:
+  - SummonerModifierProvider: +10% fire damage (Fire Affinity)
+  - ItemModifierProvider: +2% damage (Training Blade)
+    ↓
+Unit3D spawns with:
+  - Base damage: 10
+  - After mods: 10 * 1.10 * 1.02 = 11.22 damage
+```
+
+### GDScript API
+
+```gdscript
+# Get item modifiers as StatModifier dictionaries
+var mods: Array[Dictionary] = Items.get_equipped_item_modifiers(summoner_id)
+
+# Each modifier contains:
+# {
+#   "source": "item_summoner_123",
+#   "stat_adds": {"max_hp": 25.0},
+#   "stat_mults": {"attack_damage": 1.02}
+# }
+```
+
+See `docs/features/modifier-system.md` for full modifier system documentation.

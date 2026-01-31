@@ -186,6 +186,12 @@ public partial class DamageSystem : Node, IDamageSystem
 		);
 		EmitSignal(SignalName.DamageDealt, dealtEvent);
 
+		// Notify attacker of damage dealt (for OnHit triggers)
+		if (attacker is Unit3D attackerUnit)
+		{
+			attackerUnit.OnDealDamage(finalDamage, target);
+		}
+
 		// Emit DAMAGE_TAKEN event (from target's perspective)
 		var takenEvent = new CombatEvent(
 			CombatEvent.EventType.DamageTaken,
@@ -210,6 +216,12 @@ public partial class DamageSystem : Node, IDamageSystem
 				metadata
 			);
 			EmitSignal(SignalName.UnitKilled, killedEvent);
+
+			// Notify attacker of kill (for OnKill triggers like Soul Harvest)
+			if (attacker is Unit3D killerUnit)
+			{
+				killerUnit.OnKill(target);
+			}
 
 			// Emit UNIT_DIED event (from target's perspective)
 			var diedEvent = new CombatEvent(

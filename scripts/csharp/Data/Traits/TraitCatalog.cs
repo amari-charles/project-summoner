@@ -29,6 +29,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.fire_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Fire],
             Modifiers =
             [
                 // Summoner stat modifier
@@ -51,6 +52,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.burning_spirit.description",
             Category = "combat",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Fire],
             Modifiers =
             [
                 new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 5.0f }
@@ -68,6 +70,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.water_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Water],
             Modifiers =
             [
                 new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 10.0f },
@@ -88,6 +91,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.tidal_resilience.description",
             Category = "defense",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Water],
             Modifiers =
             [
                 new TraitModifier { Stat = "max_health", Type = "percent", Value = 10.0f }
@@ -105,6 +109,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.wind_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Wind],
             Modifiers =
             [
                 new TraitModifier { Stat = "wind_damage_bonus", Type = "percent", Value = 10.0f },
@@ -125,6 +130,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.swift_casting.description",
             Category = "utility",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Wind],
             Modifiers =
             [
                 new TraitModifier { Stat = "cast_speed", Type = "percent", Value = 10.0f }
@@ -142,6 +148,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.earth_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Earth],
             Modifiers =
             [
                 new TraitModifier { Stat = "earth_damage_bonus", Type = "percent", Value = 10.0f },
@@ -162,6 +169,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.stone_fortitude.description",
             Category = "defense",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Earth],
             Modifiers =
             [
                 new TraitModifier { Stat = "damage_reduction", Type = "flat", Value = 5.0f }
@@ -179,6 +187,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.lightning_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Lightning],
             Modifiers =
             [
                 new TraitModifier { Stat = "lightning_damage_bonus", Type = "percent", Value = 15.0f },
@@ -203,6 +212,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.life_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Life],
             Modifiers =
             [
                 new TraitModifier { Stat = "healing_bonus", Type = "percent", Value = 15.0f },
@@ -227,6 +237,7 @@ public static class TraitCatalog
             DescriptionKey = "trait.death_affinity.description",
             Category = "elemental",
             IsInnate = true,
+            Tags = [TraitTags.Summoner, TraitTags.Death],
             Modifiers =
             [
                 new TraitModifier { Stat = "death_damage_bonus", Type = "percent", Value = 10.0f },
@@ -235,161 +246,275 @@ public static class TraitCatalog
         },
 
         // =====================================================================
-        // ACQUIRED BOONS
+        // ACQUIRABLE TRAITS - Global Summoner Pool
         // =====================================================================
 
-        [TraitId.BoonVeteran] = new TraitDefinition
+        [TraitId.IronWill] = new TraitDefinition
         {
-            Id = TraitId.BoonVeteran,
-            NameKey = "trait.veteran.name",
-            DescriptionKey = "trait.veteran.description",
-            Category = "milestone",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
-            ]
-        },
-
-        [TraitId.BoonManaWell] = new TraitDefinition
-        {
-            Id = TraitId.BoonManaWell,
-            NameKey = "trait.mana_well.name",
-            DescriptionKey = "trait.mana_well.description",
-            Category = "milestone",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_mana", Type = "flat", Value = 2.0f }
-            ]
-        },
-
-        [TraitId.BoonBattleHardened] = new TraitDefinition
-        {
-            Id = TraitId.BoonBattleHardened,
-            NameKey = "trait.battle_hardened.name",
-            DescriptionKey = "trait.battle_hardened.description",
-            Category = "milestone",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "damage_bonus", Type = "percent", Value = 5.0f }
-            ]
-        },
-
-        [TraitId.BoonFortuneFavors] = new TraitDefinition
-        {
-            Id = TraitId.BoonFortuneFavors,
-            NameKey = "trait.fortune_favors.name",
-            DescriptionKey = "trait.fortune_favors.description",
-            Category = "special",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "gold_bonus", Type = "percent", Value = 10.0f }
-            ]
-        },
-
-        [TraitId.FortuneFavorsBold] = new TraitDefinition
-        {
-            Id = TraitId.FortuneFavorsBold,
-            NameKey = "trait.fortune_favors_bold.name",
-            DescriptionKey = "trait.fortune_favors_bold.description",
-            Category = "special",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_health", Type = "flat", Value = 50.0f }
-            ]
-        },
-
-        // =====================================================================
-        // LEVEL-UP BOONS (selected when leveling up)
-        // =====================================================================
-
-        [TraitId.BoonIronWill] = new TraitDefinition
-        {
-            Id = TraitId.BoonIronWill,
+            Id = TraitId.IronWill,
             NameKey = "trait.iron_will.name",
             DescriptionKey = "trait.iron_will.description",
             Category = "defense",
             IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 2,
             Modifiers =
             [
                 new TraitModifier { Stat = "damage_reduction", Type = "flat", Value = 5.0f }
             ]
         },
 
-        [TraitId.BoonQuickRecovery] = new TraitDefinition
+        [TraitId.QuickRecovery] = new TraitDefinition
         {
-            Id = TraitId.BoonQuickRecovery,
+            Id = TraitId.QuickRecovery,
             NameKey = "trait.quick_recovery.name",
             DescriptionKey = "trait.quick_recovery.description",
             Category = "utility",
             IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 2,
             Modifiers =
             [
                 new TraitModifier { Stat = "mana_regen", Type = "percent", Value = 10.0f }
             ]
         },
 
-        [TraitId.BoonVitalityBoost] = new TraitDefinition
+        [TraitId.VitalityBoost] = new TraitDefinition
         {
-            Id = TraitId.BoonVitalityBoost,
+            Id = TraitId.VitalityBoost,
             NameKey = "trait.vitality_boost.name",
             DescriptionKey = "trait.vitality_boost.description",
             Category = "defense",
             IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 2,
             Modifiers =
             [
                 new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
             ]
         },
 
-        [TraitId.BoonElementalMastery] = new TraitDefinition
+        [TraitId.SwiftStrike] = new TraitDefinition
         {
-            Id = TraitId.BoonElementalMastery,
-            NameKey = "trait.elemental_mastery.name",
-            DescriptionKey = "trait.elemental_mastery.description",
-            Category = "combat",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 5.0f },
-                new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 5.0f },
-                new TraitModifier { Stat = "wind_damage_bonus", Type = "percent", Value = 5.0f },
-                new TraitModifier { Stat = "earth_damage_bonus", Type = "percent", Value = 5.0f }
-            ]
-        },
-
-        [TraitId.BoonSwiftStrike] = new TraitDefinition
-        {
-            Id = TraitId.BoonSwiftStrike,
+            Id = TraitId.SwiftStrike,
             NameKey = "trait.swift_strike.name",
             DescriptionKey = "trait.swift_strike.description",
             Category = "combat",
             IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 3,
             Modifiers =
             [
                 new TraitModifier
                 {
                     Target = "unit",
-                    Source = TraitId.BoonSwiftStrike,
+                    Source = TraitId.SwiftStrike,
                     StatMults = new() { ["attack_speed"] = 1.10f }
                 }
             ]
         },
 
-        [TraitId.BoonTacticalMind] = new TraitDefinition
+        // =====================================================================
+        // ACQUIRABLE TRAITS - Triggered (conditional effects for summoners)
+        // =====================================================================
+
+        [TraitId.Berserker] = new TraitDefinition
         {
-            Id = TraitId.BoonTacticalMind,
-            NameKey = "trait.tactical_mind.name",
-            DescriptionKey = "trait.tactical_mind.description",
-            Category = "utility",
+            Id = TraitId.Berserker,
+            NameKey = "trait.berserker.name",
+            DescriptionKey = "trait.berserker.description",
+            Category = "combat",
             IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 3,
             Modifiers =
             [
-                new TraitModifier { Stat = "starting_hand_bonus", Type = "flat", Value = 1.0f }
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Berserker,
+                    StatMults = new() { ["attack_damage"] = 1.20f }, // +20% damage
+                    Trigger = "BelowHpPercent",
+                    TriggerThreshold = 0.5f // Below 50% HP
+                }
+            ]
+        },
+
+        [TraitId.Vengeful] = new TraitDefinition
+        {
+            Id = TraitId.Vengeful,
+            NameKey = "trait.vengeful.name",
+            DescriptionKey = "trait.vengeful.description",
+            Category = "combat",
+            IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 4,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Vengeful,
+                    StatMults = new() { ["attack_speed"] = 1.10f }, // +10% attack speed
+                    Trigger = "OnTakeHit",
+                    TriggerDuration = 5.0f, // Lasts 5 seconds
+                    TriggerCooldown = 1.0f  // 1 second cooldown between activations
+                }
+            ]
+        },
+
+        [TraitId.SoulHarvest] = new TraitDefinition
+        {
+            Id = TraitId.SoulHarvest,
+            NameKey = "trait.soul_harvest.name",
+            DescriptionKey = "trait.soul_harvest.description",
+            Category = "combat",
+            IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Global],
+            MinLevel = 4,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.SoulHarvest,
+                    StatAdds = new() { ["heal_on_kill"] = 5.0f }, // Heal 5 HP on kill
+                    Trigger = "OnKill"
+                }
+            ]
+        },
+
+        // =====================================================================
+        // ACQUIRABLE TRAITS - Element-Exclusive Summoner Traits
+        // =====================================================================
+
+        [TraitId.InfernoMastery] = new TraitDefinition
+        {
+            Id = TraitId.InfernoMastery,
+            NameKey = "trait.inferno_mastery.name",
+            DescriptionKey = "trait.inferno_mastery.description",
+            Category = "elemental",
+            IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Fire], // Only fire summoners
+            MinLevel = 5,
+            Prerequisites = [TraitId.FireAffinity],
+            Modifiers =
+            [
+                new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 15.0f },
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.InfernoMastery,
+                    Conditions = new() { ["elemental_affinity"] = "fire" },
+                    StatMults = new() { ["attack_damage"] = 1.15f }
+                }
+            ]
+        },
+
+        [TraitId.TidalMastery] = new TraitDefinition
+        {
+            Id = TraitId.TidalMastery,
+            NameKey = "trait.tidal_mastery.name",
+            DescriptionKey = "trait.tidal_mastery.description",
+            Category = "elemental",
+            IsInnate = false,
+            Tags = [TraitTags.Summoner, TraitTags.Water], // Only water summoners
+            MinLevel = 5,
+            Prerequisites = [TraitId.WaterAffinity],
+            Modifiers =
+            [
+                new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 15.0f },
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.TidalMastery,
+                    Conditions = new() { ["elemental_affinity"] = "water" },
+                    StatMults = new() { ["max_health"] = 1.15f }
+                }
+            ]
+        },
+
+        // =====================================================================
+        // SUMMON TRAITS - Global Pool (available to all summons)
+        // =====================================================================
+
+        [TraitId.Fortitude] = new TraitDefinition
+        {
+            Id = TraitId.Fortitude,
+            NameKey = "trait.fortitude.name",
+            DescriptionKey = "trait.fortitude.description",
+            Category = "defense",
+            IsInnate = false,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            MinLevel = 2,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Fortitude,
+                    StatMults = new() { ["max_hp"] = 1.08f } // +8% HP
+                }
+            ]
+        },
+
+        [TraitId.Power] = new TraitDefinition
+        {
+            Id = TraitId.Power,
+            NameKey = "trait.power.name",
+            DescriptionKey = "trait.power.description",
+            Category = "combat",
+            IsInnate = false,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            MinLevel = 2,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Power,
+                    StatMults = new() { ["attack_damage"] = 1.06f } // +6% damage
+                }
+            ]
+        },
+
+        [TraitId.Swiftness] = new TraitDefinition
+        {
+            Id = TraitId.Swiftness,
+            NameKey = "trait.swiftness.name",
+            DescriptionKey = "trait.swiftness.description",
+            Category = "combat",
+            IsInnate = false,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            MinLevel = 2,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Swiftness,
+                    StatMults = new() { ["attack_speed"] = 1.05f } // +5% attack speed
+                }
+            ]
+        },
+
+        [TraitId.Agility] = new TraitDefinition
+        {
+            Id = TraitId.Agility,
+            NameKey = "trait.agility.name",
+            DescriptionKey = "trait.agility.description",
+            Category = "utility",
+            IsInnate = false,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            MinLevel = 2,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Agility,
+                    StatMults = new() { ["move_speed"] = 1.05f } // +5% move speed
+                }
             ]
         }
     };
@@ -441,25 +566,123 @@ public static class TraitCatalog
         return _traits.Values.Where(t => t.IsInnate).ToArray();
     }
 
-    /// <summary>Get only acquirable boons (non-innate).</summary>
-    public static TraitDefinition[] GetAcquirableBoons()
+    // =========================================================================
+    // TRAIT OFFERING SYSTEM (unified tag-based eligibility)
+    // =========================================================================
+
+    /// <summary>
+    /// Get traits available for level-up selection using tag-based eligibility.
+    /// Works for both summoners and cards/units.
+    /// </summary>
+    /// <param name="entityTags">Tags from the entity (summoner or card)</param>
+    /// <param name="currentLevel">Entity's current level</param>
+    /// <param name="acquiredTraitIds">Trait IDs already acquired (excluded from results)</param>
+    /// <param name="count">Maximum number of traits to return (0 = all eligible)</param>
+    /// <returns>Array of eligible traits, shuffled if count > 0</returns>
+    public static TraitDefinition[] GetAvailableTraitsForLevelUp(
+        string[] entityTags,
+        int currentLevel,
+        IEnumerable<string> acquiredTraitIds,
+        int count = 3)
     {
-        return _traits.Values.Where(t => !t.IsInnate).ToArray();
+        var acquired = new HashSet<string>(acquiredTraitIds);
+        var entityTagSet = new HashSet<string>(entityTags);
+
+        var eligible = new List<TraitDefinition>();
+
+        foreach (var trait in _traits.Values)
+        {
+            // Skip innate traits (they come with entities, not offered)
+            if (trait.IsInnate)
+                continue;
+
+            // Skip already acquired
+            if (acquired.Contains(trait.Id))
+                continue;
+
+            // Check tag eligibility: (any of Tags) AND (all of RequiredTags)
+            bool hasAnyTag = trait.Tags.Any(t => entityTagSet.Contains(t));
+            bool hasAllRequired = trait.RequiredTags.All(t => entityTagSet.Contains(t));
+            if (!hasAnyTag || !hasAllRequired)
+                continue;
+
+            // Check level requirements
+            if (currentLevel < trait.MinLevel)
+                continue;
+            if (trait.MaxLevel > 0 && currentLevel > trait.MaxLevel)
+                continue;
+
+            // Check prerequisites (all must be acquired)
+            if (trait.Prerequisites.Length > 0)
+            {
+                bool hasAllPrereqs = trait.Prerequisites.All(prereqId => acquired.Contains(prereqId));
+                if (!hasAllPrereqs)
+                    continue;
+            }
+
+            eligible.Add(trait);
+        }
+
+        // Shuffle and return requested count
+        if (count > 0 && eligible.Count > count)
+        {
+            return eligible
+                .OrderBy(_ => System.Random.Shared.Next())
+                .Take(count)
+                .ToArray();
+        }
+
+        return [.. eligible];
     }
 
     /// <summary>
-    /// Get a pool of traits for level-up selection.
-    /// Returns random acquirable traits excluding those already acquired.
+    /// Get traits available for a summoner to choose at level-up.
+    /// Uses the summoner's TraitTags for eligibility.
     /// </summary>
-    /// <param name="excludedIds">Trait IDs to exclude (already acquired)</param>
-    /// <param name="count">Number of traits to return (default 3)</param>
-    public static TraitDefinition[] GetLevelUpTraitPool(List<string> excludedIds, int count = 3)
+    /// <param name="summonerDef">The summoner definition</param>
+    /// <param name="currentLevel">Summoner's current level</param>
+    /// <param name="acquiredTraitIds">Trait IDs the summoner has already acquired</param>
+    /// <param name="count">Maximum number of traits to return (0 = all eligible)</param>
+    /// <returns>Array of eligible traits, shuffled if count > 0</returns>
+    public static TraitDefinition[] GetAvailableTraitsForLevelUp(
+        Summoners.SummonerDefinition summonerDef,
+        int currentLevel,
+        IEnumerable<string> acquiredTraitIds,
+        int count = 3)
     {
-        return GetAcquirableBoons()
-            .Where(t => !excludedIds.Contains(t.Id))
-            .OrderBy(_ => System.Random.Shared.Next())
-            .Take(count)
-            .ToArray();
+        // Include innate traits in acquired set (can't re-acquire innate traits)
+        var acquired = new HashSet<string>(acquiredTraitIds);
+        foreach (var innateId in summonerDef.InnateTraitIds)
+        {
+            acquired.Add(innateId);
+        }
+
+        return GetAvailableTraitsForLevelUp(summonerDef.TraitEligibilityTags, currentLevel, acquired, count);
+    }
+
+    /// <summary>
+    /// Get all traits with the Global tag for the specified entity type.
+    /// </summary>
+    public static TraitDefinition[] GetGlobalPoolTraits(string entityType = TraitTags.Summoner)
+    {
+        return _traits.Values.Where(t =>
+            !t.IsInnate &&
+            t.Tags.Contains(TraitTags.Global) &&
+            t.Tags.Contains(entityType)
+        ).ToArray();
+    }
+
+    /// <summary>
+    /// Check if an entity meets the prerequisites for a specific trait.
+    /// </summary>
+    public static bool MeetsPrerequisites(string traitId, IEnumerable<string> acquiredTraitIds)
+    {
+        var trait = GetTrait(traitId);
+        if (trait == null) return false;
+        if (trait.Prerequisites.Length == 0) return true;
+
+        var acquired = new HashSet<string>(acquiredTraitIds);
+        return trait.Prerequisites.All(prereqId => acquired.Contains(prereqId));
     }
 
     // =========================================================================
@@ -478,13 +701,27 @@ public static class TraitCatalog
         var result = new List<StatModifier>();
         foreach (var mod in trait.Modifiers.Where(m => m.IsUnitModifier))
         {
-            result.Add(new StatModifier
+            var statMod = new StatModifier
             {
                 Source = mod.Source ?? traitId,
                 Conditions = mod.Conditions ?? [],
                 StatMults = mod.StatMults ?? [],
                 StatAdds = mod.StatAdds ?? []
-            });
+            };
+
+            // Copy trigger fields if present
+            if (mod.HasTrigger)
+            {
+                if (System.Enum.TryParse<Systems.Modifiers.TriggerCondition>(mod.Trigger, ignoreCase: true, out var trigger))
+                {
+                    statMod.Trigger = trigger;
+                }
+                statMod.TriggerThreshold = mod.TriggerThreshold;
+                statMod.TriggerDuration = mod.TriggerDuration;
+                statMod.TriggerCooldown = mod.TriggerCooldown;
+            }
+
+            result.Add(statMod);
         }
         return result;
     }
@@ -558,6 +795,25 @@ public static class TraitCatalog
             modifiersArray.Add(modDict);
         }
 
+        // Convert tags to Godot array
+        var tagsArray = new Godot.Collections.Array<string>();
+        foreach (var tag in trait.Tags)
+        {
+            tagsArray.Add(tag);
+        }
+
+        var requiredTagsArray = new Godot.Collections.Array<string>();
+        foreach (var tag in trait.RequiredTags)
+        {
+            requiredTagsArray.Add(tag);
+        }
+
+        var prerequisitesArray = new Godot.Collections.Array<string>();
+        foreach (var prereq in trait.Prerequisites)
+        {
+            prerequisitesArray.Add(prereq);
+        }
+
         return new Godot.Collections.Dictionary
         {
             ["id"] = trait.Id,
@@ -565,6 +821,11 @@ public static class TraitCatalog
             ["description_key"] = trait.DescriptionKey,
             ["category"] = trait.Category,
             ["is_innate"] = trait.IsInnate,
+            ["tags"] = tagsArray,
+            ["required_tags"] = requiredTagsArray,
+            ["min_level"] = trait.MinLevel,
+            ["max_level"] = trait.MaxLevel,
+            ["prerequisites"] = prerequisitesArray,
             ["modifiers"] = modifiersArray
         };
     }

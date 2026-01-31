@@ -276,6 +276,21 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     protected float _attackAnimationTimer;  // Prevents animation override during attack
     protected Dictionary<string, bool> _activeModifierFlags = new();
 
+    // Trigger modifier system
+    private List<StatModifier> _triggeredModifiers = new();
+    private List<ActiveTrigger> _activeTriggers = new();
+
+    /// <summary>
+    /// Represents an active trigger effect with duration/cooldown tracking.
+    /// </summary>
+    private class ActiveTrigger
+    {
+        public required StatModifier Modifier;
+        public float RemainingDuration;
+        public float CooldownRemaining;
+        public bool IsActive;
+    }
+
     // Spawn reveal animation component
     private SpawnRevealComponent? _spawnRevealComponent;
 
@@ -522,6 +537,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         UpdateCooldowns(deltaF);
         UpdateTargeting(deltaF);
         UpdateBehavior(deltaF);
+        UpdateTriggers(deltaF);
 
         // Update shadow for flying units (dynamic altitude scaling)
         if (MovementLayer == (int)Units.MovementLayer.Air)
@@ -586,6 +602,10 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         EmitSignal(SignalName.UnitDied, this);
 
+        // Clear trigger state to prevent further processing
+        _triggeredModifiers.Clear();
+        _activeTriggers.Clear();
+
         // Handle flying death style
         if (MovementLayer == (int)Units.MovementLayer.Air)
         {
@@ -608,6 +628,243 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Visual feedback
         VisualComponent?.FlashWhite();
+
+        // Check OnTakeHit triggers
+        CheckOnTakeHitTriggers();
+
+        // Check HP-based triggers after damage
+        CheckHpTriggers();
+    }
+
+    // =========================================================================
+    // TRIGGER SYSTEM
+    // =========================================================================
+
+    /// <summary>
+    /// Update active trigger durations and deactivate expired triggers.
+    /// Called every physics frame.
+    /// </summary>
+    private void UpdateTriggers(float delta)
+    {
+        bool needsStatRecalc = false;
+
+        foreach (var trigger in _activeTriggers)
+        {
+            // Update cooldowns
+            if (trigger.CooldownRemaining > 0)
+            {
+                trigger.CooldownRemaining -= delta;
+            }
+
+            // Update durations for active triggers
+            if (trigger.IsActive && trigger.RemainingDuration > 0)
+            {
+                trigger.RemainingDuration -= delta;
+                if (trigger.RemainingDuration <= 0)
+                {
+                    trigger.IsActive = false;
+                    needsStatRecalc = true;
+                }
+            }
+        }
+
+        if (needsStatRecalc)
+        {
+            RecalculateStatsWithTriggers();
+        }
+    }
+
+    /// <summary>
+    /// Check HP-based triggers (BelowHpPercent, AboveHpPercent).
+    /// </summary>
+    private void CheckHpTriggers()
+    {
+        if (_triggeredModifiers.Count == 0)
+            return;
+
+        float hpPercent = MaxHp > 0 ? CurrentHp / MaxHp : 1f;
+        bool needsStatRecalc = false;
+
+        for (int i = 0; i < _activeTriggers.Count; i++)
+        {
+            var trigger = _activeTriggers[i];
+            var mod = trigger.Modifier;
+
+            if (mod.Trigger == TriggerCondition.BelowHpPercent)
+            {
+                bool shouldBeActive = hpPercent < mod.TriggerThreshold;
+                if (shouldBeActive != trigger.IsActive)
+                {
+                    trigger.IsActive = shouldBeActive;
+                    trigger.RemainingDuration = mod.TriggerDuration; // 0 = permanent while condition holds
+                    needsStatRecalc = true;
+                }
+            }
+            else if (mod.Trigger == TriggerCondition.AboveHpPercent)
+            {
+                bool shouldBeActive = hpPercent > mod.TriggerThreshold;
+                if (shouldBeActive != trigger.IsActive)
+                {
+                    trigger.IsActive = shouldBeActive;
+                    trigger.RemainingDuration = mod.TriggerDuration;
+                    needsStatRecalc = true;
+                }
+            }
+        }
+
+        if (needsStatRecalc)
+        {
+            RecalculateStatsWithTriggers();
+        }
+    }
+
+    /// <summary>
+    /// Check OnTakeHit triggers when unit takes damage.
+    /// </summary>
+    private void CheckOnTakeHitTriggers()
+    {
+        bool needsStatRecalc = false;
+
+        for (int i = 0; i < _activeTriggers.Count; i++)
+        {
+            var trigger = _activeTriggers[i];
+            var mod = trigger.Modifier;
+
+            if (mod.Trigger == TriggerCondition.OnTakeHit)
+            {
+                // Check cooldown
+                if (trigger.CooldownRemaining > 0)
+                    continue;
+
+                // Activate the trigger
+                trigger.IsActive = true;
+                trigger.RemainingDuration = mod.TriggerDuration;
+                trigger.CooldownRemaining = mod.TriggerCooldown;
+                needsStatRecalc = true;
+            }
+        }
+
+        if (needsStatRecalc)
+        {
+            RecalculateStatsWithTriggers();
+        }
+    }
+
+    /// <summary>
+    /// Called when this unit deals damage. Check OnHit triggers.
+    /// </summary>
+    public void OnDealDamage(float amount, Node3D target)
+    {
+        bool needsStatRecalc = false;
+
+        for (int i = 0; i < _activeTriggers.Count; i++)
+        {
+            var trigger = _activeTriggers[i];
+            var mod = trigger.Modifier;
+
+            if (mod.Trigger == TriggerCondition.OnHit)
+            {
+                if (trigger.CooldownRemaining > 0)
+                    continue;
+
+                trigger.IsActive = true;
+                trigger.RemainingDuration = mod.TriggerDuration;
+                trigger.CooldownRemaining = mod.TriggerCooldown;
+                needsStatRecalc = true;
+            }
+        }
+
+        if (needsStatRecalc)
+        {
+            RecalculateStatsWithTriggers();
+        }
+    }
+
+    /// <summary>
+    /// Called when this unit kills an enemy. Check OnKill triggers.
+    /// </summary>
+    public void OnKill(Node3D target)
+    {
+        bool needsStatRecalc = false;
+
+        for (int i = 0; i < _activeTriggers.Count; i++)
+        {
+            var trigger = _activeTriggers[i];
+            var mod = trigger.Modifier;
+
+            if (mod.Trigger == TriggerCondition.OnKill)
+            {
+                if (trigger.CooldownRemaining > 0)
+                    continue;
+
+                trigger.IsActive = true;
+                trigger.RemainingDuration = mod.TriggerDuration;
+                trigger.CooldownRemaining = mod.TriggerCooldown;
+                needsStatRecalc = true;
+
+                // Handle special on-kill effects like healing
+                if (mod.StatAdds.TryGetValue("heal_on_kill", out var healAmount))
+                {
+                    Heal(healAmount);
+                }
+            }
+        }
+
+        if (needsStatRecalc)
+        {
+            RecalculateStatsWithTriggers();
+        }
+    }
+
+    /// <summary>
+    /// Recalculate stats including currently active trigger modifiers.
+    /// </summary>
+    private void RecalculateStatsWithTriggers()
+    {
+        // Start with base stats
+        float hpAdd = 0f, damageAdd = 0f, speedAdd = 0f, moveSpeedAdd = 0f;
+        float hpMult = 1f, damageMult = 1f, speedMult = 1f, moveSpeedMult = 1f;
+
+        // Apply active trigger modifiers
+        foreach (var trigger in _activeTriggers)
+        {
+            if (!trigger.IsActive)
+                continue;
+
+            var mod = trigger.Modifier;
+
+            // Process stat_adds
+            if (mod.StatAdds.TryGetValue("max_hp", out var hp)) hpAdd += hp;
+            if (mod.StatAdds.TryGetValue("attack_damage", out var dmg)) damageAdd += dmg;
+            if (mod.StatAdds.TryGetValue("attack_speed", out var spd)) speedAdd += spd;
+            if (mod.StatAdds.TryGetValue("move_speed", out var mvSpd)) moveSpeedAdd += mvSpd;
+
+            // Process stat_mults
+            if (mod.StatMults.TryGetValue("max_hp", out var hpM)) hpMult *= hpM;
+            if (mod.StatMults.TryGetValue("attack_damage", out var dmgM)) damageMult *= dmgM;
+            if (mod.StatMults.TryGetValue("attack_speed", out var spdM)) speedMult *= spdM;
+            if (mod.StatMults.TryGetValue("move_speed", out var mvSpdM)) moveSpeedMult *= mvSpdM;
+
+            // Process flags
+            foreach (var kvp in mod.Flags)
+            {
+                _activeModifierFlags[kvp.Key] = kvp.Value;
+            }
+        }
+
+        // Apply modifiers: (base + adds) * mults
+        // Note: We use the current stats as base since static modifiers were already applied
+        float currentMaxHp = MaxHp;
+        MaxHp = (_baseMaxHp + hpAdd) * hpMult;
+        AttackDamage = (_baseAttackDamage + damageAdd) * damageMult;
+        AttackSpeed = (_baseAttackSpeed + speedAdd) * speedMult;
+        MoveSpeed = (_baseMoveSpeed + moveSpeedAdd) * moveSpeedMult;
+
+        // Update HP bar if max HP changed (don't heal to max, keep current HP ratio)
+        if (MaxHp != currentMaxHp)
+        {
+            _health.SetMaxHp(MaxHp, healToMax: false);
+        }
     }
 
     // =========================================================================
@@ -682,6 +939,34 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         MoveSpeed = (_baseMoveSpeed + moveSpeedAdd) * moveSpeedMult;
 
         _health.SetMaxHp(MaxHp, healToMax: true);
+    }
+
+    /// <summary>
+    /// Initialize unit with partitioned modifiers (static applied immediately, triggered stored).
+    /// </summary>
+    public void InitializeWithPartitionedModifiers(List<StatModifier> staticModifiers, List<StatModifier> triggeredModifiers)
+    {
+        // Apply static modifiers immediately
+        InitializeWithModifiers(staticModifiers);
+
+        // Store triggered modifiers for event-based activation
+        _triggeredModifiers = triggeredModifiers;
+        _activeTriggers.Clear();
+
+        // Initialize trigger tracking for each triggered modifier
+        foreach (var mod in _triggeredModifiers)
+        {
+            _activeTriggers.Add(new ActiveTrigger
+            {
+                Modifier = mod,
+                RemainingDuration = 0f,
+                CooldownRemaining = 0f,
+                IsActive = false
+            });
+        }
+
+        // Check HP-based triggers on initialization
+        CheckHpTriggers();
     }
 
     /// <summary>

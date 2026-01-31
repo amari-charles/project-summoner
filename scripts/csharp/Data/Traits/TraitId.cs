@@ -36,22 +36,57 @@ public static class TraitId
     public const string DeathAffinity = "trait_death_affinity";
 
     // =========================================================================
-    // ACQUIRED BOONS (earned through gameplay)
+    // TRIGGERED TRAITS (conditional effects)
     // =========================================================================
 
-    public const string BoonVeteran = "boon_veteran";
-    public const string BoonManaWell = "boon_mana_well";
-    public const string BoonBattleHardened = "boon_battle_hardened";
-    public const string BoonFortuneFavors = "boon_fortune_favors";
+    /// <summary>Berserker: +20% damage when below 50% HP.</summary>
+    public const string Berserker = "trait_berserker";
 
-    // Special boons
-    public const string FortuneFavorsBold = "trait_fortune_favors_bold";
+    /// <summary>Vengeful: +10% attack speed for 5s after taking damage.</summary>
+    public const string Vengeful = "trait_vengeful";
 
-    // Level-up boons (selected when leveling up)
-    public const string BoonIronWill = "boon_iron_will";
-    public const string BoonQuickRecovery = "boon_quick_recovery";
-    public const string BoonVitalityBoost = "boon_vitality_boost";
-    public const string BoonElementalMastery = "boon_elemental_mastery";
-    public const string BoonSwiftStrike = "boon_swift_strike";
-    public const string BoonTacticalMind = "boon_tactical_mind";
+    /// <summary>Soul Harvest: Heal 5 HP on kill.</summary>
+    public const string SoulHarvest = "trait_soul_harvest";
+
+    // =========================================================================
+    // ACQUIRABLE TRAITS - Global Summoner Pool
+    // =========================================================================
+
+    /// <summary>Iron Will: +5 damage reduction.</summary>
+    public const string IronWill = "trait_iron_will";
+
+    /// <summary>Quick Recovery: +10% mana regen.</summary>
+    public const string QuickRecovery = "trait_quick_recovery";
+
+    /// <summary>Vitality Boost: +100 max health.</summary>
+    public const string VitalityBoost = "trait_vitality_boost";
+
+    /// <summary>Swift Strike: +10% attack speed for units.</summary>
+    public const string SwiftStrike = "trait_swift_strike";
+
+    // =========================================================================
+    // ACQUIRABLE TRAITS - Element Mastery (element-exclusive)
+    // =========================================================================
+
+    /// <summary>Inferno Mastery: Fire damage and fire unit buffs.</summary>
+    public const string InfernoMastery = "trait_inferno_mastery";
+
+    /// <summary>Tidal Mastery: Water damage and water unit buffs.</summary>
+    public const string TidalMastery = "trait_tidal_mastery";
+
+    // =========================================================================
+    // UNIT TRAITS - Global Pool (available to all units/cards)
+    // =========================================================================
+
+    /// <summary>Fortitude: +8% HP per level.</summary>
+    public const string Fortitude = "trait_fortitude";
+
+    /// <summary>Power: +6% attack damage per level.</summary>
+    public const string Power = "trait_power";
+
+    /// <summary>Swiftness: +5% attack speed per level.</summary>
+    public const string Swiftness = "trait_swiftness";
+
+    /// <summary>Agility: +5% move speed per level.</summary>
+    public const string Agility = "trait_agility";
 }
