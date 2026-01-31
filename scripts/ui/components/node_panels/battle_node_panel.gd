@@ -44,24 +44,17 @@ func _ready() -> void:
 
 
 func _configure_impl() -> void:
-	# Check if this event requires deck selection
-	var requires_deck: bool = _safe_bool(event_data.get("requires_deck", true), true)
-
 	# Show/hide deck selection based on event configuration
-	deck_column.visible = requires_deck
+	deck_column.visible = event.requires_deck
 
 	# Load available decks if required
-	if requires_deck:
+	if event.requires_deck:
 		_load_decks()
 
-	# Update labels
-	event_name_label.text = _safe_string(event_data.get("name", "Unknown"), "Unknown")
-
-	# Show difficulty for battles
-	var difficulty: int = _safe_int(event_data.get("difficulty", 0), 0)
-	_update_difficulty_stars(difficulty)
-
-	description_label.text = _safe_string(event_data.get("description", "No description."), "No description.")
+	# Update labels using typed accessors
+	event_name_label.text = event.name
+	_update_difficulty_stars(event.difficulty)
+	description_label.text = event.description if not event.description.is_empty() else "No description."
 
 	# Build reward text
 	_update_reward_display()
@@ -76,8 +69,7 @@ func get_event_type() -> StringName:
 
 
 func can_start() -> bool:
-	var requires_deck: bool = _safe_bool(event_data.get("requires_deck", true), true)
-	if not requires_deck:
+	if not event.requires_deck:
 		return true
 	return not selected_deck_id.is_empty() and _validate_selected_deck()
 
@@ -118,25 +110,21 @@ func _update_difficulty_stars(difficulty: int) -> void:
 ## =============================================================================
 
 func _update_reward_display() -> void:
-	var reward_type: StringName = StringName(event_data.get("reward_type", RewardTypeIDs.FIXED))
-	var reward_cards: Array = _safe_array(event_data.get("reward_cards", []))
-	var gold_reward: int = _safe_int(event_data.get("gold_reward", 0), 0)
-	var summoner_xp_reward: int = _safe_int(event_data.get("summoner_xp_reward", 0), 0)
-
 	var catalog: Node = CardCatalog
 	var reward_lines: Array[String] = []
 
 	# Gold reward
-	if gold_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": gold_reward}))
+	if event.gold_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": event.gold_reward}))
 
 	# Summoner XP reward
-	if summoner_xp_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": summoner_xp_reward}))
+	if event.summoner_xp_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": event.summoner_xp_reward}))
 
 	# Card reward based on type
-	match reward_type:
+	match event.reward_type:
 		RewardTypeIDs.FIXED:
+			var reward_cards: Array = event.reward_cards
 			if reward_cards.size() > 0:
 				var card_names: Array[String] = []
 				for reward_item: Variant in reward_cards:
@@ -318,8 +306,7 @@ func _on_start_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 
 	# Validate deck if required
-	var requires_deck: bool = _safe_bool(event_data.get("requires_deck", true), true)
-	if requires_deck:
+	if event.requires_deck:
 		if selected_deck_id.is_empty():
 			active_deck_indicator.text = Loc.t("campaign.map.deck_status_select_first")
 			active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)

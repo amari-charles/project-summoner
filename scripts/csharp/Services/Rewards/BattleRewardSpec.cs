@@ -26,7 +26,11 @@ public class BattleRewardSpec
     /// <summary>Card XP reward amount.</summary>
     public int CardXp { get; set; }
 
-    /// <summary>Card options for selection (unified format).</summary>
+    /// <summary>
+    /// Card options available for this reward.
+    /// Unified format: both fixed rewards (predetermined cards) and flexible rewards
+    /// (player selection) use the same CardRewardOption structure for consistent UI handling.
+    /// </summary>
     public List<CardRewardOption> CardOptions { get; set; } = new();
 
     /// <summary>Whether player must select from options.</summary>
@@ -169,7 +173,11 @@ public class CardRewardOption
     /// <summary>Card catalog ID.</summary>
     public string CatalogId { get; set; } = "";
 
-    /// <summary>Card rarity (common, rare, epic, legendary).</summary>
+    /// <summary>
+    /// Card rarity as lowercase string (common, rare, epic, legendary).
+    /// Uses string instead of Rarity enum for GDScript interop - GDScript receives
+    /// this via ToDictionary() and expects lowercase string values for UI styling.
+    /// </summary>
     public string Rarity { get; set; } = "common";
 
     /// <summary>Number of copies to grant.</summary>

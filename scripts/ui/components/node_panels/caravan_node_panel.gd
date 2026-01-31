@@ -17,9 +17,9 @@ func _ready() -> void:
 
 
 func _configure_impl() -> void:
-	# Update labels
-	event_name_label.text = _safe_string(event_data.get("name", "Unknown"), "Unknown")
-	description_label.text = _safe_string(event_data.get("description", "No description."), "No description.")
+	# Update labels using typed accessors
+	event_name_label.text = event.name
+	description_label.text = event.description if not event.description.is_empty() else "No description."
 
 	# Update start button
 	start_button.text = get_start_button_text()
@@ -31,11 +31,10 @@ func get_event_type() -> StringName:
 
 
 func get_start_button_text() -> String:
-	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
-	var is_repeatable: bool = _safe_bool(event_data.get("repeatable", false))
+	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event.id))
 
 	if is_completed:
-		if is_repeatable:
+		if event.repeatable:
 			return Loc.t("campaign.map.button_enter_shop_again")
 		else:
 			return Loc.t("campaign.map.button_completed")

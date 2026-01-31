@@ -6,6 +6,10 @@ extends Control
 ## Each event type (battle, caravan, choice, etc.) should extend this base class
 ## and implement its own UI and behavior. This replaces flag-based conditionals
 ## with proper polymorphism.
+##
+## Event data is accessed via the typed `event` property which provides
+## type-safe accessors for all event properties. The underlying data comes
+## from C# EventCatalog via TypedEventData wrapper.
 
 ## Emitted when user clicks the start/continue button
 signal start_requested()
@@ -13,11 +17,18 @@ signal start_requested()
 ## Emitted when user clicks outside or presses escape
 signal close_requested()
 
-## The event data this panel is displaying
-var event_data: Dictionary = {}
+## Typed event data wrapper providing type-safe property access.
+## Use this instead of accessing event_data directly.
+var event: TypedEventData = TypedEventData.new()
+
+## The raw event data dictionary (legacy, prefer using `event` property)
+var event_data: Dictionary:
+	get: return event.get_raw()
 
 ## The event ID being displayed
-var event_id: String = ""
+var event_id: String:
+	get: return event.id
+	set(value): event = TypedEventData.new(event.get_raw(), value)
 
 ## =============================================================================
 ## ABSTRACT INTERFACE - Subclasses must implement these
@@ -25,9 +36,10 @@ var event_id: String = ""
 
 ## Configure the panel with event data. Called when a node is selected.
 ## Subclasses should populate their UI elements here.
-func configure(event: Dictionary, id: String) -> void:
-	event_data = event
-	event_id = id
+## @param event_dict: Event data dictionary from EventCatalog.ToDictionary()
+## @param id: Event ID from EventCatalog
+func configure(event_dict: Dictionary, id: String) -> void:
+	event = TypedEventData.new(event_dict, id)
 	_configure_impl()
 
 
@@ -49,11 +61,10 @@ func can_start() -> bool:
 ## Get the text for the start button based on completion state.
 ## Subclasses can override for custom button text.
 func get_start_button_text() -> String:
-	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
-	var is_repeatable: bool = _safe_bool(event_data.get("repeatable", true))
+	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event.id))
 
 	if is_completed:
-		if is_repeatable:
+		if event.repeatable:
 			return Loc.t("campaign.map.button_replay")
 		else:
 			return Loc.t("campaign.map.button_completed")
@@ -64,11 +75,10 @@ func get_start_button_text() -> String:
 ## Check if the start button should be disabled.
 ## Subclasses can override for custom logic.
 func is_start_disabled() -> bool:
-	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event_id))
-	var is_repeatable: bool = _safe_bool(event_data.get("repeatable", true))
+	var is_completed: bool = _safe_bool(Campaign.is_battle_completed(event.id))
 
 	# Completed non-repeatable events can't be started
-	if is_completed and not is_repeatable:
+	if is_completed and not event.repeatable:
 		return true
 
 	# Also check subclass validation
