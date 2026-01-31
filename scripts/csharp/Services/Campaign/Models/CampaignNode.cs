@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using ProjectSummoner.Data.Events;
 
 namespace ProjectSummoner.Services.Campaign.Models;
 
@@ -49,6 +50,24 @@ public class CampaignNode
         {
             node.Data = data;
         }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Create a CampaignNode from a typed EventDefinition.
+    /// This is the new preferred construction method.
+    /// </summary>
+    public static CampaignNode FromEventDefinition(EventDefinition evt, string campaignId)
+    {
+        var node = new CampaignNode
+        {
+            Id = evt.Id,
+            Type = evt.Type.ToStringId(),
+            Position = evt.Position,
+            CampaignId = campaignId,
+            Data = EventCatalog.ToDictionary(evt)
+        };
 
         return node;
     }

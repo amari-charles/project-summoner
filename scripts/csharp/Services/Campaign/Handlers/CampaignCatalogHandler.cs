@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using ProjectSummoner.Data.Events;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign and battle catalog queries.
+/// Now backed by EventCatalog and CampaignCatalog instead of GDScript data.
 /// </summary>
 public class CampaignCatalogHandler
 {
@@ -22,40 +24,57 @@ public class CampaignCatalogHandler
     // DATA LOADING
     // =========================================================================
 
-    /// <summary>Load campaign data from GDScript.</summary>
-    public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+    /// <summary>
+    /// Initialize catalog data from C# EventCatalog and CampaignCatalog.
+    /// Called once at startup. No longer loads from GDScript.
+    /// </summary>
+    public void Initialize()
     {
         _store.Campaigns.Clear();
         _store.Battles.Clear();
 
-        foreach (var campaign in campaigns)
+        // Load all campaigns from CampaignCatalog
+        foreach (var campaign in CampaignCatalog.GetAllCampaigns())
         {
-            var campaignId = campaign.GetValueOrDefault("campaign_id", "").AsString();
-            if (string.IsNullOrEmpty(campaignId))
-                continue;
+            var campaignDict = CampaignCatalog.ToDictionary(campaign);
+            _store.Campaigns[campaign.Id] = campaignDict;
 
-            _store.Campaigns[campaignId] = campaign;
-
-            // Load battles from campaign
-            var battlesArray = campaign.GetValueOrDefault("battles", new Godot.Collections.Array());
-            if (battlesArray.Obj is Godot.Collections.Array battles)
+            // Load events/battles for this campaign
+            foreach (var eventId in campaign.EventIds)
             {
-                foreach (var battleVariant in battles)
-                {
-                    if (battleVariant.Obj is Godot.Collections.Dictionary battle)
-                    {
-                        var battleId = battle.GetValueOrDefault("id", "").AsString();
-                        if (!string.IsNullOrEmpty(battleId))
-                        {
-                            _store.Battles[battleId] = battle;
-                        }
-                    }
-                }
+                var evt = EventCatalog.GetEvent(eventId);
+                if (evt == null) continue;
+
+                var eventDict = EventCatalog.ToDictionary(evt);
+                // Add event_type for UI type checking
+                eventDict["event_type"] = GetEventTypeForUI(evt.Type);
+                _store.Battles[eventId] = eventDict;
             }
         }
 
-        GD.Print($"CampaignCatalogHandler: Loaded {_store.Campaigns.Count} campaigns with {_store.Battles.Count} total battles");
+        GD.Print($"CampaignCatalogHandler: Initialized {_store.Campaigns.Count} campaigns with {_store.Battles.Count} total events from C# catalogs");
     }
+
+    /// <summary>
+    /// Legacy method for GDScript compatibility.
+    /// Now ignores the GDScript data and uses C# catalogs instead.
+    /// </summary>
+    [System.Obsolete("Use Initialize() instead. GDScript campaign data is no longer used.")]
+    public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+    {
+        // Ignore GDScript data - use C# catalogs
+        Initialize();
+    }
+
+    private static string GetEventTypeForUI(EventType type) => type switch
+    {
+        EventType.Battle or EventType.Elite or EventType.Boss => "battle",
+        EventType.Caravan => "caravan",
+        EventType.Choice => "choice",
+        EventType.Rest => "rest",
+        EventType.Story => "story",
+        _ => "battle"
+    };
 
     // =========================================================================
     // CAMPAIGN QUERIES
@@ -66,23 +85,11 @@ public class CampaignCatalogHandler
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
-        foreach (var kvp in _store.Campaigns)
+        foreach (var campaign in CampaignCatalog.GetAllCampaignsSorted())
         {
-            var campaign = new Godot.Collections.Dictionary();
-            foreach (var key in kvp.Value.Keys)
-            {
-                campaign[key] = kvp.Value[key];
-            }
-            campaign["is_unlocked"] = IsCampaignUnlocked(kvp.Key);
-            result.Add(campaign);
-        }
-
-        // Sort by sort_order
-        var sorted = result.OrderBy(c => c.GetValueOrDefault("sort_order", 999).AsInt32()).ToList();
-        result.Clear();
-        foreach (var c in sorted)
-        {
-            result.Add(c);
+            var dict = CampaignCatalog.ToDictionary(campaign);
+            dict["is_unlocked"] = IsCampaignUnlocked(campaign.Id);
+            result.Add(dict);
         }
 
         return result;
@@ -91,25 +98,24 @@ public class CampaignCatalogHandler
     /// <summary>Get a specific campaign's metadata.</summary>
     public Godot.Collections.Dictionary GetCampaign(string campaignId)
     {
-        if (_store.Campaigns.TryGetValue(campaignId, out var campaign))
-            return campaign;
-        return new Godot.Collections.Dictionary();
+        var campaign = CampaignCatalog.GetCampaign(campaignId);
+        if (campaign == null) return new Godot.Collections.Dictionary();
+        return CampaignCatalog.ToDictionary(campaign);
     }
 
     /// <summary>Check if a campaign is unlocked.</summary>
     public bool IsCampaignUnlocked(string campaignId)
     {
-        if (!_store.Campaigns.TryGetValue(campaignId, out var campaign))
-            return false;
+        var campaign = CampaignCatalog.GetCampaign(campaignId);
+        if (campaign == null) return false;
 
-        var requirements = campaign.GetValueOrDefault("unlock_requirements", new Godot.Collections.Array());
-        if (requirements.Obj is not Godot.Collections.Array reqArray || reqArray.Count == 0)
-            return true;
+        // No requirements = unlocked
+        if (campaign.UnlockRequirements.Count == 0) return true;
 
-        foreach (var req in reqArray)
+        // Check all requirements are met
+        foreach (var req in campaign.UnlockRequirements)
         {
-            var reqStr = req.AsString();
-            if (!_progress.IsCampaignComplete(reqStr))
+            if (!_progress.IsCampaignComplete(req))
                 return false;
         }
 
@@ -117,53 +123,91 @@ public class CampaignCatalogHandler
     }
 
     // =========================================================================
-    // BATTLE QUERIES
+    // BATTLE/EVENT QUERIES
     // =========================================================================
 
-    /// <summary>Get all battles for the current campaign.</summary>
+    /// <summary>Get all events for the current campaign.</summary>
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetAllBattles()
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
-        if (!_store.Campaigns.TryGetValue(_store.CurrentCampaignId, out var campaign))
-            return result;
+        var campaign = CampaignCatalog.GetCampaign(_store.CurrentCampaignId);
+        if (campaign == null) return result;
 
-        var battlesVariant = campaign.GetValueOrDefault("battles", new Godot.Collections.Array());
-        if (battlesVariant.Obj is Godot.Collections.Array battles)
+        foreach (var eventId in campaign.EventIds)
         {
-            foreach (var battleVariant in battles)
-            {
-                if (battleVariant.Obj is Godot.Collections.Dictionary battle)
-                {
-                    result.Add(battle);
-                }
-            }
+            var evt = EventCatalog.GetEvent(eventId);
+            if (evt == null) continue;
+
+            var dict = EventCatalog.ToDictionary(evt);
+            dict["event_type"] = GetEventTypeForUI(evt.Type);
+            result.Add(dict);
         }
 
         return result;
     }
 
-    /// <summary>Get a specific battle by ID.</summary>
+    /// <summary>Get a specific event by ID.</summary>
     public Godot.Collections.Dictionary GetBattle(string battleId)
     {
-        if (_store.Battles.TryGetValue(battleId, out var battle))
-            return battle;
-        return new Godot.Collections.Dictionary();
+        var evt = EventCatalog.GetEvent(battleId);
+        if (evt == null) return new Godot.Collections.Dictionary();
+
+        var dict = EventCatalog.ToDictionary(evt);
+        dict["event_type"] = GetEventTypeForUI(evt.Type);
+        return dict;
     }
 
-    /// <summary>Get all completed battles.</summary>
+    /// <summary>Get all completed events.</summary>
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetCompletedBattles()
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
         foreach (var battleId in _store.CompletedBattles)
         {
-            if (_store.Battles.TryGetValue(battleId, out var battle))
-            {
-                result.Add(battle);
-            }
+            var evt = EventCatalog.GetEvent(battleId);
+            if (evt == null) continue;
+
+            var dict = EventCatalog.ToDictionary(evt);
+            dict["event_type"] = GetEventTypeForUI(evt.Type);
+            result.Add(dict);
         }
 
         return result;
+    }
+
+    // =========================================================================
+    // NEW TYPED ACCESS (for C# consumers)
+    // =========================================================================
+
+    /// <summary>Get typed event definition by ID.</summary>
+    public EventDefinition? GetEventDefinition(string eventId)
+    {
+        return EventCatalog.GetEvent(eventId);
+    }
+
+    /// <summary>Get typed event definition by ID with specific type.</summary>
+    public T? GetEventDefinition<T>(string eventId) where T : EventDefinition
+    {
+        return EventCatalog.GetEvent<T>(eventId);
+    }
+
+    /// <summary>Get typed campaign definition by ID.</summary>
+    public CampaignDefinition? GetCampaignDefinition(string campaignId)
+    {
+        return CampaignCatalog.GetCampaign(campaignId);
+    }
+
+    /// <summary>Get all battle events for current campaign.</summary>
+    public BattleEventDefinition[] GetCurrentCampaignBattles()
+    {
+        var campaign = CampaignCatalog.GetCampaign(_store.CurrentCampaignId);
+        if (campaign == null) return System.Array.Empty<BattleEventDefinition>();
+
+        return campaign.EventIds
+            .Select(id => EventCatalog.GetEvent<BattleEventDefinition>(id))
+            .Where(e => e != null)
+            .Cast<BattleEventDefinition>()
+            .ToArray();
     }
 }

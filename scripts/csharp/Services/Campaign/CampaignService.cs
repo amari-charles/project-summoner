@@ -135,13 +135,30 @@ public partial class CampaignService : Node
 	// CAMPAIGN DATA LOADING (delegates to CampaignCatalogHandler)
 	// =========================================================================
 
-	/// <summary>Load campaign data from GDScript.</summary>
-	public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+	/// <summary>
+	/// Initialize campaign data from C# EventCatalog and CampaignCatalog.
+	/// This is the new preferred initialization method.
+	/// </summary>
+	public void InitializeCatalogs()
 	{
-		_catalog?.LoadCampaignsFromGDScript(campaigns);
+		_catalog?.Initialize();
 
 		// Also load graphs for node-based unlock logic
-		_graphStore?.LoadGraphsFromGDScript(campaigns);
+		_graphStore?.InitializeFromCatalog();
+	}
+
+	/// <summary>Load campaign data from GDScript (legacy, now uses C# catalogs).</summary>
+	[Obsolete("Use InitializeCatalogs() instead. GDScript campaign data is no longer used.")]
+	public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+	{
+		// Ignore GDScript data - use C# catalogs
+		InitializeCatalogs();
+	}
+
+	/// <summary>Check if a campaign exists.</summary>
+	public bool HasCampaign(string campaignId)
+	{
+		return Data.Events.CampaignCatalog.HasCampaign(campaignId);
 	}
 
 	/// <summary>Set the current campaign ID.</summary>
