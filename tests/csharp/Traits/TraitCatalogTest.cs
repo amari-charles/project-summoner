@@ -93,20 +93,6 @@ public class TraitCatalogTest
     }
 
     [TestCase]
-    public void GetAcquirableBoons_ReturnsOnlyNonInnateTraits()
-    {
-        var boons = TraitCatalog.GetAcquirableBoons();
-
-        AssertThat(boons).IsNotNull();
-        AssertThat(boons.Length).IsGreater(0);
-
-        foreach (var boon in boons)
-        {
-            AssertThat(boon.IsInnate).IsFalse();
-        }
-    }
-
-    [TestCase]
     public void GetUnitModifiersForTrait_ReturnsModifiers_ForElementalAffinity()
     {
         var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.FireAffinity);
@@ -182,5 +168,58 @@ public class TraitCatalogTest
             var modifiers = TraitCatalog.GetUnitModifiersForTrait(traitId);
             AssertThat(modifiers.Count).IsGreater(0);
         }
+    }
+
+    // =========================================================================
+    // TRIGGERED TRAIT TESTS
+    // =========================================================================
+
+    [TestCase]
+    public void BerserkerTrait_HasBelowHpTrigger()
+    {
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.Berserker);
+
+        AssertThat(modifiers.Count).IsGreater(0);
+
+        var mod = modifiers[0];
+        AssertThat(mod.Trigger).IsEqual(ProjectSummoner.Systems.Modifiers.TriggerCondition.BelowHpPercent);
+        AssertThat(mod.TriggerThreshold).IsEqual(0.5f);
+        AssertThat(mod.StatMults.ContainsKey("attack_damage")).IsTrue();
+        AssertThat(mod.StatMults["attack_damage"]).IsEqual(1.2f);
+    }
+
+    [TestCase]
+    public void VengefulTrait_HasOnTakeHitTrigger()
+    {
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.Vengeful);
+
+        AssertThat(modifiers.Count).IsGreater(0);
+
+        var mod = modifiers[0];
+        AssertThat(mod.Trigger).IsEqual(ProjectSummoner.Systems.Modifiers.TriggerCondition.OnTakeHit);
+        AssertThat(mod.TriggerDuration).IsEqual(5.0f);
+        AssertThat(mod.TriggerCooldown).IsEqual(1.0f);
+        AssertThat(mod.StatMults.ContainsKey("attack_speed")).IsTrue();
+    }
+
+    [TestCase]
+    public void SoulHarvestTrait_HasOnKillTrigger()
+    {
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.SoulHarvest);
+
+        AssertThat(modifiers.Count).IsGreater(0);
+
+        var mod = modifiers[0];
+        AssertThat(mod.Trigger).IsEqual(ProjectSummoner.Systems.Modifiers.TriggerCondition.OnKill);
+        AssertThat(mod.StatAdds.ContainsKey("heal_on_kill")).IsTrue();
+        AssertThat(mod.StatAdds["heal_on_kill"]).IsEqual(5.0f);
+    }
+
+    [TestCase]
+    public void TriggeredTraits_ExistInCatalog()
+    {
+        AssertThat(TraitCatalog.HasTrait(TraitId.Berserker)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait(TraitId.Vengeful)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait(TraitId.SoulHarvest)).IsTrue();
     }
 }

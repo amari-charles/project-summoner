@@ -111,14 +111,6 @@ func level_up_summoner(summoner_id: String) -> bool:
 		return false
 	return _cs_service.LevelUpSummoner(summoner_id)
 
-## Level up a summoner and add a selected trait
-## This is the primary level-up method when trait selection is required
-## Returns true if successful
-func level_up_summoner_with_trait(summoner_id: String, trait_id: String) -> bool:
-	if _cs_service == null:
-		return false
-	return _cs_service.LevelUpSummonerWithTrait(summoner_id, trait_id)
-
 ## =============================================================================
 ## QUERY HELPERS (delegated to C#)
 ## =============================================================================

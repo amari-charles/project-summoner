@@ -10,7 +10,7 @@ namespace ProjectSummoner.Data.Items;
 /// </summary>
 public static class ItemId
 {
-    // Legacy boon conversions
+    // Rare equipment
     public const string VeteransMedal = "item_veterans_medal";
     public const string BattleHardenedBadge = "item_battle_hardened_badge";
     public const string FortunesCharm = "item_fortunes_charm";
@@ -36,8 +36,7 @@ public static class ItemCatalog
     private static readonly Dictionary<string, ItemDefinition> _items = new()
     {
         // =====================================================================
-        // LEGACY BOON CONVERSIONS
-        // These items replace the old boon system and maintain the same effects.
+        // RARE EQUIPMENT
         // =====================================================================
 
         [ItemId.VeteransMedal] = new ItemDefinition
@@ -48,7 +47,6 @@ public static class ItemCatalog
             Slot = ItemSlot.Vestments,
             Binding = ItemBinding.AccountWide,
             Rarity = "rare",
-            LegacyBoonId = TraitId.BoonVeteran,
             Modifiers =
             [
                 new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
@@ -63,7 +61,6 @@ public static class ItemCatalog
             Slot = ItemSlot.Weapon,
             Binding = ItemBinding.AccountWide,
             Rarity = "rare",
-            LegacyBoonId = TraitId.BoonBattleHardened,
             Modifiers =
             [
                 new TraitModifier { Stat = "damage_bonus", Type = "percent", Value = 5.0f }
@@ -78,7 +75,6 @@ public static class ItemCatalog
             Slot = ItemSlot.Ring1,
             Binding = ItemBinding.AccountWide,
             Rarity = "uncommon",
-            LegacyBoonId = TraitId.BoonFortuneFavors,
             Modifiers =
             [
                 new TraitModifier { Stat = "gold_bonus", Type = "percent", Value = 10.0f }
@@ -93,7 +89,6 @@ public static class ItemCatalog
             Slot = ItemSlot.Vestments,
             Binding = ItemBinding.AccountWide,
             Rarity = "uncommon",
-            LegacyBoonId = TraitId.FortuneFavorsBold,
             Modifiers =
             [
                 new TraitModifier { Stat = "max_health", Type = "flat", Value = 50.0f }
@@ -163,15 +158,6 @@ public static class ItemCatalog
         }
     };
 
-    // Mapping from legacy boon IDs to item IDs for migration
-    private static readonly Dictionary<string, string> _boonToItemMapping = new()
-    {
-        [TraitId.BoonVeteran] = ItemId.VeteransMedal,
-        [TraitId.BoonBattleHardened] = ItemId.BattleHardenedBadge,
-        [TraitId.BoonFortuneFavors] = ItemId.FortunesCharm,
-        [TraitId.FortuneFavorsBold] = ItemId.BoldFortuneAmulet
-    };
-
     // =========================================================================
     // LOOKUP METHODS
     // =========================================================================
@@ -226,22 +212,6 @@ public static class ItemCatalog
     }
 
     // =========================================================================
-    // MIGRATION HELPERS
-    // =========================================================================
-
-    /// <summary>Get the item ID that replaces a legacy boon ID.</summary>
-    public static string? GetItemIdForBoon(string boonId)
-    {
-        return _boonToItemMapping.GetValueOrDefault(boonId);
-    }
-
-    /// <summary>Get all boon-to-item mappings for migration.</summary>
-    public static IReadOnlyDictionary<string, string> GetBoonToItemMapping()
-    {
-        return _boonToItemMapping;
-    }
-
-    // =========================================================================
     // GODOT DICTIONARY CONVERSION (for GDScript interop)
     // =========================================================================
 
@@ -274,9 +244,6 @@ public static class ItemCatalog
 
         if (!string.IsNullOrEmpty(item.IconPath))
             dict["icon_path"] = item.IconPath;
-
-        if (!string.IsNullOrEmpty(item.LegacyBoonId))
-            dict["legacy_boon_id"] = item.LegacyBoonId;
 
         return dict;
     }

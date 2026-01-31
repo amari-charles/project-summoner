@@ -1,4 +1,5 @@
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Traits;
 
 namespace ProjectSummoner.Data.Summoners;
 
@@ -40,4 +41,20 @@ public class SummonerDefinition
 
     /// <summary>Card catalog ID granted when this summoner is first selected.</summary>
     public string StarterCardId { get; init; } = CardId.FireWisp;
+
+    // =========================================================================
+    // TRAIT ELIGIBILITY TAGS
+    // =========================================================================
+
+    /// <summary>
+    /// Tags for trait eligibility matching (NOT modifier tags for amplification).
+    /// These determine which traits can be acquired by this summoner at level-up.
+    /// Traits with matching tags (via OR logic) become available.
+    /// Use TraitTags constants for type safety.
+    /// Example: [TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole]
+    ///
+    /// Note: This is different from StatModifier.Tags which are used for
+    /// amplification targeting. See docs/features/modifier-system.md for details.
+    /// </summary>
+    public string[] TraitEligibilityTags { get; init; } = [Traits.TraitTags.Summoner, Traits.TraitTags.Global];
 }

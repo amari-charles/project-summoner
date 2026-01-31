@@ -50,28 +50,9 @@ signal unit_spawned(unit: Node3D, team: int, spawn_position: Vector3)
 ## Parameters: unit (Node3D), damage (float), attacker (Node3D)
 signal unit_damaged(unit: Node3D, damage: float, attacker: Node3D)
 
-## Emitted when a unit is healed
-## Parameters: unit (Node3D), amount (float), healer (Node3D)
-@warning_ignore("unused_signal")
-signal unit_healed(unit: Node3D, amount: float, healer: Node3D)
-
 ## Emitted when a unit dies
 ## Parameters: unit (Node3D), killer (Node3D)
 signal unit_died(unit: Node3D, killer: Node3D)
-
-## Emitted when a unit is removed from battlefield (despawn)
-@warning_ignore("unused_signal")
-signal unit_removed(unit: Node3D)
-
-## Emitted when a unit uses an ability
-## Parameters: unit (Node3D), ability_name (String)
-@warning_ignore("unused_signal")
-signal unit_ability_used(unit: Node3D, ability_name: String)
-
-## Emitted when a player unit gets close to the enemy base
-## Parameters: unit (Node3D), distance (float)
-@warning_ignore("unused_signal")
-signal unit_near_enemy_base(unit: Node3D, distance: float)
 
 ## =============================================================================
 ## BASE/OBJECTIVE SIGNALS
@@ -81,18 +62,6 @@ signal unit_near_enemy_base(unit: Node3D, distance: float)
 ## Parameters: damage (float), current_health (float), max_health (float)
 signal player_base_damaged(damage: float, current_health: float, max_health: float)
 
-## Emitted when enemy's base takes damage
-@warning_ignore("unused_signal")
-signal enemy_base_damaged(damage: float, current_health: float, max_health: float)
-
-## Emitted when player's base is destroyed
-@warning_ignore("unused_signal")
-signal player_base_destroyed()
-
-## Emitted when enemy's base is destroyed
-@warning_ignore("unused_signal")
-signal enemy_base_destroyed()
-
 ## =============================================================================
 ## CARD/HAND SIGNALS
 ## =============================================================================
@@ -100,38 +69,6 @@ signal enemy_base_destroyed()
 ## Emitted when a card is played from hand
 ## Parameters: card (Card), play_position (Vector3), team (int)
 signal card_played(card: Card, play_position: Vector3, team: int)
-
-## Emitted when a card is drawn
-@warning_ignore("unused_signal")
-signal card_drawn(card: Card)
-
-## Emitted when hand changes (card added/removed)
-@warning_ignore("unused_signal")
-signal hand_changed(hand_size: int)
-
-## Emitted when mana changes
-@warning_ignore("unused_signal")
-signal mana_changed(current: int, max: int)
-
-## =============================================================================
-## TURN SIGNALS (for turn-based modes)
-## =============================================================================
-
-## Emitted when a new turn begins
-@warning_ignore("unused_signal")
-signal turn_started(turn_number: int)
-
-## Emitted when turn ends
-@warning_ignore("unused_signal")
-signal turn_ended(turn_number: int)
-
-## Emitted when player's turn starts
-@warning_ignore("unused_signal")
-signal player_turn_started()
-
-## Emitted when enemy's turn starts
-@warning_ignore("unused_signal")
-signal enemy_turn_started()
 
 ## =============================================================================
 ## HELPER FUNCTIONS

@@ -3,7 +3,7 @@ class_name SummonerScreen
 
 ## SummonerScreen - Full-screen summoner info and management interface
 ##
-## Displays the active summoner's portrait, description, stats, traits, and boons.
+## Displays the active summoner's portrait, description, stats, and traits.
 ## Allows leveling up and navigating to summoner selection screen.
 
 ## =============================================================================

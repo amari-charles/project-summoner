@@ -64,21 +64,6 @@ public class ItemOwnershipHandler
         return instanceId;
     }
 
-    /// <summary>
-    /// Grant an item from a legacy boon ID (used during migration).
-    /// </summary>
-    public string? GrantItemFromBoon(string boonId, string summonerId)
-    {
-        var itemId = ItemCatalog.GetItemIdForBoon(boonId);
-        if (itemId == null)
-        {
-            GD.PushWarning($"ItemOwnershipHandler: No item mapping for boon '{boonId}'");
-            return null;
-        }
-
-        return GrantItem(itemId, summonerId);
-    }
-
     // =========================================================================
     // QUERIES - OWNERSHIP
     // =========================================================================

@@ -40,8 +40,9 @@ var win_condition_kill_target: int = 0
 ## Current kill count for KILL_COUNT tracking
 var _enemy_kill_count: int = 0
 
-## Registered summoner provider ID for cleanup
+## Registered provider IDs for cleanup
 var _registered_summoner_provider_id: String = ""
+var _registered_item_provider_id: String = ""
 
 signal game_started()
 signal game_ended(winner: UnitConstants.Team)
@@ -207,11 +208,13 @@ func _connect_summoner_combat_signals() -> void:
 		push_warning("BattleCoordinator: Could not find enemy_summoner")
 
 func _exit_tree() -> void:
-	# Cleanup: unregister summoner provider to prevent memory leak (ModifierService is C# autoload)
+	# Cleanup: unregister modifier providers to prevent memory leak (ModifierService is C# autoload)
 	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-	if not _registered_summoner_provider_id.is_empty() and modifier_service:
-		if modifier_service.has_method("unregister_provider"):
+	if modifier_service and modifier_service.has_method("unregister_provider"):
+		if not _registered_summoner_provider_id.is_empty():
 			modifier_service.unregister_provider(_registered_summoner_provider_id)
+		if not _registered_item_provider_id.is_empty():
+			modifier_service.unregister_provider(_registered_item_provider_id)
 
 	# Cleanup: disconnect kill tracking signal to prevent memory leak
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
@@ -489,11 +492,18 @@ func _register_summoner_provider() -> void:
 		push_warning("GameController3D: Failed to load SummonerInstance for '%s', no summoner bonuses will apply" % summoner_id)
 		return
 
-	# Register summoner modifier provider with C# ModifierService
+	# Register modifier providers with C# ModifierService
 	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-	if modifier_service and modifier_service.has_method("register_summoner_provider"):
-		modifier_service.register_summoner_provider(summoner_instance, summoner_id)
-		_registered_summoner_provider_id = "summoner_" + summoner_id
+	if modifier_service:
+		# Register summoner trait provider
+		if modifier_service.has_method("register_summoner_provider"):
+			modifier_service.register_summoner_provider(summoner_instance, summoner_id)
+			_registered_summoner_provider_id = "summoner_" + summoner_id
+
+		# Register item modifier provider (for equipped item bonuses)
+		if modifier_service.has_method("register_item_provider"):
+			modifier_service.register_item_provider(summoner_id)
+			_registered_item_provider_id = "items_" + summoner_id
 
 ## =============================================================================
 ## REDIRECT INPUT HANDLING

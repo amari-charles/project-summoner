@@ -5,6 +5,7 @@ using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Items.Handlers;
+using ProjectSummoner.Systems.Modifiers;
 using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
 
@@ -96,12 +97,6 @@ public partial class ItemService : Node
 			EmitSignal(SignalName.ItemGranted, instanceId, catalogId);
 		}
 		return instanceId;
-	}
-
-	/// <summary>Grant an item from a legacy boon ID (used during migration).</summary>
-	public string? GrantItemFromBoon(string boonId, string summonerId)
-	{
-		return _ownership?.GrantItemFromBoon(boonId, summonerId);
 	}
 
 	// =========================================================================
@@ -198,9 +193,134 @@ public partial class ItemService : Node
 		return _equipment?.GetEquippedItemModifiers(summonerId) ?? [];
 	}
 
+	/// <summary>
+	/// Get equipped item modifiers as StatModifiers for the modifier system.
+	/// This converts TraitModifiers to StatModifiers that can be applied to units.
+	/// </summary>
+	public List<StatModifier> GetEquippedItemStatModifiers(string summonerId)
+	{
+		var traitModifiers = GetEquippedItemModifiers(summonerId);
+		var statModifiers = new List<StatModifier>();
+
+		foreach (var traitMod in traitModifiers)
+		{
+			var statMod = ConvertTraitModifierToStatModifier(traitMod, summonerId);
+			if (statMod != null)
+			{
+				statModifiers.Add(statMod);
+			}
+		}
+
+		return statModifiers;
+	}
+
+	/// <summary>
+	/// Convert a TraitModifier to a StatModifier.
+	/// Maps the trait modifier format to the stat modifier format used by ModifierService.
+	/// </summary>
+	private static StatModifier? ConvertTraitModifierToStatModifier(TraitModifier traitMod, string summonerId)
+	{
+		var statMod = new StatModifier
+		{
+			Source = traitMod.Source ?? $"item_{summonerId}"
+		};
+
+		// Copy conditions
+		if (traitMod.Conditions != null)
+		{
+			foreach (var kvp in traitMod.Conditions)
+			{
+				statMod.Conditions[kvp.Key] = kvp.Value;
+			}
+		}
+
+		// Copy stat multipliers
+		if (traitMod.StatMults != null)
+		{
+			foreach (var kvp in traitMod.StatMults)
+			{
+				statMod.StatMults[kvp.Key] = kvp.Value;
+			}
+		}
+
+		// Copy stat adds
+		if (traitMod.StatAdds != null)
+		{
+			foreach (var kvp in traitMod.StatAdds)
+			{
+				statMod.StatAdds[kvp.Key] = kvp.Value;
+			}
+		}
+
+		// Convert legacy summoner stat format (Stat/Type/Value) to unit modifier format
+		if (!string.IsNullOrEmpty(traitMod.Stat))
+		{
+			// Map common item stats to unit stats
+			var unitStat = MapItemStatToUnitStat(traitMod.Stat);
+			if (unitStat != null)
+			{
+				if (traitMod.Type == "percent")
+				{
+					// Convert percent to multiplier (5% -> 1.05)
+					statMod.StatMults[unitStat] = 1.0f + (traitMod.Value / 100.0f);
+				}
+				else // "flat"
+				{
+					statMod.StatAdds[unitStat] = traitMod.Value;
+				}
+			}
+		}
+
+		// Only return if the modifier has any actual stats to apply
+		if (statMod.StatAdds.Count == 0 && statMod.StatMults.Count == 0 && statMod.Flags.Count == 0)
+		{
+			return null;
+		}
+
+		return statMod;
+	}
+
+	/// <summary>
+	/// Map item stat names to unit stat names.
+	/// Some item stats don't have unit equivalents (e.g., gold_bonus).
+	/// </summary>
+	private static string? MapItemStatToUnitStat(string itemStat)
+	{
+		return itemStat switch
+		{
+			"max_health" => "max_hp",
+			"damage_bonus" => "attack_damage",
+			"attack_speed" => "attack_speed",
+			"move_speed" => "move_speed",
+			// These don't apply to units, return null
+			"gold_bonus" => null,
+			"xp_bonus" => null,
+			"mana_regen" => null,
+			// Pass through unknown stats as-is (might be valid unit stats)
+			_ => itemStat
+		};
+	}
+
 	// =========================================================================
 	// GODOT INTEROP
 	// =========================================================================
+
+	/// <summary>
+	/// Get equipped item stat modifiers as array of dictionaries for GDScript.
+	/// Each dictionary contains the StatModifier fields (source, stat_adds, stat_mults, etc.)
+	/// </summary>
+	public Godot.Collections.Array<Godot.Collections.Dictionary> GetEquippedItemStatModifiersDict(string summonerId)
+	{
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+		var modifiers = GetEquippedItemStatModifiers(summonerId);
+
+		foreach (var modifier in modifiers)
+		{
+			result.Add(modifier.ToDictionary());
+		}
+
+		return result;
+	}
 
 	/// <summary>Get equipped items as dictionary for GDScript.</summary>
 	public Godot.Collections.Dictionary GetEquippedItemsDict(string summonerId)

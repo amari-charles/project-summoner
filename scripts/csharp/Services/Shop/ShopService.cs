@@ -69,6 +69,31 @@ public partial class ShopService : Node
         GD.Print("ShopService: Ready");
     }
 
+    /// <summary>
+    /// Validate that all required callbacks are set.
+    /// Call this before performing purchases to ensure proper configuration.
+    /// </summary>
+    public bool ValidateCallbacks()
+    {
+        var missingCallbacks = new List<string>();
+
+        if (_getResourcesFunc == null) missingCallbacks.Add("getResourcesFunc");
+        if (_updateResourcesFunc == null) missingCallbacks.Add("updateResourcesFunc");
+        if (_isSummonerUnlockedFunc == null) missingCallbacks.Add("isSummonerUnlockedFunc");
+        if (_isCosmeticOwnedFunc == null) missingCallbacks.Add("isCosmeticOwnedFunc");
+        if (_isEmoteOwnedFunc == null) missingCallbacks.Add("isEmoteOwnedFunc");
+        if (_grantRewardsFunc == null) missingCallbacks.Add("grantRewardsFunc");
+        if (_getShopRefreshStateFunc == null) missingCallbacks.Add("getShopRefreshStateFunc");
+
+        if (missingCallbacks.Count > 0)
+        {
+            GD.PushError($"ShopService: Missing required callbacks: {string.Join(", ", missingCallbacks)}");
+            return false;
+        }
+
+        return true;
+    }
+
     public override void _ExitTree()
     {
         if (Instance == this)

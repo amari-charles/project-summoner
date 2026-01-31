@@ -14,6 +14,29 @@ The modifier system provides a flexible, data-driven framework for applying bonu
 
 ---
 
+## Tag Systems (Two Distinct Concepts)
+
+The codebase has two different "tag" systems that serve completely different purposes:
+
+| Aspect | Trait Eligibility Tags | Modifier Tags |
+|--------|------------------------|---------------|
+| **Defined in** | `TraitTags.cs` constants | `StatModifier.Tags` property |
+| **Used by** | `TraitDefinition.Tags[]`, `CardDefinition.TraitEligibilityTags[]`, `SummonerDefinition.TraitEligibilityTags[]` | `StatModifier` instances |
+| **Purpose** | Determine which entities can acquire which traits | Mark modifiers for amplification |
+| **Examples** | `TraitTags.Summoner`, `TraitTags.Fire`, `TraitTags.Global` | `"sun_blessed"`, `"earth_guardian"` |
+
+**Trait Eligibility Tags** answer: "Can Cole acquire the Inferno Mastery trait?"
+- Cole has tags `[Summoner, Global, Fire, Cole]`
+- Inferno Mastery requires tags `[Summoner, Fire]`
+- Match! Cole can acquire it.
+
+**Modifier Tags** answer: "Should Solar Warrior's 2x amplifier affect this modifier?"
+- Fire Affinity trait provides a modifier tagged `"sun_blessed"`
+- Solar Warrior amplifies all `"sun_blessed"` tagged modifiers by 2x
+- The modifier's bonus is doubled.
+
+---
+
 ## Core Concepts
 
 ### 1. Modifiers
@@ -109,6 +132,35 @@ final_bonus = 0.3 * 3.0       # 0.9 (90% bonus)
 ```
 
 Modifiers check categories via `conditions` field to determine if they apply.
+
+### 5. Conditions Dictionary Reference
+
+The `conditions` field in a modifier filters which entities the modifier applies to.
+
+**Valid Condition Keys:**
+
+| Key | Type | Description | Example |
+|-----|------|-------------|---------|
+| `elemental_affinity` | string | Unit's element | `"fire"`, `"water"`, `"earth"` |
+| `creature_type` | string | Creature classification | `"elemental"`, `"beast"`, `"humanoid"` |
+| `card_id` | string | Specific card ID | `"fire_wisp"`, `"earth_sprite"` |
+| `team` | int | Team ID | `0` (player), `1` (enemy) |
+| `unit_type` | string | Combat type | `"melee"`, `"ranged"` |
+
+**How Matching Works:**
+- All conditions must match (AND logic)
+- Missing condition = no restriction for that key
+- Empty conditions = applies to everything
+
+```gdscript
+# This modifier only affects fire elementals
+{
+    "conditions": {
+        "elemental_affinity": "fire",
+        "creature_type": "elemental"
+    }
+}
+```
 
 ---
 
@@ -675,7 +727,7 @@ var fire_mods = ModifierSystem.query() \
 
 ---
 
-*Last Updated: 2026-01-06*
+*Last Updated: 2026-01-31*
 *Status: Implemented in C# - ModifierService autoload at /root/ModifierService*
 
 ## Current Implementation Files
@@ -686,3 +738,138 @@ var fire_mods = ModifierSystem.query() \
 - `scripts/csharp/Systems/Modifiers/IModifierProvider.cs` - Provider interface
 - `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs` - Card upgrade modifiers
 - `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Summoner trait modifiers
+- `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs` - Equipped item modifiers
+- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - Trigger condition enum
+
+---
+
+## Triggered Modifiers
+
+Triggered modifiers activate conditionally based on combat events rather than always being active. They support duration-based effects and cooldowns.
+
+### Trigger Conditions
+
+```csharp
+public enum TriggerCondition
+{
+    Always,           // Default - always active
+    OnHit,            // Activates when dealing damage
+    OnTakeHit,        // Activates when taking damage
+    OnKill,           // Activates when killing an enemy
+    OnDeath,          // Activates when the unit dies
+    BelowHpPercent,   // Activates when HP falls below threshold
+    AboveHpPercent,   // Activates when HP is above threshold
+    Periodic          // Activates every N seconds
+}
+```
+
+### Trigger Fields in StatModifier
+
+```csharp
+public class StatModifier
+{
+    // ... existing fields ...
+
+    // When this modifier activates
+    public TriggerCondition Trigger { get; set; } = TriggerCondition.Always;
+
+    // Threshold for HP-based triggers (0.0 - 1.0)
+    public float TriggerThreshold { get; set; }
+
+    // How long the effect lasts (0 = permanent while condition holds)
+    public float TriggerDuration { get; set; }
+
+    // Minimum time between activations
+    public float TriggerCooldown { get; set; }
+
+    // Returns true if this is a triggered modifier
+    public bool IsTriggered => Trigger != TriggerCondition.Always;
+}
+```
+
+### Partitioned Modifier Resolution
+
+The `ModifierService.GetModifiersPartitioned()` method separates modifiers into:
+- **Static modifiers**: Always active, applied at unit spawn
+- **Triggered modifiers**: Stored and activated by combat events
+
+```csharp
+var (staticMods, triggeredMods) = ModifierService.Instance.GetModifiersPartitioned(context);
+
+// Apply static modifiers immediately
+unit.InitializeWithModifiers(staticMods);
+
+// Or use the combined method
+unit.InitializeWithPartitionedModifiers(staticMods, triggeredMods);
+```
+
+### Example Triggered Traits
+
+**Berserker** - +20% damage when below 50% HP:
+```csharp
+new TraitModifier
+{
+    Target = "unit",
+    StatMults = new() { ["attack_damage"] = 1.20f },
+    Trigger = "BelowHpPercent",
+    TriggerThreshold = 0.5f
+}
+```
+
+**Vengeful** - +10% attack speed for 5s after taking damage:
+```csharp
+new TraitModifier
+{
+    Target = "unit",
+    StatMults = new() { ["attack_speed"] = 1.10f },
+    Trigger = "OnTakeHit",
+    TriggerDuration = 5.0f,
+    TriggerCooldown = 1.0f
+}
+```
+
+**Soul Harvest** - Heal 5 HP on kill:
+```csharp
+new TraitModifier
+{
+    Target = "unit",
+    StatAdds = new() { ["heal_on_kill"] = 5.0f },
+    Trigger = "OnKill"
+}
+```
+
+### Unit3D Trigger Processing
+
+Unit3D tracks triggered modifiers and their active state:
+
+```csharp
+// Combat event handlers
+unit.OnDealDamage(amount, target);   // Checks OnHit triggers
+unit.OnKill(target);                  // Checks OnKill triggers
+// OnTakeDamage checks OnTakeHit and HP triggers automatically
+
+// Active triggers are updated every physics frame
+// - Duration countdown
+// - Cooldown countdown
+// - HP-based trigger state changes
+```
+
+See `docs/technical/trait-system-architecture.md` for implementation details.
+
+---
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| **Trait** | An acquirable passive ability (e.g., Fire Affinity). Stored in `TraitCatalog`. |
+| **Modifier** | A stat/behavior change applied to an entity. Represented by `StatModifier` class. |
+| **Trait Eligibility Tag** | String constant (from `TraitTags.cs`) determining trait acquisition eligibility. |
+| **Modifier Tag** | String label on a `StatModifier` for amplification targeting. |
+| **Static Modifier** | Always-active modifier applied at unit spawn (Trigger = Always). |
+| **Triggered Modifier** | Conditional modifier that activates on events (e.g., "below 50% HP", "on kill"). |
+| **Summoner** | Player character (Cole, Selene, etc.). Acquires traits at level-up. |
+| **Summon** | Creature type (Fire Wisp, etc.). Can acquire upgrades at card level-up. |
+| **Unit** | Ephemeral battlefield instance of a summon. Does NOT level up - receives modifiers at spawn. |
+| **Provider** | Class implementing `IModifierProvider` that supplies modifiers (e.g., `SummonerModifierProvider`). |
+| **Amplifier** | A modifier that multiplies bonuses from other modifiers with matching tags. |

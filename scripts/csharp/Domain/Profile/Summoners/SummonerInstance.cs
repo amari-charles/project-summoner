@@ -22,13 +22,6 @@ public class SummonerInstance
     public int Xp { get; set; }
 
     /// <summary>
-    /// [DEPRECATED] IDs of acquired boons from TraitCatalog.
-    /// Kept for migration from v4 to v5. New profiles use EquippedItems instead.
-    /// </summary>
-    [JsonPropertyName("acquired_boon_ids")]
-    public List<string> AcquiredBoonIds { get; set; } = [];
-
-    /// <summary>
     /// Equipped item instance IDs by slot.
     /// Values: Item instance ID or null if slot is empty.
     /// Serialized to {"weapon": "id", ...} via DtoConverters for GDScript interop.
@@ -41,4 +34,10 @@ public class SummonerInstance
         [ItemSlot.Ring2] = null,
         [ItemSlot.Vestments] = null
     };
+
+    /// <summary>
+    /// Trait IDs this summoner has acquired through level-up selections.
+    /// </summary>
+    [JsonPropertyName("acquired_trait_ids")]
+    public List<string> AcquiredTraitIds { get; set; } = [];
 }
