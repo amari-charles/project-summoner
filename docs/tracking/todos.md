@@ -53,53 +53,6 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 
 ### 🔴 HIGH PRIORITY
 
-#### Fix Card Level-Up UI Incorrectly Mentioning Gold Cost
-**Status:** ⬜ Not Started
-**Category:** UI / Economy
-**Effort:** Small
-
-**Description:**
-The card level-up UI incorrectly states that level-ups cost gold. Card level-ups should only require XP - there is no gold cost for leveling cards.
-
-**Current Behavior:**
-- UI may show or imply gold is needed for card level-ups
-- This is incorrect per design: XP is the only requirement
-
-**Correct Design:**
-- Card level-ups require accumulated XP only
-- Gold is campaign-scoped and used only for Caravan shop purchases
-- No gold cost for card or summoner progression
-
-**Related Files:**
-- Level-up UI components
-- Card progression display
-
----
-
-#### Premium Store Currency Should Not Use Gold
-**Status:** ⬜ Not Started
-**Category:** Economy / Design
-**Effort:** Medium
-
-**Description:**
-The Premium Store currently uses Gold as its currency. This is incorrect - Gold should only be used for in-campaign Caravan purchases. The Premium Store needs a separate meta-progression currency (gems, crystals, etc.).
-
-**Currency Design:**
-- **Gold**: Campaign-scoped currency for Caravan purchases during gameplay
-- **Gems/Crystals (TBD)**: Meta-progression currency for Premium Store (summoners, cosmetics, emotes)
-
-**Requirements:**
-- Decide on premium currency name and visual design
-- Update Premium Store to use new currency
-- Add currency display/acquisition systems
-- Keep Gold separate for campaign economy
-
-**Related Files:**
-- `scripts/ui/screens/premium_store_screen.gd`
-- Economy service
-
----
-
 #### Rename Premium Store Placeholder Items to Clearly Indicate Placeholders
 **Status:** ⬜ Not Started
 **Category:** Content / Clarity

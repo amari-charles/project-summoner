@@ -14,7 +14,7 @@ class_name PremiumStoreScreen
 ## Node references
 @onready var close_button: Button = %CloseButton
 @onready var title_label: Label = %TitleLabel
-@onready var gold_label: Label = %GoldLabel
+@onready var currency_label: Label = %CurrencyLabel
 
 @onready var sections_scroll: ScrollContainer = %SectionsScroll
 @onready var featured_items: HFlowContainer = %FeaturedItems
@@ -56,7 +56,7 @@ func _ready() -> void:
 	ProfileRepo.data_changed.connect(_on_data_changed)
 
 	# Initialize display
-	_update_gold_display()
+	_update_currency_display()
 	_populate_sections()
 
 func _exit_tree() -> void:
@@ -138,17 +138,17 @@ func _show_popup(offering: ShopOffering) -> void:
 		popup_owned_label.visible = true
 		popup_owned_label.text = Loc.t("shop.button.owned")
 	else:
-		# Show price and purchase button
+		# Show price and purchase button (premium store uses mana stones/gems)
 		var price: int = offering.base_price
-		popup_price_label.text = Loc.t("ui.shop.price_format", {"price": price})
+		popup_price_label.text = Loc.t("ui.shop.mana_stones_price", {"amount": price})
 		popup_price_label.visible = true
 		popup_purchase_button.visible = true
 		popup_owned_label.visible = false
 
-		# Enable/disable purchase button based on affordability
+		# Enable/disable purchase button based on affordability (gems = mana stones)
 		var resources: Dictionary = ProfileRepo.get_resources()
-		var gold: int = resources.get("gold", 0)
-		popup_purchase_button.disabled = (gold < price)
+		var gems: int = resources.get("gems", 0)
+		popup_purchase_button.disabled = (gems < price)
 
 	# Add extra info based on offering type
 	_populate_popup_info(offering)
@@ -221,10 +221,10 @@ func _add_emote_info(offering: ShopOffering) -> void:
 ## DISPLAY UPDATES
 ## =============================================================================
 
-func _update_gold_display() -> void:
+func _update_currency_display() -> void:
 	var resources: Dictionary = ProfileRepo.get_resources()
-	var gold: int = resources.get("gold", 0)
-	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
+	var gems: int = resources.get("gems", 0)
+	currency_label.text = Loc.t("ui.shop.mana_stones_label", {"amount": gems})
 
 ## =============================================================================
 ## SIGNAL HANDLERS
@@ -273,7 +273,7 @@ func _on_purchase_failed(_offering_id: String, reason: String) -> void:
 	push_warning("PremiumStoreScreen: Purchase failed - %s" % reason)
 
 func _on_data_changed() -> void:
-	_update_gold_display()
+	_update_currency_display()
 
 	# Update popup if visible (affordability may have changed)
 	if detail_popup.visible and selected_offering:

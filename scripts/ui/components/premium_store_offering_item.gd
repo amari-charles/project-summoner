@@ -106,7 +106,7 @@ func set_offering(new_offering: ShopOffering) -> void:
 		price_label.text = ""
 		owned_overlay.visible = true
 	else:
-		price_label.text = "%dg" % offering.base_price
+		price_label.text = Loc.t("ui.shop.mana_stones_price", {"amount": offering.base_price})
 		owned_overlay.visible = false
 
 func _update_preview_color() -> void:
