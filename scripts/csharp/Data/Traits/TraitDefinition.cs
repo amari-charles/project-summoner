@@ -25,16 +25,73 @@ public class TraitDefinition
 
     /// <summary>List of modifiers this trait provides.</summary>
     public List<TraitModifier> Modifiers { get; init; } = [];
+
+    // =========================================================================
+    // TRAIT OFFERING SYSTEM (for level-up selection)
+    // =========================================================================
+
+    /// <summary>
+    /// Minimum summoner level required to be offered this trait.
+    /// Default is 2 (first level-up opportunity).
+    /// </summary>
+    public int MinLevel { get; init; } = 2;
+
+    /// <summary>
+    /// Maximum summoner level this trait can be offered at.
+    /// 0 means no maximum (available at any level once MinLevel is reached).
+    /// </summary>
+    public int MaxLevel { get; init; } = 0;
+
+    /// <summary>
+    /// Trait IDs that must be acquired before this trait becomes available.
+    /// Creates a trait tree structure where early choices unlock later options.
+    /// </summary>
+    public string[] Prerequisites { get; init; } = [];
+
+    // =========================================================================
+    // TAG-BASED ELIGIBILITY SYSTEM
+    // =========================================================================
+
+    /// <summary>
+    /// Tags that determine eligibility. Entity must have ANY of these tags.
+    /// Use TraitTags constants for type safety.
+    /// Example: [TraitTags.Summoner, TraitTags.Global] = available to all summoners
+    /// Example: [TraitTags.Fire, TraitTags.Cole] = available to fire entities OR Cole
+    /// </summary>
+    public string[] Tags { get; init; } = [TraitTags.Summoner, TraitTags.Global];
+
+    /// <summary>
+    /// Additional required tags. Entity must have ALL of these tags.
+    /// Used for more restrictive filtering after Tags check passes.
+    /// Example: RequiredTags = [TraitTags.Elemental] = only elemental creatures
+    /// </summary>
+    public string[] RequiredTags { get; init; } = [];
 }
 
 /// <summary>
 /// A single modifier provided by a trait.
-/// Can be either a summoner stat modifier or a unit modifier.
+///
+/// TraitModifier operates in two distinct modes based on the Target property:
+///
+/// 1. SUMMONER STAT MODIFIER (Target = null or empty):
+///    - Modifies the summoner's own stats directly
+///    - Uses Stat/Type/Value properties
+///    - Example: +10% fire_damage_bonus, +100 flat max_health
+///    - Applied to the summoner character, not spawned units
+///
+/// 2. UNIT MODIFIER (Target = "unit"):
+///    - Affects all units spawned by the summoner
+///    - Uses StatMults/StatAdds/Conditions properties
+///    - Can have trigger conditions (Berserker below 50% HP, etc.)
+///    - Converted to StatModifier and provided via SummonerModifierProvider
+///
+/// Check IsUnitModifier property to determine which mode is active.
 /// </summary>
 public class TraitModifier
 {
     // =========================================================================
     // SUMMONER STAT MODIFIER (when Target is null)
+    // These modify the summoner character directly (not spawned units)
     // =========================================================================
 
     /// <summary>Stat to modify (e.g., "fire_damage_bonus", "max_health").</summary>
@@ -48,9 +105,13 @@ public class TraitModifier
 
     // =========================================================================
     // UNIT MODIFIER (when Target = "unit")
+    // These affect all units spawned by the summoner
     // =========================================================================
 
-    /// <summary>Target type. If "unit", this modifier affects spawned units.</summary>
+    /// <summary>
+    /// Target type. If "unit", this modifier affects spawned units.
+    /// If null/empty, this is a summoner stat modifier.
+    /// </summary>
     public string? Target { get; init; }
 
     /// <summary>Source identifier for tracking.</summary>

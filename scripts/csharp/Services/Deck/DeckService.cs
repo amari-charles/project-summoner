@@ -38,9 +38,10 @@ public partial class DeckService : Node
     public delegate void ValidationFailedEventHandler(string deckId, string reason);
 
     private IProfileRepository? _profileRepo;
-    private DeckCrudHandler? _crud;
-    private DeckCardHandler? _cards;
-    private DeckValidationHandler? _validation;
+    private DeckCrudHandler _crud = null!;
+    private DeckCardHandler _cards = null!;
+    private DeckValidationHandler _validation = null!;
+    private bool _isInitialized;
 
     // Func delegate for checking if a card is owned by a summoner (injected from GDScript)
     private Func<string, string, bool>? _cardOwnershipChecker;
@@ -73,6 +74,7 @@ public partial class DeckService : Node
         _crud = new DeckCrudHandler(_profileRepo);
         _cards = new DeckCardHandler(_crud, MaxDeckSize);
         _validation = new DeckValidationHandler(_profileRepo, _crud, MinDeckSize, MaxDeckSize);
+        _isInitialized = true;
 
         _profileRepo.DataChanged += OnRepoDataChanged;
 
@@ -101,6 +103,7 @@ public partial class DeckService : Node
         _crud = new DeckCrudHandler(repo);
         _cards = new DeckCardHandler(_crud, MaxDeckSize);
         _validation = new DeckValidationHandler(repo, _crud, MinDeckSize, MaxDeckSize);
+        _isInitialized = true;
     }
 
     /// <summary>Set the card ownership checker (called from GDScript wrapper).</summary>
@@ -130,43 +133,43 @@ public partial class DeckService : Node
     /// <summary>Get all decks for the current profile.</summary>
     public DeckModel[] ListDecks()
     {
-        return _crud?.ListDecks() ?? [];
+        return _isInitialized ? _crud.ListDecks() : [];
     }
 
     /// <summary>Get a specific deck by ID.</summary>
     public DeckModel? GetDeck(string deckId)
     {
-        return _crud?.GetDeck(deckId);
+        return _isInitialized ? _crud.GetDeck(deckId) : null;
     }
 
     /// <summary>Check if a deck exists.</summary>
     public bool HasDeck(string deckId)
     {
-        return _crud?.HasDeck(deckId) ?? false;
+        return _isInitialized && _crud.HasDeck(deckId);
     }
 
     /// <summary>Get deck count.</summary>
     public int GetDeckCount()
     {
-        return _crud?.GetDeckCount() ?? 0;
+        return _isInitialized ? _crud.GetDeckCount() : 0;
     }
 
     /// <summary>Get the active deck ID (the deck used for battles).</summary>
     public string GetActiveDeckId()
     {
-        return _crud?.GetActiveDeckId() ?? "";
+        return _isInitialized ? _crud.GetActiveDeckId() : "";
     }
 
     /// <summary>Set the active deck. Returns true if successful.</summary>
     public bool SetActiveDeck(string deckId)
     {
-        return _crud?.SetActiveDeck(deckId) ?? false;
+        return _isInitialized && _crud.SetActiveDeck(deckId);
     }
 
     /// <summary>Get all decks for a specific summoner.</summary>
     public DeckModel[] ListDecksForSummoner(string summonerId)
     {
-        return _crud?.ListDecksForSummoner(summonerId) ?? [];
+        return _isInitialized ? _crud.ListDecksForSummoner(summonerId) : [];
     }
 
     // =========================================================================
@@ -179,7 +182,9 @@ public partial class DeckService : Node
     /// </summary>
     public string CreateDeck(string deckName, string[] cardInstanceIds, string summonerId = "")
     {
-        var deckId = _crud?.CreateDeck(deckName, cardInstanceIds, summonerId) ?? "";
+        if (!_isInitialized) return "";
+
+        var deckId = _crud.CreateDeck(deckName, cardInstanceIds, summonerId);
 
         if (!string.IsNullOrEmpty(deckId))
         {
@@ -197,7 +202,9 @@ public partial class DeckService : Node
     /// </summary>
     public bool UpdateDeck(string deckId, string? deckName = null, string[]? cardInstanceIds = null, string? summonerId = null)
     {
-        var success = _crud?.UpdateDeck(deckId, deckName, cardInstanceIds, summonerId) ?? false;
+        if (!_isInitialized) return false;
+
+        var success = _crud.UpdateDeck(deckId, deckName, cardInstanceIds, summonerId);
 
         if (success)
         {
@@ -210,7 +217,9 @@ public partial class DeckService : Node
     /// <summary>Delete a deck. Returns true if successful.</summary>
     public bool DeleteDeck(string deckId)
     {
-        var success = _crud?.DeleteDeck(deckId) ?? false;
+        if (!_isInitialized) return false;
+
+        var success = _crud.DeleteDeck(deckId);
 
         if (success)
         {
@@ -223,7 +232,7 @@ public partial class DeckService : Node
     /// <summary>Get the summoner ID for a deck.</summary>
     public string GetDeckSummoner(string deckId)
     {
-        return _crud?.GetDeckSummoner(deckId) ?? "";
+        return _isInitialized ? _crud.GetDeckSummoner(deckId) : "";
     }
 
     /// <summary>
@@ -232,7 +241,9 @@ public partial class DeckService : Node
     /// </summary>
     public bool SetDeckSummoner(string deckId, string summonerId)
     {
-        var success = _crud?.SetDeckSummoner(deckId, summonerId, _summonerValidator) ?? false;
+        if (!_isInitialized) return false;
+
+        var success = _crud.SetDeckSummoner(deckId, summonerId, _summonerValidator);
 
         if (success)
         {
@@ -252,7 +263,9 @@ public partial class DeckService : Node
     /// </summary>
     public bool AddCardToDeck(string deckId, string cardInstanceId)
     {
-        var success = _cards?.AddCardToDeck(deckId, cardInstanceId, _cardOwnershipChecker) ?? false;
+        if (!_isInitialized) return false;
+
+        var success = _cards.AddCardToDeck(deckId, cardInstanceId, _cardOwnershipChecker);
 
         if (success)
         {
@@ -268,7 +281,9 @@ public partial class DeckService : Node
     /// </summary>
     public bool RemoveCardFromDeck(string deckId, string cardInstanceId)
     {
-        var success = _cards?.RemoveCardFromDeck(deckId, cardInstanceId) ?? false;
+        if (!_isInitialized) return false;
+
+        var success = _cards.RemoveCardFromDeck(deckId, cardInstanceId);
 
         if (success)
         {
@@ -284,7 +299,9 @@ public partial class DeckService : Node
     /// </summary>
     public int CleanDeck(string deckId)
     {
-        var removedCount = _cards?.CleanDeck(deckId, _cardOwnershipChecker) ?? 0;
+        if (!_isInitialized) return 0;
+
+        var removedCount = _cards.CleanDeck(deckId, _cardOwnershipChecker);
 
         if (removedCount > 0)
         {
@@ -304,7 +321,7 @@ public partial class DeckService : Node
     /// </summary>
     public bool ValidateDeck(string deckId)
     {
-        return _validation?.ValidateDeck(deckId, _cardOwnershipChecker, EmitValidationFailed) ?? false;
+        return _isInitialized && _validation.ValidateDeck(deckId, _cardOwnershipChecker, EmitValidationFailed);
     }
 
     /// <summary>
@@ -312,7 +329,7 @@ public partial class DeckService : Node
     /// </summary>
     public string[] GetValidationErrors(string deckId)
     {
-        return _validation?.GetValidationErrors(deckId, _cardOwnershipChecker) ?? ["Repository not available"];
+        return _isInitialized ? _validation.GetValidationErrors(deckId, _cardOwnershipChecker) : ["Service not initialized"];
     }
 
     // =========================================================================

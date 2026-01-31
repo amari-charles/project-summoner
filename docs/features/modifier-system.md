@@ -14,6 +14,29 @@ The modifier system provides a flexible, data-driven framework for applying bonu
 
 ---
 
+## Tag Systems (Two Distinct Concepts)
+
+The codebase has two different "tag" systems that serve completely different purposes:
+
+| Aspect | Trait Eligibility Tags | Modifier Tags |
+|--------|------------------------|---------------|
+| **Defined in** | `TraitTags.cs` constants | `StatModifier.Tags` property |
+| **Used by** | `TraitDefinition.Tags[]`, `CardDefinition.TraitEligibilityTags[]`, `SummonerDefinition.TraitEligibilityTags[]` | `StatModifier` instances |
+| **Purpose** | Determine which entities can acquire which traits | Mark modifiers for amplification |
+| **Examples** | `TraitTags.Summoner`, `TraitTags.Fire`, `TraitTags.Global` | `"sun_blessed"`, `"earth_guardian"` |
+
+**Trait Eligibility Tags** answer: "Can Cole acquire the Inferno Mastery trait?"
+- Cole has tags `[Summoner, Global, Fire, Cole]`
+- Inferno Mastery requires tags `[Summoner, Fire]`
+- Match! Cole can acquire it.
+
+**Modifier Tags** answer: "Should Solar Warrior's 2x amplifier affect this modifier?"
+- Fire Affinity trait provides a modifier tagged `"sun_blessed"`
+- Solar Warrior amplifies all `"sun_blessed"` tagged modifiers by 2x
+- The modifier's bonus is doubled.
+
+---
+
 ## Core Concepts
 
 ### 1. Modifiers
@@ -109,6 +132,35 @@ final_bonus = 0.3 * 3.0       # 0.9 (90% bonus)
 ```
 
 Modifiers check categories via `conditions` field to determine if they apply.
+
+### 5. Conditions Dictionary Reference
+
+The `conditions` field in a modifier filters which entities the modifier applies to.
+
+**Valid Condition Keys:**
+
+| Key | Type | Description | Example |
+|-----|------|-------------|---------|
+| `elemental_affinity` | string | Unit's element | `"fire"`, `"water"`, `"earth"` |
+| `creature_type` | string | Creature classification | `"elemental"`, `"beast"`, `"humanoid"` |
+| `card_id` | string | Specific card ID | `"fire_wisp"`, `"earth_sprite"` |
+| `team` | int | Team ID | `0` (player), `1` (enemy) |
+| `unit_type` | string | Combat type | `"melee"`, `"ranged"` |
+
+**How Matching Works:**
+- All conditions must match (AND logic)
+- Missing condition = no restriction for that key
+- Empty conditions = applies to everything
+
+```gdscript
+# This modifier only affects fire elementals
+{
+    "conditions": {
+        "elemental_affinity": "fire",
+        "creature_type": "elemental"
+    }
+}
+```
 
 ---
 
@@ -802,4 +854,22 @@ unit.OnKill(target);                  // Checks OnKill triggers
 // - HP-based trigger state changes
 ```
 
-See `docs/technical/trigger-system.md` for implementation details.
+See `docs/technical/trait-system-architecture.md` for implementation details.
+
+---
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| **Trait** | An acquirable passive ability (e.g., Fire Affinity). Stored in `TraitCatalog`. |
+| **Modifier** | A stat/behavior change applied to an entity. Represented by `StatModifier` class. |
+| **Trait Eligibility Tag** | String constant (from `TraitTags.cs`) determining trait acquisition eligibility. |
+| **Modifier Tag** | String label on a `StatModifier` for amplification targeting. |
+| **Static Modifier** | Always-active modifier applied at unit spawn (Trigger = Always). |
+| **Triggered Modifier** | Conditional modifier that activates on events (e.g., "below 50% HP", "on kill"). |
+| **Summoner** | Player character (Cole, Selene, etc.). Acquires traits at level-up. |
+| **Summon** | Creature type (Fire Wisp, etc.). Can acquire upgrades at card level-up. |
+| **Unit** | Ephemeral battlefield instance of a summon. Does NOT level up - receives modifiers at spawn. |
+| **Provider** | Class implementing `IModifierProvider` that supplies modifiers (e.g., `SummonerModifierProvider`). |
+| **Amplifier** | A modifier that multiplies bonuses from other modifiers with matching tags. |

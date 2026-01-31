@@ -91,6 +91,8 @@ func test_level_up_summoner_fails_when_not_enough_xp() -> void:
 	var success: bool = SummonerProgression.level_up_summoner("summoner_cole")
 
 	assert_false(success, "Level-up should fail without enough XP")
+	# Expect the warning from the C# service
+	assert_engine_error("not have enough XP")
 
 
 func test_level_up_summoner_updates_level_correctly() -> void:

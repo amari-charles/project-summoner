@@ -47,4 +47,46 @@ public static class TraitId
 
     /// <summary>Soul Harvest: Heal 5 HP on kill.</summary>
     public const string SoulHarvest = "trait_soul_harvest";
+
+    // =========================================================================
+    // ACQUIRABLE TRAITS - Global Summoner Pool
+    // =========================================================================
+
+    /// <summary>Iron Will: +5 damage reduction.</summary>
+    public const string IronWill = "trait_iron_will";
+
+    /// <summary>Quick Recovery: +10% mana regen.</summary>
+    public const string QuickRecovery = "trait_quick_recovery";
+
+    /// <summary>Vitality Boost: +100 max health.</summary>
+    public const string VitalityBoost = "trait_vitality_boost";
+
+    /// <summary>Swift Strike: +10% attack speed for units.</summary>
+    public const string SwiftStrike = "trait_swift_strike";
+
+    // =========================================================================
+    // ACQUIRABLE TRAITS - Element Mastery (element-exclusive)
+    // =========================================================================
+
+    /// <summary>Inferno Mastery: Fire damage and fire unit buffs.</summary>
+    public const string InfernoMastery = "trait_inferno_mastery";
+
+    /// <summary>Tidal Mastery: Water damage and water unit buffs.</summary>
+    public const string TidalMastery = "trait_tidal_mastery";
+
+    // =========================================================================
+    // UNIT TRAITS - Global Pool (available to all units/cards)
+    // =========================================================================
+
+    /// <summary>Fortitude: +8% HP per level.</summary>
+    public const string Fortitude = "trait_fortitude";
+
+    /// <summary>Power: +6% attack damage per level.</summary>
+    public const string Power = "trait_power";
+
+    /// <summary>Swiftness: +5% attack speed per level.</summary>
+    public const string Swiftness = "trait_swiftness";
+
+    /// <summary>Agility: +5% move speed per level.</summary>
+    public const string Agility = "trait_agility";
 }

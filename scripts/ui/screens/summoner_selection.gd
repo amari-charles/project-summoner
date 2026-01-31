@@ -6,7 +6,6 @@ class_name SummonerSelectionScreen
 ## Part of onboarding flow. Player picks one of five summoners representing the
 ## four core elements (Earth, Fire, Wind, Water) plus a random option.
 ## Summoner choice is saved to profile via ProfileRepo.set_starting_summoner()
-## If random is chosen, grants "Fortune Favors the Bold" trait.
 
 const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
 

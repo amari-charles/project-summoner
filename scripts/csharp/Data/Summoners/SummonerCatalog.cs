@@ -35,6 +35,7 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitId.FireAffinity, TraitId.BurningSpirit],
+            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole],
             StarterCardId = CardId.FireWisp
         },
 
@@ -50,6 +51,7 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitId.WaterAffinity, TraitId.TidalResilience],
+            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Water, TraitTags.Selene],
             StarterCardId = CardId.WaterWisp
         },
 
@@ -65,6 +67,7 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitId.WindAffinity, TraitId.SwiftCasting],
+            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Wind, TraitTags.Mei],
             StarterCardId = CardId.WindWisp
         },
 
@@ -80,6 +83,7 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitId.EarthAffinity, TraitId.StoneFortitude],
+            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Earth, TraitTags.Teo],
             StarterCardId = CardId.EarthWisp
         },
 

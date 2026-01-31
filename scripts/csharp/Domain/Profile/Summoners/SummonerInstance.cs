@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ProjectSummoner.Domain.Profile.Inventory;
@@ -35,4 +34,10 @@ public class SummonerInstance
         [ItemSlot.Ring2] = null,
         [ItemSlot.Vestments] = null
     };
+
+    /// <summary>
+    /// Trait IDs this summoner has acquired through level-up selections.
+    /// </summary>
+    [JsonPropertyName("acquired_trait_ids")]
+    public List<string> AcquiredTraitIds { get; set; } = [];
 }

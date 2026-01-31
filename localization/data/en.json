@@ -404,12 +404,12 @@
       "gold_display": "Gold: {gold}",
       "active_indicator": "ACTIVE",
       "no_traits": "No innate traits",
-      "no_boons": "No boons acquired yet",
+      "no_acquired_traits": "No traits acquired yet",
       "trait_innate": "Innate",
       "trait_acquired": "Acquired",
       "switch_summoner": "Switch Summoner",
       "no_description": "No description available.",
-      "empty_boon_slot": "Empty Slot",
+      "empty_trait_slot": "Empty Slot",
       "stats_hp": "HP",
       "stats_mana": "Mana",
       "stats_damage": "Damage",
@@ -593,6 +593,42 @@
     "tactical_mind": {
       "name": "Tactical Mind",
       "description": "Superior planning grants strategic advantage. Draw 1 extra card at battle start."
+    },
+    "berserker": {
+      "name": "Berserker",
+      "description": "Desperation fuels fury. Units gain +20% damage when below 50% HP."
+    },
+    "vengeful": {
+      "name": "Vengeful",
+      "description": "Pain begets speed. Units gain +10% attack speed for 5 seconds after taking damage."
+    },
+    "soul_harvest": {
+      "name": "Soul Harvest",
+      "description": "Each kill restores vitality. Units heal 5 HP on killing an enemy."
+    },
+    "inferno_mastery": {
+      "name": "Inferno Mastery",
+      "description": "Master of flame. +15% fire damage. Fire units deal 15% more damage."
+    },
+    "tidal_mastery": {
+      "name": "Tidal Mastery",
+      "description": "Master of the tides. +15% water damage. Water units have 15% more HP."
+    },
+    "fortitude": {
+      "name": "Fortitude",
+      "description": "Enhanced durability through experience. +8% max HP."
+    },
+    "power": {
+      "name": "Power",
+      "description": "Honed combat prowess. +6% attack damage."
+    },
+    "swiftness": {
+      "name": "Swiftness",
+      "description": "Quickened reflexes. +5% attack speed."
+    },
+    "agility": {
+      "name": "Agility",
+      "description": "Swift movement across the battlefield. +5% move speed."
     }
   },
   "elements": {

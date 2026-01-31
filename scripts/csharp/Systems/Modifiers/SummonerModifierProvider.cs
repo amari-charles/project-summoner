@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 using ProjectSummoner.Data.Traits;
 
@@ -18,8 +19,19 @@ public class SummonerModifierProvider : IModifierProvider
     /// <summary>
     /// Create a provider for a GDScript SummonerInstance.
     /// </summary>
+    /// <param name="summonerInstance">The GDScript SummonerInstance object. Must have get_all_trait_ids() method.</param>
+    /// <param name="summonerId">The summoner's ID.</param>
+    /// <exception cref="ArgumentNullException">Thrown if summonerInstance is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if summonerInstance lacks required methods or summonerId is empty.</exception>
     public SummonerModifierProvider(GodotObject summonerInstance, string summonerId)
     {
+        if (summonerInstance == null)
+            throw new ArgumentNullException(nameof(summonerInstance));
+        if (string.IsNullOrEmpty(summonerId))
+            throw new ArgumentException("Summoner ID cannot be null or empty", nameof(summonerId));
+        if (!summonerInstance.HasMethod("get_all_trait_ids"))
+            throw new ArgumentException("SummonerInstance must have get_all_trait_ids() method", nameof(summonerInstance));
+
         _summonerInstance = summonerInstance;
         _summonerId = summonerId;
     }
@@ -28,12 +40,12 @@ public class SummonerModifierProvider : IModifierProvider
     {
         var modifiers = new List<StatModifier>();
 
-        if (_summonerInstance == null || !GodotObject.IsInstanceValid(_summonerInstance))
+        // Instance was validated at construction, but check validity in case it was freed
+        if (!GodotObject.IsInstanceValid(_summonerInstance))
+        {
+            GD.PushWarning($"SummonerModifierProvider: SummonerInstance for '{_summonerId}' is no longer valid");
             return modifiers;
-
-        // Get all trait IDs from the summoner instance (still in GDScript)
-        if (!_summonerInstance.HasMethod("get_all_trait_ids"))
-            return modifiers;
+        }
 
         var traitIdsVar = _summonerInstance.Call("get_all_trait_ids");
         if (traitIdsVar.VariantType != Variant.Type.Array)
