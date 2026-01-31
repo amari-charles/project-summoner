@@ -39,7 +39,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.Puff, CardId.EarthSprite },
+                CardOptions = new List<string> { CardId.FireWisp, CardId.Puff, CardId.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 30,
@@ -61,13 +61,13 @@ public static class EventCatalog
             EnemyDeck = new List<DeckEntry>
             {
                 new(CardId.Puff, 2),
-                new(CardId.EarthSprite, 1)
+                new(CardId.Pebbloom, 1)
             },
             EnemyHp = 45f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.EarthSprite, CardId.CloudSwarm, CardId.Puff },
+                CardOptions = new List<string> { CardId.Pebbloom, CardId.Puff, CardId.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 40,
@@ -97,13 +97,13 @@ public static class EventCatalog
             EnemyDeck = new List<DeckEntry>
             {
                 new(CardId.Puff, 2),
-                new(CardId.EarthSprite, 2)
+                new(CardId.Pebbloom, 2)
             },
             EnemyHp = 60f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.CloudSwarm, CardId.ManaBolt },
+                CardOptions = new List<string> { CardId.FireWisp, CardId.ManaBolt, CardId.Puff },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -144,7 +144,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.ManaBolt, CardId.FireTitan },
+                CardOptions = new List<string> { CardId.FireWisp, CardId.ManaBolt, CardId.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 80,
@@ -164,13 +164,13 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.EarthSprite, 3)
+                new(CardId.Pebbloom, 3)
             },
             EnemyHp = 55f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.Puff, CardId.EarthSprite, CardId.CloudSwarm },
+                CardOptions = new List<string> { CardId.Puff, CardId.Pebbloom, CardId.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -191,7 +191,7 @@ public static class EventCatalog
             EnemyDeck = new List<DeckEntry>
             {
                 new(CardId.FireWisp, 2),
-                new(CardId.EarthSprite, 2),
+                new(CardId.Pebbloom, 2),
                 new(CardId.Puff, 2)
             },
             EnemyHp = 100f,
@@ -224,7 +224,7 @@ public static class EventCatalog
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.EarthSprite, 4),
+                new(CardId.Pebbloom, 4),
                 new(CardId.Puff, 2)
             },
             EnemyDeck = new List<DeckEntry>
@@ -249,12 +249,12 @@ public static class EventCatalog
             DevPlayerDeck = new List<DeckEntry>
             {
                 new(CardId.Puff, 4),
-                new(CardId.EarthSprite, 2)
+                new(CardId.Pebbloom, 2)
             },
             EnemyDeck = new List<DeckEntry>
             {
                 new(CardId.FireWisp, 3),
-                new(CardId.EarthSprite, 2)
+                new(CardId.Pebbloom, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
@@ -272,12 +272,11 @@ public static class EventCatalog
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 4),
-                new(CardId.FireTitan, 2)
+                new(CardId.FireWisp, 6)
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.EarthSprite, 3),
+                new(CardId.Pebbloom, 3),
                 new(CardId.Puff, 2)
             },
             EnemyHp = 100f,
@@ -296,13 +295,12 @@ public static class EventCatalog
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.CloudSwarm, 4),
-                new(CardId.Puff, 2)
+                new(CardId.Puff, 6)
             },
             EnemyDeck = new List<DeckEntry>
             {
                 new(CardId.FireWisp, 3),
-                new(CardId.EarthSprite, 2)
+                new(CardId.Pebbloom, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
@@ -325,7 +323,7 @@ public static class EventCatalog
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.EarthSprite, 3),
+                new(CardId.Pebbloom, 3),
                 new(CardId.FireWisp, 2)
             },
             EnemyHp = 100f,
@@ -348,10 +346,9 @@ public static class EventCatalog
             {
                 new(CardId.FireWisp, 5),
                 new(CardId.Puff, 5),
-                new(CardId.EarthSprite, 5),
-                new(CardId.FireTitan, 5),
+                new(CardId.Pebbloom, 5),
                 new(CardId.ManaBolt, 5),
-                new(CardId.CloudSwarm, 5)
+                new(CardId.WaterFrog, 5)
             },
             EnemyDeck = new List<DeckEntry>(),
             EnemyHp = 999999f,

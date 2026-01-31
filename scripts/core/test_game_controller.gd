@@ -10,11 +10,11 @@ class_name TestGameController
 ## Test deck configuration - edit this to test different cards
 var test_deck_cards: Array[StringName] = [
 	CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP,
-	CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE,
-	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
-	CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL, CardIDs.FIREBALL,
+	CardIDs.PEBBLOOM, CardIDs.PEBBLOOM, CardIDs.PEBBLOOM, CardIDs.PEBBLOOM, CardIDs.PEBBLOOM,
+	CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT,
+	CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT,
 	CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF,
-	CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN
+	CardIDs.WATER_FROG, CardIDs.WATER_FROG, CardIDs.WATER_FROG, CardIDs.WATER_FROG, CardIDs.WATER_FROG
 ]
 
 func _ready() -> void:

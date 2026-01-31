@@ -1,11 +1,7 @@
 [
-	{ "catalog_id": "fire_wisp", "count": 1 },
-	{ "catalog_id": "fire_titan", "count": 1 },
-	{ "catalog_id": "fire_wisp_swarm", "count": 1 },
-	{ "catalog_id": "fire_ant", "count": 1 },
-	{ "catalog_id": "fire_ant_swarm", "count": 1 },
-	{ "catalog_id": "earth_sprite", "count": 1 },
-	{ "catalog_id": "rock", "count": 1 },
-	{ "catalog_id": "puff", "count": 1 },
-	{ "catalog_id": "water_frog", "count": 1 }
+	{ "catalog_id": "fire_wisp", "count": 2 },
+	{ "catalog_id": "pebbloom", "count": 2 },
+	{ "catalog_id": "puff", "count": 2 },
+	{ "catalog_id": "water_frog", "count": 2 },
+	{ "catalog_id": "mana_bolt", "count": 2 }
 ]

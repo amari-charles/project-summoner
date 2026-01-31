@@ -18,12 +18,12 @@ func _ready() -> void:
 		CardIDs.PUFF, CardIDs.PUFF, CardIDs.PUFF,
 		# Medium units
 		CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP,
-		CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE, CardIDs.EARTH_SPRITE,
+		CardIDs.PEBBLOOM, CardIDs.PEBBLOOM, CardIDs.PEBBLOOM,
 		# Larger units
-		CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN, CardIDs.FIRE_TITAN,
-		CardIDs.FIRE_WISP_SWARM, CardIDs.FIRE_WISP_SWARM, CardIDs.FIRE_WISP_SWARM,
-		# Spells (Charge to test movement)
-		CardIDs.CHARGE, CardIDs.CHARGE, CardIDs.CHARGE, CardIDs.CHARGE,
+		CardIDs.WATER_FROG, CardIDs.WATER_FROG, CardIDs.WATER_FROG,
+		CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP,
+		# Spells
+		CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT, CardIDs.MANA_BOLT,
 	]
 
 	# Call parent ready

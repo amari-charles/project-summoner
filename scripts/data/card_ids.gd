@@ -7,7 +7,7 @@ class_name CardIDs
 ##
 ## Usage:
 ##   var card = CardCatalog.create_card_resource(CardIDs.FIREBALL)
-##   var test_deck = [CardIDs.FIRE_WISP, CardIDs.EARTH_SPRITE, CardIDs.PUFF]
+##   var test_deck = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF]
 ##
 ## When adding new cards:
 ##   1. Add card to CardCatalog._init_catalog()
@@ -52,7 +52,7 @@ const FIRE_ANT_SWARM: StringName = &"fire_ant_swarm"
 # EARTH ELEMENT UNITS
 # ============================================================================
 
-const EARTH_SPRITE: StringName = &"earth_sprite"
+const PEBBLOOM: StringName = &"pebbloom"
 const ROCK: StringName = &"rock"  # Stationary test dummy
 
 # ============================================================================
