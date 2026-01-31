@@ -2,6 +2,9 @@ extends Node
 
 ## Test Setup for Rally/Guard/Charge Spells
 ##
+## NOTE: Uses archived command spells (Rally, Guard, Charge) for testing purposes.
+## These spells are excluded from normal gameplay but kept for development testing.
+##
 ## Attach this script to PlayerSummoner in a battle scene to:
 ## - Override the deck with Rally/Guard/Charge + test units
 ## - Start with Rally, Guard, and Charge in hand

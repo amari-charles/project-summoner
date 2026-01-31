@@ -19,7 +19,7 @@ func _ready() -> void:
 		# Medium units
 		CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP,
 		CardIDs.PEBBLOOM, CardIDs.PEBBLOOM, CardIDs.PEBBLOOM,
-		# Larger units
+		# More units
 		CardIDs.WATER_FROG, CardIDs.WATER_FROG, CardIDs.WATER_FROG,
 		CardIDs.FIRE_WISP, CardIDs.FIRE_WISP, CardIDs.FIRE_WISP,
 		# Spells
