@@ -467,6 +467,31 @@ public partial class RewardService : Node
     }
 
     // =========================================================================
+    // BATTLE REWARD SPEC
+    // =========================================================================
+
+    /// <summary>
+    /// Get typed reward specification for a battle.
+    /// </summary>
+    /// <param name="battleId">Battle ID to get spec for.</param>
+    /// <param name="isCompleted">Whether the battle is already completed.</param>
+    /// <param name="chosenIndex">Previously chosen option index (-1 if not chosen).</param>
+    /// <returns>Typed BattleRewardSpec.</returns>
+    public BattleRewardSpec GetBattleRewardSpec(string battleId, bool isCompleted = false, int chosenIndex = -1)
+    {
+        return BattleRewardSpec.FromBattleId(battleId, isCompleted, chosenIndex);
+    }
+
+    /// <summary>
+    /// Get reward specification as Dictionary for GDScript interop.
+    /// </summary>
+    public Godot.Collections.Dictionary GetBattleRewardSpecAsDict(string battleId, bool isCompleted = false, int chosenIndex = -1)
+    {
+        var spec = GetBattleRewardSpec(battleId, isCompleted, chosenIndex);
+        return spec.ToDictionary();
+    }
+
+    // =========================================================================
     // POOL-BASED REWARD DRAWING
     // =========================================================================
 
