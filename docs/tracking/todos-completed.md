@@ -6,6 +6,48 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Add Mana Stones Currency for Premium Store
+**Completed:** 2026-01-31
+**Category:** Economy / Design
+**Effort:** Medium
+
+**Description:**
+The Premium Store was incorrectly using Gold as its currency. Gold should only be used for in-campaign Caravan purchases. The Premium Store now uses "Mana Stones" (backed by the existing unused "gems" resource).
+
+**Currency Design:**
+- **Gold**: Campaign-scoped currency for Caravan purchases during gameplay
+- **Mana Stones**: Meta-progression currency for Premium Store (summoners, cosmetics, emotes)
+
+**Resolution:**
+- Added localization key `ui.shop.mana_stones_label` for currency display
+- Updated all premium store offerings from `currency_type: "gold"` to `currency_type: "gems"`
+- Updated `PremiumStoreScreen` to display Mana Stones balance and check gems for affordability
+- Updated `PremiumStoreOfferingItem` to show prices with gem icon format (`💎 150`)
+
+**Files Changed:**
+- `localization/data/en.json` - Added mana stones label
+- `scripts/services/shop_service.gd` - Changed all premium offerings to use gems
+- `scripts/ui/screens/premium_store_screen.gd` - Display and check mana stones
+- `scripts/ui/components/premium_store_offering_item.gd` - Show mana stones price format
+
+---
+
+### Fix Card Level-Up UI Incorrectly Mentioning Gold Cost
+**Completed:** 2026-01-31
+**Category:** UI / Economy
+**Effort:** Small
+
+**Description:**
+The card level-up UI displayed hardcoded placeholder text showing "Cost: 25 Gold" and "Your Gold: 100" even though card level-ups require only XP - there is no gold cost.
+
+**Resolution:**
+Removed the `CostContainer` node and its children (`CostLabel`, `GoldLabel`, `HSeparator3`) from `scenes/ui/modals/card_level_up_panel.tscn`. These were hardcoded placeholder labels that were never wired to any code.
+
+**Files Changed:**
+- `scenes/ui/modals/card_level_up_panel.tscn` - Removed misleading gold cost UI elements
+
+---
+
 ### Configure Campaign Battles to Be Replayable (XP Only)
 **Completed:** 2026-01-31
 **Category:** Campaign / Economy

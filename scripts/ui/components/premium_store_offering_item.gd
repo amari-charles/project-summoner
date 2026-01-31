@@ -106,7 +106,8 @@ func set_offering(new_offering: ShopOffering) -> void:
 		price_label.text = ""
 		owned_overlay.visible = true
 	else:
-		price_label.text = "%dg" % offering.base_price
+		# Premium store uses mana stones (gems) - show with gem icon
+		price_label.text = "💎 %d" % offering.base_price
 		owned_overlay.visible = false
 
 func _update_preview_color() -> void:

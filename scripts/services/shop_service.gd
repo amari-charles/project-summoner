@@ -274,7 +274,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.lightning_adept.description"),
 				"summoner_id": "summoner_lightning_adept",
 				"base_price": 750,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -285,7 +285,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.verdant_sage.description"),
 				"summoner_id": "summoner_verdant_sage",
 				"base_price": 750,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -296,7 +296,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.void_walker.description"),
 				"summoner_id": "summoner_void_walker",
 				"base_price": 750,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -311,7 +311,7 @@ func _init_shops() -> void:
 				"cosmetic_type": "card_back",
 				"cosmetic_id": "card_back_gold",
 				"base_price": 300,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -323,7 +323,7 @@ func _init_shops() -> void:
 				"cosmetic_type": "card_back",
 				"cosmetic_id": "card_back_obsidian",
 				"base_price": 500,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -335,7 +335,7 @@ func _init_shops() -> void:
 				"cosmetic_type": "ui_theme",
 				"cosmetic_id": "ui_theme_crimson",
 				"base_price": 400,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -347,7 +347,7 @@ func _init_shops() -> void:
 				"cosmetic_type": "ui_theme",
 				"cosmetic_id": "ui_theme_void",
 				"base_price": 600,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -361,7 +361,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_laugh.description"),
 				"emote_id": "emote_laugh",
 				"base_price": 150,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -372,7 +372,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_shocked.description"),
 				"emote_id": "emote_shocked",
 				"base_price": 150,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -383,7 +383,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_thinking.description"),
 				"emote_id": "emote_thinking",
 				"base_price": 200,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -394,7 +394,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_taunt.description"),
 				"emote_id": "emote_taunt",
 				"base_price": 250,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -405,7 +405,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_confident.description"),
 				"emote_id": "emote_confident",
 				"base_price": 300,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			},
@@ -416,7 +416,7 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_victory.description"),
 				"emote_id": "emote_victory",
 				"base_price": 350,
-				"currency_type": "gold",
+				"currency_type": "gems",
 				"purchase_limit_type": "account",
 				"purchase_limit": 1
 			}

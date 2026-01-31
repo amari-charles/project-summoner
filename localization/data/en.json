@@ -345,6 +345,7 @@
     },
     "shop": {
       "gold_label": "Gold: {amount}",
+      "mana_stones_label": "Mana Stones: {amount}",
       "select_offering": "Select an offering",
       "price_placeholder": "Price: -",
       "description_placeholder": "Offering description will appear here.",
