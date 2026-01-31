@@ -6,6 +6,30 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-01 Completions
 
+### Clean Up Premium Store Placeholder Content
+**Completed:** 2026-01-31
+**Category:** Content / Clarity
+**Effort:** Small
+
+**Description:**
+The Premium Store contained placeholder items with plausible-sounding names. Following the CLAUDE.md guideline to use obviously temporary names for placeholder content, we removed non-essential placeholders and renamed remaining ones to be clearly temporary.
+
+**Changes Made:**
+- **Removed:** Card back cosmetics (card_back_gold, card_back_obsidian) - not essential, removed entirely
+- **Removed:** UI theme cosmetics (ui_theme_crimson, ui_theme_void) - not essential, removed entirely
+- **Renamed:** All emotes to PLACEHOLDER EMOTE 1-8 (emote system not implemented yet)
+- **Renamed:** All purchasable summoners to PLACEHOLDER SUMMONER 1-4 (not real summoners yet)
+- **Kept:** Default cosmetics (card_back_default, ui_theme_default) as free fallbacks
+- Updated tests to use default cosmetics instead of removed ones
+
+**Files Changed:**
+- `localization/data/en.json` - Removed card back/theme entries, renamed emotes to PLACEHOLDER format
+- `scripts/data/cosmetics_catalog.gd` - Removed 4 placeholder cosmetics
+- `scripts/services/shop_service.gd` - Removed 4 cosmetic offerings from premium store
+- `tests/unit/test_cosmetics_catalog.gd` - Updated to test default cosmetics
+
+---
+
 ### Add Mana Stones Currency for Premium Store
 **Completed:** 2026-01-31
 **Category:** Economy / Design

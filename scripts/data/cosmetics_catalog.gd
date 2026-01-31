@@ -63,32 +63,6 @@ func _init_catalog() -> void:
 		"rarity": "common"
 	})
 
-	# Gold card back (purchasable)
-	_add_cosmetic({
-		"id": &"card_back_gold",
-		"type": CosmeticType.CARD_BACK,
-		"display_name": Loc.t("cosmetic.card_back_gold.name"),
-		"description": Loc.t("cosmetic.card_back_gold.description"),
-		"preview_path": "",
-		"resource_path": "",
-		"summoner_id": "",
-		"price": 300,
-		"rarity": "rare"
-	})
-
-	# Obsidian card back (purchasable)
-	_add_cosmetic({
-		"id": &"card_back_obsidian",
-		"type": CosmeticType.CARD_BACK,
-		"display_name": Loc.t("cosmetic.card_back_obsidian.name"),
-		"description": Loc.t("cosmetic.card_back_obsidian.description"),
-		"preview_path": "",
-		"resource_path": "",
-		"summoner_id": "",
-		"price": 500,
-		"rarity": "epic"
-	})
-
 	# =========================================================================
 	# UI THEMES
 	# =========================================================================
@@ -104,32 +78,6 @@ func _init_catalog() -> void:
 		"summoner_id": "",
 		"price": 0,
 		"rarity": "common"
-	})
-
-	# Crimson UI theme (purchasable)
-	_add_cosmetic({
-		"id": &"ui_theme_crimson",
-		"type": CosmeticType.UI_THEME,
-		"display_name": Loc.t("cosmetic.ui_theme_crimson.name"),
-		"description": Loc.t("cosmetic.ui_theme_crimson.description"),
-		"preview_path": "",
-		"resource_path": "",
-		"summoner_id": "",
-		"price": 400,
-		"rarity": "rare"
-	})
-
-	# Void UI theme (purchasable)
-	_add_cosmetic({
-		"id": &"ui_theme_void",
-		"type": CosmeticType.UI_THEME,
-		"display_name": Loc.t("cosmetic.ui_theme_void.name"),
-		"description": Loc.t("cosmetic.ui_theme_void.description"),
-		"preview_path": "",
-		"resource_path": "",
-		"summoner_id": "",
-		"price": 600,
-		"rarity": "epic"
 	})
 
 func _add_cosmetic(data: Dictionary) -> void:
