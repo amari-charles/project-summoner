@@ -32,7 +32,7 @@ const NONE: StringName = &"none"
 ## Flexible reward - player picks from options
 ##
 ## Config options (use ONE of these):
-## - reward_pool: RewardConstants.PoolId - Enum-based pool to draw from
+## - reward_pool: int - RewardPoolId enum value (see C# RewardPoolId.cs)
 ## - reward_filters: Dictionary - Inline filters {element, rarity, card_type}
 ## - reward_options: Array[CardIDs] - Explicit card choices
 ##
