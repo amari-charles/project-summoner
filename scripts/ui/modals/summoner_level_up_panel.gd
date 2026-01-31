@@ -9,11 +9,9 @@ class_name SummonerLevelUpPanel
 ## UI Node References
 @onready var background: ColorRect = %Background
 @onready var title_label: Label = %TitleLabel
-@onready var choose_trait_label: Label = %ChooseTraitLabel
 @onready var summoner_name_label: Label = %SummonerNameLabel
 @onready var level_transition_label: Label = %LevelTransitionLabel
 @onready var stat_preview_container: VBoxContainer = %StatPreviewContainer
-@onready var trait_container: HBoxContainer = %TraitContainer
 @onready var confirm_button: Button = %ConfirmButton
 @onready var cancel_button: Button = %CancelButton
 
@@ -44,10 +42,6 @@ func _ready() -> void:
 
 	# Connect background click to close
 	background.gui_input.connect(_on_background_input)
-
-	# Hide unused trait selection UI elements
-	choose_trait_label.visible = false
-	trait_container.visible = false
 
 ## =============================================================================
 ## PUBLIC API

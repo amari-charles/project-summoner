@@ -325,10 +325,8 @@
       "level_transition": "Level {current} → {next}",
       "stat_hp_increase": "+{amount} HP",
       "stat_mana_increase": "+{amount} Mana",
-      "choose_trait": "Choose a Trait:",
       "confirm": "CONFIRM",
       "cancel": "Cancel",
-      "all_traits_acquired": "All available traits acquired!",
       "success": "Summoner leveled up!",
       "failed": "Level-up failed"
     },
