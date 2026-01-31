@@ -238,7 +238,7 @@ func _spawn_tutorial_enemy() -> void:
 	print("BattleDialogueController: _spawn_tutorial_enemy() called")
 
 	# Create the enemy card from CardCatalog (same as enemy deck loader)
-	var card_id: String = "earth_sprite"
+	var card_id: String = "pebbloom"
 	print("BattleDialogueController: Creating card from CardCatalog: %s" % card_id)
 
 	var card: Card = CardCatalog.create_card_resource(card_id)

@@ -158,9 +158,9 @@
       "name": "Fire Titan",
       "description": "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach."
     },
-    "earth_sprite": {
-      "name": "Earth Sprite",
-      "description": "A gentle rock spirit with a sapling growing from its head. Sturdy and dependable, it protects nature with rocky determination."
+    "pebbloom": {
+      "name": "Pebbloom",
+      "description": "A sturdy creature native to the elemental plane of earth. Pebblooms carry saplings that they nurture with elemental energy."
     },
     "puff": {
       "name": "Puff",
@@ -777,9 +777,9 @@
         "name": "Fire Wisp",
         "description": "A teardrop of living flame. Burns with fierce intensity in melee combat."
       },
-      "earth_sprite": {
-        "name": "Earth Sprite",
-        "description": "A small earth spirit. Sturdy and reliable, defending your front line with determination."
+      "pebbloom": {
+        "name": "Pebbloom",
+        "description": "A sturdy earth creature. Reliable and dependable, defending your front line with determination."
       },
       "puff": {
         "name": "Puff",

@@ -42,7 +42,7 @@ public static class CardId
     // EARTH ELEMENT UNITS
     // =========================================================================
 
-    public const string EarthSprite = "earth_sprite";
+    public const string Pebbloom = "pebbloom";
     public const string Rock = "rock";
 
     // =========================================================================

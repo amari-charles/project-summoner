@@ -143,11 +143,11 @@ func _init_shops() -> void:
 				"purchase_limit": 0
 			},
 			{
-				"offering_id": "general_earth_sprite",
+				"offering_id": "general_pebbloom",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.earth_sprite.name"),
-				"description": Loc.t("shop.offering.earth_sprite.description"),
-				"card_catalog_id": "earth_sprite",
+				"display_name": Loc.t("shop.offering.pebbloom.name"),
+				"description": Loc.t("shop.offering.pebbloom.description"),
+				"card_catalog_id": "pebbloom",
 				"card_count": 1,
 				"base_price": 20,
 				"purchase_limit_type": "none",
@@ -170,8 +170,7 @@ func _init_shops() -> void:
 				"display_name": Loc.t("shop.offering.basic_spell_pack.name"),
 				"description": Loc.t("shop.offering.basic_spell_pack.description"),
 				"pack_cards": [
-					{"catalog_id": "charge", "count": 1},
-					{"catalog_id": "fireball", "count": 1}
+					{"catalog_id": "mana_bolt", "count": 2}
 				],
 				"base_price": 50,
 				"purchase_limit_type": "none",
@@ -183,7 +182,7 @@ func _init_shops() -> void:
 				"display_name": Loc.t("shop.offering.summon_pack.name"),
 				"description": Loc.t("shop.offering.summon_pack.description"),
 				"pack_cards": [
-					{"catalog_id": "earth_sprite", "count": 2},
+					{"catalog_id": "pebbloom", "count": 2},
 					{"catalog_id": "fire_wisp", "count": 1}
 				],
 				"base_price": 70,
@@ -211,11 +210,11 @@ func _init_shops() -> void:
 				"purchase_limit": 1
 			},
 			{
-				"offering_id": "caravan_earth_sprite",
+				"offering_id": "caravan_pebbloom",
 				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.earth_sprite.name"),
-				"description": Loc.t("shop.offering.earth_sprite.description"),
-				"card_catalog_id": "earth_sprite",
+				"display_name": Loc.t("shop.offering.pebbloom.name"),
+				"description": Loc.t("shop.offering.pebbloom.description"),
+				"card_catalog_id": "pebbloom",
 				"card_count": 1,
 				"base_price": 20,
 				"purchase_limit_type": "account",

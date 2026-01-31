@@ -3,7 +3,7 @@ class_name FirstCardSelection
 
 ## FirstCardSelection - Choose your first card
 ##
-## Part of onboarding flow. Player picks Fire Wisp or Earth Sprite as their starter.
+## Part of onboarding flow. Player picks Fire Wisp or Pebbloom as their starter.
 ## Card is granted to collection and onboarding is marked complete.
 
 const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
@@ -16,7 +16,7 @@ func _ready() -> void:
 
 	# Connect button handlers
 	select_fire_wisp_button.pressed.connect(_on_card_selected.bind(CardIDs.FIRE_WISP))
-	select_earth_sprite_button.pressed.connect(_on_card_selected.bind(CardIDs.EARTH_SPRITE))
+	select_earth_sprite_button.pressed.connect(_on_card_selected.bind(CardIDs.PEBBLOOM))
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)
 	await get_tree().process_frame

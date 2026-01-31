@@ -27,19 +27,19 @@ public static class RewardPoolCatalog
         [RewardPoolId.TutorialRewards] = new RewardPoolDefinition
         {
             PoolId = RewardPoolId.TutorialRewards,
-            ExplicitCardIds = ["fire_wisp", "earth_sprite", "puff"]
+            ExplicitCardIds = ["fire_wisp", "pebbloom", "puff"]
         },
 
         [RewardPoolId.StarterRewards] = new RewardPoolDefinition
         {
             PoolId = RewardPoolId.StarterRewards,
-            ExplicitCardIds = ["mana_bolt", "water_frog", "cloud_swarm"]
+            ExplicitCardIds = ["mana_bolt", "water_frog"]
         },
 
         [RewardPoolId.BossLoot] = new RewardPoolDefinition
         {
             PoolId = RewardPoolId.BossLoot,
-            ExplicitCardIds = ["fire_titan"]
+            ExplicitCardIds = []  // To be populated when pools are redone
         },
 
         // =====================================================================

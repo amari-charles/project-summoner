@@ -2,6 +2,9 @@ extends Node
 
 ## Test Setup for Rally/Guard/Charge Spells
 ##
+## NOTE: Uses archived command spells (Rally, Guard, Charge) for testing purposes.
+## These spells are excluded from normal gameplay but kept for development testing.
+##
 ## Attach this script to PlayerSummoner in a battle scene to:
 ## - Override the deck with Rally/Guard/Charge + test units
 ## - Start with Rally, Guard, and Charge in hand
@@ -24,8 +27,8 @@ var test_deck_ids: Array[String] = [
 	CardIDs.CHARGE,          # Extra charge
 	CardIDs.RALLY,           # Extra rally
 	CardIDs.GUARD,           # Extra guard
-	CardIDs.EARTH_SPRITE,    # More units
-	CardIDs.EARTH_SPRITE,
+	CardIDs.PEBBLOOM,    # More units
+	CardIDs.PEBBLOOM,
 	CardIDs.PUFF,
 	CardIDs.PUFF,
 ]
@@ -110,7 +113,7 @@ func _spawn_test_enemies() -> void:
 	var enemy_unit_ids: Array[String] = [
 		CardIDs.FIRE_WISP,
 		CardIDs.FIRE_WISP,
-		CardIDs.EARTH_SPRITE,
+		CardIDs.PEBBLOOM,
 	]
 
 	for card_id: String in enemy_unit_ids:

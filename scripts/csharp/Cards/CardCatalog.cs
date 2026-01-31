@@ -352,7 +352,8 @@ public static class CardCatalog
             CreatureTypes = CreatureType.Elemental | CreatureType.Spirit,
             Roles = SummonRole.Tank | SummonRole.Giant,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Fire
+            ElementalAffinity = Element.Fire,
+            Flags = CardFlags.Archived
         },
 
         ["fire_ant"] = new CardDefinition
@@ -403,11 +404,11 @@ public static class CardCatalog
         // EARTH ELEMENT UNITS
         // =====================================================================
 
-        ["earth_sprite"] = new CardDefinition
+        ["pebbloom"] = new CardDefinition
         {
-            Id = "earth_sprite",
-            Name = "Earth Sprite",
-            Description = "A gentle rock spirit with a sapling growing from its head. Sturdy and dependable, it protects nature with rocky determination.",
+            Id = "pebbloom",
+            Name = "Pebbloom",
+            Description = "A sturdy creature native to the elemental plane of earth. Pebblooms carry saplings that they nurture with elemental energy.",
             Rarity = Rarity.Common,
             Type = CardType.Summon,
             ManaCost = 3,
@@ -486,7 +487,8 @@ public static class CardCatalog
             CreatureTypes = CreatureType.Aerial,
             Roles = SummonRole.Swarm,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Wind
+            ElementalAffinity = Element.Wind,
+            Flags = CardFlags.Archived
         },
 
         // =====================================================================
