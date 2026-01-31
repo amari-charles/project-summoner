@@ -11,13 +11,15 @@ const STAR_FILLED_TEXTURE: String = "res://assets/ui/kenny/PNG/Yellow/Default/st
 const STAR_EMPTY_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/star_outline.png"
 const STAR_SIZE: int = 24
 
+## Visual styling
+const CLAIMED_DIM_COLOR: Color = Color(0.6, 0.6, 0.6, 1)
+
 ## UI References (set from scene)
 @onready var event_name_label: Label = %EventNameLabel
 @onready var difficulty_container: HBoxContainer = %DifficultyContainer
 @onready var difficulty_label: Label = %DifficultyLabel
 @onready var stars_container: HBoxContainer = %StarsContainer
 @onready var description_label: Label = %DescriptionLabel
-@onready var reward_label: Label = %RewardLabel  # Legacy, kept for compatibility
 @onready var rewards_container: VBoxContainer = %RewardsContainer
 @onready var first_clear_section: VBoxContainer = %FirstClearSection
 @onready var first_clear_header: Label = %FirstClearHeader
@@ -169,7 +171,7 @@ func _update_first_clear_section(is_completed: bool) -> void:
 		first_clear_status.text = Loc.t("campaign.rewards.claimed")
 		first_clear_status.visible = true
 		# Dim the rewards text
-		first_clear_rewards.modulate = Color(0.6, 0.6, 0.6, 1)
+		first_clear_rewards.modulate = CLAIMED_DIM_COLOR
 	else:
 		first_clear_status.text = ""
 		first_clear_status.visible = false

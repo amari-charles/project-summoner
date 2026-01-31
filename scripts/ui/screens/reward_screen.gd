@@ -37,6 +37,7 @@ const SummonerLevelUpPanelScene: PackedScene = preload("res://scenes/ui/modals/s
 ## Constants
 const CHOICE_BUTTON_SIZE: Vector2 = Vector2(150, 100)
 const CHOICE_BUTTON_FONT_SIZE: int = 24
+const CLAIMED_DIM_COLOR: Color = Color(0.6, 0.6, 0.6, 1)
 
 ## Rarity colors for reward display
 const RARITY_COLORS: Dictionary = {
@@ -220,7 +221,7 @@ func _display_first_clear_claimed(spec: Dictionary) -> void:
 	# Show claimed status and dim the section
 	first_clear_status.text = Loc.t("ui.reward.first_clear_claimed")
 	first_clear_status.visible = true
-	first_clear_section.modulate = Color(0.6, 0.6, 0.6, 1)
+	first_clear_section.modulate = CLAIMED_DIM_COLOR
 
 
 ## Display a card reward from normalized spec format
