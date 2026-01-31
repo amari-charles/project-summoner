@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using ProjectSummoner.Data.Events;
 
 namespace ProjectSummoner.Services.Campaign.Models;
 
@@ -96,6 +97,65 @@ public class CampaignGraph
                         graph.Edges.Add(edge);
                     }
                 }
+            }
+        }
+
+        // Build edge indices
+        graph.RebuildEdgeIndices();
+
+        return graph;
+    }
+
+    /// <summary>
+    /// Create a CampaignGraph from a typed CampaignDefinition.
+    /// This is the new preferred construction method.
+    /// </summary>
+    public static CampaignGraph FromCampaignDefinition(CampaignDefinition definition)
+    {
+        var graph = new CampaignGraph
+        {
+            CampaignId = definition.Id,
+            NameKey = definition.NameKey,
+            DescriptionKey = definition.DescriptionKey,
+            StartNodeId = definition.StartEventId,
+            SortOrder = definition.SortOrder
+        };
+
+        // Add nodes from EventCatalog
+        foreach (var eventId in definition.EventIds)
+        {
+            var evt = EventCatalog.GetEvent(eventId);
+            if (evt == null) continue;
+
+            var node = CampaignNode.FromEventDefinition(evt, definition.Id);
+            if (!string.IsNullOrEmpty(node.Id))
+            {
+                graph.Nodes[node.Id] = node;
+            }
+        }
+
+        // Add edges (convert from Data.Events.CampaignEdge to Models.CampaignEdge)
+        foreach (var edge in definition.Edges)
+        {
+            var campaignEdge = new CampaignEdge
+            {
+                FromId = edge.FromEventId,
+                ToId = edge.ToEventId
+            };
+
+            // Convert edge condition if present
+            if (edge.Condition?.ChoiceId != null)
+            {
+                campaignEdge.Condition = new EdgeCondition
+                {
+                    Type = "choice",
+                    Value = edge.Condition.ChoiceId
+                };
+            }
+
+            if (!string.IsNullOrEmpty(campaignEdge.FromId) && !string.IsNullOrEmpty(campaignEdge.ToId))
+            {
+                graph.Edges.Add(campaignEdge);
             }
         }
 

@@ -964,7 +964,331 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 
 ## Architecture & Code Quality
 
+### 🔴 HIGH PRIORITY
+
+#### Create EventCatalog with Typed Event Definitions
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Large
+
+**Description:**
+Following the established CardCatalog/SummonerCatalog/TraitCatalog pattern, create a unified `EventCatalog` in C# that provides type-safe event definitions. This is the foundation for eliminating flag-based dictionaries throughout the campaign system.
+
+**Current State:**
+- Campaign data defined in GDScript dictionaries (`summoners_path_data.gd`, `test_arena_data.gd`)
+- Events are untyped dictionaries with 8+ optional flags
+- `CampaignCatalogHandler.cs` stores events as raw `Godot.Collections.Dictionary`
+- No query API (can't filter events by type, biome, reward type, etc.)
+- Manual validation in GDScript
+
+**Ideal State:**
+```csharp
+// scripts/csharp/Data/Events/EventCatalog.cs
+public static class EventCatalog
+{
+    private static readonly Dictionary<string, EventDefinition> _events = new();
+
+    // Lookup
+    public static EventDefinition? GetEvent(string id);
+    public static bool HasEvent(string id);
+    public static EventDefinition[] GetAllEvents();
+
+    // Queries (not possible today)
+    public static BattleEventDefinition[] GetBattlesByBiome(string biomeId);
+    public static BattleEventDefinition[] GetBattlesByDifficulty(int difficulty);
+    public static EventDefinition[] GetEventsByType<T>() where T : EventDefinition;
+
+    // GDScript bridge
+    public static Dictionary GetEventAsDict(string id);
+}
+```
+
+**Type-Specific Definitions:**
+```csharp
+// Base class
+public abstract class EventDefinition
+{
+    public string Id { get; set; }
+    public string NameKey { get; set; }
+    public string DescriptionKey { get; set; }
+    public bool Repeatable { get; set; }
+}
+
+// Battle-specific (only battle-relevant fields)
+public class BattleEventDefinition : EventDefinition
+{
+    public string BiomeId { get; set; }
+    public int Difficulty { get; set; }
+    public bool IsTutorial { get; set; }
+    public bool RequiresDeck { get; set; } = true;
+    public List<string> EnemyDeck { get; set; }
+    public BattleRewardConfig Rewards { get; set; }
+}
+
+// Caravan-specific (no RequiresDeck, no IsTutorial)
+public class CaravanEventDefinition : EventDefinition
+{
+    public string ShopId { get; set; }
+}
+
+// Choice-specific
+public class ChoiceEventDefinition : EventDefinition
+{
+    public List<ChoiceOption> Options { get; set; }
+}
+```
+
+**Benefits:**
+- Type safety - compile-time validation
+- IDE autocomplete for event properties
+- Query API for filtering (by biome, difficulty, type, etc.)
+- Automatic validation on load
+- Consistent with CardCatalog/SummonerCatalog pattern
+- Enables future features: achievements, analytics, difficulty scaling
+
+**Migration Path:**
+1. Create EventDefinition classes and EventCatalog
+2. EventCatalog loads from existing GDScript data (converts to typed objects)
+3. Update consumers to use typed objects instead of dictionaries
+4. Eventually move campaign data definitions to C#
+
+**Files to Create:**
+- `scripts/csharp/Data/Events/EventDefinition.cs` (base + subclasses)
+- `scripts/csharp/Data/Events/EventCatalog.cs`
+- `scripts/csharp/Data/Events/BattleRewardConfig.cs`
+
+**Files to Update:**
+- `scripts/csharp/Services/Campaign/Handlers/CampaignCatalogHandler.cs`
+- `scripts/services/campaign_service.gd`
+
+**Related:** See CLAUDE.md "Configurability Over Flags" and "When to Use C# vs GDScript"
+
+---
+
+#### Create CampaignCatalog for Campaign Graph Definitions
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+**Depends On:** Create EventCatalog with Typed Event Definitions
+
+**Description:**
+Create a `CampaignCatalog` to hold typed campaign definitions (graph structure with nodes and edges). Works alongside EventCatalog.
+
+**Current State:**
+- Campaigns defined as dictionaries in GDScript
+- Graph structure: `{ campaign_id, name_key, nodes: [], edges: [] }`
+- No typed representation
+
+**Ideal State:**
+```csharp
+public class CampaignDefinition
+{
+    public string Id { get; set; }
+    public string NameKey { get; set; }
+    public List<CampaignNode> Nodes { get; set; }
+    public List<CampaignEdge> Edges { get; set; }
+}
+
+public class CampaignNode
+{
+    public string EventId { get; set; }  // References EventCatalog
+    public Vector2 Position { get; set; }
+}
+
+public class CampaignEdge
+{
+    public string FromEventId { get; set; }
+    public string ToEventId { get; set; }
+    public EdgeCondition? Condition { get; set; }
+}
+```
+
+**Files to Create:**
+- `scripts/csharp/Data/Campaigns/CampaignDefinition.cs`
+- `scripts/csharp/Data/Campaigns/CampaignCatalog.cs`
+
+---
+
+#### Refactor Reward System to Typed RewardSpec Classes
+**Status:** ⬜ Not Started
+**Category:** Architecture / Flag Proliferation
+**Effort:** Medium
+
+**Description:**
+Replace the dictionary-based reward spec with polymorphic C# classes. The `get_reward_spec()` method returns a unified dictionary with flags (`is_replay`, `requires_choice`, etc.) - these should be type-specific classes.
+
+**Current Problem:**
+- `reward_service.gd:85-95` builds spec dictionary with multiple flags
+- `reward_screen.gd:124-173` checks `is_replay` and `requires_choice` flags
+- Flag combinations create complex conditional logic
+
+**Ideal State:**
+```csharp
+// scripts/csharp/Data/Rewards/RewardSpec.cs
+public abstract class RewardSpec
+{
+    public int GoldReward { get; set; }
+    public int SummonerXp { get; set; }
+    public int CardXp { get; set; }
+
+    public abstract RewardSpecType Type { get; }
+}
+
+public class FixedRewardSpec : RewardSpec
+{
+    public override RewardSpecType Type => RewardSpecType.Fixed;
+    public string CardId { get; set; }
+}
+
+public class FlexibleRewardSpec : RewardSpec
+{
+    public override RewardSpecType Type => RewardSpecType.Flexible;
+    public List<string> CardOptions { get; set; }
+    public bool PlayerSelects { get; set; }
+    public int? ChosenIndex { get; set; }
+}
+
+public class ReplayRewardSpec : RewardSpec
+{
+    public override RewardSpecType Type => RewardSpecType.Replay;
+    // XP only - no cards or gold
+}
+
+public class NoRewardSpec : RewardSpec
+{
+    public override RewardSpecType Type => RewardSpecType.None;
+}
+```
+
+**Consumer Pattern:**
+```csharp
+// Instead of checking flags:
+switch (spec)
+{
+    case ReplayRewardSpec replay:
+        ShowReplayMessage();
+        break;
+    case FlexibleRewardSpec flexible when flexible.PlayerSelects:
+        ShowChoiceUI(flexible.CardOptions);
+        break;
+    case FixedRewardSpec fixed:
+        ShowFixedReward(fixed.CardId);
+        break;
+}
+```
+
+**Files to Create:**
+- `scripts/csharp/Data/Rewards/RewardSpec.cs` (base + subclasses)
+- `scripts/csharp/Services/Rewards/RewardSpecFactory.cs`
+
+**Files to Refactor:**
+- `scripts/services/reward_service.gd` → `RewardService.cs`
+- `scripts/ui/screens/reward_screen.gd`
+
+---
+
+### 🟡 MEDIUM PRIORITY
+
+#### Update Node Panels to Receive Typed EventDefinitions
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+**Depends On:** Create EventCatalog with Typed Event Definitions
+
+**Description:**
+Node panels already use the correct pattern (type-specific implementations via `NodePanelFactory`). However, they receive untyped dictionaries. Update them to receive typed `EventDefinition` objects.
+
+**Current State:**
+```gdscript
+# Base receives untyped dictionary
+func configure(event: Dictionary, id: String) -> void:
+    event_data = event
+```
+
+**Ideal State:**
+```gdscript
+# Base receives typed object (or C# interop)
+func configure(event: EventDefinition, id: String) -> void:
+    _event = event
+
+# BattleNodePanel knows it has BattleEventDefinition
+func _configure_impl() -> void:
+    var battle := _event as BattleEventDefinition
+    deck_column.visible = battle.RequiresDeck
+```
+
+**Benefits:**
+- No more `event_data.get("requires_deck", true)` scattered everywhere
+- IDE autocomplete for available fields
+- Compile-time safety
+
+**Files to Update:**
+- `scripts/ui/components/node_panels/node_detail_panel_base.gd`
+- `scripts/ui/components/node_panels/battle_node_panel.gd`
+- `scripts/ui/components/node_panels/caravan_node_panel.gd`
+- `scripts/ui/components/node_panels/choice_node_panel.gd`
+
+---
+
 ### 🟢 LOW PRIORITY
+
+#### Move Campaign Data Definitions to C#
+**Status:** ⬜ Not Started
+**Category:** Architecture / Consistency
+**Effort:** Medium
+**Depends On:** Create EventCatalog, Create CampaignCatalog
+
+**Description:**
+Once EventCatalog and CampaignCatalog exist, move the actual campaign data definitions from GDScript to C#. This completes the migration to fully typed campaign data.
+
+**Current State:**
+- `summoners_path_data.gd` defines Summoner's Path campaign
+- `test_arena_data.gd` defines Test Arena campaign
+- Data is in GDScript dictionaries, loaded into C# on startup
+
+**Ideal State:**
+```csharp
+// scripts/csharp/Data/Campaigns/SummonersPathCampaign.cs
+public static class SummonersPathCampaign
+{
+    public static CampaignDefinition Definition => new()
+    {
+        Id = "summoners_path",
+        NameKey = "campaign.summoners_path.name",
+        Nodes = new List<CampaignNode>
+        {
+            new() { EventId = "first_trial", Position = new Vector2(100, 300) },
+            // ...
+        }
+    };
+}
+
+// Events defined separately in EventCatalog
+EventCatalog.Register(new BattleEventDefinition
+{
+    Id = "first_trial",
+    BiomeId = "summer_plains",
+    Difficulty = 1,
+    IsTutorial = true,
+    RequiresDeck = true,
+    // ...
+});
+```
+
+**Benefits:**
+- Full type safety at definition time
+- No GDScript→C# conversion on load
+- IDE refactoring support for event IDs
+
+**Files to Delete (after migration):**
+- `scripts/data/campaigns/summoners_path_data.gd`
+- `scripts/data/campaigns/test_arena_data.gd`
+
+**Files to Create:**
+- `scripts/csharp/Data/Campaigns/SummonersPathCampaign.cs`
+- `scripts/csharp/Data/Campaigns/TestArenaCampaign.cs`
+
+---
 
 #### Create Property Interop Helper for GDScript/C# Duck Typing
 **Status:** ⬜ Not Started

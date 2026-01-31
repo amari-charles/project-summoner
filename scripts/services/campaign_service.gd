@@ -4,7 +4,7 @@ extends Node
 ## CampaignService - Manages campaign progression and battle rewards (GDScript wrapper for C#)
 ##
 ## Tracks which battles have been completed and handles reward distribution.
-## Battle definitions are loaded from GDScript data files.
+## Campaign/event data is now defined in C# (EventCatalog, CampaignCatalog).
 ## Delegates to C# CampaignServiceCS for core operations.
 
 
@@ -30,9 +30,6 @@ var _cs_service: Node
 ## Deck constants (preloaded for class_name compatibility in headless mode)
 const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
 
-
-## Campaign metadata cache (for data that stays in GDScript)
-var _campaigns: Dictionary = {}
 
 ## =============================================================================
 ## LIFECYCLE
@@ -67,16 +64,12 @@ func _ready() -> void:
 	# Inject active summoner getter
 	_cs_service.SetActiveSummonerGetter(_get_active_summoner)
 
-	# Load campaigns from GDScript data files and pass to C#
-	_load_campaigns()
+	# Initialize campaign data from C# catalogs (EventCatalog, CampaignCatalog)
+	_cs_service.InitializeCatalogs()
 
 	# Load selected campaign from profile meta (default to first campaign)
 	var meta: Dictionary = profile_repo.get_profile_meta()
 	var selected_campaign: String = meta.get("selected_campaign", String(CampaignIDs.DEFAULT))
-
-	# Ensure selected campaign is valid
-	if not _campaigns.has(selected_campaign):
-		selected_campaign = String(CampaignIDs.DEFAULT)
 
 	_cs_service.SetCurrentCampaign(selected_campaign)
 
@@ -129,7 +122,10 @@ func init_for_testing(repo: IProfileRepo, collection: Node = null, cs_service_mo
 		if _cs_service.has_method("SetActiveSummonerGetter"):
 			_cs_service.SetActiveSummonerGetter(_get_active_summoner)
 
-	_load_campaigns(true)  # Skip validation in tests (no scene tree access)
+		# Initialize from C# catalogs
+		if _cs_service.has_method("InitializeCatalogs"):
+			_cs_service.InitializeCatalogs()
+
 	if _cs_service != null:
 		_cs_service.SetCurrentCampaign(String(CampaignIDs.DEFAULT))
 
@@ -202,219 +198,6 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 		_cs_service.NotifyProgressChanged()
 
 ## =============================================================================
-## CAMPAIGN LOADING (GDScript-specific)
-## =============================================================================
-
-## Load all campaigns from GDScript data files
-## Campaign data uses CardIDs constants for compile-time validation
-func _load_campaigns(skip_validation: bool = false) -> void:
-	_campaigns.clear()
-
-	# Load campaigns from GDScript data files (compile-time validated CardIDs)
-	var campaign_data_sources: Array[Callable] = [
-		SummonersPathData.get_campaign,
-		TestArenaData.get_campaign,
-	]
-
-	var campaigns_for_cs: Array[Dictionary] = []
-
-	for get_campaign: Callable in campaign_data_sources:
-		var campaign_data: Dictionary = get_campaign.call()
-		var campaign_id: String = String(campaign_data.get("campaign_id", ""))
-		if not campaign_id.is_empty():
-			# Convert campaign_id to String for consistency
-			campaign_data["campaign_id"] = campaign_id
-
-			# Convert unlock_requirements from StringName to String
-			var raw_reqs: Variant = campaign_data.get("unlock_requirements", [])
-			if raw_reqs is Array:
-				var string_reqs: Array[String] = []
-				for req: Variant in raw_reqs:
-					string_reqs.append(String(req))
-				campaign_data["unlock_requirements"] = string_reqs
-
-			# Process nodes (graph format)
-			_load_nodes_from_campaign(campaign_data)
-
-			_campaigns[campaign_id] = campaign_data
-			campaigns_for_cs.append(campaign_data)
-
-	print("CampaignService: Loaded %d campaigns" % _campaigns.size())
-
-	# Pass campaign data to C# service
-	if _cs_service != null:
-		_cs_service.LoadCampaignsFromGDScript(campaigns_for_cs)
-
-	# Validate all battle rewards exist in card catalog (skip in tests)
-	if not skip_validation:
-		_validate_battle_rewards()
-
-## Load nodes from a campaign data dictionary (graph format)
-## Creates a flattened 'battles' array that merges node metadata (id, type, position)
-## with node.data for convenient access via get_battle() API
-func _load_nodes_from_campaign(campaign_data: Dictionary) -> void:
-	var nodes_array: Variant = campaign_data.get("nodes", [])
-	if not nodes_array is Array:
-		return
-
-	# Create a flattened battles array for backwards compatibility
-	var battles: Array[Dictionary] = []
-
-	for node_variant: Variant in nodes_array:
-		if not node_variant is Dictionary:
-			continue
-		var node: Dictionary = node_variant
-		var node_id: String = String(node.get("id", ""))
-		if node_id.is_empty():
-			push_warning("CampaignService: Node missing 'id' field, skipping")
-			continue
-
-		# Convert StringName id to String for compatibility with UI code
-		node["id"] = node_id
-
-		# Convert type from StringName to String
-		if node.has("type"):
-			node["type"] = String(node.get("type", ""))
-
-		# Get the nested data dictionary and process it
-		var node_data: Variant = node.get("data", {})
-		if node_data is Dictionary:
-			var data: Dictionary = node_data
-
-			# Convert deck entries within data
-			_convert_deck_entries(data, "enemy_deck")
-			_convert_deck_entries(data, "dev_player_deck")
-			_convert_deck_entries(data, "reward_cards")
-			_convert_deck_entries(data, "reward_options")
-
-			# Convert localization keys to localized strings
-			var name_key: String = data.get("name_key", "")
-			var desc_key: String = data.get("description_key", "")
-			data["name"] = Loc.t(name_key) if not name_key.is_empty() else ""
-			data["description"] = Loc.t(desc_key) if not desc_key.is_empty() else ""
-
-			node["data"] = data
-
-			# Create a merged entry combining node metadata with node.data
-			var battle: Dictionary = data.duplicate()
-			battle["id"] = node_id
-			battle["type"] = node.get("type", "")
-			battle["position"] = node.get("position", Vector2.ZERO)
-			battle["event_type"] = _node_type_to_event_type(String(node.get("type", "")))
-			battles.append(battle)
-
-	# Process edges (convert StringName to String)
-	var edges_array: Variant = campaign_data.get("edges", [])
-	if edges_array is Array:
-		var processed_edges: Array[Dictionary] = []
-		for edge_variant: Variant in edges_array:
-			if not edge_variant is Dictionary:
-				continue
-			var edge: Dictionary = edge_variant
-			edge["from"] = String(edge.get("from", ""))
-			edge["to"] = String(edge.get("to", ""))
-			processed_edges.append(edge)
-		campaign_data["edges"] = processed_edges
-
-	# Store merged battles for get_battle() API access
-	campaign_data["battles"] = battles
-
-
-## Map node type to event type for UI type checking
-func _node_type_to_event_type(node_type: String) -> String:
-	match node_type:
-		"battle", "elite", "boss":
-			return "battle"
-		"caravan":
-			return "caravan"
-		"choice":
-			return "choice"
-		"rest":
-			return "rest"
-		"story":
-			return "story"
-		_:
-			return "battle"
-
-## Convert deck entry arrays to use String catalog_ids (from StringName constants)
-## Handles both dictionary entries (with catalog_id) and raw StringName IDs
-func _convert_deck_entries(battle: Dictionary, key: String) -> void:
-	if not battle.has(key):
-		return  # Don't create empty arrays for missing keys
-
-	var raw_deck: Variant = battle.get(key, [])
-	if not raw_deck is Array:
-		return
-
-	var converted: Array = []
-	for entry_variant: Variant in raw_deck:
-		if entry_variant is Dictionary:
-			var entry: Dictionary = entry_variant.duplicate()
-			# Convert catalog_id from StringName to String
-			var catalog_id: Variant = entry.get("catalog_id", "")
-			entry["catalog_id"] = String(catalog_id)
-			# Convert rarity if present (for reward_cards)
-			if entry.has("rarity"):
-				entry["rarity"] = String(entry.get("rarity", ""))
-			converted.append(entry)
-		elif entry_variant is StringName or entry_variant is String:
-			# Handle raw card IDs (e.g., reward_options: [CardIDs.CHARGE, ...])
-			converted.append(String(entry_variant))
-
-	battle[key] = converted
-
-## Validate that all reward cards in battle configs exist in the card catalog
-func _validate_battle_rewards() -> void:
-	var invalid_count: int = 0
-	for campaign_id: String in _campaigns.keys():
-		var campaign: Dictionary = _campaigns[campaign_id]
-		var battles: Array = campaign.get("battles", [])
-		for battle_variant: Variant in battles:
-			if not battle_variant is Dictionary:
-				continue
-			var battle: Dictionary = battle_variant
-			var battle_id: String = battle.get("id", "")
-
-			# Validate reward_cards (FIXED reward type)
-			var reward_cards: Array = battle.get("reward_cards", [])
-			for reward_variant: Variant in reward_cards:
-				if not reward_variant is Dictionary:
-					continue
-				var reward: Dictionary = reward_variant
-				var catalog_id: String = reward.get("catalog_id", "")
-
-				if catalog_id.is_empty():
-					continue
-
-				if not CardCatalog.has_card(catalog_id):
-					push_error("CampaignService: INVALID REWARD - Battle '%s' has reward card '%s' which doesn't exist in CardCatalog!" % [battle_id, catalog_id])
-					invalid_count += 1
-
-			# Validate reward_options (FLEXIBLE reward type)
-			var reward_options: Array = battle.get("reward_options", [])
-			for option_variant: Variant in reward_options:
-				var catalog_id: String = ""
-				if option_variant is String or option_variant is StringName:
-					catalog_id = String(option_variant)
-				elif option_variant is Dictionary:
-					catalog_id = option_variant.get("catalog_id", option_variant.get("id", ""))
-
-				if catalog_id.is_empty():
-					continue
-
-				if not CardCatalog.has_card(catalog_id):
-					push_error("CampaignService: INVALID REWARD_OPTION - Battle '%s' has reward option '%s' which doesn't exist in CardCatalog!" % [battle_id, catalog_id])
-					invalid_count += 1
-
-	if invalid_count > 0:
-		push_error("CampaignService: Found %d invalid reward card references! Fix these before shipping." % invalid_count)
-	else:
-		var total_battles: int = 0
-		for c: Dictionary in _campaigns.values():
-			total_battles += c.get("battles", []).size()
-		print("CampaignService: All %d battles validated - rewards are properly configured" % total_battles)
-
-## =============================================================================
 ## CAMPAIGN QUERIES (delegated to C#)
 ## =============================================================================
 
@@ -444,7 +227,7 @@ func set_current_campaign(campaign_id: String) -> bool:
 	if _cs_service == null:
 		return false
 
-	if not _campaigns.has(campaign_id):
+	if not _cs_service.HasCampaign(campaign_id):
 		push_warning("CampaignService: Invalid campaign ID: %s" % campaign_id)
 		return false
 
@@ -630,10 +413,11 @@ func get_tutorial_battles() -> Array[String]:
 
 ## Get nodes for the current campaign (graph format)
 func get_current_campaign_nodes() -> Array[Dictionary]:
-	var campaign_id: String = get_current_campaign_id()
-	if not _campaigns.has(campaign_id):
+	if _cs_service == null:
 		return []
-	var campaign: Dictionary = _campaigns[campaign_id]
+	var campaign: Dictionary = _cs_service.GetCampaign(get_current_campaign_id())
+	if campaign.is_empty():
+		return []
 	var nodes: Variant = campaign.get("nodes", [])
 	if not nodes is Array:
 		return []
@@ -643,10 +427,11 @@ func get_current_campaign_nodes() -> Array[Dictionary]:
 
 ## Get edges for the current campaign (graph format)
 func get_current_campaign_edges() -> Array[Dictionary]:
-	var campaign_id: String = get_current_campaign_id()
-	if not _campaigns.has(campaign_id):
+	if _cs_service == null:
 		return []
-	var campaign: Dictionary = _campaigns[campaign_id]
+	var campaign: Dictionary = _cs_service.GetCampaign(get_current_campaign_id())
+	if campaign.is_empty():
+		return []
 	var edges: Variant = campaign.get("edges", [])
 	if not edges is Array:
 		return []
@@ -656,10 +441,11 @@ func get_current_campaign_edges() -> Array[Dictionary]:
 
 ## Get the start node ID for the current campaign
 func get_current_campaign_start_node() -> String:
-	var campaign_id: String = get_current_campaign_id()
-	if not _campaigns.has(campaign_id):
+	if _cs_service == null:
 		return ""
-	var campaign: Dictionary = _campaigns[campaign_id]
+	var campaign: Dictionary = _cs_service.GetCampaign(get_current_campaign_id())
+	if campaign.is_empty():
+		return ""
 	return String(campaign.get("start_node", ""))
 
 ## =============================================================================

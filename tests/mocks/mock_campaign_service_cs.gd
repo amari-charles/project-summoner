@@ -5,6 +5,8 @@ class_name MockCampaignServiceCS
 ##
 ## GDScript implementation that mimics CampaignServiceCS behavior.
 ## Allows CampaignService unit tests to run without the C# autoload.
+##
+## This mock auto-initializes with battle data matching C# EventCatalog.
 
 ## Signals (match C# service)
 signal BattleCompleted(battle_id: String)
@@ -31,6 +33,119 @@ var _profile_repo: IProfileRepo
 var _calls: Dictionary = {}
 
 
+func _init() -> void:
+	_initialize_catalog_data()
+
+
+## =============================================================================
+## CATALOG DATA INITIALIZATION
+## =============================================================================
+
+## Initialize mock with battle data matching C# EventCatalog
+## This allows tests to work without the real C# service
+func _initialize_catalog_data() -> void:
+	# Summoner's Path campaign (matches C# CampaignCatalog)
+	var summoners_path: Dictionary = {
+		"campaign_id": String(CampaignIDs.SUMMONERS_PATH),
+		"name_key": "campaign.summoners_path.name",
+		"battles": [
+			_create_battle(String(BattleIDs.FIRST_TRIAL), true, 30, "charge"),
+			_create_battle(String(BattleIDs.SECOND_CHALLENGE), true, 40, "earth_sprite"),
+			_create_caravan(String(BattleIDs.CARAVAN_01)),
+			_create_battle(String(BattleIDs.THIRD_TRIAL), false, 50, "fire_wisp"),
+			_create_choice(String(BattleIDs.PATH_FORK)),
+			_create_battle(String(BattleIDs.ELITE_BATTLE_01), false, 80, "fire_wisp"),
+			_create_battle(String(BattleIDs.STANDARD_BATTLE_01), false, 50, "puff"),
+			_create_boss(String(BattleIDs.ACT1_BOSS), 100, "mana_bolt"),
+		],
+		"edges": [
+			{"from": String(BattleIDs.FIRST_TRIAL), "to": String(BattleIDs.SECOND_CHALLENGE)},
+			{"from": String(BattleIDs.SECOND_CHALLENGE), "to": String(BattleIDs.CARAVAN_01)},
+			{"from": String(BattleIDs.CARAVAN_01), "to": String(BattleIDs.THIRD_TRIAL)},
+			{"from": String(BattleIDs.THIRD_TRIAL), "to": String(BattleIDs.PATH_FORK)},
+			{"from": String(BattleIDs.PATH_FORK), "to": String(BattleIDs.ELITE_BATTLE_01), "condition": {"choice": "elite"}},
+			{"from": String(BattleIDs.PATH_FORK), "to": String(BattleIDs.STANDARD_BATTLE_01), "condition": {"choice": "standard"}},
+			{"from": String(BattleIDs.ELITE_BATTLE_01), "to": String(BattleIDs.ACT1_BOSS)},
+			{"from": String(BattleIDs.STANDARD_BATTLE_01), "to": String(BattleIDs.ACT1_BOSS)},
+		]
+	}
+
+	# Test Arena campaign (matches C# CampaignCatalog)
+	var test_arena: Dictionary = {
+		"campaign_id": String(CampaignIDs.TEST_ARENA),
+		"name_key": "campaign.test_arena.name",
+		"battles": [
+			_create_arena_battle(String(BattleIDs.ARENA_EARTH_SPRITE)),
+			_create_arena_battle(String(BattleIDs.ARENA_PUFF)),
+			_create_arena_battle(String(BattleIDs.ARENA_FIRE_WISP)),
+			_create_arena_battle(String(BattleIDs.ARENA_CLOUD_SWARM)),
+			_create_arena_battle(String(BattleIDs.ARENA_MANA_BOLT)),
+			_create_arena_battle(String(BattleIDs.DEBUG_ARENA)),
+		],
+		"edges": []  # Test Arena battles have no edges (all unlocked)
+	}
+
+	LoadCampaignsFromGDScript([summoners_path, test_arena])
+	SetCurrentCampaign(String(CampaignIDs.SUMMONERS_PATH))
+
+
+## Helper to create battle definition matching EventCatalog
+func _create_battle(id: String, is_tutorial: bool, gold: int, reward_card: String) -> Dictionary:
+	return {
+		"id": id,
+		"type": String(NodeTypeIDs.BATTLE),
+		"is_tutorial": is_tutorial,
+		"gold_reward": gold,
+		"reward_type": String(RewardTypeIDs.FLEXIBLE),
+		"reward_options": [reward_card, "fire_wisp", "puff"],
+		"player_selects": true,
+	}
+
+
+## Helper to create caravan event
+func _create_caravan(id: String) -> Dictionary:
+	return {
+		"id": id,
+		"type": String(NodeTypeIDs.CARAVAN),
+		"gold_reward": 0,
+	}
+
+
+## Helper to create choice event
+func _create_choice(id: String) -> Dictionary:
+	return {
+		"id": id,
+		"type": String(NodeTypeIDs.CHOICE),
+		"options": [
+			{"id": "elite", "label_key": "campaign.path.elite.label"},
+			{"id": "standard", "label_key": "campaign.path.standard.label"},
+		]
+	}
+
+
+## Helper to create boss battle with fixed reward
+func _create_boss(id: String, gold: int, reward_card: String) -> Dictionary:
+	return {
+		"id": id,
+		"type": String(NodeTypeIDs.BOSS),
+		"gold_reward": gold,
+		"reward_type": String(RewardTypeIDs.FIXED),
+		"reward_cards": [{"catalog_id": reward_card, "rarity": "rare", "count": 1}],
+	}
+
+
+## Helper to create test arena battle (no rewards, repeatable)
+func _create_arena_battle(id: String) -> Dictionary:
+	return {
+		"id": id,
+		"type": String(NodeTypeIDs.BATTLE),
+		"is_tutorial": false,
+		"gold_reward": 0,
+		"reward_type": String(RewardTypeIDs.NONE),
+		"repeatable": true,
+	}
+
+
 ## =============================================================================
 ## TEST HELPERS
 ## =============================================================================
@@ -43,6 +158,7 @@ func reset() -> void:
 	_current_campaign_id = ""
 	_pending_reward = {}
 	_calls = {}
+	_initialize_catalog_data()  # Re-initialize with catalog data
 
 
 func get_call_count(method_name: String) -> int:
@@ -192,6 +308,10 @@ func IsCampaignUnlocked(campaign_id: String) -> bool:
 			return false
 
 	return true
+
+
+func HasCampaign(campaign_id: String) -> bool:
+	return _campaigns.has(campaign_id)
 
 
 func _is_campaign_completed(campaign_id: String) -> bool:

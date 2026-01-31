@@ -176,6 +176,36 @@ hp_service.create_bar_for_unit(unit, null)
 
 This is a Godot limitation with C# nullable reference types.
 
+### When to Use C# vs GDScript
+
+**Use C# for:**
+- **Core game systems** - Combat, targeting, projectiles, units, stats
+- **Performance-critical code** - Anything running in `_PhysicsProcess` for many objects
+- **Interfaces and capabilities** - `IDamageable`, `IRangedAttacker`, etc.
+- **Typed domain objects** - Data structures with fixed schemas (configs, DTOs)
+- **Services** - Game services that manage state or coordinate systems
+- **Complex algorithms** - Pathfinding, spatial queries, damage calculations
+
+**Use GDScript for:**
+- **UI components and screens** - Menus, HUD, dialogs, panels
+- **Scene scripts** - Autoloads, controllers, scene-specific logic
+- **High-level orchestration** - Game flow, state machines, event handling
+- **Editor tooling** - `@tool` scripts, custom inspectors
+
+**Migration direction:** When refactoring flag-based GDScript configs into typed structures, prefer migrating to C#. This gives type safety, better IDE support, and aligns with the codebase direction.
+
+**Example:** Event/battle configuration dictionaries should become C# classes:
+```csharp
+// scripts/csharp/Data/BattleEventConfig.cs
+public class BattleEventConfig
+{
+    public string BiomeId { get; set; }
+    public int Difficulty { get; set; }
+    public bool IsTutorial { get; set; }
+    public List<string> EnemyDeck { get; set; }
+}
+```
+
 ### Git Workflow
 **ALWAYS use feature branches and PRs for non-trivial changes.**
 

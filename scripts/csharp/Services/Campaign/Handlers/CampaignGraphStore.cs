@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Events;
 using ProjectSummoner.Services.Campaign.Models;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
 /// <summary>
-/// Shared data store for campaign graph data loaded from GDScript.
+/// Shared data store for campaign graph data.
 /// Manages campaign graphs and tracks node completion state.
+/// Now loads from C# CampaignCatalog instead of GDScript.
 /// </summary>
 public class CampaignGraphStore
 {
@@ -30,17 +32,16 @@ public class CampaignGraphStore
     // =========================================================================
 
     /// <summary>
-    /// Load campaign graphs from GDScript data.
-    /// Each campaign dictionary should have the graph format:
-    /// { campaign_id, name_key, start_node, nodes: [...], edges: [...] }
+    /// Initialize campaign graphs from C# CampaignCatalog.
+    /// This is the new preferred initialization method.
     /// </summary>
-    public void LoadGraphsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+    public void InitializeFromCatalog()
     {
         Graphs.Clear();
 
-        foreach (var campaignDict in campaigns)
+        foreach (var campaign in CampaignCatalog.GetAllCampaigns())
         {
-            var graph = CampaignGraph.FromDictionary(campaignDict);
+            var graph = CampaignGraph.FromCampaignDefinition(campaign);
             if (!string.IsNullOrEmpty(graph.CampaignId))
             {
                 Graphs[graph.CampaignId] = graph;
@@ -48,7 +49,17 @@ public class CampaignGraphStore
             }
         }
 
-        GD.Print($"CampaignGraphStore: Loaded {Graphs.Count} campaign graphs");
+        GD.Print($"CampaignGraphStore: Initialized {Graphs.Count} campaign graphs from C# catalogs");
+    }
+
+    /// <summary>
+    /// Load campaign graphs from GDScript data (legacy, now uses C# catalogs).
+    /// </summary>
+    [System.Obsolete("Use InitializeFromCatalog() instead. GDScript campaign data is no longer used.")]
+    public void LoadGraphsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+    {
+        // Ignore GDScript data - use C# catalogs
+        InitializeFromCatalog();
     }
 
     /// <summary>
