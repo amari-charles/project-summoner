@@ -49,7 +49,7 @@ func _initialize_catalog_data() -> void:
 		"campaign_id": String(CampaignIDs.SUMMONERS_PATH),
 		"name_key": "campaign.summoners_path.name",
 		"battles": [
-			_create_battle(String(BattleIDs.FIRST_TRIAL), true, 30, "charge"),
+			_create_battle(String(BattleIDs.FIRST_TRIAL), true, 30, "fire_wisp"),
 			_create_battle(String(BattleIDs.SECOND_CHALLENGE), true, 40, "earth_sprite"),
 			_create_caravan(String(BattleIDs.CARAVAN_01)),
 			_create_battle(String(BattleIDs.THIRD_TRIAL), false, 50, "fire_wisp"),

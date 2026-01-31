@@ -46,7 +46,8 @@ public static class CardCatalog
             SpellCategory = SpellCategory.Damage,
             SpellTargeting = SpellTargeting.AreaOfEffect,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Fire
+            ElementalAffinity = Element.Fire,
+            Flags = CardFlags.Archived
         },
 
         ["rally"] = new CardDefinition
@@ -64,7 +65,8 @@ public static class CardCatalog
             SpellCategory = SpellCategory.Command,
             SpellTargeting = SpellTargeting.SelectionRadius,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Neutral
+            ElementalAffinity = Element.Neutral,
+            Flags = CardFlags.Archived
         },
 
         ["guard"] = new CardDefinition
@@ -83,7 +85,8 @@ public static class CardCatalog
             SpellCategory = SpellCategory.Command,
             SpellTargeting = SpellTargeting.SelectionRadius,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Neutral
+            ElementalAffinity = Element.Neutral,
+            Flags = CardFlags.Archived
         },
 
         ["charge"] = new CardDefinition
@@ -101,7 +104,8 @@ public static class CardCatalog
             SpellCategory = SpellCategory.Command,
             SpellTargeting = SpellTargeting.SelectionRadius,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Neutral
+            ElementalAffinity = Element.Neutral,
+            Flags = CardFlags.Archived
         },
 
         ["mana_bolt"] = new CardDefinition
@@ -322,7 +326,8 @@ public static class CardCatalog
             Roles = SummonRole.Swarm,
             VisualTraits = VisualTrait.UsesWispVisuals,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Fire
+            ElementalAffinity = Element.Fire,
+            Flags = CardFlags.Archived
         },
 
         // =====================================================================
@@ -368,7 +373,8 @@ public static class CardCatalog
             CreatureTypes = CreatureType.Insect,
             Roles = SummonRole.Fast,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Fire
+            ElementalAffinity = Element.Fire,
+            Flags = CardFlags.Archived
         },
 
         ["fire_ant_swarm"] = new CardDefinition
@@ -389,7 +395,8 @@ public static class CardCatalog
             CreatureTypes = CreatureType.Insect,
             Roles = SummonRole.Fast | SummonRole.Swarm,
             UnlockCondition = UnlockCondition.Default,
-            ElementalAffinity = Element.Fire
+            ElementalAffinity = Element.Fire,
+            Flags = CardFlags.Archived
         },
 
         // =====================================================================
@@ -432,7 +439,7 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             Roles = SummonRole.Stationary,
-            Flags = CardFlags.DevOnly | CardFlags.Dummy,
+            Flags = CardFlags.DevOnly | CardFlags.Dummy | CardFlags.Archived,
             UnlockCondition = UnlockCondition.DevOnly,
             ElementalAffinity = Element.Earth
         },
