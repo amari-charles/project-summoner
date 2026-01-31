@@ -32,10 +32,8 @@ The campaign system underwent a major architectural shift from a linear progress
 ### Data Flow
 
 ```
-GDScript Data Files (summoners_path_data.gd)
-    ↓ _load_campaigns()
-Campaign Service (GDScript wrapper)
-    ↓ LoadCampaignsFromGDScript()
+C# Catalogs (EventCatalog, CampaignCatalog)
+    ↓ InitializeCatalogs()
 CampaignService (C# facade)
     ├→ CampaignCatalogHandler (battle lookups)
     ├→ CampaignGraphStore (graph models)

@@ -83,25 +83,6 @@ var campaign_banner: Button = null
 var campaign_selector_modal: CampaignSelectorModal = null
 
 ## =============================================================================
-## TYPE HELPERS
-## =============================================================================
-
-func _safe_string(variant: Variant, default: String = "") -> String:
-	return variant if variant is String else default
-
-func _safe_int(variant: Variant, default: int = 0) -> int:
-	return variant if variant is int else default
-
-func _safe_dict(variant: Variant) -> Dictionary:
-	return variant if variant is Dictionary else {}
-
-func _safe_array(variant: Variant) -> Array:
-	return variant if variant is Array else []
-
-func _safe_bool(variant: Variant, default: bool = false) -> bool:
-	return variant if variant is bool else default
-
-## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
@@ -155,8 +136,8 @@ func _draw() -> void:
 
 ## Get the color for an edge based on completion state
 func _get_edge_color(from_id: String, to_id: String, edge: Dictionary) -> Color:
-	var from_completed: bool = _safe_bool(Campaign.is_battle_completed(from_id))
-	var to_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(to_id))
+	var from_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(from_id))
+	var to_unlocked: bool = SafeTypeUtils.bool_val(Campaign.is_battle_unlocked(to_id))
 
 	# Check if edge has a condition (choice edges)
 	var condition: Variant = edge.get("condition")
@@ -197,12 +178,12 @@ func _does_choice_match_condition(source_node_id: String, condition: Dictionary)
 	if condition.has("choice"):
 		# Shorthand format
 		condition_type = "choice"
-		required_value = _safe_string(condition.get("choice"))
+		required_value = SafeTypeUtils.string(condition.get("choice"))
 	elif condition.has("type"):
 		# Full format
-		condition_type = _safe_string(condition.get("type"))
-		required_value = _safe_string(condition.get("value"))
-		var explicit_node: String = _safe_string(condition.get("node_id"))
+		condition_type = SafeTypeUtils.string(condition.get("type"))
+		required_value = SafeTypeUtils.string(condition.get("value"))
+		var explicit_node: String = SafeTypeUtils.string(condition.get("node_id"))
 		if not explicit_node.is_empty():
 			choice_node_id = explicit_node
 
@@ -256,11 +237,11 @@ func _refresh_map() -> void:
 
 	# Load graph data from campaign service
 	var nodes_variant: Variant = Campaign.get_current_campaign_nodes()
-	var nodes_array: Array = _safe_array(nodes_variant)
+	var nodes_array: Array = SafeTypeUtils.array(nodes_variant)
 	graph_nodes.assign(nodes_array)
 
 	var edges_variant: Variant = Campaign.get_current_campaign_edges()
-	var edges_array: Array = _safe_array(edges_variant)
+	var edges_array: Array = SafeTypeUtils.array(edges_variant)
 	graph_edges.assign(edges_array)
 
 	print("CampaignMap: Loaded %d nodes, %d edges from graph data" % [graph_nodes.size(), graph_edges.size()])
@@ -268,7 +249,7 @@ func _refresh_map() -> void:
 	# Build a lookup for node positions (needed for edge drawing)
 	var node_positions: Dictionary = {}  # node_id -> Vector2
 	for node: Dictionary in graph_nodes:
-		var node_id: String = _safe_string(node.get("id", ""))
+		var node_id: String = SafeTypeUtils.string(node.get("id", ""))
 		if node_id.is_empty():
 			continue
 		var raw_position: Variant = node.get("position", Vector2.ZERO)
@@ -299,13 +280,13 @@ func _refresh_map() -> void:
 
 	# Create nodes from graph data (using positions from data)
 	for node: Dictionary in graph_nodes:
-		var node_id: String = _safe_string(node.get("id", ""))
+		var node_id: String = SafeTypeUtils.string(node.get("id", ""))
 		if node_id.is_empty():
 			push_warning("CampaignMap: Node missing 'id', skipping")
 			continue
 
-		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(node_id))
-		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(node_id))
+		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(node_id))
+		var is_unlocked: bool = SafeTypeUtils.bool_val(Campaign.is_battle_unlocked(node_id))
 
 		var event_node: Control = _create_graph_node(node, is_unlocked, is_completed)
 		map_container.add_child(event_node)
@@ -338,8 +319,8 @@ func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: 
 
 	node_container.position = node_position
 
-	var node_id: String = _safe_string(node_data.get("id", ""))
-	var node_type: String = _safe_string(node_data.get("type", ""))
+	var node_id: String = SafeTypeUtils.string(node_data.get("id", ""))
+	var node_type: String = SafeTypeUtils.string(node_data.get("type", ""))
 
 	# Load the round button texture
 	var node_texture: Texture2D = load(EVENT_NODE_TEXTURE)
@@ -489,7 +470,7 @@ func _setup_detail_panel_border() -> void:
 
 ## Show the appropriate detail panel for an event
 func _show_detail_panel_for_event(event_id: String) -> void:
-	var event: Dictionary = _safe_dict(Campaign.get_battle(event_id))
+	var event: Dictionary = SafeTypeUtils.dict(Campaign.get_battle(event_id))
 	if event.is_empty():
 		return
 
@@ -534,7 +515,7 @@ func _on_panel_start_requested() -> void:
 	if selected_event_id == "":
 		return
 
-	var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+	var event: Dictionary = SafeTypeUtils.dict(Campaign.get_battle(selected_event_id))
 	if event.is_empty():
 		return
 
@@ -557,8 +538,8 @@ func _on_panel_start_requested() -> void:
 		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
 		# Check if event is already completed and not repeatable
-		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(selected_event_id), false)
-		var is_repeatable: bool = _safe_bool(event.get("repeatable", false), false)
+		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(selected_event_id), false)
+		var is_repeatable: bool = SafeTypeUtils.bool_val(event.get("repeatable", false), false)
 
 		if is_completed and not is_repeatable:
 			push_warning("CampaignMap: Cannot start event '%s' - already completed and not repeatable" % selected_event_id)
@@ -576,11 +557,11 @@ func _on_panel_start_requested() -> void:
 	print("CampaignMap: Starting battle event: %s" % selected_event_id)
 
 	# Store selected event in campaign service
-	var profile: Dictionary = _safe_dict(ProfileRepo.get_active_profile())
+	var profile: Dictionary = SafeTypeUtils.dict(ProfileRepo.get_active_profile())
 	if not profile.is_empty():
 		if not profile.has("campaign_progress"):
 			profile["campaign_progress"] = {}
-		var campaign_progress: Dictionary = _safe_dict(profile["campaign_progress"])
+		var campaign_progress: Dictionary = SafeTypeUtils.dict(profile["campaign_progress"])
 		campaign_progress["current_battle"] = selected_event_id
 		ProfileRepo.save_profile(true)
 
@@ -636,9 +617,9 @@ func _find_latest_unlocked_mission() -> String:
 	var best_x: float = -1.0
 
 	for node: Dictionary in graph_nodes:
-		var node_id: String = _safe_string(node.get("id", ""))
-		var is_completed: bool = _safe_bool(Campaign.is_battle_completed(node_id))
-		var is_unlocked: bool = _safe_bool(Campaign.is_battle_unlocked(node_id))
+		var node_id: String = SafeTypeUtils.string(node.get("id", ""))
+		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(node_id))
+		var is_unlocked: bool = SafeTypeUtils.bool_val(Campaign.is_battle_unlocked(node_id))
 
 		if is_unlocked and not is_completed:
 			var pos: Variant = node.get("position", Vector2.ZERO)
@@ -657,7 +638,7 @@ func _find_latest_unlocked_mission() -> String:
 		var x_pos: float = pos.x if pos is Vector2 else 0.0
 		if x_pos > best_x:
 			best_x = x_pos
-			best_node_id = _safe_string(node.get("id", ""))
+			best_node_id = SafeTypeUtils.string(node.get("id", ""))
 
 	return best_node_id
 
@@ -897,7 +878,7 @@ func _on_event_completed(_event_id: String) -> void:
 	_refresh_map()
 	# Refresh the active panel if visible
 	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
-		var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+		var event: Dictionary = SafeTypeUtils.dict(Campaign.get_battle(selected_event_id))
 		if not event.is_empty():
 			active_panel.configure(event, selected_event_id)
 
@@ -909,7 +890,7 @@ func _on_progress_changed() -> void:
 		summoner_icon.refresh()
 	# Refresh the active panel if visible
 	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
-		var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+		var event: Dictionary = SafeTypeUtils.dict(Campaign.get_battle(selected_event_id))
 		if not event.is_empty():
 			active_panel.configure(event, selected_event_id)
 
@@ -920,6 +901,6 @@ func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: 
 	_refresh_map()
 	# Refresh the active panel if visible
 	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
-		var event: Dictionary = _safe_dict(Campaign.get_battle(selected_event_id))
+		var event: Dictionary = SafeTypeUtils.dict(Campaign.get_battle(selected_event_id))
 		if not event.is_empty():
 			active_panel.configure(event, selected_event_id)

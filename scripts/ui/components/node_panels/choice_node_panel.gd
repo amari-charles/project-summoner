@@ -41,9 +41,9 @@ func _configure_impl() -> void:
 		if not option_variant is Dictionary:
 			continue
 		var option: Dictionary = option_variant
-		var option_id: String = _safe_string(option.get("id", ""))
-		var label_key: String = _safe_string(option.get("label_key", ""))
-		var desc_key: String = _safe_string(option.get("description_key", ""))
+		var option_id: String = SafeTypeUtils.string(option.get("id", ""))
+		var label_key: String = SafeTypeUtils.string(option.get("label_key", ""))
+		var desc_key: String = SafeTypeUtils.string(option.get("description_key", ""))
 
 		var label_text: String = Loc.t(label_key) if not label_key.is_empty() else option_id
 		var desc_text: String = Loc.t(desc_key) if not desc_key.is_empty() else ""

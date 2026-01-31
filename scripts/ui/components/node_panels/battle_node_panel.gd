@@ -128,9 +128,9 @@ func _update_reward_display() -> void:
 			if reward_cards.size() > 0:
 				var card_names: Array[String] = []
 				for reward_item: Variant in reward_cards:
-					var reward: Dictionary = _safe_dict(reward_item)
-					var count: int = _safe_int(reward.get("count", 1), 1)
-					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
+					var reward: Dictionary = SafeTypeUtils.dict(reward_item)
+					var count: int = SafeTypeUtils.int_val(reward.get("count", 1), 1)
+					var catalog_id: String = SafeTypeUtils.string(reward.get("catalog_id", ""))
 					var card_name: String = _get_card_display_name(catalog, catalog_id)
 					if count > 1:
 						card_names.append("%dx %s" % [count, card_name])
@@ -165,10 +165,10 @@ func _load_decks() -> void:
 	var decks_array: Array
 	if not active_summoner_id.is_empty():
 		var decks_variant: Variant = Decks.list_decks_for_summoner(active_summoner_id)
-		decks_array = _safe_array(decks_variant)
+		decks_array = SafeTypeUtils.array(decks_variant)
 	else:
 		var decks_variant: Variant = Decks.list_decks()
-		decks_array = _safe_array(decks_variant)
+		decks_array = SafeTypeUtils.array(decks_variant)
 	available_decks.assign(decks_array)
 
 	if available_decks.is_empty():
@@ -182,21 +182,21 @@ func _load_decks() -> void:
 
 	# Populate ItemList with deck names
 	for deck: Dictionary in available_decks:
-		var deck_name: String = _safe_string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
+		var deck_name: String = SafeTypeUtils.string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
 		deck_selector.add_item(deck_name)
 
 	# Get currently selected deck from profile
 	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = _safe_dict(profile_variant)
+	var profile: Dictionary = SafeTypeUtils.dict(profile_variant)
 	var found_deck: bool = false
 	if not profile.is_empty() and profile.has("meta"):
-		var meta: Dictionary = _safe_dict(profile.get("meta"))
-		var active_deck: String = _safe_string(meta.get("selected_deck", ""))
+		var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
+		var active_deck: String = SafeTypeUtils.string(meta.get("selected_deck", ""))
 
 		# Find the deck in available_decks and select it
 		for i: int in range(available_decks.size()):
 			var deck: Dictionary = available_decks[i]
-			var deck_id: String = _safe_string(deck.get("id", ""))
+			var deck_id: String = SafeTypeUtils.string(deck.get("id", ""))
 			if deck_id == active_deck:
 				deck_selector.select(i)
 				selected_deck_id = deck_id
@@ -206,7 +206,7 @@ func _load_decks() -> void:
 	# Auto-select first deck if none selected
 	if not found_deck and available_decks.size() > 0:
 		var first_deck: Dictionary = available_decks[0]
-		selected_deck_id = _safe_string(first_deck.get("id", ""))
+		selected_deck_id = SafeTypeUtils.string(first_deck.get("id", ""))
 		deck_selector.select(0)
 		_save_deck_selection()
 
@@ -218,7 +218,7 @@ func _on_deck_selected(index: int) -> void:
 		return
 
 	var deck: Dictionary = available_decks[index]
-	selected_deck_id = _safe_string(deck.get("id", ""))
+	selected_deck_id = SafeTypeUtils.string(deck.get("id", ""))
 
 	_save_deck_selection()
 	_update_deck_info()
@@ -243,11 +243,11 @@ func _on_change_deck_pressed() -> void:
 
 func _save_deck_selection() -> void:
 	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = _safe_dict(profile_variant)
+	var profile: Dictionary = SafeTypeUtils.dict(profile_variant)
 	if not profile.is_empty():
 		if not profile.has("meta"):
 			profile["meta"] = {}
-		var meta: Dictionary = _safe_dict(profile.get("meta"))
+		var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
 		meta["selected_deck"] = selected_deck_id
 		ProfileRepo.save_profile(true)
 
@@ -262,7 +262,7 @@ func _update_deck_info() -> void:
 	# Find the selected deck
 	var selected_deck: Dictionary = {}
 	for deck: Dictionary in available_decks:
-		if _safe_string(deck.get("id", "")) == selected_deck_id:
+		if SafeTypeUtils.string(deck.get("id", "")) == selected_deck_id:
 			selected_deck = deck
 			break
 
@@ -273,11 +273,11 @@ func _update_deck_info() -> void:
 		return
 
 	# Show deck name
-	var deck_name: String = _safe_string(selected_deck.get("name", "Unnamed Deck"), "Unnamed Deck")
+	var deck_name: String = SafeTypeUtils.string(selected_deck.get("name", "Unnamed Deck"), "Unnamed Deck")
 	active_deck_label.text = deck_name
 
 	# Show card count
-	var card_instance_ids: Array = _safe_array(selected_deck.get("card_instance_ids", []))
+	var card_instance_ids: Array = SafeTypeUtils.array(selected_deck.get("card_instance_ids", []))
 	var card_count: int = card_instance_ids.size()
 	deck_info_label.text = Loc.t("campaign.map.deck_card_count", {"count": card_count})
 
@@ -295,7 +295,7 @@ func _validate_selected_deck() -> bool:
 	if selected_deck_id.is_empty():
 		return false
 	var is_valid_variant: Variant = Decks.validate_deck(selected_deck_id)
-	return _safe_bool(is_valid_variant, false)
+	return SafeTypeUtils.bool_val(is_valid_variant, false)
 
 
 ## =============================================================================

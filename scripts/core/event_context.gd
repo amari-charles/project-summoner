@@ -26,6 +26,14 @@ var event_config: Dictionary = {}
 var return_scene: String = ""
 var is_event_complete: bool = false
 
+## Typed event accessor for event_config
+## Provides type-safe access to event properties
+var event: TypedEventData:
+	get:
+		if event_config.is_empty():
+			return TypedEventData.new({}, "")
+		return TypedEventData.new(event_config, current_event_id)
+
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
@@ -78,8 +86,8 @@ func complete_event() -> void:
 		push_warning("EventContext: Event '%s' already marked complete" % current_event_id)
 		return
 
-	# Check if event is repeatable
-	var repeatable: bool = event_config.get("repeatable", false)
+	# Check if event is repeatable (use typed accessor)
+	var repeatable: bool = event.repeatable
 
 	# Mark complete in Campaign service (only if not repeatable)
 	if not repeatable:

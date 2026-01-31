@@ -25,12 +25,18 @@ var id: String = ""
 # =============================================================================
 
 ## Event display name (localized)
+## C# outputs name_key (localization key), we translate it here
 var name: String:
-	get: return _str("name", "Unknown")
+	get:
+		var key: String = _str("name_key", "")
+		return Loc.t(key) if not key.is_empty() else "Unknown"
 
 ## Event description (localized)
+## C# outputs description_key (localization key), we translate it here
 var description: String:
-	get: return _str("description", "")
+	get:
+		var key: String = _str("description_key", "")
+		return Loc.t(key) if not key.is_empty() else ""
 
 ## Event type ID (battle, caravan, choice, etc.)
 var event_type: StringName:
