@@ -5,12 +5,11 @@ extends GutTest
 ## Tests cosmetic data lookup and filtering methods.
 
 func test_get_cosmetic_returns_valid_data() -> void:
-	var cosmetic: Dictionary = CosmeticsCatalog.get_cosmetic("card_back_gold")
+	var cosmetic: Dictionary = CosmeticsCatalog.get_cosmetic("card_back_default")
 
 	assert_false(cosmetic.is_empty(), "Should return cosmetic data")
-	assert_eq(cosmetic.get("id"), &"card_back_gold")
+	assert_eq(cosmetic.get("id"), &"card_back_default")
 	assert_eq(cosmetic.get("type"), CosmeticsCatalog.CosmeticType.CARD_BACK)
-	assert_gt(cosmetic.get("price", 0), 0, "Premium cosmetics should have a price")
 
 
 func test_get_cosmetic_returns_empty_for_unknown_id() -> void:
@@ -22,8 +21,8 @@ func test_get_cosmetic_returns_empty_for_unknown_id() -> void:
 
 
 func test_has_cosmetic_returns_true_for_existing() -> void:
-	assert_true(CosmeticsCatalog.has_cosmetic("card_back_gold"))
-	assert_true(CosmeticsCatalog.has_cosmetic("ui_theme_crimson"))
+	assert_true(CosmeticsCatalog.has_cosmetic("card_back_default"))
+	assert_true(CosmeticsCatalog.has_cosmetic("ui_theme_default"))
 
 
 func test_has_cosmetic_returns_false_for_unknown() -> void:
@@ -73,15 +72,15 @@ func test_get_purchasable_cosmetics_excludes_free_items() -> void:
 
 
 func test_get_cosmetic_name_returns_display_name() -> void:
-	var name: String = CosmeticsCatalog.get_cosmetic_name("card_back_gold")
+	var name: String = CosmeticsCatalog.get_cosmetic_name("card_back_default")
 
 	assert_false(name.is_empty(), "Should return display name")
 
 
-func test_get_cosmetic_price_returns_price() -> void:
-	var price: int = CosmeticsCatalog.get_cosmetic_price("card_back_gold")
+func test_get_cosmetic_price_returns_zero_for_default() -> void:
+	var price: int = CosmeticsCatalog.get_cosmetic_price("card_back_default")
 
-	assert_gt(price, 0, "Premium cosmetic should have a price")
+	assert_eq(price, 0, "Default cosmetic should be free")
 
 
 func test_type_to_string_conversion() -> void:

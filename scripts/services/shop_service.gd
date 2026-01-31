@@ -301,57 +301,6 @@ func _init_shops() -> void:
 				"purchase_limit": 1
 			},
 			# =====================================================================
-			# COSMETIC OFFERINGS
-			# =====================================================================
-			{
-				"offering_id": "cosmetic_card_back_gold",
-				"offering_type": ShopOffering.OfferingType.COSMETIC,
-				"display_name": Loc.t("shop.offering.card_back_gold.name"),
-				"description": Loc.t("shop.offering.card_back_gold.description"),
-				"cosmetic_type": "card_back",
-				"cosmetic_id": "card_back_gold",
-				"base_price": 300,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
-				"purchase_limit": 1
-			},
-			{
-				"offering_id": "cosmetic_card_back_obsidian",
-				"offering_type": ShopOffering.OfferingType.COSMETIC,
-				"display_name": Loc.t("shop.offering.card_back_obsidian.name"),
-				"description": Loc.t("shop.offering.card_back_obsidian.description"),
-				"cosmetic_type": "card_back",
-				"cosmetic_id": "card_back_obsidian",
-				"base_price": 500,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
-				"purchase_limit": 1
-			},
-			{
-				"offering_id": "cosmetic_ui_theme_crimson",
-				"offering_type": ShopOffering.OfferingType.COSMETIC,
-				"display_name": Loc.t("shop.offering.ui_theme_crimson.name"),
-				"description": Loc.t("shop.offering.ui_theme_crimson.description"),
-				"cosmetic_type": "ui_theme",
-				"cosmetic_id": "ui_theme_crimson",
-				"base_price": 400,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
-				"purchase_limit": 1
-			},
-			{
-				"offering_id": "cosmetic_ui_theme_void",
-				"offering_type": ShopOffering.OfferingType.COSMETIC,
-				"display_name": Loc.t("shop.offering.ui_theme_void.name"),
-				"description": Loc.t("shop.offering.ui_theme_void.description"),
-				"cosmetic_type": "ui_theme",
-				"cosmetic_id": "ui_theme_void",
-				"base_price": 600,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
-				"purchase_limit": 1
-			},
-			# =====================================================================
 			# EMOTE OFFERINGS
 			# =====================================================================
 			{

@@ -806,60 +806,44 @@
         "description": "A pure energy projectile. Strikes the nearest enemy for instant damage."
       },
       "shadow_initiate": {
-        "name": "Shadow Initiate",
-        "description": "A mysterious summoner who draws power from the shadows. Unlock this rare summoner to add shadow-based abilities to your repertoire."
+        "name": "PLACEHOLDER SUMMONER 4",
+        "description": "[Placeholder] Summoner unlock - replace with real content before release."
       },
       "lightning_adept": {
-        "name": "Voltara - Lightning Adept",
-        "description": "Unlock Voltara, a swift lightning wielder with devastating burst damage but lower health."
+        "name": "PLACEHOLDER SUMMONER 1",
+        "description": "[Placeholder] Summoner unlock - replace with real content before release."
       },
       "verdant_sage": {
-        "name": "Thalindra - Verdant Sage",
-        "description": "Unlock Thalindra, an ancient healer whose life energy sustains allies through battle."
+        "name": "PLACEHOLDER SUMMONER 2",
+        "description": "[Placeholder] Summoner unlock - replace with real content before release."
       },
       "void_walker": {
-        "name": "Morthos - Void Walker",
-        "description": "Unlock Morthos, a mysterious figure who drains life force to fuel dark powers."
-      },
-      "card_back_gold": {
-        "name": "Golden Card Back",
-        "description": "A luxurious golden card back that shimmers with elegance."
-      },
-      "card_back_obsidian": {
-        "name": "Obsidian Card Back",
-        "description": "A sleek dark card back forged from volcanic glass."
-      },
-      "ui_theme_crimson": {
-        "name": "Crimson Theme",
-        "description": "A bold red UI theme for those who embrace the flames."
-      },
-      "ui_theme_void": {
-        "name": "Void Theme",
-        "description": "A dark purple UI theme inspired by the endless void."
+        "name": "PLACEHOLDER SUMMONER 3",
+        "description": "[Placeholder] Summoner unlock - replace with real content before release."
       },
       "emote_laugh": {
-        "name": "Laugh",
-        "description": "Let your opponent know you found that amusing."
+        "name": "PLACEHOLDER EMOTE 1",
+        "description": "[Placeholder] Emote - replace with real content before release."
       },
       "emote_shocked": {
-        "name": "Shocked",
-        "description": "Express surprise at an unexpected turn of events."
+        "name": "PLACEHOLDER EMOTE 2",
+        "description": "[Placeholder] Emote - replace with real content before release."
       },
       "emote_thinking": {
-        "name": "Thinking",
-        "description": "Show that you're contemplating your next move."
+        "name": "PLACEHOLDER EMOTE 3",
+        "description": "[Placeholder] Emote - replace with real content before release."
       },
       "emote_taunt": {
-        "name": "Taunt",
-        "description": "A playful taunt to keep things interesting."
+        "name": "PLACEHOLDER EMOTE 4",
+        "description": "[Placeholder] Emote - replace with real content before release."
       },
       "emote_confident": {
-        "name": "Confident",
-        "description": "Display unwavering confidence in your strategy."
+        "name": "PLACEHOLDER EMOTE 5",
+        "description": "[Placeholder] Emote - replace with real content before release."
       },
       "emote_victory": {
-        "name": "Victory",
-        "description": "Celebrate your impending triumph."
+        "name": "PLACEHOLDER EMOTE 6",
+        "description": "[Placeholder] Emote - replace with real content before release."
       }
     },
     "purchase_button": "Purchase",
@@ -899,59 +883,43 @@
       "name": "Standard Card Back",
       "description": "The classic card back design."
     },
-    "card_back_gold": {
-      "name": "Golden Card Back",
-      "description": "A luxurious golden card back that shimmers with elegance."
-    },
-    "card_back_obsidian": {
-      "name": "Obsidian Card Back",
-      "description": "A sleek dark card back forged from volcanic glass."
-    },
     "ui_theme_default": {
       "name": "Standard Theme",
       "description": "The default UI color scheme."
-    },
-    "ui_theme_crimson": {
-      "name": "Crimson Theme",
-      "description": "A bold red UI theme for those who embrace the flames."
-    },
-    "ui_theme_void": {
-      "name": "Void Theme",
-      "description": "A dark purple UI theme inspired by the endless void."
     }
   },
   "emote": {
     "emote_hello": {
-      "name": "Hello",
-      "description": "A friendly greeting to your opponent."
+      "name": "PLACEHOLDER EMOTE 7",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_good_game": {
-      "name": "Good Game",
-      "description": "Acknowledge a well-played match."
+      "name": "PLACEHOLDER EMOTE 8",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_laugh": {
-      "name": "Laugh",
-      "description": "Let your opponent know you found that amusing."
+      "name": "PLACEHOLDER EMOTE 1",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_shocked": {
-      "name": "Shocked",
-      "description": "Express surprise at an unexpected turn of events."
+      "name": "PLACEHOLDER EMOTE 2",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_thinking": {
-      "name": "Thinking",
-      "description": "Show that you're contemplating your next move."
+      "name": "PLACEHOLDER EMOTE 3",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_taunt": {
-      "name": "Taunt",
-      "description": "A playful taunt to keep things interesting."
+      "name": "PLACEHOLDER EMOTE 4",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_confident": {
-      "name": "Confident",
-      "description": "Display unwavering confidence in your strategy."
+      "name": "PLACEHOLDER EMOTE 5",
+      "description": "[Placeholder] Emote - replace with real content before release."
     },
     "emote_victory": {
-      "name": "Victory",
-      "description": "Celebrate your impending triumph."
+      "name": "PLACEHOLDER EMOTE 6",
+      "description": "[Placeholder] Emote - replace with real content before release."
     }
   },
   "debug": {

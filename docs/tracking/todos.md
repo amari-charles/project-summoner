@@ -51,32 +51,6 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 
 ## Campaign Economy & Systems
 
-### 🔴 HIGH PRIORITY
-
-#### Rename Premium Store Placeholder Items to Clearly Indicate Placeholders
-**Status:** ⬜ Not Started
-**Category:** Content / Clarity
-**Effort:** Small
-
-**Description:**
-The Premium Store contains placeholder items with plausible-sounding names (e.g., "Laugh", "Shocked", "Crimson Theme"). These should be renamed to clearly indicate they are placeholders (e.g., "PLACEHOLDER EMOTE 1", "PLACEHOLDER THEME 1") to avoid confusion about what is real content vs temporary.
-
-**Current Problem:**
-- Items like "Laugh", "Shocked", "Golden Card Back" sound like real content
-- On future review, it's unclear which items are intentional vs placeholder
-- Risk of shipping placeholder content thinking it was finalized
-
-**Requirements:**
-- Rename all placeholder store items to include "PLACEHOLDER" prefix
-- Update localization entries accordingly
-- Apply same pattern to any other placeholder content
-
-**Related Files:**
-- `localization/data/en.json` - shop.offering entries
-- Premium store data/configuration
-
----
-
 ### 🟡 MEDIUM PRIORITY
 
 #### Type-safe domain objects for Dictionary<string, object>
