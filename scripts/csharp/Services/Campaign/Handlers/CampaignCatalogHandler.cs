@@ -55,17 +55,6 @@ public class CampaignCatalogHandler
         GD.Print($"CampaignCatalogHandler: Initialized {_store.Campaigns.Count} campaigns with {_store.Battles.Count} total events from C# catalogs");
     }
 
-    /// <summary>
-    /// Legacy method for GDScript compatibility.
-    /// Now ignores the GDScript data and uses C# catalogs instead.
-    /// </summary>
-    [System.Obsolete("Use Initialize() instead. GDScript campaign data is no longer used.")]
-    public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
-    {
-        // Ignore GDScript data - use C# catalogs
-        Initialize();
-    }
-
     private static string GetEventTypeForUI(EventType type) => type switch
     {
         EventType.Battle or EventType.Elite or EventType.Boss => "battle",

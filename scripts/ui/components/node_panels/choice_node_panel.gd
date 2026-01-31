@@ -22,18 +22,18 @@ const OPTION_SPACER_HEIGHT: float = 15.0
 
 
 func _configure_impl() -> void:
-	# Update labels
-	event_name_label.text = _safe_string(event_data.get("name", "Choose Your Path"), "Choose Your Path")
-	description_label.text = _safe_string(event_data.get("description", ""), "")
+	# Update labels using typed accessors
+	event_name_label.text = event.name if not event.name.is_empty() else "Choose Your Path"
+	description_label.text = event.description
 
 	# Clear previous options
 	for child: Node in options_container.get_children():
 		child.queue_free()
 
 	# Get options from event data
-	var options: Array = _safe_array(event_data.get("options", []))
+	var options: Array = event.options
 	if options.is_empty():
-		push_warning("ChoiceNodePanel: Choice event '%s' has no options" % event_id)
+		push_warning("ChoiceNodePanel: Choice event '%s' has no options" % event.id)
 		return
 
 	# Add option buttons
@@ -41,9 +41,9 @@ func _configure_impl() -> void:
 		if not option_variant is Dictionary:
 			continue
 		var option: Dictionary = option_variant
-		var option_id: String = _safe_string(option.get("id", ""))
-		var label_key: String = _safe_string(option.get("label_key", ""))
-		var desc_key: String = _safe_string(option.get("description_key", ""))
+		var option_id: String = SafeTypeUtils.string(option.get("id", ""))
+		var label_key: String = SafeTypeUtils.string(option.get("label_key", ""))
+		var desc_key: String = SafeTypeUtils.string(option.get("description_key", ""))
 
 		var label_text: String = Loc.t(label_key) if not label_key.is_empty() else option_id
 		var desc_text: String = Loc.t(desc_key) if not desc_key.is_empty() else ""

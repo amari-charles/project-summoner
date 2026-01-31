@@ -2,6 +2,9 @@ class_name EventTypeIDs
 
 ## Event Type ID Constants - Type-Safe Campaign Event References
 ##
+## Mirrors C# EventType enum in scripts/csharp/Data/Events/EventType.cs
+## Keep these in sync when adding new event types.
+##
 ## Use these constants instead of string literals when referencing event types in code.
 ## This provides compile-time validation and autocomplete support.
 ##
@@ -20,6 +23,12 @@ class_name EventTypeIDs
 ## Standard combat battle event
 const BATTLE: StringName = &"battle"
 
+## Elite battle with level caps and higher difficulty
+const ELITE: StringName = &"elite"
+
+## Major boss encounter
+const BOSS: StringName = &"boss"
+
 ## Summoner element affinity selection event (onboarding)
 const AFFINITY: StringName = &"affinity"
 
@@ -35,12 +44,18 @@ const CHOICE: StringName = &"choice"
 ## Generic onboarding event type
 const ONBOARDING: StringName = &"onboarding"
 
+## Rest/heal opportunity
+const REST: StringName = &"rest"
+
+## Story/narrative event (non-combat)
+const STORY: StringName = &"story"
+
 # ============================================================================
 # UTILITY
 # ============================================================================
 
 ## All event types
-const ALL_TYPES: Array[StringName] = [BATTLE, AFFINITY, FIRST_SUMMON, CARAVAN, CHOICE, ONBOARDING]
+const ALL_TYPES: Array[StringName] = [BATTLE, ELITE, BOSS, AFFINITY, FIRST_SUMMON, CARAVAN, CHOICE, ONBOARDING, REST, STORY]
 
 ## Default event type used as fallback
 const DEFAULT: StringName = BATTLE
@@ -56,4 +71,4 @@ static func is_onboarding(event_type: StringName) -> bool:
 
 ## Check if an event type requires combat
 static func is_combat(event_type: StringName) -> bool:
-	return event_type == BATTLE
+	return event_type in [BATTLE, ELITE, BOSS]

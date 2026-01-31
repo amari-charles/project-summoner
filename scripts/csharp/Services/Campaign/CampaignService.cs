@@ -147,14 +147,6 @@ public partial class CampaignService : Node
 		_graphStore?.InitializeFromCatalog();
 	}
 
-	/// <summary>Load campaign data from GDScript (legacy, now uses C# catalogs).</summary>
-	[Obsolete("Use InitializeCatalogs() instead. GDScript campaign data is no longer used.")]
-	public void LoadCampaignsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
-	{
-		// Ignore GDScript data - use C# catalogs
-		InitializeCatalogs();
-	}
-
 	/// <summary>Check if a campaign exists.</summary>
 	public bool HasCampaign(string campaignId)
 	{

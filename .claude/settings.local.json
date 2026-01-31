@@ -65,7 +65,8 @@
       "Bash(gdlint:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [],
     "ask": []

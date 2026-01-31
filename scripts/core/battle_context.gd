@@ -39,6 +39,17 @@ var battle_state: BattleState = BattleState.NONE
 ## Battle configuration (enemy deck, HP, AI, etc.)
 var battle_config: Dictionary = {}
 
+## The battle ID for the current configuration
+var _battle_id: String = ""
+
+## Typed event accessor for battle_config
+## Provides type-safe access to event properties
+var battle_event: TypedEventData:
+	get:
+		if battle_config.is_empty():
+			return TypedEventData.new({}, "")
+		return TypedEventData.new(battle_config, _battle_id)
+
 ## Biome ID for visual theme
 var biome_id: StringName = BiomeIDs.SUMMER_PLAINS
 
@@ -132,6 +143,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
 	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	_battle_id = battle_id
 
 	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
@@ -142,11 +154,11 @@ func configure_campaign_battle(battle_id: String) -> void:
 		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
 		push_error("BattleContext: This will cause enemy deck loading to fail")
 
-	biome_id = battle_config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
+	biome_id = StringName(battle_event.biome_id) if not battle_event.biome_id.is_empty() else BiomeIDs.SUMMER_PLAINS
 	completion_callback = _handle_campaign_completion
 
-	# Set level cap if configured
-	_level_cap = _get_level_cap_from_config(battle_config)
+	# Set level cap if configured (use typed accessor)
+	_level_cap = battle_event.level_cap
 	if _level_cap > 0:
 		print("BattleContext: Level cap set to %d" % _level_cap)
 
@@ -215,6 +227,7 @@ func is_configured() -> bool:
 ## Clear battle context
 func clear() -> void:
 	battle_config = {}
+	_battle_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = Callable()
 	was_configured = false
@@ -397,15 +410,6 @@ func get_effective_card_upgrades(upgrades: Array) -> Array:
 	return upgrades.slice(0, max_upgrades)
 
 
-## Get level cap from battle config (helper for configure methods)
-func _get_level_cap_from_config(config: Dictionary) -> int:
-	var level_cap_service: Node = get_node_or_null(CSharpAutoloads.LEVEL_CAP_SERVICE)
-	if level_cap_service:
-		return level_cap_service.GetLevelCap(config)
-	# Fallback if service not available
-	return config.get("level_cap", 0)
-
-
 ## =============================================================================
 ## DECK CARD XP
 ## =============================================================================
@@ -426,7 +430,7 @@ func get_deck_card_ids() -> Array[String]:
 ## Grant XP to all cards in the player's deck
 ## Called on battle victory
 func grant_xp_to_deck_cards() -> void:
-	var card_xp: int = battle_config.get("card_xp_reward", 0)
+	var card_xp: int = battle_event.card_xp_reward
 	if card_xp <= 0:
 		print("BattleContext: No card XP reward configured for this battle")
 		return
@@ -448,7 +452,7 @@ func grant_xp_to_deck_cards() -> void:
 ## Grant XP to the active summoner
 ## Called on battle victory
 func grant_xp_to_active_summoner() -> void:
-	var summoner_xp: int = battle_config.get("summoner_xp_reward", 0)
+	var summoner_xp: int = battle_event.summoner_xp_reward
 	if summoner_xp <= 0:
 		print("BattleContext: No summoner XP reward configured for this battle")
 		return

@@ -44,24 +44,17 @@ func _ready() -> void:
 
 
 func _configure_impl() -> void:
-	# Check if this event requires deck selection
-	var requires_deck: bool = _safe_bool(event_data.get("requires_deck", true), true)
-
 	# Show/hide deck selection based on event configuration
-	deck_column.visible = requires_deck
+	deck_column.visible = event.requires_deck
 
 	# Load available decks if required
-	if requires_deck:
+	if event.requires_deck:
 		_load_decks()
 
-	# Update labels
-	event_name_label.text = _safe_string(event_data.get("name", "Unknown"), "Unknown")
-
-	# Show difficulty for battles
-	var difficulty: int = _safe_int(event_data.get("difficulty", 0), 0)
-	_update_difficulty_stars(difficulty)
-
-	description_label.text = _safe_string(event_data.get("description", "No description."), "No description.")
+	# Update labels using typed accessors
+	event_name_label.text = event.name
+	_update_difficulty_stars(event.difficulty)
+	description_label.text = event.description if not event.description.is_empty() else "No description."
 
 	# Build reward text
 	_update_reward_display()
@@ -76,8 +69,7 @@ func get_event_type() -> StringName:
 
 
 func can_start() -> bool:
-	var requires_deck: bool = _safe_bool(event_data.get("requires_deck", true), true)
-	if not requires_deck:
+	if not event.requires_deck:
 		return true
 	return not selected_deck_id.is_empty() and _validate_selected_deck()
 
@@ -118,31 +110,27 @@ func _update_difficulty_stars(difficulty: int) -> void:
 ## =============================================================================
 
 func _update_reward_display() -> void:
-	var reward_type: StringName = StringName(event_data.get("reward_type", RewardTypeIDs.FIXED))
-	var reward_cards: Array = _safe_array(event_data.get("reward_cards", []))
-	var gold_reward: int = _safe_int(event_data.get("gold_reward", 0), 0)
-	var summoner_xp_reward: int = _safe_int(event_data.get("summoner_xp_reward", 0), 0)
-
 	var catalog: Node = CardCatalog
 	var reward_lines: Array[String] = []
 
 	# Gold reward
-	if gold_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": gold_reward}))
+	if event.gold_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": event.gold_reward}))
 
 	# Summoner XP reward
-	if summoner_xp_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": summoner_xp_reward}))
+	if event.summoner_xp_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": event.summoner_xp_reward}))
 
 	# Card reward based on type
-	match reward_type:
+	match event.reward_type:
 		RewardTypeIDs.FIXED:
+			var reward_cards: Array = event.reward_cards
 			if reward_cards.size() > 0:
 				var card_names: Array[String] = []
 				for reward_item: Variant in reward_cards:
-					var reward: Dictionary = _safe_dict(reward_item)
-					var count: int = _safe_int(reward.get("count", 1), 1)
-					var catalog_id: String = _safe_string(reward.get("catalog_id", ""))
+					var reward: Dictionary = SafeTypeUtils.dict(reward_item)
+					var count: int = SafeTypeUtils.int_val(reward.get("count", 1), 1)
+					var catalog_id: String = SafeTypeUtils.string(reward.get("catalog_id", ""))
 					var card_name: String = _get_card_display_name(catalog, catalog_id)
 					if count > 1:
 						card_names.append("%dx %s" % [count, card_name])
@@ -177,10 +165,10 @@ func _load_decks() -> void:
 	var decks_array: Array
 	if not active_summoner_id.is_empty():
 		var decks_variant: Variant = Decks.list_decks_for_summoner(active_summoner_id)
-		decks_array = _safe_array(decks_variant)
+		decks_array = SafeTypeUtils.array(decks_variant)
 	else:
 		var decks_variant: Variant = Decks.list_decks()
-		decks_array = _safe_array(decks_variant)
+		decks_array = SafeTypeUtils.array(decks_variant)
 	available_decks.assign(decks_array)
 
 	if available_decks.is_empty():
@@ -194,21 +182,21 @@ func _load_decks() -> void:
 
 	# Populate ItemList with deck names
 	for deck: Dictionary in available_decks:
-		var deck_name: String = _safe_string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
+		var deck_name: String = SafeTypeUtils.string(deck.get("name", "Unnamed Deck"), "Unnamed Deck")
 		deck_selector.add_item(deck_name)
 
 	# Get currently selected deck from profile
 	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = _safe_dict(profile_variant)
+	var profile: Dictionary = SafeTypeUtils.dict(profile_variant)
 	var found_deck: bool = false
 	if not profile.is_empty() and profile.has("meta"):
-		var meta: Dictionary = _safe_dict(profile.get("meta"))
-		var active_deck: String = _safe_string(meta.get("selected_deck", ""))
+		var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
+		var active_deck: String = SafeTypeUtils.string(meta.get("selected_deck", ""))
 
 		# Find the deck in available_decks and select it
 		for i: int in range(available_decks.size()):
 			var deck: Dictionary = available_decks[i]
-			var deck_id: String = _safe_string(deck.get("id", ""))
+			var deck_id: String = SafeTypeUtils.string(deck.get("id", ""))
 			if deck_id == active_deck:
 				deck_selector.select(i)
 				selected_deck_id = deck_id
@@ -218,7 +206,7 @@ func _load_decks() -> void:
 	# Auto-select first deck if none selected
 	if not found_deck and available_decks.size() > 0:
 		var first_deck: Dictionary = available_decks[0]
-		selected_deck_id = _safe_string(first_deck.get("id", ""))
+		selected_deck_id = SafeTypeUtils.string(first_deck.get("id", ""))
 		deck_selector.select(0)
 		_save_deck_selection()
 
@@ -230,7 +218,7 @@ func _on_deck_selected(index: int) -> void:
 		return
 
 	var deck: Dictionary = available_decks[index]
-	selected_deck_id = _safe_string(deck.get("id", ""))
+	selected_deck_id = SafeTypeUtils.string(deck.get("id", ""))
 
 	_save_deck_selection()
 	_update_deck_info()
@@ -254,14 +242,7 @@ func _on_change_deck_pressed() -> void:
 
 
 func _save_deck_selection() -> void:
-	var profile_variant: Variant = ProfileRepo.get_active_profile()
-	var profile: Dictionary = _safe_dict(profile_variant)
-	if not profile.is_empty():
-		if not profile.has("meta"):
-			profile["meta"] = {}
-		var meta: Dictionary = _safe_dict(profile.get("meta"))
-		meta["selected_deck"] = selected_deck_id
-		ProfileRepo.save_profile(true)
+	ProfileRepo.update_profile_meta({"selected_deck": selected_deck_id})
 
 
 func _update_deck_info() -> void:
@@ -274,7 +255,7 @@ func _update_deck_info() -> void:
 	# Find the selected deck
 	var selected_deck: Dictionary = {}
 	for deck: Dictionary in available_decks:
-		if _safe_string(deck.get("id", "")) == selected_deck_id:
+		if SafeTypeUtils.string(deck.get("id", "")) == selected_deck_id:
 			selected_deck = deck
 			break
 
@@ -285,11 +266,11 @@ func _update_deck_info() -> void:
 		return
 
 	# Show deck name
-	var deck_name: String = _safe_string(selected_deck.get("name", "Unnamed Deck"), "Unnamed Deck")
+	var deck_name: String = SafeTypeUtils.string(selected_deck.get("name", "Unnamed Deck"), "Unnamed Deck")
 	active_deck_label.text = deck_name
 
 	# Show card count
-	var card_instance_ids: Array = _safe_array(selected_deck.get("card_instance_ids", []))
+	var card_instance_ids: Array = SafeTypeUtils.array(selected_deck.get("card_instance_ids", []))
 	var card_count: int = card_instance_ids.size()
 	deck_info_label.text = Loc.t("campaign.map.deck_card_count", {"count": card_count})
 
@@ -307,7 +288,7 @@ func _validate_selected_deck() -> bool:
 	if selected_deck_id.is_empty():
 		return false
 	var is_valid_variant: Variant = Decks.validate_deck(selected_deck_id)
-	return _safe_bool(is_valid_variant, false)
+	return SafeTypeUtils.bool_val(is_valid_variant, false)
 
 
 ## =============================================================================
@@ -318,8 +299,7 @@ func _on_start_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 
 	# Validate deck if required
-	var requires_deck: bool = _safe_bool(event_data.get("requires_deck", true), true)
-	if requires_deck:
+	if event.requires_deck:
 		if selected_deck_id.is_empty():
 			active_deck_indicator.text = Loc.t("campaign.map.deck_status_select_first")
 			active_deck_indicator.modulate = Color(1.0, 0.3, 0.0)

@@ -85,7 +85,7 @@ func _initialize_catalog_data() -> void:
 		"edges": []  # Test Arena battles have no edges (all unlocked)
 	}
 
-	LoadCampaignsFromGDScript([summoners_path, test_arena])
+	_load_campaign_data([summoners_path, test_arena])
 	SetCurrentCampaign(String(CampaignIDs.SUMMONERS_PATH))
 
 
@@ -196,8 +196,15 @@ func SetActiveSummonerGetter(getter: Callable) -> void:
 ## CAMPAIGN LOADING
 ## =============================================================================
 
-func LoadCampaignsFromGDScript(campaigns_array: Array) -> void:
-	_record_call("LoadCampaignsFromGDScript", [campaigns_array])
+## Initialize catalogs (matches CampaignServiceCS.InitializeCatalogs())
+func InitializeCatalogs() -> void:
+	_record_call("InitializeCatalogs", [])
+	# Re-initialize from catalog data (already done in _init)
+	_initialize_catalog_data()
+
+
+## Internal helper to load campaign data into mock state
+func _load_campaign_data(campaigns_array: Array) -> void:
 	_campaigns.clear()
 	_battles.clear()
 
