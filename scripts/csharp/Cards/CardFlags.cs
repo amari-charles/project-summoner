@@ -14,5 +14,8 @@ public enum CardFlags
     DevOnly = 1 << 0,
 
     /// <summary>Dummy unit for testing - no AI or attacks.</summary>
-    Dummy = 1 << 1
+    Dummy = 1 << 1,
+
+    /// <summary>Archived card - kept for compatibility but excluded from pools and rewards.</summary>
+    Archived = 1 << 2
 }

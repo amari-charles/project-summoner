@@ -27,19 +27,19 @@ public static class RewardPoolCatalog
         [RewardPoolId.TutorialRewards] = new RewardPoolDefinition
         {
             PoolId = RewardPoolId.TutorialRewards,
-            ExplicitCardIds = ["charge", "guard", "rally", "fire_wisp", "earth_sprite", "puff"]
+            ExplicitCardIds = ["fire_wisp", "earth_sprite", "puff"]
         },
 
         [RewardPoolId.StarterRewards] = new RewardPoolDefinition
         {
             PoolId = RewardPoolId.StarterRewards,
-            ExplicitCardIds = ["fireball", "mana_bolt", "fire_ant", "water_frog", "cloud_swarm"]
+            ExplicitCardIds = ["mana_bolt", "water_frog", "cloud_swarm"]
         },
 
         [RewardPoolId.BossLoot] = new RewardPoolDefinition
         {
             PoolId = RewardPoolId.BossLoot,
-            ExplicitCardIds = ["fire_titan", "fire_ant_swarm", "fire_wisp_swarm"]
+            ExplicitCardIds = ["fire_titan"]
         },
 
         // =====================================================================
@@ -286,8 +286,8 @@ public static class RewardPoolCatalog
         if (filters.SpellCategories.Count > 0 && !filters.SpellCategories.Contains(card.SpellCategory))
             return false;
 
-        // Exclude cards with DevOnly flag
-        if ((card.Flags & CardFlags.DevOnly) != 0)
+        // Exclude cards with DevOnly or Archived flags
+        if ((card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) != 0)
             return false;
 
         // Exclude by unlock conditions

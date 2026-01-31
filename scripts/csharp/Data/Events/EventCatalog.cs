@@ -39,7 +39,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.Charge, CardId.FireWisp, CardId.Puff },
+                CardOptions = new List<string> { CardId.FireWisp, CardId.Puff, CardId.EarthSprite },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 30,
@@ -103,7 +103,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.Charge, CardId.CloudSwarm },
+                CardOptions = new List<string> { CardId.FireWisp, CardId.CloudSwarm, CardId.ManaBolt },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -144,7 +144,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.Charge, CardId.ManaBolt },
+                CardOptions = new List<string> { CardId.FireWisp, CardId.ManaBolt, CardId.FireTitan },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 80,
@@ -272,9 +272,8 @@ public static class EventCatalog
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 2),
-                new(CardId.FireTitan, 2),
-                new(CardId.FireWispSwarm, 2)
+                new(CardId.FireWisp, 4),
+                new(CardId.FireTitan, 2)
             },
             EnemyDeck = new List<DeckEntry>
             {
@@ -351,8 +350,8 @@ public static class EventCatalog
                 new(CardId.Puff, 5),
                 new(CardId.EarthSprite, 5),
                 new(CardId.FireTitan, 5),
-                new(CardId.Fireball, 5),
-                new(CardId.Rock, 5)
+                new(CardId.ManaBolt, 5),
+                new(CardId.CloudSwarm, 5)
             },
             EnemyDeck = new List<DeckEntry>(),
             EnemyHp = 999999f,
