@@ -54,8 +54,6 @@ func _ready() -> void:
 		_is_summoner_unlocked,
 		_is_cosmetic_owned,
 		_is_emote_owned,
-		_get_purchase_count,
-		_increment_purchase_count,
 		_get_shop_refresh_state
 	)
 
@@ -64,10 +62,6 @@ func _ready() -> void:
 
 	# Inject PlatformBilling callbacks
 	_cs_service.SetBillingCallbacks(_initiate_billing_purchase, _add_gems)
-
-	# Load purchase history into cache
-	var purchase_cache: Dictionary = ProfileRepo.get_shop_purchases()
-	_cs_service.LoadPurchaseCache(purchase_cache)
 
 	# Initialize shop catalog
 	_init_shops()
@@ -100,12 +94,6 @@ func _is_cosmetic_owned(cosmetic_id: String) -> bool:
 
 func _is_emote_owned(emote_id: String) -> bool:
 	return ProfileRepo.is_emote_owned(emote_id)
-
-func _get_purchase_count(key: String) -> int:
-	return ProfileRepo.get_purchase_count(key)
-
-func _increment_purchase_count(key: String) -> bool:
-	return ProfileRepo.increment_purchase_count(key)
 
 func _get_shop_refresh_state(shop_id: String) -> Dictionary:
 	return ProfileRepo.get_shop_refresh_state(shop_id)

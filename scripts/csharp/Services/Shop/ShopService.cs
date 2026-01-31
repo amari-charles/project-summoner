@@ -33,9 +33,6 @@ public partial class ShopService : Node
     // Shop catalog (loaded from GDScript)
     private readonly Dictionary<string, Godot.Collections.Dictionary> _shops = [];
 
-    // Purchase history cache
-    private readonly Dictionary<string, int> _purchaseCache = [];
-
     // Callbacks for GDScript dependencies
     private Func<Godot.Collections.Dictionary>? _getResourcesFunc;
     private Action<Godot.Collections.Dictionary>? _updateResourcesFunc;
@@ -43,8 +40,6 @@ public partial class ShopService : Node
     private Func<string, bool>? _isCosmeticOwnedFunc;
     private Func<string, bool>? _isEmoteOwnedFunc;
     private Func<Godot.Collections.Dictionary, bool>? _grantRewardsFunc;
-    private Func<string, int>? _getPurchaseCountFunc;
-    private Func<string, bool>? _incrementPurchaseCountFunc;
     private Func<string, Godot.Collections.Dictionary>? _getShopRefreshStateFunc;
     private Action<string>? _initiateBillingPurchaseFunc;
     private Func<int>? _addGemsFunc;
@@ -91,8 +86,6 @@ public partial class ShopService : Node
         Callable isSummonerUnlocked,
         Callable isCosmeticOwned,
         Callable isEmoteOwned,
-        Callable getPurchaseCount,
-        Callable incrementPurchaseCount,
         Callable getShopRefreshState)
     {
         _getResourcesFunc = () => getResources.Call().AsGodotDictionary();
@@ -100,8 +93,6 @@ public partial class ShopService : Node
         _isSummonerUnlockedFunc = (id) => isSummonerUnlocked.Call(id).AsBool();
         _isCosmeticOwnedFunc = (id) => isCosmeticOwned.Call(id).AsBool();
         _isEmoteOwnedFunc = (id) => isEmoteOwned.Call(id).AsBool();
-        _getPurchaseCountFunc = (key) => getPurchaseCount.Call(key).AsInt32();
-        _incrementPurchaseCountFunc = (key) => incrementPurchaseCount.Call(key).AsBool();
         _getShopRefreshStateFunc = (shopId) => getShopRefreshState.Call(shopId).AsGodotDictionary();
     }
 
@@ -137,21 +128,6 @@ public partial class ShopService : Node
         }
 
         GD.Print($"ShopService: Loaded {_shops.Count} shops");
-    }
-
-    /// <summary>Load purchase cache from GDScript.</summary>
-    public void LoadPurchaseCache(Godot.Collections.Dictionary cache)
-    {
-        _purchaseCache.Clear();
-
-        foreach (var key in cache.Keys)
-        {
-            var keyStr = key.AsString();
-            var count = cache[key].AsInt32();
-            _purchaseCache[keyStr] = count;
-        }
-
-        GD.Print($"ShopService: Loaded {_purchaseCache.Count} purchase cache entries");
     }
 
     // =========================================================================
@@ -328,12 +304,8 @@ public partial class ShopService : Node
             return false;
         }
 
-        // Step 3: Track purchase
-        if (_incrementPurchaseCountFunc?.Invoke(purchaseKey) == true)
-        {
-            _purchaseCache[purchaseKey] = _purchaseCache.GetValueOrDefault(purchaseKey, 0) + 1;
-        }
-        else
+        // Step 3: Track purchase via repository
+        if (_profileRepo?.IncrementPurchaseCount(purchaseKey) != true)
         {
             GD.PushWarning("ShopService: Failed to track purchase count");
         }
@@ -445,15 +417,10 @@ public partial class ShopService : Node
         return SummonerSelectionService.Instance?.GetActiveSummonerId() ?? "";
     }
 
-    /// <summary>Get purchase count from cache or profile.</summary>
+    /// <summary>Get purchase count from repository.</summary>
     public int GetPurchaseCount(string purchaseKey)
     {
-        if (_purchaseCache.TryGetValue(purchaseKey, out var count))
-            return count;
-
-        count = _getPurchaseCountFunc?.Invoke(purchaseKey) ?? 0;
-        _purchaseCache[purchaseKey] = count;
-        return count;
+        return _profileRepo?.GetPurchaseCount(purchaseKey) ?? 0;
     }
 
     /// <summary>Get refresh epoch for a shop.</summary>
@@ -494,11 +461,8 @@ public partial class ShopService : Node
 
         if (_grantRewardsFunc?.Invoke(rewards) == true)
         {
-            // Track purchase
-            if (_incrementPurchaseCountFunc?.Invoke(purchaseKey) == true)
-            {
-                _purchaseCache[purchaseKey] = _purchaseCache.GetValueOrDefault(purchaseKey, 0) + 1;
-            }
+            // Track purchase via repository
+            _profileRepo?.IncrementPurchaseCount(purchaseKey);
 
             EmitSignal(SignalName.PurchaseCompleted, offeringId, shopId);
             GD.Print($"ShopService: Real-money purchase completed for '{offeringId}'");
