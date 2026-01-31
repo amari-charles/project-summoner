@@ -106,6 +106,32 @@ public partial class ModifierService : Node, IModifierService
         return filtered;
     }
 
+    /// <summary>
+    /// Get modifiers partitioned into static (always active) and triggered (conditional).
+    /// Static modifiers are applied at spawn; triggered modifiers are stored and activated by combat events.
+    /// </summary>
+    public (List<StatModifier> Static, List<StatModifier> Triggered) GetModifiersPartitioned(ModifierContext context)
+    {
+        var allModifiers = GetModifiers(context);
+
+        var staticMods = new List<StatModifier>();
+        var triggeredMods = new List<StatModifier>();
+
+        foreach (var mod in allModifiers)
+        {
+            if (mod.IsTriggered)
+            {
+                triggeredMods.Add(mod);
+            }
+            else
+            {
+                staticMods.Add(mod);
+            }
+        }
+
+        return (staticMods, triggeredMods);
+    }
+
     // =========================================================================
     // GDSCRIPT INTEROP (snake_case methods for GDScript callers)
     // =========================================================================
@@ -135,6 +161,16 @@ public partial class ModifierService : Node, IModifierService
     public void register_card_provider(string cardInstanceId)
     {
         var provider = new CardModifierProvider(cardInstanceId);
+        RegisterProvider(provider);
+    }
+
+    /// <summary>
+    /// Register an item modifier provider (factory method for GDScript).
+    /// Called from game_controller_3d.gd alongside summoner provider.
+    /// </summary>
+    public void register_item_provider(string summonerId)
+    {
+        var provider = new ItemModifierProvider(summonerId);
         RegisterProvider(provider);
     }
 

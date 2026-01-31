@@ -1,10 +1,10 @@
 extends Control
 class_name SummonerLevelUpPanel
 
-## Summoner Level-Up Panel - Modal for selecting trait when leveling up a summoner
+## Summoner Level-Up Panel - Modal for leveling up a summoner
 ##
 ## Opens as an overlay after battle when summoner has enough XP.
-## Shows stat gains, trait choices, and handles level-up confirmation.
+## Shows stat gains and handles level-up confirmation.
 
 ## UI Node References
 @onready var background: ColorRect = %Background
@@ -19,12 +19,10 @@ class_name SummonerLevelUpPanel
 
 ## State
 var summoner_id: String = ""
-var selected_trait_id: String = ""
-var trait_buttons: Array[Button] = []
 var current_level: int = 1
 
 ## Signals
-signal level_up_completed(summoner_id: String, trait_id: String)
+signal level_up_completed(summoner_id: String)
 signal cancelled()
 
 ## Constants
@@ -37,7 +35,6 @@ const ERROR_FEEDBACK_DURATION: float = 1.5  ## Duration to show error message be
 func _ready() -> void:
 	# Set localized text for static UI elements
 	title_label.text = Loc.t("ui.summoner_level_up.title")
-	choose_trait_label.text = Loc.t("ui.summoner_level_up.choose_trait")
 	confirm_button.text = Loc.t("ui.summoner_level_up.confirm")
 	cancel_button.text = Loc.t("ui.summoner_level_up.cancel")
 
@@ -48,8 +45,9 @@ func _ready() -> void:
 	# Connect background click to close
 	background.gui_input.connect(_on_background_input)
 
-	# Initially disable confirm until trait selected
-	confirm_button.disabled = true
+	# Hide unused trait selection UI elements
+	choose_trait_label.visible = false
+	trait_container.visible = false
 
 ## =============================================================================
 ## PUBLIC API
@@ -58,12 +56,9 @@ func _ready() -> void:
 ## Open the panel for a specific summoner
 func open_for_summoner(p_summoner_id: String) -> void:
 	summoner_id = p_summoner_id
-	selected_trait_id = ""
 
 	_load_summoner_data()
 	_populate_stat_preview()
-	_populate_trait_choices()
-	_update_confirm_button()
 
 	show()
 
@@ -124,109 +119,15 @@ func _populate_stat_preview() -> void:
 	mana_label.add_theme_color_override("font_color", GameColorPalette.INFO)
 	stat_preview_container.add_child(mana_label)
 
-func _populate_trait_choices() -> void:
-	# Clear existing trait buttons
-	for button: Button in trait_buttons:
-		button.queue_free()
-	trait_buttons.clear()
-
-	# Get summoner's current traits to exclude
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
-	var excluded_ids: Array[String] = []
-
-	# Exclude innate traits
-	if config:
-		for trait_id: String in config.innate_trait_ids:
-			excluded_ids.append(trait_id)
-
-	# Exclude already acquired boons
-	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
-	if not summoner_data.is_empty():
-		var acquired: Variant = summoner_data.get("acquired_boon_ids", [])
-		if acquired is Array:
-			for boon_id: Variant in acquired:
-				if boon_id is String:
-					excluded_ids.append(boon_id)
-
-	# Get trait pool
-	var trait_pool: Array[Dictionary] = TraitCatalog.get_level_up_trait_pool(excluded_ids, 3)
-
-	# Create trait buttons
-	for trait_data: Dictionary in trait_pool:
-		var button: Button = _create_trait_button(trait_data)
-		trait_container.add_child(button)
-		trait_buttons.append(button)
-
-	# If no traits available (all acquired), show message
-	if trait_buttons.is_empty():
-		var label: Label = Label.new()
-		label.text = Loc.t("ui.summoner_level_up.all_traits_acquired")
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		trait_container.add_child(label)
-		# Allow level-up without trait selection
-		selected_trait_id = "__none__"
-		_update_confirm_button()
-
-func _create_trait_button(trait_data: Dictionary) -> Button:
-	var button: Button = Button.new()
-
-	var trait_id: String = trait_data.get("id", "")
-	var trait_name: String = TraitCatalog.get_trait_name(trait_id)
-	var description: String = TraitCatalog.get_trait_description(trait_id)
-
-	# Store trait_id as metadata for easy selection lookup
-	button.set_meta("trait_id", trait_id)
-
-	# Build button text with name and description
-	button.text = "%s\n%s" % [trait_name, description]
-
-	# Style
-	button.custom_minimum_size = Vector2(180, 140)
-	button.add_theme_font_size_override("font_size", 16)
-
-	# Connect
-	button.pressed.connect(_on_trait_selected.bind(trait_id))
-
-	return button
-
-func _update_confirm_button() -> void:
-	var can_confirm: bool = not selected_trait_id.is_empty()
-	confirm_button.disabled = not can_confirm
-
-func _update_selection_visual() -> void:
-	# Update button visuals to show selection using stored metadata
-	for button: Button in trait_buttons:
-		var button_trait_id: String = button.get_meta("trait_id", "")
-		var is_selected: bool = button_trait_id == selected_trait_id
-
-		if is_selected:
-			button.add_theme_color_override("font_color", GameColorPalette.TEXT_HIGHLIGHT)
-		else:
-			button.remove_theme_color_override("font_color")
-
 ## =============================================================================
 ## EVENT HANDLERS
 ## =============================================================================
 
-func _on_trait_selected(trait_id: String) -> void:
-	selected_trait_id = trait_id
-	_update_selection_visual()
-	_update_confirm_button()
-
 func _on_confirm_pressed() -> void:
-	if selected_trait_id.is_empty():
-		return
-
-	var success: bool = false
-
-	# Handle case where all traits are acquired
-	if selected_trait_id == "__none__":
-		success = SummonerProgression.level_up_summoner(summoner_id)
-	else:
-		success = SummonerProgression.level_up_summoner_with_trait(summoner_id, selected_trait_id)
+	var success: bool = SummonerProgression.level_up_summoner(summoner_id)
 
 	if success:
-		level_up_completed.emit(summoner_id, selected_trait_id)
+		level_up_completed.emit(summoner_id)
 		_close()
 	else:
 		# Show error feedback to user

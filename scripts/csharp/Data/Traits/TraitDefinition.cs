@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace ProjectSummoner.Data.Traits;
 
 /// <summary>
-/// Defines a summoner trait or boon.
+/// Defines a summoner trait.
 /// Traits are passive abilities that modify summoner stats or provide unit buffs.
 /// </summary>
 public class TraitDefinition
@@ -20,7 +20,7 @@ public class TraitDefinition
     /// <summary>Category for filtering (elemental, combat, defense, utility, milestone, special).</summary>
     public required string Category { get; init; }
 
-    /// <summary>True if this is an innate trait (comes with summoner), false if acquirable boon.</summary>
+    /// <summary>True if this is an innate trait (comes with summoner).</summary>
     public bool IsInnate { get; init; }
 
     /// <summary>List of modifiers this trait provides.</summary>
@@ -65,6 +65,34 @@ public class TraitModifier
     /// <summary>Additive stat bonuses.</summary>
     public Dictionary<string, float>? StatAdds { get; init; }
 
+    // =========================================================================
+    // TRIGGER FIELDS (for conditional unit modifiers)
+    // =========================================================================
+
+    /// <summary>
+    /// Trigger condition for when this modifier activates.
+    /// Uses string values matching TriggerCondition enum.
+    /// </summary>
+    public string? Trigger { get; init; }
+
+    /// <summary>
+    /// Threshold value for HP-based triggers (0.0 - 1.0 representing percentage).
+    /// </summary>
+    public float TriggerThreshold { get; init; }
+
+    /// <summary>
+    /// How long the effect lasts after activation, in seconds.
+    /// </summary>
+    public float TriggerDuration { get; init; }
+
+    /// <summary>
+    /// Minimum time between activations, in seconds.
+    /// </summary>
+    public float TriggerCooldown { get; init; }
+
     /// <summary>Returns true if this is a unit modifier (target="unit").</summary>
     public bool IsUnitModifier => Target == "unit";
+
+    /// <summary>Returns true if this modifier has a trigger condition.</summary>
+    public bool HasTrigger => !string.IsNullOrEmpty(Trigger);
 }

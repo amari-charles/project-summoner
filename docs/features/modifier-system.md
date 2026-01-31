@@ -675,7 +675,7 @@ var fire_mods = ModifierSystem.query() \
 
 ---
 
-*Last Updated: 2026-01-06*
+*Last Updated: 2026-01-31*
 *Status: Implemented in C# - ModifierService autoload at /root/ModifierService*
 
 ## Current Implementation Files
@@ -686,3 +686,120 @@ var fire_mods = ModifierSystem.query() \
 - `scripts/csharp/Systems/Modifiers/IModifierProvider.cs` - Provider interface
 - `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs` - Card upgrade modifiers
 - `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Summoner trait modifiers
+- `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs` - Equipped item modifiers
+- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - Trigger condition enum
+
+---
+
+## Triggered Modifiers
+
+Triggered modifiers activate conditionally based on combat events rather than always being active. They support duration-based effects and cooldowns.
+
+### Trigger Conditions
+
+```csharp
+public enum TriggerCondition
+{
+    Always,           // Default - always active
+    OnHit,            // Activates when dealing damage
+    OnTakeHit,        // Activates when taking damage
+    OnKill,           // Activates when killing an enemy
+    OnDeath,          // Activates when the unit dies
+    BelowHpPercent,   // Activates when HP falls below threshold
+    AboveHpPercent,   // Activates when HP is above threshold
+    Periodic          // Activates every N seconds
+}
+```
+
+### Trigger Fields in StatModifier
+
+```csharp
+public class StatModifier
+{
+    // ... existing fields ...
+
+    // When this modifier activates
+    public TriggerCondition Trigger { get; set; } = TriggerCondition.Always;
+
+    // Threshold for HP-based triggers (0.0 - 1.0)
+    public float TriggerThreshold { get; set; }
+
+    // How long the effect lasts (0 = permanent while condition holds)
+    public float TriggerDuration { get; set; }
+
+    // Minimum time between activations
+    public float TriggerCooldown { get; set; }
+
+    // Returns true if this is a triggered modifier
+    public bool IsTriggered => Trigger != TriggerCondition.Always;
+}
+```
+
+### Partitioned Modifier Resolution
+
+The `ModifierService.GetModifiersPartitioned()` method separates modifiers into:
+- **Static modifiers**: Always active, applied at unit spawn
+- **Triggered modifiers**: Stored and activated by combat events
+
+```csharp
+var (staticMods, triggeredMods) = ModifierService.Instance.GetModifiersPartitioned(context);
+
+// Apply static modifiers immediately
+unit.InitializeWithModifiers(staticMods);
+
+// Or use the combined method
+unit.InitializeWithPartitionedModifiers(staticMods, triggeredMods);
+```
+
+### Example Triggered Traits
+
+**Berserker** - +20% damage when below 50% HP:
+```csharp
+new TraitModifier
+{
+    Target = "unit",
+    StatMults = new() { ["attack_damage"] = 1.20f },
+    Trigger = "BelowHpPercent",
+    TriggerThreshold = 0.5f
+}
+```
+
+**Vengeful** - +10% attack speed for 5s after taking damage:
+```csharp
+new TraitModifier
+{
+    Target = "unit",
+    StatMults = new() { ["attack_speed"] = 1.10f },
+    Trigger = "OnTakeHit",
+    TriggerDuration = 5.0f,
+    TriggerCooldown = 1.0f
+}
+```
+
+**Soul Harvest** - Heal 5 HP on kill:
+```csharp
+new TraitModifier
+{
+    Target = "unit",
+    StatAdds = new() { ["heal_on_kill"] = 5.0f },
+    Trigger = "OnKill"
+}
+```
+
+### Unit3D Trigger Processing
+
+Unit3D tracks triggered modifiers and their active state:
+
+```csharp
+// Combat event handlers
+unit.OnDealDamage(amount, target);   // Checks OnHit triggers
+unit.OnKill(target);                  // Checks OnKill triggers
+// OnTakeDamage checks OnTakeHit and HP triggers automatically
+
+// Active triggers are updated every physics frame
+// - Duration countdown
+// - Cooldown countdown
+// - HP-based trigger state changes
+```
+
+See `docs/technical/trigger-system.md` for implementation details.

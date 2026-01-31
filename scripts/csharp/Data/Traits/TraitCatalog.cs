@@ -235,138 +235,14 @@ public static class TraitCatalog
         },
 
         // =====================================================================
-        // ACQUIRED BOONS
+        // TRIGGERED TRAITS (conditional effects for testing trigger system)
         // =====================================================================
 
-        [TraitId.BoonVeteran] = new TraitDefinition
+        [TraitId.Berserker] = new TraitDefinition
         {
-            Id = TraitId.BoonVeteran,
-            NameKey = "trait.veteran.name",
-            DescriptionKey = "trait.veteran.description",
-            Category = "milestone",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
-            ]
-        },
-
-        [TraitId.BoonManaWell] = new TraitDefinition
-        {
-            Id = TraitId.BoonManaWell,
-            NameKey = "trait.mana_well.name",
-            DescriptionKey = "trait.mana_well.description",
-            Category = "milestone",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_mana", Type = "flat", Value = 2.0f }
-            ]
-        },
-
-        [TraitId.BoonBattleHardened] = new TraitDefinition
-        {
-            Id = TraitId.BoonBattleHardened,
-            NameKey = "trait.battle_hardened.name",
-            DescriptionKey = "trait.battle_hardened.description",
-            Category = "milestone",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "damage_bonus", Type = "percent", Value = 5.0f }
-            ]
-        },
-
-        [TraitId.BoonFortuneFavors] = new TraitDefinition
-        {
-            Id = TraitId.BoonFortuneFavors,
-            NameKey = "trait.fortune_favors.name",
-            DescriptionKey = "trait.fortune_favors.description",
-            Category = "special",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "gold_bonus", Type = "percent", Value = 10.0f }
-            ]
-        },
-
-        [TraitId.FortuneFavorsBold] = new TraitDefinition
-        {
-            Id = TraitId.FortuneFavorsBold,
-            NameKey = "trait.fortune_favors_bold.name",
-            DescriptionKey = "trait.fortune_favors_bold.description",
-            Category = "special",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_health", Type = "flat", Value = 50.0f }
-            ]
-        },
-
-        // =====================================================================
-        // LEVEL-UP BOONS (selected when leveling up)
-        // =====================================================================
-
-        [TraitId.BoonIronWill] = new TraitDefinition
-        {
-            Id = TraitId.BoonIronWill,
-            NameKey = "trait.iron_will.name",
-            DescriptionKey = "trait.iron_will.description",
-            Category = "defense",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "damage_reduction", Type = "flat", Value = 5.0f }
-            ]
-        },
-
-        [TraitId.BoonQuickRecovery] = new TraitDefinition
-        {
-            Id = TraitId.BoonQuickRecovery,
-            NameKey = "trait.quick_recovery.name",
-            DescriptionKey = "trait.quick_recovery.description",
-            Category = "utility",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "mana_regen", Type = "percent", Value = 10.0f }
-            ]
-        },
-
-        [TraitId.BoonVitalityBoost] = new TraitDefinition
-        {
-            Id = TraitId.BoonVitalityBoost,
-            NameKey = "trait.vitality_boost.name",
-            DescriptionKey = "trait.vitality_boost.description",
-            Category = "defense",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
-            ]
-        },
-
-        [TraitId.BoonElementalMastery] = new TraitDefinition
-        {
-            Id = TraitId.BoonElementalMastery,
-            NameKey = "trait.elemental_mastery.name",
-            DescriptionKey = "trait.elemental_mastery.description",
-            Category = "combat",
-            IsInnate = false,
-            Modifiers =
-            [
-                new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 5.0f },
-                new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 5.0f },
-                new TraitModifier { Stat = "wind_damage_bonus", Type = "percent", Value = 5.0f },
-                new TraitModifier { Stat = "earth_damage_bonus", Type = "percent", Value = 5.0f }
-            ]
-        },
-
-        [TraitId.BoonSwiftStrike] = new TraitDefinition
-        {
-            Id = TraitId.BoonSwiftStrike,
-            NameKey = "trait.swift_strike.name",
-            DescriptionKey = "trait.swift_strike.description",
+            Id = TraitId.Berserker,
+            NameKey = "trait.berserker.name",
+            DescriptionKey = "trait.berserker.description",
             Category = "combat",
             IsInnate = false,
             Modifiers =
@@ -374,22 +250,51 @@ public static class TraitCatalog
                 new TraitModifier
                 {
                     Target = "unit",
-                    Source = TraitId.BoonSwiftStrike,
-                    StatMults = new() { ["attack_speed"] = 1.10f }
+                    Source = TraitId.Berserker,
+                    StatMults = new() { ["attack_damage"] = 1.20f }, // +20% damage
+                    Trigger = "BelowHpPercent",
+                    TriggerThreshold = 0.5f // Below 50% HP
                 }
             ]
         },
 
-        [TraitId.BoonTacticalMind] = new TraitDefinition
+        [TraitId.Vengeful] = new TraitDefinition
         {
-            Id = TraitId.BoonTacticalMind,
-            NameKey = "trait.tactical_mind.name",
-            DescriptionKey = "trait.tactical_mind.description",
-            Category = "utility",
+            Id = TraitId.Vengeful,
+            NameKey = "trait.vengeful.name",
+            DescriptionKey = "trait.vengeful.description",
+            Category = "combat",
             IsInnate = false,
             Modifiers =
             [
-                new TraitModifier { Stat = "starting_hand_bonus", Type = "flat", Value = 1.0f }
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.Vengeful,
+                    StatMults = new() { ["attack_speed"] = 1.10f }, // +10% attack speed
+                    Trigger = "OnTakeHit",
+                    TriggerDuration = 5.0f, // Lasts 5 seconds
+                    TriggerCooldown = 1.0f  // 1 second cooldown between activations
+                }
+            ]
+        },
+
+        [TraitId.SoulHarvest] = new TraitDefinition
+        {
+            Id = TraitId.SoulHarvest,
+            NameKey = "trait.soul_harvest.name",
+            DescriptionKey = "trait.soul_harvest.description",
+            Category = "combat",
+            IsInnate = false,
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    Source = TraitId.SoulHarvest,
+                    StatAdds = new() { ["heal_on_kill"] = 5.0f }, // Heal 5 HP on kill
+                    Trigger = "OnKill"
+                }
             ]
         }
     };
@@ -441,27 +346,6 @@ public static class TraitCatalog
         return _traits.Values.Where(t => t.IsInnate).ToArray();
     }
 
-    /// <summary>Get only acquirable boons (non-innate).</summary>
-    public static TraitDefinition[] GetAcquirableBoons()
-    {
-        return _traits.Values.Where(t => !t.IsInnate).ToArray();
-    }
-
-    /// <summary>
-    /// Get a pool of traits for level-up selection.
-    /// Returns random acquirable traits excluding those already acquired.
-    /// </summary>
-    /// <param name="excludedIds">Trait IDs to exclude (already acquired)</param>
-    /// <param name="count">Number of traits to return (default 3)</param>
-    public static TraitDefinition[] GetLevelUpTraitPool(List<string> excludedIds, int count = 3)
-    {
-        return GetAcquirableBoons()
-            .Where(t => !excludedIds.Contains(t.Id))
-            .OrderBy(_ => System.Random.Shared.Next())
-            .Take(count)
-            .ToArray();
-    }
-
     // =========================================================================
     // UNIT MODIFIERS (for SummonerModifierProvider)
     // =========================================================================
@@ -478,13 +362,27 @@ public static class TraitCatalog
         var result = new List<StatModifier>();
         foreach (var mod in trait.Modifiers.Where(m => m.IsUnitModifier))
         {
-            result.Add(new StatModifier
+            var statMod = new StatModifier
             {
                 Source = mod.Source ?? traitId,
                 Conditions = mod.Conditions ?? [],
                 StatMults = mod.StatMults ?? [],
                 StatAdds = mod.StatAdds ?? []
-            });
+            };
+
+            // Copy trigger fields if present
+            if (mod.HasTrigger)
+            {
+                if (System.Enum.TryParse<Systems.Modifiers.TriggerCondition>(mod.Trigger, ignoreCase: true, out var trigger))
+                {
+                    statMod.Trigger = trigger;
+                }
+                statMod.TriggerThreshold = mod.TriggerThreshold;
+                statMod.TriggerDuration = mod.TriggerDuration;
+                statMod.TriggerCooldown = mod.TriggerCooldown;
+            }
+
+            result.Add(statMod);
         }
         return result;
     }

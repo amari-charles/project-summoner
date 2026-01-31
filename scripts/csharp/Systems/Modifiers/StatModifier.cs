@@ -63,6 +63,40 @@ public class StatModifier
     /// </summary>
     public float AmplifyFactor { get; set; } = 1.0f;
 
+    // =========================================================================
+    // TRIGGER FIELDS (for conditional/temporary effects)
+    // =========================================================================
+
+    /// <summary>
+    /// When this modifier activates.
+    /// Default is Always (static modifier applied at spawn).
+    /// </summary>
+    public TriggerCondition Trigger { get; set; } = TriggerCondition.Always;
+
+    /// <summary>
+    /// Threshold value for HP-based triggers (0.0 - 1.0 representing percentage).
+    /// For BelowHpPercent: activates when HP falls below this percent.
+    /// For AboveHpPercent: activates when HP is above this percent.
+    /// </summary>
+    public float TriggerThreshold { get; set; }
+
+    /// <summary>
+    /// How long the effect lasts after activation, in seconds.
+    /// 0 means permanent (until condition no longer applies).
+    /// </summary>
+    public float TriggerDuration { get; set; }
+
+    /// <summary>
+    /// Minimum time between activations, in seconds.
+    /// Prevents rapid re-triggering of the same effect.
+    /// </summary>
+    public float TriggerCooldown { get; set; }
+
+    /// <summary>
+    /// Returns true if this is a triggered modifier (not always active).
+    /// </summary>
+    public bool IsTriggered => Trigger != TriggerCondition.Always;
+
     /// <summary>
     /// Create a StatModifier from a Godot Dictionary (for interop with GDScript).
     /// </summary>
@@ -130,6 +164,31 @@ public class StatModifier
         if (dict.TryGetValue("factor", out var factor))
         {
             modifier.AmplifyFactor = factor.AsSingle();
+        }
+
+        // Trigger fields
+        if (dict.TryGetValue("trigger", out var trigger) && trigger.VariantType != Godot.Variant.Type.Nil)
+        {
+            var triggerStr = trigger.AsString();
+            if (System.Enum.TryParse<TriggerCondition>(triggerStr, ignoreCase: true, out var triggerEnum))
+            {
+                modifier.Trigger = triggerEnum;
+            }
+        }
+
+        if (dict.TryGetValue("trigger_threshold", out var threshold))
+        {
+            modifier.TriggerThreshold = threshold.AsSingle();
+        }
+
+        if (dict.TryGetValue("trigger_duration", out var duration))
+        {
+            modifier.TriggerDuration = duration.AsSingle();
+        }
+
+        if (dict.TryGetValue("trigger_cooldown", out var cooldown))
+        {
+            modifier.TriggerCooldown = cooldown.AsSingle();
         }
 
         return modifier;
@@ -204,6 +263,27 @@ public class StatModifier
         {
             dict["amplify_tag"] = AmplifyTag;
             dict["factor"] = AmplifyFactor;
+        }
+
+        // Trigger fields (only include if not default)
+        if (Trigger != TriggerCondition.Always)
+        {
+            dict["trigger"] = Trigger.ToString();
+        }
+
+        if (TriggerThreshold > 0)
+        {
+            dict["trigger_threshold"] = TriggerThreshold;
+        }
+
+        if (TriggerDuration > 0)
+        {
+            dict["trigger_duration"] = TriggerDuration;
+        }
+
+        if (TriggerCooldown > 0)
+        {
+            dict["trigger_cooldown"] = TriggerCooldown;
         }
 
         return dict;

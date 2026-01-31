@@ -491,8 +491,7 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 	var summoner_data: Dictionary = {
 		"summoner_id": summoner_id,
 		"level": 1,
-		"xp": 0.0,
-		"acquired_boon_ids": []
+		"xp": 0.0
 	}
 
 	# Save the instance (this also adds to unlocked_summoners)
@@ -520,8 +519,7 @@ func _cmd_unlock_all_summoners() -> bool:
 		var summoner_data: Dictionary = {
 			"summoner_id": String(summoner_id),
 			"level": 1,
-			"xp": 0.0,
-			"acquired_boon_ids": []
+			"xp": 0.0
 		}
 		_repo.call("save_summoner_instance", summoner_data)
 		unlocked_count += 1

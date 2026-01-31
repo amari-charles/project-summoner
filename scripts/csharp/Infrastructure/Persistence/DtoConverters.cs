@@ -36,7 +36,6 @@ public static class DtoConverters
             ["summoner_id"] = instance.SummonerId,
             ["level"] = instance.Level,
             ["xp"] = instance.Xp,
-            ["acquired_boon_ids"] = ToGodotArray(instance.AcquiredBoonIds),
             ["equipped_items"] = equippedDict
         };
     }
@@ -51,16 +50,6 @@ public static class DtoConverters
 
         var summonerId = GetRequiredString(dict, "summoner_id");
         if (summonerId == null) return null;
-
-        var boons = new List<string>();
-        if (dict.TryGetValue("acquired_boon_ids", out var boonsVar))
-        {
-            var boonsArr = boonsVar.AsGodotArray();
-            foreach (var b in boonsArr)
-            {
-                boons.Add(b.AsString());
-            }
-        }
 
         // Deserialize equipped_items (string keys from GDScript → ItemSlot enum keys)
         var equippedItems = new Dictionary<ItemSlot, string?>
@@ -93,7 +82,6 @@ public static class DtoConverters
             SummonerId = summonerId,
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
-            AcquiredBoonIds = boons,
             EquippedItems = equippedItems
         };
     }

@@ -131,18 +131,11 @@ func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void
 	var summoner_instance: SummonerInstance = SummonerInstance.new()
 	summoner_instance.init_from_config(summoner_config)
 
-	# Add "Fortune Favors the Bold" trait if player chose random
-	if chosen_random:
-		if summoner_instance.add_boon("trait_fortune_favors_bold"):
-			print("SummonerSelection: Added 'Fortune Favors the Bold' trait for random selection")
-		else:
-			push_warning("SummonerSelection: Failed to add fortune_favors_bold trait")
-
 	# Save SummonerInstance to profile
 	var save_success: bool = ProfileRepo.save_summoner_instance(summoner_instance)
 	if save_success:
-		print("SummonerSelection: Saved SummonerInstance for '%s' (level %d, %d boons)" % [
-			summoner_id, summoner_instance.level, summoner_instance.acquired_boon_ids.size()
+		print("SummonerSelection: Saved SummonerInstance for '%s' (level %d)" % [
+			summoner_id, summoner_instance.level
 		])
 	else:
 		push_error("SummonerSelection: Failed to save SummonerInstance!")

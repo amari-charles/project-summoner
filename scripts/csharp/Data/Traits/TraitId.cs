@@ -36,22 +36,15 @@ public static class TraitId
     public const string DeathAffinity = "trait_death_affinity";
 
     // =========================================================================
-    // ACQUIRED BOONS (earned through gameplay)
+    // TRIGGERED TRAITS (conditional effects)
     // =========================================================================
 
-    public const string BoonVeteran = "boon_veteran";
-    public const string BoonManaWell = "boon_mana_well";
-    public const string BoonBattleHardened = "boon_battle_hardened";
-    public const string BoonFortuneFavors = "boon_fortune_favors";
+    /// <summary>Berserker: +20% damage when below 50% HP.</summary>
+    public const string Berserker = "trait_berserker";
 
-    // Special boons
-    public const string FortuneFavorsBold = "trait_fortune_favors_bold";
+    /// <summary>Vengeful: +10% attack speed for 5s after taking damage.</summary>
+    public const string Vengeful = "trait_vengeful";
 
-    // Level-up boons (selected when leveling up)
-    public const string BoonIronWill = "boon_iron_will";
-    public const string BoonQuickRecovery = "boon_quick_recovery";
-    public const string BoonVitalityBoost = "boon_vitality_boost";
-    public const string BoonElementalMastery = "boon_elemental_mastery";
-    public const string BoonSwiftStrike = "boon_swift_strike";
-    public const string BoonTacticalMind = "boon_tactical_mind";
+    /// <summary>Soul Harvest: Heal 5 HP on kill.</summary>
+    public const string SoulHarvest = "trait_soul_harvest";
 }

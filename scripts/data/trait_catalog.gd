@@ -4,8 +4,7 @@ extends Node
 ## Trait Catalog - Thin wrapper delegating to C# TraitCatalogCS
 ##
 ## Traits are passive abilities that modify summoner stats or provide special effects.
-## - Innate traits: Come with the summoner (defined in SummonerConfig)
-## - Acquired boons: Earned through gameplay (stored in SummonerInstance)
+## Innate traits come with the summoner (defined in SummonerConfig).
 ##
 ## All trait data is defined in C# (scripts/csharp/Data/Traits/TraitCatalog.cs)
 ## This GDScript wrapper provides backwards-compatible API for existing code.
@@ -76,26 +75,6 @@ func get_innate_traits() -> Array[Dictionary]:
 	if _cs_catalog:
 		var traits: Array[Dictionary] = []
 		traits.assign(_cs_catalog.GetInnateTraits())
-		return traits
-	return []
-
-## Get only acquirable boons
-func get_acquirable_boons() -> Array[Dictionary]:
-	if _cs_catalog:
-		var traits: Array[Dictionary] = []
-		traits.assign(_cs_catalog.GetAcquirableBoons())
-		return traits
-	return []
-
-## Get a pool of traits for level-up selection
-## Returns random acquirable traits excluding those already acquired
-func get_level_up_trait_pool(excluded_ids: Array[String], count: int = 3) -> Array[Dictionary]:
-	if _cs_catalog:
-		var traits: Array[Dictionary] = []
-		# Convert to Godot.Collections.Array<string> for C# interop
-		var gd_excluded: Array = []
-		gd_excluded.assign(excluded_ids)
-		traits.assign(_cs_catalog.GetLevelUpTraitPool(gd_excluded, count))
 		return traits
 	return []
 

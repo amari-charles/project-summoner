@@ -32,13 +32,7 @@ public class ItemDefinition
 
     /// <summary>
     /// List of modifiers this item provides when equipped.
-    /// Uses the same TraitModifier system as traits/boons.
+    /// Uses the same TraitModifier system as traits.
     /// </summary>
     public List<TraitModifier> Modifiers { get; init; } = [];
-
-    /// <summary>
-    /// Optional: ID of the boon this item was converted from during migration.
-    /// Used to maintain backwards compatibility and for legacy reference.
-    /// </summary>
-    public string? LegacyBoonId { get; init; }
 }
