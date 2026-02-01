@@ -27,5 +27,8 @@ public enum CreatureType
     Nature = 1 << 4,
 
     /// <summary>Aerial creatures (clouds, birds).</summary>
-    Aerial = 1 << 5
+    Aerial = 1 << 5,
+
+    /// <summary>Beast creatures (mammals, boars, apes).</summary>
+    Beast = 1 << 6
 }

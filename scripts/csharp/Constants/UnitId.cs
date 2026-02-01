@@ -44,6 +44,8 @@ public static class UnitIds
 
     public static readonly UnitId FireTitan = new("fire_titan");
     public static readonly UnitId FireAnt = new("fire_ant");
+    public static readonly UnitId FireBoar = new("fire_boar");
+    public static readonly UnitId FireSpider = new("fire_spider");
 
     // =========================================================================
     // EARTH ELEMENT UNITS
@@ -51,6 +53,8 @@ public static class UnitIds
 
     public static readonly UnitId EarthSprite = new("earth_sprite");
     public static readonly UnitId Rock = new("rock");
+    public static readonly UnitId StoneApe = new("stone_ape");
+    public static readonly UnitId EarthRockThrower = new("earth_rock_thrower");
 
     // =========================================================================
     // WIND ELEMENT UNITS
@@ -63,4 +67,6 @@ public static class UnitIds
     // =========================================================================
 
     public static readonly UnitId WaterFrog = new("water_frog");
+    public static readonly UnitId MamaDuck = new("mama_duck");
+    public static readonly UnitId Duckling = new("duckling");
 }

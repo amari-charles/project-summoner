@@ -192,6 +192,36 @@ public static class UnitCatalog
             }
         },
 
+        [UnitIds.FireBoar] = new UnitDefinition
+        {
+            Id = UnitIds.FireBoar,
+            ScenePath = "res://scenes/units/fire_boar_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 120f,
+                AttackDamage = 18f,
+                AttackRange = 3.5f,
+                AttackSpeed = 0.8f,
+                MoveSpeed = 2.5f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.FireSpider] = new UnitDefinition
+        {
+            Id = UnitIds.FireSpider,
+            ScenePath = "res://scenes/units/fire_spider_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 50f,
+                AttackDamage = 10f,
+                AttackRange = 18f,
+                AttackSpeed = 0.6f,
+                MoveSpeed = 3.5f,
+                AggroRadius = 20f
+            }
+        },
+
         // =====================================================================
         // EARTH ELEMENT UNITS
         // =====================================================================
@@ -223,6 +253,36 @@ public static class UnitCatalog
                 AttackSpeed = 0f,
                 MoveSpeed = 0f,
                 AggroRadius = 0f
+            }
+        },
+
+        [UnitIds.StoneApe] = new UnitDefinition
+        {
+            Id = UnitIds.StoneApe,
+            ScenePath = "res://scenes/units/stone_ape_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 200f,
+                AttackDamage = 25f,
+                AttackRange = 4.0f,
+                AttackSpeed = 0.6f,
+                MoveSpeed = 1.8f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.EarthRockThrower] = new UnitDefinition
+        {
+            Id = UnitIds.EarthRockThrower,
+            ScenePath = "res://scenes/units/earth_rock_thrower_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 45f,
+                AttackDamage = 22f,
+                AttackRange = 22f,
+                AttackSpeed = 0.4f,
+                MoveSpeed = 2.0f,
+                AggroRadius = 22f
             }
         },
 
@@ -260,6 +320,36 @@ public static class UnitCatalog
                 AttackRange = 5.0f,  // Extended range for tongue attack
                 AttackSpeed = 1.0f,
                 MoveSpeed = 2.5f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.MamaDuck] = new UnitDefinition
+        {
+            Id = UnitIds.MamaDuck,
+            ScenePath = "res://scenes/units/mama_duck_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 100f,
+                AttackDamage = 12f,
+                AttackRange = 3.5f,
+                AttackSpeed = 0.9f,
+                MoveSpeed = 2.8f,
+                AggroRadius = 20f
+            }
+        },
+
+        [UnitIds.Duckling] = new UnitDefinition
+        {
+            Id = UnitIds.Duckling,
+            ScenePath = "res://scenes/units/duckling_3d.tscn",
+            BaseStats = new UnitStats
+            {
+                MaxHp = 25f,
+                AttackDamage = 8f,
+                AttackRange = 16f,
+                AttackSpeed = 0.8f,
+                MoveSpeed = 3.2f,
                 AggroRadius = 20f
             }
         }

@@ -400,6 +400,47 @@ public static class CardCatalog
             Flags = CardFlags.Archived
         },
 
+        ["fire_boar"] = new CardDefinition
+        {
+            Id = "fire_boar",
+            Name = "Fire Boar",
+            Description = "A charging bruiser wreathed in flame. Barrels through enemies with reckless aggression.",
+            Rarity = Rarity.Common,
+            Type = CardType.Summon,
+            ManaCost = 4,
+            Cooldown = 2.5f,
+            SummonTime = 1.2f,
+            UnitId = UnitIds.FireBoar,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            CreatureTypes = CreatureType.Beast,
+            Roles = SummonRole.Tank,
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Fire
+        },
+
+        ["fire_spider"] = new CardDefinition
+        {
+            Id = "fire_spider",
+            Name = "Fire Spider",
+            Description = "A skittering hunter that spins webs of flame. Its sticky projectiles slow enemies caught in its trap.",
+            Rarity = Rarity.Rare,
+            Type = CardType.Summon,
+            ManaCost = 4,
+            Cooldown = 2.5f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.FireSpider,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Ranged,
+            IsRanged = true,
+            CreatureTypes = CreatureType.Insect,
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Fire
+        },
+
         // =====================================================================
         // EARTH ELEMENT UNITS
         // =====================================================================
@@ -442,6 +483,47 @@ public static class CardCatalog
             Roles = SummonRole.Stationary,
             Flags = CardFlags.DevOnly | CardFlags.Dummy | CardFlags.Archived,
             UnlockCondition = UnlockCondition.DevOnly,
+            ElementalAffinity = Element.Earth
+        },
+
+        ["stone_ape"] = new CardDefinition
+        {
+            Id = "stone_ape",
+            Name = "Stone Ape",
+            Description = "A massive gorilla made of living rock. Slow and deliberate, but devastating in close combat.",
+            Rarity = Rarity.Epic,
+            Type = CardType.Summon,
+            ManaCost = 6,
+            Cooldown = 3.0f,
+            SummonTime = 1.5f,
+            UnitId = UnitIds.StoneApe,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            CreatureTypes = CreatureType.Beast,
+            Roles = SummonRole.Tank,
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Earth
+        },
+
+        ["earth_rock_thrower"] = new CardDefinition
+        {
+            Id = "earth_rock_thrower",
+            Name = "Rock Thrower",
+            Description = "A tiny creature with impossible strength. Hurls boulders larger than itself at distant foes.",
+            Rarity = Rarity.Rare,
+            Type = CardType.Summon,
+            ManaCost = 4,
+            Cooldown = 2.5f,
+            SummonTime = 1.0f,
+            UnitId = UnitIds.EarthRockThrower,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Ranged,
+            IsRanged = true,
+            CreatureTypes = CreatureType.Elemental,
+            UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Earth
         },
 
@@ -511,6 +593,26 @@ public static class CardCatalog
             UnitType = UnitType.Melee,
             IsRanged = false,
             CreatureTypes = CreatureType.Amphibian,
+            UnlockCondition = UnlockCondition.Default,
+            ElementalAffinity = Element.Water
+        },
+
+        ["mama_duck"] = new CardDefinition
+        {
+            Id = "mama_duck",
+            Name = "Mama Duck",
+            Description = "A protective mother duck and her ducklings. Mama fights in melee while her babies pepper foes with water bullets.",
+            Rarity = Rarity.Epic,
+            Type = CardType.Summon,
+            ManaCost = 5,
+            Cooldown = 3.0f,
+            SummonTime = 1.5f,
+            UnitId = UnitIds.MamaDuck,
+            SpawnCount = 1,
+            Formation = FormationPresets.StandardGrid,
+            UnitType = UnitType.Melee,
+            IsRanged = false,
+            CreatureTypes = CreatureType.Beast,
             UnlockCondition = UnlockCondition.Default,
             ElementalAffinity = Element.Water
         }

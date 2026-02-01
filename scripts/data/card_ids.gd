@@ -47,6 +47,8 @@ const FIRE_WISP_SWARM: StringName = &"fire_wisp_swarm"
 const FIRE_TITAN: StringName = &"fire_titan"
 const FIRE_ANT: StringName = &"fire_ant"
 const FIRE_ANT_SWARM: StringName = &"fire_ant_swarm"
+const FIRE_BOAR: StringName = &"fire_boar"
+const FIRE_SPIDER: StringName = &"fire_spider"
 
 # ============================================================================
 # EARTH ELEMENT UNITS
@@ -54,6 +56,8 @@ const FIRE_ANT_SWARM: StringName = &"fire_ant_swarm"
 
 const PEBBLOOM: StringName = &"pebbloom"
 const ROCK: StringName = &"rock"  # Stationary test dummy
+const STONE_APE: StringName = &"stone_ape"
+const EARTH_ROCK_THROWER: StringName = &"earth_rock_thrower"
 
 # ============================================================================
 # WIND ELEMENT UNITS
@@ -67,3 +71,5 @@ const CLOUD_SWARM: StringName = &"cloud_swarm"
 # ============================================================================
 
 const WATER_FROG: StringName = &"water_frog"
+const MAMA_DUCK: StringName = &"mama_duck"
+const DUCKLING: StringName = &"duckling"
