@@ -38,13 +38,13 @@ public static class TraitIds
 {
     public static readonly TraitId FireAffinity = new("trait_fire_affinity");
     public static readonly TraitId BurningSpirit = new("trait_burning_spirit");
-    // ...all 23 traits
+    // ...all 24 traits
 }
 ```
 
 ### 2. TraitDefinitions.cs (NEW)
 
-Created new file with static readonly fields for all 23 traits:
+Created new file with static readonly fields for all 24 traits:
 
 ```csharp
 public static class TraitDefinitions
@@ -91,31 +91,53 @@ public static bool HasTrait(string id) => TraitDefinitions.Has(id);
 
 ---
 
-## Trait Inventory (23 traits)
+## Trait Inventory (24 traits)
 
-### Elemental Affinity Traits (6)
-- `trait_fire_affinity`, `trait_water_affinity`, `trait_wind_affinity`
-- `trait_earth_affinity`, `trait_lightning_affinity`, `trait_life_affinity`
+### Innate Summoner Traits - Fire (2)
+- `trait_fire_affinity` - +10% fire damage, +10% attack for fire units
+- `trait_burning_spirit` - +5% fire damage
 
-### Summoner Innate Traits (6)
-- `trait_burning_spirit` (Fire)
-- `trait_tidal_resilience` (Water)
-- `trait_swift_casting` (Wind)
-- `trait_stone_fortitude` (Earth)
-- `trait_storm_charge` (Lightning)
-- `trait_vitality_surge` (Life)
+### Innate Summoner Traits - Water (2)
+- `trait_water_affinity` - +10% water damage, +10% attack for water units
+- `trait_tidal_resilience` - +10% max health
 
-### Combat Traits (5)
-- `trait_warriors_might`, `trait_iron_will`, `trait_quick_reflexes`
-- `trait_precision_strike`, `trait_battle_hardened`
+### Innate Summoner Traits - Wind (2)
+- `trait_wind_affinity` - +10% wind damage, +10% attack for wind units
+- `trait_swift_casting` - +10% cast speed
 
-### Triggered Traits (3)
-- `trait_berserker` (BelowHpPercent trigger)
-- `trait_vengeful` (OnTakeHit trigger)
-- `trait_soul_harvest` (OnKill trigger)
+### Innate Summoner Traits - Earth (2)
+- `trait_earth_affinity` - +10% earth damage, +10% attack for earth units
+- `trait_stone_fortitude` - +5 flat damage reduction
 
-### Mana Traits (3)
-- `trait_mana_surge`, `trait_efficient_casting`, `trait_arcane_reservoir`
+### Innate Summoner Traits - Lightning (1)
+- `trait_lightning_affinity` - +15% lightning damage, +15% attack for lightning units
+
+### Innate Summoner Traits - Life (1)
+- `trait_life_affinity` - +15% healing, +10% max health for life units
+
+### Innate Summoner Traits - Death (1)
+- `trait_death_affinity` - +10% death damage, +5% lifesteal
+
+### Acquirable Summoner Traits - Global Pool (4)
+- `trait_iron_will` - +5 flat damage reduction (Level 2+)
+- `trait_quick_recovery` - +10% mana regen (Level 2+)
+- `trait_vitality_boost` - +100 flat max health (Level 2+)
+- `trait_swift_strike` - +10% attack speed (Level 3+)
+
+### Acquirable Summoner Traits - Triggered (3)
+- `trait_berserker` - +20% attack when below 50% HP (Level 3+)
+- `trait_vengeful` - +10% attack speed for 5s on hit, 1s cooldown (Level 4+)
+- `trait_soul_harvest` - +5 heal on kill (Level 4+)
+
+### Acquirable Summoner Traits - Element Mastery (2)
+- `trait_inferno_mastery` - +15% fire damage, +15% attack for fire units (Level 5+, requires FireAffinity)
+- `trait_tidal_mastery` - +15% water damage, +15% max health for water units (Level 5+, requires WaterAffinity)
+
+### Summon Traits - Global Pool (4)
+- `trait_fortitude` - +8% max HP (Level 2+)
+- `trait_power` - +6% attack damage (Level 2+)
+- `trait_swiftness` - +5% attack speed (Level 2+)
+- `trait_agility` - +5% move speed (Level 2+)
 
 ---
 

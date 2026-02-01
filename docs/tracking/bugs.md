@@ -270,4 +270,34 @@ Reduces Puff combat effectiveness - time spent switching targets and repositioni
 
 ---
 
-*Last Updated: 2026-01-31 - Added Puff target switching bug*
+#### CardIDs.DUCKLING References Non-Existent Card
+**Status:** Open
+**Reported:** 2026-02-01
+**Component:** Data / Card Catalog
+
+**Description:**
+GDScript `CardIDs` contains a `DUCKLING` constant that references a card ID that doesn't exist in the card catalog. Duckling is only a `UnitId` (spawned by mama_duck card), not a playable card.
+
+**Expected Behavior:**
+All `CardIDs` constants should reference valid cards in the catalog.
+
+**Current Behavior:**
+On startup, the validation logs an error:
+```
+ERROR: CardCatalog: CardIDs constants reference non-existent cards:
+ERROR:   - CardIDs.DUCKLING = 'duckling'
+```
+
+**Impact:**
+Cosmetic startup error. No gameplay impact since duckling is correctly handled as a unit spawned by mama_duck.
+
+**Proposed Solution:**
+Remove `const DUCKLING: StringName = &"duckling"` from `scripts/data/card_ids.gd` since duckling is not a playable card.
+
+**Related Files:**
+- scripts/data/card_ids.gd (line 75)
+- scripts/data/card_catalog.gd (validation logic)
+
+---
+
+*Last Updated: 2026-02-01 - Added CardIDs.DUCKLING validation error*
