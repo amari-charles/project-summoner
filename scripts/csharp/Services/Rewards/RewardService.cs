@@ -564,25 +564,24 @@ public partial class RewardService : Node
     /// <summary>
     /// Draw cards from a predefined pool (GDScript-friendly).
     /// </summary>
-    /// <param name="poolIdInt">Pool enum value as int.</param>
+    /// <param name="poolId">Pool ID string.</param>
     /// <param name="count">Number of cards to draw.</param>
     /// <param name="excludeOwned">Whether to exclude owned cards.</param>
     /// <param name="uniqueOnly">Whether to ensure no duplicates.</param>
     /// <returns>Array of card IDs.</returns>
-    public Godot.Collections.Array<string> DrawFromPoolEnum(
-        int poolIdInt,
+    public Godot.Collections.Array<string> DrawFromPoolString(
+        string poolId,
         int count,
         bool excludeOwned = false,
         bool uniqueOnly = true)
     {
-        if (!Enum.IsDefined(typeof(RewardPoolId), poolIdInt))
+        if (!RewardPoolCatalog.HasPool(poolId))
         {
-            GD.PushWarning($"RewardService: Invalid pool ID: {poolIdInt}");
+            GD.PushWarning($"RewardService: Invalid pool ID: {poolId}");
             return [];
         }
 
-        var poolId = (RewardPoolId)poolIdInt;
-        var cards = DrawFromPool(poolId, count, excludeOwned, uniqueOnly);
+        var cards = DrawFromPool(new RewardPoolId(poolId), count, excludeOwned, uniqueOnly);
 
         var result = new Godot.Collections.Array<string>();
         foreach (var cardId in cards)

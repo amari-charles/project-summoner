@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Cards;
 using ProjectSummoner.Data;
 using ProjectSummoner.Domain.Profile.Collection;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -140,7 +141,16 @@ public class CardProgressionHandler
     /// Requires only XP - no gold cost.
     /// Returns true if successful.
     /// </summary>
-    public bool LevelUpCard(string cardInstanceId, string upgradeId)
+    public bool LevelUpCard(string cardInstanceId, CardUpgradeId upgradeId) =>
+        LevelUpCardInternal(cardInstanceId, upgradeId);
+
+    /// <summary>
+    /// Level up a card with chosen upgrade (string overload).
+    /// </summary>
+    public bool LevelUpCard(string cardInstanceId, string upgradeId) =>
+        LevelUpCardInternal(cardInstanceId, new CardUpgradeId(upgradeId));
+
+    private bool LevelUpCardInternal(string cardInstanceId, CardUpgradeId upgradeId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null)

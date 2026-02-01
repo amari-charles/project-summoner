@@ -307,7 +307,7 @@ public partial class CardService : Node
         {
             result.Add(new Godot.Collections.Dictionary
             {
-                ["id"] = upgrade.Id,
+                ["id"] = (string)upgrade.Id,
                 ["name"] = upgrade.Name,
                 ["description"] = upgrade.Description
             });

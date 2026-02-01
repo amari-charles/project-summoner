@@ -10,35 +10,35 @@ namespace ProjectSummoner.Services.Rewards;
 /// <summary>
 /// Defines reward pools used for flexible reward generation.
 /// Pools filter cards by element, rarity, type, and tags.
-/// Supports both enum-based pools (type-safe) and inline filter configs.
+/// Uses strongly-typed RewardPoolId for type-safe lookups.
 /// </summary>
 public static class RewardPoolCatalog
 {
     // =========================================================================
-    // ENUM-BASED POOLS (Type-Safe)
+    // POOL DEFINITIONS
     // =========================================================================
 
-    private static readonly Dictionary<RewardPoolId, RewardPoolDefinition> _enumPools = new()
+    private static readonly Dictionary<string, RewardPoolDefinition> _pools = new()
     {
         // =====================================================================
         // CURATED POOLS (explicit card lists)
         // =====================================================================
 
-        [RewardPoolId.TutorialRewards] = new RewardPoolDefinition
+        [RewardPoolIds.TutorialRewards] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.TutorialRewards,
+            PoolId = RewardPoolIds.TutorialRewards,
             ExplicitCardIds = ["fire_wisp", "pebbloom", "puff"]
         },
 
-        [RewardPoolId.StarterRewards] = new RewardPoolDefinition
+        [RewardPoolIds.StarterRewards] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.StarterRewards,
+            PoolId = RewardPoolIds.StarterRewards,
             ExplicitCardIds = ["mana_bolt", "water_frog"]
         },
 
-        [RewardPoolId.BossLoot] = new RewardPoolDefinition
+        [RewardPoolIds.BossLoot] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.BossLoot,
+            PoolId = RewardPoolIds.BossLoot,
             ExplicitCardIds = []  // To be populated when pools are redone
         },
 
@@ -46,9 +46,9 @@ public static class RewardPoolCatalog
         // COMBINED FILTER POOLS (element + rarity + type)
         // =====================================================================
 
-        [RewardPoolId.FireCommonUnits] = new RewardPoolDefinition
+        [RewardPoolIds.FireCommonUnits] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.FireCommonUnits,
+            PoolId = RewardPoolIds.FireCommonUnits,
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Fire],
@@ -58,9 +58,9 @@ public static class RewardPoolCatalog
             }
         },
 
-        [RewardPoolId.WaterCommonUnits] = new RewardPoolDefinition
+        [RewardPoolIds.WaterCommonUnits] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.WaterCommonUnits,
+            PoolId = RewardPoolIds.WaterCommonUnits,
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Water],
@@ -70,9 +70,9 @@ public static class RewardPoolCatalog
             }
         },
 
-        [RewardPoolId.WindCommonUnits] = new RewardPoolDefinition
+        [RewardPoolIds.WindCommonUnits] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.WindCommonUnits,
+            PoolId = RewardPoolIds.WindCommonUnits,
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Wind],
@@ -82,9 +82,9 @@ public static class RewardPoolCatalog
             }
         },
 
-        [RewardPoolId.EarthCommonUnits] = new RewardPoolDefinition
+        [RewardPoolIds.EarthCommonUnits] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.EarthCommonUnits,
+            PoolId = RewardPoolIds.EarthCommonUnits,
             CardFilters = new CardFilterConfig
             {
                 Elements = [Element.Earth],
@@ -94,9 +94,9 @@ public static class RewardPoolCatalog
             }
         },
 
-        [RewardPoolId.AllSpells] = new RewardPoolDefinition
+        [RewardPoolIds.AllSpells] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.AllSpells,
+            PoolId = RewardPoolIds.AllSpells,
             CardFilters = new CardFilterConfig
             {
                 CardTypes = [CardType.Spell],
@@ -104,9 +104,9 @@ public static class RewardPoolCatalog
             }
         },
 
-        [RewardPoolId.AllCommon] = new RewardPoolDefinition
+        [RewardPoolIds.AllCommon] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.AllCommon,
+            PoolId = RewardPoolIds.AllCommon,
             CardFilters = new CardFilterConfig
             {
                 Rarities = [Rarity.Common],
@@ -114,9 +114,9 @@ public static class RewardPoolCatalog
             }
         },
 
-        [RewardPoolId.AllRare] = new RewardPoolDefinition
+        [RewardPoolIds.AllRare] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.AllRare,
+            PoolId = RewardPoolIds.AllRare,
             CardFilters = new CardFilterConfig
             {
                 Rarities = [Rarity.Rare],
@@ -128,14 +128,14 @@ public static class RewardPoolCatalog
         // COMPOSITE POOLS (union of other pools)
         // =====================================================================
 
-        [RewardPoolId.ElementalStarters] = new RewardPoolDefinition
+        [RewardPoolIds.ElementalStarters] = new RewardPoolDefinition
         {
-            PoolId = RewardPoolId.ElementalStarters,
+            PoolId = RewardPoolIds.ElementalStarters,
             CombinePools = [
-                RewardPoolId.FireCommonUnits,
-                RewardPoolId.WaterCommonUnits,
-                RewardPoolId.WindCommonUnits,
-                RewardPoolId.EarthCommonUnits
+                RewardPoolIds.FireCommonUnits,
+                RewardPoolIds.WaterCommonUnits,
+                RewardPoolIds.WindCommonUnits,
+                RewardPoolIds.EarthCommonUnits
             ]
         },
     };
@@ -145,23 +145,25 @@ public static class RewardPoolCatalog
     // LOOKUP METHODS
     // =========================================================================
 
-    /// <summary>Get a pool definition by enum ID. Returns null if not found.</summary>
-    public static RewardPoolDefinition? GetPool(RewardPoolId poolId)
-    {
-        return _enumPools.GetValueOrDefault(poolId);
-    }
+    /// <summary>Get a pool definition by ID. Returns null if not found.</summary>
+    public static RewardPoolDefinition? GetPool(RewardPoolId poolId) =>
+        _pools.GetValueOrDefault(poolId);
+
+    /// <summary>Get a pool definition by string ID. Returns null if not found.</summary>
+    public static RewardPoolDefinition? GetPool(string poolId) =>
+        _pools.GetValueOrDefault(poolId);
 
     /// <summary>Check if a pool exists.</summary>
-    public static bool HasPool(RewardPoolId poolId)
-    {
-        return _enumPools.ContainsKey(poolId);
-    }
+    public static bool HasPool(RewardPoolId poolId) =>
+        _pools.ContainsKey(poolId);
+
+    /// <summary>Check if a pool exists by string ID.</summary>
+    public static bool HasPool(string poolId) =>
+        _pools.ContainsKey(poolId);
 
     /// <summary>Get all pool IDs.</summary>
-    public static RewardPoolId[] GetAllPoolIds()
-    {
-        return [.. _enumPools.Keys];
-    }
+    public static RewardPoolId[] GetAllPoolIds() =>
+        _pools.Values.Select(p => p.PoolId).ToArray();
 
     // =========================================================================
     // CARD RESOLUTION
@@ -172,6 +174,21 @@ public static class RewardPoolCatalog
     /// Handles explicit card lists, filters, and pool composition.
     /// </summary>
     public static CardDefinition[] GetCardsForPool(RewardPoolId poolId, HashSet<string>? excludeCatalogIds = null)
+    {
+        var pool = GetPool(poolId);
+        if (pool == null)
+        {
+            GD.PushWarning($"RewardPoolCatalog: Pool '{poolId}' not found");
+            return [];
+        }
+
+        return ResolvePoolDefinition(pool, excludeCatalogIds);
+    }
+
+    /// <summary>
+    /// Get cards matching a pool's filters by string ID.
+    /// </summary>
+    public static CardDefinition[] GetCardsForPool(string poolId, HashSet<string>? excludeCatalogIds = null)
     {
         var pool = GetPool(poolId);
         if (pool == null)
@@ -298,16 +315,16 @@ public static class RewardPoolCatalog
     }
 
     /// <summary>
-    /// Get enum pool ID for a specific element.
+    /// Get pool ID for a specific element.
     /// </summary>
     public static RewardPoolId? GetPoolIdForElement(Element element)
     {
         return element switch
         {
-            Element.Fire => RewardPoolId.FireCommonUnits,
-            Element.Water => RewardPoolId.WaterCommonUnits,
-            Element.Wind => RewardPoolId.WindCommonUnits,
-            Element.Earth => RewardPoolId.EarthCommonUnits,
+            Element.Fire => RewardPoolIds.FireCommonUnits,
+            Element.Water => RewardPoolIds.WaterCommonUnits,
+            Element.Wind => RewardPoolIds.WindCommonUnits,
+            Element.Earth => RewardPoolIds.EarthCommonUnits,
             _ => null
         };
     }

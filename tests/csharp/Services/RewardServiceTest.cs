@@ -22,18 +22,25 @@ public class RewardServiceTest
     [TestCase]
     public void GetPool_ReturnsPoolDefinition()
     {
-        var pool = RewardPoolCatalog.GetPool(RewardPoolId.TutorialRewards);
+        var pool = RewardPoolCatalog.GetPool(RewardPoolIds.TutorialRewards);
 
         AssertThat(pool).IsNotNull();
-        AssertThat(pool!.PoolId).IsEqual(RewardPoolId.TutorialRewards);
+        AssertThat(pool!.PoolId).IsEqual(RewardPoolIds.TutorialRewards);
     }
 
     [TestCase]
     public void HasPool_ExistingPool_ReturnsTrue()
     {
-        AssertThat(RewardPoolCatalog.HasPool(RewardPoolId.TutorialRewards)).IsTrue();
-        AssertThat(RewardPoolCatalog.HasPool(RewardPoolId.FireCommonUnits)).IsTrue();
-        AssertThat(RewardPoolCatalog.HasPool(RewardPoolId.ElementalStarters)).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool(RewardPoolIds.TutorialRewards)).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool(RewardPoolIds.FireCommonUnits)).IsTrue();
+        AssertThat(RewardPoolCatalog.HasPool(RewardPoolIds.ElementalStarters)).IsTrue();
+    }
+
+    [TestCase]
+    public void HasPool_InvalidPool_ReturnsFalse()
+    {
+        AssertThat(RewardPoolCatalog.HasPool(new RewardPoolId("nonexistent_pool"))).IsFalse();
+        AssertThat(RewardPoolCatalog.HasPool("another_invalid_pool")).IsFalse();
     }
 
     [TestCase]
@@ -42,9 +49,9 @@ public class RewardServiceTest
         var poolIds = RewardPoolCatalog.GetAllPoolIds();
 
         AssertThat(poolIds.Length).IsGreater(0);
-        AssertThat(poolIds).Contains(RewardPoolId.TutorialRewards);
-        AssertThat(poolIds).Contains(RewardPoolId.FireCommonUnits);
-        AssertThat(poolIds).Contains(RewardPoolId.ElementalStarters);
+        AssertThat(poolIds).Contains(RewardPoolIds.TutorialRewards);
+        AssertThat(poolIds).Contains(RewardPoolIds.FireCommonUnits);
+        AssertThat(poolIds).Contains(RewardPoolIds.ElementalStarters);
     }
 
     // =============================================================================
@@ -54,7 +61,7 @@ public class RewardServiceTest
     [TestCase]
     public void GetCardsForPool_FilterBasedPool_ReturnsFilteredCards()
     {
-        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.FireCommonUnits);
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.FireCommonUnits);
 
         AssertThat(cards.Length).IsGreater(0);
         foreach (var card in cards)
@@ -68,7 +75,7 @@ public class RewardServiceTest
     [TestCase]
     public void GetCardsForPool_CompositePool_ReturnsUnion()
     {
-        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.ElementalStarters);
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.ElementalStarters);
 
         AssertThat(cards.Length).IsGreater(0);
         // Should contain cards from Fire, Water, Wind, and Earth common units
@@ -80,7 +87,7 @@ public class RewardServiceTest
     [TestCase]
     public void GetCardsForPool_CuratedPool_ReturnsExplicitCards()
     {
-        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.TutorialRewards);
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.TutorialRewards);
 
         AssertThat(cards.Length).IsGreater(0);
         // Tutorial rewards should include specific cards
@@ -93,7 +100,7 @@ public class RewardServiceTest
     public void GetCardsForPool_WithExclusions_ExcludesCards()
     {
         var excludeIds = new HashSet<string> { "fire_wisp", "fireball" };
-        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolId.TutorialRewards, excludeIds);
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.TutorialRewards, excludeIds);
 
         foreach (var card in cards)
         {
@@ -176,8 +183,7 @@ public class RewardServiceTest
     [TestCase]
     public void GetCardsForPool_InvalidPoolId_ReturnsEmpty()
     {
-        // Cast an invalid int to RewardPoolId to simulate invalid input
-        var invalidPoolId = (RewardPoolId)999;
+        var invalidPoolId = new RewardPoolId("nonexistent_pool_999");
         var cards = RewardPoolCatalog.GetCardsForPool(invalidPoolId);
 
         // Should return empty array (and log warning internally)
@@ -187,10 +193,10 @@ public class RewardServiceTest
     [TestCase]
     public void GetPoolIdForElement_ReturnsCorrectPool()
     {
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual(RewardPoolId.FireCommonUnits);
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual(RewardPoolId.WaterCommonUnits);
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual(RewardPoolId.WindCommonUnits);
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual(RewardPoolId.EarthCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual(RewardPoolIds.FireCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual(RewardPoolIds.WaterCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual(RewardPoolIds.WindCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual(RewardPoolIds.EarthCommonUnits);
         // Elements without specific pools return null
         AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Neutral)).IsNull();
         AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Lightning)).IsNull();
@@ -249,5 +255,35 @@ public class RewardServiceTest
         AssertThat((int)RewardType.CampaignGold).IsEqual(1);
         AssertThat((int)RewardType.Gold).IsEqual(2);
         AssertThat((int)RewardType.Gems).IsEqual(3);
+    }
+
+    // =============================================================================
+    // RewardPoolId Struct Tests
+    // =============================================================================
+
+    [TestCase]
+    public void RewardPoolId_HasValue_WorksCorrectly()
+    {
+        AssertThat(RewardPoolIds.TutorialRewards.HasValue).IsTrue();
+        AssertThat(RewardPoolId.None.HasValue).IsFalse();
+        AssertThat(new RewardPoolId("").HasValue).IsFalse();
+    }
+
+    [TestCase]
+    public void RewardPoolId_ImplicitConversion_WorksCorrectly()
+    {
+        string value = RewardPoolIds.TutorialRewards;
+        AssertThat(value).IsEqual("tutorial_rewards");
+    }
+
+    [TestCase]
+    public void RewardPoolId_Equality_WorksCorrectly()
+    {
+        var id1 = new RewardPoolId("test_pool");
+        var id2 = new RewardPoolId("test_pool");
+        var id3 = new RewardPoolId("other_pool");
+
+        AssertThat(id1).IsEqual(id2);
+        AssertThat(id1).IsNotEqual(id3);
     }
 }
