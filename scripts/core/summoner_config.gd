@@ -33,7 +33,7 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 @export var innate_trait_ids: Array[String] = []
 
 ## Starter card - catalog ID granted when this summoner is first selected
-@export var starter_card_id: String = "fire_wisp"
+@export var starter_card_id: String = CardIDs.FIRE_WISP
 
 ## Get the Element object for this summoner (runtime)
 func get_element() -> ElementTypes.Element:
@@ -90,7 +90,7 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 				config.innate_trait_ids.append(trait_id_var)
 
 	# Starter card
-	config.starter_card_id = data.get("starter_card_id", "fire_wisp")
+	config.starter_card_id = data.get("starter_card_id", CardIDs.FIRE_WISP)
 
 	return config
 

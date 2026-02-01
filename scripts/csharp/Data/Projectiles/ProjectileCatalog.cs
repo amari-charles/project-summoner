@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ProjectSummoner.Projectiles;
 
@@ -6,7 +7,7 @@ namespace ProjectSummoner.Data.Projectiles;
 
 /// <summary>
 /// Central registry of projectile definitions.
-/// Loads projectile data from JSON files at startup.
+/// Uses ProjectileDefinitions as the source of truth.
 /// Registered as autoload: /root/ProjectileCatalog
 /// </summary>
 public partial class ProjectileCatalog : Node
@@ -21,7 +22,7 @@ public partial class ProjectileCatalog : Node
     // STATE
     // =========================================================================
 
-    private readonly Dictionary<string, ProjectileData> _projectiles = new();
+    private readonly Dictionary<string, ProjectileData> _loadedScenes = new();
 
     // =========================================================================
     // SIGNALS
@@ -38,9 +39,8 @@ public partial class ProjectileCatalog : Node
     {
         Instance = this;
         GD.Print("ProjectileCatalog: Initializing...");
-        LoadProjectiles();
-        ValidateContent();
-        GD.Print($"ProjectileCatalog: Loaded {_projectiles.Count} projectiles");
+        LoadVisualScenes();
+        GD.Print($"ProjectileCatalog: Ready with {ProjectileDefinitions.Count} projectiles");
         EmitSignal(SignalName.ContentLoaded);
     }
 
@@ -57,99 +57,49 @@ public partial class ProjectileCatalog : Node
     // =========================================================================
 
     /// <summary>
-    /// Load all projectile definitions from JSON files.
+    /// Pre-load visual scenes for all projectiles.
+    /// Scenes are loaded lazily and cached.
     /// </summary>
-    private void LoadProjectiles()
+    private void LoadVisualScenes()
     {
-        _projectiles.Clear();
-
-        const string projDir = "res://data/projectiles/";
-        var dir = DirAccess.Open(projDir);
-
-        if (dir == null)
-        {
-            GD.PushWarning($"ProjectileCatalog: projectiles directory not found: {projDir}");
-            return;
-        }
-
-        dir.ListDirBegin();
-        var fileName = dir.GetNext();
-
-        while (!string.IsNullOrEmpty(fileName))
-        {
-            if (fileName.EndsWith(".json"))
-            {
-                var filePath = projDir + fileName;
-                var projData = LoadProjectileFromFile(filePath);
-                if (projData != null)
-                {
-                    _projectiles[projData.ProjectileId] = projData;
-                }
-            }
-            fileName = dir.GetNext();
-        }
-
-        dir.ListDirEnd();
-    }
-
-    /// <summary>
-    /// Load a single projectile definition from a JSON file.
-    /// </summary>
-    private ProjectileData? LoadProjectileFromFile(string filePath)
-    {
-        using var file = FileAccess.Open(filePath, FileAccess.ModeFlags.Read);
-        if (file == null)
-        {
-            GD.PushError($"ProjectileCatalog: Failed to open file: {filePath}");
-            return null;
-        }
-
-        var jsonText = file.GetAsText();
-        var json = new Json();
-        var parseResult = json.Parse(jsonText);
-
-        if (parseResult != Error.Ok)
-        {
-            GD.PushError($"ProjectileCatalog: JSON parse error in {filePath} at line {json.GetErrorLine()}: {json.GetErrorMessage()}");
-            return null;
-        }
-
-        var data = json.Data;
-        if (data.VariantType != Variant.Type.Dictionary)
-        {
-            GD.PushError($"ProjectileCatalog: JSON root is not a dictionary: {filePath}");
-            return null;
-        }
-
-        return ProjectileData.FromDictionary(data.AsGodotDictionary());
-    }
-
-    /// <summary>
-    /// Validate loaded projectile data for consistency.
-    /// </summary>
-    private void ValidateContent()
-    {
+        _loadedScenes.Clear();
         var errors = new List<string>();
 
-        foreach (var projData in _projectiles.Values)
+        foreach (var projData in ProjectileDefinitions.All)
         {
-            if (projData.Speed <= 0)
+            if (string.IsNullOrEmpty(projData.ModelScenePath))
+                continue;
+
+            if (ResourceLoader.Exists(projData.ModelScenePath))
             {
-                errors.Add($"Projectile '{projData.ProjectileId}' has invalid speed: {projData.Speed:F1}");
+                var scene = ResourceLoader.Load<PackedScene>(projData.ModelScenePath);
+                if (scene != null)
+                {
+                    projData.VisualScene = scene;
+                    _loadedScenes[projData.ProjectileId] = projData;
+                }
+                else
+                {
+                    errors.Add($"Failed to load scene for '{projData.ProjectileId}': {projData.ModelScenePath}");
+                }
+            }
+            else
+            {
+                errors.Add($"Scene path does not exist for '{projData.ProjectileId}': {projData.ModelScenePath}");
             }
         }
 
         if (errors.Count > 0)
         {
-            GD.PushError($"ProjectileCatalog: Found {errors.Count} validation errors:");
+            GD.PushWarning($"ProjectileCatalog: {errors.Count} visual scene errors:");
             foreach (var error in errors)
             {
-                GD.PushError($"  - {error}");
+                GD.PushWarning($"  - {error}");
             }
         }
         else
         {
-            GD.Print("ProjectileCatalog: All projectiles validated successfully");
+            GD.Print("ProjectileCatalog: All visual scenes loaded successfully");
         }
     }
 
@@ -160,42 +110,47 @@ public partial class ProjectileCatalog : Node
     /// <summary>
     /// Get projectile data by ID.
     /// </summary>
-    public ProjectileData? GetProjectile(string projectileId)
-    {
-        return _projectiles.GetValueOrDefault(projectileId);
-    }
+    public ProjectileData? GetProjectile(ProjectileId projectileId) =>
+        ProjectileDefinitions.Get(projectileId);
+
+    /// <summary>
+    /// Get projectile data by string ID.
+    /// </summary>
+    public ProjectileData? GetProjectile(string projectileId) =>
+        ProjectileDefinitions.Get(projectileId);
 
     /// <summary>
     /// Check if a projectile exists.
     /// </summary>
-    public bool HasProjectile(string projectileId)
-    {
-        return _projectiles.ContainsKey(projectileId);
-    }
+    public bool HasProjectile(ProjectileId projectileId) =>
+        ProjectileDefinitions.Has(projectileId);
+
+    /// <summary>
+    /// Check if a projectile exists by string ID.
+    /// </summary>
+    public bool HasProjectile(string projectileId) =>
+        ProjectileDefinitions.Has(projectileId);
 
     /// <summary>
     /// Get all projectile IDs.
     /// </summary>
-    public string[] GetAllProjectileIds()
-    {
-        return [.. _projectiles.Keys];
-    }
+    public string[] GetAllProjectileIds() =>
+        ProjectileDefinitions.AllIds.ToArray();
 
     /// <summary>
     /// Get projectile count.
     /// </summary>
-    public int Count => _projectiles.Count;
+    public int Count => ProjectileDefinitions.Count;
 
     /// <summary>
-    /// Reload all projectiles from disk.
+    /// Reload visual scenes.
     /// Useful for hot-reloading during development.
     /// </summary>
     public void ReloadProjectiles()
     {
-        GD.Print("ProjectileCatalog: Reloading projectiles...");
-        LoadProjectiles();
-        ValidateContent();
-        GD.Print($"ProjectileCatalog: Reloaded {_projectiles.Count} projectiles");
+        GD.Print("ProjectileCatalog: Reloading visual scenes...");
+        LoadVisualScenes();
+        GD.Print($"ProjectileCatalog: Reloaded {ProjectileDefinitions.Count} projectiles");
         EmitSignal(SignalName.ContentLoaded);
     }
 

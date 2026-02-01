@@ -10,8 +10,8 @@ namespace ProjectSummoner.Services.Campaign.Models;
 /// </summary>
 public class CampaignNode
 {
-    /// <summary>Unique identifier for this node.</summary>
-    public string Id { get; set; } = "";
+    /// <summary>Unique identifier for this node (references an event).</summary>
+    public EventId Id { get; set; } = EventId.None;
 
     /// <summary>Node type (battle, elite, boss, choice, caravan, rest, story).</summary>
     public string Type { get; set; } = "";
@@ -23,16 +23,16 @@ public class CampaignNode
     public Godot.Collections.Dictionary Data { get; set; } = [];
 
     /// <summary>The campaign this node belongs to.</summary>
-    public string CampaignId { get; set; } = "";
+    public CampaignId CampaignId { get; set; } = CampaignId.None;
 
     /// <summary>
     /// Create a CampaignNode from GDScript Dictionary.
     /// </summary>
-    public static CampaignNode FromDictionary(Godot.Collections.Dictionary dict, string campaignId)
+    public static CampaignNode FromDictionary(Godot.Collections.Dictionary dict, CampaignId campaignId)
     {
         var node = new CampaignNode
         {
-            Id = dict.GetValueOrDefault("id", "").AsString(),
+            Id = new EventId(dict.GetValueOrDefault("id", "").AsString()),
             Type = dict.GetValueOrDefault("type", "battle").AsString(),
             CampaignId = campaignId
         };
@@ -58,7 +58,7 @@ public class CampaignNode
     /// Create a CampaignNode from a typed EventDefinition.
     /// This is the new preferred construction method.
     /// </summary>
-    public static CampaignNode FromEventDefinition(EventDefinition evt, string campaignId)
+    public static CampaignNode FromEventDefinition(EventDefinition evt, CampaignId campaignId)
     {
         var node = new CampaignNode
         {
@@ -79,11 +79,11 @@ public class CampaignNode
     {
         return new Godot.Collections.Dictionary
         {
-            ["id"] = Id,
+            ["id"] = (string)Id,
             ["type"] = Type,
             ["position"] = Position,
             ["data"] = Data,
-            ["campaign_id"] = CampaignId
+            ["campaign_id"] = (string)CampaignId
         };
     }
 

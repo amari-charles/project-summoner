@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
 using ProjectSummoner.Domain.Profile.Collection;
@@ -25,7 +26,7 @@ public class ProfileData
 
     /// <summary>Unique profile identifier.</summary>
     [JsonPropertyName("profile_id")]
-    public string ProfileId { get; set; } = "";
+    public ProfileId ProfileId { get; set; } = Profile.ProfileId.None;
 
     /// <summary>Last update timestamp (Unix time).</summary>
     [JsonPropertyName("updated_at")]
@@ -45,7 +46,7 @@ public class ProfileData
 
     /// <summary>Array of unlocked summoner IDs.</summary>
     [JsonPropertyName("unlocked_summoners")]
-    public List<string> UnlockedSummoners { get; set; } = [];
+    public List<SummonerId> UnlockedSummoners { get; set; } = [];
 
     /// <summary>Summoner instance data (level, XP, equipped items).</summary>
     [JsonPropertyName("summoner_instances")]

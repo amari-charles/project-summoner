@@ -150,7 +150,7 @@ public partial class CampaignService : Node
 	/// <summary>Check if a campaign exists.</summary>
 	public bool HasCampaign(string campaignId)
 	{
-		return Data.Events.CampaignCatalog.HasCampaign(campaignId);
+		return Data.Events.CampaignCatalog.HasCampaign(new Data.Events.CampaignId(campaignId));
 	}
 
 	/// <summary>Set the current campaign ID.</summary>

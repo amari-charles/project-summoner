@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using ProjectSummoner.Data.Events;
 
 namespace ProjectSummoner.Services.Campaign.Models;
 
@@ -9,11 +10,11 @@ namespace ProjectSummoner.Services.Campaign.Models;
 /// </summary>
 public class CampaignEdge
 {
-    /// <summary>ID of the source node.</summary>
-    public string FromId { get; set; } = "";
+    /// <summary>ID of the source node (event).</summary>
+    public EventId FromId { get; set; } = EventId.None;
 
-    /// <summary>ID of the target node.</summary>
-    public string ToId { get; set; } = "";
+    /// <summary>ID of the target node (event).</summary>
+    public EventId ToId { get; set; } = EventId.None;
 
     /// <summary>Optional condition that must be met for this edge to be traversable.</summary>
     public EdgeCondition? Condition { get; set; }
@@ -25,8 +26,8 @@ public class CampaignEdge
     {
         var edge = new CampaignEdge
         {
-            FromId = dict.GetValueOrDefault("from", "").AsString(),
-            ToId = dict.GetValueOrDefault("to", "").AsString()
+            FromId = new EventId(dict.GetValueOrDefault("from", "").AsString()),
+            ToId = new EventId(dict.GetValueOrDefault("to", "").AsString())
         };
 
         // Parse condition if present
@@ -46,8 +47,8 @@ public class CampaignEdge
     {
         var dict = new Godot.Collections.Dictionary
         {
-            ["from"] = FromId,
-            ["to"] = ToId
+            ["from"] = (string)FromId,
+            ["to"] = (string)ToId
         };
 
         if (Condition != null)
@@ -72,7 +73,7 @@ public class EdgeCondition
     public string Type { get; set; } = "";
 
     /// <summary>The node ID this condition references (for choice/completed conditions).</summary>
-    public string NodeId { get; set; } = "";
+    public EventId NodeId { get; set; } = EventId.None;
 
     /// <summary>The required value (e.g., choice option ID, item ID).</summary>
     public string Value { get; set; } = "";
@@ -98,7 +99,7 @@ public class EdgeCondition
         if (dict.ContainsKey("completed"))
         {
             condition.Type = "completed";
-            condition.NodeId = dict.GetValueOrDefault("completed", "").AsString();
+            condition.NodeId = new EventId(dict.GetValueOrDefault("completed", "").AsString());
             return condition;
         }
 
@@ -111,7 +112,7 @@ public class EdgeCondition
 
         // Full format
         condition.Type = dict.GetValueOrDefault("type", "").AsString();
-        condition.NodeId = dict.GetValueOrDefault("node_id", "").AsString();
+        condition.NodeId = new EventId(dict.GetValueOrDefault("node_id", "").AsString());
         condition.Value = dict.GetValueOrDefault("value", "").AsString();
 
         return condition;
@@ -125,7 +126,7 @@ public class EdgeCondition
         return new Godot.Collections.Dictionary
         {
             ["type"] = Type,
-            ["node_id"] = NodeId,
+            ["node_id"] = (string)NodeId,
             ["value"] = Value
         };
     }

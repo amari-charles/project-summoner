@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile.Collection;
 using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -35,8 +36,9 @@ public class CardOwnershipHandler
     /// <summary>Get SummonerBound cards for a specific summoner.</summary>
     public CardInstance[] GetSummonerBoundCards(string summonerId)
     {
+        var typedSummonerId = new SummonerId(summonerId);
         return _profileRepo.ListCards()
-            .Where(c => c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == summonerId)
+            .Where(c => c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == typedSummonerId)
             .ToArray();
     }
 
@@ -82,7 +84,8 @@ public class CardOwnershipHandler
     /// <summary>Get all instances of a specific catalog ID.</summary>
     public CardInstance[] GetCardsByCatalogId(string catalogId)
     {
-        return _profileRepo.ListCards().Where(c => c.CatalogId == catalogId).ToArray();
+        var typedCatalogId = new CardId(catalogId);
+        return _profileRepo.ListCards().Where(c => c.CatalogId == typedCatalogId).ToArray();
     }
 
     /// <summary>
@@ -93,7 +96,7 @@ public class CardOwnershipHandler
     {
         return _profileRepo.ListCards()
             .GroupBy(c => c.CatalogId)
-            .ToDictionary(g => g.Key, g => g.ToArray());
+            .ToDictionary(g => (string)g.Key, g => g.ToArray());
     }
 
     /// <summary>

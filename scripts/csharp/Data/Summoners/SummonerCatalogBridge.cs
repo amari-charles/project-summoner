@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 namespace ProjectSummoner.Data.Summoners;
@@ -112,6 +113,6 @@ public partial class SummonerCatalogBridge : Node
     public string[] GetInnateTraitIds(string summonerId)
     {
         var summoner = SummonerCatalog.GetSummoner(summonerId);
-        return summoner?.InnateTraitIds ?? [];
+        return summoner?.InnateTraitIds.Select(id => (string)id).ToArray() ?? [];
     }
 }

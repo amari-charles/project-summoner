@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Cards.Effects.Targeting;
+using ProjectSummoner.Projectiles;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Cards;
 
@@ -63,7 +65,7 @@ public static class SpellBuilder
             Affinity = Affinity.Enemies,
             Damage = damage,
             DamageType = "fire",
-            VFXId = "fireball_explosion"
+            VFXId = VfxIds.FireballExplosion
         };
     }
 
@@ -79,7 +81,7 @@ public static class SpellBuilder
             Affinity = Affinity.Enemies,
             Damage = damage,
             DamageType = "fire",
-            ProjectileId = "fireball"
+            ProjectileId = ProjectileIds.Fireball
         };
     }
 
@@ -139,7 +141,7 @@ public static class SpellBuilder
             Affinity = Affinity.Enemies,
             Damage = damage,
             DamageType = "arcane",
-            ProjectileId = "mana_bolt"
+            ProjectileId = ProjectileIds.ManaBolt
         };
     }
 
@@ -191,7 +193,7 @@ public static class SpellBuilder
                 Targeting = new CircleTargeting(3f), // Single target area
                 Affinity = Affinity.Enemies,
                 Damage = bonusDamage,
-                VFXId = "execute_crit"
+                VFXId = VfxIds.ExecuteCrit
             },
             ElseEffect = new DamageEffect
             {

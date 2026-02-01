@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ProjectSummoner.Domain.Profile.Inventory;
+using ProjectSummoner.Data.Items;
+using ProjectSummoner.Data.Summoners;
+using ProjectSummoner.Data.Traits;
+using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 
 namespace ProjectSummoner.Domain.Profile.Summoners;
 
@@ -11,7 +14,7 @@ public class SummonerInstance
 {
     /// <summary>Summoner catalog ID (e.g., "summoner_cole").</summary>
     [JsonPropertyName("summoner_id")]
-    public required string SummonerId { get; set; }
+    public required SummonerId SummonerId { get; set; }
 
     /// <summary>Current level (1-10).</summary>
     [JsonPropertyName("level")]
@@ -27,7 +30,7 @@ public class SummonerInstance
     /// Serialized to {"weapon": "id", ...} via DtoConverters for GDScript interop.
     /// </summary>
     [JsonIgnore]
-    public Dictionary<ItemSlot, string?> EquippedItems { get; set; } = new()
+    public Dictionary<ItemSlot, ItemId?> EquippedItems { get; set; } = new()
     {
         [ItemSlot.Weapon] = null,
         [ItemSlot.Ring1] = null,
@@ -39,5 +42,5 @@ public class SummonerInstance
     /// Trait IDs this summoner has acquired through level-up selections.
     /// </summary>
     [JsonPropertyName("acquired_trait_ids")]
-    public List<string> AcquiredTraitIds { get; set; } = [];
+    public List<TraitId> AcquiredTraitIds { get; set; } = [];
 }

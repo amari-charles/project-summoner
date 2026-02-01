@@ -136,10 +136,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.fire_wisp.name"),
 				"description": Loc.t("shop.offering.fire_wisp.description"),
-				"card_catalog_id": "fire_wisp",
+				"card_catalog_id": CardIDs.FIRE_WISP,
 				"card_count": 1,
 				"base_price": 30,
-				"purchase_limit_type": "none",
+				"purchase_limit_type": PurchaseLimitTypeIds.NONE,
 				"purchase_limit": 0
 			},
 			{
@@ -147,10 +147,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.pebbloom.name"),
 				"description": Loc.t("shop.offering.pebbloom.description"),
-				"card_catalog_id": "pebbloom",
+				"card_catalog_id": CardIDs.PEBBLOOM,
 				"card_count": 1,
 				"base_price": 20,
-				"purchase_limit_type": "none",
+				"purchase_limit_type": PurchaseLimitTypeIds.NONE,
 				"purchase_limit": 0
 			},
 			{
@@ -158,10 +158,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.puff.name"),
 				"description": Loc.t("shop.offering.puff.description"),
-				"card_catalog_id": "puff",
+				"card_catalog_id": CardIDs.PUFF,
 				"card_count": 1,
 				"base_price": 35,
-				"purchase_limit_type": "none",
+				"purchase_limit_type": PurchaseLimitTypeIds.NONE,
 				"purchase_limit": 0
 			},
 			{
@@ -170,10 +170,10 @@ func _init_shops() -> void:
 				"display_name": Loc.t("shop.offering.basic_spell_pack.name"),
 				"description": Loc.t("shop.offering.basic_spell_pack.description"),
 				"pack_cards": [
-					{"catalog_id": "mana_bolt", "count": 2}
+					{"catalog_id": CardIDs.MANA_BOLT, "count": 2}
 				],
 				"base_price": 50,
-				"purchase_limit_type": "none",
+				"purchase_limit_type": PurchaseLimitTypeIds.NONE,
 				"purchase_limit": 0
 			},
 			{
@@ -182,11 +182,11 @@ func _init_shops() -> void:
 				"display_name": Loc.t("shop.offering.summon_pack.name"),
 				"description": Loc.t("shop.offering.summon_pack.description"),
 				"pack_cards": [
-					{"catalog_id": "pebbloom", "count": 2},
-					{"catalog_id": "fire_wisp", "count": 1}
+					{"catalog_id": CardIDs.PEBBLOOM, "count": 2},
+					{"catalog_id": CardIDs.FIRE_WISP, "count": 1}
 				],
 				"base_price": 70,
-				"purchase_limit_type": "none",
+				"purchase_limit_type": PurchaseLimitTypeIds.NONE,
 				"purchase_limit": 0
 			}
 		]
@@ -203,10 +203,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.fire_wisp.name"),
 				"description": Loc.t("shop.offering.fire_wisp.description"),
-				"card_catalog_id": "fire_wisp",
+				"card_catalog_id": CardIDs.FIRE_WISP,
 				"card_count": 1,
 				"base_price": 25,
-				"purchase_limit_type": "account",
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -214,10 +214,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.pebbloom.name"),
 				"description": Loc.t("shop.offering.pebbloom.description"),
-				"card_catalog_id": "pebbloom",
+				"card_catalog_id": CardIDs.PEBBLOOM,
 				"card_count": 1,
 				"base_price": 20,
-				"purchase_limit_type": "account",
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -225,10 +225,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.puff.name"),
 				"description": Loc.t("shop.offering.puff.description"),
-				"card_catalog_id": "puff",
+				"card_catalog_id": CardIDs.PUFF,
 				"card_count": 1,
 				"base_price": 30,
-				"purchase_limit_type": "account",
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -236,10 +236,10 @@ func _init_shops() -> void:
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.mana_bolt.name"),
 				"description": Loc.t("shop.offering.mana_bolt.description"),
-				"card_catalog_id": "mana_bolt",
+				"card_catalog_id": CardIDs.MANA_BOLT,
 				"card_count": 1,
 				"base_price": 35,
-				"purchase_limit_type": "account",
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			}
 		]
@@ -262,8 +262,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.lightning_adept.description"),
 				"summoner_id": "summoner_lightning_adept",
 				"base_price": 750,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -273,8 +273,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.verdant_sage.description"),
 				"summoner_id": "summoner_verdant_sage",
 				"base_price": 750,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -284,8 +284,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.void_walker.description"),
 				"summoner_id": "summoner_void_walker",
 				"base_price": 750,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			# =====================================================================
@@ -299,8 +299,8 @@ func _init_shops() -> void:
 				"cosmetic_type": "card_back",
 				"cosmetic_id": "card_back_placeholder_1",
 				"base_price": 200,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -311,8 +311,8 @@ func _init_shops() -> void:
 				"cosmetic_type": "ui_theme",
 				"cosmetic_id": "ui_theme_placeholder_1",
 				"base_price": 500,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			# =====================================================================
@@ -325,8 +325,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_laugh.description"),
 				"emote_id": "emote_laugh",
 				"base_price": 150,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -336,8 +336,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_shocked.description"),
 				"emote_id": "emote_shocked",
 				"base_price": 150,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -347,8 +347,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_thinking.description"),
 				"emote_id": "emote_thinking",
 				"base_price": 200,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -358,8 +358,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_taunt.description"),
 				"emote_id": "emote_taunt",
 				"base_price": 250,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -369,8 +369,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_confident.description"),
 				"emote_id": "emote_confident",
 				"base_price": 300,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			},
 			{
@@ -380,8 +380,8 @@ func _init_shops() -> void:
 				"description": Loc.t("shop.offering.emote_victory.description"),
 				"emote_id": "emote_victory",
 				"base_price": 350,
-				"currency_type": "gems",
-				"purchase_limit_type": "account",
+				"currency_type": CurrencyTypeIds.GEMS,
+				"purchase_limit_type": PurchaseLimitTypeIds.ACCOUNT,
 				"purchase_limit": 1
 			}
 		]
@@ -463,18 +463,18 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 
 	# Execute purchase based on currency type
 	var price: int = offering_dict.get("base_price", 0)
-	var currency: String = offering_dict.get("currency_type", "gold")
+	var currency: String = offering_dict.get("currency_type", CurrencyTypeIds.GOLD)
 
 	match currency:
-		"gold":
+		CurrencyTypeIds.GOLD:
 			if is_caravan:
 				# Use campaign gold for caravan purchases
 				return _complete_caravan_purchase(offering_dict, offering_id, shop_id, purchase_key, price)
 			else:
 				return _cs_service.CompleteCurrencyPurchase(offering_dict, offering_id, shop_id, purchase_key, price, currency)
-		"gems":
+		CurrencyTypeIds.GEMS:
 			return _cs_service.CompleteCurrencyPurchase(offering_dict, offering_id, shop_id, purchase_key, price, currency)
-		"real_money":
+		CurrencyTypeIds.REAL_MONEY:
 			# Delegate to PlatformBilling (async)
 			var product_id: String = offering_dict.get("product_id", offering_id)
 			_pending_billing_purchases[product_id] = {
@@ -530,9 +530,9 @@ func _build_offering_from_dict(def: Dictionary) -> ShopOffering:
 	offering.card_catalog_id = def.get("card_catalog_id", "")
 	offering.card_count = def.get("card_count", 1)
 	offering.base_price = def.get("base_price", 0)
-	offering.currency_type = def.get("currency_type", "gold")
+	offering.currency_type = def.get("currency_type", CurrencyTypeIds.GOLD)
 	offering.product_id = def.get("product_id", "")
-	offering.purchase_limit_type = def.get("purchase_limit_type", "none")
+	offering.purchase_limit_type = def.get("purchase_limit_type", PurchaseLimitTypeIds.NONE)
 	offering.purchase_limit = def.get("purchase_limit", 0)
 
 	# For CARD_PACK types

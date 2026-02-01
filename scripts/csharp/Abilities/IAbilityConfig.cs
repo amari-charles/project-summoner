@@ -1,3 +1,5 @@
+using ProjectSummoner.Vfx;
+
 namespace ProjectSummoner.Abilities;
 
 /// <summary>
@@ -21,7 +23,7 @@ public interface IAbilityConfig
 public record SlowOnHitConfig(
     float SlowPercent = 0.3f,
     float Duration = 2.0f,
-    string VfxId = ""
+    VfxId VfxId = default
 ) : IAbilityConfig
 {
     public BaseAbility CreateAbility()
@@ -45,10 +47,15 @@ public record DeathExplosionConfig(
     string DamageType = "fire",
     bool AffectsEnemies = true,
     bool AffectsAllies = false,
-    string VfxId = "explosion_default",
+    VfxId VfxId = default,
     float Delay = 0.0f
 ) : IAbilityConfig
 {
+    /// <summary>
+    /// Gets the VFX ID, defaulting to ExplosionDefault if not specified.
+    /// </summary>
+    private VfxId EffectiveVfxId => VfxId.HasValue ? VfxId : VfxIds.ExplosionDefault;
+
     public BaseAbility CreateAbility()
     {
         return new DeathExplosionAbility
@@ -58,7 +65,7 @@ public record DeathExplosionConfig(
             DamageType = DamageType,
             AffectsEnemies = AffectsEnemies,
             AffectsAllies = AffectsAllies,
-            ExplosionVfx = VfxId,
+            ExplosionVfx = EffectiveVfxId,
             ExplosionDelay = Delay
         };
     }

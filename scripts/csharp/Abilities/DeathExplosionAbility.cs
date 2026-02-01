@@ -1,5 +1,6 @@
 using Godot;
 using ProjectSummoner.Units;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Abilities;
 
@@ -58,8 +59,7 @@ public partial class DeathExplosionAbility : BaseAbility
     // =========================================================================
 
     /// <summary>VFX played at explosion center.</summary>
-    [Export]
-    public string ExplosionVfx { get; set; } = "explosion_default";
+    public VfxId ExplosionVfx { get; set; } = VfxIds.ExplosionDefault;
 
     /// <summary>Sound played on explosion.</summary>
     [Export]
@@ -118,7 +118,7 @@ public partial class DeathExplosionAbility : BaseAbility
         Vector3 explosionCenter = OwnerUnit.GlobalPosition;
 
         // Spawn VFX first
-        if (!string.IsNullOrEmpty(ExplosionVfx))
+        if (ExplosionVfx.HasValue)
         {
             SpawnVfx(ExplosionVfx, explosionCenter);
         }

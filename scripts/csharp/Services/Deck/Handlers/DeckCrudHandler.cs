@@ -1,5 +1,7 @@
 using System.Linq;
 using Godot;
+using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Infrastructure.Persistence;
 using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
@@ -109,10 +111,10 @@ public class DeckCrudHandler
 
         var deck = new DeckModel
         {
-            Id = "", // Will be assigned by repository
+            Id = DeckId.None, // Will be assigned by repository
             Name = deckName,
-            CardInstanceIds = [.. cardInstanceIds],
-            SummonerId = finalSummonerId
+            CardInstanceIds = cardInstanceIds.Select(s => new CardInstanceId(s)).ToList(),
+            SummonerId = new SummonerId(finalSummonerId)
         };
 
         var deckId = _profileRepo.UpsertDeck(deck);
@@ -137,12 +139,12 @@ public class DeckCrudHandler
 
         var updated = new DeckModel
         {
-            Id = deckId,
+            Id = new DeckId(deckId),
             Name = !string.IsNullOrEmpty(deckName) ? deckName : existing.Name,
             CardInstanceIds = cardInstanceIds != null && cardInstanceIds.Length > 0
-                ? [.. cardInstanceIds]
+                ? cardInstanceIds.Select(s => new CardInstanceId(s)).ToList()
                 : existing.CardInstanceIds,
-            SummonerId = !string.IsNullOrEmpty(summonerId) ? summonerId : existing.SummonerId
+            SummonerId = !string.IsNullOrEmpty(summonerId) ? new SummonerId(summonerId) : existing.SummonerId
         };
 
         var resultId = _profileRepo.UpsertDeck(updated);

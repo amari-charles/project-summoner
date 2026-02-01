@@ -87,7 +87,7 @@ public class CampaignCatalogHandler
     /// <summary>Get a specific campaign's metadata.</summary>
     public Godot.Collections.Dictionary GetCampaign(string campaignId)
     {
-        var campaign = CampaignCatalog.GetCampaign(campaignId);
+        var campaign = CampaignCatalog.GetCampaign(new CampaignId(campaignId));
         if (campaign == null) return new Godot.Collections.Dictionary();
         return CampaignCatalog.ToDictionary(campaign);
     }
@@ -95,7 +95,7 @@ public class CampaignCatalogHandler
     /// <summary>Check if a campaign is unlocked.</summary>
     public bool IsCampaignUnlocked(string campaignId)
     {
-        var campaign = CampaignCatalog.GetCampaign(campaignId);
+        var campaign = CampaignCatalog.GetCampaign(new CampaignId(campaignId));
         if (campaign == null) return false;
 
         // No requirements = unlocked
@@ -120,7 +120,7 @@ public class CampaignCatalogHandler
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
-        var campaign = CampaignCatalog.GetCampaign(_store.CurrentCampaignId);
+        var campaign = CampaignCatalog.GetCampaign(new CampaignId(_store.CurrentCampaignId));
         if (campaign == null) return result;
 
         foreach (var eventId in campaign.EventIds)
@@ -139,7 +139,7 @@ public class CampaignCatalogHandler
     /// <summary>Get a specific event by ID.</summary>
     public Godot.Collections.Dictionary GetBattle(string battleId)
     {
-        var evt = EventCatalog.GetEvent(battleId);
+        var evt = EventCatalog.GetEvent(new EventId(battleId));
         if (evt == null) return new Godot.Collections.Dictionary();
 
         var dict = EventCatalog.ToDictionary(evt);
@@ -154,7 +154,7 @@ public class CampaignCatalogHandler
 
         foreach (var battleId in _store.CompletedBattles)
         {
-            var evt = EventCatalog.GetEvent(battleId);
+            var evt = EventCatalog.GetEvent(new EventId(battleId));
             if (evt == null) continue;
 
             var dict = EventCatalog.ToDictionary(evt);
@@ -172,25 +172,25 @@ public class CampaignCatalogHandler
     /// <summary>Get typed event definition by ID.</summary>
     public EventDefinition? GetEventDefinition(string eventId)
     {
-        return EventCatalog.GetEvent(eventId);
+        return EventCatalog.GetEvent(new EventId(eventId));
     }
 
     /// <summary>Get typed event definition by ID with specific type.</summary>
     public T? GetEventDefinition<T>(string eventId) where T : EventDefinition
     {
-        return EventCatalog.GetEvent<T>(eventId);
+        return EventCatalog.GetEvent<T>(new EventId(eventId));
     }
 
     /// <summary>Get typed campaign definition by ID.</summary>
     public CampaignDefinition? GetCampaignDefinition(string campaignId)
     {
-        return CampaignCatalog.GetCampaign(campaignId);
+        return CampaignCatalog.GetCampaign(new CampaignId(campaignId));
     }
 
     /// <summary>Get all battle events for current campaign.</summary>
     public BattleEventDefinition[] GetCurrentCampaignBattles()
     {
-        var campaign = CampaignCatalog.GetCampaign(_store.CurrentCampaignId);
+        var campaign = CampaignCatalog.GetCampaign(new CampaignId(_store.CurrentCampaignId));
         if (campaign == null) return System.Array.Empty<BattleEventDefinition>();
 
         return campaign.EventIds

@@ -1,3 +1,5 @@
+using ProjectSummoner.Cards;
+
 namespace ProjectSummoner.Data.Events;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace ProjectSummoner.Data.Events;
 public class FixedRewardEntry
 {
     /// <summary>Card catalog ID</summary>
-    public string CardId { get; set; } = "";
+    public CardId CardId { get; set; } = Cards.CardId.None;
 
     /// <summary>Rarity of the reward card (common, rare, epic, legendary)</summary>
     public string Rarity { get; set; } = "common";
@@ -16,7 +18,7 @@ public class FixedRewardEntry
 
     public FixedRewardEntry() { }
 
-    public FixedRewardEntry(string cardId, string rarity = "common", int count = 1)
+    public FixedRewardEntry(CardId cardId, string rarity = "common", int count = 1)
     {
         CardId = cardId;
         Rarity = rarity;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Services.Campaign;
 
 namespace ProjectSummoner.Data.Events;
 
@@ -9,7 +10,7 @@ namespace ProjectSummoner.Data.Events;
 public class CampaignDefinition
 {
     /// <summary>Unique campaign identifier</summary>
-    public string Id { get; set; } = "";
+    public CampaignId Id { get; set; } = CampaignId.None;
 
     /// <summary>Localization key for campaign name</summary>
     public string NameKey { get; set; } = "";
@@ -21,13 +22,13 @@ public class CampaignDefinition
     public int SortOrder { get; set; }
 
     /// <summary>Starting event ID</summary>
-    public string StartEventId { get; set; } = "";
+    public EventId StartEventId { get; set; } = EventId.None;
 
     /// <summary>Campaign IDs that must be completed to unlock this campaign</summary>
-    public List<string> UnlockRequirements { get; set; } = new();
+    public List<CampaignId> UnlockRequirements { get; set; } = new();
 
     /// <summary>Event IDs in this campaign (references EventCatalog)</summary>
-    public List<string> EventIds { get; set; } = new();
+    public List<EventId> EventIds { get; set; } = new();
 
     /// <summary>Edges connecting events in the campaign graph</summary>
     public List<CampaignEdge> Edges { get; set; } = new();
@@ -39,17 +40,17 @@ public class CampaignDefinition
 public class CampaignEdge
 {
     /// <summary>Source event ID</summary>
-    public string FromEventId { get; set; } = "";
+    public EventId FromEventId { get; set; } = EventId.None;
 
     /// <summary>Target event ID</summary>
-    public string ToEventId { get; set; } = "";
+    public EventId ToEventId { get; set; } = EventId.None;
 
     /// <summary>Condition for this edge (optional)</summary>
     public EdgeCondition? Condition { get; set; }
 
     public CampaignEdge() { }
 
-    public CampaignEdge(string from, string to, EdgeCondition? condition = null)
+    public CampaignEdge(EventId from, EventId to, EdgeCondition? condition = null)
     {
         FromEventId = from;
         ToEventId = to;
@@ -63,11 +64,11 @@ public class CampaignEdge
 public class EdgeCondition
 {
     /// <summary>Required choice ID at the source node</summary>
-    public string? ChoiceId { get; set; }
+    public ChoiceId? ChoiceId { get; set; }
 
     public EdgeCondition() { }
 
-    public EdgeCondition(string choiceId)
+    public EdgeCondition(ChoiceId choiceId)
     {
         ChoiceId = choiceId;
     }

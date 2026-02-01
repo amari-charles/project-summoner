@@ -202,7 +202,8 @@ public partial class TraitCatalogBridge : Node
             if (string.IsNullOrEmpty(mod.Stat)) continue;
 
             var sign = mod.Value >= 0 ? "+" : "";
-            var suffix = mod.Type == "percent" ? "%" : "";
+            var modType = ModifierTypeExtensions.ParseModifierType(mod.Type);
+            var suffix = modType == ModifierType.Percent ? "%" : "";
             // Simple title case without relying on CultureInfo
             var statName = ToTitleCase(mod.Stat.Replace("_", " "));
 

@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Cards.Spawning;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Projectiles;
 using ProjectSummoner.Systems.Modifiers;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Cards;
 
@@ -30,8 +33,8 @@ public static class CardDefinitions
         SpellDamage = 100.0f,
         SpellRadius = 10.0f,
         SpellDuration = 0.5f,
-        ProjectileId = "fireball",
-        SpellVfx = "fireball_spell",
+        ProjectileId = ProjectileIds.Fireball,
+        SpellVfx = VfxIds.FireballSpell,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         UnlockCondition = UnlockCondition.Default,
@@ -108,7 +111,7 @@ public static class CardDefinitions
         Cooldown = 1.5f,
         SummonTime = 0.0f,
         SpellDamage = 60.0f,
-        ProjectileId = "mana_bolt",
+        ProjectileId = ProjectileIds.ManaBolt,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
         UnlockCondition = UnlockCondition.Default,
@@ -596,8 +599,30 @@ public static class CardDefinitions
         ManaCost = 5,
         Cooldown = 3.0f,
         SummonTime = 1.5f,
+        // SummonSpec replaces UnitId/SpawnCount for multi-unit spawning
+        // Note: SummonTime/Cooldown come from CardDefinition, not SummonSpec
+        Summon = new SummonSpec
+        {
+            Units =
+            [
+                new UnitSpawnEntry
+                {
+                    UnitId = UnitIds.MamaDuck,
+                    Count = 1
+                },
+                new UnitSpawnEntry
+                {
+                    UnitId = UnitIds.Duckling,
+                    Count = 3,
+                    Placement = SpawnPlacement.BehindLeader,
+                    FollowsIndex = 0,  // Ducklings follow mama's targeting
+                    PlacementOffset = 1.5f
+                }
+            ]
+        },
+        // Legacy fields kept for UI display compatibility
         UnitId = UnitIds.MamaDuck,
-        SpawnCount = 1,
+        SpawnCount = 4,  // Total: 1 mama + 3 ducklings
         Formation = FormationPresets.StandardGrid,
         UnitType = UnitType.Melee,
         IsRanged = false,

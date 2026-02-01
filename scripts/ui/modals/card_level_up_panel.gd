@@ -1,10 +1,10 @@
 extends Control
 class_name CardLevelUpPanel
 
-## Card Level-Up Panel - Modal for selecting upgrade when leveling up a card
+## Card Level-Up Panel - Modal for selecting trait when leveling up a card
 ##
 ## Opens as an overlay on the collection screen.
-## Shows card info, upgrade choices, and handles level-up confirmation.
+## Shows card info, trait choices, and handles level-up confirmation.
 
 ## UI Node References
 @onready var background: ColorRect = %Background
@@ -12,14 +12,14 @@ class_name CardLevelUpPanel
 @onready var level_transition_label: Label = %LevelTransitionLabel
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
-@onready var upgrade_container: HBoxContainer = %UpgradeContainer
+@onready var trait_container: HBoxContainer = %UpgradeContainer
 @onready var confirm_button: Button = %ConfirmButton
 @onready var cancel_button: Button = %CancelButton
 
 ## State
 var card_instance_id: String = ""
-var selected_upgrade_id: String = ""
-var upgrade_buttons: Array[Button] = []
+var selected_trait_id: String = ""
+var trait_buttons: Array[Button] = []
 
 ## Signals
 signal level_up_completed(card_instance_id: String)
@@ -37,7 +37,7 @@ func _ready() -> void:
 	# Connect background click to close
 	background.gui_input.connect(_on_background_input)
 
-	# Initially disable confirm until upgrade selected
+	# Initially disable confirm until trait selected
 	confirm_button.disabled = true
 
 ## =============================================================================
@@ -47,10 +47,10 @@ func _ready() -> void:
 ## Open the panel for a specific card instance
 func open_for_card(p_card_instance_id: String) -> void:
 	card_instance_id = p_card_instance_id
-	selected_upgrade_id = ""
+	selected_trait_id = ""
 
 	_load_card_data()
-	_populate_upgrade_choices()
+	_populate_trait_choices()
 	_update_confirm_button()
 
 	show()
@@ -91,57 +91,57 @@ func _load_card_data() -> void:
 	xp_label.text = Loc.t("ui.collection.xp_label", {"current": current_xp, "required": xp_for_next})
 	xp_progress_bar.value = xp_progress * 100.0
 
-func _populate_upgrade_choices() -> void:
-	# Clear existing upgrade buttons
-	for button: Button in upgrade_buttons:
+func _populate_trait_choices() -> void:
+	# Clear existing trait buttons
+	for button: Button in trait_buttons:
 		button.queue_free()
-	upgrade_buttons.clear()
+	trait_buttons.clear()
 
-	# Get available upgrades from PlayerCardService (C# autoload)
+	# Get available traits from PlayerCardService (C# autoload)
 	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 	if not card_service:
 		return
-	var upgrades: Array = card_service.GetAvailableUpgrades(card_instance_id)
+	var traits: Array = card_service.GetAvailableTraits(card_instance_id)
 
-	# Create upgrade buttons
-	for upgrade_var: Variant in upgrades:
-		if not upgrade_var is Dictionary:
+	# Create trait buttons
+	for trait_var: Variant in traits:
+		if not trait_var is Dictionary:
 			continue
-		var upgrade: Dictionary = upgrade_var
-		var button: Button = _create_upgrade_button(upgrade)
-		upgrade_container.add_child(button)
-		upgrade_buttons.append(button)
+		var trait_data: Dictionary = trait_var
+		var button: Button = _create_trait_button(trait_data)
+		trait_container.add_child(button)
+		trait_buttons.append(button)
 
-func _create_upgrade_button(upgrade: Dictionary) -> Button:
+func _create_trait_button(trait_data: Dictionary) -> Button:
 	var button: Button = Button.new()
 
-	var upgrade_id: String = upgrade.get("id", "")
-	var upgrade_name_val: Variant = upgrade.get("name", "Unknown")
-	var upgrade_name: String = upgrade_name_val if upgrade_name_val is String else "Unknown"
-	var description_val: Variant = upgrade.get("description", "")
+	var trait_id: String = trait_data.get("id", "")
+	var trait_name_val: Variant = trait_data.get("name", "Unknown")
+	var trait_name: String = trait_name_val if trait_name_val is String else "Unknown"
+	var description_val: Variant = trait_data.get("description", "")
 	var description: String = description_val if description_val is String else ""
 
 	# Build button text with name and description
-	button.text = "%s\n%s" % [upgrade_name, description]
+	button.text = "%s\n%s" % [trait_name, description]
 
 	# Style
 	button.custom_minimum_size = Vector2(180, 120)
 	button.add_theme_font_size_override("font_size", 18)
 
 	# Connect
-	button.pressed.connect(_on_upgrade_selected.bind(upgrade_id))
+	button.pressed.connect(_on_trait_selected.bind(trait_id))
 
 	return button
 
 func _update_confirm_button() -> void:
-	# Check if upgrade selected (no gold cost - XP only)
-	var can_confirm: bool = not selected_upgrade_id.is_empty()
+	# Check if trait selected (no gold cost - XP only)
+	var can_confirm: bool = not selected_trait_id.is_empty()
 	confirm_button.disabled = not can_confirm
 
 func _update_selection_visual() -> void:
 	# Update button visuals to show selection
-	for button: Button in upgrade_buttons:
-		# Get the upgrade_id from the button connection
+	for button: Button in trait_buttons:
+		# Get the trait_id from the button connection
 		var is_selected: bool = false
 		if button.pressed.get_connections().size() > 0:
 			var connections: Array = button.pressed.get_connections()
@@ -151,7 +151,7 @@ func _update_selection_visual() -> void:
 					var binds_var: Variant = conn_dict.get("binds", [])
 					if binds_var is Array:
 						var binds: Array = binds_var
-						if binds.size() > 0 and binds[0] == selected_upgrade_id:
+						if binds.size() > 0 and binds[0] == selected_trait_id:
 							is_selected = true
 							break
 
@@ -164,13 +164,13 @@ func _update_selection_visual() -> void:
 ## EVENT HANDLERS
 ## =============================================================================
 
-func _on_upgrade_selected(upgrade_id: String) -> void:
-	selected_upgrade_id = upgrade_id
+func _on_trait_selected(trait_id: String) -> void:
+	selected_trait_id = trait_id
 	_update_selection_visual()
 	_update_confirm_button()
 
 func _on_confirm_pressed() -> void:
-	if selected_upgrade_id.is_empty():
+	if selected_trait_id.is_empty():
 		return
 
 	# PlayerCardService is a C# autoload
@@ -178,7 +178,7 @@ func _on_confirm_pressed() -> void:
 	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
-	var success: bool = card_service.LevelUpCard(card_instance_id, selected_upgrade_id)
+	var success: bool = card_service.LevelUpCard(card_instance_id, selected_trait_id)
 
 	if success:
 		level_up_completed.emit(card_instance_id)

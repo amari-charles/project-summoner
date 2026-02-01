@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Services.Campaign;
+using ProjectSummoner.Services.Shop;
 
 namespace ProjectSummoner.Data.Events;
 
@@ -15,7 +17,7 @@ public static class EventCatalog
     // EVENT DEFINITIONS
     // =========================================================================
 
-    private static readonly Dictionary<string, EventDefinition> _events = new()
+    private static readonly Dictionary<EventId, EventDefinition> _events = new()
     {
         // =====================================================================
         // ACT 1: THE INITIATE'S PATH
@@ -39,7 +41,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardIds.FireWisp, CardIds.Puff, CardIds.Pebbloom },
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.Puff, CardIds.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 30,
@@ -67,7 +69,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 40,
@@ -82,7 +84,7 @@ public static class EventCatalog
             NameKey = "campaign.event.caravan_01.name",
             DescriptionKey = "campaign.event.caravan_01.description",
             Position = new Vector2(400, 300),
-            ShopId = "caravan_tutorial"
+            ShopId = ShopIds.CaravanTutorial
         },
 
         [EventIds.ThirdTrial] = new BattleEventDefinition
@@ -103,7 +105,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -120,8 +122,8 @@ public static class EventCatalog
             Position = new Vector2(700, 300),
             Options = new List<ChoiceOption>
             {
-                new("elite", "campaign.path.elite.label", "campaign.path.elite.description"),
-                new("standard", "campaign.path.standard.label", "campaign.path.standard.description")
+                new(ChoiceIds.Elite, "campaign.path.elite.label", "campaign.path.elite.description"),
+                new(ChoiceIds.Standard, "campaign.path.standard.label", "campaign.path.standard.description")
             }
         },
 
@@ -144,7 +146,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Pebbloom },
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 80,
@@ -170,7 +172,7 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardIds.Puff, CardIds.Pebbloom, CardIds.FireWisp },
+                CardOptions = new List<CardId> { CardIds.Puff, CardIds.Pebbloom, CardIds.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -361,22 +363,22 @@ public static class EventCatalog
     // =========================================================================
 
     /// <summary>Get an event by ID.</summary>
-    public static EventDefinition? GetEvent(string id)
+    public static EventDefinition? GetEvent(EventId id)
     {
         return _events.GetValueOrDefault(id);
     }
 
     /// <summary>Get an event by ID with specific type.</summary>
-    public static T? GetEvent<T>(string id) where T : EventDefinition
+    public static T? GetEvent<T>(EventId id) where T : EventDefinition
     {
         return _events.GetValueOrDefault(id) as T;
     }
 
     /// <summary>Check if an event exists.</summary>
-    public static bool HasEvent(string id) => _events.ContainsKey(id);
+    public static bool HasEvent(EventId id) => _events.ContainsKey(id);
 
     /// <summary>Get all event IDs.</summary>
-    public static string[] GetAllEventIds() => _events.Keys.ToArray();
+    public static EventId[] GetAllEventIds() => _events.Keys.ToArray();
 
     /// <summary>Get all events.</summary>
     public static EventDefinition[] GetAllEvents() => _events.Values.ToArray();
@@ -441,7 +443,7 @@ public static class EventCatalog
     // =========================================================================
 
     /// <summary>Get event as Godot Dictionary for GDScript interop.</summary>
-    public static Godot.Collections.Dictionary GetEventAsDict(string id)
+    public static Godot.Collections.Dictionary GetEventAsDict(EventId id)
     {
         var evt = GetEvent(id);
         if (evt == null) return new Godot.Collections.Dictionary();
@@ -453,7 +455,7 @@ public static class EventCatalog
     {
         var dict = new Godot.Collections.Dictionary
         {
-            ["id"] = evt.Id,
+            ["id"] = (string)evt.Id,
             ["type"] = evt.Type.ToStringId(),
             ["name_key"] = evt.NameKey,
             ["description_key"] = evt.DescriptionKey,
@@ -471,7 +473,7 @@ public static class EventCatalog
                 AddChoiceFields(dict, choice);
                 break;
             case CaravanEventDefinition caravan:
-                dict["shop_id"] = caravan.ShopId;
+                dict["shop_id"] = (string)caravan.ShopId;
                 break;
         }
 
@@ -480,7 +482,7 @@ public static class EventCatalog
 
     private static void AddBattleFields(Godot.Collections.Dictionary dict, BattleEventDefinition battle)
     {
-        dict["biome_id"] = battle.Biome;
+        dict["biome_id"] = (string)battle.Biome;
         dict["difficulty"] = battle.Difficulty;
         dict["is_tutorial"] = battle.IsTutorial;
         dict["requires_deck"] = battle.RequiresDeck;
@@ -493,7 +495,7 @@ public static class EventCatalog
         {
             enemyDeck.Add(new Godot.Collections.Dictionary
             {
-                ["catalog_id"] = entry.CardId,
+                ["catalog_id"] = (string)entry.CardId,
                 ["count"] = entry.Count
             });
         }
@@ -507,7 +509,7 @@ public static class EventCatalog
             {
                 devDeck.Add(new Godot.Collections.Dictionary
                 {
-                    ["catalog_id"] = entry.CardId,
+                    ["catalog_id"] = (string)entry.CardId,
                     ["count"] = entry.Count
                 });
             }
@@ -545,7 +547,7 @@ public static class EventCatalog
             {
                 fixedCards.Add(new Godot.Collections.Dictionary
                 {
-                    ["catalog_id"] = entry.CardId,
+                    ["catalog_id"] = (string)entry.CardId,
                     ["rarity"] = entry.Rarity,
                     ["count"] = entry.Count
                 });
@@ -558,7 +560,7 @@ public static class EventCatalog
             var options = new Godot.Collections.Array();
             foreach (var cardId in rewards.CardOptions)
             {
-                options.Add(cardId);
+                options.Add((string)cardId);
             }
             dict["reward_options"] = options;
         }
@@ -571,7 +573,7 @@ public static class EventCatalog
         {
             options.Add(new Godot.Collections.Dictionary
             {
-                ["id"] = opt.Id,
+                ["id"] = (string)opt.Id,
                 ["label_key"] = opt.LabelKey,
                 ["description_key"] = opt.DescriptionKey
             });

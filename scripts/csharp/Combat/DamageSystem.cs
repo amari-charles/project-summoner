@@ -38,14 +38,14 @@ public partial class DamageSystem : Node, IDamageSystem
 	// CONSTANTS
 	// =========================================================================
 
-	private static readonly Dictionary<string, float> DamageTypes = new()
+	private static readonly Dictionary<string, float> DamageTypeMultipliers = new()
 	{
-		{ "physical", 1.0f },
-		{ "magical", 1.0f },
-		{ "true", 1.0f },  // Ignores armor
-		{ "fire", 1.0f },
-		{ "ice", 1.0f },
-		{ "poison", 1.0f }
+		{ DamageTypes.Physical, 1.0f },
+		{ DamageTypes.Magical, 1.0f },
+		{ DamageTypes.True, 1.0f },  // Ignores armor
+		{ DamageTypes.Fire, 1.0f },
+		{ DamageTypes.Ice, 1.0f },
+		{ DamageTypes.Poison, 1.0f }
 	};
 
 	private const float CritChance = 0.15f;      // 15% base crit chance
@@ -67,7 +67,7 @@ public partial class DamageSystem : Node, IDamageSystem
 
 	public float ApplyDamage(Node3D attacker, Node3D target, float baseDamage)
 	{
-		return ApplyDamage(attacker, target, baseDamage, "physical", null);
+		return ApplyDamage(attacker, target, baseDamage, DamageTypes.Physical, null);
 	}
 
 	public float ApplyDamage(Node3D attacker, Node3D target, float baseDamage, string damageType)
@@ -116,7 +116,7 @@ public partial class DamageSystem : Node, IDamageSystem
 		}
 
 		// Apply damage type multiplier
-		if (DamageTypes.TryGetValue(damageType, out float typeMultiplier))
+		if (DamageTypeMultipliers.TryGetValue(damageType, out float typeMultiplier))
 		{
 			finalDamage *= typeMultiplier;
 		}
@@ -392,7 +392,7 @@ public partial class DamageSystem : Node, IDamageSystem
 	/// </summary>
 	public Godot.Collections.Dictionary PreviewDamage(Node3D target, float baseDamage)
 	{
-		return PreviewDamage(target, baseDamage, "physical", false);
+		return PreviewDamage(target, baseDamage, DamageTypes.Physical, false);
 	}
 
 	/// <summary>
@@ -422,7 +422,7 @@ public partial class DamageSystem : Node, IDamageSystem
 		}
 
 		// Apply damage type multiplier
-		if (DamageTypes.TryGetValue(damageType, out float typeMultiplier))
+		if (DamageTypeMultipliers.TryGetValue(damageType, out float typeMultiplier))
 		{
 			finalDamage *= typeMultiplier;
 		}

@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Projectiles;
 
 namespace ProjectSummoner.Capabilities;
 
@@ -9,7 +10,7 @@ namespace ProjectSummoner.Capabilities;
 public interface IRangedAttacker
 {
     /// <summary>ID of the projectile to spawn (from ProjectileService).</summary>
-    string ProjectileId { get; }
+    ProjectileId ProjectileId { get; }
 
     /// <summary>Delay before spawning projectile (for charge-up attacks).</summary>
     float ProjectileDelay { get; }

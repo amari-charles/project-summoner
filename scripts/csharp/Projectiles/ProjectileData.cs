@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Projectiles;
 
@@ -19,7 +20,7 @@ public class ProjectileData
     // IDENTITY
     // =========================================================================
 
-    public string ProjectileId { get; set; } = "";
+    public ProjectileId ProjectileId { get; set; } = ProjectileId.None;
     public string ProjectileName { get; set; } = "";
 
     // =========================================================================
@@ -33,10 +34,10 @@ public class ProjectileData
     public PackedScene? VisualScene { get; set; }
 
     /// <summary>VFX trail behind projectile.</summary>
-    public string TrailVfx { get; set; } = "";
+    public VfxId TrailVfx { get; set; } = VfxId.None;
 
     /// <summary>VFX on hit.</summary>
-    public string HitVfx { get; set; } = "";
+    public VfxId HitVfx { get; set; } = VfxId.None;
 
     // =========================================================================
     // BEHAVIOR
@@ -123,11 +124,11 @@ public class ProjectileData
     {
         var data = new ProjectileData
         {
-            ProjectileId = GetString(dict, "projectile_id"),
+            ProjectileId = new ProjectileId(GetString(dict, "projectile_id")),
             ProjectileName = GetString(dict, "projectile_name"),
             ModelScenePath = GetString(dict, "model_scene_path"),
-            TrailVfx = GetString(dict, "trail_vfx", GetString(dict, "trail_effect_id")),
-            HitVfx = GetString(dict, "hit_vfx", GetString(dict, "impact_effect_id")),
+            TrailVfx = new VfxId(GetString(dict, "trail_vfx", GetString(dict, "trail_effect_id"))),
+            HitVfx = new VfxId(GetString(dict, "hit_vfx", GetString(dict, "impact_effect_id"))),
             Speed = GetFloat(dict, "speed", 15f),
             Acceleration = GetFloat(dict, "acceleration", 0f),
             MinSpeed = GetFloat(dict, "min_speed", 1f),

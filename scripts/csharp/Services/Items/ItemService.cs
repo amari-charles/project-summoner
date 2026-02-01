@@ -259,12 +259,13 @@ public partial class ItemService : Node
 			var unitStat = MapItemStatToUnitStat(traitMod.Stat);
 			if (unitStat != null)
 			{
-				if (traitMod.Type == "percent")
+				var modType = ModifierTypeExtensions.ParseModifierType(traitMod.Type);
+				if (modType == ModifierType.Percent)
 				{
 					// Convert percent to multiplier (5% -> 1.05)
 					statMod.StatMults[unitStat] = 1.0f + (traitMod.Value / 100.0f);
 				}
-				else // "flat"
+				else // Flat
 				{
 					statMod.StatAdds[unitStat] = traitMod.Value;
 				}
@@ -347,9 +348,9 @@ public partial class ItemService : Node
 			if (definition == null) continue;
 
 			var dict = ItemCatalog.ToDictionary(definition);
-			dict["instance_id"] = item.Id;
-			dict["equipped_by"] = item.EquippedBySummonerId ?? "";
-			dict["bound_to"] = item.BoundToSummonerId ?? "";
+			dict["instance_id"] = (string)item.Id;
+			dict["equipped_by"] = item.EquippedBySummonerId != null ? (string)item.EquippedBySummonerId : "";
+			dict["bound_to"] = item.BoundToSummonerId != null ? (string)item.BoundToSummonerId : "";
 			result.Add(dict);
 		}
 
@@ -370,8 +371,8 @@ public partial class ItemService : Node
 			if (definition == null) continue;
 
 			var dict = ItemCatalog.ToDictionary(definition);
-			dict["instance_id"] = item.Id;
-			dict["equipped_by"] = item.EquippedBySummonerId ?? "";
+			dict["instance_id"] = (string)item.Id;
+			dict["equipped_by"] = item.EquippedBySummonerId != null ? (string)item.EquippedBySummonerId : "";
 			result.Add(dict);
 		}
 

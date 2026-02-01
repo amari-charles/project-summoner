@@ -152,7 +152,7 @@ public class TraitModifier
     public float TriggerCooldown { get; init; }
 
     /// <summary>Returns true if this is a unit modifier (target="unit").</summary>
-    public bool IsUnitModifier => Target == "unit";
+    public bool IsUnitModifier => TraitTargetTypeExtensions.IsUnitTarget(Target);
 
     /// <summary>Returns true if this modifier has a trigger condition.</summary>
     public bool HasTrigger => !string.IsNullOrEmpty(Trigger);

@@ -355,12 +355,13 @@ public partial class SummonerProgressionService : Node
 	/// Acquire a trait for a summoner.
 	/// </summary>
 	/// <param name="summonerId">Summoner ID</param>
-	/// <param name="traitId">Trait ID to acquire</param>
+	/// <param name="traitIdString">Trait ID to acquire (as string for GDScript interop)</param>
 	/// <returns>True if successful</returns>
-	public bool AcquireTrait(string summonerId, string traitId)
+	public bool AcquireTrait(string summonerId, string traitIdString)
 	{
 		if (_profileRepo == null) return false;
 
+		var traitId = new Data.Traits.TraitId(traitIdString);
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null)
 		{
@@ -371,15 +372,15 @@ public partial class SummonerProgressionService : Node
 		// Check if already acquired
 		if (summoner.AcquiredTraitIds.Contains(traitId))
 		{
-			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitId}");
+			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitIdString}");
 			return false;
 		}
 
 		// Verify trait exists
-		var trait = TraitCatalog.GetTrait(traitId);
+		var trait = TraitCatalog.GetTrait(traitIdString);
 		if (trait == null)
 		{
-			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitId}");
+			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitIdString}");
 			return false;
 		}
 

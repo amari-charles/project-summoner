@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Services.Shop;
 
 namespace ProjectSummoner.Data.Events;
 
@@ -10,7 +11,7 @@ namespace ProjectSummoner.Data.Events;
 public abstract class EventDefinition
 {
     /// <summary>Unique event identifier</summary>
-    public string Id { get; set; } = "";
+    public EventId Id { get; set; } = EventId.None;
 
     /// <summary>Localization key for event name</summary>
     public string NameKey { get; set; } = "";
@@ -36,7 +37,7 @@ public class BattleEventDefinition : EventDefinition
     public override EventType Type => EventType.Battle;
 
     /// <summary>Biome ID for battlefield environment</summary>
-    public string Biome { get; set; } = BiomeIds.Default;
+    public BiomeId Biome { get; set; } = BiomeIds.Default;
 
     /// <summary>Difficulty rating (1-10)</summary>
     public int Difficulty { get; set; } = 1;
@@ -104,7 +105,7 @@ public class CaravanEventDefinition : EventDefinition
     public override EventType Type => EventType.Caravan;
 
     /// <summary>Shop configuration ID</summary>
-    public string ShopId { get; set; } = "";
+    public ShopId ShopId { get; set; } = Services.Shop.ShopId.None;
 }
 
 /// <summary>
@@ -126,5 +127,5 @@ public class StoryEventDefinition : EventDefinition
     public override EventType Type => EventType.Story;
 
     /// <summary>Story sequence ID to play</summary>
-    public string SequenceId { get; set; } = "";
+    public SequenceId SequenceId { get; set; } = SequenceId.None;
 }

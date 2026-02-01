@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Services.Campaign.Models;
+using EventId = ProjectSummoner.Data.Events.EventId;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
 
@@ -37,21 +38,23 @@ public class NodeUnlockHandler
             return false;
         }
 
+        var typedNodeId = new EventId(nodeId);
+
         // Check if node exists
-        var node = graph.GetNode(nodeId);
+        var node = graph.GetNode(typedNodeId);
         if (node == null)
         {
             return false;
         }
 
         // Start node is always unlocked
-        if (graph.IsStartNode(nodeId))
+        if (graph.IsStartNode(typedNodeId))
         {
             return true;
         }
 
         // Get incoming edges
-        var incomingEdges = graph.GetIncomingEdges(nodeId);
+        var incomingEdges = graph.GetIncomingEdges(typedNodeId);
         if (incomingEdges.Count == 0)
         {
             // No incoming edges = start node, always unlocked
@@ -96,7 +99,7 @@ public class NodeUnlockHandler
     /// Evaluate an edge condition.
     /// Supports: choice, completed, item (future)
     /// </summary>
-    public bool EvaluateCondition(EdgeCondition condition, string sourceNodeId)
+    public bool EvaluateCondition(EdgeCondition condition, EventId sourceNodeId)
     {
         return condition.Type switch
         {
@@ -107,16 +110,16 @@ public class NodeUnlockHandler
         };
     }
 
-    private bool EvaluateChoiceCondition(EdgeCondition condition, string sourceNodeId)
+    private bool EvaluateChoiceCondition(EdgeCondition condition, EventId sourceNodeId)
     {
         // Get the node ID where the choice was made
         // If not specified, use the source node of this edge
-        var choiceNodeId = string.IsNullOrEmpty(condition.NodeId)
+        var choiceNodeId = !condition.NodeId.HasValue
             ? sourceNodeId
             : condition.NodeId;
 
         // Check if the choice made at that node matches the required value
-        var choiceMade = _choices.GetChoice(choiceNodeId);
+        var choiceMade = _choices.GetChoice((string)choiceNodeId);
         return choiceMade == condition.Value;
     }
 
@@ -149,7 +152,7 @@ public class NodeUnlockHandler
 
         foreach (var node in graph.GetAllNodes())
         {
-            if (IsNodeUnlocked(node.Id))
+            if (IsNodeUnlocked((string)node.Id))
             {
                 result.Add(node);
             }
@@ -169,7 +172,7 @@ public class NodeUnlockHandler
 
         foreach (var node in graph.GetAllNodes())
         {
-            if (IsNodeUnlocked(node.Id) && !_graphStore.IsNodeCompleted(node.Id))
+            if (IsNodeUnlocked((string)node.Id) && !_graphStore.IsNodeCompleted(node.Id))
             {
                 result.Add(node);
             }
@@ -188,14 +191,16 @@ public class NodeUnlockHandler
         var graph = _graphStore.CurrentGraph;
         if (graph == null) return result;
 
+        var typedNodeId = new EventId(completedNodeId);
+
         // Get all nodes that have edges from the completed node
-        var outgoingEdges = graph.GetOutgoingEdges(completedNodeId);
+        var outgoingEdges = graph.GetOutgoingEdges(typedNodeId);
         foreach (var edge in outgoingEdges)
         {
             // Check if this node is now unlocked (wasn't before, is now)
-            if (IsNodeUnlocked(edge.ToId) && !_graphStore.IsNodeCompleted(edge.ToId))
+            if (IsNodeUnlocked((string)edge.ToId) && !_graphStore.IsNodeCompleted(edge.ToId))
             {
-                result.Add(edge.ToId);
+                result.Add((string)edge.ToId);
             }
         }
 

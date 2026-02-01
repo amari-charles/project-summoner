@@ -1,0 +1,152 @@
+using System.Collections.Generic;
+using ProjectSummoner.Projectiles;
+using ProjectSummoner.Vfx;
+
+namespace ProjectSummoner.Data.Projectiles;
+
+/// <summary>
+/// Central registry of all projectile definitions.
+/// Use ProjectileDefinitions.Get() to retrieve projectiles by ID.
+/// </summary>
+public static class ProjectileDefinitions
+{
+    // =========================================================================
+    // PROJECTILE DEFINITIONS
+    // =========================================================================
+
+    /// <summary>Standard arrow projectile with arc trajectory.</summary>
+    public static readonly ProjectileData Arrow = new()
+    {
+        ProjectileId = ProjectileIds.Arrow,
+        ProjectileName = "Arrow",
+        ModelScenePath = "res://scenes/projectiles/arrow_visual.tscn",
+        MovementType = ProjectileMovementType.Arc,
+        Speed = 15.0f,
+        Lifetime = 3.0f,
+        RotateToDirection = true,
+        ArcHeight = 1.5f,
+        Gravity = -9.8f,
+    };
+
+    /// <summary>Small fire projectile from fire wisps.</summary>
+    public static readonly ProjectileData Ember = new()
+    {
+        ProjectileId = ProjectileIds.Ember,
+        ProjectileName = "Ember",
+        ModelScenePath = "res://scenes/projectiles/ember_visual.tscn",
+        MovementType = ProjectileMovementType.Straight,
+        Speed = 12.0f,
+        Lifetime = 2.5f,
+        RotateToDirection = false,
+    };
+
+    /// <summary>Large fire spell projectile with AOE impact.</summary>
+    public static readonly ProjectileData Fireball = new()
+    {
+        ProjectileId = ProjectileIds.Fireball,
+        ProjectileName = "Fireball",
+        ModelScenePath = "res://scenes/projectiles/fireball_visual.tscn",
+        HitVfx = VfxIds.FireballSpell,
+        MovementType = ProjectileMovementType.Arc,
+        Speed = 22.0f,
+        Lifetime = 4.0f,
+        RotateToDirection = false,
+        ArcHeight = 0.5f,
+        AoeRadius = 8.0f,
+    };
+
+    /// <summary>Homing magical projectile with acceleration.</summary>
+    public static readonly ProjectileData ManaBolt = new()
+    {
+        ProjectileId = ProjectileIds.ManaBolt,
+        ProjectileName = "Mana Bolt",
+        ModelScenePath = "res://scenes/projectiles/mana_bolt_visual.tscn",
+        MovementType = ProjectileMovementType.Homing,
+        Speed = 4.0f,
+        Acceleration = 40.0f,
+        Lifetime = 4.0f,
+        RotateToDirection = true,
+        ArcHeight = 2.5f,
+        HomingStrength = 3.0f,
+    };
+
+    /// <summary>Fast straight projectile for wind units.</summary>
+    public static readonly ProjectileData WindPuff = new()
+    {
+        ProjectileId = ProjectileIds.WindPuff,
+        ProjectileName = "Wind Puff",
+        ModelScenePath = "res://scenes/projectiles/wind_puff_visual.tscn",
+        MovementType = ProjectileMovementType.Straight,
+        Tracking = true,
+        Speed = 18.0f,
+        MinSpeed = 18.0f,
+        Lifetime = 2.0f,
+        RotateToDirection = false,
+        FadeInDuration = 0.15f,
+        FadeOnHit = true,
+        FadeDuration = 0.1f,
+    };
+
+    /// <summary>Fire spider web attack projectile.</summary>
+    public static readonly ProjectileData FireWeb = new()
+    {
+        ProjectileId = ProjectileIds.FireWeb,
+        ProjectileName = "Fire Web",
+        ModelScenePath = "res://scenes/projectiles/fire_web_visual.tscn",
+        MovementType = ProjectileMovementType.Straight,
+        Speed = 16.0f,
+        Lifetime = 3.0f,
+        RotateToDirection = false,
+    };
+
+    /// <summary>Lobbed rock projectile with tracking arc.</summary>
+    public static readonly ProjectileData Rock = new()
+    {
+        ProjectileId = ProjectileIds.Rock,
+        ProjectileName = "Rock",
+        ModelScenePath = "res://scenes/projectiles/rock_visual.tscn",
+        MovementType = ProjectileMovementType.Arc,
+        Tracking = true,
+        Speed = 10.0f,
+        Lifetime = 4.0f,
+        RotateToDirection = true,
+        ArcHeight = 4.0f,
+        Gravity = -12.0f,
+    };
+
+    // =========================================================================
+    // LOOKUP
+    // =========================================================================
+
+    private static readonly Dictionary<string, ProjectileData> _lookup = new()
+    {
+        [ProjectileIds.Arrow] = Arrow,
+        [ProjectileIds.Ember] = Ember,
+        [ProjectileIds.Fireball] = Fireball,
+        [ProjectileIds.ManaBolt] = ManaBolt,
+        [ProjectileIds.WindPuff] = WindPuff,
+        [ProjectileIds.FireWeb] = FireWeb,
+        [ProjectileIds.Rock] = Rock,
+    };
+
+    /// <summary>Get a projectile definition by ID. Returns null if not found.</summary>
+    public static ProjectileData? Get(ProjectileId id) => _lookup.GetValueOrDefault(id);
+
+    /// <summary>Get a projectile definition by string ID. Returns null if not found.</summary>
+    public static ProjectileData? Get(string id) => _lookup.GetValueOrDefault(id);
+
+    /// <summary>Check if a projectile exists.</summary>
+    public static bool Has(ProjectileId id) => _lookup.ContainsKey(id);
+
+    /// <summary>Check if a projectile exists by string ID.</summary>
+    public static bool Has(string id) => _lookup.ContainsKey(id);
+
+    /// <summary>Get all projectile definitions.</summary>
+    public static IEnumerable<ProjectileData> All => _lookup.Values;
+
+    /// <summary>Get all projectile IDs.</summary>
+    public static IEnumerable<string> AllIds => _lookup.Keys;
+
+    /// <summary>Get projectile count.</summary>
+    public static int Count => _lookup.Count;
+}

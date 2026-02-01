@@ -58,80 +58,80 @@ public class LevelCapServiceTest
     }
 
     // =============================================================================
-    // GetEffectiveUpgrades Tests
+    // GetEffectiveTraits Tests
     // =============================================================================
 
     [TestCase]
-    public void GetEffectiveUpgrades_NoCap_ReturnsAllUpgrades()
+    public void GetEffectiveTraits_NoCap_ReturnsAllTraits()
     {
-        var upgrades = new List<string> { "hp_1", "atk_1", "hp_2", "atk_2" };
+        var traits = new List<string> { "hp_1", "atk_1", "hp_2", "atk_2" };
 
-        var result = _service.GetEffectiveUpgrades(upgrades, LevelCapService.NoCap);
+        var result = _service.GetEffectiveTraits(traits, LevelCapService.NoCap);
 
         AssertThat(result.Count).IsEqual(4);
         AssertThat(result).ContainsExactly(new string[] { "hp_1", "atk_1", "hp_2", "atk_2" });
     }
 
     [TestCase]
-    public void GetEffectiveUpgrades_NullUpgrades_ReturnsEmptyList()
+    public void GetEffectiveTraits_NullTraits_ReturnsEmptyList()
     {
-        var result = _service.GetEffectiveUpgrades((List<string>)null!, LevelCapService.NoCap);
+        var result = _service.GetEffectiveTraits((List<string>)null!, LevelCapService.NoCap);
 
         AssertThat(result).IsNotNull();
         AssertThat(result.Count).IsEqual(0);
     }
 
     [TestCase]
-    public void GetEffectiveUpgrades_CapLevel1_ReturnsNoUpgrades()
+    public void GetEffectiveTraits_CapLevel1_ReturnsNoTraits()
     {
-        // Level 1 cards have 0 upgrades, so cap 1 means 0 effective upgrades
-        var upgrades = new List<string> { "hp_1", "atk_1", "hp_2" };
+        // Level 1 cards have 0 traits, so cap 1 means 0 effective traits
+        var traits = new List<string> { "hp_1", "atk_1", "hp_2" };
 
-        var result = _service.GetEffectiveUpgrades(upgrades, 1);
+        var result = _service.GetEffectiveTraits(traits, 1);
 
         AssertThat(result.Count).IsEqual(0);
     }
 
     [TestCase]
-    public void GetEffectiveUpgrades_CapLevel2_ReturnsFirstUpgrade()
+    public void GetEffectiveTraits_CapLevel2_ReturnsFirstTrait()
     {
-        // Level 2 cards have 1 upgrade
-        var upgrades = new List<string> { "hp_1", "atk_1", "hp_2", "atk_2" };
+        // Level 2 cards have 1 trait
+        var traits = new List<string> { "hp_1", "atk_1", "hp_2", "atk_2" };
 
-        var result = _service.GetEffectiveUpgrades(upgrades, 2);
+        var result = _service.GetEffectiveTraits(traits, 2);
 
         AssertThat(result.Count).IsEqual(1);
         AssertThat(result[0]).IsEqual("hp_1");
     }
 
     [TestCase]
-    public void GetEffectiveUpgrades_CapLevel3_ReturnsFirstTwoUpgrades()
+    public void GetEffectiveTraits_CapLevel3_ReturnsFirstTwoTraits()
     {
-        // Level 3 cards have 2 upgrades
-        var upgrades = new List<string> { "hp_1", "atk_1", "hp_2", "atk_2" };
+        // Level 3 cards have 2 traits
+        var traits = new List<string> { "hp_1", "atk_1", "hp_2", "atk_2" };
 
-        var result = _service.GetEffectiveUpgrades(upgrades, 3);
+        var result = _service.GetEffectiveTraits(traits, 3);
 
         AssertThat(result.Count).IsEqual(2);
         AssertThat(result).ContainsExactly(new string[] { "hp_1", "atk_1" });
     }
 
     [TestCase]
-    public void GetEffectiveUpgrades_CapHigherThanUpgradeCount_ReturnsAllUpgrades()
+    public void GetEffectiveTraits_CapHigherThanTraitCount_ReturnsAllTraits()
     {
-        // Card only has 2 upgrades but cap is 5 (which allows 4 upgrades)
-        var upgrades = new List<string> { "hp_1", "atk_1" };
+        // Card only has 2 traits but cap is 5 (which allows 4 traits)
+        var traits = new List<string> { "hp_1", "atk_1" };
 
-        var result = _service.GetEffectiveUpgrades(upgrades, 5);
+        var result = _service.GetEffectiveTraits(traits, 5);
 
         AssertThat(result.Count).IsEqual(2);
         AssertThat(result).ContainsExactly(new string[] { "hp_1", "atk_1" });
     }
 
     [TestCase]
-    public void GetEffectiveUpgrades_EmptyUpgrades_ReturnsEmptyList()
+    public void GetEffectiveTraits_EmptyTraits_ReturnsEmptyList()
     {
-        var result = _service.GetEffectiveUpgrades(new List<string>(), 5);
+        var result = _service.GetEffectiveTraits(new List<string>(), 5);
 
         AssertThat(result.Count).IsEqual(0);
     }

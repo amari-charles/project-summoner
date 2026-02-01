@@ -75,7 +75,7 @@ func get_all_commands() -> Array[Dictionary]:
 	return COMMANDS
 
 ## Available card catalog IDs for testing
-const TEST_CARDS: Array = ["fire_wisp", "pebbloom", "puff", "mana_bolt"]
+const TEST_CARDS: Array = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF, CardIDs.MANA_BOLT]
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
 ## Service references (injected by autoload order)

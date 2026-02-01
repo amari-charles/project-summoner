@@ -10,15 +10,16 @@ public class Cosmetics
 {
     /// <summary>Array of owned cosmetic IDs.</summary>
     [JsonPropertyName("owned")]
-    public List<string> Owned { get; set; } = [];
+    public List<CosmeticId> Owned { get; set; } = [];
 
     /// <summary>Currently equipped cosmetics by slot.</summary>
     [JsonPropertyName("equipped")]
     public EquippedCosmetics Equipped { get; set; } = new();
 
     /// <summary>Summoner-specific skin mappings (summoner_id -> skin_id).</summary>
+    /// <remarks>Dictionary keys remain strings for JSON serialization compatibility.</remarks>
     [JsonPropertyName("summoner_skins")]
-    public Dictionary<string, string> SummonerSkins { get; set; } = [];
+    public Dictionary<string, SkinId> SummonerSkins { get; set; } = [];
 }
 
 /// <summary>
@@ -28,9 +29,9 @@ public class EquippedCosmetics
 {
     /// <summary>Equipped card back cosmetic ID.</summary>
     [JsonPropertyName("card_back")]
-    public string CardBack { get; set; } = "";
+    public CosmeticId CardBack { get; set; } = CosmeticId.None;
 
     /// <summary>Equipped UI theme cosmetic ID.</summary>
     [JsonPropertyName("ui_theme")]
-    public string UiTheme { get; set; } = "";
+    public CosmeticId UiTheme { get; set; } = CosmeticId.None;
 }

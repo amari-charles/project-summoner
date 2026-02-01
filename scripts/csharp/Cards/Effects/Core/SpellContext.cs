@@ -33,7 +33,7 @@ public class SpellContext
     /// Unique ID of the card instance that cast this spell.
     /// Used for tracking and effect management.
     /// </summary>
-    public string CardInstanceId { get; set; } = "";
+    public CardInstanceId CardInstanceId { get; set; } = Cards.CardInstanceId.None;
 
     /// <summary>
     /// Reference to the scene tree for timers and async operations.

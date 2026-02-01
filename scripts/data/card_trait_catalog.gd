@@ -1,24 +1,24 @@
 extends Node
-class_name CardUpgradeCatalog
+class_name CardTraitCatalog
 
-## Card Upgrade Catalog - Defines upgrade choices for each card at each level
+## Card Trait Catalog - Defines trait choices for each card at each level
 ##
-## Each card can have 2-3 upgrade choices per level (levels 2-10).
-## Upgrades should be meaningful choices that enhance the card's identity,
+## Each card can have 2-3 trait choices per level (levels 2-10).
+## Traits should be meaningful choices that enhance the card's identity,
 ## not just raw stat increases.
 ##
 ## Usage:
-##   var upgrades = CardUpgradeCatalog.get_upgrades_for_level("fire_wisp", 2)
-##   var upgrade = CardUpgradeCatalog.get_upgrade("fire_wisp", "fire_wisp_hardy_2")
+##   var traits = CardTraitCatalog.get_traits_for_level("fire_wisp", 2)
+##   var trait = CardTraitCatalog.get_trait("fire_wisp", "fire_wisp_hardy_2")
 
 ## =============================================================================
-## UPGRADE DEFINITIONS
+## TRAIT DEFINITIONS
 ## =============================================================================
 
-## Upgrade data structure:
+## Trait data structure:
 ## - id: Unique identifier (format: {catalog_id}_{name}_{level})
 ## - name: Display name
-## - description: Short description of the upgrade
+## - description: Short description of the trait
 ## - stat_mods: Dictionary of stat multipliers (multiplicative, e.g., 1.1 = +10%)
 
 ## Available stat_mods keys:
@@ -29,7 +29,7 @@ class_name CardUpgradeCatalog
 ## - spell_damage: Spell damage
 ## - spell_radius: AOE radius
 
-const UPGRADES: Dictionary = {
+const TRAITS: Dictionary = {
 	# ==========================================================================
 	# FIREBALL - AOE damage spell, focus on damage or radius
 	# ==========================================================================
@@ -171,114 +171,59 @@ const UPGRADES: Dictionary = {
 ## API
 ## =============================================================================
 
-## Get upgrades available for a card at a specific level
-## Returns: Array of upgrade dictionaries
-static func get_upgrades_for_level(catalog_id: String, level: int) -> Array:
-	if not UPGRADES.has(catalog_id):
-		# Card doesn't have specific upgrades defined - return generic upgrades
-		return _get_generic_upgrades(catalog_id, level)
-
-	var card_upgrades: Dictionary = UPGRADES[catalog_id]
-	if not card_upgrades.has(level):
+## Get traits available for a card at a specific level
+## Returns: Array of trait dictionaries, empty if card has no traits defined
+static func get_traits_for_level(catalog_id: String, level: int) -> Array:
+	if not TRAITS.has(catalog_id):
+		# Card doesn't have traits defined - warn and return empty
+		if level >= 2 and level <= 10:
+			push_warning("CardTraitCatalog: No traits defined for card '%s' at level %d" % [catalog_id, level])
 		return []
 
-	return card_upgrades[level]
+	var card_traits: Dictionary = TRAITS[catalog_id]
+	if not card_traits.has(level):
+		return []
 
-## Get a specific upgrade by ID
-## Returns: Upgrade dictionary or empty dictionary if not found
-static func get_upgrade(catalog_id: String, upgrade_id: String) -> Dictionary:
-	if not UPGRADES.has(catalog_id):
-		# Check generic upgrades
-		return _find_generic_upgrade(catalog_id, upgrade_id)
+	return card_traits[level]
 
-	var card_upgrades: Dictionary = UPGRADES[catalog_id]
-	for level: Variant in card_upgrades:
+## Get a specific trait by ID
+## Returns: Trait dictionary or empty dictionary if not found
+static func get_trait(catalog_id: String, trait_id: String) -> Dictionary:
+	if not TRAITS.has(catalog_id):
+		return {}
+
+	var card_traits: Dictionary = TRAITS[catalog_id]
+	for level: Variant in card_traits:
 		if level is int:
-			var level_upgrades: Array = card_upgrades[level]
-			for upgrade: Variant in level_upgrades:
-				if upgrade is Dictionary:
-					var upgrade_dict: Dictionary = upgrade
-					if upgrade_dict.get("id") == upgrade_id:
-						return upgrade_dict
+			var level_traits: Array = card_traits[level]
+			for trait: Variant in level_traits:
+				if trait is Dictionary:
+					var trait_dict: Dictionary = trait
+					if trait_dict.get("id") == trait_id:
+						return trait_dict
 
 	return {}
 
-## Check if a card has specific upgrades defined
-static func has_upgrades(catalog_id: String) -> bool:
-	return UPGRADES.has(catalog_id)
+## Check if a card has specific traits defined
+static func has_traits(catalog_id: String) -> bool:
+	return TRAITS.has(catalog_id)
 
-## Get all upgrade IDs for a card (for validation)
-static func get_all_upgrade_ids(catalog_id: String) -> Array[String]:
+## Get all trait IDs for a card (for validation)
+static func get_all_trait_ids(catalog_id: String) -> Array[String]:
 	var ids: Array[String] = []
 
-	if not UPGRADES.has(catalog_id):
+	if not TRAITS.has(catalog_id):
 		return ids
 
-	var card_upgrades: Dictionary = UPGRADES[catalog_id]
-	for level: Variant in card_upgrades:
+	var card_traits: Dictionary = TRAITS[catalog_id]
+	for level: Variant in card_traits:
 		if level is int:
-			var level_upgrades: Array = card_upgrades[level]
-			for upgrade: Variant in level_upgrades:
-				if upgrade is Dictionary:
-					var upgrade_dict: Dictionary = upgrade
-					var upgrade_id: String = upgrade_dict.get("id", "")
-					if not upgrade_id.is_empty():
-						ids.append(upgrade_id)
+			var level_traits: Array = card_traits[level]
+			for trait: Variant in level_traits:
+				if trait is Dictionary:
+					var trait_dict: Dictionary = trait
+					var trait_id: String = trait_dict.get("id", "")
+					if not trait_id.is_empty():
+						ids.append(trait_id)
 
 	return ids
-
-## =============================================================================
-## GENERIC UPGRADES (for cards without specific definitions)
-## =============================================================================
-
-## Generate generic upgrades for cards without specific definitions
-static func _get_generic_upgrades(catalog_id: String, level: int) -> Array:
-	if level < 2 or level > 10:
-		return []
-
-	# Scale percentages with level
-	var hp_bonus: float = 1.0 + (0.08 + level * 0.02)  # 10% at L2, up to 28% at L10
-	var dmg_bonus: float = 1.0 + (0.06 + level * 0.02)  # 8% at L2, up to 26% at L10
-	var spd_bonus: float = 1.0 + (0.05 + level * 0.015)  # 6.5% at L2, up to 20% at L10
-
-	var hp_percent: int = int((hp_bonus - 1.0) * 100)
-	var dmg_percent: int = int((dmg_bonus - 1.0) * 100)
-	var spd_percent: int = int((spd_bonus - 1.0) * 100)
-
-	var base_upgrades: Array = [
-		{
-			"id": "%s_hp_l%d" % [catalog_id, level],
-			"name": "Fortitude",
-			"description": "+%d%% HP" % hp_percent,
-			"stat_mods": {"max_hp": hp_bonus}
-		},
-		{
-			"id": "%s_dmg_l%d" % [catalog_id, level],
-			"name": "Power",
-			"description": "+%d%% Damage" % dmg_percent,
-			"stat_mods": {"attack_damage": dmg_bonus}
-		}
-	]
-
-	# Add third option at higher levels
-	if level >= 4:
-		base_upgrades.append({
-			"id": "%s_spd_l%d" % [catalog_id, level],
-			"name": "Swiftness",
-			"description": "+%d%% Attack Speed" % spd_percent,
-			"stat_mods": {"attack_speed": spd_bonus}
-		})
-
-	return base_upgrades
-
-## Find a generic upgrade by ID
-static func _find_generic_upgrade(catalog_id: String, upgrade_id: String) -> Dictionary:
-	# Parse the upgrade ID to get level
-	for level: int in range(2, 11):
-		var upgrades: Array = _get_generic_upgrades(catalog_id, level)
-		for upgrade: Variant in upgrades:
-			if upgrade is Dictionary:
-				var upgrade_dict: Dictionary = upgrade
-				if upgrade_dict.get("id") == upgrade_id:
-					return upgrade_dict
-	return {}

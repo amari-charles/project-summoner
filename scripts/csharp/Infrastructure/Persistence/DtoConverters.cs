@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Items;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -9,6 +12,8 @@ using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Domain.Profile.Inventory;
 using ProjectSummoner.Domain.Profile.Shop;
 using ProjectSummoner.Domain.Profile.Summoners;
+using ProjectSummoner.Services.Deck;
+using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 
 namespace ProjectSummoner.Infrastructure.Persistence;
 
@@ -28,12 +33,12 @@ public static class DtoConverters
         var equippedDict = new Godot.Collections.Dictionary();
         foreach (var (slot, itemId) in instance.EquippedItems)
         {
-            equippedDict[EnumSerializers.Serialize(slot)] = itemId ?? "";
+            equippedDict[EnumSerializers.Serialize(slot)] = itemId.HasValue ? (string)itemId.Value : "";
         }
 
         return new Godot.Collections.Dictionary
         {
-            ["summoner_id"] = instance.SummonerId,
+            ["summoner_id"] = (string)instance.SummonerId,
             ["level"] = instance.Level,
             ["xp"] = instance.Xp,
             ["equipped_items"] = equippedDict
@@ -52,7 +57,7 @@ public static class DtoConverters
         if (summonerId == null) return null;
 
         // Deserialize equipped_items (string keys from GDScript → ItemSlot enum keys)
-        var equippedItems = new Dictionary<ItemSlot, string?>
+        var equippedItems = new Dictionary<ItemSlot, ItemId?>
         {
             [ItemSlot.Weapon] = null,
             [ItemSlot.Ring1] = null,
@@ -65,8 +70,8 @@ public static class DtoConverters
             foreach (var key in equippedDict.Keys)
             {
                 var slotStr = key.AsString();
-                var itemId = equippedDict[key].VariantType != Variant.Type.Nil ? equippedDict[key].AsString() : null;
-                if (string.IsNullOrEmpty(itemId)) itemId = null;
+                var itemIdStr = equippedDict[key].VariantType != Variant.Type.Nil ? equippedDict[key].AsString() : null;
+                ItemId? itemId = string.IsNullOrEmpty(itemIdStr) ? null : new ItemId(itemIdStr);
 
                 // Use EnumSerializers for consistent deserialization
                 var slot = EnumSerializers.DeserializeSlot(slotStr);
@@ -79,7 +84,7 @@ public static class DtoConverters
 
         return new SummonerInstance
         {
-            SummonerId = summonerId,
+            SummonerId = new SummonerId(summonerId),
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
             EquippedItems = equippedItems
@@ -95,13 +100,13 @@ public static class DtoConverters
     {
         var dict = new Godot.Collections.Dictionary
         {
-            ["id"] = card.Id,
-            ["catalog_id"] = card.CatalogId,
-            ["profile_id"] = card.ProfileId,
+            ["id"] = (string)card.Id,
+            ["catalog_id"] = (string)card.CatalogId,
+            ["profile_id"] = (string)card.ProfileId,
             ["rarity"] = card.Rarity,
             ["level"] = card.Level,
             ["xp"] = card.Xp,
-            ["upgrades"] = ToGodotArray(card.Upgrades),
+            ["upgrades"] = TraitsToGodotArray(card.Traits),
             ["created_at"] = card.CreatedAt,
             ["binding"] = EnumSerializers.Serialize(card.Binding)
         };
@@ -110,7 +115,7 @@ public static class DtoConverters
             dict["roll_json"] = card.RollJson;
 
         if (card.BoundToSummonerId != null)
-            dict["bound_to"] = card.BoundToSummonerId;
+            dict["bound_to"] = (string)card.BoundToSummonerId.Value;
 
         return dict;
     }
@@ -123,17 +128,21 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return null;
 
-        var id = GetRequiredString(dict, "id");
-        var catalogId = GetRequiredString(dict, "catalog_id");
-        if (id == null || catalogId == null) return null;
+        var idStr = GetRequiredString(dict, "id");
+        var catalogIdStr = GetRequiredString(dict, "catalog_id");
+        if (idStr == null || catalogIdStr == null) return null;
 
-        var upgrades = new List<string>();
+        var traits = new List<CardTraitId>();
         if (dict.TryGetValue("upgrades", out var upgradesVar))
         {
             var upgradesArr = upgradesVar.AsGodotArray();
             foreach (var u in upgradesArr)
             {
-                upgrades.Add(u.AsString());
+                var traitStr = u.AsString();
+                if (!string.IsNullOrEmpty(traitStr))
+                {
+                    traits.Add(new CardTraitId(traitStr));
+                }
             }
         }
 
@@ -144,19 +153,22 @@ public static class DtoConverters
             binding = EnumSerializers.DeserializeBinding(bindingVar.AsInt32());
         }
 
+        var boundToStr = GetNullableString(dict, "bound_to");
+        var profileIdStr = GetString(dict, "profile_id", "");
+
         return new CardInstance
         {
-            Id = id,
-            CatalogId = catalogId,
-            ProfileId = GetString(dict, "profile_id", ""),
+            Id = new CardInstanceId(idStr),
+            CatalogId = new CardId(catalogIdStr),
+            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
             Rarity = GetString(dict, "rarity", "common"),
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
-            Upgrades = upgrades,
+            Traits = traits,
             RollJson = GetNullableString(dict, "roll_json"),
             CreatedAt = GetLong(dict, "created_at", 0),
             Binding = binding,
-            BoundToSummonerId = GetNullableString(dict, "bound_to")
+            BoundToSummonerId = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr)
         };
     }
 
@@ -169,10 +181,10 @@ public static class DtoConverters
     {
         return new Godot.Collections.Dictionary
         {
-            ["id"] = item.Id,
-            ["catalog_id"] = item.CatalogId,
-            ["equipped_by"] = item.EquippedBySummonerId ?? "",
-            ["bound_to"] = item.BoundToSummonerId ?? "",
+            ["id"] = (string)item.Id,
+            ["catalog_id"] = (string)item.CatalogId,
+            ["equipped_by"] = item.EquippedBySummonerId.HasValue ? (string)item.EquippedBySummonerId.Value : "",
+            ["bound_to"] = item.BoundToSummonerId.HasValue ? (string)item.BoundToSummonerId.Value : "",
             ["slot"] = item.EquippedSlot.HasValue ? EnumSerializers.Serialize(item.EquippedSlot.Value) : ""
         };
     }
@@ -185,16 +197,19 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return null;
 
-        var id = GetRequiredString(dict, "id");
-        var catalogId = GetRequiredString(dict, "catalog_id");
-        if (id == null || catalogId == null) return null;
+        var idStr = GetRequiredString(dict, "id");
+        var catalogIdStr = GetRequiredString(dict, "catalog_id");
+        if (idStr == null || catalogIdStr == null) return null;
+
+        var equippedByStr = GetNullableString(dict, "equipped_by");
+        var boundToStr = GetNullableString(dict, "bound_to");
 
         return new ItemInstance
         {
-            Id = id,
-            CatalogId = catalogId,
-            EquippedBySummonerId = GetNullableString(dict, "equipped_by"),
-            BoundToSummonerId = GetNullableString(dict, "bound_to"),
+            Id = new ItemId(idStr),
+            CatalogId = new ItemId(catalogIdStr),
+            EquippedBySummonerId = string.IsNullOrEmpty(equippedByStr) ? null : new SummonerId(equippedByStr),
+            BoundToSummonerId = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr),
             EquippedSlot = EnumSerializers.DeserializeSlot(GetNullableString(dict, "slot"))
         };
     }
@@ -208,13 +223,13 @@ public static class DtoConverters
     {
         return new Godot.Collections.Dictionary
         {
-            ["id"] = deck.Id,
-            ["profile_id"] = deck.ProfileId,
-            ["summoner_id"] = deck.SummonerId,
+            ["id"] = (string)deck.Id,
+            ["profile_id"] = (string)deck.ProfileId,
+            ["summoner_id"] = (string)deck.SummonerId,
             ["name"] = deck.Name,
             ["slot"] = deck.Slot,
             ["is_active"] = deck.IsActive,
-            ["card_instance_ids"] = ToGodotArray(deck.CardInstanceIds),
+            ["card_instance_ids"] = CardInstanceIdsToGodotArray(deck.CardInstanceIds),
             ["updated_at"] = deck.UpdatedAt
         };
     }
@@ -227,25 +242,27 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return null;
 
-        var id = GetRequiredString(dict, "id");
-        var summonerId = GetRequiredString(dict, "summoner_id");
-        if (id == null || summonerId == null) return null;
+        var idStr = GetRequiredString(dict, "id");
+        var summonerIdStr = GetRequiredString(dict, "summoner_id");
+        if (idStr == null || summonerIdStr == null) return null;
 
-        var cardIds = new List<string>();
+        var cardIds = new List<CardInstanceId>();
         if (dict.TryGetValue("card_instance_ids", out var cardsVar))
         {
             var cardsArr = cardsVar.AsGodotArray();
             foreach (var c in cardsArr)
             {
-                cardIds.Add(c.AsString());
+                cardIds.Add(new CardInstanceId(c.AsString()));
             }
         }
 
+        var profileIdStr = GetString(dict, "profile_id", "");
+
         return new Deck
         {
-            Id = id,
-            ProfileId = GetString(dict, "profile_id", ""),
-            SummonerId = summonerId,
+            Id = new DeckId(idStr),
+            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
+            SummonerId = new SummonerId(summonerIdStr),
             Name = GetString(dict, "name", "Deck"),
             Slot = GetInt(dict, "slot", 0),
             IsActive = GetBool(dict, "is_active", false),
@@ -661,8 +678,8 @@ public static class DtoConverters
         if (update.Level.HasValue)
             dict["level"] = update.Level.Value;
 
-        if (update.Upgrades != null)
-            dict["upgrades"] = ToGodotArray(update.Upgrades);
+        if (update.Traits != null)
+            dict["upgrades"] = TraitsToGodotArray(update.Traits);
 
         return dict;
     }
@@ -680,10 +697,12 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return null;
 
+        var profileIdStr = GetString(dict, "profile_id", "");
+
         var profileData = new ProfileData
         {
             Version = GetInt(dict, "version", ProfileData.CurrentVersion),
-            ProfileId = GetString(dict, "profile_id", ""),
+            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
             UpdatedAt = GetLong(dict, "updated_at", 0),
             CatalogVersion = GetString(dict, "catalog_version", "1.0.0")
         };
@@ -701,7 +720,7 @@ public static class DtoConverters
             var summonersArr = summonersVar.AsGodotArray();
             foreach (var s in summonersArr)
             {
-                profileData.UnlockedSummoners.Add(s.AsString());
+                profileData.UnlockedSummoners.Add(new SummonerId(s.AsString()));
             }
         }
 
@@ -726,6 +745,28 @@ public static class DtoConverters
         foreach (var item in items)
         {
             arr.Add(item);
+        }
+        return arr;
+    }
+
+    /// <summary>Convert IEnumerable of CardTraitId to Godot Array (as strings).</summary>
+    public static Godot.Collections.Array TraitsToGodotArray(IEnumerable<CardTraitId> traits)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var trait in traits)
+        {
+            arr.Add(trait.Value);
+        }
+        return arr;
+    }
+
+    /// <summary>Convert IEnumerable of CardInstanceId to Godot Array (as strings).</summary>
+    public static Godot.Collections.Array CardInstanceIdsToGodotArray(IEnumerable<CardInstanceId> ids)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var id in ids)
+        {
+            arr.Add((string)id);
         }
         return arr;
     }

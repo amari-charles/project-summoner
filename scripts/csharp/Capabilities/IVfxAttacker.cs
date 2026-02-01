@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Capabilities;
 
@@ -9,7 +10,7 @@ namespace ProjectSummoner.Capabilities;
 public interface IVfxAttacker
 {
     /// <summary>ID of the VFX to spawn for attacks.</summary>
-    string AttackVfxId { get; }
+    VfxId AttackVfxId { get; }
 
     /// <summary>
     /// Spawn attack VFX toward the target.
