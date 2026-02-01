@@ -102,7 +102,7 @@ func _ready() -> void:
 		"neutral",
 		"Neutral",
 		"No elemental affinity",
-		"neutral"
+		ElementCategoryIds.NEUTRAL
 	)
 
 	# Create base elements first (no origin)
@@ -110,70 +110,70 @@ func _ready() -> void:
 		"fire",
 		"Fire",
 		"Embodies vitality, passion, and transformation",
-		"core"
+		ElementCategoryIds.CORE
 	)
 
 	WATER = Element.new(
 		"water",
 		"Water",
 		"Symbolizes adaptability, empathy, and memory",
-		"core"
+		ElementCategoryIds.CORE
 	)
 
 	WIND = Element.new(
 		"wind",
 		"Wind",
 		"Represents motion, freedom, and volatility",
-		"core"
+		ElementCategoryIds.CORE
 	)
 
 	EARTH = Element.new(
 		"earth",
 		"Earth",
 		"Stands for stability, structure, and endurance",
-		"core"
+		ElementCategoryIds.CORE
 	)
 
 	LIGHTNING = Element.new(
 		"lightning",
 		"Lightning",
 		"Pure energy, speed, and precision",
-		"outer"
+		ElementCategoryIds.OUTER
 	)
 
 	SHADOW = Element.new(
 		"shadow",
 		"Shadow",
 		"The unseen, deceptive force",
-		"outer"
+		ElementCategoryIds.OUTER
 	)
 
 	POISON = Element.new(
 		"poison",
 		"Poison",
 		"Corruption, persistence, and decay",
-		"outer"
+		ElementCategoryIds.OUTER
 	)
 
 	LIFE = Element.new(
 		"life",
 		"Life",
 		"Growth, restoration, and empathy",
-		"outer"
+		ElementCategoryIds.OUTER
 	)
 
 	DEATH = Element.new(
 		"death",
 		"Death",
 		"Endings, transition, and inevitability",
-		"outer"
+		ElementCategoryIds.OUTER
 	)
 
 	OCCULTIST = Element.new(
 		"occultist",
 		"Occultist",
 		"Corruption and forbidden knowledge",
-		"occultist"
+		ElementCategoryIds.OCCULTIST
 	)
 
 	# Create elevated elements WITH origin references
@@ -181,7 +181,7 @@ func _ready() -> void:
 		"holy",
 		"Holy",
 		"Sacred fire - divinity and purpose",
-		"elevated",
+		ElementCategoryIds.ELEVATED,
 		FIRE  # Origin element
 	)
 
@@ -189,7 +189,7 @@ func _ready() -> void:
 		"ice",
 		"Ice",
 		"Frozen water - preservation and control",
-		"elevated",
+		ElementCategoryIds.ELEVATED,
 		WATER  # Origin element
 	)
 
@@ -197,7 +197,7 @@ func _ready() -> void:
 		"metal",
 		"Metal",
 		"Forged earth - civilization and artifice",
-		"elevated",
+		ElementCategoryIds.ELEVATED,
 		EARTH  # Origin element
 	)
 
@@ -205,7 +205,7 @@ func _ready() -> void:
 		"spirit",
 		"Spirit",
 		"Transcendent life - consciousness as form",
-		"elevated",
+		ElementCategoryIds.ELEVATED,
 		LIFE  # Origin element
 	)
 
@@ -279,31 +279,31 @@ func is_valid(element: Variant) -> bool:
 ## Check if element is a core element
 func is_core(element: Variant) -> bool:
 	if element is Element:
-		return element.category == "core"
+		return element.category == ElementCategoryIds.CORE
 	elif element is String:
 		var element_str: String = element
 		var elem: Element = from_string(element_str)
-		return elem != null and elem.category == "core"
+		return elem != null and elem.category == ElementCategoryIds.CORE
 	return false
 
 ## Check if element is an outer element
 func is_outer(element: Variant) -> bool:
 	if element is Element:
-		return element.category == "outer"
+		return element.category == ElementCategoryIds.OUTER
 	elif element is String:
 		var element_str: String = element
 		var elem: Element = from_string(element_str)
-		return elem != null and elem.category == "outer"
+		return elem != null and elem.category == ElementCategoryIds.OUTER
 	return false
 
 ## Check if element is elevated
 func is_elevated(element: Variant) -> bool:
 	if element is Element:
-		return element.category == "elevated"
+		return element.category == ElementCategoryIds.ELEVATED
 	elif element is String:
 		var element_str: String = element
 		var elem: Element = from_string(element_str)
-		return elem != null and elem.category == "elevated"
+		return elem != null and elem.category == ElementCategoryIds.ELEVATED
 	return false
 
 ## Get display name for element

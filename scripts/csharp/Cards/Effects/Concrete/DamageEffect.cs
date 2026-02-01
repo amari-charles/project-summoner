@@ -136,7 +136,7 @@ public class DamageEffect : SpellEffect
         // Try C# interface first
         if (target is IDamageable damageable)
         {
-            if (!string.IsNullOrEmpty(DamageType) && DamageType != "physical")
+            if (!string.IsNullOrEmpty(DamageType) && DamageType != Combat.DamageTypes.Physical)
             {
                 damageable.TakeDamage(damage, DamageType);
             }

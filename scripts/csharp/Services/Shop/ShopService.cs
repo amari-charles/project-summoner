@@ -224,29 +224,23 @@ public partial class ShopService : Node
     /// <summary>Check if an offering is already owned (for one-time purchases).</summary>
     public string CheckAlreadyOwned(Godot.Collections.Dictionary offering)
     {
-        var offeringType = offering.GetValueOrDefault("offering_type", 0).AsInt32();
-
-        // OfferingType enum values from ShopOffering.gd:
-        // CARD = 0, CARD_PACK = 1, CURRENCY = 2, SPECIAL = 3, SUMMONER = 4, COSMETIC = 5, EMOTE = 6
-        const int SUMMONER = 4;
-        const int COSMETIC = 5;
-        const int EMOTE = 6;
+        var offeringType = (OfferingType)offering.GetValueOrDefault("offering_type", 0).AsInt32();
 
         switch (offeringType)
         {
-            case SUMMONER:
+            case OfferingType.Summoner:
                 var summonerId = offering.GetValueOrDefault("summoner_id", "").AsString();
                 if (_isSummonerUnlockedFunc?.Invoke(summonerId) == true)
                     return "Already owned";
                 break;
 
-            case COSMETIC:
+            case OfferingType.Cosmetic:
                 var cosmeticId = offering.GetValueOrDefault("cosmetic_id", "").AsString();
                 if (_isCosmeticOwnedFunc?.Invoke(cosmeticId) == true)
                     return "Already owned";
                 break;
 
-            case EMOTE:
+            case OfferingType.Emote:
                 var emoteId = offering.GetValueOrDefault("emote_id", "").AsString();
                 if (_isEmoteOwnedFunc?.Invoke(emoteId) == true)
                     return "Already owned";
@@ -275,12 +269,14 @@ public partial class ShopService : Node
             return alreadyOwnedReason;
 
         var basePrice = offering.GetValueOrDefault("base_price", 0).AsInt32();
-        var currencyType = offering.GetValueOrDefault("currency_type", "gold").AsString();
-        var purchaseLimitType = offering.GetValueOrDefault("purchase_limit_type", "none").AsString();
+        var currencyTypeStr = offering.GetValueOrDefault("currency_type", "gold").AsString();
+        var currencyType = CurrencyTypeExtensions.ParseCurrencyType(currencyTypeStr);
+        var purchaseLimitTypeStr = offering.GetValueOrDefault("purchase_limit_type", "none").AsString();
+        var purchaseLimitType = PurchaseLimitTypeExtensions.ParsePurchaseLimitType(purchaseLimitTypeStr);
         var purchaseLimit = offering.GetValueOrDefault("purchase_limit", 0).AsInt32();
 
         // Check purchase limit
-        if (purchaseLimitType != "none" && purchaseLimit > 0)
+        if (purchaseLimitType != PurchaseLimitType.None && purchaseLimit > 0)
         {
             if (purchaseCount >= purchaseLimit)
                 return "Purchase limit reached";
@@ -289,15 +285,15 @@ public partial class ShopService : Node
         // Check currency
         switch (currencyType)
         {
-            case "gold":
+            case CurrencyType.Gold:
                 if (playerGold < basePrice)
                     return $"Not enough gold (need {basePrice}, have {playerGold})";
                 break;
-            case "gems":
+            case CurrencyType.Gems:
                 if (playerGems < basePrice)
                     return $"Not enough gems (need {basePrice}, have {playerGems})";
                 break;
-            case "real_money":
+            case CurrencyType.RealMoney:
                 // Real money purchases are always valid to initiate
                 break;
         }
@@ -344,23 +340,15 @@ public partial class ShopService : Node
     public Godot.Collections.Dictionary BuildRewardDict(Godot.Collections.Dictionary offering, string shopId)
     {
         var rewards = new Godot.Collections.Dictionary();
-        var offeringType = offering.GetValueOrDefault("offering_type", 0).AsInt32();
+        var offeringType = (OfferingType)offering.GetValueOrDefault("offering_type", 0).AsInt32();
 
         // Determine if this is a caravan shop (cards should be summoner-bound)
         var isCaravanShop = IsCaravanShop(shopId);
         var activeSummonerId = isCaravanShop ? GetActiveSummonerId() : null;
 
-        // OfferingType enum values:
-        // CARD = 0, CARD_PACK = 1, CURRENCY = 2, SPECIAL = 3, SUMMONER = 4, COSMETIC = 5, EMOTE = 6
-        const int CARD = 0;
-        const int CARD_PACK = 1;
-        const int SUMMONER = 4;
-        const int COSMETIC = 5;
-        const int EMOTE = 6;
-
         switch (offeringType)
         {
-            case CARD:
+            case OfferingType.Card:
                 var cardCatalogId = offering.GetValueOrDefault("card_catalog_id", "").AsString();
                 var cardCount = offering.GetValueOrDefault("card_count", 1).AsInt32();
                 var cardDict = new Godot.Collections.Dictionary
@@ -373,7 +361,7 @@ public partial class ShopService : Node
                 rewards["cards"] = new Godot.Collections.Array { cardDict };
                 break;
 
-            case CARD_PACK:
+            case OfferingType.CardPack:
                 var packCardsVariant = offering.GetValueOrDefault("pack_cards", new Godot.Collections.Array());
                 if (packCardsVariant.Obj is Godot.Collections.Array packCards)
                 {
@@ -396,15 +384,15 @@ public partial class ShopService : Node
                 }
                 break;
 
-            case SUMMONER:
+            case OfferingType.Summoner:
                 rewards["summoner"] = offering.GetValueOrDefault("summoner_id", "").AsString();
                 break;
 
-            case COSMETIC:
+            case OfferingType.Cosmetic:
                 rewards["cosmetic"] = offering.GetValueOrDefault("cosmetic_id", "").AsString();
                 break;
 
-            case EMOTE:
+            case OfferingType.Emote:
                 rewards["emote"] = offering.GetValueOrDefault("emote_id", "").AsString();
                 break;
         }
@@ -418,8 +406,9 @@ public partial class ShopService : Node
         if (!_shops.TryGetValue(shopId, out var shop))
             return false;
 
-        var shopType = shop.GetValueOrDefault("shop_type", "").AsString();
-        return shopType == "caravan";
+        var shopTypeStr = shop.GetValueOrDefault("shop_type", "").AsString();
+        var shopType = ShopTypeExtensions.ParseShopType(shopTypeStr);
+        return shopType == ShopType.Caravan;
     }
 
     /// <summary>Add binding info to a card dictionary.</summary>

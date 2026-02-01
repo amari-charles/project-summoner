@@ -37,7 +37,7 @@ public partial class CombatEvent : RefCounted
     public float Value { get; set; }
 
     /// <summary>Type of damage/effect</summary>
-    public string DamageType { get; set; } = "physical";
+    public string DamageType { get; set; } = DamageTypes.Physical;
 
     /// <summary>Additional data (is_crit, buff_id, etc.)</summary>
     public Godot.Collections.Dictionary Metadata { get; set; } = new();
@@ -55,7 +55,7 @@ public partial class CombatEvent : RefCounted
         Node3D? source = null,
         Node3D? target = null,
         float value = 0f,
-        string damageType = "physical",
+        string damageType = DamageTypes.Physical,
         Godot.Collections.Dictionary? metadata = null)
     {
         Type = type;

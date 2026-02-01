@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Events;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Economy;
 
@@ -131,10 +132,11 @@ public class CampaignRewardHandler
             return new Godot.Collections.Dictionary();
         }
 
-        var rewardType = battle.GetValueOrDefault("reward_type", "fixed").AsString();
+        var rewardTypeStr = battle.GetValueOrDefault("reward_type", "fixed").AsString();
+        var rewardType = RewardTypeExtensions.FromStringId(rewardTypeStr);
 
         // Only handle FIXED rewards - FLEXIBLE rewards are granted via RewardService
-        if (rewardType != "fixed")
+        if (rewardType != RewardType.Fixed)
         {
             return new Godot.Collections.Dictionary();
         }

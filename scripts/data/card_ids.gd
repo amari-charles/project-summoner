@@ -72,4 +72,4 @@ const CLOUD_SWARM: StringName = &"cloud_swarm"
 
 const WATER_FROG: StringName = &"water_frog"
 const MAMA_DUCK: StringName = &"mama_duck"
-const DUCKLING: StringName = &"duckling"
+# NOTE: duckling is a unit spawned by mama_duck, not a playable card

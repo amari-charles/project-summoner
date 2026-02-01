@@ -7,7 +7,7 @@ extends VFXInstance
 @export var sprite_rotation_degrees: float = 0.0  ## Rotation of the sprite in degrees (Z-axis)
 @export var damage: float = 100.0  ## AOE damage on impact
 @export var damage_radius: float = 10.0  ## Fallback radius for AOE indicator sizing (overridden by Card's spell_radius at runtime)
-@export var explosion_vfx_id: String = "fireball_explosion"  ## VFX to spawn on impact
+@export var explosion_vfx_id: String = VFXIDs.FIREBALL_EXPLOSION  ## VFX to spawn on impact
 @export var camera_shake_intensity: float = 0.2  ## Camera shake strength
 @export var camera_shake_duration: float = 0.4  ## Camera shake duration
 @export var indicator_linger_duration: float = 2.0  ## How long the AOE indicator lingers before fading

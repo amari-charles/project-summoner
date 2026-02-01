@@ -259,12 +259,13 @@ public partial class ItemService : Node
 			var unitStat = MapItemStatToUnitStat(traitMod.Stat);
 			if (unitStat != null)
 			{
-				if (traitMod.Type == "percent")
+				var modType = ModifierTypeExtensions.ParseModifierType(traitMod.Type);
+				if (modType == ModifierType.Percent)
 				{
 					// Convert percent to multiplier (5% -> 1.05)
 					statMod.StatMults[unitStat] = 1.0f + (traitMod.Value / 100.0f);
 				}
-				else // "flat"
+				else // Flat
 				{
 					statMod.StatAdds[unitStat] = traitMod.Value;
 				}

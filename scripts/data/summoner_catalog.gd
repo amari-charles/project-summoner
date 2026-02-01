@@ -200,7 +200,7 @@ func _create_config_from_dict(dict: Dictionary) -> SummonerConfig:
 				config.innate_trait_ids.append(trait_id)
 
 	# Starter card
-	config.starter_card_id = dict.get("starter_card_id", "fire_wisp")
+	config.starter_card_id = dict.get("starter_card_id", CardIDs.FIRE_WISP)
 
 	return config
 

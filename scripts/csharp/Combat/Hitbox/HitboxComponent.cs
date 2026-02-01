@@ -25,7 +25,7 @@ public partial class HitboxComponent : Area3D
     [Export] public float Damage { get; set; }
 
     /// <summary>Type of damage (physical, magical, fire, etc.).</summary>
-    [Export] public string DamageType { get; set; } = "physical";
+    [Export] public string DamageType { get; set; } = DamageTypes.Physical;
 
     /// <summary>Team that created this hitbox (for friendly fire checks).</summary>
     [Export] public int SourceTeam { get; set; }
