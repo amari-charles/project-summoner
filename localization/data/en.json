@@ -840,6 +840,14 @@
       "emote_victory": {
         "name": "PLACEHOLDER EMOTE 6",
         "description": "[Placeholder] Emote - replace with real content before release."
+      },
+      "placeholder_card_back_1": {
+        "name": "PLACEHOLDER CARD BACK 1",
+        "description": "[Placeholder] Card back cosmetic - replace with real content before release."
+      },
+      "placeholder_ui_theme_1": {
+        "name": "PLACEHOLDER UI THEME 1",
+        "description": "[Placeholder] UI theme cosmetic - replace with real content before release."
       }
     },
     "purchase_button": "Purchase",

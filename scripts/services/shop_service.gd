@@ -289,6 +289,33 @@ func _init_shops() -> void:
 				"purchase_limit": 1
 			},
 			# =====================================================================
+			# COSMETIC OFFERINGS (Placeholder - replace with real cosmetics later)
+			# =====================================================================
+			{
+				"offering_id": "cosmetic_card_back_placeholder_1",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.placeholder_card_back_1.name"),
+				"description": Loc.t("shop.offering.placeholder_card_back_1.description"),
+				"cosmetic_type": "card_back",
+				"cosmetic_id": "card_back_placeholder_1",
+				"base_price": 200,
+				"currency_type": "gems",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			{
+				"offering_id": "cosmetic_ui_theme_placeholder_1",
+				"offering_type": ShopOffering.OfferingType.COSMETIC,
+				"display_name": Loc.t("shop.offering.placeholder_ui_theme_1.name"),
+				"description": Loc.t("shop.offering.placeholder_ui_theme_1.description"),
+				"cosmetic_type": "ui_theme",
+				"cosmetic_id": "ui_theme_placeholder_1",
+				"base_price": 500,
+				"currency_type": "gems",
+				"purchase_limit_type": "account",
+				"purchase_limit": 1
+			},
+			# =====================================================================
 			# EMOTE OFFERINGS
 			# =====================================================================
 			{
