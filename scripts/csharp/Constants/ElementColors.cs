@@ -19,7 +19,7 @@ public static class ElementColors
         {
             Element.Fire => new Color(0.9f, 0.3f, 0.2f),      // Orange-red
             Element.Water => new Color(0.2f, 0.5f, 0.9f),     // Blue
-            Element.Wind => new Color(0.5f, 0.9f, 0.5f),      // Light green
+            Element.Wind => new Color(0.95f, 0.95f, 0.95f),    // White
             Element.Earth => new Color(0.6f, 0.4f, 0.2f),     // Brown
             Element.Lightning => new Color(0.9f, 0.9f, 0.3f), // Yellow
             Element.Shadow => new Color(0.4f, 0.2f, 0.5f),    // Purple

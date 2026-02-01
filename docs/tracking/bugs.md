@@ -238,5 +238,36 @@ Affects combat balance - wisps are more effective than designed if they can hit 
 
 ---
 
+#### Puff Units Switch Targets Unnecessarily
+**Status:** Open
+**Reported:** 2026-01-31
+**Component:** Units / Targeting / Ranged AI
 
-*Last Updated: 2026-01-29 - Moved Puff projectile hit flash bug to bugs-resolved.md*
+**Description:**
+Puff units change targets even when they already have a valid target. Additionally, targeting prioritizes closer enemies that require movement over enemies already in cone range.
+
+**Expected Behavior:**
+1. Puffs should maintain their current target while it's still valid
+2. Targeting should prioritize enemies already within cone attack range before selecting closer enemies that would require repositioning
+
+**Current Behavior:**
+- Puffs switch targets frequently even when current target is still valid
+- Targeting selects the closest enemy overall, even if that enemy requires the Puff to move to get them in cone range
+- This causes unnecessary movement and target-switching when a valid target is already in range
+
+**Impact:**
+Reduces Puff combat effectiveness - time spent switching targets and repositioning could be spent attacking.
+
+**Proposed Solution:**
+1. Add target stickiness - don't switch targets unless current target is dead, out of range, or significantly worse
+2. Modify targeting priority: enemies in current cone range > enemies requiring movement
+3. Only reposition to chase a closer target if no valid targets are currently in cone range
+
+**Related Files:**
+- scripts/csharp/Units/RangedUnit3D.cs
+- scripts/csharp/Targeting/TargetingService.cs
+- Cone attack range detection logic
+
+---
+
+*Last Updated: 2026-01-31 - Added Puff target switching bug*
