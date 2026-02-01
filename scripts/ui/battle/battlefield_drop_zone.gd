@@ -336,14 +336,8 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 			positions.append(center_pos + card.get_formation_offset(i))
 		return positions
 
-	# Get separation_radius from the unit scene
-	var separation_radius: float = 0.5
-	if card.unit_scene:
-		var temp_unit: Node = card.unit_scene.instantiate()
-		if temp_unit and "SeparationRadius" in temp_unit:
-			separation_radius = temp_unit.get("SeparationRadius")
-		if temp_unit:
-			temp_unit.free()  # Not in tree, use free() not queue_free()
+	# Get separation_radius from card (cached in unit_stats, no instantiation needed)
+	var separation_radius: float = card.separation_radius
 
 	# Get battlefield reference
 	var battlefield: Node = get_node_or_null("/root/Main/Battlefield")

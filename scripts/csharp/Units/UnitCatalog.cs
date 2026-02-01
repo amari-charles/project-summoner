@@ -347,10 +347,10 @@ public static class UnitCatalog
             {
                 MaxHp = 25f,
                 AttackDamage = 8f,
-                AttackRange = 16f,
+                AttackRange = 12f,
                 AttackSpeed = 0.8f,
                 MoveSpeed = 3.2f,
-                AggroRadius = 20f
+                AggroRadius = 16f
             }
         }
     };

@@ -25,7 +25,7 @@ UnitId = "earth_rock_thrower"
 Team = 0
 UnitType = 1
 SeparationRadius = 0.3
-ProjectileId = "wind_puff"
+ProjectileId = "rock"
 ShadowEnabled = true
 ShadowOpacity = 0.4
 

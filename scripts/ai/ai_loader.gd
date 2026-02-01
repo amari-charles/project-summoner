@@ -15,6 +15,10 @@ static func create_ai_for_battle(battle_config: Dictionary, summoner: Node) -> A
 			ai = _create_scripted_ai(battle_config)
 		"heuristic":
 			ai = _create_heuristic_ai(battle_config)
+		"passive", "none":
+			# No AI controller - summoner takes no automated actions
+			# Used for debug arena and test scenarios
+			return null
 		_:
 			push_warning("AILoader: Unknown AI type '%s', defaulting to heuristic" % ai_type)
 			ai = _create_heuristic_ai(battle_config)

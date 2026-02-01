@@ -106,6 +106,13 @@ var group_spacing: float:
 var units_per_group: int:
 	get: return config.units_per_group if config else 2
 
+## Unit separation radius for collision avoidance (cached from unit_stats)
+var separation_radius: float:
+	get:
+		if config and config.unit_stats:
+			return config.unit_stats.get("separation_radius", 0.5)
+		return 0.5
+
 ## =============================================================================
 ## FORMATION PREVIEW (for UI spawn position indicators)
 ## =============================================================================

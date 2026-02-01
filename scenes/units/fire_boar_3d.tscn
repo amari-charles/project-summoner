@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://fire_boar_3d"]
+[gd_scene load_steps=6 format=3 uid="uid://fire_boar_3d"]
 
 [ext_resource type="Script" path="res://scripts/csharp/Units/MeleeUnit3D.cs" id="1_script"]
+[ext_resource type="Script" path="res://scripts/csharp/Abilities/ChargeAbility.cs" id="2_charge"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(1.2, 0.8, 0.8)
@@ -36,3 +37,10 @@ surface_material_override/0 = SubResource("StandardMaterial3D_1")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("CapsuleShape3D_1")
+
+[node name="ChargeAbility" type="Node" parent="."]
+script = ExtResource("2_charge")
+ChargeThreshold = 4.0
+DamageBonus = 25.0
+BonusType = 0
+ResetOnAnyAttack = true

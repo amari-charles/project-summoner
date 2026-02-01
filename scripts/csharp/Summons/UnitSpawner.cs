@@ -53,6 +53,10 @@ public static class UnitSpawner
     // 0.5 units is a reasonable default for standard-sized units.
     private const float DefaultCollisionRadius = 0.5f;
 
+    // Cache for separation radius values by scene path.
+    // Avoids instantiating scenes repeatedly just to read a property.
+    private static readonly Dictionary<string, float> _separationRadiusCache = new();
+
     /// <summary>
     /// Spawns a unit from a PackedScene with the given context.
     /// Returns the spawned unit, or null if spawning failed.
@@ -163,6 +167,42 @@ public static class UnitSpawner
             tempUnit.Free(); // Not in tree, use Free() not QueueFree()
         }
         return separationRadius <= 0 ? DefaultCollisionRadius : separationRadius;
+    }
+
+    /// <summary>
+    /// Gets the separation radius for a unit scene, using a cache to avoid repeated instantiation.
+    /// This is used by CardCatalog to include separation_radius in card dictionaries.
+    /// </summary>
+    /// <param name="scenePath">Resource path to the unit scene (e.g., "res://scenes/units/fire_wisp.tscn")</param>
+    /// <returns>Separation radius, defaults to DefaultCollisionRadius</returns>
+    public static float GetSeparationRadiusCached(string scenePath)
+    {
+        if (string.IsNullOrEmpty(scenePath))
+            return DefaultCollisionRadius;
+
+        // Check cache first
+        if (_separationRadiusCache.TryGetValue(scenePath, out float cached))
+            return cached;
+
+        // Load scene and extract radius
+        var scene = GD.Load<PackedScene>(scenePath);
+        if (scene == null)
+        {
+            _separationRadiusCache[scenePath] = DefaultCollisionRadius;
+            return DefaultCollisionRadius;
+        }
+
+        float radius = GetSeparationRadius(scene);
+        _separationRadiusCache[scenePath] = radius;
+        return radius;
+    }
+
+    /// <summary>
+    /// Clears the separation radius cache. Useful for testing or when scenes change.
+    /// </summary>
+    public static void ClearSeparationRadiusCache()
+    {
+        _separationRadiusCache.Clear();
     }
 
     /// <summary>

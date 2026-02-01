@@ -780,7 +780,11 @@ public static class CardCatalog
             ["selection_radius"] = card.SelectionRadius,
             ["formation_duration"] = card.FormationDuration,
             ["unlock_condition"] = UnlockConditionToString(card.UnlockCondition),
-            ["card_icon_path"] = card.CardIconPath
+            ["card_icon_path"] = card.CardIconPath,
+            // Pre-cache separation radius for summon cards (avoids scene instantiation at runtime)
+            ["separation_radius"] = !string.IsNullOrEmpty(scenePath)
+                ? Summons.UnitSpawner.GetSeparationRadiusCached(scenePath)
+                : 0.5f
         };
 
         // Typed card properties (replaces old Tags system)

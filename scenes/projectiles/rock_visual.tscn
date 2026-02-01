@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://rock_visual"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 0.35
+height = 0.7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.45, 0.35, 0.25, 1)
+roughness = 0.9
+
+[node name="RockVisual" type="Node3D"]
+
+[node name="RockMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
