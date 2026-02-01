@@ -23,7 +23,7 @@ public class UnitStatCalculatorTest
     {
         return new CardDefinition
         {
-            Id = "test_card",
+            Id = new CardId("test_card"),
             Name = "Test Card",
             Description = "A test card",
             Rarity = Rarity.Common,
@@ -166,7 +166,7 @@ public class UnitStatCalculatorTest
     {
         var card = new CardDefinition
         {
-            Id = "test",
+            Id = new CardId("test"),
             Name = "Test",
             Description = "Test",
             Rarity = Rarity.Common,

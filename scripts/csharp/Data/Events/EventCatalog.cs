@@ -21,25 +21,25 @@ public static class EventCatalog
         // ACT 1: THE INITIATE'S PATH
         // =====================================================================
 
-        [EventId.FirstTrial] = new BattleEventDefinition
+        [EventIds.FirstTrial] = new BattleEventDefinition
         {
-            Id = EventId.FirstTrial,
+            Id = EventIds.FirstTrial,
             NameKey = "campaign.battle.first_trial.name",
             DescriptionKey = "campaign.battle.first_trial.description",
             Position = new Vector2(100, 300),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             IsTutorial = true,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 1)
+                new(CardIds.FireWisp, 1)
             },
             EnemyHp = 30f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.Puff, CardId.Pebbloom },
+                CardOptions = new List<string> { CardIds.FireWisp, CardIds.Puff, CardIds.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 30,
@@ -48,26 +48,26 @@ public static class EventCatalog
             }
         },
 
-        [EventId.SecondChallenge] = new BattleEventDefinition
+        [EventIds.SecondChallenge] = new BattleEventDefinition
         {
-            Id = EventId.SecondChallenge,
+            Id = EventIds.SecondChallenge,
             NameKey = "campaign.battle.second_challenge.name",
             DescriptionKey = "campaign.battle.second_challenge.description",
             Position = new Vector2(250, 300),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 2,
             IsTutorial = true,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.Puff, 2),
-                new(CardId.Pebbloom, 1)
+                new(CardIds.Puff, 2),
+                new(CardIds.Pebbloom, 1)
             },
             EnemyHp = 45f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.Pebbloom, CardId.Puff, CardId.FireWisp },
+                CardOptions = new List<string> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 40,
@@ -76,34 +76,34 @@ public static class EventCatalog
             }
         },
 
-        [EventId.Caravan01] = new CaravanEventDefinition
+        [EventIds.Caravan01] = new CaravanEventDefinition
         {
-            Id = EventId.Caravan01,
+            Id = EventIds.Caravan01,
             NameKey = "campaign.event.caravan_01.name",
             DescriptionKey = "campaign.event.caravan_01.description",
             Position = new Vector2(400, 300),
             ShopId = "caravan_tutorial"
         },
 
-        [EventId.ThirdTrial] = new BattleEventDefinition
+        [EventIds.ThirdTrial] = new BattleEventDefinition
         {
-            Id = EventId.ThirdTrial,
+            Id = EventIds.ThirdTrial,
             NameKey = "campaign.battle.third_trial.name",
             DescriptionKey = "campaign.battle.third_trial.description",
             Position = new Vector2(550, 300),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 3,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.Puff, 2),
-                new(CardId.Pebbloom, 2)
+                new(CardIds.Puff, 2),
+                new(CardIds.Pebbloom, 2)
             },
             EnemyHp = 60f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.ManaBolt, CardId.Puff },
+                CardOptions = new List<string> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -112,9 +112,9 @@ public static class EventCatalog
             }
         },
 
-        [EventId.PathFork] = new ChoiceEventDefinition
+        [EventIds.PathFork] = new ChoiceEventDefinition
         {
-            Id = EventId.PathFork,
+            Id = EventIds.PathFork,
             NameKey = "campaign.choice.path_fork.name",
             DescriptionKey = "campaign.choice.path_fork.description",
             Position = new Vector2(700, 300),
@@ -125,26 +125,26 @@ public static class EventCatalog
             }
         },
 
-        [EventId.EliteBattle01] = new EliteEventDefinition
+        [EventIds.EliteBattle01] = new EliteEventDefinition
         {
-            Id = EventId.EliteBattle01,
+            Id = EventIds.EliteBattle01,
             NameKey = "campaign.battle.elite_01.name",
             DescriptionKey = "campaign.battle.elite_01.description",
             Position = new Vector2(850, 200),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 5,
             RequiresDeck = true,
             LevelCap = 3,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 2),
-                new(CardId.Puff, 2)
+                new(CardIds.FireWisp, 2),
+                new(CardIds.Puff, 2)
             },
             EnemyHp = 80f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.FireWisp, CardId.ManaBolt, CardId.Pebbloom },
+                CardOptions = new List<string> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 80,
@@ -153,24 +153,24 @@ public static class EventCatalog
             }
         },
 
-        [EventId.StandardBattle01] = new BattleEventDefinition
+        [EventIds.StandardBattle01] = new BattleEventDefinition
         {
-            Id = EventId.StandardBattle01,
+            Id = EventIds.StandardBattle01,
             NameKey = "campaign.battle.standard_01.name",
             DescriptionKey = "campaign.battle.standard_01.description",
             Position = new Vector2(850, 400),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 3,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.Pebbloom, 3)
+                new(CardIds.Pebbloom, 3)
             },
             EnemyHp = 55f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<string> { CardId.Puff, CardId.Pebbloom, CardId.FireWisp },
+                CardOptions = new List<string> { CardIds.Puff, CardIds.Pebbloom, CardIds.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
                 GoldReward = 50,
@@ -179,20 +179,20 @@ public static class EventCatalog
             }
         },
 
-        [EventId.Act1Boss] = new BossEventDefinition
+        [EventIds.Act1Boss] = new BossEventDefinition
         {
-            Id = EventId.Act1Boss,
+            Id = EventIds.Act1Boss,
             NameKey = "campaign.battle.act1_boss.name",
             DescriptionKey = "campaign.battle.act1_boss.description",
             Position = new Vector2(1000, 300),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 6,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 2),
-                new(CardId.Pebbloom, 2),
-                new(CardId.Puff, 2)
+                new(CardIds.FireWisp, 2),
+                new(CardIds.Pebbloom, 2),
+                new(CardIds.Puff, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig
@@ -200,7 +200,7 @@ public static class EventCatalog
                 Type = RewardType.Fixed,
                 FixedCards = new List<FixedRewardEntry>
                 {
-                    new(CardId.ManaBolt, "rare", 1)
+                    new(CardIds.ManaBolt, "rare", 1)
                 },
                 GoldReward = 100,
                 CardXpReward = 40,
@@ -212,131 +212,131 @@ public static class EventCatalog
         // TEST ARENA
         // =====================================================================
 
-        [EventId.ArenaEarthSprite] = new BattleEventDefinition
+        [EventIds.ArenaEarthSprite] = new BattleEventDefinition
         {
-            Id = EventId.ArenaEarthSprite,
+            Id = EventIds.ArenaEarthSprite,
             NameKey = "campaign.battle.arena_earth_sprite.name",
             DescriptionKey = "campaign.battle.arena_earth_sprite.description",
             Position = new Vector2(100, 100),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             RequiresDeck = false,
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.Pebbloom, 4),
-                new(CardId.Puff, 2)
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 2)
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 3),
-                new(CardId.Puff, 2)
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Puff, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
         },
 
-        [EventId.ArenaPuff] = new BattleEventDefinition
+        [EventIds.ArenaPuff] = new BattleEventDefinition
         {
-            Id = EventId.ArenaPuff,
+            Id = EventIds.ArenaPuff,
             NameKey = "campaign.battle.arena_puff.name",
             DescriptionKey = "campaign.battle.arena_puff.description",
             Position = new Vector2(250, 100),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             RequiresDeck = false,
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.Puff, 4),
-                new(CardId.Pebbloom, 2)
+                new(CardIds.Puff, 4),
+                new(CardIds.Pebbloom, 2)
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 3),
-                new(CardId.Pebbloom, 2)
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
         },
 
-        [EventId.ArenaFireWisp] = new BattleEventDefinition
+        [EventIds.ArenaFireWisp] = new BattleEventDefinition
         {
-            Id = EventId.ArenaFireWisp,
+            Id = EventIds.ArenaFireWisp,
             NameKey = "campaign.battle.arena_fire_wisp.name",
             DescriptionKey = "campaign.battle.arena_fire_wisp.description",
             Position = new Vector2(400, 100),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             RequiresDeck = false,
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 6)
+                new(CardIds.FireWisp, 6)
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.Pebbloom, 3),
-                new(CardId.Puff, 2)
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
         },
 
-        [EventId.ArenaCloudSwarm] = new BattleEventDefinition
+        [EventIds.ArenaCloudSwarm] = new BattleEventDefinition
         {
-            Id = EventId.ArenaCloudSwarm,
+            Id = EventIds.ArenaCloudSwarm,
             NameKey = "campaign.battle.arena_cloud_swarm.name",
             DescriptionKey = "campaign.battle.arena_cloud_swarm.description",
             Position = new Vector2(100, 250),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             RequiresDeck = false,
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.Puff, 6)
+                new(CardIds.Puff, 6)
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 3),
-                new(CardId.Pebbloom, 2)
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
         },
 
-        [EventId.ArenaManaBolt] = new BattleEventDefinition
+        [EventIds.ArenaManaBolt] = new BattleEventDefinition
         {
-            Id = EventId.ArenaManaBolt,
+            Id = EventIds.ArenaManaBolt,
             NameKey = "campaign.battle.arena_mana_bolt.name",
             DescriptionKey = "campaign.battle.arena_mana_bolt.description",
             Position = new Vector2(250, 250),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             RequiresDeck = false,
             Repeatable = true,
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.ManaBolt, 5),
-                new(CardId.FireWisp, 3)
+                new(CardIds.ManaBolt, 5),
+                new(CardIds.FireWisp, 3)
             },
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardId.Pebbloom, 3),
-                new(CardId.FireWisp, 2)
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.FireWisp, 2)
             },
             EnemyHp = 100f,
             Rewards = new BattleRewardConfig { Type = RewardType.None }
         },
 
-        [EventId.DebugArena] = new BattleEventDefinition
+        [EventIds.DebugArena] = new BattleEventDefinition
         {
-            Id = EventId.DebugArena,
+            Id = EventIds.DebugArena,
             NameKey = "debug.arena.name",
             DescriptionKey = "debug.arena.description",
             Position = new Vector2(400, 250),
-            Biome = BiomeId.SummerPlains,
+            Biome = BiomeIds.SummerPlains,
             Difficulty = 0,
             RequiresDeck = false,
             Repeatable = true,
@@ -344,11 +344,11 @@ public static class EventCatalog
             ScenePath = "res://scenes/battlefield/dev/debug_arena.tscn",
             DevPlayerDeck = new List<DeckEntry>
             {
-                new(CardId.FireWisp, 5),
-                new(CardId.Puff, 5),
-                new(CardId.Pebbloom, 5),
-                new(CardId.ManaBolt, 5),
-                new(CardId.WaterFrog, 5)
+                new(CardIds.FireWisp, 5),
+                new(CardIds.Puff, 5),
+                new(CardIds.Pebbloom, 5),
+                new(CardIds.ManaBolt, 5),
+                new(CardIds.WaterFrog, 5)
             },
             EnemyDeck = new List<DeckEntry>(),
             EnemyHp = 999999f,

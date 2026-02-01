@@ -17,7 +17,7 @@ public class CardCatalogTest
         var card = CardCatalog.GetCard("fire_wisp");
 
         AssertThat(card).IsNotNull();
-        AssertThat(card!.Id).IsEqual("fire_wisp");
+        AssertThat((string)card!.Id).IsEqual("fire_wisp");
         AssertThat(card.Name).IsEqual("Fire Wisp");
         AssertThat(card.Type).IsEqual(CardType.Summon);
     }

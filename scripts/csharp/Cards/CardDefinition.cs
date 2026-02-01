@@ -17,7 +17,7 @@ public class CardDefinition
     // =========================================================================
 
     /// <summary>Unique identifier for this card (e.g., "cloud_swarm").</summary>
-    public required string Id { get; init; }
+    public required CardId Id { get; init; }
 
     /// <summary>Display name shown in UI.</summary>
     public required string Name { get; init; }

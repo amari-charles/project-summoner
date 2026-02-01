@@ -84,9 +84,9 @@ public class RewardServiceTest
 
         AssertThat(cards.Length).IsGreater(0);
         // Tutorial rewards should include specific cards
-        var cardIds = cards.Select(c => c.Id).ToHashSet();
+        var cardIdStrings = cards.Select(c => (string)c.Id).ToHashSet();
         // These are defined in the catalog
-        AssertThat(cardIds.Contains("charge") || cardIds.Contains("guard") || cardIds.Contains("fire_wisp")).IsTrue();
+        AssertThat(cardIdStrings.Contains("charge") || cardIdStrings.Contains("guard") || cardIdStrings.Contains("fire_wisp")).IsTrue();
     }
 
     [TestCase]
@@ -97,7 +97,7 @@ public class RewardServiceTest
 
         foreach (var card in cards)
         {
-            AssertThat(excludeIds.Contains(card.Id)).IsFalse();
+            AssertThat(excludeIds.Contains((string)card.Id)).IsFalse();
         }
     }
 

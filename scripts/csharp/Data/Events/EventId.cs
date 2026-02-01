@@ -1,58 +1,77 @@
 namespace ProjectSummoner.Data.Events;
 
 /// <summary>
-/// Event ID constants - type-safe event references.
-/// Mirrors GDScript BattleIDs for C# code.
+/// Strongly-typed identifier for event types.
+/// Prevents typos and enables IDE autocomplete via EventIds static class.
 /// </summary>
-public static class EventId
+public readonly record struct EventId(string Value)
+{
+    /// <summary>Returns the underlying string value.</summary>
+    public override string ToString() => Value;
+
+    /// <summary>Implicit conversion to string for interop with existing systems.</summary>
+    public static implicit operator string(EventId id) => id.Value;
+
+    /// <summary>Check if this ID has a value (not empty).</summary>
+    public bool HasValue => !string.IsNullOrEmpty(Value);
+
+    /// <summary>Empty/unset event ID.</summary>
+    public static readonly EventId None = new("");
+}
+
+/// <summary>
+/// All known event IDs. Use these instead of raw strings.
+/// Example: EventIds.FirstTrial instead of "first_trial"
+/// </summary>
+public static class EventIds
 {
     // =========================================================================
     // ACT 1: THE INITIATE'S PATH
     // =========================================================================
 
     /// <summary>Battle: First Trial - Learn basics with 1 card</summary>
-    public const string FirstTrial = "first_trial";
+    public static readonly EventId FirstTrial = new("first_trial");
 
     /// <summary>Battle: Second Challenge - Test 2-card combos</summary>
-    public const string SecondChallenge = "second_challenge";
+    public static readonly EventId SecondChallenge = new("second_challenge");
 
     /// <summary>Event: Caravan - First shop visit</summary>
-    public const string Caravan01 = "caravan_01";
+    public static readonly EventId Caravan01 = new("caravan_01");
 
     /// <summary>Battle: Third Trial - Medium difficulty</summary>
-    public const string ThirdTrial = "third_trial";
+    public static readonly EventId ThirdTrial = new("third_trial");
 
     /// <summary>Choice: Elite vs Standard Path Fork</summary>
-    public const string PathFork = "path_fork";
+    public static readonly EventId PathFork = new("path_fork");
 
     /// <summary>Battle: Elite Path Battle 1 - Higher difficulty with level cap</summary>
-    public const string EliteBattle01 = "elite_battle_01";
+    public static readonly EventId EliteBattle01 = new("elite_battle_01");
 
     /// <summary>Battle: Standard Path Battle 1 - Normal difficulty</summary>
-    public const string StandardBattle01 = "standard_battle_01";
+    public static readonly EventId StandardBattle01 = new("standard_battle_01");
 
     /// <summary>Boss: Act 1 Boss - First major boss</summary>
-    public const string Act1Boss = "act1_boss";
+    public static readonly EventId Act1Boss = new("act1_boss");
 
     // =========================================================================
     // TEST ARENA (Debug/test battles with fixed decks)
     // =========================================================================
 
     /// <summary>Test Arena: Earth Sprite Test</summary>
-    public const string ArenaEarthSprite = "arena_earth_sprite";
+    public static readonly EventId ArenaEarthSprite = new("arena_earth_sprite");
 
     /// <summary>Test Arena: Puff Test</summary>
-    public const string ArenaPuff = "arena_puff";
+    public static readonly EventId ArenaPuff = new("arena_puff");
 
     /// <summary>Test Arena: Fire Wisp Test</summary>
-    public const string ArenaFireWisp = "arena_fire_wisp";
+    public static readonly EventId ArenaFireWisp = new("arena_fire_wisp");
 
     /// <summary>Test Arena: Cloud Swarm Test</summary>
-    public const string ArenaCloudSwarm = "arena_cloud_swarm";
+    public static readonly EventId ArenaCloudSwarm = new("arena_cloud_swarm");
 
     /// <summary>Test Arena: Mana Bolt Spell Test</summary>
-    public const string ArenaManaBolt = "arena_mana_bolt";
+    public static readonly EventId ArenaManaBolt = new("arena_mana_bolt");
 
     /// <summary>Test Arena: Debug Arena - Testing sandbox</summary>
-    public const string DebugArena = "debug_arena";
+    public static readonly EventId DebugArena = new("debug_arena");
 }

@@ -9,7 +9,7 @@ namespace ProjectSummoner.Data.Traits;
 public class TraitDefinition
 {
     /// <summary>Unique identifier (e.g., "trait_fire_affinity").</summary>
-    public required string Id { get; init; }
+    public required TraitId Id { get; init; }
 
     /// <summary>Localization key for display name.</summary>
     public required string NameKey { get; init; }

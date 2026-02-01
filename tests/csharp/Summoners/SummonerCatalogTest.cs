@@ -16,10 +16,10 @@ public class SummonerCatalogTest
     [TestCase]
     public void GetSummoner_ReturnsSummonerDefinition_WhenSummonerExists()
     {
-        var summoner = SummonerCatalog.GetSummoner(SummonerId.Cole);
+        var summoner = SummonerCatalog.GetSummoner(SummonerIds.Cole);
 
         AssertThat(summoner).IsNotNull();
-        AssertThat(summoner!.Id).IsEqual(SummonerId.Cole);
+        AssertThat(summoner!.Id).IsEqual(SummonerIds.Cole);
         AssertThat(summoner.ElementalAffinity).IsEqual(Element.Fire);
     }
 
@@ -34,7 +34,7 @@ public class SummonerCatalogTest
     [TestCase]
     public void HasSummoner_ReturnsTrue_WhenSummonerExists()
     {
-        var exists = SummonerCatalog.HasSummoner(SummonerId.Selene);
+        var exists = SummonerCatalog.HasSummoner(SummonerIds.Selene);
 
         AssertThat(exists).IsTrue();
     }
@@ -124,7 +124,7 @@ public class SummonerCatalogTest
     [TestCase]
     public void SummonerDefinition_HasValidInnateTraits()
     {
-        var cole = SummonerCatalog.GetSummoner(SummonerId.Cole);
+        var cole = SummonerCatalog.GetSummoner(SummonerIds.Cole);
 
         AssertThat(cole).IsNotNull();
         AssertThat(cole!.InnateTraitIds).IsNotNull();

@@ -36,7 +36,7 @@ public class BattleEventDefinition : EventDefinition
     public override EventType Type => EventType.Battle;
 
     /// <summary>Biome ID for battlefield environment</summary>
-    public string Biome { get; set; } = BiomeId.Default;
+    public string Biome { get; set; } = BiomeIds.Default;
 
     /// <summary>Difficulty rating (1-10)</summary>
     public int Difficulty { get; set; } = 1;

@@ -272,7 +272,7 @@ public partial class CardFactory : Node, ICardFactory
         GD.Print($"[CardFactory] Spawned {card.SpawnCount} units for '{catalogId}'");
 
         // 10. Special handling: spawn ducklings for mama_duck
-        if (catalogId == "mama_duck")
+        if (catalogId == CardIds.MamaDuck)
         {
             SpawnDucklingsForMama(summon, gameplayLayer, spatialGrid, team, position, spawnDuration, inBattlePhase);
         }

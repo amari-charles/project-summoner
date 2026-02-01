@@ -40,7 +40,7 @@ public class SummonerDefinition
     public string[] InnateTraitIds { get; init; } = [];
 
     /// <summary>Card catalog ID granted when this summoner is first selected.</summary>
-    public string StarterCardId { get; init; } = CardId.FireWisp;
+    public string StarterCardId { get; init; } = CardIds.FireWisp;
 
     // =========================================================================
     // TRAIT ELIGIBILITY TAGS

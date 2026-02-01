@@ -20,39 +20,39 @@ public static class CampaignCatalog
         // SUMMONER'S PATH - Main campaign for all summoners
         // =====================================================================
 
-        [CampaignId.SummonersPath] = new CampaignDefinition
+        [CampaignIds.SummonersPath] = new CampaignDefinition
         {
-            Id = CampaignId.SummonersPath,
+            Id = CampaignIds.SummonersPath,
             NameKey = "campaign.summoners_path.name",
             DescriptionKey = "campaign.summoners_path.description",
             SortOrder = 0,
-            StartEventId = EventId.FirstTrial,
+            StartEventId = EventIds.FirstTrial,
             EventIds = new List<string>
             {
-                EventId.FirstTrial,
-                EventId.SecondChallenge,
-                EventId.Caravan01,
-                EventId.ThirdTrial,
-                EventId.PathFork,
-                EventId.EliteBattle01,
-                EventId.StandardBattle01,
-                EventId.Act1Boss
+                EventIds.FirstTrial,
+                EventIds.SecondChallenge,
+                EventIds.Caravan01,
+                EventIds.ThirdTrial,
+                EventIds.PathFork,
+                EventIds.EliteBattle01,
+                EventIds.StandardBattle01,
+                EventIds.Act1Boss
             },
             Edges = new List<CampaignEdge>
             {
                 // Linear progression through early game
-                new(EventId.FirstTrial, EventId.SecondChallenge),
-                new(EventId.SecondChallenge, EventId.Caravan01),
-                new(EventId.Caravan01, EventId.ThirdTrial),
-                new(EventId.ThirdTrial, EventId.PathFork),
+                new(EventIds.FirstTrial, EventIds.SecondChallenge),
+                new(EventIds.SecondChallenge, EventIds.Caravan01),
+                new(EventIds.Caravan01, EventIds.ThirdTrial),
+                new(EventIds.ThirdTrial, EventIds.PathFork),
 
                 // Branching paths based on player choice
-                new(EventId.PathFork, EventId.EliteBattle01, new EdgeCondition("elite")),
-                new(EventId.PathFork, EventId.StandardBattle01, new EdgeCondition("standard")),
+                new(EventIds.PathFork, EventIds.EliteBattle01, new EdgeCondition("elite")),
+                new(EventIds.PathFork, EventIds.StandardBattle01, new EdgeCondition("standard")),
 
                 // Both paths lead to Act 1 Boss
-                new(EventId.EliteBattle01, EventId.Act1Boss),
-                new(EventId.StandardBattle01, EventId.Act1Boss)
+                new(EventIds.EliteBattle01, EventIds.Act1Boss),
+                new(EventIds.StandardBattle01, EventIds.Act1Boss)
             }
         },
 
@@ -60,21 +60,21 @@ public static class CampaignCatalog
         // TEST ARENA - Debug campaign for testing
         // =====================================================================
 
-        [CampaignId.TestArena] = new CampaignDefinition
+        [CampaignIds.TestArena] = new CampaignDefinition
         {
-            Id = CampaignId.TestArena,
+            Id = CampaignIds.TestArena,
             NameKey = "campaign.test_arena.name",
             DescriptionKey = "campaign.test_arena.description",
             SortOrder = 99,
-            StartEventId = EventId.ArenaEarthSprite,
+            StartEventId = EventIds.ArenaEarthSprite,
             EventIds = new List<string>
             {
-                EventId.ArenaEarthSprite,
-                EventId.ArenaPuff,
-                EventId.ArenaFireWisp,
-                EventId.ArenaCloudSwarm,
-                EventId.ArenaManaBolt,
-                EventId.DebugArena
+                EventIds.ArenaEarthSprite,
+                EventIds.ArenaPuff,
+                EventIds.ArenaFireWisp,
+                EventIds.ArenaCloudSwarm,
+                EventIds.ArenaManaBolt,
+                EventIds.DebugArena
             },
             Edges = new List<CampaignEdge>() // No edges - all nodes independently accessible
         }

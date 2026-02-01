@@ -24,11 +24,11 @@ public static class SpellBuilder
     /// </summary>
     public static bool HasEffect(string catalogId)
     {
-        return catalogId switch
-        {
-            "fireball" or "rally" or "guard" or "charge" or "mana_bolt" => true,
-            _ => false
-        };
+        return catalogId == CardIds.Fireball
+            || catalogId == CardIds.Rally
+            || catalogId == CardIds.Guard
+            || catalogId == CardIds.Charge
+            || catalogId == CardIds.ManaBolt;
     }
 
     /// <summary>
@@ -39,18 +39,16 @@ public static class SpellBuilder
     /// <exception cref="ArgumentException">Thrown when catalogId is not a registered spell.</exception>
     public static ISpellEffect GetEffect(string catalogId)
     {
-        return catalogId switch
-        {
-            "fireball" => Fireball(),
-            "rally" => Rally(),
-            "guard" => Guard(),
-            "charge" => Charge(),
-            "mana_bolt" => ManaBolt(),
-            _ => throw new ArgumentException(
-                $"[SpellBuilder] Unknown spell catalog ID: '{catalogId}'. " +
-                $"Add spell definition to SpellBuilder or check spelling.",
-                nameof(catalogId))
-        };
+        if (catalogId == CardIds.Fireball) return Fireball();
+        if (catalogId == CardIds.Rally) return Rally();
+        if (catalogId == CardIds.Guard) return Guard();
+        if (catalogId == CardIds.Charge) return Charge();
+        if (catalogId == CardIds.ManaBolt) return ManaBolt();
+
+        throw new ArgumentException(
+            $"[SpellBuilder] Unknown spell catalog ID: '{catalogId}'. " +
+            $"Add spell definition to SpellBuilder or check spelling.",
+            nameof(catalogId));
     }
 
     /// <summary>

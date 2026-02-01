@@ -15,10 +15,10 @@ public class TraitCatalogTest
     [TestCase]
     public void GetTrait_ReturnsTraitDefinition_WhenTraitExists()
     {
-        var trait = TraitCatalog.GetTrait(TraitId.FireAffinity);
+        var trait = TraitCatalog.GetTrait(TraitIds.FireAffinity);
 
         AssertThat(trait).IsNotNull();
-        AssertThat(trait!.Id).IsEqual(TraitId.FireAffinity);
+        AssertThat((string)trait!.Id).IsEqual((string)TraitIds.FireAffinity);
         AssertThat(trait.Category).IsEqual("elemental");
         AssertThat(trait.IsInnate).IsTrue();
     }
@@ -34,7 +34,7 @@ public class TraitCatalogTest
     [TestCase]
     public void HasTrait_ReturnsTrue_WhenTraitExists()
     {
-        var exists = TraitCatalog.HasTrait(TraitId.WaterAffinity);
+        var exists = TraitCatalog.HasTrait(TraitIds.WaterAffinity);
 
         AssertThat(exists).IsTrue();
     }
@@ -95,7 +95,7 @@ public class TraitCatalogTest
     [TestCase]
     public void GetUnitModifiersForTrait_ReturnsModifiers_ForElementalAffinity()
     {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.FireAffinity);
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.FireAffinity);
 
         AssertThat(modifiers).IsNotNull();
         AssertThat(modifiers.Count).IsGreater(0);
@@ -111,7 +111,7 @@ public class TraitCatalogTest
     public void GetUnitModifiersForTrait_ReturnsEmpty_ForTraitWithoutUnitModifiers()
     {
         // BurningSpirit only has summoner stat modifiers, no unit modifiers
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.BurningSpirit);
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.BurningSpirit);
 
         AssertThat(modifiers).IsNotNull();
         AssertThat(modifiers.Count).IsEqual(0);
@@ -129,7 +129,7 @@ public class TraitCatalogTest
     [TestCase]
     public void TraitDefinition_HasValidModifiers()
     {
-        var trait = TraitCatalog.GetTrait(TraitId.StoneFortitude);
+        var trait = TraitCatalog.GetTrait(TraitIds.StoneFortitude);
 
         AssertThat(trait).IsNotNull();
         AssertThat(trait!.Modifiers).IsNotNull();
@@ -155,12 +155,12 @@ public class TraitCatalogTest
     {
         var affinityTraitIds = new[]
         {
-            TraitId.FireAffinity,
-            TraitId.WaterAffinity,
-            TraitId.WindAffinity,
-            TraitId.EarthAffinity,
-            TraitId.LightningAffinity,
-            TraitId.LifeAffinity
+            TraitIds.FireAffinity,
+            TraitIds.WaterAffinity,
+            TraitIds.WindAffinity,
+            TraitIds.EarthAffinity,
+            TraitIds.LightningAffinity,
+            TraitIds.LifeAffinity
         };
 
         foreach (var traitId in affinityTraitIds)
@@ -177,7 +177,7 @@ public class TraitCatalogTest
     [TestCase]
     public void BerserkerTrait_HasBelowHpTrigger()
     {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.Berserker);
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.Berserker);
 
         AssertThat(modifiers.Count).IsGreater(0);
 
@@ -191,7 +191,7 @@ public class TraitCatalogTest
     [TestCase]
     public void VengefulTrait_HasOnTakeHitTrigger()
     {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.Vengeful);
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.Vengeful);
 
         AssertThat(modifiers.Count).IsGreater(0);
 
@@ -205,7 +205,7 @@ public class TraitCatalogTest
     [TestCase]
     public void SoulHarvestTrait_HasOnKillTrigger()
     {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitId.SoulHarvest);
+        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.SoulHarvest);
 
         AssertThat(modifiers.Count).IsGreater(0);
 
@@ -218,8 +218,8 @@ public class TraitCatalogTest
     [TestCase]
     public void TriggeredTraits_ExistInCatalog()
     {
-        AssertThat(TraitCatalog.HasTrait(TraitId.Berserker)).IsTrue();
-        AssertThat(TraitCatalog.HasTrait(TraitId.Vengeful)).IsTrue();
-        AssertThat(TraitCatalog.HasTrait(TraitId.SoulHarvest)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait(TraitIds.Berserker)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait(TraitIds.Vengeful)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait(TraitIds.SoulHarvest)).IsTrue();
     }
 }

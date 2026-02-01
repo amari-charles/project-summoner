@@ -1,44 +1,63 @@
 namespace ProjectSummoner.Data.Summoners;
 
 /// <summary>
-/// Constants for all summoner IDs in the game.
-/// Provides compile-time safety for summoner references.
+/// Strongly-typed identifier for summoner types.
+/// Prevents typos and enables IDE autocomplete via SummonerIds static class.
 /// </summary>
-public static class SummonerId
+public readonly record struct SummonerId(string Value)
+{
+    /// <summary>Returns the underlying string value.</summary>
+    public override string ToString() => Value;
+
+    /// <summary>Implicit conversion to string for interop with existing systems.</summary>
+    public static implicit operator string(SummonerId id) => id.Value;
+
+    /// <summary>Check if this ID has a value (not empty).</summary>
+    public bool HasValue => !string.IsNullOrEmpty(Value);
+
+    /// <summary>Empty/unset summoner ID.</summary>
+    public static readonly SummonerId None = new("");
+}
+
+/// <summary>
+/// All known summoner IDs. Use these instead of raw strings.
+/// Example: SummonerIds.Cole instead of "summoner_cole"
+/// </summary>
+public static class SummonerIds
 {
     // =========================================================================
     // FATEFORGERS (Core starting summoners)
     // =========================================================================
 
     /// <summary>Cole - Fire Fateforger. Arrogant, competitive, cocky.</summary>
-    public const string Cole = "summoner_cole";
+    public static readonly SummonerId Cole = new("summoner_cole");
 
     /// <summary>Selene - Water Fateforger. Gentle, caring, emotionally intelligent.</summary>
-    public const string Selene = "summoner_selene";
+    public static readonly SummonerId Selene = new("summoner_selene");
 
     /// <summary>Mei - Wind Fateforger. Elusive, self-interested, loner.</summary>
-    public const string Mei = "summoner_mei";
+    public static readonly SummonerId Mei = new("summoner_mei");
 
     /// <summary>Teo - Earth Fateforger. Gym rat, straightforward, reliable.</summary>
-    public const string Teo = "summoner_teo";
+    public static readonly SummonerId Teo = new("summoner_teo");
 
     // =========================================================================
     // DEV/TEST SUMMONERS
     // =========================================================================
 
     /// <summary>Mana Test Summoner - High mana pool for testing</summary>
-    public const string ManaTest = "summoner_mana_test";
+    public static readonly SummonerId ManaTest = new("summoner_mana_test");
 
     // =========================================================================
     // UTILITY ARRAYS
     // =========================================================================
 
     /// <summary>Core starting summoners (always available in selection).</summary>
-    public static readonly string[] AllStarting = [Cole, Selene, Mei, Teo];
+    public static readonly SummonerId[] AllStarting = [Cole, Selene, Mei, Teo];
 
     /// <summary>Dev/test summoners (not available to players).</summary>
-    public static readonly string[] AllDev = [ManaTest];
+    public static readonly SummonerId[] AllDev = [ManaTest];
 
     /// <summary>Default summoner ID (used for fallbacks).</summary>
-    public const string Default = Cole;
+    public static readonly SummonerId Default = Cole;
 }

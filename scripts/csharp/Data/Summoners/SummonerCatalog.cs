@@ -23,9 +23,9 @@ public static class SummonerCatalog
         // FATEFORGERS (Core starting summoners)
         // =====================================================================
 
-        [SummonerId.Cole] = new SummonerDefinition
+        [SummonerIds.Cole] = new SummonerDefinition
         {
-            Id = SummonerId.Cole,
+            Id = SummonerIds.Cole,
             NameKey = "summoner.cole.name",
             DescriptionKey = "summoner.cole.description",
             ElementalAffinity = Element.Fire,
@@ -34,14 +34,14 @@ public static class SummonerCatalog
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.FireAffinity, TraitId.BurningSpirit],
+            InnateTraitIds = [TraitIds.FireAffinity, TraitIds.BurningSpirit],
             TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole],
-            StarterCardId = CardId.FireWisp
+            StarterCardId = CardIds.FireWisp
         },
 
-        [SummonerId.Selene] = new SummonerDefinition
+        [SummonerIds.Selene] = new SummonerDefinition
         {
-            Id = SummonerId.Selene,
+            Id = SummonerIds.Selene,
             NameKey = "summoner.selene.name",
             DescriptionKey = "summoner.selene.description",
             ElementalAffinity = Element.Water,
@@ -50,14 +50,14 @@ public static class SummonerCatalog
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.WaterAffinity, TraitId.TidalResilience],
+            InnateTraitIds = [TraitIds.WaterAffinity, TraitIds.TidalResilience],
             TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Water, TraitTags.Selene],
-            StarterCardId = CardId.WaterWisp
+            StarterCardId = CardIds.WaterWisp
         },
 
-        [SummonerId.Mei] = new SummonerDefinition
+        [SummonerIds.Mei] = new SummonerDefinition
         {
-            Id = SummonerId.Mei,
+            Id = SummonerIds.Mei,
             NameKey = "summoner.mei.name",
             DescriptionKey = "summoner.mei.description",
             ElementalAffinity = Element.Wind,
@@ -66,14 +66,14 @@ public static class SummonerCatalog
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.WindAffinity, TraitId.SwiftCasting],
+            InnateTraitIds = [TraitIds.WindAffinity, TraitIds.SwiftCasting],
             TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Wind, TraitTags.Mei],
-            StarterCardId = CardId.WindWisp
+            StarterCardId = CardIds.WindWisp
         },
 
-        [SummonerId.Teo] = new SummonerDefinition
+        [SummonerIds.Teo] = new SummonerDefinition
         {
-            Id = SummonerId.Teo,
+            Id = SummonerIds.Teo,
             NameKey = "summoner.teo.name",
             DescriptionKey = "summoner.teo.description",
             ElementalAffinity = Element.Earth,
@@ -82,18 +82,18 @@ public static class SummonerCatalog
             IconPath = "",
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
-            InnateTraitIds = [TraitId.EarthAffinity, TraitId.StoneFortitude],
+            InnateTraitIds = [TraitIds.EarthAffinity, TraitIds.StoneFortitude],
             TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Earth, TraitTags.Teo],
-            StarterCardId = CardId.EarthWisp
+            StarterCardId = CardIds.EarthWisp
         },
 
         // =====================================================================
         // DEV/TEST SUMMONERS
         // =====================================================================
 
-        [SummonerId.ManaTest] = new SummonerDefinition
+        [SummonerIds.ManaTest] = new SummonerDefinition
         {
-            Id = SummonerId.ManaTest,
+            Id = SummonerIds.ManaTest,
             NameKey = "summoner.summoner_mana_test.name",
             DescriptionKey = "summoner.summoner_mana_test.description",
             ElementalAffinity = Element.Neutral,

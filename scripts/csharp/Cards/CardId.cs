@@ -1,60 +1,85 @@
 namespace ProjectSummoner.Cards;
 
 /// <summary>
-/// Card ID constants - mirrors GDScript CardIDs for C# code.
-/// Use these instead of string literals for type safety.
+/// Strongly-typed identifier for card types.
+/// Prevents typos and enables IDE autocomplete via CardIds static class.
+/// Mirrors the UnitId pattern from Constants/UnitId.cs.
 /// </summary>
-public static class CardId
+public readonly record struct CardId(string Value)
+{
+    /// <summary>Returns the underlying string value.</summary>
+    public override string ToString() => Value;
+
+    /// <summary>Implicit conversion to string for interop with existing systems.</summary>
+    public static implicit operator string(CardId id) => id.Value;
+
+    /// <summary>Check if this ID has a value (not empty).</summary>
+    public bool HasValue => !string.IsNullOrEmpty(Value);
+
+    /// <summary>Empty/unset card ID.</summary>
+    public static readonly CardId None = new("");
+}
+
+/// <summary>
+/// All known card IDs. Use these instead of raw strings.
+/// Example: CardIds.FireWisp instead of "fire_wisp"
+/// </summary>
+public static class CardIds
 {
     // =========================================================================
     // SPELLS
     // =========================================================================
 
-    public const string Fireball = "fireball";
-    public const string Rally = "rally";
-    public const string Guard = "guard";
-    public const string Charge = "charge";
-    public const string ManaBolt = "mana_bolt";
+    public static readonly CardId Fireball = new("fireball");
+    public static readonly CardId Rally = new("rally");
+    public static readonly CardId Guard = new("guard");
+    public static readonly CardId Charge = new("charge");
+    public static readonly CardId ManaBolt = new("mana_bolt");
 
     // =========================================================================
     // WISPS (Basic starter units for each element)
     // =========================================================================
 
-    public const string FireWisp = "fire_wisp";
-    public const string WaterWisp = "water_wisp";
-    public const string WindWisp = "wind_wisp";
-    public const string EarthWisp = "earth_wisp";
-    public const string LightningWisp = "lightning_wisp";
-    public const string LifeWisp = "life_wisp";
-    public const string DeathWisp = "death_wisp";
-    public const string ShadowWisp = "shadow_wisp";
-    public const string FireWispSwarm = "fire_wisp_swarm";
+    public static readonly CardId FireWisp = new("fire_wisp");
+    public static readonly CardId WaterWisp = new("water_wisp");
+    public static readonly CardId WindWisp = new("wind_wisp");
+    public static readonly CardId EarthWisp = new("earth_wisp");
+    public static readonly CardId LightningWisp = new("lightning_wisp");
+    public static readonly CardId LifeWisp = new("life_wisp");
+    public static readonly CardId DeathWisp = new("death_wisp");
+    public static readonly CardId ShadowWisp = new("shadow_wisp");
+    public static readonly CardId FireWispSwarm = new("fire_wisp_swarm");
 
     // =========================================================================
     // FIRE ELEMENT UNITS
     // =========================================================================
 
-    public const string FireTitan = "fire_titan";
-    public const string FireAnt = "fire_ant";
-    public const string FireAntSwarm = "fire_ant_swarm";
+    public static readonly CardId FireTitan = new("fire_titan");
+    public static readonly CardId FireAnt = new("fire_ant");
+    public static readonly CardId FireAntSwarm = new("fire_ant_swarm");
+    public static readonly CardId FireBoar = new("fire_boar");
+    public static readonly CardId FireSpider = new("fire_spider");
 
     // =========================================================================
     // EARTH ELEMENT UNITS
     // =========================================================================
 
-    public const string Pebbloom = "pebbloom";
-    public const string Rock = "rock";
+    public static readonly CardId Pebbloom = new("pebbloom");
+    public static readonly CardId Rock = new("rock");
+    public static readonly CardId StoneApe = new("stone_ape");
+    public static readonly CardId EarthRockThrower = new("earth_rock_thrower");
 
     // =========================================================================
     // WIND ELEMENT UNITS
     // =========================================================================
 
-    public const string Puff = "puff";
-    public const string CloudSwarm = "cloud_swarm";
+    public static readonly CardId Puff = new("puff");
+    public static readonly CardId CloudSwarm = new("cloud_swarm");
 
     // =========================================================================
     // WATER ELEMENT UNITS
     // =========================================================================
 
-    public const string WaterFrog = "water_frog";
+    public static readonly CardId WaterFrog = new("water_frog");
+    public static readonly CardId MamaDuck = new("mama_duck");
 }
