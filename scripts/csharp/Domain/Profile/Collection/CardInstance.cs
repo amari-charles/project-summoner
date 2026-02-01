@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ProjectSummoner.Cards;
 using ProjectSummoner.Domain.Profile.Enums;
 
 namespace ProjectSummoner.Domain.Profile.Collection;
@@ -35,9 +36,12 @@ public class CardInstance
     [JsonPropertyName("xp")]
     public int Xp { get; set; }
 
-    /// <summary>Array of chosen upgrade IDs.</summary>
+    /// <summary>
+    /// List of chosen trait IDs for this card's progression.
+    /// Serialized as string array for GDScript interop and JSON storage.
+    /// </summary>
     [JsonPropertyName("upgrades")]
-    public List<string> Upgrades { get; set; } = [];
+    public List<CardTraitId> Traits { get; set; } = [];
 
     /// <summary>Roll JSON for card variants (nullable).</summary>
     [JsonPropertyName("roll_json")]

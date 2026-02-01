@@ -141,6 +141,17 @@ public record UnitStats
     }
 
     /// <summary>
+    /// Applies a single modifier to these stats and returns new UnitStats.
+    /// Order: (base + adds) * mults
+    /// </summary>
+    public UnitStats WithModifier(StatModifier? modifier)
+    {
+        if (modifier == null)
+            return this;
+        return WithModifiers([modifier]);
+    }
+
+    /// <summary>
     /// Applies modifiers to these stats and returns new UnitStats.
     /// Order: (base + adds) * mults
     /// </summary>

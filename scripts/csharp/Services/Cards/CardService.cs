@@ -40,7 +40,7 @@ public partial class CardService : Node
     public delegate void CardLeveledUpEventHandler(string cardInstanceId, int newLevel);
 
     [Signal]
-    public delegate void UpgradeAppliedEventHandler(string cardInstanceId, string upgradeId);
+    public delegate void TraitAppliedEventHandler(string cardInstanceId, string traitId);
 
     [Signal]
     public delegate void CollectionChangedEventHandler();
@@ -281,60 +281,60 @@ public partial class CardService : Node
         return _progression?.CanLevelUp(cardInstanceId) ?? false;
     }
 
-    /// <summary>Level up a card with chosen upgrade (XP-only, no gold cost).</summary>
-    public bool LevelUpCard(string cardInstanceId, string upgradeId)
+    /// <summary>Level up a card with chosen trait (XP-only, no gold cost).</summary>
+    public bool LevelUpCard(string cardInstanceId, string traitId)
     {
-        var success = _progression?.LevelUpCard(cardInstanceId, upgradeId) ?? false;
+        var success = _progression?.LevelUpCard(cardInstanceId, traitId) ?? false;
         if (success)
         {
             var card = GetCard(cardInstanceId);
             EmitSignal(SignalName.CardLeveledUp, cardInstanceId, card?.Level ?? 1);
-            EmitSignal(SignalName.UpgradeApplied, cardInstanceId, upgradeId);
+            EmitSignal(SignalName.TraitApplied, cardInstanceId, traitId);
         }
         return success;
     }
 
     // =========================================================================
-    // PROGRESSION - UPGRADES
+    // PROGRESSION - TRAITS
     // =========================================================================
 
-    /// <summary>Get available upgrades for card's next level.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableUpgrades(string cardInstanceId)
+    /// <summary>Get available traits for card's next level.</summary>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraits(string cardInstanceId)
     {
-        var upgrades = _progression?.GetAvailableUpgrades(cardInstanceId) ?? [];
+        var traits = _progression?.GetAvailableTraits(cardInstanceId) ?? [];
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var upgrade in upgrades)
+        foreach (var trait in traits)
         {
             result.Add(new Godot.Collections.Dictionary
             {
-                ["id"] = (string)upgrade.Id,
-                ["name"] = upgrade.Name,
-                ["description"] = upgrade.Description
+                ["id"] = (string)trait.Id,
+                ["name"] = trait.Name,
+                ["description"] = trait.Description
             });
         }
         return result;
     }
 
-    /// <summary>Get all upgrades applied to a card.</summary>
-    public Godot.Collections.Array<string> GetAppliedUpgrades(string cardInstanceId)
+    /// <summary>Get all traits applied to a card.</summary>
+    public Godot.Collections.Array<string> GetAppliedTraits(string cardInstanceId)
     {
-        var upgrades = _progression?.GetAppliedUpgrades(cardInstanceId) ?? [];
+        var traits = _progression?.GetAppliedTraits(cardInstanceId) ?? [];
         var result = new Godot.Collections.Array<string>();
-        foreach (var u in upgrades)
-            result.Add(u);
+        foreach (var t in traits)
+            result.Add(t);
         return result;
     }
 
-    /// <summary>Get stat modifiers from card's upgrades (for C# callers).</summary>
-    public Dictionary<string, float> GetUpgradeStatModifiersTyped(string cardInstanceId)
+    /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>
+    public Dictionary<string, float> GetTraitStatModifiersTyped(string cardInstanceId)
     {
-        return _progression?.GetUpgradeStatModifiers(cardInstanceId) ?? [];
+        return _progression?.GetTraitStatModifiers(cardInstanceId) ?? [];
     }
 
-    /// <summary>Get stat modifiers from card's upgrades (for GDScript callers).</summary>
-    public Godot.Collections.Dictionary GetUpgradeStatModifiers(string cardInstanceId)
+    /// <summary>Get stat modifiers from card's traits (for GDScript callers).</summary>
+    public Godot.Collections.Dictionary GetTraitStatModifiers(string cardInstanceId)
     {
-        var mods = _progression?.GetUpgradeStatModifiers(cardInstanceId) ?? [];
+        var mods = _progression?.GetTraitStatModifiers(cardInstanceId) ?? [];
         var result = new Godot.Collections.Dictionary();
         foreach (var (stat, mult) in mods)
             result[stat] = mult;
@@ -352,9 +352,9 @@ public partial class CardService : Node
         if (info == null)
             return [];
 
-        var upgradesArray = new Godot.Collections.Array<string>();
-        foreach (var u in info.Upgrades)
-            upgradesArray.Add(u);
+        var traitsArray = new Godot.Collections.Array<string>();
+        foreach (var t in info.Traits)
+            traitsArray.Add(t);
 
         return new Godot.Collections.Dictionary
         {
@@ -368,7 +368,7 @@ public partial class CardService : Node
             ["xp_for_next_level"] = info.XpForNextLevel,
             ["xp_progress"] = info.XpProgress,
             ["can_level_up"] = info.CanLevelUp,
-            ["upgrades"] = upgradesArray,
+            ["traits"] = traitsArray,
             ["is_max_level"] = info.IsMaxLevel
         };
     }

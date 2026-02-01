@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Cards.Configs;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Cards.Spawning;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Services.Interfaces;
 using ProjectSummoner.Stats;
@@ -207,42 +208,269 @@ public partial class CardFactory : Node, ICardFactory
         if (card == null)
             return SummonResult.Fail($"Summon '{catalogId}' not found in C# CardCatalog");
 
+        // 2. Create summon tracker
+        var summon = new UnitSummon(catalogId, instanceId, team);
+
+        // 3. Get gameplay layer and spatial grid
+        Node gameplayLayer = GetGameplayLayer(battlefield);
+        var spatialGrid = GetAutoloadNode("/root/SpatialGrid");
+        bool inBattlePhase = IsInBattlePhase(gameplayLayer);
+
+        // 4. Get modifiers for the card
+        var modifiers = GetModifiersForCard(cardDef, team, instanceId);
+
+        // 5. Use SummonSpec if available, otherwise fall back to legacy single-unit spawning
+        if (card.Summon != null)
+        {
+            return ExecuteSummonSpec(card, card.Summon, summon, position, team, battlefield, gameplayLayer, spatialGrid, modifiers, effectiveStats, customOverrides, spawnDuration, inBattlePhase);
+        }
+        else
+        {
+            return ExecuteLegacySummon(card, summon, position, team, battlefield, gameplayLayer, spatialGrid, modifiers, effectiveStats, customOverrides, spawnDuration, inBattlePhase);
+        }
+    }
+
+    /// <summary>
+    /// Execute a summon using the new SummonSpec data-driven approach.
+    /// Supports multi-unit cards like Mama Duck without hardcoded special cases.
+    /// </summary>
+    private SummonResult ExecuteSummonSpec(
+        CardDefinition card,
+        SummonSpec spec,
+        UnitSummon summon,
+        Vector3 position,
+        int team,
+        Node battlefield,
+        Node gameplayLayer,
+        Node? spatialGrid,
+        List<StatModifier> modifiers,
+        Godot.Collections.Dictionary effectiveStats,
+        Godot.Collections.Dictionary customOverrides,
+        float spawnDuration,
+        bool inBattlePhase)
+    {
+        // Track spawned units per entry for FollowsIndex linking
+        var spawnedUnitsPerEntry = new List<List<Unit3D>>();
+
+        for (int entryIndex = 0; entryIndex < spec.Units.Count; entryIndex++)
+        {
+            var entry = spec.Units[entryIndex];
+            var entryUnits = new List<Unit3D>();
+
+            // Get unit definition
+            if (!UnitDefinitions.TryGet(entry.UnitId, out var unitDef) || unitDef == null)
+            {
+                GD.PrintErr($"[CardFactory] Unit '{entry.UnitId}' not found in UnitDefinitions");
+                spawnedUnitsPerEntry.Add(entryUnits);
+                continue;
+            }
+
+            // Load unit scene
+            var unitScene = GD.Load<PackedScene>(unitDef.ScenePath);
+            if (unitScene == null)
+            {
+                GD.PrintErr($"[CardFactory] Failed to load unit scene: {unitDef.ScenePath}");
+                spawnedUnitsPerEntry.Add(entryUnits);
+                continue;
+            }
+
+            // Calculate stats for this entry
+            var unitStats = entry.Modifier != null
+                ? unitDef.Stats.WithModifier(entry.Modifier)
+                : unitDef.Stats;
+
+            // Calculate spawn positions based on placement type
+            var spawnPositions = CalculateEntrySpawnPositions(
+                entry, entryIndex, position, team, unitScene, battlefield, card.Formation, spawnedUnitsPerEntry);
+
+            // Spawn units for this entry
+            for (int i = 0; i < entry.Count && i < spawnPositions.Count; i++)
+            {
+                var context = new UnitSpawnContext
+                {
+                    Position = spawnPositions[i],
+                    Team = team,
+                    Stats = unitStats,
+                    Modifiers = entry.Modifier != null ? null : modifiers, // Don't double-apply modifiers
+                    CustomOverrides = customOverrides,
+                    GameplayLayer = gameplayLayer,
+                    SpatialGrid = spatialGrid,
+                    SpawnDuration = spawnDuration,
+                    InBattlePhase = inBattlePhase
+                };
+
+                var unit = UnitSpawner.SpawnUnit(unitScene, context);
+                if (unit != null)
+                {
+                    entryUnits.Add(unit);
+                    summon.AddUnit(unit);
+
+                    // Set up companion targeting if FollowsIndex is specified
+                    if (entry.FollowsIndex.HasValue)
+                    {
+                        SetupCompanionTargeting(unit, entry.FollowsIndex.Value, spawnedUnitsPerEntry);
+                    }
+                }
+                else
+                {
+                    GD.PrintErr($"[CardFactory] Failed to spawn unit {i} of entry {entryIndex} for '{card.Id}'");
+                }
+            }
+
+            spawnedUnitsPerEntry.Add(entryUnits);
+            GD.Print($"[CardFactory] Spawned {entryUnits.Count}/{entry.Count} {entry.UnitId} for '{card.Id}'");
+        }
+
+        GD.Print($"[CardFactory] SummonSpec complete: {summon.GetAliveUnits().Count} total units for '{card.Id}'");
+        return SummonResult.Ok(summon);
+    }
+
+    /// <summary>
+    /// Calculate spawn positions for a single UnitSpawnEntry based on its placement type.
+    /// </summary>
+    private List<Vector3> CalculateEntrySpawnPositions(
+        UnitSpawnEntry entry,
+        int entryIndex,
+        Vector3 basePosition,
+        int team,
+        PackedScene unitScene,
+        Node battlefield,
+        IFormationStrategy defaultFormation,
+        List<List<Unit3D>> spawnedUnitsPerEntry)
+    {
+        var positions = new List<Vector3>();
+        float separationRadius = UnitSpawner.GetSeparationRadius(unitScene);
+
+        switch (entry.Placement)
+        {
+            case SpawnPlacement.Formation:
+                // Use formation strategy (entry-specific or card default)
+                var formation = entry.Formation ?? defaultFormation;
+                var formationPositions = SpawnPositionCalculator.CalculateFormationPositions(
+                    formation, basePosition, entry.Count, battlefield.GetTree(), separationRadius, team);
+                positions.AddRange(formationPositions);
+                break;
+
+            case SpawnPlacement.BehindLeader:
+                // Spawn behind the leader unit (entry[0])
+                var leaderPosition = GetLeaderPosition(spawnedUnitsPerEntry, basePosition);
+                float directionMultiplier = team == 0 ? -1.0f : 1.0f; // Behind = -X for player, +X for enemy
+                for (int i = 0; i < entry.Count; i++)
+                {
+                    float xOffset = directionMultiplier * entry.PlacementOffset;
+                    float zOffset = (i - (entry.Count - 1) / 2.0f) * entry.PlacementOffset;
+                    positions.Add(new Vector3(
+                        leaderPosition.X + xOffset,
+                        leaderPosition.Y,
+                        leaderPosition.Z + zOffset
+                    ));
+                }
+                break;
+
+            case SpawnPlacement.AroundLeader:
+                // Spawn in a circle around the leader
+                var centerPosition = GetLeaderPosition(spawnedUnitsPerEntry, basePosition);
+                for (int i = 0; i < entry.Count; i++)
+                {
+                    float angle = (i / (float)entry.Count) * Mathf.Tau;
+                    positions.Add(new Vector3(
+                        centerPosition.X + Mathf.Cos(angle) * entry.PlacementOffset,
+                        centerPosition.Y,
+                        centerPosition.Z + Mathf.Sin(angle) * entry.PlacementOffset
+                    ));
+                }
+                break;
+        }
+
+        return positions;
+    }
+
+    /// <summary>
+    /// Get the position of the leader unit (first unit from entry 0).
+    /// Falls back to base position if no leader has been spawned yet.
+    /// </summary>
+    private static Vector3 GetLeaderPosition(List<List<Unit3D>> spawnedUnitsPerEntry, Vector3 fallbackPosition)
+    {
+        if (spawnedUnitsPerEntry.Count > 0 && spawnedUnitsPerEntry[0].Count > 0)
+        {
+            return spawnedUnitsPerEntry[0][0].GlobalPosition;
+        }
+        return fallbackPosition;
+    }
+
+    /// <summary>
+    /// Set up companion targeting so the spawned unit follows the target of a leader unit.
+    /// Currently supports DucklingUnit3D which has a MamaDuck property.
+    /// </summary>
+    private static void SetupCompanionTargeting(Unit3D unit, int followsIndex, List<List<Unit3D>> spawnedUnitsPerEntry)
+    {
+        if (followsIndex < 0 || followsIndex >= spawnedUnitsPerEntry.Count)
+        {
+            GD.PushWarning($"[CardFactory] Invalid FollowsIndex {followsIndex}, only {spawnedUnitsPerEntry.Count} entries exist");
+            return;
+        }
+
+        var leaderUnits = spawnedUnitsPerEntry[followsIndex];
+        if (leaderUnits.Count == 0)
+        {
+            GD.PushWarning($"[CardFactory] No units in entry {followsIndex} to follow");
+            return;
+        }
+
+        var leader = leaderUnits[0];
+
+        // Support for DucklingUnit3D's MamaDuck property
+        if (unit is DucklingUnit3D duckling)
+        {
+            duckling.MamaDuck = leader;
+            GD.Print($"[CardFactory] Linked {unit.Name} to follow {leader.Name}");
+        }
+        else
+        {
+            // Future: Add generic companion targeting interface
+            GD.PushWarning($"[CardFactory] Unit {unit.Name} doesn't support companion targeting");
+        }
+    }
+
+    /// <summary>
+    /// Legacy summon execution for cards without SummonSpec.
+    /// Uses the old UnitId + SpawnCount pattern.
+    /// </summary>
+    private SummonResult ExecuteLegacySummon(
+        CardDefinition card,
+        UnitSummon summon,
+        Vector3 position,
+        int team,
+        Node battlefield,
+        Node gameplayLayer,
+        Node? spatialGrid,
+        List<StatModifier> modifiers,
+        Godot.Collections.Dictionary effectiveStats,
+        Godot.Collections.Dictionary customOverrides,
+        float spawnDuration,
+        bool inBattlePhase)
+    {
         // Get scene path: prefer UnitDefinitions (via UnitId), fall back to UnitScenePath (legacy)
         string scenePath = card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out var unitDef) && unitDef != null
             ? unitDef.ScenePath
             : card.UnitScenePath;
 
         if (string.IsNullOrEmpty(scenePath))
-            return SummonResult.Fail($"Summon '{catalogId}' has no unit scene path (UnitId='{card.UnitId}', UnitScenePath='{card.UnitScenePath}')");
+            return SummonResult.Fail($"Summon '{card.Id}' has no unit scene path (UnitId='{card.UnitId}', UnitScenePath='{card.UnitScenePath}')");
 
         var unitScene = GD.Load<PackedScene>(scenePath);
         if (unitScene == null)
             return SummonResult.Fail($"Failed to load unit scene: {scenePath}");
 
-        // 2. Create summon tracker
-        var summon = new UnitSummon(catalogId, instanceId, team);
-
-        // 3. Get gameplay layer
-        Node gameplayLayer = GetGameplayLayer(battlefield);
-
-        // 4. Get modifiers
-        var modifiers = GetModifiersForCard(cardDef, team, instanceId);
-
-        // 5. Calculate stats
+        // Calculate stats
         var unitStats = UnitStatCalculator.CalculateFromGodotDictionary(effectiveStats, modifiers, customOverrides);
 
-        // 6. Calculate spawn positions with team boundary enforcement
+        // Calculate spawn positions with team boundary enforcement
         float separationRadius = UnitSpawner.GetSeparationRadius(unitScene);
         var safePositions = SpawnPositionCalculator.CalculateFormationPositions(
             card.Formation, position, card.SpawnCount, battlefield.GetTree(), separationRadius, team);
 
-        // 7. Determine if in battle phase
-        bool inBattlePhase = IsInBattlePhase(gameplayLayer);
-
-        // 8. Get SpatialGrid for position updates
-        var spatialGrid = GetAutoloadNode("/root/SpatialGrid");
-
-        // 9. Spawn units
+        // Spawn units
         for (int i = 0; i < card.SpawnCount; i++)
         {
             var context = new UnitSpawnContext
@@ -265,18 +493,11 @@ public partial class CardFactory : Node, ICardFactory
             }
             else
             {
-                GD.PrintErr($"[CardFactory] Failed to spawn unit {i} for '{catalogId}'");
+                GD.PrintErr($"[CardFactory] Failed to spawn unit {i} for '{card.Id}'");
             }
         }
 
-        GD.Print($"[CardFactory] Spawned {card.SpawnCount} units for '{catalogId}'");
-
-        // 10. Special handling: spawn ducklings for mama_duck
-        if (catalogId == CardIds.MamaDuck)
-        {
-            SpawnDucklingsForMama(summon, gameplayLayer, spatialGrid, team, position, spawnDuration, inBattlePhase);
-        }
-
+        GD.Print($"[CardFactory] Legacy spawn complete: {card.SpawnCount} units for '{card.Id}'");
         return SummonResult.Ok(summon);
     }
 
@@ -326,108 +547,6 @@ public partial class CardFactory : Node, ICardFactory
                 return currentPhase.AsInt32() == BattlePhaseBattle;
         }
         return false;
-    }
-
-    // =========================================================================
-    // MAMA DUCK DUCKLING SPAWNING
-    // =========================================================================
-
-    /// <summary>Number of ducklings to spawn per mama duck.</summary>
-    private const int DucklingsPerMama = 3;
-
-    /// <summary>Offset distance for duckling spawn positions behind mama.</summary>
-    private const float DucklingSpawnOffset = 1.5f;
-
-    /// <summary>
-    /// Spawns ducklings for a mama duck and links them to follow mama's target.
-    /// </summary>
-    private void SpawnDucklingsForMama(
-        UnitSummon summon,
-        Node gameplayLayer,
-        Node? spatialGrid,
-        int team,
-        Vector3 mamaPosition,
-        float spawnDuration,
-        bool inBattlePhase)
-    {
-        // Get the mama unit from the summon (should be the first/only unit)
-        var units = summon.GetAliveUnits();
-        if (units.Count == 0)
-        {
-            GD.PrintErr("[CardFactory] No mama duck found in summon to attach ducklings");
-            return;
-        }
-        var mama = units[0];
-
-        // Get duckling definition
-        if (!UnitDefinitions.TryGet(UnitIds.Duckling, out var ducklingDef) || ducklingDef == null)
-        {
-            GD.PrintErr("[CardFactory] Duckling not found in UnitDefinitions");
-            return;
-        }
-
-        var ducklingScene = GD.Load<PackedScene>(ducklingDef.ScenePath);
-        if (ducklingScene == null)
-        {
-            GD.PrintErr($"[CardFactory] Failed to load duckling scene: {ducklingDef.ScenePath}");
-            return;
-        }
-
-        // Get duckling base stats from definition
-        var ducklingStats = ducklingDef.Stats;
-
-        // Calculate spawn positions in a row behind mama
-        // Direction is based on team: player team faces right (+X), enemy team faces left (-X)
-        float directionMultiplier = team == 0 ? -1.0f : 1.0f;  // Behind mama
-
-        for (int i = 0; i < DucklingsPerMama; i++)
-        {
-            // Position ducklings in a diagonal line behind mama
-            float xOffset = directionMultiplier * DucklingSpawnOffset;
-            float zOffset = (i - 1) * DucklingSpawnOffset;  // -1, 0, +1 spread
-            Vector3 spawnPos = new Vector3(
-                mamaPosition.X + xOffset,
-                mamaPosition.Y,
-                mamaPosition.Z + zOffset
-            );
-
-            var context = new UnitSpawnContext
-            {
-                Position = spawnPos,
-                Team = team,
-                Stats = ducklingStats,
-                Modifiers = null,
-                CustomOverrides = null,
-                GameplayLayer = gameplayLayer,
-                SpatialGrid = spatialGrid,
-                SpawnDuration = spawnDuration,
-                InBattlePhase = inBattlePhase
-            };
-
-            var duckling = UnitSpawner.SpawnUnit(ducklingScene, context);
-            if (duckling != null)
-            {
-                // Link duckling to mama via the MamaDuck export property
-                if (duckling is DucklingUnit3D ducklingUnit)
-                {
-                    ducklingUnit.MamaDuck = mama;
-                    GD.Print($"[CardFactory] Spawned duckling {i + 1}/{DucklingsPerMama} linked to {mama.Name}");
-                }
-                else
-                {
-                    GD.PushWarning($"[CardFactory] Spawned duckling is not DucklingUnit3D, cannot link to mama");
-                }
-
-                // Add duckling to summon tracker
-                summon.AddUnit(duckling);
-            }
-            else
-            {
-                GD.PrintErr($"[CardFactory] Failed to spawn duckling {i + 1} for mama duck");
-            }
-        }
-
-        GD.Print($"[CardFactory] Spawned {DucklingsPerMama} ducklings for mama duck");
     }
 
     // =========================================================================

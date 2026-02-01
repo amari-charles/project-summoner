@@ -8,7 +8,7 @@ using ProjectSummoner.Infrastructure.Persistence;
 namespace ProjectSummoner.Services.Cards.Handlers;
 
 /// <summary>
-/// Handles card progression: XP, leveling, and upgrades.
+/// Handles card progression: XP, leveling, and traits.
 /// </summary>
 public class CardProgressionHandler
 {
@@ -137,20 +137,20 @@ public class CardProgressionHandler
     }
 
     /// <summary>
-    /// Level up a card with chosen upgrade.
+    /// Level up a card with chosen trait.
     /// Requires only XP - no gold cost.
     /// Returns true if successful.
     /// </summary>
-    public bool LevelUpCard(string cardInstanceId, CardUpgradeId upgradeId) =>
-        LevelUpCardInternal(cardInstanceId, upgradeId);
+    public bool LevelUpCard(string cardInstanceId, CardTraitId traitId) =>
+        LevelUpCardInternal(cardInstanceId, traitId);
 
     /// <summary>
-    /// Level up a card with chosen upgrade (string overload).
+    /// Level up a card with chosen trait (string overload).
     /// </summary>
-    public bool LevelUpCard(string cardInstanceId, string upgradeId) =>
-        LevelUpCardInternal(cardInstanceId, new CardUpgradeId(upgradeId));
+    public bool LevelUpCard(string cardInstanceId, string traitId) =>
+        LevelUpCardInternal(cardInstanceId, new CardTraitId(traitId));
 
-    private bool LevelUpCardInternal(string cardInstanceId, CardUpgradeId upgradeId)
+    private bool LevelUpCardInternal(string cardInstanceId, CardTraitId traitId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null)
@@ -165,54 +165,54 @@ public class CardProgressionHandler
             return false;
         }
 
-        // Validate upgrade choice
-        var availableUpgrades = GetAvailableUpgrades(cardInstanceId);
-        if (!availableUpgrades.Exists(u => u.Id == upgradeId))
+        // Validate trait choice
+        var availableTraits = GetAvailableTraits(cardInstanceId);
+        if (!availableTraits.Exists(t => t.Id == traitId))
         {
-            GD.PushWarning($"CardProgressionHandler: Invalid upgrade choice: {upgradeId}");
+            GD.PushWarning($"CardProgressionHandler: Invalid trait choice: {traitId}");
             return false;
         }
 
         // Apply level up (XP-only, no gold cost)
         var newLevel = card.Level + 1;
-        var newUpgrades = new List<string>(card.Upgrades) { upgradeId };
+        var newTraits = new List<CardTraitId>(card.Traits) { traitId };
 
         _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
             Level = newLevel,
-            Upgrades = newUpgrades
+            Traits = newTraits
         });
 
-        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel} with upgrade '{upgradeId}'");
+        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel} with trait '{traitId}'");
         return true;
     }
 
     // =========================================================================
-    // UPGRADE OPERATIONS
+    // TRAIT OPERATIONS
     // =========================================================================
 
-    /// <summary>Get available upgrades for card's next level.</summary>
-    public List<CardUpgrade> GetAvailableUpgrades(string cardInstanceId)
+    /// <summary>Get available traits for card's next level.</summary>
+    public List<CardTrait> GetAvailableTraits(string cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null || card.Level >= MaxLevel)
             return [];
 
-        return CardUpgradeCatalog.GetUpgradesForLevel(card.CatalogId, card.Level + 1);
+        return CardTraitCatalog.GetTraitsForLevel(card.CatalogId, card.Level + 1);
     }
 
-    /// <summary>Get all upgrades applied to a card.</summary>
-    public List<string> GetAppliedUpgrades(string cardInstanceId)
+    /// <summary>Get all traits applied to a card.</summary>
+    public List<CardTraitId> GetAppliedTraits(string cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null)
             return [];
 
-        return new List<string>(card.Upgrades);
+        return new List<CardTraitId>(card.Traits);
     }
 
-    /// <summary>Get stat modifiers from card's upgrades.</summary>
-    public Dictionary<string, float> GetUpgradeStatModifiers(string cardInstanceId)
+    /// <summary>Get stat modifiers from card's traits.</summary>
+    public Dictionary<string, float> GetTraitStatModifiers(string cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null)
@@ -220,13 +220,13 @@ public class CardProgressionHandler
 
         var modifiers = new Dictionary<string, float>();
 
-        foreach (var upgradeId in card.Upgrades)
+        foreach (var traitId in card.Traits)
         {
-            var upgrade = CardUpgradeCatalog.GetUpgrade(card.CatalogId, upgradeId);
-            if (upgrade == null)
+            var trait = CardTraitCatalog.GetTrait(card.CatalogId, traitId);
+            if (trait == null)
                 continue;
 
-            foreach (var (stat, mult) in upgrade.StatMods)
+            foreach (var (stat, mult) in trait.StatMods)
             {
                 if (modifiers.TryGetValue(stat, out var existing))
                     modifiers[stat] = existing * mult;
@@ -261,7 +261,7 @@ public class CardProgressionHandler
             XpForNextLevel = card.Level < MaxLevel ? GetXpForLevelWithRarity(card.Level + 1, card.Rarity) : 0,
             XpProgress = GetLevelProgress(cardInstanceId),
             CanLevelUp = CanLevelUp(cardInstanceId),
-            Upgrades = new List<string>(card.Upgrades),
+            Traits = card.Traits.ConvertAll(t => t.Value),
             IsMaxLevel = card.Level >= MaxLevel
         };
     }
@@ -302,6 +302,6 @@ public class CardProgressionInfo
     public int XpForNextLevel { get; set; } = 0;
     public float XpProgress { get; set; } = 0f;
     public bool CanLevelUp { get; set; } = false;
-    public List<string> Upgrades { get; set; } = [];
+    public List<string> Traits { get; set; } = [];
     public bool IsMaxLevel { get; set; } = false;
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Cards;
 using ProjectSummoner.Domain.Profile;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -101,7 +102,7 @@ public static class DtoConverters
             ["rarity"] = card.Rarity,
             ["level"] = card.Level,
             ["xp"] = card.Xp,
-            ["upgrades"] = ToGodotArray(card.Upgrades),
+            ["upgrades"] = TraitsToGodotArray(card.Traits),
             ["created_at"] = card.CreatedAt,
             ["binding"] = EnumSerializers.Serialize(card.Binding)
         };
@@ -127,13 +128,17 @@ public static class DtoConverters
         var catalogId = GetRequiredString(dict, "catalog_id");
         if (id == null || catalogId == null) return null;
 
-        var upgrades = new List<string>();
+        var traits = new List<CardTraitId>();
         if (dict.TryGetValue("upgrades", out var upgradesVar))
         {
             var upgradesArr = upgradesVar.AsGodotArray();
             foreach (var u in upgradesArr)
             {
-                upgrades.Add(u.AsString());
+                var traitStr = u.AsString();
+                if (!string.IsNullOrEmpty(traitStr))
+                {
+                    traits.Add(new CardTraitId(traitStr));
+                }
             }
         }
 
@@ -152,7 +157,7 @@ public static class DtoConverters
             Rarity = GetString(dict, "rarity", "common"),
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
-            Upgrades = upgrades,
+            Traits = traits,
             RollJson = GetNullableString(dict, "roll_json"),
             CreatedAt = GetLong(dict, "created_at", 0),
             Binding = binding,
@@ -661,8 +666,8 @@ public static class DtoConverters
         if (update.Level.HasValue)
             dict["level"] = update.Level.Value;
 
-        if (update.Upgrades != null)
-            dict["upgrades"] = ToGodotArray(update.Upgrades);
+        if (update.Traits != null)
+            dict["upgrades"] = TraitsToGodotArray(update.Traits);
 
         return dict;
     }
@@ -726,6 +731,17 @@ public static class DtoConverters
         foreach (var item in items)
         {
             arr.Add(item);
+        }
+        return arr;
+    }
+
+    /// <summary>Convert IEnumerable of CardTraitId to Godot Array (as strings).</summary>
+    public static Godot.Collections.Array TraitsToGodotArray(IEnumerable<CardTraitId> traits)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var trait in traits)
+        {
+            arr.Add(trait.Value);
         }
         return arr;
     }

@@ -1,5 +1,6 @@
 using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Formations;
+using ProjectSummoner.Cards.Spawning;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Systems.Modifiers;
@@ -49,9 +50,17 @@ public class CardDefinition
     // =========================================================================
 
     /// <summary>
+    /// Data-driven spawning specification for multi-unit cards.
+    /// When set, this takes precedence over UnitId/SpawnCount for spawning logic.
+    /// Enables cards like Mama Duck (1 mama + 3 ducklings) without hardcoded special cases.
+    /// </summary>
+    public SummonSpec? Summon { get; init; }
+
+    /// <summary>
     /// References a unit type in UnitDefinitions. When set, base stats come from UnitDefinitions
     /// instead of the stat properties on this card. Use UnitModifier to apply variants.
     /// See docs/technical/unit-stat-pipeline.md for the full stat pipeline.
+    /// Note: If Summon is set, this is ignored for spawning (but may still be used for UI display).
     /// </summary>
     public UnitId UnitId { get; init; } = UnitId.None;
 
@@ -59,13 +68,17 @@ public class CardDefinition
     /// Optional modifier to apply to base stats from UnitDefinitions.
     /// Used for variant cards like swarms that spawn weaker versions of a unit.
     /// Example: Fire Wisp Swarm applies {max_hp: 0.75, attack_damage: 0.75} to fire_wisp.
+    /// Note: If Summon is set, use UnitSpawnEntry.Modifier instead.
     /// </summary>
     public StatModifier? UnitModifier { get; init; } = null;
 
     /// <summary>Path to unit scene (for summon cards). Deprecated: Use UnitId instead.</summary>
     public string UnitScenePath { get; init; } = "";
 
-    /// <summary>Number of units to spawn.</summary>
+    /// <summary>
+    /// Number of units to spawn.
+    /// Note: If Summon is set, this is ignored (use SummonSpec.TotalUnitCount).
+    /// </summary>
     public int SpawnCount { get; init; } = 1;
 
     /// <summary>Formation strategy for positioning spawned units.</summary>

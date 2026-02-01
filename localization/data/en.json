@@ -278,6 +278,7 @@
       "sort_level": "LEVEL",
       "sort_element": "ELEMENT",
       "upgrades_header": "Upgrades",
+      "traits_header": "Traits",
       "stats_header": "Stats",
       "stat_hp": "HP",
       "stat_damage": "Damage",

@@ -3,6 +3,7 @@ namespace ProjectSummoner.Tests.Serialization;
 using System.Collections.Generic;
 using GdUnit4;
 using Godot;
+using ProjectSummoner.Cards;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -94,7 +95,7 @@ public class DtoConvertersTest
             Rarity = "epic",
             Level = 3,
             Xp = 250,
-            Upgrades = ["upgrade_1", "upgrade_2"],
+            Traits = [new CardTraitId("upgrade_1"), new CardTraitId("upgrade_2")],
             RollJson = "{\"variant\":1}",
             CreatedAt = 1700000000,
             Binding = ContentBinding.SummonerBound,
@@ -111,7 +112,7 @@ public class DtoConvertersTest
         AssertThat(result.Rarity).IsEqual("epic");
         AssertThat(result.Level).IsEqual(3);
         AssertThat(result.Xp).IsEqual(250);
-        AssertThat(result.Upgrades).Contains("upgrade_1");
+        AssertThat(result.Traits).Contains(new CardTraitId("upgrade_1"));
         AssertThat(result.RollJson).IsEqual("{\"variant\":1}");
         AssertThat(result.CreatedAt).IsEqual(1700000000);
         AssertThat(result.Binding).IsEqual(ContentBinding.SummonerBound);
@@ -538,7 +539,7 @@ public class DtoConvertersTest
         {
             Xp = 1000,
             Level = 5,
-            Upgrades = ["upgrade_1", "upgrade_2"]
+            Traits = [new CardTraitId("upgrade_1"), new CardTraitId("upgrade_2")]
         };
 
         var dict = DtoConverters.ToDict(update);

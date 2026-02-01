@@ -7,16 +7,16 @@ using ProjectSummoner.Services.Cards;
 namespace ProjectSummoner.Services;
 
 /// <summary>
-/// Level Cap Service - Normalizes card levels and upgrades for capped battles.
+/// Level Cap Service - Normalizes card levels and traits for capped battles.
 ///
 /// When a battle has a level cap, cards above the cap are normalized down.
 /// Cards below the cap remain at their actual level.
 ///
 /// Level cap logic:
 /// - Effective level = min(card.level, cap)
-/// - Effective upgrades = only upgrades from levels 1 through effective_level
-/// - Since level 1 has 0 upgrades, level N has N-1 upgrades
-/// - So effective upgrades count = effective_level - 1
+/// - Effective traits = only traits from levels 1 through effective_level
+/// - Since level 1 has 0 traits, level N has N-1 traits
+/// - So effective traits count = effective_level - 1
 /// </summary>
 [GlobalClass]
 public partial class LevelCapService : Node
@@ -59,69 +59,69 @@ public partial class LevelCapService : Node
     }
 
     /// <summary>
-    /// Get the effective upgrades for a card under a level cap.
-    /// Returns only upgrades that would have been acquired at or below the cap level.
-    /// Since a card at level N has N-1 upgrades, cap level C means C-1 effective upgrades.
+    /// Get the effective traits for a card under a level cap.
+    /// Returns only traits that would have been acquired at or below the cap level.
+    /// Since a card at level N has N-1 traits, cap level C means C-1 effective traits.
     /// </summary>
-    public List<string> GetEffectiveUpgrades(List<string> upgrades, int levelCap)
+    public List<string> GetEffectiveTraits(List<string> traits, int levelCap)
     {
-        if (levelCap <= NoCap || upgrades == null)
-            return upgrades ?? new List<string>();
+        if (levelCap <= NoCap || traits == null)
+            return traits ?? new List<string>();
 
-        // Number of upgrades to keep = cap - 1 (since level 1 = 0 upgrades)
-        int maxUpgrades = levelCap - 1;
-        if (maxUpgrades <= 0)
+        // Number of traits to keep = cap - 1 (since level 1 = 0 traits)
+        int maxTraits = levelCap - 1;
+        if (maxTraits <= 0)
             return new List<string>();
 
-        if (upgrades.Count <= maxUpgrades)
-            return new List<string>(upgrades);
+        if (traits.Count <= maxTraits)
+            return new List<string>(traits);
 
-        return upgrades.GetRange(0, maxUpgrades);
+        return traits.GetRange(0, maxTraits);
     }
 
     /// <summary>
-    /// Get the effective upgrades for a card under a level cap (Godot Array overload).
+    /// Get the effective traits for a card under a level cap (Godot Array overload).
     /// </summary>
-    public List<string> GetEffectiveUpgrades(Godot.Collections.Array<string> upgrades, int levelCap)
+    public List<string> GetEffectiveTraits(Godot.Collections.Array<string> traits, int levelCap)
     {
-        if (upgrades == null)
+        if (traits == null)
             return new List<string>();
 
         // Convert to List and delegate to main implementation
-        var upgradeList = new List<string>();
-        foreach (var upgrade in upgrades)
-            upgradeList.Add(upgrade);
+        var traitList = new List<string>();
+        foreach (var trait in traits)
+            traitList.Add(trait);
 
-        return GetEffectiveUpgrades(upgradeList, levelCap);
+        return GetEffectiveTraits(traitList, levelCap);
     }
 
     /// <summary>
-    /// Get the effective upgrades from a Godot Array (for GDScript interop).
+    /// Get the effective traits from a Godot Array (for GDScript interop).
     /// </summary>
-    public Godot.Collections.Array<string> GetEffectiveUpgradesArray(Godot.Collections.Array upgrades, int levelCap)
+    public Godot.Collections.Array<string> GetEffectiveTraitsArray(Godot.Collections.Array traits, int levelCap)
     {
         var result = new Godot.Collections.Array<string>();
 
-        if (levelCap <= NoCap || upgrades == null)
+        if (levelCap <= NoCap || traits == null)
         {
-            if (upgrades != null)
+            if (traits != null)
             {
-                foreach (var upgrade in upgrades)
-                    result.Add(upgrade.AsString());
+                foreach (var trait in traits)
+                    result.Add(trait.AsString());
             }
             return result;
         }
 
-        int maxUpgrades = levelCap - 1;
-        if (maxUpgrades <= 0)
+        int maxTraits = levelCap - 1;
+        if (maxTraits <= 0)
             return result;
 
         int count = 0;
-        foreach (var upgrade in upgrades)
+        foreach (var trait in traits)
         {
-            if (count >= maxUpgrades)
+            if (count >= maxTraits)
                 break;
-            result.Add(upgrade.AsString());
+            result.Add(trait.AsString());
             count++;
         }
 
@@ -129,9 +129,9 @@ public partial class LevelCapService : Node
     }
 
     /// <summary>
-    /// Get effective upgrade stat modifiers with level cap applied.
+    /// Get effective trait stat modifiers with level cap applied.
     /// </summary>
-    public Dictionary<string, float> GetCappedUpgradeModifiers(string cardInstanceId, int levelCap)
+    public Dictionary<string, float> GetCappedTraitModifiers(string cardInstanceId, int levelCap)
     {
         var cardService = CardService.Instance;
         if (cardService == null)
@@ -139,22 +139,23 @@ public partial class LevelCapService : Node
 
         // Get full modifiers if uncapped
         if (levelCap <= NoCap)
-            return cardService.GetUpgradeStatModifiersTyped(cardInstanceId);
+            return cardService.GetTraitStatModifiersTyped(cardInstanceId);
 
-        // Get card data to check level and upgrades
+        // Get card data to check level and traits
         var card = cardService.GetCard(cardInstanceId);
         if (card == null)
             return new Dictionary<string, float>();
 
-        // If card is at or below cap, use all upgrades
+        // If card is at or below cap, use all traits
         if (card.Level <= levelCap)
-            return cardService.GetUpgradeStatModifiersTyped(cardInstanceId);
+            return cardService.GetTraitStatModifiersTyped(cardInstanceId);
 
-        // Calculate capped upgrades
-        var effectiveUpgrades = GetEffectiveUpgrades(card.Upgrades, levelCap);
+        // Calculate capped traits - convert CardTraitId to string for this API
+        var traitStrings = card.Traits.ConvertAll(t => t.Value);
+        var effectiveTraits = GetEffectiveTraits(traitStrings, levelCap);
 
-        // Compute modifiers manually from capped upgrades
-        return ComputeUpgradeModifiers(card.CatalogId, effectiveUpgrades);
+        // Compute modifiers manually from capped traits
+        return ComputeTraitModifiers(card.CatalogId, effectiveTraits);
     }
 
     /// <summary>
@@ -218,20 +219,20 @@ public partial class LevelCapService : Node
     // =============================================================================
 
     /// <summary>
-    /// Compute upgrade modifiers from a specific set of upgrade IDs.
-    /// This replicates CardService.GetUpgradeStatModifiers logic for capped upgrades.
+    /// Compute trait modifiers from a specific set of trait IDs.
+    /// This replicates CardService.GetTraitStatModifiers logic for capped traits.
     /// </summary>
-    private Dictionary<string, float> ComputeUpgradeModifiers(string catalogId, List<string> upgradeIds)
+    private Dictionary<string, float> ComputeTraitModifiers(string catalogId, List<string> traitIds)
     {
         var modifiers = new Dictionary<string, float>();
 
-        foreach (var upgradeId in upgradeIds)
+        foreach (var traitId in traitIds)
         {
-            var upgrade = CardUpgradeCatalog.GetUpgrade(catalogId, upgradeId);
-            if (upgrade == null)
+            var trait = CardTraitCatalog.GetTrait(catalogId, traitId);
+            if (trait == null)
                 continue;
 
-            foreach (var (stat, mult) in upgrade.StatMods)
+            foreach (var (stat, mult) in trait.StatMods)
             {
                 if (modifiers.ContainsKey(stat))
                     modifiers[stat] *= mult;

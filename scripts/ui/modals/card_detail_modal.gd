@@ -25,9 +25,9 @@ signal deck_action_requested(instance_id: String, action: String)  ## "add" or "
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var level_up_button: Button = %LevelUpButton
 @onready var close_button: Button = %CloseButton
-@onready var upgrades_section: VBoxContainer = %UpgradesSection
-@onready var upgrades_header: Label = %UpgradesHeader
-@onready var upgrades_container: VBoxContainer = %UpgradesContainer
+@onready var traits_section: VBoxContainer = %UpgradesSection
+@onready var traits_header: Label = %UpgradesHeader
+@onready var traits_container: VBoxContainer = %UpgradesContainer
 @onready var stats_section: VBoxContainer = %StatsSection
 @onready var stats_header: Label = %StatsHeader
 @onready var stats_container: GridContainer = %StatsContainer
@@ -66,7 +66,7 @@ func open_for_card(instance_id: String, catalog_id: String) -> void:
 	_load_card_data()
 	_update_stats_display()
 	_update_progression_display()
-	_update_upgrades_display()
+	_update_traits_display()
 	_update_deck_action_button()
 
 	show()
@@ -254,47 +254,47 @@ func _hide_progression() -> void:
 	level_up_button.visible = false
 
 ## =============================================================================
-## UPGRADES DISPLAY
+## TRAITS DISPLAY
 ## =============================================================================
 
-func _update_upgrades_display() -> void:
-	# Clear existing upgrade boxes
-	for child: Node in upgrades_container.get_children():
+func _update_traits_display() -> void:
+	# Clear existing trait boxes
+	for child: Node in traits_container.get_children():
 		child.queue_free()
 
 	if card_instance_id.is_empty() or card_catalog_id.is_empty():
-		upgrades_section.visible = false
+		traits_section.visible = false
 		return
 
 	# PlayerCardService is a C# autoload
 	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
 	if not card_service:
-		upgrades_section.visible = false
+		traits_section.visible = false
 		return
-	var upgrade_ids: Array = card_service.GetAppliedUpgrades(card_instance_id)
-	if upgrade_ids.is_empty():
-		upgrades_section.visible = false
+	var trait_ids: Array = card_service.GetAppliedTraits(card_instance_id)
+	if trait_ids.is_empty():
+		traits_section.visible = false
 		return
 
 	# Update header with localization
-	upgrades_header.text = Loc.t("ui.collection.upgrades_header")
+	traits_header.text = Loc.t("ui.collection.traits_header")
 
-	# Create a box for each applied upgrade
-	for upgrade_id: Variant in upgrade_ids:
-		if not upgrade_id is String:
+	# Create a box for each applied trait
+	for trait_id: Variant in trait_ids:
+		if not trait_id is String:
 			continue
 
-		var upgrade_data: Dictionary = CardUpgradeCatalog.get_upgrade(card_catalog_id, upgrade_id)
-		if upgrade_data.is_empty():
+		var trait_data: Dictionary = CardTraitCatalog.get_trait(card_catalog_id, trait_id)
+		if trait_data.is_empty():
 			continue
 
-		var box: PanelContainer = _create_upgrade_box(upgrade_data)
-		upgrades_container.add_child(box)
+		var box: PanelContainer = _create_trait_box(trait_data)
+		traits_container.add_child(box)
 
-	upgrades_section.visible = true
+	traits_section.visible = true
 
 
-func _create_upgrade_box(upgrade: Dictionary) -> PanelContainer:
+func _create_trait_box(trait_data: Dictionary) -> PanelContainer:
 	var box: PanelContainer = PanelContainer.new()
 
 	# Style the box
@@ -321,14 +321,14 @@ func _create_upgrade_box(upgrade: Dictionary) -> PanelContainer:
 
 	# Name label
 	var name_label: Label = Label.new()
-	name_label.text = upgrade.get("name", "Unknown")
+	name_label.text = trait_data.get("name", "Unknown")
 	name_label.add_theme_font_size_override("font_size", 16)
 	name_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	vbox.add_child(name_label)
 
 	# Description label
 	var desc_label: Label = Label.new()
-	desc_label.text = upgrade.get("description", "")
+	desc_label.text = trait_data.get("description", "")
 	desc_label.add_theme_font_size_override("font_size", 14)
 	desc_label.add_theme_color_override("font_color", GameColorPalette.SUCCESS)
 	vbox.add_child(desc_label)

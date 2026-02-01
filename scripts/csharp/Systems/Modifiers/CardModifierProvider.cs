@@ -4,9 +4,9 @@ using ProjectSummoner.Services.Cards;
 namespace ProjectSummoner.Systems.Modifiers;
 
 /// <summary>
-/// Provides card upgrade modifiers to ModifierService.
-/// Each card instance can have upgrades that modify its stats.
-/// This provider wraps those upgrades in ModifierSystem format with
+/// Provides card trait modifiers to ModifierService.
+/// Each card instance can have traits that modify its stats.
+/// This provider wraps those traits in ModifierSystem format with
 /// instance-scoped filtering (only applies to the specific card).
 ///
 /// Replaces GDScript card_modifier_provider.gd
@@ -34,21 +34,21 @@ public class CardModifierProvider : IModifierProvider
         if (cardService == null)
             return modifiers;
 
-        var statMods = cardService.GetUpgradeStatModifiersTyped(_cardInstanceId);
+        var statMods = cardService.GetTraitStatModifiersTyped(_cardInstanceId);
         if (statMods.Count == 0)
             return modifiers;
 
         // Create a modifier with instance scope
         var modifier = new StatModifier
         {
-            Source = "card_upgrades",
+            Source = "card_traits",
             CardInstanceId = _cardInstanceId
         };
 
         // Convert stat mods to StatMults
-        foreach (var (stat, mult) in statMods)
+        foreach (var kvp in statMods)
         {
-            modifier.StatMults[stat] = mult;
+            modifier.StatMults[kvp.Key] = kvp.Value;
         }
 
         modifiers.Add(modifier);

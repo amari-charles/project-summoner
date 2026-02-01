@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Cards;
 
 namespace ProjectSummoner.Domain.Profile.Collection;
 
@@ -14,6 +15,6 @@ public class CardUpdate
     /// <summary>Update the card's level.</summary>
     public int? Level { get; set; }
 
-    /// <summary>Replace the card's upgrades list.</summary>
-    public List<string>? Upgrades { get; set; }
+    /// <summary>Replace the card's traits list.</summary>
+    public List<CardTraitId>? Traits { get; set; }
 }
