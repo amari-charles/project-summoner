@@ -797,10 +797,6 @@
         "name": "Tactical Spell Pack",
         "description": "Essential tactical spells."
       },
-      "cloud_swarm": {
-        "name": "Cloud Swarm",
-        "description": "Six cloud wisps in formation. Overwhelm enemies with numbers."
-      },
       "mana_bolt": {
         "name": "Mana Bolt",
         "description": "A pure energy projectile. Strikes the nearest enemy for instant damage."

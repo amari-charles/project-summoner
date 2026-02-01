@@ -232,17 +232,6 @@ func _init_shops() -> void:
 				"purchase_limit": 1
 			},
 			{
-				"offering_id": "caravan_cloud_swarm",
-				"offering_type": ShopOffering.OfferingType.CARD,
-				"display_name": Loc.t("shop.offering.cloud_swarm.name"),
-				"description": Loc.t("shop.offering.cloud_swarm.description"),
-				"card_catalog_id": "cloud_swarm",
-				"card_count": 1,
-				"base_price": 45,
-				"purchase_limit_type": "account",
-				"purchase_limit": 1
-			},
-			{
 				"offering_id": "caravan_mana_bolt",
 				"offering_type": ShopOffering.OfferingType.CARD,
 				"display_name": Loc.t("shop.offering.mana_bolt.name"),

@@ -400,7 +400,7 @@ func get_variant_element(variant_name: String) -> Element:
 const ELEMENT_COLORS: Dictionary = {
 	"fire": Color(0.9, 0.3, 0.2),
 	"water": Color(0.2, 0.5, 0.9),
-	"wind": Color(0.5, 0.9, 0.5),
+	"wind": Color(0.95, 0.95, 0.95),
 	"earth": Color(0.6, 0.4, 0.2),
 	"lightning": Color(0.9, 0.9, 0.3),
 	"shadow": Color(0.4, 0.2, 0.5),
