@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3 uid="uid://earth_rock_thrower_3d"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Units/RangedUnit3D.cs" id="1_script"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.4, 0.5, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.7, 0.55, 0.35, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.3
+height = 0.6
+
+[node name="EarthRockThrower3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+MaxHp = 45.0
+AttackDamage = 22.0
+AttackRange = 22.0
+AttackSpeed = 0.4
+MoveSpeed = 2.0
+UnitId = "earth_rock_thrower"
+Team = 0
+UnitType = 1
+SeparationRadius = 0.3
+ProjectileId = "rock"
+ShadowEnabled = true
+ShadowOpacity = 0.4
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+mesh = SubResource("BoxMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="ProjectileSpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.5, 0)

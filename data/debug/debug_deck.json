@@ -1,7 +1,12 @@
 [
 	{ "catalog_id": "fire_wisp", "count": 2 },
+	{ "catalog_id": "fire_boar", "count": 2 },
+	{ "catalog_id": "fire_spider", "count": 2 },
 	{ "catalog_id": "pebbloom", "count": 2 },
+	{ "catalog_id": "stone_ape", "count": 2 },
+	{ "catalog_id": "earth_rock_thrower", "count": 2 },
 	{ "catalog_id": "puff", "count": 2 },
 	{ "catalog_id": "water_frog", "count": 2 },
+	{ "catalog_id": "mama_duck", "count": 2 },
 	{ "catalog_id": "mana_bolt", "count": 2 }
 ]

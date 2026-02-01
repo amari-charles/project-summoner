@@ -68,11 +68,12 @@ func _ready() -> void:
 	print("  - No time limit")
 
 func _process(_delta: float) -> void:
-	# Grant infinite mana to both player and enemy
-	if player_summoner and "mana" in player_summoner:
+	# Grant infinite mana to both player and enemy (only set when below threshold)
+	# Checking before setting avoids unnecessary property writes every frame
+	if player_summoner and "mana" in player_summoner and player_summoner.mana < 900:
 		player_summoner.mana = 999
 
-	if enemy_summoner and "mana" in enemy_summoner:
+	if enemy_summoner and "mana" in enemy_summoner and enemy_summoner.mana < 900:
 		enemy_summoner.mana = 999
 
 	# Don't run timer

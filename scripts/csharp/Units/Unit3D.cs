@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using ProjectSummoner.Abilities;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Combat;
@@ -521,6 +522,24 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Apply element tint for placeholder visuals (deferred to wait for visual initialization)
         CallDeferred(MethodName.ApplyElementTintDeferred);
+
+        // Initialize any child abilities
+        InitializeAbilities();
+    }
+
+    /// <summary>
+    /// Find all BaseAbility child nodes and call Setup() on them.
+    /// Abilities added as children in the scene are auto-discovered here.
+    /// </summary>
+    private void InitializeAbilities()
+    {
+        foreach (var child in GetChildren())
+        {
+            if (child is BaseAbility ability)
+            {
+                ability.Setup(this);
+            }
+        }
     }
 
     public override void _PhysicsProcess(double delta)

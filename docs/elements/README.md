@@ -18,10 +18,10 @@ Three elements use stacking effects that build toward threshold effects:
 
 | Element | Overview | Summons | Spells |
 |---------|----------|---------|--------|
-| [Fire](fire/) | [overview](fire/overview.md) | wisp, fire-fox | fireball, ember, ignite, blaze |
-| [Water](water/) | [overview](water/overview.md) | wisp | jet, geyser, soothe, cleanse |
+| [Fire](fire/) | [overview](fire/overview.md) | wisp, fire-fox, fire-boar, fire-spider | fireball, ember, ignite, blaze |
+| [Water](water/) | [overview](water/overview.md) | wisp, mama-duck | jet, geyser, soothe, cleanse |
 | [Wind](wind/) | [overview](wind/overview.md) | puff, wisp | gust, zephyr, tailwind |
-| [Earth](earth/) | [overview](earth/overview.md) | pebbloom, wisp | quake, fortify |
+| [Earth](earth/) | [overview](earth/overview.md) | pebbloom, wisp, stone-ape, rock-thrower | quake, fortify |
 
 ## Outer Elements
 

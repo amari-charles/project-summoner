@@ -270,6 +270,13 @@ public partial class CardFactory : Node, ICardFactory
         }
 
         GD.Print($"[CardFactory] Spawned {card.SpawnCount} units for '{catalogId}'");
+
+        // 10. Special handling: spawn ducklings for mama_duck
+        if (catalogId == "mama_duck")
+        {
+            SpawnDucklingsForMama(summon, gameplayLayer, spatialGrid, team, position, spawnDuration, inBattlePhase);
+        }
+
         return SummonResult.Ok(summon);
     }
 
@@ -319,6 +326,109 @@ public partial class CardFactory : Node, ICardFactory
                 return currentPhase.AsInt32() == BattlePhaseBattle;
         }
         return false;
+    }
+
+    // =========================================================================
+    // MAMA DUCK DUCKLING SPAWNING
+    // =========================================================================
+
+    /// <summary>Number of ducklings to spawn per mama duck.</summary>
+    private const int DucklingsPerMama = 3;
+
+    /// <summary>Offset distance for duckling spawn positions behind mama.</summary>
+    private const float DucklingSpawnOffset = 1.5f;
+
+    /// <summary>
+    /// Spawns ducklings for a mama duck and links them to follow mama's target.
+    /// </summary>
+    private void SpawnDucklingsForMama(
+        UnitSummon summon,
+        Node gameplayLayer,
+        Node? spatialGrid,
+        int team,
+        Vector3 mamaPosition,
+        float spawnDuration,
+        bool inBattlePhase)
+    {
+        // Get the mama unit from the summon (should be the first/only unit)
+        var units = summon.GetAliveUnits();
+        if (units.Count == 0)
+        {
+            GD.PrintErr("[CardFactory] No mama duck found in summon to attach ducklings");
+            return;
+        }
+        var mama = units[0];
+
+        // Load duckling scene
+        string ducklingScenePath = UnitCatalog.GetScenePath(UnitIds.Duckling);
+        if (string.IsNullOrEmpty(ducklingScenePath))
+        {
+            GD.PrintErr("[CardFactory] Duckling scene path not found in UnitCatalog");
+            return;
+        }
+
+        var ducklingScene = GD.Load<PackedScene>(ducklingScenePath);
+        if (ducklingScene == null)
+        {
+            GD.PrintErr($"[CardFactory] Failed to load duckling scene: {ducklingScenePath}");
+            return;
+        }
+
+        // Get duckling base stats
+        var ducklingStats = UnitCatalog.GetBaseStats(UnitIds.Duckling);
+
+        // Calculate spawn positions in a row behind mama
+        // Direction is based on team: player team faces right (+X), enemy team faces left (-X)
+        float directionMultiplier = team == 0 ? -1.0f : 1.0f;  // Behind mama
+
+        for (int i = 0; i < DucklingsPerMama; i++)
+        {
+            // Position ducklings in a diagonal line behind mama
+            float xOffset = directionMultiplier * DucklingSpawnOffset;
+            float zOffset = (i - 1) * DucklingSpawnOffset;  // -1, 0, +1 spread
+            Vector3 spawnPos = new Vector3(
+                mamaPosition.X + xOffset,
+                mamaPosition.Y,
+                mamaPosition.Z + zOffset
+            );
+
+            var context = new UnitSpawnContext
+            {
+                Position = spawnPos,
+                Team = team,
+                Stats = ducklingStats,
+                Modifiers = null,
+                CustomOverrides = null,
+                GameplayLayer = gameplayLayer,
+                SpatialGrid = spatialGrid,
+                SpawnDuration = spawnDuration,
+                InBattlePhase = inBattlePhase
+            };
+
+            var duckling = UnitSpawner.SpawnUnit(ducklingScene, context);
+            if (duckling != null)
+            {
+                // Link duckling to mama via the MamaDuck export property
+                if (duckling is DucklingUnit3D ducklingUnit)
+                {
+                    ducklingUnit.MamaDuck = mama;
+                    GD.Print($"[CardFactory] Spawned duckling {i + 1}/{DucklingsPerMama} linked to {mama.Name}");
+                }
+                else
+                {
+                    GD.PushWarning($"[CardFactory] Spawned duckling is not DucklingUnit3D, cannot link to mama");
+                }
+
+                // Add duckling to summon tracker
+                summon.AddUnit(duckling);
+            }
+            else
+            {
+                GD.PrintErr($"[CardFactory] Failed to spawn duckling {i + 1} for mama duck");
+            }
+        }
+
+        GD.Print($"[CardFactory] Spawned {DucklingsPerMama} ducklings for mama duck");
     }
 
     // =========================================================================

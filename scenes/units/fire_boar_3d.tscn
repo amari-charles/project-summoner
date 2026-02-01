@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3 uid="uid://fire_boar_3d"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Units/MeleeUnit3D.cs" id="1_script"]
+[ext_resource type="Script" path="res://scripts/csharp/Abilities/ChargeAbility.cs" id="2_charge"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(1.2, 0.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(1.0, 0.4, 0.1, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.6
+height = 1.2
+
+[node name="FireBoar3D" type="CharacterBody3D" groups=["units"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+MaxHp = 120.0
+AttackDamage = 18.0
+AttackRange = 3.5
+AttackSpeed = 0.8
+MoveSpeed = 2.5
+UnitId = "fire_boar"
+Team = 0
+UnitType = 0
+SeparationRadius = 0.6
+ShadowEnabled = true
+ShadowOpacity = 0.6
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="ChargeAbility" type="Node" parent="."]
+script = ExtResource("2_charge")
+ChargeThreshold = 4.0
+DamageBonus = 25.0
+BonusType = 0
+ResetOnAnyAttack = true

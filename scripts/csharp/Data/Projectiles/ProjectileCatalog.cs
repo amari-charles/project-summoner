@@ -199,4 +199,10 @@ public partial class ProjectileCatalog : Node
         EmitSignal(SignalName.ContentLoaded);
     }
 
+    // =========================================================================
+    // GDSCRIPT COMPATIBILITY
+    // =========================================================================
+
+    // snake_case alias for GDScript interop
+    public void reload_projectiles() => ReloadProjectiles();
 }

@@ -46,6 +46,9 @@ public static class TargetingConfigRegistry
 
         // Ranged units
         RegisterPuffConfig();
+        RegisterRangedConfig(UnitIds.FireSpider);
+        RegisterRangedConfig(UnitIds.EarthRockThrower);
+        RegisterDucklingConfig();
 
         // Melee units (can only target ground units)
         RegisterMeleeConfig(UnitIds.FireWisp);
@@ -58,7 +61,11 @@ public static class TargetingConfigRegistry
         RegisterMeleeConfig(UnitIds.ShadowWisp);
         RegisterMeleeConfig(UnitIds.FireTitan);
         RegisterMeleeConfig(UnitIds.FireAnt);
+        RegisterMeleeConfig(UnitIds.FireBoar);
         RegisterMeleeConfig(UnitIds.EarthSprite);
+        RegisterMeleeConfig(UnitIds.StoneApe);
+        RegisterMeleeConfig(UnitIds.WaterFrog);
+        RegisterMeleeConfig(UnitIds.MamaDuck);
 
         // Special units
         RegisterRockConfig();
@@ -138,6 +145,65 @@ public static class TargetingConfigRegistry
         };
 
         _configs[unitId] = config;
+    }
+
+    /// <summary>
+    /// Standard ranged unit config: can target both ground and air.
+    /// Uses distance scoring and strafing fallback movement.
+    /// </summary>
+    private static void RegisterRangedConfig(UnitId unitId)
+    {
+        // Filter: Valid targets only (can target both ground and air)
+        var validFilter = new ValidTargetFilter();
+
+        // Scorer: Prefer close targets
+        var distanceScorer = new DistanceScorer { MaxDistance = 20f, Weight = 1f };
+        var compositeScorer = new CompositeScorer();
+        compositeScorer.Scorers.Add(distanceScorer);
+
+        // Constraints: Range only
+        var rangeConstraint = new RangeConstraint();
+
+        var config = new TargetingConfig
+        {
+            Filter = validFilter,
+            Scorer = compositeScorer,
+            AttackConstraint = rangeConstraint,
+            AggroRadius = 20f,
+            FallbackMovement = FallbackMovementStyle.Strafe  // Ranged: circle around target
+        };
+
+        _configs[unitId] = config;
+    }
+
+    /// <summary>
+    /// Duckling: Ranged unit that follows mama's target.
+    /// Can target both ground and air (since mama could attack either).
+    /// Uses shorter aggro radius since it relies on mama for targeting.
+    /// </summary>
+    private static void RegisterDucklingConfig()
+    {
+        // Filter: Valid targets only (can target both ground and air to match mama)
+        var validFilter = new ValidTargetFilter();
+
+        // Scorer: Prefer close targets, slightly prefer mama's target (handled in AcquireTarget override)
+        var distanceScorer = new DistanceScorer { MaxDistance = 16f, Weight = 1f };
+        var compositeScorer = new CompositeScorer();
+        compositeScorer.Scorers.Add(distanceScorer);
+
+        // Constraints: Range only
+        var rangeConstraint = new RangeConstraint();
+
+        var config = new TargetingConfig
+        {
+            Filter = validFilter,
+            Scorer = compositeScorer,
+            AttackConstraint = rangeConstraint,
+            AggroRadius = 16f,  // Shorter range - follows mama
+            FallbackMovement = FallbackMovementStyle.Strafe
+        };
+
+        _configs[UnitIds.Duckling] = config;
     }
 
     /// <summary>
