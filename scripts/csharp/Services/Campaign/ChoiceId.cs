@@ -22,3 +22,15 @@ public readonly record struct ChoiceId(string Value)
     /// <summary>Empty/unset choice ID.</summary>
     public static readonly ChoiceId None = new("");
 }
+
+/// <summary>
+/// Well-known choice IDs for campaign path branching.
+/// </summary>
+public static class ChoiceIds
+{
+    /// <summary>Elite path - harder difficulty with better rewards.</summary>
+    public static readonly ChoiceId Elite = new("elite");
+
+    /// <summary>Standard path - normal difficulty.</summary>
+    public static readonly ChoiceId Standard = new("standard");
+}

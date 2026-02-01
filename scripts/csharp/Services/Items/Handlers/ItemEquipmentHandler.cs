@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Items;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Infrastructure.Persistence;
 using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
@@ -35,7 +36,9 @@ public class ItemEquipmentHandler
     {
         // Get item instance
         var items = _profileRepo.ListItems();
-        var item = items.FirstOrDefault(i => i.Id == itemInstanceId);
+        var typedItemId = new ItemId(itemInstanceId);
+        var typedSummonerId = new SummonerId(summonerId);
+        var item = items.FirstOrDefault(i => i.Id == typedItemId);
         if (item == null)
         {
             GD.PushError($"ItemEquipmentHandler: Item instance not found: {itemInstanceId}");
@@ -57,14 +60,14 @@ public class ItemEquipmentHandler
         }
 
         // Check binding restrictions
-        if (definition.Binding == ItemBinding.SummonerBound && item.BoundToSummonerId != summonerId)
+        if (definition.Binding == ItemBinding.SummonerBound && item.BoundToSummonerId != typedSummonerId)
         {
             GD.PushError($"ItemEquipmentHandler: Item '{itemInstanceId}' is bound to summoner '{item.BoundToSummonerId}', cannot equip to '{summonerId}'");
             return false;
         }
 
         // Check if item is already equipped by another summoner
-        if (item.EquippedBySummonerId != null && item.EquippedBySummonerId != summonerId)
+        if (item.EquippedBySummonerId != null && item.EquippedBySummonerId != typedSummonerId)
         {
             GD.PushError($"ItemEquipmentHandler: Item '{itemInstanceId}' is already equipped by '{item.EquippedBySummonerId}'");
             return false;
@@ -90,9 +93,9 @@ public class ItemEquipmentHandler
         }
 
         // Equip the new item
-        item.EquippedBySummonerId = summonerId;
+        item.EquippedBySummonerId = typedSummonerId;
         item.EquippedSlot = slot;
-        summoner.EquippedItems[slot] = itemInstanceId;
+        summoner.EquippedItems[slot] = typedItemId;
 
         // Save changes
         _profileRepo.SaveItems(items);

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Godot;
+using ProjectSummoner.Cards;
 using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
 
 namespace ProjectSummoner.Services.Deck.Handlers;
@@ -44,20 +45,21 @@ public class DeckCardHandler
         }
 
         // Check if already in deck
-        if (deck.CardInstanceIds.Contains(cardInstanceId))
+        var typedCardId = new CardInstanceId(cardInstanceId);
+        if (deck.CardInstanceIds.Contains(typedCardId))
         {
             GD.PushWarning($"DeckCardHandler: Card instance already in deck: {cardInstanceId}");
             return false;
         }
 
         // Check if card is owned by the deck's summoner (if checker is available)
-        if (cardOwnershipChecker != null && !cardOwnershipChecker(cardInstanceId, deck.SummonerId))
+        if (cardOwnershipChecker != null && !cardOwnershipChecker(cardInstanceId, (string)deck.SummonerId))
         {
             GD.PushWarning($"DeckCardHandler: Card instance not owned by summoner '{deck.SummonerId}': {cardInstanceId}");
             return false;
         }
 
-        var newCards = deck.CardInstanceIds.ToList();
+        var newCards = deck.CardInstanceIds.Select(id => (string)id).ToList();
         newCards.Add(cardInstanceId);
 
         return _crud.UpdateDeck(deckId, cardInstanceIds: [.. newCards]);
@@ -76,14 +78,15 @@ public class DeckCardHandler
             return false;
         }
 
-        var index = deck.CardInstanceIds.IndexOf(cardInstanceId);
+        var typedCardId = new CardInstanceId(cardInstanceId);
+        var index = deck.CardInstanceIds.IndexOf(typedCardId);
         if (index == -1)
         {
             GD.PushWarning($"DeckCardHandler: Card not found in deck: {cardInstanceId}");
             return false;
         }
 
-        var newCards = deck.CardInstanceIds.ToList();
+        var newCards = deck.CardInstanceIds.Select(id => (string)id).ToList();
         newCards.RemoveAt(index);
 
         return _crud.UpdateDeck(deckId, cardInstanceIds: [.. newCards]);
@@ -104,12 +107,12 @@ public class DeckCardHandler
             return 0;
         }
 
-        var validCards = deck.CardInstanceIds.Where(id => cardOwnershipChecker(id, deck.SummonerId)).ToList();
+        var validCards = deck.CardInstanceIds.Where(id => cardOwnershipChecker((string)id, (string)deck.SummonerId)).ToList();
         var removedCount = deck.CardInstanceIds.Count - validCards.Count;
 
         if (removedCount > 0)
         {
-            _crud.UpdateDeck(deckId, cardInstanceIds: [.. validCards]);
+            _crud.UpdateDeck(deckId, cardInstanceIds: validCards.Select(id => (string)id).ToArray());
             GD.Print($"DeckCardHandler: Cleaned deck '{deckId}', removed {removedCount} cards not owned by summoner");
         }
 

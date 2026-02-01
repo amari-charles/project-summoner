@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Cards;
 
 namespace ProjectSummoner.Data.Events;
 
@@ -31,7 +32,7 @@ public class BattleRewardConfig
     // =========================================================================
 
     /// <summary>Card options for flexible rewards (player picks one)</summary>
-    public List<string> CardOptions { get; set; } = new();
+    public List<CardId> CardOptions { get; set; } = new();
 
     /// <summary>Whether player selects from options (false = auto-grant first)</summary>
     public bool PlayerSelects { get; set; } = true;

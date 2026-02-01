@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Summoners;
+using ProjectSummoner.Services.Deck;
 
 namespace ProjectSummoner.Domain.Profile.Decks;
 
@@ -10,15 +13,15 @@ public class Deck
 {
     /// <summary>Unique deck ID (UUID).</summary>
     [JsonPropertyName("id")]
-    public required string Id { get; set; }
+    public required DeckId Id { get; set; }
 
     /// <summary>Profile ID reference.</summary>
     [JsonPropertyName("profile_id")]
-    public string ProfileId { get; set; } = "";
+    public ProfileId ProfileId { get; set; } = Profile.ProfileId.None;
 
     /// <summary>Summoner ID this deck belongs to.</summary>
     [JsonPropertyName("summoner_id")]
-    public required string SummonerId { get; set; }
+    public required SummonerId SummonerId { get; set; }
 
     /// <summary>User-defined deck name.</summary>
     [JsonPropertyName("name")]
@@ -34,7 +37,7 @@ public class Deck
 
     /// <summary>List of card instance IDs in this deck.</summary>
     [JsonPropertyName("card_instance_ids")]
-    public List<string> CardInstanceIds { get; set; } = [];
+    public List<CardInstanceId> CardInstanceIds { get; set; } = [];
 
     /// <summary>Last update timestamp.</summary>
     [JsonPropertyName("updated_at")]

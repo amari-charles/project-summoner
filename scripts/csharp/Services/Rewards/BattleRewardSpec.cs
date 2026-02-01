@@ -59,7 +59,7 @@ public class BattleRewardSpec
             ChosenIndex = chosenIndex
         };
 
-        var battle = EventCatalog.GetEvent<BattleEventDefinition>(battleId);
+        var battle = EventCatalog.GetEvent<BattleEventDefinition>(new EventId(battleId));
         if (battle == null)
         {
             GD.PushWarning($"BattleRewardSpec: Battle not found: {battleId}");
@@ -82,17 +82,17 @@ public class BattleRewardSpec
 
             case Data.Events.RewardType.Flexible:
                 // Filter out owned cards if ExcludeOwned is set
-                var cardOptions = rewards.CardOptions;
+                var cardOptionStrings = rewards.CardOptions.Select(id => (string)id).ToList();
                 if (rewards.ExcludeOwned && ownedCatalogIds != null && ownedCatalogIds.Count > 0)
                 {
-                    var filtered = cardOptions.Where(id => !ownedCatalogIds.Contains(id)).ToList();
+                    var filtered = cardOptionStrings.Where(id => !ownedCatalogIds.Contains(id)).ToList();
                     // Only use filtered list if it still has options; otherwise show all (player owns everything)
                     if (filtered.Count > 0)
                     {
-                        cardOptions = filtered;
+                        cardOptionStrings = filtered;
                     }
                 }
-                spec.CardOptions = BuildFlexibleOptions(cardOptions);
+                spec.CardOptions = BuildFlexibleOptions(cardOptionStrings);
                 spec.RequiresChoice = rewards.PlayerSelects && spec.CardOptions.Count > 1;
                 break;
 

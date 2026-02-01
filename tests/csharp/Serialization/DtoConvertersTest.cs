@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using GdUnit4;
 using Godot;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Summoners;
+using ProjectSummoner.Domain.Profile;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -13,7 +15,9 @@ using ProjectSummoner.Domain.Profile.Decks;
 using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Domain.Profile.Inventory;
 using ProjectSummoner.Domain.Profile.Summoners;
+using ProjectSummoner.Services.Deck;
 using static GdUnit4.Assertions;
+using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 
 /// <summary>
 /// Tests for DtoConverters - centralized Dict↔Domain conversions.
@@ -33,11 +37,11 @@ public class DtoConvertersTest
             SummonerId = SummonerIds.Cole,
             Level = 5,
             Xp = 1500,
-            EquippedItems = new Dictionary<ItemSlot, string?>
+            EquippedItems = new Dictionary<ItemSlot, ItemId?>
             {
-                [ItemSlot.Weapon] = "item_001",
+                [ItemSlot.Weapon] = new ItemId("item_001"),
                 [ItemSlot.Ring1] = null,
-                [ItemSlot.Ring2] = "item_002",
+                [ItemSlot.Ring2] = new ItemId("item_002"),
                 [ItemSlot.Vestments] = null
             }
         };
@@ -49,9 +53,9 @@ public class DtoConvertersTest
         AssertThat((string)result!.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Level).IsEqual(5);
         AssertThat(result.Xp).IsEqual(1500);
-        AssertThat(result.EquippedItems[ItemSlot.Weapon]).IsEqual("item_001");
+        AssertThat((string?)result.EquippedItems[ItemSlot.Weapon]).IsEqual("item_001");
         AssertThat(result.EquippedItems[ItemSlot.Ring1]).IsNull();
-        AssertThat(result.EquippedItems[ItemSlot.Ring2]).IsEqual("item_002");
+        AssertThat((string?)result.EquippedItems[ItemSlot.Ring2]).IsEqual("item_002");
         AssertThat(result.EquippedItems[ItemSlot.Vestments]).IsNull();
     }
 
@@ -90,9 +94,9 @@ public class DtoConvertersTest
     {
         var original = new CardInstance
         {
-            Id = "card_001",
-            CatalogId = "fire_wisp",
-            ProfileId = "profile_123",
+            Id = new CardInstanceId("card_001"),
+            CatalogId = new CardId("fire_wisp"),
+            ProfileId = new ProfileId("profile_123"),
             Rarity = "epic",
             Level = 3,
             Xp = 250,
@@ -100,16 +104,16 @@ public class DtoConvertersTest
             RollJson = "{\"variant\":1}",
             CreatedAt = 1700000000,
             Binding = ContentBinding.SummonerBound,
-            BoundToSummonerId = "summoner_cole"
+            BoundToSummonerId = new SummonerId("summoner_cole")
         };
 
         var dict = DtoConverters.ToDict(original);
         var result = DtoConverters.FromCardDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.Id).IsEqual("card_001");
-        AssertThat(result.CatalogId).IsEqual("fire_wisp");
-        AssertThat(result.ProfileId).IsEqual("profile_123");
+        AssertThat((string)result!.Id).IsEqual("card_001");
+        AssertThat((string)result.CatalogId).IsEqual("fire_wisp");
+        AssertThat((string)result.ProfileId).IsEqual("profile_123");
         AssertThat(result.Rarity).IsEqual("epic");
         AssertThat(result.Level).IsEqual(3);
         AssertThat(result.Xp).IsEqual(250);
@@ -117,7 +121,7 @@ public class DtoConvertersTest
         AssertThat(result.RollJson).IsEqual("{\"variant\":1}");
         AssertThat(result.CreatedAt).IsEqual(1700000000);
         AssertThat(result.Binding).IsEqual(ContentBinding.SummonerBound);
-        AssertThat(result.BoundToSummonerId).IsEqual("summoner_cole");
+        AssertThat((string?)result.BoundToSummonerId).IsEqual("summoner_cole");
     }
 
     [TestCase]
@@ -143,8 +147,8 @@ public class DtoConvertersTest
     {
         var card = new CardInstance
         {
-            Id = "card_001",
-            CatalogId = "test",
+            Id = new CardInstanceId("card_001"),
+            CatalogId = new CardId("test"),
             Binding = ContentBinding.SummonerBound
         };
 
@@ -161,10 +165,10 @@ public class DtoConvertersTest
     {
         var original = new ItemInstance
         {
-            Id = "item_001",
-            CatalogId = "sword_of_fire",
-            EquippedBySummonerId = "summoner_cole",
-            BoundToSummonerId = "summoner_cole",
+            Id = new ItemId("item_001"),
+            CatalogId = new ItemId("sword_of_fire"),
+            EquippedBySummonerId = new SummonerId("summoner_cole"),
+            BoundToSummonerId = new SummonerId("summoner_cole"),
             EquippedSlot = ItemSlot.Weapon
         };
 
@@ -172,10 +176,10 @@ public class DtoConvertersTest
         var result = DtoConverters.FromItemDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.Id).IsEqual("item_001");
-        AssertThat(result.CatalogId).IsEqual("sword_of_fire");
-        AssertThat(result.EquippedBySummonerId).IsEqual("summoner_cole");
-        AssertThat(result.BoundToSummonerId).IsEqual("summoner_cole");
+        AssertThat((string)result!.Id).IsEqual("item_001");
+        AssertThat((string)result.CatalogId).IsEqual("sword_of_fire");
+        AssertThat((string?)result.EquippedBySummonerId).IsEqual("summoner_cole");
+        AssertThat((string?)result.BoundToSummonerId).IsEqual("summoner_cole");
         AssertThat(result.EquippedSlot).IsEqual(ItemSlot.Weapon);
     }
 
@@ -184,8 +188,8 @@ public class DtoConvertersTest
     {
         var original = new ItemInstance
         {
-            Id = "item_001",
-            CatalogId = "ring_of_power",
+            Id = new ItemId("item_001"),
+            CatalogId = new ItemId("ring_of_power"),
             EquippedSlot = null
         };
 
@@ -201,8 +205,8 @@ public class DtoConvertersTest
     {
         var item = new ItemInstance
         {
-            Id = "item_001",
-            CatalogId = "test",
+            Id = new ItemId("item_001"),
+            CatalogId = new ItemId("test"),
             EquippedSlot = ItemSlot.Vestments
         };
 
@@ -219,13 +223,13 @@ public class DtoConvertersTest
     {
         var original = new Deck
         {
-            Id = "deck_001",
-            ProfileId = "profile_123",
-            SummonerId = "summoner_cole",
+            Id = new DeckId("deck_001"),
+            ProfileId = new ProfileId("profile_123"),
+            SummonerId = new SummonerId("summoner_cole"),
             Name = "My Fire Deck",
             Slot = 2,
             IsActive = true,
-            CardInstanceIds = ["card_1", "card_2", "card_3"],
+            CardInstanceIds = [new CardInstanceId("card_1"), new CardInstanceId("card_2"), new CardInstanceId("card_3")],
             UpdatedAt = 1700000000
         };
 
@@ -233,15 +237,15 @@ public class DtoConvertersTest
         var result = DtoConverters.FromDeckDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.Id).IsEqual("deck_001");
-        AssertThat(result.ProfileId).IsEqual("profile_123");
-        AssertThat(result.SummonerId).IsEqual("summoner_cole");
+        AssertThat((string)result!.Id).IsEqual("deck_001");
+        AssertThat((string)result.ProfileId).IsEqual("profile_123");
+        AssertThat((string)result.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Name).IsEqual("My Fire Deck");
         AssertThat(result.Slot).IsEqual(2);
         AssertThat(result.IsActive).IsTrue();
-        AssertThat(result.CardInstanceIds).Contains("card_1");
-        AssertThat(result.CardInstanceIds).Contains("card_2");
-        AssertThat(result.CardInstanceIds).Contains("card_3");
+        AssertThat(result.CardInstanceIds).Contains(new CardInstanceId("card_1"));
+        AssertThat(result.CardInstanceIds).Contains(new CardInstanceId("card_2"));
+        AssertThat(result.CardInstanceIds).Contains(new CardInstanceId("card_3"));
         AssertThat(result.UpdatedAt).IsEqual(1700000000);
     }
 

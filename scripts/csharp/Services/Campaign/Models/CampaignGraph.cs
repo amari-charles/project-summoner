@@ -12,7 +12,7 @@ namespace ProjectSummoner.Services.Campaign.Models;
 public class CampaignGraph
 {
     /// <summary>Unique identifier for this campaign.</summary>
-    public string CampaignId { get; set; } = "";
+    public CampaignId CampaignId { get; set; } = Data.Events.CampaignId.None;
 
     /// <summary>Display name localization key.</summary>
     public string NameKey { get; set; } = "";
@@ -21,22 +21,22 @@ public class CampaignGraph
     public string DescriptionKey { get; set; } = "";
 
     /// <summary>ID of the starting node.</summary>
-    public string StartNodeId { get; set; } = "";
+    public EventId StartNodeId { get; set; } = EventId.None;
 
     /// <summary>Sort order for campaign selection UI.</summary>
     public int SortOrder { get; set; } = 0;
 
-    /// <summary>All nodes in the graph, indexed by ID.</summary>
-    public Dictionary<string, CampaignNode> Nodes { get; } = [];
+    /// <summary>All nodes in the graph, indexed by event ID.</summary>
+    public Dictionary<EventId, CampaignNode> Nodes { get; } = [];
 
     /// <summary>All edges in the graph.</summary>
     public List<CampaignEdge> Edges { get; } = [];
 
     /// <summary>Pre-computed incoming edges for each node (for unlock checking).</summary>
-    private Dictionary<string, List<CampaignEdge>> _incomingEdges = [];
+    private Dictionary<EventId, List<CampaignEdge>> _incomingEdges = [];
 
     /// <summary>Pre-computed outgoing edges for each node (for traversal).</summary>
-    private Dictionary<string, List<CampaignEdge>> _outgoingEdges = [];
+    private Dictionary<EventId, List<CampaignEdge>> _outgoingEdges = [];
 
     // =========================================================================
     // CONSTRUCTION
@@ -59,10 +59,10 @@ public class CampaignGraph
     {
         var graph = new CampaignGraph
         {
-            CampaignId = dict.GetValueOrDefault("campaign_id", "").AsString(),
+            CampaignId = new CampaignId(dict.GetValueOrDefault("campaign_id", "").AsString()),
             NameKey = dict.GetValueOrDefault("name_key", "").AsString(),
             DescriptionKey = dict.GetValueOrDefault("description_key", "").AsString(),
-            StartNodeId = dict.GetValueOrDefault("start_node", "").AsString(),
+            StartNodeId = new EventId(dict.GetValueOrDefault("start_node", "").AsString()),
             SortOrder = dict.GetValueOrDefault("sort_order", 0).AsInt32()
         };
 
@@ -75,7 +75,7 @@ public class CampaignGraph
                 if (nodeVariant.Obj is Godot.Collections.Dictionary nodeDict)
                 {
                     var node = CampaignNode.FromDictionary(nodeDict, graph.CampaignId);
-                    if (!string.IsNullOrEmpty(node.Id))
+                    if (node.Id.HasValue)
                     {
                         graph.Nodes[node.Id] = node;
                     }
@@ -92,7 +92,7 @@ public class CampaignGraph
                 if (edgeVariant.Obj is Godot.Collections.Dictionary edgeDict)
                 {
                     var edge = CampaignEdge.FromDictionary(edgeDict);
-                    if (!string.IsNullOrEmpty(edge.FromId) && !string.IsNullOrEmpty(edge.ToId))
+                    if (edge.FromId.HasValue && edge.ToId.HasValue)
                     {
                         graph.Edges.Add(edge);
                     }
@@ -128,7 +128,7 @@ public class CampaignGraph
             if (evt == null) continue;
 
             var node = CampaignNode.FromEventDefinition(evt, definition.Id);
-            if (!string.IsNullOrEmpty(node.Id))
+            if (node.Id.HasValue)
             {
                 graph.Nodes[node.Id] = node;
             }
@@ -149,11 +149,11 @@ public class CampaignGraph
                 campaignEdge.Condition = new EdgeCondition
                 {
                     Type = "choice",
-                    Value = edge.Condition.ChoiceId
+                    Value = edge.Condition.ChoiceId.Value.Value
                 };
             }
 
-            if (!string.IsNullOrEmpty(campaignEdge.FromId) && !string.IsNullOrEmpty(campaignEdge.ToId))
+            if (campaignEdge.FromId.HasValue && campaignEdge.ToId.HasValue)
             {
                 graph.Edges.Add(campaignEdge);
             }
@@ -212,10 +212,10 @@ public class CampaignGraph
 
         return new Godot.Collections.Dictionary
         {
-            ["campaign_id"] = CampaignId,
+            ["campaign_id"] = (string)CampaignId,
             ["name_key"] = NameKey,
             ["description_key"] = DescriptionKey,
-            ["start_node"] = StartNodeId,
+            ["start_node"] = (string)StartNodeId,
             ["sort_order"] = SortOrder,
             ["nodes"] = nodesArray,
             ["edges"] = edgesArray
@@ -227,7 +227,7 @@ public class CampaignGraph
     // =========================================================================
 
     /// <summary>Get a node by ID, or null if not found.</summary>
-    public CampaignNode? GetNode(string nodeId)
+    public CampaignNode? GetNode(EventId nodeId)
     {
         return Nodes.TryGetValue(nodeId, out var node) ? node : null;
     }
@@ -255,25 +255,25 @@ public class CampaignGraph
     // =========================================================================
 
     /// <summary>Get all edges going INTO a node.</summary>
-    public List<CampaignEdge> GetIncomingEdges(string nodeId)
+    public List<CampaignEdge> GetIncomingEdges(EventId nodeId)
     {
         return _incomingEdges.TryGetValue(nodeId, out var edges) ? edges : [];
     }
 
     /// <summary>Get all edges going OUT OF a node.</summary>
-    public List<CampaignEdge> GetOutgoingEdges(string nodeId)
+    public List<CampaignEdge> GetOutgoingEdges(EventId nodeId)
     {
         return _outgoingEdges.TryGetValue(nodeId, out var edges) ? edges : [];
     }
 
     /// <summary>Get all node IDs that this node can lead to.</summary>
-    public List<string> GetSuccessors(string nodeId)
+    public List<EventId> GetSuccessors(EventId nodeId)
     {
         return GetOutgoingEdges(nodeId).Select(e => e.ToId).ToList();
     }
 
     /// <summary>Get all node IDs that can lead to this node.</summary>
-    public List<string> GetPredecessors(string nodeId)
+    public List<EventId> GetPredecessors(EventId nodeId)
     {
         return GetIncomingEdges(nodeId).Select(e => e.FromId).ToList();
     }
@@ -283,25 +283,25 @@ public class CampaignGraph
     // =========================================================================
 
     /// <summary>Check if a node has any incoming edges (is it reachable?).</summary>
-    public bool HasIncomingEdges(string nodeId)
+    public bool HasIncomingEdges(EventId nodeId)
     {
         return _incomingEdges.ContainsKey(nodeId) && _incomingEdges[nodeId].Count > 0;
     }
 
     /// <summary>Check if a node has any outgoing edges (does it lead somewhere?).</summary>
-    public bool HasOutgoingEdges(string nodeId)
+    public bool HasOutgoingEdges(EventId nodeId)
     {
         return _outgoingEdges.ContainsKey(nodeId) && _outgoingEdges[nodeId].Count > 0;
     }
 
     /// <summary>Check if a node is a start node (no incoming edges or is designated start).</summary>
-    public bool IsStartNode(string nodeId)
+    public bool IsStartNode(EventId nodeId)
     {
         return nodeId == StartNodeId || !HasIncomingEdges(nodeId);
     }
 
     /// <summary>Check if a node is an end node (no outgoing edges).</summary>
-    public bool IsEndNode(string nodeId)
+    public bool IsEndNode(EventId nodeId)
     {
         return !HasOutgoingEdges(nodeId);
     }

@@ -27,7 +27,7 @@ public static class ItemCatalog
     public static bool HasItem(string id) => ItemDefinitions.Has(id);
 
     /// <summary>Get all item IDs.</summary>
-    public static string[] GetAllItemIds() => ItemDefinitions.All.Select(i => i.Id).ToArray();
+    public static string[] GetAllItemIds() => ItemDefinitions.All.Select(i => (string)i.Id).ToArray();
 
     /// <summary>Get all item definitions.</summary>
     public static ItemDefinition[] GetAllItems() => [.. ItemDefinitions.All];
@@ -73,7 +73,7 @@ public static class ItemCatalog
 
         var dict = new Godot.Collections.Dictionary
         {
-            ["id"] = item.Id,
+            ["id"] = (string)item.Id,
             ["name_key"] = item.NameKey,
             ["description_key"] = item.DescriptionKey,
             ["slot"] = item.Slot.ToString().ToLowerInvariant(),

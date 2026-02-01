@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Domain.Profile.Inventory;
+using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 
 namespace ProjectSummoner.Domain.Profile.Summoners;
 
@@ -29,7 +30,7 @@ public class SummonerInstance
     /// Serialized to {"weapon": "id", ...} via DtoConverters for GDScript interop.
     /// </summary>
     [JsonIgnore]
-    public Dictionary<ItemSlot, string?> EquippedItems { get; set; } = new()
+    public Dictionary<ItemSlot, ItemId?> EquippedItems { get; set; } = new()
     {
         [ItemSlot.Weapon] = null,
         [ItemSlot.Ring1] = null,

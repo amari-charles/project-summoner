@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using ProjectSummoner.Services.Campaign;
 
 namespace ProjectSummoner.Data.Events;
 
@@ -14,7 +15,7 @@ public static class CampaignCatalog
     // CAMPAIGN DEFINITIONS
     // =========================================================================
 
-    private static readonly Dictionary<string, CampaignDefinition> _campaigns = new()
+    private static readonly Dictionary<CampaignId, CampaignDefinition> _campaigns = new()
     {
         // =====================================================================
         // SUMMONER'S PATH - Main campaign for all summoners
@@ -27,7 +28,7 @@ public static class CampaignCatalog
             DescriptionKey = "campaign.summoners_path.description",
             SortOrder = 0,
             StartEventId = EventIds.FirstTrial,
-            EventIds = new List<string>
+            EventIds = new List<EventId>
             {
                 EventIds.FirstTrial,
                 EventIds.SecondChallenge,
@@ -47,8 +48,8 @@ public static class CampaignCatalog
                 new(EventIds.ThirdTrial, EventIds.PathFork),
 
                 // Branching paths based on player choice
-                new(EventIds.PathFork, EventIds.EliteBattle01, new EdgeCondition("elite")),
-                new(EventIds.PathFork, EventIds.StandardBattle01, new EdgeCondition("standard")),
+                new(EventIds.PathFork, EventIds.EliteBattle01, new EdgeCondition(ChoiceIds.Elite)),
+                new(EventIds.PathFork, EventIds.StandardBattle01, new EdgeCondition(ChoiceIds.Standard)),
 
                 // Both paths lead to Act 1 Boss
                 new(EventIds.EliteBattle01, EventIds.Act1Boss),
@@ -67,7 +68,7 @@ public static class CampaignCatalog
             DescriptionKey = "campaign.test_arena.description",
             SortOrder = 99,
             StartEventId = EventIds.ArenaEarthSprite,
-            EventIds = new List<string>
+            EventIds = new List<EventId>
             {
                 EventIds.ArenaEarthSprite,
                 EventIds.ArenaPuff,
@@ -85,16 +86,16 @@ public static class CampaignCatalog
     // =========================================================================
 
     /// <summary>Get a campaign by ID.</summary>
-    public static CampaignDefinition? GetCampaign(string id)
+    public static CampaignDefinition? GetCampaign(CampaignId id)
     {
         return _campaigns.GetValueOrDefault(id);
     }
 
     /// <summary>Check if a campaign exists.</summary>
-    public static bool HasCampaign(string id) => _campaigns.ContainsKey(id);
+    public static bool HasCampaign(CampaignId id) => _campaigns.ContainsKey(id);
 
     /// <summary>Get all campaign IDs.</summary>
-    public static string[] GetAllCampaignIds() => _campaigns.Keys.ToArray();
+    public static CampaignId[] GetAllCampaignIds() => _campaigns.Keys.ToArray();
 
     /// <summary>Get all campaigns.</summary>
     public static CampaignDefinition[] GetAllCampaigns() => _campaigns.Values.ToArray();
@@ -113,7 +114,7 @@ public static class CampaignCatalog
     // =========================================================================
 
     /// <summary>Get events for a campaign.</summary>
-    public static EventDefinition[] GetCampaignEvents(string campaignId)
+    public static EventDefinition[] GetCampaignEvents(CampaignId campaignId)
     {
         var campaign = GetCampaign(campaignId);
         if (campaign == null) return System.Array.Empty<EventDefinition>();
@@ -126,14 +127,14 @@ public static class CampaignCatalog
     }
 
     /// <summary>Get edges for a campaign.</summary>
-    public static CampaignEdge[] GetCampaignEdges(string campaignId)
+    public static CampaignEdge[] GetCampaignEdges(CampaignId campaignId)
     {
         var campaign = GetCampaign(campaignId);
         return campaign?.Edges.ToArray() ?? System.Array.Empty<CampaignEdge>();
     }
 
     /// <summary>Get the start event for a campaign.</summary>
-    public static EventDefinition? GetStartEvent(string campaignId)
+    public static EventDefinition? GetStartEvent(CampaignId campaignId)
     {
         var campaign = GetCampaign(campaignId);
         if (campaign == null) return null;
@@ -145,7 +146,7 @@ public static class CampaignCatalog
     // =========================================================================
 
     /// <summary>Get campaign as Godot Dictionary for GDScript interop.</summary>
-    public static Godot.Collections.Dictionary GetCampaignAsDict(string id)
+    public static Godot.Collections.Dictionary GetCampaignAsDict(CampaignId id)
     {
         var campaign = GetCampaign(id);
         if (campaign == null) return new Godot.Collections.Dictionary();
@@ -168,11 +169,11 @@ public static class CampaignCatalog
     {
         var dict = new Godot.Collections.Dictionary
         {
-            ["campaign_id"] = campaign.Id,
+            ["campaign_id"] = (string)campaign.Id,
             ["name_key"] = campaign.NameKey,
             ["description_key"] = campaign.DescriptionKey,
             ["sort_order"] = campaign.SortOrder,
-            ["start_node"] = campaign.StartEventId,
+            ["start_node"] = (string)campaign.StartEventId,
             ["icon"] = ""
         };
 
@@ -180,7 +181,7 @@ public static class CampaignCatalog
         var unlockReqs = new Godot.Collections.Array();
         foreach (var req in campaign.UnlockRequirements)
         {
-            unlockReqs.Add(req);
+            unlockReqs.Add((string)req);
         }
         dict["unlock_requirements"] = unlockReqs;
 
@@ -208,14 +209,14 @@ public static class CampaignCatalog
         {
             var edgeDict = new Godot.Collections.Dictionary
             {
-                ["from"] = edge.FromEventId,
-                ["to"] = edge.ToEventId
+                ["from"] = (string)edge.FromEventId,
+                ["to"] = (string)edge.ToEventId
             };
             if (edge.Condition?.ChoiceId != null)
             {
                 edgeDict["condition"] = new Godot.Collections.Dictionary
                 {
-                    ["choice"] = edge.Condition.ChoiceId
+                    ["choice"] = (string)edge.Condition.ChoiceId.Value
                 };
             }
             edges.Add(edgeDict);

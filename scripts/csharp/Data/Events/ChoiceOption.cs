@@ -1,3 +1,5 @@
+using ProjectSummoner.Services.Campaign;
+
 namespace ProjectSummoner.Data.Events;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace ProjectSummoner.Data.Events;
 public class ChoiceOption
 {
     /// <summary>Unique identifier for this choice</summary>
-    public string Id { get; set; } = "";
+    public ChoiceId Id { get; set; } = ChoiceId.None;
 
     /// <summary>Localization key for the choice label</summary>
     public string LabelKey { get; set; } = "";
@@ -16,7 +18,7 @@ public class ChoiceOption
 
     public ChoiceOption() { }
 
-    public ChoiceOption(string id, string labelKey, string descriptionKey)
+    public ChoiceOption(ChoiceId id, string labelKey, string descriptionKey)
     {
         Id = id;
         LabelKey = labelKey;

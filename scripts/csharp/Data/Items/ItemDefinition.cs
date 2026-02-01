@@ -10,7 +10,7 @@ namespace ProjectSummoner.Data.Items;
 public class ItemDefinition
 {
     /// <summary>Unique identifier (e.g., "item_veterans_medal").</summary>
-    public required string Id { get; init; }
+    public required ItemId Id { get; init; }
 
     /// <summary>Localization key for display name.</summary>
     public required string NameKey { get; init; }

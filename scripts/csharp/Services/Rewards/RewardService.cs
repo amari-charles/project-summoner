@@ -90,7 +90,7 @@ public partial class RewardService : Node
             return [];
 
         var cards = _profileRepo.ListCards();
-        return cards.Select(c => c.CatalogId).ToHashSet();
+        return cards.Select(c => (string)c.CatalogId).ToHashSet();
     }
 
     // =========================================================================

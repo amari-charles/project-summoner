@@ -28,7 +28,7 @@ public abstract partial class Card : Resource
     /// <summary>
     /// Unique instance ID (for progression system tracking).
     /// </summary>
-    public string InstanceId { get; set; } = "";
+    public CardInstanceId InstanceId { get; set; } = CardInstanceId.None;
 
     // =========================================================================
     // PROPERTY ACCESSORS (convenience, delegate to config)
@@ -57,7 +57,7 @@ public abstract partial class Card : Resource
     public string instance_id
     {
         get => InstanceId;
-        set => InstanceId = value;
+        set => InstanceId = new CardInstanceId(value);
     }
 
     // =========================================================================

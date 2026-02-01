@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile.Enums;
 
 namespace ProjectSummoner.Domain.Profile.Collection;
@@ -14,15 +15,15 @@ public class CardInstance
 {
     /// <summary>Unique instance ID (UUID).</summary>
     [JsonPropertyName("id")]
-    public required string Id { get; set; }
+    public required CardInstanceId Id { get; set; }
 
     /// <summary>Card catalog ID (e.g., "fire_wisp").</summary>
     [JsonPropertyName("catalog_id")]
-    public required string CatalogId { get; set; }
+    public required CardId CatalogId { get; set; }
 
     /// <summary>Profile ID reference.</summary>
     [JsonPropertyName("profile_id")]
-    public string ProfileId { get; set; } = "";
+    public ProfileId ProfileId { get; set; } = Profile.ProfileId.None;
 
     /// <summary>Card rarity (common, rare, epic, legendary).</summary>
     [JsonPropertyName("rarity")]
@@ -64,5 +65,5 @@ public class CardInstance
     /// Null for AccountWide cards.
     /// </summary>
     [JsonPropertyName("bound_to")]
-    public string? BoundToSummonerId { get; set; }
+    public SummonerId? BoundToSummonerId { get; set; }
 }

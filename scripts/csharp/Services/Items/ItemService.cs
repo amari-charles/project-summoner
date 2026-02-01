@@ -348,9 +348,9 @@ public partial class ItemService : Node
 			if (definition == null) continue;
 
 			var dict = ItemCatalog.ToDictionary(definition);
-			dict["instance_id"] = item.Id;
-			dict["equipped_by"] = item.EquippedBySummonerId ?? "";
-			dict["bound_to"] = item.BoundToSummonerId ?? "";
+			dict["instance_id"] = (string)item.Id;
+			dict["equipped_by"] = item.EquippedBySummonerId != null ? (string)item.EquippedBySummonerId : "";
+			dict["bound_to"] = item.BoundToSummonerId != null ? (string)item.BoundToSummonerId : "";
 			result.Add(dict);
 		}
 
@@ -371,8 +371,8 @@ public partial class ItemService : Node
 			if (definition == null) continue;
 
 			var dict = ItemCatalog.ToDictionary(definition);
-			dict["instance_id"] = item.Id;
-			dict["equipped_by"] = item.EquippedBySummonerId ?? "";
+			dict["instance_id"] = (string)item.Id;
+			dict["equipped_by"] = item.EquippedBySummonerId != null ? (string)item.EquippedBySummonerId : "";
 			result.Add(dict);
 		}
 

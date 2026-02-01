@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Services.Shop;
 
 namespace ProjectSummoner.Data.Events;
 
@@ -104,7 +105,7 @@ public class CaravanEventDefinition : EventDefinition
     public override EventType Type => EventType.Caravan;
 
     /// <summary>Shop configuration ID</summary>
-    public string ShopId { get; set; } = "";
+    public ShopId ShopId { get; set; } = Services.Shop.ShopId.None;
 }
 
 /// <summary>
@@ -126,5 +127,5 @@ public class StoryEventDefinition : EventDefinition
     public override EventType Type => EventType.Story;
 
     /// <summary>Story sequence ID to play</summary>
-    public string SequenceId { get; set; } = "";
+    public SequenceId SequenceId { get; set; } = SequenceId.None;
 }

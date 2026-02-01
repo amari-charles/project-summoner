@@ -128,7 +128,7 @@ public class CampaignGraphStore
     /// <summary>Get a node by ID from the current campaign.</summary>
     public CampaignNode? GetNode(string nodeId)
     {
-        return CurrentGraph?.GetNode(nodeId);
+        return CurrentGraph?.GetNode(new Data.Events.EventId(nodeId));
     }
 
     /// <summary>Get all nodes from the current campaign.</summary>
@@ -157,7 +157,7 @@ public class CampaignGraphStore
 
         foreach (var nodeId in CompletedNodes)
         {
-            var node = graph.GetNode(nodeId);
+            var node = graph.GetNode(new Data.Events.EventId(nodeId));
             if (node != null)
             {
                 result.Add(node);

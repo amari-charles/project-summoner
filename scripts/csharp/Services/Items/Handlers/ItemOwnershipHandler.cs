@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Items;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
 using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
 
@@ -38,20 +39,22 @@ public class ItemOwnershipHandler
 
         // Check if player already owns this item type
         var existingItems = _profileRepo.ListItems();
-        var existingItem = existingItems.FirstOrDefault(i => i.CatalogId == catalogId);
+        var typedCatalogId = new ItemId(catalogId);
+        var existingItem = existingItems.FirstOrDefault(i => i.CatalogId == typedCatalogId);
         if (existingItem != null)
         {
             GD.Print($"ItemOwnershipHandler: Player already owns '{catalogId}' (instance: {existingItem.Id}), skipping grant");
-            return existingItem.Id;
+            return (string)existingItem.Id;
         }
 
         // Create new item instance with simple sequential ID
         var instanceId = $"item_{existingItems.Count + 1:D3}";
         var instance = new ItemInstance
         {
-            Id = instanceId,
-            CatalogId = catalogId,
-            BoundToSummonerId = definition.Binding == ItemBinding.SummonerBound ? boundToSummonerId : null,
+            Id = new ItemId(instanceId),
+            CatalogId = typedCatalogId,
+            BoundToSummonerId = definition.Binding == ItemBinding.SummonerBound && boundToSummonerId != null
+                ? new SummonerId(boundToSummonerId) : null,
             EquippedBySummonerId = null,
             EquippedSlot = null
         };
@@ -79,9 +82,10 @@ public class ItemOwnershipHandler
     /// <summary>Get SummonerBound items for a specific summoner.</summary>
     public List<ItemInstance> GetSummonerBoundItems(string summonerId)
     {
+        var typedSummonerId = new SummonerId(summonerId);
         return _profileRepo.ListItems()
             .Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.SummonerBound
-                && item.BoundToSummonerId == summonerId)
+                && item.BoundToSummonerId == typedSummonerId)
             .ToList();
     }
 
@@ -102,7 +106,8 @@ public class ItemOwnershipHandler
     /// <summary>Get item instance by ID.</summary>
     public ItemInstance? GetItem(string instanceId)
     {
-        return _profileRepo.ListItems().FirstOrDefault(i => i.Id == instanceId);
+        var typedInstanceId = new ItemId(instanceId);
+        return _profileRepo.ListItems().FirstOrDefault(i => i.Id == typedInstanceId);
     }
 
     /// <summary>Clear all items from inventory (for testing/debugging).</summary>

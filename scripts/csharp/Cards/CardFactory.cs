@@ -104,7 +104,7 @@ public partial class CardFactory : Node, ICardFactory
             Team = (Team)team,
             Battlefield = battlefield,
             ModifierService = modifierSystem,
-            CardInstanceId = instanceId,
+            CardInstanceId = new CardInstanceId(instanceId),
             SceneTree = battlefield?.GetTree()
         };
 
