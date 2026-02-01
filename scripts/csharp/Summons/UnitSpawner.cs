@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Abilities;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
@@ -58,8 +59,121 @@ public static class UnitSpawner
     private static readonly Dictionary<string, float> _separationRadiusCache = new();
 
     /// <summary>
+    /// Spawns a unit from a UnitDefinition with the given context.
+    /// This is the preferred method - loads scene from definition and applies all configuration.
+    /// </summary>
+    /// <param name="definition">UnitDefinition containing all unit configuration</param>
+    /// <param name="context">Spawn context with position, team, modifiers, etc.</param>
+    /// <returns>Spawned Unit3D, or null if failed</returns>
+    public static Unit3D? SpawnFromDefinition(UnitDefinition definition, UnitSpawnContext context)
+    {
+        var scene = GD.Load<PackedScene>(definition.ScenePath);
+        if (scene == null)
+        {
+            GD.PrintErr($"[UnitSpawner] Failed to load scene: {definition.ScenePath}");
+            return null;
+        }
+
+        var unit = scene.Instantiate() as Node3D;
+        if (unit == null)
+        {
+            GD.PrintErr($"[UnitSpawner] Failed to instantiate unit from scene: {definition.ScenePath}");
+            return null;
+        }
+
+        // Must be Unit3D for definition-based spawning
+        if (unit is not Unit3D unit3d)
+        {
+            GD.PrintErr($"[UnitSpawner] Scene root is not Unit3D: {definition.ScenePath}");
+            unit.Free();
+            return null;
+        }
+
+        // Apply definition (sets all stats, targeting, visual config)
+        unit3d.ApplyDefinition(definition);
+
+        // Apply ranged config if applicable
+        if (definition.Ranged != null && unit3d is RangedUnit3D rangedUnit)
+        {
+            rangedUnit.ApplyRangedDefinition(definition.Ranged);
+        }
+
+        // Set team
+        unit3d.Team = context.Team;
+
+        // Apply stat overrides from context (card modifiers, etc.)
+        // Note: Stats from context override definition stats
+        ApplyStatsToUnit(unit3d, context.Stats);
+
+        // Apply non-stat custom overrides (scale_multiplier)
+        if (context.CustomOverrides != null && context.CustomOverrides.ContainsKey("scale_multiplier"))
+        {
+            var multiplier = GetFloat(context.CustomOverrides, "scale_multiplier", 1f);
+            unit3d.Scale = Vector3.One * multiplier;
+        }
+
+        // Add to tree first - C# exported properties are only accessible after tree entry
+        context.GameplayLayer.AddChild(unit3d);
+
+        // Calculate final position AFTER tree entry (now MovementLayer is accessible)
+        var finalPos = CalculateFinalPosition(unit3d, context.Position);
+        unit3d.Position = finalPos;
+
+        // Instantiate and attach abilities from definition
+        foreach (var abilityConfig in definition.Abilities)
+        {
+            var ability = abilityConfig.CreateAbility();
+            unit3d.AddChild(ability);
+            // Note: abilities are auto-discovered and Setup() called in Unit3D._Ready()
+        }
+
+        // Apply modifiers (partitioned into static and triggered)
+        var modifiers = context.Modifiers ?? [];
+        var staticMods = new List<StatModifier>();
+        var triggeredMods = new List<StatModifier>();
+
+        foreach (var mod in modifiers)
+        {
+            if (mod.IsTriggered)
+                triggeredMods.Add(mod);
+            else
+                staticMods.Add(mod);
+        }
+
+        if (triggeredMods.Count > 0)
+        {
+            unit3d.InitializeWithPartitionedModifiers(staticMods, triggeredMods);
+        }
+        else
+        {
+            unit3d.InitializeWithModifiers(staticMods);
+        }
+
+        // Update SpatialGrid after unit is in tree
+        if (context.SpatialGrid != null && context.SpatialGrid.HasMethod("update_unit_position"))
+        {
+            context.SpatialGrid.Call("update_unit_position", unit3d);
+        }
+
+        // Start spawn reveal animation if duration specified
+        bool hasSpawnAnimation = context.SpawnDuration > 0.0f && unit3d.HasMethod("start_spawn_reveal");
+        if (hasSpawnAnimation)
+        {
+            unit3d.Call("start_spawn_reveal", context.SpawnDuration);
+        }
+
+        // Activate unit if in battle phase and no spawn animation
+        if (!hasSpawnAnimation && context.InBattlePhase)
+        {
+            unit3d.Activate();
+        }
+
+        return unit3d;
+    }
+
+    /// <summary>
     /// Spawns a unit from a PackedScene with the given context.
-    /// Returns the spawned unit, or null if spawning failed.
+    /// Legacy method for backwards compatibility - prefer SpawnFromDefinition.
     /// </summary>
     /// <param name="unitScene">PackedScene to instantiate</param>
     /// <param name="context">Spawn context with configuration</param>
@@ -170,8 +284,23 @@ public static class UnitSpawner
     }
 
     /// <summary>
+    /// Gets the separation radius for a unit from UnitDefinitions.
+    /// This is the preferred method - reads directly from definition without scene instantiation.
+    /// </summary>
+    /// <param name="unitId">Unit ID to look up</param>
+    /// <returns>Separation radius from definition, or default if not found</returns>
+    public static float GetSeparationRadiusFromDefinition(UnitId unitId)
+    {
+        if (UnitDefinitions.TryGet(unitId, out var def) && def != null)
+        {
+            return def.Visual.SeparationRadius;
+        }
+        return DefaultCollisionRadius;
+    }
+
+    /// <summary>
     /// Gets the separation radius for a unit scene, using a cache to avoid repeated instantiation.
-    /// This is used by CardCatalog to include separation_radius in card dictionaries.
+    /// Legacy method - prefer GetSeparationRadiusFromDefinition.
     /// </summary>
     /// <param name="scenePath">Resource path to the unit scene (e.g., "res://scenes/units/fire_wisp.tscn")</param>
     /// <returns>Separation radius, defaults to DefaultCollisionRadius</returns>

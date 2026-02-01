@@ -399,19 +399,92 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     /// <summary>
+    /// Cached targeting config from UnitDefinition (if applied).
+    /// </summary>
+    private TargetingConfig? _definitionTargetingConfig;
+
+    /// <summary>
     /// Get the targeting config for this unit.
-    /// Priority: 1) Registry by UnitId, 2) Exported TargetingConfig, 3) Default config.
+    /// Priority: 1) Definition config, 2) UnitDefinitions lookup, 3) Exported TargetingConfig, 4) Default melee.
     /// </summary>
     protected TargetingConfig GetTargetingConfig()
     {
-        // First try registry lookup by UnitId (bypasses .tres loading issues)
-        if (!string.IsNullOrEmpty(UnitId))
+        // First check if we have a config from ApplyDefinition
+        if (_definitionTargetingConfig != null)
         {
-            return TargetingConfigRegistry.GetConfig(UnitId);
+            return _definitionTargetingConfig;
         }
 
-        // Fall back to exported config or default
-        return TargetingConfig ?? DefaultTargetingConfig.Get();
+        // Fallback: try UnitDefinitions lookup by UnitId (for backwards compatibility)
+        if (!string.IsNullOrEmpty(UnitId) && UnitDefinitions.TryGet(new Constants.UnitId(UnitId), out var def) && def != null)
+        {
+            return def.Targeting.BuildConfig();
+        }
+
+        // Fall back to exported config or default melee targeting
+        return TargetingConfig ?? MeleeTargeting.Default.BuildConfig();
+    }
+
+    // =========================================================================
+    // DEFINITION APPLICATION
+    // =========================================================================
+
+    /// <summary>
+    /// Apply a UnitDefinition's configuration to this unit.
+    /// Called by UnitSpawner after instantiation.
+    /// </summary>
+    public void ApplyDefinition(UnitDefinition definition)
+    {
+        // Identity
+        UnitId = definition.Id.Value;
+
+        // Stats
+        MaxHp = definition.Stats.MaxHp;
+        AttackDamage = definition.Stats.AttackDamage;
+        AttackSpeed = definition.Stats.AttackSpeed;
+        MoveSpeed = definition.Stats.MoveSpeed;
+        AttackRange = definition.Stats.AttackRange;
+        AggroRadius = definition.Stats.AggroRadius;
+
+        // Store base stats for modifier calculations
+        _baseMaxHp = MaxHp;
+        _baseAttackDamage = AttackDamage;
+        _baseAttackSpeed = AttackSpeed;
+        _baseMoveSpeed = MoveSpeed;
+
+        // Classification
+        UnitType = (int)definition.UnitType;
+        MovementLayer = (int)definition.MovementLayer;
+
+        // Build and cache targeting config from behavior
+        _definitionTargetingConfig = definition.Targeting.BuildConfig();
+
+        // Visual config
+        var visual = definition.Visual;
+        SeparationRadius = visual.SeparationRadius;
+        ShadowOpacity = visual.ShadowOpacity;
+        ShadowEnabled = visual.ShadowEnabled;
+        HpBarOffsetY = visual.HpBarOffsetY;
+        TargetPointOffset = visual.TargetPointOffset;
+
+        // Hurtbox config
+        if (visual.Hurtbox != null)
+        {
+            HurtboxHorizontal = visual.Hurtbox.Horizontal;
+            HurtboxHeight = visual.Hurtbox.Height;
+            HurtboxRadius = visual.Hurtbox.Radius;
+            HurtboxOffset = visual.Hurtbox.Offset;
+        }
+
+        // Flying config
+        if (definition.Flying != null)
+        {
+            FlightAltitude = definition.Flying.Altitude;
+            FlyingAttackStyle = definition.Flying.AttackStyle;
+            CanReturnToAir = definition.Flying.CanReturnToAir;
+            ReturnToAirDelay = definition.Flying.ReturnToAirDelay;
+            FlyingDeathStyle = definition.Flying.DeathStyle;
+        }
     }
 
     // =========================================================================

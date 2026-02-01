@@ -207,9 +207,9 @@ public partial class CardFactory : Node, ICardFactory
         if (card == null)
             return SummonResult.Fail($"Summon '{catalogId}' not found in C# CardCatalog");
 
-        // Get scene path: prefer UnitCatalog (via UnitId), fall back to UnitScenePath (legacy)
-        string scenePath = card.UnitId.HasValue
-            ? UnitCatalog.GetScenePath(card.UnitId)
+        // Get scene path: prefer UnitDefinitions (via UnitId), fall back to UnitScenePath (legacy)
+        string scenePath = card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out var unitDef) && unitDef != null
+            ? unitDef.ScenePath
             : card.UnitScenePath;
 
         if (string.IsNullOrEmpty(scenePath))
@@ -359,23 +359,22 @@ public partial class CardFactory : Node, ICardFactory
         }
         var mama = units[0];
 
-        // Load duckling scene
-        string ducklingScenePath = UnitCatalog.GetScenePath(UnitIds.Duckling);
-        if (string.IsNullOrEmpty(ducklingScenePath))
+        // Get duckling definition
+        if (!UnitDefinitions.TryGet(UnitIds.Duckling, out var ducklingDef) || ducklingDef == null)
         {
-            GD.PrintErr("[CardFactory] Duckling scene path not found in UnitCatalog");
+            GD.PrintErr("[CardFactory] Duckling not found in UnitDefinitions");
             return;
         }
 
-        var ducklingScene = GD.Load<PackedScene>(ducklingScenePath);
+        var ducklingScene = GD.Load<PackedScene>(ducklingDef.ScenePath);
         if (ducklingScene == null)
         {
-            GD.PrintErr($"[CardFactory] Failed to load duckling scene: {ducklingScenePath}");
+            GD.PrintErr($"[CardFactory] Failed to load duckling scene: {ducklingDef.ScenePath}");
             return;
         }
 
-        // Get duckling base stats
-        var ducklingStats = UnitCatalog.GetBaseStats(UnitIds.Duckling);
+        // Get duckling base stats from definition
+        var ducklingStats = ducklingDef.Stats;
 
         // Calculate spawn positions in a row behind mama
         // Direction is based on team: player team faces right (+X), enemy team faces left (-X)

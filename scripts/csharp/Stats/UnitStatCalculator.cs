@@ -78,16 +78,15 @@ public static class UnitStatCalculator
     /// </summary>
     private static UnitStats GetBaseStats(CardDefinition card)
     {
-        // New pattern: Use UnitCatalog when UnitId is set
+        // New pattern: Use UnitDefinitions when UnitId is set
         if (card.UnitId.HasValue)
         {
-            var catalogStats = UnitCatalog.GetBaseStats(card.UnitId);
-            if (catalogStats != UnitStats.Default)
+            if (UnitDefinitions.TryGet(card.UnitId, out var def) && def != null)
             {
-                return catalogStats;
+                return def.Stats;
             }
-            // UnitId set but not found in catalog - log warning and fall back
-            GD.PushWarning($"[UnitStatCalculator] UnitId '{card.UnitId}' not found in UnitCatalog, falling back to CardDefinition stats");
+            // UnitId set but not found in definitions - log warning and fall back
+            GD.PushWarning($"[UnitStatCalculator] UnitId '{card.UnitId}' not found in UnitDefinitions, falling back to CardDefinition stats");
         }
 
         // Legacy pattern: Use CardDefinition stats directly

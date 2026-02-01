@@ -175,6 +175,22 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
     }
 
     // =========================================================================
+    // DEFINITION APPLICATION
+    // =========================================================================
+
+    /// <summary>
+    /// Apply ranged-specific configuration from a UnitDefinition.
+    /// Called by UnitSpawner after base ApplyDefinition.
+    /// </summary>
+    public void ApplyRangedDefinition(RangedConfig rangedConfig)
+    {
+        ProjectileId = rangedConfig.ProjectileId.Value;
+        ProjectileDelay = rangedConfig.ProjectileDelay;
+        IsDelayedProjectile = rangedConfig.IsDelayedProjectile;
+        ProjectileSpeedEstimate = rangedConfig.ProjectileSpeedEstimate;
+    }
+
+    // =========================================================================
     // HELPERS
     // =========================================================================
 

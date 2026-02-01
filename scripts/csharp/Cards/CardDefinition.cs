@@ -49,14 +49,14 @@ public class CardDefinition
     // =========================================================================
 
     /// <summary>
-    /// References a unit type in UnitCatalog. When set, base stats come from UnitCatalog
+    /// References a unit type in UnitDefinitions. When set, base stats come from UnitDefinitions
     /// instead of the stat properties on this card. Use UnitModifier to apply variants.
     /// See docs/technical/unit-stat-pipeline.md for the full stat pipeline.
     /// </summary>
     public UnitId UnitId { get; init; } = UnitId.None;
 
     /// <summary>
-    /// Optional modifier to apply to base stats from UnitCatalog.
+    /// Optional modifier to apply to base stats from UnitDefinitions.
     /// Used for variant cards like swarms that spawn weaker versions of a unit.
     /// Example: Fire Wisp Swarm applies {max_hp: 0.75, attack_damage: 0.75} to fire_wisp.
     /// </summary>

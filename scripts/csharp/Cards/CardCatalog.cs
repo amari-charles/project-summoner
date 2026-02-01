@@ -728,16 +728,16 @@ public static class CardCatalog
     /// </summary>
     public static Godot.Collections.Dictionary ToDictionary(CardDefinition card)
     {
-        // Resolve scene path and stats from UnitCatalog when UnitId is set
-        string scenePath = card.UnitId.HasValue
-            ? UnitCatalog.GetScenePath(card.UnitId)
+        // Resolve scene path and stats from UnitDefinitions when UnitId is set
+        string scenePath = card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out var unitDef) && unitDef != null
+            ? unitDef.ScenePath
             : card.UnitScenePath;
 
-        // Get base stats from UnitCatalog (with card modifier applied) or from card directly
+        // Get base stats from UnitDefinitions (with card modifier applied) or from card directly
         UnitStats stats;
-        if (card.UnitId.HasValue)
+        if (card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out var def) && def != null)
         {
-            stats = UnitCatalog.GetBaseStats(card.UnitId);
+            stats = def.Stats;
             if (card.UnitModifier != null)
             {
                 stats = stats.WithModifiers([card.UnitModifier]);
