@@ -184,12 +184,12 @@ public static class SummonerCatalog
         var traitsArray = new Godot.Collections.Array();
         foreach (var traitId in summoner.InnateTraitIds)
         {
-            traitsArray.Add(traitId);
+            traitsArray.Add((string)traitId);
         }
 
         return new Godot.Collections.Dictionary
         {
-            ["summoner_id"] = summoner.Id,
+            ["summoner_id"] = (string)summoner.Id,
             ["name_key"] = summoner.NameKey,
             ["description_key"] = summoner.DescriptionKey,
             ["element_id"] = (int)ElementToGdElementId(summoner.ElementalAffinity),
@@ -199,7 +199,7 @@ public static class SummonerCatalog
             ["card_frame_style"] = summoner.CardFrameStyle,
             ["unlock_condition"] = summoner.UnlockCondition.ToGdString(),
             ["innate_trait_ids"] = traitsArray,
-            ["starter_card_id"] = summoner.StarterCardId
+            ["starter_card_id"] = (string)summoner.StarterCardId
         };
     }
 

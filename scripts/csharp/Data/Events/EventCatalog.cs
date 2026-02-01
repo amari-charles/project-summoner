@@ -453,7 +453,7 @@ public static class EventCatalog
     {
         var dict = new Godot.Collections.Dictionary
         {
-            ["id"] = evt.Id,
+            ["id"] = (string)evt.Id,
             ["type"] = evt.Type.ToStringId(),
             ["name_key"] = evt.NameKey,
             ["description_key"] = evt.DescriptionKey,
@@ -480,7 +480,7 @@ public static class EventCatalog
 
     private static void AddBattleFields(Godot.Collections.Dictionary dict, BattleEventDefinition battle)
     {
-        dict["biome_id"] = battle.Biome;
+        dict["biome_id"] = (string)battle.Biome;
         dict["difficulty"] = battle.Difficulty;
         dict["is_tutorial"] = battle.IsTutorial;
         dict["requires_deck"] = battle.RequiresDeck;
@@ -493,7 +493,7 @@ public static class EventCatalog
         {
             enemyDeck.Add(new Godot.Collections.Dictionary
             {
-                ["catalog_id"] = entry.CardId,
+                ["catalog_id"] = (string)entry.CardId,
                 ["count"] = entry.Count
             });
         }
@@ -507,7 +507,7 @@ public static class EventCatalog
             {
                 devDeck.Add(new Godot.Collections.Dictionary
                 {
-                    ["catalog_id"] = entry.CardId,
+                    ["catalog_id"] = (string)entry.CardId,
                     ["count"] = entry.Count
                 });
             }

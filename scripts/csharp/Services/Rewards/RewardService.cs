@@ -227,7 +227,7 @@ public partial class RewardService : Node
                         // Create SummonerInstance for the new summoner
                         var instance = new SummonerInstance
                         {
-                            SummonerId = summonerIdToGrant,
+                            SummonerId = new SummonerId(summonerIdToGrant),
                             Level = 1,
                             Xp = 0
                         };
@@ -428,7 +428,7 @@ public partial class RewardService : Node
         // Create instance
         var instance = new SummonerInstance
         {
-            SummonerId = summonerId,
+            SummonerId = new SummonerId(summonerId),
             Level = 1,
             Xp = 0
         };

@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using ProjectSummoner.Cards.Effects.Core;
 using ProjectSummoner.Units;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Cards.Effects.Concrete;
 
@@ -40,22 +41,22 @@ public class CommandEffect : SpellEffect
     /// <summary>
     /// VFX ID for rally circle.
     /// </summary>
-    public string RallyVFXId { get; set; } = "rally_circle";
+    public VfxId RallyVFXId { get; set; } = VfxIds.RallyCircle;
 
     /// <summary>
     /// VFX ID for guard markers.
     /// </summary>
-    public string GuardVFXId { get; set; } = "guard_marker";
+    public VfxId GuardVFXId { get; set; } = VfxIds.GuardMarker;
 
     /// <summary>
     /// VFX ID for charge marker.
     /// </summary>
-    public string ChargeVFXId { get; set; } = "charge_marker";
+    public VfxId ChargeVFXId { get; set; } = VfxIds.ChargeMarker;
 
     /// <summary>
     /// VFX ID for failed cast (no targets).
     /// </summary>
-    public string FizzleVFXId { get; set; } = "spell_fizzle";
+    public VfxId FizzleVFXId { get; set; } = VfxIds.SpellFizzle;
 
     // =========================================================================
     // CONSTANTS (Formation)
@@ -291,7 +292,7 @@ public class CommandEffect : SpellEffect
         var vfxManager = GetVFXManager(context);
         if (vfxManager != null && HasEffect(vfxManager, RallyVFXId))
         {
-            vfxManager.Call("play_effect", RallyVFXId, position,
+            vfxManager.Call("play_effect", (string)RallyVFXId, position,
                 new Godot.Collections.Dictionary { { "radius", CommandVFXRadius } });
         }
     }
@@ -306,7 +307,7 @@ public class CommandEffect : SpellEffect
                 var posVar = unit.Get("formation_position");
                 if (posVar.VariantType != Variant.Type.Nil)
                 {
-                    vfxManager.Call("play_effect", GuardVFXId, posVar.AsVector3());
+                    vfxManager.Call("play_effect", (string)GuardVFXId, posVar.AsVector3());
                 }
             }
         }
@@ -317,7 +318,7 @@ public class CommandEffect : SpellEffect
         var vfxManager = GetVFXManager(context);
         if (vfxManager != null && HasEffect(vfxManager, ChargeVFXId))
         {
-            vfxManager.Call("play_effect", ChargeVFXId, position,
+            vfxManager.Call("play_effect", (string)ChargeVFXId, position,
                 new Godot.Collections.Dictionary { { "radius", CommandVFXRadius } });
         }
     }
@@ -327,7 +328,7 @@ public class CommandEffect : SpellEffect
         var vfxManager = GetVFXManager(context);
         if (vfxManager != null && HasEffect(vfxManager, FizzleVFXId))
         {
-            vfxManager.Call("play_effect", FizzleVFXId, context.Position);
+            vfxManager.Call("play_effect", (string)FizzleVFXId, context.Position);
         }
     }
 
@@ -336,10 +337,10 @@ public class CommandEffect : SpellEffect
         return context.SceneTree?.Root?.GetNodeOrNull("/root/VFXManager");
     }
 
-    private static bool HasEffect(Node vfxManager, string effectId)
+    private static bool HasEffect(Node vfxManager, VfxId effectId)
     {
         if (!vfxManager.HasMethod("has_effect")) return false;
-        return vfxManager.Call("has_effect", effectId).AsBool();
+        return vfxManager.Call("has_effect", (string)effectId).AsBool();
     }
 }
 

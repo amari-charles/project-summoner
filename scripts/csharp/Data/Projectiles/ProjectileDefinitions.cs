@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ProjectSummoner.Projectiles;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Data.Projectiles;
 
@@ -45,7 +46,7 @@ public static class ProjectileDefinitions
         ProjectileId = ProjectileIds.Fireball,
         ProjectileName = "Fireball",
         ModelScenePath = "res://scenes/projectiles/fireball_visual.tscn",
-        HitVfx = "fireball_spell",
+        HitVfx = VfxIds.FireballSpell,
         MovementType = ProjectileMovementType.Arc,
         Speed = 22.0f,
         Lifetime = 4.0f,

@@ -3,7 +3,9 @@ using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Cards.Formations;
 using ProjectSummoner.Cards.Spawning;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Projectiles;
 using ProjectSummoner.Systems.Modifiers;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Cards;
 
@@ -31,8 +33,8 @@ public static class CardDefinitions
         SpellDamage = 100.0f,
         SpellRadius = 10.0f,
         SpellDuration = 0.5f,
-        ProjectileId = "fireball",
-        SpellVfx = "fireball_spell",
+        ProjectileId = ProjectileIds.Fireball,
+        SpellVfx = VfxIds.FireballSpell,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         UnlockCondition = UnlockCondition.Default,
@@ -109,7 +111,7 @@ public static class CardDefinitions
         Cooldown = 1.5f,
         SummonTime = 0.0f,
         SpellDamage = 60.0f,
-        ProjectileId = "mana_bolt",
+        ProjectileId = ProjectileIds.ManaBolt,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
         UnlockCondition = UnlockCondition.Default,

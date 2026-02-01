@@ -1,5 +1,6 @@
 using Godot;
 using ProjectSummoner.Units;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Abilities;
 
@@ -33,8 +34,7 @@ public partial class SlowOnHitAbility : BaseAbility
     public float SlowDuration { get; set; } = 2.0f;
 
     /// <summary>VFX played when slow is applied to a target.</summary>
-    [Export]
-    public string SlowAppliedVfx { get; set; } = "";
+    public VfxId SlowAppliedVfx { get; set; } = VfxId.None;
 
     // =========================================================================
     // INITIALIZATION
@@ -91,7 +91,7 @@ public partial class SlowOnHitAbility : BaseAbility
         }
 
         // Play VFX
-        if (!string.IsNullOrEmpty(SlowAppliedVfx))
+        if (SlowAppliedVfx.HasValue)
         {
             SpawnVfx(SlowAppliedVfx, target.GlobalPosition);
         }

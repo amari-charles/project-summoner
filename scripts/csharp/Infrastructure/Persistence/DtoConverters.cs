@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -34,7 +35,7 @@ public static class DtoConverters
 
         return new Godot.Collections.Dictionary
         {
-            ["summoner_id"] = instance.SummonerId,
+            ["summoner_id"] = (string)instance.SummonerId,
             ["level"] = instance.Level,
             ["xp"] = instance.Xp,
             ["equipped_items"] = equippedDict
@@ -80,7 +81,7 @@ public static class DtoConverters
 
         return new SummonerInstance
         {
-            SummonerId = summonerId,
+            SummonerId = new SummonerId(summonerId),
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
             EquippedItems = equippedItems

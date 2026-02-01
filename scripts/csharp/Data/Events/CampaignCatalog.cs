@@ -193,7 +193,7 @@ public static class CampaignCatalog
 
             var nodeDict = new Godot.Collections.Dictionary
             {
-                ["id"] = evt.Id,
+                ["id"] = (string)evt.Id,
                 ["type"] = evt.Type.ToStringId(),
                 ["position"] = evt.Position,
                 ["data"] = EventCatalog.ToDictionary(evt)

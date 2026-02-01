@@ -137,11 +137,12 @@ public static class TraitCatalog
     public static TraitDefinition[] GetAvailableTraitsForLevelUp(
         Summoners.SummonerDefinition summonerDef,
         int currentLevel,
-        IEnumerable<string> acquiredTraitIds,
+        IEnumerable<TraitId> acquiredTraitIds,
         int count = 3)
     {
         // Include innate traits in acquired set (can't re-acquire innate traits)
-        var acquired = new HashSet<string>(acquiredTraitIds);
+        // Convert TraitId to string for matching
+        var acquired = new HashSet<string>(acquiredTraitIds.Select(id => (string)id));
         foreach (var innateId in summonerDef.InnateTraitIds)
         {
             acquired.Add(innateId);

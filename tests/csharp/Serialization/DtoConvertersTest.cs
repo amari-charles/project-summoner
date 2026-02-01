@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GdUnit4;
 using Godot;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Campaign;
@@ -29,7 +30,7 @@ public class DtoConvertersTest
     {
         var original = new SummonerInstance
         {
-            SummonerId = "summoner_cole",
+            SummonerId = SummonerIds.Cole,
             Level = 5,
             Xp = 1500,
             EquippedItems = new Dictionary<ItemSlot, string?>
@@ -45,7 +46,7 @@ public class DtoConvertersTest
         var result = DtoConverters.FromSummonerDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.SummonerId).IsEqual("summoner_cole");
+        AssertThat((string)result!.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Level).IsEqual(5);
         AssertThat(result.Xp).IsEqual(1500);
         AssertThat(result.EquippedItems[ItemSlot.Weapon]).IsEqual("item_001");

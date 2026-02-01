@@ -10,7 +10,7 @@ namespace ProjectSummoner.Data.Summoners;
 public class SummonerDefinition
 {
     /// <summary>Unique identifier (e.g., "summoner_cole").</summary>
-    public required string Id { get; init; }
+    public required SummonerId Id { get; init; }
 
     /// <summary>Localization key for display name.</summary>
     public required string NameKey { get; init; }
@@ -37,10 +37,10 @@ public class SummonerDefinition
     public SummonerUnlockCondition UnlockCondition { get; init; } = SummonerUnlockCondition.DevOnly;
 
     /// <summary>Trait IDs that this summoner has innately.</summary>
-    public string[] InnateTraitIds { get; init; } = [];
+    public TraitId[] InnateTraitIds { get; init; } = [];
 
     /// <summary>Card catalog ID granted when this summoner is first selected.</summary>
-    public string StarterCardId { get; init; } = CardIds.FireWisp;
+    public CardId StarterCardId { get; init; } = CardIds.FireWisp;
 
     // =========================================================================
     // TRAIT ELIGIBILITY TAGS

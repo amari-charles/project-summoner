@@ -5,6 +5,7 @@ using ProjectSummoner.Capabilities;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Projectiles;
 using ProjectSummoner.Units;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Cards.Effects.Concrete;
 
@@ -48,13 +49,13 @@ public class DamageEffect : SpellEffect
     /// VFX effect ID to play at cast position.
     /// Uses VFXManager.play_effect() via GDScript interop.
     /// </summary>
-    public string? VFXId { get; set; }
+    public VfxId VFXId { get; set; } = VfxId.None;
 
     /// <summary>
     /// Projectile ID to spawn (if spell uses a projectile instead of instant damage).
     /// Uses ProjectileService.SpawnProjectile() for projectile spawning.
     /// </summary>
-    public string? ProjectileId { get; set; }
+    public ProjectileId ProjectileId { get; set; } = ProjectileId.None;
 
     // =========================================================================
     // EVENT HOOKS
@@ -79,14 +80,14 @@ public class DamageEffect : SpellEffect
     public override void Execute(SpellContext context)
     {
         // If projectile specified, spawn it instead of instant damage
-        if (!string.IsNullOrEmpty(ProjectileId))
+        if (ProjectileId.HasValue)
         {
             SpawnProjectile(context);
             return;
         }
 
         // If VFX specified, play it (VFX may handle damage application itself)
-        if (!string.IsNullOrEmpty(VFXId))
+        if (VFXId.HasValue)
         {
             PlayVFX(context);
             // If VFX handles damage, we're done
@@ -202,9 +203,6 @@ public class DamageEffect : SpellEffect
             targetPos.Y = ProjectileFlightHeight;
         }
 
-        // ProjectileId is guaranteed non-null here since we check before calling SpawnProjectile
-        var projectileIdValue = ProjectileId ?? "";
-
         // Spawn projectile via ProjectileService
         var options = new Godot.Collections.Dictionary
         {
@@ -213,7 +211,7 @@ public class DamageEffect : SpellEffect
         };
 
         ProjectileService.Instance.SpawnProjectile(
-            projectileIdValue,
+            ProjectileId,
             source ?? (context.Battlefield as Node3D)!,
             targetUnit,
             Damage,
@@ -246,9 +244,6 @@ public class DamageEffect : SpellEffect
             radius = circleTargeting.Radius;
         }
 
-        // VFXId is guaranteed non-null here since we check before calling PlayVFX
-        var vfxIdValue = VFXId ?? "";
-
         // Build VFX parameters dictionary, handling potential null battlefield
         var vfxParams = new Godot.Collections.Dictionary
         {
@@ -261,7 +256,7 @@ public class DamageEffect : SpellEffect
             vfxParams["battlefield"] = context.Battlefield;
         }
 
-        vfxManager.Call("play_effect", vfxIdValue, context.Position, vfxParams);
+        vfxManager.Call("play_effect", (string)VFXId, context.Position, vfxParams);
     }
 
     // =========================================================================

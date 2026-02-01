@@ -2,6 +2,7 @@ using Godot;
 using ProjectSummoner.Combat;
 using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Projectiles.Paths;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Projectiles;
 
@@ -51,7 +52,7 @@ public partial class Projectile3D : Area3D
     // CONFIGURATION (set by ProjectileData)
     // =========================================================================
 
-    public string ProjectileId { get; set; } = "";
+    public ProjectileId ProjectileId { get; set; } = ProjectileId.None;
     public ProjectileMovementType MovementType { get; set; } = ProjectileMovementType.Straight;
     public float Speed { get; set; } = 15f;
     public float Acceleration { get; set; } = 0f;
@@ -64,8 +65,8 @@ public partial class Projectile3D : Area3D
     public int PierceCount { get; set; } = 0;
     public float AoeRadius { get; set; } = 0f;
     public PackedScene? VisualScene { get; set; }
-    public string HitVfx { get; set; } = "";
-    public string TrailVfx { get; set; } = "";
+    public VfxId HitVfx { get; set; } = VfxId.None;
+    public VfxId TrailVfx { get; set; } = VfxId.None;
     public bool FadeOnHit { get; set; } = true;
     public float FadeDuration { get; set; } = 0.5f;
     public float FadeInDuration { get; set; } = 0f;
@@ -448,10 +449,10 @@ public partial class Projectile3D : Area3D
         _impactTriggered = true;
 
         // Spawn hit VFX
-        if (!string.IsNullOrEmpty(HitVfx))
+        if (HitVfx.HasValue)
         {
             var vfxManager = GetNodeOrNull("/root/VFXManager");
-            vfxManager?.Call("play_effect", HitVfx, impactPosition);
+            vfxManager?.Call("play_effect", (string)HitVfx, impactPosition);
         }
 
         // Apply AOE damage if radius is set
@@ -648,10 +649,10 @@ public partial class Projectile3D : Area3D
         }
 
         // Spawn trail VFX
-        if (!string.IsNullOrEmpty(TrailVfx))
+        if (TrailVfx.HasValue)
         {
             var vfxManager = GetNodeOrNull("/root/VFXManager");
-            vfxManager?.Call("play_effect", TrailVfx, GlobalPosition);
+            vfxManager?.Call("play_effect", (string)TrailVfx, GlobalPosition);
         }
     }
 

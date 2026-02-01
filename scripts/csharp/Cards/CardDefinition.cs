@@ -3,7 +3,9 @@ using ProjectSummoner.Cards.Formations;
 using ProjectSummoner.Cards.Spawning;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Data.Traits;
+using ProjectSummoner.Projectiles;
 using ProjectSummoner.Systems.Modifiers;
+using ProjectSummoner.Vfx;
 
 namespace ProjectSummoner.Cards;
 
@@ -129,10 +131,10 @@ public class CardDefinition
     public float SpellDuration { get; init; }
 
     /// <summary>Projectile ID for spells that use projectiles.</summary>
-    public string ProjectileId { get; init; } = "";
+    public ProjectileId ProjectileId { get; init; } = ProjectileId.None;
 
     /// <summary>VFX ID for spell visual effects.</summary>
-    public string SpellVfx { get; init; } = "";
+    public VfxId SpellVfx { get; init; } = VfxId.None;
 
     // =========================================================================
     // TACTICAL COMMAND PROPERTIES (for command spells)
