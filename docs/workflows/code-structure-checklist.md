@@ -344,6 +344,125 @@ public void SpawnUnit(string unitId, Vector3 position)
 
 ---
 
+## 13. Strongly-Typed ID Architecture
+
+**North Star:** All domain identifiers should be strongly-typed `readonly record struct` types, not raw strings.
+
+### The Pattern
+
+Every ID type in the codebase should follow this structure:
+
+```csharp
+public readonly record struct CardId(string Value)
+{
+    public override string ToString() => Value;
+
+    // Implicit TO string (for GDScript interop and serialization)
+    public static implicit operator string(CardId id) => id.Value;
+
+    // Explicit FROM string (forces intentional conversion)
+    public static explicit operator CardId(string value) => new(value);
+
+    public bool HasValue => !string.IsNullOrEmpty(Value);
+    public static readonly CardId None = new("");
+}
+```
+
+### Why This Pattern Exists
+
+**Prevents type confusion:**
+```csharp
+// BAD: Easy to pass wrong ID type - compiles fine, fails at runtime
+void ProcessCard(string cardId, string deckId, string playerId) { ... }
+ProcessCard(deckId, cardId, playerId);  // Oops! Wrong order, no compiler error
+
+// GOOD: Compiler catches mistakes
+void ProcessCard(CardId cardId, DeckId deckId, ProfileId playerId) { ... }
+ProcessCard(deckId, cardId, playerId);  // Compile error!
+```
+
+**Enables IDE support:**
+- Autocomplete shows available IDs of the correct type
+- Find all references works for specific ID types
+- Refactoring is safer and more precise
+
+### Conversion Guidelines
+
+**Implicit conversion TO string:** Allow for easy serialization and GDScript interop.
+```csharp
+string s = cardId;  // Works - implicit
+dict["card_id"] = cardId;  // Works - implicit to Variant
+```
+
+**Explicit conversion FROM string:** Requires intentional cast to create typed ID.
+```csharp
+CardId id = "card_001";  // Compile error - must be explicit
+CardId id = (CardId)"card_001";  // Works - explicit cast
+CardId id = new CardId("card_001");  // Works - constructor
+```
+
+### GDScript Boundary Pattern
+
+**String parameters at GDScript boundary, typed IDs internally:**
+
+```csharp
+// Public API accepts strings (called from GDScript)
+public void RecordChoice(string nodeId, string choiceId)
+{
+    RecordChoiceInternal(new NodeId(nodeId), new ChoiceId(choiceId));
+}
+
+// Internal methods use typed IDs
+private void RecordChoiceInternal(NodeId nodeId, ChoiceId choiceId)
+{
+    _choices[nodeId] = choiceId;
+}
+```
+
+**Repository pattern:** Convert at the boundary when calling GDScript.
+```csharp
+public CampaignProgress GetCampaignProgress(SummonerId summonerId)
+{
+    // Convert to string only when crossing to GDScript
+    var dict = _gdRepo.Call("get_campaign_progress", (string)summonerId);
+    return DtoConverters.FromCampaignDict(dict);
+}
+```
+
+### Well-Known ID Constants
+
+For IDs that are referenced throughout the codebase, create a companion static class:
+
+```csharp
+public static class CardIds
+{
+    public static readonly CardId FireWisp = new("fire_wisp");
+    public static readonly CardId IceGolem = new("ice_golem");
+    // ... compile-time validated, autocomplete-friendly
+}
+```
+
+### ID Types Hierarchy
+
+Organize ID types by domain:
+- **Cards:** `CardId`, `CardInstanceId`, `CardTraitId`
+- **Campaign:** `CampaignId`, `EventId`, `BattleId`, `NodeId`, `ChoiceId`
+- **Profile:** `ProfileId`, `DeckId`, `SummonerId`
+- **Cosmetics:** `CosmeticId`, `EmoteId`, `SkinId`
+- **Shop:** `ShopId`, `OfferingId`
+
+### Migration Strategy
+
+When migrating from `string` to typed IDs:
+1. Create the ID type with implicit/explicit operators
+2. Update domain models to use typed ID
+3. Update repository interface signatures
+4. Update service handlers (convert at boundaries)
+5. Update DTO converters for serialization
+6. Update tests to use typed IDs
+
+---
+
 ## Quick Reference Checklist
 
 Use during PR reviews:
@@ -360,3 +479,4 @@ Use during PR reviews:
 - [ ] No circular dependencies
 - [ ] Internal state not exposed through public API
 - [ ] Input validated at system boundaries
+- [ ] Domain IDs are strongly-typed (not raw strings)

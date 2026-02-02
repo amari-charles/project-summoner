@@ -53,6 +53,68 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Refactor Service Handlers to Typed-Only Internal Methods
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+
+**Description:**
+Service handlers currently accept `string` parameters and convert to typed IDs at the start of each method. As more internal C# code calls these handlers, this creates unnecessary conversions and loses type safety benefits.
+
+**Current Pattern:**
+```csharp
+// Public method accepts string (GDScript calls this)
+public void SaveProgress()
+{
+    var summonerId = _getActiveSummonerFunc();  // Returns string
+    var typedSummonerId = new SummonerId(summonerId);  // Convert immediately
+    var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
+    // ...
+}
+```
+
+**North Star Pattern:**
+```csharp
+// Public method for GDScript - accepts string, delegates to internal
+public void SaveProgress(string summonerId)
+{
+    SaveProgressInternal(new SummonerId(summonerId));
+}
+
+// Internal method uses typed IDs throughout
+internal void SaveProgressInternal(SummonerId summonerId)
+{
+    var progress = _profileRepo.GetCampaignProgress(summonerId);
+    // All internal calls use typed IDs
+}
+
+// C# callers use typed API directly
+_progressHandler.SaveProgressInternal(activeSummoner);
+```
+
+**Benefits:**
+- C# code maintains type safety end-to-end
+- String conversion happens once at GDScript boundary
+- Clearer distinction between public API and internal implementation
+- Enables future migration where GDScript also uses typed objects
+
+**Files to Refactor:**
+- `CampaignProgressHandler.cs` - SaveProgress, LoadProgress, ResetProgress
+- `CampaignRewardHandler.cs` - SetPendingReward, GetPendingReward, ClearPendingReward
+- `ChoiceTracker.cs` - Already has dual API pattern (RecordChoice vs RecordChoiceFromString)
+- `CardOwnershipHandler.cs` - GrantCards, GetCard, RemoveCard
+- `CardProgressionHandler.cs` - GrantXp, LevelUpCard
+- `DeckCrudHandler.cs` - CreateDeck, DeleteDeck, ValidateDeck
+- `EconomyService.cs` - AddCampaignGold, SpendCampaignGold
+- `SummonerProgressionService.cs` - GrantXp, LevelUp, GetProgressInfo
+
+**Notes:**
+- Lower priority - current pattern works correctly
+- Consider during natural refactoring of these files
+- `ChoiceTracker` already demonstrates the target pattern
+
+---
+
 #### Type-safe domain objects for Dictionary<string, object>
 **Status:** ⬜ Not Started
 **Category:** Architecture / Type Safety
