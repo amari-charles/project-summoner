@@ -4,7 +4,7 @@ Technical documentation for the projectile system including movement, accelerati
 
 ## Overview
 
-Projectiles are managed by `ProjectileService` (C# autoload) and use pooling for performance. Each projectile type is defined in JSON files under `data/projectiles/` and loaded by `ProjectileCatalog` (C# autoload).
+Projectiles are managed by `ProjectileService` (C# autoload) and use pooling for performance. Each projectile type is defined in `ProjectileDefinitions.cs` (static C# definitions) and accessed via `ProjectileCatalog` (C# autoload).
 
 ## Projectile Data Properties
 
@@ -52,12 +52,14 @@ The acceleration system allows projectiles to speed up or slow down over time.
 
 ### Example: Wind Puff (starts fast, slows down)
 
-```json
+```csharp
+public static readonly ProjectileData WindPuff = new()
 {
-  "speed": 25.0,
-  "acceleration": -12.0,
-  "min_speed": 5.0
-}
+    Speed = 25.0f,
+    Acceleration = -12.0f,
+    MinSpeed = 5.0f,
+    // ...
+};
 ```
 
 This starts at 25 units/s and decelerates to 5 units/s over ~1.67 seconds:
@@ -97,14 +99,16 @@ Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
 
 ### Example: Tracking Straight Projectile
 
-```json
+```csharp
+public static readonly ProjectileData WindPuff = new()
 {
-  "movement_type": "straight",
-  "tracking": true,
-  "speed": 25.0,
-  "acceleration": -12.0,
-  "min_speed": 5.0
-}
+    MovementType = ProjectileMovementType.Straight,
+    Tracking = true,
+    Speed = 25.0f,
+    Acceleration = -12.0f,
+    MinSpeed = 5.0f,
+    // ...
+};
 ```
 
 This creates a straight projectile that continuously adjusts its trajectory to hit moving targets.
@@ -140,11 +144,13 @@ The fade-out works with both `StandardMaterial3D` (tweens `albedo_color.a`) and 
 
 ### Example: Quick Fade
 
-```json
+```csharp
+public static readonly ProjectileData WindPuff = new()
 {
-  "fade_on_hit": true,
-  "fade_duration": 0.1
-}
+    FadeOnHit = true,
+    FadeDuration = 0.1f,
+    // ...
+};
 ```
 
 This creates a quick 0.1 second fade-out, useful for fast projectiles like wind puffs that shouldn't linger visually.
