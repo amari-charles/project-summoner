@@ -128,7 +128,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         var gdDelta = new Godot.Collections.Dictionary();
         foreach (var kvp in delta)
         {
-            gdDelta[EnumSerializers.Serialize(kvp.Key)] = kvp.Value;
+            gdDelta[kvp.Key.ToString().ToLowerInvariant()] = kvp.Value;
         }
         _gdProfileRepo!.Call("update_resources", gdDelta);
     }
@@ -215,7 +215,7 @@ public partial class ProfileRepository : Node, IProfileRepository
             {
                 ["catalog_id"] = (string)catalogId,
                 ["rarity"] = rarity,
-                ["binding"] = EnumSerializers.Serialize(binding)
+                ["binding"] = (int)binding
             };
             if (binding == ContentBinding.SummonerBound && boundTo.HasValue && boundTo.Value.HasValue)
             {

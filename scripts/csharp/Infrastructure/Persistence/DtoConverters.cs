@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -36,7 +37,7 @@ public static class DtoConverters
         var equippedDict = new Godot.Collections.Dictionary();
         foreach (var (slot, itemId) in instance.EquippedItems)
         {
-            equippedDict[EnumSerializers.Serialize(slot)] = itemId.HasValue ? (string)itemId.Value : "";
+            equippedDict[slot.ToString().ToLowerInvariant()] = itemId.HasValue ? (string)itemId.Value : "";
         }
 
         return new Godot.Collections.Dictionary
@@ -76,11 +77,10 @@ public static class DtoConverters
                 var itemIdStr = equippedDict[key].VariantType != Variant.Type.Nil ? equippedDict[key].AsString() : null;
                 ItemId? itemId = string.IsNullOrEmpty(itemIdStr) ? null : new ItemId(itemIdStr);
 
-                // Use EnumSerializers for consistent deserialization
-                var slot = EnumSerializers.DeserializeSlot(slotStr);
-                if (slot.HasValue)
+                // Parse slot from string
+                if (Enum.TryParse<ItemSlot>(slotStr, ignoreCase: true, out var slot))
                 {
-                    equippedItems[slot.Value] = itemId;
+                    equippedItems[slot] = itemId;
                 }
             }
         }
@@ -111,7 +111,7 @@ public static class DtoConverters
             ["xp"] = card.Xp,
             ["upgrades"] = TraitsToGodotArray(card.Traits),
             ["created_at"] = card.CreatedAt,
-            ["binding"] = EnumSerializers.Serialize(card.Binding)
+            ["binding"] = (int)card.Binding
         };
 
         if (card.RollJson != null)
@@ -153,7 +153,9 @@ public static class DtoConverters
         var binding = ContentBinding.AccountWide;
         if (dict.TryGetValue("binding", out var bindingVar))
         {
-            binding = EnumSerializers.DeserializeBinding(bindingVar.AsInt32());
+            var bindingInt = bindingVar.AsInt32();
+            if (Enum.IsDefined(typeof(ContentBinding), bindingInt))
+                binding = (ContentBinding)bindingInt;
         }
 
         var boundToStr = GetNullableString(dict, "bound_to");
@@ -188,7 +190,7 @@ public static class DtoConverters
             ["catalog_id"] = (string)item.CatalogId,
             ["equipped_by"] = item.EquippedBySummonerId.HasValue ? (string)item.EquippedBySummonerId.Value : "",
             ["bound_to"] = item.BoundToSummonerId.HasValue ? (string)item.BoundToSummonerId.Value : "",
-            ["slot"] = item.EquippedSlot.HasValue ? EnumSerializers.Serialize(item.EquippedSlot.Value) : ""
+            ["slot"] = item.EquippedSlot.HasValue ? item.EquippedSlot.Value.ToString().ToLowerInvariant() : ""
         };
     }
 
@@ -213,7 +215,7 @@ public static class DtoConverters
             CatalogId = new ItemId(catalogIdStr),
             EquippedBySummonerId = string.IsNullOrEmpty(equippedByStr) ? null : new SummonerId(equippedByStr),
             BoundToSummonerId = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr),
-            EquippedSlot = EnumSerializers.DeserializeSlot(GetNullableString(dict, "slot"))
+            EquippedSlot = ParseNullableSlot(GetNullableString(dict, "slot"))
         };
     }
 
@@ -884,5 +886,12 @@ public static class DtoConverters
             long l => (int)l,
             _ => value?.ToString() ?? ""
         };
+    }
+
+    /// <summary>Parse nullable ItemSlot from string.</summary>
+    private static ItemSlot? ParseNullableSlot(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+        return Enum.TryParse<ItemSlot>(value, ignoreCase: true, out var slot) ? slot : null;
     }
 }
