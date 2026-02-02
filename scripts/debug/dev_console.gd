@@ -20,7 +20,7 @@ extends Node
 ##   /snapshot_load <name> - Load a profile snapshot
 ##   /snapshot_list - List all available snapshots
 ##   /snapshot_delete <name> - Delete a snapshot
-##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_cole, summoner_selene)
+##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_cole, summoner_celine)
 ##   /unlock_all_summoners - Unlock all starting summoners
 ##   /items_grant <item_id> - Grant an item to inventory
 ##   /items_grant_all - Grant all starter items
@@ -182,6 +182,8 @@ func _cmd_save_wipe() -> bool:
 
 	_repo.call("reset_profile")
 	print("DevConsole: Save wiped, fresh profile created")
+	print("DevConsole: Returning to title screen...")
+	SceneManager.transition_to(SceneManager.SCENE_TITLE_SCREEN)
 	return true
 
 func _cmd_grant_cards(args: PackedStringArray) -> bool:
@@ -475,7 +477,7 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 
 	if args.size() == 0:
 		print("DevConsole: Usage: /unlock_summoner <summoner_id>")
-		print("DevConsole: Valid IDs: summoner_cole, summoner_selene, summoner_mei, summoner_teo")
+		print("DevConsole: Valid IDs: summoner_cole, summoner_celine, summoner_mei, summoner_teo")
 		return false
 
 	var summoner_id: String = args[0]
@@ -484,7 +486,7 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 	# Check if valid summoner
 	if not SummonerIDs.is_valid(summoner_id):
 		print("DevConsole: Invalid summoner ID: %s" % summoner_id)
-		print("DevConsole: Valid IDs: summoner_cole, summoner_selene, summoner_mei, summoner_teo")
+		print("DevConsole: Valid IDs: summoner_cole, summoner_celine, summoner_mei, summoner_teo")
 		return false
 
 	# Create summoner instance data

@@ -34,7 +34,7 @@ public class SummonerCatalogTest
     [TestCase]
     public void HasSummoner_ReturnsTrue_WhenSummonerExists()
     {
-        var exists = SummonerCatalog.HasSummoner(SummonerIds.Selene);
+        var exists = SummonerCatalog.HasSummoner(SummonerIds.Celine);
 
         AssertThat(exists).IsTrue();
     }

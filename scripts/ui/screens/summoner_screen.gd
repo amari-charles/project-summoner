@@ -144,8 +144,7 @@ func _refresh_all() -> void:
 
 	# Update header
 	summoner_name_label.text = config.summoner_name.to_upper()
-	element_label.text = ElementTypes.get_display_name(element)
-	element_label.add_theme_color_override("font_color", element_color)
+	element_label.visible = false  # Summoners are associated with elements, not defined by them
 	level_label.text = Loc.t("ui.summoner_panel.level_display", {"level": level})
 
 	# Update background with element-themed energy waves
@@ -345,19 +344,10 @@ func _refresh_stats(config: SummonerConfig) -> void:
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
 	var cast_speed: float = computed_stats.get("cast_speed", config.base_cast_speed)
 
-	# Core stats
+	# Core stats only - secondary stats (damage_bonus, damage_reduction) are internal modifiers
 	_add_stat_row(Loc.t("ui.summoner_screen.stats_hp"), str(int(hp)), Color(0.9, 0.3, 0.3))
 	_add_stat_row(Loc.t("ui.summoner_screen.stats_mana"), str(int(mana)), Color(0.3, 0.5, 0.9))
 	_add_stat_row(Loc.t("ui.summoner_screen.stats_cast_speed"), "%.2fx" % cast_speed, Color(0.7, 0.5, 0.9))
-
-	# Additional modifiers from traits
-	var damage_bonus: float = computed_stats.get("damage_bonus", 0.0)
-	if damage_bonus > 0:
-		_add_stat_row(Loc.t("ui.summoner_screen.stats_damage"), "+%d%%" % int(damage_bonus * 100), Color(0.9, 0.6, 0.3))
-
-	var damage_reduction: float = computed_stats.get("damage_reduction", 0.0)
-	if damage_reduction > 0:
-		_add_stat_row(Loc.t("ui.summoner_screen.stats_defense"), "+%d%%" % int(damage_reduction * 100), Color(0.5, 0.8, 0.5))
 
 
 func _add_stat_row(label_text: String, value_text: String, value_color: Color) -> void:
@@ -401,14 +391,28 @@ func _refresh_traits(config: SummonerConfig) -> void:
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
-	# Show innate traits
-	for trait_id: String in config.innate_trait_ids:
-		var trait_card: PanelContainer = _create_trait_card(trait_id, true)
+	# Get summoner instance to access acquired traits
+	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_current_summoner_id)
+	var all_trait_ids: Array[String] = []
+
+	if not summoner_instance_data.is_empty():
+		var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
+		if summoner_instance:
+			all_trait_ids = summoner_instance.get_all_trait_ids()
+	else:
+		# Fallback to innate only if no instance
+		for trait_id: String in config.innate_trait_ids:
+			all_trait_ids.append(trait_id)
+
+	# Show all traits
+	for trait_id: String in all_trait_ids:
+		var is_innate: bool = trait_id in config.innate_trait_ids
+		var trait_card: PanelContainer = _create_trait_card(trait_id, is_innate)
 		if trait_card:
 			traits_container.add_child(trait_card)
 
 	# Show message if no traits
-	if config.innate_trait_ids.is_empty():
+	if all_trait_ids.is_empty():
 		var no_traits_label: Label = Label.new()
 		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
 		no_traits_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.3))

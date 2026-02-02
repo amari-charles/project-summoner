@@ -64,8 +64,8 @@ var show_spells: bool = true
 var selected_elements: Array[String] = []  # Empty = all elements
 var search_text: String = ""
 
-## Element list for filtering
-const ELEMENTS: Array[String] = ["fire", "water", "earth", "air", "light", "dark", "neutral"]
+## Element list for filtering (must match keys in localization/data/en.json elements section)
+const ELEMENTS: Array[String] = ["fire", "water", "wind", "earth", "lightning", "shadow", "life", "death", "neutral"]
 
 ## Sort state
 enum SortField { NAME, COST, RARITY, TYPE, LEVEL, ELEMENT }

@@ -639,7 +639,7 @@ This ensures each summoner feels like a genuine build.
 ### Profile
 ```json
 {
-  "unlocked_summoners": ["summoner_cole", "summoner_selene"],
+  "unlocked_summoners": ["summoner_cole", "summoner_celine"],
   "global_event_cards": ["card_occult_ascension", "card_phoenix_blessing"],
   "cosmetics": [],
   "unlocked_summoner_slots": 2
@@ -647,7 +647,7 @@ This ensures each summoner feels like a genuine build.
 ```
 
 **Note on Summoner IDs:**
-- **MVP Phase**: Uses template IDs (`"summoner_cole"`, `"summoner_selene"`) in `unlocked_summoners` array
+- **MVP Phase**: Uses template IDs (`"summoner_cole"`, `"summoner_celine"`) in `unlocked_summoners` array
   - Simpler model: one instance per summoner template
   - Profile tracks which summoner templates are unlocked
 - **Post-MVP (Future)**: May use instance IDs (`"summoner_cole_001"`, `"summoner_cole_002"`) if supporting multiple instances per template

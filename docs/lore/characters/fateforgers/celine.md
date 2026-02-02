@@ -1,4 +1,4 @@
-# Selene — Water Fateforger
+# Celine — Water Fateforger
 
 **Element:** Water
 **Gender:** Woman
