@@ -134,11 +134,29 @@ func _update_stats_display() -> void:
 	var card_type: int = int(card_type_val)
 
 	if card_type == Card.CardType.SUMMON:
-		# Show summon stats: HP, Damage, Speed, Attack Speed
+		# Show summon stats: HP, Damage, Speed, Attack Speed, Crit
 		_add_stat_label("stat_hp", effective_stats.get("max_hp", 0))
 		_add_stat_label("stat_damage", effective_stats.get("attack_damage", 0))
+
+		# Show damage type based on elemental affinity
+		var element_str: String = effective_stats.get("elemental_affinity", "neutral")
+		var damage_type: String = _get_damage_type_display(element_str)
+		_add_stat_label_text("stat_damage_type", damage_type)
+
 		_add_stat_label("stat_move_speed", effective_stats.get("move_speed", 0))
 		_add_stat_label("stat_attack_speed", effective_stats.get("attack_speed", 0))
+
+		# Show crit stats
+		var crit_chance: float = effective_stats.get("crit_chance", 0.0)
+		_add_stat_label_percent("stat_crit_chance", crit_chance)
+		var crit_damage: float = effective_stats.get("crit_damage", 1.5)
+		_add_stat_label_multiplier("stat_crit_damage", crit_damage)
+
+		# Show defensive stats
+		var armor: float = effective_stats.get("armor", 0.0)
+		_add_stat_label("stat_armor", armor)
+		var magic_resist: float = effective_stats.get("magic_resist", 0.0)
+		_add_stat_label("stat_magic_resist", magic_resist)
 	else:
 		# Show spell stats: Spell Damage, Spell Radius (if applicable)
 		var spell_damage: Variant = effective_stats.get("spell_damage", null)
@@ -196,6 +214,46 @@ func _add_stat_label(loc_key: String, value: Variant) -> void:
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	stats_container.add_child(label)
+
+
+func _add_stat_label_percent(loc_key: String, value: float) -> void:
+	var label: Label = Label.new()
+	var stat_name: String = Loc.t("ui.collection." + loc_key)
+	var value_str: String = "%d%%" % int(value * 100)
+
+	label.text = "%s: %s" % [stat_name, value_str]
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	stats_container.add_child(label)
+
+
+func _add_stat_label_multiplier(loc_key: String, value: float) -> void:
+	var label: Label = Label.new()
+	var stat_name: String = Loc.t("ui.collection." + loc_key)
+	var value_str: String = "%.1fx" % value
+
+	label.text = "%s: %s" % [stat_name, value_str]
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	stats_container.add_child(label)
+
+
+func _add_stat_label_text(loc_key: String, value_text: String) -> void:
+	var label: Label = Label.new()
+	var stat_name: String = Loc.t("ui.collection." + loc_key)
+
+	label.text = "%s: %s" % [stat_name, value_text]
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	stats_container.add_child(label)
+
+
+func _get_damage_type_display(element_str: String) -> String:
+	# Neutral element means physical damage
+	if element_str.is_empty() or element_str == "neutral":
+		return Loc.t("ui.collection.damage_type_physical")
+	# Otherwise it's elemental damage - capitalize the element name
+	return element_str.capitalize()
 
 ## =============================================================================
 ## PROGRESSION DISPLAY

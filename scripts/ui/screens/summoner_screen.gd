@@ -343,10 +343,12 @@ func _refresh_stats(config: SummonerConfig) -> void:
 	var computed_stats: Dictionary = _get_computed_stats(_current_summoner_id)
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
+	var cast_speed: float = computed_stats.get("cast_speed", config.base_cast_speed)
 
 	# Core stats
 	_add_stat_row(Loc.t("ui.summoner_screen.stats_hp"), str(int(hp)), Color(0.9, 0.3, 0.3))
 	_add_stat_row(Loc.t("ui.summoner_screen.stats_mana"), str(int(mana)), Color(0.3, 0.5, 0.9))
+	_add_stat_row(Loc.t("ui.summoner_screen.stats_cast_speed"), "%.2fx" % cast_speed, Color(0.7, 0.5, 0.9))
 
 	# Additional modifiers from traits
 	var damage_bonus: float = computed_stats.get("damage_bonus", 0.0)

@@ -199,6 +199,40 @@ When the camera is zoomed in, players should be able to pan closer to the battle
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Implement Armor/MagicResist Damage Reduction Formulas
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Stats
+**Effort:** Medium
+
+**Description:**
+Armor and MagicResist stats are now defined in UnitStats but not yet integrated into combat. Need to implement damage reduction formulas in DamageSystem.
+
+**Current State:**
+- `Armor` and `MagicResist` added to StatKey and UnitStats (default 0)
+- `DamageProfile` class created to define physical vs elemental damage split
+- No damage reduction currently applied based on these stats
+
+**Requirements:**
+- Design damage reduction formula (percentage-based, flat, or diminishing returns)
+- Integrate into `DamageSystem.ApplyDamage()`:
+  - Physical damage reduced by target's Armor
+  - Elemental damage reduced by target's MagicResist
+- Use unit's `DamageProfile` to determine damage split
+- Add UI indicators for damage types on cards
+
+**Formula Options:**
+1. **Flat reduction**: `finalDamage = max(0, damage - armor)`
+2. **Percentage**: `finalDamage = damage * (100 / (100 + armor))`
+3. **Diminishing returns**: Similar to percentage but caps effectiveness
+
+**Related Files:**
+- `scripts/csharp/Combat/DamageSystem.cs` - Damage calculation
+- `scripts/csharp/Stats/UnitStats.cs` - Armor, MagicResist properties
+- `scripts/csharp/Units/DamageProfile.cs` - Physical/elemental ratio
+- `scripts/csharp/Units/UnitDefinition.cs` - DamageProfile property
+
+---
+
 #### Implement OnDeath Trigger for Modifier System
 **Status:** ⬜ Not Started
 **Category:** Units & Combat / Modifiers
