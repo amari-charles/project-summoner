@@ -12,6 +12,9 @@ public readonly record struct TraitId(string Value)
     /// <summary>Implicit conversion to string for interop with existing systems.</summary>
     public static implicit operator string(TraitId id) => id.Value;
 
+    /// <summary>Explicit conversion from string.</summary>
+    public static explicit operator TraitId(string value) => new(value);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

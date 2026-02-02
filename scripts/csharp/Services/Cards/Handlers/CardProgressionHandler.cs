@@ -45,7 +45,8 @@ public class CardProgressionHandler
         if (amount <= 0)
             return 0;
 
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var typedCardId = new CardInstanceId(cardInstanceId);
+        var card = _profileRepo.GetCard(typedCardId);
         if (card == null)
         {
             GD.PushWarning($"CardProgressionHandler: Card not found: {cardInstanceId}");
@@ -53,7 +54,7 @@ public class CardProgressionHandler
         }
 
         var newXp = card.Xp + amount;
-        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate { Xp = newXp });
+        _profileRepo.UpdateCard(typedCardId, new CardUpdate { Xp = newXp });
 
         GD.Print($"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' (now: {newXp})");
         return newXp;
@@ -93,7 +94,7 @@ public class CardProgressionHandler
     /// <summary>Get XP needed for next level.</summary>
     public int GetXpToNextLevel(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null || card.Level >= MaxLevel)
             return 0;
 
@@ -104,7 +105,7 @@ public class CardProgressionHandler
     /// <summary>Get progress toward next level (0.0 - 1.0).</summary>
     public float GetLevelProgress(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null)
             return 0f;
 
@@ -128,7 +129,7 @@ public class CardProgressionHandler
     /// <summary>Check if card has enough XP to level up.</summary>
     public bool CanLevelUp(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null || card.Level >= MaxLevel)
             return false;
 
@@ -152,7 +153,8 @@ public class CardProgressionHandler
 
     private bool LevelUpCardInternal(string cardInstanceId, CardTraitId traitId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var typedCardId = new CardInstanceId(cardInstanceId);
+        var card = _profileRepo.GetCard(typedCardId);
         if (card == null)
         {
             GD.PushError($"CardProgressionHandler: Card not found: {cardInstanceId}");
@@ -177,7 +179,7 @@ public class CardProgressionHandler
         var newLevel = card.Level + 1;
         var newTraits = new List<CardTraitId>(card.Traits) { traitId };
 
-        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
+        _profileRepo.UpdateCard(typedCardId, new CardUpdate
         {
             Level = newLevel,
             Traits = newTraits
@@ -194,7 +196,7 @@ public class CardProgressionHandler
     /// <summary>Get available traits for card's next level.</summary>
     public List<CardTrait> GetAvailableTraits(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null || card.Level >= MaxLevel)
             return [];
 
@@ -204,7 +206,7 @@ public class CardProgressionHandler
     /// <summary>Get all traits applied to a card.</summary>
     public List<CardTraitId> GetAppliedTraits(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null)
             return [];
 
@@ -214,7 +216,7 @@ public class CardProgressionHandler
     /// <summary>Get stat modifiers from card's traits.</summary>
     public Dictionary<string, float> GetTraitStatModifiers(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null)
             return [];
 
@@ -245,7 +247,7 @@ public class CardProgressionHandler
     /// <summary>Get card progression info for UI.</summary>
     public CardProgressionInfo? GetCardProgressionInfo(string cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
+        var card = _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
         if (card == null)
             return null;
 

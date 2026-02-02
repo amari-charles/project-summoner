@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -261,7 +262,7 @@ public partial class EconomyService : Node
 
 		if (string.IsNullOrEmpty(targetId)) return 0;
 
-		var progress = _profileRepo.GetCampaignProgress(targetId);
+		var progress = _profileRepo.GetCampaignProgress(new SummonerId(targetId));
 		return progress?.Gold ?? 0;
 	}
 
@@ -292,7 +293,8 @@ public partial class EconomyService : Node
 			return;
 		}
 
-		var progress = _profileRepo.GetCampaignProgress(targetId);
+		var typedTargetId = new SummonerId(targetId);
+		var progress = _profileRepo.GetCampaignProgress(typedTargetId);
 		if (progress == null)
 		{
 			GD.PushWarning($"EconomyService.AddCampaignGold: No campaign progress for summoner '{targetId}'");
@@ -300,7 +302,7 @@ public partial class EconomyService : Node
 		}
 
 		progress.Gold += amount;
-		_profileRepo.UpdateCampaignProgress(targetId, progress);
+		_profileRepo.UpdateCampaignProgress(typedTargetId, progress);
 
 		GD.Print($"EconomyService: Added {amount} campaign gold to '{targetId}' (now: {progress.Gold})");
 		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
@@ -326,11 +328,12 @@ public partial class EconomyService : Node
 
 		if (string.IsNullOrEmpty(targetId)) return false;
 
-		var progress = _profileRepo.GetCampaignProgress(targetId);
+		var typedTargetId = new SummonerId(targetId);
+		var progress = _profileRepo.GetCampaignProgress(typedTargetId);
 		if (progress == null) return false;
 
 		progress.Gold -= amount;
-		_profileRepo.UpdateCampaignProgress(targetId, progress);
+		_profileRepo.UpdateCampaignProgress(typedTargetId, progress);
 
 		GD.Print($"EconomyService: Spent {amount} campaign gold from '{targetId}' (now: {progress.Gold})");
 		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
@@ -358,12 +361,13 @@ public partial class EconomyService : Node
 
 		if (string.IsNullOrEmpty(targetId)) return;
 
-		var progress = _profileRepo.GetCampaignProgress(targetId);
+		var typedTargetId = new SummonerId(targetId);
+		var progress = _profileRepo.GetCampaignProgress(typedTargetId);
 		if (progress == null) return;
 
 		var previousGold = progress.Gold;
 		progress.Gold = 0;
-		_profileRepo.UpdateCampaignProgress(targetId, progress);
+		_profileRepo.UpdateCampaignProgress(typedTargetId, progress);
 
 		GD.Print($"EconomyService: Cleared {previousGold} campaign gold from '{targetId}'");
 		EmitSignal(SignalName.CampaignGoldChanged, targetId, 0);

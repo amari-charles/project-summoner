@@ -5,6 +5,7 @@ using Godot;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Data.Summoners;
+using ProjectSummoner.Domain.Profile;
 using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Domain.Profile.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -165,9 +166,10 @@ public partial class RewardService : Node
 
                 if (!string.IsNullOrEmpty(summonerId))
                 {
-                    var progress = _profileRepo.GetCampaignProgress(summonerId);
+                    var typedSummonerId = new SummonerId(summonerId);
+                    var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
                     progress.Gold += campaignGold;
-                    _profileRepo.UpdateCampaignProgress(summonerId, progress);
+                    _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
                 }
             }
         }
@@ -196,8 +198,10 @@ public partial class RewardService : Node
                     continue;
 
                 // Grant multiple copies with binding
+                var typedCatalogId = new CardId(catalogId);
+                SummonerId? typedBoundTo = !string.IsNullOrEmpty(boundTo) ? new SummonerId(boundTo) : null;
                 var cardsToGrant = Enumerable.Range(0, count)
-                    .Select(_ => (catalogId, rarity, binding, boundTo))
+                    .Select(_ => (typedCatalogId, rarity, binding, typedBoundTo))
                     .ToList();
 
                 var instanceIds = _profileRepo.GrantCards(cardsToGrant);
@@ -215,9 +219,10 @@ public partial class RewardService : Node
             var summonerIdToGrant = summonerVar.AsString();
             if (!string.IsNullOrEmpty(summonerIdToGrant))
             {
-                if (!_profileRepo.IsSummonerUnlocked(summonerIdToGrant))
+                var typedSummonerIdToGrant = new SummonerId(summonerIdToGrant);
+                if (!_profileRepo.IsSummonerUnlocked(typedSummonerIdToGrant))
                 {
-                    if (!_profileRepo.UnlockSummoner(summonerIdToGrant))
+                    if (!_profileRepo.UnlockSummoner(typedSummonerIdToGrant))
                     {
                         GD.PushError($"RewardService: Failed to unlock summoner {summonerIdToGrant}");
                         success = false;
@@ -248,7 +253,7 @@ public partial class RewardService : Node
             var cosmeticId = cosmeticVar.AsString();
             if (!string.IsNullOrEmpty(cosmeticId))
             {
-                if (!_profileRepo.GrantCosmetic(cosmeticId))
+                if (!_profileRepo.GrantCosmetic(new CosmeticId(cosmeticId)))
                 {
                     GD.PushError($"RewardService: Failed to grant cosmetic {cosmeticId}");
                     success = false;
@@ -266,7 +271,7 @@ public partial class RewardService : Node
             var emoteId = emoteVar.AsString();
             if (!string.IsNullOrEmpty(emoteId))
             {
-                if (!_profileRepo.GrantEmote(emoteId))
+                if (!_profileRepo.GrantEmote(new EmoteId(emoteId)))
                 {
                     GD.PushError($"RewardService: Failed to grant emote {emoteId}");
                     success = false;
@@ -286,7 +291,7 @@ public partial class RewardService : Node
                 var cosmeticId = cosmeticItem.AsString();
                 if (!string.IsNullOrEmpty(cosmeticId))
                 {
-                    if (!_profileRepo.GrantCosmetic(cosmeticId))
+                    if (!_profileRepo.GrantCosmetic(new CosmeticId(cosmeticId)))
                     {
                         GD.PushError($"RewardService: Failed to grant cosmetic {cosmeticId}");
                         success = false;
@@ -315,8 +320,9 @@ public partial class RewardService : Node
     {
         if (_profileRepo == null) return false;
 
+        var typedCatalogId = new CardId(catalogId);
         var cardsToGrant = Enumerable.Range(0, count)
-            .Select(_ => (catalogId, rarity))
+            .Select(_ => (typedCatalogId, rarity))
             .ToList();
 
         var instanceIds = _profileRepo.GrantCards(cardsToGrant);
@@ -349,9 +355,10 @@ public partial class RewardService : Node
             return false;
         }
 
-        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        var typedSummonerId = new SummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
         progress.Gold += amount;
-        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+        _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
 
         GD.Print($"RewardService: Granted {amount} campaign gold");
         return true;
@@ -413,13 +420,14 @@ public partial class RewardService : Node
     {
         if (_profileRepo == null || string.IsNullOrEmpty(summonerId)) return false;
 
-        if (_profileRepo.IsSummonerUnlocked(summonerId))
+        var typedSummonerId = new SummonerId(summonerId);
+        if (_profileRepo.IsSummonerUnlocked(typedSummonerId))
         {
             GD.Print($"RewardService: Summoner {summonerId} already unlocked");
             return true;
         }
 
-        if (!_profileRepo.UnlockSummoner(summonerId))
+        if (!_profileRepo.UnlockSummoner(typedSummonerId))
         {
             GD.PushError($"RewardService: Failed to unlock summoner {summonerId}");
             return false;
@@ -442,7 +450,7 @@ public partial class RewardService : Node
     {
         if (_profileRepo == null || string.IsNullOrEmpty(cosmeticId)) return false;
 
-        if (!_profileRepo.GrantCosmetic(cosmeticId))
+        if (!_profileRepo.GrantCosmetic(new CosmeticId(cosmeticId)))
         {
             GD.PushError($"RewardService: Failed to grant cosmetic {cosmeticId}");
             return false;
@@ -456,7 +464,7 @@ public partial class RewardService : Node
     {
         if (_profileRepo == null || string.IsNullOrEmpty(emoteId)) return false;
 
-        if (!_profileRepo.GrantEmote(emoteId))
+        if (!_profileRepo.GrantEmote(new EmoteId(emoteId)))
         {
             GD.PushError($"RewardService: Failed to grant emote {emoteId}");
             return false;

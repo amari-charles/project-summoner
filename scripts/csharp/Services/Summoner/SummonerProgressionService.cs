@@ -112,7 +112,7 @@ public partial class SummonerProgressionService : Node
 		if (amount <= 0 || _profileRepo == null)
 			return 0;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null)
 		{
 			GD.PushWarning($"SummonerProgressionService: Summoner instance not found: {summonerId}");
@@ -164,7 +164,7 @@ public partial class SummonerProgressionService : Node
 	{
 		if (_profileRepo == null) return 0;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null) return 0;
 
 		if (summoner.Level >= MaxLevel)
@@ -179,7 +179,7 @@ public partial class SummonerProgressionService : Node
 	{
 		if (_profileRepo == null) return 0f;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null) return 0f;
 
 		if (summoner.Level >= MaxLevel)
@@ -205,7 +205,7 @@ public partial class SummonerProgressionService : Node
 	{
 		if (_profileRepo == null) return false;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null) return false;
 
 		if (summoner.Level >= MaxLevel)
@@ -223,7 +223,7 @@ public partial class SummonerProgressionService : Node
 	{
 		if (_profileRepo == null) return false;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null)
 		{
 			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
@@ -268,7 +268,7 @@ public partial class SummonerProgressionService : Node
 	{
 		if (_profileRepo == null) return [];
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null) return [];
 
 		return new Godot.Collections.Dictionary
@@ -330,10 +330,11 @@ public partial class SummonerProgressionService : Node
 
 		if (_profileRepo == null) return result;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var typedSummonerId = new SummonerId(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(typedSummonerId);
 		if (summoner == null) return result;
 
-		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
+		var summonerDef = SummonerCatalog.GetSummoner(typedSummonerId);
 		if (summonerDef == null) return result;
 
 		var traits = TraitCatalog.GetAvailableTraitsForLevelUp(
@@ -362,7 +363,7 @@ public partial class SummonerProgressionService : Node
 		if (_profileRepo == null) return false;
 
 		var traitId = new Data.Traits.TraitId(traitIdString);
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null)
 		{
 			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
@@ -407,7 +408,7 @@ public partial class SummonerProgressionService : Node
 
 		if (_profileRepo == null) return result;
 
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
 		if (summoner == null) return result;
 
 		foreach (var traitId in summoner.AcquiredTraitIds)

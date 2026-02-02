@@ -66,13 +66,13 @@ public class CardOwnershipHandler
     /// <summary>Get a specific card instance by ID.</summary>
     public CardInstance? GetCard(string cardInstanceId)
     {
-        return _profileRepo.GetCard(cardInstanceId);
+        return _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
     }
 
     /// <summary>Get count of cards by catalog ID.</summary>
     public int GetCardCount(string catalogId)
     {
-        return _profileRepo.GetCardCount(catalogId);
+        return _profileRepo.GetCardCount(new CardId(catalogId));
     }
 
     /// <summary>Check if player owns at least one of a card.</summary>
@@ -153,11 +153,12 @@ public class CardOwnershipHandler
             return [];
         }
 
-        var instanceIds = _profileRepo.GrantCards(validCards);
+        var typedCards = validCards.Select(c => (new CardId(c.catalogId), c.rarity));
+        var instanceIds = _profileRepo.GrantCards(typedCards);
 
         GD.Print($"CardOwnershipHandler: Granted {instanceIds.Length} cards (requested: {cards.Count()}, valid: {validCards.Count})");
 
-        return instanceIds;
+        return instanceIds.Select(id => (string)id).ToArray();
     }
 
     /// <summary>
@@ -176,7 +177,7 @@ public class CardOwnershipHandler
     /// </summary>
     public bool RemoveCard(string cardInstanceId)
     {
-        var success = _profileRepo.RemoveCard(cardInstanceId);
+        var success = _profileRepo.RemoveCard(new CardInstanceId(cardInstanceId));
 
         if (success)
         {
