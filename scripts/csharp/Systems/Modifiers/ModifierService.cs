@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Services.Interfaces;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Systems.Modifiers;
 
@@ -180,6 +181,7 @@ public partial class ModifierService : Node, IModifierService
 
     /// <summary>
     /// Apply modifiers to base stats and return modified stats.
+    /// Uses type-safe StatKey for dictionary lookups - compiler enforces valid stat names.
     /// </summary>
     public static ModifiedStats ApplyModifiers(BaseStats baseStats, List<StatModifier> modifiers)
     {
@@ -194,17 +196,51 @@ public partial class ModifierService : Node, IModifierService
 
         foreach (var mod in modifiers)
         {
-            // Process stat_adds
-            if (mod.StatAdds.TryGetValue("max_hp", out var hp)) hpAdd += hp;
-            if (mod.StatAdds.TryGetValue("attack_damage", out var dmg)) damageAdd += dmg;
-            if (mod.StatAdds.TryGetValue("attack_speed", out var spd)) speedAdd += spd;
-            if (mod.StatAdds.TryGetValue("move_speed", out var mvSpd)) moveSpeedAdd += mvSpd;
+            // Process stat_adds using type-safe StatKey
+            foreach (var (key, value) in mod.StatAdds)
+            {
+                switch (key)
+                {
+                    case StatKey.MaxHp:
+                    case StatKey.MaxHealth:
+                        hpAdd += value;
+                        break;
+                    case StatKey.AttackDamage:
+                    case StatKey.DamageBonus:
+                        damageAdd += value;
+                        break;
+                    case StatKey.AttackSpeed:
+                        speedAdd += value;
+                        break;
+                    case StatKey.MoveSpeed:
+                        moveSpeedAdd += value;
+                        break;
+                    // Other stats are summoner-level and don't apply to units directly
+                }
+            }
 
-            // Process stat_mults
-            if (mod.StatMults.TryGetValue("max_hp", out var hpM)) hpMult *= hpM;
-            if (mod.StatMults.TryGetValue("attack_damage", out var dmgM)) damageMult *= dmgM;
-            if (mod.StatMults.TryGetValue("attack_speed", out var spdM)) speedMult *= spdM;
-            if (mod.StatMults.TryGetValue("move_speed", out var mvSpdM)) moveSpeedMult *= mvSpdM;
+            // Process stat_mults using type-safe StatKey
+            foreach (var (key, value) in mod.StatMults)
+            {
+                switch (key)
+                {
+                    case StatKey.MaxHp:
+                    case StatKey.MaxHealth:
+                        hpMult *= value;
+                        break;
+                    case StatKey.AttackDamage:
+                    case StatKey.DamageBonus:
+                        damageMult *= value;
+                        break;
+                    case StatKey.AttackSpeed:
+                        speedMult *= value;
+                        break;
+                    case StatKey.MoveSpeed:
+                        moveSpeedMult *= value;
+                        break;
+                    // Other stats are summoner-level and don't apply to units directly
+                }
+            }
 
             // Process flags
             foreach (var kvp in mod.Flags)
@@ -371,14 +407,14 @@ public partial class ModifierService : Node, IModifierService
                 continue; // No amplification needed
 
             // Amplify additive bonuses
-            var addKeys = new List<string>(mod.StatAdds.Keys);
+            var addKeys = new List<StatKey>(mod.StatAdds.Keys);
             foreach (var stat in addKeys)
             {
                 mod.StatAdds[stat] *= totalAmp;
             }
 
             // Amplify multiplicative bonuses (amplify the bonus, not the base)
-            var multKeys = new List<string>(mod.StatMults.Keys);
+            var multKeys = new List<StatKey>(mod.StatMults.Keys);
             foreach (var stat in multKeys)
             {
                 float bonus = mod.StatMults[stat] - 1.0f;

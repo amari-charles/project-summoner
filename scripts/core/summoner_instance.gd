@@ -17,6 +17,9 @@ var config: SummonerConfig = null
 var level: int = 1
 var xp: int = 0
 
+## Acquired traits (granted by events, not innate)
+var acquired_trait_ids: Array[String] = []
+
 ## Cached computed stats (updated when traits change)
 var _cached_stats: Dictionary = {}
 var _stats_dirty: bool = true
@@ -31,7 +34,7 @@ func init_from_config(summoner_config: SummonerConfig) -> void:
 	xp = 0
 	_mark_stats_dirty()
 
-## Get all trait IDs (innate from config)
+## Get all trait IDs (innate from config + acquired)
 func get_all_trait_ids() -> Array[String]:
 	var all_traits: Array[String] = []
 
@@ -40,7 +43,18 @@ func get_all_trait_ids() -> Array[String]:
 		for trait_id: String in config.innate_trait_ids:
 			all_traits.append(trait_id)
 
+	# Add acquired traits
+	for trait_id: String in acquired_trait_ids:
+		all_traits.append(trait_id)
+
 	return all_traits
+
+
+## Add an acquired trait (granted by events, not innate)
+func add_trait(trait_id: String) -> void:
+	if trait_id not in acquired_trait_ids:
+		acquired_trait_ids.append(trait_id)
+		_mark_stats_dirty()
 
 ## =============================================================================
 ## STAT COMPUTATION
@@ -66,7 +80,8 @@ func to_dict() -> Dictionary:
 	return {
 		"summoner_id": config.summoner_id,
 		"level": level,
-		"xp": xp
+		"xp": xp,
+		"acquired_trait_ids": acquired_trait_ids
 	}
 
 ## Create from dictionary (when loading from save)
@@ -87,6 +102,13 @@ static func from_dict(data: Dictionary) -> SummonerInstance:
 	instance.config = summoner_config
 	instance.level = data.get("level", 1)
 	instance.xp = data.get("xp", 0)
+
+	# Load acquired traits
+	var loaded_traits: Variant = data.get("acquired_trait_ids", [])
+	if loaded_traits is Array:
+		for trait_id: Variant in loaded_traits:
+			if trait_id is String:
+				instance.acquired_trait_ids.append(trait_id)
 
 	instance._mark_stats_dirty()
 	return instance

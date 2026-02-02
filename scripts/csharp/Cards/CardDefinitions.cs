@@ -4,6 +4,7 @@ using ProjectSummoner.Cards.Formations;
 using ProjectSummoner.Cards.Spawning;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Projectiles;
+using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Vfx;
 
@@ -304,10 +305,10 @@ public static class CardDefinitions
         UnitModifier = new StatModifier
         {
             Source = "card_swarm_variant",
-            StatMults = new Dictionary<string, float>
+            StatMults = new Dictionary<StatKey, float>
             {
-                ["max_hp"] = 0.75f,
-                ["attack_damage"] = 0.75f
+                [StatKey.MaxHp] = 0.75f,
+                [StatKey.AttackDamage] = 0.75f
             }
         },
         SpawnCount = 12,

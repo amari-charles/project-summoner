@@ -1,5 +1,7 @@
 using System.Linq;
 using Godot;
+using ProjectSummoner.Data.Traits;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Data.Items;
 
@@ -62,10 +64,10 @@ public static class ItemCatalog
         foreach (var mod in item.Modifiers)
         {
             var modDict = new Godot.Collections.Dictionary();
-            if (!string.IsNullOrEmpty(mod.Stat))
+            if (mod.HasSummonerStat)
             {
-                modDict["stat"] = mod.Stat;
-                modDict["type"] = mod.Type;
+                modDict["stat"] = mod.Stat!.Value.ToSnakeCase();
+                modDict["type"] = mod.Type.ToStringValue();
                 modDict["value"] = mod.Value;
             }
             modifiersArray.Add(modDict);

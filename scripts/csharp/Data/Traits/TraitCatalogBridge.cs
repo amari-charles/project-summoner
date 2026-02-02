@@ -1,4 +1,5 @@
 using Godot;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Data.Traits;
 
@@ -199,13 +200,13 @@ public partial class TraitCatalogBridge : Node
 
         foreach (var mod in trait.Modifiers)
         {
-            if (string.IsNullOrEmpty(mod.Stat)) continue;
+            if (!mod.HasSummonerStat) continue;
 
             var sign = mod.Value >= 0 ? "+" : "";
-            var modType = ModifierTypeExtensions.ParseModifierType(mod.Type);
-            var suffix = modType == ModifierType.Percent ? "%" : "";
-            // Simple title case without relying on CultureInfo
-            var statName = ToTitleCase(mod.Stat.Replace("_", " "));
+            var suffix = mod.Type == ModifierType.Percent ? "%" : "";
+            // Convert StatKey to readable name
+            var statSnake = mod.Stat!.Value.ToSnakeCase();
+            var statName = ToTitleCase(statSnake.Replace("_", " "));
 
             texts.Add($"{sign}{mod.Value}{suffix} {statName}");
         }

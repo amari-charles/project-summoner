@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Data.Traits;
@@ -44,8 +45,15 @@ public static class TraitCatalog
     // QUERY METHODS
     // =========================================================================
 
-    /// <summary>Get traits by category.</summary>
+    /// <summary>Get traits by category (accepts string for GDScript interop).</summary>
     public static TraitDefinition[] GetTraitsByCategory(string category)
+    {
+        var parsedCategory = TraitCategoryExtensions.ParseCategory(category);
+        return TraitDefinitions.All.Where(t => t.Category == parsedCategory).ToArray();
+    }
+
+    /// <summary>Get traits by category (typed).</summary>
+    public static TraitDefinition[] GetTraitsByCategory(TraitCategory category)
     {
         return TraitDefinitions.All.Where(t => t.Category == category).ToArray();
     }
@@ -230,10 +238,10 @@ public static class TraitCatalog
             var modDict = new Godot.Collections.Dictionary();
 
             // Summoner stat modifier properties
-            if (!string.IsNullOrEmpty(mod.Stat))
+            if (mod.HasSummonerStat)
             {
-                modDict["stat"] = mod.Stat;
-                modDict["type"] = mod.Type;
+                modDict["stat"] = mod.Stat!.Value.ToSnakeCase();
+                modDict["type"] = mod.Type.ToStringValue();
                 modDict["value"] = mod.Value;
             }
 
@@ -268,7 +276,7 @@ public static class TraitCatalog
                 var statMultsDict = new Godot.Collections.Dictionary();
                 foreach (var kvp in mod.StatMults)
                 {
-                    statMultsDict[kvp.Key] = kvp.Value;
+                    statMultsDict[kvp.Key.ToSnakeCase()] = kvp.Value;
                 }
                 modDict["stat_mults"] = statMultsDict;
             }
@@ -277,7 +285,7 @@ public static class TraitCatalog
                 var statAddsDict = new Godot.Collections.Dictionary();
                 foreach (var kvp in mod.StatAdds)
                 {
-                    statAddsDict[kvp.Key] = kvp.Value;
+                    statAddsDict[kvp.Key.ToSnakeCase()] = kvp.Value;
                 }
                 modDict["stat_adds"] = statAddsDict;
             }
@@ -309,7 +317,7 @@ public static class TraitCatalog
             ["id"] = (string)trait.Id,
             ["name_key"] = trait.NameKey,
             ["description_key"] = trait.DescriptionKey,
-            ["category"] = trait.Category,
+            ["category"] = trait.Category.ToStringValue(),
             ["is_innate"] = trait.IsInnate,
             ["tags"] = tagsArray,
             ["required_tags"] = requiredTagsArray,

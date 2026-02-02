@@ -5,6 +5,7 @@ using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Items.Handlers;
+using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
 using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
@@ -109,7 +110,7 @@ public partial class ItemService : Node
 		var success = _equipment?.EquipItem(summonerId, itemInstanceId, slot) ?? false;
 		if (success)
 		{
-			EmitSignal(SignalName.ItemEquipped, summonerId, EnumSerializers.Serialize(slot), itemInstanceId);
+			EmitSignal(SignalName.ItemEquipped, summonerId, slot.ToString().ToLowerInvariant(), itemInstanceId);
 		}
 		return success;
 	}
@@ -120,7 +121,7 @@ public partial class ItemService : Node
 		var success = _equipment?.UnequipItem(summonerId, slot) ?? false;
 		if (success)
 		{
-			EmitSignal(SignalName.ItemUnequipped, summonerId, EnumSerializers.Serialize(slot));
+			EmitSignal(SignalName.ItemUnequipped, summonerId, slot.ToString().ToLowerInvariant());
 		}
 		return success;
 	}
@@ -234,7 +235,7 @@ public partial class ItemService : Node
 			}
 		}
 
-		// Copy stat multipliers
+		// Copy stat multipliers (already typed as StatKey)
 		if (traitMod.StatMults != null)
 		{
 			foreach (var kvp in traitMod.StatMults)
@@ -243,7 +244,7 @@ public partial class ItemService : Node
 			}
 		}
 
-		// Copy stat adds
+		// Copy stat adds (already typed as StatKey)
 		if (traitMod.StatAdds != null)
 		{
 			foreach (var kvp in traitMod.StatAdds)
@@ -252,22 +253,21 @@ public partial class ItemService : Node
 			}
 		}
 
-		// Convert legacy summoner stat format (Stat/Type/Value) to unit modifier format
-		if (!string.IsNullOrEmpty(traitMod.Stat))
+		// Convert summoner stat format (Stat/Type/Value) to unit modifier format
+		if (traitMod.HasSummonerStat)
 		{
-			// Map common item stats to unit stats
-			var unitStat = MapItemStatToUnitStat(traitMod.Stat);
-			if (unitStat != null)
+			// Map item stat to unit stat (some don't have unit equivalents)
+			var unitStat = MapItemStatToUnitStat(traitMod.Stat!.Value);
+			if (unitStat.HasValue)
 			{
-				var modType = ModifierTypeExtensions.ParseModifierType(traitMod.Type);
-				if (modType == ModifierType.Percent)
+				if (traitMod.Type == ModifierType.Percent)
 				{
 					// Convert percent to multiplier (5% -> 1.05)
-					statMod.StatMults[unitStat] = 1.0f + (traitMod.Value / 100.0f);
+					statMod.StatMults[unitStat.Value] = 1.0f + (traitMod.Value / 100.0f);
 				}
 				else // Flat
 				{
-					statMod.StatAdds[unitStat] = traitMod.Value;
+					statMod.StatAdds[unitStat.Value] = traitMod.Value;
 				}
 			}
 		}
@@ -282,22 +282,36 @@ public partial class ItemService : Node
 	}
 
 	/// <summary>
-	/// Map item stat names to unit stat names.
-	/// Some item stats don't have unit equivalents (e.g., gold_bonus).
+	/// Map item stat keys to unit stat keys.
+	/// Some item stats don't have unit equivalents (e.g., GoldBonus).
+	/// Returns null for stats that don't apply to units.
 	/// </summary>
-	private static string? MapItemStatToUnitStat(string itemStat)
+	private static StatKey? MapItemStatToUnitStat(StatKey itemStat)
 	{
 		return itemStat switch
 		{
-			"max_health" => "max_hp",
-			"damage_bonus" => "attack_damage",
-			"attack_speed" => "attack_speed",
-			"move_speed" => "move_speed",
+			StatKey.MaxHealth => StatKey.MaxHp,
+			StatKey.DamageBonus => StatKey.AttackDamage,
+			StatKey.AttackSpeed => StatKey.AttackSpeed,
+			StatKey.MoveSpeed => StatKey.MoveSpeed,
+			StatKey.MaxHp => StatKey.MaxHp,
+			StatKey.AttackDamage => StatKey.AttackDamage,
 			// These don't apply to units, return null
-			"gold_bonus" => null,
-			"xp_bonus" => null,
-			"mana_regen" => null,
-			// Pass through unknown stats as-is (might be valid unit stats)
+			StatKey.GoldBonus => null,
+			StatKey.XpBonus => null,
+			StatKey.ManaRegen => null,
+			// Elemental bonuses don't apply directly to unit stats
+			StatKey.FireDamageBonus => null,
+			StatKey.WaterDamageBonus => null,
+			StatKey.WindDamageBonus => null,
+			StatKey.EarthDamageBonus => null,
+			StatKey.LightningDamageBonus => null,
+			StatKey.DeathDamageBonus => null,
+			StatKey.HealingBonus => null,
+			StatKey.CastSpeed => null,
+			StatKey.DamageReduction => null,
+			StatKey.Lifesteal => null,
+			// Pass through core unit stats
 			_ => itemStat
 		};
 	}
@@ -331,7 +345,7 @@ public partial class ItemService : Node
 
 		foreach (var (slot, instanceId) in equipped)
 		{
-			result[EnumSerializers.Serialize(slot)] = instanceId ?? "";
+			result[slot.ToString().ToLowerInvariant()] = instanceId ?? "";
 		}
 
 		return result;
@@ -408,6 +422,6 @@ public partial class ItemService : Node
 	/// <summary>Convert string to slot enum, returns null if invalid.</summary>
 	public static ItemSlot? StringToSlot(string slotName)
 	{
-		return EnumSerializers.DeserializeSlot(slotName);
+		return Enum.TryParse<ItemSlot>(slotName, ignoreCase: true, out var slot) ? slot : null;
 	}
 }

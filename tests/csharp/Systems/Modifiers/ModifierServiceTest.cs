@@ -2,6 +2,7 @@ namespace ProjectSummoner.Tests.Systems.Modifiers;
 
 using System.Collections.Generic;
 using GdUnit4;
+using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
 using static GdUnit4.Assertions;
 
@@ -44,8 +45,8 @@ public class ModifierServiceTest
             new StatModifier
             {
                 Source = "test",
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 50f },
-                StatMults = new Dictionary<string, float> { ["attack_damage"] = 1.2f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 50f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f }
             }
         };
 
@@ -76,12 +77,12 @@ public class ModifierServiceTest
             new StatModifier
             {
                 Source = "mod1",
-                StatMults = new Dictionary<string, float> { ["attack_damage"] = 1.1f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.1f }
             },
             new StatModifier
             {
                 Source = "mod2",
-                StatMults = new Dictionary<string, float> { ["attack_damage"] = 1.2f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f }
             }
         };
 
@@ -107,8 +108,8 @@ public class ModifierServiceTest
             new StatModifier
             {
                 Source = "test",
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 100f },
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.5f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 100f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
             }
         };
 

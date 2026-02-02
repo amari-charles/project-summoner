@@ -166,32 +166,24 @@ public record UnitStats
 
         foreach (var mod in modifiers)
         {
-            // Process additive modifiers
-            foreach (var (statString, value) in mod.StatAdds)
+            // Process additive modifiers (StatKey-keyed)
+            foreach (var (statKey, value) in mod.StatAdds)
             {
-                var key = StatKeyExtensions.FromString(statString);
-                if (key.HasValue)
-                {
-                    adds.TryAdd(key.Value, 0f);
-                    adds[key.Value] += value;
-                }
+                adds.TryAdd(statKey, 0f);
+                adds[statKey] += value;
             }
 
-            // Process multiplicative modifiers
-            foreach (var (statString, value) in mod.StatMults)
+            // Process multiplicative modifiers (StatKey-keyed)
+            foreach (var (statKey, value) in mod.StatMults)
             {
-                var key = StatKeyExtensions.FromString(statString);
-                if (key.HasValue)
-                {
-                    mults.TryAdd(key.Value, 1f);
-                    mults[key.Value] *= value;
-                }
+                mults.TryAdd(statKey, 1f);
+                mults[statKey] *= value;
             }
         }
 
         // Apply: (base + adds) * mults
         var result = this;
-        foreach (var key in StatKeyExtensions.All)
+        foreach (var key in StatKeyExtensions.CoreUnitStats)
         {
             var baseValue = Get(key);
             var addValue = adds.GetValueOrDefault(key, 0f);

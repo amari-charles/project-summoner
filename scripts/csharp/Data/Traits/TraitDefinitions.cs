@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using ProjectSummoner.Stats;
+using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Data.Traits;
 
@@ -18,18 +20,18 @@ public static class TraitDefinitions
         Id = TraitIds.FireAffinity,
         NameKey = "trait.fire_affinity.name",
         DescriptionKey = "trait.fire_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Fire],
         Modifiers =
         [
-            new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 10.0f },
+            new TraitModifier { Stat = StatKey.FireDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.FireAffinity,
-                Conditions = new() { ["elemental_affinity"] = "fire" },
-                StatMults = new() { ["attack_damage"] = 1.10f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "fire" },
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
     };
@@ -39,12 +41,12 @@ public static class TraitDefinitions
         Id = TraitIds.BurningSpirit,
         NameKey = "trait.burning_spirit.name",
         DescriptionKey = "trait.burning_spirit.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Fire],
         Modifiers =
         [
-            new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.FireDamageBonus, Type = ModifierType.Percent, Value = 5.0f }
         ]
     };
 
@@ -57,18 +59,18 @@ public static class TraitDefinitions
         Id = TraitIds.WaterAffinity,
         NameKey = "trait.water_affinity.name",
         DescriptionKey = "trait.water_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Water],
         Modifiers =
         [
-            new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 10.0f },
+            new TraitModifier { Stat = StatKey.WaterDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.WaterAffinity,
-                Conditions = new() { ["elemental_affinity"] = "water" },
-                StatMults = new() { ["attack_damage"] = 1.10f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "water" },
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
     };
@@ -78,12 +80,12 @@ public static class TraitDefinitions
         Id = TraitIds.TidalResilience,
         NameKey = "trait.tidal_resilience.name",
         DescriptionKey = "trait.tidal_resilience.description",
-        Category = "defense",
+        Category = TraitCategory.Defense,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Water],
         Modifiers =
         [
-            new TraitModifier { Stat = "max_health", Type = "percent", Value = 10.0f }
+            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Percent, Value = 10.0f }
         ]
     };
 
@@ -96,18 +98,18 @@ public static class TraitDefinitions
         Id = TraitIds.WindAffinity,
         NameKey = "trait.wind_affinity.name",
         DescriptionKey = "trait.wind_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Wind],
         Modifiers =
         [
-            new TraitModifier { Stat = "wind_damage_bonus", Type = "percent", Value = 10.0f },
+            new TraitModifier { Stat = StatKey.WindDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.WindAffinity,
-                Conditions = new() { ["elemental_affinity"] = "wind" },
-                StatMults = new() { ["attack_damage"] = 1.10f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "wind" },
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
     };
@@ -117,12 +119,12 @@ public static class TraitDefinitions
         Id = TraitIds.SwiftCasting,
         NameKey = "trait.swift_casting.name",
         DescriptionKey = "trait.swift_casting.description",
-        Category = "utility",
+        Category = TraitCategory.Utility,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Wind],
         Modifiers =
         [
-            new TraitModifier { Stat = "cast_speed", Type = "percent", Value = 10.0f }
+            new TraitModifier { Stat = StatKey.CastSpeed, Type = ModifierType.Percent, Value = 10.0f }
         ]
     };
 
@@ -135,18 +137,18 @@ public static class TraitDefinitions
         Id = TraitIds.EarthAffinity,
         NameKey = "trait.earth_affinity.name",
         DescriptionKey = "trait.earth_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Earth],
         Modifiers =
         [
-            new TraitModifier { Stat = "earth_damage_bonus", Type = "percent", Value = 10.0f },
+            new TraitModifier { Stat = StatKey.EarthDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.EarthAffinity,
-                Conditions = new() { ["elemental_affinity"] = "earth" },
-                StatMults = new() { ["attack_damage"] = 1.10f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "earth" },
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
     };
@@ -156,12 +158,12 @@ public static class TraitDefinitions
         Id = TraitIds.StoneFortitude,
         NameKey = "trait.stone_fortitude.name",
         DescriptionKey = "trait.stone_fortitude.description",
-        Category = "defense",
+        Category = TraitCategory.Defense,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Earth],
         Modifiers =
         [
-            new TraitModifier { Stat = "damage_reduction", Type = "flat", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.DamageReduction, Type = ModifierType.Flat, Value = 5.0f }
         ]
     };
 
@@ -174,18 +176,18 @@ public static class TraitDefinitions
         Id = TraitIds.LightningAffinity,
         NameKey = "trait.lightning_affinity.name",
         DescriptionKey = "trait.lightning_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Lightning],
         Modifiers =
         [
-            new TraitModifier { Stat = "lightning_damage_bonus", Type = "percent", Value = 15.0f },
+            new TraitModifier { Stat = StatKey.LightningDamageBonus, Type = ModifierType.Percent, Value = 15.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.LightningAffinity,
-                Conditions = new() { ["elemental_affinity"] = "lightning" },
-                StatMults = new() { ["attack_damage"] = 1.15f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "lightning" },
+                StatMults = new() { [StatKey.AttackDamage] = 1.15f }
             }
         ]
     };
@@ -199,18 +201,18 @@ public static class TraitDefinitions
         Id = TraitIds.LifeAffinity,
         NameKey = "trait.life_affinity.name",
         DescriptionKey = "trait.life_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Life],
         Modifiers =
         [
-            new TraitModifier { Stat = "healing_bonus", Type = "percent", Value = 15.0f },
+            new TraitModifier { Stat = StatKey.HealingBonus, Type = ModifierType.Percent, Value = 15.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.LifeAffinity,
-                Conditions = new() { ["elemental_affinity"] = "life" },
-                StatMults = new() { ["max_health"] = 1.10f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "life" },
+                StatMults = new() { [StatKey.MaxHp] = 1.10f }
             }
         ]
     };
@@ -224,13 +226,13 @@ public static class TraitDefinitions
         Id = TraitIds.DeathAffinity,
         NameKey = "trait.death_affinity.name",
         DescriptionKey = "trait.death_affinity.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = true,
         Tags = [TraitTags.Summoner, TraitTags.Death],
         Modifiers =
         [
-            new TraitModifier { Stat = "death_damage_bonus", Type = "percent", Value = 10.0f },
-            new TraitModifier { Stat = "lifesteal", Type = "percent", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.DeathDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
+            new TraitModifier { Stat = StatKey.Lifesteal, Type = ModifierType.Percent, Value = 5.0f }
         ]
     };
 
@@ -243,13 +245,13 @@ public static class TraitDefinitions
         Id = TraitIds.IronWill,
         NameKey = "trait.iron_will.name",
         DescriptionKey = "trait.iron_will.description",
-        Category = "defense",
+        Category = TraitCategory.Defense,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 2,
         Modifiers =
         [
-            new TraitModifier { Stat = "damage_reduction", Type = "flat", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.DamageReduction, Type = ModifierType.Flat, Value = 5.0f }
         ]
     };
 
@@ -258,13 +260,13 @@ public static class TraitDefinitions
         Id = TraitIds.QuickRecovery,
         NameKey = "trait.quick_recovery.name",
         DescriptionKey = "trait.quick_recovery.description",
-        Category = "utility",
+        Category = TraitCategory.Utility,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 2,
         Modifiers =
         [
-            new TraitModifier { Stat = "mana_regen", Type = "percent", Value = 10.0f }
+            new TraitModifier { Stat = StatKey.ManaRegen, Type = ModifierType.Percent, Value = 10.0f }
         ]
     };
 
@@ -273,13 +275,13 @@ public static class TraitDefinitions
         Id = TraitIds.VitalityBoost,
         NameKey = "trait.vitality_boost.name",
         DescriptionKey = "trait.vitality_boost.description",
-        Category = "defense",
+        Category = TraitCategory.Defense,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 2,
         Modifiers =
         [
-            new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
+            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 100.0f }
         ]
     };
 
@@ -288,7 +290,7 @@ public static class TraitDefinitions
         Id = TraitIds.SwiftStrike,
         NameKey = "trait.swift_strike.name",
         DescriptionKey = "trait.swift_strike.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 3,
@@ -298,7 +300,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftStrike,
-                StatMults = new() { ["attack_speed"] = 1.10f }
+                StatMults = new() { [StatKey.AttackSpeed] = 1.10f }
             }
         ]
     };
@@ -312,7 +314,7 @@ public static class TraitDefinitions
         Id = TraitIds.Berserker,
         NameKey = "trait.berserker.name",
         DescriptionKey = "trait.berserker.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 3,
@@ -322,7 +324,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Berserker,
-                StatMults = new() { ["attack_damage"] = 1.20f },
+                StatMults = new() { [StatKey.AttackDamage] = 1.20f },
                 Trigger = "BelowHpPercent",
                 TriggerThreshold = 0.5f
             }
@@ -334,7 +336,7 @@ public static class TraitDefinitions
         Id = TraitIds.Vengeful,
         NameKey = "trait.vengeful.name",
         DescriptionKey = "trait.vengeful.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 4,
@@ -344,7 +346,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Vengeful,
-                StatMults = new() { ["attack_speed"] = 1.10f },
+                StatMults = new() { [StatKey.AttackSpeed] = 1.10f },
                 Trigger = "OnTakeHit",
                 TriggerDuration = 5.0f,
                 TriggerCooldown = 1.0f
@@ -357,7 +359,7 @@ public static class TraitDefinitions
         Id = TraitIds.SoulHarvest,
         NameKey = "trait.soul_harvest.name",
         DescriptionKey = "trait.soul_harvest.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 4,
@@ -367,7 +369,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SoulHarvest,
-                StatAdds = new() { ["heal_on_kill"] = 5.0f },
+                StatAdds = new() { [StatKey.HealOnKill] = 5.0f },
                 Trigger = "OnKill"
             }
         ]
@@ -382,20 +384,20 @@ public static class TraitDefinitions
         Id = TraitIds.InfernoMastery,
         NameKey = "trait.inferno_mastery.name",
         DescriptionKey = "trait.inferno_mastery.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Fire],
         MinLevel = 5,
         Prerequisites = [TraitIds.FireAffinity],
         Modifiers =
         [
-            new TraitModifier { Stat = "fire_damage_bonus", Type = "percent", Value = 15.0f },
+            new TraitModifier { Stat = StatKey.FireDamageBonus, Type = ModifierType.Percent, Value = 15.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.InfernoMastery,
-                Conditions = new() { ["elemental_affinity"] = "fire" },
-                StatMults = new() { ["attack_damage"] = 1.15f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "fire" },
+                StatMults = new() { [StatKey.AttackDamage] = 1.15f }
             }
         ]
     };
@@ -405,20 +407,20 @@ public static class TraitDefinitions
         Id = TraitIds.TidalMastery,
         NameKey = "trait.tidal_mastery.name",
         DescriptionKey = "trait.tidal_mastery.description",
-        Category = "elemental",
+        Category = TraitCategory.Elemental,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Water],
         MinLevel = 5,
         Prerequisites = [TraitIds.WaterAffinity],
         Modifiers =
         [
-            new TraitModifier { Stat = "water_damage_bonus", Type = "percent", Value = 15.0f },
+            new TraitModifier { Stat = StatKey.WaterDamageBonus, Type = ModifierType.Percent, Value = 15.0f },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.TidalMastery,
-                Conditions = new() { ["elemental_affinity"] = "water" },
-                StatMults = new() { ["max_health"] = 1.15f }
+                Conditions = new() { [ConditionKeys.ElementalAffinity] = "water" },
+                StatMults = new() { [StatKey.MaxHp] = 1.15f }
             }
         ]
     };
@@ -432,7 +434,7 @@ public static class TraitDefinitions
         Id = TraitIds.Fortitude,
         NameKey = "trait.fortitude.name",
         DescriptionKey = "trait.fortitude.description",
-        Category = "defense",
+        Category = TraitCategory.Defense,
         IsInnate = false,
         Tags = [TraitTags.Summon, TraitTags.Global],
         MinLevel = 2,
@@ -442,7 +444,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Fortitude,
-                StatMults = new() { ["max_hp"] = 1.08f }
+                StatMults = new() { [StatKey.MaxHp] = 1.08f }
             }
         ]
     };
@@ -452,7 +454,7 @@ public static class TraitDefinitions
         Id = TraitIds.Power,
         NameKey = "trait.power.name",
         DescriptionKey = "trait.power.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = false,
         Tags = [TraitTags.Summon, TraitTags.Global],
         MinLevel = 2,
@@ -462,7 +464,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Power,
-                StatMults = new() { ["attack_damage"] = 1.06f }
+                StatMults = new() { [StatKey.AttackDamage] = 1.06f }
             }
         ]
     };
@@ -472,7 +474,7 @@ public static class TraitDefinitions
         Id = TraitIds.Swiftness,
         NameKey = "trait.swiftness.name",
         DescriptionKey = "trait.swiftness.description",
-        Category = "combat",
+        Category = TraitCategory.Combat,
         IsInnate = false,
         Tags = [TraitTags.Summon, TraitTags.Global],
         MinLevel = 2,
@@ -482,7 +484,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Swiftness,
-                StatMults = new() { ["attack_speed"] = 1.05f }
+                StatMults = new() { [StatKey.AttackSpeed] = 1.05f }
             }
         ]
     };
@@ -492,7 +494,7 @@ public static class TraitDefinitions
         Id = TraitIds.Agility,
         NameKey = "trait.agility.name",
         DescriptionKey = "trait.agility.description",
-        Category = "utility",
+        Category = TraitCategory.Utility,
         IsInnate = false,
         Tags = [TraitTags.Summon, TraitTags.Global],
         MinLevel = 2,
@@ -502,7 +504,36 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Agility,
-                StatMults = new() { ["move_speed"] = 1.05f }
+                StatMults = new() { [StatKey.MoveSpeed] = 1.05f }
+            }
+        ]
+    };
+
+    // =========================================================================
+    // SPECIAL TRAITS - Granted by specific game events
+    // =========================================================================
+
+    /// <summary>
+    /// Fortune Favors the Bold: +10% damage to all attacks.
+    /// Granted when the player selects random summoner at campaign start.
+    /// </summary>
+    public static readonly TraitDefinition FortuneFavorsTheBold = new()
+    {
+        Id = TraitIds.FortuneFavorsTheBold,
+        NameKey = "trait.fortune_favors_the_bold.name",
+        DescriptionKey = "trait.fortune_favors_the_bold.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [], // Empty = never offered at level-up
+        MinLevel = 1,
+        MaxLevel = 99,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FortuneFavorsTheBold,
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
     };
@@ -557,7 +588,10 @@ public static class TraitDefinitions
         [TraitIds.Fortitude] = Fortitude,
         [TraitIds.Power] = Power,
         [TraitIds.Swiftness] = Swiftness,
-        [TraitIds.Agility] = Agility
+        [TraitIds.Agility] = Agility,
+
+        // Special Traits
+        [TraitIds.FortuneFavorsTheBold] = FortuneFavorsTheBold
     };
 
     /// <summary>Get a trait definition by ID. Returns null if not found.</summary>

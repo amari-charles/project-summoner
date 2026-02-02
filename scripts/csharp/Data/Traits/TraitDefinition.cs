@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using ProjectSummoner.Stats;
+using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Data.Traits;
 
@@ -18,7 +20,7 @@ public class TraitDefinition
     public required string DescriptionKey { get; init; }
 
     /// <summary>Category for filtering (elemental, combat, defense, utility, milestone, special).</summary>
-    public required string Category { get; init; }
+    public required TraitCategory Category { get; init; }
 
     /// <summary>True if this is an innate trait (comes with summoner).</summary>
     public bool IsInnate { get; init; }
@@ -94,11 +96,11 @@ public class TraitModifier
     // These modify the summoner character directly (not spawned units)
     // =========================================================================
 
-    /// <summary>Stat to modify (e.g., "fire_damage_bonus", "max_health").</summary>
-    public string? Stat { get; init; }
+    /// <summary>Stat to modify (type-safe).</summary>
+    public StatKey? Stat { get; init; }
 
-    /// <summary>Modifier type: "flat" for additive, "percent" for multiplicative.</summary>
-    public string Type { get; init; } = "flat";
+    /// <summary>Modifier type: Flat for additive, Percent for multiplicative.</summary>
+    public ModifierType Type { get; init; } = ModifierType.Flat;
 
     /// <summary>Numeric value of the modifier.</summary>
     public float Value { get; init; }
@@ -120,11 +122,11 @@ public class TraitModifier
     /// <summary>Conditions that must match for this modifier to apply.</summary>
     public Dictionary<string, object>? Conditions { get; init; }
 
-    /// <summary>Multiplicative stat bonuses (e.g., {"attack_damage": 1.10f}).</summary>
-    public Dictionary<string, float>? StatMults { get; init; }
+    /// <summary>Multiplicative stat bonuses (e.g., {StatKey.AttackDamage: 1.10f}).</summary>
+    public Dictionary<StatKey, float>? StatMults { get; init; }
 
     /// <summary>Additive stat bonuses.</summary>
-    public Dictionary<string, float>? StatAdds { get; init; }
+    public Dictionary<StatKey, float>? StatAdds { get; init; }
 
     // =========================================================================
     // TRIGGER FIELDS (for conditional unit modifiers)
@@ -153,6 +155,9 @@ public class TraitModifier
 
     /// <summary>Returns true if this is a unit modifier (target="unit").</summary>
     public bool IsUnitModifier => TraitTargetTypeExtensions.IsUnitTarget(Target);
+
+    /// <summary>Returns true if this modifier has a summoner stat to modify.</summary>
+    public bool HasSummonerStat => Stat.HasValue;
 
     /// <summary>Returns true if this modifier has a trigger condition.</summary>
     public bool HasTrigger => !string.IsNullOrEmpty(Trigger);

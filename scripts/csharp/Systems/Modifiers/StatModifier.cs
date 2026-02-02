@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Systems.Modifiers;
 
@@ -33,17 +34,17 @@ public class StatModifier
 
     /// <summary>
     /// Additive stat bonuses (applied first).
-    /// Key: stat name (e.g., "max_hp", "attack_damage")
+    /// Key: stat key (type-safe)
     /// Value: amount to add
     /// </summary>
-    public Dictionary<string, float> StatAdds { get; set; } = new();
+    public Dictionary<StatKey, float> StatAdds { get; set; } = new();
 
     /// <summary>
     /// Multiplicative stat bonuses (applied after adds).
-    /// Key: stat name
+    /// Key: stat key (type-safe)
     /// Value: multiplier (1.0 = no change, 1.1 = +10%)
     /// </summary>
-    public Dictionary<string, float> StatMults { get; set; } = new();
+    public Dictionary<StatKey, float> StatMults { get; set; } = new();
 
     /// <summary>
     /// Boolean flags for special behaviors.
@@ -134,7 +135,11 @@ public class StatModifier
             var addsDict = statAdds.AsGodotDictionary();
             foreach (var key in addsDict.Keys)
             {
-                modifier.StatAdds[key.AsString()] = addsDict[key].AsSingle();
+                var statKey = StatKeyExtensions.FromString(key.AsString());
+                if (statKey.HasValue)
+                {
+                    modifier.StatAdds[statKey.Value] = addsDict[key].AsSingle();
+                }
             }
         }
 
@@ -143,7 +148,11 @@ public class StatModifier
             var multsDict = statMults.AsGodotDictionary();
             foreach (var key in multsDict.Keys)
             {
-                modifier.StatMults[key.AsString()] = multsDict[key].AsSingle();
+                var statKey = StatKeyExtensions.FromString(key.AsString());
+                if (statKey.HasValue)
+                {
+                    modifier.StatMults[statKey.Value] = multsDict[key].AsSingle();
+                }
             }
         }
 
@@ -234,7 +243,7 @@ public class StatModifier
             var addsDict = new Godot.Collections.Dictionary();
             foreach (var kvp in StatAdds)
             {
-                addsDict[kvp.Key] = kvp.Value;
+                addsDict[kvp.Key.ToSnakeCase()] = kvp.Value;
             }
             dict["stat_adds"] = addsDict;
         }
@@ -244,7 +253,7 @@ public class StatModifier
             var multsDict = new Godot.Collections.Dictionary();
             foreach (var kvp in StatMults)
             {
-                multsDict[kvp.Key] = kvp.Value;
+                multsDict[kvp.Key.ToSnakeCase()] = kvp.Value;
             }
             dict["stat_mults"] = multsDict;
         }

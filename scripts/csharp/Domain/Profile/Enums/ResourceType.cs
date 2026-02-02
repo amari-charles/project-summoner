@@ -1,4 +1,4 @@
-using ProjectSummoner.Infrastructure.Persistence;
+using System;
 
 namespace ProjectSummoner.Domain.Profile.Enums;
 
@@ -15,13 +15,13 @@ public enum ResourceType
 
 /// <summary>
 /// Extension methods for ResourceType.
-/// Delegates to EnumSerializers for consistency.
 /// </summary>
 public static class ResourceTypeExtensions
 {
     /// <summary>Convert to GDScript-compatible string key.</summary>
-    public static string ToKey(this ResourceType type) => EnumSerializers.Serialize(type);
+    public static string ToKey(this ResourceType type) => type.ToString().ToLowerInvariant();
 
     /// <summary>Parse from GDScript string key.</summary>
-    public static ResourceType? FromKey(string key) => EnumSerializers.DeserializeResourceType(key);
+    public static ResourceType? FromKey(string key) =>
+        Enum.TryParse<ResourceType>(key, ignoreCase: true, out var result) ? result : null;
 }
