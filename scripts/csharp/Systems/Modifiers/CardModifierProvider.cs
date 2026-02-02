@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ProjectSummoner.Services.Cards;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Systems.Modifiers;
 
@@ -45,10 +46,14 @@ public class CardModifierProvider : IModifierProvider
             CardInstanceId = _cardInstanceId
         };
 
-        // Convert stat mods to StatMults
+        // Convert stat mods to StatMults (parse string keys to StatKey)
         foreach (var kvp in statMods)
         {
-            modifier.StatMults[kvp.Key] = kvp.Value;
+            var statKey = StatKeyExtensions.FromString(kvp.Key);
+            if (statKey.HasValue)
+            {
+                modifier.StatMults[statKey.Value] = kvp.Value;
+            }
         }
 
         modifiers.Add(modifier);

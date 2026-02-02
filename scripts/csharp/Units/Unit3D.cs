@@ -8,6 +8,7 @@ using ProjectSummoner.Combat.Hitbox;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Debug;
 using ProjectSummoner.Services;
+using ProjectSummoner.Stats;
 using ProjectSummoner.Systems;
 using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Targeting;
@@ -895,7 +896,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
                 needsStatRecalc = true;
 
                 // Handle special on-kill effects like healing
-                if (mod.StatAdds.TryGetValue("heal_on_kill", out var healAmount))
+                if (mod.StatAdds.TryGetValue(StatKey.HealOnKill, out var healAmount))
                 {
                     Heal(healAmount);
                 }
@@ -926,16 +927,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             var mod = trigger.Modifier;
 
             // Process stat_adds
-            if (mod.StatAdds.TryGetValue("max_hp", out var hp)) hpAdd += hp;
-            if (mod.StatAdds.TryGetValue("attack_damage", out var dmg)) damageAdd += dmg;
-            if (mod.StatAdds.TryGetValue("attack_speed", out var spd)) speedAdd += spd;
-            if (mod.StatAdds.TryGetValue("move_speed", out var mvSpd)) moveSpeedAdd += mvSpd;
+            if (mod.StatAdds.TryGetValue(StatKey.MaxHp, out var hp)) hpAdd += hp;
+            if (mod.StatAdds.TryGetValue(StatKey.AttackDamage, out var dmg)) damageAdd += dmg;
+            if (mod.StatAdds.TryGetValue(StatKey.AttackSpeed, out var spd)) speedAdd += spd;
+            if (mod.StatAdds.TryGetValue(StatKey.MoveSpeed, out var mvSpd)) moveSpeedAdd += mvSpd;
 
             // Process stat_mults
-            if (mod.StatMults.TryGetValue("max_hp", out var hpM)) hpMult *= hpM;
-            if (mod.StatMults.TryGetValue("attack_damage", out var dmgM)) damageMult *= dmgM;
-            if (mod.StatMults.TryGetValue("attack_speed", out var spdM)) speedMult *= spdM;
-            if (mod.StatMults.TryGetValue("move_speed", out var mvSpdM)) moveSpeedMult *= mvSpdM;
+            if (mod.StatMults.TryGetValue(StatKey.MaxHp, out var hpM)) hpMult *= hpM;
+            if (mod.StatMults.TryGetValue(StatKey.AttackDamage, out var dmgM)) damageMult *= dmgM;
+            if (mod.StatMults.TryGetValue(StatKey.AttackSpeed, out var spdM)) speedMult *= spdM;
+            if (mod.StatMults.TryGetValue(StatKey.MoveSpeed, out var mvSpdM)) moveSpeedMult *= mvSpdM;
 
             // Process flags
             foreach (var kvp in mod.Flags)
@@ -1006,16 +1007,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         foreach (var mod in modifiers)
         {
             // Process stat_adds
-            if (mod.StatAdds.TryGetValue("max_hp", out var hp)) hpAdd += hp;
-            if (mod.StatAdds.TryGetValue("attack_damage", out var dmg)) damageAdd += dmg;
-            if (mod.StatAdds.TryGetValue("attack_speed", out var spd)) speedAdd += spd;
-            if (mod.StatAdds.TryGetValue("move_speed", out var mvSpd)) moveSpeedAdd += mvSpd;
+            if (mod.StatAdds.TryGetValue(StatKey.MaxHp, out var hp)) hpAdd += hp;
+            if (mod.StatAdds.TryGetValue(StatKey.AttackDamage, out var dmg)) damageAdd += dmg;
+            if (mod.StatAdds.TryGetValue(StatKey.AttackSpeed, out var spd)) speedAdd += spd;
+            if (mod.StatAdds.TryGetValue(StatKey.MoveSpeed, out var mvSpd)) moveSpeedAdd += mvSpd;
 
             // Process stat_mults
-            if (mod.StatMults.TryGetValue("max_hp", out var hpM)) hpMult *= hpM;
-            if (mod.StatMults.TryGetValue("attack_damage", out var dmgM)) damageMult *= dmgM;
-            if (mod.StatMults.TryGetValue("attack_speed", out var spdM)) speedMult *= spdM;
-            if (mod.StatMults.TryGetValue("move_speed", out var mvSpdM)) moveSpeedMult *= mvSpdM;
+            if (mod.StatMults.TryGetValue(StatKey.MaxHp, out var hpM)) hpMult *= hpM;
+            if (mod.StatMults.TryGetValue(StatKey.AttackDamage, out var dmgM)) damageMult *= dmgM;
+            if (mod.StatMults.TryGetValue(StatKey.AttackSpeed, out var spdM)) speedMult *= spdM;
+            if (mod.StatMults.TryGetValue(StatKey.MoveSpeed, out var mvSpdM)) moveSpeedMult *= mvSpdM;
 
             // Process flags
             foreach (var kvp in mod.Flags)

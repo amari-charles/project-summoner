@@ -3,6 +3,8 @@ namespace ProjectSummoner.Tests.Traits;
 using System.Linq;
 using GdUnit4;
 using ProjectSummoner.Data.Traits;
+using ProjectSummoner.Stats;
+using ProjectSummoner.Systems.Modifiers;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -19,7 +21,7 @@ public class TraitCatalogTest
 
         AssertThat(trait).IsNotNull();
         AssertThat((string)trait!.Id).IsEqual((string)TraitIds.FireAffinity);
-        AssertThat(trait.Category).IsEqual("elemental");
+        AssertThat(trait.Category).IsEqual(TraitCategory.Elemental);
         AssertThat(trait.IsInnate).IsTrue();
     }
 
@@ -74,7 +76,7 @@ public class TraitCatalogTest
 
         foreach (var trait in elementalTraits)
         {
-            AssertThat(trait.Category).IsEqual("elemental");
+            AssertThat(trait.Category).IsEqual(TraitCategory.Elemental);
         }
     }
 
@@ -102,9 +104,9 @@ public class TraitCatalogTest
 
         // Fire affinity should buff fire units
         var firstMod = modifiers[0];
-        AssertThat(firstMod.Conditions.ContainsKey("elemental_affinity")).IsTrue();
-        AssertThat(firstMod.Conditions["elemental_affinity"]).IsEqual("fire");
-        AssertThat(firstMod.StatMults.ContainsKey("attack_damage")).IsTrue();
+        AssertThat(firstMod.Conditions.ContainsKey(ConditionKeys.ElementalAffinity)).IsTrue();
+        AssertThat(firstMod.Conditions[ConditionKeys.ElementalAffinity]).IsEqual("fire");
+        AssertThat(firstMod.StatMults.ContainsKey(StatKey.AttackDamage)).IsTrue();
     }
 
     [TestCase]
@@ -136,8 +138,8 @@ public class TraitCatalogTest
         AssertThat(trait.Modifiers).IsNotEmpty();
 
         var modifier = trait.Modifiers[0];
-        AssertThat(modifier.Stat).IsEqual("damage_reduction");
-        AssertThat(modifier.Type).IsEqual("flat");
+        AssertThat(modifier.Stat).IsEqual(StatKey.DamageReduction);
+        AssertThat(modifier.Type).IsEqual(ModifierType.Flat);
         AssertThat(modifier.Value).IsEqual(5.0f);
     }
 
@@ -182,10 +184,10 @@ public class TraitCatalogTest
         AssertThat(modifiers.Count).IsGreater(0);
 
         var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(ProjectSummoner.Systems.Modifiers.TriggerCondition.BelowHpPercent);
+        AssertThat(mod.Trigger).IsEqual(TriggerCondition.BelowHpPercent);
         AssertThat(mod.TriggerThreshold).IsEqual(0.5f);
-        AssertThat(mod.StatMults.ContainsKey("attack_damage")).IsTrue();
-        AssertThat(mod.StatMults["attack_damage"]).IsEqual(1.2f);
+        AssertThat(mod.StatMults.ContainsKey(StatKey.AttackDamage)).IsTrue();
+        AssertThat(mod.StatMults[StatKey.AttackDamage]).IsEqual(1.2f);
     }
 
     [TestCase]
@@ -196,10 +198,10 @@ public class TraitCatalogTest
         AssertThat(modifiers.Count).IsGreater(0);
 
         var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(ProjectSummoner.Systems.Modifiers.TriggerCondition.OnTakeHit);
+        AssertThat(mod.Trigger).IsEqual(TriggerCondition.OnTakeHit);
         AssertThat(mod.TriggerDuration).IsEqual(5.0f);
         AssertThat(mod.TriggerCooldown).IsEqual(1.0f);
-        AssertThat(mod.StatMults.ContainsKey("attack_speed")).IsTrue();
+        AssertThat(mod.StatMults.ContainsKey(StatKey.AttackSpeed)).IsTrue();
     }
 
     [TestCase]
@@ -210,9 +212,9 @@ public class TraitCatalogTest
         AssertThat(modifiers.Count).IsGreater(0);
 
         var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(ProjectSummoner.Systems.Modifiers.TriggerCondition.OnKill);
-        AssertThat(mod.StatAdds.ContainsKey("heal_on_kill")).IsTrue();
-        AssertThat(mod.StatAdds["heal_on_kill"]).IsEqual(5.0f);
+        AssertThat(mod.Trigger).IsEqual(TriggerCondition.OnKill);
+        AssertThat(mod.StatAdds.ContainsKey(StatKey.HealOnKill)).IsTrue();
+        AssertThat(mod.StatAdds[StatKey.HealOnKill]).IsEqual(5.0f);
     }
 
     [TestCase]

@@ -2,6 +2,7 @@ namespace ProjectSummoner.Tests.Systems.Modifiers;
 
 using System.Collections.Generic;
 using GdUnit4;
+using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
 using static GdUnit4.Assertions;
 
@@ -58,7 +59,7 @@ public class StatModifierTest
         var mod = new StatModifier
         {
             Source = "test_source",
-            StatAdds = new Dictionary<string, float> { ["attack_damage"] = 5.0f }
+            StatAdds = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 5.0f }
         };
 
         var dict = mod.ToDictionary();
@@ -112,9 +113,9 @@ public class StatModifierTest
             Source = "test_source",
             CardInstanceId = "card_123",
             Tags = new List<string> { "fire", "damage" },
-            Conditions = new Dictionary<string, object> { ["elemental_affinity"] = "fire" },
-            StatAdds = new Dictionary<string, float> { ["attack_damage"] = 10.0f },
-            StatMults = new Dictionary<string, float> { ["attack_speed"] = 1.2f },
+            Conditions = new Dictionary<string, object> { [ConditionKeys.ElementalAffinity] = "fire" },
+            StatAdds = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 10.0f },
+            StatMults = new Dictionary<StatKey, float> { [StatKey.AttackSpeed] = 1.2f },
             Flags = new Dictionary<string, bool> { ["immune_slow"] = true },
             Trigger = TriggerCondition.OnTakeHit,
             TriggerDuration = 5.0f,
@@ -129,5 +130,8 @@ public class StatModifierTest
         AssertThat(restored.Trigger).IsEqual(original.Trigger);
         AssertThat(restored.TriggerDuration).IsEqual(original.TriggerDuration);
         AssertThat(restored.TriggerCooldown).IsEqual(original.TriggerCooldown);
+        // Verify stat keys round-trip correctly
+        AssertThat(restored.StatAdds.ContainsKey(StatKey.AttackDamage)).IsTrue();
+        AssertThat(restored.StatMults.ContainsKey(StatKey.AttackSpeed)).IsTrue();
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ProjectSummoner.Data.Traits;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Data.Items;
 
@@ -23,7 +24,7 @@ public static class ItemDefinitions
         Rarity = "rare",
         Modifiers =
         [
-            new TraitModifier { Stat = "max_health", Type = "flat", Value = 100.0f }
+            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 100.0f }
         ]
     };
 
@@ -37,7 +38,7 @@ public static class ItemDefinitions
         Rarity = "rare",
         Modifiers =
         [
-            new TraitModifier { Stat = "damage_bonus", Type = "percent", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.DamageBonus, Type = ModifierType.Percent, Value = 5.0f }
         ]
     };
 
@@ -51,7 +52,7 @@ public static class ItemDefinitions
         Rarity = "uncommon",
         Modifiers =
         [
-            new TraitModifier { Stat = "gold_bonus", Type = "percent", Value = 10.0f }
+            new TraitModifier { Stat = StatKey.GoldBonus, Type = ModifierType.Percent, Value = 10.0f }
         ]
     };
 
@@ -65,7 +66,7 @@ public static class ItemDefinitions
         Rarity = "uncommon",
         Modifiers =
         [
-            new TraitModifier { Stat = "max_health", Type = "flat", Value = 50.0f }
+            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 50.0f }
         ]
     };
 
@@ -85,7 +86,7 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = "damage_bonus", Type = "percent", Value = 2.0f }
+            new TraitModifier { Stat = StatKey.DamageBonus, Type = ModifierType.Percent, Value = 2.0f }
         ]
     };
 
@@ -99,7 +100,7 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = "gold_bonus", Type = "percent", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.GoldBonus, Type = ModifierType.Percent, Value = 5.0f }
         ]
     };
 
@@ -113,7 +114,7 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = "xp_bonus", Type = "percent", Value = 5.0f }
+            new TraitModifier { Stat = StatKey.XpBonus, Type = ModifierType.Percent, Value = 5.0f }
         ]
     };
 
@@ -127,7 +128,7 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = "max_health", Type = "flat", Value = 25.0f }
+            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 25.0f }
         ]
     };
 

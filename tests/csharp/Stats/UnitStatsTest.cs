@@ -127,11 +127,11 @@ public class UnitStatsTest
         {
             new StatModifier
             {
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 20f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 20f }
             },
             new StatModifier
             {
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.5f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
             }
         };
 
@@ -150,13 +150,13 @@ public class UnitStatsTest
         {
             new StatModifier
             {
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 10f },
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.1f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
             },
             new StatModifier
             {
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 10f },
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.1f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
             }
         };
 

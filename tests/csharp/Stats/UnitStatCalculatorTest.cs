@@ -75,11 +75,11 @@ public class UnitStatCalculatorTest
         {
             new StatModifier
             {
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 10f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f }
             },
             new StatModifier
             {
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.1f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
             }
         };
 
@@ -97,7 +97,7 @@ public class UnitStatCalculatorTest
         {
             new StatModifier
             {
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 2.0f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 2.0f }
             }
         };
         var overrides = new Dictionary<string, float>
@@ -129,8 +129,8 @@ public class UnitStatCalculatorTest
         {
             new StatModifier
             {
-                StatAdds = new Dictionary<string, float> { ["max_hp"] = 10f },
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.1f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
             }
         };
 
@@ -211,7 +211,7 @@ public class UnitStatCalculatorTest
         {
             new StatModifier
             {
-                StatMults = new Dictionary<string, float> { ["max_hp"] = 1.5f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
             }
         };
 
