@@ -206,6 +206,34 @@ public class BattleEventConfig
 }
 ```
 
+### Exporting the Game
+
+**Prerequisites:**
+- Use `Godot_mono.app` (NOT `Godot.app`) - this is a C# project
+- Windows export templates must be installed (via Godot Editor > Editor > Manage Export Templates)
+
+**Command-line export (headless):**
+```bash
+# Build C# first
+dotnet build
+
+# Export Windows release
+/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --export-release "Windows Desktop"
+```
+
+**Output files:**
+- `Fateforged.exe` - Main game executable
+- `Fateforged.console.exe` - Console wrapper (for debug output)
+- `data_Fateforged_windows_x86_64/` - .NET runtime and dependencies
+
+**Distribution:**
+To share the build, zip the exe files AND the data folder together:
+```bash
+zip -r Fateforged-windows.zip Fateforged.exe Fateforged.console.exe data_Fateforged_windows_x86_64/
+```
+
+All three components are required for the game to run on Windows.
+
 ### Git Workflow
 **ALWAYS use feature branches and PRs for non-trivial changes.**
 
