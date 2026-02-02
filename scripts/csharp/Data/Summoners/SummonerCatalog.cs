@@ -39,11 +39,11 @@ public static class SummonerCatalog
             StarterCardId = CardIds.FireWisp
         },
 
-        [SummonerIds.Selene] = new SummonerDefinition
+        [SummonerIds.Celine] = new SummonerDefinition
         {
-            Id = SummonerIds.Selene,
-            NameKey = "summoner.selene.name",
-            DescriptionKey = "summoner.selene.description",
+            Id = SummonerIds.Celine,
+            NameKey = "summoner.celine.name",
+            DescriptionKey = "summoner.celine.description",
             ElementalAffinity = Element.Water,
             BaseHealth = 1200.0f,
             MaxMana = 100.0f,
@@ -51,7 +51,7 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitIds.WaterAffinity, TraitIds.TidalResilience],
-            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Water, TraitTags.Selene],
+            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Water, TraitTags.Celine],
             StarterCardId = CardIds.WaterWisp
         },
 

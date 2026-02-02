@@ -472,14 +472,14 @@ public class DtoConvertersTest
     {
         var update = new MetaUpdate
         {
-            SelectedSummoner = "summoner_selene"
+            SelectedSummoner = "summoner_celine"
             // Other fields are null/not set
         };
 
         var dict = DtoConverters.ToDict(update);
 
         AssertThat(dict.ContainsKey("selected_summoner")).IsTrue();
-        AssertThat(dict["selected_summoner"].AsString()).IsEqual("summoner_selene");
+        AssertThat(dict["selected_summoner"].AsString()).IsEqual("summoner_celine");
         AssertThat(dict.ContainsKey("selected_deck")).IsFalse();
         AssertThat(dict.ContainsKey("analytics_opt_in")).IsFalse();
         AssertThat(dict.ContainsKey("tutorial_flags")).IsFalse();

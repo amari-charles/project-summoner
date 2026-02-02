@@ -60,7 +60,7 @@ public static class TraitTags
     // =========================================================================
 
     public const string Cole = "cole";
-    public const string Selene = "selene";
+    public const string Celine = "celine";
     public const string Mei = "mei";
     public const string Teo = "teo";
 

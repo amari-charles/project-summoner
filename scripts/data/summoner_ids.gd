@@ -7,7 +7,7 @@ class_name SummonerIDs
 ##
 ## Usage:
 ##   SummonerSelection.set_active_summoner(SummonerIDs.COLE)
-##   if current_summoner == SummonerIDs.SELENE:
+##   if current_summoner == SummonerIDs.CELINE:
 ##       # Water-specific logic
 ##
 ## When adding new summoners:
@@ -24,8 +24,8 @@ class_name SummonerIDs
 ## Cole - Fire Fateforger. Arrogant, competitive, cocky.
 const COLE: StringName = &"summoner_cole"
 
-## Selene - Water Fateforger. Gentle, caring, emotionally intelligent.
-const SELENE: StringName = &"summoner_selene"
+## Celine - Water Fateforger. Gentle, caring, emotionally intelligent.
+const CELINE: StringName = &"summoner_celine"
 
 ## Mei - Wind Fateforger. Elusive, self-interested, loner.
 const MEI: StringName = &"summoner_mei"
@@ -47,7 +47,7 @@ const MANA_TEST: StringName = &"summoner_mana_test"
 ## Core starting summoners (always available in selection)
 const ALL_STARTING: Array[StringName] = [
 	COLE,
-	SELENE,
+	CELINE,
 	MEI,
 	TEO,
 ]

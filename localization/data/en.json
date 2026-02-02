@@ -695,11 +695,9 @@
     },
     "merlin_summoner_intro": {
       "speaker": "Merlin",
-      "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
-      "line_2": "Before we begin your trials, you must select your path—the elemental affinity that will shape your journey as a summoner.",
-      "line_3": "Each path offers unique strengths. Earth brings resilience, Fire passion, Water adaptability, Air swiftness... and for the daring, there is always the path of chance.",
-      "line_4": "This choice will define your approach to the summoning arts. Choose wisely, but do not hesitate.",
-      "line_5": "Fortune favors the bold."
+      "line_1": "The time has come, Initiate. Step into the circle.",
+      "line_2": "Every summoner carries an elemental spark. Yours is about to ignite.",
+      "line_3": "Choose your path wisely... though fate does favor the bold."
     },
     "merlin_first_card_intro": {
       "speaker": "Merlin",
@@ -884,8 +882,8 @@
       "name": "Cole",
       "description": "Arrogant and competitive. First to volunteer for any challenge."
     },
-    "selene": {
-      "name": "Selene",
+    "celine": {
+      "name": "Celine",
       "description": "Gentle and caring. Reads people and situations with ease."
     },
     "mei": {
@@ -902,8 +900,12 @@
     },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",
+    "selection_title": "Choose Your Summoner",
+    "selection_subtitle": "Each summoner has unique abilities that shape your playstyle",
     "random_summoner": "Random",
     "random_summoner_description": "Let fate choose your summoner",
+    "element_affinity": "Favors {element}",
+    "element_affinity_unknown": "Favors ???",
     "trait_fortune_favors_bold": "Fortune Favors the Bold",
     "trait_fortune_favors_bold_desc": "Start with bonus {bonus_type}"
   },

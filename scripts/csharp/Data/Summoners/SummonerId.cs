@@ -35,8 +35,8 @@ public static class SummonerIds
     /// <summary>Cole - Fire Fateforger. Arrogant, competitive, cocky.</summary>
     public static readonly SummonerId Cole = new("summoner_cole");
 
-    /// <summary>Selene - Water Fateforger. Gentle, caring, emotionally intelligent.</summary>
-    public static readonly SummonerId Selene = new("summoner_selene");
+    /// <summary>Celine - Water Fateforger. Gentle, caring, emotionally intelligent.</summary>
+    public static readonly SummonerId Celine = new("summoner_celine");
 
     /// <summary>Mei - Wind Fateforger. Elusive, self-interested, loner.</summary>
     public static readonly SummonerId Mei = new("summoner_mei");
@@ -56,7 +56,7 @@ public static class SummonerIds
     // =========================================================================
 
     /// <summary>Core starting summoners (always available in selection).</summary>
-    public static readonly SummonerId[] AllStarting = [Cole, Selene, Mei, Teo];
+    public static readonly SummonerId[] AllStarting = [Cole, Celine, Mei, Teo];
 
     /// <summary>Dev/test summoners (not available to players).</summary>
     public static readonly SummonerId[] AllDev = [ManaTest];

@@ -936,6 +936,37 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ## Summoner System
 
+### 🟡 MEDIUM PRIORITY
+
+#### Audit Summoner Secondary Stats (damage_bonus, damage_reduction)
+**Status:** ⬜ Not Started
+**Category:** Summoners / Stats
+**Effort:** Small
+
+**Description:**
+Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed internally via the trait system but are no longer displayed in the Summoner Screen UI. Audit whether these stats are:
+1. Actually being applied in combat calculations
+2. Useful for the gameplay design
+3. Documented appropriately
+
+**Context:**
+- These stats were removed from UI display (they cluttered the summoner screen with confusing "Defense: +X%" rows)
+- They exist in `SummonerInstance.get_computed_stats()` and are populated by traits
+- The trait "Fortune Favors the Bold" grants `damage_bonus` as a modifier
+- Unclear if `DamageSystem` or other combat code actually uses these values
+
+**Questions to Answer:**
+- Are `damage_bonus` and `damage_reduction` actually applied during damage calculations?
+- Should these remain as internal modifiers or be removed entirely?
+- If kept, should they be surfaced differently (e.g., in trait tooltips)?
+
+**Related Files:**
+- `scripts/data/summoner_instance.gd` - `get_computed_stats()`
+- `scripts/csharp/Combat/DamageSystem.cs` - damage calculations
+- `scripts/data/trait_catalog.gd` - trait definitions
+
+---
+
 ### 🟢 LOW PRIORITY
 
 #### Per-Summoner Portrait Cropping Configuration

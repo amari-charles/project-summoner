@@ -9,6 +9,8 @@ class_name SummonerSelectionScreen
 
 const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
 
+@onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
+@onready var subtitle_label: Label = $CenterContainer/VBoxContainer/SubtitleLabel
 @onready var select_button1: Button = %SelectButton1
 @onready var select_button2: Button = %SelectButton2
 @onready var select_button3: Button = %SelectButton3
@@ -21,6 +23,10 @@ const SUMMONER_RANDOM: String = "random"
 func _ready() -> void:
 	print("SummonerSelection: Initializing...")
 
+	# Set localized title and subtitle
+	title_label.text = Loc.t("summoner.selection_title").to_upper()
+	subtitle_label.text = Loc.t("summoner.selection_subtitle")
+
 	# Hide summoner buttons initially - will show after Merlin's dialogue
 	select_button1.visible = false
 	select_button2.visible = false
@@ -28,12 +34,15 @@ func _ready() -> void:
 	select_button4.visible = false
 	select_button5.visible = false
 
+	# Populate button labels from SummonerCatalog
+	_populate_summoner_buttons()
+
 	# Connect all summoner selection buttons
 	select_button1.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.TEO))
 	select_button2.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.COLE))
 	select_button3.pressed.connect(func() -> void: _on_summoner_selected(SUMMONER_RANDOM))
 	select_button4.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.MEI))
-	select_button5.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.SELENE))
+	select_button5.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.CELINE))
 
 	# Start Merlin's introduction dialogue
 	await get_tree().process_frame
@@ -117,6 +126,52 @@ func _create_starter_deck(summoner_id: String) -> void:
 			profile["meta"] = {}
 		profile["meta"]["selected_deck"] = deck_id
 		ProfileRepo.save_profile(true)
+
+## Populate button labels dynamically from SummonerCatalog
+func _populate_summoner_buttons() -> void:
+	# Define button -> summoner mapping
+	var button_mappings: Array = [
+		{button = select_button1, summoner_id = SummonerIDs.TEO},
+		{button = select_button2, summoner_id = SummonerIDs.COLE},
+		# button3 is Random - handle separately
+		{button = select_button4, summoner_id = SummonerIDs.MEI},
+		{button = select_button5, summoner_id = SummonerIDs.CELINE},
+	]
+
+	for mapping: Dictionary in button_mappings:
+		var config: SummonerConfig = SummonerCatalog.get_summoner_config(mapping.summoner_id)
+		if config:
+			_set_button_content(mapping.button, config)
+
+	# Handle Random button separately
+	_set_random_button_content(select_button3)
+
+
+func _set_button_content(button: Button, config: SummonerConfig) -> void:
+	var name_label: Label = button.find_child("SummonerName", true, false)
+	var element_label: Label = button.find_child("SummonerElement", true, false)
+	var desc_label: Label = button.find_child("SummonerDescription", true, false)
+
+	if name_label:
+		name_label.text = config.summoner_name.to_upper()
+	if element_label:
+		element_label.text = Loc.t("summoner.element_affinity", {"element": ElementTypes.get_display_name(config.get_element())})
+	if desc_label:
+		desc_label.text = config.description
+
+
+func _set_random_button_content(button: Button) -> void:
+	var name_label: Label = button.find_child("SummonerName", true, false)
+	var element_label: Label = button.find_child("SummonerElement", true, false)
+	var desc_label: Label = button.find_child("SummonerDescription", true, false)
+
+	if name_label:
+		name_label.text = Loc.t("summoner.random_summoner").to_upper()
+	if element_label:
+		element_label.text = Loc.t("summoner.element_affinity_unknown")
+	if desc_label:
+		desc_label.text = Loc.t("summoner.random_summoner_description")
+
 
 ## Create and save SummonerInstance for the selected summoner
 func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void:
