@@ -62,10 +62,10 @@ public static class DtoConverters
         // Deserialize equipped_items (string keys from GDScript → ItemSlot enum keys)
         var equippedItems = new Dictionary<ItemSlot, ItemId?>
         {
-            [ItemSlot.Weapon] = null,
+            [ItemSlot.Wand] = null,
             [ItemSlot.Ring1] = null,
             [ItemSlot.Ring2] = null,
-            [ItemSlot.Vestments] = null
+            [ItemSlot.Robes] = null
         };
         if (dict.TryGetValue("equipped_items", out var equippedVar) && equippedVar.VariantType == Variant.Type.Dictionary)
         {

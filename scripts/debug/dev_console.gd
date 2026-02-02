@@ -619,7 +619,7 @@ func _cmd_items_list() -> bool:
 func _cmd_items_equip(args: PackedStringArray) -> bool:
 	if args.size() < 2:
 		print("DevConsole: Usage: /items_equip <slot> <instance_id>")
-		print("DevConsole: Slots: weapon, ring1, ring2, vestments")
+		print("DevConsole: Slots: wand, ring1, ring2, robes")
 		print("DevConsole: Use /items_list to see available instance IDs")
 		return false
 

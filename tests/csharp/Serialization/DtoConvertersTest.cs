@@ -40,10 +40,10 @@ public class DtoConvertersTest
             Xp = 1500,
             EquippedItems = new Dictionary<ItemSlot, ItemId?>
             {
-                [ItemSlot.Weapon] = new ItemId("item_001"),
+                [ItemSlot.Wand] = new ItemId("item_001"),
                 [ItemSlot.Ring1] = null,
                 [ItemSlot.Ring2] = new ItemId("item_002"),
-                [ItemSlot.Vestments] = null
+                [ItemSlot.Robes] = null
             }
         };
 
@@ -54,10 +54,10 @@ public class DtoConvertersTest
         AssertThat((string)result!.SummonerId).IsEqual("summoner_cole");
         AssertThat(result.Level).IsEqual(5);
         AssertThat(result.Xp).IsEqual(1500);
-        AssertThat((string?)result.EquippedItems[ItemSlot.Weapon]).IsEqual("item_001");
+        AssertThat((string?)result.EquippedItems[ItemSlot.Wand]).IsEqual("item_001");
         AssertThat(result.EquippedItems[ItemSlot.Ring1]).IsNull();
         AssertThat((string?)result.EquippedItems[ItemSlot.Ring2]).IsEqual("item_002");
-        AssertThat(result.EquippedItems[ItemSlot.Vestments]).IsNull();
+        AssertThat(result.EquippedItems[ItemSlot.Robes]).IsNull();
     }
 
     [TestCase]
@@ -170,7 +170,7 @@ public class DtoConvertersTest
             CatalogId = new ItemId("sword_of_fire"),
             EquippedBySummonerId = new SummonerId("summoner_cole"),
             BoundToSummonerId = new SummonerId("summoner_cole"),
-            EquippedSlot = ItemSlot.Weapon
+            EquippedSlot = ItemSlot.Wand
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -181,7 +181,7 @@ public class DtoConvertersTest
         AssertThat((string)result.CatalogId).IsEqual("sword_of_fire");
         AssertThat((string?)result.EquippedBySummonerId).IsEqual("summoner_cole");
         AssertThat((string?)result.BoundToSummonerId).IsEqual("summoner_cole");
-        AssertThat(result.EquippedSlot).IsEqual(ItemSlot.Weapon);
+        AssertThat(result.EquippedSlot).IsEqual(ItemSlot.Wand);
     }
 
     [TestCase]
@@ -208,11 +208,11 @@ public class DtoConvertersTest
         {
             Id = new ItemId("item_001"),
             CatalogId = new ItemId("test"),
-            EquippedSlot = ItemSlot.Vestments
+            EquippedSlot = ItemSlot.Robes
         };
 
         var dict = DtoConverters.ToDict(item);
-        AssertThat(dict["slot"].AsString()).IsEqual("vestments");
+        AssertThat(dict["slot"].AsString()).IsEqual("robes");
     }
 
     // =========================================================================

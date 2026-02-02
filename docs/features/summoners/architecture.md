@@ -143,7 +143,7 @@ var level: int = 1               # Current level (1-10)
 var xp: int = 0                  # Current XP
 
 # Equipped Items (from gameplay, stored as item IDs per slot)
-var equipped_items: Dictionary = {}  # {"grimoire": "item_id", "weapon": "item_id", ...}
+var equipped_items: Dictionary = {}  # {"grimoire": "item_id", "wand": "item_id", ...}
 
 # Get all trait IDs (innate + acquired)
 func get_all_trait_ids() -> Array[String]

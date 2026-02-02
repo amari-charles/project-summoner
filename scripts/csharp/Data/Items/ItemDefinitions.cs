@@ -18,7 +18,7 @@ public static class ItemDefinitions
         Id = ItemIds.VeteransMedal,
         NameKey = "item.veterans_medal.name",
         DescriptionKey = "item.veterans_medal.description",
-        Slot = ItemSlot.Vestments,
+        Slot = ItemSlot.Robes,
         Binding = ItemBinding.AccountWide,
         Rarity = "rare",
         Modifiers =
@@ -32,7 +32,7 @@ public static class ItemDefinitions
         Id = ItemIds.BattleHardenedBadge,
         NameKey = "item.battle_hardened_badge.name",
         DescriptionKey = "item.battle_hardened_badge.description",
-        Slot = ItemSlot.Weapon,
+        Slot = ItemSlot.Wand,
         Binding = ItemBinding.AccountWide,
         Rarity = "rare",
         Modifiers =
@@ -60,7 +60,7 @@ public static class ItemDefinitions
         Id = ItemIds.BoldFortuneAmulet,
         NameKey = "item.bold_fortune_amulet.name",
         DescriptionKey = "item.bold_fortune_amulet.description",
-        Slot = ItemSlot.Vestments,
+        Slot = ItemSlot.Robes,
         Binding = ItemBinding.AccountWide,
         Rarity = "uncommon",
         Modifiers =
@@ -72,7 +72,7 @@ public static class ItemDefinitions
     // =========================================================================
     // STARTER ITEMS
     // Basic items available from the start, one for each slot.
-    // Slots: Weapon, Ring1, Ring2, Vestments
+    // Slots: Wand, Ring1, Ring2, Robes
     // =========================================================================
 
     public static readonly ItemDefinition TrainingBlade = new()
@@ -80,7 +80,7 @@ public static class ItemDefinitions
         Id = ItemIds.TrainingBlade,
         NameKey = "item.training_blade.name",
         DescriptionKey = "item.training_blade.description",
-        Slot = ItemSlot.Weapon,
+        Slot = ItemSlot.Wand,
         Binding = ItemBinding.AccountWide,
         Rarity = "common",
         Modifiers =
@@ -122,7 +122,7 @@ public static class ItemDefinitions
         Id = ItemIds.TravelersCloak,
         NameKey = "item.travelers_cloak.name",
         DescriptionKey = "item.travelers_cloak.description",
-        Slot = ItemSlot.Vestments,
+        Slot = ItemSlot.Robes,
         Binding = ItemBinding.AccountWide,
         Rarity = "common",
         Modifiers =

@@ -38,7 +38,7 @@ public static class ItemIds
     public static readonly ItemId BoldFortuneAmulet = new("item_bold_fortune_amulet");
 
     // =========================================================================
-    // STARTER ITEMS (one per slot: Weapon, Ring1, Ring2, Vestments)
+    // STARTER ITEMS (one per slot: Wand, Ring1, Ring2, Robes)
     // =========================================================================
 
     public static readonly ItemId TrainingBlade = new("item_training_blade");

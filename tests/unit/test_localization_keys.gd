@@ -14,7 +14,7 @@ const EN_JSON_PATH: String = "res://localization/data/en.json"
 # and must be explicitly validated since static analysis can't determine them.
 const DYNAMIC_ELEMENTS: Array[String] = ["fire", "water", "earth", "air", "light", "dark", "neutral"]
 const DYNAMIC_STAT_KEYS: Array[String] = ["stat_hp", "stat_damage", "stat_attack_speed", "stat_move_speed", "stat_spell_damage", "stat_spell_radius"]
-const DYNAMIC_EQUIPMENT_SLOTS: Array[String] = ["weapon", "ring1", "ring2", "vestments"]
+const DYNAMIC_EQUIPMENT_SLOTS: Array[String] = ["wand", "ring1", "ring2", "robes"]
 
 var _localization_keys: Dictionary = {}
 

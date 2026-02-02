@@ -27,15 +27,15 @@ public class SummonerInstance
     /// <summary>
     /// Equipped item instance IDs by slot.
     /// Values: Item instance ID or null if slot is empty.
-    /// Serialized to {"weapon": "id", ...} via DtoConverters for GDScript interop.
+    /// Serialized to {"wand": "id", ...} via DtoConverters for GDScript interop.
     /// </summary>
     [JsonIgnore]
     public Dictionary<ItemSlot, ItemId?> EquippedItems { get; set; } = new()
     {
-        [ItemSlot.Weapon] = null,
+        [ItemSlot.Wand] = null,
         [ItemSlot.Ring1] = null,
         [ItemSlot.Ring2] = null,
-        [ItemSlot.Vestments] = null
+        [ItemSlot.Robes] = null
     };
 
     /// <summary>
