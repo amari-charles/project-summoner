@@ -107,6 +107,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     [Export]
     public float AggroRadius { get; set; } = 20f;
 
+    [Export]
+    public float CritChance { get; set; } = 0f;
+
+    [Export]
+    public float CritDamage { get; set; } = 1.5f;
+
     // =========================================================================
     // EXPORTED PROPERTIES - Targeting
     // =========================================================================
@@ -446,6 +452,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         MoveSpeed = definition.Stats.MoveSpeed;
         AttackRange = definition.Stats.AttackRange;
         AggroRadius = definition.Stats.AggroRadius;
+        CritChance = definition.Stats.CritChance;
+        CritDamage = definition.Stats.CritDamage;
 
         // Store base stats for modifier calculations
         _baseMaxHp = MaxHp;

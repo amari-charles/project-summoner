@@ -28,6 +28,18 @@ public enum StatKey
     /// <summary>Aggro detection radius.</summary>
     AggroRadius,
 
+    /// <summary>Critical hit chance (0.0 - 1.0).</summary>
+    CritChance,
+
+    /// <summary>Critical hit damage multiplier.</summary>
+    CritDamage,
+
+    /// <summary>Physical damage reduction.</summary>
+    Armor,
+
+    /// <summary>Elemental/magical damage reduction.</summary>
+    MagicResist,
+
     // =========================================================================
     // ELEMENTAL DAMAGE BONUSES (summoner stats that affect units)
     // =========================================================================
@@ -47,8 +59,14 @@ public enum StatKey
     /// <summary>Bonus damage for lightning element attacks.</summary>
     LightningDamageBonus,
 
+    /// <summary>Bonus damage for life element attacks.</summary>
+    LifeDamageBonus,
+
     /// <summary>Bonus damage for death element attacks.</summary>
     DeathDamageBonus,
+
+    /// <summary>Bonus damage for shadow element attacks.</summary>
+    ShadowDamageBonus,
 
     // =========================================================================
     // SUMMONER SURVIVAL/UTILITY STATS
@@ -111,6 +129,10 @@ public static class StatKeyExtensions
         StatKey.MoveSpeed => "move_speed",
         StatKey.AttackRange => "attack_range",
         StatKey.AggroRadius => "aggro_radius",
+        StatKey.CritChance => "crit_chance",
+        StatKey.CritDamage => "crit_damage",
+        StatKey.Armor => "armor",
+        StatKey.MagicResist => "magic_resist",
 
         // Elemental damage bonuses
         StatKey.FireDamageBonus => "fire_damage_bonus",
@@ -118,7 +140,9 @@ public static class StatKeyExtensions
         StatKey.WindDamageBonus => "wind_damage_bonus",
         StatKey.EarthDamageBonus => "earth_damage_bonus",
         StatKey.LightningDamageBonus => "lightning_damage_bonus",
+        StatKey.LifeDamageBonus => "life_damage_bonus",
         StatKey.DeathDamageBonus => "death_damage_bonus",
+        StatKey.ShadowDamageBonus => "shadow_damage_bonus",
 
         // Summoner survival/utility stats
         StatKey.HealingBonus => "healing_bonus",
@@ -166,6 +190,10 @@ public static class StatKeyExtensions
             "movespeed" => StatKey.MoveSpeed,
             "attackrange" => StatKey.AttackRange,
             "aggroradius" => StatKey.AggroRadius,
+            "critchance" => StatKey.CritChance,
+            "critdamage" => StatKey.CritDamage,
+            "armor" => StatKey.Armor,
+            "magicresist" => StatKey.MagicResist,
 
             // Elemental damage bonuses
             "firedamagebonus" => StatKey.FireDamageBonus,
@@ -173,7 +201,9 @@ public static class StatKeyExtensions
             "winddamagebonus" => StatKey.WindDamageBonus,
             "earthdamagebonus" => StatKey.EarthDamageBonus,
             "lightningdamagebonus" => StatKey.LightningDamageBonus,
+            "lifedamagebonus" => StatKey.LifeDamageBonus,
             "deathdamagebonus" => StatKey.DeathDamageBonus,
+            "shadowdamagebonus" => StatKey.ShadowDamageBonus,
 
             // Summoner survival/utility stats
             "healingbonus" => StatKey.HealingBonus,
@@ -212,6 +242,10 @@ public static class StatKeyExtensions
         StatKey.MoveSpeed => 3f,
         StatKey.AttackRange => 2f,
         StatKey.AggroRadius => 20f,
+        StatKey.CritChance => 0f,
+        StatKey.CritDamage => 1.5f,
+        StatKey.Armor => 0f,
+        StatKey.MagicResist => 0f,
         StatKey.MaxHealth => 100f,
         _ => 0f
     };
@@ -226,7 +260,11 @@ public static class StatKeyExtensions
         StatKey.AttackSpeed,
         StatKey.MoveSpeed,
         StatKey.AttackRange,
-        StatKey.AggroRadius
+        StatKey.AggroRadius,
+        StatKey.CritChance,
+        StatKey.CritDamage,
+        StatKey.Armor,
+        StatKey.MagicResist
     };
 
     /// <summary>

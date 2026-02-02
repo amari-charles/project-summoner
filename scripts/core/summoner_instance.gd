@@ -139,11 +139,18 @@ func _recompute_stats() -> void:
 	var stats: Dictionary = {
 		"health": config.base_health,
 		"max_mana": config.max_mana,
+		"cast_speed": config.base_cast_speed,
 		# Trait-related bonus stats (default to 0, modified by traits)
+		# Elemental damage bonuses
 		"fire_damage_bonus": 0.0,
 		"water_damage_bonus": 0.0,
 		"wind_damage_bonus": 0.0,
 		"earth_damage_bonus": 0.0,
+		"lightning_damage_bonus": 0.0,
+		"life_damage_bonus": 0.0,
+		"death_damage_bonus": 0.0,
+		"shadow_damage_bonus": 0.0,
+		# General combat modifiers
 		"damage_bonus": 0.0,
 		"damage_reduction": 0.0
 	}

@@ -48,8 +48,9 @@ public partial class DamageSystem : Node, IDamageSystem
 		{ DamageTypes.Poison, 1.0f }
 	};
 
-	private const float CritChance = 0.15f;      // 15% base crit chance
-	private const float CritMultiplier = 2.0f;   // 2x damage on crit
+	// Default crit values used when attacker has no stats (e.g., summoner, spell)
+	private const float DefaultCritChance = 0.0f;      // Units default to 0% crit chance
+	private const float DefaultCritMultiplier = 1.5f;   // 1.5x damage on crit (matches UnitStats default)
 
 	// =========================================================================
 	// LIFECYCLE
@@ -99,6 +100,10 @@ public partial class DamageSystem : Node, IDamageSystem
 		float finalDamage = baseDamage;
 		bool isCrit = false;
 
+		// Get attacker's crit stats (from unit stats if available)
+		float critChance = GetAttackerCritChance(attacker);
+		float critDamage = GetAttackerCritDamage(attacker);
+
 		// Check for critical hit
 		if (flags.ContainsKey("force_crit") && flags["force_crit"].AsBool())
 		{
@@ -106,13 +111,13 @@ public partial class DamageSystem : Node, IDamageSystem
 		}
 		else if (!flags.ContainsKey("cannot_crit") || !flags["cannot_crit"].AsBool())
 		{
-			isCrit = GetSeededCritRoll() < CritChance;
+			isCrit = critChance > 0f && GetSeededCritRoll() < critChance;
 		}
 
 		// Apply crit multiplier
 		if (isCrit)
 		{
-			finalDamage *= CritMultiplier;
+			finalDamage *= critDamage;
 		}
 
 		// Apply damage type multiplier
@@ -415,10 +420,10 @@ public partial class DamageSystem : Node, IDamageSystem
 	{
 		float finalDamage = baseDamage;
 
-		// Apply crit if assumed
+		// Apply crit if assumed (use default multiplier for preview)
 		if (assumeCrit)
 		{
-			finalDamage *= CritMultiplier;
+			finalDamage *= DefaultCritMultiplier;
 		}
 
 		// Apply damage type multiplier
@@ -437,6 +442,36 @@ public partial class DamageSystem : Node, IDamageSystem
 			{ "damage_type", damageType },
 			{ "will_kill", GetCurrentHp(target) <= finalDamage }
 		};
+	}
+
+	// =========================================================================
+	// ATTACKER STAT HELPERS
+	// =========================================================================
+
+	/// <summary>
+	/// Get the attacker's crit chance from their unit stats.
+	/// Returns default if attacker is not a Unit3D or has no stats.
+	/// </summary>
+	private static float GetAttackerCritChance(Node3D attacker)
+	{
+		if (attacker is Unit3D unit)
+		{
+			return unit.CritChance;
+		}
+		return DefaultCritChance;
+	}
+
+	/// <summary>
+	/// Get the attacker's crit damage multiplier from their unit stats.
+	/// Returns default if attacker is not a Unit3D or has no stats.
+	/// </summary>
+	private static float GetAttackerCritDamage(Node3D attacker)
+	{
+		if (attacker is Unit3D unit)
+		{
+			return unit.CritDamage;
+		}
+		return DefaultCritMultiplier;
 	}
 
 	// =========================================================================

@@ -44,6 +44,7 @@ const HURTBOX_HEIGHT: float = 6.25   # Character sprite height
 ## Current state
 var mana: float = 0.0
 var max_mana: float = SummonerConfig.DEFAULT_MAX_MANA  ## Fixed pool for entire battle (no regeneration)
+var cast_speed: float = SummonerConfig.DEFAULT_BASE_CAST_SPEED  ## Multiplier for summon time (higher = faster)
 var hand: Array[Card] = []
 var deck: Array[Card] = []
 var discard_pile: Array[Card] = []
@@ -321,23 +322,24 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	mana -= card.mana_cost
 	mana_changed.emit(mana, max_mana)
 
-	var summon_time: float = card.summon_time
+	# Apply cast_speed modifier to summon time (higher cast_speed = faster summons)
+	var effective_summon_time: float = card.summon_time / cast_speed
 
-	if summon_time > 0.0 and card.card_type == Card.CardType.SUMMON:
+	if effective_summon_time > 0.0 and card.card_type == Card.CardType.SUMMON:
 		# Summon with spawn reveal effect (ghost materialize animation)
 		# Unit spawns immediately but animates in over summon_time
 		# Player is locked from playing another card during this time
 		is_casting = true
 		casting_card = card
-		casting_time_remaining = summon_time
-		casting_time_total = summon_time
+		casting_time_remaining = effective_summon_time
+		casting_time_total = effective_summon_time
 		casting_spawn_position = spawn_position
 		casting_card_index = card_index
 
 		# Spawn the unit immediately with reveal effect
-		_complete_card_play(card, card_index, spawn_position, summon_time)
+		_complete_card_play(card, card_index, spawn_position, effective_summon_time)
 
-		casting_started.emit(card, summon_time)
+		casting_started.emit(card, effective_summon_time)
 		return true
 	else:
 		# Instant cast (spells or units with no summon_time)
@@ -596,6 +598,10 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	var summoner_max_mana: float = stats.get("max_mana", SummonerConfig.DEFAULT_MAX_MANA)
 	max_mana = summoner_max_mana
 
+	# Set cast speed from summoner (with modifiers applied)
+	var summoner_cast_speed: float = stats.get("cast_speed", SummonerConfig.DEFAULT_BASE_CAST_SPEED)
+	cast_speed = summoner_cast_speed
+
 	# Cache summoner stats in BattleContext for DamageSystem to use
 	BattleContext.set_player_summoner_stats(stats)
 
@@ -607,8 +613,8 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 
 	var summoner_name: String = summoner_instance.config.summoner_name
 	var trait_count: int = summoner_instance.get_all_trait_ids().size()
-	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max HP: %.0f, Max Mana: %.0f" % [
-		summoner_name, summoner_instance.level, trait_count, max_hp, max_mana
+	print("Summoner: Applied summoner bonuses from '%s' (Level %d, %d traits) - Max HP: %.0f, Max Mana: %.0f, Cast Speed: %.2f" % [
+		summoner_name, summoner_instance.level, trait_count, max_hp, max_mana, cast_speed
 	])
 
 ## =============================================================================

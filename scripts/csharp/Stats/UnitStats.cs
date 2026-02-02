@@ -17,6 +17,10 @@ public record UnitStats
     public float MoveSpeed { get; init; } = 3f;
     public float AttackRange { get; init; } = 2f;
     public float AggroRadius { get; init; } = 20f;
+    public float CritChance { get; init; } = 0f;
+    public float CritDamage { get; init; } = 1.5f;
+    public float Armor { get; init; } = 0f;
+    public float MagicResist { get; init; } = 0f;
 
     /// <summary>
     /// Creates UnitStats with default values.
@@ -36,6 +40,10 @@ public record UnitStats
         StatKey.MoveSpeed => MoveSpeed,
         StatKey.AttackRange => AttackRange,
         StatKey.AggroRadius => AggroRadius,
+        StatKey.CritChance => CritChance,
+        StatKey.CritDamage => CritDamage,
+        StatKey.Armor => Armor,
+        StatKey.MagicResist => MagicResist,
         _ => 0f
     };
 
@@ -50,6 +58,10 @@ public record UnitStats
         StatKey.MoveSpeed => this with { MoveSpeed = value },
         StatKey.AttackRange => this with { AttackRange = value },
         StatKey.AggroRadius => this with { AggroRadius = value },
+        StatKey.CritChance => this with { CritChance = value },
+        StatKey.CritDamage => this with { CritDamage = value },
+        StatKey.Armor => this with { Armor = value },
+        StatKey.MagicResist => this with { MagicResist = value },
         _ => this
     };
 
@@ -81,7 +93,11 @@ public record UnitStats
             AttackSpeed = GetFloat(dict, "attack_speed", "AttackSpeed", 1f),
             MoveSpeed = GetFloat(dict, "move_speed", "MoveSpeed", 3f),
             AttackRange = GetFloat(dict, "attack_range", "AttackRange", 2f),
-            AggroRadius = GetFloat(dict, "aggro_radius", "AggroRadius", 20f)
+            AggroRadius = GetFloat(dict, "aggro_radius", "AggroRadius", 20f),
+            CritChance = GetFloat(dict, "crit_chance", "CritChance", 0f),
+            CritDamage = GetFloat(dict, "crit_damage", "CritDamage", 1.5f),
+            Armor = GetFloat(dict, "armor", "Armor", 0f),
+            MagicResist = GetFloat(dict, "magic_resist", "MagicResist", 0f)
         };
     }
 
@@ -120,7 +136,11 @@ public record UnitStats
             ["attack_speed"] = AttackSpeed,
             ["move_speed"] = MoveSpeed,
             ["attack_range"] = AttackRange,
-            ["aggro_radius"] = AggroRadius
+            ["aggro_radius"] = AggroRadius,
+            ["crit_chance"] = CritChance,
+            ["crit_damage"] = CritDamage,
+            ["armor"] = Armor,
+            ["magic_resist"] = MagicResist
         };
     }
 
@@ -136,7 +156,11 @@ public record UnitStats
             [StatKey.AttackSpeed] = AttackSpeed,
             [StatKey.MoveSpeed] = MoveSpeed,
             [StatKey.AttackRange] = AttackRange,
-            [StatKey.AggroRadius] = AggroRadius
+            [StatKey.AggroRadius] = AggroRadius,
+            [StatKey.CritChance] = CritChance,
+            [StatKey.CritDamage] = CritDamage,
+            [StatKey.Armor] = Armor,
+            [StatKey.MagicResist] = MagicResist
         };
     }
 
@@ -261,7 +285,7 @@ public record UnitStats
     }
 
     public override string ToString() =>
-        $"UnitStats(HP={MaxHp}, ATK={AttackDamage}, SPD={AttackSpeed}, MOV={MoveSpeed}, RNG={AttackRange}, AGG={AggroRadius})";
+        $"UnitStats(HP={MaxHp}, ATK={AttackDamage}, SPD={AttackSpeed}, MOV={MoveSpeed}, RNG={AttackRange}, AGG={AggroRadius}, CRIT={CritChance:P0}/{CritDamage:F1}x, ARM={Armor}, MR={MagicResist})";
 
     private static float GetFloat(Dictionary<string, float> dict, string snakeKey, string pascalKey, float defaultValue)
     {
