@@ -85,14 +85,16 @@ public Vector3 GetProjectileSpawnPosition()
 
 ### The `tracking` Property
 
-Projectiles can have `"tracking": true` in their JSON config. This enables continuous target updates for any movement type.
+Projectiles can have `Tracking = true` in their definition. This enables continuous target updates for any movement type.
 
-```json
+```csharp
+public static readonly ProjectileData WindPuff = new()
 {
-  "movement_type": "straight",
-  "tracking": true,
-  "speed": 18.0
-}
+    MovementType = ProjectileMovementType.Straight,
+    Tracking = true,
+    Speed = 18.0f,
+    // ...
+};
 ```
 
 ### How Tracking Works
@@ -174,10 +176,10 @@ With deceleration, actual flight time is longer than predicted, causing consiste
 | `scripts/csharp/Units/Unit3D.cs` | `get_projectile_target_position()` |
 | `scripts/csharp/Units/RangedUnit3D.cs` | `SpawnProjectile()`, `GetProjectileSpawnPosition()` |
 | `scripts/csharp/Projectiles/Projectile3D.cs` | Path movement, tracking, collision |
-| `scripts/csharp/Projectiles/ProjectileData.cs` | JSON config parsing |
+| `scripts/csharp/Projectiles/ProjectileData.cs` | Projectile configuration data class |
+| `scripts/csharp/Data/Projectiles/ProjectileDefinitions.cs` | Static projectile definitions |
 | `scripts/csharp/Visual/SpriteVisualComponent.cs` | `GetSpriteHeight()`, sprite positioning |
 | `scenes/projectiles/base_projectile_3d.tscn` | Base scene with collision shape |
-| `data/projectiles/*.json` | Projectile configurations |
 
 ## Testing Checklist
 

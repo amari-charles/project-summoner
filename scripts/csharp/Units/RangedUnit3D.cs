@@ -33,10 +33,10 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
 
     [ExportGroup("Ranged Configuration")]
     [Export]
-    public string ProjectileIdString { get; set; } = "";
+    public string ProjectileId { get; set; } = "";
 
     /// <summary>Strongly-typed projectile ID (implements IRangedAttacker).</summary>
-    public ProjectileId ProjectileId => new(ProjectileIdString);
+    ProjectileId IRangedAttacker.ProjectileId => new(ProjectileId);
 
     [Export]
     public float ProjectileDelay { get; set; } = 0f;
@@ -187,7 +187,7 @@ public partial class RangedUnit3D : Unit3D, IRangedAttacker
     /// </summary>
     public void ApplyRangedDefinition(RangedConfig rangedConfig)
     {
-        ProjectileIdString = rangedConfig.ProjectileId;
+        ProjectileId = rangedConfig.ProjectileId;
         ProjectileDelay = rangedConfig.ProjectileDelay;
         IsDelayedProjectile = rangedConfig.IsDelayedProjectile;
         ProjectileSpeedEstimate = rangedConfig.ProjectileSpeedEstimate;
