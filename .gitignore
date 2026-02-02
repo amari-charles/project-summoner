@@ -20,3 +20,9 @@ Desktop.ini
 .gut_editor_config.json
 .gut_editor_shortcuts.cfg
 gdunit4_testadapter_v5/
+
+# Build exports
+*.exe
+builds/
+data_*/
+export_presets.cfg
