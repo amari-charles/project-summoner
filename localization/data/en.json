@@ -900,6 +900,8 @@
     },
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",
+    "selection_title": "Choose Your Summoner",
+    "selection_subtitle": "Each summoner has unique abilities that shape your playstyle",
     "random_summoner": "Random",
     "random_summoner_description": "Let fate choose your summoner",
     "element_affinity": "Favors {element}",

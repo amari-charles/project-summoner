@@ -9,6 +9,8 @@ class_name SummonerSelectionScreen
 
 const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
 
+@onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
+@onready var subtitle_label: Label = $CenterContainer/VBoxContainer/SubtitleLabel
 @onready var select_button1: Button = %SelectButton1
 @onready var select_button2: Button = %SelectButton2
 @onready var select_button3: Button = %SelectButton3
@@ -20,6 +22,10 @@ const SUMMONER_RANDOM: String = "random"
 
 func _ready() -> void:
 	print("SummonerSelection: Initializing...")
+
+	# Set localized title and subtitle
+	title_label.text = Loc.t("summoner.selection_title").to_upper()
+	subtitle_label.text = Loc.t("summoner.selection_subtitle")
 
 	# Hide summoner buttons initially - will show after Merlin's dialogue
 	select_button1.visible = false
