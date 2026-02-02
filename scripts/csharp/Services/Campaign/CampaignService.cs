@@ -445,7 +445,7 @@ public partial class CampaignService : Node
 	/// <summary>Record a choice made at a choice node.</summary>
 	public void RecordChoice(string nodeId, string choiceId)
 	{
-		_choiceTracker?.RecordChoice(nodeId, choiceId);
+		_choiceTracker?.RecordChoiceFromString(nodeId, choiceId);
 
 		// Save progress to persist the choice
 		SaveProgress();
@@ -456,13 +456,13 @@ public partial class CampaignService : Node
 	/// <summary>Get the choice made at a specific node.</summary>
 	public string GetChoice(string nodeId)
 	{
-		return _choiceTracker?.GetChoice(nodeId) ?? "";
+		return _choiceTracker?.GetChoiceAsString(nodeId) ?? "";
 	}
 
 	/// <summary>Check if a choice has been made at a specific node.</summary>
 	public bool HasChoice(string nodeId)
 	{
-		return _choiceTracker?.HasChoice(nodeId) ?? false;
+		return _choiceTracker?.HasChoiceFromString(nodeId) ?? false;
 	}
 
 	/// <summary>Get all choices as a dictionary (for serialization).</summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -45,7 +46,8 @@ public class CampaignProgressHandler
         var campaignProgress = _profileRepo.GetCampaignProgress(new SummonerId(summonerId));
 
         _store.CompletedBattles.Clear();
-        _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles);
+        // Convert typed BattleIds to strings for the shared store
+        _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles.Select(b => (string)b));
 
         // Load choices into ChoiceTracker
         if (_choiceTracker != null && campaignProgress.Choices.Count > 0)
@@ -64,7 +66,8 @@ public class CampaignProgressHandler
 
         var typedSummonerId = new SummonerId(summonerId);
         var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
-        progress.CompletedBattles = [.. _store.CompletedBattles];
+        // Convert strings from shared store to typed BattleIds
+        progress.CompletedBattles = _store.CompletedBattles.Select(b => new BattleId(b)).ToList();
 
         // Save choices from ChoiceTracker
         if (_choiceTracker != null)

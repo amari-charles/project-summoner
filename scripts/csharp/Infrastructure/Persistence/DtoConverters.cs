@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Data.Events;
 using ProjectSummoner.Data.Items;
 using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile;
@@ -12,6 +14,7 @@ using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Domain.Profile.Inventory;
 using ProjectSummoner.Domain.Profile.Shop;
 using ProjectSummoner.Domain.Profile.Summoners;
+using ProjectSummoner.Services.Campaign;
 using ProjectSummoner.Services.Deck;
 using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 
@@ -280,8 +283,8 @@ public static class DtoConverters
     {
         var dict = new Godot.Collections.Dictionary
         {
-            ["completed_battles"] = ToGodotArray(progress.CompletedBattles),
-            ["current_battle"] = progress.CurrentBattle ?? "",
+            ["completed_battles"] = ToGodotArray(progress.CompletedBattles.Select(b => (string)b)),
+            ["current_battle"] = progress.CurrentBattle.HasValue ? (string)progress.CurrentBattle.Value : "",
             ["gold"] = progress.Gold
         };
 
@@ -291,7 +294,7 @@ public static class DtoConverters
             var choicesDict = new Godot.Collections.Dictionary();
             foreach (var (nodeId, choiceId) in progress.Choices)
             {
-                choicesDict[nodeId] = choiceId;
+                choicesDict[(string)nodeId] = (string)choiceId;
             }
             dict["choices"] = choicesDict;
         }
@@ -332,8 +335,8 @@ public static class DtoConverters
 
         return new Godot.Collections.Dictionary
         {
-            ["completed_events"] = ToGodotArray(arcProgress.CompletedEvents),
-            ["current_event"] = arcProgress.CurrentEvent ?? "",
+            ["completed_events"] = ToGodotArray(arcProgress.CompletedEvents.Select(e => (string)e)),
+            ["current_event"] = arcProgress.CurrentEvent.HasValue ? (string)arcProgress.CurrentEvent.Value : "",
             ["flags"] = flagsDict
         };
     }
@@ -347,13 +350,13 @@ public static class DtoConverters
         if (dict == null) return null;
         if (dict.Count == 0) return new CampaignProgress();
 
-        var completed = new List<string>();
+        var completed = new List<BattleId>();
         if (dict.TryGetValue("completed_battles", out var completedVar))
         {
             var completedArr = completedVar.AsGodotArray();
             foreach (var c in completedArr)
             {
-                completed.Add(c.AsString());
+                completed.Add(new BattleId(c.AsString()));
             }
         }
 
@@ -386,7 +389,7 @@ public static class DtoConverters
         }
 
         // Parse choices if present
-        var choices = new Dictionary<string, string>();
+        var choices = new Dictionary<NodeId, ChoiceId>();
         if (dict.TryGetValue("choices", out var choicesVar) && choicesVar.VariantType == Variant.Type.Dictionary)
         {
             var choicesDict = choicesVar.AsGodotDictionary();
@@ -395,15 +398,19 @@ public static class DtoConverters
                 var choiceValue = choicesDict[key];
                 if (choiceValue.VariantType != Variant.Type.Nil)
                 {
-                    choices[key.AsString()] = choiceValue.AsString();
+                    choices[new NodeId(key.AsString())] = new ChoiceId(choiceValue.AsString());
                 }
             }
         }
 
+        // Parse current_battle (nullable)
+        var currentBattleStr = GetNullableString(dict, "current_battle");
+        BattleId? currentBattle = string.IsNullOrEmpty(currentBattleStr) ? null : new BattleId(currentBattleStr);
+
         return new CampaignProgress
         {
             CompletedBattles = completed,
-            CurrentBattle = GetNullableString(dict, "current_battle"),
+            CurrentBattle = currentBattle,
             Gold = GetInt(dict, "gold", 0),
             PendingReward = pendingReward,
             StoryArcs = storyArcs,
@@ -418,13 +425,13 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return null;
 
-        var completedEvents = new List<string>();
+        var completedEvents = new List<EventId>();
         if (dict.TryGetValue("completed_events", out var eventsVar))
         {
             var eventsArr = eventsVar.AsGodotArray();
             foreach (var e in eventsArr)
             {
-                completedEvents.Add(e.AsString());
+                completedEvents.Add(new EventId(e.AsString()));
             }
         }
 
@@ -438,10 +445,14 @@ public static class DtoConverters
             }
         }
 
+        // Parse current_event (nullable)
+        var currentEventStr = GetNullableString(dict, "current_event");
+        EventId? currentEvent = string.IsNullOrEmpty(currentEventStr) ? null : new EventId(currentEventStr);
+
         return new StoryArcProgress
         {
             CompletedEvents = completedEvents,
-            CurrentEvent = GetNullableString(dict, "current_event"),
+            CurrentEvent = currentEvent,
             Flags = flags
         };
     }
@@ -459,7 +470,7 @@ public static class DtoConverters
             ["gems"] = resources.Gems,
             ["essence"] = resources.Essence,
             ["fragments"] = resources.Fragments,
-            ["profile_id"] = resources.ProfileId,
+            ["profile_id"] = (string)resources.ProfileId,
             ["updated_at"] = resources.UpdatedAt
         };
     }
@@ -472,13 +483,15 @@ public static class DtoConverters
     {
         if (dict == null || dict.Count == 0) return new Resources();
 
+        var profileIdStr = GetString(dict, "profile_id", "");
+
         return new Resources
         {
             Gold = GetInt(dict, "gold", 0),
             Gems = GetInt(dict, "gems", 0),
             Essence = GetInt(dict, "essence", 0),
             Fragments = GetInt(dict, "fragments", 0),
-            ProfileId = GetString(dict, "profile_id", ""),
+            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
             UpdatedAt = GetLong(dict, "updated_at", 0)
         };
     }

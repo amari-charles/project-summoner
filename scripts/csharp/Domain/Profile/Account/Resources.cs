@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ProjectSummoner.Domain.Profile;
 
 namespace ProjectSummoner.Domain.Profile.Account;
 
@@ -25,7 +26,7 @@ public class Resources
 
     /// <summary>Profile ID reference.</summary>
     [JsonPropertyName("profile_id")]
-    public string ProfileId { get; set; } = "";
+    public ProfileId ProfileId { get; set; } = ProfileId.None;
 
     /// <summary>Last update timestamp.</summary>
     [JsonPropertyName("updated_at")]

@@ -15,6 +15,7 @@ using ProjectSummoner.Domain.Profile.Decks;
 using ProjectSummoner.Domain.Profile.Enums;
 using ProjectSummoner.Domain.Profile.Inventory;
 using ProjectSummoner.Domain.Profile.Summoners;
+using ProjectSummoner.Services.Campaign;
 using ProjectSummoner.Services.Deck;
 using static GdUnit4.Assertions;
 using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
@@ -276,8 +277,8 @@ public class DtoConvertersTest
     {
         var original = new CampaignProgress
         {
-            CompletedBattles = ["battle_1", "battle_2"],
-            CurrentBattle = "battle_3",
+            CompletedBattles = [new BattleId("battle_1"), new BattleId("battle_2")],
+            CurrentBattle = new BattleId("battle_3"),
             Gold = 500
         };
 
@@ -285,9 +286,9 @@ public class DtoConvertersTest
         var result = DtoConverters.FromCampaignDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.CompletedBattles).Contains("battle_1");
-        AssertThat(result.CompletedBattles).Contains("battle_2");
-        AssertThat(result.CurrentBattle).IsEqual("battle_3");
+        AssertThat(result!.CompletedBattles).Contains(new BattleId("battle_1"));
+        AssertThat(result.CompletedBattles).Contains(new BattleId("battle_2"));
+        AssertThat(result.CurrentBattle).IsEqual(new BattleId("battle_3"));
         AssertThat(result.Gold).IsEqual(500);
     }
 
@@ -312,13 +313,13 @@ public class DtoConvertersTest
     {
         var original = new CampaignProgress
         {
-            CompletedBattles = ["battle_1"],
-            CurrentBattle = "battle_2",
+            CompletedBattles = [new BattleId("battle_1")],
+            CurrentBattle = new BattleId("battle_2"),
             Gold = 100,
-            Choices = new Dictionary<string, string>
+            Choices = new Dictionary<NodeId, ChoiceId>
             {
-                ["node_choice_1"] = "option_a",
-                ["node_choice_2"] = "option_b"
+                [new NodeId("node_choice_1")] = new ChoiceId("option_a"),
+                [new NodeId("node_choice_2")] = new ChoiceId("option_b")
             }
         };
 
@@ -327,8 +328,8 @@ public class DtoConvertersTest
 
         AssertThat(result).IsNotNull();
         AssertThat(result!.Choices).HasSize(2);
-        AssertThat(result.Choices["node_choice_1"]).IsEqual("option_a");
-        AssertThat(result.Choices["node_choice_2"]).IsEqual("option_b");
+        AssertThat(result.Choices[new NodeId("node_choice_1")]).IsEqual(new ChoiceId("option_a"));
+        AssertThat(result.Choices[new NodeId("node_choice_2")]).IsEqual(new ChoiceId("option_b"));
     }
 
     [TestCase]
@@ -336,7 +337,7 @@ public class DtoConvertersTest
     {
         var original = new CampaignProgress
         {
-            CompletedBattles = ["battle_1"],
+            CompletedBattles = [new BattleId("battle_1")],
             Gold = 50,
             Choices = []
         };

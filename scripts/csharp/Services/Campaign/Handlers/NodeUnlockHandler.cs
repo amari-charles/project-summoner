@@ -119,7 +119,7 @@ public class NodeUnlockHandler
             : condition.NodeId;
 
         // Check if the choice made at that node matches the required value
-        var choiceMade = _choices.GetChoice((string)choiceNodeId);
+        var choiceMade = _choices.GetChoiceAsString((string)choiceNodeId);
         return choiceMade == condition.Value;
     }
 
