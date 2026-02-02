@@ -74,7 +74,7 @@ public class ItemEquipmentHandler
         }
 
         // Get summoner instance
-        var summoner = _profileRepo.GetSummonerInstance(summonerId);
+        var summoner = _profileRepo.GetSummonerInstance(typedSummonerId);
         if (summoner == null)
         {
             GD.PushError($"ItemEquipmentHandler: Summoner not found: {summonerId}");
@@ -111,7 +111,7 @@ public class ItemEquipmentHandler
     /// </summary>
     public bool UnequipItem(string summonerId, ItemSlot slot)
     {
-        var summoner = _profileRepo.GetSummonerInstance(summonerId);
+        var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
         if (summoner == null)
         {
             GD.PushError($"ItemEquipmentHandler: Summoner not found: {summonerId}");
@@ -160,7 +160,7 @@ public class ItemEquipmentHandler
             [ItemSlot.Vestments] = null
         };
 
-        var summoner = _profileRepo.GetSummonerInstance(summonerId);
+        var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
         if (summoner == null) return result;
 
         foreach (var (slot, instanceId) in summoner.EquippedItems)

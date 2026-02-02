@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Domain.Profile.Account;
 using ProjectSummoner.Domain.Profile.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
@@ -128,7 +129,7 @@ public partial class SummonerSelectionService : Node
 		var summonerId = GetActiveSummonerId();
 		if (string.IsNullOrEmpty(summonerId)) return null;
 
-		return _profileRepo?.GetSummonerInstance(summonerId);
+		return _profileRepo?.GetSummonerInstance(new SummonerId(summonerId));
 	}
 
 	/// <summary>Get list of all unlocked summoner IDs.</summary>
@@ -171,7 +172,7 @@ public partial class SummonerSelectionService : Node
 		}
 
 		// Check if summoner is unlocked
-		if (!_profileRepo.IsSummonerUnlocked(summonerId))
+		if (!_profileRepo.IsSummonerUnlocked(new SummonerId(summonerId)))
 		{
 			GD.PushWarning($"SummonerSelectionService: Summoner not unlocked: {summonerId}");
 			return false;

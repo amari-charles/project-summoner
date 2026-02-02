@@ -33,7 +33,7 @@ public class DeckCrudHandler
     /// <summary>Get a specific deck by ID.</summary>
     public DeckModel? GetDeck(string deckId)
     {
-        return _profileRepo.GetDeck(deckId);
+        return _profileRepo.GetDeck(new DeckId(deckId));
     }
 
     /// <summary>Check if a deck exists.</summary>
@@ -87,8 +87,8 @@ public class DeckCrudHandler
     public string CreateDeck(string deckName, string[] cardInstanceIds, string summonerId = "")
     {
         // Determine summoner_id
-        var finalSummonerId = summonerId;
-        if (string.IsNullOrEmpty(finalSummonerId))
+        SummonerId finalSummonerId;
+        if (string.IsNullOrEmpty(summonerId))
         {
             // Default to first unlocked summoner
             var unlocked = _profileRepo.GetUnlockedSummoners();
@@ -102,11 +102,13 @@ public class DeckCrudHandler
         else
         {
             // Validate summoner is unlocked
-            if (!_profileRepo.IsSummonerUnlocked(finalSummonerId))
+            var typedSummonerId = new SummonerId(summonerId);
+            if (!_profileRepo.IsSummonerUnlocked(typedSummonerId))
             {
-                GD.PushError($"DeckCrudHandler: Cannot create deck - summoner not unlocked: {finalSummonerId}");
+                GD.PushError($"DeckCrudHandler: Cannot create deck - summoner not unlocked: {summonerId}");
                 return "";
             }
+            finalSummonerId = typedSummonerId;
         }
 
         var deck = new DeckModel
@@ -114,7 +116,7 @@ public class DeckCrudHandler
             Id = DeckId.None, // Will be assigned by repository
             Name = deckName,
             CardInstanceIds = cardInstanceIds.Select(s => new CardInstanceId(s)).ToList(),
-            SummonerId = new SummonerId(finalSummonerId)
+            SummonerId = finalSummonerId
         };
 
         var deckId = _profileRepo.UpsertDeck(deck);
@@ -162,7 +164,7 @@ public class DeckCrudHandler
     /// <summary>Delete a deck. Returns true if successful.</summary>
     public bool DeleteDeck(string deckId)
     {
-        var success = _profileRepo.DeleteDeck(deckId);
+        var success = _profileRepo.DeleteDeck(new DeckId(deckId));
 
         if (success)
         {
@@ -204,7 +206,7 @@ public class DeckCrudHandler
         }
 
         // Validate summoner is unlocked
-        if (!_profileRepo.IsSummonerUnlocked(summonerId))
+        if (!_profileRepo.IsSummonerUnlocked(new SummonerId(summonerId)))
         {
             GD.PushError($"DeckCrudHandler: Summoner not unlocked for this profile: {summonerId}");
             return false;

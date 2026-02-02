@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Infrastructure.Persistence;
 
 namespace ProjectSummoner.Services.Campaign.Handlers;
@@ -41,10 +43,11 @@ public class CampaignProgressHandler
         var summonerId = _getActiveSummonerFunc();
         if (string.IsNullOrEmpty(summonerId)) return;
 
-        var campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
+        var campaignProgress = _profileRepo.GetCampaignProgress(new SummonerId(summonerId));
 
         _store.CompletedBattles.Clear();
-        _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles);
+        // Convert typed BattleIds to strings for the shared store
+        _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles.Select(b => (string)b));
 
         // Load choices into ChoiceTracker
         if (_choiceTracker != null && campaignProgress.Choices.Count > 0)
@@ -61,8 +64,10 @@ public class CampaignProgressHandler
         var summonerId = _getActiveSummonerFunc();
         if (string.IsNullOrEmpty(summonerId)) return;
 
-        var progress = _profileRepo.GetCampaignProgress(summonerId);
-        progress.CompletedBattles = [.. _store.CompletedBattles];
+        var typedSummonerId = new SummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
+        // Convert strings from shared store to typed BattleIds
+        progress.CompletedBattles = _store.CompletedBattles.Select(b => new BattleId(b)).ToList();
 
         // Save choices from ChoiceTracker
         if (_choiceTracker != null)
@@ -70,7 +75,7 @@ public class CampaignProgressHandler
             progress.Choices = _choiceTracker.GetAllChoices();
         }
 
-        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+        _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
 
         GD.Print($"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {progress.Choices.Count} choices");
     }
@@ -155,12 +160,13 @@ public class CampaignProgressHandler
         _store.CompletedBattles.Clear();
         _choiceTracker?.ClearAll();
 
-        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        var typedSummonerId = new SummonerId(summonerId);
+        var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
         progress.CompletedBattles = [];
         progress.Choices = [];
         progress.CurrentBattle = null;
         progress.PendingReward = null;
-        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+        _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
 
         GD.Print($"CampaignProgressHandler: Reset progress for summoner '{summonerId}'");
     }

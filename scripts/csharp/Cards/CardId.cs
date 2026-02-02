@@ -13,6 +13,9 @@ public readonly record struct CardId(string Value)
     /// <summary>Implicit conversion to string for interop with existing systems.</summary>
     public static implicit operator string(CardId id) => id.Value;
 
+    /// <summary>Explicit conversion from string.</summary>
+    public static explicit operator CardId(string value) => new(value);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

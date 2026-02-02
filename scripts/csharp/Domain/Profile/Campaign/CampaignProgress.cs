@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ProjectSummoner.Data.Events;
+using ProjectSummoner.Services.Campaign;
 
 namespace ProjectSummoner.Domain.Profile.Campaign;
 
@@ -10,11 +12,11 @@ public class CampaignProgress
 {
     /// <summary>IDs of completed battles.</summary>
     [JsonPropertyName("completed_battles")]
-    public List<string> CompletedBattles { get; set; } = [];
+    public List<BattleId> CompletedBattles { get; set; } = [];
 
     /// <summary>Current battle being played (nullable).</summary>
     [JsonPropertyName("current_battle")]
-    public string? CurrentBattle { get; set; }
+    public BattleId? CurrentBattle { get; set; }
 
     /// <summary>Pending reward from last victory (if any).</summary>
     [JsonPropertyName("pending_reward")]
@@ -30,7 +32,7 @@ public class CampaignProgress
 
     /// <summary>Choices made at choice nodes (node_id -> choice_id).</summary>
     [JsonPropertyName("choices")]
-    public Dictionary<string, string> Choices { get; set; } = [];
+    public Dictionary<NodeId, ChoiceId> Choices { get; set; } = [];
 }
 
 /// <summary>
@@ -40,11 +42,11 @@ public class StoryArcProgress
 {
     /// <summary>Array of completed event/battle IDs in this arc.</summary>
     [JsonPropertyName("completed_events")]
-    public List<string> CompletedEvents { get; set; } = [];
+    public List<EventId> CompletedEvents { get; set; } = [];
 
     /// <summary>Current event ID (if in progress).</summary>
     [JsonPropertyName("current_event")]
-    public string? CurrentEvent { get; set; }
+    public EventId? CurrentEvent { get; set; }
 
     /// <summary>Arc-specific flags/state.</summary>
     [JsonPropertyName("flags")]
