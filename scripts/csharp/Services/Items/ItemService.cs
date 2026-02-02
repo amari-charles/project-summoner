@@ -174,10 +174,10 @@ public partial class ItemService : Node
 	{
 		return _equipment?.GetEquippedItems(summonerId) ?? new Dictionary<ItemSlot, string?>
 		{
-			[ItemSlot.Weapon] = null,
+			[ItemSlot.Wand] = null,
 			[ItemSlot.Ring1] = null,
 			[ItemSlot.Ring2] = null,
-			[ItemSlot.Vestments] = null
+			[ItemSlot.Robes] = null
 		};
 	}
 

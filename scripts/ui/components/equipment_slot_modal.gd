@@ -6,7 +6,7 @@ class_name EquipmentSlotModal
 ## Usage:
 ##   var modal = EquipmentSlotModal.new()
 ##   add_child(modal)
-##   modal.open("weapon", summoner_id)
+##   modal.open("wand", summoner_id)
 
 signal closed()
 signal item_equipped(slot: String, item_instance_id: String)

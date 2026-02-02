@@ -5,17 +5,17 @@ The equipment system allows summoners to equip items that provide stat modifiers
 ## Overview
 
 - **Replaced**: The previous "boons" system has been replaced with a proper equipment slot system
-- **Slots**: Each summoner has 4 equipment slots: Weapon, Ring1, Ring2, Vestments
+- **Slots**: Each summoner has 4 equipment slots: Wand, Ring1, Ring2, Robes
 - **Ownership**: Items use content binding (AccountWide vs SummonerBound) to control access
 
 ## Equipment Slots
 
 | Slot | Purpose | Example Items |
 |------|---------|---------------|
-| Weapon | Attack/damage items | Training Blade, Battle-Hardened Badge |
+| Wand | Attack/damage items | Training Blade, Battle-Hardened Badge |
 | Ring1 | Utility items | Simple Ring, Fortune's Charm |
 | Ring2 | Utility items | Lucky Band |
-| Vestments | Defense/survivability | Traveler's Cloak, Veteran's Medal |
+| Robes | Defense/survivability | Traveler's Cloak, Veteran's Medal |
 
 ## Content Binding
 
@@ -68,14 +68,14 @@ public enum ContentBinding
 var instance_id = Items.grant_item("item_training_blade")
 
 # Equip to summoner
-Items.equip_item(summoner_id, instance_id, "weapon")
+Items.equip_item(summoner_id, instance_id, "wand")
 
 # Get equipped items
 var equipped: Dictionary = Items.get_equipped_items(summoner_id)
-# Returns: {"weapon": "item_001", "ring1": "", "ring2": "", "vestments": ""}
+# Returns: {"wand": "item_001", "ring1": "", "ring2": "", "robes": ""}
 
 # List items available for a slot
-var weapons: Array[Dictionary] = Items.list_items_for_slot("weapon", summoner_id)
+var wands: Array[Dictionary] = Items.list_items_for_slot("wand", summoner_id)
 ```
 
 ### Slot Constants
@@ -83,15 +83,15 @@ var weapons: Array[Dictionary] = Items.list_items_for_slot("weapon", summoner_id
 Available via `Items` autoload:
 
 ```gdscript
-Items.SLOT_WEAPON     # "weapon"
+Items.SLOT_WAND       # "wand"
 Items.SLOT_RING1      # "ring1"
 Items.SLOT_RING2      # "ring2"
-Items.SLOT_VESTMENTS  # "vestments"
-Items.ALL_SLOTS       # ["weapon", "ring1", "ring2", "vestments"]
+Items.SLOT_ROBES      # "robes"
+Items.ALL_SLOTS       # ["wand", "ring1", "ring2", "robes"]
 
 # Display helpers
-Items.SLOT_DISPLAY_NAMES  # {"weapon": "Weapon", "ring1": "Ring", ...}
-Items.SLOT_ICONS          # {"weapon": "⚔", "ring1": "💍", ...}
+Items.SLOT_DISPLAY_NAMES  # {"wand": "Wand", "ring1": "Ring", ...}
+Items.SLOT_ICONS          # {"wand": "🪄", "ring1": "💍", ...}
 ```
 
 ## UI Components
@@ -113,10 +113,10 @@ Items.SLOT_ICONS          # {"weapon": "⚔", "ring1": "💍", ...}
 
 The v5 to v6 profile migration converts legacy boons to items:
 
-- `boon_veteran` → `item_veterans_medal` (Vestments)
-- `boon_battle_hardened` → `item_battle_hardened_badge` (Weapon)
+- `boon_veteran` → `item_veterans_medal` (Robes)
+- `boon_battle_hardened` → `item_battle_hardened_badge` (Wand)
 - `boon_fortune_favors` → `item_fortunes_charm` (Ring1)
-- `fortune_favors_bold` → `item_bold_fortune_amulet` (Vestments)
+- `fortune_favors_bold` → `item_bold_fortune_amulet` (Robes)
 
 Removed items (no longer in catalog):
 - `mana_well_orb` (Grimoire slot removed)

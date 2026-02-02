@@ -413,10 +413,10 @@
       "stats_mana": "Mana",
       "stats_damage": "Damage",
       "stats_defense": "Defense",
-      "equipment_slot_weapon": "Weapon",
+      "equipment_slot_wand": "Wand",
       "equipment_slot_ring1": "Ring",
       "equipment_slot_ring2": "Ring",
-      "equipment_slot_vestments": "Vestments",
+      "equipment_slot_robes": "Robes",
       "equipment_empty": "Empty",
       "equipment_unknown": "Unknown Item"
     },
@@ -949,9 +949,9 @@
     "title": "Equipment",
     "slot": {
       "grimoire": "Grimoire",
-      "weapon": "Weapon",
+      "wand": "Wand",
       "ring": "Ring",
-      "vestments": "Vestments"
+      "robes": "Robes"
     },
     "empty_slot": "Empty",
     "manage": "Manage Equipment",

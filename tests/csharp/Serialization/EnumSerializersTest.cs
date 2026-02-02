@@ -20,19 +20,19 @@ public class EnumSerializersTest
     [TestCase]
     public void ItemSlot_Serialize_ReturnsLowercaseString()
     {
-        AssertThat(EnumSerializers.Serialize(ItemSlot.Weapon)).IsEqual("weapon");
+        AssertThat(EnumSerializers.Serialize(ItemSlot.Wand)).IsEqual("wand");
         AssertThat(EnumSerializers.Serialize(ItemSlot.Ring1)).IsEqual("ring1");
         AssertThat(EnumSerializers.Serialize(ItemSlot.Ring2)).IsEqual("ring2");
-        AssertThat(EnumSerializers.Serialize(ItemSlot.Vestments)).IsEqual("vestments");
+        AssertThat(EnumSerializers.Serialize(ItemSlot.Robes)).IsEqual("robes");
     }
 
     [TestCase]
     public void ItemSlot_Deserialize_ParsesLowercaseString()
     {
-        AssertThat(EnumSerializers.DeserializeSlot("weapon")).IsEqual(ItemSlot.Weapon);
+        AssertThat(EnumSerializers.DeserializeSlot("wand")).IsEqual(ItemSlot.Wand);
         AssertThat(EnumSerializers.DeserializeSlot("ring1")).IsEqual(ItemSlot.Ring1);
         AssertThat(EnumSerializers.DeserializeSlot("ring2")).IsEqual(ItemSlot.Ring2);
-        AssertThat(EnumSerializers.DeserializeSlot("vestments")).IsEqual(ItemSlot.Vestments);
+        AssertThat(EnumSerializers.DeserializeSlot("robes")).IsEqual(ItemSlot.Robes);
     }
 
     [TestCase]
@@ -46,14 +46,14 @@ public class EnumSerializersTest
     public void ItemSlot_Deserialize_ReturnsNullForInvalidValue()
     {
         AssertThat(EnumSerializers.DeserializeSlot("invalid")).IsNull();
-        AssertThat(EnumSerializers.DeserializeSlot("WEAPON")).IsNull(); // Case sensitive
-        AssertThat(EnumSerializers.DeserializeSlot("Weapon")).IsNull(); // Case sensitive
+        AssertThat(EnumSerializers.DeserializeSlot("WAND")).IsNull(); // Case sensitive
+        AssertThat(EnumSerializers.DeserializeSlot("Wand")).IsNull(); // Case sensitive
     }
 
     [TestCase]
     public void ItemSlot_RoundTrip_AllValues()
     {
-        foreach (var slot in new[] { ItemSlot.Weapon, ItemSlot.Ring1, ItemSlot.Ring2, ItemSlot.Vestments })
+        foreach (var slot in new[] { ItemSlot.Wand, ItemSlot.Ring1, ItemSlot.Ring2, ItemSlot.Robes })
         {
             var serialized = EnumSerializers.Serialize(slot);
             var deserialized = EnumSerializers.DeserializeSlot(serialized);
@@ -64,10 +64,10 @@ public class EnumSerializersTest
     [TestCase]
     public void ItemSlot_DeserializeStrict_ParsesValidValues()
     {
-        AssertThat(EnumSerializers.DeserializeSlotStrict("weapon")).IsEqual(ItemSlot.Weapon);
+        AssertThat(EnumSerializers.DeserializeSlotStrict("wand")).IsEqual(ItemSlot.Wand);
         AssertThat(EnumSerializers.DeserializeSlotStrict("ring1")).IsEqual(ItemSlot.Ring1);
         AssertThat(EnumSerializers.DeserializeSlotStrict("ring2")).IsEqual(ItemSlot.Ring2);
-        AssertThat(EnumSerializers.DeserializeSlotStrict("vestments")).IsEqual(ItemSlot.Vestments);
+        AssertThat(EnumSerializers.DeserializeSlotStrict("robes")).IsEqual(ItemSlot.Robes);
     }
 
     [TestCase]
@@ -84,7 +84,7 @@ public class EnumSerializersTest
     {
         AssertThrown(() => EnumSerializers.DeserializeSlotStrict("invalid"))
             .IsInstanceOf<ArgumentException>();
-        AssertThrown(() => EnumSerializers.DeserializeSlotStrict("WEAPON"))
+        AssertThrown(() => EnumSerializers.DeserializeSlotStrict("WAND"))
             .IsInstanceOf<ArgumentException>();
     }
 

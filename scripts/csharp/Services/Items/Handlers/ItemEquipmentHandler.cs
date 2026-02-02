@@ -154,10 +154,10 @@ public class ItemEquipmentHandler
     {
         var result = new Dictionary<ItemSlot, string?>
         {
-            [ItemSlot.Weapon] = null,
+            [ItemSlot.Wand] = null,
             [ItemSlot.Ring1] = null,
             [ItemSlot.Ring2] = null,
-            [ItemSlot.Vestments] = null
+            [ItemSlot.Robes] = null
         };
 
         var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));

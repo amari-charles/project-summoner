@@ -18,10 +18,10 @@ public static class EnumSerializers
     /// <summary>Serialize ItemSlot to lowercase string for JSON/GDScript.</summary>
     public static string Serialize(ItemSlot slot) => slot switch
     {
-        ItemSlot.Weapon => "weapon",
+        ItemSlot.Wand => "wand",
         ItemSlot.Ring1 => "ring1",
         ItemSlot.Ring2 => "ring2",
-        ItemSlot.Vestments => "vestments",
+        ItemSlot.Robes => "robes",
         _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown ItemSlot value")
     };
 
@@ -36,10 +36,10 @@ public static class EnumSerializers
 
         return value switch
         {
-            "weapon" => ItemSlot.Weapon,
+            "wand" => ItemSlot.Wand,
             "ring1" => ItemSlot.Ring1,
             "ring2" => ItemSlot.Ring2,
-            "vestments" => ItemSlot.Vestments,
+            "robes" => ItemSlot.Robes,
             _ => LogAndReturnNull<ItemSlot>($"Unknown ItemSlot value: '{value}'")
         };
     }
@@ -56,10 +56,10 @@ public static class EnumSerializers
 
         return value switch
         {
-            "weapon" => ItemSlot.Weapon,
+            "wand" => ItemSlot.Wand,
             "ring1" => ItemSlot.Ring1,
             "ring2" => ItemSlot.Ring2,
-            "vestments" => ItemSlot.Vestments,
+            "robes" => ItemSlot.Robes,
             _ => throw new ArgumentException($"Unknown ItemSlot value: '{value}'", nameof(value))
         };
     }

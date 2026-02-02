@@ -9,35 +9,35 @@ extends Node
 ##
 ## Usage:
 ##   var instance_id = Items.grant_item("item_training_blade")
-##   Items.equip_item(summoner_id, instance_id, "weapon")
+##   Items.equip_item(summoner_id, instance_id, "wand")
 ##   var equipped = Items.get_equipped_items(summoner_id)
-##   var items = Items.list_items_for_slot("weapon", summoner_id)
+##   var items = Items.list_items_for_slot("wand", summoner_id)
 ##
 ## Emits signals for reactive UI updates.
 
 ## Slot names for reference
-const SLOT_WEAPON: String = "weapon"
+const SLOT_WAND: String = "wand"
 const SLOT_RING1: String = "ring1"
 const SLOT_RING2: String = "ring2"
-const SLOT_VESTMENTS: String = "vestments"
+const SLOT_ROBES: String = "robes"
 
 ## All available slots
-const ALL_SLOTS: Array[String] = [SLOT_WEAPON, SLOT_RING1, SLOT_RING2, SLOT_VESTMENTS]
+const ALL_SLOTS: Array[String] = [SLOT_WAND, SLOT_RING1, SLOT_RING2, SLOT_ROBES]
 
 ## Slot display names (for UI)
 const SLOT_DISPLAY_NAMES: Dictionary = {
-	"weapon": "Weapon",
+	"wand": "Wand",
 	"ring1": "Ring",
 	"ring2": "Ring",
-	"vestments": "Vestments"
+	"robes": "Robes"
 }
 
 ## Slot icons (unicode symbols as placeholders)
 const SLOT_ICONS: Dictionary = {
-	"weapon": "⚔",
+	"wand": "🪄",
 	"ring1": "💍",
 	"ring2": "💍",
-	"vestments": "🧥"
+	"robes": "🧥"
 }
 
 ## Signals (forwarded from C#)
@@ -106,7 +106,7 @@ func grant_item(catalog_id: String, bound_to_summoner_id: String = "") -> String
 ## =============================================================================
 
 ## Equip an item to a summoner's slot
-## slot: "weapon", "ring1", "ring2", or "vestments"
+## slot: "wand", "ring1", "ring2", or "robes"
 ## Returns true if successful
 func equip_item(summoner_id: String, item_instance_id: String, slot: String) -> bool:
 	if _cs_service == null:
@@ -115,7 +115,7 @@ func equip_item(summoner_id: String, item_instance_id: String, slot: String) -> 
 
 
 ## Unequip an item from a summoner's slot
-## slot: "weapon", "ring1", "ring2", or "vestments"
+## slot: "wand", "ring1", "ring2", or "robes"
 ## Returns true if successful
 func unequip_item(summoner_id: String, slot: String) -> bool:
 	if _cs_service == null:
@@ -128,7 +128,7 @@ func unequip_item(summoner_id: String, slot: String) -> bool:
 ## =============================================================================
 
 ## Get equipped items for a summoner
-## Returns: Dictionary { "weapon": instance_id or "", "ring1": ..., "ring2": ..., "vestments": ... }
+## Returns: Dictionary { "wand": instance_id or "", "ring1": ..., "ring2": ..., "robes": ... }
 func get_equipped_items(summoner_id: String) -> Dictionary:
 	if _cs_service == null:
 		return _empty_equipped_dict()
@@ -209,10 +209,10 @@ func get_equipped_item_modifiers(summoner_id: String) -> Array[Dictionary]:
 ## Get an empty equipped dictionary with all slots
 func _empty_equipped_dict() -> Dictionary:
 	return {
-		SLOT_WEAPON: "",
+		SLOT_WAND: "",
 		SLOT_RING1: "",
 		SLOT_RING2: "",
-		SLOT_VESTMENTS: ""
+		SLOT_ROBES: ""
 	}
 
 

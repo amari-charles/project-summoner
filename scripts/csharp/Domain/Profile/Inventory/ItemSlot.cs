@@ -6,8 +6,8 @@ namespace ProjectSummoner.Domain.Profile.Inventory;
 /// </summary>
 public enum ItemSlot
 {
-    /// <summary>Weapon slot - typically attack/damage items.</summary>
-    Weapon,
+    /// <summary>Wand slot - typically attack/damage items.</summary>
+    Wand,
 
     /// <summary>First ring slot - typically utility/miscellaneous items.</summary>
     Ring1,
@@ -15,6 +15,6 @@ public enum ItemSlot
     /// <summary>Second ring slot - typically utility/miscellaneous items.</summary>
     Ring2,
 
-    /// <summary>Vestments slot - typically defense/survivability items.</summary>
-    Vestments
+    /// <summary>Robes slot - typically defense/survivability items.</summary>
+    Robes
 }

@@ -412,9 +412,9 @@ Summoners have **4 item slots**:
 | Slot | Name | Focus |
 |------|------|-------|
 | 1 | Grimoire | Spell/magic focused |
-| 2 | Weapon/Staff | Offense focused |
+| 2 | Wand | Offense focused |
 | 3 | Ring | Utility focused |
-| 4 | Vestments | Defense focused |
+| 4 | Robes | Defense focused |
 
 ### 5.3 Item vs Trait Distinction
 
@@ -684,9 +684,9 @@ For now, **use template IDs** as shown above to match `architecture.md`.
 
   "items": {
     "grimoire": "item_fire_tome",
-    "weapon": "item_flame_staff",
+    "wand": "item_flame_staff",
     "ring": null,
-    "vestments": "item_ember_cloak"
+    "robes": "item_ember_cloak"
   },
 
   "deck": ["card_flamewall", "card_firebolt", "card_pyroblast"],
@@ -702,7 +702,7 @@ For now, **use template IDs** as shown above to match `architecture.md`.
 - `ultimate_trait`: String (single ultimate trait ID, or null if not level 10)
 
 **Items Structure:**
-- `items`: Object with 4 slots (grimoire, weapon, ring, vestments)
+- `items`: Object with 4 slots (grimoire, wand, ring, robes)
 - Each slot contains an item ID or null if empty
 - Items are summoner-bound or account-wide based on acquisition source
 

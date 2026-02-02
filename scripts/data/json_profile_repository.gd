@@ -389,10 +389,10 @@ func save_summoner_instance_dict(summoner_data: Dictionary) -> bool:
 			"level": summoner_data.get("level", 1),
 			"xp": summoner_data.get("xp", 0),
 			"equipped_items": summoner_data.get("equipped_items", {
-				"weapon": null,
+				"wand": null,
 				"ring1": null,
 				"ring2": null,
-				"vestments": null
+				"robes": null
 			})
 		}
 		instances_array.append(new_instance)
