@@ -648,13 +648,21 @@
     }
   },
   "elements": {
+    "neutral": "Neutral",
     "fire": "Fire",
     "water": "Water",
+    "wind": "Wind",
     "earth": "Earth",
-    "air": "Air",
-    "light": "Light",
-    "dark": "Dark",
-    "neutral": "Neutral"
+    "lightning": "Lightning",
+    "shadow": "Shadow",
+    "poison": "Poison",
+    "life": "Life",
+    "death": "Death",
+    "occultist": "Occultist",
+    "holy": "Holy",
+    "ice": "Ice",
+    "metal": "Metal",
+    "spirit": "Spirit"
   },
   "error": {
     "not_enough_mana": "Not enough mana",

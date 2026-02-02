@@ -195,65 +195,50 @@ func _get_effective_stats() -> Dictionary:
 	return base_stats
 
 
-func _add_stat_label(loc_key: String, value: Variant) -> void:
+func _create_stat_label(stat_name: String, value_str: String) -> void:
 	var label: Label = Label.new()
-	var stat_name: String = Loc.t("ui.collection." + loc_key)
+	label.text = "%s: %s" % [stat_name, value_str]
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	stats_container.add_child(label)
 
-	# Format value based on type
+
+func _add_stat_label(loc_key: String, value: Variant) -> void:
+	var stat_name: String = Loc.t("ui.collection." + loc_key)
 	var value_str: String
 	if value is float:
-		# Show one decimal place for floats, but hide if whole number
 		if abs(value - round(value)) < 0.01:
 			value_str = str(int(round(value)))
 		else:
 			value_str = "%.1f" % value
 	else:
 		value_str = str(value)
-
-	label.text = "%s: %s" % [stat_name, value_str]
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
-	stats_container.add_child(label)
+	_create_stat_label(stat_name, value_str)
 
 
 func _add_stat_label_percent(loc_key: String, value: float) -> void:
-	var label: Label = Label.new()
 	var stat_name: String = Loc.t("ui.collection." + loc_key)
 	var value_str: String = "%d%%" % int(value * 100)
-
-	label.text = "%s: %s" % [stat_name, value_str]
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
-	stats_container.add_child(label)
+	_create_stat_label(stat_name, value_str)
 
 
 func _add_stat_label_multiplier(loc_key: String, value: float) -> void:
-	var label: Label = Label.new()
 	var stat_name: String = Loc.t("ui.collection." + loc_key)
 	var value_str: String = "%.1fx" % value
-
-	label.text = "%s: %s" % [stat_name, value_str]
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
-	stats_container.add_child(label)
+	_create_stat_label(stat_name, value_str)
 
 
 func _add_stat_label_text(loc_key: String, value_text: String) -> void:
-	var label: Label = Label.new()
 	var stat_name: String = Loc.t("ui.collection." + loc_key)
-
-	label.text = "%s: %s" % [stat_name, value_text]
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
-	stats_container.add_child(label)
+	_create_stat_label(stat_name, value_text)
 
 
 func _get_damage_type_display(element_str: String) -> String:
 	# Neutral element means physical damage
 	if element_str.is_empty() or element_str == "neutral":
 		return Loc.t("ui.collection.damage_type_physical")
-	# Otherwise it's elemental damage - capitalize the element name
-	return element_str.capitalize()
+	# Use localized element name
+	return Loc.t("elements." + element_str)
 
 ## =============================================================================
 ## PROGRESSION DISPLAY

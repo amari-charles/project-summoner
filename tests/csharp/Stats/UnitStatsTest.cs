@@ -23,6 +23,10 @@ public class UnitStatsTest
         AssertThat(stats.MoveSpeed).IsEqual(3f);
         AssertThat(stats.AttackRange).IsEqual(2f);
         AssertThat(stats.AggroRadius).IsEqual(20f);
+        AssertThat(stats.CritChance).IsEqual(0f);
+        AssertThat(stats.CritDamage).IsEqual(1.5f);
+        AssertThat(stats.Armor).IsEqual(0f);
+        AssertThat(stats.MagicResist).IsEqual(0f);
     }
 
     [TestCase]
@@ -80,7 +84,11 @@ public class UnitStatsTest
             ["attack_speed"] = 1.5f,
             ["move_speed"] = 4f,
             ["attack_range"] = 3f,
-            ["aggro_radius"] = 25f
+            ["aggro_radius"] = 25f,
+            ["crit_chance"] = 0.25f,
+            ["crit_damage"] = 2.0f,
+            ["armor"] = 10f,
+            ["magic_resist"] = 5f
         };
 
         var stats = UnitStats.FromDictionary(dict);
@@ -91,6 +99,10 @@ public class UnitStatsTest
         AssertThat(stats.MoveSpeed).IsEqual(4f);
         AssertThat(stats.AttackRange).IsEqual(3f);
         AssertThat(stats.AggroRadius).IsEqual(25f);
+        AssertThat(stats.CritChance).IsEqual(0.25f);
+        AssertThat(stats.CritDamage).IsEqual(2.0f);
+        AssertThat(stats.Armor).IsEqual(10f);
+        AssertThat(stats.MagicResist).IsEqual(5f);
     }
 
     [TestCase]
@@ -233,5 +245,86 @@ public class UnitStatsTest
 
         AssertThat(str).Contains("HP=100");
         AssertThat(str).Contains("ATK=10");
+    }
+
+    [TestCase]
+    public void CritStats_GetReturnsCorrectValues()
+    {
+        var stats = new UnitStats
+        {
+            CritChance = 0.25f,
+            CritDamage = 2.5f
+        };
+
+        AssertThat(stats.Get(StatKey.CritChance)).IsEqual(0.25f);
+        AssertThat(stats.Get(StatKey.CritDamage)).IsEqual(2.5f);
+    }
+
+    [TestCase]
+    public void CritStats_WithCreatesModifiedInstance()
+    {
+        var original = UnitStats.Default;
+        var withCritChance = original.With(StatKey.CritChance, 0.5f);
+        var withCritDamage = original.With(StatKey.CritDamage, 3.0f);
+
+        AssertThat(original.CritChance).IsEqual(0f);
+        AssertThat(original.CritDamage).IsEqual(1.5f);
+        AssertThat(withCritChance.CritChance).IsEqual(0.5f);
+        AssertThat(withCritDamage.CritDamage).IsEqual(3.0f);
+    }
+
+    [TestCase]
+    public void DefensiveStats_GetReturnsCorrectValues()
+    {
+        var stats = new UnitStats
+        {
+            Armor = 15f,
+            MagicResist = 20f
+        };
+
+        AssertThat(stats.Get(StatKey.Armor)).IsEqual(15f);
+        AssertThat(stats.Get(StatKey.MagicResist)).IsEqual(20f);
+    }
+
+    [TestCase]
+    public void DefensiveStats_WithCreatesModifiedInstance()
+    {
+        var original = UnitStats.Default;
+        var withArmor = original.With(StatKey.Armor, 25f);
+        var withMagicResist = original.With(StatKey.MagicResist, 30f);
+
+        AssertThat(original.Armor).IsEqual(0f);
+        AssertThat(original.MagicResist).IsEqual(0f);
+        AssertThat(withArmor.Armor).IsEqual(25f);
+        AssertThat(withMagicResist.MagicResist).IsEqual(30f);
+    }
+
+    [TestCase]
+    public void ToString_IncludesCritStats()
+    {
+        var stats = new UnitStats
+        {
+            CritChance = 0.25f,
+            CritDamage = 2.0f
+        };
+
+        var str = stats.ToString();
+
+        AssertThat(str).Contains("CRIT=25%/2.0x");
+    }
+
+    [TestCase]
+    public void ToString_IncludesDefensiveStats()
+    {
+        var stats = new UnitStats
+        {
+            Armor = 10f,
+            MagicResist = 15f
+        };
+
+        var str = stats.ToString();
+
+        AssertThat(str).Contains("ARM=10");
+        AssertThat(str).Contains("MR=15");
     }
 }
