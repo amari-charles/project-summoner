@@ -34,6 +34,7 @@ const SCENE_PREMIUM_STORE: String = "res://scenes/ui/screens/premium_store_scree
 ## Special Events & Settings
 const SCENE_SPECIAL_EVENTS: String = "res://scenes/ui/screens/special_events_screen.tscn"
 const SCENE_SETTINGS: String = "res://scenes/ui/screens/settings_screen.tscn"
+const SCENE_ONLINE: String = "res://scenes/ui/screens/online_screen.tscn"
 
 ## Battle Scenes
 const SCENE_BATTLE_3D: String = "res://scenes/battlefield/battle_3d.tscn"

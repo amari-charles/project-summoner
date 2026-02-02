@@ -6,6 +6,7 @@ class_name NavDrawer
 
 signal collection_pressed
 signal events_pressed
+signal online_pressed
 signal shop_pressed
 signal settings_pressed
 signal quit_pressed
@@ -18,6 +19,7 @@ signal closed
 @onready var close_button: TextureButton = $Panel/MarginContainer/VBoxContainer/Header/CloseButton
 @onready var collection_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/CollectionButton
 @onready var events_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/EventsButton
+@onready var online_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/OnlineButton
 @onready var shop_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/ShopButton
 @onready var settings_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/SettingsButton
 @onready var quit_button: Button = $Panel/MarginContainer/VBoxContainer/NavButtons/QuitButton
@@ -38,6 +40,7 @@ func _ready() -> void:
 	title_label.text = Loc.t("ui.nav.menu")
 	collection_button.text = Loc.t("ui.nav.collection")
 	events_button.text = Loc.t("ui.nav.events")
+	online_button.text = Loc.t("ui.nav.online")
 	shop_button.text = Loc.t("ui.nav.shop")
 	settings_button.text = Loc.t("ui.nav.settings")
 	quit_button.text = Loc.t("ui.nav.quit")
@@ -51,6 +54,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_close)
 	collection_button.pressed.connect(_on_collection_pressed)
 	events_button.pressed.connect(_on_events_pressed)
+	online_button.pressed.connect(_on_online_pressed)
 	shop_button.pressed.connect(_on_shop_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -119,6 +123,11 @@ func _on_collection_pressed() -> void:
 func _on_events_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	events_pressed.emit()
+	_close()
+
+func _on_online_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	online_pressed.emit()
 	_close()
 
 func _on_shop_pressed() -> void:

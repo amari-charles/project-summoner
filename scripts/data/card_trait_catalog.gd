@@ -196,9 +196,9 @@ static func get_trait(catalog_id: String, trait_id: String) -> Dictionary:
 	for level: Variant in card_traits:
 		if level is int:
 			var level_traits: Array = card_traits[level]
-			for trait: Variant in level_traits:
-				if trait is Dictionary:
-					var trait_dict: Dictionary = trait
+			for trait_item: Variant in level_traits:
+				if trait_item is Dictionary:
+					var trait_dict: Dictionary = trait_item
 					if trait_dict.get("id") == trait_id:
 						return trait_dict
 
@@ -219,11 +219,11 @@ static func get_all_trait_ids(catalog_id: String) -> Array[String]:
 	for level: Variant in card_traits:
 		if level is int:
 			var level_traits: Array = card_traits[level]
-			for trait: Variant in level_traits:
-				if trait is Dictionary:
-					var trait_dict: Dictionary = trait
-					var trait_id: String = trait_dict.get("id", "")
-					if not trait_id.is_empty():
-						ids.append(trait_id)
+			for trait_item: Variant in level_traits:
+				if trait_item is Dictionary:
+					var trait_dict: Dictionary = trait_item
+					var id: String = trait_dict.get("id", "")
+					if not id.is_empty():
+						ids.append(id)
 
 	return ids

@@ -479,10 +479,16 @@
       "collection": "COLLECTION",
       "collection_locked": "Select a summoner first",
       "events": "EVENTS",
+      "online": "ONLINE",
       "shop": "STORE",
       "settings": "SETTINGS",
       "snapshots": "SNAPSHOTS",
       "quit": "QUIT GAME"
+    },
+    "online": {
+      "title": "ONLINE PLAY",
+      "coming_soon": "COMING SOON",
+      "description": "Online play will include:\n\n• Casual matches with friends\n• Ranked competitive matchmaking\n• Leaderboards and seasons\n• Tournaments and events"
     },
     "premium_store": {
       "title": "STORE",

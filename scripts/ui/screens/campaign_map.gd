@@ -692,6 +692,7 @@ func _setup_navigation() -> void:
 	# Connect nav drawer signals
 	nav_drawer.collection_pressed.connect(_on_nav_collection_pressed)
 	nav_drawer.events_pressed.connect(_on_nav_events_pressed)
+	nav_drawer.online_pressed.connect(_on_nav_online_pressed)
 	nav_drawer.shop_pressed.connect(_on_nav_shop_pressed)
 	nav_drawer.settings_pressed.connect(_on_nav_settings_pressed)
 	nav_drawer.quit_pressed.connect(_on_nav_quit_pressed)
@@ -709,6 +710,11 @@ func _on_nav_events_pressed() -> void:
 	print("CampaignMap: Opening Special Events...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SPECIAL_EVENTS)
+
+func _on_nav_online_pressed() -> void:
+	print("CampaignMap: Opening Online Play...")
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_ONLINE)
 
 func _on_nav_shop_pressed() -> void:
 	print("CampaignMap: Opening Premium Store...")
