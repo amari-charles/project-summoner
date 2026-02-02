@@ -508,6 +508,35 @@ public static class TraitDefinitions
     };
 
     // =========================================================================
+    // SPECIAL TRAITS - Granted by specific game events
+    // =========================================================================
+
+    /// <summary>
+    /// Fortune Favors the Bold: +10% damage to all attacks.
+    /// Granted when the player selects random summoner at campaign start.
+    /// </summary>
+    public static readonly TraitDefinition FortuneFavorsTheBold = new()
+    {
+        Id = TraitIds.FortuneFavorsTheBold,
+        NameKey = "trait.fortune_favors_the_bold.name",
+        DescriptionKey = "trait.fortune_favors_the_bold.description",
+        Category = "combat",
+        IsInnate = false,
+        Tags = [], // Empty = never offered at level-up
+        MinLevel = 1,
+        MaxLevel = 99,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FortuneFavorsTheBold,
+                StatMults = new() { ["attack_damage"] = 1.10f }
+            }
+        ]
+    };
+
+    // =========================================================================
     // LOOKUP
     // =========================================================================
 
@@ -557,7 +586,10 @@ public static class TraitDefinitions
         [TraitIds.Fortitude] = Fortitude,
         [TraitIds.Power] = Power,
         [TraitIds.Swiftness] = Swiftness,
-        [TraitIds.Agility] = Agility
+        [TraitIds.Agility] = Agility,
+
+        // Special Traits
+        [TraitIds.FortuneFavorsTheBold] = FortuneFavorsTheBold
     };
 
     /// <summary>Get a trait definition by ID. Returns null if not found.</summary>

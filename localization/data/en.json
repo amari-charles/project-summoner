@@ -575,6 +575,10 @@
       "name": "Fortune Favors the Bold",
       "description": "Choosing the path of chance grants fortified vitality. +50 Health"
     },
+    "fortune_favors_the_bold": {
+      "name": "Fortune Favors the Bold",
+      "description": "+10% damage to all attacks when you embrace the unknown."
+    },
     "iron_will": {
       "name": "Iron Will",
       "description": "Unyielding determination reduces incoming damage. +5% damage reduction."

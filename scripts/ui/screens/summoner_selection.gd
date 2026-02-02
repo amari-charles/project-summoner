@@ -130,6 +130,11 @@ func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void
 	var summoner_instance: SummonerInstance = SummonerInstance.new()
 	summoner_instance.init_from_config(summoner_config)
 
+	# Grant "Fortune Favors the Bold" trait for random selection
+	if chosen_random:
+		summoner_instance.add_trait("trait_fortune_favors_the_bold")
+		print("SummonerSelection: Granted 'Fortune Favors the Bold' trait for random selection")
+
 	# Save SummonerInstance to profile
 	var save_success: bool = ProfileRepo.save_summoner_instance(summoner_instance)
 	if save_success:

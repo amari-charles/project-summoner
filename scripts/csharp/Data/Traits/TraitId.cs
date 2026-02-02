@@ -128,4 +128,11 @@ public static class TraitIds
 
     /// <summary>Agility: +5% move speed per level.</summary>
     public static readonly TraitId Agility = new("trait_agility");
+
+    // =========================================================================
+    // SPECIAL TRAITS - Granted by specific game events
+    // =========================================================================
+
+    /// <summary>Fortune Favors the Bold: +10% damage when selecting random summoner.</summary>
+    public static readonly TraitId FortuneFavorsTheBold = new("trait_fortune_favors_the_bold");
 }
