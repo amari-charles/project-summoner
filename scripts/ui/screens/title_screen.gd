@@ -4,6 +4,7 @@ class_name TitleScreen
 ## Loading splash screen - shows game title then auto-transitions to Campaign Map
 
 ## Time to display the splash before transitioning
+## Long enough for loading bar to feel meaningful, short enough to not frustrate
 const SPLASH_DISPLAY_SECONDS: float = 2.0
 
 ## Max time to wait for fade_out animation before proceeding anyway
