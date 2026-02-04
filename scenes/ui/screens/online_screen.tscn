@@ -44,7 +44,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "✕"
+text = "X"
 flat = true
 
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
@@ -52,7 +52,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 36
-text = ""
+text = "RANKED"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/Header"]
@@ -62,34 +62,167 @@ layout_mode = 2
 [node name="Separator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="ContentCenter" type="CenterContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ContentHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 40
+
+[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.5
+theme_override_constants/separation = 20
+
+[node name="RatingPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/RatingPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/RatingPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TierLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/RatingPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Gold II"
+horizontal_alignment = 1
+
+[node name="RatingLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/RatingPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(1, 0.84, 0.2, 1)
+text = "1250"
+horizontal_alignment = 1
+
+[node name="RankLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/RatingPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+text = "Rank #152"
+horizontal_alignment = 1
+
+[node name="StatsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 15
+
+[node name="HBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="WinsBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinsBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+text = "WINS"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.4, 0.9, 0.4, 1)
+text = "0"
+horizontal_alignment = 1
+
+[node name="LossesBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/LossesBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+text = "LOSSES"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/LossesBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
+text = "0"
+horizontal_alignment = 1
+
+[node name="WinRateBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinRateBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+text = "WIN RATE"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinRateBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "-%"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ComingSoonPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentCenter"]
-custom_minimum_size = Vector2(600, 400)
+[node name="QueuePanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel"]
 layout_mode = 2
+theme_override_constants/separation = 15
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentCenter/ComingSoonPanel"]
+[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/QueuePanel"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 40
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentCenter/ComingSoonPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 30
-
-[node name="ComingSoonLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/ComingSoonPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 18
 text = ""
 horizontal_alignment = 1
 
-[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/ComingSoonPanel/MarginContainer/VBoxContainer"]
+[node name="QueueButton" type="Button" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/QueuePanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = ""
+theme_override_font_sizes/font_size = 24
+text = "Find Match"
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LeaderboardHeader" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "TOP PLAYERS"
 horizontal_alignment = 1
-autowrap_mode = 3
+
+[node name="LeaderboardPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentHBox/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentHBox/RightPanel/LeaderboardPanel"]
+layout_mode = 2
+
+[node name="LeaderboardList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentHBox/RightPanel/LeaderboardPanel/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
