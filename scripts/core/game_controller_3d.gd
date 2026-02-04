@@ -354,6 +354,10 @@ func end_game(winner: UnitConstants.Team) -> void:
 	# Stop battle music
 	AudioManager.stop_music()
 
+	# In multiplayer, broadcast match end to clients
+	if BattleContext.is_multiplayer_battle():
+		_broadcast_match_end(winner)
+
 	# Update BattleContext state based on winner
 	if winner == UnitConstants.Team.PLAYER:
 		BattleContext.end_battle_victory()
@@ -368,6 +372,31 @@ func end_game(winner: UnitConstants.Team) -> void:
 			await get_tree().create_timer(2.0, true).timeout  # process_always=true to run while paused
 			get_tree().paused = false
 			callback.call(winner as int)
+
+
+## Broadcast match end to clients via MatchSession (multiplayer only)
+func _broadcast_match_end(winner: UnitConstants.Team) -> void:
+	# Get MatchSession from authority provider
+	if BattleContext.authority_provider == null:
+		return
+
+	var match_session: Node = BattleContext.authority_provider.get_match_session()
+	if match_session == null:
+		push_warning("GameController3D: No MatchSession found for multiplayer broadcast")
+		return
+
+	# Convert winner team to player index
+	# Team.PLAYER = 0 means local player won (host is index 0)
+	# Team.ENEMY = 1 means opponent won
+	var winner_index: int = 0 if winner == UnitConstants.Team.PLAYER else 1
+
+	# Determine reason based on how game ended
+	var reason: String = "Summoner destroyed"
+
+	# Call C# MatchSession.BroadcastMatchEnd()
+	if match_session.has_method("BroadcastMatchEnd"):
+		match_session.BroadcastMatchEnd(winner_index, reason)
+		print("GameController3D: Broadcast match end - winner: %d, reason: %s" % [winner_index, reason])
 
 func _check_timeout_victory() -> void:
 	# Simplified: player wins on timeout for now

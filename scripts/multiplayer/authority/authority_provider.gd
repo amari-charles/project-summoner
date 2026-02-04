@@ -5,9 +5,7 @@ class_name AuthorityProvider extends RefCounted
 ## Provides an abstraction that allows the same game code to work under
 ## different authority models:
 ## - LocalAuthority: Single-player (all actions immediate, no network)
-## - HostAuthority: P2P host (validates actions, broadcasts to clients)
-## - ClientProxy: P2P client (sends requests to host, waits for confirmation)
-## - ServerAuthority: Future dedicated server (same interface, different backend)
+## - MultiplayerAuthority: Online multiplayer (bridges to C# MatchSession)
 
 ## Emitted when authority confirms an action was executed
 ## action is a GameAction (RefCounted)
@@ -34,7 +32,7 @@ func is_multiplayer() -> bool:
 
 ## Returns true if this action belongs to the local player.
 ## Used to determine if we should process input for this action.
-func is_local_action(player_id: int) -> bool:
+func is_local_action(_player_id: int) -> bool:
 	return false  # Override in subclasses
 
 
@@ -49,7 +47,7 @@ func get_local_peer_id() -> int:
 ## In single-player, this executes immediately.
 ## In multiplayer, the host validates and broadcasts.
 ## action should be a GameAction instance (RefCounted).
-func execute_action(action: RefCounted) -> void:
+func execute_action(_action: RefCounted) -> void:
 	push_error("AuthorityProvider.execute_action() must be overridden")
 
 
@@ -57,7 +55,7 @@ func execute_action(action: RefCounted) -> void:
 ## In single-player, this directly calls execute_action.
 ## In multiplayer, client sends request to host and waits for confirmation.
 ## action should be a GameAction instance (RefCounted).
-func request_action(action: RefCounted) -> void:
+func request_action(_action: RefCounted) -> void:
 	push_error("AuthorityProvider.request_action() must be overridden")
 
 
@@ -71,3 +69,9 @@ func initialize() -> void:
 ## Called when battle ends.
 func cleanup() -> void:
 	pass  # Override in subclasses if needed
+
+
+## Get the C# MatchSession node (multiplayer only).
+## Returns null for single-player (LocalAuthority).
+func get_match_session() -> Node:
+	return null  # Override in MultiplayerAuthority

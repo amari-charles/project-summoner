@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d5x8n3k7p9w2r"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Multiplayer/Core/ReconnectionHandler.cs" id="1_reconnect"]
+
+[node name="ReconnectionHandler" type="Node"]
+script = ExtResource("1_reconnect")

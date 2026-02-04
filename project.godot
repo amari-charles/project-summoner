@@ -77,6 +77,12 @@ DebugMenu="*res://scripts/debug/debug_menu.gd"
 SpatialGrid="*res://scripts/csharp/Systems/SpatialGrid.tscn"
 TargetingConfigRegistryCS="*res://scripts/csharp/Targeting/TargetingConfigRegistryCS.tscn"
 LevelCapService="*res://scripts/csharp/Services/LevelCapService.tscn"
+NakamaGameClient="*res://scripts/csharp/Multiplayer/Backend/NakamaGameClient.tscn"
+RankingService="*res://scripts/csharp/Multiplayer/Ranking/RankingService.tscn"
+MatchReporter="*res://scripts/csharp/Multiplayer/Ranking/MatchReporter.tscn"
+MatchmakingService="*res://scripts/csharp/Multiplayer/Matchmaking/MatchmakingService.tscn"
+LeaderboardService="*res://scripts/csharp/Multiplayer/Ranking/LeaderboardService.tscn"
+ReconnectionHandler="*res://scripts/csharp/Multiplayer/Core/ReconnectionHandler.tscn"
 
 [debug]
 

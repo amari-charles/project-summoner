@@ -13,5 +13,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="gdUnit4.api" Version="5.0.0" />
     <PackageReference Include="gdUnit4.test.adapter" Version="3.0.0" />
+    <PackageReference Include="NakamaClient" Version="3.21.1" />
   </ItemGroup>
 </Project>

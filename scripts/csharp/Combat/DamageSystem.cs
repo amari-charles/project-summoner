@@ -6,6 +6,8 @@ using ProjectSummoner.Constants;
 using ProjectSummoner.Data.Summoners;
 using ProjectSummoner.Services.Interfaces;
 using ProjectSummoner.Units;
+using Fateforged.Multiplayer.Core;
+using Fateforged.Multiplayer.Protocol;
 
 namespace ProjectSummoner.Combat;
 
@@ -190,6 +192,9 @@ public partial class DamageSystem : Node, IDamageSystem
 			metadata
 		);
 		EmitSignal(SignalName.DamageDealt, dealtEvent);
+
+		// Broadcast damage to clients in multiplayer (host only)
+		BroadcastDamageDealt(attacker, target, finalDamage, isCrit);
 
 		// Notify attacker of damage dealt (for OnHit triggers)
 		if (attacker is Unit3D attackerUnit)
@@ -778,6 +783,55 @@ public partial class DamageSystem : Node, IDamageSystem
 
 		var result = battleRng.Call("randf", RNG_DOMAIN_COMBAT_CRITS);
 		return result.AsSingle();
+	}
+
+	// =========================================================================
+	// MULTIPLAYER SYNCHRONIZATION
+	// =========================================================================
+
+	/// <summary>
+	/// Broadcast a damage dealt event to clients in multiplayer (host only).
+	/// </summary>
+	private static void BroadcastDamageDealt(Node3D attacker, Node3D target, float amount, bool isCrit)
+	{
+		var session = MatchSession.Current;
+		if (session == null || !session.IsActive || !session.IsHost)
+			return;
+
+		// Get network IDs for attacker and target
+		int? sourceNetworkId = null;
+		int targetNetworkId = -1;
+
+		if (attacker is Unit3D attackerUnit && attackerUnit.NetworkId >= 0)
+		{
+			sourceNetworkId = attackerUnit.NetworkId;
+		}
+
+		if (target is Unit3D targetUnit && targetUnit.NetworkId >= 0)
+		{
+			targetNetworkId = targetUnit.NetworkId;
+		}
+
+		// Only broadcast if target has a network ID (is a synchronized unit)
+		if (targetNetworkId < 0)
+			return;
+
+		var damageMsg = new DamageDealt(targetNetworkId, amount, isCrit, sourceNetworkId);
+		session.Broadcast(damageMsg);
+	}
+
+	/// <summary>
+	/// Broadcast summoner damage to clients in multiplayer (host only).
+	/// Called when a summoner (player's base) takes damage.
+	/// </summary>
+	public void BroadcastSummonerDamage(int team, float amount, float newHp)
+	{
+		var session = MatchSession.Current;
+		if (session == null || !session.IsActive || !session.IsHost)
+			return;
+
+		var summonerMsg = new SummonerDamaged(team, amount, newHp);
+		session.Broadcast(summonerMsg);
 	}
 
 }

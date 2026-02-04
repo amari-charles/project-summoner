@@ -16,7 +16,8 @@ enum BattleMode {
 	ARENA,      ## Random battles for rewards
 	ENDLESS,    ## Wave-based survival mode
 	TUTORIAL,   ## Guided learning battles
-	PRACTICE    ## Free play / testing
+	PRACTICE,   ## Free play / testing
+	MULTIPLAYER ## P2P or online multiplayer
 }
 
 ## Battle lifecycle state machine
@@ -76,6 +77,10 @@ var _deck_card_instance_ids: Array[String] = []
 ## Level cap for this battle (0 = uncapped)
 ## When set, player cards are normalized to this level maximum
 var _level_cap: int = 0
+
+## Ranked match info for match reporting
+## Contains: match_id, opponent_user_id, opponent_username, opponent_rating, is_ranked
+var _ranked_match_info: Dictionary = {}
 
 ## Player summoner's computed stats (cached at battle start for damage calculations)
 ## Set by Summoner._apply_summoner_bonuses(), read by DamageSystem
@@ -220,6 +225,57 @@ func configure_endless_wave(_wave_number: int) -> void:
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = _handle_endless_completion
 
+
+## Configure for multiplayer battle
+## Call this after MatchSession is initialized
+func configure_multiplayer_battle(
+	player_summoner_id: String,
+	opponent_summoner_id: String,
+	player_deck: Array,
+	opponent_deck: Array,
+	is_host: bool,
+	battle_seed: int
+) -> void:
+	current_mode = BattleMode.MULTIPLAYER
+	battle_state = BattleState.CONFIGURED
+	was_configured = true
+	origin_scene = SceneManager.SCENE_MULTIPLAYER_LOBBY
+
+	# Build battle config with both players' data
+	battle_config = {
+		"is_multiplayer": true,
+		"is_host": is_host,
+		"battle_seed": battle_seed,
+		"player_summoner_id": player_summoner_id,
+		"opponent_summoner_id": opponent_summoner_id,
+		"player_deck": player_deck,
+		"opponent_deck": opponent_deck,
+		# Standard battle settings for multiplayer
+		"enemy_hp": 100.0,  # Summoner HP
+		"ai_type": "none",  # No AI - real player opponent
+		"win_condition": "SUMMONER_DESTROYED",
+	}
+
+	biome_id = BiomeIDs.SUMMER_PLAINS  # Could randomize or let host choose
+	completion_callback = _handle_multiplayer_completion
+
+	print("BattleContext: Configured multiplayer battle (host: %s, seed: %d)" % [is_host, battle_seed])
+
+## Set ranked match info for match reporting after battle ends
+func set_ranked_match_info(info: Dictionary) -> void:
+	_ranked_match_info = info
+
+
+## Get ranked match info
+func get_ranked_match_info() -> Dictionary:
+	return _ranked_match_info
+
+
+## Check if this is a ranked match
+func is_ranked_match() -> bool:
+	return _ranked_match_info.get("is_ranked", false)
+
+
 ## Check if battle context has been configured
 func is_configured() -> bool:
 	return was_configured and not battle_config.is_empty()
@@ -230,6 +286,7 @@ func clear() -> void:
 	_battle_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	completion_callback = Callable()
+	_ranked_match_info = {}
 	was_configured = false
 	battle_state = BattleState.NONE
 	origin_scene = ""
@@ -509,3 +566,90 @@ func _handle_endless_completion(winner: int) -> void:
 		# Show endless result screen with score
 		# TODO: Implement endless result screen
 		pass
+
+
+## Handle multiplayer battle completion
+func _handle_multiplayer_completion(winner: int) -> void:
+	print("BattleContext: Multiplayer battle ended, winner: %d" % winner)
+
+	# Winner: 0 = local player won, 1 = opponent won
+	var player_won: bool = (winner == 0)
+
+	# Report match result if this is a ranked match
+	if is_ranked_match():
+		_report_ranked_match_result(player_won)
+
+	# Return to online screen for ranked, lobby for casual
+	if is_ranked_match():
+		SceneManager.transition_to(SceneManager.SCENE_ONLINE)
+	else:
+		SceneManager.transition_to(SceneManager.SCENE_MULTIPLAYER_LOBBY)
+
+
+## Report ranked match result to MatchReporter service
+func _report_ranked_match_result(player_won: bool) -> void:
+	var match_info: Dictionary = get_ranked_match_info()
+	if match_info.is_empty():
+		print("BattleContext: No ranked match info to report")
+		return
+
+	if not is_inside_tree():
+		print("BattleContext: Cannot report match - not in scene tree")
+		return
+
+	var match_reporter: Node = get_node_or_null(CSharpAutoloads.MATCH_REPORTER)
+	if match_reporter == null:
+		print("BattleContext: MatchReporter service not available")
+		return
+
+	# Get local user ID from Nakama
+	var nakama_client: Node = get_node_or_null(CSharpAutoloads.NAKAMA_GAME_CLIENT)
+	var local_user_id: String = ""
+	if nakama_client and nakama_client.has_method("get_UserId"):
+		local_user_id = nakama_client.get_UserId()
+
+	var opponent_user_id: String = match_info.get("opponent_user_id", "")
+	var opponent_rating: int = match_info.get("opponent_rating", 1000)
+
+	# Determine winner/loser user IDs
+	var winner_user_id: String = local_user_id if player_won else opponent_user_id
+	var loser_user_id: String = opponent_user_id if player_won else local_user_id
+
+	# Create match result and report it
+	if match_reporter.has_method("ReportMatchAsync"):
+		# Build the MatchResult object expected by MatchReporter
+		# Note: MatchReporter expects a C# MatchResult object
+		# We'll call it directly with the needed data
+		var result: Dictionary = {
+			"MatchId": match_info.get("match_id", ""),
+			"WinnerUserId": winner_user_id,
+			"LoserUserId": loser_user_id,
+			"OpponentRating": opponent_rating,
+			"DurationSeconds": 0.0,  # Would need to track this
+			"EndReason": "summoner_destroyed"
+		}
+		print("BattleContext: Reporting ranked match result - winner: %s" % winner_user_id)
+		# The C# service will handle the actual reporting
+		_call_match_reporter(match_reporter, result)
+
+
+## Call the C# MatchReporter service
+func _call_match_reporter(reporter: Node, result: Dictionary) -> void:
+	# Create a MatchResult object and call ReportMatchAsync
+	# Since MatchReporter is C#, we need to call methods that accept Dictionary
+	# or create the proper C# object
+
+	# For now, use a simple approach - the C# service exposes methods callable from GDScript
+	if reporter.has_method("ReportMatchFromGDScript"):
+		reporter.ReportMatchFromGDScript(
+			result.get("MatchId", ""),
+			result.get("WinnerUserId", ""),
+			result.get("LoserUserId", ""),
+			result.get("OpponentRating", 1000),
+			result.get("DurationSeconds", 0.0),
+			result.get("EndReason", "summoner_destroyed")
+		)
+	else:
+		# Fallback: Try to call the async method directly
+		# This may not work perfectly from GDScript but will log
+		print("BattleContext: MatchReporter.ReportMatchFromGDScript not available, match result not reported")

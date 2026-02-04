@@ -3,18 +3,21 @@ class_name MultiplayerLobby
 
 ## Multiplayer lobby screen for creating and joining P2P matches
 ##
+## Uses C# P2PTransport for networking and MatchSession for game state.
 ## Supports two modes:
 ## - Host: Create a room and wait for opponent
 ## - Join: Enter IP address to connect to host
 
-const P2PHostScript: GDScript = preload("res://scripts/multiplayer/connection/p2p_host.gd")
-const P2PClientScript: GDScript = preload("res://scripts/multiplayer/connection/p2p_client.gd")
-const RoomCodeServiceScript: GDScript = preload("res://scripts/multiplayer/connection/room_code_service.gd")
+const MultiplayerAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/multiplayer_authority.gd")
+const P2PTransportScene: PackedScene = preload("res://scripts/csharp/Multiplayer/Transport/P2PTransport.tscn")
 
 enum LobbyState { MENU, HOSTING, JOINING, WAITING_FOR_OPPONENT, CONNECTED, STARTING }
 
-## Brief delay before transitioning to battle scene (allows UI feedback to be visible)
+## Brief delay before transitioning to battle scene
 const MATCH_START_DELAY: float = 1.0
+
+## Default port for P2P connections
+const DEFAULT_PORT: int = 7777
 
 ## UI References
 @onready var menu_panel: Control = $MenuPanel
@@ -51,14 +54,28 @@ const MATCH_START_DELAY: float = 1.0
 ## Current state
 var _state: LobbyState = LobbyState.MENU
 
-## P2P instances
-var _p2p_host: P2PHost = null
-var _p2p_client: P2PClient = null
+## C# Transport instance
+var _transport: Node = null
 
-## Placeholder player info
-## Phase 2: Connect to PlayerProfile service for actual player name and selected summoner
+## Whether we're hosting
+var _is_host: bool = false
+
+## Whether opponent is connected
+var _opponent_connected: bool = false
+
+## Whether host is ready
+var _host_ready: bool = false
+
+## Whether client is ready
+var _client_ready: bool = false
+
+## Player info
 var _player_name: String = "Player"
 var _summoner_id: String = "ignis"
+
+## Opponent info (received via network)
+var _opponent_name: String = ""
+var _opponent_summoner_id: String = ""
 
 
 func _ready() -> void:
@@ -88,20 +105,13 @@ func _setup_localization() -> void:
 
 
 func _setup_signals() -> void:
-	# Menu buttons
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)
 	back_button.pressed.connect(_on_back_pressed)
-
-	# Host buttons
 	host_ready_button.pressed.connect(_on_host_ready_pressed)
 	host_cancel_button.pressed.connect(_on_cancel_pressed)
-
-	# Join buttons
 	connect_button.pressed.connect(_on_connect_pressed)
 	join_cancel_button.pressed.connect(_on_cancel_pressed)
-
-	# Waiting buttons
 	client_ready_button.pressed.connect(_on_client_ready_pressed)
 	waiting_cancel_button.pressed.connect(_on_cancel_pressed)
 
@@ -127,6 +137,44 @@ func _show_menu() -> void:
 
 
 ## =============================================================================
+## TRANSPORT MANAGEMENT
+## =============================================================================
+
+func _create_transport() -> void:
+	if _transport != null:
+		return
+
+	_transport = P2PTransportScene.instantiate()
+	add_child(_transport)
+
+	# Connect C# signals
+	if _transport.has_signal("PeerConnected"):
+		_transport.PeerConnected.connect(_on_peer_connected)
+	if _transport.has_signal("PeerDisconnected"):
+		_transport.PeerDisconnected.connect(_on_peer_disconnected)
+	if _transport.has_signal("Connected"):
+		_transport.Connected.connect(_on_connected_to_server)
+	if _transport.has_signal("Disconnected"):
+		_transport.Disconnected.connect(_on_disconnected)
+	if _transport.has_signal("MessageReceived"):
+		_transport.MessageReceived.connect(_on_message_received)
+
+
+func _cleanup_transport() -> void:
+	if _transport != null:
+		if _transport.has_method("Disconnect"):
+			_transport.Disconnect()
+		_transport.queue_free()
+		_transport = null
+
+	_opponent_connected = false
+	_host_ready = false
+	_client_ready = false
+	_opponent_name = ""
+	_opponent_summoner_id = ""
+
+
+## =============================================================================
 ## HOST FLOW
 ## =============================================================================
 
@@ -139,57 +187,47 @@ func _start_hosting() -> void:
 	_set_state(LobbyState.HOSTING)
 	host_status_label.text = Loc.t("ui.multiplayer.creating_room")
 	host_ready_button.disabled = true
+	_is_host = true
 
-	# Create host instance
-	_p2p_host = P2PHostScript.new()
-	add_child(_p2p_host)
+	_create_transport()
 
-	# Connect signals
-	_p2p_host.server_started.connect(_on_server_started)
-	_p2p_host.server_failed.connect(_on_server_failed)
-	_p2p_host.client_connected.connect(_on_client_connected)
-	_p2p_host.client_disconnected.connect(_on_client_disconnected)
-	_p2p_host.client_info_received.connect(_on_client_info_received)
-	_p2p_host.match_ready.connect(_on_match_ready)
+	if _transport.has_method("Host"):
+		_transport.Host(DEFAULT_PORT)
 
-	# Start server
-	var error: Error = _p2p_host.start_server(_player_name, _summoner_id)
-	if error != OK:
+		# Generate room code from local IP
+		var room_code: String = _generate_room_code()
+		room_code_label.text = room_code
+		host_status_label.text = Loc.t("ui.multiplayer.waiting_for_opponent")
+		_set_state(LobbyState.WAITING_FOR_OPPONENT)
+	else:
 		host_status_label.text = Loc.t("ui.multiplayer.error_creating_room")
+		_cleanup_transport()
+		_set_state(LobbyState.MENU)
 
 
-func _on_server_started(room_code: String) -> void:
-	room_code_label.text = room_code
-	host_status_label.text = Loc.t("ui.multiplayer.waiting_for_opponent")
-	_set_state(LobbyState.WAITING_FOR_OPPONENT)
-
-
-func _on_server_failed(error: String) -> void:
-	host_status_label.text = error
-	_cleanup_host()
-	_set_state(LobbyState.MENU)
-
-
-func _on_client_connected(_peer_info: RefCounted) -> void:
-	host_status_label.text = Loc.t("ui.multiplayer.player_connecting")
-
-
-func _on_client_disconnected(_peer_id: int) -> void:
-	host_status_label.text = Loc.t("ui.multiplayer.player_disconnected")
-	host_ready_button.disabled = true
-
-
-func _on_client_info_received(peer_info: RefCounted) -> void:
-	host_status_label.text = Loc.t("ui.multiplayer.player_joined").format({"name": peer_info.display_name})
-	host_ready_button.disabled = false
+func _generate_room_code() -> String:
+	# Get local IP address and format as room code
+	var ip_addresses: PackedStringArray = IP.get_local_addresses()
+	for ip in ip_addresses:
+		# Skip loopback and IPv6
+		if ip.begins_with("127.") or ip.contains(":"):
+			continue
+		# Return first valid IPv4 address with port
+		return "%s:%d" % [ip, DEFAULT_PORT]
+	return "127.0.0.1:%d" % DEFAULT_PORT
 
 
 func _on_host_ready_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if _p2p_host:
-		_p2p_host.set_host_ready(true)
-		host_ready_button.disabled = true
-		host_status_label.text = Loc.t("ui.multiplayer.waiting_for_ready")
+	_host_ready = true
+	host_ready_button.disabled = true
+	host_status_label.text = Loc.t("ui.multiplayer.waiting_for_ready")
+
+	# Send ready status to client
+	_send_message({"type": "ready", "ready": true})
+
+	# Check if both ready
+	_check_both_ready()
 
 
 ## =============================================================================
@@ -201,6 +239,7 @@ func _on_join_pressed() -> void:
 	_set_state(LobbyState.JOINING)
 	join_status_label.text = ""
 	ip_input.text = ""
+	_is_host = false
 
 
 func _on_connect_pressed() -> void:
@@ -218,85 +257,237 @@ func _start_joining(connection_string: String) -> void:
 	join_status_label.text = Loc.t("ui.multiplayer.connecting")
 	connect_button.disabled = true
 
-	# Create client instance
-	_p2p_client = P2PClientScript.new()
-	add_child(_p2p_client)
+	# Parse IP:port
+	var parts: PackedStringArray = connection_string.split(":")
+	var ip: String = parts[0]
+	var port: int = DEFAULT_PORT
+	if parts.size() > 1:
+		port = int(parts[1])
 
-	# Connect signals
-	_p2p_client.connected_to_host.connect(_on_connected_to_host)
-	_p2p_client.connection_failed.connect(_on_connection_failed)
-	_p2p_client.disconnected_from_host.connect(_on_disconnected_from_host)
-	_p2p_client.match_config_received.connect(_on_match_config_received)
-	_p2p_client.match_starting.connect(_on_client_match_starting)
+	_create_transport()
 
-	# Connect
-	var error: Error = _p2p_client.connect_with_string(connection_string, _player_name, _summoner_id)
-	if error != OK:
+	if _transport.has_method("Connect"):
+		_transport.Connect(ip, port)
+	else:
 		join_status_label.text = Loc.t("ui.multiplayer.invalid_address")
 		connect_button.disabled = false
-		_cleanup_client()
+		_cleanup_transport()
 
 
-func _on_connected_to_host() -> void:
+func _on_client_ready_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	_client_ready = true
+	client_ready_button.disabled = true
+	waiting_status_label.text = Loc.t("ui.multiplayer.waiting_for_host")
+
+	# Send ready status to host
+	_send_message({"type": "ready", "ready": true})
+
+	# Check if both ready
+	_check_both_ready()
+
+
+## =============================================================================
+## NETWORK CALLBACKS
+## =============================================================================
+
+func _on_peer_connected(peer_id: int) -> void:
+	print("MultiplayerLobby: Peer connected: %d" % peer_id)
+	_opponent_connected = true
+
+	if _is_host:
+		host_status_label.text = Loc.t("ui.multiplayer.player_connecting")
+		# Send our info to client
+		_send_player_info()
+	else:
+		# Client connected to host
+		_send_player_info()
+
+
+func _on_peer_disconnected(peer_id: int) -> void:
+	print("MultiplayerLobby: Peer disconnected: %d" % peer_id)
+	_opponent_connected = false
+
+	if _is_host:
+		host_status_label.text = Loc.t("ui.multiplayer.player_disconnected")
+		host_ready_button.disabled = true
+	else:
+		waiting_status_label.text = Loc.t("ui.multiplayer.disconnected")
+		_cleanup_transport()
+		_set_state(LobbyState.MENU)
+
+
+func _on_connected_to_server() -> void:
+	print("MultiplayerLobby: Connected to server")
 	_set_state(LobbyState.CONNECTED)
 	waiting_status_label.text = Loc.t("ui.multiplayer.connected_waiting")
 	client_ready_button.disabled = true
 
 
-func _on_connection_failed(error: String) -> void:
-	join_status_label.text = error
-	connect_button.disabled = false
-	_cleanup_client()
+func _on_disconnected(reason: String) -> void:
+	print("MultiplayerLobby: Disconnected: %s" % reason)
+	if _state == LobbyState.JOINING:
+		join_status_label.text = reason
+		connect_button.disabled = false
+	else:
+		_cleanup_transport()
+		_set_state(LobbyState.MENU)
 
 
-func _on_disconnected_from_host() -> void:
-	waiting_status_label.text = Loc.t("ui.multiplayer.disconnected")
-	_cleanup_client()
-	_set_state(LobbyState.MENU)
+func _on_message_received(sender_id: int, message: Dictionary) -> void:
+	var msg_type: String = message.get("type", "")
+
+	match msg_type:
+		"player_info":
+			_handle_player_info(message)
+		"ready":
+			_handle_ready_message(message)
+		"start_match":
+			_handle_start_match(message)
 
 
-func _on_match_config_received(_config: RefCounted) -> void:
-	waiting_status_label.text = Loc.t("ui.multiplayer.ready_to_play")
-	client_ready_button.disabled = false
+## =============================================================================
+## MESSAGE HANDLING
+## =============================================================================
+
+func _send_message(data: Dictionary) -> void:
+	if _transport == null:
+		return
+	if _transport.has_method("Send"):
+		_transport.Send(data)
 
 
-func _on_client_ready_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if _p2p_client:
-		_p2p_client.set_ready(true)
-		client_ready_button.disabled = true
-		waiting_status_label.text = Loc.t("ui.multiplayer.waiting_for_host")
+func _send_player_info() -> void:
+	_send_message({
+		"type": "player_info",
+		"name": _player_name,
+		"summoner_id": _get_active_summoner_id()
+	})
 
 
-func _on_client_match_starting(config: RefCounted) -> void:
-	_set_state(LobbyState.STARTING)
-	waiting_status_label.text = Loc.t("ui.multiplayer.match_starting")
-	_start_match(config)
+func _handle_player_info(message: Dictionary) -> void:
+	_opponent_name = message.get("name", "Opponent")
+	_opponent_summoner_id = message.get("summoner_id", "ignis")
+
+	if _is_host:
+		host_status_label.text = Loc.t("ui.multiplayer.player_joined").format({"name": _opponent_name})
+		host_ready_button.disabled = false
+	else:
+		waiting_status_label.text = Loc.t("ui.multiplayer.ready_to_play")
+		client_ready_button.disabled = false
+
+
+func _handle_ready_message(message: Dictionary) -> void:
+	var is_ready: bool = message.get("ready", false)
+
+	if _is_host:
+		_client_ready = is_ready
+	else:
+		_host_ready = is_ready
+
+	_check_both_ready()
+
+
+func _check_both_ready() -> void:
+	if not _is_host:
+		return  # Only host initiates match start
+
+	if _host_ready and _client_ready:
+		_initiate_match_start()
+
+
+func _initiate_match_start() -> void:
+	# Generate shared battle seed
+	var battle_seed: int = randi()
+
+	# Send start message to client
+	_send_message({
+		"type": "start_match",
+		"seed": battle_seed,
+		"host_summoner": _get_active_summoner_id(),
+		"client_summoner": _opponent_summoner_id
+	})
+
+	# Start match locally
+	_start_match(battle_seed, _get_active_summoner_id(), _opponent_summoner_id, true)
+
+
+func _handle_start_match(message: Dictionary) -> void:
+	var battle_seed: int = message.get("seed", 0)
+	var host_summoner: String = message.get("host_summoner", "ignis")
+	var client_summoner: String = message.get("client_summoner", "ignis")
+
+	# Client starts match with reversed summoner order
+	_start_match(battle_seed, client_summoner, host_summoner, false)
 
 
 ## =============================================================================
 ## MATCH START
 ## =============================================================================
 
-func _on_match_ready(config: RefCounted) -> void:
+func _start_match(battle_seed: int, player_summoner: String, opponent_summoner: String, is_host: bool) -> void:
 	_set_state(LobbyState.STARTING)
-	host_status_label.text = Loc.t("ui.multiplayer.match_starting")
-	_start_match(config)
 
+	if is_host:
+		host_status_label.text = Loc.t("ui.multiplayer.match_starting")
+	else:
+		waiting_status_label.text = Loc.t("ui.multiplayer.match_starting")
 
-func _start_match(config: RefCounted) -> void:
 	# Set up BattleRNG with shared seed
-	BattleRNG.set_battle_seed(config.battle_seed)
+	BattleRNG.set_battle_seed(battle_seed)
 
-	# Store config in NetworkState
-	NetworkState.set_match_config(config)
-	NetworkState.start_match()
+	# Get player deck
+	var player_deck: Array = _get_player_deck()
 
-	# Brief delay for UI feedback before transitioning
+	# Configure BattleContext for multiplayer
+	BattleContext.configure_multiplayer_battle(
+		player_summoner,
+		opponent_summoner,
+		player_deck,
+		[],  # Opponent deck synced during battle
+		is_host,
+		battle_seed
+	)
+
+	# Create and set MultiplayerAuthority
+	var local_peer_id: int = 1 if is_host else 2
+	var local_player_index: int = 0 if is_host else 1
+	var mp_authority: RefCounted = MultiplayerAuthorityScript.new(
+		null,  # MatchSession created in battle scene
+		is_host,
+		local_peer_id,
+		local_player_index
+	)
+	BattleContext.set_authority_provider(mp_authority)
+
+	# Update NetworkState
+	NetworkState.local_peer_id = local_peer_id
+	NetworkState.is_host = is_host
+
+	# Brief delay for UI feedback
 	await get_tree().create_timer(MATCH_START_DELAY).timeout
 
-	# Phase 2: Uncomment when multiplayer battle scene integration is complete
-	# SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+	# Transition to battle (transport stays alive for the match)
+	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+
+
+func _get_active_summoner_id() -> String:
+	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	if summoner_selection and summoner_selection.has_method("get_selected_summoner_id"):
+		var selected: String = summoner_selection.get_selected_summoner_id()
+		if not selected.is_empty():
+			return selected
+	return "ignis"
+
+
+func _get_player_deck() -> Array:
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if profile_repo and profile_repo.has_method("get_active_deck"):
+		return profile_repo.get_active_deck()
+	return [
+		{"catalog_id": "puff", "count": 3},
+		{"catalog_id": "pebbloom", "count": 2},
+	]
 
 
 ## =============================================================================
@@ -305,8 +496,7 @@ func _start_match(config: RefCounted) -> void:
 
 func _on_cancel_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_cleanup_host()
-	_cleanup_client()
+	_cleanup_transport()
 	_show_menu()
 
 
@@ -315,24 +505,5 @@ func _on_back_pressed() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 
-## =============================================================================
-## CLEANUP
-## =============================================================================
-
-func _cleanup_host() -> void:
-	if _p2p_host:
-		_p2p_host.stop_server()
-		_p2p_host.queue_free()
-		_p2p_host = null
-
-
-func _cleanup_client() -> void:
-	if _p2p_client:
-		_p2p_client.disconnect_from_host()
-		_p2p_client.queue_free()
-		_p2p_client = null
-
-
 func _exit_tree() -> void:
-	_cleanup_host()
-	_cleanup_client()
+	_cleanup_transport()

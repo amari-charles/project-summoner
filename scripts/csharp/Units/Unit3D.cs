@@ -14,6 +14,8 @@ using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Targeting;
 using ProjectSummoner.Units.Components;
 using ProjectSummoner.Visual;
+using Fateforged.Multiplayer.Core;
+using Fateforged.Multiplayer.Protocol;
 
 namespace ProjectSummoner.Units;
 
@@ -133,6 +135,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     [Export]
     public string UnitId { get; set; } = "";
+
+    /// <summary>
+    /// Network ID for multiplayer synchronization.
+    /// Assigned by the host when the unit is spawned in multiplayer.
+    /// -1 means not synchronized (single-player or not yet assigned).
+    /// </summary>
+    public int NetworkId { get; set; } = -1;
 
     [Export]
     public int Team { get; set; } = (int)Units.Team.Player;
@@ -703,6 +712,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     {
         EmitSignal(SignalName.UnitDied, this);
 
+        // Unregister from multiplayer system if in a match
+        UnregisterFromMultiplayerSystem();
+
         // Clear trigger state to prevent further processing
         _triggeredModifiers.Clear();
         _activeTriggers.Clear();
@@ -717,6 +729,31 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         var tween = CreateTween();
         tween.TweenInterval(DeathCleanupDelay);
         tween.TweenCallback(Callable.From(QueueFree));
+    }
+
+    /// <summary>
+    /// Unregister this unit from the multiplayer system.
+    /// Called on death to clean up NetworkIdRegistry and broadcast UnitDied.
+    /// </summary>
+    private void UnregisterFromMultiplayerSystem()
+    {
+        if (NetworkId < 0) return; // Not registered with multiplayer
+
+        var session = MatchSession.Current;
+        if (session == null || !session.IsActive) return;
+
+        // Unregister from NetworkIdRegistry
+        session.NetworkIds.Unregister(this);
+
+        // Host broadcasts UnitDied to clients
+        if (session.IsHost)
+        {
+            var deathMessage = new UnitDied(NetworkId, null); // TODO: Track killer NetworkId
+            session.Broadcast(deathMessage);
+            GD.Print($"[Unit3D] Broadcast UnitDied for NetworkId {NetworkId}");
+        }
+
+        NetworkId = -1;
     }
 
     /// <summary>
