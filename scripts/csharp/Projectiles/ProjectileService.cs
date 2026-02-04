@@ -481,7 +481,10 @@ public partial class ProjectileService : Node
         ReturnToPool(projectile.ProjectileId, projectile);
     }
 
-    private ProjectileData? GetProjectileData(string projectileId)
+    /// <summary>
+    /// Get projectile data by ID.
+    /// </summary>
+    public ProjectileData? GetProjectileData(string projectileId)
     {
         return ProjectileCatalog.Instance?.GetProjectile(projectileId);
     }

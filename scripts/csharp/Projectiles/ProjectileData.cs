@@ -54,6 +54,25 @@ public class ProjectileData
     /// <summary>Minimum speed floor (prevents stopping).</summary>
     public float MinSpeed { get; set; } = 1f;
 
+    // =========================================================================
+    // SPEED EASING (for curved speed transitions)
+    // =========================================================================
+
+    /// <summary>Starting speed for eased transitions. If null, uses Speed.</summary>
+    public float? SpeedStart { get; set; } = null;
+
+    /// <summary>Final speed for eased transitions. If null, uses Speed.</summary>
+    public float? SpeedEnd { get; set; } = null;
+
+    /// <summary>Time to transition from SpeedStart to SpeedEnd (seconds).</summary>
+    public float SpeedTransitionDuration { get; set; } = 1.0f;
+
+    /// <summary>Easing curve type for speed transition.</summary>
+    public SpeedEasingType SpeedEasing { get; set; } = SpeedEasingType.Linear;
+
+    /// <summary>Exponent for EaseIn/EaseOut curves (higher = steeper curve).</summary>
+    public float SpeedEaseExponent { get; set; } = 2.0f;
+
     /// <summary>Max time before despawn.</summary>
     public float Lifetime { get; set; } = 5f;
 
@@ -78,6 +97,28 @@ public class ProjectileData
 
     /// <summary>Gravity for ballistic movement type.</summary>
     public float Gravity { get; set; } = -9.8f;
+
+    // =========================================================================
+    // WEAVING HOMING PROPERTIES
+    // =========================================================================
+
+    /// <summary>Time flying straight toward target before veering (seconds).</summary>
+    public float VeerDelay { get; set; } = 0.15f;
+
+    /// <summary>Angle to veer off course (degrees). Actual direction is randomized.</summary>
+    public float VeerAngle { get; set; } = 25f;
+
+    /// <summary>Time spent veering before homing kicks in (seconds).</summary>
+    public float VeerDuration { get; set; } = 0.25f;
+
+    /// <summary>Steering force when homing (degrees per second).</summary>
+    public float SteerStrength { get; set; } = 180f;
+
+    /// <summary>
+    /// If true, projectile spawns at target's Y height (but source's X/Z).
+    /// Creates effect of bolt "summoned in the air" rather than fired from caster.
+    /// </summary>
+    public bool SpawnAtTargetHeight { get; set; } = false;
 
     // =========================================================================
     // TRACKING PROPERTIES
@@ -132,6 +173,11 @@ public class ProjectileData
             Speed = GetFloat(dict, "speed", 15f),
             Acceleration = GetFloat(dict, "acceleration", 0f),
             MinSpeed = GetFloat(dict, "min_speed", 1f),
+            SpeedStart = GetNullableFloat(dict, "speed_start"),
+            SpeedEnd = GetNullableFloat(dict, "speed_end"),
+            SpeedTransitionDuration = GetFloat(dict, "speed_transition_duration", 1.0f),
+            SpeedEasing = ParseSpeedEasing(GetString(dict, "speed_easing", "linear")),
+            SpeedEaseExponent = GetFloat(dict, "speed_ease_exponent", 2.0f),
             Lifetime = GetFloat(dict, "lifetime", 5f),
             RotateToDirection = GetBool(dict, "rotate_to_direction", true),
             FadeInDuration = GetFloat(dict, "fade_in_duration", 0f),
@@ -139,6 +185,10 @@ public class ProjectileData
             FadeDuration = GetFloat(dict, "fade_duration", 0.5f),
             ArcHeight = GetFloat(dict, "arc_height", 2f),
             Gravity = GetFloat(dict, "gravity", -9.8f),
+            VeerDelay = GetFloat(dict, "veer_delay", 0.15f),
+            VeerAngle = GetFloat(dict, "veer_angle", 25f),
+            VeerDuration = GetFloat(dict, "veer_duration", 0.25f),
+            SteerStrength = GetFloat(dict, "steer_strength", 180f),
             Tracking = GetBool(dict, "tracking", false),
             HomingStrength = GetFloat(dict, "homing_strength", 5f),
             HomingDelay = GetFloat(dict, "homing_delay", 0f),
@@ -155,6 +205,7 @@ public class ProjectileData
             "homing" => ProjectileMovementType.Homing,
             "arc" => ProjectileMovementType.Arc,
             "ballistic" => ProjectileMovementType.Ballistic,
+            "weaving_homing" => ProjectileMovementType.WeavingHoming,
             _ => ProjectileMovementType.Straight
         };
 
@@ -237,6 +288,30 @@ public class ProjectileData
             }
         }
         return defaultValue;
+    }
+
+    private static float? GetNullableFloat(Dictionary dict, string key)
+    {
+        if (dict.ContainsKey(key))
+        {
+            var value = dict[key];
+            if (value.VariantType == Variant.Type.Float || value.VariantType == Variant.Type.Int)
+            {
+                return value.AsSingle();
+            }
+        }
+        return null;
+    }
+
+    private static SpeedEasingType ParseSpeedEasing(string value)
+    {
+        return value.ToLower() switch
+        {
+            "ease_in" or "easein" => SpeedEasingType.EaseIn,
+            "ease_out" or "easeout" => SpeedEasingType.EaseOut,
+            "ease_in_out" or "easeinout" => SpeedEasingType.EaseInOut,
+            _ => SpeedEasingType.Linear
+        };
     }
 
 }

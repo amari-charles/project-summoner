@@ -49,4 +49,7 @@ public static class ProjectileIds
 
     /// <summary>Lobbed rock projectile for rock throwers.</summary>
     public static readonly ProjectileId Rock = new("rock");
+
+    /// <summary>Weaving homing bolt with serpentine motion.</summary>
+    public static readonly ProjectileId WeavingBolt = new("weaving_bolt");
 }

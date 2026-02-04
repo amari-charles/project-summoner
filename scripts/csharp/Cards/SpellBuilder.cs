@@ -30,7 +30,8 @@ public static class SpellBuilder
             || catalogId == CardIds.Rally
             || catalogId == CardIds.Guard
             || catalogId == CardIds.Charge
-            || catalogId == CardIds.ManaBolt;
+            || catalogId == CardIds.ManaBolt
+            || catalogId == CardIds.WeavingBolt;
     }
 
     /// <summary>
@@ -46,6 +47,7 @@ public static class SpellBuilder
         if (catalogId == CardIds.Guard) return Guard();
         if (catalogId == CardIds.Charge) return Charge();
         if (catalogId == CardIds.ManaBolt) return ManaBolt();
+        if (catalogId == CardIds.WeavingBolt) return WeavingBolt();
 
         throw new ArgumentException(
             $"[SpellBuilder] Unknown spell catalog ID: '{catalogId}'. " +
@@ -142,6 +144,22 @@ public static class SpellBuilder
             Damage = damage,
             DamageType = "arcane",
             ProjectileId = ProjectileIds.ManaBolt
+        };
+    }
+
+    /// <summary>
+    /// Create a Weaving Bolt spell effect.
+    /// Fires a serpentine projectile at the nearest enemy unit (Cult of the Lamb style).
+    /// </summary>
+    public static ISpellEffect WeavingBolt(float damage = 50f)
+    {
+        return new DamageEffect
+        {
+            Targeting = new NearestEnemyTargeting(),
+            Affinity = Affinity.Enemies,
+            Damage = damage,
+            DamageType = "arcane",
+            ProjectileId = ProjectileIds.WeavingBolt
         };
     }
 

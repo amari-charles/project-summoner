@@ -45,8 +45,9 @@ public partial class Projectile3D : Area3D
     /// <summary>
     /// Distance threshold for direct hit when path completes.
     /// Accounts for typical hurtbox radius (~0.5-1.0) plus margin for frame timing.
+    /// Higher value needed for fast projectiles to avoid overshooting.
     /// </summary>
-    private const float DirectHitDistanceThreshold = 1.5f;
+    private const float DirectHitDistanceThreshold = 2.5f;
 
     // =========================================================================
     // CONFIGURATION (set by ProjectileData)
@@ -58,10 +59,19 @@ public partial class Projectile3D : Area3D
     public float Acceleration { get; set; } = 0f;
     public float MinSpeed { get; set; } = 1f;
     public float CurrentSpeed { get; set; } = 15f;
+    public float? SpeedStart { get; set; } = null;
+    public float? SpeedEnd { get; set; } = null;
+    public float SpeedTransitionDuration { get; set; } = 1.0f;
+    public SpeedEasingType SpeedEasing { get; set; } = SpeedEasingType.Linear;
+    public float SpeedEaseExponent { get; set; } = 2.0f;
     public float Lifetime { get; set; } = 5f;
     public float ArcHeight { get; set; } = 2f;
     public float HomingStrength { get; set; } = 5f;
     public bool Tracking { get; set; } = false;
+    public float VeerDelay { get; set; } = 0.15f;
+    public float VeerAngle { get; set; } = 25f;
+    public float VeerDuration { get; set; } = 0.25f;
+    public float SteerStrength { get; set; } = 180f;
     public int PierceCount { get; set; } = 0;
     public float AoeRadius { get; set; } = 0f;
     public PackedScene? VisualScene { get; set; }
@@ -93,6 +103,23 @@ public partial class Projectile3D : Area3D
     private bool _impactTriggered = false;
     private bool _isFading = false;
     private Tween? _fadeTween;
+
+    // Weaving homing state (three-phase: Straight -> Veer -> Homing)
+    private enum WeavingPhase { Straight, Veering, Homing }
+    private WeavingPhase _weavingPhase = WeavingPhase.Straight;
+    private float _phaseTimer = 0f;
+    private Vector3 _velocity = Vector3.Zero;
+    private Vector3 _veerDirection = Vector3.Zero;
+    private float _veerSign = 1f; // +1 or -1 for random left/right veer
+    private float _scaledVeerDelay = 0f; // Distance-scaled veer delay
+    private float _scaledVeerDuration = 0f; // Distance-scaled veer duration
+    private float _scaledVeerAngle = 0f; // Distance-scaled veer angle
+
+    /// <summary>Reference distance at which full veer timing applies (units).</summary>
+    private const float VeerReferenceDistance = 25f;
+
+    /// <summary>Minimum distance below which veering is skipped entirely.</summary>
+    private const float VeerMinDistance = 12f;
 
     public bool IsPooled { get; set; } = false;
     public bool IsActive { get; set; } = false;
@@ -170,18 +197,16 @@ public partial class Projectile3D : Area3D
             return;
         }
 
-        // Apply acceleration
-        if (Acceleration != 0f)
-        {
-            CurrentSpeed += Acceleration * dt;
-            if (Acceleration < 0f)
-            {
-                CurrentSpeed = Mathf.Max(CurrentSpeed, MinSpeed);
-            }
-        }
+        // Apply speed transition (eased or linear acceleration)
+        UpdateSpeed(dt);
 
-        // Path-based movement
-        if (_path != null)
+        // WeavingHoming uses velocity-based movement with three phases
+        if (MovementType == ProjectileMovementType.WeavingHoming)
+        {
+            MoveWeavingHoming(dt);
+        }
+        // Path-based movement for other types
+        else if (_path != null)
         {
             MoveAlongPath(dt);
         }
@@ -207,7 +232,9 @@ public partial class Projectile3D : Area3D
             return;
 
         // For homing or tracking projectiles, periodically update target position
-        bool shouldTrack = MovementType == ProjectileMovementType.Homing || Tracking;
+        bool shouldTrack = MovementType == ProjectileMovementType.Homing
+            || MovementType == ProjectileMovementType.WeavingHoming
+            || Tracking;
         if (shouldTrack && IsInstanceValid(Target))
         {
             _timeSinceTargetUpdate += delta;
@@ -257,6 +284,112 @@ public partial class Projectile3D : Area3D
     }
 
     /// <summary>
+    /// Move using velocity-based three-phase system for WeavingHoming.
+    /// Phase 1 (Straight): Fly toward target
+    /// Phase 2 (Veering): Turn off course at an angle
+    /// Phase 3 (Homing): Steer back toward target
+    /// </summary>
+    private void MoveWeavingHoming(float delta)
+    {
+        _phaseTimer += delta;
+
+        // Update target position if target is still valid
+        if (IsInstanceValid(Target))
+        {
+            _targetPosition = GetTargetPosition(Target);
+        }
+
+        // Phase transitions
+        switch (_weavingPhase)
+        {
+            case WeavingPhase.Straight:
+                if (_phaseTimer >= _scaledVeerDelay)
+                {
+                    _weavingPhase = WeavingPhase.Veering;
+                    _phaseTimer = 0f;
+                }
+                else
+                {
+                    // Fly straight toward target
+                    _direction = (_targetPosition - GlobalPosition).Normalized();
+                }
+                break;
+
+            case WeavingPhase.Veering:
+                if (_phaseTimer >= _scaledVeerDuration)
+                {
+                    _weavingPhase = WeavingPhase.Homing;
+                    _phaseTimer = 0f;
+                }
+                else
+                {
+                    // Turn toward veer direction
+                    SteerToward(_veerDirection, delta);
+                }
+                break;
+
+            case WeavingPhase.Homing:
+                // Steer toward target
+                Vector3 toTarget = (_targetPosition - GlobalPosition).Normalized();
+                SteerToward(toTarget, delta);
+
+                // Check if close enough for direct hit
+                float distToTarget = GlobalPosition.DistanceTo(_targetPosition);
+                if (distToTarget < DirectHitDistanceThreshold && IsInstanceValid(Target) && IsValidTarget(Target))
+                {
+                    HitTarget(Target);
+                    return;
+                }
+                break;
+        }
+
+        // Apply velocity
+        _velocity = _direction * CurrentSpeed;
+        GlobalPosition += _velocity * delta;
+    }
+
+    /// <summary>
+    /// Gradually steer the projectile toward a target direction.
+    /// </summary>
+    private void SteerToward(Vector3 targetDirection, float delta)
+    {
+        if (targetDirection.LengthSquared() < 0.001f)
+            return;
+
+        targetDirection = targetDirection.Normalized();
+
+        // Calculate angle between current direction and target direction
+        float dot = _direction.Dot(targetDirection);
+        dot = Mathf.Clamp(dot, -1f, 1f);
+        float angleBetween = Mathf.Acos(dot);
+
+        // Calculate max rotation this frame
+        float maxRotation = Mathf.DegToRad(SteerStrength) * delta;
+
+        if (angleBetween <= maxRotation)
+        {
+            // Close enough, snap to target direction
+            _direction = targetDirection;
+        }
+        else
+        {
+            // Rotate toward target direction
+            Vector3 rotationAxis = _direction.Cross(targetDirection);
+            if (rotationAxis.LengthSquared() < 0.001f)
+            {
+                // Parallel vectors, pick arbitrary perpendicular axis
+                rotationAxis = _direction.Cross(Vector3.Up);
+                if (rotationAxis.LengthSquared() < 0.001f)
+                    rotationAxis = _direction.Cross(Vector3.Right);
+            }
+            rotationAxis = rotationAxis.Normalized();
+
+            // Apply rotation
+            _direction = _direction.Rotated(rotationAxis, maxRotation).Normalized();
+        }
+    }
+
+    /// <summary>
     /// Update path for tracking moving targets.
     /// Recreates the path from the current position to maintain correct geometry.
     /// Uses predictive targeting for better interception.
@@ -294,6 +427,11 @@ public partial class Projectile3D : Area3D
                 // Both arc and homing use arc paths
                 // Homing just updates the endpoint periodically
                 _path = new ArcPath(_startPosition, _targetPosition, ArcHeight);
+                break;
+
+            case ProjectileMovementType.WeavingHoming:
+                // WeavingHoming uses velocity-based movement, no path needed
+                _path = null;
                 break;
 
             case ProjectileMovementType.Ballistic:
@@ -625,6 +763,40 @@ public partial class Projectile3D : Area3D
             _direction = (_targetPosition - _startPosition).Normalized();
         }
 
+        // Initialize weaving homing state
+        if (MovementType == ProjectileMovementType.WeavingHoming)
+        {
+            _weavingPhase = WeavingPhase.Straight;
+            _phaseTimer = 0f;
+            _velocity = _direction * Speed;
+
+            // Scale veer parameters based on distance to target
+            float distance = _startPosition.DistanceTo(_targetPosition);
+            float distanceScale = Mathf.Clamp(distance / VeerReferenceDistance, 0f, 1f);
+
+            // For very close targets, skip veering entirely
+            if (distance < VeerMinDistance)
+            {
+                _scaledVeerDelay = 0f;
+                _scaledVeerDuration = 0f;
+                _scaledVeerAngle = 0f;
+                _weavingPhase = WeavingPhase.Homing; // Skip straight to homing
+            }
+            else
+            {
+                _scaledVeerDelay = VeerDelay * distanceScale;
+                _scaledVeerDuration = VeerDuration * distanceScale;
+                _scaledVeerAngle = VeerAngle * distanceScale;
+            }
+
+            // Calculate veer direction: rotate toward target direction by scaled VeerAngle, randomly left or right
+            _veerSign = GD.Randf() > 0.5f ? 1f : -1f;
+            float veerRadians = Mathf.DegToRad(_scaledVeerAngle) * _veerSign;
+
+            // Rotate around the Up axis to veer horizontally
+            _veerDirection = _direction.Rotated(Vector3.Up, veerRadians).Normalized();
+        }
+
         // Create path based on movement type
         CreatePath();
 
@@ -634,7 +806,7 @@ public partial class Projectile3D : Area3D
         _timeAlive = 0f;
         _hitsRemaining = PierceCount;
         IsActive = true;
-        CurrentSpeed = Speed;
+        CurrentSpeed = SpeedStart ?? Speed;
 
         Visible = true;
         if (_visualInstance != null)
@@ -666,11 +838,20 @@ public partial class Projectile3D : Area3D
         Speed = data.Speed;
         Acceleration = data.Acceleration;
         MinSpeed = data.MinSpeed;
-        CurrentSpeed = Speed;
+        SpeedStart = data.SpeedStart;
+        SpeedEnd = data.SpeedEnd;
+        SpeedTransitionDuration = data.SpeedTransitionDuration;
+        SpeedEasing = data.SpeedEasing;
+        SpeedEaseExponent = data.SpeedEaseExponent;
+        CurrentSpeed = SpeedStart ?? Speed;
         Lifetime = data.Lifetime;
         ArcHeight = data.ArcHeight;
         HomingStrength = data.HomingStrength;
         Tracking = data.Tracking;
+        VeerDelay = data.VeerDelay;
+        VeerAngle = data.VeerAngle;
+        VeerDuration = data.VeerDuration;
+        SteerStrength = data.SteerStrength;
         PierceCount = data.PierceCount;
         AoeRadius = data.AoeRadius;
         VisualScene = data.VisualScene;
@@ -718,6 +899,16 @@ public partial class Projectile3D : Area3D
         _isFading = false;
         _impactTriggered = false;
 
+        // Reset weaving homing state
+        _weavingPhase = WeavingPhase.Straight;
+        _phaseTimer = 0f;
+        _velocity = Vector3.Zero;
+        _veerDirection = Vector3.Zero;
+        _veerSign = 1f;
+        _scaledVeerDelay = 0f;
+        _scaledVeerDuration = 0f;
+        _scaledVeerAngle = 0f;
+
         if (_fadeTween != null && _fadeTween.IsValid())
         {
             _fadeTween.Kill();
@@ -754,6 +945,50 @@ public partial class Projectile3D : Area3D
             GlobalPosition = Vector3.Zero;
             Rotation = Vector3.Zero;
         }
+    }
+
+    // =========================================================================
+    // SPEED EASING
+    // =========================================================================
+
+    /// <summary>
+    /// Update current speed based on easing configuration.
+    /// Uses eased transition if SpeedStart/SpeedEnd are set, otherwise falls back to linear acceleration.
+    /// </summary>
+    private void UpdateSpeed(float delta)
+    {
+        // Use eased speed transition if configured
+        if (SpeedStart.HasValue && SpeedEnd.HasValue)
+        {
+            float t = SpeedTransitionDuration > 0f
+                ? Mathf.Clamp(_timeAlive / SpeedTransitionDuration, 0f, 1f)
+                : 1f;
+            float eased = ApplySpeedEasing(t);
+            CurrentSpeed = SpeedStart.Value + (SpeedEnd.Value - SpeedStart.Value) * eased;
+        }
+        // Fallback to legacy linear acceleration
+        else if (Acceleration != 0f)
+        {
+            CurrentSpeed += Acceleration * delta;
+            if (Acceleration < 0f)
+            {
+                CurrentSpeed = Mathf.Max(CurrentSpeed, MinSpeed);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Apply easing function to normalized time t (0-1).
+    /// </summary>
+    private float ApplySpeedEasing(float t)
+    {
+        return SpeedEasing switch
+        {
+            SpeedEasingType.EaseIn => Mathf.Pow(t, SpeedEaseExponent),
+            SpeedEasingType.EaseOut => 1f - Mathf.Pow(1f - t, SpeedEaseExponent),
+            SpeedEasingType.EaseInOut => (1f - Mathf.Cos(t * Mathf.Pi)) / 2f,
+            _ => t // Linear
+        };
     }
 
     // =========================================================================

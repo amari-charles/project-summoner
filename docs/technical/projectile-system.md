@@ -14,9 +14,14 @@ Projectiles are managed by `ProjectileService` (C# autoload) and use pooling for
 |----------|------|---------|-------------|
 | `movement_type` | string | "straight" | Movement pattern: "straight", "homing", "arc", "ballistic" |
 | `tracking` | bool | false | Whether to continuously update target position (for moving targets) |
-| `speed` | float | 15.0 | Initial velocity in units/second |
-| `acceleration` | float | 0.0 | Speed change per second (negative = decelerate) |
+| `speed` | float | 15.0 | Initial velocity in units/second (legacy, prefer speed_start/speed_end) |
+| `acceleration` | float | 0.0 | Speed change per second (legacy, prefer speed easing) |
 | `min_speed` | float | 1.0 | Floor for deceleration - prevents projectiles from stopping |
+| `speed_start` | float? | null | Starting speed for eased transitions |
+| `speed_end` | float? | null | Final speed for eased transitions |
+| `speed_transition_duration` | float | 1.0 | Time to transition from start to end speed (seconds) |
+| `speed_easing` | string | "linear" | Easing type: "linear", "ease_in", "ease_out", "ease_in_out" |
+| `speed_ease_exponent` | float | 2.0 | Exponent for ease_in/ease_out curves (higher = steeper) |
 | `lifetime` | float | 5.0 | Max time before despawn |
 | `rotate_to_direction` | bool | true | Whether projectile rotates to face movement direction |
 
@@ -38,11 +43,64 @@ Projectiles are managed by `ProjectileService` (C# autoload) and use pooling for
 | `pierce_count` | int | 0 | Number of targets to pierce through (0 = hit first target) |
 | `aoe_radius` | float | 0.0 | Area of effect radius (0 = single target) |
 
-## Acceleration/Deceleration
+### Weaving Homing Properties
 
-The acceleration system allows projectiles to speed up or slow down over time.
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `veer_delay` | float | 0.15 | Time flying straight before veering (seconds) |
+| `veer_angle` | float | 25 | Angle to veer off course (degrees) |
+| `veer_duration` | float | 0.25 | Time spent veering before homing (seconds) |
+| `steer_strength` | float | 180 | Steering force when homing (degrees/second) |
 
-### Tuning Guide
+## Speed Transitions
+
+The projectile system supports two methods for changing speed over time:
+
+### Method 1: Eased Speed Curves (Recommended)
+
+For smooth, organic speed transitions, use the speed easing system:
+
+| Property | Description |
+|----------|-------------|
+| `speed_start` | Starting speed |
+| `speed_end` | Final speed |
+| `speed_transition_duration` | Time to complete transition |
+| `speed_easing` | Curve type |
+| `speed_ease_exponent` | Curve steepness (for EaseIn/EaseOut) |
+
+**Easing Types:**
+
+| Type | Formula | Feel |
+|------|---------|------|
+| `linear` | `t` | Constant rate of change |
+| `ease_in` | `t^exponent` | Starts slow, ends fast |
+| `ease_out` | `1 - (1-t)^exponent` | Starts fast, ends slow |
+| `ease_in_out` | `(1 - cos(t*π))/2` | Smooth S-curve, slow start and end |
+
+**Example: WeavingBolt (slow start, accelerates into target)**
+
+```csharp
+public static readonly ProjectileData WeavingBolt = new()
+{
+    MovementType = ProjectileMovementType.WeavingHoming,
+    SpeedStart = 28.0f,
+    SpeedEnd = 60.0f,
+    SpeedTransitionDuration = 1.0f,
+    SpeedEasing = SpeedEasingType.EaseIn,
+    SpeedEaseExponent = 2.5f,
+    // ...
+};
+```
+
+This creates a projectile that:
+- Starts at 28 units/s
+- Accelerates along an EaseIn curve (slow → fast)
+- Reaches 60 units/s after 1 second
+- The exponent 2.5 makes the acceleration curve steeper
+
+### Method 2: Linear Acceleration (Legacy)
+
+For simple linear speed changes, use the legacy acceleration system:
 
 - **speed**: Initial velocity (typical range: 10-30 units/s)
 - **acceleration**: Speed change per second
@@ -50,7 +108,7 @@ The acceleration system allows projectiles to speed up or slow down over time.
   - Negative = decelerate (slow down over time)
 - **min_speed**: Prevents projectiles from stopping completely when decelerating
 
-### Example: Wind Puff (starts fast, slows down)
+**Example: Wind Puff (starts fast, slows down)**
 
 ```csharp
 public static readonly ProjectileData WindPuff = new()
@@ -64,6 +122,8 @@ public static readonly ProjectileData WindPuff = new()
 
 This starts at 25 units/s and decelerates to 5 units/s over ~1.67 seconds:
 - Time to reach min_speed = (25 - 5) / 12 = 1.67 seconds
+
+**Note:** If both `speed_start`/`speed_end` and `acceleration` are set, the eased speed system takes precedence.
 
 ## Target Tracking
 
@@ -206,9 +266,10 @@ public interface IProjectilePath
 | `straight` | `StraightPath` | Linear interpolation from start to end |
 | `arc` | `ArcPath` | Quadratic Bézier curve with configurable arc height |
 | `homing` | `ArcPath` | Same as arc, but periodically updates endpoint to track target |
+| `weaving_homing` | (velocity-based) | Three-phase movement: straight → veer → home |
 | `ballistic` | `BallisticPath` | Pre-computed parabolic trajectory with gravity |
 
-Note: Any movement type can have `tracking: true` to enable target following. Homing always tracks regardless of the tracking flag.
+Note: Any movement type can have `tracking: true` to enable target following. Homing always tracks regardless of the tracking flag. WeavingHoming uses its own velocity-based movement system.
 
 ### How It Works
 
@@ -223,6 +284,50 @@ Homing projectiles use `ArcPath` with endpoint tracking:
 - The path endpoint updates to the target's predicted position
 - The Bézier control point recalculates to maintain arc shape
 - This avoids oscillation that occurs with direction-based homing + arc overlay
+
+### Weaving Homing (Cult of the Lamb Style)
+
+`WeavingHoming` creates dynamic, serpentine projectile motion using a three-phase velocity-based system:
+
+```
+Phase 1: Straight     Phase 2: Veer      Phase 3: Home
+    |                    /                   \
+    |                   /                     \
+Start ------>         /          then         \-----> Target
+                     /                          \
+```
+
+**How it works:**
+1. **Straight phase**: Fly directly toward target for `veer_delay` seconds
+2. **Veering phase**: Turn off course by `veer_angle` degrees (randomly left or right) for `veer_duration` seconds
+3. **Homing phase**: Steer back toward target using `steer_strength` (degrees/second)
+
+**Parameters:**
+- `veer_delay`: Time flying straight before veering (0.15 = quick start)
+- `veer_angle`: How sharply to turn off course (20° = gentle curve, 45° = sharp)
+- `veer_duration`: Time spent veering (0.25 = brief detour)
+- `steer_strength`: How fast the missile can turn when homing (180 = moderate, 300 = snappy)
+
+**Random variation:**
+Each projectile randomly veers left or right, so multiple projectiles create varied curved paths.
+
+**Example configuration:**
+```csharp
+public static readonly ProjectileData WeavingBolt = new()
+{
+    MovementType = ProjectileMovementType.WeavingHoming,
+    SpeedStart = 28.0f,
+    SpeedEnd = 60.0f,
+    SpeedTransitionDuration = 1.0f,
+    SpeedEasing = SpeedEasingType.EaseIn,
+    SpeedEaseExponent = 2.5f,
+    VeerDelay = 0.3f,
+    VeerAngle = 55f,
+    VeerDuration = 0.5f,
+    SteerStrength = 360f,
+    // ...
+};
+```
 
 ### Predictive Targeting
 

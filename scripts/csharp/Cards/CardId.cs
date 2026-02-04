@@ -38,6 +38,7 @@ public static class CardIds
     public static readonly CardId Guard = new("guard");
     public static readonly CardId Charge = new("charge");
     public static readonly CardId ManaBolt = new("mana_bolt");
+    public static readonly CardId WeavingBolt = new("weaving_bolt");
 
     // =========================================================================
     // WISPS (Basic starter units for each element)
