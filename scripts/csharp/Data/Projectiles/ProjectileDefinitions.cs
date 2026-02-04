@@ -114,6 +114,27 @@ public static class ProjectileDefinitions
         Gravity = -12.0f,
     };
 
+    /// <summary>Weaving homing bolt with serpentine motion (Cult of the Lamb style).</summary>
+    public static readonly ProjectileData WeavingBolt = new()
+    {
+        ProjectileId = ProjectileIds.WeavingBolt,
+        ProjectileName = "Weaving Bolt",
+        ModelScenePath = "res://scenes/projectiles/mana_bolt_visual.tscn",
+        MovementType = ProjectileMovementType.WeavingHoming,
+        SpeedStart = 28.0f,
+        SpeedEnd = 60.0f,
+        SpeedTransitionDuration = 1.0f,
+        SpeedEasing = SpeedEasingType.EaseIn,
+        SpeedEaseExponent = 2.5f,
+        VeerDelay = 0.3f,
+        VeerAngle = 55f,
+        VeerDuration = 0.5f,
+        SteerStrength = 360f,
+        Lifetime = 4.0f,
+        RotateToDirection = true,
+        SpawnAtTargetHeight = true,
+    };
+
     // =========================================================================
     // LOOKUP
     // =========================================================================
@@ -127,6 +148,7 @@ public static class ProjectileDefinitions
         [ProjectileIds.WindPuff] = WindPuff,
         [ProjectileIds.FireWeb] = FireWeb,
         [ProjectileIds.Rock] = Rock,
+        [ProjectileIds.WeavingBolt] = WeavingBolt,
     };
 
     /// <summary>Get a projectile definition by ID. Returns null if not found.</summary>

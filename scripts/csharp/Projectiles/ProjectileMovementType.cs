@@ -23,5 +23,11 @@ public enum ProjectileMovementType
     /// <summary>
     /// Physics-based trajectory with gravity.
     /// </summary>
-    Ballistic
+    Ballistic,
+
+    /// <summary>
+    /// Homing arc with sinusoidal weaving motion perpendicular to travel.
+    /// Creates dynamic, serpentine visual effect (Cult of the Lamb style).
+    /// </summary>
+    WeavingHoming
 }

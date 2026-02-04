@@ -119,6 +119,25 @@ public static class CardDefinitions
         ElementalAffinity = Element.Neutral
     };
 
+    public static readonly CardDefinition WeavingBolt = new()
+    {
+        Id = CardIds.WeavingBolt,
+        Name = "TEST - Weaving Bolt",
+        Description = "Fire a serpentine bolt that weaves through the air toward the target.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 1.0f,
+        SummonTime = 0.0f,
+        SpellDamage = 50.0f,
+        ProjectileId = ProjectileIds.WeavingBolt,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Neutral,
+        Flags = CardFlags.DevOnly
+    };
+
     // =========================================================================
     // WISPS (Basic starter units for each element)
     // =========================================================================
@@ -648,6 +667,7 @@ public static class CardDefinitions
         [CardIds.Guard] = Guard,
         [CardIds.Charge] = Charge,
         [CardIds.ManaBolt] = ManaBolt,
+        [CardIds.WeavingBolt] = WeavingBolt,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,

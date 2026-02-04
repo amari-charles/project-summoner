@@ -203,6 +203,14 @@ public class DamageEffect : SpellEffect
             targetPos.Y = ProjectileFlightHeight;
         }
 
+        // Check if projectile should spawn at target's height (summoned in air effect)
+        var projectileData = ProjectileService.Instance.GetProjectileData(ProjectileId);
+        if (projectileData != null && projectileData.SpawnAtTargetHeight)
+        {
+            // Keep source X/Z but use target's Y height
+            startPos.Y = targetPos.Y;
+        }
+
         // Spawn projectile via ProjectileService
         var options = new Godot.Collections.Dictionary
         {
