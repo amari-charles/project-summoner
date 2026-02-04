@@ -10,6 +10,7 @@ class_name MultiplayerLobby
 const P2PHostScript: GDScript = preload("res://scripts/multiplayer/connection/p2p_host.gd")
 const P2PClientScript: GDScript = preload("res://scripts/multiplayer/connection/p2p_client.gd")
 const RoomCodeServiceScript: GDScript = preload("res://scripts/multiplayer/connection/room_code_service.gd")
+const MultiplayerAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/multiplayer_authority.gd")
 
 enum LobbyState { MENU, HOSTING, JOINING, WAITING_FOR_OPPONENT, CONNECTED, STARTING }
 
@@ -292,11 +293,66 @@ func _start_match(config: RefCounted) -> void:
 	NetworkState.set_match_config(config)
 	NetworkState.start_match()
 
+	# Determine if we're host or client
+	var is_host: bool = _p2p_host != null
+	var local_peer_id: int = NetworkState.local_peer_id
+	var local_player_index: int = config.get_player_index(local_peer_id)
+
+	# Get player summoner IDs
+	var player_summoner_id: String = _summoner_id
+	var opponent_summoner_id: String = ""
+	if is_host and _p2p_host and _p2p_host.client_info:
+		opponent_summoner_id = _p2p_host.client_info.summoner_id
+	elif _p2p_client:
+		# For client, host's summoner is index 0
+		opponent_summoner_id = config.player_summoner_ids[0] if config.player_summoner_ids.size() > 0 else ""
+
+	# Get decks (placeholder - would come from profile)
+	var player_deck: Array = _get_player_deck()
+	var opponent_deck: Array = []  # Will be synced or empty for client
+
+	# Configure BattleContext for multiplayer
+	BattleContext.configure_multiplayer_battle(
+		player_summoner_id,
+		opponent_summoner_id,
+		player_deck,
+		opponent_deck,
+		is_host,
+		config.battle_seed
+	)
+
+	# Create MatchSession for game state sync (C#)
+	# Note: For Phase 2, the C# MatchSession will be instantiated in the battle scene
+	# and connected to the existing ENet peer
+
+	# Create and set MultiplayerAuthority
+	var match_session: Node = null  # Will be created in battle scene
+	var mp_authority: RefCounted = MultiplayerAuthorityScript.new(
+		match_session,
+		is_host,
+		local_peer_id,
+		local_player_index
+	)
+	BattleContext.set_authority_provider(mp_authority)
+
 	# Brief delay for UI feedback before transitioning
 	await get_tree().create_timer(MATCH_START_DELAY).timeout
 
-	# Phase 2: Uncomment when multiplayer battle scene integration is complete
-	# SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+	# Transition to battle
+	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+
+
+## Get the player's active deck (placeholder)
+func _get_player_deck() -> Array:
+	# TODO: Get actual deck from ProfileRepo/DeckService
+	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	if profile_repo and profile_repo.has_method("get_active_deck"):
+		return profile_repo.get_active_deck()
+	# Fallback placeholder deck
+	return [
+		{"catalog_id": "puff", "count": 3},
+		{"catalog_id": "pebbloom", "count": 2},
+	]
 
 
 ## =============================================================================
