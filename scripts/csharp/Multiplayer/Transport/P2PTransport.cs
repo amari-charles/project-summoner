@@ -12,6 +12,25 @@ public partial class P2PTransport : Node, IMatchTransport
 {
     private ENetMultiplayerPeer? _peer;
 
+    #region Godot Signals (for GDScript interop)
+
+    [Signal]
+    public delegate void PeerConnectedEventHandler(int peerId);
+
+    [Signal]
+    public delegate void PeerDisconnectedEventHandler(int peerId);
+
+    [Signal]
+    public delegate void ConnectedEventHandler();
+
+    [Signal]
+    public delegate void DisconnectedEventHandler(string reason);
+
+    [Signal]
+    public delegate void MessageReceivedEventHandler(int senderId, Dictionary message);
+
+    #endregion
+
     #region IMatchTransport Properties
 
     public new bool IsConnected { get; private set; }
@@ -20,7 +39,7 @@ public partial class P2PTransport : Node, IMatchTransport
 
     #endregion
 
-    #region IMatchTransport Events
+    #region IMatchTransport Events (for C# interop)
 
     public event Action<int, Dictionary>? OnMessageReceived;
     public event Action<int>? OnPeerConnected;
@@ -91,6 +110,7 @@ public partial class P2PTransport : Node, IMatchTransport
 
         GD.Print($"[P2PTransport] Hosting on port {port}");
         OnConnected?.Invoke();
+        EmitSignal(SignalName.Connected);
     }
 
     public void Connect(string address, int port)
@@ -162,6 +182,7 @@ public partial class P2PTransport : Node, IMatchTransport
     {
         var senderId = Multiplayer.GetRemoteSenderId();
         OnMessageReceived?.Invoke(senderId, message);
+        EmitSignal(SignalName.MessageReceived, senderId, message);
     }
 
     #endregion
@@ -172,12 +193,14 @@ public partial class P2PTransport : Node, IMatchTransport
     {
         GD.Print($"[P2PTransport] Peer connected: {id}");
         OnPeerConnected?.Invoke((int)id);
+        EmitSignal(SignalName.PeerConnected, (int)id);
     }
 
     private void HandlePeerDisconnected(long id)
     {
         GD.Print($"[P2PTransport] Peer disconnected: {id}");
         OnPeerDisconnected?.Invoke((int)id);
+        EmitSignal(SignalName.PeerDisconnected, (int)id);
     }
 
     private void HandleConnectedToServer()
@@ -185,6 +208,7 @@ public partial class P2PTransport : Node, IMatchTransport
         IsConnected = true;
         GD.Print("[P2PTransport] Connected to server");
         OnConnected?.Invoke();
+        EmitSignal(SignalName.Connected);
     }
 
     private void HandleConnectionFailed()
@@ -193,6 +217,7 @@ public partial class P2PTransport : Node, IMatchTransport
         _peer = null;
         Multiplayer.MultiplayerPeer = null;
         OnDisconnected?.Invoke("Connection failed");
+        EmitSignal(SignalName.Disconnected, "Connection failed");
     }
 
     private void HandleServerDisconnected()
@@ -200,6 +225,7 @@ public partial class P2PTransport : Node, IMatchTransport
         IsConnected = false;
         GD.Print("[P2PTransport] Server disconnected");
         OnDisconnected?.Invoke("Server disconnected");
+        EmitSignal(SignalName.Disconnected, "Server disconnected");
     }
 
     #endregion
