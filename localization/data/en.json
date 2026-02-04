@@ -521,6 +521,7 @@
       "tier_platinum": "Platinum",
       "tier_diamond": "Diamond",
       "tier_master": "Master",
+      "tier_grandmaster": "Grandmaster",
       "tier_legend": "Legend"
     },
     "reconnection": {

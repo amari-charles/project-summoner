@@ -22,30 +22,68 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ### 🟡 MEDIUM PRIORITY
 
 #### Implement Ranked Gameplay Mode
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress (Phase 3 of 4)
 **Category:** Core Game Systems / Multiplayer
 **Effort:** Large
 
 **Description:**
 Add a ranked competitive mode where players battle against others (or AI) with matchmaking, rankings, and seasonal progression.
 
-**Requirements:**
-- Matchmaking system (skill-based or random)
-- Ranking/ELO system with tiers (Bronze, Silver, Gold, etc.)
-- Seasonal resets and rewards
-- Ranked-specific UI (rank display, leaderboards)
-- Match history and statistics
-- Anti-cheat considerations
+**Completed (Phase 2-3):**
+- ✅ C# Protocol layer (Messages, MessageSerializer)
+- ✅ MatchSession orchestrator with HostRunner/ClientRunner
+- ✅ P2PTransport (ENet-based)
+- ✅ NetworkIdRegistry for entity sync
+- ✅ StateSnapshotBuilder and DesyncDetector
+- ✅ Nakama SDK integration (NakamaGameClient)
+- ✅ ELO rating system (EloCalculator, RankingService)
+- ✅ Matchmaking service
+- ✅ Match reporting service
+- ✅ Leaderboard service
+- ✅ Reconnection handling
+- ✅ Ranked UI screen (online_screen)
+
+**Remaining (Phase 4):**
+- [ ] **Opponent deck/summoner exchange** - Currently hardcoded to "ignis" with empty deck (see `online_screen.gd:471`)
+- [ ] Complete RequestValidator for mana/position/rate-limit checks
+- [ ] Wire HostRunner.ExecuteCardPlay to actual game systems
+- [ ] Client-side unit spawning from UnitSpawned messages
+- [ ] Summoner damage broadcast integration (GDScript hook)
+- [ ] Polish: queue UI, match found animation
+- [ ] End-to-end testing with Nakama server
 
 **Technical Considerations:**
-- May require server-side components for fair matchmaking
-- Consider starting with ranked vs AI for offline-first approach
-- Need to balance decks/cards for competitive play
+- Host-authority model with client-side prediction
+- 10 Hz state snapshots for sync
+- See `docs/multiplayer/ranked-system.md` for architecture
 
 **Related Systems:**
 - Deck building/validation
 - Battle system
 - Profile progression
+
+---
+
+#### Complete Multiplayer Request Validation
+**Status:** ⬜ Not Started
+**Category:** Multiplayer / Anti-cheat
+**Effort:** Medium
+
+**Description:**
+The `RequestValidator.cs` has TODO stubs for critical validation logic that prevents cheating in multiplayer matches.
+
+**Missing Validation:**
+- Check if player has card in hand before allowing play
+- Check if player has enough mana for the card
+- Check if spawn position is valid for player's spawn zone
+- Rate limiting to prevent action spam
+
+**Files:**
+- `scripts/csharp/Multiplayer/Authority/RequestValidator.cs`
+
+**Notes:**
+- Without this validation, invalid actions can be accepted in multiplayer
+- Needs access to hand/mana state from Summoner/BattleContext
 
 ---
 

@@ -233,12 +233,15 @@ public class ClientRunner : IMatchRunner
     {
         if (_session == null) return;
 
-        // Register the network ID
-        // Note: Actual unit instantiation should be handled by game systems
+        // Log the spawn event - actual unit instantiation is handled via MatchSession.UnitSpawned signal
+        // which is dispatched in MatchSession.DispatchMessageEvent()
         GD.Print($"[ClientRunner] Unit spawned: id {spawned.NetworkId}, type {spawned.UnitType}, team {spawned.Team}");
 
-        // TODO: Emit signal or call game system to spawn unit
-        // _session.EmitSignal(MatchSession.SignalName.UnitSpawned, ...);
+        // TODO(Phase-4): Client-side unit spawning from network messages
+        // The UnitSpawned signal is already emitted by MatchSession. Game systems need to:
+        // 1. Listen to MatchSession.UnitSpawned signal
+        // 2. Instantiate the unit using UnitSpawner with the provided NetworkId
+        // 3. Register the unit with NetworkIdRegistry using RegisterWithId()
     }
 
     private void HandleUnitDied(UnitDied died)
@@ -247,11 +250,12 @@ public class ClientRunner : IMatchRunner
 
         GD.Print($"[ClientRunner] Unit died: id {died.NetworkId}, killer {died.KillerNetworkId}");
 
-        // Unregister from network IDs
+        // Unregister from network IDs and interpolation
         _session.NetworkIds.UnregisterById(died.NetworkId);
         _interpolator.Remove(died.NetworkId);
 
-        // TODO: Emit signal or call game system to handle death
+        // Death handling is done via MatchSession.UnitDied signal emitted in DispatchMessageEvent()
+        // Game systems listen to this signal to trigger death animations and cleanup
     }
 
     private void HandlePong(Pong pong)
@@ -267,19 +271,23 @@ public class ClientRunner : IMatchRunner
 
     private void ApplyPrediction(CardPlayPrediction prediction)
     {
-        // TODO: Apply optimistic update to local game state
-        // - Deduct mana
-        // - Show card being played
-        // - Possibly show ghost unit at spawn position
+        // TODO(Phase-4): Apply optimistic update to local game state for instant feedback
+        // When integrated with gameplay:
+        // - Deduct mana from local Summoner
+        // - Show card leaving hand (visual feedback)
+        // - Optionally show ghost unit at spawn position
+        // This makes the game feel responsive while waiting for host confirmation.
         GD.Print($"[ClientRunner] Applied prediction {prediction.Sequence}");
     }
 
     private void RollbackPrediction(CardPlayPrediction prediction)
     {
-        // TODO: Rollback the optimistic update
-        // - Restore mana
-        // - Return card to hand
-        // - Remove ghost unit
+        // TODO(Phase-4): Rollback the optimistic update when host rejects a card play
+        // When integrated with gameplay:
+        // - Restore mana to local Summoner
+        // - Return card to hand (visual feedback)
+        // - Remove any ghost unit that was shown
+        // This handles cases where the host rejects a card play (e.g., not enough mana).
         GD.Print($"[ClientRunner] Rolled back prediction {prediction.Sequence}");
     }
 

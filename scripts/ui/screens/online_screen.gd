@@ -11,6 +11,12 @@ class_name OnlineScreen
 
 enum ScreenState { LOADING, READY, IN_QUEUE, MATCH_FOUND }
 
+## Timing constants
+## Delay after match found to show UI feedback before connecting
+const MATCH_FOUND_FEEDBACK_DELAY: float = 1.0
+## Delay before transitioning to battle scene to ensure state is ready
+const BATTLE_TRANSITION_DELAY: float = 0.5
+
 ## UI References
 @onready var close_button: Button = %CloseButton
 @onready var title_label: Label = $MarginContainer/VBoxContainer/Header/Title
@@ -58,11 +64,11 @@ func _setup_signals() -> void:
 
 
 func _connect_services() -> void:
-	# Get autoload services
-	_nakama_client = get_node_or_null("/root/NakamaGameClient")
-	_matchmaking_service = get_node_or_null("/root/MatchmakingService")
-	_ranking_service = get_node_or_null("/root/RankingService")
-	_leaderboard_service = get_node_or_null("/root/LeaderboardService")
+	# Get autoload services (registered in project.godot)
+	_nakama_client = get_tree().root.get_node_or_null("NakamaGameClient")
+	_matchmaking_service = get_tree().root.get_node_or_null("MatchmakingService")
+	_ranking_service = get_tree().root.get_node_or_null("RankingService")
+	_leaderboard_service = get_tree().root.get_node_or_null("LeaderboardService")
 
 	# Connect signals
 	if _nakama_client:
@@ -88,8 +94,8 @@ func _connect_services() -> void:
 		if not _nakama_client.get_IsAuthenticated():
 			_set_state(ScreenState.LOADING)
 			status_label.text = Loc.t("ui.ranked.authenticating")
-			if _nakama_client.has_method("AuthenticateAsync"):
-				_nakama_client.AuthenticateAsync()
+			if _nakama_client.has_method("AuthenticateDeviceAsync"):
+				_nakama_client.AuthenticateDeviceAsync()
 		else:
 			_set_state(ScreenState.READY)
 			_refresh_data()
@@ -166,11 +172,16 @@ func _refresh_rating_display() -> void:
 func _update_rating_display(rating: int) -> void:
 	rating_label.text = str(rating)
 
-	# Calculate tier using the same thresholds as EloCalculator
-	var tier_name: String = _get_tier_name(rating)
-	var division: int = _get_division(rating)
+	# Get tier name from RankingService (single source of truth)
+	var tier_name: String = _get_tier_name_from_service(rating)
+	var division: int = _get_division_from_service(rating)
 	var division_str: String = _int_to_roman(division)
-	tier_label.text = tier_name + " " + division_str
+
+	# Legend tier doesn't show division
+	if tier_name == "Legend":
+		tier_label.text = Loc.t("ui.ranked.tier_legend")
+	else:
+		tier_label.text = Loc.t("ui.ranked.tier_" + tier_name.to_lower()) + " " + division_str
 
 	# Set tier color
 	tier_label.add_theme_color_override("font_color", _get_tier_color(tier_name))
@@ -179,37 +190,35 @@ func _update_rating_display(rating: int) -> void:
 	rank_label.text = Loc.t("ui.ranked.your_rank") + ": -"
 
 
-func _get_tier_name(rating: int) -> String:
-	if rating >= 2400:
-		return Loc.t("ui.ranked.tier_legend")
-	elif rating >= 2200:
-		return Loc.t("ui.ranked.tier_master")
-	elif rating >= 2000:
-		return Loc.t("ui.ranked.tier_diamond")
+func _get_tier_name_from_service(rating: int) -> String:
+	# Use RankingService as the single source of truth for tier thresholds
+	if _ranking_service and _ranking_service.has_method("GetTierNameForRating"):
+		return _ranking_service.GetTierNameForRating(rating)
+	# Fallback if service not available (matches EloCalculator.cs thresholds)
+	if rating >= 2000:
+		return "Legend"
+	elif rating >= 1800:
+		return "Grandmaster"
 	elif rating >= 1600:
-		return Loc.t("ui.ranked.tier_platinum")
+		return "Master"
+	elif rating >= 1400:
+		return "Diamond"
 	elif rating >= 1200:
-		return Loc.t("ui.ranked.tier_gold")
+		return "Platinum"
+	elif rating >= 1000:
+		return "Gold"
 	elif rating >= 800:
-		return Loc.t("ui.ranked.tier_silver")
+		return "Silver"
 	else:
-		return Loc.t("ui.ranked.tier_bronze")
+		return "Bronze"
 
 
-func _get_division(rating: int) -> int:
-	# Division within tier (1-4, where 1 is highest)
-	var thresholds: Array[int] = [0, 800, 1200, 1600, 2000, 2200, 2400]
-	var tier_width: int = 400
-
-	for i in range(thresholds.size() - 1, -1, -1):
-		if rating >= thresholds[i]:
-			if i >= 5:  # Master and Legend don't have divisions
-				return 1
-			var within_tier: int = rating - thresholds[i]
-			var division: int = 4 - (within_tier / 100)
-			return clampi(division, 1, 4)
-
-	return 4
+func _get_division_from_service(rating: int) -> int:
+	# Use RankingService as the single source of truth for division calculation
+	if _ranking_service and _ranking_service.has_method("GetDivisionForRating"):
+		return _ranking_service.GetDivisionForRating(rating)
+	# Fallback if service not available
+	return 1
 
 
 func _int_to_roman(num: int) -> String:
@@ -222,21 +231,24 @@ func _int_to_roman(num: int) -> String:
 
 
 func _get_tier_color(tier_name: String) -> Color:
-	# Return color based on tier
-	if tier_name == Loc.t("ui.ranked.tier_legend"):
-		return Color(1.0, 0.84, 0.0)  # Gold
-	elif tier_name == Loc.t("ui.ranked.tier_master"):
-		return Color(0.9, 0.3, 0.9)  # Purple
-	elif tier_name == Loc.t("ui.ranked.tier_diamond"):
-		return Color(0.4, 0.8, 1.0)  # Light blue
-	elif tier_name == Loc.t("ui.ranked.tier_platinum"):
-		return Color(0.4, 0.9, 0.7)  # Teal
-	elif tier_name == Loc.t("ui.ranked.tier_gold"):
-		return Color(1.0, 0.84, 0.2)  # Gold
-	elif tier_name == Loc.t("ui.ranked.tier_silver"):
-		return Color(0.75, 0.75, 0.75)  # Silver
-	else:
-		return Color(0.8, 0.5, 0.3)  # Bronze
+	# Return color based on tier (tier_name is enum name from RankingService)
+	match tier_name:
+		"Legend":
+			return Color(1.0, 0.84, 0.0)  # Gold/Yellow - highest tier
+		"Grandmaster":
+			return Color(0.8, 0.2, 0.2)  # Red
+		"Master":
+			return Color(0.9, 0.3, 0.9)  # Purple
+		"Diamond":
+			return Color(0.4, 0.8, 1.0)  # Light blue
+		"Platinum":
+			return Color(0.4, 0.9, 0.7)  # Teal
+		"Gold":
+			return Color(1.0, 0.84, 0.2)  # Gold
+		"Silver":
+			return Color(0.75, 0.75, 0.75)  # Silver
+		_:  # Bronze
+			return Color(0.8, 0.5, 0.3)  # Bronze
 
 
 func _refresh_stats_display() -> void:
@@ -244,7 +256,7 @@ func _refresh_stats_display() -> void:
 	var losses: int = 0
 
 	# Get match history from MatchReporter if available
-	var match_reporter: Node = get_node_or_null("/root/MatchReporter")
+	var match_reporter: Node = get_tree().root.get_node_or_null("MatchReporter")
 	if match_reporter:
 		if match_reporter.has_method("get_MatchHistory"):
 			var history: Array = match_reporter.get_MatchHistory()
@@ -293,13 +305,13 @@ func _populate_mock_leaderboard() -> void:
 	for child in leaderboard_list.get_children():
 		child.queue_free()
 
-	# Create mock entries
+	# Create mock entries (placeholder data for offline mode)
 	var mock_data: Array = [
-		{"rank": 1, "name": "DragonSlayer", "rating": 1850},
-		{"rank": 2, "name": "ShadowMage", "rating": 1780},
-		{"rank": 3, "name": "IronKnight", "rating": 1720},
-		{"rank": 4, "name": "StormBringer", "rating": 1680},
-		{"rank": 5, "name": "FrostQueen", "rating": 1640},
+		{"rank": 1, "name": "PLACEHOLDER_PLAYER_1", "rating": 1850},
+		{"rank": 2, "name": "PLACEHOLDER_PLAYER_2", "rating": 1780},
+		{"rank": 3, "name": "PLACEHOLDER_PLAYER_3", "rating": 1720},
+		{"rank": 4, "name": "PLACEHOLDER_PLAYER_4", "rating": 1680},
+		{"rank": 5, "name": "PLACEHOLDER_PLAYER_5", "rating": 1640},
 	]
 
 	for entry in mock_data:
@@ -426,7 +438,7 @@ func _on_match_found(match_id: String, opponent_user_id: String, opponent_userna
 	status_label.text = Loc.t("ui.ranked.match_found")
 
 	# Brief delay for UI feedback
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(MATCH_FOUND_FEEDBACK_DELAY).timeout
 
 	status_label.text = Loc.t("ui.ranked.connecting")
 
@@ -455,8 +467,10 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 	var player_deck: Array = _get_player_deck()
 
 	# For opponent, we don't have their deck yet - it will be synced during battle
-	# In a full implementation, this would be exchanged via Nakama match data
-	var opponent_summoner_id: String = "ignis"  # Placeholder - would come from matchmaking
+	# TODO(Phase-4): Get opponent summoner/deck via Nakama match data exchange
+	# When match is found, players exchange their summoner ID and deck via match data messages.
+	# For now, use a placeholder summoner - the actual battle will use whatever the opponent plays.
+	var opponent_summoner_id: String = "ignis"
 	var opponent_deck: Array = []
 
 	# Store opponent info for match reporting later
@@ -489,14 +503,14 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 	BattleContext.set_authority_provider(mp_authority)
 
 	# Brief delay then transition to battle
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(BATTLE_TRANSITION_DELAY).timeout
 
 	# Transition to battle
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 
 func _get_active_summoner_id() -> String:
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	var summoner_selection: Node = get_tree().root.get_node_or_null("SummonerSelection")
 	if summoner_selection and summoner_selection.has_method("get_selected_summoner_id"):
 		var selected: String = summoner_selection.get_selected_summoner_id()
 		if not selected.is_empty():
@@ -505,7 +519,7 @@ func _get_active_summoner_id() -> String:
 
 
 func _get_player_deck() -> Array:
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
+	var profile_repo: Node = get_tree().root.get_node_or_null("ProfileRepo")
 	if profile_repo and profile_repo.has_method("get_active_deck"):
 		return profile_repo.get_active_deck()
 	# Fallback placeholder deck
@@ -521,7 +535,7 @@ func _on_matchmaking_cancelled(reason: String) -> void:
 		status_label.text = reason
 
 
-func _on_queue_status_changed(is_in_queue: bool, players_in_queue: int) -> void:
+func _on_queue_status_changed(is_in_queue: bool, _queue_time: float) -> void:
 	if is_in_queue and _state != ScreenState.IN_QUEUE:
 		_set_state(ScreenState.IN_QUEUE)
 	elif not is_in_queue and _state == ScreenState.IN_QUEUE:

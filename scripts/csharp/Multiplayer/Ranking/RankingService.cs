@@ -10,6 +10,15 @@ namespace Fateforged.Multiplayer.Ranking;
 /// </summary>
 public partial class RankingService : Node
 {
+    #region Configuration
+
+    /// <summary>
+    /// Maximum number of match history entries to store.
+    /// </summary>
+    private const int MaxMatchHistorySize = 50;
+
+    #endregion
+
     /// <summary>
     /// Profile repository for persistence.
     /// </summary>
@@ -76,6 +85,30 @@ public partial class RankingService : Node
     public string GetFormattedRank()
     {
         return EloCalculator.FormatRating(GetRating());
+    }
+
+    /// <summary>
+    /// Get tier name as a string (for GDScript interop).
+    /// </summary>
+    public string GetTierName()
+    {
+        return GetTier().ToString();
+    }
+
+    /// <summary>
+    /// Get tier name for a specific rating (for GDScript interop).
+    /// </summary>
+    public string GetTierNameForRating(int rating)
+    {
+        return EloCalculator.GetTier(rating).ToString();
+    }
+
+    /// <summary>
+    /// Get division for a specific rating (for GDScript interop).
+    /// </summary>
+    public int GetDivisionForRating(int rating)
+    {
+        return EloCalculator.GetDivision(rating);
     }
 
     #endregion
@@ -302,8 +335,8 @@ public partial class RankingService : Node
             };
             history.Insert(0, entryDict);
 
-            // Keep only last 50 matches
-            while (history.Count > 50)
+            // Keep only recent matches
+            while (history.Count > MaxMatchHistorySize)
             {
                 history.RemoveAt(history.Count - 1);
             }
@@ -385,8 +418,9 @@ public partial class RankingService : Node
 
             return ranked[key].AsInt32();
         }
-        catch
+        catch (Exception ex)
         {
+            GD.PrintErr($"[RankingService] Failed to get statistic '{key}': {ex.Message}");
             return defaultValue;
         }
     }

@@ -36,31 +36,13 @@ public class RequestValidator
             return new ValidationResult(false, "Invalid card index");
         }
 
-        // TODO: Check if player has this card in hand
-        // var summoner = GetSummonerForPlayer(session, request.PlayerIndex);
-        // if (request.CardIndex >= summoner.Hand.Count)
-        // {
-        //     return new ValidationResult(false, "Card not in hand");
-        // }
-
-        // TODO: Check if player has enough mana
-        // var card = summoner.Hand[request.CardIndex];
-        // if (summoner.Mana < card.ManaCost)
-        // {
-        //     return new ValidationResult(false, "Not enough mana");
-        // }
-
-        // TODO: Check if position is valid for this player's spawn zone
-        // if (!IsValidSpawnPosition(request.PlayerIndex, request.Position))
-        // {
-        //     return new ValidationResult(false, "Invalid spawn position");
-        // }
-
-        // TODO: Rate limiting - prevent spam
-        // if (IsRateLimited(request.PlayerIndex))
-        // {
-        //     return new ValidationResult(false, "Action rate limited");
-        // }
+        // TODO(Phase-4): Full validation requires integration with Summoner game state
+        // - Check if player has this card in hand (request.CardIndex < hand.Count)
+        // - Check if player has enough mana (summoner.Mana >= card.ManaCost)
+        // - Check if position is in valid spawn zone for this player
+        // - Rate limiting to prevent action spam
+        // These checks require access to the GDScript Summoner node which will be
+        // connected when the multiplayer authority is fully integrated with gameplay.
 
         return Valid;
     }

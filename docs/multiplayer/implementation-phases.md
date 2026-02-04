@@ -10,7 +10,7 @@ Detailed breakdown of the multiplayer implementation roadmap. This is a living d
 |-------|--------|----------|
 | Phase 1: Network Foundation | ✅ Complete | 4/4 complete |
 | Phase 2: Game Synchronization | ✅ Complete | 5/5 complete |
-| Phase 3: Nakama Integration | 🔄 In Progress | 5/6 complete |
+| Phase 3: Nakama Integration | ✅ Complete | 6/6 complete |
 | Phase 4: Polish | ⚪ Not Started | 0/5 complete |
 
 ---
@@ -653,7 +653,7 @@ desyncDetector.ApplySnapshot(snapshot);  // Corrects positions, logs HP discrepa
 
 **Goal:** Add backend services for auth, matchmaking, rankings.
 
-**Status:** 🔄 In Progress (2/6 complete)
+**Status:** ✅ Complete (6/6 complete)
 
 **Prerequisites:** Phase 2 complete, Nakama server running
 
@@ -868,27 +868,30 @@ Report match outcomes to Nakama and update ratings.
 
 ### 3.6 Leaderboards
 
-- [ ] **Not Started**
+- [x] **COMPLETED** (Session 4, 2026-02-04)
 
 Display ranked leaderboards.
 
-**New Files to Create:**
+**What Was Implemented:**
 
-| File | Purpose |
-|------|---------|
-| `scripts/multiplayer/ranking/leaderboard_service.gd` | Fetch leaderboard data |
-| `scenes/ui/screens/leaderboard_screen.tscn` | Leaderboard UI |
+| File | Status | Description |
+|------|--------|-------------|
+| `scripts/csharp/Multiplayer/Ranking/LeaderboardService.cs` | ✅ Created | Fetch and cache leaderboard data via Nakama |
+| `scripts/csharp/Multiplayer/Ranking/LeaderboardService.tscn` | ✅ Created | Autoload scene |
+| `scripts/ui/screens/online_screen.gd` | ✅ Updated | Integrated leaderboard display |
 
-**Leaderboard Types:**
-- Global top 100
-- Player's rank + nearby players
-- Friends leaderboard (future)
+**Features:**
+- Global top 100 players
+- Player's own rank with nearby players
+- Caching with 60-second expiry
+- GDScript interop via signals (`LeaderboardRefreshed`)
+- Friends leaderboard (future enhancement)
 
 **Implementation Steps:**
-1. [ ] Create `leaderboard_service.gd`
-2. [ ] Create leaderboard UI
-3. [ ] Fetch and display global rankings
-4. [ ] Show player's own rank
+1. [x] Create `LeaderboardService.cs` in C#
+2. [x] Integrate leaderboard display in `online_screen.gd`
+3. [x] Fetch and display global rankings
+4. [x] Show player's own rank
 
 ---
 
@@ -1163,14 +1166,29 @@ Phase 1.4 (P2P) ───────┘                                    v
 - Build successful with 0 errors and 0 warnings
 - **Phase 3 at 4/6 complete**
 
+### Session 5 (2026-02-04)
+- Completed Phase 3.5 (Match Reporting):
+  - Created MatchReporter.cs with offline caching
+  - Integrated match result reporting in BattleContext
+  - GDScript-callable wrapper `ReportMatchFromGDScript()`
+- Completed Phase 3.6 (Leaderboards):
+  - Created LeaderboardService.cs with Nakama integration
+  - Global top 100 and player rank display
+  - Caching with 60-second TTL
+  - Integrated into online_screen.gd
+- Created ReconnectionHandler.cs for Phase 4 prep
+- Created ranked UI screen (online_screen.gd/tscn)
+- Migrated multiplayer transport from GDScript to C#
+- Cleaned up deprecated GDScript multiplayer files
+- **Phase 3 (Nakama Integration) is now COMPLETE!**
+
 ### Next Session
-- Complete Phase 3: Nakama Integration
-  - Task #18: Implement match reporting to Nakama
-  - Task #19: Create leaderboard service and UI
 - Begin Phase 4: Polish
-  - Task #20: Create multiplayer UI screens
-  - Task #21: Implement reconnection handling
+  - Complete RequestValidator for action validation
+  - Wire HostRunner.ExecuteCardPlay to game systems
+  - Implement opponent deck/summoner exchange via Nakama match data
+  - End-to-end testing with Nakama server
 
 ---
 
-*Last Updated: 2026-02-03*
+*Last Updated: 2026-02-04*

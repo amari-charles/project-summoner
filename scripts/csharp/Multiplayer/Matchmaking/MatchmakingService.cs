@@ -31,16 +31,7 @@ public partial class MatchmakingService : Node
     /// </summary>
     private const int DefaultRatingRange = 200;
 
-    /// <summary>
-    /// How much to expand the rating range per second in queue.
-    /// After 30 seconds, range expands by ~150 points.
-    /// </summary>
-    private const float RatingRangeExpansionRate = 5f;
-
-    /// <summary>
-    /// Maximum rating range after expansion.
-    /// </summary>
-    private const int MaxRatingRange = 500;
+    // Note: Rating range expansion is handled server-side by Nakama matchmaker
 
     #endregion
 
@@ -276,7 +267,7 @@ public partial class MatchmakingService : Node
     {
         // Get player's rating from RankingService (autoload)
         int rating = EloCalculator.StartingElo;
-        var rankingService = GetNodeOrNull<RankingService>("/root/RankingService");
+        var rankingService = GetNodeOrNull<RankingService>("RankingService");
         if (rankingService != null)
         {
             rating = rankingService.GetRating();

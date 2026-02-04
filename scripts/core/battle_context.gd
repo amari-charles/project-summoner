@@ -593,13 +593,17 @@ func _report_ranked_match_result(player_won: bool) -> void:
 		print("BattleContext: No ranked match info to report")
 		return
 
-	var match_reporter: Node = get_node_or_null("/root/MatchReporter")
+	if not is_inside_tree():
+		print("BattleContext: Cannot report match - not in scene tree")
+		return
+
+	var match_reporter: Node = get_node_or_null(CSharpAutoloads.MATCH_REPORTER)
 	if match_reporter == null:
 		print("BattleContext: MatchReporter service not available")
 		return
 
 	# Get local user ID from Nakama
-	var nakama_client: Node = get_node_or_null("/root/NakamaGameClient")
+	var nakama_client: Node = get_node_or_null(CSharpAutoloads.NAKAMA_GAME_CLIENT)
 	var local_user_id: String = ""
 	if nakama_client and nakama_client.has_method("get_UserId"):
 		local_user_id = nakama_client.get_UserId()

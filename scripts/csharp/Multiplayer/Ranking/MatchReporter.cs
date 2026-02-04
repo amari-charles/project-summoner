@@ -30,6 +30,11 @@ public partial class MatchReporter : Node
     /// </summary>
     private const int MaxOfflineCache = 50;
 
+    /// <summary>
+    /// Maximum number of match history entries to retain locally.
+    /// </summary>
+    private const int MaxMatchHistorySize = 100;
+
     #endregion
 
     #region State
@@ -97,8 +102,9 @@ public partial class MatchReporter : Node
 
     public override void _Ready()
     {
-        // Load any cached offline reports
+        // Load any cached offline reports and match history
         LoadOfflineCache();
+        LoadMatchHistory();
 
         GD.Print("[MatchReporter] Initialized");
     }
@@ -117,7 +123,7 @@ public partial class MatchReporter : Node
         GD.Print($"[MatchReporter] Reporting match: {result.MatchId}, winner: {result.WinnerUserId}");
 
         // Get current ratings
-        var rankingService = GetNodeOrNull<RankingService>("/root/RankingService");
+        var rankingService = GetNodeOrNull<RankingService>("RankingService");
         int localRating = rankingService?.GetRating() ?? EloCalculator.StartingElo;
 
         // Determine if local player won or lost
@@ -300,7 +306,7 @@ public partial class MatchReporter : Node
         _matchHistory.Add(report);
 
         // Keep history bounded
-        while (_matchHistory.Count > 100)
+        while (_matchHistory.Count > MaxMatchHistorySize)
         {
             _matchHistory.RemoveAt(0);
         }

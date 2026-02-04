@@ -16,7 +16,7 @@ func _ready() -> void:
 	cancel_button.pressed.connect(_on_cancel_pressed)
 
 	# Connect to ReconnectionHandler signals
-	_reconnection_handler = get_node_or_null("/root/ReconnectionHandler")
+	_reconnection_handler = get_tree().root.get_node_or_null("ReconnectionHandler")
 	if _reconnection_handler:
 		if _reconnection_handler.has_signal("ConnectionLost"):
 			_reconnection_handler.ConnectionLost.connect(_on_connection_lost)

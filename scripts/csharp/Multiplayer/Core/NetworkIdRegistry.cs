@@ -32,6 +32,17 @@ public class NetworkIdRegistry
     }
 
     /// <summary>
+    /// Reserve the next network ID without registering a node.
+    /// Used when broadcasting a spawn message before the unit is actually created.
+    /// The actual node should be registered later using RegisterWithId().
+    /// </summary>
+    /// <returns>The reserved network ID</returns>
+    public int NextIdWithoutRegistering()
+    {
+        return _nextId++;
+    }
+
+    /// <summary>
     /// Register a node with a specific network ID.
     /// Used by clients when receiving ID assignments from host.
     /// </summary>

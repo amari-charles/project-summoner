@@ -213,11 +213,18 @@ public class HostRunner : IMatchRunner
     {
         if (_session == null) return;
 
-        // TODO: Actually execute the card play through game systems
-        // For now, we'll just assign a network ID and broadcast
+        // TODO(Phase-4): Integrate with actual card execution system
+        // Currently broadcasts confirmation and spawn messages without actually spawning units.
+        // Phase 4 will:
+        // 1. Look up the card from the player's hand
+        // 2. Validate mana cost and deduct mana
+        // 3. Call UnitSpawner to create the actual unit
+        // 4. Register the spawned unit (not a placeholder) with NetworkIdRegistry
+        // For now, we reserve a network ID and broadcast the intent.
 
-        // Assign network ID for the spawned unit (if it's a summon card)
-        var networkId = _session.NetworkIds.Register(new Node()); // Placeholder - should be actual unit
+        // Reserve network ID for the unit that will be spawned
+        // Note: The actual unit registration happens in UnitSpawner when the unit is created
+        var networkId = _session.NetworkIds.NextIdWithoutRegistering();
 
         // Broadcast confirmation
         var confirmation = new CardPlayConfirmed(
@@ -230,10 +237,11 @@ public class HostRunner : IMatchRunner
         );
         _session.Broadcast(confirmation);
 
-        // Broadcast unit spawn
+        // Broadcast unit spawn intent
+        // TODO(Phase-4): Get actual unit type from card catalog lookup
         var spawn = new UnitSpawned(
             networkId,
-            "placeholder_unit", // TODO: Get actual unit type from card
+            $"card_{request.CardIndex}", // Placeholder unit type until card lookup is implemented
             request.PlayerIndex, // Team = player index
             request.Position
         );
