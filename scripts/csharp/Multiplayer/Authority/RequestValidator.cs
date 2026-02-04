@@ -1,3 +1,4 @@
+using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
 
@@ -18,6 +19,11 @@ public class RequestValidator
     /// Successful validation result.
     /// </summary>
     public static readonly ValidationResult Valid = new(true, "");
+
+    /// <summary>
+    /// Whether the incomplete validation warning has been logged.
+    /// </summary>
+    private static bool _warnedIncompleteValidation;
 
     /// <summary>
     /// Validate a card play request.
@@ -43,6 +49,14 @@ public class RequestValidator
         // - Rate limiting to prevent action spam
         // These checks require access to the GDScript Summoner node which will be
         // connected when the multiplayer authority is fully integrated with gameplay.
+#if DEBUG
+        if (!_warnedIncompleteValidation)
+        {
+            GD.PushWarning("[RequestValidator] Card play validation is incomplete (Phase 4). " +
+                "Mana, hand, and spawn zone checks are not yet implemented.");
+            _warnedIncompleteValidation = true;
+        }
+#endif
 
         return Valid;
     }

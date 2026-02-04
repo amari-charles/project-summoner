@@ -158,11 +158,11 @@ public class EloCalculatorTest
     }
 
     [TestCase]
-    public void StartingElo_IsWithinGoldTier()
+    public void StartingElo_IsWithinPlatinumTier()
     {
         var tier = EloCalculator.GetTier(EloCalculator.StartingElo);
 
-        // Starting ELO of 1200 should be in Platinum tier
+        // Starting ELO of 1200 is exactly at Platinum threshold
         AssertThat(tier).IsEqual(RankTier.Platinum);
     }
 
