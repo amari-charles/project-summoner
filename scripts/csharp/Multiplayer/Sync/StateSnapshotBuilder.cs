@@ -44,9 +44,12 @@ public class StateSnapshotBuilder
         return new StateSnapshot(
             _session.CurrentFrame,
             _session.MatchTime,
+            Phase: 0,
+            PrepTimeRemaining: 0f,
             summoners,
             units,
-            hash
+            hash,
+            IsOvertime: false
         );
     }
 
@@ -94,7 +97,10 @@ public class StateSnapshotBuilder
             float mana = manaVar.VariantType != Variant.Type.Nil ? manaVar.AsSingle() : 0;
             float maxMana = maxManaVar.VariantType != Variant.Type.Nil ? maxManaVar.AsSingle() : 10;
 
-            summoners.Add(new SummonerState(team, currentHp, maxHp, mana, maxMana));
+            summoners.Add(new SummonerState(team, currentHp, maxHp, mana, maxMana,
+                IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
+                CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1,
+                CardStateHash: 0));
         }
 
         // Sort by team for deterministic order
@@ -127,7 +133,8 @@ public class StateSnapshotBuilder
                 unit.GlobalPosition,
                 unit.CurrentHp,
                 targetNetworkId,
-                unit.IsAlive
+                unit.IsAlive,
+                ActivationState: 1
             ));
         }
 

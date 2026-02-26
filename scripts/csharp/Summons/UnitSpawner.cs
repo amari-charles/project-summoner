@@ -417,7 +417,10 @@ public static class UnitSpawner
                 networkId,
                 unitType,
                 team,
-                unit.GlobalPosition
+                unit.GlobalPosition,
+                MatchTick: 0,
+                SourceSequence: null,
+                SourcePlayerIndex: null
             );
             session.Broadcast(spawnMessage);
 

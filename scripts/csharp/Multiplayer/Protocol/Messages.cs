@@ -80,19 +80,26 @@ public readonly record struct CardPlayRejected(
 public readonly record struct StateSnapshot(
     long Frame,
     float MatchTime,
+    int Phase,
+    float PrepTimeRemaining,
     SummonerState[] Summoners,
     UnitState[] Units,
-    int StateHash
+    int StateHash,
+    bool IsOvertime
 );
 
 /// <summary>
 /// A unit was spawned (from card play).
+/// This is the primary event for card plays - receiving this means the play succeeded.
 /// </summary>
 public readonly record struct UnitSpawned(
     int NetworkId,
     string UnitType,
     int Team,
-    Vector3 Position
+    Vector3 Position,
+    long MatchTick,
+    int? SourceSequence,
+    int? SourcePlayerIndex
 );
 
 /// <summary>
@@ -176,7 +183,14 @@ public readonly record struct SummonerState(
     float Hp,
     float MaxHp,
     float Mana,
-    float MaxMana
+    float MaxMana,
+    bool IsCasting,
+    float CastingTimeRemaining,
+    float CastingTimeTotal,
+    int CastingCardIndex,
+    Vector3 CastingSpawnPosition,
+    int CastingNetworkId,
+    int CardStateHash
 );
 
 /// <summary>
@@ -188,7 +202,8 @@ public readonly record struct UnitState(
     Vector3 Position,
     float Hp,
     int? TargetNetworkId,
-    bool IsAlive
+    bool IsAlive,
+    int ActivationState
 );
 
 

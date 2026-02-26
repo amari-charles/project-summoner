@@ -68,9 +68,12 @@ public class MessageSerializer
                 dict["type"] = (int)MessageType.StateSnapshot;
                 dict["frame"] = m.Frame;
                 dict["time"] = m.MatchTime;
+                dict["phase"] = m.Phase;
+                dict["prepTime"] = m.PrepTimeRemaining;
                 dict["summoners"] = SerializeSummoners(m.Summoners);
                 dict["units"] = SerializeUnits(m.Units);
                 dict["hash"] = m.StateHash;
+                dict["overtime"] = m.IsOvertime;
                 break;
 
             case UnitSpawned m:
@@ -79,6 +82,9 @@ public class MessageSerializer
                 dict["unitType"] = m.UnitType;
                 dict["team"] = m.Team;
                 dict["pos"] = m.Position;
+                dict["tick"] = m.MatchTick;
+                dict["srcSeq"] = m.SourceSequence ?? -1;
+                dict["srcPlayer"] = m.SourcePlayerIndex ?? -1;
                 break;
 
             case UnitDied m:
@@ -191,16 +197,22 @@ public class MessageSerializer
             MessageType.StateSnapshot => new StateSnapshot(
                 (long)dict["frame"],
                 (float)dict["time"],
+                (int)dict["phase"],
+                (float)dict["prepTime"],
                 DeserializeSummoners((Godot.Collections.Array)dict["summoners"]),
                 DeserializeUnits((Godot.Collections.Array)dict["units"]),
-                (int)dict["hash"]
+                (int)dict["hash"],
+                (bool)dict["overtime"]
             ),
 
             MessageType.UnitSpawned => new UnitSpawned(
                 (int)dict["id"],
                 (string)dict["unitType"],
                 (int)dict["team"],
-                (Vector3)dict["pos"]
+                (Vector3)dict["pos"],
+                (long)dict["tick"],
+                (int)dict["srcSeq"] == -1 ? null : (int)dict["srcSeq"],
+                (int)dict["srcPlayer"] == -1 ? null : (int)dict["srcPlayer"]
             ),
 
             MessageType.UnitDied => new UnitDied(
@@ -273,7 +285,14 @@ public class MessageSerializer
                 ["hp"] = s.Hp,
                 ["maxHp"] = s.MaxHp,
                 ["mana"] = s.Mana,
-                ["maxMana"] = s.MaxMana
+                ["maxMana"] = s.MaxMana,
+                ["casting"] = s.IsCasting,
+                ["castTime"] = s.CastingTimeRemaining,
+                ["castTotal"] = s.CastingTimeTotal,
+                ["castCard"] = s.CastingCardIndex,
+                ["castPos"] = s.CastingSpawnPosition,
+                ["castNetId"] = s.CastingNetworkId,
+                ["cardHash"] = s.CardStateHash
             };
             arr.Add(d);
         }
@@ -291,7 +310,14 @@ public class MessageSerializer
                 (float)d["hp"],
                 (float)d["maxHp"],
                 (float)d["mana"],
-                (float)d["maxMana"]
+                (float)d["maxMana"],
+                (bool)d["casting"],
+                (float)d["castTime"],
+                (float)d["castTotal"],
+                (int)d["castCard"],
+                (Vector3)d["castPos"],
+                (int)d["castNetId"],
+                (int)d["cardHash"]
             );
         }
         return summoners;
@@ -308,7 +334,8 @@ public class MessageSerializer
                 ["pos"] = u.Position,
                 ["hp"] = u.Hp,
                 ["target"] = u.TargetNetworkId ?? -1,
-                ["alive"] = u.IsAlive
+                ["alive"] = u.IsAlive,
+                ["activation"] = u.ActivationState
             };
             arr.Add(d);
         }
@@ -326,7 +353,8 @@ public class MessageSerializer
                 (Vector3)d["pos"],
                 (float)d["hp"],
                 (int)d["target"] == -1 ? null : (int)d["target"],
-                (bool)d["alive"]
+                (bool)d["alive"],
+                (int)d["activation"]
             );
         }
         return units;

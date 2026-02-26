@@ -243,7 +243,10 @@ public class HostRunner : IMatchRunner
             networkId,
             $"card_{request.CardIndex}", // Placeholder unit type until card lookup is implemented
             request.PlayerIndex, // Team = player index
-            request.Position
+            request.Position,
+            _session.CurrentFrame,
+            request.Sequence,
+            request.PlayerIndex
         );
         _session.Broadcast(spawn);
 

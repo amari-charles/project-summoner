@@ -1,6 +1,8 @@
 namespace ProjectSummoner.Constants;
 
+using System;
 using Godot;
+using Fateforged.Simulation;
 using ProjectSummoner.Systems;
 
 /// <summary>
@@ -61,6 +63,19 @@ public static class BattlefieldBounds
             Mathf.Clamp(position.X, MinX, MaxX),
             position.Y,
             Mathf.Clamp(position.Z, MinZ, MaxZ)
+        );
+    }
+
+    /// <summary>
+    /// Clamp a SimVector3 position to battlefield boundaries (XZ plane only).
+    /// Simulation-layer overload — no Godot dependency at the call site.
+    /// </summary>
+    public static SimVector3 ClampToBounds(SimVector3 position)
+    {
+        return new SimVector3(
+            Math.Clamp(position.X, MinX, MaxX),
+            position.Y,
+            Math.Clamp(position.Z, MinZ, MaxZ)
         );
     }
 

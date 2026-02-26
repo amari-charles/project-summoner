@@ -140,7 +140,10 @@ public class MessageSerializerTest
             NetworkId: 200,
             UnitType: "fire_wisp",
             Team: 0,
-            Position: new Vector3(3, 0, 5)
+            Position: new Vector3(3, 0, 5),
+            MatchTick: 100L,
+            SourceSequence: 1,
+            SourcePlayerIndex: 0
         );
 
         var dict = _serializer.Serialize(original);
@@ -315,21 +318,28 @@ public class MessageSerializerTest
     {
         var summoners = new[]
         {
-            new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10),
-            new SummonerState(Team: 1, Hp: 80, MaxHp: 100, Mana: 7, MaxMana: 10)
+            new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
+                IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
+                CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0),
+            new SummonerState(Team: 1, Hp: 80, MaxHp: 100, Mana: 7, MaxMana: 10,
+                IsCasting: true, CastingTimeRemaining: 1.5f, CastingTimeTotal: 2f,
+                CastingCardIndex: 2, CastingSpawnPosition: new Vector3(3, 0, 3), CastingNetworkId: 5, CardStateHash: 42)
         };
         var units = new[]
         {
-            new UnitState(NetworkId: 1, Position: new Vector3(1, 0, 1), Hp: 50, TargetNetworkId: 2, IsAlive: true),
-            new UnitState(NetworkId: 2, Position: new Vector3(5, 0, 5), Hp: 30, TargetNetworkId: null, IsAlive: true)
+            new UnitState(NetworkId: 1, Position: new Vector3(1, 0, 1), Hp: 50, TargetNetworkId: 2, IsAlive: true, ActivationState: 1),
+            new UnitState(NetworkId: 2, Position: new Vector3(5, 0, 5), Hp: 30, TargetNetworkId: null, IsAlive: true, ActivationState: 1)
         };
 
         var original = new StateSnapshot(
             Frame: 1000L,
             MatchTime: 60.5f,
+            Phase: 1,
+            PrepTimeRemaining: 0f,
             Summoners: summoners,
             Units: units,
-            StateHash: 12345
+            StateHash: 12345,
+            IsOvertime: false
         );
 
         var dict = _serializer.Serialize(original);

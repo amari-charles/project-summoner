@@ -4,6 +4,7 @@ using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Multiplayer.Sync;
+using Fateforged.Simulation;
 
 namespace Fateforged.Multiplayer.Client;
 
@@ -60,6 +61,12 @@ public class ClientRunner : IMatchRunner
         _frameCounter = 0;
         _snapshotBuilder = new StateSnapshotBuilder(session);
         _desyncDetector = new DesyncDetector(session);
+
+        // Client never runs Tick() — it receives events/snapshots from the host
+        if (SimulationNode.Current != null)
+        {
+            SimulationNode.Current.IsHost = false;
+        }
 
         GD.Print("[ClientRunner] Initialized");
     }
