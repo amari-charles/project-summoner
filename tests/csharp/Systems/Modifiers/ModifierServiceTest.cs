@@ -89,7 +89,7 @@ public class ModifierServiceTest
         var result = ModifierService.ApplyModifiers(baseStats, modifiers);
 
         // Damage: 10 * 1.1 * 1.2 = 13.2
-        AssertThat(result.AttackDamage).IsEqual(13.2f);
+        AssertThat(result.AttackDamage).IsEqualApprox(13.2f, 0.01f);
     }
 
     [TestCase]
