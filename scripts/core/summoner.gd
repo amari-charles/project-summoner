@@ -45,10 +45,13 @@ const HURTBOX_HEIGHT: float = 6.25   # Character sprite height
 var mana: float = 0.0
 var max_mana: float = SummonerConfig.DEFAULT_MAX_MANA  ## Fixed pool for entire battle (no regeneration)
 var cast_speed: float = SummonerConfig.DEFAULT_BASE_CAST_SPEED  ## Multiplier for summon time (higher = faster)
-var hand: Array[Card] = []
-var deck: Array[Card] = []
-var discard_pile: Array[Card] = []
+var hand: Array[Card] = []  ## Display-only; sim's hand (catalog IDs) is source of truth
+var deck: Array[Card] = []  ## Display-only; sim's deck is source of truth
+var discard_pile: Array[Card] = []  ## Display-only; sim's discard is source of truth
 var is_enabled: bool = true  ## False if initialization failed (e.g., deck loading error)
+
+## SimulationNode reference (cached in init)
+var _sim_node: Node = null
 
 ## HP state (summoner is attackable)
 var current_hp: float = 0.0
@@ -209,6 +212,35 @@ func init() -> void:
 		draw_card()
 
 	mana_changed.emit(mana, max_mana)
+
+	# Cache SimulationNode and connect to sim signals
+	_sim_node = get_tree().get_first_node_in_group("simulation_node")
+	if _sim_node:
+		# Register summoner state with simulation
+		var deck_catalog_ids: PackedStringArray = PackedStringArray()
+		for card: Card in deck:
+			deck_catalog_ids.append(card.catalog_id)
+
+		_sim_node.RegisterSummoner(
+			int(team), current_hp, max_hp, mana, max_mana,
+			cast_speed, deck_catalog_ids, max_hand_size, global_position
+		)
+
+		# Set initial hand in sim
+		var hand_catalog_ids: PackedStringArray = PackedStringArray()
+		for card: Card in hand:
+			hand_catalog_ids.append(card.catalog_id)
+		_sim_node.SetSummonerHand(int(team), hand_catalog_ids)
+
+		# Connect to sim signals
+		_sim_node.connect("CastingStarted", _on_sim_casting_started)
+		_sim_node.connect("CastingCompleted", _on_sim_casting_completed)
+		_sim_node.connect("HandChanged", _on_sim_hand_changed)
+		_sim_node.connect("SummonerManaChanged", _on_sim_mana_changed)
+		_sim_node.connect("SummonerHpChanged", _on_sim_hp_changed)
+	else:
+		push_warning("Summoner: No SimulationNode found - sim signals will not work")
+
 	summoner_ready.emit(self)
 	print("Summoner: Initialization complete")
 
@@ -221,13 +253,10 @@ func _process(delta: float) -> void:
 		recent_hits -= RECENT_HITS_DECAY_RATE * delta
 		recent_hits = max(recent_hits, 0.0)
 
-	# Handle casting timer (player is locked during summon_time)
-	if is_casting:
-		casting_time_remaining -= delta
+	# Casting progress — read from sim (sim owns the casting timer)
+	if is_casting and _sim_node:
+		casting_time_remaining = _sim_node.GetCastingTimeRemaining(int(team))
 		casting_progress.emit(casting_time_remaining, casting_time_total)
-
-		if casting_time_remaining <= 0.0:
-			_complete_casting()
 
 	# Update debug visualization (follows Unit3D's debug toggle)
 	_update_debug_visualization()
@@ -236,6 +265,18 @@ func _exit_tree() -> void:
 	# Kill any active tweens to prevent lambda capture errors
 	if active_feedback_tween and active_feedback_tween.is_valid():
 		active_feedback_tween.kill()
+	# Disconnect sim signals
+	if _sim_node and is_instance_valid(_sim_node):
+		if _sim_node.is_connected("CastingStarted", _on_sim_casting_started):
+			_sim_node.disconnect("CastingStarted", _on_sim_casting_started)
+		if _sim_node.is_connected("CastingCompleted", _on_sim_casting_completed):
+			_sim_node.disconnect("CastingCompleted", _on_sim_casting_completed)
+		if _sim_node.is_connected("HandChanged", _on_sim_hand_changed):
+			_sim_node.disconnect("HandChanged", _on_sim_hand_changed)
+		if _sim_node.is_connected("SummonerManaChanged", _on_sim_mana_changed):
+			_sim_node.disconnect("SummonerManaChanged", _on_sim_mana_changed)
+		if _sim_node.is_connected("SummonerHpChanged", _on_sim_hp_changed):
+			_sim_node.disconnect("SummonerHpChanged", _on_sim_hp_changed)
 	# Clean up debug marker
 	if _debug_hurtbox_marker != null:
 		_debug_hurtbox_marker.queue_free()
@@ -304,9 +345,10 @@ func _recycle_discard_pile() -> void:
 	deck_recycled.emit(card_count)
 
 ## Play a card from hand at the given 3D position
-## Returns true if the card play was accepted (may be instant or delayed by summon_time)
+## Returns true if the card play command was submitted to the simulation
+## The sim validates and processes the command on the next tick
 func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
-	# Block if already casting another card
+	# Local pre-validation (avoids wasting a command on obviously invalid plays)
 	if is_casting:
 		return false
 
@@ -318,40 +360,22 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	if not card.can_play(int(mana)):
 		return false
 
-	# Deduct mana immediately (committed to the cast)
-	mana -= card.mana_cost
-	mana_changed.emit(mana, max_mana)
-
-	# Apply cast_speed modifier to summon time (higher cast_speed = faster summons)
-	var effective_summon_time: float = card.summon_time / cast_speed
-
-	if effective_summon_time > 0.0 and card.card_type == Card.CardType.SUMMON:
-		# Summon with spawn reveal effect (ghost materialize animation)
-		# Unit spawns immediately but animates in over summon_time
-		# Player is locked from playing another card during this time
-		is_casting = true
-		casting_card = card
-		casting_time_remaining = effective_summon_time
-		casting_time_total = effective_summon_time
-		casting_spawn_position = spawn_position
-		casting_card_index = card_index
-
-		# Spawn the unit immediately with reveal effect
-		_complete_card_play(card, card_index, spawn_position, effective_summon_time)
-
-		casting_started.emit(card, effective_summon_time)
-		return true
+	# Submit command to simulation — sim handles mana, casting, hand, deck
+	if _sim_node:
+		_sim_node.QueuePlayCard(int(team), card_index, spawn_position)
 	else:
-		# Instant cast (spells or units with no summon_time)
-		return _complete_card_play(card, card_index, spawn_position)
+		push_error("Summoner: No SimulationNode found! Cannot play card.")
+		return false
 
-## Complete a card play (spawns unit/casts spell and manages hand)
-## spawn_duration: If > 0, applies spawn reveal effect (ghost materialize animation)
-func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, spawn_duration: float = 0.0) -> bool:
+	return true
+
+## Spawn the visual unit for a card (called from sim CastingStarted signal)
+## This is the presentation-layer visual spawn — the sim already handles all state
+func _spawn_visual_unit(card: Card, spawn_position: Vector3, spawn_duration: float) -> void:
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield == null:
 		push_error("No battlefield found in scene!")
-		return false
+		return
 
 	# Get ModifierService (C# autoload - must use get_node_or_null)
 	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
@@ -359,43 +383,7 @@ func _complete_card_play(card: Card, card_index: int, spawn_position: Vector3, s
 	# Play the card in 3D (with optional spawn reveal effect)
 	card.play_3d(spawn_position, team, battlefield, modifier_service, spawn_duration)
 
-	# Remove from hand and add to discard pile
-	hand.remove_at(card_index)
-	discard_pile.append(card)
-
-	# Draw a new card into the same slot (in-place replacement)
-	draw_card(card_index)
-
-	# If hand and deck are both empty, recycle discard pile and draw new hand
-	if hand.is_empty() and deck.is_empty():
-		_recycle_discard_pile()
-		for i: int in mini(max_hand_size, deck.size()):
-			draw_card()
-
 	card_played.emit(card)
-	hand_changed.emit(hand)
-
-	return true
-
-## Complete casting after summon_time delay
-## With spawn reveal effect, the unit is already spawned - this just cleans up casting state
-func _complete_casting() -> void:
-	if not is_casting or not casting_card:
-		return
-
-	# Save card reference for signal before clearing
-	var completed_card: Card = casting_card
-
-	# Reset casting state
-	is_casting = false
-	casting_card = null
-	casting_card_index = -1
-	casting_spawn_position = Vector3.ZERO
-	casting_time_remaining = 0.0
-	casting_time_total = 0.0
-
-	# Emit signal
-	casting_completed.emit(completed_card)
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
@@ -621,9 +609,16 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 ## COMBAT (Summoner is attackable)
 ## =============================================================================
 
-## Take damage from units
+## Take damage from units.
+## During Battle phase, the simulation owns HP — this is only called by legacy
+## DamageSystem hitbox path. Guard it so sim-driven damage doesn't double-dip.
 func take_damage(damage: float) -> void:
 	if not is_alive:
+		return
+
+	# During Battle, sim handles summoner damage via SimBehavior.
+	# Only play hit feedback; HP is synced via SummonerHpChanged signal.
+	if _sim_node and _sim_node.GetPhase() == 1:  # 1 = GamePhase.Battle
 		return
 
 	# Track attack intensity for dynamic feedback
@@ -698,6 +693,102 @@ func _play_hit_feedback() -> void:
 ## Returns center mass (roughly chest height for visual feedback).
 func get_projectile_target_position() -> Vector3:
 	return global_position + Vector3(0, PROJECTILE_TARGET_HEIGHT, 0)
+
+
+## =============================================================================
+## SIM SIGNAL HANDLERS (react to simulation events)
+## =============================================================================
+
+## Sim started casting — spawn visual unit and update local casting state
+func _on_sim_casting_started(sim_team: int, card_index: int, duration: float, spawn_position: Vector3, catalog_id: String) -> void:
+	if sim_team != int(team):
+		return
+
+	# Look up the Card resource from our current hand (still has the old card)
+	if card_index < 0 or card_index >= hand.size():
+		push_error("Summoner: CastingStarted with invalid card_index %d (hand size %d)" % [card_index, hand.size()])
+		return
+
+	var card: Card = hand[card_index]
+
+	# Update local casting state (for UI: progress bar, casting lock)
+	is_casting = true
+	casting_card = card
+	casting_time_remaining = duration
+	casting_time_total = duration
+	casting_spawn_position = spawn_position
+	casting_card_index = card_index
+
+	# Spawn visual unit with reveal effect
+	_spawn_visual_unit(card, spawn_position, duration)
+
+	# Emit local signal for UI
+	casting_started.emit(card, duration)
+
+## Sim completed casting — clear local casting state
+func _on_sim_casting_completed(sim_team: int, _card_index: int, _spawn_position: Vector3, _network_id: int) -> void:
+	if sim_team != int(team):
+		return
+
+	# Save card reference for signal before clearing
+	var completed_card: Card = casting_card
+
+	# Clear local casting state
+	is_casting = false
+	casting_card = null
+	casting_card_index = -1
+	casting_spawn_position = Vector3.ZERO
+	casting_time_remaining = 0.0
+	casting_time_total = 0.0
+
+	# Emit local signal for UI
+	if completed_card:
+		casting_completed.emit(completed_card)
+
+## Sim hand changed — rebuild local Card array from catalog IDs
+func _on_sim_hand_changed(sim_team: int, catalog_ids: Array) -> void:
+	if sim_team != int(team):
+		return
+
+	# Rebuild Card resource array from catalog IDs
+	var new_hand: Array[Card] = []
+	for catalog_id: String in catalog_ids:
+		var card: Card = CardCatalog.create_card_resource(catalog_id)
+		if card:
+			new_hand.append(card)
+		else:
+			push_error("Summoner: Failed to create Card resource for '%s'" % catalog_id)
+
+	hand = new_hand
+	hand_changed.emit(hand)
+
+## Sim mana changed — update local mana state
+func _on_sim_mana_changed(sim_team: int, new_mana: float, new_max_mana: float) -> void:
+	if sim_team != int(team):
+		return
+
+	mana = new_mana
+	max_mana = new_max_mana
+	mana_changed.emit(mana, max_mana)
+
+## Sim HP changed — update local HP state and play hit feedback
+func _on_sim_hp_changed(sim_team: int, new_hp: float, new_max_hp: float) -> void:
+	if sim_team != int(team):
+		return
+
+	var took_damage: bool = new_hp < current_hp
+
+	current_hp = new_hp
+	max_hp = new_max_hp
+	hp_changed.emit(current_hp, max_hp)
+
+	if took_damage and is_alive:
+		recent_hits += 1.0
+		_play_hit_feedback()
+		summoner_damaged.emit(self, current_hp)  # Signal for screen shake etc.
+
+	if current_hp <= 0 and is_alive:
+		_destroy()
 
 
 ## =============================================================================

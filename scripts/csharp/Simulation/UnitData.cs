@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Fateforged.Simulation;
 
 /// <summary>
@@ -30,12 +32,32 @@ public class UnitData
     public float CritChance { get; set; }
     public float CritDamage { get; set; } = 1.5f;
 
+    // Damage type and defenses
+    public DamageType AttackType { get; set; } = DamageType.Physical;
+    public float PhysicalDefense { get; set; }
+    public float MagicDefense { get; set; }
+    public float Evasion { get; set; }
+
     // Classification
     public int UnitType { get; set; } // 0=Melee, 1=Ranged
     public int MovementLayer { get; set; } // 0=Ground, 1=Air
 
     // Element (int cast of ProjectSummoner.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral
+
+    // Group relationships
+    public int? GroupId { get; set; }
+    public int? LeaderId { get; set; }
+
+    // Combat behavior configuration
+    public MovementStyle MovementStyle { get; set; } = MovementStyle.Direct;
+    public TargetingPriority TargetingPriority { get; set; } = TargetingPriority.Nearest;
+    public RetreatCondition RetreatCondition { get; set; } = RetreatCondition.Never;
+    public float KiteRange { get; set; }
+
+    // Buffs and triggers
+    public List<ActiveBuff> ActiveBuffs { get; set; } = new();
+    public List<TriggerConfig> Triggers { get; set; } = new();
 
     // Targeting profile (extracted from TargetingConfig at registration)
     public int FallbackMovement { get; set; } // 0=MoveToward, 1=Strafe, 2=Idle
@@ -73,6 +95,9 @@ public class UnitData
     public float PendingDamageTimer { get; set; }
     public int? PendingDamageTargetId { get; set; }
     public float PendingDamageAmount { get; set; }
+
+    // Charge tracking (distance traveled since last attack — for charge ability)
+    public float DistanceTraveled { get; set; }
 
     // Steering state (used by SimSteering)
     public float BlockedTime { get; set; }

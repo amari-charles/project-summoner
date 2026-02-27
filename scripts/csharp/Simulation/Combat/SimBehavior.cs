@@ -22,6 +22,9 @@ public static class SimBehavior
     public const int InRange = 2;
     public const int Attacking = 3;
 
+    // Death cleanup: time for death animation before UnitRemovedEvent
+    private const float DeathCleanupSeconds = 2.0f;
+
     // Unit type constants
     private const int UnitTypeMelee = 0;
     private const int UnitTypeRanged = 1;
@@ -103,6 +106,13 @@ public static class SimBehavior
     public static BehaviorResult TickBehavior(
         UnitData unit, MatchState state, float delta, List<SimEvent> events)
     {
+        // Stunned units can't act
+        if (SimEffects.IsStunned(unit))
+        {
+            unit.BehaviorState = InRange;
+            return new BehaviorResult { Movement = MoveNone };
+        }
+
         // Resolve target position — works for both unit and summoner targets
         var targetPos = ResolveTargetPosition(unit.TargetUnitId, state);
         if (!targetPos.HasValue)
@@ -202,24 +212,43 @@ public static class SimBehavior
 
     /// <summary>
     /// Apply melee/instant damage to a unit target.
+    /// Uses effective attack damage (includes DamageBoost buffs and charge bonus).
+    /// Fires OnHit/OnDamaged triggers, and OnKill/OnDeath on kill.
     /// </summary>
     private static void ApplyMeleeDamageToUnit(
         UnitData attacker, UnitData target, MatchState state, List<SimEvent> events)
     {
+        float baseDamage = SimEffects.GetEffectiveAttackDamage(attacker);
+
         var attackerSummoner = state.Summoners[attacker.Team];
         var targetSummoner = state.Summoners[target.Team];
         var (damage, isCrit) = SimDamage.Calculate(
-            attacker.AttackDamage, attacker, target, attackerSummoner, targetSummoner, state.Rng);
+            baseDamage, attacker, target, attackerSummoner, targetSummoner, state.Rng);
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
+
+        // Reset charge distance after attacking
+        attacker.DistanceTraveled = 0f;
+
+        // Fire OnHit triggers on attacker
+        SimEffects.FireTriggers(state, attacker, TriggerType.OnHit, target, events);
+
+        // Fire OnDamaged triggers on target (if still alive)
+        if (target.IsAlive)
+            SimEffects.FireTriggers(state, target, TriggerType.OnDamaged, attacker, events);
 
         if (target.CurrentHp <= 0)
         {
             target.CurrentHp = 0;
             target.IsAlive = false;
+            target.DeathCleanupTimer = DeathCleanupSeconds;
             state.KillCount++;
             events.Add(new UnitDiedSimEvent(target.UnitId, attacker.UnitId));
+
+            // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
+            SimEffects.FireTriggers(state, attacker, TriggerType.OnKill, target, events);
+            SimEffects.FireDeathTriggers(state, target, attacker, events);
         }
     }
 
@@ -259,15 +288,13 @@ public static class SimBehavior
         damage = System.MathF.Round(damage * 10f) / 10f;
 
         summoner.CurrentHp -= damage;
-        events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
-
         if (summoner.CurrentHp <= 0)
         {
             summoner.CurrentHp = 0;
             summoner.IsAlive = false;
-            int winnerTeam = attacker.Team;
-            events.Add(new GameOverEvent(winnerTeam, "Summoner destroyed"));
         }
+        events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
+        // GameOverEvent is emitted by Simulation.EvaluateWinConditions (step 10)
     }
 
     /// <summary>
@@ -304,14 +331,13 @@ public static class SimBehavior
                     damage = System.MathF.Round(damage * 10f) / 10f;
 
                     summoner.CurrentHp -= damage;
-                    events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
-
                     if (summoner.CurrentHp <= 0)
                     {
                         summoner.CurrentHp = 0;
                         summoner.IsAlive = false;
-                        events.Add(new GameOverEvent(unit.Team, "Summoner destroyed"));
                     }
+                    events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
+                    // GameOverEvent is emitted by Simulation.EvaluateWinConditions (step 10)
                 }
             }
             else
@@ -328,12 +354,24 @@ public static class SimBehavior
                     target.CurrentHp -= damage;
                     events.Add(new UnitDamagedEvent(target.UnitId, unit.UnitId, damage, isCrit));
 
+                    // Fire OnHit triggers on attacker
+                    SimEffects.FireTriggers(state, unit, TriggerType.OnHit, target, events);
+
+                    // Fire OnDamaged triggers on target (if still alive)
+                    if (target.IsAlive)
+                        SimEffects.FireTriggers(state, target, TriggerType.OnDamaged, unit, events);
+
                     if (target.CurrentHp <= 0)
                     {
                         target.CurrentHp = 0;
                         target.IsAlive = false;
+                        target.DeathCleanupTimer = DeathCleanupSeconds;
                         state.KillCount++;
                         events.Add(new UnitDiedSimEvent(target.UnitId, unit.UnitId));
+
+                        // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
+                        SimEffects.FireTriggers(state, unit, TriggerType.OnKill, target, events);
+                        SimEffects.FireDeathTriggers(state, target, unit, events);
                     }
                 }
             }

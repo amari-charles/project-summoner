@@ -14,10 +14,20 @@ public static class SimTargeting
 
     /// <summary>
     /// Find the best target for a unit from all alive active enemy units.
+    /// Group-aware: if unit has a LeaderId, copies leader's target.
     /// Returns the UnitId of the best target, or null if none found.
     /// </summary>
     public static int? AcquireTarget(UnitData unit, MatchState state)
     {
+        // Group targeting: follow leader's target if available
+        if (unit.LeaderId.HasValue)
+        {
+            var leader = state.GetAliveUnit(unit.LeaderId.Value);
+            if (leader?.TargetUnitId != null)
+                return leader.TargetUnitId;
+            // Leader dead or no target — fall through to normal targeting
+        }
+
         int enemyTeam = unit.Team == 0 ? 1 : 0;
         float bestScore = float.MinValue;
         int? bestId = null;

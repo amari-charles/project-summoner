@@ -16,6 +16,7 @@ using ProjectSummoner.Units.Components;
 using ProjectSummoner.Visual;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
+using Fateforged.Simulation;
 
 namespace ProjectSummoner.Units;
 
@@ -142,6 +143,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// -1 means not synchronized (single-player or not yet assigned).
     /// </summary>
     public int NetworkId { get; set; } = -1;
+
+    /// <summary>
+    /// Simulation unit ID linking this visual node to its UnitData in MatchState.
+    /// -1 means not linked to the simulation (legacy mode).
+    /// When >= 0, this unit reads position/facing from MatchState during Battle
+    /// and damage/death are driven by sim events (not local combat).
+    /// </summary>
+    public int SimUnitId { get; set; } = -1;
+
+    /// <summary>
+    /// True if this unit is driven by the simulation (SimUnitId >= 0).
+    /// In sim-driven mode, Unit3D is a pure visual puppet of MatchState.
+    /// </summary>
+    public bool IsSimDriven => SimUnitId >= 0;
 
     [Export]
     public int Team { get; set; } = (int)Units.Team.Player;
@@ -616,6 +631,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         // Initialize any child abilities
         InitializeAbilities();
+
+        // Claim sim unit ID from MatchState (links this visual node to its simulation data)
+        ClaimSimUnitId();
+
+        // Connect to sim event signals for visual feedback
+        ConnectSimSignals();
     }
 
     /// <summary>
@@ -633,6 +654,127 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
     }
 
+    /// <summary>
+    /// Claim a sim unit ID from MatchState, linking this visual unit to its simulation data.
+    /// Called during _Ready(). Uses team matching to find the next unclaimed UnitData.
+    /// </summary>
+    private void ClaimSimUnitId()
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null) return;
+
+        SimUnitId = simNode.ClaimNextSimUnitId(Team);
+        if (SimUnitId >= 0)
+        {
+            GD.Print($"[Unit3D] Claimed SimUnitId={SimUnitId} for {UnitId} team={Team}");
+        }
+    }
+
+    /// <summary>
+    /// Connect to SimulationNode signals for sim-driven visual feedback.
+    /// </summary>
+    private void ConnectSimSignals()
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null || !IsSimDriven) return;
+
+        simNode.UnitAttacked += OnSimUnitAttacked;
+        simNode.UnitDamaged += OnSimUnitDamaged;
+        simNode.UnitDiedSim += OnSimUnitDied;
+        simNode.UnitStateRemoved += OnSimUnitRemoved;
+    }
+
+    /// <summary>
+    /// Disconnect sim event signals. Called on tree exit.
+    /// </summary>
+    private void DisconnectSimSignals()
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null || !IsSimDriven) return;
+
+        simNode.UnitAttacked -= OnSimUnitAttacked;
+        simNode.UnitDamaged -= OnSimUnitDamaged;
+        simNode.UnitDiedSim -= OnSimUnitDied;
+        simNode.UnitStateRemoved -= OnSimUnitRemoved;
+    }
+
+    // =========================================================================
+    // SIM EVENT HANDLERS (visual feedback from simulation)
+    // =========================================================================
+
+    /// <summary>
+    /// Sim: this unit attacked a target. Play attack animation.
+    /// </summary>
+    private void OnSimUnitAttacked(int attackerUnitId, int targetUnitId)
+    {
+        if (attackerUnitId != SimUnitId) return;
+
+        // Play attack animation
+        UpdateAnimation("attack");
+        float attackDuration = VisualComponent?.GetAnimationDuration("attack") ?? 0.5f;
+        _attackAnimationTimer = attackDuration;
+
+        // Emit Godot signal for any listeners (e.g., sound effects)
+        var targetNode = FindUnit3DBySimId(targetUnitId);
+        if (targetNode != null)
+            EmitSignal(SignalName.UnitAttacked, targetNode);
+    }
+
+    /// <summary>
+    /// Sim: this unit took damage. Flash white and update HP bar.
+    /// </summary>
+    private void OnSimUnitDamaged(int targetUnitId, int attackerUnitId, float damage, bool isCrit)
+    {
+        if (targetUnitId != SimUnitId) return;
+
+        // Visual feedback
+        VisualComponent?.FlashWhite();
+    }
+
+    /// <summary>
+    /// Sim: this unit died. Play death animation.
+    /// </summary>
+    private void OnSimUnitDied(int unitId, int killerUnitId)
+    {
+        if (unitId != SimUnitId) return;
+
+        // Trigger the existing death path (unregisters from systems, plays death anim)
+        _health.Die();
+    }
+
+    /// <summary>
+    /// Sim: this unit was removed from MatchState (death cleanup timer expired).
+    /// Destroy the visual node.
+    /// </summary>
+    private void OnSimUnitRemoved(int unitId)
+    {
+        if (unitId != SimUnitId) return;
+
+        // Disconnect before freeing to avoid dangling handlers
+        DisconnectSimSignals();
+        QueueFree();
+    }
+
+    /// <summary>
+    /// Find a Unit3D in the scene tree by its SimUnitId.
+    /// Used for signal emission (e.g., UnitAttacked target reference).
+    /// </summary>
+    private Node3D? FindUnit3DBySimId(int simUnitId)
+    {
+        if (simUnitId < 0) return null;
+        foreach (var node in GetTree().GetNodesInGroup(GroupIDs.Units))
+        {
+            if (node is Unit3D unit && unit.SimUnitId == simUnitId)
+                return unit;
+        }
+        return null;
+    }
+
+    public override void _ExitTree()
+    {
+        DisconnectSimSignals();
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         if (!IsAlive || ActivationState == ActivationState.Inactive)
@@ -644,22 +786,28 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
         float deltaF = (float)delta;
 
-        UpdateCooldowns(deltaF);
-        UpdateTargeting(deltaF);
-        UpdateBehavior(deltaF);
-        UpdateTriggers(deltaF);
+        if (IsSimDriven)
+        {
+            // Sim-driven mode: read state from MatchState (no local AI)
+            ReadFromSimulation(deltaF);
+        }
+        else
+        {
+            // Legacy mode: run own targeting, behavior, movement
+            UpdateCooldowns(deltaF);
+            UpdateTargeting(deltaF);
+            UpdateBehavior(deltaF);
+            UpdateTriggers(deltaF);
+        }
 
-        // Update shadow for flying units (dynamic altitude scaling)
+        // Common updates (both modes)
         if (MovementLayer == (int)Units.MovementLayer.Air)
         {
             UpdateShadowForAltitude();
         }
 
-        // Update position in spatial grid
         UpdateSpatialGridPosition();
 
-        // Update render priority based on world position (throttled by position change)
-        // Higher priority = renders in front. Camera at Z=-42.85, so more negative Z = closer = higher priority
         float positionDeltaSq = GlobalPosition.DistanceSquaredTo(_lastRenderPriorityPosition);
         if (positionDeltaSq >= RenderPriorityPositionThresholdSq)
         {
@@ -668,8 +816,49 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             _lastRenderPriorityPosition = GlobalPosition;
         }
 
-        // Record physics process time
         PerformanceCounters.PhysicsProcessTimeUsec += Time.GetTicksUsec() - startTime;
+    }
+
+    /// <summary>
+    /// Read state from MatchState when in sim-driven mode.
+    /// Position, facing, and animation come from UnitData.
+    /// Damage and death handled by sim event signals.
+    /// </summary>
+    private void ReadFromSimulation(float delta)
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null) return;
+
+        var unitData = simNode.GetUnitData(SimUnitId);
+        if (unitData == null) return;
+
+        // Position: read from sim and convert to local Godot coordinates
+        GlobalPosition = simNode.SimToLocal(unitData.Position);
+
+        // Facing
+        if (_isFacingRight != unitData.IsFacingRight)
+        {
+            SetFacing(unitData.IsFacingRight);
+        }
+
+        // HP sync (updates HP bar without triggering death)
+        _health.SyncFromSim(unitData.CurrentHp, unitData.MaxHp);
+
+        // Animation from behavior state (attack anim has priority via timer)
+        if (_attackAnimationTimer > 0)
+        {
+            _attackAnimationTimer -= delta;
+        }
+        else
+        {
+            string anim = unitData.BehaviorState switch
+            {
+                3 => "idle",   // Attacking — attack anim triggered by event, show idle between
+                2 => "idle",   // InRange — waiting for cooldown
+                _ => "walk"    // NoTarget or Chasing
+            };
+            UpdateAnimation(anim);
+        }
     }
 
     // =========================================================================
@@ -725,7 +914,12 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             HandleFlyingDeath();
         }
 
-        // Cleanup after death animation
+        // In sim-driven mode, QueueFree is handled by UnitRemovedEvent (after DeathCleanupTimer).
+        // This keeps the visual node alive for death animations until the sim removes the UnitData.
+        if (IsSimDriven)
+            return;
+
+        // Legacy mode: cleanup after death animation delay
         var tween = CreateTween();
         tween.TweenInterval(DeathCleanupDelay);
         tween.TweenCallback(Callable.From(QueueFree));
@@ -1020,10 +1214,16 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Apply damage to this unit with damage type.
+    /// In sim-driven mode, damage is handled by the simulation — this method is a no-op.
     /// </summary>
     public void TakeDamage(float amount, string damageType)
     {
         if (!IsAlive || IsDying)
+            return;
+
+        // In sim-driven mode, all damage goes through Simulation.Tick() → SimBehavior → SimDamage.
+        // Visual feedback comes via UnitDamagedEvent signal, not this method.
+        if (IsSimDriven)
             return;
 
         OnTakeDamage(amount, damageType);

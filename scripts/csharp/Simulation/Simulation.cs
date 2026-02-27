@@ -16,8 +16,8 @@ namespace Fateforged.Simulation;
 ///   4. Tick casting (decrement timers, handle completions, replacement draws)
 ///   5. Tick units (cooldowns → targeting → behavior → movement → pending melee damage)
 ///   6. Tick projectiles
-///   7. Tick effects (buffs: decrement, periodic, remove expired) — placeholder
-///   8. Tick delayed effects (death explosions, etc.) — placeholder
+///   7. Tick effects (buffs: decrement, periodic, remove expired)
+///   8. Tick delayed effects (death explosions, timed AoE)
 ///   9. Death cleanup (DeathCleanupTimer countdown, remove expired, emit UnitRemovedEvent)
 ///  10. Evaluate win conditions
 ///  11. Return events
@@ -25,6 +25,7 @@ namespace Fateforged.Simulation;
 public class Simulation
 {
     private readonly MatchState _state;
+    private IWinCondition? _winCondition;
 
     public Simulation(MatchState state)
     {
@@ -71,17 +72,26 @@ public class Simulation
             SimProjectile.TickAll(_state, fixedDelta, events);
         }
 
-        // Step 7: Tick effects — placeholder for Phase 5
-        // SimEffects.TickBuffs(_state, fixedDelta, events);
+        // Step 7: Tick effects (buffs, periodic triggers, HP threshold triggers)
+        if (_state.Phase == GamePhase.Battle)
+        {
+            SimEffects.TickBuffs(_state, fixedDelta, events);
+        }
 
-        // Step 8: Tick delayed effects — placeholder for Phase 5
-        // SimEffects.TickDelayedEffects(_state, fixedDelta, events);
+        // Step 8: Tick delayed effects (death explosions, timed AoE)
+        if (_state.Phase == GamePhase.Battle)
+        {
+            SimEffects.TickDelayedEffects(_state, fixedDelta, events);
+        }
 
         // Step 9: Death cleanup
         TickDeathCleanup(fixedDelta, events);
 
-        // Step 10: Evaluate win conditions
-        // Will be implemented in Phase 4 with IWinCondition system
+        // Step 10: Evaluate win conditions (Battle phase only)
+        if (_state.Phase == GamePhase.Battle)
+        {
+            EvaluateWinConditions(events);
+        }
 
         // Step 11: Return events
         return events;
@@ -145,7 +155,7 @@ public class Simulation
         switch (cmd)
         {
             case PlayCardCommand playCard:
-                // Validation and execution will be fully implemented in Phase 2
+                ExecutePlayCard(playCard, events);
                 break;
 
             case ForfeitCommand forfeit:
@@ -155,6 +165,91 @@ public class Simulation
                 events.Add(new GameOverEvent(winnerTeam, "Forfeit"));
                 break;
         }
+    }
+
+    /// <summary>
+    /// Execute a PlayCardCommand: validate, deduct mana, spawn units, manage hand, start casting.
+    /// Units spawn immediately (matching current game behavior where units appear with reveal effect).
+    /// Hand management (discard + draw) also happens immediately.
+    /// Casting timer just locks the player from playing another card.
+    /// </summary>
+    private void ExecutePlayCard(PlayCardCommand cmd, List<SimEvent> events)
+    {
+        var summoner = _state.Summoners[cmd.Team];
+
+        // Validate: summoner alive and not already casting
+        if (!summoner.IsAlive || summoner.IsCasting)
+            return;
+
+        // Validate: card index in bounds
+        if (cmd.CardIndex < 0 || cmd.CardIndex >= summoner.Hand.Count)
+            return;
+
+        // Look up card data
+        var catalogId = summoner.Hand[cmd.CardIndex];
+        if (!_state.CardDataMap.TryGetValue(catalogId, out var cardData))
+            return;
+
+        // Validate: spells only during Battle phase
+        if (cardData.IsSpell && _state.Phase != GamePhase.Battle)
+            return;
+
+        // Validate: enough mana
+        if (summoner.Mana < cardData.ManaCost)
+            return;
+
+        // Deduct mana
+        summoner.Mana -= cardData.ManaCost;
+        events.Add(new SummonerManaChangedEvent(cmd.Team, summoner.Mana, summoner.MaxMana));
+
+        // Calculate effective summon time (apply cast speed)
+        float effectiveSummonTime = summoner.CastSpeed > 0
+            ? cardData.SummonTime / summoner.CastSpeed
+            : cardData.SummonTime;
+
+        // Start casting (locks player from playing another card)
+        summoner.IsCasting = true;
+        summoner.CastingTimeRemaining = effectiveSummonTime;
+        summoner.CastingTimeTotal = effectiveSummonTime;
+        summoner.CastingCardIndex = cmd.CardIndex;
+        summoner.CastingCatalogId = catalogId;
+        summoner.CastingSpawnPosition = cmd.SpawnPosition;
+        summoner.CastingNetworkId = cmd.NetworkId;
+
+        events.Add(new CastingStartedEvent(
+            cmd.Team, cmd.CardIndex, effectiveSummonTime, cmd.SpawnPosition, catalogId));
+
+        // Execute card effect
+        if (cardData.IsSpell)
+        {
+            ExecuteSpellEffects(cardData, cmd.Team, cmd.SpawnPosition, cmd.TargetUnitId, events);
+        }
+        else
+        {
+            SpawnUnitsFromCard(cardData, cmd.Team, cmd.SpawnPosition, events);
+        }
+
+        // Hand management: remove played card, discard, draw replacement
+        var playedCatalogId = summoner.Hand[cmd.CardIndex];
+        summoner.Hand.RemoveAt(cmd.CardIndex);
+        summoner.DiscardPile.Add(playedCatalogId);
+        DrawReplacementCard(summoner, cmd.CardIndex, events);
+
+        // If hand and deck are both empty, recycle discard pile
+        if (summoner.Hand.Count == 0 && summoner.Deck.Count == 0 && summoner.DiscardPile.Count > 0)
+        {
+            RecycleDeck(summoner);
+            events.Add(new DeckRecycledEvent(summoner.Team));
+
+            for (int j = 0; j < summoner.MaxHandSize && summoner.Deck.Count > 0; j++)
+            {
+                var card = summoner.Deck[0];
+                summoner.Deck.RemoveAt(0);
+                summoner.Hand.Add(card);
+            }
+        }
+
+        events.Add(new HandChangedEvent(summoner.Team, summoner.Hand.ToArray()));
     }
 
     /// <summary>
@@ -279,6 +374,7 @@ public class Simulation
 
     /// <summary>
     /// Tick casting timers for all summoners (runs in both Preparation and Battle).
+    /// On completion: create units, manage hand (remove played card, draw replacement).
     /// </summary>
     private void TickCasting(float fixedDelta, List<SimEvent> events)
     {
@@ -291,20 +387,240 @@ public class Simulation
 
             if (summoner.CastingTimeRemaining <= 0f)
             {
-                summoner.CastingTimeRemaining = 0f;
-                summoner.IsCasting = false;
-
-                events.Add(new CastingCompletedEvent(
-                    summoner.Team,
-                    summoner.CastingCardIndex,
-                    summoner.CastingSpawnPosition,
-                    summoner.CastingNetworkId
-                ));
-
-                summoner.CastingCardIndex = -1;
-                summoner.CastingSpawnPosition = SimVector3.Zero;
-                summoner.CastingNetworkId = -1;
+                CompleteCasting(summoner, events);
             }
+        }
+    }
+
+    /// <summary>
+    /// Complete a casting: clear casting state and emit event.
+    /// Units and hand management already happened in ExecutePlayCard (units spawn immediately).
+    /// Casting timer just locks the player from playing another card.
+    /// </summary>
+    private void CompleteCasting(SummonerData summoner, List<SimEvent> events)
+    {
+        var spawnPosition = summoner.CastingSpawnPosition;
+        var cardIndex = summoner.CastingCardIndex;
+        var networkId = summoner.CastingNetworkId;
+
+        events.Add(new CastingCompletedEvent(
+            summoner.Team, cardIndex, spawnPosition, networkId));
+
+        // Clear casting state
+        summoner.IsCasting = false;
+        summoner.CastingTimeRemaining = 0f;
+        summoner.CastingCardIndex = -1;
+        summoner.CastingCatalogId = "";
+        summoner.CastingSpawnPosition = SimVector3.Zero;
+        summoner.CastingNetworkId = -1;
+    }
+
+    /// <summary>
+    /// Create UnitData entries from a card's unit templates.
+    /// Units are spread around the spawn position.
+    /// </summary>
+    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, List<SimEvent> events)
+    {
+        int unitIndex = 0;
+        int totalUnits = 0;
+        foreach (var template in cardData.UnitTemplates)
+            totalUnits += template.Count;
+
+        foreach (var template in cardData.UnitTemplates)
+        {
+            for (int i = 0; i < template.Count; i++)
+            {
+                var unitId = _state.NextUnitId();
+                var position = CalculateSpawnOffset(spawnPosition, unitIndex, totalUnits, template.SeparationRadius);
+
+                var unitData = new UnitData
+                {
+                    UnitId = unitId,
+                    NetworkId = -1, // Assigned by presentation layer
+                    CatalogId = cardData.CatalogId,
+                    Team = team,
+                    CurrentHp = template.MaxHp,
+                    MaxHp = template.MaxHp,
+                    IsAlive = true,
+                    Position = position,
+                    AttackDamage = template.AttackDamage,
+                    AttackSpeed = template.AttackSpeed,
+                    MoveSpeed = template.MoveSpeed,
+                    AttackRange = template.AttackRange,
+                    AggroRadius = template.AggroRadius,
+                    SeparationRadius = template.SeparationRadius,
+                    CritChance = template.CritChance,
+                    CritDamage = template.CritDamage,
+                    UnitType = template.UnitType,
+                    MovementLayer = template.MovementLayer,
+                    ElementId = template.ElementId,
+                    FallbackMovement = template.FallbackMovement,
+                    HasConeConstraint = template.HasConeConstraint,
+                    ConeHalfAngle = template.ConeHalfAngle,
+                    CloseRangeThreshold = template.CloseRangeThreshold,
+                    TargetLayerFilter = template.TargetLayerFilter,
+                    DistanceScorerWeight = template.DistanceScorerWeight,
+                    HealthScorerWeight = template.HealthScorerWeight,
+                    FlightAltitude = template.FlightAltitude,
+                    ProjectileDelay = template.ProjectileDelay,
+                    AttackType = template.AttackType,
+                    PhysicalDefense = template.PhysicalDefense,
+                    MagicDefense = template.MagicDefense,
+                    Evasion = template.Evasion,
+                    // Inactive during Preparation, active during Battle
+                    ActivationState = _state.Phase == GamePhase.Battle
+                        ? (int)ProjectSummoner.Units.ActivationState.Active
+                        : (int)ProjectSummoner.Units.ActivationState.Inactive
+                };
+
+                _state.Units[unitId] = unitData;
+
+                events.Add(new UnitRegisteredEvent(
+                    unitId, unitData.NetworkId, cardData.CatalogId, team, position));
+
+                unitIndex++;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calculate spawn offset for a unit in a group.
+    /// Simple line formation spread along Z axis, centered on spawn position.
+    /// </summary>
+    private static SimVector3 CalculateSpawnOffset(SimVector3 center, int index, int total, float spacing)
+    {
+        if (total <= 1) return center;
+
+        float totalWidth = (total - 1) * spacing * 2f;
+        float startZ = center.Z - totalWidth / 2f;
+        return new SimVector3(center.X, center.Y, startZ + index * spacing * 2f);
+    }
+
+    /// <summary>
+    /// Execute spell effects: resolve targets, apply each effect via SimEffects.
+    /// </summary>
+    private void ExecuteSpellEffects(
+        SimCardData cardData, int team, SimVector3 position, int? targetUnitId, List<SimEvent> events)
+    {
+        int summonerSourceId = MatchState.GetSummonerTargetId(team);
+        events.Add(new SpellCastEvent(team, cardData.CatalogId, position));
+
+        foreach (var effect in cardData.SpellEffects)
+        {
+            var targets = ResolveSpellTargets(cardData, effect, team, position, targetUnitId);
+            foreach (var target in targets)
+            {
+                SimEffects.ApplyEffect(
+                    _state, effect.EffectType, effect.Value, effect.Duration,
+                    effect.DamageType, target, summonerSourceId, team, events);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolve targets for a spell effect based on targeting mode and affinity.
+    /// </summary>
+    private List<UnitData> ResolveSpellTargets(
+        SimCardData cardData, SimSpellEffect effect, int team, SimVector3 position, int? targetUnitId)
+    {
+        var targets = new List<UnitData>();
+
+        // Determine target team filter based on affinity
+        int? teamFilter = effect.Affinity switch
+        {
+            SpellAffinity.Enemies => team == 0 ? 1 : 0,
+            SpellAffinity.Allies => team,
+            _ => null // Both — no filter
+        };
+
+        switch (cardData.SpellTargetingMode)
+        {
+            case SpellTargetingMode.Position:
+            {
+                // AoE at position — find all matching units in radius
+                float radius = effect.AoeRadius > 0 ? effect.AoeRadius : cardData.SpellRadius;
+                float radiusSq = radius * radius;
+                foreach (var unit in _state.GetAliveActiveUnits())
+                {
+                    if (teamFilter.HasValue && unit.Team != teamFilter.Value) continue;
+                    if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
+                        targets.Add(unit);
+                }
+                break;
+            }
+
+            case SpellTargetingMode.NearestEnemy:
+            {
+                // Single nearest enemy to position
+                int enemyTeam = team == 0 ? 1 : 0;
+                float bestDistSq = float.MaxValue;
+                UnitData? best = null;
+
+                // If a specific target was provided, use it directly
+                if (targetUnitId.HasValue)
+                {
+                    var specified = _state.GetAliveUnit(targetUnitId.Value);
+                    if (specified != null)
+                    {
+                        targets.Add(specified);
+                        break;
+                    }
+                }
+
+                foreach (var unit in _state.GetAliveActiveUnits())
+                {
+                    if (unit.Team != enemyTeam) continue;
+                    float distSq = unit.Position.DistanceSquaredTo(position);
+                    if (distSq < bestDistSq)
+                    {
+                        bestDistSq = distSq;
+                        best = unit;
+                    }
+                }
+                if (best != null) targets.Add(best);
+                break;
+            }
+
+            case SpellTargetingMode.AlliesInRadius:
+            {
+                // Allied units within selection radius
+                float radiusSq = cardData.SpellRadius * cardData.SpellRadius;
+                foreach (var unit in _state.GetAliveActiveUnits())
+                {
+                    if (unit.Team != team) continue;
+                    if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
+                        targets.Add(unit);
+                }
+                break;
+            }
+        }
+
+        return targets;
+    }
+
+    /// <summary>
+    /// Draw a replacement card into the given hand slot.
+    /// If deck is empty and discard has cards, recycle first.
+    /// </summary>
+    private void DrawReplacementCard(SummonerData summoner, int targetIndex, List<SimEvent> events)
+    {
+        if (summoner.Deck.Count == 0 && summoner.DiscardPile.Count > 0)
+        {
+            RecycleDeck(summoner);
+            events.Add(new DeckRecycledEvent(summoner.Team));
+        }
+
+        if (summoner.Deck.Count > 0)
+        {
+            var card = summoner.Deck[0];
+            summoner.Deck.RemoveAt(0);
+
+            if (targetIndex >= 0 && targetIndex <= summoner.Hand.Count)
+                summoner.Hand.Insert(targetIndex, card);
+            else
+                summoner.Hand.Add(card);
+
+            events.Add(new CardDrawnEvent(summoner.Team, targetIndex, card));
         }
     }
 
@@ -331,6 +647,28 @@ public class Simulation
         {
             _state.Units.Remove(unitId);
             events.Add(new UnitRemovedEvent(unitId));
+        }
+    }
+
+    /// <summary>
+    /// Evaluate win conditions. Creates the IWinCondition lazily on first call.
+    /// If a win condition is met, transitions to GameOver and emits GameOverEvent.
+    /// This is the single authoritative source of GameOverEvent (step 10).
+    /// </summary>
+    private void EvaluateWinConditions(List<SimEvent> events)
+    {
+        // Already game over (e.g., SimBehavior emitted GameOverEvent this tick)
+        if (_state.Phase == GamePhase.GameOver)
+            return;
+
+        _winCondition ??= WinConditionFactory.Create(_state);
+
+        var result = _winCondition.Evaluate(_state);
+        if (result != null)
+        {
+            _state.WinnerTeam = result.WinnerTeam;
+            _state.Phase = GamePhase.GameOver;
+            events.Add(new GameOverEvent(result.WinnerTeam, result.Reason));
         }
     }
 }
@@ -385,8 +723,9 @@ public class CastingStartedEvent : SimEvent
     public int CardIndex { get; }
     public float Duration { get; }
     public SimVector3 SpawnPosition { get; }
-    public CastingStartedEvent(int team, int cardIndex, float duration, SimVector3 spawnPosition)
-    { Team = team; CardIndex = cardIndex; Duration = duration; SpawnPosition = spawnPosition; }
+    public string CatalogId { get; }
+    public CastingStartedEvent(int team, int cardIndex, float duration, SimVector3 spawnPosition, string catalogId = "")
+    { Team = team; CardIndex = cardIndex; Duration = duration; SpawnPosition = spawnPosition; CatalogId = catalogId; }
 }
 
 public class CastingCompletedEvent : SimEvent
@@ -445,6 +784,18 @@ public class GameOverEvent : SimEvent
 }
 
 /// <summary>
+/// A spell card was cast (for visual feedback — VFX, projectiles).
+/// </summary>
+public class SpellCastEvent : SimEvent
+{
+    public int Team { get; }
+    public string CatalogId { get; }
+    public SimVector3 Position { get; }
+    public SpellCastEvent(int team, string catalogId, SimVector3 position)
+    { Team = team; CatalogId = catalogId; Position = position; }
+}
+
+/// <summary>
 /// A unit attacked another unit (for visual/audio feedback).
 /// </summary>
 public class UnitAttackedEvent : SimEvent
@@ -499,4 +850,52 @@ public class UnitActivationChangedEvent : SimEvent
     public int NewState { get; }
     public UnitActivationChangedEvent(int unitId, int newState)
     { UnitId = unitId; NewState = newState; }
+}
+
+/// <summary>
+/// A unit evaded an attack (for visual feedback — dodge text, animation).
+/// </summary>
+public class AttackEvadedEvent : SimEvent
+{
+    public int TargetUnitId { get; }
+    public int AttackerUnitId { get; }
+    public AttackEvadedEvent(int targetUnitId, int attackerUnitId)
+    { TargetUnitId = targetUnitId; AttackerUnitId = attackerUnitId; }
+}
+
+/// <summary>
+/// A buff/debuff was applied to a unit (for visual feedback — VFX, status icons).
+/// </summary>
+public class BuffAppliedSimEvent : SimEvent
+{
+    public int TargetUnitId { get; }
+    public EffectType EffectType { get; }
+    public float Value { get; }
+    public float Duration { get; }
+    public BuffAppliedSimEvent(int targetUnitId, EffectType effectType, float value, float duration)
+    { TargetUnitId = targetUnitId; EffectType = effectType; Value = value; Duration = duration; }
+}
+
+/// <summary>
+/// A buff/debuff expired on a unit (for visual cleanup).
+/// </summary>
+public class BuffExpiredSimEvent : SimEvent
+{
+    public int TargetUnitId { get; }
+    public int BuffId { get; }
+    public EffectType EffectType { get; }
+    public BuffExpiredSimEvent(int targetUnitId, int buffId, EffectType effectType)
+    { TargetUnitId = targetUnitId; BuffId = buffId; EffectType = effectType; }
+}
+
+/// <summary>
+/// A delayed effect fired (death explosion, timed AoE — for visual feedback).
+/// </summary>
+public class DelayedEffectFiredSimEvent : SimEvent
+{
+    public SimVector3 Position { get; }
+    public EffectType EffectType { get; }
+    public float AoeRadius { get; }
+    public DelayedEffectFiredSimEvent(SimVector3 position, EffectType effectType, float aoeRadius)
+    { Position = position; EffectType = effectType; AoeRadius = aoeRadius; }
 }

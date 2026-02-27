@@ -1,6 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
+using ProjectSummoner.Cards;
+using ProjectSummoner.Constants;
+using ProjectSummoner.Stats;
+using ProjectSummoner.Units;
+using ProjectSummoner.Targeting;
 
 namespace Fateforged.Simulation;
 
@@ -29,6 +36,12 @@ public partial class SimulationNode : Node
     public MatchState State { get; private set; } = new();
     private Simulation? _simulation;
     private bool _initialized;
+
+    /// <summary>
+    /// Tracks which sim unit IDs have been claimed by visual Unit3D nodes.
+    /// Used by ClaimNextSimUnitId to prevent double-linking.
+    /// </summary>
+    private readonly System.Collections.Generic.HashSet<int> _claimedSimUnitIds = new();
 
     /// <summary>
     /// Fixed timestep for simulation ticks (60 Hz).
@@ -90,6 +103,11 @@ public partial class SimulationNode : Node
     private Vector3 ToLocal(SimVector3 simPos) => CoordinateTransform.CanonicalToLocal(new Vector3(simPos.X, simPos.Y, simPos.Z));
 
     /// <summary>
+    /// Convert a SimVector3 to local Godot.Vector3 (public, for Unit3D to read positions).
+    /// </summary>
+    public Vector3 SimToLocal(SimVector3 simPos) => ToLocal(simPos);
+
+    /// <summary>
     /// Convert a Godot.Vector3 to SimVector3 in canonical coordinates.
     /// </summary>
     private SimVector3 ToSimCanonical(Vector3 localPos)
@@ -107,7 +125,7 @@ public partial class SimulationNode : Node
     [Signal] public delegate void MatchTimeUpdatedEventHandler(float matchTime);
     [Signal] public delegate void SummonerHpChangedEventHandler(int team, float hp, float maxHp);
     [Signal] public delegate void SummonerManaChangedEventHandler(int team, float mana, float maxMana);
-    [Signal] public delegate void CastingStartedEventHandler(int team, int cardIndex, float duration, Vector3 spawnPosition);
+    [Signal] public delegate void CastingStartedEventHandler(int team, int cardIndex, float duration, Vector3 spawnPosition, string catalogId);
     [Signal] public delegate void CastingCompletedEventHandler(int team, int cardIndex, Vector3 spawnPosition, int networkId);
     [Signal] public delegate void CardDrawnEventHandler(int team, int handIndex, string catalogId);
     [Signal] public delegate void HandChangedEventHandler(int team, string[] hand);
@@ -170,7 +188,8 @@ public partial class SimulationNode : Node
     /// Initialize the simulation with match configuration.
     /// Called by GameController3D during _ready().
     /// </summary>
-    public void Initialize(float prepDuration, float matchDuration, string winCondition)
+    public void Initialize(float prepDuration, float matchDuration, string winCondition,
+        float winConditionTimeLimit = 0f, int winConditionKillTarget = 0)
     {
         // Use match seed from MatchSession if in multiplayer, otherwise use a time-based seed
         long seed = MatchSession.Current?.Seed ?? System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -179,14 +198,247 @@ public partial class SimulationNode : Node
         {
             PrepTimeRemaining = prepDuration,
             WinCondition = winCondition,
+            WinConditionTimeLimit = winConditionTimeLimit > 0 ? winConditionTimeLimit : matchDuration,
+            WinConditionKillTarget = winConditionKillTarget,
             Phase = GamePhase.Preparation,
             Rng = new DeterministicRng(seed)
         };
 
         _simulation = new Simulation(State);
+        _claimedSimUnitIds.Clear();
         _initialized = true;
 
-        GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, seed={seed})");
+        GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})");
+    }
+
+    /// <summary>
+    /// Populate MatchState.CardDataMap with sim-local card data for all cards in both decks.
+    /// Called after RegisterSummoner for both teams, before the first Tick.
+    /// </summary>
+    public void PopulateCardData()
+    {
+        State.CardDataMap.Clear();
+        var processed = new HashSet<string>();
+
+        foreach (var summoner in State.Summoners)
+        {
+            foreach (var catalogId in summoner.Deck)
+                PopulateSingleCard(catalogId, processed);
+            foreach (var catalogId in summoner.Hand)
+                PopulateSingleCard(catalogId, processed);
+            foreach (var catalogId in summoner.DiscardPile)
+                PopulateSingleCard(catalogId, processed);
+        }
+
+        GD.Print($"[SimulationNode] Populated CardDataMap with {State.CardDataMap.Count} cards");
+    }
+
+    private void PopulateSingleCard(string catalogId, HashSet<string> processed)
+    {
+        if (string.IsNullOrEmpty(catalogId) || processed.Contains(catalogId))
+            return;
+        processed.Add(catalogId);
+
+        var card = CardCatalog.GetCard(catalogId);
+        if (card == null)
+        {
+            GD.PrintErr($"[SimulationNode] Card not found in catalog: {catalogId}");
+            return;
+        }
+
+        var simCard = new SimCardData
+        {
+            CatalogId = catalogId,
+            ManaCost = card.ManaCost,
+            SummonTime = card.Summon?.SummonTime ?? card.SummonTime,
+            IsSpell = card.Type == CardType.Spell,
+            ElementId = (int)card.ElementalAffinity
+        };
+
+        // Build spell effects for spell cards
+        if (card.Type == CardType.Spell)
+        {
+            simCard.SpellTargetingMode = card.SpellTargeting switch
+            {
+                SpellTargeting.SingleTarget => SpellTargetingMode.NearestEnemy,
+                SpellTargeting.AreaOfEffect => SpellTargetingMode.Position,
+                SpellTargeting.SelectionRadius => SpellTargetingMode.AlliesInRadius,
+                _ => SpellTargetingMode.Position
+            };
+            simCard.SpellRadius = card.SpellTargeting == SpellTargeting.SelectionRadius
+                ? card.SelectionRadius
+                : card.SpellRadius;
+
+            if (card.SpellCategory == SpellCategory.Damage && card.SpellDamage > 0)
+            {
+                simCard.SpellEffects.Add(new SimSpellEffect
+                {
+                    EffectType = EffectType.Damage,
+                    Value = card.SpellDamage,
+                    DamageType = MapElementToDamageType(card.ElementalAffinity),
+                    AoeRadius = card.SpellRadius,
+                    Affinity = SpellAffinity.Enemies
+                });
+            }
+        }
+
+        // Build unit templates for summon cards
+        if (card.Type == CardType.Summon)
+        {
+            if (card.Summon != null)
+            {
+                // New SummonSpec path (multi-unit cards)
+                foreach (var entry in card.Summon.Units)
+                {
+                    var template = BuildUnitTemplate(entry.UnitId, entry.Count, entry.Modifier);
+                    simCard.UnitTemplates.Add(template);
+                }
+            }
+            else if (card.UnitId.HasValue)
+            {
+                // Single UnitId path
+                var template = BuildUnitTemplate(card.UnitId, card.SpawnCount, card.UnitModifier);
+                simCard.UnitTemplates.Add(template);
+            }
+            else
+            {
+                // Legacy: build from CardDefinition stats directly
+                var stats = UnitStatCalculator.FromCardDefinition(card);
+                var template = new SimUnitTemplate
+                {
+                    Count = card.SpawnCount,
+                    MaxHp = stats.MaxHp,
+                    AttackDamage = stats.AttackDamage,
+                    AttackSpeed = stats.AttackSpeed,
+                    MoveSpeed = stats.MoveSpeed,
+                    AttackRange = stats.AttackRange,
+                    AggroRadius = stats.AggroRadius,
+                    CritChance = stats.CritChance,
+                    CritDamage = stats.CritDamage,
+                    UnitType = card.IsRanged ? 1 : 0,
+                    ElementId = (int)card.ElementalAffinity,
+                    PhysicalDefense = stats.Armor,
+                    MagicDefense = stats.MagicResist
+                };
+                simCard.UnitTemplates.Add(template);
+            }
+        }
+
+        State.CardDataMap[catalogId] = simCard;
+    }
+
+    private SimUnitTemplate BuildUnitTemplate(UnitId unitId, int count, ProjectSummoner.Systems.Modifiers.StatModifier? modifier)
+    {
+        var template = new SimUnitTemplate { Count = count };
+
+        if (UnitDefinitions.TryGet(unitId, out var def) && def != null)
+        {
+            var stats = def.Stats;
+            if (modifier != null)
+                stats = stats.WithModifier(modifier);
+
+            template.MaxHp = stats.MaxHp;
+            template.AttackDamage = stats.AttackDamage;
+            template.AttackSpeed = stats.AttackSpeed;
+            template.MoveSpeed = stats.MoveSpeed;
+            template.AttackRange = stats.AttackRange;
+            template.AggroRadius = stats.AggroRadius;
+            template.CritChance = stats.CritChance;
+            template.CritDamage = stats.CritDamage;
+            template.UnitType = def.UnitType == ProjectSummoner.Units.UnitType.Ranged ? 1 : 0;
+            template.MovementLayer = (int)def.MovementLayer;
+            template.ElementId = (int)(def.DamageProfile.Element ?? Element.Neutral);
+            template.SeparationRadius = def.Visual.SeparationRadius;
+            template.PhysicalDefense = stats.Armor;
+            template.MagicDefense = stats.MagicResist;
+
+            // Ranged config
+            if (def.Ranged != null)
+            {
+                template.ProjectileDelay = def.Ranged.ProjectileDelay;
+            }
+
+            // Flying config
+            if (def.Flying != null)
+            {
+                template.FlightAltitude = def.Flying.Altitude;
+            }
+
+            // Extract targeting config for sim
+            var targetingConfig = def.Targeting.BuildConfig();
+            template.FallbackMovement = (int)targetingConfig.FallbackMovement;
+
+            // Extract scorer weights if available
+            if (targetingConfig.Scorer is ProjectSummoner.Targeting.Scorers.CompositeScorer composite)
+            {
+                foreach (var scorer in composite.Scorers)
+                {
+                    if (scorer is ProjectSummoner.Targeting.Scorers.DistanceScorer ds)
+                        template.DistanceScorerWeight = ds.Weight;
+                    else if (scorer is ProjectSummoner.Targeting.Scorers.HealthScorer hs)
+                        template.HealthScorerWeight = hs.Weight;
+                }
+            }
+
+            // Extract cone constraint if available (may be direct or inside CompositeConstraint)
+            ExtractConeConstraint(targetingConfig, template);
+
+            // Extract layer filter (may be direct or inside CompositeTargetFilter)
+            ExtractLayerFilter(targetingConfig, template);
+        }
+
+        return template;
+    }
+
+    private static void ExtractConeConstraint(TargetingConfig config, SimUnitTemplate template)
+    {
+        if (config.AttackConstraint is ProjectSummoner.Targeting.Constraints.ConeConstraint3D cone)
+        {
+            template.HasConeConstraint = true;
+            template.ConeHalfAngle = cone.ConeHalfAngle;
+            template.CloseRangeThreshold = cone.CloseRangeThreshold;
+        }
+        else if (config.AttackConstraint is ProjectSummoner.Targeting.Constraints.CompositeConstraint composite)
+        {
+            foreach (var c in composite.Constraints)
+            {
+                if (c is ProjectSummoner.Targeting.Constraints.ConeConstraint3D innerCone)
+                {
+                    template.HasConeConstraint = true;
+                    template.ConeHalfAngle = innerCone.ConeHalfAngle;
+                    template.CloseRangeThreshold = innerCone.CloseRangeThreshold;
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void ExtractLayerFilter(TargetingConfig config, SimUnitTemplate template)
+    {
+        if (config.Filter is ProjectSummoner.Targeting.Filters.LayerTargetFilter layerFilter)
+        {
+            template.TargetLayerFilter = (int)layerFilter.CanTarget;
+        }
+        else if (config.Filter is ProjectSummoner.Targeting.Filters.CompositeTargetFilter composite)
+        {
+            foreach (var f in composite.Filters)
+            {
+                if (f is ProjectSummoner.Targeting.Filters.LayerTargetFilter innerLayer)
+                {
+                    template.TargetLayerFilter = (int)innerLayer.CanTarget;
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Map an Element enum to the sim DamageType.
+    /// Fire/Ice/Lightning etc. → Magic; Neutral → Physical.
+    /// </summary>
+    private static DamageType MapElementToDamageType(Element element)
+    {
+        return element == Element.Neutral ? DamageType.Physical : DamageType.Magic;
     }
 
     // =========================================================================
@@ -279,42 +531,6 @@ public partial class SimulationNode : Node
     }
 
     /// <summary>
-    /// Sync the MatchState hand after a card play (remove played card, add drawn card).
-    /// Called by Summoner.gd after _complete_card_play() manages the Card resources.
-    /// </summary>
-    public void SyncHandAfterCardPlay(int team, string[] newHand, string discardedCatalogId)
-    {
-        var summoner = State.Summoners[ToNetworkTeam(team)];
-        summoner.Hand.Clear();
-        summoner.Hand.AddRange(newHand);
-        summoner.DiscardPile.Add(discardedCatalogId);
-    }
-
-    /// <summary>
-    /// Sync deck recycle to MatchState.
-    /// Called by Summoner.gd after _recycle_discard_pile().
-    /// </summary>
-    public void SyncDeckRecycle(int team, string[] newDeck)
-    {
-        var summoner = State.Summoners[ToNetworkTeam(team)];
-        summoner.Deck.Clear();
-        summoner.Deck.AddRange(newDeck);
-        summoner.DiscardPile.Clear();
-    }
-
-    /// <summary>
-    /// Sync a single card draw to MatchState (remove from deck front, add to hand).
-    /// Called by Summoner.gd after draw_card().
-    /// </summary>
-    public void SyncCardDraw(int team, string catalogId)
-    {
-        var summoner = State.Summoners[ToNetworkTeam(team)];
-        if (summoner.Deck.Count > 0)
-            summoner.Deck.RemoveAt(0);
-        summoner.Hand.Add(catalogId);
-    }
-
-    /// <summary>
     /// Set summoner stats (maxHp, maxMana, castSpeed) in MatchState.
     /// Called by GDScript (multiplayer_game_bridge) when a SummonerExchange is received.
     /// </summary>
@@ -352,63 +568,36 @@ public partial class SimulationNode : Node
     }
 
     // =========================================================================
-    // CASTING STATE
+    // VISUAL UNIT LINKING (connects Unit3D to sim UnitData)
     // =========================================================================
 
     /// <summary>
-    /// Start casting for a summoner. Writes to MatchState so Simulation.Tick() can decrement the timer.
-    /// Called by Summoner.gd when a card play begins casting.
+    /// Claim the next unclaimed sim unit ID for a given team.
+    /// Called by Unit3D._Ready() to link itself to its simulation data.
+    /// Units are claimed in UnitId order (deterministic, matches spawn order).
     /// </summary>
-    public void StartCasting(int team, int cardIndex, float duration, Vector3 spawnPosition, int networkId = -1)
+    public int ClaimNextSimUnitId(int localTeam)
     {
-        var summoner = State.Summoners[ToNetworkTeam(team)];
-        summoner.IsCasting = true;
-        summoner.CastingTimeRemaining = duration;
-        summoner.CastingTimeTotal = duration;
-        summoner.CastingCardIndex = cardIndex;
-        summoner.CastingSpawnPosition = ToSimCanonical(spawnPosition);
-        summoner.CastingNetworkId = networkId;
+        int networkTeam = ToNetworkTeam(localTeam);
+
+        foreach (var kvp in State.Units.OrderBy(kv => kv.Key))
+        {
+            var unit = kvp.Value;
+            if (unit.Team == networkTeam && !_claimedSimUnitIds.Contains(unit.UnitId))
+            {
+                _claimedSimUnitIds.Add(unit.UnitId);
+                return unit.UnitId;
+            }
+        }
+
+        return -1;
     }
 
     // =========================================================================
     // MUTATION METHODS (write to MatchState, emit signals)
-    // These are called by external systems (DamageSystem, Unit3D) that mutate state
-    // outside of Tick() — the intentional "second mutation path" for physics/combat.
+    // Remaining methods are for desync corrections and edge cases.
+    // Summoner damage and win conditions are now handled by the simulation.
     // =========================================================================
-
-    /// <summary>
-    /// Apply damage to a summoner. Called by DamageSystem when a summoner takes damage.
-    /// </summary>
-    public void ApplySummonerDamage(int team, float amount)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        var summoner = State.Summoners[networkTeam];
-        if (!summoner.IsAlive) return;
-
-        summoner.CurrentHp -= amount;
-        if (summoner.CurrentHp < 0) summoner.CurrentHp = 0;
-
-        EmitSignal(SignalName.SummonerHpChanged, team, summoner.CurrentHp, summoner.MaxHp);
-
-        if (summoner.CurrentHp <= 0)
-        {
-            summoner.IsAlive = false;
-        }
-    }
-
-    /// <summary>
-    /// Deduct mana from a summoner. Returns true if sufficient mana was available.
-    /// </summary>
-    public bool DeductMana(int team, float amount)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        var summoner = State.Summoners[networkTeam];
-        if (summoner.Mana < amount) return false;
-
-        summoner.Mana -= amount;
-        EmitSignal(SignalName.SummonerManaChanged, team, summoner.Mana, summoner.MaxMana);
-        return true;
-    }
 
     /// <summary>
     /// Set summoner HP directly (for desync corrections).
@@ -491,36 +680,6 @@ public partial class SimulationNode : Node
     }
 
     /// <summary>
-    /// Sync unit position from Godot physics. Called by Unit3D after MoveAndSlide().
-    /// </summary>
-    public void SyncUnitPosition(int unitId, Vector3 position)
-    {
-        if (State.Units.TryGetValue(unitId, out var unit))
-        {
-            unit.Position = ToSimCanonical(position);
-        }
-    }
-
-    /// <summary>
-    /// Apply damage to a unit in MatchState. Called by DamageSystem.
-    /// Returns true if the unit was killed.
-    /// </summary>
-    public bool ApplyUnitDamage(int unitId, float amount)
-    {
-        if (!State.Units.TryGetValue(unitId, out var unit)) return false;
-        if (!unit.IsAlive) return false;
-
-        unit.CurrentHp -= amount;
-        if (unit.CurrentHp <= 0)
-        {
-            unit.CurrentHp = 0;
-            unit.IsAlive = false;
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
     /// Get a unit's HP from MatchState.
     /// Returns -1 if unitId is not found.
     /// </summary>
@@ -577,81 +736,11 @@ public partial class SimulationNode : Node
     }
 
     /// <summary>
-    /// Sync a unit's current target to MatchState. Called by Unit3D when targeting changes.
-    /// </summary>
-    public void SyncUnitTarget(int unitId, int? targetNetworkId)
-    {
-        if (State.Units.TryGetValue(unitId, out var unit))
-        {
-            unit.TargetNetworkId = targetNetworkId;
-        }
-    }
-
-    /// <summary>
-    /// Remove a unit from MatchState. Called when unit is freed.
-    /// </summary>
-    public void RemoveUnit(int unitId)
-    {
-        if (State.Units.Remove(unitId))
-        {
-            EmitSignal(SignalName.UnitStateRemoved, unitId);
-        }
-    }
-
-    /// <summary>
-    /// Increment the kill count in MatchState. Called by game controller on enemy kill.
-    /// </summary>
-    public void IncrementKillCount()
-    {
-        State.KillCount++;
-    }
-
-    /// <summary>
     /// Get the current kill count from MatchState.
     /// </summary>
     public int GetKillCount()
     {
         return State.KillCount;
-    }
-
-    /// <summary>
-    /// Set the winner team in MatchState. Called by game controller on game end.
-    /// </summary>
-    public void SetWinnerTeam(int team)
-    {
-        State.WinnerTeam = ToNetworkTeam(team);
-        State.Phase = GamePhase.GameOver;
-    }
-
-    /// <summary>
-    /// Set the overtime flag in MatchState.
-    /// </summary>
-    public void SetOvertime(bool isOvertime)
-    {
-        if (State.IsOvertime != isOvertime)
-        {
-            State.IsOvertime = isOvertime;
-            EmitSignal(SignalName.OvertimeChanged, isOvertime);
-        }
-    }
-
-    /// <summary>
-    /// Get the overtime flag from MatchState.
-    /// </summary>
-    public bool GetIsOvertime()
-    {
-        return State.IsOvertime;
-    }
-
-    /// <summary>
-    /// Sync a unit's activation state to MatchState. Called by Unit3D on Activate/Deactivate.
-    /// </summary>
-    public void SyncUnitActivationState(int unitId, int activationState)
-    {
-        if (State.Units.TryGetValue(unitId, out var unit))
-        {
-            unit.ActivationState = activationState;
-        }
     }
 
     // =========================================================================
@@ -819,7 +908,7 @@ public partial class SimulationNode : Node
                     EmitSignal(SignalName.SummonerManaChanged, ToLocalTeam(e.Team), e.Mana, e.MaxMana);
                     break;
                 case CastingStartedEvent e:
-                    EmitSignal(SignalName.CastingStarted, ToLocalTeam(e.Team), e.CardIndex, e.Duration, ToLocal(e.SpawnPosition));
+                    EmitSignal(SignalName.CastingStarted, ToLocalTeam(e.Team), e.CardIndex, e.Duration, ToLocal(e.SpawnPosition), e.CatalogId);
                     break;
                 case CastingCompletedEvent e:
                     EmitSignal(SignalName.CastingCompleted, ToLocalTeam(e.Team), e.CardIndex, ToLocal(e.SpawnPosition), e.NetworkId);

@@ -90,16 +90,21 @@ func _ready() -> void:
 	await _preload_unit_scenes()
 	print("BattleCoordinator: Phase 1.5 complete - Unit scenes cached")
 
+	# Phase 1.75: Initialize win conditions (must happen before SimulationNode so params are available)
+	print("BattleCoordinator: Phase 1.75 - Win conditions...")
+	_init_win_conditions()
+	print("BattleCoordinator: Phase 1.75 complete - Win conditions ready")
+
+	# Phase 1.8: Initialize SimulationNode (must exist before summoner init)
+	print("BattleCoordinator: Phase 1.8 - SimulationNode...")
+	_init_simulation_node()
+	print("BattleCoordinator: Phase 1.8 complete - SimulationNode ready")
+
 	# Phase 2: Initialize summoners (summoners are now the attack targets)
 	print("BattleCoordinator: Phase 2 - Summoners...")
 	_init_summoners()
 	_connect_summoner_combat_signals()
 	print("BattleCoordinator: Phase 2 complete - Summoners ready")
-
-	# Phase 3: Initialize win conditions
-	print("BattleCoordinator: Phase 3 - Win conditions...")
-	_init_win_conditions()
-	print("BattleCoordinator: Phase 3 complete - Win conditions ready")
 
 	# Phase 4: Initialize AI
 	print("BattleCoordinator: Phase 4 - AI...")
@@ -172,6 +177,23 @@ func _preload_unit_scenes() -> void:
 
 	print("BattleCoordinator: Preloaded %d unit scenes (async)" % preloaded_count)
 
+## Create and initialize the SimulationNode (must happen before summoner init)
+func _init_simulation_node() -> void:
+	var sim_script: Script = load("res://scripts/csharp/Simulation/SimulationNode.cs")
+	if sim_script == null:
+		push_error("BattleCoordinator: Failed to load SimulationNode script!")
+		return
+
+	var sim_node: Node = sim_script.new()
+	add_child(sim_node)
+
+	# Initialize with match configuration (pass win condition params from battle config)
+	sim_node.Initialize(
+		preparation_duration, match_duration, win_condition,
+		win_condition_time_limit, win_condition_kill_target
+	)
+	print("BattleCoordinator: SimulationNode created and initialized")
+
 ## Initialize summoners and connect their signals
 func _init_summoners() -> void:
 	if player_summoner == null:
@@ -188,8 +210,21 @@ func _init_summoners() -> void:
 		enemy_summoner.init()
 		print("BattleCoordinator: Enemy summoner initialized")
 
-## Connect summoner combat signals (summoner is now the attack target)
+	# Populate SimulationNode card data after both summoners registered
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node:
+		sim_node.PopulateCardData()
+
+## Connect summoner combat signals and sim game-over signal
 func _connect_summoner_combat_signals() -> void:
+	# Connect to sim's GameOver signal (sim owns win/loss during Battle)
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node:
+		sim_node.connect("GameOver", _on_sim_game_over)
+	else:
+		push_warning("BattleCoordinator: No SimulationNode found for GameOver signal")
+
+	# Legacy summoner_destroyed as fallback (for non-Battle phase or edge cases)
 	if player_summoner:
 		player_summoner.summoner_destroyed.connect(_on_summoner_destroyed)
 	else:
@@ -219,6 +254,12 @@ func _exit_tree() -> void:
 	# Cleanup: disconnect kill tracking signal to prevent memory leak
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
 		get_tree().node_added.disconnect(_on_node_added_for_kill_tracking)
+
+	# Cleanup: disconnect sim GameOver signal
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node and is_instance_valid(sim_node):
+		if sim_node.is_connected("GameOver", _on_sim_game_over):
+			sim_node.disconnect("GameOver", _on_sim_game_over)
 
 ## Comprehensive battle state reset
 ## Clears all units, projectiles, HP bars from the scene
@@ -470,7 +511,19 @@ func _on_game_ended(winner: UnitConstants.Team) -> void:
 				game_over_label.call("add_theme_color_override", "font_color", Color(1.0, 0.3, 0.3))
 		game_over_label.set("visible", true)
 
+## Sim emitted GameOver — the simulation determined a winner via IWinCondition.
+## winner_team is already in local team space (SimulationNode.ToLocalTeam remaps).
+func _on_sim_game_over(winner_team: int, reason: String) -> void:
+	print("BattleCoordinator: Sim GameOver — winner=%d, reason=%s" % [winner_team, reason])
+	end_game(winner_team as UnitConstants.Team)
+
 func _on_summoner_destroyed(summoner: Summoner) -> void:
+	# During Battle, the sim handles win conditions via GameOver signal.
+	# This legacy path remains for edge cases outside Battle phase.
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node and sim_node.GetPhase() == 1:  # 1 = GamePhase.Battle
+		return
+
 	# Only authority evaluates win conditions
 	if not BattleContext.has_authority():
 		return

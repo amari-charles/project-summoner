@@ -117,6 +117,19 @@ public class UnitHealth
     }
 
     /// <summary>
+    /// Sync HP from simulation state. Updates HP and fires OnHpChanged but does NOT trigger death.
+    /// Death is handled by the simulation via UnitDiedSimEvent.
+    /// </summary>
+    public void SyncFromSim(float hp, float maxHp)
+    {
+        bool changed = CurrentHp != hp || MaxHp != maxHp;
+        MaxHp = maxHp;
+        CurrentHp = hp;
+        if (changed)
+            OnHpChanged?.Invoke(CurrentHp, MaxHp);
+    }
+
+    /// <summary>
     /// Reset health state (for respawn/pooling).
     /// </summary>
     public void Reset(float maxHp)

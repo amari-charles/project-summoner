@@ -86,9 +86,12 @@ public static class SimMovement
                 return;
         }
 
-        // Apply velocity
+        // Apply velocity (track distance traveled for charge ability)
         unit.Velocity = velocity;
         var newPos = unit.Position + velocity * delta;
+        float moveDist = (velocity * delta).Length();
+        if (moveDist > 0.001f)
+            unit.DistanceTraveled += moveDist;
 
         // Preserve altitude for flying units
         if (unit.MovementLayer == 1) // Air
@@ -115,13 +118,14 @@ public static class SimMovement
     {
         float direction = unit.Team == 0 ? 1.0f : -1.0f;
         var moveDir = new SimVector3(direction, 0, 0);
+        float effectiveSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
 
         var separation = SimSteering.CalculateSeparation(unit, null, moveDir, state);
         var finalDir = (moveDir + separation);
         if (finalDir.LengthSquared() > 0.001f)
             finalDir = finalDir.Normalized();
 
-        var velocity = finalDir * unit.MoveSpeed;
+        var velocity = finalDir * effectiveSpeed;
         velocity.Y = 0;
 
         return velocity;
@@ -174,13 +178,14 @@ public static class SimMovement
 
         direction = direction.Normalized();
 
+        float effectiveSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
         var separation = SimSteering.CalculateSeparation(unit, excludeUnitId, direction, state);
         var flank = targetUnit != null ? SimSteering.CalculateFlankForce(unit, targetUnit) : SimVector3.Zero;
-        var finalDir = (direction * unit.MoveSpeed + separation + flank);
+        var finalDir = (direction * effectiveSpeed + separation + flank);
         if (finalDir.LengthSquared() > 0.001f)
             finalDir = finalDir.Normalized();
 
-        var velocity = finalDir * unit.MoveSpeed;
+        var velocity = finalDir * effectiveSpeed;
         velocity.Y = 0;
 
         return velocity;
@@ -219,12 +224,13 @@ public static class SimMovement
         if (angleDiff < 0)
             strafeDir = -strafeDir;
 
+        float effectiveSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
         var separation = SimSteering.CalculateSeparation(unit, excludeUnitId, strafeDir, state);
         var finalDir = (strafeDir + separation);
         if (finalDir.LengthSquared() > 0.001f)
             finalDir = finalDir.Normalized();
 
-        var velocity = finalDir * unit.MoveSpeed;
+        var velocity = finalDir * effectiveSpeed;
         velocity.Y = 0;
 
         return velocity;

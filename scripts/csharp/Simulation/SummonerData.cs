@@ -55,6 +55,7 @@ public class SummonerData
     public float CastingTimeRemaining { get; set; }
     public float CastingTimeTotal { get; set; }
     public int CastingCardIndex { get; set; } = -1;
+    public string CastingCatalogId { get; set; } = "";
     public SimVector3 CastingSpawnPosition { get; set; }
     public int CastingNetworkId { get; set; } = -1;
 

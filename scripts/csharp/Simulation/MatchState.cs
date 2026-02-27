@@ -27,6 +27,8 @@ public class MatchState
     public int? WinnerTeam { get; set; }
     public string WinCondition { get; set; } = "";
     public int KillCount { get; set; }
+    public float WinConditionTimeLimit { get; set; }
+    public int WinConditionKillTarget { get; set; }
 
     // Summoners (index 0 = player, index 1 = enemy)
     public SummonerData[] Summoners { get; } = new SummonerData[2]
@@ -56,6 +58,12 @@ public class MatchState
     /// Get the next unique projectile ID for this match.
     /// </summary>
     public int NextProjectileId() => _nextProjectileId++;
+
+    // Delayed effects (death explosions, timed AoE, etc.)
+    public List<DelayedEffect> DelayedEffects { get; } = new();
+
+    // Card data map — sim-local card data populated at match start
+    public Dictionary<string, SimCardData> CardDataMap { get; } = new();
 
     // Pending commands — commands with ExecuteFrame <= FrameNumber are drained each tick
     public List<ICommand> PendingCommandBuffer { get; } = new();
