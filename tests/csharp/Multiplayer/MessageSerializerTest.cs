@@ -9,14 +9,12 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// Tests for MessageSerializer round-trip serialization.
 /// </summary>
-// [TestSuite] — Disabled: Godot.Collections.Dictionary crashes test host in headless mode.
-// These tests pass when run within the Godot editor. Re-enable when gdUnit4 supports
-// skipping suites that require the Godot runtime (GODOT_BIN).
+// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
 public class MessageSerializerTest
 {
     private MessageSerializer _serializer = null!;
 
-    [Before]
+    [BeforeTest]
     public void Setup()
     {
         _serializer = new MessageSerializer();

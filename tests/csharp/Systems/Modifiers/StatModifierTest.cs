@@ -9,8 +9,7 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// Tests for StatModifier, including trigger fields.
 /// </summary>
-// [TestSuite] — Disabled: Godot.Collections.Dictionary crashes test host in headless mode.
-// Run in Godot editor instead. See MessageSerializerTest.cs for details.
+// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
 public class StatModifierTest
 {
     [TestCase]

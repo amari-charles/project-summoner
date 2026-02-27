@@ -23,8 +23,7 @@ using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 /// <summary>
 /// Tests for DtoConverters - centralized Dict↔Domain conversions.
 /// </summary>
-// [TestSuite] — Disabled: Godot.Collections.Dictionary crashes test host in headless mode.
-// Run in Godot editor instead. See MessageSerializerTest.cs for details.
+// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
 public class DtoConvertersTest
 {
     // =========================================================================

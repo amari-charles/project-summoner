@@ -9,13 +9,12 @@ using static GdUnit4.Assertions;
 /// Tests for LevelCapService class.
 /// Tests the static methods directly without needing the Node instance.
 /// </summary>
-// [TestSuite] — Disabled: Godot.Collections.Dictionary crashes test host in headless mode.
-// Run in Godot editor instead. See MessageSerializerTest.cs for details.
+// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
 public class LevelCapServiceTest
 {
     private LevelCapService _service = null!;
 
-    [Before]
+    [BeforeTest]
     public void Setup()
     {
         _service = new LevelCapService();
