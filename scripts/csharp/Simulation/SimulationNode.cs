@@ -45,6 +45,17 @@ public partial class SimulationNode : Node
     private readonly System.Collections.Generic.HashSet<int> _claimedSimUnitIds = new();
 
     /// <summary>
+    /// Whether the first snapshot has been applied (client-side).
+    /// </summary>
+    private bool _firstSnapshotApplied;
+
+    /// <summary>
+    /// Client-side unit ID counter. Uses negative IDs to avoid collision
+    /// with simulation-generated positive IDs on the host.
+    /// </summary>
+    private int _nextClientUnitId = -1;
+
+    /// <summary>
     /// Fixed timestep for simulation ticks (60 Hz).
     /// </summary>
     public const float FIXED_DELTA = 1.0f / 60.0f;
@@ -87,6 +98,16 @@ public partial class SimulationNode : Node
     /// Convert network team (MatchState) to local team (for signal emission to GDScript).
     /// </summary>
     private int ToLocalTeam(int networkTeam) => RemapTeam(networkTeam);
+
+    /// <summary>
+    /// Type-safe: convert local team to network team.
+    /// </summary>
+    public NetworkTeam ToNetworkTeam(LocalTeam local) => new(RemapTeam(local.Value));
+
+    /// <summary>
+    /// Type-safe: convert network team to local team.
+    /// </summary>
+    public LocalTeam ToLocalTeam(NetworkTeam network) => new(RemapTeam(network.Value));
 
     /// <summary>
     /// Convert local-space position to canonical (MatchState) coordinates.
@@ -152,6 +173,18 @@ public partial class SimulationNode : Node
     [Signal] public delegate void GameOverEventHandler(int winnerTeam, string reason);
     [Signal] public delegate void OvertimeChangedEventHandler(bool isOvertime);
 
+    /// <summary>
+    /// Emitted when a snapshot updates a summoner's hand/deck (client-side).
+    /// Team is in local space so GDScript can filter by team.
+    /// </summary>
+    [Signal] public delegate void SummonerHandUpdatedEventHandler(int team);
+
+    /// <summary>
+    /// Emitted once when the first snapshot is applied (client-side).
+    /// GDScript awaits this before calling start_game().
+    /// </summary>
+    [Signal] public delegate void FirstSnapshotAppliedEventHandler();
+
     // New simulation-driven unit events
     [Signal] public delegate void UnitAttackedEventHandler(int attackerUnitId, int targetUnitId);
     [Signal] public delegate void UnitDamagedEventHandler(int targetUnitId, int attackerUnitId, float damage, bool isCrit);
@@ -205,12 +238,14 @@ public partial class SimulationNode : Node
     /// <summary>
     /// Initialize the simulation with match configuration.
     /// Called by GameController3D during _ready().
+    /// Seed is passed directly from BattleContext (no MatchSession dependency).
     /// </summary>
     public void Initialize(float prepDuration, float matchDuration, string winCondition,
-        float winConditionTimeLimit = 0f, int winConditionKillTarget = 0)
+        float winConditionTimeLimit = 0f, int winConditionKillTarget = 0, long seed = 0)
     {
-        // Use match seed from MatchSession if in multiplayer, otherwise use a time-based seed
-        long seed = MatchSession.Current?.Seed ?? System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        // Use passed seed, fall back to system clock for single-player
+        if (seed == 0)
+            seed = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         State = new MatchState
         {
@@ -696,6 +731,34 @@ public partial class SimulationNode : Node
             summoner.CastingCardIndex = ss.CastingCardIndex;
             summoner.CastingSpawnPosition = new SimVector3(ss.CastingSpawnPosition.X, ss.CastingSpawnPosition.Y, ss.CastingSpawnPosition.Z);
             summoner.CastingNetworkId = ss.CastingNetworkId;
+
+            // Hand/Deck/Discard — overwrite from host snapshot
+            if (ss.Hand != null && ss.Hand.Length > 0)
+            {
+                bool handChanged = !summoner.Hand.SequenceEqual(ss.Hand);
+                if (handChanged)
+                {
+                    summoner.Hand.Clear();
+                    summoner.Hand.AddRange(ss.Hand);
+                }
+
+                summoner.Deck.Clear();
+                summoner.Deck.AddRange(ss.Deck ?? System.Array.Empty<string>());
+
+                summoner.DiscardPile.Clear();
+                summoner.DiscardPile.AddRange(ss.DiscardPile ?? System.Array.Empty<string>());
+
+                // Populate CardDataMap for any new catalog IDs the client hasn't seen
+                var processed = new HashSet<string>(State.CardDataMap.Keys);
+                foreach (var id in ss.Hand) PopulateSingleCard(id, processed);
+                foreach (var id in ss.Deck ?? System.Array.Empty<string>()) PopulateSingleCard(id, processed);
+                foreach (var id in ss.DiscardPile ?? System.Array.Empty<string>()) PopulateSingleCard(id, processed);
+
+                if (handChanged)
+                {
+                    EmitSignal(SignalName.SummonerHandUpdated, localTeam);
+                }
+            }
         }
 
         // Overtime
@@ -705,28 +768,51 @@ public partial class SimulationNode : Node
             EmitSignal(SignalName.OvertimeChanged, snapshot.IsOvertime);
         }
 
-        // Unit state corrections (position, HP, targeting, activation)
+        // Unit state sync: create/update/remove to keep client State.Units
+        // in sync with the host. Without this, client State.Units stays empty
+        // (no Tick() → no UnitRegisteredEvent) and hashes never converge.
+
+        // Build lookup of existing units by NetworkId for O(1) matching
+        var unitsByNetworkId = new Dictionary<int, UnitData>();
+        foreach (var kvp in State.Units)
+        {
+            if (kvp.Value.NetworkId >= 0)
+                unitsByNetworkId[kvp.Value.NetworkId] = kvp.Value;
+        }
+
         var snapshotNetworkIds = new System.Collections.Generic.HashSet<int>(snapshot.Units.Length);
         foreach (var unitState in snapshot.Units)
         {
             snapshotNetworkIds.Add(unitState.NetworkId);
 
-            foreach (var kvp in State.Units)
+            if (unitsByNetworkId.TryGetValue(unitState.NetworkId, out var existingUnit))
             {
-                if (kvp.Value.NetworkId != unitState.NetworkId) continue;
-                var unit = kvp.Value;
-
+                // UPDATE existing unit
                 var snapshotSimPos = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z);
-                if (unit.Position.DistanceTo(snapshotSimPos) > 0.5f)
-                    unit.Position = snapshotSimPos;
-                // Always write HP/alive from host snapshot to MatchState.
-                // Combat runs independently on both sides, so any tolerance
-                // creates hash mismatches (quantized at 0.1 HP precision).
-                unit.CurrentHp = unitState.Hp;
-                unit.IsAlive = unitState.IsAlive;
-                unit.TargetNetworkId = unitState.TargetNetworkId;
-                unit.ActivationState = unitState.ActivationState;
-                break;
+                if (existingUnit.Position.DistanceTo(snapshotSimPos) > 0.5f)
+                    existingUnit.Position = snapshotSimPos;
+                existingUnit.CurrentHp = unitState.Hp;
+                existingUnit.IsAlive = unitState.IsAlive;
+                existingUnit.TargetNetworkId = unitState.TargetNetworkId;
+                existingUnit.ActivationState = unitState.ActivationState;
+            }
+            else
+            {
+                // CREATE new unit entry the client hasn't seen yet
+                int clientUnitId = _nextClientUnitId--;
+                var newUnit = new UnitData
+                {
+                    UnitId = clientUnitId,
+                    NetworkId = unitState.NetworkId,
+                    Team = -1, // Unknown from snapshot alone — not needed for hash
+                    CurrentHp = unitState.Hp,
+                    MaxHp = unitState.Hp, // Best approximation from snapshot
+                    IsAlive = unitState.IsAlive,
+                    Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z),
+                    TargetNetworkId = unitState.TargetNetworkId,
+                    ActivationState = unitState.ActivationState
+                };
+                State.Units[clientUnitId] = newUnit;
             }
         }
 
@@ -740,6 +826,13 @@ public partial class SimulationNode : Node
                 kvp.Value.IsAlive = false;
                 kvp.Value.CurrentHp = 0;
             }
+        }
+
+        // Emit first-snapshot signal once so GDScript can start the game
+        if (!_firstSnapshotApplied)
+        {
+            _firstSnapshotApplied = true;
+            EmitSignal(SignalName.FirstSnapshotApplied);
         }
     }
 

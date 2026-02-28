@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
+using Fateforged.Simulation;
 using ProjectSummoner.Units;
 
 namespace Fateforged.Multiplayer.Sync;
@@ -213,7 +214,13 @@ public class DesyncDetector
                     var teamVar = summoner.Get("team");
                     if (teamVar.VariantType == Variant.Type.Nil) continue;
 
-                    if (teamVar.AsInt32() == summonerState.Team)
+                    // GDScript "team" is in local perspective; snapshot Team is in network perspective.
+                    // Convert local → network before comparing so client-side doesn't false-match.
+                    var localTeam = new LocalTeam(teamVar.AsInt32());
+                    var networkTeam = SimulationNode.Current?.ToNetworkTeam(localTeam)
+                        ?? new NetworkTeam(localTeam.Value);
+
+                    if (networkTeam.Value == summonerState.Team)
                     {
                         // Log HP discrepancy (would need to call take_damage or heal to correct)
                         var currentHpVar = summoner.Get("current_hp");
@@ -222,7 +229,7 @@ public class DesyncDetector
                             float currentHp = currentHpVar.AsSingle();
                             if (Mathf.Abs(currentHp - summonerState.Hp) > 1f)
                             {
-                                GD.PrintErr($"[DesyncDetector] Summoner team {summonerState.Team} HP mismatch: {currentHp} vs {summonerState.Hp}");
+                                GD.PrintErr($"[DesyncDetector] Summoner {networkTeam} HP mismatch: {currentHp} vs {summonerState.Hp}");
                             }
                         }
                         break;

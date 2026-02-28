@@ -1,3 +1,5 @@
+using System;
+
 namespace Fateforged.Multiplayer.Core;
 
 /// <summary>
@@ -47,6 +49,7 @@ public static class LocalPlayer
     /// Convert network team index to local team enum.
     /// Local player is always PLAYER (0), opponent is always ENEMY (1).
     /// </summary>
+    [Obsolete("Use NetworkToLocal(NetworkTeam) for type safety")]
     public static int NetworkTeamToLocal(int networkTeam)
     {
         return networkTeam == NetworkIndex ? 0 : 1;  // 0 = PLAYER, 1 = ENEMY
@@ -55,10 +58,23 @@ public static class LocalPlayer
     /// <summary>
     /// Convert local team enum to network team index.
     /// </summary>
+    [Obsolete("Use LocalToNetwork(LocalTeam) for type safety")]
     public static int LocalTeamToNetwork(int localTeam)
     {
         // If localTeam is PLAYER (0), return our network index
         // If localTeam is ENEMY (1), return opponent's network index
         return localTeam == 0 ? NetworkIndex : (1 - NetworkIndex);
     }
+
+    /// <summary>
+    /// Type-safe: convert local team to network team.
+    /// </summary>
+    public static NetworkTeam LocalToNetwork(LocalTeam local) =>
+        new(local.Value == 0 ? NetworkIndex : (1 - NetworkIndex));
+
+    /// <summary>
+    /// Type-safe: convert network team to local team.
+    /// </summary>
+    public static LocalTeam NetworkToLocal(NetworkTeam network) =>
+        new(network.Value == NetworkIndex ? 0 : 1);
 }

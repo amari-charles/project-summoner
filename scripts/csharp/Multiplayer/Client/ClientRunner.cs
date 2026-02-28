@@ -63,11 +63,16 @@ public class ClientRunner : IMatchRunner
         _snapshotBuilder = new StateSnapshotBuilder(session);
         _desyncDetector = new DesyncDetector(session);
 
-        // Client never runs Tick()
+        // Wire up to SimulationNode (must exist — created before MatchSession in phase order)
         if (SimulationNode.Current != null)
         {
             SimulationNode.Current.IsHost = false;
             SimulationNode.Current.LocalPlayerIndex = session.LocalPlayerIndex;
+            GD.Print($"[ClientRunner] Connected to SimulationNode (LocalPlayerIndex={session.LocalPlayerIndex})");
+        }
+        else
+        {
+            GD.PrintErr("[ClientRunner] SimulationNode.Current is null during Initialize — this is a bug");
         }
 
         GD.Print("[ClientRunner] Initialized");
@@ -324,11 +329,12 @@ public class ClientRunner : IMatchRunner
     {
         if (_session == null || SimulationNode.Current == null) return;
 
-        // Convert network team to local team for signal emission
-        int localTeam = SimulationNode.Current.RemapTeam(summonerDamage.Team);
-        var summoner = SimulationNode.Current.State.Summoners[summonerDamage.Team];
+        // SummonerDamaged.Team is in network perspective — convert to local for signal emission
+        var networkTeam = new NetworkTeam(summonerDamage.Team);
+        var localTeam = SimulationNode.Current.ToLocalTeam(networkTeam);
+        var summoner = SimulationNode.Current.State.Summoners[networkTeam.Value];
 
-        SimulationNode.Current.EmitSignal(SimulationNode.SignalName.SummonerHpChanged, localTeam, summonerDamage.NewHp, summoner.MaxHp);
+        SimulationNode.Current.EmitSignal(SimulationNode.SignalName.SummonerHpChanged, localTeam.Value, summonerDamage.NewHp, summoner.MaxHp);
     }
 
     private void HandlePong(Pong pong)
