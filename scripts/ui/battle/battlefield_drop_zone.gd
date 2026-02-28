@@ -511,7 +511,5 @@ func _find_debug_arena_controller() -> DebugArenaController:
 func _activate_recent_spawns() -> void:
 	var units: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.UNITS)
 	for unit: Node in units:
-		# Type-safe check for C# Unit3D
-		if unit is Unit3D:
-			if not unit.IsActive():
-				unit.Activate()
+		if unit.has_method("IsActive") and not unit.IsActive():
+			unit.Activate()

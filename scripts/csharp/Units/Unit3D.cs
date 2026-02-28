@@ -942,7 +942,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Host broadcasts UnitDied to clients
         if (session.IsHost)
         {
-            var deathMessage = new UnitDied(NetworkId, null); // TODO: Track killer NetworkId
+            var deathMessage = new UnitDied(NetworkId, null);
             session.Broadcast(deathMessage);
             GD.Print($"[Unit3D] Broadcast UnitDied for NetworkId {NetworkId}");
         }
@@ -1896,89 +1896,29 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // DEBUG VISUALIZATION
     // =========================================================================
 
-    private static bool _debugHurtboxEnabled;
-    private static bool _debugTargetPointEnabled;
-    private static bool _debugAttackRangeEnabled;
-    private static bool _debugSeparationRadiusEnabled;
-
     private MeshInstance3D? _debugHurtboxMarker;
     private MeshInstance3D? _debugTargetPointMarker;
     private MeshInstance3D? _debugAttackRangeMarker;
     private MeshInstance3D? _debugSeparationRadiusMarker;
 
-    /// <summary>
-    /// Toggle debug hurtbox visualization for all units.
-    /// </summary>
-    public static void ToggleDebugHurtbox()
-    {
-        _debugHurtboxEnabled = !_debugHurtboxEnabled;
-        GD.Print($"[Unit3D] Debug Hurtbox: {(_debugHurtboxEnabled ? "ON" : "OFF")}");
-    }
-
-    /// <summary>
-    /// Toggle debug target point visualization for all units.
-    /// </summary>
-    public static void ToggleDebugTargetPoint()
-    {
-        _debugTargetPointEnabled = !_debugTargetPointEnabled;
-        GD.Print($"[Unit3D] Debug Target Point: {(_debugTargetPointEnabled ? "ON" : "OFF")}");
-    }
-
-    /// <summary>
-    /// Toggle debug attack range visualization for all units.
-    /// </summary>
-    public static void ToggleDebugAttackRange()
-    {
-        _debugAttackRangeEnabled = !_debugAttackRangeEnabled;
-        GD.Print($"[Unit3D] Debug Attack Range: {(_debugAttackRangeEnabled ? "ON" : "OFF")}");
-    }
-
-    /// <summary>
-    /// Check if debug hurtbox visualization is enabled.
-    /// </summary>
-    public static bool IsDebugHurtboxEnabled() => _debugHurtboxEnabled;
-
-    /// <summary>
-    /// Check if debug target point visualization is enabled.
-    /// </summary>
-    public static bool IsDebugTargetPointEnabled() => _debugTargetPointEnabled;
-
-    /// <summary>
-    /// Check if debug attack range visualization is enabled.
-    /// </summary>
-    public static bool IsDebugAttackRangeEnabled() => _debugAttackRangeEnabled;
-
-    /// <summary>
-    /// Toggle debug separation radius visualization for all units.
-    /// </summary>
-    public static void ToggleDebugSeparationRadius()
-    {
-        _debugSeparationRadiusEnabled = !_debugSeparationRadiusEnabled;
-        GD.Print($"[Unit3D] Debug Separation Radius: {(_debugSeparationRadiusEnabled ? "ON" : "OFF")}");
-    }
-
-    /// <summary>
-    /// Check if debug separation radius visualization is enabled.
-    /// </summary>
-    public static bool IsDebugSeparationRadiusEnabled() => _debugSeparationRadiusEnabled;
-
-    // Set methods for loading saved settings
-    public static void SetDebugHurtboxEnabled(bool enabled) => _debugHurtboxEnabled = enabled;
-    public static void SetDebugTargetPointEnabled(bool enabled) => _debugTargetPointEnabled = enabled;
-    public static void SetDebugAttackRangeEnabled(bool enabled) => _debugAttackRangeEnabled = enabled;
-    public static void SetDebugSeparationRadiusEnabled(bool enabled) => _debugSeparationRadiusEnabled = enabled;
+    // Debug state is held by UnitDebugService (autoload, accessible from GDScript).
+    // These helpers read from the singleton for convenience within Unit3D.
+    private static bool IsDebugHurtboxEnabled() => UnitDebugService.Instance?.HurtboxEnabled ?? false;
+    private static bool IsDebugTargetPointEnabled() => UnitDebugService.Instance?.TargetPointEnabled ?? false;
+    private static bool IsDebugAttackRangeEnabled() => UnitDebugService.Instance?.AttackRangeEnabled ?? false;
+    private static bool IsDebugSeparationRadiusEnabled() => UnitDebugService.Instance?.SeparationRadiusEnabled ?? false;
 
     public override void _Process(double delta)
     {
         // Early out if no debug mode is active and no cleanup needed
-        bool anyDebugEnabled = _debugHurtboxEnabled || _debugTargetPointEnabled || _debugAttackRangeEnabled || _debugSeparationRadiusEnabled;
+        bool anyDebugEnabled = (UnitDebugService.Instance?.AnyEnabled) ?? false;
         bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null || _debugAttackRangeMarker != null || _debugSeparationRadiusMarker != null;
 
         if (!anyDebugEnabled && !anyMarkerExists)
             return;
 
         // Hurtbox debug visualization
-        if (_debugHurtboxEnabled)
+        if (IsDebugHurtboxEnabled())
         {
             UpdateDebugHurtboxMarker();
         }
@@ -1989,7 +1929,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         // Target point debug visualization
-        if (_debugTargetPointEnabled)
+        if (IsDebugTargetPointEnabled())
         {
             UpdateDebugTargetPointMarker();
         }
@@ -2000,7 +1940,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         // Attack range debug visualization
-        if (_debugAttackRangeEnabled)
+        if (IsDebugAttackRangeEnabled())
         {
             UpdateDebugAttackRangeMarker();
         }
@@ -2011,7 +1951,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         }
 
         // Separation radius debug visualization
-        if (_debugSeparationRadiusEnabled)
+        if (IsDebugSeparationRadiusEnabled())
         {
             UpdateDebugSeparationRadiusMarker();
         }

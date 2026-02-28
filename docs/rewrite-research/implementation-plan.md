@@ -2,7 +2,7 @@
 
 > **Purpose**: Phase-by-phase plan for fixing the simulation architecture. Each phase is self-contained, independently testable, and designed for AI execution with clear entry/exit criteria.
 >
-> **Status**: In progress — Pre-Work + Phase 0 complete (2026-02-26)
+> **Status**: Complete — All phases done (2026-02-27)
 >
 > **Branch**: `feature/host-authoritative-sim` (created from `main`)
 >
@@ -10,6 +10,14 @@
 > - [x] Pre-Work: Branch setup + sim core files copied
 > - [x] Pre-Work: Sim core fixes (SimVector3, Tick Order Contract, PendingCommandBuffer, no using Godot)
 > - [x] Phase 0: Host-only Tick + fixed timestep accumulator
+> - [x] Phase 1: Data model foundation (damage types, groups, effects)
+> - [x] Phase 2: Command-based card play + prep→battle transition
+> - [x] Phase 3: Read-only Unit3D
+> - [x] Phase 4: Summoner damage + flexible win conditions
+> - [x] Phase 5: Abilities & triggers in simulation
+> - [x] Phase 6: Spell cards via effect system
+> - [x] Phase 7: Wire multiplayer
+> - [x] Phase 8: Dead code removal & polish
 
 ---
 
@@ -537,5 +545,5 @@
 
 ---
 
-*Last updated: 2026-02-22*
-*Status: Finalized*
+*Last updated: 2026-02-27*
+*Status: All phases complete*

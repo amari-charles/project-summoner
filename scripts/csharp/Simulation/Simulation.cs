@@ -60,40 +60,46 @@ public class Simulation
         // Step 4: Tick casting
         TickCasting(fixedDelta, events);
 
-        // Step 5: Tick units (only during Battle)
+        // Step 5: Tick spawn timers — activate units whose spawn timer expired
+        if (_state.Phase == GamePhase.Battle)
+        {
+            TickSpawnTimers(fixedDelta);
+        }
+
+        // Step 6: Tick units (only during Battle)
         if (_state.Phase == GamePhase.Battle)
         {
             TickUnits(fixedDelta, events);
         }
 
-        // Step 6: Tick projectiles (only during Battle)
+        // Step 7: Tick projectiles (only during Battle)
         if (_state.Phase == GamePhase.Battle)
         {
             SimProjectile.TickAll(_state, fixedDelta, events);
         }
 
-        // Step 7: Tick effects (buffs, periodic triggers, HP threshold triggers)
+        // Step 8: Tick effects (buffs, periodic triggers, HP threshold triggers)
         if (_state.Phase == GamePhase.Battle)
         {
             SimEffects.TickBuffs(_state, fixedDelta, events);
         }
 
-        // Step 8: Tick delayed effects (death explosions, timed AoE)
+        // Step 9: Tick delayed effects (death explosions, timed AoE)
         if (_state.Phase == GamePhase.Battle)
         {
             SimEffects.TickDelayedEffects(_state, fixedDelta, events);
         }
 
-        // Step 9: Death cleanup
+        // Step 10: Death cleanup
         TickDeathCleanup(fixedDelta, events);
 
-        // Step 10: Evaluate win conditions (Battle phase only)
+        // Step 11: Evaluate win conditions (Battle phase only)
         if (_state.Phase == GamePhase.Battle)
         {
             EvaluateWinConditions(events);
         }
 
-        // Step 11: Return events
+        // Step 12: Return events
         return events;
     }
 
@@ -226,7 +232,7 @@ public class Simulation
         }
         else
         {
-            SpawnUnitsFromCard(cardData, cmd.Team, cmd.SpawnPosition, events);
+            SpawnUnitsFromCard(cardData, cmd.Team, cmd.SpawnPosition, effectiveSummonTime, events);
         }
 
         // Hand management: remove played card, discard, draw replacement
@@ -416,10 +422,31 @@ public class Simulation
     }
 
     /// <summary>
+    /// Tick spawn timers for inactive units. When a unit's SpawnTimer reaches 0, activate it.
+    /// Runs during Battle phase only — prep-spawned units are activated by ActivateAllUnits instead.
+    /// </summary>
+    private void TickSpawnTimers(float fixedDelta)
+    {
+        foreach (var unit in _state.Units.Values)
+        {
+            if (!unit.IsAlive) continue;
+            if (unit.ActivationState == (int)ProjectSummoner.Units.ActivationState.Active) continue;
+            if (unit.SpawnTimer <= 0f) continue;
+
+            unit.SpawnTimer -= fixedDelta;
+            if (unit.SpawnTimer <= 0f)
+            {
+                unit.SpawnTimer = 0f;
+                unit.ActivationState = (int)ProjectSummoner.Units.ActivationState.Active;
+            }
+        }
+    }
+
+    /// <summary>
     /// Create UnitData entries from a card's unit templates.
     /// Units are spread around the spawn position.
     /// </summary>
-    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, List<SimEvent> events)
+    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, float spawnTimer, List<SimEvent> events)
     {
         int unitIndex = 0;
         int totalUnits = 0;
@@ -467,10 +494,10 @@ public class Simulation
                     PhysicalDefense = template.PhysicalDefense,
                     MagicDefense = template.MagicDefense,
                     Evasion = template.Evasion,
-                    // Inactive during Preparation, active during Battle
-                    ActivationState = _state.Phase == GamePhase.Battle
-                        ? (int)ProjectSummoner.Units.ActivationState.Active
-                        : (int)ProjectSummoner.Units.ActivationState.Inactive
+                    // Always spawn inactive — self-activates when SpawnTimer expires (battle)
+                    // or when prep→battle transition fires (preparation)
+                    ActivationState = (int)ProjectSummoner.Units.ActivationState.Inactive,
+                    SpawnTimer = spawnTimer
                 };
 
                 _state.Units[unitId] = unitData;

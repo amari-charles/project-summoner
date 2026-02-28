@@ -112,6 +112,10 @@ public class UnitData
     // Activation
     public int ActivationState { get; set; }
 
+    // Spawn timer — unit stays Inactive until this counts down to 0, then self-activates.
+    // Set to casting duration at spawn time. 0 = no pending activation.
+    public float SpawnTimer { get; set; }
+
     // Legacy field — kept for snapshot compatibility during migration
     public int? TargetNetworkId { get; set; }
 }

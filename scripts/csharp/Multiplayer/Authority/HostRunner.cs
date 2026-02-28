@@ -4,12 +4,15 @@ using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Multiplayer.Sync;
+using Fateforged.Simulation;
 
 namespace Fateforged.Multiplayer.Authority;
 
 /// <summary>
 /// Runs the authoritative simulation on the host side.
-/// Validates client requests, runs the game, and broadcasts state to clients.
+/// Subscribes to SimulationNode.OnTickCompleted to convert SimEvents into
+/// protocol messages for broadcast to clients. Validates client requests
+/// and submits commands to the simulation.
 /// </summary>
 public class HostRunner : IMatchRunner
 {
@@ -30,11 +33,6 @@ public class HostRunner : IMatchRunner
     private const double SnapshotInterval = 0.1;
 
     /// <summary>
-    /// Sequence counter for host's own card plays.
-    /// </summary>
-    private int _localSequence;
-
-    /// <summary>
     /// Get the desync detector for debugging/monitoring.
     /// </summary>
     public DesyncDetector? DesyncDetector => _desyncDetector;
@@ -43,19 +41,23 @@ public class HostRunner : IMatchRunner
     {
         _session = session;
         _snapshotTimer = 0;
-        _localSequence = 0;
         _snapshotBuilder = new StateSnapshotBuilder(session);
         _desyncDetector = new DesyncDetector(session);
 
         _desyncDetector.OnDesyncDetected += OnDesyncDetected;
+
+        // Subscribe to simulation tick events for broadcasting to clients
+        if (SimulationNode.Current != null)
+        {
+            SimulationNode.Current.OnTickCompleted += HandleTickEvents;
+            SimulationNode.Current.LocalPlayerIndex = 0; // Host is always player 0
+        }
 
         GD.Print("[HostRunner] Initialized");
     }
 
     private void OnDesyncDetected(DesyncEvent desyncEvent)
     {
-        // When desync is detected, immediately send a full state snapshot
-        // to help the client resync
         GD.PrintErr($"[HostRunner] Desync detected at frame {desyncEvent.Frame}, sending full snapshot");
         BroadcastSnapshot();
     }
@@ -64,8 +66,12 @@ public class HostRunner : IMatchRunner
     {
         if (_session == null) return;
 
-        _session.CurrentFrame++;
-        _session.MatchTime += (float)delta;
+        // Sync MatchSession frame/time FROM MatchState (SimulationNode owns these)
+        if (SimulationNode.Current != null)
+        {
+            _session.CurrentFrame = SimulationNode.Current.State.FrameNumber;
+            _session.MatchTime = SimulationNode.Current.State.MatchTime;
+        }
 
         // Broadcast periodic state snapshots to clients
         _snapshotTimer += delta;
@@ -102,27 +108,20 @@ public class HostRunner : IMatchRunner
 
     public void RequestCardPlay(int cardIndex, Vector3 position)
     {
-        if (_session == null) return;
+        if (_session == null || SimulationNode.Current == null) return;
 
-        // Host plays cards directly (self-request)
-        var request = new CardPlayRequest(
-            _localSequence++,
-            _session.LocalPlayerIndex,
-            cardIndex,
-            position,
-            DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-        );
+        // Convert local position to canonical for the simulation
+        var canonicalPos = CoordinateTransform.LocalToCanonical(position);
+        var simPos = new SimVector3(canonicalPos.X, canonicalPos.Y, canonicalPos.Z);
 
-        // Validate our own request
-        var validation = _validator.ValidateCardPlay(_session, request);
-        if (!validation.IsValid)
-        {
-            GD.PrintErr($"[HostRunner] Self card play rejected: {validation.Reason}");
-            return;
-        }
+        // Reserve network ID for spawned unit
+        var networkId = _session.NetworkIds.NextIdWithoutRegistering();
 
-        // Execute and broadcast
-        ExecuteCardPlay(request);
+        // Create and submit command to simulation
+        var cmd = new PlayCardCommand(0, cardIndex, simPos, networkId); // Host is team 0
+        SimulationNode.Current.SubmitCommand(cmd);
+
+        GD.Print($"[HostRunner] Host card play: card {cardIndex} at {canonicalPos}, networkId {networkId}");
     }
 
     public void RequestForfeit()
@@ -138,6 +137,12 @@ public class HostRunner : IMatchRunner
 
     public void Cleanup()
     {
+        // Unsubscribe from simulation events
+        if (SimulationNode.Current != null)
+        {
+            SimulationNode.Current.OnTickCompleted -= HandleTickEvents;
+        }
+
         if (_desyncDetector != null)
         {
             _desyncDetector.OnDesyncDetected -= OnDesyncDetected;
@@ -149,11 +154,111 @@ public class HostRunner : IMatchRunner
         GD.Print("[HostRunner] Cleaned up");
     }
 
+    #region Tick Event Handler
+
+    /// <summary>
+    /// Convert key SimEvents to protocol messages and broadcast to clients.
+    /// Called after each simulation tick via OnTickCompleted delegate.
+    /// </summary>
+    private void HandleTickEvents(List<SimEvent> events)
+    {
+        if (_session == null) return;
+
+        var state = SimulationNode.Current?.State;
+        if (state == null) return;
+
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case CastingCompletedEvent e:
+                {
+                    // Find the spawned unit's catalog ID from MatchState
+                    string unitType = "unknown";
+                    foreach (var kvp in state.Units)
+                    {
+                        if (kvp.Value.NetworkId == e.NetworkId)
+                        {
+                            unitType = kvp.Value.CatalogId;
+                            break;
+                        }
+                    }
+
+                    var pos = new Vector3(e.SpawnPosition.X, e.SpawnPosition.Y, e.SpawnPosition.Z);
+                    var spawn = new UnitSpawned(
+                        e.NetworkId,
+                        unitType,
+                        e.Team,
+                        pos,
+                        state.FrameNumber,
+                        null,
+                        e.Team
+                    );
+                    _session.Broadcast(spawn);
+                    break;
+                }
+
+                case UnitDiedSimEvent e:
+                {
+                    // Map UnitId → NetworkId
+                    int networkId = -1;
+                    int? killerNetworkId = null;
+
+                    if (state.Units.TryGetValue(e.UnitId, out var deadUnit))
+                        networkId = deadUnit.NetworkId;
+                    if (e.KillerUnitId >= 0 && state.Units.TryGetValue(e.KillerUnitId, out var killerUnit))
+                        killerNetworkId = killerUnit.NetworkId;
+
+                    if (networkId >= 0)
+                    {
+                        _session.Broadcast(new UnitDied(networkId, killerNetworkId));
+                    }
+                    break;
+                }
+
+                case UnitDamagedEvent e:
+                {
+                    // Map UnitIds → NetworkIds
+                    int targetNetworkId = -1;
+                    int? sourceNetworkId = null;
+
+                    if (state.Units.TryGetValue(e.TargetUnitId, out var targetUnit))
+                        targetNetworkId = targetUnit.NetworkId;
+                    if (e.AttackerUnitId >= 0 && state.Units.TryGetValue(e.AttackerUnitId, out var attackerUnit))
+                        sourceNetworkId = attackerUnit.NetworkId;
+
+                    if (targetNetworkId >= 0)
+                    {
+                        _session.Broadcast(new DamageDealt(targetNetworkId, e.Damage, e.IsCrit, sourceNetworkId));
+                    }
+                    break;
+                }
+
+                case SummonerHpChangedEvent e:
+                {
+                    // Compute damage amount from the difference
+                    var summoner = state.Summoners[e.Team];
+                    float amount = summoner.MaxHp - e.Hp; // Total damage taken (cumulative)
+                    _session.Broadcast(new SummonerDamaged(e.Team, amount, e.Hp));
+                    break;
+                }
+
+                case GameOverEvent e:
+                {
+                    _session.Broadcast(new MatchEnded(e.WinnerTeam, e.Reason, state.MatchTime));
+                    break;
+                }
+            }
+        }
+    }
+
+    #endregion
+
     #region Message Handlers
 
     private void HandleCardPlayRequest(int senderId, CardPlayRequest request)
     {
-        if (_session == null) return;
+        if (_session == null || SimulationNode.Current == null) return;
 
         GD.Print($"[HostRunner] Received CardPlayRequest from peer {senderId}: card {request.CardIndex} at {request.Position}");
 
@@ -170,8 +275,28 @@ public class HostRunner : IMatchRunner
             return;
         }
 
-        // Execute the card play
-        ExecuteCardPlay(request);
+        // Client sends position in canonical coordinates (client applies LocalToCanonical before sending)
+        var simPos = new SimVector3(request.Position.X, request.Position.Y, request.Position.Z);
+
+        // Reserve network ID for the spawned unit
+        var networkId = _session.NetworkIds.NextIdWithoutRegistering();
+
+        // Submit command to simulation
+        var cmd = new PlayCardCommand(request.PlayerIndex, request.CardIndex, simPos, networkId);
+        SimulationNode.Current.SubmitCommand(cmd);
+
+        // Broadcast confirmation to client
+        var confirmation = new CardPlayConfirmed(
+            request.Sequence,
+            request.PlayerIndex,
+            request.CardIndex,
+            request.Position,
+            _session.CurrentFrame,
+            networkId
+        );
+        _session.Broadcast(confirmation);
+
+        GD.Print($"[HostRunner] Accepted card play: player {request.PlayerIndex}, card {request.CardIndex}, networkId {networkId}");
     }
 
     private void HandleForfeitRequest(int senderId, ForfeitRequest request)
@@ -191,7 +316,6 @@ public class HostRunner : IMatchRunner
     {
         if (_session == null || _desyncDetector == null) return;
 
-        // Use DesyncDetector to check client hash
         _desyncDetector.CheckClientHash(report.Hash, report.Frame);
     }
 
@@ -203,54 +327,6 @@ public class HostRunner : IMatchRunner
             ping.Timestamp,
             DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
         ));
-    }
-
-    #endregion
-
-    #region Execution
-
-    private void ExecuteCardPlay(CardPlayRequest request)
-    {
-        if (_session == null) return;
-
-        // TODO(Phase-4): Integrate with actual card execution system
-        // Currently broadcasts confirmation and spawn messages without actually spawning units.
-        // Phase 4 will:
-        // 1. Look up the card from the player's hand
-        // 2. Validate mana cost and deduct mana
-        // 3. Call UnitSpawner to create the actual unit
-        // 4. Register the spawned unit (not a placeholder) with NetworkIdRegistry
-        // For now, we reserve a network ID and broadcast the intent.
-
-        // Reserve network ID for the unit that will be spawned
-        // Note: The actual unit registration happens in UnitSpawner when the unit is created
-        var networkId = _session.NetworkIds.NextIdWithoutRegistering();
-
-        // Broadcast confirmation
-        var confirmation = new CardPlayConfirmed(
-            request.Sequence,
-            request.PlayerIndex,
-            request.CardIndex,
-            request.Position,
-            _session.CurrentFrame,
-            networkId
-        );
-        _session.Broadcast(confirmation);
-
-        // Broadcast unit spawn intent
-        // TODO(Phase-4): Get actual unit type from card catalog lookup
-        var spawn = new UnitSpawned(
-            networkId,
-            $"card_{request.CardIndex}", // Placeholder unit type until card lookup is implemented
-            request.PlayerIndex, // Team = player index
-            request.Position,
-            _session.CurrentFrame,
-            request.Sequence,
-            request.PlayerIndex
-        );
-        _session.Broadcast(spawn);
-
-        GD.Print($"[HostRunner] Executed card play: player {request.PlayerIndex}, card {request.CardIndex}, networkId {networkId}");
     }
 
     #endregion

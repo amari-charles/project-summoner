@@ -37,36 +37,3 @@ public record SlowOnHitConfig(
     }
 }
 
-/// <summary>
-/// Configuration for DeathExplosionAbility.
-/// Triggers an AoE explosion when the unit dies.
-/// </summary>
-public record DeathExplosionConfig(
-    float Radius = 3.0f,
-    float Damage = 50.0f,
-    string DamageType = "fire",
-    bool AffectsEnemies = true,
-    bool AffectsAllies = false,
-    VfxId VfxId = default,
-    float Delay = 0.0f
-) : IAbilityConfig
-{
-    /// <summary>
-    /// Gets the VFX ID, defaulting to ExplosionDefault if not specified.
-    /// </summary>
-    private VfxId EffectiveVfxId => VfxId.HasValue ? VfxId : VfxIds.ExplosionDefault;
-
-    public BaseAbility CreateAbility()
-    {
-        return new DeathExplosionAbility
-        {
-            ExplosionRadius = Radius,
-            ExplosionDamage = Damage,
-            DamageType = DamageType,
-            AffectsEnemies = AffectsEnemies,
-            AffectsAllies = AffectsAllies,
-            ExplosionVfx = EffectiveVfxId,
-            ExplosionDelay = Delay
-        };
-    }
-}

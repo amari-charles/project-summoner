@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
-using ProjectSummoner.Units;
+using Fateforged.Simulation;
 
 namespace Fateforged.Multiplayer.Sync;
 
 /// <summary>
-/// Builds state snapshots from actual game state for synchronization.
+/// Builds state snapshots from MatchState for synchronization.
+/// Reads directly from SimulationNode.Current.State instead of the scene tree.
 /// Captures unit positions, HP, summoner state, and computes deterministic hashes.
 /// </summary>
 public class StateSnapshotBuilder
@@ -33,108 +35,116 @@ public class StateSnapshotBuilder
     }
 
     /// <summary>
-    /// Build a complete state snapshot from the current game state.
+    /// Build a complete state snapshot from MatchState.
     /// </summary>
     public StateSnapshot Build()
     {
-        var summoners = BuildSummonerStates();
-        var units = BuildUnitStates();
-        var hash = ComputeStateHash(summoners, units);
+        var sim = SimulationNode.Current;
+        if (sim == null)
+        {
+            return new StateSnapshot(
+                _session.CurrentFrame, _session.MatchTime,
+                Phase: 0, PrepTimeRemaining: 0f,
+                Array.Empty<SummonerState>(), Array.Empty<UnitState>(),
+                0, IsOvertime: false
+            );
+        }
+
+        var state = sim.State;
+        var summoners = BuildSummonerStates(state);
+        var units = BuildUnitStates(state);
+        var hash = ComputeStateHash(state, summoners, units);
 
         return new StateSnapshot(
-            _session.CurrentFrame,
-            _session.MatchTime,
-            Phase: 0,
-            PrepTimeRemaining: 0f,
+            state.FrameNumber,
+            state.MatchTime,
+            (int)state.Phase,
+            state.PrepTimeRemaining,
             summoners,
             units,
             hash,
-            IsOvertime: false
+            state.IsOvertime
         );
     }
 
     /// <summary>
-    /// Compute a deterministic hash from the current game state.
+    /// Compute a deterministic hash from MatchState.
     /// Used for quick desync detection without transmitting full state.
     /// </summary>
     public int ComputeHash()
     {
-        var summoners = BuildSummonerStates();
-        var units = BuildUnitStates();
-        return ComputeStateHash(summoners, units);
+        var sim = SimulationNode.Current;
+        if (sim == null) return 0;
+
+        var state = sim.State;
+        var summoners = BuildSummonerStates(state);
+        var units = BuildUnitStates(state);
+        return ComputeStateHash(state, summoners, units);
     }
 
     /// <summary>
-    /// Build summoner state array from the scene tree.
+    /// Build summoner state array from MatchState.
     /// </summary>
-    private SummonerState[] BuildSummonerStates()
+    private SummonerState[] BuildSummonerStates(MatchState state)
     {
-        var summoners = new List<SummonerState>();
-        var sceneTree = _session.GetTree();
-        if (sceneTree == null) return Array.Empty<SummonerState>();
+        var summoners = new SummonerState[2];
 
-        // Get summoners from the "summoners" group
-        var summonerNodes = sceneTree.GetNodesInGroup("summoners");
-
-        foreach (var node in summonerNodes)
+        for (int i = 0; i < 2; i++)
         {
-            if (node is not Node3D summoner) continue;
+            var s = state.Summoners[i];
+            var castPos = new Vector3(s.CastingSpawnPosition.X, s.CastingSpawnPosition.Y, s.CastingSpawnPosition.Z);
 
-            // Get team from summoner
-            var teamVar = summoner.Get("team");
-            if (teamVar.VariantType == Variant.Type.Nil) continue;
-            int team = teamVar.AsInt32();
-
-            // Get HP values
-            var currentHpVar = summoner.Get("current_hp");
-            var maxHpVar = summoner.Get("max_hp");
-            float currentHp = currentHpVar.VariantType != Variant.Type.Nil ? currentHpVar.AsSingle() : 0;
-            float maxHp = maxHpVar.VariantType != Variant.Type.Nil ? maxHpVar.AsSingle() : 100;
-
-            // Get mana values
-            var manaVar = summoner.Get("mana");
-            var maxManaVar = summoner.Get("max_mana");
-            float mana = manaVar.VariantType != Variant.Type.Nil ? manaVar.AsSingle() : 0;
-            float maxMana = maxManaVar.VariantType != Variant.Type.Nil ? maxManaVar.AsSingle() : 10;
-
-            summoners.Add(new SummonerState(team, currentHp, maxHp, mana, maxMana,
-                IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
-                CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1,
-                CardStateHash: 0));
+            summoners[i] = new SummonerState(
+                s.Team,
+                s.CurrentHp,
+                s.MaxHp,
+                s.Mana,
+                s.MaxMana,
+                s.IsCasting,
+                s.CastingTimeRemaining,
+                s.CastingTimeTotal,
+                s.CastingCardIndex,
+                castPos,
+                s.CastingNetworkId,
+                s.ComputeCardHash()
+            );
         }
 
-        // Sort by team for deterministic order
-        summoners.Sort((a, b) => a.Team.CompareTo(b.Team));
-        return summoners.ToArray();
+        return summoners;
     }
 
     /// <summary>
-    /// Build unit state array from the NetworkIdRegistry.
+    /// Build unit state array from MatchState.Units.
+    /// Only includes alive units. Positions are converted from SimVector3 to Vector3.
     /// </summary>
-    private UnitState[] BuildUnitStates()
+    private UnitState[] BuildUnitStates(MatchState state)
     {
         var units = new List<UnitState>();
 
-        foreach (var networkId in _session.NetworkIds.GetAllIds())
+        foreach (var kvp in state.Units)
         {
-            var node = _session.NetworkIds.GetNode(networkId);
-            if (node is not Unit3D unit) continue;
+            var unit = kvp.Value;
             if (!unit.IsAlive) continue;
 
-            // Get target's network ID if it has one
+            // Map TargetUnitId to TargetNetworkId
             int? targetNetworkId = null;
-            if (unit.CurrentTarget is Unit3D targetUnit && targetUnit.NetworkId >= 0)
+            if (unit.TargetUnitId.HasValue && state.Units.TryGetValue(unit.TargetUnitId.Value, out var targetUnit))
             {
                 targetNetworkId = targetUnit.NetworkId;
             }
+            // Also check the pre-computed TargetNetworkId if it was set by snapshot application
+            if (!targetNetworkId.HasValue && unit.TargetNetworkId.HasValue)
+            {
+                targetNetworkId = unit.TargetNetworkId;
+            }
 
             units.Add(new UnitState(
-                networkId,
-                unit.GlobalPosition,
+                unit.NetworkId,
+                new Vector3(unit.Position.X, unit.Position.Y, unit.Position.Z),
                 unit.CurrentHp,
                 targetNetworkId,
                 unit.IsAlive,
-                ActivationState: 1
+                unit.ActivationState
             ));
         }
 
@@ -147,14 +157,14 @@ public class StateSnapshotBuilder
     /// Compute a deterministic hash from summoner and unit states.
     /// Uses quantized values to prevent float precision issues.
     /// </summary>
-    private int ComputeStateHash(SummonerState[] summoners, UnitState[] units)
+    private int ComputeStateHash(MatchState state, SummonerState[] summoners, UnitState[] units)
     {
         unchecked
         {
             int hash = 17;
 
             // Include frame number for temporal uniqueness
-            hash = hash * 31 + (int)_session.CurrentFrame;
+            hash = hash * 31 + (int)state.FrameNumber;
 
             // Hash summoner states
             foreach (var s in summoners)

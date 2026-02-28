@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -117,6 +118,22 @@ public partial class SimulationNode : Node
     }
 
     // =========================================================================
+    // MULTIPLAYER HOOKS
+    // =========================================================================
+
+    /// <summary>
+    /// Invoked after each Tick + EmitEvents. HostRunner subscribes to convert
+    /// key SimEvents into protocol messages for broadcast to clients.
+    /// Null when no MatchSession is active (single-player).
+    /// </summary>
+    public event Action<List<SimEvent>>? OnTickCompleted;
+
+    /// <summary>
+    /// Expose the Simulation instance for snapshot hash computation.
+    /// </summary>
+    public Simulation? GetSimulation() => _simulation;
+
+    // =========================================================================
     // SIGNALS (emitted after Tick, consumed by presentation layer)
     // =========================================================================
 
@@ -177,6 +194,7 @@ public partial class SimulationNode : Node
             var events = _simulation.Tick(FIXED_DELTA);
             _accumulator -= FIXED_DELTA;
             EmitEvents(events);
+            OnTickCompleted?.Invoke(events);
         }
     }
 
@@ -530,43 +548,6 @@ public partial class SimulationNode : Node
         summoner.Hand.AddRange(handCatalogIds);
     }
 
-    /// <summary>
-    /// Set summoner stats (maxHp, maxMana, castSpeed) in MatchState.
-    /// Called by GDScript (multiplayer_game_bridge) when a SummonerExchange is received.
-    /// </summary>
-    public void SetSummonerStats(int team, float maxHp, float maxMana, float castSpeed)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        if (networkTeam < 0 || networkTeam > 1) return;
-        var summoner = State.Summoners[networkTeam];
-
-        summoner.MaxHp = maxHp;
-        summoner.CurrentHp = maxHp;
-        summoner.MaxMana = maxMana;
-        summoner.Mana = maxMana;
-        summoner.CastSpeed = castSpeed;
-        summoner.IsAlive = true;
-
-        EmitSignal(SignalName.SummonerHpChanged, team, maxHp, maxHp);
-        EmitSignal(SignalName.SummonerManaChanged, team, maxMana, maxMana);
-
-        GD.Print($"[SimulationNode] SetSummonerStats team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}");
-    }
-
-    /// <summary>
-    /// Set summoner damage bonuses in MatchState.
-    /// Called by GDScript to sync summoner trait bonuses for SimDamage calculations.
-    /// </summary>
-    public void SetSummonerBonuses(int team, float damageBonus, float damageReduction, int elementId)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        if (networkTeam < 0 || networkTeam > 1) return;
-        var summoner = State.Summoners[networkTeam];
-        summoner.DamageBonus = damageBonus;
-        summoner.DamageReduction = damageReduction;
-        summoner.ElementId = elementId;
-    }
-
     // =========================================================================
     // VISUAL UNIT LINKING (connects Unit3D to sim UnitData)
     // =========================================================================
@@ -594,90 +575,8 @@ public partial class SimulationNode : Node
     }
 
     // =========================================================================
-    // MUTATION METHODS (write to MatchState, emit signals)
-    // Remaining methods are for desync corrections and edge cases.
-    // Summoner damage and win conditions are now handled by the simulation.
+    // UNIT STATE (read-only accessors)
     // =========================================================================
-
-    /// <summary>
-    /// Set summoner HP directly (for desync corrections).
-    /// </summary>
-    public void ForceSetSummonerHp(int team, float hp)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        var summoner = State.Summoners[networkTeam];
-        summoner.CurrentHp = hp;
-        summoner.IsAlive = hp > 0;
-        EmitSignal(SignalName.SummonerHpChanged, team, summoner.CurrentHp, summoner.MaxHp);
-    }
-
-    /// <summary>
-    /// Set summoner mana directly (for desync corrections).
-    /// </summary>
-    public void ForceSetSummonerMana(int team, float mana)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        var summoner = State.Summoners[networkTeam];
-        summoner.Mana = mana;
-        EmitSignal(SignalName.SummonerManaChanged, team, summoner.Mana, summoner.MaxMana);
-    }
-
-    /// <summary>
-    /// Set summoner max HP directly. Called by Summoner.gd setter.
-    /// </summary>
-    public void ForceSetSummonerMaxHp(int team, float maxHp)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        if (networkTeam < 0 || networkTeam > 1) return;
-        State.Summoners[networkTeam].MaxHp = maxHp;
-    }
-
-    /// <summary>
-    /// Set summoner max mana directly. Called by Summoner.gd setter.
-    /// </summary>
-    public void ForceSetSummonerMaxMana(int team, float maxMana)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        if (networkTeam < 0 || networkTeam > 1) return;
-        State.Summoners[networkTeam].MaxMana = maxMana;
-    }
-
-    // =========================================================================
-    // UNIT STATE (Phase 5 will populate these)
-    // =========================================================================
-
-    /// <summary>
-    /// Register a unit in MatchState. Called by Unit3D._Ready().
-    /// Returns the MatchState-local unit ID.
-    /// </summary>
-    public int RegisterUnit(int networkId, string catalogId, int team, float hp, float maxHp,
-        float attackDamage, float attackSpeed, float moveSpeed, float attackRange, Vector3 position,
-        int elementId = 0)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        var canonicalPos = ToSimCanonical(position);
-
-        int unitId = State.NextUnitId();
-        State.Units[unitId] = new UnitData
-        {
-            UnitId = unitId,
-            NetworkId = networkId,
-            CatalogId = catalogId,
-            Team = networkTeam,
-            CurrentHp = hp,
-            MaxHp = maxHp,
-            IsAlive = true,
-            Position = canonicalPos,
-            AttackDamage = attackDamage,
-            AttackSpeed = attackSpeed,
-            MoveSpeed = moveSpeed,
-            AttackRange = attackRange,
-            ElementId = elementId
-        };
-
-        EmitSignal(SignalName.UnitStateRegistered, unitId, networkId, team);
-        return unitId;
-    }
 
     /// <summary>
     /// Get a unit's HP from MatchState.
@@ -707,35 +606,6 @@ public partial class SimulationNode : Node
     }
 
     /// <summary>
-    /// Force-set a unit's HP in MatchState. Used for desync corrections.
-    /// </summary>
-    public void ForceSetUnitHp(int unitId, float hp)
-    {
-        if (State.Units.TryGetValue(unitId, out var unit))
-        {
-            unit.CurrentHp = hp;
-            unit.IsAlive = hp > 0;
-        }
-    }
-
-    /// <summary>
-    /// Overwrite card state in MatchState for a summoner. Used for DeckSync desync correction.
-    /// </summary>
-    public void ApplyDeckSync(int team, string[] deck, string[] hand, string[] discard)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        if (networkTeam < 0 || networkTeam > 1) return;
-        var summoner = State.Summoners[networkTeam];
-        summoner.Deck.Clear();
-        summoner.Deck.AddRange(deck);
-        summoner.Hand.Clear();
-        summoner.Hand.AddRange(hand);
-        summoner.DiscardPile.Clear();
-        summoner.DiscardPile.AddRange(discard);
-        GD.Print($"[SimulationNode] Applied DeckSync for team {networkTeam} (local={team}): Deck={deck.Length}, Hand={hand.Length}, Discard={discard.Length}");
-    }
-
-    /// <summary>
     /// Get the current kill count from MatchState.
     /// </summary>
     public int GetKillCount()
@@ -753,15 +623,6 @@ public partial class SimulationNode : Node
     public void QueuePlayCard(int team, int cardIndex, Vector3 spawnPosition, int networkId = -1)
     {
         var cmd = new PlayCardCommand(ToNetworkTeam(team), cardIndex, ToSimCanonical(spawnPosition), networkId);
-        SubmitCommand(cmd);
-    }
-
-    /// <summary>
-    /// Queue a forfeit command.
-    /// </summary>
-    public void QueueForfeit(int team)
-    {
-        var cmd = new ForfeitCommand(ToNetworkTeam(team));
         SubmitCommand(cmd);
     }
 

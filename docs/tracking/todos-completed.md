@@ -4,6 +4,65 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## 2026-02 Completions
+
+### Host-Authoritative Simulation Rewrite (Phases 0-8)
+**Completed:** 2026-02-27
+**Category:** Architecture / Multiplayer / Core Game Systems
+**Effort:** Very Large
+
+**Description:**
+Complete rewrite of the simulation architecture to a host-authoritative model. All combat, card play, movement, targeting, damage, and win conditions now run inside `Simulation.Tick()` on the host. Clients receive events and snapshots from the host.
+
+**Phases Completed:**
+- Phase 0: Host-only Tick + fixed timestep accumulator
+- Phase 1: Data model foundation (damage types, groups, effects, defense stats)
+- Phase 2: Command-based card play + prep→battle transition
+- Phase 3: Read-only Unit3D (presentation-only, no MatchState writes)
+- Phase 4: Summoner damage + flexible win conditions in simulation
+- Phase 5: Abilities & triggers in simulation
+- Phase 6: Spell cards via effect system
+- Phase 7: Wire multiplayer (host broadcasts events/snapshots, client receives)
+- Phase 8: Dead code removal & polish
+
+**Key Accomplishments:**
+- ✅ Single-player battles fully driven by deterministic simulation
+- ✅ Multiplayer: host runs Tick(), client receives events + snapshots
+- ✅ Command queue for all player input (card plays, forfeits)
+- ✅ Physical/magic damage types with defense stats
+- ✅ Configurable win conditions (destroy base, survive time, timed destroy, kill count)
+- ✅ State snapshot builder for client sync
+- ✅ RequestValidator validates card-in-hand, mana cost, casting state
+- ✅ Dead code cleanup: removed 10 unused SimulationNode methods, 3 dead ability scripts
+
+**Files Changed:**
+- `scripts/csharp/Simulation/` - Core simulation (Simulation.cs, SimulationNode.cs, MatchState, etc.)
+- `scripts/csharp/Multiplayer/` - HostRunner, ClientRunner, RequestValidator, StateSnapshotBuilder
+- `scripts/csharp/Units/Unit3D.cs` - Read-only presentation node
+- `scripts/core/summoner.gd` - Card play via command queue
+- `docs/rewrite-research/implementation-plan.md` - Full plan with all phases
+
+**Branch:** `feature/host-authoritative-sim`
+
+---
+
+### Multiplayer Request Validation (Partial)
+**Completed:** 2026-02-27
+**Category:** Multiplayer / Anti-cheat
+**Effort:** Small
+
+**Description:**
+RequestValidator now validates card-in-hand bounds, mana cost, and casting state for multiplayer card play requests. Previously had TODO stubs.
+
+**Remaining (tracked in todos.md):**
+- Spawn position validation
+- Rate limiting
+
+**Files Changed:**
+- `scripts/csharp/Multiplayer/Authority/RequestValidator.cs`
+
+---
+
 ## 2026-01 Completions
 
 ### Clean Up Premium Store Placeholder Content

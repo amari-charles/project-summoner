@@ -484,6 +484,9 @@ func skip_prep_phase() -> void:
 	if current_phase == BattlePhase.PREPARATION:
 		prep_time_remaining = 0.0
 		_start_battle_phase()
+		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+		if sim_node:
+			sim_node.SkipPreparation()
 		print("BattleCoordinator: Prep phase skipped via debug")
 
 func get_time_remaining() -> float:

@@ -84,6 +84,9 @@ var _hurtbox: Node = null
 ## Debug visualization marker
 var _debug_hurtbox_marker: MeshInstance3D = null
 
+## Debug service reference (autoload at /root/UnitDebugService)
+@onready var _unit_debug: Node = get_node_or_null("/root/UnitDebugService")
+
 ## Signals
 signal card_played(card: Card)
 signal card_drawn(card: Card)
@@ -258,7 +261,7 @@ func _process(delta: float) -> void:
 		casting_time_remaining = _sim_node.GetCastingTimeRemaining(int(team))
 		casting_progress.emit(casting_time_remaining, casting_time_total)
 
-	# Update debug visualization (follows Unit3D's debug toggle)
+	# Update debug visualization (follows UnitDebugService's debug toggle)
 	_update_debug_visualization()
 
 func _exit_tree() -> void:
@@ -362,7 +365,7 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 
 	# Submit command to simulation — sim handles mana, casting, hand, deck
 	if _sim_node:
-		_sim_node.QueuePlayCard(int(team), card_index, spawn_position)
+		_sim_node.QueuePlayCard(int(team), card_index, spawn_position, -1)
 	else:
 		push_error("Summoner: No SimulationNode found! Cannot play card.")
 		return false
@@ -795,9 +798,9 @@ func _on_sim_hp_changed(sim_team: int, new_hp: float, new_max_hp: float) -> void
 ## DEBUG VISUALIZATION
 ## =============================================================================
 
-## Update debug visualization marker based on Unit3D's debug toggle state
+## Update debug visualization marker based on UnitDebugService's debug toggle state
 func _update_debug_visualization() -> void:
-	var debug_enabled: bool = Unit3D.IsDebugHurtboxEnabled()
+	var debug_enabled: bool = _unit_debug.IsDebugHurtboxEnabled() if _unit_debug else false
 
 	if debug_enabled:
 		_update_debug_hurtbox_marker()

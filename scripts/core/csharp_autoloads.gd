@@ -15,6 +15,7 @@ const SPATIAL_GRID: String = "/root/SpatialGrid"
 const TARGETING_CONFIG_REGISTRY: String = "/root/TargetingConfigRegistryCS"
 const LEVEL_CAP_SERVICE: String = "/root/LevelCapService"
 const REWARD_SERVICE_CS: String = "/root/RewardServiceCS"
+const UNIT_DEBUG_SERVICE: String = "/root/UnitDebugService"
 
 # Multiplayer services
 const NAKAMA_GAME_CLIENT: String = "/root/NakamaGameClient"

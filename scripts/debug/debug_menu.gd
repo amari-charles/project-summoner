@@ -33,6 +33,9 @@ var _command_output: Label  # Console command output
 var _autocomplete_list: ItemList  # Autocomplete suggestions
 var _autocomplete_visible: bool = false
 
+## Debug service reference (autoload at /root/UnitDebugService)
+@onready var _unit_debug: Node = get_node_or_null("/root/UnitDebugService")
+
 
 ## =============================================================================
 ## LIFECYCLE
@@ -328,19 +331,19 @@ func _update_button_states() -> void:
 		_grid_button.text = "Grid Lines: %s" % state
 
 	if _hurtbox_button:
-		var state: String = "On" if Unit3D.IsDebugHurtboxEnabled() else "Off"
+		var state: String = "On" if _unit_debug.IsDebugHurtboxEnabled() else "Off"
 		_hurtbox_button.text = "Hurtboxes: %s" % state
 
 	if _target_point_button:
-		var state: String = "On" if Unit3D.IsDebugTargetPointEnabled() else "Off"
+		var state: String = "On" if _unit_debug.IsDebugTargetPointEnabled() else "Off"
 		_target_point_button.text = "Target Points: %s" % state
 
 	if _attack_range_button:
-		var state: String = "On" if Unit3D.IsDebugAttackRangeEnabled() else "Off"
+		var state: String = "On" if _unit_debug.IsDebugAttackRangeEnabled() else "Off"
 		_attack_range_button.text = "Attack Ranges: %s" % state
 
 	if _separation_radius_button:
-		var state: String = "On" if Unit3D.IsDebugSeparationRadiusEnabled() else "Off"
+		var state: String = "On" if _unit_debug.IsDebugSeparationRadiusEnabled() else "Off"
 		_separation_radius_button.text = "Separation Radius: %s" % state
 
 	if _spawn_boundary_button:
@@ -403,29 +406,29 @@ func _on_skip_prep_pressed() -> void:
 
 
 func _on_hurtbox_toggle_pressed() -> void:
-	Unit3D.ToggleDebugHurtbox()
-	var state: String = "On" if Unit3D.IsDebugHurtboxEnabled() else "Off"
+	_unit_debug.ToggleDebugHurtbox()
+	var state: String = "On" if _unit_debug.IsDebugHurtboxEnabled() else "Off"
 	_hurtbox_button.text = "Hurtboxes: %s" % state
 	_save_settings()
 
 
 func _on_target_point_toggle_pressed() -> void:
-	Unit3D.ToggleDebugTargetPoint()
-	var state: String = "On" if Unit3D.IsDebugTargetPointEnabled() else "Off"
+	_unit_debug.ToggleDebugTargetPoint()
+	var state: String = "On" if _unit_debug.IsDebugTargetPointEnabled() else "Off"
 	_target_point_button.text = "Target Points: %s" % state
 	_save_settings()
 
 
 func _on_attack_range_toggle_pressed() -> void:
-	Unit3D.ToggleDebugAttackRange()
-	var state: String = "On" if Unit3D.IsDebugAttackRangeEnabled() else "Off"
+	_unit_debug.ToggleDebugAttackRange()
+	var state: String = "On" if _unit_debug.IsDebugAttackRangeEnabled() else "Off"
 	_attack_range_button.text = "Attack Ranges: %s" % state
 	_save_settings()
 
 
 func _on_separation_radius_toggle_pressed() -> void:
-	Unit3D.ToggleDebugSeparationRadius()
-	var state: String = "On" if Unit3D.IsDebugSeparationRadiusEnabled() else "Off"
+	_unit_debug.ToggleDebugSeparationRadius()
+	var state: String = "On" if _unit_debug.IsDebugSeparationRadiusEnabled() else "Off"
 	_separation_radius_button.text = "Separation Radius: %s" % state
 	_save_settings()
 
@@ -633,10 +636,11 @@ func _load_settings() -> void:
 
 	# Load visualization toggles using set methods (not toggle, to avoid sync issues)
 	SpatialGrid.set_debug_enabled(config.get_value("debug_menu", "grid_lines", false))
-	Unit3D.SetDebugHurtboxEnabled(config.get_value("debug_menu", "hurtboxes", false))
-	Unit3D.SetDebugTargetPointEnabled(config.get_value("debug_menu", "target_points", false))
-	Unit3D.SetDebugAttackRangeEnabled(config.get_value("debug_menu", "attack_ranges", false))
-	Unit3D.SetDebugSeparationRadiusEnabled(config.get_value("debug_menu", "separation_radius", false))
+	if _unit_debug:
+		_unit_debug.SetDebugHurtboxEnabled(config.get_value("debug_menu", "hurtboxes", false))
+		_unit_debug.SetDebugTargetPointEnabled(config.get_value("debug_menu", "target_points", false))
+		_unit_debug.SetDebugAttackRangeEnabled(config.get_value("debug_menu", "attack_ranges", false))
+		_unit_debug.SetDebugSeparationRadiusEnabled(config.get_value("debug_menu", "separation_radius", false))
 	SpatialGrid.set_debug_bypass_spawn_boundary(config.get_value("debug_menu", "bypass_spawn_boundary", false))
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
@@ -647,10 +651,11 @@ func _save_settings() -> void:
 
 	# Save visualization toggles
 	config.set_value("debug_menu", "grid_lines", SpatialGrid.is_debug_enabled())
-	config.set_value("debug_menu", "hurtboxes", Unit3D.IsDebugHurtboxEnabled())
-	config.set_value("debug_menu", "target_points", Unit3D.IsDebugTargetPointEnabled())
-	config.set_value("debug_menu", "attack_ranges", Unit3D.IsDebugAttackRangeEnabled())
-	config.set_value("debug_menu", "separation_radius", Unit3D.IsDebugSeparationRadiusEnabled())
+	if _unit_debug:
+		config.set_value("debug_menu", "hurtboxes", _unit_debug.IsDebugHurtboxEnabled())
+		config.set_value("debug_menu", "target_points", _unit_debug.IsDebugTargetPointEnabled())
+		config.set_value("debug_menu", "attack_ranges", _unit_debug.IsDebugAttackRangeEnabled())
+		config.set_value("debug_menu", "separation_radius", _unit_debug.IsDebugSeparationRadiusEnabled())
 	config.set_value("debug_menu", "bypass_spawn_boundary", SpatialGrid.is_debug_bypass_spawn_boundary_enabled())
 
 	config.save(SETTINGS_PATH)

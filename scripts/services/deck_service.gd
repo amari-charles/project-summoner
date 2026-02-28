@@ -160,7 +160,7 @@ func delete_deck(deck_id: String) -> bool:
 func add_card_to_deck(deck_id: String, card_instance_id: String) -> bool:
 	if _cs_service == null:
 		return false
-	return _cs_service.AddCardToDeck(deck_id, card_instance_id)
+	return _cs_service.AddCardToDeck(deck_id, card_instance_id, null)
 
 ## Remove a card from a deck
 ## Returns true if successful
@@ -174,7 +174,7 @@ func remove_card_from_deck(deck_id: String, card_instance_id: String) -> bool:
 func set_deck_summoner(deck_id: String, summoner_id: String) -> bool:
 	if _cs_service == null:
 		return false
-	return _cs_service.SetDeckSummoner(deck_id, summoner_id)
+	return _cs_service.SetDeckSummoner(deck_id, summoner_id, null)
 
 ## Get the summoner ID for a deck
 ## Returns empty string if deck not found or summoner not set
@@ -192,7 +192,7 @@ func get_deck_summoner(deck_id: String) -> String:
 func validate_deck(deck_id: String) -> bool:
 	if _cs_service == null:
 		return false
-	return _cs_service.ValidateDeck(deck_id)
+	return _cs_service.ValidateDeck(deck_id, null, null)
 
 ## Get validation errors for a deck (for UI display)
 ## Returns: Array of error strings
@@ -209,7 +209,7 @@ func get_validation_errors(deck_id: String) -> Array[String]:
 func clean_deck(deck_id: String) -> int:
 	if _cs_service == null:
 		return 0
-	return _cs_service.CleanDeck(deck_id)
+	return _cs_service.CleanDeck(deck_id, null)
 
 ## =============================================================================
 ## INTERNAL - Signal forwarding from C#

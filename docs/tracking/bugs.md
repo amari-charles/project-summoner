@@ -300,4 +300,27 @@ Remove `const DUCKLING: StringName = &"duckling"` from `scripts/data/card_ids.gd
 
 ---
 
-*Last Updated: 2026-02-01 - Added CardIDs.DUCKLING validation error*
+#### Puff Pivot Point Off-Center When Turning
+**Status:** Open
+**Reported:** 2026-02-27
+**Component:** Units / Visual / Sprites
+
+**Description:**
+When Puff turns around (flips facing direction), it visually snaps to a different position because the pivot point is at the center of the sprite image, not the visual center of the character. Puff is not centered within its sprite sheet, so flipping the sprite causes an apparent position jump.
+
+**Expected Behavior:**
+Puff should pivot around its visual center, appearing to turn in place without shifting sideways.
+
+**Current Behavior:**
+Puff appears to teleport slightly left or right when changing facing direction because the flip mirrors around the image center, not the character center.
+
+**Proposed Solution:**
+Adjust the sprite offset so Puff's visual center aligns with the pivot point, or re-center Puff within the sprite sheet.
+
+**Related Files:**
+- Puff unit scene / sprite configuration
+- `scripts/csharp/Units/Unit3D.cs` (SetFacing method)
+
+---
+
+*Last Updated: 2026-02-27 - Added Puff pivot point off-center bug*

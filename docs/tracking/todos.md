@@ -45,10 +45,7 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 
 **Remaining (Phase 4):**
 - [ ] **Opponent deck/summoner exchange** - Currently hardcoded to "ignis" with empty deck (see `online_screen.gd:471`)
-- [ ] Complete RequestValidator for mana/position/rate-limit checks
-- [ ] Wire HostRunner.ExecuteCardPlay to actual game systems
-- [ ] Client-side unit spawning from UnitSpawned messages
-- [ ] Summoner damage broadcast integration (GDScript hook)
+- [ ] Complete RequestValidator for spawn position/rate-limit checks
 - [ ] Polish: queue UI, match found animation
 - [ ] End-to-end testing with Nakama server
 
@@ -65,25 +62,24 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 ---
 
 #### Complete Multiplayer Request Validation
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Multiplayer / Anti-cheat
-**Effort:** Medium
+**Effort:** Small
 
 **Description:**
-The `RequestValidator.cs` has TODO stubs for critical validation logic that prevents cheating in multiplayer matches.
+The `RequestValidator.cs` now validates card-in-hand, mana cost, and casting state. Remaining checks are spawn position validation and rate limiting.
+
+**Completed Validation:**
+- ✅ Check if player has card in hand before allowing play
+- ✅ Check if player has enough mana for the card
+- ✅ Check if player is already casting
 
 **Missing Validation:**
-- Check if player has card in hand before allowing play
-- Check if player has enough mana for the card
 - Check if spawn position is valid for player's spawn zone
 - Rate limiting to prevent action spam
 
 **Files:**
 - `scripts/csharp/Multiplayer/Authority/RequestValidator.cs`
-
-**Notes:**
-- Without this validation, invalid actions can be accepted in multiplayer
-- Needs access to hand/mana state from Summoner/BattleContext
 
 ---
 
@@ -1130,6 +1126,58 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 ## Architecture & Code Quality
 
 ### 🔴 HIGH PRIORITY
+
+#### Audit Sim/Visual State Desync Points
+**Status:** ⬜ Not Started
+**Category:** Architecture / Simulation
+**Effort:** Medium
+
+**Description:**
+Audit the codebase for places where the simulation (MatchState/UnitData) and the visual layer (Unit3D, GDScript controllers) track the same concept independently, creating desync risks.
+
+**Known Pattern:**
+The sim and visual layers sometimes manage parallel state (phase, activation, position) without a single source of truth. When one side changes state, the other may not be notified, leading to desyncs. Example: spawn reveal sets visual Unit3D to Inactive while the sim UnitData is Active — the sim moves the unit while the visual stays frozen.
+
+**Audit Checklist:**
+- [ ] Phase state: GDScript `current_phase` vs sim `GamePhase` — are all transitions synced?
+- [ ] Unit activation: visual `ActivationState` vs sim `UnitData.ActivationState` — any gaps?
+- [ ] Position: are there other cases where the visual stops reading from sim while the sim keeps updating?
+- [ ] HP/death: can the sim kill a unit while the visual thinks it's alive (or vice versa)?
+- [ ] Targeting: does the visual layer ever hold stale target references after the sim re-targets?
+
+**Guiding Principle:**
+If data belongs to an entity, put it on the entity. Avoid solving per-entity problems with global sweeps or cross-system coordination.
+
+**Related Files:**
+- `scripts/csharp/Simulation/SimulationNode.cs` — sim↔visual bridge
+- `scripts/csharp/Units/Unit3D.cs` — visual reads from sim
+- `scripts/core/game_controller_3d.gd` — GDScript phase tracking
+
+---
+
+#### Audit for Global-Coordination-over-Local-State Anti-pattern
+**Status:** ⬜ Not Started
+**Category:** Architecture / Design Principles
+**Effort:** Medium
+
+**Description:**
+Audit the codebase for places where per-entity concerns are solved via global sweeps or cross-system event coordination instead of putting the data directly on the entity.
+
+**The Anti-pattern:**
+Instead of giving an entity the information it needs to manage itself, we infer its state from an unrelated system event and sweep all entities matching some filter. This is indirect, fragile, and relies on assumptions about system state that may not hold.
+
+**Example (fixed):**
+Units needed to stay inactive during spawn reveal. Instead of giving each UnitData a `SpawnTimer` (local state), the initial approach was to activate all inactive units for a team when the summoner's casting completed (global sweep triggered by unrelated event). This breaks if multiple casts overlap, units are inactive for other reasons, etc.
+
+**Principle:** If data belongs to an entity, put it on the entity.
+
+**Areas to Audit:**
+- [ ] Any `foreach unit where team == X` sweeps that could be per-unit timers/flags
+- [ ] Any signal handlers that modify entities they don't own
+- [ ] Any activation/deactivation logic driven by external events rather than self-contained state
+- [ ] Phase transitions that sweep-modify entities vs entities reacting to phase themselves
+
+---
 
 #### Create EventCatalog with Typed Event Definitions
 **Status:** ⬜ Not Started

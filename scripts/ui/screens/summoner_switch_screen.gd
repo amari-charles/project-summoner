@@ -295,7 +295,7 @@ func _on_confirm_pressed() -> void:
 		return
 
 	# Switch summoner
-	SummonerSelection.SetActiveSummoner(_selected_summoner_id)
+	SummonerSelection.SetActiveSummoner(_selected_summoner_id, null)
 
 	_close()
 

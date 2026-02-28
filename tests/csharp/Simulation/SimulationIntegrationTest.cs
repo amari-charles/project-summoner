@@ -521,9 +521,9 @@ public class SimulationIntegrationTest
     }
 
     [TestCase]
-    public void Tick_SpawnDuringBattle_UnitActive()
+    public void Tick_SpawnDuringBattle_UnitInactiveUntilSpawnTimerExpires()
     {
-        var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3);
+        var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3, summonTime: 0.5f);
         _state.CardDataMap["test_unit"] = card;
         _state.Summoners[0].Hand = new List<string> { "test_unit" };
         _state.Summoners[0].Deck = new List<string> { "test_unit" };
@@ -534,10 +534,18 @@ public class SimulationIntegrationTest
         };
         _state.PendingCommandBuffer.Add(cmd);
 
-        _sim.Tick(Delta);
+        _sim.Tick(Delta); // Frame 1: spawns unit
 
-        // Units spawned during battle should be active
+        // Unit exists but is inactive (spawn timer still counting down)
         var spawnedUnit = _state.Units.Values.First();
+        AssertThat(spawnedUnit.ActivationState).IsEqual(0); // Inactive
+        AssertThat(spawnedUnit.SpawnTimer).IsGreater(0f);
+
+        // Tick until spawn timer expires (0.5s = 30 ticks at 60fps)
+        for (int i = 0; i < 30; i++)
+            _sim.Tick(Delta);
+
+        // Now the unit should be active
         AssertThat(spawnedUnit.ActivationState).IsEqual(1); // Active
     }
 
@@ -564,6 +572,87 @@ public class SimulationIntegrationTest
 
         // Effective summon time = 2.0 / 2.0 = 1.0
         AssertThat(_state.Summoners[0].CastingTimeTotal).IsEqual(1.0f);
+    }
+
+    // =========================================================================
+    // Prep Skip Regression
+    // =========================================================================
+
+    [TestCase]
+    public void Tick_PrepSkip_ThenSpawn_UnitsActiveAndTargeting()
+    {
+        // Start in Prep, skip (set timer to 0)
+        _state.Phase = GamePhase.Preparation;
+        _state.PrepTimeRemaining = 0f;
+
+        // Tick once → transitions to Battle
+        _sim.Tick(Delta);
+        AssertThat(_state.Phase).IsEqual(GamePhase.Battle);
+
+        // Now spawn a unit via command (short summon time so spawn timer expires quickly)
+        var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3, summonTime: 0.1f);
+        _state.CardDataMap["test_unit"] = card;
+        _state.Summoners[0].Hand = new List<string> { "test_unit" };
+        _state.Summoners[0].Deck = new List<string> { "test_unit" };
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
+        {
+            ExecuteFrame = _state.FrameNumber + 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta); // Spawns unit (inactive, spawn timer = 0.1s)
+
+        var unit = _state.Units.Values.First();
+        AssertThat(unit.IsAlive).IsTrue();
+        AssertThat(unit.ActivationState).IsEqual(0); // Inactive during spawn timer
+
+        // Tick until spawn timer expires (0.1s = 6 ticks at 60fps)
+        for (int i = 0; i < 6; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(unit.ActivationState).IsEqual(1); // Active
+
+        // Tick again — unit should be processed (targeting, behavior, movement)
+        var startPos = unit.Position;
+        _sim.Tick(Delta);
+
+        // Unit should have moved (NoTarget → MoveForward toward enemy base)
+        AssertThat(unit.Position.X).IsNotEqual(startPos.X);
+    }
+
+    [TestCase]
+    public void Tick_NoEnemyUnits_UnitTargetsSummoner()
+    {
+        // Place unit with no enemies — should fall back to enemy summoner
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, attackRange: 3f);
+
+        // Tick enough for targeting
+        for (int i = 0; i < 60; i++)
+            _sim.Tick(Delta);
+
+        // Unit should be targeting the enemy summoner (target ID = -2 for team 1)
+        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value).IsEqual(-2);
+    }
+
+    [TestCase]
+    public void Tick_MeleeUnit_DamagesEnemySummoner()
+    {
+        // Place unit at enemy summoner position (in attack range)
+        var summonerPos = _state.Summoners[1].Position;
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0,
+            x: summonerPos.X - 1f, z: summonerPos.Z,
+            damage: 10f, attackRange: 3f);
+
+        float initialHp = _state.Summoners[1].CurrentHp;
+
+        // Tick enough for targeting + attack
+        for (int i = 0; i < 120; i++)
+            _sim.Tick(Delta);
+
+        // Enemy summoner should have taken damage
+        AssertThat(_state.Summoners[1].CurrentHp).IsLess(initialHp);
     }
 
     // =========================================================================

@@ -9,8 +9,9 @@ using Fateforged.Simulation;
 namespace Fateforged.Multiplayer.Client;
 
 /// <summary>
-/// Runs the predicted simulation on the client side.
-/// Handles client-side prediction and server reconciliation.
+/// Runs the client side of a multiplayer match.
+/// Receives snapshots and events from the host, routes them to SimulationNode
+/// for state application and signal emission. Never calls Tick().
 /// </summary>
 public class ClientRunner : IMatchRunner
 {
@@ -39,7 +40,7 @@ public class ClientRunner : IMatchRunner
     /// Timer for periodic ping.
     /// </summary>
     private double _pingTimer;
-    private const double PingInterval = 1.0; // Ping every second
+    private const double PingInterval = 1.0;
 
     /// <summary>
     /// Frame counter for hash reporting.
@@ -62,10 +63,11 @@ public class ClientRunner : IMatchRunner
         _snapshotBuilder = new StateSnapshotBuilder(session);
         _desyncDetector = new DesyncDetector(session);
 
-        // Client never runs Tick() — it receives events/snapshots from the host
+        // Client never runs Tick()
         if (SimulationNode.Current != null)
         {
             SimulationNode.Current.IsHost = false;
+            SimulationNode.Current.LocalPlayerIndex = session.LocalPlayerIndex;
         }
 
         GD.Print("[ClientRunner] Initialized");
@@ -121,12 +123,20 @@ public class ClientRunner : IMatchRunner
                 HandleUnitDied(died);
                 break;
 
+            case DamageDealt damage:
+                HandleDamageDealt(damage);
+                break;
+
+            case SummonerDamaged summonerDamage:
+                HandleSummonerDamaged(summonerDamage);
+                break;
+
             case Pong pong:
                 HandlePong(pong);
                 break;
 
             case MatchEnded ended:
-                // Handled by MatchSession
+                // Handled by MatchSession.DispatchMessageEvent
                 break;
         }
     }
@@ -136,6 +146,9 @@ public class ClientRunner : IMatchRunner
         if (_session == null) return;
 
         var sequence = _nextSequence++;
+
+        // Convert local position to canonical before sending to host
+        var canonicalPos = CoordinateTransform.LocalToCanonical(position);
 
         // Create prediction for optimistic update
         var prediction = new CardPlayPrediction(
@@ -149,12 +162,12 @@ public class ClientRunner : IMatchRunner
         // Apply prediction locally (optimistic)
         ApplyPrediction(prediction);
 
-        // Send request to host
+        // Send request to host with canonical position
         var request = new CardPlayRequest(
             sequence,
             _session.LocalPlayerIndex,
             cardIndex,
-            position,
+            canonicalPos,
             prediction.Timestamp
         );
         _session.Send(request);
@@ -193,13 +206,10 @@ public class ClientRunner : IMatchRunner
             var prediction = _predictions.Get(confirmed.Sequence);
             if (prediction != null)
             {
-                // Prediction was correct - remove from buffer
                 _predictions.Remove(confirmed.Sequence);
                 GD.Print($"[ClientRunner] Prediction {confirmed.Sequence} confirmed");
             }
         }
-
-        // Note: UnitSpawned message will follow with the actual spawn
     }
 
     private void HandleCardPlayRejected(CardPlayRejected rejected)
@@ -211,7 +221,6 @@ public class ClientRunner : IMatchRunner
             var prediction = _predictions.Get(rejected.Sequence);
             if (prediction != null)
             {
-                // Rollback the prediction
                 RollbackPrediction(prediction);
                 _predictions.Remove(rejected.Sequence);
                 GD.PrintErr($"[ClientRunner] Prediction {rejected.Sequence} rejected: {rejected.Reason}");
@@ -226,13 +235,16 @@ public class ClientRunner : IMatchRunner
         _lastServerFrame = snapshot.Frame;
         _session.MatchTime = snapshot.MatchTime;
 
+        // Route to SimulationNode for authoritative state application + signal emission
+        SimulationNode.Current?.ApplySnapshot(snapshot);
+
         // Update interpolation targets for all units
         foreach (var unitState in snapshot.Units)
         {
             _interpolator.SetTarget(unitState.NetworkId, unitState.Position);
         }
 
-        // Use DesyncDetector to check and apply corrections
+        // Use DesyncDetector to check for state mismatches
         _desyncDetector?.ApplySnapshot(snapshot);
     }
 
@@ -240,15 +252,11 @@ public class ClientRunner : IMatchRunner
     {
         if (_session == null) return;
 
-        // Log the spawn event - actual unit instantiation is handled via MatchSession.UnitSpawned signal
-        // which is dispatched in MatchSession.DispatchMessageEvent()
         GD.Print($"[ClientRunner] Unit spawned: id {spawned.NetworkId}, type {spawned.UnitType}, team {spawned.Team}");
 
-        // TODO(Phase-4): Client-side unit spawning from network messages
-        // The UnitSpawned signal is already emitted by MatchSession. Game systems need to:
-        // 1. Listen to MatchSession.UnitSpawned signal
-        // 2. Instantiate the unit using UnitSpawner with the provided NetworkId
-        // 3. Register the unit with NetworkIdRegistry using RegisterWithId()
+        // The snapshot will include the new unit and ApplySnapshot handles registration.
+        // The UnitSpawned signal is emitted by MatchSession.DispatchMessageEvent() for
+        // game systems to listen to and instantiate the visual unit.
     }
 
     private void HandleUnitDied(UnitDied died)
@@ -261,14 +269,72 @@ public class ClientRunner : IMatchRunner
         _session.NetworkIds.UnregisterById(died.NetworkId);
         _interpolator.Remove(died.NetworkId);
 
-        // Death handling is done via MatchSession.UnitDied signal emitted in DispatchMessageEvent()
-        // Game systems listen to this signal to trigger death animations and cleanup
+        // Emit UnitDiedSim signal on SimulationNode for death animations
+        if (SimulationNode.Current != null)
+        {
+            // Find the UnitData by NetworkId to get the sim UnitId
+            var state = SimulationNode.Current.State;
+            foreach (var kvp in state.Units)
+            {
+                if (kvp.Value.NetworkId == died.NetworkId)
+                {
+                    int killerUnitId = -1;
+                    if (died.KillerNetworkId.HasValue)
+                    {
+                        foreach (var kvp2 in state.Units)
+                        {
+                            if (kvp2.Value.NetworkId == died.KillerNetworkId.Value)
+                            {
+                                killerUnitId = kvp2.Value.UnitId;
+                                break;
+                            }
+                        }
+                    }
+                    SimulationNode.Current.EmitSignal(SimulationNode.SignalName.UnitDiedSim, kvp.Value.UnitId, killerUnitId);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void HandleDamageDealt(DamageDealt damage)
+    {
+        if (_session == null || SimulationNode.Current == null) return;
+
+        // Map NetworkIds back to UnitIds for signal emission
+        var state = SimulationNode.Current.State;
+        int targetUnitId = -1;
+        int attackerUnitId = -1;
+
+        foreach (var kvp in state.Units)
+        {
+            if (kvp.Value.NetworkId == damage.TargetNetworkId)
+                targetUnitId = kvp.Value.UnitId;
+            if (damage.SourceNetworkId.HasValue && kvp.Value.NetworkId == damage.SourceNetworkId.Value)
+                attackerUnitId = kvp.Value.UnitId;
+        }
+
+        if (targetUnitId >= 0)
+        {
+            SimulationNode.Current.EmitSignal(SimulationNode.SignalName.UnitDamaged, targetUnitId, attackerUnitId, damage.Amount, damage.IsCrit);
+        }
+    }
+
+    private void HandleSummonerDamaged(SummonerDamaged summonerDamage)
+    {
+        if (_session == null || SimulationNode.Current == null) return;
+
+        // Convert network team to local team for signal emission
+        int localTeam = SimulationNode.Current.RemapTeam(summonerDamage.Team);
+        var summoner = SimulationNode.Current.State.Summoners[summonerDamage.Team];
+
+        SimulationNode.Current.EmitSignal(SimulationNode.SignalName.SummonerHpChanged, localTeam, summonerDamage.NewHp, summoner.MaxHp);
     }
 
     private void HandlePong(Pong pong)
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        LatencyMs = (int)(now - pong.OriginalTimestamp) / 2; // Round-trip / 2
+        LatencyMs = (int)(now - pong.OriginalTimestamp) / 2;
         GD.Print($"[ClientRunner] Latency: {LatencyMs}ms");
     }
 
@@ -278,23 +344,15 @@ public class ClientRunner : IMatchRunner
 
     private void ApplyPrediction(CardPlayPrediction prediction)
     {
-        // TODO(Phase-4): Apply optimistic update to local game state for instant feedback
-        // When integrated with gameplay:
-        // - Deduct mana from local Summoner
-        // - Show card leaving hand (visual feedback)
-        // - Optionally show ghost unit at spawn position
-        // This makes the game feel responsive while waiting for host confirmation.
+        // Optimistic update: deduct mana, show card leaving hand
+        // Full implementation deferred until client prediction is refined
         GD.Print($"[ClientRunner] Applied prediction {prediction.Sequence}");
     }
 
     private void RollbackPrediction(CardPlayPrediction prediction)
     {
-        // TODO(Phase-4): Rollback the optimistic update when host rejects a card play
-        // When integrated with gameplay:
-        // - Restore mana to local Summoner
-        // - Return card to hand (visual feedback)
-        // - Remove any ghost unit that was shown
-        // This handles cases where the host rejects a card play (e.g., not enough mana).
+        // Rollback: restore mana, return card to hand
+        // Full implementation deferred until client prediction is refined
         GD.Print($"[ClientRunner] Rolled back prediction {prediction.Sequence}");
     }
 
@@ -311,6 +369,7 @@ public class ClientRunner : IMatchRunner
     {
         if (_session == null || _snapshotBuilder == null) return;
 
+        // Compute hash from MatchState (via rewritten StateSnapshotBuilder)
         var hash = _snapshotBuilder.ComputeHash();
         var report = new StateHashReport(
             _session.LocalPlayerIndex,

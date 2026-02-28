@@ -1,12 +1,13 @@
 using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
+using Fateforged.Simulation;
 
 namespace Fateforged.Multiplayer.Authority;
 
 /// <summary>
 /// Validates client requests before execution.
-/// Prevents cheating and ensures game rules are followed.
+/// Reads from MatchState via SimulationNode to enforce game rules.
 /// </summary>
 public class RequestValidator
 {
@@ -21,12 +22,7 @@ public class RequestValidator
     public static readonly ValidationResult Valid = new(true, "");
 
     /// <summary>
-    /// Whether the incomplete validation warning has been logged.
-    /// </summary>
-    private static bool _warnedIncompleteValidation;
-
-    /// <summary>
-    /// Validate a card play request.
+    /// Validate a card play request against MatchState.
     /// </summary>
     public ValidationResult ValidateCardPlay(MatchSession session, CardPlayRequest request)
     {
@@ -36,27 +32,41 @@ public class RequestValidator
             return new ValidationResult(false, "Invalid player index");
         }
 
-        // Check card index is valid (basic bounds check)
+        // Check card index is non-negative
         if (request.CardIndex < 0)
         {
             return new ValidationResult(false, "Invalid card index");
         }
 
-        // TODO(Phase-4): Full validation requires integration with Summoner game state
-        // - Check if player has this card in hand (request.CardIndex < hand.Count)
-        // - Check if player has enough mana (summoner.Mana >= card.ManaCost)
-        // - Check if position is in valid spawn zone for this player
-        // - Rate limiting to prevent action spam
-        // These checks require access to the GDScript Summoner node which will be
-        // connected when the multiplayer authority is fully integrated with gameplay.
-#if DEBUG
-        if (!_warnedIncompleteValidation)
+        // Validate against MatchState if simulation is available
+        var sim = SimulationNode.Current;
+        if (sim != null)
         {
-            GD.PushWarning("[RequestValidator] Card play validation is incomplete (Phase 4). " +
-                "Mana, hand, and spawn zone checks are not yet implemented.");
-            _warnedIncompleteValidation = true;
+            var state = sim.State;
+            var summoner = state.Summoners[request.PlayerIndex];
+
+            // Check card index is within hand bounds
+            if (request.CardIndex >= summoner.Hand.Count)
+            {
+                return new ValidationResult(false, $"Card index {request.CardIndex} out of range (hand size {summoner.Hand.Count})");
+            }
+
+            // Check summoner is not already casting
+            if (summoner.IsCasting)
+            {
+                return new ValidationResult(false, "Already casting");
+            }
+
+            // Check mana cost
+            var catalogId = summoner.Hand[request.CardIndex];
+            if (state.CardDataMap.TryGetValue(catalogId, out var cardData))
+            {
+                if (summoner.Mana < cardData.ManaCost)
+                {
+                    return new ValidationResult(false, $"Not enough mana ({summoner.Mana:F1}/{cardData.ManaCost:F1})");
+                }
+            }
         }
-#endif
 
         return Valid;
     }

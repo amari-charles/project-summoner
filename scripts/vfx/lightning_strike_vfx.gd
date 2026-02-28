@@ -121,8 +121,8 @@ func _apply_damage() -> void:
 	if spell_damage <= 0:
 		return
 
-	# Apply damage to C# Unit3D
-	if target_unit is Unit3D:
+	# Apply damage to C# Unit3D (duck-typed since GDScript can't reference C# types directly)
+	if target_unit.has_method("TakeDamage"):
 		target_unit.TakeDamage(spell_damage)
 
 ## Update shader alpha (called by tween)
