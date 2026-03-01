@@ -20,6 +20,7 @@ public class HostRunner : IMatchRunner
     private readonly RequestValidator _validator = new();
     private StateSnapshotBuilder? _snapshotBuilder;
     private DesyncDetector? _desyncDetector;
+    private HostEventBroadcaster? _broadcaster;
 
     /// <summary>
     /// Time since last state snapshot broadcast.
@@ -43,14 +44,20 @@ public class HostRunner : IMatchRunner
         _snapshotTimer = 0;
         _snapshotBuilder = new StateSnapshotBuilder(session);
         _desyncDetector = new DesyncDetector(session);
+        _broadcaster = null; // Created lazily in HandleTickEvents when SimulationNode.Current is available
 
         _desyncDetector.OnDesyncDetected += OnDesyncDetected;
 
-        // Subscribe to simulation tick events for broadcasting to clients
+        // Wire up to SimulationNode (must exist — created before MatchSession in phase order)
         if (SimulationNode.Current != null)
         {
             SimulationNode.Current.OnTickCompleted += HandleTickEvents;
             SimulationNode.Current.LocalPlayerIndex = 0; // Host is always player 0
+            GD.Print("[HostRunner] Connected to SimulationNode");
+        }
+        else
+        {
+            GD.PrintErr("[HostRunner] SimulationNode.Current is null during Initialize — this is a bug");
         }
 
         GD.Print("[HostRunner] Initialized");
@@ -114,14 +121,12 @@ public class HostRunner : IMatchRunner
         var canonicalPos = CoordinateTransform.LocalToCanonical(position);
         var simPos = new SimVector3(canonicalPos.X, canonicalPos.Y, canonicalPos.Z);
 
-        // Reserve network ID for spawned unit
-        var networkId = _session.NetworkIds.NextIdWithoutRegistering();
-
         // Create and submit command to simulation
-        var cmd = new PlayCardCommand(0, cardIndex, simPos, networkId); // Host is team 0
+        // NetworkId=-1: simulation assigns real NetworkIds via MatchState.NextNetworkId()
+        var cmd = new PlayCardCommand(0, cardIndex, simPos, -1); // Host is team 0
         SimulationNode.Current.SubmitCommand(cmd);
 
-        GD.Print($"[HostRunner] Host card play: card {cardIndex} at {canonicalPos}, networkId {networkId}");
+        GD.Print($"[HostRunner] Host card play: card {cardIndex} at {canonicalPos}");
     }
 
     public void RequestForfeit()
@@ -151,14 +156,18 @@ public class HostRunner : IMatchRunner
         _session = null;
         _snapshotBuilder = null;
         _desyncDetector = null;
+        _broadcaster = null;
         GD.Print("[HostRunner] Cleaned up");
     }
 
     #region Tick Event Handler
 
     /// <summary>
-    /// Convert key SimEvents to protocol messages and broadcast to clients.
+    /// Convert SimEvents to protocol messages and broadcast to clients.
     /// Called after each simulation tick via OnTickCompleted delegate.
+    ///
+    /// Uses the visitor pattern for compile-time exhaustiveness:
+    /// adding a new SimEvent without a Visit() in HostEventBroadcaster causes a compile error.
     /// </summary>
     private void HandleTickEvents(List<SimEvent> events)
     {
@@ -167,88 +176,11 @@ public class HostRunner : IMatchRunner
         var state = SimulationNode.Current?.State;
         if (state == null) return;
 
+        _broadcaster ??= new HostEventBroadcaster((IMessageBroadcaster)_session, state);
+
         foreach (var evt in events)
         {
-            switch (evt)
-            {
-                case CastingCompletedEvent e:
-                {
-                    // Find the spawned unit's catalog ID from MatchState
-                    string unitType = "unknown";
-                    foreach (var kvp in state.Units)
-                    {
-                        if (kvp.Value.NetworkId == e.NetworkId)
-                        {
-                            unitType = kvp.Value.CatalogId;
-                            break;
-                        }
-                    }
-
-                    var pos = new Vector3(e.SpawnPosition.X, e.SpawnPosition.Y, e.SpawnPosition.Z);
-                    var spawn = new UnitSpawned(
-                        e.NetworkId,
-                        unitType,
-                        e.Team,
-                        pos,
-                        state.FrameNumber,
-                        null,
-                        e.Team
-                    );
-                    _session.Broadcast(spawn);
-                    break;
-                }
-
-                case UnitDiedSimEvent e:
-                {
-                    // Map UnitId → NetworkId
-                    int networkId = -1;
-                    int? killerNetworkId = null;
-
-                    if (state.Units.TryGetValue(e.UnitId, out var deadUnit))
-                        networkId = deadUnit.NetworkId;
-                    if (e.KillerUnitId >= 0 && state.Units.TryGetValue(e.KillerUnitId, out var killerUnit))
-                        killerNetworkId = killerUnit.NetworkId;
-
-                    if (networkId >= 0)
-                    {
-                        _session.Broadcast(new UnitDied(networkId, killerNetworkId));
-                    }
-                    break;
-                }
-
-                case UnitDamagedEvent e:
-                {
-                    // Map UnitIds → NetworkIds
-                    int targetNetworkId = -1;
-                    int? sourceNetworkId = null;
-
-                    if (state.Units.TryGetValue(e.TargetUnitId, out var targetUnit))
-                        targetNetworkId = targetUnit.NetworkId;
-                    if (e.AttackerUnitId >= 0 && state.Units.TryGetValue(e.AttackerUnitId, out var attackerUnit))
-                        sourceNetworkId = attackerUnit.NetworkId;
-
-                    if (targetNetworkId >= 0)
-                    {
-                        _session.Broadcast(new DamageDealt(targetNetworkId, e.Damage, e.IsCrit, sourceNetworkId));
-                    }
-                    break;
-                }
-
-                case SummonerHpChangedEvent e:
-                {
-                    // Compute damage amount from the difference
-                    var summoner = state.Summoners[e.Team];
-                    float amount = summoner.MaxHp - e.Hp; // Total damage taken (cumulative)
-                    _session.Broadcast(new SummonerDamaged(e.Team, amount, e.Hp));
-                    break;
-                }
-
-                case GameOverEvent e:
-                {
-                    _session.Broadcast(new MatchEnded(e.WinnerTeam, e.Reason, state.MatchTime));
-                    break;
-                }
-            }
+            evt.Accept(_broadcaster);
         }
     }
 
@@ -278,25 +210,23 @@ public class HostRunner : IMatchRunner
         // Client sends position in canonical coordinates (client applies LocalToCanonical before sending)
         var simPos = new SimVector3(request.Position.X, request.Position.Y, request.Position.Z);
 
-        // Reserve network ID for the spawned unit
-        var networkId = _session.NetworkIds.NextIdWithoutRegistering();
-
         // Submit command to simulation
-        var cmd = new PlayCardCommand(request.PlayerIndex, request.CardIndex, simPos, networkId);
+        // NetworkId=-1: simulation assigns real NetworkIds via MatchState.NextNetworkId()
+        var cmd = new PlayCardCommand(request.PlayerIndex, request.CardIndex, simPos, -1);
         SimulationNode.Current.SubmitCommand(cmd);
 
-        // Broadcast confirmation to client
+        // Broadcast confirmation to client (NetworkId will be assigned by sim at spawn time)
         var confirmation = new CardPlayConfirmed(
             request.Sequence,
             request.PlayerIndex,
             request.CardIndex,
             request.Position,
             _session.CurrentFrame,
-            networkId
+            -1
         );
         _session.Broadcast(confirmation);
 
-        GD.Print($"[HostRunner] Accepted card play: player {request.PlayerIndex}, card {request.CardIndex}, networkId {networkId}");
+        GD.Print($"[HostRunner] Accepted card play: player {request.PlayerIndex}, card {request.CardIndex}");
     }
 
     private void HandleForfeitRequest(int senderId, ForfeitRequest request)

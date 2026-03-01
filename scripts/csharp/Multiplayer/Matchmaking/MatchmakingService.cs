@@ -61,10 +61,10 @@ public partial class MatchmakingService : Node
     #region Signals
 
     /// <summary>
-    /// Emitted when a match is found.
+    /// Emitted when a match is found and joined.
     /// </summary>
     [Signal]
-    public delegate void MatchFoundEventHandler(string matchId, string opponentUserId, string opponentUsername, int opponentRating);
+    public delegate void MatchFoundEventHandler(string matchId, string opponentUserId, string opponentUsername, int opponentRating, string opponentSummonerId);
 
     /// <summary>
     /// Emitted when matchmaking fails or is cancelled.
@@ -115,11 +115,11 @@ public partial class MatchmakingService : Node
 
     public override void _Ready()
     {
-        // Subscribe to NakamaGameClient match found events
+        // Subscribe to NakamaGameClient match joined events
         var nakama = NakamaGameClient.Instance;
         if (nakama != null)
         {
-            nakama.MatchFound += OnMatchFound;
+            nakama.MatchJoined += OnMatchJoined;
         }
 
         GD.Print("[MatchmakingService] Initialized");
@@ -139,11 +139,28 @@ public partial class MatchmakingService : Node
     #region Public API
 
     /// <summary>
+    /// GDScript-callable wrapper: fire-and-forget join queue.
+    /// Results are communicated via QueueStatusChanged/MatchmakingError signals.
+    /// </summary>
+    public void JoinQueue()
+    {
+        _ = JoinQueueWithOptionsAsync(null);
+    }
+
+    /// <summary>
+    /// GDScript-callable wrapper: fire-and-forget leave queue.
+    /// </summary>
+    public void LeaveQueue()
+    {
+        _ = LeaveQueueAsync();
+    }
+
+    /// <summary>
     /// Join the ranked matchmaking queue.
     /// </summary>
     /// <param name="options">Matchmaking options (mode, rating, etc.)</param>
     /// <returns>True if successfully joined queue</returns>
-    public async Task<bool> JoinQueueAsync(MatchmakingOptions? options = null)
+    public async Task<bool> JoinQueueWithOptionsAsync(MatchmakingOptions? options)
     {
         var nakama = NakamaGameClient.Instance;
         if (nakama == null || !nakama.IsAuthenticated)
@@ -291,9 +308,9 @@ public partial class MatchmakingService : Node
         return $"+properties.mode:{options.Mode} +properties.rating:>={minRating} +properties.rating:<={maxRating}";
     }
 
-    private void OnMatchFound(string matchId, string[] userIds)
+    private void OnMatchJoined(string matchId, string[] userIds, string[] summonerIds)
     {
-        GD.Print($"[MatchmakingService] Match found: {matchId}");
+        GD.Print($"[MatchmakingService] Match joined: {matchId}");
 
         // Clear queue state
         _currentTicket = null;
@@ -303,22 +320,24 @@ public partial class MatchmakingService : Node
         var nakama = NakamaGameClient.Instance;
         string opponentUserId = "";
         string opponentUsername = "Opponent";
+        string opponentSummonerId = "ignis";
         int opponentRating = EloCalculator.StartingElo;
 
         if (nakama != null)
         {
-            foreach (var userId in userIds)
+            for (int i = 0; i < userIds.Length; i++)
             {
-                if (userId != nakama.UserId)
+                if (userIds[i] != nakama.UserId)
                 {
-                    opponentUserId = userId;
+                    opponentUserId = userIds[i];
+                    opponentSummonerId = i < summonerIds.Length ? summonerIds[i] : "ignis";
                     break;
                 }
             }
         }
 
         EmitSignal(SignalName.QueueStatusChanged, false, QueueTime);
-        EmitSignal(SignalName.MatchFound, matchId, opponentUserId, opponentUsername, opponentRating);
+        EmitSignal(SignalName.MatchFound, matchId, opponentUserId, opponentUsername, opponentRating, opponentSummonerId);
     }
 
     #endregion

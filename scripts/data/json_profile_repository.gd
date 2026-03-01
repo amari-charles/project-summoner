@@ -949,6 +949,36 @@ func get_deck(deck_id: String) -> Dictionary:
 	return not_found
 
 ## =============================================================================
+## ACTIVE DECK (for multiplayer deck exchange)
+## =============================================================================
+
+## Get the active deck as an array of {catalog_id: String, count: int}.
+## Used by multiplayer lobby to send deck to opponent.
+func get_active_deck() -> Array:
+	var meta: Dictionary = get_profile_meta()
+	var active_deck_id: String = meta.get("selected_deck", "")
+	if active_deck_id.is_empty():
+		return []
+
+	var deck: Dictionary = get_deck(active_deck_id)
+	var card_ids: Array = deck.get("card_instance_ids", [])
+	if card_ids.is_empty():
+		return []
+
+	# Convert card_instance_ids → {catalog_id, count} format for battle
+	var catalog_counts: Dictionary = {}
+	for instance_id: Variant in card_ids:
+		var card_data: Dictionary = get_card(str(instance_id))
+		var catalog_id: String = str(card_data.get("catalog_id", ""))
+		if not catalog_id.is_empty():
+			catalog_counts[catalog_id] = catalog_counts.get(catalog_id, 0) + 1
+
+	var result: Array = []
+	for catalog_id: String in catalog_counts:
+		result.append({"catalog_id": catalog_id, "count": catalog_counts[catalog_id]})
+	return result
+
+## =============================================================================
 ## CAMPAIGN PROGRESS OPERATIONS
 ## =============================================================================
 

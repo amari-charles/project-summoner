@@ -87,6 +87,10 @@ public class ClientRunner : IMatchRunner
         // Interpolate remote entities toward their last known positions
         _interpolator.Update(delta);
 
+        // Write interpolated positions into UnitData so SyncFromSimulation
+        // reads smooth frame-rate positions instead of stale 10Hz snapshot data
+        SyncInterpolatedPositions();
+
         // Periodic ping for latency measurement
         _pingTimer += delta;
         if (_pingTimer >= PingInterval)
@@ -96,7 +100,8 @@ public class ClientRunner : IMatchRunner
         }
 
         // Periodic hash report to host for desync detection
-        if (_frameCounter % DesyncDetector.HashReportIntervalFrames == 0)
+        // Skip until we've received at least one snapshot (otherwise hash is meaningless)
+        if (_frameCounter % DesyncDetector.HashReportIntervalFrames == 0 && _lastServerFrame > 0)
         {
             SendHashReport();
         }
@@ -141,7 +146,7 @@ public class ClientRunner : IMatchRunner
                 break;
 
             case MatchEnded ended:
-                // Handled by MatchSession.DispatchMessageEvent
+                HandleMatchEnded(ended);
                 break;
         }
     }
@@ -248,9 +253,6 @@ public class ClientRunner : IMatchRunner
         {
             _interpolator.SetTarget(unitState.NetworkId, unitState.Position);
         }
-
-        // Use DesyncDetector to check for state mismatches
-        _desyncDetector?.ApplySnapshot(snapshot);
     }
 
     private void HandleUnitSpawned(UnitSpawned spawned)
@@ -259,9 +261,21 @@ public class ClientRunner : IMatchRunner
 
         GD.Print($"[ClientRunner] Unit spawned: id {spawned.NetworkId}, type {spawned.UnitType}, team {spawned.Team}");
 
-        // The snapshot will include the new unit and ApplySnapshot handles registration.
-        // The UnitSpawned signal is emitted by MatchSession.DispatchMessageEvent() for
-        // game systems to listen to and instantiate the visual unit.
+        // Pre-register unit in MatchState BEFORE visual spawn so Unit3D._Ready()
+        // can ClaimNextSimUnitId() and find the UnitData with the correct Team.
+        if (SimulationNode.Current != null)
+        {
+            var canonicalPos = new SimVector3(spawned.Position.X, spawned.Position.Y, spawned.Position.Z);
+            SimulationNode.Current.PreRegisterRemoteUnit(spawned.NetworkId, spawned.Team, canonicalPos);
+
+            // Convert to local space and emit signal for visual spawning
+            var localTeam = SimulationNode.Current.ToLocalTeam(new NetworkTeam(spawned.Team));
+            var localPos = CoordinateTransform.CanonicalToLocal(spawned.Position);
+            SimulationNode.Current.EmitSignal(
+                SimulationNode.SignalName.RemoteUnitSpawned,
+                spawned.UnitType, localTeam.Value, localPos, spawned.NetworkId, spawned.SpawnDuration
+            );
+        }
     }
 
     private void HandleUnitDied(UnitDied died)
@@ -277,27 +291,13 @@ public class ClientRunner : IMatchRunner
         // Emit UnitDiedSim signal on SimulationNode for death animations
         if (SimulationNode.Current != null)
         {
-            // Find the UnitData by NetworkId to get the sim UnitId
-            var state = SimulationNode.Current.State;
-            foreach (var kvp in state.Units)
+            int? unitId = FindUnitIdByNetworkId(died.NetworkId);
+            if (unitId.HasValue)
             {
-                if (kvp.Value.NetworkId == died.NetworkId)
-                {
-                    int killerUnitId = -1;
-                    if (died.KillerNetworkId.HasValue)
-                    {
-                        foreach (var kvp2 in state.Units)
-                        {
-                            if (kvp2.Value.NetworkId == died.KillerNetworkId.Value)
-                            {
-                                killerUnitId = kvp2.Value.UnitId;
-                                break;
-                            }
-                        }
-                    }
-                    SimulationNode.Current.EmitSignal(SimulationNode.SignalName.UnitDiedSim, kvp.Value.UnitId, killerUnitId);
-                    break;
-                }
+                int killerUnitId = died.KillerNetworkId.HasValue
+                    ? FindUnitIdByNetworkId(died.KillerNetworkId.Value) ?? -1
+                    : -1;
+                SimulationNode.Current.EmitSignal(SimulationNode.SignalName.UnitDiedSim, unitId.Value, killerUnitId);
             }
         }
     }
@@ -306,22 +306,14 @@ public class ClientRunner : IMatchRunner
     {
         if (_session == null || SimulationNode.Current == null) return;
 
-        // Map NetworkIds back to UnitIds for signal emission
-        var state = SimulationNode.Current.State;
-        int targetUnitId = -1;
-        int attackerUnitId = -1;
+        int? targetUnitId = FindUnitIdByNetworkId(damage.TargetNetworkId);
+        int attackerUnitId = damage.SourceNetworkId.HasValue
+            ? FindUnitIdByNetworkId(damage.SourceNetworkId.Value) ?? -1
+            : -1;
 
-        foreach (var kvp in state.Units)
+        if (targetUnitId.HasValue)
         {
-            if (kvp.Value.NetworkId == damage.TargetNetworkId)
-                targetUnitId = kvp.Value.UnitId;
-            if (damage.SourceNetworkId.HasValue && kvp.Value.NetworkId == damage.SourceNetworkId.Value)
-                attackerUnitId = kvp.Value.UnitId;
-        }
-
-        if (targetUnitId >= 0)
-        {
-            SimulationNode.Current.EmitSignal(SimulationNode.SignalName.UnitDamaged, targetUnitId, attackerUnitId, damage.Amount, damage.IsCrit);
+            SimulationNode.Current.EmitSignal(SimulationNode.SignalName.UnitDamaged, targetUnitId.Value, attackerUnitId, damage.Amount, damage.IsCrit);
         }
     }
 
@@ -335,6 +327,22 @@ public class ClientRunner : IMatchRunner
         var summoner = SimulationNode.Current.State.Summoners[networkTeam.Value];
 
         SimulationNode.Current.EmitSignal(SimulationNode.SignalName.SummonerHpChanged, localTeam.Value, summonerDamage.NewHp, summoner.MaxHp);
+    }
+
+    private void HandleMatchEnded(MatchEnded ended)
+    {
+        if (_session == null || SimulationNode.Current == null) return;
+
+        // Convert winner index to local team:
+        // WinnerIndex 0 = host won, 1 = client won
+        // If WinnerIndex == LocalPlayerIndex → local player won → Team.PLAYER (0)
+        // Else → opponent won → Team.ENEMY (1)
+        int localWinnerTeam = (ended.WinnerIndex == _session.LocalPlayerIndex) ? 0 : 1;
+
+        GD.Print($"[ClientRunner] Match ended: winner index {ended.WinnerIndex}, local team {localWinnerTeam}");
+
+        // Emit GameOver on SimulationNode so game_controller_3d.gd receives it
+        SimulationNode.Current.EmitSignal(SimulationNode.SignalName.GameOver, localWinnerTeam, ended.Reason);
     }
 
     private void HandlePong(Pong pong)
@@ -366,9 +374,46 @@ public class ClientRunner : IMatchRunner
 
     #region Helpers
 
+    /// <summary>
+    /// Map a NetworkId to a sim UnitId via MatchState lookup.
+    /// </summary>
+    private int? FindUnitIdByNetworkId(int networkId)
+    {
+        var state = SimulationNode.Current?.State;
+        if (state == null) return null;
+
+        foreach (var kvp in state.Units)
+            if (kvp.Value.NetworkId == networkId)
+                return kvp.Value.UnitId;
+        return null;
+    }
+
     private void SendPing()
     {
         _session?.Send(new Ping(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+
+    /// <summary>
+    /// Write interpolated positions from StateInterpolator into UnitData.
+    /// This bridges the gap: interpolator computes smooth frame-rate positions,
+    /// UnitData stores them, SyncFromSimulation reads them for display.
+    /// </summary>
+    private void SyncInterpolatedPositions()
+    {
+        var sim = SimulationNode.Current;
+        if (sim == null) return;
+
+        foreach (var kvp in sim.State.Units)
+        {
+            var unitData = kvp.Value;
+            if (!unitData.IsAlive || unitData.NetworkId < 0) continue;
+
+            var pos = _interpolator.GetPosition(unitData.NetworkId);
+            if (pos.HasValue)
+            {
+                unitData.Position = new SimVector3(pos.Value.X, pos.Value.Y, pos.Value.Z);
+            }
+        }
     }
 
     private void SendHashReport()

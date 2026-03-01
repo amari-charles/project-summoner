@@ -10,6 +10,7 @@ public interface IMatchRunner
 {
     /// <summary>
     /// Initialize the runner with the match session.
+    /// SimulationNode.Current must exist before this is called.
     /// </summary>
     void Initialize(MatchSession session);
 

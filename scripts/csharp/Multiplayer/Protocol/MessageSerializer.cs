@@ -25,7 +25,7 @@ public class MessageSerializer
                 dict["seq"] = m.Sequence;
                 dict["player"] = m.PlayerIndex;
                 dict["card"] = m.CardIndex;
-                dict["pos"] = m.Position;
+                dict["pos"] = SerializeVector3(m.Position);
                 dict["ts"] = m.ClientTimestamp;
                 break;
 
@@ -52,7 +52,7 @@ public class MessageSerializer
                 dict["seq"] = m.Sequence;
                 dict["player"] = m.PlayerIndex;
                 dict["card"] = m.CardIndex;
-                dict["pos"] = m.Position;
+                dict["pos"] = SerializeVector3(m.Position);
                 dict["frame"] = m.ServerFrame;
                 dict["unitId"] = m.SpawnedUnitNetworkId;
                 break;
@@ -81,10 +81,11 @@ public class MessageSerializer
                 dict["id"] = m.NetworkId;
                 dict["unitType"] = m.UnitType;
                 dict["team"] = m.Team;
-                dict["pos"] = m.Position;
+                dict["pos"] = SerializeVector3(m.Position);
                 dict["tick"] = m.MatchTick;
                 dict["srcSeq"] = m.SourceSequence ?? -1;
                 dict["srcPlayer"] = m.SourcePlayerIndex ?? -1;
+                dict["spawnDur"] = m.SpawnDuration;
                 break;
 
             case UnitDied m:
@@ -162,7 +163,7 @@ public class MessageSerializer
                 (int)dict["seq"],
                 (int)dict["player"],
                 (int)dict["card"],
-                (Vector3)dict["pos"],
+                DeserializeVector3(dict["pos"]),
                 (long)dict["ts"]
             ),
 
@@ -183,7 +184,7 @@ public class MessageSerializer
                 (int)dict["seq"],
                 (int)dict["player"],
                 (int)dict["card"],
-                (Vector3)dict["pos"],
+                DeserializeVector3(dict["pos"]),
                 (long)dict["frame"],
                 (int)dict["unitId"]
             ),
@@ -209,10 +210,11 @@ public class MessageSerializer
                 (int)dict["id"],
                 (string)dict["unitType"],
                 (int)dict["team"],
-                (Vector3)dict["pos"],
+                DeserializeVector3(dict["pos"]),
                 (long)dict["tick"],
                 (int)dict["srcSeq"] == -1 ? null : (int)dict["srcSeq"],
-                (int)dict["srcPlayer"] == -1 ? null : (int)dict["srcPlayer"]
+                (int)dict["srcPlayer"] == -1 ? null : (int)dict["srcPlayer"],
+                dict.ContainsKey("spawnDur") ? (float)dict["spawnDur"] : 0f
             ),
 
             MessageType.UnitDied => new UnitDied(
@@ -274,6 +276,15 @@ public class MessageSerializer
 
     #region Helper Methods
 
+    private static Dictionary SerializeVector3(Vector3 v)
+        => new() { ["x"] = v.X, ["y"] = v.Y, ["z"] = v.Z };
+
+    private static Vector3 DeserializeVector3(Variant v)
+    {
+        var d = v.AsGodotDictionary();
+        return new Vector3((float)(double)d["x"], (float)(double)d["y"], (float)(double)d["z"]);
+    }
+
     private Godot.Collections.Array SerializeSummoners(SummonerState[] summoners)
     {
         var arr = new Godot.Collections.Array();
@@ -290,9 +301,12 @@ public class MessageSerializer
                 ["castTime"] = s.CastingTimeRemaining,
                 ["castTotal"] = s.CastingTimeTotal,
                 ["castCard"] = s.CastingCardIndex,
-                ["castPos"] = s.CastingSpawnPosition,
+                ["castPos"] = SerializeVector3(s.CastingSpawnPosition),
                 ["castNetId"] = s.CastingNetworkId,
-                ["cardHash"] = s.CardStateHash
+                ["cardHash"] = s.CardStateHash,
+                ["hand"] = ToGodotArray(s.Hand ?? System.Array.Empty<string>()),
+                ["deck"] = ToGodotArray(s.Deck ?? System.Array.Empty<string>()),
+                ["discard"] = ToGodotArray(s.DiscardPile ?? System.Array.Empty<string>())
             };
             arr.Add(d);
         }
@@ -315,9 +329,12 @@ public class MessageSerializer
                 (float)d["castTime"],
                 (float)d["castTotal"],
                 (int)d["castCard"],
-                (Vector3)d["castPos"],
+                DeserializeVector3(d["castPos"]),
                 (int)d["castNetId"],
-                (int)d["cardHash"]
+                (int)d["cardHash"],
+                d.ContainsKey("hand") ? ToStringArray((Godot.Collections.Array)d["hand"]) : System.Array.Empty<string>(),
+                d.ContainsKey("deck") ? ToStringArray((Godot.Collections.Array)d["deck"]) : System.Array.Empty<string>(),
+                d.ContainsKey("discard") ? ToStringArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<string>()
             );
         }
         return summoners;
@@ -331,11 +348,14 @@ public class MessageSerializer
             var d = new Dictionary
             {
                 ["id"] = u.NetworkId,
-                ["pos"] = u.Position,
+                ["team"] = u.Team,
+                ["pos"] = SerializeVector3(u.Position),
                 ["hp"] = u.Hp,
                 ["target"] = u.TargetNetworkId ?? -1,
                 ["alive"] = u.IsAlive,
-                ["activation"] = u.ActivationState
+                ["activation"] = u.ActivationState,
+                ["behavior"] = u.BehaviorState,
+                ["facing"] = u.IsFacingRight
             };
             arr.Add(d);
         }
@@ -350,11 +370,14 @@ public class MessageSerializer
             var d = (Dictionary)arr[i];
             units[i] = new UnitState(
                 (int)d["id"],
-                (Vector3)d["pos"],
+                d.ContainsKey("team") ? (int)d["team"] : -1,
+                DeserializeVector3(d["pos"]),
                 (float)d["hp"],
                 (int)d["target"] == -1 ? null : (int)d["target"],
                 (bool)d["alive"],
-                (int)d["activation"]
+                (int)d["activation"],
+                d.ContainsKey("behavior") ? (int)d["behavior"] : 0,
+                d.ContainsKey("facing") ? (bool)d["facing"] : true
             );
         }
         return units;

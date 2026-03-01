@@ -512,6 +512,8 @@
       "leaderboard_title": "TOP PLAYERS",
       "your_rank": "Your Rank",
       "unranked": "Unranked",
+      "exchanging_data": "Exchanging match data...",
+      "exchange_timeout": "Failed to exchange data with opponent",
       "not_connected": "Not connected to server",
       "authenticating": "Authenticating...",
       "authentication_failed": "Authentication failed",

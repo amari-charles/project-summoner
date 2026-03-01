@@ -450,6 +450,7 @@ public class Simulation
     {
         int unitIndex = 0;
         int totalUnits = 0;
+        int firstNetworkId = -1;
         foreach (var template in cardData.UnitTemplates)
             totalUnits += template.Count;
 
@@ -458,12 +459,14 @@ public class Simulation
             for (int i = 0; i < template.Count; i++)
             {
                 var unitId = _state.NextUnitId();
+                var networkId = _state.NextNetworkId();
+                if (firstNetworkId < 0) firstNetworkId = networkId;
                 var position = CalculateSpawnOffset(spawnPosition, unitIndex, totalUnits, template.SeparationRadius);
 
                 var unitData = new UnitData
                 {
                     UnitId = unitId,
-                    NetworkId = -1, // Assigned by presentation layer
+                    NetworkId = networkId,
                     CatalogId = cardData.CatalogId,
                     Team = team,
                     CurrentHp = template.MaxHp,
@@ -508,6 +511,10 @@ public class Simulation
                 unitIndex++;
             }
         }
+
+        // Update CastingNetworkId to match the first spawned unit's actual NetworkId
+        if (firstNetworkId >= 0)
+            _state.Summoners[team].CastingNetworkId = firstNetworkId;
     }
 
     /// <summary>
@@ -708,42 +715,56 @@ public class Simulation
 /// Events produced by Simulation.Tick() for SimulationNode to emit as Godot signals.
 /// No Godot types — positions use SimVector3.
 /// </summary>
-public abstract class SimEvent { }
+public abstract class SimEvent
+{
+    public abstract void Accept(ISimEventVisitor visitor);
+}
 
+[EventCategory(EventCategory.Snapshot)]
 public class PhaseChangedEvent : SimEvent
 {
     public GamePhase NewPhase { get; }
     public PhaseChangedEvent(GamePhase newPhase) => NewPhase = newPhase;
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class PrepTimerUpdatedEvent : SimEvent
 {
     public float Remaining { get; }
     public PrepTimerUpdatedEvent(float remaining) => Remaining = remaining;
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class MatchTimeUpdatedEvent : SimEvent
 {
     public float MatchTime { get; }
     public MatchTimeUpdatedEvent(float matchTime) => MatchTime = matchTime;
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Broadcast)]
 public class SummonerHpChangedEvent : SimEvent
 {
     public int Team { get; }
     public float Hp { get; }
     public float MaxHp { get; }
     public SummonerHpChangedEvent(int team, float hp, float maxHp) { Team = team; Hp = hp; MaxHp = maxHp; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class SummonerManaChangedEvent : SimEvent
 {
     public int Team { get; }
     public float Mana { get; }
     public float MaxMana { get; }
     public SummonerManaChangedEvent(int team, float mana, float maxMana) { Team = team; Mana = mana; MaxMana = maxMana; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class CastingStartedEvent : SimEvent
 {
     public int Team { get; }
@@ -753,8 +774,10 @@ public class CastingStartedEvent : SimEvent
     public string CatalogId { get; }
     public CastingStartedEvent(int team, int cardIndex, float duration, SimVector3 spawnPosition, string catalogId = "")
     { Team = team; CardIndex = cardIndex; Duration = duration; SpawnPosition = spawnPosition; CatalogId = catalogId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class CastingCompletedEvent : SimEvent
 {
     public int Team { get; }
@@ -763,29 +786,37 @@ public class CastingCompletedEvent : SimEvent
     public int NetworkId { get; }
     public CastingCompletedEvent(int team, int cardIndex, SimVector3 spawnPosition, int networkId)
     { Team = team; CardIndex = cardIndex; SpawnPosition = spawnPosition; NetworkId = networkId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class CardDrawnEvent : SimEvent
 {
     public int Team { get; }
     public int HandIndex { get; }
     public string CatalogId { get; }
     public CardDrawnEvent(int team, int handIndex, string catalogId) { Team = team; HandIndex = handIndex; CatalogId = catalogId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class HandChangedEvent : SimEvent
 {
     public int Team { get; }
     public string[] Hand { get; }
     public HandChangedEvent(int team, string[] hand) { Team = team; Hand = hand; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Snapshot)]
 public class DeckRecycledEvent : SimEvent
 {
     public int Team { get; }
     public DeckRecycledEvent(int team) => Team = team;
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Broadcast)]
 public class UnitRegisteredEvent : SimEvent
 {
     public int UnitId { get; }
@@ -795,24 +826,30 @@ public class UnitRegisteredEvent : SimEvent
     public SimVector3 Position { get; }
     public UnitRegisteredEvent(int unitId, int networkId, string catalogId, int team, SimVector3 position)
     { UnitId = unitId; NetworkId = networkId; CatalogId = catalogId; Team = team; Position = position; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.HostOnly)]
 public class UnitRemovedEvent : SimEvent
 {
     public int UnitId { get; }
     public UnitRemovedEvent(int unitId) => UnitId = unitId;
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
+[EventCategory(EventCategory.Broadcast)]
 public class GameOverEvent : SimEvent
 {
     public int WinnerTeam { get; }
     public string Reason { get; }
     public GameOverEvent(int winnerTeam, string reason) { WinnerTeam = winnerTeam; Reason = reason; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A spell card was cast (for visual feedback — VFX, projectiles).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class SpellCastEvent : SimEvent
 {
     public int Team { get; }
@@ -820,22 +857,26 @@ public class SpellCastEvent : SimEvent
     public SimVector3 Position { get; }
     public SpellCastEvent(int team, string catalogId, SimVector3 position)
     { Team = team; CatalogId = catalogId; Position = position; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A unit attacked another unit (for visual/audio feedback).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class UnitAttackedEvent : SimEvent
 {
     public int AttackerUnitId { get; }
     public int TargetUnitId { get; }
     public UnitAttackedEvent(int attackerUnitId, int targetUnitId)
     { AttackerUnitId = attackerUnitId; TargetUnitId = targetUnitId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A unit took damage (for visual feedback — flash, HP bar update).
 /// </summary>
+[EventCategory(EventCategory.Broadcast)]
 public class UnitDamagedEvent : SimEvent
 {
     public int TargetUnitId { get; }
@@ -844,55 +885,65 @@ public class UnitDamagedEvent : SimEvent
     public bool IsCrit { get; }
     public UnitDamagedEvent(int targetUnitId, int attackerUnitId, float damage, bool isCrit)
     { TargetUnitId = targetUnitId; AttackerUnitId = attackerUnitId; Damage = damage; IsCrit = isCrit; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A unit died (for death animation, cleanup, kill tracking).
 /// </summary>
+[EventCategory(EventCategory.Broadcast)]
 public class UnitDiedSimEvent : SimEvent
 {
     public int UnitId { get; }
     public int KillerUnitId { get; }
     public UnitDiedSimEvent(int unitId, int killerUnitId)
     { UnitId = unitId; KillerUnitId = killerUnitId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A projectile hit a unit (for visual feedback — impact VFX, pierce tracking).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class ProjectileHitSimEvent : SimEvent
 {
     public int ProjectileId { get; }
     public int TargetUnitId { get; }
     public ProjectileHitSimEvent(int projectileId, int targetUnitId)
     { ProjectileId = projectileId; TargetUnitId = targetUnitId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A unit's activation state changed (for visual feedback).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class UnitActivationChangedEvent : SimEvent
 {
     public int UnitId { get; }
     public int NewState { get; }
     public UnitActivationChangedEvent(int unitId, int newState)
     { UnitId = unitId; NewState = newState; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A unit evaded an attack (for visual feedback — dodge text, animation).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class AttackEvadedEvent : SimEvent
 {
     public int TargetUnitId { get; }
     public int AttackerUnitId { get; }
     public AttackEvadedEvent(int targetUnitId, int attackerUnitId)
     { TargetUnitId = targetUnitId; AttackerUnitId = attackerUnitId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A buff/debuff was applied to a unit (for visual feedback — VFX, status icons).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class BuffAppliedSimEvent : SimEvent
 {
     public int TargetUnitId { get; }
@@ -901,11 +952,13 @@ public class BuffAppliedSimEvent : SimEvent
     public float Duration { get; }
     public BuffAppliedSimEvent(int targetUnitId, EffectType effectType, float value, float duration)
     { TargetUnitId = targetUnitId; EffectType = effectType; Value = value; Duration = duration; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A buff/debuff expired on a unit (for visual cleanup).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class BuffExpiredSimEvent : SimEvent
 {
     public int TargetUnitId { get; }
@@ -913,11 +966,13 @@ public class BuffExpiredSimEvent : SimEvent
     public EffectType EffectType { get; }
     public BuffExpiredSimEvent(int targetUnitId, int buffId, EffectType effectType)
     { TargetUnitId = targetUnitId; BuffId = buffId; EffectType = effectType; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
 /// <summary>
 /// A delayed effect fired (death explosion, timed AoE — for visual feedback).
 /// </summary>
+[EventCategory(EventCategory.HostOnly)]
 public class DelayedEffectFiredSimEvent : SimEvent
 {
     public SimVector3 Position { get; }
@@ -925,4 +980,5 @@ public class DelayedEffectFiredSimEvent : SimEvent
     public float AoeRadius { get; }
     public DelayedEffectFiredSimEvent(SimVector3 position, EffectType effectType, float aoeRadius)
     { Position = position; EffectType = effectType; AoeRadius = aoeRadius; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }

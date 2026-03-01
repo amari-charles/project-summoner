@@ -99,7 +99,8 @@ public readonly record struct UnitSpawned(
     Vector3 Position,
     long MatchTick,
     int? SourceSequence,
-    int? SourcePlayerIndex
+    int? SourcePlayerIndex,
+    float SpawnDuration
 );
 
 /// <summary>
@@ -190,7 +191,10 @@ public readonly record struct SummonerState(
     int CastingCardIndex,
     Vector3 CastingSpawnPosition,
     int CastingNetworkId,
-    int CardStateHash
+    int CardStateHash,
+    string[] Hand,
+    string[] Deck,
+    string[] DiscardPile
 );
 
 /// <summary>
@@ -199,11 +203,14 @@ public readonly record struct SummonerState(
 /// </summary>
 public readonly record struct UnitState(
     int NetworkId,
+    int Team,
     Vector3 Position,
     float Hp,
     int? TargetNetworkId,
     bool IsAlive,
-    int ActivationState
+    int ActivationState,
+    int BehaviorState,
+    bool IsFacingRight
 );
 
 

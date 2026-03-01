@@ -13,6 +13,7 @@ using ProjectSummoner.Systems;
 using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Targeting;
 using ProjectSummoner.Units.Components;
+using ProjectSummoner.UI;
 using ProjectSummoner.Visual;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
@@ -146,17 +147,17 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Simulation unit ID linking this visual node to its UnitData in MatchState.
-    /// -1 means not linked to the simulation (legacy mode).
-    /// When >= 0, this unit reads position/facing from MatchState during Battle
+    /// null means not linked to the simulation (legacy mode).
+    /// When set, this unit reads position/facing from MatchState during Battle
     /// and damage/death are driven by sim events (not local combat).
     /// </summary>
-    public int SimUnitId { get; set; } = -1;
+    public int? SimUnitId { get; set; } = null;
 
     /// <summary>
-    /// True if this unit is driven by the simulation (SimUnitId >= 0).
+    /// True if this unit is linked to a simulation slot.
     /// In sim-driven mode, Unit3D is a pure visual puppet of MatchState.
     /// </summary>
-    public bool IsSimDriven => SimUnitId >= 0;
+    public bool IsSimDriven => SimUnitId.HasValue;
 
     [Export]
     public int Team { get; set; } = (int)Units.Team.Player;
@@ -664,7 +665,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (simNode == null) return;
 
         SimUnitId = simNode.ClaimNextSimUnitId(Team);
-        if (SimUnitId >= 0)
+        if (IsSimDriven)
         {
             GD.Print($"[Unit3D] Claimed SimUnitId={SimUnitId} for {UnitId} team={Team}");
         }
@@ -761,7 +762,6 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     private Node3D? FindUnit3DBySimId(int simUnitId)
     {
-        if (simUnitId < 0) return null;
         foreach (var node in GetTree().GetNodesInGroup(GroupIDs.Units))
         {
             if (node is Unit3D unit && unit.SimUnitId == simUnitId)
@@ -777,30 +777,36 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!IsAlive || ActivationState == ActivationState.Inactive)
-            return;
-
-        // Performance instrumentation
-        ulong startTime = Time.GetTicksUsec();
-        PerformanceCounters.ActiveUnits++;
-
         float deltaF = (float)delta;
 
         if (IsSimDriven)
         {
-            // Sim-driven mode: read state from MatchState (no local AI)
-            ReadFromSimulation(deltaF);
+            // Sim-driven path: sync state from UnitData BEFORE activation gate.
+            // This ensures ActivationState propagates from sim → visual even when
+            // the unit starts Inactive (prevents the client-side freeze bug).
+            SyncFromSimulation(deltaF);
         }
         else
         {
-            // Legacy mode: run own targeting, behavior, movement
+            // Legacy path: activation gate applies normally
+            if (!IsAlive || ActivationState == ActivationState.Inactive)
+                return;
+
+            ulong startTime = Time.GetTicksUsec();
+            PerformanceCounters.ActiveUnits++;
+
             UpdateCooldowns(deltaF);
             UpdateTargeting(deltaF);
             UpdateBehavior(deltaF);
             UpdateTriggers(deltaF);
+
+            PerformanceCounters.PhysicsProcessTimeUsec += Time.GetTicksUsec() - startTime;
         }
 
-        // Common updates (both modes)
+        // Common visual updates (both paths, only when alive + active)
+        if (!IsAlive || ActivationState == ActivationState.Inactive)
+            return;
+
         if (MovementLayer == (int)Units.MovementLayer.Air)
         {
             UpdateShadowForAltitude();
@@ -815,30 +821,65 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             VisualComponent?.SetRenderPriority(Mathf.Clamp(priority, MinRenderPriority, MaxRenderPriority));
             _lastRenderPriorityPosition = GlobalPosition;
         }
-
-        PerformanceCounters.PhysicsProcessTimeUsec += Time.GetTicksUsec() - startTime;
     }
 
     /// <summary>
-    /// Read state from MatchState when in sim-driven mode.
-    /// Position, facing, and animation come from UnitData.
+    /// Sync ALL visual state from UnitData when in sim-driven mode.
+    /// Called BEFORE the activation gate so ActivationState propagates from sim → visual.
+    /// Position, facing, HP, and animation come from UnitData.
     /// Damage and death handled by sim event signals.
     /// </summary>
-    private void ReadFromSimulation(float delta)
+    private bool _loggedSimSyncWarning;
+
+    private void SyncFromSimulation(float delta)
     {
         var simNode = SimulationNode.Current;
-        if (simNode == null) return;
+        if (simNode == null)
+        {
+            if (!_loggedSimSyncWarning)
+            {
+                GD.PrintErr($"[Unit3D] SyncFromSimulation: SimulationNode.Current is null (SimUnitId={SimUnitId}, UnitId={UnitId})");
+                _loggedSimSyncWarning = true;
+            }
+            return;
+        }
 
-        var unitData = simNode.GetUnitData(SimUnitId);
-        if (unitData == null) return;
+        var unitData = simNode.GetUnitData(SimUnitId!.Value);
+        if (unitData == null)
+        {
+            if (!_loggedSimSyncWarning)
+            {
+                GD.PrintErr($"[Unit3D] SyncFromSimulation: UnitData not found (SimUnitId={SimUnitId}, UnitId={UnitId})");
+                _loggedSimSyncWarning = true;
+            }
+            return;
+        }
+
+        // Sync ActivationState from sim → visual (the critical fix)
+        var simActivation = (ActivationState)unitData.ActivationState;
+        if (ActivationState != simActivation)
+        {
+            ActivationState = simActivation;
+        }
+        if (simActivation == ActivationState.Inactive) return;
+
+        // Sync alive state — snapshot says dead but unit is still alive visually
+        if (!unitData.IsAlive && IsAlive)
+        {
+            _health.Die();  // Fallback: trigger death from snapshot (idempotent with UnitDied message path)
+            return;
+        }
 
         // Position: read from sim and convert to local Godot coordinates
         GlobalPosition = simNode.SimToLocal(unitData.Position);
 
-        // Facing
-        if (_isFacingRight != unitData.IsFacingRight)
+        // Facing — flip for client since X axis is mirrored via CoordinateTransform
+        bool localFacing = unitData.IsFacingRight;
+        if (SimulationNode.Current != null && !SimulationNode.Current.IsHost)
+            localFacing = !localFacing;
+        if (_isFacingRight != localFacing)
         {
-            SetFacing(unitData.IsFacingRight);
+            SetFacing(localFacing);
         }
 
         // HP sync (updates HP bar without triggering death)
@@ -914,20 +955,34 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
             HandleFlyingDeath();
         }
 
-        // In sim-driven mode, QueueFree is handled by UnitRemovedEvent (after DeathCleanupTimer).
-        // This keeps the visual node alive for death animations until the sim removes the UnitData.
+        // In sim-driven mode, QueueFree is handled by UnitRemovedEvent → OnSimUnitRemoved().
+        // Host: Tick() fires UnitRemovedEvent after DeathCleanupTimer expires.
+        // Client: Tick() doesn't run, so emit UnitStateRemoved after a delay to route
+        // through the same OnSimUnitRemoved() cleanup path (single cleanup entry point).
         if (IsSimDriven)
+        {
+            if (SimulationNode.Current != null && !SimulationNode.Current.IsHost)
+            {
+                int capturedId = SimUnitId!.Value;
+                var timer = GetTree()?.CreateTimer(DeathCleanupDelay);
+                timer?.Connect("timeout", Callable.From(() =>
+                {
+                    SimulationNode.Current?.EmitSignal(SimulationNode.SignalName.UnitStateRemoved, capturedId);
+                }), (uint)GodotObject.ConnectFlags.OneShot);
+            }
             return;
+        }
 
         // Legacy mode: cleanup after death animation delay
-        var tween = CreateTween();
-        tween.TweenInterval(DeathCleanupDelay);
-        tween.TweenCallback(Callable.From(QueueFree));
+        var legacyTween = CreateTween();
+        legacyTween.TweenInterval(DeathCleanupDelay);
+        legacyTween.TweenCallback(Callable.From(QueueFree));
     }
 
     /// <summary>
     /// Unregister this unit from the multiplayer system.
-    /// Called on death to clean up NetworkIdRegistry and broadcast UnitDied.
+    /// Called on death to clean up NetworkIdRegistry.
+    /// Does NOT broadcast UnitDied — HostRunner handles that via UnitDiedSimEvent.
     /// </summary>
     private void UnregisterFromMultiplayerSystem()
     {
@@ -936,16 +991,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         var session = MatchSession.Current;
         if (session == null || !session.IsActive) return;
 
-        // Unregister from NetworkIdRegistry
+        // Unregister from NetworkIdRegistry (visual cleanup only)
         session.NetworkIds.Unregister(this);
-
-        // Host broadcasts UnitDied to clients
-        if (session.IsHost)
-        {
-            var deathMessage = new UnitDied(NetworkId, null);
-            session.Broadcast(deathMessage);
-            GD.Print($"[Unit3D] Broadcast UnitDied for NetworkId {NetworkId}");
-        }
 
         NetworkId = -1;
     }
@@ -1769,15 +1816,39 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         SpatialGrid.Instance?.RegisterUnit(this);
 
         // Register with HPBarService (C#)
-        // Use custom offset if specified, otherwise use defaults (auto-calculates from sprite)
+        if (!TryCreateHpBar())
+        {
+            // HPBarService may not be initialized yet (e.g., client-side timing).
+            // Retry on next frame via CallDeferred.
+            GD.PushWarning($"[Unit3D] HP bar creation deferred for {UnitId} — HPBarService not ready");
+            CallDeferred(MethodName.RetryCreateHpBar);
+        }
+    }
+
+    private bool TryCreateHpBar()
+    {
+        if (HPBarService.Instance == null)
+            return false;
+
+        FloatingHPBar? bar;
         if (HpBarOffsetY > 0)
         {
             var settings = HPBarSettings.Default with { OffsetY = HpBarOffsetY };
-            HPBarService.Instance?.CreateBarForUnit(this, settings);
+            bar = HPBarService.Instance.CreateBarForUnit(this, settings);
         }
         else
         {
-            HPBarService.Instance?.CreateBarForUnit(this);
+            bar = HPBarService.Instance.CreateBarForUnit(this);
+        }
+        return bar != null;
+    }
+
+    private void RetryCreateHpBar()
+    {
+        if (!IsInsideTree() || !IsAlive) return;
+        if (!TryCreateHpBar())
+        {
+            GD.PrintErr($"[Unit3D] HP bar creation failed on retry for {UnitId}");
         }
     }
 

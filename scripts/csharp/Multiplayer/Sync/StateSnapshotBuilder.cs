@@ -106,7 +106,10 @@ public class StateSnapshotBuilder
                 s.CastingCardIndex,
                 castPos,
                 s.CastingNetworkId,
-                s.ComputeCardHash()
+                s.ComputeCardHash(),
+                s.Hand.ToArray(),
+                s.Deck.ToArray(),
+                s.DiscardPile.ToArray()
             );
         }
 
@@ -140,11 +143,14 @@ public class StateSnapshotBuilder
 
             units.Add(new UnitState(
                 unit.NetworkId,
+                unit.Team,
                 new Vector3(unit.Position.X, unit.Position.Y, unit.Position.Z),
                 unit.CurrentHp,
                 targetNetworkId,
                 unit.IsAlive,
-                unit.ActivationState
+                unit.ActivationState,
+                unit.BehaviorState,
+                unit.IsFacingRight
             ));
         }
 

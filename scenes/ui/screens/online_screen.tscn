@@ -136,7 +136,6 @@ text = "WINS"
 horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinsBox"]
-unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.4, 0.9, 0.4, 1)
@@ -155,7 +154,6 @@ text = "LOSSES"
 horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/LossesBox"]
-unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
@@ -174,7 +172,6 @@ text = "WIN RATE"
 horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinRateBox"]
-unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "-%"

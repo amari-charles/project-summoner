@@ -133,6 +133,17 @@ func get_deck(deck_id: String) -> Dictionary:
 	return empty
 
 ## =============================================================================
+## ACTIVE DECK (for multiplayer deck exchange)
+## =============================================================================
+
+## Get the active deck as an array of {catalog_id: String, count: int}.
+## Used by multiplayer lobby to send deck to opponent.
+## Returns empty array if no deck is selected.
+func get_active_deck() -> Array:
+	push_error("IProfileRepo.get_active_deck() not implemented")
+	return []
+
+## =============================================================================
 ## CAMPAIGN PROGRESS OPERATIONS
 ## =============================================================================
 

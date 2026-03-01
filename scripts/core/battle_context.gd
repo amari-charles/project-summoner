@@ -249,7 +249,7 @@ func configure_multiplayer_battle(
 		"player_summoner_id": player_summoner_id,
 		"opponent_summoner_id": opponent_summoner_id,
 		"player_deck": player_deck,
-		"opponent_deck": opponent_deck,
+		"enemy_deck": opponent_deck,
 		# Standard battle settings for multiplayer
 		"enemy_hp": 100.0,  # Summoner HP
 		"ai_type": "none",  # No AI - real player opponent
@@ -605,8 +605,10 @@ func _report_ranked_match_result(player_won: bool) -> void:
 	# Get local user ID from Nakama
 	var nakama_client: Node = get_node_or_null(CSharpAutoloads.NAKAMA_GAME_CLIENT)
 	var local_user_id: String = ""
-	if nakama_client and nakama_client.has_method("get_UserId"):
-		local_user_id = nakama_client.get_UserId()
+	if nakama_client:
+		var user_id_val: Variant = nakama_client.get("UserId")
+		if user_id_val != null:
+			local_user_id = str(user_id_val)
 
 	var opponent_user_id: String = match_info.get("opponent_user_id", "")
 	var opponent_rating: int = match_info.get("opponent_rating", 1000)

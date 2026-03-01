@@ -96,6 +96,7 @@ func _ready() -> void:
 	print("BattleCoordinator: Phase 1.75 complete - Win conditions ready")
 
 	# Phase 1.8: Initialize SimulationNode (must exist before summoner init)
+	# Seed comes from BattleContext — no MatchSession dependency
 	print("BattleCoordinator: Phase 1.8 - SimulationNode...")
 	_init_simulation_node()
 	print("BattleCoordinator: Phase 1.8 complete - SimulationNode ready")
@@ -121,6 +122,12 @@ func _ready() -> void:
 	_init_ui()
 	print("BattleCoordinator: Phase 6 complete - UI ready")
 
+	# Phase 6.5: Set up multiplayer transport and MatchSession (if multiplayer)
+	# SimulationNode already exists (Phase 1.8), so runners wire up normally in Initialize()
+	print("BattleCoordinator: Phase 6.5 - Multiplayer...")
+	_setup_multiplayer()
+	print("BattleCoordinator: Phase 6.5 complete - Multiplayer ready")
+
 	# =============================================================================
 	# INITIALIZATION COMPLETE
 	# =============================================================================
@@ -128,7 +135,14 @@ func _ready() -> void:
 	print("BattleCoordinator: All phases complete, emitting initialization_complete")
 	initialization_complete.emit()
 
-	# Start the game
+	# Start the game — client waits for first snapshot from host
+	var is_mp_client: bool = BattleContext.is_multiplayer_battle() and not BattleContext.has_authority()
+	if is_mp_client:
+		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+		if sim_node and sim_node.has_signal("FirstSnapshotApplied"):
+			print("BattleCoordinator: Client waiting for first snapshot before starting game...")
+			await sim_node.FirstSnapshotApplied
+			print("BattleCoordinator: First snapshot received, starting game")
 	start_game()
 
 ## Preload all unit scenes asynchronously to prevent first-spawn initialization delays.
@@ -187,12 +201,19 @@ func _init_simulation_node() -> void:
 	var sim_node: Node = sim_script.new()
 	add_child(sim_node)
 
-	# Initialize with match configuration (pass win condition params from battle config)
+	# Pass seed directly from BattleContext (no MatchSession dependency)
+	var battle_seed: int = BattleContext.battle_config.get("battle_seed", 0)
 	sim_node.Initialize(
 		preparation_duration, match_duration, win_condition,
-		win_condition_time_limit, win_condition_kill_target
+		win_condition_time_limit, win_condition_kill_target, battle_seed
 	)
-	print("BattleCoordinator: SimulationNode created and initialized")
+
+	# Belt-and-suspenders: set IsHost=false for client right at creation
+	if BattleContext.is_multiplayer_battle() and not BattleContext.has_authority():
+		sim_node.IsHost = false
+		sim_node.LocalPlayerIndex = 1
+
+	print("BattleCoordinator: SimulationNode created and initialized (seed=%d)" % battle_seed)
 
 ## Initialize summoners and connect their signals
 func _init_summoners() -> void:
@@ -201,26 +222,52 @@ func _init_summoners() -> void:
 	if enemy_summoner == null:
 		enemy_summoner = get_tree().get_first_node_in_group(GroupIDs.ENEMY_SUMMONERS)
 
-	# Call init() on summoners (synchronous - no need to await since signal emits during init())
-	if player_summoner and player_summoner.has_method("init"):
-		player_summoner.init()
-		print("BattleCoordinator: Player summoner initialized")
+	var is_mp_client: bool = BattleContext.is_multiplayer_battle() and not BattleContext.has_authority()
 
-	if enemy_summoner and enemy_summoner.has_method("init"):
-		enemy_summoner.init()
-		print("BattleCoordinator: Enemy summoner initialized")
+	if is_mp_client:
+		# Client path: lightweight init — no deck loading, no RegisterSummoner
+		# Client receives all state from host snapshots
+		if player_summoner and player_summoner.has_method("init_as_client"):
+			player_summoner.init_as_client()
+			print("BattleCoordinator: Player summoner initialized as client")
+		if enemy_summoner and enemy_summoner.has_method("init_as_client"):
+			enemy_summoner.init_as_client()
+			print("BattleCoordinator: Enemy summoner initialized as client")
+	else:
+		# Host / single-player path: full init with deck loading and sim registration
+		# Apply enemy HP override BEFORE init() so SimulationNode registers the correct HP
+		if enemy_summoner and BattleContext.battle_config.has("enemy_hp"):
+			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
+			enemy_summoner.max_hp = custom_hp
+			enemy_summoner.current_hp = custom_hp
+			print("BattleCoordinator: Set enemy summoner HP to %s before init" % custom_hp)
 
-	# Populate SimulationNode card data after both summoners registered
-	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
-	if sim_node:
-		sim_node.PopulateCardData()
+		if player_summoner and player_summoner.has_method("init"):
+			player_summoner.init()
+			print("BattleCoordinator: Player summoner initialized")
+
+		if enemy_summoner and enemy_summoner.has_method("init"):
+			enemy_summoner.init()
+			print("BattleCoordinator: Enemy summoner initialized")
+
+		# Populate SimulationNode card data after both summoners registered
+		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+		if sim_node:
+			sim_node.PopulateCardData()
 
 ## Connect summoner combat signals and sim game-over signal
 func _connect_summoner_combat_signals() -> void:
-	# Connect to sim's GameOver signal (sim owns win/loss during Battle)
 	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
 	if sim_node:
+		# GameOver is an ephemeral event — always use signal
 		sim_node.connect("GameOver", _on_sim_game_over)
+
+		# Host/single-player: use signals for phase/timer sync
+		# Client: polls in _process() instead (more reliable than 10Hz snapshot signals)
+		if not BattleContext.is_multiplayer_battle() or BattleContext.has_authority():
+			sim_node.connect("PhaseChanged", _on_sim_phase_changed)
+			sim_node.connect("PrepTimerUpdated", _on_sim_prep_timer_updated)
+			sim_node.connect("MatchTimeUpdated", _on_sim_match_time_updated)
 	else:
 		push_warning("BattleCoordinator: No SimulationNode found for GameOver signal")
 
@@ -232,13 +279,6 @@ func _connect_summoner_combat_signals() -> void:
 
 	if enemy_summoner:
 		enemy_summoner.summoner_destroyed.connect(_on_summoner_destroyed)
-		# Apply enemy HP override from battle config (for tutorial/special battles)
-		if BattleContext.battle_config.has("enemy_hp"):
-			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
-			enemy_summoner.max_hp = custom_hp
-			enemy_summoner.current_hp = custom_hp
-			enemy_summoner.hp_changed.emit(custom_hp, custom_hp)
-			print("BattleCoordinator: Overrode enemy summoner HP to %s" % custom_hp)
 	else:
 		push_warning("BattleCoordinator: Could not find enemy_summoner")
 
@@ -255,11 +295,18 @@ func _exit_tree() -> void:
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
 		get_tree().node_added.disconnect(_on_node_added_for_kill_tracking)
 
-	# Cleanup: disconnect sim GameOver signal
+	# Cleanup: disconnect sim signals (only the ones that were connected)
 	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
 	if sim_node and is_instance_valid(sim_node):
 		if sim_node.is_connected("GameOver", _on_sim_game_over):
 			sim_node.disconnect("GameOver", _on_sim_game_over)
+		if sim_node.is_connected("PhaseChanged", _on_sim_phase_changed):
+			sim_node.disconnect("PhaseChanged", _on_sim_phase_changed)
+		if sim_node.is_connected("PrepTimerUpdated", _on_sim_prep_timer_updated):
+			sim_node.disconnect("PrepTimerUpdated", _on_sim_prep_timer_updated)
+		if sim_node.is_connected("MatchTimeUpdated", _on_sim_match_time_updated):
+			sim_node.disconnect("MatchTimeUpdated", _on_sim_match_time_updated)
+
 
 ## Comprehensive battle state reset
 ## Clears all units, projectiles, HP bars from the scene
@@ -302,7 +349,17 @@ func _process(delta: float) -> void:
 	if current_state != GameState.PLAYING:
 		return
 
-	# Handle PREPARATION phase
+	# Multiplayer client: poll MatchState every frame (like Unit3D.ReadFromSimulation)
+	if BattleContext.is_multiplayer_battle() and not BattleContext.has_authority():
+		_poll_match_state()
+		return
+
+	# Host uses signals for phase/timer (connected in _connect_summoner_combat_signals)
+	if BattleContext.is_multiplayer_battle():
+		return
+
+	# Single-player: local timers (SimulationNode also emits, but local timers
+	# provide smoother per-frame updates without waiting for Tick intervals)
 	if current_phase == BattlePhase.PREPARATION:
 		_update_preparation_phase(delta)
 		return
@@ -330,6 +387,29 @@ func _process(delta: float) -> void:
 			time_updated.emit(overtime_remaining)
 			if overtime_remaining <= 0:
 				_check_overtime_victory()
+
+
+## Poll phase, prep timer, and match time from SimulationNode (multiplayer client only).
+func _poll_match_state() -> void:
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if not sim_node:
+		return
+
+	# Poll phase
+	var sim_phase: int = sim_node.GetPhase()
+	# 0 = Preparation, 1 = Battle
+	if sim_phase == 1 and current_phase == BattlePhase.PREPARATION:
+		_start_battle_phase()
+
+	# Poll prep timer (only during Preparation — hide is handled by phase_changed signal)
+	if current_phase == BattlePhase.PREPARATION:
+		prep_time_remaining = sim_node.GetPrepTimeRemaining()
+		prep_timer_updated.emit(prep_time_remaining)
+
+	# Poll match time and emit for UI
+	match_time = sim_node.GetMatchTime()
+	var remaining: float = match_duration - match_time
+	time_updated.emit(remaining)
 
 func start_game() -> void:
 	current_state = GameState.PLAYING
@@ -381,12 +461,6 @@ func end_game(winner: UnitConstants.Team) -> void:
 	if current_state == GameState.GAME_OVER:
 		return
 
-	# In multiplayer, only authority can end the game
-	# (Clients will receive game_ended event from host)
-	if not BattleContext.has_authority():
-		print("GameController3D: end_game() called but we don't have authority, ignoring")
-		return
-
 	current_state = GameState.GAME_OVER
 	state_changed.emit(current_state)
 	game_ended.emit(winner)
@@ -395,8 +469,8 @@ func end_game(winner: UnitConstants.Team) -> void:
 	# Stop battle music
 	AudioManager.stop_music()
 
-	# In multiplayer, broadcast match end to clients
-	if BattleContext.is_multiplayer_battle():
+	# In multiplayer, only authority broadcasts match end to clients
+	if BattleContext.is_multiplayer_battle() and BattleContext.has_authority():
 		_broadcast_match_end(winner)
 
 	# Update BattleContext state based on winner
@@ -520,6 +594,22 @@ func _on_sim_game_over(winner_team: int, reason: String) -> void:
 	print("BattleCoordinator: Sim GameOver — winner=%d, reason=%s" % [winner_team, reason])
 	end_game(winner_team as UnitConstants.Team)
 
+## Sim phase changed — update local phase from SimulationNode signal.
+## Works for both host (EmitEvents) and client (ApplySnapshot).
+func _on_sim_phase_changed(new_phase: int) -> void:
+	# 1 = GamePhase.Battle
+	if new_phase == 1 and current_phase == BattlePhase.PREPARATION:
+		_start_battle_phase()
+
+## Sim prep timer updated — sync local prep_time_remaining from SimulationNode.
+func _on_sim_prep_timer_updated(remaining: float) -> void:
+	prep_time_remaining = remaining
+	prep_timer_updated.emit(remaining)
+
+## Sim match time updated — sync local match_time from SimulationNode.
+func _on_sim_match_time_updated(time: float) -> void:
+	match_time = time
+
 func _on_summoner_destroyed(summoner: Summoner) -> void:
 	# During Battle, the sim handles win conditions via GameOver signal.
 	# This legacy path remains for edge cases outside Battle phase.
@@ -538,6 +628,10 @@ func _on_summoner_destroyed(summoner: Summoner) -> void:
 
 func _load_ai_for_enemy() -> void:
 	if not enemy_summoner:
+		return
+
+	if BattleContext.is_multiplayer_battle():
+		print("BattleCoordinator: Multiplayer battle, no AI needed")
 		return
 
 	# Get battle config from BattleContext
@@ -901,3 +995,105 @@ func _init_ui() -> void:
 		drop_zone.init(player_summoner)
 	else:
 		push_warning("BattleCoordinator: BattlefieldDropZone not found or has no init() method")
+
+
+## Set up multiplayer transport and MatchSession (if this is a multiplayer battle)
+func _setup_multiplayer() -> void:
+	if not BattleContext.is_multiplayer_battle():
+		print("BattleCoordinator: Not a multiplayer battle, skipping multiplayer setup")
+		return
+
+	var config_dict: Dictionary = BattleContext.battle_config
+	var is_host: bool = BattleContext.has_authority()
+	var local_peer_id: int = 1 if is_host else 2
+	var local_player_index: int = 0 if is_host else 1
+
+	# Create NakamaMatchTransport
+	var transport_script: Script = load("res://scripts/csharp/Multiplayer/Transport/NakamaMatchTransport.cs")
+	if transport_script == null:
+		push_error("BattleCoordinator: Failed to load NakamaMatchTransport script!")
+		return
+
+	var transport: Node = transport_script.new()
+	add_child(transport)
+
+	# Get match ID from NakamaGameClient
+	var nakama: Node = get_tree().root.get_node_or_null("NakamaGameClient")
+	var match_id: String = ""
+	if nakama:
+		var active_match_id: Variant = nakama.get("ActiveMatchId")
+		if active_match_id != null:
+			match_id = str(active_match_id)
+
+	transport.Initialize(match_id, is_host, local_peer_id)
+
+	# Create MatchSession
+	var match_session_script: Script = load("res://scripts/csharp/Multiplayer/Core/MatchSession.cs")
+	if match_session_script == null:
+		push_error("BattleCoordinator: Failed to load MatchSession script!")
+		return
+
+	var match_session: Node = match_session_script.new()
+	add_child(match_session)
+
+	# Build match config
+	var seed: int = config_dict.get("battle_seed", 0)
+	var ranked_info: Dictionary = BattleContext.get_ranked_match_info()
+	var local_user_id: String = ""
+	var opponent_user_id: String = ranked_info.get("opponent_user_id", "")
+	if nakama:
+		var uid: Variant = nakama.get("UserId")
+		if uid != null:
+			local_user_id = str(uid)
+
+	# Build player IDs array (index 0 = host, index 1 = client)
+	var player_ids: Array = []
+	if is_host:
+		player_ids = [local_user_id, opponent_user_id]
+	else:
+		player_ids = [opponent_user_id, local_user_id]
+
+	var summoner_ids: Array = [
+		config_dict.get("player_summoner_id", "ignis"),
+		config_dict.get("opponent_summoner_id", "ignis")
+	]
+	# If we're client, swap so index 0 = host's summoner
+	if not is_host:
+		summoner_ids = [summoner_ids[1], summoner_ids[0]]
+
+	# Start the match (GDScript-callable wrapper)
+	match_session.StartMatchFromGDScript(
+		seed, match_id, player_ids, summoner_ids,
+		transport, is_host, local_player_index
+	)
+
+	# Wire MatchSession into authority provider
+	if BattleContext.authority_provider:
+		BattleContext.authority_provider._match_session = match_session
+
+	# Client: connect RemoteUnitSpawned signal for visual unit spawning
+	if not is_host:
+		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+		if sim_node and sim_node.has_signal("RemoteUnitSpawned"):
+			sim_node.RemoteUnitSpawned.connect(_on_remote_unit_spawned)
+
+	print("BattleCoordinator: Multiplayer setup complete (host: %s, match: %s)" % [is_host, match_id])
+
+
+## Handle remote unit spawn from host (client-side only).
+## All values are already in local space (team remapped, position converted by ClientRunner).
+func _on_remote_unit_spawned(catalog_id: String, local_team: int, local_position: Vector3, _network_id: int, spawn_duration: float) -> void:
+	var bf: Node = get_tree().get_first_node_in_group("battlefield")
+	if bf == null:
+		push_error("BattleCoordinator: No battlefield for remote unit spawn")
+		return
+
+	var card: Card = CardCatalog.create_card_resource(catalog_id)
+	if card == null:
+		push_error("BattleCoordinator: Unknown unit type '%s' for remote spawn" % catalog_id)
+		return
+
+	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
+	var team_enum: UnitConstants.Team = local_team as UnitConstants.Team
+	card.play_3d(local_position, team_enum, bf, modifier_service, spawn_duration)
+	print("BattleCoordinator: Remote unit spawned: %s (team %d) at %s (duration=%.1f)" % [catalog_id, local_team, local_position, spawn_duration])

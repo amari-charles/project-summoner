@@ -22,7 +22,11 @@ func _ready() -> void:
 	var tween: Tween = create_tween()
 	tween.tween_property(loading_bar, "value", 100.0, SPLASH_DISPLAY_SECONDS)
 	await tween.finished
-	_proceed_to_campaign()
+
+	if _should_goto_online():
+		_proceed_to_online()
+	else:
+		_proceed_to_campaign()
 
 func _input(event: InputEvent) -> void:
 	# Debug: F11 to reset profile
@@ -30,6 +34,14 @@ func _input(event: InputEvent) -> void:
 		var key_event: InputEventKey = event as InputEventKey
 		if key_event.pressed and not key_event.is_echo() and key_event.keycode == KEY_F11:
 			_debug_reset_profile()
+
+func _should_goto_online() -> bool:
+	return "--goto-online" in OS.get_cmdline_user_args()
+
+func _proceed_to_online() -> void:
+	animation_player.play("fade_out")
+	await _await_animation_with_timeout(animation_player, FADE_OUT_TIMEOUT_SECONDS)
+	SceneManager.transition_to(SceneManager.SCENE_ONLINE)
 
 func _proceed_to_campaign() -> void:
 	animation_player.play("fade_out")

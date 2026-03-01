@@ -116,6 +116,15 @@ public partial class LeaderboardService : Node
     /// </summary>
     /// <param name="count">Number of players to fetch</param>
     /// <param name="forceRefresh">Force refresh even if cache is valid</param>
+    /// <summary>
+    /// GDScript-callable wrapper: fire-and-forget leaderboard fetch.
+    /// Results are communicated via LeaderboardRefreshed signal.
+    /// </summary>
+    public void RefreshLeaderboard(int count = DefaultTopCount)
+    {
+        _ = GetTopPlayersAsync(count, true);
+    }
+
     public async Task<List<LeaderboardEntry>> GetTopPlayersAsync(int count = DefaultTopCount, bool forceRefresh = false)
     {
         // Check cache

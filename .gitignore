@@ -21,6 +21,12 @@ Desktop.ini
 .gut_editor_shortcuts.cfg
 gdunit4_testadapter_v5/
 
+# Claude Code local settings
+.claude/settings.local.json
+
+# Nakama server runtime data
+nakama/data/.cookie
+
 # Build exports
 *.exe
 builds/

@@ -344,8 +344,10 @@ public partial class HPBarService : Node
 
     private bool CanInitialize()
     {
-        // Check if SpatialGrid is available (indicates C# runtime is ready)
-        return SpatialGrid.Instance != null;
+        // HPBarService is a C# autoload — if we're running, the C# runtime is ready.
+        // Previous check on SpatialGrid.Instance was a proxy that could fail on clients
+        // if SpatialGrid wasn't initialized yet.
+        return IsInsideTree();
     }
 
     private void LoadBarScene()

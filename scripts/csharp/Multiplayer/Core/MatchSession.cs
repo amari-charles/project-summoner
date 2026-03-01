@@ -9,7 +9,7 @@ namespace Fateforged.Multiplayer.Core;
 /// Central orchestrator for a multiplayer match.
 /// Manages the match lifecycle, network communication, and game state synchronization.
 /// </summary>
-public partial class MatchSession : Node
+public partial class MatchSession : Node, IMessageBroadcaster
 {
     #region Singleton
 
@@ -89,63 +89,15 @@ public partial class MatchSession : Node
 
     #region Events
 
-    /// <summary>
-    /// Fired when a card play is confirmed by the host.
-    /// </summary>
-    [Signal]
-    public delegate void CardPlayConfirmedEventHandler(int sequence, int playerIndex, int cardIndex, Vector3 position, int unitNetworkId);
+    // Domain signals (UnitDied, DamageDealt, etc.) are emitted by runners
+    // via SimulationNode. MatchSession only owns session lifecycle signals.
 
-    /// <summary>
-    /// Fired when a card play is rejected by the host.
-    /// </summary>
-    [Signal]
-    public delegate void CardPlayRejectedEventHandler(int sequence, int playerIndex, string reason);
-
-    /// <summary>
-    /// Fired when a unit is spawned.
-    /// </summary>
-    [Signal]
-    public delegate void UnitSpawnedEventHandler(int networkId, string unitType, int team, Vector3 position);
-
-    /// <summary>
-    /// Fired when a unit dies.
-    /// </summary>
-    [Signal]
-    public delegate void UnitDiedEventHandler(int networkId, int killerNetworkId);
-
-    /// <summary>
-    /// Fired when damage is dealt.
-    /// </summary>
-    [Signal]
-    public delegate void DamageDealtEventHandler(int targetNetworkId, float amount, bool isCrit, int sourceNetworkId);
-
-    /// <summary>
-    /// Fired when a summoner takes damage.
-    /// </summary>
-    [Signal]
-    public delegate void SummonerDamagedEventHandler(int team, float amount, float newHp);
-
-    /// <summary>
-    /// Fired when a state snapshot is received (client only).
-    /// </summary>
-    [Signal]
-    public delegate void StateSnapshotReceivedEventHandler(long frame, float matchTime);
-
-    /// <summary>
-    /// Fired when the match ends.
-    /// </summary>
-    [Signal]
-    public delegate void MatchEndedEventHandler(int winnerIndex, string reason, float duration);
-
-    /// <summary>
-    /// Fired when the match starts.
-    /// </summary>
     [Signal]
     public delegate void MatchStartedEventHandler();
 
-    /// <summary>
-    /// Fired when connection is lost.
-    /// </summary>
+    [Signal]
+    public delegate void MatchEndedEventHandler(int winnerIndex, string reason, float duration);
+
     [Signal]
     public delegate void ConnectionLostEventHandler(string reason);
 
@@ -155,7 +107,9 @@ public partial class MatchSession : Node
 
     public override void _Ready()
     {
-        // MatchSession is typically added as a child of a scene, not an autoload
+        // Keep processing during pause so HostRunner continues broadcasting
+        // snapshots and ClientRunner continues receiving them.
+        ProcessMode = ProcessModeEnum.Always;
     }
 
     public override void _Process(double delta)
@@ -181,6 +135,7 @@ public partial class MatchSession : Node
         SummonerIds = config.SummonerIds;
         IsHost = asHost;
         LocalPlayerIndex = localPlayerIndex;
+        LocalPlayer.Initialize(localPlayerIndex);
 
         _transport = transport;
         _transport.OnMessageReceived += HandleRawMessage;
@@ -216,6 +171,17 @@ public partial class MatchSession : Node
     }
 
     /// <summary>
+    /// GDScript-callable wrapper for StartMatch.
+    /// GDScript cannot construct C# record structs, so this accepts primitives.
+    /// </summary>
+    public void StartMatchFromGDScript(long seed, string matchId, string[] playerIds,
+        string[] summonerIds, Node transport, bool asHost, int localPlayerIndex)
+    {
+        var config = new Protocol.MatchStarted(seed, matchId, playerIds, summonerIds);
+        StartMatch(config, (IMatchTransport)transport, asHost, localPlayerIndex);
+    }
+
+    /// <summary>
     /// End the current match.
     /// </summary>
     public void EndMatch(int winnerIndex, string reason)
@@ -235,6 +201,7 @@ public partial class MatchSession : Node
 
         // Reset reconnection handler
         ReconnectionHandler.Instance?.Reset();
+        LocalPlayer.Reset();
 
         NetworkIds.Clear();
         Current = null;
@@ -334,39 +301,11 @@ public partial class MatchSession : Node
 
     private void DispatchMessageEvent(object message)
     {
-        switch (message)
+        // Domain signals (UnitDied, DamageDealt, etc.) are emitted by runners
+        // via SimulationNode — MatchSession only handles session lifecycle.
+        if (message is Protocol.MatchEnded m)
         {
-            case CardPlayConfirmed m:
-                EmitSignal(SignalName.CardPlayConfirmed, m.Sequence, m.PlayerIndex, m.CardIndex, m.Position, m.SpawnedUnitNetworkId);
-                break;
-
-            case CardPlayRejected m:
-                EmitSignal(SignalName.CardPlayRejected, m.Sequence, m.PlayerIndex, m.Reason);
-                break;
-
-            case UnitSpawned m:
-                EmitSignal(SignalName.UnitSpawned, m.NetworkId, m.UnitType, m.Team, m.Position);
-                break;
-
-            case UnitDied m:
-                EmitSignal(SignalName.UnitDied, m.NetworkId, m.KillerNetworkId ?? -1);
-                break;
-
-            case DamageDealt m:
-                EmitSignal(SignalName.DamageDealt, m.TargetNetworkId, m.Amount, m.IsCrit, m.SourceNetworkId ?? -1);
-                break;
-
-            case SummonerDamaged m:
-                EmitSignal(SignalName.SummonerDamaged, m.Team, m.Amount, m.NewHp);
-                break;
-
-            case StateSnapshot m:
-                EmitSignal(SignalName.StateSnapshotReceived, m.Frame, m.MatchTime);
-                break;
-
-            case Protocol.MatchEnded m:
-                EndMatch(m.WinnerIndex, m.Reason);
-                break;
+            EndMatch(m.WinnerIndex, m.Reason);
         }
     }
 

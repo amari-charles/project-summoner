@@ -54,6 +54,8 @@ public partial class NakamaGameClient : Node
     private NakamaClient? _client;
     private ISession? _session;
     private ISocket? _socket;
+    private IMatch? _activeMatch;
+    private string? _activeMatchId;
 
     /// <summary>
     /// The underlying Nakama client instance.
@@ -90,6 +92,11 @@ public partial class NakamaGameClient : Node
     /// </summary>
     public string? Username => _session?.Username;
 
+    /// <summary>
+    /// The active match ID (set after joining a match).
+    /// </summary>
+    public string? ActiveMatchId => _activeMatchId;
+
     #endregion
 
     #region Signals
@@ -119,10 +126,11 @@ public partial class NakamaGameClient : Node
     public delegate void SocketDisconnectedEventHandler();
 
     /// <summary>
-    /// Emitted when a match is found through matchmaking.
+    /// Emitted after joining a match found through matchmaking.
+    /// Includes user IDs and summoner IDs extracted from matchmaker properties.
     /// </summary>
     [Signal]
-    public delegate void MatchFoundEventHandler(string matchId, string[] userIds);
+    public delegate void MatchJoinedEventHandler(string matchId, string[] userIds, string[] summonerIds);
 
     /// <summary>
     /// Emitted when matchmaking is cancelled or times out.
@@ -132,9 +140,10 @@ public partial class NakamaGameClient : Node
 
     /// <summary>
     /// Emitted when a match data message is received.
+    /// Data is decoded from UTF-8 bytes to a string for GDScript compatibility.
     /// </summary>
     [Signal]
-    public delegate void MatchDataReceivedEventHandler(string matchId, long opCode, byte[] data, string senderId);
+    public delegate void MatchDataReceivedEventHandler(string matchId, long opCode, string data, string senderId);
 
     /// <summary>
     /// Emitted when a player joins the current match.
@@ -197,10 +206,19 @@ public partial class NakamaGameClient : Node
     #region Authentication
 
     /// <summary>
+    /// GDScript-callable wrapper: fire-and-forget authentication.
+    /// Results are communicated via Authenticated/AuthenticationFailed signals.
+    /// </summary>
+    public void Authenticate()
+    {
+        _ = AuthenticateDeviceAsync();
+    }
+
+    /// <summary>
     /// Authenticate with a device ID (anonymous authentication).
     /// Creates a new account if the device ID doesn't exist.
     /// </summary>
-    public async Task<bool> AuthenticateDeviceAsync(string? deviceId = null)
+    public async Task<bool> AuthenticateDeviceAsync(string deviceId = "")
     {
         if (_client == null)
         {
@@ -211,7 +229,8 @@ public partial class NakamaGameClient : Node
         try
         {
             // Use provided device ID or generate one
-            deviceId ??= GetOrCreateDeviceId();
+            if (string.IsNullOrEmpty(deviceId))
+                deviceId = GetOrCreateDeviceId();
 
             GD.Print($"[NakamaGameClient] Authenticating with device ID: {deviceId[..8]}...");
 
@@ -221,6 +240,10 @@ public partial class NakamaGameClient : Node
             SaveSession();
 
             GD.Print($"[NakamaGameClient] Authenticated as {_session.Username} ({_session.UserId})");
+
+            // Connect WebSocket for real-time features (matchmaking, match data)
+            await ConnectSocketAsync();
+
             EmitSignal(SignalName.Authenticated, _session.UserId, _session.Username);
 
             return true;
@@ -390,31 +413,48 @@ public partial class NakamaGameClient : Node
         EmitSignal(SignalName.SocketDisconnected);
     }
 
-    private void OnMatchmakerMatched(IMatchmakerMatched matched)
+    private async void OnMatchmakerMatched(IMatchmakerMatched matched)
     {
-        GD.Print($"[NakamaGameClient] Match found: {matched.MatchId}");
+        GD.Print($"[NakamaGameClient] Matchmaker matched, joining match...");
 
-        var users = matched.Users.ToList();
-        var userIds = new string[users.Count];
-        for (int i = 0; i < users.Count; i++)
+        try
         {
-            userIds[i] = users[i].Presence.UserId;
-        }
+            // Join the Nakama match (opens data channel)
+            _activeMatch = await _socket!.JoinMatchAsync(matched);
+            _activeMatchId = _activeMatch.Id;
 
-        CallDeferred(MethodName.EmitMatchFound, matched.MatchId, userIds);
+            GD.Print($"[NakamaGameClient] Match joined: {_activeMatchId}");
+
+            // Extract user IDs and summoner IDs from matchmaker properties
+            var users = matched.Users.ToList();
+            var userIds = new string[users.Count];
+            var summonerIds = new string[users.Count];
+            for (int i = 0; i < users.Count; i++)
+            {
+                userIds[i] = users[i].Presence.UserId;
+                summonerIds[i] = users[i].StringProperties.TryGetValue("summoner_id", out var sid) ? sid : "ignis";
+            }
+
+            CallDeferred(MethodName.EmitMatchJoined, _activeMatchId, userIds, summonerIds);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[NakamaGameClient] Failed to join match: {ex.Message}");
+        }
     }
 
-    private void EmitMatchFound(string matchId, string[] userIds)
+    private void EmitMatchJoined(string matchId, string[] userIds, string[] summonerIds)
     {
-        EmitSignal(SignalName.MatchFound, matchId, userIds);
+        EmitSignal(SignalName.MatchJoined, matchId, userIds, summonerIds);
     }
 
     private void OnMatchState(IMatchState state)
     {
-        CallDeferred(MethodName.EmitMatchData, state.MatchId, state.OpCode, state.State, state.UserPresence.UserId);
+        var dataStr = System.Text.Encoding.UTF8.GetString(state.State);
+        CallDeferred(MethodName.EmitMatchData, state.MatchId, state.OpCode, dataStr, state.UserPresence.UserId);
     }
 
-    private void EmitMatchData(string matchId, long opCode, byte[] data, string senderId)
+    private void EmitMatchData(string matchId, long opCode, string data, string senderId)
     {
         EmitSignal(SignalName.MatchDataReceived, matchId, opCode, data, senderId);
     }
@@ -444,28 +484,69 @@ public partial class NakamaGameClient : Node
 
     #endregion
 
+    #region Match Data
+
+    /// <summary>
+    /// Send string data on the active match (GDScript-callable).
+    /// Data is encoded as UTF-8 bytes for Nakama transport.
+    /// </summary>
+    public void SendMatchData(long opCode, string jsonData)
+    {
+        if (_socket == null || _activeMatchId == null)
+        {
+            GD.PrintErr("[NakamaGameClient] Cannot send match data: no active match");
+            return;
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(jsonData);
+        _ = _socket.SendMatchStateAsync(_activeMatchId, opCode, bytes);
+    }
+
+    /// <summary>
+    /// Leave the current active match.
+    /// </summary>
+    public void LeaveMatch()
+    {
+        if (_socket == null || _activeMatchId == null) return;
+
+        GD.Print($"[NakamaGameClient] Leaving match: {_activeMatchId}");
+        _ = _socket.LeaveMatchAsync(_activeMatchId);
+        _activeMatch = null;
+        _activeMatchId = null;
+    }
+
+    #endregion
+
     #region Session Persistence
 
     private string GetOrCreateDeviceId()
     {
         const string deviceIdPath = "user://device_id.dat";
 
+        string deviceId;
+
         if (FileAccess.FileExists(deviceIdPath))
         {
             using var file = FileAccess.Open(deviceIdPath, FileAccess.ModeFlags.Read);
-            if (file != null)
-            {
-                return file.GetAsText().Trim();
-            }
+            deviceId = file?.GetAsText().Trim() ?? Guid.NewGuid().ToString();
+        }
+        else
+        {
+            deviceId = Guid.NewGuid().ToString();
+
+            using var writeFile = FileAccess.Open(deviceIdPath, FileAccess.ModeFlags.Write);
+            writeFile?.StoreString(deviceId);
+
+            GD.Print($"[NakamaGameClient] Generated new device ID");
         }
 
-        // Generate a new device ID
-        var deviceId = Guid.NewGuid().ToString();
+        // Use alternate identity for second test instance
+        if (OS.GetCmdlineUserArgs().Contains("--player2"))
+        {
+            GD.Print("[NakamaGameClient] --player2 flag detected, using alternate device ID");
+            deviceId += "-p2";
+        }
 
-        using var writeFile = FileAccess.Open(deviceIdPath, FileAccess.ModeFlags.Write);
-        writeFile?.StoreString(deviceId);
-
-        GD.Print($"[NakamaGameClient] Generated new device ID");
         return deviceId;
     }
 

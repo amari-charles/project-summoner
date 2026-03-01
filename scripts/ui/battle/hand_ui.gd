@@ -455,6 +455,8 @@ func init(player_summoner: Node) -> void:
 	card_drawn_signal.connect(_on_card_drawn)
 	var mana_changed_signal: Signal = summoner.get("mana_changed")
 	mana_changed_signal.connect(_on_mana_changed)
+	var hand_changed_signal: Signal = summoner.get("hand_changed")
+	hand_changed_signal.connect(_on_hand_changed)
 
 	# Connect casting signals (hide hand during summon time)
 	var casting_started_signal: Signal = summoner.get("casting_started")
@@ -479,6 +481,9 @@ func _exit_tree() -> void:
 		var mana_changed_signal: Signal = summoner.get("mana_changed")
 		if mana_changed_signal.is_connected(_on_mana_changed):
 			mana_changed_signal.disconnect(_on_mana_changed)
+		var hand_changed_signal: Signal = summoner.get("hand_changed")
+		if hand_changed_signal.is_connected(_on_hand_changed):
+			hand_changed_signal.disconnect(_on_hand_changed)
 		var casting_started_signal: Signal = summoner.get("casting_started")
 		if casting_started_signal.is_connected(_on_casting_started):
 			casting_started_signal.disconnect(_on_casting_started)
@@ -768,6 +773,10 @@ func _on_card_played(_card: Card) -> void:
 func _on_card_drawn(_card: Card) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_CARD_DRAW)
 	_rebuild_hand_display()
+
+func _on_hand_changed(_hand: Array) -> void:
+	_rebuild_hand_display()
+	_update_availability()
 
 func _on_mana_changed(_current: float, _maximum: float) -> void:
 	_update_availability()

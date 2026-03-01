@@ -49,6 +49,9 @@ public class MatchState
     // Next projectile ID counter
     private int _nextProjectileId;
 
+    // Next network ID counter — simulation owns NetworkId assignment
+    private int _nextNetworkId = 1;
+
     /// <summary>
     /// Get the next unique unit ID for this match.
     /// </summary>
@@ -58,6 +61,13 @@ public class MatchState
     /// Get the next unique projectile ID for this match.
     /// </summary>
     public int NextProjectileId() => _nextProjectileId++;
+
+    /// <summary>
+    /// Get the next unique network ID for this match.
+    /// Used by Simulation to assign NetworkIds to spawned units.
+    /// Single source of truth — replaces NetworkIdRegistry.NextIdWithoutRegistering.
+    /// </summary>
+    public int NextNetworkId() => _nextNetworkId++;
 
     // Delayed effects (death explosions, timed AoE, etc.)
     public List<DelayedEffect> DelayedEffects { get; } = new();

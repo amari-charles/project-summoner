@@ -141,6 +141,40 @@ func _ready() -> void:
 	# Configure collision shape to match hurtbox radius (single source of truth)
 	_configure_collision_shape()
 
+## Lightweight client init — no deck loading, no RegisterSummoner.
+## Client receives all state (HP, mana, hand, deck) from host snapshots via polling.
+## Only caches SimulationNode reference and loads cosmetic data.
+func init_as_client() -> void:
+	if _initialized:
+		return
+	_initialized = true
+
+	print("Summoner: Initializing as CLIENT (team: %s)..." % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY"))
+
+	# Initialize mana/HP to defaults — polling will overwrite immediately
+	mana = max_mana
+
+	# Cache SimulationNode — client polls state in _process(), no signal connections needed
+	_sim_node = get_tree().get_first_node_in_group("simulation_node")
+	if not _sim_node:
+		push_warning("Summoner: No SimulationNode found (client) - polling will not work")
+
+	# Register summoner in MatchState with scene defaults to prevent 0/0 HP/mana race.
+	# Client doesn't load a deck — hand/deck arrive via host snapshots.
+	# Host snapshots overwrite these values within ~100ms with authoritative state.
+	if _sim_node:
+		var empty_deck: PackedStringArray = PackedStringArray()
+		_sim_node.RegisterSummoner(
+			int(team), current_hp, max_hp, mana, max_mana,
+			cast_speed, empty_deck, max_hand_size, global_position
+		)
+
+	mana_changed.emit(mana, max_mana)
+	summoner_ready.emit(self)
+	print("Summoner: Client initialization complete")
+
+
+
 ## Initialize summoner - called by BattleCoordinator after scene is ready
 ## This replaces the old self-initialization pattern
 func init() -> void:
@@ -247,6 +281,9 @@ func init() -> void:
 	summoner_ready.emit(self)
 	print("Summoner: Initialization complete")
 
+## Track last polled hand IDs to avoid rebuilding Card resources every frame
+var _last_hand_ids: PackedStringArray = PackedStringArray()
+
 func _process(delta: float) -> void:
 	if not is_enabled:
 		return
@@ -256,19 +293,99 @@ func _process(delta: float) -> void:
 		recent_hits -= RECENT_HITS_DECAY_RATE * delta
 		recent_hits = max(recent_hits, 0.0)
 
-	# Casting progress — read from sim (sim owns the casting timer)
-	if is_casting and _sim_node:
-		casting_time_remaining = _sim_node.GetCastingTimeRemaining(int(team))
-		casting_progress.emit(casting_time_remaining, casting_time_total)
+	# Multiplayer client: poll MatchState every frame (like Unit3D.ReadFromSimulation)
+	if _is_multiplayer_client() and _sim_node:
+		_poll_match_state()
+	else:
+		# Host / single-player: casting progress from sim
+		if is_casting and _sim_node:
+			casting_time_remaining = _sim_node.GetCastingTimeRemaining(int(team))
+			casting_progress.emit(casting_time_remaining, casting_time_total)
 
 	# Update debug visualization (follows UnitDebugService's debug toggle)
 	_update_debug_visualization()
+
+
+## Poll all summoner state from SimulationNode (multiplayer client only).
+## Mirrors Unit3D.ReadFromSimulation() — authoritative state each frame.
+func _poll_match_state() -> void:
+	# Poll casting state
+	var sim_casting: bool = _sim_node.IsPlayerCasting(int(team))
+	if sim_casting != is_casting:
+		is_casting = sim_casting
+		if is_casting:
+			casting_time_total = _sim_node.GetCastingTimeTotal(int(team))
+			casting_started.emit(null, casting_time_total)
+		else:
+			casting_completed.emit(null)
+
+	# Poll casting progress
+	if is_casting:
+		casting_time_remaining = _sim_node.GetCastingTimeRemaining(int(team))
+		casting_progress.emit(casting_time_remaining, casting_time_total)
+
+	# Poll hand — only rebuild Card objects when hand contents change
+	var sim_hand: PackedStringArray = _sim_node.GetPlayerHand(int(team))
+	if _hand_changed(sim_hand):
+		_rebuild_hand(sim_hand)
+
+	# Poll mana
+	var new_mana: float = _sim_node.GetPlayerMana(int(team))
+	var new_max_mana: float = _sim_node.GetPlayerMaxMana(int(team))
+	if absf(new_mana - mana) > 0.01 or absf(new_max_mana - max_mana) > 0.01:
+		mana = new_mana
+		max_mana = new_max_mana
+		mana_changed.emit(mana, max_mana)
+
+	# Poll HP
+	var sim_hp: float = _sim_node.GetPlayerHp(int(team))
+	var sim_max_hp: float = _sim_node.GetPlayerMaxHp(int(team))
+	if absf(sim_hp - current_hp) > 0.01 or absf(sim_max_hp - max_hp) > 0.01:
+		var took_damage: bool = sim_hp < current_hp
+		current_hp = sim_hp
+		max_hp = sim_max_hp
+		hp_changed.emit(current_hp, max_hp)
+
+		if took_damage and is_alive:
+			recent_hits += 1.0
+			_play_hit_feedback()
+			summoner_damaged.emit(self, current_hp)
+
+		if current_hp <= 0 and is_alive:
+			_destroy()
+
+
+## Check if the polled hand differs from the last known hand.
+func _hand_changed(sim_hand: PackedStringArray) -> bool:
+	if sim_hand.size() != _last_hand_ids.size():
+		return true
+	for i: int in range(sim_hand.size()):
+		if sim_hand[i] != _last_hand_ids[i]:
+			return true
+	return false
+
+
+## Rebuild the local Card array from catalog IDs (only when hand actually changes).
+func _rebuild_hand(sim_hand: PackedStringArray) -> void:
+	_last_hand_ids = sim_hand
+	var new_hand: Array[Card] = []
+	for catalog_id: String in sim_hand:
+		var card: Card = CardCatalog.create_card_resource(catalog_id)
+		if card:
+			new_hand.append(card)
+	hand = new_hand
+	hand_changed.emit(hand)
+
+
+## Whether this summoner is running as a multiplayer client (not host).
+func _is_multiplayer_client() -> bool:
+	return BattleContext.is_multiplayer_battle() and not BattleContext.has_authority()
 
 func _exit_tree() -> void:
 	# Kill any active tweens to prevent lambda capture errors
 	if active_feedback_tween and active_feedback_tween.is_valid():
 		active_feedback_tween.kill()
-	# Disconnect sim signals
+	# Disconnect sim signals (host/single-player only — client uses polling)
 	if _sim_node and is_instance_valid(_sim_node):
 		if _sim_node.is_connected("CastingStarted", _on_sim_casting_started):
 			_sim_node.disconnect("CastingStarted", _on_sim_casting_started)
@@ -363,7 +480,14 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 	if not card.can_play(int(mana)):
 		return false
 
-	# Submit command to simulation — sim handles mana, casting, hand, deck
+	# Multiplayer client: route through authority provider → MatchSession → host
+	if BattleContext.is_multiplayer_battle() and not BattleContext.has_authority():
+		if BattleContext.authority_provider and BattleContext.authority_provider.has_method("request_card_play"):
+			return BattleContext.authority_provider.request_card_play(card_index, spawn_position)
+		push_error("Summoner: Multiplayer client has no authority provider!")
+		return false
+
+	# Host / single-player: submit directly to simulation
 	if _sim_node:
 		_sim_node.QueuePlayCard(int(team), card_index, spawn_position, -1)
 	else:

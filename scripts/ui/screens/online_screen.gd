@@ -23,9 +23,9 @@ const BATTLE_TRANSITION_DELAY: float = 0.5
 @onready var tier_label: Label = %TierLabel
 @onready var rating_label: Label = %RatingLabel
 @onready var rank_label: Label = %RankLabel
-@onready var wins_value: Label = %"MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinsBox/Value"
-@onready var losses_value: Label = %"MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/LossesBox/Value"
-@onready var win_rate_value: Label = %"MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinRateBox/Value"
+@onready var wins_value: Label = $MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinsBox/Value
+@onready var losses_value: Label = $MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/LossesBox/Value
+@onready var win_rate_value: Label = $MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinRateBox/Value
 @onready var status_label: Label = %StatusLabel
 @onready var queue_button: Button = %QueueButton
 @onready var leaderboard_header: Label = $MarginContainer/VBoxContainer/ContentHBox/RightPanel/LeaderboardHeader
@@ -38,6 +38,11 @@ var _nakama_client: Node = null
 var _matchmaking_service: Node = null
 var _ranking_service: Node = null
 var _leaderboard_service: Node = null
+
+## Deck exchange state
+var _opponent_deck_received: bool = false
+var _pending_opponent_deck: Array = []
+var _pending_match_info: Dictionary = {}
 
 
 func _ready() -> void:
@@ -89,13 +94,16 @@ func _connect_services() -> void:
 		if _leaderboard_service.has_signal("LeaderboardRefreshed"):
 			_leaderboard_service.LeaderboardRefreshed.connect(_on_leaderboard_refreshed)
 
+	# Connect match data handler once (stays connected for lifetime of this screen)
+	if _nakama_client and _nakama_client.has_signal("MatchDataReceived"):
+		_nakama_client.MatchDataReceived.connect(_on_match_data_received)
+
 	# Start authentication if not already authenticated
-	if _nakama_client and _nakama_client.has_method("get_IsAuthenticated"):
-		if not _nakama_client.get_IsAuthenticated():
+	if _nakama_client:
+		if not _nakama_client.get("IsAuthenticated"):
 			_set_state(ScreenState.LOADING)
 			status_label.text = Loc.t("ui.ranked.authenticating")
-			if _nakama_client.has_method("AuthenticateDeviceAsync"):
-				_nakama_client.AuthenticateDeviceAsync()
+			_nakama_client.Authenticate()
 		else:
 			_set_state(ScreenState.READY)
 			_refresh_data()
@@ -149,8 +157,6 @@ func _refresh_local_data() -> void:
 	var rating: int = 1000
 	if _ranking_service and _ranking_service.has_method("GetRating"):
 		rating = _ranking_service.GetRating()
-	elif _ranking_service and _ranking_service.has_method("get_Rating"):
-		rating = _ranking_service.get_Rating()
 
 	_update_rating_display(rating)
 	_update_stats_display(0, 0)
@@ -160,11 +166,8 @@ func _refresh_local_data() -> void:
 func _refresh_rating_display() -> void:
 	var rating: int = 1000
 
-	if _ranking_service:
-		if _ranking_service.has_method("GetRating"):
-			rating = _ranking_service.GetRating()
-		elif _ranking_service.has_method("get_Rating"):
-			rating = _ranking_service.get_Rating()
+	if _ranking_service and _ranking_service.has_method("GetRating"):
+		rating = _ranking_service.GetRating()
 
 	_update_rating_display(rating)
 
@@ -258,10 +261,10 @@ func _refresh_stats_display() -> void:
 	# Get match history from MatchReporter if available
 	var match_reporter: Node = get_tree().root.get_node_or_null("MatchReporter")
 	if match_reporter:
-		if match_reporter.has_method("get_MatchHistory"):
-			var history: Array = match_reporter.get_MatchHistory()
-			for match_data in history:
-				if match_data.get("LocalPlayerWon", false):
+		var history: Variant = match_reporter.get("MatchHistory")
+		if history is Array:
+			for match_data: Variant in history:
+				if match_data.get("LocalPlayerWon"):
 					wins += 1
 				else:
 					losses += 1
@@ -282,27 +285,26 @@ func _update_stats_display(wins: int, losses: int) -> void:
 
 
 func _refresh_leaderboard() -> void:
-	if _leaderboard_service and _leaderboard_service.has_method("GetTopPlayersAsync"):
-		# Async call - will update via signal
-		_leaderboard_service.GetTopPlayersAsync(10, false)
+	if _leaderboard_service:
+		_leaderboard_service.RefreshLeaderboard(10)
 	else:
 		_populate_mock_leaderboard()
 
 
 func _populate_leaderboard(entries: Array) -> void:
 	# Clear existing entries
-	for child in leaderboard_list.get_children():
+	for child: Node in leaderboard_list.get_children():
 		child.queue_free()
 
 	# Add new entries
-	for entry in entries:
+	for entry: Variant in entries:
 		var row: HBoxContainer = _create_leaderboard_row(entry)
 		leaderboard_list.add_child(row)
 
 
 func _populate_mock_leaderboard() -> void:
 	# Clear existing entries
-	for child in leaderboard_list.get_children():
+	for child: Node in leaderboard_list.get_children():
 		child.queue_free()
 
 	# Create mock entries (placeholder data for offline mode)
@@ -314,7 +316,7 @@ func _populate_mock_leaderboard() -> void:
 		{"rank": 5, "name": "PLACEHOLDER_PLAYER_5", "rating": 1640},
 	]
 
-	for entry in mock_data:
+	for entry: Dictionary in mock_data:
 		var row: HBoxContainer = _create_mock_leaderboard_row(entry)
 		leaderboard_list.add_child(row)
 
@@ -382,8 +384,7 @@ func _on_close_pressed() -> void:
 
 	# Leave queue if in queue
 	if _state == ScreenState.IN_QUEUE and _matchmaking_service:
-		if _matchmaking_service.has_method("LeaveQueueAsync"):
-			_matchmaking_service.LeaveQueueAsync()
+		_matchmaking_service.LeaveQueue()
 
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
@@ -402,19 +403,19 @@ func _on_queue_pressed() -> void:
 
 
 func _join_queue() -> void:
-	if _matchmaking_service and _matchmaking_service.has_method("JoinQueueAsync"):
+	if _matchmaking_service:
 		_queue_start_time = Time.get_ticks_msec() / 1000.0
 		_set_state(ScreenState.IN_QUEUE)
 		status_label.text = Loc.t("ui.ranked.in_queue")
-		_matchmaking_service.JoinQueueAsync()
+		_matchmaking_service.JoinQueue()
 	else:
 		# No matchmaking service - show message
 		status_label.text = Loc.t("ui.ranked.not_connected")
 
 
 func _leave_queue() -> void:
-	if _matchmaking_service and _matchmaking_service.has_method("LeaveQueueAsync"):
-		_matchmaking_service.LeaveQueueAsync()
+	if _matchmaking_service:
+		_matchmaking_service.LeaveQueue()
 	_set_state(ScreenState.READY)
 
 
@@ -422,7 +423,7 @@ func _leave_queue() -> void:
 ## SIGNAL HANDLERS
 ## =============================================================================
 
-func _on_authenticated() -> void:
+func _on_authenticated(_user_id: String, _username: String) -> void:
 	_set_state(ScreenState.READY)
 	_refresh_data()
 
@@ -433,24 +434,99 @@ func _on_authentication_failed(error: String) -> void:
 	_refresh_local_data()
 
 
-func _on_match_found(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int) -> void:
+func _on_match_found(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String) -> void:
 	_set_state(ScreenState.MATCH_FOUND)
 	status_label.text = Loc.t("ui.ranked.match_found")
 
-	# Brief delay for UI feedback
+	# Reset exchange state (handler already connected from _connect_services)
+	_opponent_deck_received = false
+	_pending_opponent_deck = []
+	_pending_match_info = {
+		"match_id": match_id,
+		"opponent_user_id": opponent_user_id,
+		"opponent_username": opponent_username,
+		"opponent_rating": opponent_rating,
+		"opponent_summoner_id": opponent_summoner_id,
+	}
+
+	# Brief delay for UI feedback (handler is already connected)
 	await get_tree().create_timer(MATCH_FOUND_FEEDBACK_DELAY).timeout
 
-	status_label.text = Loc.t("ui.ranked.connecting")
+	status_label.text = Loc.t("ui.ranked.exchanging_data")
 
-	# Store match info for battle setup
-	_start_ranked_battle(match_id, opponent_user_id, opponent_username, opponent_rating)
+	# Exchange deck data with opponent
+	_exchange_deck_data(match_id, opponent_user_id, opponent_username, opponent_rating, opponent_summoner_id)
 
 
-func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int) -> void:
+func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String) -> void:
+	# Send our deck
+	var player_deck: Array = _get_player_deck()
+	var deck_json: String = JSON.stringify({"deck": player_deck})
+	_nakama_client.SendMatchData(100, deck_json)
+
+	# Wait for opponent deck (with timeout)
+	var timeout: float = 10.0
+	var elapsed: float = 0.0
+	while not _opponent_deck_received and elapsed < timeout:
+		await get_tree().create_timer(0.1).timeout
+		elapsed += 0.1
+
+	if not _opponent_deck_received:
+		status_label.text = Loc.t("ui.ranked.exchange_timeout")
+		# Clean up the Nakama match so it doesn't linger
+		if _nakama_client and _nakama_client.has_method("LeaveMatch"):
+			_nakama_client.LeaveMatch()
+		_set_state(ScreenState.READY)
+		return
+
+	# Got opponent deck — start battle
+	_start_ranked_battle(
+		_pending_match_info["match_id"],
+		_pending_match_info["opponent_user_id"],
+		_pending_match_info["opponent_username"],
+		_pending_match_info["opponent_rating"],
+		_pending_match_info["opponent_summoner_id"],
+		_pending_opponent_deck
+	)
+
+
+func _on_match_data_received(match_id: String, op_code: int, data: String, sender_id: String) -> void:
+	if op_code != 100:
+		return  # Not a deck exchange message
+
+	# Only process during active exchange
+	if _state != ScreenState.MATCH_FOUND:
+		return
+
+	# Validate this is for our current match
+	if match_id != _pending_match_info.get("match_id", ""):
+		print("OnlineScreen: Ignoring deck from wrong match %s" % match_id)
+		return
+
+	var parsed: Variant = JSON.parse_string(data)
+	if parsed is Dictionary:
+		var dict: Dictionary = parsed
+		var deck: Array = dict.get("deck", [])
+		if deck.is_empty():
+			print("OnlineScreen: Ignoring empty opponent deck")
+			return
+		_pending_opponent_deck = deck
+		_opponent_deck_received = true
+		print("OnlineScreen: Received opponent deck (%d entries)" % deck.size())
+
+
+func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String, opponent_deck: Array) -> void:
 	# Determine who is "host" based on user ID comparison (deterministic)
 	var local_user_id: String = ""
-	if _nakama_client and _nakama_client.has_method("get_UserId"):
-		local_user_id = _nakama_client.get_UserId()
+	if _nakama_client:
+		var user_id_val: Variant = _nakama_client.get("UserId")
+		if user_id_val != null:
+			local_user_id = str(user_id_val)
+
+	if local_user_id.is_empty():
+		push_error("OnlineScreen: Cannot start battle — local user ID is empty")
+		_set_state(ScreenState.READY)
+		return
 
 	# Lexicographically smaller user ID is host (player 0)
 	var is_host: bool = local_user_id < opponent_user_id
@@ -466,13 +542,6 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 	var player_summoner_id: String = _get_active_summoner_id()
 	var player_deck: Array = _get_player_deck()
 
-	# For opponent, we don't have their deck yet - it will be synced during battle
-	# TODO(Phase-4): Get opponent summoner/deck via Nakama match data exchange
-	# When match is found, players exchange their summoner ID and deck via match data messages.
-	# For now, use a placeholder summoner - the actual battle will use whatever the opponent plays.
-	var opponent_summoner_id: String = "ignis"
-	var opponent_deck: Array = []
-
 	# Store opponent info for match reporting later
 	BattleContext.set_ranked_match_info({
 		"match_id": match_id,
@@ -482,7 +551,7 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 		"is_ranked": true
 	})
 
-	# Configure BattleContext for multiplayer
+	# Configure BattleContext for multiplayer (opponent data comes from exchange)
 	BattleContext.configure_multiplayer_battle(
 		player_summoner_id,
 		opponent_summoner_id,
@@ -511,8 +580,8 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 
 func _get_active_summoner_id() -> String:
 	var summoner_selection: Node = get_tree().root.get_node_or_null("SummonerSelection")
-	if summoner_selection and summoner_selection.has_method("get_selected_summoner_id"):
-		var selected: String = summoner_selection.get_selected_summoner_id()
+	if summoner_selection and summoner_selection.has_method("GetActiveSummonerId"):
+		var selected: String = summoner_selection.GetActiveSummonerId()
 		if not selected.is_empty():
 			return selected
 	return "ignis"  # Default fallback
@@ -543,13 +612,14 @@ func _on_queue_status_changed(is_in_queue: bool, _queue_time: float) -> void:
 
 
 func _on_leaderboard_refreshed() -> void:
-	if _leaderboard_service and _leaderboard_service.has_method("get_TopPlayers"):
-		var top_players: Array = _leaderboard_service.get_TopPlayers()
-		_populate_leaderboard(top_players)
+	if _leaderboard_service:
+		var top_players: Variant = _leaderboard_service.get("TopPlayers")
+		if top_players is Array:
+			_populate_leaderboard(top_players)
 
 	# Update player rank if available
-	if _leaderboard_service and _leaderboard_service.has_method("get_PlayerRank"):
-		var player_rank: Variant = _leaderboard_service.get_PlayerRank()
+	if _leaderboard_service:
+		var player_rank: Variant = _leaderboard_service.get("PlayerRank")
 		if player_rank:
 			var rank_num: int = player_rank.get("Rank", 0)
 			if rank_num > 0:

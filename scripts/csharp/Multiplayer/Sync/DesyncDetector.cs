@@ -90,6 +90,13 @@ public class DesyncDetector
         _lastClientHash = clientHash;
         _lastClientHashFrame = clientFrame;
 
+        // Skip comparison if client is significantly behind (still syncing).
+        // The server state has advanced far past the client's hash frame,
+        // so comparing would always produce a false mismatch.
+        var serverFrame = SimulationNode.Current?.State.FrameNumber ?? 0;
+        if (Math.Abs(serverFrame - clientFrame) > 60) // More than ~1 second behind
+            return true;
+
         // Compute our authoritative hash
         var builder = new StateSnapshotBuilder(_session);
         int authoritativeHash = builder.ComputeHash();

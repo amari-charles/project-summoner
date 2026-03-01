@@ -7,6 +7,7 @@ using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Units;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
+using Fateforged.Simulation;
 
 namespace ProjectSummoner.Summons;
 
@@ -391,47 +392,37 @@ public static class UnitSpawner
 
     /// <summary>
     /// Registers a spawned unit with the multiplayer system if in a multiplayer match.
-    /// Host: Assigns NetworkId, registers with NetworkIdRegistry, broadcasts UnitSpawned.
-    /// Client: Should receive UnitSpawned from host and register with provided NetworkId.
+    /// Both host and client read the NetworkId from UnitData (single source of truth).
+    /// Host: UnitData.NetworkId was assigned by Simulation via MatchState.NextNetworkId().
+    /// Client: UnitData was pre-registered by ClientRunner.HandleUnitSpawned before visual spawn.
+    /// Neither path broadcasts — HostRunner handles UnitSpawned via UnitRegisteredEvent.
     /// </summary>
-    /// <param name="unit">The unit that was spawned</param>
-    /// <param name="unitType">Unit type identifier (e.g., "puff", "fire_wisp")</param>
-    /// <param name="team">Team the unit belongs to</param>
     private static void RegisterWithMultiplayerSystem(Unit3D unit, string unitType, int team)
     {
         var session = MatchSession.Current;
         if (session == null || !session.IsActive)
         {
-            // Not in a multiplayer match - nothing to register
             return;
         }
 
-        if (session.IsHost)
+        // Read the sim-assigned NetworkId from UnitData (single source of truth)
+        int networkId = -1;
+        if (unit.SimUnitId.HasValue)
         {
-            // Host assigns network ID and broadcasts to clients
-            var networkId = session.NetworkIds.Register(unit);
+            var unitData = SimulationNode.Current?.GetUnitData(unit.SimUnitId.Value);
+            if (unitData != null)
+                networkId = unitData.NetworkId;
+        }
+
+        if (networkId >= 0)
+        {
+            session.NetworkIds.RegisterWithId(unit, networkId);
             unit.NetworkId = networkId;
-
-            // Broadcast UnitSpawned message to clients
-            var spawnMessage = new UnitSpawned(
-                networkId,
-                unitType,
-                team,
-                unit.GlobalPosition,
-                MatchTick: 0,
-                SourceSequence: null,
-                SourcePlayerIndex: null
-            );
-            session.Broadcast(spawnMessage);
-
             GD.Print($"[UnitSpawner] Registered unit with NetworkId {networkId}: {unitType} (team {team})");
         }
         else
         {
-            // Client should receive NetworkId from host via UnitSpawned message
-            // For now, log that we're in client mode - full client spawn handling
-            // will be implemented when we process UnitSpawned messages from host
-            GD.Print($"[UnitSpawner] Client spawned unit locally: {unitType} (team {team}) - awaiting NetworkId from host");
+            GD.PrintErr($"[UnitSpawner] Failed to get NetworkId for {unitType} (SimUnitId={unit.SimUnitId})");
         }
     }
 }

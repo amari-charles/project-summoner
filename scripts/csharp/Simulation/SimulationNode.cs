@@ -174,16 +174,17 @@ public partial class SimulationNode : Node
     [Signal] public delegate void OvertimeChangedEventHandler(bool isOvertime);
 
     /// <summary>
-    /// Emitted when a snapshot updates a summoner's hand/deck (client-side).
-    /// Team is in local space so GDScript can filter by team.
-    /// </summary>
-    [Signal] public delegate void SummonerHandUpdatedEventHandler(int team);
-
-    /// <summary>
     /// Emitted once when the first snapshot is applied (client-side).
     /// GDScript awaits this before calling start_game().
     /// </summary>
     [Signal] public delegate void FirstSnapshotAppliedEventHandler();
+
+    /// <summary>
+    /// Emitted by ClientRunner when the host broadcasts a UnitSpawned message.
+    /// All values are in local space (team remapped, position converted).
+    /// GDScript connects to this to spawn the visual unit on the client.
+    /// </summary>
+    [Signal] public delegate void RemoteUnitSpawnedEventHandler(string catalogId, int localTeam, Vector3 localPosition, int networkId, float spawnDuration);
 
     // New simulation-driven unit events
     [Signal] public delegate void UnitAttackedEventHandler(int attackerUnitId, int targetUnitId);
@@ -210,10 +211,25 @@ public partial class SimulationNode : Node
             Current = null;
     }
 
+    /// <summary>
+    /// Whether the post-init invariant check has run (DEBUG only).
+    /// </summary>
+    private bool _invariantsChecked;
+
     public override void _PhysicsProcess(double delta)
     {
         if (!_initialized || _simulation == null)
             return;
+
+#if DEBUG
+        if (!_invariantsChecked)
+        {
+            _invariantsChecked = true;
+            var violations = MatchStateInvariants.ValidatePostInit(State);
+            foreach (var v in violations)
+                GD.PrintErr($"[SimulationNode] Post-init invariant violation: {v}");
+        }
+#endif
 
         // Only the host runs Tick(). Clients receive events/snapshots from the host.
         if (!IsHost)
@@ -259,6 +275,7 @@ public partial class SimulationNode : Node
 
         _simulation = new Simulation(State);
         _claimedSimUnitIds.Clear();
+        _firstSnapshotApplied = false;
         _initialized = true;
 
         GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})");
@@ -592,7 +609,7 @@ public partial class SimulationNode : Node
     /// Called by Unit3D._Ready() to link itself to its simulation data.
     /// Units are claimed in UnitId order (deterministic, matches spawn order).
     /// </summary>
-    public int ClaimNextSimUnitId(int localTeam)
+    public int? ClaimNextSimUnitId(int localTeam)
     {
         int networkTeam = ToNetworkTeam(localTeam);
 
@@ -606,7 +623,38 @@ public partial class SimulationNode : Node
             }
         }
 
-        return -1;
+        return null;
+    }
+
+    /// <summary>
+    /// Pre-register a remote unit in MatchState so that Unit3D._Ready() can
+    /// ClaimNextSimUnitId() immediately. Called by ClientRunner BEFORE emitting
+    /// RemoteUnitSpawned — the visual scene instantiates, calls _Ready() → ClaimNextSimUnitId(),
+    /// and finds the UnitData already present with the correct Team.
+    /// </summary>
+    public void PreRegisterRemoteUnit(int networkId, int networkTeam, SimVector3 position)
+    {
+        // Check if already registered (duplicate message or snapshot already created it)
+        foreach (var kvp in State.Units)
+        {
+            if (kvp.Value.NetworkId == networkId)
+                return;
+        }
+
+        int clientUnitId = _nextClientUnitId--;
+        var unit = new UnitData
+        {
+            UnitId = clientUnitId,
+            NetworkId = networkId,
+            Team = networkTeam,
+            IsAlive = true,
+            Position = position,
+            CurrentHp = 1, // Placeholder — snapshot will overwrite
+            MaxHp = 1,
+            ActivationState = 0 // Inactive until snapshot confirms
+        };
+        State.Units[clientUnitId] = unit;
+        GD.Print($"[SimulationNode] PreRegistered remote unit: networkId={networkId}, team={networkTeam}, unitId={clientUnitId}");
     }
 
     // =========================================================================
@@ -732,11 +780,11 @@ public partial class SimulationNode : Node
             summoner.CastingSpawnPosition = new SimVector3(ss.CastingSpawnPosition.X, ss.CastingSpawnPosition.Y, ss.CastingSpawnPosition.Z);
             summoner.CastingNetworkId = ss.CastingNetworkId;
 
-            // Hand/Deck/Discard — overwrite from host snapshot
-            if (ss.Hand != null && ss.Hand.Length > 0)
+            // Hand/Deck/Discard — overwrite from host snapshot.
+            // GDScript polls this data each frame via GetPlayerHand() etc.
+            if (ss.Hand != null)
             {
-                bool handChanged = !summoner.Hand.SequenceEqual(ss.Hand);
-                if (handChanged)
+                if (!summoner.Hand.SequenceEqual(ss.Hand))
                 {
                     summoner.Hand.Clear();
                     summoner.Hand.AddRange(ss.Hand);
@@ -753,11 +801,6 @@ public partial class SimulationNode : Node
                 foreach (var id in ss.Hand) PopulateSingleCard(id, processed);
                 foreach (var id in ss.Deck ?? System.Array.Empty<string>()) PopulateSingleCard(id, processed);
                 foreach (var id in ss.DiscardPile ?? System.Array.Empty<string>()) PopulateSingleCard(id, processed);
-
-                if (handChanged)
-                {
-                    EmitSignal(SignalName.SummonerHandUpdated, localTeam);
-                }
             }
         }
 
@@ -787,14 +830,14 @@ public partial class SimulationNode : Node
 
             if (unitsByNetworkId.TryGetValue(unitState.NetworkId, out var existingUnit))
             {
-                // UPDATE existing unit
-                var snapshotSimPos = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z);
-                if (existingUnit.Position.DistanceTo(snapshotSimPos) > 0.5f)
-                    existingUnit.Position = snapshotSimPos;
+                // UPDATE existing unit — always write position from authoritative snapshot
+                existingUnit.Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z);
                 existingUnit.CurrentHp = unitState.Hp;
                 existingUnit.IsAlive = unitState.IsAlive;
                 existingUnit.TargetNetworkId = unitState.TargetNetworkId;
                 existingUnit.ActivationState = unitState.ActivationState;
+                existingUnit.BehaviorState = unitState.BehaviorState;
+                existingUnit.IsFacingRight = unitState.IsFacingRight;
             }
             else
             {
@@ -804,13 +847,15 @@ public partial class SimulationNode : Node
                 {
                     UnitId = clientUnitId,
                     NetworkId = unitState.NetworkId,
-                    Team = -1, // Unknown from snapshot alone — not needed for hash
+                    Team = unitState.Team,
                     CurrentHp = unitState.Hp,
                     MaxHp = unitState.Hp, // Best approximation from snapshot
                     IsAlive = unitState.IsAlive,
                     Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z),
                     TargetNetworkId = unitState.TargetNetworkId,
-                    ActivationState = unitState.ActivationState
+                    ActivationState = unitState.ActivationState,
+                    BehaviorState = unitState.BehaviorState,
+                    IsFacingRight = unitState.IsFacingRight
                 };
                 State.Units[clientUnitId] = newUnit;
             }
@@ -840,64 +885,20 @@ public partial class SimulationNode : Node
     // EVENT EMISSION
     // =========================================================================
 
+    /// <summary>
+    /// Signal emitter visitor, created lazily in EmitEvents.
+    /// Uses the visitor pattern for compile-time exhaustiveness:
+    /// adding a new SimEvent without a Visit() in SimEventSignalEmitter causes a compile error.
+    /// </summary>
+    private SimEventSignalEmitter? _signalEmitter;
+
     private void EmitEvents(System.Collections.Generic.List<SimEvent> events)
     {
+        _signalEmitter ??= new SimEventSignalEmitter(this);
+
         foreach (var evt in events)
         {
-            switch (evt)
-            {
-                case PhaseChangedEvent e:
-                    EmitSignal(SignalName.PhaseChanged, (int)e.NewPhase);
-                    break;
-                case PrepTimerUpdatedEvent e:
-                    EmitSignal(SignalName.PrepTimerUpdated, e.Remaining);
-                    break;
-                case MatchTimeUpdatedEvent e:
-                    EmitSignal(SignalName.MatchTimeUpdated, e.MatchTime);
-                    break;
-                case SummonerHpChangedEvent e:
-                    EmitSignal(SignalName.SummonerHpChanged, ToLocalTeam(e.Team), e.Hp, e.MaxHp);
-                    break;
-                case SummonerManaChangedEvent e:
-                    EmitSignal(SignalName.SummonerManaChanged, ToLocalTeam(e.Team), e.Mana, e.MaxMana);
-                    break;
-                case CastingStartedEvent e:
-                    EmitSignal(SignalName.CastingStarted, ToLocalTeam(e.Team), e.CardIndex, e.Duration, ToLocal(e.SpawnPosition), e.CatalogId);
-                    break;
-                case CastingCompletedEvent e:
-                    EmitSignal(SignalName.CastingCompleted, ToLocalTeam(e.Team), e.CardIndex, ToLocal(e.SpawnPosition), e.NetworkId);
-                    break;
-                case UnitActivationChangedEvent:
-                    // No signal for this yet — will be added if needed
-                    break;
-                case CardDrawnEvent e:
-                    EmitSignal(SignalName.CardDrawn, ToLocalTeam(e.Team), e.HandIndex, e.CatalogId);
-                    break;
-                case HandChangedEvent e:
-                    EmitSignal(SignalName.HandChanged, ToLocalTeam(e.Team), e.Hand);
-                    break;
-                case DeckRecycledEvent e:
-                    EmitSignal(SignalName.DeckRecycled, ToLocalTeam(e.Team));
-                    break;
-                case UnitRegisteredEvent e:
-                    EmitSignal(SignalName.UnitStateRegistered, e.UnitId, e.NetworkId, ToLocalTeam(e.Team));
-                    break;
-                case UnitRemovedEvent e:
-                    EmitSignal(SignalName.UnitStateRemoved, e.UnitId);
-                    break;
-                case GameOverEvent e:
-                    EmitSignal(SignalName.GameOver, ToLocalTeam(e.WinnerTeam), e.Reason);
-                    break;
-                case UnitAttackedEvent e:
-                    EmitSignal(SignalName.UnitAttacked, e.AttackerUnitId, e.TargetUnitId);
-                    break;
-                case UnitDamagedEvent e:
-                    EmitSignal(SignalName.UnitDamaged, e.TargetUnitId, e.AttackerUnitId, e.Damage, e.IsCrit);
-                    break;
-                case UnitDiedSimEvent e:
-                    EmitSignal(SignalName.UnitDiedSim, e.UnitId, e.KillerUnitId);
-                    break;
-            }
+            evt.Accept(_signalEmitter);
         }
     }
 }
