@@ -1,4 +1,3 @@
-using System;
 using Fateforged.Session;
 using Godot;
 
@@ -14,10 +13,8 @@ namespace Fateforged.View;
 /// </summary>
 public partial class BattleScene : Node3D
 {
-    private IGameSession? _session;
-
     // Child components — resolved from scene tree
-    public EntityManager EntityManager { get; private set; } = null!;
+    public EntityManager? EntityManager { get; private set; }
 
     /// <summary>
     /// Wires IGameSession to EntityManager and BattleHUD.
@@ -25,6 +22,17 @@ public partial class BattleScene : Node3D
     /// </summary>
     public void Initialize(IGameSession session)
     {
-        throw new NotImplementedException();
+        EntityManager = GetNodeOrNull<EntityManager>("EntityManager");
+        if (EntityManager != null)
+        {
+            EntityManager.Initialize(session);
+            GD.Print("[BattleScene] EntityManager initialized");
+        }
+        else
+        {
+            GD.PushWarning("[BattleScene] No EntityManager child found");
+        }
+
+        GD.Print("[BattleScene] Initialization complete");
     }
 }

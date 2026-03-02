@@ -1,3 +1,6 @@
+using ProjectSummoner.Projectiles;
+using ProjectSummoner.Units;
+
 namespace Fateforged.Simulation;
 
 /// <summary>
@@ -11,14 +14,14 @@ public class SimProjectileData
     public int ProjectileId { get; set; }
     public int SourceUnitId { get; set; }
     public int TargetUnitId { get; set; }
-    public int Team { get; set; }
+    public Team Team { get; set; }
 
     // Damage
     public float Damage { get; set; }
     public int SourceElementId { get; set; }
 
-    // Movement type: 0=Straight, 1=Arc, 2=Ballistic, 3=WeavingHoming
-    public int MovementType { get; set; }
+    // Movement type
+    public ProjectileMovementType MovementType { get; set; }
 
     // Path state
     public SimVector3 StartPosition { get; set; }
@@ -43,7 +46,7 @@ public class SimProjectileData
     public float Gravity { get; set; } = 9.8f;
 
     // WeavingHoming state
-    public int WeavingPhase { get; set; } // 0=Straight, 1=Veering, 2=Homing
+    public WeavingPhase WeavingPhase { get; set; }
     public float PhaseTimer { get; set; }
     public SimVector3 Velocity { get; set; }
     public SimVector3 VeerDirection { get; set; }
@@ -61,15 +64,4 @@ public class SimProjectileData
 
     // Lifecycle
     public bool IsDead { get; set; }
-
-    // Movement type constants
-    public const int MoveStraight = 0;
-    public const int MoveArc = 1;
-    public const int MoveBallistic = 2;
-    public const int MoveWeavingHoming = 3;
-
-    // Weaving phase constants
-    public const int PhaseStraight = 0;
-    public const int PhaseVeering = 1;
-    public const int PhaseHoming = 2;
 }

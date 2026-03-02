@@ -127,38 +127,10 @@ public partial class HitResolver : Node
             TargetKilled = false
         };
 
-        // Apply damage through DamageSystem
-        if (DamageSystem.Instance != null)
-        {
-            var flags = new Godot.Collections.Dictionary
-            {
-                { fromProjectile ? "from_projectile" : "from_hitbox", true }
-            };
-
-            float damageDealt = DamageSystem.Instance.ApplyDamage(
-                attacker,
-                target,
-                baseDamage,
-                damageType,
-                flags
-            );
-
-            result.DamageDealt = damageDealt;
-
-            // Check if it was a crit by comparing to base damage
-            // DamageSystem applies crit multiplier internally
-            result.WasCrit = damageDealt > baseDamage * 1.5f;
-
-            // Check if target was killed
-            result.TargetKilled = IsTargetDead(target);
-        }
-        else
-        {
-            GD.PushWarning("HitResolver: DamageSystem not found, applying damage directly");
-            ApplyDamageDirectly(target, baseDamage);
-            result.DamageDealt = baseDamage;
-            result.TargetKilled = IsTargetDead(target);
-        }
+        // Apply damage directly to target (damage is now sim-driven)
+        ApplyDamageDirectly(target, baseDamage);
+        result.DamageDealt = baseDamage;
+        result.TargetKilled = IsTargetDead(target);
 
         // Emit signal for VFX/audio systems
         EmitSignal(

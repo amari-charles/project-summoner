@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards.Effects.Concrete;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Stats;
 using ProjectSummoner.Units;
@@ -130,7 +129,8 @@ public static class CardCatalog
 
         // Get base stats from UnitDefinitions (with card modifier applied) or from card directly
         UnitStats stats;
-        if (card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out var def) && def != null)
+        UnitDefinition? def = null;
+        if (card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out def) && def != null)
         {
             stats = def.Stats;
             if (card.UnitModifier != null)
@@ -176,10 +176,8 @@ public static class CardCatalog
             ["formation_duration"] = card.FormationDuration,
             ["unlock_condition"] = UnlockConditionToString(card.UnlockCondition),
             ["card_icon_path"] = card.CardIconPath,
-            // Pre-cache separation radius for summon cards (avoids scene instantiation at runtime)
-            ["separation_radius"] = !string.IsNullOrEmpty(scenePath)
-                ? Summons.UnitSpawner.GetSeparationRadiusCached(scenePath)
-                : 0.5f
+            // Separation radius from UnitDefinitions
+            ["separation_radius"] = def?.Visual.SeparationRadius ?? 0.5f
         };
 
         // Typed card properties (replaces old Tags system)

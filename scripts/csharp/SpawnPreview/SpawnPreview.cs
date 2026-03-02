@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
-using ProjectSummoner.Summons;
+using ProjectSummoner.Constants;
+using ProjectSummoner.Units;
 
 namespace ProjectSummoner.SpawnPreview;
 
@@ -42,16 +43,16 @@ public partial class SpawnPreview : Node3D
     /// <param name="unitScene">The unit scene to preview</param>
     /// <param name="spawnCount">Number of units to spawn</param>
     /// <param name="team">Team (0=player, 1=enemy) for facing direction</param>
-    public void Setup(PackedScene unitScene, int spawnCount = 1, int team = 0)
+    /// <param name="catalogId">Optional catalog ID to look up separation radius from UnitDefinitions</param>
+    public void Setup(PackedScene unitScene, int spawnCount = 1, int team = 0, string? catalogId = null)
     {
         _unitScene = unitScene;
         _spawnCount = spawnCount;
         _team = team;
 
-        if (unitScene != null)
+        if (catalogId != null && UnitDefinitions.TryGet(new UnitId(catalogId), out var unitDef) && unitDef != null)
         {
-            // Get separation radius from UnitSpawner (single source of truth)
-            _separationRadius = UnitSpawner.GetSeparationRadius(unitScene);
+            _separationRadius = unitDef.Visual.SeparationRadius;
         }
 
         // Create ghost units for preview

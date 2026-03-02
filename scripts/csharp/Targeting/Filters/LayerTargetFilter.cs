@@ -12,7 +12,7 @@ public partial class LayerTargetFilter : BaseTargetFilter
     [Export]
     public TargetLayer CanTarget { get; set; } = TargetLayer.Both;
 
-    public override bool IsValid(Unit3D unit, Node3D target)
+    public override bool IsValid(Node3D unit, Node3D target)
     {
         int targetLayer = GetMovementLayer(target);
 
@@ -27,10 +27,11 @@ public partial class LayerTargetFilter : BaseTargetFilter
 
     private static int GetMovementLayer(Node3D target)
     {
-        if (target is Unit3D u)
-            return u.MovementLayer;
+        var layerVar = target.Get("MovementLayer");
+        if (layerVar.VariantType != Variant.Type.Nil)
+            return layerVar.AsInt32();
 
-        // Default to ground for non-unit targets
+        // Default to ground for nodes without MovementLayer
         return (int)MovementLayer.Ground;
     }
 }

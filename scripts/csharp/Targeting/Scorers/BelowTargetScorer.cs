@@ -16,10 +16,11 @@ public partial class BelowTargetScorer : BaseTargetScorer
     [Export]
     public float Weight { get; set; } = 5f;
 
-    public override float CalculateScore(Unit3D unit, Node3D target)
+    public override float CalculateScore(Node3D unit, Node3D target)
     {
         // Only applies to flying units
-        if (unit.MovementLayer != (int)MovementLayer.Air)
+        int movementLayer = unit.Get("MovementLayer").AsInt32();
+        if (movementLayer != (int)MovementLayer.Air)
             return 0f;
 
         Vector3 delta = unit.GlobalPosition - target.GlobalPosition;

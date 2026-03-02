@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Godot;
+using ProjectSummoner.Units;
 
 namespace Fateforged.View;
 
@@ -20,110 +20,257 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     private readonly Dictionary<int, ProjectileVisual> _projectileRegistry = new();
     private readonly Dictionary<int, SummonerVisual> _summonerRegistry = new();
 
+    private bool _isPaused;
+
     // --- Initialization ---
 
     public void Initialize(IGameSession session)
     {
-        throw new NotImplementedException();
+        _session = session;
+        _session.SimEventsEmitted += OnSimEvents;
+    }
+
+    /// <summary>
+    /// GDScript-callable overload. IGameSession is not visible to GDScript,
+    /// so this accepts a Node and casts internally.
+    /// </summary>
+    public void Initialize(Node sessionNode)
+    {
+        if (sessionNode is IGameSession session)
+            Initialize(session);
+        else
+            GD.PrintErr($"[EntityManager] Node {sessionNode.Name} does not implement IGameSession");
     }
 
     public void RegisterSummonerVisual(SummonerVisual shell, int teamIndex)
     {
-        throw new NotImplementedException();
+        _summonerRegistry[teamIndex] = shell;
     }
 
     // --- Lifecycle (called each frame) ---
 
     public override void _PhysicsProcess(double delta)
     {
-        // Diff MatchState entity lists against registries.
-        // Spawn shells for new IDs, destroy shells for removed IDs.
-        throw new NotImplementedException();
+        if (_session == null || _isPaused) return;
+
+        var state = _session.GetState();
+
+        // Diff units: spawn shells for new IDs
+        foreach (var (unitId, unitData) in state.Units)
+        {
+            if (_unitRegistry.ContainsKey(unitId)) continue;
+            if (!unitData.IsAlive) continue;
+
+            var shell = SpawnUnitShell(unitData);
+            if (shell != null)
+            {
+                _unitRegistry[unitId] = shell;
+            }
+        }
+
+        // Diff projectiles: spawn shells for new IDs
+        foreach (var (projId, projData) in state.Projectiles)
+        {
+            if (_projectileRegistry.ContainsKey(projId)) continue;
+            if (projData.IsDead) continue;
+
+            var shell = SpawnProjectileShell(projData);
+            _projectileRegistry[projId] = shell;
+        }
+
+        // Clean up freed unit nodes
+        var toRemove = new List<int>();
+        foreach (var (unitId, shell) in _unitRegistry)
+        {
+            if (!IsInstanceValid(shell))
+            {
+                toRemove.Add(unitId);
+            }
+        }
+        foreach (var id in toRemove)
+        {
+            _unitRegistry.Remove(id);
+        }
+
+        // Clean up freed or dead projectile nodes
+        toRemove.Clear();
+        foreach (var (projId, shell) in _projectileRegistry)
+        {
+            if (!IsInstanceValid(shell))
+            {
+                toRemove.Add(projId);
+            }
+            else if (!state.Projectiles.ContainsKey(projId))
+            {
+                // Projectile removed from state — destroy shell
+                shell.PlayImpactAndDestroy();
+                toRemove.Add(projId);
+            }
+        }
+        foreach (var id in toRemove)
+        {
+            _projectileRegistry.Remove(id);
+        }
     }
 
     // --- Shell Factory ---
 
-    private UnitVisual SpawnUnitShell(UnitData unitData)
+    private UnitVisual? SpawnUnitShell(UnitData unitData)
     {
-        throw new NotImplementedException();
+        // Look up scene via UnitDefinitions
+        var def = UnitDefinitions.Get(unitData.CatalogId);
+        if (def == null)
+        {
+            GD.PrintErr($"[EntityManager] No definition for CatalogId={unitData.CatalogId}");
+            return null;
+        }
+
+        var packedScene = GD.Load<PackedScene>(def.ScenePath);
+        if (packedScene == null)
+        {
+            GD.PrintErr($"[EntityManager] Failed to load scene: {def.ScenePath}");
+            return null;
+        }
+
+        // Instantiate the unit scene (generic Node3D container for Visual child)
+        var sceneRoot = packedScene.Instantiate<Node3D>();
+
+        var unitVisual = new UnitVisual();
+        unitVisual.Name = $"UnitVisual_{unitData.UnitId}";
+
+        // Extract ALL children from scene root into the UnitVisual shell.
+        // Scene roots are plain Node3D containers — children include Visual,
+        // AnimationPlayer, and Marker3D nodes that the shell needs.
+        bool extracted = false;
+        var childrenToMove = new List<Node>();
+        foreach (var child in sceneRoot.GetChildren())
+        {
+            childrenToMove.Add(child);
+        }
+
+        foreach (var child in childrenToMove)
+        {
+            sceneRoot.RemoveChild(child);
+            unitVisual.AddChild(child);
+            extracted = true;
+        }
+
+        if (!extracted)
+        {
+            // Fallback: add entire scene as child (old script will fail gracefully)
+            unitVisual.AddChild(sceneRoot);
+            GD.PushWarning($"[EntityManager] No extractable children in {def.ScenePath}, using whole scene as child");
+        }
+        else
+        {
+            // Discard stripped scene root
+            sceneRoot.QueueFree();
+        }
+
+        AddChild(unitVisual);
+        unitVisual.Initialize(_session!, unitData.UnitId);
+        return unitVisual;
     }
 
     private ProjectileVisual SpawnProjectileShell(SimProjectileData projData)
     {
-        throw new NotImplementedException();
+        var shell = new ProjectileVisual();
+        shell.Name = $"ProjectileVisual_{projData.ProjectileId}";
+        AddChild(shell);
+        shell.Initialize(_session!, projData.ProjectileId);
+        return shell;
     }
 
     private void DestroyShell(int entityId)
     {
-        throw new NotImplementedException();
+        if (_unitRegistry.TryGetValue(entityId, out var unitShell))
+        {
+            if (IsInstanceValid(unitShell))
+                unitShell.QueueFree();
+            _unitRegistry.Remove(entityId);
+        }
+        if (_projectileRegistry.TryGetValue(entityId, out var projShell))
+        {
+            if (IsInstanceValid(projShell))
+                projShell.QueueFree();
+            _projectileRegistry.Remove(entityId);
+        }
     }
 
-    // --- ISimEventVisitor (event dispatch to shells) ---
+    // --- Event Dispatch ---
+
+    private void OnSimEvents(IReadOnlyList<SimEvent> events)
+    {
+        foreach (var e in events)
+        {
+            e.Accept(this);
+        }
+    }
+
+    // --- ISimEventVisitor (unit event dispatch to shells) ---
 
     public void Visit(UnitAttackedEvent e)
     {
-        // _unitRegistry.TryGetValue(e.AttackerUnitId) -> shell.PlayAttackAnimation()
-        throw new NotImplementedException();
+        if (_unitRegistry.TryGetValue(e.AttackerUnitId, out var shell))
+            shell.PlayAttackAnimation();
     }
 
     public void Visit(UnitDamagedEvent e)
     {
-        // _unitRegistry.TryGetValue(e.TargetUnitId) -> shell.FlashDamage(e.Damage, e.IsCrit)
-        throw new NotImplementedException();
+        if (_unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
+            shell.FlashDamage();
     }
 
     public void Visit(UnitDiedSimEvent e)
     {
-        // _unitRegistry.TryGetValue(e.UnitId) -> shell.BeginDeath()
-        // + VFXManager death VFX at position
-        throw new NotImplementedException();
+        if (_unitRegistry.TryGetValue(e.UnitId, out var shell))
+            shell.BeginDeath();
     }
-
-    public void Visit(ProjectileHitSimEvent e)
-    {
-        // _projectileRegistry.TryGetValue(e.ProjectileId) -> shell.PlayImpactAndDestroy()
-        throw new NotImplementedException();
-    }
-
-    public void Visit(SummonerDamagedEvent e)
-    {
-        // _summonerRegistry.TryGetValue(e.Team) -> shell.FlashDamage()
-        throw new NotImplementedException();
-    }
-
-    public void Visit(SummonerDestroyedEvent e)
-    {
-        // _summonerRegistry.TryGetValue(e.Team) -> shell.BeginDeath()
-        throw new NotImplementedException();
-    }
-
-    public void Visit(SummonerHpChangedEvent e) { } // HUD handles via polling
 
     public void Visit(AttackEvadedEvent e)
     {
-        // _unitRegistry.TryGetValue(e.TargetUnitId) -> shell.ShowEvadeText()
-        throw new NotImplementedException();
+        if (_unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
+            shell.ShowEvadeText();
     }
 
     public void Visit(BuffAppliedSimEvent e)
     {
-        // _unitRegistry.TryGetValue(e.TargetUnitId) -> shell.ShowBuffIcon(e.EffectType)
-        throw new NotImplementedException();
+        if (_unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
+            shell.ShowBuffIcon(e.EffectType);
+    }
+
+    // --- Projectile/Summoner/Spell visitors ---
+
+    public void Visit(ProjectileHitSimEvent e)
+    {
+        if (_projectileRegistry.TryGetValue(e.ProjectileId, out var shell))
+            shell.PlayImpactAndDestroy();
+    }
+
+    public void Visit(SummonerDamagedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.FlashDamage();
+    }
+
+    public void Visit(SummonerDestroyedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.BeginDeath();
     }
 
     public void Visit(SpellCastEvent e)
     {
-        // VFXManager spell VFX at e.Position
-        throw new NotImplementedException();
+        GD.Print($"[EntityManager] SpellCastEvent: team={e.Team}, catalogId={e.CatalogId}");
     }
 
     public void Visit(DelayedEffectFiredSimEvent e)
     {
-        // VFXManager AoE VFX at e.Position with e.AoeRadius
-        throw new NotImplementedException();
+        GD.Print($"[EntityManager] DelayedEffectFiredSimEvent: type={e.EffectType}, radius={e.AoeRadius}");
     }
 
     // --- No-op visitors (HUD handles these, or no visual action needed) ---
+    public void Visit(SummonerHpChangedEvent e) { }
     public void Visit(PhaseChangedEvent e) { }
     public void Visit(PrepTimerUpdatedEvent e) { }
     public void Visit(MatchTimeUpdatedEvent e) { }
@@ -141,6 +288,6 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     // --- Global Control ---
 
-    public void Pause() { throw new NotImplementedException(); }
-    public void Resume() { throw new NotImplementedException(); }
+    public void Pause() { _isPaused = true; }
+    public void Resume() { _isPaused = false; }
 }

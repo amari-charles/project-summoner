@@ -1,5 +1,4 @@
 using Godot;
-using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Targeting.Constraints;
 
@@ -26,7 +25,7 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
     [Export]
     public float CloseRangeThreshold { get; set; } = 0.5f;
 
-    public override bool IsAttackValid(Unit3D unit, Node3D target)
+    public override bool IsAttackValid(Node3D unit, Node3D target)
     {
         Vector3 toTarget = target.GlobalPosition - unit.GlobalPosition;
         Vector2 horizontalDir = new Vector2(toTarget.X, toTarget.Z);
@@ -39,7 +38,8 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
         float angleToTarget = Mathf.RadToDeg(Mathf.Atan2(horizontalDir.Y, horizontalDir.X));
 
         // Facing direction: right = 0°, left = 180°
-        float facingAngle = unit.IsFacingRight ? 0f : 180f;
+        bool isFacingRight = unit.Get("IsFacingRight").AsBool();
+        float facingAngle = isFacingRight ? 0f : 180f;
 
         // Calculate angular difference with wrap-around handling
         float angleDiff = angleToTarget - facingAngle;
@@ -51,7 +51,7 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
         return Mathf.Abs(angleDiff) <= ConeHalfAngle;
     }
 
-    public override bool TryResolve(Unit3D unit, Node3D target)
+    public override bool TryResolve(Node3D unit, Node3D target)
     {
         // Don't force facing here - let strafe movement naturally bring
         // the target into the cone. This prevents rapid oscillation when
@@ -59,9 +59,10 @@ public partial class HorizontalConeConstraint : BaseAttackConstraint
         return IsAttackValid(unit, target);
     }
 
-    public override AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    public override AttackVisualizationData? GetVisualizationData(Node3D unit)
     {
-        Vector3 facing = unit.IsFacingRight
+        bool isFacingRight = unit.Get("IsFacingRight").AsBool();
+        Vector3 facing = isFacingRight
             ? new Vector3(1, 0, 0)
             : new Vector3(-1, 0, 0);
         return new AttackVisualizationData(true, ConeHalfAngle, facing);

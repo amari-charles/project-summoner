@@ -1,4 +1,5 @@
 using System;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -26,7 +27,7 @@ public static class SimTargeting
             // Leader dead or no target — fall through to normal targeting
         }
 
-        int enemyTeam = MatchState.GetEnemyTeam(unit.Team);
+        int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
         float bestScore = float.MinValue;
         int? bestId = null;
 
@@ -36,8 +37,8 @@ public static class SimTargeting
 
             // Basic filters
             if (!candidate.IsAlive) continue;
-            if (candidate.ActivationState != SimConstants.ActivationActive) continue;
-            if (candidate.Team != enemyTeam) continue;
+            if (candidate.ActivationState != ActivationState.Active) continue;
+            if ((int)candidate.Team != enemyTeam) continue;
 
             // Distance filter (aggro radius)
             float distSq = unit.Position.DistanceSquaredTo(candidate.Position);
@@ -64,10 +65,10 @@ public static class SimTargeting
             return bestId;
 
         // No enemy units found — fall back to enemy summoner
-        var enemySummoner = state.GetAliveEnemySummoner(unit.Team);
+        var enemySummoner = state.GetAliveEnemySummoner((int)unit.Team);
         if (enemySummoner != null)
         {
-            return MatchState.GetSummonerTargetId(enemySummoner.Team);
+            return MatchState.GetSummonerTargetId((int)enemySummoner.Team);
         }
 
         return null;
@@ -80,9 +81,9 @@ public static class SimTargeting
     {
         return unit.TargetLayerFilter switch
         {
-            0 => candidate.MovementLayer == 0, // GroundOnly
-            1 => candidate.MovementLayer == 1, // AirOnly
-            _ => true // Both (2) or default
+            TargetLayer.GroundOnly => candidate.MovementLayer == MovementLayer.Ground,
+            TargetLayer.AirOnly => candidate.MovementLayer == MovementLayer.Air,
+            _ => true
         };
     }
 

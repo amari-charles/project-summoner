@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Data.Traits;
 

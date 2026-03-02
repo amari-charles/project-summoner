@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using ProjectSummoner.Projectiles;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -28,9 +30,9 @@ public static class SimProjectile
     /// </summary>
     public static int Spawn(
         MatchState state,
-        int sourceUnitId, int targetUnitId, int team,
+        int sourceUnitId, int targetUnitId, Team team,
         float damage, int sourceElementId,
-        int movementType, float speed, float lifetime,
+        ProjectileMovementType movementType, float speed, float lifetime,
         SimVector3 startPos, SimVector3 targetPos,
         float arcHeight = 0f, int pierceCount = 0, float aoeRadius = 0f,
         float hitRadius = 2.5f, float steerStrength = 180f,
@@ -70,19 +72,19 @@ public static class SimProjectile
         // Movement-type-specific initialization
         switch (movementType)
         {
-            case SimProjectileData.MoveStraight:
+            case ProjectileMovementType.Straight:
                 proj.PathLength = startPos.DistanceTo(targetPos);
                 break;
 
-            case SimProjectileData.MoveArc:
+            case ProjectileMovementType.Arc:
                 proj.PathLength = EstimateArcLength(startPos, targetPos, arcHeight);
                 break;
 
-            case SimProjectileData.MoveBallistic:
+            case ProjectileMovementType.Ballistic:
                 InitBallistic(proj, startPos, targetPos, speed);
                 break;
 
-            case SimProjectileData.MoveWeavingHoming:
+            case ProjectileMovementType.WeavingHoming:
                 InitWeavingHoming(proj, startPos, targetPos, speed,
                     veerDelay, veerAngle, veerDuration, state.Rng);
                 break;
@@ -123,16 +125,16 @@ public static class SimProjectile
             // Advance movement
             switch (proj.MovementType)
             {
-                case SimProjectileData.MoveStraight:
+                case ProjectileMovementType.Straight:
                     TickStraight(proj, delta);
                     break;
-                case SimProjectileData.MoveArc:
+                case ProjectileMovementType.Arc:
                     TickArc(proj, delta);
                     break;
-                case SimProjectileData.MoveBallistic:
+                case ProjectileMovementType.Ballistic:
                     TickBallistic(proj, delta);
                     break;
-                case SimProjectileData.MoveWeavingHoming:
+                case ProjectileMovementType.WeavingHoming:
                     TickWeavingHoming(proj, state, delta);
                     break;
             }
@@ -144,7 +146,7 @@ public static class SimProjectile
             }
 
             // Path completion check (for path-based types)
-            if (!proj.IsDead && proj.MovementType != SimProjectileData.MoveWeavingHoming
+            if (!proj.IsDead && proj.MovementType != ProjectileMovementType.WeavingHoming
                 && proj.Progress >= 1f)
             {
                 // Check direct hit on target at path end
@@ -259,10 +261,10 @@ public static class SimProjectile
 
         switch (proj.WeavingPhase)
         {
-            case SimProjectileData.PhaseStraight:
+            case WeavingPhase.Straight:
                 if (proj.PhaseTimer >= proj.ScaledVeerDelay)
                 {
-                    proj.WeavingPhase = SimProjectileData.PhaseVeering;
+                    proj.WeavingPhase = WeavingPhase.Veering;
                     proj.PhaseTimer = 0f;
                 }
                 else
@@ -273,10 +275,10 @@ public static class SimProjectile
                 }
                 break;
 
-            case SimProjectileData.PhaseVeering:
+            case WeavingPhase.Veering:
                 if (proj.PhaseTimer >= proj.ScaledVeerDuration)
                 {
-                    proj.WeavingPhase = SimProjectileData.PhaseHoming;
+                    proj.WeavingPhase = WeavingPhase.Homing;
                     proj.PhaseTimer = 0f;
                 }
                 else
@@ -285,7 +287,7 @@ public static class SimProjectile
                 }
                 break;
 
-            case SimProjectileData.PhaseHoming:
+            case WeavingPhase.Homing:
                 var toTarget2 = (proj.TargetPosition - proj.CurrentPosition);
                 if (toTarget2.LengthSquared() > 0.001f)
                     SteerToward(proj, toTarget2.Normalized(), delta);
@@ -389,8 +391,8 @@ public static class SimProjectile
         SummonerData? targetSummoner = null;
 
         if (sourceUnit != null)
-            attackerSummoner = state.Summoners[sourceUnit.Team];
-        targetSummoner = state.Summoners[target.Team];
+            attackerSummoner = state.Summoners[(int)sourceUnit.Team];
+        targetSummoner = state.Summoners[(int)target.Team];
 
         var (damage, isCrit) = SimDamage.Calculate(
             proj.Damage, sourceUnit, target, attackerSummoner, targetSummoner, state.Rng);
@@ -431,8 +433,8 @@ public static class SimProjectile
             SummonerData? targetSummoner = null;
 
             if (sourceUnit != null)
-                attackerSummoner = state.Summoners[sourceUnit.Team];
-            targetSummoner = state.Summoners[unit.Team];
+                attackerSummoner = state.Summoners[(int)sourceUnit.Team];
+            targetSummoner = state.Summoners[(int)unit.Team];
 
             var (damage, isCrit) = SimDamage.Calculate(
                 proj.Damage, sourceUnit, unit, attackerSummoner, targetSummoner, state.Rng);
@@ -478,7 +480,7 @@ public static class SimProjectile
         float veerDelay, float veerAngle, float veerDuration,
         DeterministicRng? rng)
     {
-        proj.WeavingPhase = SimProjectileData.PhaseStraight;
+        proj.WeavingPhase = WeavingPhase.Straight;
         proj.PhaseTimer = 0f;
         proj.Velocity = proj.Direction * speed;
 
@@ -489,7 +491,7 @@ public static class SimProjectile
         {
             proj.ScaledVeerDelay = 0f;
             proj.ScaledVeerDuration = 0f;
-            proj.WeavingPhase = SimProjectileData.PhaseHoming;
+            proj.WeavingPhase = WeavingPhase.Homing;
         }
         else
         {

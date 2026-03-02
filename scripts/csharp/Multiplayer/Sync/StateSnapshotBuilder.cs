@@ -95,7 +95,7 @@ public class StateSnapshotBuilder
             var castPos = new Vector3(s.CastingSpawnPosition.X, s.CastingSpawnPosition.Y, s.CastingSpawnPosition.Z);
 
             summoners[i] = new SummonerState(
-                s.Team,
+                (int)s.Team,
                 s.CurrentHp,
                 s.MaxHp,
                 s.Mana,
@@ -143,13 +143,13 @@ public class StateSnapshotBuilder
 
             units.Add(new UnitState(
                 unit.NetworkId,
-                unit.Team,
+                (int)unit.Team,
                 new Vector3(unit.Position.X, unit.Position.Y, unit.Position.Z),
                 unit.CurrentHp,
                 unit.MaxHp,
                 targetNetworkId,
                 unit.IsAlive,
-                unit.ActivationState,
+                (int)unit.ActivationState,
                 (int)unit.BehaviorState,
                 unit.IsFacingRight
             ));

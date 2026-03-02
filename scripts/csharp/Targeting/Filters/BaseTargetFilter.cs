@@ -1,8 +1,6 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Filters;
 
 /// <summary>
@@ -15,13 +13,13 @@ public abstract partial class BaseTargetFilter : Resource
     /// <summary>
     /// Check if a single target passes this filter.
     /// </summary>
-    public abstract bool IsValid(Unit3D unit, Node3D target);
+    public abstract bool IsValid(Node3D unit, Node3D target);
 
     /// <summary>
     /// Filter a list of potential targets. Returns only valid targets.
     /// Default implementation uses IsValid on each candidate.
     /// </summary>
-    public virtual IEnumerable<Node3D> FilterTargets(Unit3D unit, IEnumerable<Node3D> candidates)
+    public virtual IEnumerable<Node3D> FilterTargets(Node3D unit, IEnumerable<Node3D> candidates)
     {
         return candidates.Where(t => IsValid(unit, t));
     }

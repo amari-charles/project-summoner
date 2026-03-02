@@ -2,7 +2,6 @@ using Godot;
 using System.Collections.Generic;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Debug;
-using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Systems;
 
@@ -315,20 +314,12 @@ public partial class SpatialGrid : Node
                 if (teamFilter >= 0)
                 {
                     int unitTeam = -1;
-                    if (unit is Unit3D unit3D)
+                    var teamVar = unit.Get("Team");
+                    if (teamVar.VariantType == Variant.Type.Nil)
+                        teamVar = unit.Get("team");
+                    if (teamVar.VariantType != Variant.Type.Nil)
                     {
-                        unitTeam = unit3D.Team;
-                    }
-                    else
-                    {
-                        // GDScript interop: check Team (PascalCase) or team (snake_case)
-                        var teamVar = unit.Get("Team");
-                        if (teamVar.VariantType == Variant.Type.Nil)
-                            teamVar = unit.Get("team");
-                        if (teamVar.VariantType != Variant.Type.Nil)
-                        {
-                            unitTeam = teamVar.AsInt32();
-                        }
+                        unitTeam = teamVar.AsInt32();
                     }
 
                     if (unitTeam != teamFilter)

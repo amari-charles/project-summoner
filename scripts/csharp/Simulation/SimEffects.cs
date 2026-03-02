@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Combat;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -173,7 +174,7 @@ public static class SimEffects
             {
                 // Single target effect
                 ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                    trigger.DamageType, target, unit.UnitId, unit.Team, events);
+                    trigger.DamageType, target, unit.UnitId, (int)unit.Team, events);
             }
 
             trigger.HasFired = true;
@@ -316,7 +317,7 @@ public static class SimEffects
         // Get source unit for attacker stats (may be dead for delayed effects)
         UnitData? attacker = state.Units.TryGetValue(sourceUnitId, out var a) ? a : null;
         var attackerSummoner = sourceTeam >= 0 && sourceTeam <= 1 ? state.Summoners[sourceTeam] : null;
-        var targetSummoner = target.Team >= 0 && target.Team <= 1 ? state.Summoners[target.Team] : null;
+        var targetSummoner = (int)target.Team >= 0 && (int)target.Team <= 1 ? state.Summoners[(int)target.Team] : null;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
             baseDamage, damageType, attacker, target, attackerSummoner, targetSummoner, state.Rng, events);
@@ -423,7 +424,7 @@ public static class SimEffects
             {
                 // Fire the trigger effect on self
                 ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                    trigger.DamageType, unit, unit.UnitId, unit.Team, events);
+                    trigger.DamageType, unit, unit.UnitId, (int)unit.Team, events);
                 trigger.HasFired = true;
             }
         }
@@ -432,20 +433,20 @@ public static class SimEffects
     private static void ApplyAreaEffect(
         MatchState state, UnitData source, TriggerConfig trigger, List<SimEvent> events)
     {
-        int enemyTeam = MatchState.GetEnemyTeam(source.Team);
+        int enemyTeam = MatchState.GetEnemyTeam((int)source.Team);
         float radiusSq = trigger.AoeRadius * trigger.AoeRadius;
 
         foreach (var kvp in state.Units)
         {
             var candidate = kvp.Value;
             if (!candidate.IsAlive) continue;
-            if (candidate.Team != enemyTeam) continue;
+            if ((int)candidate.Team != enemyTeam) continue;
 
             float distSq = source.Position.DistanceSquaredTo(candidate.Position);
             if (distSq > radiusSq) continue;
 
             ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                trigger.DamageType, candidate, source.UnitId, source.Team, events);
+                trigger.DamageType, candidate, source.UnitId, (int)source.Team, events);
         }
     }
 
@@ -461,7 +462,7 @@ public static class SimEffects
             AoeRadius = trigger.AoeRadius,
             Position = source.Position,
             SourceUnitId = source.UnitId,
-            SourceTeam = source.Team
+            SourceTeam = (int)source.Team
         });
     }
 
@@ -480,7 +481,7 @@ public static class SimEffects
             {
                 var candidate = kvp.Value;
                 if (!candidate.IsAlive) continue;
-                if (candidate.Team != enemyTeam) continue;
+                if ((int)candidate.Team != enemyTeam) continue;
 
                 float distSq = effect.Position.DistanceSquaredTo(candidate.Position);
                 if (distSq > radiusSq) continue;

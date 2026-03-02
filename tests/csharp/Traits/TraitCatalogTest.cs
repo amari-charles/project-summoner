@@ -4,7 +4,6 @@ using System.Linq;
 using GdUnit4;
 using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -104,8 +103,8 @@ public class TraitCatalogTest
 
         // Fire affinity should buff fire units
         var firstMod = modifiers[0];
-        AssertThat(firstMod.Conditions.ContainsKey(ConditionKeys.ElementalAffinity)).IsTrue();
-        AssertThat(firstMod.Conditions[ConditionKeys.ElementalAffinity]).IsEqual("fire");
+        AssertThat(firstMod.Conditions.ContainsKey("elemental_affinity")).IsTrue();
+        AssertThat(firstMod.Conditions["elemental_affinity"]).IsEqual("fire");
         AssertThat(firstMod.StatMults.ContainsKey(StatKey.AttackDamage)).IsTrue();
     }
 

@@ -4,7 +4,6 @@ using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Simulation;
-using ProjectSummoner.Units;
 
 namespace Fateforged.Multiplayer.Sync;
 
@@ -194,21 +193,21 @@ public class DesyncDetector
         foreach (var unitState in snapshot.Units)
         {
             var node = _session.NetworkIds.GetNode(unitState.NetworkId);
-            if (node is Unit3D unit)
+            if (node is Node3D unitNode)
             {
                 // Correct position (with some tolerance for interpolation)
-                float positionDiff = unit.GlobalPosition.DistanceTo(unitState.Position);
+                float positionDiff = unitNode.GlobalPosition.DistanceTo(unitState.Position);
                 if (positionDiff > 0.5f) // Only correct significant deviations
                 {
-                    GD.Print($"[DesyncDetector] Correcting unit {unitState.NetworkId} position: {unit.GlobalPosition} -> {unitState.Position}");
-                    unit.GlobalPosition = unitState.Position;
+                    GD.Print($"[DesyncDetector] Correcting unit {unitState.NetworkId} position: {unitNode.GlobalPosition} -> {unitState.Position}");
+                    unitNode.GlobalPosition = unitState.Position;
                 }
 
-                // Note: HP corrections would require UnitHealth to expose SetHp method
-                // For now, we log the discrepancy
-                if (Mathf.Abs(unit.CurrentHp - unitState.Hp) > 1f)
+                // Log HP discrepancy
+                var hpVar = unitNode.Get("CurrentHp");
+                if (hpVar.VariantType != Variant.Type.Nil && Mathf.Abs(hpVar.AsSingle() - unitState.Hp) > 1f)
                 {
-                    GD.PrintErr($"[DesyncDetector] Unit {unitState.NetworkId} HP mismatch: {unit.CurrentHp} vs {unitState.Hp}");
+                    GD.PrintErr($"[DesyncDetector] Unit {unitState.NetworkId} HP mismatch: {hpVar.AsSingle()} vs {unitState.Hp}");
                 }
             }
         }

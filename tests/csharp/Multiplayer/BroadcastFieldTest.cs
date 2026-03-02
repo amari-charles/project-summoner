@@ -8,6 +8,7 @@ using Fateforged.Multiplayer.Authority;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Simulation;
+using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -52,7 +53,7 @@ public class BroadcastFieldTest
             UnitId = 1,
             NetworkId = 5,
             CatalogId = "skeleton_warrior",
-            Team = 1,
+            Team = Team.Enemy,
             Position = new SimVector3(3.0f, 0.0f, 2.0f),
             SpawnTimer = 1.5f,
             IsAlive = true,
@@ -96,7 +97,7 @@ public class BroadcastFieldTest
         {
             UnitId = 1,
             NetworkId = 5,
-            Team = 0,
+            Team = Team.Player,
             IsAlive = false,
             CurrentHp = 0
         };
@@ -104,7 +105,7 @@ public class BroadcastFieldTest
         {
             UnitId = 2,
             NetworkId = 8,
-            Team = 1,
+            Team = Team.Enemy,
             IsAlive = true,
             CurrentHp = 50f,
             MaxHp = 100f
@@ -137,7 +138,7 @@ public class BroadcastFieldTest
         {
             UnitId = 1,
             NetworkId = 5,
-            Team = 0,
+            Team = Team.Player,
             IsAlive = true,
             CurrentHp = 50f,
             MaxHp = 100f
@@ -146,7 +147,7 @@ public class BroadcastFieldTest
         {
             UnitId = 2,
             NetworkId = 8,
-            Team = 1,
+            Team = Team.Enemy,
             IsAlive = true,
             CurrentHp = 100f,
             MaxHp = 100f
@@ -178,7 +179,7 @@ public class BroadcastFieldTest
         var state = CreateBaseState();
 
         // Set up summoner with known MaxHp so damage amount is non-zero
-        state.Summoners[1].Team = 1;
+        state.Summoners[1].Team = Team.Enemy;
         state.Summoners[1].MaxHp = 100f;
         state.Summoners[1].CurrentHp = 75f;
         state.Summoners[1].IsAlive = true;

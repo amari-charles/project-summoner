@@ -1,4 +1,6 @@
 using Godot;
+using ProjectSummoner.Constants;
+using ProjectSummoner.Units;
 using ProjectSummoner.Visual;
 
 namespace ProjectSummoner.SpawnPreview;
@@ -41,7 +43,8 @@ public partial class GhostUnit3D : Node3D
     /// </summary>
     /// <param name="unitScene">The unit scene to preview</param>
     /// <param name="team">Team (0=player faces right, 1=enemy faces left)</param>
-    public void Setup(PackedScene unitScene, int team = 0)
+    /// <param name="catalogId">Optional catalog ID to look up flight altitude from UnitDefinitions</param>
+    public void Setup(PackedScene unitScene, int team = 0, string? catalogId = null)
     {
         if (unitScene == null)
             return;
@@ -54,10 +57,10 @@ public partial class GhostUnit3D : Node3D
         if (tempUnit == null)
             return;
 
-        // Get spawn altitude from Unit3D (single source of truth)
-        if (tempUnit is ProjectSummoner.Units.Unit3D unit)
+        // Get spawn altitude from UnitDefinitions
+        if (catalogId != null && UnitDefinitions.TryGet(new UnitId(catalogId), out var unitDef) && unitDef?.Flying != null)
         {
-            _flightAltitude = unit.GetSpawnAltitude();
+            _flightAltitude = unitDef.Flying.Altitude;
         }
 
         // Find the Visual child node - it already has all property overrides from the unit scene

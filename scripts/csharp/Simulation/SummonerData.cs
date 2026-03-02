@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ProjectSummoner.Cards;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -9,7 +10,7 @@ namespace Fateforged.Simulation;
 /// </summary>
 public class SummonerData
 {
-    public int Team { get; set; }
+    public Team Team { get; set; }
 
     // Position (used by simulation for summoner targeting)
     public SimVector3 Position { get; set; }

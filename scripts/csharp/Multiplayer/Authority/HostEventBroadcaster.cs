@@ -32,7 +32,7 @@ public class HostEventBroadcaster : ISimEventVisitor
             _broadcaster.Broadcast(new UnitSpawned(
                 unit.NetworkId,
                 e.CatalogId,
-                unit.Team,
+                (int)unit.Team,
                 pos,
                 _state.FrameNumber,
                 null, null,

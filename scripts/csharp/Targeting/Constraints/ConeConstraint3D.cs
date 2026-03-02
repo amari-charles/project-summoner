@@ -1,5 +1,4 @@
 using Godot;
-using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Targeting.Constraints;
 
@@ -27,7 +26,7 @@ public partial class ConeConstraint3D : BaseAttackConstraint
     [Export]
     public float CloseRangeThreshold { get; set; } = 0.5f;
 
-    public override bool IsAttackValid(Unit3D unit, Node3D target)
+    public override bool IsAttackValid(Node3D unit, Node3D target)
     {
         Vector3 toTarget = target.GlobalPosition - unit.GlobalPosition;
 
@@ -37,7 +36,8 @@ public partial class ConeConstraint3D : BaseAttackConstraint
 
         // Get unit's facing direction as a 3D vector (horizontal, based on Y rotation)
         // Units face +X when facing right, -X when facing left
-        Vector3 facing = unit.IsFacingRight
+        bool isFacingRight = unit.Get("IsFacingRight").AsBool();
+        Vector3 facing = isFacingRight
             ? new Vector3(1, 0, 0)
             : new Vector3(-1, 0, 0);
 
@@ -56,14 +56,14 @@ public partial class ConeConstraint3D : BaseAttackConstraint
         return angleDeg <= ConeHalfAngle;
     }
 
-    public override bool TryResolve(Unit3D unit, Node3D target)
+    public override bool TryResolve(Node3D unit, Node3D target)
     {
         // Don't force facing here - let strafe movement naturally bring
         // the target into the cone.
         return IsAttackValid(unit, target);
     }
 
-    public override bool CanEverReach(Unit3D unit, Node3D target)
+    public override bool CanEverReach(Node3D unit, Node3D target)
     {
         // Targets at extreme vertical angles can never be in the cone.
         // A target directly above/below would require a 90° angle from horizontal,
@@ -84,9 +84,10 @@ public partial class ConeConstraint3D : BaseAttackConstraint
         return angleToTarget <= ConeHalfAngle;
     }
 
-    public override AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    public override AttackVisualizationData? GetVisualizationData(Node3D unit)
     {
-        Vector3 facing = unit.IsFacingRight
+        bool isFacingRight = unit.Get("IsFacingRight").AsBool();
+        Vector3 facing = isFacingRight
             ? new Vector3(1, 0, 0)
             : new Vector3(-1, 0, 0);
         return new AttackVisualizationData(true, ConeHalfAngle, facing);

@@ -2,6 +2,7 @@ namespace ProjectSummoner.Tests.Multiplayer;
 
 using GdUnit4;
 using Fateforged.Simulation;
+using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -95,7 +96,7 @@ public class ClientInitializationTest
     private static void RegisterSummonerOnState(MatchState state, int team, float hp, float maxHp, float mana, float maxMana)
     {
         var summoner = state.Summoners[team];
-        summoner.Team = team;
+        summoner.Team = (Team)team;
         summoner.CurrentHp = hp;
         summoner.MaxHp = maxHp;
         summoner.Mana = mana;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Godot;
 using ProjectSummoner.Cards;
-using ProjectSummoner.Systems.Modifiers;
 using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Stats;
@@ -251,6 +250,77 @@ public static class UnitStatCalculator
             // Override keys
             "scale_multiplier" => true,
             _ => false
+        };
+    }
+
+    /// <summary>
+    /// Apply modifiers to base stats and return modified stats.
+    /// Uses type-safe StatKey for dictionary lookups.
+    /// Relocated from ModifierService — pure static function that belongs with stat calculation.
+    /// </summary>
+    public static ModifiedStats ApplyModifiers(BaseStats baseStats, List<StatModifier> modifiers)
+    {
+        float hpAdd = 0f, damageAdd = 0f, speedAdd = 0f, moveSpeedAdd = 0f;
+        float hpMult = 1f, damageMult = 1f, speedMult = 1f, moveSpeedMult = 1f;
+        var flags = new Dictionary<string, bool>();
+
+        foreach (var mod in modifiers)
+        {
+            foreach (var (key, value) in mod.StatAdds)
+            {
+                switch (key)
+                {
+                    case StatKey.MaxHp:
+                    case StatKey.MaxHealth:
+                        hpAdd += value;
+                        break;
+                    case StatKey.AttackDamage:
+                    case StatKey.DamageBonus:
+                        damageAdd += value;
+                        break;
+                    case StatKey.AttackSpeed:
+                        speedAdd += value;
+                        break;
+                    case StatKey.MoveSpeed:
+                        moveSpeedAdd += value;
+                        break;
+                }
+            }
+
+            foreach (var (key, value) in mod.StatMults)
+            {
+                switch (key)
+                {
+                    case StatKey.MaxHp:
+                    case StatKey.MaxHealth:
+                        hpMult *= value;
+                        break;
+                    case StatKey.AttackDamage:
+                    case StatKey.DamageBonus:
+                        damageMult *= value;
+                        break;
+                    case StatKey.AttackSpeed:
+                        speedMult *= value;
+                        break;
+                    case StatKey.MoveSpeed:
+                        moveSpeedMult *= value;
+                        break;
+                }
+            }
+
+            foreach (var kvp in mod.Flags)
+            {
+                flags[kvp.Key] = kvp.Value;
+            }
+        }
+
+        return new ModifiedStats
+        {
+            MaxHp = (baseStats.MaxHp + hpAdd) * hpMult,
+            AttackDamage = (baseStats.AttackDamage + damageAdd) * damageMult,
+            AttackSpeed = (baseStats.AttackSpeed + speedAdd) * speedMult,
+            MoveSpeed = (baseStats.MoveSpeed + moveSpeedAdd) * moveSpeedMult,
+            Flags = flags
         };
     }
 }

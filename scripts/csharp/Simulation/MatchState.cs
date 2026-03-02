@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -33,8 +34,8 @@ public class MatchState
     // Summoners (index 0 = player, index 1 = enemy)
     public SummonerData[] Summoners { get; } = new SummonerData[2]
     {
-        new() { Team = 0 },
-        new() { Team = 1 }
+        new() { Team = Team.Player },
+        new() { Team = Team.Enemy }
     };
 
     // Units (keyed by MatchState-local unit ID)
@@ -100,7 +101,7 @@ public class MatchState
     public List<UnitData> GetAliveActiveUnits()
     {
         return Units.Values
-            .Where(u => u.IsAlive && u.ActivationState == SimConstants.ActivationActive)
+            .Where(u => u.IsAlive && u.ActivationState == ActivationState.Active)
             .OrderBy(u => u.UnitId)
             .ToList();
     }
@@ -111,7 +112,7 @@ public class MatchState
     public List<UnitData> GetAliveActiveUnitsForTeam(int team)
     {
         return Units.Values
-            .Where(u => u.IsAlive && u.ActivationState == SimConstants.ActivationActive && u.Team == team)
+            .Where(u => u.IsAlive && u.ActivationState == ActivationState.Active && u.Team == (Team)team)
             .OrderBy(u => u.UnitId)
             .ToList();
     }

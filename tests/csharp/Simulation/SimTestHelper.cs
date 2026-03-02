@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
+using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Tests.Simulation;
 
@@ -66,7 +67,7 @@ public static class SimTestHelper
         var unit = new UnitData
         {
             UnitId = unitId,
-            Team = team,
+            Team = (Team)team,
             CurrentHp = hp,
             MaxHp = hp,
             IsAlive = true,
@@ -76,11 +77,11 @@ public static class SimTestHelper
             MoveSpeed = moveSpeed,
             AttackRange = attackRange,
             AggroRadius = aggroRadius,
-            UnitType = 0, // Melee
-            MovementLayer = 0, // Ground
-            ActivationState = 1, // Active
+            UnitType = UnitType.Melee,
+            MovementLayer = MovementLayer.Ground,
+            ActivationState = ActivationState.Active,
             IsFacingRight = team == 0,
-            TargetLayerFilter = 2 // Both
+            TargetLayerFilter = TargetLayer.Both
         };
         state.Units[unitId] = unit;
         return unit;
@@ -101,7 +102,7 @@ public static class SimTestHelper
         var unit = new UnitData
         {
             UnitId = unitId,
-            Team = team,
+            Team = (Team)team,
             CurrentHp = hp,
             MaxHp = hp,
             IsAlive = true,
@@ -111,12 +112,12 @@ public static class SimTestHelper
             MoveSpeed = moveSpeed,
             AttackRange = attackRange,
             AggroRadius = aggroRadius,
-            UnitType = 1, // Ranged
-            MovementLayer = 0, // Ground
+            UnitType = UnitType.Ranged,
+            MovementLayer = MovementLayer.Ground,
             ProjectileDelay = projectileDelay,
-            ActivationState = 1, // Active
+            ActivationState = ActivationState.Active,
             IsFacingRight = team == 0,
-            TargetLayerFilter = 2 // Both
+            TargetLayerFilter = TargetLayer.Both
         };
         state.Units[unitId] = unit;
         return unit;
@@ -135,7 +136,7 @@ public static class SimTestHelper
         var unit = new UnitData
         {
             UnitId = unitId,
-            Team = team,
+            Team = (Team)team,
             CurrentHp = hp,
             MaxHp = hp,
             IsAlive = true,
@@ -145,12 +146,12 @@ public static class SimTestHelper
             MoveSpeed = 3f,
             AttackRange = attackRange,
             AggroRadius = 20f,
-            UnitType = 0, // Melee
-            MovementLayer = 1, // Air
+            UnitType = UnitType.Melee,
+            MovementLayer = MovementLayer.Air,
             FlightAltitude = altitude,
-            ActivationState = 1, // Active
+            ActivationState = ActivationState.Active,
             IsFacingRight = team == 0,
-            TargetLayerFilter = 2 // Both
+            TargetLayerFilter = TargetLayer.Both
         };
         state.Units[unitId] = unit;
         return unit;
@@ -184,8 +185,8 @@ public static class SimTestHelper
                     MoveSpeed = 3f,
                     AttackRange = 2f,
                     AggroRadius = 20f,
-                    UnitType = 0,
-                    MovementLayer = 0
+                    UnitType = UnitType.Melee,
+                    MovementLayer = MovementLayer.Ground
                 }
             }
         };

@@ -1,7 +1,5 @@
 using Godot;
 using ProjectSummoner.Capabilities;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Scorers;
 
 /// <summary>
@@ -13,7 +11,7 @@ public partial class HealthScorer : BaseTargetScorer
     [Export]
     public float Weight { get; set; } = 10f;
 
-    public override float CalculateScore(Unit3D unit, Node3D target)
+    public override float CalculateScore(Node3D unit, Node3D target)
     {
         if (target is IDamageable damageable)
         {

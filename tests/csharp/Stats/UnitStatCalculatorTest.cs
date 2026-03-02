@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using GdUnit4;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -247,6 +246,126 @@ public class UnitStatCalculatorTest
         var warnings = UnitStatCalculator.ValidateStatsDictionary(dict);
 
         AssertThat(string.Join(" ", warnings)).Contains("unknown_stat");
+    }
+
+    // =========================================================================
+    // ApplyModifiers tests (relocated from ModifierServiceTest)
+    // =========================================================================
+
+    [TestCase]
+    public void ApplyModifiers_AppliesAdditiveAndMultiplicativeBonuses()
+    {
+        var baseStats = new BaseStats
+        {
+            MaxHp = 100f,
+            AttackDamage = 10f,
+            AttackSpeed = 1f,
+            MoveSpeed = 3f
+        };
+
+        var modifiers = new List<StatModifier>
+        {
+            new StatModifier
+            {
+                Source = "test",
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 50f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f }
+            }
+        };
+
+        var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
+
+        AssertThat(result.MaxHp).IsEqual(150f);
+        AssertThat(result.AttackDamage).IsEqual(12f);
+        AssertThat(result.AttackSpeed).IsEqual(1f);
+        AssertThat(result.MoveSpeed).IsEqual(3f);
+    }
+
+    [TestCase]
+    public void ApplyModifiers_StacksMultipliers()
+    {
+        var baseStats = new BaseStats
+        {
+            MaxHp = 100f,
+            AttackDamage = 10f,
+            AttackSpeed = 1f,
+            MoveSpeed = 3f
+        };
+
+        var modifiers = new List<StatModifier>
+        {
+            new StatModifier
+            {
+                Source = "mod1",
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.1f }
+            },
+            new StatModifier
+            {
+                Source = "mod2",
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f }
+            }
+        };
+
+        var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
+
+        AssertThat(result.AttackDamage).IsEqualApprox(13.2f, 0.01f);
+    }
+
+    [TestCase]
+    public void ApplyModifiers_AddsBeforeMultiplies()
+    {
+        var baseStats = new BaseStats
+        {
+            MaxHp = 100f,
+            AttackDamage = 10f,
+            AttackSpeed = 1f,
+            MoveSpeed = 3f
+        };
+
+        var modifiers = new List<StatModifier>
+        {
+            new StatModifier
+            {
+                Source = "test",
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 100f },
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
+            }
+        };
+
+        var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
+
+        AssertThat(result.MaxHp).IsEqual(300f);
+    }
+
+    [TestCase]
+    public void ApplyModifiers_CollectsFlags()
+    {
+        var baseStats = new BaseStats
+        {
+            MaxHp = 100f,
+            AttackDamage = 10f,
+            AttackSpeed = 1f,
+            MoveSpeed = 3f
+        };
+
+        var modifiers = new List<StatModifier>
+        {
+            new StatModifier
+            {
+                Source = "test",
+                Flags = new Dictionary<string, bool>
+                {
+                    ["immune_slow"] = true,
+                    ["deals_fire_damage"] = true
+                }
+            }
+        };
+
+        var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
+
+        AssertThat(result.Flags.ContainsKey("immune_slow")).IsTrue();
+        AssertThat(result.Flags["immune_slow"]).IsTrue();
+        AssertThat(result.Flags.ContainsKey("deals_fire_damage")).IsTrue();
     }
 
     [TestCase]

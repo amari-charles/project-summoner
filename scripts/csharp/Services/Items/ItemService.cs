@@ -6,7 +6,6 @@ using ProjectSummoner.Data.Traits;
 using ProjectSummoner.Infrastructure.Persistence;
 using ProjectSummoner.Services.Items.Handlers;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
 using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -12,7 +13,7 @@ public class UnitData
     public int UnitId { get; set; }
     public int NetworkId { get; set; } = -1;
     public string CatalogId { get; set; } = "";
-    public int Team { get; set; }
+    public Team Team { get; set; }
 
     // HP
     public float CurrentHp { get; set; }
@@ -39,8 +40,8 @@ public class UnitData
     public float Evasion { get; set; }
 
     // Classification
-    public int UnitType { get; set; } // 0=Melee, 1=Ranged
-    public int MovementLayer { get; set; } // 0=Ground, 1=Air
+    public UnitType UnitType { get; set; }
+    public MovementLayer MovementLayer { get; set; }
 
     // Element (int cast of ProjectSummoner.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral
@@ -60,11 +61,11 @@ public class UnitData
     public List<TriggerConfig> Triggers { get; set; } = new();
 
     // Targeting profile (extracted from TargetingConfig at registration)
-    public int FallbackMovement { get; set; } // 0=MoveToward, 1=Strafe, 2=Idle
+    public FallbackMovement FallbackMovement { get; set; }
     public bool HasConeConstraint { get; set; }
     public float ConeHalfAngle { get; set; } = 30f;
     public float CloseRangeThreshold { get; set; } = 0.5f;
-    public int TargetLayerFilter { get; set; } // 0=GroundOnly, 1=AirOnly, 2=Both
+    public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
     public float FlightAltitude { get; set; }
@@ -110,7 +111,7 @@ public class UnitData
     public float DeathCleanupTimer { get; set; }
 
     // Activation
-    public int ActivationState { get; set; }
+    public ActivationState ActivationState { get; set; }
 
     // Spawn timer — unit stays Inactive until this counts down to 0, then self-activates.
     // Set to casting duration at spawn time. 0 = no pending activation.
@@ -118,4 +119,10 @@ public class UnitData
 
     // Legacy field — kept for snapshot compatibility during migration
     public int? TargetNetworkId { get; set; }
+
+    /// <summary>
+    /// Player units face right, enemy units face left.
+    /// Sprites are drawn facing left, so player units get flipped.
+    /// </summary>
+    public static bool DefaultFacingForTeam(Team team) => team == Team.Player;
 }

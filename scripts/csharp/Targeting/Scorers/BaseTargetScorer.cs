@@ -1,7 +1,5 @@
 using Godot;
 using System.Collections.Generic;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Scorers;
 
 /// <summary>
@@ -14,13 +12,13 @@ public abstract partial class BaseTargetScorer : Resource
     /// <summary>
     /// Calculate a score for a potential target. Higher = more preferred.
     /// </summary>
-    public abstract float CalculateScore(Unit3D unit, Node3D target);
+    public abstract float CalculateScore(Node3D unit, Node3D target);
 
     /// <summary>
     /// Get the best target from a list using this scorer.
     /// Default implementation picks the highest-scoring target.
     /// </summary>
-    public virtual Node3D? GetBestTarget(Unit3D unit, IEnumerable<Node3D> candidates)
+    public virtual Node3D? GetBestTarget(Node3D unit, IEnumerable<Node3D> candidates)
     {
         Node3D? best = null;
         float bestScore = float.MinValue;

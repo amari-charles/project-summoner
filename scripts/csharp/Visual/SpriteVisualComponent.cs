@@ -151,8 +151,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
 
-        // Only hide during initialization if under a Unit3D (CharacterBody3D)
-        // This prevents jitter when Unit3D._Ready sets facing after us
+        // Only hide during initialization if under a CharacterBody3D
+        // This prevents jitter when the parent sets facing after us
         // Ghost previews (under Node3D) need immediate visibility
         bool underUnit3D = GetParent() is CharacterBody3D;
 

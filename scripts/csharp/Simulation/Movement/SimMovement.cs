@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Simulation.Combat;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation.Movement;
 
@@ -97,7 +98,7 @@ public static class SimMovement
             unit.DistanceTraveled += moveDist;
 
         // Preserve altitude for flying units
-        if (unit.MovementLayer == 1) // Air
+        if (unit.MovementLayer == MovementLayer.Air)
             newPos.Y = unit.FlightAltitude;
         else
             newPos.Y = unit.Position.Y;

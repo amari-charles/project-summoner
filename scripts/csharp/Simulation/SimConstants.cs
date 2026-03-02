@@ -7,13 +7,6 @@ namespace Fateforged.Simulation;
 public static class SimConstants
 {
     // =========================================================================
-    // ACTIVATION STATE (sim-local mirror of ProjectSummoner.Units.ActivationState)
-    // =========================================================================
-
-    public const int ActivationInactive = 0;
-    public const int ActivationActive = 1;
-
-    // =========================================================================
     // DEATH CLEANUP
     // =========================================================================
 

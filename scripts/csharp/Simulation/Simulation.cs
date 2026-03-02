@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Movement;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -267,7 +268,7 @@ public class Simulation
         if (summoner.Hand.Count == 0 && summoner.Deck.Count == 0 && summoner.DiscardPile.Count > 0)
         {
             RecycleDeck(summoner);
-            events.Add(new DeckRecycledEvent(summoner.Team));
+            events.Add(new DeckRecycledEvent((int)summoner.Team));
 
             for (int j = 0; j < summoner.MaxHandSize && summoner.Deck.Count > 0; j++)
             {
@@ -277,7 +278,7 @@ public class Simulation
             }
         }
 
-        events.Add(new HandChangedEvent(summoner.Team, summoner.Hand.ToArray()));
+        events.Add(new HandChangedEvent((int)summoner.Team, summoner.Hand.ToArray()));
     }
 
     /// <summary>
@@ -312,9 +313,9 @@ public class Simulation
     {
         foreach (var unit in _state.Units.Values)
         {
-            if (unit.IsAlive && unit.ActivationState != SimConstants.ActivationActive)
+            if (unit.IsAlive && unit.ActivationState != ActivationState.Active)
             {
-                unit.ActivationState = SimConstants.ActivationActive;
+                unit.ActivationState = ActivationState.Active;
             }
         }
     }
@@ -339,7 +340,7 @@ public class Simulation
                 {
                     // Recycle discard pile into deck (seeded shuffle)
                     RecycleDeck(summoner);
-                    events.Add(new DeckRecycledEvent(summoner.Team));
+                    events.Add(new DeckRecycledEvent((int)summoner.Team));
                 }
 
                 if (summoner.Deck.Count > 0)
@@ -350,7 +351,7 @@ public class Simulation
                 }
             }
 
-            events.Add(new HandChangedEvent(summoner.Team, summoner.Hand.ToArray()));
+            events.Add(new HandChangedEvent((int)summoner.Team, summoner.Hand.ToArray()));
         }
     }
 
@@ -432,7 +433,7 @@ public class Simulation
         var networkId = summoner.CastingNetworkId;
 
         events.Add(new CastingCompletedEvent(
-            summoner.Team, cardIndex, spawnPosition, networkId));
+            (int)summoner.Team, cardIndex, spawnPosition, networkId));
 
         // Clear casting state
         summoner.IsCasting = false;
@@ -452,14 +453,14 @@ public class Simulation
         foreach (var unit in _state.Units.Values)
         {
             if (!unit.IsAlive) continue;
-            if (unit.ActivationState == SimConstants.ActivationActive) continue;
+            if (unit.ActivationState == ActivationState.Active) continue;
             if (unit.SpawnTimer <= 0f) continue;
 
             unit.SpawnTimer -= fixedDelta;
             if (unit.SpawnTimer <= 0f)
             {
                 unit.SpawnTimer = 0f;
-                unit.ActivationState = SimConstants.ActivationActive;
+                unit.ActivationState = ActivationState.Active;
             }
         }
     }
@@ -489,8 +490,8 @@ public class Simulation
                 {
                     UnitId = unitId,
                     NetworkId = networkId,
-                    CatalogId = cardData.CatalogId,
-                    Team = team,
+                    CatalogId = template.UnitTypeId,
+                    Team = (Team)team,
                     CurrentHp = template.MaxHp,
                     MaxHp = template.MaxHp,
                     IsAlive = true,
@@ -519,9 +520,10 @@ public class Simulation
                     PhysicalDefense = template.PhysicalDefense,
                     MagicDefense = template.MagicDefense,
                     Evasion = template.Evasion,
+                    IsFacingRight = UnitData.DefaultFacingForTeam((Team)team),
                     // Always spawn inactive — self-activates when SpawnTimer expires (battle)
                     // or when prep→battle transition fires (preparation)
-                    ActivationState = SimConstants.ActivationInactive,
+                    ActivationState = ActivationState.Inactive,
                     SpawnTimer = spawnTimer
                 };
 
@@ -598,7 +600,7 @@ public class Simulation
                 float radiusSq = radius * radius;
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
-                    if (teamFilter.HasValue && unit.Team != teamFilter.Value) continue;
+                    if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value) continue;
                     if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
                         targets.Add(unit);
                 }
@@ -625,7 +627,7 @@ public class Simulation
 
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
-                    if (unit.Team != enemyTeam) continue;
+                    if ((int)unit.Team != enemyTeam) continue;
                     float distSq = unit.Position.DistanceSquaredTo(position);
                     if (distSq < bestDistSq)
                     {
@@ -643,7 +645,7 @@ public class Simulation
                 float radiusSq = cardData.SpellRadius * cardData.SpellRadius;
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
-                    if (unit.Team != team) continue;
+                    if ((int)unit.Team != team) continue;
                     if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
                         targets.Add(unit);
                 }
@@ -663,7 +665,7 @@ public class Simulation
         if (summoner.Deck.Count == 0 && summoner.DiscardPile.Count > 0)
         {
             RecycleDeck(summoner);
-            events.Add(new DeckRecycledEvent(summoner.Team));
+            events.Add(new DeckRecycledEvent((int)summoner.Team));
         }
 
         if (summoner.Deck.Count > 0)
@@ -676,7 +678,7 @@ public class Simulation
             else
                 summoner.Hand.Add(card);
 
-            events.Add(new CardDrawnEvent(summoner.Team, targetIndex, card));
+            events.Add(new CardDrawnEvent((int)summoner.Team, targetIndex, card));
         }
     }
 

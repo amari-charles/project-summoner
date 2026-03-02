@@ -1,7 +1,5 @@
 using Godot;
 using ProjectSummoner.Capabilities;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Filters;
 
 /// <summary>
@@ -10,7 +8,7 @@ namespace ProjectSummoner.Targeting.Filters;
 [GlobalClass]
 public partial class ValidTargetFilter : BaseTargetFilter
 {
-    public override bool IsValid(Unit3D unit, Node3D target)
+    public override bool IsValid(Node3D unit, Node3D target)
     {
         if (target == null || !GodotObject.IsInstanceValid(target))
             return false;

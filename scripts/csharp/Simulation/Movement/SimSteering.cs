@@ -1,5 +1,6 @@
 using System;
 using ProjectSummoner.Constants;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation.Movement;
 
@@ -49,7 +50,7 @@ public static class SimSteering
             var other = kvp.Value;
             if (other.UnitId == unit.UnitId) continue;
             if (!other.IsAlive) continue;
-            if (other.ActivationState != SimConstants.ActivationActive) continue;
+            if (other.ActivationState != ActivationState.Active) continue;
 
             // Skip current target — don't separate from what we're attacking
             if (targetUnitId.HasValue && other.UnitId == targetUnitId.Value) continue;
@@ -176,7 +177,7 @@ public static class SimSteering
             var other = kvp.Value;
             if (other.UnitId == unit.UnitId) continue;
             if (!other.IsAlive) continue;
-            if (other.ActivationState != SimConstants.ActivationActive) continue;
+            if (other.ActivationState != ActivationState.Active) continue;
             if (other.MovementLayer != unit.MovementLayer) continue;
 
             // Skip current target — prevents infinite chase→overlap→push loops

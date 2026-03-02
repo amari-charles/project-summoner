@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using GdUnit4;
+using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -64,7 +65,7 @@ public class SimTargetingTest
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
-        enemy.ActivationState = 0; // Inactive
+        enemy.ActivationState = ActivationState.Inactive;
 
         var targetId = SimTargeting.AcquireTarget(attacker, _state);
 
@@ -94,7 +95,7 @@ public class SimTargetingTest
     public void AcquireTarget_GroundOnlyFilter_IgnoresAirUnits()
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
-        attacker.TargetLayerFilter = 0; // GroundOnly
+        attacker.TargetLayerFilter = TargetLayer.GroundOnly;
 
         SimTestHelper.CreateFlyingUnit(_state, 1, x: 5f); // Air unit
 
@@ -109,7 +110,7 @@ public class SimTargetingTest
     public void AcquireTarget_AirOnlyFilter_IgnoresGroundUnits()
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
-        attacker.TargetLayerFilter = 1; // AirOnly
+        attacker.TargetLayerFilter = TargetLayer.AirOnly;
 
         SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f); // Ground unit
 
@@ -124,7 +125,7 @@ public class SimTargetingTest
     public void AcquireTarget_BothFilter_FindsAll()
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
-        attacker.TargetLayerFilter = 2; // Both
+        attacker.TargetLayerFilter = TargetLayer.Both;
 
         var groundEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3f);
         SimTestHelper.CreateFlyingUnit(_state, 1, x: 5f);

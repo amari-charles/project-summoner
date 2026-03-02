@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -22,15 +23,6 @@ public static class SimBehavior
     public const int Chasing = (int)BehaviorState.Chasing;
     public const int InRange = (int)BehaviorState.InRange;
     public const int Attacking = (int)BehaviorState.Attacking;
-
-    // Unit type constants
-    private const int UnitTypeMelee = 0;
-    private const int UnitTypeRanged = 1;
-
-    // Fallback movement constants (matches UnitData.FallbackMovement)
-    private const int FallbackMoveToward = 0;
-    private const int FallbackStrafe = 1;
-    private const int FallbackIdle = 2;
 
     private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
@@ -143,12 +135,12 @@ public static class SimBehavior
                 unit.BehaviorState = BehaviorState.InRange;
                 return unit.FallbackMovement switch
                 {
-                    FallbackStrafe => new BehaviorResult
+                    FallbackMovement.Strafe => new BehaviorResult
                     {
                         Movement = MoveStrafe,
                         MoveTargetId = targetId
                     },
-                    FallbackIdle => new BehaviorResult { Movement = MoveNone },
+                    FallbackMovement.Idle => new BehaviorResult { Movement = MoveNone },
                     _ => new BehaviorResult
                     {
                         Movement = MoveTowardTarget,
@@ -167,12 +159,12 @@ public static class SimBehavior
                     // Attacking a summoner
                     ApplyDamageToSummoner(unit, targetId, state, delta, events);
                 }
-                else if (unit.UnitType == UnitTypeMelee)
+                else if (unit.UnitType == UnitType.Melee)
                 {
                     // Melee: immediate damage via SimDamage
                     ApplyMeleeDamageToUnit(unit, target!, state, events);
                 }
-                else if (unit.UnitType == UnitTypeRanged)
+                else if (unit.UnitType == UnitType.Ranged)
                 {
                     // Ranged: delayed damage (pending damage timer simulates projectile travel)
                     if (unit.ProjectileDelay > 0)
@@ -219,8 +211,8 @@ public static class SimBehavior
     {
         float baseDamage = SimEffects.GetEffectiveAttackDamage(attacker);
 
-        var attackerSummoner = state.Summoners[attacker.Team];
-        var targetSummoner = state.Summoners[target.Team];
+        var attackerSummoner = state.Summoners[(int)attacker.Team];
+        var targetSummoner = state.Summoners[(int)target.Team];
         var (damage, isCrit) = SimDamage.Calculate(
             baseDamage, attacker, target, attackerSummoner, targetSummoner, state.Rng);
 
@@ -262,7 +254,7 @@ public static class SimBehavior
         if (!summoner.IsAlive) return;
 
         // For ranged with projectile delay, queue pending damage instead
-        if (attacker.UnitType == UnitTypeRanged && attacker.ProjectileDelay > 0)
+        if (attacker.UnitType == UnitType.Ranged && attacker.ProjectileDelay > 0)
         {
             attacker.PendingDamageTimer = attacker.ProjectileDelay;
             attacker.PendingDamageTargetId = summonerTargetId;
@@ -272,7 +264,7 @@ public static class SimBehavior
 
         // Immediate damage (melee or zero-delay ranged)
         float damage = attacker.AttackDamage;
-        var attackerSummoner = state.Summoners[attacker.Team];
+        var attackerSummoner = state.Summoners[(int)attacker.Team];
         damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
 
         summoner.CurrentHp -= damage;
@@ -310,7 +302,7 @@ public static class SimBehavior
                 if (summoner.IsAlive)
                 {
                     float damage = unit.PendingDamageAmount;
-                    var attackerSummoner = state.Summoners[unit.Team];
+                    var attackerSummoner = state.Summoners[(int)unit.Team];
                     damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
 
                     summoner.CurrentHp -= damage;
@@ -329,8 +321,8 @@ public static class SimBehavior
                 var target = state.GetAliveUnit(pendingTargetId);
                 if (target != null)
                 {
-                    var attackerSummoner = state.Summoners[unit.Team];
-                    var targetSummoner = state.Summoners[target.Team];
+                    var attackerSummoner = state.Summoners[(int)unit.Team];
+                    var targetSummoner = state.Summoners[(int)target.Team];
                     var (damage, isCrit) = SimDamage.Calculate(
                         unit.PendingDamageAmount, unit, target, attackerSummoner, targetSummoner, state.Rng);
 

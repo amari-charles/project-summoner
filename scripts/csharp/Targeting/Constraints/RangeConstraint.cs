@@ -9,26 +9,34 @@ namespace ProjectSummoner.Targeting.Constraints;
 [GlobalClass]
 public partial class RangeConstraint : BaseAttackConstraint
 {
-    public override bool IsAttackValid(Unit3D unit, Node3D target)
+    public override bool IsAttackValid(Node3D unit, Node3D target)
     {
         float distance = unit.GlobalPosition.DistanceTo(target.GlobalPosition);
-        return distance <= unit.AttackRange;
+        float attackRange = unit.Get("AttackRange").AsSingle();
+        return distance <= attackRange;
     }
 
-    public override bool CanEverReach(Unit3D unit, Node3D target)
+    public override bool CanEverReach(Node3D unit, Node3D target)
     {
         // Check if altitude difference makes target unreachable
         float targetAlt = GetTargetAltitude(target);
-        float myAlt = unit.MovementLayer == (int)MovementLayer.Air ? unit.FlightAltitude : 0f;
+        int movementLayer = unit.Get("MovementLayer").AsInt32();
+        float myAlt = movementLayer == (int)MovementLayer.Air ? unit.Get("FlightAltitude").AsSingle() : 0f;
         float altDiff = Mathf.Abs(targetAlt - myAlt);
 
-        return altDiff <= unit.AttackRange;
+        float attackRange = unit.Get("AttackRange").AsSingle();
+        return altDiff <= attackRange;
     }
 
     private static float GetTargetAltitude(Node3D target)
     {
-        if (target is Unit3D u && u.MovementLayer == (int)MovementLayer.Air)
-            return u.FlightAltitude;
+        var layerVar = target.Get("MovementLayer");
+        if (layerVar.VariantType != Variant.Type.Nil && layerVar.AsInt32() == (int)MovementLayer.Air)
+        {
+            var altVar = target.Get("FlightAltitude");
+            if (altVar.VariantType != Variant.Type.Nil)
+                return altVar.AsSingle();
+        }
         return target.GlobalPosition.Y;
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -48,6 +49,12 @@ public class SimUnitTemplate
     /// <summary>Number of units to spawn with these stats.</summary>
     public int Count { get; set; } = 1;
 
+    /// <summary>
+    /// Unit type ID for scene/definition lookup (e.g., "earth_sprite").
+    /// Distinct from the card catalog ID (e.g., "pebbloom").
+    /// </summary>
+    public string UnitTypeId { get; set; } = "";
+
     // Core stats
     public float MaxHp { get; set; }
     public float AttackDamage { get; set; }
@@ -60,8 +67,8 @@ public class SimUnitTemplate
     public float CritDamage { get; set; } = 1.5f;
 
     // Classification
-    public int UnitType { get; set; } // 0=Melee, 1=Ranged
-    public int MovementLayer { get; set; } // 0=Ground, 1=Air
+    public UnitType UnitType { get; set; }
+    public MovementLayer MovementLayer { get; set; }
     public int ElementId { get; set; }
 
     // Ranged config
@@ -69,11 +76,11 @@ public class SimUnitTemplate
     public float FlightAltitude { get; set; }
 
     // Targeting config (extracted from UnitDefinition at match start)
-    public int FallbackMovement { get; set; }
+    public FallbackMovement FallbackMovement { get; set; }
     public bool HasConeConstraint { get; set; }
     public float ConeHalfAngle { get; set; } = 30f;
     public float CloseRangeThreshold { get; set; } = 0.5f;
-    public int TargetLayerFilter { get; set; }
+    public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
 

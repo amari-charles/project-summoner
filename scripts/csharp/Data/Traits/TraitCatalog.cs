@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Data.Traits;
 
@@ -211,7 +210,7 @@ public static class TraitCatalog
             // Copy trigger fields if present
             if (mod.HasTrigger)
             {
-                if (System.Enum.TryParse<Systems.Modifiers.TriggerCondition>(mod.Trigger, ignoreCase: true, out var trigger))
+                if (System.Enum.TryParse<TriggerCondition>(mod.Trigger, ignoreCase: true, out var trigger))
                 {
                     statMod.Trigger = trigger;
                 }

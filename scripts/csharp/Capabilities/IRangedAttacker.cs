@@ -9,7 +9,7 @@ namespace ProjectSummoner.Capabilities;
 /// </summary>
 public interface IRangedAttacker
 {
-    /// <summary>ID of the projectile to spawn (from ProjectileService).</summary>
+    /// <summary>ID of the projectile to spawn.</summary>
     ProjectileId ProjectileId { get; }
 
     /// <summary>Delay before spawning projectile (for charge-up attacks).</summary>

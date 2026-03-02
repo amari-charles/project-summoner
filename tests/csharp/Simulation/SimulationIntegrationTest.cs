@@ -5,6 +5,7 @@ using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using GdUnit4;
+using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -269,7 +270,7 @@ public class SimulationIntegrationTest
 
         _sim.Tick(Delta);
 
-        AssertThat(unit.ActivationState).IsEqual(1); // Active
+        AssertThat(unit.ActivationState).IsEqual(ActivationState.Active); // Active
     }
 
     [TestCase]
@@ -517,7 +518,7 @@ public class SimulationIntegrationTest
 
         // Units spawned during prep should be inactive
         var spawnedUnit = _state.Units.Values.First();
-        AssertThat(spawnedUnit.ActivationState).IsEqual(0); // Inactive
+        AssertThat(spawnedUnit.ActivationState).IsEqual(ActivationState.Inactive); // Inactive
     }
 
     [TestCase]
@@ -538,7 +539,7 @@ public class SimulationIntegrationTest
 
         // Unit exists but is inactive (spawn timer still counting down)
         var spawnedUnit = _state.Units.Values.First();
-        AssertThat(spawnedUnit.ActivationState).IsEqual(0); // Inactive
+        AssertThat(spawnedUnit.ActivationState).IsEqual(ActivationState.Inactive); // Inactive
         AssertThat(spawnedUnit.SpawnTimer).IsGreater(0f);
 
         // Tick until spawn timer expires (0.5s = 30 ticks at 60fps)
@@ -546,7 +547,7 @@ public class SimulationIntegrationTest
             _sim.Tick(Delta);
 
         // Now the unit should be active
-        AssertThat(spawnedUnit.ActivationState).IsEqual(1); // Active
+        AssertThat(spawnedUnit.ActivationState).IsEqual(ActivationState.Active); // Active
     }
 
     // =========================================================================
@@ -605,13 +606,13 @@ public class SimulationIntegrationTest
 
         var unit = _state.Units.Values.First();
         AssertThat(unit.IsAlive).IsTrue();
-        AssertThat(unit.ActivationState).IsEqual(0); // Inactive during spawn timer
+        AssertThat(unit.ActivationState).IsEqual(ActivationState.Inactive); // Inactive during spawn timer
 
         // Tick until spawn timer expires (0.1s = 6 ticks at 60fps)
         for (int i = 0; i < 6; i++)
             _sim.Tick(Delta);
 
-        AssertThat(unit.ActivationState).IsEqual(1); // Active
+        AssertThat(unit.ActivationState).IsEqual(ActivationState.Active); // Active
 
         // Tick again — unit should be processed (targeting, behavior, movement)
         var startPos = unit.Position;

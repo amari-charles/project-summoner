@@ -1,6 +1,4 @@
 using Godot;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Constraints;
 
 /// <summary>
@@ -23,7 +21,7 @@ public abstract partial class BaseAttackConstraint : Resource
     /// <summary>
     /// Check if the unit can attack the target right now.
     /// </summary>
-    public abstract bool IsAttackValid(Unit3D unit, Node3D target);
+    public abstract bool IsAttackValid(Node3D unit, Node3D target);
 
     /// <summary>
     /// Attempt to resolve a constraint violation (e.g., turn to face target).
@@ -35,10 +33,10 @@ public abstract partial class BaseAttackConstraint : Resource
     ///    (e.g., Strafe movement naturally brings target into cone)
     /// 3. Passive check: Just return IsAttackValid (default behavior)
     ///
-    /// When false is returned, Unit3D.UpdateBehavior uses FallbackMovementStyle
+    /// When false is returned, Node3D.UpdateBehavior uses FallbackMovementStyle
     /// to determine how to move (MoveToward, Strafe, or Idle).
     /// </summary>
-    public virtual bool TryResolve(Unit3D unit, Node3D target)
+    public virtual bool TryResolve(Node3D unit, Node3D target)
     {
         return IsAttackValid(unit, target);
     }
@@ -48,7 +46,7 @@ public abstract partial class BaseAttackConstraint : Resource
     /// Used during target acquisition to filter out impossible targets.
     /// Default returns true (always potentially reachable).
     /// </summary>
-    public virtual bool CanEverReach(Unit3D unit, Node3D target)
+    public virtual bool CanEverReach(Node3D unit, Node3D target)
     {
         return true;
     }
@@ -57,7 +55,7 @@ public abstract partial class BaseAttackConstraint : Resource
     /// Get visualization data for debug rendering.
     /// Ensures debug visuals match actual constraint parameters.
     /// </summary>
-    public virtual AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    public virtual AttackVisualizationData? GetVisualizationData(Node3D unit)
     {
         return null;
     }

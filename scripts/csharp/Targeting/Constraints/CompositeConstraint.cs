@@ -1,6 +1,4 @@
 using Godot;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Constraints;
 
 /// <summary>
@@ -13,7 +11,7 @@ public partial class CompositeConstraint : BaseAttackConstraint
     [Export]
     public Godot.Collections.Array<BaseAttackConstraint> Constraints { get; set; } = new();
 
-    public override bool IsAttackValid(Unit3D unit, Node3D target)
+    public override bool IsAttackValid(Node3D unit, Node3D target)
     {
         foreach (var constraint in Constraints)
         {
@@ -23,7 +21,7 @@ public partial class CompositeConstraint : BaseAttackConstraint
         return true;
     }
 
-    public override bool TryResolve(Unit3D unit, Node3D target)
+    public override bool TryResolve(Node3D unit, Node3D target)
     {
         // Try to resolve all constraints
         foreach (var constraint in Constraints)
@@ -38,7 +36,7 @@ public partial class CompositeConstraint : BaseAttackConstraint
         return IsAttackValid(unit, target);
     }
 
-    public override bool CanEverReach(Unit3D unit, Node3D target)
+    public override bool CanEverReach(Node3D unit, Node3D target)
     {
         foreach (var constraint in Constraints)
         {
@@ -48,7 +46,7 @@ public partial class CompositeConstraint : BaseAttackConstraint
         return true;
     }
 
-    public override AttackVisualizationData? GetVisualizationData(Unit3D unit)
+    public override AttackVisualizationData? GetVisualizationData(Node3D unit)
     {
         // Return first constraint with visualization data
         foreach (var constraint in Constraints)

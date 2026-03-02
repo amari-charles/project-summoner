@@ -1,5 +1,4 @@
 using Godot;
-using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Combat;
 
@@ -82,13 +81,9 @@ public partial class CombatEvent : RefCounted
         if (Source == null)
             return -1;
 
-        if (Source is Unit3D unit)
-            return unit.Team;
-
-        // Fallback for GDScript nodes
-        var teamVar = Source.Get("team");
+        var teamVar = Source.Get("Team");
         if (teamVar.VariantType == Variant.Type.Nil)
-            teamVar = Source.Get("Team");
+            teamVar = Source.Get("team");
 
         return teamVar.VariantType != Variant.Type.Nil ? teamVar.AsInt32() : -1;
     }
@@ -101,13 +96,9 @@ public partial class CombatEvent : RefCounted
         if (Target == null)
             return -1;
 
-        if (Target is Unit3D unit)
-            return unit.Team;
-
-        // Fallback for GDScript nodes
-        var teamVar = Target.Get("team");
+        var teamVar = Target.Get("Team");
         if (teamVar.VariantType == Variant.Type.Nil)
-            teamVar = Target.Get("Team");
+            teamVar = Target.Get("team");
 
         return teamVar.VariantType != Variant.Type.Nil ? teamVar.AsInt32() : -1;
     }

@@ -1,39 +1,14 @@
 using Godot;
-using ProjectSummoner.Summons;
 
 namespace ProjectSummoner.Services.Interfaces;
 
 /// <summary>
 /// Interface for the CardFactory service.
-/// Enables dependency injection and testing.
+/// Provides formation queries and spawn position calculations.
+/// Spell/summon execution is now handled by the simulation layer.
 /// </summary>
 public interface ICardFactory
 {
-    // =========================================================================
-    // SPELL API
-    // =========================================================================
-
-    /// <summary>
-    /// Check if a spell effect exists for the given catalog ID.
-    /// </summary>
-    bool has_effect(string catalogId);
-
-    /// <summary>
-    /// Create a SpellCard with the appropriate effect attached.
-    /// </summary>
-    Resource? create_spell_card(string catalogId, Godot.Collections.Dictionary cardDef);
-
-    /// <summary>
-    /// Execute a spell effect at the given position.
-    /// </summary>
-    void execute_spell(
-        string catalogId,
-        Vector3 position,
-        int team,
-        Node battlefield,
-        Node? modifierSystem = null,
-        string instanceId = "");
-
     // =========================================================================
     // SUMMON API
     // =========================================================================
@@ -44,20 +19,9 @@ public interface ICardFactory
     bool has_summon(string catalogId);
 
     /// <summary>
-    /// Execute a summon at the given position.
-    /// Returns a SummonResult containing the UnitSummon tracker or error.
+    /// Check if a spell needs click-targeting (command spells like Rally/Guard/Charge).
     /// </summary>
-    SummonResult execute_summon(
-        string catalogId,
-        Vector3 position,
-        int team,
-        Node battlefield,
-        Godot.Collections.Dictionary cardDef,
-        Godot.Collections.Dictionary effectiveStats,
-        Godot.Collections.Dictionary customOverrides,
-        Node? modifierSystem = null,
-        string instanceId = "",
-        float spawnDuration = 0.0f);
+    bool needs_click_targeting(string catalogId);
 
     // =========================================================================
     // FORMATION API

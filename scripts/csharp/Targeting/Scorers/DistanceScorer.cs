@@ -1,6 +1,4 @@
 using Godot;
-using ProjectSummoner.Units;
-
 namespace ProjectSummoner.Targeting.Scorers;
 
 /// <summary>
@@ -15,7 +13,7 @@ public partial class DistanceScorer : BaseTargetScorer
     [Export]
     public float Weight { get; set; } = 1f;
 
-    public override float CalculateScore(Unit3D unit, Node3D target)
+    public override float CalculateScore(Node3D unit, Node3D target)
     {
         float distance = unit.GlobalPosition.DistanceTo(target.GlobalPosition);
         return (MaxDistance - distance) * Weight;

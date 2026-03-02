@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 
 namespace ProjectSummoner.Data.Traits;
 
@@ -30,7 +29,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FireAffinity,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "fire" },
+                Conditions = new() { ["elemental_affinity"] = "fire" },
                 StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
@@ -69,7 +68,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.WaterAffinity,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "water" },
+                Conditions = new() { ["elemental_affinity"] = "water" },
                 StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
@@ -108,7 +107,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.WindAffinity,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "wind" },
+                Conditions = new() { ["elemental_affinity"] = "wind" },
                 StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
@@ -147,7 +146,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.EarthAffinity,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "earth" },
+                Conditions = new() { ["elemental_affinity"] = "earth" },
                 StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
@@ -186,7 +185,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.LightningAffinity,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "lightning" },
+                Conditions = new() { ["elemental_affinity"] = "lightning" },
                 StatMults = new() { [StatKey.AttackDamage] = 1.15f }
             }
         ]
@@ -211,7 +210,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.LifeAffinity,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "life" },
+                Conditions = new() { ["elemental_affinity"] = "life" },
                 StatMults = new() { [StatKey.MaxHp] = 1.10f }
             }
         ]
@@ -396,7 +395,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.InfernoMastery,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "fire" },
+                Conditions = new() { ["elemental_affinity"] = "fire" },
                 StatMults = new() { [StatKey.AttackDamage] = 1.15f }
             }
         ]
@@ -419,7 +418,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.TidalMastery,
-                Conditions = new() { [ConditionKeys.ElementalAffinity] = "water" },
+                Conditions = new() { ["elemental_affinity"] = "water" },
                 StatMults = new() { [StatKey.MaxHp] = 1.15f }
             }
         ]

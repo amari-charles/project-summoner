@@ -3,7 +3,6 @@ using Fateforged.Simulation;
 using Godot;
 using ProjectSummoner.Services;
 using ProjectSummoner.UI;
-using ProjectSummoner.Units.Components;
 using ProjectSummoner.Visual;
 
 namespace Fateforged.View;

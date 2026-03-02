@@ -1,6 +1,6 @@
 using ProjectSummoner.Cards.Formations;
 using ProjectSummoner.Constants;
-using ProjectSummoner.Systems.Modifiers;
+using ProjectSummoner.Stats;
 
 namespace ProjectSummoner.Cards.Spawning;
 

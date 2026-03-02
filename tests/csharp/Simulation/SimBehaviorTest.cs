@@ -489,7 +489,7 @@ public class SimBehaviorTest
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 10f);
         unit.HasConeConstraint = true;
         unit.ConeHalfAngle = 10f;
-        unit.FallbackMovement = 1; // Strafe
+        unit.FallbackMovement = FallbackMovement.Strafe;
         unit.IsFacingRight = true;
 
         // Place enemy behind — out of narrow cone
@@ -509,7 +509,7 @@ public class SimBehaviorTest
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 10f);
         unit.HasConeConstraint = true;
         unit.ConeHalfAngle = 10f;
-        unit.FallbackMovement = 2; // Idle
+        unit.FallbackMovement = FallbackMovement.Idle;
         unit.IsFacingRight = true;
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: -5f, z: 5f);

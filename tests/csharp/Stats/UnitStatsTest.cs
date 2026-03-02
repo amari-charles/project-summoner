@@ -3,7 +3,6 @@ namespace ProjectSummoner.Tests.Stats;
 using System.Collections.Generic;
 using GdUnit4;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Systems.Modifiers;
 using static GdUnit4.Assertions;
 
 /// <summary>
