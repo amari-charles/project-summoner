@@ -131,15 +131,6 @@ func _ready() -> void:
 		original_color = visual.modulate
 		original_visual_position = visual.position
 
-	# Create HP bar for summoner (HPBarService is C# autoload)
-	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
-	if hp_bar_service:
-		hp_bar_service.create_bar_for_unit(self, {
-			"bar_width": HP_BAR_WIDTH,
-			"offset_y": HP_BAR_OFFSET_Y,
-			"show_on_damage_only": not HP_BAR_ALWAYS_VISIBLE
-		})
-
 	# Setup hurtbox for combat hit detection
 	_setup_hurtbox()
 
@@ -405,10 +396,6 @@ func _exit_tree() -> void:
 	if _debug_hurtbox_marker != null:
 		_debug_hurtbox_marker.queue_free()
 		_debug_hurtbox_marker = null
-	# Remove HP bar (HPBarService is C# autoload)
-	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
-	if hp_bar_service:
-		hp_bar_service.remove_bar_from_unit(self)
 
 ## Setup hurtbox component for combat hit detection
 func _setup_hurtbox() -> void:
@@ -500,21 +487,6 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 
 	return true
 
-## Spawn the visual unit for a card (called from sim CastingStarted signal)
-## This is the presentation-layer visual spawn — the sim already handles all state
-func _spawn_visual_unit(card: Card, spawn_position: Vector3, spawn_duration: float) -> void:
-	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
-	if battlefield == null:
-		push_error("No battlefield found in scene!")
-		return
-
-	# Get ModifierService (C# autoload - must use get_node_or_null)
-	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-
-	# Play the card in 3D (with optional spawn reveal effect)
-	card.play_3d(spawn_position, team, battlefield, modifier_service, spawn_duration)
-
-	card_played.emit(card)
 
 ## Detect if we're running in test mode (allows emergency fallback decks)
 ## Note: With DEFERRED strategy, this is only used as a safety net for legacy scenarios
@@ -783,11 +755,6 @@ func _destroy() -> void:
 		visual.modulate = original_color
 		visual.position = original_visual_position
 
-	# Remove HP bar (HPBarService is C# autoload)
-	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
-	if hp_bar_service:
-		hp_bar_service.remove_bar_from_unit(self)
-
 	summoner_destroyed.emit(self)
 	print("Summoner destroyed! Team: %s" % ("PLAYER" if team == UnitConstants.Team.PLAYER else "ENEMY"))
 
@@ -851,10 +818,8 @@ func _on_sim_casting_started(sim_team: int, card_index: int, duration: float, sp
 	casting_spawn_position = spawn_position
 	casting_card_index = card_index
 
-	# Spawn visual unit with reveal effect
-	_spawn_visual_unit(card, spawn_position, duration)
-
-	# Emit local signal for UI
+	# Notify UI (EntityManager handles all unit rendering via MatchState diffing)
+	card_played.emit(card)
 	casting_started.emit(card, duration)
 
 ## Sim completed casting — clear local casting state

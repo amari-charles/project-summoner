@@ -40,10 +40,6 @@ var win_condition_kill_target: int = 0
 ## Current kill count for KILL_COUNT tracking
 var _enemy_kill_count: int = 0
 
-## Registered provider IDs for cleanup
-var _registered_summoner_provider_id: String = ""
-var _registered_item_provider_id: String = ""
-
 signal game_started()
 signal game_ended(winner: UnitConstants.Team)
 signal time_updated(remaining: float)
@@ -92,15 +88,15 @@ func _ready() -> void:
 	# Seed comes from BattleContext — no MatchSession dependency
 	_init_simulation_node()
 
+	# Phase 1.9: Initialize EntityManager (view layer wiring)
+	_init_entity_manager()
+
 	# Phase 2: Initialize summoners (summoners are now the attack targets)
 	_init_summoners()
 	_connect_summoner_combat_signals()
 
 	# Phase 4: Initialize AI
 	_load_ai_for_enemy()
-
-	# Phase 5: Initialize summoner modifiers
-	_register_summoner_provider()
 
 	# Phase 6: Initialize UI components
 	_init_ui()
@@ -190,6 +186,29 @@ func _init_simulation_node() -> void:
 		sim_node.LocalPlayerIndex = 1
 
 
+## Initialize EntityManager (view layer bridge)
+## Creates an EntityManager as a child and wires it to SimulationNode as IGameSession.
+## EntityManager tracks unit/projectile shells but does NOT render them yet —
+## the existing Unit3D/Projectile3D pipeline still handles rendering.
+## Enable rendering via dev console when ready to test.
+func _init_entity_manager() -> void:
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node == null:
+		push_warning("BattleCoordinator: No SimulationNode found, skipping EntityManager init")
+		return
+
+	var em_script: Script = load("res://scripts/csharp/View/EntityManager.cs")
+	if em_script == null:
+		push_error("BattleCoordinator: Failed to load EntityManager script!")
+		return
+
+	var em: Node = em_script.new()
+	em.name = "EntityManager"
+	add_child(em)
+	em.Initialize(sim_node)
+	print("[GameController3D] EntityManager initialized with SimulationNode as IGameSession")
+
+
 ## Initialize summoners and connect their signals
 func _init_summoners() -> void:
 	if player_summoner == null:
@@ -262,14 +281,6 @@ func _connect_summoner_combat_signals() -> void:
 		push_warning("BattleCoordinator: Could not find enemy_summoner")
 
 func _exit_tree() -> void:
-	# Cleanup: unregister modifier providers to prevent memory leak (ModifierService is C# autoload)
-	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-	if modifier_service and modifier_service.has_method("unregister_provider"):
-		if not _registered_summoner_provider_id.is_empty():
-			modifier_service.unregister_provider(_registered_summoner_provider_id)
-		if not _registered_item_provider_id.is_empty():
-			modifier_service.unregister_provider(_registered_item_provider_id)
-
 	# Cleanup: disconnect kill tracking signal to prevent memory leak
 	if get_tree().node_added.is_connected(_on_node_added_for_kill_tracking):
 		get_tree().node_added.disconnect(_on_node_added_for_kill_tracking)
@@ -291,16 +302,6 @@ func _exit_tree() -> void:
 ## Clears all units, projectiles, HP bars from the scene
 ## Note: Autoload resets (EventSequencer, DialogueManager, etc.) are handled by SceneCoordinator
 func reset_battle_state() -> void:
-	# Clear all active projectiles (C# autoloads)
-	var projectile_service: Node = get_node_or_null(CSharpAutoloads.PROJECTILE_SERVICE)
-	if projectile_service:
-		projectile_service.clear_all_projectiles()
-
-	# Clear all HP bars
-	var hp_bar_service: Node = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
-	if hp_bar_service:
-		hp_bar_service.clear_all_bars()
-
 	# Clear all units from the battlefield
 	_clear_all_units()
 
@@ -623,37 +624,6 @@ func _load_ai_for_enemy() -> void:
 		enemy_summoner.add_child(ai)
 	else:
 		push_error("GameController3D: Failed to create AI!")
-
-func _register_summoner_provider() -> void:
-	# Get active summoner using SummonerSelection service (handles fallbacks)
-	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
-
-	if summoner_id.is_empty():
-		push_warning("GameController3D: No summoner selected, no summoner bonuses will apply")
-		return
-
-	# Get summoner instance data and create SummonerInstance
-	var summoner_instance: SummonerInstance = null
-	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
-	if not summoner_data.is_empty():
-		summoner_instance = SummonerInstance.from_dict(summoner_data)
-
-	if not summoner_instance:
-		push_warning("GameController3D: Failed to load SummonerInstance for '%s', no summoner bonuses will apply" % summoner_id)
-		return
-
-	# Register modifier providers with C# ModifierService
-	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-	if modifier_service:
-		# Register summoner trait provider
-		if modifier_service.has_method("register_summoner_provider"):
-			modifier_service.register_summoner_provider(summoner_instance, summoner_id)
-			_registered_summoner_provider_id = "summoner_" + summoner_id
-
-		# Register item modifier provider (for equipped item bonuses)
-		if modifier_service.has_method("register_item_provider"):
-			modifier_service.register_item_provider(summoner_id)
-			_registered_item_provider_id = "items_" + summoner_id
 
 ## =============================================================================
 ## REDIRECT INPUT HANDLING
@@ -1031,18 +1001,6 @@ func _setup_multiplayer() -> void:
 
 
 ## Handle remote unit spawn from host (client-side only).
-## All values are already in local space (team remapped, position converted by ClientRunner).
-func _on_remote_unit_spawned(catalog_id: String, local_team: int, local_position: Vector3, _network_id: int, spawn_duration: float) -> void:
-	var bf: Node = get_tree().get_first_node_in_group("battlefield")
-	if bf == null:
-		push_error("BattleCoordinator: No battlefield for remote unit spawn")
-		return
-
-	var card: Card = CardCatalog.create_card_resource(catalog_id)
-	if card == null:
-		push_error("BattleCoordinator: Unknown unit type '%s' for remote spawn" % catalog_id)
-		return
-
-	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-	var team_enum: UnitConstants.Team = local_team as UnitConstants.Team
-	card.play_3d(local_position, team_enum, bf, modifier_service, spawn_duration)
+## EntityManager handles all unit rendering via MatchState diffing.
+func _on_remote_unit_spawned(_catalog_id: String, _local_team: int, _local_position: Vector3, _network_id: int, _spawn_duration: float) -> void:
+	pass
