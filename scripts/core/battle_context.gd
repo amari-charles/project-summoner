@@ -234,7 +234,8 @@ func configure_multiplayer_battle(
 	player_deck: Array,
 	opponent_deck: Array,
 	is_host: bool,
-	battle_seed: int
+	battle_seed: int,
+	opponent_summoner_data: Dictionary = {}
 ) -> void:
 	current_mode = BattleMode.MULTIPLAYER
 	battle_state = BattleState.CONFIGURED
@@ -251,9 +252,9 @@ func configure_multiplayer_battle(
 		"player_deck": player_deck,
 		"enemy_deck": opponent_deck,
 		# Standard battle settings for multiplayer
-		"enemy_hp": 100.0,  # Summoner HP
 		"ai_type": "none",  # No AI - real player opponent
 		"win_condition": "SUMMONER_DESTROYED",
+		"opponent_summoner_data": opponent_summoner_data,
 	}
 
 	biome_id = BiomeIDs.SUMMER_PLAINS  # Could randomize or let host choose

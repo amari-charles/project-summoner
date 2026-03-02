@@ -78,6 +78,11 @@ var _loaded_summoner_instance: SummonerInstance = null
 ## Track initialization state
 var _initialized: bool = false
 
+## Set a SummonerInstance externally (e.g., for multiplayer opponent stats).
+## Must be called BEFORE init() so _apply_summoner_bonuses() picks it up.
+func set_summoner_instance(instance: SummonerInstance) -> void:
+	_loaded_summoner_instance = instance
+
 ## Hurtbox component (for combat hit detection)
 var _hurtbox: Node = null
 
@@ -205,12 +210,11 @@ func init() -> void:
 	# Initialize deck using strategy pattern (before HP/mana init for summoner bonuses)
 	deck = _load_deck_by_strategy()
 
-	# Apply summoner bonuses for player using PROFILE strategy
-	if team == UnitConstants.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
-		if _loaded_summoner_instance != null:
-			_apply_summoner_bonuses(_loaded_summoner_instance)
-		else:
-			push_error("Summoner: CRITICAL - No summoner instance loaded! This is a bug.")
+	# Apply summoner bonuses if a summoner instance is loaded (player via PROFILE, enemy via set_summoner_instance)
+	if _loaded_summoner_instance != null:
+		_apply_summoner_bonuses(_loaded_summoner_instance)
+	elif team == UnitConstants.Team.PLAYER and deck_load_strategy == DeckLoadStrategy.PROFILE:
+		push_error("Summoner: CRITICAL - No summoner instance loaded! This is a bug.")
 
 	# Initialize mana
 	mana = max_mana
@@ -717,8 +721,9 @@ func _apply_summoner_bonuses(summoner_instance: SummonerInstance) -> void:
 	var summoner_cast_speed: float = stats.get("cast_speed", SummonerConfig.DEFAULT_BASE_CAST_SPEED)
 	cast_speed = summoner_cast_speed
 
-	# Cache summoner stats in BattleContext for DamageSystem to use
-	BattleContext.set_player_summoner_stats(stats)
+	# Cache summoner stats in BattleContext for DamageSystem to use (player only)
+	if team == UnitConstants.Team.PLAYER:
+		BattleContext.set_player_summoner_stats(stats)
 
 	# Apply max_hp from summoner stats (SummonerInstance uses "health" key)
 	var summoner_max_hp: float = stats.get("health", 300.0)

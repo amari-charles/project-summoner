@@ -208,11 +208,20 @@ func _init_summoners() -> void:
 			enemy_summoner.init_as_client()
 	else:
 		# Host / single-player path: full init with deck loading and sim registration
-		# Apply enemy HP override BEFORE init() so SimulationNode registers the correct HP
-		if enemy_summoner and BattleContext.battle_config.has("enemy_hp"):
-			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
-			enemy_summoner.max_hp = custom_hp
-			enemy_summoner.current_hp = custom_hp
+		# Apply enemy stats BEFORE init() so _apply_summoner_bonuses() runs inside init()
+		if enemy_summoner:
+			if BattleContext.is_multiplayer_battle():
+				# Multiplayer: reconstruct opponent's SummonerInstance from exchanged data
+				var opponent_data: Dictionary = BattleContext.battle_config.get("opponent_summoner_data", {})
+				if not opponent_data.is_empty():
+					var opponent_instance: SummonerInstance = SummonerInstance.from_dict(opponent_data)
+					if opponent_instance:
+						enemy_summoner.set_summoner_instance(opponent_instance)
+			elif BattleContext.battle_config.has("enemy_hp"):
+				# Single-player: use configured enemy HP
+				var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
+				enemy_summoner.max_hp = custom_hp
+				enemy_summoner.current_hp = custom_hp
 
 		if player_summoner and player_summoner.has_method("init"):
 			player_summoner.init()

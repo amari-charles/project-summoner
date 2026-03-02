@@ -42,6 +42,7 @@ var _leaderboard_service: Node = null
 ## Deck exchange state
 var _opponent_deck_received: bool = false
 var _pending_opponent_deck: Array = []
+var _pending_opponent_summoner_data: Dictionary = {}
 var _pending_match_info: Dictionary = {}
 
 
@@ -441,6 +442,7 @@ func _on_match_found(match_id: String, opponent_user_id: String, opponent_userna
 	# Reset exchange state (handler already connected from _connect_services)
 	_opponent_deck_received = false
 	_pending_opponent_deck = []
+	_pending_opponent_summoner_data = {}
 	_pending_match_info = {
 		"match_id": match_id,
 		"opponent_user_id": opponent_user_id,
@@ -459,9 +461,19 @@ func _on_match_found(match_id: String, opponent_user_id: String, opponent_userna
 
 
 func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String) -> void:
-	# Send our deck
+	# Send our deck and summoner instance data
 	var player_deck: Array = _get_player_deck()
-	var deck_json: String = JSON.stringify({"deck": player_deck})
+	var player_summoner_id: String = _get_active_summoner_id()
+	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(player_summoner_id)
+	if summoner_data.is_empty():
+		# No saved instance — create default from catalog config
+		var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(player_summoner_id)
+		if summoner_config:
+			var instance: SummonerInstance = SummonerInstance.new()
+			instance.init_from_config(summoner_config)
+			summoner_data = instance.to_dict()
+
+	var deck_json: String = JSON.stringify({"deck": player_deck, "summoner_instance": summoner_data})
 	_nakama_client.SendMatchData(100, deck_json)
 
 	# Wait for opponent deck (with timeout)
@@ -511,8 +523,9 @@ func _on_match_data_received(match_id: String, op_code: int, data: String, sende
 			print("OnlineScreen: Ignoring empty opponent deck")
 			return
 		_pending_opponent_deck = deck
+		_pending_opponent_summoner_data = dict.get("summoner_instance", {})
 		_opponent_deck_received = true
-		print("OnlineScreen: Received opponent deck (%d entries)" % deck.size())
+		print("OnlineScreen: Received opponent deck (%d entries) and summoner data" % deck.size())
 
 
 func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String, opponent_deck: Array) -> void:
@@ -558,7 +571,8 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 		player_deck,
 		opponent_deck,
 		is_host,
-		battle_seed
+		battle_seed,
+		_pending_opponent_summoner_data
 	)
 
 	# Set up multiplayer authority
