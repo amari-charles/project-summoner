@@ -312,8 +312,6 @@ func _clear_all_units() -> void:
 			node.queue_free()
 			cleared_count += 1
 
-	if cleared_count > 0:
-
 func _process(delta: float) -> void:
 	if current_state != GameState.PLAYING:
 		return
@@ -704,8 +702,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				# Tint selected units
 				_apply_unit_tint(indicator_color)
 
-			else:
-
 		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
 			# Release detected - apply redirect
 			var release_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
@@ -852,9 +848,6 @@ func _init_win_conditions() -> void:
 	# Connect to unit death signal for kill counting
 	if win_condition == WinConditionIDs.KILL_COUNT:
 		_connect_unit_death_tracking()
-
-		win_condition, win_condition_time_limit, win_condition_kill_target
-	])
 
 ## Handle timeout based on win condition type
 func _handle_win_condition_timeout() -> void:
