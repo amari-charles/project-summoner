@@ -4,11 +4,12 @@ using System.Linq;
 using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
+using Fateforged.Session;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Units;
 using ProjectSummoner.Targeting;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Simulation;
 
@@ -16,13 +17,13 @@ namespace Fateforged.Simulation;
 /// Scene-tree bridge for the simulation layer.
 /// Owns MatchState and Simulation. Exposes GDScript-callable accessors and emits Godot signals.
 ///
-/// Added as a child of GameController3D. Runs Tick() in _PhysicsProcess() with ProcessPriority = -100
-/// so it runs before Unit3D._PhysicsProcess() (which writes positions back to MatchState).
+/// Runs Tick() in _PhysicsProcess() with ProcessPriority = -100
+/// so it executes before visual nodes.
 ///
-/// Singleton via SimulationNode.Current (same pattern as MatchSession.Current, DamageSystem.Instance).
+/// Singleton via SimulationNode.Current.
 /// </summary>
 [GlobalClass]
-public partial class SimulationNode : Node
+public partial class SimulationNode : Node, IGameSession
 {
     // =========================================================================
     // SINGLETON
@@ -37,18 +38,6 @@ public partial class SimulationNode : Node
     public MatchState State { get; private set; } = new();
     private Simulation? _simulation;
     private bool _initialized;
-
-    /// <summary>
-    /// Tracks which sim unit IDs have been claimed by visual Unit3D nodes.
-    /// Used by ClaimNextSimUnitId to prevent double-linking.
-    /// </summary>
-    private readonly System.Collections.Generic.HashSet<int> _claimedSimUnitIds = new();
-
-    /// <summary>
-    /// Cache mapping SimUnitId → Unit3D for O(1) lookup.
-    /// Updated on register (ClaimNextSimUnitId) and remove (UnregisterUnit3D).
-    /// </summary>
-    private readonly Dictionary<int, Node> _unit3DBySimId = new();
 
     /// <summary>
     /// Whether the first snapshot has been applied (client-side).
@@ -131,7 +120,7 @@ public partial class SimulationNode : Node
     private Vector3 ToLocal(SimVector3 simPos) => CoordinateTransform.CanonicalToLocal(new Vector3(simPos.X, simPos.Y, simPos.Z));
 
     /// <summary>
-    /// Convert a SimVector3 to local Godot.Vector3 (public, for Unit3D to read positions).
+    /// Convert a SimVector3 to local Godot.Vector3 (public, for visual layers to read positions).
     /// </summary>
     public Vector3 SimToLocal(SimVector3 simPos) => ToLocal(simPos);
 
@@ -154,6 +143,19 @@ public partial class SimulationNode : Node
     /// Null when no MatchSession is active (single-player).
     /// </summary>
     public event Action<List<SimEvent>>? OnTickCompleted;
+
+    // =========================================================================
+    // IGameSession IMPLEMENTATION (temporary bridge until Session layer)
+    // =========================================================================
+
+    /// <summary>IGameSession: read current game state.</summary>
+    public MatchState GetState() => State;
+
+    /// <summary>IGameSession: discrete events for View/HUD subscribers.</summary>
+    public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
+
+    /// <summary>IGameSession: no-op — SimulationNode ticks itself in _PhysicsProcess.</summary>
+    void IGameSession.Tick(float delta) { }
 
     /// <summary>
     /// Expose the Simulation instance for snapshot hash computation.
@@ -203,7 +205,7 @@ public partial class SimulationNode : Node
 
     public override void _Ready()
     {
-        // Run before Unit3D._PhysicsProcess() so Tick() executes first each frame
+        // Run before visual nodes so Tick() executes first each frame
         ProcessPriority = -100;
         // Keep ticking during pause so the host generates snapshots for client recovery
         ProcessMode = ProcessModeEnum.Always;
@@ -250,6 +252,7 @@ public partial class SimulationNode : Node
             _accumulator -= FIXED_DELTA;
             EmitEvents(events);
             OnTickCompleted?.Invoke(events);
+            SimEventsEmitted?.Invoke(events);
         }
     }
 
@@ -283,8 +286,6 @@ public partial class SimulationNode : Node
         Simulation.Log = msg => GD.Print(msg);
 
         _simulation = new Simulation(State);
-        _claimedSimUnitIds.Clear();
-        _unit3DBySimId.Clear();
         _firstSnapshotApplied = false;
         _initialized = true;
 
@@ -386,6 +387,7 @@ public partial class SimulationNode : Node
                 var stats = UnitStatCalculator.FromCardDefinition(card);
                 var template = new SimUnitTemplate
                 {
+                    UnitTypeId = catalogId,
                     Count = card.SpawnCount,
                     MaxHp = stats.MaxHp,
                     AttackDamage = stats.AttackDamage,
@@ -395,7 +397,7 @@ public partial class SimulationNode : Node
                     AggroRadius = stats.AggroRadius,
                     CritChance = stats.CritChance,
                     CritDamage = stats.CritDamage,
-                    UnitType = card.IsRanged ? 1 : 0,
+                    UnitType = card.IsRanged ? ProjectSummoner.Units.UnitType.Ranged : ProjectSummoner.Units.UnitType.Melee,
                     ElementId = (int)card.ElementalAffinity,
                     PhysicalDefense = stats.Armor,
                     MagicDefense = stats.MagicResist
@@ -407,9 +409,9 @@ public partial class SimulationNode : Node
         State.CardDataMap[catalogId] = simCard;
     }
 
-    private SimUnitTemplate BuildUnitTemplate(UnitId unitId, int count, ProjectSummoner.Systems.Modifiers.StatModifier? modifier)
+    private SimUnitTemplate BuildUnitTemplate(UnitId unitId, int count, ProjectSummoner.Stats.StatModifier? modifier)
     {
-        var template = new SimUnitTemplate { Count = count };
+        var template = new SimUnitTemplate { Count = count, UnitTypeId = unitId.Value };
 
         if (UnitDefinitions.TryGet(unitId, out var def) && def != null)
         {
@@ -425,8 +427,8 @@ public partial class SimulationNode : Node
             template.AggroRadius = stats.AggroRadius;
             template.CritChance = stats.CritChance;
             template.CritDamage = stats.CritDamage;
-            template.UnitType = def.UnitType == ProjectSummoner.Units.UnitType.Ranged ? 1 : 0;
-            template.MovementLayer = (int)def.MovementLayer;
+            template.UnitType = def.UnitType;
+            template.MovementLayer = def.MovementLayer;
             template.ElementId = (int)(def.DamageProfile.Element ?? Element.Neutral);
             template.SeparationRadius = def.Visual.SeparationRadius;
             template.PhysicalDefense = stats.Armor;
@@ -446,7 +448,7 @@ public partial class SimulationNode : Node
 
             // Extract targeting config for sim
             var targetingConfig = def.Targeting.BuildConfig();
-            template.FallbackMovement = (int)targetingConfig.FallbackMovement;
+            template.FallbackMovement = (FallbackMovement)(int)targetingConfig.FallbackMovement;
 
             // Extract scorer weights if available
             if (targetingConfig.Scorer is ProjectSummoner.Targeting.Scorers.CompositeScorer composite)
@@ -497,7 +499,7 @@ public partial class SimulationNode : Node
     {
         if (config.Filter is ProjectSummoner.Targeting.Filters.LayerTargetFilter layerFilter)
         {
-            template.TargetLayerFilter = (int)layerFilter.CanTarget;
+            template.TargetLayerFilter = layerFilter.CanTarget;
         }
         else if (config.Filter is ProjectSummoner.Targeting.Filters.CompositeTargetFilter composite)
         {
@@ -505,7 +507,7 @@ public partial class SimulationNode : Node
             {
                 if (f is ProjectSummoner.Targeting.Filters.LayerTargetFilter innerLayer)
                 {
-                    template.TargetLayerFilter = (int)innerLayer.CanTarget;
+                    template.TargetLayerFilter = innerLayer.CanTarget;
                     break;
                 }
             }
@@ -541,7 +543,7 @@ public partial class SimulationNode : Node
         }
 
         var summoner = State.Summoners[networkTeam];
-        summoner.Team = networkTeam;
+        summoner.Team = (Team)networkTeam;
         summoner.CurrentHp = hp;
         summoner.MaxHp = maxHp;
         summoner.Mana = mana;
@@ -611,67 +613,16 @@ public partial class SimulationNode : Node
     }
 
     // =========================================================================
-    // VISUAL UNIT LINKING (connects Unit3D to sim UnitData)
+    // CLIENT UNIT PRE-REGISTRATION (used by ClientRunner until M3a)
     // =========================================================================
 
     /// <summary>
-    /// Claim the next unclaimed sim unit ID for a given team.
-    /// Called by Unit3D._Ready() to link itself to its simulation data.
-    /// Units are claimed in UnitId order (deterministic, matches spawn order).
-    /// </summary>
-    public int? ClaimNextSimUnitId(int localTeam)
-    {
-        int networkTeam = ToNetworkTeam(localTeam);
-
-        foreach (var kvp in State.Units.OrderBy(kv => kv.Key))
-        {
-            var unit = kvp.Value;
-            if (unit.Team == networkTeam && !_claimedSimUnitIds.Contains(unit.UnitId))
-            {
-                _claimedSimUnitIds.Add(unit.UnitId);
-                return unit.UnitId;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Register a Unit3D node in the SimUnitId → Node cache for O(1) lookups.
-    /// Called by Unit3D after ClaimNextSimUnitId succeeds.
-    /// </summary>
-    public void RegisterUnit3D(int simUnitId, Node unit3D)
-    {
-        _unit3DBySimId[simUnitId] = unit3D;
-    }
-
-    /// <summary>
-    /// Remove a Unit3D node from the SimUnitId cache.
-    /// Called by Unit3D._ExitTree().
-    /// </summary>
-    public void UnregisterUnit3D(int simUnitId)
-    {
-        _unit3DBySimId.Remove(simUnitId);
-    }
-
-    /// <summary>
-    /// Look up a Unit3D node by its SimUnitId. O(1) via cached dictionary.
-    /// Returns null if no Unit3D is registered for that ID.
-    /// </summary>
-    public Node? FindUnit3DBySimId(int simUnitId)
-    {
-        return _unit3DBySimId.TryGetValue(simUnitId, out var node) ? node : null;
-    }
-
-    /// <summary>
-    /// Pre-register a remote unit in MatchState so that Unit3D._Ready() can
-    /// ClaimNextSimUnitId() immediately. Called by ClientRunner BEFORE emitting
-    /// RemoteUnitSpawned — the visual scene instantiates, calls _Ready() → ClaimNextSimUnitId(),
-    /// and finds the UnitData already present with the correct Team.
+    /// Pre-register a remote unit in MatchState so the client has UnitData
+    /// before EntityManager spawns the visual shell.
+    /// Called by ClientRunner when a UnitSpawned message arrives.
     /// </summary>
     public void PreRegisterRemoteUnit(int networkId, int networkTeam, SimVector3 position)
     {
-        // Check if already registered (duplicate message or snapshot already created it)
         foreach (var kvp in State.Units)
         {
             if (kvp.Value.NetworkId == networkId)
@@ -683,15 +634,14 @@ public partial class SimulationNode : Node
         {
             UnitId = clientUnitId,
             NetworkId = networkId,
-            Team = networkTeam,
+            Team = (Team)networkTeam,
             IsAlive = true,
             Position = position,
-            CurrentHp = 1, // Placeholder — snapshot will overwrite
+            CurrentHp = 1,
             MaxHp = 1,
-            ActivationState = 0 // Inactive until snapshot confirms
+            ActivationState = ActivationState.Inactive
         };
         State.Units[clientUnitId] = unit;
-        GD.Print($"[SimulationNode] PreRegistered remote unit: networkId={networkId}, team={networkTeam}, unitId={clientUnitId}");
     }
 
     // =========================================================================
@@ -873,7 +823,7 @@ public partial class SimulationNode : Node
                 existingUnit.MaxHp = unitState.MaxHp;
                 existingUnit.IsAlive = unitState.IsAlive;
                 existingUnit.TargetNetworkId = unitState.TargetNetworkId;
-                existingUnit.ActivationState = unitState.ActivationState;
+                existingUnit.ActivationState = (ActivationState)unitState.ActivationState;
                 existingUnit.BehaviorState = (BehaviorState)unitState.BehaviorState;
                 existingUnit.IsFacingRight = unitState.IsFacingRight;
             }
@@ -885,13 +835,13 @@ public partial class SimulationNode : Node
                 {
                     UnitId = clientUnitId,
                     NetworkId = unitState.NetworkId,
-                    Team = unitState.Team,
+                    Team = (Team)unitState.Team,
                     CurrentHp = unitState.Hp,
                     MaxHp = unitState.MaxHp,
                     IsAlive = unitState.IsAlive,
                     Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z),
                     TargetNetworkId = unitState.TargetNetworkId,
-                    ActivationState = unitState.ActivationState,
+                    ActivationState = (ActivationState)unitState.ActivationState,
                     BehaviorState = (BehaviorState)unitState.BehaviorState,
                     IsFacingRight = unitState.IsFacingRight
                 };
@@ -923,20 +873,72 @@ public partial class SimulationNode : Node
     // EVENT EMISSION
     // =========================================================================
 
-    /// <summary>
-    /// Signal emitter visitor, created lazily in EmitEvents.
-    /// Uses the visitor pattern for compile-time exhaustiveness:
-    /// adding a new SimEvent without a Visit() in SimEventSignalEmitter causes a compile error.
-    /// </summary>
-    private SimEventSignalEmitter? _signalEmitter;
-
-    private void EmitEvents(System.Collections.Generic.List<SimEvent> events)
+    private void EmitEvents(List<SimEvent> events)
     {
-        _signalEmitter ??= new SimEventSignalEmitter(this);
-
         foreach (var evt in events)
         {
-            evt.Accept(_signalEmitter);
+            switch (evt)
+            {
+                case PhaseChangedEvent e:
+                    EmitSignal(SignalName.PhaseChanged, (int)e.NewPhase);
+                    break;
+                case PrepTimerUpdatedEvent e:
+                    EmitSignal(SignalName.PrepTimerUpdated, e.Remaining);
+                    break;
+                case MatchTimeUpdatedEvent e:
+                    EmitSignal(SignalName.MatchTimeUpdated, e.MatchTime);
+                    break;
+                case SummonerHpChangedEvent e:
+                    EmitSignal(SignalName.SummonerHpChanged, RemapTeam(e.Team), e.Hp, e.MaxHp);
+                    break;
+                case SummonerManaChangedEvent e:
+                    EmitSignal(SignalName.SummonerManaChanged, RemapTeam(e.Team), e.Mana, e.MaxMana);
+                    break;
+                case CastingStartedEvent e:
+                    EmitSignal(SignalName.CastingStarted, RemapTeam(e.Team), e.CardIndex, e.Duration, SimToLocal(e.SpawnPosition), e.CatalogId);
+                    break;
+                case CastingCompletedEvent e:
+                    EmitSignal(SignalName.CastingCompleted, RemapTeam(e.Team), e.CardIndex, SimToLocal(e.SpawnPosition), e.NetworkId);
+                    break;
+                case CardDrawnEvent e:
+                    EmitSignal(SignalName.CardDrawn, RemapTeam(e.Team), e.HandIndex, e.CatalogId);
+                    break;
+                case HandChangedEvent e:
+                    EmitSignal(SignalName.HandChanged, RemapTeam(e.Team), e.Hand);
+                    break;
+                case DeckRecycledEvent e:
+                    EmitSignal(SignalName.DeckRecycled, RemapTeam(e.Team));
+                    break;
+                case UnitRegisteredEvent e:
+                    EmitSignal(SignalName.UnitStateRegistered, e.UnitId, e.NetworkId, RemapTeam(e.Team));
+                    break;
+                case UnitRemovedEvent e:
+                    EmitSignal(SignalName.UnitStateRemoved, e.UnitId);
+                    break;
+                case GameOverEvent e:
+                    EmitSignal(SignalName.GameOver, RemapTeam(e.WinnerTeam), e.Reason);
+                    break;
+                case UnitAttackedEvent e:
+                    EmitSignal(SignalName.UnitAttacked, e.AttackerUnitId, e.TargetUnitId);
+                    break;
+                case UnitDamagedEvent e:
+                    EmitSignal(SignalName.UnitDamaged, e.TargetUnitId, e.AttackerUnitId, e.Damage, e.IsCrit);
+                    break;
+                case UnitDiedSimEvent e:
+                    EmitSignal(SignalName.UnitDiedSim, e.UnitId, e.KillerUnitId);
+                    break;
+                // Events routed via EntityManager (ISimEventVisitor) — no GDScript signals needed
+                case UnitActivationChangedEvent:
+                case SpellCastEvent:
+                case ProjectileHitSimEvent:
+                case AttackEvadedEvent:
+                case BuffAppliedSimEvent:
+                case BuffExpiredSimEvent:
+                case DelayedEffectFiredSimEvent:
+                case SummonerDamagedEvent:
+                case SummonerDestroyedEvent:
+                    break;
+            }
         }
     }
 }

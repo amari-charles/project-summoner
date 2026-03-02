@@ -26,34 +26,34 @@ Verify the foundation is solid before building new layers.
 
 ### Simulation Completeness
 
-- [ ] All unit behaviors work (move, attack, die, spawn) — verified by `SimBehaviorTest`
-- [ ] `MatchState` contains all needed data: units, projectiles, summoners, phase, timer
-- [ ] `Simulation.Tick(delta)` advances game state deterministically
-- [ ] `DeterministicRng` is used for all gameplay randomness inside simulation
-- [ ] `SimEvent` types cover all game events (attack, damage, death, spell, buff, projectile, summoner, etc.)
+- [x] All unit behaviors work (move, attack, die, spawn) — verified by `SimBehaviorTest`
+- [x] `MatchState` contains all needed data: units, projectiles, summoners, phase, timer
+- [x] `Simulation.Tick(delta)` advances game state deterministically
+- [x] `DeterministicRng` is used for all gameplay randomness inside simulation
+- [x] `SimEvent` types cover all game events (attack, damage, death, spell, buff, projectile, summoner, etc.)
 
 ### IGameSession Interface
 
-- [ ] `IGameSession` interface is finalized (`scripts/csharp/Session/IGameSession.cs`):
+- [x] `IGameSession` interface is finalized (`scripts/csharp/Session/IGameSession.cs`):
   - `MatchState GetState()`
   - `event Action<IReadOnlyList<SimEvent>> SimEventsEmitted`
   - `void SubmitCommand(ICommand command)`
   - `void Tick(float delta)`
-- [ ] `ICommand` interface exists with `PlayCardCommand` and `ForfeitCommand` implementations
-- [ ] `ValidationResult` type exists for `CommandRouter`
+- [x] `ICommand` interface exists with `PlayCardCommand` and `ForfeitCommand` implementations
+- [x] `ValidationResult` type exists for `CommandRouter`
 
 ### Commands
 
-- [ ] `PlayCardCommand` — exists
-- [ ] `ForfeitCommand` — exists
+- [x] `PlayCardCommand` — exists
+- [x] `ForfeitCommand` — exists
 - [ ] `CastSpellCommand` — needed later (Milestone 3b), but define the type now if convenient
 - [ ] `RedirectCommand` — needed later (Milestone 3b), but define the type now if convenient
 
 ### Gate: Prerequisites Met
 
-- [ ] `dotnet build` succeeds
-- [ ] `dotnet test --settings test.runsettings` passes
-- [ ] All stub files compile (they throw `NotImplementedException`, which is fine)
+- [x] `dotnet build` succeeds
+- [x] `dotnet test --settings test.runsettings` passes
+- [x] All stub files compile (they throw `NotImplementedException`, which is fine)
 
 ---
 
@@ -65,71 +65,71 @@ Verify the foundation is solid before building new layers.
 
 ### 1.1: Implement UnitVisual Self-Sync
 
-- [ ] `Initialize(IGameSession session, int unitId)` — store session reference and unit ID
-- [ ] `_PhysicsProcess(double delta)` — read `UnitData` from `MatchState` each frame:
+- [x] `Initialize(IGameSession session, int unitId)` — store session reference and unit ID
+- [x] `_PhysicsProcess(double delta)` — read `UnitData` from `MatchState` each frame:
   - Sync `GlobalPosition` from `UnitData.Position` (SimVector3 → Godot Vector3)
   - Sync facing direction from `UnitData.Facing`
   - Drive animation state (idle, walk, attack) from `UnitData.BehaviorState`
 
 ### 1.2: Implement Event Reaction Methods
 
-- [ ] `PlayAttackAnimation()` — trigger attack animation on the visual
-- [ ] `FlashDamage(float damage, bool isCrit)` — damage flash VFX + floating damage number
-- [ ] `BeginDeath()` — death animation, then queue_free
-- [ ] `ShowBuffIcon(EffectType effectType)` — show buff/debuff icon above unit
-- [ ] `ShowEvadeText()` — show "Evade!" floating text
+- [x] `PlayAttackAnimation()` — trigger attack animation on the visual
+- [x] `FlashDamage(float damage, bool isCrit)` — damage flash VFX + floating damage number
+- [x] `BeginDeath()` — death animation, then queue_free
+- [x] `ShowBuffIcon(EffectType effectType)` — show buff/debuff icon above unit
+- [x] `ShowEvadeText()` — show "Evade!" floating text
 
 ### 1.3: Wire UnitVisual Into Existing Battle Flow
 
-- [ ] Create a test harness that runs UnitVisual alongside Unit3D (dual-running verification)
-- [ ] Verify UnitVisual position matches Unit3D position within tolerance
-- [ ] Verify attack animations trigger at the correct times
-- [ ] Verify damage numbers appear correctly
-- [ ] Verify death plays animation and cleans up
+- [x] Create a test harness that runs UnitVisual alongside Unit3D (dual-running verification)
+- [x] Verify UnitVisual position matches Unit3D position within tolerance
+- [x] Verify attack animations trigger at the correct times
+- [x] Verify damage numbers appear correctly
+- [x] Verify death plays animation and cleans up
 
 ### Gate: UnitVisual Verified
 
-- [ ] UnitVisual renders all unit types correctly (melee, ranged, duckling)
-- [ ] Unit3D has zero remaining unique consumers that UnitVisual can't serve
-- [ ] Visual parity: UnitVisual looks equivalent to Unit3D in battle
+- [x] UnitVisual renders all unit types correctly (melee, ranged, duckling)
+- [x] Unit3D has zero remaining unique consumers that UnitVisual can't serve
+- [x] Visual parity: UnitVisual looks equivalent to Unit3D in battle
 
 ### 1.4: Tier 1 Deletions
 
 **Delete DamageSystem (837 LOC):**
-- [ ] Delete `scripts/csharp/Combat/DamageSystem.cs` + `.tscn` + `.uid`
-- [ ] Delete `scripts/csharp/Services/Interfaces/IDamageSystem.cs` + `.uid`
-- [ ] Remove `DamageSystem` autoload from `project.godot`
+- [x] Delete `scripts/csharp/Combat/DamageSystem.cs` + `.tscn` + `.uid`
+- [x] Delete `scripts/csharp/Services/Interfaces/IDamageSystem.cs` + `.uid`
+- [x] Remove `DamageSystem` autoload from `project.godot`
 
 **Delete ModifierService (714 LOC deleted, 401 LOC relocated):**
-- [ ] Delete `scripts/csharp/Systems/Modifiers/ModifierService.cs` + `.tscn`
-- [ ] Delete `scripts/csharp/Services/Interfaces/IModifierService.cs`
-- [ ] Delete `CardModifierProvider.cs`, `ItemModifierProvider.cs`, `SummonerModifierProvider.cs`
-- [ ] Delete `IModifierProvider.cs`, `ModifierContext.cs`, `ConditionKeys.cs`
-- [ ] **RELOCATE** `StatModifier.cs` → `scripts/csharp/Stats/StatModifier.cs` (27+ consumers!)
-- [ ] **RELOCATE** `TriggerCondition.cs` → `scripts/csharp/Stats/TriggerCondition.cs`
-- [ ] Remove `ModifierService` autoload from `project.godot`
-- [ ] Delete `tests/csharp/Systems/Modifiers/ModifierServiceTest.cs`
-- [ ] **RELOCATE** `StatModifierTest.cs` → `tests/csharp/Stats/StatModifierTest.cs`
-- [ ] **RELOCATE** `TriggerConditionTest.cs` → `tests/csharp/Stats/TriggerConditionTest.cs`
+- [x] Delete `scripts/csharp/Systems/Modifiers/ModifierService.cs` + `.tscn`
+- [x] Delete `scripts/csharp/Services/Interfaces/IModifierService.cs`
+- [x] Delete `CardModifierProvider.cs`, `ItemModifierProvider.cs`, `SummonerModifierProvider.cs`
+- [x] Delete `IModifierProvider.cs`, `ModifierContext.cs`, `ConditionKeys.cs`
+- [x] **RELOCATE** `StatModifier.cs` → `scripts/csharp/Stats/StatModifier.cs` (27+ consumers!)
+- [x] **RELOCATE** `TriggerCondition.cs` → `scripts/csharp/Stats/TriggerCondition.cs`
+- [x] Remove `ModifierService` autoload from `project.godot`
+- [x] Delete `tests/csharp/Systems/Modifiers/ModifierServiceTest.cs`
+- [x] **RELOCATE** `StatModifierTest.cs` → `tests/csharp/Stats/StatModifierTest.cs`
+- [x] **RELOCATE** `TriggerConditionTest.cs` → `tests/csharp/Stats/TriggerConditionTest.cs`
 
 **Delete ProjectileService (509 LOC):**
-- [ ] Delete `scripts/csharp/Projectiles/ProjectileService.cs` + `.tscn` + `.uid`
-- [ ] Remove `ProjectileService` autoload from `project.godot`
+- [x] Delete `scripts/csharp/Projectiles/ProjectileService.cs` + `.tscn` + `.uid`
+- [x] Remove `ProjectileService` autoload from `project.godot`
 
 **Update CardFactory.cs:**
-- [ ] Remove `ModifierService` references from `CardFactory.cs`
+- [x] Remove `ModifierService` references from `CardFactory.cs`
 
 ### Gate: Tier 1 Complete
 
-- [ ] `dotnet build` succeeds
-- [ ] `dotnet test --settings test.runsettings` passes
-- [ ] Grep `DamageSystem` — only `SimDamage` references remain
-- [ ] Grep `ModifierService` — zero references
-- [ ] Grep `ProjectileService` — zero references
-- [ ] Grep `IDamageSystem` — zero references
-- [ ] Grep `IModifierService` — zero references
-- [ ] `StatModifier.cs` and `TriggerCondition.cs` exist in `scripts/csharp/Stats/`
-- [ ] 3 autoloads removed from `project.godot`
+- [x] `dotnet build` succeeds
+- [x] `dotnet test --settings test.runsettings` passes
+- [x] Grep `DamageSystem` — only `SimDamage` references remain
+- [x] Grep `ModifierService` — zero references
+- [x] Grep `ProjectileService` — zero references
+- [x] Grep `IDamageSystem` — zero references
+- [x] Grep `IModifierService` — zero references
+- [x] `StatModifier.cs` and `TriggerCondition.cs` exist in `scripts/csharp/Stats/`
+- [x] 3 autoloads removed from `project.godot`
 
 ---
 
@@ -143,65 +143,65 @@ Verify the foundation is solid before building new layers.
 
 **Stub file:** `scripts/csharp/View/EntityManager.cs`
 
-- [ ] `Initialize(IGameSession session)` — store session, subscribe to `SimEventsEmitted`
-- [ ] `_PhysicsProcess(double delta)` — entity diffing:
+- [x] `Initialize(IGameSession session)` — store session, subscribe to `SimEventsEmitted`
+- [x] `_PhysicsProcess(double delta)` — entity diffing:
   - Poll `MatchState` for current unit list
   - Spawn `UnitVisual` shells for new units (call `SpawnUnitShell`)
   - Destroy shells for removed units (call `DestroyShell`)
   - Spawn `ProjectileVisual` shells for new projectiles
   - Destroy projectile shells for removed projectiles
-- [ ] `SpawnUnitShell(UnitData unitData)` — instantiate scene, call `Initialize`
-- [ ] `SpawnProjectileShell(SimProjectileData projData)` — instantiate scene, call `Initialize`
-- [ ] `DestroyShell(int entityId)` — remove from tracking, queue_free
-- [ ] `RegisterSummonerVisual(SummonerVisual shell, int teamIndex)` — register pre-placed summoner shells
+- [x] `SpawnUnitShell(UnitData unitData)` — instantiate scene, call `Initialize`
+- [x] `SpawnProjectileShell(SimProjectileData projData)` — instantiate scene, call `Initialize`
+- [x] `DestroyShell(int entityId)` — remove from tracking, queue_free
+- [x] `RegisterSummonerVisual(SummonerVisual shell, int teamIndex)` — register pre-placed summoner shells
 
 **ISimEventVisitor implementation (route events to visual shells):**
-- [ ] `Visit(UnitAttackedEvent)` → `GetShell(attackerId)?.PlayAttackAnimation()`
-- [ ] `Visit(UnitDamagedEvent)` → `GetShell(targetId)?.FlashDamage(damage, isCrit)`
-- [ ] `Visit(UnitDiedSimEvent)` → `GetShell(unitId)?.BeginDeath()`
-- [ ] `Visit(ProjectileHitSimEvent)` → `GetProjectileShell(projId)?.PlayImpactAndDestroy()`
-- [ ] `Visit(SummonerDamagedEvent)` → `GetSummonerShell(teamIndex)?.FlashDamage()`
-- [ ] `Visit(SummonerDestroyedEvent)` → `GetSummonerShell(teamIndex)?.BeginDeath()`
-- [ ] `Visit(AttackEvadedEvent)` → `GetShell(targetId)?.ShowEvadeText()`
-- [ ] `Visit(BuffAppliedSimEvent)` → `GetShell(unitId)?.ShowBuffIcon(effectType)`
-- [ ] `Visit(SpellCastEvent)` → trigger spell VFX
-- [ ] `Visit(DelayedEffectFiredSimEvent)` → trigger delayed effect VFX
-- [ ] Handle remaining no-op event types (log or ignore)
-- [ ] `Pause()` / `Resume()` — pause/resume visual processing
+- [x] `Visit(UnitAttackedEvent)` → `GetShell(attackerId)?.PlayAttackAnimation()`
+- [x] `Visit(UnitDamagedEvent)` → `GetShell(targetId)?.FlashDamage(damage, isCrit)`
+- [x] `Visit(UnitDiedSimEvent)` → `GetShell(unitId)?.BeginDeath()`
+- [x] `Visit(ProjectileHitSimEvent)` → `GetProjectileShell(projId)?.PlayImpactAndDestroy()`
+- [x] `Visit(SummonerDamagedEvent)` → `GetSummonerShell(teamIndex)?.FlashDamage()`
+- [x] `Visit(SummonerDestroyedEvent)` → `GetSummonerShell(teamIndex)?.BeginDeath()`
+- [x] `Visit(AttackEvadedEvent)` → `GetShell(targetId)?.ShowEvadeText()`
+- [x] `Visit(BuffAppliedSimEvent)` → `GetShell(unitId)?.ShowBuffIcon(effectType)`
+- [x] `Visit(SpellCastEvent)` → trigger spell VFX
+- [x] `Visit(DelayedEffectFiredSimEvent)` → trigger delayed effect VFX
+- [x] Handle remaining no-op event types (log or ignore)
+- [x] `Pause()` / `Resume()` — pause/resume visual processing
 
 ### 2b: ProjectileVisual — Self-Syncing Projectile Shell
 
 **Stub file:** `scripts/csharp/View/ProjectileVisual.cs`
 
-- [ ] `Initialize(IGameSession session, int projectileId)` — store session ref and ID
-- [ ] `_PhysicsProcess(double delta)` — read `SimProjectileData` from `MatchState`:
+- [x] `Initialize(IGameSession session, int projectileId)` — store session ref and ID
+- [x] `_PhysicsProcess(double delta)` — read `SimProjectileData` from `MatchState`:
   - Sync `GlobalPosition` from projectile position
   - Sync rotation to face movement direction
   - Manage trail effect
-- [ ] `PlayImpactAndDestroy()` — play impact VFX, fade trail, queue_free
+- [x] `PlayImpactAndDestroy()` — play impact VFX, fade trail, queue_free
 
 ### 2c: SummonerVisual — Self-Syncing Summoner Shell
 
 **Stub file:** `scripts/csharp/View/SummonerVisual.cs`
 
-- [ ] `Initialize(IGameSession session, int teamIndex)` — store session ref and team index
-- [ ] `_PhysicsProcess(double delta)` — read `SummonerData` from `MatchState`:
+- [x] `Initialize(IGameSession session, int teamIndex)` — store session ref and team index
+- [x] `_PhysicsProcess(double delta)` — read `SummonerData` from `MatchState`:
   - Sync HP display
   - Sync mana display (for UI elements attached to summoner)
   - Update casting state visual
-- [ ] `FlashDamage()` — summoner hit flash VFX
-- [ ] `BeginDeath()` — summoner destruction animation
-- [ ] Own HP bar (create and manage inline, replacing HPBarService pattern)
+- [x] `FlashDamage()` — summoner hit flash VFX
+- [x] `BeginDeath()` — summoner destruction animation
+- [x] Own HP bar (create and manage inline, replacing HPBarService pattern)
 
 ### 2d: BattleScene — Top-Level Facade
 
 **Stub file:** `scripts/csharp/View/BattleScene.cs`
 
-- [ ] `Initialize(IGameSession session)`:
+- [x] `Initialize(IGameSession session)`:
   - Wire session to `EntityManager` (call `EntityManager.Initialize(session)`)
   - Wire session to `BattleHUD` (if applicable)
   - Set up camera, environment (state-independent)
-- [ ] Replace `GameController3D` as the scene root script for `battle_3d.tscn`
+- [x] Replace `GameController3D` as the scene root script for `battle_3d.tscn`
 
 ### 2e: Scene File Updates
 

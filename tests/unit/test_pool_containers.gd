@@ -63,45 +63,6 @@ func test_vfx_manager_pooled_effects_in_scene_tree() -> void:
 
 
 ## =============================================================================
-## HPBARSERVICE POOL CONTAINER TESTS (C#)
-## =============================================================================
-
-func test_hp_bar_service_has_pool_container() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available, HPBarService won't initialize")
-		return
-
-	# Trigger lazy initialization
-	HPBarService.ForceInitialize()
-
-	var pool_container: Node3D = HPBarService.GetPoolContainer()
-	assert_not_null(pool_container, "HPBarService should have pool_container")
-	assert_true(
-		pool_container.get_parent() == HPBarService,
-		"pool_container should be child of HPBarService"
-	)
-
-
-func test_hp_bar_service_pooled_bars_in_scene_tree() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available, HPBarService won't initialize")
-		return
-
-	# Trigger lazy initialization
-	HPBarService.ForceInitialize()
-
-	var pool_container: Node3D = HPBarService.GetPoolContainer()
-	var pool_child_count: int = pool_container.get_child_count()
-	var pooled_count: int = HPBarService.GetPooledBarCount()
-
-	assert_eq(
-		pool_child_count,
-		pooled_count,
-		"Pool container child count should match pooled bar count"
-	)
-
-
-## =============================================================================
 ## PROJECTILESERVICE POOL CONTAINER TESTS (C#)
 ## =============================================================================
 ## Note: ProjectileService is now implemented in C#. Pool container testing

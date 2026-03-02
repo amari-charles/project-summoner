@@ -9,7 +9,7 @@ using ProjectSummoner.Debug;
 using ProjectSummoner.Services;
 using ProjectSummoner.Stats;
 using ProjectSummoner.Systems;
-using ProjectSummoner.Systems.Modifiers;
+
 using ProjectSummoner.Targeting;
 using ProjectSummoner.Units.Components;
 using ProjectSummoner.UI;
@@ -645,12 +645,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         var simNode = SimulationNode.Current;
         if (simNode == null) return;
 
-        SimUnitId = simNode.ClaimNextSimUnitId(Team);
-        if (IsSimDriven)
-        {
-            GD.Print($"[Unit3D] Claimed SimUnitId={SimUnitId} for {UnitId} team={Team}");
-            simNode.RegisterUnit3D(SimUnitId.Value, this);
-        }
+        // Unit3D linking removed — EntityManager handles visual spawning now
+        SimUnitId = null;
     }
 
     /// <summary>
@@ -744,16 +740,13 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     /// </summary>
     private Node3D? FindUnit3DBySimId(int simUnitId)
     {
-        var cached = SimulationNode.Current?.FindUnit3DBySimId(simUnitId);
-        if (cached is Node3D node3D) return node3D;
+        // Legacy — Unit3D linking removed, return null
         return null;
     }
 
     public override void _ExitTree()
     {
         DisconnectSimSignals();
-        if (SimUnitId.HasValue)
-            SimulationNode.Current?.UnregisterUnit3D(SimUnitId.Value);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -1232,7 +1225,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
     // =========================================================================
 
     /// <summary>
-    /// Apply damage to this unit. Called by DamageSystem.
+    /// Apply damage to this unit.
     /// Overload for GDScript compatibility (Godot bug #59025: default params don't work cross-language).
     /// </summary>
     public void TakeDamage(float amount)
@@ -1453,8 +1446,8 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     protected void DealDamageTo(Node3D target)
     {
-        // Use C# DamageSystem directly
-        DamageSystem.Instance?.ApplyDamage(this, target, AttackDamage, "physical");
+        // No-op: damage is now sim-driven via Simulation.Tick
+        GD.PushWarning("[Unit3D] DealDamageTo called but damage is sim-driven");
     }
 
     protected void UpdateCooldowns(float delta)
@@ -1796,41 +1789,14 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Register with SpatialGrid
         SpatialGrid.Instance?.RegisterUnit(this);
 
-        // Register with HPBarService (C#)
-        if (!TryCreateHpBar())
-        {
-            // HPBarService may not be initialized yet (e.g., client-side timing).
-            // Retry on next frame via CallDeferred.
-            GD.PushWarning($"[Unit3D] HP bar creation deferred for {UnitId} — HPBarService not ready");
-            CallDeferred(MethodName.RetryCreateHpBar);
-        }
-    }
-
-    private bool TryCreateHpBar()
-    {
-        if (HPBarService.Instance == null)
-            return false;
-
-        FloatingHPBar? bar;
-        if (HpBarOffsetY > 0)
-        {
-            var settings = HPBarSettings.Default with { OffsetY = HpBarOffsetY };
-            bar = HPBarService.Instance.CreateBarForUnit(this, settings);
-        }
-        else
-        {
-            bar = HPBarService.Instance.CreateBarForUnit(this);
-        }
-        return bar != null;
-    }
-
-    private void RetryCreateHpBar()
-    {
-        if (!IsInsideTree() || !IsAlive) return;
-        if (!TryCreateHpBar())
-        {
-            GD.PrintErr($"[Unit3D] HP bar creation failed on retry for {UnitId}");
-        }
+        // Create HP bar as a child
+        var settings = HpBarOffsetY > 0
+            ? HPBarSettings.Default with { OffsetY = HpBarOffsetY }
+            : HPBarSettings.Default;
+        var hpBar = new FloatingHPBar();
+        AddChild(hpBar);
+        hpBar.Configure(settings);
+        hpBar.TrackNode(this);
     }
 
     private void UnregisterFromExternalSystems()
@@ -1838,9 +1804,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Unregister from SpatialGrid
         SpatialGrid.Instance?.UnregisterUnit(this);
 
-        // HP bar auto-cleans via TreeExiting signal, but we can explicitly remove
-        // for immediate cleanup when the unit is properly dying (not just being freed)
-        HPBarService.Instance?.RemoveBar(this);
+        // HP bar auto-cleans via TreeExiting signal
     }
 
     private void UpdateSpatialGridPosition()

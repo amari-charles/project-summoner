@@ -1,13 +1,12 @@
 using Godot;
 using ProjectSummoner.Services;
-using ProjectSummoner.Units;
 
 namespace ProjectSummoner.UI;
 
 /// <summary>
-/// 3D floating health bar that follows a unit.
+/// 3D floating health bar that follows a node.
 /// Uses GPU shader for efficient rendering.
-/// Managed by HPBarService for pooling.
+/// Created and owned by the visual that needs it (UnitVisual, SummonerVisual).
 /// </summary>
 public partial class FloatingHPBar : Node3D
 {
@@ -37,7 +36,6 @@ public partial class FloatingHPBar : Node3D
     #region State
 
     private Node3D? _trackedNode;
-    private Unit3D? _trackedUnit;
     private float _targetHpPercent = 1f;
     private float _displayHpPercent = 1f;
     private float _shieldPercent;
@@ -140,34 +138,11 @@ public partial class FloatingHPBar : Node3D
     }
 
     /// <summary>
-    /// Track a Unit3D. Connects to HpChanged and TreeExiting signals.
-    /// TreeExiting ensures cleanup even if unit is freed unexpectedly.
-    /// </summary>
-    public void TrackUnit(Unit3D unit)
-    {
-        _trackedUnit = unit;
-        _trackedNode = unit;
-
-        // Connect to TreeExiting for guaranteed cleanup
-        unit.TreeExiting += OnTrackedNodeExiting;
-
-        // Connect to HP changes
-        unit.HpChanged += OnHpChanged;
-
-        // Calculate offset after visual is ready
-        CallDeferred(MethodName.DeferredCalculateOffset);
-
-        // Update HP immediately
-        UpdateHp(unit.CurrentHp, unit.MaxHp);
-    }
-
-    /// <summary>
-    /// Track a generic Node3D (summoners, bases).
+    /// Track a Node3D. Connects to TreeExiting for cleanup and hp_changed if available.
     /// </summary>
     public void TrackNode(Node3D node)
     {
         _trackedNode = node;
-        _trackedUnit = null;
 
         // Connect to TreeExiting for cleanup
         node.TreeExiting += OnTrackedNodeExiting;
@@ -201,12 +176,7 @@ public partial class FloatingHPBar : Node3D
     /// </summary>
     public void Detach()
     {
-        if (_trackedUnit != null && IsInstanceValid(_trackedUnit))
-        {
-            _trackedUnit.TreeExiting -= OnTrackedNodeExiting;
-            _trackedUnit.HpChanged -= OnHpChanged;
-        }
-        else if (_trackedNode != null && IsInstanceValid(_trackedNode))
+        if (_trackedNode != null && IsInstanceValid(_trackedNode))
         {
             _trackedNode.TreeExiting -= OnTrackedNodeExiting;
 
@@ -217,7 +187,6 @@ public partial class FloatingHPBar : Node3D
         }
 
         _trackedNode = null;
-        _trackedUnit = null;
     }
 
     /// <summary>
@@ -326,14 +295,12 @@ public partial class FloatingHPBar : Node3D
 
     /// <summary>
     /// Called when tracked node is about to exit the tree.
-    /// This fires BEFORE the node is freed, guaranteeing cleanup.
+    /// Detach signals and queue self for deletion.
     /// </summary>
     private void OnTrackedNodeExiting()
     {
-        if (_trackedNode != null)
-        {
-            HPBarService.Instance?.RemoveBar(_trackedNode);
-        }
+        Detach();
+        QueueFree();
     }
 
     private void OnHpChanged(float newHp, float maxHp)

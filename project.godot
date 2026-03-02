@@ -33,10 +33,9 @@ ProjectileCatalog="*res://scripts/csharp/Data/Projectiles/ProjectileCatalog.tscn
 CosmeticsCatalog="*res://scripts/data/cosmetics_catalog.gd"
 EmotesCatalog="*res://scripts/data/emotes_catalog.gd"
 VFXManager="*res://scripts/vfx/vfx_manager.gd"
-DamageSystem="*res://scripts/csharp/Combat/DamageSystem.tscn"
+
 HitResolver="*res://scripts/csharp/Combat/Hitbox/HitResolver.tscn"
-HPBarService="*res://scripts/csharp/Services/HPBarService.tscn"
-ProjectileService="*res://scripts/csharp/Projectiles/ProjectileService.tscn"
+
 ProfileRepo="*res://scripts/data/json_profile_repository.gd"
 ProfileRepositoryCS="*res://scripts/csharp/Infrastructure/Persistence/ProfileRepository.tscn"
 AudioManager="*res://scripts/services/audio_manager.gd"
@@ -67,7 +66,7 @@ EventSequencer="*res://scripts/services/event_sequencer.gd"
 DialogueManager="*res://scripts/services/dialogue_manager.gd"
 DevConsole="*res://scripts/debug/dev_console.gd"
 DebugSnapshots="*res://scripts/debug/debug_snapshots.gd"
-ModifierService="*res://scripts/csharp/Systems/Modifiers/ModifierService.tscn"
+
 SceneManager="*res://scripts/core/scene_manager.gd"
 SceneCoordinator="*res://scripts/services/scene_coordinator.gd"
 RedirectManager="*res://scripts/managers/redirect_manager.gd"
