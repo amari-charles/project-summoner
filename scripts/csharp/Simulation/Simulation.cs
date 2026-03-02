@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation.Combat;
@@ -26,6 +27,12 @@ public class Simulation
 {
     private readonly MatchState _state;
     private IWinCondition? _winCondition;
+
+    /// <summary>
+    /// Optional logging delegate. Set by SimulationNode to route logs to Godot.GD.Print().
+    /// Keeps simulation files free of Godot dependencies.
+    /// </summary>
+    public static Action<string>? Log { get; set; }
 
     public Simulation(MatchState state)
     {
@@ -165,7 +172,7 @@ public class Simulation
                 break;
 
             case ForfeitCommand forfeit:
-                int winnerTeam = forfeit.Team == 0 ? 1 : 0;
+                int winnerTeam = MatchState.GetEnemyTeam(forfeit.Team);
                 _state.WinnerTeam = winnerTeam;
                 _state.Phase = GamePhase.GameOver;
                 events.Add(new GameOverEvent(winnerTeam, "Forfeit"));
@@ -185,24 +192,39 @@ public class Simulation
 
         // Validate: summoner alive and not already casting
         if (!summoner.IsAlive || summoner.IsCasting)
+        {
+            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} alive={summoner.IsAlive} casting={summoner.IsCasting}");
             return;
+        }
 
         // Validate: card index in bounds
         if (cmd.CardIndex < 0 || cmd.CardIndex >= summoner.Hand.Count)
+        {
+            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} cardIndex={cmd.CardIndex} out of bounds (hand size={summoner.Hand.Count})");
             return;
+        }
 
         // Look up card data
         var catalogId = summoner.Hand[cmd.CardIndex];
         if (!_state.CardDataMap.TryGetValue(catalogId, out var cardData))
+        {
+            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} catalogId={catalogId} not found in CardDataMap");
             return;
+        }
 
         // Validate: spells only during Battle phase
         if (cardData.IsSpell && _state.Phase != GamePhase.Battle)
+        {
+            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} spell={catalogId} not allowed during {_state.Phase}");
             return;
+        }
 
         // Validate: enough mana
         if (summoner.Mana < cardData.ManaCost)
+        {
+            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} mana={summoner.Mana} < cost={cardData.ManaCost} for {catalogId}");
             return;
+        }
 
         // Deduct mana
         summoner.Mana -= cardData.ManaCost;
@@ -290,9 +312,9 @@ public class Simulation
     {
         foreach (var unit in _state.Units.Values)
         {
-            if (unit.IsAlive && unit.ActivationState != (int)ProjectSummoner.Units.ActivationState.Active)
+            if (unit.IsAlive && unit.ActivationState != SimConstants.ActivationActive)
             {
-                unit.ActivationState = (int)ProjectSummoner.Units.ActivationState.Active;
+                unit.ActivationState = SimConstants.ActivationActive;
             }
         }
     }
@@ -430,14 +452,14 @@ public class Simulation
         foreach (var unit in _state.Units.Values)
         {
             if (!unit.IsAlive) continue;
-            if (unit.ActivationState == (int)ProjectSummoner.Units.ActivationState.Active) continue;
+            if (unit.ActivationState == SimConstants.ActivationActive) continue;
             if (unit.SpawnTimer <= 0f) continue;
 
             unit.SpawnTimer -= fixedDelta;
             if (unit.SpawnTimer <= 0f)
             {
                 unit.SpawnTimer = 0f;
-                unit.ActivationState = (int)ProjectSummoner.Units.ActivationState.Active;
+                unit.ActivationState = SimConstants.ActivationActive;
             }
         }
     }
@@ -499,7 +521,7 @@ public class Simulation
                     Evasion = template.Evasion,
                     // Always spawn inactive — self-activates when SpawnTimer expires (battle)
                     // or when prep→battle transition fires (preparation)
-                    ActivationState = (int)ProjectSummoner.Units.ActivationState.Inactive,
+                    ActivationState = SimConstants.ActivationInactive,
                     SpawnTimer = spawnTimer
                 };
 
@@ -562,7 +584,7 @@ public class Simulation
         // Determine target team filter based on affinity
         int? teamFilter = effect.Affinity switch
         {
-            SpellAffinity.Enemies => team == 0 ? 1 : 0,
+            SpellAffinity.Enemies => MatchState.GetEnemyTeam(team),
             SpellAffinity.Allies => team,
             _ => null // Both — no filter
         };
@@ -586,7 +608,7 @@ public class Simulation
             case SpellTargetingMode.NearestEnemy:
             {
                 // Single nearest enemy to position
-                int enemyTeam = team == 0 ? 1 : 0;
+                int enemyTeam = MatchState.GetEnemyTeam(team);
                 float bestDistSq = float.MaxValue;
                 UnitData? best = null;
 

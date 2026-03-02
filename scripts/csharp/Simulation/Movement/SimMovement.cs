@@ -1,6 +1,6 @@
 using System;
-using ProjectSummoner.Constants;
 using Fateforged.Simulation.Combat;
+using ProjectSummoner.Constants;
 
 namespace Fateforged.Simulation.Movement;
 
@@ -11,6 +11,9 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class SimMovement
 {
+    // Minimum squared length for treating a direction vector as non-zero
+    private const float DirectionThreshold = 0.001f;
+
     // Minimum horizontal displacement for strafe calculations
     private const float MinHorizontalDisplacement = 0.01f;
 
@@ -34,7 +37,7 @@ public static class SimMovement
 
             case SimBehavior.MoveTowardTarget:
             {
-                var targetPos = ResolveTargetPosition(behavior.MoveTargetId, state);
+                var targetPos = SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state);
                 if (!targetPos.HasValue)
                 {
                     velocity = CalculateForward(unit, state);
@@ -48,7 +51,7 @@ public static class SimMovement
                     velocity = CalculateTowardPosition(unit, targetPos.Value, excludeId, targetUnit, state, delta);
                     var dir = targetPos.Value - unit.Position;
                     dir.Y = 0;
-                    if (dir.LengthSquared() > 0.001f)
+                    if (dir.LengthSquared() > DirectionThreshold)
                         UpdateFacing(unit, dir.Normalized());
                 }
                 break;
@@ -56,7 +59,7 @@ public static class SimMovement
 
             case SimBehavior.MoveStrafe:
             {
-                var targetPos = ResolveTargetPosition(behavior.MoveTargetId, state);
+                var targetPos = SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state);
                 if (!targetPos.HasValue)
                 {
                     velocity = CalculateForward(unit, state);
@@ -90,7 +93,7 @@ public static class SimMovement
         unit.Velocity = velocity;
         var newPos = unit.Position + velocity * delta;
         float moveDist = (velocity * delta).Length();
-        if (moveDist > 0.001f)
+        if (moveDist > DirectionThreshold)
             unit.DistanceTraveled += moveDist;
 
         // Preserve altitude for flying units
@@ -122,7 +125,7 @@ public static class SimMovement
 
         var separation = SimSteering.CalculateSeparation(unit, null, moveDir, state);
         var finalDir = (moveDir + separation);
-        if (finalDir.LengthSquared() > 0.001f)
+        if (finalDir.LengthSquared() > DirectionThreshold)
             finalDir = finalDir.Normalized();
 
         var velocity = finalDir * effectiveSpeed;
@@ -140,26 +143,6 @@ public static class SimMovement
     }
 
     /// <summary>
-    /// Resolve target position for either a unit or summoner target ID.
-    /// Returns null if target is invalid/dead.
-    /// </summary>
-    private static SimVector3? ResolveTargetPosition(int? targetId, MatchState state)
-    {
-        if (!targetId.HasValue) return null;
-
-        if (MatchState.IsSummonerTarget(targetId))
-        {
-            int team = MatchState.GetSummonerTeamFromTargetId(targetId.Value);
-            if (team >= 0 && team <= 1 && state.Summoners[team].IsAlive)
-                return state.Summoners[team].Position;
-            return null;
-        }
-
-        var unit = state.GetAliveUnit(targetId.Value);
-        return unit?.Position;
-    }
-
-    /// <summary>
     /// Calculate movement toward a target position with separation and flanking.
     /// excludeUnitId: unit target to exclude from separation (null for summoner targets).
     /// targetUnit: the UnitData for flanking calculations (null for summoner targets).
@@ -173,7 +156,7 @@ public static class SimMovement
             targetPos.Y = unit.Position.Y;
 
         var direction = (targetPos - unit.Position);
-        if (direction.LengthSquared() < 0.001f)
+        if (direction.LengthSquared() < DirectionThreshold)
             return SimVector3.Zero;
 
         direction = direction.Normalized();
@@ -182,7 +165,7 @@ public static class SimMovement
         var separation = SimSteering.CalculateSeparation(unit, excludeUnitId, direction, state);
         var flank = targetUnit != null ? SimSteering.CalculateFlankForce(unit, targetUnit) : SimVector3.Zero;
         var finalDir = (direction * effectiveSpeed + separation + flank);
-        if (finalDir.LengthSquared() > 0.001f)
+        if (finalDir.LengthSquared() > DirectionThreshold)
             finalDir = finalDir.Normalized();
 
         var velocity = finalDir * effectiveSpeed;
@@ -227,7 +210,7 @@ public static class SimMovement
         float effectiveSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
         var separation = SimSteering.CalculateSeparation(unit, excludeUnitId, strafeDir, state);
         var finalDir = (strafeDir + separation);
-        if (finalDir.LengthSquared() > 0.001f)
+        if (finalDir.LengthSquared() > DirectionThreshold)
             finalDir = finalDir.Normalized();
 
         var velocity = finalDir * effectiveSpeed;
@@ -241,7 +224,7 @@ public static class SimMovement
     /// </summary>
     private static void UpdateFacing(UnitData unit, SimVector3 direction)
     {
-        if (direction.LengthSquared() > 0.001f)
+        if (direction.LengthSquared() > DirectionThreshold)
             unit.IsFacingRight = direction.X > 0;
     }
 }

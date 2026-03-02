@@ -31,8 +31,6 @@ public static class SimSteering
     private const float FlankAngleStep = 15f;
     private const float FlankProgressInterval = 0.5f;
 
-    // ActivationState.Active = 1
-    private const int ActivationStateActive = 1;
 
     /// <summary>
     /// Calculate separation force to prevent unit stacking.
@@ -51,7 +49,7 @@ public static class SimSteering
             var other = kvp.Value;
             if (other.UnitId == unit.UnitId) continue;
             if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationStateActive) continue;
+            if (other.ActivationState != SimConstants.ActivationActive) continue;
 
             // Skip current target — don't separate from what we're attacking
             if (targetUnitId.HasValue && other.UnitId == targetUnitId.Value) continue;
@@ -78,6 +76,9 @@ public static class SimSteering
             {
                 var lateralDir = new SimVector3(-moveDirection.Z, 0, moveDirection.X);
                 float forwardAlignment = MathF.Abs(pushDir.Dot(moveDirection));
+                // Alternate lateral push direction by unit ID to spread units evenly.
+                // Intentionally opposite sign from FlankDirection (line 104) — separation
+                // spreads units while moving normally; flanking goes around a blocked target.
                 int lateralSign = (unit.UnitId % 2 == 0) ? 1 : -1;
                 force += lateralDir * lateralSign * forwardAlignment * strength * LateralSeparationBoost;
             }
@@ -101,6 +102,8 @@ public static class SimSteering
             // Phase 1: Choose flank direction
             if (unit.BlockedTime > BlockedThreshold && unit.FlankDirection == 0)
             {
+                // Alternate flank direction by unit ID so units go around from both sides.
+                // Intentionally opposite sign from separation lateral (line 81).
                 unit.FlankDirection = (unit.UnitId % 2 == 0) ? -1 : 1;
                 unit.FlankAngle = FlankAngleMin;
                 unit.FlankProgressTimer = 0;
@@ -173,7 +176,7 @@ public static class SimSteering
             var other = kvp.Value;
             if (other.UnitId == unit.UnitId) continue;
             if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationStateActive) continue;
+            if (other.ActivationState != SimConstants.ActivationActive) continue;
             if (other.MovementLayer != unit.MovementLayer) continue;
 
             // Skip current target — prevents infinite chase→overlap→push loops

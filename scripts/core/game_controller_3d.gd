@@ -56,7 +56,6 @@ signal phase_changed(new_phase: BattlePhase)
 signal prep_timer_updated(remaining: float)
 
 func _ready() -> void:
-	print("BattleCoordinator: Starting battle initialization...")
 
 	# Add to groups for discovery
 	add_to_group(GroupIDs.GAME_CONTROLLER)
@@ -80,59 +79,40 @@ func _ready() -> void:
 	# =============================================================================
 
 	# Phase 1: Initialize battlefield
-	print("BattleCoordinator: Phase 1 - Battlefield...")
 	if battlefield == null:
 		battlefield = get_node_or_null("Battlefield3D")
-	print("BattleCoordinator: Phase 1 complete - Battlefield ready")
 
 	# Phase 1.5: Preload unit scenes asynchronously to prevent first-spawn delays
-	print("BattleCoordinator: Phase 1.5 - Preloading unit scenes (async)...")
 	await _preload_unit_scenes()
-	print("BattleCoordinator: Phase 1.5 complete - Unit scenes cached")
 
 	# Phase 1.75: Initialize win conditions (must happen before SimulationNode so params are available)
-	print("BattleCoordinator: Phase 1.75 - Win conditions...")
 	_init_win_conditions()
-	print("BattleCoordinator: Phase 1.75 complete - Win conditions ready")
 
 	# Phase 1.8: Initialize SimulationNode (must exist before summoner init)
 	# Seed comes from BattleContext — no MatchSession dependency
-	print("BattleCoordinator: Phase 1.8 - SimulationNode...")
 	_init_simulation_node()
-	print("BattleCoordinator: Phase 1.8 complete - SimulationNode ready")
 
 	# Phase 2: Initialize summoners (summoners are now the attack targets)
-	print("BattleCoordinator: Phase 2 - Summoners...")
 	_init_summoners()
 	_connect_summoner_combat_signals()
-	print("BattleCoordinator: Phase 2 complete - Summoners ready")
 
 	# Phase 4: Initialize AI
-	print("BattleCoordinator: Phase 4 - AI...")
 	_load_ai_for_enemy()
-	print("BattleCoordinator: Phase 4 complete - AI ready")
 
 	# Phase 5: Initialize summoner modifiers
-	print("BattleCoordinator: Phase 5 - Summoner modifiers...")
 	_register_summoner_provider()
-	print("BattleCoordinator: Phase 5 complete - Summoner modifiers ready")
 
 	# Phase 6: Initialize UI components
-	print("BattleCoordinator: Phase 6 - UI...")
 	_init_ui()
-	print("BattleCoordinator: Phase 6 complete - UI ready")
 
 	# Phase 6.5: Set up multiplayer transport and MatchSession (if multiplayer)
 	# SimulationNode already exists (Phase 1.8), so runners wire up normally in Initialize()
-	print("BattleCoordinator: Phase 6.5 - Multiplayer...")
 	_setup_multiplayer()
-	print("BattleCoordinator: Phase 6.5 complete - Multiplayer ready")
 
 	# =============================================================================
 	# INITIALIZATION COMPLETE
 	# =============================================================================
 
-	print("BattleCoordinator: All phases complete, emitting initialization_complete")
 	initialization_complete.emit()
 
 	# Start the game — client waits for first snapshot from host
@@ -140,9 +120,7 @@ func _ready() -> void:
 	if is_mp_client:
 		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
 		if sim_node and sim_node.has_signal("FirstSnapshotApplied"):
-			print("BattleCoordinator: Client waiting for first snapshot before starting game...")
 			await sim_node.FirstSnapshotApplied
-			print("BattleCoordinator: First snapshot received, starting game")
 	start_game()
 
 ## Preload all unit scenes asynchronously to prevent first-spawn initialization delays.
@@ -159,7 +137,6 @@ func _preload_unit_scenes() -> void:
 				scene_paths.append(unit_scene_path)
 
 	if scene_paths.is_empty():
-		print("BattleCoordinator: No unit scenes to preload")
 		return
 
 	# Start async loading for all scenes
@@ -189,7 +166,6 @@ func _preload_unit_scenes() -> void:
 		elif status == ResourceLoader.THREAD_LOAD_FAILED:
 			push_warning("BattleCoordinator: Failed to load unit scene: %s" % path)
 
-	print("BattleCoordinator: Preloaded %d unit scenes (async)" % preloaded_count)
 
 ## Create and initialize the SimulationNode (must happen before summoner init)
 func _init_simulation_node() -> void:
@@ -213,7 +189,6 @@ func _init_simulation_node() -> void:
 		sim_node.IsHost = false
 		sim_node.LocalPlayerIndex = 1
 
-	print("BattleCoordinator: SimulationNode created and initialized (seed=%d)" % battle_seed)
 
 ## Initialize summoners and connect their signals
 func _init_summoners() -> void:
@@ -229,10 +204,8 @@ func _init_summoners() -> void:
 		# Client receives all state from host snapshots
 		if player_summoner and player_summoner.has_method("init_as_client"):
 			player_summoner.init_as_client()
-			print("BattleCoordinator: Player summoner initialized as client")
 		if enemy_summoner and enemy_summoner.has_method("init_as_client"):
 			enemy_summoner.init_as_client()
-			print("BattleCoordinator: Enemy summoner initialized as client")
 	else:
 		# Host / single-player path: full init with deck loading and sim registration
 		# Apply enemy HP override BEFORE init() so SimulationNode registers the correct HP
@@ -240,15 +213,12 @@ func _init_summoners() -> void:
 			var custom_hp: float = BattleContext.battle_config.get("enemy_hp", 300.0)
 			enemy_summoner.max_hp = custom_hp
 			enemy_summoner.current_hp = custom_hp
-			print("BattleCoordinator: Set enemy summoner HP to %s before init" % custom_hp)
 
 		if player_summoner and player_summoner.has_method("init"):
 			player_summoner.init()
-			print("BattleCoordinator: Player summoner initialized")
 
 		if enemy_summoner and enemy_summoner.has_method("init"):
 			enemy_summoner.init()
-			print("BattleCoordinator: Enemy summoner initialized")
 
 		# Populate SimulationNode card data after both summoners registered
 		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
@@ -343,7 +313,6 @@ func _clear_all_units() -> void:
 			cleared_count += 1
 
 	if cleared_count > 0:
-		print("  - Cleared %d units" % cleared_count)
 
 func _process(delta: float) -> void:
 	if current_state != GameState.PLAYING:
@@ -511,7 +480,6 @@ func _broadcast_match_end(winner: UnitConstants.Team) -> void:
 	# Call C# MatchSession.BroadcastMatchEnd()
 	if match_session.has_method("BroadcastMatchEnd"):
 		match_session.BroadcastMatchEnd(winner_index, reason)
-		print("GameController3D: Broadcast match end - winner: %d, reason: %s" % [winner_index, reason])
 
 func _check_timeout_victory() -> void:
 	# Simplified: player wins on timeout for now
@@ -550,7 +518,6 @@ func _start_battle_phase() -> void:
 				unit.Activate()
 				activated_count += 1
 
-	print("BattleCoordinator: Battle phase started - activated %d units" % activated_count)
 
 
 ## Skip preparation phase immediately (debug)
@@ -561,7 +528,6 @@ func skip_prep_phase() -> void:
 		var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
 		if sim_node:
 			sim_node.SkipPreparation()
-		print("BattleCoordinator: Prep phase skipped via debug")
 
 func get_time_remaining() -> float:
 	if is_overtime:
@@ -591,7 +557,6 @@ func _on_game_ended(winner: UnitConstants.Team) -> void:
 ## Sim emitted GameOver — the simulation determined a winner via IWinCondition.
 ## winner_team is already in local team space (SimulationNode.ToLocalTeam remaps).
 func _on_sim_game_over(winner_team: int, reason: String) -> void:
-	print("BattleCoordinator: Sim GameOver — winner=%d, reason=%s" % [winner_team, reason])
 	end_game(winner_team as UnitConstants.Team)
 
 ## Sim phase changed — update local phase from SimulationNode signal.
@@ -631,7 +596,6 @@ func _load_ai_for_enemy() -> void:
 		return
 
 	if BattleContext.is_multiplayer_battle():
-		print("BattleCoordinator: Multiplayer battle, no AI needed")
 		return
 
 	# Get battle config from BattleContext
@@ -723,9 +687,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
 			# Click detected - select units in radius
-			print("GameController3D: Mouse click detected in redirect mode")
 			var click_point: Vector3 = _get_battlefield_point_from_mouse(mouse_event.position)
-			print("GameController3D: Click point = ", click_point)
 			if click_point != Vector3.ZERO:
 				_redirect_start_point = click_point
 				_redirect_selected_units = RedirectManager.select_units_in_radius(
@@ -737,15 +699,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 				# Show visual indicator
 				var indicator_color: Color = RedirectManager.get_current_mode_color()
-				print("GameController3D: Showing indicator at ", click_point, " with color ", indicator_color)
 				_redirect_indicator.show_selection_circle(click_point, indicator_color)
 
 				# Tint selected units
 				_apply_unit_tint(indicator_color)
 
-				print("GameController3D: Redirect started, selected %d units" % _redirect_selected_units.size())
 			else:
-				print("GameController3D: Click point was ZERO, raycast failed")
 
 		elif mouse_event.button_index == MOUSE_BUTTON_LEFT and not mouse_event.pressed and _redirect_drag_active:
 			# Release detected - apply redirect
@@ -799,16 +758,12 @@ func _get_battlefield_point_from_mouse(screen_pos: Vector2) -> Vector3:
 
 ## Handle redirect release (apply forced targets)
 func _on_redirect_release(release_point: Vector3) -> void:
-	print("GameController3D: Redirect release at ", release_point)
-	print("GameController3D: Selected units count: ", _redirect_selected_units.size())
 
 	if _redirect_selected_units.is_empty():
-		print("GameController3D: No units selected for redirect")
 		RedirectManager.cancel_redirect()
 		return
 
 	# Find nearest enemy at release point
-	print("GameController3D: Searching for target at ", release_point, " with radius ", RedirectManager.TARGET_SEARCH_RADIUS)
 	var target: Node3D = RedirectManager.find_nearest_enemy(
 		release_point,
 		player_summoner.team,
@@ -816,11 +771,9 @@ func _on_redirect_release(release_point: Vector3) -> void:
 	)
 
 	if not target:
-		print("GameController3D: No valid target found at release point")
 		RedirectManager.cancel_redirect()
 		return
 
-	print("GameController3D: Found target: ", target.name, " at ", target.global_position)
 
 	# Apply forced targets
 	RedirectManager.apply_forced_targets(
@@ -830,7 +783,6 @@ func _on_redirect_release(release_point: Vector3) -> void:
 		release_point
 	)
 
-	print("GameController3D: Redirect applied to %d units targeting %s" % [_redirect_selected_units.size(), target.name])
 
 ## Apply color tint to selected units
 func _apply_unit_tint(tint_color: Color) -> void:
@@ -875,7 +827,6 @@ func _init_win_conditions() -> void:
 	# Get win condition from battle config
 	var config: Dictionary = BattleContext.battle_config
 	if config.is_empty():
-		print("BattleCoordinator: Empty battle config, using default win condition")
 		return
 
 	# Read win condition type
@@ -902,7 +853,6 @@ func _init_win_conditions() -> void:
 	if win_condition == WinConditionIDs.KILL_COUNT:
 		_connect_unit_death_tracking()
 
-	print("BattleCoordinator: Win condition = %s, time_limit = %.1fs, kill_target = %d" % [
 		win_condition, win_condition_time_limit, win_condition_kill_target
 	])
 
@@ -1000,7 +950,6 @@ func _init_ui() -> void:
 ## Set up multiplayer transport and MatchSession (if this is a multiplayer battle)
 func _setup_multiplayer() -> void:
 	if not BattleContext.is_multiplayer_battle():
-		print("BattleCoordinator: Not a multiplayer battle, skipping multiplayer setup")
 		return
 
 	var config_dict: Dictionary = BattleContext.battle_config
@@ -1077,7 +1026,6 @@ func _setup_multiplayer() -> void:
 		if sim_node and sim_node.has_signal("RemoteUnitSpawned"):
 			sim_node.RemoteUnitSpawned.connect(_on_remote_unit_spawned)
 
-	print("BattleCoordinator: Multiplayer setup complete (host: %s, match: %s)" % [is_host, match_id])
 
 
 ## Handle remote unit spawn from host (client-side only).
@@ -1096,4 +1044,3 @@ func _on_remote_unit_spawned(catalog_id: String, local_team: int, local_position
 	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
 	var team_enum: UnitConstants.Team = local_team as UnitConstants.Team
 	card.play_3d(local_position, team_enum, bf, modifier_service, spawn_duration)
-	print("BattleCoordinator: Remote unit spawned: %s (team %d) at %s (duration=%.1f)" % [catalog_id, local_team, local_position, spawn_duration])

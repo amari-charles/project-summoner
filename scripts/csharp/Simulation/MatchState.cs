@@ -49,6 +49,9 @@ public class MatchState
     // Next projectile ID counter
     private int _nextProjectileId;
 
+    // Next buff ID counter (instance-scoped for determinism across matches)
+    private int _nextBuffId;
+
     // Next network ID counter — simulation owns NetworkId assignment
     private int _nextNetworkId = 1;
 
@@ -61,6 +64,12 @@ public class MatchState
     /// Get the next unique projectile ID for this match.
     /// </summary>
     public int NextProjectileId() => _nextProjectileId++;
+
+    /// <summary>
+    /// Get the next unique buff ID for this match.
+    /// Instance-scoped (not static) to ensure determinism across matches.
+    /// </summary>
+    public int NextBuffId() => _nextBuffId++;
 
     /// <summary>
     /// Get the next unique network ID for this match.
@@ -91,7 +100,7 @@ public class MatchState
     public List<UnitData> GetAliveActiveUnits()
     {
         return Units.Values
-            .Where(u => u.IsAlive && u.ActivationState == (int)ProjectSummoner.Units.ActivationState.Active)
+            .Where(u => u.IsAlive && u.ActivationState == SimConstants.ActivationActive)
             .OrderBy(u => u.UnitId)
             .ToList();
     }
@@ -102,7 +111,7 @@ public class MatchState
     public List<UnitData> GetAliveActiveUnitsForTeam(int team)
     {
         return Units.Values
-            .Where(u => u.IsAlive && u.ActivationState == (int)ProjectSummoner.Units.ActivationState.Active && u.Team == team)
+            .Where(u => u.IsAlive && u.ActivationState == SimConstants.ActivationActive && u.Team == team)
             .OrderBy(u => u.UnitId)
             .ToList();
     }
@@ -147,12 +156,17 @@ public class MatchState
     }
 
     /// <summary>
+    /// Get the opposing team index. 0 → 1, 1 → 0.
+    /// </summary>
+    public static int GetEnemyTeam(int team) => team == 0 ? 1 : 0;
+
+    /// <summary>
     /// Get the alive enemy summoner for a given team.
     /// Returns null if the enemy summoner is dead.
     /// </summary>
     public SummonerData? GetAliveEnemySummoner(int team)
     {
-        int enemyTeam = team == 0 ? 1 : 0;
+        int enemyTeam = GetEnemyTeam(team);
         var summoner = Summoners[enemyTeam];
         return summoner.IsAlive ? summoner : null;
     }

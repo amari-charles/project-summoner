@@ -668,6 +668,7 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         if (IsSimDriven)
         {
             GD.Print($"[Unit3D] Claimed SimUnitId={SimUnitId} for {UnitId} team={Team}");
+            simNode.RegisterUnit3D(SimUnitId.Value, this);
         }
     }
 
@@ -758,21 +759,20 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
 
     /// <summary>
     /// Find a Unit3D in the scene tree by its SimUnitId.
-    /// Used for signal emission (e.g., UnitAttacked target reference).
+    /// Uses SimulationNode's O(1) cache, falls back to group scan.
     /// </summary>
     private Node3D? FindUnit3DBySimId(int simUnitId)
     {
-        foreach (var node in GetTree().GetNodesInGroup(GroupIDs.Units))
-        {
-            if (node is Unit3D unit && unit.SimUnitId == simUnitId)
-                return unit;
-        }
+        var cached = SimulationNode.Current?.FindUnit3DBySimId(simUnitId);
+        if (cached is Node3D node3D) return node3D;
         return null;
     }
 
     public override void _ExitTree()
     {
         DisconnectSimSignals();
+        if (SimUnitId.HasValue)
+            SimulationNode.Current?.UnregisterUnit3D(SimUnitId.Value);
     }
 
     public override void _PhysicsProcess(double delta)

@@ -308,7 +308,7 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         // Add a shield that can absorb all damage
-        SimEffects.ApplyShield(target, 200f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 200f, attacker.UnitId, 0);
 
         var (damage, _, _) = SimDamage.Calculate(
             100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
@@ -326,7 +326,7 @@ public class SimDamageTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         target.Evasion = 0f;
 
-        SimEffects.ApplyShield(target, 30f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 30f, attacker.UnitId, 0);
 
         var (damage, _, _) = SimDamage.Calculate(
             100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
@@ -345,9 +345,9 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         // Oldest shield added first (25 HP)
-        SimEffects.ApplyShield(target, 25f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 25f, attacker.UnitId, 0);
         // Newer shield (50 HP)
-        SimEffects.ApplyShield(target, 50f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 50f, attacker.UnitId, 0);
 
         var (damage, _, _) = SimDamage.Calculate(
             100f, DamageType.Physical, attacker, target, null, null, _state.Rng);

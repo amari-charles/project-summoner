@@ -22,9 +22,6 @@ public static class SimBehavior
     public const int InRange = 2;
     public const int Attacking = 3;
 
-    // Death cleanup: time for death animation before UnitRemovedEvent
-    private const float DeathCleanupSeconds = 2.0f;
-
     // Unit type constants
     private const int UnitTypeMelee = 0;
     private const int UnitTypeRanged = 1;
@@ -34,6 +31,7 @@ public static class SimBehavior
     private const int FallbackStrafe = 1;
     private const int FallbackIdle = 2;
 
+    private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
 
     /// <summary>
@@ -114,7 +112,7 @@ public static class SimBehavior
         }
 
         // Resolve target position — works for both unit and summoner targets
-        var targetPos = ResolveTargetPosition(unit.TargetUnitId, state);
+        var targetPos = SimUtils.ResolveTargetPosition(unit.TargetUnitId, state);
         if (!targetPos.HasValue)
         {
             unit.BehaviorState = NoTarget;
@@ -190,7 +188,7 @@ public static class SimBehavior
                 }
 
                 unit.AttackCooldown = 1.0f / unit.AttackSpeed;
-                unit.AttackAnimationTimer = 0.5f; // Default attack animation duration
+                unit.AttackAnimationTimer = AttackAnimationDuration;
                 events.Add(new UnitAttackedEvent(unit.UnitId, targetId));
 
                 return new BehaviorResult { Movement = MoveNone };
@@ -240,11 +238,7 @@ public static class SimBehavior
 
         if (target.CurrentHp <= 0)
         {
-            target.CurrentHp = 0;
-            target.IsAlive = false;
-            target.DeathCleanupTimer = DeathCleanupSeconds;
-            state.KillCount++;
-            events.Add(new UnitDiedSimEvent(target.UnitId, attacker.UnitId));
+            SimUtils.KillUnit(state, target, attacker.UnitId, events);
 
             // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
             SimEffects.FireTriggers(state, attacker, TriggerType.OnKill, target, events);
@@ -253,9 +247,11 @@ public static class SimBehavior
     }
 
     /// <summary>
-    /// Apply damage to a summoner target. Handles both melee (immediate) and
-    /// ranged (zero-delay) attacks. For ranged with projectile delay, the caller
-    /// sets PendingDamageTargetId instead and TickPendingDamage handles it.
+    /// Apply damage to a summoner target.
+    /// Summoner damage intentionally bypasses SimDamage.Calculate() — summoners are
+    /// not units and don't have evasion, crit interaction, elemental matchups, defense,
+    /// or shields. Only summoner-level modifiers (DamageBonus, DamageReduction) apply.
+    /// For ranged with projectile delay, the caller sets PendingDamageTargetId instead.
     /// </summary>
     private static void ApplyDamageToSummoner(
         UnitData attacker, int summonerTargetId, MatchState state, float delta, List<SimEvent> events)
@@ -276,16 +272,7 @@ public static class SimBehavior
         // Immediate damage (melee or zero-delay ranged)
         float damage = attacker.AttackDamage;
         var attackerSummoner = state.Summoners[attacker.Team];
-
-        // Apply summoner damage bonus
-        if (attackerSummoner.DamageBonus > 0f)
-            damage *= 1f + attackerSummoner.DamageBonus / 100f;
-
-        // Apply summoner damage reduction
-        if (summoner.DamageReduction > 0f)
-            damage = System.MathF.Max(damage - summoner.DamageReduction, 0f);
-
-        damage = System.MathF.Round(damage * 10f) / 10f;
+        damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
 
         summoner.CurrentHp -= damage;
         if (summoner.CurrentHp <= 0)
@@ -323,12 +310,7 @@ public static class SimBehavior
                 {
                     float damage = unit.PendingDamageAmount;
                     var attackerSummoner = state.Summoners[unit.Team];
-
-                    if (attackerSummoner.DamageBonus > 0f)
-                        damage *= 1f + attackerSummoner.DamageBonus / 100f;
-                    if (summoner.DamageReduction > 0f)
-                        damage = System.MathF.Max(damage - summoner.DamageReduction, 0f);
-                    damage = System.MathF.Round(damage * 10f) / 10f;
+                    damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
 
                     summoner.CurrentHp -= damage;
                     if (summoner.CurrentHp <= 0)
@@ -363,11 +345,7 @@ public static class SimBehavior
 
                     if (target.CurrentHp <= 0)
                     {
-                        target.CurrentHp = 0;
-                        target.IsAlive = false;
-                        target.DeathCleanupTimer = DeathCleanupSeconds;
-                        state.KillCount++;
-                        events.Add(new UnitDiedSimEvent(target.UnitId, unit.UnitId));
+                        SimUtils.KillUnit(state, target, unit.UnitId, events);
 
                         // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
                         SimEffects.FireTriggers(state, unit, TriggerType.OnKill, target, events);
@@ -395,22 +373,15 @@ public static class SimBehavior
     }
 
     /// <summary>
-    /// Resolve target position for either a unit or summoner target ID.
-    /// Returns null if target is invalid/dead.
+    /// Apply summoner-level damage modifiers (damage bonus from attacker, damage reduction from target).
+    /// Rounds to one decimal place for deterministic results.
     /// </summary>
-    private static SimVector3? ResolveTargetPosition(int? targetId, MatchState state)
+    private static float ApplySummonerDamageModifiers(float damage, SummonerData attacker, SummonerData target)
     {
-        if (!targetId.HasValue) return null;
-
-        if (MatchState.IsSummonerTarget(targetId))
-        {
-            int team = MatchState.GetSummonerTeamFromTargetId(targetId.Value);
-            if (team >= 0 && team <= 1 && state.Summoners[team].IsAlive)
-                return state.Summoners[team].Position;
-            return null;
-        }
-
-        var unit = state.GetAliveUnit(targetId.Value);
-        return unit?.Position;
+        if (attacker.DamageBonus > 0f)
+            damage *= 1f + attacker.DamageBonus / 100f;
+        if (target.DamageReduction > 0f)
+            damage = System.MathF.Max(damage - target.DamageReduction, 0f);
+        return System.MathF.Round(damage * 10f) / 10f;
     }
 }

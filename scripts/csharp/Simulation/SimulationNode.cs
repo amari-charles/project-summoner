@@ -45,6 +45,12 @@ public partial class SimulationNode : Node
     private readonly System.Collections.Generic.HashSet<int> _claimedSimUnitIds = new();
 
     /// <summary>
+    /// Cache mapping SimUnitId → Unit3D for O(1) lookup.
+    /// Updated on register (ClaimNextSimUnitId) and remove (UnregisterUnit3D).
+    /// </summary>
+    private readonly Dictionary<int, Node> _unit3DBySimId = new();
+
+    /// <summary>
     /// Whether the first snapshot has been applied (client-side).
     /// </summary>
     private bool _firstSnapshotApplied;
@@ -85,7 +91,7 @@ public partial class SimulationNode : Node
     public int RemapTeam(int team)
     {
         if (LocalPlayerIndex == 0) return team;
-        return team == 0 ? 1 : 0;
+        return MatchState.GetEnemyTeam(team);
     }
 
     /// <summary>
@@ -273,8 +279,12 @@ public partial class SimulationNode : Node
             Rng = new DeterministicRng(seed)
         };
 
+        // Wire up sim logging to Godot (keeps Simulation.cs free of Godot dependencies)
+        Simulation.Log = msg => GD.Print(msg);
+
         _simulation = new Simulation(State);
         _claimedSimUnitIds.Clear();
+        _unit3DBySimId.Clear();
         _firstSnapshotApplied = false;
         _initialized = true;
 
@@ -624,6 +634,33 @@ public partial class SimulationNode : Node
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Register a Unit3D node in the SimUnitId → Node cache for O(1) lookups.
+    /// Called by Unit3D after ClaimNextSimUnitId succeeds.
+    /// </summary>
+    public void RegisterUnit3D(int simUnitId, Node unit3D)
+    {
+        _unit3DBySimId[simUnitId] = unit3D;
+    }
+
+    /// <summary>
+    /// Remove a Unit3D node from the SimUnitId cache.
+    /// Called by Unit3D._ExitTree().
+    /// </summary>
+    public void UnregisterUnit3D(int simUnitId)
+    {
+        _unit3DBySimId.Remove(simUnitId);
+    }
+
+    /// <summary>
+    /// Look up a Unit3D node by its SimUnitId. O(1) via cached dictionary.
+    /// Returns null if no Unit3D is registered for that ID.
+    /// </summary>
+    public Node? FindUnit3DBySimId(int simUnitId)
+    {
+        return _unit3DBySimId.TryGetValue(simUnitId, out var node) ? node : null;
     }
 
     /// <summary>

@@ -9,8 +9,6 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimTargeting
 {
-    // ActivationState.Active = 1
-    private const int ActivationStateActive = 1;
 
     /// <summary>
     /// Find the best target for a unit from all alive active enemy units.
@@ -28,7 +26,7 @@ public static class SimTargeting
             // Leader dead or no target — fall through to normal targeting
         }
 
-        int enemyTeam = unit.Team == 0 ? 1 : 0;
+        int enemyTeam = MatchState.GetEnemyTeam(unit.Team);
         float bestScore = float.MinValue;
         int? bestId = null;
 
@@ -38,7 +36,7 @@ public static class SimTargeting
 
             // Basic filters
             if (!candidate.IsAlive) continue;
-            if (candidate.ActivationState != ActivationStateActive) continue;
+            if (candidate.ActivationState != SimConstants.ActivationActive) continue;
             if (candidate.Team != enemyTeam) continue;
 
             // Distance filter (aggro radius)

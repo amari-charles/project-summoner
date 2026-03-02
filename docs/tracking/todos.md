@@ -50,14 +50,37 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 - [ ] End-to-end testing with Nakama server
 
 **Technical Considerations:**
-- Host-authority model with client-side prediction
+- Host-authority model (client is render-only, no local simulation)
 - 10 Hz state snapshots for sync
+- Client prediction not yet implemented — currently pure snapshot interpolation
 - See `docs/multiplayer/ranked-system.md` for architecture
+- See `docs/technical/simulation-architecture.md` for simulation layer details
 
 **Related Systems:**
 - Deck building/validation
 - Battle system
 - Profile progression
+
+---
+
+#### Add Client-Side Prediction
+**Status:** ⬜ Not Started
+**Category:** Multiplayer / Simulation
+**Effort:** Medium
+
+**Description:**
+The client currently operates as a pure renderer — it applies host snapshots but does not run local simulation. Adding client-side prediction would reduce perceived input lag by running `Simulation.Tick()` locally on the client with local inputs, then reconciling when the authoritative snapshot arrives.
+
+**Tasks:**
+- [ ] Run `Simulation.Tick()` on client with local commands
+- [ ] Implement snapshot reconciliation (rollback + replay on mismatch)
+- [ ] Handle misprediction correction (smooth visual snapping)
+- [ ] Ensure deterministic parity between host and client simulation
+
+**Notes:**
+- The simulation layer is already pure and Godot-free, making client prediction feasible
+- `DesyncDetector` already compares local vs host state — extend for prediction reconciliation
+- Low priority until latency becomes a user-facing issue
 
 ---
 

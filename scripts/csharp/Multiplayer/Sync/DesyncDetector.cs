@@ -28,6 +28,12 @@ public class DesyncDetector
     private const int MaxDesyncLogEntries = 100;
 
     /// <summary>
+    /// Maximum frame lag before skipping hash comparison.
+    /// At 60 fps, 60 frames ≈ 1 second.
+    /// </summary>
+    private const int MaxFrameLagTolerance = 60;
+
+    /// <summary>
     /// Interval between hash reports from client to host (in frames).
     /// Every 60 frames at 60fps = once per second.
     /// </summary>
@@ -94,7 +100,7 @@ public class DesyncDetector
         // The server state has advanced far past the client's hash frame,
         // so comparing would always produce a false mismatch.
         var serverFrame = SimulationNode.Current?.State.FrameNumber ?? 0;
-        if (Math.Abs(serverFrame - clientFrame) > 60) // More than ~1 second behind
+        if (Math.Abs(serverFrame - clientFrame) > MaxFrameLagTolerance)
             return true;
 
         // Compute our authoritative hash

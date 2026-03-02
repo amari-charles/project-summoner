@@ -11,10 +11,6 @@ namespace Fateforged.Simulation;
 /// </summary>
 public static class SimEffects
 {
-    private static int _nextBuffId;
-
-    // Death cleanup constant (matches SimBehavior)
-    private const float DeathCleanupSeconds = 2.0f;
 
     // =========================================================================
     // TICK METHODS (called from Simulation.Tick steps 7-8)
@@ -116,7 +112,7 @@ public static class SimEffects
                 break;
 
             case EffectType.Shield:
-                ApplyShield(target, value, sourceUnitId, sourceTeam);
+                ApplyShield(state, target, value, sourceUnitId, sourceTeam);
                 events.Add(new BuffAppliedSimEvent(target.UnitId, EffectType.Shield, value, -1));
                 break;
 
@@ -131,7 +127,7 @@ public static class SimEffects
             case EffectType.Haste:
             case EffectType.DamageBoost:
             case EffectType.StatModifier:
-                ApplyBuff(target, effectType, value, duration, damageType, sourceUnitId, sourceTeam, events);
+                ApplyBuff(state, target, effectType, value, duration, damageType, sourceUnitId, sourceTeam, events);
                 break;
         }
     }
@@ -265,11 +261,11 @@ public static class SimEffects
     /// <summary>
     /// Apply a shield to a unit. Shields are consumed oldest-first during damage calculation.
     /// </summary>
-    public static void ApplyShield(UnitData target, float shieldHp, int sourceUnitId, int sourceTeam)
+    public static void ApplyShield(MatchState state, UnitData target, float shieldHp, int sourceUnitId, int sourceTeam)
     {
         target.ActiveBuffs.Add(new ActiveBuff
         {
-            BuffId = _nextBuffId++,
+            BuffId = state.NextBuffId(),
             EffectType = EffectType.Shield,
             ShieldHp = shieldHp,
             Duration = -1, // Permanent until consumed
@@ -330,11 +326,7 @@ public static class SimEffects
 
         if (target.CurrentHp <= 0)
         {
-            target.CurrentHp = 0;
-            target.IsAlive = false;
-            target.DeathCleanupTimer = DeathCleanupSeconds;
-            state.KillCount++;
-            events.Add(new UnitDiedSimEvent(target.UnitId, sourceUnitId));
+            SimUtils.KillUnit(state, target, sourceUnitId, events);
 
             // Fire death triggers on the killed unit
             FireDeathTriggers(state, target, attacker, events);
@@ -354,12 +346,12 @@ public static class SimEffects
     }
 
     private static void ApplyBuff(
-        UnitData target, EffectType effectType, float value, float duration,
+        MatchState state, UnitData target, EffectType effectType, float value, float duration,
         DamageType damageType, int sourceUnitId, int sourceTeam, List<SimEvent> events)
     {
         var buff = new ActiveBuff
         {
-            BuffId = _nextBuffId++,
+            BuffId = state.NextBuffId(),
             EffectType = effectType,
             Value = value,
             Duration = duration,
@@ -382,11 +374,7 @@ public static class SimEffects
                 events.Add(new UnitDamagedEvent(unit.UnitId, buff.SourceUnitId, buff.Value, false));
                 if (unit.CurrentHp <= 0)
                 {
-                    unit.CurrentHp = 0;
-                    unit.IsAlive = false;
-                    unit.DeathCleanupTimer = DeathCleanupSeconds;
-                    state.KillCount++;
-                    events.Add(new UnitDiedSimEvent(unit.UnitId, buff.SourceUnitId));
+                    SimUtils.KillUnit(state, unit, buff.SourceUnitId, events);
                 }
                 break;
 
@@ -444,7 +432,7 @@ public static class SimEffects
     private static void ApplyAreaEffect(
         MatchState state, UnitData source, TriggerConfig trigger, List<SimEvent> events)
     {
-        int enemyTeam = source.Team == 0 ? 1 : 0;
+        int enemyTeam = MatchState.GetEnemyTeam(source.Team);
         float radiusSq = trigger.AoeRadius * trigger.AoeRadius;
 
         foreach (var kvp in state.Units)
@@ -485,7 +473,7 @@ public static class SimEffects
         if (effect.AoeRadius > 0)
         {
             // Area effect — damage all enemies in radius
-            int enemyTeam = effect.SourceTeam == 0 ? 1 : 0;
+            int enemyTeam = MatchState.GetEnemyTeam(effect.SourceTeam);
             float radiusSq = effect.AoeRadius * effect.AoeRadius;
 
             foreach (var kvp in state.Units)

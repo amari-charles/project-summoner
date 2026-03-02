@@ -470,7 +470,7 @@ public class SimEffectsTest
     public void AbsorbWithShields_FullAbsorption()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        SimEffects.ApplyShield(target, 100f, -1, 0);
+        SimEffects.ApplyShield(_state, target, 100f, -1, 0);
 
         float remaining = SimEffects.AbsorbWithShields(target, 50f, null);
 
@@ -483,7 +483,7 @@ public class SimEffectsTest
     public void AbsorbWithShields_PartialAbsorption()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        SimEffects.ApplyShield(target, 30f, -1, 0);
+        SimEffects.ApplyShield(_state, target, 30f, -1, 0);
 
         float remaining = SimEffects.AbsorbWithShields(target, 50f, null);
 
@@ -495,8 +495,8 @@ public class SimEffectsTest
     public void AbsorbWithShields_OldestFirst()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        SimEffects.ApplyShield(target, 20f, -1, 0); // Oldest
-        SimEffects.ApplyShield(target, 50f, -1, 0); // Newer
+        SimEffects.ApplyShield(_state, target, 20f, -1, 0); // Oldest
+        SimEffects.ApplyShield(_state, target, 50f, -1, 0); // Newer
 
         float remaining = SimEffects.AbsorbWithShields(target, 30f, null);
 

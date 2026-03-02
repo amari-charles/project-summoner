@@ -65,12 +65,12 @@ public partial class MatchSession : Node, IMessageBroadcaster
     /// <summary>
     /// Current simulation frame number.
     /// </summary>
-    public long CurrentFrame { get; set; }
+    public long CurrentFrame { get; internal set; }
 
     /// <summary>
     /// Elapsed match time in seconds.
     /// </summary>
-    public float MatchTime { get; set; }
+    public float MatchTime { get; internal set; }
 
     /// <summary>
     /// Registry mapping network IDs to nodes.
