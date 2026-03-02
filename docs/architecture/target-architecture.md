@@ -1,6 +1,6 @@
 # Target Architecture
 
-High-level architectural redesign to resolve the 25 issues in `docs/tracking/architectural-issues.md`.
+High-level architectural redesign to resolve the 25 issues in `docs/migration/architectural-issues.md`.
 
 ## 1. Layer Boundaries
 
@@ -196,6 +196,20 @@ flowchart TB
 ```
 
 `LocalSession` uses only `CommandRouter` + `Simulation` — no networking. `HostSession` and `ClientSession` inherit shared multiplayer infrastructure (blue-purple nodes) from `NetworkSession`.
+
+### Session stubs
+
+All stubs are in `scripts/csharp/Session/`. Each method body throws `NotImplementedException`. Detailed stub listings are in [`gameplay/session/README.md`](gameplay/session/README.md#stubs).
+
+| Stub File | Class | Key Responsibilities |
+|-----------|-------|---------------------|
+| `LocalSession.cs` | `LocalSession : IGameSession` | Validate → queue → tick sim → emit events |
+| `NetworkSession.cs` | `NetworkSession : IGameSession` (abstract) | Owns IdentityMap, SnapshotCodec; routes messages |
+| `HostSession.cs` | `HostSession : NetworkSession` | Tick sim + broadcast snapshots + validate remote commands |
+| `ClientSession.cs` | `ClientSession : NetworkSession` | Send commands to host + apply snapshots |
+| `CommandRouter.cs` | `CommandRouter` | Validate any ICommand against MatchState |
+| `IdentityMap.cs` | `IdentityMap` | UnitId ↔ NetworkId O(1) bimap (pure ints) |
+| `SnapshotCodec.cs` | `SnapshotCodec` | Encode/decode MatchState for network |
 
 ## 4. Above the Session
 
@@ -401,9 +415,9 @@ GDScript UI components that read `IGameSession` independently. BattleHUD is NOT 
 
 **View knows nothing about Input.** It doesn't care how Commands were produced. It only reads from `IGameSession`.
 
-### Deferred: AudioManager
+### AudioManager: Standalone Service
 
-AudioManager placement in the layer model is an open question. See [`decisions.md`](decisions.md#b-audiomanager-placement) for arguments and possible approaches.
+AudioManager lives outside the layer model as a standalone service, callable by any layer. See [`decisions.md`](decisions.md) Decision #10 for reasoning.
 
 ## 7. What Gets Deleted
 
@@ -441,6 +455,21 @@ flowchart LR
     classDef delete fill:#ffcdd2,stroke:#c62828,color:#b71c1c
     classDef keep fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20
 ```
+
+### Deletion Blockers
+
+Godot-side duplicates can't all be deleted immediately — some are still wired into the running game. This table tracks what blocks each deletion:
+
+| File to Delete | Status | Blocked By |
+|---------------|--------|-----------|
+| `scripts/csharp/Combat/DamageSystem.cs` + `.tscn` | Blocked | Unit3D still uses DamageSystem for Godot-side damage |
+| `scripts/csharp/Systems/Modifiers/ModifierService.cs` | Blocked | Unit3D applies modifiers through it |
+| `scripts/csharp/Projectiles/ProjectileService.cs` | Blocked | RangedUnit3D, DamageEffect reference it |
+| `scripts/csharp/Abilities/BaseAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
+| `scripts/csharp/Abilities/SlowOnHitAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
+| `scripts/csharp/Abilities/IAbilityConfig.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
+
+The remaining blocked deletions unblock when UnitVisual replaces Unit3D as the visual shell, at which point Unit3D's direct references to DamageSystem, ModifierService, and ProjectileService go away.
 
 ## Issue Resolution Map
 

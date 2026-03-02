@@ -7,18 +7,6 @@ class_name AuthorityProvider extends RefCounted
 ## - LocalAuthority: Single-player (all actions immediate, no network)
 ## - MultiplayerAuthority: Online multiplayer (bridges to C# MatchSession)
 
-## Emitted when authority confirms an action was executed
-## action is a GameAction (RefCounted)
-signal action_confirmed(action: RefCounted)
-
-## Emitted when authority rejects an action (with reason)
-## action is a GameAction (RefCounted)
-signal action_rejected(action: RefCounted, reason: String)
-
-## Emitted when a state change is received from authority (for clients)
-signal state_update_received(state_data: Dictionary)
-
-
 ## Returns true if this peer has authority over game state changes.
 ## Only the authority (host/server in MP, always true in SP) can make state changes.
 func has_authority() -> bool:

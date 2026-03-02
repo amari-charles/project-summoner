@@ -399,7 +399,7 @@ Formation logic was duplicated across multiple files (Card.gd, CardFactory.cs, F
 - Deleted FormationHelper.cs (redundant)
 - SpawnPreview.cs uses simple inline default for initial positioning
 
-**Architecture Document:** See `docs/architecture/transformation-roadmap.md` for full details.
+**Architecture Document:** See `docs/archive/transformation-roadmap.md` for full details (archived — superseded by layered architecture migration).
 
 ---
 

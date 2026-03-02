@@ -1,6 +1,5 @@
 using Godot;
 using System.Collections.Generic;
-using ProjectSummoner.Abilities;
 using ProjectSummoner.Capabilities;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Combat;
@@ -630,29 +629,11 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         // Apply element tint for placeholder visuals (deferred to wait for visual initialization)
         CallDeferred(MethodName.ApplyElementTintDeferred);
 
-        // Initialize any child abilities
-        InitializeAbilities();
-
         // Claim sim unit ID from MatchState (links this visual node to its simulation data)
         ClaimSimUnitId();
 
         // Connect to sim event signals for visual feedback
         ConnectSimSignals();
-    }
-
-    /// <summary>
-    /// Find all BaseAbility child nodes and call Setup() on them.
-    /// Abilities added as children in the scene are auto-discovered here.
-    /// </summary>
-    private void InitializeAbilities()
-    {
-        foreach (var child in GetChildren())
-        {
-            if (child is BaseAbility ability)
-            {
-                ability.Setup(this);
-            }
-        }
     }
 
     /// <summary>
@@ -894,9 +875,9 @@ public abstract partial class Unit3D : CharacterBody3D, IDamageable
         {
             string anim = unitData.BehaviorState switch
             {
-                3 => "idle",   // Attacking — attack anim triggered by event, show idle between
-                2 => "idle",   // InRange — waiting for cooldown
-                _ => "walk"    // NoTarget or Chasing
+                BehaviorState.Attacking => "idle",  // attack anim triggered by event, show idle between
+                BehaviorState.InRange => "idle",    // waiting for cooldown
+                _ => "walk"                         // NoTarget or Chasing
             };
             UpdateAnimation(anim);
         }

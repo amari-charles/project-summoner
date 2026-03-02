@@ -63,6 +63,42 @@ RequestValidator now validates card-in-hand bounds, mana cost, and casting state
 
 ---
 
+## 2026-03 Completions
+
+### Multiplayer Opponent Summoner Stats Exchange
+**Completed:** 2026-03-01
+**Category:** Multiplayer / Ranked Gameplay
+**Effort:** Small
+
+**Description:**
+Previously the multiplayer battle setup hardcoded the opponent summoner as "ignis" with an empty deck. Now both players exchange their real summoner instance data and deck during match setup, and the host applies the opponent's summoner bonuses correctly.
+
+**Key Accomplishments:**
+- ✅ Both players send summoner instance data alongside deck during match setup
+- ✅ Host reconstructs opponent `SummonerInstance` from exchanged data before initializing the battle
+- ✅ Added `set_summoner_instance()` to `Summoner` so the host can inject enemy stats
+- ✅ Summoner bonuses (HP, attack, etc.) applied for any loaded instance, not just the local player
+- ✅ Only the local player summoner stats are cached in `BattleContext` (opponent excluded)
+- ✅ `configure_multiplayer_battle()` receives and forwards `opponent_summoner_data`
+
+**Completed (also in this batch):**
+- ✅ Sync `MaxHp` from host to client in `UnitState` protocol message — clients were setting `MaxHp = CurrentHp`, so damaged units appeared at full health; added `MaxHp` to `UnitState`, `StateSnapshotBuilder`, `MessageSerializer`, and `ApplySnapshot`
+
+**Files Changed:**
+- `scripts/core/battle_context.gd` - Scope opponent summoner data out of BattleContext cache
+- `scripts/core/game_controller_3d.gd` - Pass opponent summoner data through battle init
+- `scripts/core/summoner.gd` - Add `set_summoner_instance()`, apply bonuses for any instance
+- `scripts/ui/screens/online_screen.gd` - Exchange summoner instance data during match setup
+- `scripts/csharp/Multiplayer/Protocol/Messages.cs` - Add `MaxHp` to `UnitState`
+- `scripts/csharp/Multiplayer/Protocol/MessageSerializer.cs` - Serialize/deserialize `MaxHp`
+- `scripts/csharp/Multiplayer/Sync/StateSnapshotBuilder.cs` - Include `MaxHp` in snapshots
+- `scripts/csharp/Simulation/SimulationNode.cs` - Apply `MaxHp` in `ApplySnapshot`
+
+**Commits:** `2d8bfca4`, `846f068e`
+**Branch:** `feature/host-authoritative-sim`
+
+---
+
 ## 2026-01 Completions
 
 ### Clean Up Premium Store Placeholder Content

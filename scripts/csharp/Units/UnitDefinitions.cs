@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Abilities;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Projectiles;
 using ProjectSummoner.Stats;
@@ -249,7 +248,6 @@ public static class UnitDefinitions
         Targeting = new RangedGroundTargeting { AggroRadius = 20f },
         Ranged = new RangedConfig(ProjectileIds.FireWeb),
         Visual = new VisualConfig { SeparationRadius = 0.4f, ShadowOpacity = 0.5f },
-        Abilities = [new SlowOnHitConfig(SlowPercent: 0.3f, Duration: 2.0f)],
         ScenePath = "res://scenes/units/fire_spider_3d.tscn"
     };
 

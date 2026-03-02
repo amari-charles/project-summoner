@@ -76,11 +76,13 @@ docs/
 │   └── card-progression-economy.md     XP, resources
 ├── technical/                 Technical references
 │   ├── unit-stat-pipeline.md
-│   ├── integration-status.md
 │   └── vfx/
 ├── architecture/              Code architecture
-│   ├── system-architecture.md
-│   └── transformation-roadmap.md
+│   └── system-architecture.md
+├── migration/                 Layered architecture migration hub
+│   ├── README.md              Status, checklists, transition tables
+│   ├── architectural-issues.md  25 issues driving the migration
+│   └── documentation-guide.md  Architecture doc principles
 ├── workflows/                 Development workflows
 │   └── pr-review-guidelines.md
 ├── art/                       Art specifications

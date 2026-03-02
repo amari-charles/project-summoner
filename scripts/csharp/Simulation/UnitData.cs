@@ -87,7 +87,7 @@ public class UnitData
     public float AttackCooldown { get; set; }
 
     // Behavior state (used by SimBehavior)
-    public int BehaviorState { get; set; } // 0=NoTarget, 1=Chasing, 2=InRange, 3=Attacking
+    public BehaviorState BehaviorState { get; set; }
     public float AttackAnimationTimer { get; set; }
 
     // Ranged unit pending damage (replaces projectile physics)

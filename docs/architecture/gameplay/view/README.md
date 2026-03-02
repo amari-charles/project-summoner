@@ -94,6 +94,13 @@ BattleScene (top-level facade, wires everything to IGameSession)
 7. **Event dispatch is centralized.** SimEvent-to-visual routing goes through EntityManager. Shells don't subscribe to `SimEventsEmitted` directly. (BattleHUD is the exception for HUD events.)
 8. **Naming follows role.** No `3D` suffix. Names describe what the component does.
 
+## Decomposition Specs
+
+Detailed migration plans for existing components that span View/Input boundaries:
+[design-specs.md](design-specs.md)
+
+Covers: HandUI split, SpellTargetingManager retirement, RedirectManager→Command, SpawnPreview, Summoner decomposition, GameController3D decomposition, SimEventSignalEmitter retirement, BattlefieldDropZone, GameUI→BattleHUD, SpawnZoneOverlay.
+
 ## Supporting Services
 
 | Service | Status |

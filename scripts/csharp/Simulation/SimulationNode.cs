@@ -874,7 +874,7 @@ public partial class SimulationNode : Node
                 existingUnit.IsAlive = unitState.IsAlive;
                 existingUnit.TargetNetworkId = unitState.TargetNetworkId;
                 existingUnit.ActivationState = unitState.ActivationState;
-                existingUnit.BehaviorState = unitState.BehaviorState;
+                existingUnit.BehaviorState = (BehaviorState)unitState.BehaviorState;
                 existingUnit.IsFacingRight = unitState.IsFacingRight;
             }
             else
@@ -892,7 +892,7 @@ public partial class SimulationNode : Node
                     Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z),
                     TargetNetworkId = unitState.TargetNetworkId,
                     ActivationState = unitState.ActivationState,
-                    BehaviorState = unitState.BehaviorState,
+                    BehaviorState = (BehaviorState)unitState.BehaviorState,
                     IsFacingRight = unitState.IsFacingRight
                 };
                 State.Units[clientUnitId] = newUnit;

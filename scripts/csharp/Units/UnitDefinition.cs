@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Abilities;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Projectiles;
 using ProjectSummoner.Stats;
@@ -73,16 +72,6 @@ public record UnitDefinition
 
     /// <summary>Visual configuration (separation radius, shadow, hurtbox).</summary>
     public VisualConfig Visual { get; init; } = VisualConfig.Default;
-
-    // =========================================================================
-    // ABILITIES
-    // =========================================================================
-
-    /// <summary>
-    /// Abilities to attach to this unit at spawn time.
-    /// Each IAbilityConfig creates its corresponding ability instance.
-    /// </summary>
-    public IReadOnlyList<IAbilityConfig> Abilities { get; init; } = [];
 
     // =========================================================================
     // DAMAGE PROFILE

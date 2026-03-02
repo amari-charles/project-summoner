@@ -76,13 +76,15 @@ Implementation details for developers.
 
 ### Architecture
 - **[System Architecture](architecture/system-architecture.md)** - Overall code architecture
-- **[Transformation Roadmap](architecture/transformation-roadmap.md)** - Migration progress
+- **[Layered Architecture Migration](migration/README.md)** - Migration hub: status, checklists, transition tables
+- **[Game Requirements](architecture/game-requirements.md)** - Comprehensive gameplay requirements spec
 
 ### Technical References
 - **[Unit Stat Pipeline](technical/unit-stat-pipeline.md)** - How stats flow from catalog to battle
-- **[Integration Status](technical/integration-status.md)** - GDScript/C# integration
 - **[Campaign Data](technical/campaign-data.md)** - Campaign data structures
 - **[Multiplayer Architecture](multiplayer/architecture.md)** - Future multiplayer design
+- **[Simulation Reference](technical/simulation-reference.md)** - Mermaid diagrams and full data structure reference
+- **[Simulation Walkthrough](technical/simulation-walkthrough.md)** - Human-readable gameplay flow walkthroughs
 
 ### Workflows
 - **[PR Review Guidelines](workflows/pr-review-guidelines.md)** - Code review process
@@ -122,7 +124,6 @@ Major design choices and their rationale.
 - **[Characters](lore/characters/)** - Fateforgers and NPCs
 
 ### Art & Assets
-- **[Asset Specifications](art/asset-specifications.md)** - Technical requirements
 - **[Visual Style](art/visual-style-references.md)** - Art direction
 - **[Art Brief](art/art-brief.md)** - Overall art guidelines
 

@@ -150,7 +150,7 @@ public class StateSnapshotBuilder
                 targetNetworkId,
                 unit.IsAlive,
                 unit.ActivationState,
-                unit.BehaviorState,
+                (int)unit.BehaviorState,
                 unit.IsFacingRight
             ));
         }

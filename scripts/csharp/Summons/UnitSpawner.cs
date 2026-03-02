@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Abilities;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Stats;
 using ProjectSummoner.Systems.Modifiers;
@@ -121,14 +120,6 @@ public static class UnitSpawner
         // Calculate final position AFTER tree entry (now MovementLayer is accessible)
         var finalPos = CalculateFinalPosition(unit3d, context.Position);
         unit3d.Position = finalPos;
-
-        // Instantiate and attach abilities from definition
-        foreach (var abilityConfig in definition.Abilities)
-        {
-            var ability = abilityConfig.CreateAbility();
-            unit3d.AddChild(ability);
-            // Note: abilities are auto-discovered and Setup() called in Unit3D._Ready()
-        }
 
         // Apply modifiers (partitioned into static and triggered)
         var modifiers = context.Modifiers ?? [];

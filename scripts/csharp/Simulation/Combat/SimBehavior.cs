@@ -16,11 +16,12 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimBehavior
 {
-    // Behavior state constants (matches UnitData.BehaviorState)
-    public const int NoTarget = 0;
-    public const int Chasing = 1;
-    public const int InRange = 2;
-    public const int Attacking = 3;
+    // Behavior state constants — kept as int aliases for backwards compatibility
+    // with tests and multiplayer code. Canonical type is BehaviorState enum.
+    public const int NoTarget = (int)BehaviorState.NoTarget;
+    public const int Chasing = (int)BehaviorState.Chasing;
+    public const int InRange = (int)BehaviorState.InRange;
+    public const int Attacking = (int)BehaviorState.Attacking;
 
     // Unit type constants
     private const int UnitTypeMelee = 0;
@@ -107,7 +108,7 @@ public static class SimBehavior
         // Stunned units can't act
         if (SimEffects.IsStunned(unit))
         {
-            unit.BehaviorState = InRange;
+            unit.BehaviorState = BehaviorState.InRange;
             return new BehaviorResult { Movement = MoveNone };
         }
 
@@ -115,7 +116,7 @@ public static class SimBehavior
         var targetPos = SimUtils.ResolveTargetPosition(unit.TargetUnitId, state);
         if (!targetPos.HasValue)
         {
-            unit.BehaviorState = NoTarget;
+            unit.BehaviorState = BehaviorState.NoTarget;
             return new BehaviorResult { Movement = MoveForward };
         }
 
@@ -139,7 +140,7 @@ public static class SimBehavior
             if (unit.HasConeConstraint && !canAttack)
             {
                 // Constraint not satisfied — use fallback movement
-                unit.BehaviorState = InRange;
+                unit.BehaviorState = BehaviorState.InRange;
                 return unit.FallbackMovement switch
                 {
                     FallbackStrafe => new BehaviorResult
@@ -159,7 +160,7 @@ public static class SimBehavior
             // In range, constraint OK — attack if cooldown ready
             if (unit.AttackCooldown <= 0 && unit.AttackSpeed > 0)
             {
-                unit.BehaviorState = Attacking;
+                unit.BehaviorState = BehaviorState.Attacking;
 
                 if (isSummonerTarget)
                 {
@@ -195,12 +196,12 @@ public static class SimBehavior
             }
 
             // In range, waiting for cooldown
-            unit.BehaviorState = InRange;
+            unit.BehaviorState = BehaviorState.InRange;
             return new BehaviorResult { Movement = MoveNone };
         }
 
         // Out of range — chase
-        unit.BehaviorState = Chasing;
+        unit.BehaviorState = BehaviorState.Chasing;
         return new BehaviorResult
         {
             Movement = MoveTowardTarget,

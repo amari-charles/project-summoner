@@ -22,14 +22,14 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ### 🟡 MEDIUM PRIORITY
 
 #### Implement Ranked Gameplay Mode
-**Status:** 🔄 In Progress (Phase 3 of 4)
+**Status:** 🔄 In Progress (Phase 4 of 4)
 **Category:** Core Game Systems / Multiplayer
 **Effort:** Large
 
 **Description:**
 Add a ranked competitive mode where players battle against others (or AI) with matchmaking, rankings, and seasonal progression.
 
-**Completed (Phase 2-3):**
+**Completed (Phase 2-4):**
 - ✅ C# Protocol layer (Messages, MessageSerializer)
 - ✅ MatchSession orchestrator with HostRunner/ClientRunner
 - ✅ P2PTransport (ENet-based)
@@ -42,9 +42,9 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 - ✅ Leaderboard service
 - ✅ Reconnection handling
 - ✅ Ranked UI screen (online_screen)
+- ✅ Opponent deck/summoner exchange (commit `2d8bfca4`)
 
 **Remaining (Phase 4):**
-- [ ] **Opponent deck/summoner exchange** - Currently hardcoded to "ignis" with empty deck (see `online_screen.gd:471`)
 - [ ] Complete RequestValidator for spawn position/rate-limit checks
 - [ ] Polish: queue UI, match found animation
 - [ ] End-to-end testing with Nakama server
