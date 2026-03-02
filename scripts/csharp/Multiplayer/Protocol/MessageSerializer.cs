@@ -109,6 +109,19 @@ public class MessageSerializer
                 dict["hp"] = m.NewHp;
                 break;
 
+            case SummonerDamageFlash m:
+                dict["type"] = (int)MessageType.SummonerDamageFlash;
+                dict["team"] = m.Team;
+                dict["damage"] = m.Damage;
+                dict["attacker"] = m.AttackerUnitId;
+                break;
+
+            case SummonerDestroyed m:
+                dict["type"] = (int)MessageType.SummonerDestroyed;
+                dict["team"] = m.Team;
+                dict["killer"] = m.KillerUnitId;
+                break;
+
             case MatchEnded m:
                 dict["type"] = (int)MessageType.MatchEnded;
                 dict["winner"] = m.WinnerIndex;
@@ -233,6 +246,17 @@ public class MessageSerializer
                 (int)dict["team"],
                 (float)dict["amount"],
                 (float)dict["hp"]
+            ),
+
+            MessageType.SummonerDamageFlash => new SummonerDamageFlash(
+                (int)dict["team"],
+                (float)dict["damage"],
+                (int)dict["attacker"]
+            ),
+
+            MessageType.SummonerDestroyed => new SummonerDestroyed(
+                (int)dict["team"],
+                (int)dict["killer"]
             ),
 
             MessageType.MatchEnded => new MatchEnded(

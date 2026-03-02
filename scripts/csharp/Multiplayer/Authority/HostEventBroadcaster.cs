@@ -108,4 +108,13 @@ public class HostEventBroadcaster : ISimEventVisitor
     public void Visit(BuffAppliedSimEvent e) { }
     public void Visit(BuffExpiredSimEvent e) { }
     public void Visit(DelayedEffectFiredSimEvent e) { }
+    public void Visit(SummonerDamagedEvent e)
+    {
+        _broadcaster.Broadcast(new SummonerDamageFlash(e.Team, e.Damage, e.AttackerUnitId));
+    }
+
+    public void Visit(SummonerDestroyedEvent e)
+    {
+        _broadcaster.Broadcast(new SummonerDestroyed(e.Team, e.KillerUnitId));
+    }
 }

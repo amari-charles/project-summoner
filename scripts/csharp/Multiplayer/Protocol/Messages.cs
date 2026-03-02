@@ -132,6 +132,24 @@ public readonly record struct SummonerDamaged(
 );
 
 /// <summary>
+/// Summoner took damage — triggers visual flash on client.
+/// Distinct from SummonerDamaged which carries HP state.
+/// </summary>
+public readonly record struct SummonerDamageFlash(
+    int Team,
+    float Damage,
+    int AttackerUnitId
+);
+
+/// <summary>
+/// Summoner was destroyed — triggers death animation on client.
+/// </summary>
+public readonly record struct SummonerDestroyed(
+    int Team,
+    int KillerUnitId
+);
+
+/// <summary>
 /// Match has ended.
 /// </summary>
 public readonly record struct MatchEnded(
@@ -236,6 +254,8 @@ public enum MessageType : byte
     DamageDealt = 15,
     SummonerDamaged = 16,
     MatchEnded = 17,
+    SummonerDamageFlash = 18,
+    SummonerDestroyed = 19,
 
     // Bidirectional
     MatchStarted = 20,

@@ -104,4 +104,6 @@ public class SimEventSignalEmitter : ISimEventVisitor
     public void Visit(BuffAppliedSimEvent e) { }
     public void Visit(BuffExpiredSimEvent e) { }
     public void Visit(DelayedEffectFiredSimEvent e) { }
+    public void Visit(SummonerDamagedEvent e) { }
+    public void Visit(SummonerDestroyedEvent e) { }
 }

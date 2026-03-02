@@ -198,6 +198,47 @@ public class BroadcastFieldTest
         AssertThat(msg.NewHp).IsGreater(0f);
     }
 
+    // ── SummonerDamagedEvent → SummonerDamageFlash ──
+
+    [TestCase]
+    public void SummonerDamaged_BroadcastPopulatesAllFields()
+    {
+        var state = CreateBaseState();
+
+        var capturing = new CapturingBroadcaster();
+        var broadcaster = new HostEventBroadcaster(capturing, state);
+
+        var evt = new SummonerDamagedEvent(team: 1, damage: 30f, attackerUnitId: 5);
+        evt.Accept(broadcaster);
+
+        AssertThat(capturing.Messages).HasSize(1);
+        var msg = (SummonerDamageFlash)capturing.Messages[0];
+
+        AssertThat(msg.Team).IsEqual(1);
+        AssertThat(msg.Damage).IsGreater(0f);
+        AssertThat(msg.AttackerUnitId).IsEqual(5);
+    }
+
+    // ── SummonerDestroyedEvent → SummonerDestroyed ──
+
+    [TestCase]
+    public void SummonerDestroyed_BroadcastPopulatesAllFields()
+    {
+        var state = CreateBaseState();
+
+        var capturing = new CapturingBroadcaster();
+        var broadcaster = new HostEventBroadcaster(capturing, state);
+
+        var evt = new SummonerDestroyedEvent(team: 0, killerUnitId: 3);
+        evt.Accept(broadcaster);
+
+        AssertThat(capturing.Messages).HasSize(1);
+        var msg = (SummonerDestroyed)capturing.Messages[0];
+
+        AssertThat(msg.Team).IsEqual(0);
+        AssertThat(msg.KillerUnitId).IsEqual(3);
+    }
+
     // ── GameOver → MatchEnded ──
 
     [TestCase]

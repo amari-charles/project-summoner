@@ -869,6 +869,33 @@ public class GameOverEvent : SimEvent
 }
 
 /// <summary>
+/// A summoner took damage (for visual feedback — flash, screen shake).
+/// </summary>
+[EventCategory(EventCategory.Broadcast)]
+public class SummonerDamagedEvent : SimEvent
+{
+    public int Team { get; }
+    public float Damage { get; }
+    public int AttackerUnitId { get; }
+    public SummonerDamagedEvent(int team, float damage, int attackerUnitId)
+    { Team = team; Damage = damage; AttackerUnitId = attackerUnitId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// A summoner was destroyed (for death animation, game-over trigger).
+/// </summary>
+[EventCategory(EventCategory.Broadcast)]
+public class SummonerDestroyedEvent : SimEvent
+{
+    public int Team { get; }
+    public int KillerUnitId { get; }
+    public SummonerDestroyedEvent(int team, int killerUnitId)
+    { Team = team; KillerUnitId = killerUnitId; }
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
 /// A spell card was cast (for visual feedback — VFX, projectiles).
 /// </summary>
 [EventCategory(EventCategory.HostOnly)]

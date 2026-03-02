@@ -141,6 +141,14 @@ public class ClientRunner : IMatchRunner
                 HandleSummonerDamaged(summonerDamage);
                 break;
 
+            case SummonerDamageFlash flash:
+                // TODO: Route to SummonerVisual.FlashDamage() via EntityManager
+                break;
+
+            case SummonerDestroyed destroyed:
+                // TODO: Route to SummonerVisual.BeginDeath() via EntityManager
+                break;
+
             case Pong pong:
                 HandlePong(pong);
                 break;

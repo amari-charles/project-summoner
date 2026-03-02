@@ -34,6 +34,8 @@ public class SimEventCoverageTest
         { typeof(UnitDamagedEvent),        typeof(DamageDealt) },
         { typeof(SummonerHpChangedEvent),  typeof(SummonerDamaged) },
         { typeof(GameOverEvent),           typeof(MatchEnded) },
+        { typeof(SummonerDamagedEvent),   typeof(SummonerDamageFlash) },
+        { typeof(SummonerDestroyedEvent), typeof(SummonerDestroyed) },
     };
 
     /// <summary>
@@ -51,6 +53,8 @@ public class SimEventCoverageTest
         typeof(SummonerDamaged),
         typeof(Pong),
         typeof(MatchEnded),
+        typeof(SummonerDamageFlash),
+        typeof(SummonerDestroyed),
     };
 
     private static List<Type> GetAllSimEventTypes()

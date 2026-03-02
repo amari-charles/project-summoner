@@ -30,4 +30,6 @@ public interface ISimEventVisitor
     void Visit(BuffAppliedSimEvent e);
     void Visit(BuffExpiredSimEvent e);
     void Visit(DelayedEffectFiredSimEvent e);
+    void Visit(SummonerDamagedEvent e);
+    void Visit(SummonerDestroyedEvent e);
 }
