@@ -337,8 +337,8 @@ public class MessageSerializerTest
         };
         var units = new[]
         {
-            new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(1, 0, 1), Hp: 50, TargetNetworkId: 2, IsAlive: true, ActivationState: 1, BehaviorState: 1, IsFacingRight: true),
-            new UnitState(NetworkId: 2, Team: 1, Position: new Vector3(5, 0, 5), Hp: 30, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 3, IsFacingRight: false)
+            new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(1, 0, 1), Hp: 50, MaxHp: 100, TargetNetworkId: 2, IsAlive: true, ActivationState: 1, BehaviorState: 1, IsFacingRight: true),
+            new UnitState(NetworkId: 2, Team: 1, Position: new Vector3(5, 0, 5), Hp: 30, MaxHp: 80, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 3, IsFacingRight: false)
         };
 
         var original = new StateSnapshot(
@@ -450,7 +450,7 @@ public class MessageSerializerTest
         };
         var units = new[]
         {
-            new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(4.5f, 0, 8.25f), Hp: 50, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 0, IsFacingRight: true)
+            new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(4.5f, 0, 8.25f), Hp: 50, MaxHp: 100, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 0, IsFacingRight: true)
         };
 
         var original = new StateSnapshot(

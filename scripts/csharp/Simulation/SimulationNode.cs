@@ -870,6 +870,7 @@ public partial class SimulationNode : Node
                 // UPDATE existing unit — always write position from authoritative snapshot
                 existingUnit.Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z);
                 existingUnit.CurrentHp = unitState.Hp;
+                existingUnit.MaxHp = unitState.MaxHp;
                 existingUnit.IsAlive = unitState.IsAlive;
                 existingUnit.TargetNetworkId = unitState.TargetNetworkId;
                 existingUnit.ActivationState = unitState.ActivationState;
@@ -886,7 +887,7 @@ public partial class SimulationNode : Node
                     NetworkId = unitState.NetworkId,
                     Team = unitState.Team,
                     CurrentHp = unitState.Hp,
-                    MaxHp = unitState.Hp, // Best approximation from snapshot
+                    MaxHp = unitState.MaxHp,
                     IsAlive = unitState.IsAlive,
                     Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z),
                     TargetNetworkId = unitState.TargetNetworkId,

@@ -146,6 +146,7 @@ public class StateSnapshotBuilder
                 unit.Team,
                 new Vector3(unit.Position.X, unit.Position.Y, unit.Position.Z),
                 unit.CurrentHp,
+                unit.MaxHp,
                 targetNetworkId,
                 unit.IsAlive,
                 unit.ActivationState,

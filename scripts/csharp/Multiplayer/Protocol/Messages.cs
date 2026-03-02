@@ -206,6 +206,7 @@ public readonly record struct UnitState(
     int Team,
     Vector3 Position,
     float Hp,
+    float MaxHp,
     int? TargetNetworkId,
     bool IsAlive,
     int ActivationState,
