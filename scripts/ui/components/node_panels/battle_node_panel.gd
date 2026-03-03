@@ -236,7 +236,7 @@ func _load_decks() -> void:
 		deck_selector.add_item(deck_name)
 
 	# Get currently selected deck from profile
-	var profile_variant: Variant = ProfileRepo.get_active_profile()
+	var profile_variant: Variant = ProfileRepo.GetActiveProfileDict()
 	var profile: Dictionary = SafeTypeUtils.dict(profile_variant)
 	var found_deck: bool = false
 	if not profile.is_empty() and profile.has("meta"):
@@ -292,7 +292,7 @@ func _on_change_deck_pressed() -> void:
 
 
 func _save_deck_selection() -> void:
-	ProfileRepo.update_profile_meta({"selected_deck": selected_deck_id})
+	ProfileRepo.UpdateProfileMetaDict({"selected_deck": selected_deck_id})
 
 
 func _update_deck_info() -> void:

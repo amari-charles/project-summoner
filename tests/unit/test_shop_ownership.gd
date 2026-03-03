@@ -10,13 +10,13 @@ var _original_profile_id: String = ""
 
 func before_all() -> void:
 	# Store original profile ID to restore after tests
-	_original_profile_id = ProfileRepo.get_current_profile_id()
+	_original_profile_id = ProfileRepo.GetCurrentProfileId()
 
 
 func before_each() -> void:
 	# Load a test profile to avoid modifying real data
-	ProfileRepo.load_profile("test_shop_ownership")
-	ProfileRepo.reset_profile()
+	ProfileRepo.LoadProfile("test_shop_ownership")
+	ProfileRepo.ResetProfile()
 	# Wait for Shop to be ready after profile change
 	await get_tree().process_frame
 
@@ -24,7 +24,7 @@ func before_each() -> void:
 func after_all() -> void:
 	# Restore original profile
 	if not _original_profile_id.is_empty():
-		ProfileRepo.load_profile(_original_profile_id)
+		ProfileRepo.LoadProfile(_original_profile_id)
 
 
 ## =============================================================================
@@ -62,7 +62,7 @@ func test_is_offering_owned_returns_true_for_owned_summoner() -> void:
 		return
 
 	# Unlock the summoner
-	ProfileRepo.unlock_summoner(summoner_offering.summoner_id)
+	ProfileRepo.UnlockSummoner(summoner_offering.summoner_id)
 	await get_tree().process_frame
 
 	assert_true(Shop.is_offering_owned(summoner_offering), "Owned summoner should return true")
@@ -102,7 +102,7 @@ func test_is_offering_owned_returns_true_for_owned_cosmetic() -> void:
 		return
 
 	# Grant the cosmetic
-	ProfileRepo.grant_cosmetic(cosmetic_offering.cosmetic_id)
+	ProfileRepo.GrantCosmetic(cosmetic_offering.cosmetic_id)
 	await get_tree().process_frame
 
 	assert_true(Shop.is_offering_owned(cosmetic_offering), "Owned cosmetic should return true")
@@ -142,7 +142,7 @@ func test_is_offering_owned_returns_true_for_owned_emote() -> void:
 		return
 
 	# Grant the emote
-	ProfileRepo.grant_emote(emote_offering.emote_id)
+	ProfileRepo.GrantEmote(emote_offering.emote_id)
 	await get_tree().process_frame
 
 	assert_true(Shop.is_offering_owned(emote_offering), "Owned emote should return true")

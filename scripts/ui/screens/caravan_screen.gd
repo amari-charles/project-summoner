@@ -124,13 +124,13 @@ func _build_purchase_context(offering: ShopOffering) -> ShopPurchaseContext:
 	context.player_gold = Economy.GetCampaignGold()
 
 	# Get refresh state
-	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
+	var shop_refresh_state: Dictionary = ProfileRepo.GetShopRefreshStateDict(shop_id)
 	var epoch_variant: Variant = shop_refresh_state.get("refresh_epoch", 0)
 	context.refresh_epoch = epoch_variant if epoch_variant is int else 0
 
 	# Get purchase count from profile
 	var purchase_key: String = "%s::%s::%d" % [shop_id, offering.offering_id, context.refresh_epoch]
-	var purchases: Dictionary = ProfileRepo.get_shop_purchases()
+	var purchases: Dictionary = ProfileRepo.GetShopPurchasesDict()
 	context.purchase_count = purchases.get(purchase_key, 0)
 
 	context.summoner_affinity = ""

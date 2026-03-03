@@ -26,7 +26,7 @@ const TRAIT_CATALOG: String = "/root/TraitCatalog"
 const PROJECTILE_CATALOG: String = "/root/ProjectileCatalog"
 
 # Infrastructure
-const PROFILE_REPOSITORY_CS: String = "/root/ProfileRepositoryCS"
+const PROFILE_REPO: String = "/root/ProfileRepo"
 
 # Multiplayer services
 const NAKAMA_GAME_CLIENT: String = "/root/NakamaGameClient"

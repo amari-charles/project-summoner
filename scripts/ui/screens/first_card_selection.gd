@@ -61,14 +61,8 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 		# Set as active deck
 		if deck_id != "":
-			if ProfileRepo.has_method("get_active_profile"):
-				var profile_variant: Variant = ProfileRepo.call("get_active_profile")
-				var profile: Dictionary = profile_variant if profile_variant is Dictionary else {}
-				if not profile.is_empty():
-					profile["meta"]["selected_deck"] = deck_id
-					if ProfileRepo.has_method("save_profile"):
-						ProfileRepo.call("save_profile", true)  # Force immediate save
-					print("FirstCardSelection: Set Starter Deck as active!")
+			ProfileRepo.UpdateProfileMetaDict({"selected_deck": deck_id})
+			print("FirstCardSelection: Set Starter Deck as active!")
 
 	# Return to campaign map
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)

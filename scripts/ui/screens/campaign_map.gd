@@ -558,13 +558,7 @@ func _on_panel_start_requested() -> void:
 	print("CampaignMap: Starting battle event: %s" % selected_event_id)
 
 	# Store selected event in campaign service
-	var profile: Dictionary = SafeTypeUtils.dict(ProfileRepo.get_active_profile())
-	if not profile.is_empty():
-		if not profile.has("campaign_progress"):
-			profile["campaign_progress"] = {}
-		var campaign_progress: Dictionary = SafeTypeUtils.dict(profile["campaign_progress"])
-		campaign_progress["current_battle"] = selected_event_id
-		ProfileRepo.save_profile(true)
+	ProfileRepo.UpdateCampaignProgressDict({"current_battle": selected_event_id})
 
 	# Configure battle context
 	print("CampaignMap: Configuring BattleContext with battle_id='%s'" % selected_event_id)

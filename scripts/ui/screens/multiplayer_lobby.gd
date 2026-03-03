@@ -469,13 +469,7 @@ func _get_active_summoner_id() -> String:
 
 
 func _get_player_deck() -> Array:
-	var profile_repo: Node = get_node_or_null("/root/ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_active_deck"):
-		return profile_repo.get_active_deck()
-	return [
-		{"catalog_id": "puff", "count": 3},
-		{"catalog_id": "pebbloom", "count": 2},
-	]
+	return ProfileRepo.GetActiveDeckArray()
 
 
 ## =============================================================================

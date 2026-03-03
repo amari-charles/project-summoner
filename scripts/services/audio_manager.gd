@@ -289,7 +289,7 @@ func set_volume(bus_name: String, volume: float) -> void:
 	# Persist to settings
 	var setting_key: String = _bus_to_setting_key(bus_name)
 	if not setting_key.is_empty():
-		ProfileRepositoryCS.UpdateSettingsDict({setting_key: volume})
+		ProfileRepo.UpdateSettingsDict({setting_key: volume})
 
 	volume_changed.emit(bus_name, volume)
 
@@ -309,13 +309,13 @@ static func format_volume_percent(volume: float) -> String:
 
 ## Apply volume from profile settings to audio buses
 func _apply_settings_volume() -> void:
-	var settings: Dictionary = ProfileRepositoryCS.GetSettingsDict()
+	var settings: Dictionary = ProfileRepo.GetSettingsDict()
 
 	var music_vol_val: Variant = settings.get("music_volume", 1.0)
-	var music_vol: float = ProfileRepo.safe_float(music_vol_val, 1.0)
+	var music_vol: float = float(music_vol_val) if music_vol_val is float or music_vol_val is int else 1.0
 
 	var sfx_vol_val: Variant = settings.get("sfx_volume", 1.0)
-	var sfx_vol: float = ProfileRepo.safe_float(sfx_vol_val, 1.0)
+	var sfx_vol: float = float(sfx_vol_val) if sfx_vol_val is float or sfx_vol_val is int else 1.0
 
 	# Apply without persisting (already in settings)
 	if _music_bus_idx >= 0:

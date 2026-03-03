@@ -44,7 +44,7 @@ func _ready() -> void:
 	Shop.PurchaseFailed.connect(_on_purchase_failed)
 
 	# Connect profile signals for gold updates
-	ProfileRepo.data_changed.connect(_on_data_changed)
+	ProfileRepo.DataChangedGodot.connect(_on_data_changed)
 
 	# Check if this is a caravan event (EventContext is configured)
 	var event_id: String = EventContext.get_current_event_id()
@@ -92,8 +92,8 @@ func _exit_tree() -> void:
 		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
 	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
 		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
-	if ProfileRepo.data_changed.is_connected(_on_data_changed):
-		ProfileRepo.data_changed.disconnect(_on_data_changed)
+	if ProfileRepo.DataChangedGodot.is_connected(_on_data_changed):
+		ProfileRepo.DataChangedGodot.disconnect(_on_data_changed)
 
 	# Disconnect caravan-specific signals
 	if is_caravan_event and EventSequencer.sequence_finished.is_connected(_on_caravan_sequence_complete):
@@ -153,7 +153,7 @@ func _load_offerings() -> void:
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
 func _update_gold_display() -> void:
-	var resources: Dictionary = ProfileRepo.get_resources()
+	var resources: Dictionary = ProfileRepo.GetResourcesDict()
 	var gold: int = resources.get("gold", 0)
 	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
 
@@ -189,17 +189,17 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 
 func _build_purchase_context(offering: ShopOffering) -> ShopPurchaseContext:
 	var context: ShopPurchaseContext = ShopPurchaseContext.new()
-	var resources: Dictionary = ProfileRepo.get_resources()
+	var resources: Dictionary = ProfileRepo.GetResourcesDict()
 	context.player_gold = resources.get("gold", 0)
 
 	# Get refresh state
-	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)
+	var shop_refresh_state: Dictionary = ProfileRepo.GetShopRefreshStateDict(shop_id)
 	var epoch_variant: Variant = shop_refresh_state.get("refresh_epoch", 0)
 	context.refresh_epoch = epoch_variant if epoch_variant is int else 0
 
 	# Get purchase count from profile
 	var purchase_key: String = "%s::%s::%d" % [shop_id, offering.offering_id, context.refresh_epoch]
-	var purchases: Dictionary = ProfileRepo.get_shop_purchases()
+	var purchases: Dictionary = ProfileRepo.GetShopPurchasesDict()
 	context.purchase_count = purchases.get(purchase_key, 0)
 
 	context.summoner_affinity = ""  # TODO: Get from profile when summoner system implemented

@@ -34,7 +34,7 @@ func _ready() -> void:
 
 ## Load HP from campaign battle config
 func _load_campaign_hp() -> void:
-	var profile: Dictionary = ProfileRepo.get_active_profile()
+	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
 	if profile.is_empty():
 		return
 

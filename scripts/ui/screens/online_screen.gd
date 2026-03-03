@@ -591,14 +591,7 @@ func _get_active_summoner_id() -> String:
 
 
 func _get_player_deck() -> Array:
-	var profile_repo: Node = get_tree().root.get_node_or_null("ProfileRepo")
-	if profile_repo and profile_repo.has_method("get_active_deck"):
-		return profile_repo.get_active_deck()
-	# Fallback placeholder deck
-	return [
-		{"catalog_id": "puff", "count": 3},
-		{"catalog_id": "pebbloom", "count": 2},
-	]
+	return ProfileRepo.GetActiveDeckArray()
 
 
 func _on_matchmaking_cancelled(reason: String) -> void:

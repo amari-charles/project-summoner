@@ -340,14 +340,15 @@ No change needed — current design is correct:
 - **Dependencies**: Phase 3A complete ✅
 - **Risk**: High — ProfileRepo is foundational; ALL meta services depend on it
 
-#### Phase 3C: Delete GDScript ProfileRepo
+#### Phase 3C: Delete GDScript ProfileRepo ✅
 
-- **Status**: Not started
+- **Status**: Complete
 - **Goal**: Remove GDScript persistence files and autoload
-- **Files**: `scripts/data/json_profile_repository.gd` (delete), `scripts/data/profile_repository.gd` (delete), `project.godot` (remove autoload)
-- **Success criteria**: `grep -r "ProfileRepo" --include="*.gd"` returns zero hits; `dotnet build` passes
-- **Dependencies**: Phase 3B + all remaining callers migrated
-- **Risk**: Medium — ensure no transitive GDScript dependencies remain
+- **Files**: `scripts/data/json_profile_repository.gd` (deleted), `scripts/data/profile_repository.gd` (deleted), `tests/mocks/mock_profile_repo.gd` (deleted), `project.godot` (renamed autoload `ProfileRepositoryCS` → `ProfileRepo`, removed GDScript autoload)
+- **Changes**: 13 GDScript callers updated to PascalCase C# methods, 2 test files updated, `audio_manager.gd` inlined `safe_float()`, `battle_context.gd` removed `_profile_repo` injectable
+- **Success criteria**: `grep -r "ProfileRepositoryCS" --include="*.gd"` returns zero hits; `dotnet build` passes
+- **Dependencies**: Phase 3B + all remaining callers migrated ✅
+- **Risk**: Medium — ensure no transitive GDScript dependencies remain ✅
 
 ---
 

@@ -95,6 +95,11 @@ public interface IProfileRepository
     CampaignProgress GetSharedCampaignProgress();
     void UpdateSharedCampaignProgress(CampaignProgress progress);
 
+    // Caravan purchase tracking (campaign-scoped)
+    string[] GetCaravanPurchases(SummonerId summonerId);
+    void AddCaravanPurchase(string offeringId, SummonerId summonerId);
+    void ClearCaravanPurchases(SummonerId summonerId);
+
     // =========================================================================
     // COSMETIC OPERATIONS
     // =========================================================================

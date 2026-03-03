@@ -81,22 +81,22 @@ func _ready() -> void:
 ## =============================================================================
 
 func _get_resources() -> Dictionary:
-	return ProfileRepo.get_resources()
+	return ProfileRepo.GetResourcesDict()
 
 func _update_resources(delta: Dictionary) -> void:
-	ProfileRepo.update_resources(delta)
+	ProfileRepo.UpdateResourcesDict(delta)
 
 func _is_summoner_unlocked(summoner_id: String) -> bool:
 	return SummonerSelection.IsSummonerUnlocked(summoner_id)
 
 func _is_cosmetic_owned(cosmetic_id: String) -> bool:
-	return ProfileRepo.is_cosmetic_owned(cosmetic_id)
+	return ProfileRepo.IsCosmeticOwned(cosmetic_id)
 
 func _is_emote_owned(emote_id: String) -> bool:
-	return ProfileRepo.is_emote_owned(emote_id)
+	return ProfileRepo.IsEmoteOwned(emote_id)
 
 func _get_shop_refresh_state(shop_id: String) -> Dictionary:
-	return ProfileRepo.get_shop_refresh_state(shop_id)
+	return ProfileRepo.GetShopRefreshStateDict(shop_id)
 
 func _grant_rewards(rewards: Dictionary) -> bool:
 	return RewardService.GrantRewards(rewards)
@@ -417,7 +417,7 @@ func get_shop_offerings(shop_id: String) -> Array[ShopOffering]:
 
 	# Filter for caravan shops - hide purchased offerings
 	if shop_id.begins_with("caravan"):
-		var purchased_ids: Array = ProfileRepo.get_caravan_purchases()
+		var purchased_ids: Array = ProfileRepo.GetCaravanPurchasesArray()
 		result = result.filter(func(o: ShopOffering) -> bool: return o.offering_id not in purchased_ids)
 
 	return result
@@ -506,10 +506,10 @@ func _complete_caravan_purchase(offering_dict: Dictionary, offering_id: String, 
 		return false
 
 	# Record purchase via profile (account-wide tracking)
-	ProfileRepo.increment_purchase_count(purchase_key)
+	ProfileRepo.IncrementPurchaseCount(purchase_key)
 
 	# Record as caravan purchase (campaign-scoped for UI filtering)
-	ProfileRepo.add_caravan_purchase(offering_id)
+	ProfileRepo.AddCaravanPurchase(offering_id)
 
 	# Emit success
 	purchase_completed.emit(offering_id, shop_id)

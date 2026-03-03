@@ -85,7 +85,7 @@ func _load_battle_results() -> void:
 			return
 
 	# Get the current battle from profile (the battle we just won)
-	var profile: Dictionary = ProfileRepo.get_active_profile()
+	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
 	if not profile.is_empty():
 		var campaign_progress: Variant = profile.get("campaign_progress", {})
 		if campaign_progress is Dictionary:
@@ -415,7 +415,7 @@ func _get_rarity_color(rarity: StringName) -> Color:
 
 ## Get active summoner ID for reward theming
 func _get_active_summoner_id() -> String:
-	var profile: Dictionary = ProfileRepo.get_active_profile()
+	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
 	if profile.is_empty():
 		return ""
 	var meta: Variant = profile.get("meta", {})
@@ -572,7 +572,7 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		return
 
 	# Get active deck ID from profile
-	var profile: Dictionary = ProfileRepo.get_active_profile()
+	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
 	if profile.is_empty():
 		push_error("RewardScreen: No active profile!")
 		return

@@ -10,13 +10,13 @@ var _original_profile_id: String = ""
 
 func before_all() -> void:
 	# Store original profile ID to restore after tests
-	_original_profile_id = ProfileRepo.get_current_profile_id()
+	_original_profile_id = ProfileRepo.GetCurrentProfileId()
 
 
 func before_each() -> void:
 	# Load a test profile to avoid modifying real data
-	ProfileRepo.load_profile("test_summoner_progression")
-	ProfileRepo.reset_profile()
+	ProfileRepo.LoadProfile("test_summoner_progression")
+	ProfileRepo.ResetProfile()
 	# Wait for services to be ready after profile change
 	await get_tree().process_frame
 
@@ -24,7 +24,7 @@ func before_each() -> void:
 func after_all() -> void:
 	# Restore original profile
 	if not _original_profile_id.is_empty():
-		ProfileRepo.load_profile(_original_profile_id)
+		ProfileRepo.LoadProfile(_original_profile_id)
 
 
 ## =============================================================================
@@ -39,7 +39,7 @@ func _create_summoner_with_xp(summoner_id: String, xp: int) -> void:
 		"level": 1,
 		"xp": xp
 	}
-	ProfileRepo.save_summoner_instance_dict(summoner_data)
+	ProfileRepo.SaveSummonerInstanceDict(summoner_data)
 	await get_tree().process_frame
 
 

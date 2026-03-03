@@ -78,10 +78,9 @@ Campaign.CompleteBattle(battle_id)
 
 ### Exceptions: GDScript Autoloads
 
-Two services remain as GDScript autoloads wrapping C# implementations:
+One service remains as a GDScript autoload wrapping a C# implementation:
 
 - **Shop** (`scripts/services/shop_service.gd`) — Substantial local logic: shop catalog definitions with localization, caravan purchase flow with campaign gold, PlatformBilling integration for real-money purchases.
-- **ProfileRepo** (`scripts/data/json_profile_repository.gd`) — Full GDScript implementation (1,667 LOC), not a wrapper. Owns all persistence, Godot signals for data change notifications.
 
 ## Multiplayer Domain
 

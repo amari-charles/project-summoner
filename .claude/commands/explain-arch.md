@@ -57,3 +57,4 @@ Show the composition and ancestry of the architecture node most relevant to the 
 - Use the architecture docs as the source of truth, not inferences from code alone.
 - If the conversation doesn't have an obvious focal node, ask the user what component or system they want to understand.
 - Keep the Mermaid diagram readable — don't include the entire architecture, just the relevant subtree and immediate context.
+- **Mermaid `\n` does not work.** Never use `\n` for line breaks in Mermaid node labels. Use `<br>` instead (e.g., `A["Line 1<br>Line 2"]`), or keep labels to a single line.

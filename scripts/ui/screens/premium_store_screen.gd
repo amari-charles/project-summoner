@@ -53,7 +53,7 @@ func _ready() -> void:
 	Shop.PurchaseFailed.connect(_on_purchase_failed)
 
 	# Connect profile signals for gold updates
-	ProfileRepo.data_changed.connect(_on_data_changed)
+	ProfileRepo.DataChangedGodot.connect(_on_data_changed)
 
 	# Initialize display
 	_update_currency_display()
@@ -65,8 +65,8 @@ func _exit_tree() -> void:
 		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
 	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
 		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
-	if ProfileRepo.data_changed.is_connected(_on_data_changed):
-		ProfileRepo.data_changed.disconnect(_on_data_changed)
+	if ProfileRepo.DataChangedGodot.is_connected(_on_data_changed):
+		ProfileRepo.DataChangedGodot.disconnect(_on_data_changed)
 
 ## =============================================================================
 ## SECTION POPULATION
@@ -146,7 +146,7 @@ func _show_popup(offering: ShopOffering) -> void:
 		popup_owned_label.visible = false
 
 		# Enable/disable purchase button based on affordability (gems = mana stones)
-		var resources: Dictionary = ProfileRepo.get_resources()
+		var resources: Dictionary = ProfileRepo.GetResourcesDict()
 		var gems: int = resources.get("gems", 0)
 		popup_purchase_button.disabled = (gems < price)
 
@@ -222,7 +222,7 @@ func _add_emote_info(offering: ShopOffering) -> void:
 ## =============================================================================
 
 func _update_currency_display() -> void:
-	var resources: Dictionary = ProfileRepo.get_resources()
+	var resources: Dictionary = ProfileRepo.GetResourcesDict()
 	var gems: int = resources.get("gems", 0)
 	currency_label.text = Loc.t("ui.shop.mana_stones_label", {"amount": gems})
 

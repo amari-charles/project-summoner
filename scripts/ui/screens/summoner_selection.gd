@@ -120,12 +120,7 @@ func _create_starter_deck(summoner_id: String) -> void:
 		return
 
 	# Set as active deck in profile meta
-	var profile: Dictionary = ProfileRepo.get_active_profile()
-	if not profile.is_empty():
-		if not profile.has("meta"):
-			profile["meta"] = {}
-		profile["meta"]["selected_deck"] = deck_id
-		ProfileRepo.save_profile(true)
+	ProfileRepo.UpdateProfileMetaDict({"selected_deck": deck_id})
 
 ## Populate button labels dynamically from SummonerCatalog
 func _populate_summoner_buttons() -> void:

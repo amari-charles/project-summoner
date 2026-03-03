@@ -961,10 +961,9 @@ func _on_modal_closed(modal: Node) -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	if ProfileRepo.has_method("get_gold"):
-		var gold: Variant = ProfileRepo.call("get_gold")
-		if gold is int:
-			gold_label.text = str(gold)
+	var resources: Dictionary = ProfileRepo.GetResourcesDict()
+	var gold: int = resources.get("gold", 0)
+	gold_label.text = str(gold)
 
 
 ## =============================================================================

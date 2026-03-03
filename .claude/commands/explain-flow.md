@@ -51,3 +51,4 @@ Trace a runtime event step-by-step across layer boundaries, showing what happens
 - If the conversation doesn't have an obvious event to trace, ask the user what runtime scenario they want to understand.
 - Keep diagrams focused — trace one event end-to-end rather than branching into every possible side effect.
 - For events that differ between singleplayer and multiplayer (e.g., command validation), show the singleplayer (LocalSession) path as primary and note multiplayer differences.
+- **Mermaid `\n` does not work.** Never use `\n` for line breaks in Mermaid node labels or messages. Use `<br>` instead (e.g., `A["Line 1<br>Line 2"]`), or keep labels to a single line.
