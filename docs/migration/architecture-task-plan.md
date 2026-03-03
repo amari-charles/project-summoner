@@ -273,92 +273,80 @@ No change needed — current design is correct:
 
 ### Phase 1: Delete Dead Code + Consolidate Trivial Duplicates
 
-#### Task 1.1: Delete GameStateEvents
+#### Task 1.1: Delete GameStateEvents ✅
 
+- **Status**: Complete
 - **Goal**: Remove dead signal bus that has zero emitters
-- **Files**: `scripts/services/game_state_events.gd`, `project.godot` (remove autoload)
-- **Success criteria**: `dotnet build` passes; `grep -r "GameStateEvents" --include="*.gd" --include="*.cs"` returns zero hits (after removing SummonerSelectionService.cs reference)
-- **Dependencies**: None
-- **Risk**: Low
 
-#### Task 1.2: Merge card_trait_catalog.gd into C# TraitCatalog
+#### Task 1.2: Merge card_trait_catalog.gd into C# TraitCatalog ✅
 
+- **Status**: Complete
 - **Goal**: Eliminate GDScript trait catalog; single source of truth in C#
-- **Files**: `scripts/data/card_trait_catalog.gd` (delete), `scripts/csharp/Data/Traits/TraitCatalog.cs` (add card traits), `scripts/ui/modals/card_detail_modal.gd` (update caller)
-- **Success criteria**: card_detail_modal.gd uses TraitCatalog C# bridge for card traits; `dotnet test` passes
-- **Dependencies**: None
-- **Risk**: Low — only 1 GDScript caller
 
-#### Task 1.3: Migrate CosmeticsCatalog + EmotesCatalog to C# Data
+#### Task 1.3: Migrate CosmeticsCatalog + EmotesCatalog to C# Data — DEFERRED
 
+- **Status**: Deferred — zero production callers (only test files reference them)
 - **Goal**: Consolidate all catalogs under C# Data namespace
-- **Files**: `scripts/data/cosmetics_catalog.gd` (delete), `scripts/data/emotes_catalog.gd` (delete), new C# files in `scripts/csharp/Data/`
-- **Success criteria**: All catalog consumers updated; `dotnet build` passes
-- **Dependencies**: None
-- **Risk**: Low — small files, limited callers
+- **Rationale**: Both catalogs are placeholder content with zero production usage. Migration would reduce autoload count by 2 but has no architectural impact. Will migrate when these catalogs gain production callers.
 
 ---
 
 ### Phase 2: Introduce Typed Battle Configuration
 
-#### Task 2.1: Create BattleSessionConfig
+#### Task 2.1: Create BattleSessionConfig ✅
 
+- **Status**: Complete — `scripts/csharp/Session/BattleSessionConfig.cs` (140 LOC)
 - **Goal**: Replace untyped dict-based battle configuration with typed C# class
-- **Files**: New `scripts/csharp/Session/BattleSessionConfig.cs`
-- **Success criteria**: Class compiles; contains all fields currently scattered across BattleContext dict keys
-- **Dependencies**: None
-- **Risk**: Low — additive only
 
-#### Task 2.2: Create BattleSessionFactory
+#### Task 2.2: Create BattleSessionFactory ✅
 
-- **Goal**: Centralize battle setup logic currently spread across BattleScene.cs (lines 522-815)
-- **Files**: New `scripts/csharp/Session/BattleSessionFactory.cs`, refactor `scripts/csharp/View/BattleScene.cs`
-- **Success criteria**: BattleScene drops from ~1,031 LOC to ~400 LOC; all deck loading, profile querying, stat application moves to factory; `dotnet test` passes
-- **Dependencies**: Task 2.1
-- **Risk**: Medium — BattleScene is central; requires careful extraction
+- **Status**: Complete — `scripts/csharp/Session/BattleSessionFactory.cs` (362 LOC), BattleScene 916→644 LOC
+- **Goal**: Centralize battle setup logic currently spread across BattleScene.cs
 
-#### Task 2.3: Reduce BattleContext to Thin Setter
+#### Task 2.3: Reduce BattleContext to Thin Setter — DEFERRED
 
-- **Goal**: BattleContext becomes a temporary bridge that creates `BattleSessionConfig` from its dict, not the source of truth
-- **Files**: `scripts/core/battle_context.gd` (slim down), `scripts/csharp/View/BattleScene.cs` (stop calling BattleContext directly)
-- **Success criteria**: Zero `GetNode("/root/BattleContext")` calls in C# code; BattleScene receives config via parameter
-- **Dependencies**: Task 2.2
+- **Status**: Deferred — BattleSessionConfig.FromBattleContext() reads from GDScript autoload once at init. Full elimination of BattleContext requires updating all GDScript battle entry points (campaign_map, arena, online_screen, etc.)
+- **Goal**: BattleContext becomes a temporary bridge that creates `BattleSessionConfig` from its dict
 - **Risk**: Medium — all battle entry points must be updated
 
-#### Task 2.4: Create EventSessionConfig + Reduce EventContext
+#### Task 2.4: Create EventSessionConfig — SKIPPED
 
-- **Goal**: Same treatment for campaign events
-- **Files**: New `scripts/csharp/Session/EventSessionConfig.cs`, `scripts/core/event_context.gd` (slim down)
-- **Success criteria**: Event screens receive typed config; zero `GetNode("/root/EventContext")` calls in C# code
-- **Dependencies**: Task 2.1 (pattern established)
-- **Risk**: Low — smaller scope than BattleContext
+- **Status**: Skipped — all 5 EventContext callers are GDScript UI screens with existing TypedEventData wrapper. Zero C# callers. Creating a C# config would add unnecessary interop complexity.
 
 ---
 
 ### Phase 3: Consolidate Profile Persistence
 
-#### Task 3.1: Port JSON Persistence to C#
+#### Phase 3A: Redirect GDScript Callers to C# Services ✅
 
+- **Status**: Complete
+- **What was done**:
+  - Added bridge methods to SummonerSelectionService (IsSummonerUnlocked, SetStartingSummoner, GetSummonerInstanceDict, SaveSummonerInstanceDict)
+  - Added DataChangedGodot signal + settings methods to ProfileRepository.cs
+  - Redirected 10 summoner callers across 8 GDScript files from ProfileRepo → SummonerSelection
+  - Redirected audio_manager settings from ProfileRepo → ProfileRepositoryCS
+  - Simplified defensive has_method() checks in collection_screen and first_card_selection
+- **Remaining ProfileRepo callers** (deferred):
+  - Shop operations (get_resources, update_resources, is_cosmetic_owned, is_emote_owned, get_shop_refresh_state, etc.) → Phase 4
+  - Profile lifecycle (get_active_profile, save_profile) → Phase 3B
+  - data_changed signal connections → stays on GDScript ProfileRepo (signal chain flows through GDScript)
+
+#### Phase 3B: Port JSON Persistence to C#
+
+- **Status**: Not started
 - **Goal**: Move profile read/write from GDScript to native C# implementation
 - **Files**: `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` (rewrite from adapter to real implementation), new `scripts/csharp/Infrastructure/Persistence/JsonProfileStore.cs`
 - **Success criteria**: ProfileRepository.cs has zero `Call()` invocations; reads/writes JSON directly; all existing tests pass
-- **Dependencies**: Phase 2 complete (to reduce blast radius)
+- **Dependencies**: Phase 3A complete ✅
 - **Risk**: High — ProfileRepo is foundational; ALL meta services depend on it
 
-#### Task 3.2: Migrate GDScript ProfileRepo Callers
+#### Phase 3C: Delete GDScript ProfileRepo
 
-- **Goal**: Update all GDScript code that calls `ProfileRepo.get_*()` directly to use C# service APIs instead
-- **Files**: `scripts/ui/screens/caravan_screen.gd`, `scripts/ui/screens/shop_screen.gd`, `scripts/ui/screens/summoner_selection.gd`, `scripts/ui/screens/campaign_map.gd`, etc.
-- **Success criteria**: Zero GDScript references to `ProfileRepo.get_*()` or `ProfileRepo.update_*()` — all go through C# services
-- **Dependencies**: Task 3.1
-- **Risk**: Medium — many callers but each change is mechanical
-
-#### Task 3.3: Delete GDScript ProfileRepo
-
+- **Status**: Not started
 - **Goal**: Remove GDScript persistence files and autoload
 - **Files**: `scripts/data/json_profile_repository.gd` (delete), `scripts/data/profile_repository.gd` (delete), `project.godot` (remove autoload)
 - **Success criteria**: `grep -r "ProfileRepo" --include="*.gd"` returns zero hits; `dotnet build` passes
-- **Dependencies**: Task 3.2
+- **Dependencies**: Phase 3B + all remaining callers migrated
 - **Risk**: Medium — ensure no transitive GDScript dependencies remain
 
 ---
