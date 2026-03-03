@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Cards;
+using Fateforged.Constants;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Rewards;
+namespace Fateforged.Meta.Rewards;
 
 /// <summary>
 /// Reward Service - Handles reward generation and granting.
@@ -21,11 +21,10 @@ namespace ProjectSummoner.Services.Rewards;
 /// - Unified reward granting (cards, gold, cosmetics, etc.)
 ///
 /// Usage:
-///   var options = RewardServiceCS.Instance.GenerateRewardOptions(config, summonerId, ownedIds);
-///   RewardServiceCS.Instance.GrantReward(selectedOption);
+///   var options = RewardService.Instance.GenerateRewardOptions(config, summonerId, ownedIds);
+///   RewardService.Instance.GrantReward(selectedOption);
 ///
-/// Note: This class is accessed via the "RewardServiceCS" autoload. The [GlobalClass] attribute
-/// is intentionally omitted to avoid conflicting with the GDScript "RewardService" autoload wrapper.
+/// Note: This class is accessed via the "RewardService" autoload in project.godot.
 /// </summary>
 public partial class RewardService : Node
 {

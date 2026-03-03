@@ -141,7 +141,7 @@ func _init(data: Dictionary = {}, event_id: String = "") -> void:
 
 ## Create from event ID using Campaign service
 static func from_id(event_id: String) -> TypedEventData:
-	var data: Dictionary = Campaign.get_battle(event_id)
+	var data: Dictionary = Campaign.GetBattle(event_id)
 	return TypedEventData.new(data, event_id)
 
 # =============================================================================

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ProjectSummoner.Domain.Profile.Account;
+namespace Fateforged.Domain.Profile.Account;
 
 /// <summary>
 /// Last match data for replay/analytics.

@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Constants;
+namespace Fateforged.Constants;
 
 using System;
 using Godot;

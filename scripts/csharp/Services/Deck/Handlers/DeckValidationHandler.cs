@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Deck.Handlers;
+namespace Fateforged.Meta.Deck.Handlers;
 
 /// <summary>
 /// Handles deck validation: validate deck, get validation errors.

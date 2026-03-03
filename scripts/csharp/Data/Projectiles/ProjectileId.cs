@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Projectiles;
+namespace Fateforged.Projectiles;
 
 /// <summary>
 /// Strongly-typed identifier for projectile types.

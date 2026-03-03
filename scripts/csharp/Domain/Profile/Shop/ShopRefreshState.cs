@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ProjectSummoner.Domain.Profile.Shop;
+namespace Fateforged.Domain.Profile.Shop;
 
 /// <summary>
 /// Shop refresh state for a specific shop.

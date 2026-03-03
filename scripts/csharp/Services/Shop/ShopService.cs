@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Services.Summoner;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Summoner;
 
-namespace ProjectSummoner.Services.Shop;
+namespace Fateforged.Meta.Shop;
 
 /// <summary>
 /// Shop Service - Manages shop offerings and purchases.

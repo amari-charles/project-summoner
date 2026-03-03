@@ -1,7 +1,7 @@
-namespace ProjectSummoner.Tests.Stats;
+namespace Fateforged.Tests.Stats;
 
 using GdUnit4;
-using ProjectSummoner.Stats;
+using Fateforged.Stats;
 using static GdUnit4.Assertions;
 
 /// <summary>

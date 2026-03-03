@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ProjectSummoner.Cards.Spawning;
+namespace Fateforged.Cards.Spawning;
 
 /// <summary>
 /// Specification for what units a summon card spawns.

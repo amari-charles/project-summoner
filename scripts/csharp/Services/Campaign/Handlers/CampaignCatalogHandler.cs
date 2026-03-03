@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Events;
+using Fateforged.Data.Events;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign and battle catalog queries.

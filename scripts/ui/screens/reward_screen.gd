@@ -78,7 +78,7 @@ func _load_battle_results() -> void:
 	# This guards against navigating here without actually winning a battle
 	if BattleContext.battle_state != BattleContext.BattleState.VICTORY:
 		# Check for pending reward - player may have won, exited, and returned
-		var pending: Variant = Campaign.get_pending_reward()
+		var pending: Variant = Campaign.GetPendingReward()
 		if pending == null or not pending is Dictionary:
 			push_error("RewardScreen: Invalid battle state (%s) - not a victory!" % BattleContext.BattleState.keys()[BattleContext.battle_state])
 			SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
@@ -92,7 +92,7 @@ func _load_battle_results() -> void:
 			current_battle_id = campaign_progress.get("current_battle", "")
 
 	# Handle pending reward state
-	var pending_reward: Variant = Campaign.get_pending_reward()
+	var pending_reward: Variant = Campaign.GetPendingReward()
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
 		var pending_battle_id: String = pending_dict.get("battle_id", "")
@@ -104,17 +104,26 @@ func _load_battle_results() -> void:
 		elif not pending_battle_id.is_empty():
 			# Stale pending reward - clear it
 			print("RewardScreen: Clearing stale pending reward (was '%s', current is '%s')" % [pending_battle_id, current_battle_id])
-			Campaign.clear_pending_reward()
+			Campaign.ClearPendingReward()
 
 	if current_battle_id.is_empty():
 		push_error("RewardScreen: No current battle set!")
 		return
 
-	# Get reward specification from service
-	var spec: Dictionary = RewardService.get_reward_spec(current_battle_id)
+	# Build reward spec params (previously computed inside the GDScript wrapper)
+	var is_completed: bool = Campaign.IsBattleCompleted(current_battle_id)
+	var pending_chosen_index: int = -1
+	if is_pending_reward and pending_reward is Dictionary:
+		pending_chosen_index = pending_reward.get("choice_index", -1)
+
+	# Get reward specification from C# service
+	var spec: Dictionary = RewardService.GetBattleRewardSpecAsDict(current_battle_id, is_completed, pending_chosen_index)
+	# Convert reward_type string to StringName for GDScript compatibility
+	if spec.has("reward_type"):
+		spec["reward_type"] = StringName(spec.get("reward_type", "fixed"))
 
 	# Get battle for display info
-	var battle: Dictionary = Campaign.get_battle(current_battle_id)
+	var battle: Dictionary = Campaign.GetBattle(current_battle_id)
 	battle_name_label.text = battle.get("name", "Unknown Battle")
 
 	# Update state from spec
@@ -128,7 +137,7 @@ func _load_battle_results() -> void:
 ## REWARD DISPLAY
 ## =============================================================================
 
-## Display rewards using the unified spec from RewardService
+## Display rewards using the unified spec from RewardService (C#)
 func _display_reward_spec(spec: Dictionary) -> void:
 	var is_replay: bool = spec.get("is_replay", false)
 
@@ -148,7 +157,7 @@ func _display_reward_spec(spec: Dictionary) -> void:
 
 	# Set pending reward if not already set (first time victory)
 	if not is_pending_reward:
-		Campaign.set_pending_reward(current_battle_id, reward_type, -1)
+		Campaign.SetPendingReward(current_battle_id, reward_type, -1)
 
 	# First time victory - show all rewards normally
 	first_clear_status.text = ""
@@ -460,7 +469,7 @@ func _on_flexible_choice_selected(index: int) -> void:
 	chosen_reward_index = index
 
 	# Save choice to pending reward state (persists if player exits)
-	Campaign.update_pending_choice(index)
+	Campaign.UpdatePendingChoice(index)
 
 	if index >= 0 and index < flexible_options.size():
 		# Hide choice UI and show selected card preview
@@ -481,7 +490,7 @@ func _on_continue_pressed() -> void:
 
 	if not reward_ready_to_claim:
 		# No reward to claim (replay or no rewards) - just clear any stale pending state
-		Campaign.clear_pending_reward()
+		Campaign.ClearPendingReward()
 		_check_summoner_level_up()
 		return
 
@@ -495,7 +504,7 @@ func _on_continue_pressed() -> void:
 		card_reward = flexible_options[0]
 
 	# Single unified call to claim all rewards (gold + cards)
-	var granted: Dictionary = Campaign.claim_battle_rewards(current_battle_id, card_reward)
+	var granted: Dictionary = Campaign.ClaimPendingReward()
 
 	# Auto-add cards to deck if tutorial battle
 	if not granted.get("cards", []).is_empty():
@@ -510,7 +519,7 @@ func _check_summoner_level_up() -> void:
 		_transition_to_map()
 		return
 
-	if SummonerProgression.can_level_up(summoner_id):
+	if SummonerProgression.CanLevelUp(summoner_id):
 		_show_summoner_level_up_modal(summoner_id)
 	else:
 		_transition_to_map()
@@ -533,7 +542,7 @@ func _show_summoner_level_up_modal(summoner_id: String) -> void:
 ## Handle summoner level-up completion - check for more level-ups (multi-level jumps)
 func _on_summoner_level_up_completed(summoner_id: String, _trait_id: String) -> void:
 	# Check if summoner can level up again (multi-level jumps)
-	if SummonerProgression.can_level_up(summoner_id):
+	if SummonerProgression.CanLevelUp(summoner_id):
 		_show_summoner_level_up_modal(summoner_id)
 	else:
 		_transition_to_map()
@@ -553,7 +562,7 @@ func _transition_to_map() -> void:
 ## Automatically add granted cards to deck if this is a tutorial battle
 func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 	# Check if this is a tutorial battle
-	if not Campaign.is_battle_tutorial(current_battle_id):
+	if not Campaign.IsBattleTutorial(current_battle_id):
 		return  # Not a tutorial battle, don't auto-add
 
 	# Get card instance IDs that were granted
@@ -580,7 +589,7 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 	# Add cards to deck
 	var added_count: int = 0
 	for card_instance_id: String in instance_ids:
-		if Decks.add_card_to_deck(deck_id, card_instance_id):
+		if Decks.AddCardToDeck(deck_id, card_instance_id):
 			added_count += 1
 		else:
 			push_warning("RewardScreen: Failed to add card %s to deck" % card_instance_id)

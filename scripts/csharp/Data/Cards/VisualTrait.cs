@@ -1,6 +1,6 @@
 using System;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Visual traits affecting rendering and animation.

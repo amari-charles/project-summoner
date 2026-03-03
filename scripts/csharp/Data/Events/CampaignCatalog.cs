@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Services.Campaign;
+using Fateforged.Meta.Campaign;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Central registry of all campaign definitions.

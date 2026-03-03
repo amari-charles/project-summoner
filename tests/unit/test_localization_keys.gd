@@ -12,7 +12,7 @@ const EN_JSON_PATH: String = "res://localization/data/en.json"
 
 # Known dynamic key patterns - these are constructed via string concatenation
 # and must be explicitly validated since static analysis can't determine them.
-# Element names must match C# Element enum in scripts/csharp/Cards/Element.cs
+# Element names must match C# Element enum in scripts/csharp/Data/Cards/Element.cs
 const DYNAMIC_ELEMENTS: Array[String] = [
 	"neutral", "fire", "water", "wind", "earth", "lightning", "shadow",
 	"poison", "life", "death", "occultist", "holy", "ice", "metal", "spirit"

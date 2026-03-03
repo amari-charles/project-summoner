@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Data.Summoners;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign progress: load, save, battle completion.

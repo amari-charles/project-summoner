@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
+using Fateforged.Cards;
+using Fateforged.Constants;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;

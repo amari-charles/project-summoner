@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Tests.Session;
+namespace Fateforged.Tests.Session;
 
 using Fateforged.Session;
 using Fateforged.Simulation;
@@ -6,7 +6,7 @@ using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using GdUnit4;
-using ProjectSummoner.Tests.Simulation;
+using Fateforged.Tests.Simulation;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -143,6 +143,35 @@ public class CommandRouterTest
         var result = _router.Validate(cmd, _state);
         AssertThat(result.IsValid).IsFalse();
         AssertThat(result.Reason).Contains("Game already over");
+    }
+
+    // =========================================================================
+    // SpawnUnitCommand validation
+    // =========================================================================
+
+    [TestCase]
+    public void SpawnUnitCommand_AlwaysValid()
+    {
+        var cmd = new SpawnUnitCommand("test_unit", 0, SimVector3.Zero);
+        var result = _router.Validate(cmd, _state);
+        AssertThat(result.IsValid).IsTrue();
+    }
+
+    [TestCase]
+    public void SpawnUnitCommand_ValidEvenDuringGameOver()
+    {
+        _state.Phase = GamePhase.GameOver;
+        var cmd = new SpawnUnitCommand("test_unit", 0, SimVector3.Zero);
+        var result = _router.Validate(cmd, _state);
+        AssertThat(result.IsValid).IsTrue();
+    }
+
+    [TestCase]
+    public void SpawnUnitCommand_ValidWithUnknownCatalogId()
+    {
+        var cmd = new SpawnUnitCommand("nonexistent_card", 0, SimVector3.Zero);
+        var result = _router.Validate(cmd, _state);
+        AssertThat(result.IsValid).IsTrue();
     }
 
     // =========================================================================

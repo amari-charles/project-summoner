@@ -113,7 +113,7 @@ func _update_preview_color() -> void:
 	match offering.offering_type:
 		ShopOffering.OfferingType.SUMMONER:
 			# Get element color for summoner
-			var config: SummonerConfig = SummonerCatalog.get_summoner_config(offering.summoner_id)
+			var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.summoner_id))
 			if config:
 				var element: ElementTypes.Element = config.get_element()
 				var element_key: String = element.id.to_lower() if element else "neutral"

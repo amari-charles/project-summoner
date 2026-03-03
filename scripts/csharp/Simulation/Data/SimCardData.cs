@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Units;
-using UnitType = ProjectSummoner.Units.UnitType;
+using Fateforged.Cards;
+using Fateforged.Constants;
+using Fateforged.Units;
+using UnitType = Fateforged.Units.UnitType;
 using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Simulation.Data;

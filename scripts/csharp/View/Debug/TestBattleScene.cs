@@ -1,5 +1,5 @@
+using Fateforged.Simulation;
 using Godot;
-using Fateforged.View;
 
 namespace Fateforged.View.Debug;
 
@@ -39,21 +39,19 @@ public partial class TestBattleScene : BattleScene
         // Call parent _Ready (runs full init sequence)
         base._Ready();
 
-        // Wait one frame for init to complete, then override HP
+        // Wait one frame for init to complete, then override HP in MatchState
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-        if (PlayerSummoner != null)
+        var simNode = SimulationNode.Current;
+        if (simNode != null)
         {
-            PlayerSummoner.Set("max_hp", 999999.0f);
-            PlayerSummoner.Set("current_hp", 999999.0f);
-            GD.Print("[TestBattleScene] Player summoner set to infinite HP");
-        }
-
-        if (EnemySummoner != null)
-        {
-            EnemySummoner.Set("max_hp", 999999.0f);
-            EnemySummoner.Set("current_hp", 999999.0f);
-            GD.Print("[TestBattleScene] Enemy summoner set to infinite HP");
+            // Set infinite HP directly in MatchState
+            foreach (var summoner in simNode.State.Summoners)
+            {
+                summoner.MaxHp = 999999.0f;
+                summoner.CurrentHp = 999999.0f;
+            }
+            GD.Print("[TestBattleScene] All summoners set to infinite HP");
         }
 
         GD.Print("[TestBattleScene] Test mode ready!");
@@ -61,19 +59,15 @@ public partial class TestBattleScene : BattleScene
 
     public override void _Process(double delta)
     {
-        // Grant infinite mana every frame
-        if (PlayerSummoner != null)
+        // Grant infinite mana every frame by writing directly to MatchState
+        var simNode = SimulationNode.Current;
+        if (simNode != null)
         {
-            var mana = (float)PlayerSummoner.Get("mana");
-            if (mana < 900)
-                PlayerSummoner.Set("mana", 999.0f);
-        }
-
-        if (EnemySummoner != null)
-        {
-            var mana = (float)EnemySummoner.Get("mana");
-            if (mana < 900)
-                EnemySummoner.Set("mana", 999.0f);
+            foreach (var summoner in simNode.State.Summoners)
+            {
+                if (summoner.Mana < 900)
+                    summoner.Mana = 999.0f;
+            }
         }
 
         // Skip parent _Process to disable time limit polling
@@ -98,34 +92,20 @@ public partial class TestBattleScene : BattleScene
     }
 
     /// <summary>
-    /// Spawn a test enemy unit. Called by spawn buttons in test_battle_abilities.tscn.
+    /// Spawn a test enemy unit via SimulationNode.QueueSpawnUnit.
     /// </summary>
     public void SpawnTestEnemy(string catalogId)
     {
         GD.Print($"[TestBattleScene] Spawning test enemy: {catalogId}");
 
-        var cardCatalog = GetNodeOrNull("/root/CardCatalog");
-        if (cardCatalog == null) return;
-
-        var card = cardCatalog.Call("create_card_resource", catalogId);
-        if (card.VariantType == Variant.Type.Nil)
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
         {
-            GD.PushError($"[TestBattleScene] Failed to load card: {catalogId}");
+            GD.PushError("[TestBattleScene] No SimulationNode available");
             return;
         }
 
-        if (EnemySummoner == null)
-        {
-            GD.PushError("[TestBattleScene] No enemy summoner available");
-            return;
-        }
-
-        // Add card to enemy hand and play it
-        var hand = (Godot.Collections.Array)EnemySummoner.Get("hand");
-        hand.Add(card);
-        int cardIndex = hand.Count - 1;
-        var spawnPos = new Vector3(5.0f, 1.0f, 0.0f);
-
-        EnemySummoner.Call("play_card_3d", cardIndex, spawnPos);
+        var spawnPos = new Vector3(5.0f, 0.0f, 0.0f);
+        simNode.QueueSpawnUnit(catalogId, 1, spawnPos, true, null);
     }
 }

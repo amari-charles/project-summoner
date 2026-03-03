@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Strongly-typed identifier for card types.

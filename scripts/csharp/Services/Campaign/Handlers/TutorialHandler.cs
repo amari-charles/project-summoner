@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Handles tutorial-related queries.

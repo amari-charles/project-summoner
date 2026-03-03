@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Projectiles;
+namespace Fateforged.Projectiles;
 
 /// <summary>
 /// Defines how a projectile moves through space.

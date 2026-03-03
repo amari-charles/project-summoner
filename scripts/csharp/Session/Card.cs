@@ -1,8 +1,8 @@
 using Fateforged.Simulation;
 using Godot;
-using ProjectSummoner.Summons;
+using Fateforged.Summons;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Runtime card resource — unified replacement for GDScript card.gd + card_config.gd.
@@ -76,11 +76,6 @@ public partial class Card : Resource
 
     /// <summary>Check if this card can be played with the given mana.</summary>
     public bool CanPlay(int currentMana) => currentMana >= ManaCost;
-
-    /// <summary>
-    /// Check if this spell card needs click-targeting (Rally/Guard commands).
-    /// </summary>
-    public bool NeedsClickTargeting() => Type == (int)CardType.Spell && CommandType != "";
 
     /// <summary>
     /// Get formation offset for a unit in this card's spawn group.

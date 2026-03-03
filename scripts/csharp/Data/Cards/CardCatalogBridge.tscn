@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bkxvrah3fmlgy"]
 
-[ext_resource type="Script" path="res://scripts/csharp/Cards/CardCatalogBridge.cs" id="1_bridge"]
+[ext_resource type="Script" path="res://scripts/csharp/Data/Cards/CardCatalogBridge.cs" id="1_bridge"]
 
 [node name="CardCatalogBridge" type="Node"]
 script = ExtResource("1_bridge")

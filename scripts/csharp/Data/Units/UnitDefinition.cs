@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Stats;
+using Fateforged.Constants;
+using Fateforged.Projectiles;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Units;
+namespace Fateforged.Units;
 
 /// <summary>
 /// Complete definition of a unit type - the single source of truth for unit configuration.

@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Services.Rewards;
+namespace Fateforged.Meta.Rewards;
 
 /// <summary>
 /// Represents a single reward option that can be presented to the player.

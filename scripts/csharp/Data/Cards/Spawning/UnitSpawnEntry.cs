@@ -1,8 +1,8 @@
-using ProjectSummoner.Cards.Formations;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Stats;
+using Fateforged.Cards.Formations;
+using Fateforged.Constants;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Cards.Spawning;
+namespace Fateforged.Cards.Spawning;
 
 /// <summary>
 /// Defines a single unit type to spawn as part of a SummonSpec.

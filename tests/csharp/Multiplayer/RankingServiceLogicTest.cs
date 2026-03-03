@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Tests.Multiplayer;
+namespace Fateforged.Tests.Multiplayer;
 
 using System;
 using GdUnit4;

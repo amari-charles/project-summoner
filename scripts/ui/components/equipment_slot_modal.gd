@@ -157,7 +157,8 @@ func open(slot: String, summoner_id: String) -> void:
 
 
 func _refresh() -> void:
-	var slot_display: String = Items.SLOT_DISPLAY_NAMES.get(_current_slot, _current_slot.capitalize())
+	const SLOT_DISPLAY_NAMES: Dictionary = {"wand": "Wand", "ring1": "Ring", "ring2": "Ring", "robes": "Robes"}
+	var slot_display: String = SLOT_DISPLAY_NAMES.get(_current_slot, _current_slot.capitalize())
 	_slot_label.text = Loc.t("ui.equipment_modal.slot_title").replace("{slot}", slot_display.to_upper())
 
 	# Clear containers
@@ -167,11 +168,11 @@ func _refresh() -> void:
 		child.queue_free()
 
 	# Get equipped item for this slot
-	var equipped: Dictionary = Items.get_equipped_items(_summoner_id)
+	var equipped: Dictionary = Items.GetEquippedItemsDict(_summoner_id)
 	var equipped_instance_id: String = equipped.get(_current_slot, "")
 
 	# Get all items for this slot
-	var items_for_slot: Array[Dictionary] = Items.list_items_for_slot(_current_slot, _summoner_id)
+	var items_for_slot: Array[Dictionary] = Items.ListItemsForSlotDict(_current_slot, _summoner_id)
 
 	# Show equipped item info
 	if equipped_instance_id.is_empty():
@@ -287,14 +288,14 @@ func _on_item_card_input(event: InputEvent, instance_id: String) -> void:
 
 
 func _equip_item(instance_id: String) -> void:
-	var success: bool = Items.equip_item(_summoner_id, instance_id, _current_slot)
+	var success: bool = Items.EquipItemStr(_summoner_id, instance_id, _current_slot)
 	if success:
 		item_equipped.emit(_current_slot, instance_id)
 		_refresh()
 
 
 func _on_unequip_pressed() -> void:
-	var success: bool = Items.unequip_item(_summoner_id, _current_slot)
+	var success: bool = Items.UnequipItemStr(_summoner_id, _current_slot)
 	if success:
 		item_unequipped.emit(_current_slot)
 		_refresh()

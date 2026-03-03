@@ -1,11 +1,11 @@
-namespace ProjectSummoner.Tests.Simulation;
+namespace Fateforged.Tests.Simulation;
 
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using GdUnit4;
-using ProjectSummoner.Units;
+using Fateforged.Units;
 using static GdUnit4.Assertions;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;

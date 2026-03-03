@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Visual;
+namespace Fateforged.Visual;
 
 /// <summary>
 /// Interface for visual rendering components.

@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using Godot;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Services.Deck.Handlers;
-using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
+using Fateforged.Data.Summoners;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Cards;
+using Fateforged.Meta.Deck.Handlers;
+using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
-namespace ProjectSummoner.Services.Deck;
+namespace Fateforged.Meta.Deck;
 
 /// <summary>
 /// Deck Service - Handles deck management operations.
@@ -57,6 +60,34 @@ public partial class DeckService : Node
     {
         Instance = this;
         Initialize();
+        AutoInitializeDependencies();
+    }
+
+    /// <summary>
+    /// Auto-initialize dependency callbacks by looking up sibling autoloads.
+    /// Only sets callbacks that haven't been injected (e.g., via InitForTesting).
+    /// </summary>
+    private void AutoInitializeDependencies()
+    {
+        if (_cardOwnershipChecker == null)
+        {
+            var cardService = GetNodeOrNull<CardService>("/root/CardServiceCS");
+            if (cardService != null)
+            {
+                _cardOwnershipChecker = (cardInstanceId, summonerId) =>
+                    cardService.GetOwnedCards(summonerId)
+                        .Any(c => c.Id.Value == cardInstanceId);
+            }
+        }
+
+        if (_summonerValidator == null)
+        {
+            var catalog = GetNodeOrNull<SummonerCatalogBridge>("/root/SummonerCatalog");
+            if (catalog != null)
+            {
+                _summonerValidator = (summonerId) => catalog.HasSummoner(summonerId);
+            }
+        }
     }
 
     private void Initialize()

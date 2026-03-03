@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Constants;
+namespace Fateforged.Constants;
 
 /// <summary>
 /// Strongly-typed identifier for unit types.

@@ -1,8 +1,8 @@
-namespace ProjectSummoner.Tests.Cards;
+namespace Fateforged.Tests.Cards;
 
 using Godot;
 using GdUnit4;
-using ProjectSummoner.Cards.Formations;
+using Fateforged.Cards.Formations;
 using static GdUnit4.Assertions;
 
 /// <summary>

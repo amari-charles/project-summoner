@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Services.Shop;
+namespace Fateforged.Meta.Shop;
 
 /// <summary>
 /// Type of shop (determines behavior like card binding).

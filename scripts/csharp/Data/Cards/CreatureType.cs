@@ -1,6 +1,6 @@
 using System;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Creature classification for units. Supports multiple types via flags.

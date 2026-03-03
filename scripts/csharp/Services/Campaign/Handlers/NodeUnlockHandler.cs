@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Services.Campaign.Models;
-using EventId = ProjectSummoner.Data.Events.EventId;
+using Fateforged.Meta.Campaign.Models;
+using EventId = Fateforged.Data.Events.EventId;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Handles node unlock condition evaluation for the campaign graph.

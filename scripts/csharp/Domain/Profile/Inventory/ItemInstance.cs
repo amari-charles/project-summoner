@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Summoners;
+using Fateforged.Data.Items;
+using Fateforged.Data.Summoners;
 
-namespace ProjectSummoner.Domain.Profile.Inventory;
+namespace Fateforged.Domain.Profile.Inventory;
 
 /// <summary>
 /// Represents an item instance owned by the player.

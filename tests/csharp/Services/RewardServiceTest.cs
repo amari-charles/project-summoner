@@ -1,11 +1,11 @@
-namespace ProjectSummoner.Tests.Services;
+namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
 using System.Linq;
 using GdUnit4;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Services.Rewards;
+using Fateforged.Cards;
+using Fateforged.Constants;
+using Fateforged.Meta.Rewards;
 using static GdUnit4.Assertions;
 
 /// <summary>

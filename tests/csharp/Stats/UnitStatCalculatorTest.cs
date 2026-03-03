@@ -1,9 +1,9 @@
-namespace ProjectSummoner.Tests.Stats;
+namespace Fateforged.Tests.Stats;
 
 using System.Collections.Generic;
 using GdUnit4;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Stats;
+using Fateforged.Cards;
+using Fateforged.Stats;
 using static GdUnit4.Assertions;
 
 /// <summary>

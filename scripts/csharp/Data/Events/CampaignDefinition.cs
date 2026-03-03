@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Services.Campaign;
+using Fateforged.Meta.Campaign;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Defines a campaign's structure and metadata.

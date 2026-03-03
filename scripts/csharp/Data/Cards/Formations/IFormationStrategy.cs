@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards.Formations;
+namespace Fateforged.Cards.Formations;
 
 /// <summary>
 /// Strategy interface for calculating unit spawn positions in a formation.

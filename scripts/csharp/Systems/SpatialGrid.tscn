@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://d3qvv3vp21b4r"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Systems/SpatialGrid.cs" id="1"]
-
-[node name="SpatialGrid" type="Node"]
-script = ExtResource("1")

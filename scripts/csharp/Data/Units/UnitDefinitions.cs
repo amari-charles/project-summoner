@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Godot;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Stats;
+using Fateforged.Constants;
+using Fateforged.Projectiles;
+using Fateforged.Stats;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 
-namespace ProjectSummoner.Units;
+namespace Fateforged.Units;
 
 /// <summary>
 /// Central registry of all unit type definitions.
@@ -526,7 +526,7 @@ public static class UnitDefinitions
         template.CritDamage = stats.CritDamage;
         template.UnitType = def.UnitType;
         template.MovementLayer = def.MovementLayer;
-        template.ElementId = (int)(def.DamageProfile.Element ?? ProjectSummoner.Cards.Element.Neutral);
+        template.ElementId = (int)(def.DamageProfile.Element ?? Fateforged.Cards.Element.Neutral);
         template.SeparationRadius = def.Visual.SeparationRadius;
         template.PhysicalDefense = stats.Armor;
         template.MagicDefense = stats.MagicResist;

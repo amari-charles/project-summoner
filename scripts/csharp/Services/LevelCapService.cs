@@ -1,10 +1,10 @@
 using Godot;
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data;
-using ProjectSummoner.Services.Cards;
+using Fateforged.Cards;
+using Fateforged.Data;
+using Fateforged.Meta.Cards;
 
-namespace ProjectSummoner.Services;
+namespace Fateforged.Meta;
 
 /// <summary>
 /// Level Cap Service - Normalizes card levels and traits for capped battles.

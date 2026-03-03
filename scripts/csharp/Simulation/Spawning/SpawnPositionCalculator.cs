@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Constants;
+using Fateforged.Constants;
 
-namespace ProjectSummoner.Summons;
+namespace Fateforged.Summons;
 
 /// <summary>
 /// Calculates safe spawn positions for units.

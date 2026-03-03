@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Services.Campaign;
+namespace Fateforged.Meta.Campaign;
 
 /// <summary>
 /// Strongly-typed identifier for battles.

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ProjectSummoner.Data.Events;
-using ProjectSummoner.Services.Campaign;
+using Fateforged.Data.Events;
+using Fateforged.Meta.Campaign;
 
-namespace ProjectSummoner.Domain.Profile.Campaign;
+namespace Fateforged.Domain.Profile.Campaign;
 
 /// <summary>
 /// Campaign progress data (per-summoner or shared).

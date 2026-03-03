@@ -40,8 +40,8 @@ func _ready() -> void:
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
 	# Connect shop signals
-	Shop.purchase_completed.connect(_on_purchase_completed)
-	Shop.purchase_failed.connect(_on_purchase_failed)
+	Shop.PurchaseCompleted.connect(_on_purchase_completed)
+	Shop.PurchaseFailed.connect(_on_purchase_failed)
 
 	# Connect profile signals for gold updates
 	ProfileRepo.data_changed.connect(_on_data_changed)
@@ -88,10 +88,10 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Disconnect signals to prevent errors
-	if Shop.purchase_completed.is_connected(_on_purchase_completed):
-		Shop.purchase_completed.disconnect(_on_purchase_completed)
-	if Shop.purchase_failed.is_connected(_on_purchase_failed):
-		Shop.purchase_failed.disconnect(_on_purchase_failed)
+	if Shop.PurchaseCompleted.is_connected(_on_purchase_completed):
+		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
+	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
+		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
 	if ProfileRepo.data_changed.is_connected(_on_data_changed):
 		ProfileRepo.data_changed.disconnect(_on_data_changed)
 

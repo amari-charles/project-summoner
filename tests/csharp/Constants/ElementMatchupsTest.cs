@@ -1,8 +1,8 @@
-namespace ProjectSummoner.Tests.Constants;
+namespace Fateforged.Tests.Constants;
 
 using GdUnit4;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
+using Fateforged.Cards;
+using Fateforged.Constants;
 using static GdUnit4.Assertions;
 
 /// <summary>

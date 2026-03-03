@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Stats;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Central registry of all trait definitions.

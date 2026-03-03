@@ -61,7 +61,7 @@ func can_start() -> bool:
 ## Get the text for the start button based on completion state.
 ## Subclasses can override for custom button text.
 func get_start_button_text() -> String:
-	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(event.id))
+	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(event.id))
 
 	if is_completed:
 		# Combat events are always replayable (for XP grinding)
@@ -76,7 +76,7 @@ func get_start_button_text() -> String:
 ## Check if the start button should be disabled.
 ## Subclasses can override for custom logic.
 func is_start_disabled() -> bool:
-	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(event.id))
+	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(event.id))
 
 	# Completed non-repeatable events can't be started
 	# Exception: Combat events are always replayable (for XP grinding, no gold/card rewards)

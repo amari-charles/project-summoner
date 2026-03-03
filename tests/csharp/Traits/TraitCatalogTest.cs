@@ -1,9 +1,9 @@
-namespace ProjectSummoner.Tests.Traits;
+namespace Fateforged.Tests.Traits;
 
 using System.Linq;
 using GdUnit4;
-using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Stats;
+using Fateforged.Data.Traits;
+using Fateforged.Stats;
 using static GdUnit4.Assertions;
 
 /// <summary>

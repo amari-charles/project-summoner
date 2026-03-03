@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Domain.Profile.Enums;
+namespace Fateforged.Domain.Profile.Enums;
 
 /// <summary>
 /// Defines how content (items, cards, etc.) is bound in terms of ownership.

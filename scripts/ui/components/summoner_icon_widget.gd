@@ -55,13 +55,13 @@ func refresh() -> void:
 
 func _update_display(summoner_id: String) -> void:
 	# Get summoner config
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
 	if not config:
 		_show_no_summoner()
 		return
 
 	# Get summoner instance for level
-	var info: Dictionary = SummonerProgression.get_summoner_progression_info(summoner_id)
+	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(summoner_id)
 	var level: int = info.get("level", 1)
 
 	# Get element

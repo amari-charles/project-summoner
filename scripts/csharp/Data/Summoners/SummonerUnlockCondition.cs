@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Summoners;
+namespace Fateforged.Data.Summoners;
 
 /// <summary>
 /// Conditions for unlocking summoners.

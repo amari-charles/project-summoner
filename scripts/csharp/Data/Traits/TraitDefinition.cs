@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using ProjectSummoner.Stats;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Defines a summoner trait.

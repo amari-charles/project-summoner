@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards.Formations;
+namespace Fateforged.Cards.Formations;
 
 /// <summary>
 /// Grid formation with staggered rows for army-like spawning.

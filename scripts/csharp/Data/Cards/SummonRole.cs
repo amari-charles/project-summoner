@@ -1,6 +1,6 @@
 using System;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Combat role for summon cards. Supports multiple roles via flags.

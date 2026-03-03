@@ -1,12 +1,12 @@
-namespace ProjectSummoner.Tests.Session;
+namespace Fateforged.Tests.Session;
 
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using GdUnit4;
-using ProjectSummoner.Tests.Simulation;
-using ProjectSummoner.Units;
+using Fateforged.Tests.Simulation;
+using Fateforged.Units;
 using static GdUnit4.Assertions;
 
 [TestSuite]

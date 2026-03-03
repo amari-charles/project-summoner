@@ -38,11 +38,11 @@ func _ready() -> void:
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
 	# Connect shop signals
-	Shop.purchase_completed.connect(_on_purchase_completed)
-	Shop.purchase_failed.connect(_on_purchase_failed)
+	Shop.PurchaseCompleted.connect(_on_purchase_completed)
+	Shop.PurchaseFailed.connect(_on_purchase_failed)
 
 	# Connect economy signals for campaign gold updates
-	Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)
+	Economy.CampaignGoldChanged.connect(_on_campaign_gold_changed)
 
 	# Get shop_id from EventContext
 	var event_id: String = EventContext.get_current_event_id()
@@ -59,12 +59,12 @@ func _ready() -> void:
 	_clear_detail_panel()
 
 func _exit_tree() -> void:
-	if Shop.purchase_completed.is_connected(_on_purchase_completed):
-		Shop.purchase_completed.disconnect(_on_purchase_completed)
-	if Shop.purchase_failed.is_connected(_on_purchase_failed):
-		Shop.purchase_failed.disconnect(_on_purchase_failed)
-	if Economy.campaign_gold_changed.is_connected(_on_campaign_gold_changed):
-		Economy.campaign_gold_changed.disconnect(_on_campaign_gold_changed)
+	if Shop.PurchaseCompleted.is_connected(_on_purchase_completed):
+		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
+	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
+		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
+	if Economy.CampaignGoldChanged.is_connected(_on_campaign_gold_changed):
+		Economy.CampaignGoldChanged.disconnect(_on_campaign_gold_changed)
 
 ## =============================================================================
 ## INITIALIZATION
@@ -86,7 +86,7 @@ func _load_offerings() -> void:
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
 func _update_gold_display() -> void:
-	var gold: int = Economy.get_campaign_gold()
+	var gold: int = Economy.GetCampaignGold()
 	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
 
 ## =============================================================================
@@ -121,7 +121,7 @@ func _update_detail_panel(offering: ShopOffering) -> void:
 
 func _build_purchase_context(offering: ShopOffering) -> ShopPurchaseContext:
 	var context: ShopPurchaseContext = ShopPurchaseContext.new()
-	context.player_gold = Economy.get_campaign_gold()
+	context.player_gold = Economy.GetCampaignGold()
 
 	# Get refresh state
 	var shop_refresh_state: Dictionary = ProfileRepo.get_shop_refresh_state(shop_id)

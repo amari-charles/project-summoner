@@ -1,5 +1,5 @@
 using Godot;
-using ProjectSummoner.Constants;
+using Fateforged.Constants;
 using Fateforged.View;
 
 namespace Fateforged.View.Debug;

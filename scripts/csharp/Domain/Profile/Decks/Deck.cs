@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Services.Deck;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Meta.Deck;
 
-namespace ProjectSummoner.Domain.Profile.Decks;
+namespace Fateforged.Domain.Profile.Decks;
 
 /// <summary>
 /// Represents a player's deck configuration.

@@ -93,7 +93,7 @@ func _on_summoner_selected(summoner_id: String) -> void:
 ## Create starter deck with summoner's starter card
 func _create_starter_deck(summoner_id: String) -> void:
 	# Get summoner config to find starter card
-	var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
 	if not summoner_config:
 		push_error("SummonerSelection: Failed to get config for summoner '%s'" % summoner_id)
 		return
@@ -114,7 +114,7 @@ func _create_starter_deck(summoner_id: String) -> void:
 
 	# Create Starter Deck with the card
 	var card_ids: Array[String] = [card_instance_id]
-	var deck_id: String = Decks.create_deck(_DeckConstants.STARTER_DECK_NAME, card_ids, summoner_id)
+	var deck_id: String = Decks.CreateDeckFromDict(_DeckConstants.STARTER_DECK_NAME, card_ids, summoner_id)
 	if deck_id.is_empty():
 		push_error("SummonerSelection: Failed to create Starter Deck")
 		return
@@ -139,7 +139,7 @@ func _populate_summoner_buttons() -> void:
 	]
 
 	for mapping: Dictionary in button_mappings:
-		var config: SummonerConfig = SummonerCatalog.get_summoner_config(mapping.summoner_id)
+		var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(mapping.summoner_id))
 		if config:
 			_set_button_content(mapping.button, config)
 
@@ -176,7 +176,7 @@ func _set_random_button_content(button: Button) -> void:
 ## Create and save SummonerInstance for the selected summoner
 func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void:
 	# Get summoner config
-	var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
 	if not summoner_config:
 		push_error("SummonerSelection: Failed to get SummonerConfig for '%s'" % summoner_id)
 		return

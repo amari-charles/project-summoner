@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Traits;
+using Fateforged.Cards;
+using Fateforged.Data.Traits;
 
-namespace ProjectSummoner.Data.Summoners;
+namespace Fateforged.Data.Summoners;
 
 /// <summary>
 /// Central registry of all summoner definitions.

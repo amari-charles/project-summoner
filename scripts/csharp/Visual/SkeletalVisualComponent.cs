@@ -1,7 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 
-namespace ProjectSummoner.Visual;
+namespace Fateforged.Visual;
 
 /// <summary>
 /// Skeletal-based 2.5D Character Rendering Component.

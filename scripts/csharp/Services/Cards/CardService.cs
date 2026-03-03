@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Services.Cards.Handlers;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Cards.Handlers;
 
-namespace ProjectSummoner.Services.Cards;
+namespace Fateforged.Meta.Cards;
 
 /// <summary>
 /// Card Service - Unified service for card ownership and progression.

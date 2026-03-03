@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards.Formations;
+namespace Fateforged.Cards.Formations;
 
 /// <summary>
 /// Ring formation that places units in a circle around the spawn point.

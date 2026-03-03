@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Types of cards in the game.

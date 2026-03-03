@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://battle_hud"]
 
 [ext_resource type="Script" path="res://scripts/ui/battle/game_ui.gd" id="1_game_ui"]
-[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battle/battlefield_drop_zone.gd" id="2_drop_zone"]
+[ext_resource type="Script" path="res://scripts/csharp/Input/InputCollector.cs" id="2_drop_zone"]
 [ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/ui/battle/stat_bar.tscn" id="3_stat_bar"]
 [ext_resource type="Script" path="res://scripts/ui/battle/speed_button.gd" id="4_speed_button"]
 [ext_resource type="Script" path="res://scripts/ui/battle/pause_button.gd" id="5_pause_button"]
@@ -14,7 +14,7 @@ player_mana_bar = NodePath("HUDContainer/PlayerManaBar")
 enemy_hp_bar = NodePath("HUDContainer/EnemyHPBar")
 enemy_mana_bar = NodePath("HUDContainer/EnemyManaBar")
 
-[node name="BattlefieldDropZone" type="Control" parent="."]
+[node name="InputCollector" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

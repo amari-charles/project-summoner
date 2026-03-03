@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Shared data store for campaign and battle data loaded from GDScript.

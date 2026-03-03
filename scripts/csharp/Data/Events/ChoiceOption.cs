@@ -1,6 +1,6 @@
-using ProjectSummoner.Services.Campaign;
+using Fateforged.Meta.Campaign;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Represents a choice option at a branching path.

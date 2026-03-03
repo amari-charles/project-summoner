@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards.Formations;
+namespace Fateforged.Cards.Formations;
 
 /// <summary>
 /// Line formation with grouped units (e.g., 6 units in 3 groups of 2).

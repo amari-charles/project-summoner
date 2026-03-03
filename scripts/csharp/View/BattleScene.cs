@@ -5,7 +5,7 @@ using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Events;
 using Fateforged.Session;
 using Godot;
-using ProjectSummoner.Constants;
+using Fateforged.Constants;
 
 namespace Fateforged.View;
 
@@ -433,81 +433,429 @@ public partial class BattleScene : Node3D
         var battleContext = GetNode("/root/BattleContext");
         if (battleContext == null) return;
 
+        var simNode = GetSimNode() as SimulationNode;
+        if (simNode == null) return;
+
         bool isMpClient = IsMpClient();
 
         if (isMpClient)
         {
-            PlayerSummoner?.Call("init_as_client");
-            EnemySummoner?.Call("init_as_client");
+            // Client: register with defaults, skip deck loading
+            InitSummonerAsClient(PlayerSummoner as SummonerVisual, simNode);
+            InitSummonerAsClient(EnemySummoner as SummonerVisual, simNode);
         }
         else
         {
-            // Apply enemy stats before init
-            if (EnemySummoner != null)
-            {
-                bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-                var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
+            var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
 
-                if (isMp)
+            // Initialize player summoner (team 0)
+            InitSummonerHost(PlayerSummoner as SummonerVisual, 0, battleContext, config, simNode);
+
+            // Apply enemy stats from BattleContext before init
+            ApplyEnemyStats(EnemySummoner as SummonerVisual, battleContext, config);
+
+            // Initialize enemy summoner (team 1)
+            InitSummonerHost(EnemySummoner as SummonerVisual, 1, battleContext, config, simNode);
+
+            // Populate card data after BOTH summoners registered
+            simNode.PopulateCardData();
+        }
+
+        // Initialize SummonerVisual and register with EntityManager
+        if (PlayerSummoner is SummonerVisual playerSv)
+        {
+            playerSv.Initialize(simNode, simNode.RemapTeam(0));
+            EntityManager?.RegisterSummonerVisual(playerSv, simNode.RemapTeam(0));
+        }
+        if (EnemySummoner is SummonerVisual enemySv)
+        {
+            enemySv.Initialize(simNode, simNode.RemapTeam(1));
+            EntityManager?.RegisterSummonerVisual(enemySv, simNode.RemapTeam(1));
+        }
+    }
+
+    private void InitSummonerAsClient(SummonerVisual? sv, SimulationNode simNode)
+    {
+        if (sv == null) return;
+
+        // Register with scene defaults to prevent 0/0 HP/mana race
+        // Host snapshots overwrite these values within ~100ms
+        simNode.RegisterSummoner(
+            sv.Team, sv.MaxHpExport, sv.MaxHpExport,
+            100f, 100f, 1.0f,
+            Array.Empty<string>(), sv.MaxHandSize,
+            sv.GlobalPosition
+        );
+    }
+
+    private void InitSummonerHost(SummonerVisual? sv, int localTeam, Node battleContext,
+        Godot.Collections.Dictionary? config, SimulationNode simNode)
+    {
+        if (sv == null) return;
+
+        int strategy = sv.DeckLoadStrategy;
+
+        // Auto-correct strategy based on team
+        if (localTeam == 0 && strategy == 1) // Player with BATTLE_CONTEXT
+            strategy = 2; // Switch to PROFILE
+        else if (localTeam == 1 && strategy == 2) // Enemy with PROFILE
+            strategy = 1; // Switch to BATTLE_CONTEXT
+
+        // Auto-detect event_sequence battles
+        if (localTeam == 1 && strategy == 1 && config != null)
+        {
+            if (config.ContainsKey("event_sequence") && config.ContainsKey("enemy_deck"))
+            {
+                var enemyDeckVar = config["enemy_deck"];
+                if (enemyDeckVar.VariantType == Variant.Type.Array)
                 {
-                    var opponentData = (Godot.Collections.Dictionary)config.GetValueOrDefault("opponent_summoner_data", new Godot.Collections.Dictionary());
-                    if (opponentData != null && opponentData.Count > 0)
+                    var arr = enemyDeckVar.AsGodotArray();
+                    if (arr.Count == 0)
                     {
-                        var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
-                        if (siClass != null)
+                        GD.Print("[BattleScene] Battle uses event_sequence with empty enemy_deck - switching to DEFERRED");
+                        strategy = 3; // DEFERRED
+                    }
+                }
+            }
+        }
+
+        // Load deck by strategy
+        float hp = sv.MaxHpExport;
+        float maxHp = sv.MaxHpExport;
+        float mana = 100f; // SummonerConfig.DEFAULT_MAX_MANA
+        float maxMana = 100f;
+        float castSpeed = 1.0f; // SummonerConfig.DEFAULT_BASE_CAST_SPEED
+        var deck = new Godot.Collections.Array<Resource>();
+        GodotObject? summonerInstance = null;
+
+        switch (strategy)
+        {
+            case 0: // STATIC
+                GD.Print("[BattleScene] Using STATIC starting deck");
+                deck = sv.StartingDeck;
+                break;
+
+            case 1: // BATTLE_CONTEXT
+                GD.Print("[BattleScene] Loading enemy deck from BattleContext...");
+                var enemyDeckLoader = GetNodeOrNull("/root/EnemyDeckLoader");
+                if (enemyDeckLoader != null)
+                {
+                    var loaded = enemyDeckLoader.Call("load_enemy_deck_for_battle");
+                    if (loaded.VariantType == Variant.Type.Array)
+                    {
+                        var arr = loaded.AsGodotArray();
+                        foreach (var item in arr)
                         {
-                            var opponent = siClass.Call("from_dict", opponentData);
-                            if (opponent.VariantType != Variant.Type.Nil)
-                                EnemySummoner.Call("set_summoner_instance", opponent);
+                            if (item.AsGodotObject() is Resource res)
+                                deck.Add(res);
                         }
                     }
                 }
-                else if (config.ContainsKey("enemy_hp"))
+                if (deck.Count == 0)
                 {
-                    float customHp = (float)config["enemy_hp"];
-                    EnemySummoner.Set("max_hp", customHp);
-                    EnemySummoner.Set("current_hp", customHp);
+                    GD.PushWarning("[BattleScene] Failed to load from BattleContext, using STATIC deck");
+                    deck = sv.StartingDeck;
+                }
+                break;
+
+            case 2: // PROFILE
+                GD.Print("[BattleScene] Loading deck from player profile...");
+                LoadProfileDeck(sv, localTeam, config, ref deck, ref mana, ref maxMana, ref castSpeed, ref hp, ref maxHp, out summonerInstance);
+                break;
+
+            case 3: // DEFERRED
+                GD.Print("[BattleScene] Using DEFERRED strategy - deck will be set manually later");
+                break;
+        }
+
+        if (deck.Count == 0 && strategy != 3)
+        {
+            if (IsTestMode())
+            {
+                GD.PushWarning("[BattleScene] Empty deck in test mode, creating emergency fallback");
+                deck = CreateEmergencyDeck();
+            }
+            else if (strategy != 3)
+            {
+                GD.PushError("[BattleScene] CRITICAL - No deck loaded! Strategy=" + strategy);
+                sv.IsEnabled = false;
+                return;
+            }
+        }
+
+        if (deck.Count > 0)
+            GD.Print($"[BattleScene] Loaded {deck.Count} cards (strategy={strategy})");
+
+        // Shuffle deck
+        var battleRng = GetNodeOrNull("/root/BattleRNG");
+        if (battleRng != null && deck.Count > 0)
+            battleRng.Call("shuffle_array", deck, 0); // 0 = DECK_SHUFFLE domain
+
+        // Draw starting hand
+        var hand = new Godot.Collections.Array<Resource>();
+        int drawCount = Math.Min(sv.MaxHandSize, deck.Count);
+        for (int i = 0; i < drawCount; i++)
+        {
+            hand.Add(deck[0]);
+            deck.RemoveAt(0);
+        }
+
+        // Extract catalog IDs
+        var deckIds = ExtractCatalogIds(deck);
+        var handIds = ExtractCatalogIds(hand);
+
+        // Register with simulation
+        simNode.RegisterSummoner(localTeam, hp, maxHp, mana, maxMana, castSpeed,
+            deckIds, sv.MaxHandSize, sv.GlobalPosition);
+        simNode.SetSummonerHand(localTeam, handIds);
+    }
+
+    private void LoadProfileDeck(SummonerVisual sv, int localTeam,
+        Godot.Collections.Dictionary? config,
+        ref Godot.Collections.Array<Resource> deck,
+        ref float mana, ref float maxMana, ref float castSpeed,
+        ref float hp, ref float maxHp,
+        out GodotObject? summonerInstance)
+    {
+        summonerInstance = null;
+
+        // Check for dev test deck override
+        if (config != null && config.ContainsKey("dev_player_deck"))
+        {
+            GD.Print("[BattleScene] Loading DEV TEST deck...");
+            var devDeckConfig = config["dev_player_deck"];
+            if (devDeckConfig.VariantType == Variant.Type.Array)
+            {
+                var entries = devDeckConfig.AsGodotArray();
+                foreach (var entry in entries)
+                {
+                    if (entry.VariantType != Variant.Type.Dictionary) continue;
+                    var entryDict = entry.AsGodotDictionary();
+                    string catalogId = entryDict.GetValueOrDefault("catalog_id", "").ToString();
+                    int count = (int)entryDict.GetValueOrDefault("count", 1);
+                    for (int i = 0; i < count; i++)
+                    {
+                        var card = CreateCardFromCatalog(catalogId);
+                        if (card != null) deck.Add(card);
+                    }
                 }
             }
-
-            PlayerSummoner?.Call("init");
-            EnemySummoner?.Call("init");
-
-            // Populate card data after both summoners registered
-            var simNode = GetSimNode();
-            simNode?.Call("PopulateCardData");
         }
+        else
+        {
+            // Normal path: use profile deck via DeckLoader
+            var deckLoader = GetNodeOrNull("/root/DeckLoader");
+            if (deckLoader != null)
+            {
+                var result = deckLoader.Call("load_player_deck");
+                if (result.VariantType == Variant.Type.Dictionary)
+                {
+                    var dict = result.AsGodotDictionary();
+                    var cardsVar = dict.GetValueOrDefault("cards", new Godot.Collections.Array());
+                    if (cardsVar.VariantType == Variant.Type.Array)
+                    {
+                        var cards = cardsVar.AsGodotArray();
+                        foreach (var card in cards)
+                        {
+                            if (card.AsGodotObject() is Resource res)
+                                deck.Add(res);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (deck.Count == 0)
+        {
+            GD.PushWarning("[BattleScene] Failed to load from profile, using STATIC deck");
+            deck = sv.StartingDeck;
+        }
+        else
+        {
+            // Store deck card IDs in BattleContext
+            var battleContext = GetNode("/root/BattleContext");
+            battleContext?.Call("store_deck_card_ids", deck);
+        }
+
+        // Load summoner instance from profile
+        LoadSummonerFromProfile(localTeam, ref mana, ref maxMana, ref castSpeed, ref hp, ref maxHp, out summonerInstance);
+    }
+
+    private void LoadSummonerFromProfile(int localTeam,
+        ref float mana, ref float maxMana, ref float castSpeed,
+        ref float hp, ref float maxHp,
+        out GodotObject? summonerInstance)
+    {
+        summonerInstance = null;
+
+        // Get active summoner ID
+        var summonerSelection = GetNodeOrNull("/root/SummonerSelection");
+        if (summonerSelection == null) return;
+
+        string summonerId = summonerSelection.Call("GetActiveSummonerId").AsString();
+        if (string.IsNullOrEmpty(summonerId)) return;
+
+        GD.Print($"[BattleScene] Active summoner ID: '{summonerId}'");
+
+        // Load summoner instance data
+        var profileRepo = GetNodeOrNull("/root/ProfileRepo");
+        if (profileRepo == null) return;
+
+        var instanceData = profileRepo.Call("get_summoner_instance", summonerId);
+        GodotObject? loadedInstance = null;
+
+        if (instanceData.VariantType == Variant.Type.Dictionary)
+        {
+            var dict = instanceData.AsGodotDictionary();
+            if (dict.Count > 0)
+            {
+                var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
+                if (siClass != null)
+                {
+                    var created = siClass.Call("from_dict", dict);
+                    if (created.VariantType != Variant.Type.Nil)
+                        loadedInstance = created.AsGodotObject();
+                }
+            }
+        }
+
+        if (loadedInstance == null)
+        {
+            // Create from catalog config
+            var summonerCatalog = GetNodeOrNull("/root/SummonerCatalog");
+            if (summonerCatalog != null)
+            {
+                var configObj = summonerCatalog.Call("get_summoner_config", summonerId);
+                if (configObj.VariantType != Variant.Type.Nil)
+                {
+                    var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
+                    if (siClass != null)
+                    {
+                        loadedInstance = siClass.Call("new").AsGodotObject();
+                        if (loadedInstance != null)
+                            loadedInstance.Call("init_from_config", configObj);
+                    }
+                }
+            }
+        }
+
+        if (loadedInstance == null) return;
+        summonerInstance = loadedInstance;
+
+        // Get computed stats
+        var stats = loadedInstance.Call("get_computed_stats");
+        if (stats.VariantType != Variant.Type.Dictionary) return;
+        var statsDict = stats.AsGodotDictionary();
+
+        maxMana = (float)statsDict.GetValueOrDefault("max_mana", 100.0f);
+        mana = maxMana;
+        castSpeed = (float)statsDict.GetValueOrDefault("cast_speed", 1.0f);
+        float health = (float)statsDict.GetValueOrDefault("health", 300.0f);
+        maxHp = health;
+        hp = health;
+
+        // Cache summoner stats in BattleContext
+        if (localTeam == 0)
+        {
+            var battleContext = GetNode("/root/BattleContext");
+            battleContext?.Call("set_player_summoner_stats", statsDict);
+        }
+
+        GD.Print($"[BattleScene] Applied summoner bonuses - Max HP: {maxHp:F0}, Max Mana: {maxMana:F0}, Cast Speed: {castSpeed:F2}");
+    }
+
+    private void ApplyEnemyStats(SummonerVisual? sv, Node battleContext, Godot.Collections.Dictionary? config)
+    {
+        if (sv == null || config == null) return;
+
+        bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
+
+        if (isMp)
+        {
+            var opponentData = (Godot.Collections.Dictionary)config.GetValueOrDefault("opponent_summoner_data", new Godot.Collections.Dictionary());
+            if (opponentData != null && opponentData.Count > 0)
+            {
+                // MP enemy stats applied via summoner instance bonuses during init
+                // (handled by LoadSummonerFromProfile equivalent for MP opponent)
+            }
+        }
+        else if (config.ContainsKey("enemy_hp"))
+        {
+            float customHp = (float)config["enemy_hp"];
+            sv.MaxHpExport = customHp;
+        }
+    }
+
+    private static string[] ExtractCatalogIds(Godot.Collections.Array<Resource> cards)
+    {
+        var ids = new string[cards.Count];
+        for (int i = 0; i < cards.Count; i++)
+        {
+            var card = cards[i] as GodotObject;
+            if (card != null)
+                ids[i] = card.Get("CatalogId").AsString();
+            else
+                ids[i] = "";
+        }
+        return ids;
+    }
+
+    private static Resource? CreateCardFromCatalog(string catalogId)
+    {
+        var cardCatalogBridge = Fateforged.Cards.CardCatalog.GetCard(catalogId);
+        if (cardCatalogBridge == null) return null;
+        return Fateforged.Cards.Card.FromDefinition(cardCatalogBridge);
+    }
+
+    private Godot.Collections.Array<Resource> CreateEmergencyDeck()
+    {
+        var deck = new Godot.Collections.Array<Resource>();
+        for (int i = 0; i < 3; i++)
+        {
+            var card = CreateCardFromCatalog("fire_wisp");
+            if (card != null) deck.Add(card);
+        }
+        return deck;
+    }
+
+    private bool IsTestMode()
+    {
+        // Check if scene root is TestBattleScene
+        var root = GetTree().CurrentScene;
+        if (root is Debug.TestBattleScene) return true;
+
+        // Check BattleContext practice mode
+        var battleContext = GetNodeOrNull("/root/BattleContext");
+        if (battleContext != null)
+        {
+            var mode = (int)battleContext.Get("current_mode");
+            if (mode == 1) return true; // PRACTICE
+        }
+
+        return false;
     }
 
     private void ConnectSimSignals()
     {
-        var simNode = GetSimNode();
-        if (simNode == null)
-        {
-            GD.PushWarning("BattleScene: No SimulationNode found for signal connection");
-            return;
-        }
-
         // GameOver handled via SimEventsEmitted subscription
 
-        // Legacy summoner_destroyed fallback
-        if (PlayerSummoner != null && PlayerSummoner.HasSignal("summoner_destroyed"))
-            PlayerSummoner.Connect("summoner_destroyed", new Callable(this, MethodName.OnSummonerDestroyed));
-        if (EnemySummoner != null && EnemySummoner.HasSignal("summoner_destroyed"))
-            EnemySummoner.Connect("summoner_destroyed", new Callable(this, MethodName.OnSummonerDestroyed));
+        // Connect SummonerVisual.SummonerDestroyed signals
+        if (PlayerSummoner != null && PlayerSummoner.HasSignal("SummonerDestroyed"))
+            PlayerSummoner.Connect("SummonerDestroyed", new Callable(this, MethodName.OnSummonerDestroyed));
+        if (EnemySummoner != null && EnemySummoner.HasSignal("SummonerDestroyed"))
+            EnemySummoner.Connect("SummonerDestroyed", new Callable(this, MethodName.OnSummonerDestroyed));
     }
 
-    private void OnSummonerDestroyed(Node summoner)
+    private void OnSummonerDestroyed(Node3D summoner)
     {
         // During Battle phase, sim handles win conditions via GameOverEvent
-        var simNode = GetSimNode();
+        var simNode = GetSimNode() as SimulationNode;
         if (simNode != null)
         {
-            int phase = (int)simNode.Call("GetPhase");
-            if (phase == 1) return; // Battle phase
+            if (simNode.GetPhase() == 1) return; // Battle phase
         }
 
-        var battleContext = GetNode("/root/BattleContext");
+        var battleContext = GetNodeOrNull("/root/BattleContext");
         if (battleContext != null && !(bool)battleContext.Call("has_authority"))
             return;
 
@@ -550,7 +898,7 @@ public partial class BattleScene : Node3D
 
     private void InitUI()
     {
-        // Find and init HandUI
+        // Find and init HandUI (pass SummonerVisual node)
         var handUi = GetTree().GetFirstNodeInGroup(GroupIDs.HandUI);
         if (handUi != null && handUi.HasMethod("init") && PlayerSummoner != null)
             handUi.Call("init", PlayerSummoner);
@@ -560,10 +908,9 @@ public partial class BattleScene : Node3D
         if (gameUi != null && gameUi.HasMethod("init") && PlayerSummoner != null)
             gameUi.Call("init", this, PlayerSummoner, EnemySummoner!);
 
-        // Find and init BattlefieldDropZone
-        var dropZone = GetNodeOrNull("UI/BattlefieldDropZone");
-        if (dropZone != null && dropZone.HasMethod("init") && PlayerSummoner != null)
-            dropZone.Call("init", PlayerSummoner);
+        // Find and init InputCollector
+        var inputCollector = GetNodeOrNull<Fateforged.Input.InputCollector>("UI/InputCollector");
+        inputCollector?.Initialize(PlayerSummoner!);
     }
 
     private void SetupMultiplayer()

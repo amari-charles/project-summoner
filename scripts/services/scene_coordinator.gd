@@ -90,12 +90,6 @@ func _cleanup_persistent_state() -> void:
 		if debug_mode:
 			print("  - Reset DialogueManager")
 
-	# Reset spell targeting (clears any active targeting state)
-	if SpellTargetingManager:
-		SpellTargetingManager.reset()
-		if debug_mode:
-			print("  - Reset SpellTargetingManager")
-
 	# Note: BattleContext is NOT reset here
 	# It's configured BEFORE scene transition by the caller (CampaignMap, etc.)
 

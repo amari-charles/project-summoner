@@ -82,8 +82,7 @@ func _ready() -> void:
 	if SummonerSelection.has_signal("SummonerChanged"):
 		SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
 
-	if Economy.has_signal("campaign_gold_changed"):
-		Economy.campaign_gold_changed.connect(_on_campaign_gold_changed)
+	Economy.CampaignGoldChanged.connect(_on_campaign_gold_changed)
 
 	# Setup equipment modal
 	_equipment_modal = EquipmentSlotModal.new()
@@ -109,7 +108,7 @@ func _ready() -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	var gold: int = Economy.get_campaign_gold()
+	var gold: int = Economy.GetCampaignGold()
 	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
 
@@ -122,13 +121,13 @@ func _refresh_all() -> void:
 		_show_no_summoner()
 		return
 
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(_current_summoner_id)
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(_current_summoner_id))
 	if not config:
 		_show_no_summoner()
 		return
 
 	# Get progression info
-	var info: Dictionary = SummonerProgression.get_summoner_progression_info(_current_summoner_id)
+	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(_current_summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)
@@ -432,7 +431,7 @@ func _refresh_equipment() -> void:
 		child.queue_free()
 
 	# Get equipped items from Items service
-	var equipped: Dictionary = Items.get_equipped_items(_current_summoner_id)
+	var equipped: Dictionary = Items.GetEquippedItemsDict(_current_summoner_id)
 
 	# Create horizontal box for 4 slots
 	var hbox: HBoxContainer = HBoxContainer.new()
@@ -441,16 +440,17 @@ func _refresh_equipment() -> void:
 	equipment_container.add_child(hbox)
 
 	# Show all 4 equipment slots as boxes
-	for slot: String in Items.ALL_SLOTS:
+	for slot: String in ["wand", "ring1", "ring2", "robes"]:
 		var item_instance_id: String = equipped.get(slot, "")
 		var slot_box: PanelContainer = _create_equipment_slot_box(slot, item_instance_id)
 		hbox.add_child(slot_box)
 
 
 func _create_equipment_slot_box(slot: String, item_instance_id: String) -> PanelContainer:
+	const SLOT_DISPLAY_NAMES: Dictionary = {"wand": "Wand", "ring1": "Ring", "ring2": "Ring", "robes": "Robes"}
 	var slot_display_name: String = Loc.t("ui.summoner_screen.equipment_slot_" + slot)
 	if slot_display_name.begins_with("ui.summoner_screen.equipment_slot_"):
-		slot_display_name = Items.SLOT_DISPLAY_NAMES.get(slot, slot.capitalize())
+		slot_display_name = SLOT_DISPLAY_NAMES.get(slot, slot.capitalize())
 
 	var is_empty: bool = item_instance_id.is_empty()
 
@@ -482,7 +482,8 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 
 	# Icon/symbol at top
 	var icon_label: Label = Label.new()
-	icon_label.text = Items.SLOT_ICONS.get(slot, "?")
+	const SLOT_ICONS: Dictionary = {"wand": "\u{1FA84}", "ring1": "\u{1F48D}", "ring2": "\u{1F48D}", "robes": "\u{1F9E5}"}
+	icon_label.text = SLOT_ICONS.get(slot, "?")
 	icon_label.add_theme_font_size_override("font_size", 28)
 	icon_label.add_theme_color_override("font_color", accent_color.lightened(0.2) if is_empty else accent_color.lightened(0.3))
 	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -502,7 +503,7 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 		item_label.text = Loc.t("ui.summoner_screen.equipment_empty")
 		item_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.4))
 	else:
-		var items_for_slot: Array[Dictionary] = Items.list_items_for_slot(slot, _current_summoner_id)
+		var items_for_slot: Array[Dictionary] = Items.ListItemsForSlotDict(slot, _current_summoner_id)
 		var item_name: String = ""
 		for item: Dictionary in items_for_slot:
 			if item.get("instance_id", "") == item_instance_id:
@@ -527,8 +528,8 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 
 
 func _create_trait_card(trait_id: String, is_innate: bool) -> PanelContainer:
-	var trait_name: String = TraitCatalog.get_trait_name(trait_id)
-	var trait_desc: String = TraitCatalog.get_trait_description(trait_id)
+	var trait_name: String = TraitCatalog.GetTraitName(trait_id)
+	var trait_desc: String = TraitCatalog.GetTraitDescription(trait_id)
 
 	if trait_name.is_empty():
 		trait_name = trait_id
@@ -626,7 +627,7 @@ func _on_level_up_pressed() -> void:
 	if _current_summoner_id.is_empty():
 		return
 
-	var success: bool = SummonerProgression.level_up_summoner(_current_summoner_id)
+	var success: bool = SummonerProgression.LevelUpSummoner(_current_summoner_id)
 	if success:
 		_refresh_all()
 		_refresh_gold_display()

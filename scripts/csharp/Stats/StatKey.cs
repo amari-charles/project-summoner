@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Stats;
+namespace Fateforged.Stats;
 
 /// <summary>
 /// Type-safe enumeration of all stat keys used in the modifier system.

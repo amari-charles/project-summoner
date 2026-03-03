@@ -1,11 +1,11 @@
 using Godot;
-using ProjectSummoner.Stats;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Bridge node for GDScript to access C# TraitCatalog.
-/// Registered as autoload "TraitCatalogCS" in project.godot.
+/// Registered as autoload "TraitCatalog" in project.godot.
 /// Wraps static TraitCatalog methods as instance methods for GDScript compatibility.
 /// Note: GDScript can call these PascalCase methods directly - Godot 4 auto-converts snake_case calls.
 /// </summary>

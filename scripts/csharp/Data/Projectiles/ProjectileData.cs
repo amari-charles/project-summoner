@@ -1,8 +1,8 @@
 using Godot;
 using Godot.Collections;
-using ProjectSummoner.Vfx;
+using Fateforged.Vfx;
 
-namespace ProjectSummoner.Projectiles;
+namespace Fateforged.Projectiles;
 
 /// <summary>
 /// Data definition for projectile behavior.

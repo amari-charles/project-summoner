@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards.Formations;
+namespace Fateforged.Cards.Formations;
 
 /// <summary>
 /// Line formation that places units in a horizontal line.

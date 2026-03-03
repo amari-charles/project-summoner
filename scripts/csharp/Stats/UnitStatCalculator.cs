@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Units;
+using Fateforged.Cards;
+using Fateforged.Units;
 
-namespace ProjectSummoner.Stats;
+namespace Fateforged.Stats;
 
 /// <summary>
 /// Centralized unit stat calculation with documented order of operations.

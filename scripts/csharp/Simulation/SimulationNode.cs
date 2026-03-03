@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Godot;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Session;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Units;
+using Fateforged.Cards;
+using Fateforged.Units;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -36,6 +36,8 @@ public partial class SimulationNode : Node, IGameSession
 
     public MatchState State { get; private set; } = new();
     private Simulation? _simulation;
+    private LocalSession? _localSession;
+    private CommandRouter _commandRouter = new();
     private bool _initialized;
 
     public const float FIXED_DELTA = 1.0f / 60.0f;
@@ -82,8 +84,16 @@ public partial class SimulationNode : Node, IGameSession
 
     public void SubmitCommand(ICommand cmd)
     {
-        cmd.ExecuteFrame = State.FrameNumber + 1;
-        State.PendingCommandBuffer.Add(cmd);
+        if (_localSession != null)
+        {
+            _localSession.SubmitCommand(cmd);
+        }
+        else
+        {
+            // Fallback for pre-init or client mode
+            cmd.ExecuteFrame = State.FrameNumber + 1;
+            State.PendingCommandBuffer.Add(cmd);
+        }
     }
 
     // =========================================================================
@@ -114,7 +124,7 @@ public partial class SimulationNode : Node, IGameSession
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!_initialized || _simulation == null)
+        if (!_initialized || _localSession == null)
             return;
 
 #if DEBUG
@@ -133,9 +143,8 @@ public partial class SimulationNode : Node, IGameSession
         _accumulator += (float)delta;
         while (_accumulator >= FIXED_DELTA)
         {
-            var events = _simulation.Tick(FIXED_DELTA);
+            _localSession.Tick(FIXED_DELTA);
             _accumulator -= FIXED_DELTA;
-            SimEventsEmitted?.Invoke(events);
         }
     }
 
@@ -161,13 +170,16 @@ public partial class SimulationNode : Node, IGameSession
 
         Simulation.Log = msg => GD.Print(msg);
         _simulation = new Simulation(State);
+        _commandRouter = new CommandRouter();
+        _localSession = new LocalSession(_simulation, _commandRouter, State);
+        _localSession.SimEventsEmitted += events => SimEventsEmitted?.Invoke(events);
         _initialized = true;
 
         GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})");
     }
 
     // =========================================================================
-    // SUMMONER REGISTRATION (summoner.gd calls these)
+    // SUMMONER REGISTRATION (BattleScene calls these during init)
     // =========================================================================
 
     public void RegisterSummoner(int team, float hp, float maxHp, float mana, float maxMana, float castSpeed, string[] deckCatalogIds, int maxHandSize, Vector3 position)
@@ -206,7 +218,7 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     // =========================================================================
-    // CARD DATA (summoner.gd triggers via BattleScene)
+    // CARD DATA (BattleScene calls during init)
     // =========================================================================
 
     public void PopulateCardData()
@@ -258,22 +270,12 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     // =========================================================================
-    // GDSCRIPT-CALLABLE ACCESSORS (summoner.gd + BattleScene poll these)
+    // GDSCRIPT-CALLABLE ACCESSORS (BattleScene polls these)
     // =========================================================================
 
     public int GetPhase() => (int)State.Phase;
     public float GetPrepTimeRemaining() => State.PrepTimeRemaining;
     public float GetMatchTime() => State.MatchTime;
-
-    // Summoner accessors (callers pass local team, we convert to network)
-    public float GetPlayerHp(int team) => State.Summoners[ToNetworkTeam(team)].CurrentHp;
-    public float GetPlayerMaxHp(int team) => State.Summoners[ToNetworkTeam(team)].MaxHp;
-    public float GetPlayerMana(int team) => State.Summoners[ToNetworkTeam(team)].Mana;
-    public float GetPlayerMaxMana(int team) => State.Summoners[ToNetworkTeam(team)].MaxMana;
-    public bool IsPlayerCasting(int team) => State.Summoners[ToNetworkTeam(team)].IsCasting;
-    public float GetCastingTimeRemaining(int team) => State.Summoners[ToNetworkTeam(team)].CastingTimeRemaining;
-    public float GetCastingTimeTotal(int team) => State.Summoners[ToNetworkTeam(team)].CastingTimeTotal;
-    public string[] GetPlayerHand(int team) => State.Summoners[ToNetworkTeam(team)].Hand.ToArray();
 
     public void SkipPreparation()
     {
@@ -282,11 +284,32 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     // =========================================================================
-    // COMMAND QUEUE (summoner.gd calls QueuePlayCard)
+    // COMMAND QUEUE
     // =========================================================================
 
     public void QueuePlayCard(int team, int cardIndex, Vector3 spawnPosition, int networkId = -1)
     {
+        // MP client: route through authority provider instead of local submission
+        if (!IsHost)
+        {
+            var battleContext = GetNodeOrNull("/root/BattleContext");
+            if (battleContext != null)
+            {
+                var authProvider = battleContext.Get("authority_provider");
+                if (authProvider.VariantType != Variant.Type.Nil)
+                {
+                    var provider = authProvider.AsGodotObject() as Node;
+                    if (provider != null && provider.HasMethod("request_card_play"))
+                    {
+                        provider.Call("request_card_play", cardIndex, spawnPosition);
+                        return;
+                    }
+                }
+            }
+            GD.PrintErr("[SimulationNode] MP client has no authority provider for card play!");
+            return;
+        }
+
         var cmd = new PlayCardCommand(ToNetworkTeam(team), cardIndex, ToSimCanonical(spawnPosition), networkId);
         SubmitCommand(cmd);
     }

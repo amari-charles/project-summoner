@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Services;
+namespace Fateforged.Meta;
 
 /// <summary>
 /// Settings for HP bar appearance and behavior.

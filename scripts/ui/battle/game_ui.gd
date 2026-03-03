@@ -37,8 +37,8 @@ const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 var prep_timer_label: Label = null
 
 var game_controller: Node = null
-var player_summoner: Summoner = null
-var enemy_summoner: Summoner = null
+var player_summoner: Node3D = null
+var enemy_summoner: Node3D = null
 var _initialized: bool = false  # Track initialization state
 
 ## Player team value (matches UnitConstants.Team.PLAYER)
@@ -114,48 +114,44 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 	# Initialize HP bar colors
 	_setup_hp_bars()
 
-## Connect to summoner signals
+## Connect to summoner mana signals (PascalCase C# signals)
 func _connect_to_summoner(summoner: Node) -> void:
-	if summoner.has_signal("mana_changed"):
-		var mana_changed_signal: Signal = summoner.get("mana_changed")
-		mana_changed_signal.connect(_on_mana_changed)
-		print("GameUI: Connected to PlayerSummoner mana_changed signal")
+	if summoner.has_signal("ManaChanged"):
+		summoner.connect("ManaChanged", _on_mana_changed)
+		print("GameUI: Connected to PlayerSummoner ManaChanged signal")
 
 		# Manually trigger initial update with current values
-		# (signal was emitted before we connected)
-		var current_mana: float = summoner.get("mana") if "mana" in summoner else 0.0
-		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else SummonerConfig.DEFAULT_MAX_MANA
+		var current_mana: float = summoner.get("Mana") if summoner.get("Mana") != null else 0.0
+		var max_mana: float = summoner.get("MaxMana") if summoner.get("MaxMana") != null else 100.0
 		_on_mana_changed(current_mana, max_mana)
 	else:
-		push_warning("GameUI: PlayerSummoner found but has no mana_changed signal")
+		push_warning("GameUI: PlayerSummoner found but has no ManaChanged signal")
 
-## Connect to enemy mana signals
+## Connect to enemy mana signals (PascalCase C# signals)
 func _connect_to_enemy_mana(summoner: Node) -> void:
-	if summoner.has_signal("mana_changed"):
-		var mana_changed_signal: Signal = summoner.get("mana_changed")
-		mana_changed_signal.connect(_on_enemy_mana_changed)
+	if summoner.has_signal("ManaChanged"):
+		summoner.connect("ManaChanged", _on_enemy_mana_changed)
 
 		# Trigger initial update
-		var current_mana: float = summoner.get("mana") if "mana" in summoner else 0.0
-		var max_mana: float = summoner.get("max_mana") if "max_mana" in summoner else SummonerConfig.DEFAULT_MAX_MANA
+		var current_mana: float = summoner.get("Mana") if summoner.get("Mana") != null else 0.0
+		var max_mana: float = summoner.get("MaxMana") if summoner.get("MaxMana") != null else 100.0
 		_on_enemy_mana_changed(current_mana, max_mana)
 
 func _on_enemy_mana_changed(current: float, maximum: float) -> void:
 	if enemy_mana_bar:
 		enemy_mana_bar.update_value(current, maximum)
 
-## Connect to HP signals for a summoner
+## Connect to HP signals for a summoner (PascalCase C# signals)
 func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
-	if summoner.has_signal("hp_changed"):
-		var hp_signal: Signal = summoner.get("hp_changed")
+	if summoner.has_signal("HpChanged"):
 		if is_player:
-			hp_signal.connect(_on_player_hp_changed)
+			summoner.connect("HpChanged", _on_player_hp_changed)
 		else:
-			hp_signal.connect(_on_enemy_hp_changed)
+			summoner.connect("HpChanged", _on_enemy_hp_changed)
 
 		# Trigger initial update
-		var current_hp: float = summoner.get("current_hp") if "current_hp" in summoner else 0.0
-		var max_hp: float = summoner.get("max_hp") if "max_hp" in summoner else 300.0
+		var current_hp: float = summoner.get("CurrentHp") if summoner.get("CurrentHp") != null else 0.0
+		var max_hp: float = summoner.get("MaxHp") if summoner.get("MaxHp") != null else 300.0
 		if is_player:
 			_on_player_hp_changed(current_hp, max_hp)
 		else:

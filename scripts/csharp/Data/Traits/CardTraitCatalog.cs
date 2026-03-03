@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Data;
+namespace Fateforged.Data;
 
 /// <summary>
 /// Card trait definition.

@@ -123,24 +123,27 @@ var next_play_time: float = 0.0
 func _ready() -> void:
 	if summoner == null:
 		var parent: Node = get_parent()
-		if parent is Summoner:
+		if parent is Node3D and parent.is_in_group("summoners"):
 			summoner = parent
 	_set_next_play_time()
 
 func _process(delta: float) -> void:
-	if summoner == null or not summoner.is_enabled:
+	if summoner == null or not summoner.IsEnabled:
 		return
 
 	play_timer += delta
 
 	if play_timer >= next_play_time and should_play_card():
 		var card_index: int = select_card_to_play()
-		if card_index != -1 and card_index < summoner.hand.size():
-			var card: Card = summoner.hand[card_index]
+		var hand: Array = summoner.Hand
+		if card_index != -1 and card_index < hand.size():
+			var card: Card = hand[card_index]
 			var xz_pos: Vector2 = select_spawn_position(card)
 			# Direct 3D position from world coordinates - no screen conversion needed
 			var pos_3d: Vector3 = Vector3(xz_pos.x, 0.0, xz_pos.y)
-			summoner.play_card_3d(card_index, pos_3d)
+			var sim: Node = get_tree().get_first_node_in_group("simulation_node")
+			if sim:
+				sim.QueuePlayCard(summoner.Team, card_index, pos_3d, -1)
 		_set_next_play_time()
 
 func on_battle_start() -> void:
@@ -149,12 +152,13 @@ func on_battle_start() -> void:
 
 ## Decide if we should play a card now
 func should_play_card() -> bool:
-	if summoner.hand.is_empty():
+	var hand: Array = summoner.Hand
+	if hand.is_empty():
 		return false
 
 	# Check if we have any playable cards
-	var mana_int: int = int(summoner.mana)
-	for card: Card in summoner.hand:
+	var mana_int: int = int(summoner.Mana)
+	for card: Card in hand:
 		if card.CanPlay(mana_int):
 			return true
 
@@ -162,17 +166,18 @@ func should_play_card() -> bool:
 
 ## Select which card to play based on strategy
 func select_card_to_play() -> int:
-	if summoner.hand.is_empty():
+	var hand: Array = summoner.Hand
+	if hand.is_empty():
 		return -1
 
 	var battlefield_state: BattlefieldState = _evaluate_battlefield_state()
 	var best_card_index: int = -1
 	var best_score: float = -INF
-	var mana_int: int = int(summoner.mana)
+	var mana_int: int = int(summoner.Mana)
 
 	# Score each playable card
-	for i: int in range(summoner.hand.size()):
-		var card: Card = summoner.hand[i]
+	for i: int in range(hand.size()):
+		var card: Card = hand[i]
 		if not card.CanPlay(mana_int):
 			continue
 
@@ -340,7 +345,7 @@ func _get_random_position_in_zone(zone: String) -> Vector2:
 	var x: float = 0.0
 	var z: float = 0.0
 
-	var summoner_team: int = summoner.team
+	var summoner_team: int = summoner.Team
 
 	# Calculate zone positions as percentages of the battlefield
 	# bounds.position.x = left edge (negative), bounds.end.x = right edge (positive)

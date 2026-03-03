@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ProjectSummoner.Stats;
+namespace Fateforged.Stats;
 
 /// <summary>
 /// Typed modifier class that replaces the GDScript Dictionary-based modifiers.

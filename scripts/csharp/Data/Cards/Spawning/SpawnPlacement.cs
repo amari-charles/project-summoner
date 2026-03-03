@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Cards.Spawning;
+namespace Fateforged.Cards.Spawning;
 
 /// <summary>
 /// Defines how units in a spawn entry are positioned relative to the spawn point.

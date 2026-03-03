@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace ProjectSummoner.Stats;
+namespace Fateforged.Stats;
 
 /// <summary>
 /// Type-safe container for unit stats.

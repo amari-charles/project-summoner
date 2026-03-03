@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Type of stat modifier (how the value is applied).

@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Summoners;
+namespace Fateforged.Data.Summoners;
 
 /// <summary>
 /// Strongly-typed identifier for summoner types.

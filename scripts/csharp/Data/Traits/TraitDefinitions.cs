@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using ProjectSummoner.Stats;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Central registry of all trait definitions as static readonly fields.

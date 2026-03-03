@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Campaign;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Domain.Profile.Decks;
-using ProjectSummoner.Domain.Profile.Inventory;
-using ProjectSummoner.Domain.Profile.Shop;
-using ProjectSummoner.Domain.Profile.Summoners;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Decks;
+using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Shop;
+using Fateforged.Domain.Profile.Summoners;
 
-namespace ProjectSummoner.Domain.Profile;
+namespace Fateforged.Domain.Profile;
 
 /// <summary>
 /// Complete player profile data.
@@ -86,7 +86,7 @@ public class ProfileData
 
     /// <summary>Miscellaneous metadata.</summary>
     [JsonPropertyName("meta")]
-    public Meta Meta { get; set; } = new();
+    public AccountMeta Meta { get; set; } = new();
 
     /// <summary>Last match data.</summary>
     [JsonPropertyName("last_match")]

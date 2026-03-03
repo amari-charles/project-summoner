@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Combat;
+namespace Fateforged.Combat;
 
 /// <summary>
 /// Data class for combat events.

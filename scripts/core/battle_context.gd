@@ -153,7 +153,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
 	# Campaign is an autoload, access it directly
-	battle_config = Campaign.get_battle(battle_id)
+	battle_config = Campaign.GetBattle(battle_id)
 
 	if battle_config.is_empty():
 		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
@@ -362,8 +362,8 @@ func abandon_battle() -> void:
 
 	# Clear any pending reward (shouldn't exist mid-battle, but be safe)
 	var campaign: Node = _get_campaign_service()
-	if campaign and campaign.has_method("clear_pending_reward"):
-		campaign.call("clear_pending_reward")
+	if campaign and campaign.has_method("ClearPendingReward"):
+		campaign.call("ClearPendingReward")
 
 	# Clear deck card IDs tracking
 	_deck_card_instance_ids.clear()
@@ -519,12 +519,12 @@ func grant_xp_to_active_summoner() -> void:
 
 	# Use injectable dependency or fall back to autoload
 	var summoner_prog: Node = _get_summoner_progression()
-	if summoner_prog and summoner_prog.has_method("grant_active_summoner_xp"):
-		var new_xp: int = summoner_prog.grant_active_summoner_xp(summoner_xp)
+	if summoner_prog and summoner_prog.has_method("GrantActiveSummonerXp"):
+		var new_xp: int = summoner_prog.GrantActiveSummonerXp(summoner_xp)
 		print("BattleContext: Summoner now has %d XP" % new_xp)
 	else:
 		# Fall back to direct autoload access (for production)
-		var new_xp: int = SummonerProgression.grant_active_summoner_xp(summoner_xp)
+		var new_xp: int = SummonerProgression.GrantActiveSummonerXp(summoner_xp)
 		print("BattleContext: Summoner now has %d XP" % new_xp)
 
 ## Handle campaign battle completion

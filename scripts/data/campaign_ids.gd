@@ -6,7 +6,7 @@ class_name CampaignIDs
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
-##   Campaign.set_current_campaign(CampaignIDs.SUMMONERS_PATH)
+##   Campaign.SetCurrentCampaign(CampaignIDs.SUMMONERS_PATH)
 ##   if current_campaign == CampaignIDs.SUMMONERS_PATH:
 ##       # Load campaign battles
 ##

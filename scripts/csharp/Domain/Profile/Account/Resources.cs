@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using ProjectSummoner.Domain.Profile;
+using Fateforged.Domain.Profile;
 
-namespace ProjectSummoner.Domain.Profile.Account;
+namespace Fateforged.Domain.Profile.Account;
 
 /// <summary>
 /// Player resource/currency data.

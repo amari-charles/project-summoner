@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Tests.Simulation;
+namespace Fateforged.Tests.Simulation;
 
 using Fateforged.Simulation;
 using GdUnit4;

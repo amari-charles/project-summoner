@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Infrastructure.Persistence;
-using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
+using Fateforged.Data.Items;
+using Fateforged.Data.Summoners;
+using Fateforged.Infrastructure.Persistence;
+using ItemInstance = Fateforged.Domain.Profile.Inventory.ItemInstance;
 
-namespace ProjectSummoner.Services.Items.Handlers;
+namespace Fateforged.Meta.Items.Handlers;
 
 /// <summary>
 /// Handles item ownership operations: granting, removing, and querying items.

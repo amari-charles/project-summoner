@@ -34,8 +34,8 @@ var _command_output: Label  # Console command output
 var _autocomplete_list: ItemList  # Autocomplete suggestions
 var _autocomplete_visible: bool = false
 
-## Debug service reference (autoload at /root/UnitDebugService)
-@onready var _unit_debug: Node = get_node_or_null("/root/UnitDebugService")
+## Debug service reference (removed — UnitDebugService deleted in migration)
+var _unit_debug: Node = null
 
 
 ## =============================================================================

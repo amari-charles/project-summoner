@@ -99,13 +99,13 @@ func _get_shop_refresh_state(shop_id: String) -> Dictionary:
 	return ProfileRepo.get_shop_refresh_state(shop_id)
 
 func _grant_rewards(rewards: Dictionary) -> bool:
-	return RewardService.grant_rewards(rewards)
+	return RewardService.GrantRewards(rewards)
 
 func _initiate_billing_purchase(product_id: String) -> void:
 	PlatformBilling.purchase(product_id)
 
 func _add_gems() -> int:
-	return Economy.get_gems()
+	return Economy.GetGems()
 
 ## =============================================================================
 ## INTERNAL - Signal forwarding from C#
@@ -452,7 +452,7 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 	var is_caravan: bool = shop_id.begins_with("caravan")
 
 	# Get current resources - use campaign gold for caravan shops
-	var player_gold: int = Economy.get_campaign_gold() if is_caravan else _cs_service.GetPlayerGold()
+	var player_gold: int = Economy.GetCampaignGold() if is_caravan else _cs_service.GetPlayerGold()
 	var player_gems: int = _cs_service.GetPlayerGems()
 
 	# Validate purchase
@@ -493,15 +493,15 @@ func purchase_offering(offering_id: String, shop_id: String = "general") -> bool
 ## Complete a caravan purchase using campaign gold
 func _complete_caravan_purchase(offering_dict: Dictionary, offering_id: String, shop_id: String, purchase_key: String, price: int) -> bool:
 	# Spend campaign gold
-	if not Economy.spend_campaign_gold(price):
+	if not Economy.SpendCampaignGold(price):
 		_emit_purchase_failed(offering_id, "Cannot afford %d campaign gold" % price)
 		return false
 
 	# Grant rewards via RewardService
 	var rewards: Dictionary = _cs_service.BuildRewardDict(offering_dict, shop_id)
-	if not RewardService.grant_rewards(rewards):
+	if not RewardService.GrantRewards(rewards):
 		# Rollback: Refund campaign gold
-		Economy.add_campaign_gold(price)
+		Economy.AddCampaignGold(price)
 		_emit_purchase_failed(offering_id, "Failed to grant rewards")
 		return false
 
@@ -600,12 +600,12 @@ func _on_billing_purchase_completed(product_id: String, transaction_id: String) 
 		if product:
 			# Grant gems
 			if product.gems_amount > 0:
-				Economy.add_gems(product.gems_amount)
+				Economy.AddGems(product.gems_amount)
 				print("ShopService: Granted %d gems from billing purchase" % product.gems_amount)
 
 			# Grant direct rewards
 			if not product.rewards.is_empty():
-				RewardService.grant_rewards(product.rewards)
+				RewardService.GrantRewards(product.rewards)
 				print("ShopService: Granted direct rewards from billing purchase")
 		else:
 			push_warning("ShopService: Unknown billing product: %s" % product_id)

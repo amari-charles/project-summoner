@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Strongly-typed identifier for trait types.

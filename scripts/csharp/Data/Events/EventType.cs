@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Event type enum - categorizes campaign node types.

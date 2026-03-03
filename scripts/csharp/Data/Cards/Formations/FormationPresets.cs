@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Cards.Formations;
+namespace Fateforged.Cards.Formations;
 
 /// <summary>
 /// Predefined formation instances for cards to reference.

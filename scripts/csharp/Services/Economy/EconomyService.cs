@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Economy;
+namespace Fateforged.Meta.Economy;
 
 /// <summary>
 /// Economy Service - Resource Management
@@ -250,9 +250,15 @@ public partial class EconomyService : Node
 	public delegate void CampaignGoldChangedEventHandler(string summonerId, int gold);
 
 	/// <summary>
+	/// Get campaign gold for active summoner.
+	/// Overload needed because Godot doesn't expose C# default parameters to GDScript.
+	/// </summary>
+	public int GetCampaignGold() => GetCampaignGold("");
+
+	/// <summary>
 	/// Get campaign gold for a summoner (or active summoner if empty)
 	/// </summary>
-	public int GetCampaignGold(string summonerId = "")
+	public int GetCampaignGold(string summonerId)
 	{
 		if (_profileRepo == null) return 0;
 
@@ -266,10 +272,13 @@ public partial class EconomyService : Node
 		return progress?.Gold ?? 0;
 	}
 
+	/// <summary>Add campaign gold to active summoner.</summary>
+	public void AddCampaignGold(int amount) => AddCampaignGold(amount, "");
+
 	/// <summary>
 	/// Add campaign gold (positive amount only)
 	/// </summary>
-	public void AddCampaignGold(int amount, string summonerId = "")
+	public void AddCampaignGold(int amount, string summonerId)
 	{
 		if (amount <= 0)
 		{
@@ -308,10 +317,13 @@ public partial class EconomyService : Node
 		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
 	}
 
+	/// <summary>Spend campaign gold from active summoner.</summary>
+	public bool SpendCampaignGold(int amount) => SpendCampaignGold(amount, "");
+
 	/// <summary>
 	/// Spend campaign gold. Returns true if successful.
 	/// </summary>
-	public bool SpendCampaignGold(int amount, string summonerId = "")
+	public bool SpendCampaignGold(int amount, string summonerId)
 	{
 		if (!CanAffordCampaignGold(amount, summonerId))
 		{
@@ -340,18 +352,24 @@ public partial class EconomyService : Node
 		return true;
 	}
 
+	/// <summary>Check affordability for active summoner.</summary>
+	public bool CanAffordCampaignGold(int amount) => CanAffordCampaignGold(amount, "");
+
 	/// <summary>
 	/// Check if player can afford campaign gold cost
 	/// </summary>
-	public bool CanAffordCampaignGold(int amount, string summonerId = "")
+	public bool CanAffordCampaignGold(int amount, string summonerId)
 	{
 		return GetCampaignGold(summonerId) >= amount;
 	}
 
+	/// <summary>Clear campaign gold for active summoner.</summary>
+	public void ClearCampaignGold() => ClearCampaignGold("");
+
 	/// <summary>
 	/// Clear all campaign gold (called when campaign ends)
 	/// </summary>
-	public void ClearCampaignGold(string summonerId = "")
+	public void ClearCampaignGold(string summonerId)
 	{
 		if (_profileRepo == null) return;
 

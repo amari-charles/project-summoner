@@ -1,7 +1,7 @@
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Traits;
+using Fateforged.Cards;
+using Fateforged.Data.Traits;
 
-namespace ProjectSummoner.Data.Summoners;
+namespace Fateforged.Data.Summoners;
 
 /// <summary>
 /// Defines a summoner's static configuration.

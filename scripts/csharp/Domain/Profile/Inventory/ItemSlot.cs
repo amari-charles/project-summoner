@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Domain.Profile.Inventory;
+namespace Fateforged.Domain.Profile.Inventory;
 
 /// <summary>
 /// Equipment slots for items.

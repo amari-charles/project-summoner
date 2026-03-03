@@ -1,7 +1,7 @@
-namespace ProjectSummoner.Tests.Services;
+namespace Fateforged.Tests.Services;
 
 using GdUnit4;
-using ProjectSummoner.Services.Cards;
+using Fateforged.Meta.Cards;
 using static GdUnit4.Assertions;
 
 /// <summary>

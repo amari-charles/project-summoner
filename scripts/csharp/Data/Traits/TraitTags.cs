@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Constants for trait eligibility tags.

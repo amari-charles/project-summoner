@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Constants;
+namespace Fateforged.Constants;
 
 /// <summary>
 /// Group ID constants matching GDScript GroupIDs.

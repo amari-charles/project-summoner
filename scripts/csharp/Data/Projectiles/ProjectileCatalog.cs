@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Projectiles;
+using Fateforged.Projectiles;
 
-namespace ProjectSummoner.Data.Projectiles;
+namespace Fateforged.Data.Projectiles;
 
 /// <summary>
 /// Central registry of projectile definitions.

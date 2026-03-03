@@ -319,7 +319,7 @@ func _update_background() -> void:
 	if _active_summoner_id.is_empty():
 		return
 
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(_active_summoner_id)
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(_active_summoner_id))
 	if not config:
 		return
 

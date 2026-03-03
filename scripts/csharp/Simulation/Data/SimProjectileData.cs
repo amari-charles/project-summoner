@@ -1,5 +1,5 @@
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Units;
+using Fateforged.Projectiles;
+using Fateforged.Units;
 using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Simulation.Data;

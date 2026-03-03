@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using ProjectSummoner.Units;
+using Fateforged.Units;
 using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Simulation.Data;
@@ -44,7 +44,7 @@ public class UnitData
     public UnitType UnitType { get; set; }
     public MovementLayer MovementLayer { get; set; }
 
-    // Element (int cast of ProjectSummoner.Cards.Element enum)
+    // Element (int cast of Fateforged.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral
 
     // Group relationships

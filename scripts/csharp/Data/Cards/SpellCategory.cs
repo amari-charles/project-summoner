@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Primary category for spell cards.

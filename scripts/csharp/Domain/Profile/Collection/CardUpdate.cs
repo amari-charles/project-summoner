@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Domain.Profile.Collection;
+namespace Fateforged.Domain.Profile.Collection;
 
 /// <summary>
 /// Typed DTO for updating card instance fields.

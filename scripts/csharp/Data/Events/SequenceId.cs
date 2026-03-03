@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Strongly-typed identifier for story sequences.

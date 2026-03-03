@@ -31,7 +31,7 @@ func get_event_type() -> StringName:
 
 
 func get_start_button_text() -> String:
-	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.is_battle_completed(event.id))
+	var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(event.id))
 
 	if is_completed:
 		if event.repeatable:

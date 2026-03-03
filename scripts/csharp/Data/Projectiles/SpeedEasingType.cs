@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Projectiles;
+namespace Fateforged.Projectiles;
 
 /// <summary>
 /// Defines easing curves for projectile speed transitions.

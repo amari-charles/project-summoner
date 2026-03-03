@@ -1,9 +1,9 @@
-namespace ProjectSummoner.Tests.Economy;
+namespace Fateforged.Tests.Economy;
 
 using System.Collections.Generic;
 using GdUnit4;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Enums;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Enums;
 using static GdUnit4.Assertions;
 
 /// <summary>

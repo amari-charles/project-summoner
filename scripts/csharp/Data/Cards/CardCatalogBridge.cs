@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Autoload node for GDScript to access C# CardCatalog.

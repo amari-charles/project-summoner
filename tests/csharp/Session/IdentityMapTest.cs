@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Tests.Session;
+namespace Fateforged.Tests.Session;
 
 using System.Collections.Generic;
 using Fateforged.Session;

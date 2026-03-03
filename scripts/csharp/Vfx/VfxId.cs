@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Vfx;
+namespace Fateforged.Vfx;
 
 /// <summary>
 /// Strongly-typed identifier for VFX effects.

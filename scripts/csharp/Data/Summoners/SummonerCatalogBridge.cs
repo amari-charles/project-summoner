@@ -1,11 +1,11 @@
 using System.Linq;
 using Godot;
 
-namespace ProjectSummoner.Data.Summoners;
+namespace Fateforged.Data.Summoners;
 
 /// <summary>
 /// Bridge node for GDScript to access C# SummonerCatalog.
-/// Registered as autoload "SummonerCatalogCS" in project.godot.
+/// Registered as autoload "SummonerCatalog" in project.godot.
 /// Wraps static SummonerCatalog methods as instance methods for GDScript compatibility.
 /// Note: GDScript can call these PascalCase methods directly - Godot 4 auto-converts snake_case calls.
 /// </summary>

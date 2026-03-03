@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Stats;
-using ProjectSummoner.Units;
+using Fateforged.Constants;
+using Fateforged.Stats;
+using Fateforged.Units;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Central registry of all card definitions.

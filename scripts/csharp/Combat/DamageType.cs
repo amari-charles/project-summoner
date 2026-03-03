@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Combat;
+namespace Fateforged.Combat;
 
 /// <summary>
 /// Type of damage dealt by attacks and abilities.

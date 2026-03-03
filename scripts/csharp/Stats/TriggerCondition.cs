@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Stats;
+namespace Fateforged.Stats;
 
 /// <summary>
 /// Defines when a triggered modifier should activate.

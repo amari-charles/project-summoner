@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Services.Deck;
+namespace Fateforged.Meta.Deck;
 
 /// <summary>
 /// Strongly-typed identifier for decks.

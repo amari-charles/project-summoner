@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Events;
+using Fateforged.Cards;
+using Fateforged.Data.Events;
 
-namespace ProjectSummoner.Services.Rewards;
+namespace Fateforged.Meta.Rewards;
 
 /// <summary>
 /// Typed specification for battle rewards.

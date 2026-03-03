@@ -2,7 +2,7 @@ extends RefCounted
 class_name UnitConstants
 
 ## Constants mirroring C# Unit3D enums for GDScript interop
-## These values MUST match the C# enum values in scripts/csharp/Units/Enums.cs
+## These values MUST match the C# enum values in scripts/csharp/Data/Units/Enums.cs
 
 ## Team enum - matches ProjectSummoner.Units.Team
 enum Team {

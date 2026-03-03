@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Services.Items.Handlers;
-using ProjectSummoner.Stats;
-using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
-using ItemInstance = ProjectSummoner.Domain.Profile.Inventory.ItemInstance;
+using Fateforged.Data.Items;
+using Fateforged.Data.Traits;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Items.Handlers;
+using Fateforged.Stats;
+using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
+using ItemInstance = Fateforged.Domain.Profile.Inventory.ItemInstance;
 
-namespace ProjectSummoner.Services.Items;
+namespace Fateforged.Meta.Items;
 
 /// <summary>
 /// Item Service - Handles item granting, equipping, and inventory management.

@@ -1,8 +1,8 @@
-namespace ProjectSummoner.Tests.Multiplayer;
+namespace Fateforged.Tests.Multiplayer;
 
 using GdUnit4;
 using Fateforged.Simulation;
-using ProjectSummoner.Units;
+using Fateforged.Units;
 using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;

@@ -49,8 +49,8 @@ func _refresh_campaign_list() -> void:
 	for child: Node in campaign_list.get_children():
 		child.queue_free()
 
-	var campaigns: Array = Campaign.get_all_campaigns()
-	var current_id: String = Campaign.get_current_campaign_id()
+	var campaigns: Array = Campaign.GetAllCampaigns()
+	var current_id: String = Campaign.GetCurrentCampaignId()
 
 	for campaign_variant: Variant in campaigns:
 		if not campaign_variant is Dictionary:

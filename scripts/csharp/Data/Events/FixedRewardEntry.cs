@@ -1,6 +1,6 @@
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Represents a fixed reward card entry with specific rarity.

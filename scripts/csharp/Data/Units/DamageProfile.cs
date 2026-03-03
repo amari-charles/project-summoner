@@ -1,6 +1,6 @@
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Units;
+namespace Fateforged.Units;
 
 /// <summary>
 /// Defines the damage composition for a unit's attacks.

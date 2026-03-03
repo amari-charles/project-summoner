@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ProjectSummoner.Domain.Profile.Account;
+namespace Fateforged.Domain.Profile.Account;
 
 /// <summary>
 /// Miscellaneous profile metadata.
 /// </summary>
-public class Meta
+public class AccountMeta
 {
     /// <summary>Currently selected deck ID.</summary>
     [JsonPropertyName("selected_deck")]

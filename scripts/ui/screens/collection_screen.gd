@@ -163,12 +163,12 @@ func _ready() -> void:
 
 
 func _connect_services() -> void:
-	if Decks.has_signal("deck_changed"):
-		Decks.deck_changed.connect(_on_deck_changed)
-	if Decks.has_signal("deck_created"):
-		Decks.deck_created.connect(_on_deck_created)
-	if Decks.has_signal("deck_deleted"):
-		Decks.deck_deleted.connect(_on_deck_deleted)
+	if Decks.has_signal("DeckChanged"):
+		Decks.DeckChanged.connect(_on_deck_changed)
+	if Decks.has_signal("DeckCreated"):
+		Decks.DeckCreated.connect(_on_deck_created)
+	if Decks.has_signal("DeckDeleted"):
+		Decks.DeckDeleted.connect(_on_deck_deleted)
 
 	CardServiceCS.CollectionChanged.connect(_on_collection_changed)
 
@@ -178,10 +178,10 @@ func _connect_services() -> void:
 ## =============================================================================
 
 func _refresh_deck_list() -> void:
-	if not Decks.has_method("list_decks"):
+	if not Decks.has_method("ListDecksDict"):
 		return
 
-	var deck_list_result: Variant = Decks.call("list_decks")
+	var deck_list_result: Variant = Decks.call("ListDecksDict")
 	if not deck_list_result is Array:
 		return
 
@@ -191,8 +191,8 @@ func _refresh_deck_list() -> void:
 
 	# Get active deck ID
 	var active_deck_id: String = ""
-	if Decks.has_method("get_active_deck_id"):
-		var active_id: Variant = Decks.call("get_active_deck_id")
+	if Decks.has_method("GetActiveDeckId"):
+		var active_id: Variant = Decks.call("GetActiveDeckId")
 		if active_id is String:
 			active_deck_id = active_id
 
@@ -212,8 +212,8 @@ func _refresh_deck_list() -> void:
 		if item.has_method("setup"):
 			var card_count: int = deck.get("card_instance_ids", []).size()
 			var is_valid: bool = true
-			if Decks.has_method("get_validation_errors"):
-				var errors: Variant = Decks.call("get_validation_errors", deck_id)
+			if Decks.has_method("GetValidationErrorsArray"):
+				var errors: Variant = Decks.call("GetValidationErrorsArray", deck_id)
 				is_valid = errors is Array and errors.size() == 0
 
 			item.call("setup", {
@@ -239,12 +239,12 @@ func _refresh_deck_list() -> void:
 			item.delete_clicked.connect(_on_deck_delete_clicked.bind(deck_id))
 
 	# Create default deck if none exist (only if summoner is unlocked)
-	if deck_list_result.size() == 0 and Decks.has_method("create_deck"):
+	if deck_list_result.size() == 0 and Decks.has_method("CreateDeckFromDict"):
 		# Check if any summoners are unlocked - can't create deck without one
 		if ProfileRepo.has_method("get_unlocked_summoners"):
 			var unlocked: Variant = ProfileRepo.call("get_unlocked_summoners")
 			if unlocked is Array and unlocked.size() > 0:
-				var new_deck_id: Variant = Decks.call("create_deck", "My Deck", [])
+				var new_deck_id: Variant = Decks.call("CreateDeckFromDict", "My Deck", [], "")
 				if new_deck_id is String and not new_deck_id.is_empty():
 					_refresh_deck_list()
 		return
@@ -273,8 +273,8 @@ func _on_deck_item_double_clicked(_deck_id: String) -> void:
 
 func _on_deck_star_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if Decks.has_method("set_active_deck"):
-		Decks.call("set_active_deck", deck_id)
+	if Decks.has_method("SetActiveDeck"):
+		Decks.call("SetActiveDeck", deck_id)
 		_refresh_deck_list()
 
 
@@ -282,8 +282,8 @@ func _on_deck_rename_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	deck_id_for_action = deck_id
 	# Get current deck name
-	if Decks.has_method("get_deck"):
-		var deck: Variant = Decks.call("get_deck", deck_id)
+	if Decks.has_method("GetDeckDict"):
+		var deck: Variant = Decks.call("GetDeckDict", deck_id)
 		if deck is Dictionary:
 			rename_input.text = deck.get("name", "")
 	rename_dialog.popup_centered()
@@ -310,10 +310,10 @@ func _refresh_deck_panel() -> void:
 		selected_deck_count.text = ""
 		return
 
-	if not Decks.has_method("get_deck"):
+	if not Decks.has_method("GetDeckDict"):
 		return
 
-	var deck_result: Variant = Decks.call("get_deck", selected_deck_id)
+	var deck_result: Variant = Decks.call("GetDeckDict", selected_deck_id)
 	if not deck_result is Dictionary or deck_result.is_empty():
 		return
 
@@ -427,16 +427,16 @@ func _on_new_deck_confirmed() -> void:
 	if deck_name == "":
 		deck_name = Loc.t("ui.collection.new_deck_default")
 
-	if Decks.has_method("create_deck"):
-		Decks.call("create_deck", deck_name, [])
+	if Decks.has_method("CreateDeckFromDict"):
+		Decks.call("CreateDeckFromDict", deck_name, [], "")
 
 
 func _on_delete_confirmed() -> void:
 	if deck_id_for_action == "":
 		return
 
-	if Decks.has_method("delete_deck"):
-		var success: Variant = Decks.call("delete_deck", deck_id_for_action)
+	if Decks.has_method("DeleteDeck"):
+		var success: Variant = Decks.call("DeleteDeck", deck_id_for_action)
 		if success is bool and success:
 			if selected_deck_id == deck_id_for_action:
 				selected_deck_id = ""
@@ -452,8 +452,8 @@ func _on_rename_confirmed() -> void:
 	if new_name == "":
 		return
 
-	if Decks.has_method("rename_deck"):
-		Decks.call("rename_deck", deck_id_for_action, new_name)
+	if Decks.has_method("UpdateDeckFromDict"):
+		Decks.call("UpdateDeckFromDict", deck_id_for_action, new_name, [], "")
 		deck_id_for_action = ""
 		_refresh_deck_list()
 		_refresh_deck_panel()
@@ -540,10 +540,10 @@ func _get_selected_deck_card_ids() -> Array[String]:
 	if selected_deck_id == "":
 		return result
 
-	if not Decks.has_method("get_deck"):
+	if not Decks.has_method("GetDeckDict"):
 		return result
 
-	var deck_result: Variant = Decks.call("get_deck", selected_deck_id)
+	var deck_result: Variant = Decks.call("GetDeckDict", selected_deck_id)
 	if not deck_result is Dictionary:
 		return result
 
@@ -873,8 +873,8 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 	if deck_card_ids.size() >= MAX_DECK_SIZE:
 		return
 
-	if Decks.has_method("add_card_to_deck"):
-		var success: Variant = Decks.call("add_card_to_deck", selected_deck_id, card_instance_id)
+	if Decks.has_method("AddCardToDeck"):
+		var success: Variant = Decks.call("AddCardToDeck", selected_deck_id, card_instance_id)
 		if success is bool and success:
 			_refresh_deck_list()
 			_refresh_deck_panel()
@@ -944,8 +944,8 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 	if selected_deck_id == "":
 		return
 
-	if Decks.has_method("remove_card_from_deck"):
-		var success: Variant = Decks.call("remove_card_from_deck", selected_deck_id, card_instance_id)
+	if Decks.has_method("RemoveCardFromDeck"):
+		var success: Variant = Decks.call("RemoveCardFromDeck", selected_deck_id, card_instance_id)
 		if success is bool and success:
 			_refresh_deck_list()
 			_refresh_deck_panel()

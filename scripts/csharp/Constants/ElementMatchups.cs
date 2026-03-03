@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Constants;
+namespace Fateforged.Constants;
 
 /// <summary>
 /// Element-to-element damage multipliers for combat.

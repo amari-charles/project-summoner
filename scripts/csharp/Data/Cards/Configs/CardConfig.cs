@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Cards.Configs;
+namespace Fateforged.Cards.Configs;
 
 /// <summary>
 /// Base configuration for all card types.

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using ProjectSummoner.Data.Traits;
+using Fateforged.Data.Traits;
 
-namespace ProjectSummoner.Data.Items;
+namespace Fateforged.Data.Items;
 
 /// <summary>
 /// Defines an equippable item.

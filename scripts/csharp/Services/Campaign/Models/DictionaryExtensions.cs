@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Services.Campaign.Models;
+namespace Fateforged.Meta.Campaign.Models;
 
 /// <summary>
 /// Extension methods for Godot.Collections.Dictionary to provide GetValueOrDefault functionality.

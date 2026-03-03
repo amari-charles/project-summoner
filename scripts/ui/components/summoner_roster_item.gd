@@ -53,12 +53,12 @@ func refresh() -> void:
 		return
 
 	# Get summoner config
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(_summoner_id)
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(_summoner_id))
 	if not config:
 		return
 
 	# Get progression info
-	var info: Dictionary = SummonerProgression.get_summoner_progression_info(_summoner_id)
+	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(_summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)

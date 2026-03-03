@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Units;
+namespace Fateforged.Units;
 
 /// <summary>
 /// Team affiliation for units.

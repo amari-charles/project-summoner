@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Items;
+namespace Fateforged.Data.Items;
 
 /// <summary>
 /// Equipment slots for items.

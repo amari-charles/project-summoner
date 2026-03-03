@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Cards;
+using Fateforged.Data;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Cards.Handlers;
+namespace Fateforged.Meta.Cards.Handlers;
 
 /// <summary>
 /// Handles card progression: XP, leveling, and traits.

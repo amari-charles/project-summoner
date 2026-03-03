@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Services.Campaign;
-using ProjectSummoner.Services.Shop;
+using Fateforged.Cards;
+using Fateforged.Meta.Campaign;
+using Fateforged.Meta.Shop;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Central registry of all event definitions.

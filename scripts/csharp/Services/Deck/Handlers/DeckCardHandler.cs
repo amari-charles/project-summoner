@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
+using Fateforged.Cards;
+using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
-namespace ProjectSummoner.Services.Deck.Handlers;
+namespace Fateforged.Meta.Deck.Handlers;
 
 /// <summary>
 /// Handles deck card operations: add/remove cards, clean deck.

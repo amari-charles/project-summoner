@@ -38,8 +38,8 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 	if card_instance_id != "":
 		# Search for existing Starter Deck
-		if Decks.has_method("list_decks"):
-			var all_decks: Array[Dictionary] = Decks.call("list_decks")
+		if Decks.has_method("ListDecksDict"):
+			var all_decks: Array[Dictionary] = Decks.call("ListDecksDict")
 			for deck_dict: Dictionary in all_decks:
 				if deck_dict.get("name", "") == _DeckConstants.STARTER_DECK_NAME:
 					deck_id = deck_dict.get("id", "")
@@ -48,14 +48,14 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 		# If deck exists, add card to it; otherwise create new deck
 		if deck_id != "":
-			if Decks.has_method("add_card_to_deck"):
-				Decks.call("add_card_to_deck", deck_id, card_instance_id)
+			if Decks.has_method("AddCardToDeck"):
+				Decks.call("AddCardToDeck", deck_id, card_instance_id)
 				print("FirstCardSelection: Added card to existing Starter Deck")
 		else:
 			# Get the player's unlocked summoner to assign to the deck
 			var summoner_id: String = _get_first_unlocked_summoner()
-			if Decks.has_method("create_deck"):
-				var result: Variant = Decks.call("create_deck", _DeckConstants.STARTER_DECK_NAME, [card_instance_id], summoner_id)
+			if Decks.has_method("CreateDeckFromDict"):
+				var result: Variant = Decks.call("CreateDeckFromDict", _DeckConstants.STARTER_DECK_NAME, [card_instance_id], summoner_id)
 				deck_id = result if result is String else ""
 				print("FirstCardSelection: Created new Starter Deck (id: %s) with summoner '%s'" % [deck_id, summoner_id])
 

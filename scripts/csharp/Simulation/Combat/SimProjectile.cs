@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Units;
+using Fateforged.Projectiles;
+using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 

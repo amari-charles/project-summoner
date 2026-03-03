@@ -1,9 +1,9 @@
 using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Stats;
+using Fateforged.Data.Traits;
+using Fateforged.Stats;
 
-namespace ProjectSummoner.Data.Items;
+namespace Fateforged.Data.Items;
 
 /// <summary>
 /// Central registry of all item definitions.

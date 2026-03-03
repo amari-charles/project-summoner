@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Traits;
+namespace Fateforged.Data.Traits;
 
 /// <summary>
 /// Target type for trait modifiers.

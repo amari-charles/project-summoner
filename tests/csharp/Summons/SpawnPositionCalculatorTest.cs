@@ -1,11 +1,11 @@
-namespace ProjectSummoner.Tests.Summons;
+namespace Fateforged.Tests.Summons;
 
 using System.Collections.Generic;
 using GdUnit4;
 using Godot;
-using ProjectSummoner.Cards.Formations;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Summons;
+using Fateforged.Cards.Formations;
+using Fateforged.Constants;
+using Fateforged.Summons;
 using static GdUnit4.Assertions;
 
 /// <summary>

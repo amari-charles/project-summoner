@@ -49,8 +49,8 @@ func _ready() -> void:
 	overlay.gui_input.connect(_on_overlay_input)
 
 	# Connect shop signals
-	Shop.purchase_completed.connect(_on_purchase_completed)
-	Shop.purchase_failed.connect(_on_purchase_failed)
+	Shop.PurchaseCompleted.connect(_on_purchase_completed)
+	Shop.PurchaseFailed.connect(_on_purchase_failed)
 
 	# Connect profile signals for gold updates
 	ProfileRepo.data_changed.connect(_on_data_changed)
@@ -61,10 +61,10 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Disconnect signals
-	if Shop.purchase_completed.is_connected(_on_purchase_completed):
-		Shop.purchase_completed.disconnect(_on_purchase_completed)
-	if Shop.purchase_failed.is_connected(_on_purchase_failed):
-		Shop.purchase_failed.disconnect(_on_purchase_failed)
+	if Shop.PurchaseCompleted.is_connected(_on_purchase_completed):
+		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
+	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
+		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
 	if ProfileRepo.data_changed.is_connected(_on_data_changed):
 		ProfileRepo.data_changed.disconnect(_on_data_changed)
 
@@ -175,7 +175,7 @@ func _populate_popup_info(offering: ShopOffering) -> void:
 
 func _add_summoner_info(offering: ShopOffering) -> void:
 	# Look up summoner config
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(offering.summoner_id)
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.summoner_id))
 	if not config:
 		return
 
@@ -201,7 +201,7 @@ func _add_summoner_info(offering: ShopOffering) -> void:
 
 		for trait_id: String in config.innate_trait_ids:
 			var trait_label: Label = Label.new()
-			trait_label.text = "  - " + TraitCatalog.get_trait_name(trait_id)
+			trait_label.text = "  - " + TraitCatalog.GetTraitName(trait_id)
 			trait_label.add_theme_font_size_override("font_size", 12)
 			popup_info_container.add_child(trait_label)
 

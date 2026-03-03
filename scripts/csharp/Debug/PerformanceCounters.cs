@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Debug;
+namespace Fateforged.Debug;
 
 /// <summary>
 /// Static performance counters for profiling hot paths.

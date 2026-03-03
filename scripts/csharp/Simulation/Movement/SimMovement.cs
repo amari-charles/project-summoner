@@ -1,7 +1,7 @@
 using System;
 using Fateforged.Simulation.Combat;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Units;
+using Fateforged.Constants;
+using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Subsystems;
 

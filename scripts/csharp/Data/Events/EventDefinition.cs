@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Services.Shop;
+using Fateforged.Meta.Shop;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Base class for all event definitions in the campaign system.
@@ -105,7 +105,7 @@ public class CaravanEventDefinition : EventDefinition
     public override EventType Type => EventType.Caravan;
 
     /// <summary>Shop configuration ID</summary>
-    public ShopId ShopId { get; set; } = Services.Shop.ShopId.None;
+    public ShopId ShopId { get; set; } = Fateforged.Meta.Shop.ShopId.None;
 }
 
 /// <summary>

@@ -120,7 +120,7 @@ func _update_difficulty_stars(difficulty: int) -> void:
 ## =============================================================================
 
 func _update_reward_display() -> void:
-	var is_completed: bool = Campaign.is_battle_completed(event.id)
+	var is_completed: bool = Campaign.IsBattleCompleted(event.id)
 
 	# Set headers
 	first_clear_header.text = Loc.t("campaign.rewards.first_clear_header")
@@ -214,10 +214,10 @@ func _load_decks() -> void:
 	# Get decks filtered by active summoner
 	var decks_array: Array
 	if not active_summoner_id.is_empty():
-		var decks_variant: Variant = Decks.list_decks_for_summoner(active_summoner_id)
+		var decks_variant: Variant = Decks.ListDecksForSummonerDict(active_summoner_id)
 		decks_array = SafeTypeUtils.array(decks_variant)
 	else:
-		var decks_variant: Variant = Decks.list_decks()
+		var decks_variant: Variant = Decks.ListDecksDict()
 		decks_array = SafeTypeUtils.array(decks_variant)
 	available_decks.assign(decks_array)
 
@@ -337,7 +337,7 @@ func _update_deck_info() -> void:
 func _validate_selected_deck() -> bool:
 	if selected_deck_id.is_empty():
 		return false
-	var is_valid_variant: Variant = Decks.validate_deck(selected_deck_id)
+	var is_valid_variant: Variant = Decks.ValidateDeck(selected_deck_id)
 	return SafeTypeUtils.bool_val(is_valid_variant, false)
 
 

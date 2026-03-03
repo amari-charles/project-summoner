@@ -1,6 +1,6 @@
 using System;
 
-namespace ProjectSummoner.Domain.Profile.Enums;
+namespace Fateforged.Domain.Profile.Enums;
 
 /// <summary>
 /// Resource type enum for type-safe resource operations.

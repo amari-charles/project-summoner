@@ -4,7 +4,7 @@ class_name SpawnableUnitButton
 ## SpawnableUnitButton - A draggable button for spawning units in debug arena
 ##
 ## Can be dragged onto the battlefield to spawn a unit at that position.
-## Returns drag data compatible with BattlefieldDropZone.
+## Returns drag data compatible with InputCollector.
 
 ## The Card resource to spawn (created from catalog)
 var card: Card = null
@@ -28,7 +28,7 @@ func _ready() -> void:
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	# No drag preview text - ghost units on battlefield are the preview
 
-	# Return drag data that BattlefieldDropZone can use
+	# Return drag data that InputCollector can use
 	var team: int = 1  # Default to enemy team
 	if panel and panel.has_method("get_spawn_team"):
 		team = panel.get_spawn_team()

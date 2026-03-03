@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Visual;
+namespace Fateforged.Visual;
 
 /// <summary>
 /// Sprite-based 2.5D Character Rendering Component.

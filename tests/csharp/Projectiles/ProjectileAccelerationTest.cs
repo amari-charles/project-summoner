@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Tests.Projectiles;
+namespace Fateforged.Tests.Projectiles;
 
 using GdUnit4;
 using static GdUnit4.Assertions;

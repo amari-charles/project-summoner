@@ -14,7 +14,7 @@ var is_active: bool = true
 func _ready() -> void:
 	if summoner == null:
 		var parent: Node = get_parent()
-		if parent is Summoner:
+		if parent is Node3D and parent.is_in_group("summoners"):
 			summoner = parent
 
 func _process(delta: float) -> void:
@@ -64,25 +64,28 @@ func _execute_spawn_event(event: Dictionary) -> void:
 		push_warning("ScriptedAI: Card '%s' not found in hand" % card_name)
 		return
 
-	if card_index >= summoner.hand.size():
+	var hand: Array = summoner.Hand
+	if card_index >= hand.size():
 		return
 
-	var card: Card = summoner.hand[card_index]
+	var card: Card = hand[card_index]
 
 	# Check if we can afford it
-	var mana_int: int = int(summoner.mana)
+	var mana_int: int = int(summoner.Mana)
 	if not card.CanPlay(mana_int):
 		push_warning("ScriptedAI: Not enough mana to play '%s'" % card_name)
 		return
 
-	# Play the card in 3D
+	# Play the card in 3D via SimulationNode
 	var pos_3d: Vector3 = BattlefieldConstants.screen_to_world_3d(spawn_pos)
-	summoner.play_card_3d(card_index, pos_3d)
+	var sim: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim:
+		sim.QueuePlayCard(summoner.Team, card_index, pos_3d, -1)
 
 ## Find card in hand by catalog ID or card name
 func _find_card_by_name(card_name: String) -> int:
-	for i: int in range(summoner.hand.size()):
-		var card: Card = summoner.hand[i]
+	for i: int in range(summoner.Hand.size()):
+		var card: Card = summoner.Hand[i]
 		# Match by card_name or catalog_id
 		if card.CardName.to_lower() == card_name.to_lower():
 			return i

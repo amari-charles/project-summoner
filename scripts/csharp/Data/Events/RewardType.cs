@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Reward type enum - categorizes battle reward types.

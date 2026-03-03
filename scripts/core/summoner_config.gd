@@ -45,32 +45,50 @@ func get_element() -> ElementTypes.Element:
 func get_element_key() -> StringName:
 	return ElementRegistry.get_key_from_id(element_id)
 
-## Create from dictionary (for data-driven config from JSON)
+## Create from dictionary (for data-driven config from C# bridge or JSON)
+##
+## Accepts the C# SummonerCatalogBridge dictionary format:
+##   name_key / description_key  (localization keys, translated via Loc.t())
+##   element_id                  (int matching ElementRegistry.ElementId)
+## Also accepts the legacy GDScript format:
+##   summoner_name / description (already-translated strings)
+##   element                     (StringName key or Element object)
 static func from_dict(data: Dictionary) -> SummonerConfig:
 	var config: SummonerConfig = SummonerConfig.new()
 
 	# Identity
 	config.summoner_id = data.get("summoner_id", "")
-	config.summoner_name = data.get("summoner_name", "")
-	config.description = data.get("description", "")
 
-	# Element - handle Element objects, StringName keys, and legacy strings
-	var element_var: Variant = data.get("element", &"neutral")
-	if element_var is ElementTypes.Element:
-		# Runtime Element object (legacy)
-		var elem: ElementTypes.Element = element_var
-		var key: StringName = StringName(elem.id)
-		config.element_id = ElementRegistry.get_id_from_key(key)
-	elif element_var is StringName or element_var is String:
-		# StringName key (preferred) or String (legacy)
-		var key: StringName = StringName(element_var)
-		if ElementRegistry.is_valid_key(key):
-			config.element_id = ElementRegistry.get_id_from_key(key)
-		else:
-			push_warning("SummonerConfig.from_dict: Unknown element key '%s', using NEUTRAL" % key)
-			config.element_id = ElementRegistry.ElementId.NEUTRAL
+	# Name: prefer name_key (C# bridge) over summoner_name (legacy)
+	if data.has("name_key"):
+		config.summoner_name = Loc.t(data.get("name_key", ""))
 	else:
-		config.element_id = ElementRegistry.ElementId.NEUTRAL
+		config.summoner_name = data.get("summoner_name", "")
+
+	# Description: prefer description_key (C# bridge) over description (legacy)
+	if data.has("description_key"):
+		config.description = Loc.t(data.get("description_key", ""))
+	else:
+		config.description = data.get("description", "")
+
+	# Element: prefer element_id int (C# bridge) over element key/object (legacy)
+	if data.has("element_id"):
+		config.element_id = data.get("element_id", ElementRegistry.ElementId.NEUTRAL)
+	else:
+		var element_var: Variant = data.get("element", &"neutral")
+		if element_var is ElementTypes.Element:
+			var elem: ElementTypes.Element = element_var
+			var key: StringName = StringName(elem.id)
+			config.element_id = ElementRegistry.get_id_from_key(key)
+		elif element_var is StringName or element_var is String:
+			var key: StringName = StringName(element_var)
+			if ElementRegistry.is_valid_key(key):
+				config.element_id = ElementRegistry.get_id_from_key(key)
+			else:
+				push_warning("SummonerConfig.from_dict: Unknown element key '%s', using NEUTRAL" % key)
+				config.element_id = ElementRegistry.ElementId.NEUTRAL
+		else:
+			config.element_id = ElementRegistry.ElementId.NEUTRAL
 
 	# Base Stats
 	config.base_health = data.get("base_health", DEFAULT_BASE_HEALTH)

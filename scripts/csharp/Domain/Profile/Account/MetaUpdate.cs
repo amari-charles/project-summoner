@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ProjectSummoner.Domain.Profile.Account;
+namespace Fateforged.Domain.Profile.Account;
 
 /// <summary>
 /// Typed DTO for updating profile meta fields.

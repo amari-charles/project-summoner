@@ -1,7 +1,7 @@
 using Godot;
-using ProjectSummoner.Services;
+using Fateforged.Meta;
 
-namespace ProjectSummoner.UI;
+namespace Fateforged.UI;
 
 /// <summary>
 /// 3D floating health bar that follows a node.

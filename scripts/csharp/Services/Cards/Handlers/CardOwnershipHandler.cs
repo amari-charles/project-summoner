@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Cards.Handlers;
+namespace Fateforged.Meta.Cards.Handlers;
 
 /// <summary>
 /// Handles card ownership operations: granting, removing, and querying cards.

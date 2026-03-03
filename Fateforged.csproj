@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <RootNamespace>ProjectSummoner</RootNamespace>
+    <RootNamespace>Fateforged</RootNamespace>
     <Nullable>enable</Nullable>
     <LangVersion>12.0</LangVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

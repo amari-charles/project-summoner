@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Godot;
-using ProjectSummoner.Units;
+using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
@@ -219,13 +219,19 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(SummonerDamagedEvent e)
     {
         if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+        {
             shell.FlashDamage();
+            shell.OnSummonerDamaged(e.Damage);
+        }
     }
 
     public void Visit(SummonerDestroyedEvent e)
     {
         if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+        {
             shell.BeginDeath();
+            shell.OnSummonerDestroyed();
+        }
     }
 
     public void Visit(SpellCastEvent e)
@@ -238,17 +244,54 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         GD.Print($"[EntityManager] DelayedEffectFiredSimEvent: type={e.EffectType}, radius={e.AoeRadius}");
     }
 
+    // --- Summoner event dispatch (forwarded to SummonerVisual for signal emission) ---
+
+    public void Visit(SummonerHpChangedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnHpChanged(e.Hp, e.MaxHp);
+    }
+
+    public void Visit(SummonerManaChangedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnManaChanged(e.Mana, e.MaxMana);
+    }
+
+    public void Visit(CastingStartedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnCastingStarted(e.CardIndex, e.Duration, e.CatalogId);
+    }
+
+    public void Visit(CastingCompletedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnCastingCompleted(e.CardIndex);
+    }
+
+    public void Visit(CardDrawnEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnCardDrawn(e.HandIndex, e.CatalogId);
+    }
+
+    public void Visit(HandChangedEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnHandChanged(e.Hand);
+    }
+
+    public void Visit(DeckRecycledEvent e)
+    {
+        if (_summonerRegistry.TryGetValue(e.Team, out var shell))
+            shell.OnDeckRecycled();
+    }
+
     // --- No-op visitors (HUD handles these, or no visual action needed) ---
-    public void Visit(SummonerHpChangedEvent e) { }
     public void Visit(PhaseChangedEvent e) { }
     public void Visit(PrepTimerUpdatedEvent e) { }
     public void Visit(MatchTimeUpdatedEvent e) { }
-    public void Visit(SummonerManaChangedEvent e) { }
-    public void Visit(CastingStartedEvent e) { }
-    public void Visit(CastingCompletedEvent e) { }
-    public void Visit(CardDrawnEvent e) { }
-    public void Visit(HandChangedEvent e) { }
-    public void Visit(DeckRecycledEvent e) { }
     public void Visit(UnitRegisteredEvent e) { }
     public void Visit(UnitRemovedEvent e) { }
     public void Visit(GameOverEvent e) { }

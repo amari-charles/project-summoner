@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Services.Campaign;
+using Fateforged.Meta.Campaign;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Tracks player choices made at choice nodes in the campaign graph.

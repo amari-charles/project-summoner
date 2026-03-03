@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
+using Fateforged.Cards;
+using Fateforged.Constants;
 
-namespace ProjectSummoner.Services.Rewards;
+namespace Fateforged.Meta.Rewards;
 
 /// <summary>
 /// Defines reward pools used for flexible reward generation.

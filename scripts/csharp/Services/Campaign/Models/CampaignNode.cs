@@ -1,8 +1,8 @@
 using System;
 using Godot;
-using ProjectSummoner.Data.Events;
+using Fateforged.Data.Events;
 
-namespace ProjectSummoner.Services.Campaign.Models;
+namespace Fateforged.Meta.Campaign.Models;
 
 /// <summary>
 /// Represents a node in the campaign graph.

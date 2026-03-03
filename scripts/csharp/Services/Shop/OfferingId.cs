@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Services.Shop;
+namespace Fateforged.Meta.Shop;
 
 /// <summary>
 /// Strongly-typed identifier for shop offerings.

@@ -1,7 +1,7 @@
 using Godot;
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Constants;
+namespace Fateforged.Constants;
 
 /// <summary>
 /// Element-to-color mapping for visual tinting.

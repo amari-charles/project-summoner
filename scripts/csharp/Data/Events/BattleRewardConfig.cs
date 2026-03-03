@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
+using Fateforged.Cards;
 
-namespace ProjectSummoner.Data.Events;
+namespace Fateforged.Data.Events;
 
 /// <summary>
 /// Configuration for battle rewards.

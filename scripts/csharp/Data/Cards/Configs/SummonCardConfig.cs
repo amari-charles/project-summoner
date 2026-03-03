@@ -1,7 +1,7 @@
 using Godot;
-using ProjectSummoner.Cards.Formations;
+using Fateforged.Cards.Formations;
 
-namespace ProjectSummoner.Cards.Configs;
+namespace Fateforged.Cards.Configs;
 
 /// <summary>
 /// Configuration for summon cards.

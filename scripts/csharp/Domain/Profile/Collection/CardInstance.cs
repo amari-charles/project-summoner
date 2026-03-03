@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile.Enums;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Enums;
 
-namespace ProjectSummoner.Domain.Profile.Collection;
+namespace Fateforged.Domain.Profile.Collection;
 
 /// <summary>
 /// A card instance in the player's collection.

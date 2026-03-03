@@ -1,8 +1,8 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using ProjectSummoner.Units;
-using ProjectSummoner.Visual;
+using Fateforged.Units;
+using Fateforged.Visual;
 
 namespace Fateforged.View;
 

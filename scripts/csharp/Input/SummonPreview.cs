@@ -1,8 +1,8 @@
 using Godot;
 using System.Collections.Generic;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Units;
-using ProjectSummoner.Visual;
+using Fateforged.Constants;
+using Fateforged.Units;
+using Fateforged.Visual;
 
 namespace Fateforged.Input;
 

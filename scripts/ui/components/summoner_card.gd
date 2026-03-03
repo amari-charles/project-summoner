@@ -45,7 +45,7 @@ func set_summoner(summoner_id_param: String) -> void:
 	self.summoner_id = summoner_id_param
 
 	# Get summoner config from catalog
-	var config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
 	if not config:
 		push_error("SummonerCard: Invalid summoner_id: %s" % summoner_id)
 		return

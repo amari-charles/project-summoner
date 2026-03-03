@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Vfx;
+using Fateforged.Projectiles;
+using Fateforged.Vfx;
 
-namespace ProjectSummoner.Data.Projectiles;
+namespace Fateforged.Data.Projectiles;
 
 /// <summary>
 /// Central registry of all projectile definitions.

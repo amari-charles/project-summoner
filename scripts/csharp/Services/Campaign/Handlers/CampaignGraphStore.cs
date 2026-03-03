@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Events;
-using ProjectSummoner.Services.Campaign.Models;
+using Fateforged.Data.Events;
+using Fateforged.Meta.Campaign.Models;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Shared data store for campaign graph data.

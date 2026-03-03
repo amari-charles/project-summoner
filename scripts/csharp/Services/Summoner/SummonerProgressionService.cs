@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Data.Summoners;
+using Fateforged.Data.Traits;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Summoner;
+namespace Fateforged.Meta.Summoner;
 
 /// <summary>
 /// Summoner Progression Service - Handles XP and level management.
@@ -63,6 +63,23 @@ public partial class SummonerProgressionService : Node
 	{
 		Instance = this;
 		Initialize();
+		AutoInitializeDependencies();
+	}
+
+	/// <summary>
+	/// Auto-initialize dependency callbacks by looking up sibling autoloads.
+	/// Only sets callbacks that haven't been injected (e.g., via InitForTesting).
+	/// </summary>
+	private void AutoInitializeDependencies()
+	{
+		if (_getActiveSummonerFunc == null)
+		{
+			var summonerSelection = GetNodeOrNull<SummonerSelectionService>("/root/SummonerSelection");
+			if (summonerSelection != null)
+			{
+				_getActiveSummonerFunc = () => summonerSelection.GetActiveSummonerId();
+			}
+		}
 	}
 
 	private void Initialize()

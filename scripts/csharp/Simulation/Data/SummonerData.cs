@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Units;
+using Fateforged.Cards;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Data;
 
@@ -27,7 +27,7 @@ public class SummonerData
     // Cast speed
     public float CastSpeed { get; set; } = 1.0f;
 
-    // Element (int cast of ProjectSummoner.Cards.Element enum)
+    // Element (int cast of Fateforged.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral
 
     // Damage bonuses (from summoner traits)

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Data.Events;
+using Fateforged.Data.Events;
 
-namespace ProjectSummoner.Services.Campaign.Models;
+namespace Fateforged.Meta.Campaign.Models;
 
 /// <summary>
 /// Represents a campaign as a directed graph of nodes connected by edges.

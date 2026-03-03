@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Data.Traits;
-using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
+using Fateforged.Data.Items;
+using Fateforged.Data.Summoners;
+using Fateforged.Data.Traits;
+using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
-namespace ProjectSummoner.Domain.Profile.Summoners;
+namespace Fateforged.Domain.Profile.Summoners;
 
 /// <summary>
 /// Serialized data for a summoner instance in a player's profile.

@@ -1,11 +1,11 @@
 using System;
 using Godot;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Infrastructure.Persistence;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Infrastructure.Persistence;
 
-namespace ProjectSummoner.Services.Summoner;
+namespace Fateforged.Meta.Summoner;
 
 /// <summary>
 /// Summoner Selection Service - Manages the currently active summoner.

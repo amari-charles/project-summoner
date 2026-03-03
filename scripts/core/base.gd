@@ -44,7 +44,7 @@ func _load_campaign_hp() -> void:
 	if current_battle_id == "":
 		return  # Not a campaign battle
 
-	var battle: Dictionary = Campaign.get_battle(current_battle_id)
+	var battle: Dictionary = Campaign.GetBattle(current_battle_id)
 	if battle.has("enemy_hp"):
 		max_hp = battle.get("enemy_hp")
 		print("Base: Set enemy base HP from campaign: %d" % max_hp)

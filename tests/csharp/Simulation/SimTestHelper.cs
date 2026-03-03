@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using ProjectSummoner.Units;
+using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 
-namespace ProjectSummoner.Tests.Simulation;
+namespace Fateforged.Tests.Simulation;
 
 /// <summary>
 /// Shared factory methods for simulation tests.

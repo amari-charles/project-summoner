@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using ProjectSummoner.Cards.Formations;
-using ProjectSummoner.Cards.Spawning;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Stats;
-using ProjectSummoner.Vfx;
+using Fateforged.Cards.Formations;
+using Fateforged.Cards.Spawning;
+using Fateforged.Constants;
+using Fateforged.Projectiles;
+using Fateforged.Stats;
+using Fateforged.Vfx;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Central registry of all card definitions as static readonly fields.

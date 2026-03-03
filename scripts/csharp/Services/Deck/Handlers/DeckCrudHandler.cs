@@ -1,12 +1,12 @@
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Infrastructure.Persistence;
-using DeckModel = ProjectSummoner.Domain.Profile.Decks.Deck;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Infrastructure.Persistence;
+using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
-namespace ProjectSummoner.Services.Deck.Handlers;
+namespace Fateforged.Meta.Deck.Handlers;
 
 /// <summary>
 /// Handles deck CRUD operations: create, read, update, delete.

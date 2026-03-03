@@ -1,12 +1,12 @@
-using ProjectSummoner.Cards.Formations;
-using ProjectSummoner.Cards.Spawning;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Data.Traits;
-using ProjectSummoner.Projectiles;
-using ProjectSummoner.Stats;
-using ProjectSummoner.Vfx;
+using Fateforged.Cards.Formations;
+using Fateforged.Cards.Spawning;
+using Fateforged.Constants;
+using Fateforged.Data.Traits;
+using Fateforged.Projectiles;
+using Fateforged.Stats;
+using Fateforged.Vfx;
 
-namespace ProjectSummoner.Cards;
+namespace Fateforged.Cards;
 
 /// <summary>
 /// Defines a card's static data - stats, costs, formation, and metadata.

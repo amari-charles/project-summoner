@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Services.Rewards;
+namespace Fateforged.Meta.Rewards;
 
 /// <summary>
 /// Strongly-typed identifier for reward pools.

@@ -1,6 +1,6 @@
 using Godot;
 
-namespace ProjectSummoner.Visual;
+namespace Fateforged.Visual;
 
 /// <summary>
 /// Simple blob shadow for 2.5D units.

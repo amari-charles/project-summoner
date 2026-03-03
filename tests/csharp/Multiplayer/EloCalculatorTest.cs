@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Tests.Multiplayer;
+namespace Fateforged.Tests.Multiplayer;
 
 using GdUnit4;
 using Fateforged.Multiplayer.Ranking;

@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Domain.Profile;
+namespace Fateforged.Domain.Profile;
 
 /// <summary>
 /// Strongly-typed identifier for cosmetics (card backs, UI themes, etc.).

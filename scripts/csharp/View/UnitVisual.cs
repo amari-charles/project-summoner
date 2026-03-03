@@ -1,9 +1,9 @@
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Godot;
-using ProjectSummoner.Services;
-using ProjectSummoner.UI;
-using ProjectSummoner.Visual;
+using Fateforged.Meta;
+using Fateforged.UI;
+using Fateforged.Visual;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using ProjectSummoner.Data.Events;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Services.Economy;
+using Fateforged.Data.Events;
+using Fateforged.Data.Summoners;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Economy;
 
-namespace ProjectSummoner.Services.Campaign.Handlers;
+namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Handles campaign rewards: pending rewards, reward granting, claiming.

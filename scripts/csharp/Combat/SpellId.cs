@@ -1,4 +1,4 @@
-namespace ProjectSummoner.Combat;
+namespace Fateforged.Combat;
 
 /// <summary>
 /// Strongly-typed identifier for spells.

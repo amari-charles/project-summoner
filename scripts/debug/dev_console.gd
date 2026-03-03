@@ -559,7 +559,7 @@ func _cmd_items_grant(args: PackedStringArray) -> bool:
 	var item_id: String = args[0]
 	print("DevConsole: Granting item '%s'..." % item_id)
 
-	var instance_id: String = Items.grant_item(item_id)
+	var instance_id: String = Items.GrantItem(item_id)
 	if instance_id.is_empty():
 		print("DevConsole: Failed to grant item (invalid item_id?)")
 		return false
@@ -573,7 +573,7 @@ func _cmd_items_grant_all() -> bool:
 
 	var granted_count: int = 0
 	for item_id: String in TEST_ITEMS:
-		var instance_id: String = Items.grant_item(item_id)
+		var instance_id: String = Items.GrantItem(item_id)
 		if not instance_id.is_empty():
 			print("  Granted: %s -> %s" % [item_id, instance_id])
 			granted_count += 1
@@ -594,9 +594,9 @@ func _cmd_items_list() -> bool:
 		return true
 
 	# Get equipped items
-	var equipped: Dictionary = Items.get_equipped_items(summoner_id)
+	var equipped: Dictionary = Items.GetEquippedItemsDict(summoner_id)
 	print("Equipped on %s:" % summoner_id)
-	for slot: String in Items.ALL_SLOTS:
+	for slot: String in ["wand", "ring1", "ring2", "robes"]:
 		var instance_id: String = equipped.get(slot, "")
 		if instance_id.is_empty():
 			print("  [%s]: (empty)" % slot)
@@ -605,8 +605,8 @@ func _cmd_items_list() -> bool:
 
 	# Get all items for each slot
 	print("\nAvailable items:")
-	for slot: String in Items.ALL_SLOTS:
-		var items: Array[Dictionary] = Items.list_items_for_slot(slot, summoner_id)
+	for slot: String in ["wand", "ring1", "ring2", "robes"]:
+		var items: Array[Dictionary] = Items.ListItemsForSlotDict(slot, summoner_id)
 		print("  %s slot: %d items" % [slot, items.size()])
 		for item: Dictionary in items:
 			var name_key: String = item.get("name_key", "")
@@ -635,7 +635,7 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 
 	print("DevConsole: Equipping item '%s' to %s's %s slot..." % [instance_id, summoner_id, slot])
 
-	var success: bool = Items.equip_item(summoner_id, instance_id, slot)
+	var success: bool = Items.EquipItemStr(summoner_id, instance_id, slot)
 	if success:
 		print("DevConsole: Item equipped successfully!")
 	else:
@@ -646,6 +646,6 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 
 func _cmd_items_clear() -> bool:
 	print("DevConsole: Clearing all items...")
-	Items.clear_all_items()
+	Items.ClearAllItems()
 	print("DevConsole: All items cleared!")
 	return true

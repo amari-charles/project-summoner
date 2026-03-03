@@ -1,11 +1,10 @@
-[gd_scene load_steps=14 format=3 uid="uid://7oxpfxkhfr3h"]
+[gd_scene load_steps=13 format=3 uid="uid://7oxpfxkhfr3h"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Script" path="res://scripts/csharp/View/Debug/TestBattleScene.cs" id="2_game_controller"]
-[ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner.gd" id="3_summoner"]
-[ext_resource type="Script" uid="uid://cylw80td53yei" path="res://scripts/test/rally_guard_test_setup.gd" id="4_test_setup"]
+[ext_resource type="Script" path="res://scripts/csharp/View/SummonerVisual.cs" id="3_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/battle/hand_ui.tscn" id="7_hand_ui"]
-[ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battle/battlefield_drop_zone.gd" id="8_drop_zone"]
+[ext_resource type="Script" path="res://scripts/csharp/Input/InputCollector.cs" id="8_drop_zone"]
 [ext_resource type="PackedScene" path="res://scenes/ui/modals/pause_menu.tscn" id="9_pause_menu"]
 [ext_resource type="Script" uid="uid://dk6842l272muf" path="res://scripts/ui/battle/pause_button.gd" id="10_pause_button"]
 [ext_resource type="Script" uid="uid://c5j735p3yll2r" path="res://scripts/ui/battle/speed_button.gd" id="11_speed_button"]
@@ -24,7 +23,7 @@ script = ExtResource("2_game_controller")
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 script = ExtResource("3_summoner")
-deck_load_strategy = 0
+DeckLoadStrategy = 0
 
 [node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
 pixel_size = 0.15
@@ -38,13 +37,10 @@ texture = ExtResource("14_knight_sprite")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerSummoner/CollisionBody"]
 shape = SubResource("CylinderShape3D_summoner")
 
-[node name="TestSetup" type="Node" parent="PlayerSummoner"]
-script = ExtResource("4_test_setup")
-
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 script = ExtResource("3_summoner")
-team = 1
+Team = 1
 
 [node name="Visual" type="Sprite3D" parent="EnemySummoner"]
 pixel_size = 0.15
@@ -65,7 +61,7 @@ player_mana_bar = NodePath("PlayerManaBar")
 player_hp_bar = NodePath("PlayerHPBar")
 enemy_hp_bar = NodePath("EnemyHPBar")
 
-[node name="BattlefieldDropZone" type="Control" parent="UI"]
+[node name="InputCollector" type="Control" parent="UI"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

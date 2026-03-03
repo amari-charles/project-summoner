@@ -240,19 +240,19 @@ class CardDisplay extends Control:
 
 	## Start dragging this card
 	## Note: No Godot drag preview is created - the 3D preview (ghost units or spell indicator)
-	## is managed by BattlefieldDropZone for better visual feedback
+	## is managed by InputCollector for better visual feedback
 	func _get_drag_data(_at_position: Vector2) -> Variant:
 		if not hand_ui or not hand_ui.summoner:
 			return null
 
 		# Block drag if summoner is currently casting (summon_time delay)
-		var is_casting_variant: Variant = hand_ui.summoner.get("is_casting")
+		var is_casting_variant: Variant = hand_ui.summoner.get("IsCasting")
 		var is_casting: bool = is_casting_variant if is_casting_variant is bool else false
 		if is_casting:
 			return null
 
 		# Check if we can afford this card
-		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana")
+		var summoner_mana_variant: Variant = hand_ui.summoner.get("Mana")
 		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
 		if summoner_mana < card.ManaCost:
 			return null
@@ -395,7 +395,7 @@ class CardDisplay extends Control:
 			return
 
 		# Only glow if card is affordable
-		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana") if hand_ui and hand_ui.summoner else null
+		var summoner_mana_variant: Variant = hand_ui.summoner.get("Mana") if hand_ui and hand_ui.summoner else null
 		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
 		var can_afford: bool = hand_ui and hand_ui.summoner and summoner_mana >= card.ManaCost
 
@@ -419,7 +419,7 @@ class CardDisplay extends Control:
 		border_style.anti_aliasing_size = 1
 		border_panel.add_theme_stylebox_override("panel", border_style)
 
-var summoner: Summoner
+var summoner: Node3D
 var card_displays: Array[Control] = []
 var selected_card_index: int = -1  # -1 means no selection
 var is_rebuilding: bool = false  # Prevents concurrent rebuilds
@@ -435,8 +435,8 @@ func _ready() -> void:
 	# Block clicks to battlefield
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-## Initialize HandUI with the player summoner
-## Called by BattleCoordinator after summoners are ready
+## Initialize HandUI with the player summoner (SummonerVisual node)
+## Called by BattleScene after summoners are ready
 func init(player_summoner: Node) -> void:
 	if _initialized:
 		return
@@ -448,48 +448,36 @@ func init(player_summoner: Node) -> void:
 
 	summoner = player_summoner
 
-	# Connect to summoner signals
-	var card_played_signal: Signal = summoner.get("card_played")
-	card_played_signal.connect(_on_card_played)
-	var card_drawn_signal: Signal = summoner.get("card_drawn")
-	card_drawn_signal.connect(_on_card_drawn)
-	var mana_changed_signal: Signal = summoner.get("mana_changed")
-	mana_changed_signal.connect(_on_mana_changed)
-	var hand_changed_signal: Signal = summoner.get("hand_changed")
-	hand_changed_signal.connect(_on_hand_changed)
+	# Connect to SummonerVisual signals (PascalCase C# signals)
+	summoner.connect("CardPlayed", _on_card_played)
+	summoner.connect("CardDrawn", _on_card_drawn)
+	summoner.connect("ManaChanged", _on_mana_changed)
+	summoner.connect("HandChanged", _on_hand_changed)
 
 	# Connect casting signals (hide hand during summon time)
-	var casting_started_signal: Signal = summoner.get("casting_started")
-	casting_started_signal.connect(_on_casting_started)
-	var casting_completed_signal: Signal = summoner.get("casting_completed")
-	casting_completed_signal.connect(_on_casting_completed)
+	summoner.connect("CastingStarted", _on_casting_started)
+	summoner.connect("CastingCompleted", _on_casting_completed)
 
 	# Initial hand display with availability update
-	# (mana_changed signal was emitted before we connected)
+	# (ManaChanged signal was emitted before we connected)
 	await _rebuild_hand_display()
 	_update_availability()
 
 func _exit_tree() -> void:
 	# Disconnect summoner signals to prevent memory leaks
-	if summoner:
-		var card_played_signal: Signal = summoner.get("card_played")
-		if card_played_signal.is_connected(_on_card_played):
-			card_played_signal.disconnect(_on_card_played)
-		var card_drawn_signal: Signal = summoner.get("card_drawn")
-		if card_drawn_signal.is_connected(_on_card_drawn):
-			card_drawn_signal.disconnect(_on_card_drawn)
-		var mana_changed_signal: Signal = summoner.get("mana_changed")
-		if mana_changed_signal.is_connected(_on_mana_changed):
-			mana_changed_signal.disconnect(_on_mana_changed)
-		var hand_changed_signal: Signal = summoner.get("hand_changed")
-		if hand_changed_signal.is_connected(_on_hand_changed):
-			hand_changed_signal.disconnect(_on_hand_changed)
-		var casting_started_signal: Signal = summoner.get("casting_started")
-		if casting_started_signal.is_connected(_on_casting_started):
-			casting_started_signal.disconnect(_on_casting_started)
-		var casting_completed_signal: Signal = summoner.get("casting_completed")
-		if casting_completed_signal.is_connected(_on_casting_completed):
-			casting_completed_signal.disconnect(_on_casting_completed)
+	if summoner and is_instance_valid(summoner):
+		if summoner.is_connected("CardPlayed", _on_card_played):
+			summoner.disconnect("CardPlayed", _on_card_played)
+		if summoner.is_connected("CardDrawn", _on_card_drawn):
+			summoner.disconnect("CardDrawn", _on_card_drawn)
+		if summoner.is_connected("ManaChanged", _on_mana_changed):
+			summoner.disconnect("ManaChanged", _on_mana_changed)
+		if summoner.is_connected("HandChanged", _on_hand_changed):
+			summoner.disconnect("HandChanged", _on_hand_changed)
+		if summoner.is_connected("CastingStarted", _on_casting_started):
+			summoner.disconnect("CastingStarted", _on_casting_started)
+		if summoner.is_connected("CastingCompleted", _on_casting_completed):
+			summoner.disconnect("CastingCompleted", _on_casting_completed)
 
 func _rebuild_hand_display() -> void:
 	# Prevent concurrent rebuilds (race condition protection)
@@ -511,7 +499,7 @@ func _rebuild_hand_display() -> void:
 	# Wait one frame to ensure old nodes are freed before creating new ones
 	await get_tree().process_frame
 
-	var hand_variant: Variant = summoner.get("hand") if summoner else null
+	var hand_variant: Variant = summoner.get("Hand") if summoner else null
 	var hand: Array = hand_variant if hand_variant is Array else []
 
 	if not summoner or hand.is_empty():
@@ -595,7 +583,7 @@ func _create_card_display(card: Card, index: int) -> CardDisplay:
 	return container
 
 func _select_card(index: int) -> void:
-	var hand_variant: Variant = summoner.get("hand") if summoner else null
+	var hand_variant: Variant = summoner.get("Hand") if summoner else null
 	var hand: Array = hand_variant if hand_variant is Array else []
 
 	if not summoner or index < 0 or index >= hand.size():
@@ -640,9 +628,9 @@ func _update_availability() -> void:
 	if not summoner:
 		return
 
-	var hand_variant: Variant = summoner.get("hand")
+	var hand_variant: Variant = summoner.get("Hand")
 	var hand: Array = hand_variant if hand_variant is Array else []
-	var mana_variant: Variant = summoner.get("mana")
+	var mana_variant: Variant = summoner.get("Mana")
 	var summoner_mana: float = mana_variant if mana_variant is float else 0.0
 
 	for i: int in range(card_displays.size()):
@@ -800,7 +788,7 @@ func get_selected_card_index() -> int:
 	return selected_card_index
 
 func select_next_card() -> void:
-	var hand_variant: Variant = summoner.get("hand") if summoner else null
+	var hand_variant: Variant = summoner.get("Hand") if summoner else null
 	var hand: Array = hand_variant if hand_variant is Array else []
 
 	if not summoner or hand.is_empty():
