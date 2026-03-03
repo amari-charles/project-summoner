@@ -50,3 +50,9 @@ enum FlyingDeathStyle {
 	EXPLODE = 2
 }
 
+## CardType enum - matches ProjectSummoner.Cards.CardType
+enum CardType {
+	SUMMON = 0,
+	SPELL = 1
+}
+

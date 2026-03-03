@@ -10,13 +10,13 @@ extends GutTest
 ## =============================================================================
 
 func test_single_unit_returns_zero_offset() -> void:
-	var result: Vector3 = Card.generate_formation_offset(0, 1)
+	var result: Vector3 = CardFormation.generate_formation_offset(0, 1)
 
 	assert_eq(result, Vector3.ZERO)
 
 
 func test_zero_units_returns_zero_offset() -> void:
-	var result: Vector3 = Card.generate_formation_offset(0, 0)
+	var result: Vector3 = CardFormation.generate_formation_offset(0, 0)
 
 	assert_eq(result, Vector3.ZERO)
 
@@ -27,8 +27,8 @@ func test_zero_units_returns_zero_offset() -> void:
 
 func test_two_units_form_two_rows() -> void:
 	# 2 units with 2-row preference creates 2 rows of 1 column each (depth formation)
-	var offset_0: Vector3 = Card.generate_formation_offset(0, 2)
-	var offset_1: Vector3 = Card.generate_formation_offset(1, 2)
+	var offset_0: Vector3 = CardFormation.generate_formation_offset(0, 2)
+	var offset_1: Vector3 = CardFormation.generate_formation_offset(1, 2)
 
 	# Units should be in different rows (different X offset)
 	assert_ne(offset_0.x, offset_1.x, "Units should be in different rows for depth")
@@ -43,7 +43,7 @@ func test_twelve_units_form_two_rows() -> void:
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(12):
-		var offset: Vector3 = Card.generate_formation_offset(i, 12)
+		var offset: Vector3 = CardFormation.generate_formation_offset(i, 12)
 		# Round X to detect distinct rows
 		var row_key: float = snappedf(offset.x, 0.1)
 		rows_seen[row_key] = true
@@ -56,7 +56,7 @@ func test_large_swarm_uses_more_rows() -> void:
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(25):
-		var offset: Vector3 = Card.generate_formation_offset(i, 25)
+		var offset: Vector3 = CardFormation.generate_formation_offset(i, 25)
 		var row_key: float = snappedf(offset.x, 0.1)
 		rows_seen[row_key] = true
 
@@ -73,7 +73,7 @@ func test_formation_centered_on_origin() -> void:
 	var unit_count: int = 12
 
 	for i: int in range(unit_count):
-		sum += Card.generate_formation_offset(i, unit_count)
+		sum += CardFormation.generate_formation_offset(i, unit_count)
 
 	# Average position should be near origin
 	var avg: Vector3 = sum / float(unit_count)
@@ -84,7 +84,7 @@ func test_formation_centered_on_origin() -> void:
 func test_y_offset_always_zero() -> void:
 	# All offsets should have Y = 0 (ground spawning)
 	for i: int in range(12):
-		var offset: Vector3 = Card.generate_formation_offset(i, 12)
+		var offset: Vector3 = CardFormation.generate_formation_offset(i, 12)
 		assert_eq(offset.y, 0.0, "Y offset should always be 0 for ground spawning")
 
 
@@ -96,11 +96,11 @@ func test_alternating_rows_have_stagger() -> void:
 	# Row 0 and Row 1 should have different Z patterns due to stagger
 	# With 12 units in 2 rows of 6, indices 0-5 are row 0, 6-11 are row 1
 
-	var row0_first_z: float = Card.generate_formation_offset(0, 12).z
-	var row1_first_z: float = Card.generate_formation_offset(6, 12).z
+	var row0_first_z: float = CardFormation.generate_formation_offset(0, 12).z
+	var row1_first_z: float = CardFormation.generate_formation_offset(6, 12).z
 
 	# Row 1 should be offset by DEFAULT_FORMATION_ROW_OFFSET * DEFAULT_FORMATION_SPACING
-	var expected_stagger: float = Card.DEFAULT_FORMATION_ROW_OFFSET * Card.DEFAULT_FORMATION_SPACING
+	var expected_stagger: float = CardFormation.DEFAULT_FORMATION_ROW_OFFSET * CardFormation.DEFAULT_FORMATION_SPACING
 
 	# The difference in starting Z position should equal the stagger
 	var z_diff: float = row1_first_z - row0_first_z
@@ -113,21 +113,21 @@ func test_alternating_rows_have_stagger() -> void:
 
 func test_units_spaced_by_formation_spacing() -> void:
 	# Adjacent units in same row should be DEFAULT_FORMATION_SPACING apart
-	var offset_0: Vector3 = Card.generate_formation_offset(0, 12)
-	var offset_1: Vector3 = Card.generate_formation_offset(1, 12)
+	var offset_0: Vector3 = CardFormation.generate_formation_offset(0, 12)
+	var offset_1: Vector3 = CardFormation.generate_formation_offset(1, 12)
 
 	var z_distance: float = absf(offset_1.z - offset_0.z)
-	assert_almost_eq(z_distance, Card.DEFAULT_FORMATION_SPACING, 0.01, "Adjacent units should be DEFAULT_FORMATION_SPACING apart")
+	assert_almost_eq(z_distance, CardFormation.DEFAULT_FORMATION_SPACING, 0.01, "Adjacent units should be DEFAULT_FORMATION_SPACING apart")
 
 
 func test_rows_spaced_by_formation_spacing() -> void:
 	# Units in different rows should have X positions DEFAULT_FORMATION_SPACING apart
 	# Index 0 is row 0, index 6 is row 1 (for 12 units)
-	var offset_row0: Vector3 = Card.generate_formation_offset(0, 12)
-	var offset_row1: Vector3 = Card.generate_formation_offset(6, 12)
+	var offset_row0: Vector3 = CardFormation.generate_formation_offset(0, 12)
+	var offset_row1: Vector3 = CardFormation.generate_formation_offset(6, 12)
 
 	var x_distance: float = absf(offset_row1.x - offset_row0.x)
-	assert_almost_eq(x_distance, Card.DEFAULT_FORMATION_SPACING, 0.01, "Rows should be DEFAULT_FORMATION_SPACING apart")
+	assert_almost_eq(x_distance, CardFormation.DEFAULT_FORMATION_SPACING, 0.01, "Rows should be DEFAULT_FORMATION_SPACING apart")
 
 
 ## =============================================================================
@@ -140,10 +140,10 @@ func test_formation_is_deterministic() -> void:
 	var offsets_second: Array[Vector3] = []
 
 	for i: int in range(12):
-		offsets_first.append(Card.generate_formation_offset(i, 12))
+		offsets_first.append(CardFormation.generate_formation_offset(i, 12))
 
 	for i: int in range(12):
-		offsets_second.append(Card.generate_formation_offset(i, 12))
+		offsets_second.append(CardFormation.generate_formation_offset(i, 12))
 
 	for i: int in range(12):
 		assert_eq(offsets_first[i], offsets_second[i], "Formation should be deterministic")
@@ -157,7 +157,7 @@ func test_odd_unit_count_handled() -> void:
 	# 7 units should form 2 rows: one with 4, one with 3
 	var offsets: Array[Vector3] = []
 	for i: int in range(7):
-		offsets.append(Card.generate_formation_offset(i, 7))
+		offsets.append(CardFormation.generate_formation_offset(i, 7))
 
 	# Should not crash and all offsets should be valid
 	for offset: Vector3 in offsets:
@@ -170,7 +170,7 @@ func test_twenty_units_still_uses_two_rows() -> void:
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(20):
-		var offset: Vector3 = Card.generate_formation_offset(i, 20)
+		var offset: Vector3 = CardFormation.generate_formation_offset(i, 20)
 		var row_key: float = snappedf(offset.x, 0.1)
 		rows_seen[row_key] = true
 
@@ -182,7 +182,7 @@ func test_twentyone_units_uses_more_rows() -> void:
 	var rows_seen: Dictionary = {}
 
 	for i: int in range(21):
-		var offset: Vector3 = Card.generate_formation_offset(i, 21)
+		var offset: Vector3 = CardFormation.generate_formation_offset(i, 21)
 		var row_key: float = snappedf(offset.x, 0.1)
 		rows_seen[row_key] = true
 

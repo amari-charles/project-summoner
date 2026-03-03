@@ -97,9 +97,9 @@ func _load_card_data() -> void:
 	var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
 	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": String(rarity_val).capitalize()})
 
-	var card_type_val: Variant = catalog_data.get("card_type", Card.CardType.SUMMON)
+	var card_type_val: Variant = catalog_data.get("card_type", UnitConstants.CardType.SUMMON)
 	var card_type: int = int(card_type_val)
-	var type_str: String = Loc.t("ui.collection.type_summon") if card_type == Card.CardType.SUMMON else Loc.t("ui.collection.type_spell")
+	var type_str: String = Loc.t("ui.collection.type_summon") if card_type == UnitConstants.CardType.SUMMON else Loc.t("ui.collection.type_spell")
 	type_label.text = Loc.t("ui.collection.type_label", {"type": type_str})
 
 	var mana_cost_val: Variant = catalog_data.get("mana_cost", 0)
@@ -130,10 +130,10 @@ func _update_stats_display() -> void:
 	stats_header.text = Loc.t("ui.collection.stats_header")
 
 	# Determine card type to show appropriate stats
-	var card_type_val: Variant = effective_stats.get("card_type", Card.CardType.SUMMON)
+	var card_type_val: Variant = effective_stats.get("card_type", UnitConstants.CardType.SUMMON)
 	var card_type: int = int(card_type_val)
 
-	if card_type == Card.CardType.SUMMON:
+	if card_type == UnitConstants.CardType.SUMMON:
 		# Show summon stats: HP, Damage, Speed, Attack Speed, Crit
 		_add_stat_label("stat_hp", effective_stats.get("max_hp", 0))
 		_add_stat_label("stat_damage", effective_stats.get("attack_damage", 0))

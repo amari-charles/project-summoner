@@ -155,7 +155,7 @@ func should_play_card() -> bool:
 	# Check if we have any playable cards
 	var mana_int: int = int(summoner.mana)
 	for card: Card in summoner.hand:
-		if card.can_play(mana_int):
+		if card.CanPlay(mana_int):
 			return true
 
 	return false
@@ -173,7 +173,7 @@ func select_card_to_play() -> int:
 	# Score each playable card
 	for i: int in range(summoner.hand.size()):
 		var card: Card = summoner.hand[i]
-		if not card.can_play(mana_int):
+		if not card.CanPlay(mana_int):
 			continue
 
 		var score: float = _score_card(card, battlefield_state)
@@ -193,13 +193,13 @@ func _score_card(card: Card, state: BattlefieldState) -> float:
 	var score: float = 0.0
 
 	# Base score: mana efficiency
-	score += SCORE_MANA_EFFICIENCY_BASE - card.mana_cost  # Prefer cheaper cards slightly
+	score += SCORE_MANA_EFFICIENCY_BASE - card.ManaCost  # Prefer cheaper cards slightly
 
 	# Adjust based on card type
-	match card.card_type:
-		Card.CardType.SUMMON:
+	match card.Type:
+		UnitConstants.CardType.SUMMON:
 			score += _score_summon_card(card, state)
-		Card.CardType.SPELL:
+		UnitConstants.CardType.SPELL:
 			score += _score_spell_card(card, state)
 
 	# Personality preferences
@@ -254,17 +254,17 @@ func _apply_personality_bonus(card: Card) -> float:
 
 	match personality:
 		Personality.AGGRESSIVE:
-			if card.card_type == Card.CardType.SUMMON:
+			if card.Type == UnitConstants.CardType.SUMMON:
 				bonus += PERSONALITY_AGGRESSIVE_SUMMON_BONUS
-			if card.mana_cost <= PERSONALITY_AGGRESSIVE_CHEAP_THRESHOLD:
+			if card.ManaCost <= PERSONALITY_AGGRESSIVE_CHEAP_THRESHOLD:
 				bonus += PERSONALITY_AGGRESSIVE_CHEAP_BONUS
 
 		Personality.DEFENSIVE:
-			if card.mana_cost >= PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD:
+			if card.ManaCost >= PERSONALITY_DEFENSIVE_EXPENSIVE_THRESHOLD:
 				bonus += PERSONALITY_DEFENSIVE_EXPENSIVE_BONUS
 
 		Personality.SPELL_FOCUSED:
-			if card.card_type == Card.CardType.SPELL:
+			if card.Type == UnitConstants.CardType.SPELL:
 				bonus += PERSONALITY_SPELL_FOCUSED_BONUS
 			else:
 				bonus -= PERSONALITY_SPELL_FOCUSED_PENALTY

@@ -48,7 +48,7 @@ func _get_playable_card_indices() -> Array[int]:
 
 	for i: int in range(summoner.hand.size()):
 		var card: Card = summoner.hand[i]
-		if card.can_play(mana):
+		if card.CanPlay(mana):
 			playable.append(i)
 
 	return playable

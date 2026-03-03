@@ -254,7 +254,7 @@ class CardDisplay extends Control:
 		# Check if we can afford this card
 		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana")
 		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
-		if summoner_mana < card.mana_cost:
+		if summoner_mana < card.ManaCost:
 			return null
 
 		# Hide entire hand UI so it doesn't block play area
@@ -397,7 +397,7 @@ class CardDisplay extends Control:
 		# Only glow if card is affordable
 		var summoner_mana_variant: Variant = hand_ui.summoner.get("mana") if hand_ui and hand_ui.summoner else null
 		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
-		var can_afford: bool = hand_ui and hand_ui.summoner and summoner_mana >= card.mana_cost
+		var can_afford: bool = hand_ui and hand_ui.summoner and summoner_mana >= card.ManaCost
 
 		if not can_afford:
 			return
@@ -584,7 +584,7 @@ func _create_card_display(card: Card, index: int) -> CardDisplay:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Get catalog data to pass to CardVisual
-	var catalog_data: Dictionary = CardCatalog.get_card(card.catalog_id)
+	var catalog_data: Dictionary = CardCatalog.get_card(card.CatalogId)
 
 	# Set card data
 	card_visual.set_card_data(catalog_data)
@@ -665,7 +665,7 @@ func _update_availability() -> void:
 		var border_panel: Panel = border_panel_variant if border_panel_variant is Panel else null
 
 		# Check affordability
-		var can_afford: bool = summoner_mana >= card.mana_cost
+		var can_afford: bool = summoner_mana >= card.ManaCost
 
 		if can_afford:
 			# Playable: normal background

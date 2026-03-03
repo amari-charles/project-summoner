@@ -55,7 +55,7 @@ func start_targeting(card: Card, card_index: int, p_summoner: Node, p_camera: Ca
 	camera_3d = p_camera
 
 	# Get selection radius from card definition in catalog
-	var card_def: Dictionary = CardCatalog.get_card(card.catalog_id)
+	var card_def: Dictionary = CardCatalog.get_card(card.CatalogId)
 	var radius_variant: Variant = card_def.get("selection_radius", 8.0)
 	selection_radius = radius_variant if radius_variant is float else 8.0
 
@@ -67,7 +67,7 @@ func start_targeting(card: Card, card_index: int, p_summoner: Node, p_camera: Ca
 	_show_preview_circle()
 	set_process(true)
 
-	print("SpellTargetingManager: Started targeting for %s (radius: %.1f)" % [card.card_name, selection_radius])
+	print("SpellTargetingManager: Started targeting for %s (radius: %.1f)" % [card.CardName, selection_radius])
 
 ## Update preview visuals based on state
 func _process(_delta: float) -> void:

@@ -153,7 +153,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	# Check if we can afford it
 	var mana_variant: Variant = summoner.get("mana")
 	var mana: float = mana_variant if mana_variant is float else 0.0
-	if mana < card.mana_cost:
+	if mana < card.ManaCost:
 		_cleanup_spawn_preview()
 		return false
 
@@ -161,7 +161,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if is_3d:
 		var world_pos: Vector3 = _screen_to_world_3d(at_position)
 
-		if card.card_type == Card.CardType.SUMMON:
+		if card.Type == UnitConstants.CardType.SUMMON:
 			# Clean up spell preview if switching card types
 			_cleanup_spell_preview()
 			# Check if cursor is in valid territory (for visual feedback)
@@ -173,7 +173,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 			_update_spawn_preview(clamped_pos, card, is_valid_zone)
 			# Show spawn zone overlay while dragging summon cards (red overlay shows invalid territory)
 			_show_spawn_zone_overlay()
-		elif card.card_type == Card.CardType.SPELL:
+		elif card.Type == UnitConstants.CardType.SPELL:
 			# Clean up spawn preview if switching card types
 			_cleanup_spawn_preview()
 			_cleanup_spawn_zone_overlay()
@@ -209,7 +209,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	var card: Card = card_variant
 
 	# Check if this card needs click-targeting (Rally/Guard with command_type)
-	var needs_targeting: bool = _card_needs_click_targeting(card)
+	var needs_targeting: bool = card.NeedsClickTargeting()
 
 	if needs_targeting and SpellTargetingManager and is_3d:
 		# Delegate to targeting manager for click-targeting
@@ -218,7 +218,7 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		# Immediate play in 3D
 		var world_pos_3d: Vector3 = _screen_to_world_3d(at_position)
 		# Clamp spawn position for summon cards only (spells can target anywhere)
-		if card.card_type == Card.CardType.SUMMON:
+		if card.Type == UnitConstants.CardType.SUMMON:
 			world_pos_3d = BattlefieldConstants.clamp_spawn_position_for_team(world_pos_3d, UnitConstants.Team.PLAYER)
 		if summoner.has_method("play_card_3d"):
 			summoner.call("play_card_3d", card_index, world_pos_3d)
@@ -255,10 +255,6 @@ func _screen_to_world_3d(screen_pos: Vector2) -> Vector3:
 	var hit_pos: Vector3 = from + (to - from) * t
 	return hit_pos
 
-## Check if a card needs click-targeting (Rally/Guard with command_type)
-func _card_needs_click_targeting(card: Card) -> bool:
-	return card.needs_click_targeting()
-
 ## Update spawn preview position and visibility
 func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool = true, team: int = 0) -> void:
 	if world_pos == Vector3.ZERO:
@@ -281,7 +277,16 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 
 ## Create a new spawn preview for the card
 func _create_spawn_preview(card: Card, team: int = 0) -> void:
-	if not card.unit_scene:
+	if card.SpawnCount <= 0:
+		return
+
+	# Load unit scene from catalog
+	var catalog_data: Dictionary = CardCatalog.get_card(card.CatalogId)
+	var scene_path: String = catalog_data.get("unit_scene_path", "")
+	if scene_path.is_empty():
+		return
+	var unit_scene: PackedScene = load(scene_path)
+	if not unit_scene:
 		return
 
 	_spawn_preview = SummonPreview.new()
@@ -293,7 +298,7 @@ func _create_spawn_preview(card: Card, team: int = 0) -> void:
 		var root_3d: Node = _find_3d_root(viewport)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
-			_spawn_preview.Initialize(card.unit_scene, card.spawn_count, team, card.catalog_id)
+			_spawn_preview.Initialize(unit_scene, card.SpawnCount, team, card.CatalogId)
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:
@@ -330,12 +335,12 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 	var card_factory: Node = get_node_or_null(CSharpAutoloads.CARD_FACTORY)
 	if not card_factory or not card_factory.has_method("get_safe_spawn_positions"):
 		# Fallback: just return formation offsets without safe spawn adjustment
-		for i: int in card.spawn_count:
-			positions.append(center_pos + card.get_formation_offset(i))
+		for i: int in card.SpawnCount:
+			positions.append(center_pos + card.GetFormationOffset(i))
 		return positions
 
-	# Get separation_radius from card (cached in unit_stats, no instantiation needed)
-	var separation_radius: float = card.separation_radius
+	# Default separation radius (separation_radius removed from Card)
+	var separation_radius: float = 0.5
 
 	# Get battlefield reference
 	var battlefield: Node = get_node_or_null("/root/Main/Battlefield")
@@ -344,7 +349,7 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 
 	# Call C# CardFactory for safe spawn positions (single source of truth)
 	var result: Variant = card_factory.get_safe_spawn_positions(
-		card.catalog_id, center_pos, battlefield, separation_radius, team)
+		card.CatalogId, center_pos, battlefield, separation_radius, team)
 
 	if result is Array:
 		for pos: Variant in result:
@@ -353,8 +358,8 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 		return positions
 
 	# Fallback if C# call failed
-	for i: int in card.spawn_count:
-		positions.append(center_pos + card.get_formation_offset(i))
+	for i: int in card.SpawnCount:
+		positions.append(center_pos + card.GetFormationOffset(i))
 	return positions
 
 ## Clean up the spawn preview
@@ -417,7 +422,7 @@ func _create_spell_preview(card: Card) -> void:
 		if root_3d:
 			root_3d.add_child(_spell_preview)
 			# Use spell radius if available, otherwise default
-			var radius: float = card.spell_radius if card.spell_radius > 0 else SpellPreview.DEFAULT_RADIUS
+			var radius: float = card.SpellRadius if card.SpellRadius > 0 else SpellPreview.DEFAULT_RADIUS
 			_spell_preview.setup(radius)
 
 
@@ -478,7 +483,7 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
 
 	# Spawn immediately via SpawnUnitCommand (no animation in debug mode)
-	card.play_3d(world_pos, unit_team)
+	card.SpawnAt(world_pos, int(unit_team))
 
 	# Activate newly spawned units immediately (debug mode bypasses prep phase)
 	await get_tree().process_frame

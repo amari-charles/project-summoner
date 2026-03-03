@@ -20,9 +20,7 @@ extends Node
 ## Reference to C# CardCatalogBridge
 var _csharp_bridge: Node = null
 
-## Cached Card script for efficient resource creation
-const CardScript = preload("res://scripts/cards/card.gd")
-const CardConfigScript = preload("res://scripts/cards/card_config.gd")
+## No preloads needed — Card is now a C# [GlobalClass] Resource
 
 ## =============================================================================
 ## LIFECYCLE
@@ -97,7 +95,7 @@ func get_cards_by_rarity(rarity: String) -> Array[Dictionary]:
 		results.append(dict)
 	return results
 
-## Get cards filtered by type (Card.CardType.SUMMON or Card.CardType.SPELL)
+## Get cards filtered by type (UnitConstants.CardType.SUMMON or UnitConstants.CardType.SPELL)
 func get_cards_by_type(card_type: int) -> Array[Dictionary]:
 	if not _csharp_bridge:
 		return []
@@ -136,25 +134,17 @@ func _convert_element_types(dict: Dictionary) -> void:
 ## Create a Card resource from a catalog definition
 ## This generates a runtime Card object that can be played in-game
 ## Accepts StringName (preferred) or String for backward compatibility
-func create_card_resource(catalog_id: StringName) -> Resource:
-	var card_def: Dictionary = get_card(catalog_id)
-	if card_def.is_empty():
-		push_error("CardCatalog: Cannot create card resource, '%s' not found" % catalog_id)
+func create_card_resource(catalog_id: StringName) -> Card:
+	if not _csharp_bridge:
+		push_error("CardCatalog: C# bridge not available")
 		return null
 
-	# Create CardConfig from catalog dictionary
-	var config: Resource = CardConfigScript.from_dict(card_def)
-
-	# Validate config was created successfully
-	if not config:
-		push_error("CardCatalog: Failed to create CardConfig for '%s'" % catalog_id)
-		return null
-
-	# Create GDScript Card and attach config
-	var card: Card = CardScript.new()
-	card.config = config
-
-	return card
+	# Delegate to C# bridge which calls Card.FromDefinition()
+	var card: Variant = _csharp_bridge.CreateCard(str(catalog_id))
+	if card is Card:
+		return card
+	push_error("CardCatalog: Failed to create card for '%s'" % catalog_id)
+	return null
 
 ## =============================================================================
 ## UTILITY METHODS
@@ -192,8 +182,8 @@ func print_catalog_summary() -> void:
 		by_rarity[rarity] += 1
 
 		# Count by type
-		var type: int = card.get("card_type", Card.CardType.SUMMON)
-		if type == Card.CardType.SUMMON:
+		var type: int = card.get("card_type", UnitConstants.CardType.SUMMON)
+		if type == UnitConstants.CardType.SUMMON:
 			by_type["summon"] += 1
 		else:
 			by_type["spell"] += 1

@@ -9,7 +9,7 @@ class_name BattleDialogueController
 ## Supports ANY battle to have story dialogues, not just tutorials.
 
 ## Reference to game controller (for pausing)
-@onready var game_controller: GameController3D = get_parent()
+@onready var game_controller: Node = get_parent()
 
 ## Dialogue configuration from battle
 var dialogue_config: Array = []
@@ -87,8 +87,8 @@ func _load_and_play_event_sequence(sequence_path: String) -> void:
 ## Connect to relevant battle signals
 func _connect_battle_events() -> void:
 	# Connect to game start
-	if game_controller.has_signal("game_started"):
-		game_controller.game_started.connect(_on_battle_started)
+	if game_controller.has_signal("GameStarted"):
+		game_controller.connect("GameStarted", _on_battle_started)
 
 	# Connect to dialogue manager
 	if DialogueManager:
@@ -147,7 +147,7 @@ func _on_dialogue_ended() -> void:
 
 	# Unfreeze game BEFORE triggering after_dialogue events
 	# This ensures any spawned units initialize in normal game state
-	game_controller.unfreeze_game()
+	game_controller.UnfreezeGame()
 
 	# Check for after_dialogue triggers (may freeze again if showing new dialogue)
 	_trigger_after_dialogue(last_dialogue_id)
@@ -211,7 +211,7 @@ func _show_dialogue(config: Dictionary) -> void:
 	current_dialogue_id = dialogue_id
 
 	# Freeze game (stop gameplay without activating pause menu)
-	game_controller.freeze_game()
+	game_controller.FreezeGame()
 	dialogue_active = true
 
 	# Start dialogue
@@ -261,14 +261,10 @@ func _spawn_tutorial_enemy() -> void:
 
 	print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
 
-	# Spawn the unit directly (team 1 = enemy)
-	print("BattleDialogueController: Checking if card has play_3d method...")
-	if card.has_method("play_3d"):
-		print("BattleDialogueController: Calling card.play_3d()...")
-		card.call("play_3d", spawn_pos_3d, 1, battlefield, null)
-		print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
-	else:
-		push_error("BattleDialogueController: Card doesn't have play_3d method - card type is %s" % card.get_class())
+	# Spawn the unit directly via SpawnUnitCommand (team 1 = enemy)
+	print("BattleDialogueController: Spawning tutorial enemy via SpawnAt...")
+	card.SpawnAt(spawn_pos_3d, 1)
+	print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
 
 
 ## Check if a trigger should only happen once

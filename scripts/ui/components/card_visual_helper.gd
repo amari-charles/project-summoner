@@ -122,7 +122,7 @@ static func get_card_element_color(card_data: Variant) -> Color:
 	if card_data is Card:
 		# Get catalog data from CardCatalog
 		var card_instance: Card = card_data
-		catalog_dict = CardCatalog.get_card(card_instance.catalog_id)
+		catalog_dict = CardCatalog.get_card(card_instance.CatalogId)
 	elif card_data is Dictionary:
 		catalog_dict = card_data
 	else:
@@ -147,11 +147,11 @@ static func get_card_element_color(card_data: Variant) -> Color:
 						return Color.MAGENTA  # Unreachable in debug, but needed for release builds
 
 	# Fallback: use card type-based colors (should rarely happen)
-	var card_type_variant: Variant = catalog_dict.get("card_type", Card.CardType.SUMMON)
+	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
 	var card_type: int = int(card_type_variant)  # Works for both int and enum values
-	if card_type == Card.CardType.SUMMON:
+	if card_type == UnitConstants.CardType.SUMMON:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
-	elif card_type == Card.CardType.SPELL:
+	elif card_type == UnitConstants.CardType.SPELL:
 		return GameColorPalette.STORM_PRIMARY  # Spell
 	else:
 		return GameColorPalette.NEUTRAL_MID
@@ -168,7 +168,7 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
 		var card_instance: Card = card_data
-		catalog_dict = CardCatalog.get_card(card_instance.catalog_id)
+		catalog_dict = CardCatalog.get_card(card_instance.CatalogId)
 	elif card_data is Dictionary:
 		catalog_dict = card_data
 	else:
@@ -176,14 +176,14 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 		return ""
 
 	# Get card type and unit type
-	var card_type_variant: Variant = catalog_dict.get("card_type", Card.CardType.SUMMON)
+	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
 	var card_type: int = int(card_type_variant)  # Works for both int and enum values
 	var unit_type: StringName = catalog_dict.get("unit_type", UnitTypeIDs.MELEE)
 
 	# Map to icon path
-	if card_type == Card.CardType.SPELL:
+	if card_type == UnitConstants.CardType.SPELL:
 		return "res://assets/icons/card_types/wizard_hat.png"
-	elif card_type == Card.CardType.SUMMON:
+	elif card_type == UnitConstants.CardType.SUMMON:
 		match unit_type:
 			UnitTypeIDs.MELEE:
 				return "res://assets/icons/card_types/sword.png"

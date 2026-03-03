@@ -114,11 +114,11 @@ func _populate_unit_list(container: VBoxContainer) -> void:
 
 		# Apply stat overrides if present (for testing upgraded cards)
 		if entry.has("stat_overrides"):
-			card.custom_stat_overrides = entry.get("stat_overrides")
+			card.CustomStatOverrides = entry.get("stat_overrides")
 
 		var btn: SpawnableUnitButton = SpawnableUnitButton.new()
 		btn.card = card
-		btn.unit_name = card.card_name
+		btn.unit_name = card.CardName
 		btn.panel = self
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		container.add_child(btn)
@@ -140,7 +140,7 @@ func _load_debug_deck() -> Array:
 	var entries: Array = []
 	var all_cards: Array[Dictionary] = CardCatalog.list_all_cards()
 	for card_def: Dictionary in all_cards:
-		if card_def.get("card_type") == Card.CardType.SUMMON:
+		if card_def.get("card_type") == UnitConstants.CardType.SUMMON:
 			entries.append({"catalog_id": card_def.get("catalog_id", ""), "count": 1})
 	return entries
 

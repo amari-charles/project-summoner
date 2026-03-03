@@ -118,7 +118,7 @@ func _spawn_test_enemies() -> void:
 
 	for card_id: String in enemy_unit_ids:
 		var card: Card = CardCatalog.create_card_resource(card_id)
-		if card and card.card_type == Card.CardType.SUMMON:
+		if card and card.Type == UnitConstants.CardType.SUMMON:
 			# Spawn in enemy territory (around x=40)
 			var spawn_pos: Vector3 = Vector3(
 				35.0 + randf_range(-5.0, 5.0),  # x: around enemy base
@@ -135,6 +135,6 @@ func _spawn_test_enemies() -> void:
 					var team: int = team_variant if team_variant is int else 1
 
 					# Directly spawn unit using card's play_3d
-					card.play_3d(spawn_pos, team, battlefield)
+					card.SpawnAt(spawn_pos, team)
 
 	print("RallyGuardTestSetup: Spawned %d enemy units" % enemy_unit_ids.size())

@@ -477,8 +477,8 @@ func get_effective_card_upgrades(upgrades: Array) -> Array:
 func store_deck_card_ids(deck: Array) -> void:
 	_deck_card_instance_ids.clear()
 	for card: Variant in deck:
-		if card and card.instance_id and not card.instance_id.is_empty():
-			_deck_card_instance_ids.append(card.instance_id)
+		if card and card.InstanceId and not card.InstanceId.is_empty():
+			_deck_card_instance_ids.append(card.InstanceId)
 	print("BattleContext: Stored %d deck card IDs for XP rewards" % _deck_card_instance_ids.size())
 
 ## Get list of all deck card instance IDs

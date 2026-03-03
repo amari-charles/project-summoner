@@ -248,7 +248,7 @@ func init() -> void:
 		# Register summoner state with simulation
 		var deck_catalog_ids: PackedStringArray = PackedStringArray()
 		for card: Card in deck:
-			deck_catalog_ids.append(card.catalog_id)
+			deck_catalog_ids.append(card.CatalogId)
 
 		_sim_node.RegisterSummoner(
 			int(team), current_hp, max_hp, mana, max_mana,
@@ -258,7 +258,7 @@ func init() -> void:
 		# Set initial hand in sim
 		var hand_catalog_ids: PackedStringArray = PackedStringArray()
 		for card: Card in hand:
-			hand_catalog_ids.append(card.catalog_id)
+			hand_catalog_ids.append(card.CatalogId)
 		_sim_node.SetSummonerHand(int(team), hand_catalog_ids)
 
 		# Connect to sim signals
@@ -450,7 +450,7 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 
 	var card: Card = hand[card_index]
 
-	if not card.can_play(int(mana)):
+	if not card.CanPlay(int(mana)):
 		return false
 
 	# Multiplayer client: route through authority provider → MatchSession → host
@@ -475,12 +475,12 @@ func play_card_3d(card_index: int, spawn_position: Vector3) -> bool:
 func _is_test_mode() -> bool:
 	# Check via game_controller group
 	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
-	if game_controller and game_controller is TestGameController:
+	if game_controller and game_controller is TestBattleScene:
 		return true
 
 	# Check root node of scene (test scenes have test controller as root)
 	var root: Node = get_tree().current_scene
-	if root and root is TestGameController:
+	if root and root is TestBattleScene:
 		return true
 
 	# Check if BattleContext is in practice mode

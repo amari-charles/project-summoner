@@ -71,7 +71,7 @@ func _execute_spawn_event(event: Dictionary) -> void:
 
 	# Check if we can afford it
 	var mana_int: int = int(summoner.mana)
-	if not card.can_play(mana_int):
+	if not card.CanPlay(mana_int):
 		push_warning("ScriptedAI: Not enough mana to play '%s'" % card_name)
 		return
 
@@ -84,7 +84,7 @@ func _find_card_by_name(card_name: String) -> int:
 	for i: int in range(summoner.hand.size()):
 		var card: Card = summoner.hand[i]
 		# Match by card_name or catalog_id
-		if card.card_name.to_lower() == card_name.to_lower():
+		if card.CardName.to_lower() == card_name.to_lower():
 			return i
 	return -1
 

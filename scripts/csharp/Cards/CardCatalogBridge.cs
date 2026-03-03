@@ -78,4 +78,24 @@ public partial class CardCatalogBridge : Node
     {
         return CardCatalog.GetCardsByElementAsDict(element);
     }
+
+    // =========================================================================
+    // CARD RESOURCE CREATION
+    // =========================================================================
+
+    /// <summary>
+    /// Create a C# Card resource from a catalog ID.
+    /// Returns null if the card is not found.
+    /// </summary>
+    public Card? CreateCard(string catalogId)
+    {
+        var def = CardCatalog.GetCard(catalogId);
+        if (def == null)
+        {
+            GD.PushError($"CardCatalogBridge: Card not found: {catalogId}");
+            return null;
+        }
+
+        return Card.FromDefinition(def);
+    }
 }

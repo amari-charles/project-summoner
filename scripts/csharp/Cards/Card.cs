@@ -1,105 +1,163 @@
+using Fateforged.Simulation;
 using Godot;
-using ProjectSummoner.Cards.Configs;
-using ProjectSummoner.Units;
 
 namespace ProjectSummoner.Cards;
 
 /// <summary>
-/// Abstract base class for all cards.
-/// Cards are playable items that have effects on the battlefield.
-/// Note: Not marked [GlobalClass] to avoid conflict with GDScript Card class.
+/// Runtime card resource — unified replacement for GDScript card.gd + card_config.gd.
+/// Created by CardCatalog.CreateCard() from a CardDefinition.
+///
+/// GDScript consumers access properties via PascalCase:
+///   card.CatalogId, card.ManaCost, card.CanPlay(mana), etc.
+///
+/// For the CardType enum in GDScript, use UnitConstants.CardType.SUMMON / .SPELL
+/// (C# nested enums aren't accessible from GDScript).
 /// </summary>
-public abstract partial class Card : Resource
+[GlobalClass]
+public partial class Card : Resource
 {
     // =========================================================================
-    // CONFIGURATION
+    // IDENTITY (from CardDefinition)
     // =========================================================================
+
+    [Export] public string CatalogId { get; set; } = "";
+    [Export] public string CardName { get; set; } = "Unknown Card";
 
     /// <summary>
-    /// Card configuration data.
+    /// Card type as int for GDScript interop.
+    /// 0 = Summon, 1 = Spell (matches CardType enum).
     /// </summary>
-    [Export]
-    public CardConfig? Config { get; set; }
+    [Export] public int Type { get; set; } = (int)CardType.Summon;
+
+    [Export] public string Description { get; set; } = "";
 
     // =========================================================================
-    // INSTANCE STATE
+    // GAMEPLAY
     // =========================================================================
+
+    [Export] public int ManaCost { get; set; } = 1;
+    [Export] public float Cooldown { get; set; } = 2.0f;
+    [Export] public float SummonTime { get; set; } = 1.0f;
+    [Export] public int SpawnCount { get; set; } = 1;
+
+    // =========================================================================
+    // SPELL
+    // =========================================================================
+
+    [Export] public float SpellDamage { get; set; }
+    [Export] public float SpellRadius { get; set; }
+    [Export] public float SpellDuration { get; set; }
+    [Export] public string ProjectileId { get; set; } = "";
+
+    // =========================================================================
+    // VISUAL
+    // =========================================================================
+
+    [Export] public Texture2D? CardIcon { get; set; }
+
+    // =========================================================================
+    // RUNTIME STATE (not from catalog — set per-instance)
+    // =========================================================================
+
+    /// <summary>Unique instance ID for progression tracking (from PlayerCardService).</summary>
+    public string InstanceId { get; set; } = "";
 
     /// <summary>
-    /// Unique instance ID (for progression system tracking).
+    /// Stat overrides applied during spawning (set by EventSequencer / debug tools).
+    /// Keys: "max_hp", "move_speed", "attack_damage", etc.
     /// </summary>
-    public CardInstanceId InstanceId { get; set; } = CardInstanceId.None;
+    public Godot.Collections.Dictionary CustomStatOverrides { get; set; } = new();
 
     // =========================================================================
-    // PROPERTY ACCESSORS (convenience, delegate to config)
+    // METHODS
     // =========================================================================
 
-    public string CatalogId => Config?.CatalogId ?? "";
-    public string CardName => Config?.CardName ?? "Unknown Card";
-    public CardType Type => Config?.CardType ?? CardType.Summon;
-    public string Description => Config?.Description ?? "";
-    public int ManaCost => Config?.ManaCost ?? 1;
-    public float Cooldown => Config?.Cooldown ?? 2.0f;
-    public Texture2D? CardIcon => Config?.CardIcon;
+    /// <summary>Check if this card can be played with the given mana.</summary>
+    public bool CanPlay(int currentMana) => currentMana >= ManaCost;
 
-    // =========================================================================
-    // GDSCRIPT-COMPATIBLE API (snake_case accessors)
-    // =========================================================================
-
-    // These properties allow GDScript to access using snake_case naming
-    public string catalog_id => CatalogId;
-    public string card_name => CardName;
-    public int card_type => (int)Type;
-    public string description => Description;
-    public int mana_cost => ManaCost;
-    public float cooldown => Cooldown;
-    public Texture2D? card_icon => CardIcon;
-    public string instance_id
+    /// <summary>
+    /// Check if this spell card needs click-targeting (Rally/Guard commands).
+    /// Delegates to CardFactory.
+    /// </summary>
+    public bool NeedsClickTargeting()
     {
-        get => InstanceId;
-        set => InstanceId = new CardInstanceId(value);
+        if (Type != (int)CardType.Spell)
+            return false;
+
+        if (CardFactory.Instance == null)
+            return false;
+
+        return CardFactory.Instance.needs_click_targeting(CatalogId);
+    }
+
+    /// <summary>
+    /// Get formation offset for a unit in this card's spawn group.
+    /// Delegates to CardFactory for formation calculation.
+    /// </summary>
+    public Vector3 GetFormationOffset(int unitIndex)
+    {
+        if (SpawnCount <= 1)
+            return Vector3.Zero;
+
+        if (CardFactory.Instance == null)
+        {
+            GD.PushError("Card: CardFactory not available for formation offset.");
+            return Vector3.Zero;
+        }
+
+        return CardFactory.Instance.get_formation_offset_by_id(CatalogId, unitIndex, SpawnCount);
+    }
+
+    /// <summary>
+    /// Spawn units at the given position via SpawnUnitCommand.
+    /// No mana, no casting — direct simulation spawn for debug/event/NPC paths.
+    /// For normal gameplay card plays, use summoner.play_card_3d() which routes
+    /// through PlayCardCommand instead.
+    /// </summary>
+    public void SpawnAt(Vector3 position, int team)
+    {
+        var sim = SimulationNode.Current;
+        if (sim == null)
+        {
+            GD.PushError($"Card: SimulationNode not found. Cannot spawn '{CatalogId}'.");
+            return;
+        }
+
+        var overrides = CustomStatOverrides.Count > 0 ? CustomStatOverrides : null;
+        sim.QueueSpawnUnit(CatalogId, team, position, true, overrides);
     }
 
     // =========================================================================
-    // API
+    // FACTORY
     // =========================================================================
 
     /// <summary>
-    /// Check if this card can be played with current mana.
+    /// Create a Card resource from a CardDefinition (catalog lookup).
     /// </summary>
-    public bool CanPlay(int currentMana)
+    public static Card FromDefinition(CardDefinition def)
     {
-        return currentMana >= ManaCost;
-    }
+        var card = new Card
+        {
+            CatalogId = def.Id,
+            CardName = def.Name,
+            Type = (int)def.Type,
+            Description = def.Description,
+            ManaCost = def.ManaCost,
+            Cooldown = def.Cooldown,
+            SummonTime = def.Summon?.SummonTime ?? def.SummonTime,
+            SpawnCount = def.Summon?.TotalUnitCount ?? def.SpawnCount,
+            SpellDamage = def.SpellDamage,
+            SpellRadius = def.SpellRadius,
+            SpellDuration = def.SpellDuration,
+            ProjectileId = def.ProjectileId,
+        };
 
-    // GDScript-compatible wrapper
-    public bool can_play(int currentMana) => CanPlay(currentMana);
+        // Load card icon texture if path is set
+        if (!string.IsNullOrEmpty(def.CardIconPath))
+        {
+            card.CardIcon = GD.Load<Texture2D>(def.CardIconPath);
+        }
 
-    /// <summary>
-    /// Execute the card effect at the given 3D position.
-    /// This is the main entry point called by Summoner and other controllers.
-    /// </summary>
-    /// <param name="position">World position where the card is played.</param>
-    /// <param name="team">Team of the caster.</param>
-    /// <param name="battlefield">Reference to the battlefield node.</param>
-    /// <param name="modifierSystem">Optional modifier system reference.</param>
-    /// <param name="spawnDuration">Duration for spawn reveal animation (summon cards only).</param>
-    public abstract void Play3D(
-        Vector3 position,
-        Team team,
-        Node battlefield,
-        Node? modifierSystem = null,
-        float spawnDuration = 0.0f
-    );
-
-    // GDScript-compatible wrapper (snake_case, int team)
-    public void play_3d(
-        Vector3 position,
-        int team,
-        Node battlefield,
-        Node? modifierSystem = null,
-        float spawnDuration = 0.0f)
-    {
-        Play3D(position, (Team)team, battlefield, modifierSystem, spawnDuration);
+        return card;
     }
 }

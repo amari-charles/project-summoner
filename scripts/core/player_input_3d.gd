@@ -52,7 +52,7 @@ func _update_hand_display() -> void:
 		if i < summoner.hand.size():
 			var card: Card = summoner.hand[i]
 			var selected: String = " [SELECTED]" if i == selected_card_index else ""
-			hand_labels[i].text = "%d: %s (%d)%s" % [i + 1, card.card_name, card.mana_cost, selected]
+			hand_labels[i].text = "%d: %s (%d)%s" % [i + 1, card.CardName, card.ManaCost, selected]
 		else:
 			hand_labels[i].text = "%d: Empty" % (i + 1)
 
