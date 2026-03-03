@@ -49,6 +49,7 @@ public partial class Card : Resource
     [Export] public float SpellRadius { get; set; }
     [Export] public float SpellDuration { get; set; }
     [Export] public string ProjectileId { get; set; } = "";
+    [Export] public string CommandType { get; set; } = "";
 
     // =========================================================================
     // VISUAL
@@ -79,14 +80,7 @@ public partial class Card : Resource
     /// <summary>
     /// Check if this spell card needs click-targeting (Rally/Guard commands).
     /// </summary>
-    public bool NeedsClickTargeting()
-    {
-        if (Type != (int)CardType.Spell)
-            return false;
-
-        var def = CardCatalog.GetCard(CatalogId);
-        return def?.CommandType != null;
-    }
+    public bool NeedsClickTargeting() => Type == (int)CardType.Spell && CommandType != "";
 
     /// <summary>
     /// Get formation offset for a unit in this card's spawn group.
@@ -188,6 +182,7 @@ public partial class Card : Resource
             SpellRadius = def.SpellRadius,
             SpellDuration = def.SpellDuration,
             ProjectileId = def.ProjectileId,
+            CommandType = def.CommandType?.ToString() ?? "",
         };
 
         // Load card icon texture if path is set
