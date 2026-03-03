@@ -27,16 +27,8 @@ var config: Resource = null  # CardConfig instance (uses Resource to avoid load 
 ## Instance tracking (for progression system - unique per card in collection)
 var instance_id: String = ""
 
-## C# summon execution delegation - if set, summon execution delegates to CardFactory
-## This is set by CardCatalog when creating summon cards
-var _csharp_summon_id: String = ""
-
 ## Event sequence stat overrides (set by EventSequencer before spawning)
 var custom_stat_overrides: Dictionary = {}
-
-## Active summon tracker - stores reference to UnitSummon from C# CardFactory
-## Used to track spawned units and receive death notifications
-var _active_summon: RefCounted = null
 
 ## =============================================================================
 ## PROPERTY ACCESSORS (delegate to config for backward compatibility)
@@ -158,6 +150,17 @@ func get_formation_offset(unit_index: int) -> Vector3:
 
 	return factory.get_formation_offset_by_id(catalog_id, unit_index, spawn_count)
 
+
+## Get CardFactory autoload safely
+func _get_card_factory() -> Node:
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if not main_loop or not main_loop is SceneTree:
+		return null
+	var tree: SceneTree = main_loop
+	if not tree.root:
+		return null
+	return tree.root.get_node_or_null("CardFactory")
+
 ## =============================================================================
 ## GAMEPLAY
 ## =============================================================================
@@ -206,103 +209,22 @@ func needs_click_targeting() -> bool:
 		return factory.needs_click_targeting(catalog_id)
 	return false
 
-## Execute the card effect at the given 3D position
-## modifier_system: Optional ModifierSystem reference for more efficient access
-## spawn_duration: If > 0, applies spawn reveal effect over this duration (for summon cards)
-func play_3d(play_position: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
-	match card_type:
-		CardType.SUMMON:
-			_summon_unit_3d(play_position, team, battlefield, modifier_system, spawn_duration)
-		CardType.SPELL:
-			push_error("Card: Spell execution not supported — spells are handled by the simulation layer.")
-
-## Spawn unit(s) at the 3D position
-## All summons delegate to C# CardFactory for execution
-func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
-	if _csharp_summon_id.is_empty():
-		push_error("Card: Summon '%s' has no C# summon ID attached! All summons must use C# CardFactory." % card_name)
+## Spawn units at the given 3D position via SpawnUnitCommand.
+## No mana, no casting — direct simulation spawn for debug/event/NPC paths.
+## For normal gameplay card plays, use summoner.play_card_3d() which routes
+## through PlayCardCommand instead.
+func play_3d(play_position: Vector3, team: UnitConstants.Team, spawn_duration: float = 0.0) -> void:
+	if card_type != CardType.SUMMON:
+		push_error("Card: Spell execution via play_3d not supported.")
 		return
 
-	_execute_csharp_summon(spawn_pos, team, battlefield, modifier_system, spawn_duration)
-
-
-## Execute summon via C# CardFactory
-func _execute_csharp_summon(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null, spawn_duration: float = 0.0) -> void:
-	var factory: Node = _get_card_factory()
-	if not factory:
-		push_error("Card: CardFactory not available! C# may not be loaded. Summon '%s' cannot spawn." % _csharp_summon_id)
-		return
-
-	# Get card definition from catalog
-	var card_def: Dictionary = CardCatalog.get_card(catalog_id)
-	if card_def.is_empty():
-		push_error("Card: Cannot get card definition for '%s'" % catalog_id)
-		return
-
-	# Get effective stats (with upgrades applied)
-	var effective_stats: Dictionary = get_effective_stats()
-
-	# Execute summon via factory - now returns SummonResult
-	var result: RefCounted = factory.execute_summon(
-		_csharp_summon_id,
-		spawn_pos,
-		int(team),
-		battlefield,
-		card_def,
-		effective_stats,
-		custom_stat_overrides,
-		modifier_system,
-		instance_id,
-		spawn_duration
-	)
-
-	# Store summon tracker if successful
-	if result and result.Success:
-		_active_summon = result.Summon
-	elif result:
-		push_error("Card: Summon failed for '%s': %s" % [_csharp_summon_id, result.Error])
-
-
-## Get CardFactory autoload safely
-func _get_card_factory() -> Node:
+	var sim_node: Node = null
 	var main_loop: MainLoop = Engine.get_main_loop()
-	if not main_loop or not main_loop is SceneTree:
-		return null
+	if main_loop is SceneTree:
+		sim_node = main_loop.get_first_node_in_group("simulation_node")
+	if not sim_node:
+		push_error("Card: SimulationNode not found. Cannot spawn '%s'." % catalog_id)
+		return
 
-	var tree: SceneTree = main_loop
-	if not tree.root:
-		return null
-
-	return tree.root.get_node_or_null("CardFactory")
-
-
-## =============================================================================
-## SUMMON TRACKING
-## =============================================================================
-
-## Get all alive units spawned by this card
-## Returns empty array if no summon active or all units dead
-## Note: C# returns Array<Unit3D>, implicitly cast to Array[Node3D] since Unit3D extends Node3D
-func get_spawned_units() -> Array[Node3D]:
-	if _active_summon and _active_summon.has_method("GetAliveUnitsArray"):
-		return _active_summon.GetAliveUnitsArray()
-	return []
-
-## Get the active summon tracker (UnitSummon) if one exists
-## Returns null if no summon has been executed or summon failed
-func get_active_summon() -> RefCounted:
-	return _active_summon
-
-## Check if this card has any alive units from its summon
-func has_alive_units() -> bool:
-	return _active_summon != null and _active_summon.HasAliveUnits
-
-## Get count of alive units from this card's summon
-func get_alive_unit_count() -> int:
-	if _active_summon:
-		return _active_summon.AliveCount
-	return 0
-
-## Clear the active summon reference (for cleanup/resetting)
-func clear_summon() -> void:
-	_active_summon = null
+	var overrides: Variant = custom_stat_overrides if not custom_stat_overrides.is_empty() else null
+	sim_node.QueueSpawnUnit(catalog_id, int(team), play_position, spawn_duration <= 0.0, overrides)

@@ -154,38 +154,7 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 	var card: Card = CardScript.new()
 	card.config = config
 
-	# Try to attach C# execution delegation based on card type
-	var card_type: int = card_def.get("card_type", Card.CardType.SUMMON)
-	if card_type == Card.CardType.SUMMON:
-		_try_attach_csharp_summon(catalog_id, card)
-	# Card will use C# execution if available, GDScript fallback otherwise
-
 	return card
-
-
-## Check if C# summon execution is available for this summon
-## Sets card._csharp_summon_id if C# summon is supported
-## Returns true if C# summon will be used, false to use GDScript fallback
-func _try_attach_csharp_summon(catalog_id: StringName, card: Card) -> bool:
-	# Get CardFactory autoload
-	var factory: Node = _get_card_factory()
-	if not factory:
-		return false
-
-	# Check if factory supports summon execution
-	if not factory.has_summon(catalog_id):
-		return false
-
-	# Set the C# summon ID on the card for delegation
-	card._csharp_summon_id = catalog_id
-	print("CardCatalog: Attached C# summon for '%s'" % catalog_id)
-	return true
-
-
-## Get CardFactory autoload safely
-## Returns null if C# is not available or factory not loaded
-func _get_card_factory() -> Node:
-	return CardFactory
 
 ## =============================================================================
 ## UTILITY METHODS

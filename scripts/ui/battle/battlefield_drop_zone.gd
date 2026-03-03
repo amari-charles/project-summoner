@@ -435,7 +435,7 @@ func _cleanup_spell_preview() -> void:
 ## Check if we can accept a debug spawn drop
 func _can_drop_debug_spawn(at_position: Vector2, data: Dictionary) -> bool:
 	# Always allow debug spawns if we're in a debug arena
-	var arena: DebugArenaController = _find_debug_arena_controller()
+	var arena: DebugArenaScene = _find_debug_arena_controller()
 	if not arena:
 		return false
 
@@ -474,30 +474,22 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 		push_error("BattlefieldDropZone: Failed to convert screen position to world")
 		return
 
-	# Get battlefield for spawning
-	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
-	if not battlefield:
-		push_error("BattlefieldDropZone: No battlefield found for debug spawn")
-		return
-
 	# Convert team int to UnitConstants.Team enum
 	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
 
-	# Spawn with no animation - debug spawns should appear immediately
-	# (spawn reveal tweens don't run when game is paused)
-	const DEBUG_SPAWN_DURATION: float = 0.0
-	card.play_3d(world_pos, unit_team, battlefield, null, DEBUG_SPAWN_DURATION)
+	# Spawn immediately via SpawnUnitCommand (no animation in debug mode)
+	card.play_3d(world_pos, unit_team)
 
 	# Activate newly spawned units immediately (debug mode bypasses prep phase)
 	await get_tree().process_frame
 	_activate_recent_spawns()
 
 
-## Find the DebugArenaController in the scene
-func _find_debug_arena_controller() -> DebugArenaController:
+## Find the DebugArenaScene in the scene
+func _find_debug_arena_controller() -> DebugArenaScene:
 	var controllers: Array[Node] = get_tree().get_nodes_in_group(GroupIDs.GAME_CONTROLLER)
 	for controller: Node in controllers:
-		if controller is DebugArenaController:
+		if controller is DebugArenaScene:
 			return controller
 	return null
 

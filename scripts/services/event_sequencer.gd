@@ -210,10 +210,10 @@ func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 
 		# CRITICAL: Freeze game during dialogue
 		var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
-		if game_controller and game_controller.has_method("freeze_game"):
+		if game_controller and game_controller.has_method("FreezeGame"):
 			if debug_mode:
 				print("EventSequencer: Freezing game for dialogue")
-			game_controller.call("freeze_game")
+			game_controller.call("FreezeGame")
 
 		# Create a completion tracker before starting dialogue
 		# Use a Dictionary to capture by reference (bools are captured by value in GDScript!)
@@ -251,10 +251,10 @@ func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 			print("EventSequencer: Dialogue complete!")
 
 		# CRITICAL: Unfreeze game after dialogue
-		if game_controller and game_controller.has_method("unfreeze_game"):
+		if game_controller and game_controller.has_method("UnfreezeGame"):
 			if debug_mode:
 				print("EventSequencer: Unfreezing game after dialogue")
-			game_controller.call("unfreeze_game")
+			game_controller.call("UnfreezeGame")
 	else:
 		push_error("EventSequencer: DialogueManager not found or doesn't have start_dialogue method")
 
@@ -321,40 +321,29 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 	# CRITICAL: Unfreeze game before spawning
 	# Units need a running game state to initialize properly
 	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
-	if game_controller and game_controller.has_method("unfreeze_game"):
+	if game_controller and game_controller.has_method("UnfreezeGame"):
 		if debug_mode:
 			print("EventSequencer: Unfreezing game for unit spawn")
-		game_controller.call("unfreeze_game")
+		game_controller.call("UnfreezeGame")
 
 	# Create card from CardCatalog
-	var card: Card = CardCatalog.create_card_resource(card_id)
-	if not card:
-		push_error("EventSequencer: Failed to create card: %s" % card_id)
+	# Get SimulationNode for spawning
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if not sim_node:
+		push_error("EventSequencer: SimulationNode not found")
 		return
 
-	# Get battlefield
-	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
-	if not battlefield:
-		push_error("EventSequencer: Battlefield not found")
-		return
-
-	# Apply stat overrides to Card BEFORE spawning
+	# Collect stat overrides
 	var stat_overrides_val: Variant = step.get("stat_overrides")
-	var stat_overrides: Dictionary = stat_overrides_val if stat_overrides_val is Dictionary else {}
-	if not stat_overrides.is_empty():
-		card.custom_stat_overrides = stat_overrides
-		print("EventSequencer: Set custom stat overrides on card: %s" % [stat_overrides.keys()])
+	var stat_overrides: Variant = stat_overrides_val if stat_overrides_val is Dictionary and not stat_overrides_val.is_empty() else null
 
 	if debug_mode:
 		print("EventSequencer: Spawning %s at %s for team %d" % [card_id, spawn_position, team])
 
-	# Spawn unit (Card will apply custom_stat_overrides during spawning)
-	if card.has_method("play_3d"):
-		card.call("play_3d", spawn_position, team, battlefield, null)
-		if debug_mode:
-			print("EventSequencer: Unit spawned successfully")
-	else:
-		push_error("EventSequencer: Card doesn't have play_3d method")
+	# Spawn directly via SpawnUnitCommand (no mana, no casting)
+	sim_node.QueueSpawnUnit(card_id, team, spawn_position, true, stat_overrides)
+	if debug_mode:
+		print("EventSequencer: Unit spawn queued successfully")
 
 func _execute_set_capability(step: Resource) -> void:  # EventStep parameter
 	var enable_val: Variant = step.get("enable")
