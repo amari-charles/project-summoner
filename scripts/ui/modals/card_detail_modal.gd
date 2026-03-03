@@ -82,7 +82,7 @@ func set_deck_context(deck_id: String, card_in_deck: bool) -> void:
 ## =============================================================================
 
 func _load_card_data() -> void:
-	var catalog_data: Dictionary = CardCatalog.get_card(card_catalog_id)
+	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(card_catalog_id)
 	if catalog_data.is_empty():
 		push_error("CardDetailModal: Failed to get catalog data for %s" % card_catalog_id)
 		return
@@ -176,7 +176,7 @@ func _update_stats_display() -> void:
 
 
 func _get_effective_stats() -> Dictionary:
-	var base_stats: Dictionary = CardCatalog.get_card(card_catalog_id).duplicate(true)
+	var base_stats: Dictionary = CardCatalog.GetCardAsDict(card_catalog_id).duplicate(true)
 
 	if base_stats.is_empty():
 		return {}

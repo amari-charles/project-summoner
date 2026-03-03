@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://debug_arena"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Script" path="res://scripts/core/debug_arena_controller.gd" id="2_debug_controller"]
+[ext_resource type="Script" path="res://scripts/csharp/View/Debug/DebugArenaScene.cs" id="2_debug_controller"]
 [ext_resource type="Script" path="res://scripts/core/summoner.gd" id="3_summoner"]
 [ext_resource type="Texture2D" uid="uid://e2b28osgxgy4" path="res://assets/summoners/knight/Knight 2D Pixel Art/Sprites/with_outline/IDLE.png" id="8_knight_sprite"]
 [ext_resource type="PackedScene" uid="uid://battle_hud" path="res://scenes/ui/battle/battle_hud.tscn" id="9_battle_hud"]
@@ -85,5 +85,4 @@ grow_horizontal = 0
 script = ExtResource("10_spawner_panel")
 spawn_as_enemy = true
 
-[connection signal="game_ended" from="." to="." method="_on_game_ended"]
-[connection signal="clear_requested" from="UI/UnitSpawnerPanel" to="." method="clear_all_units"]
+[connection signal="clear_requested" from="UI/UnitSpawnerPanel" to="." method="ClearAllUnits"]

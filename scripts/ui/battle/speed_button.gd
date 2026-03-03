@@ -5,7 +5,7 @@ class_name SpeedButton
 ## Toggles between 1x and 2x game speed
 ## Only enabled for campaign mode (disabled for online/arena)
 
-var game_controller: GameController3D = null
+var game_controller: Node = null
 var current_speed: float = 1.0
 
 func _ready() -> void:
@@ -20,8 +20,8 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Clean up signal connections to prevent memory leaks
-	if game_controller and game_controller.game_ended.is_connected(_on_game_ended):
-		game_controller.game_ended.disconnect(_on_game_ended)
+	if game_controller and game_controller.is_connected("GameEnded", _on_game_ended):
+		game_controller.disconnect("GameEnded", _on_game_ended)
 
 	# CRITICAL: Reset time scale when leaving battle
 	Engine.time_scale = 1.0
@@ -30,11 +30,11 @@ func _setup() -> void:
 	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 
 	if not game_controller:
-		push_error("SpeedButton: Could not find GameController3D")
+		push_error("SpeedButton: Could not find game controller")
 		return
 
 	# Hide button when game ends
-	game_controller.game_ended.connect(_on_game_ended)
+	game_controller.connect("GameEnded", _on_game_ended)
 
 	# Check battle mode to enable/disable button
 	_check_battle_mode()

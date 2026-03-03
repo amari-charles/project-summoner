@@ -241,7 +241,7 @@ func _spawn_tutorial_enemy() -> void:
 	var card_id: String = "pebbloom"
 	print("BattleDialogueController: Creating card from CardCatalog: %s" % card_id)
 
-	var card: Card = CardCatalog.create_card_resource(card_id)
+	var card: Card = CardCatalog.CreateCard(card_id)
 
 	if not card:
 		push_error("BattleDialogueController: Failed to create enemy card from CardCatalog (id: %s)" % card_id)

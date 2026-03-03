@@ -584,7 +584,7 @@ func _create_card_display(card: Card, index: int) -> CardDisplay:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Get catalog data to pass to CardVisual
-	var catalog_data: Dictionary = CardCatalog.get_card(card.CatalogId)
+	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(card.CatalogId)
 
 	# Set card data
 	card_visual.set_card_data(catalog_data)

@@ -133,11 +133,11 @@ static func _create_card_from_catalog(catalog_id: String) -> Card:
 		push_error("EnemyDeckLoader: CardCatalog not found!")
 		return null
 
-	# Use CardCatalog.create_card_resource() which creates cards dynamically
+	# Use CardCatalog.CreateCard() which creates cards dynamically
 	# This works for all cards (units and spells) registered in the catalog
 	if catalog is Object:
 		var catalog_obj: Object = catalog
-		var card_resource: Variant = catalog_obj.call("create_card_resource", catalog_id)
+		var card_resource: Variant = catalog_obj.call("CreateCard", catalog_id)
 		if card_resource and card_resource is Card:
 			return card_resource
 		else:

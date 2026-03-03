@@ -122,7 +122,7 @@ static func get_card_element_color(card_data: Variant) -> Color:
 	if card_data is Card:
 		# Get catalog data from CardCatalog
 		var card_instance: Card = card_data
-		catalog_dict = CardCatalog.get_card(card_instance.CatalogId)
+		catalog_dict = CardCatalog.GetCardAsDict(card_instance.CatalogId)
 	elif card_data is Dictionary:
 		catalog_dict = card_data
 	else:
@@ -137,14 +137,8 @@ static func get_card_element_color(card_data: Variant) -> Color:
 			if categories_dict.has("elemental_affinity"):
 				var affinity: Variant = categories_dict.get("elemental_affinity")
 				if affinity:
-					# Validate Element object - fail loudly if invalid
-					if typeof(affinity) == TYPE_OBJECT and "id" in affinity:
-						var affinity_id: String = affinity.id
-						return get_element_border_color(affinity_id)
-					else:
-						push_error("CardVisualHelper: Invalid elemental_affinity for card '%s' - expected Element object, got type %s with value: %s" % [catalog_dict.get("card_name", "unknown"), typeof(affinity), affinity])
-						assert(false, "Corrupted element data - fix the card catalog!")
-						return Color.MAGENTA  # Unreachable in debug, but needed for release builds
+					var affinity_id: String = str(affinity)
+					return get_element_border_color(affinity_id)
 
 	# Fallback: use card type-based colors (should rarely happen)
 	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
@@ -168,7 +162,7 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
 		var card_instance: Card = card_data
-		catalog_dict = CardCatalog.get_card(card_instance.CatalogId)
+		catalog_dict = CardCatalog.GetCardAsDict(card_instance.CatalogId)
 	elif card_data is Dictionary:
 		catalog_dict = card_data
 	else:

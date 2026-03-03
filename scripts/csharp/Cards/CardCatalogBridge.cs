@@ -3,8 +3,8 @@ using Godot;
 namespace ProjectSummoner.Cards;
 
 /// <summary>
-/// Bridge node for GDScript to access C# CardCatalog.
-/// Registered as autoload "CardCatalogCS" in project.godot.
+/// Autoload node for GDScript to access C# CardCatalog.
+/// Registered as autoload "CardCatalog" in project.godot.
 /// Wraps static CardCatalog methods as instance methods for GDScript compatibility.
 /// </summary>
 public partial class CardCatalogBridge : Node

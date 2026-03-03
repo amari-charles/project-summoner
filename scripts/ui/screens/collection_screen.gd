@@ -332,7 +332,7 @@ func _refresh_deck_panel() -> void:
 			continue
 
 		var catalog_id: String = card_data.get("catalog_id", "")
-		var catalog_data: Variant = CardCatalog.call("get_card", catalog_id)
+		var catalog_data: Variant = CardCatalog.GetCardAsDict(catalog_id)
 		if not catalog_data is Dictionary or catalog_data.is_empty():
 			continue
 
@@ -563,7 +563,7 @@ func _get_filtered_sorted_cards() -> Array:
 			continue
 
 		var catalog_id: String = entry.get("catalog_id", "")
-		var catalog_data: Variant = CardCatalog.call("get_card", catalog_id)
+		var catalog_data: Variant = CardCatalog.GetCardAsDict(catalog_id)
 		if not catalog_data is Dictionary or catalog_data.is_empty():
 			continue
 
@@ -584,8 +584,8 @@ func _get_filtered_sorted_cards() -> Array:
 		var card_element: String = "neutral"
 		var categories: Dictionary = catalog_data.get("categories", {})
 		var affinity: Variant = categories.get("elemental_affinity", null)
-		if affinity and typeof(affinity) == TYPE_OBJECT and "id" in affinity:
-			card_element = affinity.id
+		if affinity:
+			card_element = str(affinity)
 
 		# Apply element filter (if any elements selected, card must match one)
 		if selected_elements.size() > 0 and card_element not in selected_elements:

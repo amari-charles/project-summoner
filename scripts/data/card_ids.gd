@@ -6,13 +6,12 @@ class_name CardIDs
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
-##   var card = CardCatalog.create_card_resource(CardIDs.FIREBALL)
+##   var card = CardCatalog.CreateCard(CardIDs.FIREBALL)
 ##   var test_deck = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF]
 ##
 ## When adding new cards:
-##   1. Add card to CardCatalog._init_catalog()
+##   1. Add card definition in C# CardCatalog
 ##   2. Add corresponding constant here (const CARD_NAME: StringName = &"card_id")
-##   3. Validation in CardCatalog._ready() will catch any mismatches
 ##
 ## Note: StringName (&"text") is faster than String ("text") for dictionary lookups
 

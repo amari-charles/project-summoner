@@ -397,8 +397,8 @@ func _on_grid_toggle_pressed() -> void:
 
 func _on_skip_prep_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
-	if game_controller and game_controller.has_method("skip_prep_phase"):
-		game_controller.skip_prep_phase()
+	if game_controller and game_controller.has_method("SkipPrepPhase"):
+		game_controller.SkipPrepPhase()
 		print("[Debug] Skipped prep phase")
 	else:
 		print("[Debug] No game controller found - not in battle?")
@@ -600,8 +600,8 @@ func _select_autocomplete_item(index: int) -> void:
 
 func _on_win_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
-	if game_controller and game_controller.has_method("end_game"):
-		game_controller.end_game(UnitConstants.Team.PLAYER)
+	if game_controller and game_controller.has_method("EndGame"):
+		game_controller.EndGame(int(UnitConstants.Team.PLAYER))
 		print("[Debug] Triggered instant WIN")
 	else:
 		print("[Debug] No game controller found - not in battle?")
@@ -609,8 +609,8 @@ func _on_win_pressed() -> void:
 
 func _on_lose_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
-	if game_controller and game_controller.has_method("end_game"):
-		game_controller.end_game(UnitConstants.Team.ENEMY)
+	if game_controller and game_controller.has_method("EndGame"):
+		game_controller.EndGame(int(UnitConstants.Team.ENEMY))
 		print("[Debug] Triggered instant LOSE")
 	else:
 		print("[Debug] No game controller found - not in battle?")

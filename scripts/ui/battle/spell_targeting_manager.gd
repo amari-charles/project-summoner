@@ -55,7 +55,7 @@ func start_targeting(card: Card, card_index: int, p_summoner: Node, p_camera: Ca
 	camera_3d = p_camera
 
 	# Get selection radius from card definition in catalog
-	var card_def: Dictionary = CardCatalog.get_card(card.CatalogId)
+	var card_def: Dictionary = CardCatalog.GetCardAsDict(card.CatalogId)
 	var radius_variant: Variant = card_def.get("selection_radius", 8.0)
 	selection_radius = radius_variant if radius_variant is float else 8.0
 

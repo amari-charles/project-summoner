@@ -99,8 +99,8 @@ func get_event_type() -> StringName:
 
 ## Get display name for a card from CardCatalog, with fallback
 func _get_card_display_name(catalog: Node, catalog_id: String) -> String:
-	if catalog and catalog.has_method("get_card"):
-		var card_data: Dictionary = SafeTypeUtils.dict(catalog.call("get_card", catalog_id))
+	if catalog and catalog.has_method("GetCardAsDict"):
+		var card_data: Dictionary = SafeTypeUtils.dict(catalog.call("GetCardAsDict", catalog_id))
 		if not card_data.is_empty():
 			return SafeTypeUtils.string(card_data.get("card_name", catalog_id), catalog_id)
 	# Fallback: convert catalog_id to title case (fire_wisp → Fire Wisp)

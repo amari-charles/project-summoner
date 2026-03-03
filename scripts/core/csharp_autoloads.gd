@@ -18,7 +18,7 @@ const MATCH_REPORTER: String = "/root/MatchReporter"
 const LEADERBOARD_SERVICE: String = "/root/LeaderboardService"
 
 # Bridge autoloads (GDScript wrappers around C# implementations)
-const CARD_CATALOG_CS: String = "/root/CardCatalogCS"
+const CARD_CATALOG: String = "/root/CardCatalog"
 const SUMMONER_CATALOG_CS: String = "/root/SummonerCatalogCS"
 const TRAIT_CATALOG_CS: String = "/root/TraitCatalogCS"
 const PROFILE_REPOSITORY_CS: String = "/root/ProfileRepositoryCS"

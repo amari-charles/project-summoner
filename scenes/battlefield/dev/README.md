@@ -35,7 +35,7 @@ VFX and card testing sandbox. Extends the main battle scene with special test co
 4. Tweak values and re-run instantly
 
 **Configuration:**
-Configured via `TestGameController` (extends `GameController3D`). See `scripts/core/test_game_controller.gd`.
+Configured via `TestBattleScene` (extends `BattleScene`). See `scripts/csharp/View/Debug/TestBattleScene.cs`.
 
 ## Creating New Dev Scenes
 
@@ -49,23 +49,22 @@ When creating a new dev/test scene:
 
 ## Example: Creating a New Test Scene
 
-```gdscript
-# scripts/core/test_ai_controller.gd
-extends GameController3D
+Create a C# class extending `BattleScene` with test-specific overrides:
 
-func _ready() -> void:
-    # Configure test battle
-    var battle_context = get_node_or_null("/root/BattleContext")
-    if battle_context:
-        battle_context.configure_practice_battle({
-            "enemy_deck": [{"catalog_id": "warrior", "count": 50}],
-            "enemy_hp": 1000.0
-        })
+```csharp
+// scripts/csharp/View/Debug/TestAiScene.cs
+[GlobalClass]
+public partial class TestAiScene : BattleScene
+{
+    public override void _Ready()
+    {
+        // Configure test battle before base init
+        var battleContext = GetNode("/root/BattleContext");
+        battleContext?.Call("configure_practice_battle", ...);
 
-    super._ready()
-
-    # Override AI for testing
-    _enable_ai_debug_mode()
+        base._Ready();
+    }
+}
 ```
 
 ## Test Scene Categories

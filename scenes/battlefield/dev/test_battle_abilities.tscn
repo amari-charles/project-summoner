@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://ability_test_battle"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Script" uid="uid://bejquix54he1c" path="res://scripts/core/test_game_controller.gd" id="2_test_controller"]
+[ext_resource type="Script" path="res://scripts/csharp/View/Debug/TestBattleScene.cs" id="2_test_controller"]
 [ext_resource type="Script" path="res://scripts/core/summoner.gd" id="3_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/battle/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="Script" uid="uid://bnw81cnsrnonk" path="res://scripts/ui/battle/battlefield_drop_zone.gd" id="7_drop_zone"]
@@ -13,7 +13,6 @@ height = 0.5
 
 [node name="TestBattleAbilities" type="Node3D"]
 script = ExtResource("2_test_controller")
-test_deck_mode = "abilities"
 
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
@@ -181,10 +180,8 @@ text = "Ember Guard"
 
 [node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
 
-[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnFireRecruit" to="." method="_spawn_test_enemy" binds= ["fire_recruit"]]
-[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnEmberSlinger" to="." method="_spawn_test_enemy" binds= ["ember_slinger"]]
-[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnBlazeRider" to="." method="_spawn_test_enemy" binds= ["blaze_rider"]]
-[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnAshVanguard" to="." method="_spawn_test_enemy" binds= ["ash_vanguard"]]
-[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnEmberGuard" to="." method="_spawn_test_enemy" binds= ["ember_guard"]]
-[connection signal="game_ended" from="." to="." method="_on_game_ended"]
-[connection signal="time_updated" from="." to="." method="_on_time_updated"]
+[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnFireRecruit" to="." method="SpawnTestEnemy" binds= ["fire_recruit"]]
+[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnEmberSlinger" to="." method="SpawnTestEnemy" binds= ["ember_slinger"]]
+[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnBlazeRider" to="." method="SpawnTestEnemy" binds= ["blaze_rider"]]
+[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnAshVanguard" to="." method="SpawnTestEnemy" binds= ["ash_vanguard"]]
+[connection signal="pressed" from="UI/SpawnButtonPanel/SpawnEmberGuard" to="." method="SpawnTestEnemy" binds= ["ember_guard"]]

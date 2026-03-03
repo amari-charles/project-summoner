@@ -362,7 +362,7 @@ func _rebuild_hand(sim_hand: PackedStringArray) -> void:
 	_last_hand_ids = sim_hand
 	var new_hand: Array[Card] = []
 	for catalog_id: String in sim_hand:
-		var card: Card = CardCatalog.create_card_resource(catalog_id)
+		var card: Card = CardCatalog.CreateCard(catalog_id)
 		if card:
 			new_hand.append(card)
 	hand = new_hand
@@ -621,7 +621,7 @@ func _load_dev_deck_from_config(dev_deck_config: Variant) -> Array[Card]:
 		var count: int = config.get("count", 1)
 
 		for i: int in count:
-			var card: Card = CardCatalog.create_card_resource(catalog_id)
+			var card: Card = CardCatalog.CreateCard(catalog_id)
 			if card:
 				loaded_deck.append(card)
 			else:
@@ -644,7 +644,7 @@ func _create_emergency_deck() -> Array[Card]:
 
 	# Try to create 3 fire_wisp cards (basic unit)
 	for i: int in 3:
-		var card: Card = CardCatalog.create_card_resource(CardIDs.FIRE_WISP)
+		var card: Card = CardCatalog.CreateCard(CardIDs.FIRE_WISP)
 		if card:
 			emergency_deck.append(card)
 		else:
@@ -832,7 +832,7 @@ func _on_sim_hand_changed(sim_team: int, catalog_ids: Array) -> void:
 	# Rebuild Card resource array from catalog IDs
 	var new_hand: Array[Card] = []
 	for catalog_id: String in catalog_ids:
-		var card: Card = CardCatalog.create_card_resource(catalog_id)
+		var card: Card = CardCatalog.CreateCard(catalog_id)
 		if card:
 			new_hand.append(card)
 		else:

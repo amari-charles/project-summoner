@@ -281,7 +281,7 @@ func _create_spawn_preview(card: Card, team: int = 0) -> void:
 		return
 
 	# Load unit scene from catalog
-	var catalog_data: Dictionary = CardCatalog.get_card(card.CatalogId)
+	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(card.CatalogId)
 	var scene_path: String = catalog_data.get("unit_scene_path", "")
 	if scene_path.is_empty():
 		return

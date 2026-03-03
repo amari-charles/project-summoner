@@ -49,7 +49,7 @@ func _ready() -> void:
 	# Build test deck from card IDs
 	var test_deck: Array[Card] = []
 	for card_id: String in test_deck_ids:
-		var card: Card = CardCatalog.create_card_resource(card_id)
+		var card: Card = CardCatalog.CreateCard(card_id)
 		if card:
 			test_deck.append(card)
 		else:
@@ -117,7 +117,7 @@ func _spawn_test_enemies() -> void:
 	]
 
 	for card_id: String in enemy_unit_ids:
-		var card: Card = CardCatalog.create_card_resource(card_id)
+		var card: Card = CardCatalog.CreateCard(card_id)
 		if card and card.Type == UnitConstants.CardType.SUMMON:
 			# Spawn in enemy territory (around x=40)
 			var spawn_pos: Vector3 = Vector3(

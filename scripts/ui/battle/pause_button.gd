@@ -4,7 +4,7 @@ class_name PauseButton
 ## Pause button for battle UI
 ## Always visible, allows pausing via button or ESC key
 
-var game_controller: GameController3D = null
+var game_controller: Node = null
 
 func _ready() -> void:
 	# Always process input (not affected by pause state)
@@ -18,18 +18,18 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Clean up signal connections to prevent memory leaks
-	if game_controller and game_controller.game_ended.is_connected(_on_game_ended):
-		game_controller.game_ended.disconnect(_on_game_ended)
+	if game_controller and game_controller.is_connected("GameEnded", _on_game_ended):
+		game_controller.disconnect("GameEnded", _on_game_ended)
 
 func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 
 	if not game_controller:
-		push_error("PauseButton: Could not find GameController3D")
+		push_error("PauseButton: Could not find game controller")
 		return
 
 	# Hide button when game ends
-	game_controller.game_ended.connect(_on_game_ended)
+	game_controller.connect("GameEnded", _on_game_ended)
 
 func _on_game_ended(_winner: int) -> void:
 	visible = false
@@ -50,7 +50,8 @@ func _toggle_pause() -> void:
 		return
 
 	# Only allow pausing during active gameplay (not during setup or game over)
-	if game_controller.current_state == GameController3D.GameState.PLAYING:
-		game_controller.pause_game()
-	elif game_controller.current_state == GameController3D.GameState.PAUSED:
-		game_controller.resume_game()
+	# BattleScene.GameState: Setup=0, Playing=1, Paused=2, GameOver=3
+	if game_controller.CurrentState == 1:  # Playing
+		game_controller.PauseGame()
+	elif game_controller.CurrentState == 2:  # Paused
+		game_controller.ResumeGame()

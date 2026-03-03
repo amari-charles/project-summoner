@@ -178,7 +178,7 @@ func clear_all_items() -> void:
 ## Returns dictionary with item info, or empty dict if not found
 func get_item_definition(catalog_id: String) -> Dictionary:
 	# ItemCatalog is a static C# class, access via bridge
-	var catalog_cs: Node = get_node_or_null("/root/CardCatalogCS")
+	var catalog_cs: Node = get_node_or_null("/root/CardCatalog")
 	if catalog_cs == null:
 		return {}
 	# Use the static method through a helper

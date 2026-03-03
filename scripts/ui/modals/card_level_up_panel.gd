@@ -73,7 +73,7 @@ func _load_card_data() -> void:
 	# Get card catalog data for name
 	var catalog_id: String = info.get("catalog_id", "")
 	var card_name: String = "Unknown Card"
-	var catalog_data: Dictionary = CardCatalog.get_card(catalog_id)
+	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
 	if not catalog_data.is_empty():
 		var name_val: Variant = catalog_data.get("card_name", "Unknown Card")
 		card_name = name_val if name_val is String else "Unknown Card"

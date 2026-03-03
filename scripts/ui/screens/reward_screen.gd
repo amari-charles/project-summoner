@@ -210,7 +210,7 @@ func _display_first_clear_claimed(spec: Dictionary) -> void:
 		var display_name: String = card_spec.get("display_name", "")
 		if display_name.is_empty():
 			var catalog_id: String = card_spec.get("catalog_id", "")
-			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
 			display_name = card_data.get("card_name", "Card")
 		reward_card_label.text = display_name
 		reward_detail_label.text = ""
@@ -232,7 +232,7 @@ func _display_card_reward_from_spec(card_spec: Dictionary) -> void:
 	var display_name: String = card_spec.get("display_name", "")
 
 	if display_name.is_empty():
-		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+		var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
 		display_name = card_data.get("card_name", "Unknown")
 
 	if count > 1:
@@ -291,7 +291,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 			continue
 
 		var catalog_id: String = info.get("catalog_id", "")
-		var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+		var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
 		if card_data.is_empty():
 			continue
 
@@ -383,7 +383,7 @@ func _refresh_card_xp_item(instance_id: String) -> void:
 				continue
 
 			var catalog_id: String = info.get("catalog_id", "")
-			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
 			if card_data.is_empty():
 				continue
 
@@ -433,7 +433,7 @@ func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 		if display_name.is_empty():
 			# Fallback to catalog lookup
 			var catalog_id: String = option.get("catalog_id", "")
-			var card_data: Dictionary = CardCatalog.get_card(catalog_id)
+			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
 			display_name = card_data.get("card_name", "Unknown")
 
 		var button: Button = Button.new()

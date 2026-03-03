@@ -86,21 +86,16 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 	player_summoner = summoner
 	enemy_summoner = enemy
 
-	# Connect to game controller signals
+	# Connect to game controller signals (BattleScene uses PascalCase C# signal names)
 	if game_controller:
-		if game_controller.has_signal("time_updated"):
-			var time_updated_signal: Signal = game_controller.get("time_updated")
-			time_updated_signal.connect(_on_time_updated)
-		if game_controller.has_signal("game_ended"):
-			var game_ended_signal: Signal = game_controller.get("game_ended")
-			game_ended_signal.connect(_on_game_ended)
-		# Two-phase battle system signals
-		if game_controller.has_signal("phase_changed"):
-			var phase_changed_signal: Signal = game_controller.get("phase_changed")
-			phase_changed_signal.connect(_on_phase_changed)
-		if game_controller.has_signal("prep_timer_updated"):
-			var prep_timer_signal: Signal = game_controller.get("prep_timer_updated")
-			prep_timer_signal.connect(_on_prep_timer_updated)
+		if game_controller.has_signal("TimeUpdated"):
+			game_controller.connect("TimeUpdated", _on_time_updated)
+		if game_controller.has_signal("GameEnded"):
+			game_controller.connect("GameEnded", _on_game_ended)
+		if game_controller.has_signal("PhaseChanged"):
+			game_controller.connect("PhaseChanged", _on_phase_changed)
+		if game_controller.has_signal("PrepTimerUpdated"):
+			game_controller.connect("PrepTimerUpdated", _on_prep_timer_updated)
 	else:
 		push_error("GameUI: init() called with null game_controller!")
 
@@ -219,8 +214,8 @@ func _on_game_ended(winner: UnitConstants.Team) -> void:
 		restart_button.visible = true
 
 func _on_restart_pressed() -> void:
-	if game_controller and game_controller.has_method("restart_game"):
-		game_controller.call("restart_game")
+	if game_controller and game_controller.has_method("RestartGame"):
+		game_controller.call("RestartGame")
 
 ## =============================================================================
 ## TWO-PHASE BATTLE SYSTEM HANDLERS
@@ -256,15 +251,16 @@ func _create_prep_timer_label() -> void:
 
 ## Handle battle phase change (PREPARATION -> BATTLE)
 func _on_phase_changed(new_phase: int) -> void:
+	# BattleScene.BattlePhase: Preparation=0, Battle=1
 	if phase_label:
-		if new_phase == GameController3D.BattlePhase.PREPARATION:
+		if new_phase == 0:  # Preparation
 			phase_label.text = Loc.t("ui.battle.phase_preparation")
 		else:
 			phase_label.text = Loc.t("ui.battle.phase_battle")
 		phase_label.visible = true
 
 	# Hide prep timer when entering battle phase
-	if prep_timer_label and new_phase == GameController3D.BattlePhase.BATTLE:
+	if prep_timer_label and new_phase == 1:  # Battle
 		prep_timer_label.visible = false
 
 ## Handle preparation phase timer update

@@ -3,7 +3,7 @@ class_name DebugMenuButton
 
 ## Opens pause menu in debug arena
 
-var game_controller: GameController3D = null
+var game_controller: Node = null
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
@@ -21,4 +21,4 @@ func _on_pressed() -> void:
 
 func _open_menu() -> void:
 	if game_controller:
-		game_controller.pause_game()
+		game_controller.PauseGame()

@@ -4,7 +4,7 @@ class_name PauseMenu
 ## Pause menu overlay for battles
 ## Shows when game is paused, allows resume or quit to menu
 
-var game_controller: GameController3D = null
+var game_controller: Node = null
 
 @onready var resume_button: Button = %ResumeButton
 @onready var settings_button: Button = %SettingsButton
@@ -41,25 +41,26 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Clean up signal connections to prevent memory leaks
-	if game_controller and game_controller.state_changed.is_connected(_on_game_state_changed):
-		game_controller.state_changed.disconnect(_on_game_state_changed)
+	if game_controller and game_controller.is_connected("StateChanged", _on_game_state_changed):
+		game_controller.disconnect("StateChanged", _on_game_state_changed)
 
 func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 
 	if not game_controller:
-		push_error("PauseMenu: Could not find GameController3D in scene")
+		push_error("PauseMenu: Could not find game controller in scene")
 		return
 
 	# Listen for pause state changes
-	game_controller.state_changed.connect(_on_game_state_changed)
+	game_controller.connect("StateChanged", _on_game_state_changed)
 
 	# Sync initial state
-	_on_game_state_changed(game_controller.current_state)
+	_on_game_state_changed(game_controller.CurrentState)
 
 ## Show/hide based on game state
-func _on_game_state_changed(new_state: GameController3D.GameState) -> void:
-	visible = (new_state == GameController3D.GameState.PAUSED)
+## BattleScene.GameState: Setup=0, Playing=1, Paused=2, GameOver=3
+func _on_game_state_changed(new_state: int) -> void:
+	visible = (new_state == 2)  # Paused
 
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:
@@ -67,7 +68,7 @@ func _on_resume_pressed() -> void:
 	if not game_controller:
 		push_error("PauseMenu: Cannot resume - no game controller")
 		return
-	game_controller.resume_game()
+	game_controller.ResumeGame()
 
 ## Settings button - show settings panel
 func _on_settings_pressed() -> void:

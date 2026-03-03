@@ -1,7 +1,7 @@
 [gd_scene load_steps=14 format=3 uid="uid://7oxpfxkhfr3h"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Script" uid="uid://bejquix54he1c" path="res://scripts/core/test_game_controller.gd" id="2_game_controller"]
+[ext_resource type="Script" path="res://scripts/csharp/View/Debug/TestBattleScene.cs" id="2_game_controller"]
 [ext_resource type="Script" uid="uid://dab1q327uw447" path="res://scripts/core/summoner.gd" id="3_summoner"]
 [ext_resource type="Script" uid="uid://cylw80td53yei" path="res://scripts/test/rally_guard_test_setup.gd" id="4_test_setup"]
 [ext_resource type="PackedScene" path="res://scenes/ui/battle/hand_ui.tscn" id="7_hand_ui"]
@@ -181,6 +181,3 @@ vertical_alignment = 1
 [node name="HandUI" parent="UI" instance=ExtResource("7_hand_ui")]
 
 [node name="PauseMenu" parent="UI" instance=ExtResource("9_pause_menu")]
-
-[connection signal="game_ended" from="." to="." method="_on_game_ended"]
-[connection signal="time_updated" from="." to="." method="_on_time_updated"]
