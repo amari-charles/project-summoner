@@ -327,7 +327,7 @@ func _update_traits_display() -> void:
 		if not trait_id is String:
 			continue
 
-		var trait_data: Dictionary = CardTraitCatalog.get_trait(card_catalog_id, trait_id)
+		var trait_data: Dictionary = card_service.GetCardTraitDict(card_catalog_id, trait_id)
 		if trait_data.is_empty():
 			continue
 

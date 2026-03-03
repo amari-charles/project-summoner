@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using Fateforged.Data;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards.Handlers;
@@ -323,6 +324,26 @@ public partial class CardService : Node
         foreach (var t in traits)
             result.Add(t);
         return result;
+    }
+
+    /// <summary>Get a card trait as dictionary for GDScript (name, description, stat_mods).</summary>
+    public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
+    {
+        var trait = CardTraitCatalog.GetTrait(catalogId, traitId);
+        if (trait == null)
+            return [];
+
+        var statMods = new Godot.Collections.Dictionary();
+        foreach (var (stat, mult) in trait.StatMods)
+            statMods[stat] = mult;
+
+        return new Godot.Collections.Dictionary
+        {
+            ["id"] = (string)trait.Id,
+            ["name"] = trait.Name,
+            ["description"] = trait.Description,
+            ["stat_mods"] = statMods
+        };
     }
 
     /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>

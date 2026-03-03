@@ -82,7 +82,7 @@ enum StepType {
 ## =============================================================================
 
 @export_group("Emit Signal")
-@export var event_hub: String = ""  ## Event hub name (e.g., "GameStateEvents")
+@export var event_hub: String = ""  ## Event hub name (autoload node name)
 @export var emit_signal_name: String = ""
 @export var signal_args: Array = []  ## Arguments to pass to signal
 

@@ -45,6 +45,9 @@ public partial class BattleScene : Node3D
 	// Child components
 	public EntityManager? EntityManager { get; private set; }
 
+	/// Typed battle config — built once from BattleContext, used throughout.
+	private BattleSessionConfig _config = null!;
+
 	/// Max frames to wait for a single scene to load (~5 seconds at 60fps)
 	private const int SceneLoadTimeoutFrames = 300;
 
@@ -69,19 +72,8 @@ public partial class BattleScene : Node3D
 		AddToGroup(GroupIDs.GameController);
 		AddToGroup("battle_coordinator");
 
-		// Validate BattleContext
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext != null)
-		{
-			bool configured = (bool)battleContext.Call("is_configured");
-			if (!configured)
-			{
-				GD.PushError("BattleScene: BattleContext was NEVER configured!");
-				GD.PushError("BattleScene: Did you run the battle scene directly (F6)?");
-				GD.PushError("BattleScene: Configuring with practice mode defaults...");
-				battleContext.Call("configure_practice_battle");
-			}
-		}
+		// Build typed config from BattleContext (one-time read)
+		_config = BuildSessionConfig();
 
 		// Wait one frame for all scene nodes to be in tree
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -92,32 +84,8 @@ public partial class BattleScene : Node3D
 		// Phase 1.5: Preload unit scenes asynchronously
 		await PreloadUnitScenes();
 
-		// Phase 1.75: Read win condition config from BattleContext
-		string winCondition = "destroy_base";
-		float winConditionTimeLimit = 0f;
-		int winConditionKillTarget = 0;
-		if (battleContext != null)
-		{
-			var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
-			if (config != null && config.Count > 0)
-			{
-				var condStr = config.GetValueOrDefault("win_condition", "").ToString();
-				if (!string.IsNullOrEmpty(condStr))
-					winCondition = condStr;
-				winConditionTimeLimit = (float)config.GetValueOrDefault("time_limit", 0.0f);
-				winConditionKillTarget = (int)config.GetValueOrDefault("kill_target", 0);
-			}
-		}
-
 		// Phase 1.8: Create SimulationNode
-		long battleSeed = 0;
-		if (battleContext != null)
-		{
-			var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
-			if (config != null)
-				battleSeed = (long)config.GetValueOrDefault("battle_seed", 0);
-		}
-		InitSimulationNode(winCondition, winConditionTimeLimit, winConditionKillTarget, battleSeed);
+		InitSimulationNode();
 
 		// Phase 1.9: Initialize EntityManager
 		InitEntityManager();
@@ -143,14 +111,31 @@ public partial class BattleScene : Node3D
 		EmitSignal(SignalName.InitializationComplete);
 
 		// Start the game — client waits for first snapshot from host
-		bool isMpClient = IsMpClient();
-		if (isMpClient)
+		if (_config.IsMpClient)
 		{
 			var sn = GetSimNode();
 			if (sn != null && sn.HasSignal("FirstSnapshotApplied"))
 				await ToSignal(sn, "FirstSnapshotApplied");
 		}
 		StartGame();
+	}
+
+	private BattleSessionConfig BuildSessionConfig()
+	{
+		var battleContext = GetNodeOrNull("/root/BattleContext");
+		if (battleContext == null)
+			return BattleSessionConfig.ForPractice();
+
+		bool configured = (bool)battleContext.Call("is_configured");
+		if (!configured)
+		{
+			GD.PushError("BattleScene: BattleContext was NEVER configured!");
+			GD.PushError("BattleScene: Did you run the battle scene directly (F6)?");
+			GD.PushError("BattleScene: Configuring with practice mode defaults...");
+			battleContext.Call("configure_practice_battle");
+		}
+
+		return BattleSessionConfig.FromBattleContext(battleContext);
 	}
 
 	public override void _ExitTree()
@@ -166,7 +151,7 @@ public partial class BattleScene : Node3D
 			return;
 
 		// MP client: poll MatchState for timer/phase sync
-		if (IsMpClient())
+		if (_config.IsMpClient)
 			PollMatchState();
 	}
 
@@ -179,8 +164,7 @@ public partial class BattleScene : Node3D
 		CurrentState = (int)GameState.Playing;
 
 		// Mark battle as in progress
-		var battleContext = GetNode("/root/BattleContext");
-		battleContext?.Call("start_battle");
+		_config.BattleContextNode?.Call("start_battle");
 
 		// Start battle music
 		var audio = GetNodeOrNull("/root/AudioManager");
@@ -226,9 +210,7 @@ public partial class BattleScene : Node3D
 	public void RestartGame()
 	{
 		GetTree().Paused = false;
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext != null)
-			battleContext.Set("battle_state", 1); // CONFIGURED
+		_config.BattleContextNode?.Set("battle_state", 1); // CONFIGURED
 		GetTree().ReloadCurrentScene();
 	}
 
@@ -247,29 +229,24 @@ public partial class BattleScene : Node3D
 		audio?.Call("stop_music");
 
 		// Multiplayer: broadcast match end
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext != null)
+		if (_config.IsMultiplayer && _config.HasAuthority)
+			BroadcastMatchEnd(winnerTeam);
+
+		// Update BattleContext state
+		if (_config.BattleContextNode != null)
 		{
-			bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-			bool hasAuth = (bool)battleContext.Call("has_authority");
-			if (isMp && hasAuth)
-				BroadcastMatchEnd(winnerTeam);
-
-			// Update BattleContext state
 			if (winnerTeam == 0) // PLAYER
-				battleContext.Call("end_battle_victory");
+				_config.BattleContextNode.Call("end_battle_victory");
 			else
-				battleContext.Call("end_battle_defeat");
+				_config.BattleContextNode.Call("end_battle_defeat");
+		}
 
-			// Delegate to completion callback
-			var callback = battleContext.Get("completion_callback");
-			if (callback.VariantType == Variant.Type.Callable)
-			{
-				var callable = callback.AsCallable();
-				await ToSignal(GetTree().CreateTimer(2.0, true), SceneTreeTimer.SignalName.Timeout);
-				GetTree().Paused = false;
-				callable.Call(winnerTeam);
-			}
+		// Delegate to completion callback
+		if (_config.CompletionCallback.Method != "")
+		{
+			await ToSignal(GetTree().CreateTimer(2.0, true), SceneTreeTimer.SignalName.Timeout);
+			GetTree().Paused = false;
+			_config.CompletionCallback.Call(winnerTeam);
 		}
 	}
 
@@ -387,24 +364,19 @@ public partial class BattleScene : Node3D
 		}
 	}
 
-	private void InitSimulationNode(string winCondition, float timeLimit, int killTarget, long seed)
+	private void InitSimulationNode()
 	{
 		var simNode = new SimulationNode();
 		AddChild(simNode);
 
-		simNode.Initialize(PreparationDuration, MatchDuration, winCondition, timeLimit, killTarget, seed);
+		simNode.Initialize(PreparationDuration, MatchDuration,
+			_config.WinCondition, _config.TimeLimit, _config.KillTarget, _config.BattleSeed);
 
 		// Client setup
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext != null)
+		if (_config.IsMpClient)
 		{
-			bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-			bool hasAuth = (bool)battleContext.Call("has_authority");
-			if (isMp && !hasAuth)
-			{
-				simNode.Set("IsHost", false);
-				simNode.Set("LocalPlayerIndex", 1);
-			}
+			simNode.Set("IsHost", false);
+			simNode.Set("LocalPlayerIndex", 1);
 		}
 	}
 
@@ -429,15 +401,10 @@ public partial class BattleScene : Node3D
 		PlayerSummoner ??= GetTree().GetFirstNodeInGroup(GroupIDs.PlayerSummoners);
 		EnemySummoner ??= GetTree().GetFirstNodeInGroup(GroupIDs.EnemySummoners);
 
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext == null) return;
-
 		var simNode = GetSimNode() as SimulationNode;
 		if (simNode == null) return;
 
-		bool isMpClient = IsMpClient();
-
-		if (isMpClient)
+		if (_config.IsMpClient)
 		{
 			// Client: register with defaults, skip deck loading
 			InitSummonerAsClient(PlayerSummoner as SummonerVisual, simNode);
@@ -445,16 +412,14 @@ public partial class BattleScene : Node3D
 		}
 		else
 		{
-			var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
-
 			// Initialize player summoner (team 0)
-			InitSummonerHost(PlayerSummoner as SummonerVisual, 0, battleContext, config, simNode);
+			InitSummonerHost(PlayerSummoner as SummonerVisual, 0, simNode);
 
-			// Apply enemy stats from BattleContext before init
-			ApplyEnemyStats(EnemySummoner as SummonerVisual, battleContext, config);
+			// Apply enemy stats before init
+			ApplyEnemyStats(EnemySummoner as SummonerVisual);
 
 			// Initialize enemy summoner (team 1)
-			InitSummonerHost(EnemySummoner as SummonerVisual, 1, battleContext, config, simNode);
+			InitSummonerHost(EnemySummoner as SummonerVisual, 1, simNode);
 
 			// Populate card data after BOTH summoners registered
 			simNode.PopulateCardData();
@@ -487,352 +452,66 @@ public partial class BattleScene : Node3D
 		);
 	}
 
-	private void InitSummonerHost(SummonerVisual? sv, int localTeam, Node battleContext,
-		Godot.Collections.Dictionary? config, SimulationNode simNode)
+	private void InitSummonerHost(SummonerVisual? sv, int localTeam, SimulationNode simNode)
 	{
 		if (sv == null) return;
 
-		int strategy = sv.DeckLoadStrategy;
+		var result = BattleSessionFactory.LoadSummonerData(
+			this, _config, localTeam,
+			sv.DeckLoadStrategy, sv.MaxHpExport, sv.MaxHandSize, sv.StartingDeck);
 
-		// Auto-correct strategy based on team
-		if (localTeam == 0 && strategy == 1) // Player with BATTLE_CONTEXT
-			strategy = 2; // Switch to PROFILE
-		else if (localTeam == 1 && strategy == 2) // Enemy with PROFILE
-			strategy = 1; // Switch to BATTLE_CONTEXT
-
-		// Auto-detect event_sequence battles
-		if (localTeam == 1 && strategy == 1 && config != null)
-		{
-			if (config.ContainsKey("event_sequence") && config.ContainsKey("enemy_deck"))
-			{
-				var enemyDeckVar = config["enemy_deck"];
-				if (enemyDeckVar.VariantType == Variant.Type.Array)
-				{
-					var arr = enemyDeckVar.AsGodotArray();
-					if (arr.Count == 0)
-					{
-						GD.Print("[BattleScene] Battle uses event_sequence with empty enemy_deck - switching to DEFERRED");
-						strategy = 3; // DEFERRED
-					}
-				}
-			}
-		}
-
-		// Load deck by strategy
-		float hp = sv.MaxHpExport;
-		float maxHp = sv.MaxHpExport;
-		float mana = 100f; // SummonerConfig.DEFAULT_MAX_MANA
-		float maxMana = 100f;
-		float castSpeed = 1.0f; // SummonerConfig.DEFAULT_BASE_CAST_SPEED
-		var deck = new Godot.Collections.Array<Resource>();
-		GodotObject? summonerInstance = null;
-
-		switch (strategy)
-		{
-			case 0: // STATIC
-				GD.Print("[BattleScene] Using STATIC starting deck");
-				deck = sv.StartingDeck;
-				break;
-
-			case 1: // BATTLE_CONTEXT
-				GD.Print("[BattleScene] Loading enemy deck from BattleContext...");
-				if (config != null && config.ContainsKey("enemy_deck"))
-				{
-					var enemyDeckVar = config["enemy_deck"];
-					if (enemyDeckVar.VariantType == Variant.Type.Array)
-					{
-						var entries = enemyDeckVar.AsGodotArray();
-						foreach (var entry in entries)
-						{
-							if (entry.VariantType != Variant.Type.Dictionary) continue;
-							var entryDict = entry.AsGodotDictionary();
-							string catalogId = entryDict.GetValueOrDefault("catalog_id", "").ToString();
-							int count = (int)entryDict.GetValueOrDefault("count", 1);
-							for (int i = 0; i < count; i++)
-							{
-								var card = CreateCardFromCatalog(catalogId);
-								if (card != null) deck.Add(card);
-							}
-						}
-					}
-				}
-				if (deck.Count == 0)
-				{
-					GD.PushWarning("[BattleScene] Failed to load from BattleContext, using STATIC deck");
-					deck = sv.StartingDeck;
-				}
-				break;
-
-			case 2: // PROFILE
-				GD.Print("[BattleScene] Loading deck from player profile...");
-				LoadProfileDeck(sv, localTeam, config, ref deck, ref mana, ref maxMana, ref castSpeed, ref hp, ref maxHp, out summonerInstance);
-				break;
-
-			case 3: // DEFERRED
-				GD.Print("[BattleScene] Using DEFERRED strategy - deck will be set manually later");
-				break;
-		}
-
-		if (deck.Count == 0 && strategy != 3)
+		int totalCards = result.Deck.Count + result.Hand.Count;
+		if (totalCards == 0 && !result.IsDeferred)
 		{
 			if (IsTestMode())
 			{
 				GD.PushWarning("[BattleScene] Empty deck in test mode, creating emergency fallback");
-				deck = CreateEmergencyDeck();
+				var emergency = CreateEmergencyDeck();
+				foreach (var c in emergency) result.Deck.Add(c);
 			}
-			else if (strategy != 3)
+			else
 			{
-				GD.PushError("[BattleScene] CRITICAL - No deck loaded! Strategy=" + strategy);
+				GD.PushError("[BattleScene] CRITICAL - No deck loaded!");
 				sv.IsEnabled = false;
 				return;
 			}
 		}
 
-		if (deck.Count > 0)
-			GD.Print($"[BattleScene] Loaded {deck.Count} cards (strategy={strategy})");
-
-		// Note: Deck shuffling is handled by the simulation layer via DeterministicRng
-		// when RecycleDeck() is called. Initial deck order is preserved as-is.
-
-		// Draw starting hand
-		var hand = new Godot.Collections.Array<Resource>();
-		int drawCount = Math.Min(sv.MaxHandSize, deck.Count);
-		for (int i = 0; i < drawCount; i++)
+		// Cache data in BattleContext for post-battle rewards
+		if (localTeam == 0)
 		{
-			hand.Add(deck[0]);
-			deck.RemoveAt(0);
+			if (result.LoadedFromProfile)
+			{
+				// Combine hand + deck for XP tracking (store_deck_card_ids expects all cards)
+				var allCards = new Godot.Collections.Array<Resource>(result.Hand);
+				foreach (var c in result.Deck) allCards.Add(c);
+				_config.BattleContextNode?.Call("store_deck_card_ids", allCards);
+			}
+
+			if (result.SummonerStats != null)
+				_config.BattleContextNode?.Call("set_player_summoner_stats", result.SummonerStats);
 		}
 
-		// Extract catalog IDs
-		var deckIds = ExtractCatalogIds(deck);
-		var handIds = ExtractCatalogIds(hand);
-
 		// Register with simulation
-		simNode.RegisterSummoner(localTeam, hp, maxHp, mana, maxMana, castSpeed,
+		var deckIds = ExtractCatalogIds(result.Deck);
+		var handIds = ExtractCatalogIds(result.Hand);
+		simNode.RegisterSummoner(localTeam, result.Hp, result.MaxHp,
+			result.Mana, result.MaxMana, result.CastSpeed,
 			deckIds, sv.MaxHandSize, sv.GlobalPosition);
 		simNode.SetSummonerHand(localTeam, handIds);
 	}
 
-	private void LoadProfileDeck(SummonerVisual sv, int localTeam,
-		Godot.Collections.Dictionary? config,
-		ref Godot.Collections.Array<Resource> deck,
-		ref float mana, ref float maxMana, ref float castSpeed,
-		ref float hp, ref float maxHp,
-		out GodotObject? summonerInstance)
+	private void ApplyEnemyStats(SummonerVisual? sv)
 	{
-		summonerInstance = null;
+		if (sv == null) return;
 
-		// Check for dev test deck override
-		if (config != null && config.ContainsKey("dev_player_deck"))
+		if (_config.IsMultiplayer)
 		{
-			GD.Print("[BattleScene] Loading DEV TEST deck...");
-			var devDeckConfig = config["dev_player_deck"];
-			if (devDeckConfig.VariantType == Variant.Type.Array)
-			{
-				var entries = devDeckConfig.AsGodotArray();
-				foreach (var entry in entries)
-				{
-					if (entry.VariantType != Variant.Type.Dictionary) continue;
-					var entryDict = entry.AsGodotDictionary();
-					string catalogId = entryDict.GetValueOrDefault("catalog_id", "").ToString();
-					int count = (int)entryDict.GetValueOrDefault("count", 1);
-					for (int i = 0; i < count; i++)
-					{
-						var card = CreateCardFromCatalog(catalogId);
-						if (card != null) deck.Add(card);
-					}
-				}
-			}
+			// MP enemy stats applied via summoner instance bonuses during init
 		}
-		else
+		else if (_config.EnemyHp > 0)
 		{
-			// Normal path: load deck from profile via C# services
-			var decksService = GetNodeOrNull("/root/Decks");
-			var cardServiceCS = GetNodeOrNull("/root/CardServiceCS");
-			if (decksService != null && cardServiceCS != null)
-			{
-				// Get selected deck ID from profile
-				string deckId = "";
-				var profileRepo = GetNodeOrNull("/root/ProfileRepo");
-				if (profileRepo != null)
-				{
-					var profile = profileRepo.Call("get_active_profile");
-					if (profile.VariantType == Variant.Type.Dictionary)
-					{
-						var profileDict = profile.AsGodotDictionary();
-						var metaVar = profileDict.GetValueOrDefault("meta", new Godot.Collections.Dictionary());
-						if (metaVar.VariantType == Variant.Type.Dictionary)
-						{
-							var metaDict = metaVar.AsGodotDictionary();
-							var selectedDeck = metaDict.GetValueOrDefault("selected_deck", "");
-							if (selectedDeck.VariantType == Variant.Type.String)
-								deckId = selectedDeck.ToString();
-						}
-					}
-				}
-
-				// Fallback to first available deck
-				if (string.IsNullOrEmpty(deckId))
-				{
-					var deckList = decksService.Call("list_decks");
-					if (deckList.VariantType == Variant.Type.Array)
-					{
-						var list = deckList.AsGodotArray();
-						if (list.Count > 0)
-						{
-							var firstDeck = list[0].AsGodotDictionary();
-							deckId = firstDeck.GetValueOrDefault("id", "").ToString();
-						}
-					}
-				}
-
-				// Load deck cards
-				if (!string.IsNullOrEmpty(deckId))
-				{
-					var deckData = decksService.Call("get_deck", deckId);
-					if (deckData.VariantType == Variant.Type.Dictionary)
-					{
-						var deckDict = deckData.AsGodotDictionary();
-						var instanceIdsVar = deckDict.GetValueOrDefault("card_instance_ids", new Godot.Collections.Array());
-						if (instanceIdsVar.VariantType == Variant.Type.Array)
-						{
-							var ids = instanceIdsVar.AsGodotArray();
-							foreach (var instanceId in ids)
-							{
-								var cardData = cardServiceCS.Call("GetCardDict", instanceId.ToString());
-								if (cardData.VariantType != Variant.Type.Dictionary) continue;
-								var cardDict = cardData.AsGodotDictionary();
-								string catalogId = cardDict.GetValueOrDefault("catalog_id", "").ToString();
-								if (!string.IsNullOrEmpty(catalogId))
-								{
-									var card = CreateCardFromCatalog(catalogId);
-									if (card != null) deck.Add(card);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (deck.Count == 0)
-		{
-			GD.PushWarning("[BattleScene] Failed to load from profile, using STATIC deck");
-			deck = sv.StartingDeck;
-		}
-		else
-		{
-			// Store deck card IDs in BattleContext
-			var battleContext = GetNode("/root/BattleContext");
-			battleContext?.Call("store_deck_card_ids", deck);
-		}
-
-		// Load summoner instance from profile
-		LoadSummonerFromProfile(localTeam, ref mana, ref maxMana, ref castSpeed, ref hp, ref maxHp, out summonerInstance);
-	}
-
-	private void LoadSummonerFromProfile(int localTeam,
-		ref float mana, ref float maxMana, ref float castSpeed,
-		ref float hp, ref float maxHp,
-		out GodotObject? summonerInstance)
-	{
-		summonerInstance = null;
-
-		// Get active summoner ID
-		var summonerSelection = GetNodeOrNull("/root/SummonerSelection");
-		if (summonerSelection == null) return;
-
-		string summonerId = summonerSelection.Call("GetActiveSummonerId").AsString();
-		if (string.IsNullOrEmpty(summonerId)) return;
-
-		GD.Print($"[BattleScene] Active summoner ID: '{summonerId}'");
-
-		// Load summoner instance data
-		var profileRepo = GetNodeOrNull("/root/ProfileRepo");
-		if (profileRepo == null) return;
-
-		var instanceData = profileRepo.Call("get_summoner_instance", summonerId);
-		GodotObject? loadedInstance = null;
-
-		if (instanceData.VariantType == Variant.Type.Dictionary)
-		{
-			var dict = instanceData.AsGodotDictionary();
-			if (dict.Count > 0)
-			{
-				var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
-				if (siClass != null)
-				{
-					var created = siClass.Call("from_dict", dict);
-					if (created.VariantType != Variant.Type.Nil)
-						loadedInstance = created.AsGodotObject();
-				}
-			}
-		}
-
-		if (loadedInstance == null)
-		{
-			// Create from catalog config
-			var summonerCatalog = GetNodeOrNull("/root/SummonerCatalog");
-			if (summonerCatalog != null)
-			{
-				var configObj = summonerCatalog.Call("get_summoner_config", summonerId);
-				if (configObj.VariantType != Variant.Type.Nil)
-				{
-					var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
-					if (siClass != null)
-					{
-						loadedInstance = siClass.Call("new").AsGodotObject();
-						if (loadedInstance != null)
-							loadedInstance.Call("init_from_config", configObj);
-					}
-				}
-			}
-		}
-
-		if (loadedInstance == null) return;
-		summonerInstance = loadedInstance;
-
-		// Get computed stats
-		var stats = loadedInstance.Call("get_computed_stats");
-		if (stats.VariantType != Variant.Type.Dictionary) return;
-		var statsDict = stats.AsGodotDictionary();
-
-		maxMana = (float)statsDict.GetValueOrDefault("max_mana", 100.0f);
-		mana = maxMana;
-		castSpeed = (float)statsDict.GetValueOrDefault("cast_speed", 1.0f);
-		float health = (float)statsDict.GetValueOrDefault("health", 300.0f);
-		maxHp = health;
-		hp = health;
-
-		// Cache summoner stats in BattleContext
-		if (localTeam == 0)
-		{
-			var battleContext = GetNode("/root/BattleContext");
-			battleContext?.Call("set_player_summoner_stats", statsDict);
-		}
-
-		GD.Print($"[BattleScene] Applied summoner bonuses - Max HP: {maxHp:F0}, Max Mana: {maxMana:F0}, Cast Speed: {castSpeed:F2}");
-	}
-
-	private void ApplyEnemyStats(SummonerVisual? sv, Node battleContext, Godot.Collections.Dictionary? config)
-	{
-		if (sv == null || config == null) return;
-
-		bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-
-		if (isMp)
-		{
-			var opponentData = (Godot.Collections.Dictionary)config.GetValueOrDefault("opponent_summoner_data", new Godot.Collections.Dictionary());
-			if (opponentData != null && opponentData.Count > 0)
-			{
-				// MP enemy stats applied via summoner instance bonuses during init
-				// (handled by LoadSummonerFromProfile equivalent for MP opponent)
-			}
-		}
-		else if (config.ContainsKey("enemy_hp"))
-		{
-			float customHp = (float)config["enemy_hp"];
-			sv.MaxHpExport = customHp;
+			sv.MaxHpExport = _config.EnemyHp;
 		}
 	}
 
@@ -850,19 +529,12 @@ public partial class BattleScene : Node3D
 		return ids;
 	}
 
-	private static Resource? CreateCardFromCatalog(string catalogId)
-	{
-		var cardCatalogBridge = Fateforged.Cards.CardCatalog.GetCard(catalogId);
-		if (cardCatalogBridge == null) return null;
-		return Fateforged.Cards.Card.FromDefinition(cardCatalogBridge);
-	}
-
 	private Godot.Collections.Array<Resource> CreateEmergencyDeck()
 	{
 		var deck = new Godot.Collections.Array<Resource>();
 		for (int i = 0; i < 3; i++)
 		{
-			var card = CreateCardFromCatalog("fire_wisp");
+			var card = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
 			if (card != null) deck.Add(card);
 		}
 		return deck;
@@ -875,20 +547,11 @@ public partial class BattleScene : Node3D
 		if (root is Debug.TestBattleScene) return true;
 
 		// Check BattleContext practice mode
-		var battleContext = GetNodeOrNull("/root/BattleContext");
-		if (battleContext != null)
-		{
-			var mode = (int)battleContext.Get("current_mode");
-			if (mode == 1) return true; // PRACTICE
-		}
-
-		return false;
+		return _config.Mode == 4; // PRACTICE
 	}
 
 	private void ConnectSimSignals()
 	{
-		// GameOver handled via SimEventsEmitted subscription
-
 		// Connect SummonerVisual.SummonerDestroyed signals
 		if (PlayerSummoner != null && PlayerSummoner.HasSignal("SummonerDestroyed"))
 			PlayerSummoner.Connect("SummonerDestroyed", new Callable(this, MethodName.OnSummonerDestroyed));
@@ -905,8 +568,7 @@ public partial class BattleScene : Node3D
 			if (simNode.GetPhase() == 1) return; // Battle phase
 		}
 
-		var battleContext = GetNodeOrNull("/root/BattleContext");
-		if (battleContext != null && !(bool)battleContext.Call("has_authority"))
+		if (!_config.HasAuthority)
 			return;
 
 		if (summoner == PlayerSummoner)
@@ -918,43 +580,13 @@ public partial class BattleScene : Node3D
 	private void LoadAiForEnemy()
 	{
 		if (EnemySummoner == null) return;
-
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext == null) return;
-
-		bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-		if (isMp) return;
-
-		var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
-		if (config == null || config.Count == 0) return;
+		if (_config.IsMultiplayer) return;
 
 		var simNode = GetSimNode() as SimulationNode;
 		if (simNode == null) return;
 
-		// Extract AI config from battle_config
-		string aiType = config.GetValueOrDefault("ai_type", "heuristic").ToString();
-		string personality = config.GetValueOrDefault("ai_personality", "balanced").ToString();
-		int difficulty = (int)config.GetValueOrDefault("ai_difficulty", 3);
-
-		// Extract interval config
-		float intervalMin = 3.0f;
-		float intervalMax = 6.0f;
-		var aiConfigVar = config.GetValueOrDefault("ai_config", default);
-		if (aiConfigVar.VariantType == Variant.Type.Dictionary)
-		{
-			var aiCfg = aiConfigVar.AsGodotDictionary();
-			intervalMin = (float)aiCfg.GetValueOrDefault("play_interval_min", 3.0f);
-			intervalMax = (float)aiCfg.GetValueOrDefault("play_interval_max", 6.0f);
-		}
-
-		// Extract script steps for scripted AI
-		Godot.Collections.Array? scriptSteps = null;
-		var scriptVar = config.GetValueOrDefault("ai_script", default);
-		if (scriptVar.VariantType == Variant.Type.Array)
-			scriptSteps = scriptVar.AsGodotArray();
-
-		// Configure AI via SimulationNode (team 1 = enemy in local coordinates)
-		simNode.ConfigureAi(1, aiType, personality, difficulty, intervalMin, intervalMax, scriptSteps);
+		simNode.ConfigureAi(1, _config.AiType, _config.AiPersonality, _config.AiDifficulty,
+			_config.AiIntervalMin, _config.AiIntervalMax, _config.AiScript);
 	}
 
 	private void InitUI()
@@ -976,16 +608,7 @@ public partial class BattleScene : Node3D
 
 	private void SetupMultiplayer()
 	{
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext == null) return;
-
-		bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-		if (!isMp) return;
-
-		var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
-		bool isHost = (bool)battleContext.Call("has_authority");
-		int localPeerId = isHost ? 1 : 2;
-		int localPlayerIndex = isHost ? 0 : 1;
+		if (!_config.IsMultiplayer) return;
 
 		// Create NakamaMatchTransport
 		var transport = new Fateforged.Multiplayer.Transport.NakamaMatchTransport();
@@ -1001,7 +624,7 @@ public partial class BattleScene : Node3D
 				matchId = activeMatchId.ToString();
 		}
 
-		transport.Initialize(matchId, isHost, localPeerId);
+		transport.Initialize(matchId, _config.HasAuthority, _config.HasAuthority ? 1 : 2);
 
 		// Multiplayer session wiring (HostSession/ClientSession) deferred to future milestone.
 		GD.Print("[BattleScene] Multiplayer transport initialized (session wiring pending future milestone)");
@@ -1018,13 +641,4 @@ public partial class BattleScene : Node3D
 	// =========================================================================
 
 	private Node? GetSimNode() => GetTree().GetFirstNodeInGroup("simulation_node");
-
-	private bool IsMpClient()
-	{
-		var battleContext = GetNodeOrNull("/root/BattleContext");
-		if (battleContext == null) return false;
-		bool isMp = (bool)battleContext.Call("is_multiplayer_battle");
-		bool hasAuth = (bool)battleContext.Call("has_authority");
-		return isMp && !hasAuth;
-	}
 }

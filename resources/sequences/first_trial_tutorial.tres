@@ -64,10 +64,9 @@ hand_enabled = true
 
 [sub_resource type="Resource" id="EventStep_10"]
 script = ExtResource("2")
-step_type = 4
+step_type = 1
 description = "Wait for player unit to approach enemy base"
-signal_source = "GameStateEvents"
-signal_name = "unit_near_enemy_base"
+wait_duration = 5.0
 
 [sub_resource type="Resource" id="EventStep_11"]
 script = ExtResource("2")

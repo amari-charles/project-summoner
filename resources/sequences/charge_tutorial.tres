@@ -23,9 +23,8 @@ stat_overrides = {
 
 [sub_resource type="Resource" id="step_wait_damage"]
 script = ExtResource("2_step")
-step_type = 4
-signal_source = "GameStateEvents"
-signal_name = "unit_damaged"
+step_type = 1
+wait_duration = 3.0
 
 [sub_resource type="Resource" id="step_tanky_warning"]
 script = ExtResource("2_step")
