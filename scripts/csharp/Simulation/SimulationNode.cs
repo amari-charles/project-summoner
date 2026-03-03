@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 using Fateforged.Multiplayer.Core;
-using Fateforged.Multiplayer.Protocol;
 using Fateforged.Session;
 using ProjectSummoner.Cards;
 using ProjectSummoner.Units;
@@ -16,7 +14,7 @@ namespace Fateforged.Simulation;
 
 /// <summary>
 /// Scene-tree bridge for the simulation layer.
-/// Owns MatchState and Simulation. Exposes GDScript-callable accessors and emits Godot signals.
+/// Owns MatchState and Simulation. Implements IGameSession.
 ///
 /// Runs Tick() in _PhysicsProcess() with ProcessPriority = -100
 /// so it executes before visual nodes.
@@ -40,94 +38,32 @@ public partial class SimulationNode : Node, IGameSession
     private Simulation? _simulation;
     private bool _initialized;
 
-    /// <summary>
-    /// Whether the first snapshot has been applied (client-side).
-    /// </summary>
-    private bool _firstSnapshotApplied;
-
-    /// <summary>
-    /// Client-side unit ID counter. Uses negative IDs to avoid collision
-    /// with simulation-generated positive IDs on the host.
-    /// </summary>
-    private int _nextClientUnitId = -1;
-
-    /// <summary>
-    /// Fixed timestep for simulation ticks (60 Hz).
-    /// </summary>
     public const float FIXED_DELTA = 1.0f / 60.0f;
-
-    /// <summary>
-    /// Accumulator for fixed timestep. Excess delta from _PhysicsProcess is carried over.
-    /// </summary>
     private float _accumulator;
 
-    /// <summary>
-    /// Whether this node acts as the host (runs Tick). Default true for single-player.
-    /// Set to false by ClientRunner for multiplayer clients.
-    /// </summary>
     public bool IsHost { get; set; } = true;
-
-    /// <summary>
-    /// Local player's network index. Used to remap snapshot teams to local teams.
-    /// 0 = host/single-player (no remap), 1 = client (swap).
-    /// Set by MultiplayerGameBridge before any snapshots arrive.
-    /// </summary>
     public int LocalPlayerIndex { get; set; } = 0;
 
-    /// <summary>
-    /// Swap team index. For a 2-player game, swapping is its own inverse.
-    /// Host/single-player: identity (no swap). Client: 0↔1.
-    /// </summary>
+    // =========================================================================
+    // TEAM / COORDINATE TRANSFORMS
+    // =========================================================================
+
     public int RemapTeam(int team)
     {
         if (LocalPlayerIndex == 0) return team;
         return MatchState.GetEnemyTeam(team);
     }
 
-    /// <summary>
-    /// Convert local team (caller's perspective) to network team (MatchState storage).
-    /// GDScript always uses local teams (PLAYER=0, ENEMY=1). MatchState uses network teams.
-    /// </summary>
     private int ToNetworkTeam(int localTeam) => RemapTeam(localTeam);
 
-    /// <summary>
-    /// Convert network team (MatchState) to local team (for signal emission to GDScript).
-    /// </summary>
-    private int ToLocalTeam(int networkTeam) => RemapTeam(networkTeam);
-
-    /// <summary>
-    /// Type-safe: convert local team to network team.
-    /// </summary>
-    public NetworkTeam ToNetworkTeam(LocalTeam local) => new(RemapTeam(local.Value));
-
-    /// <summary>
-    /// Type-safe: convert network team to local team.
-    /// </summary>
-    public LocalTeam ToLocalTeam(NetworkTeam network) => new(RemapTeam(network.Value));
-
-    /// <summary>
-    /// Convert local-space position to canonical (MatchState) coordinates.
-    /// </summary>
     private Vector3 ToCanonical(Vector3 localPos) => CoordinateTransform.LocalToCanonical(localPos);
 
     /// <summary>
-    /// Convert canonical (MatchState) position to local-space coordinates.
+    /// Convert a SimVector3 to local Godot.Vector3 (public, for visual layers).
     /// </summary>
-    private Vector3 ToLocal(Vector3 canonicalPos) => CoordinateTransform.CanonicalToLocal(canonicalPos);
+    public Vector3 SimToLocal(SimVector3 simPos) =>
+        CoordinateTransform.CanonicalToLocal(new Vector3(simPos.X, simPos.Y, simPos.Z));
 
-    /// <summary>
-    /// Convert a SimVector3 to local Godot.Vector3 (for signal emission to GDScript).
-    /// </summary>
-    private Vector3 ToLocal(SimVector3 simPos) => CoordinateTransform.CanonicalToLocal(new Vector3(simPos.X, simPos.Y, simPos.Z));
-
-    /// <summary>
-    /// Convert a SimVector3 to local Godot.Vector3 (public, for visual layers to read positions).
-    /// </summary>
-    public Vector3 SimToLocal(SimVector3 simPos) => ToLocal(simPos);
-
-    /// <summary>
-    /// Convert a Godot.Vector3 to SimVector3 in canonical coordinates.
-    /// </summary>
     private SimVector3 ToSimCanonical(Vector3 localPos)
     {
         var c = CoordinateTransform.LocalToCanonical(localPos);
@@ -135,70 +71,26 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     // =========================================================================
-    // MULTIPLAYER HOOKS
+    // IGameSession IMPLEMENTATION
     // =========================================================================
 
-    /// <summary>
-    /// Invoked after each Tick + EmitEvents. HostRunner subscribes to convert
-    /// key SimEvents into protocol messages for broadcast to clients.
-    /// Null when no MatchSession is active (single-player).
-    /// </summary>
-    public event Action<List<SimEvent>>? OnTickCompleted;
-
-    // =========================================================================
-    // IGameSession IMPLEMENTATION (temporary bridge until Session layer)
-    // =========================================================================
-
-    /// <summary>IGameSession: read current game state.</summary>
     public MatchState GetState() => State;
 
-    /// <summary>IGameSession: discrete events for View/HUD subscribers.</summary>
     public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
-    /// <summary>IGameSession: no-op — SimulationNode ticks itself in _PhysicsProcess.</summary>
     void IGameSession.Tick(float delta) { }
 
-    /// <summary>
-    /// Expose the Simulation instance for snapshot hash computation.
-    /// </summary>
-    public Simulation? GetSimulation() => _simulation;
+    public void SubmitCommand(ICommand cmd)
+    {
+        cmd.ExecuteFrame = State.FrameNumber + 1;
+        State.PendingCommandBuffer.Add(cmd);
+    }
 
     // =========================================================================
-    // SIGNALS (emitted after Tick, consumed by presentation layer)
+    // SIGNALS (minimal — only those still awaited by BattleScene)
     // =========================================================================
 
-    [Signal] public delegate void PhaseChangedEventHandler(int newPhase);
-    [Signal] public delegate void PrepTimerUpdatedEventHandler(float remaining);
-    [Signal] public delegate void MatchTimeUpdatedEventHandler(float matchTime);
-    [Signal] public delegate void SummonerHpChangedEventHandler(int team, float hp, float maxHp);
-    [Signal] public delegate void SummonerManaChangedEventHandler(int team, float mana, float maxMana);
-    [Signal] public delegate void CastingStartedEventHandler(int team, int cardIndex, float duration, Vector3 spawnPosition, string catalogId);
-    [Signal] public delegate void CastingCompletedEventHandler(int team, int cardIndex, Vector3 spawnPosition, int networkId);
-    [Signal] public delegate void CardDrawnEventHandler(int team, int handIndex, string catalogId);
-    [Signal] public delegate void HandChangedEventHandler(int team, string[] hand);
-    [Signal] public delegate void DeckRecycledEventHandler(int team);
-    [Signal] public delegate void UnitStateRegisteredEventHandler(int unitId, int networkId, int team);
-    [Signal] public delegate void UnitStateRemovedEventHandler(int unitId);
-    [Signal] public delegate void GameOverEventHandler(int winnerTeam, string reason);
-    [Signal] public delegate void OvertimeChangedEventHandler(bool isOvertime);
-
-    /// <summary>
-    /// Emitted once when the first snapshot is applied (client-side).
-    /// GDScript awaits this before calling start_game().
-    /// </summary>
     [Signal] public delegate void FirstSnapshotAppliedEventHandler();
-
-    /// <summary>
-    /// Emitted by ClientRunner when the host broadcasts a UnitSpawned message.
-    /// All values are in local space (team remapped, position converted).
-    /// GDScript connects to this to spawn the visual unit on the client.
-    /// </summary>
-    [Signal] public delegate void RemoteUnitSpawnedEventHandler(string catalogId, int localTeam, Vector3 localPosition, int networkId, float spawnDuration);
-
-    // New simulation-driven unit events
-    [Signal] public delegate void UnitAttackedEventHandler(int attackerUnitId, int targetUnitId);
-    [Signal] public delegate void UnitDamagedEventHandler(int targetUnitId, int attackerUnitId, float damage, bool isCrit);
-    [Signal] public delegate void UnitDiedSimEventHandler(int unitId, int killerUnitId);
 
     // =========================================================================
     // LIFECYCLE
@@ -206,9 +98,7 @@ public partial class SimulationNode : Node, IGameSession
 
     public override void _Ready()
     {
-        // Run before visual nodes so Tick() executes first each frame
         ProcessPriority = -100;
-        // Keep ticking during pause so the host generates snapshots for client recovery
         ProcessMode = ProcessModeEnum.Always;
         Current = this;
         AddToGroup("simulation_node");
@@ -220,9 +110,6 @@ public partial class SimulationNode : Node, IGameSession
             Current = null;
     }
 
-    /// <summary>
-    /// Whether the post-init invariant check has run (DEBUG only).
-    /// </summary>
     private bool _invariantsChecked;
 
     public override void _PhysicsProcess(double delta)
@@ -240,19 +127,14 @@ public partial class SimulationNode : Node, IGameSession
         }
 #endif
 
-        // Only the host runs Tick(). Clients receive events/snapshots from the host.
         if (!IsHost)
             return;
 
-        // Fixed timestep accumulator: run Tick() at exactly FIXED_DELTA intervals
-        // regardless of Godot's physics frame rate.
         _accumulator += (float)delta;
         while (_accumulator >= FIXED_DELTA)
         {
             var events = _simulation.Tick(FIXED_DELTA);
             _accumulator -= FIXED_DELTA;
-            EmitEvents(events);
-            OnTickCompleted?.Invoke(events);
             SimEventsEmitted?.Invoke(events);
         }
     }
@@ -261,17 +143,11 @@ public partial class SimulationNode : Node, IGameSession
     // INITIALIZATION
     // =========================================================================
 
-    /// <summary>
-    /// Initialize the simulation with match configuration.
-    /// Called by GameController3D during _ready().
-    /// Seed is passed directly from BattleContext (no MatchSession dependency).
-    /// </summary>
     public void Initialize(float prepDuration, float matchDuration, string winCondition,
         float winConditionTimeLimit = 0f, int winConditionKillTarget = 0, long seed = 0)
     {
-        // Use passed seed, fall back to system clock for single-player
         if (seed == 0)
-            seed = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            seed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         State = new MatchState
         {
@@ -283,20 +159,56 @@ public partial class SimulationNode : Node, IGameSession
             Rng = new DeterministicRng(seed)
         };
 
-        // Wire up sim logging to Godot (keeps Simulation.cs free of Godot dependencies)
         Simulation.Log = msg => GD.Print(msg);
-
         _simulation = new Simulation(State);
-        _firstSnapshotApplied = false;
         _initialized = true;
 
         GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})");
     }
 
-    /// <summary>
-    /// Populate MatchState.CardDataMap with sim-local card data for all cards in both decks.
-    /// Called after RegisterSummoner for both teams, before the first Tick.
-    /// </summary>
+    // =========================================================================
+    // SUMMONER REGISTRATION (summoner.gd calls these)
+    // =========================================================================
+
+    public void RegisterSummoner(int team, float hp, float maxHp, float mana, float maxMana, float castSpeed, string[] deckCatalogIds, int maxHandSize, Vector3 position)
+    {
+        int networkTeam = ToNetworkTeam(team);
+        position = ToCanonical(position);
+
+        if (networkTeam < 0 || networkTeam > 1)
+        {
+            GD.PrintErr($"[SimulationNode] Invalid team {networkTeam} for RegisterSummoner");
+            return;
+        }
+
+        var summoner = State.Summoners[networkTeam];
+        summoner.Team = (Team)networkTeam;
+        summoner.CurrentHp = hp;
+        summoner.MaxHp = maxHp;
+        summoner.Mana = mana;
+        summoner.MaxMana = maxMana;
+        summoner.CastSpeed = castSpeed;
+        summoner.IsAlive = true;
+        summoner.MaxHandSize = maxHandSize;
+        summoner.Position = new SimVector3(position.X, position.Y, position.Z);
+
+        summoner.Deck.Clear();
+        summoner.Deck.AddRange(deckCatalogIds);
+
+        GD.Print($"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}");
+    }
+
+    public void SetSummonerHand(int team, string[] handCatalogIds)
+    {
+        var summoner = State.Summoners[ToNetworkTeam(team)];
+        summoner.Hand.Clear();
+        summoner.Hand.AddRange(handCatalogIds);
+    }
+
+    // =========================================================================
+    // CARD DATA (summoner.gd triggers via BattleScene)
+    // =========================================================================
+
     public void PopulateCardData()
     {
         State.CardDataMap.Clear();
@@ -346,172 +258,33 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     // =========================================================================
-    // SUMMONER REGISTRATION (Phase 1)
-    // =========================================================================
-
-    /// <summary>
-    /// Register a summoner's initial state in MatchState.
-    /// Called by Summoner.gd during init().
-    /// </summary>
-    public void RegisterSummoner(int team, float hp, float maxHp, float mana, float maxMana, float castSpeed, string[] deckCatalogIds, int maxHandSize, Vector3 position)
-    {
-        int networkTeam = ToNetworkTeam(team);
-        position = ToCanonical(position);
-
-        if (networkTeam < 0 || networkTeam > 1)
-        {
-            GD.PrintErr($"[SimulationNode] Invalid team {networkTeam} for RegisterSummoner");
-            return;
-        }
-
-        var summoner = State.Summoners[networkTeam];
-        summoner.Team = (Team)networkTeam;
-        summoner.CurrentHp = hp;
-        summoner.MaxHp = maxHp;
-        summoner.Mana = mana;
-        summoner.MaxMana = maxMana;
-        summoner.CastSpeed = castSpeed;
-        summoner.IsAlive = true;
-        summoner.MaxHandSize = maxHandSize;
-        summoner.Position = new SimVector3(position.X, position.Y, position.Z);
-
-        // Populate deck
-        summoner.Deck.Clear();
-        summoner.Deck.AddRange(deckCatalogIds);
-
-        GD.Print($"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}");
-    }
-
-    // =========================================================================
-    // GDSCRIPT-CALLABLE ACCESSORS (read from MatchState)
+    // GDSCRIPT-CALLABLE ACCESSORS (summoner.gd + BattleScene poll these)
     // =========================================================================
 
     public int GetPhase() => (int)State.Phase;
     public float GetPrepTimeRemaining() => State.PrepTimeRemaining;
     public float GetMatchTime() => State.MatchTime;
-    public long GetFrameNumber() => State.FrameNumber;
 
     // Summoner accessors (callers pass local team, we convert to network)
     public float GetPlayerHp(int team) => State.Summoners[ToNetworkTeam(team)].CurrentHp;
     public float GetPlayerMaxHp(int team) => State.Summoners[ToNetworkTeam(team)].MaxHp;
     public float GetPlayerMana(int team) => State.Summoners[ToNetworkTeam(team)].Mana;
     public float GetPlayerMaxMana(int team) => State.Summoners[ToNetworkTeam(team)].MaxMana;
-    public bool IsPlayerAlive(int team) => State.Summoners[ToNetworkTeam(team)].IsAlive;
     public bool IsPlayerCasting(int team) => State.Summoners[ToNetworkTeam(team)].IsCasting;
-    public float GetPlayerCastSpeed(int team) => State.Summoners[ToNetworkTeam(team)].CastSpeed;
     public float GetCastingTimeRemaining(int team) => State.Summoners[ToNetworkTeam(team)].CastingTimeRemaining;
     public float GetCastingTimeTotal(int team) => State.Summoners[ToNetworkTeam(team)].CastingTimeTotal;
+    public string[] GetPlayerHand(int team) => State.Summoners[ToNetworkTeam(team)].Hand.ToArray();
 
-    /// <summary>
-    /// Skip the preparation phase (debug tool). Sets prep time to 0 so next Tick() triggers transition.
-    /// </summary>
     public void SkipPreparation()
     {
         if (State.Phase == GamePhase.Preparation)
-        {
             State.PrepTimeRemaining = 0f;
-        }
-    }
-
-    // Hand/Deck accessors (callers pass local team, we convert to network)
-    public string[] GetPlayerHand(int team) => State.Summoners[ToNetworkTeam(team)].Hand.ToArray();
-    public int GetPlayerHandSize(int team) => State.Summoners[ToNetworkTeam(team)].Hand.Count;
-    public int GetPlayerDeckSize(int team) => State.Summoners[ToNetworkTeam(team)].Deck.Count;
-    public int GetPlayerDiscardSize(int team) => State.Summoners[ToNetworkTeam(team)].DiscardPile.Count;
-
-    // =========================================================================
-    // HAND / DECK MANAGEMENT
-    // =========================================================================
-
-    /// <summary>
-    /// Set the initial hand for a summoner in MatchState.
-    /// Called after RegisterSummoner once the hand has been drawn.
-    /// </summary>
-    public void SetSummonerHand(int team, string[] handCatalogIds)
-    {
-        var summoner = State.Summoners[ToNetworkTeam(team)];
-        summoner.Hand.Clear();
-        summoner.Hand.AddRange(handCatalogIds);
     }
 
     // =========================================================================
-    // CLIENT UNIT PRE-REGISTRATION (used by ClientRunner until M3a)
+    // COMMAND QUEUE (summoner.gd calls QueuePlayCard)
     // =========================================================================
 
-    /// <summary>
-    /// Pre-register a remote unit in MatchState so the client has UnitData
-    /// before EntityManager spawns the visual shell.
-    /// Called by ClientRunner when a UnitSpawned message arrives.
-    /// </summary>
-    public void PreRegisterRemoteUnit(int networkId, int networkTeam, SimVector3 position)
-    {
-        foreach (var kvp in State.Units)
-        {
-            if (kvp.Value.NetworkId == networkId)
-                return;
-        }
-
-        int clientUnitId = _nextClientUnitId--;
-        var unit = new UnitData
-        {
-            UnitId = clientUnitId,
-            NetworkId = networkId,
-            Team = (Team)networkTeam,
-            IsAlive = true,
-            Position = position,
-            CurrentHp = 1,
-            MaxHp = 1,
-            ActivationState = ActivationState.Inactive
-        };
-        State.Units[clientUnitId] = unit;
-    }
-
-    // =========================================================================
-    // UNIT STATE (read-only accessors)
-    // =========================================================================
-
-    /// <summary>
-    /// Get a unit's HP from MatchState.
-    /// Returns -1 if unitId is not found.
-    /// </summary>
-    public float GetUnitHp(int unitId)
-    {
-        return State.Units.TryGetValue(unitId, out var unit) ? unit.CurrentHp : -1f;
-    }
-
-    /// <summary>
-    /// Get whether a unit is alive from MatchState.
-    /// Returns false if unitId is not found.
-    /// </summary>
-    public bool GetUnitIsAlive(int unitId)
-    {
-        return State.Units.TryGetValue(unitId, out var unit) && unit.IsAlive;
-    }
-
-    /// <summary>
-    /// Get the UnitData for a unit. Used by Unit3D to read simulation state.
-    /// Returns null if unitId is not found.
-    /// </summary>
-    public UnitData? GetUnitData(int unitId)
-    {
-        return State.Units.TryGetValue(unitId, out var unit) ? unit : null;
-    }
-
-    /// <summary>
-    /// Get the current kill count from MatchState.
-    /// </summary>
-    public int GetKillCount()
-    {
-        return State.KillCount;
-    }
-
-    // =========================================================================
-    // COMMAND QUEUE
-    // =========================================================================
-
-    /// <summary>
-    /// Queue a card play command. Called by Summoner.gd or AuthorityBridge.
-    /// </summary>
     public void QueuePlayCard(int team, int cardIndex, Vector3 spawnPosition, int networkId = -1)
     {
         var cmd = new PlayCardCommand(ToNetworkTeam(team), cardIndex, ToSimCanonical(spawnPosition), networkId);
@@ -519,248 +292,49 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     /// <summary>
-    /// Submit a command to the simulation. Stamps ExecuteFrame and adds to PendingCommandBuffer.
-    /// This is the ONLY entry point for external code to enqueue commands.
+    /// Queue a direct unit spawn (no mana, no casting, no hand management).
+    /// Used by debug arena, event sequencer, scripted AI, tutorials.
     /// </summary>
-    public void SubmitCommand(ICommand cmd)
+    public void QueueSpawnUnit(string catalogId, int team, Vector3 position,
+        bool activateImmediately = true, Godot.Collections.Dictionary? statOverrides = null)
     {
-        cmd.ExecuteFrame = State.FrameNumber + 1;
-        State.PendingCommandBuffer.Add(cmd);
-    }
+        EnsureCardDataPopulated(catalogId);
 
-    // =========================================================================
-    // SNAPSHOT APPLICATION (client-side, driven by host snapshots)
-    // =========================================================================
+        var cmd = new SpawnUnitCommand(catalogId, ToNetworkTeam(team), ToSimCanonical(position))
+        {
+            ActivateImmediately = activateImmediately,
+            StatOverrides = ConvertStatOverrides(statOverrides)
+        };
+        SubmitCommand(cmd);
+    }
 
     /// <summary>
-    /// Apply a state snapshot from the host to the client's MatchState.
-    /// Updates frame/time, phase, summoner state, and unit corrections.
-    /// Emits signals so the presentation layer stays in sync.
+    /// Ensure a single card's data is in CardDataMap.
+    /// Called by QueueSpawnUnit for cards that may not be in any summoner's deck.
     /// </summary>
-    public void ApplySnapshot(StateSnapshot snapshot)
+    public void EnsureCardDataPopulated(string catalogId)
     {
-        // Update frame/time
-        State.FrameNumber = snapshot.Frame;
-        State.MatchTime = snapshot.MatchTime;
+        if (State.CardDataMap.ContainsKey(catalogId))
+            return;
 
-        // Phase transition
-        var newPhase = (GamePhase)snapshot.Phase;
-        if (State.Phase != newPhase)
-        {
-            State.Phase = newPhase;
-            EmitSignal(SignalName.PhaseChanged, snapshot.Phase);
-        }
-
-        // Prep timer
-        State.PrepTimeRemaining = snapshot.PrepTimeRemaining;
-        EmitSignal(SignalName.PrepTimerUpdated, snapshot.PrepTimeRemaining);
-        EmitSignal(SignalName.MatchTimeUpdated, snapshot.MatchTime);
-
-        // Summoner states — snapshot uses network team, MatchState uses network team
-        foreach (var ss in snapshot.Summoners)
-        {
-            int networkTeam = ss.Team;
-            if (networkTeam < 0 || networkTeam > 1) continue;
-            var summoner = State.Summoners[networkTeam];
-            int localTeam = ToLocalTeam(networkTeam);
-
-            // HP — emit with localTeam so GDScript signal handlers match
-            if (Mathf.Abs(summoner.CurrentHp - ss.Hp) > 0.1f)
-            {
-                summoner.CurrentHp = ss.Hp;
-                summoner.MaxHp = ss.MaxHp;
-                summoner.IsAlive = ss.Hp > 0;
-                EmitSignal(SignalName.SummonerHpChanged, localTeam, ss.Hp, ss.MaxHp);
-            }
-
-            // Mana — emit with localTeam
-            if (Mathf.Abs(summoner.Mana - ss.Mana) > 0.1f)
-            {
-                summoner.Mana = ss.Mana;
-                summoner.MaxMana = ss.MaxMana;
-                EmitSignal(SignalName.SummonerManaChanged, localTeam, ss.Mana, ss.MaxMana);
-            }
-
-            // Casting state
-            summoner.IsCasting = ss.IsCasting;
-            summoner.CastingTimeRemaining = ss.CastingTimeRemaining;
-            summoner.CastingTimeTotal = ss.CastingTimeTotal;
-            summoner.CastingCardIndex = ss.CastingCardIndex;
-            summoner.CastingSpawnPosition = new SimVector3(ss.CastingSpawnPosition.X, ss.CastingSpawnPosition.Y, ss.CastingSpawnPosition.Z);
-            summoner.CastingNetworkId = ss.CastingNetworkId;
-
-            // Hand/Deck/Discard — overwrite from host snapshot.
-            // GDScript polls this data each frame via GetPlayerHand() etc.
-            if (ss.Hand != null)
-            {
-                if (!summoner.Hand.SequenceEqual(ss.Hand))
-                {
-                    summoner.Hand.Clear();
-                    summoner.Hand.AddRange(ss.Hand);
-                }
-
-                summoner.Deck.Clear();
-                summoner.Deck.AddRange(ss.Deck ?? System.Array.Empty<string>());
-
-                summoner.DiscardPile.Clear();
-                summoner.DiscardPile.AddRange(ss.DiscardPile ?? System.Array.Empty<string>());
-
-                // Populate CardDataMap for any new catalog IDs the client hasn't seen
-                var processed = new HashSet<string>(State.CardDataMap.Keys);
-                foreach (var id in ss.Hand) PopulateSingleCard(id, processed);
-                foreach (var id in ss.Deck ?? System.Array.Empty<string>()) PopulateSingleCard(id, processed);
-                foreach (var id in ss.DiscardPile ?? System.Array.Empty<string>()) PopulateSingleCard(id, processed);
-            }
-        }
-
-        // Overtime
-        if (State.IsOvertime != snapshot.IsOvertime)
-        {
-            State.IsOvertime = snapshot.IsOvertime;
-            EmitSignal(SignalName.OvertimeChanged, snapshot.IsOvertime);
-        }
-
-        // Unit state sync: create/update/remove to keep client State.Units
-        // in sync with the host. Without this, client State.Units stays empty
-        // (no Tick() → no UnitRegisteredEvent) and hashes never converge.
-
-        // Build lookup of existing units by NetworkId for O(1) matching
-        var unitsByNetworkId = new Dictionary<int, UnitData>();
-        foreach (var kvp in State.Units)
-        {
-            if (kvp.Value.NetworkId >= 0)
-                unitsByNetworkId[kvp.Value.NetworkId] = kvp.Value;
-        }
-
-        var snapshotNetworkIds = new System.Collections.Generic.HashSet<int>(snapshot.Units.Length);
-        foreach (var unitState in snapshot.Units)
-        {
-            snapshotNetworkIds.Add(unitState.NetworkId);
-
-            if (unitsByNetworkId.TryGetValue(unitState.NetworkId, out var existingUnit))
-            {
-                // UPDATE existing unit — always write position from authoritative snapshot
-                existingUnit.Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z);
-                existingUnit.CurrentHp = unitState.Hp;
-                existingUnit.MaxHp = unitState.MaxHp;
-                existingUnit.IsAlive = unitState.IsAlive;
-                existingUnit.TargetNetworkId = unitState.TargetNetworkId;
-                existingUnit.ActivationState = (ActivationState)unitState.ActivationState;
-                existingUnit.BehaviorState = (BehaviorState)unitState.BehaviorState;
-                existingUnit.IsFacingRight = unitState.IsFacingRight;
-            }
-            else
-            {
-                // CREATE new unit entry the client hasn't seen yet
-                int clientUnitId = _nextClientUnitId--;
-                var newUnit = new UnitData
-                {
-                    UnitId = clientUnitId,
-                    NetworkId = unitState.NetworkId,
-                    Team = (Team)unitState.Team,
-                    CurrentHp = unitState.Hp,
-                    MaxHp = unitState.MaxHp,
-                    IsAlive = unitState.IsAlive,
-                    Position = new SimVector3(unitState.Position.X, unitState.Position.Y, unitState.Position.Z),
-                    TargetNetworkId = unitState.TargetNetworkId,
-                    ActivationState = (ActivationState)unitState.ActivationState,
-                    BehaviorState = (BehaviorState)unitState.BehaviorState,
-                    IsFacingRight = unitState.IsFacingRight
-                };
-                State.Units[clientUnitId] = newUnit;
-            }
-        }
-
-        // Mark any local alive units NOT in the snapshot as dead.
-        // Safety net for lost/delayed UnitDied messages — the host's snapshot
-        // omits dead units, so missing entries mean the unit died on the host.
-        foreach (var kvp in State.Units)
-        {
-            if (kvp.Value.IsAlive && !snapshotNetworkIds.Contains(kvp.Value.NetworkId))
-            {
-                kvp.Value.IsAlive = false;
-                kvp.Value.CurrentHp = 0;
-            }
-        }
-
-        // Emit first-snapshot signal once so GDScript can start the game
-        if (!_firstSnapshotApplied)
-        {
-            _firstSnapshotApplied = true;
-            EmitSignal(SignalName.FirstSnapshotApplied);
-        }
+        var processed = new HashSet<string>(State.CardDataMap.Keys);
+        PopulateSingleCard(catalogId, processed);
     }
 
-    // =========================================================================
-    // EVENT EMISSION
-    // =========================================================================
-
-    private void EmitEvents(List<SimEvent> events)
+    private static System.Collections.Generic.Dictionary<string, float>? ConvertStatOverrides(
+        Godot.Collections.Dictionary? gdDict)
     {
-        foreach (var evt in events)
+        if (gdDict == null || gdDict.Count == 0)
+            return null;
+
+        var result = new System.Collections.Generic.Dictionary<string, float>();
+        foreach (var key in gdDict.Keys)
         {
-            switch (evt)
-            {
-                case PhaseChangedEvent e:
-                    EmitSignal(SignalName.PhaseChanged, (int)e.NewPhase);
-                    break;
-                case PrepTimerUpdatedEvent e:
-                    EmitSignal(SignalName.PrepTimerUpdated, e.Remaining);
-                    break;
-                case MatchTimeUpdatedEvent e:
-                    EmitSignal(SignalName.MatchTimeUpdated, e.MatchTime);
-                    break;
-                case SummonerHpChangedEvent e:
-                    EmitSignal(SignalName.SummonerHpChanged, RemapTeam(e.Team), e.Hp, e.MaxHp);
-                    break;
-                case SummonerManaChangedEvent e:
-                    EmitSignal(SignalName.SummonerManaChanged, RemapTeam(e.Team), e.Mana, e.MaxMana);
-                    break;
-                case CastingStartedEvent e:
-                    EmitSignal(SignalName.CastingStarted, RemapTeam(e.Team), e.CardIndex, e.Duration, SimToLocal(e.SpawnPosition), e.CatalogId);
-                    break;
-                case CastingCompletedEvent e:
-                    EmitSignal(SignalName.CastingCompleted, RemapTeam(e.Team), e.CardIndex, SimToLocal(e.SpawnPosition), e.NetworkId);
-                    break;
-                case CardDrawnEvent e:
-                    EmitSignal(SignalName.CardDrawn, RemapTeam(e.Team), e.HandIndex, e.CatalogId);
-                    break;
-                case HandChangedEvent e:
-                    EmitSignal(SignalName.HandChanged, RemapTeam(e.Team), e.Hand);
-                    break;
-                case DeckRecycledEvent e:
-                    EmitSignal(SignalName.DeckRecycled, RemapTeam(e.Team));
-                    break;
-                case UnitRegisteredEvent e:
-                    EmitSignal(SignalName.UnitStateRegistered, e.UnitId, e.NetworkId, RemapTeam(e.Team));
-                    break;
-                case UnitRemovedEvent e:
-                    EmitSignal(SignalName.UnitStateRemoved, e.UnitId);
-                    break;
-                case GameOverEvent e:
-                    EmitSignal(SignalName.GameOver, RemapTeam(e.WinnerTeam), e.Reason);
-                    break;
-                case UnitAttackedEvent e:
-                    EmitSignal(SignalName.UnitAttacked, e.AttackerUnitId, e.TargetUnitId);
-                    break;
-                case UnitDamagedEvent e:
-                    EmitSignal(SignalName.UnitDamaged, e.TargetUnitId, e.AttackerUnitId, e.Damage, e.IsCrit);
-                    break;
-                case UnitDiedSimEvent e:
-                    EmitSignal(SignalName.UnitDiedSim, e.UnitId, e.KillerUnitId);
-                    break;
-                // Events routed via EntityManager (ISimEventVisitor) — no GDScript signals needed
-                case UnitActivationChangedEvent:
-                case SpellCastEvent:
-                case ProjectileHitSimEvent:
-                case AttackEvadedEvent:
-                case BuffAppliedSimEvent:
-                case BuffExpiredSimEvent:
-                case DelayedEffectFiredSimEvent:
-                case SummonerDamagedEvent:
-                case SummonerDestroyedEvent:
-                    break;
-            }
+            var keyStr = key.AsString();
+            var val = gdDict[key];
+            if (val.VariantType == Variant.Type.Float || val.VariantType == Variant.Type.Int)
+                result[keyStr] = val.AsSingle();
         }
+        return result.Count > 0 ? result : null;
     }
 }

@@ -148,8 +148,8 @@ public class Simulation
             if (cmp != 0) return cmp;
 
             // Extract team for ordering
-            int teamA = a is PlayCardCommand pcA ? pcA.Team : (a is ForfeitCommand fcA ? fcA.Team : 0);
-            int teamB = b is PlayCardCommand pcB ? pcB.Team : (b is ForfeitCommand fcB ? fcB.Team : 0);
+            int teamA = a is PlayCardCommand pcA ? pcA.Team : a is SpawnUnitCommand suA ? suA.Team : (a is ForfeitCommand fcA ? fcA.Team : 0);
+            int teamB = b is PlayCardCommand pcB ? pcB.Team : b is SpawnUnitCommand suB ? suB.Team : (b is ForfeitCommand fcB ? fcB.Team : 0);
             cmp = teamA.CompareTo(teamB);
             if (cmp != 0) return cmp;
 
@@ -175,6 +175,10 @@ public class Simulation
         {
             case PlayCardCommand playCard:
                 ExecutePlayCard(playCard, events);
+                break;
+
+            case SpawnUnitCommand spawn:
+                ExecuteSpawnUnit(spawn, events);
                 break;
 
             case ForfeitCommand forfeit:
@@ -284,6 +288,28 @@ public class Simulation
         }
 
         events.Add(new HandChangedEvent((int)summoner.Team, summoner.Hand.ToArray()));
+    }
+
+    /// <summary>
+    /// Execute a SpawnUnitCommand: look up card data, spawn units directly.
+    /// No mana cost, no casting, no hand management.
+    /// </summary>
+    private void ExecuteSpawnUnit(SpawnUnitCommand cmd, List<SimEvent> events)
+    {
+        if (!_state.CardDataMap.TryGetValue(cmd.CatalogId, out var cardData))
+        {
+            Log?.Invoke($"[Simulation] SpawnUnit rejected: catalogId={cmd.CatalogId} not found in CardDataMap");
+            return;
+        }
+
+        if (cmd.Team < 0 || cmd.Team > 1)
+        {
+            Log?.Invoke($"[Simulation] SpawnUnit rejected: invalid team={cmd.Team}");
+            return;
+        }
+
+        float spawnTimer = cmd.ActivateImmediately ? 0f : cardData.SummonTime;
+        SpawnUnitsFromCard(cardData, cmd.Team, cmd.SpawnPosition, spawnTimer, events, cmd.StatOverrides);
     }
 
     /// <summary>
@@ -473,8 +499,9 @@ public class Simulation
     /// <summary>
     /// Create UnitData entries from a card's unit templates.
     /// Units are spread around the spawn position.
+    /// Optional statOverrides are applied after template defaults (used by SpawnUnitCommand).
     /// </summary>
-    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, float spawnTimer, List<SimEvent> events)
+    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, float spawnTimer, List<SimEvent> events, Dictionary<string, float>? statOverrides = null)
     {
         int unitIndex = 0;
         int totalUnits = 0;
@@ -532,6 +559,10 @@ public class Simulation
                     SpawnTimer = spawnTimer
                 };
 
+                // Apply stat overrides (SpawnUnitCommand path)
+                if (statOverrides != null)
+                    ApplyStatOverrides(unitData, statOverrides);
+
                 _state.Units[unitId] = unitData;
 
                 events.Add(new UnitRegisteredEvent(
@@ -557,6 +588,36 @@ public class Simulation
         float totalWidth = (total - 1) * spacing * 2f;
         float startZ = center.Z - totalWidth / 2f;
         return new SimVector3(center.X, center.Y, startZ + index * spacing * 2f);
+    }
+
+    /// <summary>
+    /// Apply runtime stat overrides to a newly created UnitData.
+    /// Used by SpawnUnitCommand for debug/event/tutorial spawns with custom stats.
+    /// </summary>
+    private static void ApplyStatOverrides(UnitData unit, Dictionary<string, float> overrides)
+    {
+        foreach (var (key, value) in overrides)
+        {
+            switch (key)
+            {
+                case "max_hp":
+                    unit.MaxHp = value;
+                    unit.CurrentHp = value;
+                    break;
+                case "move_speed":
+                    unit.MoveSpeed = value;
+                    break;
+                case "attack_damage":
+                    unit.AttackDamage = value;
+                    break;
+                case "attack_speed":
+                    unit.AttackSpeed = value;
+                    break;
+                case "attack_range":
+                    unit.AttackRange = value;
+                    break;
+            }
+        }
     }
 
     /// <summary>

@@ -20,6 +20,7 @@ public class CommandRouter
         return command switch
         {
             PlayCardCommand play => ValidatePlayCard(play, state),
+            SpawnUnitCommand spawn => ValidateSpawnUnit(spawn, state),
             ForfeitCommand forfeit => ValidateForfeit(forfeit, state),
             _ => new ValidationResult(false, $"Unknown command type: {command.GetType().Name}")
         };
@@ -47,6 +48,23 @@ public class CommandRouter
 
         if (summoner.Mana < cardData.ManaCost)
             return new ValidationResult(false, "Not enough mana");
+
+        return Valid;
+    }
+
+    private static ValidationResult ValidateSpawnUnit(SpawnUnitCommand spawn, MatchState state)
+    {
+        if (spawn.Team < 0 || spawn.Team >= state.Summoners.Length)
+            return new ValidationResult(false, "Invalid team index");
+
+        if (state.Phase == GamePhase.GameOver)
+            return new ValidationResult(false, "Cannot spawn units after game over");
+
+        if (string.IsNullOrEmpty(spawn.CatalogId))
+            return new ValidationResult(false, "Empty catalog ID");
+
+        if (!state.CardDataMap.ContainsKey(spawn.CatalogId))
+            return new ValidationResult(false, "Card data not found for catalog ID");
 
         return Valid;
     }
