@@ -1,11 +1,11 @@
-namespace Fateforged.Tests.Summons;
+namespace Fateforged.Tests.View.Spawning;
 
 using System.Collections.Generic;
 using GdUnit4;
 using Godot;
 using Fateforged.Cards.Formations;
 using Fateforged.Constants;
-using Fateforged.Summons;
+using Fateforged.View.Spawning;
 using static GdUnit4.Assertions;
 
 /// <summary>

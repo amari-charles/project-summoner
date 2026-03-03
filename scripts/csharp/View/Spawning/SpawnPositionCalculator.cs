@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using Fateforged.Constants;
 
-namespace Fateforged.Summons;
+namespace Fateforged.View.Spawning;
 
 /// <summary>
 /// Calculates safe spawn positions for units.

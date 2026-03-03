@@ -4,7 +4,7 @@ class_name NetworkStateClass
 ## Autoload singleton tracking multiplayer connection state
 ##
 ## Simplified state tracker for multiplayer. The core multiplayer logic
-## has been migrated to C# (MatchSession, P2PTransport, etc.).
+## has been migrated to C# (HostSession/ClientSession, P2PTransport, etc.).
 ## This GDScript autoload provides basic state that UI can query.
 
 ## Connection state enum

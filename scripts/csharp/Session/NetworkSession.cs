@@ -18,7 +18,6 @@ public abstract class NetworkSession : IGameSession
     public abstract MatchState GetState();
     public abstract event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
     public abstract void SubmitCommand(ICommand command);
-    public abstract void Tick(float delta);
 
     /// <summary>
     /// Process incoming network data (snapshots, commands, desync reports).

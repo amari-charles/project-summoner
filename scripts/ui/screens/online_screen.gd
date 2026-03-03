@@ -572,15 +572,7 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 		_pending_opponent_summoner_data
 	)
 
-	# Set up multiplayer authority
-	var MultiplayerAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/multiplayer_authority.gd")
-	var mp_authority: RefCounted = MultiplayerAuthorityScript.new(
-		null,  # MatchSession will be created in battle scene
-		is_host,
-		1 if is_host else 2,  # Peer ID
-		local_player_index
-	)
-	BattleContext.set_authority_provider(mp_authority)
+	# TODO: Wire multiplayer authority via HostSession/ClientSession
 
 	# Brief delay then transition to battle
 	await get_tree().create_timer(BATTLE_TRANSITION_DELAY).timeout

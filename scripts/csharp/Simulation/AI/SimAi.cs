@@ -13,11 +13,11 @@ public static class SimAi
 {
     /// <summary>
     /// Tick all AI-controlled summoners. Produces PlayCardCommands into PendingCommandBuffer.
-    /// Only runs during Battle phase (AI doesn't play during Preparation).
+    /// Runs during Preparation and Battle phases so AI deploys units alongside the player.
     /// </summary>
     public static void Tick(MatchState state, float fixedDelta)
     {
-        if (state.Phase != Enums.GamePhase.Battle)
+        if (state.Phase != Enums.GamePhase.Battle && state.Phase != Enums.GamePhase.Preparation)
             return;
 
         for (int team = 0; team < state.Summoners.Length; team++)

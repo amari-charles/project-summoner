@@ -5,7 +5,7 @@ class_name AuthorityProvider extends RefCounted
 ## Provides an abstraction that allows the same game code to work under
 ## different authority models:
 ## - LocalAuthority: Single-player (all actions immediate, no network)
-## - MultiplayerAuthority: Online multiplayer (bridges to C# MatchSession)
+## - Future: HostSession/ClientSession for online multiplayer
 
 ## Emitted when an action is validated and executed successfully.
 signal action_confirmed(action: RefCounted)
@@ -65,7 +65,3 @@ func cleanup() -> void:
 	pass  # Override in subclasses if needed
 
 
-## Get the C# MatchSession node (multiplayer only).
-## Returns null for single-player (LocalAuthority).
-func get_match_session() -> Node:
-	return null  # Override in MultiplayerAuthority

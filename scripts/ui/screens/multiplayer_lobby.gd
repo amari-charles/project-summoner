@@ -3,12 +3,11 @@ class_name MultiplayerLobby
 
 ## Multiplayer lobby screen for creating and joining P2P matches
 ##
-## Uses C# P2PTransport for networking and MatchSession for game state.
+## Uses C# P2PTransport for networking.
 ## Supports two modes:
 ## - Host: Create a room and wait for opponent
 ## - Join: Enter IP address to connect to host
 
-const MultiplayerAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/multiplayer_authority.gd")
 const P2PTransportScene: PackedScene = preload("res://scripts/csharp/Multiplayer/Transport/P2PTransport.tscn")
 
 enum LobbyState { MENU, HOSTING, JOINING, WAITING_FOR_OPPONENT, CONNECTED, STARTING }
@@ -446,18 +445,10 @@ func _start_match(battle_seed: int, player_summoner: String, opponent_summoner: 
 		battle_seed
 	)
 
-	# Create and set MultiplayerAuthority
-	var local_peer_id: int = 1 if is_host else 2
-	var local_player_index: int = 0 if is_host else 1
-	var mp_authority: RefCounted = MultiplayerAuthorityScript.new(
-		null,  # MatchSession created in battle scene
-		is_host,
-		local_peer_id,
-		local_player_index
-	)
-	BattleContext.set_authority_provider(mp_authority)
+	# TODO: Wire multiplayer authority via HostSession/ClientSession
 
 	# Update NetworkState
+	var local_peer_id: int = 1 if is_host else 2
 	NetworkState.local_peer_id = local_peer_id
 	NetworkState.is_host = is_host
 

@@ -7,6 +7,7 @@ using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -36,7 +37,7 @@ public class SimAiTest
     }
 
     [TestCase]
-    public void AiTick_PrepPhase_NoCommands()
+    public void AiTick_PrepPhase_ProducesCommands()
     {
         _state.Phase = GamePhase.Preparation;
         var summoner = _state.Summoners[1];
@@ -44,7 +45,24 @@ public class SimAiTest
         summoner.Mana = 10;
         summoner.Hand.Add("card");
         _state.CardDataMap["card"] = SimTestHelper.CreateSummonCard("card", manaCost: 3);
+        summoner.AiPlayTimer = 5.0f;
         summoner.AiNextPlayTime = 0.001f; // Would fire immediately
+
+        SimAi.Tick(_state, 0.016f);
+        AssertThat(_state.PendingCommandBuffer.Count).IsEqual(1);
+    }
+
+    [TestCase]
+    public void AiTick_GameOverPhase_NoCommands()
+    {
+        _state.Phase = GamePhase.GameOver;
+        var summoner = _state.Summoners[1];
+        summoner.Ai = new AiConfig { Type = AiType.Simple };
+        summoner.Mana = 10;
+        summoner.Hand.Add("card");
+        _state.CardDataMap["card"] = SimTestHelper.CreateSummonCard("card", manaCost: 3);
+        summoner.AiPlayTimer = 5.0f;
+        summoner.AiNextPlayTime = 0.001f;
 
         SimAi.Tick(_state, 0.016f);
         AssertThat(_state.PendingCommandBuffer.Count).IsEqual(0);
@@ -169,6 +187,83 @@ public class SimAiTest
         // Note: This is a probabilistic test. If both seeds happen to produce
         // identical results, that's theoretically possible but very unlikely.
         // We accept it if they match — the important guarantee is same-seed determinism above.
+    }
+
+    // =========================================================================
+    // Test Arena Integration: Prep→Battle transition with AI
+    // =========================================================================
+
+    [TestCase]
+    public void AiTick_PrepToBattleTransition_AiPlaysAfterPhaseChange()
+    {
+        // Mimic TestBattleScene: start in Preparation with PrepTimeRemaining=0
+        var state = new MatchState
+        {
+            Phase = GamePhase.Preparation,
+            PrepTimeRemaining = 0f,
+            FrameNumber = 0,
+            Rng = new DeterministicRng(42)
+        };
+
+        // Register summoners (mimic BattleScene.RegisterSummoner)
+        state.Summoners[0].CurrentHp = 999999f;
+        state.Summoners[0].MaxHp = 999999f;
+        state.Summoners[0].Mana = 999f;
+        state.Summoners[0].MaxMana = 999f;
+        state.Summoners[0].IsAlive = true;
+        state.Summoners[0].Team = Team.Player;
+        state.Summoners[0].MaxHandSize = 4;
+
+        state.Summoners[1].CurrentHp = 999999f;
+        state.Summoners[1].MaxHp = 999999f;
+        state.Summoners[1].Mana = 999f;
+        state.Summoners[1].MaxMana = 999f;
+        state.Summoners[1].IsAlive = true;
+        state.Summoners[1].Team = Team.Enemy;
+        state.Summoners[1].MaxHandSize = 4;
+
+        // Populate card data and deck (mimic 30 fire_wisps)
+        var cardData = SimTestHelper.CreateSummonCard("fire_wisp", manaCost: 3);
+        state.CardDataMap["fire_wisp"] = cardData;
+        for (int i = 0; i < 30; i++)
+            state.Summoners[1].Deck.Add("fire_wisp");
+
+        // Configure AI (mimic LoadAiForEnemy → ConfigureAi)
+        state.Summoners[1].Ai = new AiConfig
+        {
+            Type = AiType.Heuristic,
+            Personality = AiPersonality.Balanced,
+            Difficulty = 3,
+            PlayIntervalMin = 3.0f,
+            PlayIntervalMax = 6.0f
+        };
+        SimAi.InitializeTimer(state, state.Summoners[1]);
+
+        var sim = new Simulation(state);
+
+        // Run for 8 seconds (480 ticks at 60fps) — enough for at least one AI play
+        bool foundCasting = false;
+        for (int f = 0; f < 480; f++)
+        {
+            // Mimic TestBattleScene._Process: refresh mana
+            if (state.Summoners[1].Mana < 900)
+                state.Summoners[1].Mana = 999f;
+
+            var events = sim.Tick(SimulationNode.FIXED_DELTA);
+            foreach (var evt in events)
+            {
+                if (evt is CastingStartedEvent cse && cse.Team == 1)
+                {
+                    foundCasting = true;
+                    break;
+                }
+            }
+            if (foundCasting) break;
+        }
+
+        AssertThat(foundCasting).IsTrue();
+        // Verify phase transitioned to Battle
+        AssertThat(state.Phase).IsEqual(GamePhase.Battle);
     }
 
     /// <summary>

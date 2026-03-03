@@ -75,7 +75,7 @@ func _on_cancel_pressed() -> void:
 		SceneManager.transition_to(SceneManager.SCENE_MULTIPLAYER_LOBBY)
 
 
-## Call this to manually show the overlay (e.g., from MatchSession)
+## Call this to manually show the overlay (e.g., from HostSession/ClientSession)
 func show_connection_lost(reason: String) -> void:
 	_on_connection_lost(reason)
 

@@ -81,8 +81,6 @@ public partial class SimulationNode : Node, IGameSession
 
     public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
-    void IGameSession.Tick(float delta) { }
-
     public void SubmitCommand(ICommand cmd)
     {
         if (_localSession != null)
@@ -91,9 +89,7 @@ public partial class SimulationNode : Node, IGameSession
         }
         else
         {
-            // Fallback for pre-init or client mode
-            cmd.ExecuteFrame = State.FrameNumber + 1;
-            State.PendingCommandBuffer.Add(cmd);
+            GD.PrintErr("[SimulationNode] SubmitCommand called before initialization — command rejected");
         }
     }
 
@@ -157,7 +153,10 @@ public partial class SimulationNode : Node, IGameSession
         float winConditionTimeLimit = 0f, int winConditionKillTarget = 0, long seed = 0)
     {
         if (seed == 0)
+        {
             seed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            GD.PushWarning("[SimulationNode] No explicit seed provided — falling back to wall-clock time. This is non-deterministic and will cause desync in multiplayer.");
+        }
 
         State = new MatchState
         {

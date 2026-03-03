@@ -41,7 +41,7 @@ public class HostSession : NetworkSession
         _state.PendingCommandBuffer.Add(command);
     }
 
-    public override void Tick(float delta)
+    public void Tick(float delta)
     {
         var events = _simulation.Tick(delta);
         // TODO: broadcast snapshot to clients via transport (no transport wired yet)

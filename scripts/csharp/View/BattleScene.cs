@@ -1003,28 +1003,14 @@ public partial class BattleScene : Node3D
 
 		transport.Initialize(matchId, isHost, localPeerId);
 
-		// MatchSession was deleted in M2. Multiplayer session wiring will be
-		// handled by HostSession/ClientSession in a future milestone.
-		GD.Print("[BattleScene] Multiplayer transport initialized (MatchSession pending future milestone)");
+		// Multiplayer session wiring (HostSession/ClientSession) deferred to future milestone.
+		GD.Print("[BattleScene] Multiplayer transport initialized (session wiring pending future milestone)");
 	}
 
 	private void BroadcastMatchEnd(int winnerTeam)
 	{
-		var battleContext = GetNode("/root/BattleContext");
-		if (battleContext == null) return;
-
-		var authProvider = battleContext.Get("authority_provider");
-		if (authProvider.VariantType == Variant.Type.Nil) return;
-
-		var provider = authProvider.AsGodotObject() as Node;
-		if (provider == null) return;
-
-		var matchSession = provider.Call("get_match_session");
-		if (matchSession.VariantType == Variant.Type.Nil) return;
-
-		var ms = matchSession.AsGodotObject() as Node;
-		if (ms != null && ms.HasMethod("BroadcastMatchEnd"))
-			ms.Call("BroadcastMatchEnd", winnerTeam, "Summoner destroyed");
+		// TODO: Broadcast match end via HostSession/ClientSession transport
+		GD.Print($"[BattleScene] BroadcastMatchEnd called (winner={winnerTeam}) — pending multiplayer transport milestone");
 	}
 
 	// =========================================================================

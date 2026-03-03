@@ -27,7 +27,7 @@ public class ClientSession : NetworkSession
         throw new NotImplementedException();
     }
 
-    public override void Tick(float delta)
+    public void Tick(float delta)
     {
         if (_pendingEvents.Count > 0)
         {

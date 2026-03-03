@@ -227,7 +227,6 @@ func configure_endless_wave(_wave_number: int) -> void:
 
 
 ## Configure for multiplayer battle
-## Call this after MatchSession is initialized
 func configure_multiplayer_battle(
 	player_summoner_id: String,
 	opponent_summoner_id: String,

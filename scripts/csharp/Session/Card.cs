@@ -1,6 +1,6 @@
 using Fateforged.Simulation;
 using Godot;
-using Fateforged.Summons;
+using Fateforged.View.Spawning;
 
 namespace Fateforged.Cards;
 
