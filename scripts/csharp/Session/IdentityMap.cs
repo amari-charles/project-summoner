@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Fateforged.Session;
 
 /// <summary>
@@ -6,23 +8,49 @@ namespace Fateforged.Session;
 /// </summary>
 public class IdentityMap
 {
-    public int GetNetworkId(int unitId)
-    {
-        throw new System.NotImplementedException();
-    }
+    private readonly Dictionary<int, int> _unitToNetwork = new();
+    private readonly Dictionary<int, int> _networkToUnit = new();
 
-    public int GetUnitId(int networkId)
-    {
-        throw new System.NotImplementedException();
-    }
+    public int Count => _unitToNetwork.Count;
 
     public void Register(int unitId, int networkId)
     {
-        throw new System.NotImplementedException();
+        _unitToNetwork[unitId] = networkId;
+        _networkToUnit[networkId] = unitId;
     }
 
     public void Unregister(int unitId)
     {
-        throw new System.NotImplementedException();
+        if (_unitToNetwork.TryGetValue(unitId, out var networkId))
+        {
+            _unitToNetwork.Remove(unitId);
+            _networkToUnit.Remove(networkId);
+        }
+    }
+
+    public int GetNetworkId(int unitId)
+    {
+        return _unitToNetwork[unitId];
+    }
+
+    public int GetUnitId(int networkId)
+    {
+        return _networkToUnit[networkId];
+    }
+
+    public bool TryGetNetworkId(int unitId, out int networkId)
+    {
+        return _unitToNetwork.TryGetValue(unitId, out networkId);
+    }
+
+    public bool TryGetUnitId(int networkId, out int unitId)
+    {
+        return _networkToUnit.TryGetValue(networkId, out unitId);
+    }
+
+    public void Clear()
+    {
+        _unitToNetwork.Clear();
+        _networkToUnit.Clear();
     }
 }

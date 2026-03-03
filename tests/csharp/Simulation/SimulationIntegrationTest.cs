@@ -7,6 +7,9 @@ using Fateforged.Simulation.Combat;
 using GdUnit4;
 using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
+using Fateforged.Simulation.Commands;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 [TestSuite]
 public class SimulationIntegrationTest

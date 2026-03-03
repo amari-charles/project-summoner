@@ -6,9 +6,6 @@ class_name CSharpAutoloads
 const PLAYER_CARD_SERVICE: String = "/root/CardServiceCS"
 const PROJECTILE_CATALOG: String = "/root/ProjectileCatalog"
 const CARD_FACTORY: String = "/root/CardFactory"
-const HIT_RESOLVER: String = "/root/HitResolver"
-const SPATIAL_GRID: String = "/root/SpatialGrid"
-const TARGETING_CONFIG_REGISTRY: String = "/root/TargetingConfigRegistryCS"
 const LEVEL_CAP_SERVICE: String = "/root/LevelCapService"
 const REWARD_SERVICE_CS: String = "/root/RewardServiceCS"
 const UNIT_DEBUG_SERVICE: String = "/root/UnitDebugService"
@@ -19,7 +16,6 @@ const MATCHMAKING_SERVICE: String = "/root/MatchmakingService"
 const RANKING_SERVICE: String = "/root/RankingService"
 const MATCH_REPORTER: String = "/root/MatchReporter"
 const LEADERBOARD_SERVICE: String = "/root/LeaderboardService"
-const RECONNECTION_HANDLER: String = "/root/ReconnectionHandler"
 
 # Bridge autoloads (GDScript wrappers around C# implementations)
 const CARD_CATALOG_CS: String = "/root/CardCatalogCS"

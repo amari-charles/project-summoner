@@ -1,5 +1,6 @@
 using System;
 using ProjectSummoner.Units;
+using Fateforged.Simulation.Data;
 
 namespace Fateforged.Simulation.Combat;
 

@@ -128,8 +128,8 @@ Reads game state and renders it. No game logic, no mutation.
 | `battlefield_constants.gd` | `scripts/battlefield/battlefield_constants.gd` | View | Stays | Battlefield dimensions |
 | `CameraController3D` | `scripts/battlefield/camera_controller_3d.gd` | View | Renames | → `BattleCamera` |
 | `UnitSteering` | `Movement/UnitSteering.cs` | View | Stays | Godot-side movement (reads SimMovement results) |
-| `SpawnPreview` | `SpawnPreview/SpawnPreview.cs` | View | Stays | Spawn preview visualization (pending Decision A) |
-| `GhostUnit3D` | `SpawnPreview/GhostUnit3D.cs` | View | Stays | Ghost preview unit |
+| `SummonPreview` | `Input/SummonPreview.cs` | Input | Stays | Spawn preview visualization |
+| `UnitGhost` | `Input/UnitGhost.cs` | Input | Stays | Ghost preview unit |
 | `UnitDebugService` | `Units/UnitDebugService.cs` | View/Debug | Stays | Debug visualization |
 | `DamageProfile` | `Units/DamageProfile.cs` | View | Stays | Visual damage representation |
 | `Enums` | `Units/Enums.cs` | Cross-cutting | Stays | `ActivationState`, shared enums |

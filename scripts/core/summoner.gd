@@ -131,10 +131,7 @@ func _ready() -> void:
 		original_color = visual.modulate
 		original_visual_position = visual.position
 
-	# Setup hurtbox for combat hit detection
-	_setup_hurtbox()
-
-	# Configure collision shape to match hurtbox radius (single source of truth)
+	# Configure collision shape
 	_configure_collision_shape()
 
 ## Lightweight client init — no deck loading, no RegisterSummoner.
@@ -397,21 +394,6 @@ func _exit_tree() -> void:
 		_debug_hurtbox_marker.queue_free()
 		_debug_hurtbox_marker = null
 
-## Setup hurtbox component for combat hit detection
-func _setup_hurtbox() -> void:
-	var hurtbox_script: Script = load("res://scripts/csharp/Combat/Hitbox/HurtboxComponent.cs")
-	if hurtbox_script == null:
-		push_error("Summoner: Failed to load HurtboxComponent class")
-		return
-
-	_hurtbox = hurtbox_script.new()
-	add_child(_hurtbox)
-	_hurtbox.configure(
-		int(team),
-		UnitConstants.HurtboxCategory.SUMMONER,
-		HURTBOX_RADIUS,
-		HURTBOX_HEIGHT
-	)
 
 
 ## Configure collision shape from code (single source of truth with hurtbox)

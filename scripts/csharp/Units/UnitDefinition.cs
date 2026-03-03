@@ -3,7 +3,6 @@ using Godot;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Projectiles;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Targeting;
 
 namespace ProjectSummoner.Units;
 
@@ -35,16 +34,6 @@ public record UnitDefinition
 
     /// <summary>Whether this unit is Ground or Air.</summary>
     public MovementLayer MovementLayer { get; init; } = MovementLayer.Ground;
-
-    // =========================================================================
-    // TARGETING
-    // =========================================================================
-
-    /// <summary>
-    /// Targeting behavior defining how this unit acquires and attacks targets.
-    /// Defaults to MeleeTargeting for melee units.
-    /// </summary>
-    public ITargetingBehavior Targeting { get; init; } = MeleeTargeting.Default;
 
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)

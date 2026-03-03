@@ -24,11 +24,6 @@ public static class PerformanceCounters
     public static int SummonerLookups;
 
     /// <summary>
-    /// Number of SpatialGrid.GetUnitsInRadius() queries.
-    /// </summary>
-    public static int SpatialGridQueries;
-
-    /// <summary>
     /// Number of AcquireTarget() calls per frame.
     /// </summary>
     public static int TargetAcquisitions;
@@ -48,7 +43,6 @@ public static class PerformanceCounters
     // =========================================================================
 
     private static readonly int[] _summonerLookupsBuffer = new int[FrameBufferSize];
-    private static readonly int[] _spatialGridQueriesBuffer = new int[FrameBufferSize];
     private static readonly int[] _targetAcquisitionsBuffer = new int[FrameBufferSize];
     private static readonly ulong[] _physicsTimeBuffer = new ulong[FrameBufferSize];
     private static readonly int[] _activeUnitsBuffer = new int[FrameBufferSize];
@@ -61,7 +55,6 @@ public static class PerformanceCounters
     // =========================================================================
 
     public static float AvgSummonerLookups { get; private set; }
-    public static float AvgSpatialGridQueries { get; private set; }
     public static float AvgTargetAcquisitions { get; private set; }
     public static float AvgPhysicsTimeUsec { get; private set; }
     public static float AvgActiveUnits { get; private set; }
@@ -70,11 +63,6 @@ public static class PerformanceCounters
     /// Average microseconds per unit in _PhysicsProcess.
     /// </summary>
     public static float AvgUsecPerUnit => AvgActiveUnits > 0 ? AvgPhysicsTimeUsec / AvgActiveUnits : 0;
-
-    /// <summary>
-    /// Spatial grid queries per unit.
-    /// </summary>
-    public static float QueriesPerUnit => AvgActiveUnits > 0 ? AvgSpatialGridQueries / AvgActiveUnits : 0;
 
     // =========================================================================
     // API
@@ -88,7 +76,6 @@ public static class PerformanceCounters
     {
         // Store current frame values in buffer (from previous frame)
         _summonerLookupsBuffer[_bufferIndex] = SummonerLookups;
-        _spatialGridQueriesBuffer[_bufferIndex] = SpatialGridQueries;
         _targetAcquisitionsBuffer[_bufferIndex] = TargetAcquisitions;
         _physicsTimeBuffer[_bufferIndex] = PhysicsProcessTimeUsec;
         _activeUnitsBuffer[_bufferIndex] = ActiveUnits;
@@ -102,7 +89,6 @@ public static class PerformanceCounters
 
         // Reset for next frame
         SummonerLookups = 0;
-        SpatialGridQueries = 0;
         TargetAcquisitions = 0;
         PhysicsProcessTimeUsec = 0UL;
         ActiveUnits = 0;
@@ -116,7 +102,6 @@ public static class PerformanceCounters
         int count = _frameCount;
 
         int sumLookups = 0;
-        int sumQueries = 0;
         int sumAcquisitions = 0;
         ulong sumPhysics = 0;
         int sumUnits = 0;
@@ -124,14 +109,12 @@ public static class PerformanceCounters
         for (int i = 0; i < count; i++)
         {
             sumLookups += _summonerLookupsBuffer[i];
-            sumQueries += _spatialGridQueriesBuffer[i];
             sumAcquisitions += _targetAcquisitionsBuffer[i];
             sumPhysics += _physicsTimeBuffer[i];
             sumUnits += _activeUnitsBuffer[i];
         }
 
         AvgSummonerLookups = sumLookups / (float)count;
-        AvgSpatialGridQueries = sumQueries / (float)count;
         AvgTargetAcquisitions = sumAcquisitions / (float)count;
         AvgPhysicsTimeUsec = sumPhysics / (float)count;
         AvgActiveUnits = sumUnits / (float)count;
@@ -144,7 +127,6 @@ public static class PerformanceCounters
     {
         return $"Units: {AvgActiveUnits:F0}\n" +
                $"Summoner Lookups: {AvgSummonerLookups:F1}\n" +
-               $"Grid Queries: {AvgSpatialGridQueries:F0} ({QueriesPerUnit:F1}/unit)\n" +
                $"Target Acquisitions: {AvgTargetAcquisitions:F1}\n" +
                $"Physics Time: {AvgPhysicsTimeUsec:F0}us ({AvgUsecPerUnit:F1}us/unit)";
     }

@@ -6,6 +6,7 @@ using Fateforged.Simulation.Combat;
 using GdUnit4;
 using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
+using Fateforged.Simulation.Data;
 
 [TestSuite]
 public class SimTargetingTest

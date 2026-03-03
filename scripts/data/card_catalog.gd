@@ -135,8 +135,6 @@ func _convert_element_types(dict: Dictionary) -> void:
 
 ## Create a Card resource from a catalog definition
 ## This generates a runtime Card object that can be played in-game
-## - For SPELL cards with C# SpellBuilder support: creates C# SpellCard with effect
-## - For SUMMON cards or spells without C# support: creates GDScript Card
 ## Accepts StringName (preferred) or String for backward compatibility
 func create_card_resource(catalog_id: StringName) -> Resource:
 	var card_def: Dictionary = get_card(catalog_id)
@@ -158,32 +156,11 @@ func create_card_resource(catalog_id: StringName) -> Resource:
 
 	# Try to attach C# execution delegation based on card type
 	var card_type: int = card_def.get("card_type", Card.CardType.SUMMON)
-	if card_type == Card.CardType.SPELL:
-		_try_attach_csharp_spell_effect(catalog_id, card)
-	elif card_type == Card.CardType.SUMMON:
+	if card_type == Card.CardType.SUMMON:
 		_try_attach_csharp_summon(catalog_id, card)
 	# Card will use C# execution if available, GDScript fallback otherwise
 
 	return card
-
-
-## Check if C# spell effect is available for this spell
-## Sets card._csharp_spell_id if C# effect is available
-## Returns true if C# effect will be used, false to use GDScript fallback
-func _try_attach_csharp_spell_effect(catalog_id: StringName, card: Card) -> bool:
-	# Get CardFactory autoload
-	var factory: Node = _get_card_factory()
-	if not factory:
-		return false
-
-	# Check if factory has an effect for this spell
-	if not factory.has_effect(catalog_id):
-		return false
-
-	# Set the C# spell ID on the card for delegation
-	card._csharp_spell_id = catalog_id
-	print("CardCatalog: Attached C# spell effect for '%s'" % catalog_id)
-	return true
 
 
 ## Check if C# summon execution is available for this summon

@@ -6,6 +6,8 @@ Actionable, dependency-ordered checklist for building all four layers and deleti
 
 **Stub files:** `scripts/csharp/Session/` (8 files), `scripts/csharp/View/` (5 files), `scripts/csharp/Input/` (1 file) — all throw `NotImplementedException`.
 
+> **Migration Principle: Don't Port 1:1.** When extracting logic from legacy files, don't mechanically move code to a new class with the same shape. Ask: in the new architecture, who OWNS this data? Put factory methods on the types themselves (e.g., `UnitDefinitions.BuildSimTemplate()`, `SimCardData.FromCardDefinition()`). Mark bridge code (e.g., old targeting → sim targeting) as temporary with the milestone where it dies.
+
 ---
 
 ## Dependency Diagram
@@ -205,85 +207,85 @@ Verify the foundation is solid before building new layers.
 
 ### 2e: Scene File Updates
 
-**20 unit scenes — replace root script with UnitVisual:**
-- [ ] `scenes/units/puff_3d.tscn` (RangedUnit3D → UnitVisual)
-- [ ] `scenes/units/fire_spider_3d.tscn` (RangedUnit3D → UnitVisual)
-- [ ] `scenes/units/earth_rock_thrower_3d.tscn` (RangedUnit3D → UnitVisual)
-- [ ] `scenes/units/life_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/fire_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/lightning_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/shadow_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/fire_ant_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/fire_titan_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/stone_ape_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/water_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/rock_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/mama_duck_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/wind_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/water_frog_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/earth_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/duckling_3d.tscn` (DucklingUnit3D → UnitVisual)
-- [ ] `scenes/units/earth_sprite_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/death_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [ ] `scenes/units/fire_boar_3d.tscn` (MeleeUnit3D → UnitVisual)
+**20 unit scenes — replace root script with UnitVisual:** ✅ Done (Batch C)
+- [x] `scenes/units/puff_3d.tscn` (RangedUnit3D → UnitVisual)
+- [x] `scenes/units/fire_spider_3d.tscn` (RangedUnit3D → UnitVisual)
+- [x] `scenes/units/earth_rock_thrower_3d.tscn` (RangedUnit3D → UnitVisual)
+- [x] `scenes/units/life_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/fire_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/lightning_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/shadow_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/fire_ant_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/fire_titan_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/stone_ape_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/water_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/rock_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/mama_duck_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/wind_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/water_frog_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/earth_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/duckling_3d.tscn` (DucklingUnit3D → UnitVisual)
+- [x] `scenes/units/earth_sprite_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/death_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/units/fire_boar_3d.tscn` (MeleeUnit3D → UnitVisual)
 
-**1 projectile scene:**
-- [ ] `scenes/projectiles/base_projectile_3d.tscn` (Projectile3D → ProjectileVisual)
+**1 projectile scene:** ✅ Done (Batch C)
+- [x] `scenes/projectiles/base_projectile_3d.tscn` (Projectile3D → ProjectileVisual)
 
 **Battle scene:**
-- [ ] `scenes/battlefield/battle_3d.tscn` (game_controller_3d → BattleScene)
-- [ ] Update or delete test scenes using `test_game_controller.gd`
+- [ ] `scenes/battlefield/battle_3d.tscn` (game_controller_3d → BattleScene) — **blocked by M3a**
+- [ ] Update or delete test scenes using `test_game_controller.gd` — **blocked by M3a**
 
 ### 2f: Tier 2 Deletions
 
-**Step 1 — HPBarService (563 LOC):**
-- [ ] Delete `scripts/csharp/Services/HPBarService.cs` + `.tscn` + `.uid`
-- [ ] Remove `HPBarService` autoload from `project.godot`
+**Step 1 — HPBarService (563 LOC):** ✅ Done (Batch A)
+- [x] Delete `scripts/csharp/Services/HPBarService.cs` + `.tscn` + `.uid`
+- [x] Remove `HPBarService` autoload from `project.godot`
 
-**Step 2 — SimEventSignalEmitter (109 LOC):**
-- [ ] Delete `scripts/csharp/Simulation/SimEventSignalEmitter.cs` + `.uid`
-- [ ] Remove signal declarations from `SimulationNode` that were only used by emitter
+**Step 2 — SimEventSignalEmitter (109 LOC):** ✅ Done (Batch A)
+- [x] Delete `scripts/csharp/Simulation/SimEventSignalEmitter.cs` + `.uid`
+- [x] Remove signal declarations from `SimulationNode` that were only used by emitter
 
 **Step 3 — SimulationNode slim-down (~842 LOC removed):**
-- [ ] Slim `SimulationNode.cs` to ~100 lines (thin Godot bridge: factory + accessor)
-- [ ] Game logic migrated to Session layer implementations
+- [x] Extract card/unit template building to `SimCardData.FromCardDefinition()` + `UnitDefinitions.BuildSimTemplate()` (~182 LOC removed, 944→762)
+- [ ] Slim `SimulationNode.cs` to ~100 lines (thin Godot bridge: factory + accessor) — **blocked by M3a** (GDScript accessors, signals, snapshots all needed until Session layer)
+- [ ] Game logic migrated to Session layer implementations — **blocked by M3a**
 
-**Step 4 — Unit3D + subclasses + components (~3,076 LOC):**
-- [ ] Delete `scripts/csharp/Units/Unit3D.cs` (2,285 LOC)
-- [ ] Delete `scripts/csharp/Units/MeleeUnit3D.cs` (158 LOC)
-- [ ] Delete `scripts/csharp/Units/RangedUnit3D.cs` (257 LOC)
-- [ ] Delete `scripts/csharp/Units/DucklingUnit3D.cs` (38 LOC)
-- [ ] Delete `scripts/csharp/Units/Components/UnitHealth.cs` (139 LOC)
-- [ ] Delete `scripts/csharp/Units/Components/UnitMovement.cs` (199 LOC)
-- [ ] Delete all corresponding `.uid` files
+**Step 4 — Unit3D + subclasses + components (~3,076 LOC):** ✅ Done (Batch B)
+- [x] Delete `scripts/csharp/Units/Unit3D.cs` (2,285 LOC)
+- [x] Delete `scripts/csharp/Units/MeleeUnit3D.cs` (158 LOC)
+- [x] Delete `scripts/csharp/Units/RangedUnit3D.cs` (257 LOC)
+- [x] Delete `scripts/csharp/Units/DucklingUnit3D.cs` (38 LOC)
+- [x] Delete `scripts/csharp/Units/Components/UnitHealth.cs` (139 LOC)
+- [x] Delete `scripts/csharp/Units/Components/UnitMovement.cs` (199 LOC)
+- [x] Delete all corresponding `.uid` files
 
 **Step 5 — Additional legacy systems:**
-- [ ] Delete `scripts/csharp/Cards/Effects/` (14 files, ~1,300 LOC) — entire directory
-- [ ] Delete `scripts/csharp/Cards/SpellCard.cs` (71 LOC)
-- [ ] Delete `scripts/core/summoner.gd` (979 LOC)
-- [ ] Delete `scripts/csharp/Summons/UnitSpawner.cs` (419 LOC)
-- [ ] Delete `scripts/csharp/Movement/UnitSteering.cs` (462 LOC)
-- [ ] Delete `scripts/csharp/Units/Components/SpawnRevealComponent.cs` (240 LOC)
-- [ ] Delete `scripts/csharp/Units/UnitDebugService.cs` (67 LOC)
-- [ ] Remove `UnitDebugService` autoload from `project.godot`
+- [x] Delete `scripts/csharp/Cards/Effects/` (14 files, ~1,300 LOC) — entire directory ✅ Done (Batch B)
+- [x] Delete `scripts/csharp/Cards/SpellCard.cs` (71 LOC) ✅ Done (Batch B)
+- [ ] Delete `scripts/core/summoner.gd` (979 LOC) — **blocked by M3a** (tightly coupled to game_controller + battle scenes)
+- [x] Delete `scripts/csharp/Summons/UnitSpawner.cs` (419 LOC) ✅ Done (Batch B)
+- [x] Delete `scripts/csharp/Movement/UnitSteering.cs` (462 LOC) ✅ Done (Batch B)
+- [x] Delete `scripts/csharp/Units/Components/SpawnRevealComponent.cs` (240 LOC) ✅ Done (Batch B)
+- [x] Delete `scripts/csharp/Units/UnitDebugService.cs` (67 LOC) ✅ Done (Batch B)
+- [x] Remove `UnitDebugService` autoload from `project.godot` ✅ Done (cascade cleanup)
 
 **Files to UPDATE (not delete):**
-- [ ] Update `SpawnPreview.cs` — rewrite to read `InputCollector` drag state + create preview from UnitVisual
-- [ ] Update `GhostUnit3D.cs` — rewrite to use UnitVisual patterns
-- [ ] Update `CardFactory.cs` — verify ModifierService references already removed in Milestone 1
+- [x] `scripts/csharp/Input/SummonPreview.cs` — fully implemented (292 LOC, includes embedded `UnitGhost` class), staged
+- [ ] Update `SummonPreview.cs` to read `InputCollector` drag state — **blocked by M3b** (InputCollector)
+- [x] `CardFactory.cs` — verified clean (zero ModifierService refs)
 
 **Step 6 — Projectile3D + ProjectileData (~1,445 LOC):**
-- [ ] Delete `scripts/csharp/Projectiles/Projectile3D.cs` (1,128 LOC)
-- [ ] Delete `scripts/csharp/Projectiles/ProjectileData.cs` (317 LOC)
-- [ ] Delete corresponding `.uid` files
+- [x] Delete `scripts/csharp/Projectiles/Projectile3D.cs` (1,128 LOC) ✅ Done (Batch B)
+- [ ] Delete `scripts/csharp/Projectiles/ProjectileData.cs` (317 LOC) — used by ProjectileCatalog/ProjectileDefinitions (valid visual config data, not legacy)
 
 **Step 7 — GameController3D + test controller (~1,225 LOC):**
-- [ ] Delete `scripts/core/game_controller_3d.gd` (1,048 LOC)
-- [ ] Delete `scripts/core/test_game_controller.gd` (177 LOC)
+- [ ] Delete `scripts/core/game_controller_3d.gd` (1,048 LOC) — **blocked by M3a** (IS the production battle controller)
+- [ ] Delete `scripts/core/test_game_controller.gd` (177 LOC) — **blocked by M3a** (3 dev scenes depend on it)
 - [ ] Delete corresponding `.uid` files
 
 **Test updates:**
-- [ ] Update `tests/csharp/Multiplayer/ClientInitializationTest.cs` (Unit3D/SimulationNode refs change)
+- [x] `tests/csharp/Multiplayer/ClientInitializationTest.cs` — verified clean (zero legacy deps)
 
 ### Gate: Tier 2 Complete
 
@@ -302,8 +304,8 @@ Verify the foundation is solid before building new layers.
 - [ ] Grep `UnitSteering` — zero references in production code
 - [ ] Grep `SpawnRevealComponent` — zero references
 - [ ] Grep `UnitDebugService` — zero references
-- [ ] `SpawnPreview.cs` uses UnitVisual patterns
-- [ ] `GhostUnit3D.cs` uses UnitVisual patterns
+- [ ] `SummonPreview.cs` uses UnitVisual patterns
+- [ ] `UnitGhost.cs` uses UnitVisual patterns
 - [ ] `CardFactory.cs` — no `ModifierService` references
 - [ ] All 20 unit scene files reference `UnitVisual`
 - [ ] `SimulationNode.cs` is ≤100 lines

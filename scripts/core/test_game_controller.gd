@@ -32,12 +32,6 @@ func _ready() -> void:
 		projectile_catalog.reload_projectiles()
 		print("TestGameController: Reloaded projectile data from disk")
 
-	# Force projectile pool refresh to reload visuals (fixes color not updating)
-	# ProjectileService is a C# autoload
-	var projectile_service: Node = get_node_or_null(CSharpAutoloads.PROJECTILE_SERVICE)
-	if projectile_service:
-		projectile_service.refresh_pools()
-
 	# Call parent ready
 	super._ready()
 

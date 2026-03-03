@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Commands;
+using Fateforged.Simulation.Data;
 
 namespace Fateforged.Session;
 
@@ -14,7 +16,6 @@ public class HostSession : NetworkSession
     private readonly Simulation.Simulation _simulation;
     private readonly CommandRouter _commandRouter;
     private readonly MatchState _state;
-    private readonly List<SimEvent> _pendingEvents = new();
 
     public override event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
@@ -29,14 +30,25 @@ public class HostSession : NetworkSession
 
     public override void SubmitCommand(ICommand command)
     {
-        // Validate via CommandRouter, then queue into simulation
-        throw new NotImplementedException();
+        var result = _commandRouter.Validate(command, _state);
+        if (!result.IsValid)
+        {
+            Simulation.Simulation.Log?.Invoke($"[HostSession] Command rejected: {result.Reason}");
+            return;
+        }
+
+        command.ExecuteFrame = _state.FrameNumber + 1;
+        _state.PendingCommandBuffer.Add(command);
     }
 
     public override void Tick(float delta)
     {
-        // Tick simulation, collect events, broadcast snapshots, fire SimEventsEmitted
-        throw new NotImplementedException();
+        var events = _simulation.Tick(delta);
+        // TODO: broadcast snapshot to clients via transport (no transport wired yet)
+        if (events.Count > 0)
+        {
+            SimEventsEmitted?.Invoke(events);
+        }
     }
 
     /// <summary>
@@ -45,6 +57,15 @@ public class HostSession : NetworkSession
     /// </summary>
     public void HandleRemoteCommand(int senderId, ICommand command)
     {
-        throw new NotImplementedException();
+        var result = _commandRouter.Validate(command, _state);
+        if (!result.IsValid)
+        {
+            Simulation.Simulation.Log?.Invoke(
+                $"[HostSession] Remote command from {senderId} rejected: {result.Reason}");
+            return;
+        }
+
+        command.ExecuteFrame = _state.FrameNumber + 1;
+        _state.PendingCommandBuffer.Add(command);
     }
 }

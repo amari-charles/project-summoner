@@ -28,6 +28,7 @@ var _target_point_button: Button
 var _attack_range_button: Button
 var _separation_radius_button: Button
 var _spawn_boundary_button: Button
+var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
 var _command_input: LineEdit  # Console command input
 var _command_output: Label  # Console command output
 var _autocomplete_list: ItemList  # Autocomplete suggestions
@@ -327,27 +328,26 @@ func _create_ui() -> void:
 func _update_button_states() -> void:
 	# Update all toggle button text to match current state
 	if _grid_button:
-		var state: String = "On" if SpatialGrid.is_debug_enabled() else "Off"
-		_grid_button.text = "Grid Lines: %s" % state
+		_grid_button.text = "Grid Lines: Off"
 
-	if _hurtbox_button:
+	if _hurtbox_button and _unit_debug:
 		var state: String = "On" if _unit_debug.IsDebugHurtboxEnabled() else "Off"
 		_hurtbox_button.text = "Hurtboxes: %s" % state
 
-	if _target_point_button:
+	if _target_point_button and _unit_debug:
 		var state: String = "On" if _unit_debug.IsDebugTargetPointEnabled() else "Off"
 		_target_point_button.text = "Target Points: %s" % state
 
-	if _attack_range_button:
+	if _attack_range_button and _unit_debug:
 		var state: String = "On" if _unit_debug.IsDebugAttackRangeEnabled() else "Off"
 		_attack_range_button.text = "Attack Ranges: %s" % state
 
-	if _separation_radius_button:
+	if _separation_radius_button and _unit_debug:
 		var state: String = "On" if _unit_debug.IsDebugSeparationRadiusEnabled() else "Off"
 		_separation_radius_button.text = "Separation Radius: %s" % state
 
 	if _spawn_boundary_button:
-		var bypass_enabled: bool = SpatialGrid.is_debug_bypass_spawn_boundary_enabled()
+		var bypass_enabled: bool = _bypass_spawn_boundary
 		var state: String = "Off" if bypass_enabled else "On"
 		_spawn_boundary_button.text = "Spawn Boundary: %s" % state
 
@@ -390,9 +390,8 @@ func _on_fps_button_pressed(fps: int) -> void:
 
 
 func _on_grid_toggle_pressed() -> void:
-	SpatialGrid.toggle_debug()
-	var state: String = "On" if SpatialGrid.is_debug_enabled() else "Off"
-	_grid_button.text = "Grid Lines: %s" % state
+	# Grid visualization removed (SpatialGrid deleted)
+	_grid_button.text = "Grid Lines: Off"
 	_save_settings()
 
 
@@ -406,6 +405,7 @@ func _on_skip_prep_pressed() -> void:
 
 
 func _on_hurtbox_toggle_pressed() -> void:
+	if not _unit_debug: return
 	_unit_debug.ToggleDebugHurtbox()
 	var state: String = "On" if _unit_debug.IsDebugHurtboxEnabled() else "Off"
 	_hurtbox_button.text = "Hurtboxes: %s" % state
@@ -413,6 +413,7 @@ func _on_hurtbox_toggle_pressed() -> void:
 
 
 func _on_target_point_toggle_pressed() -> void:
+	if not _unit_debug: return
 	_unit_debug.ToggleDebugTargetPoint()
 	var state: String = "On" if _unit_debug.IsDebugTargetPointEnabled() else "Off"
 	_target_point_button.text = "Target Points: %s" % state
@@ -420,6 +421,7 @@ func _on_target_point_toggle_pressed() -> void:
 
 
 func _on_attack_range_toggle_pressed() -> void:
+	if not _unit_debug: return
 	_unit_debug.ToggleDebugAttackRange()
 	var state: String = "On" if _unit_debug.IsDebugAttackRangeEnabled() else "Off"
 	_attack_range_button.text = "Attack Ranges: %s" % state
@@ -427,6 +429,7 @@ func _on_attack_range_toggle_pressed() -> void:
 
 
 func _on_separation_radius_toggle_pressed() -> void:
+	if not _unit_debug: return
 	_unit_debug.ToggleDebugSeparationRadius()
 	var state: String = "On" if _unit_debug.IsDebugSeparationRadiusEnabled() else "Off"
 	_separation_radius_button.text = "Separation Radius: %s" % state
@@ -434,9 +437,8 @@ func _on_separation_radius_toggle_pressed() -> void:
 
 
 func _on_spawn_boundary_toggle_pressed() -> void:
-	SpatialGrid.toggle_debug_bypass_spawn_boundary()
-	# "On" means boundary is enforced, "Off" means bypass is enabled (no boundary)
-	var bypass_enabled: bool = SpatialGrid.is_debug_bypass_spawn_boundary_enabled()
+	_bypass_spawn_boundary = !_bypass_spawn_boundary
+	var bypass_enabled: bool = _bypass_spawn_boundary
 	var state: String = "Off" if bypass_enabled else "On"
 	_spawn_boundary_button.text = "Spawn Boundary: %s" % state
 	_save_settings()
@@ -634,14 +636,13 @@ func _load_settings() -> void:
 	if err != OK:
 		return  # No saved settings, use defaults
 
-	# Load visualization toggles using set methods (not toggle, to avoid sync issues)
-	SpatialGrid.set_debug_enabled(config.get_value("debug_menu", "grid_lines", false))
+	# Load visualization toggles
 	if _unit_debug:
 		_unit_debug.SetDebugHurtboxEnabled(config.get_value("debug_menu", "hurtboxes", false))
 		_unit_debug.SetDebugTargetPointEnabled(config.get_value("debug_menu", "target_points", false))
 		_unit_debug.SetDebugAttackRangeEnabled(config.get_value("debug_menu", "attack_ranges", false))
 		_unit_debug.SetDebugSeparationRadiusEnabled(config.get_value("debug_menu", "separation_radius", false))
-	SpatialGrid.set_debug_bypass_spawn_boundary(config.get_value("debug_menu", "bypass_spawn_boundary", false))
+	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
 
@@ -650,36 +651,17 @@ func _save_settings() -> void:
 	var config: ConfigFile = ConfigFile.new()
 
 	# Save visualization toggles
-	config.set_value("debug_menu", "grid_lines", SpatialGrid.is_debug_enabled())
+	config.set_value("debug_menu", "grid_lines", false)
 	if _unit_debug:
 		config.set_value("debug_menu", "hurtboxes", _unit_debug.IsDebugHurtboxEnabled())
 		config.set_value("debug_menu", "target_points", _unit_debug.IsDebugTargetPointEnabled())
 		config.set_value("debug_menu", "attack_ranges", _unit_debug.IsDebugAttackRangeEnabled())
 		config.set_value("debug_menu", "separation_radius", _unit_debug.IsDebugSeparationRadiusEnabled())
-	config.set_value("debug_menu", "bypass_spawn_boundary", SpatialGrid.is_debug_bypass_spawn_boundary_enabled())
+	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 
 	config.save(SETTINGS_PATH)
 
 
 func _update_perf_counters() -> void:
-	var counters: Dictionary = SpatialGrid.get_perf_counters()
-	if counters.is_empty():
-		return
-
-	var units: int = counters.get("active_units", 0)
-	var summoner_lookups: int = counters.get("summoner_lookups", 0)
-	var grid_queries: int = counters.get("spatial_grid_queries", 0)
-	var target_acq: int = counters.get("target_acquisitions", 0)
-	var physics_usec: int = counters.get("physics_time_usec", 0)
-	var queries_per_unit: float = counters.get("queries_per_unit", 0.0)
-	var usec_per_unit: float = counters.get("avg_usec_per_unit", 0.0)
-
-	_perf_label.text = "Units: %d\nSummoner Lookups: %d\nGrid Queries: %d (%.1f/unit)\nTarget Acquisitions: %d\nPhysics: %dus (%.1fus/unit)" % [
-		units,
-		summoner_lookups,
-		grid_queries,
-		queries_per_unit,
-		target_acq,
-		physics_usec,
-		usec_per_unit
-	]
+	# Perf counters display (SpatialGrid removed — show placeholder)
+	_perf_label.text = ""

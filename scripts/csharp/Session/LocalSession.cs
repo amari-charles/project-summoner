@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Commands;
+using Fateforged.Simulation.Data;
 
 namespace Fateforged.Session;
 
@@ -14,7 +16,6 @@ public class LocalSession : IGameSession
     private readonly Simulation.Simulation _simulation;
     private readonly CommandRouter _commandRouter;
     private readonly MatchState _state;
-    private readonly List<SimEvent> _pendingEvents = new();
 
     public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
@@ -29,13 +30,23 @@ public class LocalSession : IGameSession
 
     public void SubmitCommand(ICommand command)
     {
-        // Validate via CommandRouter, then queue into simulation
-        throw new NotImplementedException();
+        var result = _commandRouter.Validate(command, _state);
+        if (!result.IsValid)
+        {
+            Simulation.Simulation.Log?.Invoke($"[LocalSession] Command rejected: {result.Reason}");
+            return;
+        }
+
+        command.ExecuteFrame = _state.FrameNumber + 1;
+        _state.PendingCommandBuffer.Add(command);
     }
 
     public void Tick(float delta)
     {
-        // Tick simulation, collect events, fire SimEventsEmitted
-        throw new NotImplementedException();
+        var events = _simulation.Tick(delta);
+        if (events.Count > 0)
+        {
+            SimEventsEmitted?.Invoke(events);
+        }
     }
 }

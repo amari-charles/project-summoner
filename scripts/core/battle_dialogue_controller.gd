@@ -261,15 +261,11 @@ func _spawn_tutorial_enemy() -> void:
 
 	print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
 
-	# Get ModifierService (C# autoload - must use get_node_or_null)
-	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-	print("BattleDialogueController: ModifierService: %s" % ("found" if modifier_service else "null"))
-
 	# Spawn the unit directly (team 1 = enemy)
 	print("BattleDialogueController: Checking if card has play_3d method...")
 	if card.has_method("play_3d"):
 		print("BattleDialogueController: Calling card.play_3d()...")
-		card.call("play_3d", spawn_pos_3d, 1, battlefield, modifier_service)
+		card.call("play_3d", spawn_pos_3d, 1, battlefield, null)
 		print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
 	else:
 		push_error("BattleDialogueController: Card doesn't have play_3d method - card type is %s" % card.get_class())

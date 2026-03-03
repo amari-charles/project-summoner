@@ -250,8 +250,8 @@ Systems identified by deletion-sequence audit that were missing from the origina
 
 | File | Path | Action |
 |------|------|--------|
-| `SpawnPreview.cs` | `scripts/csharp/SpawnPreview/SpawnPreview.cs` | **UPDATE** — rewrite to read `InputCollector` drag state + create preview from `UnitVisual` instead of `Unit3D`. See [view design-specs.md §4](../architecture/gameplay/view/design-specs.md). |
-| `GhostUnit3D.cs` | `scripts/csharp/SpawnPreview/GhostUnit3D.cs` | **UPDATE** — rewrite to work with `UnitVisual` patterns instead of `Unit3D`. |
+| `SummonPreview.cs` | `scripts/csharp/Input/SummonPreview.cs` | **UPDATE** — rewrite to read `InputCollector` drag state + create preview from `UnitVisual` instead of `Unit3D`. See [view design-specs.md §4](../architecture/gameplay/view/design-specs.md). |
+| `UnitGhost.cs` | `scripts/csharp/Input/UnitGhost.cs` | **UPDATE** — rewrite to work with `UnitVisual` patterns instead of `Unit3D`. |
 | `CardFactory.cs` | `scripts/csharp/Cards/CardFactory.cs` | **UPDATE** — remove `ModifierService` references in Tier 1, `SpatialGrid` references in Tier 5. See [cross-cutting-plan.md §6](cross-cutting-plan.md). |
 
 ### Step 6: Projectile3D + ProjectileData (~1,445 LOC)
@@ -315,8 +315,8 @@ Systems identified by deletion-sequence audit that were missing from the origina
 - [ ] Grep for `UnitSteering` — zero references in production code
 - [ ] Grep for `SpawnRevealComponent` — zero references remain
 - [ ] Grep for `UnitDebugService` — zero references remain
-- [ ] `SpawnPreview.cs` updated to use `UnitVisual` patterns
-- [ ] `GhostUnit3D.cs` updated to use `UnitVisual` patterns
+- [ ] `SummonPreview.cs` updated to use `UnitVisual` patterns
+- [ ] `UnitGhost.cs` updated to use `UnitVisual` patterns
 - [ ] `CardFactory.cs` — `ModifierService` references removed
 - [ ] All 20 unit scene files reference `UnitVisual`
 - [ ] `SimulationNode.cs` is ≤100 lines

@@ -3,6 +3,9 @@ using Fateforged.Session;
 using Fateforged.Simulation;
 using Godot;
 using ProjectSummoner.Units;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Events;
 
 namespace Fateforged.View;
 
@@ -117,7 +120,6 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     private UnitVisual? SpawnUnitShell(UnitData unitData)
     {
-        // Look up scene via UnitDefinitions
         var def = UnitDefinitions.Get(unitData.CatalogId);
         if (def == null)
         {
@@ -132,44 +134,11 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             return null;
         }
 
-        // Instantiate the unit scene (generic Node3D container for Visual child)
-        var sceneRoot = packedScene.Instantiate<Node3D>();
-
-        var unitVisual = new UnitVisual();
-        unitVisual.Name = $"UnitVisual_{unitData.UnitId}";
-
-        // Extract ALL children from scene root into the UnitVisual shell.
-        // Scene roots are plain Node3D containers — children include Visual,
-        // AnimationPlayer, and Marker3D nodes that the shell needs.
-        bool extracted = false;
-        var childrenToMove = new List<Node>();
-        foreach (var child in sceneRoot.GetChildren())
-        {
-            childrenToMove.Add(child);
-        }
-
-        foreach (var child in childrenToMove)
-        {
-            sceneRoot.RemoveChild(child);
-            unitVisual.AddChild(child);
-            extracted = true;
-        }
-
-        if (!extracted)
-        {
-            // Fallback: add entire scene as child (old script will fail gracefully)
-            unitVisual.AddChild(sceneRoot);
-            GD.PushWarning($"[EntityManager] No extractable children in {def.ScenePath}, using whole scene as child");
-        }
-        else
-        {
-            // Discard stripped scene root
-            sceneRoot.QueueFree();
-        }
-
-        AddChild(unitVisual);
-        unitVisual.Initialize(_session!, unitData.UnitId);
-        return unitVisual;
+        var shell = packedScene.Instantiate<UnitVisual>();
+        shell.Name = $"UnitVisual_{unitData.UnitId}";
+        AddChild(shell);
+        shell.Initialize(_session!, unitData.UnitId);
+        return shell;
     }
 
     private ProjectileVisual SpawnProjectileShell(SimProjectileData projData)

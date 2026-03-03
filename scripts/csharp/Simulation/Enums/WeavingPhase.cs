@@ -1,4 +1,4 @@
-namespace Fateforged.Simulation;
+namespace Fateforged.Simulation.Enums;
 
 /// <summary>
 /// Phase of weaving-homing projectile movement.

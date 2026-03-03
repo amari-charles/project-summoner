@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using Fateforged.Simulation;
 using Godot;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Projectiles;
 using ProjectSummoner.Stats;
-using ProjectSummoner.Targeting;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 namespace ProjectSummoner.Units;
 
@@ -32,7 +34,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/fire_wisp_3d.tscn"
     };
@@ -51,7 +53,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/water_wisp_3d.tscn"
     };
@@ -70,7 +72,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/wind_wisp_3d.tscn"
     };
@@ -89,7 +91,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/earth_wisp_3d.tscn"
     };
@@ -108,7 +110,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/lightning_wisp_3d.tscn"
     };
@@ -127,7 +129,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/life_wisp_3d.tscn"
     };
@@ -146,7 +148,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/death_wisp_3d.tscn"
     };
@@ -165,7 +167,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/shadow_wisp_3d.tscn"
     };
@@ -188,7 +190,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.8f, ShadowOpacity = 0.7f },
         ScenePath = "res://scenes/units/fire_titan_3d.tscn"
     };
@@ -207,7 +209,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.3f, ShadowOpacity = 0.5f },
         ScenePath = "res://scenes/units/fire_ant_3d.tscn"
     };
@@ -226,7 +228,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.6f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/fire_boar_3d.tscn"
     };
@@ -245,7 +247,6 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Ranged,
-        Targeting = new RangedGroundTargeting { AggroRadius = 20f },
         Ranged = new RangedConfig(ProjectileIds.FireWeb),
         Visual = new VisualConfig { SeparationRadius = 0.4f, ShadowOpacity = 0.5f },
         ScenePath = "res://scenes/units/fire_spider_3d.tscn"
@@ -269,7 +270,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.6f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/earth_sprite_3d.tscn"
     };
@@ -288,7 +289,6 @@ public static class UnitDefinitions
             AggroRadius = 0f
         },
         UnitType = UnitType.Melee,
-        Targeting = PassiveTargeting.Default,
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/rock_3d.tscn"
     };
@@ -307,7 +307,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.7f, ShadowOpacity = 0.7f },
         ScenePath = "res://scenes/units/stone_ape_3d.tscn"
     };
@@ -326,7 +326,6 @@ public static class UnitDefinitions
             AggroRadius = 22f
         },
         UnitType = UnitType.Ranged,
-        Targeting = new RangedGroundTargeting { AggroRadius = 22f },  // MoveToward (artillery style)
         Ranged = new RangedConfig(ProjectileIds.Rock),
         Visual = new VisualConfig { SeparationRadius = 0.3f, ShadowOpacity = 0.4f },
         ScenePath = "res://scenes/units/earth_rock_thrower_3d.tscn"
@@ -351,7 +350,6 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Ranged,
         MovementLayer = MovementLayer.Air,
-        Targeting = PuffConeTargeting.Default,
         Ranged = new RangedConfig(ProjectileIds.WindPuff)
         {
             ProjectileDelay = 0.585f,
@@ -393,7 +391,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/water_frog_3d.tscn"
     };
@@ -412,7 +410,7 @@ public static class UnitDefinitions
             AggroRadius = 20f
         },
         UnitType = UnitType.Melee,
-        Targeting = MeleeTargeting.Default,
+
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/units/mama_duck_3d.tscn"
     };
@@ -431,7 +429,6 @@ public static class UnitDefinitions
             AggroRadius = 16f
         },
         UnitType = UnitType.Ranged,
-        Targeting = DucklingTargeting.Default,
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
         Visual = new VisualConfig { SeparationRadius = 0.25f, ShadowOpacity = 0.3f },
         ScenePath = "res://scenes/units/duckling_3d.tscn"
@@ -501,4 +498,99 @@ public static class UnitDefinitions
 
     /// <summary>Get unit count.</summary>
     public static int Count => _lookup.Count;
+
+    // =========================================================================
+    // SIM TEMPLATE FACTORY
+    // =========================================================================
+
+    /// <summary>
+    /// Build a SimUnitTemplate from a unit definition.
+    /// This is the bridge between the unit catalog and the simulation's flat template format.
+    /// </summary>
+    public static SimUnitTemplate BuildSimTemplate(UnitId unitId, int count, StatModifier? modifier = null)
+    {
+        var template = new SimUnitTemplate { Count = count, UnitTypeId = unitId.Value };
+
+        if (!TryGet(unitId, out var def) || def == null)
+            return template;
+
+        var stats = modifier != null ? def.Stats.WithModifier(modifier) : def.Stats;
+
+        template.MaxHp = stats.MaxHp;
+        template.AttackDamage = stats.AttackDamage;
+        template.AttackSpeed = stats.AttackSpeed;
+        template.MoveSpeed = stats.MoveSpeed;
+        template.AttackRange = stats.AttackRange;
+        template.AggroRadius = stats.AggroRadius;
+        template.CritChance = stats.CritChance;
+        template.CritDamage = stats.CritDamage;
+        template.UnitType = def.UnitType;
+        template.MovementLayer = def.MovementLayer;
+        template.ElementId = (int)(def.DamageProfile.Element ?? ProjectSummoner.Cards.Element.Neutral);
+        template.SeparationRadius = def.Visual.SeparationRadius;
+        template.PhysicalDefense = stats.Armor;
+        template.MagicDefense = stats.MagicResist;
+
+        // Ranged config
+        if (def.Ranged != null)
+            template.ProjectileDelay = def.Ranged.ProjectileDelay;
+
+        // Flying config
+        if (def.Flying != null)
+            template.FlightAltitude = def.Flying.Altitude;
+
+        // Direct targeting field assignment (inlined from old ITargetingBehavior implementations)
+        template.DistanceScorerWeight = 1f;
+        SetTargetingProfile(def, template);
+
+        return template;
+    }
+
+    /// <summary>
+    /// Set targeting profile fields based on unit definition.
+    /// Values inlined from the old MeleeTargeting, RangedGroundTargeting,
+    /// PassiveTargeting, PuffConeTargeting, DucklingTargeting implementations.
+    /// </summary>
+    private static void SetTargetingProfile(UnitDefinition def, SimUnitTemplate template)
+    {
+        // Passive units (no aggro, stationary)
+        if (def.Stats.AggroRadius <= 0f || def.Stats.AttackSpeed <= 0f)
+        {
+            template.FallbackMovement = FallbackMovement.Idle;
+            return;
+        }
+
+        // Puff — flying cone attacker
+        if (def.Id == UnitIds.Puff)
+        {
+            template.FallbackMovement = FallbackMovement.Strafe;
+            template.HasConeConstraint = true;
+            template.ConeHalfAngle = 30f;
+            template.CloseRangeThreshold = 0.5f;
+            return;
+        }
+
+        // Duckling — ranged strafe
+        if (def.Id == UnitIds.Duckling)
+        {
+            template.FallbackMovement = FallbackMovement.Strafe;
+            return;
+        }
+
+        // Melee units
+        if (def.UnitType == UnitType.Melee)
+        {
+            template.FallbackMovement = FallbackMovement.MoveToward;
+            template.HealthScorerWeight = 10f;
+            template.TargetLayerFilter = TargetLayer.GroundOnly;
+            return;
+        }
+
+        // Ranged ground units (artillery style — advance when out of range)
+        if (def.UnitType == UnitType.Ranged)
+        {
+            template.FallbackMovement = FallbackMovement.MoveToward;
+            return;
+        }
+    }
 }

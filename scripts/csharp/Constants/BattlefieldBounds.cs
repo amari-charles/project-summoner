@@ -3,7 +3,6 @@ namespace ProjectSummoner.Constants;
 using System;
 using Godot;
 using Fateforged.Simulation;
-using ProjectSummoner.Systems;
 
 /// <summary>
 /// Battlefield boundary constants and utility methods.
@@ -48,6 +47,16 @@ public static class BattlefieldBounds
     public const float SpawnBoundaryEpsilon = 0.001f;
 
     // =========================================================================
+    // DEBUG BYPASS (formerly in SpatialGrid)
+    // =========================================================================
+
+    private static bool _debugBypassSpawnBoundary;
+
+    public static bool IsDebugBypassSpawnBoundaryEnabled() => _debugBypassSpawnBoundary;
+    public static void SetDebugBypassSpawnBoundary(bool enabled) => _debugBypassSpawnBoundary = enabled;
+    public static void ToggleDebugBypassSpawnBoundary() => _debugBypassSpawnBoundary = !_debugBypassSpawnBoundary;
+
+    // =========================================================================
     // BOUNDARY UTILITY METHODS
     // =========================================================================
 
@@ -55,8 +64,6 @@ public static class BattlefieldBounds
     /// Clamp a position to battlefield boundaries (XZ plane only).
     /// Y coordinate is preserved unchanged.
     /// </summary>
-    /// <param name="position">Position to clamp</param>
-    /// <returns>Position clamped to battlefield bounds</returns>
     public static Vector3 ClampToBounds(Vector3 position)
     {
         return new Vector3(
@@ -82,8 +89,6 @@ public static class BattlefieldBounds
     /// <summary>
     /// Check if a position is within battlefield boundaries.
     /// </summary>
-    /// <param name="position">Position to check</param>
-    /// <returns>True if position is within bounds</returns>
     public static bool IsInBounds(Vector3 position)
     {
         return position.X >= MinX && position.X <= MaxX
@@ -97,15 +102,10 @@ public static class BattlefieldBounds
     /// <summary>
     /// Check if a position is valid for spawning for the given team.
     /// Player (team 0): X &lt;= 0, Enemy (team 1): X &gt; 0
-    /// Respects debug bypass flag from SpatialGrid.
     /// </summary>
-    /// <param name="position">Position to check</param>
-    /// <param name="team">0 = Player, 1 = Enemy</param>
-    /// <returns>True if position is in valid spawn zone for team</returns>
     public static bool IsValidSpawnPositionForTeam(Vector3 position, int team)
     {
-        // Debug bypass - all positions are valid (flag stored in SpatialGrid for GDScript access)
-        if (SpatialGrid.IsDebugBypassSpawnBoundaryEnabled())
+        if (_debugBypassSpawnBoundary)
             return true;
 
         if (team == 0) // Player
@@ -117,19 +117,13 @@ public static class BattlefieldBounds
     /// <summary>
     /// Clamp a position to a fully valid spawn zone for the given team.
     /// Applies both outer battlefield bounds AND team spawn boundary.
-    /// Use this when you need a guaranteed valid spawn position.
-    /// Respects debug bypass flag (only applies outer bounds when bypassed).
     /// </summary>
-    /// <param name="position">Position to clamp</param>
-    /// <param name="team">0 = Player, 1 = Enemy</param>
-    /// <returns>Position clamped to valid spawn zone (within bounds and on correct team side)</returns>
     public static Vector3 ClampToValidSpawnZone(Vector3 position, int team)
     {
         // Apply outer battlefield bounds first
         var clamped = ClampToBounds(position);
 
-        // Debug bypass - skip team boundary enforcement (flag stored in SpatialGrid for GDScript access)
-        if (SpatialGrid.IsDebugBypassSpawnBoundaryEnabled())
+        if (_debugBypassSpawnBoundary)
             return clamped;
 
         // Then apply team spawn boundary

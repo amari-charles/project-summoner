@@ -1,4 +1,4 @@
-namespace Fateforged.Simulation;
+namespace Fateforged.Simulation.Commands;
 
 /// <summary>
 /// Command to play a card from a summoner's hand.

@@ -3,6 +3,8 @@ using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using ProjectSummoner.Units;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 namespace ProjectSummoner.Tests.Simulation;
 

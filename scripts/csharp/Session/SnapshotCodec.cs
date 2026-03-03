@@ -1,20 +1,211 @@
+using System.IO;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
+using ProjectSummoner.Units;
 
 namespace Fateforged.Session;
 
 /// <summary>
 /// Serialize/deserialize MatchState for network transmission.
-/// Thin wrapper around the existing StateSnapshotBuilder pattern.
+/// Uses BinaryWriter/BinaryReader for compact encoding.
+/// Position quantized to millimeters, HP to tenths.
 /// </summary>
 public class SnapshotCodec
 {
+    private const float PositionScale = 1000f;
+    private const float HpScale = 10f;
+
     public byte[] Encode(MatchState state)
     {
-        throw new System.NotImplementedException();
+        using var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms);
+
+        // Header
+        w.Write(state.FrameNumber);
+        w.Write(state.MatchTime);
+        w.Write((int)state.Phase);
+        w.Write(state.PrepTimeRemaining);
+        w.Write(state.IsOvertime);
+        w.Write(state.WinnerTeam ?? -1);
+
+        // Summoners
+        for (int i = 0; i < 2; i++)
+        {
+            var s = state.Summoners[i];
+            EncodeSummoner(w, s);
+        }
+
+        // Units
+        w.Write(state.Units.Count);
+        foreach (var (unitId, unit) in state.Units)
+        {
+            w.Write(unitId);
+            EncodeUnit(w, unit);
+        }
+
+        return ms.ToArray();
     }
 
     public MatchState Decode(byte[] data)
     {
-        throw new System.NotImplementedException();
+        using var ms = new MemoryStream(data);
+        using var r = new BinaryReader(ms);
+
+        var state = new MatchState();
+
+        // Header
+        state.FrameNumber = r.ReadInt64();
+        state.MatchTime = r.ReadSingle();
+        state.Phase = (GamePhase)r.ReadInt32();
+        state.PrepTimeRemaining = r.ReadSingle();
+        state.IsOvertime = r.ReadBoolean();
+        int winnerTeam = r.ReadInt32();
+        state.WinnerTeam = winnerTeam == -1 ? null : winnerTeam;
+
+        // Summoners
+        for (int i = 0; i < 2; i++)
+        {
+            DecodeSummoner(r, state.Summoners[i]);
+        }
+
+        // Units
+        int unitCount = r.ReadInt32();
+        for (int i = 0; i < unitCount; i++)
+        {
+            int unitId = r.ReadInt32();
+            var unit = DecodeUnit(r);
+            unit.UnitId = unitId;
+            state.Units[unitId] = unit;
+        }
+
+        return state;
+    }
+
+    private static void EncodeSummoner(BinaryWriter w, SummonerData s)
+    {
+        w.Write((int)s.Team);
+        w.Write(QuantizeHp(s.CurrentHp));
+        w.Write(QuantizeHp(s.MaxHp));
+        w.Write(s.IsAlive);
+        w.Write(QuantizeHp(s.Mana));
+        w.Write(QuantizeHp(s.MaxMana));
+        w.Write(s.IsCasting);
+        w.Write(s.CastingTimeRemaining);
+        w.Write(s.CastingTimeTotal);
+        w.Write(s.CastingCardIndex);
+        w.Write(s.CastingCatalogId ?? "");
+        WriteSimVector3(w, s.CastingSpawnPosition);
+        w.Write(s.CastingNetworkId);
+
+        // Hand
+        w.Write(s.Hand.Count);
+        foreach (var card in s.Hand)
+            w.Write(card);
+
+        // Deck
+        w.Write(s.Deck.Count);
+        foreach (var card in s.Deck)
+            w.Write(card);
+
+        // Discard
+        w.Write(s.DiscardPile.Count);
+        foreach (var card in s.DiscardPile)
+            w.Write(card);
+    }
+
+    private static void DecodeSummoner(BinaryReader r, SummonerData s)
+    {
+        s.Team = (Team)r.ReadInt32();
+        s.CurrentHp = DequantizeHp(r.ReadInt32());
+        s.MaxHp = DequantizeHp(r.ReadInt32());
+        s.IsAlive = r.ReadBoolean();
+        s.Mana = DequantizeHp(r.ReadInt32());
+        s.MaxMana = DequantizeHp(r.ReadInt32());
+        s.IsCasting = r.ReadBoolean();
+        s.CastingTimeRemaining = r.ReadSingle();
+        s.CastingTimeTotal = r.ReadSingle();
+        s.CastingCardIndex = r.ReadInt32();
+        s.CastingCatalogId = r.ReadString();
+        s.CastingSpawnPosition = ReadSimVector3(r);
+        s.CastingNetworkId = r.ReadInt32();
+
+        int handCount = r.ReadInt32();
+        s.Hand.Clear();
+        for (int i = 0; i < handCount; i++)
+            s.Hand.Add(r.ReadString());
+
+        int deckCount = r.ReadInt32();
+        s.Deck.Clear();
+        for (int i = 0; i < deckCount; i++)
+            s.Deck.Add(r.ReadString());
+
+        int discardCount = r.ReadInt32();
+        s.DiscardPile.Clear();
+        for (int i = 0; i < discardCount; i++)
+            s.DiscardPile.Add(r.ReadString());
+    }
+
+    private static void EncodeUnit(BinaryWriter w, UnitData u)
+    {
+        w.Write(u.NetworkId);
+        w.Write(u.CatalogId ?? "");
+        w.Write((int)u.Team);
+        WriteQuantizedPosition(w, u.Position);
+        w.Write(QuantizeHp(u.CurrentHp));
+        w.Write(QuantizeHp(u.MaxHp));
+        w.Write(u.IsAlive);
+        w.Write((int)u.ActivationState);
+        w.Write((int)u.BehaviorState);
+        w.Write(u.IsFacingRight);
+        w.Write(u.TargetUnitId ?? -1);
+    }
+
+    private static UnitData DecodeUnit(BinaryReader r)
+    {
+        var u = new UnitData();
+        u.NetworkId = r.ReadInt32();
+        u.CatalogId = r.ReadString();
+        u.Team = (Team)r.ReadInt32();
+        u.Position = ReadQuantizedPosition(r);
+        u.CurrentHp = DequantizeHp(r.ReadInt32());
+        u.MaxHp = DequantizeHp(r.ReadInt32());
+        u.IsAlive = r.ReadBoolean();
+        u.ActivationState = (ActivationState)r.ReadInt32();
+        u.BehaviorState = (BehaviorState)r.ReadInt32();
+        u.IsFacingRight = r.ReadBoolean();
+        int targetId = r.ReadInt32();
+        u.TargetUnitId = targetId == -1 ? null : targetId;
+        return u;
+    }
+
+    private static int QuantizeHp(float value) => (int)(value * HpScale);
+    private static float DequantizeHp(int value) => value / HpScale;
+
+    private static void WriteQuantizedPosition(BinaryWriter w, SimVector3 v)
+    {
+        w.Write((int)(v.X * PositionScale));
+        w.Write((int)(v.Y * PositionScale));
+        w.Write((int)(v.Z * PositionScale));
+    }
+
+    private static SimVector3 ReadQuantizedPosition(BinaryReader r)
+    {
+        float x = r.ReadInt32() / PositionScale;
+        float y = r.ReadInt32() / PositionScale;
+        float z = r.ReadInt32() / PositionScale;
+        return new SimVector3(x, y, z);
+    }
+
+    private static void WriteSimVector3(BinaryWriter w, SimVector3 v)
+    {
+        w.Write(v.X);
+        w.Write(v.Y);
+        w.Write(v.Z);
+    }
+
+    private static SimVector3 ReadSimVector3(BinaryReader r)
+    {
+        return new SimVector3(r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
     }
 }

@@ -9,7 +9,7 @@ var camera_3d: Camera3D = null
 var is_3d: bool = false
 var _initialized: bool = false  # Track initialization state
 
-## Spawn preview for summon cards (C# class: ProjectSummoner.SpawnPreview.SpawnPreview)
+## Spawn preview for summon cards (C# class: Fateforged.Input.SummonPreview)
 var _spawn_preview: Node3D = null  # Typed as Node3D for GDScript/C# interop
 var _preview_card: Card = null  # Track which card we're previewing
 var _preview_team: int = 0  # Track which team we're previewing for
@@ -276,17 +276,15 @@ func _update_spawn_preview(world_pos: Vector3, card: Card, is_valid_zone: bool =
 
 	# Calculate safe spawn positions per-unit (same logic as actual spawning in card.gd)
 	var positions: Array[Vector3] = _calculate_safe_spawn_positions(world_pos, card, team)
-	_spawn_preview.UpdatePositions(positions)  # C# uses PascalCase
-	_spawn_preview.SetValid(is_valid_zone)  # C# uses PascalCase
+	_spawn_preview.UpdatePositions(positions)
+	_spawn_preview.SetValid(is_valid_zone)
 
 ## Create a new spawn preview for the card
 func _create_spawn_preview(card: Card, team: int = 0) -> void:
 	if not card.unit_scene:
 		return
 
-	# Load C# SpawnPreview class via script path for GDScript/C# interop
-	var spawn_preview_script: Script = load("res://scripts/csharp/SpawnPreview/SpawnPreview.cs")
-	_spawn_preview = spawn_preview_script.new()
+	_spawn_preview = SummonPreview.new()
 	_preview_card = card
 
 	# Add to 3D scene (find a suitable parent)
@@ -295,7 +293,7 @@ func _create_spawn_preview(card: Card, team: int = 0) -> void:
 		var root_3d: Node = _find_3d_root(viewport)
 		if root_3d:
 			root_3d.add_child(_spawn_preview)
-			_spawn_preview.Setup(card.unit_scene, card.spawn_count, team)  # C# uses PascalCase
+			_spawn_preview.Initialize(card.unit_scene, card.spawn_count, team, card.catalog_id)
 
 ## Find a suitable 3D root node to parent the preview
 func _find_3d_root(viewport: Viewport) -> Node:
@@ -362,7 +360,7 @@ func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int 
 ## Clean up the spawn preview
 func _cleanup_spawn_preview() -> void:
 	if _spawn_preview and is_instance_valid(_spawn_preview):
-		_spawn_preview.Cleanup()  # C# uses PascalCase
+		_spawn_preview.Cleanup()
 	_spawn_preview = null
 	_preview_card = null
 	_preview_team = 0
@@ -482,16 +480,13 @@ func _drop_debug_spawn(at_position: Vector2, data: Dictionary) -> void:
 		push_error("BattlefieldDropZone: No battlefield found for debug spawn")
 		return
 
-	# ModifierService autoload for unit modifiers (C# autoload - must use get_node_or_null)
-	var modifier_service: Node = get_node_or_null(CSharpAutoloads.MODIFIER_SERVICE)
-
 	# Convert team int to UnitConstants.Team enum
 	var unit_team: UnitConstants.Team = UnitConstants.Team.PLAYER if team == 0 else UnitConstants.Team.ENEMY
 
 	# Spawn with no animation - debug spawns should appear immediately
 	# (spawn reveal tweens don't run when game is paused)
 	const DEBUG_SPAWN_DURATION: float = 0.0
-	card.play_3d(world_pos, unit_team, battlefield, modifier_service, DEBUG_SPAWN_DURATION)
+	card.play_3d(world_pos, unit_team, battlefield, null, DEBUG_SPAWN_DURATION)
 
 	# Activate newly spawned units immediately (debug mode bypasses prep phase)
 	await get_tree().process_frame

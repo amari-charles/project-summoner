@@ -4,6 +4,8 @@ using Godot;
 using ProjectSummoner.Services;
 using ProjectSummoner.UI;
 using ProjectSummoner.Visual;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 namespace Fateforged.View;
 

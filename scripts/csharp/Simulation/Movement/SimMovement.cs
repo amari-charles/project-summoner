@@ -2,6 +2,8 @@ using System;
 using Fateforged.Simulation.Combat;
 using ProjectSummoner.Constants;
 using ProjectSummoner.Units;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation.Movement;
 

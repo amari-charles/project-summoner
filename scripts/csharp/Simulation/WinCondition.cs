@@ -1,3 +1,4 @@
+using Fateforged.Simulation.Data;
 namespace Fateforged.Simulation;
 
 /// <summary>

@@ -99,7 +99,7 @@ BattleScene (top-level facade, wires everything to IGameSession)
 Detailed migration plans for existing components that span View/Input boundaries:
 [design-specs.md](design-specs.md)
 
-Covers: HandUI split, SpellTargetingManager retirement, RedirectManager→Command, SpawnPreview, Summoner decomposition, GameController3D decomposition, SimEventSignalEmitter retirement, BattlefieldDropZone, GameUI→BattleHUD, SpawnZoneOverlay.
+Covers: HandUI split, SpellTargetingManager retirement, RedirectManager→Command, SummonPreview, Summoner decomposition, GameController3D decomposition, SimEventSignalEmitter retirement, BattlefieldDropZone, GameUI→BattleHUD, SpawnZoneOverlay.
 
 ## Supporting Services
 

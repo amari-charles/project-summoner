@@ -5,6 +5,9 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using GdUnit4;
 using static GdUnit4.Assertions;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Subsystems;
 
 [TestSuite]
 public class SimEffectsTest

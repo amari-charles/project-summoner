@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation;
 

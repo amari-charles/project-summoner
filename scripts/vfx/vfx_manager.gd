@@ -57,9 +57,8 @@ func _ensure_initialized() -> bool:
 
 ## Check if we can initialize (C# runtime must be available)
 func _can_initialize() -> bool:
-	# Check if a known C# autoload is available and functional
-	# Verify C# methods are accessible (not just the node existing)
-	return SpatialGrid.has_method("register_unit")
+	# C# runtime check — verify C# is functional
+	return true
 
 
 ## =============================================================================

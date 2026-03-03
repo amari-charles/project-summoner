@@ -1,4 +1,5 @@
-namespace Fateforged.Simulation;
+using Fateforged.Simulation.Data;
+namespace Fateforged.Simulation.Commands;
 
 /// <summary>
 /// Interface for commands that mutate MatchState through Simulation.Tick().

@@ -76,7 +76,7 @@ Settled decisions and open questions from architecture discussions. Each decisio
 
 **Reasoning:** Targeting is fundamentally a gesture lifecycle (drag start → move → confirm/cancel), which is Input's domain. But the visuals are 3D world-space objects, which is View's domain. Splitting state ownership from rendering respects both layer boundaries. The shared contract is small — just a data structure describing current targeting state.
 
-**Affects:** `SpellTargetingManager` (retired — split between InputCollector and View), `RedirectManager` (gesture → InputCollector), `SpawnPreview` (reads targeting state from Input), `BattlefieldDropZone` (absorbed into InputCollector).
+**Affects:** `SpellTargetingManager` (retired — split between InputCollector and View), `RedirectManager` (gesture → InputCollector), `SummonPreview` (reads targeting state from Input), `BattlefieldDropZone` (absorbed into InputCollector).
 
 ### 10. AudioManager: Standalone Service
 

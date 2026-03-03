@@ -27,10 +27,6 @@ var config: Resource = null  # CardConfig instance (uses Resource to avoid load 
 ## Instance tracking (for progression system - unique per card in collection)
 var instance_id: String = ""
 
-## C# spell effect delegation - if set, spell execution delegates to CardFactory
-## This is set by CardCatalog when creating spell cards with C# effects available
-var _csharp_spell_id: String = ""
-
 ## C# summon execution delegation - if set, summon execution delegates to CardFactory
 ## This is set by CardCatalog when creating summon cards
 var _csharp_summon_id: String = ""
@@ -218,7 +214,7 @@ func play_3d(play_position: Vector3, team: UnitConstants.Team, battlefield: Node
 		CardType.SUMMON:
 			_summon_unit_3d(play_position, team, battlefield, modifier_system, spawn_duration)
 		CardType.SPELL:
-			_cast_spell_3d(play_position, team, battlefield, modifier_system)
+			push_error("Card: Spell execution not supported — spells are handled by the simulation layer.")
 
 ## Spawn unit(s) at the 3D position
 ## All summons delegate to C# CardFactory for execution
@@ -228,25 +224,6 @@ func _summon_unit_3d(spawn_pos: Vector3, team: UnitConstants.Team, battlefield: 
 		return
 
 	_execute_csharp_summon(spawn_pos, team, battlefield, modifier_system, spawn_duration)
-
-## Execute spell effect at the 3D position
-## All spells delegate to C# CardFactory for execution
-func _cast_spell_3d(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
-	if _csharp_spell_id.is_empty():
-		push_error("Card: Spell '%s' has no C# effect attached! All spells must use C# CardFactory." % card_name)
-		return
-
-	_execute_csharp_spell(cast_pos, team, battlefield, modifier_system)
-
-
-## Execute spell via C# CardFactory
-func _execute_csharp_spell(cast_pos: Vector3, team: UnitConstants.Team, battlefield: Node, modifier_system: Node = null) -> void:
-	var factory: Node = _get_card_factory()
-	if not factory:
-		push_error("Card: CardFactory not available! C# may not be loaded. Spell '%s' cannot be cast." % _csharp_spell_id)
-		return
-
-	factory.execute_spell(_csharp_spell_id, cast_pos, int(team), battlefield, modifier_system, instance_id)
 
 
 ## Execute summon via C# CardFactory

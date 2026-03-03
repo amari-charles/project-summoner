@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Commands;
+using Fateforged.Simulation.Data;
 
 namespace Fateforged.Session;
 

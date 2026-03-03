@@ -74,3 +74,9 @@ Components live under their layer's subtree. For example, View layer components 
 - "Today" snapshot — what currently implements this behavior
 
 This keeps the overview doc readable. Readers who want depth follow the link; readers who want the big picture stay on the overview page.
+
+### 10. Lifecycle ownership determines layer placement
+
+A component belongs in the layer that manages its lifecycle (creation/destruction). View component lifecycles are sim-driven — EntityManager diffs MatchState and spawns/destroys shells when entities appear/disappear. If a component's lifecycle is gesture-driven (created on drag start, destroyed on drag end) and MatchState has no concept of "in progress," that component belongs in Input, not View — because InputCollector must own its lifecycle, and Input cannot depend on View (they are peers).
+
+This principle explains why SummonPreview, SpellPreview, SpawnZoneOverlay, and RedirectIndicator live in Input despite being visual code.

@@ -154,31 +154,32 @@ public record RedirectCommand(
 
 ---
 
-## 4. SpawnPreview Migration
+## 4. SummonPreview Migration
 
-**Current:** `scripts/csharp/SpawnPreview/SpawnPreview.cs` + `GhostUnit3D.cs` — shows ghost units at spawn location during card drag.
+**Current:** `scripts/csharp/Input/SummonPreview.cs` + `UnitGhost.cs` (namespace `Fateforged.Input`) — shows ghost units at spawn location during card drag.
 
-### Decision: View-Layer Component
+### Decision: Input-Layer Component
 
-SpawnPreview is **View**. It reads the drag state (position, card type) and renders ghost units. It doesn't produce Commands or affect game state.
+SummonPreview is **Input**. Although it renders visual feedback, its lifecycle is gesture-driven (created on drag start, destroyed on drag end). MatchState has no "drag in progress" concept, so EntityManager can't manage SummonPreview's lifecycle — InputCollector must own it. See [documentation-guide.md principle #10](../../migration/documentation-guide.md).
 
 ### Target Design
 
 ```
-InputCollector (Input)              SpawnPreview (View)
+InputCollector (Input)              SummonPreview (Input)
   |                                     |
-  |-- exposes drag state:              |-- reads drag state each frame
-  |   DraggedCardIndex, DragPosition   |-- shows/hides ghost units
+  |-- owns lifecycle:                  |-- created on drag start
+  |   DraggedCardIndex, DragPosition   |-- destroyed on drag end
+  |                                    |-- reads session.GetState() for card data
   |                                    |-- colors valid/invalid based on position
 ```
 
-SpawnPreview reads `InputCollector.DragPosition` and `InputCollector.DraggedCardIndex` to know what to show. It reads `IGameSession.GetState()` to determine if the position is valid (player's half of battlefield).
+SummonPreview reads `InputCollector.DragPosition` and `InputCollector.DraggedCardIndex` to know what to show. It reads `IGameSession.GetState()` to determine if the position is valid (player's half of battlefield).
 
 ### Migration Steps
 
-1. SpawnPreview stays where it is but reads from InputCollector state instead of BattlefieldDropZone
+1. SummonPreview reads from InputCollector state instead of BattlefieldDropZone
 2. Remove direct coupling to BattlefieldDropZone's internal state
-3. No structural changes needed — it's already a visual-only component
+3. No structural changes needed — it's already in `scripts/csharp/Input/`
 
 ---
 
@@ -390,7 +391,7 @@ These events have no signal today (lines 100-108): `UnitActivationChanged`, `Spe
 |---------------|-------|----------------|
 | `_can_drop_data()` — drop validation (mana, position, card type) | Input | ~90 |
 | `_drop_data()` — execute card play (calls `summoner.play_card_3d()`) | Input | ~80 |
-| SpawnPreview management (create, update, cleanup) | View | ~100 |
+| SummonPreview management (create, update, cleanup) | View | ~100 |
 | SpellPreview management | View | ~60 |
 | SpawnZoneOverlay management | View | ~40 |
 | Spell targeting forwarding to SpellTargetingManager | Input | ~30 |
@@ -406,14 +407,14 @@ These events have no signal today (lines 100-108): `UnitActivationChanged`, `Spe
 - Spell targeting forwarding → InputCollector owns targeting directly
 
 **View** absorbs preview management:
-- SpawnPreview reads InputCollector drag state (§4 above)
+- SummonPreview reads InputCollector drag state (§4 above)
 - SpellPreview reads InputCollector targeting state
 - SpawnZoneOverlay reads InputCollector state to show valid zones
 
 ### Migration Steps
 
 1. Move drop validation + Command production to InputCollector
-2. SpawnPreview/SpellPreview/SpawnZoneOverlay become View components reading InputCollector state
+2. SummonPreview/SpellPreview/SpawnZoneOverlay become View components reading InputCollector state
 3. Remove BattlefieldDropZone as a Godot Control — the "drop zone" concept becomes InputCollector listening for Godot drag events on the viewport
 
 ---

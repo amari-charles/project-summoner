@@ -1,4 +1,4 @@
-namespace Fateforged.Simulation;
+namespace Fateforged.Simulation.Enums;
 
 /// <summary>
 /// Fallback movement behavior when a unit is in range but cannot attack

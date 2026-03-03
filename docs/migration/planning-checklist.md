@@ -90,7 +90,7 @@ All specs documented in `docs/architecture/gameplay/view/design-specs.md`.
 - [x] **HandUI Split** — ~85% View (rendering, animation, glow), ~15% Input (drag gesture). Drag stays on CardDisplay; Command production moves to InputCollector. (§1)
 - [x] **SpellTargetingManager Retirement** — State machine + gesture → InputCollector. Circle/arrow preview → View. Autoload removed. (§2)
 - [x] **RedirectManager → Command** — New `RedirectCommand` type. Gesture → InputCollector. Cooldowns + forced targeting → Simulation. Visuals → View. Autoload removed. (§3)
-- [x] **SpawnPreview Migration** — View-layer component. Reads InputCollector drag state. No structural changes. (§4)
+- [x] **SummonPreview Migration** — Input-layer component. Reads InputCollector drag state. No structural changes. (§4)
 - [x] **Summoner Decomposition** — Splits into: Session init (BattleConfig), MatchState (mana/HP/hand), SummonerVisual (View), InputCollector (command production). `summoner.gd` retired. (§5)
 - [x] **GameController3D Decomposition** — Init → Session construction. Game flow → Session.Tick(). View wiring → BattleScene. Redirect input → InputCollector. (§6)
 - [x] **SimEventSignalEmitter Retirement** — EntityManager subscribes to `SimEventsEmitted` directly. Signal-based bridge deleted. All 17+ event types handled. (§7)
@@ -217,7 +217,7 @@ All specs documented in `docs/migration/meta-game-plan.md`.
 - [x] **UnitSteering.cs** (462 LOC) — replaced by simulation handling movement.
 - [x] **SpawnRevealComponent.cs** (240 LOC) — Unit3D component, dies with Unit3D.
 - [x] **UnitDebugService.cs** (67 LOC) — Unit3D debug overlay. Also an autoload — remove from project.godot.
-- [x] **SpawnPreview.cs + GhostUnit3D.cs** — UPDATE (stay, rewrite to use UnitVisual patterns).
+- [x] **SummonPreview.cs + UnitGhost.cs** — UPDATE (stay, rewrite to use UnitVisual patterns).
 - [x] **CardFactory.cs** — UPDATE (remove ModifierService references in Tier 1, SpatialGrid references in Tier 5).
 - [x] 2 autoloads removed. `ClientInitializationTest.cs` updated. Resolves issues #7, #23, #24, #25.
 

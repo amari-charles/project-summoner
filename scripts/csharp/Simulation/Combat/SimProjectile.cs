@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using ProjectSummoner.Projectiles;
 using ProjectSummoner.Units;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Simulation.Combat;
 

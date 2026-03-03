@@ -6,10 +6,11 @@ using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Session;
 using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Stats;
-using ProjectSummoner.Targeting;
 using ProjectSummoner.Units;
+using Fateforged.Simulation.Commands;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Events;
 
 namespace Fateforged.Simulation;
 
@@ -316,9 +317,8 @@ public partial class SimulationNode : Node, IGameSession
 
     private void PopulateSingleCard(string catalogId, HashSet<string> processed)
     {
-        if (string.IsNullOrEmpty(catalogId) || processed.Contains(catalogId))
+        if (string.IsNullOrEmpty(catalogId) || !processed.Add(catalogId))
             return;
-        processed.Add(catalogId);
 
         var card = CardCatalog.GetCard(catalogId);
         if (card == null)
@@ -327,200 +327,22 @@ public partial class SimulationNode : Node, IGameSession
             return;
         }
 
-        var simCard = new SimCardData
-        {
-            CatalogId = catalogId,
-            ManaCost = card.ManaCost,
-            SummonTime = card.Summon?.SummonTime ?? card.SummonTime,
-            IsSpell = card.Type == CardType.Spell,
-            ElementId = (int)card.ElementalAffinity
-        };
+        var simCard = SimCardData.FromCardDefinition(card);
 
-        // Build spell effects for spell cards
-        if (card.Type == CardType.Spell)
-        {
-            simCard.SpellTargetingMode = card.SpellTargeting switch
-            {
-                SpellTargeting.SingleTarget => SpellTargetingMode.NearestEnemy,
-                SpellTargeting.AreaOfEffect => SpellTargetingMode.Position,
-                SpellTargeting.SelectionRadius => SpellTargetingMode.AlliesInRadius,
-                _ => SpellTargetingMode.Position
-            };
-            simCard.SpellRadius = card.SpellTargeting == SpellTargeting.SelectionRadius
-                ? card.SelectionRadius
-                : card.SpellRadius;
-
-            if (card.SpellCategory == SpellCategory.Damage && card.SpellDamage > 0)
-            {
-                simCard.SpellEffects.Add(new SimSpellEffect
-                {
-                    EffectType = EffectType.Damage,
-                    Value = card.SpellDamage,
-                    DamageType = MapElementToDamageType(card.ElementalAffinity),
-                    AoeRadius = card.SpellRadius,
-                    Affinity = SpellAffinity.Enemies
-                });
-            }
-        }
-
-        // Build unit templates for summon cards
         if (card.Type == CardType.Summon)
         {
             if (card.Summon != null)
             {
-                // New SummonSpec path (multi-unit cards)
                 foreach (var entry in card.Summon.Units)
-                {
-                    var template = BuildUnitTemplate(entry.UnitId, entry.Count, entry.Modifier);
-                    simCard.UnitTemplates.Add(template);
-                }
+                    simCard.UnitTemplates.Add(UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier));
             }
             else if (card.UnitId.HasValue)
             {
-                // Single UnitId path
-                var template = BuildUnitTemplate(card.UnitId, card.SpawnCount, card.UnitModifier);
-                simCard.UnitTemplates.Add(template);
-            }
-            else
-            {
-                // Legacy: build from CardDefinition stats directly
-                var stats = UnitStatCalculator.FromCardDefinition(card);
-                var template = new SimUnitTemplate
-                {
-                    UnitTypeId = catalogId,
-                    Count = card.SpawnCount,
-                    MaxHp = stats.MaxHp,
-                    AttackDamage = stats.AttackDamage,
-                    AttackSpeed = stats.AttackSpeed,
-                    MoveSpeed = stats.MoveSpeed,
-                    AttackRange = stats.AttackRange,
-                    AggroRadius = stats.AggroRadius,
-                    CritChance = stats.CritChance,
-                    CritDamage = stats.CritDamage,
-                    UnitType = card.IsRanged ? ProjectSummoner.Units.UnitType.Ranged : ProjectSummoner.Units.UnitType.Melee,
-                    ElementId = (int)card.ElementalAffinity,
-                    PhysicalDefense = stats.Armor,
-                    MagicDefense = stats.MagicResist
-                };
-                simCard.UnitTemplates.Add(template);
+                simCard.UnitTemplates.Add(UnitDefinitions.BuildSimTemplate(card.UnitId, card.SpawnCount, card.UnitModifier));
             }
         }
 
         State.CardDataMap[catalogId] = simCard;
-    }
-
-    private SimUnitTemplate BuildUnitTemplate(UnitId unitId, int count, ProjectSummoner.Stats.StatModifier? modifier)
-    {
-        var template = new SimUnitTemplate { Count = count, UnitTypeId = unitId.Value };
-
-        if (UnitDefinitions.TryGet(unitId, out var def) && def != null)
-        {
-            var stats = def.Stats;
-            if (modifier != null)
-                stats = stats.WithModifier(modifier);
-
-            template.MaxHp = stats.MaxHp;
-            template.AttackDamage = stats.AttackDamage;
-            template.AttackSpeed = stats.AttackSpeed;
-            template.MoveSpeed = stats.MoveSpeed;
-            template.AttackRange = stats.AttackRange;
-            template.AggroRadius = stats.AggroRadius;
-            template.CritChance = stats.CritChance;
-            template.CritDamage = stats.CritDamage;
-            template.UnitType = def.UnitType;
-            template.MovementLayer = def.MovementLayer;
-            template.ElementId = (int)(def.DamageProfile.Element ?? Element.Neutral);
-            template.SeparationRadius = def.Visual.SeparationRadius;
-            template.PhysicalDefense = stats.Armor;
-            template.MagicDefense = stats.MagicResist;
-
-            // Ranged config
-            if (def.Ranged != null)
-            {
-                template.ProjectileDelay = def.Ranged.ProjectileDelay;
-            }
-
-            // Flying config
-            if (def.Flying != null)
-            {
-                template.FlightAltitude = def.Flying.Altitude;
-            }
-
-            // Extract targeting config for sim
-            var targetingConfig = def.Targeting.BuildConfig();
-            template.FallbackMovement = (FallbackMovement)(int)targetingConfig.FallbackMovement;
-
-            // Extract scorer weights if available
-            if (targetingConfig.Scorer is ProjectSummoner.Targeting.Scorers.CompositeScorer composite)
-            {
-                foreach (var scorer in composite.Scorers)
-                {
-                    if (scorer is ProjectSummoner.Targeting.Scorers.DistanceScorer ds)
-                        template.DistanceScorerWeight = ds.Weight;
-                    else if (scorer is ProjectSummoner.Targeting.Scorers.HealthScorer hs)
-                        template.HealthScorerWeight = hs.Weight;
-                }
-            }
-
-            // Extract cone constraint if available (may be direct or inside CompositeConstraint)
-            ExtractConeConstraint(targetingConfig, template);
-
-            // Extract layer filter (may be direct or inside CompositeTargetFilter)
-            ExtractLayerFilter(targetingConfig, template);
-        }
-
-        return template;
-    }
-
-    private static void ExtractConeConstraint(TargetingConfig config, SimUnitTemplate template)
-    {
-        if (config.AttackConstraint is ProjectSummoner.Targeting.Constraints.ConeConstraint3D cone)
-        {
-            template.HasConeConstraint = true;
-            template.ConeHalfAngle = cone.ConeHalfAngle;
-            template.CloseRangeThreshold = cone.CloseRangeThreshold;
-        }
-        else if (config.AttackConstraint is ProjectSummoner.Targeting.Constraints.CompositeConstraint composite)
-        {
-            foreach (var c in composite.Constraints)
-            {
-                if (c is ProjectSummoner.Targeting.Constraints.ConeConstraint3D innerCone)
-                {
-                    template.HasConeConstraint = true;
-                    template.ConeHalfAngle = innerCone.ConeHalfAngle;
-                    template.CloseRangeThreshold = innerCone.CloseRangeThreshold;
-                    break;
-                }
-            }
-        }
-    }
-
-    private static void ExtractLayerFilter(TargetingConfig config, SimUnitTemplate template)
-    {
-        if (config.Filter is ProjectSummoner.Targeting.Filters.LayerTargetFilter layerFilter)
-        {
-            template.TargetLayerFilter = layerFilter.CanTarget;
-        }
-        else if (config.Filter is ProjectSummoner.Targeting.Filters.CompositeTargetFilter composite)
-        {
-            foreach (var f in composite.Filters)
-            {
-                if (f is ProjectSummoner.Targeting.Filters.LayerTargetFilter innerLayer)
-                {
-                    template.TargetLayerFilter = innerLayer.CanTarget;
-                    break;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Map an Element enum to the sim DamageType.
-    /// Fire/Ice/Lightning etc. → Magic; Neutral → Physical.
-    /// </summary>
-    private static DamageType MapElementToDamageType(Element element)
-    {
-        return element == Element.Neutral ? DamageType.Physical : DamageType.Magic;
     }
 
     // =========================================================================

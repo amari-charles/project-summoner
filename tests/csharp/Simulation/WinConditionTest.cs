@@ -3,6 +3,7 @@ namespace ProjectSummoner.Tests.Simulation;
 using Fateforged.Simulation;
 using GdUnit4;
 using static GdUnit4.Assertions;
+using Fateforged.Simulation.Data;
 
 [TestSuite]
 public class WinConditionTest

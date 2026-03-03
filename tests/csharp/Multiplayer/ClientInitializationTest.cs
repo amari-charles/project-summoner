@@ -4,6 +4,8 @@ using GdUnit4;
 using Fateforged.Simulation;
 using ProjectSummoner.Units;
 using static GdUnit4.Assertions;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 /// <summary>
 /// Validates that MatchState is in a viable gameplay state after initialization.
