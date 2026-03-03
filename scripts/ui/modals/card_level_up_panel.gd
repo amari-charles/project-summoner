@@ -61,7 +61,7 @@ func open_for_card(p_card_instance_id: String) -> void:
 
 func _load_card_data() -> void:
 	# PlayerCardService is a C# autoload - access via get_node
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return
@@ -98,7 +98,7 @@ func _populate_trait_choices() -> void:
 	trait_buttons.clear()
 
 	# Get available traits from PlayerCardService (C# autoload)
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		return
 	var traits: Array = card_service.GetAvailableTraits(card_instance_id)
@@ -174,7 +174,7 @@ func _on_confirm_pressed() -> void:
 		return
 
 	# PlayerCardService is a C# autoload
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		push_error("CardLevelUpPanel: PlayerCardService not found")
 		return

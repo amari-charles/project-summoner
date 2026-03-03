@@ -92,11 +92,15 @@ func _on_quit_pressed() -> void:
 	# Stop battle music immediately (no fade) since we're transitioning scenes
 	AudioManager.stop_music(0.0)
 
-	# Mark battle as abandoned (clears current_battle, pending_reward, etc.)
-	BattleContext.abandon_battle()
-
 	# Get return destination before clearing context
 	var return_scene: String = BattleContext.get_origin_scene()
+
+	# Abandon via BattleScene (handles service cleanup + BattleContext state)
+	if game_controller and game_controller.has_method("AbandonBattle"):
+		game_controller.AbandonBattle()
+	else:
+		# Fallback if BattleScene not available
+		BattleContext.abandon_battle()
 
 	# Clear battle context
 	BattleContext.clear()

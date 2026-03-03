@@ -48,6 +48,9 @@ public partial class BattleScene : Node3D
 	/// Typed battle config — built once from BattleContext, used throughout.
 	private BattleSessionConfig _config = null!;
 
+	/// Deck card instance IDs for XP rewards (stored locally, no longer in BattleContext).
+	private List<string> _deckCardInstanceIds = new();
+
 	/// Max frames to wait for a single scene to load (~5 seconds at 60fps)
 	private const int SceneLoadTimeoutFrames = 300;
 
@@ -163,8 +166,8 @@ public partial class BattleScene : Node3D
 	{
 		CurrentState = (int)GameState.Playing;
 
-		// Mark battle as in progress
-		_config.BattleContextNode?.Call("start_battle");
+		// Mark battle as in progress on BattleContext
+		GetNodeOrNull("/root/BattleContext")?.Call("start_battle");
 
 		// Start battle music
 		var audio = GetNodeOrNull("/root/AudioManager");
@@ -210,7 +213,8 @@ public partial class BattleScene : Node3D
 	public void RestartGame()
 	{
 		GetTree().Paused = false;
-		_config.BattleContextNode?.Set("battle_state", 1); // CONFIGURED
+		var bc = GetNodeOrNull("/root/BattleContext");
+		bc?.Set("battle_state", 1); // CONFIGURED
 		GetTree().ReloadCurrentScene();
 	}
 
@@ -233,21 +237,47 @@ public partial class BattleScene : Node3D
 			BroadcastMatchEnd(winnerTeam);
 
 		// Update BattleContext state
-		if (_config.BattleContextNode != null)
+		var battleContext = GetNodeOrNull("/root/BattleContext");
+		if (battleContext != null)
 		{
-			if (winnerTeam == 0) // PLAYER
-				_config.BattleContextNode.Call("end_battle_victory");
+			if (winnerTeam == 0)
+				battleContext.Call("end_battle_victory");
 			else
-				_config.BattleContextNode.Call("end_battle_defeat");
+				battleContext.Call("end_battle_defeat");
 		}
 
-		// Delegate to completion callback
-		if (_config.CompletionCallback.Method != "")
+		// Wait before transitioning
+		await ToSignal(GetTree().CreateTimer(2.0, true), SceneTreeTimer.SignalName.Timeout);
+		GetTree().Paused = false;
+
+		// Handle completion based on mode
+		HandleCompletion(winnerTeam);
+	}
+
+	/// <summary>
+	/// Abandon the current battle — called by pause menu when player quits.
+	/// Handles service cleanup (profile state, campaign) then delegates state cleanup to BattleContext.
+	/// </summary>
+	public void AbandonBattle()
+	{
+		// Clear current_battle from profile to prevent stale state
+		var profileRepo = GetNodeOrNull("/root/ProfileRepo");
+		if (profileRepo != null && profileRepo.HasMethod("UpdateCampaignProgressDict"))
 		{
-			await ToSignal(GetTree().CreateTimer(2.0, true), SceneTreeTimer.SignalName.Timeout);
-			GetTree().Paused = false;
-			_config.CompletionCallback.Call(winnerTeam);
+			var clearDict = new Godot.Collections.Dictionary { { "current_battle", "" } };
+			profileRepo.Call("UpdateCampaignProgressDict", clearDict);
 		}
+
+		// Clear any pending reward
+		var campaign = GetNodeOrNull("/root/Campaign");
+		if (campaign != null && campaign.HasMethod("ClearPendingReward"))
+			campaign.Call("ClearPendingReward");
+
+		// Delegate state cleanup to BattleContext
+		var battleContext = GetNodeOrNull("/root/BattleContext");
+		battleContext?.Call("abandon_battle");
+
+		_deckCardInstanceIds.Clear();
 	}
 
 	public void SkipPrepPhase()
@@ -477,19 +507,34 @@ public partial class BattleScene : Node3D
 			}
 		}
 
-		// Cache data in BattleContext for post-battle rewards
+		// Cache data locally for post-battle rewards
 		if (localTeam == 0)
 		{
 			if (result.LoadedFromProfile)
 			{
-				// Combine hand + deck for XP tracking (store_deck_card_ids expects all cards)
+				// Extract instance IDs from hand + deck for XP tracking
+				_deckCardInstanceIds.Clear();
 				var allCards = new Godot.Collections.Array<Resource>(result.Hand);
 				foreach (var c in result.Deck) allCards.Add(c);
-				_config.BattleContextNode?.Call("store_deck_card_ids", allCards);
+				foreach (var card in allCards)
+				{
+					var go = card as GodotObject;
+					if (go == null) continue;
+					string instanceId = go.Get("InstanceId").AsString();
+					if (!string.IsNullOrEmpty(instanceId))
+						_deckCardInstanceIds.Add(instanceId);
+				}
+
+				// Also store in BattleContext for reward_screen to read
+				var bc = GetNodeOrNull("/root/BattleContext");
+				bc?.Call("store_deck_card_ids", allCards);
 			}
 
 			if (result.SummonerStats != null)
-				_config.BattleContextNode?.Call("set_player_summoner_stats", result.SummonerStats);
+			{
+				var bc = GetNodeOrNull("/root/BattleContext");
+				bc?.Call("set_player_summoner_stats", result.SummonerStats);
+			}
 		}
 
 		// Register with simulation
@@ -634,6 +679,144 @@ public partial class BattleScene : Node3D
 	{
 		// TODO: Broadcast match end via HostSession/ClientSession transport
 		GD.Print($"[BattleScene] BroadcastMatchEnd called (winner={winnerTeam}) — pending multiplayer transport milestone");
+	}
+
+	// =========================================================================
+	// POST-BATTLE COMPLETION
+	// =========================================================================
+
+	private void HandleCompletion(int winnerTeam)
+	{
+		switch (_config.Mode)
+		{
+			case 0: // CAMPAIGN
+				HandleCampaignCompletion(winnerTeam);
+				break;
+			case 1: // ARENA
+				GD.Print($"[BattleScene] Arena battle ended, winner: {winnerTeam}");
+				break;
+			case 2: // ENDLESS
+				GD.Print($"[BattleScene] Endless battle ended, winner: {winnerTeam}");
+				break;
+			case 4: // PRACTICE
+				GD.Print($"[BattleScene] Practice battle ended, winner: {winnerTeam}");
+				break;
+			case 5: // MULTIPLAYER
+				HandleMultiplayerCompletion(winnerTeam);
+				break;
+		}
+	}
+
+	private void HandleCampaignCompletion(int winnerTeam)
+	{
+		if (winnerTeam == 0) // Player won
+		{
+			GrantCardXp();
+			GrantSummonerXp();
+			NavigateToScene("res://scenes/ui/screens/reward_screen.tscn");
+		}
+		else // Player lost
+		{
+			NavigateToScene("res://scenes/ui/screens/campaign_map.tscn");
+		}
+	}
+
+	private void HandleMultiplayerCompletion(int winnerTeam)
+	{
+		GD.Print($"[BattleScene] Multiplayer battle ended, winner: {winnerTeam}");
+
+		bool playerWon = winnerTeam == 0;
+
+		if (_config.IsRankedMatch)
+			ReportRankedMatch(playerWon);
+
+		if (_config.IsRankedMatch)
+			NavigateToScene("res://scenes/ui/screens/online_screen.tscn");
+		else
+			NavigateToScene("res://scenes/ui/screens/multiplayer_lobby.tscn");
+	}
+
+	/// <summary>Grant XP to all deck cards used in battle.</summary>
+	internal void GrantCardXp()
+	{
+		if (_config.CardXpReward <= 0) return;
+		if (_deckCardInstanceIds.Count == 0) return;
+
+		var cardService = GetNodeOrNull("/root/CardService");
+		if (cardService == null || !cardService.HasMethod("GrantXpToCardsArray"))
+		{
+			GD.PushWarning("[BattleScene] CardService.GrantXpToCardsArray not available");
+			return;
+		}
+
+		var idsArray = new Godot.Collections.Array();
+		foreach (var id in _deckCardInstanceIds)
+			idsArray.Add(id);
+
+		GD.Print($"[BattleScene] Granting {_config.CardXpReward} XP to {_deckCardInstanceIds.Count} deck cards");
+		cardService.Call("GrantXpToCardsArray", idsArray, _config.CardXpReward);
+	}
+
+	/// <summary>Grant XP to the active summoner.</summary>
+	internal void GrantSummonerXp()
+	{
+		if (_config.SummonerXpReward <= 0) return;
+
+		var summonerProg = GetNodeOrNull("/root/SummonerProgression");
+		if (summonerProg == null || !summonerProg.HasMethod("GrantActiveSummonerXp"))
+		{
+			GD.PushWarning("[BattleScene] SummonerProgression.GrantActiveSummonerXp not available");
+			return;
+		}
+
+		GD.Print($"[BattleScene] Granting {_config.SummonerXpReward} XP to active summoner");
+		summonerProg.Call("GrantActiveSummonerXp", _config.SummonerXpReward);
+	}
+
+	private void ReportRankedMatch(bool playerWon)
+	{
+		var matchInfo = _config.RankedMatchInfo;
+		if (matchInfo.Count == 0)
+		{
+			GD.Print("[BattleScene] No ranked match info to report");
+			return;
+		}
+
+		var matchReporter = GetNodeOrNull("/root/MatchReporter");
+		if (matchReporter == null || !matchReporter.HasMethod("ReportMatchFromGDScript"))
+		{
+			GD.Print("[BattleScene] MatchReporter.ReportMatchFromGDScript not available");
+			return;
+		}
+
+		// Get local user ID from Nakama
+		string localUserId = "";
+		var nakama = GetNodeOrNull("/root/NakamaGameClient");
+		if (nakama != null)
+		{
+			var userIdVal = nakama.Get("UserId");
+			if (userIdVal.VariantType != Variant.Type.Nil)
+				localUserId = userIdVal.ToString();
+		}
+
+		string opponentUserId = matchInfo.GetValueOrDefault("opponent_user_id", "").ToString();
+		int opponentRating = (int)matchInfo.GetValueOrDefault("opponent_rating", 1000);
+		string winnerUserId = playerWon ? localUserId : opponentUserId;
+		string loserUserId = playerWon ? opponentUserId : localUserId;
+
+		GD.Print($"[BattleScene] Reporting ranked match result — winner: {winnerUserId}");
+		matchReporter.Call("ReportMatchFromGDScript",
+			matchInfo.GetValueOrDefault("match_id", "").ToString(),
+			winnerUserId, loserUserId, opponentRating, 0.0f, "summoner_destroyed");
+	}
+
+	private void NavigateToScene(string scenePath)
+	{
+		var sceneManager = GetNodeOrNull("/root/SceneManager");
+		if (sceneManager != null)
+			sceneManager.Call("transition_to", scenePath);
+		else
+			GetTree().ChangeSceneToFile(scenePath);
 	}
 
 	// =========================================================================

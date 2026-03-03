@@ -1,19 +1,19 @@
 extends GutTest
 
-## Unit Tests for EmotesCatalog
+## Unit Tests for EmotesCatalog (C# bridge)
 ##
 ## Tests emote data lookup and filtering methods.
 
 func test_get_emote_returns_valid_data() -> void:
-	var emote: Dictionary = EmotesCatalog.get_emote("emote_laugh")
+	var emote: Dictionary = EmotesCatalog.GetEmote("emote_laugh")
 
 	assert_false(emote.is_empty(), "Should return emote data")
-	assert_eq(emote.get("id"), &"emote_laugh")
+	assert_eq(emote.get("id"), "emote_laugh")
 	assert_gt(emote.get("price", 0), 0, "Purchasable emote should have a price")
 
 
 func test_get_emote_returns_empty_for_unknown_id() -> void:
-	var emote: Dictionary = EmotesCatalog.get_emote("nonexistent_emote")
+	var emote: Dictionary = EmotesCatalog.GetEmote("nonexistent_emote")
 
 	assert_true(emote.is_empty(), "Should return empty for unknown ID")
 	# Expect the push_warning about emote not found
@@ -21,23 +21,23 @@ func test_get_emote_returns_empty_for_unknown_id() -> void:
 
 
 func test_has_emote_returns_true_for_existing() -> void:
-	assert_true(EmotesCatalog.has_emote("emote_hello"))
-	assert_true(EmotesCatalog.has_emote("emote_laugh"))
+	assert_true(EmotesCatalog.HasEmote("emote_hello"))
+	assert_true(EmotesCatalog.HasEmote("emote_laugh"))
 
 
 func test_has_emote_returns_false_for_unknown() -> void:
-	assert_false(EmotesCatalog.has_emote("fake_emote"))
+	assert_false(EmotesCatalog.HasEmote("fake_emote"))
 
 
 func test_get_all_emotes_returns_array() -> void:
-	var all_emotes: Array[Dictionary] = EmotesCatalog.get_all_emotes()
+	var all_emotes: Array = EmotesCatalog.GetAllEmotes()
 
 	assert_gt(all_emotes.size(), 0, "Should have at least one emote")
 
 
 func test_get_emotes_by_category_filters_correctly() -> void:
-	var reactions: Array[Dictionary] = EmotesCatalog.get_emotes_by_category("reaction")
-	var taunts: Array[Dictionary] = EmotesCatalog.get_emotes_by_category("taunt")
+	var reactions: Array = EmotesCatalog.GetEmotesByCategory("reaction")
+	var taunts: Array = EmotesCatalog.GetEmotesByCategory("taunt")
 
 	# Verify all returned items match the requested category
 	for emote: Dictionary in reactions:
@@ -48,7 +48,7 @@ func test_get_emotes_by_category_filters_correctly() -> void:
 
 
 func test_get_starter_emotes_returns_free_emotes() -> void:
-	var starters: Array[Dictionary] = EmotesCatalog.get_starter_emotes()
+	var starters: Array = EmotesCatalog.GetStarterEmotes()
 
 	assert_gt(starters.size(), 0, "Should have starter emotes")
 
@@ -57,32 +57,32 @@ func test_get_starter_emotes_returns_free_emotes() -> void:
 
 
 func test_get_purchasable_emotes_excludes_free_items() -> void:
-	var purchasable: Array[Dictionary] = EmotesCatalog.get_purchasable_emotes()
+	var purchasable: Array = EmotesCatalog.GetPurchasableEmotes()
 
 	for emote: Dictionary in purchasable:
 		assert_gt(emote.get("price", 0), 0, "Purchasable emotes should have price > 0")
 
 
 func test_get_emote_name_returns_display_name() -> void:
-	var name: String = EmotesCatalog.get_emote_name("emote_hello")
+	var emote_name: String = EmotesCatalog.GetEmoteName("emote_hello")
 
-	assert_false(name.is_empty(), "Should return display name")
+	assert_false(emote_name.is_empty(), "Should return display name")
 
 
 func test_get_emote_price_returns_price() -> void:
-	var price: int = EmotesCatalog.get_emote_price("emote_laugh")
+	var price: int = EmotesCatalog.GetEmotePrice("emote_laugh")
 
 	assert_gt(price, 0, "Purchasable emote should have a price")
 
 
 func test_is_starter_emote_returns_true_for_starters() -> void:
-	assert_true(EmotesCatalog.is_starter_emote("emote_hello"))
-	assert_true(EmotesCatalog.is_starter_emote("emote_good_game"))
+	assert_true(EmotesCatalog.IsStarterEmote("emote_hello"))
+	assert_true(EmotesCatalog.IsStarterEmote("emote_good_game"))
 
 
 func test_is_starter_emote_returns_false_for_purchasable() -> void:
-	assert_false(EmotesCatalog.is_starter_emote("emote_laugh"))
-	assert_false(EmotesCatalog.is_starter_emote("emote_taunt"))
+	assert_false(EmotesCatalog.IsStarterEmote("emote_laugh"))
+	assert_false(EmotesCatalog.IsStarterEmote("emote_taunt"))
 
 
 func test_max_equipped_emotes_constant() -> void:
@@ -90,5 +90,6 @@ func test_max_equipped_emotes_constant() -> void:
 
 
 func test_starter_emotes_array_matches_is_starter_emote() -> void:
-	for emote_id: StringName in EmotesCatalog.STARTER_EMOTES:
-		assert_true(EmotesCatalog.is_starter_emote(emote_id), "STARTER_EMOTES entry should be recognized as starter")
+	var starter_emotes: Array = EmotesCatalog.StarterEmotes
+	for emote_id: String in starter_emotes:
+		assert_true(EmotesCatalog.IsStarterEmote(emote_id), "StarterEmotes entry should be recognized as starter")

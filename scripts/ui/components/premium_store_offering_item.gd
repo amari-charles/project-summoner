@@ -31,7 +31,7 @@ const SIZE_CONFIGS: Dictionary = {
 @onready var icon_label: Label = $VBoxContainer/PreviewArea/IconLabel
 
 ## State
-var offering: ShopOffering = null
+var offering: Dictionary = {}
 var card_size: CardSize = CardSize.LARGE
 
 ## Signals
@@ -83,10 +83,10 @@ func _gui_input(event: InputEvent) -> void:
 			item_clicked.emit()
 
 ## Set offering data
-func set_offering(new_offering: ShopOffering) -> void:
+func set_offering(new_offering: Dictionary) -> void:
 	offering = new_offering
 
-	if not offering:
+	if offering.is_empty():
 		return
 
 	# Wait for nodes to be ready if needed
@@ -94,35 +94,36 @@ func set_offering(new_offering: ShopOffering) -> void:
 		await ready
 
 	# Update name
-	name_label.text = offering.display_name
+	name_label.text = offering.get("display_name", "")
 
 	# Set preview color based on offering type
 	_update_preview_color()
 
 	# Check if owned
-	var is_owned: bool = Shop.is_offering_owned(offering)
+	var is_owned: bool = Shop.IsOfferingOwned(offering.get("offering_id", ""), "premium_store")
 
 	if is_owned:
 		price_label.text = ""
 		owned_overlay.visible = true
 	else:
-		price_label.text = Loc.t("ui.shop.mana_stones_price", {"amount": offering.base_price})
+		price_label.text = Loc.t("ui.shop.mana_stones_price", {"amount": offering.get("base_price", 0)})
 		owned_overlay.visible = false
 
 func _update_preview_color() -> void:
-	match offering.offering_type:
-		ShopOffering.OfferingType.SUMMONER:
+	var offering_type_name: String = offering.get("offering_type_name", "")
+	match offering_type_name:
+		"summoner":
 			# Get element color for summoner
-			var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.summoner_id))
+			var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.get("summoner_id", "")))
 			if config:
 				var element: ElementTypes.Element = config.get_element()
 				var element_key: String = element.id.to_lower() if element else "neutral"
 				preview_area.color = ELEMENT_COLORS.get(element_key, DEFAULT_COLOR)
 			else:
 				preview_area.color = DEFAULT_COLOR
-		ShopOffering.OfferingType.COSMETIC:
+		"cosmetic":
 			preview_area.color = COSMETIC_COLOR
-		ShopOffering.OfferingType.EMOTE:
+		"emote":
 			preview_area.color = EMOTE_COLOR
 		_:
 			preview_area.color = DEFAULT_COLOR

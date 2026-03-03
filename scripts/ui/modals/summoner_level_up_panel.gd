@@ -93,8 +93,8 @@ func _populate_stat_preview() -> void:
 	if not config:
 		return
 
-	# Calculate stat gains using shared constant from SummonerInstance
-	var bonus_percent: float = SummonerInstance.LEVEL_STAT_BONUS_PERCENT
+	# Calculate stat gains: 5% per level (matches C# SummonerInstance.LevelStatBonusPercent)
+	var bonus_percent: float = 0.05
 	var hp_gain: int = roundi(config.base_health * bonus_percent)
 	var mana_gain: float = config.max_mana * bonus_percent
 

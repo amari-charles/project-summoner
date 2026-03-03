@@ -186,7 +186,7 @@ func _get_effective_stats() -> Dictionary:
 		return base_stats
 
 	# Try PlayerCardService for effective stats with upgrades applied (C# autoload)
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if card_service and card_service.has_method("GetEffectiveStatsDict"):
 		var effective: Dictionary = card_service.GetEffectiveStatsDict(card_instance_id)
 		if not effective.is_empty():
@@ -250,7 +250,7 @@ func _update_progression_display() -> void:
 		return
 
 	# PlayerCardService is a C# autoload
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		_hide_progression()
 		return
@@ -310,7 +310,7 @@ func _update_traits_display() -> void:
 		return
 
 	# PlayerCardService is a C# autoload
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		traits_section.visible = false
 		return

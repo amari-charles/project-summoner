@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Infrastructure.Persistence;
 
 namespace Fateforged.Session;
 
@@ -28,7 +31,7 @@ public class SummonerLoadResult
 
 /// <summary>
 /// Extracts deck loading and summoner stat querying from BattleScene.
-/// Queries autoloads (Decks, CardServiceCS, ProfileRepo, SummonerSelection, SummonerCatalog)
+/// Queries autoloads (Decks, CardService, ProfileRepo, SummonerSelection, SummonerCatalog)
 /// and produces typed results for simulation registration.
 /// </summary>
 public static class BattleSessionFactory
@@ -196,8 +199,8 @@ public static class BattleSessionFactory
     private static void LoadDeckFromProfileServices(Node caller, SummonerLoadResult result)
     {
         var decksService = caller.GetNodeOrNull("/root/Decks");
-        var cardServiceCS = caller.GetNodeOrNull("/root/CardServiceCS");
-        if (decksService == null || cardServiceCS == null) return;
+        var cardService = caller.GetNodeOrNull("/root/CardService");
+        if (decksService == null || cardService == null) return;
 
         string deckId = GetSelectedDeckId(caller, decksService);
         if (string.IsNullOrEmpty(deckId)) return;
@@ -212,7 +215,7 @@ public static class BattleSessionFactory
         var ids = instanceIdsVar.AsGodotArray();
         foreach (var instanceId in ids)
         {
-            var cardData = cardServiceCS.Call("GetCardDict", instanceId.ToString());
+            var cardData = cardService.Call("GetCardDict", instanceId.ToString());
             if (cardData.VariantType != Variant.Type.Dictionary) continue;
 
             var cardDict = cardData.AsGodotDictionary();
@@ -274,70 +277,34 @@ public static class BattleSessionFactory
 
         GD.Print($"[BattleSessionFactory] Active summoner ID: '{summonerId}'");
 
-        GodotObject? loadedInstance = LoadSummonerInstance(caller, summonerId);
-        if (loadedInstance == null) return;
+        // Get summoner instance from profile, or create default if not found
+        var summonerInstance = ProfileRepository.Instance?.GetSummonerInstance(new SummonerId(summonerId));
+        if (summonerInstance == null)
+        {
+            // Create default instance for this summoner if no profile data exists
+            if (!SummonerCatalog.HasSummoner(summonerId)) return;
+            summonerInstance = new SummonerInstance { SummonerId = new SummonerId(summonerId) };
+        }
 
-        var stats = loadedInstance.Call("get_computed_stats");
-        if (stats.VariantType != Variant.Type.Dictionary) return;
+        var stats = summonerInstance.GetComputedStats();
+        if (stats.Count == 0) return;
 
-        var statsDict = stats.AsGodotDictionary();
-        result.MaxMana = (float)statsDict.GetValueOrDefault("max_mana", 100.0f);
+        result.MaxMana = stats.GetValueOrDefault("max_mana", 100.0f);
         result.Mana = result.MaxMana;
-        result.CastSpeed = (float)statsDict.GetValueOrDefault("cast_speed", 1.0f);
-        float health = (float)statsDict.GetValueOrDefault("health", 300.0f);
+        result.CastSpeed = stats.GetValueOrDefault("cast_speed", 1.0f);
+        float health = stats.GetValueOrDefault("health", 300.0f);
         result.MaxHp = health;
         result.Hp = health;
 
         if (localTeam == 0)
-            result.SummonerStats = statsDict;
+        {
+            var godotStats = new Godot.Collections.Dictionary();
+            foreach (var kvp in stats)
+                godotStats[kvp.Key] = kvp.Value;
+            result.SummonerStats = godotStats;
+        }
 
         GD.Print($"[BattleSessionFactory] Applied summoner bonuses — Max HP: {result.MaxHp:F0}, Max Mana: {result.MaxMana:F0}, Cast Speed: {result.CastSpeed:F2}");
-    }
-
-    private static GodotObject? LoadSummonerInstance(Node caller, string summonerId)
-    {
-        // Try loading from profile
-        var profileRepo = caller.GetNodeOrNull("/root/ProfileRepo");
-        if (profileRepo != null)
-        {
-            var instanceData = profileRepo.Call("get_summoner_instance", summonerId);
-            if (instanceData.VariantType == Variant.Type.Dictionary)
-            {
-                var dict = instanceData.AsGodotDictionary();
-                if (dict.Count > 0)
-                {
-                    var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
-                    if (siClass != null)
-                    {
-                        var created = siClass.Call("from_dict", dict);
-                        if (created.VariantType != Variant.Type.Nil)
-                            return created.AsGodotObject();
-                    }
-                }
-            }
-        }
-
-        // Create from catalog config
-        var summonerCatalog = caller.GetNodeOrNull("/root/SummonerCatalog");
-        if (summonerCatalog != null)
-        {
-            var configObj = summonerCatalog.Call("get_summoner_config", summonerId);
-            if (configObj.VariantType != Variant.Type.Nil)
-            {
-                var siClass = GD.Load<Script>("res://scripts/core/summoner_instance.gd");
-                if (siClass != null)
-                {
-                    var instance = siClass.Call("new").AsGodotObject();
-                    if (instance != null)
-                    {
-                        instance.Call("init_from_config", configObj);
-                        return instance;
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 
     // =========================================================================

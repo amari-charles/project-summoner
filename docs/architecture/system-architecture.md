@@ -61,7 +61,7 @@ flowchart LR
 | Service | Autoload Name | Purpose |
 |---------|---------------|---------|
 | `ProfileRepository` | `ProfileRepositoryCS` | Bridge to GDScript persistence |
-| `CardService` | `CardServiceCS` | Card ownership + progression (merged Collection + PlayerCard) |
+| `CardService` | `CardService` | Card ownership + progression (merged Collection + PlayerCard) |
 | `EconomyService` | `EconomyServiceCS` | Gold, gems, essence management |
 | `CampaignService` | `CampaignServiceCS` | Campaign progress, battles, rewards |
 | `DeckService` | `DeckServiceCS` | Deck CRUD, validation |
@@ -89,7 +89,7 @@ flowchart LR
 
 ```gdscript
 # Access C# service via autoload name
-var card_service: Node = CardServiceCS
+var card_service: Node = CardService
 
 # Call methods directly (C# methods are exported)
 var cards: Array = card_service.GetOwnedCardsDict(summoner_id)
@@ -108,7 +108,7 @@ Services initialize synchronously in `_Ready()` to ensure they're available when
 1. **ProfileRepo** (GDScript) - Persistence layer
 2. **ProfileRepositoryCS** - Connects to ProfileRepo
 3. **EconomyServiceCS** - Uses ProfileRepositoryCS
-4. **CardServiceCS** - Uses ProfileRepositoryCS
+4. **CardService** - Uses ProfileRepositoryCS
 5. **SummonerProgressionCS** - Uses ProfileRepositoryCS
 6. **SummonerSelection** - Uses ProfileRepositoryCS
 7. **DeckServiceCS** - Uses ProfileRepositoryCS

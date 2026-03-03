@@ -33,7 +33,7 @@ class_name PremiumStoreScreen
 @onready var popup_purchase_button: Button = %PopupPurchaseButton
 
 ## State
-var selected_offering: ShopOffering = null
+var selected_offering: Dictionary = {}
 
 ## Offering item scene
 const OFFERING_ITEM_SCENE: PackedScene = preload("res://scenes/ui/components/premium_store_offering_item.tscn")
@@ -80,26 +80,27 @@ func _populate_sections() -> void:
 	_clear_children(emote_items)
 
 	# Get all offerings from premium store
-	var all_offerings: Array[ShopOffering] = Shop.get_shop_offerings("premium_store")
+	var all_offerings: Array = Shop.GetShopOfferings("premium_store")
 
 	# Track first unowned summoner for featured section
-	var featured_offering: ShopOffering = null
+	var featured_offering: Dictionary = {}
 
 	# Sort offerings into sections with appropriate sizes
-	for offering: ShopOffering in all_offerings:
-		match offering.offering_type:
-			ShopOffering.OfferingType.SUMMONER:
+	for offering: Dictionary in all_offerings:
+		var offering_type_name: String = offering.get("offering_type_name", "")
+		match offering_type_name:
+			"summoner":
 				# Check if this should be featured (first unowned summoner)
-				if not featured_offering and not Shop.is_offering_owned(offering):
+				if featured_offering.is_empty() and not Shop.IsOfferingOwned(offering.get("offering_id", ""), "premium_store"):
 					featured_offering = offering
 				_add_offering_item(summoner_items, offering, PremiumStoreOfferingItem.CardSize.LARGE)
-			ShopOffering.OfferingType.COSMETIC:
+			"cosmetic":
 				_add_offering_item(cosmetic_items, offering, PremiumStoreOfferingItem.CardSize.MEDIUM)
-			ShopOffering.OfferingType.EMOTE:
+			"emote":
 				_add_offering_item(emote_items, offering, PremiumStoreOfferingItem.CardSize.SMALL)
 
 	# Populate featured section with large featured card
-	if featured_offering:
+	if not featured_offering.is_empty():
 		_add_offering_item(featured_items, featured_offering, PremiumStoreOfferingItem.CardSize.FEATURED)
 	else:
 		# No unowned summoners - show completion message
@@ -109,7 +110,7 @@ func _populate_sections() -> void:
 		complete_label.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
 		featured_items.add_child(complete_label)
 
-func _add_offering_item(container: HFlowContainer, offering: ShopOffering, size: PremiumStoreOfferingItem.CardSize = PremiumStoreOfferingItem.CardSize.MEDIUM) -> void:
+func _add_offering_item(container: HFlowContainer, offering: Dictionary, size: PremiumStoreOfferingItem.CardSize = PremiumStoreOfferingItem.CardSize.MEDIUM) -> void:
 	var item: PremiumStoreOfferingItem = OFFERING_ITEM_SCENE.instantiate()
 	item.set_card_size(size)
 	container.add_child(item)
@@ -124,13 +125,13 @@ func _clear_children(container: Node) -> void:
 ## POPUP MODAL
 ## =============================================================================
 
-func _show_popup(offering: ShopOffering) -> void:
+func _show_popup(offering: Dictionary) -> void:
 	selected_offering = offering
-	popup_name_label.text = offering.display_name
-	popup_description_label.text = offering.description
+	popup_name_label.text = offering.get("display_name", "")
+	popup_description_label.text = offering.get("description", "")
 
 	# Check if already owned
-	var is_owned: bool = Shop.is_offering_owned(offering)
+	var is_owned: bool = Shop.IsOfferingOwned(offering.get("offering_id", ""), "premium_store")
 
 	if is_owned:
 		popup_price_label.visible = false
@@ -139,7 +140,7 @@ func _show_popup(offering: ShopOffering) -> void:
 		popup_owned_label.text = Loc.t("shop.button.owned")
 	else:
 		# Show price and purchase button (premium store uses mana stones/gems)
-		var price: int = offering.base_price
+		var price: int = offering.get("base_price", 0)
 		popup_price_label.text = Loc.t("ui.shop.mana_stones_price", {"amount": price})
 		popup_price_label.visible = true
 		popup_purchase_button.visible = true
@@ -158,24 +159,25 @@ func _show_popup(offering: ShopOffering) -> void:
 
 func _hide_popup() -> void:
 	detail_popup.visible = false
-	selected_offering = null
+	selected_offering = {}
 
-func _populate_popup_info(offering: ShopOffering) -> void:
+func _populate_popup_info(offering: Dictionary) -> void:
 	# Clear existing info
 	for child: Node in popup_info_container.get_children():
 		child.queue_free()
 
-	match offering.offering_type:
-		ShopOffering.OfferingType.SUMMONER:
+	var offering_type_name: String = offering.get("offering_type_name", "")
+	match offering_type_name:
+		"summoner":
 			_add_summoner_info(offering)
-		ShopOffering.OfferingType.COSMETIC:
+		"cosmetic":
 			_add_cosmetic_info(offering)
-		ShopOffering.OfferingType.EMOTE:
+		"emote":
 			_add_emote_info(offering)
 
-func _add_summoner_info(offering: ShopOffering) -> void:
+func _add_summoner_info(offering: Dictionary) -> void:
 	# Look up summoner config
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.get("summoner_id", "")))
 	if not config:
 		return
 
@@ -205,13 +207,13 @@ func _add_summoner_info(offering: ShopOffering) -> void:
 			trait_label.add_theme_font_size_override("font_size", 12)
 			popup_info_container.add_child(trait_label)
 
-func _add_cosmetic_info(offering: ShopOffering) -> void:
+func _add_cosmetic_info(offering: Dictionary) -> void:
 	var type_label: Label = Label.new()
-	type_label.text = Loc.t("ui.premium_store.cosmetic_type", {"type": offering.cosmetic_type.capitalize()})
+	type_label.text = Loc.t("ui.premium_store.cosmetic_type", {"type": offering.get("cosmetic_type", "").capitalize()})
 	type_label.add_theme_font_size_override("font_size", 14)
 	popup_info_container.add_child(type_label)
 
-func _add_emote_info(offering: ShopOffering) -> void:
+func _add_emote_info(offering: Dictionary) -> void:
 	var info_label: Label = Label.new()
 	info_label.text = Loc.t("ui.premium_store.emote_info")
 	info_label.add_theme_font_size_override("font_size", 14)
@@ -234,7 +236,7 @@ func _on_close_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
-func _on_offering_item_clicked(offering: ShopOffering) -> void:
+func _on_offering_item_clicked(offering: Dictionary) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_show_popup(offering)
 
@@ -251,11 +253,11 @@ func _on_overlay_input(event: InputEvent) -> void:
 
 func _on_purchase_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if not selected_offering:
+	if selected_offering.is_empty():
 		return
 
-	var _success: bool = Shop.purchase_offering(selected_offering.offering_id, "premium_store")
-	# Result handled by purchase_completed/purchase_failed signals
+	var _success: bool = Shop.PurchaseOffering(selected_offering.get("offering_id", ""), "premium_store")
+	# Result handled by PurchaseCompleted/PurchaseFailed signals
 
 func _on_purchase_completed(offering_id: String, shop_id: String) -> void:
 	if shop_id != "premium_store":
@@ -265,7 +267,7 @@ func _on_purchase_completed(offering_id: String, shop_id: String) -> void:
 	_populate_sections()
 
 	# Update popup if the purchased offering is still selected
-	if selected_offering and selected_offering.offering_id == offering_id:
+	if not selected_offering.is_empty() and selected_offering.get("offering_id", "") == offering_id:
 		_show_popup(selected_offering)
 
 func _on_purchase_failed(_offering_id: String, reason: String) -> void:
@@ -276,5 +278,5 @@ func _on_data_changed() -> void:
 	_update_currency_display()
 
 	# Update popup if visible (affordability may have changed)
-	if detail_popup.visible and selected_offering:
+	if detail_popup.visible and not selected_offering.is_empty():
 		_show_popup(selected_offering)

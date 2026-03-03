@@ -71,7 +71,7 @@ public partial class DeckService : Node
     {
         if (_cardOwnershipChecker == null)
         {
-            var cardService = GetNodeOrNull<CardService>("/root/CardServiceCS");
+            var cardService = GetNodeOrNull<CardService>("/root/CardService");
             if (cardService != null)
             {
                 _cardOwnershipChecker = (cardInstanceId, summonerId) =>

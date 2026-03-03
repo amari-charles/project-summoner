@@ -437,6 +437,44 @@ public partial class SummonerProgressionService : Node
 	}
 
 	// =========================================================================
+	// STAT COMPUTATION (for GDScript callers)
+	// =========================================================================
+
+	/// <summary>
+	/// Get computed stats for a summoner with all trait modifiers applied.
+	/// Returns a Godot Dictionary with snake_case keys for GDScript consumption.
+	/// </summary>
+	public Godot.Collections.Dictionary GetComputedStatsForSummoner(string summonerId)
+	{
+		if (_profileRepo == null) return [];
+
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		if (summoner == null) return [];
+
+		var stats = summoner.GetComputedStats();
+		var result = new Godot.Collections.Dictionary();
+		foreach (var kvp in stats)
+			result[kvp.Key] = kvp.Value;
+		return result;
+	}
+
+	/// <summary>
+	/// Get all trait IDs for a summoner (innate + acquired).
+	/// </summary>
+	public Godot.Collections.Array<string> GetAllTraitIdsForSummoner(string summonerId)
+	{
+		if (_profileRepo == null) return [];
+
+		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		if (summoner == null) return [];
+
+		var result = new Godot.Collections.Array<string>();
+		foreach (var traitId in summoner.GetAllTraitIds())
+			result.Add(traitId);
+		return result;
+	}
+
+	// =========================================================================
 	// PRIVATE HELPERS
 	// =========================================================================
 

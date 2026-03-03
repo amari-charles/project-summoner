@@ -37,7 +37,7 @@ All C# autoloads with clean names (no CS suffix):
 | Service | Autoload Name | Responsibility |
 |---|---|---|
 | EconomyService | `Economy` | Currency (gold, gems, campaign gold) |
-| CardService | `CardServiceCS` | Card ownership, leveling, XP |
+| CardService | `CardService` | Card ownership, leveling, XP |
 | DeckService | `Decks` | Deck CRUD, validation |
 | SummonerProgressionService | `SummonerProgression` | Summoner XP, levels, traits |
 | SummonerSelectionService | `SummonerSelection` | Active summoner selection |

@@ -1,12 +1,13 @@
 extends Node
 
-## Global battle configuration system
-## Decouples battle scene from specific modes (campaign, arena, endless, etc.)
+## Global battle configuration and state tracking.
+## Thin data bag — holds config, state, and data for the current battle.
+## Business logic (XP granting, match reporting, scene transitions) lives in BattleScene.
 ##
 ## Usage:
 ##   1. Before loading battle, configure this singleton with mode-specific data
-##   2. Battle scene reads configuration from here
-##   3. After battle, this calls the appropriate completion handler
+##   2. BattleScene reads configuration via BattleSessionConfig.FromBattleContext()
+##   3. BattleScene owns post-battle completion logic
 
 ## Authority abstraction for multiplayer support
 const LocalAuthorityScript: GDScript = preload("res://scripts/multiplayer/authority/local_authority.gd")
@@ -60,10 +61,6 @@ var was_configured: bool = false
 ## Scene to return to after battle (campaign map, arena menu, etc.)
 var origin_scene: String = ""
 
-## Callback to execute when battle ends
-## Signature: func(winner: int) where 0 = player, 1 = enemy
-var completion_callback: Callable
-
 ## Authority provider for multiplayer abstraction
 ## Determines who has authority over game state changes
 ## Default: LocalAuthority (single-player, all actions immediate)
@@ -86,51 +83,6 @@ var _ranked_match_info: Dictionary = {}
 ## Set by Summoner._apply_summoner_bonuses(), read by DamageSystem
 var _player_summoner_stats: Dictionary = {}
 
-## =============================================================================
-## DEPENDENCIES (injectable for testing)
-## =============================================================================
-
-## Injectable dependencies - defaults to autoload lookup
-## For testing: set these before calling abandon_battle() or use init_for_testing()
-var _campaign_service: Node = null
-var _player_card_service: Node = null
-var _summoner_progression: Node = null
-
-## Get campaign service (lazy lookup from scene tree if not injected)
-func _get_campaign_service() -> Node:
-	if _campaign_service != null:
-		return _campaign_service
-	if is_inside_tree():
-		return get_node_or_null("/root/Campaign")
-	return null
-
-## Get player card service (lazy lookup from scene tree if not injected)
-func _get_player_card_service() -> Node:
-	if _player_card_service != null:
-		return _player_card_service
-	if is_inside_tree():
-		return get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
-	return null
-
-## Get summoner progression (lazy lookup from scene tree if not injected)
-func _get_summoner_progression() -> Node:
-	if _summoner_progression != null:
-		return _summoner_progression
-	if is_inside_tree():
-		return get_node_or_null("/root/SummonerProgression")
-	return null
-
-## Initialize for unit testing with mock dependencies
-## Call this to inject mocks and avoid scene tree access
-func init_for_testing(
-	campaign_service: Node = null,
-	player_card_service: Node = null,
-	summoner_progression: Node = null
-) -> void:
-	_campaign_service = campaign_service
-	_player_card_service = player_card_service
-	_summoner_progression = summoner_progression
-
 ## Configure for campaign battle
 func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
@@ -149,7 +101,6 @@ func configure_campaign_battle(battle_id: String) -> void:
 		push_error("BattleContext: This will cause enemy deck loading to fail")
 
 	biome_id = StringName(battle_event.biome_id) if not battle_event.biome_id.is_empty() else BiomeIDs.SUMMER_PLAINS
-	completion_callback = _handle_campaign_completion
 
 	# Set level cap if configured (use typed accessor)
 	_level_cap = battle_event.level_cap
@@ -184,7 +135,6 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	}
 
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
-	completion_callback = _handle_practice_completion
 
 	print("BattleContext: Configured practice battle")
 
@@ -199,7 +149,6 @@ func configure_arena_battle(_difficulty: int) -> void:
 	push_warning("BattleContext: Arena mode not yet implemented")
 
 	biome_id = BiomeIDs.SUMMER_PLAINS  # Random biome selection later
-	completion_callback = _handle_arena_completion
 
 ## Configure for endless mode (future)
 func configure_endless_wave(_wave_number: int) -> void:
@@ -212,8 +161,6 @@ func configure_endless_wave(_wave_number: int) -> void:
 	push_warning("BattleContext: Endless mode not yet implemented")
 
 	biome_id = BiomeIDs.SUMMER_PLAINS
-	completion_callback = _handle_endless_completion
-
 
 ## Configure for multiplayer battle
 func configure_multiplayer_battle(
@@ -246,7 +193,6 @@ func configure_multiplayer_battle(
 	}
 
 	biome_id = BiomeIDs.SUMMER_PLAINS  # Could randomize or let host choose
-	completion_callback = _handle_multiplayer_completion
 
 	print("BattleContext: Configured multiplayer battle (host: %s, seed: %d)" % [is_host, battle_seed])
 
@@ -274,7 +220,6 @@ func clear() -> void:
 	battle_config = {}
 	_battle_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
-	completion_callback = Callable()
 	_ranked_match_info = {}
 	was_configured = false
 	battle_state = BattleState.NONE
@@ -328,24 +273,14 @@ func end_battle_defeat() -> void:
 	print("BattleContext: Battle ended - DEFEAT")
 
 ## Abandon battle (called when player quits mid-battle)
-## Clears all battle-related state from profile to prevent stale data
+## Sets state and clears local tracking. Service cleanup (profile, campaign)
+## is handled by BattleScene.AbandonBattle().
 func abandon_battle() -> void:
 	if battle_state == BattleState.NONE:
 		return
 
 	print("BattleContext: Battle abandoned")
 	battle_state = BattleState.ABANDONED
-
-	# Clear current_battle from profile to prevent stale state
-	ProfileRepo.UpdateCampaignProgressDict({"current_battle": ""})
-	print("BattleContext: Cleared current_battle from profile")
-
-	# Clear any pending reward (shouldn't exist mid-battle, but be safe)
-	var campaign: Node = _get_campaign_service()
-	if campaign and campaign.has_method("ClearPendingReward"):
-		campaign.call("ClearPendingReward")
-
-	# Clear deck card IDs tracking
 	_deck_card_instance_ids.clear()
 
 ## =============================================================================
@@ -465,174 +400,3 @@ func store_deck_card_ids(deck: Array) -> void:
 func get_deck_card_ids() -> Array[String]:
 	return _deck_card_instance_ids.duplicate()
 
-## Grant XP to all cards in the player's deck
-## Called on battle victory
-func grant_xp_to_deck_cards() -> void:
-	var card_xp: int = battle_event.card_xp_reward
-	if card_xp <= 0:
-		print("BattleContext: No card XP reward configured for this battle")
-		return
-
-	if _deck_card_instance_ids.is_empty():
-		print("BattleContext: No deck cards stored for XP rewards")
-		return
-
-	print("BattleContext: Granting %d XP to %d deck cards: %s" % [card_xp, _deck_card_instance_ids.size(), _deck_card_instance_ids])
-
-	# Use injectable dependency or fall back to autoload lookup
-	var card_service: Node = _get_player_card_service()
-	if card_service and card_service.has_method("GrantXpToCardsArray"):
-		var results: Dictionary = card_service.GrantXpToCardsArray(_deck_card_instance_ids, card_xp)
-		print("BattleContext: Card XP grant results: %s" % results)
-	else:
-		push_warning("BattleContext: PlayerCardService.GrantXpToCardsArray not found")
-
-## Grant XP to the active summoner
-## Called on battle victory
-func grant_xp_to_active_summoner() -> void:
-	var summoner_xp: int = battle_event.summoner_xp_reward
-	if summoner_xp <= 0:
-		print("BattleContext: No summoner XP reward configured for this battle")
-		return
-
-	print("BattleContext: Granting %d XP to active summoner" % summoner_xp)
-
-	# Use injectable dependency or fall back to autoload
-	var summoner_prog: Node = _get_summoner_progression()
-	if summoner_prog and summoner_prog.has_method("GrantActiveSummonerXp"):
-		var new_xp: int = summoner_prog.GrantActiveSummonerXp(summoner_xp)
-		print("BattleContext: Summoner now has %d XP" % new_xp)
-	else:
-		# Fall back to direct autoload access (for production)
-		var new_xp: int = SummonerProgression.GrantActiveSummonerXp(summoner_xp)
-		print("BattleContext: Summoner now has %d XP" % new_xp)
-
-## Handle campaign battle completion
-func _handle_campaign_completion(winner: int) -> void:
-	if winner == 0:  # Player won
-		# Grant XP to all cards in the deck
-		grant_xp_to_deck_cards()
-		# Grant XP to the active summoner
-		grant_xp_to_active_summoner()
-		# Transition to reward screen (it will handle completion and rewards)
-		SceneManager.transition_to(SceneManager.SCENE_REWARD_SCREEN)
-	else:  # Player lost
-		# Return to campaign screen
-		# TODO: Track origin screen to return to correct location (arena, practice, etc.)
-		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
-
-## Handle practice battle completion
-func _handle_practice_completion(winner: int) -> void:
-	print("BattleContext: Practice battle ended, winner: %d" % winner)
-
-	# For practice mode, just show result and stay in scene
-	# Or return to main menu
-	# TODO: Implement practice mode UI
-	print("Practice battle complete - no progression")
-
-## Handle arena battle completion (future)
-func _handle_arena_completion(winner: int) -> void:
-	print("BattleContext: Arena battle ended, winner: %d" % winner)
-	# TODO: Update leaderboard, grant arena rewards, show result screen
-
-## Handle endless wave completion (future)
-func _handle_endless_completion(winner: int) -> void:
-	print("BattleContext: Endless wave ended, winner: %d" % winner)
-
-	if winner == 0:  # Player won wave
-		# Increment wave, reload battle
-		# TODO: Implement endless progression
-		pass
-	else:  # Player lost
-		# Show endless result screen with score
-		# TODO: Implement endless result screen
-		pass
-
-
-## Handle multiplayer battle completion
-func _handle_multiplayer_completion(winner: int) -> void:
-	print("BattleContext: Multiplayer battle ended, winner: %d" % winner)
-
-	# Winner: 0 = local player won, 1 = opponent won
-	var player_won: bool = (winner == 0)
-
-	# Report match result if this is a ranked match
-	if is_ranked_match():
-		_report_ranked_match_result(player_won)
-
-	# Return to online screen for ranked, lobby for casual
-	if is_ranked_match():
-		SceneManager.transition_to(SceneManager.SCENE_ONLINE)
-	else:
-		SceneManager.transition_to(SceneManager.SCENE_MULTIPLAYER_LOBBY)
-
-
-## Report ranked match result to MatchReporter service
-func _report_ranked_match_result(player_won: bool) -> void:
-	var match_info: Dictionary = get_ranked_match_info()
-	if match_info.is_empty():
-		print("BattleContext: No ranked match info to report")
-		return
-
-	if not is_inside_tree():
-		print("BattleContext: Cannot report match - not in scene tree")
-		return
-
-	var match_reporter: Node = get_node_or_null(CSharpAutoloads.MATCH_REPORTER)
-	if match_reporter == null:
-		print("BattleContext: MatchReporter service not available")
-		return
-
-	# Get local user ID from Nakama
-	var nakama_client: Node = get_node_or_null(CSharpAutoloads.NAKAMA_GAME_CLIENT)
-	var local_user_id: String = ""
-	if nakama_client:
-		var user_id_val: Variant = nakama_client.get("UserId")
-		if user_id_val != null:
-			local_user_id = str(user_id_val)
-
-	var opponent_user_id: String = match_info.get("opponent_user_id", "")
-	var opponent_rating: int = match_info.get("opponent_rating", 1000)
-
-	# Determine winner/loser user IDs
-	var winner_user_id: String = local_user_id if player_won else opponent_user_id
-	var loser_user_id: String = opponent_user_id if player_won else local_user_id
-
-	# Create match result and report it
-	if match_reporter.has_method("ReportMatchAsync"):
-		# Build the MatchResult object expected by MatchReporter
-		# Note: MatchReporter expects a C# MatchResult object
-		# We'll call it directly with the needed data
-		var result: Dictionary = {
-			"MatchId": match_info.get("match_id", ""),
-			"WinnerUserId": winner_user_id,
-			"LoserUserId": loser_user_id,
-			"OpponentRating": opponent_rating,
-			"DurationSeconds": 0.0,  # Would need to track this
-			"EndReason": "summoner_destroyed"
-		}
-		print("BattleContext: Reporting ranked match result - winner: %s" % winner_user_id)
-		# The C# service will handle the actual reporting
-		_call_match_reporter(match_reporter, result)
-
-
-## Call the C# MatchReporter service
-func _call_match_reporter(reporter: Node, result: Dictionary) -> void:
-	# Create a MatchResult object and call ReportMatchAsync
-	# Since MatchReporter is C#, we need to call methods that accept Dictionary
-	# or create the proper C# object
-
-	# For now, use a simple approach - the C# service exposes methods callable from GDScript
-	if reporter.has_method("ReportMatchFromGDScript"):
-		reporter.ReportMatchFromGDScript(
-			result.get("MatchId", ""),
-			result.get("WinnerUserId", ""),
-			result.get("LoserUserId", ""),
-			result.get("OpponentRating", 1000),
-			result.get("DurationSeconds", 0.0),
-			result.get("EndReason", "summoner_destroyed")
-		)
-	else:
-		# Fallback: Try to call the async method directly
-		# This may not work perfectly from GDScript but will log
-		print("BattleContext: MatchReporter.ReportMatchFromGDScript not available, match result not reported")

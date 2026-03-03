@@ -107,15 +107,7 @@ func refresh() -> void:
 	_update_active_display()
 
 func _get_computed_stats() -> Dictionary:
-	var summoner_instance_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(_summoner_id)
-	if summoner_instance_data.is_empty():
-		return {}
-
-	var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
-	if not summoner_instance:
-		return {}
-
-	return summoner_instance.get_computed_stats()
+	return SummonerProgression.GetComputedStatsForSummoner(_summoner_id)
 
 func _update_active_display() -> void:
 	if _is_active:

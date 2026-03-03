@@ -70,7 +70,7 @@ public partial class CampaignService : Node
 	{
 		if (_grantCardFunc == null)
 		{
-			var cardService = GetNodeOrNull<CardService>("/root/CardServiceCS");
+			var cardService = GetNodeOrNull<CardService>("/root/CardService");
 			if (cardService != null)
 			{
 				_grantCardFunc = (catalogId, rarity) => cardService.GrantCard(catalogId, rarity);

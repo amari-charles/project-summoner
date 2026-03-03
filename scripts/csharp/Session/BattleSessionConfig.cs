@@ -56,11 +56,20 @@ public class BattleSessionConfig
     // POST-BATTLE
     // =========================================================================
 
-    /// <summary>Callable from BattleContext to invoke on game end.</summary>
-    public Callable CompletionCallback { get; set; }
+    /// <summary>XP to grant to each deck card on victory.</summary>
+    public int CardXpReward { get; set; }
 
-    /// <summary>Reference to BattleContext node for lifecycle calls (start/end battle).</summary>
-    public Node? BattleContextNode { get; set; }
+    /// <summary>XP to grant to the active summoner on victory.</summary>
+    public int SummonerXpReward { get; set; }
+
+    /// <summary>Scene to return to after battle (campaign map, arena menu, etc.).</summary>
+    public string OriginScene { get; set; } = "";
+
+    /// <summary>Whether this is a ranked multiplayer match.</summary>
+    public bool IsRankedMatch { get; set; }
+
+    /// <summary>Ranked match info for match reporting (match_id, opponent data, etc.).</summary>
+    public Godot.Collections.Dictionary RankedMatchInfo { get; set; } = new();
 
     // =========================================================================
     // FACTORY
@@ -79,7 +88,6 @@ public class BattleSessionConfig
         {
             Mode = (int)battleContext.Get("current_mode"),
             BattleSeed = (long)config.GetValueOrDefault("battle_seed", 0),
-            BattleContextNode = battleContext,
             RawConfig = config,
 
             // Win condition
@@ -96,8 +104,12 @@ public class BattleSessionConfig
             IsMultiplayer = (bool)battleContext.Call("is_multiplayer_battle"),
             HasAuthority = (bool)battleContext.Call("has_authority"),
 
-            // Completion callback
-            CompletionCallback = battleContext.Get("completion_callback").AsCallable(),
+            // Post-battle
+            CardXpReward = (int)config.GetValueOrDefault("card_xp_reward", 0),
+            SummonerXpReward = (int)config.GetValueOrDefault("summoner_xp_reward", 0),
+            OriginScene = battleContext.Get("origin_scene").AsString(),
+            IsRankedMatch = (bool)battleContext.Call("is_ranked_match"),
+            RankedMatchInfo = battleContext.Call("get_ranked_match_info").AsGodotDictionary(),
         };
 
         // AI config

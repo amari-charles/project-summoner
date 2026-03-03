@@ -2,8 +2,6 @@ namespace Fateforged.Meta.Shop;
 
 /// <summary>
 /// Type of shop offering.
-/// Mirrors the GDScript enum in scripts/resources/shop_offering.gd.
-/// IMPORTANT: Keep in sync with ShopOffering.gd OfferingType enum!
 /// </summary>
 public enum OfferingType
 {

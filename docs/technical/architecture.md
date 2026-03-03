@@ -76,11 +76,9 @@ var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(id)
 Campaign.CompleteBattle(battle_id)
 ```
 
-### Exceptions: GDScript Autoloads
+### Note on GDScript Autoloads
 
-One service remains as a GDScript autoload wrapping a C# implementation:
-
-- **Shop** (`scripts/services/shop_service.gd`) — Substantial local logic: shop catalog definitions with localization, caravan purchase flow with campaign gold, PlatformBilling integration for real-money purchases.
+All meta-game services are fully C#. No GDScript wrappers remain.
 
 ## Multiplayer Domain
 

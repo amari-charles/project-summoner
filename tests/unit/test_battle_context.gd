@@ -12,8 +12,6 @@ func before_each() -> void:
 	# Load the BattleContext script and create instance
 	var BattleContextScript: GDScript = load("res://scripts/core/battle_context.gd")
 	context = BattleContextScript.new()
-	# Initialize for testing to avoid scene tree access errors
-	context.init_for_testing(null, null)
 
 
 func after_each() -> void:

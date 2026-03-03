@@ -170,7 +170,7 @@ func _connect_services() -> void:
 	if Decks.has_signal("DeckDeleted"):
 		Decks.DeckDeleted.connect(_on_deck_deleted)
 
-	CardServiceCS.CollectionChanged.connect(_on_collection_changed)
+	CardService.CollectionChanged.connect(_on_collection_changed)
 
 
 ## =============================================================================
@@ -326,7 +326,7 @@ func _refresh_deck_panel() -> void:
 		if not card_id is String:
 			continue
 
-		var card_data: Variant = CardServiceCS.GetCardDict(card_id)
+		var card_data: Variant = CardService.GetCardDict(card_id)
 		if not card_data is Dictionary or card_data.is_empty():
 			continue
 
@@ -343,7 +343,7 @@ func _refresh_deck_panel() -> void:
 		widget.tooltip_text = Loc.t("ui.collection.deck_card_remove_tooltip")
 
 		# Set progression info for level badge and XP bar
-		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+		var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 		if card_service:
 			var prog_info: Variant = card_service.GetCardProgressionInfoDict(card_id)
 			if prog_info is Dictionary:
@@ -463,7 +463,7 @@ func _on_rename_confirmed() -> void:
 ## =============================================================================
 
 func _refresh_collection() -> void:
-	var summary_result: Variant = CardServiceCS.GetCollectionSummaryDict()
+	var summary_result: Variant = CardService.GetCollectionSummaryDict()
 	if not summary_result is Array:
 		return
 	collection_summary = summary_result
@@ -524,7 +524,7 @@ func _refresh_collection() -> void:
 			_widget_cache[instance_id] = widget
 
 		# Set progression info for level badge and XP bar
-		var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+		var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 		if card_service:
 			var prog_info: Variant = card_service.GetCardProgressionInfoDict(instance_id)
 			if prog_info is Dictionary:
@@ -599,7 +599,7 @@ func _get_filtered_sorted_cards() -> Array:
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
 			# PlayerCardService is a C# autoload
-			var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+			var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 			if not instance_id.is_empty() and card_service and card_service.has_method("GetCardProgressionInfoDict"):
 				var result_info: Variant = card_service.GetCardProgressionInfoDict(instance_id)
 				if result_info is Dictionary:

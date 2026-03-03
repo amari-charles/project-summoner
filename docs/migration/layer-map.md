@@ -699,7 +699,7 @@ Every autoload from `project.godot` mapped to its layer:
 | `AudioManager` | `audio_manager.gd` | Standalone service |
 | `EconomyServiceCS` | `EconomyService.tscn` | Meta-game |
 | `Economy` | `economy_service.gd` | Meta-game |
-| `CardServiceCS` | `CardService.tscn` | Meta-game |
+| `CardService` | `CardService.tscn` | Meta-game |
 | `SummonerProgressionCS` | `SummonerProgressionService.tscn` | Meta-game |
 | `SummonerProgression` | `summoner_progression_service.gd` | Meta-game |
 | `SummonerSelection` | `SummonerSelectionService.tscn` | Meta-game |

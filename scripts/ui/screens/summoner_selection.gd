@@ -106,8 +106,8 @@ func _create_starter_deck(summoner_id: String) -> void:
 		return
 
 	# Grant the starter card to player's collection
-	# Pass rarity as String since CardServiceCS expects string, not StringName
-	var card_instance_id: String = CardServiceCS.GrantCard(starter_card_id, String(RarityIDs.COMMON))
+	# Pass rarity as String since CardService expects string, not StringName
+	var card_instance_id: String = CardService.GrantCard(starter_card_id, String(RarityIDs.COMMON))
 	if card_instance_id.is_empty():
 		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
 		return
@@ -170,25 +170,21 @@ func _set_random_button_content(button: Button) -> void:
 
 ## Create and save SummonerInstance for the selected summoner
 func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void:
-	# Get summoner config
-	var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
-	if not summoner_config:
-		push_error("SummonerSelection: Failed to get SummonerConfig for '%s'" % summoner_id)
-		return
-
-	# Create SummonerInstance from config
-	var summoner_instance: SummonerInstance = SummonerInstance.new()
-	summoner_instance.init_from_config(summoner_config)
-
-	# Grant "Fortune Favors the Bold" trait for random selection
+	# Build summoner instance data directly
+	var acquired_traits: Array = []
 	if chosen_random:
-		summoner_instance.add_trait("trait_fortune_favors_the_bold")
+		acquired_traits.append("trait_fortune_favors_the_bold")
 
-	# Save SummonerInstance to profile
-	var save_success: bool = SummonerSelection.SaveSummonerInstanceDict(summoner_instance.to_dict())
+	var summoner_data: Dictionary = {
+		"summoner_id": summoner_id,
+		"level": 1,
+		"xp": 0,
+		"acquired_trait_ids": acquired_traits
+	}
+
+	# Save to profile via C# service
+	var save_success: bool = SummonerSelection.SaveSummonerInstanceDict(summoner_data)
 	if save_success:
-		print("SummonerSelection: Saved SummonerInstance for '%s' (level %d)" % [
-			summoner_id, summoner_instance.level
-		])
+		print("SummonerSelection: Saved SummonerInstance for '%s' (level 1)" % summoner_id)
 	else:
 		push_error("SummonerSelection: Failed to save SummonerInstance!")

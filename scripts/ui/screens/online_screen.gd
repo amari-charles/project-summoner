@@ -466,12 +466,13 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 	var player_summoner_id: String = _get_active_summoner_id()
 	var summoner_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(player_summoner_id)
 	if summoner_data.is_empty():
-		# No saved instance — create default from catalog config
-		var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(player_summoner_id))
-		if summoner_config:
-			var instance: SummonerInstance = SummonerInstance.new()
-			instance.init_from_config(summoner_config)
-			summoner_data = instance.to_dict()
+		# No saved instance — create default data
+		summoner_data = {
+			"summoner_id": player_summoner_id,
+			"level": 1,
+			"xp": 0,
+			"acquired_trait_ids": []
+		}
 
 	var deck_json: String = JSON.stringify({"deck": player_deck, "summoner_instance": summoner_data})
 	_nakama_client.SendMatchData(100, deck_json)

@@ -287,7 +287,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 	card_xp_amount_label.text = Loc.t("ui.reward.card_xp_each", {"amount": card_xp})
 
 	# Get card service for progression info
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		push_warning("RewardScreen: PlayerCardService not available for card XP display")
 		card_xp_section.visible = false
@@ -322,7 +322,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 
 ## Handle click on a card XP item - open card detail modal to view stats
 func _on_card_xp_item_clicked(instance_id: String) -> void:
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		return
 
@@ -380,7 +380,7 @@ func _on_level_up_cancelled(panel: Node) -> void:
 
 ## Refresh a specific card item after level-up
 func _refresh_card_xp_item(instance_id: String) -> void:
-	var card_service: Node = get_node_or_null(CSharpAutoloads.PLAYER_CARD_SERVICE)
+	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 	if not card_service:
 		return
 

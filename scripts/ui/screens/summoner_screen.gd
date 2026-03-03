@@ -370,15 +370,7 @@ func _add_stat_row(label_text: String, value_text: String, value_color: Color) -
 
 
 func _get_computed_stats(summoner_id: String) -> Dictionary:
-	var summoner_instance_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(summoner_id)
-	if summoner_instance_data.is_empty():
-		return {}
-
-	var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
-	if not summoner_instance:
-		return {}
-
-	return summoner_instance.get_computed_stats()
+	return SummonerProgression.GetComputedStatsForSummoner(summoner_id)
 
 
 ## =============================================================================
@@ -390,14 +382,13 @@ func _refresh_traits(config: SummonerConfig) -> void:
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
-	# Get summoner instance to access acquired traits
-	var summoner_instance_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(_current_summoner_id)
+	# Get all trait IDs (innate + acquired) from C# service
+	var service_trait_ids: Array = SummonerProgression.GetAllTraitIdsForSummoner(_current_summoner_id)
 	var all_trait_ids: Array[String] = []
 
-	if not summoner_instance_data.is_empty():
-		var summoner_instance: SummonerInstance = SummonerInstance.from_dict(summoner_instance_data)
-		if summoner_instance:
-			all_trait_ids = summoner_instance.get_all_trait_ids()
+	if service_trait_ids.size() > 0:
+		for trait_id: Variant in service_trait_ids:
+			all_trait_ids.append(str(trait_id))
 	else:
 		# Fallback to innate only if no instance
 		for trait_id: String in config.innate_trait_ids:

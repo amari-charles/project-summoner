@@ -11,7 +11,7 @@ class_name OfferingCard
 @onready var price_label: Label = %PriceLabel
 
 ## State
-var offering: ShopOffering = null
+var offering: Dictionary = {}
 
 ## Signals
 signal card_clicked()
@@ -28,30 +28,31 @@ func _gui_input(event: InputEvent) -> void:
 			card_clicked.emit()
 
 ## Set offering data
-func set_offering(new_offering: ShopOffering) -> void:
+func set_offering(new_offering: Dictionary) -> void:
 	offering = new_offering
 
-	if not offering:
+	if offering.is_empty():
 		return
 
 	# Update labels
-	offering_name_label.text = offering.display_name
+	offering_name_label.text = offering.get("display_name", "")
 
 	# Type label
-	match offering.offering_type:
-		ShopOffering.OfferingType.CARD:
+	var offering_type_name: String = offering.get("offering_type_name", "")
+	match offering_type_name:
+		"card":
 			type_label.text = Loc.t("ui.offering.type_card")
-		ShopOffering.OfferingType.CARD_PACK:
+		"card_pack":
 			type_label.text = Loc.t("ui.offering.type_card_pack")
-		ShopOffering.OfferingType.CURRENCY:
+		"currency":
 			type_label.text = Loc.t("ui.offering.type_currency")
-		ShopOffering.OfferingType.SPECIAL:
+		"special":
 			type_label.text = Loc.t("ui.offering.type_special")
 		_:
 			type_label.text = Loc.t("ui.offering.type_card")
 
 	# Price
-	price_label.text = Loc.t("ui.offering.price_format", {"price": offering.base_price})
+	price_label.text = Loc.t("ui.offering.price_format", {"price": offering.get("base_price", 0)})
 
 ## =============================================================================
 ## SIGNAL HANDLERS

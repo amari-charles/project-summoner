@@ -2,7 +2,6 @@ namespace Fateforged.Meta.Shop;
 
 /// <summary>
 /// Type of currency used for purchases.
-/// Mirrors the string values in scripts/resources/shop_offering.gd currency_type.
 /// </summary>
 public enum CurrencyType
 {

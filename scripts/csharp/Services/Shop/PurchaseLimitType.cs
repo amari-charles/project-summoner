@@ -2,7 +2,6 @@ namespace Fateforged.Meta.Shop;
 
 /// <summary>
 /// Type of purchase limit for shop offerings.
-/// Mirrors the string values in scripts/resources/shop_offering.gd purchase_limit_type.
 /// </summary>
 public enum PurchaseLimitType
 {
