@@ -586,10 +586,8 @@ public partial class BattleScene : Node3D
         if (deck.Count > 0)
             GD.Print($"[BattleScene] Loaded {deck.Count} cards (strategy={strategy})");
 
-        // Shuffle deck
-        var battleRng = GetNodeOrNull("/root/BattleRNG");
-        if (battleRng != null && deck.Count > 0)
-            battleRng.Call("shuffle_array", deck, 0); // 0 = DECK_SHUFFLE domain
+        // Note: Deck shuffling is handled by the simulation layer via DeterministicRng
+        // when RecycleDeck() is called. Initial deck order is preserved as-is.
 
         // Draw starting hand
         var hand = new Godot.Collections.Array<Resource>();
@@ -878,22 +876,33 @@ public partial class BattleScene : Node3D
         var config = (Godot.Collections.Dictionary)battleContext.Get("battle_config");
         if (config == null || config.Count == 0) return;
 
-        // Remove existing AI
-        foreach (var child in EnemySummoner.GetChildren())
+        var simNode = GetSimNode() as SimulationNode;
+        if (simNode == null) return;
+
+        // Extract AI config from battle_config
+        string aiType = config.GetValueOrDefault("ai_type", "heuristic").ToString();
+        string personality = config.GetValueOrDefault("ai_personality", "balanced").ToString();
+        int difficulty = (int)config.GetValueOrDefault("ai_difficulty", 3);
+
+        // Extract interval config
+        float intervalMin = 3.0f;
+        float intervalMax = 6.0f;
+        var aiConfigVar = config.GetValueOrDefault("ai_config", default);
+        if (aiConfigVar.VariantType == Variant.Type.Dictionary)
         {
-            if (child.HasMethod("decide_next_play"))
-                child.QueueFree();
+            var aiCfg = aiConfigVar.AsGodotDictionary();
+            intervalMin = (float)aiCfg.GetValueOrDefault("play_interval_min", 3.0f);
+            intervalMax = (float)aiCfg.GetValueOrDefault("play_interval_max", 6.0f);
         }
 
-        // Create and attach AI
-        var aiLoaderScript = GD.Load<Script>("res://scripts/ai/ai_loader.gd");
-        if (aiLoaderScript == null) return;
+        // Extract script steps for scripted AI
+        Godot.Collections.Array? scriptSteps = null;
+        var scriptVar = config.GetValueOrDefault("ai_script", default);
+        if (scriptVar.VariantType == Variant.Type.Array)
+            scriptSteps = scriptVar.AsGodotArray();
 
-        var ai = (Node?)aiLoaderScript.Call("create_ai_for_battle", config, EnemySummoner);
-        if (ai != null)
-            EnemySummoner.AddChild(ai);
-        else
-            GD.PushError("BattleScene: Failed to create AI!");
+        // Configure AI via SimulationNode (team 1 = enemy in local coordinates)
+        simNode.ConfigureAi(1, aiType, personality, difficulty, intervalMin, intervalMax, scriptSteps);
     }
 
     private void InitUI()

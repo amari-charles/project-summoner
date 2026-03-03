@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Movement;
 using Fateforged.Units;
@@ -16,8 +17,9 @@ namespace Fateforged.Simulation;
 /// Pure deterministic simulation. All state mutations go through Tick().
 /// No Godot node dependencies — operates on MatchState data only.
 ///
-/// Tick Order Contract (11 steps):
+/// Tick Order Contract (12 steps):
 ///   1. Increment frame, advance match time (Battle only)
+///   1.5. Tick AI (produces PlayCardCommands into PendingCommandBuffer)
 ///   2. Drain and execute due commands
 ///   3. Phase timers / transitions (prep→battle: activate units, refresh hands)
 ///   4. Tick casting (decrement timers, handle completions, replacement draws)
@@ -63,6 +65,9 @@ public class Simulation
             _state.MatchTime += fixedDelta;
             events.Add(new MatchTimeUpdatedEvent(_state.MatchTime));
         }
+
+        // Step 1.5: Tick AI (produces PlayCardCommands into PendingCommandBuffer)
+        SimAi.Tick(_state, fixedDelta);
 
         // Step 2: Drain and execute due commands
         DrainCommands(events);

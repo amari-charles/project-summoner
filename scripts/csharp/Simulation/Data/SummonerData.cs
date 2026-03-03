@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fateforged.Cards;
+using Fateforged.Simulation.AI;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Data;
@@ -50,6 +51,12 @@ public class SummonerData
     {
         return _elementalDamageBonuses.TryGetValue(element, out float bonus) ? bonus : 0f;
     }
+
+    // AI state (null Ai = human-controlled)
+    public AiConfig? Ai { get; set; }
+    public float AiPlayTimer { get; set; }
+    public float AiNextPlayTime { get; set; }
+    public int AiScriptIndex { get; set; }
 
     // Casting state
     public bool IsCasting { get; set; }

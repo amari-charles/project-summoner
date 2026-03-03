@@ -44,4 +44,13 @@ public class DeterministicRng
         uint range = (uint)(max - min + 1);
         return min + (int)(Next() % range);
     }
+
+    /// <summary>
+    /// Random float in [min, max] range.
+    /// </summary>
+    public float RangeFloat(float min, float max)
+    {
+        if (min >= max) return min;
+        return min + NextFloat() * (max - min);
+    }
 }

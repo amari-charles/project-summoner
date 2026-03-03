@@ -548,9 +548,6 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 	# Generate deterministic seed from match ID
 	var battle_seed: int = match_id.hash()
 
-	# Set up BattleRNG
-	BattleRNG.set_battle_seed(battle_seed)
-
 	# Get player summoner and deck
 	var player_summoner_id: String = _get_active_summoner_id()
 	var player_deck: Array = _get_player_deck()

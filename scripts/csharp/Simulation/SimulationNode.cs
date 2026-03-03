@@ -5,6 +5,7 @@ using Fateforged.Multiplayer.Core;
 using Fateforged.Session;
 using Fateforged.Cards;
 using Fateforged.Units;
+using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -267,6 +268,89 @@ public partial class SimulationNode : Node, IGameSession
         }
 
         State.CardDataMap[catalogId] = simCard;
+    }
+
+    // =========================================================================
+    // AI CONFIGURATION
+    // =========================================================================
+
+    /// <summary>
+    /// Configure AI for a summoner. Called by BattleScene during init.
+    /// GDScript-callable: string enums parsed to C# enums.
+    /// </summary>
+    public void ConfigureAi(int team, string aiType, string personality = "balanced",
+        int difficulty = 3, float intervalMin = 3.0f, float intervalMax = 6.0f,
+        Godot.Collections.Array? scriptSteps = null)
+    {
+        int networkTeam = ToNetworkTeam(team);
+        var summoner = State.Summoners[networkTeam];
+
+        var type = aiType.ToLowerInvariant() switch
+        {
+            "simple" => AiType.Simple,
+            "heuristic" => AiType.Heuristic,
+            "scripted" => AiType.Scripted,
+            "passive" or "none" => AiType.None,
+            _ => AiType.Heuristic
+        };
+
+        if (type == AiType.None)
+        {
+            summoner.Ai = null;
+            return;
+        }
+
+        var pers = personality.ToLowerInvariant() switch
+        {
+            "aggressive" => AiPersonality.Aggressive,
+            "defensive" => AiPersonality.Defensive,
+            "spell_focused" => AiPersonality.SpellFocused,
+            _ => AiPersonality.Balanced
+        };
+
+        var config = new AiConfig
+        {
+            Type = type,
+            Personality = pers,
+            Difficulty = difficulty,
+            PlayIntervalMin = intervalMin,
+            PlayIntervalMax = intervalMax
+        };
+
+        // Parse scripted steps
+        if (type == AiType.Scripted && scriptSteps != null && scriptSteps.Count > 0)
+        {
+            var steps = new ScriptedAiStep[scriptSteps.Count];
+            for (int i = 0; i < scriptSteps.Count; i++)
+            {
+                var stepDict = scriptSteps[i].AsGodotDictionary();
+                float triggerTime = (float)stepDict.GetValueOrDefault("delay", 0.0f);
+                string cardId = stepDict.GetValueOrDefault("card_name", "").ToString();
+
+                SimVector3 spawnPos = SimVector3.Zero;
+                var posVar = stepDict.GetValueOrDefault("position", default);
+                if (posVar.VariantType == Variant.Type.Dictionary)
+                {
+                    var posDict = posVar.AsGodotDictionary();
+                    float px = (float)posDict.GetValueOrDefault("x", 0.0f);
+                    float pz = (float)posDict.GetValueOrDefault("y", 0.0f);
+                    spawnPos = ToSimCanonical(new Godot.Vector3(px, 0f, pz));
+                }
+                else if (posVar.VariantType == Variant.Type.Vector2)
+                {
+                    var v2 = posVar.AsVector2();
+                    spawnPos = ToSimCanonical(new Godot.Vector3(v2.X, 0f, v2.Y));
+                }
+
+                steps[i] = new ScriptedAiStep(triggerTime, cardId, spawnPos);
+            }
+            config.Script = steps;
+        }
+
+        summoner.Ai = config;
+        SimAi.InitializeTimer(State, summoner);
+
+        GD.Print($"[SimulationNode] Configured AI: team={networkTeam} type={type} personality={pers} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]");
     }
 
     // =========================================================================

@@ -433,9 +433,6 @@ func _start_match(battle_seed: int, player_summoner: String, opponent_summoner: 
 	else:
 		waiting_status_label.text = Loc.t("ui.multiplayer.match_starting")
 
-	# Set up BattleRNG with shared seed
-	BattleRNG.set_battle_seed(battle_seed)
-
 	# Get player deck
 	var player_deck: Array = _get_player_deck()
 
