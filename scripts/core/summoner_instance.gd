@@ -94,7 +94,7 @@ static func from_dict(data: Dictionary) -> SummonerInstance:
 		push_error("SummonerInstance.from_dict: Missing summoner_id")
 		return null
 
-	var summoner_config: SummonerConfig = SummonerCatalog.get_summoner_config(summoner_id)
+	var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
 	if not summoner_config:
 		push_error("SummonerInstance.from_dict: Summoner config not found: %s" % summoner_id)
 		return null
@@ -175,7 +175,7 @@ func _apply_trait_modifiers(stats: Dictionary) -> void:
 
 	var all_trait_ids: Array[String] = get_all_trait_ids()
 	for trait_id: String in all_trait_ids:
-		var trait_data: Dictionary = trait_catalog.get_trait(trait_id)
+		var trait_data: Dictionary = trait_catalog.GetTrait(trait_id)
 		if trait_data.is_empty():
 			push_warning("SummonerInstance: Unknown trait '%s' - skipping" % trait_id)
 			continue

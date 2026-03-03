@@ -1,10 +1,12 @@
 using System;
 using Godot;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Services.Campaign.Handlers;
-using ProjectSummoner.Services.Economy;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Campaign.Handlers;
+using Fateforged.Meta.Cards;
+using Fateforged.Meta.Economy;
+using Fateforged.Meta.Summoner;
 
-namespace ProjectSummoner.Services.Campaign;
+namespace Fateforged.Meta.Campaign;
 
 /// <summary>
 /// Campaign Service - Manages campaign progression and battle rewards.
@@ -57,6 +59,41 @@ public partial class CampaignService : Node
 	{
 		Instance = this;
 		Initialize();
+		AutoInitializeDependencies();
+	}
+
+	/// <summary>
+	/// Auto-initialize dependency callbacks by looking up sibling autoloads.
+	/// Only sets callbacks that haven't been injected (e.g., via InitForTesting).
+	/// </summary>
+	private void AutoInitializeDependencies()
+	{
+		if (_grantCardFunc == null)
+		{
+			var cardService = GetNodeOrNull<CardService>("/root/CardServiceCS");
+			if (cardService != null)
+			{
+				_grantCardFunc = (catalogId, rarity) => cardService.GrantCard(catalogId, rarity);
+
+				// Rebuild rewards handler with the new callback
+				if (_profileRepo != null && _store != null)
+				{
+					_rewards = new CampaignRewardHandler(_profileRepo, _store, GetActiveSummonerId, _grantCardFunc);
+				}
+			}
+		}
+
+		if (_getActiveSummonerFunc == null)
+		{
+			var summonerSelection = GetNodeOrNull<SummonerSelectionService>("/root/SummonerSelection");
+			if (summonerSelection != null)
+			{
+				_getActiveSummonerFunc = () => summonerSelection.GetActiveSummonerId();
+			}
+		}
+
+		// Initialize catalogs if not already done
+		InitializeCatalogs();
 	}
 
 	private void Initialize()
@@ -145,6 +182,12 @@ public partial class CampaignService : Node
 
 		// Also load graphs for node-based unlock logic
 		_graphStore?.InitializeFromCatalog();
+
+		// Set default campaign if none is active
+		if (string.IsNullOrEmpty(GetCurrentCampaignId()))
+		{
+			SetCurrentCampaign(Data.Events.CampaignIds.Default.Value);
+		}
 	}
 
 	/// <summary>Check if a campaign exists.</summary>
@@ -153,9 +196,12 @@ public partial class CampaignService : Node
 		return Data.Events.CampaignCatalog.HasCampaign(new Data.Events.CampaignId(campaignId));
 	}
 
-	/// <summary>Set the current campaign ID.</summary>
-	public void SetCurrentCampaign(string campaignId)
+	/// <summary>Set the current campaign ID. Returns true if the campaign exists and was set.</summary>
+	public bool SetCurrentCampaign(string campaignId)
 	{
+		if (!Data.Events.CampaignCatalog.HasCampaign(new Data.Events.CampaignId(campaignId)))
+			return false;
+
 		var oldId = _store?.CurrentCampaignId ?? "";
 		_progress?.SetCurrentCampaign(campaignId);
 		_graphStore?.SetCurrentCampaign(campaignId);
@@ -170,6 +216,8 @@ public partial class CampaignService : Node
 		{
 			EmitSignal(SignalName.CampaignChanged, oldId, campaignId);
 		}
+
+		return true;
 	}
 
 	/// <summary>Get the current campaign ID.</summary>
