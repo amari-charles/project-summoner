@@ -19,7 +19,7 @@ script = ExtResource("2_test_controller")
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
 script = ExtResource("3_summoner")
-DeckLoadStrategy = 3
+DeckLoadStrategy = 1
 
 [node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
 pixel_size = 0.15
@@ -37,7 +37,7 @@ shape = SubResource("CylinderShape3D_summoner")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
 script = ExtResource("3_summoner")
 Team = 1
-DeckLoadStrategy = 3
+DeckLoadStrategy = 1
 
 [node name="Visual" type="Sprite3D" parent="EnemySummoner"]
 pixel_size = 0.15

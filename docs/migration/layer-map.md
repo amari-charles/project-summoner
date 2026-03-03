@@ -121,7 +121,7 @@ Reads game state and renders it. No game logic, no mutation.
 | `vfx_instance.gd` | `scripts/vfx/vfx_instance.gd` | View | Stays | VFX instance |
 | `VfxId` | `Vfx/VfxId.cs` | View | Stays | VFX identifier type |
 | Spell VFX scripts | `scripts/vfx/fireball_spell_vfx.gd`, `lightning_strike_vfx.gd` | View | Stays | Spell visual effects |
-| `redirect_indicator.gd` | `scripts/vfx/redirect_indicator.gd` | View | Stays | Visual indicator |
+| `redirect_indicator.gd` | ~~`scripts/vfx/redirect_indicator.gd`~~ | View | Deleted | Dead code — referenced deleted RedirectManager |
 | `BattlefieldVisuals3D` | `scripts/battlefield/battlefield_visuals_3d.gd` | View | Renames | → `BattlefieldEnvironment` |
 | `base_battlefield_3d.gd` | `scripts/battlefield/base_battlefield_3d.gd` | View | Stays | Base battlefield scene |
 | `biome_config.gd` | `scripts/battlefield/biome_config.gd` | View | Stays | Biome visual configuration |

@@ -175,6 +175,16 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         _lastMaxHp = summoner.MaxHp;
         _lastIsCasting = summoner.IsCasting;
 
+        // Emit initial hand so the UI shows starting cards without waiting for a HandChangedEvent.
+        // SetSummonerHand() writes directly to MatchState with no event — host mode never polls,
+        // so without this the hand would be invisible until the first card draw.
+        if (summoner.Hand.Count > 0)
+        {
+            _lastHandIds = summoner.Hand.ToArray();
+            RebuildHandCache(_lastHandIds);
+            EmitSignal(SignalName.HandChanged, _handCache);
+        }
+
         EmitSignal(SignalName.SummonerReady, this);
     }
 

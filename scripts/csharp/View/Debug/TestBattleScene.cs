@@ -18,6 +18,11 @@ public partial class TestBattleScene : BattleScene
         {
             var config = new Godot.Collections.Dictionary
             {
+                { "dev_player_deck", new Godot.Collections.Array
+                    {
+                        new Godot.Collections.Dictionary { { "catalog_id", "fire_wisp" }, { "count", 30 } }
+                    }
+                },
                 { "enemy_deck", new Godot.Collections.Array
                     {
                         new Godot.Collections.Dictionary { { "catalog_id", "fire_wisp" }, { "count", 30 } }
@@ -35,6 +40,9 @@ public partial class TestBattleScene : BattleScene
             projectileCatalog.Call("reload_projectiles");
             GD.Print("[TestBattleScene] Reloaded projectile data from disk");
         }
+
+        // Skip 30-second prep phase so AI starts immediately in test scenes
+        PreparationDuration = 0f;
 
         // Call parent _Ready (runs full init sequence)
         base._Ready();
